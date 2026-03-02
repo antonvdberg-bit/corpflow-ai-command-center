@@ -26,7 +26,7 @@ The Antigravity Workspace Template is evolving toward a comprehensive **Agent Op
 **Achievements:**
 - Project structure with agents/ and tools/ modules
 - Configuration management via `config.py`
-- JSON-based memory system (`agent_memory.json`)
+- Markdown-based memory system (`memory/agent_memory.md`)
 - Artifact-First protocol setup
 
 ### Phase 2: DevOps ✅

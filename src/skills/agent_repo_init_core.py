@@ -334,6 +334,7 @@ def initialize_agent_repo(
         ".venv",
         "antigravity_workspace_template_venv",
         "agent_memory.json",
+        "memory",
         "artifacts",
         "*.pyc",
     )

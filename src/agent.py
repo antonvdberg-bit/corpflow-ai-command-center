@@ -37,6 +37,7 @@ class GeminiAgent:
         self.settings = settings
         self._ensure_workspace_paths()
         self.memory = MemoryManager()
+        self._latest_retrieved_memory = ""
         self.mcp_manager = None  # Will be initialized if MCP is enabled
         self.use_openai_backend = False  # Use OpenAI-compatible backend when configured
 
@@ -366,10 +367,17 @@ class GeminiAgent:
         Generates a Chain-of-Thought plan using the specific Deep Think prompt.
         """
         context_knowledge = self._load_context()
+        retrieved_memory_block = ""
+        if self._latest_retrieved_memory:
+            retrieved_memory_block = (
+                "Retrieved Memory Snippets (pre-fetched):\n"
+                f"{self._latest_retrieved_memory}\n\n"
+            )
         
         # This prompt is derived from .antigravity/rules.md
         thinking_prompt = (
             f"{context_knowledge}\n\n"
+            f"{retrieved_memory_block}"
             "You are a Google Antigravity Expert in Deep Think mode.\n"
             "Your Goal: Analyze the user task and formulate a precise execution plan.\n"
             "BEHAVIOR:\n"
@@ -397,6 +405,11 @@ class GeminiAgent:
         """
         # 1) Record user input
         self.memory.add_entry("user", task)
+        self._latest_retrieved_memory = self.memory.build_retrieval_context(
+            query=task,
+            limit=6,
+            max_chars=1600,
+        )
 
         # 2) Think (integrated CoT)
         thought_process = self.think(task)
@@ -408,6 +421,8 @@ class GeminiAgent:
 
         system_prompt = (
             "You are an expert AI agent following the Think-Act-Reflect loop.\n"
+            "Relevant Retrieved Memory Snippets:\n"
+            f"{self._latest_retrieved_memory}\n\n"
             "You have access to the following tools:\n"
             f"{tool_list}\n\n"
             f"Relevant Context/Plan:\n{thought_process}\n\n"

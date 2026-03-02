@@ -26,7 +26,7 @@ La Plantilla Antigravity Workspace está evolucionando hacia un **Sistema Operat
 **Logros:**
 - Estructura del proyecto con módulos agents/ y tools/
 - Gestión de configuración via `config.py`
-- Sistema de memoria basado en JSON (`agent_memory.json`)
+- Sistema de memoria basado en Markdown (`memory/agent_memory.md`)
 - Setup del protocolo Artifact-First
 
 ### Fase 2: DevOps ✅

@@ -21,7 +21,7 @@ python src/agent.py
 ```
 
 该命令每次执行一个任务，并会自动：
-- 🧠 从 `agent_memory.json` 加载记忆
+- 🧠 从 `memory/agent_memory.md` 加载记忆
 - 🛠️ 发现 `src/tools/` 里的工具
 - 📚 注入 `.context/` 的知识
 
@@ -68,10 +68,14 @@ ARTIFACTS_DIR=artifacts
 避免输出落到 IDE 的默认目录。
 
 ### 记忆管理
-使用 `agent_memory.json` 自动管理。重置方法：
+记忆由以下 Markdown 文件自动管理：
+- `memory/agent_memory.md`（原始记忆条目）
+- `memory/agent_summary.md`（压缩摘要）
+
+重置方法：
 
 ```bash
-rm agent_memory.json
+rm -f memory/agent_memory.md memory/agent_summary.md
 python src/agent.py
 ```
 
@@ -127,10 +131,10 @@ python -m py_compile src/tools/*.py
 ### 记忆异常
 ```bash
 # 查看记忆
-cat agent_memory.json | python -m json.tool
+cat memory/agent_memory.md
 
 # 清理记忆
-rm agent_memory.json
+rm -f memory/agent_memory.md memory/agent_summary.md
 ```
 
 ## 🔌 MCP 集成

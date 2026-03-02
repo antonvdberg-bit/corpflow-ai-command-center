@@ -21,7 +21,7 @@ python src/agent.py
 ```
 
 El agente ejecuta una tarea por invocación. Automáticamente:
-- 🧠 Carga la memoria desde `agent_memory.json`
+- 🧠 Carga la memoria desde `memory/agent_memory.md`
 - 🛠️ Descubre herramientas en `src/tools/`
 - 📚 Ingiere contexto desde `.context/`
 
@@ -74,10 +74,14 @@ ARTIFACTS_DIR=artifacts
 resuelven desde la raíz del repositorio.
 
 ### Gestión de Memoria
-El agente gestiona automáticamente la memoria mediante `agent_memory.json`. Para reiniciar:
+El agente gestiona la memoria con archivos markdown:
+- `memory/agent_memory.md` (entradas crudas)
+- `memory/agent_summary.md` (resumen comprimido)
+
+Para reiniciar:
 
 ```bash
-rm agent_memory.json
+rm -f memory/agent_memory.md memory/agent_summary.md
 python src/agent.py
 ```
 
@@ -133,10 +137,10 @@ python -m py_compile src/tools/*.py
 ### Problemas de memoria
 ```bash
 # Verifica el archivo de memoria
-cat agent_memory.json | python -m json.tool
+cat memory/agent_memory.md
 
 # Limpia la memoria
-rm agent_memory.json
+rm -f memory/agent_memory.md memory/agent_summary.md
 ```
 
 ## 🔌 Integración de MCP

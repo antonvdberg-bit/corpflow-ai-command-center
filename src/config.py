@@ -56,7 +56,8 @@ class Settings(BaseSettings):
     )
 
     # Memory Configuration
-    MEMORY_FILE: str = "agent_memory.json"
+    MEMORY_FILE: str = "memory/agent_memory.md"
+    MEMORY_SUMMARY_FILE: str = "memory/agent_summary.md"
     ARTIFACTS_DIR: str = Field(
         default="artifacts",
         description="Directory for artifacts and logs. Relative paths are resolved from PROJECT_ROOT.",
@@ -104,6 +105,11 @@ class Settings(BaseSettings):
     def memory_file_path(self) -> Path:
         """Return the resolved memory file path."""
         return self.resolve_path(self.MEMORY_FILE)
+
+    @property
+    def memory_summary_file_path(self) -> Path:
+        """Return the resolved memory summary file path."""
+        return self.resolve_path(self.MEMORY_SUMMARY_FILE)
 
     @property
     def artifacts_path(self) -> Path:
