@@ -1,6 +1,6 @@
-# 🪐 Google Antigravity Workspace Template
+# 🪐Antigravity Workspace Template
 
-**用于在 Google Antigravity 上构建自主 AI 代理的生产级入门套件。**
+**用于Ai coding构建自主 AI 代理的生产级入门套件。**
 
 语言: [English](/docs/en/) | [中文（仓库主页）](README_CN.md) | [中文文档](/docs/zh/) | [Español](/docs/es/)
 
