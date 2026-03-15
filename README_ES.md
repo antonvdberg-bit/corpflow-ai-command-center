@@ -273,28 +273,35 @@ Consulta la [Hoja de Ruta](docs/es/ROADMAP.md) para detalles.
 
 <table>
   <tr>
-    <td align="center" width="25%">
+    <td align="center" width="20%">
+      <a href="https://github.com/Lling0000">
+        <img src="https://github.com/Lling0000.png" width="80" /><br/>
+        <b>⭐ Lling0000</b>
+      </a><br/>
+      <sub><b>Contribuidor Principal</b> · Sugerencias creativas · Administrador del proyecto · Ideación y feedback del proyecto</sub>
+    </td>
+    <td align="center" width="20%">
       <a href="https://github.com/devalexanderdaza">
         <img src="https://github.com/devalexanderdaza.png" width="80" /><br/>
         <b>Alexander Daza</b>
       </a><br/>
       <sub>Sandbox MVP · Workflows OpenSpec · Docs de análisis técnico · PHILOSOPHY</sub>
     </td>
-    <td align="center" width="25%">
+    <td align="center" width="20%">
       <a href="https://github.com/chenyi">
         <img src="https://github.com/chenyi.png" width="80" /><br/>
         <b>Chen Yi</b>
       </a><br/>
       <sub>Primer prototipo CLI · Refactor de 753 líneas · Extracción DummyClient · Docs quick-start</sub>
     </td>
-    <td align="center" width="25%">
+    <td align="center" width="20%">
       <a href="https://github.com/Subham-KRLX">
         <img src="https://github.com/Subham-KRLX.png" width="80" /><br/>
         <b>Subham Sangwan</b>
       </a><br/>
       <sub>Carga dinámica de herramientas (#4) · Protocolo swarm multiagente (#3)</sub>
     </td>
-    <td align="center" width="25%">
+    <td align="center" width="20%">
       <a href="https://github.com/shuofengzhang">
         <img src="https://github.com/shuofengzhang.png" width="80" /><br/>
         <b>shuofengzhang</b>

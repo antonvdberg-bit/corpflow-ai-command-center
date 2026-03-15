@@ -273,28 +273,35 @@ Ideas are contributions too! Open an [issue](https://github.com/study8677/antigr
 
 <table>
   <tr>
-    <td align="center" width="25%">
+    <td align="center" width="20%">
+      <a href="https://github.com/Lling0000">
+        <img src="https://github.com/Lling0000.png" width="80" /><br/>
+        <b>⭐ Lling0000</b>
+      </a><br/>
+      <sub><b>Major Contributor</b> · Creative suggestions · Project administrator · Project ideation & feedback</sub>
+    </td>
+    <td align="center" width="20%">
       <a href="https://github.com/devalexanderdaza">
         <img src="https://github.com/devalexanderdaza.png" width="80" /><br/>
         <b>Alexander Daza</b>
       </a><br/>
       <sub>Sandbox MVP · OpenSpec workflows · Technical analysis docs · PHILOSOPHY</sub>
     </td>
-    <td align="center" width="25%">
+    <td align="center" width="20%">
       <a href="https://github.com/chenyi">
         <img src="https://github.com/chenyi.png" width="80" /><br/>
         <b>Chen Yi</b>
       </a><br/>
       <sub>First CLI prototype · 753-line refactor · DummyClient extraction · Quick-start docs</sub>
     </td>
-    <td align="center" width="25%">
+    <td align="center" width="20%">
       <a href="https://github.com/Subham-KRLX">
         <img src="https://github.com/Subham-KRLX.png" width="80" /><br/>
         <b>Subham Sangwan</b>
       </a><br/>
       <sub>Dynamic tool & context loading (#4) · Multi-agent swarm protocol (#3)</sub>
     </td>
-    <td align="center" width="25%">
+    <td align="center" width="20%">
       <a href="https://github.com/shuofengzhang">
         <img src="https://github.com/shuofengzhang.png" width="80" /><br/>
         <b>shuofengzhang</b>
