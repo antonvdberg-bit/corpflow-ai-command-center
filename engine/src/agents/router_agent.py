@@ -6,7 +6,7 @@ determining which specialist agents to involve, and synthesizing final results.
 """
 
 from typing import Dict, List
-from src.agents.base_agent import BaseAgent
+from engine.src.agents.base_agent import BaseAgent
 
 
 class RouterAgent(BaseAgent):

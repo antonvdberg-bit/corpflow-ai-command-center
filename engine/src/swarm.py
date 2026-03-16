@@ -7,10 +7,10 @@ specialist agents to solve complex tasks collaboratively.
 
 from typing import Any, Dict, List
 from datetime import datetime
-from src.agents.router_agent import RouterAgent
-from src.agents.coder_agent import CoderAgent
-from src.agents.reviewer_agent import ReviewerAgent
-from src.agents.researcher_agent import ResearcherAgent
+from engine.src.agents.router_agent import RouterAgent
+from engine.src.agents.coder_agent import CoderAgent
+from engine.src.agents.reviewer_agent import ReviewerAgent
+from engine.src.agents.researcher_agent import ResearcherAgent
 
 
 class MessageBus:

@@ -15,9 +15,9 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from google import genai
 
-from src.config import settings
-from src.memory import MemoryManager
-from src.tools.openai_proxy import call_openai_chat
+from engine.src.config import settings
+from engine.src.memory import MemoryManager
+from engine.src.tools.openai_proxy import call_openai_chat
 
 
 class GeminiAgent:
@@ -51,7 +51,7 @@ class GeminiAgent:
         # Load Skills
         self.skill_docs = ""
         try:
-            from src.skills.loader import load_skills
+            from engine.src.skills.loader import load_skills
             self.skill_docs = load_skills(self.available_tools)
         except ImportError:
             print("⚠️ Skills loader not found, skipping skills.")
@@ -135,8 +135,8 @@ class GeminiAgent:
         4. Makes MCP tools available alongside local tools
         """
         try:
-            from src.mcp_client import MCPClientManagerSync
-            from src.tools.mcp_tools import _set_mcp_manager
+            from engine.src.mcp_client import MCPClientManagerSync
+            from engine.src.tools.mcp_tools import _set_mcp_manager
 
             print("🔌 Initializing MCP integration...")
 
@@ -549,7 +549,7 @@ if __name__ == "__main__":
         os.environ["WORKSPACE_PATH"] = str(Path(args.workspace).resolve())
 
     # Re-import settings so it picks up the new env var
-    from src.config import Settings
+    from engine.src.config import Settings
     settings_instance = Settings()
 
     task = " ".join(args.task).strip() or os.environ.get(

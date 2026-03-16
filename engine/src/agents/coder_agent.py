@@ -4,7 +4,7 @@ Coder Agent - Specialist in code generation, refactoring, and implementation.
 Focuses on writing clean, well-documented code following best practices.
 """
 
-from src.agents.base_agent import BaseAgent
+from engine.src.agents.base_agent import BaseAgent
 
 
 class CoderAgent(BaseAgent):

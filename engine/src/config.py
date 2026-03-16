@@ -32,7 +32,7 @@ class Settings(BaseSettings):
 
     # Google GenAI Configuration
     GOOGLE_API_KEY: str = ""
-    GEMINI_MODEL_NAME: str = "gemini-2.0-flash-exp"  # Default to latest
+    GEMINI_MODEL_NAME: str = "gemini-3-flash-preview"  # Default to latest
 
     # Agent Configuration
     AGENT_NAME: str = "AntigravityAgent"

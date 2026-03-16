@@ -1,6 +1,6 @@
 from typing import Any
 
-from src.skills.agent_repo_init_core import (
+from engine.src.skills.agent_repo_init_core import (
     InitMode,
     LlmProvider,
     RepoInitOptions,

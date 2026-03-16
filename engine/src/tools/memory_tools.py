@@ -4,7 +4,7 @@ from pathlib import Path
 import subprocess
 from typing import Optional
 
-from src.config import settings
+from engine.src.config import settings
 
 
 def _resolve_memory_file(memory_file: Optional[str]) -> Path:

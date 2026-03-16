@@ -4,7 +4,7 @@ Researcher Agent - Specialist in information gathering and analysis.
 Focuses on finding relevant information, synthesizing knowledge, and providing insights.
 """
 
-from src.agents.base_agent import BaseAgent
+from engine.src.agents.base_agent import BaseAgent
 
 
 class ResearcherAgent(BaseAgent):

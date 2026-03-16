@@ -8,7 +8,7 @@ providers like Ollama/Llama.cpp that expose the same API).
 from typing import Optional, List, Dict, Any
 import requests
 
-from src.config import settings
+from engine.src.config import settings
 
 
 def call_openai_chat(

@@ -23,11 +23,20 @@ def main():
     parser.add_argument("task", nargs="*", help="Task to execute.")
     args = parser.parse_args()
 
+    # Load environment variables from .env file
+    import dotenv
+    dotenv.load_dotenv()
+
+    # Map GEMINI_API_KEY to GOOGLE_API_KEY if needed
+    if 'GEMINI_API_KEY' in os.environ and not os.environ.get('GOOGLE_API_KEY'):
+        os.environ['GOOGLE_API_KEY'] = os.environ['GEMINI_API_KEY']
+
     # Set WORKSPACE_PATH *before* importing Settings / GeminiAgent
     if args.workspace:
         os.environ["WORKSPACE_PATH"] = str(Path(args.workspace).resolve())
 
-    from src.agent import GeminiAgent
+    # Import GeminiAgent from the engine codebase directly (avoid importing root/src/agent.py)
+    from engine.src.agent import GeminiAgent
 
     task = " ".join(args.task).strip() or os.environ.get(
         "AGENT_TASK", "帮助我查看今天的天气"

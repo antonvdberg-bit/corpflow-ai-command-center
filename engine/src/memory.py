@@ -3,7 +3,7 @@ import re
 from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional
 
-from src.config import settings
+from engine.src.config import settings
 
 
 ENTRY_PATTERN = re.compile(

@@ -13,7 +13,7 @@ These tools allow the agent to:
 import json
 from typing import Any, Dict, List, Optional
 
-from src.config import settings
+from engine.src.config import settings
 
 
 def list_mcp_servers() -> str:
@@ -32,7 +32,7 @@ def list_mcp_servers() -> str:
          2. database (http) - Disconnected ✗ - Error: Connection refused"
     """
     try:
-        from src.mcp_client import MCPClientManager
+        from engine.src.mcp_client import MCPClientManager
 
         # Try to get the global manager instance
         # This will be set by the agent during initialization

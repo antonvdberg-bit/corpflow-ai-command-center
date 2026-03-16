@@ -17,7 +17,7 @@ import os
 from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple
 from dataclasses import dataclass, field
 
-from src.config import settings, MCPServerConfig
+from engine.src.config import settings, MCPServerConfig
 
 
 @dataclass

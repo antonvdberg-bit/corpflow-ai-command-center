@@ -4,7 +4,7 @@ Reviewer Agent - Specialist in code review, quality analysis, and security.
 Focuses on identifying issues, suggesting improvements, and ensuring best practices.
 """
 
-from src.agents.base_agent import BaseAgent
+from engine.src.agents.base_agent import BaseAgent
 
 
 class ReviewerAgent(BaseAgent):

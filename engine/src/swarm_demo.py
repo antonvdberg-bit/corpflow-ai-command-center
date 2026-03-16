@@ -7,7 +7,7 @@ Usage:
     python -m src.swarm_demo
 """
 
-from src.swarm import SwarmOrchestrator
+from engine.src.swarm import SwarmOrchestrator
 
 
 def main():

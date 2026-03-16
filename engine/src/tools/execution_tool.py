@@ -1,7 +1,7 @@
 from typing import Optional
 import os
 
-from src.sandbox.factory import get_sandbox
+from engine.src.sandbox.factory import get_sandbox
 
 
 def run_python_code(code: str, timeout: Optional[int] = None) -> str:
