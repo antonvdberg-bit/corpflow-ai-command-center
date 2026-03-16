@@ -41,3 +41,20 @@ venv.bak/
 logs/
 data/
 .opencode/
+
+# --- Security / Secret Protection ---
+.pytest_cache/
+instance/
+
+# --- Database & Storage ---
+*.db
+*.sqlite
+artifacts/logs/
+artifacts/screenshots/
+
+# --- Client Keys (Safety Net) ---
+# This ensures that even if you accidentally put keys in a tenant folder, 
+# they won't be committed if you name them following these patterns:
+tenants/**/keys.json
+tenants/**/*.key
+tenants/**/.env
