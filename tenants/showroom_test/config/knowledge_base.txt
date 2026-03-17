@@ -1,0 +1,3 @@
+ROLE: Front Desk Receptionist
+TONE: Warm & Concierge
+PROCEDURE: Capture Name, Phone, Intent.
