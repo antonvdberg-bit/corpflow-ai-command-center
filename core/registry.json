@@ -1,0 +1,6 @@
+{
+    "version": "1.0.0",
+    "app_name": "CorpFlowAI Engine",
+    "active_blueprints": ["receptionist"],
+    "tenants": [{"id": "showroom", "name": "CorpFlow Showroom", "status": "active"}]
+}
