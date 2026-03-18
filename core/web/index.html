@@ -1,62 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><title>CorpFlowAI | Autonomous Business Systems</title>
+    <meta charset="UTF-8">
+    <title>CorpFlowAI | Autonomous Business Systems</title>
+    <link rel="icon" type="image/png" href="/assets/favicon-16x16.png">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        body { background: #0f172a; color: white; font-family: sans-serif; }
-        .gradient-text { background: linear-gradient(90deg, #60a5fa, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        body { background: #020617; color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass { background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.08); }
+        .hero-bg { 
+            background: radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 100% 100%, rgba(20, 184, 166, 0.1) 0%, transparent 50%);
+        }
+        .logo-nav { height: 40px; filter: brightness(1.2); }
     </style>
 </head>
-<body>
-    <nav class="p-6 border-b border-slate-800 bg-slate-900/50 backdrop-blur">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-white">Corp<span class="text-blue-500">Flow</span>AI</h1>
-            <div class="space-x-4">
-                <a href="#demo" class="text-slate-300 hover:text-white">Active Demo</a>
-                <a href="#insights" class="text-slate-300 hover:text-white">Expert Insights</a>
-                <a href="#results" class="text-slate-300 hover:text-white">Case Studies</a>
-            </div>
+<body class="hero-bg min-h-screen">
+    <nav class="p-8 flex justify-between items-center max-w-7xl mx-auto">
+        <img src="/assets/LogoSQBK.jpg" alt="CorpFlowAI" class="logo-nav rounded-lg">
+        
+        <div class="hidden md:flex space-x-12 text-[10px] uppercase tracking-[0.4em] font-semibold text-slate-500">
+            <a href="#demo" class="hover:text-blue-400 transition">The Intelligence</a>
+            <a href="#insights" class="hover:text-blue-400 transition">Insights</a>
+            <a href="/results.html" class="text-blue-500 hover:text-white transition">Live ROI</a>
         </div>
     </nav>
 
-    <header class="py-24 text-center">
-        <div class="max-w-4xl mx-auto px-6">
-            <div class="inline-block bg-blue-900/50 border border-blue-700 text-blue-300 text-xs font-bold px-4 py-2 rounded-full mb-4">NOW ACCEPTING MAURITIUS MED-SPAS</div>
-            <h1 class="text-6xl font-extrabold mb-6">Scale. Streamline. <span class="gradient-text">Automate.</span></h1>
-            <p class="text-xl text-slate-400 mb-10">We build hyper-efficient, Groq-powered AI systems that run your backend and grow your revenue—while you focus on your clients.</p>
-            <a href="#demo" class="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-500">LAUNCH ACTIVE CONCIERGE DEMO</a>
-        </div>
-    </header>
+    <main class="max-w-7xl mx-auto px-6 pt-24">
+        <section class="mb-32">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold tracking-widest uppercase mb-8">
+                <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span></span>
+                Operational in Mauritius
+            </div>
+            <h1 class="text-7xl md:text-8xl font-light tracking-tighter leading-[0.9] mb-8">
+                Elite Business <br><span class="italic font-serif text-blue-500">Autonomy.</span>
+            </h1>
+            <p class="max-w-xl text-slate-400 text-lg leading-relaxed mb-12">
+                We engineer bespoke intelligence for high-end service firms. Capturing leads, managing calendars, and scaling revenue—without a single human click.
+            </p>
+            <a href="#demo" class="bg-white text-black px-10 py-5 rounded-full font-bold text-xs uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all duration-500">
+                Enter The Showroom
+            </a>
+        </section>
 
-    <section id="demo" class="py-16 bg-slate-900 border-y border-slate-800">
-        <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            <div>
-                <h2 class="text-3xl font-bold mb-4">Experience the 'Serenity Wellness' AI Concierge</h2>
-                <p class="text-slate-400 mb-6">Interact with our Llama-based agent, trained to manage bookings, qualify leads, and deliver a seamless client experience 24/7. This system is live, powered by LPU architecture, and ready to scale a local clinic.</p>
-                <div class="p-4 bg-slate-800/50 rounded-xl border border-slate-700 text-sm text-slate-300">
-                    <span class="text-green-400 font-bold">Try This:</span> "Ask about the Hydrafacial discount" or "Tell me about Botox pricing."
+        <section id="demo" class="pb-32">
+            <div class="glass rounded-[48px] overflow-hidden grid grid-cols-1 lg:grid-cols-2 min-h-[650px]">
+                <div class="p-16 flex flex-col justify-between">
+                    <div>
+                        <h2 class="text-4xl font-light mb-6">The Serenity <br>Concierge</h2>
+                        <p class="text-slate-400 leading-relaxed mb-8">Test the speed and nuance of our medical-grade AI. Designed specifically for aesthetic clinics to handle complex pricing and booking inquiries instantly.</p>
+                    </div>
+                    <div class="space-y-4">
+                         <div class="flex items-center gap-3 text-xs text-slate-500 uppercase tracking-widest font-bold">
+                            <img src="/assets/favicon-16x16.png" class="w-4 h-4 opacity-50">
+                            Neural-Engine Response
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-950/40 p-12 flex flex-col border-l border-white/5">
+                    <div id="chat-output" class="flex-1 overflow-y-auto space-y-6 text-sm mb-8 pr-4 custom-scrollbar">
+                        <div class="text-blue-300 font-serif italic text-lg opacity-80">"How may I assist with your wellness journey today?"</div>
+                    </div>
+                    <div class="relative group">
+                        <input id="user-input" type="text" placeholder="Inquire about Botox or Hydrafacial..." 
+                            class="w-full bg-transparent border-b border-slate-800 py-4 pr-12 focus:outline-none focus:border-blue-500 transition-all text-lg placeholder:text-slate-700">
+                        <button onclick="sendMessage()" class="absolute right-0 bottom-4 text-blue-500 hover:text-white transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
-            <div class="bg-slate-950 p-6 rounded-3xl border border-slate-700 h-96 flex flex-col">
-                <div class="text-blue-400 border-b border-slate-800 pb-2 mb-4">Serenity Wellness Concierge [ACTIVE]</div>
-                <div id="chat-output" class="flex-1 overflow-y-auto space-y-4 mb-4 text-sm">
-                    <div class="text-blue-300">Welcome to Serenity. How can I assist you today?</div>
-                </div>
-                <div class="flex gap-2">
-                    <input id="user-input" type="text" class="flex-1 bg-slate-800 p-3 rounded-xl focus:ring-2 focus:ring-blue-500">
-                    <button onclick="sendMessage()" class="bg-blue-600 p-3 rounded-xl font-bold">SEND</button>
-                </div>
-            </div>
-        </div>
-    </section>
-    
-    <section id="insights" class="py-24">
-        <div class="max-w-7xl mx-auto px-6">
-            <h2 class="text-4xl font-bold mb-12 text-center">Expert Insights</h2>
-            <div id="blog-grid" class="grid grid-cols-1 md:grid-cols-3 gap-8"></div>
-        </div>
-    </section>
+        </section>
+    </main>
 
     <script>
         async function sendMessage() {
@@ -64,43 +83,19 @@
             const output = document.getElementById('chat-output');
             const msg = input.value;
             if(!msg) return;
-            
-            output.innerHTML += `<div class="text-right text-slate-400">You: ${msg}</div>`;
+
+            output.innerHTML += `<div class="text-right"><div class="inline-block text-white text-xl font-light py-2 mb-4">${msg}</div></div>`;
             input.value = '';
             
-            const res = await fetch(`/api/chat?tenant_id=showroom_test&message=${encodeURIComponent(msg)}`);
-            const data = await res.json();
-            
-            output.innerHTML += `<div class="text-blue-300"><b>AI:</b> ${data.response}</div>`;
-            output.scrollTop = output.scrollHeight;
-
-            // REDIRECT LOGIC: Triggers when the AI confirms a booking
-            const triggerWords = ["confirmed", "reserved", "booked", "all set"];
-            const lowerResponse = data.response.toLowerCase();
-            
-            if (triggerWords.some(word => lowerResponse.includes(word))) {
-                console.log("Booking detected. Redirecting in 2.5s...");
-                setTimeout(() => {
-                    window.location.href = "/confirm.html";
-                }, 2500);
+            try {
+                const res = await fetch(`/api/chat?tenant_id=showroom_test&message=${encodeURIComponent(msg)}`);
+                const data = await res.json();
+                output.innerHTML += `<div class="text-slate-400 leading-relaxed max-w-[85%] mb-6">${data.response}</div>`;
+            } catch (e) {
+                output.innerHTML += `<div class="text-red-500 text-xs uppercase tracking-widest opacity-50">Sync Error: Verify API Keys</div>`;
             }
+            output.scrollTop = output.scrollHeight;
         }
-
-        const blogs = [
-            { title: "24/7 Spa Concierge: Reclaiming Lost Revenue", snippet: "How AI automated booking systems find value in off-hours." },
-            { title: "The Mauritius Tech Boom: AI Meets Wellness", snippet: "Why local clinic owners are investing in autonomous systems." },
-            { title: "ROI on Autopilot: Tracking Leads Automatically", snippet: "Measuring the success of your digital employee in real-time." }
-        ];
-        
-        blogs.forEach(blog => {
-            document.getElementById('blog-grid').innerHTML += `
-                <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800">
-                    <h3 class="text-lg font-bold mb-2 text-white">${blog.title}</h3>
-                    <p class="text-slate-400 text-sm mb-4">${blog.snippet}</p>
-                    <a href="/blogs.html" class="text-blue-400 hover:text-blue-300">Read More →</a>
-                </div>
-            `;
-        });
     </script>
 </body>
 </html>
