@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><title>CorpFlow | Admin HQ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>body { background: #0f172a; color: white; font-family: sans-serif; }</style>
+</head>
+<body class="p-10">
+    <div class="max-w-2xl mx-auto bg-slate-900 p-8 rounded-2xl border border-slate-800">
+        <h1 class="text-2xl font-bold mb-6 text-blue-400">Client Launchpad</h1>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="block text-xs uppercase opacity-50 mb-1">Business Name</label>
+                <input id="client_name" type="text" class="w-full bg-slate-800 border-none rounded p-3" placeholder="e.g. Serenity Medical Spa">
+            </div>
+            <div>
+                <label class="block text-xs uppercase opacity-50 mb-1">Industry Blueprint</label>
+                <select id="blueprint" class="w-full bg-slate-800 border-none rounded p-3">
+                    <option value="medical_spa">Medical Spa / Wellness</option>
+                    <option value="legal_concierge">Legal / Law Firm</option>
+                    <option value="sales_hunter">B2B Sales Agent</option>
+                </select>
+            </div>
+            <button onclick="launchClient()" class="w-full bg-blue-600 py-4 rounded-xl font-bold hover:bg-blue-500 transition mt-6">
+                PROVISION AI INSTANCE
+            </button>
+        </div>
+        <div id="status" class="mt-6 text-sm text-center opacity-70"></div>
+    </div>
+
+    <script>
+        async function launchClient() {
+            const name = document.getElementById('client_name').value;
+            const blueprint = document.getElementById('blueprint').value;
+            const status = document.getElementById('status');
+            
+            status.innerText = "🛠️ Communicating with Baserow & Provisioning Engine...";
+            
+            // This calls your API bridge
+            const res = await fetch(`/api/onboard?name=${name}&type=${blueprint}`);
+            const data = await res.json();
+            
+            if(data.success) {
+                status.innerHTML = "✅ SUCCESS: " + name + " is now LIVE. <br> Deployment URL: " + name.toLowerCase().replace(/ /g, '-') + ".corpflowai.com";
+            }
+        }
+    </script>
+</body>
+</html>
