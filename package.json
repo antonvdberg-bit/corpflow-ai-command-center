@@ -1,12 +1,7 @@
 {
   "name": "corpflow-ai-command-center",
   "version": "1.0.0",
-  "dependencies": {
-    "antigravity-ide": "*"
-  },
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js",
-    "version": "npm version"
+    "build": "mkdir -p public && cp core/web/index.html public/index.html"
   }
 }
