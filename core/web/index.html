@@ -45,7 +45,7 @@
                 </div>
                 <div class="flex gap-2">
                     <input id="user-input" type="text" class="flex-1 bg-slate-800 p-3 rounded-xl focus:ring-2 focus:ring-blue-500">
-                    <button onclick="sendMessage()" class="bg-blue-600 p-3 rounded-xl">SEND</button>
+                    <button onclick="sendMessage()" class="bg-blue-600 p-3 rounded-xl font-bold">SEND</button>
                 </div>
             </div>
         </div>
@@ -54,40 +54,52 @@
     <section id="insights" class="py-24">
         <div class="max-w-7xl mx-auto px-6">
             <h2 class="text-4xl font-bold mb-12 text-center">Expert Insights</h2>
-            <div id="blog-grid" class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                </div>
+            <div id="blog-grid" class="grid grid-cols-1 md:grid-cols-3 gap-8"></div>
         </div>
     </section>
 
     <script>
-        // Existing chat logic
         async function sendMessage() {
             const input = document.getElementById('user-input');
             const output = document.getElementById('chat-output');
             const msg = input.value;
             if(!msg) return;
-            output.innerHTML += \`<div class="text-right text-slate-400">You: \${msg}</div>\`;
+            
+            output.innerHTML += `<div class="text-right text-slate-400">You: ${msg}</div>`;
             input.value = '';
-            const res = await fetch(\`/api/chat?tenant_id=showroom_test&message=\${encodeURIComponent(msg)}\`);
+            
+            const res = await fetch(`/api/chat?tenant_id=showroom_test&message=${encodeURIComponent(msg)}`);
             const data = await res.json();
-            output.innerHTML += \`<div class="text-blue-300"><b>AI:</b> \${data.response}</div>\`;
+            
+            output.innerHTML += `<div class="text-blue-300"><b>AI:</b> ${data.response}</div>`;
             output.scrollTop = output.scrollHeight;
+
+            // REDIRECT LOGIC: Triggers when the AI confirms a booking
+            const triggerWords = ["confirmed", "reserved", "booked", "all set"];
+            const lowerResponse = data.response.toLowerCase();
+            
+            if (triggerWords.some(word => lowerResponse.includes(word))) {
+                console.log("Booking detected. Redirecting in 2.5s...");
+                setTimeout(() => {
+                    window.location.href = "/confirm.html";
+                }, 2500);
+            }
         }
 
-        // Add dummy blog content
         const blogs = [
             { title: "24/7 Spa Concierge: Reclaiming Lost Revenue", snippet: "How AI automated booking systems find value in off-hours." },
             { title: "The Mauritius Tech Boom: AI Meets Wellness", snippet: "Why local clinic owners are investing in autonomous systems." },
             { title: "ROI on Autopilot: Tracking Leads Automatically", snippet: "Measuring the success of your digital employee in real-time." }
         ];
+        
         blogs.forEach(blog => {
-            document.getElementById('blog-grid').innerHTML += \`
+            document.getElementById('blog-grid').innerHTML += `
                 <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800">
-                    <h3 class="text-lg font-bold mb-2 text-white">\${blog.title}</h3>
-                    <p class="text-slate-400 text-sm mb-4">\${blog.snippet}</p>
+                    <h3 class="text-lg font-bold mb-2 text-white">${blog.title}</h3>
+                    <p class="text-slate-400 text-sm mb-4">${blog.snippet}</p>
                     <a href="/blogs.html" class="text-blue-400 hover:text-blue-300">Read More →</a>
                 </div>
-            \`;
+            `;
         });
     </script>
 </body>
