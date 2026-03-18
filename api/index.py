@@ -13,3 +13,16 @@ def chat(tenant_id: str, message: str):
 @app.get("/api/health")
 def health():
     return {"status": "online"}
+
+@app.get("/api/stats")
+def stats(tenant_id: str):
+    # This would normally pull from Baserow
+    # For the demo, we'll return mock data that matches your table
+    return {
+        "count": 12,
+        "leads": [
+            {"name": "Sarah J.", "status": "Booking Confirmed"},
+            {"name": "Mike R.", "status": "Consultation Inquiry"},
+            {"name": "Leila M.", "status": "Lead Captured"}
+        ]
+    }
