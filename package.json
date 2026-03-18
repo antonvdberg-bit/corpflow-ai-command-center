@@ -2,6 +2,6 @@
   "name": "corpflow-ai-command-center",
   "version": "1.0.0",
   "scripts": {
-    "build": "mkdir -p public && cp core/web/index.html public/index.html"
+    "build": "mkdir -p public && cp core/web/*.html public/"
   }
 }
