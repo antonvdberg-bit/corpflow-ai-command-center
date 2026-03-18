@@ -1,22 +1,32 @@
-import os, requests
+import os
 from fastapi import FastAPI
-from core.services.response_engine import get_tenant_response
+from groq import Groq
 
 app = FastAPI()
 
-@app.get("/api/chat")
-def chat(tenant_id: str, message: str):
-    return {"response": get_tenant_response(tenant_id, message)}
+# Initialize Groq only if key exists
+client = None
+if os.getenv("GROQ_API_KEY"):
+    client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-@app.get("/api/stats")
-def stats(tenant_id: str):
-    # This fetches the ACTUAL count from your Baserow Onboarding table
-    url = f"{os.getenv('BASEROW_URL')}{os.getenv('BASEROW_TABLE_ID')}/?user_field_names=true"
-    headers = {"Authorization": f"Token {os.getenv('BASEROW_TOKEN')}"}
+@app.get("/api/chat")
+async def chat(message: str):
+    if not client:
+        return {"response": "API Key missing. Please set GROQ_API_KEY in Vercel."}
+    
     try:
-        res = requests.get(url, headers=headers)
-        data = res.json()
-        leads = [{"name": r.get('Client Name', 'Inquiry'), "status": "Captured"} for r in data.get('results', [])[:5]]
-        return {"count": data.get('count', 0), "leads": leads}
-    except:
-        return {"count": 0, "leads": []}
+        completion = client.chat.completions.create(
+            model="llama-3.1-70b-versatile",
+            messages=[
+                {"role": "system", "content": "You are the Serenity Wellness Concierge. Be professional, luxury-focused, and helpful."},
+                {"role": "user", "content": message}
+            ],
+        )
+        return {"response": completion.choices[0].message.content}
+    except Exception as e:
+        return {"response": f"System error: {str(e)}"}
+
+# Health check
+@app.get("/api/health")
+def health():
+    return {"status": "operational"}
