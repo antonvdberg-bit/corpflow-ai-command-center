@@ -7,68 +7,68 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
+        /* Dark Mode by Default for Premium Feel */
         body { background: #020617; color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; }
-        .glass { background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.08); }
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.1); }
         .hero-bg { 
-            background: radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
-                        radial-gradient(circle at 100% 100%, rgba(20, 184, 166, 0.1) 0%, transparent 50%);
+            background: radial-gradient(circle at top right, #1e3a8a 0%, #020617 60%);
         }
-        .logo-nav { height: 40px; filter: brightness(1.2); }
+        /* Fix for Logo visibility */
+        .logo-container { filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.5)); }
     </style>
 </head>
 <body class="hero-bg min-h-screen">
     <nav class="p-8 flex justify-between items-center max-w-7xl mx-auto">
-        <img src="/assets/LogoSQBK.jpg" alt="CorpFlowAI" class="logo-nav rounded-lg">
+        <div class="logo-container">
+            <img src="/assets/LogoSQBK.jpg" alt="CorpFlowAI" class="h-12 w-auto rounded-lg">
+        </div>
         
-        <div class="hidden md:flex space-x-12 text-[10px] uppercase tracking-[0.4em] font-semibold text-slate-500">
-            <a href="#demo" class="hover:text-blue-400 transition">The Intelligence</a>
-            <a href="#insights" class="hover:text-blue-400 transition">Insights</a>
-            <a href="/results.html" class="text-blue-500 hover:text-white transition">Live ROI</a>
+        <div class="hidden md:flex space-x-12 text-[10px] uppercase tracking-[0.4em] font-bold text-slate-400">
+            <a href="#demo" class="hover:text-white transition">The Intelligence</a>
+            <a href="#insights" class="hover:text-white transition">Insights</a>
+            <a href="/results.html" class="text-blue-500 hover:text-white transition">ROI Hub</a>
         </div>
     </nav>
 
     <main class="max-w-7xl mx-auto px-6 pt-24">
-        <section class="mb-32">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold tracking-widest uppercase mb-8">
-                <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span></span>
+        <header class="mb-32">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-500/40 text-blue-300 text-[10px] font-bold tracking-widest uppercase mb-8">
                 Operational in Mauritius
             </div>
-            <h1 class="text-7xl md:text-8xl font-light tracking-tighter leading-[0.9] mb-8">
-                Elite Business <br><span class="italic font-serif text-blue-500">Autonomy.</span>
+            <h1 class="text-6xl md:text-8xl font-bold tracking-tighter leading-tight mb-8">
+                Business on <br><span class="text-blue-500 italic">Autopilot.</span>
             </h1>
-            <p class="max-w-xl text-slate-400 text-lg leading-relaxed mb-12">
-                We engineer bespoke intelligence for high-end service firms. Capturing leads, managing calendars, and scaling revenue—without a single human click.
+            <p class="max-w-xl text-slate-400 text-xl leading-relaxed mb-12">
+                We engineer bespoke AI systems for elite clinics. Capture leads and scale revenue without a single human click.
             </p>
-            <a href="#demo" class="bg-white text-black px-10 py-5 rounded-full font-bold text-xs uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all duration-500">
-                Enter The Showroom
+            <a href="#demo" class="bg-blue-600 text-white px-10 py-5 rounded-full font-bold text-xs uppercase tracking-widest hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/20">
+                Explore The Concierge
             </a>
-        </section>
+        </header>
 
         <section id="demo" class="pb-32">
-            <div class="glass rounded-[48px] overflow-hidden grid grid-cols-1 lg:grid-cols-2 min-h-[650px]">
-                <div class="p-16 flex flex-col justify-between">
+            <div class="glass rounded-[48px] overflow-hidden grid grid-cols-1 lg:grid-cols-2 min-h-[600px]">
+                <div class="p-16 flex flex-col justify-between bg-slate-900/40">
                     <div>
-                        <h2 class="text-4xl font-light mb-6">The Serenity <br>Concierge</h2>
-                        <p class="text-slate-400 leading-relaxed mb-8">Test the speed and nuance of our medical-grade AI. Designed specifically for aesthetic clinics to handle complex pricing and booking inquiries instantly.</p>
+                        <h2 class="text-4xl font-bold mb-6 text-white text-shadow">The Serenity <br>Concierge</h2>
+                        <p class="text-slate-300 text-lg leading-relaxed">Experience a production-grade digital employee. Trained in Mauritius wellness protocols, ready to book your next client.</p>
                     </div>
-                    <div class="space-y-4">
-                         <div class="flex items-center gap-3 text-xs text-slate-500 uppercase tracking-widest font-bold">
-                            <img src="/assets/favicon-16x16.png" class="w-4 h-4 opacity-50">
-                            Neural-Engine Response
-                        </div>
+                    <div class="text-xs text-slate-500 uppercase tracking-widest font-bold flex items-center gap-2">
+                        <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                        Neural-Engine Live
                     </div>
                 </div>
                 
-                <div class="bg-slate-950/40 p-12 flex flex-col border-l border-white/5">
-                    <div id="chat-output" class="flex-1 overflow-y-auto space-y-6 text-sm mb-8 pr-4 custom-scrollbar">
-                        <div class="text-blue-300 font-serif italic text-lg opacity-80">"How may I assist with your wellness journey today?"</div>
+                <div class="bg-slate-950/60 p-12 flex flex-col">
+                    <div id="chat-output" class="flex-1 overflow-y-auto space-y-6 text-base mb-8 pr-4">
+                        <div class="text-blue-400 font-medium italic">"Welcome. How may I assist with your wellness journey today?"</div>
                     </div>
-                    <div class="relative group">
-                        <input id="user-input" type="text" placeholder="Inquire about Botox or Hydrafacial..." 
-                            class="w-full bg-transparent border-b border-slate-800 py-4 pr-12 focus:outline-none focus:border-blue-500 transition-all text-lg placeholder:text-slate-700">
-                        <button onclick="sendMessage()" class="absolute right-0 bottom-4 text-blue-500 hover:text-white transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    <div class="relative">
+                        <input id="user-input" type="text" placeholder="Ask about Botox or Hydrafacials..." 
+                            class="w-full bg-slate-900 border border-slate-700 p-5 rounded-2xl focus:outline-none focus:border-blue-500 transition-all text-white placeholder:text-slate-600">
+                        <button onclick="sendMessage()" class="absolute right-4 top-4 text-blue-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                             </svg>
                         </button>
                     </div>
@@ -76,26 +76,5 @@
             </div>
         </section>
     </main>
-
-    <script>
-        async function sendMessage() {
-            const input = document.getElementById('user-input');
-            const output = document.getElementById('chat-output');
-            const msg = input.value;
-            if(!msg) return;
-
-            output.innerHTML += `<div class="text-right"><div class="inline-block text-white text-xl font-light py-2 mb-4">${msg}</div></div>`;
-            input.value = '';
-            
-            try {
-                const res = await fetch(`/api/chat?tenant_id=showroom_test&message=${encodeURIComponent(msg)}`);
-                const data = await res.json();
-                output.innerHTML += `<div class="text-slate-400 leading-relaxed max-w-[85%] mb-6">${data.response}</div>`;
-            } catch (e) {
-                output.innerHTML += `<div class="text-red-500 text-xs uppercase tracking-widest opacity-50">Sync Error: Verify API Keys</div>`;
-            }
-            output.scrollTop = output.scrollHeight;
-        }
-    </script>
-</body>
+    </body>
 </html>
