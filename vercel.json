@@ -1,6 +1,9 @@
 {
   "version": 2,
-  "public": true,
   "cleanUrls": true,
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/", "destination": "/index.html" },
+    { "source": "/proposal-medspa", "destination": "/proposal-medspa.html" }
+  ]
 }
