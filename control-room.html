@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Control Room | CorpFlowAI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #020617; color: white; font-family: sans-serif; }
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
+        .status-pill { padding: 4px 12px; rounded-full: 9999px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
+    </style>
+</head>
+<body class="p-8 md:p-24">
+    <div class="max-w-5xl mx-auto">
+        <header class="flex justify-between items-end mb-16">
+            <div>
+                <h1 class="text-4xl font-bold tracking-tighter">System <span class="text-blue-500">Feedback Loop</span></h1>
+                <p class="text-slate-500 text-sm mt-2">Real-time UI/UX optimization tracking.</p>
+            </div>
+            <div class="text-right">
+                <div class="text-[10px] text-slate-500 uppercase tracking-widest">System Status</div>
+                <div class="text-green-500 font-bold">Synchronized</div>
+            </div>
+        </header>
+
+        <div class="glass rounded-[32px] overflow-hidden">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-slate-900/50 text-slate-500 uppercase text-[10px] tracking-widest">
+                    <tr>
+                        <th class="p-6">ID</th>
+                        <th class="p-6">Feature Item</th>
+                        <th class="p-6">Reported</th>
+                        <th class="p-6">Status</th>
+                        <th class="p-6 text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="feedback-list">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        async function loadFeedback() {
+            const res = await fetch('/feedback-db.json');
+            const data = await res.json();
+            const list = document.getElementById('feedback-list');
+            list.innerHTML = data.map(item => `
+                <tr class="border-t border-slate-800/50 hover:bg-slate-800/20 transition">
+                    <td class="p-6 text-slate-500">#${item.id}</td>
+                    <td class="p-6 font-bold">${item.item}<br><span class="text-[10px] font-normal text-slate-500">${item.note}</span></td>
+                    <td class="p-6 text-slate-400">${item.timestamp}</td>
+                    <td class="p-6">
+                        <span class="status-pill ${item.status === 'Resolved' ? 'bg-green-500/10 text-green-500' : 'bg-amber-500/10 text-amber-500'}">
+                            ${item.status}
+                        </span>
+                    </td>
+                    <td class="p-6 text-right">
+                        <button class="text-blue-500 hover:text-white text-xs font-bold uppercase tracking-widest">Mark Resolved</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        loadFeedback();
+    </script>
+</body>
+</html>

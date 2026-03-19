@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "item": "Logo Scaling",
+    "status": "Resolved",
+    "timestamp": "2026-03-19 10:00",
+    "note": "Increased scale to 4.0 via brand-config.json"
+  },
+  {
+    "id": 2,
+    "item": "Mobile Navigation",
+    "status": "Pending",
+    "timestamp": "2026-03-19 11:30",
+    "note": "Checking overlap on iPhone 15 screens"
+  }
+]
