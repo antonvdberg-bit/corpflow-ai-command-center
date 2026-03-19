@@ -1,9 +1,8 @@
 {
   "logo": {
     "path": "/assets/logos/LogoSQBK.png",
-    "scale": 4.5,
+    "scale": 5.5,
     "height": "160px",
     "link": "/"
-  },
-  "theme": "dark-luxury"
+  }
 }
