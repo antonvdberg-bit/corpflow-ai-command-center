@@ -1,17 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><title>Executive Proposal</title>
+    <meta charset="UTF-8">
+    <title>Executive Proposal | Serenity Wellness</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #020617; color: white; font-family: sans-serif; overflow-x: hidden; }
+        .blob {
+            position: absolute; width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(30, 58, 138, 0.3) 0%, transparent 70%);
+            filter: blur(80px); z-index: -1; animation: float 20s infinite alternate;
+        }
+        @keyframes float { from { transform: translate(0,0); } to { transform: translate(100px, 100px); } }
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
+    </style>
+<script src="/assets/logos/theme.js"></script>
 </head>
-<body class="bg-[#020617] text-white p-12 md:p-24">
-    <img src="/assets/logos/LogoSQBK.png" alt="Logo" class="h-10 mb-20">
-    <h1 class="text-6xl font-bold tracking-tighter mb-4">Serenity Wellness <br><span class="text-blue-500">Autonomous Core.</span></h1>
-    <p class="text-slate-500 mb-12">Confidential Partnership Proposal | 2026</p>
-    <div class="bg-slate-900 p-12 rounded-[40px] max-w-2xl border border-slate-800">
-        <h3 class="text-blue-500 font-bold mb-4">Total Implementation</h3>
-        <p class="text-3xl font-bold mb-8">MUR 45,000</p>
-        <a href="https://wa.me/230YOURNUMBER" class="bg-blue-600 px-8 py-4 rounded-full font-bold text-xs uppercase tracking-widest">Accept & Initialize</a>
+<body class="p-8 md:p-24 relative">
+    <div class="blob" style="top: -100px; right: -100px;"></div>
+    <div class="blob" style="bottom: -100px; left: -100px; background: radial-gradient(circle, rgba(20, 184, 166, 0.1) 0%, transparent 70%);"></div>
+
+    <nav class="mb-24">
+        <img src="/assets/logos/LogoSQBK.png" alt="CorpFlowAI" class="h-24 w-auto scale-150 origin-left">
+    </nav>
+
+    <div class="max-w-4xl">
+        <div class="inline-block px-4 py-1 rounded-full border border-blue-500/30 text-blue-400 text-[10px] uppercase tracking-widest font-bold mb-6">Confidential Partnership</div>
+        <h1 class="text-6xl md:text-8xl font-bold tracking-tighter mb-12 leading-[0.9]">Autonomous <br><span class="text-blue-500 italic">Excellence.</span></h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mb-20">
+            <div class="glass p-10 rounded-[40px]">
+                <h3 class="text-xl font-bold mb-4">The Solution</h3>
+                <p class="text-slate-400 leading-relaxed mb-6 text-sm">Deployment of a custom-trained Llama 3.3 Concierge capable of handling booking, pricing, and triage for Serenity Wellness clients 24/7.</p>
+                <ul class="text-xs text-slate-500 space-y-2 uppercase tracking-wider">
+                    <li>• Real-time lead capture</li>
+                    <li>• Zero response latency</li>
+                    <li>• Automated ROI tracking</li>
+                </ul>
+            </div>
+            <div class="glass p-10 rounded-[40px] flex flex-col justify-between">
+                <div>
+                    <h3 class="text-xl font-bold mb-2">Total Investment</h3>
+                    <p class="text-slate-500 text-xs italic mb-8 uppercase tracking-widest">Mauritius Launch Pricing</p>
+                </div>
+                <div>
+                    <div class="text-5xl font-bold mb-2">MUR 45,000</div>
+                    <div class="text-blue-500 text-xs font-bold uppercase tracking-[0.2em]">One-Time Implementation</div>
+                </div>
+            </div>
+        </div>
+
+        <a href="https://wa.me/230YOURNUMBER" class="inline-block bg-blue-600 px-12 py-6 rounded-full font-bold uppercase tracking-[0.3em] text-[10px] hover:bg-blue-500 transition-all shadow-xl shadow-blue-500/20">
+            Initialize Partnership
+        </a>
     </div>
 </body>
 </html>
