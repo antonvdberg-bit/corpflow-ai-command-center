@@ -17,5 +17,6 @@
     "final_test": "success",
     "SYSTEM VERIFIED": "",
     "PROTOCOL ACTIVE": "",
-    "Scale <span class=\"italic text-blue-500\">Instantly.</span>": "medspa_hook_1"
+    "Scale <span class=\"italic text-blue-500\">Instantly.</span>": "medspa_hook_1",
+    "medspa_hook_1": "new hook "
 }
