@@ -1,105 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Control Room | CorpFlowAI</title>
+    <meta charset="UTF-8"><title>Control Room | CorpFlowAI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background: #020617; color: white; font-family: sans-serif; }
         .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
-        .status-pill { padding: 4px 12px; border-radius: 9999px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
-        input, textarea { background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255,255,255,0.1); color: white; }
+        .terminal { font-family: monospace; color: #10b981; font-size: 11px; }
     </style>
 </head>
-<body class="p-8 md:p-24">
+<body class="p-8 md:p-20">
     <div class="max-w-5xl mx-auto">
-        <header class="flex justify-between items-end mb-12">
-            <div>
-                <a href="/"><img src="/assets/logos/LogoSQBK.png" alt="Logo" class="h-12 mb-6 opacity-50 hover:opacity-100 transition"></a>
-                <h1 class="text-4xl font-bold tracking-tighter text-white">System <span class="text-blue-500">Feedback Loop</span></h1>
-                <p class="text-slate-500 text-sm mt-2">Instruction portal for Autonomous UI Optimization.</p>
-            </div>
-            <div class="text-right">
-                <div class="text-[10px] text-slate-500 uppercase tracking-widest">Interface Status</div>
-                <div class="flex items-center justify-end space-x-2">
-                    <span class="h-2 w-2 bg-green-500 rounded-full animate-pulse"></span>
-                    <span class="text-green-500 font-bold text-xs uppercase tracking-widest">Live Sync</span>
-                </div>
-            </div>
-        </header>
+        <div class="flex justify-between items-center mb-12">
+            <h1 class="text-3xl font-bold tracking-tighter">Neural <span class="text-blue-500">Feedback Loop</span></h1>
+            <div class="text-[10px] text-slate-500 uppercase tracking-[0.3em]">Status: System Active</div>
+        </div>
 
-        <section class="glass p-8 rounded-[32px] mb-12 border border-blue-500/20 shadow-2xl shadow-blue-500/5">
-            <h3 class="text-xs uppercase tracking-[0.3em] text-blue-400 font-bold mb-6">New UI Instruction</h3>
+        <div class="glass p-8 rounded-[32px] mb-8">
             <div class="flex flex-col md:flex-row gap-4">
-                <input id="feature-name" type="text" placeholder="Feature (e.g. Logo Size)" class="flex-1 p-4 rounded-xl outline-none focus:ring-1 focus:ring-blue-500 transition">
-                <input id="instruction-note" type="text" placeholder="Detail (e.g. Increase scale to 5.0)" class="flex-[2] p-4 rounded-xl outline-none focus:ring-1 focus:ring-blue-500 transition">
-                <button onclick="submitFeedback()" class="bg-blue-600 hover:bg-blue-500 px-8 py-4 rounded-xl font-bold text-xs uppercase tracking-widest transition-all">
-                    Transmit
-                </button>
+                <input id="f_item" placeholder="What needs fixing?" class="bg-slate-900 p-4 rounded-xl flex-1 outline-none border border-slate-700 focus:border-blue-500">
+                <input id="f_note" placeholder="Instructions for the AI..." class="bg-slate-900 p-4 rounded-xl flex-[2] outline-none border border-slate-700 focus:border-blue-500">
+                <button onclick="send()" class="bg-blue-600 px-10 py-4 rounded-xl font-bold uppercase text-xs tracking-widest">Transmit</button>
             </div>
-        </section>
+        </div>
 
-        <div class="glass rounded-[32px] overflow-hidden">
-            <table class="w-full text-left text-sm">
-                <thead class="bg-slate-900/50 text-slate-500 uppercase text-[10px] tracking-widest">
-                    <tr>
-                        <th class="p-6">ID</th>
-                        <th class="p-6">Instruction</th>
-                        <th class="p-6">Timestamp</th>
-                        <th class="p-6">Status</th>
-                    </tr>
-                </thead>
-                <tbody id="feedback-list">
-                    </tbody>
-            </table>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="md:col-span-2 glass rounded-[32px] p-2 overflow-hidden">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-900/50 text-slate-500 uppercase">
+                        <tr><th class="p-6">ID</th><th class="p-6">Instruction</th><th class="p-6 text-right">Status</th></tr>
+                    </thead>
+                    <tbody id="list"></tbody>
+                </table>
+            </div>
+            <div class="glass p-6 rounded-[32px] terminal h-64 overflow-y-auto" id="log">
+                > Awaiting instruction...
+            </div>
         </div>
     </div>
 
     <script>
-        // Mock DB for the Showroom experience
-        let feedbackItems = [
-            { id: 104, item: "Logo Scale", note: "Set to 4.5 unconstrained", time: "Just Now", status: "Resolved" },
-            { id: 103, item: "Typography", note: "Inter Tracking adjusted", time: "2h ago", status: "Resolved" }
-        ];
+        async function send() {
+            const item = document.getElementById('f_item').value;
+            const note = document.getElementById('f_note').value;
+            if(!item) return;
 
-        function renderList() {
-            const list = document.getElementById('feedback-list');
-            list.innerHTML = feedbackItems.map(item => `
-                <tr class="border-t border-slate-800/50">
-                    <td class="p-6 text-slate-500">#${item.id}</td>
-                    <td class="p-6 font-bold text-white">${item.item}<br><span class="text-[10px] font-normal text-slate-500 italic">${item.note}</span></td>
-                    <td class="p-6 text-slate-400 font-mono text-xs">${item.time}</td>
-                    <td class="p-6">
-                        <span class="status-pill ${item.status === 'Resolved' ? 'bg-green-500/10 text-green-500' : 'bg-blue-500/10 text-blue-500 animate-pulse'}">
-                            ${item.status}
-                        </span>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        function submitFeedback() {
-            const name = document.getElementById('feature-name').value;
-            const note = document.getElementById('instruction-note').value;
-            if(!name || !note) return alert("Please specify the instruction.");
+            document.getElementById('log').innerHTML += `<br>> Transmitting: ${item}...`;
             
-            feedbackItems.unshift({
-                id: Math.floor(Math.random() * 900) + 100,
-                item: name,
-                note: note,
-                time: "Awaiting Sync",
-                status: "Processing"
+            const res = await fetch('/api/feedback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ item, note })
             });
-            
-            document.getElementById('feature-name').value = '';
-            document.getElementById('instruction-note').value = '';
-            renderList();
-            
-            // In a real development mode, this would POST to our API
-            console.log("Instruction logged for AI Architect.");
-        }
+            const data = await res.json();
 
-        renderList();
+            document.getElementById('log').innerHTML += `<br>> Received. ID #${data.id} logged.`;
+            document.getElementById('list').innerHTML = `
+                <tr class="border-t border-slate-800">
+                    <td class="p-6">#${data.id}</td>
+                    <td class="p-6 font-bold text-white">${item}<br><span class="font-normal text-slate-500">${note}</span></td>
+                    <td class="p-6 text-right text-blue-400 italic">Processing...</td>
+                </tr>
+            ` + document.getElementById('list').innerHTML;
+        }
     </script>
 </body>
 </html>
