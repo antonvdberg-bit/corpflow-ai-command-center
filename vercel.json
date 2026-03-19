@@ -1,8 +1,7 @@
 {
   "cleanUrls": true,
   "trailingSlash": false,
-  "headers": [{
-    "source": "/brand-config.json",
-    "headers": [{ "key": "Cache-Control", "value": "no-store" }]
-  }]
+  "rewrites": [
+    { "source": "/control-room", "destination": "/control-room.html" }
+  ]
 }
