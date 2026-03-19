@@ -1,0 +1,12 @@
+{
+  "logo": {
+    "path": "/assets/logos/LogoSQBK.png",
+    "scale": 2.2,
+    "height": "120px",
+    "link": "/"
+  },
+  "colors": {
+    "primary": "#3b82f6",
+    "bg": "#020617"
+  }
+}
