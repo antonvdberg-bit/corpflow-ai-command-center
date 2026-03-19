@@ -3,9 +3,7 @@
     "path": "/assets/logos/LogoSQBK.png",
     "scale": 4.5,
     "height": "160px",
-    "link": "/",
-    "container_padding": "40px"
+    "link": "/"
   },
-  "debug_mode": false,
-  "version": "1.0.5-antigravity"
+  "theme": "dark-luxury"
 }
