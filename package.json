@@ -1,6 +1,6 @@
 {
   "name": "corpflow-ai-command-center",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "scripts": {
     "build": "mkdir -p public && cp core/web/*.html public/ && cp -r core/web/assets public/ 2>/dev/null || true"
   }
