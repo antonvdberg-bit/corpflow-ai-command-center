@@ -1,10 +1,10 @@
 import time, requests, json, os, subprocess
 URL = 'https://script.google.com/macros/s/AKfycbz47gS3mSt9co43i-OYzTnfLzKitsEZ3Y4ETIjmupHHbV6U_Oh30dy6kzMGIkRtpSjm9A/exec'
 def build(c):
-    tmpl = f'<html><head><script src="https://cdn.tailwindcss.com"></script></head><body class="bg-black text-white p-20 text-center"><h1 class="text-6xl">{c.get("headline")}</h1><p class="text-2xl mt-10">{c.get("medspa_hook_1")}</p></body></html>'
+    tmpl = f'''<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>CorpFlowAI | Mauritius</title><script src="https://cdn.tailwindcss.com"></script><style>body {{ background: #020617; color: #f8fafc; font-family: sans-serif; }} .glass {{ background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }}</style></head><body class="bg-[#020617]"><nav class="p-8 flex justify-between items-center max-w-7xl mx-auto"><img src="/assets/logos/LogoSQBK.png" class="h-12"><div class="hidden md:flex space-x-8 text-[10px] uppercase tracking-widest font-bold text-slate-500"><a href="/proposal-medspa" class="hover:text-blue-500 transition">View Proposal</a></div></nav><main class="max-w-7xl mx-auto px-6 pt-24 text-center"><h1 class="text-7xl font-bold tracking-tighter mb-6">{c.get('headline', 'Scale Instantly.')}</h1><p class="text-slate-400 text-xl mb-12">{c.get('medspa_hook_1', 'Bespoke autonomous systems.')}</p><section class="glass max-w-4xl mx-auto rounded-[40px] overflow-hidden grid grid-cols-1 md:grid-cols-2 text-left"><div class="p-12 bg-slate-900/50"><h2 class="text-3xl font-bold mb-4">Serenity Concierge</h2><p class="text-slate-400 text-sm">{c.get('medspa_hook_2', 'Wellness protocols active.')}</p></div><div class="p-12 flex flex-col h-[400px]"><div id="chat-output" class="flex-1 overflow-y-auto space-y-4 text-sm mb-4"><div class="text-blue-400 italic">"Namaste. System verified."</div></div><input id="user-input" type="text" placeholder="Type here..." class="w-full bg-slate-800 p-4 rounded-xl text-white outline-none focus:ring-1 focus:ring-blue-500"></div></section></main></body></html>'''
     with open('index.html', 'w') as f: f.write(tmpl)
     subprocess.run(['git', 'add', '.'])
-    subprocess.run(['git', 'commit', '-m', 'SystemUpdate'])
+    subprocess.run(['git', 'commit', '-m', 'ProductionUpdate'])
     subprocess.run(['git', 'push'])
 while True:
     try:
