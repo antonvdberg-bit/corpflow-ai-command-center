@@ -3,21 +3,14 @@
 <head>
     <meta charset="UTF-8"><title>Asset Portal | CorpFlowAI</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>body { background: #020617; color: white; font-family: sans-serif; }</style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-6">
+<body class="bg-[#020617] flex items-center justify-center min-h-screen text-white">
     <div class="max-w-xl w-full bg-slate-900 border border-slate-800 rounded-[32px] p-12 text-center">
-        <h1 class="text-3xl font-bold mb-2">Client Brand Portal</h1>
-        <p class="text-slate-500 mb-10 text-sm italic">Upload your LogoSQBK.png and Favicon to instantly skin the AI Concierge.</p>
-        
-        <div class="border-2 border-dashed border-slate-700 rounded-2xl p-20 mb-8 hover:border-blue-500 transition-all cursor-pointer" onclick="document.getElementById('file-input').click()">
-            <p class="text-slate-400">Drag & Drop Assets here or <span class="text-blue-500">Browse</span></p>
-            <input type="file" id="file-input" class="hidden" multiple>
-        </div>
-
-        <button onclick="alert('In Demo Mode: Please drag files to core/web/assets in your VS Code sidebar for now.')" class="w-full bg-blue-600 py-4 rounded-xl font-bold uppercase tracking-widest text-xs">
-            Sync with AI Engine
-        </button>
+        <a href="/"><img src="/assets/logos/LogoSQBK.png" alt="CorpFlowAI" class="h-20 mx-auto mb-10 scale-125"></a>
+        <h1 class="text-3xl font-bold mb-4">Client Brand Portal</h1>
+        <p class="text-slate-400 mb-10 text-sm italic">Upload your Logo's and Favicon images to instantly skin the AI Concierge.</p>
+        <div class="border-2 border-dashed border-slate-800 rounded-2xl p-16 mb-8 text-slate-500">Drag & Drop Assets here</div>
+        <button class="w-full bg-blue-600 py-4 rounded-xl font-bold">SYNC WITH AI ENGINE</button>
     </div>
 </body>
 </html>
