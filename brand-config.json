@@ -1,12 +1,11 @@
 {
   "logo": {
     "path": "/assets/logos/LogoSQBK.png",
-    "scale": 2.2,
-    "height": "120px",
-    "link": "/"
+    "scale": 4.5,
+    "height": "160px",
+    "link": "/",
+    "container_padding": "40px"
   },
-  "colors": {
-    "primary": "#3b82f6",
-    "bg": "#020617"
-  }
+  "debug_mode": false,
+  "version": "1.0.5-antigravity"
 }
