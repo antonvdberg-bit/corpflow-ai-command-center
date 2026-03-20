@@ -2,68 +2,85 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CorpflowAI | Autonomous Business Systems</title>
+    <title>CorpflowAI | Autonomous Systems</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #050505; color: #ffffff; font-family: sans-serif; }
         .accent { color: #FF5733; }
         .grid-bg { background-image: radial-gradient(#1a1a1a 1px, transparent 1px); background-size: 40px 40px; }
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(15px); z-index: 100; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.98); backdrop-filter: blur(20px); z-index: 100; }
     </style>
 </head>
 <body class="grid-bg min-h-screen flex flex-col items-center">
     <nav class="w-full max-w-7xl flex justify-between items-center p-8 uppercase text-[10px] tracking-[0.3em] font-mono">
         <div>Corpflow<span class="accent">AI</span></div>
-        <div class="flex items-center gap-2 text-green-500"><div class="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div> CORE ACTIVE | DB: PRISMA_POSTGRES</div>
+        <div class="text-green-500 flex items-center gap-2"><div class="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div> SYSTEM READY</div>
     </nav>
 
-    <main class="flex-1 flex flex-col items-center justify-center text-center px-6 py-20">
-        <h1 class="text-6xl md:text-8xl font-black tracking-tighter mb-6 uppercase leading-none">Autonomous<br><span class="text-gray-800">Business</span> Systems</h1>
-        <p class="max-w-2xl text-xl text-gray-400 mb-12 text-gray-400 font-mono">[ SYSTEM STATUS: SECURE_INGESTION_READY ]</p>
-        <button onclick="openAudit()" class="border border-gray-800 hover:border-[#FF5733] px-12 py-6 text-sm font-bold uppercase tracking-[0.4em] transition-all bg-black group">
-            [ <span class="group-hover:text-[#FF5733]">Start Architecture Stress Test</span> ]
+    <main class="flex-1 flex flex-col items-center justify-center text-center px-6">
+        <h1 class="text-7xl font-black mb-6 uppercase tracking-tighter">STOP MANUAL<br><span class="text-gray-800 tracking-normal">FRICTION.</span></h1>
+        <button onclick="openAudit()" class="border border-white/20 hover:border-[#FF5733] px-12 py-6 text-sm font-bold uppercase tracking-[0.4em] transition-all bg-black">
+            [ Run Architecture Audit ]
         </button>
     </main>
 
     <div id="auditModal" class="modal flex flex-col items-center justify-center p-6">
-        <div class="max-w-md w-full border border-white/10 p-10 bg-black relative">
-            <h2 class="text-2xl font-black mb-6 uppercase">System Audit</h2>
-            <input id="leadEmail" type="email" placeholder="CORPORATE EMAIL" class="w-full bg-white/5 border border-white/10 p-5 mb-4 text-white font-mono text-sm focus:border-[#FF5733] outline-none">
-            <button id="submitBtn" onclick="submitAudit()" class="w-full bg-[#FF5733] py-5 font-bold uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-all">Execute Analysis</button>
-            <button onclick="closeAudit()" class="w-full mt-4 text-[10px] text-gray-400 uppercase">Cancel</button>
+        <div id="modalContent" class="max-w-md w-full border border-white/10 p-10 bg-black relative shadow-2xl">
+            <div class="absolute top-0 left-0 w-full h-1 bg-[#FF5733]"></div>
+            <div id="formStage">
+                <h2 class="text-2xl font-black mb-2 uppercase">System Audit</h2>
+                <p class="text-xs text-gray-500 mb-8 uppercase tracking-widest">Identify Operational Revenue Leaks</p>
+                <input id="email" type="email" placeholder="CORPORATE EMAIL" class="w-full bg-white/5 border border-white/10 p-5 mb-4 text-white outline-none focus:border-[#FF5733]">
+                <input id="hours" type="number" placeholder="MANUAL HOURS PER WEEK" class="w-full bg-white/5 border border-white/10 p-5 mb-6 text-white outline-none focus:border-[#FF5733]">
+                <button onclick="executeAnalysis()" id="execBtn" class="w-full bg-[#FF5733] py-5 font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-all">Execute Analysis</button>
+            </div>
+            
+            <div id="resultStage" class="hidden text-center">
+                <h3 class="text-[#FF5733] font-bold uppercase tracking-widest mb-2">Audit Complete</h3>
+                <div class="text-5xl font-black mb-4 leading-none" id="leakAmount">/bin/bash</div>
+                <p class="text-gray-400 text-sm mb-8">Estimated annual revenue lost to manual friction.</p>
+                <button onclick="closeAudit()" class="w-full border border-white/10 py-4 text-[10px] uppercase tracking-widest hover:bg-white hover:text-black transition-all">Close Session</button>
+            </div>
         </div>
     </div>
 
     <script>
         function openAudit() { document.getElementById('auditModal').style.display = 'flex'; }
-        function closeAudit() { document.getElementById('auditModal').style.display = 'none'; }
-        
-        async function submitAudit() {
-            const email = document.getElementById('leadEmail').value;
-            const btn = document.getElementById('submitBtn');
-            if(!email) return alert('Email Required.');
+        function closeAudit() { 
+            document.getElementById('auditModal').style.display = 'none';
+            document.getElementById('formStage').classList.remove('hidden');
+            document.getElementById('resultStage').classList.add('hidden');
+        }
 
-            btn.innerText = 'SYNCING TO POSTGRES...';
-            btn.disabled = true;
+        async function executeAnalysis() {
+            const email = document.getElementById('email').value;
+            const hours = document.getElementById('hours').value;
+            const btn = document.getElementById('execBtn');
 
+            if(!email || !hours) return alert('Data Required.');
+            btn.innerText = 'CALCULATING LEAK...';
+
+            // Calculate Leak: (Hours * 52 weeks * 50 average corporate labor rate)
+            const leak = hours * 52 * 150;
+            
             try {
-                const response = await fetch('/api/audit', {
+                const res = await fetch('/api/audit', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: email, revenue: 'HAA_LEAD', hours: 40 })
+                    body: JSON.stringify({ email, hours, revenue: 'HAA_AUDIT' })
                 });
-                
-                if (response.ok) {
-                    alert('SUCCESS: Lead Locked to Prisma Postgres.');
-                    closeAudit();
+
+                if(res.ok) {
+                    document.getElementById('leakAmount').innerText = '$' + leak.toLocaleString();
+                    document.getElementById('formStage').classList.add('hidden');
+                    document.getElementById('resultStage').classList.remove('hidden');
                 } else {
-                    alert('HANDSHAKE ERROR: Ensure Vercel Postgres is connected.');
+                    alert('Sync Error. Check Vercel Env Vars.');
                 }
-            } catch (err) {
+            } catch (e) {
                 alert('Connection Failed.');
             } finally {
                 btn.innerText = 'Execute Analysis';
-                btn.disabled = false;
             }
         }
     </script>
