@@ -5,82 +5,102 @@
     <title>CorpflowAI | Autonomous Systems</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #050505; color: #ffffff; font-family: sans-serif; }
+        body { background-color: #050505; color: #ffffff; font-family: 'Inter', sans-serif; overflow-x: hidden; }
         .accent { color: #FF5733; }
-        .grid-bg { background-image: radial-gradient(#1a1a1a 1px, transparent 1px); background-size: 40px 40px; }
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.98); backdrop-filter: blur(20px); z-index: 100; }
+        .grid-bg { background-image: radial-gradient(#1a1a1a 1px, transparent 1px); background-size: 50px 50px; }
+        .glass { background: rgba(10, 10, 10, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
+        .scanner-line { width: 100%; height: 2px; background: linear-gradient(90deg, transparent, #FF5733, transparent); position: absolute; animation: scan 3s infinite linear; }
+        @keyframes scan { 0% { top: 0%; } 100% { top: 100%; } }
     </style>
 </head>
-<body class="grid-bg min-h-screen flex flex-col items-center">
-    <nav class="w-full max-w-7xl flex justify-between items-center p-8 uppercase text-[10px] tracking-[0.3em] font-mono">
-        <div>Corpflow<span class="accent">AI</span></div>
-        <div class="text-green-500 flex items-center gap-2"><div class="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div> SYSTEM READY</div>
+<body class="grid-bg min-h-screen flex flex-col">
+    <nav class="w-full flex justify-between items-center p-10 uppercase text-[10px] tracking-[0.5em] font-mono">
+        <div class="flex items-center gap-3">
+            <div class="h-4 w-4 bg-[#FF5733] rotate-45"></div>
+            <span>Corpflow<span class="accent text-white">AI</span></span>
+        </div>
+        <div class="text-green-500 flex items-center gap-2">
+            <div class="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse"></div> 
+            ENCLAVE_ACTIVE
+        </div>
     </nav>
 
     <main class="flex-1 flex flex-col items-center justify-center text-center px-6">
-        <h1 class="text-7xl font-black mb-6 uppercase tracking-tighter">STOP MANUAL<br><span class="text-gray-800 tracking-normal">FRICTION.</span></h1>
-        <button onclick="openAudit()" class="border border-white/20 hover:border-[#FF5733] px-12 py-6 text-sm font-bold uppercase tracking-[0.4em] transition-all bg-black">
-            [ Run Architecture Audit ]
+        <div class="mb-4 opacity-30 text-[10px] tracking-[0.8em] uppercase">Architecture Stress Test v2.1</div>
+        <h1 class="text-6xl md:text-8xl font-black mb-8 uppercase tracking-tighter leading-none">
+            UNCOVER YOUR<br><span class="text-transparent" style="-webkit-text-stroke: 1px rgba(255,255,255,0.2);">LEAK RATE.</span>
+        </h1>
+        <button onclick="openAudit()" class="group relative px-16 py-8 transition-all">
+            <div class="absolute inset-0 bg-[#FF5733] blur-xl opacity-0 group-hover:opacity-20 transition-opacity"></div>
+            <span class="relative border border-white/20 group-hover:border-[#FF5733] px-12 py-6 text-sm font-bold uppercase tracking-[0.4em] bg-black">
+                [ Initialize Audit ]
+            </span>
         </button>
     </main>
 
-    <div id="auditModal" class="modal flex flex-col items-center justify-center p-6">
-        <div id="modalContent" class="max-w-md w-full border border-white/10 p-10 bg-black relative shadow-2xl">
-            <div class="absolute top-0 left-0 w-full h-1 bg-[#FF5733]"></div>
-            <div id="formStage">
-                <h2 class="text-2xl font-black mb-2 uppercase">System Audit</h2>
-                <p class="text-xs text-gray-500 mb-8 uppercase tracking-widest">Identify Operational Revenue Leaks</p>
-                <input id="email" type="email" placeholder="CORPORATE EMAIL" class="w-full bg-white/5 border border-white/10 p-5 mb-4 text-white outline-none focus:border-[#FF5733]">
-                <input id="hours" type="number" placeholder="MANUAL HOURS PER WEEK" class="w-full bg-white/5 border border-white/10 p-5 mb-6 text-white outline-none focus:border-[#FF5733]">
-                <button onclick="executeAnalysis()" id="execBtn" class="w-full bg-[#FF5733] py-5 font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-all">Execute Analysis</button>
+    <div id="auditModal" class="fixed inset-0 hidden z-50 flex items-center justify-center p-4 md:p-10 bg-black/95">
+        <div class="max-w-2xl w-full glass relative overflow-hidden">
+            <div class="scanner-line opacity-20"></div>
+            
+            <div id="formStage" class="p-12">
+                <h2 class="text-3xl font-black uppercase mb-2">Diagnostic Input</h2>
+                <p class="text-xs text-gray-500 mb-10 tracking-[0.2em] uppercase">Awaiting Operational Data Points...</p>
+                <div class="space-y-6">
+                    <input id="email" type="email" placeholder="SECURE_EMAIL" class="w-full bg-white/5 border border-white/10 p-6 text-white outline-none focus:border-[#FF5733] transition-colors font-mono uppercase">
+                    <input id="hours" type="number" placeholder="WEEKLY_MANUAL_HOURS" class="w-full bg-white/5 border border-white/10 p-6 text-white outline-none focus:border-[#FF5733] transition-colors font-mono uppercase">
+                    <button onclick="executeAnalysis()" id="execBtn" class="w-full bg-white text-black py-6 font-black uppercase tracking-[0.3em] hover:bg-[#FF5733] hover:text-white transition-all">Start Extraction</button>
+                </div>
             </div>
             
-            <div id="resultStage" class="hidden text-center">
-                <h3 class="text-[#FF5733] font-bold uppercase tracking-widest mb-2">Audit Complete</h3>
-                <div class="text-5xl font-black mb-4 leading-none" id="leakAmount">/bin/bash</div>
-                <p class="text-gray-400 text-sm mb-8">Estimated annual revenue lost to manual friction.</p>
-                <button onclick="closeAudit()" class="w-full border border-white/10 py-4 text-[10px] uppercase tracking-widest hover:bg-white hover:text-black transition-all">Close Session</button>
+            <div id="resultStage" class="hidden p-12 text-center animate-in fade-in duration-1000">
+                <div class="text-[#FF5733] font-mono text-[10px] tracking-widest mb-4 uppercase">Analysis Complete</div>
+                <div class="text-7xl font-black mb-2" id="leakAmount">/bin/bash</div>
+                <p class="text-gray-400 text-sm mb-10 uppercase tracking-widest font-mono">Estimated Annual Operational Leakage</p>
+                
+                <div class="border-t border-white/10 pt-8 text-left">
+                    <div class="flex items-center gap-2 mb-4 text-[#FF5733] font-mono text-[10px]">
+                        <div class="h-2 w-2 bg-[#FF5733] animate-pulse"></div> AGENT_AUTONOMOUS: ONLINE
+                    </div>
+                    <div class="text-sm text-gray-300 italic mb-6 leading-relaxed" id="aiMessage">
+                        "Your leak rate suggests high architectural friction. I can generate a roadmap to recover these funds via Telegram or WhatsApp. Where should we talk?"
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <a href="https://wa.me/YOURNUMBER" target="_blank" class="border border-green-500/30 hover:bg-green-500/10 p-4 text-[10px] font-bold uppercase tracking-widest text-green-500 transition-all text-center">WhatsApp Direct</a>
+                        <a href="https://t.me/YOURUSERNAME" target="_blank" class="border border-blue-500/30 hover:bg-blue-500/10 p-4 text-[10px] font-bold uppercase tracking-widest text-blue-500 transition-all text-center">Telegram Enclave</a>
+                    </div>
+                    <button onclick="closeAudit()" class="mt-8 text-[9px] text-gray-600 uppercase tracking-widest hover:text-white transition-colors block w-full text-center">Close Session</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        function openAudit() { document.getElementById('auditModal').style.display = 'flex'; }
-        function closeAudit() { 
-            document.getElementById('auditModal').style.display = 'none';
-            document.getElementById('formStage').classList.remove('hidden');
-            document.getElementById('resultStage').classList.add('hidden');
-        }
+        function openAudit() { document.getElementById('auditModal').classList.remove('hidden'); }
+        function closeAudit() { document.getElementById('auditModal').classList.add('hidden'); }
 
         async function executeAnalysis() {
             const email = document.getElementById('email').value;
             const hours = document.getElementById('hours').value;
-            const btn = document.getElementById('execBtn');
+            if(!email || !hours) return;
 
-            if(!email || !hours) return alert('Data Required.');
-            btn.innerText = 'CALCULATING LEAK...';
+            document.getElementById('execBtn').innerText = "CALCULATING...";
+            const leak = (hours * 52 * 150);
 
-            // Calculate Leak: (Hours * 52 weeks * 50 average corporate labor rate)
-            const leak = hours * 52 * 150;
-            
             try {
                 const res = await fetch('/api/audit', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, hours, revenue: 'HAA_AUDIT' })
+                    body: JSON.stringify({ email, hours })
                 });
 
                 if(res.ok) {
                     document.getElementById('leakAmount').innerText = '$' + leak.toLocaleString();
                     document.getElementById('formStage').classList.add('hidden');
                     document.getElementById('resultStage').classList.remove('hidden');
-                } else {
-                    alert('Sync Error. Check Vercel Env Vars.');
                 }
             } catch (e) {
-                alert('Connection Failed.');
-            } finally {
-                btn.innerText = 'Execute Analysis';
+                alert('Connection reset by peer.');
             }
         }
     </script>
