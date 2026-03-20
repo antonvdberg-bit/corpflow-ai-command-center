@@ -2,35 +2,80 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CorpflowAI | Audit Gate</title>
+    <title>CorpflowAI | Autonomous Business Systems</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #050505; color: #ffffff; font-family: sans-serif; }
+        body { background-color: #050505; color: #ffffff; font-family: sans-serif; overflow-x: hidden; }
         .accent { color: #FF5733; }
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); z-index: 50; }
+        .grid-bg { background-image: radial-gradient(#1a1a1a 1px, transparent 1px); background-size: 40px 40px; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(15px); z-index: 100; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center">
-    <button onclick="openAudit()" class="border border-[#FF5733] px-12 py-6 text-sm font-bold uppercase tracking-[0.4em] hover:bg-[#FF5733] transition-all">
-        [ Start Architecture Stress Test ]
-    </button>
+<body class="grid-bg min-h-screen flex flex-col items-center">
+    <nav class="w-full max-w-7xl flex justify-between items-center p-8 uppercase text-[10px] tracking-[0.3em] font-mono">
+        <div>Corpflow<span class="accent">AI</span></div>
+        <div class="flex items-center gap-2 text-green-500"><div class="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div> CORE ACTIVE | [ LATENCY: 18ms ]</div>
+    </nav>
 
-    <div id="auditModal" class="modal flex-col items-center justify-center p-6">
-        <div class="max-w-md w-full border border-white/10 p-8 bg-black">
-            <h2 class="text-2xl font-bold mb-4 uppercase tracking-tighter">System Audit</h2>
-            <input id="leadEmail" type="email" placeholder="Corporate Email" class="w-full bg-white/5 border border-white/10 p-4 mb-4 text-white">
-            <button onclick="submitAudit()" class="w-full bg-[#FF5733] py-4 font-bold uppercase">Execute Gap Analysis</button>
-            <button onclick="closeAudit()" class="w-full py-4 text-xs text-gray-500 uppercase">Cancel</button>
+    <main class="flex-1 flex flex-col items-center justify-center text-center px-6 py-20">
+        <h1 class="text-6xl md:text-8xl font-black tracking-tighter mb-6 uppercase leading-none">
+            Autonomous<br><span class="text-gray-800">Business</span> Systems
+        </h1>
+        <p class="max-w-2xl text-xl text-gray-400 mb-12">
+            Replacing "Manual Friction" with <span class="text-white font-bold underline decoration-[#FF5733]">Self-Correcting Architecture.</span>
+        </p>
+
+        <div class="grid md:grid-cols-3 gap-8 max-w-5xl mb-16 text-left">
+            <div class="p-8 border border-white/5 bg-black/50 hover:border-[#FF5733]/50 transition-colors">
+                <h3 class="accent font-bold mb-2 uppercase text-xs tracking-widest">01 / Lead Isolation</h3>
+                <p class="text-sm text-gray-500">Autonomous qualification of every HNW lead. No manual sorting.</p>
+            </div>
+            <div class="p-8 border border-white/5 bg-black/50 hover:border-[#FF5733]/50 transition-colors">
+                <h3 class="accent font-bold mb-2 uppercase text-xs tracking-widest">02 / Dynamic Logic</h3>
+                <p class="text-sm text-gray-500">Systems that learn and adapt based on real-time market drift.</p>
+            </div>
+            <div class="p-8 border border-white/5 bg-black/50 hover:border-[#FF5733]/50 transition-colors">
+                <h3 class="accent font-bold mb-2 uppercase text-xs tracking-widest">03 / Operational Moat</h3>
+                <p class="text-sm text-gray-500">70% reduction in human overhead with 100% system reliability.</p>
+            </div>
+        </div>
+
+        <button onclick="openAudit()" class="border border-gray-800 hover:border-[#FF5733] px-12 py-6 text-sm font-bold uppercase tracking-[0.4em] transition-all bg-black group">
+            [ <span class="group-hover:text-[#FF5733]">Start Architecture Stress Test</span> ]
+        </button>
+    </main>
+
+    <div id="auditModal" class="modal flex flex-col items-center justify-center p-6">
+        <div class="max-w-md w-full border border-white/10 p-10 bg-black shadow-2xl relative">
+            <div class="absolute top-0 left-0 w-full h-1 bg-[#FF5733]"></div>
+            <h2 class="text-3xl font-black mb-2 uppercase tracking-tighter">System Audit</h2>
+            <p class="text-gray-500 text-xs mb-8 tracking-widest uppercase">Initializing Logic Gap Analysis...</p>
+            
+            <input id="leadEmail" type="email" placeholder="CORPORATE EMAIL" class="w-full bg-white/5 border border-white/10 p-5 mb-4 text-white font-mono text-sm focus:outline-none focus:border-[#FF5733]">
+            
+            <button onclick="submitAudit()" class="w-full bg-[#FF5733] py-5 font-bold uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-all">
+                Execute Analysis
+            </button>
+            <button onclick="closeAudit()" class="w-full mt-4 text-[10px] text-gray-600 uppercase tracking-widest hover:text-white transition-colors">
+                Terminate Session
+            </button>
         </div>
     </div>
+
+    <footer class="p-8 text-[10px] text-gray-600 uppercase tracking-widest font-mono">
+        CorpflowAI // HAA Protocol v1.2 // Secure Database Link Active
+    </footer>
 
     <script>
         function openAudit() { document.getElementById('auditModal').style.display = 'flex'; }
         function closeAudit() { document.getElementById('auditModal').style.display = 'none'; }
         async function submitAudit() {
             const email = document.getElementById('leadEmail').value;
-            alert('Audit Initialized for: ' + email + '. Connecting to Database...');
-            // Connection logic will trigger here
+            if(!email) return alert('Email Required for Audit Authorization.');
+            
+            // Logic for the database push will go here
+            console.log('Sending to Database:', email);
+            alert('SYSTEM MESSAGE: Audit Initiated. Check terminal for handshake.');
             closeAudit();
         }
     </script>
