@@ -3,5 +3,9 @@
   "version": "1.0.1",
   "scripts": {
     "build": "mkdir -p public && cp core/web/*.html public/ && cp -r core/web/* public/"
+  },
+  "dependencies": {
+    "@prisma/client": "^7.5.0",
+    "prisma": "^7.5.0"
   }
 }

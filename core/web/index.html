@@ -5,7 +5,7 @@
     <title>CorpflowAI | Autonomous Business Systems</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #050505; color: #ffffff; font-family: sans-serif; overflow-x: hidden; }
+        body { background-color: #050505; color: #ffffff; font-family: sans-serif; }
         .accent { color: #FF5733; }
         .grid-bg { background-image: radial-gradient(#1a1a1a 1px, transparent 1px); background-size: 40px 40px; }
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(15px); z-index: 100; }
@@ -14,69 +14,57 @@
 <body class="grid-bg min-h-screen flex flex-col items-center">
     <nav class="w-full max-w-7xl flex justify-between items-center p-8 uppercase text-[10px] tracking-[0.3em] font-mono">
         <div>Corpflow<span class="accent">AI</span></div>
-        <div class="flex items-center gap-2 text-green-500"><div class="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div> CORE ACTIVE | [ LATENCY: 18ms ]</div>
+        <div class="flex items-center gap-2 text-green-500"><div class="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div> CORE ACTIVE | DB: PRISMA_POSTGRES</div>
     </nav>
 
     <main class="flex-1 flex flex-col items-center justify-center text-center px-6 py-20">
-        <h1 class="text-6xl md:text-8xl font-black tracking-tighter mb-6 uppercase leading-none">
-            Autonomous<br><span class="text-gray-800">Business</span> Systems
-        </h1>
-        <p class="max-w-2xl text-xl text-gray-400 mb-12">
-            Replacing "Manual Friction" with <span class="text-white font-bold underline decoration-[#FF5733]">Self-Correcting Architecture.</span>
-        </p>
-
-        <div class="grid md:grid-cols-3 gap-8 max-w-5xl mb-16 text-left">
-            <div class="p-8 border border-white/5 bg-black/50 hover:border-[#FF5733]/50 transition-colors">
-                <h3 class="accent font-bold mb-2 uppercase text-xs tracking-widest">01 / Lead Isolation</h3>
-                <p class="text-sm text-gray-500">Autonomous qualification of every HNW lead. No manual sorting.</p>
-            </div>
-            <div class="p-8 border border-white/5 bg-black/50 hover:border-[#FF5733]/50 transition-colors">
-                <h3 class="accent font-bold mb-2 uppercase text-xs tracking-widest">02 / Dynamic Logic</h3>
-                <p class="text-sm text-gray-500">Systems that learn and adapt based on real-time market drift.</p>
-            </div>
-            <div class="p-8 border border-white/5 bg-black/50 hover:border-[#FF5733]/50 transition-colors">
-                <h3 class="accent font-bold mb-2 uppercase text-xs tracking-widest">03 / Operational Moat</h3>
-                <p class="text-sm text-gray-500">70% reduction in human overhead with 100% system reliability.</p>
-            </div>
-        </div>
-
+        <h1 class="text-6xl md:text-8xl font-black tracking-tighter mb-6 uppercase leading-none">Autonomous<br><span class="text-gray-800">Business</span> Systems</h1>
+        <p class="max-w-2xl text-xl text-gray-400 mb-12 text-gray-400 font-mono">[ SYSTEM STATUS: SECURE_INGESTION_READY ]</p>
         <button onclick="openAudit()" class="border border-gray-800 hover:border-[#FF5733] px-12 py-6 text-sm font-bold uppercase tracking-[0.4em] transition-all bg-black group">
             [ <span class="group-hover:text-[#FF5733]">Start Architecture Stress Test</span> ]
         </button>
     </main>
 
     <div id="auditModal" class="modal flex flex-col items-center justify-center p-6">
-        <div class="max-w-md w-full border border-white/10 p-10 bg-black shadow-2xl relative">
-            <div class="absolute top-0 left-0 w-full h-1 bg-[#FF5733]"></div>
-            <h2 class="text-3xl font-black mb-2 uppercase tracking-tighter">System Audit</h2>
-            <p class="text-gray-500 text-xs mb-8 tracking-widest uppercase">Initializing Logic Gap Analysis...</p>
-            
-            <input id="leadEmail" type="email" placeholder="CORPORATE EMAIL" class="w-full bg-white/5 border border-white/10 p-5 mb-4 text-white font-mono text-sm focus:outline-none focus:border-[#FF5733]">
-            
-            <button onclick="submitAudit()" class="w-full bg-[#FF5733] py-5 font-bold uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-all">
-                Execute Analysis
-            </button>
-            <button onclick="closeAudit()" class="w-full mt-4 text-[10px] text-gray-600 uppercase tracking-widest hover:text-white transition-colors">
-                Terminate Session
-            </button>
+        <div class="max-w-md w-full border border-white/10 p-10 bg-black relative">
+            <h2 class="text-2xl font-black mb-6 uppercase">System Audit</h2>
+            <input id="leadEmail" type="email" placeholder="CORPORATE EMAIL" class="w-full bg-white/5 border border-white/10 p-5 mb-4 text-white font-mono text-sm focus:border-[#FF5733] outline-none">
+            <button id="submitBtn" onclick="submitAudit()" class="w-full bg-[#FF5733] py-5 font-bold uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-all">Execute Analysis</button>
+            <button onclick="closeAudit()" class="w-full mt-4 text-[10px] text-gray-400 uppercase">Cancel</button>
         </div>
     </div>
-
-    <footer class="p-8 text-[10px] text-gray-600 uppercase tracking-widest font-mono">
-        CorpflowAI // HAA Protocol v1.2 // Secure Database Link Active
-    </footer>
 
     <script>
         function openAudit() { document.getElementById('auditModal').style.display = 'flex'; }
         function closeAudit() { document.getElementById('auditModal').style.display = 'none'; }
+        
         async function submitAudit() {
             const email = document.getElementById('leadEmail').value;
-            if(!email) return alert('Email Required for Audit Authorization.');
-            
-            // Logic for the database push will go here
-            console.log('Sending to Database:', email);
-            alert('SYSTEM MESSAGE: Audit Initiated. Check terminal for handshake.');
-            closeAudit();
+            const btn = document.getElementById('submitBtn');
+            if(!email) return alert('Email Required.');
+
+            btn.innerText = 'SYNCING TO POSTGRES...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/audit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, revenue: 'HAA_LEAD', hours: 40 })
+                });
+                
+                if (response.ok) {
+                    alert('SUCCESS: Lead Locked to Prisma Postgres.');
+                    closeAudit();
+                } else {
+                    alert('HANDSHAKE ERROR: Ensure Vercel Postgres is connected.');
+                }
+            } catch (err) {
+                alert('Connection Failed.');
+            } finally {
+                btn.innerText = 'Execute Analysis';
+                btn.disabled = false;
+            }
         }
     </script>
 </body>
