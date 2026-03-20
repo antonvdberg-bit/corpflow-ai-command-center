@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luxe Maurice | Private Acquisition Gate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400;1,400&family=Inter:wght@200;400&display=swap');
+        
+        :root {
+            --cloud-dancer: #f0eee9; /* Pantone 2026 Color of the Year */
+            --antique-gold: #c5a059;
+            --deep-onyx: #0a0a0a;
+        }
+
+        body { 
+            background-color: var(--cloud-dancer); 
+            color: var(--deep-onyx); 
+            font-family: 'Inter', sans-serif; 
+            overflow-x: hidden;
+        }
+        
+        h1, h2, .serif { font-family: 'Bodoni Moda', serif; }
+        
+        .gold-leaf { color: var(--antique-gold); }
+        .bg-onyx { background-color: var(--deep-onyx); }
+        .border-gold { border-color: var(--antique-gold); }
+        
+        input, select {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            padding: 1rem 0;
+            width: 100%;
+            font-size: 1.1rem;
+            transition: border-color 0.4s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-bottom: 1px solid var(--antique-gold);
+        }
+
+        .fade-in { animation: fadeIn 1.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <nav class="p-8 flex justify-between items-center w-full max-w-7xl mx-auto">
+        <span class="text-xl tracking-[0.3em] font-light uppercase">Luxe <span class="gold-leaf italic">Maurice</span></span>
+        <span class="text-[10px] tracking-widest text-stone-400 uppercase">Private Collection 2026</span>
+    </nav>
+
+    <main class="flex-grow flex flex-col items-center justify-center px-6 py-12 fade-in">
+        <div class="max-w-3xl w-full">
+            <header class="mb-16 text-center">
+                <p class="text-[10px] tracking-[0.4em] text-stone-500 uppercase mb-4">Verification Required</p>
+                <h1 class="text-5xl md:text-7xl font-light mb-6 leading-tight">Beyond <span class="italic gold-leaf">Ownership</span>.</h1>
+                <p class="text-stone-500 max-w-lg mx-auto leading-relaxed">Access to the Bain Boeuf Private Collection is reserved for verified investors. Please identify your acquisition intent below.</p>
+            </header>
+
+            <form id="qualifier" class="space-y-12">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <div class="space-y-2">
+                        <label class="text-[10px] uppercase tracking-widest text-stone-400">Primary Market</label>
+                        <select id="market">
+                            <option value="sa">South Africa (ZAR Protection)</option>
+                            <option value="fr">France (IFI Wealth Strategy)</option>
+                            <option value="int">Middle East / International</option>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] uppercase tracking-widest text-stone-400">Capital Allocation</label>
+                        <select id="budget">
+                            <option>€1,500,000 - €2,500,000</option>
+                            <option>€2,500,000 - €5,000,000</option>
+                            <option>€5,000,000 +</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-[10px] uppercase tracking-widest text-stone-400">Direct Contact (WhatsApp Preferred)</label>
+                    <input type="text" placeholder="+27 / +33 / +971 ...">
+                </div>
+
+                <div class="pt-8 text-center">
+                    <button type="button" onclick="submitToProprietaryEngine()" 
+                        class="bg-onyx text-white px-12 py-5 text-xs tracking-[0.3em] uppercase hover:bg-stone-800 transition shadow-2xl">
+                        Request Private Dossier
+                    </button>
+                    <p class="mt-8 text-[10px] text-stone-400 italic">
+                        *Note: Pre-registration duty pricing (5%) expires July 1, 2026.
+                    </p>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <footer class="p-8 text-center text-[9px] tracking-[0.3em] text-stone-400 uppercase">
+        © 2026 Luxe Maurice • Strictly Confidential • Powered by CorpflowAI
+    </footer>
+
+</body>
+</html>
+<script>
+function submitToProprietaryEngine() {
+    const data = {
+        market: document.getElementById('market').value,
+        budget: document.getElementById('budget').value,
+        contact: document.querySelector('input[type="text"]').value,
+        timestamp: new Date().toISOString(),
+        source: 'Luxe Maurice Private D2C'
+    };
+    
+    console.log("CorpflowAI | Routing Lead to Master Controller:", data);
+    
+    // In a live environment, this POSTs to our sync_sheets.py endpoint
+    // For now, we simulate the 'Instant Qualification' and redirect
+    setTimeout(() => {
+        window.location.href = 'portfolio.html';
+    }, 800);
+}
+</script>

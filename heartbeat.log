@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/workspaces/corpflow-ai-command-center/core/engine/sync_sheets.py", line 3, in <module>
+    from google.auth.transport.requests import Request
+ModuleNotFoundError: No module named 'google'
+🛡️ AUDITING CORPFLOW AI FACTORY...
+✅ ENGINE SYNC: Data mirrored to Core and Showcase.
+✅ CORE Protected. SHOWCASE Updated.
+💓 Heartbeat manual pulse at Thu Mar 19 23:51:29 UTC 2026

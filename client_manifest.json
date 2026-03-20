@@ -1,0 +1,30 @@
+{
+  "clients": [
+    {
+      "id": "luxe-maurice",
+      "name": "Luxe Maurice",
+      "status": "LIVE",
+      "ui_patch": 1.0,
+      "redirect": "https://luxemaurice.com/",
+      "parameters": "investment"
+    },
+    {
+      "id": "medspa-roi",
+      "name": "MedSpa Strategic",
+      "status": "SYNCING",
+      "ui_patch": 0.85,
+      "redirect": "https://luxemaurice.com/medspa",
+      "parameters": "revenue"
+    },
+    {
+      "id": "property-portal-a",
+      "name": "Mauritius Property A",
+      "status": "SYNCING",
+      "ui_patch": 0.90,
+      "redirect": "https://luxemaurice.com/portal-a",
+      "parameters": "valuation"
+    }
+  ],
+  "system_recovery": "85%",
+  "last_sync": "$(date)"
+}

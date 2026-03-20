@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Fixed Widget</title>
+    <style>
+        body { background-color: #111; color: white; padding: 50px; font-family: sans-serif; }
+        .stealth-widget { 
+            border: 2px solid red; /* Temporary red border to confirm it's loading */
+            background: #222; 
+            padding: 30px; 
+            max-width: 400px; 
+            margin: auto;
+            border-radius: 10px;
+        }
+        input { width: 100%; padding: 10px; margin: 10px 0; font-size: 1.2rem; }
+        button { width: 100%; padding: 15px; background: gold; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="stealth-widget">
+        <h2>2026 Acquisition Intelligence</h2>
+        <p>Calculate exposure to July 1st Duty increase (5% to 10%)</p>
+        <label>INVESTMENT AMOUNT</label>
+        <input type="text" id="investment" placeholder="2,000,000" oninput="formatCurrency(this)">
+        <button onclick="runAudit()">RUN AUDIT</button>
+    </div>
+
+    <script>
+    function formatCurrency(input) {
+        let value = input.value.replace(/\D/g, "");
+        if (value) { input.value = Number(value).toLocaleString(); }
+    }
+    function runAudit() {
+        const val = document.getElementById('investment').value.replace(/,/g, '');
+        if (!val) return alert("Enter an amount");
+        alert("Current Duty (5%): $" + (val * 0.05).toLocaleString() + 
+              "\nNew Duty (10%): $" + (val * 0.10).toLocaleString());
+    }
+    </script>
+</body>
+</html>
