@@ -3,43 +3,69 @@
 <head>
     <meta charset="UTF-8"><title>CorpflowAI | Command Center</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #050505; color: #ffffff; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255,255,255,0.05); }
+    </style>
 </head>
-<body class="bg-[#050505] text-white p-12 font-mono">
+<body class="p-8 md:p-20">
     <div class="max-w-6xl mx-auto">
-        <h1 class="text-2xl font-black mb-8 border-b border-white/10 pb-4 uppercase tracking-[0.5em]">Command Center</h1>
-        <div class="grid grid-cols-3 gap-6 mb-12">
-            <div class="border border-white/10 p-8 bg-white/5">
-                <div class="text-[10px] text-gray-500 mb-2 uppercase">Total Leads</div>
-                <div id="totalLeads" class="text-4xl font-bold">--</div>
+        <div class="flex justify-between items-end mb-12 border-b border-white/10 pb-8">
+            <div>
+                <h1 class="text-xs tracking-[0.6em] text-gray-500 uppercase mb-2">System Operations</h1>
+                <div class="text-4xl font-black uppercase tracking-tighter">Command_Center.log</div>
             </div>
-            <div class="border border-white/10 p-8 bg-white/5">
-                <div class="text-[10px] text-gray-500 mb-2 uppercase">Total Revenue Leak Identified</div>
-                <div id="totalLeak" class="text-4xl font-bold text-[#FF5733]">--</div>
+            <button onclick="loadData()" class="text-[10px] border border-white/20 px-6 py-2 hover:bg-white hover:text-black transition-all font-bold uppercase tracking-widest">Refresh Intel</button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+            <div class="glass p-10">
+                <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-4">Total Leads Captured</div>
+                <div id="totalLeads" class="text-6xl font-black">--</div>
+            </div>
+            <div class="glass p-10">
+                <div class="text-[10px] text-[#FF5733] uppercase tracking-widest mb-4">Gross Portfolio Leakage</div>
+                <div id="totalLeak" class="text-6xl font-black text-[#FF5733]">--</div>
             </div>
         </div>
         
-        <table class="w-full border-collapse border border-white/10">
-            <thead>
-                <tr class="bg-white/5 text-[10px] tracking-widest uppercase">
-                    <th class="p-4 border border-white/10 text-left">Timestamp</th>
-                    <th class="p-4 border border-white/10 text-left">Email</th>
-                    <th class="p-4 border border-white/10 text-left">Hours/Wk</th>
-                    <th class="p-4 border border-white/10 text-left">Annual Leak</th>
-                </tr>
-            </thead>
-            <tbody id="leadTableBody">
-                </tbody>
-        </table>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="text-[10px] text-gray-500 uppercase tracking-[0.3em] border-b border-white/10">
+                        <th class="pb-4 font-normal">Timestamp</th>
+                        <th class="pb-4 font-normal">Enclave Email</th>
+                        <th class="pb-4 font-normal text-right">Leakage Value</th>
+                    </tr>
+                </thead>
+                <tbody id="leadTableBody" class="text-sm">
+                    </tbody>
+            </table>
+        </div>
     </div>
 
     <script>
-        // Temporary placeholder - we will build the /api/admin-get-leads next
-        async function fetchLeads() {
-            // Note: This requires the API we'll build next to work
-            const res = await fetch('/api/admin-leads');
-            const data = await res.json();
-            // Data rendering logic...
+        async function loadData() {
+            try {
+                const res = await fetch('/api/admin-leads');
+                const data = await res.json();
+                
+                document.getElementById('totalLeads').innerText = data.stats.count;
+                document.getElementById('totalLeak').innerText = '$' + data.stats.totalLeak.toLocaleString();
+                
+                const tableBody = document.getElementById('leadTableBody');
+                tableBody.innerHTML = data.leads.map(lead => `
+                    <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                        <td class="py-6 text-gray-500 font-mono">${new Date(lead.createdAt).toLocaleDateString()}</td>
+                        <td class="py-6 font-bold uppercase tracking-widest">${lead.email}</td>
+                        <td class="py-6 text-right text-[#FF5733] font-black tracking-tight">$${(lead.gapScore || 0).toLocaleString()}</td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                console.error("Dashboard Sync Failed");
+            }
         }
+        loadData();
     </script>
 </body>
 </html>
