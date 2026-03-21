@@ -1,49 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><title>CorpFlow | Admin HQ</title>
+    <meta charset="UTF-8"><title>CorpflowAI | Command Center</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>body { background: #0f172a; color: white; font-family: sans-serif; }</style>
 </head>
-<body class="p-10">
-    <div class="max-w-2xl mx-auto bg-slate-900 p-8 rounded-2xl border border-slate-800">
-        <h1 class="text-2xl font-bold mb-6 text-blue-400">Client Launchpad</h1>
-        
-        <div class="space-y-4">
-            <div>
-                <label class="block text-xs uppercase opacity-50 mb-1">Business Name</label>
-                <input id="client_name" type="text" class="w-full bg-slate-800 border-none rounded p-3" placeholder="e.g. Serenity Medical Spa">
+<body class="bg-[#050505] text-white p-12 font-mono">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-2xl font-black mb-8 border-b border-white/10 pb-4 uppercase tracking-[0.5em]">Command Center</h1>
+        <div class="grid grid-cols-3 gap-6 mb-12">
+            <div class="border border-white/10 p-8 bg-white/5">
+                <div class="text-[10px] text-gray-500 mb-2 uppercase">Total Leads</div>
+                <div id="totalLeads" class="text-4xl font-bold">--</div>
             </div>
-            <div>
-                <label class="block text-xs uppercase opacity-50 mb-1">Industry Blueprint</label>
-                <select id="blueprint" class="w-full bg-slate-800 border-none rounded p-3">
-                    <option value="medical_spa">Medical Spa / Wellness</option>
-                    <option value="legal_concierge">Legal / Law Firm</option>
-                    <option value="sales_hunter">B2B Sales Agent</option>
-                </select>
+            <div class="border border-white/10 p-8 bg-white/5">
+                <div class="text-[10px] text-gray-500 mb-2 uppercase">Total Revenue Leak Identified</div>
+                <div id="totalLeak" class="text-4xl font-bold text-[#FF5733]">--</div>
             </div>
-            <button onclick="launchClient()" class="w-full bg-blue-600 py-4 rounded-xl font-bold hover:bg-blue-500 transition mt-6">
-                PROVISION AI INSTANCE
-            </button>
         </div>
-        <div id="status" class="mt-6 text-sm text-center opacity-70"></div>
+        
+        <table class="w-full border-collapse border border-white/10">
+            <thead>
+                <tr class="bg-white/5 text-[10px] tracking-widest uppercase">
+                    <th class="p-4 border border-white/10 text-left">Timestamp</th>
+                    <th class="p-4 border border-white/10 text-left">Email</th>
+                    <th class="p-4 border border-white/10 text-left">Hours/Wk</th>
+                    <th class="p-4 border border-white/10 text-left">Annual Leak</th>
+                </tr>
+            </thead>
+            <tbody id="leadTableBody">
+                </tbody>
+        </table>
     </div>
 
     <script>
-        async function launchClient() {
-            const name = document.getElementById('client_name').value;
-            const blueprint = document.getElementById('blueprint').value;
-            const status = document.getElementById('status');
-            
-            status.innerText = "🛠️ Communicating with Baserow & Provisioning Engine...";
-            
-            // This calls your API bridge
-            const res = await fetch(`/api/onboard?name=${name}&type=${blueprint}`);
+        // Temporary placeholder - we will build the /api/admin-get-leads next
+        async function fetchLeads() {
+            // Note: This requires the API we'll build next to work
+            const res = await fetch('/api/admin-leads');
             const data = await res.json();
-            
-            if(data.success) {
-                status.innerHTML = "✅ SUCCESS: " + name + " is now LIVE. <br> Deployment URL: " + name.toLowerCase().replace(/ /g, '-') + ".corpflowai.com";
-            }
+            // Data rendering logic...
         }
     </script>
 </body>
