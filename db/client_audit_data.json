@@ -1,0 +1,11 @@
+{
+  "Luxe_Maurice": [
+    {"task": "Design Lead Qual Survey", "status": "Pending", "priority": "Critical", "agent": "Sentry_B"},
+    {"task": "Bain Boeuf Stealth Page", "status": "Deployed", "priority": "Medium", "agent": "Sentry_B"},
+    {"task": "French Tax Optimization", "status": "Pending", "priority": "High", "agent": "Sentry_B"}
+  ],
+  "Legal_Partners": [
+    {"task": "SCJ Case Law Ingest", "status": "Executing", "priority": "High", "agent": "Senior_Clerk"},
+    {"task": "Legislative Mapping", "status": "Pending", "priority": "Medium", "agent": "Senior_Clerk"}
+  ]
+}

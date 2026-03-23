@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><title>Control Room | CorpFlowAI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #020617; color: white; font-family: sans-serif; }
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
+        .terminal { font-family: monospace; color: #10b981; font-size: 11px; }
+    </style>
+</head>
+<body class="p-8 md:p-20">
+    <div class="max-w-5xl mx-auto">
+        <div class="flex justify-between items-center mb-12">
+            <h1 class="text-3xl font-bold tracking-tighter">Neural <span class="text-blue-500">Feedback Loop</span></h1>
+            <div class="text-[10px] text-slate-500 uppercase tracking-[0.3em]">Status: System Active</div>
+        </div>
+
+        <div class="glass p-8 rounded-[32px] mb-8">
+            <div class="flex flex-col md:flex-row gap-4">
+                <input id="f_item" placeholder="What needs fixing?" class="bg-slate-900 p-4 rounded-xl flex-1 outline-none border border-slate-700 focus:border-blue-500">
+                <input id="f_note" placeholder="Instructions for the AI..." class="bg-slate-900 p-4 rounded-xl flex-[2] outline-none border border-slate-700 focus:border-blue-500">
+                <button onclick="send()" class="bg-blue-600 px-10 py-4 rounded-xl font-bold uppercase text-xs tracking-widest">Transmit</button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="md:col-span-2 glass rounded-[32px] p-2 overflow-hidden">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-900/50 text-slate-500 uppercase">
+                        <tr><th class="p-6">ID</th><th class="p-6">Instruction</th><th class="p-6 text-right">Status</th></tr>
+                    </thead>
+                    <tbody id="list"></tbody>
+                </table>
+            </div>
+            <div class="glass p-6 rounded-[32px] terminal h-64 overflow-y-auto" id="log">
+                > Awaiting instruction...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function send() {
+            const item = document.getElementById('f_item').value;
+            const note = document.getElementById('f_note').value;
+            if(!item) return;
+
+            document.getElementById('log').innerHTML += `<br>> Transmitting: ${item}...`;
+            
+            const res = await fetch('/api/feedback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ item, note })
+            });
+            const data = await res.json();
+
+            document.getElementById('log').innerHTML += `<br>> Received. ID #${data.id} logged.`;
+            document.getElementById('list').innerHTML = `
+                <tr class="border-t border-slate-800">
+                    <td class="p-6">#${data.id}</td>
+                    <td class="p-6 font-bold text-white">${item}<br><span class="font-normal text-slate-500">${note}</span></td>
+                    <td class="p-6 text-right text-blue-400 italic">Processing...</td>
+                </tr>
+            ` + document.getElementById('list').innerHTML;
+        }
+    </script>
+</body>
+</html>

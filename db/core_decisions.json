@@ -1,0 +1,8 @@
+{
+  "CORE_VIDEO_STACK": {
+    "visual": "HeyGen",
+    "voice": "ElevenLabs",
+    "status": "LOCKED",
+    "client_override": "ALLOWED_IN_ROADMAP"
+  }
+}

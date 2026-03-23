@@ -1,0 +1,34 @@
+{
+  "clients": {
+    "node_luxe": {
+      "display_name": "Luxe Maurice",
+      "fiscal_term": "2026-03-01 to 2027-02-28",
+      "agent": { "alias": "Sentry_B", "role": "HNW_Concierge" },
+      "transactions": [
+        {
+          "tx_id": "TX-LX-9901",
+          "instruction_ref": "SA_LEAD_QUAL_V1",
+          "action": "LEGAL_MAPPING",
+          "detail": "Cross-referenced SA exchange control with Mauritius Property Law Art. 11.",
+          "decision_link": "DEC-LX-001",
+          "timestamp": "2026-03-23T03:30:00Z"
+        }
+      ]
+    },
+    "node_corp": {
+      "display_name": "CorpFlowAI",
+      "fiscal_term": "2026-01-01 to 2026-12-31",
+      "agent": { "alias": "Gemini_Core", "role": "Lead_Architect" },
+      "transactions": [
+        {
+          "tx_id": "TX-CF-1102",
+          "instruction_ref": "VIDEO_STACK_LOCK",
+          "action": "GOVERNANCE_LOCK",
+          "detail": "Committed HeyGen/ElevenLabs as Global Corporate standard.",
+          "decision_link": "DEC-CF-001",
+          "timestamp": "2026-03-23T03:35:00Z"
+        }
+      ]
+    }
+  }
+}

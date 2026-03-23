@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><title>Serenity Spa | Performance Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>body { background: #0f172a; color: white; }</style>
+</head>
+<body class="p-8">
+    <div class="max-w-4xl mx-auto">
+        <header class="flex justify-between items-center mb-12">
+            <div>
+                <h1 class="text-3xl font-bold">Serenity Wellness</h1>
+                <p class="text-blue-400">AI Concierge Performance</p>
+            </div>
+            <div class="bg-blue-600/20 border border-blue-500 px-4 py-2 rounded-full text-blue-400 text-sm font-bold">
+                LIVE STATUS: ACTIVE
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800">
+                <p class="text-slate-400 text-sm uppercase">Leads Captured</p>
+                <h2 id="lead-count" class="text-4xl font-bold mt-2">--</h2>
+            </div>
+            <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800">
+                <p class="text-slate-400 text-sm uppercase">Response Rate</p>
+                <h2 class="text-4xl font-bold mt-2 text-green-400">100%</h2>
+            </div>
+            <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800">
+                <p class="text-slate-400 text-sm uppercase">Est. Revenue Value</p>
+                <h2 id="revenue" class="text-4xl font-bold mt-2 text-blue-400">--</h2>
+            </div>
+        </div>
+
+        <div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
+            <div class="p-6 border-b border-slate-800 font-bold">Recent Automated Enquiries</div>
+            <div id="lead-list" class="divide-y divide-slate-800">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadStats() {
+            const res = await fetch('/api/stats?tenant_id=showroom_test');
+            const data = await res.json();
+            document.getElementById('lead-count').innerText = data.count;
+            document.getElementById('revenue').innerText = "Rs " + (data.count * 2500).toLocaleString();
+            
+            const list = document.getElementById('lead-list');
+            data.leads.forEach(lead => {
+                list.innerHTML += `<div class="p-4 flex justify-between">
+                    <span>${lead.name}</span>
+                    <span class="text-slate-500">${lead.status}</span>
+                </div>`;
+            });
+        }
+        loadStats();
+    </script>
+</body>
+</html>

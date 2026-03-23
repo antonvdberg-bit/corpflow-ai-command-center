@@ -1,0 +1,23 @@
+{
+  "project_id": "LX-001",
+  "client": "Luxe Maurice",
+  "start_date": "2026-03-15",
+  "target_end_date": "2026-04-30",
+  "owner": "Anton_Admin",
+  "tasks": [
+    {
+      "id": "T1",
+      "task": "Logo Scale 6.1",
+      "status": "DEPLOYED",
+      "lock": true,
+      "last_tested": "2026-03-22"
+    },
+    {
+      "id": "T2",
+      "task": "Lead Qual Survey (SA)",
+      "status": "IN_PROGRESS",
+      "lock": false,
+      "feedback_loop": "Awaiting final UX polish"
+    }
+  ]
+}

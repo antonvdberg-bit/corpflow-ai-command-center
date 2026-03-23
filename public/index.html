@@ -1,1 +1,103 @@
-<!DOCTYPE html><html><head><title>CorpFlowAI | Mauritius</title><script src="https://cdn.tailwindcss.com"></script><style>body { background: #020617; color: #f8fafc; font-family: sans-serif; } .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }</style></head><body class="bg-[#020617]"><nav class="p-8 flex justify-between items-center max-w-7xl mx-auto"><img src="/assets/logos/LogoSQBK.png" class="h-12"><div class="hidden md:flex space-x-8 text-[10px] uppercase tracking-widest font-bold text-slate-500"><a href="/proposal-medspa">View Proposal</a></div></nav><main class="max-w-7xl mx-auto px-6 pt-24 text-center"><h1 class="text-7xl font-bold tracking-tighter mb-6">Aura Wellness: <span class="italic text-blue-500">The Future of Longevity.</span></h1><p class="text-slate-400 text-xl mb-12">Precision aesthetics meets autonomous concierge care.</p><section class="glass max-w-4xl mx-auto rounded-[40px] overflow-hidden grid grid-cols-1 md:grid-cols-2 text-left"><div class="p-12 bg-slate-900/50"><h2 class="text-3xl font-bold mb-4">Aura Concierge</h2><p class="text-slate-400 text-sm">Autonomous concierge care active.</p></div><div class="p-12 flex flex-col h-[400px]"><div id="chat-output" class="flex-1 overflow-y-auto space-y-4 text-sm mb-4"><div class="text-blue-400 italic">"Namaste. How may I assist?"</div></div><input id="user-input" type="text" placeholder="Type here..." class="w-full bg-slate-800 p-4 rounded-xl text-white outline-none focus:ring-1 focus:ring-blue-500"></div></section></main></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CorpflowAI | Autonomous Systems</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #050505; color: #ffffff; font-family: 'Inter', sans-serif; }
+        .accent { color: #FF5733; }
+        .grid-bg { background-image: radial-gradient(#1a1a1a 1px, transparent 1px); background-size: 50px 50px; }
+        .glass { background: rgba(10, 10, 10, 0.9); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.05); }
+        .channel-card:hover .info-overlay { opacity: 1; transform: translateY(0); }
+        .info-overlay { opacity: 0; transform: translateY(10px); transition: all 0.3s ease; }
+    </style>
+</head>
+<body class="grid-bg min-h-screen flex flex-col">
+    <nav class="w-full flex justify-between items-center p-10 uppercase text-[10px] tracking-[0.5em] font-mono">
+        <div class="flex items-center gap-3">
+            <div class="h-4 w-4 bg-[#FF5733] rotate-45"></div>
+            <span>Corpflow<span class="accent text-white">AI</span></span>
+        </div>
+        <div class="text-green-500 font-bold uppercase tracking-widest">[ SYSTEM_LIVE ]</div>
+    </nav>
+
+    <main class="flex-1 flex flex-col items-center justify-center text-center px-6">
+        <h1 class="text-6xl font-black mb-8 uppercase tracking-tighter">LEAK_DETECTION_v2</h1>
+        <button onclick="openAudit()" class="border border-white/20 hover:border-[#FF5733] px-12 py-6 text-sm font-bold uppercase tracking-[0.4em] bg-black">
+            [ Run Stress Test ]
+        </button>
+    </main>
+
+    <div id="auditModal" class="fixed inset-0 hidden z-50 flex items-center justify-center p-6 bg-black/98">
+        <div class="max-w-4xl w-full glass p-12 relative overflow-hidden">
+            
+            <div id="formStage">
+                <h2 class="text-2xl font-black mb-8 uppercase tracking-widest">Input Parameters</h2>
+                <input id="email" type="email" placeholder="CORP_EMAIL" class="w-full bg-white/5 border border-white/10 p-6 mb-4 outline-none focus:border-[#FF5733]">
+                <input id="hours" type="number" placeholder="MANUAL_HOURS" class="w-full bg-white/5 border border-white/10 p-6 mb-8 outline-none focus:border-[#FF5733]">
+                <button onclick="executeAnalysis()" id="execBtn" class="w-full bg-white text-black py-6 font-bold uppercase tracking-widest hover:bg-[#FF5733] hover:text-white transition-all">Execute Scan</button>
+            </div>
+            
+            <div id="resultStage" class="hidden">
+                <div class="text-center mb-12">
+                    <div class="text-7xl font-black mb-2 tracking-tighter" id="leakAmount">/bin/bash</div>
+                    <p class="text-gray-500 text-[10px] tracking-[0.4em] uppercase">Annual Revenue Friction Detected</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="channel-card relative p-8 border border-white/10 hover:border-blue-500 transition-all cursor-pointer">
+                        <div class="text-blue-500 font-bold mb-2">TELEGRAM</div>
+                        <div class="text-[9px] text-gray-500 uppercase tracking-widest mb-4">Autonomous Bot</div>
+                        <div class="info-overlay absolute inset-0 bg-blue-600 p-6 flex flex-col justify-center text-xs">
+                            <p class="font-bold mb-2 uppercase">Pros:</p>
+                            <p>Instant PDF delivery. No phone number sharing required. Persistent terminal access.</p>
+                        </div>
+                    </div>
+
+                    <div class="channel-card relative p-8 border border-white/10 hover:border-green-500 transition-all cursor-pointer">
+                        <div class="text-green-500 font-bold mb-2">WHATSAPP</div>
+                        <div class="text-[9px] text-gray-500 uppercase tracking-widest mb-4">Direct Sync</div>
+                        <div class="info-overlay absolute inset-0 bg-green-600 p-6 flex flex-col justify-center text-xs">
+                            <p class="font-bold mb-2 uppercase">Pros:</p>
+                            <p>Highest response rate. Direct line to human architect. Familiar interface.</p>
+                        </div>
+                    </div>
+
+                    <div class="channel-card relative p-8 border border-white/10 hover:border-white transition-all cursor-pointer">
+                        <div class="text-white font-bold mb-2">SIGNAL</div>
+                        <div class="text-[9px] text-gray-500 uppercase tracking-widest mb-4">Zero Metadata</div>
+                        <div class="info-overlay absolute inset-0 bg-gray-800 p-6 flex flex-col justify-center text-xs">
+                            <p class="font-bold mb-2 uppercase">Pros:</p>
+                            <p>Maximum privacy. No logs kept. Use for sensitive architectural briefings.</p>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="closeAudit()" class="mt-12 text-[9px] text-gray-700 uppercase tracking-widest hover:text-white block w-full text-center">Terminate Session</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openAudit() { document.getElementById('auditModal').classList.remove('hidden'); }
+        function closeAudit() { document.getElementById('auditModal').classList.add('hidden'); }
+        async function executeAnalysis() {
+            const email = document.getElementById('email').value;
+            const hours = document.getElementById('hours').value;
+            if(!email || !hours) return;
+            const leak = hours * 52 * 150;
+            document.getElementById('execBtn').innerText = "SCANNING...";
+            const res = await fetch('/api/audit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, hours })
+            });
+            if(res.ok) {
+                document.getElementById('leakAmount').innerText = '$' + leak.toLocaleString();
+                document.getElementById('formStage').classList.add('hidden');
+                document.getElementById('resultStage').classList.remove('hidden');
+            }
+        }
+    </script>
+</body>
+</html>

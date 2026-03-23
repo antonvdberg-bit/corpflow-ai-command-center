@@ -1,0 +1,24 @@
+{
+  "node_core": {
+    "name": "Vanguard_Core",
+    "agent_config": { "alias": "Gemini_Core", "role": "Architect" },
+    "tasks": [
+      {"instr": "Lock HeyGen/ElevenLabs Corporate Standard", "prio": "CRITICAL", "status": "DEPLOYED", "start": "2026-03-22", "end": "2026-03-23"},
+      {"instr": "Initialize Nitro Enclave Alpha Node", "prio": "HIGH", "status": "STAGED", "start": "2026-03-23", "end": "2026-04-01"}
+    ]
+  },
+  "node_luxe": {
+    "name": "Luxe Maurice",
+    "agent_config": { "alias": "Sentry_B", "role": "HNW Concierge" },
+    "tasks": [
+      {"instr": "Lead Qual Survey (SA High-Net-Worth)", "prio": "CRITICAL", "status": "EXECUTING", "start": "2026-03-15", "end": "2026-04-30"}
+    ]
+  },
+  "node_legal": {
+    "name": "Legal Partners",
+    "agent_config": { "alias": "Senior_Clerk", "role": "Legal Researcher" },
+    "tasks": [
+      {"instr": "SCJ Case Law Ingest & Judicial Mapping", "prio": "HIGH", "status": "STAGED", "start": "2026-03-23", "end": "2026-04-15"}
+    ]
+  }
+}

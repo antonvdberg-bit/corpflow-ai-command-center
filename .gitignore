@@ -5,3 +5,5 @@ tenants/**/keys.json
 tenants/**/.env
 core/engine/token.json
 core/engine/client_secrets.json
+.vercel
+.env*.local

@@ -1,0 +1,37 @@
+{
+  "nodes": [
+    { "id": "node_core", "name": "Vanguard_Core", "type": "INTERNAL" },
+    { "id": "node_corp", "name": "CorpFlowAI", "type": "INTERNAL" },
+    { "id": "node_luxe", "name": "Luxe Maurice", "type": "PUBLIC" },
+    { "id": "node_aura", "name": "Aura Wellness", "type": "PUBLIC" }
+  ],
+  "tasks": [
+    {
+      "node_id": "node_luxe",
+      "instruction": "Lead Qualification Survey (SA High-Net-Worth Focus)",
+      "priority": "CRITICAL",
+      "status": "EXECUTING",
+      "agent": "Sentry_B",
+      "start_date": "2026-03-15",
+      "end_date": "2026-04-30"
+    },
+    {
+      "node_id": "node_luxe",
+      "instruction": "French Tax Optimization (IFI) Sequence",
+      "priority": "HIGH",
+      "status": "STAGED",
+      "agent": "Sentry_B",
+      "start_date": "2026-03-20",
+      "end_date": "2026-05-15"
+    },
+    {
+      "node_id": "node_core",
+      "instruction": "Lock HeyGen/ElevenLabs Corporate Standard",
+      "priority": "CRITICAL",
+      "status": "DEPLOYED",
+      "agent": "Senior_Clerk",
+      "start_date": "2026-03-22",
+      "end_date": "2026-03-23"
+    }
+  ]
+}

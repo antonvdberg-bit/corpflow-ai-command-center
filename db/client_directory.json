@@ -1,0 +1,5 @@
+[
+  { "id": "C001", "name": "Luxe Maurice", "tier": "PUBLIC", "status": "ACTIVE" },
+  { "id": "C002", "name": "Legal Partners", "tier": "PUBLIC", "status": "PENDING_ENCLAVE" },
+  { "id": "C003", "name": "Aura Wellness", "tier": "PUBLIC", "status": "RESEARCH" }
+]
