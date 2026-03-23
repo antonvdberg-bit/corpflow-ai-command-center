@@ -3,29 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LUXE MAURICE | Sovereign Command</title>
+    <title>LUXE MAURICE | Sovereign Intake</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #0a0a0a; color: #d4d4d4; font-family: 'Inter', sans-serif; }
-        .gold-glow { box-shadow: 0 0 20px rgba(212, 175, 55, 0.2); border: 1px solid #d4af37; }
+        .gold-glow { box-shadow: 0 0 20px rgba(212, 175, 55, 0.1); border: 1px solid #d4af37; }
+        input { background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(212, 175, 55, 0.3) !important; color: white !important; }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen">
-    <div class="max-w-2xl w-full p-8 text-center gold-glow rounded-lg bg-black/50 backdrop-blur-md">
-        <h1 class="text-4xl font-light tracking-widest text-[#d4af37] mb-4">LUXE MAURICE</h1>
-        <div class="h-px w-24 bg-[#d4af37] mx-auto mb-8"></div>
-        <p class="text-lg font-light mb-12 tracking-wide leading-relaxed">
-            Sovereign Asset Management & <br>Infrastructure Surveillance.
-        </p>
-        <div class="grid grid-cols-2 gap-4 text-xs tracking-tighter uppercase opacity-60">
-            <div class="border border-white/10 p-4">System Status: <span class="text-green-500">Active</span></div>
-            <div class="border border-white/10 p-4">Protocol: <span class="text-[#d4af37]">Vanguard</span></div>
-        </div>
-        <div class="mt-12">
-            <a href="https://t.me/CorpFlow_Sentry_bot" class="px-8 py-3 bg-[#d4af37] text-black font-bold uppercase tracking-widest hover:bg-white transition-all">
-                Connect Telegram
-            </a>
-        </div>
+<body class="flex items-center justify-center min-h-screen p-4">
+    <div class="max-w-md w-full p-8 gold-glow rounded-lg bg-black/80">
+        <h2 class="text-2xl font-light tracking-widest text-[#d4af37] mb-6 text-center uppercase">Inquiry Protocol</h2>
+        <form id="intakeForm" class="space-y-4">
+            <input type="text" id="name" placeholder="IDENTIFIER (NAME)" required class="w-full p-3 text-sm tracking-tighter outline-none focus:border-[#d4af37]">
+            <input type="email" id="email" placeholder="SECURE EMAIL" required class="w-full p-3 text-sm tracking-tighter outline-none focus:border-[#d4af37]">
+            <textarea id="intent" placeholder="CORE INTENT / REQUIREMENTS" class="w-full p-3 text-sm tracking-tighter outline-none focus:border-[#d4af37] h-24"></textarea>
+            <button type="submit" class="w-full py-3 bg-[#d4af37] text-black font-bold uppercase tracking-widest hover:bg-white transition-all text-xs">
+                Initiate Handoff
+            </button>
+        </form>
+        <div id="status" class="mt-4 text-center text-[10px] uppercase opacity-50 tracking-widest"></div>
     </div>
+
+    <script>
+        document.getElementById('intakeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const status = document.getElementById('status');
+            status.innerText = "Transmitting...";
+            
+            const data = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                intent: document.getElementById('intent').value
+            };
+
+            const response = await fetch('/api/intake', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                status.innerText = "Handshaking Complete. Awaiting Analyst Review.";
+                document.getElementById('intakeForm').reset();
+            } else {
+                status.innerText = "Transmission Error. Protocol Failed.";
+            }
+        });
+    </script>
 </body>
 </html>
