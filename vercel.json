@@ -1,6 +1,7 @@
 {
   "version": 2,
   "name": "corpflow-ai-command-center",
+  "alias": "luxetest.corpflowai.com",
   "builds": [
     { "src": "public/*.html", "use": "@vercel/static" },
     { "src": "api/*.js", "use": "@vercel/node" }
@@ -8,8 +9,5 @@
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/$1" },
     { "src": "/(.*)", "dest": "/public/index.html" }
-  ],
-  "env": {
-    "PERFORMANCE_FLOOR": "85"
-  }
+  ]
 }
