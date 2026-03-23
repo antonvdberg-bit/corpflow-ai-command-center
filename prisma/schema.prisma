@@ -3,25 +3,30 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Tenant {
+  id                String   @id @default(cuid())
+  slug              String   @unique
+  name              String
+  telegramBotToken  String?
+  notificationId    String?
+  baserowTableId    String
+  aiSystemPrompt    String
+  leads             Lead[]
+  createdAt         DateTime @default(now())
 }
 
 model Lead {
-  id            Int      @id @default(autoincrement())
-  email         String   @unique
-  revenueRange  String?
-  manualHours   Int?
-  gapScore      Float?
-  createdAt     DateTime @default(now())
-}
-
-model CaseLaw {
-  id          String   @id @default(cuid())
-  caseNumber  String   @unique // e.g., 2026 SCJ 142
-  parties     String   // e.g., "MRA vs GlobalFin Ltd"
-  summary     String   @db.Text
-  rulingDate  DateTime
-  tags        String[] // "Tax", "Labor", "Fintech"
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  name      String
+  email     String
+  intent    String
+  dossier   String?
+  status    String   @default("NEW")
+  createdAt DateTime @default(now())
 }
