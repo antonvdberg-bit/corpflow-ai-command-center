@@ -1,1 +1,1 @@
-{"name":"corpflow","version":"1.0.0","scripts":{"build":"next build"},"dependencies":{"@prisma/client":"latest","next":"latest","react":"latest","react-dom":"latest","prisma":"latest"}}
+{"scripts":{"build":"next build"},"dependencies":{"next":"latest","react":"latest","react-dom":"latest"}}
