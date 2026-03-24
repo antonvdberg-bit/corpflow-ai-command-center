@@ -4,7 +4,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
   const { name, email, intent } = req.body;
 
-  // Using the key we pulled from your Codespace earlier
+  // This is the token we pulled from your .env.local earlier
   const token = process.env.BASEROW_TOKEN || "6nwWBzUldde74Hww59wC0gKCFdZyxHy9";
 
   try {
@@ -12,9 +12,11 @@ export default async function handler(req, res) {
 
     const response = await fetch(targetUrl, {
       method: 'POST',
+      redirect: 'follow', // FORCE the request to follow through the DNS loop
       headers: { 
         'Authorization': `Token ${token}`, 
-        'Content-Type': 'application/json' 
+        'Content-Type': 'application/json',
+        'User-Agent': 'CorpFlowAI-Command-Center'
       },
       body: JSON.stringify({ 
         "Name": name, 
@@ -25,14 +27,11 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      return res.status(response.status).json({ 
-        status: "FAILED", 
-        detail: `Baserow Rejected: ${response.status}`,
-        message: errorText
-      });
+      // If we still get a 404 here, it's a Vercel configuration issue we need to toggle in the UI
+      throw new Error(`CRM Error ${response.status}: ${errorText}`);
     }
 
-    return res.status(200).json({ status: "SUCCESS", message: "LEAD RECORDED" });
+    return res.status(200).json({ status: "SUCCESS", message: "Lead Locked in Sovereign CRM" });
   } catch (error) {
     return res.status(500).json({ status: "FAILED", detail: error.message });
   }
