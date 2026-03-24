@@ -1,4 +1,3 @@
 export const config = {
-  baserowTableId: "899988", 
-  baserowDomain: "https://api.baserow.io" 
+  n8nWebhookUrl: "[YOUR_N8N_WEBHOOK_URL]"
 };
