@@ -4,6 +4,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
   const { name, email, intent } = req.body;
 
+  // Using the key we pulled from your Codespace earlier
   const token = process.env.BASEROW_TOKEN || "6nwWBzUldde74Hww59wC0gKCFdZyxHy9";
 
   try {
@@ -15,26 +16,23 @@ export default async function handler(req, res) {
         'Authorization': `Token ${token}`, 
         'Content-Type': 'application/json' 
       },
-      // Using the exact field names from your documentation
       body: JSON.stringify({ 
         "Name": name, 
         "Email": email, 
-        "Notes": intent,
-        "Active": true 
+        "Notes": intent 
       })
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Baserow Error ${response.status}: ${errorText}`);
+      return res.status(response.status).json({ 
+        status: "FAILED", 
+        detail: `Baserow Rejected: ${response.status}`,
+        message: errorText
+      });
     }
 
-    const result = await response.json();
-    return res.status(200).json({ 
-      status: "SUCCESS", 
-      message: "Lead Created in Leads Table (754)",
-      row_id: result.id 
-    });
+    return res.status(200).json({ status: "SUCCESS", message: "LEAD RECORDED" });
   } catch (error) {
     return res.status(500).json({ status: "FAILED", detail: error.message });
   }

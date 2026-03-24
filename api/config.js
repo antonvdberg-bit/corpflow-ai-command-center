@@ -1,4 +1,4 @@
 export const config = {
   baserowTableId: "754", 
-  baserowDomain: "https://crm.corpflowai.com"
+  baserowDomain: "https://api.baserow.io" 
 };
