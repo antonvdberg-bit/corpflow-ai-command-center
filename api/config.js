@@ -1,4 +1,4 @@
 export const config = {
-  baserowTableId: "754", 
-  baserowDomain: "https://baserow-corpflow.vercel.app" 
+  baserowTableId: "899988", 
+  baserowDomain: "https://api.baserow.io" 
 };
