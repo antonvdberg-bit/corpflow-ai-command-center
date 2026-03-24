@@ -1,17 +1,11 @@
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("POSTGRES_URL")
-}
-
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "postgresql" url = env("POSTGRES_URL") }
 model Lead {
   id        String   @id @default(cuid())
   name      String
   email     String
   intent    String
-  status    String   @default("NEW")
+  analysis  String?
+  status    String   @default("SYNCED")
   createdAt DateTime @default(now())
 }
