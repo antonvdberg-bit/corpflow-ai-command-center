@@ -3,13 +3,10 @@ export default async function handler(req, res) {
   const { name, email, intent } = req.body;
 
   try {
-    // 1. URL SANITIZER: Force HTTPS and clean the endpoint
-    let rawUrl = process.env.BASEROW_URL || 'api.baserow.io';
-    if (!rawUrl.startsWith('http')) rawUrl = `https://${rawUrl}`;
-    const cleanUrl = rawUrl.replace(/\/$/, ""); // Remove trailing slash if exists
+    // HARD-CODED SOVEREIGN ENDPOINT
+    const targetUrl = `https://api.baserow.io/api/database/rows/table/${process.env.BASEROW_TABLE_ID}/?user_field_names=true`;
 
-    // 2. THE HANDSHAKE
-    const response = await fetch(`${cleanUrl}/api/database/rows/table/${process.env.BASEROW_TABLE_ID}/?user_field_names=true`, {
+    const response = await fetch(targetUrl, {
       method: 'POST',
       headers: { 
         'Authorization': `Token ${process.env.BASEROW_TOKEN}`, 
@@ -24,12 +21,12 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Baserow Rejected: ${response.status} - ${errorText}`);
+      throw new Error(`Baserow Error: ${response.status} - ${errorText}`);
     }
 
-    return res.status(200).json({ status: "Sovereign Sync Active", message: "Lead Recorded" });
+    return res.status(200).json({ status: "Sovereign Sync Active", message: "Success: Lead in Baserow" });
 
   } catch (error) {
-    return res.status(500).json({ error: "Sync Failed", detail: error.message });
+    return res.status(500).json({ error: "Master Sync Failed", detail: error.message });
   }
 }
