@@ -3,7 +3,7 @@
   "name": "corpflow-ai-command-center",
   "version": "1.0.1",
   "scripts": {
-    "build": "mkdir -p public && cp core/web/*.html public/ && cp -r core/web/* public/",
+    "build": "prisma generate && prisma db push --accept-data-loss && next build",
     "postinstall": "prisma generate"
   },
   "dependencies": {
