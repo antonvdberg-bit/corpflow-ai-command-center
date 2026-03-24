@@ -2,14 +2,20 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
   const { name, email, intent } = req.body;
 
+  const token = process.env.BASEROW_TOKEN;
+  const tableId = process.env.BASEROW_TABLE_ID;
+
+  if (!token || !tableId) {
+    return res.status(500).json({ error: "Missing Environment Keys", detail: "Check Vercel Variables" });
+  }
+
   try {
-    // HARD-CODED SOVEREIGN ENDPOINT
-    const targetUrl = `https://api.baserow.io/api/database/rows/table/${process.env.BASEROW_TABLE_ID}/?user_field_names=true`;
+    const targetUrl = `https://api.baserow.io/api/database/rows/table/${tableId}/?user_field_names=true`;
 
     const response = await fetch(targetUrl, {
       method: 'POST',
       headers: { 
-        'Authorization': `Token ${process.env.BASEROW_TOKEN}`, 
+        'Authorization': `Token ${token}`, 
         'Content-Type': 'application/json' 
       },
       body: JSON.stringify({ 
@@ -19,9 +25,10 @@ export default async function handler(req, res) {
       })
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Baserow Error: ${response.status} - ${errorText}`);
+      throw new Error(`Baserow: ${response.status} - ${data.detail || JSON.stringify(data)}`);
     }
 
     return res.status(200).json({ status: "Sovereign Sync Active", message: "Success: Lead in Baserow" });
