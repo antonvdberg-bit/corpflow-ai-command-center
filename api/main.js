@@ -4,11 +4,11 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
   const { name, email, intent } = req.body;
 
-  // We handle the fallback here, where the compiler won't trip
   const token = process.env.BASEROW_TOKEN || "6nwWBzUldde74Hww59wC0gKCFdZyxHy9";
 
   try {
-    const targetUrl = `${config.baserowDomain}/api/database/rows/table/${config.baserowTableId}/?user_field_names=true`;
+    // If your CRM is self-hosted but proxied, we force the path
+    const targetUrl = `https://api.baserow.io/api/database/rows/table/${config.baserowTableId}/?user_field_names=true`;
 
     const response = await fetch(targetUrl, {
       method: 'POST',
@@ -25,10 +25,10 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`CRM rejected: ${response.status} - ${errorText}`);
+      throw new Error(`Baserow Error: ${response.status}`);
     }
 
-    return res.status(200).json({ status: "SUCCESS", message: "Infrastructure Synchronized" });
+    return res.status(200).json({ status: "SUCCESS", message: "Lead Decoupled and Delivered" });
   } catch (error) {
     return res.status(500).json({ status: "FAILED", detail: error.message });
   }

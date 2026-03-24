@@ -1,4 +1,5 @@
 export const config = {
   baserowTableId: "756",
-  baserowDomain: "https://crm.corpflowai.com"
+  // We use the direct API endpoint to ensure it doesn't loop back to Vercel
+  baserowDomain: "https://api.baserow.io" 
 };
