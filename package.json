@@ -1,15 +1,20 @@
 {
-  "type": "module",
   "name": "corpflow-ai-command-center",
-  "version": "1.0.1",
+  "version": "1.0.0",
+  "private": true,
   "scripts": {
+    "dev": "next dev",
     "build": "prisma generate && next build",
-    "postinstall": "prisma generate"
+    "start": "next start",
+    "lint": "next lint"
   },
   "dependencies": {
-    "@prisma/client": "^5.22.0",
-    "prisma": "^5.22.0",
-    "resend": "^6.9.4",
-    "vercel": "^50.34.3"
+    "@prisma/client": "^5.0.0",
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest"
+  },
+  "devDependencies": {
+    "prisma": "^5.0.0"
   }
 }
