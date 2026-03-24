@@ -6,12 +6,7 @@ export default async function handler(req, res) {
   const { name, email, intent } = req.body;
 
   try {
-    // 1. ATTEMPT LOCAL MIRROR (SQLite)
-    await prisma.lead.create({
-      data: { name, email, intent, status: 'MIRRORED' }
-    }).catch(e => { throw new Error(`SQLite Mirror Failure: ${e.message}`) });
-
-    // 2. ATTEMPT BASEROW SYNC (Using Mar 18th/21st Hardware)
+    // 1. SYNC TO BASEROW (The Primary Mission)
     const response = await fetch(`${process.env.BASEROW_URL}/api/database/rows/table/${process.env.BASEROW_TABLE_ID}/?user_field_names=true`, {
       method: 'POST',
       headers: { 
@@ -22,13 +17,18 @@ export default async function handler(req, res) {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`Baserow Rejected: ${JSON.stringify(errorData)}`);
+      const errorText = await response.text();
+      throw new Error(`Baserow Rejected: ${errorText}`);
     }
 
-    return res.status(200).json({ success: true, message: "Handshake Verified" });
+    // 2. BACKGROUND MIRROR TO POSTGRES
+    // We don't 'await' this so that local connection issues don't stop the lead.
+    prisma.lead.create({
+      data: { name, email, intent, status: 'CLOUD_MIRROR' }
+    }).catch(err => console.error("Postgres Mirroring Bypass:", err.message));
+
+    return res.status(200).json({ success: true, message: "Lead Captured" });
   } catch (error) {
-    // We return the EXACT error message to the terminal now
     return res.status(500).json({ error: error.message });
   } finally {
     await prisma.$disconnect();
