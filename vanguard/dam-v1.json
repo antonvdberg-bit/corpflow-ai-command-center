@@ -1,45 +1,41 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://corpflowai.com/vanguard/schema/dam-v1.json",
+  "schema_version": "1",
   "title": "Delegated Authority Matrix (DAM) v1",
   "description": "Defines high-risk actions and the tenant tiers permitted to execute them.",
-  "type": "object",
-  "additionalProperties": false,
-  "required": ["schema_version", "high_risk_actions"],
-  "properties": {
-    "schema_version": { "const": "1" },
-    "high_risk_actions": {
-      "type": "array",
-      "minItems": 1,
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["action_key", "match_any", "allowed_tiers", "default_denied"],
-        "properties": {
-          "action_key": { "type": "string", "minLength": 1, "description": "Canonical DAM action identifier." },
-          "match_any": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["tool_name_keywords"],
-            "properties": {
-              "tool_name_keywords": {
-                "type": "array",
-                "minItems": 1,
-                "items": { "type": "string", "minLength": 1 },
-                "description": "If a requested agent-tool name contains any keyword (case-insensitive), the action is considered matched."
-              }
-            }
-          },
-          "allowed_tiers": {
-            "type": "array",
-            "minItems": 1,
-            "items": { "type": "string", "enum": ["STATIC", "PERIODIC", "EVOLVING"] },
-            "description": "Tenant tiers permitted to perform this action."
-          },
-          "default_denied": { "type": "boolean", "const": true, "description": "Always deny unless tenant tier is in allowed_tiers." }
-        }
-      }
+  "high_risk_actions": [
+    {
+      "action_key": "refunds",
+      "match_any": {
+        "tool_name_keywords": ["refund", "refunds", "chargeback"]
+      },
+      "allowed_tiers": ["EVOLVING"],
+      "default_denied": true
+    },
+    {
+      "action_key": "schema_changes",
+      "match_any": {
+        "tool_name_keywords": [
+          "schema",
+          "migration",
+          "migrate",
+          "prisma",
+          "add_column",
+          "alter_table"
+        ]
+      },
+      "allowed_tiers": ["EVOLVING"],
+      "default_denied": true
+    },
+    {
+      "action_key": "bulk_data_export",
+      "match_any": {
+        "tool_name_keywords": ["bulk", "export", "download", "csv", "export_data"]
+      },
+      "allowed_tiers": ["EVOLVING"],
+      "default_denied": true
     }
-  }
+  ]
 }
 

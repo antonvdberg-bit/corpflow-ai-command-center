@@ -500,6 +500,29 @@ class GeminiAgent:
                             "EU AI Act Art. 50 rationale: The agent attempted a tool call that is not registered. "
                             "Authorization and governance checks could not be applied; the session aborts this tool call."
                         ),
+                        "_ai_provenance": {
+                            "uuid": action_id,
+                            "provenance_object": {
+                                "model_version": str(
+                                    self.settings.GEMINI_MODEL_NAME
+                                    or self.settings.OPENAI_MODEL
+                                    or "unknown"
+                                ),
+                                "input_attribution_hash": hashlib.sha256(
+                                    (task or "").encode("utf-8")
+                                ).hexdigest(),
+                                "human_review_status": os.getenv("HUMAN_REVIEW_STATUS", "auto"),
+                            },
+                            "signature": hashlib.sha256(
+                                (
+                                    str(self.settings.GEMINI_MODEL_NAME or self.settings.OPENAI_MODEL or "unknown")
+                                    + "|"
+                                    + hashlib.sha256((task or "").encode("utf-8")).hexdigest()
+                                    + "|"
+                                    + os.getenv("HUMAN_REVIEW_STATUS", "auto")
+                                ).encode("utf-8")
+                            ).hexdigest(),
+                        },
                     }
                     decision_log_path.write_text(
                         json.dumps(decision_payload, ensure_ascii=False, indent=2), encoding="utf-8"
@@ -530,6 +553,31 @@ class GeminiAgent:
                                     "for the tenant's tier. The decision prioritizes legal/ethical safety, prevention of regulated workflows, "
                                     "and machine-parseable auditability."
                                 ),
+                                "_ai_provenance": {
+                                    "uuid": action_id,
+                                    "provenance_object": {
+                                        "model_version": str(
+                                            self.settings.GEMINI_MODEL_NAME
+                                            or self.settings.OPENAI_MODEL
+                                            or "unknown"
+                                        ),
+                                        "input_attribution_hash": hashlib.sha256(
+                                            (task or "").encode("utf-8")
+                                        ).hexdigest(),
+                                        "human_review_status": os.getenv(
+                                            "HUMAN_REVIEW_STATUS", "auto"
+                                        ),
+                                    },
+                                    "signature": hashlib.sha256(
+                                        (
+                                            str(self.settings.GEMINI_MODEL_NAME or self.settings.OPENAI_MODEL or "unknown")
+                                            + "|"
+                                            + hashlib.sha256((task or "").encode("utf-8")).hexdigest()
+                                            + "|"
+                                            + os.getenv("HUMAN_REVIEW_STATUS", "auto")
+                                        ).encode("utf-8")
+                                    ).hexdigest(),
+                                },
                             }
                             decision_log_path.write_text(
                                 json.dumps(decision_payload, ensure_ascii=False, indent=2),
@@ -547,6 +595,7 @@ class GeminiAgent:
                         observation = f"Unexpected error in tool '{tool_name}': {exc}"
 
                     # Decision log for executed tool call (or tool error).
+                    status = "error" if ("Error executing tool" in str(observation) or "Unexpected error in tool" in str(observation)) else "executed"
                     logic_sev = "fatal" if "SecurityTransgressionError" in str(observation) else "error"
                     # Add deterministic AI provenance signature.
                     input_hash = hashlib.sha256((task or "").encode("utf-8")).hexdigest()
@@ -561,8 +610,8 @@ class GeminiAgent:
                         "action_type": "tool_call",
                         "tool_name": tool_name,
                         "args": tool_args,
-                        "status": "executed",
-                        "logic_failure_severity": logic_sev if "Error executing" in observation else None,
+                        "status": status,
+                        "logic_failure_severity": logic_sev if status == "error" else None,
                         "created_at": datetime.now(timezone.utc).isoformat(),
                         "rationale": (
                             "EU AI Act Art. 50 rationale: The tool call was executed only after applying tenant governance gates "

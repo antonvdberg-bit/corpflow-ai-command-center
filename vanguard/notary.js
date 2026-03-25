@@ -91,8 +91,15 @@ export function generateAiProvenanceSignature({
     metadata,
   });
 
+  // Signature formula is deterministic and intended to be mirrored in
+  // Python warranty checks.
+  const obj = prov?.provenance_object || {};
   const signature = sha256Hex(
-    JSON.stringify(prov?.provenance_object || {}) + '|' + String(prov?.uuid || '')
+    String(obj.model_version || "") +
+      "|" +
+      String(obj.input_attribution_hash || "") +
+      "|" +
+      String(obj.human_review_status || "")
   );
 
   return {
