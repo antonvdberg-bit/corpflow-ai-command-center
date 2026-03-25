@@ -1,1 +1,1 @@
-{"scripts":{"build":"next build"},"dependencies":{"next":"latest","react":"latest","react-dom":"latest"}}
+{"scripts":{"build":"next build"},"dependencies":{"@vercel/analytics":"^2.0.1","next":"latest","react":"latest","react-dom":"latest"}}
