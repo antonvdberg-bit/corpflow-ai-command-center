@@ -652,6 +652,54 @@ class GeminiAgent:
                 )
                 print(f"💬 Sending follow-up with observation from '{tool_name}'...")
                 final_response = self._call_gemini(follow_up_prompt)
+                # Decision log for the final autonomous response (post-tool).
+                try:
+                    action_id2 = str(uuid.uuid4())
+                    decision_log_path2 = (
+                        Path(self.settings.project_root_path)
+                        / "vanguard"
+                        / "audit"
+                        / f"{action_id2}.json"
+                    )
+                    decision_log_path2.parent.mkdir(parents=True, exist_ok=True)
+                    input_hash2 = hashlib.sha256((task or "").encode("utf-8")).hexdigest()
+                    model_version2 = str(
+                        self.settings.GEMINI_MODEL_NAME or self.settings.OPENAI_MODEL or "unknown"
+                    )
+                    human_review_status2 = os.getenv("HUMAN_REVIEW_STATUS", "auto")
+                    provenance_sig2 = hashlib.sha256(
+                        (model_version2 + "|" + input_hash2 + "|" + human_review_status2).encode(
+                            "utf-8"
+                        )
+                    ).hexdigest()
+                    decision_payload2 = {
+                        "action_id": action_id2,
+                        "tenant_id": self.tenant_ctx.tenant_id,
+                        "action_type": "final_answer",
+                        "status": "executed",
+                        "created_at": datetime.now(timezone.utc).isoformat(),
+                        "rationale": (
+                            "EU AI Act Art. 50 rationale: The final response was produced using the tool observation under "
+                            "tenant-scoped governance controls (DAM + tenant isolation) with machine-parseable auditability. "
+                            "Business logic prioritized completion of the requested task while respecting cost/ethics and "
+                            "regulatory constraints."
+                        ),
+                        "_ai_provenance": {
+                            "uuid": action_id2,
+                            "provenance_object": {
+                                "model_version": model_version2,
+                                "input_attribution_hash": input_hash2,
+                                "human_review_status": human_review_status2,
+                            },
+                            "signature": provenance_sig2,
+                        },
+                    }
+                    decision_log_path2.write_text(
+                        json.dumps(decision_payload2, ensure_ascii=False, indent=2),
+                        encoding="utf-8",
+                    )
+                except Exception:
+                    pass
 
             if not tool_name:
                 # Decision log for a non-tool "final answer" (still an autonomous action).
