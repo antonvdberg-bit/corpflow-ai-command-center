@@ -3,8 +3,10 @@
 from pathlib import Path
 import subprocess
 from typing import Optional
+import os
 
 from engine.src.config import settings
+from engine.src.tenant_manager import SecurityTransgressionError, get_tenant_context
 
 
 def _resolve_memory_file(memory_file: Optional[str]) -> Path:
@@ -17,8 +19,32 @@ def _resolve_memory_file(memory_file: Optional[str]) -> Path:
         Absolute path to the memory markdown file.
     """
     if memory_file:
-        return settings.resolve_path(memory_file)
-    return settings.memory_file_path
+        resolved = settings.resolve_path(memory_file)
+    else:
+        resolved = settings.memory_file_path
+
+    # Enforce tenant isolation: memory tools may only read tenant-scoped memory
+    # or core library (core itself is allowed, but memory exports live in tenants/).
+    ctx = get_tenant_context()
+    try:
+        if not (
+            str(resolved).startswith(str(ctx.tenant_root) + os.sep)
+            or str(resolved).startswith(str(ctx.core_root) + os.sep)
+            or str(resolved) == str(ctx.tenant_root)
+            or str(resolved) == str(ctx.core_root)
+        ):
+            ctx.security_transgression_telemetry(
+                source="core/engine/src/tools/memory_tools.py:read_memory_md",
+                details=f"Forbidden memory read attempt: {resolved}",
+            )
+            raise SecurityTransgressionError(f"Forbidden memory read attempt: {resolved}")
+    except SecurityTransgressionError:
+        raise
+    except Exception:
+        # If guard checks fail, deny by default.
+        raise SecurityTransgressionError(f"Forbidden memory read attempt: {resolved}")
+
+    return resolved
 
 
 def read_memory_md(max_chars: int = 12000, memory_file: Optional[str] = None) -> str:

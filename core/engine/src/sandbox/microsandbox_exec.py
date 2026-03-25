@@ -193,6 +193,10 @@ class MicrosandboxSandbox(CodeSandbox):
         started = True
 
         try:
+            # Tenant isolation guard: block forbidden repo-root reads inside the executed code.
+            guard_prefix = self._build_tenant_guard_prefix()
+            code = guard_prefix + "\n\n" + code
+
             payload = {
                 "jsonrpc": "2.0",
                 "method": "sandbox.repl.run",
@@ -277,3 +281,100 @@ class MicrosandboxSandbox(CodeSandbox):
                 "server_url": self._server_url,
             },
         )
+
+    def _build_tenant_guard_prefix(self) -> str:
+        """Create a runtime prefix that blocks forbidden repo-root reads."""
+        tenant_root = os.getenv("AG_TENANT_ROOT", "")
+        core_root = os.getenv("AG_CORE_ROOT", "")
+        core_docs_root = os.getenv("AG_CORE_DOCS_ROOT", "")
+        repo_root = os.getenv("AG_REPO_ROOT", "")
+        telemetry_file = os.getenv(
+            "AG_TELEMETRY_FILE_PATH", "vanguard/audit-trail/telemetry-v1.jsonl"
+        )
+        factory_id = os.getenv("AG_FACTORY_ID", "corpflow-factory")
+        tenant_id = os.getenv("AG_TENANT_ID") or os.getenv("TENANT_ID") or "root"
+
+        return f"""
+import os as _os
+import sys as _sys
+import json as _json
+from datetime import datetime as _dt, timezone as _tz
+import builtins as _builtins
+
+_TENANT_ROOT = {tenant_root!r}
+_CORE_ROOT = {core_root!r}
+_CORE_DOCS_ROOT = {core_docs_root!r}
+_REPO_ROOT = {repo_root!r}
+_TELEMETRY_FILE = {telemetry_file!r}
+_FACTORY_ID = {factory_id!r}
+_TENANT_ID = {tenant_id!r}
+
+def _now_iso():
+    return _dt.now(_tz.utc).isoformat()
+
+def _telemetry_security_transgression(source: str, details: str) -> None:
+    try:
+        _os.makedirs(_os.path.dirname(_TELEMETRY_FILE) or '.', exist_ok=True)
+        payload = {{
+            "schema_version": "1",
+            "event_type": "logic_failure",
+            "occurred_at": _now_iso(),
+            "factory_id": _FACTORY_ID,
+            "report_target": "file_local",
+            "tenant_id": _TENANT_ID,
+            "cmp": {{"ticket_id": "n/a", "action": "security_transgression"}},
+            "payload": {{
+                "source": source,
+                "severity": "fatal",
+                "error_message": str(details)[:500],
+                "error_class": "SecurityTransgressionError",
+                "stack_trace_redacted": "",
+                "recommended_action": "Auto-terminate session and audit tool invocation.",
+                "meta": {{"tenant_id": _TENANT_ID}}
+            }}
+        }}
+        with open(_TELEMETRY_FILE, "a", encoding="utf-8") as f:
+            f.write(_json.dumps(payload) + "\\n")
+    except Exception:
+        pass
+
+def _is_forbidden_repo_read(path_str: str) -> bool:
+    if not path_str:
+        return False
+    try:
+        abs_path = _os.path.abspath(_os.path.expanduser(str(path_str)))
+        if not _REPO_ROOT:
+            return False
+        if not abs_path.startswith(_os.path.abspath(_REPO_ROOT) + _os.sep):
+            return False
+        allowed = []
+        for root in (_TENANT_ROOT, _CORE_ROOT, _CORE_DOCS_ROOT):
+            if root:
+                allowed.append(_os.path.abspath(root))
+        for ar in allowed:
+            if abs_path == ar or abs_path.startswith(ar + _os.sep):
+                return False
+        return True
+    except Exception:
+        return False
+
+_orig_open = _builtins.open
+
+def _open_guard(file, mode='r', *args, **kwargs):
+    try:
+        if file is not None and 'r' in str(mode):
+            if _is_forbidden_repo_read(file):
+                _telemetry_security_transgression(
+                    source="sandbox:file_read_guard",
+                    details="Forbidden read attempt: " + str(file) + " (mode=" + str(mode) + ")",
+                )
+                print("SECURITY_TRANSGRESSION", file=_sys.stderr)
+                raise SystemExit(1)
+    except SystemExit:
+        raise
+    except Exception:
+        pass
+    return _orig_open(file, mode, *args, **kwargs)
+
+_builtins.open = _open_guard
+"""

@@ -2,6 +2,7 @@ from typing import Optional
 import os
 
 from engine.src.sandbox.factory import get_sandbox
+from engine.src.tenant_manager import SecurityTransgressionError
 
 
 def run_python_code(code: str, timeout: Optional[int] = None) -> str:
@@ -30,6 +31,8 @@ def run_python_code(code: str, timeout: Optional[int] = None) -> str:
         err = (result.stderr or "").strip()
         if not err:
             err = "Unknown error"
+        if "SECURITY_TRANSGRESSION" in err:
+            raise SecurityTransgressionError(err)
         return f"Error (exit_code={result.exit_code}): {err}"
 
     out = (result.stdout or "").strip()

@@ -18,6 +18,7 @@ from google import genai
 from engine.src.config import settings
 from engine.src.memory import MemoryManager
 from engine.src.tools.openai_proxy import call_openai_chat
+from engine.src.tenant_manager import SecurityTransgressionError, get_tenant_context
 
 
 class GeminiAgent:
@@ -35,8 +36,12 @@ class GeminiAgent:
 
     def __init__(self):
         self.settings = settings
+        self.tenant_ctx = get_tenant_context(os.getenv("TENANT_ID", "root"))
         self._ensure_workspace_paths()
-        self.memory = MemoryManager()
+        self.memory = MemoryManager(
+            memory_file=str(self.tenant_ctx.memory_file),
+            summary_file=str(self.tenant_ctx.memory_summary_file),
+        )
         self._latest_retrieved_memory = ""
         self.mcp_manager = None  # Will be initialized if MCP is enabled
         self.use_openai_backend = False  # Use OpenAI-compatible backend when configured
@@ -215,30 +220,44 @@ class GeminiAgent:
 
     def _load_context(self) -> str:
         """
-        Automatically load and concatenate all markdown files from .context/ directory.
+        Load shared core rules + tenant-scoped context.
 
-        This allows users to add project-specific knowledge, coding standards, or
-        custom rules by simply dropping .md files into .context/. The content is
-        automatically injected into the agent's system prompt.
+        Tenant isolation:
+        - Tenant-scoped context is loaded from `tenants/{tenant_id}/context/`.
+        - Shared rules are loaded from `.context/` (treated as core library).
 
         Returns:
-            Concatenated content of all .md files in .context/ directory.
+            Concatenated content of loaded context files.
         """
-        context_parts = []
+        context_parts: List[str] = []
 
-        # Resolve .context/ relative to the user workspace, not the engine
-        context_dir = self.settings.project_root_path / ".context"
+        # 1) Tenant-scoped context
+        tenant_context_dir = self.tenant_ctx.tenant_root / "context"
+        if tenant_context_dir.exists():
+            for context_file in sorted(tenant_context_dir.glob("*.md")):
+                try:
+                    content = self.tenant_ctx.guarded_read_text(
+                        context_file, source="core/engine/src/agent.py:_load_context:tenant"
+                    )
+                    context_parts.append(
+                        f"\n--- {context_file.name} ---\n{content}"
+                    )
+                except Exception as e:
+                    print(f"   ⚠️ Failed to load tenant context from {context_file.name}: {e}")
 
-        if not context_dir.exists():
-            return ""
-
-        # Load all markdown files
-        for context_file in sorted(context_dir.glob("*.md")):
-            try:
-                content = context_file.read_text(encoding="utf-8")
-                context_parts.append(f"\n--- {context_file.name} ---\n{content}")
-            except Exception as e:
-                print(f"   ⚠️ Failed to load context from {context_file.name}: {e}")
+        # 2) Shared core rules from `.context/`
+        core_context_dir = self.settings.project_root_path / ".context"
+        if core_context_dir.exists():
+            for context_file in sorted(core_context_dir.glob("*.md")):
+                try:
+                    content = self.tenant_ctx.guarded_read_text(
+                        context_file, source="core/engine/src/agent.py:_load_context:core"
+                    )
+                    context_parts.append(
+                        f"\n--- {context_file.name} ---\n{content}"
+                    )
+                except Exception as e:
+                    print(f"   ⚠️ Failed to load core context from {context_file.name}: {e}")
         
         # Inject Skill Docs if present
         if self.skill_docs:
@@ -454,6 +473,9 @@ class GeminiAgent:
                         observation = tool_fn(**tool_args)
                     except TypeError as exc:
                         observation = f"Error executing tool '{tool_name}': {exc}"
+                    except SecurityTransgressionError:
+                        # Auto-terminate session on any filesystem isolation breach.
+                        raise
                     except Exception as exc:
                         observation = f"Unexpected error in tool '{tool_name}': {exc}"
 
@@ -480,6 +502,8 @@ class GeminiAgent:
             self.memory.add_entry("assistant", final_response)
             return final_response
 
+        except SecurityTransgressionError:
+            raise
         except Exception as e:
             response = f"Error generating response: {str(e)}"
             print(f"❌ API Error: {e}")
@@ -497,6 +521,11 @@ class GeminiAgent:
         print(f"🚀 Starting Task: {task}")
         result = self.act(task)
         print(f"📦 Result: {result}")
+        # Core Learning export: pattern-only (heuristic trigger).
+        try:
+            self.tenant_ctx.maybe_export_core_pattern(task=task, agent_output=result)
+        except Exception:
+            pass
         self.reflect()
 
     def shutdown(self) -> None:
