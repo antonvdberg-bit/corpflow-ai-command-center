@@ -163,11 +163,11 @@ def _generate_with_regex(router_path: Path) -> Dict[str, Any]:
             import_sources.append(line.split("from")[1].split(";")[0].strip().strip("'").strip('"'))
 
     require_sources: List[str] = []
-    # Naive: require('x')
+    # Naive: require('x') + case 'action-name':
     import re
 
-    require_sources = re.findall(r"require\\(\\s*['\\\"]([^'\\\"]+)['\\\"]\\s*\\)", code)
-    actions = re.findall(r"case\\s+['\\\"]([^'\\\"]+)['\\\"]\\s*:", code)
+    require_sources = re.findall(r"require\(\s*['\"]([^'\"]+)['\"]\s*\)", code)
+    actions = re.findall(r"case\s+['\"]([^'\"]+)['\"]\s*:", code)
 
     def uniq(arr: List[str]) -> List[str]:
         return sorted(list(set([a for a in arr if a])))
