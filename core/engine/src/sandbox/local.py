@@ -154,22 +154,40 @@ def _telemetry_security_transgression(source: str, details: str) -> None:
         pass
 
 def _is_forbidden_repo_read(path_str: str) -> bool:
-    # Allow reads outside repo root and standard library paths.
+    # Hard allowlist:
+    # - tenants/{tenant_id}/
+    # - core/ (library)
+    # - .context/ (shared prompt/rules)
+    # - Python stdlib/site-packages (sys.prefix*)
+    # - sandbox cwd (temp dir)
     if not path_str:
         return False
     try:
         abs_path = _os.path.abspath(_os.path.expanduser(str(path_str)))
-        if not _REPO_ROOT:
-            return False
-        if not abs_path.startswith(_os.path.abspath(_REPO_ROOT) + _os.sep):
-            return False
-        allowed = []
+        allowed_roots = []
         for root in (_TENANT_ROOT, _CORE_ROOT, _CORE_DOCS_ROOT):
             if root:
-                allowed.append(_os.path.abspath(root))
-        for ar in allowed:
+                allowed_roots.append(_os.path.abspath(root))
+
+        cwd = _os.path.abspath(_os.getcwd())
+
+        std_roots = [getattr(_sys, "prefix", ""), getattr(_sys, "base_prefix", "")]
+        std_roots = [_os.path.abspath(s) for s in std_roots if s]
+
+        # Allow within allowed roots
+        for ar in allowed_roots:
             if abs_path == ar or abs_path.startswith(ar + _os.sep):
                 return False
+
+        # Allow within Python runtime directories
+        for sr in std_roots:
+            if abs_path == sr or abs_path.startswith(sr + _os.sep):
+                return False
+
+        # Allow within sandbox cwd (typically the temp dir)
+        if abs_path == cwd or abs_path.startswith(cwd + _os.sep):
+            return False
+
         return True
     except Exception:
         return False

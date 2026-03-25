@@ -8,7 +8,7 @@
       "transport": "stdio",
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-filesystem", "./"],
-      "enabled": true,
+      "enabled": false,
       "env": {}
     },
     {

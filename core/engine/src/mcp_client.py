@@ -381,6 +381,22 @@ class MCPClientManager:
                 return str(result)
 
             except Exception as e:
+                # Hard security rule: do not swallow transgressions.
+                try:
+                    from engine.src.tenant_manager import (  # type: ignore
+                        SecurityTransgressionError as _STE,
+                    )
+
+                    if isinstance(e, _STE):
+                        raise
+                except Exception:
+                    # Fallback to string matching.
+                    if (
+                        "SecurityTransgressionError" in str(e)
+                        or "SECURITY_TRANSGRESSION" in str(e)
+                    ):
+                        raise
+
                 return f"Error calling MCP tool '{tool.original_name}': {e}"
 
         # Set function metadata for agent tool discovery

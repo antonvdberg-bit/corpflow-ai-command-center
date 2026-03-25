@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List
 
 from mcp.server.fastmcp import FastMCP
+from engine.src.tenant_manager import SecurityTransgressionError
 
 
 mcp = FastMCP("python-tools")
@@ -93,7 +94,11 @@ def run_python_tool(tool_name: str, args: Dict[str, Any]) -> str:
     try:
         result = fn(**args)
         return str(result)
+    except SecurityTransgressionError:
+        # Security violation must not be swallowed; let the agent terminate.
+        raise
     except Exception as e:
+        # Best-effort: surface tool failures to the agent as text.
         return f"Error executing tool '{tool_name}': {e}"
 
 
