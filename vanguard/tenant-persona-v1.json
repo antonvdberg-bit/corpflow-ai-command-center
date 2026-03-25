@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://corpflowai.com/vanguard/schema/tenant-persona-v1.json",
+  "title": "TenantPersonaV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "tenant_id", "assistant_name", "specialized_expertise", "knowledge_boundaries"],
+  "properties": {
+    "schema_version": { "const": "1" },
+    "tenant_id": { "type": "string", "minLength": 1, "description": "Tenant identifier (client slug or UUID)." },
+    "assistant_name": { "type": "string", "minLength": 1, "description": "AI assistant display name for the tenant." },
+    "specialized_expertise": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Areas the assistant is specialized to handle."
+    },
+    "knowledge_boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allowed_sources", "blocked_sources"],
+      "properties": {
+        "allowed_sources": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Logical source identifiers the assistant may consult (e.g. tenants/*/context, core/knowledge_base)."
+        },
+        "blocked_sources": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Logical source identifiers the assistant must not consult."
+        }
+      }
+    },
+    "updated_at": { "type": "string", "format": "date-time" }
+  }
+}
+

@@ -32,6 +32,11 @@ export class BaserowError extends Error {
 export function createBaserowClient(options) {
   const baseUrl = (options.baseUrl || process.env.BASEROW_URL || DEFAULT_BASE_URL).replace(/\/$/, '');
   const token = options.token || process.env.BASEROW_TOKEN;
+  const tenantId = options.tenantId || process.env.TENANT_ID || null;
+  const tenantFieldName =
+    options.tenantFieldName ||
+    process.env.BASEROW_TENANT_ID_FIELD ||
+    'tenant_id';
   if (!token) {
     throw new BaserowError('BASEROW_TOKEN is not configured');
   }
@@ -107,7 +112,31 @@ export function createBaserowClient(options) {
      */
     async listRows(tableId, query = {}) {
       const id = resolveTableId(tableId);
+      if (query && query._allow_select_all) {
+        throw new BaserowError('Tenant isolation: select-all capability is disabled for client assistants.');
+      }
+
+      const tenantKey = `filter__${tenantFieldName}__equal`;
       const q = { user_field_names: 'true', ...query };
+
+      const tenantExpected = tenantId != null ? String(tenantId) : '';
+      const tenantProvided = q[tenantKey] != null ? String(q[tenantKey]) : '';
+
+      if (!tenantExpected) {
+        throw new BaserowError(
+          'Tenant isolation: missing TENANT_ID (or options.tenantId) for listRows().'
+        );
+      }
+
+      if (!tenantProvided) {
+        // Append tenant filter automatically to prevent “select all”.
+        q[tenantKey] = tenantExpected;
+      } else if (tenantProvided !== tenantExpected) {
+        throw new BaserowError(
+          `Tenant isolation: tenant filter mismatch (expected ${tenantExpected}, got ${tenantProvided}).`
+        );
+      }
+
       return request(`/api/database/rows/table/${id}/${buildQueryString(q)}`, { method: 'GET' });
     },
 
@@ -117,10 +146,23 @@ export function createBaserowClient(options) {
      */
     async getRow(tableId, rowId) {
       const id = resolveTableId(tableId);
-      return request(
+      if (tenantId == null) {
+        throw new BaserowError(
+          'Tenant isolation: missing tenantId for getRow(). Provide options.tenantId or TENANT_ID env var.'
+        );
+      }
+      const row = await request(
         `/api/database/rows/table/${id}/${rowId}/${buildQueryString({ user_field_names: 'true' })}`,
         { method: 'GET' },
       );
+      // Best-effort tenant mismatch validation when tenant field exists in the row.
+      if (tenantId != null && row && typeof row === 'object') {
+        const v = row[tenantFieldName];
+        if (v != null && String(v) !== String(tenantId)) {
+          throw new BaserowError('Tenant mismatch for getRow()');
+        }
+      }
+      return row;
     },
 
     /**

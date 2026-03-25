@@ -18,10 +18,11 @@ def _resolve_memory_file(memory_file: Optional[str]) -> Path:
     Returns:
         Absolute path to the memory markdown file.
     """
+    ctx = get_tenant_context()
     if memory_file:
         resolved = settings.resolve_path(memory_file)
     else:
-        resolved = settings.memory_file_path
+        resolved = ctx.memory_file
 
     # Enforce tenant isolation: memory tools may only read tenant-scoped memory
     # or core library (core itself is allowed, but memory exports live in tenants/).

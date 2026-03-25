@@ -2,6 +2,7 @@ import os, json, requests
 from pathlib import Path
 from groq import Groq
 from core.services.vanguard_telemetry import emit_logic_failure
+from core.engine.src.tenant_manager import SecurityTransgressionError, get_tenant_context
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
@@ -29,11 +30,18 @@ def sync_lead_to_baserow(tenant_id, name, details):
 
 def get_tenant_response(tenant_id, user_query):
     try:
-        base = Path(f"tenants/{tenant_id}/config")
-        with open(base / "identity.json", "r") as f:
-            id_data = json.load(f)
-        with open(base / "knowledge_base.txt", "r") as f:
-            kb = f.read()
+        tenant_ctx = get_tenant_context(str(tenant_id))
+        base = tenant_ctx.tenant_root / "config"
+        identity_path = base / "identity.json"
+        kb_path = base / "knowledge_base.txt"
+
+        identity_text = tenant_ctx.guarded_read_text(
+            identity_path, source="core/services/response_engine.py:get_tenant_response:identity"
+        )
+        kb = tenant_ctx.guarded_read_text(
+            kb_path, source="core/services/response_engine.py:get_tenant_response:knowledge_base"
+        )
+        id_data = json.loads(identity_text)
 
         # Use Llama 3.1 to talk and detect if a lead is present
         chat = client.chat.completions.create(
@@ -54,6 +62,9 @@ def get_tenant_response(tenant_id, user_query):
             return response.replace("SIGNAL_LEAD", suffix)
 
         return response
+    except SecurityTransgressionError:
+        # Telemetry already emitted by tenant manager; auto-terminate session.
+        raise
     except Exception as e:
         emit_logic_failure(
             source="core/services/response_engine.py:get_tenant_response",

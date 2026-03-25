@@ -302,7 +302,10 @@
     if (!tid) return;
 
     fetch(cmpActionUrl('ticket-get', 'id=' + encodeURIComponent(tid)), {
-      headers: { 'x-session-token': ADMIN_SESSION_TOKEN || '' },
+      headers: {
+        'x-session-token': ADMIN_SESSION_TOKEN || '',
+        'x-client-id': CONFIG.clientId || '',
+      },
     })
       .then(function (r) {
         if (!r.ok) throw new Error('Ticket not found');

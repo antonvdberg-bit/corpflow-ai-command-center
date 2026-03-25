@@ -240,7 +240,8 @@ async function handleTicketCreate(req, res) {
   }
 
   try {
-    const client = createBaserowClient({});
+    const clientId = getClientIdFromBody(body);
+    const client = createBaserowClient({ tenantId: clientId || null });
     const fields = initialTicketPayload(description);
     const clientField = process.env.BASEROW_CMP_CLIENT_ID_FIELD;
     if (clientField && body.client_id) fields[clientField] = String(body.client_id);
@@ -297,7 +298,8 @@ async function handleTicketGet(req, res) {
   }
 
   try {
-    const client = createBaserowClient({});
+    const clientId = req?.headers?.['x-client-id'] || req?.query?.client_id || null;
+    const client = createBaserowClient({ tenantId: clientId || null });
     const row = await client.getRow(undefined, id);
     const f = getCmpFieldMap();
     const description = row[f.description] ?? row.Description ?? '';
