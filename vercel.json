@@ -8,13 +8,13 @@
     { "source": "/master", "destination": "/public/master-control.html" }
   ],
   "env": {
-    "BASEROW_URL": "https://crm.corpflowai.com",
-    "BASEROW_TABLE_ID": "756"
+    "BASEROW_URL": "REPLACE_ME_BASEROW_URL",
+    "BASEROW_CMP_TABLE_ID": "REPLACE_ME_BASEROW_CMP_TABLE_ID"
   },
   "build": {
     "env": {
-      "BASEROW_URL": "https://crm.corpflowai.com",
-      "BASEROW_TABLE_ID": "756"
+      "BASEROW_URL": "REPLACE_ME_BASEROW_URL",
+      "BASEROW_CMP_TABLE_ID": "REPLACE_ME_BASEROW_CMP_TABLE_ID"
     }
   }
 }

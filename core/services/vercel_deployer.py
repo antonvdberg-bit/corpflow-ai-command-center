@@ -3,7 +3,9 @@ import os, requests
 def create_client_subdomain(client_slug):
     token = os.getenv("VERCEL_AUTH_TOKEN")
     project_id = os.getenv("VERCEL_PROJECT_ID") # Found in your Project Settings
-    team_id = "team_2hXJSHImOxpmQxlFj7Yn9l5W" # Your Team ID from earlier
+    team_id = os.getenv("VERCEL_TEAM_ID")
+    if not team_id:
+        raise ValueError("VERCEL_TEAM_ID is not configured")
     
     url = f"https://api.vercel.com/v9/projects/{project_id}/domains?teamId={team_id}"
     headers = {"Authorization": f"Bearer {token}"}

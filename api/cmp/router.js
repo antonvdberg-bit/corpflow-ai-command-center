@@ -7,6 +7,7 @@ import {
   inferRiskFromDescription,
 } from './_lib/preview-heuristics.js';
 import { buildClarificationQuestions } from './_lib/ai-interview.js';
+import { emitLogicFailure } from './_lib/telemetry.js';
 
 /**
  * Single CMP serverless entry (Hobby-friendly). Routed via:
@@ -79,11 +80,24 @@ async function handleTicketCreate(req, res) {
     });
   } catch (e) {
     if (e instanceof BaserowError) {
+      emitLogicFailure({
+        source: 'api/cmp/router.js:ticket-create',
+        severity: 'error',
+        error: e,
+        cmp: { ticket_id: 'n/a', action: 'ticket-create' },
+      });
       return res.status(e.status >= 400 && e.status < 600 ? e.status : 502).json({
         error: e.message,
         detail: e.body,
       });
     }
+    emitLogicFailure({
+      source: 'api/cmp/router.js:ticket-create',
+      severity: 'fatal',
+      error: e,
+      cmp: { ticket_id: 'n/a', action: 'ticket-create' },
+      recommended_action: 'Retry with a valid payload (description required) and verify BASEROW env vars.',
+    });
     console.error('ticket-create', e);
     return res.status(500).json({ error: 'Ticket create failed', detail: String(e?.message || e) });
   }
@@ -116,9 +130,21 @@ async function handleTicketGet(req, res) {
     });
   } catch (e) {
     if (e instanceof BaserowError) {
+      emitLogicFailure({
+        source: 'api/cmp/router.js:ticket-get',
+        severity: e.status === 404 ? 'warning' : 'error',
+        error: e,
+        cmp: { ticket_id: String(id), action: 'ticket-get' },
+      });
       const code = e.status === 404 ? 404 : e.status >= 400 && e.status < 600 ? e.status : 502;
       return res.status(code).json({ error: e.message, detail: e.body });
     }
+    emitLogicFailure({
+      source: 'api/cmp/router.js:ticket-get',
+      severity: 'fatal',
+      error: e,
+      cmp: { ticket_id: 'n/a', action: 'ticket-get' },
+    });
     console.error('ticket-get', e);
     return res.status(500).json({ error: 'Ticket get failed', detail: String(e?.message || e) });
   }
@@ -150,11 +176,23 @@ async function handleApproveBuild(req, res) {
     });
   } catch (e) {
     if (e instanceof BaserowError) {
+      emitLogicFailure({
+        source: 'api/cmp/router.js:approve-build',
+        severity: 'error',
+        error: e,
+        cmp: { ticket_id: ticketId, action: 'approve-build' },
+      });
       return res.status(e.status >= 400 && e.status < 600 ? e.status : 502).json({
         error: e.message,
         detail: e.body,
       });
     }
+    emitLogicFailure({
+      source: 'api/cmp/router.js:approve-build',
+      severity: 'fatal',
+      error: e,
+      cmp: { ticket_id: ticketId || 'n/a', action: 'approve-build' },
+    });
     console.error('approve-build', e);
     return res.status(500).json({ error: 'Approve build failed', detail: String(e?.message || e) });
   }

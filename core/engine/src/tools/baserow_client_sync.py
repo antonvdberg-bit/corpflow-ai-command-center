@@ -19,8 +19,8 @@ class ClientConfig(BaseModel):
 
 # Baserow API configuration - Update these with your actual values
 BASEROW_BASE_URL = os.getenv("BASEROW_BASE_URL", "https://api.baserow.io/api/")
-DATABASE_ID = os.getenv("BASEROW_DATABASE_ID", "your_database_id_here")  # Replace with actual database ID
-TABLE_ID = os.getenv("BASEROW_TABLE_ID", "your_table_id_here")  # Replace with System_Docs table ID
+DATABASE_ID = os.getenv("BASEROW_DATABASE_ID", "")
+TABLE_ID = os.getenv("BASEROW_TABLE_ID", "")
 
 
 def get_client_config(client_id: str) -> Optional[ClientConfig]:
@@ -44,6 +44,10 @@ def get_client_config(client_id: str) -> Optional[ClientConfig]:
     token = os.getenv('BASEROW_TOKEN')
     if not token:
         raise ValueError("BASEROW_TOKEN environment variable not set")
+    if not DATABASE_ID or not TABLE_ID:
+        raise ValueError(
+            "BASEROW_DATABASE_ID and BASEROW_TABLE_ID must be configured for Baserow client sync"
+        )
 
     url = f"{BASEROW_BASE_URL}database/{DATABASE_ID}/table/{TABLE_ID}/"
     headers = {

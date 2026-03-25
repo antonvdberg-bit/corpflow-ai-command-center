@@ -1,7 +1,9 @@
 import time, requests, json, os
-URL = "https://script.google.com/macros/s/AKfycbz47gS3mSt9co43i-OYzTnfLzKitsEZ3Y4ETIjmupHHbV6U_Oh30dy6kzMGIkRtpSjm9A/exec"
+URL = os.getenv("GOOGLE_SCRIPT_URL", "").strip()
 def run():
     print("🛡️ VERIFIED ENGINE START.")
+    if not URL:
+        raise ValueError("GOOGLE_SCRIPT_URL is not configured")
     while True:
         try:
             r = requests.get(f"{URL}?cb={int(time.time())}", timeout=5).json()

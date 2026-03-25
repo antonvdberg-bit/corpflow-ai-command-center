@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { emitLogicFailure } from './cmp/_lib/telemetry.js';
 const prisma = new PrismaClient();
 
 export default async function handler(req, res) {
@@ -39,6 +40,13 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ success: true, message: `Space for ${tenant.name} is Live.`, id: tenant.baserowTableId });
   } catch (error) {
+    emitLogicFailure({
+      source: 'api/provision.js',
+      severity: 'fatal',
+      error,
+      cmp: { ticket_id: 'n/a', action: 'provision' },
+      recommended_action: 'Verify BASEROW_URL/BASEROW_TOKEN/BASEROW_DB_ID and ensure tenant slug exists in Prisma.',
+    });
     console.error("PROVISIONING ERROR:", error);
     return res.status(500).json({ error: "Autonomous Provisioning Failed" });
   } finally {

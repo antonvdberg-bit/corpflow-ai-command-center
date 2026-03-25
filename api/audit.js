@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import fs from 'fs';
+import { emitLogicFailure } from './cmp/_lib/telemetry.js';
 
 const prisma = new PrismaClient();
 
@@ -16,6 +17,13 @@ export default async function handler(req, res) {
     console.log(">>> [SYSTEM]: DATABASE_STABLE. Lead Synced.");
     
   } catch (error) {
+    emitLogicFailure({
+      source: 'api/audit.js',
+      severity: 'error',
+      error,
+      cmp: { ticket_id: 'n/a', action: 'audit' },
+      recommended_action: 'Inspect Prisma connectivity/timeouts and review vanguard telemetry for repeated failures.',
+    });
     // 2. AUTOMATED FIX: If DB fails (P1001/Timeout), trigger Local Journaling
     console.error(`>>> [SYSTEM_ERROR]: ${error.message}. TRIGGERING_FAILSAFE...`);
     

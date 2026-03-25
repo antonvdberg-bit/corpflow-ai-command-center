@@ -1,3 +1,5 @@
+import { emitLogicFailure } from './cmp/_lib/telemetry.js';
+
 export default async function handler(req, res) {
   if (req.method === 'POST') {
     const { message } = req.body;
@@ -12,6 +14,13 @@ export default async function handler(req, res) {
         });
       } catch (e) {
         console.error('Telegram Fetch Error:', e);
+        emitLogicFailure({
+          source: 'api/webhook.js:telegram-send',
+          severity: 'warning',
+          error: e,
+          cmp: { ticket_id: 'n/a', action: 'webhook' },
+          recommended_action: 'Verify TELEGRAM_BOT_TOKEN and webhook payload format.',
+        });
       }
     }
     return res.status(200).send('OK');
