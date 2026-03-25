@@ -146,11 +146,6 @@ export function createBaserowClient(options) {
      */
     async getRow(tableId, rowId) {
       const id = resolveTableId(tableId);
-      if (tenantId == null) {
-        throw new BaserowError(
-          'Tenant isolation: missing tenantId for getRow(). Provide options.tenantId or TENANT_ID env var.'
-        );
-      }
       const row = await request(
         `/api/database/rows/table/${id}/${rowId}/${buildQueryString({ user_field_names: 'true' })}`,
         { method: 'GET' },
