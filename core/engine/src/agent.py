@@ -7,6 +7,9 @@ import inspect
 import importlib.util
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
+import uuid
+import hashlib
+from datetime import datetime, timezone
 
 # Ensure project root is on sys.path when running this file directly
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -475,11 +478,65 @@ class GeminiAgent:
             final_response = first_reply
 
             if tool_name:
+                action_id = str(uuid.uuid4())
+                decision_log_path = (
+                    Path(self.settings.project_root_path) / "vanguard" / "audit" / f"{action_id}.json"
+                )
+                decision_log_path.parent.mkdir(parents=True, exist_ok=True)
+
                 tool_fn = self.available_tools.get(tool_name)
                 if not tool_fn:
                     observation = f"Requested tool '{tool_name}' is not registered."
+                    decision_payload = {
+                        "action_id": action_id,
+                        "tenant_id": self.tenant_ctx.tenant_id,
+                        "action_type": "tool_call",
+                        "tool_name": tool_name,
+                        "args": tool_args,
+                        "status": "error",
+                        "logic_failure_severity": "error",
+                        "created_at": datetime.now(timezone.utc).isoformat(),
+                        "rationale": (
+                            "EU AI Act Art. 50 rationale: The agent attempted a tool call that is not registered. "
+                            "Authorization and governance checks could not be applied; the session aborts this tool call."
+                        ),
+                    }
+                    decision_log_path.write_text(
+                        json.dumps(decision_payload, ensure_ascii=False, indent=2), encoding="utf-8"
+                    )
                 else:
                     try:
+                        # DAM gatekeeper: block high-risk tool calls for restricted tiers.
+                        try:
+                            from gatekeeper import enforce_dam_or_raise  # type: ignore
+
+                            enforce_dam_or_raise(
+                                tenant_id=self.tenant_ctx.tenant_id,
+                                tool_name=tool_name,
+                                action_id=action_id,
+                            )
+                        except Exception as dam_exc:
+                            decision_payload = {
+                                "action_id": action_id,
+                                "tenant_id": self.tenant_ctx.tenant_id,
+                                "action_type": "tool_call",
+                                "tool_name": tool_name,
+                                "args": tool_args,
+                                "status": "blocked",
+                                "logic_failure_severity": "fatal",
+                                "created_at": datetime.now(timezone.utc).isoformat(),
+                                "rationale": (
+                                    "EU AI Act Art. 50 rationale: Delegated Authority Matrix (DAM) blocked a high-risk delegated action "
+                                    "for the tenant's tier. The decision prioritizes legal/ethical safety, prevention of regulated workflows, "
+                                    "and machine-parseable auditability."
+                                ),
+                            }
+                            decision_log_path.write_text(
+                                json.dumps(decision_payload, ensure_ascii=False, indent=2),
+                                encoding="utf-8",
+                            )
+                            raise dam_exc
+
                         observation = tool_fn(**tool_args)
                     except TypeError as exc:
                         observation = f"Error executing tool '{tool_name}': {exc}"
@@ -488,6 +545,44 @@ class GeminiAgent:
                         raise
                     except Exception as exc:
                         observation = f"Unexpected error in tool '{tool_name}': {exc}"
+
+                    # Decision log for executed tool call (or tool error).
+                    logic_sev = "fatal" if "SecurityTransgressionError" in str(observation) else "error"
+                    # Add deterministic AI provenance signature.
+                    input_hash = hashlib.sha256((task or "").encode("utf-8")).hexdigest()
+                    model_version = str(self.settings.GEMINI_MODEL_NAME or self.settings.OPENAI_MODEL or "unknown")
+                    human_review_status = os.getenv("HUMAN_REVIEW_STATUS", "auto")
+                    provenance_sig = hashlib.sha256(
+                        (model_version + "|" + input_hash + "|" + human_review_status).encode("utf-8")
+                    ).hexdigest()
+                    decision_payload = {
+                        "action_id": action_id,
+                        "tenant_id": self.tenant_ctx.tenant_id,
+                        "action_type": "tool_call",
+                        "tool_name": tool_name,
+                        "args": tool_args,
+                        "status": "executed",
+                        "logic_failure_severity": logic_sev if "Error executing" in observation else None,
+                        "created_at": datetime.now(timezone.utc).isoformat(),
+                        "rationale": (
+                            "EU AI Act Art. 50 rationale: The tool call was executed only after applying tenant governance gates "
+                            "(Tier/Cluster/Dormant Gate) and the Delegated Authority Matrix (DAM) authorization for high-risk actions. "
+                            "Business intent: complete the requested work with cost/ethics controls. Ethical intent: minimize harm and "
+                            "preserve auditability."
+                        ),
+                        "_ai_provenance": {
+                            "uuid": action_id,
+                            "provenance_object": {
+                                "model_version": model_version,
+                                "input_attribution_hash": input_hash,
+                                "human_review_status": human_review_status,
+                            },
+                            "signature": provenance_sig,
+                        },
+                    }
+                    decision_log_path.write_text(
+                        json.dumps(decision_payload, ensure_ascii=False, indent=2), encoding="utf-8"
+                    )
 
                 # Record intermediate reasoning and observation
                 self.memory.add_entry("assistant", first_reply)
@@ -509,6 +604,53 @@ class GeminiAgent:
                 print(f"💬 Sending follow-up with observation from '{tool_name}'...")
                 final_response = self._call_gemini(follow_up_prompt)
 
+            if not tool_name:
+                # Decision log for a non-tool "final answer" (still an autonomous action).
+                try:
+                    action_id = str(uuid.uuid4())
+                    decision_log_path = (
+                        Path(self.settings.project_root_path)
+                        / "vanguard"
+                        / "audit"
+                        / f"{action_id}.json"
+                    )
+                    decision_log_path.parent.mkdir(parents=True, exist_ok=True)
+                    input_hash = hashlib.sha256((task or "").encode("utf-8")).hexdigest()
+                    model_version = str(
+                        self.settings.GEMINI_MODEL_NAME or self.settings.OPENAI_MODEL or "unknown"
+                    )
+                    human_review_status = os.getenv("HUMAN_REVIEW_STATUS", "auto")
+                    provenance_sig = hashlib.sha256(
+                        (model_version + "|" + input_hash + "|" + human_review_status).encode("utf-8")
+                    ).hexdigest()
+                    decision_payload = {
+                        "action_id": action_id,
+                        "tenant_id": self.tenant_ctx.tenant_id,
+                        "action_type": "final_answer",
+                        "status": "executed",
+                        "created_at": datetime.now(timezone.utc).isoformat(),
+                        "rationale": (
+                            "EU AI Act Art. 50 rationale: The agent returned a direct response without delegating to a tool. "
+                            "No high-risk delegated action was invoked. The decision was constrained by tenant governance "
+                            "(retrieved memory + core/tenant context) and maintained auditability through machine-readable decision logs."
+                        ),
+                        "_ai_provenance": {
+                            "uuid": action_id,
+                            "provenance_object": {
+                                "model_version": model_version,
+                                "input_attribution_hash": input_hash,
+                                "human_review_status": human_review_status,
+                            },
+                            "signature": provenance_sig,
+                        },
+                    }
+                    decision_log_path.write_text(
+                        json.dumps(decision_payload, ensure_ascii=False, indent=2),
+                        encoding="utf-8",
+                    )
+                except Exception:
+                    pass
+
             self.memory.add_entry("assistant", final_response)
             return final_response
 
@@ -518,7 +660,6 @@ class GeminiAgent:
             response = f"Error generating response: {str(e)}"
             print(f"❌ API Error: {e}")
             return response
-
     def _task_mentions_api(self, task: str) -> bool:
         """Heuristic: detect tasks that target the `api/` directory."""
         t = (task or "").lower()

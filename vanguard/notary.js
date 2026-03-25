@@ -22,6 +22,27 @@ export function generateUUID() {
   return '00000000-0000-4000-8000-000000000000';
 }
 
+function sha256Hex(input) {
+  try {
+    // eslint-disable-next-line no-undef
+    const cryptoMod = typeof crypto !== 'undefined' ? crypto : null;
+    if (cryptoMod && cryptoMod.createHash) {
+      return cryptoMod.createHash('sha256').update(String(input)).digest('hex');
+    }
+  } catch (_) {}
+  try {
+    // Node fallback
+    // eslint-disable-next-line no-undef
+    const { createHash } = require('crypto');
+    return createHash('sha256').update(String(input)).digest('hex');
+  } catch (_) {}
+  // Last-resort: non-cryptographic hash
+  let h = 0;
+  const s = String(input);
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return String(h).padStart(8, '0');
+}
+
 export function generateProvenance({
   model_version,
   input_attribution_hash,
@@ -51,5 +72,35 @@ export function generateProvenance({
   }
 
   return notary;
+}
+
+/**
+ * AI Provenance Protocol (APP)
+ * Output format is designed to be embedded as `_ai_provenance` on audit records.
+ */
+export function generateAiProvenanceSignature({
+  model_version,
+  input_attribution_hash,
+  human_review_status,
+  metadata,
+} = {}) {
+  const prov = generateProvenance({
+    model_version,
+    input_attribution_hash,
+    human_review_status,
+    metadata,
+  });
+
+  const signature = sha256Hex(
+    JSON.stringify(prov?.provenance_object || {}) + '|' + String(prov?.uuid || '')
+  );
+
+  return {
+    _ai_provenance: {
+      uuid: prov.uuid,
+      provenance_object: prov.provenance_object,
+      signature,
+    },
+  };
 }
 

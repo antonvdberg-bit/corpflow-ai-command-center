@@ -14,7 +14,9 @@
     "business_reg_number",
     "physical_address",
     "primary_contact_details",
-    "authorized_rep_verification"
+    "authorized_rep_verification",
+    "trust_score",
+    "current_rank"
   ],
   "properties": {
     "schema_version": { "const": "1" },
@@ -47,6 +49,17 @@
       "type": "integer",
       "enum": [1, 2, 3, 4],
       "description": "Autonomy hierarchy: 1=Basic, 2=Operator, 3=Autonomous, 4=Principal. Level 4 is allowed only for tenant_access.client_tier=EVOLVING."
+    },
+    "trust_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "ATF trust score for promotion gating (0-100)."
+    },
+    "current_rank": {
+      "type": "string",
+      "enum": ["Intern", "Junior", "Senior", "Principal"],
+      "description": "Current operational rank for autonomous governance."
     },
     "registered_business_name": { "type": "string", "minLength": 1 },
     "business_reg_number": { "type": "string", "minLength": 1 },
