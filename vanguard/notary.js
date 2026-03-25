@@ -11,6 +11,20 @@
 
 import { randomUUID as nodeRandomUUID } from 'crypto';
 
+/**
+ * On Vercel, APP signing requires APP_PRIVATE_KEY (GitHub App / deployment signing PEM).
+ * If missing, callers must not emit cryptographic provenance as "online".
+ */
+export function assertNotaryAppPrivateKeyIfVercel() {
+  if (typeof process === 'undefined' || !process.env) return;
+  const onVercel = String(process.env.VERCEL || '').trim() === '1';
+  if (!onVercel) return;
+  const key = String(process.env.APP_PRIVATE_KEY || '').trim();
+  if (!key) {
+    throw new Error('NOTARY_OFFLINE: Missing APP_PRIVATE_KEY in Vercel.');
+  }
+}
+
 export function generateUUID() {
   if (typeof globalThis !== 'undefined' && globalThis.crypto && globalThis.crypto.randomUUID) {
     return globalThis.crypto.randomUUID();
@@ -84,6 +98,7 @@ export function generateAiProvenanceSignature({
   human_review_status,
   metadata,
 } = {}) {
+  assertNotaryAppPrivateKeyIfVercel();
   const prov = generateProvenance({
     model_version,
     input_attribution_hash,

@@ -118,11 +118,47 @@ class TenantContext:
         except Exception:
             return {}
 
+    def get_token_credit_balance_usd(self) -> float:
+        """
+        Best-effort read of token_credit_balance (USD) without raising.
+
+        If missing, falls back to `DEFAULT_TOKEN_CREDIT_BALANCE_USD`
+        (default: 0.0) to enforce the Cash-Positive guardrail.
+        """
+        default_balance = float(os.getenv("DEFAULT_TOKEN_CREDIT_BALANCE_USD", "0.0"))
+        try:
+            if not self.persona_file.exists():
+                return default_balance
+            text = self.guarded_read_text(
+                self.persona_file,
+                source="core/engine/src/tenant_manager.py:get_token_credit_balance_usd",
+            )
+            persona = json.loads(text) if text else {}
+            if isinstance(persona, dict):
+                raw = persona.get("token_credit_balance")
+                if raw is None:
+                    return default_balance
+                return float(raw)
+        except Exception:
+            return default_balance
+        return default_balance
+
     def persona_context_block(self) -> str:
         """Format persona into a system prompt block."""
         persona = self.load_persona()
+        token_balance = self.get_token_credit_balance_usd()
         if not persona:
-            return ""
+            # Provide a minimal persona context even when the tenant has not
+            # yet provisioned `tenants/<tenant_id>/persona.json`.
+            persona = {
+                "assistant_name": self.tenant_id,
+                "specialized_expertise": [],
+                "knowledge_boundaries": {"allowed_sources": [], "blocked_sources": []},
+                "autonomy_level": 1 if token_balance <= 0 else 1,
+                "trust_score": None,
+                "current_rank": "Intern",
+                "token_credit_balance": token_balance,
+            }
 
         assistant_name = persona.get("assistant_name", self.tenant_id)
         expertise = persona.get("specialized_expertise") or []
@@ -146,6 +182,7 @@ class TenantContext:
             f"Allowed sources: {', '.join(allowed) if allowed else '[none specified]'}\n"
             f"Blocked sources: {', '.join(blocked) if blocked else '[none specified]'}\n"
             f"Autonomy level (1-4): {autonomy_level_int}\n"
+            f"Token credit balance (USD): {persona.get('token_credit_balance', 0.0)}\n"
             f"Trust score: {trust_score if trust_score is not None else '[unset]'}\n"
             f"Current rank: {current_rank if current_rank else '[unset]'}\n"
         ]
@@ -193,8 +230,42 @@ class TenantContext:
             self.autonomy_restriction_telemetry(details=details)
             raise AutonomyLevelRestrictionError(details)
 
+        # Cash-Positive guardrail (Token Reservoir):
+        # If token_credit_balance <= 0, hard-lock autonomy to Level 1.
+        token_balance_raw = persona.get("token_credit_balance")
+        try:
+            token_balance_usd = (
+                float(token_balance_raw)
+                if token_balance_raw is not None
+                else float(os.getenv("DEFAULT_TOKEN_CREDIT_BALANCE_USD", "0.0"))
+            )
+        except Exception:
+            token_balance_usd = float(os.getenv("DEFAULT_TOKEN_CREDIT_BALANCE_USD", "0.0"))
+
+        if token_balance_usd <= 0:
+            persona["token_credit_balance"] = 0.0
+            persona["autonomy_level"] = 1
+            persona["current_rank"] = "Intern"
+            self._cash_positive_lock_telemetry()
+
         # ATF promotion gates (8-week + high-severity logic failure window).
         self._validate_atf_promotion_gates(persona)
+
+    def _cash_positive_lock_telemetry(self) -> None:
+        """Emit telemetry for Cash-Positive token exhaustion lock."""
+        try:
+            from core.services.vanguard_telemetry import emit_logic_failure  # type: ignore
+
+            emit_logic_failure(
+                source="core/engine/src/tenant_manager.py:cash-positive-lock",
+                severity="fatal",
+                error=Exception("token_credit_balance <= 0; hard-locking autonomy_level=1"),
+                recommended_action="Top up token_credit_balance to re-enable autonomous and expensive tool usage.",
+                cmp={"ticket_id": "n/a", "action": "cash-positive-lock"},
+                meta={"tenant_id": self.tenant_id, "guardrail": "token-reservoir"},
+            )
+        except Exception:
+            pass
 
     def _dashboard_path(self) -> Path:
         return self.tenant_root / "dashboard.json"

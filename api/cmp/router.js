@@ -8,6 +8,7 @@ import {
 } from './_lib/preview-heuristics.js';
 import { buildClarificationQuestions } from './_lib/ai-interview.js';
 import { emitLogicFailure } from './_lib/telemetry.js';
+import { debitTokenCreditBalance, getTokenCreditBalance } from '../factory/costing.js';
 import fs from 'fs';
 import path from 'path';
 import { spawnSync } from 'child_process';
@@ -71,7 +72,13 @@ function getClusterEnabled(clientId, subUserId, clusterName) {
     readJsonFileSafe(staffMatrixPath1) || readJsonFileSafe(staffMatrixPath2) || null;
 
   const fromMatrix = staffMatrix?.staff_members?.[subUserId]?.clusters_enabled;
-  if (Array.isArray(fromMatrix)) return fromMatrix.includes(clusterName);
+  if (Array.isArray(fromMatrix)) {
+    if (fromMatrix.includes(clusterName)) return true;
+    // Back-compat: allow "Comms" <-> "Operations" when tenant uses different naming.
+    if (clusterName === 'Comms' && fromMatrix.includes('Operations')) return true;
+    if (clusterName === 'Operations' && fromMatrix.includes('Comms')) return true;
+    return false;
+  }
 
   // Backwards-compatible fallback to secrets-manifest access_clusters.
   const manifest = readJsonFileSafe(SECRETS_MANIFEST_PATH);
@@ -138,7 +145,8 @@ function requireDormantGate(req, res, action) {
     severity: 'warning',
     error: new Error(`Dormant Gate blocked action=${action}`),
     cmp: { ticket_id: 'n/a', action },
-    recommended_action: 'Provide a valid admin SESSION_TOKEN (MASTER_ADMIN_KEY verified).',
+    recommended_action:
+      'Provide a valid admin session token (must match MASTER_ADMIN_KEY or ADMIN_PIN in Vercel secrets).',
   });
 
   return deny(res, 403, 'Dormant Gate: session token required.', { action });
@@ -177,7 +185,7 @@ function verifyDormantGateToken(req) {
       req.headers?.get?.('x-session-token') ||
       req.headers?.['x-session-token'] ||
       '')?.toString();
-  const master = (process.env.MASTER_ADMIN_KEY || '').toString();
+  const master = (process.env.MASTER_ADMIN_KEY || process.env.ADMIN_PIN || '').toString();
   if (!DORMANT_GATE_ENABLED) return true;
   if (!token || !master) return false;
   return timingSafeEquals(token, master);
@@ -246,6 +254,27 @@ function verifyRigorViaPython({
     return JSON.parse(stdout);
   } catch (e) {
     throw new Error(`verify-rigor returned non-JSON output: ${stdout.slice(0, 500)}`);
+  }
+}
+
+function ensureTenantProvisionedViaPython(tenantId) {
+  const scriptPath = path.join(REPO_ROOT, 'core', 'engine', 'provisioning.py');
+  const result = spawnSync(
+    'python',
+    [scriptPath, '--tenant_id', String(tenantId || 'root')],
+    { encoding: 'utf8' }
+  );
+  if (result.error) throw result.error;
+  if (result.status !== 0) {
+    const stderr = (result.stderr || '').toString();
+    throw new Error(`provisioning failed (exit ${result.status}): ${stderr.slice(0, 500)}`);
+  }
+  const stdout = (result.stdout || '').toString().trim();
+  if (!stdout) return {};
+  try {
+    return JSON.parse(stdout);
+  } catch (_) {
+    return {};
   }
 }
 
@@ -419,6 +448,23 @@ async function handleApproveBuild(req, res) {
 
   try {
     const clientId = getClientIdFromBody(body) || 'root';
+    // First-run provisioning: auto-create tenants/<tenant_id>/persona.json when missing.
+    ensureTenantProvisionedViaPython(clientId);
+
+    // Hard rejection guard before any costly processing.
+    const tokenBalanceUsd = Number(getTokenCreditBalance({ tenantId: clientId }));
+    if (!Number.isFinite(tokenBalanceUsd) || tokenBalanceUsd <= 0) {
+      return deny(
+        res,
+        402,
+        'FACTORY_DORMANT: INSUFFICIENT_CREDITS',
+        {
+          code: 'FACTORY_DORMANT',
+          reason: 'INSUFFICIENT_CREDITS',
+          token_credit_balance_usd: Number.isFinite(tokenBalanceUsd) ? tokenBalanceUsd : 0,
+        }
+      );
+    }
 
     // Reconstruct description to re-run ethical/budget gate.
     let description = typeof body?.description === 'string' ? body.description.trim() : '';
@@ -496,6 +542,35 @@ async function handleApproveBuild(req, res) {
           rigor_report_id: verdict?.rigor_report_id ?? null,
           executive_escalated: verdict?.executive_escalated ?? false,
         }
+      );
+    }
+
+    // Token Reservoir (Cash-Positive guardrail):
+    // Debit the tenant's pre-paid token credits before we allow the build to proceed.
+    // This prevents any spending beyond the client's float.
+    try {
+      const debitUsd = Number(verdict?.cost_estimate_usd ?? costUsd ?? 0);
+      debitTokenCreditBalance({
+        tenantId: clientId || 'root',
+        debitUsd: debitUsd,
+        invoiceUsd: costUsd,
+        context: { ticket_id: ticketId, action: 'approve-build' },
+      });
+    } catch (e) {
+      emitLogicFailure({
+        source: 'api/cmp/router.js:approve-build:cash-positive-debit',
+        severity: 'fatal',
+        error: e instanceof Error ? e : new Error(String(e)),
+        cmp: { ticket_id: ticketId, action: 'approve-build' },
+        recommended_action:
+          'Token credit balance depleted or insufficient. Client must top up token_credit_balance to proceed.',
+        meta: { client_id: clientId, ticket_id: ticketId, cost_estimate_usd: verdict?.cost_estimate_usd ?? costUsd },
+      });
+      return deny(
+        res,
+        402,
+        'Inflow required: insufficient token_credit_balance to execute this build.',
+        { cost_estimate_usd: verdict?.cost_estimate_usd ?? costUsd }
       );
     }
 
@@ -683,7 +758,7 @@ async function handleSessionVerify(req, res) {
     return res.status(200).json({ ok: true, dormant_gate: false });
   }
 
-  const master = (process.env.MASTER_ADMIN_KEY || '').toString();
+  const master = (process.env.MASTER_ADMIN_KEY || process.env.ADMIN_PIN || '').toString();
   const ok = token && master && timingSafeEquals(token, master);
 
   if (!ok) {

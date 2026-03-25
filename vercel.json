@@ -16,5 +16,11 @@
       "BASEROW_URL": "REPLACE_ME_BASEROW_URL",
       "BASEROW_CMP_TABLE_ID": "REPLACE_ME_BASEROW_CMP_TABLE_ID"
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/billing-sentinel",
+      "schedule": "0 0 * * *"
+    }
+  ]
 }

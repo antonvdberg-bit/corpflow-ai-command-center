@@ -18,7 +18,7 @@
     "schema_version": { "const": "1" },
     "event_type": {
       "type": "string",
-      "enum": ["factory_health", "logic_failure", "cost_overrun"]
+      "enum": ["factory_health", "logic_failure", "cost_overrun", "CRITICAL_INFLOW_REQUIRED"]
     },
     "occurred_at": { "type": "string", "format": "date-time" },
     "factory_id": { "type": "string", "description": "Stable identifier for this Factory deployment." },
@@ -131,6 +131,31 @@
                   "margin_per_line_usd": { "type": "number", "minimum": 0 },
                   "estimated_lines": { "type": ["number", "null"] },
                   "estimated_margin_usd": { "type": "number", "minimum": 0 }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "event_type": { "const": "CRITICAL_INFLOW_REQUIRED" } }, "required": ["event_type"] },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "severity",
+              "token_credit_balance_usd",
+              "monthly_retainer_usd",
+              "threshold_usd",
+              "recommended_action"
+            ],
+            "properties": {
+              "severity": { "type": "string", "enum": ["critical"] },
+              "token_credit_balance_usd": { "type": "number" },
+              "monthly_retainer_usd": { "type": "number", "minimum": 0 },
+              "threshold_usd": { "type": "number", "minimum": 0 },
+              "recommended_action": { "type": "string" }
             }
           }
         }

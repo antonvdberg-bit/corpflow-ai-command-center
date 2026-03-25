@@ -61,6 +61,11 @@
       "enum": ["Intern", "Junior", "Senior", "Principal"],
       "description": "Current operational rank for autonomous governance."
     },
+    "token_credit_balance": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Pre-paid token credit balance in USD. When <= 0, the agent hard-locks to autonomy_level=1 and expensive tools are disabled."
+    },
     "registered_business_name": { "type": "string", "minLength": 1 },
     "business_reg_number": { "type": "string", "minLength": 1 },
     "physical_address": { "type": "string", "minLength": 1 },

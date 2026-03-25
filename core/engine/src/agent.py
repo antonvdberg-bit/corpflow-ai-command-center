@@ -529,63 +529,76 @@ class GeminiAgent:
                     )
                 else:
                     try:
+                        token_balance_usd = float(self.tenant_ctx.get_token_credit_balance_usd())
+                        tool_name_l = str(tool_name).lower()
+                        expensive_tools = {"web_search", "deep_research"}
+
+                        # Cash-Positive kill switch: if tokens are exhausted, prevent expensive
+                        # discovery tools that increase compute/latency and create runaway spend.
+                        if token_balance_usd <= 0 and tool_name_l in expensive_tools:
+                            observation = (
+                                f"Error executing tool '{tool_name}': "
+                                "Cash-Positive guardrail: token_credit_balance <= 0. "
+                                "Top up credits to re-enable Search/Deep Research."
+                            )
+                        else:
                         # DAM gatekeeper: block high-risk tool calls for restricted tiers.
-                        try:
-                            from gatekeeper import enforce_dam_or_raise  # type: ignore
+                            try:
+                                from gatekeeper import enforce_dam_or_raise  # type: ignore
 
-                            enforce_dam_or_raise(
-                                tenant_id=self.tenant_ctx.tenant_id,
-                                tool_name=tool_name,
-                                action_id=action_id,
-                            )
-                        except Exception as dam_exc:
-                            decision_payload = {
-                                "action_id": action_id,
-                                "tenant_id": self.tenant_ctx.tenant_id,
-                                "action_type": "tool_call",
-                                "tool_name": tool_name,
-                                "args": tool_args,
-                                "status": "blocked",
-                                "logic_failure_severity": "fatal",
-                                "created_at": datetime.now(timezone.utc).isoformat(),
-                                "rationale": (
-                                    "EU AI Act Art. 50 rationale: Delegated Authority Matrix (DAM) blocked a high-risk delegated action "
-                                    "for the tenant's tier. The decision prioritizes legal/ethical safety, prevention of regulated workflows, "
-                                    "and machine-parseable auditability."
-                                ),
-                                "_ai_provenance": {
-                                    "uuid": action_id,
-                                    "provenance_object": {
-                                        "model_version": str(
-                                            self.settings.GEMINI_MODEL_NAME
-                                            or self.settings.OPENAI_MODEL
-                                            or "unknown"
-                                        ),
-                                        "input_attribution_hash": hashlib.sha256(
-                                            (task or "").encode("utf-8")
+                                enforce_dam_or_raise(
+                                    tenant_id=self.tenant_ctx.tenant_id,
+                                    tool_name=tool_name,
+                                    action_id=action_id,
+                                )
+                            except Exception as dam_exc:
+                                decision_payload = {
+                                    "action_id": action_id,
+                                    "tenant_id": self.tenant_ctx.tenant_id,
+                                    "action_type": "tool_call",
+                                    "tool_name": tool_name,
+                                    "args": tool_args,
+                                    "status": "blocked",
+                                    "logic_failure_severity": "fatal",
+                                    "created_at": datetime.now(timezone.utc).isoformat(),
+                                    "rationale": (
+                                        "EU AI Act Art. 50 rationale: Delegated Authority Matrix (DAM) blocked a high-risk delegated action "
+                                        "for the tenant's tier. The decision prioritizes legal/ethical safety, prevention of regulated workflows, "
+                                        "and machine-parseable auditability."
+                                    ),
+                                    "_ai_provenance": {
+                                        "uuid": action_id,
+                                        "provenance_object": {
+                                            "model_version": str(
+                                                self.settings.GEMINI_MODEL_NAME
+                                                or self.settings.OPENAI_MODEL
+                                                or "unknown"
+                                            ),
+                                            "input_attribution_hash": hashlib.sha256(
+                                                (task or "").encode("utf-8")
+                                            ).hexdigest(),
+                                            "human_review_status": os.getenv(
+                                                "HUMAN_REVIEW_STATUS", "auto"
+                                            ),
+                                        },
+                                        "signature": hashlib.sha256(
+                                            (
+                                                str(self.settings.GEMINI_MODEL_NAME or self.settings.OPENAI_MODEL or "unknown")
+                                                + "|"
+                                                + hashlib.sha256((task or "").encode("utf-8")).hexdigest()
+                                                + "|"
+                                                + os.getenv("HUMAN_REVIEW_STATUS", "auto")
+                                            ).encode("utf-8")
                                         ).hexdigest(),
-                                        "human_review_status": os.getenv(
-                                            "HUMAN_REVIEW_STATUS", "auto"
-                                        ),
                                     },
-                                    "signature": hashlib.sha256(
-                                        (
-                                            str(self.settings.GEMINI_MODEL_NAME or self.settings.OPENAI_MODEL or "unknown")
-                                            + "|"
-                                            + hashlib.sha256((task or "").encode("utf-8")).hexdigest()
-                                            + "|"
-                                            + os.getenv("HUMAN_REVIEW_STATUS", "auto")
-                                        ).encode("utf-8")
-                                    ).hexdigest(),
-                                },
-                            }
-                            decision_log_path.write_text(
-                                json.dumps(decision_payload, ensure_ascii=False, indent=2),
-                                encoding="utf-8",
-                            )
-                            raise dam_exc
+                                }
+                                decision_log_path.write_text(
+                                    json.dumps(decision_payload, ensure_ascii=False, indent=2),
+                                    encoding="utf-8",
+                                )
+                                raise dam_exc
 
-                        observation = tool_fn(**tool_args)
+                            observation = tool_fn(**tool_args)
                     except TypeError as exc:
                         observation = f"Error executing tool '{tool_name}': {exc}"
                     except SecurityTransgressionError:
@@ -595,8 +608,17 @@ class GeminiAgent:
                         observation = f"Unexpected error in tool '{tool_name}': {exc}"
 
                     # Decision log for executed tool call (or tool error).
-                    status = "error" if ("Error executing tool" in str(observation) or "Unexpected error in tool" in str(observation)) else "executed"
-                    logic_sev = "fatal" if "SecurityTransgressionError" in str(observation) else "error"
+                    status = (
+                        "error"
+                        if ("Error executing tool" in str(observation) or "Unexpected error in tool" in str(observation))
+                        else "executed"
+                    )
+                    cash_positive_blocked = "Cash-Positive guardrail" in str(observation)
+                    logic_sev = (
+                        "fatal"
+                        if (cash_positive_blocked or "SecurityTransgressionError" in str(observation))
+                        else "error"
+                    )
                     # Add deterministic AI provenance signature.
                     input_hash = hashlib.sha256((task or "").encode("utf-8")).hexdigest()
                     model_version = str(self.settings.GEMINI_MODEL_NAME or self.settings.OPENAI_MODEL or "unknown")
@@ -614,10 +636,14 @@ class GeminiAgent:
                         "logic_failure_severity": logic_sev if status == "error" else None,
                         "created_at": datetime.now(timezone.utc).isoformat(),
                         "rationale": (
-                            "EU AI Act Art. 50 rationale: The tool call was executed only after applying tenant governance gates "
-                            "(Tier/Cluster/Dormant Gate) and the Delegated Authority Matrix (DAM) authorization for high-risk actions. "
-                            "Business intent: complete the requested work with cost/ethics controls. Ethical intent: minimize harm and "
-                            "preserve auditability."
+                            "EU AI Act Art. 50 rationale: The tool call was authorized and executed only after tenant governance gates "
+                            "(Tier/Cluster/Dormant Gate) and delegated authority checks. "
+                            + (
+                                "Cash-Positive guardrail was triggered to prevent Search/Deep Research when token credits were exhausted. "
+                                if cash_positive_blocked
+                                else "Delegated Authority Matrix (DAM) authorization was applied for high-risk actions."
+                            )
+                            + " Business intent: complete the requested work with cost/ethics controls. Ethical intent: minimize harm and preserve auditability."
                         ),
                         "_ai_provenance": {
                             "uuid": action_id,
