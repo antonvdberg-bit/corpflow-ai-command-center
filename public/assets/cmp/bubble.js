@@ -14,6 +14,7 @@
 
   var STORAGE_TICKET = 'cmp_ticket_id';
   var STORAGE_SESSION = 'cmp_session_v1';
+  var STORAGE_ADMIN_TOKEN = 'cmp_admin_session_token';
 
   // ---------------------------------------------------------------------------
   // CONFIG (from the executing <script> element + pathname branding)
@@ -63,6 +64,32 @@
   }
 
   var CONFIG = readConfig();
+
+  function readAdminToken() {
+    // 1) Prefer persisted admin token (recommended).
+    try {
+      var t = localStorage.getItem(STORAGE_ADMIN_TOKEN);
+      if (t) return t;
+    } catch (e0) {}
+
+    // 2) Optional: allow embedding token via script tag attribute.
+    try {
+      var s = document.currentScript;
+      if (!s) s = document.querySelector('script[src*="bubble.js"]');
+      if (s) {
+        var a =
+          s.getAttribute('data-cmp-session-token') ||
+          s.getAttribute('data-cmp-admin-session-token') ||
+          s.getAttribute('data-cmp-admin-token') ||
+          '';
+        if (a) return a;
+      }
+    } catch (e1) {}
+
+    return '';
+  }
+
+  var ADMIN_SESSION_TOKEN = readAdminToken();
 
   function apiUrl(path) {
     if (CONFIG.apiBase) return CONFIG.apiBase + path;
@@ -274,7 +301,9 @@
     var tid = getTicketId();
     if (!tid) return;
 
-    fetch(cmpActionUrl('ticket-get', 'id=' + encodeURIComponent(tid)))
+    fetch(cmpActionUrl('ticket-get', 'id=' + encodeURIComponent(tid)), {
+      headers: { 'x-session-token': ADMIN_SESSION_TOKEN || '' },
+    })
       .then(function (r) {
         if (!r.ok) throw new Error('Ticket not found');
         return r.json();
@@ -444,7 +473,7 @@
 
     fetch(cmpActionUrl('ticket-create'), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-session-token': ADMIN_SESSION_TOKEN || '' },
       body: JSON.stringify({
         description: description,
         client_id: CONFIG.clientId || undefined,
@@ -461,7 +490,7 @@
         setTicketId(ticketId);
         return fetch(cmpActionUrl('ai-interview'), {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'x-session-token': ADMIN_SESSION_TOKEN || '' },
           body: JSON.stringify({ description: description }),
         }).then(function (r) {
           return r.json().then(function (j) {
@@ -512,12 +541,13 @@
 
     fetch(cmpActionUrl('costing-preview'), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-session-token': ADMIN_SESSION_TOKEN || '' },
       body: JSON.stringify({
         description: description,
         ticketId: tid,
         is_demo: CONFIG.isDemo,
         tier: CONFIG.tier,
+        client_id: CONFIG.clientId || undefined,
       }),
     })
       .then(function (r) {
@@ -543,9 +573,9 @@
   }
 
   function approveBuild(bodyEl) {
+    var st = getState();
     var tid = getTicketId();
     if (!tid) {
-      var st = getState();
       st.error = 'Missing ticket id.';
       setState(st);
       renderStage(bodyEl, st);
@@ -560,8 +590,14 @@
 
     fetch(cmpActionUrl('approve-build'), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ticket_id: tid }),
+      headers: { 'Content-Type': 'application/json', 'x-session-token': ADMIN_SESSION_TOKEN || '' },
+      body: JSON.stringify({
+        ticket_id: tid,
+        client_id: CONFIG.clientId || undefined,
+        tier: CONFIG.tier,
+        is_demo: CONFIG.isDemo,
+        description: (st.description || '').trim(),
+      }),
     })
       .then(function (r) {
         return r.json().then(function (j) {
@@ -585,9 +621,27 @@
       });
   }
 
+  async function verifyAndMaybeMount() {
+    // Dormant Gate: keep bubble fully hidden until session token is verified.
+    try {
+      var token = ADMIN_SESSION_TOKEN || '';
+      var r = await fetch(cmpActionUrl('session-verify', 'token=' + encodeURIComponent(token)), {
+        method: 'GET',
+      });
+      if (r && r.ok) {
+        var j = await r.json().catch(function () {
+          return null;
+        });
+        if (j && j.ok) mount();
+      }
+    } catch (e) {
+      // Stay hidden on any verification error.
+    }
+  }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', mount);
+    document.addEventListener('DOMContentLoaded', verifyAndMaybeMount);
   } else {
-    mount();
+    verifyAndMaybeMount();
   }
 })();

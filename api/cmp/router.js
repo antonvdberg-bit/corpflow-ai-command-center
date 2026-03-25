@@ -8,6 +8,181 @@ import {
 } from './_lib/preview-heuristics.js';
 import { buildClarificationQuestions } from './_lib/ai-interview.js';
 import { emitLogicFailure } from './_lib/telemetry.js';
+import fs from 'fs';
+import path from 'path';
+import { spawnSync } from 'child_process';
+import crypto from 'crypto';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const REPO_ROOT = path.resolve(__dirname, '../..');
+const SECRETS_MANIFEST_PATH = path.join(REPO_ROOT, 'vanguard', 'secrets-manifest.json');
+
+const DORMANT_GATE_ENABLED =
+  String(process.env.DORMANT_GATE_ENABLED || 'true').toLowerCase() === 'true';
+
+function timingSafeEquals(a, b) {
+  try {
+    if (typeof a !== 'string' || typeof b !== 'string') return false;
+    const aBuf = Buffer.from(a, 'utf8');
+    const bBuf = Buffer.from(b, 'utf8');
+    if (aBuf.length !== bBuf.length) return false;
+    return crypto.timingSafeEqual(aBuf, bBuf);
+  } catch (_) {
+    return false;
+  }
+}
+
+function readJsonFileSafe(filePath) {
+  try {
+    const raw = fs.readFileSync(filePath, 'utf8');
+    return JSON.parse(raw);
+  } catch (_) {
+    return null;
+  }
+}
+
+function getClientIdFromBody(body) {
+  return (
+    body?.client_id ||
+    body?.clientId ||
+    body?.tenant_id ||
+    body?.tenantId ||
+    null
+  );
+}
+
+function getClientTier(clientId) {
+  if (!clientId) return 'PERIODIC';
+  const manifest = readJsonFileSafe(SECRETS_MANIFEST_PATH);
+  const tenantAccess = manifest?.tenant_access?.[clientId];
+  const tier = tenantAccess?.client_tier;
+  if (tier === 'STATIC' || tier === 'PERIODIC' || tier === 'EVOLVING') return tier;
+  return 'PERIODIC';
+}
+
+function getClusterEnabled(clientId, subUserId, clusterName) {
+  if (!clientId || !subUserId) return false;
+  const manifest = readJsonFileSafe(SECRETS_MANIFEST_PATH);
+  const accessClusters = manifest?.tenant_access?.[clientId]?.access_clusters;
+  const enabled = accessClusters?.sub_users?.[subUserId]?.clusters_enabled || [];
+  return Array.isArray(enabled) && enabled.includes(clusterName);
+}
+
+function requiredClusterForAction(action) {
+  if (action === 'evolution-request') return 'Financials';
+  if (action === 'market-research') return 'Marketing';
+  if (action === 'supplier-onboard') return 'Comms';
+  return null;
+}
+
+function getSubUserId(req) {
+  const headerVal =
+    req?.headers?.get?.('x-subuser-id') ||
+    req?.headers?.['x-subuser-id'] ||
+    req?.query?.sub_user_id ||
+    req?.body?.sub_user_id ||
+    req?.body?.subUserId ||
+    null;
+  return headerVal ? String(headerVal) : null;
+}
+
+function requireDormantGate(req, res, action) {
+  if (!DORMANT_GATE_ENABLED) return true;
+  if (verifyDormantGateToken(req)) return true;
+
+  emitLogicFailure({
+    source: 'api/cmp/router.js:dormant-gate',
+    severity: 'warning',
+    error: new Error(`Dormant Gate blocked action=${action}`),
+    cmp: { ticket_id: 'n/a', action },
+    recommended_action: 'Provide a valid admin SESSION_TOKEN (MASTER_ADMIN_KEY verified).',
+  });
+
+  return deny(res, 403, 'Dormant Gate: session token required.', { action });
+}
+
+function redactPotentialSecrets(input) {
+  const redactKeys = ['token', 'api_key', 'apikey', 'secret', 'auth_token', 'access_token', 'password'];
+
+  if (input == null) return input;
+  if (typeof input !== 'object') return input;
+
+  const walk = (v) => {
+    if (Array.isArray(v)) return v.map(walk);
+    if (v && typeof v === 'object') {
+      const out = {};
+      for (const [k, val] of Object.entries(v)) {
+        const lk = String(k).toLowerCase();
+        if (redactKeys.includes(lk) || lk.endsWith('_token') || lk.includes('password')) {
+          out[k] = '[REDACTED]';
+        } else {
+          out[k] = walk(val);
+        }
+      }
+      return out;
+    }
+    return v;
+  };
+
+  return walk(input);
+}
+
+function verifyDormantGateToken(req) {
+  const token =
+    (req.query?.token ||
+      req.body?.token ||
+      req.headers?.get?.('x-session-token') ||
+      req.headers?.['x-session-token'] ||
+      '')?.toString();
+  const master = (process.env.MASTER_ADMIN_KEY || '').toString();
+  if (!DORMANT_GATE_ENABLED) return true;
+  if (!token || !master) return false;
+  return timingSafeEquals(token, master);
+}
+
+function deny(res, status, error, extra) {
+  const payload = { error };
+  if (extra) Object.assign(payload, extra);
+  return res.status(status).json(payload);
+}
+
+function verifyRigorViaPython({ description, costUsd, clientId, action, ticketId }) {
+  const scriptPath = path.join(REPO_ROOT, 'vanguard', 'verify-rigor.py');
+  const result = spawnSync(
+    'python',
+    [
+      scriptPath,
+      '--description',
+      description,
+      '--cost_usd',
+      String(costUsd),
+      '--client_id',
+      clientId || 'root',
+      '--action',
+      action,
+      '--ticket_id',
+      ticketId || 'n/a',
+    ],
+    { encoding: 'utf8' }
+  );
+
+  if (result.error) {
+    throw result.error;
+  }
+  if (result.status !== 0) {
+    const stderr = (result.stderr || '').toString();
+    throw new Error(`verify-rigor failed (exit ${result.status}): ${stderr.slice(0, 500)}`);
+  }
+
+  const stdout = (result.stdout || '').toString().trim();
+  try {
+    return JSON.parse(stdout);
+  } catch (e) {
+    throw new Error(`verify-rigor returned non-JSON output: ${stdout.slice(0, 500)}`);
+  }
+}
 
 /**
  * Single CMP serverless entry (Hobby-friendly). Routed via:
@@ -52,6 +227,10 @@ async function handleTicketCreate(req, res) {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  const guard = requireDormantGate(req, res, 'ticket-create');
+  if (guard !== true) return guard;
+
   const parsed = parseJsonBody(req);
   if (!parsed.ok) return res.status(400).json({ error: parsed.error });
   const body = parsed.body;
@@ -109,6 +288,9 @@ async function handleTicketGet(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const guard = requireDormantGate(req, res, 'ticket-get');
+  if (guard !== true) return guard;
+
   const id = req.query?.id;
   if (!id || String(id).trim() === '') {
     return res.status(400).json({ error: 'id query parameter is required' });
@@ -156,6 +338,9 @@ async function handleApproveBuild(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const guard = requireDormantGate(req, res, 'approve-build');
+  if (guard !== true) return guard;
+
   const parsed = parseJsonBody(req);
   if (!parsed.ok) return res.status(400).json({ error: parsed.error });
   const body = parsed.body;
@@ -166,6 +351,82 @@ async function handleApproveBuild(req, res) {
   }
 
   try {
+    const clientId = getClientIdFromBody(body) || 'root';
+
+    // Reconstruct description to re-run ethical/budget gate.
+    let description = typeof body?.description === 'string' ? body.description.trim() : '';
+    if (!description) {
+      const client = createBaserowClient({});
+      const row = await client.getRow(undefined, ticketId);
+      const f = getCmpFieldMap();
+      description =
+        row?.[f.description] ?? row?.Description ?? row?.description ?? '';
+      description = typeof description === 'string' ? description.trim() : '';
+    }
+    if (!description) {
+      emitLogicFailure({
+        source: 'api/cmp/router.js:approve-build',
+        severity: 'fatal',
+        error: new Error('Missing description for ethical sentinel re-check'),
+        cmp: { ticket_id: ticketId, action: 'approve-build' },
+        recommended_action: 'Verify Baserow CMP Description field mapping.',
+      });
+      return deny(res, 500, 'Approve blocked: missing description context for verifier.');
+    }
+
+    const tier =
+      body?.tier === 'premium' || body?.tier === 'enterprise' || body?.tier === 'internal'
+        ? body.tier
+        : 'standard';
+    const is_demo = Boolean(body?.is_demo);
+
+    let complexity = body?.complexity;
+    let risk = body?.risk;
+    if (!complexity || !['low', 'medium', 'high'].includes(complexity)) {
+      complexity = inferComplexityFromDescription(description);
+    }
+    if (!risk || !['low', 'medium', 'high'].includes(risk)) {
+      risk = inferRiskFromDescription(description);
+    }
+
+    const cost = computeMarketValueCost({
+      complexity,
+      risk,
+      tier,
+      is_demo,
+    });
+
+    const costUsd = Number(cost?.full_market_value_usd);
+
+    const verdict = verifyRigorViaPython({
+      description,
+      costUsd,
+      clientId,
+      action: 'approve-build',
+      ticketId,
+    });
+
+    if (!verdict?.ok) {
+      emitLogicFailure({
+        source: 'vanguard/verify-rigor.py',
+        severity: 'fatal',
+        error: new Error(verdict?.reject_reason || 'Rejected by ethical sentinel'),
+        cmp: { ticket_id: ticketId, action: 'approve-build' },
+        recommended_action: 'Build blocked by Vanguard Ethical Sentinel.',
+      });
+      return deny(
+        res,
+        403,
+        verdict?.reject_reason || 'Build rejected by ethical sentinel',
+        {
+          ethical_score: verdict?.ethical_score ?? null,
+          budget_cap_usd: verdict?.budget_cap_usd ?? null,
+          cost_estimate_usd: verdict?.cost_estimate_usd ?? costUsd,
+          rejected_by: verdict?.rejected_by || [],
+        }
+      );
+    }
+
     const client = createBaserowClient({});
     const fields = approveBuildPayload();
     const row = await client.updateRow(undefined, ticketId, fields);
@@ -204,6 +465,9 @@ async function handleCostingPreview(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const guard = requireDormantGate(req, res, 'costing-preview');
+  if (guard !== true) return guard;
+
   const parsed = parseJsonBody(req);
   if (!parsed.ok) return res.status(400).json({ error: parsed.error });
   const body = parsed.body;
@@ -237,6 +501,49 @@ async function handleCostingPreview(req, res) {
     is_demo,
   });
 
+  const clientId = getClientIdFromBody(body);
+  const ticketId = body.ticketId != null ? String(body.ticketId) : 'n/a';
+  const costUsd = Number(cost?.full_market_value_usd);
+
+  try {
+    const verdict = verifyRigorViaPython({
+      description,
+      costUsd,
+      clientId: clientId || 'root',
+      action: 'costing-preview',
+      ticketId,
+    });
+
+    if (!verdict?.ok) {
+      emitLogicFailure({
+        source: 'vanguard/verify-rigor.py',
+        severity: 'fatal',
+        error: new Error(verdict?.reject_reason || 'Rejected by ethical sentinel'),
+        cmp: { ticket_id: ticketId, action: 'costing-preview' },
+        recommended_action: 'Human review required for this change request.',
+      });
+      return deny(
+        res,
+        403,
+        verdict?.reject_reason || 'Rejected by ethical sentinel',
+        {
+          ethical_score: verdict?.ethical_score ?? null,
+          budget_cap_usd: verdict?.budget_cap_usd ?? null,
+          cost_estimate_usd: verdict?.cost_estimate_usd ?? costUsd,
+          rejected_by: verdict?.rejected_by || [],
+        }
+      );
+    }
+  } catch (e) {
+    emitLogicFailure({
+      source: 'api/cmp/router.js:costing-preview:verify-rigor',
+      severity: 'fatal',
+      error: e,
+      cmp: { ticket_id: ticketId, action: 'costing-preview' },
+    });
+    return deny(res, 500, 'Ethical Sentinel verification failed (build blocked by default).');
+  }
+
   return res.status(200).json({
     ticket_id: body.ticketId != null ? String(body.ticketId) : null,
     impact: {
@@ -260,6 +567,9 @@ async function handleAiInterview(req, res) {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  const guard = requireDormantGate(req, res, 'ai-interview');
+  if (guard !== true) return guard;
 
   const parsed = parseJsonBody(req);
   if (!parsed.ok) return res.status(400).json({ error: parsed.error });
@@ -285,6 +595,237 @@ async function handleSandboxStart(req, res) {
   });
 }
 
+async function handleSessionVerify(req, res) {
+  if (req.method !== 'GET' && req.method !== 'POST') {
+    res.setHeader('Allow', 'GET, POST');
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const token = (req.query?.token || req.body?.token || '').toString();
+  if (!DORMANT_GATE_ENABLED) {
+    return res.status(200).json({ ok: true, dormant_gate: false });
+  }
+
+  const master = (process.env.MASTER_ADMIN_KEY || '').toString();
+  const ok = token && master && timingSafeEquals(token, master);
+
+  if (!ok) {
+    return deny(res, 401, 'Dormant Gate verification failed.');
+  }
+
+  return res.status(200).json({ ok: true, dormant_gate: true });
+}
+
+async function handleEvolutionRequest(req, res) {
+  const gate = requireDormantGate(req, res, 'evolution-request');
+  if (gate !== true) return gate;
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', 'POST');
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const parsed = parseJsonBody(req);
+  if (!parsed.ok) return res.status(400).json({ error: parsed.error });
+  const body = parsed.body;
+
+  const clientId = getClientIdFromBody(body);
+  if (!clientId) return res.status(400).json({ error: 'client_id is required' });
+
+  const tier = getClientTier(clientId);
+  if (tier === 'STATIC') {
+    emitLogicFailure({
+      source: 'api/cmp/router.js:TierGate',
+      severity: 'fatal',
+      error: new Error('STATIC tier blocked evolution-request'),
+      cmp: { ticket_id: 'n/a', action: 'evolution-request' },
+      recommended_action: 'Request admin escalation or upgrade client tier.',
+      meta: { client_id: clientId, client_tier: tier },
+    });
+    return deny(res, 403, 'STATIC clients cannot run evolution-request.');
+  }
+
+  const subUserId = getSubUserId(req);
+  const requiredCluster = requiredClusterForAction('evolution-request');
+  if (!subUserId || !requiredCluster || !getClusterEnabled(clientId, subUserId, requiredCluster)) {
+    return deny(res, 403, 'Sub-user is not permitted for evolution-request.', {
+      required_cluster: requiredCluster,
+      sub_user_id: subUserId || null,
+    });
+  }
+
+  return res.status(501).json({ error: 'evolution-request not implemented', tier });
+}
+
+async function handleMarketResearch(req, res) {
+  const gate = requireDormantGate(req, res, 'market-research');
+  if (gate !== true) return gate;
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', 'POST');
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const parsed = parseJsonBody(req);
+  if (!parsed.ok) return res.status(400).json({ error: parsed.error });
+  const body = parsed.body;
+
+  const clientId = getClientIdFromBody(body);
+  if (!clientId) return res.status(400).json({ error: 'client_id is required' });
+
+  const tier = getClientTier(clientId);
+  if (tier === 'STATIC') {
+    emitLogicFailure({
+      source: 'api/cmp/router.js:TierGate',
+      severity: 'fatal',
+      error: new Error('STATIC tier blocked market-research'),
+      cmp: { ticket_id: 'n/a', action: 'market-research' },
+      recommended_action: 'Request admin escalation or upgrade client tier.',
+      meta: { client_id: clientId, client_tier: tier },
+    });
+    return deny(res, 403, 'STATIC clients cannot run market-research.');
+  }
+
+  const subUserId = getSubUserId(req);
+  const requiredCluster = requiredClusterForAction('market-research');
+  if (!subUserId || !requiredCluster || !getClusterEnabled(clientId, subUserId, requiredCluster)) {
+    return deny(res, 403, 'Sub-user is not permitted for market-research.', {
+      required_cluster: requiredCluster,
+      sub_user_id: subUserId || null,
+    });
+  }
+
+  return res.status(501).json({ error: 'market-research not implemented', tier });
+}
+
+function writeJsonFileSafe(filePath, data) {
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2) + '\n', 'utf8');
+}
+
+async function handleSupplierOnboard(req, res) {
+  const gate = requireDormantGate(req, res, 'supplier-onboard');
+  if (gate !== true) return gate;
+
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', 'POST');
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const parsed = parseJsonBody(req);
+  if (!parsed.ok) return res.status(400).json({ error: parsed.error });
+  const body = parsed.body;
+
+  const clientId = getClientIdFromBody(body);
+  if (!clientId) return res.status(400).json({ error: 'client_id is required' });
+
+  const subUserId = getSubUserId(req);
+  const requiredCluster = requiredClusterForAction('supplier-onboard');
+  if (!subUserId || !requiredCluster || !getClusterEnabled(clientId, subUserId, requiredCluster)) {
+    return deny(res, 403, 'Sub-user is not permitted for supplier onboarding.', {
+      required_cluster: requiredCluster,
+      sub_user_id: subUserId || null,
+    });
+  }
+
+  const supplierKey =
+    body?.supplier_key || body?.supplierKey || body?.supplier || body?.supplier_type || null;
+  if (!supplierKey || String(supplierKey).trim() === '') {
+    return res.status(400).json({ error: 'supplier_key is required' });
+  }
+
+  const config = body?.supplier_config || body?.config || body?.details || {};
+  const redactedConfig = redactPotentialSecrets(config);
+
+  const manifest = readJsonFileSafe(SECRETS_MANIFEST_PATH) || {};
+  manifest.tenant_access = manifest.tenant_access || {};
+  manifest.tenant_access[clientId] = manifest.tenant_access[clientId] || {};
+  manifest.tenant_access[clientId].supplier_access =
+    manifest.tenant_access[clientId].supplier_access || {};
+
+  manifest.tenant_access[clientId].supplier_access[supplierKey] = redactedConfig;
+  manifest.tenant_access[clientId].supplier_onboarded_at = new Date().toISOString();
+
+  try {
+    writeJsonFileSafe(SECRETS_MANIFEST_PATH, manifest);
+  } catch (e) {
+    emitLogicFailure({
+      source: 'api/cmp/router.js:supplier-onboard',
+      severity: 'fatal',
+      error: e,
+      cmp: { ticket_id: 'n/a', action: 'supplier-onboard' },
+      recommended_action: 'Verify filesystem permissions for vanguard/secrets-manifest.json.',
+      meta: { client_id: clientId, supplier_key: supplierKey },
+    });
+    return deny(res, 500, 'Failed to persist supplier access configuration.');
+  }
+
+  return res.status(200).json({ ok: true, client_id: clientId, supplier_key: supplierKey });
+}
+
+async function handleAdminToggleClusters(req, res) {
+  const gate = requireDormantGate(req, res, 'admin-toggle-clusters');
+  if (gate !== true) return gate;
+
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', 'POST');
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const parsed = parseJsonBody(req);
+  if (!parsed.ok) return res.status(400).json({ error: parsed.error });
+  const body = parsed.body;
+
+  const clientId = getClientIdFromBody(body);
+  if (!clientId) return res.status(400).json({ error: 'client_id is required' });
+
+  const adminSubUserId = getSubUserId(req);
+  const targetSubUserId =
+    body?.target_sub_user_id || body?.targetSubUserId || body?.sub_user_id || body?.subUserId;
+  if (!adminSubUserId) return res.status(400).json({ error: 'x-subuser-id header is required' });
+  if (!targetSubUserId) return res.status(400).json({ error: 'target_sub_user_id is required' });
+
+  const clustersEnabled = Array.isArray(body?.clusters_enabled)
+    ? body.clusters_enabled
+    : Array.isArray(body?.clustersEnabled)
+      ? body.clustersEnabled
+      : [];
+
+  const manifest = readJsonFileSafe(SECRETS_MANIFEST_PATH) || {};
+  const accessClusters = manifest?.tenant_access?.[clientId]?.access_clusters || {};
+  const clientAdmins = accessClusters?.client_admins || [];
+
+  if (!clientAdmins.includes(adminSubUserId)) {
+    return deny(res, 403, 'Admin is not authorized to toggle access clusters.', {
+      client_id: clientId,
+      admin_sub_user_id: adminSubUserId,
+    });
+  }
+
+  manifest.tenant_access = manifest.tenant_access || {};
+  manifest.tenant_access[clientId] = manifest.tenant_access[clientId] || {};
+  manifest.tenant_access[clientId].access_clusters = manifest.tenant_access[clientId].access_clusters || {};
+  manifest.tenant_access[clientId].access_clusters.sub_users =
+    manifest.tenant_access[clientId].access_clusters.sub_users || {};
+
+  manifest.tenant_access[clientId].access_clusters.sub_users[targetSubUserId] = {
+    clusters_enabled: clustersEnabled,
+  };
+
+  try {
+    writeJsonFileSafe(SECRETS_MANIFEST_PATH, manifest);
+  } catch (e) {
+    emitLogicFailure({
+      source: 'api/cmp/router.js:admin-toggle-clusters',
+      severity: 'fatal',
+      error: e,
+      cmp: { ticket_id: 'n/a', action: 'admin-toggle-clusters' },
+      recommended_action: 'Verify filesystem permissions for vanguard/secrets-manifest.json.',
+      meta: { client_id: clientId, admin_sub_user_id: adminSubUserId, target_sub_user_id: targetSubUserId },
+    });
+    return deny(res, 500, 'Failed to persist cluster toggles.');
+  }
+
+  return res.status(200).json({ ok: true, client_id: clientId, target_sub_user_id: targetSubUserId });
+}
+
 export default async function handler(req, res) {
   const action = resolveAction(req);
   if (!action) {
@@ -296,6 +837,8 @@ export default async function handler(req, res) {
       return handleTicketCreate(req, res);
     case 'ticket-get':
       return handleTicketGet(req, res);
+    case 'session-verify':
+      return handleSessionVerify(req, res);
     case 'approve-build':
       return handleApproveBuild(req, res);
     case 'costing-preview':
@@ -304,6 +847,14 @@ export default async function handler(req, res) {
       return handleAiInterview(req, res);
     case 'sandbox-start':
       return handleSandboxStart(req, res);
+    case 'evolution-request':
+      return handleEvolutionRequest(req, res);
+    case 'market-research':
+      return handleMarketResearch(req, res);
+    case 'supplier-onboard':
+      return handleSupplierOnboard(req, res);
+    case 'admin-toggle-clusters':
+      return handleAdminToggleClusters(req, res);
     default:
       return res.status(404).json({ error: 'Unknown action', action });
   }
