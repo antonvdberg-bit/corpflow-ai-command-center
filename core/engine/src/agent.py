@@ -442,12 +442,17 @@ class GeminiAgent:
         print(f"[TOOLS] Executing tools for: {task}")
         tool_list = self._get_tool_descriptions()
 
+        code_graph_block = ""
+        if self._task_mentions_api(task):
+            code_graph_block = self.tenant_ctx.code_graph_context_block() or ""
+
         system_prompt = (
             "You are an expert AI agent following the Think-Act-Reflect loop.\n"
             "Relevant Retrieved Memory Snippets:\n"
             f"{self._latest_retrieved_memory}\n\n"
             "You have access to the following tools:\n"
             f"{tool_list}\n\n"
+            f"{code_graph_block}\n\n" if code_graph_block else ""
             f"Relevant Context/Plan:\n{thought_process}\n\n"
             "If you need a tool, respond ONLY with a JSON object using the schema:\n"
             '{"action": "<tool_name>", "args": {"param": "value"}}\n'
@@ -513,6 +518,11 @@ class GeminiAgent:
             response = f"Error generating response: {str(e)}"
             print(f"❌ API Error: {e}")
             return response
+
+    def _task_mentions_api(self, task: str) -> bool:
+        """Heuristic: detect tasks that target the `api/` directory."""
+        t = (task or "").lower()
+        return any(s in t for s in ["api/", "api\\", "api/cmp", "api\\cmp"])
 
     def reflect(self):
         """

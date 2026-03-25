@@ -25,11 +25,15 @@ import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 
 class SecurityTransgressionError(RuntimeError):
     """Raised when an agent attempts a forbidden filesystem read."""
+
+
+class AutonomyLevelRestrictionError(RuntimeError):
+    """Raised when tenant autonomy_level violates tenant tier policy."""
 
 
 def _now_iso() -> str:
@@ -65,6 +69,11 @@ class TenantContext:
         return self.project_root / ".context"
 
     @property
+    def vanguard_root(self) -> Path:
+        # Factory governance schemas/artifacts (non-proprietary).
+        return self.project_root / "vanguard"
+
+    @property
     def memory_dir(self) -> Path:
         return self.tenant_root / "memory"
 
@@ -94,8 +103,13 @@ class TenantContext:
                 self.persona_file,
                 source="core/engine/src/tenant_manager.py:load_persona",
             )
-            return json.loads(text)
+            persona = json.loads(text)
+            if isinstance(persona, dict):
+                self.validate_autonomy_restrictions(persona)
+            return persona
         except SecurityTransgressionError:
+            raise
+        except AutonomyLevelRestrictionError:
             raise
         except Exception:
             return {}
@@ -112,14 +126,111 @@ class TenantContext:
         allowed = kb.get("allowed_sources") or []
         blocked = kb.get("blocked_sources") or []
 
+        autonomy_level = persona.get("autonomy_level", 1)
+        try:
+            autonomy_level_int = int(autonomy_level)
+        except Exception:
+            autonomy_level_int = 1
+
         parts = [
             "\n--- TENANT PERSONA ---\n"
             f"Tenant assistant name: {assistant_name}\n"
             f"Specialized expertise: {', '.join(expertise) if expertise else '[none]'}\n"
             f"Allowed sources: {', '.join(allowed) if allowed else '[none specified]'}\n"
             f"Blocked sources: {', '.join(blocked) if blocked else '[none specified]'}\n"
+            f"Autonomy level (1-4): {autonomy_level_int}\n"
         ]
         return "".join(parts)
+
+    def _get_client_tier(self) -> str:
+        """Best-effort: read client tier from `vanguard/secrets-manifest.json`."""
+        try:
+            manifest_path = self.vanguard_root / "secrets-manifest.json"
+            manifest_text = self.guarded_read_text(
+                manifest_path,
+                source="core/engine/src/tenant_manager.py:_get_client_tier",
+            )
+            manifest = json.loads(manifest_text)
+            tier = (
+                manifest.get("tenant_access", {})
+                .get(self.tenant_id, {})
+                .get("client_tier", "PERIODIC")
+            )
+            tier = str(tier).upper()
+            if tier in {"STATIC", "PERIODIC", "EVOLVING"}:
+                return tier
+        except Exception:
+            pass
+        return "PERIODIC"
+
+    def validate_autonomy_restrictions(self, persona: Dict[str, Any]) -> None:
+        """
+        Enforce RIGOR:
+        - Level 4 ('Principal') restricted to Tier 3 ('EVOLVING') clients only.
+        - Any attempt to set Level 4 on non-EVOLVING tenants is auto-blocked.
+        """
+        try:
+            autonomy_level = persona.get("autonomy_level", 1)
+            autonomy_level_int = int(autonomy_level)
+        except Exception:
+            autonomy_level_int = 1
+
+        tier = self._get_client_tier()
+        if autonomy_level_int == 4 and tier != "EVOLVING":
+            details = (
+                "Autonomy Level 4 requires tenant_access.client_tier=EVOLVING "
+                f"(found {tier}) for tenant_id={self.tenant_id}."
+            )
+            self.autonomy_restriction_telemetry(details=details)
+            raise AutonomyLevelRestrictionError(details)
+
+    def autonomy_restriction_telemetry(self, *, details: str) -> None:
+        """Emit telemetry for autonomy restriction violations (best-effort)."""
+        try:
+            from core.services.vanguard_telemetry import emit_logic_failure  # type: ignore
+
+            emit_logic_failure(
+                source="core/engine/src/tenant_manager.py:autonomy_restriction",
+                severity="fatal",
+                error=Exception(details),
+                recommended_action="Block the session and downgrade autonomy_level to 1-3 unless client_tier=EVOLVING.",
+                cmp={"ticket_id": "n/a", "action": "autonomy-level-restriction"},
+                meta={"tenant_id": self.tenant_id, "details": details[:200]},
+            )
+        except Exception:
+            pass
+
+    def code_graph_context_block(self) -> str:
+        """Return a compact block from `vanguard/code-graph.json`."""
+        code_graph_path = self.vanguard_root / "code-graph.json"
+        if not code_graph_path.exists():
+            return ""
+        try:
+            text = self.guarded_read_text(
+                code_graph_path, source="core/engine/src/tenant_manager.py:code_graph_context_block"
+            )
+            graph = json.loads(text)
+            actions = graph.get("actions") or []
+            imports = graph.get("imports") or []
+            requires = graph.get("requires") or []
+
+            import_sources: List[str] = []
+            if isinstance(imports, list):
+                for imp in imports:
+                    if isinstance(imp, dict) and imp.get("source"):
+                        import_sources.append(str(imp["source"]))
+
+            payload = {
+                "target_file": graph.get("target_file"),
+                "actions": actions[:50] if isinstance(actions, list) else [],
+                "import_sources": sorted(list(set(import_sources)))[:50],
+                "require_sources": requires[:50] if isinstance(requires, list) else [],
+            }
+            return "\n--- CODE GRAPH (vanguard/code-graph.json) ---\n" + json.dumps(
+                payload, ensure_ascii=False
+            )
+        except Exception:
+            return ""
 
     def apply_to_env(self) -> None:
         """
@@ -144,6 +255,7 @@ class TenantContext:
             _normalize_path(self.tenant_root),
             _normalize_path(self.core_root),
             _normalize_path(self.core_docs_root),
+            _normalize_path(self.vanguard_root),
         ]
 
     def _is_path_allowed(self, target_path: Path) -> bool:
