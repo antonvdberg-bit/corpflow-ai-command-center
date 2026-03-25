@@ -210,6 +210,16 @@ def generate_code_graph(*, router_path: Path = ROUTER_PATH, output_path: Path = 
     node_payload["generated_at"] = node_payload.get("generated_at") or _utc_now_iso()
 
     _write_json(output_path, node_payload)
+
+    # Maintain a dated backup for drift detection.
+    try:
+        backup_dir = REPO_ROOT / "vanguard" / "code-graph.backups"
+        date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        backup_path = backup_dir / f"{date_str}.json"
+        _write_json(backup_path, node_payload)
+    except Exception:
+        pass
+
     return node_payload
 
 

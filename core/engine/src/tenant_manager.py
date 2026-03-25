@@ -23,7 +23,7 @@ import json
 import os
 import re
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -34,6 +34,10 @@ class SecurityTransgressionError(RuntimeError):
 
 class AutonomyLevelRestrictionError(RuntimeError):
     """Raised when tenant autonomy_level violates tenant tier policy."""
+
+
+class PromotionGateViolationError(RuntimeError):
+    """Raised when ATF promotion gate disallows rank advancement."""
 
 
 def _now_iso() -> str:
@@ -132,6 +136,9 @@ class TenantContext:
         except Exception:
             autonomy_level_int = 1
 
+        trust_score = persona.get("trust_score")
+        current_rank = persona.get("current_rank")
+
         parts = [
             "\n--- TENANT PERSONA ---\n"
             f"Tenant assistant name: {assistant_name}\n"
@@ -139,6 +146,8 @@ class TenantContext:
             f"Allowed sources: {', '.join(allowed) if allowed else '[none specified]'}\n"
             f"Blocked sources: {', '.join(blocked) if blocked else '[none specified]'}\n"
             f"Autonomy level (1-4): {autonomy_level_int}\n"
+            f"Trust score: {trust_score if trust_score is not None else '[unset]'}\n"
+            f"Current rank: {current_rank if current_rank else '[unset]'}\n"
         ]
         return "".join(parts)
 
@@ -183,6 +192,150 @@ class TenantContext:
             )
             self.autonomy_restriction_telemetry(details=details)
             raise AutonomyLevelRestrictionError(details)
+
+        # ATF promotion gates (8-week + high-severity logic failure window).
+        self._validate_atf_promotion_gates(persona)
+
+    def _dashboard_path(self) -> Path:
+        return self.tenant_root / "dashboard.json"
+
+    def _load_dashboard(self) -> Dict[str, Any]:
+        try:
+            p = self._dashboard_path()
+            if not p.exists():
+                return {"atf": {"current_rank": "Intern", "last_rank_change_at": None}}
+            txt = self.guarded_read_text(p, source="core/engine/src/tenant_manager.py:_load_dashboard")
+            data = json.loads(txt)
+            if not isinstance(data, dict):
+                return {"atf": {"current_rank": "Intern", "last_rank_change_at": None}}
+            atf = data.get("atf") or {}
+            if not isinstance(atf, dict):
+                atf = {}
+            data["atf"] = atf
+            return data
+        except Exception:
+            return {"atf": {"current_rank": "Intern", "last_rank_change_at": None}}
+
+    def _save_dashboard(self, dashboard: Dict[str, Any]) -> None:
+        try:
+            p = self._dashboard_path()
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_text(json.dumps(dashboard, ensure_ascii=False, indent=2), encoding="utf-8")
+        except Exception:
+            pass
+
+    def _parse_iso_datetime(self, s: Any) -> Optional[datetime]:
+        if s is None:
+            return None
+        try:
+            return datetime.fromisoformat(str(s))
+        except Exception:
+            return None
+
+    def _count_high_severity_logic_failures_last_100(self) -> int:
+        """
+        Count high-severity logic failures in the last 100 autonomous actions.
+
+        For now we approximate using decision logs:
+        - action_type in {tool_call, final_answer}
+        - logic_failure_severity == 'fatal'
+        """
+        audit_dir = self.project_root / "vanguard" / "audit"
+        if not audit_dir.exists():
+            return 0
+
+        decision_files = sorted(
+            [p for p in audit_dir.glob("*.json") if p.is_file()],
+            key=lambda p: p.stat().st_mtime,
+            reverse=True,
+        )
+
+        tenant_files: List[Path] = []
+        for f in decision_files:
+            if len(tenant_files) >= 100:
+                break
+            try:
+                data = json.loads(f.read_text(encoding="utf-8"))
+                if isinstance(data, dict) and data.get("tenant_id") == self.tenant_id:
+                    tenant_files.append(f)
+            except Exception:
+                continue
+
+        fatal_count = 0
+        for f in tenant_files:
+            try:
+                data = json.loads(f.read_text(encoding="utf-8"))
+                if not isinstance(data, dict):
+                    continue
+                if data.get("logic_failure_severity") == "fatal":
+                    fatal_count += 1
+            except Exception:
+                continue
+
+        return fatal_count
+
+    def _validate_atf_promotion_gates(self, persona: Dict[str, Any]) -> None:
+        """
+        8-Week Promotion Gate:
+        - Disallow promotion to 'Principal' until:
+          a) 0 High-Severity logic failures in last 100 autonomous actions
+          b) the promotion occurs only after an 8-week waiting window from
+             the tenant's last rank change timestamp.
+        """
+        try:
+            desired_rank = str(persona.get("current_rank") or "").strip()
+        except Exception:
+            desired_rank = ""
+
+        if desired_rank != "Principal":
+            return
+
+        dashboard = self._load_dashboard()
+        atf = dashboard.get("atf") or {}
+        prior_rank = str(atf.get("current_rank") or "Intern")
+        last_rank_change_at = self._parse_iso_datetime(atf.get("last_rank_change_at"))
+
+        now = datetime.now(timezone.utc)
+        if prior_rank != "Principal" and last_rank_change_at is not None:
+            delta = now - last_rank_change_at
+            if delta < timedelta(days=56):
+                details = (
+                    f"ATF Promotion Gate: cannot promote to Principal before 8 weeks. "
+                    f"Elapsed_days={delta.days}, tenant_id={self.tenant_id}."
+                )
+                self._promotion_gate_telemetry(details=details)
+                raise PromotionGateViolationError(details)
+
+        fatal_count = self._count_high_severity_logic_failures_last_100()
+        if fatal_count > 0:
+            details = (
+                "ATF Promotion Gate: promotion to Principal blocked due to "
+                f"{fatal_count} high-severity (fatal) logic failures in the last 100 autonomous actions."
+            )
+            self._promotion_gate_telemetry(details=details)
+            raise PromotionGateViolationError(details)
+
+        # Promotion allowed -> update dashboard timestamps.
+        atf["current_rank"] = "Principal"
+        atf["last_rank_change_at"] = now.isoformat()
+        dashboard["atf"] = atf
+        self._save_dashboard(dashboard)
+
+    def _promotion_gate_telemetry(self, *, details: str) -> None:
+        """Emit telemetry for ATF promotion gate violations."""
+        try:
+            from core.services.vanguard_telemetry import emit_logic_failure  # type: ignore
+
+            emit_logic_failure(
+                source="core/engine/src/tenant_manager.py:atf-promotion-gate",
+                severity="fatal",
+                error=Exception(details),
+                recommended_action="Wait the required promotion window and resolve high-severity logic failures before retrying.",
+                cmp={"ticket_id": "n/a", "action": "atf-promotion-gate"},
+                meta={"tenant_id": self.tenant_id, "details": details[:200]},
+            )
+        except Exception:
+            pass
 
     def autonomy_restriction_telemetry(self, *, details: str) -> None:
         """Emit telemetry for autonomy restriction violations (best-effort)."""
