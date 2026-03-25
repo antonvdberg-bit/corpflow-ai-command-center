@@ -76,9 +76,50 @@ class TenantContext:
     def memory_summary_file(self) -> Path:
         return self.memory_dir / "agent_summary.md"
 
+    @property
+    def persona_file(self) -> Path:
+        # Optional tenant-defined identity for the assistant.
+        return self.tenant_root / "persona.json"
+
     def ensure_dirs(self) -> None:
         self.tenant_root.mkdir(parents=True, exist_ok=True)
         self.memory_dir.mkdir(parents=True, exist_ok=True)
+
+    def load_persona(self) -> Dict[str, Any]:
+        """Load optional tenant persona (best-effort, never raises)."""
+        try:
+            if not self.persona_file.exists():
+                return {}
+            text = self.guarded_read_text(
+                self.persona_file,
+                source="core/engine/src/tenant_manager.py:load_persona",
+            )
+            return json.loads(text)
+        except SecurityTransgressionError:
+            raise
+        except Exception:
+            return {}
+
+    def persona_context_block(self) -> str:
+        """Format persona into a system prompt block."""
+        persona = self.load_persona()
+        if not persona:
+            return ""
+
+        assistant_name = persona.get("assistant_name", self.tenant_id)
+        expertise = persona.get("specialized_expertise") or []
+        kb = persona.get("knowledge_boundaries") or {}
+        allowed = kb.get("allowed_sources") or []
+        blocked = kb.get("blocked_sources") or []
+
+        parts = [
+            "\n--- TENANT PERSONA ---\n"
+            f"Tenant assistant name: {assistant_name}\n"
+            f"Specialized expertise: {', '.join(expertise) if expertise else '[none]'}\n"
+            f"Allowed sources: {', '.join(allowed) if allowed else '[none specified]'}\n"
+            f"Blocked sources: {', '.join(blocked) if blocked else '[none specified]'}\n"
+        ]
+        return "".join(parts)
 
     def apply_to_env(self) -> None:
         """

@@ -258,6 +258,11 @@ class GeminiAgent:
                     )
                 except Exception as e:
                     print(f"   ⚠️ Failed to load core context from {context_file.name}: {e}")
+
+        # 3) Tenant persona (identity + boundaries)
+        persona_block = self.tenant_ctx.persona_context_block()
+        if persona_block:
+            context_parts.append(persona_block)
         
         # Inject Skill Docs if present
         if self.skill_docs:
