@@ -1,5 +1,12 @@
 {
   "version": 2,
+  "rewrites": [
+    { "source": "/api/cmp/(.*)", "destination": "/api/cmp/$1.js" },
+    { "source": "/legal", "destination": "/public/legal-demo.html" },
+    { "source": "/medical", "destination": "/public/proposal-medspa.html" },
+    { "source": "/lux", "destination": "/showcase/luxe-maurice-private/index.html" },
+    { "source": "/master", "destination": "/public/master-control.html" }
+  ],
   "env": {
     "BASEROW_URL": "https://crm.corpflowai.com",
     "BASEROW_TABLE_ID": "756"

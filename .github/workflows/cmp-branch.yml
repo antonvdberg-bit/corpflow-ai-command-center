@@ -1,0 +1,46 @@
+# CMP — Sandbox branch + Vercel Preview (skeleton)
+# Triggered by repository_dispatch or workflow_dispatch from api/cmp once wired.
+# Security: use Deployment Protection on Preview; no secrets in logs.
+
+name: CMP Sandbox Branch
+
+on:
+  workflow_dispatch:
+    inputs:
+      ticket_id:
+        description: 'Stable CMP ticket id (Baserow / Vanguard)'
+        required: true
+        type: string
+      base_ref:
+        description: 'Git ref to branch from (e.g. main)'
+        required: true
+        default: main
+        type: string
+  # repository_dispatch:
+  #   types: [cmp_sandbox_start]
+
+concurrency:
+  group: cmp-sandbox-${{ github.event.inputs.ticket_id || github.event.client_payload.ticket_id }}
+  cancel-in-progress: false
+
+jobs:
+  create-branch:
+    name: Create sandbox branch
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.base_ref || 'main' }}
+          fetch-depth: 0
+
+      - name: Placeholder — create cmp/{ticket} branch
+        run: |
+          echo "TODO: git config user, create branch cmp/${{ github.event.inputs.ticket_id }}, push"
+          echo "TODO: post Preview URL back to Baserow via secured callback"
+
+      - name: Placeholder — run automated tests
+        run: |
+          echo "TODO: npm test / pytest / e2e — gate promotion separately"

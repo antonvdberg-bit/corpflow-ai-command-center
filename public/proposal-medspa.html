@@ -50,9 +50,58 @@
             </div>
         </div>
 
-        <a href="https://wa.me/230YOURNUMBER" class="inline-block bg-blue-600 px-12 py-6 rounded-full font-bold uppercase tracking-[0.3em] text-[10px] hover:bg-blue-500 transition-all shadow-xl shadow-blue-500/20">
-            Initialize Partnership
-        </a>
+        <div class="max-w-xl space-y-4">
+            <input id="lead-name" type="text" placeholder="Your Name"
+                class="w-full bg-slate-900/70 border border-slate-700 rounded-full px-6 py-4 text-sm focus:outline-none focus:border-blue-500">
+            <input id="lead-email" type="email" placeholder="Your Email"
+                class="w-full bg-slate-900/70 border border-slate-700 rounded-full px-6 py-4 text-sm focus:outline-none focus:border-blue-500">
+            <button type="button" onclick="submitMedicalLead()" id="medspa-submit"
+                class="inline-block bg-blue-600 px-12 py-6 rounded-full font-bold uppercase tracking-[0.3em] text-[10px] hover:bg-blue-500 transition-all shadow-xl shadow-blue-500/20">
+                Initialize Partnership
+            </button>
+            <p id="lead-status" class="text-xs text-slate-400 h-4"></p>
+        </div>
     </div>
+    <script>
+        async function submitMedicalLead() {
+            const name = document.getElementById('lead-name').value.trim();
+            const email = document.getElementById('lead-email').value.trim();
+            const submitButton = document.getElementById('medspa-submit');
+            const statusNode = document.getElementById('lead-status');
+
+            if (!name || !email) {
+                statusNode.innerText = 'Please provide name and email.';
+                return;
+            }
+
+            try {
+                submitButton.disabled = true;
+                submitButton.innerText = 'Submitting...';
+                statusNode.innerText = '';
+
+                const response = await fetch('/api/main', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name,
+                        email,
+                        intent: 'Medical Tier - Serenity Wellness Proposal'
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Lead bridge failed');
+                }
+
+                statusNode.innerText = 'Partnership request received. We will contact you shortly.';
+                submitButton.innerText = 'Submitted';
+            } catch (error) {
+                statusNode.innerText = 'Submission failed. Please try again.';
+                submitButton.disabled = false;
+                submitButton.innerText = 'Initialize Partnership';
+            }
+        }
+    </script>
+    <script src="/assets/cmp/bubble.js"></script>
 </body>
 </html>

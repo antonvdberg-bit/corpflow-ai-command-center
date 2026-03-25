@@ -83,7 +83,7 @@
 
                 <div class="space-y-2">
                     <label class="text-[10px] uppercase tracking-widest text-stone-400">Direct Contact (WhatsApp Preferred)</label>
-                    <input type="text" placeholder="+27 / +33 / +971 ...">
+                    <input id="contact" type="text" placeholder="+27 / +33 / +971 ...">
                 </div>
 
                 <div class="pt-8 text-center">
@@ -91,6 +91,7 @@
                         class="bg-onyx text-white px-12 py-5 text-xs tracking-[0.3em] uppercase hover:bg-stone-800 transition shadow-2xl">
                         Request Private Dossier
                     </button>
+                    <p id="lead-status" class="mt-4 text-[10px] text-stone-500 italic h-4"></p>
                     <p class="mt-8 text-[10px] text-stone-400 italic">
                         *Note: Pre-registration duty pricing (5%) expires July 1, 2026.
                     </p>
@@ -103,24 +104,45 @@
         © 2026 Luxe Maurice • Strictly Confidential • Powered by CorpflowAI
     </footer>
 
-</body>
-</html>
 <script>
-function submitToProprietaryEngine() {
+async function submitToProprietaryEngine() {
     const data = {
         market: document.getElementById('market').value,
         budget: document.getElementById('budget').value,
-        contact: document.querySelector('input[type="text"]').value,
+        contact: document.getElementById('contact').value.trim(),
         timestamp: new Date().toISOString(),
         source: 'Luxe Maurice Private D2C'
     };
-    
-    console.log("CorpflowAI | Routing Lead to Master Controller:", data);
-    
-    // In a live environment, this POSTs to our sync_sheets.py endpoint
-    // For now, we simulate the 'Instant Qualification' and redirect
-    setTimeout(() => {
+
+    const statusNode = document.getElementById('lead-status');
+    if (!data.contact) {
+        statusNode.innerText = 'Please provide a direct contact number.';
+        return;
+    }
+
+    try {
+        statusNode.innerText = 'Submitting your private request...';
+        const response = await fetch('/api/main', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: 'Luxe Maurice Prospect',
+                email: `${Date.now()}@lux-prospect.local`,
+                intent: `Luxe Tier | Market: ${data.market} | Budget: ${data.budget} | Contact: ${data.contact}`
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Lead bridge failed');
+        }
+
+        statusNode.innerText = 'Request received. Opening private portfolio...';
         window.location.href = 'portfolio.html';
-    }, 800);
+    } catch (error) {
+        statusNode.innerText = 'Submission failed. Please retry.';
+    }
 }
 </script>
+    <script src="/assets/cmp/bubble.js"></script>
+</body>
+</html>

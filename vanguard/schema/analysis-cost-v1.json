@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://corpflowai.com/vanguard/schema/analysis-cost-v1.json",
+  "title": "AnalysisCostV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "ticket_id",
+    "full_market_value_usd",
+    "complexity",
+    "risk",
+    "tier",
+    "is_demo"
+  ],
+  "properties": {
+    "schema_version": { "const": "1" },
+    "ticket_id": { "type": "string" },
+    "currency": { "type": "string", "default": "USD" },
+    "complexity": { "type": "string", "enum": ["low", "medium", "high"] },
+    "risk": { "type": "string", "enum": ["low", "medium", "high"] },
+    "tier": {
+      "type": "string",
+      "enum": ["standard", "premium", "enterprise", "internal"]
+    },
+    "is_demo": { "type": "boolean" },
+    "full_market_value_usd": {
+      "type": "number",
+      "minimum": 0,
+      "description": "100% market value; always persisted regardless of demo UI."
+    },
+    "displayed_client_usd": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Optional echo of UI-facing amount when is_demo (80% of full)."
+    },
+    "demo_discount_rate": {
+      "type": "number",
+      "description": "e.g. 0.2 when is_demo display discount applies."
+    },
+    "breakdown": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Base, multipliers, and formula notes from costing-engine."
+    },
+    "created_at": { "type": "string", "format": "date-time" }
+  }
+}

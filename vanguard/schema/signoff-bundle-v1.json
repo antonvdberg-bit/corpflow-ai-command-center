@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://corpflowai.com/vanguard/schema/signoff-bundle-v1.json",
+  "title": "SignoffBundleV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "ticket_id", "gates"],
+  "properties": {
+    "schema_version": { "const": "1" },
+    "ticket_id": { "type": "string" },
+    "client_id": { "type": "string" },
+    "gates": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "decision", "decided_at"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": ["cost_approval", "evaluation", "uat", "deploy_authorization"]
+          },
+          "decision": {
+            "type": "string",
+            "enum": ["approved", "rejected", "deferred"]
+          },
+          "decided_at": { "type": "string", "format": "date-time" },
+          "actor": { "type": "string", "description": "client email, staff id, or system" },
+          "baserow_snapshot": {
+            "type": "object",
+            "description": "Optional redacted field snapshot at sign-off."
+          }
+        }
+      }
+    },
+    "statement_of_change_ref": {
+      "type": "string",
+      "description": "Path to docs/audit-trail markdown, e.g. docs/audit-trail/{client}/{ticket}.md"
+    },
+    "created_at": { "type": "string", "format": "date-time" }
+  }
+}

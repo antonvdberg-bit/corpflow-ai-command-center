@@ -1,3 +1,3 @@
 export const config = {
-  n8nWebhookUrl: "[YOUR_N8N_WEBHOOK_URL]"
+  n8nWebhookUrl: "https://flow.corpflowai.com/webhook/leads"
 };
