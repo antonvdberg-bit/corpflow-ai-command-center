@@ -43,6 +43,11 @@
         }
       }
     },
+    "autonomy_level": {
+      "type": "integer",
+      "enum": [1, 2, 3, 4],
+      "description": "Autonomy hierarchy: 1=Basic, 2=Operator, 3=Autonomous, 4=Principal. Level 4 is allowed only for tenant_access.client_tier=EVOLVING."
+    },
     "registered_business_name": { "type": "string", "minLength": 1 },
     "business_reg_number": { "type": "string", "minLength": 1 },
     "physical_address": { "type": "string", "minLength": 1 },
