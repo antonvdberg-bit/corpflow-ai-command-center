@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://corpflowai.com/vanguard/access-clusters.json",
+  "title": "AccessClustersConfig",
+  "description": "Defines functionality clusters and per-sub-user toggles stored in vanguard/secrets-manifest.json.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "clusters", "client_admins", "sub_users"],
+  "properties": {
+    "schema_version": { "const": "1" },
+    "clusters": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "description"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "client_admins": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1
+    },
+    "sub_users": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^[a-zA-Z0-9_\\-]+$": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["clusters_enabled"],
+          "properties": {
+            "clusters_enabled": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
