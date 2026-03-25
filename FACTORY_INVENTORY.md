@@ -1,5 +1,5 @@
 # Factory Inventory (Tools & Infra Bridge)
-Generated: `2026-03-25`
+Generated: `2026-03-25` · API layout refreshed: `2026-03-26`
 
 This document organizes the repo’s runnable code/artifacts into three “Factory surfaces”:
 1. Computed Logic (Python/JS)
@@ -7,6 +7,23 @@ This document organizes the repo’s runnable code/artifacts into three “Facto
 3. Communication (API routes + automation shells)
 
 For each entry, a **Standardized Invocation** is provided.
+
+## Bypass Architecture: Unified Serverless Gateway
+
+Vercel’s **Hobby** tier caps deployed **serverless functions** (historically twelve). This repo previously exposed many distinct `api/**/*.js` files—each file typically becomes its own function—so the cap was easy to hit while the product still needed Sentinel, Notary/CMP, factory costing, webhooks, and crons online.
+
+**Consolidation strategy:** a single HTTP entrypoint, `api/factory_router.js`, receives **all** `/api/*` traffic. `vercel.json` rewrites every path of the form `/api/<rest>` to `/api/factory_router?__path=<rest>` (client query strings, such as CMP `?action=`, are preserved on rewrite). Inside the router, a small dispatcher switches on `__path` and invokes the same handlers as before, now living under `lib/server/`, `lib/cmp/`, and `lib/factory/`.
+
+**Why this matters:**
+
+| Benefit | Effect |
+|--------|--------|
+| **Lean footprint** | One function slot on Hobby instead of many duplicates of runtime bootstrap. |
+| **Predictable cold starts** | One code path warms; fewer divergent bundles to cache. |
+| **Same outward URLs** | Clients keep calling `/api/main`, `/api/cmp/...`, `/api/cron/billing-sentinel`, etc.; only deployment layout changed. |
+| **Machinery unchanged** | Business logic moved to `lib/`; the router is a thin gateway. |
+
+**Source of truth:** `vercel.json` (`rewrites` + `crons`) and `api/factory_router.js`.
 
 ## Computed Logic (Python / JS)
 
@@ -56,12 +73,19 @@ Tools are auto-discovered by the agent from `core/engine/src/tools/*.py` (public
 ### Computed Logic (Node / JS)
 | Artifact | Role | Standardized Invocation |
 |---|---|---|
-| `api/cmp/router.js` | CMP action router (Vercel serverless) | `npx next dev` then call `POST /api/cmp/ticket-create` etc. |
-| `api/cmp/_lib/*.js` | CMP costing/impact helpers | `node api/cmp/_lib/<FILE>.js` (module-style) |
-| `api/provision.js` | Tenant provisioning + Baserow table provisioning | `npx next dev` then `POST /api/provision` |
-| `api/audit.js` | Audit / DB stability handler (Prisma) | `npx next dev` then `POST /api/audit` |
-| `api/webhook.js` | Incoming webhook (Telegram via bot token) | `npx next dev` then `POST /api/webhook` |
-| `api/index.js` / `api/main.js` / `api/config.js` | Misc API handlers | `npx next dev` then call respective routes |
+| `api/factory_router.js` | **Unified gateway** — sole Vercel Node entry; dispatches by `__path` | `npx vercel dev` / `npx next dev` then call any `/api/...` route (see Communication) |
+| `lib/cmp/router.js` | CMP action router (imported by the factory router) | Same public URLs: `POST /api/cmp/ticket-create`, `GET /api/cmp/ticket-get`, etc. |
+| `lib/cmp/_lib/*.js` | CMP costing/impact helpers | `node lib/cmp/_lib/<FILE>.js` (module-style) |
+| `lib/factory/costing.js` | Token reservoir / persona debits (CMP uses this) | Imported by `lib/cmp/router.js`; not a standalone HTTP route |
+| `lib/factory/attribution.js` | Hybrid attribution scaffold (Baserow / headers) | Imported where wired; paths relative to `lib/factory/` |
+| `lib/server/provision.js` | Tenant provisioning + Baserow table provisioning | `POST /api/provision` |
+| `lib/server/audit.js` leży Audit / DB stability handler (Prisma) | `npx next dev` then `POST /api/audit` |
+| `lib/server/webhook.js` | Incoming webhook (Telegram via bot token) | `POST /api/webhook` |
+| `lib/server/main.js` | Lead handoff / n8n intake | `POST /api/main` (and `POST /api/intake` — aliased in router) |
+| `lib/server/config.js` | Shared config for `main` | Imported by `lib/server/main.js` |
+| `lib/server/admin-leads.js`, `feedback.js`, `legal-search.js`, `billing-sentinel.js` | Admin, feedback, legal demo search, billing cron handler | `GET/POST` under matching `/api/...` paths |
+| `lib/python/index.py` | Legacy FastAPI chat/health module | **Not** a Vercel route anymore; parity lives in `api/factory_router.js` (`/api/chat`, `/api/health`). Optional: `python -m uvicorn` with app pointed at this file if running locally |
+| `lib/python/onboard_logic.py` | Onboarding logic module | Import from Python tooling; not mounted as `/api` by default |
 | `pages/index.js` | Web entry UI | `npx next dev` |
 | `scripts/onboard_luxe.js` | Tenant onboarding script via Prisma | `node scripts/onboard_luxe.js` |
 | `scanner.js` / `public/scanner.js` | Local scanners / tunnel blocks (UI + scripts) | `node scanner.js` |
@@ -71,7 +95,7 @@ Tools are auto-discovered by the agent from `core/engine/src/tools/*.py` (public
 ### Baserow Storage Surfaces
 | Artifact | Standardized Invocation |
 |---|---|
-| `api/cmp/_lib/baserow.js` | Baserow row CRUD wrapper (used by CMP routes) |
+| `lib/cmp/_lib/baserow.js` | Baserow row CRUD wrapper (used by CMP routes) |
 | `core/onboarding/baserow_listener.py` | `python core/onboarding/baserow_listener.py` |
 | `core/engine/src/tools/baserow_client_sync.py` | `python -c "from core.engine.src.tools.baserow_client_sync import get_client_config; print(get_client_config('<CLIENT_ID>'))"` |
 | `api/provision.js` | `npx next dev` then `POST /api/provision` |
@@ -94,9 +118,9 @@ Tools are auto-discovered by the agent from `core/engine/src/tools/*.py` (public
 ### Prisma / Relational DB
 | Artifact | Standardized Invocation |
 |---|---|
-| `prisma/*` | `npx prisma generate` then use Prisma client in API routes |
-| `api/audit.js` | `npx next dev` then `POST /api/audit` |
-| `api/provision.js` | `npx next dev` then `POST /api/provision` |
+| `prisma/*` | `npx prisma generate` then use Prisma client in `lib/server/*` handlers |
+| `lib/server/audit.js` (via router) | `POST /api/audit` |
+| `lib/server/provision.js` (via router) | `POST /api/provision` |
 
 ## Communication (API Routes + Automation Shells)
 
