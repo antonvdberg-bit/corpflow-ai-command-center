@@ -1,7 +1,7 @@
 {
   "version": 2,
   "rewrites": [
-    { "source": "/api/cmp/(.*)", "destination": "/api/cmp/$1.js" },
+    { "source": "/api/cmp/(.*)", "destination": "/api/cmp/router?action=$1" },
     { "source": "/legal", "destination": "/public/legal-demo.html" },
     { "source": "/medical", "destination": "/public/proposal-medspa.html" },
     { "source": "/lux", "destination": "/showcase/luxe-maurice-private/index.html" },

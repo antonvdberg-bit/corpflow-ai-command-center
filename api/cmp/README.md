@@ -14,19 +14,25 @@ Optional per-tenant overrides can pass `tableId` into client methods.
 
 ## Layout
 
-- `lib/baserow.js` — HTTP wrapper for row CRUD against Baserow.
-- `lib/costing-engine.js` — Market value ($) from complexity × risk × tier; demo display rule.
-- `lib/cmp-fields.js` — Baserow **user field names** for Description / Status / Stage (env overrides).
-- `lib/preview-heuristics.js` — Text heuristics for impact preview until a model is wired.
+- `router.js` — **Single** Vercel function; dispatches by `action` (path rewrite or `?action=`).
+- `_lib/baserow.js` — HTTP wrapper for row CRUD against Baserow (underscore dir = not a separate route).
+- `_lib/costing-engine.js` — Market value ($) from complexity × risk × tier; demo display rule.
+- `_lib/cmp-fields.js` — Baserow **user field names** for Description / Status / Stage (env overrides).
+- `_lib/preview-heuristics.js` — Text heuristics for impact preview until a model is wired.
+- `_lib/ai-interview.js` — Clarification question templates from inferred complexity.
 
 ## HTTP routes (Vercel)
+
+All paths below rewrite to `router.js` with the same URL path; `action` is derived from the first segment after `/api/cmp/`.
 
 | Route | Method | Role |
 |-------|--------|------|
 | `/api/cmp/ticket-create` | POST | Create Baserow row; body `{ description, client_id?, site_id? }`. |
 | `/api/cmp/ticket-get` | GET | `?id=` row id; safe subset for bubble hydration. |
 | `/api/cmp/costing-preview` | POST | Impact + cost preview; body `{ description, ticketId?, is_demo?, tier? }`. |
+| `/api/cmp/ai-interview` | POST | Clarification questions; body `{ description }`. |
 | `/api/cmp/approve-build` | POST | Set stage/status to “build approved”; body `{ ticket_id }`. |
+| `/api/cmp/sandbox-start` | POST | Reserved (501) until GitHub workflow callback is wired. |
 
 ## Baserow column names (optional env)
 

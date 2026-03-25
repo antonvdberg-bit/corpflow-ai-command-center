@@ -69,6 +69,13 @@
     return path;
   }
 
+  /** Single CMP router; query preserved (Vercel rewrites that add ?action= drop the original query string). */
+  function cmpActionUrl(action, extraQuery) {
+    var u = '/api/cmp/router?action=' + encodeURIComponent(action);
+    if (extraQuery) u += '&' + extraQuery;
+    return apiUrl(u);
+  }
+
   // ---------------------------------------------------------------------------
   // INITIAL RENDER / MOUNT
   // 1) Ensure single instance via id guard.
@@ -267,7 +274,7 @@
     var tid = getTicketId();
     if (!tid) return;
 
-    fetch(apiUrl('/api/cmp/ticket-get?id=' + encodeURIComponent(tid)))
+    fetch(cmpActionUrl('ticket-get', 'id=' + encodeURIComponent(tid)))
       .then(function (r) {
         if (!r.ok) throw new Error('Ticket not found');
         return r.json();
@@ -435,7 +442,7 @@
 
     renderAnalyzing(bodyEl);
 
-    fetch(apiUrl('/api/cmp/ticket-create'), {
+    fetch(cmpActionUrl('ticket-create'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -452,7 +459,7 @@
       .then(function (created) {
         var ticketId = created.ticket_id;
         setTicketId(ticketId);
-        return fetch(apiUrl('/api/cmp/ai-interview'), {
+        return fetch(cmpActionUrl('ai-interview'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ description: description }),
@@ -503,7 +510,7 @@
       btn.textContent = 'Loading estimate…';
     }
 
-    fetch(apiUrl('/api/cmp/costing-preview'), {
+    fetch(cmpActionUrl('costing-preview'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -551,7 +558,7 @@
       btn.textContent = 'Approving…';
     }
 
-    fetch(apiUrl('/api/cmp/approve-build'), {
+    fetch(cmpActionUrl('approve-build'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ticket_id: tid }),
