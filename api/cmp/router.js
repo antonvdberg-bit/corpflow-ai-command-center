@@ -64,10 +64,51 @@ function getClientTier(clientId) {
 
 function getClusterEnabled(clientId, subUserId, clusterName) {
   if (!clientId || !subUserId) return false;
+  // Prefer staff-matrix.json (if tenant provides it) to determine staff cluster membership.
+  const staffMatrixPath1 = path.join(REPO_ROOT, 'tenants', clientId, 'config', 'staff-matrix.json');
+  const staffMatrixPath2 = path.join(REPO_ROOT, 'tenants', clientId, 'config', 'staff_matrix.json');
+  const staffMatrix =
+    readJsonFileSafe(staffMatrixPath1) || readJsonFileSafe(staffMatrixPath2) || null;
+
+  const fromMatrix = staffMatrix?.staff_members?.[subUserId]?.clusters_enabled;
+  if (Array.isArray(fromMatrix)) return fromMatrix.includes(clusterName);
+
+  // Backwards-compatible fallback to secrets-manifest access_clusters.
   const manifest = readJsonFileSafe(SECRETS_MANIFEST_PATH);
   const accessClusters = manifest?.tenant_access?.[clientId]?.access_clusters;
   const enabled = accessClusters?.sub_users?.[subUserId]?.clusters_enabled || [];
   return Array.isArray(enabled) && enabled.includes(clusterName);
+}
+
+function loadStaffMatrixForTenant(clientId) {
+  const staffMatrixPath1 = path.join(REPO_ROOT, 'tenants', clientId, 'config', 'staff-matrix.json');
+  const staffMatrixPath2 = path.join(REPO_ROOT, 'tenants', clientId, 'config', 'staff_matrix.json');
+  return readJsonFileSafe(staffMatrixPath1) || readJsonFileSafe(staffMatrixPath2) || null;
+}
+
+function getAuthorizedRepWhatsAppNumbers(clientId) {
+  const sm = loadStaffMatrixForTenant(clientId);
+  const fromMatrix =
+    sm?.authorized_representatives?.map((r) => r?.contact_details?.whatsapp_number).filter(Boolean) || [];
+  const normalized = fromMatrix
+    .map((n) => String(n).trim())
+    .filter((n) => n !== '');
+  return normalized;
+}
+
+function isAuthorizedRepresentative(clientId, staffId) {
+  const sm = loadStaffMatrixForTenant(clientId);
+  if (sm?.authorized_representatives && Array.isArray(sm.authorized_representatives)) {
+    if (sm.authorized_representatives.some((r) => String(r?.staff_id || '') === String(staffId))) {
+      return true;
+    }
+  }
+
+  // Fallback: use secrets-manifest client_admins as "Authorized Representatives".
+  const manifest = readJsonFileSafe(SECRETS_MANIFEST_PATH);
+  const accessClusters = manifest?.tenant_access?.[clientId]?.access_clusters;
+  const clientAdmins = accessClusters?.client_admins || [];
+  return clientAdmins.includes(staffId);
 }
 
 function requiredClusterForAction(action) {
@@ -148,23 +189,47 @@ function deny(res, status, error, extra) {
   return res.status(status).json(payload);
 }
 
-function verifyRigorViaPython({ description, costUsd, clientId, action, ticketId }) {
+function verifyRigorViaPython({
+  description,
+  costUsd,
+  clientId,
+  action,
+  ticketId,
+  authorizedRepWhatsAppNumbers,
+  clientAcknowledged,
+  rigorReportId,
+}) {
   const scriptPath = path.join(REPO_ROOT, 'vanguard', 'verify-rigor.py');
+
+  const repNums = Array.isArray(authorizedRepWhatsAppNumbers)
+    ? authorizedRepWhatsAppNumbers
+    : [];
+
+  const args = [
+    scriptPath,
+    '--description',
+    String(description || ''),
+    '--cost_usd',
+    String(costUsd ?? 0),
+    '--client_id',
+    clientId || 'root',
+    '--action',
+    action,
+    '--ticket_id',
+    ticketId || 'n/a',
+    '--authorized_rep_whatsapp_numbers',
+    repNums.join(','),
+  ];
+
+  if (clientAcknowledged) args.push('--client_acknowledged');
+  if (rigorReportId) {
+    args.push('--rigor_report_id');
+    args.push(String(rigorReportId));
+  }
+
   const result = spawnSync(
     'python',
-    [
-      scriptPath,
-      '--description',
-      description,
-      '--cost_usd',
-      String(costUsd),
-      '--client_id',
-      clientId || 'root',
-      '--action',
-      action,
-      '--ticket_id',
-      ticketId || 'n/a',
-    ],
+    args,
     { encoding: 'utf8' }
   );
 
@@ -406,6 +471,8 @@ async function handleApproveBuild(req, res) {
       clientId,
       action: 'approve-build',
       ticketId,
+      authorizedRepWhatsAppNumbers: getAuthorizedRepWhatsAppNumbers(clientId || 'root'),
+      clientAcknowledged: false,
     });
 
     if (!verdict?.ok) {
@@ -425,6 +492,9 @@ async function handleApproveBuild(req, res) {
           budget_cap_usd: verdict?.budget_cap_usd ?? null,
           cost_estimate_usd: verdict?.cost_estimate_usd ?? costUsd,
           rejected_by: verdict?.rejected_by || [],
+          requires_client_ack: verdict?.requires_client_ack ?? false,
+          rigor_report_id: verdict?.rigor_report_id ?? null,
+          executive_escalated: verdict?.executive_escalated ?? false,
         }
       );
     }
@@ -514,6 +584,8 @@ async function handleCostingPreview(req, res) {
       clientId: clientId || 'root',
       action: 'costing-preview',
       ticketId,
+      authorizedRepWhatsAppNumbers: getAuthorizedRepWhatsAppNumbers(clientId || 'root'),
+      clientAcknowledged: false,
     });
 
     if (!verdict?.ok) {
@@ -533,6 +605,9 @@ async function handleCostingPreview(req, res) {
           budget_cap_usd: verdict?.budget_cap_usd ?? null,
           cost_estimate_usd: verdict?.cost_estimate_usd ?? costUsd,
           rejected_by: verdict?.rejected_by || [],
+          requires_client_ack: verdict?.requires_client_ack ?? false,
+          rigor_report_id: verdict?.rigor_report_id ?? null,
+          executive_escalated: verdict?.executive_escalated ?? false,
         }
       );
     }
@@ -649,9 +724,18 @@ async function handleEvolutionRequest(req, res) {
   const subUserId = getSubUserId(req);
   const requiredCluster = requiredClusterForAction('evolution-request');
   if (!subUserId || !requiredCluster || !getClusterEnabled(clientId, subUserId, requiredCluster)) {
-    return deny(res, 403, 'Sub-user is not permitted for evolution-request.', {
+    emitLogicFailure({
+      source: 'api/cmp/router.js:permission-denied',
+      severity: 'warning',
+      error: new Error('Permission Denied: insufficient staff cluster access.'),
+      cmp: { ticket_id: 'n/a', action: 'evolution-request' },
+      recommended_action: 'Request the required cluster access from the Client Authorized Representative.',
+      meta: { client_id: clientId, staff_id: subUserId || null, required_cluster: requiredCluster },
+    });
+    return deny(res, 403, 'Permission Denied', {
       required_cluster: requiredCluster,
-      sub_user_id: subUserId || null,
+      staff_id: subUserId || null,
+      action: 'evolution-request',
     });
   }
 
@@ -689,9 +773,18 @@ async function handleMarketResearch(req, res) {
   const subUserId = getSubUserId(req);
   const requiredCluster = requiredClusterForAction('market-research');
   if (!subUserId || !requiredCluster || !getClusterEnabled(clientId, subUserId, requiredCluster)) {
-    return deny(res, 403, 'Sub-user is not permitted for market-research.', {
+    emitLogicFailure({
+      source: 'api/cmp/router.js:permission-denied',
+      severity: 'warning',
+      error: new Error('Permission Denied: insufficient staff cluster access.'),
+      cmp: { ticket_id: 'n/a', action: 'market-research' },
+      recommended_action: 'Request the required cluster access from the Client Authorized Representative.',
+      meta: { client_id: clientId, staff_id: subUserId || null, required_cluster: requiredCluster },
+    });
+    return deny(res, 403, 'Permission Denied', {
       required_cluster: requiredCluster,
-      sub_user_id: subUserId || null,
+      staff_id: subUserId || null,
+      action: 'market-research',
     });
   }
 
@@ -721,9 +814,18 @@ async function handleSupplierOnboard(req, res) {
   const subUserId = getSubUserId(req);
   const requiredCluster = requiredClusterForAction('supplier-onboard');
   if (!subUserId || !requiredCluster || !getClusterEnabled(clientId, subUserId, requiredCluster)) {
-    return deny(res, 403, 'Sub-user is not permitted for supplier onboarding.', {
+    emitLogicFailure({
+      source: 'api/cmp/router.js:permission-denied',
+      severity: 'warning',
+      error: new Error('Permission Denied: insufficient staff cluster access.'),
+      cmp: { ticket_id: 'n/a', action: 'supplier-onboard' },
+      recommended_action: 'Request the required cluster access from the Client Authorized Representative.',
+      meta: { client_id: clientId, staff_id: subUserId || null, required_cluster: requiredCluster },
+    });
+    return deny(res, 403, 'Permission Denied', {
       required_cluster: requiredCluster,
-      sub_user_id: subUserId || null,
+      staff_id: subUserId || null,
+      action: 'supplier-onboard',
     });
   }
 
@@ -760,6 +862,77 @@ async function handleSupplierOnboard(req, res) {
   }
 
   return res.status(200).json({ ok: true, client_id: clientId, supplier_key: supplierKey });
+}
+
+async function handleRigorClientAck(req, res) {
+  const gate = requireDormantGate(req, res, 'rigor-client-ack');
+  if (gate !== true) return gate;
+
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', 'POST');
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const parsed = parseJsonBody(req);
+  if (!parsed.ok) return res.status(400).json({ error: parsed.error });
+  const body = parsed.body;
+
+  const clientId = getClientIdFromBody(body);
+  if (!clientId) return res.status(400).json({ error: 'client_id is required' });
+
+  const staffId = getSubUserId(req);
+  if (!staffId) return deny(res, 403, 'x-subuser-id header is required.', { client_id: clientId });
+
+  if (!isAuthorizedRepresentative(clientId, staffId)) {
+    emitLogicFailure({
+      source: 'api/cmp/router.js:rigor-client-ack',
+      severity: 'warning',
+      error: new Error('Permission Denied: not an Authorized Representative'),
+      cmp: { ticket_id: 'n/a', action: 'rigor-client-ack' },
+      recommended_action: 'Authorized Representative acknowledgement required.',
+      meta: { client_id: clientId, staff_id: staffId },
+    });
+    return deny(res, 403, 'Permission Denied', { client_id: clientId, staff_id: staffId });
+  }
+
+  const rigorReportId =
+    body?.rigor_report_id ||
+    body?.rigorReportId ||
+    body?.rigor_report ||
+    body?.report_id ||
+    null;
+  if (!rigorReportId) return res.status(400).json({ error: 'rigor_report_id is required' });
+
+  try {
+    const verdict = verifyRigorViaPython({
+      description: '',
+      costUsd: 0,
+      clientId,
+      action: 'rigor-client-ack',
+      ticketId: 'n/a',
+      authorizedRepWhatsAppNumbers: getAuthorizedRepWhatsAppNumbers(clientId),
+      clientAcknowledged: true,
+      rigorReportId: String(rigorReportId),
+    });
+
+    return res.status(200).json({
+      ok: true,
+      client_id: clientId,
+      rigor_report_id: String(rigorReportId),
+      staff_id: staffId,
+      verdict,
+    });
+  } catch (e) {
+    emitLogicFailure({
+      source: 'api/cmp/router.js:rigor-client-ack',
+      severity: 'fatal',
+      error: e,
+      cmp: { ticket_id: 'n/a', action: 'rigor-client-ack' },
+      recommended_action: 'Check verify-rigor runtime and pending report persistence.',
+      meta: { client_id: clientId, rigor_report_id: String(rigorReportId) },
+    });
+    return deny(res, 500, 'Rigor acknowledgement failed.');
+  }
 }
 
 async function handleAdminToggleClusters(req, res) {
@@ -855,6 +1028,8 @@ export default async function handler(req, res) {
       return handleMarketResearch(req, res);
     case 'supplier-onboard':
       return handleSupplierOnboard(req, res);
+    case 'rigor-client-ack':
+      return handleRigorClientAck(req, res);
     case 'admin-toggle-clusters':
       return handleAdminToggleClusters(req, res);
     default:
