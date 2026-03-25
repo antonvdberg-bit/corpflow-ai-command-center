@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Sovereign MCP configuration scaffold (filesystem read + local python tool execution).",
+  "servers": [
+    {
+      "name": "filesystem",
+      "description": "Read-only filesystem access for agent context loading (scaffold).",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "./"],
+      "enabled": true,
+      "env": {}
+    },
+    {
+      "name": "python-tools",
+      "description": "Expose local Python tools via MCP (execute local repo tool functions).",
+      "transport": "stdio",
+      "command": "python",
+      "args": ["core/engine/src/python_tools_mcp_server.py"],
+      "enabled": true,
+      "env": {}
+    }
+  ]
+}
+
