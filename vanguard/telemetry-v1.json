@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://corpflowai.com/vanguard/telemetry-v1.json",
+  "title": "TelemetryV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_type",
+    "occurred_at",
+    "factory_id",
+    "report_target",
+    "tenant_id",
+    "cmp",
+    "payload"
+  ],
+  "properties": {
+    "schema_version": { "const": "1" },
+    "event_type": {
+      "type": "string",
+      "enum": ["factory_health", "logic_failure", "cost_overrun"]
+    },
+    "occurred_at": { "type": "string", "format": "date-time" },
+    "factory_id": { "type": "string", "description": "Stable identifier for this Factory deployment." },
+    "report_target": {
+      "type": "string",
+      "enum": ["cmp_bubble", "cmp_baserow", "file_local"]
+    },
+    "tenant_id": { "type": "string", "description": "Client slug (or 'root' when not tenant-scoped)." },
+    "cmp": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ticket_id", "action"],
+      "properties": {
+        "ticket_id": { "type": "string", "description": "CMP ticket row id (if available)." },
+        "action": { "type": "string", "description": "CMP action endpoint name (e.g. ticket-create)." }
+      }
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Event-type-specific payload."
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "event_type": { "const": "factory_health" } }, "required": ["event_type"] },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["service", "status", "checks"],
+            "properties": {
+              "service": { "type": "string", "enum": ["llm", "baserow", "mcp", "sandbox", "prisma", "overall"] },
+              "status": { "type": "string", "enum": ["operational", "degraded", "down"] },
+              "checks": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["name", "ok"],
+                  "properties": {
+                    "name": { "type": "string" },
+                    "ok": { "type": "boolean" },
+                    "details": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "event_type": { "const": "logic_failure" } }, "required": ["event_type"] },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source",
+              "severity",
+              "error_message",
+              "error_class",
+              "stack_trace_redacted",
+              "recommended_action"
+            ],
+            "properties": {
+              "source": { "type": "string", "description": "File/module or endpoint origin." },
+              "severity": { "type": "string", "enum": ["info", "warning", "error", "fatal"] },
+              "error_message": { "type": "string" },
+              "error_class": { "type": "string" },
+              "stack_trace_redacted": { "type": "string", "description": "Never include secrets; may include filenames/line numbers." },
+              "recommended_action": { "type": "string", "description": "Operator or automation hint for CMP recovery." },
+              "meta": { "type": "object", "additionalProperties": true }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "event_type": { "const": "cost_overrun" } }, "required": ["event_type"] },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "currency",
+              "expected_usd",
+              "actual_usd",
+              "overrun_usd",
+              "budget_key",
+              "breakdown"
+            ],
+            "properties": {
+              "currency": { "type": "string", "default": "USD" },
+              "expected_usd": { "type": "number", "minimum": 0 },
+              "actual_usd": { "type": "number", "minimum": 0 },
+              "overrun_usd": { "type": "number" },
+              "budget_key": { "type": "string", "description": "E.g. 'cmp.full_market_value_usd' or 'llm_tokens_estimate'." },
+              "breakdown": { "type": "object", "additionalProperties": true, "description": "Cost breakdown details; never include secrets." }
+                  ,
+                  "human_equivalent_usd": { "type": "number", "minimum": 0 },
+                  "token_cost_usd": { "type": "number", "minimum": 0 },
+                  "opportunity_cost_usd": { "type": "number" },
+                  "roi_percent": { "type": ["number", "null"] },
+                  "margin_per_line_usd": { "type": "number", "minimum": 0 },
+                  "estimated_lines": { "type": ["number", "null"] },
+                  "estimated_margin_usd": { "type": "number", "minimum": 0 }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
+
