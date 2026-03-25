@@ -1,8 +1,24 @@
 # Sovereign Factory Blueprint (v1)
 Version: `1.0`
-Last Updated: `2026-03-25`
+Last Updated: `2026-03-26`
 
 This blueprint describes how to run the CorpFlow AI “Sovereign Factory” in a Cloud Codespace environment with durable governance (Vanguard schemas + secret manifests) and robust self-improvement loops (researcher + architect + memory).
+
+---
+
+## Bypass Architecture: Unified Serverless Gateway
+
+**Problem:** Managed hosts (notably Vercel **Hobby**) limit how many **serverless functions** a project may deploy. Flat `api/**/*.js` layouts consume one function per file, which collides with a lean production stance and with caps that block shipping Sentinel, CMP/Notary, factory helpers, and crons together.
+
+**Production shape today:** one public Node entry — `api/factory_router.js` — fronts every `/api/*` request. Routing is declarative in `vercel.json` (path → `factory_router` with an `__path` parameter). Implementation code is **not** in `api/` except that single file; handlers and CMP live in `lib/server/`, `lib/cmp/`, and `lib/factory/`.
+
+**Why consolidate (operating principle):**
+
+- **Governance:** Fewer deploy units means fewer surfaces to audit for env vars, cold-start behavior, and version skew.
+- **Execution:** One bundle path improves caching and reduces duplicate runtime initialization—aligned with “high-speed execution” on small plans.
+- **Compatibility:** External URLs are unchanged (`/api/cmp/...`, `/api/audit`, cron paths, etc.), so tenants and static assets do not need rewrites when you move logic between `lib/` modules.
+
+When reasoning about HTTP in this repo, treat **`api/factory_router.js` + `vercel.json`** as the gateway contract and **`lib/**` as the machinery factory floor.
 
 ---
 
@@ -20,7 +36,7 @@ Workflow (high level):
 2. Search for “Agent runtime updates” scoped to:
    - MCP best practices
    - Baserow database API reliability changes
-   - Vercel serverless constraints (read-only FS, timeouts)
+   - Vercel serverless constraints (read-only FS, timeouts, function-count caps — see **Bypass Architecture: Unified Serverless Gateway** above)
    - Gemini tool/search changes
 3. Produce a “Research→Diff” artifact:
    - summary (what changed)
@@ -53,7 +69,7 @@ Goal: move from append-only local memory files to a durable, searchable “Vecto
 
 Strategy:
 1. Canonicalize code + context:
-   - chunk `core/`, `api/`, `vanguard/`, and `.context/*.md`
+   - chunk `core/`, `api/factory_router.js`, `lib/` (server, cmp, factory, python), `vanguard/`, and `.context/*.md`
    - include file headers (module purpose) and signatures
    - embed each chunk with deterministic settings
 2. Store embeddings in a **Cloud Vector Index**:

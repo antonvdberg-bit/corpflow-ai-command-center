@@ -79,11 +79,14 @@ Tools are auto-discovered by the agent from `core/engine/src/tools/*.py` (public
 | `lib/factory/costing.js` | Token reservoir / persona debits (CMP uses this) | Imported by `lib/cmp/router.js`; not a standalone HTTP route |
 | `lib/factory/attribution.js` | Hybrid attribution scaffold (Baserow / headers) | Imported where wired; paths relative to `lib/factory/` |
 | `lib/server/provision.js` | Tenant provisioning + Baserow table provisioning | `POST /api/provision` |
-| `lib/server/audit.js` leży Audit / DB stability handler (Prisma) | `npx next dev` then `POST /api/audit` |
+| `lib/server/audit.js` | Audit / DB stability handler (Prisma) | `POST /api/audit` |
 | `lib/server/webhook.js` | Incoming webhook (Telegram via bot token) | `POST /api/webhook` |
 | `lib/server/main.js` | Lead handoff / n8n intake | `POST /api/main` (and `POST /api/intake` — aliased in router) |
 | `lib/server/config.js` | Shared config for `main` | Imported by `lib/server/main.js` |
-| `lib/server/admin-leads.js`, `feedback.js`, `legal-search.js`, `billing-sentinel.js` | Admin, feedback, legal demo search, billing cron handler | `GET/POST` under matching `/api/...` paths |
+| `lib/server/admin-leads.js` | Admin leads listing (Prisma) | `GET /api/admin-leads` |
+| `lib/server/feedback.js` | Feedback accept | `POST /api/feedback` |
+| `lib/server/legal-search.js` | Demo legal precedent search | `GET /api/legal-search` |
+| `lib/server/billing-sentinel.js` | Billing sentinel (invokes Python); used by cron | `GET /api/cron/billing-sentinel` |
 | `lib/python/index.py` | Legacy FastAPI chat/health module | **Not** a Vercel route anymore; parity lives in `api/factory_router.js` (`/api/chat`, `/api/health`). Optional: `python -m uvicorn` with app pointed at this file if running locally |
 | `lib/python/onboard_logic.py` | Onboarding logic module | Import from Python tooling; not mounted as `/api` by default |
 | `pages/index.js` | Web entry UI | `npx next dev` |
@@ -98,7 +101,7 @@ Tools are auto-discovered by the agent from `core/engine/src/tools/*.py` (public
 | `lib/cmp/_lib/baserow.js` | Baserow row CRUD wrapper (used by CMP routes) |
 | `core/onboarding/baserow_listener.py` | `python core/onboarding/baserow_listener.py` |
 | `core/engine/src/tools/baserow_client_sync.py` | `python -c "from core.engine.src.tools.baserow_client_sync import get_client_config; print(get_client_config('<CLIENT_ID>'))"` |
-| `api/provision.js` | `npx next dev` then `POST /api/provision` |
+| `lib/server/provision.js` (via router) | `POST /api/provision` |
 | `core/services/response_engine.py` | `python core/services/response_engine.py` |
 
 ### Local / Filesystem Storage (JSON / Markdown)
@@ -125,13 +128,19 @@ Tools are auto-discovered by the agent from `core/engine/src/tools/*.py` (public
 ## Communication (API Routes + Automation Shells)
 
 ### API Routes (Next/Vercel)
+All routes below are served by **`api/factory_router.js`** after `vercel.json` rewrites `/api/<path>` → `/api/factory_router?__path=<path>`. Implementations live in `lib/server/`, `lib/cmp/`, and `lib/factory/`.
+
 | Route surface | Standardized Invocation |
 |---|---|
-| `/api/cmp/*` (Vercel rewrites to `api/cmp/router.js`) | Run: `npx next dev` then call: `POST /api/cmp/ticket-create`, `GET /api/cmp/ticket-get?id=...`, `POST /api/cmp/costing-preview`, `POST /api/cmp/approve-build`, `POST /api/cmp/ai-interview` |
-| `/api/provision` | Run: `npx next dev` then call `POST /api/provision` |
-| `/api/audit` | Run: `npx next dev` then call `POST /api/audit` |
-| `/api/webhook` | Run: `npx next dev` then call `POST /api/webhook` |
-| FastAPI `/api/chat` + `/api/health` (`api/index.py`) | Run: `python -m uvicorn api.index:app --reload` |
+| `/api/cmp/*` (e.g. `/api/cmp/router?action=…` or `/api/cmp/ticket-create`) | `POST /api/cmp/ticket-create`, `GET /api/cmp/ticket-get?id=...`, `POST /api/cmp/costing-preview`, `POST /api/cmp/approve-build`, `POST /api/cmp/ai-interview`, etc. |
+| `/api/provision` | `POST /api/provision` |
+| `/api/audit` | `POST /api/audit` |
+| `/api/webhook` | `POST /api/webhook` |
+| `/api/main`, `/api/intake` | `POST /api/main` or `POST /api/intake` (same handler) |
+| `/api/admin-leads`, `/api/feedback`, `/api/legal-search` | Match HTTP method as implemented in each `lib/server/*.js` handler |
+| `/api/stats` | `GET /api/stats?tenant_id=...` (dashboard stub; Prisma-backed where configured) |
+| `/api/cron/billing-sentinel` | `GET` (Vercel **Cron** invokes this path daily; rewrite → router) |
+| `/api/chat`, `/api/health` | Groq chat + health JSON (**Node** in `factory_router`; legacy Python: `lib/python/index.py`) |
 
 ### Automation Shell Scripts
 | Script | Role | Standardized Invocation |
