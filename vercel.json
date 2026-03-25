@@ -19,7 +19,7 @@
   },
   "crons": [
     {
-      "path": "/api/factory_router?__path=cron/billing-sentinel",
+      "path": "/api/cron/billing-sentinel",
       "schedule": "0 0 * * *"
     }
   ]
