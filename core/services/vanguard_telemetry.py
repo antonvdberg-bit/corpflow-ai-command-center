@@ -22,6 +22,7 @@ from typing import Any, Dict, Optional
 
 import requests
 
+from core.services.finops_engine import enrich_cost_overrun_payload
 
 DEFAULT_TELEMETRY_FILE = "vanguard/audit-trail/telemetry-v1.jsonl"
 
@@ -160,6 +161,11 @@ def emit_cost_overrun(
         The emitted normalized event dict.
     """
     overrun_usd = float(actual_usd) - float(expected_usd)
+    finops = enrich_cost_overrun_payload(
+        expected_usd=expected_usd,
+        actual_usd=actual_usd,
+        breakdown=breakdown,
+    )
     payload = {
         "currency": "USD",
         "expected_usd": float(expected_usd),
@@ -167,6 +173,7 @@ def emit_cost_overrun(
         "overrun_usd": overrun_usd,
         "budget_key": budget_key,
         "breakdown": breakdown or {},
+        **finops,
     }
     return emit_event(
         {
