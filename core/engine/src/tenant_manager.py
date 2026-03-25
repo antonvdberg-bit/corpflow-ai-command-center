@@ -287,16 +287,35 @@ class TenantContext:
         except Exception:
             desired_rank = ""
 
-        if desired_rank != "Principal":
-            return
-
         dashboard = self._load_dashboard()
         atf = dashboard.get("atf") or {}
         prior_rank = str(atf.get("current_rank") or "Intern")
         last_rank_change_at = self._parse_iso_datetime(atf.get("last_rank_change_at"))
 
         now = datetime.now(timezone.utc)
-        if prior_rank != "Principal" and last_rank_change_at is not None:
+
+        # If rank is changing (non-principal included), update dashboard so the
+        # 8-week window can be enforced on future promotions.
+        if desired_rank and desired_rank != prior_rank and desired_rank != "Principal":
+            atf["current_rank"] = desired_rank
+            atf["last_rank_change_at"] = now.isoformat()
+            dashboard["atf"] = atf
+            self._save_dashboard(dashboard)
+            return
+
+        if desired_rank != "Principal":
+            return
+
+        # Promotion to Principal:
+        if prior_rank != "Principal":
+            if last_rank_change_at is None:
+                details = (
+                    "ATF Promotion Gate: cannot promote to Principal without a dashboard "
+                    "rank-change timestamp (expected last_rank_change_at)."
+                )
+                self._promotion_gate_telemetry(details=details)
+                raise PromotionGateViolationError(details)
+
             delta = now - last_rank_change_at
             if delta < timedelta(days=56):
                 details = (
