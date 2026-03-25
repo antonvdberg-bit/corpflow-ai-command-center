@@ -4,7 +4,14 @@
   "title": "TenantPersonaV1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "tenant_id", "assistant_name", "specialized_expertise", "knowledge_boundaries"],
+  "required": [
+    "schema_version",
+    "tenant_id",
+    "assistant_name",
+    "specialized_expertise",
+    "knowledge_boundaries",
+    "corporate_identity"
+  ],
   "properties": {
     "schema_version": { "const": "1" },
     "tenant_id": { "type": "string", "minLength": 1, "description": "Tenant identifier (client slug or UUID)." },
@@ -29,6 +36,47 @@
           "type": "array",
           "items": { "type": "string", "minLength": 1 },
           "description": "Logical source identifiers the assistant must not consult."
+        }
+      }
+    },
+    "corporate_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "registered_business_name",
+        "business_reg_number",
+        "physical_address",
+        "primary_contact_details",
+        "authorized_rep_verification"
+      ],
+      "properties": {
+        "registered_business_name": { "type": "string", "minLength": 1 },
+        "business_reg_number": { "type": "string", "minLength": 1 },
+        "physical_address": { "type": "string", "minLength": 1 },
+        "primary_contact_details": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "email", "phone"],
+          "properties": {
+            "name": { "type": "string", "minLength": 1 },
+            "email": { "type": "string", "minLength": 1 },
+            "phone": { "type": "string", "minLength": 1 }
+          }
+        },
+        "authorized_rep_verification": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["verified", "verified_at", "verified_by_staff_id", "immutable_after_verification"],
+          "properties": {
+            "verified": { "type": "boolean", "const": true },
+            "verified_at": { "type": "string", "format": "date-time" },
+            "verified_by_staff_id": { "type": "string", "minLength": 1 },
+            "immutable_after_verification": {
+              "type": "boolean",
+              "const": true,
+              "description": "When true, the server must reject any subsequent updates to identity fields."
+            }
+          }
         }
       }
     },
