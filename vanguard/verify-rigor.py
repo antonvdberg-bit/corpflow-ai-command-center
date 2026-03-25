@@ -350,7 +350,9 @@ def verify_rigor(v: VerifyInput) -> Tuple[bool, Dict[str, Any]]:
             # Step 1 already happened; ack call only escalates.
             report = pending_report
             report_id = str(report.get("report_id") or v.rigor_report_id or "n/a")
-            requires_client_ack = not bool(v.client_acknowledged)
+            requires_client_ack = (
+                (not bool(v.client_acknowledged)) and (ethical_score < high_risk_threshold)
+            )
 
     # Step 3: escalate to executives only after acknowledgement OR high-risk threshold.
     if ethical_reject and (bool(v.client_acknowledged) or ethical_score >= high_risk_threshold):
