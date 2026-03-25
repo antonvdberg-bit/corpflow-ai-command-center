@@ -1,0 +1,66 @@
+{
+  "schema_version": "1",
+  "generated_at": "2026-03-25T08:47:22.356103+00:00",
+  "target_file": "api/cmp/router.js",
+  "imports": [
+    {
+      "source": "./_lib/ai-interview.js",
+      "specifiers": []
+    },
+    {
+      "source": "./_lib/baserow.js",
+      "specifiers": []
+    },
+    {
+      "source": "./_lib/cmp-fields.js",
+      "specifiers": []
+    },
+    {
+      "source": "./_lib/costing-engine.js",
+      "specifiers": []
+    },
+    {
+      "source": "./_lib/preview-heuristics.js",
+      "specifiers": []
+    },
+    {
+      "source": "./_lib/telemetry.js",
+      "specifiers": []
+    },
+    {
+      "source": "child_process",
+      "specifiers": []
+    },
+    {
+      "source": "crypto",
+      "specifiers": []
+    },
+    {
+      "source": "fs",
+      "specifiers": []
+    },
+    {
+      "source": "path",
+      "specifiers": []
+    },
+    {
+      "source": "url",
+      "specifiers": []
+    }
+  ],
+  "requires": [],
+  "actions": [
+    "admin-toggle-clusters",
+    "ai-interview",
+    "approve-build",
+    "costing-preview",
+    "evolution-request",
+    "market-research",
+    "rigor-client-ack",
+    "sandbox-start",
+    "session-verify",
+    "supplier-onboard",
+    "ticket-create",
+    "ticket-get"
+  ]
+}
