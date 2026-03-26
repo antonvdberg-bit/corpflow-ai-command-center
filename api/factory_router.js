@@ -13,6 +13,7 @@ import legalSearchHandler from '../lib/server/legal-search.js';
 import mainHandler from '../lib/server/main.js';
 import provisionHandler from '../lib/server/provision.js';
 import webhookHandler from '../lib/server/webhook.js';
+import tenantsOverviewHandler from '../lib/server/tenants-overview.js';
 
 const prisma = new PrismaClient();
 
@@ -214,6 +215,10 @@ export default async function handler(req, res) {
   if (pathSeg.startsWith('cmp') || pathSeg.startsWith('cmp/')) {
     prepareCmpRequest(req, pathSeg);
     return cmpHandler(req, res);
+  }
+
+  if (pathSeg === 'factory/tenants-overview') {
+    return tenantsOverviewHandler(req, res);
   }
 
   switch (pathSeg) {

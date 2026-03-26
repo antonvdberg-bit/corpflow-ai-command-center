@@ -5,9 +5,71 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CorpFlow | Log Stream</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Master Tenant Overview — command-center grid */
+    #tenant-directory .tenant-grid {
+      display: grid;
+      grid-template-columns: minmax(10rem, 1.5fr) minmax(7rem, 0.85fr) minmax(8rem, 0.75fr) minmax(11rem, 1.2fr);
+      border: 1px solid rgba(63, 63, 70, 0.9);
+      font-size: 10px;
+      letter-spacing: 0.04em;
+    }
+    #tenant-directory .tenant-grid-row {
+      display: contents;
+    }
+    #tenant-directory .tenant-grid > .tenant-cell {
+      border-bottom: 1px solid rgba(39, 39, 42, 0.95);
+      padding: 0.55rem 0.65rem;
+      color: rgb(161 161 170);
+      align-self: stretch;
+      min-height: 2.75rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0.15rem;
+    }
+    #tenant-directory .tenant-grid-head > .tenant-cell {
+      background: rgba(9, 9, 11, 0.95);
+      color: rgb(251 191 36 / 0.9);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      border-bottom: 1px solid rgb(120 53 15 / 0.35);
+    }
+    #tenant-directory .tenant-slug { color: rgb(212 212 216); font-weight: 600; }
+    #tenant-directory .tenant-fqdn { color: rgb(113 113 122); font-size: 9px; }
+    #tenant-directory .btn-ops {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 0.35rem 0.5rem;
+      border: 1px solid rgb(63 63 70);
+      background: rgba(0,0,0,0.5);
+      color: rgb(212 212 216);
+      cursor: pointer;
+      margin-right: 0.35rem;
+      margin-bottom: 0.25rem;
+    }
+    #tenant-directory .btn-ops:hover { border-color: rgb(120 53 15 / 0.6); color: rgb(253 230 138); }
+    #tenant-directory .btn-ops-amber { border-color: rgb(120 53 15 / 0.45); color: rgb(251 191 36); }
+    #tenant-directory .status-pill {
+      display: inline-block;
+      padding: 0.15rem 0.4rem;
+      border: 1px solid rgb(63 63 70);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    #tenant-directory .st-build { color: rgb(250 204 21); border-color: rgb(113 63 18 / 0.5); }
+    #tenant-directory .st-published { color: rgb(52 211 153); border-color: rgb(6 95 70 / 0.45); }
+    #tenant-directory .st-exec { color: rgb(147 197 253); border-color: rgb(30 64 175 / 0.4); }
+    #tenant-directory .sk-ok { color: rgb(52 211 153); }
+    #tenant-directory .sk-bad { color: rgb(248 113 113); }
+    #tenant-directory .sk-warn { color: rgb(250 204 21); }
+  </style>
 </head>
 <body class="bg-zinc-950 text-zinc-400 min-h-screen font-mono text-xs p-8">
-  <div class="max-w-3xl mx-auto space-y-6">
+  <div class="max-w-6xl mx-auto space-y-6">
     <header>
       <h1 class="text-zinc-100 text-lg tracking-widest uppercase">Execution_Log_Stream</h1>
       <p class="text-zinc-600 mt-1">Ghost client surface — website delivery disabled for this host. Logs require a sovereign session (<code class="text-zinc-500">x-sovereign-session</code>).</p>
@@ -20,11 +82,31 @@
       <h2 class="text-amber-500/90 text-[10px] uppercase tracking-[0.3em]">Admin · Handover &amp; Session</h2>
 
       <div class="border-t border-zinc-800 pt-4 space-y-2">
-        <p class="text-zinc-500 text-[10px] uppercase tracking-widest">Provision tenant (factory master)</p>
-        <input id="factoryToken" type="password" class="w-full bg-black border border-zinc-800 p-2 text-zinc-200" placeholder="Factory token (x-session-token)" autocomplete="off">
+        <p class="text-zinc-500 text-[10px] uppercase tracking-widest">Factory master token</p>
+        <input id="factoryToken" type="password" class="w-full bg-black border border-zinc-800 p-2 text-zinc-200" placeholder="MASTER_ADMIN_KEY (x-session-token or Bearer)" autocomplete="off">
+        <button type="button" id="masterUnlockBtn" class="px-4 py-2 bg-amber-950/60 text-amber-100 border border-amber-800/50 uppercase text-[10px] tracking-widest hover:bg-amber-900/40">Authenticate &amp; load master overview</button>
+        <p id="masterAuthStatus" class="text-[10px] text-zinc-600"></p>
+      </div>
+
+      <section id="tenant-directory" class="hidden border border-zinc-800/80 rounded-lg p-4 bg-black/30">
+        <div class="flex items-baseline justify-between gap-4 mb-3">
+          <h3 class="text-amber-500/90 text-[10px] uppercase tracking-[0.35em]">Master_Tenant_Overview</h3>
+          <span id="tenantCount" class="text-[9px] text-zinc-600 uppercase tracking-widest"></span>
+        </div>
+        <div id="tenantGridMount" class="tenant-grid tenant-grid-head rounded overflow-hidden">
+          <div class="tenant-cell">Tenant ID / Host</div>
+          <div class="tenant-cell">Status</div>
+          <div class="tenant-cell">Sovereign key</div>
+          <div class="tenant-cell">Actions</div>
+        </div>
+        <p class="text-zinc-700 text-[9px] mt-3 uppercase tracking-widest">Factory master session is stored in sessionStorage for this tab only.</p>
+      </section>
+
+      <div class="border-t border-zinc-800 pt-4 space-y-2">
+        <p class="text-zinc-500 text-[10px] uppercase tracking-widest">Manual provision (optional)</p>
         <input id="provTenant" type="text" class="w-full bg-black border border-zinc-800 p-2 text-zinc-200" placeholder="tenant_id" autocomplete="off">
         <input id="provRow" type="text" class="w-full bg-black border border-zinc-800 p-2 text-zinc-200" placeholder="row_id (optional)" autocomplete="off">
-        <button type="button" id="provisionBtn" class="px-4 py-2 bg-amber-950/50 text-amber-200 border border-amber-900/40 uppercase text-[10px] tracking-widest hover:bg-amber-900/30">Provision Tenant</button>
+        <button type="button" id="provisionBtn" class="px-4 py-2 bg-amber-950/50 text-amber-200 border border-amber-900/40 uppercase text-[10px] tracking-widest hover:bg-amber-900/30">Provision Tenant (manual)</button>
       </div>
 
       <div class="border-t border-zinc-800 pt-4 space-y-2">
@@ -53,7 +135,22 @@
   <script>
     (function () {
       var SESSION_KEY = 'sovereign_session';
-      var pollTimer = null;
+      var FACTORY_KEY = 'corpflow_factory_master';
+
+      function getFactoryToken() {
+        return sessionStorage.getItem(FACTORY_KEY) || document.getElementById('factoryToken').value.trim();
+      }
+
+      function setFactorySession(tok) {
+        if (tok) sessionStorage.setItem(FACTORY_KEY, tok);
+      }
+
+      function factoryHeaders(tok) {
+        return {
+          'x-session-token': tok,
+          'Authorization': 'Bearer ' + tok
+        };
+      }
 
       function getSession() {
         return sessionStorage.getItem(SESSION_KEY) || '';
@@ -92,11 +189,6 @@
         }
       }
 
-      var params = new URLSearchParams(window.location.search);
-      if (params.get('admin') === 'true') {
-        document.getElementById('adminGate').classList.remove('hidden');
-      }
-
       function showModal(pin, oath) {
         document.getElementById('modalPin').textContent = pin || '------';
         document.getElementById('modalOath').textContent = oath || '';
@@ -104,13 +196,151 @@
         document.getElementById('oathModal').classList.add('flex');
       }
 
+      function statusClass(st) {
+        if (st === 'Published') return 'st-published';
+        if (st === 'Execution-Only') return 'st-exec';
+        return 'st-build';
+      }
+
+      function sovereignLabel(sk) {
+        if (sk === 'hashed') return { html: '✅ Hashed', cls: 'sk-ok' };
+        if (sk === 'missing') return { html: '❌ Missing', cls: 'sk-bad' };
+        return { html: '⚠ Plain / legacy', cls: 'sk-warn' };
+      }
+
+      function renderTenantTable(tenants) {
+        var mount = document.getElementById('tenantGridMount');
+        while (mount.children.length > 4) {
+          mount.removeChild(mount.lastChild);
+        }
+        (tenants || []).forEach(function (t) {
+          var row = document.createElement('div');
+          row.className = 'tenant-grid-row';
+          var sk = sovereignLabel(t.sovereign_key);
+          var stCls = statusClass(t.status);
+          row.innerHTML =
+            '<div class="tenant-cell">' +
+              '<span class="tenant-slug">' + escapeHtml(t.tenant_id || '') + '</span>' +
+              '<span class="tenant-fqdn">' + escapeHtml(t.fqdn || '') + '</span>' +
+            '</div>' +
+            '<div class="tenant-cell"><span class="status-pill ' + stCls + '">' + escapeHtml(t.status || '') + '</span></div>' +
+            '<div class="tenant-cell"><span class="' + sk.cls + '">' + sk.html + '</span></div>' +
+            '<div class="tenant-cell tenant-actions" data-row-id="' + escapeAttr(t.row_id) + '" data-tenant-id="' + escapeAttr(t.tenant_id) + '">' +
+              '<button type="button" class="btn-ops btn-provision btn-ops-amber">Provision / Reset PIN</button>' +
+              '<button type="button" class="btn-ops btn-logs">View logs</button>' +
+            '</div>';
+          mount.appendChild(row);
+        });
+        document.getElementById('tenantCount').textContent = (tenants && tenants.length) ? tenants.length + ' tenant(s)' : '—';
+      }
+
+      function escapeHtml(s) {
+        return String(s)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+      function escapeAttr(s) {
+        return String(s).replace(/"/g, '&quot;');
+      }
+
+      async function loadTenantsOverview(silent) {
+        var tok = getFactoryToken();
+        var statusEl = document.getElementById('masterAuthStatus');
+        if (!tok) {
+          if (!silent) statusEl.textContent = 'Enter factory master token.';
+          return;
+        }
+        try {
+          var r = await fetch('/api/factory/tenants-overview', {
+            method: 'GET',
+            headers: factoryHeaders(tok)
+          });
+          var j = await r.json().catch(function () { return {}; });
+          if (!r.ok) {
+            statusEl.textContent = j.error || JSON.stringify(j);
+            document.getElementById('tenant-directory').classList.add('hidden');
+            return;
+          }
+          setFactorySession(tok);
+          document.getElementById('factoryToken').value = tok;
+          statusEl.textContent = 'Factory master authenticated.';
+          document.getElementById('tenant-directory').classList.remove('hidden');
+          renderTenantTable(j.tenants);
+        } catch (e) {
+          statusEl.textContent = String(e);
+        }
+      }
+
+      async function provisionTenant(rowId, tenantId) {
+        var tok = getFactoryToken();
+        var out = document.getElementById('bootOut');
+        if (!tok) { out.textContent = 'Factory master token required.'; return; }
+        if (!tenantId) return;
+        out.textContent = '';
+        try {
+          var body = { tenant_id: tenantId };
+          if (rowId) body.row_id = rowId;
+          var r = await fetch('/api/cmp/provision-tenant-pin', {
+            method: 'POST',
+            headers: Object.assign({ 'Content-Type': 'application/json' }, factoryHeaders(tok)),
+            body: JSON.stringify(body)
+          });
+          var j = await r.json().catch(function () { return {}; });
+          if (r.ok && j.pin) {
+            showModal(j.pin, j.oath);
+            out.textContent = 'Provisioned ' + tenantId + ' — PIN in modal.';
+            loadTenantsOverview(true);
+          } else {
+            out.textContent = JSON.stringify(j, null, 2);
+          }
+        } catch (e) {
+          out.textContent = String(e);
+        }
+      }
+
+      var params = new URLSearchParams(window.location.search);
+      if (params.get('admin') === 'true') {
+        document.getElementById('adminGate').classList.remove('hidden');
+      }
+
+      var savedFac = sessionStorage.getItem(FACTORY_KEY);
+      if (savedFac) {
+        document.getElementById('factoryToken').value = savedFac;
+        if (params.get('admin') === 'true') {
+          loadTenantsOverview(true);
+        }
+      }
+
+      document.getElementById('masterUnlockBtn').addEventListener('click', function () {
+        loadTenantsOverview(false);
+      });
+
+      document.getElementById('tenantGridMount').addEventListener('click', function (ev) {
+        var btn = ev.target.closest('.btn-provision');
+        if (btn) {
+          var cell = btn.closest('.tenant-actions');
+          if (cell) provisionTenant(cell.getAttribute('data-row-id'), cell.getAttribute('data-tenant-id'));
+          return;
+        }
+        btn = ev.target.closest('.btn-logs');
+        if (btn) {
+          var c = btn.closest('.tenant-actions');
+          var tid = c && c.getAttribute('data-tenant-id');
+          if (tid) document.getElementById('tid').value = tid;
+          document.getElementById('stream').scrollIntoView({ behavior: 'smooth', block: 'start' });
+          document.getElementById('bootOut').textContent = 'Tenant ID prefilled — client must enter PIN and Establish sovereign session to pull logs.';
+        }
+      });
+
       document.getElementById('modalDismiss').addEventListener('click', function () {
         document.getElementById('oathModal').classList.add('hidden');
         document.getElementById('oathModal').classList.remove('flex');
       });
 
       document.getElementById('provisionBtn').addEventListener('click', async function () {
-        var factory = document.getElementById('factoryToken').value.trim();
+        var factory = getFactoryToken();
         var tenant = document.getElementById('provTenant').value.trim();
         var row = document.getElementById('provRow').value.trim();
         var out = document.getElementById('bootOut');
@@ -121,16 +351,14 @@
           if (row) body.row_id = row;
           var r = await fetch('/api/cmp/provision-tenant-pin', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-session-token': factory
-            },
+            headers: Object.assign({ 'Content-Type': 'application/json' }, factoryHeaders(factory)),
             body: JSON.stringify(body)
           });
           var j = await r.json().catch(function () { return {}; });
           if (r.ok && j.pin) {
             showModal(j.pin, j.oath);
             out.textContent = 'Provisioned row ' + (j.row_id || '') + ' — PIN shown in modal only.';
+            loadTenantsOverview(true);
           } else {
             out.textContent = JSON.stringify(j, null, 2);
           }
@@ -188,7 +416,7 @@
       });
 
       pullLogs();
-      pollTimer = setInterval(pullLogs, 12000);
+      setInterval(pullLogs, 12000);
     })();
   </script>
 </body>
