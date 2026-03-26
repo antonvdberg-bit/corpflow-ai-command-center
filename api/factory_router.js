@@ -118,6 +118,46 @@ async function handleHealth(req, res) {
 }
 
 /**
+ * Factory health: report required env presence (no secret values).
+ *
+ * @param {import('http').IncomingMessage} req
+ * @param {import('http').ServerResponse} res
+ * @returns {Promise<void>}
+ */
+async function handleFactoryHealth(req, res) {
+  if (req.method !== 'GET') {
+    res.setHeader('Allow', 'GET');
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const required = {
+    sovereign: ['MASTER_ADMIN_KEY', 'SOVEREIGN_SESSION_SECRET'],
+    baserow: ['BASEROW_URL', 'BASEROW_TOKEN', 'BASEROW_TENANT_TABLE_ID', 'BASEROW_CMP_TABLE_ID'],
+    database: ['POSTGRES_URL'],
+  };
+
+  const flat = Array.from(
+    new Set(Object.values(required).flat().map((k) => String(k))),
+  );
+
+  /** @type {Record<string, boolean>} */
+  const present = {};
+  for (const k of flat) {
+    const v = process.env[k];
+    present[k] = v != null && String(v).trim() !== '';
+  }
+
+  const ok = flat.every((k) => present[k] === true);
+
+  return res.status(ok ? 200 : 503).json({
+    ok,
+    required_env: required,
+    present,
+    hint: ok ? 'All required env vars present.' : 'Set missing env vars in Vercel Environment Variables.',
+  });
+}
+
+/**
  * Groq chat — parity with former `api/index.py` FastAPI route.
  *
  * @param {import('http').IncomingMessage} req
@@ -204,6 +244,9 @@ export default async function handler(req, res) {
 
   if (pathSeg === 'health') {
     return handleHealth(req, res);
+  }
+  if (pathSeg === 'factory/health') {
+    return handleFactoryHealth(req, res);
   }
   if (pathSeg === 'chat') {
     return handleChat(req, res);
