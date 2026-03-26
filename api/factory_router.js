@@ -14,6 +14,7 @@ import mainHandler from '../lib/server/main.js';
 import provisionHandler from '../lib/server/provision.js';
 import webhookHandler from '../lib/server/webhook.js';
 import tenantsOverviewHandler from '../lib/server/tenants-overview.js';
+import { buildCorpflowHostContext } from '../lib/server/host-tenant-context.js';
 import { cfg, runtimeConfigDiagnostics } from '../lib/server/runtime-config.js';
 
 const prisma = new PrismaClient();
@@ -42,49 +43,14 @@ function normalizeRoutingPath(req) {
 /**
  * Sync tenant hint from Host (no I/O). Sets req.corpflowContext for downstream handlers (e.g. CMP).
  *
+ * **Surface rules:** `surface: "core"` = factory ops host (no client tenant derived from subdomain).
+ * See `lib/server/host-tenant-context.js`.
+ *
  * @param {import('http').IncomingMessage} req
  * @returns {void}
  */
 function attachTenantFromHost(req) {
-  const raw = (req.headers['x-forwarded-host'] || req.headers.host || '').toString()
-      .split(',')[0]
-      .trim()
-      .toLowerCase();
-  const host = raw.replace(/:\d+$/, '');
-  const rootDomain = (process.env.CORPFLOW_ROOT_DOMAIN || 'corpflowai.com')
-    .toLowerCase()
-    .replace(/^\./, '');
-
-  /** @type {{ tenant_id: string | null, host_slug: string | null, host: string }} */
-  const ctx = { tenant_id: null, host_slug: null, host };
-
-  if (host) {
-    const mapJson = process.env.CORPFLOW_TENANT_HOST_MAP;
-    if (mapJson) {
-      try {
-        const m = JSON.parse(mapJson);
-        if (m && typeof m === 'object' && typeof m[host] === 'string' && m[host].trim() !== '') {
-          ctx.tenant_id = m[host].trim();
-        }
-      } catch (_) {
-        /* ignore invalid map */
-      }
-    }
-    if (!ctx.tenant_id && host.endsWith(`.${rootDomain}`)) {
-      const sub = host.slice(0, -(rootDomain.length + 1));
-      if (sub && !sub.includes('.')) {
-        ctx.host_slug = sub;
-        const prefix = process.env.CORPFLOW_TENANT_SLUG_PREFIX || '';
-        ctx.tenant_id = `${prefix}${sub}`;
-      }
-    }
-    if (!ctx.tenant_id && host === rootDomain) {
-      ctx.host_slug = 'root';
-      ctx.tenant_id = (process.env.CORPFLOW_DEFAULT_TENANT_ID || 'root').toString();
-    }
-  }
-
-  req.corpflowContext = ctx;
+  req.corpflowContext = buildCorpflowHostContext(req);
 }
 
 /**
@@ -132,6 +98,10 @@ async function handleFactoryHealth(req, res) {
   }
 
   const runtime_config = runtimeConfigDiagnostics();
+  const coreRaw = cfg('CORPFLOW_CORE_HOSTS', '').trim();
+  const coreHostCount = coreRaw
+    ? coreRaw.split(',').map((s) => s.trim()).filter(Boolean).length
+    : 0;
 
   const required = {
     sovereign: ['MASTER_ADMIN_KEY', 'SOVEREIGN_SESSION_SECRET'],
@@ -156,6 +126,13 @@ async function handleFactoryHealth(req, res) {
     ok,
     required_env: required,
     runtime_config,
+    tenancy_boundary: {
+      core_hosts_configured: coreHostCount > 0,
+      core_host_count: coreHostCount,
+      default_apex_tenant_id: cfg('CORPFLOW_DEFAULT_TENANT_ID', 'root'),
+      tenant_host_map_configured: Boolean(cfg('CORPFLOW_TENANT_HOST_MAP', '').trim()),
+      root_domain: cfg('CORPFLOW_ROOT_DOMAIN', 'corpflowai.com'),
+    },
     present,
     hint: ok
       ? 'All required env vars present.'

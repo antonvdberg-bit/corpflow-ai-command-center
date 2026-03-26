@@ -25,6 +25,26 @@ Vercel’s **Hobby** tier caps deployed **serverless functions** (historically t
 
 **Source of truth:** `vercel.json` (`rewrites` + `crons`) and `api/factory_router.js`.
 
+## CORE vs tenant boundary (anti-contamination)
+
+**Goal:** client/tenant data and factory-operator power must not share the same *implicit* hostname tenancy. A mistake like `core.corpflowai.com` deriving `tenant_id = "core"` would blend ops traffic with a client row space.
+
+| Surface | Typical host | `req.corpflowContext.surface` | `tenant_id` |
+|--------|----------------|-------------------------------|-------------|
+| **CORE** (factory / ops) | e.g. `core.corpflowai.com` | `core` | always `null` — no client tenant from subdomain |
+| **Tenant** (client site / sovereign flows) | apex or `{slug}.corpflowai.com` | `tenant` | from `CORPFLOW_TENANT_HOST_MAP`, then subdomain rule, then apex default |
+
+**Configuration (env):**
+
+- `CORPFLOW_CORE_HOSTS` — comma-separated hostnames for CORE (must include your ops subdomain once DNS + Vercel attach it).
+- `CORPFLOW_TENANT_HOST_MAP` — JSON map of hostname → tenant id; use for apex marketing tenant, e.g. `{"corpflowai.com":"corpflowai"}`.
+- `CORPFLOW_ROOT_DOMAIN` — apex domain for subdomain derivation (default `corpflowai.com`).
+- `CORPFLOW_DEFAULT_TENANT_ID` — apex fallback when host not in map (prefer explicit map for production apex).
+
+**Code:** `lib/server/host-tenant-context.js` (single resolver); `api/factory_router.js` calls it from `attachTenantFromHost`.
+
+**Ops entry:** open master / tenant overview from CORE, e.g. `https://core.corpflowai.com/log-stream.html` (after DNS).
+
 ## Computed Logic (Python / JS)
 
 ### Agent Engine (Python)
