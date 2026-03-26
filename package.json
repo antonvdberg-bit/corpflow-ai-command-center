@@ -1,6 +1,7 @@
 {
   "scripts": {
     "postinstall": "prisma generate",
+    "vercel-build": "prisma generate && next build",
     "build": "next build"
   },
   "dependencies": {
