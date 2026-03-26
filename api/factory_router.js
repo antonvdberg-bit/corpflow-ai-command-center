@@ -14,7 +14,7 @@ import mainHandler from '../lib/server/main.js';
 import provisionHandler from '../lib/server/provision.js';
 import webhookHandler from '../lib/server/webhook.js';
 import tenantsOverviewHandler from '../lib/server/tenants-overview.js';
-import { cfg } from '../lib/server/runtime-config.js';
+import { cfg, runtimeConfigDiagnostics } from '../lib/server/runtime-config.js';
 
 const prisma = new PrismaClient();
 
@@ -131,6 +131,8 @@ async function handleFactoryHealth(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const runtime_config = runtimeConfigDiagnostics();
+
   const required = {
     sovereign: ['MASTER_ADMIN_KEY', 'SOVEREIGN_SESSION_SECRET'],
     baserow: ['BASEROW_URL', 'BASEROW_TOKEN', 'BASEROW_TENANT_TABLE_ID', 'BASEROW_CMP_TABLE_ID'],
@@ -153,8 +155,13 @@ async function handleFactoryHealth(req, res) {
   return res.status(ok ? 200 : 503).json({
     ok,
     required_env: required,
+    runtime_config,
     present,
-    hint: ok ? 'All required env vars present.' : 'Set missing env vars in Vercel Environment Variables.',
+    hint: ok
+      ? 'All required env vars present.'
+      : runtime_config.present && !runtime_config.parse_ok
+        ? 'CORPFLOW_RUNTIME_CONFIG_JSON is present but invalid JSON (parse failed). Fix it in Vercel.'
+        : 'Set missing env vars in Vercel Environment Variables.',
   });
 }
 
