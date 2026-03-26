@@ -14,6 +14,7 @@ import mainHandler from '../lib/server/main.js';
 import provisionHandler from '../lib/server/provision.js';
 import webhookHandler from '../lib/server/webhook.js';
 import tenantsOverviewHandler from '../lib/server/tenants-overview.js';
+import { cfg } from '../lib/server/runtime-config.js';
 
 const prisma = new PrismaClient();
 
@@ -143,7 +144,7 @@ async function handleFactoryHealth(req, res) {
   /** @type {Record<string, boolean>} */
   const present = {};
   for (const k of flat) {
-    const v = process.env[k];
+    const v = cfg(k, '');
     present[k] = v != null && String(v).trim() !== '';
   }
 
