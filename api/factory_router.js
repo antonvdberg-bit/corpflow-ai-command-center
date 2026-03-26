@@ -38,6 +38,54 @@ function normalizeRoutingPath(req) {
 }
 
 /**
+ * Sync tenant hint from Host (no I/O). Sets req.corpflowContext for downstream handlers (e.g. CMP).
+ *
+ * @param {import('http').IncomingMessage} req
+ * @returns {void}
+ */
+function attachTenantFromHost(req) {
+  const raw = (req.headers['x-forwarded-host'] || req.headers.host || '').toString()
+      .split(',')[0]
+      .trim()
+      .toLowerCase();
+  const host = raw.replace(/:\d+$/, '');
+  const rootDomain = (process.env.CORPFLOW_ROOT_DOMAIN || 'corpflowai.com')
+    .toLowerCase()
+    .replace(/^\./, '');
+
+  /** @type {{ tenant_id: string | null, host_slug: string | null, host: string }} */
+  const ctx = { tenant_id: null, host_slug: null, host };
+
+  if (host) {
+    const mapJson = process.env.CORPFLOW_TENANT_HOST_MAP;
+    if (mapJson) {
+      try {
+        const m = JSON.parse(mapJson);
+        if (m && typeof m === 'object' && typeof m[host] === 'string' && m[host].trim() !== '') {
+          ctx.tenant_id = m[host].trim();
+        }
+      } catch (_) {
+        /* ignore invalid map */
+      }
+    }
+    if (!ctx.tenant_id && host.endsWith(`.${rootDomain}`)) {
+      const sub = host.slice(0, -(rootDomain.length + 1));
+      if (sub && !sub.includes('.')) {
+        ctx.host_slug = sub;
+        const prefix = process.env.CORPFLOW_TENANT_SLUG_PREFIX || '';
+        ctx.tenant_id = `${prefix}${sub}`;
+      }
+    }
+    if (!ctx.tenant_id && host === rootDomain) {
+      ctx.host_slug = 'root';
+      ctx.tenant_id = (process.env.CORPFLOW_DEFAULT_TENANT_ID || 'root').toString();
+    }
+  }
+
+  req.corpflowContext = ctx;
+}
+
+/**
  * After vercel rewrite, pathname is /api/factory_router; CMP router expects
  * `action` in query or legacy pathname segments — set action from __path when needed.
  *
@@ -147,6 +195,7 @@ async function handleStats(req, res) {
 
 export default async function handler(req, res) {
   const pathSeg = normalizeRoutingPath(req);
+  attachTenantFromHost(req);
 
   if (!pathSeg || pathSeg === 'factory_router') {
     return res.status(200).json({ ok: true, service: 'factory_router' });

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CorpFlow | Log Stream</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-zinc-950 text-zinc-400 min-h-screen font-mono text-xs p-8">
+  <div class="max-w-3xl mx-auto space-y-6">
+    <header>
+      <h1 class="text-zinc-100 text-lg tracking-widest uppercase">Execution_Log_Stream</h1>
+      <p class="text-zinc-600 mt-1">Ghost client surface — website delivery disabled for this host. Logs require a sovereign session (<code class="text-zinc-500">x-sovereign-session</code>).</p>
+    </header>
+    <pre id="stream" class="bg-black/60 border border-zinc-800 rounded p-4 overflow-x-auto text-emerald-600/90 min-h-[160px] text-[11px] leading-relaxed">[ unauthenticated — use admin panel to bootstrap or open with ?admin=true ]</pre>
+
+    <p class="text-zinc-700 text-[10px] uppercase tracking-widest">Provisioning / dormant tools: add <span class="text-zinc-500">?admin=true</span></p>
+
+    <section id="adminGate" class="hidden border border-zinc-800 rounded p-6 space-y-4 bg-zinc-900/40">
+      <h2 class="text-amber-500/90 text-[10px] uppercase tracking-[0.3em]">Admin · Handover &amp; Session</h2>
+
+      <div class="border-t border-zinc-800 pt-4 space-y-2">
+        <p class="text-zinc-500 text-[10px] uppercase tracking-widest">Provision tenant (factory master)</p>
+        <input id="factoryToken" type="password" class="w-full bg-black border border-zinc-800 p-2 text-zinc-200" placeholder="Factory token (x-session-token)" autocomplete="off">
+        <input id="provTenant" type="text" class="w-full bg-black border border-zinc-800 p-2 text-zinc-200" placeholder="tenant_id" autocomplete="off">
+        <input id="provRow" type="text" class="w-full bg-black border border-zinc-800 p-2 text-zinc-200" placeholder="row_id (optional)" autocomplete="off">
+        <button type="button" id="provisionBtn" class="px-4 py-2 bg-amber-950/50 text-amber-200 border border-amber-900/40 uppercase text-[10px] tracking-widest hover:bg-amber-900/30">Provision Tenant</button>
+      </div>
+
+      <div class="border-t border-zinc-800 pt-4 space-y-2">
+        <p class="text-zinc-500 text-[10px] uppercase tracking-widest">Client bootstrap (PIN → sessionStorage)</p>
+        <input id="tid" type="text" class="w-full bg-black border border-zinc-800 p-2 text-zinc-200" placeholder="tenant_id" autocomplete="off">
+        <input id="pin" type="password" class="w-full bg-black border border-zinc-800 p-2 text-zinc-200" placeholder="6-digit PIN" autocomplete="one-time-code">
+        <button type="button" id="bootBtn" class="px-4 py-2 bg-zinc-800 text-zinc-200 hover:bg-amber-900/40 uppercase text-[10px] tracking-widest">Establish sovereign session</button>
+        <button type="button" id="signoffBtn" class="px-4 py-2 border border-zinc-600 text-zinc-300 uppercase text-[10px] tracking-widest hover:border-amber-700/50">Signoff (pending → live)</button>
+        <pre id="bootOut" class="text-[10px] text-zinc-600 whitespace-pre-wrap min-h-[2rem]"></pre>
+      </div>
+    </section>
+  </div>
+
+  <div id="oathModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-6 bg-black/90">
+    <div class="max-w-lg w-full border border-amber-900/40 bg-zinc-950 p-8 rounded-lg space-y-4 shadow-2xl">
+      <h3 class="text-amber-500 text-[10px] uppercase tracking-[0.4em]">Sovereign handover</h3>
+      <p id="modalOath" class="text-zinc-300 text-sm leading-relaxed border-l-2 border-amber-600/50 pl-4"></p>
+      <div>
+        <p class="text-[10px] uppercase text-zinc-600 mb-1 tracking-widest">One-time PIN (store securely)</p>
+        <p id="modalPin" class="text-3xl tracking-[0.5em] text-amber-100 font-bold font-mono"></p>
+      </div>
+      <button type="button" id="modalDismiss" class="w-full py-3 bg-zinc-800 text-zinc-200 uppercase text-[10px] tracking-widest hover:bg-zinc-700">Acknowledge</button>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var SESSION_KEY = 'sovereign_session';
+      var pollTimer = null;
+
+      function getSession() {
+        return sessionStorage.getItem(SESSION_KEY) || '';
+      }
+
+      function setStreamText(t) {
+        document.getElementById('stream').textContent = t;
+      }
+
+      async function pullLogs() {
+        var tok = getSession();
+        if (!tok) {
+          setStreamText('[ no sovereign session — authenticate via ?admin=true panel ]');
+          return;
+        }
+        try {
+          var r = await fetch('/api/cmp/tenant-log-stream?limit=100', {
+            method: 'GET',
+            headers: { 'x-sovereign-session': tok }
+          });
+          var j = await r.json().catch(function () { return {}; });
+          if (!r.ok) {
+            setStreamText('log-stream error: ' + JSON.stringify(j, null, 2));
+            return;
+          }
+          if (!j.logs || !j.logs.length) {
+            setStreamText('[ no telemetry lines yet for this tenant — events will appear after signoff / audit ]');
+            return;
+          }
+          var lines = j.logs.map(function (entry) {
+            return (entry.occurred_at || '') + '  ' + (entry.event_type || '') + '\n  ' + (entry.line || '');
+          });
+          setStreamText(lines.join('\n\n'));
+        } catch (e) {
+          setStreamText(String(e));
+        }
+      }
+
+      var params = new URLSearchParams(window.location.search);
+      if (params.get('admin') === 'true') {
+        document.getElementById('adminGate').classList.remove('hidden');
+      }
+
+      function showModal(pin, oath) {
+        document.getElementById('modalPin').textContent = pin || '------';
+        document.getElementById('modalOath').textContent = oath || '';
+        document.getElementById('oathModal').classList.remove('hidden');
+        document.getElementById('oathModal').classList.add('flex');
+      }
+
+      document.getElementById('modalDismiss').addEventListener('click', function () {
+        document.getElementById('oathModal').classList.add('hidden');
+        document.getElementById('oathModal').classList.remove('flex');
+      });
+
+      document.getElementById('provisionBtn').addEventListener('click', async function () {
+        var factory = document.getElementById('factoryToken').value.trim();
+        var tenant = document.getElementById('provTenant').value.trim();
+        var row = document.getElementById('provRow').value.trim();
+        var out = document.getElementById('bootOut');
+        out.textContent = '';
+        if (!factory || !tenant) { out.textContent = 'factory token and tenant_id required'; return; }
+        try {
+          var body = { tenant_id: tenant };
+          if (row) body.row_id = row;
+          var r = await fetch('/api/cmp/provision-tenant-pin', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-session-token': factory
+            },
+            body: JSON.stringify(body)
+          });
+          var j = await r.json().catch(function () { return {}; });
+          if (r.ok && j.pin) {
+            showModal(j.pin, j.oath);
+            out.textContent = 'Provisioned row ' + (j.row_id || '') + ' — PIN shown in modal only.';
+          } else {
+            out.textContent = JSON.stringify(j, null, 2);
+          }
+        } catch (e) {
+          out.textContent = String(e);
+        }
+      });
+
+      document.getElementById('bootBtn').addEventListener('click', async function () {
+        var tid = document.getElementById('tid').value.trim();
+        var pin = document.getElementById('pin').value;
+        var out = document.getElementById('bootOut');
+        out.textContent = '';
+        if (!tid || !pin) { out.textContent = 'tenant + pin required'; return; }
+        try {
+          var r = await fetch('/api/cmp/tenant-session-bootstrap', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tenant_id: tid, pin: pin })
+          });
+          var j = await r.json().catch(function () { return {}; });
+          if (r.ok && j.sovereign_session) {
+            sessionStorage.setItem(SESSION_KEY, j.sovereign_session);
+            out.textContent = 'Session stored in sessionStorage. Pulling logs…';
+            pullLogs();
+          } else {
+            out.textContent = JSON.stringify(j, null, 2);
+          }
+        } catch (e) {
+          out.textContent = String(e);
+        }
+      });
+
+      document.getElementById('signoffBtn').addEventListener('click', async function () {
+        var out = document.getElementById('bootOut');
+        var token = getSession();
+        out.textContent = '';
+        if (!token) { out.textContent = 'Establish session first.'; return; }
+        try {
+          var r = await fetch('/api/cmp/signoff', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + token,
+              'x-sovereign-session': token
+            },
+            body: JSON.stringify({})
+          });
+          var j = await r.json().catch(function () { return {}; });
+          out.textContent = JSON.stringify(j, null, 2);
+          if (r.ok) pullLogs();
+        } catch (e) {
+          out.textContent = String(e);
+        }
+      });
+
+      pullLogs();
+      pollTimer = setInterval(pullLogs, 12000);
+    })();
+  </script>
+</body>
+</html>
