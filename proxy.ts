@@ -9,7 +9,7 @@ export const config = {
   matcher: ['/', '/index.html'],
 };
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   if (pathname !== '/' && pathname !== '/index.html') {
     return NextResponse.next();
