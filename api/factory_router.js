@@ -137,7 +137,7 @@ async function handleFactoryHealth(req, res) {
     hint: ok
       ? 'All required env vars present.'
       : runtime_config.present && !runtime_config.parse_ok
-        ? 'CORPFLOW_RUNTIME_CONFIG_JSON is present but invalid JSON (parse failed). Fix it in Vercel.'
+        ? 'CORPFLOW_RUNTIME_CONFIG_JSON is present but invalid JSON. See runtime_config.parse_error; use strict JSON (no trailing commas, double quotes only).'
         : 'Set missing env vars in Vercel Environment Variables.',
   });
 }
