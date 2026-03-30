@@ -8,16 +8,6 @@
     { "source": "/lux", "destination": "/showcase/luxe-maurice-private/index.html" },
     { "source": "/master", "destination": "/public/master-control.html" }
   ],
-  "env": {
-    "BASEROW_URL": "REPLACE_ME_BASEROW_URL",
-    "BASEROW_CMP_TABLE_ID": "REPLACE_ME_BASEROW_CMP_TABLE_ID"
-  },
-  "build": {
-    "env": {
-      "BASEROW_URL": "REPLACE_ME_BASEROW_URL",
-      "BASEROW_CMP_TABLE_ID": "REPLACE_ME_BASEROW_CMP_TABLE_ID"
-    }
-  },
   "crons": [
     {
       "path": "/api/cron/billing-sentinel",
