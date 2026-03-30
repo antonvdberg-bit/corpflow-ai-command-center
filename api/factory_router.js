@@ -15,6 +15,7 @@ import provisionHandler from '../lib/server/provision.js';
 import webhookHandler from '../lib/server/webhook.js';
 import tenantsOverviewHandler from '../lib/server/tenants-overview.js';
 import baserowSchemaHandler from '../lib/server/baserow-schema.js';
+import { handleAuthLogin, handleAuthLogout, handleAuthMe } from '../lib/server/auth.js';
 import { buildCorpflowHostContext } from '../lib/server/host-tenant-context.js';
 import { cfg, runtimeConfigDiagnostics } from '../lib/server/runtime-config.js';
 
@@ -254,6 +255,12 @@ export default async function handler(req, res) {
   }
 
   switch (pathSeg) {
+    case 'auth/login':
+      return handleAuthLogin(req, res);
+    case 'auth/me':
+      return handleAuthMe(req, res);
+    case 'auth/logout':
+      return handleAuthLogout(req, res);
     case 'main':
       return mainHandler(req, res);
     case 'intake':

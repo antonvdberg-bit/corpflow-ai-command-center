@@ -33,10 +33,16 @@
                 <option value="pt">Português</option>
               </select>
             </label>
-            <label class="text-xs text-slate-300 md:col-span-2">
-              Access token (admin or sovereign session)
-              <input id="token" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" placeholder="Required if Dormant Gate is enabled" />
-            </label>
+            <div class="md:col-span-2 text-xs text-slate-300">
+              Session
+              <div class="mt-1 flex items-center gap-2 flex-wrap">
+                <span id="sessionBadge" class="inline-flex items-center rounded-full border border-slate-700 px-3 py-1 text-[11px] text-slate-300">Checking…</span>
+                <a class="text-sky-300 underline text-[11px]" href="/login">Login</a>
+              </div>
+              <div class="text-[11px] text-slate-500 mt-2">
+                You no longer paste master keys here. Login sets a secure HttpOnly cookie.
+              </div>
+            </div>
           </div>
 
           <div class="mt-4">
@@ -81,14 +87,12 @@
         const $ = (id) => document.getElementById(id);
         const banner = $('banner');
         const localeSel = $('locale');
-        const tokenEl = $('token');
         const descEl = $('desc');
         const ticketEl = $('ticket');
         const chatEl = $('chat');
         const thread = $('thread');
         const briefEl = $('brief');
 
-        const LS_TOKEN = 'corpflow_change_access_token';
         const LS_TICKET = 'corpflow_change_ticket_id';
 
         function setBanner(msg) {
@@ -102,13 +106,7 @@
         }
 
         function headers() {
-          const h = { 'Content-Type': 'application/json' };
-          const t = String(tokenEl.value || '').trim();
-          if (t) {
-            h['x-session-token'] = t;
-            h['Authorization'] = 'Bearer ' + t;
-          }
-          return h;
+          return { 'Content-Type': 'application/json' };
         }
 
         function append(role, content) {
@@ -130,6 +128,7 @@
           const r = await fetch('/api/cmp/router?action=' + encodeURIComponent(action), {
             method: 'POST',
             headers: headers(),
+            credentials: 'include',
             body: JSON.stringify(body || {}),
           });
           const j = await r.json().catch(() => ({}));
@@ -143,12 +142,26 @@
 
         // init defaults
         try { localeSel.value = (navigator.language || 'en').slice(0, 2); } catch {}
-        try { tokenEl.value = localStorage.getItem(LS_TOKEN) || ''; } catch {}
         try { ticketEl.value = localStorage.getItem(LS_TICKET) || ''; } catch {}
 
-        tokenEl.addEventListener('input', () => {
-          try { localStorage.setItem(LS_TOKEN, tokenEl.value || ''); } catch {}
-        });
+        // Session badge
+        fetch('/api/auth/me', { credentials: 'include' })
+          .then((r) => r.json())
+          .then((j) => {
+            const el = $('sessionBadge');
+            if (!el) return;
+            if (j && j.logged_in) {
+              el.textContent = j.level + (j.tenant_id ? ' (' + j.tenant_id + ')' : '');
+              el.className = 'inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[11px] text-emerald-200';
+            } else {
+              el.textContent = 'Not logged in';
+              el.className = 'inline-flex items-center rounded-full border border-slate-700 px-3 py-1 text-[11px] text-slate-300';
+            }
+          })
+          .catch(() => {
+            const el = $('sessionBadge');
+            if (el) el.textContent = 'Session check failed';
+          });
         ticketEl.addEventListener('input', () => {
           try {
             if (ticketEl.value) localStorage.setItem(LS_TICKET, ticketEl.value);
