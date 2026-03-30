@@ -14,3 +14,57 @@ model Lead {
   status    String   @default("NEW")
   createdAt DateTime @default(now())
 }
+
+model Tenant {
+  id               String   @id @default(cuid())
+  tenantId         String   @unique @map("tenant_id")
+  slug             String   @unique
+  name             String
+  fqdn             String?
+  lifecycle        String?  @default("Build")
+  tenantStatus     String?  @default("Active") @map("tenant_status")
+  executionOnly    Boolean  @default(false) @map("execution_only")
+  sovereignPinHash String?  @map("sovereign_pin_hash")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("tenants")
+}
+
+model AuthUser {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String   @map("password_hash")
+  passwordSalt String   @map("password_salt")
+  level        String
+  tenantId     String?  @map("tenant_id")
+  enabled      Boolean  @default(true)
+
+  createdAt    DateTime @default(now()) @map("created_at")
+  lastLoginAt  DateTime? @map("last_login_at")
+
+  @@index([level])
+  @@index([tenantId])
+  @@map("auth_users")
+}
+
+model CmpTicket {
+  id        String   @id @default(cuid())
+  tenantId  String?  @map("tenant_id")
+  description String?
+  status    String?  @default("Open")
+  stage     String?  @default("Intake")
+  title     String?
+  brief     String?
+  locale    String?
+  consoleJson Json?  @map("console_json")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([stage])
+  @@map("cmp_tickets")
+}

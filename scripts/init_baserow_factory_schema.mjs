@@ -73,9 +73,11 @@ async function main() {
 
   const tenants = await createTable(databaseId, "Tenants");
   const components = await createTable(databaseId, "Components");
+  const authUsers = await createTable(databaseId, "AuthUsers");
 
   const tenantsId = tenants.id;
   const componentsId = components.id;
+  const authUsersId = authUsers.id;
 
   // Tenants fields (EXACT)
   await createField(tenantsId, { name: "tenant_id", type: "text" });
@@ -104,11 +106,32 @@ async function main() {
   await createField(componentsId, { name: "key", type: "text" });
   await createField(componentsId, { name: "content", type: "long_text" });
   await createField(componentsId, { name: "version", type: "number" });
+  await createField(componentsId, { name: "console_json", type: "long_text" });
+
+  // AuthUsers fields (EXACT)
+  await createField(authUsersId, { name: "username", type: "text" });
+  await createField(authUsersId, { name: "password_hash", type: "text" });
+  await createField(authUsersId, { name: "password_salt", type: "text" });
+  await createField(authUsersId, {
+    name: "level",
+    type: "single_select",
+    select_options: [
+      { value: "admin", color: "red" },
+      { value: "tenant", color: "blue" },
+      { value: "ops", color: "orange" },
+      { value: "disabled", color: "gray" },
+    ],
+  });
+  await createField(authUsersId, { name: "tenant_id", type: "text" });
+  await createField(authUsersId, { name: "enabled", type: "boolean" });
+  await createField(authUsersId, { name: "created_at", type: "text" });
+  await createField(authUsersId, { name: "last_login_at", type: "text" });
 
   const out = {
     BASEROW_URL: baseUrl,
     BASEROW_TENANT_TABLE_ID: String(tenantsId),
     BASEROW_CMP_TABLE_ID: String(componentsId),
+    BASEROW_AUTH_USERS_TABLE_ID: String(authUsersId),
   };
 
   console.log(JSON.stringify(out, null, 2));

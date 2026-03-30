@@ -3,7 +3,8 @@
     "postinstall": "prisma generate",
     "vercel-build": "prisma generate && next build",
     "build": "next build",
-    "verify:cmp-env": "node scripts/verify-cmp-env-read.mjs"
+    "verify:cmp-env": "node scripts/verify-cmp-env-read.mjs",
+    "baserow:create-auth-user": "node scripts/baserow_create_auth_user.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.0.0",
