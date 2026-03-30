@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CorpFlow Change Console</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="min-h-screen bg-slate-950 text-slate-100">
+    <div class="max-w-5xl mx-auto px-4 py-10">
+      <div class="flex items-start justify-between gap-6 flex-wrap">
+        <div>
+          <h1 class="text-2xl font-semibold tracking-tight">Change Console</h1>
+          <p class="text-slate-400 text-sm mt-1">
+            Full-page interactive space for requests + refinement + automation. Clients don’t see n8n; the Factory orchestrates it.
+          </p>
+        </div>
+        <a class="text-sky-300 text-sm underline" href="/?admin=true">Back to intake</a>
+      </div>
+
+      <div id="banner" class="hidden mt-6 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-rose-200 text-sm"></div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-6">
+        <div class="lg:col-span-2 rounded-2xl border border-slate-800 bg-slate-900/30 p-4">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <label class="text-xs text-slate-300">
+              Locale
+              <select id="locale" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm">
+                <option value="en">English</option>
+                <option value="es">Español</option>
+                <option value="fr">Français</option>
+                <option value="de">Deutsch</option>
+                <option value="pt">Português</option>
+              </select>
+            </label>
+            <label class="text-xs text-slate-300 md:col-span-2">
+              Access token (admin or sovereign session)
+              <input id="token" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" placeholder="Required if Dormant Gate is enabled" />
+            </label>
+          </div>
+
+          <div class="mt-4">
+            <div class="text-xs text-slate-300 mb-2">Describe the change</div>
+            <textarea id="desc" class="w-full min-h-[140px] rounded-xl bg-slate-950 border border-slate-800 px-3 py-3 text-sm" placeholder="Describe what you want changed in plain language…"></textarea>
+            <div class="flex flex-wrap gap-2 mt-3">
+              <button id="btnCreate" class="rounded-lg bg-sky-500 text-slate-950 px-4 py-2 text-sm font-semibold">Create ticket</button>
+              <button id="btnCost" class="rounded-lg border border-slate-700 px-4 py-2 text-sm">Estimate</button>
+              <button id="btnApprove" class="rounded-lg border border-slate-700 px-4 py-2 text-sm">Approve build</button>
+              <button id="btnReset" class="rounded-lg border border-slate-800 px-4 py-2 text-sm text-slate-300">Reset</button>
+            </div>
+          </div>
+
+          <div class="mt-6 border-t border-slate-800 pt-4">
+            <div class="text-xs text-slate-300 mb-2">Chat refine</div>
+            <div id="thread" class="rounded-xl border border-slate-800 bg-slate-950/40 p-3 min-h-[220px] space-y-3 overflow-auto"></div>
+            <div class="flex gap-2 mt-3">
+              <input id="chat" class="flex-1 rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" placeholder="Type a message and press Enter…" />
+              <button id="btnSend" class="rounded-lg bg-slate-200 text-slate-950 px-4 py-2 text-sm font-semibold">Send</button>
+            </div>
+            <div class="text-[11px] text-slate-500 mt-2">
+              Tip: This writes to the CMP ticket’s <code class="text-slate-300">console_json</code> field (or <code class="text-slate-300">BASEROW_CMP_CONSOLE_JSON_FIELD</code>).
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/30 p-4">
+          <div class="text-xs text-slate-300">Ticket ID</div>
+          <input id="ticket" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" placeholder="Paste ticket_id" />
+          <div class="text-[11px] text-slate-500 mt-2">Stored in your browser for convenience.</div>
+
+          <div class="mt-5 border-t border-slate-800 pt-4">
+            <div class="text-xs text-slate-300 mb-2">Brief</div>
+            <pre id="brief" class="rounded-xl bg-slate-950 border border-slate-800 p-3 text-[11px] text-slate-200 whitespace-pre-wrap min-h-[240px]"></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        const $ = (id) => document.getElementById(id);
+        const banner = $('banner');
+        const localeSel = $('locale');
+        const tokenEl = $('token');
+        const descEl = $('desc');
+        const ticketEl = $('ticket');
+        const chatEl = $('chat');
+        const thread = $('thread');
+        const briefEl = $('brief');
+
+        const LS_TOKEN = 'corpflow_change_access_token';
+        const LS_TICKET = 'corpflow_change_ticket_id';
+
+        function setBanner(msg) {
+          if (!msg) {
+            banner.classList.add('hidden');
+            banner.textContent = '';
+            return;
+          }
+          banner.classList.remove('hidden');
+          banner.textContent = msg;
+        }
+
+        function headers() {
+          const h = { 'Content-Type': 'application/json' };
+          const t = String(tokenEl.value || '').trim();
+          if (t) {
+            h['x-session-token'] = t;
+            h['Authorization'] = 'Bearer ' + t;
+          }
+          return h;
+        }
+
+        function append(role, content) {
+          const wrap = document.createElement('div');
+          wrap.className = 'rounded-xl border border-slate-800 bg-slate-950/50 p-3';
+          const head = document.createElement('div');
+          head.className = 'text-[11px] uppercase tracking-widest text-slate-500';
+          head.textContent = role;
+          const body = document.createElement('div');
+          body.className = 'mt-1 text-sm whitespace-pre-wrap';
+          body.textContent = content;
+          wrap.appendChild(head);
+          wrap.appendChild(body);
+          thread.appendChild(wrap);
+          thread.scrollTop = thread.scrollHeight;
+        }
+
+        async function post(action, body) {
+          const r = await fetch('/api/cmp/router?action=' + encodeURIComponent(action), {
+            method: 'POST',
+            headers: headers(),
+            body: JSON.stringify(body || {}),
+          });
+          const j = await r.json().catch(() => ({}));
+          if (!r.ok) throw new Error(j.error || j.detail || ('http_' + r.status));
+          return j;
+        }
+
+        function setBrief(obj) {
+          briefEl.textContent = obj ? JSON.stringify(obj, null, 2) : '';
+        }
+
+        // init defaults
+        try { localeSel.value = (navigator.language || 'en').slice(0, 2); } catch {}
+        try { tokenEl.value = localStorage.getItem(LS_TOKEN) || ''; } catch {}
+        try { ticketEl.value = localStorage.getItem(LS_TICKET) || ''; } catch {}
+
+        tokenEl.addEventListener('input', () => {
+          try { localStorage.setItem(LS_TOKEN, tokenEl.value || ''); } catch {}
+        });
+        ticketEl.addEventListener('input', () => {
+          try {
+            if (ticketEl.value) localStorage.setItem(LS_TICKET, ticketEl.value);
+            else localStorage.removeItem(LS_TICKET);
+          } catch {}
+        });
+
+        $('btnReset').addEventListener('click', () => {
+          descEl.value = '';
+          chatEl.value = '';
+          ticketEl.value = '';
+          thread.innerHTML = '';
+          setBrief(null);
+          setBanner('');
+          try { localStorage.removeItem(LS_TICKET); } catch {}
+        });
+
+        $('btnCreate').addEventListener('click', async () => {
+          setBanner('');
+          const d = String(descEl.value || '').trim();
+          if (!d) return setBanner('Please describe the change you want.');
+          try {
+            const created = await post('ticket-create', { description: d });
+            const tid = String(created.ticket_id || '').trim();
+            if (!tid) throw new Error('Missing ticket_id');
+            ticketEl.value = tid;
+            try { localStorage.setItem(LS_TICKET, tid); } catch {}
+            thread.innerHTML = '';
+            append('user', d);
+            setBrief({ ticket_id: tid, status: 'created' });
+          } catch (e) {
+            setBanner(String(e.message || e));
+          }
+        });
+
+        $('btnCost').addEventListener('click', async () => {
+          setBanner('');
+          const tid = String(ticketEl.value || '').trim();
+          const d = String(descEl.value || '').trim();
+          if (!tid) return setBanner('Create or paste a Ticket ID first.');
+          try {
+            const j = await post('costing-preview', { description: d, ticketId: tid, is_demo: false, tier: 'standard' });
+            setBrief({ ...(JSON.parse(briefEl.textContent || '{}') || {}), costing_preview: j });
+          } catch (e) {
+            setBanner(String(e.message || e));
+          }
+        });
+
+        $('btnApprove').addEventListener('click', async () => {
+          setBanner('');
+          const tid = String(ticketEl.value || '').trim();
+          const d = String(descEl.value || '').trim();
+          if (!tid) return setBanner('Create or paste a Ticket ID first.');
+          try {
+            const j = await post('approve-build', { ticket_id: tid, description: d, tier: 'standard', is_demo: false });
+            setBrief({ ...(JSON.parse(briefEl.textContent || '{}') || {}), approve_build: j });
+          } catch (e) {
+            setBanner(String(e.message || e));
+          }
+        });
+
+        async function send() {
+          setBanner('');
+          const tid = String(ticketEl.value || '').trim();
+          const msg = String(chatEl.value || '').trim();
+          if (!tid) return setBanner('Create or paste a Ticket ID first.');
+          if (!msg) return;
+          append('user', msg);
+          chatEl.value = '';
+          try {
+            const j = await post('change-chat', { ticket_id: tid, message: msg, locale: localeSel.value || 'en' });
+            append('assistant', String(j.assistant || 'OK'));
+            setBrief({ ...(JSON.parse(briefEl.textContent || '{}') || {}), brief: j.brief || null });
+          } catch (e) {
+            setBanner(String(e.message || e));
+          }
+        }
+
+        $('btnSend').addEventListener('click', send);
+        chatEl.addEventListener('keydown', (ev) => {
+          if (ev.key === 'Enter') {
+            ev.preventDefault();
+            send();
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
+
