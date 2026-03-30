@@ -8,9 +8,186 @@
  * Path-based defaults (Vercel routes): / → internal tier + demo pricing; /legal → enterprise;
  * /lux → premium. Optional data-cmp-tier / data-cmp-is-demo on the tag override those defaults.
  * Optional: data-cmp-api-base="https://your-deployment.vercel.app" for cross-origin API.
+ * Optional: data-cmp-locale="es" (or rely on navigator.language) for UI + clarification language.
  */
 (function () {
   'use strict';
+
+  function normalizeBubbleLocale(raw) {
+    var s = String(raw || '')
+      .trim()
+      .toLowerCase()
+      .replace(/_/g, '-');
+    if (!s) return 'en';
+    if (s.indexOf('es') === 0) return 'es';
+    if (s.indexOf('fr') === 0) return 'fr';
+    if (s.indexOf('de') === 0) return 'de';
+    if (s.indexOf('pt') === 0) return 'pt';
+    return 'en';
+  }
+
+  /**
+   * Client UI strings (CMP bubble). Server-side clarification questions use the same locale via `ai-interview`.
+   * @type {Record<string, Record<string, string>>}
+   */
+  var BUBBLE_UI = {
+    en: {
+      fabOpen: 'Request a change',
+      dialogTitle: 'Change request',
+      stage1Title: 'Stage 1 — Describe the change',
+      stage1Label: 'What do you want to change?',
+      placeholderDesc: 'Be specific: page, behavior, deadline, constraints…',
+      submitAnalyze: 'Submit & analyze',
+      stage3Title: 'Clarification',
+      stage3Hint:
+        'Review these prompts—then continue to the cost and impact estimate.',
+      questionHeading: 'Question {n}',
+      continueEstimate: 'Continue to estimate',
+      startOver: 'Start over',
+      stage4Title: 'AI analysis & cost',
+      impact: 'Impact',
+      risks: 'Risks',
+      cost: 'Cost',
+      fullMarket: 'Full market value (audit)',
+      yourPrice: 'Your price',
+      demoTag: ' (demo)',
+      approveBuild: 'Approve & start build',
+      approving: 'Approving…',
+      stage5Ok: 'Build approved. Workflow updated in Baserow; sandbox branch automation runs next.',
+      stage5Title: 'Complete',
+      stage5Hint: 'Your change request is recorded. You can open a new request anytime.',
+      newRequest: 'New request',
+      analyzingTitle: 'AI is analyzing…',
+      analyzingHint: 'Preparing clarification questions.',
+      errNeedDesc: 'Please describe what you want to change.',
+      errMissingTicket: 'Missing request or ticket. Start over.',
+      loadingEstimate: 'Loading estimate…',
+    },
+    es: {
+      fabOpen: 'Solicitar un cambio',
+      dialogTitle: 'Solicitud de cambio',
+      stage1Title: 'Etapa 1 — Describa el cambio',
+      stage1Label: '¿Qué desea cambiar?',
+      placeholderDesc: 'Sea específico: página, comportamiento, plazo, restricciones…',
+      submitAnalyze: 'Enviar y analizar',
+      stage3Title: 'Aclaraciones',
+      stage3Hint: 'Revise estas preguntas y luego continúe al coste y al impacto.',
+      questionHeading: 'Pregunta {n}',
+      continueEstimate: 'Continuar al estimado',
+      startOver: 'Empezar de nuevo',
+      stage4Title: 'Análisis y coste (IA)',
+      impact: 'Impacto',
+      risks: 'Riesgos',
+      cost: 'Coste',
+      fullMarket: 'Valor de mercado completo (auditoría)',
+      yourPrice: 'Su precio',
+      demoTag: ' (demo)',
+      approveBuild: 'Aprobar e iniciar build',
+      approving: 'Aprobando…',
+      stage5Ok: 'Build aprobado. Baserow actualizado; automatización de rama sandbox en curso.',
+      stage5Title: 'Listo',
+      stage5Hint: 'Su solicitud quedó registrada. Puede abrir una nueva cuando quiera.',
+      newRequest: 'Nueva solicitud',
+      analyzingTitle: 'La IA está analizando…',
+      analyzingHint: 'Preparando preguntas de aclaración.',
+      errNeedDesc: 'Describa qué desea cambiar.',
+      errMissingTicket: 'Falta la solicitud o el ticket. Empiece de nuevo.',
+      loadingEstimate: 'Cargando estimación…',
+    },
+    fr: {
+      fabOpen: 'Demander un changement',
+      dialogTitle: 'Demande de changement',
+      stage1Title: 'Étape 1 — Décrire le changement',
+      stage1Label: 'Que souhaitez-vous modifier ?',
+      placeholderDesc: 'Soyez précis : page, comportement, délai, contraintes…',
+      submitAnalyze: 'Envoyer et analyser',
+      stage3Title: 'Clarifications',
+      stage3Hint: 'Lisez ces questions, puis passez au coût et à l’impact.',
+      questionHeading: 'Question {n}',
+      continueEstimate: "Continuer vers l'estimation",
+      startOver: 'Recommencer',
+      stage4Title: 'Analyse IA & coût',
+      impact: 'Impact',
+      risks: 'Risques',
+      cost: 'Coût',
+      fullMarket: 'Valeur marché complète (audit)',
+      yourPrice: 'Votre prix',
+      demoTag: ' (démo)',
+      approveBuild: 'Approuver et lancer le build',
+      approving: 'Approbation…',
+      stage5Ok: 'Build approuvé. Baserow mis à jour ; branche sandbox en cours.',
+      stage5Title: 'Terminé',
+      stage5Hint: 'Votre demande est enregistrée. Vous pouvez en ouvrir une autre.',
+      newRequest: 'Nouvelle demande',
+      analyzingTitle: "L'IA analyse…",
+      analyzingHint: 'Préparation des questions de clarification.',
+      errNeedDesc: 'Décrivez ce que vous voulez modifier.',
+      errMissingTicket: 'Demande ou ticket manquant. Recommencez.',
+      loadingEstimate: "Chargement de l'estimation…",
+    },
+    de: {
+      fabOpen: 'Änderung anfragen',
+      dialogTitle: 'Änderungsanfrage',
+      stage1Title: 'Schritt 1 — Änderung beschreiben',
+      stage1Label: 'Was möchten Sie ändern?',
+      placeholderDesc: 'Bitte konkret: Seite, Verhalten, Deadline, Rahmenbedingungen…',
+      submitAnalyze: 'Senden & analysieren',
+      stage3Title: 'Klärung',
+      stage3Hint: 'Fragen prüfen—dann weiter zu Kosten und Auswirkung.',
+      questionHeading: 'Frage {n}',
+      continueEstimate: 'Weiter zur Schätzung',
+      startOver: 'Neu starten',
+      stage4Title: 'KI-Analyse & Kosten',
+      impact: 'Auswirkung',
+      risks: 'Risiken',
+      cost: 'Kosten',
+      fullMarket: 'Voller Marktwert (Audit)',
+      yourPrice: 'Ihr Preis',
+      demoTag: ' (Demo)',
+      approveBuild: 'Freigeben & Build starten',
+      approving: 'Wird freigegeben…',
+      stage5Ok: 'Build freigegeben. Baserow aktualisiert; Sandbox-Branch-Automation folgt.',
+      stage5Title: 'Fertig',
+      stage5Hint: 'Ihre Anfrage ist gespeichert. Sie können jederzeit eine neue starten.',
+      newRequest: 'Neue Anfrage',
+      analyzingTitle: 'KI analysiert…',
+      analyzingHint: 'Klärungsfragen werden vorbereitet.',
+      errNeedDesc: 'Bitte beschreiben Sie die gewünschte Änderung.',
+      errMissingTicket: 'Anfrage oder Ticket fehlt. Neu starten.',
+      loadingEstimate: 'Schätzung wird geladen…',
+    },
+    pt: {
+      fabOpen: 'Solicitar alteração',
+      dialogTitle: 'Solicitação de alteração',
+      stage1Title: 'Etapa 1 — Descreva a alteração',
+      stage1Label: 'O que você quer mudar?',
+      placeholderDesc: 'Seja específico: página, comportamento, prazo, restrições…',
+      submitAnalyze: 'Enviar e analisar',
+      stage3Title: 'Esclarecimentos',
+      stage3Hint: 'Revise as perguntas—depois continue para custo e impacto.',
+      questionHeading: 'Pergunta {n}',
+      continueEstimate: 'Continuar para estimativa',
+      startOver: 'Recomeçar',
+      stage4Title: 'Análise IA e custo',
+      impact: 'Impacto',
+      risks: 'Riscos',
+      cost: 'Custo',
+      fullMarket: 'Valor de mercado total (auditoria)',
+      yourPrice: 'Seu preço',
+      demoTag: ' (demo)',
+      approveBuild: 'Aprovar e iniciar build',
+      approving: 'Aprovando…',
+      stage5Ok: 'Build aprovado. Baserow atualizado; automação do branch sandbox em seguida.',
+      stage5Title: 'Concluído',
+      stage5Hint: 'Sua solicitação foi registrada. Você pode abrir outra quando quiser.',
+      newRequest: 'Nova solicitação',
+      analyzingTitle: 'A IA está analisando…',
+      analyzingHint: 'Preparando perguntas de esclarecimento.',
+      errNeedDesc: 'Descreva o que deseja alterar.',
+      errMissingTicket: 'Falta solicitação ou ticket. Recomece.',
+      loadingEstimate: 'Carregando estimativa…',
+    },
+  };
 
   var STORAGE_TICKET = 'cmp_ticket_id';
   var STORAGE_SESSION = 'cmp_session_v1';
@@ -60,10 +237,27 @@
         : 'standard';
     if (['standard', 'premium', 'enterprise', 'internal'].indexOf(tier) === -1) tier = 'standard';
 
-    return { apiBase: apiBase, clientId: clientId, isDemo: isDemo, tier: tier };
+    var locAttr = (s && s.getAttribute('data-cmp-locale')) || '';
+    var locNav = '';
+    try {
+      locNav = (typeof navigator !== 'undefined' && (navigator.language || navigator.userLanguage)) || '';
+    } catch (eLoc) {}
+    var locale = normalizeBubbleLocale(locAttr || locNav);
+
+    return { apiBase: apiBase, clientId: clientId, isDemo: isDemo, tier: tier, locale: locale };
   }
 
   var CONFIG = readConfig();
+
+  function t(key) {
+    var pack = BUBBLE_UI[CONFIG.locale] || BUBBLE_UI.en;
+    var v = pack[key] || BUBBLE_UI.en[key] || key;
+    return v;
+  }
+
+  function tq(key, n) {
+    return String(t(key)).replace(/\{n\}/g, String(n));
+  }
 
   function readAdminToken() {
     // 1) Prefer persisted admin token (recommended).
@@ -206,10 +400,14 @@
   function getShellHtml() {
     return [
       '<div class="cmp-layer">',
-      '  <button type="button" class="cmp-fab" id="cmpFab" aria-label="Open change request" title="Request a change">+</button>',
+      '  <button type="button" class="cmp-fab" id="cmpFab" aria-label="' +
+        escapeHtml(t('fabOpen')) +
+        '" title="' +
+        escapeHtml(t('fabOpen')) +
+        '">+</button>',
       '  <div class="cmp-panel" id="cmpPanel" role="dialog" aria-modal="true" aria-labelledby="cmpTitle">',
       '    <div class="cmp-head">',
-      '      <h2 id="cmpTitle">Change request</h2>',
+      '      <h2 id="cmpTitle">' + escapeHtml(t('dialogTitle')) + '</h2>',
       '      <button type="button" class="cmp-close" id="cmpClose" aria-label="Close">&times;</button>',
       '    </div>',
       '    <div class="cmp-body" id="cmpBody"></div>',
@@ -347,12 +545,20 @@
     if (state.stage === 1) {
       bodyEl.innerHTML =
         banner +
-        '<div class="cmp-stage-label">Stage 1 — Describe the change</div>' +
-        '<label class="cmp-stage-label" for="cmpDesc" style="text-transform:none;letter-spacing:0;color:var(--cmp-text);font-size:13px;">What do you want to change?</label>' +
-        '<textarea id="cmpDesc" class="cmp-textarea" placeholder="Be specific: page, behavior, deadline, constraints…">' +
+        '<div class="cmp-stage-label">' +
+        escapeHtml(t('stage1Title')) +
+        '</div>' +
+        '<label class="cmp-stage-label" for="cmpDesc" style="text-transform:none;letter-spacing:0;color:var(--cmp-text);font-size:13px;">' +
+        escapeHtml(t('stage1Label')) +
+        '</label>' +
+        '<textarea id="cmpDesc" class="cmp-textarea" placeholder="' +
+        escapeHtml(t('placeholderDesc')) +
+        '">' +
         escapeHtml(state.description || '') +
         '</textarea>' +
-        '<button type="button" class="cmp-btn cmp-btn-primary" id="cmpSubmitRequest">Submit &amp; analyze</button>' +
+        '<button type="button" class="cmp-btn cmp-btn-primary" id="cmpSubmitRequest">' +
+        escapeHtml(t('submitAnalyze')) +
+        '</button>' +
         ticketFooter();
       return;
     }
@@ -362,8 +568,8 @@
         .slice(0, 3)
         .map(function (q, i) {
           return (
-            '<div class="cmp-card"><h3>Question ' +
-            (i + 1) +
+            '<div class="cmp-card"><h3>' +
+            escapeHtml(tq('questionHeading', i + 1)) +
             '</h3><p>' +
             escapeHtml(q) +
             '</p></div>'
@@ -372,11 +578,19 @@
         .join('');
       bodyEl.innerHTML =
         banner +
-        '<div class="cmp-stage-label">Clarification</div>' +
-        '<p style="margin:0 0 12px;color:var(--cmp-muted);font-size:13px;">Review these prompts—then continue to the cost and impact estimate.</p>' +
+        '<div class="cmp-stage-label">' +
+        escapeHtml(t('stage3Title')) +
+        '</div>' +
+        '<p style="margin:0 0 12px;color:var(--cmp-muted);font-size:13px;">' +
+        escapeHtml(t('stage3Hint')) +
+        '</p>' +
         qs +
-        '<button type="button" class="cmp-btn cmp-btn-primary" id="cmpContinueToCost">Continue to estimate</button>' +
-        '<button type="button" class="cmp-btn cmp-btn-ghost" id="cmpNewRequest">Start over</button>' +
+        '<button type="button" class="cmp-btn cmp-btn-primary" id="cmpContinueToCost">' +
+        escapeHtml(t('continueEstimate')) +
+        '</button>' +
+        '<button type="button" class="cmp-btn cmp-btn-ghost" id="cmpNewRequest">' +
+        escapeHtml(t('startOver')) +
+        '</button>' +
         ticketFooter();
       return;
     }
@@ -392,24 +606,39 @@
         .join('\n');
       bodyEl.innerHTML =
         banner +
-        '<div class="cmp-stage-label">AI analysis &amp; cost</div>' +
-        '<div class="cmp-card"><h3>Impact</h3><p>' +
+        '<div class="cmp-stage-label">' +
+        escapeHtml(t('stage4Title')) +
+        '</div>' +
+        '<div class="cmp-card"><h3>' +
+        escapeHtml(t('impact')) +
+        '</h3><p>' +
         escapeHtml(stripMdBold(imp.summary || '')) +
         '</p></div>' +
-        '<div class="cmp-card"><h3>Risks</h3><p>' +
+        '<div class="cmp-card"><h3>' +
+        escapeHtml(t('risks')) +
+        '</h3><p>' +
         escapeHtml(risks || '—') +
         '</p></div>' +
-        '<div class="cmp-card"><h3>Cost</h3>' +
-        '<div class="cmp-row"><span>Full market value (audit)</span><span>$' +
+        '<div class="cmp-card"><h3>' +
+        escapeHtml(t('cost')) +
+        '</h3>' +
+        '<div class="cmp-row"><span>' +
+        escapeHtml(t('fullMarket')) +
+        '</span><span>$' +
         formatMoney(cost.full_market_value_usd) +
         ' USD</span></div>' +
-        '<div class="cmp-row"><span>Your price' +
-        (cost.is_demo ? ' (demo)' : '') +
+        '<div class="cmp-row"><span>' +
+        escapeHtml(t('yourPrice')) +
+        (cost.is_demo ? escapeHtml(t('demoTag')) : '') +
         '</span><span>$' +
         formatMoney(cost.displayed_client_usd) +
         ' USD</span></div></div>' +
-        '<button type="button" class="cmp-btn cmp-btn-primary" id="cmpApproveBuild">Approve &amp; start build</button>' +
-        '<button type="button" class="cmp-btn cmp-btn-ghost" id="cmpNewRequest">Start over</button>' +
+        '<button type="button" class="cmp-btn cmp-btn-primary" id="cmpApproveBuild">' +
+        escapeHtml(t('approveBuild')) +
+        '</button>' +
+        '<button type="button" class="cmp-btn cmp-btn-ghost" id="cmpNewRequest">' +
+        escapeHtml(t('startOver')) +
+        '</button>' +
         ticketFooter();
       return;
     }
@@ -417,11 +646,17 @@
     if (state.stage === 5) {
       bodyEl.innerHTML =
         (state.buildOk
-          ? '<div class="cmp-banner cmp-banner-ok">Build approved. Workflow updated in Baserow; sandbox branch automation runs next.</div>'
+          ? '<div class="cmp-banner cmp-banner-ok">' + escapeHtml(t('stage5Ok')) + '</div>'
           : banner) +
-        '<div class="cmp-stage-label">Complete</div>' +
-        '<p style="margin:0;color:var(--cmp-muted);font-size:13px;">Your change request is recorded. You can open a new request anytime.</p>' +
-        '<button type="button" class="cmp-btn cmp-btn-primary" id="cmpNewRequest">New request</button>' +
+        '<div class="cmp-stage-label">' +
+        escapeHtml(t('stage5Title')) +
+        '</div>' +
+        '<p style="margin:0;color:var(--cmp-muted);font-size:13px;">' +
+        escapeHtml(t('stage5Hint')) +
+        '</p>' +
+        '<button type="button" class="cmp-btn cmp-btn-primary" id="cmpNewRequest">' +
+        escapeHtml(t('newRequest')) +
+        '</button>' +
         ticketFooter();
       return;
     }
@@ -438,7 +673,11 @@
     bodyEl.innerHTML =
       '<div class="cmp-analyzing" role="status" aria-live="polite">' +
       '<div class="cmp-pulse" aria-hidden="true"></div>' +
-      '<div><strong style="color:var(--cmp-text);">AI is analyzing…</strong><br />Preparing clarification questions.</div>' +
+      '<div><strong style="color:var(--cmp-text);">' +
+      escapeHtml(t('analyzingTitle')) +
+      '</strong><br />' +
+      escapeHtml(t('analyzingHint')) +
+      '</div>' +
       '</div>';
   }
 
@@ -461,7 +700,7 @@
     var description = ta ? ta.value.trim() : '';
     if (!description) {
       var st = getState();
-      st.error = 'Please describe what you want to change.';
+      st.error = t('errNeedDesc');
       setState(st);
       renderStage(bodyEl, st);
       return;
@@ -494,7 +733,7 @@
         return fetch(cmpActionUrl('ai-interview'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'x-session-token': ADMIN_SESSION_TOKEN || '' },
-          body: JSON.stringify({ description: description }),
+          body: JSON.stringify({ description: description, locale: CONFIG.locale }),
         }).then(function (r) {
           return r.json().then(function (j) {
             if (!r.ok) throw new Error(j.error || 'Interview failed');
@@ -530,7 +769,7 @@
     var description = (st.description || '').trim();
     var tid = getTicketId();
     if (!description || !tid) {
-      st.error = 'Missing request or ticket. Start over.';
+      st.error = t('errMissingTicket');
       setState(st);
       renderStage(bodyEl, st);
       return;
@@ -539,7 +778,7 @@
     var btn = bodyEl.querySelector('#cmpContinueToCost');
     if (btn) {
       btn.disabled = true;
-      btn.textContent = 'Loading estimate…';
+      btn.textContent = t('loadingEstimate');
     }
 
     fetch(cmpActionUrl('costing-preview'), {
@@ -588,7 +827,7 @@
     var btn = bodyEl.querySelector('#cmpApproveBuild');
     if (btn) {
       btn.disabled = true;
-      btn.textContent = 'Approving…';
+      btn.textContent = t('approving');
     }
 
     fetch(cmpActionUrl('approve-build'), {

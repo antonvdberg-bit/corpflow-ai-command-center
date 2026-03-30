@@ -6,7 +6,7 @@ Change Management Process backend: Baserow sync, costing, webhooks, and (later) 
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `BASEROW_URL` | Yes | e.g. `https://crm.corpflowai.com` |
+| `BASEROW_URL` | Yes | Your Baserow API origin (set in Vercel; do not hardcode tenant URLs in git) |
 | `BASEROW_TOKEN` | Yes | Baserow database token |
 | `BASEROW_CMP_TABLE_ID` | Recommended | Change Requests table ID (falls back to `BASEROW_TABLE_ID`) |
 

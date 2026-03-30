@@ -2,7 +2,8 @@
   "scripts": {
     "postinstall": "prisma generate",
     "vercel-build": "prisma generate && next build",
-    "build": "next build"
+    "build": "next build",
+    "verify:cmp-env": "node scripts/verify-cmp-env-read.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.0.0",

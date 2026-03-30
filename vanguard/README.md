@@ -19,4 +19,4 @@ This tree holds the **durable technical record** for CorpFlow Change Management:
 ## Related
 
 - API orchestration: `api/cmp/`
-- CRM: `https://crm.corpflowai.com` (Baserow)
+- CRM: Baserow at the URL you configure in `BASEROW_URL` (not committed per environment)

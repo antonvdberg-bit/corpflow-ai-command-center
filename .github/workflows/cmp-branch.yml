@@ -1,6 +1,6 @@
-# CMP — Sandbox branch + Vercel Preview (skeleton)
-# Triggered by repository_dispatch or workflow_dispatch from api/cmp once wired.
-# Security: use Deployment Protection on Preview; no secrets in logs.
+# CMP — Sandbox branch: create `cmp/{ticket_id}` from a base ref.
+# Triggered by repository_dispatch (event_type cmp_sandbox_start) from Vercel after approve-build,
+# or manually via workflow_dispatch.
 
 name: CMP Sandbox Branch
 
@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       ticket_id:
-        description: 'Stable CMP ticket id (Baserow / Vanguard)'
+        description: 'Stable CMP ticket id (Baserow row id)'
         required: true
         type: string
       base_ref:
@@ -16,11 +16,11 @@ on:
         required: true
         default: main
         type: string
-  # repository_dispatch:
-  #   types: [cmp_sandbox_start]
+  repository_dispatch:
+    types: [cmp_sandbox_start]
 
 concurrency:
-  group: cmp-sandbox-${{ github.event.inputs.ticket_id || github.event.client_payload.ticket_id }}
+  group: cmp-sandbox-${{ github.event.client_payload.ticket_id || github.event.inputs.ticket_id }}
   cancel-in-progress: false
 
 jobs:
@@ -30,17 +30,30 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Resolve ticket and base ref
+        id: meta
+        run: |
+          T="${{ github.event.client_payload.ticket_id || github.event.inputs.ticket_id }}"
+          B="${{ github.event.client_payload.base_ref || github.event.inputs.base_ref || 'main' }}"
+          T=$(echo "$T" | tr -cd '[:alnum:]_.-')
+          B=$(echo "$B" | tr -cd '[:alnum:]_./-')
+          echo "ticket=$T" >> "$GITHUB_OUTPUT"
+          echo "base=${B:-main}" >> "$GITHUB_OUTPUT"
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.base_ref || 'main' }}
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Placeholder — create cmp/{ticket} branch
+      - name: Create and push cmp/${{ steps.meta.outputs.ticket }}
         run: |
-          echo "TODO: git config user, create branch cmp/${{ github.event.inputs.ticket_id }}, push"
-          echo "TODO: post Preview URL back to Baserow via secured callback"
-
-      - name: Placeholder — run automated tests
-        run: |
-          echo "TODO: npm test / pytest / e2e — gate promotion separately"
+          set -e
+          TICKET="${{ steps.meta.outputs.ticket }}"
+          BASE_REF="${{ steps.meta.outputs.base }}"
+          if [ -z "$TICKET" ]; then echo "Missing ticket_id"; exit 1; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin "$BASE_REF"
+          git checkout -B "cmp/${TICKET}" "origin/${BASE_REF}"
+          git push -u origin "HEAD:refs/heads/cmp/${TICKET}" --force

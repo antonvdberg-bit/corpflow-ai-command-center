@@ -14,6 +14,7 @@ import mainHandler from '../lib/server/main.js';
 import provisionHandler from '../lib/server/provision.js';
 import webhookHandler from '../lib/server/webhook.js';
 import tenantsOverviewHandler from '../lib/server/tenants-overview.js';
+import baserowSchemaHandler from '../lib/server/baserow-schema.js';
 import { buildCorpflowHostContext } from '../lib/server/host-tenant-context.js';
 import { cfg, runtimeConfigDiagnostics } from '../lib/server/runtime-config.js';
 
@@ -247,6 +248,9 @@ export default async function handler(req, res) {
 
   if (pathSeg === 'factory/tenants-overview') {
     return tenantsOverviewHandler(req, res);
+  }
+  if (pathSeg === 'factory/baserow/ensure-console-field') {
+    return baserowSchemaHandler(req, res);
   }
 
   switch (pathSeg) {

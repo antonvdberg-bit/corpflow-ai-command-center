@@ -102,7 +102,7 @@ Tools are auto-discovered by the agent from `core/engine/src/tools/*.py` (public
 | `lib/server/audit.js` | Audit / DB stability handler (Prisma) | `POST /api/audit` |
 | `lib/server/webhook.js` | Incoming webhook (Telegram via bot token) | `POST /api/webhook` |
 | `lib/server/main.js` | Lead handoff / n8n intake | `POST /api/main` (and `POST /api/intake` — aliased in router) |
-| `lib/server/config.js` | Shared config for `main` | Imported by `lib/server/main.js` |
+| `lib/server/config.js` | `getN8nWebhookUrl()` — `cfg('N8N_WEBHOOK_URL')` (env or `CORPFLOW_RUNTIME_CONFIG_JSON`) | Imported by `lib/server/main.js` |
 | `lib/server/admin-leads.js` | Admin leads listing (Prisma) | `GET /api/admin-leads` |
 | `lib/server/feedback.js` | Feedback accept | `POST /api/feedback` |
 | `lib/server/legal-search.js` | Demo legal precedent search | `GET /api/legal-search` |
@@ -111,6 +111,7 @@ Tools are auto-discovered by the agent from `core/engine/src/tools/*.py` (public
 | `lib/python/onboard_logic.py` | Onboarding logic module | Import from Python tooling; not mounted as `/api` by default |
 | `pages/index.js` | Web entry UI | `npx next dev` |
 | `scripts/onboard_luxe.js` | Tenant onboarding script via Prisma | `node scripts/onboard_luxe.js` |
+| `scripts/verify-cmp-env-read.mjs` | Smoke-test `cfg()` + JSON blob for n8n/GitHub CMP env | `node scripts/verify-cmp-env-read.mjs` |
 | `scanner.js` / `public/scanner.js` | Local scanners / tunnel blocks (UI + scripts) | `node scanner.js` |
 
 ## Data Storage (Baserow / Local JSON / DB)
