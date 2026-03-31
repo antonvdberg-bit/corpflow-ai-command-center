@@ -661,48 +661,36 @@
           return d.innerHTML;
         }
 
-        /**
-         * Resolves the structured change brief from merged UI state (top-level or inside console_json).
-         *
-         * @param {Record<string, unknown> | null} merged
-         * @returns {Record<string, unknown> | null}
-         */
         function resolveStructuredBrief(merged) {
           if (!merged || typeof merged !== 'object') return null;
           const direct = merged.brief;
           if (direct && typeof direct === 'object') {
             const has = Object.keys(direct).some((k) => {
-              const v = /** @type {Record<string, unknown>} */ (direct)[k];
+              const v = direct[k];
               if (v == null) return false;
               if (typeof v === 'string' && !String(v).trim()) return false;
               if (Array.isArray(v) && v.length === 0) return false;
               return true;
             });
-            if (has) return /** @type {Record<string, unknown>} */ (direct);
+            if (has) return direct;
           }
           const cj = merged.console_json;
           if (cj && typeof cj === 'object') {
-            const inner = /** @type {Record<string, unknown>} */ (cj).brief;
+            const inner = cj.brief;
             if (inner && typeof inner === 'object') {
               const hasInner = Object.keys(inner).some((k) => {
-                const v = /** @type {Record<string, unknown>} */ (inner)[k];
+                const v = inner[k];
                 if (v == null) return false;
                 if (typeof v === 'string' && !String(v).trim()) return false;
                 if (Array.isArray(v) && v.length === 0) return false;
                 return true;
               });
-              if (hasInner) return /** @type {Record<string, unknown>} */ (inner);
+              if (hasInner) return inner;
             }
           }
           return null;
         }
 
-        /**
-         * Collects human-readable task-like lines from a brief object.
-         *
-         * @param {Record<string, unknown> | null} br
-         * @returns {string[]}
-         */
         function extractTaskLikeStrings(br) {
           if (!br || typeof br !== 'object') return [];
           const seen = new Set();
@@ -727,20 +715,13 @@
             for (const item of v) {
               if (typeof item === 'string') add(item);
               else if (item && typeof item === 'object') {
-                const o = /** @type {Record<string, unknown>} */ (item);
-                add(o.title || o.name || o.text || o.item || o.description || '');
+                add(item.title || item.name || item.text || item.item || item.description || '');
               }
             }
           }
           return out;
         }
 
-        /**
-         * Splits a scope string into non-empty lines for display.
-         *
-         * @param {unknown} raw
-         * @returns {string[]}
-         */
         function scopeLines(raw) {
           if (raw == null) return [];
           if (Array.isArray(raw)) {
@@ -752,12 +733,6 @@
             .filter(Boolean);
         }
 
-        /**
-         * Renders the read-only brief summary panel from merged ticket state.
-         *
-         * @param {Record<string, unknown> | null} merged
-         * @returns {void}
-         */
         function updateBriefSummary(merged) {
           const el = $('briefSummary');
           if (!el) return;
@@ -768,9 +743,8 @@
           }
           const tid = String(merged.ticket_id || ticketEl.value || '').trim();
           const br = resolveStructuredBrief(merged);
-          const cp = merged.costing_preview && typeof merged.costing_preview === 'object'
-            ? /** @type {Record<string, unknown>} */ (merged.costing_preview)
-            : null;
+          const cp =
+            merged.costing_preview && typeof merged.costing_preview === 'object' ? merged.costing_preview : null;
           const parts = [];
 
           const statusBits = [merged.status, merged.stage].filter(
@@ -844,7 +818,7 @@
           }
 
           if (cp && cp.impact && typeof cp.impact === 'object') {
-            const imp = /** @type {Record<string, unknown>} */ (cp.impact);
+            const imp = cp.impact;
             const estSummary = typeof imp.summary === 'string' ? imp.summary.trim() : '';
             const tr = Array.isArray(imp.technical_risks) ? imp.technical_risks : [];
             if (estSummary || tr.length) {
@@ -857,10 +831,9 @@
                 estHtml += '<ul class="list-disc pl-4 space-y-1 text-slate-300">';
                 for (const row of tr) {
                   if (row && typeof row === 'object') {
-                    const o = /** @type {Record<string, unknown>} */ (row);
-                    const area = String(o.area || 'Risk');
-                    const sev = o.severity != null ? ' (' + String(o.severity) + ')' : '';
-                    const mit = o.mitigation != null ? ' — ' + String(o.mitigation) : '';
+                    const area = String(row.area || 'Risk');
+                    const sev = row.severity != null ? ' (' + String(row.severity) + ')' : '';
+                    const mit = row.mitigation != null ? ' — ' + String(row.mitigation) : '';
                     estHtml += '<li>' + escapeHtml(area + sev + mit) + '</li>';
                   } else {
                     estHtml += '<li>' + escapeHtml(String(row)) + '</li>';
@@ -881,11 +854,6 @@
           el.innerHTML = parts.join('');
         }
 
-        /**
-         * Renders host/surface/mode and optional core environment hint from `uiContext`.
-         *
-         * @returns {void}
-         */
         function renderModeBarFromUiContext() {
           if (!uiContext || !uiContext.ok) {
             setModeBar('');
