@@ -149,7 +149,17 @@
             body: JSON.stringify(body || {}),
           });
           const j = await r.json().catch(() => ({}));
-          if (!r.ok) throw new Error(j.error || j.detail || ('http_' + r.status));
+          if (!r.ok) {
+            const parts = [
+              j.reject_reason,
+              j.error,
+              j.reason && j.code ? j.code + ': ' + j.reason : null,
+              j.detail,
+              j.hint,
+            ].filter((x) => x != null && String(x).trim() !== '');
+            const msg = parts.length ? [...new Set(parts.map((x) => String(x)))].join(' — ') : 'http_' + r.status;
+            throw new Error(msg);
+          }
           return j;
         }
 
@@ -196,13 +206,23 @@
                 '</div><div class="text-[10px] text-slate-600 mt-1">' +
                 escapeHtml(when) +
                 '</div>';
-              btn.addEventListener('click', () => {
+              btn.addEventListener('click', async () => {
                 ticketEl.value = t.ticket_id;
                 try {
                   localStorage.setItem(LS_TICKET, t.ticket_id);
                 } catch {}
                 setBrief({ ticket_id: t.ticket_id, status: t.status, stage: t.stage, opened_from: 'ticket-list' });
                 setBanner('');
+                try {
+                  const gr = await fetch(
+                    '/api/cmp/router?action=ticket-get&id=' + encodeURIComponent(t.ticket_id),
+                    { credentials: 'include' },
+                  );
+                  const gj = await gr.json().catch(() => ({}));
+                  if (gr.ok && gj.description != null && String(gj.description).trim() !== '') {
+                    descEl.value = String(gj.description);
+                  }
+                } catch (_) {}
               });
               listEl.appendChild(btn);
             }
