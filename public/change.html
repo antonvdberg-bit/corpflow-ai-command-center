@@ -5,6 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CorpFlow Change Console</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @keyframes cf-pulse {
+        0%,
+        100% {
+          opacity: 0.45;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+      .cf-pulse {
+        animation: cf-pulse 1.25s ease-in-out infinite;
+      }
+      .cf-spinner {
+        width: 0.85rem;
+        height: 0.85rem;
+        border: 2px solid rgba(148, 163, 184, 0.35);
+        border-top-color: rgb(56, 189, 248);
+        border-radius: 9999px;
+        animation: cf-spin 0.7s linear infinite;
+      }
+      @keyframes cf-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
   </head>
   <body class="min-h-screen bg-slate-950 text-slate-100">
     <div class="max-w-5xl mx-auto px-4 py-10">
@@ -19,6 +46,13 @@
       </div>
 
       <div id="modeBar" class="hidden mt-4 rounded-xl border border-slate-800 bg-slate-900/30 px-4 py-3 text-xs text-slate-200"></div>
+      <div
+        id="activityStrip"
+        class="hidden mt-3 rounded-xl border border-sky-500/25 bg-sky-500/5 px-4 py-2.5 text-xs text-slate-200 flex items-center gap-2"
+      >
+        <span id="activitySpinner" class="cf-spinner shrink-0 hidden"></span>
+        <span id="activityLabel" class="text-slate-300"></span>
+      </div>
       <div id="banner" class="hidden mt-6 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-rose-200 text-sm"></div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-6">
@@ -75,14 +109,22 @@
           </div>
 
           <div class="mt-6 border-t border-slate-800 pt-4">
-            <div class="text-xs text-slate-300 mb-2">Chat refine</div>
+            <div class="text-xs font-semibold text-slate-200 mb-1">Refine the request (chat)</div>
+            <p class="text-[11px] text-slate-500 mb-2 leading-relaxed">
+              After you have a <strong class="text-slate-400">Ticket ID</strong>, use this thread to tighten scope, add constraints, or answer follow-ups. Each send updates the structured
+              <strong class="text-slate-400">brief</strong> stored on the ticket (no source code is shown here).
+            </p>
             <div id="thread" class="rounded-xl border border-slate-800 bg-slate-950/40 p-3 min-h-[220px] space-y-3 overflow-auto"></div>
             <div class="flex gap-2 mt-3">
-              <input id="chat" class="flex-1 rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" placeholder="Type a message and press Enter…" />
+              <input
+                id="chat"
+                class="flex-1 rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm"
+                placeholder="Add detail or answer a clarification…"
+              />
               <button id="btnSend" class="rounded-lg bg-slate-200 text-slate-950 px-4 py-2 text-sm font-semibold">Send</button>
             </div>
             <div class="text-[11px] text-slate-500 mt-2">
-              Tip: Chat and automation output are persisted with the ticket (Postgres-first). If an older backend is configured, persistence may fall back to the legacy store.
+              Messages are saved on the ticket for audit and handoff. Requires login + valid ticket.
             </div>
           </div>
         </div>
@@ -94,10 +136,19 @@
 
           <div class="mt-5 border-t border-slate-800 pt-4">
             <div class="text-xs text-slate-300 mb-2">Brief</div>
+            <div
+              id="briefSummary"
+              class="rounded-xl border border-slate-800 bg-slate-950/60 p-3 text-[11px] text-slate-300 leading-relaxed space-y-3 min-h-[4.5rem] mb-3"
+            ></div>
+            <div class="text-[10px] text-slate-500 mb-1">Full state (JSON)</div>
             <pre id="brief" class="rounded-xl bg-slate-950 border border-slate-800 p-3 text-[11px] text-slate-200 whitespace-pre-wrap min-h-[240px]"></pre>
           </div>
 
           <div class="mt-5 border-t border-slate-800 pt-4">
+            <div id="pipelineCard" class="hidden mb-4 rounded-xl border border-slate-800 bg-slate-950/50 p-3">
+              <div class="text-[11px] font-semibold text-slate-200 uppercase tracking-wide">Build status</div>
+              <div id="pipelineBody" class="mt-2 space-y-2 text-[11px] text-slate-300"></div>
+            </div>
             <div class="flex items-center justify-between gap-2 flex-wrap">
               <div class="text-xs text-slate-300 mb-2">Automation</div>
               <div class="flex items-center gap-2 flex-wrap">
@@ -124,7 +175,14 @@
                 </button>
               </div>
             </div>
-            <div id="automationLinks" class="text-xs text-slate-300 space-y-2"></div>
+            <div id="automationHuman" class="text-xs text-slate-300 space-y-2 mb-2"></div>
+            <details id="automationTechnical" class="group text-[11px] text-slate-500 mb-2 hidden">
+              <summary class="cursor-pointer text-sky-400/90 hover:text-sky-300 select-none list-none flex items-center gap-2">
+                <span class="cf-pulse inline-block w-1.5 h-1.5 rounded-full bg-slate-600 group-open:bg-sky-500"></span>
+                Technical links (GitHub)
+              </summary>
+              <div id="automationLinks" class="text-xs text-slate-300 space-y-2 mt-2 pl-3 border-l border-slate-800"></div>
+            </details>
             <div id="overseerOut" class="hidden mt-3 rounded-xl bg-slate-950 border border-slate-800 p-3 text-[11px] text-slate-200"></div>
             <div id="overseerHint" class="hidden text-[11px] text-slate-500 mt-2"></div>
           </div>
@@ -148,10 +206,14 @@
         const promotionMergeBtn = $('btnPromotionMerge');
         const overseerOut = $('overseerOut');
         const overseerHint = $('overseerHint');
+        const automationHumanEl = $('automationHuman');
+        const automationTechnicalEl = $('automationTechnical');
 
         const LS_TICKET = 'corpflow_change_ticket_id';
+        const LS_DISMISS_CORE = 'corpflow_dismiss_core_hint';
         let sessionInfo = { logged_in: false, level: 'anonymous' };
         let uiContext = null;
+        let busyDepth = 0;
 
         function setBanner(msg) {
           if (!msg) {
@@ -177,6 +239,153 @@
 
         function headers() {
           return { 'Content-Type': 'application/json' };
+        }
+
+        function setActivity(working, message) {
+          const strip = $('activityStrip');
+          const spin = $('activitySpinner');
+          const lab = $('activityLabel');
+          if (!strip || !spin || !lab) return;
+          if (working) {
+            strip.classList.remove('hidden');
+            spin.classList.remove('hidden');
+            lab.textContent = message || 'Working…';
+            lab.classList.add('cf-pulse');
+          } else {
+            spin.classList.add('hidden');
+            lab.textContent = message || '';
+            lab.classList.remove('cf-pulse');
+            if (!message) strip.classList.add('hidden');
+            else {
+              strip.classList.remove('hidden');
+              window.setTimeout(() => {
+                strip.classList.add('hidden');
+              }, 3200);
+            }
+          }
+        }
+
+        async function withActivity(label, fn) {
+          busyDepth += 1;
+          setActivity(true, label);
+          try {
+            return await fn();
+          } finally {
+            busyDepth -= 1;
+            if (busyDepth <= 0) {
+              setActivity(false, 'Done.');
+            }
+          }
+        }
+
+        function stepRow(state, title, detail) {
+          let icon = '…';
+          let cls = 'text-slate-400';
+          if (state === 'ok') {
+            icon = '✓';
+            cls = 'text-emerald-300';
+          } else if (state === 'err') {
+            icon = '✕';
+            cls = 'text-rose-300';
+          } else if (state === 'warn') {
+            icon = '!';
+            cls = 'text-amber-300';
+          } else if (state === 'run') {
+            icon = '<span class="cf-spinner shrink-0"></span>';
+            cls = 'text-sky-300';
+          } else if (state === 'pending') {
+            icon = '○';
+            cls = 'text-slate-500';
+          }
+          return (
+            '<div class="flex gap-2 items-start">' +
+            '<span class="shrink-0 font-mono w-4 flex justify-center ' +
+            cls +
+            '">' +
+            icon +
+            '</span>' +
+            '<div class="min-w-0">' +
+            '<div class="text-slate-200 font-medium">' +
+            escapeHtml(title) +
+            '</div>' +
+            '<div class="text-slate-500 mt-0.5 leading-snug">' +
+            escapeHtml(detail) +
+            '</div>' +
+            '</div>' +
+            '</div>'
+          );
+        }
+
+        function updatePipelineCardFromBrief(b) {
+          const card = $('pipelineCard');
+          const body = $('pipelineBody');
+          if (!card || !body) return;
+          const tid = String(ticketEl.value || '').trim();
+          const approve = b && b.approve_build ? b.approve_build : null;
+
+          if (!tid && !approve) {
+            card.classList.add('hidden');
+            return;
+          }
+          card.classList.remove('hidden');
+          const rows = [];
+          if (tid) rows.push(stepRow('ok', 'Ticket selected', 'ID ' + tid));
+
+          if (!approve) {
+            rows.push(
+              stepRow(
+                'pending',
+                'Approve build',
+                'Not run yet for this ticket. When you click Approve build, the factory updates the ticket in Postgres and requests the GitHub sandbox workflow.',
+              ),
+            );
+            body.innerHTML = rows.join('');
+            return;
+          }
+
+          const ok = approve.ok === true;
+          rows.push(
+            stepRow(
+              ok ? 'ok' : 'err',
+              'Factory decision',
+              ok
+                ? 'Approve build succeeded — ticket marked Approved / Build in the database.'
+                : String(approve.error || approve.detail || 'Approve build did not complete.'),
+            ),
+          );
+          const sb = approve.sandbox_branch || {};
+          if (ok && sb.dispatch_triggered) {
+            rows.push(
+              stepRow(
+                'ok',
+                'GitHub workflow',
+                'Dispatch accepted. The cmp-branch workflow should create or refresh branch cmp/' + tid + ' (usually within 1–2 minutes).',
+              ),
+            );
+          } else if (ok) {
+            rows.push(
+              stepRow(
+                'warn',
+                'GitHub workflow',
+                sb.error
+                  ? 'Dispatch not sent: ' + String(sb.error)
+                  : 'Dispatch was not sent — check CMP_GITHUB_TOKEN and GITHUB_REPO in deployment env.',
+              ),
+            );
+          }
+          body.innerHTML = rows.join('');
+        }
+
+        function setPipelineSubmitting(kind) {
+          const card = $('pipelineCard');
+          const body = $('pipelineBody');
+          if (!card || !body) return;
+          const tid = String(ticketEl.value || '').trim();
+          card.classList.remove('hidden');
+          const rows = [];
+          if (tid) rows.push(stepRow('ok', 'Ticket selected', 'ID ' + tid));
+          rows.push(stepRow('run', kind, 'Waiting for the server…'));
+          body.innerHTML = rows.join('');
         }
 
         function append(role, content) {
@@ -234,6 +443,12 @@
 
         function setBrief(obj) {
           briefEl.textContent = obj ? JSON.stringify(obj, null, 2) : '';
+          try {
+            updatePipelineCardFromBrief(obj || {});
+          } catch (_) {}
+          try {
+            updateBriefSummary(obj);
+          } catch (_) {}
           renderAutomation(obj);
         }
         function asLink(href, label) {
@@ -263,24 +478,47 @@
           const storedOverseer = b && b.console_json && b.console_json.overseer ? b.console_json.overseer : (b.overseer || null);
           const storedPromotion = b && b.console_json && b.console_json.promotion ? b.console_json.promotion : (b.promotion || null);
 
-          const links = [];
-          if (sb && sb.dispatch_triggered) links.push('<div class="text-[11px] text-emerald-300">Sandbox dispatch accepted</div>');
-          if (sb && sb.workflow_url) links.push('<div>' + asLink(sb.workflow_url, 'Workflow (cmp-branch)') + '</div>');
-          if (sb && sb.actions_url) links.push('<div>' + asLink(sb.actions_url, 'Actions (filtered by branch)') + '</div>');
-          if (sb && sb.branch_url) links.push('<div>' + asLink(sb.branch_url, 'Sandbox branch') + '</div>');
-          if (sb && sb.compare_url) links.push('<div>' + asLink(sb.compare_url, 'Compare (base…sandbox)') + '</div>');
-          if (storedOverseer && storedOverseer.compare_url) links.push('<div>' + asLink(storedOverseer.compare_url, 'Latest overseer compare') + '</div>');
-          if (storedPromotion && storedPromotion.pr_url) links.push('<div>' + asLink(storedPromotion.pr_url, 'Promotion PR') + '</div>');
-          if (storedPromotion && storedPromotion.last_error) links.push('<div class="text-[11px] text-rose-300">Promotion error: ' + escapeHtml(String(storedPromotion.last_error)) + '</div>');
-
-          if (!links.length) {
-            const tid = String(ticketEl && ticketEl.value ? ticketEl.value : '').trim();
-            automationLinksEl.innerHTML =
-              '<div class="text-[11px] text-slate-500">No automation links captured in this view yet.</div>' +
-              (tid ? '<div class="text-[11px] text-slate-600 mt-1">Tip: click <strong>Approve build</strong> again to capture links for ' + escapeHtml(tid) + '.</div>' : '');
-          } else {
-            automationLinksEl.innerHTML = links.join('');
+          const human = [];
+          if (approve && approve.ok && sb && sb.dispatch_triggered) {
+            human.push(
+              '<div class="rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-[11px] text-emerald-100 leading-relaxed">' +
+                '<strong class="text-emerald-200">Automation is running.</strong> GitHub accepted the workflow dispatch; the sandbox branch is created or updated next.' +
+                '</div>',
+            );
+          } else if (approve && approve.ok && sb && !sb.dispatch_triggered) {
+            human.push(
+              '<div class="rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-[11px] text-amber-100 leading-relaxed">' +
+                '<strong class="text-amber-200">Approve build saved,</strong> but GitHub dispatch did not fire. Fix repo/token env vars, then use Approve build again or open Actions manually.' +
+                '</div>',
+            );
+          } else if (!approve) {
+            human.push(
+              '<div class="text-[11px] text-slate-500 leading-relaxed">After <strong class="text-slate-400">Approve build</strong>, this panel summarizes what the factory and GitHub are doing. Raw repo links stay under <em>Technical links</em> so the main view stays readable.</div>',
+            );
           }
+
+          if (storedPromotion && storedPromotion.pr_url) {
+            human.push(
+              '<div class="text-[11px] text-slate-300">Promotion: ' +
+                asLink(storedPromotion.pr_url, 'Open pull request') +
+                (storedPromotion.merged ? ' <span class="text-emerald-400">(merged)</span>' : '') +
+                '</div>',
+            );
+          }
+          if (storedPromotion && storedPromotion.last_error) {
+            human.push(
+              '<div class="text-[11px] text-rose-300">Promotion sync: ' + escapeHtml(String(storedPromotion.last_error)) + '</div>',
+            );
+          }
+
+          if (automationHumanEl) automationHumanEl.innerHTML = human.length ? human.join('') : '';
+
+          const tech = [];
+          if (sb && sb.workflow_url) tech.push('<div>' + asLink(sb.workflow_url, 'Workflow: cmp-branch') + '</div>');
+          if (sb && sb.actions_url) tech.push('<div>' + asLink(sb.actions_url, 'Actions (branch filter)') + '</div>');
+          if (sb && sb.branch_url) tech.push('<div>' + asLink(sb.branch_url, 'Branch on GitHub') + '</div>');
+          if (sb && sb.compare_url) tech.push('<div>' + asLink(sb.compare_url, 'Compare: base → sandbox') + '</div>');
+          if (storedOverseer && storedOverseer.compare_url) tech.push('<div>' + asLink(storedOverseer.compare_url, 'Overseer compare (last saved)') + '</div>');
 
           const isAdmin = sessionInfo && sessionInfo.logged_in && String(sessionInfo.level || '').toLowerCase() === 'admin';
           if (overseerBtn) overseerBtn.classList.toggle('hidden', !isAdmin);
@@ -289,6 +527,14 @@
             const hasPr = Boolean(storedPromotion && storedPromotion.pr_url);
             promotionMergeBtn.classList.toggle('hidden', !isAdmin || !hasPr);
           }
+
+          const showTech = tech.length > 0 && isAdmin;
+          if (automationTechnicalEl) {
+            automationTechnicalEl.classList.toggle('hidden', !showTech);
+            automationLinksEl.innerHTML = tech.length
+              ? tech.join('')
+              : '<div class="text-slate-500">No GitHub links yet.</div>';
+          }
         }
 
         async function refreshPromotion() {
@@ -296,8 +542,10 @@
           const tid = String(ticketEl.value || '').trim();
           if (!tid) return setBanner('Create or paste a Ticket ID first.');
           try {
-            await post('promote-status', { ticket_id: tid });
-            await syncCurrentTicket();
+            await withActivity('Refreshing promotion status…', async () => {
+              await post('promote-status', { ticket_id: tid });
+              await syncCurrentTicket();
+            });
           } catch (e) {
             setBanner('Promotion refresh failed: ' + String(e && e.message ? e.message : e));
           }
@@ -308,9 +556,11 @@
           const tid = String(ticketEl.value || '').trim();
           if (!tid) return setBanner('Create or paste a Ticket ID first.');
           try {
-            const j = await post('promote-merge', { ticket_id: tid });
-            setBanner('Merged ' + (j.pr_url ? String(j.pr_url) : 'promotion PR') + '.');
-            await syncCurrentTicket();
+            await withActivity('Merging pull request…', async () => {
+              const j = await post('promote-merge', { ticket_id: tid });
+              setBanner('Merged ' + (j.pr_url ? String(j.pr_url) : 'promotion PR') + '.');
+              await syncCurrentTicket();
+            });
           } catch (e) {
             setBanner('Merge failed: ' + String(e && e.message ? e.message : e));
           }
@@ -326,7 +576,7 @@
           overseerOut.innerHTML = '<div class="text-slate-400">Loading overseer view…</div>';
           overseerOut.classList.remove('hidden');
           try {
-            const j = await post('overseer', { ticket_id: tid });
+            const j = await withActivity('Loading overseer…', async () => post('overseer', { ticket_id: tid }));
             const commits = Array.isArray(j.commits) ? j.commits : [];
             const files = Array.isArray(j.files) ? j.files : [];
 
@@ -499,20 +749,52 @@
               // keep chat visible by default; client consoles may want it.
             }
 
+            const tenantUrl =
+              uiContext && uiContext.suggested_tenant_console_url
+                ? String(uiContext.suggested_tenant_console_url).trim()
+                : '';
+            let coreHintHtml = '';
+            if (surface === 'core' && tenantUrl) {
+              let dismissed = false;
+              try {
+                dismissed = localStorage.getItem(LS_DISMISS_CORE) === '1';
+              } catch (_) {}
+              if (!dismissed) {
+                coreHintHtml =
+                  '<div class="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-100" data-core-hint="1">' +
+                  '<div class="flex items-start justify-between gap-2">' +
+                  '<div>You are on the <strong>core</strong> (factory) console. Client-scoped work usually belongs on that client’s Change Console (same <code class="text-slate-300">/change</code> path on their hostname). Browsers cannot auto-switch hostnames. The link below opens the configured <strong>root-domain</strong> Change Console when that surface is the right target (for example public-site work).</div>' +
+                  '<button type="button" id="dismissCoreHint" class="shrink-0 rounded border border-amber-500/40 px-2 py-0.5 text-[10px] text-amber-200 hover:bg-amber-500/10">Dismiss</button>' +
+                  '</div>' +
+                  '<div class="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">' +
+                  '<a class="text-sky-300 underline" href="' +
+                  escapeHtml(tenantUrl) +
+                  '" target="_blank" rel="noopener">Open root-domain /change</a>' +
+                  '<span class="text-slate-500 break-all">' +
+                  escapeHtml(tenantUrl) +
+                  '</span>' +
+                  '</div>' +
+                  '</div>';
+              }
+            }
+
             setModeBar(
-              '<div class=\"flex items-center justify-between gap-2 flex-wrap\">' +
-                '<div><span class=\"text-slate-400\">Host</span> <span class=\"font-mono text-slate-200\">' +
+              '<div class="space-y-0">' +
+                '<div class="flex items-center justify-between gap-2 flex-wrap">' +
+                '<div><span class="text-slate-400">Host</span> <span class="font-mono text-slate-200">' +
                 escapeHtml(host || 'n/a') +
                 '</span></div>' +
-                '<div class=\"flex items-center gap-2\">' +
-                '<span class=\"rounded-full border border-slate-700 px-2 py-0.5 text-[11px] text-slate-300\">surface: ' +
+                '<div class="flex items-center gap-2">' +
+                '<span class="rounded-full border border-slate-700 px-2 py-0.5 text-[11px] text-slate-300">surface: ' +
                 escapeHtml(surface) +
                 '</span>' +
-                '<span class=\"rounded-full border border-slate-700 px-2 py-0.5 text-[11px] text-slate-300\">mode: ' +
+                '<span class="rounded-full border border-slate-700 px-2 py-0.5 text-[11px] text-slate-300">mode: ' +
                 escapeHtml(mode) +
                 '</span>' +
                 '</div>' +
-              '</div>'
+                '</div>' +
+                coreHintHtml +
+                '</div>',
             );
 
             // Keep existing badge behavior by calling /api/auth/me as a compatibility check.
@@ -623,15 +905,17 @@
           const d = String(descEl.value || '').trim();
           if (!d) return setBanner('Please describe the change you want.');
           try {
-            const created = await post('ticket-create', { description: d });
-            const tid = String(created.ticket_id || '').trim();
-            if (!tid) throw new Error('Missing ticket_id');
-            ticketEl.value = tid;
-            try { localStorage.setItem(LS_TICKET, tid); } catch {}
-            thread.innerHTML = '';
-            append('user', d);
-            setBrief({ ticket_id: tid, status: 'created' });
-            loadTicketList();
+            await withActivity('Creating ticket…', async () => {
+              const created = await post('ticket-create', { description: d });
+              const tid = String(created.ticket_id || '').trim();
+              if (!tid) throw new Error('Missing ticket_id');
+              ticketEl.value = tid;
+              try { localStorage.setItem(LS_TICKET, tid); } catch {}
+              thread.innerHTML = '';
+              append('user', d);
+              setBrief({ ticket_id: tid, status: 'created' });
+              loadTicketList();
+            });
           } catch (e) {
             setBanner(String(e.message || e));
           }
@@ -643,8 +927,10 @@
           const d = String(descEl.value || '').trim();
           if (!tid) return setBanner('Create or paste a Ticket ID first.');
           try {
-            const j = await post('costing-preview', { description: d, ticketId: tid, is_demo: false, tier: 'standard' });
-            setBrief({ ...(JSON.parse(briefEl.textContent || '{}') || {}), costing_preview: j });
+            await withActivity('Running estimate…', async () => {
+              const j = await post('costing-preview', { description: d, ticketId: tid, is_demo: false, tier: 'standard' });
+              setBrief({ ...(JSON.parse(briefEl.textContent || '{}') || {}), costing_preview: j });
+            });
           } catch (e) {
             setBanner(String(e.message || e));
           }
@@ -655,11 +941,19 @@
           const tid = String(ticketEl.value || '').trim();
           const d = String(descEl.value || '').trim();
           if (!tid) return setBanner('Create or paste a Ticket ID first.');
+          setPipelineSubmitting('Approve build');
           try {
-            const j = await post('approve-build', { ticket_id: tid, description: d, tier: 'standard', is_demo: false });
+            const j = await withActivity('Approve build: factory + GitHub…', async () =>
+              post('approve-build', { ticket_id: tid, description: d, tier: 'standard', is_demo: false }),
+            );
             setBrief({ ...(JSON.parse(briefEl.textContent || '{}') || {}), approve_build: j });
           } catch (e) {
             setBanner(String(e.message || e));
+            const prev = JSON.parse(briefEl.textContent || '{}') || {};
+            updatePipelineCardFromBrief({
+              ...prev,
+              approve_build: { ok: false, error: String(e.message || e), sandbox_branch: {} },
+            });
           }
         });
 
@@ -682,9 +976,11 @@
           append('user', msg);
           chatEl.value = '';
           try {
-            const j = await post('change-chat', { ticket_id: tid, message: msg, locale: localeSel.value || 'en' });
-            append('assistant', String(j.assistant || 'OK'));
-            setBrief({ ...(JSON.parse(briefEl.textContent || '{}') || {}), brief: j.brief || null });
+            await withActivity('Refining brief…', async () => {
+              const j = await post('change-chat', { ticket_id: tid, message: msg, locale: localeSel.value || 'en' });
+              append('assistant', String(j.assistant || 'OK'));
+              setBrief({ ...(JSON.parse(briefEl.textContent || '{}') || {}), brief: j.brief || null });
+            });
           } catch (e) {
             setBanner(String(e.message || e));
           }

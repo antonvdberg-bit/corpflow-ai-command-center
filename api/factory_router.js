@@ -291,6 +291,9 @@ async function handleUiContext(req, res) {
   const mode =
     req.corpflowUiMode ||
     resolveUiMode(ctx.host, ctx.surface);
+  const rootDomain = String(cfg('CORPFLOW_ROOT_DOMAIN', '')).trim();
+  const suggestedTenantConsoleUrl =
+    ctx.surface === 'core' && rootDomain ? `https://${rootDomain}/change` : null;
   return res.status(200).json({
     ok: true,
     host: ctx.host,
@@ -298,6 +301,8 @@ async function handleUiContext(req, res) {
     tenant_id: ctx.tenant_id,
     mode,
     session,
+    root_domain: rootDomain || null,
+    suggested_tenant_console_url: suggestedTenantConsoleUrl,
   });
 }
 
