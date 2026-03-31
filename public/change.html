@@ -135,7 +135,10 @@
           <div class="text-[11px] text-slate-500 mt-2">Stored in your browser for convenience.</div>
 
           <div class="mt-5 border-t border-slate-800 pt-4">
-            <div class="text-xs text-slate-300 mb-2">Brief</div>
+            <div class="text-xs text-slate-300 mb-1">Brief</div>
+            <p class="text-[10px] text-slate-500 mb-2 leading-relaxed">
+              Read-only overview: status, tasks and acceptance criteria, scope, risks, and estimate highlights. Full record is JSON below.
+            </p>
             <div
               id="briefSummary"
               class="rounded-xl border border-slate-800 bg-slate-950/60 p-3 text-[11px] text-slate-300 leading-relaxed space-y-3 min-h-[4.5rem] mb-3"
@@ -658,6 +661,320 @@
           return d.innerHTML;
         }
 
+        /**
+         * Resolves the structured change brief from merged UI state (top-level or inside console_json).
+         *
+         * @param {Record<string, unknown> | null} merged
+         * @returns {Record<string, unknown> | null}
+         */
+        function resolveStructuredBrief(merged) {
+          if (!merged || typeof merged !== 'object') return null;
+          const direct = merged.brief;
+          if (direct && typeof direct === 'object') {
+            const has = Object.keys(direct).some((k) => {
+              const v = /** @type {Record<string, unknown>} */ (direct)[k];
+              if (v == null) return false;
+              if (typeof v === 'string' && !String(v).trim()) return false;
+              if (Array.isArray(v) && v.length === 0) return false;
+              return true;
+            });
+            if (has) return /** @type {Record<string, unknown>} */ (direct);
+          }
+          const cj = merged.console_json;
+          if (cj && typeof cj === 'object') {
+            const inner = /** @type {Record<string, unknown>} */ (cj).brief;
+            if (inner && typeof inner === 'object') {
+              const hasInner = Object.keys(inner).some((k) => {
+                const v = /** @type {Record<string, unknown>} */ (inner)[k];
+                if (v == null) return false;
+                if (typeof v === 'string' && !String(v).trim()) return false;
+                if (Array.isArray(v) && v.length === 0) return false;
+                return true;
+              });
+              if (hasInner) return /** @type {Record<string, unknown>} */ (inner);
+            }
+          }
+          return null;
+        }
+
+        /**
+         * Collects human-readable task-like lines from a brief object.
+         *
+         * @param {Record<string, unknown> | null} br
+         * @returns {string[]}
+         */
+        function extractTaskLikeStrings(br) {
+          if (!br || typeof br !== 'object') return [];
+          const seen = new Set();
+          const out = [];
+          const add = (raw) => {
+            const t = String(raw || '').trim();
+            if (!t || seen.has(t)) return;
+            seen.add(t);
+            out.push(t);
+          };
+          const listKeys = [
+            'acceptance_criteria',
+            'tasks',
+            'work_items',
+            'deliverables',
+            'milestones',
+            'checklist',
+          ];
+          for (const k of listKeys) {
+            const v = br[k];
+            if (!Array.isArray(v)) continue;
+            for (const item of v) {
+              if (typeof item === 'string') add(item);
+              else if (item && typeof item === 'object') {
+                const o = /** @type {Record<string, unknown>} */ (item);
+                add(o.title || o.name || o.text || o.item || o.description || '');
+              }
+            }
+          }
+          return out;
+        }
+
+        /**
+         * Splits a scope string into non-empty lines for display.
+         *
+         * @param {unknown} raw
+         * @returns {string[]}
+         */
+        function scopeLines(raw) {
+          if (raw == null) return [];
+          if (Array.isArray(raw)) {
+            return raw.map((x) => String(x || '').trim()).filter(Boolean);
+          }
+          return String(raw)
+            .split(/\n|•|;/)
+            .map((x) => x.trim())
+            .filter(Boolean);
+        }
+
+        /**
+         * Renders the read-only brief summary panel from merged ticket state.
+         *
+         * @param {Record<string, unknown> | null} merged
+         * @returns {void}
+         */
+        function updateBriefSummary(merged) {
+          const el = $('briefSummary');
+          if (!el) return;
+          if (!merged) {
+            el.innerHTML =
+              '<p class="text-slate-500">No ticket loaded. Create a ticket or pick one from the list.</p>';
+            return;
+          }
+          const tid = String(merged.ticket_id || ticketEl.value || '').trim();
+          const br = resolveStructuredBrief(merged);
+          const cp = merged.costing_preview && typeof merged.costing_preview === 'object'
+            ? /** @type {Record<string, unknown>} */ (merged.costing_preview)
+            : null;
+          const parts = [];
+
+          const statusBits = [merged.status, merged.stage].filter(
+            (x) => x != null && String(x).trim() !== '',
+          );
+          if (statusBits.length) {
+            parts.push(
+              '<div><span class="text-slate-500">Ticket</span> ' +
+                (tid ? '<span class="font-mono text-slate-400">' + escapeHtml(tid) + '</span> · ' : '') +
+                '<span class="text-slate-200">' +
+                escapeHtml(statusBits.map((x) => String(x)).join(' · ')) +
+                '</span></div>',
+            );
+          } else if (tid) {
+            parts.push(
+              '<div><span class="text-slate-500">Ticket</span> <span class="font-mono text-slate-400">' +
+                escapeHtml(tid) +
+                '</span></div>',
+            );
+          }
+
+          if (br && typeof br.summary === 'string' && br.summary.trim()) {
+            parts.push(
+              '<div><div class="font-semibold text-slate-200 mb-1">Summary</div><p class="text-slate-300">' +
+                escapeHtml(br.summary.trim()) +
+                '</p></div>',
+            );
+          }
+
+          const tasks = extractTaskLikeStrings(br);
+          if (tasks.length) {
+            parts.push(
+              '<div><div class="font-semibold text-slate-200 mb-1">Tasks &amp; acceptance criteria</div>' +
+                '<ul class="list-disc pl-4 space-y-1 text-slate-300">' +
+                tasks.map((t) => '<li>' + escapeHtml(t) + '</li>').join('') +
+                '</ul></div>',
+            );
+          }
+
+          const sin = br ? scopeLines(br.scope_in) : [];
+          const sout = br ? scopeLines(br.scope_out) : [];
+          if (sin.length || sout.length) {
+            let scopeHtml = '<div><div class="font-semibold text-slate-200 mb-1">Scope</div>';
+            if (sin.length) {
+              scopeHtml +=
+                '<div class="text-slate-500 text-[10px] uppercase tracking-wide mb-0.5">In scope</div><ul class="list-disc pl-4 space-y-0.5 text-slate-300 mb-2">' +
+                sin.map((t) => '<li>' + escapeHtml(t) + '</li>').join('') +
+                '</ul>';
+            }
+            if (sout.length) {
+              scopeHtml +=
+                '<div class="text-slate-500 text-[10px] uppercase tracking-wide mb-0.5">Out of scope</div><ul class="list-disc pl-4 space-y-0.5 text-slate-300">' +
+                sout.map((t) => '<li>' + escapeHtml(t) + '</li>').join('') +
+                '</ul>';
+            }
+            scopeHtml += '</div>';
+            parts.push(scopeHtml);
+          }
+
+          if (br && Array.isArray(br.risks) && br.risks.length) {
+            const riskLines = br.risks
+              .map((r) => (typeof r === 'string' ? r.trim() : String(r || '').trim()))
+              .filter(Boolean);
+            if (riskLines.length) {
+              parts.push(
+                '<div><div class="font-semibold text-slate-200 mb-1">Risks</div><ul class="list-disc pl-4 space-y-1 text-slate-300">' +
+                  riskLines.map((t) => '<li>' + escapeHtml(t) + '</li>').join('') +
+                  '</ul></div>',
+              );
+            }
+          }
+
+          if (cp && cp.impact && typeof cp.impact === 'object') {
+            const imp = /** @type {Record<string, unknown>} */ (cp.impact);
+            const estSummary = typeof imp.summary === 'string' ? imp.summary.trim() : '';
+            const tr = Array.isArray(imp.technical_risks) ? imp.technical_risks : [];
+            if (estSummary || tr.length) {
+              let estHtml =
+                '<div><div class="font-semibold text-slate-200 mb-1">Estimate highlights</div>';
+              if (estSummary) {
+                estHtml += '<p class="text-slate-300 mb-2">' + escapeHtml(estSummary) + '</p>';
+              }
+              if (tr.length) {
+                estHtml += '<ul class="list-disc pl-4 space-y-1 text-slate-300">';
+                for (const row of tr) {
+                  if (row && typeof row === 'object') {
+                    const o = /** @type {Record<string, unknown>} */ (row);
+                    const area = String(o.area || 'Risk');
+                    const sev = o.severity != null ? ' (' + String(o.severity) + ')' : '';
+                    const mit = o.mitigation != null ? ' — ' + String(o.mitigation) : '';
+                    estHtml += '<li>' + escapeHtml(area + sev + mit) + '</li>';
+                  } else {
+                    estHtml += '<li>' + escapeHtml(String(row)) + '</li>';
+                  }
+                }
+                estHtml += '</ul>';
+              }
+              estHtml += '</div>';
+              parts.push(estHtml);
+            }
+          }
+
+          if (!parts.length) {
+            el.innerHTML =
+              '<p class="text-slate-500">No structured brief yet. Use <strong class="text-slate-400">Refine the request (chat)</strong> to capture summary, scope, and acceptance criteria, or run <strong class="text-slate-400">Estimate</strong> for impact and sizing.</p>';
+            return;
+          }
+          el.innerHTML = parts.join('');
+        }
+
+        /**
+         * Renders host/surface/mode and optional core environment hint from `uiContext`.
+         *
+         * @returns {void}
+         */
+        function renderModeBarFromUiContext() {
+          if (!uiContext || !uiContext.ok) {
+            setModeBar('');
+            return;
+          }
+          const mode = uiContext.mode != null ? String(uiContext.mode) : 'unknown';
+          const surface = uiContext.surface != null ? String(uiContext.surface) : 'tenant';
+          const host = uiContext.host != null ? String(uiContext.host) : '';
+          const tenantUrl =
+            uiContext.suggested_tenant_console_url != null
+              ? String(uiContext.suggested_tenant_console_url).trim()
+              : '';
+
+          let dismissed = false;
+          try {
+            dismissed = localStorage.getItem(LS_DISMISS_CORE) === '1';
+          } catch (_) {}
+
+          let coreSection = '';
+          if (surface === 'core' && tenantUrl) {
+            if (!dismissed) {
+              coreSection =
+                '<div class="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-100" data-core-hint="1">' +
+                '<div class="flex items-start justify-between gap-2">' +
+                '<div>You are on the <strong>core</strong> (factory) console. Client-scoped work usually belongs on that client’s Change Console (same <code class="text-slate-300">/change</code> path on their hostname). Browsers cannot auto-switch hostnames. The link below opens the configured <strong>root-domain</strong> Change Console when that surface is the right target (for example public-site work).</div>' +
+                '<button type="button" id="dismissCoreHint" class="shrink-0 rounded border border-amber-500/40 px-2 py-0.5 text-[10px] text-amber-200 hover:bg-amber-500/10">Dismiss</button>' +
+                '</div>' +
+                '<div class="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">' +
+                '<a class="text-sky-300 underline" href="' +
+                escapeHtml(tenantUrl) +
+                '" target="_blank" rel="noopener">Open root-domain /change</a>' +
+                '<span class="text-slate-500 break-all">' +
+                escapeHtml(tenantUrl) +
+                '</span>' +
+                '</div>' +
+                '</div>';
+            } else {
+              coreSection =
+                '<div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-500">' +
+                '<span>Environment hint dismissed.</span>' +
+                '<button type="button" id="showCoreHintAgain" class="text-sky-400 hover:text-sky-300 underline">' +
+                'Show again</button>' +
+                '</div>';
+            }
+          }
+
+          setModeBar(
+            '<div class="space-y-0">' +
+              '<div class="flex items-center justify-between gap-2 flex-wrap">' +
+              '<div><span class="text-slate-400">Host</span> <span class="font-mono text-slate-200">' +
+              escapeHtml(host || 'n/a') +
+              '</span></div>' +
+              '<div class="flex items-center gap-2">' +
+              '<span class="rounded-full border border-slate-700 px-2 py-0.5 text-[11px] text-slate-300">surface: ' +
+              escapeHtml(surface) +
+              '</span>' +
+              '<span class="rounded-full border border-slate-700 px-2 py-0.5 text-[11px] text-slate-300">mode: ' +
+              escapeHtml(mode) +
+              '</span>' +
+              '</div>' +
+              '</div>' +
+              coreSection +
+              '</div>',
+          );
+        }
+
+        const modeBarHost = $('modeBar');
+        if (modeBarHost) {
+          modeBarHost.addEventListener('click', (ev) => {
+            const t = ev.target;
+            if (!t || !(t instanceof HTMLElement)) return;
+            if (t.id === 'dismissCoreHint') {
+              ev.preventDefault();
+              try {
+                localStorage.setItem(LS_DISMISS_CORE, '1');
+              } catch (_) {}
+              renderModeBarFromUiContext();
+              return;
+            }
+            if (t.id === 'showCoreHintAgain') {
+              ev.preventDefault();
+              try {
+                localStorage.removeItem(LS_DISMISS_CORE);
+              } catch (_) {}
+              renderModeBarFromUiContext();
+            }
+          });
+        }
+
         async function loadTicketList() {
           const listEl = $('ticketList');
           if (!listEl) return;
@@ -725,6 +1042,10 @@
         // init defaults
         try { localeSel.value = (navigator.language || 'en').slice(0, 2); } catch {}
         try { ticketEl.value = localStorage.getItem(LS_TICKET) || ''; } catch {}
+        try {
+          const tid0 = String(ticketEl.value || '').trim();
+          updateBriefSummary(tid0 ? { ticket_id: tid0 } : null);
+        } catch (_) {}
 
         // Session badge + load ticket history when logged in
         fetch('/api/ui/context', { credentials: 'include' })
@@ -749,53 +1070,7 @@
               // keep chat visible by default; client consoles may want it.
             }
 
-            const tenantUrl =
-              uiContext && uiContext.suggested_tenant_console_url
-                ? String(uiContext.suggested_tenant_console_url).trim()
-                : '';
-            let coreHintHtml = '';
-            if (surface === 'core' && tenantUrl) {
-              let dismissed = false;
-              try {
-                dismissed = localStorage.getItem(LS_DISMISS_CORE) === '1';
-              } catch (_) {}
-              if (!dismissed) {
-                coreHintHtml =
-                  '<div class="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-100" data-core-hint="1">' +
-                  '<div class="flex items-start justify-between gap-2">' +
-                  '<div>You are on the <strong>core</strong> (factory) console. Client-scoped work usually belongs on that client’s Change Console (same <code class="text-slate-300">/change</code> path on their hostname). Browsers cannot auto-switch hostnames. The link below opens the configured <strong>root-domain</strong> Change Console when that surface is the right target (for example public-site work).</div>' +
-                  '<button type="button" id="dismissCoreHint" class="shrink-0 rounded border border-amber-500/40 px-2 py-0.5 text-[10px] text-amber-200 hover:bg-amber-500/10">Dismiss</button>' +
-                  '</div>' +
-                  '<div class="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">' +
-                  '<a class="text-sky-300 underline" href="' +
-                  escapeHtml(tenantUrl) +
-                  '" target="_blank" rel="noopener">Open root-domain /change</a>' +
-                  '<span class="text-slate-500 break-all">' +
-                  escapeHtml(tenantUrl) +
-                  '</span>' +
-                  '</div>' +
-                  '</div>';
-              }
-            }
-
-            setModeBar(
-              '<div class="space-y-0">' +
-                '<div class="flex items-center justify-between gap-2 flex-wrap">' +
-                '<div><span class="text-slate-400">Host</span> <span class="font-mono text-slate-200">' +
-                escapeHtml(host || 'n/a') +
-                '</span></div>' +
-                '<div class="flex items-center gap-2">' +
-                '<span class="rounded-full border border-slate-700 px-2 py-0.5 text-[11px] text-slate-300">surface: ' +
-                escapeHtml(surface) +
-                '</span>' +
-                '<span class="rounded-full border border-slate-700 px-2 py-0.5 text-[11px] text-slate-300">mode: ' +
-                escapeHtml(mode) +
-                '</span>' +
-                '</div>' +
-                '</div>' +
-                coreHintHtml +
-                '</div>',
-            );
+            renderModeBarFromUiContext();
 
             // Keep existing badge behavior by calling /api/auth/me as a compatibility check.
             return fetch('/api/auth/me', { credentials: 'include' }).then((r) => r.json()).catch(() => null);
@@ -927,10 +1202,8 @@
           const d = String(descEl.value || '').trim();
           if (!tid) return setBanner('Create or paste a Ticket ID first.');
           try {
-            await withActivity('Running estimate…', async () => {
-              const j = await post('costing-preview', { description: d, ticketId: tid, is_demo: false, tier: 'standard' });
-              setBrief({ ...(JSON.parse(briefEl.textContent || '{}') || {}), costing_preview: j });
-            });
+            const j = await post('costing-preview', { description: d, ticketId: tid, is_demo: false, tier: 'standard' });
+            setBrief({ ...(JSON.parse(briefEl.textContent || '{}') || {}), costing_preview: j });
           } catch (e) {
             setBanner(String(e.message || e));
           }
