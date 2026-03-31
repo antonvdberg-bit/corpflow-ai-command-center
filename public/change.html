@@ -108,7 +108,7 @@
               </button>
             </div>
             <div id="automationLinks" class="text-xs text-slate-300 space-y-2"></div>
-            <pre id="overseerOut" class="hidden mt-3 rounded-xl bg-slate-950 border border-slate-800 p-3 text-[11px] text-slate-200 whitespace-pre-wrap"></pre>
+            <div id="overseerOut" class="hidden mt-3 rounded-xl bg-slate-950 border border-slate-800 p-3 text-[11px] text-slate-200"></div>
             <div id="overseerHint" class="hidden text-[11px] text-slate-500 mt-2"></div>
           </div>
         </div>
@@ -214,16 +214,17 @@
           const sb = approve && approve.sandbox_branch ? approve.sandbox_branch : null;
 
           const links = [];
-          if (sb && sb.dispatch_triggered) {
-            links.push('<div class="text-[11px] text-slate-500">Sandbox dispatch accepted.</div>');
-          }
+          if (sb && sb.dispatch_triggered) links.push('<div class="text-[11px] text-emerald-300">Sandbox dispatch accepted</div>');
           if (sb && sb.workflow_url) links.push('<div>' + asLink(sb.workflow_url, 'Workflow (cmp-branch)') + '</div>');
           if (sb && sb.actions_url) links.push('<div>' + asLink(sb.actions_url, 'Actions (filtered by branch)') + '</div>');
           if (sb && sb.branch_url) links.push('<div>' + asLink(sb.branch_url, 'Sandbox branch') + '</div>');
           if (sb && sb.compare_url) links.push('<div>' + asLink(sb.compare_url, 'Compare (base…sandbox)') + '</div>');
 
           if (!links.length) {
-            automationLinksEl.innerHTML = '<div class="text-[11px] text-slate-500">No automation links yet. Click Approve build.</div>';
+            const tid = String(ticketEl && ticketEl.value ? ticketEl.value : '').trim();
+            automationLinksEl.innerHTML =
+              '<div class="text-[11px] text-slate-500">No automation links captured in this view yet.</div>' +
+              (tid ? '<div class="text-[11px] text-slate-600 mt-1">Tip: click <strong>Approve build</strong> again to capture links for ' + escapeHtml(tid) + '.</div>' : '');
           } else {
             automationLinksEl.innerHTML = links.join('');
           }
@@ -245,28 +246,82 @@
           if (!tid) return setBanner('Create or paste a Ticket ID first.');
           overseerOut.classList.add('hidden');
           overseerHint.classList.add('hidden');
-          overseerOut.textContent = 'Loading overseer view…';
+          overseerOut.innerHTML = '<div class="text-slate-400">Loading overseer view…</div>';
           overseerOut.classList.remove('hidden');
           try {
             const j = await post('overseer', { ticket_id: tid });
             const commits = Array.isArray(j.commits) ? j.commits : [];
             const files = Array.isArray(j.files) ? j.files : [];
-            const summary = {
-              ticket_id: j.ticket_id,
-              base_ref: j.base_ref,
-              branch_name: j.branch_name,
-              compare_url: j.compare_url,
-              commits_count: commits.length,
-              files_count: files.length,
-              commits: commits.slice(0, 20),
-              files: files.slice(0, 50),
-            };
-            overseerOut.textContent = JSON.stringify(summary, null, 2);
+
+            const top = [
+              '<div class="flex items-center justify-between gap-2 flex-wrap">',
+              '  <div class="text-slate-200 font-semibold">Overseer summary</div>',
+              '  <div class="text-[10px] text-slate-500 font-mono break-all">' + escapeHtml(String(j.branch_name || '')) + '</div>',
+              '</div>',
+              j.compare_url ? '<div class="mt-1">' + asLink(j.compare_url, 'Open compare diff') + '</div>' : '',
+              '<div class="mt-2 grid grid-cols-2 gap-2 text-[11px]">',
+              '  <div class="rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-2"><div class="text-slate-500">Commits</div><div class="text-slate-200 font-semibold mt-0.5">' +
+                escapeHtml(String(commits.length)) +
+                '</div></div>',
+              '  <div class="rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-2"><div class="text-slate-500">Files changed</div><div class="text-slate-200 font-semibold mt-0.5">' +
+                escapeHtml(String(files.length)) +
+                '</div></div>',
+              '</div>',
+            ].join('');
+
+            const commitRows = commits.slice(0, 12).map((c) => {
+              const sha = String(c.sha || '').slice(0, 7);
+              const msg = String(c.message || '').split('\n')[0].slice(0, 120);
+              const who = c.author ? String(c.author) : '';
+              const link = c.html_url ? asLink(c.html_url, sha || 'commit') : escapeHtml(sha || '');
+              return (
+                '<div class="rounded-lg border border-slate-800 bg-slate-950/30 px-3 py-2">' +
+                '<div class="text-[10px] text-slate-500 font-mono break-all">' +
+                link +
+                (who ? ' <span class="text-slate-600">by</span> ' + escapeHtml(who) : '') +
+                '</div>' +
+                '<div class="text-[11px] text-slate-200 mt-1">' +
+                escapeHtml(msg) +
+                '</div>' +
+                '</div>'
+              );
+            });
+            const fileRows = files.slice(0, 20).map((f) => {
+              const name = String(f.filename || '');
+              const status = String(f.status || '');
+              const changes = f.changes != null ? String(f.changes) : '';
+              const link = f.blob_url ? asLink(f.blob_url, name) : escapeHtml(name);
+              return (
+                '<div class="flex items-center justify-between gap-3 rounded-lg border border-slate-800 bg-slate-950/30 px-3 py-2">' +
+                '<div class="text-[11px] text-slate-200 break-all">' +
+                link +
+                '</div>' +
+                '<div class="text-[10px] text-slate-500 shrink-0">' +
+                escapeHtml(status) +
+                (changes ? ' · ' + escapeHtml(changes) : '') +
+                '</div>' +
+                '</div>'
+              );
+            });
+
+            overseerOut.innerHTML =
+              top +
+              (commitRows.length
+                ? '<div class="mt-3 text-[11px] text-slate-400">Recent commits</div><div class="mt-2 space-y-2">' +
+                  commitRows.join('') +
+                  '</div>'
+                : '<div class="mt-3 text-[11px] text-slate-500">No commits found (yet).</div>') +
+              (fileRows.length
+                ? '<div class="mt-4 text-[11px] text-slate-400">Changed files</div><div class="mt-2 space-y-2">' +
+                  fileRows.join('') +
+                  '</div>'
+                : '<div class="mt-3 text-[11px] text-slate-500">No files changed (yet).</div>');
+
             overseerHint.textContent =
-              'Overseer is best-effort: it lists commits/files on cmp/<ticket_id> versus base_ref. Open Compare for full diff.';
+              'Overseer is best-effort: it lists commits/files on cmp/<ticket_id> versus base_ref. For the authoritative diff, open Compare.';
             overseerHint.classList.remove('hidden');
           } catch (e) {
-            overseerOut.textContent = String(e.message || e);
+            overseerOut.innerHTML = '<div class="text-rose-300">' + escapeHtml(String(e.message || e)) + '</div>';
           }
         }
 
