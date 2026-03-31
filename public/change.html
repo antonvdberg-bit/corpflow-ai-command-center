@@ -81,7 +81,7 @@
               <button id="btnSend" class="rounded-lg bg-slate-200 text-slate-950 px-4 py-2 text-sm font-semibold">Send</button>
             </div>
             <div class="text-[11px] text-slate-500 mt-2">
-              Tip: With Postgres CMP, chat is stored in <code class="text-slate-300">cmp_tickets.console_json</code>. With Baserow, it uses <code class="text-slate-300">console_json</code> on the CMP row.
+              Tip: Chat and automation output are persisted with the ticket (Postgres-first). If an older backend is configured, persistence may fall back to the legacy store.
             </div>
           </div>
         </div>
@@ -94,6 +94,22 @@
           <div class="mt-5 border-t border-slate-800 pt-4">
             <div class="text-xs text-slate-300 mb-2">Brief</div>
             <pre id="brief" class="rounded-xl bg-slate-950 border border-slate-800 p-3 text-[11px] text-slate-200 whitespace-pre-wrap min-h-[240px]"></pre>
+          </div>
+
+          <div class="mt-5 border-t border-slate-800 pt-4">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <div class="text-xs text-slate-300 mb-2">Automation</div>
+              <button
+                id="btnOverseer"
+                type="button"
+                class="hidden text-xs rounded-lg border border-slate-600 px-3 py-1.5 text-slate-200 hover:bg-slate-800/60"
+              >
+                Overseer view
+              </button>
+            </div>
+            <div id="automationLinks" class="text-xs text-slate-300 space-y-2"></div>
+            <pre id="overseerOut" class="hidden mt-3 rounded-xl bg-slate-950 border border-slate-800 p-3 text-[11px] text-slate-200 whitespace-pre-wrap"></pre>
+            <div id="overseerHint" class="hidden text-[11px] text-slate-500 mt-2"></div>
           </div>
         </div>
       </div>
@@ -109,8 +125,13 @@
         const chatEl = $('chat');
         const thread = $('thread');
         const briefEl = $('brief');
+        const automationLinksEl = $('automationLinks');
+        const overseerBtn = $('btnOverseer');
+        const overseerOut = $('overseerOut');
+        const overseerHint = $('overseerHint');
 
         const LS_TICKET = 'corpflow_change_ticket_id';
+        let sessionInfo = { logged_in: false, level: 'anonymous' };
 
         function setBanner(msg) {
           if (!msg) {
@@ -165,6 +186,88 @@
 
         function setBrief(obj) {
           briefEl.textContent = obj ? JSON.stringify(obj, null, 2) : '';
+          renderAutomation(obj);
+        }
+        function asLink(href, label) {
+          if (!href) return '';
+          const safeHref = String(href);
+          const safeLabel = String(label || href);
+          return (
+            '<a class="text-sky-300 underline break-all" target="_blank" rel="noreferrer" href="' +
+            escapeHtml(safeHref) +
+            '">' +
+            escapeHtml(safeLabel) +
+            '</a>'
+          );
+        }
+
+        function renderAutomation(briefObj) {
+          if (!automationLinksEl) return;
+          let parsedExisting = null;
+          try {
+            parsedExisting = JSON.parse(briefEl.textContent || '');
+          } catch (_) {
+            parsedExisting = null;
+          }
+          const b = briefObj || parsedExisting || {};
+          const approve = b && b.approve_build ? b.approve_build : null;
+          const sb = approve && approve.sandbox_branch ? approve.sandbox_branch : null;
+
+          const links = [];
+          if (sb && sb.dispatch_triggered) {
+            links.push('<div class="text-[11px] text-slate-500">Sandbox dispatch accepted.</div>');
+          }
+          if (sb && sb.workflow_url) links.push('<div>' + asLink(sb.workflow_url, 'Workflow (cmp-branch)') + '</div>');
+          if (sb && sb.actions_url) links.push('<div>' + asLink(sb.actions_url, 'Actions (filtered by branch)') + '</div>');
+          if (sb && sb.branch_url) links.push('<div>' + asLink(sb.branch_url, 'Sandbox branch') + '</div>');
+          if (sb && sb.compare_url) links.push('<div>' + asLink(sb.compare_url, 'Compare (base…sandbox)') + '</div>');
+
+          if (!links.length) {
+            automationLinksEl.innerHTML = '<div class="text-[11px] text-slate-500">No automation links yet. Click Approve build.</div>';
+          } else {
+            automationLinksEl.innerHTML = links.join('');
+          }
+
+          // Overseer is admin-only.
+          if (overseerBtn) {
+            if (sessionInfo && sessionInfo.logged_in && String(sessionInfo.level || '').toLowerCase() === 'admin') {
+              overseerBtn.classList.remove('hidden');
+            } else {
+              overseerBtn.classList.add('hidden');
+            }
+          }
+        }
+
+        async function loadOverseer() {
+          setBanner('');
+          if (!overseerOut || !overseerHint) return;
+          const tid = String(ticketEl.value || '').trim();
+          if (!tid) return setBanner('Create or paste a Ticket ID first.');
+          overseerOut.classList.add('hidden');
+          overseerHint.classList.add('hidden');
+          overseerOut.textContent = 'Loading overseer view…';
+          overseerOut.classList.remove('hidden');
+          try {
+            const j = await post('overseer', { ticket_id: tid });
+            const commits = Array.isArray(j.commits) ? j.commits : [];
+            const files = Array.isArray(j.files) ? j.files : [];
+            const summary = {
+              ticket_id: j.ticket_id,
+              base_ref: j.base_ref,
+              branch_name: j.branch_name,
+              compare_url: j.compare_url,
+              commits_count: commits.length,
+              files_count: files.length,
+              commits: commits.slice(0, 20),
+              files: files.slice(0, 50),
+            };
+            overseerOut.textContent = JSON.stringify(summary, null, 2);
+            overseerHint.textContent =
+              'Overseer is best-effort: it lists commits/files on cmp/<ticket_id> versus base_ref. Open Compare for full diff.';
+            overseerHint.classList.remove('hidden');
+          } catch (e) {
+            overseerOut.textContent = String(e.message || e);
+          }
         }
 
         function escapeHtml(s) {
@@ -242,6 +345,7 @@
           .then((j) => {
             const el = $('sessionBadge');
             if (!el) return;
+            sessionInfo = j || { logged_in: false, level: 'anonymous' };
             if (j && j.logged_in) {
               el.textContent = j.level + (j.tenant_id ? ' (' + j.tenant_id + ')' : '');
               el.className = 'inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[11px] text-emerald-200';
@@ -325,6 +429,10 @@
             setBanner(String(e.message || e));
           }
         });
+
+        if (overseerBtn) {
+          overseerBtn.addEventListener('click', loadOverseer);
+        }
 
         async function send() {
           setBanner('');
