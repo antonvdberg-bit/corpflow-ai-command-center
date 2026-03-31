@@ -162,6 +162,22 @@
           thread.scrollTop = thread.scrollHeight;
         }
 
+        function replayThreadFromConsoleJson(consoleJson) {
+          try {
+            const msgs = consoleJson && Array.isArray(consoleJson.messages) ? consoleJson.messages : [];
+            if (!msgs.length) return;
+            // Avoid duplicating if thread already has content.
+            if (thread && thread.children && thread.children.length > 0) return;
+            for (const m of msgs.slice(-60)) {
+              if (!m || typeof m !== 'object') continue;
+              const role = m.role === 'assistant' ? 'assistant' : 'user';
+              const content = String(m.content || '');
+              if (!content.trim()) continue;
+              append(role, content);
+            }
+          } catch (_) {}
+        }
+
         async function post(action, body) {
           const r = await fetch('/api/cmp/router?action=' + encodeURIComponent(action), {
             method: 'POST',
@@ -426,6 +442,35 @@
             const el = $('sessionBadge');
             if (el) el.textContent = 'Session check failed';
           });
+
+        async function syncCurrentTicket() {
+          try {
+            if (!sessionInfo || !sessionInfo.logged_in) return;
+            const tid = String(ticketEl.value || '').trim();
+            if (!tid) return;
+            const gr = await fetch('/api/cmp/router?action=ticket-get&id=' + encodeURIComponent(tid), {
+              credentials: 'include',
+            });
+            const gj = await gr.json().catch(() => ({}));
+            if (!gr.ok) return;
+            const prev = JSON.parse(briefEl.textContent || '{}') || {};
+            // Merge in server truth (status/stage/description + admin console_json).
+            setBrief({ ...prev, ...gj, opened_from: prev.opened_from || 'sync' });
+            if ((!String(descEl.value || '').trim()) && gj.description) {
+              descEl.value = String(gj.description);
+            }
+            if (gj.console_json) {
+              replayThreadFromConsoleJson(gj.console_json);
+            }
+          } catch (_) {}
+        }
+
+        // Regular sync: keeps local view aligned with server-side updates (chat, overseer sweep, status/stage).
+        setInterval(() => {
+          syncCurrentTicket();
+          // Keep recent list fresh too (cheap + helpful after sweeps).
+          if (sessionInfo && sessionInfo.logged_in) loadTicketList();
+        }, 15000);
 
         $('btnLoadTickets').addEventListener('click', () => {
           loadTicketList();
