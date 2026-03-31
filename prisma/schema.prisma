@@ -68,3 +68,61 @@ model CmpTicket {
   @@index([stage])
   @@map("cmp_tickets")
 }
+
+model TenantPersona {
+  id                   String   @id @default(cuid())
+  tenantId             String   @unique @map("tenant_id")
+  tokenCreditBalanceUsd Float    @default(0) @map("token_credit_balance_usd")
+  autonomyLevel        Int?     @map("autonomy_level")
+  currentRank          String?  @map("current_rank")
+  personaJson          Json?    @map("persona_json")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@map("tenant_personas")
+}
+
+model TokenDebit {
+  id             String   @id @default(cuid())
+  occurredAt     DateTime @default(now()) @map("occurred_at")
+  tenantId       String   @map("tenant_id")
+  debitUsd       Float    @map("debit_usd")
+  invoiceUsd     Float?   @map("invoice_usd")
+  prevBalanceUsd Float?   @map("prev_balance_usd")
+  nextBalanceUsd Float?   @map("next_balance_usd")
+  context        Json?    @map("context_json")
+
+  @@index([tenantId])
+  @@index([occurredAt])
+  @@map("token_debits")
+}
+
+model TelemetryEvent {
+  id         String   @id @default(cuid())
+  occurredAt DateTime @default(now()) @map("occurred_at")
+  tenantId   String?  @map("tenant_id")
+  factoryId  String?  @map("factory_id")
+  eventType  String   @map("event_type")
+  cmpTicketId String? @map("cmp_ticket_id")
+  cmpAction  String?  @map("cmp_action")
+  payload    Json?    @map("payload_json")
+
+  @@index([tenantId])
+  @@index([eventType])
+  @@index([occurredAt])
+  @@map("telemetry_events")
+}
+
+model RecoveryVaultEntry {
+  id         String   @id @default(cuid())
+  occurredAt DateTime @default(now()) @map("occurred_at")
+  category   String?  @map("category")
+  payload    Json?    @map("payload_json")
+  status     String?  @default("PENDING_SYNC")
+
+  @@index([occurredAt])
+  @@index([status])
+  @@map("recovery_vault_entries")
+}
