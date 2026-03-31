@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       ticket_id:
-        description: 'Stable CMP ticket id (Baserow row id)'
+        description: 'Stable CMP ticket id (Postgres cmp_tickets.id)'
         required: true
         type: string
       base_ref:
