@@ -46,6 +46,26 @@
         <a class="text-sky-300 text-sm underline" href="/change">Go to Change Console</a>
         <button id="btnLogout" class="text-slate-300 text-sm underline">Logout</button>
       </div>
+
+      <div id="factoryTools" class="hidden mt-10 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-5">
+        <h2 class="text-sm font-semibold text-amber-100">Factory setup (one click)</h2>
+        <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+          Creates <code class="text-slate-300">tenants</code>, <code class="text-slate-300">auth_users</code>, and
+          <code class="text-slate-300">cmp_tickets</code> in your Postgres database if they are missing. Uses the same
+          <code class="text-slate-300">POSTGRES_URL</code> you set in Vercel. Safe to run more than once.
+        </p>
+        <button
+          id="btnEnsureDb"
+          type="button"
+          class="mt-4 w-full rounded-lg bg-amber-500 text-slate-950 px-4 py-2 text-sm font-semibold disabled:opacity-50"
+        >
+          Ensure Postgres tables
+        </button>
+        <pre
+          id="ensureDbOut"
+          class="mt-4 hidden max-h-48 overflow-auto rounded-lg border border-slate-800 bg-slate-950 p-3 text-xs text-slate-300 whitespace-pre-wrap"
+        ></pre>
+      </div>
     </div>
 
     <script>
@@ -83,20 +103,6 @@
           return j;
         }
 
-        $('btnAdmin').addEventListener('click', async () => {
-          err('');
-          try {
-            const j = await post('/api/auth/login', {
-              level: 'admin',
-              username: $('adminUser').value,
-              password: $('adminPass').value,
-            });
-            good('Logged in as admin. Session cookie set.');
-          } catch (e) {
-            err(String(e.message || e));
-          }
-        });
-
         $('btnTenant').addEventListener('click', async () => {
           err('');
           try {
@@ -116,20 +122,75 @@
           try {
             await post('/api/auth/logout', {});
             good('Logged out.');
+            $('factoryTools').classList.add('hidden');
+            $('ensureDbOut').classList.add('hidden');
+            $('ensureDbOut').textContent = '';
           } catch (e) {
             err(String(e.message || e));
           }
         });
 
-        // Show current session
-        fetch('/api/auth/me', { credentials: 'include' })
-          .then((r) => r.json())
-          .then((j) => {
+        async function refreshSessionBanner() {
+          try {
+            const r = await fetch('/api/auth/me', { credentials: 'include' });
+            const j = await r.json();
             if (j && j.logged_in) {
-              good('Already logged in as ' + j.level + (j.tenant_id ? ' (' + j.tenant_id + ')' : '') + '.');
+              good('Logged in as ' + j.level + (j.tenant_id ? ' (' + j.tenant_id + ')' : '') + '.');
+              if (j.level === 'admin') {
+                $('factoryTools').classList.remove('hidden');
+              } else {
+                $('factoryTools').classList.add('hidden');
+              }
+            } else {
+              $('factoryTools').classList.add('hidden');
             }
-          })
-          .catch(() => {});
+          } catch (_) {
+            $('factoryTools').classList.add('hidden');
+          }
+        }
+
+        $('btnEnsureDb').addEventListener('click', async () => {
+          err('');
+          const out = $('ensureDbOut');
+          const btn = $('btnEnsureDb');
+          out.classList.add('hidden');
+          out.textContent = '';
+          btn.disabled = true;
+          try {
+            const r = await fetch('/api/factory/postgres/ensure-schema', {
+              method: 'POST',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: '{}',
+            });
+            const j = await r.json().catch(() => ({}));
+            out.classList.remove('hidden');
+            out.textContent = JSON.stringify(j, null, 2);
+            if (!r.ok) throw new Error(j.error || j.detail || 'http_' + r.status);
+            good('Database tables ensured. See details below.');
+          } catch (e) {
+            err(String(e.message || e));
+          } finally {
+            btn.disabled = false;
+          }
+        });
+
+        $('btnAdmin').addEventListener('click', async () => {
+          err('');
+          try {
+            await post('/api/auth/login', {
+              level: 'admin',
+              username: $('adminUser').value,
+              password: $('adminPass').value,
+            });
+            good('Logged in as admin. Session cookie set.');
+            await refreshSessionBanner();
+          } catch (e) {
+            err(String(e.message || e));
+          }
+        });
+
+        refreshSessionBanner();
       })();
     </script>
   </body>

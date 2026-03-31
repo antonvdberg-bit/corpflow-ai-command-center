@@ -15,6 +15,7 @@ import provisionHandler from '../lib/server/provision.js';
 import webhookHandler from '../lib/server/webhook.js';
 import tenantsOverviewHandler from '../lib/server/tenants-overview.js';
 import baserowSchemaHandler from '../lib/server/baserow-schema.js';
+import postgresFactorySchemaHandler from '../lib/server/postgres-factory-schema.js';
 import { handleAuthLogin, handleAuthLogout, handleAuthMe } from '../lib/server/auth.js';
 import { buildCorpflowHostContext } from '../lib/server/host-tenant-context.js';
 import { cfg, runtimeConfigDiagnostics } from '../lib/server/runtime-config.js';
@@ -252,6 +253,9 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'factory/baserow/ensure-console-field') {
     return baserowSchemaHandler(req, res);
+  }
+  if (pathSeg === 'factory/postgres/ensure-schema') {
+    return postgresFactorySchemaHandler(req, res);
   }
 
   switch (pathSeg) {
