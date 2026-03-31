@@ -64,7 +64,7 @@
               <button id="btnSend" class="rounded-lg bg-slate-200 text-slate-950 px-4 py-2 text-sm font-semibold">Send</button>
             </div>
             <div class="text-[11px] text-slate-500 mt-2">
-              Tip: This writes to the CMP ticket’s <code class="text-slate-300">console_json</code> field (or <code class="text-slate-300">BASEROW_CMP_CONSOLE_JSON_FIELD</code>).
+              Tip: With Postgres CMP, chat is stored in <code class="text-slate-300">cmp_tickets.console_json</code>. With Baserow, it uses <code class="text-slate-300">console_json</code> on the CMP row.
             </div>
           </div>
         </div>
