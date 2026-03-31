@@ -18,6 +18,7 @@
         <a class="text-sky-300 text-sm underline" href="/?admin=true">Back to intake</a>
       </div>
 
+      <div id="modeBar" class="hidden mt-4 rounded-xl border border-slate-800 bg-slate-900/30 px-4 py-3 text-xs text-slate-200"></div>
       <div id="banner" class="hidden mt-6 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-rose-200 text-sm"></div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-6">
@@ -132,6 +133,7 @@
 
         const LS_TICKET = 'corpflow_change_ticket_id';
         let sessionInfo = { logged_in: false, level: 'anonymous' };
+        let uiContext = null;
 
         function setBanner(msg) {
           if (!msg) {
@@ -141,6 +143,18 @@
           }
           banner.classList.remove('hidden');
           banner.textContent = msg;
+        }
+
+        function setModeBar(html) {
+          const el = $('modeBar');
+          if (!el) return;
+          if (!html) {
+            el.classList.add('hidden');
+            el.innerHTML = '';
+            return;
+          }
+          el.classList.remove('hidden');
+          el.innerHTML = html;
         }
 
         function headers() {
@@ -418,6 +432,72 @@
         try { ticketEl.value = localStorage.getItem(LS_TICKET) || ''; } catch {}
 
         // Session badge + load ticket history when logged in
+        fetch('/api/ui/context', { credentials: 'include' })
+          .then((r) => r.json())
+          .then((j) => {
+            uiContext = j && j.ok ? j : null;
+            sessionInfo = (uiContext && uiContext.session) || { logged_in: false, level: 'anonymous' };
+
+            const mode = uiContext && uiContext.mode ? String(uiContext.mode) : 'unknown';
+            const surface = uiContext && uiContext.surface ? String(uiContext.surface) : 'tenant';
+            const host = uiContext && uiContext.host ? String(uiContext.host) : '';
+
+            const isAdmin = sessionInfo && sessionInfo.logged_in && String(sessionInfo.level || '').toLowerCase() === 'admin';
+            const isClient = surface === 'tenant' && !isAdmin;
+
+            // Apply rule sets (UI only; server still enforces auth).
+            if (isClient) {
+              // Client-hosted consoles should not expose approve build.
+              const approveBtn = $('btnApprove');
+              if (approveBtn) approveBtn.classList.add('hidden');
+              const chatWrap = $('thread') && $('thread').parentElement ? $('thread').parentElement : null;
+              // keep chat visible by default; client consoles may want it.
+            }
+
+            setModeBar(
+              '<div class=\"flex items-center justify-between gap-2 flex-wrap\">' +
+                '<div><span class=\"text-slate-400\">Host</span> <span class=\"font-mono text-slate-200\">' +
+                escapeHtml(host || 'n/a') +
+                '</span></div>' +
+                '<div class=\"flex items-center gap-2\">' +
+                '<span class=\"rounded-full border border-slate-700 px-2 py-0.5 text-[11px] text-slate-300\">surface: ' +
+                escapeHtml(surface) +
+                '</span>' +
+                '<span class=\"rounded-full border border-slate-700 px-2 py-0.5 text-[11px] text-slate-300\">mode: ' +
+                escapeHtml(mode) +
+                '</span>' +
+                '</div>' +
+              '</div>'
+            );
+
+            // Keep existing badge behavior by calling /api/auth/me as a compatibility check.
+            return fetch('/api/auth/me', { credentials: 'include' }).then((r) => r.json()).catch(() => null);
+          })
+          .then((j) => {
+            if (!j) return;
+            const el = $('sessionBadge');
+            if (!el) return;
+            if (j && j.logged_in) {
+              el.textContent = j.level + (j.tenant_id ? ' (' + j.tenant_id + ')' : '');
+              el.className = 'inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[11px] text-emerald-200';
+              loadTicketList();
+            } else {
+              el.textContent = 'Not logged in';
+              el.className = 'inline-flex items-center rounded-full border border-slate-700 px-3 py-1 text-[11px] text-slate-300';
+              const listEl = $('ticketList');
+              if (listEl) {
+                listEl.innerHTML =
+                  '<div class="text-slate-500 px-1 py-2"><a class="text-sky-300 underline" href="/login">Log in</a> to see your tickets.</div>';
+              }
+            }
+          })
+          .catch(() => {
+            const el = $('sessionBadge');
+            if (el) el.textContent = 'Session check failed';
+          });
+
+        // Legacy (kept): previous /api/auth/me block removed in favor of /api/ui/context.
+        /*
         fetch('/api/auth/me', { credentials: 'include' })
           .then((r) => r.json())
           .then((j) => {
@@ -442,6 +522,7 @@
             const el = $('sessionBadge');
             if (el) el.textContent = 'Session check failed';
           });
+        */
 
         async function syncCurrentTicket() {
           try {

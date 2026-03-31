@@ -19,6 +19,7 @@ import postgresFactorySchemaHandler from '../lib/server/postgres-factory-schema.
 import { handleAuthLogin, handleAuthLogout, handleAuthMe } from '../lib/server/auth.js';
 import { buildCorpflowHostContext } from '../lib/server/host-tenant-context.js';
 import { cfg, runtimeConfigDiagnostics } from '../lib/server/runtime-config.js';
+import { getSessionFromRequest } from '../lib/server/session.js';
 
 const prisma = new PrismaClient();
 
@@ -222,6 +223,49 @@ async function handleStats(req, res) {
   }
 }
 
+function resolveUiMode(host, surface) {
+  const mapRaw = String(cfg('CORPFLOW_HOST_MODE_MAP', '')).trim();
+  if (mapRaw) {
+    try {
+      const m = JSON.parse(mapRaw);
+      if (m && typeof m === 'object') {
+        const v = m[String(host || '').toLowerCase()];
+        if (typeof v === 'string' && v.trim() !== '') return v.trim().toLowerCase();
+      }
+    } catch (_) {
+      // ignore invalid JSON
+    }
+  }
+  if (surface === 'core') return 'core';
+  return 'client';
+}
+
+async function handleUiContext(req, res) {
+  if (req.method !== 'GET') {
+    res.setHeader('Allow', 'GET');
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+  const ctx = req.corpflowContext || buildCorpflowHostContext(req);
+  const sess = getSessionFromRequest(req);
+  const session = sess?.ok
+    ? {
+        logged_in: true,
+        level: sess.payload?.typ || 'unknown',
+        tenant_id: sess.payload?.tenant_id != null ? String(sess.payload.tenant_id) : null,
+      }
+    : { logged_in: false, level: 'anonymous', tenant_id: null };
+
+  const mode = resolveUiMode(ctx.host, ctx.surface);
+  return res.status(200).json({
+    ok: true,
+    host: ctx.host,
+    surface: ctx.surface,
+    tenant_id: ctx.tenant_id,
+    mode,
+    session,
+  });
+}
+
 export default async function handler(req, res) {
   const pathSeg = normalizeRoutingPath(req);
   attachTenantFromHost(req);
@@ -241,6 +285,9 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'stats') {
     return handleStats(req, res);
+  }
+  if (pathSeg === 'ui/context') {
+    return handleUiContext(req, res);
   }
 
   if (pathSeg.startsWith('cmp') || pathSeg.startsWith('cmp/')) {
