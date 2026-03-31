@@ -14,7 +14,6 @@ import mainHandler from '../lib/server/main.js';
 import provisionHandler from '../lib/server/provision.js';
 import webhookHandler from '../lib/server/webhook.js';
 import tenantsOverviewHandler from '../lib/server/tenants-overview.js';
-import baserowSchemaHandler from '../lib/server/baserow-schema.js';
 import postgresFactorySchemaHandler from '../lib/server/postgres-factory-schema.js';
 import tenantHostMapUpsertHandler from '../lib/server/tenant-host-map.js';
 import { handleAuthLogin, handleAuthLogout, handleAuthMe } from '../lib/server/auth.js';
@@ -142,7 +141,6 @@ async function handleFactoryHealth(req, res) {
 
   const required = {
     sovereign: ['MASTER_ADMIN_KEY', 'SOVEREIGN_SESSION_SECRET'],
-    baserow: ['BASEROW_URL', 'BASEROW_TOKEN', 'BASEROW_TENANT_TABLE_ID', 'BASEROW_CMP_TABLE_ID'],
     database: ['POSTGRES_URL'],
   };
 
@@ -334,9 +332,6 @@ export default async function handler(req, res) {
 
   if (pathSeg === 'factory/tenants-overview') {
     return tenantsOverviewHandler(req, res);
-  }
-  if (pathSeg === 'factory/baserow/ensure-console-field') {
-    return baserowSchemaHandler(req, res);
   }
   if (pathSeg === 'factory/postgres/ensure-schema') {
     return postgresFactorySchemaHandler(req, res);

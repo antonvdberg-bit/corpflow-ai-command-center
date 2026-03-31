@@ -327,7 +327,7 @@ export default function ChangeConsolePage() {
           </pre>
 
           <div style={{ marginTop: 10, fontSize: 12, color: '#64748b' }}>
-            Tip: create a Baserow text field named <code>console_json</code> (or set <code>BASEROW_CMP_CONSOLE_JSON_FIELD</code>) to persist this.
+            Tip: Chat and automation output persist on the ticket record (Postgres).
           </div>
         </div>
       </div>
