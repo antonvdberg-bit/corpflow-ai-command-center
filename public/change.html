@@ -212,6 +212,7 @@
           const b = briefObj || parsedExisting || {};
           const approve = b && b.approve_build ? b.approve_build : null;
           const sb = approve && approve.sandbox_branch ? approve.sandbox_branch : null;
+          const storedOverseer = b && b.console_json && b.console_json.overseer ? b.console_json.overseer : (b.overseer || null);
 
           const links = [];
           if (sb && sb.dispatch_triggered) links.push('<div class="text-[11px] text-emerald-300">Sandbox dispatch accepted</div>');
@@ -219,6 +220,7 @@
           if (sb && sb.actions_url) links.push('<div>' + asLink(sb.actions_url, 'Actions (filtered by branch)') + '</div>');
           if (sb && sb.branch_url) links.push('<div>' + asLink(sb.branch_url, 'Sandbox branch') + '</div>');
           if (sb && sb.compare_url) links.push('<div>' + asLink(sb.compare_url, 'Compare (base…sandbox)') + '</div>');
+          if (storedOverseer && storedOverseer.compare_url) links.push('<div>' + asLink(storedOverseer.compare_url, 'Latest overseer compare') + '</div>');
 
           if (!links.length) {
             const tid = String(ticketEl && ticketEl.value ? ticketEl.value : '').trim();
@@ -379,6 +381,11 @@
                   const gj = await gr.json().catch(() => ({}));
                   if (gr.ok && gj.description != null && String(gj.description).trim() !== '') {
                     descEl.value = String(gj.description);
+                  }
+                  // Admin-only: hydrate stored overseer report if present.
+                  if (gr.ok && gj && typeof gj === 'object') {
+                    const prev = JSON.parse(briefEl.textContent || '{}') || {};
+                    setBrief({ ...prev, ...gj });
                   }
                 } catch (_) {}
               });
