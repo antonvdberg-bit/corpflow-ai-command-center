@@ -13,6 +13,10 @@
     {
       "path": "/api/cron/billing-sentinel",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cmp/overseer-sweep-cron",
+      "schedule": "*/10 * * * *"
     }
   ]
 }

@@ -100,13 +100,29 @@
           <div class="mt-5 border-t border-slate-800 pt-4">
             <div class="flex items-center justify-between gap-2 flex-wrap">
               <div class="text-xs text-slate-300 mb-2">Automation</div>
-              <button
-                id="btnOverseer"
-                type="button"
-                class="hidden text-xs rounded-lg border border-slate-600 px-3 py-1.5 text-slate-200 hover:bg-slate-800/60"
-              >
-                Overseer view
-              </button>
+              <div class="flex items-center gap-2 flex-wrap">
+                <button
+                  id="btnPromotionRefresh"
+                  type="button"
+                  class="hidden text-xs rounded-lg border border-slate-600 px-3 py-1.5 text-slate-200 hover:bg-slate-800/60"
+                >
+                  Refresh promotion
+                </button>
+                <button
+                  id="btnPromotionMerge"
+                  type="button"
+                  class="hidden text-xs rounded-lg border border-emerald-600/60 bg-emerald-500/10 px-3 py-1.5 text-emerald-200 hover:bg-emerald-500/20"
+                >
+                  Merge (admin)
+                </button>
+                <button
+                  id="btnOverseer"
+                  type="button"
+                  class="hidden text-xs rounded-lg border border-slate-600 px-3 py-1.5 text-slate-200 hover:bg-slate-800/60"
+                >
+                  Overseer view
+                </button>
+              </div>
             </div>
             <div id="automationLinks" class="text-xs text-slate-300 space-y-2"></div>
             <div id="overseerOut" class="hidden mt-3 rounded-xl bg-slate-950 border border-slate-800 p-3 text-[11px] text-slate-200"></div>
@@ -128,6 +144,8 @@
         const briefEl = $('brief');
         const automationLinksEl = $('automationLinks');
         const overseerBtn = $('btnOverseer');
+        const promotionRefreshBtn = $('btnPromotionRefresh');
+        const promotionMergeBtn = $('btnPromotionMerge');
         const overseerOut = $('overseerOut');
         const overseerHint = $('overseerHint');
 
@@ -243,6 +261,7 @@
           const approve = b && b.approve_build ? b.approve_build : null;
           const sb = approve && approve.sandbox_branch ? approve.sandbox_branch : null;
           const storedOverseer = b && b.console_json && b.console_json.overseer ? b.console_json.overseer : (b.overseer || null);
+          const storedPromotion = b && b.console_json && b.console_json.promotion ? b.console_json.promotion : (b.promotion || null);
 
           const links = [];
           if (sb && sb.dispatch_triggered) links.push('<div class="text-[11px] text-emerald-300">Sandbox dispatch accepted</div>');
@@ -251,6 +270,8 @@
           if (sb && sb.branch_url) links.push('<div>' + asLink(sb.branch_url, 'Sandbox branch') + '</div>');
           if (sb && sb.compare_url) links.push('<div>' + asLink(sb.compare_url, 'Compare (base…sandbox)') + '</div>');
           if (storedOverseer && storedOverseer.compare_url) links.push('<div>' + asLink(storedOverseer.compare_url, 'Latest overseer compare') + '</div>');
+          if (storedPromotion && storedPromotion.pr_url) links.push('<div>' + asLink(storedPromotion.pr_url, 'Promotion PR') + '</div>');
+          if (storedPromotion && storedPromotion.last_error) links.push('<div class="text-[11px] text-rose-300">Promotion error: ' + escapeHtml(String(storedPromotion.last_error)) + '</div>');
 
           if (!links.length) {
             const tid = String(ticketEl && ticketEl.value ? ticketEl.value : '').trim();
@@ -261,13 +282,37 @@
             automationLinksEl.innerHTML = links.join('');
           }
 
-          // Overseer is admin-only.
-          if (overseerBtn) {
-            if (sessionInfo && sessionInfo.logged_in && String(sessionInfo.level || '').toLowerCase() === 'admin') {
-              overseerBtn.classList.remove('hidden');
-            } else {
-              overseerBtn.classList.add('hidden');
-            }
+          const isAdmin = sessionInfo && sessionInfo.logged_in && String(sessionInfo.level || '').toLowerCase() === 'admin';
+          if (overseerBtn) overseerBtn.classList.toggle('hidden', !isAdmin);
+          if (promotionRefreshBtn) promotionRefreshBtn.classList.toggle('hidden', !isAdmin);
+          if (promotionMergeBtn) {
+            const hasPr = Boolean(storedPromotion && storedPromotion.pr_url);
+            promotionMergeBtn.classList.toggle('hidden', !isAdmin || !hasPr);
+          }
+        }
+
+        async function refreshPromotion() {
+          setBanner('');
+          const tid = String(ticketEl.value || '').trim();
+          if (!tid) return setBanner('Create or paste a Ticket ID first.');
+          try {
+            await post('promote-status', { ticket_id: tid });
+            await syncCurrentTicket();
+          } catch (e) {
+            setBanner('Promotion refresh failed: ' + String(e && e.message ? e.message : e));
+          }
+        }
+
+        async function mergePromotion() {
+          setBanner('');
+          const tid = String(ticketEl.value || '').trim();
+          if (!tid) return setBanner('Create or paste a Ticket ID first.');
+          try {
+            const j = await post('promote-merge', { ticket_id: tid });
+            setBanner('Merged ' + (j.pr_url ? String(j.pr_url) : 'promotion PR') + '.');
+            await syncCurrentTicket();
+          } catch (e) {
+            setBanner('Merge failed: ' + String(e && e.message ? e.message : e));
           }
         }
 
@@ -620,6 +665,12 @@
 
         if (overseerBtn) {
           overseerBtn.addEventListener('click', loadOverseer);
+        }
+        if (promotionRefreshBtn) {
+          promotionRefreshBtn.addEventListener('click', refreshPromotion);
+        }
+        if (promotionMergeBtn) {
+          promotionMergeBtn.addEventListener('click', mergePromotion);
         }
 
         async function send() {

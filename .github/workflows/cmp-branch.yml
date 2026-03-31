@@ -29,6 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
     steps:
       - name: Resolve ticket and base ref
         id: meta
@@ -57,3 +58,51 @@ jobs:
           git fetch origin "$BASE_REF"
           git checkout -B "cmp/${TICKET}" "origin/${BASE_REF}"
           git push -u origin "HEAD:refs/heads/cmp/${TICKET}" --force
+
+      - name: Ensure PR exists for cmp/${{ steps.meta.outputs.ticket }}
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          TICKET="${{ steps.meta.outputs.ticket }}"
+          BASE="${{ steps.meta.outputs.base }}"
+          OWNER_REPO="${{ github.repository }}"
+          OWNER="$(echo "$OWNER_REPO" | cut -d/ -f1)"
+          REPO="$(echo "$OWNER_REPO" | cut -d/ -f2)"
+          HEAD="${OWNER}:cmp/${TICKET}"
+
+          # If PR already exists, reuse it.
+          EXISTING_JSON="$(curl -sS -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${OWNER}/${REPO}/pulls?state=open&head=$(python - <<'PY'\nimport urllib.parse\nprint(urllib.parse.quote('''"${HEAD}"'''))\nPY)&base=$(python - <<'PY'\nimport urllib.parse\nprint(urllib.parse.quote('''"${BASE}"'''))\nPY)")"
+          PR_NUMBER="$(echo "$EXISTING_JSON" | python - <<'PY'\nimport json,sys\ntry:\n  arr=json.load(sys.stdin)\n  print(arr[0].get('number','') if arr else '')\nexcept Exception:\n  print('')\nPY)"
+          PR_URL="$(echo "$EXISTING_JSON" | python - <<'PY'\nimport json,sys\ntry:\n  arr=json.load(sys.stdin)\n  print(arr[0].get('html_url','') if arr else '')\nexcept Exception:\n  print('')\nPY)"
+
+          if [ -z "$PR_NUMBER" ]; then
+            TITLE="CMP ${TICKET}: sandbox branch"
+            BODY="Auto-created by CMP automation.\n\n- Ticket: ${TICKET}\n- Base: ${BASE}\n- Head: cmp/${TICKET}\n"
+            CREATE_JSON="$(curl -sS -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${OWNER}/${REPO}/pulls" \
+              -d "$(python - <<'PY'\nimport json\nprint(json.dumps({\n  'title': '''"${TITLE}"''',\n  'head': '''"cmp/${TICKET}"''',\n  'base': '''"${BASE}"''',\n  'body': '''"${BODY}"'''\n}))\nPY)")"
+            PR_NUMBER="$(echo "$CREATE_JSON" | python - <<'PY'\nimport json,sys\ntry:\n  obj=json.load(sys.stdin)\n  print(obj.get('number',''))\nexcept Exception:\n  print('')\nPY)"
+            PR_URL="$(echo "$CREATE_JSON" | python - <<'PY'\nimport json,sys\ntry:\n  obj=json.load(sys.stdin)\n  print(obj.get('html_url',''))\nexcept Exception:\n  print('')\nPY)"
+          fi
+
+          echo "number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
+          echo "url=${PR_URL}" >> "$GITHUB_OUTPUT"
+
+      - name: Callback to Change Console (optional)
+        if: ${{ secrets.CMP_AUTOMATION_CALLBACK_URL != '' && secrets.CMP_AUTOMATION_CALLBACK_SECRET != '' }}
+        env:
+          CALLBACK_URL: ${{ secrets.CMP_AUTOMATION_CALLBACK_URL }}
+          CALLBACK_SECRET: ${{ secrets.CMP_AUTOMATION_CALLBACK_SECRET }}
+        run: |
+          set -e
+          TICKET="${{ steps.meta.outputs.ticket }}"
+          BASE="${{ steps.meta.outputs.base }}"
+          PR_NUMBER="${{ steps.pr.outputs.number }}"
+          PR_URL="${{ steps.pr.outputs.url }}"
+          curl -sS -X POST "$CALLBACK_URL" \
+            -H "Content-Type: application/json" \
+            -H "x-cmp-automation-secret: $CALLBACK_SECRET" \
+            -d "$(python - <<'PY'\nimport json\nprint(json.dumps({\n  'event': 'cmp_pr_ready',\n  'ticket_id': '''"${TICKET}"''',\n  'base_ref': '''"${BASE}"''',\n  'branch_name': '''"cmp/${TICKET}"''',\n  'pr_number': int('''"${PR_NUMBER}"''' or '0') or None,\n  'pr_url': '''"${PR_URL}"''' or None\n}))\nPY)" >/dev/null
