@@ -153,9 +153,12 @@
           err('');
           const out = $('ensureDbOut');
           const btn = $('btnEnsureDb');
+          const tools = $('factoryTools');
           out.classList.add('hidden');
           out.textContent = '';
           btn.disabled = true;
+          const prevLabel = btn.textContent;
+          btn.textContent = 'Working…';
           try {
             const r = await fetch('/api/factory/postgres/ensure-schema', {
               method: 'POST',
@@ -163,15 +166,28 @@
               headers: { 'Content-Type': 'application/json' },
               body: '{}',
             });
-            const j = await r.json().catch(() => ({}));
+            const text = await r.text();
+            let j = {};
+            try {
+              j = text ? JSON.parse(text) : {};
+            } catch {
+              j = { raw: text.slice(0, 500) };
+            }
             out.classList.remove('hidden');
             out.textContent = JSON.stringify(j, null, 2);
-            if (!r.ok) throw new Error(j.error || j.detail || 'http_' + r.status);
-            good('Database tables ensured. See details below.');
+            if (!r.ok) throw new Error(j.error || j.detail || j.hint || text || 'http_' + r.status);
+            good(
+              'Success: Postgres tables are ready (tenants, auth_users, cmp_tickets). Next: open Change Console or add users to auth_users.',
+            );
+            tools.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            out.scrollIntoView({ behavior: 'smooth', block: 'end' });
           } catch (e) {
             err(String(e.message || e));
+            out.classList.remove('hidden');
+            if (!out.textContent) out.textContent = String(e.message || e);
           } finally {
             btn.disabled = false;
+            btn.textContent = prevLabel;
           }
         });
 
