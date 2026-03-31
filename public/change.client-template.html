@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Client Change Console</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="min-h-screen bg-slate-950 text-slate-100">
+    <div class="max-w-4xl mx-auto px-4 py-10">
+      <div class="flex items-start justify-between gap-6 flex-wrap">
+        <div>
+          <h1 class="text-2xl font-semibold tracking-tight">Change Console</h1>
+          <p class="text-slate-400 text-sm mt-1">
+            Client-facing view (restricted). Create tickets, estimate, and monitor progress.
+          </p>
+        </div>
+        <a class="text-sky-300 text-sm underline" href="/login">Login</a>
+      </div>
+
+      <div id="banner" class="hidden mt-6 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-rose-200 text-sm"></div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-6">
+        <div class="lg:col-span-2 rounded-2xl border border-slate-800 bg-slate-900/30 p-4">
+          <div class="mt-1 text-xs text-slate-300 mb-2">Describe the change</div>
+          <textarea id="desc" class="w-full min-h-[140px] rounded-xl bg-slate-950 border border-slate-800 px-3 py-3 text-sm" placeholder="Describe what you want changed in plain language…"></textarea>
+          <div class="flex flex-wrap gap-2 mt-3">
+            <button id="btnCreate" class="rounded-lg bg-sky-500 text-slate-950 px-4 py-2 text-sm font-semibold">Create ticket</button>
+            <button id="btnCost" class="rounded-lg border border-slate-700 px-4 py-2 text-sm">Estimate</button>
+            <button id="btnReset" class="rounded-lg border border-slate-800 px-4 py-2 text-sm text-slate-300">Reset</button>
+          </div>
+
+          <div class="mt-6 border-t border-slate-800 pt-4">
+            <div class="text-xs text-slate-300 mb-2">Chat refine</div>
+            <div id="thread" class="rounded-xl border border-slate-800 bg-slate-950/40 p-3 min-h-[220px] space-y-3 overflow-auto"></div>
+            <div class="flex gap-2 mt-3">
+              <input id="chat" class="flex-1 rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" placeholder="Type a message and press Enter…" />
+              <button id="btnSend" class="rounded-lg bg-slate-200 text-slate-950 px-4 py-2 text-sm font-semibold">Send</button>
+            </div>
+            <div class="text-[11px] text-slate-500 mt-2">
+              This view never exposes operator-only automation controls.
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/30 p-4">
+          <div class="text-xs text-slate-300">Ticket ID</div>
+          <input id="ticket" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" placeholder="Paste ticket_id" />
+          <div class="text-[11px] text-slate-500 mt-2">Stored in your browser for convenience.</div>
+
+          <div class="mt-5 border-t border-slate-800 pt-4">
+            <div class="text-xs text-slate-300 mb-2">Status</div>
+            <pre id="statusBox" class="rounded-xl bg-slate-950 border border-slate-800 p-3 text-[11px] text-slate-200 whitespace-pre-wrap min-h-[140px]"></pre>
+          </div>
+
+          <div class="mt-5 border-t border-slate-800 pt-4">
+            <div class="text-xs text-slate-300 mb-2">Automation (sanitized)</div>
+            <div id="automation" class="text-xs text-slate-300 space-y-2"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        const $ = (id) => document.getElementById(id);
+        const banner = $('banner');
+        const descEl = $('desc');
+        const ticketEl = $('ticket');
+        const chatEl = $('chat');
+        const thread = $('thread');
+        const statusBox = $('statusBox');
+        const automation = $('automation');
+        const LS_TICKET = 'corpflow_change_ticket_id';
+
+        function setBanner(msg) {
+          if (!msg) {
+            banner.classList.add('hidden');
+            banner.textContent = '';
+            return;
+          }
+          banner.classList.remove('hidden');
+          banner.textContent = msg;
+        }
+
+        function escapeHtml(s) {
+          const d = document.createElement('div');
+          d.textContent = s == null ? '' : String(s);
+          return d.innerHTML;
+        }
+
+        function asLink(href, label) {
+          if (!href) return '';
+          return (
+            '<a class="text-sky-300 underline break-all" target="_blank" rel="noreferrer" href="' +
+            escapeHtml(String(href)) +
+            '">' +
+            escapeHtml(String(label || href)) +
+            '</a>'
+          );
+        }
+
+        function headers() {
+          return { 'Content-Type': 'application/json' };
+        }
+
+        async function post(action, body) {
+          const r = await fetch('/api/cmp/router?action=' + encodeURIComponent(action), {
+            method: 'POST',
+            headers: headers(),
+            credentials: 'include',
+            body: JSON.stringify(body || {}),
+          });
+          const j = await r.json().catch(() => ({}));
+          if (!r.ok) {
+            const parts = [j.reject_reason, j.error, j.detail, j.hint].filter((x) => x != null && String(x).trim() !== '');
+            throw new Error(parts.length ? parts.join(' — ') : 'http_' + r.status);
+          }
+          return j;
+        }
+
+        async function getTicket(tid) {
+          const gr = await fetch('/api/cmp/router?action=ticket-get&id=' + encodeURIComponent(tid), { credentials: 'include' });
+          const gj = await gr.json().catch(() => ({}));
+          if (!gr.ok) throw new Error(gj.error || 'ticket-get failed');
+          return gj;
+        }
+
+        function append(role, content) {
+          const wrap = document.createElement('div');
+          wrap.className = 'rounded-xl border border-slate-800 bg-slate-950/50 p-3';
+          const head = document.createElement('div');
+          head.className = 'text-[11px] uppercase tracking-widest text-slate-500';
+          head.textContent = role;
+          const body = document.createElement('div');
+          body.className = 'mt-1 text-sm whitespace-pre-wrap';
+          body.textContent = content;
+          wrap.appendChild(head);
+          wrap.appendChild(body);
+          thread.appendChild(wrap);
+          thread.scrollTop = thread.scrollHeight;
+        }
+
+        function renderStatus(t) {
+          statusBox.textContent = JSON.stringify(
+            {
+              ticket_id: t.ticket_id,
+              status: t.status,
+              stage: t.stage,
+              source: t.source,
+            },
+            null,
+            2,
+          );
+        }
+
+        function renderAutomationFromTicket(t) {
+          // Tenants never receive console_json from server; only show safe links if present in approve response stored locally.
+          const tid = String(ticketEl.value || '').trim();
+          const links = [];
+          links.push('<div class="text-[11px] text-slate-500">Ask your operator for build approval. This view monitors progress.</div>');
+          automation.innerHTML = links.join('');
+        }
+
+        async function sync() {
+          try {
+            const tid = String(ticketEl.value || '').trim();
+            if (!tid) return;
+            const t = await getTicket(tid);
+            renderStatus(t);
+            renderAutomationFromTicket(t);
+          } catch (_) {}
+        }
+
+        // init
+        try { ticketEl.value = localStorage.getItem(LS_TICKET) || ''; } catch {}
+        if (ticketEl.value) sync();
+        setInterval(sync, 15000);
+
+        $('btnReset').addEventListener('click', () => {
+          descEl.value = '';
+          chatEl.value = '';
+          ticketEl.value = '';
+          thread.innerHTML = '';
+          statusBox.textContent = '';
+          automation.innerHTML = '';
+          setBanner('');
+          try { localStorage.removeItem(LS_TICKET); } catch {}
+        });
+
+        $('btnCreate').addEventListener('click', async () => {
+          setBanner('');
+          const d = String(descEl.value || '').trim();
+          if (!d) return setBanner('Please describe the change you want.');
+          try {
+            const created = await post('ticket-create', { description: d });
+            const tid = String(created.ticket_id || '').trim();
+            if (!tid) throw new Error('Missing ticket_id');
+            ticketEl.value = tid;
+            try { localStorage.setItem(LS_TICKET, tid); } catch {}
+            thread.innerHTML = '';
+            append('user', d);
+            const t = await getTicket(tid);
+            renderStatus(t);
+            renderAutomationFromTicket(t);
+          } catch (e) {
+            setBanner(String(e.message || e));
+          }
+        });
+
+        $('btnCost').addEventListener('click', async () => {
+          setBanner('');
+          const tid = String(ticketEl.value || '').trim();
+          const d = String(descEl.value || '').trim();
+          if (!tid) return setBanner('Create or paste a Ticket ID first.');
+          try {
+            const j = await post('costing-preview', { description: d, ticketId: tid, is_demo: false, tier: 'standard' });
+            statusBox.textContent = JSON.stringify({ ...(JSON.parse(statusBox.textContent || '{}') || {}), costing_preview: j }, null, 2);
+          } catch (e) {
+            setBanner(String(e.message || e));
+          }
+        });
+
+        async function send() {
+          setBanner('');
+          const tid = String(ticketEl.value || '').trim();
+          const msg = String(chatEl.value || '').trim();
+          if (!tid) return setBanner('Create or paste a Ticket ID first.');
+          if (!msg) return;
+          append('user', msg);
+          chatEl.value = '';
+          try {
+            const j = await post('change-chat', { ticket_id: tid, message: msg, locale: 'en' });
+            append('assistant', String(j.assistant || 'OK'));
+          } catch (e) {
+            setBanner(String(e.message || e));
+          }
+        }
+
+        $('btnSend').addEventListener('click', send);
+        chatEl.addEventListener('keydown', (ev) => {
+          if (ev.key === 'Enter') {
+            ev.preventDefault();
+            send();
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
+

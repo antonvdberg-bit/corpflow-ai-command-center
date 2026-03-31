@@ -126,3 +126,18 @@ model RecoveryVaultEntry {
   @@index([status])
   @@map("recovery_vault_entries")
 }
+
+model TenantHostname {
+  id        String   @id @default(cuid())
+  host      String   @unique
+  tenantId  String   @map("tenant_id")
+  mode      String?  @map("mode")
+  enabled   Boolean  @default(true)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@index([enabled])
+  @@map("tenant_hostnames")
+}

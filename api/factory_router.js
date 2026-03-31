@@ -16,6 +16,7 @@ import webhookHandler from '../lib/server/webhook.js';
 import tenantsOverviewHandler from '../lib/server/tenants-overview.js';
 import baserowSchemaHandler from '../lib/server/baserow-schema.js';
 import postgresFactorySchemaHandler from '../lib/server/postgres-factory-schema.js';
+import tenantHostMapUpsertHandler from '../lib/server/tenant-host-map.js';
 import { handleAuthLogin, handleAuthLogout, handleAuthMe } from '../lib/server/auth.js';
 import { buildCorpflowHostContext } from '../lib/server/host-tenant-context.js';
 import { cfg, runtimeConfigDiagnostics } from '../lib/server/runtime-config.js';
@@ -55,6 +56,38 @@ function normalizeRoutingPath(req) {
  */
 function attachTenantFromHost(req) {
   req.corpflowContext = buildCorpflowHostContext(req);
+}
+
+async function attachTenantFromHostPg(req) {
+  // Start with the sync, no-I/O resolver.
+  attachTenantFromHost(req);
+
+  const ctx = req.corpflowContext;
+  if (!ctx || ctx.surface !== 'tenant' || !ctx.host) return;
+
+  const pgUrl = String(cfg('POSTGRES_URL', '')).trim();
+  if (!pgUrl) return;
+
+  try {
+    const row = await prisma.tenantHostname.findUnique({
+      where: { host: String(ctx.host).toLowerCase() },
+      select: { tenantId: true, mode: true, enabled: true },
+    });
+    if (!row || row.enabled !== true) return;
+    const tenantId = String(row.tenantId || '').trim();
+    if (!tenantId) return;
+
+    req.corpflowContext = {
+      ...ctx,
+      surface: 'tenant',
+      tenant_id: tenantId,
+      host_slug: tenantId,
+    };
+    // Provide mode hint to UI context.
+    req.corpflowUiMode = row.mode ? String(row.mode).trim().toLowerCase() : null;
+  } catch (_) {
+    // best-effort only
+  }
 }
 
 /**
@@ -224,6 +257,8 @@ async function handleStats(req, res) {
 }
 
 function resolveUiMode(host, surface) {
+  // Prefer DB-provided ui mode if present.
+  // Note: attachTenantFromHostPg sets req.corpflowUiMode.
   const mapRaw = String(cfg('CORPFLOW_HOST_MODE_MAP', '')).trim();
   if (mapRaw) {
     try {
@@ -255,7 +290,9 @@ async function handleUiContext(req, res) {
       }
     : { logged_in: false, level: 'anonymous', tenant_id: null };
 
-  const mode = resolveUiMode(ctx.host, ctx.surface);
+  const mode =
+    req.corpflowUiMode ||
+    resolveUiMode(ctx.host, ctx.surface);
   return res.status(200).json({
     ok: true,
     host: ctx.host,
@@ -268,7 +305,7 @@ async function handleUiContext(req, res) {
 
 export default async function handler(req, res) {
   const pathSeg = normalizeRoutingPath(req);
-  attachTenantFromHost(req);
+  await attachTenantFromHostPg(req);
 
   if (!pathSeg || pathSeg === 'factory_router') {
     return res.status(200).json({ ok: true, service: 'factory_router' });
@@ -303,6 +340,9 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'factory/postgres/ensure-schema') {
     return postgresFactorySchemaHandler(req, res);
+  }
+  if (pathSeg === 'factory/host-map/upsert') {
+    return tenantHostMapUpsertHandler(req, res);
   }
 
   switch (pathSeg) {
