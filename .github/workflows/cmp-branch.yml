@@ -75,7 +75,7 @@ jobs:
           HEAD_Q=$(HEAD="$HEAD" python -c "import os, urllib.parse; print(urllib.parse.quote(os.environ['HEAD'], safe=''))")
           BASE_Q=$(BASE="$BASE" python -c "import os, urllib.parse; print(urllib.parse.quote(os.environ['BASE'], safe=''))")
 
-          EXISTING_JSON="$(curl -sS -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+          EXISTING_JSON="$(curl -sSf -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
             "https://api.github.com/repos/${OWNER}/${REPO}/pulls?state=open&head=${HEAD_Q}&base=${BASE_Q}")"
 
           PR_NUMBER="$(echo "$EXISTING_JSON" | python -c "
@@ -120,7 +120,7 @@ jobs:
               'body': os.environ['BODY'],
           }))
           ")
-            CREATE_JSON="$(curl -sS -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            CREATE_JSON="$(curl -sSf -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
               "https://api.github.com/repos/${OWNER}/${REPO}/pulls" \
               -d "$BODY_JSON")"
             PR_NUMBER="$(echo "$CREATE_JSON" | python -c "
@@ -137,6 +137,10 @@ jobs:
           except Exception:
               print('')
           ")"
+            if [ -z "$PR_NUMBER" ]; then
+              echo "::error title=CMP PR creation failed::GitHub API returned no PR number. Response: ${CREATE_JSON:0:500}"
+              exit 1
+            fi
           fi
 
           echo "number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
