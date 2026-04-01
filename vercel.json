@@ -1,5 +1,13 @@
 {
   "version": 2,
+  "build": {
+    "env": {
+      "UV_LINK_MODE": "copy"
+    }
+  },
+  "env": {
+    "NODE_OPTIONS": "--disable-warning=DEP0169"
+  },
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/factory_router?__path=$1" },
     { "source": "/login", "destination": "/login.html" },
