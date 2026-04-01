@@ -35,10 +35,41 @@
           <label class="block text-xs text-slate-300 mt-4">Tenant ID
             <input id="tenantId" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" placeholder="e.g. corpflowai" />
           </label>
-          <label class="block text-xs text-slate-300 mt-3">PIN / Password
-            <input id="tenantPin" type="password" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" autocomplete="one-time-code" />
-          </label>
+          <div class="grid grid-cols-1 gap-3 mt-3">
+            <label class="block text-xs text-slate-300">Email / Username (optional)
+              <input id="tenantUser" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" placeholder="name@company.com" autocomplete="username" />
+            </label>
+            <label class="block text-xs text-slate-300">Password (optional)
+              <input id="tenantPass" type="password" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" autocomplete="current-password" />
+            </label>
+            <div class="text-[11px] text-slate-500">Or use a sovereign PIN (legacy / bootstrap).</div>
+            <label class="block text-xs text-slate-300">PIN
+              <input id="tenantPin" type="password" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" autocomplete="one-time-code" />
+            </label>
+          </div>
           <button id="btnTenant" class="mt-4 w-full rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold">Login as Tenant</button>
+
+          <details class="mt-4 rounded-xl border border-slate-800 bg-slate-950/30 p-3">
+            <summary class="cursor-pointer text-xs text-sky-300 underline select-none">Forgot password?</summary>
+            <div class="mt-3 space-y-3">
+              <label class="block text-xs text-slate-300">Email (must match your staff login)
+                <input id="resetEmail" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" placeholder="name@company.com" autocomplete="email" />
+              </label>
+              <button id="btnResetRequest" type="button" class="w-full rounded-lg bg-slate-200 text-slate-950 px-4 py-2 text-sm font-semibold">Send reset link</button>
+              <div class="text-[11px] text-slate-500 leading-relaxed">
+                If email delivery is not configured yet, an operator can provide a reset token for testing.
+              </div>
+              <div class="border-t border-slate-800 pt-3 space-y-3">
+                <label class="block text-xs text-slate-300">Reset token
+                  <input id="resetToken" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm font-mono" placeholder="paste token" />
+                </label>
+                <label class="block text-xs text-slate-300">New password
+                  <input id="resetNewPass" type="password" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" autocomplete="new-password" />
+                </label>
+                <button id="btnResetConfirm" type="button" class="w-full rounded-lg bg-emerald-500 text-slate-950 px-4 py-2 text-sm font-semibold">Set new password</button>
+              </div>
+            </div>
+          </details>
         </div>
       </div>
 
@@ -109,9 +140,37 @@
             const j = await post('/api/auth/login', {
               level: 'tenant',
               tenant_id: $('tenantId').value,
+              username: $('tenantUser').value,
+              password: $('tenantPass').value,
               pin: $('tenantPin').value,
             });
             good('Logged in as tenant. Session cookie set.');
+          } catch (e) {
+            err(String(e.message || e));
+          }
+        });
+
+        $('btnResetRequest').addEventListener('click', async () => {
+          err('');
+          try {
+            await post('/api/auth/password-reset/request', {
+              tenant_id: $('tenantId').value,
+              email: $('resetEmail').value,
+            });
+            good('If that account exists, a reset message will be sent shortly.');
+          } catch (e) {
+            err(String(e.message || e));
+          }
+        });
+
+        $('btnResetConfirm').addEventListener('click', async () => {
+          err('');
+          try {
+            await post('/api/auth/password-reset/confirm', {
+              token: $('resetToken').value,
+              new_password: $('resetNewPass').value,
+            });
+            good('Password updated. You can now log in with your email + new password.');
           } catch (e) {
             err(String(e.message || e));
           }

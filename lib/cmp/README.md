@@ -68,3 +68,14 @@ Use this from n8n or a Vercel deploy webhook after a Preview deployment for bran
 ## Static bubble
 
 - `public/assets/cmp/bubble.js` — include with `<script src="/assets/cmp/bubble.js" defer …></script>`.
+
+## Tenant password reset (login)
+
+The login screen (`public/login.html`) supports tenant password reset by email/username within a tenant:
+
+- `POST /api/auth/password-reset/request` with `{ tenant_id, email }`
+  - Stores a one-time token in Postgres `recovery_vault_entries` (`category=password_reset`).
+  - Response is non-enumerating (returns ok even if user does not exist).
+  - Optional delivery via `CORPFLOW_PASSWORD_RESET_WEBHOOK_URL` (recommended).
+- `POST /api/auth/password-reset/confirm` with `{ token, new_password }`
+  - Resets password for the specific `auth_users` row matching `tenant_id + username` (supports multiple staff logins).

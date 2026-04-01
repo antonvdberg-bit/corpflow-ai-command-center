@@ -17,7 +17,13 @@ import webhookHandler from '../lib/server/webhook.js';
 import tenantsOverviewHandler from '../lib/server/tenants-overview.js';
 import postgresFactorySchemaHandler from '../lib/server/postgres-factory-schema.js';
 import tenantHostMapUpsertHandler from '../lib/server/tenant-host-map.js';
-import { handleAuthLogin, handleAuthLogout, handleAuthMe } from '../lib/server/auth.js';
+import {
+  handleAuthLogin,
+  handleAuthLogout,
+  handleAuthMe,
+  handleAuthPasswordResetConfirm,
+  handleAuthPasswordResetRequest,
+} from '../lib/server/auth.js';
 import { buildCorpflowHostContext } from '../lib/server/host-tenant-context.js';
 import { cfg, runtimeConfigDiagnostics } from '../lib/server/runtime-config.js';
 import { getSessionFromRequest } from '../lib/server/session.js';
@@ -349,6 +355,10 @@ export default async function handler(req, res) {
   switch (pathSeg) {
     case 'auth/login':
       return handleAuthLogin(req, res);
+    case 'auth/password-reset/request':
+      return handleAuthPasswordResetRequest(req, res);
+    case 'auth/password-reset/confirm':
+      return handleAuthPasswordResetConfirm(req, res);
     case 'auth/me':
       return handleAuthMe(req, res);
     case 'auth/logout':
