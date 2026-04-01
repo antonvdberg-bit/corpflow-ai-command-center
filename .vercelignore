@@ -1,0 +1,4 @@
+# Never upload local secrets with `vercel deploy` (CLI bundles files separately from git).
+.env
+.env.*
+!.env.template
