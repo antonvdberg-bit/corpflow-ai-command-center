@@ -49,7 +49,7 @@ jobs:
 
       - name: Create and push cmp/${{ steps.meta.outputs.ticket }}
         run: |
-          set -e
+          set -euo pipefail
           TICKET="${{ steps.meta.outputs.ticket }}"
           BASE_REF="${{ steps.meta.outputs.base }}"
           if [ -z "$TICKET" ]; then echo "Missing ticket_id"; exit 1; fi
@@ -63,46 +63,115 @@ jobs:
         id: pr
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TICKET: ${{ steps.meta.outputs.ticket }}
+          BASE: ${{ steps.meta.outputs.base }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
-          set -e
-          TICKET="${{ steps.meta.outputs.ticket }}"
-          BASE="${{ steps.meta.outputs.base }}"
-          OWNER_REPO="${{ github.repository }}"
-          OWNER="$(echo "$OWNER_REPO" | cut -d/ -f1)"
-          REPO="$(echo "$OWNER_REPO" | cut -d/ -f2)"
+          set -euo pipefail
+          OWNER="$(echo "$GITHUB_REPOSITORY" | cut -d/ -f1)"
+          REPO="$(echo "$GITHUB_REPOSITORY" | cut -d/ -f2)"
           HEAD="${OWNER}:cmp/${TICKET}"
 
-          # If PR already exists, reuse it.
+          HEAD_Q=$(HEAD="$HEAD" python -c "import os, urllib.parse; print(urllib.parse.quote(os.environ['HEAD'], safe=''))")
+          BASE_Q=$(BASE="$BASE" python -c "import os, urllib.parse; print(urllib.parse.quote(os.environ['BASE'], safe=''))")
+
           EXISTING_JSON="$(curl -sS -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${OWNER}/${REPO}/pulls?state=open&head=$(python - <<'PY'\nimport urllib.parse\nprint(urllib.parse.quote('''"${HEAD}"'''))\nPY)&base=$(python - <<'PY'\nimport urllib.parse\nprint(urllib.parse.quote('''"${BASE}"'''))\nPY)")"
-          PR_NUMBER="$(echo "$EXISTING_JSON" | python - <<'PY'\nimport json,sys\ntry:\n  arr=json.load(sys.stdin)\n  print(arr[0].get('number','') if arr else '')\nexcept Exception:\n  print('')\nPY)"
-          PR_URL="$(echo "$EXISTING_JSON" | python - <<'PY'\nimport json,sys\ntry:\n  arr=json.load(sys.stdin)\n  print(arr[0].get('html_url','') if arr else '')\nexcept Exception:\n  print('')\nPY)"
+            "https://api.github.com/repos/${OWNER}/${REPO}/pulls?state=open&head=${HEAD_Q}&base=${BASE_Q}")"
+
+          PR_NUMBER="$(echo "$EXISTING_JSON" | python -c "
+          import json, sys
+          try:
+              arr = json.load(sys.stdin)
+              if isinstance(arr, list) and arr:
+                  print(arr[0].get('number', '') or '')
+              else:
+                  print('')
+          except Exception:
+              print('')
+          ")"
+
+          PR_URL="$(echo "$EXISTING_JSON" | python -c "
+          import json, sys
+          try:
+              arr = json.load(sys.stdin)
+              if isinstance(arr, list) and arr:
+                  print(arr[0].get('html_url', '') or '')
+              else:
+                  print('')
+          except Exception:
+              print('')
+          ")"
 
           if [ -z "$PR_NUMBER" ]; then
             TITLE="CMP ${TICKET}: sandbox branch"
-            BODY="Auto-created by CMP automation.\n\n- Ticket: ${TICKET}\n- Base: ${BASE}\n- Head: cmp/${TICKET}\n"
+            BODY="Auto-created by CMP automation.
+
+          - Ticket: ${TICKET}
+          - Base: ${BASE}
+          - Head: cmp/${TICKET}
+          "
+            BODY_JSON=$(TITLE="$TITLE" BODY="$BODY" TICKET="$TICKET" BASE="$BASE" python -c "
+          import json, os
+          t = os.environ['TICKET']
+          print(json.dumps({
+              'title': os.environ['TITLE'],
+              'head': f'cmp/{t}',
+              'base': os.environ['BASE'],
+              'body': os.environ['BODY'],
+          }))
+          ")
             CREATE_JSON="$(curl -sS -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
               "https://api.github.com/repos/${OWNER}/${REPO}/pulls" \
-              -d "$(python - <<'PY'\nimport json\nprint(json.dumps({\n  'title': '''"${TITLE}"''',\n  'head': '''"cmp/${TICKET}"''',\n  'base': '''"${BASE}"''',\n  'body': '''"${BODY}"'''\n}))\nPY)")"
-            PR_NUMBER="$(echo "$CREATE_JSON" | python - <<'PY'\nimport json,sys\ntry:\n  obj=json.load(sys.stdin)\n  print(obj.get('number',''))\nexcept Exception:\n  print('')\nPY)"
-            PR_URL="$(echo "$CREATE_JSON" | python - <<'PY'\nimport json,sys\ntry:\n  obj=json.load(sys.stdin)\n  print(obj.get('html_url',''))\nexcept Exception:\n  print('')\nPY)"
+              -d "$BODY_JSON")"
+            PR_NUMBER="$(echo "$CREATE_JSON" | python -c "
+          import json, sys
+          try:
+              print(json.load(sys.stdin).get('number', '') or '')
+          except Exception:
+              print('')
+          ")"
+            PR_URL="$(echo "$CREATE_JSON" | python -c "
+          import json, sys
+          try:
+              print(json.load(sys.stdin).get('html_url', '') or '')
+          except Exception:
+              print('')
+          ")"
           fi
 
           echo "number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
           echo "url=${PR_URL}" >> "$GITHUB_OUTPUT"
 
+      # Posts PR metadata back to Vercel/Postgres. Does not run during Vercel build — see .env.template.
       - name: Callback to Change Console (optional)
         if: ${{ secrets.CMP_AUTOMATION_CALLBACK_URL != '' && secrets.CMP_AUTOMATION_CALLBACK_SECRET != '' }}
         env:
           CALLBACK_URL: ${{ secrets.CMP_AUTOMATION_CALLBACK_URL }}
           CALLBACK_SECRET: ${{ secrets.CMP_AUTOMATION_CALLBACK_SECRET }}
+          TICKET: ${{ steps.meta.outputs.ticket }}
+          BASE: ${{ steps.meta.outputs.base }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          PR_URL: ${{ steps.pr.outputs.url }}
         run: |
-          set -e
-          TICKET="${{ steps.meta.outputs.ticket }}"
-          BASE="${{ steps.meta.outputs.base }}"
-          PR_NUMBER="${{ steps.pr.outputs.number }}"
-          PR_URL="${{ steps.pr.outputs.url }}"
-          curl -sS -X POST "$CALLBACK_URL" \
+          set -uo pipefail
+          PAYLOAD=$(TICKET="$TICKET" BASE="$BASE" PR_NUMBER="${PR_NUMBER:-}" PR_URL="${PR_URL:-}" python -c "
+          import json, os
+          raw = (os.environ.get('PR_NUMBER') or '').strip()
+          n = int(raw) if raw.isdigit() else None
+          url = (os.environ.get('PR_URL') or '').strip() or None
+          print(json.dumps({
+              'event': 'cmp_pr_ready',
+              'ticket_id': os.environ['TICKET'],
+              'base_ref': os.environ['BASE'],
+              'branch_name': 'cmp/' + os.environ['TICKET'],
+              'pr_number': n,
+              'pr_url': url,
+          }))
+          ")
+          CODE=$(curl -sS -o /tmp/cmp_cb_body -w "%{http_code}" -X POST "$CALLBACK_URL" \
             -H "Content-Type: application/json" \
             -H "x-cmp-automation-secret: $CALLBACK_SECRET" \
-            -d "$(python - <<'PY'\nimport json\nprint(json.dumps({\n  'event': 'cmp_pr_ready',\n  'ticket_id': '''"${TICKET}"''',\n  'base_ref': '''"${BASE}"''',\n  'branch_name': '''"cmp/${TICKET}"''',\n  'pr_number': int('''"${PR_NUMBER}"''' or '0') or None,\n  'pr_url': '''"${PR_URL}"''' or None\n}))\nPY)" >/dev/null
+            -d "$PAYLOAD") || CODE="000"
+          if [ "$CODE" != "200" ]; then
+            echo "::warning title=CMP automation-callback::HTTP ${CODE} — sandbox branch and PR steps already succeeded. If 401/503, set the same shared secret in Vercel (CMP_AUTOMATION_CALLBACK_SECRET) and GitHub (CMP_AUTOMATION_CALLBACK_SECRET). Body: $(head -c 400 /tmp/cmp_cb_body 2>/dev/null || true)"
+          fi
