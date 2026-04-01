@@ -31,6 +31,8 @@ Routes are served as `/api/cmp/router?action=<name>` or legacy path segments; se
 
 Common actions include `ticket-create`, `ticket-get`, `ticket-activity`, `ticket-list`, `costing-preview`, `approve-build`, `change-chat`, `overseer`, etc.
 
+**`ticket-list` scope:** Admin sessions receive only **unscoped** tickets (`tenant_id` null — factory/core queue). Tenant sessions receive only rows for **their** `tenant_id`. Factory master token (no session) returns **all** rows for break-glass support. Response includes `list_scope` (`core` | `tenant` | `factory_master`) and `scope_tenant_id` when applicable.
+
 ## Change Console: `client_view` and `ticket_progress`
 
 Durable, tenant-safe progress lives under `cmp_tickets.console_json.client_view`:

@@ -2013,30 +2013,75 @@
             const j = await r.json().catch(() => ({}));
             if (!r.ok) throw new Error(j.error || j.detail || j.hint || 'http_' + r.status);
             const tickets = j.tickets || [];
+            const listScope = j.list_scope != null ? String(j.list_scope) : 'tenant';
+            const scopeTenantId = j.scope_tenant_id != null ? String(j.scope_tenant_id) : '';
             listEl.innerHTML = '';
             if (!tickets.length) {
-              listEl.innerHTML = '<div class="text-slate-500 px-1 py-2">No tickets found. Create one above.</div>';
+              let emptyMsg = 'No tickets found. Create one above.';
+              if (listScope === 'core') {
+                emptyMsg =
+                  'No factory (unscoped) tickets yet. Tickets tied to a client tenant appear only in that tenant’s Change Console — not in this factory list.';
+              } else if (listScope === 'tenant') {
+                emptyMsg = 'No tickets for your organization yet. Create one above.';
+              }
+              listEl.innerHTML = '<div class="text-slate-500 px-1 py-2 leading-relaxed">' + escapeHtml(emptyMsg) + '</div>';
               return;
             }
+
+            const scopeBar = document.createElement('div');
+            scopeBar.className =
+              'mb-3 rounded-lg border border-slate-700 bg-slate-950/55 px-3 py-2.5 text-[10px] text-slate-400 leading-relaxed space-y-1';
+            if (listScope === 'core') {
+              scopeBar.innerHTML =
+                '<div><span class="text-slate-200 font-semibold">Factory queue</span> — only tickets with no client tenant (<code class="text-slate-500">tenant_id</code> empty). Tenant client work is excluded.</div>';
+            } else if (listScope === 'tenant') {
+              const tidShow = scopeTenantId || (sessionInfo && sessionInfo.tenant_id) || '';
+              scopeBar.innerHTML =
+                '<div><span class="text-slate-200 font-semibold">Your workspace</span> — tickets for tenant <code class="text-sky-300/90 font-mono">' +
+                escapeHtml(tidShow) +
+                '</code> only. Other clients’ tickets are not shown.</div>';
+            } else {
+              scopeBar.innerHTML =
+                '<div><span class="text-amber-200/90 font-semibold">All tenants</span> — factory master list. Rows below may belong to different organizations; each card is labeled.</div>';
+            }
+            listEl.appendChild(scopeBar);
+
+            const listWrap = document.createElement('div');
+            listWrap.className = 'space-y-3';
+            listEl.appendChild(listWrap);
+
             for (const t of tickets) {
               const btn = document.createElement('button');
               btn.type = 'button';
               btn.className =
-                'w-full text-left rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 hover:border-sky-500/40 transition-colors';
+                'w-full text-left rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-3 shadow-sm hover:border-sky-500/45 hover:bg-slate-950 transition-colors';
               const d = t.description_preview || '(no description)';
               const when = t.updated_at ? new Date(t.updated_at).toLocaleString() : '';
+              const rowTenant = t.tenant_id != null && String(t.tenant_id).trim() !== '' ? String(t.tenant_id).trim() : '';
+              let scopeRow = '';
+              if (listScope === 'factory_master') {
+                scopeRow =
+                  '<div class="text-[9px] uppercase tracking-wide mt-2 pt-2 border-t border-slate-800/80 text-slate-500">' +
+                  (rowTenant
+                    ? 'Client tenant · <code class="text-amber-200/85 font-mono normal-case">' +
+                      escapeHtml(rowTenant) +
+                      '</code>'
+                    : 'Core · <span class="text-slate-400 normal-case">unscoped (no tenant)</span>') +
+                  '</div>';
+              }
               btn.innerHTML =
-                '<div class="text-[10px] text-slate-500 font-mono break-all">' +
+                '<div class="text-[10px] text-slate-500 font-mono break-all leading-snug">' +
                 escapeHtml(t.ticket_id) +
-                '</div><div class="text-slate-300 mt-0.5">' +
+                '</div><div class="text-slate-300 mt-1.5 text-[11px]">' +
                 escapeHtml(t.status || '') +
                 ' · ' +
                 escapeHtml(t.stage || '') +
-                '</div><div class="text-slate-400 mt-1 line-clamp-2">' +
+                '</div><div class="text-slate-400 mt-1.5 line-clamp-2 text-[11px] leading-relaxed">' +
                 escapeHtml(d) +
-                '</div><div class="text-[10px] text-slate-600 mt-1">' +
+                '</div><div class="text-[10px] text-slate-600 mt-1.5">' +
                 escapeHtml(when) +
-                '</div>';
+                '</div>' +
+                scopeRow;
               btn.addEventListener('click', async () => {
                 ticketEl.value = t.ticket_id;
                 try {
@@ -2060,7 +2105,7 @@
                   }
                 } catch (_) {}
               });
-              listEl.appendChild(btn);
+              listWrap.appendChild(btn);
             }
           } catch (e) {
             listEl.innerHTML =

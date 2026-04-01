@@ -143,8 +143,8 @@ jobs:
           echo "url=${PR_URL}" >> "$GITHUB_OUTPUT"
 
       # Posts PR metadata back to Vercel/Postgres. Does not run during Vercel build — see .env.template.
+      # Note: `secrets` cannot be used in step `if:` — skip inside the script when unset (GitHub validates `if` before secrets exist).
       - name: Callback to Change Console (optional)
-        if: ${{ secrets.CMP_AUTOMATION_CALLBACK_URL != '' && secrets.CMP_AUTOMATION_CALLBACK_SECRET != '' }}
         env:
           CALLBACK_URL: ${{ secrets.CMP_AUTOMATION_CALLBACK_URL }}
           CALLBACK_SECRET: ${{ secrets.CMP_AUTOMATION_CALLBACK_SECRET }}
@@ -154,6 +154,10 @@ jobs:
           PR_URL: ${{ steps.pr.outputs.url }}
         run: |
           set -uo pipefail
+          if [ -z "${CALLBACK_URL:-}" ] || [ -z "${CALLBACK_SECRET:-}" ]; then
+            echo "CMP callback skipped: set repository secrets CMP_AUTOMATION_CALLBACK_URL and CMP_AUTOMATION_CALLBACK_SECRET to enable."
+            exit 0
+          fi
           PAYLOAD=$(TICKET="$TICKET" BASE="$BASE" PR_NUMBER="${PR_NUMBER:-}" PR_URL="${PR_URL:-}" python -c "
           import json, os
           raw = (os.environ.get('PR_NUMBER') or '').strip()
