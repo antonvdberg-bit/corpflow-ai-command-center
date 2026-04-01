@@ -33,6 +33,13 @@ Common actions include `ticket-create`, `ticket-get`, `ticket-activity`, `ticket
 
 **`ticket-list` scope:** Admin sessions receive only **unscoped** tickets (`tenant_id` null — factory/core queue). Tenant sessions receive only rows for **their** `tenant_id`. Factory master token (no session) returns **all** rows for break-glass support. Response includes `list_scope` (`core` | `tenant` | `factory_master`) and `scope_tenant_id` when applicable.
 
+## Tenant onboarding
+
+- **`tenant-onboard`** (POST, factory master only): upserts a row in `tenants` so tenant auth + tenant-scoped ticketing has a stable identity.
+  - Body: `{ tenant_id, slug?, name?, fqdn?, execution_only?, lifecycle?, tenant_status? }`
+  - This intentionally does **not** issue credentials; pair it with `provision-tenant-pin` when you want a PIN for sovereign bootstrap.
+- **`provision-tenant-pin`** (POST, factory master only): upserts `tenants.sovereign_pin_hash` (and creates a minimal tenant row if missing) and returns a one-time plaintext PIN.
+
 ## Change Console: `client_view` and `ticket_progress`
 
 Durable, tenant-safe progress lives under `cmp_tickets.console_json.client_view`:
