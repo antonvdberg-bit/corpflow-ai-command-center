@@ -29,7 +29,7 @@
     "affected_surfaces": {
       "type": "array",
       "items": { "type": "string" },
-      "description": "e.g. api, public tier, baserow webhook"
+      "description": "e.g. api, public tier, webhook"
     },
     "created_at": { "type": "string", "format": "date-time" }
   }

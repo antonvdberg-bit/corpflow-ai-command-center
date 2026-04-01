@@ -27,9 +27,9 @@
           },
           "decided_at": { "type": "string", "format": "date-time" },
           "actor": { "type": "string", "description": "client email, staff id, or system" },
-          "baserow_snapshot": {
+          "record_snapshot": {
             "type": "object",
-            "description": "Optional redacted field snapshot at sign-off."
+            "description": "Optional redacted Postgres / config snapshot at sign-off."
           }
         }
       }

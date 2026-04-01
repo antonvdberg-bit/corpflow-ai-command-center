@@ -4,18 +4,18 @@
   "title": "ChangeRequestV1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "ticket_id", "client_id", "status", "workflow_stage", "baserow"],
+  "required": ["schema_version", "ticket_id", "client_id", "status", "workflow_stage"],
   "properties": {
     "schema_version": { "const": "1" },
     "ticket_id": {
       "type": "string",
-      "description": "Stable CMP ticket identifier (matches Baserow primary key or external ticket ref)."
+      "description": "Stable CMP ticket identifier (matches Postgres cmp_tickets.id)."
     },
     "client_id": { "type": "string", "description": "Tenant / client slug or UUID." },
     "site_id": { "type": "string", "description": "Optional deployed site or instance id." },
     "status": {
       "type": "string",
-      "description": "Snapshot; Baserow remains authoritative.",
+      "description": "Snapshot; Postgres cmp_tickets remains authoritative.",
       "enum": [
         "draft",
         "analysis",
@@ -30,15 +30,6 @@
     },
     "workflow_stage": { "type": "string", "description": "Human-readable stage label from CRM." },
     "is_demo": { "type": "boolean", "default": false },
-    "baserow": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["table_id", "row_id"],
-      "properties": {
-        "table_id": { "type": "string" },
-        "row_id": { "type": "string" }
-      }
-    },
     "preview_deployment_url": { "type": "string", "format": "uri" },
     "git_branch": { "type": "string" },
     "updated_at": { "type": "string", "format": "date-time" }

@@ -1,50 +1,34 @@
-# CMP API (`api/cmp`)
+# CMP API (`/api/cmp/*`)
 
-Change Management Process backend: Baserow sync, costing, webhooks, and (later) GitHub dispatch for branch/preview/merge.
+Change Management Process: **Postgres** (`cmp_tickets`, `tenants`, `auth_users` via Prisma), costing, optional n8n webhooks, GitHub `repository_dispatch` for sandbox branches.
 
-## Environment variables
+## Environment variables (high level)
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `BASEROW_URL` | Yes | Your Baserow API origin (set in Vercel; do not hardcode tenant URLs in git) |
-| `BASEROW_TOKEN` | Yes | Baserow database token |
-| `BASEROW_CMP_TABLE_ID` | Recommended | Change Requests table ID (falls back to `BASEROW_TABLE_ID`) |
+| Area | Variables |
+|------|-----------|
+| Database | `POSTGRES_URL` (required for CMP + auth) |
+| GitHub sandbox | `GITHUB_REPO`, `CMP_GITHUB_TOKEN` (or `GH_WORKFLOW_TOKEN`) |
+| Optional n8n | `N8N_WEBHOOK_URL`, `N8N_CMP_WEBHOOK_URL` |
+| Factory gate | `MASTER_ADMIN_KEY`, `DORMANT_GATE_ENABLED`, etc. |
 
-Optional per-tenant overrides can pass `tableId` into client methods.
+See repository root `.env.template` for the full list.
 
 ## Layout
 
-- `router.js` — **Single** Vercel function; dispatches by `action` (path rewrite or `?action=`).
-- `_lib/baserow.js` — HTTP wrapper for row CRUD against Baserow (underscore dir = not a separate route).
-- `_lib/costing-engine.js` — Market value ($) from complexity × risk × tier; demo display rule.
-- `_lib/cmp-fields.js` — Baserow **user field names** for Description / Status / Stage (env overrides).
-- `_lib/preview-heuristics.js` — Text heuristics for impact preview until a model is wired.
-- `_lib/ai-interview.js` — Clarification question templates from inferred complexity.
+- `router.js` — unified handler; `action` from query or path (via `factory_router` + `__path`).
+- `_lib/costing-engine.js` — market value from complexity × risk × tier.
+- `_lib/preview-heuristics.js` — impact text heuristics.
+- `_lib/ai-interview.js` — clarification questions.
+- `_lib/github-dispatch.js` — sandbox dispatch + PR helpers.
+- `_lib/tenant-pin.js` — PIN generation / verify for `tenants.sovereign_pin_hash`.
+- `_lib/sovereign-session.js` — tenant sovereign JWT for gated CMP actions.
 
-## HTTP routes (Vercel)
+## HTTP surface
 
-All paths below rewrite to `router.js` with the same URL path; `action` is derived from the first segment after `/api/cmp/`.
+Routes are served as `/api/cmp/router?action=<name>` or legacy path segments; see `lib/cmp/router.js` `switch` / handlers.
 
-| Route | Method | Role |
-|-------|--------|------|
-| `/api/cmp/ticket-create` | POST | Create Baserow row; body `{ description, client_id?, site_id? }`. |
-| `/api/cmp/ticket-get` | GET | `?id=` row id; safe subset for bubble hydration. |
-| `/api/cmp/costing-preview` | POST | Impact + cost preview; body `{ description, ticketId?, is_demo?, tier? }`. |
-| `/api/cmp/ai-interview` | POST | Clarification questions; body `{ description }`. |
-| `/api/cmp/approve-build` | POST | Set stage/status to “build approved”; body `{ ticket_id }`. |
-| `/api/cmp/sandbox-start` | POST | Reserved (501) until GitHub workflow callback is wired. |
+Common actions include `ticket-create`, `ticket-get`, `ticket-list`, `costing-preview`, `approve-build`, `change-chat`, `overseer`, etc.
 
-## Baserow column names (optional env)
-
-If your table uses different labels, set:
-
-- `BASEROW_CMP_DESCRIPTION_FIELD` (default `Description`)
-- `BASEROW_CMP_STATUS_FIELD` (default `Status`)
-- `BASEROW_CMP_STAGE_FIELD` (default `Stage`)
-- `BASEROW_CMP_INITIAL_STATUS`, `BASEROW_CMP_INITIAL_STAGE`
-- `BASEROW_CMP_BUILD_STAGE_VALUE`, `BASEROW_CMP_BUILD_STATUS_VALUE`
-- `BASEROW_CMP_CLIENT_ID_FIELD`, `BASEROW_CMP_SITE_ID_FIELD` — only if those columns exist
-
-## Floating bubble (static)
+## Static bubble
 
 - `public/assets/cmp/bubble.js` — include with `<script src="/assets/cmp/bubble.js" defer …></script>`.

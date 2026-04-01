@@ -15,7 +15,7 @@ def send_whatsapp_lead_alert(lead_name, service, phone):
         f"👤 *Name:* {lead_name}\n"
         f"💆 *Service:* {service}\n"
         f"📞 *Contact:* {phone}\n\n"
-        f"Check your Baserow dashboard for details."
+        f"Check your admin leads dashboard (Postgres / Factory) for details."
     )
     
     try:

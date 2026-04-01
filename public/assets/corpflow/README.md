@@ -15,4 +15,4 @@ The bubble uses **`navigator.language`** (or **`data-cmp-locale`**) for UI strin
 
 Operator playbooks (CORE hosts, `log-stream`, sovereign bootstrap) remain **factory-operator** flows; this embed is for **client sites** that point at your factory API.
 
-Do **not** commit real Baserow or n8n hostnames in client snippets—only the public Vercel (or custom) URL of this app.
+Do **not** commit real n8n or internal hostnames in client snippets—only the public Vercel (or custom) URL of this app.

@@ -1,32 +1,60 @@
-import os, json, requests
+import json
+import os
+from datetime import datetime, timezone
 from pathlib import Path
+
+import requests
 from groq import Groq
-from core.services.vanguard_telemetry import emit_logic_failure
+
 from core.engine.src.tenant_manager import SecurityTransgressionError, get_tenant_context
+from core.services.vanguard_telemetry import emit_logic_failure
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-def sync_lead_to_baserow(tenant_id, name, details):
-    # This sends the data back to your Baserow table
-    url = f"{os.getenv('BASEROW_URL')}{os.getenv('BASEROW_TABLE_ID')}/?user_field_names=true"
-    headers = {"Authorization": f"Token {os.getenv('BASEROW_TOKEN')}", "Content-Type": "application/json"}
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+_LEAD_FALLBACK = REPO_ROOT / "vanguard" / "audit-trail" / "python_lead_capture.jsonl"
+
+
+def sync_lead_to_factory(tenant_id: str, name: str, details: str) -> bool:
+    """Forward lead to n8n when N8N_WEBHOOK_URL is set; else append JSONL under vanguard/."""
+    webhook = (os.getenv("N8N_WEBHOOK_URL") or "").strip()
     payload = {
-        "Client Name": f"LEAD: {name}",
-        "Onboarding Status": "Lead Captured",
-        "Notes": details
+        "tenant_id": tenant_id,
+        "name": name,
+        "details": details,
+        "captured_at": datetime.now(timezone.utc).isoformat(),
+        "source": "core/services/response_engine.py",
     }
+    if webhook:
+        try:
+            r = requests.post(webhook, json=payload, timeout=15)
+            r.raise_for_status()
+            return True
+        except Exception as e:
+            emit_logic_failure(
+                source="core/services/response_engine.py:sync_lead_to_factory",
+                severity="error",
+                error=e,
+                recommended_action="Verify N8N_WEBHOOK_URL or check n8n workflow availability.",
+                cmp={"ticket_id": "n/a", "action": "lead-sync"},
+            )
+            return False
+
     try:
-        requests.post(url, headers=headers, json=payload, timeout=10)
+        _LEAD_FALLBACK.parent.mkdir(parents=True, exist_ok=True)
+        with _LEAD_FALLBACK.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(payload, ensure_ascii=False) + "\n")
+        return True
     except Exception as e:
         emit_logic_failure(
-            source="core/services/response_engine.py:sync_lead_to_baserow",
+            source="core/services/response_engine.py:sync_lead_to_factory",
             severity="error",
             error=e,
-            recommended_action="Verify BASEROW_URL/BASEROW_TOKEN/BASEROW_TABLE_ID and Baserow connectivity.",
+            recommended_action="Set N8N_WEBHOOK_URL or ensure vanguard/audit-trail is writable.",
             cmp={"ticket_id": "n/a", "action": "lead-sync"},
         )
         return False
-    return True
+
 
 def get_tenant_response(tenant_id, user_query):
     try:
@@ -43,7 +71,6 @@ def get_tenant_response(tenant_id, user_query):
         )
         id_data = json.loads(identity_text)
 
-        # Use Llama 3.1 to talk and detect if a lead is present
         chat = client.chat.completions.create(
             model="llama-3.1-8b-instant",
             messages=[
@@ -57,23 +84,23 @@ def get_tenant_response(tenant_id, user_query):
         response = chat.choices[0].message.content
 
         if "SIGNAL_LEAD" in response:
-            ok = sync_lead_to_baserow(tenant_id, "New Web Lead", user_query)
-            suffix = "(Lead captured in CRM ✅)" if ok else "(Lead capture failed; check telemetry)"
+            ok = sync_lead_to_factory(tenant_id, "New Web Lead", user_query)
+            suffix = "(Lead captured ✅)" if ok else "(Lead capture failed; check telemetry)"
             return response.replace("SIGNAL_LEAD", suffix)
 
         return response
     except SecurityTransgressionError:
-        # Telemetry already emitted by tenant manager; auto-terminate session.
         raise
     except Exception as e:
         emit_logic_failure(
             source="core/services/response_engine.py:get_tenant_response",
             severity="fatal",
             error=e,
-            recommended_action="Inspect tenant config files and validate GROQ_API_KEY + Baserow env vars.",
+            recommended_action="Inspect tenant config files and validate GROQ_API_KEY + N8N_WEBHOOK_URL (optional).",
             cmp={"ticket_id": "n/a", "action": "tenant-response"},
         )
         return f"System error while processing request for tenant '{tenant_id}'."
+
 
 if __name__ == "__main__":
     print(get_tenant_response("showroom_test", "My name is Anton and my number is 555-0199"))

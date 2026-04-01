@@ -35,7 +35,7 @@ Workflow (high level):
 1. Detect triggers (cron daily, or when “telemetry-v1” reports recurrent logic failures).
 2. Search for “Agent runtime updates” scoped to:
    - MCP best practices
-   - Baserow database API reliability changes
+   - PostgreSQL / Prisma migration and reliability patterns
    - Vercel serverless constraints (read-only FS, timeouts, function-count caps — see **Bypass Architecture: Unified Serverless Gateway** above)
    - Gemini tool/search changes
 3. Produce a “Research→Diff” artifact:

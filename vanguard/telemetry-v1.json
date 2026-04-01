@@ -24,7 +24,7 @@
     "factory_id": { "type": "string", "description": "Stable identifier for this Factory deployment." },
     "report_target": {
       "type": "string",
-      "enum": ["cmp_bubble", "cmp_baserow", "file_local"]
+      "enum": ["cmp_bubble", "cmp_postgres", "file_local"]
     },
     "tenant_id": { "type": "string", "description": "Client slug (or 'root' when not tenant-scoped)." },
     "cmp": {
@@ -52,7 +52,7 @@
             "additionalProperties": false,
             "required": ["service", "status", "checks"],
             "properties": {
-              "service": { "type": "string", "enum": ["llm", "baserow", "mcp", "sandbox", "prisma", "overall"] },
+              "service": { "type": "string", "enum": ["llm", "database", "mcp", "sandbox", "prisma", "overall"] },
               "status": { "type": "string", "enum": ["operational", "degraded", "down"] },
               "checks": {
                 "type": "array",

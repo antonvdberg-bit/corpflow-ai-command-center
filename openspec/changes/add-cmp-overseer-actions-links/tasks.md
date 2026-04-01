@@ -4,7 +4,7 @@
 - [ ] 1.3 Update Change Console UI to render:
   - [ ] Approve result with “View GitHub Actions run” link (when available)
   - [ ] Overseer panel with commit list + file list (guarded to admin sessions)
-- [ ] 1.4 Ensure Postgres-first CMP usage has no Baserow-first copy in UI strings (keep backend fallback supported).
+- [ ] 1.4 Ensure Postgres-first CMP usage has no duplicate/conflicting copy in UI strings.
 
 ## 2. Test Plan
 - [ ] 2.1 Local: approve-build returns `dispatch_triggered: true` and includes a link field.

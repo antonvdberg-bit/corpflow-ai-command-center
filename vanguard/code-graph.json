@@ -8,14 +8,6 @@
       "specifiers": []
     },
     {
-      "source": "./_lib/baserow.js",
-      "specifiers": []
-    },
-    {
-      "source": "./_lib/cmp-fields.js",
-      "specifiers": []
-    },
-    {
       "source": "./_lib/costing-engine.js",
       "specifiers": []
     },

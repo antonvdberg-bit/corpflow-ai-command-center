@@ -6,7 +6,7 @@ Operators approving builds need immediate, reliable visibility into what automat
 ## What Changes
 - Return a **best-effort GitHub Actions run link** after CMP sandbox dispatch.
 - Add an **Overseer view** in the Change Console to show what automation changed (commits + files) for a ticket’s sandbox branch.
-- Keep the existing CMP approve flow working in Postgres-first deployments; do not require Baserow.
+- Keep the existing CMP approve flow working against Postgres-backed tickets.
 
 ## Impact
 - Affected surfaces: CMP API (`approve-build` / sandbox dispatch), Change Console UI (`public/change.html`)

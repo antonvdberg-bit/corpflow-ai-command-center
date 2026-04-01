@@ -25,15 +25,9 @@ from core.services.vanguard_telemetry import emit_logic_failure
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 SECRETS_MANIFEST_PATH = REPO_ROOT / "vanguard" / "secrets-manifest.json"
 
-# Baserow (same convention as `api/cmp/_lib/baserow.js` and `core/services/response_engine.py`).
-# Sentinel does not require BASEROW_TOKEN for its core checks; expose config for operators / future sync.
-def _baserow_token() -> str:
-    """Return BASEROW_TOKEN from the environment (Vercel Secret / local .env)."""
-    return (os.getenv("BASEROW_TOKEN") or "").strip()
-
-
-def _baserow_url() -> str:
-    return (os.getenv("BASEROW_URL") or "").strip()
+def _postgres_url() -> str:
+    """Return pooled Postgres URL when configured (operator visibility only)."""
+    return (os.getenv("POSTGRES_URL") or os.getenv("DATABASE_URL") or "").strip()
 OUTBOX_PATH = REPO_ROOT / "vanguard" / "audit-trail" / "cmp_inflow_required_outbox.jsonl"
 STATE_PATH = REPO_ROOT / "vanguard" / "billing_sentinel_state.json"
 MOCK_NOTIFICATIONS_PATH = REPO_ROOT / "vanguard" / "audit-trail" / "billing_mock_notifications.jsonl"
@@ -264,8 +258,7 @@ def check_billing_sentinel(*, minimum_retainer_usd: float = 0.0) -> Dict[str, An
         "ok": True,
         "month": month_key,
         "triggered_tenants": triggered,
-        "baserow_token_configured": bool(_baserow_token()),
-        "baserow_url_configured": bool(_baserow_url()),
+        "postgres_url_configured": bool(_postgres_url()),
     }
 
 

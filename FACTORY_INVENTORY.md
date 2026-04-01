@@ -3,7 +3,7 @@ Generated: `2026-03-25` · API layout refreshed: `2026-03-26`
 
 This document organizes the repo’s runnable code/artifacts into three “Factory surfaces”:
 1. Computed Logic (Python/JS)
-2. Data Storage (Baserow / local JSON / DB)
+2. Data Storage (Postgres / local JSON / filesystem)
 3. Communication (API routes + automation shells)
 
 For each entry, a **Standardized Invocation** is provided.
@@ -68,26 +68,25 @@ Tools are auto-discovered by the agent from `core/engine/src/tools/*.py` (public
 | `core/engine/src/tools/openai_proxy.py` | `python -c "from core.engine.src.tools.openai_proxy import <FUNC_NAME>; print(<FUNC_NAME>(...))"` |
 | `core/engine/src/tools/ollama_local.py` | `python -c "from core.engine.src.tools.ollama_local import <FUNC_NAME>; print(<FUNC_NAME>(...))"` |
 | `core/engine/src/tools/memory_tools.py` | `python -c "from core.engine.src.tools.memory_tools import <FUNC_NAME>; print(<FUNC_NAME>(...))"` |
-| `core/engine/src/tools/baserow_client_sync.py` | `python -c "from core.engine.src.tools.baserow_client_sync import get_client_config; print(get_client_config('<CLIENT_ID>'))"` |
 | `core/engine/src/tools/execution_tool.py` | `python -c "from core.engine.src.tools.execution_tool import <FUNC_NAME>; print(<FUNC_NAME>(...))"` |
 | `core/engine/src/tools/mcp_tools.py` | `python -c "from core.engine.src.tools.mcp_tools import list_mcp_servers; print(list_mcp_servers())"` |
 
 ### Services / Utilities (Python)
 | Artifact | Role | Standardized Invocation |
 |---|---|---|
-| `core/services/response_engine.py` | Tenant-aware lead detection + Baserow write | `python core/services/response_engine.py` |
+| `core/services/response_engine.py` | Tenant-aware lead detection → n8n webhook or local JSONL capture | `python core/services/response_engine.py` |
 | `core/services/vercel_deployer.py` | Provision Vercel subdomains/domains | `python core/services/vercel_deployer.py` |
 | `core/services/whatsapp_notifier.py` | WhatsApp lead alert (Twilio) | `python core/services/whatsapp_notifier.py` |
 | `core/services/api_gateway.py` | API gateway utilities | `python core/services/api_gateway.py` |
 | `core/services/notifier.py` | Admin notification hooks | `python core/services/notifier.py` |
 | `core/services/booking_manager.py` | Google calendar booking (example) | `python core/services/booking_manager.py` |
-| `core/onboarding/baserow_listener.py` | Provision tenants from Baserow | `python core/onboarding/baserow_listener.py` |
+| `core/onboarding/tenant_onboarding.py` | Prints Postgres/API provisioning guidance | `python -m core.onboarding.tenant_onboarding` |
 | `core/onboarding/onboard_client.py` | Create tenant workspace skeleton | `python core/onboarding/onboard_client.py` |
 | `core/src/onboarding.py` | Legacy onboarding helper | `python core/src/onboarding.py` |
 | `ai_gateway.py` | Gateway glue (see file) | `python ai_gateway.py` |
 | `sync_conductor.py` | Poll external glue endpoint + update `brand-config.json` | `python sync_conductor.py` |
 | `system_rebuild.py` | Rebuild/fix factory state | `python system_rebuild.py` |
-| `add_columns.py` | Prisma/Baserow schema augmentation utility | `python add_columns.py` |
+| `add_columns.py` | Google Sheets header update example | `python add_columns.py` |
 | `core/engine/src/sandbox/*` | Sandboxed execution primitives | `python core/engine/src/sandbox/local.py` |
 
 ### Computed Logic (Node / JS)
@@ -97,8 +96,8 @@ Tools are auto-discovered by the agent from `core/engine/src/tools/*.py` (public
 | `lib/cmp/router.js` | CMP action router (imported by the factory router) | Same public URLs: `POST /api/cmp/ticket-create`, `GET /api/cmp/ticket-get`, etc. |
 | `lib/cmp/_lib/*.js` | CMP costing/impact helpers | `node lib/cmp/_lib/<FILE>.js` (module-style) |
 | `lib/factory/costing.js` | Token reservoir / persona debits (CMP uses this) | Imported by `lib/cmp/router.js`; not a standalone HTTP route |
-| `lib/factory/attribution.js` | Hybrid attribution scaffold (Baserow / headers) | Imported where wired; paths relative to `lib/factory/` |
-| `lib/server/provision.js` | Tenant provisioning + Baserow table provisioning | `POST /api/provision` |
+| `lib/factory/attribution.js` | Request/header attribution for factory actions | Imported where wired; paths relative to `lib/factory/` |
+| `lib/server/provision.js` | Tenant provisioning (Postgres) | `POST /api/provision` |
 | `lib/server/audit.js` | Audit / DB stability handler (Prisma) | `POST /api/audit` |
 | `lib/server/webhook.js` | Incoming webhook (Telegram via bot token) | `POST /api/webhook` |
 | `lib/server/main.js` | Lead handoff / n8n intake | `POST /api/main` (and `POST /api/intake` — aliased in router) |
@@ -114,16 +113,15 @@ Tools are auto-discovered by the agent from `core/engine/src/tools/*.py` (public
 | `scripts/verify-cmp-env-read.mjs` | Smoke-test `cfg()` + JSON blob for n8n/GitHub CMP env | `node scripts/verify-cmp-env-read.mjs` |
 | `scanner.js` / `public/scanner.js` | Local scanners / tunnel blocks (UI + scripts) | `node scanner.js` |
 
-## Data Storage (Baserow / Local JSON / DB)
+## Data Storage (Postgres / local JSON / DB)
 
-### Baserow Storage Surfaces
+### Primary durable store (Postgres via Prisma)
 | Artifact | Standardized Invocation |
 |---|---|
-| `lib/cmp/_lib/baserow.js` | Baserow row CRUD wrapper (used by CMP routes) |
-| `core/onboarding/baserow_listener.py` | `python core/onboarding/baserow_listener.py` |
-| `core/engine/src/tools/baserow_client_sync.py` | `python -c "from core.engine.src.tools.baserow_client_sync import get_client_config; print(get_client_config('<CLIENT_ID>'))"` |
 | `lib/server/provision.js` (via router) | `POST /api/provision` |
-| `core/services/response_engine.py` | `python core/services/response_engine.py` |
+| `lib/server/admin-leads.js` (via router) | `GET /api/admin-leads` |
+| CMP ticket routes | `POST /api/cmp/ticket-create`, etc. (`lib/cmp/router.js`) |
+| `core/services/response_engine.py` | Optional `N8N_WEBHOOK_URL` or `vanguard/audit-trail/python_lead_capture.jsonl` |
 
 ### Local / Filesystem Storage (JSON / Markdown)
 | Artifact | Standardized Invocation |

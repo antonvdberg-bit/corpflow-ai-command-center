@@ -121,7 +121,7 @@ def _derive_clusters_from_content(content: str) -> Set[str]:
     clusters: Set[str] = set()
 
     # Financials
-    if any(k in t for k in ["baserow", "cost", "budget", "pricing", "roi", "market value"]):
+    if any(k in t for k in ["postgres", "database", "cost", "budget", "pricing", "roi", "market value"]):
         clusters.add("Financials")
 
     # Marketing

@@ -1,6 +1,6 @@
 # Vanguard — CMP audit trail (repository)
 
-This tree holds the **durable technical record** for CorpFlow Change Management: structured JSON, optional Markdown mirrors, and policy rubrics. **Baserow** remains the system of record for workflow state; Vanguard is the immutable **what / why / how** history alongside the code.
+This tree holds the **durable technical record** for CorpFlow Change Management: structured JSON, optional Markdown mirrors, and policy rubrics. **Operational workflow state** for CMP lives in **Postgres** (`cmp_tickets`, `tenants`, …); Vanguard is the immutable **what / why / how** history alongside the code.
 
 ## Layout
 
@@ -18,5 +18,5 @@ This tree holds the **durable technical record** for CorpFlow Change Management:
 
 ## Related
 
-- API orchestration: `api/cmp/`
-- CRM: Baserow at the URL you configure in `BASEROW_URL` (not committed per environment)
+- API orchestration: `api/factory_router.js` → `lib/cmp/router.js`
+- Primary datastore: Postgres via Prisma (`prisma/schema.prisma`)
