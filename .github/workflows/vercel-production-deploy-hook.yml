@@ -1,0 +1,31 @@
+# Fallback when Vercel does not auto-deploy on push to GitHub.
+#
+# Setup (once):
+# 1) Vercel → your project → Settings → Git → Deploy Hooks → Create Hook
+#    (Branch: main, or your production branch)
+# 2) GitHub → this repo → Settings → Secrets and variables → Actions → New repository secret
+#    Name: VERCEL_DEPLOY_HOOK_URL   Value: the hook URL from step 1
+# 3) GitHub → Actions → "Trigger Vercel production (deploy hook)" → Run workflow
+#
+# This does not run on every push (avoids double deploys if Git integration starts working again).
+
+name: Trigger Vercel production (deploy hook)
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  hook:
+    runs-on: ubuntu-latest
+    steps:
+      - name: POST Vercel deploy hook
+        env:
+          HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "${HOOK:-}" ]; then
+            echo "::error::Missing repository secret VERCEL_DEPLOY_HOOK_URL. See workflow file header."
+            exit 1
+          fi
+          curl -fsS -X POST "$HOOK"
+          echo "OK — Vercel accepted the hook. Open Vercel → Deployments to confirm a new build."
