@@ -2,6 +2,7 @@
  * Single Vercel serverless entry for /api/* (Hobby 12-function cap).
  * Routes via `__path` from vercel.json rewrite, or from URL path after /api/.
  */
+import '../lib/server/suppress-node-deprecations.js';
 import { PrismaClient } from '@prisma/client';
 
 import adminLeadsHandler from '../lib/server/admin-leads.js';
