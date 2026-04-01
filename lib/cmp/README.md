@@ -7,7 +7,7 @@ Change Management Process: **Postgres** (`cmp_tickets`, `tenants`, `auth_users` 
 | Area | Variables |
 |------|-----------|
 | Database | `POSTGRES_URL` (required for CMP + auth) |
-| GitHub sandbox | `GITHUB_REPO`, `CMP_GITHUB_TOKEN` (or `GH_WORKFLOW_TOKEN`) |
+| GitHub sandbox | `CMP_GITHUB_REPOSITORY` (preferred) or `GITHUB_REPO`, plus `CMP_GITHUB_TOKEN` (or `GH_WORKFLOW_TOKEN`) |
 | Optional n8n | `N8N_WEBHOOK_URL`, `N8N_CMP_WEBHOOK_URL` |
 | Automation callback | `CMP_AUTOMATION_CALLBACK_SECRET`, `CMP_AUTOMATION_CALLBACK_URL` (GitHub Actions → Vercel) |
 | Optional Vercel preview lookup | `VERCEL_TOKEN`, `VERCEL_PROJECT_ID`, optional `VERCEL_TEAM_ID` (used by `promote-status` to fill `client_view.automation.preview_url`) |

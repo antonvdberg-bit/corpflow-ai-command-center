@@ -921,6 +921,8 @@
           const st = lr && lr.status != null ? String(lr.status) : '';
           const concl = lr && lr.conclusion != null ? String(lr.conclusion) : '';
           const parts = [];
+          const repoFull = act.repo_full_name != null ? String(act.repo_full_name).trim() : '';
+          if (repoFull) parts.push('Repo ' + repoFull);
           if (st) parts.push('Run status: ' + st + (concl ? ' · ' + concl : ''));
           const checked = apiJson.checked_at != null ? String(apiJson.checked_at) : '';
           if (checked) {
