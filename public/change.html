@@ -137,14 +137,29 @@
           <div class="mt-5 border-t border-slate-800 pt-4">
             <div class="text-xs text-slate-300 mb-1">Brief</div>
             <p class="text-[10px] text-slate-500 mb-2 leading-relaxed">
-              Read-only overview: status, tasks and acceptance criteria, scope, risks, and estimate highlights. Full record is JSON below.
+              Read-only overview: status, tasks, scope, risks, and estimate. Raw JSON is available to factory admins only.
             </p>
             <div
               id="briefSummary"
               class="rounded-xl border border-slate-800 bg-slate-950/60 p-3 text-[11px] text-slate-300 leading-relaxed space-y-3 min-h-[4.5rem] mb-3"
             ></div>
-            <div class="text-[10px] text-slate-500 mb-1">Full state (JSON)</div>
-            <pre id="brief" class="rounded-xl bg-slate-950 border border-slate-800 p-3 text-[11px] text-slate-200 whitespace-pre-wrap min-h-[240px]"></pre>
+
+            <div id="progressCard" class="mb-4 rounded-xl border border-slate-800 bg-slate-950/50 p-3 hidden">
+              <div class="text-[11px] font-semibold text-slate-200 uppercase tracking-wide">Your request progress</div>
+              <div id="progressBody" class="mt-2 space-y-2 text-[11px] text-slate-300"></div>
+            </div>
+
+            <details id="rawJsonWrap" class="rounded-xl border border-slate-800 bg-slate-950/40 group hidden">
+              <summary
+                class="cursor-pointer text-[10px] text-slate-500 hover:text-slate-400 px-3 py-2 select-none list-none"
+              >
+                Raw JSON (support / admin)
+              </summary>
+              <pre
+                id="brief"
+                class="rounded-b-xl bg-slate-950 border-t border-slate-800 p-3 text-[11px] text-slate-200 whitespace-pre-wrap min-h-[120px] max-h-[min(50vh,420px)] overflow-auto"
+              ></pre>
+            </details>
           </div>
 
           <div class="mt-5 border-t border-slate-800 pt-4">
@@ -217,6 +232,61 @@
         let sessionInfo = { logged_in: false, level: 'anonymous' };
         let uiContext = null;
         let busyDepth = 0;
+        /** Authoritative merged ticket UI state (replaces parsing `#brief` text). */
+        let lastBrief = null;
+
+        function isAdminSession() {
+          return sessionInfo && sessionInfo.logged_in && String(sessionInfo.level || '').toLowerCase() === 'admin';
+        }
+
+        function isTenantClient() {
+          return (
+            uiContext &&
+            String(uiContext.surface || '') === 'tenant' &&
+            sessionInfo &&
+            sessionInfo.logged_in &&
+            !isAdminSession()
+          );
+        }
+
+        /**
+         * Rebuild approve_build view from persisted ticket_progress.client_view.automation when needed.
+         * @param {Record<string, unknown>|null} b
+         */
+        function hydrateBriefFromTicketProgress(b) {
+          if (!b || typeof b !== 'object') return {};
+          const out = { ...b };
+          const cv = b.ticket_progress && b.ticket_progress.client_view ? b.ticket_progress.client_view : {};
+          const auto = cv.automation && typeof cv.automation === 'object' ? cv.automation : {};
+          if (!out.approve_build && (auto.dispatch_ok === true || auto.dispatch_ok === false)) {
+            out.approve_build = {
+              ok: true,
+              ticket_id: out.ticket_id,
+              sandbox_branch: {
+                dispatch_triggered: !!auto.dispatch_ok,
+                branch_name: auto.branch_name,
+                branch_url: auto.branch_url,
+                compare_url: auto.compare_url,
+                workflow_url: auto.workflow_url,
+                actions_url: auto.actions_url,
+                error: auto.last_error || undefined,
+              },
+            };
+          }
+          return out;
+        }
+
+        function applyConsoleLayout() {
+          const rawWrap = $('rawJsonWrap');
+          if (rawWrap) {
+            if (isTenantClient()) rawWrap.classList.add('hidden');
+            else if (isAdminSession()) rawWrap.classList.remove('hidden');
+            else rawWrap.classList.add('hidden');
+          }
+          if (briefEl && (isTenantClient() || !isAdminSession())) {
+            briefEl.textContent = '';
+          }
+        }
 
         function setBanner(msg) {
           if (!msg) {
@@ -325,9 +395,15 @@
           if (!card || !body) return;
           const tid = String(ticketEl.value || '').trim();
           const approve = b && b.approve_build ? b.approve_build : null;
+          const isTenant = isTenantClient();
 
           if (!tid && !approve) {
             card.classList.add('hidden');
+            return;
+          }
+          if (isTenant) {
+            card.classList.add('hidden');
+            body.innerHTML = '';
             return;
           }
           card.classList.remove('hidden');
@@ -445,14 +521,24 @@
         }
 
         function setBrief(obj) {
-          briefEl.textContent = obj ? JSON.stringify(obj, null, 2) : '';
+          lastBrief = obj && typeof obj === 'object' ? obj : null;
+          if (briefEl) {
+            briefEl.textContent = isAdminSession() && lastBrief ? JSON.stringify(lastBrief, null, 2) : '';
+          }
+          applyConsoleLayout();
+          const eff = hydrateBriefFromTicketProgress(lastBrief || {});
           try {
-            updatePipelineCardFromBrief(obj || {});
+            updatePipelineCardFromBrief(eff);
           } catch (_) {}
           try {
-            updateBriefSummary(obj);
+            updateBriefSummary(lastBrief || {});
           } catch (_) {}
-          renderAutomation(obj);
+          try {
+            renderAutomation(eff);
+          } catch (_) {}
+          try {
+            renderProgressCard(lastBrief || {});
+          } catch (_) {}
         }
         function asLink(href, label) {
           if (!href) return '';
@@ -469,17 +555,14 @@
 
         function renderAutomation(briefObj) {
           if (!automationLinksEl) return;
-          let parsedExisting = null;
-          try {
-            parsedExisting = JSON.parse(briefEl.textContent || '');
-          } catch (_) {
-            parsedExisting = null;
-          }
-          const b = briefObj || parsedExisting || {};
+          const b = briefObj && typeof briefObj === 'object' ? briefObj : {};
           const approve = b && b.approve_build ? b.approve_build : null;
           const sb = approve && approve.sandbox_branch ? approve.sandbox_branch : null;
           const storedOverseer = b && b.console_json && b.console_json.overseer ? b.console_json.overseer : (b.overseer || null);
           const storedPromotion = b && b.console_json && b.console_json.promotion ? b.console_json.promotion : (b.promotion || null);
+          const tpCv = b.ticket_progress && b.ticket_progress.client_view ? b.ticket_progress.client_view : {};
+          const tpAuto = tpCv.automation && typeof tpCv.automation === 'object' ? tpCv.automation : {};
+          const previewFromProgress = typeof tpAuto.preview_url === 'string' ? tpAuto.preview_url.trim() : '';
 
           const human = [];
           if (approve && approve.ok && sb && sb.dispatch_triggered) {
@@ -511,6 +594,15 @@
           if (storedPromotion && storedPromotion.last_error) {
             human.push(
               '<div class="text-[11px] text-rose-300">Promotion sync: ' + escapeHtml(String(storedPromotion.last_error)) + '</div>',
+            );
+          }
+
+          if (previewFromProgress) {
+            human.push(
+              '<div class="rounded-lg border border-sky-500/20 bg-sky-500/5 px-3 py-2 text-[11px] text-sky-100 leading-relaxed">' +
+                '<strong class="text-sky-200">Site preview:</strong> ' +
+                asLink(previewFromProgress, previewFromProgress) +
+                '</div>',
             );
           }
 
@@ -733,6 +825,70 @@
             .filter(Boolean);
         }
 
+        function renderProgressCard(merged) {
+          const card = $('progressCard');
+          const body = $('progressBody');
+          if (!card || !body) return;
+          const tid = String((merged && merged.ticket_id) || ticketEl.value || '').trim();
+          if (!tid) {
+            card.classList.add('hidden');
+            body.innerHTML = '';
+            return;
+          }
+          card.classList.remove('hidden');
+          const tp = merged && merged.ticket_progress && typeof merged.ticket_progress === 'object' ? merged.ticket_progress : null;
+          const st = String((tp && tp.status) || (merged && merged.status) || '').trim();
+          const sg = String((tp && tp.stage) || (merged && merged.stage) || '').trim();
+          const cv = tp && tp.client_view && typeof tp.client_view === 'object' ? tp.client_view : {};
+          const auto = cv.automation && typeof cv.automation === 'object' ? cv.automation : {};
+          const hasEstimate = Boolean(cv.last_estimate_at || (merged && merged.costing_preview));
+          const buildApproved = /approved/i.test(st) || String(sg).toLowerCase() === 'build';
+          const hasDispatch = auto.dispatch_ok === true;
+          const dispatchFailed = auto.dispatch_ok === false;
+          const previewUrl = typeof auto.preview_url === 'string' ? auto.preview_url.trim() : '';
+          const rows = [];
+          rows.push(stepRow('ok', 'Request captured', tid ? 'Ticket ' + tid : 'Ticket selected'));
+          rows.push(
+            stepRow(
+              hasEstimate ? 'ok' : 'pending',
+              'Estimate',
+              hasEstimate
+                ? 'Indicative effort and cost are saved on your ticket.'
+                : 'Run Estimate to save effort range and indicative cost.',
+            ),
+          );
+          rows.push(
+            stepRow(
+              buildApproved ? 'ok' : 'pending',
+              'Factory build',
+              buildApproved
+                ? 'Approved — sandbox automation can run (factory operators manage GitHub).'
+                : 'Waiting for factory approval after estimate.',
+            ),
+          );
+          rows.push(
+            stepRow(
+              hasDispatch ? 'ok' : buildApproved && dispatchFailed ? 'warn' : 'pending',
+              'Sandbox branch (GitHub)',
+              hasDispatch
+                ? 'Workflow dispatch accepted; branch cmp/' + tid + ' is created or updated shortly.'
+                : buildApproved
+                  ? 'GitHub dispatch not confirmed yet — operators may still be configuring the repo token.'
+                  : 'Not started until the ticket is approved for build.',
+            ),
+          );
+          rows.push(
+            stepRow(
+              previewUrl ? 'ok' : 'pending',
+              'Site preview',
+              previewUrl
+                ? 'Open preview: ' + previewUrl
+                : 'A preview URL appears when Vercel deploys the branch or automation posts a link.',
+            ),
+          );
+          body.innerHTML = rows.join('');
+        }
+
         function updateBriefSummary(merged) {
           const el = $('briefSummary');
           if (!el) return;
@@ -746,8 +902,65 @@
           const cp =
             merged.costing_preview && typeof merged.costing_preview === 'object' ? merged.costing_preview : null;
           const parts = [];
+          const tenantUser = isTenantClient();
+          const tp = merged.ticket_progress && typeof merged.ticket_progress === 'object' ? merged.ticket_progress : null;
+          const cv = tp && tp.client_view && typeof tp.client_view === 'object' ? tp.client_view : {};
+          const usd =
+            cv.display_amount_usd != null && Number.isFinite(Number(cv.display_amount_usd))
+              ? Number(cv.display_amount_usd)
+              : cp && cp.cost && cp.cost.displayed_client_usd != null
+                ? Number(cp.cost.displayed_client_usd)
+                : null;
+          const hoursLo =
+            cv.effort_hours_low != null && Number.isFinite(Number(cv.effort_hours_low))
+              ? Number(cv.effort_hours_low)
+              : cp && cp.effort_hours_low != null
+                ? Number(cp.effort_hours_low)
+                : null;
+          const hoursHi =
+            cv.effort_hours_high != null && Number.isFinite(Number(cv.effort_hours_high))
+              ? Number(cv.effort_hours_high)
+              : cp && cp.effort_hours_high != null
+                ? Number(cp.effort_hours_high)
+                : null;
+          const curr = typeof cv.display_currency === 'string' && cv.display_currency.trim() ? cv.display_currency.trim() : 'USD';
 
-          const statusBits = [merged.status, merged.stage].filter(
+          if (tenantUser && (hoursLo != null || hoursHi != null || (usd != null && Number.isFinite(usd)))) {
+            let estBlock =
+              '<div class="rounded-lg border border-emerald-500/25 bg-emerald-500/5 px-3 py-2 text-slate-200">' +
+              '<div class="font-semibold text-emerald-200/90 mb-1">Estimate (indicative)</div>';
+            if (hoursLo != null && hoursHi != null && Number.isFinite(hoursLo) && Number.isFinite(hoursHi)) {
+              estBlock +=
+                '<div>Estimated effort: <strong>' +
+                escapeHtml(String(hoursLo)) +
+                '–' +
+                escapeHtml(String(hoursHi)) +
+                '</strong> work hours</div>';
+            }
+            if (usd != null && Number.isFinite(usd)) {
+              estBlock +=
+                '<div>Indicative cost: <strong>' +
+                escapeHtml(curr) +
+                ' ' +
+                escapeHtml(
+                  usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                ) +
+                '</strong></div>';
+            }
+            estBlock +=
+              '<div class="text-[10px] text-slate-500 mt-1">Not a binding quote. Final scope follows factory review.</div></div>';
+            parts.push(estBlock);
+          }
+
+          if (typeof cv.progress_message === 'string' && cv.progress_message.trim()) {
+            parts.push(
+              '<div class="text-[11px] text-slate-400 border border-slate-800 rounded-lg px-3 py-2">' +
+                escapeHtml(cv.progress_message.trim()) +
+                '</div>',
+            );
+          }
+
+          const statusBits = [tp && tp.status ? tp.status : merged.status, tp && tp.stage ? tp.stage : merged.stage].filter(
             (x) => x != null && String(x).trim() !== '',
           );
           if (statusBits.length) {
@@ -821,9 +1034,38 @@
             const imp = cp.impact;
             const estSummary = typeof imp.summary === 'string' ? imp.summary.trim() : '';
             const tr = Array.isArray(imp.technical_risks) ? imp.technical_risks : [];
-            if (estSummary || tr.length) {
+            if (tenantUser) {
+              const band = imp.complexity_inferred || cv.complexity;
+              if (band) {
+                parts.push(
+                  '<div class="text-[11px] text-slate-500">Complexity band: <span class="text-slate-300">' +
+                    escapeHtml(String(band)) +
+                    '</span> · Use progress panel for hours and cost.</div>',
+                );
+              }
+            } else if (estSummary || tr.length) {
               let estHtml =
-                '<div><div class="font-semibold text-slate-200 mb-1">Estimate highlights</div>';
+                '<details class="group mt-1 rounded-lg border border-slate-800 bg-slate-950/40">' +
+                '<summary class="cursor-pointer font-semibold text-slate-200 mb-0 px-3 py-2 text-[11px]">Estimate detail (heuristics)</summary>' +
+                '<div class="px-3 pb-3 text-[11px]">';
+              if (hoursLo != null && hoursHi != null && Number.isFinite(hoursLo) && Number.isFinite(hoursHi)) {
+                estHtml +=
+                  '<div class="text-slate-300 mb-2">Effort band: <strong>' +
+                  escapeHtml(String(hoursLo)) +
+                  '–' +
+                  escapeHtml(String(hoursHi)) +
+                  '</strong> hours</div>';
+              }
+              if (usd != null && Number.isFinite(usd)) {
+                estHtml +=
+                  '<div class="text-slate-300 mb-2">Indicative cost: <strong>' +
+                  escapeHtml(curr) +
+                  ' ' +
+                  escapeHtml(
+                    usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                  ) +
+                  '</strong></div>';
+              }
               if (estSummary) {
                 estHtml += '<p class="text-slate-300 mb-2">' + escapeHtml(estSummary) + '</p>';
               }
@@ -841,7 +1083,7 @@
                 }
                 estHtml += '</ul>';
               }
-              estHtml += '</div>';
+              estHtml += '</div></details>';
               parts.push(estHtml);
             }
           }
@@ -994,7 +1236,7 @@
                   }
                   // Admin-only: hydrate stored overseer report if present.
                   if (gr.ok && gj && typeof gj === 'object') {
-                    const prev = JSON.parse(briefEl.textContent || '{}') || {};
+                    const prev = { ...(lastBrief || {}) };
                     setBrief({ ...prev, ...gj });
                   }
                 } catch (_) {}
@@ -1039,6 +1281,8 @@
             }
 
             renderModeBarFromUiContext();
+            applyConsoleLayout();
+            if (lastBrief) setBrief(lastBrief);
 
             // Keep existing badge behavior by calling /api/auth/me as a compatibility check.
             return fetch('/api/auth/me', { credentials: 'include' }).then((r) => r.json()).catch(() => null);
@@ -1048,10 +1292,14 @@
             const el = $('sessionBadge');
             if (!el) return;
             if (j && j.logged_in) {
+              sessionInfo = { logged_in: true, level: j.level || 'user', tenant_id: j.tenant_id };
               el.textContent = j.level + (j.tenant_id ? ' (' + j.tenant_id + ')' : '');
               el.className = 'inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[11px] text-emerald-200';
               loadTicketList();
+              applyConsoleLayout();
+              if (lastBrief) setBrief(lastBrief);
             } else {
+              sessionInfo = { logged_in: false, level: 'anonymous' };
               el.textContent = 'Not logged in';
               el.className = 'inline-flex items-center rounded-full border border-slate-700 px-3 py-1 text-[11px] text-slate-300';
               const listEl = $('ticketList');
@@ -1059,6 +1307,7 @@
                 listEl.innerHTML =
                   '<div class="text-slate-500 px-1 py-2"><a class="text-sky-300 underline" href="/login">Log in</a> to see your tickets.</div>';
               }
+              applyConsoleLayout();
             }
           })
           .catch(() => {
@@ -1104,7 +1353,7 @@
             });
             const gj = await gr.json().catch(() => ({}));
             if (!gr.ok) return;
-            const prev = JSON.parse(briefEl.textContent || '{}') || {};
+            const prev = { ...(lastBrief || {}) };
             // Merge in server truth (status/stage/description + admin console_json).
             setBrief({ ...prev, ...gj, opened_from: prev.opened_from || 'sync' });
             if ((!String(descEl.value || '').trim()) && gj.description) {
@@ -1171,7 +1420,11 @@
           if (!tid) return setBanner('Create or paste a Ticket ID first.');
           try {
             const j = await post('costing-preview', { description: d, ticketId: tid, is_demo: false, tier: 'standard' });
-            setBrief({ ...(JSON.parse(briefEl.textContent || '{}') || {}), costing_preview: j });
+            setBrief({
+              ...(lastBrief || {}),
+              costing_preview: j,
+              ...(j.ticket_progress && typeof j.ticket_progress === 'object' ? { ticket_progress: j.ticket_progress } : {}),
+            });
           } catch (e) {
             setBanner(String(e.message || e));
           }
@@ -1187,12 +1440,15 @@
             const j = await withActivity('Approve build: factory + GitHub…', async () =>
               post('approve-build', { ticket_id: tid, description: d, tier: 'standard', is_demo: false }),
             );
-            setBrief({ ...(JSON.parse(briefEl.textContent || '{}') || {}), approve_build: j });
+            setBrief({
+              ...(lastBrief || {}),
+              approve_build: j,
+              ...(j.ticket_progress && typeof j.ticket_progress === 'object' ? { ticket_progress: j.ticket_progress } : {}),
+            });
           } catch (e) {
             setBanner(String(e.message || e));
-            const prev = JSON.parse(briefEl.textContent || '{}') || {};
             updatePipelineCardFromBrief({
-              ...prev,
+              ...(lastBrief || {}),
               approve_build: { ok: false, error: String(e.message || e), sandbox_branch: {} },
             });
           }
@@ -1220,7 +1476,7 @@
             await withActivity('Refining brief…', async () => {
               const j = await post('change-chat', { ticket_id: tid, message: msg, locale: localeSel.value || 'en' });
               append('assistant', String(j.assistant || 'OK'));
-              setBrief({ ...(JSON.parse(briefEl.textContent || '{}') || {}), brief: j.brief || null });
+              setBrief({ ...(lastBrief || {}), brief: j.brief || null });
             });
           } catch (e) {
             setBanner(String(e.message || e));
