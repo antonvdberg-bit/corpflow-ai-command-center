@@ -132,6 +132,16 @@
       >
         <div class="font-semibold text-amber-200/95 mb-1.5">Process checks</div>
         <div id="processHealthBody" class="space-y-2"></div>
+        <div class="mt-3 flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            id="btnRequestAssist"
+            class="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-[11px] font-semibold text-amber-100 hover:bg-amber-500/15"
+          >
+            Request assistance
+          </button>
+          <span id="assistStatus" class="text-[10px] text-slate-500"></span>
+        </div>
         <p class="text-[10px] text-slate-500 mt-2 leading-relaxed">
           These checks run in your browser using the latest ticket and automation snapshots. GitHub status refreshes about every 45s; full ticket sync about every 15s.
         </p>
@@ -684,7 +694,7 @@
               level: 'bad',
               html:
                 '<span class="text-rose-300">Automation</span> — ' +
-                escapeHtml(String(act.summary_line || 'Needs attention — review GitHub Actions.').slice(0, 500)),
+                escapeHtml(String(act.summary_line || 'Needs review — the factory team is checking the pipeline.').slice(0, 500)),
             });
           }
 
@@ -824,6 +834,40 @@
             } catch (e2) {
               setBanner('Could not copy: ' + String(e2 && e2.message ? e2.message : e2));
             }
+          }
+        }
+
+        async function requestAssistance() {
+          const statusEl = $('assistStatus');
+          const tid = String(ticketEl.value || (lastBrief && lastBrief.ticket_id) || '').trim();
+          if (!tid) {
+            if (statusEl) statusEl.textContent = 'Select a ticket first.';
+            return;
+          }
+          if (statusEl) statusEl.textContent = 'Submitting…';
+          const snapshot = {
+            ticket_id: tid,
+            ui_surface: uiContext && uiContext.surface ? String(uiContext.surface) : null,
+            ui_host: uiContext && uiContext.host ? String(uiContext.host) : null,
+            last_brief: lastBrief || null,
+            last_activity: lastActivityPayload || null,
+          };
+          try {
+            const r = await fetch('/api/cmp/router?action=assist-request', {
+              method: 'POST',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                ticket_id: tid,
+                reason: 'Process checks indicate the request may be delayed and needs review.',
+                snapshot: snapshot,
+              }),
+            });
+            const j = await r.json().catch(() => ({}));
+            if (!r.ok) throw new Error(j.error || j.detail || j.hint || 'http_' + r.status);
+            if (statusEl) statusEl.textContent = 'Submitted. Request id: ' + String(j.request_id || 'n/a');
+          } catch (e) {
+            if (statusEl) statusEl.textContent = 'Error: ' + String(e && e.message ? e.message : e);
           }
         }
 
@@ -2268,6 +2312,12 @@
         if (btnCopyAudit) {
           btnCopyAudit.addEventListener('click', () => {
             copyAuditSummaryToClipboard();
+          });
+        }
+        const btnRequestAssist = $('btnRequestAssist');
+        if (btnRequestAssist) {
+          btnRequestAssist.addEventListener('click', () => {
+            requestAssistance();
           });
         }
 

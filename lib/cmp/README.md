@@ -38,7 +38,11 @@ Common actions include `ticket-create`, `ticket-get`, `ticket-activity`, `ticket
 - **`tenant-onboard`** (POST, factory master only): upserts a row in `tenants` so tenant auth + tenant-scoped ticketing has a stable identity.
   - Body: `{ tenant_id, slug?, name?, fqdn?, execution_only?, lifecycle?, tenant_status? }`
   - This intentionally does **not** issue credentials; pair it with `provision-tenant-pin` when you want a PIN for sovereign bootstrap.
+- **`tenant-hostname-upsert`** (POST, factory master only): upserts a row in `tenant_hostnames` mapping a host (e.g. `legal.corpflowai.com`) to `tenant_id` (e.g. `legal-demo`).
+  - Body: `{ host, tenant_id, mode?, enabled? }`
 - **`provision-tenant-pin`** (POST, factory master only): upserts `tenants.sovereign_pin_hash` (and creates a minimal tenant row if missing) and returns a one-time plaintext PIN.
+- **`assist-request`** (POST): records a tenant-safe “please investigate” snapshot for a ticket into `recovery_vault_entries` (Postgres) and emits telemetry for triage.
+  - Body: `{ ticket_id, reason?, snapshot? }`
 
 ## Change Console: `client_view` and `ticket_progress`
 

@@ -7,24 +7,119 @@
 </head>
 <body class="p-12">
     <div class="max-w-2xl mx-auto bg-slate-900 p-8 rounded-3xl border border-slate-800">
-        <h1 class="text-2xl font-bold mb-6">Provision New AI Tenant</h1>
-        <form class="space-y-4">
+        <h1 class="text-2xl font-bold mb-2">Provision New AI Tenant</h1>
+        <p class="text-slate-400 text-sm mb-6 leading-relaxed">
+          Factory-only onboarding for demo tenants. Writes Postgres rows: <code class="text-slate-200">tenants</code> and
+          <code class="text-slate-200">tenant_hostnames</code>. Optional: issues a sovereign PIN.
+        </p>
+
+        <form id="form" class="space-y-4">
             <div>
-                <label class="block text-sm text-slate-400 mb-1">Business Name</label>
-                <input type="text" class="w-full bg-slate-800 border-none rounded-xl p-3" placeholder="e.g. Royal Clinic Mauritius">
+                <label class="block text-sm text-slate-400 mb-1">Tenant ID (unique)</label>
+                <input id="tenant_id" type="text" class="w-full bg-slate-800 border-none rounded-xl p-3" placeholder="e.g. legal-demo">
+                <p class="text-[11px] text-slate-500 mt-1">Use one tenant per demo site (matches CMP ticket scoping).</p>
             </div>
             <div>
-                <label class="block text-sm text-slate-400 mb-1">Owner WhatsApp (International Format)</label>
-                <input type="text" class="w-full bg-slate-800 border-none rounded-xl p-3" placeholder="+230...">
+                <label class="block text-sm text-slate-400 mb-1">Display name</label>
+                <input id="name" type="text" class="w-full bg-slate-800 border-none rounded-xl p-3" placeholder="e.g. Legal Demo">
             </div>
             <div>
-                <label class="block text-sm text-slate-400 mb-1">Core Knowledge (Paste Brochure/Text)</label>
-                <textarea class="w-full bg-slate-800 border-none rounded-xl p-3 h-32" placeholder="Paste services, pricing, and clinic hours here..."></textarea>
+                <label class="block text-sm text-slate-400 mb-1">Slug</label>
+                <input id="slug" type="text" class="w-full bg-slate-800 border-none rounded-xl p-3" placeholder="e.g. legal-demo">
             </div>
-            <button type="button" class="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-xl font-bold">
-                GENERATE AUTONOMOUS AGENT
-            </button>
+            <div>
+                <label class="block text-sm text-slate-400 mb-1">Site hostname</label>
+                <input id="host" type="text" class="w-full bg-slate-800 border-none rounded-xl p-3" placeholder="e.g. legal.corpflowai.com">
+                <p class="text-[11px] text-slate-500 mt-1">This is what routes requests to the right tenant.</p>
+            </div>
+
+            <div class="flex items-center gap-3 flex-wrap pt-2">
+              <button id="btnEnsure" type="button" class="rounded-xl bg-slate-800 hover:bg-slate-700 px-4 py-2 font-semibold">
+                1) Ensure DB schema
+              </button>
+              <button id="btnOnboard" type="button" class="rounded-xl bg-blue-600 hover:bg-blue-500 px-4 py-2 font-bold">
+                2) Onboard tenant + hostname
+              </button>
+              <button id="btnPin" type="button" class="rounded-xl bg-emerald-600 hover:bg-emerald-500 px-4 py-2 font-bold">
+                3) Issue PIN (optional)
+              </button>
+            </div>
         </form>
+
+        <div id="out" class="mt-6 rounded-2xl border border-slate-800 bg-slate-950/40 p-4 text-sm text-slate-200 whitespace-pre-wrap min-h-[80px]"></div>
     </div>
+
+    <script>
+      (function () {
+        const $ = (id) => document.getElementById(id);
+        const out = $('out');
+
+        function show(x) {
+          out.textContent = typeof x === 'string' ? x : JSON.stringify(x, null, 2);
+        }
+
+        async function postJson(url, body) {
+          const r = await fetch(url, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body || {}),
+          });
+          const j = await r.json().catch(() => ({}));
+          if (!r.ok) throw new Error(j.error || j.detail || j.hint || ('http_' + r.status));
+          return j;
+        }
+
+        async function ensureSchema() {
+          show('Ensuring schema…');
+          const j = await postJson('/api/factory/postgres/ensure-schema', {});
+          show(j);
+        }
+
+        function formVals() {
+          const tenant_id = String(($('tenant_id').value || '')).trim();
+          const slug = String(($('slug').value || '')).trim() || tenant_id;
+          const name = String(($('name').value || '')).trim() || tenant_id;
+          const host = String(($('host').value || '')).trim().toLowerCase();
+          if (!tenant_id) throw new Error('tenant_id is required');
+          if (!host) throw new Error('host is required');
+          return { tenant_id, slug, name, host };
+        }
+
+        async function onboardTenantAndHost() {
+          const v = formVals();
+          show('Onboarding tenant…');
+          const tenant = await postJson('/api/cmp/router?action=tenant-onboard', {
+            tenant_id: v.tenant_id,
+            slug: v.slug,
+            name: v.name,
+            fqdn: v.host,
+          });
+          show({ step: 'tenant-onboard', tenant });
+
+          show('Writing hostname mapping…');
+          const mapping = await postJson('/api/cmp/router?action=tenant-hostname-upsert', {
+            tenant_id: v.tenant_id,
+            host: v.host,
+            mode: 'tenant',
+            enabled: true,
+          });
+          show({ step: 'tenant-hostname-upsert', mapping, tenant });
+        }
+
+        async function issuePin() {
+          const v = formVals();
+          show('Issuing PIN…');
+          const pin = await postJson('/api/cmp/router?action=provision-tenant-pin', { tenant_id: v.tenant_id });
+          show({ step: 'provision-tenant-pin', pin });
+        }
+
+        $('btnEnsure').addEventListener('click', () => ensureSchema().catch((e) => show('Error: ' + (e && e.message ? e.message : String(e)))));
+        $('btnOnboard').addEventListener('click', () => onboardTenantAndHost().catch((e) => show('Error: ' + (e && e.message ? e.message : String(e)))));
+        $('btnPin').addEventListener('click', () => issuePin().catch((e) => show('Error: ' + (e && e.message ? e.message : String(e)))));
+
+        show('Ready. Log in as admin (cookie session) and run steps 1 → 2. Step 3 is optional.');
+      })();
+    </script>
 </body>
 </html>
