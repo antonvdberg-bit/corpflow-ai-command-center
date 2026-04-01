@@ -37,7 +37,7 @@ Durable, tenant-safe progress lives under `cmp_tickets.console_json.client_view`
 
 - **Estimate** (`costing-preview` with a ticket id): writes `last_estimate_at`, `effort_hours_low` / `effort_hours_high`, `display_amount_usd`, `full_market_value_usd`, `display_currency`, `complexity`, `risk`.
 - **Approve build**: merges `automation` (`dispatch_ok`, GitHub URLs, `last_error`) and status/stage hints.
-- **`ticket-get`**: returns `ticket_progress` `{ status, stage, client_view }` for every caller; **full `console_json` only for admin** sessions.
+- **`ticket-get`**: returns `ticket_progress` `{ status, stage, client_view }` for every caller; **`itinerary`** (ordered audit steps from `created_at` / `updated_at` and `console_json` milestones); **full `console_json` only for admin** sessions.
 - **`ticket-activity`**: GET/POST with `id` or `ticket_id` — tenant-safe snapshot of GitHub branch presence and recent Actions runs for `cmp/<ticket_id>` (`summary_line`, `needs_attention`, `stuck_hint`, links). Tenant sessions are scoped to their ticket rows; admins see any ticket. Allowed for logged-in tenant cookies without extra JWT allowlist (same idea as `ticket-list`).
 
 ## `automation-callback` (POST, secret header)

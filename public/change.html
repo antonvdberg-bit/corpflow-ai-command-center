@@ -622,6 +622,29 @@
           if (wf && wf !== af)
             links.push('<div>' + asLink(wf, 'cmp-branch workflow on this branch') + '</div>');
           if (runUrl) links.push('<div>' + asLink(runUrl, 'Latest workflow run on GitHub') + '</div>');
+
+          const wAll = act.workflow_all_runs_url != null ? String(act.workflow_all_runs_url).trim() : '';
+          if (wAll) links.push('<div>' + asLink(wAll, 'All CMP Sandbox Branch workflow runs') + '</div>');
+
+          const dr = Array.isArray(act.diagnostic_workflow_runs) ? act.diagnostic_workflow_runs : [];
+          if (dr.length) {
+            const lines = dr.slice(0, 6).map((rr) => {
+              const u = rr.html_url != null ? String(rr.html_url) : '';
+              const hb = rr.head_branch != null ? String(rr.head_branch) : '';
+              const st = rr.status != null ? String(rr.status) : '';
+              const c = rr.conclusion != null ? String(rr.conclusion) : '';
+              const ev = rr.event != null ? String(rr.event) : '';
+              const bit = [st, c && c !== 'null' ? c : '—', hb ? 'branch ' + hb : '', ev].filter(Boolean).join(' · ');
+              return u
+                ? '<div>' + asLink(u, bit || 'Open run') + '</div>'
+                : '<div class="text-slate-500">' + escapeHtml(bit) + '</div>';
+            });
+            links.push(
+              '<div class="mt-2 pt-2 border-t border-slate-800 text-[10px] text-slate-500">Recent cmp-branch.yml runs (repository_dispatch often shows the <strong class="text-slate-400">default</strong> branch, not cmp/…):</div>' +
+                lines.join(''),
+            );
+          }
+
           linksEl.innerHTML = links.join('');
         }
 
@@ -1515,6 +1538,33 @@
               estHtml += '</div></details>';
               parts.push(estHtml);
             }
+          }
+
+          const itin = Array.isArray(merged.itinerary) ? merged.itinerary : [];
+          if (itin.length) {
+            let itHtml =
+              '<div class="rounded-lg border border-slate-700 bg-slate-950/40 px-3 py-2">' +
+              '<div class="font-semibold text-slate-200 mb-2 text-[11px]">Audit trail (database &amp; milestones)</div>' +
+              '<ol class="list-decimal pl-4 space-y-2 text-[11px] text-slate-300">';
+            for (const step of itin) {
+              const at = step && step.at != null ? String(step.at) : '';
+              const lab = step && step.label != null ? String(step.label) : '';
+              const det = step && step.detail != null ? String(step.detail) : '';
+              let timeStr = at;
+              try {
+                if (at) timeStr = new Date(at).toLocaleString();
+              } catch (_) {}
+              itHtml +=
+                '<li><span class="text-slate-500">' +
+                escapeHtml(timeStr) +
+                '</span> · <strong class="text-slate-200">' +
+                escapeHtml(lab) +
+                '</strong><div class="text-slate-400 mt-0.5 leading-relaxed">' +
+                escapeHtml(det) +
+                '</div></li>';
+            }
+            itHtml += '</ol></div>';
+            parts.push(itHtml);
           }
 
           if (!parts.length) {
