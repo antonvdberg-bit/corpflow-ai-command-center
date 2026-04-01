@@ -31,6 +31,77 @@
           transform: rotate(360deg);
         }
       }
+      /* Tenant “factory working” — code behind steamed glass */
+      .cf-fog-wrap {
+        position: relative;
+        border-radius: 0.75rem;
+        overflow: hidden;
+        min-height: 280px;
+        border: 1px solid rgb(30 41 59);
+        background: rgb(2 6 23);
+      }
+      .cf-fog-code {
+        position: absolute;
+        inset: 0;
+        margin: 0;
+        padding: 1rem 1rem 3rem;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 10px;
+        line-height: 1.45;
+        color: rgba(52, 211, 153, 0.55);
+        white-space: pre;
+        overflow: hidden;
+        filter: blur(1.2px);
+        transform: scale(1.02);
+        opacity: 0.85;
+        animation: cf-code-scroll 28s linear infinite;
+      }
+      @keyframes cf-code-scroll {
+        0% {
+          transform: translateY(0) scale(1.02);
+        }
+        100% {
+          transform: translateY(-12%) scale(1.02);
+        }
+      }
+      .cf-fog-glass {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(
+          165deg,
+          rgba(15, 23, 42, 0.25) 0%,
+          rgba(148, 163, 184, 0.12) 45%,
+          rgba(15, 23, 42, 0.55) 100%
+        );
+        backdrop-filter: blur(10px) saturate(1.2);
+        -webkit-backdrop-filter: blur(10px) saturate(1.2);
+      }
+      .cf-fog-steam {
+        position: absolute;
+        inset: -20% -10%;
+        background: radial-gradient(ellipse at 30% 80%, rgba(255, 255, 255, 0.07), transparent 55%),
+          radial-gradient(ellipse at 70% 20%, rgba(56, 189, 248, 0.06), transparent 50%);
+        animation: cf-steam 8s ease-in-out infinite;
+        pointer-events: none;
+      }
+      @keyframes cf-steam {
+        0%,
+        100% {
+          opacity: 0.5;
+          transform: translateY(0) scale(1);
+        }
+        50% {
+          opacity: 0.85;
+          transform: translateY(-6px) scale(1.02);
+        }
+      }
+      .cf-fog-fore {
+        position: relative;
+        z-index: 2;
+        padding: 1rem 1rem 1.25rem;
+        min-height: 8rem;
+      }
     </style>
   </head>
   <body class="min-h-screen bg-slate-950 text-slate-100">
@@ -108,23 +179,57 @@
             </div>
           </div>
 
-          <div class="mt-6 border-t border-slate-800 pt-4">
-            <div class="text-xs font-semibold text-slate-200 mb-1">Refine the request (chat)</div>
-            <p class="text-[11px] text-slate-500 mb-2 leading-relaxed">
+          <div id="refineSection" class="mt-6 border-t border-slate-800 pt-4">
+            <div id="refineTitleAdmin" class="text-xs font-semibold text-slate-200 mb-1">Refine the request (chat)</div>
+            <p id="refineHintAdmin" class="text-[11px] text-slate-500 mb-2 leading-relaxed">
               After you have a <strong class="text-slate-400">Ticket ID</strong>, use this thread to tighten scope, add constraints, or answer follow-ups. Each send updates the structured
               <strong class="text-slate-400">brief</strong> stored on the ticket (no source code is shown here).
             </p>
-            <div id="thread" class="rounded-xl border border-slate-800 bg-slate-950/40 p-3 min-h-[220px] space-y-3 overflow-auto"></div>
-            <div class="flex gap-2 mt-3">
-              <input
-                id="chat"
-                class="flex-1 rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm"
-                placeholder="Add detail or answer a clarification…"
-              />
-              <button id="btnSend" class="rounded-lg bg-slate-200 text-slate-950 px-4 py-2 text-sm font-semibold">Send</button>
+
+            <div id="tenantBackgroundPanel" class="hidden">
+              <div class="text-xs font-semibold text-slate-200 mb-1">Work in progress</div>
+              <p class="text-[11px] text-slate-500 mb-3 leading-relaxed">
+                The factory is running tasks for your ticket in the background. What you see below is a live-feel view only — not your site’s source code.
+              </p>
+              <div class="cf-fog-wrap mb-4">
+                <pre id="tenantFogCode" class="cf-fog-code" aria-hidden="true"></pre>
+                <div class="cf-fog-glass" aria-hidden="true"></div>
+                <div class="cf-fog-steam" aria-hidden="true"></div>
+                <div class="cf-fog-fore">
+                  <div class="flex items-center gap-2 text-[11px] text-sky-300/90">
+                    <span class="cf-spinner shrink-0"></span>
+                    <span id="tenantWorkHeadline" class="font-medium">Orchestrating your change request…</span>
+                  </div>
+                  <p id="tenantWorkSubline" class="text-[11px] text-slate-400 mt-2 leading-relaxed cf-pulse">
+                    Syncing brief · validating scope · preparing automation hooks
+                  </p>
+                </div>
+              </div>
+              <div
+                id="tenantEtaPanel"
+                class="rounded-xl border border-slate-800 bg-slate-950/50 px-4 py-3 mb-2"
+              >
+                <div class="text-[10px] uppercase tracking-wide text-slate-500 mb-1">Indicative time to next milestone</div>
+                <div id="tenantCountdown" class="text-2xl font-mono text-slate-100 tracking-tight">--:--</div>
+                <p id="tenantEtaFoot" class="text-[10px] text-slate-500 mt-2 leading-relaxed">
+                  Illustrative timer based on your estimate — not a service-level guarantee. Refresh the page or check back for updates.
+                </p>
+              </div>
             </div>
-            <div class="text-[11px] text-slate-500 mt-2">
-              Messages are saved on the ticket for audit and handoff. Requires login + valid ticket.
+
+            <div id="adminChatBlock">
+              <div id="thread" class="rounded-xl border border-slate-800 bg-slate-950/40 p-3 min-h-[220px] space-y-3 overflow-auto"></div>
+              <div class="flex gap-2 mt-3">
+                <input
+                  id="chat"
+                  class="flex-1 rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm"
+                  placeholder="Add detail or answer a clarification…"
+                />
+                <button id="btnSend" class="rounded-lg bg-slate-200 text-slate-950 px-4 py-2 text-sm font-semibold">Send</button>
+              </div>
+              <div class="text-[11px] text-slate-500 mt-2">
+                Messages are saved on the ticket for audit and handoff. Requires login + valid ticket.
+              </div>
             </div>
           </div>
         </div>
@@ -288,6 +393,155 @@
           }
         }
 
+        let tenantCountdownTimer = null;
+        let tenantWorkRotateTimer = null;
+
+        const TENANT_WORK_HEADLINES = [
+          'Orchestrating your change request…',
+          'Queuing automation pipeline…',
+          'Validating scope against guardrails…',
+          'Preparing integration hooks…',
+          'Standing by for preview deployment…',
+        ];
+
+        function fakeTenantFogCode() {
+          return (
+            '[factory] ticket_ctx.resolve() … ok\n' +
+            '[cmp] ethical_sentinel.scan(priority=normal)\n' +
+            '[git] target=development/sandbox · dispatch=queued\n' +
+            '[deploy] preview pipeline … pending\n' +
+            '// — tenant-safe view · illustrative only —\n' +
+            'async function handoff(bundle) {\n' +
+            '  await gates.review();\n' +
+            '  return preview.route({ uat: true });\n' +
+            '}\n'
+          );
+        }
+
+        function stopTenantUiTimers() {
+          if (tenantCountdownTimer) {
+            clearInterval(tenantCountdownTimer);
+            tenantCountdownTimer = null;
+          }
+          if (tenantWorkRotateTimer) {
+            clearInterval(tenantWorkRotateTimer);
+            tenantWorkRotateTimer = null;
+          }
+        }
+
+        function startTenantWorkRotator() {
+          if (tenantWorkRotateTimer) return;
+          let i = 0;
+          const head = $('tenantWorkHeadline');
+          const sub = $('tenantWorkSubline');
+          const subHints = [
+            'Syncing brief · validating scope · preparing automation hooks',
+            'Talking to factory services — no secrets are shown in this view',
+            'When your preview is ready, the timer will show “Ready” and a link appears in progress',
+          ];
+          tenantWorkRotateTimer = window.setInterval(() => {
+            i = (i + 1) % TENANT_WORK_HEADLINES.length;
+            if (head) head.textContent = TENANT_WORK_HEADLINES[i];
+            if (sub) sub.textContent = subHints[i % subHints.length];
+          }, 4800);
+        }
+
+        /**
+         * Illustrative countdown from estimate / automation timestamps — not an SLA clock.
+         * @param {Record<string, unknown>|null} merged
+         */
+        function updateTenantCountdownFromBrief(merged) {
+          const out = $('tenantCountdown');
+          const foot = $('tenantEtaFoot');
+          if (!isTenantClient() || !out) return;
+          stopTenantUiTimers();
+          const tid = String((merged && merged.ticket_id) || ticketEl.value || '').trim();
+          if (!tid) {
+            out.textContent = '--:--';
+            out.classList.remove('text-emerald-400');
+            out.classList.add('text-slate-100');
+            if (foot) foot.textContent = 'Create or select a ticket to see an indicative timer.';
+            return;
+          }
+          startTenantWorkRotator();
+          const tp =
+            merged && merged.ticket_progress && typeof merged.ticket_progress === 'object'
+              ? merged.ticket_progress
+              : null;
+          const cv = tp && tp.client_view && typeof tp.client_view === 'object' ? tp.client_view : {};
+          const auto = cv.automation && typeof cv.automation === 'object' ? cv.automation : {};
+          const previewUrl = typeof auto.preview_url === 'string' ? auto.preview_url.trim() : '';
+          if (previewUrl) {
+            out.textContent = 'Ready';
+            out.classList.add('text-emerald-400');
+            out.classList.remove('text-slate-100');
+            if (foot) foot.textContent = 'Site preview is available — use the link under Site preview in the progress panel.';
+            return;
+          }
+          out.classList.remove('text-emerald-400');
+          out.classList.add('text-slate-100');
+
+          const hoursHi = cv.effort_hours_high != null ? Number(cv.effort_hours_high) : null;
+          let windowMs = 45 * 60 * 1000;
+          if (hoursHi != null && Number.isFinite(hoursHi) && hoursHi > 0) {
+            windowMs = Math.min(Math.max(hoursHi * 60 * 1000, 10 * 60 * 1000), 36 * 60 * 60 * 1000);
+          }
+          const capMs = 90 * 60 * 1000;
+          const durationMs = Math.min(windowMs, capMs);
+          const anchorMs =
+            (auto.updated_at && !Number.isNaN(Date.parse(String(auto.updated_at))))
+              ? Date.parse(String(auto.updated_at))
+              : cv.last_estimate_at && !Number.isNaN(Date.parse(String(cv.last_estimate_at)))
+                ? Date.parse(String(cv.last_estimate_at))
+                : Date.now();
+          const end = Math.max(Date.now(), anchorMs) + durationMs;
+
+          function tick() {
+            const left = end - Date.now();
+            if (left <= 0) {
+              out.textContent = '00:00';
+              if (foot)
+                foot.textContent =
+                  'This window was indicative only — work may continue. Refresh the page or check back for preview and status updates.';
+              if (tenantCountdownTimer) {
+                clearInterval(tenantCountdownTimer);
+                tenantCountdownTimer = null;
+              }
+              return;
+            }
+            const m = Math.floor(left / 60000);
+            const s = Math.floor((left % 60000) / 1000);
+            out.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+            if (foot)
+              foot.textContent =
+                'Illustrative timer tied to your saved estimate and last automation activity — not a service-level guarantee.';
+          }
+          tick();
+          tenantCountdownTimer = window.setInterval(tick, 1000);
+        }
+
+        function applyWorkspaceMode() {
+          const tenant = isTenantClient();
+          const tenantPanel = $('tenantBackgroundPanel');
+          const adminBlock = $('adminChatBlock');
+          const titleAd = $('refineTitleAdmin');
+          const hintAd = $('refineHintAdmin');
+          const fogPre = $('tenantFogCode');
+          if (tenantPanel) tenantPanel.classList.toggle('hidden', !tenant);
+          if (adminBlock) adminBlock.classList.toggle('hidden', tenant);
+          if (titleAd) titleAd.classList.toggle('hidden', tenant);
+          if (hintAd) hintAd.classList.toggle('hidden', tenant);
+          if (tenant && fogPre) {
+            if (!fogPre.dataset.filled) {
+              fogPre.textContent = fakeTenantFogCode();
+              fogPre.dataset.filled = '1';
+            }
+            updateTenantCountdownFromBrief(lastBrief);
+          } else {
+            stopTenantUiTimers();
+          }
+        }
+
         function setBanner(msg) {
           if (!msg) {
             banner.classList.add('hidden');
@@ -438,7 +692,7 @@
               stepRow(
                 'ok',
                 'GitHub workflow',
-                'Dispatch accepted. The cmp-branch workflow should create or refresh branch cmp/' + tid + ' (usually within 1–2 minutes).',
+                'Dispatch accepted. The sandbox workflow creates or refreshes an isolated development branch (usually within a few minutes).',
               ),
             );
           } else if (ok) {
@@ -526,6 +780,7 @@
             briefEl.textContent = isAdminSession() && lastBrief ? JSON.stringify(lastBrief, null, 2) : '';
           }
           applyConsoleLayout();
+          applyWorkspaceMode();
           const eff = hydrateBriefFromTicketProgress(lastBrief || {});
           try {
             updatePipelineCardFromBrief(eff);
@@ -556,19 +811,40 @@
         function renderAutomation(briefObj) {
           if (!automationLinksEl) return;
           const b = briefObj && typeof briefObj === 'object' ? briefObj : {};
+          const tpCv = b.ticket_progress && b.ticket_progress.client_view ? b.ticket_progress.client_view : {};
+          const tpAuto = tpCv.automation && typeof tpCv.automation === 'object' ? tpCv.automation : {};
+          const previewFromProgress = typeof tpAuto.preview_url === 'string' ? tpAuto.preview_url.trim() : '';
+
+          if (isTenantClient()) {
+            const human = [];
+            if (previewFromProgress) {
+              human.push(
+                '<div class="rounded-lg border border-sky-500/20 bg-sky-500/5 px-3 py-2 text-[11px] text-sky-100 leading-relaxed">' +
+                  '<strong class="text-sky-200">Site preview:</strong> ' +
+                  asLink(previewFromProgress, previewFromProgress) +
+                  '</div>',
+              );
+            } else {
+              human.push(
+                '<div class="text-[11px] text-slate-500 leading-relaxed">Automation status is summarized in <strong class="text-slate-400">Your request progress</strong> on the right.</div>',
+              );
+            }
+            if (automationHumanEl) automationHumanEl.innerHTML = human.join('');
+            if (automationTechnicalEl) automationTechnicalEl.classList.add('hidden');
+            if (automationLinksEl) automationLinksEl.innerHTML = '';
+            return;
+          }
+
           const approve = b && b.approve_build ? b.approve_build : null;
           const sb = approve && approve.sandbox_branch ? approve.sandbox_branch : null;
           const storedOverseer = b && b.console_json && b.console_json.overseer ? b.console_json.overseer : (b.overseer || null);
           const storedPromotion = b && b.console_json && b.console_json.promotion ? b.console_json.promotion : (b.promotion || null);
-          const tpCv = b.ticket_progress && b.ticket_progress.client_view ? b.ticket_progress.client_view : {};
-          const tpAuto = tpCv.automation && typeof tpCv.automation === 'object' ? tpCv.automation : {};
-          const previewFromProgress = typeof tpAuto.preview_url === 'string' ? tpAuto.preview_url.trim() : '';
 
           const human = [];
           if (approve && approve.ok && sb && sb.dispatch_triggered) {
             human.push(
               '<div class="rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-[11px] text-emerald-100 leading-relaxed">' +
-                '<strong class="text-emerald-200">Automation is running.</strong> GitHub accepted the workflow dispatch; the sandbox branch is created or updated next.' +
+                '<strong class="text-emerald-200">Automation is running.</strong> GitHub accepted the workflow dispatch; an isolated development branch is being prepared next.' +
                 '</div>',
             );
           } else if (approve && approve.ok && sb && !sb.dispatch_triggered) {
@@ -869,12 +1145,12 @@
           rows.push(
             stepRow(
               hasDispatch ? 'ok' : buildApproved && dispatchFailed ? 'warn' : 'pending',
-              'Sandbox branch (GitHub)',
+              'Development environment (GitHub)',
               hasDispatch
-                ? 'Workflow dispatch accepted; branch cmp/' + tid + ' is created or updated shortly.'
+                ? 'Workflow accepted — your isolated development branch is being created or will be updated shortly.'
                 : buildApproved
-                  ? 'GitHub dispatch not confirmed yet — operators may still be configuring the repo token.'
-                  : 'Not started until the ticket is approved for build.',
+                  ? 'Automation not confirmed yet — factory operators may still be connecting the repository.'
+                  : 'Not started until your request is approved for build.',
             ),
           );
           rows.push(
@@ -883,7 +1159,7 @@
               'Site preview',
               previewUrl
                 ? 'Open preview: ' + previewUrl
-                : 'A preview URL appears when Vercel deploys the branch or automation posts a link.',
+                : 'A preview link appears when hosting finishes a deployment or automation posts a URL.',
             ),
           );
           body.innerHTML = rows.join('');
@@ -1283,6 +1559,7 @@
             renderModeBarFromUiContext();
             applyConsoleLayout();
             if (lastBrief) setBrief(lastBrief);
+            else applyWorkspaceMode();
 
             // Keep existing badge behavior by calling /api/auth/me as a compatibility check.
             return fetch('/api/auth/me', { credentials: 'include' }).then((r) => r.json()).catch(() => null);
@@ -1298,6 +1575,7 @@
               loadTicketList();
               applyConsoleLayout();
               if (lastBrief) setBrief(lastBrief);
+              else applyWorkspaceMode();
             } else {
               sessionInfo = { logged_in: false, level: 'anonymous' };
               el.textContent = 'Not logged in';
@@ -1308,6 +1586,7 @@
                   '<div class="text-slate-500 px-1 py-2"><a class="text-sky-300 underline" href="/login">Log in</a> to see your tickets.</div>';
               }
               applyConsoleLayout();
+              applyWorkspaceMode();
             }
           })
           .catch(() => {
@@ -1380,6 +1659,11 @@
             if (ticketEl.value) localStorage.setItem(LS_TICKET, ticketEl.value);
             else localStorage.removeItem(LS_TICKET);
           } catch {}
+          try {
+            if (isTenantClient()) {
+              updateTenantCountdownFromBrief({ ...(lastBrief || {}), ticket_id: ticketEl.value });
+            }
+          } catch (_) {}
         });
 
         $('btnReset').addEventListener('click', () => {
@@ -1465,6 +1749,7 @@
         }
 
         async function send() {
+          if (isTenantClient()) return;
           setBanner('');
           const tid = String(ticketEl.value || '').trim();
           const msg = String(chatEl.value || '').trim();
