@@ -126,6 +126,17 @@
       </div>
       <div id="banner" class="hidden mt-6 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-rose-200 text-sm"></div>
 
+      <div
+        id="processHealthPanel"
+        class="hidden mt-4 rounded-xl border border-amber-500/35 bg-amber-950/25 px-4 py-3 text-[11px] text-slate-200"
+      >
+        <div class="font-semibold text-amber-200/95 mb-1.5">Process checks</div>
+        <div id="processHealthBody" class="space-y-2"></div>
+        <p class="text-[10px] text-slate-500 mt-2 leading-relaxed">
+          These checks run in your browser using the latest ticket and automation snapshots. GitHub status refreshes about every 45s; full ticket sync about every 15s.
+        </p>
+      </div>
+
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-6">
         <div class="lg:col-span-2 rounded-2xl border border-slate-800 bg-slate-900/30 p-4">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -240,7 +251,16 @@
           <div class="text-[11px] text-slate-500 mt-2">Stored in your browser for convenience.</div>
 
           <div class="mt-5 border-t border-slate-800 pt-4">
-            <div class="text-xs text-slate-300 mb-1">Brief</div>
+            <div class="flex items-start justify-between gap-2 flex-wrap">
+              <div class="text-xs text-slate-300 mb-1">Brief</div>
+              <button
+                type="button"
+                id="btnCopyAudit"
+                class="text-[10px] rounded-md border border-slate-600 px-2 py-1 text-sky-300 hover:bg-slate-800/60 shrink-0"
+              >
+                Copy audit summary
+              </button>
+            </div>
             <p class="text-[10px] text-slate-500 mb-2 leading-relaxed">
               Read-only overview: status, tasks, scope, risks, and estimate. Raw JSON is available to factory admins only.
             </p>
@@ -409,6 +429,12 @@
         let tenantCountdownTimer = null;
         let tenantWorkRotateTimer = null;
         let ticketActivityPollTimer = null;
+        /** @type {Record<string, unknown>|null} */
+        let lastActivityPayload = null;
+        let processHealthEvalTimer = null;
+        /** When we first saw approved+dispatch_ok but GitHub reports no sandbox branch (ms since epoch). */
+        let stuckNoBranchSince = null;
+        let lastTicketIdForHealth = '';
 
         const TENANT_WORK_HEADLINES = [
           'Orchestrating your change request…',
@@ -534,10 +560,270 @@
           tenantCountdownTimer = window.setInterval(tick, 1000);
         }
 
+        function stopProcessHealthEvalTimer() {
+          if (processHealthEvalTimer) {
+            clearInterval(processHealthEvalTimer);
+            processHealthEvalTimer = null;
+          }
+        }
+
         function stopTicketActivityPoll() {
           if (ticketActivityPollTimer) {
             clearInterval(ticketActivityPollTimer);
             ticketActivityPollTimer = null;
+          }
+          stopProcessHealthEvalTimer();
+        }
+
+        /**
+         * Billable client price vs market reference from ticket_progress / costing_preview.
+         * @param {Record<string, unknown>|null} merged
+         * @returns {{ billable: number|null, market: number|null, isDemo: boolean, curr: string }}
+         */
+        function resolveBillableAndMarketUsd(merged) {
+          const curr = 'USD';
+          if (!merged || typeof merged !== 'object') {
+            return { billable: null, market: null, isDemo: false, curr };
+          }
+          const cp = merged.costing_preview && typeof merged.costing_preview === 'object' ? merged.costing_preview : null;
+          const cost = cp && cp.cost && typeof cp.cost === 'object' ? cp.cost : null;
+          const tp = merged.ticket_progress && typeof merged.ticket_progress === 'object' ? merged.ticket_progress : null;
+          const cv = tp && tp.client_view && typeof tp.client_view === 'object' ? tp.client_view : {};
+          const billRaw =
+            cv.actual_cost_to_client_usd != null
+              ? cv.actual_cost_to_client_usd
+              : cv.display_amount_usd != null
+                ? cv.display_amount_usd
+                : cost && cost.actual_cost_to_client_usd != null
+                  ? cost.actual_cost_to_client_usd
+                  : cost && cost.displayed_client_usd != null
+                    ? cost.displayed_client_usd
+                    : null;
+          const mktRaw =
+            cv.market_reference_usd != null
+              ? cv.market_reference_usd
+              : cv.full_market_value_usd != null
+                ? cv.full_market_value_usd
+                : cost && cost.market_reference_usd != null
+                  ? cost.market_reference_usd
+                  : cost && cost.full_market_value_usd != null
+                    ? cost.full_market_value_usd
+                    : null;
+          const billable = billRaw != null && Number.isFinite(Number(billRaw)) ? Number(billRaw) : null;
+          const market = mktRaw != null && Number.isFinite(Number(mktRaw)) ? Number(mktRaw) : null;
+          const isDemo = !!(cost && cost.is_demo);
+          const c =
+            typeof cv.display_currency === 'string' && cv.display_currency.trim() ? cv.display_currency.trim() : curr;
+          return { billable, market, isDemo, curr: c };
+        }
+
+        /**
+         * Client-side monitors when pipeline progress stalls (no server “agent” — rule checks on snapshots).
+         */
+        function updateProcessHealthFromState() {
+          const panel = $('processHealthPanel');
+          const body = $('processHealthBody');
+          if (!panel || !body) return;
+          const tid = String(ticketEl.value || (lastBrief && lastBrief.ticket_id) || '').trim();
+          if (!tid || !sessionInfo || !sessionInfo.logged_in) {
+            panel.classList.add('hidden');
+            stuckNoBranchSince = null;
+            lastTicketIdForHealth = '';
+            return;
+          }
+          if (tid !== lastTicketIdForHealth) {
+            stuckNoBranchSince = null;
+            lastTicketIdForHealth = tid;
+          }
+
+          const merged = lastBrief && typeof lastBrief === 'object' ? lastBrief : {};
+          const eff = hydrateBriefFromTicketProgress(merged);
+          const tp = eff.ticket_progress && typeof eff.ticket_progress === 'object' ? eff.ticket_progress : null;
+          const cv = tp && tp.client_view && typeof tp.client_view === 'object' ? tp.client_view : {};
+          const auto = cv.automation && typeof cv.automation === 'object' ? cv.automation : {};
+          const act =
+            lastActivityPayload && lastActivityPayload.activity && typeof lastActivityPayload.activity === 'object'
+              ? lastActivityPayload.activity
+              : null;
+
+          const st = String((tp && tp.status) || eff.status || merged.status || '').trim();
+          const sg = String((tp && tp.stage) || eff.stage || merged.stage || '').trim();
+          const buildApproved = /approved/i.test(st) || sg.toLowerCase() === 'build';
+          const dispatchOk = auto.dispatch_ok === true;
+          const branchMissing = act && act.branch_exists === false;
+          const branchOk = act && act.branch_exists === true;
+
+          if (branchOk || !dispatchOk || !buildApproved) {
+            stuckNoBranchSince = null;
+          } else if (buildApproved && dispatchOk && branchMissing) {
+            if (stuckNoBranchSince == null) stuckNoBranchSince = Date.now();
+          }
+
+          /** @type {Array<{ level: string, html: string }>} */
+          const msgs = [];
+
+          if (act && act.github_available === false) {
+            msgs.push({
+              level: 'warn',
+              html:
+                '<span class="text-amber-200/95">Configuration</span> — This deployment cannot read GitHub (token/repo missing). Sandbox progress cannot be verified from here.',
+            });
+          }
+
+          if (lastActivityPayload && lastActivityPayload.ok === false && lastActivityPayload.error) {
+            msgs.push({
+              level: 'warn',
+              html:
+                '<span class="text-amber-200/95">Activity API</span> — ' +
+                escapeHtml(String(lastActivityPayload.error).slice(0, 240)),
+            });
+          }
+
+          if (act && act.needs_attention === true) {
+            msgs.push({
+              level: 'bad',
+              html:
+                '<span class="text-rose-300">Automation</span> — ' +
+                escapeHtml(String(act.summary_line || 'Needs attention — review GitHub Actions.').slice(0, 500)),
+            });
+          }
+
+          if (act && typeof act.stuck_hint === 'string' && act.stuck_hint.trim()) {
+            msgs.push({
+              level: 'warn',
+              html: '<span class="text-amber-200/95">Queue</span> — ' + escapeHtml(act.stuck_hint.trim()),
+            });
+          }
+
+          if (stuckNoBranchSince != null && buildApproved && dispatchOk) {
+            const waitedMin = (Date.now() - stuckNoBranchSince) / 60000;
+            if (waitedMin >= 6) {
+              msgs.push({
+                level: 'warn',
+                html:
+                  '<span class="text-amber-200/95">Sandbox branch</span> — Dispatch succeeded but branch <code class="text-slate-300">' +
+                  escapeHtml(String(act && act.branch_name ? act.branch_name : 'cmp/…')) +
+                  '</code> is still missing after ~' +
+                  Math.max(6, Math.floor(waitedMin)) +
+                  ' min. Open <strong class="text-slate-200">CMP Sandbox Branch</strong> in GitHub Actions and confirm <code class="text-slate-300">GITHUB_REPO</code> matches the repo you are viewing.',
+              });
+            }
+          }
+
+          const hasEst = Boolean(cv.last_estimate_at || merged.costing_preview);
+          const openLike =
+            /open|intake|created/i.test(st) || /intake/i.test(sg) || String(merged.status || '').toLowerCase() === 'created';
+          if (tid && sessionInfo.logged_in && !hasEst && !buildApproved && openLike) {
+            msgs.push({
+              level: 'info',
+              html:
+                '<span class="text-slate-400">Estimate</span> — No estimate is saved on this ticket yet. Run <strong class="text-slate-200">Estimate</strong> so effort and <strong class="text-slate-200">actual cost to client</strong> are recorded.',
+            });
+          }
+
+          if (!msgs.length) {
+            panel.classList.add('hidden');
+            body.innerHTML = '';
+            return;
+          }
+
+          panel.classList.remove('hidden');
+          body.innerHTML = msgs
+            .map((m) => {
+              const border =
+                m.level === 'bad'
+                  ? 'border-rose-500/30 bg-rose-950/20'
+                  : m.level === 'info'
+                    ? 'border-slate-700 bg-slate-950/40'
+                    : 'border-amber-500/25 bg-slate-950/30';
+              return (
+                '<div class="rounded-lg border px-3 py-2 leading-relaxed ' + border + '">' + m.html + '</div>'
+              );
+            })
+            .join('');
+        }
+
+        function buildAuditSummaryText() {
+          const lines = [];
+          lines.push('CorpFlow — Change Console audit summary');
+          lines.push('Generated (local): ' + new Date().toISOString());
+          const tid = String(ticketEl.value || (lastBrief && lastBrief.ticket_id) || '').trim();
+          if (tid) lines.push('Ticket ID: ' + tid);
+          const merged = lastBrief && typeof lastBrief === 'object' ? lastBrief : {};
+          if (merged.description) lines.push('Description (snapshot): ' + String(merged.description).slice(0, 500));
+          const tp = merged.ticket_progress && typeof merged.ticket_progress === 'object' ? merged.ticket_progress : null;
+          const st = [tp && tp.status, merged.status].filter(Boolean);
+          const sg = [tp && tp.stage, merged.stage].filter(Boolean);
+          if (st.length || sg.length) {
+            lines.push('Status / stage: ' + [...st, ...sg].map((x) => String(x)).join(' · '));
+          }
+          const { billable, market, isDemo, curr } = resolveBillableAndMarketUsd(merged);
+          if (billable != null) {
+            lines.push(
+              'Actual cost to client (billable estimate): ' +
+                curr +
+                ' ' +
+                billable.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+            );
+          }
+          if (market != null && (isDemo || (billable != null && Math.abs(market - billable) > 0.01))) {
+            lines.push(
+              'Market reference (audit, not invoice line): ' +
+                curr +
+                ' ' +
+                market.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+            );
+          }
+          const itin = Array.isArray(merged.itinerary) ? merged.itinerary : [];
+          if (itin.length) {
+            lines.push('');
+            lines.push('--- Itinerary (database milestones) ---');
+            for (const step of itin) {
+              const at = step && step.at != null ? String(step.at) : '';
+              const lab = step && step.label != null ? String(step.label) : '';
+              const det = step && step.detail != null ? String(step.detail) : '';
+              lines.push(at + ' | ' + lab + ' | ' + det.replace(/\s+/g, ' ').trim());
+            }
+          }
+          if (lastActivityPayload && typeof lastActivityPayload === 'object') {
+            lines.push('');
+            lines.push('--- Live automation (last fetch) ---');
+            lines.push('checked_at: ' + String(lastActivityPayload.checked_at || ''));
+            const act =
+              lastActivityPayload.activity && typeof lastActivityPayload.activity === 'object'
+                ? lastActivityPayload.activity
+                : {};
+            lines.push('summary: ' + String(act.summary_line || act.error || ''));
+            if (act.branch_name) lines.push('branch_name: ' + String(act.branch_name));
+            if (act.branch_exists != null) lines.push('branch_exists: ' + String(act.branch_exists));
+            if (act.github_available != null) lines.push('github_available: ' + String(act.github_available));
+          }
+          lines.push('');
+          lines.push('--- End ---');
+          return lines.join('\n');
+        }
+
+        async function copyAuditSummaryToClipboard() {
+          const text = buildAuditSummaryText();
+          try {
+            await navigator.clipboard.writeText(text);
+            setBanner('Audit summary copied to clipboard.');
+            window.setTimeout(() => setBanner(''), 3500);
+          } catch {
+            try {
+              const ta = document.createElement('textarea');
+              ta.value = text;
+              ta.style.position = 'fixed';
+              ta.style.left = '-9999px';
+              document.body.appendChild(ta);
+              ta.select();
+              document.execCommand('copy');
+              document.body.removeChild(ta);
+              setBanner('Audit summary copied (fallback).');
+              window.setTimeout(() => setBanner(''), 3500);
+            } catch (e2) {
+              setBanner('Could not copy: ' + String(e2 && e2.message ? e2.message : e2));
+            }
           }
         }
 
@@ -653,7 +939,9 @@
           const tid = String(ticketEl.value || '').trim();
           if (!sessionInfo || !sessionInfo.logged_in || !tid) {
             stopTicketActivityPoll();
+            lastActivityPayload = null;
             if (card) card.classList.add('hidden');
+            updateProcessHealthFromState();
             return;
           }
           if (card) card.classList.remove('hidden');
@@ -664,21 +952,36 @@
             );
             const j = await r.json().catch(() => ({}));
             if (!r.ok) {
-              renderExecutionActivity({
+              lastActivityPayload = {
+                ok: false,
                 error: (j && j.error) || 'Could not load activity (' + r.status + ').',
                 checked_at: new Date().toISOString(),
                 activity: {},
+              };
+              renderExecutionActivity({
+                error: String(lastActivityPayload.error),
+                checked_at: lastActivityPayload.checked_at,
+                activity: {},
               });
+              updateProcessHealthFromState();
               return;
             }
+            lastActivityPayload = j;
             renderExecutionActivity(j);
           } catch (e) {
-            renderExecutionActivity({
+            lastActivityPayload = {
+              ok: false,
               error: String(e && e.message ? e.message : e),
               checked_at: new Date().toISOString(),
               activity: {},
+            };
+            renderExecutionActivity({
+              error: lastActivityPayload.error,
+              checked_at: lastActivityPayload.checked_at,
+              activity: {},
             });
           }
+          updateProcessHealthFromState();
         }
 
         function rescheduleTicketActivityPoll() {
@@ -687,10 +990,14 @@
           if (!sessionInfo || !sessionInfo.logged_in || !tid) {
             const card = $('executionActivityCard');
             if (card) card.classList.add('hidden');
+            lastActivityPayload = null;
+            updateProcessHealthFromState();
             return;
           }
           refreshTicketActivity();
           ticketActivityPollTimer = window.setInterval(refreshTicketActivity, 45000);
+          updateProcessHealthFromState();
+          processHealthEvalTimer = window.setInterval(updateProcessHealthFromState, 60000);
         }
 
         function applyWorkspaceMode() {
@@ -969,6 +1276,9 @@
           } catch (_) {}
           try {
             rescheduleTicketActivityPoll();
+          } catch (_) {}
+          try {
+            updateProcessHealthFromState();
           } catch (_) {}
         }
         function asLink(href, label) {
@@ -1357,12 +1667,7 @@
           const tenantUser = isTenantClient();
           const tp = merged.ticket_progress && typeof merged.ticket_progress === 'object' ? merged.ticket_progress : null;
           const cv = tp && tp.client_view && typeof tp.client_view === 'object' ? tp.client_view : {};
-          const usd =
-            cv.display_amount_usd != null && Number.isFinite(Number(cv.display_amount_usd))
-              ? Number(cv.display_amount_usd)
-              : cp && cp.cost && cp.cost.displayed_client_usd != null
-                ? Number(cp.cost.displayed_client_usd)
-                : null;
+          const { billable, market, isDemo, curr } = resolveBillableAndMarketUsd(merged);
           const hoursLo =
             cv.effort_hours_low != null && Number.isFinite(Number(cv.effort_hours_low))
               ? Number(cv.effort_hours_low)
@@ -1375,9 +1680,8 @@
               : cp && cp.effort_hours_high != null
                 ? Number(cp.effort_hours_high)
                 : null;
-          const curr = typeof cv.display_currency === 'string' && cv.display_currency.trim() ? cv.display_currency.trim() : 'USD';
 
-          if (tenantUser && (hoursLo != null || hoursHi != null || (usd != null && Number.isFinite(usd)))) {
+          if (tenantUser && (hoursLo != null || hoursHi != null || (billable != null && Number.isFinite(billable)))) {
             let estBlock =
               '<div class="rounded-lg border border-emerald-500/25 bg-emerald-500/5 px-3 py-2 text-slate-200">' +
               '<div class="font-semibold text-emerald-200/90 mb-1">Estimate (indicative)</div>';
@@ -1389,15 +1693,32 @@
                 escapeHtml(String(hoursHi)) +
                 '</strong> work hours</div>';
             }
-            if (usd != null && Number.isFinite(usd)) {
+            if (billable != null && Number.isFinite(billable)) {
               estBlock +=
-                '<div>Indicative cost: <strong>' +
+                '<div><span class="text-emerald-100/90">Actual cost to client</span> (billable estimate): <strong>' +
                 escapeHtml(curr) +
                 ' ' +
                 escapeHtml(
-                  usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                  billable.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
                 ) +
                 '</strong></div>';
+            }
+            if (
+              market != null &&
+              Number.isFinite(market) &&
+              billable != null &&
+              Number.isFinite(billable) &&
+              Math.abs(market - billable) > 0.01
+            ) {
+              estBlock +=
+                '<div class="text-[10px] text-slate-500 mt-1">Market reference (audit / comparison — not the invoice line): ' +
+                escapeHtml(curr) +
+                ' ' +
+                escapeHtml(
+                  market.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                ) +
+                (isDemo ? ' · demo pricing adjustment applied to the billable line' : '') +
+                '</div>';
             }
             estBlock +=
               '<div class="text-[10px] text-slate-500 mt-1">Not a binding quote. Final scope follows factory review.</div></div>';
@@ -1508,15 +1829,34 @@
                   escapeHtml(String(hoursHi)) +
                   '</strong> hours</div>';
               }
-              if (usd != null && Number.isFinite(usd)) {
+              if (billable != null && Number.isFinite(billable)) {
                 estHtml +=
-                  '<div class="text-slate-300 mb-2">Indicative cost: <strong>' +
+                  '<div class="text-slate-300 mb-2"><span class="text-emerald-200/90">Actual cost to client</span> (billable estimate): <strong>' +
                   escapeHtml(curr) +
                   ' ' +
                   escapeHtml(
-                    usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                    billable.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
                   ) +
                   '</strong></div>';
+              }
+              if (
+                market != null &&
+                Number.isFinite(market) &&
+                (isDemo ||
+                  billable == null ||
+                  !Number.isFinite(billable) ||
+                  Math.abs(market - billable) > 0.01)
+              ) {
+                estHtml +=
+                  '<div class="text-slate-400 mb-2 text-[10px]">Market reference (audit — full market curve, not necessarily the invoice): <strong>' +
+                  escapeHtml(curr) +
+                  ' ' +
+                  escapeHtml(
+                    market.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                  ) +
+                  '</strong>' +
+                  (isDemo ? ' · client line reflects demo discount' : '') +
+                  '</div>';
               }
               if (estSummary) {
                 estHtml += '<p class="text-slate-300 mb-2">' + escapeHtml(estSummary) + '</p>';
@@ -1879,10 +2219,22 @@
           });
         }
 
+        const btnCopyAudit = $('btnCopyAudit');
+        if (btnCopyAudit) {
+          btnCopyAudit.addEventListener('click', () => {
+            copyAuditSummaryToClipboard();
+          });
+        }
+
         $('btnReset').addEventListener('click', () => {
           stopTicketActivityPoll();
+          lastActivityPayload = null;
+          stuckNoBranchSince = null;
+          lastTicketIdForHealth = '';
           const actCard = $('executionActivityCard');
           if (actCard) actCard.classList.add('hidden');
+          const hp = $('processHealthPanel');
+          if (hp) hp.classList.add('hidden');
           descEl.value = '';
           chatEl.value = '';
           ticketEl.value = '';
