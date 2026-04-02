@@ -27,9 +27,15 @@ test('classifyEventRisk respects CORPFLOW_AUTOMATION_HIGH_RISK_PREFIXES', () => 
   assert.equal(classifyEventRisk('acme.danger.nuke'), 'high');
 });
 
-test('resolveTenantScope is exported from gateway', async () => {
-  const { resolveTenantScope } = await import('../lib/automation/gateway.js');
+test('resolveTenantScope', async () => {
+  const { resolveTenantScope } = await import('../lib/automation/scope.js');
   assert.equal(resolveTenantScope('legal-demo'), 'legal-demo');
   assert.equal(resolveTenantScope(''), 'global');
   assert.equal(resolveTenantScope(null), 'global');
+});
+
+test('cmp.* mirror event types are not high-risk by default', () => {
+  assert.equal(classifyEventRisk('cmp.ticket.created'), 'low');
+  assert.equal(classifyEventRisk('cmp.build.approved'), 'low');
+  assert.equal(classifyEventRisk('cmp.github.callback'), 'low');
 });

@@ -70,6 +70,23 @@ Override/extend prefixes with env `CORPFLOW_AUTOMATION_HIGH_RISK_PREFIXES` (comm
 
 Factory master only. Query: `tenant_scope` (optional), `q` (optional substring match on slug/title/body).
 
+### `GET /api/automation/events`
+
+Factory master only. Query: `tenant_scope` (optional), `limit` (default 50, max 200). Newest first — operator tail for debugging and agent sync.
+
+## CMP mirror (Postgres only, no extra HTTP hop)
+
+When `CORPFLOW_AUTOMATION_CMP_MIRROR` is not `false`, the Change Console backend also writes:
+
+| `event_type` | When |
+|----------------|------|
+| `cmp.ticket.created` | After successful `ticket-create` |
+| `cmp.estimate.recorded` | After successful `costing-preview` with a `ticket_id` |
+| `cmp.build.approved` | After successful `approve-build` (includes GitHub dispatch snapshot) |
+| `cmp.github.callback` | After successful GitHub Actions → `automation-callback` (preview URL, PR metadata) |
+
+These reuse the same optional **forward** to n8n as manual ingest. See `docs/n8n/automation-forward-recipe.md`.
+
 ## Optional forward
 
 After a successful ingest, the server **POSTs** a JSON envelope to `CORPFLOW_AUTOMATION_FORWARD_URL` (if set). Optional header `x-corpflow-automation-forward-secret` when `CORPFLOW_AUTOMATION_FORWARD_SECRET` is set.

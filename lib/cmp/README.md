@@ -40,6 +40,8 @@ Machine-first events and playbooks (separate from CMP `action=` router):
 
 - `POST /api/automation/ingest` — append-only `automation_events`, optional playbook upsert, optional forward webhook. See `docs/automation-framework.md`.
 - `GET /api/automation/playbooks` — factory master only; lists curated markdown playbooks for agents.
+- `GET /api/automation/events` — factory master only; recent automation rows (`tenant_scope`, `limit`).
+- CMP mirrors key lifecycle into `automation_events` when `CORPFLOW_AUTOMATION_CMP_MIRROR` is not `false` (same optional n8n forward).
 
 ## Tenant onboarding
 

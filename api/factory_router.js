@@ -24,7 +24,11 @@ import {
   handleAuthPasswordResetConfirm,
   handleAuthPasswordResetRequest,
 } from '../lib/server/auth.js';
-import { handleAutomationIngest, handleAutomationPlaybooksList } from '../lib/automation/gateway.js';
+import {
+  handleAutomationEventsList,
+  handleAutomationIngest,
+  handleAutomationPlaybooksList,
+} from '../lib/automation/gateway.js';
 import { buildCorpflowHostContext } from '../lib/server/host-tenant-context.js';
 import { cfg, runtimeConfigDiagnostics } from '../lib/server/runtime-config.js';
 import { getSessionFromRequest } from '../lib/server/session.js';
@@ -165,10 +169,18 @@ async function handleFactoryHealth(req, res) {
 
   const ok = flat.every((k) => present[k] === true);
 
+  const automation = {
+    cmp_mirror_enabled: String(cfg('CORPFLOW_AUTOMATION_CMP_MIRROR', 'true')).toLowerCase() !== 'false',
+    ingest_secret_configured: Boolean(String(cfg('CORPFLOW_AUTOMATION_INGEST_SECRET', '')).trim()),
+    approval_secret_configured: Boolean(String(cfg('CORPFLOW_AUTOMATION_APPROVAL_SECRET', '')).trim()),
+    forward_url_configured: Boolean(String(cfg('CORPFLOW_AUTOMATION_FORWARD_URL', '')).trim()),
+  };
+
   return res.status(ok ? 200 : 503).json({
     ok,
     required_env: required,
     runtime_config,
+    automation,
     tenancy_boundary: {
       core_hosts_configured: coreHostCount > 0,
       core_host_count: coreHostCount,
@@ -368,6 +380,8 @@ export default async function handler(req, res) {
       return handleAutomationIngest(req, res);
     case 'automation/playbooks':
       return handleAutomationPlaybooksList(req, res);
+    case 'automation/events':
+      return handleAutomationEventsList(req, res);
     case 'main':
       return mainHandler(req, res);
     case 'intake':
