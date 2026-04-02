@@ -9,7 +9,7 @@
 
 ## P0 — Spine & safety (now)
 
-- [ ] **Postgres tables (once per prod DB):** `POST /api/factory/postgres/ensure-schema` with factory master auth so `automation_events` / `automation_playbooks` exist (idempotent; safe to retry).
+- [ ] **Postgres tables (once per prod DB):** `POST /api/factory/postgres/ensure-schema` with factory master auth — step-by-step: `docs/operations/ENSURE_POSTGRES_SCHEMA.md`.
 - [ ] **Vercel — ingest:** set `CORPFLOW_AUTOMATION_INGEST_SECRET` (header `x-corpflow-automation-secret` on `POST /api/automation/ingest`). Optional: `CORPFLOW_AUTOMATION_APPROVAL_SECRET` for high-risk event types.
 - [ ] **Vercel → n8n (“max n8n”, optional but recommended):** set `CORPFLOW_AUTOMATION_FORWARD_URL` to your **n8n Webhook** production URL. Set `CORPFLOW_AUTOMATION_FORWARD_SECRET` to a random string; in n8n, validate header **`x-corpflow-automation-forward-secret`** matches (see `docs/n8n/automation-forward-recipe.md`). Triggers on ingest + CMP mirror events (`cmp.ticket.created`, `cmp.estimate.recorded`, `cmp.build.approved`, `cmp.github.callback`, etc.).
 - [ ] **n8n workflow:** implement branches from `docs/n8n/automation-forward-recipe.md` (e.g. log + notify on `cmp.build.approved` / `cmp.github.callback`).
