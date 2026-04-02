@@ -1,6 +1,10 @@
 # Runs in GitHub cloud — no laptop required.
 # Set repository secret: CORPFLOW_FACTORY_HEALTH_URL = https://YOUR_DOMAIN/api/factory/health
 # If unset, the job exits 0 (skipped) so forks/CI stay green.
+#
+# REMINDER: After splitting DNS, traffic, or deployments (apex vs core.*, new Vercel
+# project, CDN, etc.), update this secret (or add another workflow) so the ping still
+# targets the hostname that actually serves your factory API. See docs/EXECUTION_BRAIN_VS_HANDS.md
 
 name: Factory health ping
 

@@ -36,6 +36,14 @@ No new line items required for the first phase.
 
 *Cost:* GitHub free minutes usually enough for light pings; GCP scheduler is cents.
 
+#### Factory health URL (`CORPFLOW_FACTORY_HEALTH_URL`)
+
+The workflow `.github/workflows/factory-health-ping.yml` uses GitHub secret **`CORPFLOW_FACTORY_HEALTH_URL`** (e.g. `https://corpflowai.com/api/factory/health`).
+
+**When to change it:** Any time you **split DNS, SSL, or traffic** so that apex and `core.*` (or other hosts) no longer hit the same deployment, or when you move the factory API to another domain or edge. Otherwise the ping may stay green while the host clients actually use is broken.
+
+**Optional:** Add a second scheduled job or secret (e.g. `core`) if you need to monitor two hostnames after a split.
+
 ### 3) Long jobs (only when serverless limits hurt)
 
 - **Cloud Run** (GCP) or **Fly.io** free tier: tiny container that drains a queue or runs a script.

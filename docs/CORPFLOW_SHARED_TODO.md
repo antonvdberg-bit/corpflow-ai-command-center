@@ -17,7 +17,8 @@
 ## P1 — Execution off laptop (see `docs/EXECUTION_BRAIN_VS_HANDS.md`)
 
 - [x] Scheduled **GitHub Action** `.github/workflows/factory-health-ping.yml` (Mondays UTC).
-- [ ] Set GitHub repo secret **`CORPFLOW_FACTORY_HEALTH_URL`** = `https://<your-apex>/api/factory/health` so the ping actually runs against prod.
+- [ ] Set GitHub repo secret **`CORPFLOW_FACTORY_HEALTH_URL`** = e.g. `https://corpflowai.com/api/factory/health` so the ping hits prod.
+  - **Reminder:** If you **split DNS, traffic, or deployments** (e.g. apex vs `core.*` on different projects, edge proxies, regional routing), **revisit this secret** — update it (or add a second check) so CI still monitors the URL that matters. See `docs/EXECUTION_BRAIN_VS_HANDS.md` § Factory health URL.
 - [ ] Add **protected** Vercel route or cron (existing `vercel.json` crons) for periodic tasks you want without opening the laptop.
 - [ ] Decide n8n hosting: same host 24/7 vs trigger-only; ensure `CORPFLOW_AUTOMATION_FORWARD_URL` is reachable from Vercel.
 - [ ] (Optional GCP) Cloud Scheduler → HTTPS to factory endpoint with shared secret (uses existing Google Cloud account).
