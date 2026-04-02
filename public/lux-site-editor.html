@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lux Site Editor (Factory) | CorpFlow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="min-h-screen bg-slate-950 text-slate-100">
+    <div class="mx-auto max-w-4xl px-6 py-10">
+      <div class="flex items-start justify-between gap-6">
+        <div>
+          <div class="text-xs tracking-widest text-slate-400">FACTORY · TENANT WEBSITE DRAFT</div>
+          <h1 class="mt-2 text-2xl font-semibold">Lux Mauritius — website draft editor</h1>
+          <p class="mt-2 text-sm text-slate-400">
+            This writes to Postgres <span class="font-mono">tenant_personas.persona_json.website_draft</span> (factory auth required).
+          </p>
+        </div>
+        <a class="text-sm underline text-sky-300" href="/change">Open Change Console</a>
+      </div>
+
+      <div class="mt-6 rounded-2xl border border-slate-800 bg-slate-900/40 p-5">
+        <label class="block text-xs text-slate-300">Factory master key (never store in browser)
+          <input id="masterKey" class="mt-1 w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 text-sm font-mono" placeholder="paste MASTER_ADMIN_KEY" />
+        </label>
+        <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+          <label class="block text-xs text-slate-300">Tenant ID
+            <input id="tenantId" class="mt-1 w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 text-sm font-mono" value="luxe-maurice" />
+          </label>
+          <label class="block text-xs text-slate-300">Primary host (for display only)
+            <input id="host" class="mt-1 w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 text-sm font-mono" value="luxemaurice.com" />
+          </label>
+        </div>
+      </div>
+
+      <div class="mt-6 grid grid-cols-1 gap-6">
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5">
+          <div class="text-xs tracking-widest text-slate-400 mb-3">THEME</div>
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <label class="block text-xs text-slate-300">Primary color (hex)
+              <input id="primary" class="mt-1 w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 text-sm font-mono" value="#0ea5e9" />
+            </label>
+            <label class="block text-xs text-slate-300">Accent color (hex)
+              <input id="accent" class="mt-1 w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 text-sm font-mono" value="#22c55e" />
+            </label>
+          </div>
+        </div>
+
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5">
+          <div class="text-xs tracking-widest text-slate-400 mb-3">HERO</div>
+          <label class="block text-xs text-slate-300">Title
+            <input id="title" class="mt-1 w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 text-sm" value="Lux Mauritius" />
+          </label>
+          <label class="block text-xs text-slate-300 mt-4">Subtitle
+            <input id="subtitle" class="mt-1 w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 text-sm" value="Premium beauty & wellness in Mauritius." />
+          </label>
+        </div>
+
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5">
+          <div class="text-xs tracking-widest text-slate-400 mb-3">ABOUT</div>
+          <label class="block text-xs text-slate-300">Copy
+            <textarea id="aboutBody" rows="5" class="mt-1 w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 text-sm">Draft website for Lux Mauritius — request edits in the Change Console and we’ll iterate quickly.</textarea>
+          </label>
+        </div>
+
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5">
+          <div class="text-xs tracking-widest text-slate-400 mb-3">CONTACT</div>
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <label class="block text-xs text-slate-300">Email
+              <input id="email" class="mt-1 w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 text-sm" value="Jan@luxemaurice.com" />
+            </label>
+            <label class="block text-xs text-slate-300">Phone
+              <input id="phone" class="mt-1 w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 text-sm" value="+230 5508 1350" />
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 flex flex-col gap-3 md:flex-row">
+        <button id="btnSave" class="rounded-xl bg-emerald-400 text-slate-950 px-4 py-2 text-sm font-semibold">Save draft to Postgres</button>
+        <a id="btnOpen" class="rounded-xl border border-slate-700 px-4 py-2 text-sm text-slate-200 text-center" href="/" target="_blank">Open preview (this host)</a>
+      </div>
+
+      <pre id="out" class="mt-6 whitespace-pre-wrap rounded-2xl border border-slate-800 bg-slate-900/40 p-5 text-xs text-slate-200">Ready.</pre>
+    </div>
+
+    <script>
+      function el(id) { return document.getElementById(id); }
+      function v(id) { return (el(id).value || '').trim(); }
+      function show(x) { el('out').textContent = typeof x === 'string' ? x : JSON.stringify(x, null, 2); }
+
+      async function postJson(url, body, masterKey) {
+        const r = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + masterKey,
+            'x-session-token': masterKey,
+          },
+          body: JSON.stringify(body),
+        });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(j.error || ('http_' + r.status));
+        return j;
+      }
+
+      el('btnSave').addEventListener('click', async () => {
+        try {
+          const key = v('masterKey');
+          if (!key) return show('Paste MASTER_ADMIN_KEY first.');
+          const tenantId = v('tenantId');
+          const host = v('host');
+
+          const website_draft = {
+            tenant_id: tenantId,
+            host: host,
+            theme: { primary: v('primary'), accent: v('accent') },
+            hero: { title: v('title'), subtitle: v('subtitle'), cta_label: 'Request changes', cta_href: '/change' },
+            sections: {
+              about: { title: 'About', body: v('aboutBody') },
+              services: { title: 'Services', items: [] },
+              contact: { title: 'Contact', email: v('email'), phone: v('phone'), website: host ? ('https://' + host) : null },
+            },
+            media: { hero_image_url: null, gallery: [], logo_url: null },
+          };
+
+          show('Saving…');
+          const j = await postJson('/api/factory/tenant-site/upsert', { tenant_id: tenantId, website_draft }, key);
+          show({ ok: true, result: j, next: 'Open the tenant domain to see the draft.' });
+        } catch (e) {
+          show({ ok: false, error: String(e && e.message ? e.message : e) });
+        }
+      });
+    </script>
+  </body>
+</html>
+

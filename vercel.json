@@ -12,6 +12,7 @@
     { "source": "/legal", "destination": "/public/legal-demo.html" },
     { "source": "/medical", "destination": "/public/proposal-medspa.html" },
     { "source": "/lux", "destination": "/showcase/luxe-maurice-private/index.html" },
+    { "source": "/lux-editor", "destination": "/lux-site-editor.html" },
     { "source": "/master", "destination": "/public/master-control.html" }
   ],
   "crons": [
