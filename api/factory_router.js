@@ -19,6 +19,7 @@ import postgresFactorySchemaHandler from '../lib/server/postgres-factory-schema.
 import tenantHostMapUpsertHandler from '../lib/server/tenant-host-map.js';
 import tenantSiteHandler from '../lib/server/tenant-site.js';
 import tenantIntakeHandler from '../lib/server/tenant-intake.js';
+import tenantSitePublicHandler from '../lib/server/tenant-site-public.js';
 import {
   handleAuthLogin,
   handleAuthLogout,
@@ -368,6 +369,9 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'tenant/intake') {
     return tenantIntakeHandler(req, res);
+  }
+  if (pathSeg === 'tenant/site') {
+    return tenantSitePublicHandler(req, res);
   }
   if (pathSeg === 'factory/host-map/upsert') {
     return tenantHostMapUpsertHandler(req, res);
