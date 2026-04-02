@@ -62,6 +62,7 @@ HTTP **200** and JSON like:
 
 | HTTP | Meaning |
 |------|--------|
+| **405** `Method not allowed` | You used **GET** (e.g. opened the URL in a browser). This endpoint is **POST only** — use curl, PowerShell, or Postman. **Not** fixed by Vercel env vars. |
 | **403** | `Factory master authentication required` — wrong/missing token. |
 | **503** | `POSTGRES_URL_MISSING` — Vercel env not set for this deployment. |
 | **500** | `ENSURE_SCHEMA_FAILED` — Postgres permission/connectivity; read `detail` and fix, then retry. |
