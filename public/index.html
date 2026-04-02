@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>CorpFlow</title>
+    <title>Lux Mauritius · Preview</title>
     <style>
       :root {
         --lux-bg: #0a0a0a;
@@ -48,6 +48,7 @@
         background: rgba(0,0,0,0.55);
       }
       .brand { font-size: 14px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--lux-text); }
+      .nav-logo { height: 36px; width: auto; max-width: 160px; object-fit: contain; display: none; }
       .nav a { color: var(--lux-text); text-decoration: none; font-size: 13px; opacity: 0.92; }
       .nav a:hover { opacity: 1; }
       .lang { font-size: 12px; opacity: 0.9; }
@@ -112,7 +113,10 @@
 
       <div class="wrap">
         <div class="nav">
-          <div class="brand" id="brand">LUX</div>
+          <div style="display:flex; align-items:center; gap:12px; min-height:36px;">
+            <img id="navLogo" class="nav-logo" alt="" />
+            <div class="brand" id="brand">LUX</div>
+          </div>
           <div style="display:flex; gap:16px; align-items:center;">
             <a href="/" aria-current="page">Home</a>
             <a href="/change">Request changes</a>
@@ -124,8 +128,8 @@
         </div>
 
         <div class="hero-center">
-          <div id="subtitle" class="h1">Loading…</div>
-          <div id="about" class="h2">Loading…</div>
+          <div id="headline" class="h1">Loading…</div>
+          <div id="tagline" class="h2">Loading…</div>
           <a id="cta" class="pill" href="#enquire">Upcoming Properties</a>
           <div class="muted" style="margin-top: 14px; font-size: 12px;">
             Tenant: <span id="tenant" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;">—</span>
@@ -161,22 +165,18 @@
 
     <div class="section">
       <div class="section-wrap">
-        <div class="section-title">Buy direct from the developer</div>
-        <div class="cards" id="props">
-          <div class="card">
-            <h3>Upcoming properties</h3>
-            <p>We will populate this with developments, units, and availability as soon as visuals (renders, floorplans, videos) are received.</p>
-          </div>
-          <div class="card">
-            <h3 id="whyTitle">Why Mauritius?</h3>
-            <p id="whyBody">People are increasingly buying luxury properties in Mauritius due to the island's natural beauty, favorable climate, and investment incentives.</p>
-          </div>
+        <div class="section-title" id="bandTitle">Buy direct from the developer</div>
+        <div class="cards" id="propGrid"></div>
+        <div class="card" id="whyCard" style="margin-top:18px;">
+          <h3 id="whyTitle">Why Mauritius?</h3>
+          <p id="whyBody">People are increasingly buying luxury properties in Mauritius due to the island's natural beauty, favorable climate, and investment incentives.</p>
         </div>
       </div>
     </div>
 
-    <div class="footer">
-      Powered by CorpFlow · Draft preview for rapid iteration in the Change Console
+    <div class="footer" id="footer">
+      <div>Powered by CorpFlow · Draft preview for rapid iteration in the Change Console</div>
+      <div id="footerContact" class="muted" style="margin-top:8px; display:none;"></div>
     </div>
 
     <script>
@@ -191,27 +191,114 @@
         if (theme.primary) r.style.setProperty('--lux-gold', theme.primary);
       }
 
+      function setText(id, t) {
+        const n = document.getElementById(id);
+        if (n) n.textContent = t != null ? String(t) : '';
+      }
+
+      function renderPropertyCards(site) {
+        const grid = document.getElementById('propGrid');
+        if (!grid) return;
+        grid.innerHTML = '';
+        const svc = site.sections && site.sections.services ? site.sections.services : {};
+        const items = Array.isArray(svc.items) ? svc.items : [];
+        const phTitle = 'Upcoming properties';
+        const phBody =
+          'We will populate this with developments, units, and availability as soon as visuals (renders, floorplans, videos) are received.';
+        const mkCard = (title, body) => {
+          const c = document.createElement('div');
+          c.className = 'card';
+          const h = document.createElement('h3');
+          h.textContent = title;
+          const p = document.createElement('p');
+          p.textContent = body;
+          c.appendChild(h);
+          c.appendChild(p);
+          grid.appendChild(c);
+        };
+        if (items.length) {
+          for (const it of items) {
+            const title = it && it.name != null ? String(it.name).trim() : phTitle;
+            const body = it && it.detail != null ? String(it.detail).trim() : '';
+            mkCard(title || phTitle, body || phBody);
+          }
+        } else {
+          mkCard(phTitle, phBody);
+        }
+      }
+
+      function applyFooterContact(site) {
+        const wrap = document.getElementById('footerContact');
+        if (!wrap) return;
+        const c = site.sections && site.sections.contact ? site.sections.contact : {};
+        const parts = [];
+        if (c.email) parts.push(String(c.email));
+        if (c.phone) parts.push(String(c.phone));
+        if (parts.length) {
+          wrap.style.display = 'block';
+          wrap.textContent = parts.join(' · ');
+        } else {
+          wrap.style.display = 'none';
+          wrap.textContent = '';
+        }
+      }
+
       async function load() {
         try {
           const r = await fetch('/api/tenant/site', { method: 'GET' });
           const j = await r.json().catch(() => ({}));
           const site = j && j.site ? j.site : null;
           if (!site || !j.tenant_id) {
-            document.getElementById('brand').textContent = 'CorpFlow';
-            document.getElementById('subtitle').textContent = 'Preview not configured for this host yet.';
-            document.getElementById('about').textContent = 'This domain is not mapped to a tenant yet.';
+            document.getElementById('navLogo').style.display = 'none';
+            setText('brand', 'CorpFlow');
+            document.getElementById('brand').style.display = 'block';
+            setText('headline', 'Preview not configured for this host yet.');
+            setText('tagline', 'This domain is not mapped to a tenant yet.');
             document.getElementById('tenant').textContent = '—';
             msg('Ask an operator to map this hostname to a tenant_id.');
             return;
           }
+          const meta = site.meta && typeof site.meta === 'object' ? site.meta : {};
+          if (meta.page_title) document.title = String(meta.page_title);
+
           applyTheme(site.theme || {});
-          document.getElementById('brand').textContent = (site.hero && site.hero.title) ? String(site.hero.title).toUpperCase() : 'LUX';
-          document.getElementById('subtitle').textContent = (site.hero && site.hero.subtitle) ? site.hero.subtitle : '';
-          document.getElementById('about').textContent = (site.hero && site.hero.tagline) ? site.hero.tagline : 'Discover Exclusive Luxury Properties in Mauritius';
+          const hero = site.hero && typeof site.hero === 'object' ? site.hero : {};
+          const headline =
+            hero.headline != null && String(hero.headline).trim()
+              ? String(hero.headline).trim()
+              : hero.subtitle != null && String(hero.subtitle).trim()
+                ? String(hero.subtitle).trim()
+                : 'Luxurious Mauritius';
+          const tagline =
+            hero.tagline != null && String(hero.tagline).trim()
+              ? String(hero.tagline).trim()
+              : 'Discover Exclusive Luxury Properties in Mauritius';
+          setText('headline', headline);
+          setText('tagline', tagline);
+
+          const navLogo = document.getElementById('navLogo');
+          const brandEl = document.getElementById('brand');
+          const logoUrl = site.media && site.media.logo_url ? String(site.media.logo_url).trim() : '';
+          if (logoUrl) {
+            navLogo.src = logoUrl;
+            navLogo.alt = hero.title ? String(hero.title) : 'Logo';
+            navLogo.style.display = 'block';
+            brandEl.style.display = 'none';
+          } else {
+            navLogo.style.display = 'none';
+            brandEl.style.display = 'block';
+            brandEl.textContent = hero.title ? String(hero.title).toUpperCase() : 'LUX';
+          }
+
+          const cta = document.getElementById('cta');
+          if (cta) {
+            cta.textContent = hero.cta_label ? String(hero.cta_label) : 'Upcoming Properties';
+            cta.href = hero.cta_href ? String(hero.cta_href) : '#enquire';
+          }
+
           document.getElementById('tenant').textContent = j.tenant_id || '';
           msg('High-net-worth enquiries only. We respond within 1 business day.');
 
-          // Optional hero image.
           if (site.media && site.media.hero_image_url) {
             document.getElementById('heroBg').style.backgroundImage = 'url(' + site.media.hero_image_url + ')';
           } else {
@@ -219,15 +306,20 @@
               'linear-gradient(135deg, rgba(212,175,55,0.08), rgba(0,0,0,0.0)), url(https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=2400&q=60)';
           }
 
-          // About defaults.
-          if (site.sections && site.sections.about) {
-            if (site.sections.about.title) document.getElementById('whyTitle').textContent = site.sections.about.title;
-            if (site.sections.about.body) document.getElementById('whyBody').textContent = site.sections.about.body;
+          const sec = site.sections && typeof site.sections === 'object' ? site.sections : {};
+          if (sec.band_title) setText('bandTitle', sec.band_title);
+          renderPropertyCards(site);
+          if (sec.about && typeof sec.about === 'object') {
+            if (sec.about.title) setText('whyTitle', sec.about.title);
+            if (sec.about.body) setText('whyBody', sec.about.body);
           }
+          applyFooterContact(site);
         } catch (e) {
-          document.getElementById('brand').textContent = 'CorpFlow';
-          document.getElementById('subtitle').textContent = 'Could not load tenant site.';
-          document.getElementById('about').textContent = '';
+          document.getElementById('navLogo').style.display = 'none';
+          setText('brand', 'CorpFlow');
+          document.getElementById('brand').style.display = 'block';
+          setText('headline', 'Could not load tenant site.');
+          setText('tagline', '');
           msg('Retry in a moment.');
         }
       }

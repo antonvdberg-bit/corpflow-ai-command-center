@@ -47,19 +47,66 @@
         </div>
 
         <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5">
-          <div class="text-xs tracking-widest text-slate-400 mb-3">HERO</div>
-          <label class="block text-xs text-slate-300">Title
-            <input id="title" class="mt-1 w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 text-sm" value="Lux Mauritius" />
-          </label>
-          <label class="block text-xs text-slate-300 mt-4">Subtitle
-            <input id="subtitle" class="mt-1 w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 text-sm" value="Discover Exclusive Luxury Properties in Mauritius" />
+          <div class="text-xs tracking-widest text-slate-400 mb-3">META</div>
+          <label class="block text-xs text-slate-300">Browser tab title
+            <input id="pageTitle" class="mt-1 w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 text-sm" value="Lux Mauritius · Preview" />
           </label>
         </div>
 
         <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5">
-          <div class="text-xs tracking-widest text-slate-400 mb-3">ABOUT</div>
-          <label class="block text-xs text-slate-300">Copy
-            <textarea id="aboutBody" rows="5" class="mt-1 w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 text-sm">Draft website for Lux Mauritius — request edits in the Change Console and we’ll iterate quickly.</textarea>
+          <div class="text-xs tracking-widest text-slate-400 mb-3">MEDIA</div>
+          <label class="block text-xs text-slate-300">Hero image URL (optional)
+            <input id="heroImageUrl" class="mt-1 w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 text-sm font-mono" placeholder="https://…" />
+          </label>
+          <label class="block text-xs text-slate-300 mt-4">Logo URL (optional; hides nav wordmark when set)
+            <input id="logoUrl" class="mt-1 w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 text-sm font-mono" placeholder="https://…" />
+          </label>
+        </div>
+
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5">
+          <div class="text-xs tracking-widest text-slate-400 mb-3">HERO</div>
+          <label class="block text-xs text-slate-300">Nav wordmark (uppercased on site)
+            <input id="navTitle" class="mt-1 w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 text-sm" value="Lux Mauritius" />
+          </label>
+          <label class="block text-xs text-slate-300 mt-4">Headline (large H1)
+            <input id="headline" class="mt-1 w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 text-sm" value="Luxurious Mauritius" />
+          </label>
+          <label class="block text-xs text-slate-300 mt-4">Tagline (under headline)
+            <input id="tagline" class="mt-1 w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 text-sm" value="Discover Exclusive Luxury Properties in Mauritius" />
+          </label>
+          <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+            <label class="block text-xs text-slate-300">CTA button label
+              <input id="ctaLabel" class="mt-1 w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 text-sm" value="Upcoming Properties" />
+            </label>
+            <label class="block text-xs text-slate-300">CTA link (href)
+              <input id="ctaHref" class="mt-1 w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 text-sm font-mono" value="#enquire" />
+            </label>
+          </div>
+        </div>
+
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5">
+          <div class="text-xs tracking-widest text-slate-400 mb-3">WHITE SECTION</div>
+          <label class="block text-xs text-slate-300">Band title (small caps line above cards)
+            <input id="bandTitle" class="mt-1 w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 text-sm" value="Buy direct from the developer" />
+          </label>
+          <label class="block text-xs text-slate-300 mt-4">Property / development cards (JSON array)
+            <textarea id="itemsJson" rows="8" class="mt-1 w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 text-xs font-mono">[
+  {
+    "name": "Upcoming properties",
+    "detail": "We will populate this with developments, units, and availability as soon as visuals (renders, floorplans, videos) are received."
+  }
+]</textarea>
+          </label>
+          <p class="mt-2 text-xs text-slate-500">Each item: <span class="font-mono">name</span>, <span class="font-mono">detail</span> (strings). Empty array shows one placeholder card.</p>
+        </div>
+
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5">
+          <div class="text-xs tracking-widest text-slate-400 mb-3">WHY (FULL-WIDTH CARD)</div>
+          <label class="block text-xs text-slate-300">Title
+            <input id="aboutTitle" class="mt-1 w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 text-sm" value="Why Mauritius?" />
+          </label>
+          <label class="block text-xs text-slate-300 mt-4">Body
+            <textarea id="aboutBody" rows="4" class="mt-1 w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 text-sm">People are increasingly buying luxury properties in Mauritius due to the island's stunning natural beauty, favorable climate, and high-quality lifestyle.</textarea>
           </label>
         </div>
 
@@ -76,7 +123,8 @@
         </div>
       </div>
 
-      <div class="mt-6 flex flex-col gap-3 md:flex-row">
+      <div class="mt-6 flex flex-col gap-3 md:flex-row md:flex-wrap">
+        <button id="btnLoad" class="rounded-xl border border-sky-600/60 bg-sky-950/40 px-4 py-2 text-sm font-semibold text-sky-200">Load draft from Postgres</button>
         <button id="btnSave" class="rounded-xl bg-emerald-400 text-slate-950 px-4 py-2 text-sm font-semibold">Save draft to Postgres</button>
         <a id="btnOpen" class="rounded-xl border border-slate-700 px-4 py-2 text-sm text-slate-200 text-center" href="/" target="_blank">Open preview (this host)</a>
       </div>
@@ -89,20 +137,140 @@
       function v(id) { return (el(id).value || '').trim(); }
       function show(x) { el('out').textContent = typeof x === 'string' ? x : JSON.stringify(x, null, 2); }
 
-      async function postJson(url, body, masterKey) {
-        const r = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + masterKey,
-            'x-session-token': masterKey,
-          },
-          body: JSON.stringify(body),
-        });
+      const DEFAULT_ITEMS_JSON = `[
+  {
+    "name": "Upcoming properties",
+    "detail": "We will populate this with developments, units, and availability as soon as visuals (renders, floorplans, videos) are received."
+  }
+]`;
+
+      async function authFetch(url, opts, masterKey) {
+        const headers = {
+          ...(opts && opts.headers ? opts.headers : {}),
+          Authorization: 'Bearer ' + masterKey,
+          'x-session-token': masterKey,
+        };
+        const r = await fetch(url, { ...opts, headers });
         const j = await r.json().catch(() => ({}));
         if (!r.ok) throw new Error(j.error || ('http_' + r.status));
         return j;
       }
+
+      async function postJson(url, body, masterKey) {
+        return authFetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        }, masterKey);
+      }
+
+      function parseItemsJson(raw) {
+        const t = (raw || '').trim();
+        if (!t) return [];
+        const arr = JSON.parse(t);
+        if (!Array.isArray(arr)) throw new Error('Property cards JSON must be an array');
+        return arr.map((it) => ({
+          name: it && it.name != null ? String(it.name) : '',
+          detail: it && it.detail != null ? String(it.detail) : '',
+        }));
+      }
+
+      function buildWebsiteDraft(tenantId, host) {
+        let items = [];
+        try {
+          items = parseItemsJson(el('itemsJson').value);
+        } catch (e) {
+          throw e;
+        }
+        const heroImage = v('heroImageUrl');
+        const logo = v('logoUrl');
+        return {
+          tenant_id: tenantId,
+          host: host,
+          meta: { page_title: v('pageTitle') || 'Lux Mauritius · Preview' },
+          theme: { primary: v('primary'), accent: v('accent') },
+          hero: {
+            title: v('navTitle') || 'Lux Mauritius',
+            headline: v('headline') || 'Luxurious Mauritius',
+            tagline: v('tagline') || 'Discover Exclusive Luxury Properties in Mauritius',
+            cta_label: v('ctaLabel') || 'Upcoming Properties',
+            cta_href: v('ctaHref') || '#enquire',
+          },
+          sections: {
+            band_title: v('bandTitle') || 'Buy direct from the developer',
+            about: {
+              title: v('aboutTitle') || 'Why Mauritius?',
+              body: el('aboutBody').value.trim(),
+            },
+            services: { title: 'Upcoming properties', items },
+            contact: {
+              title: 'Contact',
+              email: v('email') || null,
+              phone: v('phone') || null,
+              website: host ? ('https://' + host) : null,
+            },
+          },
+          media: {
+            hero_image_url: heroImage || null,
+            gallery: [],
+            logo_url: logo || null,
+          },
+        };
+      }
+
+      function applyDraftToForm(d) {
+        if (!d || typeof d !== 'object') return;
+        const theme = d.theme && typeof d.theme === 'object' ? d.theme : {};
+        if (theme.primary) el('primary').value = String(theme.primary);
+        if (theme.accent) el('accent').value = String(theme.accent);
+        const meta = d.meta && typeof d.meta === 'object' ? d.meta : {};
+        if (meta.page_title) el('pageTitle').value = String(meta.page_title);
+        const media = d.media && typeof d.media === 'object' ? d.media : {};
+        el('heroImageUrl').value = media.hero_image_url ? String(media.hero_image_url) : '';
+        el('logoUrl').value = media.logo_url ? String(media.logo_url) : '';
+        const hero = d.hero && typeof d.hero === 'object' ? d.hero : {};
+        if (hero.title) el('navTitle').value = String(hero.title);
+        el('headline').value = hero.headline
+          ? String(hero.headline)
+          : hero.subtitle
+            ? String(hero.subtitle)
+            : 'Luxurious Mauritius';
+        el('tagline').value = hero.tagline ? String(hero.tagline) : 'Discover Exclusive Luxury Properties in Mauritius';
+        if (hero.cta_label) el('ctaLabel').value = String(hero.cta_label);
+        if (hero.cta_href) el('ctaHref').value = String(hero.cta_href);
+        const sec = d.sections && typeof d.sections === 'object' ? d.sections : {};
+        if (sec.band_title) el('bandTitle').value = String(sec.band_title);
+        const about = sec.about && typeof sec.about === 'object' ? sec.about : {};
+        if (about.title) el('aboutTitle').value = String(about.title);
+        if (about.body != null) el('aboutBody').value = String(about.body);
+        const contact = sec.contact && typeof sec.contact === 'object' ? sec.contact : {};
+        if (contact.email) el('email').value = String(contact.email);
+        if (contact.phone) el('phone').value = String(contact.phone);
+        const svc = sec.services && typeof sec.services === 'object' ? sec.services : {};
+        const items = Array.isArray(svc.items) ? svc.items : [];
+        el('itemsJson').value = items.length ? JSON.stringify(items, null, 2) : DEFAULT_ITEMS_JSON;
+      }
+
+      el('btnLoad').addEventListener('click', async () => {
+        try {
+          const key = v('masterKey');
+          if (!key) return show('Paste MASTER_ADMIN_KEY first.');
+          const tenantId = v('tenantId');
+          show('Loading…');
+          const u = new URL('/api/factory/tenant-site/read', window.location.origin);
+          u.searchParams.set('tenant_id', tenantId);
+          const j = await authFetch(u.toString(), { method: 'GET' }, key);
+          const draft = j.website_draft;
+          if (!draft) {
+            show({ ok: true, note: 'No saved draft yet — form left at defaults.', tenant_id: tenantId });
+            return;
+          }
+          applyDraftToForm(draft);
+          show({ ok: true, loaded: true, tenant_id: tenantId });
+        } catch (e) {
+          show({ ok: false, error: String(e && e.message ? e.message : e) });
+        }
+      });
 
       el('btnSave').addEventListener('click', async () => {
         try {
@@ -110,19 +278,12 @@
           if (!key) return show('Paste MASTER_ADMIN_KEY first.');
           const tenantId = v('tenantId');
           const host = v('host');
-
-          const website_draft = {
-            tenant_id: tenantId,
-            host: host,
-            theme: { primary: v('primary'), accent: v('accent') },
-            hero: { title: v('title'), subtitle: v('subtitle'), cta_label: 'Request changes', cta_href: '/change' },
-            sections: {
-              about: { title: 'About', body: v('aboutBody') },
-              services: { title: 'Services', items: [] },
-              contact: { title: 'Contact', email: v('email'), phone: v('phone'), website: host ? ('https://' + host) : null },
-            },
-            media: { hero_image_url: null, gallery: [], logo_url: null },
-          };
+          let website_draft;
+          try {
+            website_draft = buildWebsiteDraft(tenantId, host);
+          } catch (e) {
+            return show({ ok: false, error: 'Invalid property cards JSON: ' + String(e && e.message ? e.message : e) });
+          }
 
           show('Saving…');
           const j = await postJson('/api/factory/tenant-site/upsert', { tenant_id: tenantId, website_draft }, key);

@@ -2,6 +2,8 @@ import React from 'react';
 
 import { PrismaClient } from '@prisma/client';
 
+import { mergeSiteDraft } from '../lib/server/tenant-site-public.js';
+
 /**
  * Minimal tenant marketing site renderer (v1).
  * - If request host resolves to a tenant via Postgres host mapping, render that tenant's site draft.
@@ -36,6 +38,8 @@ function defaultSite({ tenantId, host }) {
     },
     hero: {
       title: brand,
+      headline: 'Tenant preview',
+      tagline: 'A premium experience — preview draft site powered by CorpFlow.',
       subtitle: 'A premium experience — preview draft site powered by CorpFlow.',
       cta_label: 'Request changes',
       cta_href: '/change',
@@ -163,8 +167,17 @@ function TenantSite({ site }) {
           <div style={{ borderRadius: 18, border: '1px solid rgba(255,255,255,0.10)', background: 'var(--cf-surface)', padding: 18 }}>
             <div style={{ fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase', color: 'var(--cf-muted)' }}>Welcome</div>
             <h1 style={{ marginTop: 8, fontSize: 28, lineHeight: 1.15, fontWeight: 700 }}>
-              {safeStr(tHero?.subtitle) || safeStr(hero.subtitle) || ''}
+              {safeStr(tHero?.headline) ||
+                safeStr(tHero?.subtitle) ||
+                safeStr(hero.headline) ||
+                safeStr(hero.subtitle) ||
+                ''}
             </h1>
+            {(safeStr(tHero?.tagline) || safeStr(hero.tagline)) ? (
+              <p style={{ marginTop: 10, fontSize: 15, lineHeight: 1.5, color: 'var(--cf-muted)' }}>
+                {safeStr(tHero?.tagline) || safeStr(hero.tagline)}
+              </p>
+            ) : null}
             <div style={{ marginTop: 14, fontSize: 12, color: 'var(--cf-muted)' }}>
               Tenant: <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' }}>{safeStr(s.tenant_id) || 'n/a'}</span>
             </div>
@@ -340,11 +353,11 @@ export async function getServerSideProps({ req }) {
       }
     })();
 
-    const site = { ...defaultSite({ tenantId, host }), ...(draft || {}) };
+    const base = defaultSite({ tenantId, host });
+    const site = mergeSiteDraft(base, draft || {});
     site.lang_default = site.lang_default || 'en';
     site.languages = Array.isArray(site.languages) ? site.languages : ['en', 'fr', 'ru'];
     site.lang_active = qLang && site.languages.includes(qLang) ? qLang : site.lang_default;
-    // Ensure contact defaults exist even if draft overwrote them.
     site.sections = site.sections || {};
     site.sections.contact = site.sections.contact || {};
     if (!site.sections.contact.website) {
