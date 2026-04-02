@@ -1,118 +1,12 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LUXE MAURICE | Sovereign Intake</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { background-color: #0a0a0a; color: #d4d4d4; font-family: 'Inter', sans-serif; }
-        .gold-glow { box-shadow: 0 0 20px rgba(212, 175, 55, 0.1); border: 1px solid #d4af37; }
-        input { background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(212, 175, 55, 0.3) !important; color: white !important; }
-    </style>
-</head>
-<body class="flex items-center justify-center min-h-screen p-4">
-    <div class="max-w-md w-full p-8 gold-glow rounded-lg bg-black/80">
-        <h2 class="text-2xl font-light tracking-widest text-[#d4af37] mb-6 text-center uppercase">Inquiry Protocol</h2>
-        <form id="intakeForm" class="space-y-4">
-            <input type="text" id="name" placeholder="IDENTIFIER (NAME)" required class="w-full p-3 text-sm tracking-tighter outline-none focus:border-[#d4af37]">
-            <input type="email" id="email" placeholder="SECURE EMAIL" required class="w-full p-3 text-sm tracking-tighter outline-none focus:border-[#d4af37]">
-            <textarea id="intent" placeholder="CORE INTENT / REQUIREMENTS" class="w-full p-3 text-sm tracking-tighter outline-none focus:border-[#d4af37] h-24"></textarea>
-            <button type="submit" class="w-full py-3 bg-[#d4af37] text-black font-bold uppercase tracking-widest hover:bg-white transition-all text-xs">
-                Initiate Handoff
-            </button>
-        </form>
-        <div id="status" class="mt-4 text-center text-[10px] uppercase opacity-50 tracking-widest"></div>
-
-        <div id="sovereignAdmin" class="hidden mt-8 pt-8 border-t border-[#d4af37]/30 space-y-4">
-            <h3 class="text-[10px] uppercase tracking-[0.35em] text-[#d4af37]/80 text-center">Sovereign Change Mode</h3>
-            <input type="text" id="saTenant" placeholder="TENANT_ID" class="w-full p-3 text-sm outline-none">
-            <input type="password" id="saPin" placeholder="6-DIGIT PIN" class="w-full p-3 text-sm outline-none" autocomplete="one-time-code">
-            <button type="button" id="saBootstrap" class="w-full py-2 border border-[#d4af37] text-[#d4af37] text-[10px] uppercase tracking-widest hover:bg-[#d4af37]/10">Establish session</button>
-            <button type="button" id="saSignoff" class="w-full py-2 bg-[#d4af37] text-black text-[10px] uppercase tracking-widest font-bold">Signoff (pending → live)</button>
-            <pre id="saOut" class="text-[9px] text-zinc-500 whitespace-pre-wrap min-h-[3rem]"></pre>
-        </div>
-    </div>
-
-    <script>
-        (function () {
-            var p = new URLSearchParams(window.location.search);
-            if (p.get('admin') === 'true') {
-                document.getElementById('sovereignAdmin').classList.remove('hidden');
-            }
-        })();
-
-        document.getElementById('saBootstrap')?.addEventListener('click', async function () {
-            var tid = document.getElementById('saTenant').value.trim();
-            var pin = document.getElementById('saPin').value;
-            var out = document.getElementById('saOut');
-            out.textContent = '';
-            if (!tid || !pin) { out.textContent = 'tenant_id and pin required'; return; }
-            try {
-                var r = await fetch('/api/cmp/tenant-session-bootstrap', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ tenant_id: tid, pin: pin })
-                });
-                var j = await r.json().catch(function () { return {}; });
-                if (r.ok && j.sovereign_session) {
-                    sessionStorage.setItem('sovereign_session', j.sovereign_session);
-                    out.textContent = 'Session stored (sessionStorage). row_id=' + (j.row_id || '');
-                } else {
-                    out.textContent = JSON.stringify(j, null, 2);
-                }
-            } catch (e) {
-                out.textContent = String(e);
-            }
-        });
-
-        document.getElementById('saSignoff')?.addEventListener('click', async function () {
-            var out = document.getElementById('saOut');
-            var token = sessionStorage.getItem('sovereign_session');
-            out.textContent = '';
-            if (!token) { out.textContent = 'Bootstrap first — no sovereign_session in sessionStorage.'; return; }
-            try {
-                var r = await fetch('/api/cmp/signoff', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + token,
-                        'x-sovereign-session': token
-                    },
-                    body: JSON.stringify({})
-                });
-                var j = await r.json().catch(function () { return {}; });
-                out.textContent = JSON.stringify(j, null, 2);
-            } catch (e) {
-                out.textContent = String(e);
-            }
-        });
-
-        document.getElementById('intakeForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const status = document.getElementById('status');
-            status.innerText = "Transmitting...";
-            
-            const data = {
-                name: document.getElementById('name').value,
-                email: document.getElementById('email').value,
-                intent: document.getElementById('intent').value
-            };
-
-            const response = await fetch('/api/intake', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-
-            if (response.ok) {
-                status.innerText = "Handshaking Complete. Awaiting Analyst Review.";
-                document.getElementById('intakeForm').reset();
-            } else {
-                status.innerText = "Transmission Error. Protocol Failed.";
-            }
-        });
-    </script>
-    <script src="/assets/cmp/bubble.js"></script>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CorpFlow</title>
+  </head>
+  <body>
+    <noscript>This site requires JavaScript.</noscript>
+    <div>CorpFlow</div>
+  </body>
 </html>

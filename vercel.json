@@ -9,6 +9,7 @@
     { "source": "/api/(.*)", "destination": "/api/factory_router?__path=$1" },
     { "source": "/login", "destination": "/login.html" },
     { "source": "/change", "destination": "/change.html" },
+    { "source": "/sovereign-intake", "destination": "/sovereign-intake.html" },
     { "source": "/legal", "destination": "/public/legal-demo.html" },
     { "source": "/medical", "destination": "/public/proposal-medspa.html" },
     { "source": "/lux", "destination": "/showcase/luxe-maurice-private/index.html" },
