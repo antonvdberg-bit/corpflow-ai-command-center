@@ -6,77 +6,177 @@
     <title>CorpFlow</title>
     <style>
       :root {
-        --cf-bg: #020617;
-        --cf-surface: #0b1220;
-        --cf-text: #e2e8f0;
-        --cf-muted: #94a3b8;
-        --cf-primary: #0ea5e9;
-        --cf-accent: #22c55e;
+        --lux-bg: #0a0a0a;
+        --lux-text: #f5f5f5;
+        --lux-muted: #bdbdbd;
+        --lux-gold: #d4af37;
+        --lux-surface: rgba(0,0,0,0.65);
       }
-      body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji"; background: var(--cf-bg); color: var(--cf-text); }
-      .wrap { max-width: 1120px; margin: 0 auto; padding: 40px 20px; }
-      .card { border-radius: 18px; border: 1px solid rgba(255,255,255,0.10); background: var(--cf-surface); padding: 18px; }
-      .muted { color: var(--cf-muted); }
-      a.btn { display: inline-block; padding: 10px 14px; border-radius: 14px; background: var(--cf-primary); color: #020617; font-weight: 700; font-size: 13px; text-decoration: none; }
-      .grid { display: grid; grid-template-columns: 1fr; gap: 18px; margin-top: 18px; }
-      input, select, textarea { width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.10); background: rgba(0,0,0,0.18); color: var(--cf-text); }
-      button { width: 100%; padding: 10px 12px; border-radius: 14px; border: none; background: var(--cf-accent); color: #020617; font-weight: 800; }
-      @media (min-width: 900px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+        background: var(--lux-bg);
+        color: var(--lux-text);
+      }
+      .hero {
+        min-height: 78vh;
+        display: flex;
+        flex-direction: column;
+        background: radial-gradient(1200px 520px at 60% 10%, rgba(212,175,55,0.10), transparent 60%),
+                    linear-gradient(to bottom, rgba(0,0,0,0.15), rgba(0,0,0,0.75));
+      }
+      .hero-bg {
+        position: absolute;
+        inset: 0;
+        background-size: cover;
+        background-position: center;
+        filter: saturate(1.05) contrast(1.05);
+      }
+      .hero-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.20), rgba(0,0,0,0.80));
+      }
+      .wrap { max-width: 1120px; margin: 0 auto; padding: 26px 20px; position: relative; z-index: 2; }
+      .nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 14px 16px;
+        border: 1px solid rgba(212,175,55,0.25);
+        background: rgba(0,0,0,0.55);
+      }
+      .brand { font-size: 14px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--lux-text); }
+      .nav a { color: var(--lux-text); text-decoration: none; font-size: 13px; opacity: 0.92; }
+      .nav a:hover { opacity: 1; }
+      .lang { font-size: 12px; opacity: 0.9; }
+      .lang a { color: var(--lux-text); text-decoration: none; }
+      .lang a:hover { text-decoration: underline; }
+
+      .hero-center { margin-top: 12vh; text-align: center; }
+      .h1 { font-size: 54px; font-weight: 750; letter-spacing: -0.02em; }
+      .h2 { margin-top: 10px; font-size: 18px; color: var(--lux-muted); }
+      .pill {
+        display: inline-block;
+        margin-top: 22px;
+        padding: 12px 18px;
+        border-radius: 999px;
+        background: rgba(0,0,0,0.75);
+        border: 1px solid rgba(212,175,55,0.35);
+        color: var(--lux-text);
+        font-size: 13px;
+        text-decoration: none;
+      }
+
+      .section { background: #ffffff; color: #111; padding: 64px 20px; }
+      .section-wrap { max-width: 1120px; margin: 0 auto; }
+      .section-title { text-align: center; font-size: 12px; letter-spacing: 0.35em; text-transform: uppercase; color: #111; opacity: 0.7; }
+      .cards { margin-top: 24px; display: grid; grid-template-columns: 1fr; gap: 18px; }
+      .card {
+        border-radius: 18px;
+        border: 1px solid rgba(17,17,17,0.12);
+        background: #fff;
+        padding: 18px;
+      }
+      .card h3 { margin: 0; font-size: 18px; }
+      .card p { margin: 10px 0 0; color: #333; line-height: 1.6; }
+
+      .enquire { margin-top: 22px; border-radius: 18px; border: 1px solid rgba(212,175,55,0.25); background: rgba(0,0,0,0.65); padding: 18px; }
+      .enquire label { font-size: 11px; letter-spacing: 0.35em; text-transform: uppercase; color: var(--lux-muted); }
+      input, select, textarea {
+        width: 100%; box-sizing: border-box; margin-top: 10px;
+        padding: 12px 12px; border-radius: 10px;
+        border: 1px solid rgba(212,175,55,0.30); background: rgba(255,255,255,0.04);
+        color: var(--lux-text);
+      }
+      button {
+        width: 100%; margin-top: 12px;
+        padding: 12px 12px; border-radius: 10px; border: none;
+        background: var(--lux-gold); color: #000; font-weight: 800; letter-spacing: 0.12em;
+        text-transform: uppercase; font-size: 11px;
+      }
+      .muted { color: var(--lux-muted); }
+      .footer { padding: 28px 20px; text-align: center; font-size: 12px; color: var(--lux-muted); }
+
+      @media (min-width: 900px) {
+        .cards { grid-template-columns: 1fr 1fr; }
+        .h1 { font-size: 64px; }
+      }
     </style>
   </head>
   <body>
-    <div class="wrap">
-      <div id="top" class="card">
-        <div class="muted" style="font-size: 12px; letter-spacing: 0.6px;">Preview</div>
-        <div id="title" style="font-size: 20px; font-weight: 700; margin-top: 4px;">Loading…</div>
-        <div style="display:flex; gap:10px; align-items:center; margin-top: 10px;">
-          <a id="cta" class="btn" href="/change">Request changes</a>
-          <a class="muted" href="/lux-guide" style="font-size: 13px;">How to request changes</a>
-        </div>
-      </div>
+    <div class="hero">
+      <div id="heroBg" class="hero-bg"></div>
+      <div class="hero-overlay"></div>
 
-      <div class="grid grid-2">
-        <div class="card">
-          <div class="muted" style="font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase;">Welcome</div>
-          <div id="subtitle" style="margin-top: 8px; font-size: 28px; line-height: 1.15; font-weight: 800;">Loading…</div>
-          <div class="muted" style="margin-top: 12px; font-size: 12px;">
+      <div class="wrap">
+        <div class="nav">
+          <div class="brand" id="brand">LUX</div>
+          <div style="display:flex; gap:16px; align-items:center;">
+            <a href="/" aria-current="page">Home</a>
+            <a href="/change">Request changes</a>
+            <a href="/lux-guide">Guide</a>
+            <div class="lang muted">
+              <a id="langFR" href="?lang=fr">French</a> | <a id="langRU" href="?lang=ru">Russian</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-center">
+          <div id="subtitle" class="h1">Loading…</div>
+          <div id="about" class="h2">Loading…</div>
+          <a id="cta" class="pill" href="#enquire">Upcoming Properties</a>
+          <div class="muted" style="margin-top: 14px; font-size: 12px;">
             Tenant: <span id="tenant" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;">—</span>
           </div>
         </div>
-        <div class="card">
-          <div class="muted" style="font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase;">About</div>
-          <div id="about" style="margin-top: 10px; font-size: 14px; line-height: 1.6; color: rgba(226,232,240,0.92);">Loading…</div>
+
+        <div class="enquire" id="enquire">
+          <label>Inquiry protocol</label>
+          <form id="enquiry" style="margin-top: 12px; display:grid; gap:10px;">
+            <input name="name" placeholder="IDENTIFIER (NAME)" />
+            <input required name="email" placeholder="SECURE EMAIL" />
+            <select name="region">
+              <option value="">Region focus (optional)</option>
+              <option value="FR">France / French-speaking Europe</option>
+              <option value="ZA">South Africa</option>
+              <option value="EE">Eastern Europe</option>
+              <option value="RU">Russia</option>
+            </select>
+            <select name="budget">
+              <option value="">Budget (USD, optional)</option>
+              <option value="2-3M">2–3M</option>
+              <option value="3-5M">3–5M</option>
+              <option value="5-10M">5–10M</option>
+              <option value="10M+">10M+</option>
+            </select>
+            <textarea required name="message" rows="4" placeholder="CORE INTENT / REQUIREMENTS"></textarea>
+            <button type="submit">Initiate handoff</button>
+          </form>
+          <div id="msg" class="muted" style="margin-top: 10px; font-size: 12px;">Loading tenant…</div>
         </div>
       </div>
+    </div>
 
-      <div class="card" style="margin-top: 18px;">
-        <div class="muted" style="font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase;">Enquire</div>
-        <form id="enquiry" style="margin-top: 12px; display:grid; gap:10px;">
-          <input name="name" placeholder="Name" />
-          <input required name="email" placeholder="Email" />
-          <select name="region">
-            <option value="">Region focus (optional)</option>
-            <option value="FR">France / French-speaking Europe</option>
-            <option value="ZA">South Africa</option>
-            <option value="EE">Eastern Europe</option>
-            <option value="RU">Russia</option>
-          </select>
-          <select name="budget">
-            <option value="">Budget (USD, optional)</option>
-            <option value="2-3M">2–3M</option>
-            <option value="3-5M">3–5M</option>
-            <option value="5-10M">5–10M</option>
-            <option value="10M+">10M+</option>
-          </select>
-          <textarea required name="message" rows="4" placeholder="Message"></textarea>
-          <button type="submit">Submit enquiry</button>
-        </form>
-        <div id="msg" class="muted" style="margin-top: 10px; font-size: 12px;">Loading tenant…</div>
+    <div class="section">
+      <div class="section-wrap">
+        <div class="section-title">Buy direct from the developer</div>
+        <div class="cards" id="props">
+          <div class="card">
+            <h3>Upcoming properties</h3>
+            <p>We will populate this with developments, units, and availability as soon as visuals (renders, floorplans, videos) are received.</p>
+          </div>
+          <div class="card">
+            <h3 id="whyTitle">Why Mauritius?</h3>
+            <p id="whyBody">People are increasingly buying luxury properties in Mauritius due to the island's natural beauty, favorable climate, and investment incentives.</p>
+          </div>
+        </div>
       </div>
+    </div>
 
-      <div class="muted" style="margin-top: 18px; text-align:center; font-size: 12px;">
-        Powered by CorpFlow · Draft preview for rapid iteration in the Change Console
-      </div>
+    <div class="footer">
+      Powered by CorpFlow · Draft preview for rapid iteration in the Change Console
     </div>
 
     <script>
@@ -84,12 +184,11 @@
       function applyTheme(theme) {
         if (!theme) return;
         const r = document.documentElement;
-        if (theme.background) r.style.setProperty('--cf-bg', theme.background);
-        if (theme.surface) r.style.setProperty('--cf-surface', theme.surface);
-        if (theme.text) r.style.setProperty('--cf-text', theme.text);
-        if (theme.muted) r.style.setProperty('--cf-muted', theme.muted);
-        if (theme.primary) r.style.setProperty('--cf-primary', theme.primary);
-        if (theme.accent) r.style.setProperty('--cf-accent', theme.accent);
+        if (theme.background) r.style.setProperty('--lux-bg', theme.background);
+        if (theme.surface) r.style.setProperty('--lux-surface', theme.surface);
+        if (theme.text) r.style.setProperty('--lux-text', theme.text);
+        if (theme.muted) r.style.setProperty('--lux-muted', theme.muted);
+        if (theme.primary) r.style.setProperty('--lux-gold', theme.primary);
       }
 
       async function load() {
@@ -98,7 +197,7 @@
           const j = await r.json().catch(() => ({}));
           const site = j && j.site ? j.site : null;
           if (!site || !j.tenant_id) {
-            document.getElementById('title').textContent = 'CorpFlow';
+            document.getElementById('brand').textContent = 'CorpFlow';
             document.getElementById('subtitle').textContent = 'Preview not configured for this host yet.';
             document.getElementById('about').textContent = 'This domain is not mapped to a tenant yet.';
             document.getElementById('tenant').textContent = '—';
@@ -106,13 +205,27 @@
             return;
           }
           applyTheme(site.theme || {});
-          document.getElementById('title').textContent = (site.hero && site.hero.title) ? site.hero.title : 'Tenant';
+          document.getElementById('brand').textContent = (site.hero && site.hero.title) ? String(site.hero.title).toUpperCase() : 'LUX';
           document.getElementById('subtitle').textContent = (site.hero && site.hero.subtitle) ? site.hero.subtitle : '';
-          document.getElementById('about').textContent = (site.sections && site.sections.about && site.sections.about.body) ? site.sections.about.body : '';
+          document.getElementById('about').textContent = (site.hero && site.hero.tagline) ? site.hero.tagline : 'Discover Exclusive Luxury Properties in Mauritius';
           document.getElementById('tenant').textContent = j.tenant_id || '';
           msg('High-net-worth enquiries only. We respond within 1 business day.');
+
+          // Optional hero image.
+          if (site.media && site.media.hero_image_url) {
+            document.getElementById('heroBg').style.backgroundImage = 'url(' + site.media.hero_image_url + ')';
+          } else {
+            document.getElementById('heroBg').style.backgroundImage =
+              'linear-gradient(135deg, rgba(212,175,55,0.08), rgba(0,0,0,0.0)), url(https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=2400&q=60)';
+          }
+
+          // About defaults.
+          if (site.sections && site.sections.about) {
+            if (site.sections.about.title) document.getElementById('whyTitle').textContent = site.sections.about.title;
+            if (site.sections.about.body) document.getElementById('whyBody').textContent = site.sections.about.body;
+          }
         } catch (e) {
-          document.getElementById('title').textContent = 'CorpFlow';
+          document.getElementById('brand').textContent = 'CorpFlow';
           document.getElementById('subtitle').textContent = 'Could not load tenant site.';
           document.getElementById('about').textContent = '';
           msg('Retry in a moment.');
