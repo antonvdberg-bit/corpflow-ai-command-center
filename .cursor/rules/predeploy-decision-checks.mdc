@@ -1,0 +1,22 @@
+---
+description: Pre-deploy and DNS/tenant change guardrails (avoid redoing work)
+alwaysApply: true
+---
+
+# Pre-deploy / pre-infra-change checklist
+
+Before doing any **deployment**, **DNS/traffic split**, **tenant onboarding**, or **new “site/marketing” surface** work, do a quick “don’t redo / don’t contradict ourselves” pass:
+
+- Read `docs/CORPFLOW_SHARED_TODO.md` (current priorities + what’s already done).
+- Read `docs/EXECUTION_BRAIN_VS_HANDS.md` (brain vs hands boundaries; where 24/7 execution lives).
+- For automation work, read `docs/automation-framework.md` and `docs/n8n/automation-forward-recipe.md`.
+- For CMP behavior, skim `lib/cmp/README.md` (current API + tenancy rules).
+- If the request references prior decisions (“we said we’d use `luxe.corpflowai.com`”), search existing docs and code for the decision and follow it.
+
+## DNS / traffic split reminder
+
+If apex vs `core.*` (or any hostnames) are moved onto different deployments/edge routing:
+
+- Update GitHub secret `CORPFLOW_FACTORY_HEALTH_URL` (or add a second health workflow/job) so CI monitors the hostname clients actually use.
+- Re-check tenant host mappings (`tenant_hostnames`) and any host-based tenancy derivation.
+
