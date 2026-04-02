@@ -70,8 +70,20 @@ function TenantSite({ site }) {
   const hero = s.hero || {};
   const about = s.sections?.about || {};
   const services = s.sections?.services || {};
-  const contact = s.sections?.contact || {};
   const media = s.media || {};
+  const contact = s.sections?.contact || {};
+  const languages = Array.isArray(s.languages) ? s.languages : ['en', 'fr', 'ru'];
+  const langDefault = typeof s.lang_default === 'string' && s.lang_default ? s.lang_default : 'en';
+  const lang =
+    typeof (s.lang_active) === 'string' && s.lang_active
+      ? s.lang_active
+      : langDefault;
+
+  const i18n = s.i18n && typeof s.i18n === 'object' ? s.i18n : {};
+  const i18nBlock = i18n[lang] && typeof i18n[lang] === 'object' ? i18n[lang] : null;
+  const tHero = i18nBlock?.hero && typeof i18nBlock.hero === 'object' ? i18nBlock.hero : null;
+  const tAbout = i18nBlock?.about && typeof i18nBlock.about === 'object' ? i18nBlock.about : null;
+  const tServices = i18nBlock?.services && typeof i18nBlock.services === 'object' ? i18nBlock.services : null;
 
   const css = {
     '--cf-bg': t.background || '#020617',
@@ -96,8 +108,38 @@ function TenantSite({ site }) {
             )}
             <div>
               <div style={{ fontSize: 12, letterSpacing: 0.6, color: 'var(--cf-muted)' }}>Preview</div>
-              <div style={{ fontSize: 20, fontWeight: 650 }}>{safeStr(hero.title) || 'Tenant site'}</div>
+              <div style={{ fontSize: 20, fontWeight: 650 }}>
+                {safeStr(tHero?.title) || safeStr(hero.title) || 'Tenant site'}
+              </div>
             </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ fontSize: 12, color: 'var(--cf-muted)' }}>Language</div>
+            <select
+              defaultValue={lang}
+              onChange={(e) => {
+                try {
+                  const u = new URL(window.location.href);
+                  u.searchParams.set('lang', e.target.value);
+                  window.location.href = u.toString();
+                } catch {}
+              }}
+              style={{
+                background: 'rgba(0,0,0,0.18)',
+                border: '1px solid rgba(255,255,255,0.10)',
+                borderRadius: 12,
+                padding: '6px 10px',
+                color: 'var(--cf-text)',
+                fontSize: 12,
+              }}
+            >
+              {languages.map((l) => (
+                <option key={l} value={l}>
+                  {String(l).toUpperCase()}
+                </option>
+              ))}
+            </select>
           </div>
 
           <a
@@ -120,21 +162,29 @@ function TenantSite({ site }) {
         <section style={{ marginTop: 28, display: 'grid', gridTemplateColumns: '1fr', gap: 18 }}>
           <div style={{ borderRadius: 18, border: '1px solid rgba(255,255,255,0.10)', background: 'var(--cf-surface)', padding: 18 }}>
             <div style={{ fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase', color: 'var(--cf-muted)' }}>Welcome</div>
-            <h1 style={{ marginTop: 8, fontSize: 28, lineHeight: 1.15, fontWeight: 700 }}>{safeStr(hero.subtitle) || ''}</h1>
+            <h1 style={{ marginTop: 8, fontSize: 28, lineHeight: 1.15, fontWeight: 700 }}>
+              {safeStr(tHero?.subtitle) || safeStr(hero.subtitle) || ''}
+            </h1>
             <div style={{ marginTop: 14, fontSize: 12, color: 'var(--cf-muted)' }}>
               Tenant: <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' }}>{safeStr(s.tenant_id) || 'n/a'}</span>
             </div>
           </div>
 
           <div style={{ borderRadius: 18, border: '1px solid rgba(255,255,255,0.10)', background: 'var(--cf-surface)', padding: 18 }}>
-            <div style={{ fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase', color: 'var(--cf-muted)' }}>{safeStr(about.title) || 'About'}</div>
-            <p style={{ marginTop: 10, fontSize: 14, lineHeight: 1.6, color: 'rgba(226,232,240,0.92)' }}>{safeStr(about.body) || ''}</p>
+            <div style={{ fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase', color: 'var(--cf-muted)' }}>
+              {safeStr(tAbout?.title) || safeStr(about.title) || 'About'}
+            </div>
+            <p style={{ marginTop: 10, fontSize: 14, lineHeight: 1.6, color: 'rgba(226,232,240,0.92)' }}>
+              {safeStr(tAbout?.body) || safeStr(about.body) || ''}
+            </p>
           </div>
         </section>
 
         <section style={{ marginTop: 18, borderRadius: 18, border: '1px solid rgba(255,255,255,0.10)', background: 'var(--cf-surface)', padding: 18 }}>
           <div>
-            <div style={{ fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase', color: 'var(--cf-muted)' }}>{safeStr(services.title) || 'Services'}</div>
+            <div style={{ fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase', color: 'var(--cf-muted)' }}>
+              {safeStr(tServices?.title) || safeStr(services.title) || 'Services'}
+            </div>
             <div style={{ marginTop: 6, fontSize: 13, color: 'var(--cf-muted)' }}>Draft list — we’ll refine based on client feedback.</div>
           </div>
           <div style={{ marginTop: 14, display: 'grid', gridTemplateColumns: '1fr', gap: 10 }}>
@@ -178,6 +228,67 @@ function TenantSite({ site }) {
           </div>
         </section>
 
+        <section style={{ marginTop: 18, borderRadius: 18, border: '1px solid rgba(255,255,255,0.10)', background: 'var(--cf-surface)', padding: 18 }}>
+          <div style={{ fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase', color: 'var(--cf-muted)' }}>Enquire</div>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                const f = e.target;
+                const fd = new FormData(f);
+                const payload = {
+                  name: String(fd.get('name') || '').trim(),
+                  email: String(fd.get('email') || '').trim(),
+                  intent: String(fd.get('message') || '').trim(),
+                  meta: {
+                    language: lang,
+                    region_focus: String(fd.get('region') || '').trim(),
+                    budget_usd: String(fd.get('budget') || '').trim(),
+                    host: safeStr(s.host) || null,
+                    page: '/',
+                  },
+                };
+                const r = await fetch('/api/tenant/intake', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(payload),
+                });
+                const j = await r.json().catch(() => ({}));
+                if (!r.ok) throw new Error(j.error || 'intake_failed');
+                alert('Thank you. We will contact you shortly.');
+                f.reset();
+              } catch (err) {
+                alert('Could not submit. Please try again.');
+              }
+            }}
+            style={{ marginTop: 12, display: 'grid', gridTemplateColumns: '1fr', gap: 10 }}
+          >
+            <input name="name" placeholder="Name" style={{ padding: '10px 12px', borderRadius: 14, border: '1px solid rgba(255,255,255,0.10)', background: 'rgba(0,0,0,0.18)', color: 'var(--cf-text)' }} />
+            <input required name="email" placeholder="Email" style={{ padding: '10px 12px', borderRadius: 14, border: '1px solid rgba(255,255,255,0.10)', background: 'rgba(0,0,0,0.18)', color: 'var(--cf-text)' }} />
+            <select name="region" style={{ padding: '10px 12px', borderRadius: 14, border: '1px solid rgba(255,255,255,0.10)', background: 'rgba(0,0,0,0.18)', color: 'var(--cf-text)' }}>
+              <option value="">Region focus (optional)</option>
+              <option value="FR">France / French-speaking Europe</option>
+              <option value="ZA">South Africa</option>
+              <option value="EE">Eastern Europe</option>
+              <option value="RU">Russia</option>
+            </select>
+            <select name="budget" style={{ padding: '10px 12px', borderRadius: 14, border: '1px solid rgba(255,255,255,0.10)', background: 'rgba(0,0,0,0.18)', color: 'var(--cf-text)' }}>
+              <option value="">Budget (USD, optional)</option>
+              <option value="2-3M">2–3M</option>
+              <option value="3-5M">3–5M</option>
+              <option value="5-10M">5–10M</option>
+              <option value="10M+">10M+</option>
+            </select>
+            <textarea required name="message" placeholder="Message" rows="4" style={{ padding: '10px 12px', borderRadius: 14, border: '1px solid rgba(255,255,255,0.10)', background: 'rgba(0,0,0,0.18)', color: 'var(--cf-text)' }}></textarea>
+            <button type="submit" style={{ padding: '10px 12px', borderRadius: 14, background: 'var(--cf-accent)', color: '#020617', fontWeight: 700 }}>
+              Submit enquiry
+            </button>
+          </form>
+          <div style={{ marginTop: 10, fontSize: 12, color: 'var(--cf-muted)' }}>
+            High-net-worth enquiries only. We respond within 1 business day.
+          </div>
+        </section>
+
         <footer style={{ marginTop: 18, textAlign: 'center', fontSize: 12, color: 'var(--cf-muted)' }}>
           Powered by CorpFlow · Draft preview for rapid iteration in the Change Console.
         </footer>
@@ -218,7 +329,21 @@ export async function getServerSideProps({ req }) {
     });
     const pj = persona?.personaJson && typeof persona.personaJson === 'object' ? persona.personaJson : {};
     const draft = pj?.website_draft && typeof pj.website_draft === 'object' ? pj.website_draft : null;
+    const qLang = (() => {
+      try {
+        const raw = req?.url || '';
+        const u = raw.startsWith('http') ? new URL(raw) : new URL(raw, 'http://localhost');
+        const v = (u.searchParams.get('lang') || '').trim().toLowerCase();
+        return v || '';
+      } catch {
+        return '';
+      }
+    })();
+
     const site = { ...defaultSite({ tenantId, host }), ...(draft || {}) };
+    site.lang_default = site.lang_default || 'en';
+    site.languages = Array.isArray(site.languages) ? site.languages : ['en', 'fr', 'ru'];
+    site.lang_active = qLang && site.languages.includes(qLang) ? qLang : site.lang_default;
     // Ensure contact defaults exist even if draft overwrote them.
     site.sections = site.sections || {};
     site.sections.contact = site.sections.contact || {};

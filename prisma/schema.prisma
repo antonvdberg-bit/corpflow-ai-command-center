@@ -8,11 +8,15 @@ datasource db {
 }
 model Lead {
   id        String   @id @default(cuid())
+  tenantId  String?  @map("tenant_id")
   name      String
   email     String
   intent    String
   status    String   @default("NEW")
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([tenantId])
+  @@map("leads")
 }
 
 model Tenant {
