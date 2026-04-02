@@ -12,6 +12,7 @@ Change Management Process: **Postgres** (`cmp_tickets`, `tenants`, `auth_users` 
 | Automation callback | `CMP_AUTOMATION_CALLBACK_SECRET`, `CMP_AUTOMATION_CALLBACK_URL` (GitHub Actions → Vercel) |
 | Optional Vercel preview lookup | `VERCEL_TOKEN`, `VERCEL_PROJECT_ID`, optional `VERCEL_TEAM_ID` (used by `promote-status` to fill `client_view.automation.preview_url`) |
 | Factory gate | `MASTER_ADMIN_KEY`, `DORMANT_GATE_ENABLED`, etc. |
+| Automation spine | `CORPFLOW_AUTOMATION_INGEST_SECRET`, `CORPFLOW_AUTOMATION_APPROVAL_SECRET`, optional `CORPFLOW_AUTOMATION_FORWARD_*` |
 
 See repository root `.env.template` for the full list.
 
@@ -32,6 +33,13 @@ Routes are served as `/api/cmp/router?action=<name>` or legacy path segments; se
 Common actions include `ticket-create`, `ticket-get`, `ticket-activity`, `ticket-list`, `costing-preview`, `approve-build`, `change-chat`, `overseer`, etc.
 
 **`ticket-list` scope:** Admin sessions receive only **unscoped** tickets (`tenant_id` null — factory/core queue). Tenant sessions receive only rows for **their** `tenant_id`. Factory master token (no session) returns **all** rows for break-glass support. Response includes `list_scope` (`core` | `tenant` | `factory_master`) and `scope_tenant_id` when applicable.
+
+## Automation spine (agents / webhooks)
+
+Machine-first events and playbooks (separate from CMP `action=` router):
+
+- `POST /api/automation/ingest` — append-only `automation_events`, optional playbook upsert, optional forward webhook. See `docs/automation-framework.md`.
+- `GET /api/automation/playbooks` — factory master only; lists curated markdown playbooks for agents.
 
 ## Tenant onboarding
 

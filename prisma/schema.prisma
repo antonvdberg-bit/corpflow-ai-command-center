@@ -141,3 +141,41 @@ model TenantHostname {
   @@index([enabled])
   @@map("tenant_hostnames")
 }
+
+/// Append-only automation spine: agents and webhooks post here first.
+model AutomationEvent {
+  id               String   @id @default(cuid())
+  occurredAt       DateTime @default(now()) @map("occurred_at")
+  tenantId         String?  @map("tenant_id")
+  tenantScope      String   @map("tenant_scope")
+  source           String?  @default("ingest")
+  eventType        String   @map("event_type")
+  correlationId    String?  @map("correlation_id")
+  idempotencyKey   String?  @map("idempotency_key")
+  riskTier         String   @default("low") @map("risk_tier")
+  status           String   @default("accepted")
+  payload          Json?    @map("payload_json")
+
+  @@index([tenantId])
+  @@index([tenantScope])
+  @@index([eventType])
+  @@index([occurredAt])
+  @@unique([tenantScope, idempotencyKey], name: "automation_events_scope_idem")
+  @@map("automation_events")
+}
+
+/// Curated playbooks for agents (integration patterns, runbooks).
+model AutomationPlaybook {
+  id          String   @id @default(cuid())
+  tenantScope String   @map("tenant_scope")
+  slug        String
+  title       String
+  bodyMd      String   @map("body_md")
+  tags        Json?    @map("tags_json")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([tenantScope, slug])
+  @@index([tenantScope])
+  @@map("automation_playbooks")
+}

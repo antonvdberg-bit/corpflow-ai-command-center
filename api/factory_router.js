@@ -24,6 +24,7 @@ import {
   handleAuthPasswordResetConfirm,
   handleAuthPasswordResetRequest,
 } from '../lib/server/auth.js';
+import { handleAutomationIngest, handleAutomationPlaybooksList } from '../lib/automation/gateway.js';
 import { buildCorpflowHostContext } from '../lib/server/host-tenant-context.js';
 import { cfg, runtimeConfigDiagnostics } from '../lib/server/runtime-config.js';
 import { getSessionFromRequest } from '../lib/server/session.js';
@@ -363,6 +364,10 @@ export default async function handler(req, res) {
       return handleAuthMe(req, res);
     case 'auth/logout':
       return handleAuthLogout(req, res);
+    case 'automation/ingest':
+      return handleAutomationIngest(req, res);
+    case 'automation/playbooks':
+      return handleAutomationPlaybooksList(req, res);
     case 'main':
       return mainHandler(req, res);
     case 'intake':
