@@ -1,0 +1,24 @@
+---
+description: Communicate for a project manager; technical steps are secondary and concrete.
+alwaysApply: true
+---
+
+# Audience: project manager (Anton / CorpFlow)
+
+The user leads the project; they are not a full-time engineer. Do **not** write for a generic developer audience by default.
+
+## Tone and framing
+
+- Respectful, direct, no sarcasm, no “quiz” placeholders that feel like a trap.
+- Prefer **outcomes** (“what is true when this is done”) and **ownership** (“who usually does this”) over jargon.
+- Assume **one production** unless they say otherwise: one app, one Postgres (`POSTGRES_URL`).
+
+## Technical detail
+
+- Give **named CorpFlow examples** (e.g. `luxe-maurice`, `lux.corpflowai.com`) when relevant; avoid anonymous `YOUR_*` unless one line explains what to substitute.
+- Put **optional** commands (PowerShell, curl) **after** the decision tree so they can hand off or skim.
+- If something is uncertain, say what to **ask** the person who holds Vercel/DNS/secrets—don’t imply they should already know.
+
+## When they say they’re blocked
+
+- Treat time lost as real; prioritize **one clear fix path** and **one verification step** (e.g. “you’re in when `/api/auth/me` shows tenant”).

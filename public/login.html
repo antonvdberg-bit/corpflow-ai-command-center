@@ -3,139 +3,277 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CorpFlow Login</title>
+    <title>Login</title>
     <link rel="stylesheet" href="/assets/corpflow/tenant-chrome-change.css" />
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      html.cf-login-pending #clientSimpleLogin,
+      html.cf-login-pending #operatorLoginChrome {
+        visibility: hidden;
+      }
+    </style>
+    <script>
+      (function () {
+        document.documentElement.classList.add('cf-login-pending');
+      })();
+    </script>
   </head>
   <body class="min-h-screen bg-slate-950 text-slate-100">
     <div class="max-w-xl mx-auto px-4 py-14">
-      <div id="cfTenantBrand" class="hidden text-xs tracking-[0.28em] uppercase mb-2 font-semibold">
-        <span id="cfTenantBrandText"></span>
-      </div>
-      <h1 class="text-2xl font-semibold tracking-tight" id="loginPageHeading">Login</h1>
-      <p class="text-slate-400 text-sm mt-2" id="loginPageLead">
-        Choose your access level. This sets a secure session cookie so you don’t paste keys into pages.
-      </p>
+      <p id="loginRouteLoading" class="text-slate-400 text-sm py-16 text-center">Loading…</p>
 
-      <div id="banner" class="hidden mt-6 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-rose-200 text-sm"></div>
-      <div id="ok" class="hidden mt-6 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-emerald-200 text-sm"></div>
+      <!-- Client sites only: no internal terminology, host supplies scope server-side -->
+      <div id="clientSimpleLogin" class="hidden rounded-2xl border border-slate-800 bg-slate-900/30 p-6 md:p-8">
+        <h1 class="text-2xl font-semibold tracking-tight" id="simpleLoginHeading">Log in to the change request area</h1>
+        <p class="text-slate-400 text-sm mt-2" id="simpleLoginLead">Enter your email and password.</p>
 
-      <div id="loginGrid" class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div id="loginFactoryColumn" class="rounded-2xl border border-slate-800 bg-slate-900/30 p-4">
-          <h2 class="text-sm font-semibold">Factory Admin</h2>
-          <p class="text-xs text-slate-400 mt-1">For you only: full factory access.</p>
-          <label class="block text-xs text-slate-300 mt-4">Username
-            <input id="adminUser" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" />
+        <div id="banner" class="hidden mt-6 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-rose-200 text-sm"></div>
+        <div id="ok" class="hidden mt-6 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-emerald-200 text-sm"></div>
+
+        <div class="mt-8 space-y-4">
+          <label class="block text-xs text-slate-300"
+            >Email
+            <input
+              id="simpleUser"
+              type="email"
+              autocomplete="username"
+              class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2.5 text-sm"
+            />
           </label>
-          <label class="block text-xs text-slate-300 mt-3">Password
-            <input id="adminPass" type="password" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" />
+          <label class="block text-xs text-slate-300"
+            >Password
+            <input
+              id="simplePass"
+              type="password"
+              autocomplete="current-password"
+              class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2.5 text-sm"
+            />
           </label>
-          <button id="btnAdmin" class="mt-4 w-full rounded-lg bg-sky-500 text-slate-950 px-4 py-2 text-sm font-semibold">Login as Admin</button>
-        </div>
-
-        <div id="loginTenantColumn" class="rounded-2xl border border-slate-800 bg-slate-900/30 p-4">
-          <h2 class="text-sm font-semibold">Client / Tenant</h2>
-          <p class="text-xs text-slate-400 mt-1">Tenant-scoped access (no factory settings).</p>
-          <label class="block text-xs text-slate-300 mt-4">Tenant ID
-            <input id="tenantId" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm font-mono" placeholder="e.g. luxe-maurice" autocomplete="organization" />
-          </label>
-          <div id="tenantIdHostLock" class="hidden mt-2 rounded-lg border border-emerald-500/25 bg-emerald-500/5 px-3 py-2 text-[11px] text-emerald-100/90 leading-relaxed">
-            <span class="text-emerald-200/95 font-medium">This hostname is mapped to tenant</span>
-            <code id="tenantIdExpected" class="mx-1 text-slate-100"></code>
-            <span class="text-emerald-200/95">— field is locked so it is not mistyped (e.g. <code class="text-rose-200">lux</code> vs <code class="text-slate-100">luxe-maurice</code>).</span>
-            <button type="button" id="btnUnlockTenantId" class="ml-2 text-sky-300 underline font-normal">
-              Unlock to type a different tenant
-            </button>
-          </div>
-          <div class="grid grid-cols-1 gap-3 mt-3">
-            <label class="block text-xs text-slate-300">Email / Username (optional)
-              <input id="tenantUser" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" placeholder="name@company.com" autocomplete="username" />
-            </label>
-            <label class="block text-xs text-slate-300">Password (optional)
-              <input id="tenantPass" type="password" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" autocomplete="current-password" />
-            </label>
-            <div class="text-[11px] text-slate-500">Or use the tenant PIN you received from your operator.</div>
-            <label class="block text-xs text-slate-300">PIN
-              <input id="tenantPin" type="password" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" autocomplete="one-time-code" />
-            </label>
-          </div>
-          <button id="btnTenant" class="mt-4 w-full rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold">Login as Tenant</button>
-
-          <div
-            class="mt-4 rounded-xl border border-slate-800 bg-slate-950/50 p-3 text-[11px] text-slate-400 leading-relaxed space-y-2"
+          <button
+            type="button"
+            id="btnSimpleLogin"
+            class="w-full rounded-lg bg-[var(--cf-accent,#d4af37)] text-slate-950 px-4 py-2.5 text-sm font-semibold"
           >
-            <p>
-              <span class="text-slate-200 font-medium">No self-service registration.</span>
-              Email/password or PIN access is created by your CorpFlow operator after onboarding — the same as for your
-              end clients.
+            Log in
+          </button>
+        </div>
+
+        <details class="mt-6 rounded-xl border border-slate-800 bg-slate-950/30 p-3">
+          <summary class="cursor-pointer text-sm text-sky-300 underline select-none">Forgot password?</summary>
+          <div class="mt-4 space-y-3">
+            <label class="block text-xs text-slate-300"
+              >Email
+              <input
+                id="simpleResetEmail"
+                type="email"
+                autocomplete="email"
+                class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm"
+              />
+            </label>
+            <button
+              type="button"
+              id="btnSimpleResetRequest"
+              class="w-full rounded-lg bg-slate-200 text-slate-950 px-4 py-2 text-sm font-semibold"
+            >
+              Send reset link
+            </button>
+            <p class="text-[11px] text-slate-500 leading-relaxed">
+              If you don’t receive an email, contact the person who set up your access.
             </p>
-            <p>
-              <span class="text-slate-200 font-medium">Need a PIN or access?</span>
-              Reply to your onboarding email or contact your operator. PINs cannot be requested from this screen for
-              security reasons.
-            </p>
-            <p class="pt-1 flex flex-wrap gap-x-3 gap-y-1">
-              <a class="text-sky-300 underline" href="/lux-guide">How to request changes</a>
-              <a class="text-sky-300 underline" href="/">Preview website</a>
-            </p>
+            <div class="border-t border-slate-800 pt-3 space-y-3">
+              <label class="block text-xs text-slate-300"
+                >Reset code
+                <input
+                  id="simpleResetToken"
+                  class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm font-mono"
+                  placeholder="paste code"
+                />
+              </label>
+              <label class="block text-xs text-slate-300"
+                >New password
+                <input
+                  id="simpleResetNewPass"
+                  type="password"
+                  class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm"
+                  autocomplete="new-password"
+                />
+              </label>
+              <button
+                type="button"
+                id="btnSimpleResetConfirm"
+                class="w-full rounded-lg bg-emerald-500 text-slate-950 px-4 py-2 text-sm font-semibold"
+              >
+                Set new password
+              </button>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <!-- Factory / core hosts: full operator login -->
+      <div id="operatorLoginChrome" class="hidden">
+        <div id="cfTenantBrandOp" class="hidden text-xs tracking-[0.28em] uppercase mb-2 font-semibold">
+          <span id="cfTenantBrandTextOp"></span>
+        </div>
+        <h1 class="text-2xl font-semibold tracking-tight" id="loginPageHeading">Login</h1>
+        <p class="text-slate-400 text-sm mt-2" id="loginPageLead">
+          Choose your access level. This sets a secure session cookie so you don’t paste keys into pages.
+        </p>
+
+        <div id="bannerOp" class="hidden mt-6 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-rose-200 text-sm"></div>
+        <div id="okOp" class="hidden mt-6 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-emerald-200 text-sm"></div>
+
+        <div id="loginGrid" class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div id="loginFactoryColumn" class="rounded-2xl border border-slate-800 bg-slate-900/30 p-4">
+            <h2 class="text-sm font-semibold">Factory Admin</h2>
+            <p class="text-xs text-slate-400 mt-1">For you only: full factory access.</p>
+            <label class="block text-xs text-slate-300 mt-4">Username
+              <input id="adminUser" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" />
+            </label>
+            <label class="block text-xs text-slate-300 mt-3">Password
+              <input id="adminPass" type="password" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" />
+            </label>
+            <button id="btnAdmin" class="mt-4 w-full rounded-lg bg-sky-500 text-slate-950 px-4 py-2 text-sm font-semibold">Login as Admin</button>
           </div>
 
-          <details class="mt-4 rounded-xl border border-slate-800 bg-slate-950/30 p-3">
-            <summary class="cursor-pointer text-xs text-sky-300 underline select-none">Forgot password?</summary>
-            <div class="mt-3 space-y-3">
-              <label class="block text-xs text-slate-300">Email (must match your staff login)
-                <input id="resetEmail" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" placeholder="name@company.com" autocomplete="email" />
-              </label>
-              <button id="btnResetRequest" type="button" class="w-full rounded-lg bg-slate-200 text-slate-950 px-4 py-2 text-sm font-semibold">Send reset link</button>
-              <div class="text-[11px] text-slate-500 leading-relaxed">
-                If email delivery is not configured yet, an operator can provide a reset token for testing.
-              </div>
-              <div class="border-t border-slate-800 pt-3 space-y-3">
-                <label class="block text-xs text-slate-300">Reset token
-                  <input id="resetToken" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm font-mono" placeholder="paste token" />
-                </label>
-                <label class="block text-xs text-slate-300">New password
-                  <input id="resetNewPass" type="password" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" autocomplete="new-password" />
-                </label>
-                <button id="btnResetConfirm" type="button" class="w-full rounded-lg bg-emerald-500 text-slate-950 px-4 py-2 text-sm font-semibold">Set new password</button>
-              </div>
+          <div id="loginTenantColumn" class="rounded-2xl border border-slate-800 bg-slate-900/30 p-4">
+            <h2 class="text-sm font-semibold">Client / Tenant</h2>
+            <p class="text-xs text-slate-400 mt-1">Tenant-scoped access (no factory settings).</p>
+            <label class="block text-xs text-slate-300 mt-4">Tenant ID
+              <input id="tenantId" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm font-mono" placeholder="e.g. luxe-maurice" autocomplete="organization" />
+            </label>
+            <div id="tenantIdHostLock" class="hidden mt-2 rounded-lg border border-emerald-500/25 bg-emerald-500/5 px-3 py-2 text-[11px] text-emerald-100/90 leading-relaxed">
+              <span class="text-emerald-200/95 font-medium">This hostname is mapped to tenant</span>
+              <code id="tenantIdExpected" class="mx-1 text-slate-100"></code>
+              <span class="text-emerald-200/95">— field is locked so it is not mistyped (e.g. <code class="text-rose-200">lux</code> vs <code class="text-slate-100">luxe-maurice</code>).</span>
+              <button type="button" id="btnUnlockTenantId" class="ml-2 text-sky-300 underline font-normal">
+                Unlock to type a different tenant
+              </button>
             </div>
-          </details>
+            <div class="grid grid-cols-1 gap-3 mt-3">
+              <label class="block text-xs text-slate-300">Email / Username (optional)
+                <input id="tenantUser" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" placeholder="name@company.com" autocomplete="username" />
+              </label>
+              <label class="block text-xs text-slate-300">Password (optional)
+                <input id="tenantPass" type="password" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" autocomplete="current-password" />
+              </label>
+              <div class="text-[11px] text-slate-500">Or use the tenant PIN you received from your operator.</div>
+              <label class="block text-xs text-slate-300">PIN
+                <input id="tenantPin" type="password" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" autocomplete="one-time-code" />
+              </label>
+            </div>
+            <button id="btnTenant" class="mt-4 w-full rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold">Login as Tenant</button>
+
+            <div
+              class="mt-4 rounded-xl border border-slate-800 bg-slate-950/50 p-3 text-[11px] text-slate-400 leading-relaxed space-y-2"
+            >
+              <p>
+                <span class="text-slate-200 font-medium">No self-service registration.</span>
+                Email/password or PIN access is created by your CorpFlow operator after onboarding — the same as for your
+                end clients.
+              </p>
+              <p>
+                <span class="text-slate-200 font-medium">Need a PIN or access?</span>
+                Reply to your onboarding email or contact your operator. PINs cannot be requested from this screen for
+                security reasons.
+              </p>
+              <p class="pt-1 flex flex-wrap gap-x-3 gap-y-1">
+                <a class="text-sky-300 underline" href="/lux-guide">How to request changes</a>
+                <a class="text-sky-300 underline" href="/">Preview website</a>
+              </p>
+            </div>
+
+            <details class="mt-4 rounded-xl border border-slate-800 bg-slate-950/30 p-3">
+              <summary class="cursor-pointer text-xs text-sky-300 underline select-none">Forgot password?</summary>
+              <div class="mt-3 space-y-3">
+                <label class="block text-xs text-slate-300">Email (must match your staff login)
+                  <input id="resetEmail" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" placeholder="name@company.com" autocomplete="email" />
+                </label>
+                <button id="btnResetRequest" type="button" class="w-full rounded-lg bg-slate-200 text-slate-950 px-4 py-2 text-sm font-semibold">Send reset link</button>
+                <div class="text-[11px] text-slate-500 leading-relaxed">
+                  If email delivery is not configured yet, an operator can provide a reset token for testing.
+                </div>
+                <div class="border-t border-slate-800 pt-3 space-y-3">
+                  <label class="block text-xs text-slate-300">Reset token
+                    <input id="resetToken" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm font-mono" placeholder="paste token" />
+                  </label>
+                  <label class="block text-xs text-slate-300">New password
+                    <input id="resetNewPass" type="password" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" autocomplete="new-password" />
+                  </label>
+                  <button id="btnResetConfirm" type="button" class="w-full rounded-lg bg-emerald-500 text-slate-950 px-4 py-2 text-sm font-semibold">Set new password</button>
+                </div>
+              </div>
+            </details>
+          </div>
         </div>
-      </div>
 
-      <div class="mt-8 flex gap-3 flex-wrap">
-        <a class="text-sky-300 text-sm underline" href="/change">Go to Change Console</a>
-        <button id="btnLogout" class="text-slate-300 text-sm underline">Logout</button>
-      </div>
+        <div class="mt-8 flex gap-3 flex-wrap">
+          <a class="text-sky-300 text-sm underline" href="/change">Go to Change Console</a>
+          <button id="btnLogout" class="text-slate-300 text-sm underline">Logout</button>
+        </div>
 
-      <div id="factoryTools" class="hidden mt-10 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-5">
-        <h2 class="text-sm font-semibold text-amber-100">Factory setup (one click)</h2>
-        <p class="text-xs text-slate-400 mt-2 leading-relaxed">
-          Creates <code class="text-slate-300">tenants</code>, <code class="text-slate-300">auth_users</code>, and
-          <code class="text-slate-300">cmp_tickets</code> in your Postgres database if they are missing. Uses the same
-          <code class="text-slate-300">POSTGRES_URL</code> you set in Vercel. Safe to run more than once.
-        </p>
-        <button
-          id="btnEnsureDb"
-          type="button"
-          class="mt-4 w-full rounded-lg bg-amber-500 text-slate-950 px-4 py-2 text-sm font-semibold disabled:opacity-50"
-        >
-          Ensure Postgres tables
-        </button>
-        <pre
-          id="ensureDbOut"
-          class="mt-4 hidden max-h-48 overflow-auto rounded-lg border border-slate-800 bg-slate-950 p-3 text-xs text-slate-300 whitespace-pre-wrap"
-        ></pre>
+        <div id="factoryTools" class="hidden mt-10 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-5">
+          <h2 class="text-sm font-semibold text-amber-100">Factory setup (one click)</h2>
+          <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+            Creates <code class="text-slate-300">tenants</code>, <code class="text-slate-300">auth_users</code>, and
+            <code class="text-slate-300">cmp_tickets</code> in your Postgres database if they are missing. Uses the same
+            <code class="text-slate-300">POSTGRES_URL</code> you set in Vercel. Safe to run more than once.
+          </p>
+          <button
+            id="btnEnsureDb"
+            type="button"
+            class="mt-4 w-full rounded-lg bg-amber-500 text-slate-950 px-4 py-2 text-sm font-semibold disabled:opacity-50"
+          >
+            Ensure Postgres tables
+          </button>
+          <pre
+            id="ensureDbOut"
+            class="mt-4 hidden max-h-48 overflow-auto rounded-lg border border-slate-800 bg-slate-950 p-3 text-xs text-slate-300 whitespace-pre-wrap"
+          ></pre>
+        </div>
       </div>
     </div>
 
     <script>
-      (function () {
-        const $ = (id) => document.getElementById(id);
-        const banner = $('banner');
-        const ok = $('ok');
+      (async function () {
+        const loadingEl = document.getElementById('loginRouteLoading');
+        const simpleRoot = document.getElementById('clientSimpleLogin');
+        const opRoot = document.getElementById('operatorLoginChrome');
+
+        function $(id) {
+          return document.getElementById(id);
+        }
+
+        let mode = 'operator';
+        let clientTenantId = '';
+        try {
+          const r = await fetch('/api/ui/context', { credentials: 'same-origin' });
+          const j = await r.json();
+          const tid = j && j.tenant_id != null ? String(j.tenant_id).trim() : '';
+          if (j && j.surface === 'tenant' && tid) {
+            mode = 'client';
+            clientTenantId = tid;
+            window.__cfClientTenantId = tid;
+          }
+        } catch (_) {}
+
+        document.documentElement.dataset.cfLoginMode = mode;
+        if (loadingEl) loadingEl.classList.add('hidden');
+        if (mode === 'client') {
+          simpleRoot.classList.remove('hidden');
+          opRoot.classList.add('hidden');
+          document.title = 'Log in';
+        } else {
+          opRoot.classList.remove('hidden');
+          simpleRoot.classList.add('hidden');
+        }
+        document.documentElement.classList.remove('cf-login-pending');
+
+        const banner = mode === 'client' ? $('banner') : $('bannerOp');
+        const ok = mode === 'client' ? $('ok') : $('okOp');
+
         function err(msg) {
+          if (!ok || !banner) return;
           ok.classList.add('hidden');
           ok.textContent = '';
           if (!msg) {
@@ -146,7 +284,9 @@
           banner.classList.remove('hidden');
           banner.textContent = msg;
         }
+
         function good(msg) {
+          if (!ok || !banner) return;
           banner.classList.add('hidden');
           banner.textContent = '';
           ok.classList.remove('hidden');
@@ -169,209 +309,293 @@
           return j;
         }
 
-        let hostMappedTenantId = null;
-
-        $('btnTenant').addEventListener('click', async () => {
-          err('');
+        /** Same-origin path only (prevents open redirects). */
+        function safeNextPath() {
           try {
-            const typed = String($('tenantId').value || '').trim();
-            if (hostMappedTenantId && typed && typed !== hostMappedTenantId) {
-              err(
-                'Tenant ID must be exactly "' +
+            var q = new URLSearchParams(window.location.search);
+            var n = q.get('next');
+            if (!n || typeof n !== 'string') return '/change';
+            var path = n.split('#')[0];
+            if (!path || path.indexOf('/') !== 0 || path.indexOf('//') === 0) return '/change';
+            return path;
+          } catch (e) {
+            return '/change';
+          }
+        }
+
+        if (mode === 'client') {
+          async function maybeRedirectIfSession() {
+            try {
+              const r = await fetch('/api/auth/me', { credentials: 'include' });
+              const j = await r.json();
+              if (j && j.logged_in && j.level === 'tenant') {
+                window.location.href = safeNextPath();
+              }
+            } catch (_) {}
+          }
+
+          $('btnSimpleLogin').addEventListener('click', async () => {
+            err('');
+            try {
+              if (!clientTenantId) {
+                err('This page could not determine your site. Please contact support.');
+                return;
+              }
+              await post('/api/auth/login', {
+                level: 'tenant',
+                tenant_id: clientTenantId,
+                username: $('simpleUser').value,
+                password: $('simplePass').value,
+              });
+              window.location.href = safeNextPath();
+            } catch (e) {
+              let m = String(e.message || e);
+              const jb = e.corpflowBody && typeof e.corpflowBody === 'object' ? e.corpflowBody : null;
+              if (jb && jb.expected_tenant_id) {
+                m = 'Sign-in failed. If this keeps happening, contact the person who set up your access.';
+              } else if (m.indexOf('INVALID_CREDENTIALS') !== -1 || m.indexOf('USER_NOT_FOUND') !== -1) {
+                m = 'Email or password not recognized. Try again or use Forgot password.';
+              } else if (m.indexOf('MISSING_CREDENTIALS') !== -1) {
+                m = 'Please enter your email and password.';
+              } else if (jb && jb.hint) m = String(jb.hint);
+              err(m);
+            }
+          });
+
+          $('btnSimpleResetRequest').addEventListener('click', async () => {
+            err('');
+            try {
+              if (!clientTenantId) {
+                err('Could not send reset from this page. Please contact support.');
+                return;
+              }
+              await post('/api/auth/password-reset/request', {
+                tenant_id: clientTenantId,
+                email: $('simpleResetEmail').value,
+              });
+              good('If that email is on file, you will receive instructions shortly.');
+            } catch (e) {
+              err(String(e.message || e));
+            }
+          });
+
+          $('btnSimpleResetConfirm').addEventListener('click', async () => {
+            err('');
+            try {
+              await post('/api/auth/password-reset/confirm', {
+                token: $('simpleResetToken').value,
+                new_password: $('simpleResetNewPass').value,
+              });
+              good('Password updated. You can log in above.');
+            } catch (e) {
+              err(String(e.message || e));
+            }
+          });
+
+          await maybeRedirectIfSession();
+        } else {
+          let hostMappedTenantId = null;
+
+          $('btnTenant').addEventListener('click', async () => {
+            err('');
+            try {
+              const typed = String($('tenantId').value || '').trim();
+              if (hostMappedTenantId && typed && typed !== hostMappedTenantId) {
+                err(
+                  'Tenant ID must be exactly "' +
+                    hostMappedTenantId +
+                    '" on this site. You entered "' +
+                    typed +
+                    '". Refresh the page to re-lock the field, or fix the Tenant ID.',
+                );
+                return;
+              }
+              await post('/api/auth/login', {
+                level: 'tenant',
+                tenant_id: $('tenantId').value,
+                username: $('tenantUser').value,
+                password: $('tenantPass').value,
+                pin: $('tenantPin').value,
+              });
+              good('Logged in as tenant. Session cookie set.');
+            } catch (e) {
+              let m = String(e.message || e);
+              const jb = e.corpflowBody && typeof e.corpflowBody === 'object' ? e.corpflowBody : null;
+              if (jb && jb.expected_tenant_id) {
+                m += ' — Expected Tenant ID for this host: "' + String(jb.expected_tenant_id) + '".';
+              }
+              if (jb && jb.hint) m += ' ' + String(jb.hint);
+              if (m.indexOf('TENANT_MISMATCH') !== -1 && hostMappedTenantId) {
+                m +=
+                  ' — Your account is for tenant "' +
                   hostMappedTenantId +
-                  '" on this site. You entered "' +
-                  typed +
-                  '". Refresh the page to re-lock the field, or fix the Tenant ID.',
-              );
-              return;
+                  '". This page should have filled that for you; clear the field and refresh, or fix the Tenant ID box.';
+              }
+              err(m);
             }
-            const j = await post('/api/auth/login', {
-              level: 'tenant',
-              tenant_id: $('tenantId').value,
-              username: $('tenantUser').value,
-              password: $('tenantPass').value,
-              pin: $('tenantPin').value,
-            });
-            good('Logged in as tenant. Session cookie set.');
-          } catch (e) {
-            let m = String(e.message || e);
-            const jb = e.corpflowBody && typeof e.corpflowBody === 'object' ? e.corpflowBody : null;
-            if (jb && jb.expected_tenant_id) {
-              m += ' — Expected Tenant ID for this host: "' + String(jb.expected_tenant_id) + '".';
+          });
+
+          $('btnResetRequest').addEventListener('click', async () => {
+            err('');
+            try {
+              await post('/api/auth/password-reset/request', {
+                tenant_id: $('tenantId').value,
+                email: $('resetEmail').value,
+              });
+              good('If that account exists, a reset message will be sent shortly.');
+            } catch (e) {
+              err(String(e.message || e));
             }
-            if (jb && jb.hint) m += ' ' + String(jb.hint);
-            if (m.indexOf('TENANT_MISMATCH') !== -1 && hostMappedTenantId) {
-              m +=
-                ' — Your account is for tenant "' +
-                hostMappedTenantId +
-                '". This page should have filled that for you; clear the field and refresh, or fix the Tenant ID box.';
+          });
+
+          $('btnResetConfirm').addEventListener('click', async () => {
+            err('');
+            try {
+              await post('/api/auth/password-reset/confirm', {
+                token: $('resetToken').value,
+                new_password: $('resetNewPass').value,
+              });
+              good('Password updated. You can now log in with your email + new password.');
+            } catch (e) {
+              err(String(e.message || e));
             }
-            err(m);
-          }
-        });
+          });
 
-        $('btnResetRequest').addEventListener('click', async () => {
-          err('');
-          try {
-            await post('/api/auth/password-reset/request', {
-              tenant_id: $('tenantId').value,
-              email: $('resetEmail').value,
-            });
-            good('If that account exists, a reset message will be sent shortly.');
-          } catch (e) {
-            err(String(e.message || e));
-          }
-        });
+          $('btnLogout').addEventListener('click', async () => {
+            err('');
+            try {
+              await post('/api/auth/logout', {});
+              good('Logged out.');
+              $('factoryTools').classList.add('hidden');
+              $('ensureDbOut').classList.add('hidden');
+              $('ensureDbOut').textContent = '';
+            } catch (e) {
+              err(String(e.message || e));
+            }
+          });
 
-        $('btnResetConfirm').addEventListener('click', async () => {
-          err('');
-          try {
-            await post('/api/auth/password-reset/confirm', {
-              token: $('resetToken').value,
-              new_password: $('resetNewPass').value,
-            });
-            good('Password updated. You can now log in with your email + new password.');
-          } catch (e) {
-            err(String(e.message || e));
-          }
-        });
-
-        $('btnLogout').addEventListener('click', async () => {
-          err('');
-          try {
-            await post('/api/auth/logout', {});
-            good('Logged out.');
-            $('factoryTools').classList.add('hidden');
-            $('ensureDbOut').classList.add('hidden');
-            $('ensureDbOut').textContent = '';
-          } catch (e) {
-            err(String(e.message || e));
-          }
-        });
-
-        async function refreshSessionBanner() {
-          try {
-            const r = await fetch('/api/auth/me', { credentials: 'include' });
-            const j = await r.json();
-            if (j && j.logged_in) {
-              good('Logged in as ' + j.level + (j.tenant_id ? ' (' + j.tenant_id + ')' : '') + '.');
-              if (j.level === 'admin') {
-                $('factoryTools').classList.remove('hidden');
+          async function refreshSessionBanner() {
+            try {
+              const r = await fetch('/api/auth/me', { credentials: 'include' });
+              const j = await r.json();
+              if (j && j.logged_in) {
+                good('Logged in as ' + j.level + (j.tenant_id ? ' (' + j.tenant_id + ')' : '') + '.');
+                if (j.level === 'admin') {
+                  $('factoryTools').classList.remove('hidden');
+                } else {
+                  $('factoryTools').classList.add('hidden');
+                }
               } else {
                 $('factoryTools').classList.add('hidden');
               }
-            } else {
+            } catch (_) {
               $('factoryTools').classList.add('hidden');
             }
-          } catch (_) {
-            $('factoryTools').classList.add('hidden');
           }
-        }
 
-        $('btnEnsureDb').addEventListener('click', async () => {
-          err('');
-          const out = $('ensureDbOut');
-          const btn = $('btnEnsureDb');
-          const tools = $('factoryTools');
-          out.classList.add('hidden');
-          out.textContent = '';
-          btn.disabled = true;
-          const prevLabel = btn.textContent;
-          btn.textContent = 'Working…';
-          try {
-            const r = await fetch('/api/factory/postgres/ensure-schema', {
-              method: 'POST',
-              credentials: 'include',
-              headers: { 'Content-Type': 'application/json' },
-              body: '{}',
-            });
-            const text = await r.text();
-            let j = {};
+          $('btnEnsureDb').addEventListener('click', async () => {
+            err('');
+            const out = $('ensureDbOut');
+            const btn = $('btnEnsureDb');
+            const tools = $('factoryTools');
+            out.classList.add('hidden');
+            out.textContent = '';
+            btn.disabled = true;
+            const prevLabel = btn.textContent;
+            btn.textContent = 'Working…';
             try {
-              j = text ? JSON.parse(text) : {};
-            } catch {
-              j = { raw: text.slice(0, 500) };
+              const r = await fetch('/api/factory/postgres/ensure-schema', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: '{}',
+              });
+              const text = await r.text();
+              let j = {};
+              try {
+                j = text ? JSON.parse(text) : {};
+              } catch {
+                j = { raw: text.slice(0, 500) };
+              }
+              out.classList.remove('hidden');
+              out.textContent = JSON.stringify(j, null, 2);
+              if (!r.ok) throw new Error(j.error || j.detail || j.hint || text || 'http_' + r.status);
+              good(
+                'Success: Postgres tables are ready (tenants, auth_users, cmp_tickets). Next: open Change Console or add users to auth_users.',
+              );
+              tools.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+              out.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            } catch (e) {
+              err(String(e.message || e));
+              out.classList.remove('hidden');
+              if (!out.textContent) out.textContent = String(e.message || e);
+            } finally {
+              btn.disabled = false;
+              btn.textContent = prevLabel;
             }
-            out.classList.remove('hidden');
-            out.textContent = JSON.stringify(j, null, 2);
-            if (!r.ok) throw new Error(j.error || j.detail || j.hint || text || 'http_' + r.status);
-            good(
-              'Success: Postgres tables are ready (tenants, auth_users, cmp_tickets). Next: open Change Console or add users to auth_users.',
-            );
-            tools.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            out.scrollIntoView({ behavior: 'smooth', block: 'end' });
-          } catch (e) {
-            err(String(e.message || e));
-            out.classList.remove('hidden');
-            if (!out.textContent) out.textContent = String(e.message || e);
-          } finally {
-            btn.disabled = false;
-            btn.textContent = prevLabel;
-          }
-        });
+          });
 
-        $('btnAdmin').addEventListener('click', async () => {
-          err('');
-          try {
-            await post('/api/auth/login', {
-              level: 'admin',
-              username: $('adminUser').value,
-              password: $('adminPass').value,
+          $('btnAdmin').addEventListener('click', async () => {
+            err('');
+            try {
+              await post('/api/auth/login', {
+                level: 'admin',
+                username: $('adminUser').value,
+                password: $('adminPass').value,
+              });
+              good('Logged in as admin. Session cookie set.');
+              await refreshSessionBanner();
+            } catch (e) {
+              err(String(e.message || e));
+            }
+          });
+
+          refreshSessionBanner();
+
+          const inp = $('tenantId');
+          const hint = $('tenantIdHostLock');
+          const expectedEl = $('tenantIdExpected');
+          const unlockBtn = $('btnUnlockTenantId');
+          if (unlockBtn && inp) {
+            unlockBtn.addEventListener('click', () => {
+              inp.readOnly = false;
+              inp.classList.remove('opacity-95');
+              if (hint) hint.classList.add('hidden');
+              hostMappedTenantId = null;
             });
-            good('Logged in as admin. Session cookie set.');
-            await refreshSessionBanner();
-          } catch (e) {
-            err(String(e.message || e));
           }
-        });
 
-        refreshSessionBanner();
+          window.addEventListener('cf-tenant-site', function (ev) {
+            const d = ev.detail || {};
+            if (!d.site) return;
+            const tid = d.tenant_id ? String(d.tenant_id).trim() : '';
+            const tenant = d.tenant && typeof d.tenant === 'object' ? d.tenant : {};
+            const display =
+              tenant.name != null && String(tenant.name).trim() !== '' ? String(tenant.name).trim() : '';
 
-        // Tenant ID lock + copy: single source — same GET /api/tenant/site as tenant-chrome.js (cf-tenant-site event).
-        const inp = $('tenantId');
-        const hint = $('tenantIdHostLock');
-        const expectedEl = $('tenantIdExpected');
-        const unlockBtn = $('btnUnlockTenantId');
-        if (unlockBtn && inp) {
-          unlockBtn.addEventListener('click', () => {
-            inp.readOnly = false;
-            inp.classList.remove('opacity-95');
-            if (hint) hint.classList.add('hidden');
-            hostMappedTenantId = null;
+            if (tid && inp) {
+              hostMappedTenantId = tid;
+              inp.value = tid;
+              inp.readOnly = true;
+              inp.classList.add('opacity-95');
+              if (expectedEl) expectedEl.textContent = tid;
+              if (hint) hint.classList.remove('hidden');
+            }
+
+            const lead = $('loginPageLead');
+            const h = $('loginPageHeading');
+            if (lead) {
+              lead.textContent = display
+                ? 'Sign in to ' +
+                  display +
+                  ' with the tenant PIN or email login issued to you. Your session is stored in a secure cookie for this site only.'
+                : 'Sign in with the tenant PIN or email login issued to you. Your session is stored in a secure cookie for this site only.';
+            }
+            if (h) h.textContent = display ? 'Sign in — ' + display : 'Sign in';
           });
         }
-
-        window.addEventListener('cf-tenant-site', function (ev) {
-          const d = ev.detail || {};
-          if (!d.site) return;
-          const tid = d.tenant_id ? String(d.tenant_id).trim() : '';
-          const tenant = d.tenant && typeof d.tenant === 'object' ? d.tenant : {};
-          const display =
-            tenant.name != null && String(tenant.name).trim() !== '' ? String(tenant.name).trim() : '';
-
-          if (tid && inp) {
-            hostMappedTenantId = tid;
-            inp.value = tid;
-            inp.readOnly = true;
-            inp.classList.add('opacity-95');
-            if (expectedEl) expectedEl.textContent = tid;
-            if (hint) hint.classList.remove('hidden');
-          }
-
-          const lead = $('loginPageLead');
-          const h = $('loginPageHeading');
-          if (lead) {
-            lead.textContent = display
-              ? 'Sign in to ' +
-                display +
-                ' with the tenant PIN or email login issued to you. Your session is stored in a secure cookie for this site only.'
-              : 'Sign in with the tenant PIN or email login issued to you. Your session is stored in a secure cookie for this site only.';
-          }
-          if (h) h.textContent = display ? 'Sign in — ' + display : 'Sign in';
-        });
       })();
     </script>
     <script src="/assets/corpflow/tenant-chrome.js"></script>
   </body>
 </html>
-

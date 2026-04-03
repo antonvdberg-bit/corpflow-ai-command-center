@@ -89,6 +89,10 @@
 
       if (kind === 'login') {
         document.body.classList.add('cf-tenant-client-login');
+        const simpleClient = document.getElementById('clientSimpleLogin');
+        const isClientSimpleUi =
+          document.documentElement.dataset.cfLoginMode === 'client' ||
+          (simpleClient && !simpleClient.classList.contains('hidden'));
         const displayName =
           (tenant && tenant.name && String(tenant.name).trim()) ||
           (hero.title && String(hero.title).trim()) ||
@@ -96,15 +100,19 @@
           '';
         if (meta.login_title) {
           document.title = String(meta.login_title);
+        } else if (isClientSimpleUi) {
+          document.title = 'Log in';
         } else if (displayName) {
           document.title = `${displayName} · Login`;
         }
-        const grid = document.getElementById('loginGrid');
-        const fac = document.getElementById('loginFactoryColumn');
-        if (fac) fac.classList.add('hidden');
-        if (grid) {
-          grid.classList.remove('md:grid-cols-2');
-          grid.classList.add('md:grid-cols-1');
+        if (!isClientSimpleUi) {
+          const grid = document.getElementById('loginGrid');
+          const fac = document.getElementById('loginFactoryColumn');
+          if (fac) fac.classList.add('hidden');
+          if (grid) {
+            grid.classList.remove('md:grid-cols-2');
+            grid.classList.add('md:grid-cols-1');
+          }
         }
       } else if (kind === 'change') {
         const displayName =
