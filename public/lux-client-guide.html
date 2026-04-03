@@ -9,13 +9,14 @@
   </head>
   <body class="min-h-screen bg-slate-950 text-slate-100">
     <div class="mx-auto max-w-3xl px-6 py-10">
-      <div class="lang-switch flex justify-end gap-2 text-xs text-slate-400 mb-4">
-        <a id="gLangEn" href="/lux-guide?lang=en">English</a>
-        <span aria-hidden="true">·</span>
-        <a id="gLangFr" href="/lux-guide?lang=fr">Français</a>
-        <span aria-hidden="true">·</span>
-        <a id="gLangRu" href="/lux-guide?lang=ru">Русский</a>
+      <div id="cfTenantBrand" class="hidden text-xs tracking-[0.28em] uppercase mb-4 font-semibold">
+        <span id="cfTenantBrandText"></span>
       </div>
+      <p class="text-[11px] text-slate-500 mb-6 leading-relaxed">
+        Language for the public site (e.g. French/Russian) is chosen on the
+        <a class="text-sky-300 underline" href="/">homepage</a> only. This guide follows that choice if you opened it from a
+        translated page; otherwise it is in English.
+      </p>
 
       <div class="lux-panel rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
         <div class="lux-kicker text-xs tracking-widest text-slate-400" id="gKicker">CLIENT GUIDE</div>

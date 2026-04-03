@@ -284,6 +284,14 @@
 
         msg(form('msg_ok', 'High-net-worth enquiries only. We respond within 1 business day.'));
         updateLangLinks();
+        const navGuide = document.getElementById('navGuide');
+        if (navGuide) {
+          if (lang && lang !== 'en') {
+            navGuide.href = '/lux-guide?lang=' + encodeURIComponent(lang);
+          } else {
+            navGuide.href = '/lux-guide';
+          }
+        }
       }
       function applyTheme(theme) {
         if (!theme) return;

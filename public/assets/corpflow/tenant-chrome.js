@@ -1,6 +1,6 @@
 /**
  * Host-scoped tenant chrome: reads GET /api/tenant/site and applies theme + optional titles.
- * Use on static pages (/change, /lux-guide) that should match the tenant marketing draft.
+ * Use on static pages (/change, /lux-guide, /login) that should match the tenant marketing draft.
  *
  * Sets on document.documentElement: --cf-accent, --cf-accent-rgb, --cf-tenant-bg, --cf-tenant-text, --cf-tenant-muted
  * Adds body class: cf-tenant-skin
@@ -23,6 +23,40 @@
   function showEl(id) {
     const el = document.getElementById(id);
     if (el) el.classList.remove('hidden');
+  }
+
+  function pathKind() {
+    try {
+      const p = String(location.pathname || '').replace(/\/+$/, '') || '/';
+      if (p === '/login' || p.endsWith('/login')) return 'login';
+      if (p === '/change' || p.endsWith('/change')) return 'change';
+      if (p === '/lux-guide' || p.endsWith('/lux-guide')) return 'guide';
+      return 'other';
+    } catch {
+      return 'other';
+    }
+  }
+
+  /** On tenant hosts, marketing languages (FR/RU) stay on `/` only — briefs stay in English here. */
+  function lockChangeConsoleLocale() {
+    const loc = document.getElementById('locale');
+    if (!loc) return;
+    const lbl = loc.closest('label');
+    if (lbl && lbl.firstChild && lbl.firstChild.nodeType === Node.TEXT_NODE) {
+      lbl.firstChild.textContent = 'Brief language ';
+    }
+    loc.innerHTML = '<option value="en">English</option>';
+    loc.value = 'en';
+    loc.disabled = true;
+    if (!document.getElementById('localeTenantHint')) {
+      const hint = document.createElement('div');
+      hint.id = 'localeTenantHint';
+      hint.className = 'text-[10px] text-slate-500 mt-1 leading-snug';
+      hint.textContent =
+        'This console uses English for tickets and chat. French/Russian for the public site are chosen on the homepage only.';
+      const lbl = loc.closest('label');
+      if (lbl) lbl.appendChild(hint);
+    }
   }
 
   async function init() {
@@ -50,25 +84,47 @@
 
       const hero = site.hero && typeof site.hero === 'object' ? site.hero : {};
       const meta = site.meta && typeof site.meta === 'object' ? site.meta : {};
+      const kind = pathKind();
 
-      if (meta.console_title) {
-        document.title = String(meta.console_title);
-      } else if (hero.title) {
-        document.title = `${String(hero.title)} · Change Console`;
+      if (kind === 'login') {
+        document.body.classList.add('cf-tenant-client-login');
+        if (meta.login_title) {
+          document.title = String(meta.login_title);
+        } else if (hero.title) {
+          document.title = `${String(hero.title)} · Login`;
+        }
+        const grid = document.getElementById('loginGrid');
+        const fac = document.getElementById('loginFactoryColumn');
+        if (fac) fac.classList.add('hidden');
+        if (grid) {
+          grid.classList.remove('md:grid-cols-2');
+          grid.classList.add('md:grid-cols-1');
+        }
+      } else if (kind === 'change') {
+        if (meta.console_title) {
+          document.title = String(meta.console_title);
+        } else if (hero.title) {
+          document.title = `${String(hero.title)} · Change Console`;
+        }
+        lockChangeConsoleLocale();
+      } else if (kind === 'guide' && meta.guide_title) {
+        document.title = String(meta.guide_title);
       }
 
       const brand = hero.title ? String(hero.title) : '';
-      if (brand) {
+      if (brand && (kind === 'login' || kind === 'change' || kind === 'guide')) {
         setIfPresent('cfTenantBrandText', brand.toUpperCase());
         showEl('cfTenantBrand');
       }
 
-      if (meta.console_heading) {
-        setIfPresent('cfConsoleHeadline', String(meta.console_heading));
-      }
-      if (meta.console_tagline != null && String(meta.console_tagline).trim() !== '') {
-        setIfPresent('cfConsoleTagline', String(meta.console_tagline));
-        showEl('cfConsoleTaglineWrap');
+      if (kind === 'change') {
+        if (meta.console_heading) {
+          setIfPresent('cfConsoleHeadline', String(meta.console_heading));
+        }
+        if (meta.console_tagline != null && String(meta.console_tagline).trim() !== '') {
+          setIfPresent('cfConsoleTagline', String(meta.console_tagline));
+          showEl('cfConsoleTaglineWrap');
+        }
       }
 
       const detail = { site, tenant_id: j.tenant_id };

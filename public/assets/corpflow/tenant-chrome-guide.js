@@ -68,16 +68,6 @@
     set('gAli5', G.assets_li5);
     set('gAssetsnote', G.assets_note);
     set('gFooter', G.footer);
-
-    const fr = document.getElementById('gLangFr');
-    const ru = document.getElementById('gLangRu');
-    const en = document.getElementById('gLangEn');
-    if (fr) fr.href = '/lux-guide?lang=fr';
-    if (ru) ru.href = '/lux-guide?lang=ru';
-    if (en) en.href = '/lux-guide?lang=en';
-    if (fr) fr.setAttribute('aria-current', lang === 'fr' ? 'true' : 'false');
-    if (ru) ru.setAttribute('aria-current', lang === 'ru' ? 'true' : 'false');
-    if (en) en.setAttribute('aria-current', lang === 'en' ? 'true' : 'false');
   }
 
   function run(detail) {

@@ -32,21 +32,3 @@ body.cf-tenant-skin .lux-example {
 body.cf-tenant-skin a.text-sky-300 {
   color: var(--cf-accent, #d4af37) !important;
 }
-
-.lang-switch a {
-  text-decoration: none;
-  opacity: 0.85;
-}
-.lang-switch a:hover {
-  text-decoration: underline;
-  opacity: 1;
-}
-.lang-switch a[aria-current='true'] {
-  font-weight: 700;
-  opacity: 1;
-  color: var(--cf-accent, rgb(56, 189, 248));
-}
-
-body.cf-tenant-skin .lang-switch a[aria-current='true'] {
-  color: var(--cf-accent, #d4af37);
-}

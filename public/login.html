@@ -4,20 +4,24 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CorpFlow Login</title>
+    <link rel="stylesheet" href="/assets/corpflow/tenant-chrome-change.css" />
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="min-h-screen bg-slate-950 text-slate-100">
     <div class="max-w-xl mx-auto px-4 py-14">
-      <h1 class="text-2xl font-semibold tracking-tight">Login</h1>
-      <p class="text-slate-400 text-sm mt-2">
+      <div id="cfTenantBrand" class="hidden text-xs tracking-[0.28em] uppercase mb-2 font-semibold">
+        <span id="cfTenantBrandText"></span>
+      </div>
+      <h1 class="text-2xl font-semibold tracking-tight" id="loginPageHeading">Login</h1>
+      <p class="text-slate-400 text-sm mt-2" id="loginPageLead">
         Choose your access level. This sets a secure session cookie so you don’t paste keys into pages.
       </p>
 
       <div id="banner" class="hidden mt-6 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-rose-200 text-sm"></div>
       <div id="ok" class="hidden mt-6 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-emerald-200 text-sm"></div>
 
-      <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="rounded-2xl border border-slate-800 bg-slate-900/30 p-4">
+      <div id="loginGrid" class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div id="loginFactoryColumn" class="rounded-2xl border border-slate-800 bg-slate-900/30 p-4">
           <h2 class="text-sm font-semibold">Factory Admin</h2>
           <p class="text-xs text-slate-400 mt-1">For you only: full factory access.</p>
           <label class="block text-xs text-slate-300 mt-4">Username
@@ -29,7 +33,7 @@
           <button id="btnAdmin" class="mt-4 w-full rounded-lg bg-sky-500 text-slate-950 px-4 py-2 text-sm font-semibold">Login as Admin</button>
         </div>
 
-        <div class="rounded-2xl border border-slate-800 bg-slate-900/30 p-4">
+        <div id="loginTenantColumn" class="rounded-2xl border border-slate-800 bg-slate-900/30 p-4">
           <h2 class="text-sm font-semibold">Client / Tenant</h2>
           <p class="text-xs text-slate-400 mt-1">Tenant-scoped access (no factory settings).</p>
           <label class="block text-xs text-slate-300 mt-4">Tenant ID
@@ -42,12 +46,31 @@
             <label class="block text-xs text-slate-300">Password (optional)
               <input id="tenantPass" type="password" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" autocomplete="current-password" />
             </label>
-            <div class="text-[11px] text-slate-500">Or use a sovereign PIN (legacy / bootstrap).</div>
+            <div class="text-[11px] text-slate-500">Or use the tenant PIN you received from your operator.</div>
             <label class="block text-xs text-slate-300">PIN
               <input id="tenantPin" type="password" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" autocomplete="one-time-code" />
             </label>
           </div>
           <button id="btnTenant" class="mt-4 w-full rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold">Login as Tenant</button>
+
+          <div
+            class="mt-4 rounded-xl border border-slate-800 bg-slate-950/50 p-3 text-[11px] text-slate-400 leading-relaxed space-y-2"
+          >
+            <p>
+              <span class="text-slate-200 font-medium">No self-service registration.</span>
+              Email/password or PIN access is created by your CorpFlow operator after onboarding — the same as for your
+              end clients.
+            </p>
+            <p>
+              <span class="text-slate-200 font-medium">Need a PIN or access?</span>
+              Reply to your onboarding email or contact your operator. PINs cannot be requested from this screen for
+              security reasons.
+            </p>
+            <p class="pt-1 flex flex-wrap gap-x-3 gap-y-1">
+              <a class="text-sky-300 underline" href="/lux-guide">How to request changes</a>
+              <a class="text-sky-300 underline" href="/">Preview website</a>
+            </p>
+          </div>
 
           <details class="mt-4 rounded-xl border border-slate-800 bg-slate-950/30 p-3">
             <summary class="cursor-pointer text-xs text-sky-300 underline select-none">Forgot password?</summary>
@@ -279,6 +302,22 @@
             }
           } catch (_) {}
         })();
+      })();
+    </script>
+    <script src="/assets/corpflow/tenant-chrome.js"></script>
+    <script>
+      (function () {
+        window.addEventListener('cf-tenant-site', function (ev) {
+          var site = ev.detail && ev.detail.site;
+          if (!site) return;
+          var lead = document.getElementById('loginPageLead');
+          if (lead) {
+            lead.textContent =
+              'Sign in with the tenant PIN or email login issued to you. Your session is stored in a secure cookie for this site only.';
+          }
+          var h = document.getElementById('loginPageHeading');
+          if (h) h.textContent = 'Sign in';
+        });
       })();
     </script>
   </body>
