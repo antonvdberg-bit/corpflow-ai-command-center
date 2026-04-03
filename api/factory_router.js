@@ -42,6 +42,7 @@ import { buildCorpflowHostContext } from '../lib/server/host-tenant-context.js';
 import { cfg, runtimeConfigDiagnostics } from '../lib/server/runtime-config.js';
 import { getSessionFromRequest } from '../lib/server/session.js';
 import { isBillingExemptTenant } from '../lib/server/billing-exempt.js';
+import { getTokenCreditBalance } from '../lib/factory/costing.js';
 
 const prisma = new PrismaClient();
 
@@ -349,6 +350,24 @@ async function handleUiContext(req, res) {
     ctx.surface === 'core' && rootDomain ? `https://${rootDomain}/change` : null;
   const billing_exempt =
     session.logged_in === true && session.tenant_id ? isBillingExemptTenant(session.tenant_id) : false;
+
+  let token_credit_balance_usd = null;
+  let show_approve_build = false;
+  const tenantClientSession =
+    session.logged_in === true &&
+    session.tenant_id &&
+    String(session.level || '').toLowerCase() === 'tenant';
+  if (tenantClientSession) {
+    try {
+      const bal = Number(await getTokenCreditBalance({ tenantId: session.tenant_id }));
+      token_credit_balance_usd = Number.isFinite(bal) ? Math.round(bal * 100) / 100 : 0;
+    } catch (_) {
+      token_credit_balance_usd = null;
+    }
+    show_approve_build =
+      billing_exempt === true || (token_credit_balance_usd != null && token_credit_balance_usd > 0);
+  }
+
   return res.status(200).json({
     ok: true,
     host: ctx.host,
@@ -357,6 +376,8 @@ async function handleUiContext(req, res) {
     mode,
     session,
     billing_exempt,
+    token_credit_balance_usd,
+    show_approve_build,
     root_domain: rootDomain || null,
     suggested_tenant_console_url: suggestedTenantConsoleUrl,
   });

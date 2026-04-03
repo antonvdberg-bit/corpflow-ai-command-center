@@ -243,10 +243,18 @@
               class="mt-1 w-full min-h-[72px] rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-[11px] text-slate-200"
               placeholder="https://…"
             ></textarea>
+            <p id="tenantBuildApprovalHint" class="hidden text-[10px] text-slate-500 mt-2 leading-relaxed">
+              <strong class="text-slate-400">Build approval</strong> is the yellow-outline
+              <strong class="text-slate-400">Approve build</strong> button. It appears when your tenant has a
+              <strong class="text-slate-400">positive wallet</strong> or is
+              <strong class="text-slate-400">billing-exempt</strong>. Run <strong class="text-slate-400">Estimate</strong> first so you can compare benchmark vs CorpFlow price before you commit.
+            </p>
             <div class="flex flex-wrap gap-2 mt-3">
               <button id="btnCreate" class="rounded-lg bg-sky-500 text-slate-950 px-4 py-2 text-sm font-semibold">Create ticket</button>
               <button id="btnCost" class="rounded-lg border border-slate-700 px-4 py-2 text-sm">Estimate</button>
-              <button id="btnApprove" class="rounded-lg border border-slate-700 px-4 py-2 text-sm">Approve build</button>
+              <button id="btnApprove" class="rounded-lg border border-slate-700 px-4 py-2 text-sm" title="Build approval — commits this ticket to the factory sandbox (uses wallet unless billing-exempt)">
+                Approve build
+              </button>
               <button id="btnReset" class="rounded-lg border border-slate-800 px-4 py-2 text-sm text-slate-300">Reset</button>
             </div>
           </div>
@@ -1785,13 +1793,18 @@
                 : 'Run Estimate to save effort range and indicative cost.',
             ),
           );
+          const tenantUx = isTenantClient();
           rows.push(
             stepRow(
               buildApproved ? 'ok' : 'pending',
-              'Factory build',
+              tenantUx ? 'Build approval' : 'Factory build',
               buildApproved
-                ? 'Approved — sandbox automation can run (factory operators manage GitHub).'
-                : 'Waiting for factory approval after estimate.',
+                ? tenantUx
+                  ? 'Approved — sandbox automation can start.'
+                  : 'Approved — sandbox automation can run (factory operators manage GitHub).'
+                : tenantUx
+                  ? 'After Estimate, click Approve build (left) when you accept this spend. Requires wallet balance or billing-exempt tenant.'
+                  : 'Waiting for factory approval after estimate.',
             ),
           );
           rows.push(
@@ -1847,47 +1860,64 @@
                 ? Number(cp.effort_hours_high)
                 : null;
 
-          if (tenantUser && (hoursLo != null || hoursHi != null || (billable != null && Number.isFinite(billable)))) {
+          if (
+            tenantUser &&
+            (hoursLo != null ||
+              hoursHi != null ||
+              (billable != null && Number.isFinite(billable)) ||
+              (market != null && Number.isFinite(market)))
+          ) {
             let estBlock =
               '<div class="rounded-lg border border-emerald-500/25 bg-emerald-500/5 px-3 py-2 text-slate-200">' +
-              '<div class="font-semibold text-emerald-200/90 mb-1">Estimate (indicative)</div>';
+              '<div class="font-semibold text-emerald-200/90 mb-1">Your estimate — decide before you commit</div>' +
+              '<p class="text-[10px] text-slate-500 mb-2 leading-relaxed">We separate what <strong class="text-slate-400">traditional custom development</strong> often costs (benchmark) from <strong class="text-slate-400">your CorpFlow build price</strong> on this ticket so you can choose whether to proceed.</p>';
             if (hoursLo != null && hoursHi != null && Number.isFinite(hoursLo) && Number.isFinite(hoursHi)) {
               estBlock +=
-                '<div>Estimated effort: <strong>' +
+                '<div class="text-[11px] mb-2">Indicative effort: <strong>' +
                 escapeHtml(String(hoursLo)) +
                 '–' +
                 escapeHtml(String(hoursHi)) +
                 '</strong> work hours</div>';
             }
-            if (billable != null && Number.isFinite(billable)) {
+            if (market != null && Number.isFinite(market)) {
               estBlock +=
-                '<div><span class="text-emerald-100/90">Actual cost to client</span> (billable estimate): <strong>' +
+                '<div class="text-[11px] mt-1 pt-2 border-t border-slate-700/80">' +
+                '<div class="text-[10px] uppercase tracking-wide text-slate-500 mb-0.5">Traditional developer benchmark</div>' +
+                '<div class="text-slate-300">What many agencies or freelancers would typically charge for similar scope: <strong class="text-slate-100">' +
                 escapeHtml(curr) +
                 ' ' +
-                escapeHtml(
-                  billable.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                ) +
-                '</strong></div>';
+                escapeHtml(market.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })) +
+                '</strong></div></div>';
+            }
+            if (billable != null && Number.isFinite(billable)) {
+              estBlock +=
+                '<div class="text-[11px] mt-2 pt-2 border-t border-emerald-500/20">' +
+                '<div class="text-[10px] uppercase tracking-wide text-emerald-300/80 mb-0.5">Your CorpFlow build price (estimate)</div>' +
+                '<div class="text-emerald-100/95">What you pay CorpFlow for this build on this ticket: <strong class="text-emerald-50">' +
+                escapeHtml(curr) +
+                ' ' +
+                escapeHtml(billable.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })) +
+                '</strong>' +
+                (isDemo ? ' <span class="text-[10px] text-slate-500">(includes demo discount on our line)</span>' : '') +
+                '</div></div>';
             }
             if (
               market != null &&
               Number.isFinite(market) &&
               billable != null &&
               Number.isFinite(billable) &&
-              Math.abs(market - billable) > 0.01
+              market > billable + 0.01
             ) {
+              const pct = market > 0 ? Math.round((1 - billable / market) * 100) : null;
               estBlock +=
-                '<div class="text-[10px] text-slate-500 mt-1">Market reference (audit / comparison — not the invoice line): ' +
-                escapeHtml(curr) +
-                ' ' +
-                escapeHtml(
-                  market.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                ) +
-                (isDemo ? ' · demo pricing adjustment applied to the billable line' : '') +
+                '<div class="text-[10px] text-slate-500 mt-2">' +
+                (pct != null && Number.isFinite(pct) && pct >= 0 && pct <= 99
+                  ? 'Roughly <strong>' + escapeHtml(String(pct)) + '%</strong> below the traditional benchmark on our line for this estimate.'
+                  : 'Your CorpFlow line is below the benchmark shown above.') +
                 '</div>';
             }
             estBlock +=
-              '<div class="text-[10px] text-slate-500 mt-1">Not a binding quote. Final scope follows factory review.</div></div>';
+              '<div class="text-[10px] text-slate-500 mt-2">Indicative only — not a binding quote. Final numbers follow factory review. Use <strong class="text-slate-400">Approve build</strong> only when you accept this spend.</div></div>';
             parts.push(estBlock);
           }
 
@@ -2117,12 +2147,41 @@
                 '</span>' +
                 '</div>' +
                 '</div>';
-            } else {
-              coreSection =
+          } else {
+            coreSection =
                 '<div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-500">' +
                 '<span>Environment hint dismissed.</span>' +
                 '<button type="button" id="showCoreHintAgain" class="text-sky-400 hover:text-sky-300 underline">' +
                 'Show again</button>' +
+                '</div>';
+            }
+          }
+
+          let tenantFundingRow = '';
+          if (
+            surface === 'tenant' &&
+            uiContext.session &&
+            uiContext.session.logged_in &&
+            String(uiContext.session.level || '').toLowerCase() === 'tenant'
+          ) {
+            if (uiContext.billing_exempt === true) {
+              tenantFundingRow =
+                '<div class="mt-2 rounded-lg border border-emerald-500/25 bg-emerald-500/5 px-3 py-2 text-[11px] text-emerald-100/95 leading-relaxed">' +
+                '<strong class="text-emerald-200">Billing-exempt tenant.</strong> Wallet debits are skipped. After <strong>Estimate</strong>, use <strong>Approve build</strong> (left) to start the sandbox — no top-up required.' +
+                '</div>';
+            } else if (uiContext.token_credit_balance_usd != null) {
+              const bal = Number(uiContext.token_credit_balance_usd);
+              const funded = uiContext.show_approve_build === true;
+              tenantFundingRow =
+                '<div class="mt-2 rounded-lg border px-3 py-2 text-[11px] leading-relaxed ' +
+                (funded ? 'border-slate-700 bg-slate-950/50 text-slate-300' : 'border-amber-500/30 bg-amber-500/10 text-amber-100') +
+                '">' +
+                '<span class="text-slate-400">Pre-paid wallet</span> · <strong>' +
+                escapeHtml(bal.toFixed(2)) +
+                '</strong> USD' +
+                (funded
+                  ? ' · <strong>Approve build</strong> is available after you run <strong>Estimate</strong> (approving debits your wallet per policy).'
+                  : ' · Wallet is at <strong>$0</strong> — <strong>Approve build</strong> stays hidden until your CorpFlow contact adds pre-paid credits or enables billing exemption for your tenant.') +
                 '</div>';
             }
           }
@@ -2142,6 +2201,7 @@
               '</span>' +
               '</div>' +
               '</div>' +
+              tenantFundingRow +
               coreSection +
               '</div>',
           );
@@ -2310,15 +2370,19 @@
 
             // Apply rule sets (UI only; server still enforces auth).
             if (isClient) {
-              // Approve build: hidden for normal clients; shown when tenant is in CORPFLOW_BILLING_EXEMPT_TENANT_IDS (demo/partner).
+              const hintEl = $('tenantBuildApprovalHint');
+              if (hintEl) hintEl.classList.remove('hidden');
               const approveBtn = $('btnApprove');
               if (approveBtn) {
-                const billingExempt = uiContext && uiContext.billing_exempt === true;
-                if (billingExempt) approveBtn.classList.remove('hidden');
+                const canApprove = uiContext && uiContext.show_approve_build === true;
+                if (canApprove) approveBtn.classList.remove('hidden');
                 else approveBtn.classList.add('hidden');
               }
               const chatWrap = $('thread') && $('thread').parentElement ? $('thread').parentElement : null;
               // keep chat visible by default; client consoles may want it.
+            } else {
+              const hintEl = $('tenantBuildApprovalHint');
+              if (hintEl) hintEl.classList.add('hidden');
             }
 
             renderModeBarFromUiContext();
