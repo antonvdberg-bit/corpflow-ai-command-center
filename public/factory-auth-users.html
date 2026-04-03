@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>Factory · Auth users (login accounts)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-10">
+    <div class="max-w-6xl mx-auto">
+      <h1 class="text-2xl font-semibold tracking-tight">Auth users (factory only)</h1>
+      <p class="text-slate-400 text-sm mt-2 max-w-3xl leading-relaxed">
+        <strong class="text-slate-300">Passwords are never visible.</strong> They are stored as one-way hashes (like banks do).
+        This page lists who can log in and lets you <strong>set a new</strong> password (generated or typed). Use
+        <strong>MASTER_ADMIN_KEY</strong> or log in as factory admin on this browser first.
+      </p>
+
+      <div class="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-amber-100/90 leading-relaxed">
+        <strong class="text-amber-200">Why clients cannot live with “DIY auth” forever:</strong> if we lose a day on login
+        internally, clients will too — unless we ship <strong>managed sign-in</strong> (e.g. Clerk, Auth0, Supabase Auth,
+        Google Workspace) and keep CorpFlow for tickets and data. This tool is the <strong>break-glass ops console</strong>
+        until then.
+      </div>
+
+      <div class="mt-6 flex flex-wrap gap-4 items-end">
+        <label class="block flex-1 min-w-[200px]">
+          <span class="text-xs text-slate-400">Filter by tenant_id (optional)</span>
+          <input
+            id="filterTenant"
+            type="text"
+            class="mt-1 w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm font-mono"
+            placeholder="e.g. luxe-maurice"
+          />
+        </label>
+        <label class="block flex-1 min-w-[240px]">
+          <span class="text-xs text-slate-400">MASTER_ADMIN_KEY (if not already admin in session)</span>
+          <input
+            id="masterKey"
+            type="password"
+            autocomplete="off"
+            class="mt-1 w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm"
+            placeholder="paste once — stays in this tab only"
+          />
+        </label>
+        <button
+          type="button"
+          id="btnLoad"
+          class="rounded-lg bg-sky-600 hover:bg-sky-500 text-white px-4 py-2 text-sm font-semibold"
+        >
+          Load list
+        </button>
+      </div>
+
+      <div id="banner" class="hidden mt-4 rounded-lg border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-rose-200 text-sm"></div>
+      <div id="bannerOk" class="hidden mt-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-emerald-200 text-sm whitespace-pre-wrap font-mono text-xs"></div>
+
+      <div class="mt-6 overflow-x-auto rounded-xl border border-slate-800">
+        <table class="w-full text-sm text-left">
+          <thead class="bg-slate-900/80 text-xs uppercase text-slate-400">
+            <tr>
+              <th class="px-3 py-2">Username</th>
+              <th class="px-3 py-2">Level</th>
+              <th class="px-3 py-2">tenant_id</th>
+              <th class="px-3 py-2">Enabled</th>
+              <th class="px-3 py-2">Password</th>
+              <th class="px-3 py-2">Last login</th>
+              <th class="px-3 py-2">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tbody" class="divide-y divide-slate-800"></tbody>
+        </table>
+        <p id="empty" class="hidden p-6 text-slate-500 text-sm">No rows. Check filter or POSTGRES_URL / schema.</p>
+      </div>
+
+      <p class="mt-8 text-xs text-slate-500">
+        API:
+        <code class="text-slate-400">GET /api/factory/auth-users/list</code> ·
+        <code class="text-slate-400">POST /api/factory/auth-users/set-password</code>
+      </p>
+    </div>
+
+    <script>
+      (function () {
+        const $ = (id) => document.getElementById(id);
+        const banner = $('banner');
+        const bannerOk = $('bannerOk');
+        const tbody = $('tbody');
+        const empty = $('empty');
+
+        function err(msg) {
+          bannerOk.classList.add('hidden');
+          banner.textContent = msg || '';
+          banner.classList.toggle('hidden', !msg);
+        }
+        function ok(msg) {
+          banner.classList.add('hidden');
+          bannerOk.textContent = msg || '';
+          bannerOk.classList.toggle('hidden', !msg);
+        }
+
+        function authHeaders() {
+          const key = String($('masterKey').value || '').trim();
+          const h = { 'Content-Type': 'application/json' };
+          if (key) h['Authorization'] = 'Bearer ' + key;
+          return h;
+        }
+
+        async function loadList() {
+          err('');
+          ok('');
+          const tid = String($('filterTenant').value || '').trim();
+          const q = tid ? '?tenant_id=' + encodeURIComponent(tid) : '';
+          const r = await fetch('/api/factory/auth-users/list' + q, {
+            credentials: 'include',
+            headers: authHeaders(),
+          });
+          const j = await r.json().catch(() => ({}));
+          if (!r.ok) throw new Error(j.error || j.detail || 'http_' + r.status);
+          tbody.innerHTML = '';
+          const users = j.users || [];
+          if (!users.length) {
+            empty.classList.remove('hidden');
+            return;
+          }
+          empty.classList.add('hidden');
+          for (const u of users) {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-slate-900/40';
+            const pwdLabel = u.password_saved ? 'saved (hidden)' : 'missing';
+            const pwdClass = u.password_saved ? 'text-slate-400' : 'text-amber-300';
+            tr.innerHTML =
+              '<td class="px-3 py-2 font-mono text-xs">' +
+              escapeHtml(u.username) +
+              '</td>' +
+              '<td class="px-3 py-2">' +
+              escapeHtml(u.level) +
+              '</td>' +
+              '<td class="px-3 py-2 font-mono text-xs">' +
+              escapeHtml(u.tenant_id || '') +
+              '</td>' +
+              '<td class="px-3 py-2">' +
+              (u.enabled ? 'yes' : 'no') +
+              '</td>' +
+              '<td class="px-3 py-2 ' +
+              pwdClass +
+              '">' +
+              pwdLabel +
+              '</td>' +
+              '<td class="px-3 py-2 text-xs text-slate-400">' +
+              (u.last_login_at ? escapeHtml(String(u.last_login_at).slice(0, 19)) : '—') +
+              '</td>' +
+              '<td class="px-3 py-2 whitespace-nowrap">' +
+              '<button type="button" class="text-sky-400 underline text-xs btn-gen" data-user="' +
+              escapeAttr(u.username) +
+              '">Generate new password</button>' +
+              '</td>';
+            tbody.appendChild(tr);
+          }
+          for (const b of tbody.querySelectorAll('.btn-gen')) {
+            b.addEventListener('click', () => setPassword(b.getAttribute('data-user'), true));
+          }
+        }
+
+        function escapeHtml(s) {
+          return String(s || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+        }
+        function escapeAttr(s) {
+          return escapeHtml(s).replace(/'/g, '&#39;');
+        }
+
+        async function setPassword(username, generate) {
+          err('');
+          ok('');
+          const body = { username: username, generate: generate };
+          const r = await fetch('/api/factory/auth-users/set-password', {
+            method: 'POST',
+            credentials: 'include',
+            headers: authHeaders(),
+            body: JSON.stringify(body),
+          });
+          const j = await r.json().catch(() => ({}));
+          if (!r.ok) throw new Error(j.error || j.detail || j.hint || 'http_' + r.status);
+          if (j.password_print_once) {
+            ok('NEW PASSWORD (copy once into 1Password / Bitwarden, then give to user):\n\n' + j.password_print_once);
+          } else {
+            ok(j.message || 'OK');
+          }
+          await loadList();
+        }
+
+        $('btnLoad').addEventListener('click', () => {
+          loadList().catch((e) => err(String(e.message || e)));
+        });
+      })();
+    </script>
+  </body>
+</html>

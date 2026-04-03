@@ -101,6 +101,58 @@ async function resolveTenantLoginBaseUrl(prisma, tenantId) {
   return '';
 }
 
+/**
+ * Prisma requires `postgresql://` or `postgres://`. Fixes common local mistakes:
+ * whitespace, wrapped quotes, `prisma+postgres://` (Accelerate-style prefix).
+ *
+ * @param {string | undefined} raw
+ * @returns {string}
+ */
+function normalizePostgresUrlForPrisma(raw) {
+  let u = String(raw ?? '').trim();
+  while (
+    (u.startsWith('"') && u.endsWith('"')) ||
+    (u.startsWith("'") && u.endsWith("'"))
+  ) {
+    u = u.slice(1, -1).trim();
+  }
+  if (u.startsWith('prisma+postgres://')) {
+    u = `postgresql://${u.slice('prisma+postgres://'.length)}`;
+  }
+  return u;
+}
+
+/**
+ * @param {string} url
+ * @returns {void}
+ */
+function exitIfInvalidPostgresUrl(url) {
+  if (!url) {
+    console.error('ERROR: POSTGRES_URL is empty (after trim). Set it in this shell, same as Vercel production.');
+    console.error('  PowerShell: $env:POSTGRES_URL = "postgresql://..."');
+    process.exit(1);
+  }
+  const ok = url.startsWith('postgresql://') || url.startsWith('postgres://');
+  if (ok) return;
+  const preview = url.length > 96 ? `${url.slice(0, 96)}…` : url;
+  console.error('ERROR: POSTGRES_URL must start with postgresql:// or postgres://');
+  console.error('  First chars (for debugging):', JSON.stringify(preview.slice(0, 64)));
+  console.error('');
+  console.error('Common fixes:');
+  console.error('  • Paste the full connection string from Vercel → your project → Storage/Postgres or Env vars.');
+  console.error('  • Use the variable that is literally named POSTGRES_URL (or copy its value into POSTGRES_URL).');
+  console.error('  • Do not include angle brackets or the word "paste" in the value.');
+  console.error('  • In PowerShell use double quotes: $env:POSTGRES_URL = "postgresql://user:pass@host/db"');
+  const dbFallback = normalizePostgresUrlForPrisma(process.env.DATABASE_URL);
+  if (
+    dbFallback &&
+    (dbFallback.startsWith('postgresql://') || dbFallback.startsWith('postgres://'))
+  ) {
+    console.error('  • DATABASE_URL in this shell looks valid — try: $env:POSTGRES_URL = $env:DATABASE_URL');
+  }
+  process.exit(1);
+}
+
 function parseArgs(argv) {
   const out = {
     tenant: process.env.TENANT_ID || '',
@@ -137,10 +189,9 @@ Env: POSTGRES_URL required (same as Vercel production DB for Lux host mapping to
     process.exit(0);
   }
 
-  if (!process.env.POSTGRES_URL || !String(process.env.POSTGRES_URL).trim()) {
-    console.error('ERROR: Set POSTGRES_URL to your Postgres connection string (e.g. copy from Vercel env).');
-    process.exit(1);
-  }
+  const pgUrl = normalizePostgresUrlForPrisma(process.env.POSTGRES_URL);
+  exitIfInvalidPostgresUrl(pgUrl);
+  process.env.POSTGRES_URL = pgUrl;
 
   if (!args.pin && !args.username) {
     console.error('ERROR: Specify --pin and/or --username=... (--password and/or --gen-password)');

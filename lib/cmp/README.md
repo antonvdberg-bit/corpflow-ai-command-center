@@ -51,6 +51,7 @@ Machine-first events and playbooks (separate from CMP `action=` router):
 - **`tenant-hostname-upsert`** (POST, factory master only): upserts a row in `tenant_hostnames` mapping a host (e.g. `legal.corpflowai.com`) to `tenant_id` (e.g. `legal-demo`).
   - Body: `{ host, tenant_id, mode?, enabled? }`
 - **`provision-tenant-pin`** (POST, factory master only): upserts `tenants.sovereign_pin_hash` (and creates a minimal tenant row if missing) and returns a one-time plaintext PIN.
+- **Auth users (break-glass):** UI `/factory/auth-users` — lists `auth_users` (no password visibility); `POST /api/factory/auth-users/set-password` with factory master to generate or set a new password. API: `GET /api/factory/auth-users/list?tenant_id=`.
 - **`assist-request`** (POST): records a tenant-safe “please investigate” snapshot for a ticket into `recovery_vault_entries` (Postgres) and emits telemetry for triage.
   - Body: `{ ticket_id, reason?, snapshot? }`
 
@@ -83,7 +84,7 @@ Use this from n8n or a Vercel deploy webhook after a Preview deployment for bran
 
 The login screen (`public/login.html`) supports tenant password reset by email/username within a tenant:
 
-- `POST /api/auth/password-reset/request` with `{ tenant_id, email }`
+- `POST /api/auth/password-reset/request` with `{ email, tenant_id? }` (tenant resolved from `auth_users` when the email exists)
   - Stores a one-time token in Postgres `recovery_vault_entries` (`category=password_reset`).
   - Response is non-enumerating (returns ok even if user does not exist).
   - Optional delivery via `CORPFLOW_PASSWORD_RESET_WEBHOOK_URL` (recommended).

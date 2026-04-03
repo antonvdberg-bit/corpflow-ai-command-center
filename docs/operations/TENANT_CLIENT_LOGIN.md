@@ -16,6 +16,12 @@ If the user enters a **different** Tenant ID than the host map, the API returns 
 | 4 | Provision access: `node scripts/provision-tenant-test-access.mjs --tenant=luxe-maurice --pin` and/or `--username=... --gen-password` (requires `POSTGRES_URL`). |
 | 5 | Open **`https://lux.corpflowai.com/login`** (or your resolved tenant URL), **Client / Tenant**, PIN or email/password. |
 
+## Factory-only: list users & set passwords (no “view password”)
+
+- **Page:** `/factory/auth-users` (requires `MASTER_ADMIN_KEY` or factory admin session).
+- Lists `auth_users` (username, level, tenant, whether a password is **saved** — never readable).
+- **Generate new password** per row; copy once and hand to the client (same idea as the provision script).
+
 ## Factory-only: why won’t this email log in?
 
 Call **`POST /api/factory/tenant-login-debug`** with **`Authorization: Bearer <MASTER_ADMIN_KEY>`** and JSON body **`{ "email": "the@address.com" }`**.  

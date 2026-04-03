@@ -15,7 +15,8 @@
     { "source": "/lux", "destination": "/showcase/luxe-maurice-private/index.html" },
     { "source": "/lux-editor", "destination": "/lux-site-editor.html" },
     { "source": "/lux-guide", "destination": "/lux-client-guide.html" },
-    { "source": "/master", "destination": "/public/master-control.html" }
+    { "source": "/master", "destination": "/public/master-control.html" },
+    { "source": "/factory/auth-users", "destination": "/factory-auth-users.html" }
   ],
   "crons": [
     {

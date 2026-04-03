@@ -23,6 +23,10 @@ import tenantIntakeHandler from '../lib/server/tenant-intake.js';
 import tenantSitePublicHandler from '../lib/server/tenant-site-public.js';
 import tenantLoginDebugHandler from '../lib/server/tenant-login-debug.js';
 import {
+  handleFactoryAuthUsersList,
+  handleFactoryAuthUsersSetPassword,
+} from '../lib/server/factory-auth-users-admin.js';
+import {
   handleAuthLogin,
   handleAuthLogout,
   handleAuthMe,
@@ -385,6 +389,12 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'factory/tenant-login-debug') {
     return tenantLoginDebugHandler(req, res);
+  }
+  if (pathSeg === 'factory/auth-users/list') {
+    return handleFactoryAuthUsersList(req, res);
+  }
+  if (pathSeg === 'factory/auth-users/set-password') {
+    return handleFactoryAuthUsersSetPassword(req, res);
   }
 
   switch (pathSeg) {
