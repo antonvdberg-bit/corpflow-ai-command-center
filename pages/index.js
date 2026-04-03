@@ -2,7 +2,7 @@ import React from 'react';
 
 import { PrismaClient } from '@prisma/client';
 
-import { mergeSiteDraft } from '../lib/server/tenant-site-public.js';
+import { defaultPublicSite, mergeSiteDraft } from '../lib/server/tenant-site-public.js';
 
 /**
  * Minimal tenant marketing site renderer (v1).
@@ -21,51 +21,6 @@ function normalizeHost(req) {
 
 function safeStr(v) {
   return v != null ? String(v).trim() : '';
-}
-
-function defaultSite({ tenantId, host }) {
-  const brand = tenantId ? safeStr(tenantId).replace(/[-_]+/g, ' ') : 'CorpFlow';
-  return {
-    tenant_id: tenantId || null,
-    host: host || null,
-    theme: {
-      primary: '#0ea5e9', // sky-500
-      accent: '#22c55e', // green-500
-      background: '#020617', // slate-950
-      surface: '#0b1220',
-      text: '#e2e8f0', // slate-200
-      muted: '#94a3b8', // slate-400
-    },
-    hero: {
-      title: brand,
-      headline: 'Tenant preview',
-      tagline: 'A premium experience — preview draft site powered by CorpFlow.',
-      subtitle: 'A premium experience — preview draft site powered by CorpFlow.',
-      cta_label: 'Request changes',
-      cta_href: '/change',
-    },
-    sections: {
-      about: {
-        title: 'About',
-        body: 'This is a first draft. Use the Change Console to request edits and iterate quickly.',
-      },
-      services: {
-        title: 'Services',
-        items: [],
-      },
-      contact: {
-        title: 'Contact',
-        email: null,
-        phone: null,
-        website: host ? `https://${host}` : null,
-      },
-    },
-    media: {
-      hero_image_url: null,
-      gallery: [],
-      logo_url: null,
-    },
-  };
 }
 
 function TenantSite({ site }) {
@@ -353,7 +308,7 @@ export async function getServerSideProps({ req }) {
       }
     })();
 
-    const base = defaultSite({ tenantId, host });
+    const base = defaultPublicSite(tenantId, host);
     const site = mergeSiteDraft(base, draft || {});
     site.lang_default = site.lang_default || 'en';
     site.languages = Array.isArray(site.languages) ? site.languages : ['en', 'fr', 'ru'];

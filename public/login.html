@@ -266,6 +266,19 @@
         });
 
         refreshSessionBanner();
+
+        // On tenant-mapped hosts (e.g. lux.corpflowai.com), pre-fill Tenant ID so client-level login matches ops docs.
+        (async function prefillTenantFromHost() {
+          try {
+            const r = await fetch('/api/tenant/site', { credentials: 'same-origin' });
+            const j = await r.json().catch(() => ({}));
+            const tid = j && j.tenant_id ? String(j.tenant_id).trim() : '';
+            const inp = $('tenantId');
+            if (tid && inp && !String(inp.value || '').trim()) {
+              inp.value = tid;
+            }
+          } catch (_) {}
+        })();
       })();
     </script>
   </body>

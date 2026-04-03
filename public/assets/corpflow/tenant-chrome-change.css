@@ -1,0 +1,59 @@
+/**
+ * When body.cf-tenant-skin is set (see tenant-chrome.js), re-skin Tailwind “sky/slate”
+ * Change Console accents to the tenant primary (e.g. Lux gold).
+ */
+body.cf-tenant-skin.min-h-screen {
+  background-color: var(--cf-tenant-bg, rgb(2 6 23)) !important;
+  color: var(--cf-tenant-text, rgb(241 245 249)) !important;
+}
+
+body.cf-tenant-skin .text-slate-100 {
+  color: var(--cf-tenant-text, rgb(241 245 249)) !important;
+}
+body.cf-tenant-skin .text-slate-200 {
+  color: color-mix(in srgb, var(--cf-tenant-text, #f5f5f5) 92%, transparent) !important;
+}
+body.cf-tenant-skin .text-slate-300,
+body.cf-tenant-skin .text-slate-400 {
+  color: var(--cf-tenant-muted, rgb(148 163 184)) !important;
+}
+
+body.cf-tenant-skin a.text-sky-300,
+body.cf-tenant-skin .text-sky-300,
+body.cf-tenant-skin .text-sky-300\/90 {
+  color: var(--cf-accent, #d4af37) !important;
+}
+
+body.cf-tenant-skin .text-sky-400,
+body.cf-tenant-skin .text-sky-400\/90,
+body.cf-tenant-skin .hover\:text-sky-300:hover {
+  color: color-mix(in srgb, var(--cf-accent, #d4af37) 95%, white) !important;
+}
+
+body.cf-tenant-skin .text-sky-100,
+body.cf-tenant-skin .text-sky-200 {
+  color: color-mix(in srgb, var(--cf-accent, #d4af37) 55%, white) !important;
+}
+
+body.cf-tenant-skin button.bg-sky-500,
+body.cf-tenant-skin .bg-sky-500 {
+  background-color: var(--cf-accent, #d4af37) !important;
+  color: #0a0a0a !important;
+}
+
+body.cf-tenant-skin .border-sky-500\/20,
+body.cf-tenant-skin .border-sky-500\/25 {
+  border-color: color-mix(in srgb, var(--cf-accent, #d4af37) 28%, transparent) !important;
+}
+
+body.cf-tenant-skin .bg-sky-500\/5 {
+  background-color: color-mix(in srgb, var(--cf-accent, #d4af37) 8%, transparent) !important;
+}
+
+body.cf-tenant-skin .cf-spinner {
+  border-top-color: rgb(var(--cf-accent-rgb, 212 175 55)) !important;
+}
+
+#cfTenantBrand {
+  color: var(--cf-accent, #d4af37);
+}

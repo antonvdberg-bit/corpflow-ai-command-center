@@ -1,0 +1,16 @@
+---
+description: After substantive work, offer to append a short entry to artifacts/chat_history.md (no secrets).
+alwaysApply: true
+---
+
+# Chat history file (`artifacts/chat_history.md`)
+
+**There is no cron, Vercel job, or GitHub Action that writes this file.** It only changes when someone (or an assistant in-repo) edits it.
+
+## What you should do
+
+1. **After substantive work** in this repo (multi-file or behavior-changing edits, new endpoints, deploy/DNS/tenant decisions, major refactors), **before wrapping up**: briefly offer to add a **dated bullet** to `artifacts/chat_history.md` summarizing decisions, paths touched, and production URLs/hostnames (names only). Follow the **Include / omit** table at the top of that file (no secrets, no long dumps).
+2. If the user accepts (“yes”, “add it”, “update history”), **apply the edit** in `artifacts/chat_history.md` under the current timeline section (newest first within the month block is fine).
+3. **Skip** for trivial one-line fixes, typo-only changes, or pure Q&A with no repo changes.
+
+This replaces needing a **daily** reminder from the user: the standing instruction is this rule, not “ask me every morning.”

@@ -10,7 +10,7 @@
 
 **How you maintain it:** After important chats, paste a short summary here (or ask the assistant for a “history entry” prompt and paste the result into the next section). See **Include / omit** below.
 
-**Cadence (human habit, not automatic):** Nothing in Vercel or the Factory app updates this file by itself. “Automated cadence” in practice means a **calendar reminder** (e.g. weekly or after each deploy) or a **recurring task** that says: *open `artifacts/chat_history.md` and add one bullet*. Optional: a GitHub Action that only **nags** if the file was not touched in N days (still requires you to write the text). This is **separate from Cursor**—Cursor does not append here unless you (or an assistant in a chat) edit the repo.
+**Cadence:** Nothing in Vercel or the Factory app updates this file by itself. **Cursor:** the project rule `.cursor/rules/chat-history-cadence.mdc` tells assistants to **offer** a short append after substantive work; you can say “yes” in chat and they edit this file—no need to ask daily. **Otherwise:** a **calendar reminder** (e.g. weekly or after each deploy) or a **recurring task** works. Optional: a GitHub Action that **nags** if the file was not touched in N days (you still write the text).
 
 ---
 

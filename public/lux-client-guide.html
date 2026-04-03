@@ -4,86 +4,108 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Lux Mauritius · How to request changes</title>
+    <link rel="stylesheet" href="/assets/corpflow/tenant-chrome-guide.css" />
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="min-h-screen bg-slate-950 text-slate-100">
     <div class="mx-auto max-w-3xl px-6 py-10">
-      <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
-        <div class="text-xs tracking-widest text-slate-400">CLIENT GUIDE</div>
-        <h1 class="mt-2 text-2xl font-semibold">Lux Mauritius — request changes</h1>
-        <p class="mt-2 text-sm text-slate-300 leading-relaxed">
+      <div class="lang-switch flex justify-end gap-2 text-xs text-slate-400 mb-4">
+        <a id="gLangEn" href="/lux-guide?lang=en">English</a>
+        <span aria-hidden="true">·</span>
+        <a id="gLangFr" href="/lux-guide?lang=fr">Français</a>
+        <span aria-hidden="true">·</span>
+        <a id="gLangRu" href="/lux-guide?lang=ru">Русский</a>
+      </div>
+
+      <div class="lux-panel rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
+        <div class="lux-kicker text-xs tracking-widest text-slate-400" id="gKicker">CLIENT GUIDE</div>
+        <h1 class="mt-2 text-2xl font-semibold" id="gTitle">Lux Mauritius — request changes</h1>
+        <p class="mt-2 text-sm text-slate-300 leading-relaxed" id="gLead">
           Welcome. This is a preview website. You can ask for edits (text, colors, photos, layout, languages, lead forms)
           and we’ll update it quickly.
         </p>
       </div>
 
       <div class="mt-6 grid grid-cols-1 gap-6">
-        <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
-          <h2 class="text-lg font-semibold">Step 1 — Open your preview website</h2>
-          <p class="mt-2 text-sm text-slate-300">Open the preview in your browser:</p>
-          <a class="mt-3 inline-block rounded-xl bg-sky-400 px-4 py-2 text-sm font-semibold text-slate-950" href="/" target="_blank">
-            Open preview website
-          </a>
-          <p class="mt-3 text-xs text-slate-400">Tip: you can share this link with your team.</p>
+        <div class="lux-panel rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
+          <h2 class="text-lg font-semibold" id="gStep1h">Step 1 — Open your preview website</h2>
+          <p class="mt-2 text-sm text-slate-300" id="gStep1p">Open the preview in your browser:</p>
+          <a
+            class="lux-btn-primary mt-3 inline-block rounded-xl px-4 py-2 text-sm bg-sky-400 text-slate-950"
+            href="/"
+            target="_blank"
+            id="gStep1btn"
+            >Open preview website</a
+          >
+          <p class="mt-3 text-xs text-slate-400" id="gStep1tip">Tip: you can share this link with your team.</p>
         </div>
 
-        <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
-          <h2 class="text-lg font-semibold">Step 2 — Request changes (Change Console)</h2>
-          <p class="mt-2 text-sm text-slate-300">
+        <div class="lux-panel rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
+          <h2 class="text-lg font-semibold" id="gStep2h">Step 2 — Request changes (Change Console)</h2>
+          <p class="mt-2 text-sm text-slate-300" id="gStep2p">
             The Change Console is where you tell us what you want. Example requests:
           </p>
           <ul class="mt-3 space-y-2 text-sm text-slate-200">
-            <li class="rounded-xl border border-slate-800 bg-slate-950/60 p-3">
-              “Change the homepage headline to: <span class="font-semibold">Discover exclusive luxury properties in Mauritius</span>.”
+            <li class="lux-example rounded-xl border border-slate-800 bg-slate-950/60 p-3" id="gEx1">
+              “Change the homepage headline to:
+              <span class="font-semibold">Discover exclusive luxury properties in Mauritius</span>.”
             </li>
-            <li class="rounded-xl border border-slate-800 bg-slate-950/60 p-3">
+            <li class="lux-example rounded-xl border border-slate-800 bg-slate-950/60 p-3" id="gEx2">
               “Add a lead form with fields: name, email, phone, country, budget range, preferred language, message.”
             </li>
-            <li class="rounded-xl border border-slate-800 bg-slate-950/60 p-3">
+            <li class="lux-example rounded-xl border border-slate-800 bg-slate-950/60 p-3" id="gEx3">
               “Add French and Russian versions. Keep English as default.”
             </li>
           </ul>
 
-          <a class="mt-4 inline-block rounded-xl border border-slate-700 px-4 py-2 text-sm text-slate-100" href="/change" target="_blank">
-            Open Change Console
-          </a>
+          <a
+            class="lux-btn-secondary mt-4 inline-block rounded-xl border border-slate-700 px-4 py-2 text-sm text-slate-100"
+            href="/change"
+            target="_blank"
+            id="gStep2btn"
+            >Open Change Console</a
+          >
         </div>
 
-        <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
-          <h2 class="text-lg font-semibold">Login details</h2>
-          <p class="mt-2 text-sm text-slate-300">
-            If you were given a PIN, you can log in here:
-          </p>
-          <a class="mt-3 inline-block rounded-xl border border-slate-700 px-4 py-2 text-sm text-slate-100" href="/login" target="_blank">
-            Open login page
-          </a>
-          <p class="mt-3 text-xs text-slate-400">
-            Choose <span class="font-semibold">Tenant</span> login and enter your PIN. If you don’t have it yet, reply to the onboarding email and we will issue it.
+        <div class="lux-panel rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
+          <h2 class="text-lg font-semibold" id="gLoginh">Login details</h2>
+          <p class="mt-2 text-sm text-slate-300" id="gLoginp">If you were given a PIN, you can log in here:</p>
+          <a
+            class="lux-btn-secondary mt-3 inline-block rounded-xl border border-slate-700 px-4 py-2 text-sm text-slate-100"
+            href="/login"
+            target="_blank"
+            id="gLoginbtn"
+            >Open login page</a
+          >
+          <p class="mt-3 text-xs text-slate-400" id="gLogintip">
+            Choose <span class="font-semibold">Tenant</span> login and enter your PIN. If you don’t have it yet, reply to
+            the onboarding email and we will issue it.
           </p>
         </div>
 
-        <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
-          <h2 class="text-lg font-semibold">What we need from you (to sell properties)</h2>
-          <p class="mt-2 text-sm text-slate-300">
+        <div class="lux-panel rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
+          <h2 class="text-lg font-semibold" id="gAssetsh">What we need from you (to sell properties)</h2>
+          <p class="mt-2 text-sm text-slate-300" id="gAssetsp">
             To build a high-quality marketing platform for luxury property, we need strong visual materials:
           </p>
-          <ul class="mt-3 list-disc pl-5 text-sm text-slate-200 space-y-1">
-            <li>Photos (highest resolution available)</li>
-            <li>Architectural renders / CAD exports</li>
-            <li>Short videos (walkthroughs, drone, progress updates)</li>
-            <li>Floorplans and unit availability (max 10 units per development)</li>
-            <li>Key value points per development (why buy, timeline, milestones)</li>
+          <ul class="mt-3 list-disc pl-5 text-sm text-slate-200 space-y-1" id="gAssetsul">
+            <li id="gAli1">Photos (highest resolution available)</li>
+            <li id="gAli2">Architectural renders / CAD exports</li>
+            <li id="gAli3">Short videos (walkthroughs, drone, progress updates)</li>
+            <li id="gAli4">Floorplans and unit availability (max 10 units per development)</li>
+            <li id="gAli5">Key value points per development (why buy, timeline, milestones)</li>
           </ul>
-          <p class="mt-3 text-xs text-slate-400">
+          <p class="mt-3 text-xs text-slate-400" id="gAssetsnote">
             If needed, we can enhance image/video quality (cropping, color correction, compression) to improve conversions.
           </p>
         </div>
       </div>
 
-      <footer class="mt-8 text-center text-xs text-slate-500">
+      <footer class="mt-8 text-center text-xs text-slate-500" id="gFooter">
         Powered by CorpFlow · Draft preview for rapid iteration
       </footer>
     </div>
+    <script src="/assets/corpflow/tenant-chrome.js"></script>
+    <script src="/assets/corpflow/tenant-chrome-guide.js"></script>
   </body>
 </html>
-

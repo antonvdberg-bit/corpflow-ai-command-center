@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CorpFlow Change Console</title>
+    <link rel="stylesheet" href="/assets/corpflow/tenant-chrome-change.css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       @keyframes cf-pulse {
@@ -108,9 +109,15 @@
     <div class="max-w-5xl mx-auto px-4 py-10">
       <div class="flex items-start justify-between gap-6 flex-wrap">
         <div>
-          <h1 class="text-2xl font-semibold tracking-tight">Change Console</h1>
+          <div id="cfTenantBrand" class="hidden text-xs tracking-[0.28em] uppercase mb-1.5 font-semibold">
+            <span id="cfTenantBrandText"></span>
+          </div>
+          <h1 class="text-2xl font-semibold tracking-tight" id="cfConsoleHeadline">Change Console</h1>
           <p class="text-slate-400 text-sm mt-1">
             Full-page interactive space for requests + refinement + automation. Clients don’t see n8n; the Factory orchestrates it.
+          </p>
+          <p id="cfConsoleTaglineWrap" class="hidden text-slate-400 text-sm mt-2 border-l-2 border-sky-500/30 pl-3">
+            <span id="cfConsoleTagline"></span>
           </p>
         </div>
         <a class="text-sky-300 text-sm underline" href="/?admin=true">Back to intake</a>
@@ -2442,6 +2449,7 @@
         });
       })();
     </script>
+    <script src="/assets/corpflow/tenant-chrome.js"></script>
   </body>
 </html>
 
