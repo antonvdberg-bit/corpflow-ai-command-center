@@ -16,8 +16,14 @@ If the user enters a **different** Tenant ID than the host map, the API returns 
 | 4 | Provision access: `node scripts/provision-tenant-test-access.mjs --tenant=luxe-maurice --pin` and/or `--username=... --gen-password` (requires `POSTGRES_URL`). |
 | 5 | Open **`https://lux.corpflowai.com/login`** (or your resolved tenant URL), **Client / Tenant**, PIN or email/password. |
 
+## Factory-only: why won’t this email log in?
+
+Call **`POST /api/factory/tenant-login-debug`** with **`Authorization: Bearer <MASTER_ADMIN_KEY>`** and JSON body **`{ "email": "the@address.com" }`**.  
+It returns a **checklist** (session secret set, Postgres set, user row, hash/salt present) and a **short hint** — no passwords, no hashes.
+
 ## Password and email (what usually goes wrong)
 
+- **Session cookie:** Login needs **`SOVEREIGN_SESSION_SECRET`** set on Vercel. If it’s missing, the API returns **`SESSION_SECRET_MISSING`** and **no cookie** — the form will look “broken” even with the right password.
 - **One database:** Tenant email/password lives in Postgres table **`auth_users`**. The live site reads the same DB via **`POSTGRES_URL`** on Vercel. If you provision locally against a different connection string than production, the password will never work on the real site.
 - **Email is case-insensitive:** Logins now match **`you@company.com`** the same as **`You@company.com`** (aligned with the provision script, which stores lowercase).
 - **Reset the password cleanly:** Run the provision script again with the **same** `--username=` and a **new** `--password=` or **`--gen-password`** — do not paste hashes by hand.

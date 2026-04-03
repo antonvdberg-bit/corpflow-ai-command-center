@@ -21,6 +21,7 @@ import tenantSiteHandler from '../lib/server/tenant-site.js';
 import tenantSiteReadHandler from '../lib/server/tenant-site-read.js';
 import tenantIntakeHandler from '../lib/server/tenant-intake.js';
 import tenantSitePublicHandler from '../lib/server/tenant-site-public.js';
+import tenantLoginDebugHandler from '../lib/server/tenant-login-debug.js';
 import {
   handleAuthLogin,
   handleAuthLogout,
@@ -381,6 +382,9 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'factory/host-map/upsert') {
     return tenantHostMapUpsertHandler(req, res);
+  }
+  if (pathSeg === 'factory/tenant-login-debug') {
+    return tenantLoginDebugHandler(req, res);
   }
 
   switch (pathSeg) {
