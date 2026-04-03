@@ -78,6 +78,27 @@ function attachTenantFromHost(req) {
   req.corpflowContext = buildCorpflowHostContext(req);
 }
 
+/**
+ * When a user is on a tenant surface host, prefer the tenant_id from their session (auth_users)
+ * over host heuristics (e.g. `lux` subdomain vs canonical `luxe-maurice`). Keeps CMP and UI context aligned.
+ *
+ * @param {import('http').IncomingMessage} req
+ * @returns {void}
+ */
+function reconcileCorpflowTenantContextWithSession(req) {
+  try {
+    const sess = getSessionFromRequest(req);
+    if (!sess?.ok || sess.payload?.typ !== 'tenant' || sess.payload?.tenant_id == null) return;
+    const stid = String(sess.payload.tenant_id).trim();
+    if (!stid) return;
+    const ctx = req.corpflowContext;
+    if (!ctx || ctx.surface !== 'tenant') return;
+    req.corpflowContext = { ...ctx, tenant_id: stid };
+  } catch (_) {
+    /* ignore */
+  }
+}
+
 async function attachTenantFromHostPg(req) {
   // Start with the sync, no-I/O resolver.
   attachTenantFromHost(req);
@@ -340,6 +361,7 @@ async function handleUiContext(req, res) {
 export default async function handler(req, res) {
   const pathSeg = normalizeRoutingPath(req);
   await attachTenantFromHostPg(req);
+  reconcileCorpflowTenantContextWithSession(req);
 
   if (!pathSeg || pathSeg === 'factory_router') {
     return res.status(200).json({ ok: true, service: 'factory_router' });
