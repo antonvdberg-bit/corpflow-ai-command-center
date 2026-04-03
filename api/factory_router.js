@@ -41,6 +41,7 @@ import {
 import { buildCorpflowHostContext } from '../lib/server/host-tenant-context.js';
 import { cfg, runtimeConfigDiagnostics } from '../lib/server/runtime-config.js';
 import { getSessionFromRequest } from '../lib/server/session.js';
+import { isBillingExemptTenant } from '../lib/server/billing-exempt.js';
 
 const prisma = new PrismaClient();
 
@@ -346,6 +347,8 @@ async function handleUiContext(req, res) {
   const rootDomain = String(cfg('CORPFLOW_ROOT_DOMAIN', '')).trim();
   const suggestedTenantConsoleUrl =
     ctx.surface === 'core' && rootDomain ? `https://${rootDomain}/change` : null;
+  const billing_exempt =
+    session.logged_in === true && session.tenant_id ? isBillingExemptTenant(session.tenant_id) : false;
   return res.status(200).json({
     ok: true,
     host: ctx.host,
@@ -353,6 +356,7 @@ async function handleUiContext(req, res) {
     tenant_id: ctx.tenant_id,
     mode,
     session,
+    billing_exempt,
     root_domain: rootDomain || null,
     suggested_tenant_console_url: suggestedTenantConsoleUrl,
   });

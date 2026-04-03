@@ -102,6 +102,16 @@
         z-index: 2;
         padding: 1rem 1rem 1.25rem;
         min-height: 8rem;
+        border-radius: 0.5rem;
+        background: rgba(2, 6, 23, 0.78);
+        backdrop-filter: blur(12px) saturate(1.1);
+        -webkit-backdrop-filter: blur(12px) saturate(1.1);
+        border: 1px solid rgba(51, 65, 85, 0.35);
+      }
+      #tenantBackgroundPanel .cf-fog-code {
+        filter: blur(1.45px);
+        opacity: 0.92;
+        font-size: 9px;
       }
       /* Hide console until /api/auth/me confirms a session (redirect to /login if not). */
       #cfChangeAuthGate {
@@ -222,6 +232,17 @@
           <div class="mt-4">
             <div class="text-xs text-slate-300 mb-2">Describe the change</div>
             <textarea id="desc" class="w-full min-h-[140px] rounded-xl bg-slate-950 border border-slate-800 px-3 py-3 text-sm" placeholder="Describe what you want changed in plain language…"></textarea>
+            <p class="text-[10px] text-slate-500 mt-2 leading-relaxed">
+              <strong class="text-slate-400">Photos or video:</strong> there is no file upload here yet — paste
+              <strong class="text-slate-400">shareable links</strong> (Google Drive, Dropbox, WeTransfer, etc.) in the box
+              below or in your description.
+            </p>
+            <label class="block mt-3 text-[11px] text-slate-400">Image / video links (optional, one per line)</label>
+            <textarea
+              id="mediaLinks"
+              class="mt-1 w-full min-h-[72px] rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-[11px] text-slate-200"
+              placeholder="https://…"
+            ></textarea>
             <div class="flex flex-wrap gap-2 mt-3">
               <button id="btnCreate" class="rounded-lg bg-sky-500 text-slate-950 px-4 py-2 text-sm font-semibold">Create ticket</button>
               <button id="btnCost" class="rounded-lg border border-slate-700 px-4 py-2 text-sm">Estimate</button>
@@ -240,7 +261,8 @@
             <div id="tenantBackgroundPanel" class="hidden">
               <div class="text-xs font-semibold text-slate-200 mb-1">Work in progress</div>
               <p class="text-[11px] text-slate-500 mb-3 leading-relaxed">
-                The factory is running tasks for your ticket in the background. What you see below is a live-feel view only — not your site’s source code.
+                Below is an <strong class="text-slate-400">obfuscated, illustrative</strong> view of factory activity — not
+                your site’s source code. Detailed GitHub and repo names are hidden on the client surface.
               </p>
               <div class="cf-fog-wrap mb-4">
                 <pre id="tenantFogCode" class="cf-fog-code" aria-hidden="true"></pre>
@@ -489,14 +511,28 @@
           return (
             '[factory] ticket_ctx.resolve() … ok\n' +
             '[cmp] ethical_sentinel.scan(priority=normal)\n' +
+            '[queue] work_item.enqueue(scope=client_view)\n' +
             '[git] target=development/sandbox · dispatch=queued\n' +
             '[deploy] preview pipeline … pending\n' +
-            '// — tenant-safe view · illustrative only —\n' +
+            '[worker] ████████ · redacted · ████████\n' +
+            '// — tenant-safe obfuscated trace · not your repository —\n' +
             'async function handoff(bundle) {\n' +
             '  await gates.review();\n' +
             '  return preview.route({ uat: true });\n' +
-            '}\n'
+            '}\n' +
+            'const pipeline = await factory.orchestrate({ mode: "sandbox" });\n' +
+            '// stdout suppressed for client surface\n'
           );
+        }
+
+        /** @param {string} base */
+        function mergeMediaIntoDescription(base) {
+          const m = $('mediaLinks');
+          const links = m && m.value ? String(m.value).trim() : '';
+          const b = String(base || '').trim();
+          if (!links) return b;
+          if (!b) return 'Media / file links:\n' + links;
+          return b + '\n\nMedia / file links:\n' + links;
         }
 
         function stopTenantUiTimers() {
@@ -534,6 +570,8 @@
         function updateTenantCountdownFromBrief(merged) {
           const out = $('tenantCountdown');
           const foot = $('tenantEtaFoot');
+          const head = $('tenantWorkHeadline');
+          const sub = $('tenantWorkSubline');
           if (!isTenantClient() || !out) return;
           stopTenantUiTimers();
           const tid = String((merged && merged.ticket_id) || ticketEl.value || '').trim();
@@ -542,14 +580,43 @@
             out.classList.remove('text-emerald-400');
             out.classList.add('text-slate-100');
             if (foot) foot.textContent = 'Create or select a ticket to see an indicative timer.';
+            if (head) head.textContent = 'Orchestrating your change request…';
+            if (sub) sub.textContent = 'Create a ticket to begin.';
             return;
           }
-          startTenantWorkRotator();
           const tp =
             merged && merged.ticket_progress && typeof merged.ticket_progress === 'object'
               ? merged.ticket_progress
               : null;
+          const st = String((tp && tp.status) || (merged && merged.status) || '').trim();
+          const sg = String((tp && tp.stage) || (merged && merged.stage) || '').trim();
           const cv = tp && tp.client_view && typeof tp.client_view === 'object' ? tp.client_view : {};
+          const hasEstimate = Boolean(
+            cv.last_estimate_at ||
+              (merged && merged.costing_preview && typeof merged.costing_preview === 'object'),
+          );
+          const buildApproved = /approved/i.test(st) || String(sg).toLowerCase() === 'build';
+          // Avoid “fake motion” before build approval — Estimate does not spend credits; Approve build does.
+          if (!buildApproved) {
+            if (head) {
+              head.textContent = hasEstimate ? 'Queued for build approval' : 'Draft ticket';
+            }
+            if (sub) {
+              sub.textContent = hasEstimate
+                ? 'Your estimate is saved. The animated trace below stays paused until a build is approved (credits or billing-exempt tenant).'
+                : 'Run Estimate first. Nothing runs in GitHub until Approve build succeeds.';
+            }
+            out.textContent = '--:--';
+            out.classList.remove('text-emerald-400');
+            out.classList.add('text-slate-100');
+            if (foot) {
+              foot.textContent = hasEstimate
+                ? 'Timer starts after build approval, or when a preview URL is posted to your ticket.'
+                : 'Indicative timer appears after you save an estimate.';
+            }
+            return;
+          }
+          startTenantWorkRotator();
           const auto = cv.automation && typeof cv.automation === 'object' ? cv.automation : {};
           const previewUrl = typeof auto.preview_url === 'string' ? auto.preview_url.trim() : '';
           if (previewUrl) {
@@ -665,6 +732,11 @@
           const panel = $('processHealthPanel');
           const body = $('processHealthBody');
           if (!panel || !body) return;
+          if (isTenantClient()) {
+            panel.classList.add('hidden');
+            body.innerHTML = '';
+            return;
+          }
           const tid = String(ticketEl.value || (lastBrief && lastBrief.ticket_id) || '').trim();
           if (!tid || !sessionInfo || !sessionInfo.logged_in) {
             panel.classList.add('hidden');
@@ -912,6 +984,10 @@
           const metaEl = $('executionActivityMeta');
           const linksEl = $('executionActivityLinks');
           if (!card || !sumEl || !metaEl || !linksEl) return;
+          if (isTenantClient()) {
+            card.classList.add('hidden');
+            return;
+          }
 
           if (!apiJson || typeof apiJson !== 'object') {
             sumEl.textContent = 'No data yet.';
@@ -1021,6 +1097,12 @@
             updateProcessHealthFromState();
             return;
           }
+          if (isTenantClient()) {
+            if (card) card.classList.add('hidden');
+            lastActivityPayload = null;
+            updateProcessHealthFromState();
+            return;
+          }
           if (card) card.classList.remove('hidden');
           try {
             const r = await fetch(
@@ -1065,6 +1147,13 @@
           stopTicketActivityPoll();
           const tid = String(ticketEl.value || '').trim();
           if (!sessionInfo || !sessionInfo.logged_in || !tid) {
+            const card = $('executionActivityCard');
+            if (card) card.classList.add('hidden');
+            lastActivityPayload = null;
+            updateProcessHealthFromState();
+            return;
+          }
+          if (isTenantClient()) {
             const card = $('executionActivityCard');
             if (card) card.classList.add('hidden');
             lastActivityPayload = null;
@@ -2100,6 +2189,13 @@
                   'No factory (unscoped) tickets yet. Tickets tied to a client tenant appear only in that tenant’s Change Console — not in this factory list.';
               } else if (listScope === 'tenant') {
                 emptyMsg = 'No tickets for your organization yet. Create one above.';
+                try {
+                  const storedTid = localStorage.getItem(LS_TICKET) || '';
+                  if (String(storedTid).trim()) {
+                    emptyMsg +=
+                      ' If you still see a Ticket ID below but nothing here, that id is usually a “ghost” (wrong tenant or created before host/session fixes). Click Reset, then create a new ticket.';
+                  }
+                } catch (_) {}
               }
               listEl.innerHTML = '<div class="text-slate-500 px-1 py-2 leading-relaxed">' + escapeHtml(emptyMsg) + '</div>';
               return;
@@ -2214,9 +2310,13 @@
 
             // Apply rule sets (UI only; server still enforces auth).
             if (isClient) {
-              // Client-hosted consoles should not expose approve build.
+              // Approve build: hidden for normal clients; shown when tenant is in CORPFLOW_BILLING_EXEMPT_TENANT_IDS (demo/partner).
               const approveBtn = $('btnApprove');
-              if (approveBtn) approveBtn.classList.add('hidden');
+              if (approveBtn) {
+                const billingExempt = uiContext && uiContext.billing_exempt === true;
+                if (billingExempt) approveBtn.classList.remove('hidden');
+                else approveBtn.classList.add('hidden');
+              }
               const chatWrap = $('thread') && $('thread').parentElement ? $('thread').parentElement : null;
               // keep chat visible by default; client consoles may want it.
             }
@@ -2364,6 +2464,10 @@
           const hp = $('processHealthPanel');
           if (hp) hp.classList.add('hidden');
           descEl.value = '';
+          try {
+            const ml = $('mediaLinks');
+            if (ml) ml.value = '';
+          } catch (_) {}
           chatEl.value = '';
           ticketEl.value = '';
           thread.innerHTML = '';
@@ -2374,8 +2478,8 @@
 
         $('btnCreate').addEventListener('click', async () => {
           setBanner('');
-          const d = String(descEl.value || '').trim();
-          if (!d) return setBanner('Please describe the change you want.');
+          const d = mergeMediaIntoDescription(String(descEl.value || '').trim());
+          if (!String(d).trim()) return setBanner('Please describe the change or add at least one media link.');
           try {
             await withActivity('Creating ticket…', async () => {
               const created = await post('ticket-create', { description: d });
@@ -2396,7 +2500,7 @@
         $('btnCost').addEventListener('click', async () => {
           setBanner('');
           const tid = String(ticketEl.value || '').trim();
-          const d = String(descEl.value || '').trim();
+          const d = mergeMediaIntoDescription(String(descEl.value || '').trim());
           if (!tid) return setBanner('Create or paste a Ticket ID first.');
           try {
             const j = await post('costing-preview', { description: d, ticketId: tid, is_demo: false, tier: 'standard' });
@@ -2413,7 +2517,7 @@
         $('btnApprove').addEventListener('click', async () => {
           setBanner('');
           const tid = String(ticketEl.value || '').trim();
-          const d = String(descEl.value || '').trim();
+          const d = mergeMediaIntoDescription(String(descEl.value || '').trim());
           if (!tid) return setBanner('Create or paste a Ticket ID first.');
           setPipelineSubmitting('Approve build');
           try {
