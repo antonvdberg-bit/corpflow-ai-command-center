@@ -4,7 +4,8 @@
     "vercel-build": "prisma generate && next build",
     "build": "next build",
     "test": "node --test node-tests/*.mjs",
-    "verify:cmp-env": "node scripts/verify-cmp-env-read.mjs"
+    "verify:cmp-env": "node scripts/verify-cmp-env-read.mjs",
+    "provision:tenant-test": "node scripts/provision-tenant-test-access.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.0.0",

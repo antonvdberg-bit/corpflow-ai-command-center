@@ -37,8 +37,16 @@
           <h2 class="text-sm font-semibold">Client / Tenant</h2>
           <p class="text-xs text-slate-400 mt-1">Tenant-scoped access (no factory settings).</p>
           <label class="block text-xs text-slate-300 mt-4">Tenant ID
-            <input id="tenantId" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" placeholder="e.g. corpflowai" />
+            <input id="tenantId" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm font-mono" placeholder="e.g. luxe-maurice" autocomplete="organization" />
           </label>
+          <div id="tenantIdHostLock" class="hidden mt-2 rounded-lg border border-emerald-500/25 bg-emerald-500/5 px-3 py-2 text-[11px] text-emerald-100/90 leading-relaxed">
+            <span class="text-emerald-200/95 font-medium">This hostname is mapped to tenant</span>
+            <code id="tenantIdExpected" class="mx-1 text-slate-100"></code>
+            <span class="text-emerald-200/95">— field is locked so it is not mistyped (e.g. <code class="text-rose-200">lux</code> vs <code class="text-slate-100">luxe-maurice</code>).</span>
+            <button type="button" id="btnUnlockTenantId" class="ml-2 text-sky-300 underline font-normal">
+              Unlock to type a different tenant
+            </button>
+          </div>
           <div class="grid grid-cols-1 gap-3 mt-3">
             <label class="block text-xs text-slate-300">Email / Username (optional)
               <input id="tenantUser" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" placeholder="name@company.com" autocomplete="username" />
@@ -153,13 +161,30 @@
             body: JSON.stringify(body || {}),
           });
           const j = await r.json().catch(() => ({}));
-          if (!r.ok) throw new Error(j.error || j.detail || ('http_' + r.status));
+          if (!r.ok) {
+            const ex = new Error(j.error || j.detail || 'http_' + r.status);
+            ex.corpflowBody = j;
+            throw ex;
+          }
           return j;
         }
+
+        let hostMappedTenantId = null;
 
         $('btnTenant').addEventListener('click', async () => {
           err('');
           try {
+            const typed = String($('tenantId').value || '').trim();
+            if (hostMappedTenantId && typed && typed !== hostMappedTenantId) {
+              err(
+                'Tenant ID must be exactly "' +
+                  hostMappedTenantId +
+                  '" on this site. You entered "' +
+                  typed +
+                  '". Refresh the page to re-lock the field, or fix the Tenant ID.',
+              );
+              return;
+            }
             const j = await post('/api/auth/login', {
               level: 'tenant',
               tenant_id: $('tenantId').value,
@@ -169,7 +194,19 @@
             });
             good('Logged in as tenant. Session cookie set.');
           } catch (e) {
-            err(String(e.message || e));
+            let m = String(e.message || e);
+            const jb = e.corpflowBody && typeof e.corpflowBody === 'object' ? e.corpflowBody : null;
+            if (jb && jb.expected_tenant_id) {
+              m += ' — Expected Tenant ID for this host: "' + String(jb.expected_tenant_id) + '".';
+            }
+            if (jb && jb.hint) m += ' ' + String(jb.hint);
+            if (m.indexOf('TENANT_MISMATCH') !== -1 && hostMappedTenantId) {
+              m +=
+                ' — Your account is for tenant "' +
+                hostMappedTenantId +
+                '". This page should have filled that for you; clear the field and refresh, or fix the Tenant ID box.';
+            }
+            err(m);
           }
         });
 
@@ -290,36 +327,51 @@
 
         refreshSessionBanner();
 
-        // On tenant-mapped hosts (e.g. lux.corpflowai.com), pre-fill Tenant ID so client-level login matches ops docs.
-        (async function prefillTenantFromHost() {
-          try {
-            const r = await fetch('/api/tenant/site', { credentials: 'same-origin' });
-            const j = await r.json().catch(() => ({}));
-            const tid = j && j.tenant_id ? String(j.tenant_id).trim() : '';
-            const inp = $('tenantId');
-            if (tid && inp && !String(inp.value || '').trim()) {
-              inp.value = tid;
-            }
-          } catch (_) {}
-        })();
-      })();
-    </script>
-    <script src="/assets/corpflow/tenant-chrome.js"></script>
-    <script>
-      (function () {
+        // Tenant ID lock + copy: single source — same GET /api/tenant/site as tenant-chrome.js (cf-tenant-site event).
+        const inp = $('tenantId');
+        const hint = $('tenantIdHostLock');
+        const expectedEl = $('tenantIdExpected');
+        const unlockBtn = $('btnUnlockTenantId');
+        if (unlockBtn && inp) {
+          unlockBtn.addEventListener('click', () => {
+            inp.readOnly = false;
+            inp.classList.remove('opacity-95');
+            if (hint) hint.classList.add('hidden');
+            hostMappedTenantId = null;
+          });
+        }
+
         window.addEventListener('cf-tenant-site', function (ev) {
-          var site = ev.detail && ev.detail.site;
-          if (!site) return;
-          var lead = document.getElementById('loginPageLead');
-          if (lead) {
-            lead.textContent =
-              'Sign in with the tenant PIN or email login issued to you. Your session is stored in a secure cookie for this site only.';
+          const d = ev.detail || {};
+          if (!d.site) return;
+          const tid = d.tenant_id ? String(d.tenant_id).trim() : '';
+          const tenant = d.tenant && typeof d.tenant === 'object' ? d.tenant : {};
+          const display =
+            tenant.name != null && String(tenant.name).trim() !== '' ? String(tenant.name).trim() : '';
+
+          if (tid && inp) {
+            hostMappedTenantId = tid;
+            inp.value = tid;
+            inp.readOnly = true;
+            inp.classList.add('opacity-95');
+            if (expectedEl) expectedEl.textContent = tid;
+            if (hint) hint.classList.remove('hidden');
           }
-          var h = document.getElementById('loginPageHeading');
-          if (h) h.textContent = 'Sign in';
+
+          const lead = $('loginPageLead');
+          const h = $('loginPageHeading');
+          if (lead) {
+            lead.textContent = display
+              ? 'Sign in to ' +
+                display +
+                ' with the tenant PIN or email login issued to you. Your session is stored in a secure cookie for this site only.'
+              : 'Sign in with the tenant PIN or email login issued to you. Your session is stored in a secure cookie for this site only.';
+          }
+          if (h) h.textContent = display ? 'Sign in — ' + display : 'Sign in';
         });
       })();
     </script>
+    <script src="/assets/corpflow/tenant-chrome.js"></script>
   </body>
 </html>
 

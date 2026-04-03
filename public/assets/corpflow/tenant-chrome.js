@@ -4,7 +4,7 @@
  *
  * Sets on document.documentElement: --cf-accent, --cf-accent-rgb, --cf-tenant-bg, --cf-tenant-text, --cf-tenant-muted
  * Adds body class: cf-tenant-skin
- * Dispatches: window dispatchEvent(new CustomEvent('cf-tenant-site', { detail: { site, tenant_id } }))
+ * Dispatches: window dispatchEvent(new CustomEvent('cf-tenant-site', { detail: { site, tenant_id, tenant } }))
  */
 (function () {
   function hexToRgbTriplet(hex) {
@@ -66,6 +66,7 @@
       if (!j.tenant_id || !j.site) return;
 
       const site = j.site;
+      const tenant = j.tenant && typeof j.tenant === 'object' ? j.tenant : null;
       const t = site.theme && typeof site.theme === 'object' ? site.theme : {};
       const primary = t.primary || '#d4af37';
       const bg = t.background || '#0a0a0a';
@@ -88,10 +89,15 @@
 
       if (kind === 'login') {
         document.body.classList.add('cf-tenant-client-login');
+        const displayName =
+          (tenant && tenant.name && String(tenant.name).trim()) ||
+          (hero.title && String(hero.title).trim()) ||
+          (j.tenant_id && String(j.tenant_id)) ||
+          '';
         if (meta.login_title) {
           document.title = String(meta.login_title);
-        } else if (hero.title) {
-          document.title = `${String(hero.title)} · Login`;
+        } else if (displayName) {
+          document.title = `${displayName} · Login`;
         }
         const grid = document.getElementById('loginGrid');
         const fac = document.getElementById('loginFactoryColumn');
@@ -101,17 +107,25 @@
           grid.classList.add('md:grid-cols-1');
         }
       } else if (kind === 'change') {
+        const displayName =
+          (tenant && tenant.name && String(tenant.name).trim()) ||
+          (hero.title && String(hero.title).trim()) ||
+          (j.tenant_id && String(j.tenant_id)) ||
+          '';
         if (meta.console_title) {
           document.title = String(meta.console_title);
-        } else if (hero.title) {
-          document.title = `${String(hero.title)} · Change Console`;
+        } else if (displayName) {
+          document.title = `${displayName} · Change Console`;
         }
         lockChangeConsoleLocale();
       } else if (kind === 'guide' && meta.guide_title) {
         document.title = String(meta.guide_title);
       }
 
-      const brand = hero.title ? String(hero.title) : '';
+      const brand =
+        (tenant && tenant.name && String(tenant.name).trim()) ||
+        (hero.title && String(hero.title).trim()) ||
+        (j.tenant_id ? String(j.tenant_id) : '');
       if (brand && (kind === 'login' || kind === 'change' || kind === 'guide')) {
         setIfPresent('cfTenantBrandText', brand.toUpperCase());
         showEl('cfTenantBrand');
@@ -127,7 +141,7 @@
         }
       }
 
-      const detail = { site, tenant_id: j.tenant_id };
+      const detail = { site, tenant_id: j.tenant_id, tenant };
       window.__cfTenantSiteDetail = detail;
       window.dispatchEvent(new CustomEvent('cf-tenant-site', { detail }));
     } catch (_) {

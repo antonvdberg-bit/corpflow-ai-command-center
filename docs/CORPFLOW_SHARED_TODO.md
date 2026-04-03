@@ -24,6 +24,15 @@
 - [ ] Decide n8n hosting: same host 24/7 vs trigger-only; ensure `CORPFLOW_AUTOMATION_FORWARD_URL` is reachable from Vercel.
 - [ ] (Optional GCP) Cloud Scheduler → HTTPS to factory endpoint with shared secret (uses existing Google Cloud account).
 
+## P1 — Tenant surfaces (DB-driven, low drama → high leverage)
+
+**Firm request + rubric:** `artifacts/firm_request_db-driven-staged-path.md` (factory vs brain, Luxe login ops).
+
+- [ ] **Unify tenant site read** — one server helper for merged `{ tenant, site }` used by Next `getServerSideProps` and `GET /api/tenant/site`.
+- [ ] **Cache public reads** — `Cache-Control` (and optional `ETag`) on `GET /api/tenant/site` for anonymous traffic.
+- [ ] **Prisma / Postgres pooling** — align serverless client usage with Neon/Vercel guidance (document chosen pattern in `CONTEXT.md` or ops doc).
+- [ ] (Optional) **ISR / edge** for tenant `/` when draft staleness is acceptable.
+
 ## P1 — AI provision & Change Console
 
 - [ ] Factory HTML tail for `GET /api/automation/events` (operator view without curl).
@@ -56,4 +65,4 @@
 
 ---
 
-*Last reviewed: 2026-04-02 — update this line when you change priorities.*
+*Last reviewed: 2026-04-03 — update this line when you change priorities.*

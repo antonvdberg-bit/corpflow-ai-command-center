@@ -291,10 +291,16 @@ export async function getServerSideProps({ req }) {
       return { props: { mode: 'core', site: null } };
     }
 
-    const persona = await prisma.tenantPersona.findUnique({
-      where: { tenantId },
-      select: { personaJson: true },
-    });
+    const [persona, tenantRow] = await Promise.all([
+      prisma.tenantPersona.findUnique({
+        where: { tenantId },
+        select: { personaJson: true },
+      }),
+      prisma.tenant.findUnique({
+        where: { tenantId },
+        select: { name: true },
+      }),
+    ]);
     const pj = persona?.personaJson && typeof persona.personaJson === 'object' ? persona.personaJson : {};
     const draft = pj?.website_draft && typeof pj.website_draft === 'object' ? pj.website_draft : null;
     const qLang = (() => {
@@ -308,7 +314,7 @@ export async function getServerSideProps({ req }) {
       }
     })();
 
-    const base = defaultPublicSite(tenantId, host);
+    const base = defaultPublicSite(tenantId, host, { dbName: tenantRow?.name ?? null });
     const site = mergeSiteDraft(base, draft || {});
     site.lang_default = site.lang_default || 'en';
     site.languages = Array.isArray(site.languages) ? site.languages : ['en', 'fr', 'ru'];

@@ -98,6 +98,8 @@ async function attachTenantFromHostPg(req) {
       tenant_id: tenantId,
       host_slug: tenantId,
     };
+    /** Set when `tenant_id` came from `tenant_hostnames` (authoritative), not subdomain heuristics. */
+    req.corpflowTenantIdSource = 'postgres';
     // Provide mode hint to UI context.
     req.corpflowUiMode = row.mode ? String(row.mode).trim().toLowerCase() : null;
   } catch (_) {
