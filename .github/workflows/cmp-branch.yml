@@ -58,6 +58,10 @@ jobs:
           git fetch origin "$BASE_REF"
           git checkout -B "cmp/${TICKET}" "origin/${BASE_REF}"
           git push -u origin "HEAD:refs/heads/cmp/${TICKET}" --force
+          # GitHub POST /repos/.../pulls returns HTTP 422 when head and base are the same SHA
+          # ("No commits between main and cmp/..."). One empty commit makes the PR creatable.
+          git commit --allow-empty -m "chore(cmp): sandbox branch for ${TICKET}"
+          git push origin "HEAD:refs/heads/cmp/${TICKET}"
 
       - name: Ensure PR exists for cmp/${{ steps.meta.outputs.ticket }}
         id: pr

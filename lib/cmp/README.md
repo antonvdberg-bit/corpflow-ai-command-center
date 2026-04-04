@@ -81,6 +81,10 @@ JSON body (typical):
 
 Use this from n8n or a Vercel deploy webhook after a Preview deployment for branch `cmp/<ticket_id>` is ready.
 
+## CMP Sandbox workflow (GitHub Actions)
+
+Workflow: `.github/workflows/cmp-branch.yml`. If **Ensure PR exists** fails with **`curl: (22) ... 422`**, GitHub is usually rejecting **create pull request** because **head and base pointed at the same commit** (no diff). The workflow adds an **empty commit** on `cmp/<ticket_id>` after branching so the PR can be opened; re-run the failed job after pulling latest `main`.
+
 ## Static bubble
 
 - `public/assets/cmp/bubble.js` — include with `<script src="/assets/cmp/bubble.js" defer …></script>`.
