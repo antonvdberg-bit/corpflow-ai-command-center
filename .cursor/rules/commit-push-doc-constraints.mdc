@@ -1,0 +1,14 @@
+---
+description: On commit/push, re-check docs and repo rules so boundaries are not violated
+alwaysApply: true
+---
+
+# Commit / push — documentation and constraints
+
+When work is **committed and pushed** (or you are about to), treat this as **definition of done**:
+
+1. **Documentation pass** — Re-read or skim the docs that govern what you changed (see **`docs/CORPFLOW_SHARED_TODO.md`** § *Base process — commit, push, and documentation* for the full list and priorities). Ensure operator-facing steps and env vars still match reality (including `.env.template` when behavior is env-driven).
+2. **Rules and boundaries** — Confirm the change does not violate tenancy/host policy (`docs/operations/TENANT_CLIENT_LOGIN.md`), factory vs client boundaries, automation and secrets expectations (`docs/EXECUTION_BRAIN_VS_HANDS.md`, `docs/automation-framework.md`), CMP/API contracts (`lib/cmp/README.md`), or existing decisions in **`docs/CORPFLOW_SHARED_TODO.md`**. If something must change, update the canonical doc and/or checklist in the same push — not only code.
+3. **Update docs when needed** — New APIs, flags, security behavior, or runbook steps belong in the **canonical** doc for that area; avoid leaving the team with code-only truth.
+
+If you cannot verify (e.g. no access to prod env), state what was verified locally and what remains for a human.

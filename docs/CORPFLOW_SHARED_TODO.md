@@ -7,6 +7,18 @@
 
 ---
 
+## Base process — commit, push, and documentation (agents + humans)
+
+Treat this as part of **definition of done** whenever work is **committed and pushed** (including merge to `main`):
+
+1. **Re-evaluate documentation** against the change: operational runbooks (`docs/operations/`, `docs/runbooks/`), `.env.template`, `lib/cmp/README.md`, `docs/automation-framework.md`, and any file this repo names as canonical for the area you touched (e.g. `docs/operations/TENANT_CLIENT_LOGIN.md` for hostname / login / tenancy).
+2. **Check rules, boundaries, and constraints** so nothing is transgressed: tenancy and host policy, factory vs tenant surfaces, secrets and automation boundaries (`docs/EXECUTION_BRAIN_VS_HANDS.md`), items already marked done or decided in this checklist, and Cursor/project rules under `.cursor/rules/`. If a constraint must change, record the decision **in-repo** (this file, a strategy doc, or an ADR-style note) in the same effort — do not ship silent contradictions.
+3. **Update documentation when required**: if behavior, env vars, APIs, security posture, or operator steps changed, update the **canonical** doc for that topic in the **same change set** (or an immediate follow-up commit). Prefer updating established docs over leaving the only explanation in chat or an unreferenced `artifacts/` note.
+
+**Agents:** before you finish a task that ends in commit/push, explicitly run through (1)–(3) and fix gaps or call out what still needs a human decision.
+
+---
+
 ## Partner charter — breathtaking client experience (technical)
 
 **What we sell first:** speed and clarity from **request → estimate → committed build → automation** — backed by **AI agents and factory execution**, not “many website skins” as the headline.

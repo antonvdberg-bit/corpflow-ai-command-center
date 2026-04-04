@@ -17,6 +17,10 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 
 <!-- OPENSPEC:END -->
 
+## CorpFlow AI Command Center — process
+
+For **every commit and push**: re-evaluate documentation against the change, confirm **no rules, boundaries, or constraints** documented in-repo are violated, and **update canonical docs** when behavior or ops steps change. Full checklist: **`docs/CORPFLOW_SHARED_TODO.md`** (section *Base process — commit, push, and documentation*). Cursor: **`.cursor/rules/commit-push-doc-constraints.mdc`** (always on).
+
 # Repository Agent Guide
 
 This repo is the Antigravity Workspace Template (Python). Follow the local
