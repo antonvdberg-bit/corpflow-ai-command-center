@@ -17,80 +17,51 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 
 <!-- OPENSPEC:END -->
 
-## CorpFlow AI Command Center — process
+# CorpFlow AI Command Center — agent guide
 
-For **every commit and push**: re-evaluate documentation against the change, confirm **no rules, boundaries, or constraints** documented in-repo are violated, and **update canonical docs** when behavior or ops steps change. Full checklist: **`docs/CORPFLOW_SHARED_TODO.md`** (section *Base process — commit, push, and documentation*). Cursor: **`.cursor/rules/commit-push-doc-constraints.mdc`** (always on).
+This repository is the **CorpFlow AI Command Center**: **Next.js** (pages router), **Node** server/API routes, **Prisma** + **Postgres**, CMP/automation under `lib/cmp/` and `lib/automation/`. Ignore the **legacy Python / Antigravity template** section at the bottom unless you are explicitly working in `core/engine/` Python.
 
-# Repository Agent Guide
+## Process (every commit / push)
 
-This repo is the Antigravity Workspace Template (Python). Follow the local
-rules in `.cursorrules`, `.antigravity/rules.md`, and `CONTEXT.md`.
+1. **`docs/CORPFLOW_SHARED_TODO.md`** — § *Base process — commit, push, and documentation*.
+2. **`.cursor/rules/commit-push-doc-constraints.mdc`** and **`.cursor/rules/security-sensitive-changes.mdc`** (always on).
+3. Security-sensitive edits: **`docs/operations/SECURITY_REVIEW_CHECKLIST.md`**.
 
-## Must-Read Files (Before Any Work)
-- `mission.md` (required by `.antigravity/rules.md`)
-- `.antigravity/rules.md` (core agent behavior + coding standards)
-- `CONTEXT.md` (project conventions and architecture)
-- `.cursorrules` (points to the Antigravity rules engine)
-- `openspec/AGENTS.md` (when planning/spec/change work is requested)
+## Must-read (by topic)
 
-## Artifact-First Workflow
-- For non-trivial tasks, create a plan file in `artifacts/plan_[task_id].md`.
-- Store test/log output in `artifacts/logs/`.
-- If UI is modified, include a screenshot artifact.
-- Keep artifacts lightweight and deterministic.
+| Topic | Doc |
+|--------|-----|
+| Priorities & checklist | `docs/CORPFLOW_SHARED_TODO.md` |
+| Production bar (reliable, secure, observable) | `docs/strategy/PRODUCTION_GRADE_CLIENT_OUTCOMES.md` |
+| Host / apex / login / tenancy | `docs/operations/TENANT_CLIENT_LOGIN.md` |
+| Security review triggers | `docs/operations/SECURITY_REVIEW_CHECKLIST.md` |
+| Incident / rotation stub | `docs/runbooks/SECURITY_OR_INCIDENT.md` |
+| Brain vs hands / automation | `docs/EXECUTION_BRAIN_VS_HANDS.md`, `docs/automation-framework.md` |
+| n8n forward | `docs/n8n/automation-forward-recipe.md` |
+| CMP API surface | `lib/cmp/README.md` |
+| Env placeholders | `.env.template` |
+| ADR-lite decisions | `docs/decisions/README.md` |
+| Compliance starter | `docs/compliance/DATA_MAP_AND_SUBPROCESSORS.md` |
 
-## Build / Lint / Test Commands
-### Setup
-- `python -m venv venv && source venv/bin/activate`
-- `pip install -r requirements.txt`
+## Build / test (app)
 
-### Run Agent
-- `python src/agent.py "Your task here"`
+```bash
+npm ci
+npm test
+npm run build
+```
 
-### Docker
-- `docker-compose up --build`
+Prisma client generates on `postinstall` / `npm ci`. CI runs Python tests under `core/engine/tests/` plus `npm test`, `npm audit`, and `npm run build` (see `.github/workflows/test.yml`).
 
-### Tests
-- Run all tests: `pytest`
-- Run test folder: `pytest tests/`
-- Run a single test file: `pytest tests/test_agent.py -v`
-- Run a single test case: `pytest tests/test_agent.py::test_agent_initialization -v`
-- Run a single test method: `pytest tests/test_agent.py::TestClass::test_method -v`
-- Coverage: `pytest --cov=src tests/`
-- Sandbox tests: `pytest tests/test_local_sandbox.py tests/test_docker_sandbox.py tests/test_factory.py -v`
+## Legacy: Python engine (`core/engine/`)
 
-### Lint / Format
-- No repo-level linter/formatter configs were found.
-- Follow existing style and PEP 8; avoid reformatting unrelated code.
-- Optional sanity check for tools: `python -m py_compile src/tools/*.py`
+Some workflows still run **pytest** on `core/engine/tests/`. Only follow the Antigravity-style instructions below when editing that tree.
 
-### CI
-- GitHub Actions runs `pytest tests/` on pushes/PRs (`.github/workflows/test.yml`).
+<details>
+<summary>Legacy Antigravity / Python template (expand if needed)</summary>
 
-## Code Style (Python)
-- **Type hints are required** for all function signatures.
-- **Docstrings are required** for functions/classes; use Google-style format.
-  Include `Args:`, `Returns:`, and `Raises:` where applicable.
-- **Use Pydantic** for data models and settings (`pydantic`, `pydantic-settings`).
-- **External API calls** must be wrapped in tools under `src/tools/`.
-- **Use `<thought>` blocks** for non-trivial logic (see `src/tools/example_tool.py`).
-- **Imports**: stdlib → third-party → local (`src.`) with blank lines between.
-- **Formatting**: 4-space indent, one statement per line, keep lines readable.
-- **Strings**: prefer f-strings for interpolation; keep quote style consistent.
+- Optional reads: `mission.md`, `.antigravity/rules.md`, `CONTEXT.md`, `.cursorrules`
+- Setup: `python -m venv venv`, `pip install -r requirements.txt`, `pip install -r core/engine/requirements.txt`
+- Tests: `pytest core/engine/tests/`
 
-## Architecture & Patterns
-- **Tool discovery**: public functions in `src/tools/*.py` are auto-loaded.
-  Keep tool functions small, pure when possible, and well-documented.
-- **MCP integration**: optional via `mcp_servers.json` and `.env`.
-- **Context injection**: `.context/` markdown files are auto-loaded.
-- **Memory**: JSON-based memory via `MemoryManager` (`src/memory.py`).
-
-## Testing & Reliability
-- Use `pytest` fixtures and `assert` statements (see `tests/`).
-- Keep tests deterministic; avoid external network calls.
-- Store test logs in `artifacts/logs/` per Antigravity rules.
-
-## Notes for Agents
-- The template expects a “Think → Act → Reflect” workflow.
-- Avoid destructive commands (`rm -rf`, etc.).
-- If a request implies a spec/proposal, follow OpenSpec flow before coding.
+</details>

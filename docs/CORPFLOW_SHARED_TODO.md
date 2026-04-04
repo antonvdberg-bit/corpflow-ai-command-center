@@ -12,7 +12,7 @@
 Treat this as part of **definition of done** whenever work is **committed and pushed** (including merge to `main`):
 
 1. **Re-evaluate documentation** against the change: operational runbooks (`docs/operations/`, `docs/runbooks/`), `.env.template`, `lib/cmp/README.md`, `docs/automation-framework.md`, and any file this repo names as canonical for the area you touched (e.g. `docs/operations/TENANT_CLIENT_LOGIN.md` for hostname / login / tenancy).
-2. **Check rules, boundaries, and constraints** so nothing is transgressed: tenancy and host policy, factory vs tenant surfaces, secrets and automation boundaries (`docs/EXECUTION_BRAIN_VS_HANDS.md`), items already marked done or decided in this checklist, and Cursor/project rules under `.cursor/rules/`. If a constraint must change, record the decision **in-repo** (this file, a strategy doc, or an ADR-style note) in the same effort — do not ship silent contradictions.
+2. **Check rules, boundaries, and constraints** so nothing is transgressed: tenancy and host policy, factory vs tenant surfaces, secrets and automation boundaries (`docs/EXECUTION_BRAIN_VS_HANDS.md`), items already marked done or decided in this checklist, and Cursor/project rules under `.cursor/rules/`. For **auth, sessions, `api/`, `lib/server/`, `lib/cmp/` gates, Prisma, webhooks, or automation secrets**, also apply **`docs/operations/SECURITY_REVIEW_CHECKLIST.md`** (see `.cursor/rules/security-sensitive-changes.mdc`). If a constraint must change, record the decision **in-repo** (this file, `docs/decisions/`, or a strategy doc) in the same effort — do not ship silent contradictions.
 3. **Update documentation when required**: if behavior, env vars, APIs, security posture, or operator steps changed, update the **canonical** doc for that topic in the **same change set** (or an immediate follow-up commit). Prefer updating established docs over leaving the only explanation in chat or an unreferenced `artifacts/` note.
 
 **Agents:** before you finish a task that ends in commit/push, explicitly run through (1)–(3) and fix gaps or call out what still needs a human decision.
@@ -59,6 +59,7 @@ Treat this as part of **definition of done** whenever work is **committed and pu
 
 ## P0 — Spine & safety (now)
 
+- **Security review discipline:** Use **`docs/operations/SECURITY_REVIEW_CHECKLIST.md`** for any change to authentication, cookies/sessions, `api/`, `lib/server/`, `lib/cmp/` authorization, Prisma schema/migrations, ingest/forward/HMAC, or open redirects. **Incident / key rotation start:** **`docs/runbooks/SECURITY_OR_INCIDENT.md`**.
 - **Postgres tables (once per prod DB):** `POST /api/factory/postgres/ensure-schema` with factory master auth — step-by-step: `docs/operations/ENSURE_POSTGRES_SCHEMA.md`.
 - **Tenant forgot-password email (you / ops):** Production needs at least one delivery path (see `GET /api/factory/health` → `password_reset_delivery`).
   - **(You)** Create a **Resend** account (or stay webhook-only). If using Resend: verify **sending domain** in Resend; set Vercel env `CORPFLOW_PASSWORD_RESET_RESEND_API_KEY` + `CORPFLOW_PASSWORD_RESET_FROM_EMAIL` (e.g. `CorpFlow <noreply@yourdomain.com>`).
@@ -120,7 +121,7 @@ Treat this as part of **definition of done** whenever work is **committed and pu
 
 - Payment provider choice (Stripe vs Paystack vs invoice-only) — **not** implemented until policy set.
 - Map “token credits” / CMP debits to real invoices (manual first, automate later).
-- DPA + data residency note for EU/Africa clients if needed.
+- DPA + data residency note for EU/Africa clients if needed — maintain **`docs/compliance/DATA_MAP_AND_SUBPROCESSORS.md`** (starter data map + subprocessor table) with legal/commercial review.
 
 ## P2 — Google Workspace / GCP (paid, already owned)
 
@@ -136,4 +137,4 @@ Treat this as part of **definition of done** whenever work is **committed and pu
 
 ---
 
-*Last reviewed: 2026-04-04 — update this line when you change priorities. Synced P0/P1 checkboxes to a production `GET /api/factory/health` snapshot (`ok`, `automation.*`, required `present`).*
+*Last reviewed: 2026-04-04 — update this line when you change priorities. Added security checklist, incident runbook, ADR-lite `docs/decisions/`, compliance data-map stub, CI `npm audit` + `next build`, Dependabot.*

@@ -19,7 +19,7 @@ The primary technical role is to **drive production-grade, client-visible outcom
 For any client-visible surface (e.g. `/login`, `/change`, tenant site, billing views, file uploads):
 
 - **Reliable**: errors degrade gracefully and tell the operator what to do next (no silent failures).
-- **Secure**: tenant isolation is enforced server-side; unauthenticated and cross-tenant access is denied.
+- **Secure**: tenant isolation is enforced server-side; unauthenticated and cross-tenant access is denied. **Before shipping changes to auth, sessions, API routes, Prisma, or automation secrets**, use **`docs/operations/SECURITY_REVIEW_CHECKLIST.md`** (humans + agents).
 - **Observable**: there is a clear readiness/health signal (UI warning, health endpoint, or operational checklist).
 - **Repeatable**: there is a **golden-path demo** that works from a clean session with known hosts/tenants.
 - **Operable**: the workflow can run without a developer laptop for day-to-day operations (see `docs/EXECUTION_BRAIN_VS_HANDS.md`).
@@ -45,6 +45,9 @@ When proposing an upgrade (e.g. move attachments from Postgres to S3), document:
 - **Automation framework (events, playbooks, risk)**: `docs/automation-framework.md`
 - **n8n forwarding recipe**: `docs/n8n/automation-forward-recipe.md`
 - **Team priorities**: `docs/CORPFLOW_SHARED_TODO.md`
+- **Security review (auth, API, server, automation)**: `docs/operations/SECURITY_REVIEW_CHECKLIST.md`
+- **Incident / key rotation (stub)**: `docs/runbooks/SECURITY_OR_INCIDENT.md`
+- **Architecture decisions (ADR-lite)**: `docs/decisions/README.md`
 
 ## Demo standard (what we can show anytime)
 

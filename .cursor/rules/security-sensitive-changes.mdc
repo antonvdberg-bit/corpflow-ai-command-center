@@ -1,0 +1,22 @@
+---
+description: Security review checklist when touching auth, API, server, Prisma, or automation secrets
+alwaysApply: true
+---
+
+# Security-sensitive changes
+
+If your change touches **any** of the following, complete **`docs/operations/SECURITY_REVIEW_CHECKLIST.md`** mentally or explicitly before **commit/push**, and update canonical docs if behavior or trust boundaries changed.
+
+**Path triggers (typical):**
+
+- `api/` — API routes and handlers  
+- `lib/server/` — server logic, auth, sessions, factory helpers  
+- `lib/cmp/` — CMP router, tenant gates, dispatch  
+- `prisma/` — schema, migrations  
+- `middleware.*`, auth-related `public/*.html` when login/redirect logic changes  
+- `.env.template` — new secrets or security-related env vars  
+- `docs/automation-framework.md`, `docs/n8n/*` — when ingest/forward/HMAC behavior changes  
+
+**Non-negotiables (summary):** tenant isolation server-side; no secrets in client or logs; validate `next=` / redirect targets; verify webhook and ingest secrets; parameterized SQL; factory vs tenant gates preserved.
+
+If unsure, read **`docs/operations/TENANT_CLIENT_LOGIN.md`** and **`docs/strategy/PRODUCTION_GRADE_CLIENT_OUTCOMES.md`** § production-grade **Secure**.

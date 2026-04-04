@@ -38,3 +38,9 @@ jobs:
       run: |
         npm ci
         npm test
+
+    - name: npm audit (high severity+)
+      run: npm audit --audit-level=high
+
+    - name: Next.js production build
+      run: npm run build
