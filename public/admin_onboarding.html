@@ -12,6 +12,11 @@
           Factory-only onboarding for demo tenants. Writes Postgres rows: <code class="text-slate-200">tenants</code> and
           <code class="text-slate-200">tenant_hostnames</code>. Optional: issues a sovereign PIN.
         </p>
+        <p class="text-slate-500 text-xs mb-6 leading-relaxed border border-slate-800 rounded-xl p-3">
+          For automation (CI / n8n), use <code class="text-slate-300">POST /api/factory/tenant/bootstrap</code> with the same JSON fields in one body
+          (tenant, hostnames, optional <code class="text-slate-300">issue_pin</code>, optional <code class="text-slate-300">primary_user</code>), or
+          <code class="text-slate-300">tenant.bootstrap.execute</code> on <code class="text-slate-300">/api/automation/ingest</code> when enabled in env.
+        </p>
 
         <form id="form" class="space-y-4">
             <div>

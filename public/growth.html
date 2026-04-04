@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CorpFlow — Growth Pipeline</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="min-h-screen bg-slate-950 text-slate-100 antialiased">
+    <div class="max-w-5xl mx-auto px-4 py-8">
+      <header class="mb-8 border-b border-slate-800 pb-6">
+        <p class="text-xs uppercase tracking-widest text-cyan-400/90 mb-2">Tenant surface</p>
+        <h1 class="text-2xl font-semibold text-white">Growth pipeline</h1>
+        <p class="text-slate-400 mt-2 text-sm max-w-2xl">
+          Segments → companies → contacts → touchpoints (draft plans). This console does
+          <strong class="text-amber-200/90">not</strong> send email or LinkedIn messages; connect n8n or an ESP
+          after your privacy review.
+        </p>
+        <div class="mt-4 flex flex-wrap gap-3 text-sm">
+          <a class="text-cyan-400 hover:underline" href="/change">Change Console</a>
+          <a class="text-cyan-400 hover:underline" href="/login">Login</a>
+          <span id="ctx-label" class="text-slate-500"></span>
+        </div>
+      </header>
+
+      <div
+        id="banner"
+        class="mb-6 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100/90 hidden"
+      ></div>
+
+      <section class="grid gap-4 md:grid-cols-4 mb-8">
+        <div class="rounded-lg bg-slate-900/80 border border-slate-800 p-4">
+          <p class="text-xs text-slate-500">Segments</p>
+          <p id="c-seg" class="text-2xl font-mono text-white">—</p>
+        </div>
+        <div class="rounded-lg bg-slate-900/80 border border-slate-800 p-4">
+          <p class="text-xs text-slate-500">Companies</p>
+          <p id="c-co" class="text-2xl font-mono text-white">—</p>
+        </div>
+        <div class="rounded-lg bg-slate-900/80 border border-slate-800 p-4">
+          <p class="text-xs text-slate-500">Contacts</p>
+          <p id="c-ct" class="text-2xl font-mono text-white">—</p>
+        </div>
+        <div class="rounded-lg bg-slate-900/80 border border-slate-800 p-4">
+          <p class="text-xs text-slate-500">Touchpoints</p>
+          <p id="c-tp" class="text-2xl font-mono text-white">—</p>
+        </div>
+      </section>
+
+      <div class="flex flex-wrap gap-3 mb-6">
+        <button
+          type="button"
+          id="btn-seed"
+          class="rounded-md bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-medium px-4 py-2"
+        >
+          Seed Mauritius / maritime demo
+        </button>
+        <button
+          type="button"
+          id="btn-refresh"
+          class="rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm px-4 py-2"
+        >
+          Refresh
+        </button>
+      </div>
+
+      <div class="grid gap-8 md:grid-cols-2">
+        <div>
+          <h2 class="text-lg font-medium text-white mb-3">Segments</h2>
+          <ul id="list-seg" class="space-y-2 text-sm"></ul>
+        </div>
+        <div>
+          <h2 class="text-lg font-medium text-white mb-3">Companies</h2>
+          <p id="co-hint" class="text-xs text-slate-500 mb-2">Select a segment.</p>
+          <ul id="list-co" class="space-y-2 text-sm"></ul>
+        </div>
+        <div>
+          <h2 class="text-lg font-medium text-white mb-3">Contacts</h2>
+          <p id="ct-hint" class="text-xs text-slate-500 mb-2">Select a company.</p>
+          <ul id="list-ct" class="space-y-2 text-sm"></ul>
+        </div>
+        <div>
+          <h2 class="text-lg font-medium text-white mb-3">Touchpoints</h2>
+          <p id="tp-hint" class="text-xs text-slate-500 mb-2">Select a contact.</p>
+          <ul id="list-tp" class="space-y-3 text-sm"></ul>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        var selSeg = null;
+        var selCo = null;
+        var selCt = null;
+
+        function banner(msg, show) {
+          var el = document.getElementById('banner');
+          el.textContent = msg || '';
+          el.classList.toggle('hidden', !show);
+        }
+
+        async function api(path, opts) {
+          var o = opts || {};
+          var r = await fetch('/api/' + path, {
+            method: o.method || 'GET',
+            credentials: 'include',
+            headers: o.body ? { 'Content-Type': 'application/json' } : {},
+            body: o.body ? JSON.stringify(o.body) : undefined,
+          });
+          var j = await r.json().catch(function () {
+            return {};
+          });
+          if (!r.ok) {
+            var err = new Error(j.error || j.hint || 'request_failed');
+            err.payload = j;
+            err.status = r.status;
+            throw err;
+          }
+          return j;
+        }
+
+        async function loadContext() {
+          try {
+            var u = await api('ui/context');
+            var s = u.session || {};
+            var tid = s.tenant_id || u.tenant_id || '';
+            var label = document.getElementById('ctx-label');
+            if (s.logged_in) {
+              label.textContent =
+                'Signed in · tenant ' + (tid || '?') + ' · ' + (s.level || '');
+            } else {
+              label.textContent = 'Not signed in — open /login on this host first.';
+              banner('Sign in with a tenant user (e.g. corpflowai.com) to load your pipeline.', true);
+            }
+          } catch (e) {
+            document.getElementById('ctx-label').textContent = 'Could not load /api/ui/context';
+          }
+        }
+
+        async function loadOverview() {
+          try {
+            var o = await api('growth/overview');
+            document.getElementById('c-seg').textContent = o.counts.segments;
+            document.getElementById('c-co').textContent = o.counts.companies;
+            document.getElementById('c-ct').textContent = o.counts.contacts;
+            document.getElementById('c-tp').textContent = o.counts.touchpoints;
+          } catch (e) {
+            if (e.status === 401) {
+              banner('Login required. Use /login on this hostname, then return.', true);
+            } else {
+              banner((e.payload && e.payload.detail) || e.message || String(e), true);
+            }
+          }
+        }
+
+        function renderSeg(list) {
+          var ul = document.getElementById('list-seg');
+          ul.innerHTML = '';
+          list.forEach(function (s) {
+            var li = document.createElement('li');
+            li.className =
+              'rounded border px-3 py-2 cursor-pointer ' +
+              (selSeg === s.id
+                ? 'border-cyan-500 bg-cyan-500/10'
+                : 'border-slate-800 bg-slate-900/50 hover:border-slate-600');
+            li.textContent = s.name + ' · ' + (s._count ? s._count.companies : 0) + ' cos';
+            li.onclick = function () {
+              selSeg = s.id;
+              selCo = null;
+              selCt = null;
+              renderSeg(list);
+              loadCompanies();
+              document.getElementById('list-ct').innerHTML = '';
+              document.getElementById('list-tp').innerHTML = '';
+            };
+            ul.appendChild(li);
+          });
+        }
+
+        async function loadSegments() {
+          try {
+            var d = await api('growth/segments');
+            renderSeg(d.segments || []);
+          } catch (e) {
+            banner(e.message, true);
+          }
+        }
+
+        async function loadCompanies() {
+          if (!selSeg) return;
+          try {
+            var d = await api('growth/companies?segment_id=' + encodeURIComponent(selSeg));
+            var ul = document.getElementById('list-co');
+            ul.innerHTML = '';
+            document.getElementById('co-hint').textContent =
+              d.companies.length + ' companies in segment';
+            d.companies.forEach(function (c) {
+              var li = document.createElement('li');
+              li.className =
+                'rounded border px-3 py-2 cursor-pointer ' +
+                (selCo === c.id
+                  ? 'border-cyan-500 bg-cyan-500/10'
+                  : 'border-slate-800 bg-slate-900/50 hover:border-slate-600');
+              li.textContent = c.name + ' · ' + (c.country || '?');
+              li.onclick = function () {
+                selCo = c.id;
+                selCt = null;
+                loadCompanies();
+                loadContacts();
+                document.getElementById('list-tp').innerHTML = '';
+              };
+              ul.appendChild(li);
+            });
+            if (selCo) {
+              var found = d.companies.some(function (c) {
+                return c.id === selCo;
+              });
+              if (!found) selCo = null;
+            }
+          } catch (e) {
+            banner(e.message, true);
+          }
+        }
+
+        async function loadContacts() {
+          if (!selCo) return;
+          try {
+            var d = await api('growth/contacts?company_id=' + encodeURIComponent(selCo));
+            var ul = document.getElementById('list-ct');
+            ul.innerHTML = '';
+            document.getElementById('ct-hint').textContent = d.contacts.length + ' contacts';
+            d.contacts.forEach(function (c) {
+              var li = document.createElement('li');
+              li.className =
+                'rounded border px-3 py-2 cursor-pointer ' +
+                (selCt === c.id
+                  ? 'border-cyan-500 bg-cyan-500/10'
+                  : 'border-slate-800 bg-slate-900/50 hover:border-slate-600');
+              li.textContent = c.fullName + (c.roleTitle ? ' — ' + c.roleTitle : '');
+              li.onclick = function () {
+                selCt = c.id;
+                loadContacts();
+                loadTouchpoints();
+              };
+              ul.appendChild(li);
+            });
+          } catch (e) {
+            banner(e.message, true);
+          }
+        }
+
+        async function loadTouchpoints() {
+          if (!selCt) return;
+          try {
+            var d = await api('growth/touchpoints?contact_id=' + encodeURIComponent(selCt));
+            var ul = document.getElementById('list-tp');
+            ul.innerHTML = '';
+            document.getElementById('tp-hint').textContent = d.touchpoints.length + ' touchpoints';
+            d.touchpoints.forEach(function (t) {
+              var li = document.createElement('li');
+              li.className = 'rounded border border-slate-800 bg-slate-900/50 px-3 py-2';
+              li.innerHTML =
+                '<div class="text-cyan-300/90">' +
+                (t.channel || '') +
+                ' · ' +
+                (t.stage || '') +
+                '</div><div class="text-slate-300 mt-1">' +
+                (t.subject || '(no subject)') +
+                '</div><pre class="mt-2 text-xs text-slate-500 whitespace-pre-wrap font-mono">' +
+                (t.bodyMd || '').slice(0, 600) +
+                (t.bodyMd && t.bodyMd.length > 600 ? '…' : '') +
+                '</pre>';
+              ul.appendChild(li);
+            });
+          } catch (e) {
+            banner(e.message, true);
+          }
+        }
+
+        document.getElementById('btn-refresh').onclick = function () {
+          banner('', false);
+          loadContext();
+          loadOverview();
+          loadSegments();
+          if (selSeg) loadCompanies();
+          if (selCo) loadContacts();
+          if (selCt) loadTouchpoints();
+        };
+
+        document.getElementById('btn-seed').onclick = async function () {
+          try {
+            banner('', false);
+            await api('growth/seed-demo', { method: 'POST', body: {} });
+            document.getElementById('btn-refresh').click();
+          } catch (e) {
+            banner((e.payload && (e.payload.hint || e.payload.detail)) || e.message, true);
+          }
+        };
+
+        loadContext();
+        loadOverview();
+        loadSegments();
+      })();
+    </script>
+  </body>
+</html>

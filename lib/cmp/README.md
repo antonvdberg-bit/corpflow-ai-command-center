@@ -45,6 +45,10 @@ Machine-first events and playbooks (separate from CMP `action=` router):
 
 ## Tenant onboarding
 
+- **`POST /api/factory/tenant/bootstrap`** (factory master **or** `x-corpflow-tenant-bootstrap-secret` when `CORPFLOW_TENANT_BOOTSTRAP_SECRET` is set): **one-shot** automation for a new client workspace.
+  - Upserts `tenants`, all `hostnames` (or single `host`), optional sovereign PIN (`issue_pin: true`), optional `primary_user: { username, generate_password?: true, password?, level? }`.
+  - Optional `convert_lead_ids: []` sets matching `leads.status` to `CONVERTED`. Use `dry_run: true` to validate without writes.
+  - n8n/agents: same payload under `POST /api/automation/ingest` with `event_type: "tenant.bootstrap.execute"` when `CORPFLOW_AUTOMATION_TENANT_BOOTSTRAP=true` (ingest secret required); response includes `bootstrap.pin_print_once` / `password_print_once` once.
 - **`tenant-onboard`** (POST, factory master only): upserts a row in `tenants` so tenant auth + tenant-scoped ticketing has a stable identity.
   - Body: `{ tenant_id, slug?, name?, fqdn?, execution_only?, lifecycle?, tenant_status? }`
   - This intentionally does **not** issue credentials; pair it with `provision-tenant-pin` when you want a PIN for sovereign bootstrap.

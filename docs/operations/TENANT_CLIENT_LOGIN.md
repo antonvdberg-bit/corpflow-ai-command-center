@@ -1,5 +1,25 @@
 # Tenant client login (e.g. LuxeMaurice)
 
+**Canonical tenancy + host doc for this repo.** Agents and humans should treat this file as the **first** read for hostname / apex / login-route work — not only `artifacts/` (those are background and proposals).
+
+**Extended narrative / staged path:** `artifacts/firm_request_db-driven-staged-path.md` (factory vs brain, Luxe ops) — use after this page.
+
+---
+
+## Tenancy model (apex vs clients) — implemented in code
+
+| Rule | Detail |
+|------|--------|
+| **Apex** | `CORPFLOW_ROOT_DOMAIN` (e.g. `corpflowai.com`) = **CorpFlow marketing company**. It must resolve to a **real** row in Postgres **`tenants`** (e.g. `tenant_id` `corpflowai`), via **`CORPFLOW_TENANT_HOST_MAP`** / defaults — not a client tenant by mistake. |
+| **Clients** | e.g. **Luxe-Maurice** = separate **`tenants`** row; usually **subdomain** (`luxe.corpflowai.com`) + **`tenant_hostnames`**. |
+| **Apex vs DB map** | By default, **`tenant_hostnames` does not override apex** (prevents wrong client branding on apex). Opt-in: `CORPFLOW_APEX_ALLOW_DB_HOST_OVERRIDE=true`. See `api/factory_router.js` (`attachTenantFromHostPg`). |
+| **No ghost tenant** | **`GET /api/ui/context`** returns **`login_route`**: `operator` (core host), `client` (tenant surface **and** `tenants` row exists), or **`onboarding`** (resolved id but **no** row). **`GET /api/tenant/site`** returns no `site` if there is no **`tenants`** row (`TENANT_NOT_REGISTERED`). |
+| **Login UI** | `/login` shows **client** email/password only when `login_route === 'client'`; otherwise **onboarding** or **factory** chrome. See `public/login.html` + `public/assets/corpflow/tenant-chrome.js`. |
+
+Env reference: `.env.template` § **CORE vs TENANT — host boundary**.
+
+---
+
 ## Expected behavior
 
 On a hostname **mapped in `tenant_hostnames`**, `/login` loads tenant chrome from `GET /api/tenant/site`, locks **Tenant ID** to the mapped value, and **`POST /api/auth/login`** accepts an **empty** Tenant ID (server fills it from the host map).

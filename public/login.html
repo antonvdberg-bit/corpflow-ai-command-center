@@ -110,6 +110,30 @@
         </details>
       </div>
 
+      <!-- Host resolves to a tenant id with no row in `tenants` — no valid login target -->
+      <div id="loginOnboarding" class="hidden rounded-2xl border border-amber-500/30 bg-amber-950/25 p-6 md:p-8">
+        <h1 class="text-2xl font-semibold tracking-tight text-amber-100">Workspace not registered</h1>
+        <p class="text-slate-300 text-sm mt-3 leading-relaxed">
+          This hostname is not linked to a <strong class="text-slate-200">registered tenant</strong> in the CorpFlow database.
+          There is no account to sign in with until an operator creates the tenant record and maps this host.
+        </p>
+        <p class="text-slate-400 text-sm mt-4 leading-relaxed">
+          <strong class="text-slate-300">CorpFlow</strong> (apex) is your company; each <strong class="text-slate-300">client</strong> (for example Luxe-Maurice) has its own tenant and usually its own subdomain — not mixed onto the wrong host.
+        </p>
+        <div class="mt-6 rounded-xl border border-slate-800 bg-slate-950/50 p-4 text-[11px] text-slate-400 space-y-2">
+          <p class="font-medium text-slate-200">Setting up CorpFlow?</p>
+          <p>
+            Use <strong class="text-slate-300">factory / core</strong> login: create <code class="text-sky-300/90">tenants</code> +
+            <code class="text-sky-300/90">tenant_hostnames</code> (or env map) so this host points at a real tenant id (for example
+            <code class="text-sky-300/90">corpflowai</code> on apex).
+          </p>
+          <p id="loginOnboardingCoreLink" class="hidden pt-1"></p>
+        </div>
+        <p class="text-[11px] text-slate-500 mt-6">
+          End clients: contact your CorpFlow operator. Self-service registration is not enabled on this screen by design.
+        </p>
+      </div>
+
       <!-- Factory / core hosts: full operator login -->
       <div id="operatorLoginChrome" class="hidden">
         <div id="cfTenantBrandOp" class="hidden text-xs tracking-[0.28em] uppercase mb-2 font-semibold">
@@ -239,38 +263,101 @@
         const loadingEl = document.getElementById('loginRouteLoading');
         const simpleRoot = document.getElementById('clientSimpleLogin');
         const opRoot = document.getElementById('operatorLoginChrome');
+        const onboardRoot = document.getElementById('loginOnboarding');
 
         function $(id) {
           return document.getElementById(id);
         }
 
-        let mode = 'operator';
+        let login_route = 'operator';
         let clientTenantId = '';
+        let ctxJson = null;
         try {
           const r = await fetch('/api/ui/context', { credentials: 'same-origin' });
           const j = await r.json();
+          ctxJson = j;
           const tid = j && j.tenant_id != null ? String(j.tenant_id).trim() : '';
-          if (j && j.surface === 'tenant' && tid) {
-            mode = 'client';
+          if (j && String(j.login_route || '').trim()) {
+            login_route = String(j.login_route).trim();
+          } else if (j && j.surface === 'tenant' && tid) {
+            login_route = 'client';
+          } else if (j && j.surface === 'core') {
+            login_route = 'operator';
+          } else if (j && j.surface === 'tenant' && !tid) {
+            login_route = 'onboarding';
+          }
+          if (login_route === 'client' && tid) {
             clientTenantId = tid;
             window.__cfClientTenantId = tid;
           }
         } catch (_) {}
 
-        document.documentElement.dataset.cfLoginMode = mode;
+        const mode = login_route === 'client' ? 'client' : 'operator';
+        document.documentElement.dataset.cfLoginMode = login_route === 'onboarding' ? 'onboarding' : mode;
         if (loadingEl) loadingEl.classList.add('hidden');
-        if (mode === 'client') {
+
+        var mismatchParam = false;
+        try {
+          mismatchParam = new URLSearchParams(window.location.search).get('tenant_mismatch') === '1';
+        } catch (_) {}
+        if (login_route === 'onboarding') {
+          if (onboardRoot) onboardRoot.classList.remove('hidden');
+          simpleRoot.classList.add('hidden');
+          opRoot.classList.add('hidden');
+          document.title = 'Workspace setup';
+          const coreEl = $('loginOnboardingCoreLink');
+          const coreUrl = ctxJson && ctxJson.core_login_url ? String(ctxJson.core_login_url).trim() : '';
+          if (coreEl && coreUrl) {
+            coreEl.textContent = '';
+            const a = document.createElement('a');
+            a.href = coreUrl;
+            a.className = 'text-sky-300 underline';
+            a.rel = 'noopener';
+            a.textContent = 'Open factory admin login (core)';
+            coreEl.appendChild(a);
+            coreEl.classList.remove('hidden');
+          }
+        } else if (login_route === 'client') {
           simpleRoot.classList.remove('hidden');
           opRoot.classList.add('hidden');
+          if (onboardRoot) onboardRoot.classList.add('hidden');
           document.title = 'Log in';
         } else {
           opRoot.classList.remove('hidden');
           simpleRoot.classList.add('hidden');
+          if (onboardRoot) onboardRoot.classList.add('hidden');
         }
         document.documentElement.classList.remove('cf-login-pending');
 
+        try {
+          var rp = new URLSearchParams(window.location.search);
+          var rt = rp.get('reset_token') || rp.get('token');
+          if (rt) {
+            var opTok = $('resetToken');
+            var siTok = $('simpleResetToken');
+            if (opTok) opTok.value = rt;
+            if (siTok) siTok.value = rt;
+            var detOp = document.querySelector('#operatorLoginChrome details');
+            if (detOp && login_route === 'operator') detOp.open = true;
+            var detCl = document.querySelector('#clientSimpleLogin details');
+            if (detCl && login_route === 'client') detCl.open = true;
+          }
+        } catch (_) {}
+
         const banner = mode === 'client' ? $('banner') : $('bannerOp');
         const ok = mode === 'client' ? $('ok') : $('okOp');
+
+        if (mismatchParam) {
+          if (!ok || !banner) {
+            /* skip */
+          } else {
+            ok.classList.add('hidden');
+            ok.textContent = '';
+            banner.classList.remove('hidden');
+            banner.textContent =
+              'Your browser was still signed in to a different workspace than this site. If you have not already, sign out (Factory login has a Logout button), then sign in again for this hostname.';
+          }
+        }
 
         function err(msg) {
           if (!ok || !banner) return;
@@ -323,7 +410,7 @@
           }
         }
 
-        if (mode === 'client') {
+        if (login_route === 'client') {
           async function maybeRedirectIfSession() {
             try {
               const r = await fetch('/api/auth/me', { credentials: 'include' });
@@ -393,7 +480,7 @@
           });
 
           await maybeRedirectIfSession();
-        } else {
+        } else if (login_route === 'operator') {
           let hostMappedTenantId = null;
 
           $('btnTenant').addEventListener('click', async () => {

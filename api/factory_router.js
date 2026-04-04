@@ -26,6 +26,7 @@ import {
   handleFactoryAuthUsersList,
   handleFactoryAuthUsersSetPassword,
 } from '../lib/server/factory-auth-users-admin.js';
+import { handleFactoryTenantBootstrap } from '../lib/server/tenant-onboarding-bootstrap.js';
 import {
   handleAuthLogin,
   handleAuthLogout,
@@ -38,11 +39,20 @@ import {
   handleAutomationIngest,
   handleAutomationPlaybooksList,
 } from '../lib/automation/gateway.js';
-import { buildCorpflowHostContext } from '../lib/server/host-tenant-context.js';
+import { buildCorpflowHostContext, isApexHostname } from '../lib/server/host-tenant-context.js';
+import { getTenantHostSessionConflict } from '../lib/server/tenant-host-session-gate.js';
 import { cfg, runtimeConfigDiagnostics } from '../lib/server/runtime-config.js';
+import { passwordResetDeliveryDiagnostics } from '../lib/server/password-reset-delivery.js';
 import { getSessionFromRequest } from '../lib/server/session.js';
 import { isBillingExemptTenant } from '../lib/server/billing-exempt.js';
 import { getTokenCreditBalance } from '../lib/factory/costing.js';
+import {
+  handleChangeAttachmentDownload,
+  handleChangeAttachmentList,
+  handleChangeAttachmentUpload,
+} from '../lib/server/change-attachments.js';
+import { getChangeConsoleReadinessForTenant } from '../lib/server/change-console-readiness.js';
+import { growthPipelineHandler } from '../lib/server/growth-pipeline.js';
 
 const prisma = new PrismaClient();
 
@@ -81,24 +91,85 @@ function attachTenantFromHost(req) {
 }
 
 /**
+ * Tag how `tenant_id` was derived when not already set from Postgres `tenant_hostnames`.
+ *
+ * @param {import('http').IncomingMessage} req
+ * @returns {void}
+ */
+function annotateCorpflowTenantIdSourceIfUnset(req) {
+  if (req.corpflowTenantIdSource) return;
+  const ctx = req.corpflowContext;
+  if (!ctx || !ctx.host) return;
+  const host = String(ctx.host || '')
+    .toLowerCase()
+    .replace(/:\d+$/, '');
+  const root = String(cfg('CORPFLOW_ROOT_DOMAIN', 'corpflowai.com'))
+    .toLowerCase()
+    .replace(/^\./, '');
+  if (host === root || host === `www.${root}`) {
+    req.corpflowTenantIdSource = 'apex';
+    return;
+  }
+  const mapJson = cfg('CORPFLOW_TENANT_HOST_MAP', '');
+  if (mapJson) {
+    try {
+      const m = JSON.parse(mapJson);
+      if (m && typeof m === 'object' && typeof m[host] === 'string' && m[host].trim() !== '') {
+        req.corpflowTenantIdSource = 'env_map';
+        return;
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+  if (host.endsWith(`.${root}`)) {
+    req.corpflowTenantIdSource = 'subdomain';
+    return;
+  }
+  req.corpflowTenantIdSource = 'other';
+}
+
+/**
  * When a user is on a tenant surface host, prefer the tenant_id from their session (auth_users)
- * over host heuristics (e.g. `lux` subdomain vs canonical `luxe-maurice`). Keeps CMP and UI context aligned.
+ * over **subdomain** heuristics (e.g. `lux` vs canonical `luxe-maurice`).
+ *
+ * Never override **apex**, **env host map**, or **Postgres hostname** binding — those are authoritative
+ * for which workspace this hostname represents (avoids Lux session cookie painting CorpFlow apex).
  *
  * @param {import('http').IncomingMessage} req
  * @returns {void}
  */
 function reconcileCorpflowTenantContextWithSession(req) {
   try {
+    const ctx = req.corpflowContext;
+    if (!ctx || ctx.surface !== 'tenant') return;
+
+    if (isApexHostname(ctx.host)) return;
+    if (req.corpflowTenantIdSource === 'postgres') return;
+    if (req.corpflowTenantIdSource === 'env_map') return;
+
     const sess = getSessionFromRequest(req);
     if (!sess?.ok || sess.payload?.typ !== 'tenant' || sess.payload?.tenant_id == null) return;
     const stid = String(sess.payload.tenant_id).trim();
     if (!stid) return;
-    const ctx = req.corpflowContext;
-    if (!ctx || ctx.surface !== 'tenant') return;
     req.corpflowContext = { ...ctx, tenant_id: stid };
   } catch (_) {
     /* ignore */
   }
+}
+
+/**
+ * @param {import('http').IncomingMessage} req
+ * @returns {Promise<void>}
+ */
+async function applyCorpflowHostTenantResolution(req) {
+  await attachTenantFromHostPg(req);
+  annotateCorpflowTenantIdSourceIfUnset(req);
+  const ctx = req.corpflowContext;
+  const snap =
+    ctx && ctx.surface === 'tenant' && ctx.tenant_id != null ? String(ctx.tenant_id).trim() : '';
+  req.corpflowHostTenantIdBeforeSession = snap;
+  reconcileCorpflowTenantContextWithSession(req);
 }
 
 async function attachTenantFromHostPg(req) {
@@ -111,9 +182,24 @@ async function attachTenantFromHostPg(req) {
   const pgUrl = String(cfg('POSTGRES_URL', '')).trim();
   if (!pgUrl) return;
 
+  const hostNorm = String(ctx.host || '')
+    .toLowerCase()
+    .replace(/:\d+$/, '');
+  const rootDomain = String(cfg('CORPFLOW_ROOT_DOMAIN', 'corpflowai.com'))
+    .toLowerCase()
+    .replace(/^\./, '');
+  const apexDbOverride =
+    String(cfg('CORPFLOW_APEX_ALLOW_DB_HOST_OVERRIDE', 'false')).toLowerCase() === 'true';
+  if (hostNorm === rootDomain && !apexDbOverride) {
+    // Apex: do not let `tenant_hostnames` override sync resolution. A bad row (e.g. corpflowai.com
+    // -> luxe-maurice) used to paint Luxe branding on login/change for the whole apex domain.
+    // Control apex tenant via CORPFLOW_TENANT_HOST_MAP and CORPFLOW_DEFAULT_TENANT_ID only.
+    return;
+  }
+
   try {
     const row = await prisma.tenantHostname.findUnique({
-      where: { host: String(ctx.host).toLowerCase() },
+      where: { host: hostNorm },
       select: { tenantId: true, mode: true, enabled: true },
     });
     if (!row || row.enabled !== true) return;
@@ -201,6 +287,14 @@ async function handleFactoryHealth(req, res) {
     present[k] = v != null && String(v).trim() !== '';
   }
 
+  const masterKey = String(cfg('MASTER_ADMIN_KEY', '')).trim();
+  const adminPin = String(cfg('ADMIN_PIN', '')).trim();
+  const factoryMasterSecretConfigured = Boolean(masterKey || adminPin);
+  const adminUser = String(cfg('CORPFLOW_ADMIN_USERNAME', '')).trim();
+  const adminPw = String(cfg('CORPFLOW_ADMIN_PASSWORD', '')).trim();
+  const adminHash = String(cfg('CORPFLOW_ADMIN_PASSWORD_HASH', '')).trim();
+  const factoryAdminWebLoginConfigured = Boolean(adminUser && (adminPw || adminHash));
+
   const ok = flat.every((k) => present[k] === true);
 
   const automation = {
@@ -208,13 +302,31 @@ async function handleFactoryHealth(req, res) {
     ingest_secret_configured: Boolean(String(cfg('CORPFLOW_AUTOMATION_INGEST_SECRET', '')).trim()),
     approval_secret_configured: Boolean(String(cfg('CORPFLOW_AUTOMATION_APPROVAL_SECRET', '')).trim()),
     forward_url_configured: Boolean(String(cfg('CORPFLOW_AUTOMATION_FORWARD_URL', '')).trim()),
+    tenant_bootstrap_secret_configured: Boolean(String(cfg('CORPFLOW_TENANT_BOOTSTRAP_SECRET', '')).trim()),
+    tenant_bootstrap_ingest_enabled:
+      String(cfg('CORPFLOW_AUTOMATION_TENANT_BOOTSTRAP', '')).toLowerCase() === 'true',
   };
+
+  const password_reset_delivery = passwordResetDeliveryDiagnostics();
+  const password_reset_ok =
+    password_reset_delivery.webhook ||
+    password_reset_delivery.resend ||
+    password_reset_delivery.debug_token_return_enabled;
 
   return res.status(ok ? 200 : 503).json({
     ok,
     required_env: required,
     runtime_config,
     automation,
+    password_reset_delivery,
+    password_reset_delivery_configured: password_reset_ok,
+    password_reset_hint: password_reset_ok
+      ? 'Tenant forgot-password can deliver via webhook and/or Resend when user exists.'
+      : 'Set CORPFLOW_PASSWORD_RESET_WEBHOOK_URL (n8n → email) and/or CORPFLOW_PASSWORD_RESET_RESEND_API_KEY + CORPFLOW_PASSWORD_RESET_FROM_EMAIL, or use debug token only in non-prod.',
+    /** Scripts/curl need one of these; if false, use /login admin + "Ensure Postgres" button instead. */
+    factory_master_secret_configured: factoryMasterSecretConfigured,
+    /** CORPFLOW_ADMIN_* for browser login at /login (level admin). */
+    factory_admin_web_login_configured: factoryAdminWebLoginConfigured,
     tenancy_boundary: {
       core_hosts_configured: coreHostCount > 0,
       core_host_count: coreHostCount,
@@ -228,6 +340,12 @@ async function handleFactoryHealth(req, res) {
       : runtime_config.present && !runtime_config.parse_ok
         ? 'CORPFLOW_RUNTIME_CONFIG_JSON is present but invalid JSON. See runtime_config.parse_error; use strict JSON (no trailing commas, double quotes only).'
         : 'Set missing env vars in Vercel Environment Variables.',
+    auth_hint:
+      factoryMasterSecretConfigured
+        ? 'Header auth (x-session-token / Bearer) is supported for factory API routes.'
+        : factoryAdminWebLoginConfigured
+          ? 'No MASTER_ADMIN_KEY/ADMIN_PIN on this deployment: PowerShell ensure-schema will always 403. Log in at /login as factory admin, then use the "Ensure Postgres" / ensure-schema control (session cookie). Or add MASTER_ADMIN_KEY or ADMIN_PIN to Production and redeploy.'
+          : 'Set MASTER_ADMIN_KEY or ADMIN_PIN for script access, or CORPFLOW_ADMIN_USERNAME + password for /login admin.',
   });
 }
 
@@ -308,6 +426,17 @@ async function handleStats(req, res) {
   }
 }
 
+function firstCoreHostLoginUrl() {
+  const raw = String(cfg('CORPFLOW_CORE_HOSTS', '')).trim();
+  const first = raw
+    .split(',')
+    .map((s) => s.trim().toLowerCase().replace(/:\d+$/, ''))
+    .filter(Boolean)[0];
+  if (first) return `https://${first}/login`;
+  const root = String(cfg('CORPFLOW_ROOT_DOMAIN', '')).trim().replace(/^\./, '');
+  return root ? `https://core.${root}/login` : null;
+}
+
 function resolveUiMode(host, surface) {
   // Prefer DB-provided ui mode if present.
   // Note: attachTenantFromHostPg sets req.corpflowUiMode.
@@ -368,6 +497,55 @@ async function handleUiContext(req, res) {
       billing_exempt === true || (token_credit_balance_usd != null && token_credit_balance_usd > 0);
   }
 
+  /** One round-trip preflight for demos: DB tables + GitHub env (tenant sessions only). */
+  let change_console_readiness = null;
+  if (tenantClientSession && session.tenant_id) {
+    try {
+      change_console_readiness = await getChangeConsoleReadinessForTenant(session.tenant_id);
+    } catch {
+      change_console_readiness = {
+        postgres_configured: false,
+        cmp_tickets_ok: false,
+        tenant_personas_ok: false,
+        token_debits_table_ok: false,
+        attachments_table_ok: false,
+        github_dispatch_ready: false,
+        warnings: ['Could not run Change Console readiness probe — check POSTGRES_URL and Prisma.'],
+      };
+    }
+  }
+
+  const core_login_url = firstCoreHostLoginUrl();
+  /** @type {'operator' | 'client' | 'onboarding'} */
+  let login_route = 'operator';
+  let tenant_registered = null;
+  let resolved_tenant_name = null;
+
+  if (ctx.surface === 'core') {
+    login_route = 'operator';
+  } else if (ctx.surface === 'tenant') {
+    const tid = ctx.tenant_id != null ? String(ctx.tenant_id).trim() : '';
+    if (!tid) {
+      login_route = 'onboarding';
+      tenant_registered = false;
+    } else {
+      try {
+        const trow = await prisma.tenant.findUnique({
+          where: { tenantId: tid },
+          select: { tenantId: true, name: true },
+        });
+        tenant_registered = Boolean(trow);
+        resolved_tenant_name = trow?.name != null ? String(trow.name) : null;
+        login_route = trow ? 'client' : 'onboarding';
+      } catch {
+        tenant_registered = false;
+        login_route = 'onboarding';
+      }
+    }
+  }
+
+  const hostSessionConflict = getTenantHostSessionConflict(req);
+
   return res.status(200).json({
     ok: true,
     host: ctx.host,
@@ -378,15 +556,21 @@ async function handleUiContext(req, res) {
     billing_exempt,
     token_credit_balance_usd,
     show_approve_build,
+    change_console_readiness,
     root_domain: rootDomain || null,
     suggested_tenant_console_url: suggestedTenantConsoleUrl,
+    login_route,
+    tenant_registered,
+    resolved_tenant_name,
+    core_login_url,
+    tenant_host_session_mismatch: Boolean(hostSessionConflict),
+    tenant_host_session: hostSessionConflict,
   });
 }
 
 export default async function handler(req, res) {
   const pathSeg = normalizeRoutingPath(req);
-  await attachTenantFromHostPg(req);
-  reconcileCorpflowTenantContextWithSession(req);
+  await applyCorpflowHostTenantResolution(req);
 
   if (!pathSeg || pathSeg === 'factory_router') {
     return res.status(200).json({ ok: true, service: 'factory_router' });
@@ -406,6 +590,20 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'ui/context') {
     return handleUiContext(req, res);
+  }
+
+  if (pathSeg === 'change-attachment/upload') {
+    return handleChangeAttachmentUpload(req, res);
+  }
+  if (pathSeg === 'change-attachment/list') {
+    return handleChangeAttachmentList(req, res);
+  }
+  if (pathSeg === 'change-attachment/download') {
+    return handleChangeAttachmentDownload(req, res);
+  }
+
+  if (pathSeg === 'growth' || pathSeg.startsWith('growth/')) {
+    return growthPipelineHandler(req, res, pathSeg);
   }
 
   if (pathSeg.startsWith('cmp') || pathSeg.startsWith('cmp/')) {
@@ -442,6 +640,9 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'factory/auth-users/set-password') {
     return handleFactoryAuthUsersSetPassword(req, res);
+  }
+  if (pathSeg === 'factory/tenant/bootstrap') {
+    return handleFactoryTenantBootstrap(req, res);
   }
 
   switch (pathSeg) {

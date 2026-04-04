@@ -61,6 +61,21 @@
 
   async function init() {
     try {
+      const kindEarly = pathKind();
+      if (kindEarly === 'login') {
+        try {
+          const cr = await fetch('/api/ui/context', { credentials: 'same-origin' });
+          const cj = await cr.json().catch(() => ({}));
+          if (String(cj.login_route || '') === 'onboarding') {
+            document.documentElement.dataset.cfLoginMode = 'onboarding';
+            document.body.classList.add('cf-login-onboarding');
+            document.title = 'Workspace setup';
+            return;
+          }
+        } catch (_) {
+          /* fall through to tenant/site */
+        }
+      }
       const r = await fetch('/api/tenant/site', { method: 'GET' });
       const j = await r.json().catch(() => ({}));
       if (!j.tenant_id || !j.site) return;

@@ -67,10 +67,30 @@ model CmpTicket {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  attachments CmpTicketAttachment[]
+
   @@index([tenantId])
   @@index([status])
   @@index([stage])
   @@map("cmp_tickets")
+}
+
+/// Binary files for Change Console (images / short video / PDF). Served only to ticket-scoped sessions.
+model CmpTicketAttachment {
+  id          String   @id @default(cuid())
+  ticketId    String   @map("ticket_id")
+  tenantId    String?  @map("tenant_id")
+  fileName    String   @map("file_name")
+  contentType String   @map("content_type")
+  byteSize    Int      @map("byte_size")
+  data        Bytes
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  ticket CmpTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@map("cmp_ticket_attachments")
 }
 
 model TenantPersona {
@@ -182,4 +202,88 @@ model AutomationPlaybook {
   @@unique([tenantScope, slug])
   @@index([tenantScope])
   @@map("automation_playbooks")
+}
+
+/// Tenant-scoped outbound / ABM pipeline (segments → companies → contacts → touchpoints).
+model GrowthSegment {
+  id           String   @id @default(cuid())
+  tenantId     String   @map("tenant_id")
+  slug         String
+  name         String
+  thesisMd     String   @default("") @map("thesis_md")
+  regionTags   String?  @map("region_tags")
+  industryTags String?  @map("industry_tags")
+  priority     Int      @default(0)
+  status       String   @default("active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  companies GrowthCompany[]
+
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+  @@map("growth_segments")
+}
+
+model GrowthCompany {
+  id        String   @id @default(cuid())
+  tenantId  String   @map("tenant_id")
+  segmentId String?  @map("segment_id")
+  name      String
+  website   String?
+  country   String?
+  notes     String?
+  status    String   @default("research")
+  source    String   @default("manual")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  segment  GrowthSegment? @relation(fields: [segmentId], references: [id], onDelete: SetNull)
+  contacts GrowthContact[]
+
+  @@index([tenantId])
+  @@index([segmentId])
+  @@map("growth_companies")
+}
+
+model GrowthContact {
+  id           String   @id @default(cuid())
+  tenantId     String   @map("tenant_id")
+  companyId    String   @map("company_id")
+  fullName     String   @map("full_name")
+  roleTitle    String?  @map("role_title")
+  email        String?
+  linkedinUrl  String?  @map("linkedin_url")
+  notes        String?
+  consentBasis String?  @map("consent_basis")
+  status       String   @default("identified")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  company      GrowthCompany       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  touchpoints  GrowthTouchpoint[]
+
+  @@index([tenantId])
+  @@index([companyId])
+  @@map("growth_contacts")
+}
+
+model GrowthTouchpoint {
+  id          String    @id @default(cuid())
+  tenantId    String    @map("tenant_id")
+  contactId   String    @map("contact_id")
+  channel     String
+  subject     String?
+  bodyMd      String    @default("") @map("body_md")
+  stage       String    @default("awareness")
+  scheduledAt DateTime? @map("scheduled_at")
+  sentAt      DateTime? @map("sent_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  contact GrowthContact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([contactId])
+  @@map("growth_touchpoints")
 }

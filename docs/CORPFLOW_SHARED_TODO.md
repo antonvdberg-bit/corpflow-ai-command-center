@@ -7,62 +7,121 @@
 
 ---
 
+## Partner charter — breathtaking client experience (technical)
+
+**What we sell first:** speed and clarity from **request → estimate → committed build → automation** — backed by **AI agents and factory execution**, not “many website skins” as the headline.
+
+**Canonical “production-grade” standard (to prevent rework):** `docs/strategy/PRODUCTION_GRADE_CLIENT_OUTCOMES.md`
+
+**This repo’s technical partner function (ongoing):**
+
+- **Curate and wire agents:** use `docs/automation-framework.md`, `docs/n8n/automation-forward-recipe.md`, CMP mirror events, and playbooks so client-visible milestones trigger **notifications, handoffs, and follow-up** without you on the laptop (`docs/EXECUTION_BRAIN_VS_HANDS.md`).
+- **Productize one golden path:** one script + one hostname + one demo tenant that always works (`scripts/onboard-demo-tenants.ps1`, `scripts/ensure-postgres-schema.ps1`, `docs/operations/TENANT_CLIENT_LOGIN.md`).
+- **CX over chrome:** Change Console (`/change`) is the **hero surface** for clients — brief, estimate, approve, progress; tenant marketing skin is **tier-2** unless sold as a SKU.
+- **Evaluate external levers:** new models, agent frameworks, hosted workflow tools — when they shorten **time-to-first-artifact** or **time-to-merge**, capture the decision in this file or `artifacts/` and implement the smallest integration.
+
+---
+
+## Demo today — what to show a client (~10 minutes)
+
+**Before the room:** Production has `POSTGRES_URL`, tables (`ensure-schema`), client can log in on **their** mapped host (see `docs/operations/TENANT_CLIENT_LOGIN.md`). Wallet > 0 or billing-exempt so **Approve build** can show and (ideally) run.
+
+**Runbook (production-reliable):** `docs/runbooks/CLIENT_DEMO_RUNBOOK.md` (references canonical host/login rules; includes “what to do if X fails”).
+
+
+| Step | What you say                                                                    | What you do                                                                                                                                                      |
+| ---- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | “This is your change workspace — everything stays scoped to your organization.” | Open `**/login`** on **client subdomain** (e.g. `luxe…`) → log in as **tenant** user.                                                                            |
+| 2    | “You describe what you want in plain language; we capture it as a ticket.”      | `**/change`** → short real request → **Create ticket** → point at **Ticket ID** + list.                                                                          |
+| 3    | “You see benchmark vs your CorpFlow build price before you commit.”             | **Estimate** → walk through **brief / estimate** copy (benchmark vs client line).                                                                                |
+| 4    | “When you approve, we commit the build in our factory and trigger automation.”  | **Approve build** → **Build status** + **Your request progress** (if GitHub env missing, say: “saved in factory; branch dispatch when repo token is connected”). |
+| 5    | “Files and links attach to the ticket.”                                         | Optional: **External links** or **upload** (if attachments table exists).                                                                                        |
+| 6    | “Everything auditable.”                                                         | Glance at mode bar / reliability line if present; no raw factory dumps for tenant.                                                                               |
+
+
+**If something breaks in the room:** Read the **red banner** or **Build status** text; `**GET /api/ui/context`** while logged in shows `change_console_readiness.warnings` for infra gaps.
+
+**Minimal viable demo:** Steps **1–3** alone still tell the **speed + transparency** story; **4** is the “wow” if GitHub is wired.
+
+---
+
 ## P0 — Spine & safety (now)
 
-- [X] **Postgres tables (once per prod DB):** `POST /api/factory/postgres/ensure-schema` with factory master auth — step-by-step: `docs/operations/ENSURE_POSTGRES_SCHEMA.md`.
-- [X] **Vercel — ingest:** set `CORPFLOW_AUTOMATION_INGEST_SECRET` (header `x-corpflow-automation-secret` on `POST /api/automation/ingest`). Optional: `CORPFLOW_AUTOMATION_APPROVAL_SECRET` for high-risk event types.
-- [ ] **Vercel → n8n (“max n8n”, optional but recommended):** set `CORPFLOW_AUTOMATION_FORWARD_URL` to your **n8n Webhook** production URL. Set `CORPFLOW_AUTOMATION_FORWARD_SECRET` to a random string; in n8n, validate header **`x-corpflow-automation-forward-secret`** matches (see `docs/n8n/automation-forward-recipe.md`). Triggers on ingest + CMP mirror events (`cmp.ticket.created`, `cmp.estimate.recorded`, `cmp.build.approved`, `cmp.github.callback`, etc.).
-- [ ] **n8n workflow:** implement branches from `docs/n8n/automation-forward-recipe.md` (e.g. log + notify on `cmp.build.approved` / `cmp.github.callback`).
-- [ ] Document **who** holds `MASTER_ADMIN_KEY` rotation / break-glass (not in repo).
+- **Postgres tables (once per prod DB):** `POST /api/factory/postgres/ensure-schema` with factory master auth — step-by-step: `docs/operations/ENSURE_POSTGRES_SCHEMA.md`.
+- **Tenant forgot-password email (you / ops):** Production needs at least one delivery path (see `GET /api/factory/health` → `password_reset_delivery`).
+  - **(You)** Create a **Resend** account (or stay webhook-only). If using Resend: verify **sending domain** in Resend; set Vercel env `CORPFLOW_PASSWORD_RESET_RESEND_API_KEY` + `CORPFLOW_PASSWORD_RESET_FROM_EMAIL` (e.g. `CorpFlow <noreply@yourdomain.com>`).
+  - **(You)** Set `CORPFLOW_PUBLIC_BASE_URL` to the exact HTTPS origin users open for login (e.g. `https://corpflowai.com`) so `reset_url` in webhooks/emails is correct behind proxies.
+  - **(Optional n8n)** Set `CORPFLOW_PASSWORD_RESET_WEBHOOK_URL` to an n8n Webhook node; validate `x-corpflow-password-reset-secret` if you set `CORPFLOW_PASSWORD_RESET_WEBHOOK_SECRET`. Map JSON fields `email`, `reset_url`, `token` into your ESP/SMTP node.
+  - **(You)** Confirm **non-prod** never uses `CORPFLOW_PASSWORD_RESET_DEBUG_RETURN_TOKEN=true` in Vercel Production.
+- [x] **Vercel — ingest:** set `CORPFLOW_AUTOMATION_INGEST_SECRET` (header `x-corpflow-automation-secret` on `POST /api/automation/ingest`). *(Done per production `GET /api/factory/health` → `automation.ingest_secret_configured: true`.)*
+- **(Optional)** `CORPFLOW_AUTOMATION_APPROVAL_SECRET` for high-risk event types — *still unset in that health snapshot (`approval_secret_configured: false`); add when you use gated ingest event types.*
+- [x] **Vercel → n8n (“max n8n”, optional but recommended):** set `CORPFLOW_AUTOMATION_FORWARD_URL` to your **n8n Webhook** production URL. Set `CORPFLOW_AUTOMATION_FORWARD_SECRET` to a random string; in n8n, validate header `**x-corpflow-automation-forward-secret`** matches (see `docs/n8n/automation-forward-recipe.md`). Triggers on ingest + CMP mirror events (`cmp.ticket.created`, `cmp.estimate.recorded`, `cmp.build.approved`, `cmp.github.callback`, etc.). *(Confirmed in health snapshot: `forward_url_configured: true`.)*
+- [x] **n8n workflow:** implement branches from `docs/n8n/automation-forward-recipe.md` (e.g. log + notify on `cmp.build.approved` / `cmp.github.callback`).
+- [x] **`MASTER_ADMIN_KEY` custody / break-glass:** Primary holder: **you (operator)**. Written record (secrets stay out of git): local OneDrive file `Documents/Visibili-t/CorpFlowAI/Admin/API and Vital other Codes.txt` on your workstation. **Never** commit that file; rotate `MASTER_ADMIN_KEY` in Vercel if the laptop or file is exposed. *(Optional next step: name a backup person + shared password-manager copy if the team grows.)*
+- **Stuck CMP sandbox dispatches (you / ops):** Tickets can sit in **Approved / Build** with `dispatch_ok !== true` when GitHub env was missing at approve time. Repair from a trusted machine with prod DB + repo secrets (does **not** re-debit credits):
+  - **(You)** `POSTGRES_URL` + `CMP_GITHUB_TOKEN` (or `GH_WORKFLOW_TOKEN` / `GITHUB_TOKEN`) + `GITHUB_REPO=owner/repo` (or `CMP_GITHUB_REPOSITORY`) in the shell, same values as Vercel Production.
+  - **(You)** Optional: `CMP_SANDBOX_BASE_REF` if not `main`.
+  - Dry-run: `npm run cmp:repair-sandbox` (or `node scripts/cmp-repair-stuck-sandbox.mjs`). Execute: `npm run cmp:repair-sandbox:execute`.
+  - **(You)** Confirm GitHub Actions workflow `**.github/workflows/cmp-branch.yml`** exists and is enabled; PAT has rights to trigger `repository_dispatch` for `cmp_sandbox_start`.
 
 ## P1 — Execution off laptop (see `docs/EXECUTION_BRAIN_VS_HANDS.md`)
 
-- [x] Scheduled **GitHub Action** `.github/workflows/factory-health-ping.yml` (Mondays UTC).
-- [ ] Set GitHub repo secret **`CORPFLOW_FACTORY_HEALTH_URL`** = e.g. `https://corpflowai.com/api/factory/health` so the ping hits prod.
-  - **Reminder:** If you **split DNS, traffic, or deployments** (e.g. apex vs `core.*` on different projects, edge proxies, regional routing), **revisit this secret** — update it (or add a second check) so CI still monitors the URL that matters. See `docs/EXECUTION_BRAIN_VS_HANDS.md` § Factory health URL.
-- [ ] Add **protected** Vercel route or cron (existing `vercel.json` crons) for periodic tasks you want without opening the laptop.
-- [ ] Decide n8n hosting: same host 24/7 vs trigger-only; ensure `CORPFLOW_AUTOMATION_FORWARD_URL` is reachable from Vercel.
-- [ ] (Optional GCP) Cloud Scheduler → HTTPS to factory endpoint with shared secret (uses existing Google Cloud account).
+- Scheduled **GitHub Action** `.github/workflows/factory-health-ping.yml` (Mondays UTC).
+- Set GitHub repo secret `**CORPFLOW_FACTORY_HEALTH_URL`** = e.g. `https://corpflowai.com/api/factory/health` so the ping hits prod.
+  - **Reminder:** If you **split DNS, traffic, or deployments** (e.g. apex vs `core.`* on different projects, edge proxies, regional routing), **revisit this secret** — update it (or add a second check) so CI still monitors the URL that matters. See `docs/EXECUTION_BRAIN_VS_HANDS.md` § Factory health URL.
+- Add **protected** Vercel route or cron (existing `vercel.json` crons) for periodic tasks you want without opening the laptop.
+- [x] Decide n8n hosting: same host 24/7 vs trigger-only; ensure `CORPFLOW_AUTOMATION_FORWARD_URL` is reachable from Vercel. *(Factory health reports `automation.forward_url_configured: true`.)*
+- (Optional GCP) Cloud Scheduler → HTTPS to factory endpoint with shared secret (uses existing Google Cloud account).
 
 ## P1 — Tenant surfaces (DB-driven, low drama → high leverage)
 
-**Firm request + rubric:** `artifacts/firm_request_db-driven-staged-path.md` (factory vs brain, Luxe login ops).
+**Canonical (host / apex / login routes):** `docs/operations/TENANT_CLIENT_LOGIN.md` — read this **before** changing host mapping, `/login`, or `/api/tenant/site` (agents: same path; don’t rely on `artifacts/` alone).
 
-- [ ] **Unify tenant site read** — one server helper for merged `{ tenant, site }` used by Next `getServerSideProps` and `GET /api/tenant/site`.
-- [ ] **Cache public reads** — `Cache-Control` (and optional `ETag`) on `GET /api/tenant/site` for anonymous traffic.
-- [ ] **Prisma / Postgres pooling** — align serverless client usage with Neon/Vercel guidance (document chosen pattern in `CONTEXT.md` or ops doc).
-- [ ] (Optional) **ISR / edge** for tenant `/` when draft staleness is acceptable.
+**Extended narrative / rubric:** `artifacts/firm_request_db-driven-staged-path.md` (factory vs brain, Luxe login ops) — supplementary to the operations doc above.
+
+- **Unify tenant site read** — one server helper for merged `{ tenant, site }` used by Next `getServerSideProps` and `GET /api/tenant/site`.
+- **Cache public reads** — `Cache-Control` (and optional `ETag`) on `GET /api/tenant/site` for anonymous traffic.
+- **Prisma / Postgres pooling** — align serverless client usage with Neon/Vercel guidance (document chosen pattern in `CONTEXT.md` or ops doc).
+- (Optional) **ISR / edge** for tenant `/` when draft staleness is acceptable.
 
 ## P1 — AI provision & Change Console
 
-- [ ] Factory HTML tail for `GET /api/automation/events` (operator view without curl).
-- [ ] One **golden-path** vertical script: tenant + hostname + smoke ticket (extend `scripts/onboard-demo-tenants.ps1` pattern).
-- [ ] Playbook seed: 3× `automation.playbook.upsert` via ingest (password reset, CMP forward, tenant onboarding).
+- Factory HTML tail for `GET /api/automation/events` (operator view without curl).
+- One **golden-path** vertical script: tenant + hostname + smoke ticket (extend `scripts/onboard-demo-tenants.ps1` pattern).
+- Playbook seed: 3× `automation.playbook.upsert` via ingest (password reset, CMP forward, tenant onboarding).
+
+## P1 — Automated tenant / prospect onboarding
+
+- **(You)** Map **DNS + Vercel domains** for each new `tenant_hostnames` host (bootstrap only writes Postgres; traffic still needs your edge config).
+- **(You)** Choose automation auth: factory master, `**CORPFLOW_TENANT_BOOTSTRAP_SECRET`** + header `x-corpflow-tenant-bootstrap-secret` on `POST /api/factory/tenant/bootstrap`, and/or `**CORPFLOW_AUTOMATION_TENANT_BOOTSTRAP=true`** + `CORPFLOW_AUTOMATION_INGEST_SECRET` for `event_type: tenant.bootstrap.execute` (see `lib/cmp/README.md` — Tenant onboarding).
+- **(You)** Store **PIN / generated password** from the API response immediately (shown once); wire n8n to email the client or hand off via secure channel.
+- **(Optional)** After `POST /api/tenant/intake` leads, run bootstrap with `**convert_lead_ids`** to mark rows `CONVERTED` (review leads in `GET /api/admin-leads` first).
+- **(You)** Self-serve **public** “create my org” without factory secrets is **not** implemented by design — if you need it, specify trust model (payments, domain proof, manual approval).
 
 ## P2 — Websites & marketing (no new spend first)
 
-- [ ] Single **marketing** source of truth: which pages are static on Vercel vs CMS later.
-- [ ] Analytics: Plausible self-host later **or** GA4 on Workspace/GCP — pick one; add env + privacy note.
-- [ ] Contact / lead form → existing `N8N_WEBHOOK_URL` path documented in one place.
+- Single **marketing** source of truth: which pages are static on Vercel vs CMS later.
+- Analytics: Plausible self-host later **or** GA4 on Workspace/GCP — pick one; add env + privacy note.
+- Contact / lead form → existing `N8N_WEBHOOK_URL` path documented in one place.
 
 ## P2 — Sales & payments (when you’re ready)
 
-- [ ] Payment provider choice (Stripe vs Paystack vs invoice-only) — **not** implemented until policy set.
-- [ ] Map “token credits” / CMP debits to real invoices (manual first, automate later).
-- [ ] DPA + data residency note for EU/Africa clients if needed.
+- Payment provider choice (Stripe vs Paystack vs invoice-only) — **not** implemented until policy set.
+- Map “token credits” / CMP debits to real invoices (manual first, automate later).
+- DPA + data residency note for EU/Africa clients if needed.
 
 ## P2 — Google Workspace / GCP (paid, already owned)
 
-- [ ] SMTP relay or send connector for **transactional** mail (password reset, alerts); document in playbook.
-- [ ] Optional: Secret Manager for rotation-heavy secrets (parallel to Vercel env).
+- SMTP relay or send connector for **transactional** mail (alerts, non–password-reset); password reset can use **Resend** or **n8n webhook** (see P0 password reset checklist above).
+- Optional: Secret Manager for rotation-heavy secrets (parallel to Vercel env).
 
 ---
 
 ## Done (archive)
 
-- [x] Automation spine: ingest, playbooks, risk gate, CMP mirror, `GET /api/automation/events`.
-- [x] Docs: `docs/automation-framework.md`, `docs/n8n/automation-forward-recipe.md`, `docs/agent-integration-search-policy.md`.
+- Automation spine: ingest, playbooks, risk gate, CMP mirror, `GET /api/automation/events`.
+- Docs: `docs/automation-framework.md`, `docs/n8n/automation-forward-recipe.md`, `docs/agent-integration-search-policy.md`.
 
 ---
 
-*Last reviewed: 2026-04-03 — update this line when you change priorities.*
+*Last reviewed: 2026-04-04 — update this line when you change priorities. Synced P0/P1 checkboxes to a production `GET /api/factory/health` snapshot (`ok`, `automation.*`, required `present`).*

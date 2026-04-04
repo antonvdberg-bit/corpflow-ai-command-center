@@ -11,6 +11,7 @@ Before doing any **deployment**, **DNS/traffic split**, **tenant onboarding**, o
 - Read `docs/EXECUTION_BRAIN_VS_HANDS.md` (brain vs hands boundaries; where 24/7 execution lives).
 - For automation work, read `docs/automation-framework.md` and `docs/n8n/automation-forward-recipe.md`.
 - For CMP behavior, skim `lib/cmp/README.md` (current API + tenancy rules).
+- For **hostname, apex, tenant login, or `/api/tenant/site`**, read **`docs/operations/TENANT_CLIENT_LOGIN.md`** (tenancy model + checklist). Use **`artifacts/`** only as supplementary narrative, not as the sole source of truth.
 - If the request references prior decisions (“we said we’d use `luxe.corpflowai.com`”), search existing docs and code for the decision and follow it.
 
 ## DNS / traffic split reminder

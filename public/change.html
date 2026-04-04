@@ -153,7 +153,10 @@
             <span id="cfConsoleTagline"></span>
           </p>
         </div>
-        <a class="text-sky-300 text-sm underline" href="/?admin=true">Back to intake</a>
+        <div class="flex flex-col items-end gap-1.5 text-sm">
+          <a class="text-sky-300 underline" href="/growth">Growth pipeline</a>
+          <a class="text-sky-300/80 underline" href="/?admin=true">Back to intake</a>
+        </div>
       </div>
 
       <div id="modeBar" class="hidden mt-4 rounded-xl border border-slate-800 bg-slate-900/30 px-4 py-3 text-xs text-slate-200"></div>
@@ -233,11 +236,30 @@
             <div class="text-xs text-slate-300 mb-2">Describe the change</div>
             <textarea id="desc" class="w-full min-h-[140px] rounded-xl bg-slate-950 border border-slate-800 px-3 py-3 text-sm" placeholder="Describe what you want changed in plain language…"></textarea>
             <p class="text-[10px] text-slate-500 mt-2 leading-relaxed">
-              <strong class="text-slate-400">Photos or video:</strong> there is no file upload here yet — paste
-              <strong class="text-slate-400">shareable links</strong> (Google Drive, Dropbox, WeTransfer, etc.) in the box
-              below or in your description.
+              <strong class="text-slate-400">Media:</strong> upload files below (after you have a ticket), or paste external
+              <strong class="text-slate-400">shareable links</strong> in the box under it.
             </p>
-            <label class="block mt-3 text-[11px] text-slate-400">Image / video links (optional, one per line)</label>
+            <div class="mt-3 rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-2.5">
+              <div class="text-[11px] font-medium text-slate-300 mb-2">Upload to this ticket</div>
+              <div class="flex flex-wrap items-center gap-2">
+                <input
+                  type="file"
+                  id="changeFileInput"
+                  accept="image/*,video/*,.pdf,application/pdf"
+                  class="text-[11px] text-slate-300 file:mr-2 file:rounded file:border-0 file:bg-slate-700 file:px-2 file:py-1 file:text-slate-200"
+                />
+                <button
+                  type="button"
+                  id="btnUploadAttachment"
+                  class="rounded-md border border-sky-600/50 bg-sky-500/15 px-3 py-1.5 text-[11px] font-semibold text-sky-200 hover:bg-sky-500/25"
+                >
+                  Upload
+                </button>
+              </div>
+              <p id="uploadAttachmentStatus" class="text-[10px] text-slate-500 mt-2"></p>
+              <ul id="attachmentList" class="mt-2 space-y-1 text-[10px] text-sky-300/90"></ul>
+            </div>
+            <label class="block mt-3 text-[11px] text-slate-400">External links (optional, one per line)</label>
             <textarea
               id="mediaLinks"
               class="mt-1 w-full min-h-[72px] rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-[11px] text-slate-200"
@@ -250,12 +272,17 @@
               <strong class="text-slate-400">billing-exempt</strong>. Run <strong class="text-slate-400">Estimate</strong> first so you can compare benchmark vs CorpFlow price before you commit.
             </p>
             <div class="flex flex-wrap gap-2 mt-3">
-              <button id="btnCreate" class="rounded-lg bg-sky-500 text-slate-950 px-4 py-2 text-sm font-semibold">Create ticket</button>
-              <button id="btnCost" class="rounded-lg border border-slate-700 px-4 py-2 text-sm">Estimate</button>
-              <button id="btnApprove" class="rounded-lg border border-slate-700 px-4 py-2 text-sm" title="Build approval — commits this ticket to the factory sandbox (uses wallet unless billing-exempt)">
+              <button type="button" id="btnCreate" class="rounded-lg bg-sky-500 text-slate-950 px-4 py-2 text-sm font-semibold">Create ticket</button>
+              <button type="button" id="btnCost" class="rounded-lg border border-slate-700 px-4 py-2 text-sm">Estimate</button>
+              <button
+                type="button"
+                id="btnApprove"
+                class="rounded-lg border border-slate-700 px-4 py-2 text-sm"
+                title="Build approval — commits this ticket to the factory sandbox (uses wallet unless billing-exempt)"
+              >
                 Approve build
               </button>
-              <button id="btnReset" class="rounded-lg border border-slate-800 px-4 py-2 text-sm text-slate-300">Reset</button>
+              <button type="button" id="btnReset" class="rounded-lg border border-slate-800 px-4 py-2 text-sm text-slate-300">Reset</button>
             </div>
           </div>
 
@@ -1310,8 +1337,45 @@
             return;
           }
           if (isTenant) {
-            card.classList.add('hidden');
-            body.innerHTML = '';
+            if (!approve) {
+              card.classList.add('hidden');
+              body.innerHTML = '';
+              return;
+            }
+            card.classList.remove('hidden');
+            const rowsT = [];
+            if (tid) rowsT.push(stepRow('ok', 'Ticket', 'ID ' + tid));
+            const okT = approve.ok === true;
+            rowsT.push(
+              stepRow(
+                okT ? 'ok' : 'err',
+                'Build approval',
+                okT
+                  ? 'Saved. This ticket is approved for build in the factory database.'
+                  : String(approve.error || approve.detail || approve.reject_reason || 'Approval did not complete.'),
+              ),
+            );
+            const sbT = approve.sandbox_branch || {};
+            if (okT && sbT.dispatch_triggered) {
+              rowsT.push(
+                stepRow(
+                  'ok',
+                  'Automation',
+                  'GitHub accepted the workflow. An isolated development branch is usually created within a few minutes.',
+                ),
+              );
+            } else if (okT) {
+              rowsT.push(
+                stepRow(
+                  'warn',
+                  'Automation',
+                  sbT.error
+                    ? String(sbT.error)
+                    : 'GitHub dispatch was not confirmed. The build is still saved — you can retry after repo/token settings are fixed, or ask your CorpFlow contact.',
+                ),
+              );
+            }
+            body.innerHTML = rowsT.join('');
             return;
           }
           card.classList.remove('hidden');
@@ -1407,11 +1471,13 @@
         }
 
         async function post(action, body) {
+          const payload =
+            body && typeof body === 'object' && !Array.isArray(body) ? { ...body, cmp_action: action } : { cmp_action: action };
           const r = await fetch('/api/cmp/router?action=' + encodeURIComponent(action), {
             method: 'POST',
             headers: headers(),
             credentials: 'include',
-            body: JSON.stringify(body || {}),
+            body: JSON.stringify(payload),
           });
           const j = await r.json().catch(() => ({}));
           if (!r.ok) {
@@ -1426,6 +1492,115 @@
             throw new Error(msg);
           }
           return j;
+        }
+
+        async function loadAttachmentList(ticketId) {
+          const ul = $('attachmentList');
+          const st = $('uploadAttachmentStatus');
+          if (!ul) return;
+          const tid = String(ticketId != null ? ticketId : ticketEl.value || '').trim();
+          if (!tid || !sessionInfo || !sessionInfo.logged_in) {
+            ul.innerHTML = '';
+            return;
+          }
+          try {
+            const r = await fetch('/api/change-attachment/list?ticket_id=' + encodeURIComponent(tid), {
+              credentials: 'include',
+            });
+            const j = await r.json().catch(() => ({}));
+            if (!r.ok) {
+              ul.innerHTML = '';
+              if (st) {
+                const miss =
+                  j.error === 'ATTACHMENTS_TABLE_MISSING' ||
+                  (j.error === 'LIST_FAILED' &&
+                    (String(j.detail || '').includes('Unknown model') || String(j.detail || '').includes('does not exist')));
+                st.textContent = miss
+                  ? 'File uploads need the cmp_ticket_attachments table — run factory ensure-schema, deploy Prisma.'
+                  : '';
+              }
+              return;
+            }
+            const base = window.location.origin || '';
+            const items = j.attachments && Array.isArray(j.attachments) ? j.attachments : [];
+            ul.innerHTML = items
+              .map(function (a) {
+                const u = String(a.download_url || '');
+                const href = u.indexOf('http') === 0 ? u : base + u;
+                const name = escapeHtml(String(a.file_name || 'file'));
+                return (
+                  '<li><a class="underline hover:text-sky-200" target="_blank" rel="noreferrer" href="' +
+                  escapeHtml(href) +
+                  '">' +
+                  name +
+                  '</a> <span class="text-slate-500">(' +
+                  escapeHtml(String(a.byte_size || 0)) +
+                  ' B)</span></li>'
+                );
+              })
+              .join('');
+          } catch (_) {
+            ul.innerHTML = '';
+          }
+        }
+
+        async function runChangeAttachmentUpload() {
+          const input = $('changeFileInput');
+          const st = $('uploadAttachmentStatus');
+          const tid = String(ticketEl.value || '').trim();
+          if (!tid) {
+            if (st) st.textContent = 'Create or pick a ticket first.';
+            return;
+          }
+          if (!sessionInfo || !sessionInfo.logged_in) {
+            if (st) st.textContent = 'Log in to upload.';
+            return;
+          }
+          if (!input || !input.files || !input.files[0]) {
+            if (st) st.textContent = 'Choose a file.';
+            return;
+          }
+          const file = input.files[0];
+          if (st) st.textContent = 'Uploading…';
+          try {
+            const b64 = await new Promise(function (resolve, reject) {
+              const fr = new FileReader();
+              fr.onload = function () {
+                resolve(String(fr.result || ''));
+              };
+              fr.onerror = function () {
+                reject(new Error('read_failed'));
+              };
+              fr.readAsDataURL(file);
+            });
+            const r = await fetch('/api/change-attachment/upload', {
+              method: 'POST',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                ticket_id: tid,
+                file_name: file.name,
+                content_type: file.type || 'application/octet-stream',
+                data_base64: b64,
+              }),
+            });
+            const j = await r.json().catch(function () {
+              return {};
+            });
+            if (!r.ok) throw new Error(j.error || j.detail || 'upload_failed');
+            const ml = $('mediaLinks');
+            if (ml && j.download_url) {
+              const origin = window.location.origin || '';
+              const u = String(j.download_url);
+              const full = u.indexOf('http') === 0 ? u : origin + u;
+              ml.value = (ml.value ? ml.value.trim() + '\n' : '') + full;
+            }
+            if (st) st.textContent = 'Uploaded — link added to External links.';
+            input.value = '';
+            loadAttachmentList(tid);
+          } catch (e) {
+            if (st) st.textContent = String(e.message || e);
+          }
         }
 
         function setBrief(obj) {
@@ -2186,6 +2361,30 @@
             }
           }
 
+          let readinessRow = '';
+          const rc = uiContext.change_console_readiness;
+          if (
+            rc &&
+            typeof rc === 'object' &&
+            Array.isArray(rc.warnings) &&
+            rc.warnings.length &&
+            surface === 'tenant' &&
+            uiContext.session &&
+            uiContext.session.logged_in &&
+            String(uiContext.session.level || '').toLowerCase() === 'tenant'
+          ) {
+            const lines = rc.warnings
+              .map(function (w) {
+                return escapeHtml(String(w || ''));
+              })
+              .join('<br/>');
+            readinessRow =
+              '<div class="mt-2 rounded-lg border border-amber-500/35 bg-amber-950/30 px-3 py-2 text-[11px] text-amber-50 leading-relaxed">' +
+              '<strong class="text-amber-200">Reliability check (auto)</strong> — fix these once so the console does not fail mid-demo:<br/>' +
+              lines +
+              '</div>';
+          }
+
           setModeBar(
             '<div class="space-y-0">' +
               '<div class="flex items-center justify-between gap-2 flex-wrap">' +
@@ -2201,6 +2400,7 @@
               '</span>' +
               '</div>' +
               '</div>' +
+              readinessRow +
               tenantFundingRow +
               coreSection +
               '</div>',
@@ -2337,6 +2537,9 @@
                     setBrief({ ...prev, ...gj });
                   }
                 } catch (_) {}
+                try {
+                  loadAttachmentList(t.ticket_id);
+                } catch (_) {}
               });
               listWrap.appendChild(btn);
             }
@@ -2405,6 +2608,9 @@
               applyConsoleLayout();
               if (lastBrief) setBrief(lastBrief);
               else applyWorkspaceMode();
+              try {
+                loadAttachmentList(ticketEl.value);
+              } catch (_) {}
             } else {
               sessionInfo = { logged_in: false, level: 'anonymous' };
               el.textContent = 'Not logged in';
@@ -2496,7 +2702,17 @@
           try {
             rescheduleTicketActivityPoll();
           } catch (_) {}
+          try {
+            loadAttachmentList(ticketEl.value);
+          } catch (_) {}
         });
+
+        const btnUploadAttachment = $('btnUploadAttachment');
+        if (btnUploadAttachment) {
+          btnUploadAttachment.addEventListener('click', function () {
+            runChangeAttachmentUpload();
+          });
+        }
 
         const btnRefreshActivity = $('btnRefreshActivity');
         if (btnRefreshActivity) {
@@ -2537,6 +2753,14 @@
           thread.innerHTML = '';
           setBrief(null);
           setBanner('');
+          try {
+            const ul = $('attachmentList');
+            if (ul) ul.innerHTML = '';
+            const ust = $('uploadAttachmentStatus');
+            if (ust) ust.textContent = '';
+            const fin = $('changeFileInput');
+            if (fin) fin.value = '';
+          } catch (_) {}
           try { localStorage.removeItem(LS_TICKET); } catch {}
         });
 
@@ -2555,6 +2779,7 @@
               append('user', d);
               setBrief({ ticket_id: tid, status: 'created' });
               loadTicketList();
+              loadAttachmentList(tid);
             });
           } catch (e) {
             setBanner(String(e.message || e));
@@ -2645,13 +2870,30 @@
           .then(function (r) {
             return r.json();
           })
-          .then(function (j) {
+          .then(async function (j) {
+            const nextQ =
+              '/login?next=' + encodeURIComponent(location.pathname + (location.search || ''));
             if (!j || !j.logged_in) {
+              window.location.replace(nextQ);
+              return;
+            }
+            if (j.tenant_host_session_mismatch) {
               window.location.replace(
-                '/login?next=' + encodeURIComponent(location.pathname + (location.search || '')),
+                '/login?tenant_mismatch=1&next=' +
+                  encodeURIComponent(location.pathname + (location.search || '')),
               );
               return;
             }
+            try {
+              const ur = await fetch('/api/ui/context', { credentials: 'include' });
+              const uc = await ur.json().catch(function () {
+                return {};
+              });
+              if (uc && uc.login_route === 'onboarding' && uc.surface === 'tenant') {
+                window.location.replace(nextQ);
+                return;
+              }
+            } catch (_) {}
             document.documentElement.classList.add('cf-change-auth-ready');
             bootChangeConsole();
           })

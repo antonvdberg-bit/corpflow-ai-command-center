@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "description": "Drives scripts/vercel-env.mjs: check gates, push exclusions, and allowlist extras not listed as KEY= in .env.template.",
+  "additional_allowlist_keys": [
+    "CORPFLOW_RUNTIME_CONFIG_JSON",
+    "SOVEREIGN_SESSION_TTL_SEC",
+    "SOVEREIGN_HANDOVER_OATH"
+  ],
+  "required_keys": [
+    "POSTGRES_URL",
+    "SOVEREIGN_SESSION_SECRET",
+    "CORPFLOW_CORE_HOSTS",
+    "CORPFLOW_ROOT_DOMAIN"
+  ],
+  "required_any": [
+    ["GROQ_API_KEY", "OPENAI_API_KEY"],
+    ["MASTER_ADMIN_KEY", "ADMIN_PIN", "CORPFLOW_ADMIN_PASSWORD", "CORPFLOW_ADMIN_PASSWORD_HASH"]
+  ],
+  "comprehensive_important_keys": [
+    "POSTGRES_URL",
+    "SOVEREIGN_SESSION_SECRET",
+    "CORPFLOW_CORE_HOSTS",
+    "CORPFLOW_ROOT_DOMAIN",
+    "N8N_WEBHOOK_URL",
+    "GROQ_API_KEY",
+    "MASTER_ADMIN_KEY",
+    "CORPFLOW_AUTH_BACKEND",
+    "CORPFLOW_TENANTS_BACKEND",
+    "CORPFLOW_CMP_BACKEND"
+  ],
+  "push_excluded_keys": [
+    "VERCEL_TOKEN",
+    "VERCEL_OIDC_TOKEN",
+    "VERCEL_AUTH_TOKEN"
+  ],
+  "default_push_targets": ["production", "preview", "development"],
+  "default_env_type": "encrypted"
+}

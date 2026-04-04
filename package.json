@@ -5,7 +5,18 @@
     "build": "next build",
     "test": "node --test node-tests/*.mjs",
     "verify:cmp-env": "node scripts/verify-cmp-env-read.mjs",
-    "provision:tenant-test": "node scripts/provision-tenant-test-access.mjs"
+    "provision:tenant-test": "node scripts/provision-tenant-test-access.mjs",
+    "cmp:repair-sandbox": "node scripts/cmp-repair-stuck-sandbox.mjs",
+    "cmp:repair-sandbox:execute": "node scripts/cmp-repair-stuck-sandbox.mjs --execute",
+    "vercel:env:allowlist": "node scripts/vercel-env.mjs allowlist",
+    "vercel:env:check": "node scripts/vercel-env.mjs check --backend auto",
+    "vercel:env:check:comprehensive": "node scripts/vercel-env.mjs check --backend auto --comprehensive",
+    "vercel:env:list": "node scripts/vercel-env.mjs list --backend auto",
+    "vercel:env:diff": "node scripts/vercel-env.mjs diff --backend auto",
+    "vercel:env:pull": "node scripts/vercel-env.mjs pull",
+    "vercel:env:push:dry": "node scripts/vercel-env.mjs push --backend auto",
+    "vercel:env:push": "node scripts/vercel-env.mjs push --backend auto --force",
+    "vercel:env:push:cli": "node scripts/vercel-env.mjs push --backend cli --force"
   },
   "dependencies": {
     "@prisma/client": "^6.0.0",
