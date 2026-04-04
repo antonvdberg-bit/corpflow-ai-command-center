@@ -20,52 +20,16 @@
  *   --tenant=id         Only tickets for this tenant_id
  *   --limit=200         Max rows scanned (Approved+Build), default 500
  *   --json              Print machine-readable JSON only
+ *
+ * Production: prefer scheduled `/api/cmp/stuck-self-repair-cron` (Bearer CORPFLOW_CRON_SECRET)
+ * so repair runs without a developer machine or Cursor.
  */
 
 import { PrismaClient } from '@prisma/client';
 import {
-  dispatchCmpSandboxStart,
-  notifyCmpAutomationWebhook,
-} from '../lib/cmp/_lib/github-dispatch.js';
-import { recordTrustedAutomationEvent } from '../lib/automation/internal.js';
-
-function safeJsonParse(raw, fallback) {
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return fallback;
-  }
-}
-
-function normalizeConsoleJson(v) {
-  if (!v) return { messages: [], brief: {}, locale: 'en' };
-  if (typeof v === 'string') {
-    const parsed = safeJsonParse(v, null);
-    if (parsed) return normalizeConsoleJson(parsed);
-    return { messages: [], brief: {}, locale: 'en' };
-  }
-  if (typeof v === 'object' && v !== null) {
-    const messages = Array.isArray(v.messages) ? v.messages.slice(0, 200) : [];
-    const brief = v.brief && typeof v.brief === 'object' ? v.brief : {};
-    const locale = typeof v.locale === 'string' ? v.locale : 'en';
-    return { ...v, messages, brief, locale };
-  }
-  return { messages: [], brief: {}, locale: 'en' };
-}
-
-/**
- * @param {{ status?: string | null; stage?: string | null; consoleJson?: unknown }} row
- */
-function isStuckSandbox(row) {
-  const st = String(row.status || '').trim();
-  const sg = String(row.stage || '').trim();
-  if (st !== 'Approved' || sg !== 'Build') return false;
-  const cj = row.consoleJson && typeof row.consoleJson === 'object' ? row.consoleJson : {};
-  const cv = cj.client_view && typeof cj.client_view === 'object' ? cj.client_view : {};
-  const auto = cv.automation && typeof cv.automation === 'object' ? cv.automation : {};
-  if (auto.dispatch_ok === true) return false;
-  return true;
-}
+  isStuckSandboxDispatch,
+  repairSandboxDispatchForTicket,
+} from '../lib/cmp/_lib/cmp-stuck-self-repair.js';
 
 function parseArgs(argv) {
   const out = {
@@ -86,78 +50,6 @@ function parseArgs(argv) {
     }
   }
   return out;
-}
-
-/**
- * @param {import('@prisma/client').PrismaClient} prisma
- * @param {{ id: string; tenantId: string | null; consoleJson: unknown }} row
- * @param {{ baseRef: string }} opts
- */
-async function repairOne(prisma, row, opts) {
-  const ticketId = row.id;
-  const sandboxDispatch = await dispatchCmpSandboxStart({
-    ticketId,
-    baseRef: opts.baseRef || undefined,
-  });
-
-  await notifyCmpAutomationWebhook({
-    ticket_id: ticketId,
-    source: 'repair-stuck-sandbox',
-    dispatch_ok: sandboxDispatch.ok,
-    dispatch_error: sandboxDispatch.error || null,
-  });
-
-  if (!sandboxDispatch.ok) {
-    return sandboxDispatch;
-  }
-
-  const norm = normalizeConsoleJson(row.consoleJson);
-  const prevCv = norm.client_view && typeof norm.client_view === 'object' ? norm.client_view : {};
-  const prevAuto = prevCv.automation && typeof prevCv.automation === 'object' ? prevCv.automation : {};
-  const automation = {
-    ...prevAuto,
-    dispatch_ok: true,
-    github_repo: sandboxDispatch.repo_full_name || prevAuto.github_repo || null,
-    branch_name: sandboxDispatch.branch_name || prevAuto.branch_name || null,
-    branch_url: sandboxDispatch.branch_url || prevAuto.branch_url || null,
-    compare_url: sandboxDispatch.compare_url || prevAuto.compare_url || null,
-    workflow_url: sandboxDispatch.workflow_url || prevAuto.workflow_url || null,
-    actions_url: sandboxDispatch.actions_url || prevAuto.actions_url || null,
-    last_error: null,
-    repair_dispatched_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  };
-  const client_view = {
-    ...prevCv,
-    status: 'Approved',
-    stage: 'Build',
-    automation,
-    progress_message: 'Sandbox dispatch repaired; automation started.',
-  };
-  const nextConsole = { ...norm, client_view };
-
-  await prisma.cmpTicket.update({
-    where: { id: ticketId },
-    data: { stage: 'Build', status: 'Approved', consoleJson: nextConsole },
-  });
-
-  await recordTrustedAutomationEvent(prisma, {
-    tenantId: row.tenantId,
-    eventType: 'cmp.sandbox.repair_dispatch',
-    payload: {
-      ticket_id: ticketId,
-      dispatch_ok: true,
-      branch_name: sandboxDispatch.branch_name || null,
-      branch_url: sandboxDispatch.branch_url || null,
-      workflow_url: sandboxDispatch.workflow_url || null,
-      actions_url: sandboxDispatch.actions_url || null,
-      error: null,
-    },
-    idempotencyKey: null,
-    source: 'cmp-repair-script',
-  });
-
-  return sandboxDispatch;
 }
 
 async function main() {
@@ -183,7 +75,7 @@ async function main() {
       orderBy: { updatedAt: 'desc' },
     });
 
-    const stuck = candidates.filter(isStuckSandbox);
+    const stuck = candidates.filter(isStuckSandboxDispatch);
 
     if (!args.json) {
       console.log(
@@ -222,7 +114,10 @@ async function main() {
     const results = [];
     for (const row of stuck) {
       try {
-        const d = await repairOne(prisma, row, { baseRef });
+        const d = await repairSandboxDispatchForTicket(prisma, row, {
+          baseRef,
+          source: 'cmp-repair-script',
+        });
         results.push({ id: row.id, ok: d.ok, error: d.error || null });
         if (!args.json) {
           console.log(d.ok ? `  OK ${row.id}` : `  FAIL ${row.id}: ${d.error || 'unknown'}`);
