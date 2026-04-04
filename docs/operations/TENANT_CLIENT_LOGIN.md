@@ -19,6 +19,8 @@
 
 Env reference: `.env.template` § **CORE vs TENANT — host boundary**.
 
+**Apex login (e.g. `https://corpflowai.com/login?next=/change`):** Not gated by `lib/server/tenant-hostname-policy.js`. That module only runs on factory hostname provisioning APIs. Apex resolution still uses `CORPFLOW_TENANT_HOST_MAP` / `CORPFLOW_DEFAULT_TENANT_ID` and intentionally does not apply `tenant_hostnames` to the apex host unless `CORPFLOW_APEX_ALLOW_DB_HOST_OVERRIDE=true` (`attachTenantFromHostPg` in `api/factory_router.js`). With `CORPFLOW_ENFORCE_HOSTNAME_MATCHES_TENANT_ID=true`, the apex host is excluded from the “prefix must equal `tenant_id`” check because it has no subdomain label.
+
 ---
 
 ## Expected behavior
