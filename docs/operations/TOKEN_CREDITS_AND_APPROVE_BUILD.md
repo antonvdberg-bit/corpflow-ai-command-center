@@ -1,61 +1,59 @@
 # Token credits and **Approve build** (Change Console)
 
-**Why this exists:** Tenant sessions on `/change` only get **`show_approve_build: true`** when there is **pre-paid balance** in Postgres (`tenant_personas.token_credit_balance_usd`) **or** the tenant is **billing-exempt**. Otherwise **`approve-build`** returns **402** (`INSUFFICIENT_CREDITS` or debit failure).
+**Model (simple):** One Postgres row per tenant in **`tenant_personas`**, keyed by **`tenant_id`** (unique index). The server reads **`token_credit_balance_usd`** and **`billing_exempt`** in **a single query** per request on hot paths (`getTenantWalletSnapshot` in `lib/factory/costing.js`). With thousands of tenants, each session still touches **only that tenant’s row** — there is no table scan and no per-tenant env parsing on the DB path.
 
-**Canonical code:** `lib/cmp/router.js` (`approve-build`), `lib/factory/costing.js`, `lib/server/billing-exempt.js`, `GET /api/ui/context` in `api/factory_router.js`.
+**Optional env OR:** **`CORPFLOW_BILLING_EXEMPT_TENANT_IDS`** is still supported as a **break-glass override** (same effect as `billing_exempt = true` in the DB). Effective rule: **`billing_exempt_effective = env_list_has(tenant) OR billing_exempt`**.
 
----
-
-## Option A — Billing-exempt (recommended for your own org tenant)
-
-Use for **`corpflowai`** (apex marketing / internal work) when you do **not** want to simulate client wallet debits.
-
-1. In **Vercel** → Project → Settings → Environment Variables, set:
-   - **`CORPFLOW_BILLING_EXEMPT_TENANT_IDS`** = `corpflowai`  
-   - (Optional) add other ids comma-separated: `corpflowai,root`
-2. **Redeploy** production (or wait for the next deploy) so serverless functions read the new value.
-3. Confirm: while logged in as a **tenant** user for `corpflowai`, **`GET /api/ui/context`** should show **`billing_exempt: true`** and **`show_approve_build: true`** even with **$0** balance.
-
-**Effect:** No token check before approve; **no debit** on approve-build for those tenants. Estimates still carry audit **`full_market_value_usd`**; client-facing charge line can show **$0** for exempt tenants.
+**Canonical code:** `lib/factory/costing.js`, `lib/cmp/router.js` (`approve-build`, `costing-preview`), `GET /api/ui/context` in `api/factory_router.js`, `lib/server/billing-exempt.js` (env only).
 
 ---
 
-## Option B — Top up wallet (simulate paying customer)
+## Option A — Billing exempt in the database (recommended)
 
-Use when you want **real debits** against a float (e.g. testing cash-positive guardrails).
-
-**From a trusted machine with `POSTGRES_URL` (same as production):**
+1. Run **`POST /api/factory/postgres/ensure-schema`** once after deploy (adds `billing_exempt` if missing; idempotently sets **`corpflowai`** to exempt if that row exists).
+2. Or set per tenant from a trusted machine:
 
 ```powershell
-cd path\to\corpflow-ai-command-center
-$env:POSTGRES_URL="postgresql://..."   # from Vercel
-node scripts/top-up-tenant-token-balance.mjs --tenant=corpflowai --usd=2500
+$env:POSTGRES_URL="postgresql://..."
+node scripts/top-up-tenant-token-balance.mjs --tenant=corpflowai --billing-exempt=true
 ```
 
-**Raw SQL (Neon console / psql):**
+3. Confirm: **`GET /api/ui/context`** while logged in as that tenant → **`billing_exempt: true`**, **`show_approve_build: true`** without needing a positive balance.
 
-```sql
-insert into tenant_personas (id, tenant_id, token_credit_balance_usd, created_at, updated_at)
-values (gen_random_uuid()::text, 'corpflowai', 2500, now(), now())
-on conflict (tenant_id) do update set
-  token_credit_balance_usd = excluded.token_credit_balance_usd,
-  updated_at = now();
-```
-
-*(If your `id` column is not `gen_random_uuid()::text`, use a cuid or match your Prisma migrations.)*
-
-Prisma-friendly: prefer the script so `id` and types match your schema.
+**Effect:** No token pre-check and **no debit** on approve-build for that tenant. Estimates can show **$0** client line; audit benchmark fields unchanged.
 
 ---
 
-## How much to add?
+## Option B — Env override only (legacy / emergency)
 
-- Each **Approve build** debits roughly **`displayed_client_usd`** (benchmark × **`CORPFLOW_CLIENT_BUILD_PRICE_RATIO`**, default **0.1**). Complex/risky tickets can be larger.
-- For a **multi-ticket marketing build**, either set **exempt** for `corpflowai` or keep **a few hundred to a few thousand USD** in the test wallet and top up when 402s appear.
+Vercel → **`CORPFLOW_BILLING_EXEMPT_TENANT_IDS`** = comma-separated ids (e.g. `corpflowai`). Redeploy so lambdas pick it up. Prefer DB for anything long-lived so ops does not depend on redeploys.
+
+---
+
+## Option C — Pre-paid wallet (paying customer simulation)
+
+```powershell
+node scripts/top-up-tenant-token-balance.mjs --tenant=acme-corp --usd=2500
+# or
+node scripts/top-up-tenant-token-balance.mjs --tenant=acme-corp --add-usd=500
+```
+
+Each **Approve build** debits roughly **`displayed_client_usd`** (benchmark × **`CORPFLOW_CLIENT_BUILD_PRICE_RATIO`**, default **0.1**).
+
+---
+
+## Schema / migrations
+
+- Prisma: `TenantPersona.billingExempt` → column **`billing_exempt`**.
+- **`ensure-schema`** and `scripts/sql/001_factory_init.sql` add the column on older databases.
 
 ---
 
 ## Verify
 
-- Logged in on **`https://corpflowai.com/change`** as tenant **`corpflowai`**: UI should allow **Approve build** (no red “insufficient credits” path).
-- If still blocked: check **`GET /api/ui/context`** JSON for `token_credit_balance_usd`, `billing_exempt`, `show_approve_build`, and `change_console_readiness.warnings`.
+- Tenant session on **`/change`**: **`GET /api/ui/context`** → `token_credit_balance_usd`, `billing_exempt`, `show_approve_build`.
+- If **402** on approve: balance ≤ 0 and not exempt — use Option A/B/C above.
+
+---
+
+*Last updated: 2026-04-04 — DB-backed `billing_exempt` + single-query wallet snapshot.*

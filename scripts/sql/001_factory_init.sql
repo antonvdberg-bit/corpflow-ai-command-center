@@ -64,6 +64,7 @@ create table if not exists tenant_personas (
   updated_at timestamptz not null default now()
 );
 create index if not exists tenant_personas_tenant_id_idx on tenant_personas (tenant_id);
+alter table tenant_personas add column if not exists billing_exempt boolean not null default false;
 
 create table if not exists token_debits (
   id text primary key,

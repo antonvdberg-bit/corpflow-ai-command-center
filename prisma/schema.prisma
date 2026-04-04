@@ -97,6 +97,8 @@ model TenantPersona {
   id                   String   @id @default(cuid())
   tenantId             String   @unique @map("tenant_id")
   tokenCreditBalanceUsd Float    @default(0) @map("token_credit_balance_usd")
+  /// When true, skip token pre-check and debit on approve-build (same effect as env override).
+  billingExempt        Boolean  @default(false) @map("billing_exempt")
   autonomyLevel        Int?     @map("autonomy_level")
   currentRank          String?  @map("current_rank")
   personaJson          Json?    @map("persona_json")

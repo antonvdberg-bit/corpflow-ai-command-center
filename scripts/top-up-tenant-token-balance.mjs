@@ -1,17 +1,13 @@
 #!/usr/bin/env node
 /**
- * Set or increase tenant pre-paid token balance (USD) in Postgres `tenant_personas`.
- * Same database as production Change Console / approve-build debits.
+ * Set tenant wallet and/or `billing_exempt` in Postgres `tenant_personas` (indexed by tenant_id).
  *
  * Usage (PowerShell):
  *   $env:POSTGRES_URL="postgresql://..."
  *   node scripts/top-up-tenant-token-balance.mjs --tenant=corpflowai --usd=2500
- *
- * Set absolute balance (default):
- *   node scripts/top-up-tenant-token-balance.mjs --tenant=corpflowai --usd=500
- *
- * Add to existing balance:
  *   node scripts/top-up-tenant-token-balance.mjs --tenant=corpflowai --add-usd=100
+ *   node scripts/top-up-tenant-token-balance.mjs --tenant=acme --billing-exempt=true
+ *   node scripts/top-up-tenant-token-balance.mjs --tenant=acme --billing-exempt=false --usd=500
  */
 
 import { PrismaClient } from '@prisma/client';
@@ -29,9 +25,12 @@ function hasFlag(name) {
 const tenantId = String(arg('tenant') || '').trim();
 const usdRaw = arg('usd');
 const addRaw = arg('add-usd');
+const beRaw = arg('billing-exempt');
 
 if (!tenantId) {
-  console.error('Usage: node scripts/top-up-tenant-token-balance.mjs --tenant=TENANT_ID --usd=N  OR  --add-usd=N');
+  console.error(
+    'Usage: node scripts/top-up-tenant-token-balance.mjs --tenant=TENANT_ID [--usd=N | --add-usd=N] [--billing-exempt=true|false]',
+  );
   process.exit(1);
 }
 
@@ -44,8 +43,20 @@ if (!pg) {
 const usd = usdRaw !== '' ? Number(usdRaw) : NaN;
 const addUsd = addRaw !== '' ? Number(addRaw) : NaN;
 
-if (!Number.isFinite(usd) && !Number.isFinite(addUsd)) {
-  console.error('Provide --usd=N (set balance) or --add-usd=N (increment).');
+/** @type {boolean | null} */
+let billingExemptNew = null;
+if (beRaw !== '') {
+  const v = String(beRaw).toLowerCase();
+  if (v === 'true' || v === '1') billingExemptNew = true;
+  else if (v === 'false' || v === '0') billingExemptNew = false;
+  else {
+    console.error('--billing-exempt must be true or false');
+    process.exit(1);
+  }
+}
+
+if (!Number.isFinite(usd) && !Number.isFinite(addUsd) && billingExemptNew === null) {
+  console.error('Provide at least one of: --usd=N, --add-usd=N, --billing-exempt=true|false');
   process.exit(1);
 }
 
@@ -59,19 +70,38 @@ const prisma = new PrismaClient();
 try {
   const existing = await prisma.tenantPersona.findUnique({
     where: { tenantId },
-    select: { tokenCreditBalanceUsd: true },
+    select: { tokenCreditBalanceUsd: true, billingExempt: true },
   });
 
-  const prev = existing ? Number(existing.tokenCreditBalanceUsd) : 0;
-  const next = Number.isFinite(addUsd) ? prev + addUsd : usd;
+  const prevBal = existing ? Number(existing.tokenCreditBalanceUsd) : 0;
+  const prevExempt = existing ? existing.billingExempt === true : false;
 
-  if (!Number.isFinite(next) || next < 0) {
+  let nextBal = prevBal;
+  if (Number.isFinite(addUsd)) nextBal = prevBal + addUsd;
+  else if (Number.isFinite(usd)) nextBal = usd;
+
+  if (!Number.isFinite(nextBal) || nextBal < 0) {
     console.error('Resulting balance must be a non-negative number.');
     process.exit(1);
   }
 
+  const nextExempt = billingExemptNew !== null ? billingExemptNew : prevExempt;
+
   if (hasFlag('dry-run')) {
-    console.log(JSON.stringify({ tenant_id: tenantId, previous_usd: prev, new_usd: next, dry_run: true }, null, 2));
+    console.log(
+      JSON.stringify(
+        {
+          tenant_id: tenantId,
+          previous_usd: prevBal,
+          new_usd: nextBal,
+          previous_billing_exempt: prevExempt,
+          new_billing_exempt: nextExempt,
+          dry_run: true,
+        },
+        null,
+        2,
+      ),
+    );
     process.exit(0);
   }
 
@@ -79,11 +109,15 @@ try {
     where: { tenantId },
     create: {
       tenantId,
-      tokenCreditBalanceUsd: next,
+      tokenCreditBalanceUsd: nextBal,
+      billingExempt: nextExempt,
       personaJson: {},
     },
-    update: { tokenCreditBalanceUsd: next },
-    select: { tenantId: true, tokenCreditBalanceUsd: true },
+    update: {
+      ...(Number.isFinite(usd) || Number.isFinite(addUsd) ? { tokenCreditBalanceUsd: nextBal } : {}),
+      ...(billingExemptNew !== null ? { billingExempt: billingExemptNew } : {}),
+    },
+    select: { tenantId: true, tokenCreditBalanceUsd: true, billingExempt: true },
   });
 
   console.log(
@@ -91,8 +125,8 @@ try {
       {
         ok: true,
         tenant_id: row.tenantId,
-        previous_usd: prev,
         token_credit_balance_usd: row.tokenCreditBalanceUsd,
+        billing_exempt: row.billingExempt === true,
       },
       null,
       2,

@@ -44,8 +44,7 @@ import { getTenantHostSessionConflict } from '../lib/server/tenant-host-session-
 import { cfg, runtimeConfigDiagnostics } from '../lib/server/runtime-config.js';
 import { passwordResetDeliveryDiagnostics } from '../lib/server/password-reset-delivery.js';
 import { getSessionFromRequest } from '../lib/server/session.js';
-import { isBillingExemptTenant } from '../lib/server/billing-exempt.js';
-import { getTokenCreditBalance } from '../lib/factory/costing.js';
+import { getTenantWalletSnapshot } from '../lib/factory/costing.js';
 import {
   handleChangeAttachmentDownload,
   handleChangeAttachmentList,
@@ -477,9 +476,7 @@ async function handleUiContext(req, res) {
   const rootDomain = String(cfg('CORPFLOW_ROOT_DOMAIN', '')).trim();
   const suggestedTenantConsoleUrl =
     ctx.surface === 'core' && rootDomain ? `https://${rootDomain}/change` : null;
-  const billing_exempt =
-    session.logged_in === true && session.tenant_id ? isBillingExemptTenant(session.tenant_id) : false;
-
+  let billing_exempt = false;
   let token_credit_balance_usd = null;
   let show_approve_build = false;
   const tenantClientSession =
@@ -488,13 +485,17 @@ async function handleUiContext(req, res) {
     String(session.level || '').toLowerCase() === 'tenant';
   if (tenantClientSession) {
     try {
-      const bal = Number(await getTokenCreditBalance({ tenantId: session.tenant_id }));
+      const snap = await getTenantWalletSnapshot({ tenantId: session.tenant_id });
+      billing_exempt = snap.billingExemptEffective === true;
+      const bal = Number(snap.tokenCreditBalanceUsd);
       token_credit_balance_usd = Number.isFinite(bal) ? Math.round(bal * 100) / 100 : 0;
+      show_approve_build =
+        billing_exempt === true || (token_credit_balance_usd != null && token_credit_balance_usd > 0);
     } catch (_) {
       token_credit_balance_usd = null;
+      billing_exempt = false;
+      show_approve_build = false;
     }
-    show_approve_build =
-      billing_exempt === true || (token_credit_balance_usd != null && token_credit_balance_usd > 0);
   }
 
   /** One round-trip preflight for demos: DB tables + GitHub env (tenant sessions only). */
