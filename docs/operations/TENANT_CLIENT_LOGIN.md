@@ -11,7 +11,8 @@
 | Rule | Detail |
 |------|--------|
 | **Apex** | `CORPFLOW_ROOT_DOMAIN` (e.g. `corpflowai.com`) = **CorpFlow marketing company**. It must resolve to a **real** row in Postgres **`tenants`** (e.g. `tenant_id` `corpflowai`), via **`CORPFLOW_TENANT_HOST_MAP`** / defaults — not a client tenant by mistake. |
-| **Clients** | e.g. **Luxe-Maurice** = separate **`tenants`** row; usually **subdomain** (`luxe.corpflowai.com`) + **`tenant_hostnames`**. |
+| **Clients** | e.g. **Luxe-Maurice** = separate **`tenants`** row; **`tenant_hostnames`** maps a hostname to that row. **Canonical for new clients:** **`{tenant_id}.<CORPFLOW_ROOT_DOMAIN>`** (subdomain label = workspace id, e.g. `acme-corp.corpflowai.com`). Legacy aliases (prefix ≠ `tenant_id`, e.g. `lux.…` → `luxe-maurice`) stay valid but may require **`CORPFLOW_TENANT_HOSTNAME_ONBOARDING_EXEMPT`** or bypass when strict envs are on. |
+| **Onboarding host policy** | Prefer **`tenant_id.corpflowai.com`** until DNS cutover. **`CORPFLOW_ENFORCE_CORPFLOW_SUBDOMAIN_ONBOARDING=true`** rejects hostnames not under **`CORPFLOW_ROOT_DOMAIN`** (unless exempt / bypass). **`CORPFLOW_ENFORCE_HOSTNAME_MATCHES_TENANT_ID=true`** additionally requires on-stack hosts to match **`{tenant_id}.<root>`** (prefix equals workspace id). Exempt: `localhost`, `*.vercel.app`, **`CORPFLOW_TENANT_HOSTNAME_ONBOARDING_EXEMPT`**, or **`bypass_client_hostname_policy: true`** (factory **master** on HTTP bootstrap / upsert only — not bootstrap-secret or ingest). **Customer-owned domains** = **Change Console ticket**, not onboarding. See `lib/server/tenant-hostname-policy.js`. |
 | **Apex vs DB map** | By default, **`tenant_hostnames` does not override apex** (prevents wrong client branding on apex). Opt-in: `CORPFLOW_APEX_ALLOW_DB_HOST_OVERRIDE=true`. See `api/factory_router.js` (`attachTenantFromHostPg`). |
 | **No ghost tenant** | **`GET /api/ui/context`** returns **`login_route`**: `operator` (core host), `client` (tenant surface **and** `tenants` row exists), or **`onboarding`** (resolved id but **no** row). **`GET /api/tenant/site`** returns no `site` if there is no **`tenants`** row (`TENANT_NOT_REGISTERED`). |
 | **Login UI** | `/login` shows **client** email/password only when `login_route === 'client'`; otherwise **onboarding** or **factory** chrome. See `public/login.html` + `public/assets/corpflow/tenant-chrome.js`. |
@@ -64,6 +65,7 @@ It returns a **checklist** (session secret set, Postgres set, user row, hash/sal
 | **`USER_NOT_FOUND`** | No row in **`auth_users`** for that email — run provision with **`--username=`** or fix typo. |
 | **`TENANT_MISMATCH`** | Email user’s `auth_users.tenant_id` ≠ submitted tenant (usually fixed by host lock + correct id). |
 | **`TENANT_ID_HOST_MISMATCH`** | Host map says tenant A; form said B — use **`expected_tenant_id`** from the JSON response. |
+| **`ONBOARDING_HOSTNAME_TENANT_ID_MISMATCH`** | Host is on-stack but DNS prefix ≠ `tenant_id` while **`CORPFLOW_ENFORCE_HOSTNAME_MATCHES_TENANT_ID=true`** — use **`tenant_id.<root>`**, add host to **`CORPFLOW_TENANT_HOSTNAME_ONBOARDING_EXEMPT`**, or factory-master **`bypass_client_hostname_policy`**. |
 | **`POSTGRES_URL_MISSING`** | Prod cannot verify PIN/users — fix env. |
 
 ## Subdomain without DB row

@@ -4,37 +4,61 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex,nofollow" />
-    <title>Factory · Auth users (login accounts)</title>
+    <title>Factory · Staff logins (confirmation)</title>
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-10">
     <div class="max-w-6xl mx-auto">
-      <h1 class="text-2xl font-semibold tracking-tight">Auth users (factory only)</h1>
+      <h1 class="text-2xl font-semibold tracking-tight">Staff logins — who can sign in?</h1>
       <p class="text-slate-400 text-sm mt-2 max-w-3xl leading-relaxed">
-        <strong class="text-slate-300">Passwords are never visible.</strong> They are stored as one-way hashes (like banks do).
-        This page lists who can log in and lets you <strong>set a new</strong> password (generated or typed). Use
-        <strong>MASTER_ADMIN_KEY</strong> or log in as factory admin on this browser first.
+        Use this page <strong class="text-slate-300">after</strong> you add a client workspace. It lists
+        <strong class="text-slate-300">email</strong> accounts (username + password hash). Passwords are never shown again —
+        only reset or generate new. Paste <strong class="text-slate-300">MASTER_ADMIN_KEY</strong> below if you are not
+        already signed in as Factory Admin on <strong class="text-slate-300">this same hostname</strong> (e.g.
+        <code class="text-slate-300">core.corpflowai.com</code>).
       </p>
 
-      <div class="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-amber-100/90 leading-relaxed">
-        <strong class="text-amber-200">Why clients cannot live with “DIY auth” forever:</strong> if we lose a day on login
-        internally, clients will too — unless we ship <strong>managed sign-in</strong> (e.g. Clerk, Auth0, Supabase Auth,
-        Google Workspace) and keep CorpFlow for tickets and data. This tool is the <strong>break-glass ops console</strong>
-        until then.
+      <div class="mt-4 rounded-xl border border-sky-500/25 bg-sky-500/5 p-4 text-sm text-sky-100/90 leading-relaxed">
+        <strong class="text-sky-200">Finding someone:</strong>
+        <ul class="list-disc ml-5 mt-2 space-y-1 text-slate-300">
+          <li>
+            <strong class="text-slate-200">Login email</strong> goes in <em>Email / username</em> — not in tenant id.
+          </li>
+          <li>
+            <strong class="text-slate-200">Tenant id</strong> is the short workspace id (e.g.
+            <code class="text-slate-200">corpflowai</code>, <code class="text-slate-200">luxe-maurice</code>) — not an
+            email address.
+          </li>
+          <li>Leave both blank and click <strong>Load list</strong> to see recent accounts (up to 500).</li>
+        </ul>
       </div>
 
-      <div class="mt-6 flex flex-wrap gap-4 items-end">
-        <label class="block flex-1 min-w-[200px]">
-          <span class="text-xs text-slate-400">Filter by tenant_id (optional)</span>
+      <div class="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-amber-100/90 leading-relaxed">
+        <strong class="text-amber-200">Long term:</strong> replace DIY email/password with managed sign-in (Clerk, Auth0,
+        etc.) for clients. This screen is the <strong>operator confirmation</strong> tool until then.
+      </div>
+
+      <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+        <label class="block">
+          <span class="text-xs text-slate-400">Tenant id (optional) — e.g. corpflowai</span>
           <input
             id="filterTenant"
             type="text"
             class="mt-1 w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm font-mono"
-            placeholder="e.g. luxe-maurice"
+            placeholder="corpflowai"
           />
         </label>
-        <label class="block flex-1 min-w-[240px]">
-          <span class="text-xs text-slate-400">MASTER_ADMIN_KEY (if not already admin in session)</span>
+        <label class="block">
+          <span class="text-xs text-slate-400">Email / username (optional) — exact match</span>
+          <input
+            id="filterEmail"
+            type="email"
+            class="mt-1 w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm"
+            placeholder="you@company.com"
+          />
+        </label>
+        <label class="block md:col-span-2">
+          <span class="text-xs text-slate-400">MASTER_ADMIN_KEY (only if this tab has no Factory Admin cookie)</span>
           <input
             id="masterKey"
             type="password"
@@ -43,13 +67,15 @@
             placeholder="paste once — stays in this tab only"
           />
         </label>
-        <button
-          type="button"
-          id="btnLoad"
-          class="rounded-lg bg-sky-600 hover:bg-sky-500 text-white px-4 py-2 text-sm font-semibold"
-        >
-          Load list
-        </button>
+        <div class="md:col-span-2 flex flex-wrap gap-3">
+          <button
+            type="button"
+            id="btnLoad"
+            class="rounded-lg bg-sky-600 hover:bg-sky-500 text-white px-4 py-2 text-sm font-semibold"
+          >
+            Load list
+          </button>
+        </div>
       </div>
 
       <div id="banner" class="hidden mt-4 rounded-lg border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-rose-200 text-sm"></div>
@@ -70,12 +96,16 @@
           </thead>
           <tbody id="tbody" class="divide-y divide-slate-800"></tbody>
         </table>
-        <p id="empty" class="hidden p-6 text-slate-500 text-sm">No rows. Check filter or POSTGRES_URL / schema.</p>
+        <div id="empty" class="hidden p-6 text-slate-400 text-sm space-y-2">
+          <p class="font-medium text-slate-300">No matching rows.</p>
+          <p>If you put an <strong>email</strong> in the tenant id box by mistake, clear it and use the <strong>Email / username</strong> field instead.</p>
+          <p>If you just onboarded a tenant but never created an email login, use <strong>Add client workspace</strong> → step 3 (email) or <strong>Generate new password</strong> after the row exists.</p>
+        </div>
       </div>
 
       <p class="mt-8 text-xs text-slate-500">
         API:
-        <code class="text-slate-400">GET /api/factory/auth-users/list</code> ·
+        <code class="text-slate-400">GET /api/factory/auth-users/list?tenant_id=&amp;username=</code> ·
         <code class="text-slate-400">POST /api/factory/auth-users/set-password</code>
       </p>
     </div>
@@ -101,7 +131,7 @@
 
         function authHeaders() {
           const key = String($('masterKey').value || '').trim();
-          const h = { 'Content-Type': 'application/json' };
+          const h = {};
           if (key) h['Authorization'] = 'Bearer ' + key;
           return h;
         }
@@ -110,7 +140,11 @@
           err('');
           ok('');
           const tid = String($('filterTenant').value || '').trim();
-          const q = tid ? '?tenant_id=' + encodeURIComponent(tid) : '';
+          const em = String($('filterEmail').value || '').trim().toLowerCase();
+          const params = new URLSearchParams();
+          if (tid) params.set('tenant_id', tid);
+          if (em) params.set('username', em);
+          const q = params.toString() ? '?' + params.toString() : '';
           const r = await fetch('/api/factory/auth-users/list' + q, {
             credentials: 'include',
             headers: authHeaders(),
@@ -180,7 +214,7 @@
           const r = await fetch('/api/factory/auth-users/set-password', {
             method: 'POST',
             credentials: 'include',
-            headers: authHeaders(),
+            headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders()),
             body: JSON.stringify(body),
           });
           const j = await r.json().catch(() => ({}));

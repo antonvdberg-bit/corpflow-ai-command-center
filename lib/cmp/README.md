@@ -48,12 +48,13 @@ Machine-first events and playbooks (separate from CMP `action=` router):
 - **`POST /api/factory/tenant/bootstrap`** (factory master **or** `x-corpflow-tenant-bootstrap-secret` when `CORPFLOW_TENANT_BOOTSTRAP_SECRET` is set): **one-shot** automation for a new client workspace.
   - Upserts `tenants`, all `hostnames` (or single `host`), optional sovereign PIN (`issue_pin: true`), optional `primary_user: { username, generate_password?: true, password?, level? }`.
   - Optional `convert_lead_ids: []` sets matching `leads.status` to `CONVERTED`. Use `dry_run: true` to validate without writes.
+  - **Hostname policy:** canonical host is **`{tenant_id}.CORPFLOW_ROOT_DOMAIN`** (same label as workspace id). When `CORPFLOW_ENFORCE_CORPFLOW_SUBDOMAIN_ONBOARDING=true`, non-stack hostnames are rejected unless exempt or `bypass_client_hostname_policy: true` (**factory master** on HTTP — not bootstrap-secret). When `CORPFLOW_ENFORCE_HOSTNAME_MATCHES_TENANT_ID=true`, on-stack hosts must match that pattern (legacy aliases → EXEMPT or bypass). Ingest `tenant.bootstrap.execute` cannot bypass. Custom domains after go-live: Change ticket, not onboarding.
   - n8n/agents: same payload under `POST /api/automation/ingest` with `event_type: "tenant.bootstrap.execute"` when `CORPFLOW_AUTOMATION_TENANT_BOOTSTRAP=true` (ingest secret required); response includes `bootstrap.pin_print_once` / `password_print_once` once.
 - **`tenant-onboard`** (POST, factory master only): upserts a row in `tenants` so tenant auth + tenant-scoped ticketing has a stable identity.
   - Body: `{ tenant_id, slug?, name?, fqdn?, execution_only?, lifecycle?, tenant_status? }`
   - This intentionally does **not** issue credentials; pair it with `provision-tenant-pin` when you want a PIN for sovereign bootstrap.
-- **`tenant-hostname-upsert`** (POST, factory master only): upserts a row in `tenant_hostnames` mapping a host (e.g. `legal.corpflowai.com`) to `tenant_id` (e.g. `legal-demo`).
-  - Body: `{ host, tenant_id, mode?, enabled? }`
+- **`tenant-hostname-upsert`** (POST, factory master only): upserts `tenant_hostnames` (e.g. `acme-corp.corpflowai.com` → `tenant_id` `acme-corp`).
+  - Body: `{ host, tenant_id, mode?, enabled?, bypass_client_hostname_policy?: true }` (bypass when enforcement is on and the host is off-stack, a legacy alias, or otherwise exceptional).
 - **`provision-tenant-pin`** (POST, factory master only): upserts `tenants.sovereign_pin_hash` (and creates a minimal tenant row if missing) and returns a one-time plaintext PIN.
 - **Auth users (break-glass):** UI `/factory/auth-users` — lists `auth_users` (no password visibility); `POST /api/factory/auth-users/set-password` with factory master to generate or set a new password. API: `GET /api/factory/auth-users/list?tenant_id=`.
 - **`assist-request`** (POST): records a tenant-safe “please investigate” snapshot for a ticket into `recovery_vault_entries` (Postgres) and emits telemetry for triage.

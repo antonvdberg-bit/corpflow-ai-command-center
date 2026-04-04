@@ -1,52 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><title>CorpFlowAI | Client Provisioning</title>
+    <meta charset="UTF-8"><title>Add a client workspace · CorpFlow</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>body { background: #0f172a; color: white; }</style>
 </head>
-<body class="p-12">
-    <div class="max-w-2xl mx-auto bg-slate-900 p-8 rounded-3xl border border-slate-800">
-        <h1 class="text-2xl font-bold mb-2">Provision New AI Tenant</h1>
-        <p class="text-slate-400 text-sm mb-6 leading-relaxed">
-          Factory-only onboarding for demo tenants. Writes Postgres rows: <code class="text-slate-200">tenants</code> and
-          <code class="text-slate-200">tenant_hostnames</code>. Optional: issues a sovereign PIN.
+<body class="p-6 md:p-12">
+    <div class="max-w-2xl mx-auto bg-slate-900 p-6 md:p-8 rounded-3xl border border-slate-800">
+        <h1 class="text-2xl font-bold mb-2">Add a client workspace</h1>
+        <p class="text-slate-300 text-sm mb-4 leading-relaxed">
+          For <strong class="text-slate-200">CorpFlow operators</strong> only. You are linking a <strong>website address</strong> to a
+          <strong>workspace id</strong> in our database so clients can log in with <strong>email and password</strong> (recommended).
         </p>
-        <p class="text-slate-500 text-xs mb-6 leading-relaxed border border-slate-800 rounded-xl p-3">
-          For automation (CI / n8n), use <code class="text-slate-300">POST /api/factory/tenant/bootstrap</code> with the same JSON fields in one body
-          (tenant, hostnames, optional <code class="text-slate-300">issue_pin</code>, optional <code class="text-slate-300">primary_user</code>), or
-          <code class="text-slate-300">tenant.bootstrap.execute</code> on <code class="text-slate-300">/api/automation/ingest</code> when enabled in env.
-        </p>
+
+        <details class="mb-6 rounded-xl border border-slate-700 bg-slate-950/50 p-4 text-sm text-slate-400">
+          <summary class="cursor-pointer text-sky-300 font-medium select-none">What does each step do? (plain English)</summary>
+          <ol class="list-decimal ml-5 mt-3 space-y-2 text-slate-300">
+            <li><strong class="text-slate-200">Prepare database</strong> — Creates tables if this is a new database (safe to run again).</li>
+            <li><strong class="text-slate-200">Save workspace + website</strong> — Stores the client name, id, and hostname <code class="text-slate-200">&lt;workspace_id&gt;.corpflowai.com</code> (same label as workspace id, e.g. <code class="text-slate-200">acme-corp.corpflowai.com</code> for workspace <code class="text-slate-200">acme-corp</code>). Moving to the client’s own domain is <strong class="text-slate-200">not</strong> part of this wizard — that is a <strong class="text-slate-200">Change Console ticket</strong> after go-live.</li>
+            <li><strong class="text-slate-200">Create email login</strong> — Creates their staff email account and a one-time password to share securely.</li>
+            <li><strong class="text-slate-200">PIN (optional)</strong> — Older backup login; most clients use email only.</li>
+          </ol>
+          <p class="mt-3 text-xs text-slate-500">
+            Robots and n8n can do this in one API call: <code class="text-slate-400">POST /api/factory/tenant/bootstrap</code> (see team README).
+          </p>
+        </details>
 
         <form id="form" class="space-y-4">
             <div>
-                <label class="block text-sm text-slate-400 mb-1">Tenant ID (unique)</label>
-                <input id="tenant_id" type="text" class="w-full bg-slate-800 border-none rounded-xl p-3" placeholder="e.g. legal-demo">
-                <p class="text-[11px] text-slate-500 mt-1">Use one tenant per demo site (matches CMP ticket scoping).</p>
+                <label class="block text-sm text-slate-400 mb-1">Workspace id (short, unique)</label>
+                <input id="tenant_id" type="text" class="w-full bg-slate-800 border-none rounded-xl p-3" placeholder="e.g. acme-corp">
+                <p class="text-[11px] text-slate-500 mt-1">Letters, numbers, dots, dashes. Example: <code class="text-slate-400">corpflowai</code> for your own apex site.</p>
             </div>
             <div>
                 <label class="block text-sm text-slate-400 mb-1">Display name</label>
-                <input id="name" type="text" class="w-full bg-slate-800 border-none rounded-xl p-3" placeholder="e.g. Legal Demo">
+                <input id="name" type="text" class="w-full bg-slate-800 border-none rounded-xl p-3" placeholder="e.g. Acme Corporation">
             </div>
             <div>
-                <label class="block text-sm text-slate-400 mb-1">Slug</label>
-                <input id="slug" type="text" class="w-full bg-slate-800 border-none rounded-xl p-3" placeholder="e.g. legal-demo">
+                <label class="block text-sm text-slate-400 mb-1">Slug (optional)</label>
+                <input id="slug" type="text" class="w-full bg-slate-800 border-none rounded-xl p-3" placeholder="Usually same as workspace id — leave blank OK">
             </div>
             <div>
-                <label class="block text-sm text-slate-400 mb-1">Site hostname</label>
-                <input id="host" type="text" class="w-full bg-slate-800 border-none rounded-xl p-3" placeholder="e.g. legal.corpflowai.com">
-                <p class="text-[11px] text-slate-500 mt-1">This is what routes requests to the right tenant.</p>
+                <label class="block text-sm text-slate-400 mb-1">Website hostname (<code class="text-slate-500">&lt;workspace_id&gt;.corpflowai.com</code>)</label>
+                <input id="host" type="text" class="w-full bg-slate-800 border-none rounded-xl p-3" placeholder="e.g. acme-corp.corpflowai.com">
+                <p class="text-[11px] text-slate-500 mt-1">The part before <code class="text-slate-400">.corpflowai.com</code> should match <strong class="text-slate-400">Workspace id</strong> above. No <code class="text-slate-400">https://</code>. Customer-owned domains are provisioned later via a ticket in the tenant’s Change space — not here.</p>
+            </div>
+            <div class="border-t border-slate-800 pt-4">
+                <label class="block text-sm text-slate-400 mb-1">Staff email (for step 3)</label>
+                <input id="staff_email" type="email" class="w-full bg-slate-800 border-none rounded-xl p-3" placeholder="client-owner@theircompany.com">
+                <p class="text-[11px] text-slate-500 mt-1">We create a login for this address and show a temporary password once.</p>
             </div>
 
-            <div class="flex items-center gap-3 flex-wrap pt-2">
-              <button id="btnEnsure" type="button" class="rounded-xl bg-slate-800 hover:bg-slate-700 px-4 py-2 font-semibold">
-                1) Ensure DB schema
+            <div class="flex flex-col gap-3 pt-2">
+              <button id="btnEnsure" type="button" class="rounded-xl bg-slate-800 hover:bg-slate-700 px-4 py-3 text-left text-sm font-semibold">
+                <span class="text-slate-400">Step 1 ·</span> Prepare database
               </button>
-              <button id="btnOnboard" type="button" class="rounded-xl bg-blue-600 hover:bg-blue-500 px-4 py-2 font-bold">
-                2) Onboard tenant + hostname
+              <button id="btnOnboard" type="button" class="rounded-xl bg-blue-600 hover:bg-blue-500 px-4 py-3 text-left text-sm font-bold">
+                <span class="text-blue-200">Step 2 ·</span> Save workspace + website
               </button>
-              <button id="btnPin" type="button" class="rounded-xl bg-emerald-600 hover:bg-emerald-500 px-4 py-2 font-bold">
-                3) Issue PIN (optional)
+              <button id="btnEmailLogin" type="button" class="rounded-xl bg-emerald-600 hover:bg-emerald-500 px-4 py-3 text-left text-sm font-bold">
+                <span class="text-emerald-200">Step 3 ·</span> Create email login (recommended)
+              </button>
+              <button id="btnPin" type="button" class="rounded-xl bg-slate-700 hover:bg-slate-600 px-4 py-3 text-left text-sm font-semibold">
+                <span class="text-slate-400">Step 4 ·</span> Issue PIN only (optional / legacy)
               </button>
             </div>
         </form>
@@ -54,8 +70,9 @@
         <div id="out" class="mt-6 rounded-2xl border border-slate-800 bg-slate-950/40 p-4 text-sm text-slate-200 whitespace-pre-wrap min-h-[80px]"></div>
 
         <p class="mt-6 text-sm text-slate-400">
-          Manage staff login emails / passwords (factory only):
-          <a class="text-sky-400 underline" href="/factory/auth-users">Open auth users console</a>
+          Confirm staff accounts and reset passwords:
+          <a class="text-sky-400 underline" href="/factory/auth-users">Open staff logins</a>
+          · Use the same browser host you used to log in as Factory Admin (e.g. <code class="text-slate-500">core.…</code>).
         </p>
     </div>
 
@@ -81,54 +98,85 @@
         }
 
         async function ensureSchema() {
-          show('Ensuring schema…');
+          show('Preparing database…');
           const j = await postJson('/api/factory/postgres/ensure-schema', {});
           show(j);
+        }
+
+        function normalizeHostname(raw) {
+          let h = String(raw || '').trim().toLowerCase();
+          h = h.replace(/^https?:\/\//i, '');
+          const slash = h.indexOf('/');
+          if (slash !== -1) h = h.slice(0, slash);
+          h = h.replace(/:\d+$/, '');
+          return h.trim();
         }
 
         function formVals() {
           const tenant_id = String(($('tenant_id').value || '')).trim();
           const slug = String(($('slug').value || '')).trim() || tenant_id;
           const name = String(($('name').value || '')).trim() || tenant_id;
-          const host = String(($('host').value || '')).trim().toLowerCase();
-          if (!tenant_id) throw new Error('tenant_id is required');
-          if (!host) throw new Error('host is required');
+          const host = normalizeHostname($('host').value);
+          if (!tenant_id) throw new Error('Workspace id is required.');
+          if (!host) throw new Error('Website hostname is required.');
           return { tenant_id, slug, name, host };
         }
 
         async function onboardTenantAndHost() {
           const v = formVals();
-          show('Onboarding tenant…');
+          show('Saving workspace…');
           const tenant = await postJson('/api/cmp/router?action=tenant-onboard', {
             tenant_id: v.tenant_id,
             slug: v.slug,
             name: v.name,
             fqdn: v.host,
           });
-          show({ step: 'tenant-onboard', tenant });
+          show({ step: 'workspace saved', tenant });
 
-          show('Writing hostname mapping…');
+          show('Linking website hostname…');
           const mapping = await postJson('/api/cmp/router?action=tenant-hostname-upsert', {
             tenant_id: v.tenant_id,
             host: v.host,
             mode: 'tenant',
             enabled: true,
           });
-          show({ step: 'tenant-hostname-upsert', mapping, tenant });
+          show({ done: 'Workspace is linked. Next: Step 3 to create email login.', tenant, hostname: mapping });
+        }
+
+        async function createEmailLogin() {
+          const v = formVals();
+          const email = String(($('staff_email').value || '')).trim().toLowerCase();
+          if (!email) throw new Error('Enter the staff email (step 3).');
+          show('Creating email login…');
+          const j = await postJson('/api/factory/auth-users/set-password', {
+            username: email,
+            generate: true,
+            create_if_missing: true,
+            tenant_id: v.tenant_id,
+            level: 'tenant',
+          });
+          show({
+            ok: true,
+            message: 'Copy the password below into your password manager and send it through a secure channel.',
+            username: j.username,
+            password_print_once: j.password_print_once,
+            warning: j.warning,
+          });
         }
 
         async function issuePin() {
           const v = formVals();
           show('Issuing PIN…');
           const pin = await postJson('/api/cmp/router?action=provision-tenant-pin', { tenant_id: v.tenant_id });
-          show({ step: 'provision-tenant-pin', pin });
+          show({ step: 'pin (optional)', pin });
         }
 
         $('btnEnsure').addEventListener('click', () => ensureSchema().catch((e) => show('Error: ' + (e && e.message ? e.message : String(e)))));
         $('btnOnboard').addEventListener('click', () => onboardTenantAndHost().catch((e) => show('Error: ' + (e && e.message ? e.message : String(e)))));
+        $('btnEmailLogin').addEventListener('click', () => createEmailLogin().catch((e) => show('Error: ' + (e && e.message ? e.message : String(e)))));
         $('btnPin').addEventListener('click', () => issuePin().catch((e) => show('Error: ' + (e && e.message ? e.message : String(e)))));
 
-        show('Ready. Log in as admin (cookie session) and run steps 1 → 2. Step 3 is optional.');
+        show('Open this page on the same site where you logged in as Factory Admin (e.g. core.…). Then run steps 1 → 2 → 3.');
       })();
     </script>
 </body>

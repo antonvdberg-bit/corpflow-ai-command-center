@@ -25,12 +25,16 @@
       <!-- Client sites only: no internal terminology, host supplies scope server-side -->
       <div id="clientSimpleLogin" class="hidden rounded-2xl border border-slate-800 bg-slate-900/30 p-6 md:p-8">
         <h1 class="text-2xl font-semibold tracking-tight" id="simpleLoginHeading">Log in to the change request area</h1>
-        <p class="text-slate-400 text-sm mt-2" id="simpleLoginLead">Enter your email and password.</p>
+        <p class="text-slate-400 text-sm mt-2" id="simpleLoginLead">
+          Use the <strong class="text-slate-300">email and password</strong> your operator sent you, or
+          <strong class="text-slate-300">your PIN</strong> if that is what you were given.
+        </p>
 
         <div id="banner" class="hidden mt-6 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-rose-200 text-sm"></div>
         <div id="ok" class="hidden mt-6 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-emerald-200 text-sm"></div>
 
         <div class="mt-8 space-y-4">
+          <p class="text-[11px] uppercase tracking-wide text-slate-500 font-medium">Email &amp; password</p>
           <label class="block text-xs text-slate-300"
             >Email
             <input
@@ -54,7 +58,33 @@
             id="btnSimpleLogin"
             class="w-full rounded-lg bg-[var(--cf-accent,#d4af37)] text-slate-950 px-4 py-2.5 text-sm font-semibold"
           >
-            Log in
+            Log in with email
+          </button>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-slate-800 space-y-4">
+          <p class="text-[11px] uppercase tracking-wide text-slate-500 font-medium">PIN only</p>
+          <p class="text-[11px] text-slate-500 leading-relaxed">
+            If your operator gave you a <strong class="text-slate-400">6-digit PIN</strong> only, enter it here. This site already knows your workspace from the web address.
+          </p>
+          <label class="block text-xs text-slate-300"
+            >PIN
+            <input
+              id="simplePin"
+              type="password"
+              inputmode="numeric"
+              autocomplete="one-time-code"
+              maxlength="12"
+              class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2.5 text-sm tracking-widest font-mono"
+              placeholder="••••••"
+            />
+          </label>
+          <button
+            type="button"
+            id="btnSimplePinLogin"
+            class="w-full rounded-lg border border-slate-600 bg-slate-900 hover:bg-slate-800 text-slate-100 px-4 py-2.5 text-sm font-semibold"
+          >
+            Log in with PIN
           </button>
         </div>
 
@@ -175,16 +205,19 @@
               </button>
             </div>
             <div class="grid grid-cols-1 gap-3 mt-3">
-              <label class="block text-xs text-slate-300">Email / Username (optional)
+              <p class="text-[11px] text-slate-400">Default: <strong class="text-slate-300">email + password</strong> from your operator.</p>
+              <label class="block text-xs text-slate-300">Email
                 <input id="tenantUser" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" placeholder="name@company.com" autocomplete="username" />
               </label>
-              <label class="block text-xs text-slate-300">Password (optional)
+              <label class="block text-xs text-slate-300">Password
                 <input id="tenantPass" type="password" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" autocomplete="current-password" />
               </label>
-              <div class="text-[11px] text-slate-500">Or use the tenant PIN you received from your operator.</div>
-              <label class="block text-xs text-slate-300">PIN
-                <input id="tenantPin" type="password" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" autocomplete="one-time-code" />
-              </label>
+              <details class="rounded-lg border border-slate-800 bg-slate-950/30 px-3 py-2">
+                <summary class="cursor-pointer text-[11px] text-slate-500 select-none">Use a PIN instead (only if your operator gave you one)</summary>
+                <label class="block text-xs text-slate-300 mt-3">PIN
+                  <input id="tenantPin" type="password" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" autocomplete="one-time-code" />
+                </label>
+              </details>
             </div>
             <button id="btnTenant" class="mt-4 w-full rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold">Login as Tenant</button>
 
@@ -197,9 +230,9 @@
                 end clients.
               </p>
               <p>
-                <span class="text-slate-200 font-medium">Need a PIN or access?</span>
-                Reply to your onboarding email or contact your operator. PINs cannot be requested from this screen for
-                security reasons.
+                <span class="text-slate-200 font-medium">Need access?</span>
+                Use the email and one-time password your operator sent, or contact them for a reset. PINs are optional and
+                cannot be requested from this screen.
               </p>
               <p class="pt-1 flex flex-wrap gap-x-3 gap-y-1">
                 <a class="text-sky-300 underline" href="/lux-guide">How to request changes</a>
@@ -231,17 +264,38 @@
           </div>
         </div>
 
+        <p class="mt-6 text-xs text-slate-500 leading-relaxed">
+          <span class="text-slate-400 font-medium">CorpFlow operators:</span>
+          after you sign in as <strong class="text-slate-300">Factory Admin</strong>, open
+          <a class="text-sky-400 underline" href="/admin_onboarding.html">Add client workspace</a>
+          or
+          <a class="text-sky-400 underline" href="/factory/auth-users">Staff logins</a>
+          on <strong class="text-slate-300">this same hostname</strong> (e.g. <code class="text-slate-400">core.…</code>) so your session cookie applies.
+        </p>
+
         <div class="mt-8 flex gap-3 flex-wrap">
           <a class="text-sky-300 text-sm underline" href="/change">Go to Change Console</a>
           <button id="btnLogout" class="text-slate-300 text-sm underline">Logout</button>
         </div>
 
         <div id="factoryTools" class="hidden mt-10 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-5">
-          <h2 class="text-sm font-semibold text-amber-100">Factory setup (one click)</h2>
-          <p class="text-xs text-slate-400 mt-2 leading-relaxed">
-            Creates <code class="text-slate-300">tenants</code>, <code class="text-slate-300">auth_users</code>, and
-            <code class="text-slate-300">cmp_tickets</code> in your Postgres database if they are missing. Uses the same
-            <code class="text-slate-300">POSTGRES_URL</code> you set in Vercel. Safe to run more than once.
+          <h2 class="text-sm font-semibold text-amber-100">Factory setup</h2>
+          <div class="mt-4 flex flex-wrap gap-3">
+            <a
+              href="/admin_onboarding.html"
+              class="inline-flex items-center justify-center rounded-lg bg-sky-600 hover:bg-sky-500 text-white px-4 py-2 text-sm font-semibold"
+              >Add client workspace</a
+            >
+            <a
+              href="/factory/auth-users"
+              class="inline-flex items-center justify-center rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-100 px-4 py-2 text-sm font-semibold"
+              >Staff logins</a
+            >
+          </div>
+          <p class="text-xs text-slate-400 mt-4 leading-relaxed">
+            <strong class="text-slate-300">Database tables:</strong> creates <code class="text-slate-300">tenants</code>,
+            <code class="text-slate-300">auth_users</code>, <code class="text-slate-300">cmp_tickets</code>, etc. if missing.
+            Uses <code class="text-slate-300">POSTGRES_URL</code> on Vercel. Safe to run more than once.
           </p>
           <button
             id="btnEnsureDb"
@@ -428,11 +482,17 @@
                 err('This page could not determine your site. Please contact support.');
                 return;
               }
+              const u = String($('simpleUser').value || '').trim();
+              const p = String($('simplePass').value || '');
+              if (!u || !p) {
+                err('Enter both email and password, or use Log in with PIN below.');
+                return;
+              }
               await post('/api/auth/login', {
                 level: 'tenant',
                 tenant_id: clientTenantId,
-                username: $('simpleUser').value,
-                password: $('simplePass').value,
+                username: u,
+                password: p,
               });
               window.location.href = safeNextPath();
             } catch (e) {
@@ -441,9 +501,41 @@
               if (jb && jb.expected_tenant_id) {
                 m = 'Sign-in failed. If this keeps happening, contact the person who set up your access.';
               } else if (m.indexOf('INVALID_CREDENTIALS') !== -1 || m.indexOf('USER_NOT_FOUND') !== -1) {
-                m = 'Email or password not recognized. Try again or use Forgot password.';
+                m = 'Email or password not recognized. Try again, use Forgot password, or log in with PIN if you have one.';
               } else if (m.indexOf('MISSING_CREDENTIALS') !== -1) {
                 m = 'Please enter your email and password.';
+              } else if (jb && jb.hint) m = String(jb.hint);
+              err(m);
+            }
+          });
+
+          $('btnSimplePinLogin').addEventListener('click', async () => {
+            err('');
+            try {
+              if (!clientTenantId) {
+                err('This page could not determine your site. Please contact support.');
+                return;
+              }
+              const pin = String($('simplePin').value || '').trim();
+              if (!pin) {
+                err('Enter your PIN, or use email and password above.');
+                return;
+              }
+              await post('/api/auth/login', {
+                level: 'tenant',
+                tenant_id: clientTenantId,
+                pin: pin,
+              });
+              window.location.href = safeNextPath();
+            } catch (e) {
+              let m = String(e.message || e);
+              const jb = e.corpflowBody && typeof e.corpflowBody === 'object' ? e.corpflowBody : null;
+              if (m.indexOf('INVALID_PIN') !== -1) {
+                m = 'That PIN is not correct. Check with your operator or try email login if you have a password.';
+              } else if (m.indexOf('TENANT_PIN_NOT_PROVISIONED') !== -1) {
+                m = 'A PIN is not set up for this workspace yet. Ask your operator for email login or a PIN.';
+              } else if (m.indexOf('TENANT_NOT_FOUND') !== -1) {
+                m = 'This workspace is not fully set up. Contact your operator.';
               } else if (jb && jb.hint) m = String(jb.hint);
               err(m);
             }
