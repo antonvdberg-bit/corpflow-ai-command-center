@@ -11,3 +11,6 @@ core/engine/token.json
 core/engine/client_secrets.json
 .vercel
 .env*.local
+
+# Vanguard: append-only local logs (telemetry, token debits) — written at runtime, not source.
+vanguard/audit-trail/*.jsonl
