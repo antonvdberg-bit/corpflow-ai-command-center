@@ -46,6 +46,7 @@ When proposing an upgrade (e.g. move attachments from Postgres to S3), document:
 - **n8n forwarding recipe**: `docs/n8n/automation-forward-recipe.md`
 - **Team priorities**: `docs/CORPFLOW_SHARED_TODO.md`
 - **Security review (auth, API, server, automation)**: `docs/operations/SECURITY_REVIEW_CHECKLIST.md`
+- **Token credits / Approve build gate**: `docs/operations/TOKEN_CREDITS_AND_APPROVE_BUILD.md`
 - **Incident / key rotation (stub)**: `docs/runbooks/SECURITY_OR_INCIDENT.md`
 - **Architecture decisions (ADR-lite)**: `docs/decisions/README.md`
 

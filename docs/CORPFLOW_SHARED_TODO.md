@@ -60,6 +60,7 @@ Treat this as part of **definition of done** whenever work is **committed and pu
 ## P0 — Spine & safety (now)
 
 - **Security review discipline:** Use **`docs/operations/SECURITY_REVIEW_CHECKLIST.md`** for any change to authentication, cookies/sessions, `api/`, `lib/server/`, `lib/cmp/` authorization, Prisma schema/migrations, ingest/forward/HMAC, or open redirects. **Incident / key rotation start:** **`docs/runbooks/SECURITY_OR_INCIDENT.md`**.
+- **Change Console / Approve build credits:** Tenant **`show_approve_build`** requires wallet balance or **`CORPFLOW_BILLING_EXEMPT_TENANT_IDS`** (e.g. `corpflowai` for your org). See **`docs/operations/TOKEN_CREDITS_AND_APPROVE_BUILD.md`** and `npm run topup:tenant-tokens -- --tenant=... --usd=...`.
 - **Postgres tables (once per prod DB):** `POST /api/factory/postgres/ensure-schema` with factory master auth — step-by-step: `docs/operations/ENSURE_POSTGRES_SCHEMA.md`.
 - **Tenant forgot-password email (you / ops):** Production needs at least one delivery path (see `GET /api/factory/health` → `password_reset_delivery`).
   - **(You)** Create a **Resend** account (or stay webhook-only). If using Resend: verify **sending domain** in Resend; set Vercel env `CORPFLOW_PASSWORD_RESET_RESEND_API_KEY` + `CORPFLOW_PASSWORD_RESET_FROM_EMAIL` (e.g. `CorpFlow <noreply@yourdomain.com>`).

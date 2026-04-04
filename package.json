@@ -6,6 +6,7 @@
     "test": "node --test node-tests/*.mjs",
     "verify:cmp-env": "node scripts/verify-cmp-env-read.mjs",
     "provision:tenant-test": "node scripts/provision-tenant-test-access.mjs",
+    "topup:tenant-tokens": "node scripts/top-up-tenant-token-balance.mjs",
     "cmp:repair-sandbox": "node scripts/cmp-repair-stuck-sandbox.mjs",
     "cmp:repair-sandbox:execute": "node scripts/cmp-repair-stuck-sandbox.mjs --execute",
     "vercel:env:allowlist": "node scripts/vercel-env.mjs allowlist",
