@@ -132,6 +132,191 @@
       html:not(.cf-change-auth-ready) #changeAppRoot {
         visibility: hidden;
       }
+
+      /* Client-facing delivery plan — motion + no jargon */
+      .cf-delivery-plan {
+        position: relative;
+      }
+      .cf-delivery-meter {
+        height: 5px;
+        border-radius: 9999px;
+        background: rgba(51, 65, 85, 0.55);
+        overflow: hidden;
+        margin-bottom: 1rem;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35);
+      }
+      .cf-delivery-meter-fill {
+        height: 100%;
+        width: 0%;
+        border-radius: 9999px;
+        background: linear-gradient(90deg, rgb(14 165 233), rgb(45 212 191), rgb(52 211 153));
+        background-size: 200% 100%;
+        transition: width 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+        animation: cf-meter-shimmer 4.5s ease-in-out infinite;
+        box-shadow: 0 0 14px rgba(56, 189, 248, 0.35);
+      }
+      @keyframes cf-meter-shimmer {
+        0%,
+        100% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+      }
+      .cf-delivery-rail {
+        position: relative;
+        padding-left: 1.35rem;
+      }
+      .cf-delivery-rail::before {
+        content: '';
+        position: absolute;
+        left: 5px;
+        top: 10px;
+        bottom: 10px;
+        width: 2px;
+        border-radius: 9999px;
+        background: linear-gradient(
+          180deg,
+          rgba(56, 189, 248, 0.15),
+          rgba(45, 212, 191, 0.35),
+          rgba(51, 65, 85, 0.45)
+        );
+      }
+      .cf-delivery-step {
+        position: relative;
+        padding-bottom: 1rem;
+      }
+      .cf-delivery-step:last-child {
+        padding-bottom: 0;
+      }
+      .cf-delivery-node {
+        position: absolute;
+        left: -1.35rem;
+        top: 3px;
+        width: 12px;
+        height: 12px;
+        border-radius: 9999px;
+        border: 2px solid rgba(71, 85, 105, 0.9);
+        background: rgb(15 23 42);
+        z-index: 1;
+        transition: border-color 0.35s ease, transform 0.35s ease, box-shadow 0.35s ease;
+      }
+      .cf-delivery-step--ok .cf-delivery-node {
+        border-color: rgb(52 211 153);
+        background: rgb(6 78 59);
+        box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.25);
+      }
+      .cf-delivery-step--ok .cf-delivery-node::after {
+        content: '';
+        position: absolute;
+        inset: 2px;
+        border-radius: 9999px;
+        background: rgb(52 211 153);
+        transform: scale(0);
+        animation: cf-node-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      }
+      @keyframes cf-node-pop {
+        to {
+          transform: scale(1);
+        }
+      }
+      .cf-delivery-step--warn .cf-delivery-node {
+        border-color: rgb(251 191 36);
+        background: rgb(69 26 3);
+        animation: cf-node-warn 2s ease-in-out infinite;
+      }
+      @keyframes cf-node-warn {
+        0%,
+        100% {
+          box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.35);
+        }
+        50% {
+          box-shadow: 0 0 0 6px rgba(251, 191, 36, 0);
+        }
+      }
+      .cf-delivery-step--err .cf-delivery-node {
+        border-color: rgb(251 113 133);
+        background: rgb(69 10 10);
+      }
+      .cf-delivery-step--run .cf-delivery-node {
+        border-color: rgb(56 189 248);
+        background: rgb(12 74 110);
+        animation: cf-node-active 2.2s ease-out infinite;
+      }
+      @keyframes cf-node-active {
+        0%,
+        100% {
+          box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.5);
+          transform: scale(1);
+        }
+        50% {
+          box-shadow: 0 0 0 10px rgba(56, 189, 248, 0);
+          transform: scale(1.08);
+        }
+      }
+      .cf-delivery-step--pending .cf-delivery-node {
+        opacity: 0.65;
+      }
+      .cf-delivery-title {
+        font-weight: 600;
+        font-size: 11px;
+        color: rgb(226 232 240);
+        letter-spacing: 0.02em;
+      }
+      .cf-delivery-detail {
+        margin-top: 0.2rem;
+        font-size: 10px;
+        line-height: 1.45;
+        color: rgb(148 163 184);
+      }
+      .cf-delivery-step--run .cf-delivery-title {
+        color: rgb(186 230 253);
+      }
+      .cf-progress-soft {
+        border-radius: 0.75rem;
+        border: 1px solid rgba(56, 189, 248, 0.22);
+        background: linear-gradient(135deg, rgba(56, 189, 248, 0.08), rgba(15, 23, 42, 0.6));
+        padding: 0.65rem 0.85rem;
+        display: flex;
+        gap: 0.5rem;
+        align-items: flex-start;
+      }
+      .cf-progress-soft-icon {
+        flex-shrink: 0;
+        width: 1.25rem;
+        height: 1.25rem;
+        border-radius: 0.35rem;
+        background: rgba(56, 189, 248, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.65rem;
+        color: rgb(125 211 252);
+        animation: cf-pulse 2s ease-in-out infinite;
+      }
+      .cf-phase-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        border-radius: 9999px;
+        border: 1px solid rgba(100, 116, 139, 0.45);
+        background: rgba(15, 23, 42, 0.85);
+        padding: 0.2rem 0.65rem;
+        font-size: 10px;
+        color: rgb(203 213 225);
+      }
+      .cf-phase-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 9999px;
+        background: rgb(100 116 139);
+      }
+      .cf-phase-chip--live .cf-phase-dot {
+        background: rgb(52 211 153);
+        box-shadow: 0 0 8px rgba(52, 211, 153, 0.5);
+        animation: cf-pulse 1.5s ease-in-out infinite;
+      }
     </style>
   </head>
   <body class="min-h-screen bg-slate-950 text-slate-100">
@@ -367,8 +552,14 @@
             ></div>
 
             <div id="progressCard" class="mb-4 rounded-xl border border-slate-800 bg-slate-950/50 p-3 hidden">
-              <div class="text-[11px] font-semibold text-slate-200 uppercase tracking-wide">Your request progress</div>
-              <div id="progressBody" class="mt-2 space-y-2 text-[11px] text-slate-300"></div>
+              <div
+                id="progressCardTitle"
+                class="text-[11px] font-semibold text-slate-200 uppercase tracking-wide"
+              >
+                Your request progress
+              </div>
+              <p id="progressCardSubtitle" class="hidden text-[10px] text-slate-500 mt-1 leading-relaxed"></p>
+              <div id="progressBody" class="mt-3 text-[11px] text-slate-300"></div>
             </div>
 
             <div id="executionActivityCard" class="mb-4 rounded-xl border border-slate-800 bg-slate-950/50 p-3 hidden">
@@ -1324,6 +1515,224 @@
           );
         }
 
+        function getMergedConsoleJson(merged) {
+          if (!merged || typeof merged !== 'object') return {};
+          const cj = merged.console_json;
+          return cj && typeof cj === 'object' ? cj : {};
+        }
+
+        function mapDeliveryPlanStatus(raw) {
+          const s = String(raw || '').toLowerCase();
+          if (s === 'done' || s === 'complete' || s === 'ok') return 'ok';
+          if (s === 'active' || s === 'in_progress' || s === 'running') return 'run';
+          if (s === 'warning' || s === 'warn' || s === 'issue') return 'warn';
+          if (s === 'error' || s === 'err' || s === 'failed') return 'err';
+          return 'pending';
+        }
+
+        /**
+         * Optional `client_view.delivery_plan.steps[]` from API/automation — client-facing labels only.
+         * Each: { label?, title?, detail?, hint?, status? | state? }
+         */
+        function mergeDeliveryPlanFromClientView(cv, fallbackSteps) {
+          const plan = cv && cv.delivery_plan;
+          if (!plan || typeof plan !== 'object') return fallbackSteps;
+          const steps = plan.steps;
+          if (!Array.isArray(steps) || steps.length < 2) return fallbackSteps;
+          return steps.map((row) => {
+            const label = row.label || row.title || 'Milestone';
+            const detail = row.detail || row.hint || '';
+            const state = mapDeliveryPlanStatus(row.status || row.state);
+            return { state, title: String(label), detail: String(detail) };
+          });
+        }
+
+        function buildDerivedDeliverySteps(merged, tp) {
+          const tenantUx = isTenantClient();
+          const st = String((tp && tp.status) || (merged && merged.status) || '').trim();
+          const sg = String((tp && tp.stage) || (merged && merged.stage) || '').trim();
+          const cv = tp && tp.client_view && typeof tp.client_view === 'object' ? tp.client_view : {};
+          const auto = cv.automation && typeof cv.automation === 'object' ? cv.automation : {};
+          const cj = getMergedConsoleJson(merged);
+          const prom = cj.promotion && typeof cj.promotion === 'object' ? cj.promotion : {};
+          const promotionMerged = prom.merged === true;
+
+          const hasEstimate = Boolean(cv.last_estimate_at || (merged && merged.costing_preview));
+          const buildApproved = /approved/i.test(st) || String(sg).toLowerCase() === 'build';
+          const hasDispatch = auto.dispatch_ok === true;
+          const dispatchFailed = auto.dispatch_ok === false;
+          const previewUrl = typeof auto.preview_url === 'string' ? auto.preview_url.trim() : '';
+          const tid = String((merged && merged.ticket_id) || '').trim();
+
+          const workspaceRun = buildApproved && !hasDispatch && !dispatchFailed;
+          const workspaceState = hasDispatch ? 'ok' : dispatchFailed ? 'warn' : workspaceRun ? 'run' : 'pending';
+          const previewRun = hasDispatch && !previewUrl;
+          const previewState = previewUrl ? 'ok' : previewRun ? 'run' : 'pending';
+
+          const showShip =
+            promotionMerged ||
+            prom.pr_number != null ||
+            (typeof prom.pr_url === 'string' && prom.pr_url.trim()) ||
+            buildApproved;
+
+          let shipState = 'pending';
+          if (promotionMerged) shipState = 'ok';
+          else if ((typeof prom.pr_url === 'string' && prom.pr_url.trim()) || prom.pr_number != null)
+            shipState = 'run';
+
+          /** @type {Array<{ state: string, title: string, detail: string }>} */
+          const steps = [];
+
+          steps.push({
+            state: 'ok',
+            title: tenantUx ? 'Request understood' : 'Request captured',
+            detail: tenantUx
+              ? 'We logged what you need so nothing gets lost.'
+              : tid
+                ? 'Ticket ' + tid
+                : 'Ticket on file',
+          });
+
+          steps.push({
+            state: hasEstimate ? 'ok' : 'pending',
+            title: tenantUx ? 'Scope & estimate' : 'Estimate',
+            detail: tenantUx
+              ? hasEstimate
+                ? 'Effort range and indicative pricing are saved for your review.'
+                : 'Run estimate to lock indicative hours and cost.'
+              : hasEstimate
+                ? 'Indicative effort and cost saved.'
+                : 'Awaiting costing snapshot.',
+          });
+
+          steps.push({
+            state: buildApproved ? 'ok' : 'pending',
+            title: tenantUx ? 'Your approval to build' : 'Build approved',
+            detail: tenantUx
+              ? buildApproved
+                ? 'You confirmed budget — we can mobilise the build.'
+                : 'When the numbers look right, approve so we can start construction.'
+              : buildApproved
+                ? 'Approved — automation may run.'
+                : 'Waiting for approval after estimate.',
+          });
+
+          steps.push({
+            state: workspaceState,
+            title: tenantUx ? 'Workspace coming online' : 'Sandbox / branch',
+            detail: tenantUx
+              ? hasDispatch
+                ? 'Your private workspace is spinning up — craft continues there.'
+                : dispatchFailed
+                  ? 'We hit a snag connecting automation — the team is nudging it.'
+                  : buildApproved
+                    ? 'We are preparing your dedicated build space…'
+                    : 'Starts after approval.'
+              : hasDispatch
+                ? 'Dispatch confirmed; branch automation underway.'
+                : dispatchFailed
+                  ? 'Dispatch not confirmed — check tokens / Actions.'
+                  : buildApproved
+                    ? 'Awaiting repository_dispatch confirmation.'
+                    : 'Not started.',
+          });
+
+          steps.push({
+            state: previewState,
+            title: tenantUx ? 'Preview for you' : 'Preview URL',
+            detail: tenantUx
+              ? previewUrl
+                ? 'Your try-it link is live — open it from the preview section below.'
+                : 'A staging link lands here when hosting finishes — worth a quick refresh.'
+              : previewUrl
+                ? previewUrl
+                : 'Awaiting preview URL from hosting or callback.',
+          });
+
+          if (showShip) {
+            steps.push({
+              state: shipState,
+              title: tenantUx ? 'Release when you are ready' : 'Promotion / merge',
+              detail: tenantUx
+                ? promotionMerged
+                  ? 'Updates are merged — we will guide you on any go-live steps.'
+                  : 'Final merge waits on your thumbs-up after preview.'
+                : promotionMerged
+                  ? 'PR merged.'
+                  : typeof prom.pr_url === 'string' && prom.pr_url.trim()
+                    ? String(prom.pr_url)
+                    : 'Track promotion PR.',
+            });
+          }
+
+          return mergeDeliveryPlanFromClientView(cv, steps);
+        }
+
+        function renderDeliveryPlanHtml(steps) {
+          const total = steps.length;
+          const done = steps.filter((s) => s.state === 'ok').length;
+          const pct = total ? Math.min(100, Math.round((done / total) * 100)) : 0;
+          const rows = steps
+            .map((s) => {
+              const mod =
+                s.state === 'ok'
+                  ? 'ok'
+                  : s.state === 'warn'
+                    ? 'warn'
+                    : s.state === 'err'
+                      ? 'err'
+                      : s.state === 'run'
+                        ? 'run'
+                        : 'pending';
+              return (
+                '<div class="cf-delivery-step cf-delivery-step--' +
+                mod +
+                '" role="listitem">' +
+                '<span class="cf-delivery-node" aria-hidden="true"></span>' +
+                '<div class="min-w-0">' +
+                '<div class="cf-delivery-title">' +
+                escapeHtml(s.title) +
+                '</div>' +
+                '<div class="cf-delivery-detail">' +
+                escapeHtml(s.detail) +
+                '</div>' +
+                '</div></div>'
+              );
+            })
+            .join('');
+          return (
+            '<div class="cf-delivery-plan">' +
+            '<div class="cf-delivery-meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' +
+            pct +
+            '" aria-label="Overall delivery progress" title="Overall progress">' +
+            '<div class="cf-delivery-meter-fill" style="width:' +
+            pct +
+            '%"></div></div>' +
+            '<div class="cf-delivery-rail" role="list">' +
+            rows +
+            '</div></div>'
+          );
+        }
+
+        function humanTicketPhase(merged, tp) {
+          const st = String((tp && tp.status) || (merged && merged.status) || '').trim();
+          const sg = String((tp && tp.stage) || (merged && merged.stage) || '').trim();
+          const cj = getMergedConsoleJson(merged);
+          const prom = cj.promotion && typeof cj.promotion === 'object' ? cj.promotion : {};
+          if (prom.merged === true) return { label: 'Shipped', live: true };
+          const cv = tp && tp.client_view && typeof tp.client_view === 'object' ? tp.client_view : {};
+          const auto = cv.automation && typeof cv.automation === 'object' ? cv.automation : {};
+          const s = (st + ' ' + sg).toLowerCase();
+          if (s.includes('approved') && s.includes('build')) {
+            if (auto.dispatch_ok === true && typeof auto.preview_url === 'string' && auto.preview_url.trim())
+              return { label: 'Ready to review your preview', live: true };
+            if (auto.dispatch_ok === true) return { label: 'Build in motion', live: true };
+            return { label: 'Preparing your workspace', live: true };
+          }
+          if (/estimate|costing|preview/i.test(s)) return { label: 'Refining scope & numbers', live: false };
+          return { label: 'Shaping your request', live: false };
+        }
+
         function updatePipelineCardFromBrief(b) {
           const card = $('pipelineCard');
           const body = $('pipelineBody');
@@ -1939,70 +2348,34 @@
         function renderProgressCard(merged) {
           const card = $('progressCard');
           const body = $('progressBody');
+          const titleEl = $('progressCardTitle');
+          const subEl = $('progressCardSubtitle');
           if (!card || !body) return;
           const tid = String((merged && merged.ticket_id) || ticketEl.value || '').trim();
           if (!tid) {
             card.classList.add('hidden');
             body.innerHTML = '';
+            if (subEl) subEl.classList.add('hidden');
             return;
           }
           card.classList.remove('hidden');
           const tp = merged && merged.ticket_progress && typeof merged.ticket_progress === 'object' ? merged.ticket_progress : null;
-          const st = String((tp && tp.status) || (merged && merged.status) || '').trim();
-          const sg = String((tp && tp.stage) || (merged && merged.stage) || '').trim();
-          const cv = tp && tp.client_view && typeof tp.client_view === 'object' ? tp.client_view : {};
-          const auto = cv.automation && typeof cv.automation === 'object' ? cv.automation : {};
-          const hasEstimate = Boolean(cv.last_estimate_at || (merged && merged.costing_preview));
-          const buildApproved = /approved/i.test(st) || String(sg).toLowerCase() === 'build';
-          const hasDispatch = auto.dispatch_ok === true;
-          const dispatchFailed = auto.dispatch_ok === false;
-          const previewUrl = typeof auto.preview_url === 'string' ? auto.preview_url.trim() : '';
-          const rows = [];
-          rows.push(stepRow('ok', 'Request captured', tid ? 'Ticket ' + tid : 'Ticket selected'));
-          rows.push(
-            stepRow(
-              hasEstimate ? 'ok' : 'pending',
-              'Estimate',
-              hasEstimate
-                ? 'Indicative effort and cost are saved on your ticket.'
-                : 'Run Estimate to save effort range and indicative cost.',
-            ),
-          );
           const tenantUx = isTenantClient();
-          rows.push(
-            stepRow(
-              buildApproved ? 'ok' : 'pending',
-              tenantUx ? 'Build approval' : 'Factory build',
-              buildApproved
-                ? tenantUx
-                  ? 'Approved — sandbox automation can start.'
-                  : 'Approved — sandbox automation can run (factory operators manage GitHub).'
-                : tenantUx
-                  ? 'After Estimate, click Approve build (left) when you accept this spend. Requires wallet balance or billing-exempt tenant.'
-                  : 'Waiting for factory approval after estimate.',
-            ),
-          );
-          rows.push(
-            stepRow(
-              hasDispatch ? 'ok' : buildApproved && dispatchFailed ? 'warn' : 'pending',
-              'Development environment (GitHub)',
-              hasDispatch
-                ? 'Workflow accepted — your isolated development branch is being created or will be updated shortly.'
-                : buildApproved
-                  ? 'Automation not confirmed yet — factory operators may still be connecting the repository.'
-                  : 'Not started until your request is approved for build.',
-            ),
-          );
-          rows.push(
-            stepRow(
-              previewUrl ? 'ok' : 'pending',
-              'Site preview',
-              previewUrl
-                ? 'Open preview: ' + previewUrl
-                : 'A preview link appears when hosting finishes a deployment or automation posts a URL.',
-            ),
-          );
-          body.innerHTML = rows.join('');
+          if (titleEl) {
+            titleEl.textContent = tenantUx ? 'Your build plan' : 'Your request progress';
+          }
+          if (subEl) {
+            if (tenantUx) {
+              subEl.textContent =
+                'Milestones refresh as we work — plain language, no backend jargon.';
+              subEl.classList.remove('hidden');
+            } else {
+              subEl.textContent = '';
+              subEl.classList.add('hidden');
+            }
+          }
+          const steps = buildDerivedDeliverySteps(merged, tp);
+          body.innerHTML = renderDeliveryPlanHtml(steps);
         }
 
         function updateBriefSummary(merged) {
@@ -2097,30 +2470,59 @@
           }
 
           if (typeof cv.progress_message === 'string' && cv.progress_message.trim()) {
-            parts.push(
-              '<div class="text-[11px] text-slate-400 border border-slate-800 rounded-lg px-3 py-2">' +
-                escapeHtml(cv.progress_message.trim()) +
-                '</div>',
-            );
+            const pm = cv.progress_message.trim();
+            if (tenantUser) {
+              parts.push(
+                '<div class="cf-progress-soft" role="status">' +
+                  '<span class="cf-progress-soft-icon" aria-hidden="true">✦</span>' +
+                  '<div class="text-[11px] text-slate-200 leading-relaxed min-w-0">' +
+                  '<span class="text-[10px] uppercase tracking-wide text-sky-300/90 block mb-0.5">Latest from the team</span>' +
+                  escapeHtml(pm) +
+                  '</div></div>',
+              );
+            } else {
+              parts.push(
+                '<div class="text-[11px] text-slate-400 border border-slate-800 rounded-lg px-3 py-2">' +
+                  escapeHtml(pm) +
+                  '</div>',
+              );
+            }
           }
 
-          const statusBits = [tp && tp.status ? tp.status : merged.status, tp && tp.stage ? tp.stage : merged.stage].filter(
-            (x) => x != null && String(x).trim() !== '',
-          );
-          if (statusBits.length) {
+          const phase = humanTicketPhase(merged, tp);
+          if (tenantUser) {
             parts.push(
-              '<div><span class="text-slate-500">Ticket</span> ' +
-                (tid ? '<span class="font-mono text-slate-400">' + escapeHtml(tid) + '</span> · ' : '') +
-                '<span class="text-slate-200">' +
-                escapeHtml(statusBits.map((x) => String(x)).join(' · ')) +
+              '<div class="flex flex-wrap items-center gap-2">' +
+                (tid
+                  ? '<span class="text-[10px] text-slate-500">Ref <span class="font-mono text-slate-400">' +
+                    escapeHtml(tid) +
+                    '</span></span>'
+                  : '') +
+                '<span class="cf-phase-chip' +
+                (phase.live ? ' cf-phase-chip--live' : '') +
+                '"><span class="cf-phase-dot" aria-hidden="true"></span>' +
+                escapeHtml(phase.label) +
                 '</span></div>',
             );
-          } else if (tid) {
-            parts.push(
-              '<div><span class="text-slate-500">Ticket</span> <span class="font-mono text-slate-400">' +
-                escapeHtml(tid) +
-                '</span></div>',
+          } else {
+            const statusBits = [tp && tp.status ? tp.status : merged.status, tp && tp.stage ? tp.stage : merged.stage].filter(
+              (x) => x != null && String(x).trim() !== '',
             );
+            if (statusBits.length) {
+              parts.push(
+                '<div><span class="text-slate-500">Ticket</span> ' +
+                  (tid ? '<span class="font-mono text-slate-400">' + escapeHtml(tid) + '</span> · ' : '') +
+                  '<span class="text-slate-200">' +
+                  escapeHtml(statusBits.map((x) => String(x)).join(' · ')) +
+                  '</span></div>',
+              );
+            } else if (tid) {
+              parts.push(
+                '<div><span class="text-slate-500">Ticket</span> <span class="font-mono text-slate-400">' +
+                  escapeHtml(tid) +
+                  '</span></div>',
+              );
+            }
           }
 
           if (br && typeof br.summary === 'string' && br.summary.trim()) {
