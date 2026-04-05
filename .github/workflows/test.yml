@@ -40,8 +40,10 @@ jobs:
         npm ci
         npm test
 
-    - name: npm audit (high severity+)
-      run: npm audit --audit-level=high
+    # `high` fails often on transitive dev/build deps (e.g. Next toolchain) while fixes lag.
+    # Block on critical only; run `npm audit` locally or in Dependabot for full visibility.
+    - name: npm audit (critical severity+)
+      run: npm audit --audit-level=critical
 
     - name: Next.js production build
       run: npm run build

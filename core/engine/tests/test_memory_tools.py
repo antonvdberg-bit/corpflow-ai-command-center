@@ -1,8 +1,7 @@
-import os
-
 import pytest
 
-from engine.src.config import settings
+from engine.src.tenant_manager import TenantContext
+from engine.src.tools import memory_tools
 from engine.src.tools.memory_tools import read_memory_md, search_memory_md
 
 
@@ -10,10 +9,13 @@ from engine.src.tools.memory_tools import read_memory_md, search_memory_md
 def isolated_project_root(tmp_path, monkeypatch):
     """Tenant memory tools only allow paths under <root>/tenants/<id>/."""
     root = tmp_path.resolve()
-    monkeypatch.setattr(settings, "PROJECT_ROOT", str(root), raising=False)
-    os.environ["AG_TENANT_ROOT"] = str(root / "tenants" / "root")
+    ctx = TenantContext(tenant_id="root", project_root=root)
+
+    def _fake_ctx(_tenant_id=None):
+        return ctx
+
+    monkeypatch.setattr(memory_tools, "get_tenant_context", _fake_ctx)
     yield root
-    os.environ.pop("AG_TENANT_ROOT", None)
 
 
 def test_read_memory_md(isolated_project_root):
