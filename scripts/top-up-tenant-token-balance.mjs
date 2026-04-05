@@ -10,6 +10,7 @@
  *   node scripts/top-up-tenant-token-balance.mjs --tenant=acme --billing-exempt=false --usd=500
  */
 
+import './bootstrap-repo-env.mjs';
 import { PrismaClient } from '@prisma/client';
 
 function arg(name) {

@@ -21,6 +21,7 @@
  *   --force                Apply push (otherwise dry-run)
  *   --comprehensive        check: also require comprehensive_important_keys
  */
+import './bootstrap-repo-env.mjs';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';

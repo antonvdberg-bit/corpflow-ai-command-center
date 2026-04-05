@@ -13,6 +13,7 @@
  * This does not talk to Vercel. Deployments are a separate website (vercel.com).
  */
 
+import './bootstrap-repo-env.mjs';
 import { execSync } from 'node:child_process';
 
 const LIMIT = Number(process.env.CI_REPORT_LIMIT || '12', 10) || 12;

@@ -27,6 +27,7 @@
  * passed to --password. If you forget it, run this script again with the same --username and a new --password.
  */
 
+import './bootstrap-repo-env.mjs';
 import crypto from 'crypto';
 import { PrismaClient } from '@prisma/client';
 

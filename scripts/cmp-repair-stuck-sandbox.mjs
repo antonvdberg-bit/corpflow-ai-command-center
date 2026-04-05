@@ -25,6 +25,7 @@
  * so repair runs without a developer machine or Cursor.
  */
 
+import './bootstrap-repo-env.mjs';
 import { PrismaClient } from '@prisma/client';
 import {
   isStuckSandboxDispatch,

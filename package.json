@@ -5,6 +5,7 @@
     "build": "next build",
     "verify:ci": "npm test && npm run build",
     "ci:report": "node scripts/ci-friendly-report.mjs",
+    "control:loop": "node scripts/factory-control-loop.mjs",
     "test": "node --test node-tests/*.mjs",
     "verify:cmp-env": "node scripts/verify-cmp-env-read.mjs",
     "provision:tenant-test": "node scripts/provision-tenant-test-access.mjs",
