@@ -30,7 +30,7 @@
     },
     {
       "path": "/api/cmp/stuck-self-repair-cron",
-      "schedule": "*/20 * * * *"
+      "schedule": "0 4 * * *"
     }
   ]
 }
