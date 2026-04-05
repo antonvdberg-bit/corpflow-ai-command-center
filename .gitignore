@@ -14,3 +14,4 @@ core/engine/client_secrets.json
 
 # Vanguard: append-only local logs (telemetry, token debits) — written at runtime, not source.
 vanguard/audit-trail/*.jsonl
+vanguard/audit/
