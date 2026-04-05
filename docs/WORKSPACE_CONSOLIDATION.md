@@ -38,6 +38,18 @@ npm run ci:report
 
 Human-readable GitHub Actions status (needs `gh auth login` or `GITHUB_TOKEN`).
 
+```bash
+npm run control:loop
+```
+
+Local Git vs Vercel production vs (optional) factory health — needs `.env` / Vercel API vars as documented in `docs/VERCEL_DEPLOYMENT.md`.
+
+```bash
+npm run verify:vercel-hobby-crons
+```
+
+Fails if `vercel.json` crons would break **Vercel Hobby** deploys (run before changing crons).
+
 ## Agent / automation note
 
 For AI sessions that should edit this repo, the workspace root should be **`C:\CorpFlow\corpflow-ai-command-center`** so git, terminals, and file tools align with production.

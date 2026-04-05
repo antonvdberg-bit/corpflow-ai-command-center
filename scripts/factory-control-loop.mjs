@@ -24,6 +24,7 @@ import { execSync } from 'node:child_process';
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { validateVercelJsonCronsForHobby } from './lib/vercel-cron-hobby.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..');
@@ -276,25 +277,63 @@ function healthUrlFromEnvOrArgs(args) {
   );
 }
 
-function shouldFailExit(git, factory, vercel) {
+function vercelCronGuardSection() {
+  if (String(process.env.VERCEL_ALLOW_SUBDAILY_CRONS || '').trim() === '1') {
+    return { skipped: true, reason: 'VERCEL_ALLOW_SUBDAILY_CRONS=1 (Pro / external crons)' };
+  }
+  const p = path.join(REPO_ROOT, 'vercel.json');
+  if (!existsSync(p)) return { skipped: true, reason: 'vercel.json missing' };
+  try {
+    const j = JSON.parse(readFileSync(p, 'utf8'));
+    const r = validateVercelJsonCronsForHobby(j);
+    if (r.ok) return { ok: true };
+    return { ok: false, errors: r.errors };
+  } catch (e) {
+    return { ok: false, errors: [e instanceof Error ? e.message : String(e)] };
+  }
+}
+
+function cronActionsFromState(cron) {
+  const actions = [];
+  if (cron.skipped) return actions;
+  if (cron.ok) {
+    actions.push({
+      level: 'ok',
+      text: 'vercel.json crons: Hobby-safe (≤ once/day per job). See docs/VERCEL_DEPLOYMENT.md',
+    });
+    return actions;
+  }
+  for (const err of cron.errors || []) {
+    actions.push({
+      level: 'fix',
+      text: `Cron guard: ${err} — Vercel Hobby deploys will fail until fixed or set VERCEL_ALLOW_SUBDAILY_CRONS=1 on Pro.`,
+    });
+  }
+  actions.push({ level: 'info', text: 'Run: npm run verify:vercel-hobby-crons' });
+  return actions;
+}
+
+function shouldFailExit(git, factory, vercel, cron) {
   if (git.error) return true;
   if (!factory.skipped && !factory.httpOk) return true;
   if (!factory.skipped && factory.httpOk && !factory.factoryOk) return true;
   if (!vercel.skipped && vercel.error) return true;
+  if (cron && !cron.skipped && cron.ok === false) return true;
   return false;
 }
 
 async function main() {
   const args = parseArgs(process.argv);
   const git = gitSection(args);
+  const cron = vercelCronGuardSection();
   const healthBase = healthUrlFromEnvOrArgs(args);
   const [factory, vercel] = await Promise.all([
     factorySection(healthBase),
     vercelSection(),
   ]);
-  const actions = actionsFromState(git, factory, vercel);
+  const actions = [...cronActionsFromState(cron), ...actionsFromState(git, factory, vercel)];
 
-  const report = { git, factory, vercel, actions };
+  const report = { git, factory, vercel, cron, actions };
 
   if (args.json) {
     console.log(JSON.stringify(report, null, 2));
@@ -322,6 +361,14 @@ async function main() {
       if (factory.presentKeysSample?.length)
         console.log('  missing present.*:', factory.presentKeysSample.slice(0, 8).join(', '));
       if (factory.automation) console.log('  automation:', JSON.stringify(factory.automation));
+    }
+
+    box('vercel.json crons (Hobby guard)');
+    if (cron.skipped) console.log('  Skipped:', cron.reason);
+    else if (cron.ok) console.log('  OK — schedules are at most once per UTC day per job.');
+    else {
+      console.log('  FAIL — production deploy will be rejected on Vercel Hobby:');
+      for (const err of cron.errors || []) console.log('   •', err);
     }
 
     box('Vercel production (latest)');
@@ -353,7 +400,7 @@ async function main() {
 
   if (args.executeHook) await maybeExecuteHook();
 
-  process.exitCode = shouldFailExit(git, factory, vercel) ? 1 : 0;
+  process.exitCode = shouldFailExit(git, factory, vercel, cron) ? 1 : 0;
 }
 
 main().catch((e) => {
