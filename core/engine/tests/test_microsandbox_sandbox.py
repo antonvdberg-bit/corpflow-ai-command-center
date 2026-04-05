@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import requests
 
-from src.sandbox.microsandbox_exec import MicrosandboxSandbox
+from engine.src.sandbox.microsandbox_exec import MicrosandboxSandbox
 
 
 class _MockResponse:

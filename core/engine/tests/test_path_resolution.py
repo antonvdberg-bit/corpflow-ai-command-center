@@ -1,8 +1,8 @@
 import json
 
-from src.config import settings
-from src.mcp_client import MCPClientManager
-from src.memory import MemoryManager
+from engine.src.config import settings
+from engine.src.mcp_client import MCPClientManager
+from engine.src.memory import MemoryManager
 
 
 def test_memory_manager_default_path_is_anchored_to_project_root(tmp_path, monkeypatch):

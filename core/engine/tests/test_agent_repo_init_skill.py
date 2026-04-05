@@ -136,13 +136,9 @@ def test_portable_script_runs_with_template_override(tmp_path: Path) -> None:
     (template_root / "src").mkdir(parents=True, exist_ok=True)
     (template_root / "src" / "agent.py").write_text("print('ok')\n", encoding="utf-8")
 
-    script_path = (
-        Path(__file__).resolve().parents[1]
-        / "skills"
-        / "agent-repo-init"
-        / "scripts"
-        / "init_project.py"
-    )
+    # Portable script lives at repo root `skills/`, not under `core/engine/`.
+    repo_root = Path(__file__).resolve().parents[3]
+    script_path = repo_root / "skills" / "agent-repo-init" / "scripts" / "init_project.py"
     completed = subprocess.run(
         [
             sys.executable,

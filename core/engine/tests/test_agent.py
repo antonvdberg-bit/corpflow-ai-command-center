@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import MagicMock, patch
-from src.agent import GeminiAgent
+from engine.src.agent import GeminiAgent
 
 @pytest.fixture
 def mock_agent():
@@ -35,6 +35,6 @@ def test_agent_think_act_loop(mock_agent):
 
 def test_agent_tools_integration():
     """Test that tools can be imported and used."""
-    from src.tools.example_tool import web_search
+    from engine.src.tools.example_tool import web_search
     result = web_search("test query")
     assert "Search results for: test query" in result
