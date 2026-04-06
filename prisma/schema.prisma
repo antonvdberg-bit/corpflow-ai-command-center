@@ -1,11 +1,13 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
+
 datasource db {
   provider = "postgresql"
   url      = env("POSTGRES_URL")
 }
+
 model Lead {
   id        String   @id @default(cuid())
   tenantId  String?  @map("tenant_id")
@@ -20,15 +22,15 @@ model Lead {
 }
 
 model Tenant {
-  id               String   @id @default(cuid())
-  tenantId         String   @unique @map("tenant_id")
-  slug             String   @unique
+  id               String  @id @default(cuid())
+  tenantId         String  @unique @map("tenant_id")
+  slug             String  @unique
   name             String
   fqdn             String?
-  lifecycle        String?  @default("Build")
-  tenantStatus     String?  @default("Active") @map("tenant_status")
-  executionOnly    Boolean  @default(false) @map("execution_only")
-  sovereignPinHash String?  @map("sovereign_pin_hash")
+  lifecycle        String? @default("Build")
+  tenantStatus     String? @default("Active") @map("tenant_status")
+  executionOnly    Boolean @default(false) @map("execution_only")
+  sovereignPinHash String? @map("sovereign_pin_hash")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -37,16 +39,16 @@ model Tenant {
 }
 
 model AuthUser {
-  id           String   @id @default(cuid())
-  username     String   @unique
-  passwordHash String   @map("password_hash")
-  passwordSalt String   @map("password_salt")
+  id           String  @id @default(cuid())
+  username     String  @unique
+  passwordHash String  @map("password_hash")
+  passwordSalt String  @map("password_salt")
   level        String
-  tenantId     String?  @map("tenant_id")
-  enabled      Boolean  @default(true)
+  tenantId     String? @map("tenant_id")
+  enabled      Boolean @default(true)
 
-  createdAt    DateTime @default(now()) @map("created_at")
-  lastLoginAt  DateTime? @map("last_login_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  lastLoginAt DateTime? @map("last_login_at")
 
   @@index([level])
   @@index([tenantId])
@@ -54,20 +56,21 @@ model AuthUser {
 }
 
 model CmpTicket {
-  id        String   @id @default(cuid())
-  tenantId  String?  @map("tenant_id")
+  id          String  @id @default(cuid())
+  tenantId    String? @map("tenant_id")
   description String?
-  status    String?  @default("Open")
-  stage     String?  @default("Intake")
-  title     String?
-  brief     String?
-  locale    String?
-  consoleJson Json?  @map("console_json")
+  status      String? @default("Open")
+  stage       String? @default("Intake")
+  title       String?
+  brief       String?
+  locale      String?
+  consoleJson Json?   @map("console_json")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  attachments CmpTicketAttachment[]
+  attachments         CmpTicketAttachment[]
+  technicalLeadAudits TechnicalLeadAudit[]
 
   @@index([tenantId])
   @@index([status])
@@ -75,14 +78,31 @@ model CmpTicket {
   @@map("cmp_tickets")
 }
 
+/// Phase A Technical Lead (Lead Observer): append-only evidence + gaps per ticket scan cycle.
+model TechnicalLeadAudit {
+  id               String   @id @default(cuid())
+  ticketId         String   @map("ticket_id")
+  checklistVersion String   @default("v1") @map("checklist_version")
+  evidenceJson     Json     @map("evidence_json")
+  gapsJson         Json     @map("gaps_json")
+  summaryText      String   @map("summary_text")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  ticket CmpTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@index([createdAt])
+  @@map("technical_lead_audits")
+}
+
 /// Binary files for Change Console (images / short video / PDF). Served only to ticket-scoped sessions.
 model CmpTicketAttachment {
-  id          String   @id @default(cuid())
-  ticketId    String   @map("ticket_id")
-  tenantId    String?  @map("tenant_id")
-  fileName    String   @map("file_name")
-  contentType String   @map("content_type")
-  byteSize    Int      @map("byte_size")
+  id          String  @id @default(cuid())
+  ticketId    String  @map("ticket_id")
+  tenantId    String? @map("tenant_id")
+  fileName    String  @map("file_name")
+  contentType String  @map("content_type")
+  byteSize    Int     @map("byte_size")
   data        Bytes
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -94,14 +114,14 @@ model CmpTicketAttachment {
 }
 
 model TenantPersona {
-  id                   String   @id @default(cuid())
-  tenantId             String   @unique @map("tenant_id")
-  tokenCreditBalanceUsd Float    @default(0) @map("token_credit_balance_usd")
+  id                    String  @id @default(cuid())
+  tenantId              String  @unique @map("tenant_id")
+  tokenCreditBalanceUsd Float   @default(0) @map("token_credit_balance_usd")
   /// When true, skip token pre-check and debit on approve-build (same effect as env override).
-  billingExempt        Boolean  @default(false) @map("billing_exempt")
-  autonomyLevel        Int?     @map("autonomy_level")
-  currentRank          String?  @map("current_rank")
-  personaJson          Json?    @map("persona_json")
+  billingExempt         Boolean @default(false) @map("billing_exempt")
+  autonomyLevel         Int?    @map("autonomy_level")
+  currentRank           String? @map("current_rank")
+  personaJson           Json?   @map("persona_json")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -126,14 +146,14 @@ model TokenDebit {
 }
 
 model TelemetryEvent {
-  id         String   @id @default(cuid())
-  occurredAt DateTime @default(now()) @map("occurred_at")
-  tenantId   String?  @map("tenant_id")
-  factoryId  String?  @map("factory_id")
-  eventType  String   @map("event_type")
-  cmpTicketId String? @map("cmp_ticket_id")
-  cmpAction  String?  @map("cmp_action")
-  payload    Json?    @map("payload_json")
+  id          String   @id @default(cuid())
+  occurredAt  DateTime @default(now()) @map("occurred_at")
+  tenantId    String?  @map("tenant_id")
+  factoryId   String?  @map("factory_id")
+  eventType   String   @map("event_type")
+  cmpTicketId String?  @map("cmp_ticket_id")
+  cmpAction   String?  @map("cmp_action")
+  payload     Json?    @map("payload_json")
 
   @@index([tenantId])
   @@index([eventType])
@@ -154,11 +174,11 @@ model RecoveryVaultEntry {
 }
 
 model TenantHostname {
-  id        String   @id @default(cuid())
-  host      String   @unique
-  tenantId  String   @map("tenant_id")
-  mode      String?  @map("mode")
-  enabled   Boolean  @default(true)
+  id       String  @id @default(cuid())
+  host     String  @unique
+  tenantId String  @map("tenant_id")
+  mode     String? @map("mode")
+  enabled  Boolean @default(true)
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -170,23 +190,23 @@ model TenantHostname {
 
 /// Append-only automation spine: agents and webhooks post here first.
 model AutomationEvent {
-  id               String   @id @default(cuid())
-  occurredAt       DateTime @default(now()) @map("occurred_at")
-  tenantId         String?  @map("tenant_id")
-  tenantScope      String   @map("tenant_scope")
-  source           String?  @default("ingest")
-  eventType        String   @map("event_type")
-  correlationId    String?  @map("correlation_id")
-  idempotencyKey   String?  @map("idempotency_key")
-  riskTier         String   @default("low") @map("risk_tier")
-  status           String   @default("accepted")
-  payload          Json?    @map("payload_json")
+  id             String   @id @default(cuid())
+  occurredAt     DateTime @default(now()) @map("occurred_at")
+  tenantId       String?  @map("tenant_id")
+  tenantScope    String   @map("tenant_scope")
+  source         String?  @default("ingest")
+  eventType      String   @map("event_type")
+  correlationId  String?  @map("correlation_id")
+  idempotencyKey String?  @map("idempotency_key")
+  riskTier       String   @default("low") @map("risk_tier")
+  status         String   @default("accepted")
+  payload        Json?    @map("payload_json")
 
+  @@unique([tenantScope, idempotencyKey], name: "automation_events_scope_idem")
   @@index([tenantId])
   @@index([tenantScope])
   @@index([eventType])
   @@index([occurredAt])
-  @@unique([tenantScope, idempotencyKey], name: "automation_events_scope_idem")
   @@map("automation_events")
 }
 
@@ -240,7 +260,7 @@ model GrowthCompany {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  segment  GrowthSegment? @relation(fields: [segmentId], references: [id], onDelete: SetNull)
+  segment  GrowthSegment?  @relation(fields: [segmentId], references: [id], onDelete: SetNull)
   contacts GrowthContact[]
 
   @@index([tenantId])
@@ -262,8 +282,8 @@ model GrowthContact {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  company      GrowthCompany       @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  touchpoints  GrowthTouchpoint[]
+  company     GrowthCompany      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  touchpoints GrowthTouchpoint[]
 
   @@index([tenantId])
   @@index([companyId])

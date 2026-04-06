@@ -10,7 +10,7 @@ Change Management Process: **Postgres** (`cmp_tickets`, `tenants`, `auth_users` 
 | GitHub sandbox | `CMP_GITHUB_REPOSITORY` (preferred) or `GITHUB_REPO`, plus `CMP_GITHUB_TOKEN` (or `GH_WORKFLOW_TOKEN`) |
 | Optional n8n | `N8N_WEBHOOK_URL`, `N8N_CMP_WEBHOOK_URL` |
 | Automation callback | `CMP_AUTOMATION_CALLBACK_SECRET`, `CMP_AUTOMATION_CALLBACK_URL` (GitHub Actions → Vercel) |
-| Optional Vercel preview lookup | `VERCEL_TOKEN`, `VERCEL_PROJECT_ID`, optional `VERCEL_TEAM_ID` (used by `promote-status` to fill `client_view.automation.preview_url`) |
+| Optional Vercel preview lookup | `VERCEL_TOKEN` (or `VERCEL_AUTH_TOKEN`), `VERCEL_PROJECT_ID`, optional `VERCEL_TEAM_ID` / `VERCEL_ORG_ID` — `promote-status` preview URL; Technical Lead observer records preview deployment status per `cmp/{ticket}` branch |
 | Factory gate | `MASTER_ADMIN_KEY`, `DORMANT_GATE_ENABLED`, etc. |
 | Automation spine | `CORPFLOW_AUTOMATION_INGEST_SECRET`, `CORPFLOW_AUTOMATION_APPROVAL_SECRET`, optional `CORPFLOW_AUTOMATION_FORWARD_*` |
 
