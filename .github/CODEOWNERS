@@ -1,0 +1,17 @@
+# Default: require owner review for all changes.
+* @antonvdberg-bit
+
+# Core runtime / product behavior
+/lib/ @antonvdberg-bit
+/public/ @antonvdberg-bit
+/pages/ @antonvdberg-bit
+/app/ @antonvdberg-bit
+
+# Delivery / automation / governance
+/.github/ @antonvdberg-bit
+/scripts/ @antonvdberg-bit
+/docs/ @antonvdberg-bit
+/config/ @antonvdberg-bit
+
+# Data / migrations
+/prisma/ @antonvdberg-bit
