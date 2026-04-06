@@ -6,6 +6,8 @@
 #
 # Not added by automation — you must paste the value in the GitHub UI (or gh secret set).
 #
+# Optional PR review: Cursor Bugbot (free tier) — https://cursor.com/docs/bugbot#setup
+#
 name: Agent CI
 
 on:

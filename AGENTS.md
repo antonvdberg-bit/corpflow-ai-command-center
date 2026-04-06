@@ -39,6 +39,7 @@ This repository is the **CorpFlow AI Command Center**: **Next.js** (pages router
 | Brain vs hands / automation | `docs/EXECUTION_BRAIN_VS_HANDS.md`, `docs/automation-framework.md` |
 | n8n forward | `docs/n8n/automation-forward-recipe.md` |
 | CMP API surface | `lib/cmp/README.md` |
+| Vercel / cron / Technical Lead / Bugbot | `docs/VERCEL_DEPLOYMENT.md` |
 | Env placeholders | `.env.template` |
 | ADR-lite decisions | `docs/decisions/README.md` |
 | Compliance starter | `docs/compliance/DATA_MAP_AND_SUBPROCESSORS.md` |
@@ -52,6 +53,25 @@ npm run build
 ```
 
 Prisma client generates on `postinstall` / `npm ci`. CI runs Python tests under `core/engine/tests/` plus `npm test`, `npm audit`, and `npm run build` (see `.github/workflows/test.yml`).
+
+## Cursor Bugbot (optional, free tier)
+
+Enable **[Cursor Bugbot](https://cursor.com/docs/bugbot#setup)** on the GitHub repo for PR-level review comments. Use it as a **fast second pair of eyes** alongside **Agent CI**; it does **not** replace deterministic checks or the **Technical Lead observer** (evidence persisted in Postgres — see below).
+
+<!-- Optional tracked onboarding URL (same doc anchor): https://track.pstmrk.it/3s/cursor.com%2Fdocs%2Fbugbot%23setup/I76j/74HEAQ/AQ/1556dd49-ceef-4739-bd8c-e16116455257/1/rFvvTlI3G-#setup -->
+
+## Technical Lead Phase A (observer) — how to proceed
+
+**What it is today:** read-only cycles for **Approved / Build** tickets — `console_json` + GitHub PR/compare/check-runs + optional Vercel preview deployment rows + optional factory health. Outputs **gaps + summary** into **`technical_lead_audits`** (not only PR chatter).
+
+**Operational checklist (production):**
+
+1. **Schema:** `npx prisma migrate deploy` on the live DB (or `ensure-schema` if you rely on idempotent DDL); confirm table `technical_lead_audits` exists.
+2. **Vercel env:** `CORPFLOW_CRON_SECRET` / **`CRON_SECRET`** (same value), GitHub + `GITHUB_REPO`/`CMP_GITHUB_*` as today, **`CORPFLOW_FACTORY_HEALTH_URL`** (origin or full health URL), **`VERCEL_*`** aligned with `promote-status` / `vercel-preview.js`.
+3. **Cron:** `vercel.json` already schedules `/api/cron/technical-lead` daily — verify Vercel shows successful invocations after deploy.
+4. **Read results:** `GET /api/factory/technical-lead/audits?ticket_id=…` (factory master) or query Postgres; locally `npm run technical-lead:run`.
+
+**Sensible Phase B (when you are ready):** tenant-safe read API or Change Console panel that surfaces **latest audit summary + gap ids** for a ticket; optional LLM that **only** rephrases stored evidence (no replacement for structured gaps). Optional **checklist v2** as repo JSON or ticket field when you outgrow the embedded v1 rules.
 
 ## Legacy: Python engine (`core/engine/`)
 

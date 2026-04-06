@@ -51,8 +51,25 @@ Set on the Vercel project (at least **Production**):
 
 | Variable | Purpose |
 |----------|---------|
-| **`CORPFLOW_FACTORY_HEALTH_URL`** or **`FACTORY_HEALTH_URL`** | Site origin only, e.g. `https://your-domain.com`. Technical Lead calls **`{origin}/api/factory/health`**. Alias: **`CORPFLOW_PUBLIC_BASE_URL`** is used if the health-specific vars are unset. |
+| **`CORPFLOW_FACTORY_HEALTH_URL`** or **`FACTORY_HEALTH_URL`** | **Site origin** (e.g. `https://your-domain.com`) **or** the full health URL `https://your-domain.com/api/factory/health` — Technical Lead normalizes both. Alias: **`CORPFLOW_PUBLIC_BASE_URL`**. **Note:** the GitHub Actions secret for `factory-health-ping.yml` is the **full** health URL; you can paste the same value here and it will not double-append the path. |
 | **`VERCEL_TOKEN`** (or **`VERCEL_AUTH_TOKEN`**) + **`VERCEL_PROJECT_ID`** | Vercel REST API for preview deployment status (`promote-status`, Technical Lead observer). |
 | **`VERCEL_TEAM_ID`** or **`VERCEL_ORG_ID`** | Required when the project is under a team; must match the project you deploy from GitHub. |
 
 Use the **same** `VERCEL_*` values everywhere you rely on preview lookup. Deployments are correlated to CMP by branch name: Vercel’s **`meta.githubCommitRef`** must equal **`cmp/{ticketId}`**, with **`ticketId` sanitized** the same way as in `lib/cmp/_lib/vercel-preview.js` (characters outside `[A-Za-z0-9._-]` replaced with `_`). If GitHub creates a different ref string, preview rows will not match until the branch naming matches.
+
+## Technical Lead observer (Phase A)
+
+| Surface | Purpose |
+|---------|---------|
+| **`GET /api/cron/technical-lead`** | Daily cron (see `vercel.json`); Bearer **`CORPFLOW_CRON_SECRET`** or **`CRON_SECRET`** (set Vercel **`CRON_SECRET`** to the same value so the scheduler sends the header). |
+| **Factory `/api/factory/technical-lead/run`** (GET or POST) | Factory master — manual run (`limit`, `ticket_id`, `dry_run`). |
+| **`GET /api/factory/technical-lead/audits?ticket_id=`** | Factory master — recent `technical_lead_audits` rows. |
+| **`npm run technical-lead:run`** | Local script (`scripts/technical-lead-run.mjs`); uses `.env` via bootstrap. |
+
+Table: **`prisma/migrations/…/technical_lead_audits`** + **`npm run db:migrate:deploy`** on production DB (or `ensure-schema` idempotent DDL). Evidence is **Postgres** (`evidence_json`, `gaps_json`, `summary_text`), not PR comments alone.
+
+## Optional: Cursor Bugbot (PR review)
+
+**[Cursor Bugbot setup](https://cursor.com/docs/bugbot#setup)** supports a **free tier** for GitHub PR comments. It complements **Agent CI** and the **Technical Lead observer** (deterministic DB evidence); it does not replace migrations, cron secrets, or `VERCEL_*` alignment.
+
+<!-- Tracked Bugbot link (optional, same destination as docs#setup): https://track.pstmrk.it/3s/cursor.com%2Fdocs%2Fbugbot%23setup/I76j/74HEAQ/AQ/1556dd49-ceef-4739-bd8c-e16116455257/1/rFvvTlI3G-#setup -->
