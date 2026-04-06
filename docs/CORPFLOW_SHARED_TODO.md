@@ -142,3 +142,4 @@ Treat this as part of **definition of done** whenever work is **committed and pu
 ---
 
 *Last reviewed: 2026-04-04 — update this line when you change priorities. Added security checklist, incident runbook, ADR-lite `docs/decisions/`, compliance data-map stub, CI `npm audit` + `next build`, Dependabot.*
+<!-- ruleset verify -->
