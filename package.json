@@ -1,6 +1,7 @@
 {
   "scripts": {
     "postinstall": "prisma generate",
+    "db:migrate:deploy": "prisma migrate deploy",
     "vercel-build": "prisma generate && next build",
     "build": "next build",
     "verify:ci": "npm run verify:vercel-hobby-crons && npm test && npm run build",
@@ -13,6 +14,7 @@
     "topup:tenant-tokens": "node scripts/top-up-tenant-token-balance.mjs",
     "cmp:repair-sandbox": "node scripts/cmp-repair-stuck-sandbox.mjs",
     "cmp:repair-sandbox:execute": "node scripts/cmp-repair-stuck-sandbox.mjs --execute",
+    "technical-lead:run": "node scripts/technical-lead-run.mjs",
     "vercel:env:allowlist": "node scripts/vercel-env.mjs allowlist",
     "vercel:env:check": "node scripts/vercel-env.mjs check --backend auto",
     "vercel:env:check:comprehensive": "node scripts/vercel-env.mjs check --backend auto --comprehensive",

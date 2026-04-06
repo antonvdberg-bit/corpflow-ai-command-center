@@ -34,3 +34,25 @@ If you move to **Pro** and need sub-daily crons, either:
 - Set **`VERCEL_ALLOW_SUBDAILY_CRONS=1`** so `control:loop` does not fail on stricter checks (CI still uses the Hobby validator unless you change the workflow).
 
 For **CI** on Pro with sub-daily crons, adjust `.github/workflows/test.yml` or replace the guard with a policy that matches your plan.
+
+## GitHub Actions: `POSTGRES_URL` and Prisma migrate
+
+The **Agent CI** workflow (`.github/workflows/test.yml`) runs **`npx prisma migrate deploy`** when the repository secret **`POSTGRES_URL`** is set.
+
+1. In GitHub: **Settings → Secrets and variables → Actions → New repository secret**.
+2. Name: **`POSTGRES_URL`**. Value: the same pooled Postgres URL you use on Vercel for this project (Prisma).
+3. Optional CLI: `gh secret set POSTGRES_URL` and paste the URL when prompted.
+
+Forks and contributors without this secret still pass CI; the step prints a skip message. Nothing in the repo can create this secret for you automatically.
+
+## Vercel env: factory health + Technical Lead + preview matching
+
+Set on the Vercel project (at least **Production**):
+
+| Variable | Purpose |
+|----------|---------|
+| **`CORPFLOW_FACTORY_HEALTH_URL`** or **`FACTORY_HEALTH_URL`** | Site origin only, e.g. `https://your-domain.com`. Technical Lead calls **`{origin}/api/factory/health`**. Alias: **`CORPFLOW_PUBLIC_BASE_URL`** is used if the health-specific vars are unset. |
+| **`VERCEL_TOKEN`** (or **`VERCEL_AUTH_TOKEN`**) + **`VERCEL_PROJECT_ID`** | Vercel REST API for preview deployment status (`promote-status`, Technical Lead observer). |
+| **`VERCEL_TEAM_ID`** or **`VERCEL_ORG_ID`** | Required when the project is under a team; must match the project you deploy from GitHub. |
+
+Use the **same** `VERCEL_*` values everywhere you rely on preview lookup. Deployments are correlated to CMP by branch name: Vercel’s **`meta.githubCommitRef`** must equal **`cmp/{ticketId}`**, with **`ticketId` sanitized** the same way as in `lib/cmp/_lib/vercel-preview.js` (characters outside `[A-Za-z0-9._-]` replaced with `_`). If GitHub creates a different ref string, preview rows will not match until the branch naming matches.

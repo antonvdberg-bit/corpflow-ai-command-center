@@ -1,3 +1,11 @@
+# Optional repository secrets (Settings → Secrets and variables → Actions):
+#
+# POSTGRES_URL
+#   Same pooled Postgres URL as production Vercel (Prisma). When set, the "Prisma migrate deploy"
+#   step runs on every workflow (push/PR to main). Forks without this secret skip migrate (step succeeds).
+#
+# Not added by automation — you must paste the value in the GitHub UI (or gh secret set).
+#
 name: Agent CI
 
 on:
@@ -46,6 +54,17 @@ jobs:
       run: |
         npm ci
         npm test
+
+    # When POSTGRES_URL is configured as a repo secret, apply pending Prisma migrations (no-op if none).
+    - name: Prisma migrate deploy (optional)
+      env:
+        POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+      run: |
+        if [ -z "$POSTGRES_URL" ]; then
+          echo "Skip: POSTGRES_URL secret not set (configure in repo settings to run migrations in CI)."
+        else
+          npx prisma migrate deploy
+        fi
 
     # `high` fails often on transitive dev/build deps (e.g. Next toolchain) while fixes lag.
     # Block on critical only; run `npm audit` locally or in Dependabot for full visibility.

@@ -8,6 +8,10 @@ import { PrismaClient } from '@prisma/client';
 import adminLeadsHandler from '../lib/server/admin-leads.js';
 import auditHandler from '../lib/server/audit.js';
 import billingSentinelHandler from '../lib/server/billing-sentinel.js';
+import technicalLeadCronHandler, {
+  handleTechnicalLeadAuditsList,
+  handleTechnicalLeadFactoryMaster,
+} from '../lib/server/technical-lead-cron.js';
 import cmpHandler from '../lib/cmp/router.js';
 import feedbackHandler from '../lib/server/feedback.js';
 import legalSearchHandler from '../lib/server/legal-search.js';
@@ -645,6 +649,12 @@ export default async function handler(req, res) {
   if (pathSeg === 'factory/tenant/bootstrap') {
     return handleFactoryTenantBootstrap(req, res);
   }
+  if (pathSeg === 'factory/technical-lead/run') {
+    return handleTechnicalLeadFactoryMaster(req, res);
+  }
+  if (pathSeg === 'factory/technical-lead/audits') {
+    return handleTechnicalLeadAuditsList(req, res);
+  }
 
   switch (pathSeg) {
     case 'auth/login':
@@ -681,6 +691,8 @@ export default async function handler(req, res) {
       return webhookHandler(req, res);
     case 'cron/billing-sentinel':
       return billingSentinelHandler(req, res);
+    case 'cron/technical-lead':
+      return technicalLeadCronHandler(req, res);
     default:
       return res.status(404).json({ error: 'Unknown route', path: pathSeg });
   }
