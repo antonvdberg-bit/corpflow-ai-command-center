@@ -15,6 +15,7 @@
     "cmp:repair-sandbox": "node scripts/cmp-repair-stuck-sandbox.mjs",
     "cmp:repair-sandbox:execute": "node scripts/cmp-repair-stuck-sandbox.mjs --execute",
     "technical-lead:run": "node scripts/technical-lead-run.mjs",
+    "smoke:change-technical-lead": "node scripts/smoke-change-console-technical-lead.mjs",
     "vercel:env:allowlist": "node scripts/vercel-env.mjs allowlist",
     "vercel:env:check": "node scripts/vercel-env.mjs check --backend auto",
     "vercel:env:check:comprehensive": "node scripts/vercel-env.mjs check --backend auto --comprehensive",
