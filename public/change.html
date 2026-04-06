@@ -575,6 +575,22 @@
               <div id="executionActivityLinks" class="mt-2 text-[10px] space-y-1"></div>
             </div>
 
+            <div id="technicalLeadCard" class="mb-4 rounded-xl border border-slate-800 bg-slate-950/50 p-3 hidden">
+              <div class="flex items-start justify-between gap-2 flex-wrap">
+                <div class="text-[11px] font-semibold text-slate-200 uppercase tracking-wide">Factory oversight</div>
+                <button type="button" id="btnRefreshTechnicalLead" class="text-[10px] text-sky-300 hover:text-sky-200 underline">
+                  Refresh
+                </button>
+              </div>
+              <p class="mt-1 text-[10px] text-slate-500 leading-relaxed">
+                Automated checklist vs GitHub, Vercel preview, and factory health (Technical Lead Phase A). Not a merge
+                approval.
+              </p>
+              <p id="technicalLeadSummary" class="mt-2 text-[11px] text-slate-300 leading-relaxed"></p>
+              <p id="technicalLeadMeta" class="mt-1 text-[10px] text-slate-500"></p>
+              <ul id="technicalLeadGaps" class="mt-2 text-[10px] text-slate-400 space-y-1 list-disc pl-4 hidden"></ul>
+            </div>
+
             <details id="rawJsonWrap" class="rounded-xl border border-slate-800 bg-slate-950/40 group hidden">
               <summary
                 class="cursor-pointer text-[10px] text-slate-500 hover:text-slate-400 px-3 py-2 select-none list-none"
@@ -2012,6 +2028,70 @@
           }
         }
 
+        async function refreshTechnicalLeadAudit(ticketId) {
+          var card = $('technicalLeadCard');
+          var sumEl = $('technicalLeadSummary');
+          var metaEl = $('technicalLeadMeta');
+          var gapsEl = $('technicalLeadGaps');
+          if (!card || !sumEl || !metaEl) return;
+          var tid = String(ticketId || '').trim();
+          if (!tid || !sessionInfo || !sessionInfo.logged_in) {
+            card.classList.add('hidden');
+            return;
+          }
+          try {
+            var r = await fetch(
+              '/api/cmp/router?action=technical-lead-latest&id=' + encodeURIComponent(tid),
+              { credentials: 'include' },
+            );
+            var j = await r.json().catch(function () {
+              return {};
+            });
+            if (!r.ok || !j || j.latest === undefined) {
+              card.classList.add('hidden');
+              return;
+            }
+            if (!j.latest) {
+              sumEl.textContent =
+                'No automated factory review yet. After the next observer run, a short status will appear here.';
+              metaEl.textContent = '';
+              if (gapsEl) {
+                gapsEl.classList.add('hidden');
+                gapsEl.innerHTML = '';
+              }
+              card.classList.remove('hidden');
+              return;
+            }
+            var L = j.latest;
+            var mainText = L.summary_llm || L.summary_text || '';
+            sumEl.textContent = mainText;
+            var when = L.created_at ? String(L.created_at).replace('T', ' ').slice(0, 19) + ' UTC' : '';
+            metaEl.textContent =
+              (when ? 'Updated ' + when : '') +
+              (L.gap_count != null ? (when ? ' · ' : '') + L.gap_count + ' checklist item(s)' : '');
+            if (gapsEl && Array.isArray(L.gaps) && L.gaps.length) {
+              gapsEl.classList.remove('hidden');
+              gapsEl.innerHTML = L.gaps
+                .map(function (g) {
+                  return (
+                    '<li><span class="text-slate-300">' +
+                    escapeHtml(String(g.severity || '')) +
+                    '</span> — <span class="text-slate-400">' +
+                    escapeHtml(String(g.id || '')) +
+                    '</span></li>'
+                  );
+                })
+                .join('');
+            } else if (gapsEl) {
+              gapsEl.classList.add('hidden');
+              gapsEl.innerHTML = '';
+            }
+            card.classList.remove('hidden');
+          } catch (e) {
+            card.classList.add('hidden');
+          }
+        }
+
         function setBrief(obj) {
           lastBrief = obj && typeof obj === 'object' ? obj : null;
           if (briefEl) {
@@ -2037,6 +2117,13 @@
           } catch (_) {}
           try {
             updateProcessHealthFromState();
+          } catch (_) {}
+          try {
+            var tId =
+              (lastBrief && lastBrief.ticket_id) || (typeof ticketEl !== 'undefined' && ticketEl && ticketEl.value);
+            if (tId && sessionInfo && sessionInfo.logged_in) {
+              void refreshTechnicalLeadAudit(String(tId).trim());
+            }
           } catch (_) {}
         }
         function asLink(href, label) {
@@ -3123,6 +3210,14 @@
           });
         }
 
+        const btnRefreshTechnicalLead = $('btnRefreshTechnicalLead');
+        if (btnRefreshTechnicalLead) {
+          btnRefreshTechnicalLead.addEventListener('click', () => {
+            const tid = String(ticketEl.value || '').trim();
+            if (tid) void refreshTechnicalLeadAudit(tid);
+          });
+        }
+
         const btnCopyAudit = $('btnCopyAudit');
         if (btnCopyAudit) {
           btnCopyAudit.addEventListener('click', () => {
@@ -3143,6 +3238,8 @@
           lastTicketIdForHealth = '';
           const actCard = $('executionActivityCard');
           if (actCard) actCard.classList.add('hidden');
+          const tlCard = $('technicalLeadCard');
+          if (tlCard) tlCard.classList.add('hidden');
           const hp = $('processHealthPanel');
           if (hp) hp.classList.add('hidden');
           descEl.value = '';

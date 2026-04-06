@@ -9,7 +9,8 @@
  *
  * Env: POSTGRES_URL, CMP_GITHUB_TOKEN (or GITHUB_TOKEN), GITHUB_REPO (or CMP_GITHUB_REPOSITORY),
  * optional CORPFLOW_FACTORY_HEALTH_URL for factory health probe,
- * optional VERCEL_TOKEN + VERCEL_PROJECT_ID (+ VERCEL_TEAM_ID / VERCEL_ORG_ID) for preview deployment evidence.
+ * optional VERCEL_TOKEN + VERCEL_PROJECT_ID (+ VERCEL_TEAM_ID / VERCEL_ORG_ID) for preview deployment evidence,
+ * optional config/technical-lead-checklist.v1.json and CORPFLOW_TECHNICAL_LEAD_LLM_SUMMARY + GROQ_API_KEY.
  */
 
 import './bootstrap-repo-env.mjs';

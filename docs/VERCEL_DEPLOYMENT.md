@@ -68,6 +68,8 @@ Use the **same** `VERCEL_*` values everywhere you rely on preview lookup. Deploy
 
 Table: **`prisma/migrations/…/technical_lead_audits`** + **`npm run db:migrate:deploy`** on production DB (or `ensure-schema` idempotent DDL). Evidence is **Postgres** (`evidence_json`, `gaps_json`, `summary_text`), not PR comments alone.
 
+**Phase B (client surface):** `GET /api/cmp/router?action=technical-lead-latest&id=<ticket>` — tenant-safe latest audit for Change Console. Optional **`CORPFLOW_TECHNICAL_LEAD_LLM_SUMMARY=true`** + **`GROQ_API_KEY`** adds `summary_llm` (rephrase; deterministic `summary_text` stays canonical in DB). Optional checklist overrides: **`config/technical-lead-checklist.v1.json`** or **`CORPFLOW_TECHNICAL_LEAD_CHECKLIST_PATH`**.
+
 ## Optional: Cursor Bugbot (PR review)
 
 **[Cursor Bugbot setup](https://cursor.com/docs/bugbot#setup)** supports a **free tier** for GitHub PR comments. It complements **Agent CI** and the **Technical Lead observer** (deterministic DB evidence); it does not replace migrations, cron secrets, or `VERCEL_*` alignment.

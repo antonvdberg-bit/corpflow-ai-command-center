@@ -71,7 +71,9 @@ Enable **[Cursor Bugbot](https://cursor.com/docs/bugbot#setup)** on the GitHub r
 3. **Cron:** `vercel.json` already schedules `/api/cron/technical-lead` daily — verify Vercel shows successful invocations after deploy.
 4. **Read results:** `GET /api/factory/technical-lead/audits?ticket_id=…` (factory master) or query Postgres; locally `npm run technical-lead:run`.
 
-**Sensible Phase B (when you are ready):** tenant-safe read API or Change Console panel that surfaces **latest audit summary + gap ids** for a ticket; optional LLM that **only** rephrases stored evidence (no replacement for structured gaps). Optional **checklist v2** as repo JSON or ticket field when you outgrow the embedded v1 rules.
+**Phase B (implemented):** `technical-lead-latest` CMP action + **Factory oversight** panel on `/change`; **`config/technical-lead-checklist.v1.json`** (`disabled_rule_ids`); optional Groq rephrase via **`CORPFLOW_TECHNICAL_LEAD_LLM_SUMMARY`** (writes **`evidence_json.llm_summary_rephrase`** only; DB `summary_text` stays deterministic).
+
+**Next (Phase C ideas):** richer gap detail in UI (expandable), per-tenant checklist paths, or ticket-level checklist overrides.
 
 ## Legacy: Python engine (`core/engine/`)
 

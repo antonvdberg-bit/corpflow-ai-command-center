@@ -30,7 +30,7 @@ See repository root `.env.template` for the full list.
 
 Routes are served as `/api/cmp/router?action=<name>` or legacy path segments; see `lib/cmp/router.js` `switch` / handlers.
 
-Common actions include `ticket-create`, `ticket-get`, `ticket-activity`, `ticket-list`, `costing-preview`, `approve-build`, `change-chat`, `overseer`, etc.
+Common actions include `ticket-create`, `ticket-get`, `technical-lead-latest`, `ticket-activity`, `ticket-list`, `costing-preview`, `approve-build`, `change-chat`, `overseer`, etc.
 
 **`ticket-list` scope:** Admin sessions receive only **unscoped** tickets (`tenant_id` null — factory/core queue). Tenant sessions receive only rows for **their** `tenant_id`. Factory master token (no session) returns **all** rows for break-glass support. Response includes `list_scope` (`core` | `tenant` | `factory_master`) and `scope_tenant_id` when applicable.
 
@@ -68,6 +68,9 @@ Durable, tenant-safe progress lives under `cmp_tickets.console_json.client_view`
 - **Approve build**: merges `automation` (`dispatch_ok`, GitHub URLs, `last_error`) and status/stage hints.
 - **`ticket-get`**: returns `ticket_progress` `{ status, stage, client_view }` for every caller; **`itinerary`** (ordered audit steps from `created_at` / `updated_at` and `console_json` milestones); **full `console_json` only for admin** sessions.
 - **`ticket-activity`**: GET/POST with `id` or `ticket_id` — tenant-safe snapshot of GitHub branch presence and recent Actions runs for `cmp/<ticket_id>` (`summary_line`, `needs_attention`, `stuck_hint`, links). Tenant sessions are scoped to their ticket rows; admins see any ticket. Allowed for logged-in tenant cookies without extra JWT allowlist (same idea as `ticket-list`).
+- **`technical-lead-latest`**: GET with `id` — latest row from `technical_lead_audits` for that ticket (`summary_text`, optional `summary_llm` from evidence, `gaps`, counts). **Tenant-scoped** (same as `ticket-get`). Does **not** return raw `evidence_json`. Change Console shows this under **Factory oversight**.
+
+**Technical Lead (observer):** Cron `/api/cron/technical-lead` and `npm run technical-lead:run` write audits. Optional `config/technical-lead-checklist.v1.json` disables gap rule ids; optional `CORPFLOW_TECHNICAL_LEAD_LLM_SUMMARY` + `GROQ_API_KEY` adds a client-style rephrase in `evidence_json.llm_summary_rephrase` only.
 
 ## `automation-callback` (POST, secret header)
 

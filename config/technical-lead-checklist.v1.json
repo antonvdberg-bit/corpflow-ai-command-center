@@ -1,0 +1,25 @@
+{
+  "version": "v1",
+  "description": "Optional overrides for Technical Lead Phase A. Evaluation logic lives in lib/cmp/_lib/technical-lead-observer.js; gaps listed here can be disabled without code changes.",
+  "disabled_rule_ids": [],
+  "rule_ids_documentation": [
+    "dispatch_recorded",
+    "dispatch_succeeded",
+    "pr_linked",
+    "github_config",
+    "github_pr_fetch",
+    "pr_open",
+    "branch_name_matches",
+    "meaningful_pr_diff",
+    "implementation_commits",
+    "github_compare",
+    "ci_status",
+    "ci_pending",
+    "ci_fetch",
+    "vercel_api",
+    "vercel_preview_missing",
+    "vercel_deploy_failed",
+    "vercel_deploy_pending",
+    "factory_health"
+  ]
+}
