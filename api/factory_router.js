@@ -27,6 +27,7 @@ import tenantIntakeHandler from '../lib/server/tenant-intake.js';
 import tenantSitePublicHandler from '../lib/server/tenant-site-public.js';
 import tenantLoginDebugHandler from '../lib/server/tenant-login-debug.js';
 import factoryGithubPrCreateHandler from '../lib/server/factory-github-pr-create.js';
+import factoryResearchFetchHandler from '../lib/server/factory-research-fetch.js';
 import {
   handleFactoryAuthUsersList,
   handleFactoryAuthUsersSetPassword,
@@ -658,6 +659,9 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'factory/github/pr-create') {
     return factoryGithubPrCreateHandler(req, res);
+  }
+  if (pathSeg === 'factory/research/fetch') {
+    return factoryResearchFetchHandler(req, res);
   }
 
   switch (pathSeg) {

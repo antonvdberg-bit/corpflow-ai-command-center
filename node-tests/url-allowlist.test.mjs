@@ -5,6 +5,7 @@ import {
   isPrivateIpLiteral,
   isAllowlistedHostname,
   validateAllowlistedHttpsUrl,
+  validateAllowlistedResearchUrl,
 } from '../lib/server/url-allowlist.js';
 
 test('isPrivateIpLiteral detects private ranges', () => {
@@ -38,5 +39,20 @@ test('validateAllowlistedHttpsUrl enforces https and blocks localhost/private IP
 
   assert.deepEqual(validateAllowlistedHttpsUrl('https://example.com/a', rules).ok, true);
   assert.deepEqual(validateAllowlistedHttpsUrl('https://api.github.com/', rules).ok, true);
+});
+
+test('validateAllowlistedHttpsUrl blocks userinfo and non-allowlisted hosts', () => {
+  const rules = { exact_hosts: ['example.com'], suffix_hosts: ['github.com'] };
+
+  assert.equal(validateAllowlistedHttpsUrl('https://user:pass@example.com/x', rules).ok, false);
+  assert.equal(validateAllowlistedHttpsUrl('https://evil.com', rules).ok, false);
+  assert.equal(validateAllowlistedHttpsUrl('https://evilgithub.com', rules).ok, false);
+});
+
+test('validateAllowlistedResearchUrl is off by default unless env flag enabled', () => {
+  // Default in test environment should be disabled (no env flag set).
+  const res = validateAllowlistedResearchUrl('https://example.com');
+  assert.equal(res.ok, false);
+  assert.equal(res.reason, 'research_fetch_disabled');
 });
 
