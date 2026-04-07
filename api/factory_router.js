@@ -28,6 +28,7 @@ import tenantSitePublicHandler from '../lib/server/tenant-site-public.js';
 import tenantLoginDebugHandler from '../lib/server/tenant-login-debug.js';
 import factoryGithubPrCreateHandler from '../lib/server/factory-github-pr-create.js';
 import factoryResearchFetchHandler from '../lib/server/factory-research-fetch.js';
+import factoryCmpPushHandler from '../lib/server/factory-cmp-push.js';
 import {
   handleFactoryAuthUsersList,
   handleFactoryAuthUsersSetPassword,
@@ -722,6 +723,9 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'factory/research/fetch') {
     return factoryResearchFetchHandler(req, res);
+  }
+  if (pathSeg === 'factory/cmp/push') {
+    return factoryCmpPushHandler(req, res);
   }
 
   switch (pathSeg) {
