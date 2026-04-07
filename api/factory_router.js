@@ -26,6 +26,7 @@ import tenantSiteReadHandler from '../lib/server/tenant-site-read.js';
 import tenantIntakeHandler from '../lib/server/tenant-intake.js';
 import tenantSitePublicHandler from '../lib/server/tenant-site-public.js';
 import tenantLoginDebugHandler from '../lib/server/tenant-login-debug.js';
+import factoryGithubPrCreateHandler from '../lib/server/factory-github-pr-create.js';
 import {
   handleFactoryAuthUsersList,
   handleFactoryAuthUsersSetPassword,
@@ -654,6 +655,9 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'factory/technical-lead/audits') {
     return handleTechnicalLeadAuditsList(req, res);
+  }
+  if (pathSeg === 'factory/github/pr-create') {
+    return factoryGithubPrCreateHandler(req, res);
   }
 
   switch (pathSeg) {
