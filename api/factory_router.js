@@ -12,6 +12,7 @@ import technicalLeadCronHandler, {
   handleTechnicalLeadAuditsList,
   handleTechnicalLeadFactoryMaster,
 } from '../lib/server/technical-lead-cron.js';
+import cmpMonitorCronHandler from '../lib/server/cmp-monitor-cron.js';
 import cmpHandler from '../lib/cmp/router.js';
 import feedbackHandler from '../lib/server/feedback.js';
 import legalSearchHandler from '../lib/server/legal-search.js';
@@ -765,6 +766,8 @@ export default async function handler(req, res) {
       return billingSentinelHandler(req, res);
     case 'cron/technical-lead':
       return technicalLeadCronHandler(req, res);
+    case 'cron/cmp-monitor':
+      return cmpMonitorCronHandler(req, res);
     default:
       return res.status(404).json({ error: 'Unknown route', path: pathSeg });
   }
