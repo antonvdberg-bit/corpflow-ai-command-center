@@ -64,7 +64,7 @@ Use the **same** `VERCEL_*` values everywhere you rely on preview lookup. Deploy
 | **`GET /api/cron/technical-lead`** | Daily cron (see `vercel.json`); Bearer **`CORPFLOW_CRON_SECRET`** or **`CRON_SECRET`** (set Vercel **`CRON_SECRET`** to the same value so the scheduler sends the header). |
 | **Factory `/api/factory/technical-lead/run`** (GET or POST) | Factory master — manual run (`limit`, `ticket_id`, `dry_run`). |
 | **`GET /api/factory/technical-lead/audits?ticket_id=`** | Factory master — recent `technical_lead_audits` rows. |
-| **Factory `POST /api/factory/github/pr-create`** | Factory master — create/reuse a PR from `head` → `base` using `CMP_GITHUB_TOKEN` + `GITHUB_REPO` (default: draft PR). |
+| **Factory `POST /api/factory/github/pr-create`** | Factory master — create/reuse a PR from `head` → `base` using `CMP_GITHUB_TOKEN` + `GITHUB_REPO` (default: draft PR). If `head` is omitted, the factory generates `factory/<ticketId>/<slug>` (sanitized). |
 | **`npm run technical-lead:run`** | Local script (`scripts/technical-lead-run.mjs`); uses `.env` via bootstrap. |
 
 Table: **`prisma/migrations/…/technical_lead_audits`** + **`npm run db:migrate:deploy`** on production DB (or `ensure-schema` idempotent DDL). Evidence is **Postgres** (`evidence_json`, `gaps_json`, `summary_text`), not PR comments alone.
