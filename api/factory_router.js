@@ -30,6 +30,7 @@ import tenantLoginDebugHandler from '../lib/server/tenant-login-debug.js';
 import factoryGithubPrCreateHandler from '../lib/server/factory-github-pr-create.js';
 import factoryResearchFetchHandler from '../lib/server/factory-research-fetch.js';
 import factoryCmpPushHandler from '../lib/server/factory-cmp-push.js';
+import factoryCmpTicketSetDescriptionHandler from '../lib/server/factory-cmp-ticket-set-description.js';
 import {
   handleFactoryAuthUsersList,
   handleFactoryAuthUsersSetPassword,
@@ -727,6 +728,9 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'factory/cmp/push') {
     return factoryCmpPushHandler(req, res);
+  }
+  if (pathSeg === 'factory/cmp/ticket-set-description') {
+    return factoryCmpTicketSetDescriptionHandler(req, res);
   }
 
   switch (pathSeg) {
