@@ -57,6 +57,15 @@ Set on the Vercel project (at least **Production**):
 
 Use the **same** `VERCEL_*` values everywhere you rely on preview lookup. Deployments are correlated to CMP by branch name: Vercel’s **`meta.githubCommitRef`** must equal **`cmp/{ticketId}`**, with **`ticketId` sanitized** the same way as in `lib/cmp/_lib/vercel-preview.js` (characters outside `[A-Za-z0-9._-]` replaced with `_`). If GitHub creates a different ref string, preview rows will not match until the branch naming matches.
 
+## Factory: CMP “push to completion” + monitoring
+
+These endpoints exist to keep **client outcomes moving** even when branch/PR evidence is missing or GitHub dispatch stalled.
+
+| Surface | Purpose |
+|---------|---------|
+| **Factory `POST /api/factory/cmp/push`** | Factory master — loads a CMP ticket, extracts intended outcomes from `cmp_tickets.description`, and safely unblocks the pipeline (repair dispatch + refresh overseer). If outcomes are missing, returns a “needs brain” checklist that starts with `GET /api/cmp/router?action=ticket-get&id=<ticket_id>`. |
+| **Cron `GET /api/cron/cmp-monitor`** | Cron auth — monitors a focused set of ticket IDs and runs the same safe unblock logic. Emits `cmp.ticket.push_checked` into `automation_events` as an audit trail. Configure via `CMP_MONITOR_TICKET_IDS` (comma-separated). |
+
 ## Technical Lead observer (Phase A)
 
 | Surface | Purpose |

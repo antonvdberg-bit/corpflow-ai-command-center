@@ -12,6 +12,7 @@ import technicalLeadCronHandler, {
   handleTechnicalLeadAuditsList,
   handleTechnicalLeadFactoryMaster,
 } from '../lib/server/technical-lead-cron.js';
+import cmpMonitorCronHandler from '../lib/server/cmp-monitor-cron.js';
 import cmpHandler from '../lib/cmp/router.js';
 import feedbackHandler from '../lib/server/feedback.js';
 import legalSearchHandler from '../lib/server/legal-search.js';
@@ -28,6 +29,7 @@ import tenantSitePublicHandler from '../lib/server/tenant-site-public.js';
 import tenantLoginDebugHandler from '../lib/server/tenant-login-debug.js';
 import factoryGithubPrCreateHandler from '../lib/server/factory-github-pr-create.js';
 import factoryResearchFetchHandler from '../lib/server/factory-research-fetch.js';
+import factoryCmpPushHandler from '../lib/server/factory-cmp-push.js';
 import {
   handleFactoryAuthUsersList,
   handleFactoryAuthUsersSetPassword,
@@ -58,6 +60,8 @@ import {
 } from '../lib/server/change-attachments.js';
 import { getChangeConsoleReadinessForTenant } from '../lib/server/change-console-readiness.js';
 import { growthPipelineHandler } from '../lib/server/growth-pipeline.js';
+import { recordTrustedAutomationEvent } from '../lib/automation/internal.js';
+import { emitLogicFailure } from '../lib/cmp/_lib/telemetry.js';
 
 const prisma = new PrismaClient();
 
@@ -363,6 +367,7 @@ async function handleFactoryHealth(req, res) {
  */
 async function handleChat(req, res) {
   const message = firstQuery(req.query, 'message');
+  const mode = String(firstQuery(req.query, 'mode') || '').trim().toLowerCase();
   const key = process.env.GROQ_API_KEY;
   if (!key) {
     return res.status(200).json({ response: 'API Key missing. Please set GROQ_API_KEY in Vercel.' });
@@ -370,6 +375,59 @@ async function handleChat(req, res) {
   if (!message || String(message).trim() === '') {
     return res.status(400).json({ error: 'Missing query parameter: message' });
   }
+
+  const ctx = req.corpflowContext || buildCorpflowHostContext(req);
+  const tenantId = ctx?.surface === 'tenant' && ctx?.tenant_id ? String(ctx.tenant_id) : null;
+  const correlationId =
+    String(firstQuery(req.query, 'correlation_id') || firstQuery(req.query, 'correlationId') || '').trim() || null;
+
+  if (mode === 'escalate' || mode === 'i_dont_know' || mode === 'unknown') {
+    const brief = {
+      kind: 'needs_brain',
+      message: String(message),
+      surface: ctx?.surface || null,
+      tenant_id: tenantId,
+      host: ctx?.host || null,
+      correlation_id: correlationId,
+      requested_at: new Date().toISOString(),
+    };
+
+    try {
+      await recordTrustedAutomationEvent(prisma, {
+        tenantId,
+        eventType: 'client.question.needs_brain',
+        payload: brief,
+        idempotencyKey: `needs_brain:${tenantId || 'anon'}:${correlationId || String(message).slice(0, 64)}`,
+        correlationId,
+        source: 'api_chat',
+      });
+    } catch (e) {
+      emitLogicFailure({
+        source: 'api/chat',
+        severity: 'warning',
+        error: e,
+        cmp: { ticket_id: 'n/a', action: 'chat-needs-brain' },
+        recommended_action: 'Verify Postgres connectivity and automation_events table schema.',
+        meta: { tenant_id: tenantId, host: ctx?.host || null },
+      });
+    }
+
+    return res.status(200).json({
+      response:
+        "I don’t know confidently enough to answer that safely right now. I’ve escalated it to the operator so we can respond with the correct, verified answer.",
+      outcome: 'needs_brain',
+      client_options: [
+        { id: 'escalate', label: "Escalate (I don't know)", enabled: true, hint: 'Creates an operator task.' },
+      ],
+      next_actions: [
+        { id: 'ask_clarifying', label: 'Ask 1–2 clarifying questions', owner: 'client' },
+        { id: 'operator_review', label: 'Operator reviews existing playbooks and answers', owner: 'operator' },
+        { id: 'playbook_upsert', label: 'If repeatable, write/update an automation playbook', owner: 'operator' },
+      ],
+      escalation_brief: brief,
+    });
+  }
+
   try {
     const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -396,7 +454,11 @@ async function handleChat(req, res) {
       return res.status(200).json({ response: `System error: ${errText}` });
     }
     const text = data?.choices?.[0]?.message?.content ?? '';
-    return res.status(200).json({ response: text });
+    return res.status(200).json({
+      response: text,
+      outcome: 'answered',
+      client_options: [{ id: 'escalate', label: "Escalate (I don't know)", enabled: true, mode: 'escalate' }],
+    });
   } catch (e) {
     return res.status(200).json({ response: `System error: ${String(e?.message || e)}` });
   }
@@ -663,6 +725,9 @@ export default async function handler(req, res) {
   if (pathSeg === 'factory/research/fetch') {
     return factoryResearchFetchHandler(req, res);
   }
+  if (pathSeg === 'factory/cmp/push') {
+    return factoryCmpPushHandler(req, res);
+  }
 
   switch (pathSeg) {
     case 'auth/login':
@@ -701,6 +766,8 @@ export default async function handler(req, res) {
       return billingSentinelHandler(req, res);
     case 'cron/technical-lead':
       return technicalLeadCronHandler(req, res);
+    case 'cron/cmp-monitor':
+      return cmpMonitorCronHandler(req, res);
     default:
       return res.status(404).json({ error: 'Unknown route', path: pathSeg });
   }
