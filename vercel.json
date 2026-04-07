@@ -26,7 +26,7 @@
     },
     {
       "path": "/api/cron/cmp-monitor",
-      "schedule": "*/20 * * * *"
+      "schedule": "0 5 * * *"
     },
     {
       "path": "/api/cmp/overseer-sweep-cron",
