@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import handler from '../lib/server/cmp-monitor-cron.js';
+import { extractOutcomesFromConsoleJsonBrief } from '../lib/server/factory-cmp-push.js';
 
 function mkRes() {
   const r = {
@@ -48,5 +49,11 @@ test('cmp-monitor cron falls back to default ticket IDs when env is empty', asyn
 
   assert.equal(res._raw.statusCode, 503);
   assert.equal(res._raw.body?.error, 'POSTGRES_URL_MISSING');
+});
+
+test('extractOutcomesFromConsoleJsonBrief accepts explicit brief acceptance criteria array', () => {
+  const cj = { brief: { acceptance_criteria: ['- A', 'B'] } };
+  const out = extractOutcomesFromConsoleJsonBrief(cj);
+  assert.deepEqual(out, ['A', 'B']);
 });
 
