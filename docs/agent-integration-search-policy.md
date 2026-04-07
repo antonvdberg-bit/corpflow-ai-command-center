@@ -42,6 +42,7 @@ Config + helper:
 - `CORPFLOW_RESEARCH_FETCH_ENABLED`: `true`/`false` (default `false`)
 - `CORPFLOW_RESEARCH_DOMAIN_ALLOWLIST_JSON`: optional emergency override JSON (same shape as the file)
 - `lib/server/url-allowlist.js`: `validateAllowlistedResearchUrl(rawUrl)` returns `{ ok, url, reason }`
+- Factory endpoint: `POST /api/factory/research/fetch` (factory master auth). Body `{ "url": "https://..." }`. Returns `{ ok, final_url, status, content_type, text }`.
 
 ## Inheriting capability
 
