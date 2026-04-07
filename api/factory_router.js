@@ -30,6 +30,7 @@ import tenantLoginDebugHandler from '../lib/server/tenant-login-debug.js';
 import factoryGithubPrCreateHandler from '../lib/server/factory-github-pr-create.js';
 import factoryResearchFetchHandler from '../lib/server/factory-research-fetch.js';
 import factoryCmpPushHandler from '../lib/server/factory-cmp-push.js';
+import uiConsoleLogHandler from '../lib/server/ui-console-log.js';
 import {
   handleFactoryAuthUsersList,
   handleFactoryAuthUsersSetPassword,
@@ -659,6 +660,9 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'ui/context') {
     return handleUiContext(req, res);
+  }
+  if (pathSeg === 'ui/console-log') {
+    return uiConsoleLogHandler(req, res);
   }
 
   if (pathSeg === 'change-attachment/upload') {

@@ -678,6 +678,99 @@
         /** Authoritative merged ticket UI state (replaces parsing `#brief` text). */
         let lastBrief = null;
 
+        // Report browser console errors/warnings to the factory (tenant-safe, rate-limited).
+        // This is how the factory can "see" issues users observe in DevTools without screenshots.
+        const CF_LOG_ENDPOINT = '/api/ui/console-log';
+        const CF_LOG_MAX_PER_MIN = 10;
+        let cfLogBucketStart = 0;
+        let cfLogBucketCount = 0;
+
+        function shouldSendConsoleLog() {
+          const now = Date.now();
+          if (!cfLogBucketStart || now - cfLogBucketStart > 60_000) {
+            cfLogBucketStart = now;
+            cfLogBucketCount = 0;
+          }
+          if (cfLogBucketCount >= CF_LOG_MAX_PER_MIN) return false;
+          cfLogBucketCount += 1;
+          return true;
+        }
+
+        function safeConsoleString(v) {
+          try {
+            if (typeof v === 'string') return v;
+            if (v instanceof Error) return String(v.message || v);
+            return JSON.stringify(v);
+          } catch {
+            try { return String(v); } catch { return '[unprintable]'; }
+          }
+        }
+
+        function sendConsoleLog(level, message, meta) {
+          try {
+            if (!shouldSendConsoleLog()) return;
+            const tid = String(ticketEl?.value || '').trim() || null;
+            const body = {
+              level: String(level || 'info'),
+              message: String(message || '').slice(0, 1200),
+              meta: meta && typeof meta === 'object' ? meta : {},
+              ticket_id: tid,
+              url: location && location.href ? String(location.href).slice(0, 500) : '',
+            };
+            fetch(CF_LOG_ENDPOINT, {
+              method: 'POST',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(body),
+            }).catch(() => {});
+          } catch (_) {}
+        }
+
+        (function patchConsole() {
+          const origWarn = console.warn ? console.warn.bind(console) : null;
+          const origErr = console.error ? console.error.bind(console) : null;
+
+          if (origWarn) {
+            console.warn = function (...args) {
+              try {
+                sendConsoleLog('warn', args.map(safeConsoleString).join(' '), { source: 'console.warn' });
+              } catch (_) {}
+              return origWarn(...args);
+            };
+          }
+          if (origErr) {
+            console.error = function (...args) {
+              try {
+                sendConsoleLog('error', args.map(safeConsoleString).join(' '), { source: 'console.error' });
+              } catch (_) {}
+              return origErr(...args);
+            };
+          }
+
+          window.addEventListener(
+            'error',
+            (ev) => {
+              try {
+                const msg = ev?.message || 'window.error';
+                sendConsoleLog('error', String(msg), {
+                  source: 'window.error',
+                  filename: ev?.filename || '',
+                  lineno: ev?.lineno || null,
+                  colno: ev?.colno || null,
+                });
+              } catch (_) {}
+            },
+            true,
+          );
+
+          window.addEventListener('unhandledrejection', (ev) => {
+            try {
+              const reason = ev?.reason;
+              sendConsoleLog('error', safeConsoleString(reason || 'unhandledrejection'), { source: 'unhandledrejection' });
+            } catch (_) {}
+          });
+        })();
+
         function isAdminSession() {
           return sessionInfo && sessionInfo.logged_in && String(sessionInfo.level || '').toLowerCase() === 'admin';
         }
