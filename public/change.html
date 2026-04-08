@@ -627,6 +627,22 @@
               <div id="progressBody" class="mt-3 text-[11px] text-slate-300"></div>
             </div>
 
+            <div id="completionCard" class="mb-4 rounded-xl border border-slate-800 bg-slate-950/50 p-3 hidden">
+              <div class="flex items-start justify-between gap-2 flex-wrap">
+                <div class="text-[11px] font-semibold text-slate-200 uppercase tracking-wide">Completion</div>
+                <button
+                  type="button"
+                  id="btnSelfHeal"
+                  class="hidden text-[10px] rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1 text-amber-100 hover:bg-amber-500/15"
+                >
+                  Self-heal sandbox
+                </button>
+              </div>
+              <p id="completionSummary" class="mt-2 text-[11px] text-slate-300 leading-relaxed"></p>
+              <div id="completionBody" class="mt-3 text-[11px] text-slate-300"></div>
+              <p id="completionHint" class="mt-3 text-[10px] text-slate-500 leading-relaxed"></p>
+            </div>
+
             <div id="executionActivityCard" class="mb-4 rounded-xl border border-slate-800 bg-slate-950/50 p-3 hidden">
               <div class="flex items-start justify-between gap-2 flex-wrap">
                 <div class="text-[11px] font-semibold text-slate-200 uppercase tracking-wide">Live automation (GitHub)</div>
@@ -800,6 +816,11 @@
           if (briefEl && (isTenantClient() || !isAdminSession())) {
             briefEl.textContent = '';
           }
+          // Admin-only controls
+          try {
+            const sh = $('btnSelfHeal');
+            if (sh) sh.classList.toggle('hidden', !isAdminSession());
+          } catch (_) {}
         }
 
         let tenantCountdownTimer = null;
@@ -2181,6 +2202,9 @@
             renderAutomation(eff);
           } catch (_) {}
           try {
+            renderCompletionScorecard(eff);
+          } catch (_) {}
+          try {
             renderProgressCard(lastBrief || {});
           } catch (_) {}
           try {
@@ -2490,6 +2514,97 @@
             }
           }
           return out;
+        }
+
+        function renderCompletionScorecard(merged) {
+          const card = $('completionCard');
+          const sumEl = $('completionSummary');
+          const bodyEl = $('completionBody');
+          const hintEl = $('completionHint');
+          if (!card || !sumEl || !bodyEl) return;
+
+          const tid = String((merged && merged.ticket_id) || ticketEl.value || '').trim();
+          if (!tid || !sessionInfo || !sessionInfo.logged_in) {
+            card.classList.add('hidden');
+            sumEl.textContent = '';
+            bodyEl.innerHTML = '';
+            if (hintEl) hintEl.textContent = '';
+            return;
+          }
+
+          const tp = merged && merged.ticket_progress && typeof merged.ticket_progress === 'object' ? merged.ticket_progress : null;
+          const cv = tp && tp.client_view && typeof tp.client_view === 'object' ? tp.client_view : {};
+          const auto = cv.automation && typeof cv.automation === 'object' ? cv.automation : {};
+          const st = String((tp && tp.status) || merged.status || '').trim();
+          const sg = String((tp && tp.stage) || merged.stage || '').trim();
+          const br = resolveStructuredBrief(merged);
+          const outcomes = extractTaskLikeStrings(br);
+
+          const hasEstimate = Boolean(merged.costing_preview || cv.last_estimate_at);
+          const approved = /approved/i.test(st) || sg.toLowerCase() === 'build';
+          const dispatched = auto.dispatch_ok === true;
+          const previewUrl = typeof auto.preview_url === 'string' ? auto.preview_url.trim() : '';
+          const hasPreview = Boolean(previewUrl);
+          const clientDecision = cv && typeof cv === 'object' ? cv.preview_review : null;
+          const approvedByClient = clientDecision && String(clientDecision.decision || '') === 'approve';
+          const requestedChanges = clientDecision && String(clientDecision.decision || '') === 'request_changes';
+          const promoted = merged.console_json && typeof merged.console_json === 'object' ? merged.console_json.promotion : null;
+          const mergedPr = promoted && typeof promoted === 'object' ? promoted.merged === true : false;
+
+          const blockers = [];
+          if (!outcomes.length) blockers.push('Outcomes not explicit yet (use Refine the request).');
+          if (!hasEstimate) blockers.push('No estimate saved yet.');
+          if (approved && dispatched && lastActivityPayload && lastActivityPayload.activity && lastActivityPayload.activity.branch_exists === false) {
+            blockers.push('Sandbox branch missing (self-heal can re-dispatch).');
+          }
+          if (hasPreview && !approvedByClient && !requestedChanges && isTenantClient()) blockers.push('Waiting for your preview review.');
+          if (requestedChanges) blockers.push('Client requested changes on the preview.');
+
+          const done = [
+            { label: 'Outcomes captured', ok: outcomes.length > 0 },
+            { label: 'Estimate saved', ok: hasEstimate },
+            { label: 'Build approved', ok: approved },
+            { label: 'Automation dispatched', ok: dispatched },
+            { label: 'Preview available', ok: hasPreview },
+            { label: 'Client approved preview', ok: approvedByClient },
+            { label: 'Merged to main', ok: mergedPr },
+          ];
+
+          const okCount = done.filter((x) => x.ok).length;
+          const total = done.length;
+          const pct = Math.round((okCount / total) * 100);
+          sumEl.textContent = blockers.length ? `Blocked (${pct}%)` : `In progress (${pct}%)`;
+          bodyEl.innerHTML =
+            '<div class="grid grid-cols-1 md:grid-cols-2 gap-2">' +
+            done
+              .map((s) => {
+                const cls = s.ok
+                  ? 'border-emerald-500/25 bg-emerald-500/5 text-emerald-100'
+                  : 'border-slate-800 bg-slate-950/30 text-slate-300';
+                return (
+                  '<div class="rounded-lg border px-3 py-2 ' +
+                  cls +
+                  '"><span class="font-medium">' +
+                  (s.ok ? 'Done' : 'Not yet') +
+                  '</span> · ' +
+                  escapeHtml(s.label) +
+                  '</div>'
+                );
+              })
+              .join('') +
+            '</div>' +
+            (blockers.length
+              ? '<div class="mt-3 rounded-lg border border-amber-500/25 bg-amber-950/25 px-3 py-2 text-amber-100/90 leading-relaxed"><div class="font-semibold text-amber-200/95 mb-1">Blocking items</div><ul class="list-disc pl-4 space-y-1">' +
+                blockers.map((b) => '<li>' + escapeHtml(b) + '</li>').join('') +
+                '</ul></div>'
+              : '');
+
+          if (hintEl) {
+            hintEl.textContent = isAdminSession()
+              ? 'Admin: use Self-heal if sandbox branch is missing; refresh activity after.'
+              : 'This summary is derived from the ticket snapshot and preview review status.';
+          }
+          card.classList.remove('hidden');
         }
 
         function scopeLines(raw) {
@@ -3302,6 +3417,26 @@
         if (btnRequestAssist) {
           btnRequestAssist.addEventListener('click', () => {
             requestAssistance();
+          });
+        }
+
+        const btnSelfHeal = $('btnSelfHeal');
+        if (btnSelfHeal) {
+          btnSelfHeal.addEventListener('click', async () => {
+            try {
+              if (!isAdminSession()) return;
+              setBanner('');
+              const tid = String(ticketEl.value || '').trim();
+              if (!tid) return setBanner('Create or paste a Ticket ID first.');
+              await withActivity('Self-heal: restarting sandbox automation…', async () => {
+                await post('stuck-self-repair-sweep', { priority_ticket_id: tid, limit: 1 });
+                await refreshTicketActivity();
+                await syncCurrentTicket();
+              });
+              setBanner('Self-heal dispatched. Refresh Overseer / Activity in ~30–60 seconds.');
+            } catch (e) {
+              setBanner('Self-heal failed: ' + String(e && e.message ? e.message : e));
+            }
           });
         }
 
