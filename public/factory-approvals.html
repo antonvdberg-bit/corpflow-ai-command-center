@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>Factory · Client approvals</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-10">
+    <div class="max-w-6xl mx-auto">
+      <h1 class="text-2xl font-semibold tracking-tight">Client preview approvals</h1>
+      <p class="text-slate-400 text-sm mt-2 max-w-3xl leading-relaxed">
+        This page shows client decisions captured inside <code class="text-slate-300">/change</code>:
+        <strong class="text-slate-300">Approve preview</strong> or
+        <strong class="text-slate-300">Request changes</strong>. It reads from the append-only
+        <code class="text-slate-300">automation_events</code> audit trail.
+      </p>
+
+      <div class="mt-4 rounded-xl border border-slate-800 bg-slate-900/30 p-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+          <label class="block md:col-span-2">
+            <span class="text-xs text-slate-400">Filter (ticket id optional)</span>
+            <input
+              id="filterTicket"
+              type="text"
+              class="mt-1 w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm font-mono"
+              placeholder="cmno0q3oo0000jv043u6s1716"
+            />
+          </label>
+          <label class="block">
+            <span class="text-xs text-slate-400">Limit</span>
+            <select id="limit" class="mt-1 w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm">
+              <option value="50">50</option>
+              <option value="100" selected>100</option>
+              <option value="200">200</option>
+            </select>
+          </label>
+
+          <label class="block md:col-span-3">
+            <span class="text-xs text-slate-400">MASTER_ADMIN_KEY (only if this tab has no Factory Admin cookie)</span>
+            <input
+              id="masterKey"
+              type="password"
+              autocomplete="off"
+              class="mt-1 w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm"
+              placeholder="paste once — stays in this tab only"
+            />
+          </label>
+
+          <div class="md:col-span-3 flex flex-wrap gap-3">
+            <button
+              type="button"
+              id="btnLoad"
+              class="rounded-lg bg-sky-600 hover:bg-sky-500 text-white px-4 py-2 text-sm font-semibold"
+            >
+              Load approvals
+            </button>
+            <button
+              type="button"
+              id="btnClear"
+              class="rounded-lg border border-slate-700 hover:bg-slate-900/40 px-4 py-2 text-sm"
+            >
+              Clear
+            </button>
+            <a class="ml-auto text-sky-300 underline text-sm" href="/factory/auth-users">Factory auth users</a>
+          </div>
+        </div>
+      </div>
+
+      <div id="banner" class="hidden mt-4 rounded-lg border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-rose-200 text-sm"></div>
+
+      <div class="mt-6 overflow-x-auto rounded-xl border border-slate-800">
+        <table class="w-full text-sm text-left">
+          <thead class="bg-slate-900/80 text-xs uppercase text-slate-400">
+            <tr>
+              <th class="px-3 py-2">When</th>
+              <th class="px-3 py-2">Ticket</th>
+              <th class="px-3 py-2">Decision</th>
+              <th class="px-3 py-2">Message</th>
+              <th class="px-3 py-2">tenant_id</th>
+              <th class="px-3 py-2">Source</th>
+            </tr>
+          </thead>
+          <tbody id="tbody" class="divide-y divide-slate-800"></tbody>
+        </table>
+        <div id="empty" class="hidden p-6 text-slate-400 text-sm space-y-2">
+          <p class="font-medium text-slate-300">No approval events found.</p>
+          <p>
+            A client decision is only recorded after the client clicks
+            <strong>Approve preview</strong> or <strong>Request changes</strong> inside <code>/change</code>.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        const $ = (id) => document.getElementById(id);
+        const banner = $('banner');
+        const tbody = $('tbody');
+        const empty = $('empty');
+
+        function err(msg) {
+          banner.textContent = msg || '';
+          banner.classList.toggle('hidden', !msg);
+        }
+
+        function escapeHtml(s) {
+          return String(s || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+        }
+
+        function authHeaders() {
+          const key = String($('masterKey').value || '').trim();
+          const h = {};
+          if (key) h['Authorization'] = 'Bearer ' + key;
+          return h;
+        }
+
+        function normalizeDecision(eventType) {
+          const t = String(eventType || '').toLowerCase();
+          if (t === 'cmp.preview.approved') return { label: 'Approved', cls: 'text-emerald-300' };
+          if (t === 'cmp.preview.changes_requested') return { label: 'Changes requested', cls: 'text-amber-300' };
+          return { label: eventType || '—', cls: 'text-slate-300' };
+        }
+
+        async function loadApprovals() {
+          err('');
+          tbody.innerHTML = '';
+          empty.classList.add('hidden');
+
+          const params = new URLSearchParams();
+          params.set('limit', String($('limit').value || '100'));
+          // factory master only anyway; leave tenant_scope empty so we see all scopes
+          const r = await fetch('/api/automation/events?' + params.toString(), {
+            credentials: 'include',
+            headers: authHeaders(),
+          });
+          const j = await r.json().catch(() => ({}));
+          if (!r.ok) throw new Error(j.error || j.detail || j.hint || 'http_' + r.status);
+
+          const events = Array.isArray(j.events) ? j.events : [];
+          const ticketFilter = String($('filterTicket').value || '').trim();
+
+          const filtered = events.filter((e) => {
+            const t = String(e && e.eventType ? e.eventType : '').trim();
+            if (!(t === 'cmp.preview.approved' || t === 'cmp.preview.changes_requested')) return false;
+            if (!ticketFilter) return true;
+            const payload = e && e.payload && typeof e.payload === 'object' ? e.payload : {};
+            return String(payload.ticket_id || '').trim() === ticketFilter;
+          });
+
+          if (!filtered.length) {
+            empty.classList.remove('hidden');
+            return;
+          }
+
+          for (const e of filtered) {
+            const payload = e && e.payload && typeof e.payload === 'object' ? e.payload : {};
+            const tid = String(payload.ticket_id || '').trim();
+            const msg = String(payload.message || '').trim();
+            const dec = normalizeDecision(e.eventType);
+            const when = e.occurredAt ? String(e.occurredAt).replace('T', ' ').slice(0, 19) : '—';
+            const tenantId = e.tenantId != null ? String(e.tenantId) : '';
+            const src = e.source != null ? String(e.source) : '';
+
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-slate-900/40';
+            tr.innerHTML =
+              '<td class="px-3 py-2 text-xs text-slate-400 whitespace-nowrap">' +
+              escapeHtml(when) +
+              '</td>' +
+              '<td class="px-3 py-2 font-mono text-xs">' +
+              escapeHtml(tid || '—') +
+              '</td>' +
+              '<td class="px-3 py-2 font-semibold ' +
+              dec.cls +
+              '">' +
+              escapeHtml(dec.label) +
+              '</td>' +
+              '<td class="px-3 py-2 text-slate-300">' +
+              escapeHtml(msg || '—') +
+              '</td>' +
+              '<td class="px-3 py-2 font-mono text-xs text-slate-400">' +
+              escapeHtml(tenantId || '—') +
+              '</td>' +
+              '<td class="px-3 py-2 text-xs text-slate-500">' +
+              escapeHtml(src || '—') +
+              '</td>';
+            tbody.appendChild(tr);
+          }
+        }
+
+        $('btnLoad').addEventListener('click', () => {
+          loadApprovals().catch((e) => err(String(e && e.message ? e.message : e)));
+        });
+        $('btnClear').addEventListener('click', () => {
+          err('');
+          tbody.innerHTML = '';
+          $('filterTicket').value = '';
+          empty.classList.add('hidden');
+        });
+      })();
+    </script>
+  </body>
+</html>
+
