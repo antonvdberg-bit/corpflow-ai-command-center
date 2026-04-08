@@ -1,0 +1,84 @@
+# Domain routing guard: detects when core/apex point at wrong deployment.
+#
+# This prevents silent drift where `core.corpflowai.com` serves a different Vercel project
+# (404s on factory routes, wrong rewrites, etc.).
+#
+# Configure repository secrets (Settings → Secrets and variables → Actions):
+# - CORPFLOW_CORE_BASE_URL  (e.g. https://core.corpflowai.com)
+# - CORPFLOW_APEX_BASE_URL  (e.g. https://corpflowai.com)  (optional)
+#
+# If secrets are unset, the job exits 0 (skipped) so forks stay green.
+
+name: Domain routing guard
+
+on:
+  schedule:
+    - cron: "0 */6 * * *" # every 6 hours (UTC)
+  workflow_dispatch: {}
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify core host serves factory pages
+        env:
+          CORE_BASE: ${{ secrets.CORPFLOW_CORE_BASE_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CORE_BASE:-}" ]; then
+            echo "Skip: CORPFLOW_CORE_BASE_URL secret not set."
+            exit 0
+          fi
+
+          core="${CORE_BASE%/}"
+          urls=(
+            "$core/api/factory/health"
+            "$core/factory/auth-users"
+            "$core/factory/approvals"
+          )
+
+          for u in "${urls[@]}"; do
+            echo "GET $u"
+            code="$(curl -sS -L -o /tmp/body -w "%{http_code}" "$u" || echo "000")"
+            echo "HTTP $code"
+            head -c 600 /tmp/body || true
+            echo
+            if [ "$code" != "200" ]; then
+              echo "::error::Routing guard failed: expected 200 for $u, got $code"
+              exit 1
+            fi
+          done
+
+          # Content checks (cheap sanity): ensure expected page titles exist.
+          curl -sS -L "$core/factory/approvals" | grep -q "<title>Factory · Approvals</title>" || {
+            echo "::error::Routing guard failed: /factory/approvals did not render expected page title."
+            exit 1
+          }
+
+          echo "Core routing guard: OK"
+
+      - name: Verify apex host serves public surfaces (optional)
+        env:
+          APEX_BASE: ${{ secrets.CORPFLOW_APEX_BASE_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "${APEX_BASE:-}" ]; then
+            echo "Skip: CORPFLOW_APEX_BASE_URL secret not set."
+            exit 0
+          fi
+          apex="${APEX_BASE%/}"
+          urls=(
+            "$apex/login"
+            "$apex/change"
+          )
+          for u in "${urls[@]}"; do
+            echo "GET $u"
+            code="$(curl -sS -L -o /tmp/body -w "%{http_code}" "$u" || echo "000")"
+            echo "HTTP $code"
+            if [ "$code" != "200" ]; then
+              echo "::error::Routing guard failed: expected 200 for $u, got $code"
+              exit 1
+            fi
+          done
+          echo "Apex routing guard: OK"
+
