@@ -25,6 +25,12 @@ Env reference: `.env.template` § **CORE vs TENANT — host boundary**.
 
 ## Expected behavior
 
+### `/login` is transient; `/change` is the stable hub (implemented UX)
+
+- After a successful login, the browser is expected to move to **`/change`** (often immediately via `next=/change`).
+- Operator tools must not rely on `/login` being visible after authentication.
+- **Factory approvals** are accessible at **`/factory/approvals`** and should be linked from **`/change`** (operator/admin session) so operators can always reach it even when `/login` is skipped.
+
 On a hostname **mapped in `tenant_hostnames`**, `/login` loads tenant chrome from `GET /api/tenant/site`, locks **Tenant ID** to the mapped value, and **`POST /api/auth/login`** accepts an **empty** Tenant ID (server fills it from the host map).
 
 If the user enters a **different** Tenant ID than the host map, the API returns **`TENANT_ID_HOST_MISMATCH`** with **`expected_tenant_id`** (and a short hint).
