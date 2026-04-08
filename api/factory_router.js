@@ -200,7 +200,7 @@ async function attachTenantFromHostPg(req) {
     .replace(/^\./, '');
   const apexDbOverride =
     String(cfg('CORPFLOW_APEX_ALLOW_DB_HOST_OVERRIDE', 'false')).toLowerCase() === 'true';
-  if (hostNorm === rootDomain && !apexDbOverride) {
+  if ((hostNorm === rootDomain || hostNorm === `www.${rootDomain}`) && !apexDbOverride) {
     // Apex: do not let `tenant_hostnames` override sync resolution. A bad row (e.g. corpflowai.com
     // -> luxe-maurice) used to paint Luxe branding on login/change for the whole apex domain.
     // Control apex tenant via CORPFLOW_TENANT_HOST_MAP and CORPFLOW_DEFAULT_TENANT_ID only.
