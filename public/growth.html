@@ -60,6 +60,18 @@
         >
           Seed Mauritius / maritime demo
         </button>
+        <div id="core-seed-wrap" class="hidden min-w-[260px]">
+          <label class="block text-xs text-slate-500 mb-1" for="core-seed-tenant">Seed tenant</label>
+          <select
+            id="core-seed-tenant"
+            class="w-full rounded-md bg-slate-900/70 border border-slate-800 text-sm px-3 py-2"
+          >
+            <option value="">Select a tenant…</option>
+          </select>
+          <p class="text-[11px] text-slate-500 mt-2 leading-relaxed">
+            Core/admin must seed into a specific tenant workspace. This creates demo segment/company/contact/touchpoint rows in Postgres.
+          </p>
+        </div>
         <button
           type="button"
           id="btn-refresh"
@@ -241,8 +253,31 @@
               });
             }
 
+            // Populate seed tenant selector (core only).
+            var seedWrap = document.getElementById('core-seed-wrap');
+            var seedSel = document.getElementById('core-seed-tenant');
+            if (seedWrap) seedWrap.classList.remove('hidden');
+            if (seedSel && seedSel.options && seedSel.options.length <= 1) {
+              (d.tenants || []).forEach(function (t) {
+                var opt2 = document.createElement('option');
+                opt2.value = t.tenantId;
+                opt2.textContent =
+                  (t.name ? t.name + ' — ' : '') +
+                  t.tenantId +
+                  (t.lifecycle ? ' · ' + t.lifecycle : '');
+                seedSel.appendChild(opt2);
+              });
+            }
+
             var ul = document.getElementById('core-inprogress-list');
             ul.innerHTML = '';
+            if (!d.in_progress || !d.in_progress.length) {
+              ul.innerHTML =
+                '<li class="px-4 py-4 text-sm text-slate-400">' +
+                'No in-progress touchpoints found. If this is a new tenant, use <strong class="text-slate-200">Seed Mauritius / maritime demo</strong> (select a tenant first) to create sample rows.' +
+                '</li>';
+              return;
+            }
             (d.in_progress || []).forEach(function (it) {
               var li = document.createElement('li');
               li.className = 'px-4 py-3';
@@ -450,7 +485,20 @@
         document.getElementById('btn-seed').onclick = async function () {
           try {
             banner('', false);
-            await api('growth/seed-demo', { method: 'POST', body: {} });
+            if (isCoreAdmin()) {
+              var seedSel = document.getElementById('core-seed-tenant');
+              var tid = seedSel && seedSel.value ? String(seedSel.value) : '';
+              if (!tid) {
+                banner('Select a tenant first (core/admin seed).', true);
+                return;
+              }
+              await api('growth/seed-demo?tenant_id=' + encodeURIComponent(tid), {
+                method: 'POST',
+                body: { tenant_id: tid },
+              });
+            } else {
+              await api('growth/seed-demo', { method: 'POST', body: {} });
+            }
             document.getElementById('btn-refresh').click();
           } catch (e) {
             banner((e.payload && (e.payload.hint || e.payload.detail)) || e.message, true);

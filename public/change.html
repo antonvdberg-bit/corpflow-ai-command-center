@@ -339,6 +339,12 @@
           </p>
         </div>
         <div class="flex flex-col items-end gap-1.5 text-sm">
+          <a
+            id="factoryApprovalsLink"
+            class="hidden text-sky-300 underline"
+            href="/factory/approvals"
+            >Factory approvals</a
+          >
           <a class="text-sky-300 underline" href="/growth">Growth pipeline</a>
           <a class="text-sky-300/80 underline" href="/?admin=true">Back to intake</a>
         </div>
@@ -749,6 +755,12 @@
             sessionInfo.logged_in &&
             !isAdminSession()
           );
+        }
+
+        function applyFactoryLinksFromSession() {
+          const a = $('factoryApprovalsLink');
+          if (!a) return;
+          a.classList.toggle('hidden', !isAdminSession());
         }
 
         /**
@@ -3138,6 +3150,7 @@
 
             renderModeBarFromUiContext();
             applyConsoleLayout();
+            applyFactoryLinksFromSession();
             if (lastBrief) setBrief(lastBrief);
             else applyWorkspaceMode();
 
@@ -3154,6 +3167,7 @@
               el.className = 'inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[11px] text-emerald-200';
               loadTicketList();
               applyConsoleLayout();
+              applyFactoryLinksFromSession();
               if (lastBrief) setBrief(lastBrief);
               else applyWorkspaceMode();
               try {
@@ -3169,6 +3183,7 @@
                   '<div class="text-slate-500 px-1 py-2"><a class="text-sky-300 underline" href="/login">Log in</a> to see your tickets.</div>';
               }
               applyConsoleLayout();
+              applyFactoryLinksFromSession();
               applyWorkspaceMode();
             }
           })
