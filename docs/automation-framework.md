@@ -108,3 +108,32 @@ npm test
 ```
 
 (Node unit tests live under `node-tests/`; Python engine tests use `pytest core/engine/tests/`.)
+
+---
+
+## Playbook pattern: “CMP stub PR → real implementation → preview → merge” (production speed)
+
+When CMP automation creates a sandbox branch PR (`cmp/<ticket_id>`) it may contain only an **empty commit** so the PR can exist.
+To move faster in production, treat that PR as the **delivery vehicle**:
+
+- **Branch**: `cmp/<ticket_id>` (from `.github/workflows/cmp-branch.yml`)
+- **PR**: “CMP <ticket_id>: sandbox branch”
+- **Preview landing**: the PR’s **Vercel Preview** deployment (non-technical inspection)
+
+### Store the recipe as a playbook (so agents can repeat)
+
+Upsert a playbook via `POST /api/automation/ingest`:
+
+- `event_type`: `automation.playbook.upsert`
+- `payload.slug`: `cmp-stub-pr-to-implementation`
+- `payload.title`: `CMP stub PR → implementation → preview → merge (safe loop)`
+- `payload.body_md`: include the steps below
+
+### Recommended safe loop (human + agent)
+
+1. **Confirm outcomes are explicit** on the ticket (description or `console_json.brief.acceptance_criteria`).
+2. **Implement** on the existing `cmp/<ticket_id>` branch (small commits; keep tenant-safe surfaces free of GitHub internals).
+3. **Verify** using the PR’s Vercel Preview URL + `/change` in both tenant and core modes as applicable.
+4. **Merge PR** after required checks pass (PR-only merge into `main`).
+5. **Delete the `cmp/<ticket_id>` branch** after merge (reduces noise; keeps compare endpoints clean).
+

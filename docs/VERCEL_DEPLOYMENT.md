@@ -57,6 +57,14 @@ Set on the Vercel project (at least **Production**):
 
 Use the **same** `VERCEL_*` values everywhere you rely on preview lookup. Deployments are correlated to CMP by branch name: Vercel’s **`meta.githubCommitRef`** must equal **`cmp/{ticketId}`**, with **`ticketId` sanitized** the same way as in `lib/cmp/_lib/vercel-preview.js` (characters outside `[A-Za-z0-9._-]` replaced with `_`). If GitHub creates a different ref string, preview rows will not match until the branch naming matches.
 
+## Optional: Vercel Coding Agent Plugin (operator speed, not more power)
+
+If Vercel prompts you to install a **Coding Agent Plugin**, use the runbook:
+
+- `docs/operations/VERCEL_CODING_AGENT_PLUGIN.md`
+
+**Rule:** it’s fine to install for speed (logs, preview deploys), but keep **production promotion**, **prod env edits**, and **domains/DNS** behind explicit operator approval.
+
 ## Factory: CMP “push to completion” + monitoring
 
 These endpoints exist to keep **client outcomes moving** even when branch/PR evidence is missing or GitHub dispatch stalled.
