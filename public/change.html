@@ -3385,6 +3385,36 @@
           }
         });
 
+        async function submitClientPreviewReview(decision) {
+          try {
+            if (!isTenantClient()) return;
+            setBanner('');
+            const tid = String(ticketEl.value || '').trim();
+            if (!tid) return setBanner('Select a Ticket ID first.');
+            const noteEl = $('clientPreviewReviewNote');
+            const note = noteEl ? String(noteEl.value || '').trim() : '';
+            await withActivity(decision === 'approve' ? 'Recording approval…' : 'Recording change request…', async () => {
+              await post('preview-review', { ticket_id: tid, decision, note });
+              await syncCurrentTicket();
+            });
+          } catch (e) {
+            setBanner(String(e && e.message ? e.message : e));
+          }
+        }
+
+        const btnPreviewApprove = $('btnClientPreviewApprove');
+        if (btnPreviewApprove) {
+          btnPreviewApprove.addEventListener('click', function () {
+            submitClientPreviewReview('approve');
+          });
+        }
+        const btnPreviewChanges = $('btnClientPreviewRequestChanges');
+        if (btnPreviewChanges) {
+          btnPreviewChanges.addEventListener('click', function () {
+            submitClientPreviewReview('request_changes');
+          });
+        }
+
         if (overseerBtn) {
           overseerBtn.addEventListener('click', loadOverseer);
         }
