@@ -9,7 +9,12 @@
   <body class="min-h-screen bg-slate-950 text-slate-100 antialiased">
     <div class="max-w-5xl mx-auto px-4 py-8">
       <header class="mb-8 border-b border-slate-800 pb-6">
-        <p class="text-xs uppercase tracking-widest text-cyan-400/90 mb-2">Tenant surface</p>
+        <p
+          id="surface-label"
+          class="text-xs uppercase tracking-widest text-cyan-400/90 mb-2"
+        >
+          Tenant surface
+        </p>
         <h1 class="text-2xl font-semibold text-white">Growth pipeline</h1>
         <p class="text-slate-400 mt-2 text-sm max-w-2xl">
           Segments → companies → contacts → touchpoints (draft plans). This console does
@@ -64,6 +69,40 @@
         </button>
       </div>
 
+      <section id="core-panel" class="hidden mb-10">
+        <div class="flex flex-wrap items-end gap-3 mb-3">
+          <div class="flex-1 min-w-[240px]">
+            <h2 class="text-lg font-medium text-white">In progress (core)</h2>
+            <p class="text-xs text-slate-500 mt-1">
+              Latest drafts / scheduled touchpoints across tenants. Filter by tenant to focus.
+            </p>
+          </div>
+          <div class="min-w-[240px]">
+            <label class="block text-xs text-slate-500 mb-1" for="core-tenant-filter">Tenant</label>
+            <select
+              id="core-tenant-filter"
+              class="w-full rounded-md bg-slate-900/70 border border-slate-800 text-sm px-3 py-2"
+            >
+              <option value="">All tenants</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="rounded-lg border border-slate-800 bg-slate-900/40">
+          <div class="px-4 py-3 border-b border-slate-800 flex flex-wrap gap-2 items-center justify-between">
+            <div class="text-sm text-slate-300">
+              <span class="text-slate-500">Showing</span>
+              <span id="core-count" class="font-mono text-white">—</span>
+              <span class="text-slate-500">items</span>
+            </div>
+            <div class="text-xs text-slate-500">
+              <span>Newest first</span>
+            </div>
+          </div>
+          <ul id="core-inprogress-list" class="divide-y divide-slate-800"></ul>
+        </div>
+      </section>
+
       <div class="grid gap-8 md:grid-cols-2">
         <div>
           <h2 class="text-lg font-medium text-white mb-3">Segments</h2>
@@ -92,6 +131,7 @@
         var selSeg = null;
         var selCo = null;
         var selCt = null;
+        var uiCtx = null;
 
         function banner(msg, show) {
           var el = document.getElementById('banner');
@@ -122,19 +162,40 @@
         async function loadContext() {
           try {
             var u = await api('ui/context');
+            uiCtx = u;
             var s = u.session || {};
             var tid = s.tenant_id || u.tenant_id || '';
             var label = document.getElementById('ctx-label');
+            var surf = String(u.surface || '').toLowerCase();
+            var surfLabel = document.getElementById('surface-label');
+            surfLabel.textContent = surf === 'core' ? 'Core surface' : 'Tenant surface';
             if (s.logged_in) {
-              label.textContent =
-                'Signed in · tenant ' + (tid || '?') + ' · ' + (s.level || '');
+              if (surf === 'core') {
+                label.textContent = 'Signed in · ' + (s.level || '') + ' · core';
+              } else {
+                label.textContent =
+                  'Signed in · tenant ' + (tid || '?') + ' · ' + (s.level || '');
+              }
             } else {
               label.textContent = 'Not signed in — open /login on this host first.';
-              banner('Sign in with a tenant user (e.g. corpflowai.com) to load your pipeline.', true);
+              banner(
+                surf === 'core'
+                  ? 'Sign in as factory admin on this host to view in-progress work.'
+                  : 'Sign in with a tenant user (e.g. corpflowai.com) to load your pipeline.',
+                true
+              );
             }
           } catch (e) {
             document.getElementById('ctx-label').textContent = 'Could not load /api/ui/context';
           }
+        }
+
+        function isCoreAdmin() {
+          var u = uiCtx || {};
+          var surf = String(u.surface || '').toLowerCase();
+          var s = u.session || {};
+          var level = String(s.level || '').toLowerCase();
+          return surf === 'core' && s.logged_in === true && level === 'admin';
         }
 
         async function loadOverview() {
@@ -150,6 +211,89 @@
             } else {
               banner((e.payload && e.payload.detail) || e.message || String(e), true);
             }
+          }
+        }
+
+        async function loadCoreInProgress() {
+          if (!isCoreAdmin()) return;
+          try {
+            var sel = document.getElementById('core-tenant-filter');
+            var tenantId = sel && sel.value ? String(sel.value) : '';
+            var path =
+              'growth/in-progress?limit=80&created_after_days=90' +
+              (tenantId ? '&tenant_id=' + encodeURIComponent(tenantId) : '');
+            var d = await api(path);
+            document.getElementById('core-panel').classList.remove('hidden');
+            document.getElementById('core-count').textContent = String(
+              (d.in_progress || []).length
+            );
+
+            // Populate tenant filter once.
+            if (sel && sel.options && sel.options.length <= 1) {
+              (d.tenants || []).forEach(function (t) {
+                var opt = document.createElement('option');
+                opt.value = t.tenantId;
+                opt.textContent =
+                  (t.name ? t.name + ' — ' : '') +
+                  t.tenantId +
+                  (t.lifecycle ? ' · ' + t.lifecycle : '');
+                sel.appendChild(opt);
+              });
+            }
+
+            var ul = document.getElementById('core-inprogress-list');
+            ul.innerHTML = '';
+            (d.in_progress || []).forEach(function (it) {
+              var li = document.createElement('li');
+              li.className = 'px-4 py-3';
+              var tenant = it.tenant || null;
+              var tenantLabel = tenant
+                ? (tenant.name ? tenant.name + ' · ' : '') + tenant.tenantId
+                : it.tenant_id || '(unknown tenant)';
+              var seg =
+                it.contact &&
+                it.contact.company &&
+                it.contact.company.segment &&
+                it.contact.company.segment.name
+                  ? it.contact.company.segment.name
+                  : '';
+              var co = it.contact && it.contact.company ? it.contact.company.name : '';
+              var ct = it.contact ? it.contact.fullName : '';
+              var role = it.contact && it.contact.roleTitle ? it.contact.roleTitle : '';
+              var when = it.scheduled_at
+                ? 'Scheduled ' + it.scheduled_at.replace('T', ' ').replace('Z', ' UTC')
+                : it.sent_at
+                  ? 'Sent ' + it.sent_at.replace('T', ' ').replace('Z', ' UTC')
+                  : 'Draft';
+              li.innerHTML =
+                '<div class="flex flex-wrap gap-x-3 gap-y-1 items-baseline justify-between">' +
+                '<div class="text-sm text-slate-200">' +
+                '<span class="text-cyan-300/90 font-medium">' +
+                (it.channel || '') +
+                '</span>' +
+                (it.stage ? '<span class="text-slate-500"> · ' + it.stage + '</span>' : '') +
+                (it.subject
+                  ? '<span class="text-slate-300"> · ' + it.subject + '</span>'
+                  : '<span class="text-slate-500"> · (no subject)</span>') +
+                '</div>' +
+                '<div class="text-xs text-slate-500 font-mono">' +
+                when +
+                '</div>' +
+                '</div>' +
+                '<div class="mt-2 text-xs text-slate-500">' +
+                '<span class="text-slate-400">Tenant:</span> ' +
+                tenantLabel +
+                (seg ? ' <span class="text-slate-700">·</span> <span class="text-slate-400">Segment:</span> ' + seg : '') +
+                '</div>' +
+                '<div class="mt-1 text-sm text-slate-300">' +
+                (co ? '<span class="text-slate-200">' + co + '</span>' : '<span class="text-slate-500">(no company)</span>') +
+                (ct ? ' <span class="text-slate-500">·</span> ' + ct : '') +
+                (role ? ' <span class="text-slate-500">—</span> ' + role : '') +
+                '</div>';
+              ul.appendChild(li);
+            });
+          } catch (e) {
+            banner((e.payload && (e.payload.hint || e.payload.detail)) || e.message, true);
           }
         }
 
@@ -280,11 +424,27 @@
         document.getElementById('btn-refresh').onclick = function () {
           banner('', false);
           loadContext();
-          loadOverview();
-          loadSegments();
-          if (selSeg) loadCompanies();
-          if (selCo) loadContacts();
-          if (selCt) loadTouchpoints();
+          // If core/admin, show core in-progress list instead of tenant pipeline lists.
+          setTimeout(function () {
+            if (isCoreAdmin()) {
+              document.getElementById('core-panel').classList.remove('hidden');
+              document.getElementById('list-seg').innerHTML = '';
+              document.getElementById('list-co').innerHTML = '';
+              document.getElementById('list-ct').innerHTML = '';
+              document.getElementById('list-tp').innerHTML = '';
+              document.getElementById('co-hint').textContent = 'Core view — filter above.';
+              document.getElementById('ct-hint').textContent = '';
+              document.getElementById('tp-hint').textContent = '';
+              loadCoreInProgress();
+              return;
+            }
+            document.getElementById('core-panel').classList.add('hidden');
+            loadOverview();
+            loadSegments();
+            if (selSeg) loadCompanies();
+            if (selCo) loadContacts();
+            if (selCt) loadTouchpoints();
+          }, 0);
         };
 
         document.getElementById('btn-seed').onclick = async function () {
@@ -297,9 +457,20 @@
           }
         };
 
+        document.getElementById('core-tenant-filter').onchange = function () {
+          banner('', false);
+          loadCoreInProgress();
+        };
+
         loadContext();
-        loadOverview();
-        loadSegments();
+        setTimeout(function () {
+          if (isCoreAdmin()) {
+            loadCoreInProgress();
+          } else {
+            loadOverview();
+            loadSegments();
+          }
+        }, 0);
       })();
     </script>
   </body>
