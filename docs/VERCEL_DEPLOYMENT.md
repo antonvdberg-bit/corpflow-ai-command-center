@@ -74,6 +74,7 @@ These endpoints exist to keep **client outcomes moving** even when branch/PR evi
 | **Factory `/api/factory/technical-lead/run`** (GET or POST) | Factory master — manual run (`limit`, `ticket_id`, `dry_run`). |
 | **`GET /api/factory/technical-lead/audits?ticket_id=`** | Factory master — recent `technical_lead_audits` rows. |
 | **Factory `POST /api/factory/github/pr-create`** | Factory master — create/reuse a PR from `head` → `base` using `CMP_GITHUB_TOKEN` + `GITHUB_REPO` (default: draft PR). If `head` is omitted, the factory generates `factory/<ticketId>/<slug>` (sanitized). |
+| **Factory `POST /api/factory/cmp/ticket-set-description`** | Factory master — update `cmp_tickets.description` for an existing ticket (used to persist “Intended business outcomes” so automation can execute safely). Body: `{ "ticket_id": "...", "description": "..." }`. |
 | **`npm run technical-lead:run`** | Local script (`scripts/technical-lead-run.mjs`); uses `.env` via bootstrap. |
 
 Table: **`prisma/migrations/…/technical_lead_audits`** + **`npm run db:migrate:deploy`** on production DB (or `ensure-schema` idempotent DDL). Evidence is **Postgres** (`evidence_json`, `gaps_json`, `summary_text`), not PR comments alone.
