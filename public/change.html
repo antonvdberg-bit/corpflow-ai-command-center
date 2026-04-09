@@ -639,6 +639,7 @@
                 </button>
               </div>
               <p id="completionSummary" class="mt-2 text-[11px] text-slate-300 leading-relaxed"></p>
+              <p id="completionNext" class="mt-1 text-[11px] text-slate-200 leading-relaxed hidden"></p>
               <div id="completionBody" class="mt-3 text-[11px] text-slate-300"></div>
               <p id="completionHint" class="mt-3 text-[10px] text-slate-500 leading-relaxed"></p>
             </div>
@@ -2521,6 +2522,7 @@
           const sumEl = $('completionSummary');
           const bodyEl = $('completionBody');
           const hintEl = $('completionHint');
+          const nextEl = $('completionNext');
           if (!card || !sumEl || !bodyEl) return;
 
           const tid = String((merged && merged.ticket_id) || ticketEl.value || '').trim();
@@ -2559,6 +2561,18 @@
           }
           if (hasPreview && !approvedByClient && !requestedChanges && isTenantClient()) blockers.push('Waiting for your preview review.');
           if (requestedChanges) blockers.push('Client requested changes on the preview.');
+
+          const next = (() => {
+            if (mergedPr) return 'Done: merged to main.';
+            if (!outcomes.length) return 'Next: use Refine the request to make outcomes explicit.';
+            if (!hasEstimate) return 'Next: run Estimate so cost + scope are recorded.';
+            if (!approved) return 'Next: approve build to start automation.';
+            if (approved && !dispatched) return 'Next: waiting for factory automation dispatch.';
+            if (approved && dispatched && !hasPreview) return 'Next: waiting for preview URL.';
+            if (hasPreview && isTenantClient() && !approvedByClient && !requestedChanges) return 'Next: review preview and approve (or request changes).';
+            if (requestedChanges) return 'Next: refine the change request (what to adjust) and re-approve the preview.';
+            return blockers.length ? 'Next: address blocking items.' : 'Next: keep going — progress is tracked automatically.';
+          })();
 
           const done = [
             { label: 'Outcomes captured', ok: outcomes.length > 0 },
@@ -2603,6 +2617,10 @@
             hintEl.textContent = isAdminSession()
               ? 'Admin: use Self-heal if sandbox branch is missing; refresh activity after.'
               : 'This summary is derived from the ticket snapshot and preview review status.';
+          }
+          if (nextEl) {
+            nextEl.textContent = next;
+            nextEl.classList.remove('hidden');
           }
           card.classList.remove('hidden');
         }
