@@ -29,12 +29,13 @@ jobs:
   heal:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger CMP self-heal cron endpoint
+      - name: Trigger CMP self-heal (workflow_dispatch)
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         env:
           CORE_BASE: ${{ secrets.CORPFLOW_CORE_BASE_URL }}
           CRON_SECRET: ${{ secrets.CORPFLOW_CRON_SECRET }}
           PRIORITY_DEFAULT: ${{ secrets.CMP_SELF_HEAL_PRIORITY_TICKET_IDS }}
-          PRIORITY_INPUT: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.priority_ticket_ids || '' }}
+          PRIORITY_INPUT: ${{ github.event.inputs.priority_ticket_ids }}
         run: |
           set -euo pipefail
           if [ -z "${CORE_BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
@@ -49,12 +50,7 @@ jobs:
           payload='{}'
           if [ -n "${priority:-}" ]; then
             # Keep payload minimal; server accepts priority_ticket_ids string.
-            payload=$(python3 - <<'PY'
-import json, os
-p = (os.environ.get("priority") or "").strip()
-print(json.dumps({"priority_ticket_ids": p}))
-PY
-)
+            payload="$(priority="$priority" python3 -c 'import json,os; p=(os.environ.get("priority") or "").strip(); print(json.dumps({"priority_ticket_ids": p}))')"
           fi
 
           echo "POST $url"
@@ -70,12 +66,55 @@ PY
             exit 1
           fi
           python3 - <<'PY'
-import json
-with open("/tmp/body.json") as f:
-    j = json.load(f)
-ok = j.get("ok")
-if ok is not True:
-    raise SystemExit(f"::error::Response ok is not true: {ok}")
-print("CMP self-heal: ok=true")
-PY
+          import json
+          with open("/tmp/body.json") as f:
+              j = json.load(f)
+          ok = j.get("ok")
+          if ok is not True:
+              raise SystemExit(f"::error::Response ok is not true: {ok}")
+          print("CMP self-heal: ok=true")
+          PY
+
+      - name: Trigger CMP self-heal (schedule/push)
+        if: ${{ github.event_name != 'workflow_dispatch' }}
+        env:
+          CORE_BASE: ${{ secrets.CORPFLOW_CORE_BASE_URL }}
+          CRON_SECRET: ${{ secrets.CORPFLOW_CRON_SECRET }}
+          PRIORITY_DEFAULT: ${{ secrets.CMP_SELF_HEAL_PRIORITY_TICKET_IDS }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CORE_BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "Skip: CORPFLOW_CORE_BASE_URL and/or CORPFLOW_CRON_SECRET not set."
+            exit 0
+          fi
+          base="${CORE_BASE%/}"
+          url="$base/api/cmp/router?action=stuck-self-repair-cron"
+          priority="${PRIORITY_DEFAULT:-}"
+
+          payload='{}'
+          if [ -n "${priority:-}" ]; then
+            payload="$(priority="$priority" python3 -c 'import json,os; p=(os.environ.get("priority") or "").strip(); print(json.dumps({"priority_ticket_ids": p}))')"
+          fi
+
+          echo "POST $url"
+          code="$(curl -sS -o /tmp/body.json -w "%{http_code}" -X POST "$url" \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            -H "Content-Type: application/json" \
+            -d "$payload" || echo "000")"
+          echo "HTTP $code"
+          head -c 4000 /tmp/body.json || true
+          echo
+          if [ "$code" != "200" ]; then
+            echo "::error::CMP self-heal failed: expected 200, got $code"
+            exit 1
+          fi
+          python3 - <<'PY'
+          import json
+          with open("/tmp/body.json") as f:
+              j = json.load(f)
+          ok = j.get("ok")
+          if ok is not True:
+              raise SystemExit(f"::error::Response ok is not true: {ok}")
+          print("CMP self-heal: ok=true")
+          PY
 
