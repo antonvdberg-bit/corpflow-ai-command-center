@@ -1,0 +1,134 @@
+# Factory housekeeping (weekly/monthly) — safe GitHub-side cleanup.
+#
+# Goals:
+# - Keep CMP sandbox noise low (stale PRs/branches).
+# - Prevent delivery stalls by reducing backlog clutter.
+# - No tenant data touched (GitHub-only).
+#
+# Notes:
+# - Uses the built-in GITHUB_TOKEN (scoped to this repo).
+# - Deleting branches is safe for CMP because cmp/* branches are meant to be ephemeral.
+#
+
+name: Factory housekeeping
+
+on:
+  schedule:
+    - cron: "0 3 * * 1" # Weekly: Mondays 03:00 UTC
+    - cron: "0 4 1 * *" # Monthly: 1st of month 04:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  housekeeping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Close stale CMP sandbox PRs (no activity)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const days = 14; // conservative: 2 weeks
+            const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            function isCmpSandboxTitle(t) {
+              const s = String(t || '').toLowerCase();
+              return s.startsWith('cmp ') && s.includes(': sandbox branch');
+            }
+
+            const pulls = await github.paginate(github.rest.pulls.list, {
+              owner,
+              repo,
+              state: 'open',
+              per_page: 100,
+            });
+
+            let closed = 0;
+            for (const pr of pulls) {
+              if (!isCmpSandboxTitle(pr.title)) continue;
+              const updated = new Date(pr.updated_at).getTime();
+              if (!Number.isFinite(updated) || updated >= cutoff) continue;
+
+              // Only auto-close if it looks like an untouched sandbox shell.
+              const comments = pr.comments || 0;
+              const reviewComments = pr.review_comments || 0;
+              if (comments + reviewComments > 0) continue;
+
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: pr.number,
+                body:
+                  `Auto-close: CMP sandbox PR inactive for ${days}+ days.\n\n` +
+                  `If this ticket is still priority, re-dispatch sandbox (or re-open this PR) and continue implementation on the cmp/* branch.`,
+              });
+
+              await github.rest.pulls.update({
+                owner,
+                repo,
+                pull_number: pr.number,
+                state: 'closed',
+              });
+              closed++;
+            }
+
+            core.info(`Closed ${closed} stale CMP sandbox PR(s).`);
+
+      - name: Delete merged CMP branches
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            function isCmpBranch(name) {
+              return String(name || '').startsWith('cmp/');
+            }
+
+            // List open PR heads so we never delete a branch under active work.
+            const openPulls = await github.paginate(github.rest.pulls.list, {
+              owner,
+              repo,
+              state: 'open',
+              per_page: 100,
+            });
+            const openHeads = new Set(openPulls.map((p) => p.head && p.head.ref).filter(Boolean));
+
+            // List all branches and target cmp/* only.
+            const branches = await github.paginate(github.rest.repos.listBranches, {
+              owner,
+              repo,
+              per_page: 100,
+            });
+
+            let deleted = 0;
+            for (const b of branches) {
+              const name = b && b.name;
+              if (!isCmpBranch(name)) continue;
+              if (openHeads.has(name)) continue;
+
+              // Find the most recent PR (open/closed) for this head branch.
+              const prs = await github.rest.pulls.list({
+                owner,
+                repo,
+                state: 'closed',
+                head: `${owner}:${name}`,
+                per_page: 5,
+              });
+              const pr = (prs.data || [])[0];
+              if (!pr || pr.merged_at == null) continue; // only delete when merged
+
+              await github.rest.git.deleteRef({
+                owner,
+                repo,
+                ref: `heads/${name}`,
+              });
+              deleted++;
+            }
+
+            core.info(`Deleted ${deleted} merged CMP branch(es).`);
+
