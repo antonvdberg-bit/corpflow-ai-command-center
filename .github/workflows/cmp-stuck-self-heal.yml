@@ -34,7 +34,7 @@ jobs:
           CORE_BASE: ${{ secrets.CORPFLOW_CORE_BASE_URL }}
           CRON_SECRET: ${{ secrets.CORPFLOW_CRON_SECRET }}
           PRIORITY_DEFAULT: ${{ secrets.CMP_SELF_HEAL_PRIORITY_TICKET_IDS }}
-          PRIORITY_INPUT: ${{ github.event.inputs.priority_ticket_ids }}
+          PRIORITY_INPUT: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.priority_ticket_ids || '' }}
         run: |
           set -euo pipefail
           if [ -z "${CORE_BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
