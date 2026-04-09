@@ -56,6 +56,9 @@ import {
 } from '../lib/server/change-attachments.js';
 import { getChangeConsoleReadinessForTenant } from '../lib/server/change-console-readiness.js';
 import { growthPipelineHandler } from '../lib/server/growth-pipeline.js';
+import factoryCmpPushHandler from '../lib/server/factory-cmp-push.js';
+import factoryCmpTicketSetDescriptionHandler from '../lib/server/factory-cmp-ticket-set-description.js';
+import factoryCmpTicketSummariesHandler from '../lib/server/factory-cmp-ticket-summaries.js';
 
 const prisma = new PrismaClient();
 
@@ -609,6 +612,16 @@ export default async function handler(req, res) {
 
   if (pathSeg === 'growth' || pathSeg.startsWith('growth/')) {
     return growthPipelineHandler(req, res, pathSeg);
+  }
+
+  if (pathSeg === 'factory/cmp/push') {
+    return factoryCmpPushHandler(req, res);
+  }
+  if (pathSeg === 'factory/cmp/ticket-set-description') {
+    return factoryCmpTicketSetDescriptionHandler(req, res);
+  }
+  if (pathSeg === 'factory/cmp/ticket-summaries') {
+    return factoryCmpTicketSummariesHandler(req, res);
   }
 
   if (pathSeg.startsWith('cmp') || pathSeg.startsWith('cmp/')) {
