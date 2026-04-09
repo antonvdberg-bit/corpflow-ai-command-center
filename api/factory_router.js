@@ -63,6 +63,7 @@ import { getChangeConsoleReadinessForTenant } from '../lib/server/change-console
 import { growthPipelineHandler } from '../lib/server/growth-pipeline.js';
 import { recordTrustedAutomationEvent } from '../lib/automation/internal.js';
 import { emitLogicFailure } from '../lib/cmp/_lib/telemetry.js';
+import factoryCmpTicketSummariesHandler from '../lib/server/factory-cmp-ticket-summaries.js';
 
 const prisma = new PrismaClient();
 
@@ -731,6 +732,9 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'factory/cmp/ticket-set-description') {
     return factoryCmpTicketSetDescriptionHandler(req, res);
+  }
+  if (pathSeg === 'factory/cmp/ticket-summaries') {
+    return factoryCmpTicketSummariesHandler(req, res);
   }
 
   switch (pathSeg) {

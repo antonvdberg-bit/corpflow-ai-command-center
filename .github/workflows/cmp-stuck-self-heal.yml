@@ -1,0 +1,81 @@
+# CMP stuck self-heal — runs in GitHub cloud (no laptop).
+#
+# Calls the existing CMP cron endpoint to:
+# - re-dispatch sandbox branches when missing/stuck
+# - refresh overseer snapshots for Approved/Build tickets
+#
+# Required repository secrets (Settings → Secrets and variables → Actions):
+# - CORPFLOW_CORE_BASE_URL  e.g. https://core.corpflowai.com
+# - CORPFLOW_CRON_SECRET    same value as Vercel CORPFLOW_CRON_SECRET / CRON_SECRET
+#
+# Optional repository secret:
+# - CMP_SELF_HEAL_PRIORITY_TICKET_IDS  comma-separated ticket ids (limits scope). If unset, uses server defaults.
+#
+# If secrets are unset, the job exits 0 (skipped) so forks stay green.
+
+name: CMP stuck self-heal
+
+on:
+  schedule:
+    - cron: "*/10 * * * *" # every 10 minutes (UTC)
+  workflow_dispatch:
+    inputs:
+      priority_ticket_ids:
+        description: "Optional comma-separated ticket ids to prioritize"
+        required: false
+        type: string
+
+jobs:
+  heal:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger CMP self-heal cron endpoint
+        env:
+          CORE_BASE: ${{ secrets.CORPFLOW_CORE_BASE_URL }}
+          CRON_SECRET: ${{ secrets.CORPFLOW_CRON_SECRET }}
+          PRIORITY_DEFAULT: ${{ secrets.CMP_SELF_HEAL_PRIORITY_TICKET_IDS }}
+          PRIORITY_INPUT: ${{ github.event.inputs.priority_ticket_ids }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CORE_BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "Skip: CORPFLOW_CORE_BASE_URL and/or CORPFLOW_CRON_SECRET not set."
+            exit 0
+          fi
+          base="${CORE_BASE%/}"
+          url="$base/api/cmp/router?action=stuck-self-repair-cron"
+          priority="${PRIORITY_INPUT:-}"
+          if [ -z "$priority" ]; then priority="${PRIORITY_DEFAULT:-}"; fi
+
+          payload='{}'
+          if [ -n "${priority:-}" ]; then
+            # Keep payload minimal; server accepts priority_ticket_ids string.
+            payload=$(python3 - <<'PY'
+import json, os
+p = (os.environ.get("priority") or "").strip()
+print(json.dumps({"priority_ticket_ids": p}))
+PY
+)
+          fi
+
+          echo "POST $url"
+          code="$(curl -sS -o /tmp/body.json -w "%{http_code}" -X POST "$url" \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            -H "Content-Type: application/json" \
+            -d "$payload" || echo "000")"
+          echo "HTTP $code"
+          head -c 4000 /tmp/body.json || true
+          echo
+          if [ "$code" != "200" ]; then
+            echo "::error::CMP self-heal failed: expected 200, got $code"
+            exit 1
+          fi
+          python3 - <<'PY'
+import json
+with open("/tmp/body.json") as f:
+    j = json.load(f)
+ok = j.get("ok")
+if ok is not True:
+    raise SystemExit(f"::error::Response ok is not true: {ok}")
+print("CMP self-heal: ok=true")
+PY
+
