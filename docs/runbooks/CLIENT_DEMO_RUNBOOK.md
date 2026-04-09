@@ -10,6 +10,10 @@
 
 This runbook is based on **“Demo today”** in `docs/CORPFLOW_SHARED_TODO.md` and adds operator-grade reliability steps without duplicating canonical tenancy rules.
 
+### For business operators (not programmers)
+
+You should **not** be sent on errands for screens that do not exist, or asked to **approve technical jargon** you do not understand. If someone asks, have them restate the ask as: **what could go wrong**, **who is affected**, **what we lose if we wait**, and **the one concrete thing they need from you** (for example: “add this secret name in GitHub,” with a link and exact label). Engineering owns the *how*; you own **business yes/no** and **access you control** (DNS, Vercel, GitHub org settings).
+
 ---
 
 ## Demo objective (what the client should leave believing)

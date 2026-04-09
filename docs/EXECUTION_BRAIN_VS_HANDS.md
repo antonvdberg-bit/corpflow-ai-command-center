@@ -36,6 +36,8 @@ No new line items required for the first phase.
 
 *Cost:* GitHub free minutes usually enough for light pings; GCP scheduler is cents.
 
+**Factory ↔ automation (no `MASTER_ADMIN_KEY` in CI):** Workflow `factory-cmp-drive.yml` calls `GET /api/factory/cmp/ticket-summaries` and `POST /api/factory/cmp/push` with `Authorization: Bearer` equal to **`CORPFLOW_CRON_SECRET`** (same as Vercel crons). Repo secrets: `CORPFLOW_CORE_BASE_URL`, `CORPFLOW_CRON_SECRET`, `CMP_FACTORY_DRIVE_TICKET_IDS`. Cursor/repo work stays the “brain”; this loop keeps **priority tickets** moving in production on a schedule.
+
 #### Factory health URL (`CORPFLOW_FACTORY_HEALTH_URL`)
 
 The workflow `.github/workflows/factory-health-ping.yml` uses GitHub secret **`CORPFLOW_FACTORY_HEALTH_URL`** (e.g. `https://corpflowai.com/api/factory/health`).

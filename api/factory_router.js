@@ -677,6 +677,16 @@ export default async function handler(req, res) {
     return growthPipelineHandler(req, res, pathSeg);
   }
 
+  if (pathSeg === 'factory/cmp/push') {
+    return factoryCmpPushHandler(req, res);
+  }
+  if (pathSeg === 'factory/cmp/ticket-set-description') {
+    return factoryCmpTicketSetDescriptionHandler(req, res);
+  }
+  if (pathSeg === 'factory/cmp/ticket-summaries') {
+    return factoryCmpTicketSummariesHandler(req, res);
+  }
+
   if (pathSeg.startsWith('cmp') || pathSeg.startsWith('cmp/')) {
     prepareCmpRequest(req, pathSeg);
     return cmpHandler(req, res);

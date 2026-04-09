@@ -1,0 +1,61 @@
+# Drives factory CMP automation for a fixed list of ticket IDs using the same secret as Vercel crons.
+# No MASTER_ADMIN_KEY required — GitHub Actions + CORPFLOW_CRON_SECRET only.
+#
+# Repo secrets (Settings → Secrets and variables → Actions):
+# - CORPFLOW_CORE_BASE_URL   e.g. https://core.corpflowai.com
+# - CORPFLOW_CRON_SECRET     same value as Vercel CORPFLOW_CRON_SECRET / CRON_SECRET
+# - CMP_FACTORY_DRIVE_TICKET_IDS   comma-separated CMP ticket ids (max 25), e.g. id1,id2,id3
+#
+# If any secret is missing, the job exits 0 (skipped) so forks stay green.
+
+name: Factory CMP drive
+
+on:
+  schedule:
+    - cron: "*/20 * * * *" # every 20 minutes UTC
+  workflow_dispatch: {}
+
+jobs:
+  drive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Summaries + push (priority tickets)
+        env:
+          CORE_BASE: ${{ secrets.CORPFLOW_CORE_BASE_URL }}
+          CRON_SECRET: ${{ secrets.CORPFLOW_CRON_SECRET }}
+          TICKET_IDS: ${{ secrets.CMP_FACTORY_DRIVE_TICKET_IDS }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CORE_BASE:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "Skip: CORPFLOW_CORE_BASE_URL or CORPFLOW_CRON_SECRET not set."
+            exit 0
+          fi
+          if [ -z "${TICKET_IDS:-}" ]; then
+            echo "Skip: CMP_FACTORY_DRIVE_TICKET_IDS not set (comma-separated ticket ids)."
+            exit 0
+          fi
+
+          core="${CORE_BASE%/}"
+          echo "GET ticket summaries (cron Bearer)"
+          curl -sS -G \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            --data-urlencode "ticket_ids=${TICKET_IDS}" \
+            "${core}/api/factory/cmp/ticket-summaries" | head -c 4000
+          echo
+          echo
+
+          BODY=$(python3 -c "import json,os; raw=os.environ['TICKET_IDS']; ids=[x.strip() for x in raw.split(',') if x.strip()][:25]; print(json.dumps({'ticket_ids': ids}))")
+          echo "POST factory/cmp/push body: ${BODY}"
+          code="$(curl -sS -o /tmp/push.json -w "%{http_code}" -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "Content-Type: application/json" \
+            -d "${BODY}" \
+            "${core}/api/factory/cmp/push")"
+          echo "HTTP ${code}"
+          cat /tmp/push.json
+          echo
+          if [ "${code}" != "200" ]; then
+            echo "::error::factory/cmp/push returned HTTP ${code}"
+            exit 1
+          fi
+          python3 -c "import json; d=json.load(open('/tmp/push.json')); print('aggregate_ok=', d.get('ok')); [print(r) for r in d.get('results',[])]"
