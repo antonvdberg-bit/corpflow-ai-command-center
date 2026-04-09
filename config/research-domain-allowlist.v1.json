@@ -1,0 +1,45 @@
+{
+  "version": "v1",
+  "notes": [
+    "Production runtime must not browse the open web without explicit allowlists (docs/agent-integration-search-policy.md).",
+    "This allowlist is for safe, operator-style research (docs + registries + standards), not for scraping arbitrary sites."
+  ],
+  "allow": {
+    "exact_hosts": [
+      "github.com",
+      "api.github.com",
+      "raw.githubusercontent.com",
+      "registry.npmjs.org",
+      "pypi.org",
+      "files.pythonhosted.org"
+    ],
+    "domain_suffixes": [
+      "docs.github.com",
+      "cli.github.com",
+      "nodejs.org",
+      "docs.npmjs.com",
+      "www.npmjs.com",
+      "packaging.python.org",
+      "docs.python.org",
+      "developer.mozilla.org",
+      "datatracker.ietf.org",
+      "www.rfc-editor.org",
+      "www.postgresql.org",
+      "www.prisma.io",
+      "nextjs.org",
+      "react.dev",
+      "vercel.com",
+      "docs.vercel.com",
+      "support.github.com",
+      "cursor.com",
+      "docs.cursor.com",
+      "stripe.com",
+      "docs.stripe.com",
+      "resend.com",
+      "docs.resend.com",
+      "telegram.org",
+      "core.telegram.org"
+    ]
+  }
+}
+

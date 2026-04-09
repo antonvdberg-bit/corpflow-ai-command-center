@@ -117,6 +117,13 @@ If GitHub dispatch isn’t configured, say: “Saved in factory; branch dispatch
   - **Likely cause**: GitHub env not configured.
   - **Action**: Set `CMP_GITHUB_REPOSITORY` + `CMP_GITHUB_TOKEN` (or the fallback env names), then re-check `GET /api/ui/context` readiness warnings.
 
+### Sandbox stuck / Overseer unavailable (admin)
+
+- **Symptom**: “Overseer unavailable” / GitHub API 404 compare, or “dispatch OK but branch missing”.
+  - **What it means**: the sandbox branch `cmp/<ticket_id>` is missing or the workflow didn’t create it yet.
+  - **Fast action (recommended)**: on `/change`, open the **Completion** card and click **Self-heal sandbox** (admin). Then refresh **Live automation (GitHub)**.
+  - **If it repeats**: check the repo/token config (`GITHUB_REPO`, `CMP_GITHUB_TOKEN`) and the sandbox base ref (`CMP_SANDBOX_BASE_REF`).
+
 ### Attachment upload problems
 
 - **Symptom**: Upload fails with “table missing” style messaging.

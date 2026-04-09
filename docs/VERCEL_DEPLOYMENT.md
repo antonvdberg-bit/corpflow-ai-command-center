@@ -57,6 +57,15 @@ Set on the Vercel project (at least **Production**):
 
 Use the **same** `VERCEL_*` values everywhere you rely on preview lookup. Deployments are correlated to CMP by branch name: Vercel’s **`meta.githubCommitRef`** must equal **`cmp/{ticketId}`**, with **`ticketId` sanitized** the same way as in `lib/cmp/_lib/vercel-preview.js` (characters outside `[A-Za-z0-9._-]` replaced with `_`). If GitHub creates a different ref string, preview rows will not match until the branch naming matches.
 
+## Factory: CMP “push to completion” + monitoring
+
+These endpoints exist to keep **client outcomes moving** even when branch/PR evidence is missing or GitHub dispatch stalled.
+
+| Surface | Purpose |
+|---------|---------|
+| **Factory `POST /api/factory/cmp/push`** | Factory master — loads a CMP ticket, extracts intended outcomes from `cmp_tickets.description`, and safely unblocks the pipeline (repair dispatch + refresh overseer). If outcomes are missing, returns a “needs brain” checklist that starts with `GET /api/cmp/router?action=ticket-get&id=<ticket_id>`. |
+| **Cron `GET /api/cron/cmp-monitor`** | Cron auth — monitors a focused set of ticket IDs and runs the same safe unblock logic. Emits `cmp.ticket.push_checked` into `automation_events` as an audit trail. Configure via `CMP_MONITOR_TICKET_IDS` (comma-separated). |
+
 ## Technical Lead observer (Phase A)
 
 | Surface | Purpose |
@@ -64,6 +73,8 @@ Use the **same** `VERCEL_*` values everywhere you rely on preview lookup. Deploy
 | **`GET /api/cron/technical-lead`** | Daily cron (see `vercel.json`); Bearer **`CORPFLOW_CRON_SECRET`** or **`CRON_SECRET`** (set Vercel **`CRON_SECRET`** to the same value so the scheduler sends the header). |
 | **Factory `/api/factory/technical-lead/run`** (GET or POST) | Factory master — manual run (`limit`, `ticket_id`, `dry_run`). |
 | **`GET /api/factory/technical-lead/audits?ticket_id=`** | Factory master — recent `technical_lead_audits` rows. |
+| **Factory `POST /api/factory/github/pr-create`** | Factory master — create/reuse a PR from `head` → `base` using `CMP_GITHUB_TOKEN` + `GITHUB_REPO` (default: draft PR). If `head` is omitted, the factory generates `factory/<ticketId>/<slug>` (sanitized). |
+| **Factory `POST /api/factory/cmp/ticket-set-description`** | Factory master — update `cmp_tickets.description` for an existing ticket (used to persist “Intended business outcomes” so automation can execute safely). Body: `{ "ticket_id": "...", "description": "..." }`. |
 | **`npm run technical-lead:run`** | Local script (`scripts/technical-lead-run.mjs`); uses `.env` via bootstrap. |
 
 Table: **`prisma/migrations/…/technical_lead_audits`** + **`npm run db:migrate:deploy`** on production DB (or `ensure-schema` idempotent DDL). Evidence is **Postgres** (`evidence_json`, `gaps_json`, `summary_text`), not PR comments alone.

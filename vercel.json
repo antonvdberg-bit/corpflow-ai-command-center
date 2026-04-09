@@ -17,12 +17,17 @@
     { "source": "/lux-editor", "destination": "/lux-site-editor.html" },
     { "source": "/lux-guide", "destination": "/lux-client-guide.html" },
     { "source": "/master", "destination": "/public/master-control.html" },
+    { "source": "/factory/approvals", "destination": "/factory-approvals.html" },
     { "source": "/factory/auth-users", "destination": "/factory-auth-users.html" }
   ],
   "crons": [
     {
       "path": "/api/cron/billing-sentinel",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/cmp-monitor",
+      "schedule": "0 5 * * *"
     },
     {
       "path": "/api/cmp/overseer-sweep-cron",

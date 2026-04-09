@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Factory · Approvals</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="min-h-screen bg-slate-950 text-slate-100">
+    <div class="mx-auto max-w-6xl px-4 py-10">
+      <div class="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <div class="text-xs font-semibold tracking-wide text-slate-400">CorpFlow Factory</div>
+          <h1 class="mt-2 text-2xl font-bold">Client preview approvals</h1>
+          <p class="mt-2 max-w-2xl text-sm text-slate-300">
+            This page shows the latest client decisions from automation events: preview approved vs changes requested.
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <a
+            href="/change"
+            class="rounded-md border border-slate-700 bg-slate-900/40 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800/50"
+          >
+            Back to Change Console
+          </a>
+          <button
+            id="btnRefresh"
+            type="button"
+            class="rounded-md bg-sky-600 px-3 py-2 text-xs font-semibold text-white hover:bg-sky-500"
+          >
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      <div id="banner" class="mt-6 hidden rounded-lg border border-slate-800 bg-slate-900/40 p-3 text-sm"></div>
+
+      <div class="mt-6 grid grid-cols-1 gap-3 md:grid-cols-3">
+        <div class="rounded-lg border border-slate-800 bg-slate-900/30 p-4">
+          <div class="text-xs font-semibold text-slate-400">Last refresh</div>
+          <div id="lastRefresh" class="mt-1 text-sm text-slate-100">—</div>
+        </div>
+        <div class="rounded-lg border border-slate-800 bg-slate-900/30 p-4">
+          <div class="text-xs font-semibold text-slate-400">Approvals</div>
+          <div id="countApproved" class="mt-1 text-sm text-slate-100">—</div>
+        </div>
+        <div class="rounded-lg border border-slate-800 bg-slate-900/30 p-4">
+          <div class="text-xs font-semibold text-slate-400">Change requests</div>
+          <div id="countChanges" class="mt-1 text-sm text-slate-100">—</div>
+        </div>
+      </div>
+
+      <div class="mt-6 rounded-lg border border-slate-800 bg-slate-900/20">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 px-4 py-3">
+          <div class="text-sm font-semibold">Latest decisions</div>
+          <div class="flex flex-wrap items-center gap-2 text-xs text-slate-400">
+            <span class="inline-flex items-center gap-2">
+              <span class="h-2 w-2 rounded-full bg-emerald-500"></span> approved
+            </span>
+            <span class="inline-flex items-center gap-2">
+              <span class="h-2 w-2 rounded-full bg-amber-500"></span> changes requested
+            </span>
+          </div>
+        </div>
+        <div class="overflow-auto">
+          <table class="min-w-full text-left text-sm">
+            <thead class="bg-slate-900/40 text-xs uppercase tracking-wide text-slate-400">
+              <tr>
+                <th class="px-4 py-3">When</th>
+                <th class="px-4 py-3">Ticket</th>
+                <th class="px-4 py-3">Tenant</th>
+                <th class="px-4 py-3">Decision</th>
+                <th class="px-4 py-3">Message</th>
+              </tr>
+            </thead>
+            <tbody id="rows" class="divide-y divide-slate-800"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const banner = $('banner');
+      const rows = $('rows');
+
+      function setBanner(msg, kind = 'info') {
+        if (!banner) return;
+        banner.classList.remove('hidden');
+        banner.classList.remove('border-emerald-800', 'bg-emerald-950/40', 'text-emerald-200');
+        banner.classList.remove('border-amber-800', 'bg-amber-950/40', 'text-amber-200');
+        banner.classList.remove('border-rose-800', 'bg-rose-950/40', 'text-rose-200');
+        banner.classList.add('border-slate-800', 'bg-slate-900/40', 'text-slate-200');
+
+        if (kind === 'ok') banner.classList.add('border-emerald-800', 'bg-emerald-950/40', 'text-emerald-200');
+        if (kind === 'warn') banner.classList.add('border-amber-800', 'bg-amber-950/40', 'text-amber-200');
+        if (kind === 'err') banner.classList.add('border-rose-800', 'bg-rose-950/40', 'text-rose-200');
+        banner.textContent = msg;
+      }
+
+      function clearBanner() {
+        if (!banner) return;
+        banner.classList.add('hidden');
+        banner.textContent = '';
+      }
+
+      function fmtTime(iso) {
+        try {
+          return new Date(iso).toLocaleString();
+        } catch {
+          return iso || '—';
+        }
+      }
+
+      function decisionPill(decision) {
+        const d = String(decision || '').toLowerCase();
+        if (d.includes('approved')) return `<span class="inline-flex items-center gap-2 text-emerald-200"><span class="h-2 w-2 rounded-full bg-emerald-500"></span>approved</span>`;
+        if (d.includes('changes')) return `<span class="inline-flex items-center gap-2 text-amber-200"><span class="h-2 w-2 rounded-full bg-amber-500"></span>changes requested</span>`;
+        return `<span class="text-slate-300">${d || '—'}</span>`;
+      }
+
+      function safeText(s) {
+        return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+      }
+
+      async function getJson(url) {
+        const res = await fetch(url, { method: 'GET', headers: { accept: 'application/json' } });
+        const text = await res.text();
+        let body = null;
+        try {
+          body = text ? JSON.parse(text) : null;
+        } catch {
+          body = { raw: text };
+        }
+        if (!res.ok) {
+          const code = res.status;
+          throw Object.assign(new Error(`HTTP ${code}`), { code, body });
+        }
+        return body;
+      }
+
+      function render(events) {
+        const list = Array.isArray(events) ? events : [];
+        const approved = list.filter((e) => e.event_type === 'cmp.preview.approved').length;
+        const changes = list.filter((e) => e.event_type === 'cmp.preview.changes_requested').length;
+        $('countApproved').textContent = String(approved);
+        $('countChanges').textContent = String(changes);
+        $('lastRefresh').textContent = new Date().toLocaleString();
+
+        const top = list.slice(0, 100);
+        rows.innerHTML = top
+          .map((e) => {
+            const payload = e.payload_json && typeof e.payload_json === 'object' ? e.payload_json : {};
+            const ticketId = payload.ticket_id || payload.ticketId || e.ticket_id || '—';
+            const tenantId = e.tenant_id || payload.tenant_id || payload.tenantId || '—';
+            const occurredAt = e.occurred_at || e.created_at || payload.occurred_at || payload.occurredAt || null;
+            const msg = payload.message || payload.note || '';
+            return `
+              <tr class="align-top">
+                <td class="whitespace-nowrap px-4 py-3 text-xs text-slate-300">${safeText(fmtTime(occurredAt))}</td>
+                <td class="whitespace-nowrap px-4 py-3 font-mono text-xs text-slate-200">${safeText(ticketId)}</td>
+                <td class="whitespace-nowrap px-4 py-3 font-mono text-xs text-slate-300">${safeText(tenantId)}</td>
+                <td class="whitespace-nowrap px-4 py-3 text-xs">${decisionPill(e.event_type || '')}</td>
+                <td class="px-4 py-3 text-xs text-slate-200">${safeText(msg).slice(0, 800) || '—'}</td>
+              </tr>
+            `;
+          })
+          .join('');
+      }
+
+      async function refresh() {
+        clearBanner();
+        setBanner('Loading approvals…');
+        try {
+          const data = await getJson('/api/automation/events?limit=200');
+          const items = data && Array.isArray(data.events) ? data.events : Array.isArray(data) ? data : [];
+          const filtered = items
+            .filter((e) => e && (e.event_type === 'cmp.preview.approved' || e.event_type === 'cmp.preview.changes_requested'))
+            .sort((a, b) => String(b.occurred_at || b.created_at || '').localeCompare(String(a.occurred_at || a.created_at || '')));
+
+          render(filtered);
+          if (!filtered.length) setBanner('No preview decisions yet.', 'warn');
+          else setBanner(`Loaded ${filtered.length} decision events.`, 'ok');
+        } catch (e) {
+          const code = e && typeof e.code === 'number' ? e.code : null;
+          if (code === 401 || code === 403) {
+            setBanner('Not authorized. Open /change in an admin session, then return here.', 'err');
+          } else {
+            setBanner(`Failed to load approvals (${e && e.message ? e.message : 'unknown error'}).`, 'err');
+          }
+          rows.innerHTML = '';
+          $('countApproved').textContent = '—';
+          $('countChanges').textContent = '—';
+          $('lastRefresh').textContent = new Date().toLocaleString();
+        }
+      }
+
+      $('btnRefresh').addEventListener('click', refresh);
+      refresh();
+    </script>
+  </body>
+</html>

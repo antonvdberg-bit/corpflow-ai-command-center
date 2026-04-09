@@ -339,6 +339,12 @@
           </p>
         </div>
         <div class="flex flex-col items-end gap-1.5 text-sm">
+          <a
+            id="factoryApprovalsLink"
+            class="hidden text-sky-300 underline"
+            href="/factory/approvals"
+            >Factory approvals</a
+          >
           <a class="text-sky-300 underline" href="/growth">Growth pipeline</a>
           <a class="text-sky-300/80 underline" href="/?admin=true">Back to intake</a>
         </div>
@@ -373,6 +379,33 @@
         <p class="text-[10px] text-slate-500 mt-2 leading-relaxed">
           These checks run in your browser using the latest ticket and automation snapshots. GitHub status refreshes about every 45s; full ticket sync about every 15s.
         </p>
+      </div>
+
+      <div id="clientSummaryPanel" class="hidden mt-5 rounded-2xl border border-slate-800 bg-slate-900/30 p-4">
+        <div class="flex items-start justify-between gap-3 flex-wrap">
+          <div class="min-w-0">
+            <div class="text-[10px] uppercase tracking-[0.22em] text-slate-500">Your request</div>
+            <div id="clientSummaryTitle" class="mt-1 text-lg font-semibold tracking-tight text-slate-100">Loading…</div>
+            <div id="clientSummaryStatus" class="mt-2 text-sm text-slate-300 leading-relaxed"></div>
+          </div>
+          <div class="shrink-0 flex items-center gap-2">
+            <span id="clientSummaryPhase" class="cf-phase-chip"><span class="cf-phase-dot" aria-hidden="true"></span><span>—</span></span>
+          </div>
+        </div>
+        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
+            <div class="text-[10px] uppercase tracking-wide text-slate-500 mb-1">Where we are now</div>
+            <div id="clientSummaryNow" class="text-[12px] text-slate-200 leading-relaxed">—</div>
+          </div>
+          <div class="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
+            <div class="text-[10px] uppercase tracking-wide text-slate-500 mb-1">What’s next</div>
+            <div id="clientSummaryNext" class="text-[12px] text-slate-200 leading-relaxed">—</div>
+          </div>
+        </div>
+        <div class="mt-4">
+          <div id="clientSummaryCtas" class="flex flex-wrap gap-2"></div>
+          <div id="clientSummaryHint" class="mt-2 text-[11px] text-slate-500 leading-relaxed"></div>
+        </div>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-6">
@@ -510,6 +543,38 @@
               </div>
             </div>
 
+            <div id="tenantRefineBlock" class="hidden mt-4 rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+              <div class="text-xs font-semibold text-slate-200">Refine the request</div>
+              <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                If anything is unclear, add one detail and we’ll proceed. If you’re not sure, use “I don’t know — please advise”.
+              </p>
+              <div id="tenantThread" class="mt-3 rounded-lg border border-slate-800 bg-slate-950/50 p-3 min-h-[140px] space-y-3 overflow-auto text-sm"></div>
+              <div class="mt-3">
+                <textarea
+                  id="tenantRefineText"
+                  class="w-full min-h-[92px] rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm text-slate-100"
+                  placeholder="What outcome do you want? Any constraints? Links?"
+                ></textarea>
+                <div class="flex flex-wrap gap-2 mt-2">
+                  <button
+                    id="btnTenantRefineSend"
+                    type="button"
+                    class="rounded-lg bg-sky-500 text-slate-950 px-4 py-2 text-sm font-semibold"
+                  >
+                    Send refinement
+                  </button>
+                  <button
+                    id="btnTenantIdk"
+                    type="button"
+                    class="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:bg-slate-800/60"
+                  >
+                    I don’t know — please advise
+                  </button>
+                  <span id="tenantRefineStatus" class="text-[11px] text-slate-500 self-center"></span>
+                </div>
+              </div>
+            </div>
+
             <div id="adminChatBlock">
               <div id="thread" class="rounded-xl border border-slate-800 bg-slate-950/40 p-3 min-h-[220px] space-y-3 overflow-auto"></div>
               <div class="flex gap-2 mt-3">
@@ -560,6 +625,22 @@
               </div>
               <p id="progressCardSubtitle" class="hidden text-[10px] text-slate-500 mt-1 leading-relaxed"></p>
               <div id="progressBody" class="mt-3 text-[11px] text-slate-300"></div>
+            </div>
+
+            <div id="completionCard" class="mb-4 rounded-xl border border-slate-800 bg-slate-950/50 p-3 hidden">
+              <div class="flex items-start justify-between gap-2 flex-wrap">
+                <div class="text-[11px] font-semibold text-slate-200 uppercase tracking-wide">Completion</div>
+                <button
+                  type="button"
+                  id="btnSelfHeal"
+                  class="hidden text-[10px] rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1 text-amber-100 hover:bg-amber-500/15"
+                >
+                  Self-heal sandbox
+                </button>
+              </div>
+              <p id="completionSummary" class="mt-2 text-[11px] text-slate-300 leading-relaxed"></p>
+              <div id="completionBody" class="mt-3 text-[11px] text-slate-300"></div>
+              <p id="completionHint" class="mt-3 text-[10px] text-slate-500 leading-relaxed"></p>
             </div>
 
             <div id="executionActivityCard" class="mb-4 rounded-xl border border-slate-800 bg-slate-950/50 p-3 hidden">
@@ -692,6 +773,12 @@
           );
         }
 
+        function applyFactoryLinksFromSession() {
+          const a = $('factoryApprovalsLink');
+          if (!a) return;
+          a.classList.toggle('hidden', !isAdminSession());
+        }
+
         /**
          * Rebuild approve_build view from persisted ticket_progress.client_view.automation when needed.
          * @param {Record<string, unknown>|null} b
@@ -729,6 +816,11 @@
           if (briefEl && (isTenantClient() || !isAdminSession())) {
             briefEl.textContent = '';
           }
+          // Admin-only controls
+          try {
+            const sh = $('btnSelfHeal');
+            if (sh) sh.classList.toggle('hidden', !isAdminSession());
+          } catch (_) {}
         }
 
         let tenantCountdownTimer = null;
@@ -2110,6 +2202,9 @@
             renderAutomation(eff);
           } catch (_) {}
           try {
+            renderCompletionScorecard(eff);
+          } catch (_) {}
+          try {
             renderProgressCard(lastBrief || {});
           } catch (_) {}
           try {
@@ -2419,6 +2514,97 @@
             }
           }
           return out;
+        }
+
+        function renderCompletionScorecard(merged) {
+          const card = $('completionCard');
+          const sumEl = $('completionSummary');
+          const bodyEl = $('completionBody');
+          const hintEl = $('completionHint');
+          if (!card || !sumEl || !bodyEl) return;
+
+          const tid = String((merged && merged.ticket_id) || ticketEl.value || '').trim();
+          if (!tid || !sessionInfo || !sessionInfo.logged_in) {
+            card.classList.add('hidden');
+            sumEl.textContent = '';
+            bodyEl.innerHTML = '';
+            if (hintEl) hintEl.textContent = '';
+            return;
+          }
+
+          const tp = merged && merged.ticket_progress && typeof merged.ticket_progress === 'object' ? merged.ticket_progress : null;
+          const cv = tp && tp.client_view && typeof tp.client_view === 'object' ? tp.client_view : {};
+          const auto = cv.automation && typeof cv.automation === 'object' ? cv.automation : {};
+          const st = String((tp && tp.status) || merged.status || '').trim();
+          const sg = String((tp && tp.stage) || merged.stage || '').trim();
+          const br = resolveStructuredBrief(merged);
+          const outcomes = extractTaskLikeStrings(br);
+
+          const hasEstimate = Boolean(merged.costing_preview || cv.last_estimate_at);
+          const approved = /approved/i.test(st) || sg.toLowerCase() === 'build';
+          const dispatched = auto.dispatch_ok === true;
+          const previewUrl = typeof auto.preview_url === 'string' ? auto.preview_url.trim() : '';
+          const hasPreview = Boolean(previewUrl);
+          const clientDecision = cv && typeof cv === 'object' ? cv.preview_review : null;
+          const approvedByClient = clientDecision && String(clientDecision.decision || '') === 'approve';
+          const requestedChanges = clientDecision && String(clientDecision.decision || '') === 'request_changes';
+          const promoted = merged.console_json && typeof merged.console_json === 'object' ? merged.console_json.promotion : null;
+          const mergedPr = promoted && typeof promoted === 'object' ? promoted.merged === true : false;
+
+          const blockers = [];
+          if (!outcomes.length) blockers.push('Outcomes not explicit yet (use Refine the request).');
+          if (!hasEstimate) blockers.push('No estimate saved yet.');
+          if (approved && dispatched && lastActivityPayload && lastActivityPayload.activity && lastActivityPayload.activity.branch_exists === false) {
+            blockers.push('Sandbox branch missing (self-heal can re-dispatch).');
+          }
+          if (hasPreview && !approvedByClient && !requestedChanges && isTenantClient()) blockers.push('Waiting for your preview review.');
+          if (requestedChanges) blockers.push('Client requested changes on the preview.');
+
+          const done = [
+            { label: 'Outcomes captured', ok: outcomes.length > 0 },
+            { label: 'Estimate saved', ok: hasEstimate },
+            { label: 'Build approved', ok: approved },
+            { label: 'Automation dispatched', ok: dispatched },
+            { label: 'Preview available', ok: hasPreview },
+            { label: 'Client approved preview', ok: approvedByClient },
+            { label: 'Merged to main', ok: mergedPr },
+          ];
+
+          const okCount = done.filter((x) => x.ok).length;
+          const total = done.length;
+          const pct = Math.round((okCount / total) * 100);
+          sumEl.textContent = blockers.length ? `Blocked (${pct}%)` : `In progress (${pct}%)`;
+          bodyEl.innerHTML =
+            '<div class="grid grid-cols-1 md:grid-cols-2 gap-2">' +
+            done
+              .map((s) => {
+                const cls = s.ok
+                  ? 'border-emerald-500/25 bg-emerald-500/5 text-emerald-100'
+                  : 'border-slate-800 bg-slate-950/30 text-slate-300';
+                return (
+                  '<div class="rounded-lg border px-3 py-2 ' +
+                  cls +
+                  '"><span class="font-medium">' +
+                  (s.ok ? 'Done' : 'Not yet') +
+                  '</span> · ' +
+                  escapeHtml(s.label) +
+                  '</div>'
+                );
+              })
+              .join('') +
+            '</div>' +
+            (blockers.length
+              ? '<div class="mt-3 rounded-lg border border-amber-500/25 bg-amber-950/25 px-3 py-2 text-amber-100/90 leading-relaxed"><div class="font-semibold text-amber-200/95 mb-1">Blocking items</div><ul class="list-disc pl-4 space-y-1">' +
+                blockers.map((b) => '<li>' + escapeHtml(b) + '</li>').join('') +
+                '</ul></div>'
+              : '');
+
+          if (hintEl) {
+            hintEl.textContent = isAdminSession()
+              ? 'Admin: use Self-heal if sandbox branch is missing; refresh activity after.'
+              : 'This summary is derived from the ticket snapshot and preview review status.';
+          }
+          card.classList.remove('hidden');
         }
 
         function scopeLines(raw) {
@@ -3079,6 +3265,7 @@
 
             renderModeBarFromUiContext();
             applyConsoleLayout();
+            applyFactoryLinksFromSession();
             if (lastBrief) setBrief(lastBrief);
             else applyWorkspaceMode();
 
@@ -3095,6 +3282,7 @@
               el.className = 'inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[11px] text-emerald-200';
               loadTicketList();
               applyConsoleLayout();
+              applyFactoryLinksFromSession();
               if (lastBrief) setBrief(lastBrief);
               else applyWorkspaceMode();
               try {
@@ -3110,6 +3298,7 @@
                   '<div class="text-slate-500 px-1 py-2"><a class="text-sky-300 underline" href="/login">Log in</a> to see your tickets.</div>';
               }
               applyConsoleLayout();
+              applyFactoryLinksFromSession();
               applyWorkspaceMode();
             }
           })
@@ -3231,6 +3420,26 @@
           });
         }
 
+        const btnSelfHeal = $('btnSelfHeal');
+        if (btnSelfHeal) {
+          btnSelfHeal.addEventListener('click', async () => {
+            try {
+              if (!isAdminSession()) return;
+              setBanner('');
+              const tid = String(ticketEl.value || '').trim();
+              if (!tid) return setBanner('Create or paste a Ticket ID first.');
+              await withActivity('Self-heal: restarting sandbox automation…', async () => {
+                await post('stuck-self-repair-sweep', { priority_ticket_id: tid, limit: 1 });
+                await refreshTicketActivity();
+                await syncCurrentTicket();
+              });
+              setBanner('Self-heal dispatched. Refresh Overseer / Activity in ~30–60 seconds.');
+            } catch (e) {
+              setBanner('Self-heal failed: ' + String(e && e.message ? e.message : e));
+            }
+          });
+        }
+
         $('btnReset').addEventListener('click', () => {
           stopTicketActivityPoll();
           lastActivityPayload = null;
@@ -3325,6 +3534,36 @@
             });
           }
         });
+
+        async function submitClientPreviewReview(decision) {
+          try {
+            if (!isTenantClient()) return;
+            setBanner('');
+            const tid = String(ticketEl.value || '').trim();
+            if (!tid) return setBanner('Select a Ticket ID first.');
+            const noteEl = $('clientPreviewReviewNote');
+            const note = noteEl ? String(noteEl.value || '').trim() : '';
+            await withActivity(decision === 'approve' ? 'Recording approval…' : 'Recording change request…', async () => {
+              await post('preview-review', { ticket_id: tid, decision, note });
+              await syncCurrentTicket();
+            });
+          } catch (e) {
+            setBanner(String(e && e.message ? e.message : e));
+          }
+        }
+
+        const btnPreviewApprove = $('btnClientPreviewApprove');
+        if (btnPreviewApprove) {
+          btnPreviewApprove.addEventListener('click', function () {
+            submitClientPreviewReview('approve');
+          });
+        }
+        const btnPreviewChanges = $('btnClientPreviewRequestChanges');
+        if (btnPreviewChanges) {
+          btnPreviewChanges.addEventListener('click', function () {
+            submitClientPreviewReview('request_changes');
+          });
+        }
 
         if (overseerBtn) {
           overseerBtn.addEventListener('click', loadOverseer);
