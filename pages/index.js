@@ -23,6 +23,112 @@ function safeStr(v) {
   return v != null ? String(v).trim() : '';
 }
 
+function CorpFlowMarketing() {
+  const css = {
+    '--cf-bg': '#020617',
+    '--cf-surface': '#0b1220',
+    '--cf-text': '#e2e8f0',
+    '--cf-muted': '#94a3b8',
+    '--cf-primary': '#38bdf8',
+    '--cf-accent': '#22c55e',
+  };
+
+  return (
+    <div style={css}>
+      <div style={{ minHeight: '100vh', background: 'var(--cf-bg)', color: 'var(--cf-text)' }}>
+        <main style={{ maxWidth: 1120, margin: '0 auto', padding: '56px 20px' }}>
+          <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 18, flexWrap: 'wrap' }}>
+            <div>
+              <div style={{ fontSize: 12, letterSpacing: 1.2, textTransform: 'uppercase', color: 'var(--cf-muted)' }}>
+                CorpFlow
+              </div>
+              <div style={{ marginTop: 10, fontSize: 28, lineHeight: 1.15, fontWeight: 780 }}>
+                From request → estimate → build → preview.
+                <br />
+                Fast, auditable delivery for real businesses.
+              </div>
+              <div style={{ marginTop: 12, fontSize: 14, lineHeight: 1.6, color: 'rgba(226,232,240,0.92)', maxWidth: 720 }}>
+                CorpFlow turns plain-English change requests into a managed delivery pipeline with visible progress, client approvals, and a factory audit trail.
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <a
+                href="/change"
+                style={{
+                  display: 'inline-block',
+                  padding: '10px 14px',
+                  borderRadius: 14,
+                  background: 'var(--cf-primary)',
+                  color: '#020617',
+                  fontWeight: 750,
+                  fontSize: 13,
+                  textDecoration: 'none',
+                }}
+              >
+                Open Change Console
+              </a>
+              <a
+                href="/login"
+                style={{
+                  display: 'inline-block',
+                  padding: '10px 14px',
+                  borderRadius: 14,
+                  border: '1px solid rgba(255,255,255,0.14)',
+                  background: 'rgba(255,255,255,0.04)',
+                  color: 'var(--cf-text)',
+                  fontWeight: 650,
+                  fontSize: 13,
+                  textDecoration: 'none',
+                }}
+              >
+                Login
+              </a>
+            </div>
+          </header>
+
+          <section style={{ marginTop: 28, display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 14 }}>
+            <div style={{ gridColumn: 'span 7', borderRadius: 18, border: '1px solid rgba(255,255,255,0.10)', background: 'var(--cf-surface)', padding: 18 }}>
+              <div style={{ fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase', color: 'var(--cf-muted)' }}>How it works</div>
+              <ol style={{ marginTop: 12, paddingLeft: 18, color: 'rgba(226,232,240,0.92)', lineHeight: 1.7, fontSize: 14 }}>
+                <li>Describe what you want in plain language.</li>
+                <li>Get an estimate and a clear “done when” outcome list.</li>
+                <li>Approve build → factory dispatches work + keeps an audit trail.</li>
+                <li>Review preview → approve or request changes.</li>
+              </ol>
+              <div style={{ marginTop: 12, fontSize: 12, color: 'var(--cf-muted)' }}>
+                Operator tools stay on the core host; client surfaces stay tenant-scoped.
+              </div>
+            </div>
+
+            <div style={{ gridColumn: 'span 5', borderRadius: 18, border: '1px solid rgba(255,255,255,0.10)', background: 'var(--cf-surface)', padding: 18 }}>
+              <div style={{ fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase', color: 'var(--cf-muted)' }}>Why it matters</div>
+              <ul style={{ marginTop: 12, paddingLeft: 18, color: 'rgba(226,232,240,0.92)', lineHeight: 1.7, fontSize: 14 }}>
+                <li>Clear progress: you can manage what you can see.</li>
+                <li>Less firefighting: self-heal and monitoring prevent stalls.</li>
+                <li>Trust: every action leaves evidence.</li>
+              </ul>
+              <div style={{ marginTop: 12, fontSize: 12, color: 'var(--cf-muted)' }}>
+                Start with one ticket. Scale the process.
+              </div>
+            </div>
+          </section>
+
+          <footer style={{ marginTop: 22, textAlign: 'center', fontSize: 12, color: 'var(--cf-muted)' }}>
+            <a style={{ color: 'var(--cf-accent)' }} href="/change">
+              Go to /change
+            </a>
+            {' · '}
+            <a style={{ color: 'var(--cf-accent)' }} href="/factory/approvals">
+              Factory approvals
+            </a>
+          </footer>
+        </main>
+      </div>
+    </div>
+  );
+}
+
 function TenantSite({ site }) {
   const s = site || {};
   const t = s.theme || {};
@@ -270,7 +376,10 @@ export default function Home({ mode, site }) {
   if (mode === 'tenant_site') {
     return <TenantSite site={site} />;
   }
-  return <div>Sovereign Sync Active</div>;
+  if (mode === 'corpflow_marketing') {
+    return <CorpFlowMarketing />;
+  }
+  return <CorpFlowMarketing />;
 }
 
 export async function getServerSideProps({ req }) {
@@ -278,7 +387,15 @@ export async function getServerSideProps({ req }) {
   const prisma = new PrismaClient();
   try {
     if (!host) {
-      return { props: { mode: 'core', site: null } };
+      return { props: { mode: 'corpflow_marketing', site: null } };
+    }
+
+    const root = String(process.env.CORPFLOW_ROOT_DOMAIN || 'corpflowai.com')
+      .toLowerCase()
+      .replace(/^\./, '')
+      .trim();
+    if (host === root || host === `www.${root}`) {
+      return { props: { mode: 'corpflow_marketing', site: null } };
     }
 
     // Resolve tenant by DB host mapping first; fallback to null.
@@ -288,7 +405,7 @@ export async function getServerSideProps({ req }) {
     });
     const tenantId = row && row.enabled === true ? safeStr(row.tenantId) : '';
     if (!tenantId) {
-      return { props: { mode: 'core', site: null } };
+      return { props: { mode: 'corpflow_marketing', site: null } };
     }
 
     const [persona, tenantRow] = await Promise.all([
@@ -327,7 +444,7 @@ export async function getServerSideProps({ req }) {
 
     return { props: { mode: 'tenant_site', site } };
   } catch (_) {
-    return { props: { mode: 'core', site: null } };
+    return { props: { mode: 'corpflow_marketing', site: null } };
   } finally {
     await prisma.$disconnect().catch(() => {});
   }
