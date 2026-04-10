@@ -4,8 +4,6 @@
 
 **Optional env OR:** **`CORPFLOW_BILLING_EXEMPT_TENANT_IDS`** is still supported as a **break-glass override** (same effect as `billing_exempt = true` in the DB). Effective rule: **`billing_exempt_effective = env_list_has(tenant) OR billing_exempt`**.
 
-**Dev/staging OR:** **`CORPFLOW_BILLING_EXEMPT_ALL`** = `true` | `1` | `yes` — same as billing exempt for **every** tenant (no token gate, no approve-build debit). Use for shared test deployments; **remove or set `false` before production** if you rely on credits.
-
 **Canonical code:** `lib/factory/costing.js`, `lib/cmp/router.js` (`approve-build`, `costing-preview`), `GET /api/ui/context` in `api/factory_router.js`, `lib/server/billing-exempt.js` (env only).
 
 ---
@@ -20,6 +18,13 @@ $env:POSTGRES_URL="postgresql://..."
 node scripts/top-up-tenant-token-balance.mjs --tenant=corpflowai --billing-exempt=true
 ```
 
+**Lux pilot tenant (`luxe-maurice`):** same DB flag, dedicated script (does not change wallet balance):
+
+```powershell
+$env:POSTGRES_URL="postgresql://..."
+node scripts/set-luxe-maurice-billing-exempt.mjs
+```
+
 3. Confirm: **`GET /api/ui/context`** while logged in as that tenant → **`billing_exempt: true`**, **`show_approve_build: true`** without needing a positive balance.
 
 **Effect:** No token pre-check and **no debit** on approve-build for that tenant. Estimates can show **$0** client line; audit benchmark fields unchanged.
@@ -29,14 +34,6 @@ node scripts/top-up-tenant-token-balance.mjs --tenant=corpflowai --billing-exemp
 ## Option B — Env override only (legacy / emergency)
 
 Vercel → **`CORPFLOW_BILLING_EXEMPT_TENANT_IDS`** = comma-separated ids (e.g. `corpflowai`, `luxe-maurice`). Redeploy so lambdas pick it up. Prefer DB for anything long-lived so ops does not depend on redeploys.
-
----
-
-## Option B2 — All tenants exempt (shared dev / Vercel preview–style testing)
-
-Vercel → **`CORPFLOW_BILLING_EXEMPT_ALL`** = `true`. Redeploy.
-
-**Effect:** Any tenant id passes the approve-build credit gate; no wallet debit. Same warnings as Option B — **not** for production if billing must be real.
 
 ---
 
@@ -66,4 +63,4 @@ Each **Approve build** debits roughly **`displayed_client_usd`** (benchmark × *
 
 ---
 
-*Last updated: 2026-04-04 — DB-backed `billing_exempt` + single-query wallet snapshot.*
+*Last updated: 2026-04-10 — Lux script `scripts/set-luxe-maurice-billing-exempt.mjs`; no global exempt-all env.*
