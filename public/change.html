@@ -2375,6 +2375,9 @@
             renderAutomation(eff);
           } catch (_) {}
           try {
+            updatePromotionRefreshVisibility();
+          } catch (_) {}
+          try {
             renderCompletionScorecard(eff);
           } catch (_) {}
           try {
@@ -2415,6 +2418,17 @@
           return { raw, client, openUrl: client || raw };
         }
 
+        /** Tenants use the same API as admins (`promote-status`) to pull PR + Vercel preview into Postgres. */
+        function updatePromotionRefreshVisibility() {
+          if (!promotionRefreshBtn || !ticketEl) return;
+          const tid = String(ticketEl.value || '').trim();
+          const admin = sessionInfo && sessionInfo.logged_in && String(sessionInfo.level || '').toLowerCase() === 'admin';
+          const tenant = isTenantClient();
+          const show = Boolean(tid) && (admin || tenant);
+          promotionRefreshBtn.classList.toggle('hidden', !show);
+          promotionRefreshBtn.textContent = tenant && !admin ? 'Refresh preview link' : 'Refresh promotion';
+        }
+
         function renderAutomation(briefObj) {
           if (!automationLinksEl) return;
           const previewWrapAdmin = $('clientPreviewReviewWrap');
@@ -2445,6 +2459,14 @@
                   (previewClient
                     ? '<div class="text-sky-200/80 mt-1.5 leading-snug">Opens your tenant homepage on the preview deployment — you do not need a Vercel account.</div>'
                     : '') +
+                  '</div>',
+              );
+            } else if (tpAuto.dispatch_ok === true) {
+              human.push(
+                '<div class="rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-[11px] text-amber-100 leading-relaxed">' +
+                  '<strong class="text-amber-200">Site preview link not showing yet?</strong> When GitHub Actions has finished for your sandbox branch, click ' +
+                  '<strong class="text-amber-50">Refresh preview link</strong> (top of this Automation section) — it loads the pull request and Vercel preview URL from the factory. ' +
+                  'Then use <strong class="text-amber-50">Refresh from server</strong> if the page still looks stale.' +
                   '</div>',
               );
             }
@@ -2544,6 +2566,7 @@
                 }
               }
             }
+            updatePromotionRefreshVisibility();
             return;
           }
 
@@ -2610,7 +2633,7 @@
 
           const isAdmin = sessionInfo && sessionInfo.logged_in && String(sessionInfo.level || '').toLowerCase() === 'admin';
           if (overseerBtn) overseerBtn.classList.toggle('hidden', !isAdmin);
-          if (promotionRefreshBtn) promotionRefreshBtn.classList.toggle('hidden', !isAdmin);
+          updatePromotionRefreshVisibility();
           if (promotionMergeBtn) {
             const hasPr = Boolean(storedPromotion && storedPromotion.pr_url);
             promotionMergeBtn.classList.toggle('hidden', !isAdmin || !hasPr);
@@ -2630,12 +2653,14 @@
           const tid = String(ticketEl.value || '').trim();
           if (!tid) return setBanner('Create or paste a Ticket ID first.');
           try {
-            await withActivity('Refreshing promotion status…', async () => {
+            const label =
+              isTenantClient() && !isAdminSession() ? 'Refreshing preview link…' : 'Refreshing promotion status…';
+            await withActivity(label, async () => {
               await post('promote-status', { ticket_id: tid });
               await syncCurrentTicket();
             });
           } catch (e) {
-            setBanner('Promotion refresh failed: ' + String(e && e.message ? e.message : e));
+            setBanner('Refresh failed: ' + String(e && e.message ? e.message : e));
           }
         }
 
