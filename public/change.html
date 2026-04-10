@@ -543,17 +543,22 @@
               </div>
             </div>
 
-            <div id="tenantRefineBlock" class="hidden mt-4 rounded-xl border border-slate-800 bg-slate-950/40 p-3">
-              <div class="text-xs font-semibold text-slate-200">Refine the request</div>
+            <div id="tenantRefineBlock" class="hidden mt-4 rounded-xl border border-sky-500/20 bg-slate-950/40 p-4">
+              <div class="text-xs font-semibold text-slate-100">Refine the request</div>
               <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">
-                If anything is unclear, add one detail and we’ll proceed. If you’re not sure, use “I don’t know — please advise”.
+                Chat here to tighten scope or add acceptance bullets (saved on your ticket). You can also add an
+                <strong class="text-slate-400">Intended outcomes</strong> list in the main description above.
+              </p>
+              <p class="text-[10px] text-slate-500 mt-2 leading-relaxed border-t border-slate-800/80 pt-2">
+                <strong class="text-slate-400">Refresh from server</strong> is on the right under Ticket ID — use it after
+                you change text elsewhere or if the page feels out of date.
               </p>
               <div id="tenantThread" class="mt-3 rounded-lg border border-slate-800 bg-slate-950/50 p-3 min-h-[140px] space-y-3 overflow-auto text-sm"></div>
               <div class="mt-3">
                 <textarea
                   id="tenantRefineText"
                   class="w-full min-h-[92px] rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm text-slate-100"
-                  placeholder="What outcome do you want? Any constraints? Links?"
+                  placeholder="Add detail or ask for clearer outcomes. Enter sends · Shift+Enter new line."
                 ></textarea>
                 <div class="flex flex-wrap gap-2 mt-2">
                   <button
@@ -593,9 +598,22 @@
         </div>
 
         <div class="rounded-2xl border border-slate-800 bg-slate-900/30 p-4">
-          <div class="text-xs text-slate-300">Ticket ID</div>
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="text-xs text-slate-300">Ticket ID</div>
+            <button
+              type="button"
+              id="btnSyncTicket"
+              class="rounded-lg border border-sky-600/40 bg-sky-500/10 px-3 py-1.5 text-[11px] font-semibold text-sky-200 hover:bg-sky-500/20"
+            >
+              Refresh from server
+            </button>
+          </div>
           <input id="ticket" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" placeholder="Paste ticket_id" />
-          <div class="text-[11px] text-slate-500 mt-2">Stored in your browser for convenience.</div>
+          <p class="text-[10px] text-slate-500 mt-2 leading-relaxed">
+            Stored in your browser. <strong class="text-slate-400">Refresh from server</strong> loads the latest saved
+            description and status. To send your edited description to CorpFlow, run <strong class="text-slate-400">Estimate</strong>
+            or <strong class="text-slate-400">Approve build</strong>.
+          </p>
 
           <div class="mt-5 border-t border-slate-800 pt-4">
             <div class="flex items-start justify-between gap-2 flex-wrap">
@@ -629,7 +647,7 @@
 
             <div id="completionCard" class="mb-4 rounded-xl border border-slate-800 bg-slate-950/50 p-3 hidden">
               <div class="flex items-start justify-between gap-2 flex-wrap">
-                <div class="text-[11px] font-semibold text-slate-200 uppercase tracking-wide">Completion</div>
+                <div id="completionCardTitle" class="text-[11px] font-semibold text-slate-200 uppercase tracking-wide">Completion</div>
                 <button
                   type="button"
                   id="btnSelfHeal"
@@ -1501,18 +1519,36 @@
           processHealthEvalTimer = window.setInterval(updateProcessHealthFromState, 60000);
         }
 
+        function isBuildApprovedFromMerged(merged) {
+          if (!merged || typeof merged !== 'object') return false;
+          const tp = merged.ticket_progress && typeof merged.ticket_progress === 'object' ? merged.ticket_progress : null;
+          const st = String((tp && tp.status) || merged.status || '').trim();
+          const sg = String((tp && tp.stage) || merged.stage || '').trim();
+          return /approved/i.test(st) || String(sg).toLowerCase() === 'build';
+        }
+
         function applyWorkspaceMode() {
           const tenant = isTenantClient();
+          const tid = String(ticketEl && ticketEl.value ? ticketEl.value : '').trim();
           const tenantPanel = $('tenantBackgroundPanel');
+          const tenantRefine = $('tenantRefineBlock');
           const adminBlock = $('adminChatBlock');
           const titleAd = $('refineTitleAdmin');
           const hintAd = $('refineHintAdmin');
           const fogPre = $('tenantFogCode');
-          if (tenantPanel) tenantPanel.classList.toggle('hidden', !tenant);
+
+          if (tenantRefine) {
+            tenantRefine.classList.toggle('hidden', !(tenant && sessionInfo && sessionInfo.logged_in));
+          }
+
+          const showTenantWorkPanel =
+            tenant && tid && sessionInfo && sessionInfo.logged_in && isBuildApprovedFromMerged(lastBrief || { ticket_id: tid });
+          if (tenantPanel) tenantPanel.classList.toggle('hidden', !showTenantWorkPanel);
+
           if (adminBlock) adminBlock.classList.toggle('hidden', tenant);
           if (titleAd) titleAd.classList.toggle('hidden', tenant);
           if (hintAd) hintAd.classList.toggle('hidden', tenant);
-          if (tenant && fogPre) {
+          if (tenant && fogPre && showTenantWorkPanel) {
             if (!fogPre.dataset.filled) {
               fogPre.textContent = fakeTenantFogCode();
               fogPre.dataset.filled = '1';
@@ -1957,7 +1993,8 @@
           body.innerHTML = rows.join('');
         }
 
-        function append(role, content) {
+        function appendToThread(containerEl, role, content) {
+          if (!containerEl) return;
           const wrap = document.createElement('div');
           wrap.className = 'rounded-xl border border-slate-800 bg-slate-950/50 p-3';
           const head = document.createElement('div');
@@ -1968,22 +2005,27 @@
           body.textContent = content;
           wrap.appendChild(head);
           wrap.appendChild(body);
-          thread.appendChild(wrap);
-          thread.scrollTop = thread.scrollHeight;
+          containerEl.appendChild(wrap);
+          containerEl.scrollTop = containerEl.scrollHeight;
+        }
+
+        function append(role, content) {
+          appendToThread(thread, role, content);
         }
 
         function replayThreadFromConsoleJson(consoleJson) {
           try {
             const msgs = consoleJson && Array.isArray(consoleJson.messages) ? consoleJson.messages : [];
             if (!msgs.length) return;
-            // Avoid duplicating if thread already has content.
-            if (thread && thread.children && thread.children.length > 0) return;
+            const target = isTenantClient() ? $('tenantThread') : thread;
+            if (!target) return;
+            if (target.children && target.children.length > 0) return;
             for (const m of msgs.slice(-60)) {
               if (!m || typeof m !== 'object') continue;
               const role = m.role === 'assistant' ? 'assistant' : 'user';
               const content = String(m.content || '');
               if (!content.trim()) continue;
-              append(role, content);
+              appendToThread(target, role, content);
             }
           } catch (_) {}
         }
@@ -2517,6 +2559,89 @@
           return out;
         }
 
+        /** Same idea as server `extractOutcomesFromDescription` — lets tenant tickets satisfy the scorecard without Refine/Groq. */
+        function extractOutcomesFromDescriptionClient(description) {
+          const lines = String(description || '')
+            .replace(/\r\n/g, '\n')
+            .split('\n')
+            .map((l) => l.replace(/\s+$/g, ''));
+          let start = -1;
+          for (let i = 0; i < lines.length; i++) {
+            const l = String(lines[i] || '')
+              .trim()
+              .toLowerCase();
+            if (!l) continue;
+            if (
+              l.includes('intended business outcomes') ||
+              l === 'business outcomes' ||
+              l === 'outcomes' ||
+              l.startsWith('outcomes:') ||
+              l.startsWith('intended outcomes') ||
+              l.startsWith('acceptance criteria') ||
+              l.startsWith('done when') ||
+              l.startsWith('definition of done')
+            ) {
+              start = i + 1;
+              break;
+            }
+          }
+          if (start === -1) return [];
+          const isHeaderLineUi = (line) => {
+            const s = String(line || '')
+              .trim()
+              .toLowerCase();
+            if (!s) return false;
+            if (s.startsWith('#')) return true;
+            return (
+              s.includes('intended business outcomes') ||
+              s === 'business outcomes' ||
+              s === 'outcomes' ||
+              s.startsWith('outcomes:') ||
+              s.startsWith('intended outcomes') ||
+              s.startsWith('acceptance criteria') ||
+              s.startsWith('done when') ||
+              s.startsWith('definition of done')
+            );
+          };
+          const out = [];
+          for (let i = start; i < lines.length; i++) {
+            const raw = lines[i];
+            const s = String(raw || '').trim();
+            if (!s) {
+              if (out.length) break;
+              continue;
+            }
+            if (out.length && isHeaderLineUi(s)) break;
+            const m = s.match(/^[-*]\s+\[([ xX])\]\s+(.*)$/);
+            if (m && String(m[2]).trim()) {
+              out.push(String(m[2]).trim());
+              continue;
+            }
+            const b = s.match(/^[-*]\s+(.*)$/);
+            if (b && String(b[1]).trim()) {
+              out.push(String(b[1]).trim());
+              continue;
+            }
+            if (s.length <= 180) out.push(s);
+          }
+          return out
+            .map((x) => String(x).replace(/\s+/g, ' ').trim())
+            .filter(Boolean)
+            .slice(0, 12);
+        }
+
+        function mergeOutcomeLists(a, b) {
+          const seen = new Set();
+          const out = [];
+          for (const x of [...(a || []), ...(b || [])]) {
+            const t = String(x || '').trim();
+            if (!t || seen.has(t)) continue;
+            seen.add(t);
+            out.push(t);
+          }
+          return out;
+        }
+
         function renderCompletionScorecard(merged) {
           const card = $('completionCard');
           const sumEl = $('completionSummary');
@@ -2540,7 +2665,16 @@
           const st = String((tp && tp.status) || merged.status || '').trim();
           const sg = String((tp && tp.stage) || merged.stage || '').trim();
           const br = resolveStructuredBrief(merged);
-          const outcomes = extractTaskLikeStrings(br);
+          const outcomesFromBrief = extractTaskLikeStrings(br);
+          const descText = String(
+            merged.description != null && String(merged.description).trim()
+              ? merged.description
+              : descEl
+                ? descEl.value
+                : '',
+          ).trim();
+          const outcomesFromDesc = extractOutcomesFromDescriptionClient(descText);
+          const outcomes = mergeOutcomeLists(outcomesFromBrief, outcomesFromDesc);
 
           const hasEstimate = Boolean(merged.costing_preview || cv.last_estimate_at);
           const approved = /approved/i.test(st) || sg.toLowerCase() === 'build';
@@ -2554,7 +2688,11 @@
           const mergedPr = promoted && typeof promoted === 'object' ? promoted.merged === true : false;
 
           const blockers = [];
-          if (!outcomes.length) blockers.push('Outcomes not explicit yet (use Refine the request).');
+          if (!outcomes.length) {
+            blockers.push(
+              'Outcomes not explicit yet — add an “Intended outcomes” bullet list in the request text, or use Refine the request.',
+            );
+          }
           if (!hasEstimate) blockers.push('No estimate saved yet.');
           if (approved && dispatched && lastActivityPayload && lastActivityPayload.activity && lastActivityPayload.activity.branch_exists === false) {
             blockers.push('Sandbox branch missing (self-heal can re-dispatch).');
@@ -2564,7 +2702,9 @@
 
           const next = (() => {
             if (mergedPr) return 'Done: merged to main.';
-            if (!outcomes.length) return 'Next: use Refine the request to make outcomes explicit.';
+            if (!outcomes.length) {
+              return 'Next: under the description, add a section “Intended outcomes” with dash bullets, or use Refine the request.';
+            }
             if (!hasEstimate) return 'Next: run Estimate so cost + scope are recorded.';
             if (!approved) return 'Next: approve build to start automation.';
             if (approved && !dispatched) return 'Next: waiting for factory automation dispatch.';
@@ -2587,7 +2727,17 @@
           const okCount = done.filter((x) => x.ok).length;
           const total = done.length;
           const pct = Math.round((okCount / total) * 100);
-          sumEl.textContent = blockers.length ? `Blocked (${pct}%)` : `In progress (${pct}%)`;
+          const tenantPreApproval = isTenantClient() && !approved;
+          const titleEl = $('completionCardTitle');
+          if (titleEl) {
+            if (tenantPreApproval) titleEl.textContent = 'Checklist (before build approval)';
+            else titleEl.textContent = 'Completion';
+          }
+          if (tenantPreApproval) {
+            sumEl.textContent = blockers.length ? `Checklist — blocked (${pct}%)` : `Checklist (${pct}%)`;
+          } else {
+            sumEl.textContent = blockers.length ? `Blocked (${pct}%)` : `In progress (${pct}%)`;
+          }
           bodyEl.innerHTML =
             '<div class="grid grid-cols-1 md:grid-cols-2 gap-2">' +
             done
@@ -2614,9 +2764,14 @@
               : '');
 
           if (hintEl) {
-            hintEl.textContent = isAdminSession()
-              ? 'Admin: use Self-heal if sandbox branch is missing; refresh activity after.'
-              : 'This summary is derived from the ticket snapshot and preview review status.';
+            if (isTenantClient() && !approved) {
+              hintEl.textContent =
+                'Before build approval this is your checklist only. After you approve build, the animated “Work in progress” panel appears under Refine.';
+            } else {
+              hintEl.textContent = isAdminSession()
+                ? 'Admin: use Self-heal if sandbox branch is missing; refresh activity after.'
+                : 'This summary is derived from the ticket snapshot and preview review status.';
+            }
           }
           if (nextEl) {
             nextEl.textContent = next;
@@ -3410,6 +3565,27 @@
           });
         }
 
+        const btnSyncTicket = $('btnSyncTicket');
+        if (btnSyncTicket) {
+          btnSyncTicket.addEventListener('click', async () => {
+            try {
+              setBanner('');
+              const tid = String(ticketEl.value || '').trim();
+              if (!tid) {
+                setBanner('Enter or select a Ticket ID first.');
+                return;
+              }
+              await withActivity('Refreshing ticket from server…', async () => {
+                await syncCurrentTicket();
+              });
+              setBanner('Updated from server. Your draft description is replaced if the server had a newer copy.');
+              window.setTimeout(() => setBanner(''), 5000);
+            } catch (e) {
+              setBanner(String(e && e.message ? e.message : e));
+            }
+          });
+        }
+
         const btnRefreshActivity = $('btnRefreshActivity');
         if (btnRefreshActivity) {
           btnRefreshActivity.addEventListener('click', () => {
@@ -3594,7 +3770,6 @@
         }
 
         async function send() {
-          if (isTenantClient()) return;
           setBanner('');
           const tid = String(ticketEl.value || '').trim();
           const msg = String(chatEl.value || '').trim();
@@ -3620,6 +3795,68 @@
             send();
           }
         });
+
+        async function sendTenantRefine(presetMessage) {
+          if (!isTenantClient()) return;
+          setBanner('');
+          const tid = String(ticketEl.value || '').trim();
+          const ta = $('tenantRefineText');
+          const msg =
+            presetMessage != null
+              ? String(presetMessage).trim()
+              : ta
+                ? String(ta.value || '').trim()
+                : '';
+          if (!tid) {
+            setBanner('Create or select a ticket first.');
+            return;
+          }
+          if (!msg) {
+            setBanner('Type a message or use the shortcut button.');
+            return;
+          }
+          if (ta && presetMessage == null) ta.value = '';
+          const tEl = $('tenantThread');
+          appendToThread(tEl, 'user', msg);
+          const st = $('tenantRefineStatus');
+          if (st) st.textContent = 'Sending…';
+          try {
+            await withActivity('Refining request…', async () => {
+              const j = await post('change-chat', { ticket_id: tid, message: msg, locale: localeSel.value || 'en' });
+              appendToThread(tEl, 'assistant', String(j.assistant || 'OK'));
+              setBrief({ ...(lastBrief || {}), brief: j.brief || null });
+            });
+            if (st) st.textContent = 'Saved on ticket.';
+            window.setTimeout(() => {
+              if (st) st.textContent = '';
+            }, 4000);
+          } catch (e) {
+            if (st) st.textContent = '';
+            setBanner(String(e && e.message ? e.message : e));
+          }
+        }
+
+        const btnTenantRefineSend = $('btnTenantRefineSend');
+        if (btnTenantRefineSend) {
+          btnTenantRefineSend.addEventListener('click', () => {
+            void sendTenantRefine(null);
+          });
+        }
+        const btnTenantIdk = $('btnTenantIdk');
+        if (btnTenantIdk) {
+          btnTenantIdk.addEventListener('click', () => {
+            void sendTenantRefine("I don't know how to phrase this — please advise on clear outcomes for my request.");
+          });
+        }
+        const tenantRefineText = $('tenantRefineText');
+        if (tenantRefineText) {
+          tenantRefineText.addEventListener('keydown', (ev) => {
+            if (ev.key === 'Enter' && !ev.shiftKey) {
+              ev.preventDefault();
+              void sendTenantRefine(null);
+            }
+          });
+        }
         }
 
         fetch('/api/auth/me', { credentials: 'include' })

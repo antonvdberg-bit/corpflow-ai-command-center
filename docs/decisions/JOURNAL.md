@@ -1,0 +1,36 @@
+# Decision journal (append-only)
+
+**Purpose:** Capture **every material decision** as we go—yours, mine (assistant), and the team’s—so we can **audit and backtrack** quickly if something goes wrong. This is a **running log**, not a substitute for ADR-lite files for big boundaries (those stay as `YYYYMMDD-topic.md` and get a one-line pointer here).
+
+**Rules**
+
+1. **Append only** — never delete or rewrite past entries; if we reverse course, add a **new** entry that references the old one (`Supersedes: JE-…`).
+2. **Immediate** — log the decision in the same push or the next push when the work lands (same day when possible).
+3. **IDs** — each entry gets `JE-YYYY-MM-DD-n` (n = sequence that day) for easy reference in commits and incidents.
+4. **Who** — `Anton` | `Assistant (Cursor)` | `Team` | `Vendor` with name if relevant.
+5. **Reversibility** — one line: how to undo (env var, revert commit SHA, GitHub toggle).
+
+**How assistants use this file:** After substantive choices in chat or in code, **add a journal row** (and an ADR when the decision changes trust, tenancy, or security).
+
+---
+
+| ID | Date (UTC) | Who | Decision | Reversibility |
+|----|------------|-----|----------|----------------|
+| JE-2026-04-10-1 | 2026-04-10 | Anton | LUXE autonomy pilot uses tenant **`luxe-maurice`** only; auto-merge to **`main`** allowed only under **strict rules** in `docs/decisions/20260410-luxe-autopilot-pilot-scope.md`. | Widen scope: new ADR + journal row; disable auto-merge in GitHub rules. |
+| JE-2026-04-10-2 | 2026-04-10 | Anton | **Document all decisions immediately** (including assistant decisions); prefer **maximum autonomous execution** at **zero additional vendor cost** where possible. | Stop journaling: remove process from `docs/decisions/README.md` (not recommended). |
+| JE-2026-04-10-3 | 2026-04-10 | Assistant (Cursor) | Maintain this **`JOURNAL.md`** as the live append-only log; keep ADR-lite files for heavy boundaries. | Delete or archive file; restore from git. |
+| JE-2026-04-10-4 | 2026-04-10 | Assistant (Cursor) | **`CMP_MONITOR_TICKET_IDS` empty** ⇒ cron **`/api/cron/cmp-monitor`** monitors **no** tickets (removed hardcoded default IDs that pointed at **closed** tickets). Operators must set env for LUXE pilot tickets. | Set `CMP_MONITOR_TICKET_IDS` in Vercel; or revert `lib/server/cmp-monitor-cron.js` default block via git. |
+| JE-2026-04-10-5 | 2026-04-10 | Assistant (Cursor) | Add **`docs/operations/LUXE_AUTONOMY_PILOT_RUNBOOK.md`** for zero-cost ops steps (env lists, GitHub merge rules, kill switch). | Remove file; runbook is non-executable. |
+| JE-2026-04-10-6 | 2026-04-10 | Assistant (Cursor) | Wire **`docs/CORPFLOW_SHARED_TODO.md`** to require **`docs/decisions/JOURNAL.md`** for ongoing decisions; update **`artifacts/chat_history.md`** milestone line; extend ADR links to journal + runbook. | Revert those doc edits via git. |
+| JE-2026-04-10-7 | 2026-04-10 | Anton + Assistant (Cursor) | **Communication:** Anton is **not a programmer**; assistants must lead with **plain English**, acknowledge that, and put **`POST /api/...` / JSON / curl** only in a **Technical handoff** section after outcomes. Codified in **`.cursor/rules/pm-first-communication.mdc`**. | Revert or edit that rule file. |
+| JE-2026-04-10-8 | 2026-04-10 | Assistant (Cursor) | **Brownfield Luxe host:** Prefer **`npm run factory:link-lux-hostname`** (`scripts/factory-upsert-hostname-map.mjs`) over **`admin_onboarding.html`** for **`lux.corpflowai.com` → `luxe-maurice`** — idempotent factory upsert, documented in **`docs/operations/TENANT_CLIENT_LOGIN.md`**. | Remove script; or delete `tenant_hostnames` row for that host via DB admin. |
+| JE-2026-04-10-9 | 2026-04-10 | Assistant (Cursor) | **Change Console / tenant:** Completion scorecard now counts **`Intended outcomes`** bullets in the **ticket description** (same rules as factory), not only structured brief; **Refine the request** chat enabled for **tenant** sessions (server already allowed). | Revert **`public/change.html`** hunk. |
+| JE-2026-04-10-10 | 2026-04-10 | Assistant (Cursor) | **Change Console UX:** Tenant **“Work in progress”** fog/timer only after **build approved**; **Refine the request** block always visible for logged-in tenants + wired to **`change-chat`**; **Refresh from server** button under Ticket ID; pre-approval scorecard titled **Checklist** not “In progress”. | Revert **`public/change.html`**. |
+
+---
+
+### Entry template (copy row above the next blank)
+
+```
+| JE-YYYY-MM-DD-n | YYYY-MM-DD | Who | One sentence. Link ADR/path if any. | How to undo. |
+```
