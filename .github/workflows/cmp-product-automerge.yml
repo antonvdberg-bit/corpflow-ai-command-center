@@ -24,7 +24,7 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - name: Merge open PR for cmp branch
+      - name: Merge open PR for cmp branch (after client approval)
         uses: actions/github-script@v7
         with:
           script: |
@@ -52,13 +52,19 @@ jobs:
             }
 
             const pr = prs[0];
+            const labels = Array.isArray(pr.labels) ? pr.labels.map(l => (l && l.name ? String(l.name) : '')).filter(Boolean) : [];
+            if (!labels.includes('client-approved')) {
+              core.info(`Skip: PR #${pr.number} missing label client-approved (client signoff not recorded).`);
+              return;
+            }
             core.info(`Merging PR #${pr.number} (${pr.html_url})`);
 
             await github.rest.pulls.merge({
               owner,
               repo,
               pull_number: pr.number,
-              merge_method: 'merge',
+              // Repo rules disallow merge commits; use squash for promotion.
+              merge_method: 'squash',
             });
 
             core.info('Merge completed');
