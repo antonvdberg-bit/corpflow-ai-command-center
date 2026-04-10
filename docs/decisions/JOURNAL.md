@@ -28,6 +28,7 @@
 | JE-2026-04-10-10 | 2026-04-10 | Assistant (Cursor) | **Change Console UX:** Tenant **“Work in progress”** fog/timer only after **build approved**; **Refine the request** block always visible for logged-in tenants + wired to **`change-chat`**; **Refresh from server** button under Ticket ID; pre-approval scorecard titled **Checklist** not “In progress”. | Revert **`public/change.html`**. |
 | JE-2026-04-10-11 | 2026-04-10 | Assistant (Cursor) | **Dev/staging billing:** Env **`CORPFLOW_BILLING_EXEMPT_ALL`** (`true`/`1`/`yes`) ORs **every** tenant as billing-exempt in **`getTenantWalletSnapshot`** (skips approve-build token gate + debit). **`CORPFLOW_BILLING_EXEMPT_TENANT_IDS`** unchanged for per-tenant override. | Unset env; revert **`lib/factory/costing.js`**, **`lib/server/billing-exempt.js`**. |
 | JE-2026-04-10-12 | 2026-04-10 | Anton + Assistant (Cursor) | **Supersedes JE-2026-04-10-11:** Remove **`CORPFLOW_BILLING_EXEMPT_ALL`** (no global exempt-all). Prefer per-tenant DB **`billing_exempt`**; add **`scripts/set-luxe-maurice-billing-exempt.mjs`** for **`luxe-maurice`**. | Restore JE-2026-04-10-11 code path if ever needed. |
+| JE-2026-04-10-13 | 2026-04-10 | Assistant (Cursor) | **Git:** Delete stray tracked root file **`main`** (empty) that caused **`ambiguous argument 'main'`**; document in **`docs/operations/GIT_AND_MAIN_BRANCH.md`** + checklist in **`docs/CORPFLOW_SHARED_TODO.md`**. No GitHub/Vercel permission impact. | Re-add root file `main` (not recommended). |
 
 ---
 

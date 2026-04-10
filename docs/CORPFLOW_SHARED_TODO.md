@@ -17,6 +17,8 @@ Treat this as part of **definition of done** whenever work is **committed and pu
 
 **Agents:** before you finish a task that ends in commit/push, explicitly run through (1)–(3) and fix gaps or call out what still needs a human decision.
 
+4. **Repository hygiene (Git):** Never add a **tracked file or folder named `main`** at the **repository root** — it makes `git log main` / `git diff main` ambiguous with the default branch. Removed once; see **`docs/operations/GIT_AND_MAIN_BRANCH.md`**. (No GitHub/Vercel access change required.)
+
 ---
 
 ## Partner charter — breathtaking client experience (technical)
