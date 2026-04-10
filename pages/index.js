@@ -4,6 +4,7 @@ import Head from 'next/head';
 import { PrismaClient } from '@prisma/client';
 
 import { defaultPublicSite, mergeSiteDraft } from '../lib/server/tenant-site-public.js';
+import { verifyTenantPreviewToken } from '../lib/server/tenant-preview-token.js';
 
 /**
  * Minimal tenant marketing site renderer (v1).
@@ -22,6 +23,16 @@ function normalizeHost(req) {
 
 function safeStr(v) {
   return v != null ? String(v).trim() : '';
+}
+
+function parseSearchParam(req, name) {
+  try {
+    const raw = req?.url || '';
+    const u = raw.startsWith('http') ? new URL(raw) : new URL(raw, 'http://localhost');
+    return (u.searchParams.get(name) || '').trim();
+  } catch {
+    return '';
+  }
 }
 
 function CorpFlowMarketing() {
@@ -410,7 +421,20 @@ export async function getServerSideProps({ req }) {
       where: { host },
       select: { tenantId: true, enabled: true },
     });
-    const tenantId = row && row.enabled === true ? safeStr(row.tenantId) : '';
+    let tenantId = row && row.enabled === true ? safeStr(row.tenantId) : '';
+    if (!tenantId) {
+      const cfPreview = parseSearchParam(req, 'cf_preview');
+      if (cfPreview) {
+        const verified = verifyTenantPreviewToken(cfPreview);
+        if (verified.ok) {
+          const tExists = await prisma.tenant.findUnique({
+            where: { tenantId: verified.tenantId },
+            select: { tenantId: true },
+          });
+          if (tExists?.tenantId) tenantId = safeStr(tExists.tenantId);
+        }
+      }
+    }
     if (!tenantId) {
       return { props: { mode: 'corpflow_marketing', site: null } };
     }
@@ -428,14 +452,8 @@ export async function getServerSideProps({ req }) {
     const pj = persona?.personaJson && typeof persona.personaJson === 'object' ? persona.personaJson : {};
     const draft = pj?.website_draft && typeof pj.website_draft === 'object' ? pj.website_draft : null;
     const qLang = (() => {
-      try {
-        const raw = req?.url || '';
-        const u = raw.startsWith('http') ? new URL(raw) : new URL(raw, 'http://localhost');
-        const v = (u.searchParams.get('lang') || '').trim().toLowerCase();
-        return v || '';
-      } catch {
-        return '';
-      }
+      const v = parseSearchParam(req, 'lang').toLowerCase();
+      return v || '';
     })();
 
     const base = defaultPublicSite(tenantId, host, { dbName: tenantRow?.name ?? null });
