@@ -32,6 +32,8 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      # workflow_dispatch from this job (Agent CI + Vercel env check on cmp/*).
+      actions: write
     steps:
       - name: Resolve ticket and base ref
         id: meta
@@ -151,6 +153,41 @@ jobs:
 
           echo "number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
           echo "url=${PR_URL}" >> "$GITHUB_OUTPUT"
+
+      # Keeps sandbox PR mergeable when main has moved since the sandbox branch was created.
+      - name: Merge base ref into sandbox branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TICKET: ${{ steps.meta.outputs.ticket }}
+          BASE: ${{ steps.meta.outputs.base }}
+        run: |
+          set -euo pipefail
+          BR="cmp/${TICKET}"
+          CODE=$(curl -sS -o /tmp/cmp_merge_body -w "%{http_code}" -X POST \
+            -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/merges" \
+            -d "{\"base\":\"${BR}\",\"head\":\"${BASE}\",\"commit_message\":\"chore(cmp): merge ${BASE} into ${BR} (automation)\"}") || CODE="000"
+          if [ "$CODE" = "201" ]; then
+            echo "Merged ${BASE} into ${BR}."
+          elif [ "$CODE" = "409" ] || [ "$CODE" = "404" ]; then
+            echo "::notice::Merge ${BASE}→${BR} not applied (HTTP ${CODE}). Branch may already match base or needs manual resolution."
+          else
+            echo "::notice::Merge ${BASE}→${BR} HTTP ${CODE} $(head -c 300 /tmp/cmp_merge_body 2>/dev/null || true)"
+          fi
+
+      # GitHub suppresses some workflows when the only activity is actions using GITHUB_TOKEN on the same repo.
+      # Run after merge so checks target the latest sandbox HEAD (includes base when merge succeeded).
+      - name: Trigger PR checks (Agent CI + Vercel env check)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TICKET: ${{ steps.meta.outputs.ticket }}
+        run: |
+          set -euo pipefail
+          BR="cmp/${TICKET}"
+          gh workflow run "Agent CI" --repo "${{ github.repository }}" --ref "$BR" \
+            || { echo "::warning::Could not dispatch Agent CI (permissions or workflow name)."; true; }
+          gh workflow run "Vercel env check" --repo "${{ github.repository }}" --ref "$BR" \
+            || { echo "::warning::Could not dispatch Vercel env check."; true; }
 
       # Posts PR metadata back to Vercel/Postgres. Does not run during Vercel build — see .env.template.
       # Note: `secrets` cannot be used in step `if:` — skip inside the script when unset (GitHub validates `if` before secrets exist).

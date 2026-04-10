@@ -1660,6 +1660,45 @@
           );
         }
 
+        /** Like stepRow but `detailHtml` is trusted HTML (build hrefs with escapeHtml for dynamic parts only). */
+        function stepRowTrustedHtml(state, title, detailHtml) {
+          let icon = '…';
+          let cls = 'text-slate-400';
+          if (state === 'ok') {
+            icon = '✓';
+            cls = 'text-emerald-300';
+          } else if (state === 'err') {
+            icon = '✕';
+            cls = 'text-rose-300';
+          } else if (state === 'warn') {
+            icon = '!';
+            cls = 'text-amber-300';
+          } else if (state === 'run') {
+            icon = '<span class="cf-spinner shrink-0"></span>';
+            cls = 'text-sky-300';
+          } else if (state === 'pending') {
+            icon = '○';
+            cls = 'text-slate-500';
+          }
+          return (
+            '<div class="flex gap-2 items-start">' +
+            '<span class="shrink-0 font-mono w-4 flex justify-center ' +
+            cls +
+            '">' +
+            icon +
+            '</span>' +
+            '<div class="min-w-0">' +
+            '<div class="text-slate-200 font-medium">' +
+            escapeHtml(title) +
+            '</div>' +
+            '<div class="text-slate-500 mt-0.5 leading-snug">' +
+            detailHtml +
+            '</div>' +
+            '</div>' +
+            '</div>'
+          );
+        }
+
         function getMergedConsoleJson(merged) {
           if (!merged || typeof merged !== 'object') return {};
           const cj = merged.console_json;
@@ -1926,6 +1965,44 @@
                   sbT.error
                     ? String(sbT.error)
                     : 'GitHub dispatch was not confirmed. The build is still saved — you can retry after repo/token settings are fixed, or ask your CorpFlow contact.',
+                ),
+              );
+            }
+            const cjT = getMergedConsoleJson(b);
+            const promT = cjT.promotion && typeof cjT.promotion === 'object' ? cjT.promotion : {};
+            const pruT = typeof promT.pr_url === 'string' ? promT.pr_url.trim() : '';
+            if (okT && pruT) {
+              const tag =
+                promT.merged === true
+                  ? ' <span class="text-emerald-400">· merged to production branch</span>'
+                  : ' <span class="text-amber-200/90">· open — merge triggers deploy</span>';
+              rowsT.push(
+                stepRowTrustedHtml(
+                  'ok',
+                  'Pull request',
+                  '<a class="text-sky-300 underline break-all" target="_blank" rel="noreferrer" href="' +
+                    escapeHtml(pruT) +
+                    '">' +
+                    escapeHtml('Open on GitHub') +
+                    '</a>' +
+                    tag,
+                ),
+              );
+            } else if (okT) {
+              rowsT.push(
+                stepRow(
+                  'pending',
+                  'Pull request',
+                  'Not loaded yet. In a minute, click Refresh from server (under Ticket ID) so the factory can attach your PR link — or open GitHub Actions → “CMP Sandbox Branch” for this ticket.',
+                ),
+              );
+            }
+            if (okT && promT.merged === true) {
+              rowsT.push(
+                stepRow(
+                  'ok',
+                  'Live site (lux) vs this ticket',
+                  'After merge, the same Vercel project that serves lux.corpflowai.com deploys within a few minutes. If the pull request changed no files (empty sandbox), your public pages look unchanged — that is normal. /change updates as soon as you refresh; the marketing homepage only changes when the PR actually changed it.',
                 ),
               );
             }
@@ -2286,6 +2363,14 @@
 
           if (isTenantClient()) {
             const human = [];
+            const storedPromotionT =
+              b && b.console_json && b.console_json.promotion && typeof b.console_json.promotion === 'object'
+                ? b.console_json.promotion
+                : b && b.promotion && typeof b.promotion === 'object'
+                  ? b.promotion
+                  : {};
+            const stT = String(tpCv.status || '').toLowerCase();
+            const stgT = String(tpCv.stage || '').toLowerCase();
             if (previewFromProgress) {
               human.push(
                 '<div class="rounded-lg border border-sky-500/20 bg-sky-500/5 px-3 py-2 text-[11px] text-sky-100 leading-relaxed">' +
@@ -2293,14 +2378,70 @@
                   asLink(previewFromProgress, previewFromProgress) +
                   '</div>',
               );
-            } else {
+            }
+            if (stgT === 'build' || stT === 'approved' || (storedPromotionT && storedPromotionT.pr_url)) {
               human.push(
-                '<div class="text-[11px] text-slate-500 leading-relaxed">Automation status is summarized in <strong class="text-slate-400">Your request progress</strong> on the right.</div>',
+                '<div class="rounded-lg border border-slate-700 bg-slate-900/50 px-3 py-2 text-[11px] text-slate-200 leading-relaxed">' +
+                  '<strong class="text-slate-100">What you are waiting for:</strong> work happens in a GitHub branch and pull request first. ' +
+                  '<strong class="text-slate-100">lux.corpflowai.com</strong> (homepage and tenant skin) only changes after that PR is merged and the host deploys — often a few minutes. ' +
+                  'This <strong class="text-slate-100">/change</strong> page updates from the factory as soon as you refresh.</div>',
+              );
+            }
+            if (storedPromotionT && typeof storedPromotionT.pr_url === 'string' && storedPromotionT.pr_url.trim()) {
+              const pu = String(storedPromotionT.pr_url).trim();
+              human.push(
+                '<div class="text-[11px] text-slate-300">' +
+                  '<strong class="text-slate-200">Pull request:</strong> ' +
+                  asLink(pu, 'View on GitHub') +
+                  (storedPromotionT.merged === true
+                    ? ' <span class="text-emerald-400">· merged</span>'
+                    : ' <span class="text-amber-200/90">· open</span>') +
+                  '</div>',
+              );
+            }
+            if (tpAuto.branch_url) {
+              human.push(
+                '<div class="text-[11px] text-slate-400">Branch: ' + asLink(tpAuto.branch_url, 'Open branch') + '</div>',
+              );
+            }
+            if (tpAuto.compare_url) {
+              human.push(
+                '<div class="text-[11px] text-slate-400">What changed vs live: ' +
+                  asLink(tpAuto.compare_url, 'Compare on GitHub') +
+                  '</div>',
+              );
+            }
+            if (tpAuto.workflow_url) {
+              human.push(
+                '<div class="text-[11px] text-slate-400">Automation run: ' +
+                  asLink(tpAuto.workflow_url, 'GitHub Actions') +
+                  '</div>',
+              );
+            }
+            if (!human.length) {
+              human.push(
+                '<div class="text-[11px] text-slate-500 leading-relaxed">After <strong class="text-slate-400">Approve build</strong>, use <strong class="text-slate-400">Refresh from server</strong> to load PR and GitHub links.</div>',
               );
             }
             if (automationHumanEl) automationHumanEl.innerHTML = human.join('');
-            if (automationTechnicalEl) automationTechnicalEl.classList.add('hidden');
-            if (automationLinksEl) automationLinksEl.innerHTML = '';
+            const tenantTech =
+              Boolean(tpAuto.workflow_url || tpAuto.branch_url || tpAuto.compare_url) ||
+              (storedPromotionT && storedPromotionT.pr_url);
+            if (automationTechnicalEl) {
+              automationTechnicalEl.classList.toggle('hidden', !tenantTech);
+              const sum = automationTechnicalEl.querySelector('summary');
+              if (sum)
+                sum.innerHTML =
+                  '<span class="cf-pulse inline-block w-1.5 h-1.5 rounded-full bg-slate-600 group-open:bg-sky-500"></span> GitHub links (PR, branch, checks)';
+            }
+            if (automationLinksEl) {
+              const techT = [];
+              if (tpAuto.workflow_url) techT.push('<div>' + asLink(tpAuto.workflow_url, 'Workflow: sandbox branch') + '</div>');
+              if (tpAuto.actions_url) techT.push('<div>' + asLink(tpAuto.actions_url, 'Actions (filtered)') + '</div>');
+              if (tpAuto.branch_url) techT.push('<div>' + asLink(tpAuto.branch_url, 'Branch') + '</div>');
+              if (tpAuto.compare_url) techT.push('<div>' + asLink(tpAuto.compare_url, 'Compare to main') + '</div>');
+              automationLinksEl.innerHTML = tenantTech.length ? techT.join('') : '';
+            }
             return;
           }
 
