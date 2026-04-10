@@ -27,6 +27,10 @@ This repository is the **CorpFlow AI Command Center**: **Next.js** (pages router
 2. **`.cursor/rules/commit-push-doc-constraints.mdc`** and **`.cursor/rules/security-sensitive-changes.mdc`** (always on).
 3. Security-sensitive edits: **`docs/operations/SECURITY_REVIEW_CHECKLIST.md`**.
 
+## Git note (default branch `main`)
+
+If Git says **`ambiguous argument 'main'`**, a tracked path named **`main`** may exist at the repo root — see **`docs/operations/GIT_AND_MAIN_BRANCH.md`**. Prefer **`refs/heads/main`** in commands when needed.
+
 ## Must-read (by topic)
 
 | Topic | Doc |
