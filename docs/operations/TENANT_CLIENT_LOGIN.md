@@ -75,7 +75,7 @@ It returns a **checklist** (session secret set, Postgres set, user row, hash/sal
 | **`TENANT_ID_HOST_MISMATCH`** | Host map says tenant A; form said B — use **`expected_tenant_id`** from the JSON response. |
 | **`ONBOARDING_HOSTNAME_TENANT_ID_MISMATCH`** | Host is on-stack but DNS prefix ≠ `tenant_id` while **`CORPFLOW_ENFORCE_HOSTNAME_MATCHES_TENANT_ID=true`** — use **`tenant_id.<root>`**, add host to **`CORPFLOW_TENANT_HOSTNAME_ONBOARDING_EXEMPT`**, or factory-master **`bypass_client_hostname_policy`**. |
 | **`POSTGRES_URL_MISSING`** | Prod cannot verify PIN/users — fix env. |
-| **402 / insufficient credits on Approve build** | **`tenant_personas`**: **$0** balance and **`billing_exempt`** false and not in env exempt list — set **`billing_exempt`** in DB, **`CORPFLOW_BILLING_EXEMPT_TENANT_IDS`**, dev-only **`CORPFLOW_BILLING_EXEMPT_ALL=true`**, or top up: **`docs/operations/TOKEN_CREDITS_AND_APPROVE_BUILD.md`**. |
+| **402 / insufficient credits on Approve build** | **`tenant_personas`**: **$0** balance and **`billing_exempt`** false and not in env exempt list — set **`billing_exempt`** in DB (e.g. **`scripts/set-luxe-maurice-billing-exempt.mjs`** for Lux), **`CORPFLOW_BILLING_EXEMPT_TENANT_IDS`**, or top up: **`docs/operations/TOKEN_CREDITS_AND_APPROVE_BUILD.md`**. |
 
 ## Subdomain without DB row
 

@@ -27,6 +27,7 @@
 | JE-2026-04-10-9 | 2026-04-10 | Assistant (Cursor) | **Change Console / tenant:** Completion scorecard now counts **`Intended outcomes`** bullets in the **ticket description** (same rules as factory), not only structured brief; **Refine the request** chat enabled for **tenant** sessions (server already allowed). | Revert **`public/change.html`** hunk. |
 | JE-2026-04-10-10 | 2026-04-10 | Assistant (Cursor) | **Change Console UX:** Tenant **“Work in progress”** fog/timer only after **build approved**; **Refine the request** block always visible for logged-in tenants + wired to **`change-chat`**; **Refresh from server** button under Ticket ID; pre-approval scorecard titled **Checklist** not “In progress”. | Revert **`public/change.html`**. |
 | JE-2026-04-10-11 | 2026-04-10 | Assistant (Cursor) | **Dev/staging billing:** Env **`CORPFLOW_BILLING_EXEMPT_ALL`** (`true`/`1`/`yes`) ORs **every** tenant as billing-exempt in **`getTenantWalletSnapshot`** (skips approve-build token gate + debit). **`CORPFLOW_BILLING_EXEMPT_TENANT_IDS`** unchanged for per-tenant override. | Unset env; revert **`lib/factory/costing.js`**, **`lib/server/billing-exempt.js`**. |
+| JE-2026-04-10-12 | 2026-04-10 | Anton + Assistant (Cursor) | **Supersedes JE-2026-04-10-11:** Remove **`CORPFLOW_BILLING_EXEMPT_ALL`** (no global exempt-all). Prefer per-tenant DB **`billing_exempt`**; add **`scripts/set-luxe-maurice-billing-exempt.mjs`** for **`luxe-maurice`**. | Restore JE-2026-04-10-11 code path if ever needed. |
 
 ---
 
