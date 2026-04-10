@@ -1970,6 +1970,8 @@
             }
             const cjT = getMergedConsoleJson(b);
             const promT = cjT.promotion && typeof cjT.promotion === 'object' ? cjT.promotion : {};
+            const cvT = cjT.client_view && typeof cjT.client_view === 'object' ? cjT.client_view : {};
+            const dvT = cvT.delivery_verdict && typeof cvT.delivery_verdict === 'object' ? cvT.delivery_verdict : null;
             const pruT = typeof promT.pr_url === 'string' ? promT.pr_url.trim() : '';
             if (okT && pruT) {
               const tag =
@@ -1994,6 +1996,19 @@
                   'pending',
                   'Pull request',
                   'Not loaded yet. In a minute, click Refresh from server (under Ticket ID) so the factory can attach your PR link — or open GitHub Actions → “CMP Sandbox Branch” for this ticket.',
+                ),
+              );
+            }
+            if (okT && dvT) {
+              const okV = dvT.ok === true;
+              const reasons = Array.isArray(dvT.reasons) ? dvT.reasons.map((x) => String(x || '')).filter(Boolean) : [];
+              rowsT.push(
+                stepRow(
+                  okV ? 'ok' : 'warn',
+                  'Delivery verdict',
+                  okV
+                    ? 'Looks on-track: PR exists, has file changes, and preview URL is present.'
+                    : 'Blocked: ' + (reasons.length ? reasons.join(', ') : 'see Automation section / refresh from server.'),
                 ),
               );
             }
