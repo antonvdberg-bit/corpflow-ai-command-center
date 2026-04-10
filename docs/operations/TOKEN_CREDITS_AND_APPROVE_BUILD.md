@@ -4,6 +4,8 @@
 
 **Optional env OR:** **`CORPFLOW_BILLING_EXEMPT_TENANT_IDS`** is still supported as a **break-glass override** (same effect as `billing_exempt = true` in the DB). Effective rule: **`billing_exempt_effective = env_list_has(tenant) OR billing_exempt`**.
 
+**Dev/staging OR:** **`CORPFLOW_BILLING_EXEMPT_ALL`** = `true` | `1` | `yes` — same as billing exempt for **every** tenant (no token gate, no approve-build debit). Use for shared test deployments; **remove or set `false` before production** if you rely on credits.
+
 **Canonical code:** `lib/factory/costing.js`, `lib/cmp/router.js` (`approve-build`, `costing-preview`), `GET /api/ui/context` in `api/factory_router.js`, `lib/server/billing-exempt.js` (env only).
 
 ---
@@ -26,7 +28,15 @@ node scripts/top-up-tenant-token-balance.mjs --tenant=corpflowai --billing-exemp
 
 ## Option B — Env override only (legacy / emergency)
 
-Vercel → **`CORPFLOW_BILLING_EXEMPT_TENANT_IDS`** = comma-separated ids (e.g. `corpflowai`). Redeploy so lambdas pick it up. Prefer DB for anything long-lived so ops does not depend on redeploys.
+Vercel → **`CORPFLOW_BILLING_EXEMPT_TENANT_IDS`** = comma-separated ids (e.g. `corpflowai`, `luxe-maurice`). Redeploy so lambdas pick it up. Prefer DB for anything long-lived so ops does not depend on redeploys.
+
+---
+
+## Option B2 — All tenants exempt (shared dev / Vercel preview–style testing)
+
+Vercel → **`CORPFLOW_BILLING_EXEMPT_ALL`** = `true`. Redeploy.
+
+**Effect:** Any tenant id passes the approve-build credit gate; no wallet debit. Same warnings as Option B — **not** for production if billing must be real.
 
 ---
 
