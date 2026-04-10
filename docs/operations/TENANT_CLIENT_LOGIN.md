@@ -35,6 +35,16 @@ On a hostname **mapped in `tenant_hostnames`**, `/login` loads tenant chrome fro
 
 If the user enters a **different** Tenant ID than the host map, the API returns **`TENANT_ID_HOST_MISMATCH`** with **`expected_tenant_id`** (and a short hint).
 
+### Client viewing link for Vercel preview deployments (`*.vercel.app`)
+
+The marketing homepage (`/`) normally resolves the tenant from **`tenant_hostnames`** using the request **Host**. Vercel preview URLs do **not** have a host map row, so without an extra step the site shows the generic CorpFlow landing (“preview not configured”).
+
+When **`CORPFLOW_TENANT_PREVIEW_SECRET`** is set (same value in Vercel as in the runtime that serves `/` and the CMP router):
+
+- The Change Console stores **`client_view.automation.client_site_preview_url`** on the ticket: the usual preview URL plus a signed **`cf_preview=`** query parameter.
+- Clients open **that** link in a normal browser — no Vercel login. The token is short-lived (default **14 days**); refresh via **promote-status** (admin “refresh promotion” on `/change`) or wait for cmp-monitor to backfill if the field was missing.
+- **Production** review for Luxe remains **`https://lux.corpflowai.com`** after merge; the signed link is for **branch / preview** hosts only.
+
 ## LuxeMaurice checklist
 
 | Step | Action |
