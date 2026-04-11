@@ -42,7 +42,9 @@ The marketing homepage (`/`) normally resolves the tenant from **`tenant_hostnam
 When **`CORPFLOW_TENANT_PREVIEW_SECRET`** is set (same value in Vercel as in the runtime that serves `/` and the CMP router):
 
 - The Change Console stores **`client_view.automation.client_site_preview_url`** on the ticket: the usual preview URL plus a signed **`cf_preview=`** query parameter.
-- Clients open **that** link in a normal browser — no Vercel login. The token is short-lived (default **14 days**); refresh via **promote-status** (admin “refresh promotion” on `/change`) or wait for cmp-monitor to backfill if the field was missing.
+- **`GET /api/tenant/site`** accepts the same **`cf_preview`** query when the preview hostname is not in **`tenant_hostnames`** (static homepage and tenant chrome pass it from the browser URL).
+- **Vercel Deployment Protection:** if **Vercel Authentication** is enabled for **Preview**, visitors see **“Log in to Vercel”** before CorpFlow runs — clients cannot use the link. For client-facing previews, change **Deployment Protection** on the Vercel project (e.g. do not require Vercel login on Preview, or use Vercel shareable links / your plan’s bypass options). See **`docs/VERCEL_DEPLOYMENT.md`** § *Client-facing preview URLs vs Vercel Deployment Protection*.
+- Clients open **that** link in a normal browser — no **CorpFlow** login for the public marketing preview page; they must also **not** be blocked by **Vercel** login. The token is short-lived (default **14 days**); refresh via **promote-status** (admin “refresh promotion” on `/change`) or wait for cmp-monitor to backfill if the field was missing.
 - **Production** review for Luxe remains **`https://lux.corpflowai.com`** after merge; the signed link is for **branch / preview** hosts only.
 - On **`/change`**, logged-in **tenant** clients can use **Refresh preview link** (same server action as operator “Refresh promotion”) to pull **`promotion`** + **`preview_url`** from GitHub/Vercel into the ticket when automation has already run.
 

@@ -54,8 +54,26 @@ Set on the Vercel project (at least **Production**):
 | **`CORPFLOW_FACTORY_HEALTH_URL`** or **`FACTORY_HEALTH_URL`** | **Site origin** (e.g. `https://your-domain.com`) **or** the full health URL `https://your-domain.com/api/factory/health` — Technical Lead normalizes both. Alias: **`CORPFLOW_PUBLIC_BASE_URL`**. **Note:** the GitHub Actions secret for `factory-health-ping.yml` is the **full** health URL; you can paste the same value here and it will not double-append the path. |
 | **`VERCEL_TOKEN`** (or **`VERCEL_AUTH_TOKEN`**) + **`VERCEL_PROJECT_ID`** | Vercel REST API for preview deployment status (`promote-status`, Technical Lead observer). |
 | **`VERCEL_TEAM_ID`** or **`VERCEL_ORG_ID`** | Required when the project is under a team; must match the project you deploy from GitHub. |
+| **`CORPFLOW_TENANT_PREVIEW_SECRET`** | **Required** for signed **`cf_preview=`** links on **`*.vercel.app`** (Change Console “client site preview” URLs). Use the **same** secret in every environment that must verify the token (typically **Production** + **Preview**). See `.env.template` and `docs/operations/TENANT_CLIENT_LOGIN.md`. |
 
 Use the **same** `VERCEL_*` values everywhere you rely on preview lookup. Deployments are correlated to CMP by branch name: Vercel’s **`meta.githubCommitRef`** must equal **`cmp/{ticketId}`**, with **`ticketId` sanitized** the same way as in `lib/cmp/_lib/vercel-preview.js` (characters outside `[A-Za-z0-9._-]` replaced with `_`). If GitHub creates a different ref string, preview rows will not match until the branch naming matches.
+
+## Client-facing preview URLs vs Vercel Deployment Protection
+
+**Symptom:** Opening a preview link (e.g. `https://…vercel.app/?cf_preview=…`) in a **clean browser** or **incognito** shows **“Log in to Vercel”** instead of the tenant site. That is **not** an application bug: **Vercel Authentication** (under **Deployment Protection**) runs **before** traffic hits CorpFlow. `cf_preview` and Postgres never get a chance to run.
+
+**Requirement for Luxe-style client previews:** preview deployments that you send to **non–Vercel users** must be reachable **without** a Vercel account.
+
+**What to do in the Vercel dashboard** (wording may shift slightly in the UI):
+
+1. Open the **corpflow-ai-command-center** project → **Settings**.
+2. Go to **Deployment Protection** (sometimes grouped under **Security**).
+3. For **Vercel Authentication** (or “Protect deployments with Vercel Authentication”), choose an option that **does not** force anonymous visitors to log in to Vercel for the URLs you share with clients. Typical patterns:
+   - Scope protection to **Production only** and leave **Preview** open; **or**
+   - Turn **off** Vercel Authentication for **Preview** if your risk tolerance allows (previews are public if someone has the URL); **or**
+   - Use Vercel’s **shareable link** / **access** flows if you keep protection on but need a client-safe link (see [Deployment Protection](https://vercel.com/docs/deployment-protection/methods-to-protect-deployments/vercel-authentication) and [bypass / exceptions](https://vercel.com/docs/deployment-protection/methods-to-bypass-deployment-protection) in Vercel’s docs).
+
+**Product default for “real” client review:** keep **`https://lux.corpflowai.com`** (or the tenant’s mapped hostname on **Production**) as the primary review surface; use **`*.vercel.app`** only when you accept preview exposure rules above.
 
 ## Factory: CMP “push to completion” + monitoring
 
