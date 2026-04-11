@@ -1,8 +1,9 @@
 # Validates that required Vercel environment variables exist for the linked project.
 # Add GitHub repository secrets (Settings → Secrets):
 #   VERCEL_TOKEN           — Vercel token with access to the project (Account Settings → Tokens).
-#   VERCEL_ORG_ID          — Team / org id (same as VERCEL_TEAM_ID); from Vercel team settings URL or .vercel/project.json "orgId".
 #   VERCEL_PROJECT_ID      — Project id (prj_...); from Project Settings → General or .vercel/project.json "projectId".
+#   VERCEL_TEAM_ID         — team_... (preferred if you named the secret this way).
+#   VERCEL_ORG_ID          — optional alias of team id (same value as VERCEL_TEAM_ID); scripts accept either.
 #
 # Optional: set repository variable VERCEL_ENV_COMPREHENSIVE=true to also enforce comprehensive_important_keys
 # (see vanguard/vercel-env-policy.json).
@@ -31,8 +32,9 @@ jobs:
       - name: Check Vercel env (API)
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
         run: |
           set -e
           if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
