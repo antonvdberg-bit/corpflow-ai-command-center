@@ -59,6 +59,15 @@
     }
   }
 
+  function tenantSiteApiUrl() {
+    try {
+      const p = new URLSearchParams(window.location.search).get('cf_preview');
+      const t = p != null ? String(p).trim() : '';
+      if (t) return '/api/tenant/site?cf_preview=' + encodeURIComponent(t);
+    } catch (_) {}
+    return '/api/tenant/site';
+  }
+
   async function init() {
     try {
       const kindEarly = pathKind();
@@ -76,7 +85,7 @@
           /* fall through to tenant/site */
         }
       }
-      const r = await fetch('/api/tenant/site', { method: 'GET' });
+      const r = await fetch(tenantSiteApiUrl(), { method: 'GET' });
       const j = await r.json().catch(() => ({}));
       if (!j.tenant_id || !j.site) return;
 

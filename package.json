@@ -18,14 +18,14 @@
     "technical-lead:run": "node scripts/technical-lead-run.mjs",
     "smoke:change-technical-lead": "node scripts/smoke-change-console-technical-lead.mjs",
     "vercel:env:allowlist": "node scripts/vercel-env.mjs allowlist",
-    "vercel:env:check": "node scripts/vercel-env.mjs check --backend auto",
-    "vercel:env:check:comprehensive": "node scripts/vercel-env.mjs check --backend auto --comprehensive",
-    "vercel:env:list": "node scripts/vercel-env.mjs list --backend auto",
-    "vercel:env:diff": "node scripts/vercel-env.mjs diff --backend auto",
+    "vercel:env:check": "node scripts/vercel-env.mjs check --backend=auto",
+    "vercel:env:check:comprehensive": "node scripts/vercel-env.mjs check --backend=auto --comprehensive",
+    "vercel:env:list": "node scripts/vercel-env.mjs list --backend=auto",
+    "vercel:env:diff": "node scripts/vercel-env.mjs diff --backend=auto",
     "vercel:env:pull": "node scripts/vercel-env.mjs pull",
-    "vercel:env:push:dry": "node scripts/vercel-env.mjs push --backend auto",
-    "vercel:env:push": "node scripts/vercel-env.mjs push --backend auto --force",
-    "vercel:env:push:cli": "node scripts/vercel-env.mjs push --backend cli --force"
+    "vercel:env:push:dry": "node scripts/vercel-env.mjs push --backend=auto",
+    "vercel:env:push": "node scripts/vercel-env.mjs push --backend=auto --force",
+    "vercel:env:push:cli": "node scripts/vercel-env.mjs push --backend=cli --force"
   },
   "dependencies": {
     "@prisma/client": "^6.0.0",

@@ -45,4 +45,4 @@ jobs:
           if [ "${{ vars.VERCEL_ENV_COMPREHENSIVE }}" = "true" ]; then
             EXTRA="--comprehensive"
           fi
-          node scripts/vercel-env.mjs check --backend api $EXTRA
+          node scripts/vercel-env.mjs check --backend=api $EXTRA
