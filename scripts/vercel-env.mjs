@@ -117,7 +117,9 @@ function parseArgv(argv) {
 }
 
 function resolveBackend(flags) {
-  const v = (flags.backend || 'auto').toLowerCase();
+  let raw = flags.backend != null ? flags.backend : 'auto';
+  if (raw === true) raw = 'auto';
+  const v = String(raw).toLowerCase();
   if (v === 'api') return 'api';
   if (v === 'cli') return 'cli';
   return process.env.VERCEL_TOKEN ? 'api' : 'cli';
