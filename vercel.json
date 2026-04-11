@@ -6,6 +6,7 @@
     }
   },
   "rewrites": [
+    { "source": "/lux-landing-static", "destination": "/lux-landing-static.html" },
     { "source": "/api/(.*)", "destination": "/api/factory_router?__path=$1" },
     { "source": "/login", "destination": "/login.html" },
     { "source": "/change", "destination": "/change.html" },

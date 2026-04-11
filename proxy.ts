@@ -6,13 +6,13 @@ import type { NextRequest } from 'next/server';
  * Map shape: { "medspa.corpflowai.com": true } (JSON in env).
  */
 export const config = {
-  matcher: ['/', '/index.html'],
+  matcher: ['/'],
 };
 
 // Next 16: export name is `proxy` (not `middleware`).
 export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
-  if (pathname !== '/' && pathname !== '/index.html') {
+  if (pathname !== '/') {
     return NextResponse.next();
   }
 

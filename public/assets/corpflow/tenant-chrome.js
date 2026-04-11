@@ -61,11 +61,17 @@
 
   function tenantSiteApiUrl() {
     try {
-      const p = new URLSearchParams(window.location.search).get('cf_preview');
-      const t = p != null ? String(p).trim() : '';
-      if (t) return '/api/tenant/site?cf_preview=' + encodeURIComponent(t);
-    } catch (_) {}
-    return '/api/tenant/site';
+      const cur = new URL(window.location.href);
+      const pass = new URLSearchParams();
+      for (const k of ['cf_preview', 'x-vercel-protection-bypass', 'x-vercel-set-bypass-cookie']) {
+        const v = cur.searchParams.get(k);
+        if (v != null && String(v).trim() !== '') pass.set(k, v);
+      }
+      if ([...pass.keys()].length === 0) return '/api/tenant/site';
+      return '/api/tenant/site?' + pass.toString();
+    } catch (_) {
+      return '/api/tenant/site';
+    }
   }
 
   async function init() {

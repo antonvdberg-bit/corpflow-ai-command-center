@@ -37,12 +37,12 @@ If the user enters a **different** Tenant ID than the host map, the API returns 
 
 ### Client viewing link for Vercel preview deployments (`*.vercel.app`)
 
-The marketing homepage (`/`) normally resolves the tenant from **`tenant_hostnames`** using the request **Host**. Vercel preview URLs do **not** have a host map row, so without an extra step the site shows the generic CorpFlow landing (“preview not configured”).
+The marketing homepage **`/`** is **`pages/index.js`**: tenant comes from **`tenant_hostnames`** by **Host**, or from signed **`cf_preview`** on **`*.vercel.app`**. (Legacy static Lux HTML is **`/lux-landing-static`** only.)
 
 When **`CORPFLOW_TENANT_PREVIEW_SECRET`** is set (same value in Vercel as in the runtime that serves `/` and the CMP router):
 
 - The Change Console stores **`client_view.automation.client_site_preview_url`** on the ticket: the usual preview URL plus a signed **`cf_preview=`** query parameter.
-- **`GET /api/tenant/site`** verifies the same **`cf_preview`** query parameter when hostname mapping does not yield a tenant (parity with Next `pages/index.js`). Static pages (`public/index.html`, tenant chrome) pass **`cf_preview`** from **`window.location`** into that API call.
+- **`GET /api/tenant/site`** verifies the same **`cf_preview`** query when hostname mapping does not yield a tenant (parity with **`pages/index.js`**). **`/lux-landing-static`**, **`/login`**, **`/change`**, etc. pass **`cf_preview`** (and Vercel bypass params when present) from **`window.location`** into that API call.
 - **Vercel Deployment Protection:** if **Vercel Authentication** is enabled for **Preview**, visitors see **“Log in to Vercel”** before CorpFlow runs. **Mitigation in app:** add **Protection bypass for automation** in Vercel (project settings); deployments receive **`VERCEL_AUTOMATION_BYPASS_SECRET`**, and **`client_site_preview_url`** for **`*.vercel.app`** automatically includes **`x-vercel-protection-bypass`** + **`x-vercel-set-bypass-cookie=true`**. Re-sync the ticket preview URL after creating or rotating the bypass. Alternatively, relax **Deployment Protection** or use Vercel **shareable links**. See **`docs/VERCEL_DEPLOYMENT.md`** § *Client-facing preview URLs vs Vercel Deployment Protection*.
 - Clients open **that** link in a normal browser — no **CorpFlow** login for the public marketing preview page; they must also **not** be blocked by **Vercel** login. The token is short-lived (default **14 days**); refresh via **promote-status** (admin “refresh promotion” on `/change`) or wait for cmp-monitor to backfill if the field was missing.
 - **Production** review for Luxe remains **`https://lux.corpflowai.com`** after merge; the signed link is for **branch / preview** hosts only.
