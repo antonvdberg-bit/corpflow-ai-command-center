@@ -75,6 +75,8 @@ Use the **same** `VERCEL_*` values everywhere you rely on preview lookup. Deploy
 
 **Product default for “real” client review:** keep **`https://lux.corpflowai.com`** (or the tenant’s mapped hostname on **Production**) as the primary review surface; use **`*.vercel.app`** only when you accept preview exposure rules above.
 
+**CorpFlow behavior (after merge):** when **`VERCEL_AUTOMATION_BYPASS_SECRET`** is present (Vercel injects it after you add **Protection bypass for automation**), **`client_site_preview_url`** on CMP tickets automatically appends **`x-vercel-protection-bypass`** and **`x-vercel-set-bypass-cookie=true`** for **`*.vercel.app`** URLs only. Refresh the preview link (**Refresh promotion** / **Refresh preview link** on `/change`) after adding or rotating the bypass secret so stored URLs pick it up. Optional alias **`CORPFLOW_VERCEL_PROTECTION_BYPASS_SECRET`** is read if the system env is unset (e.g. local scripts). Treat bypass-in-URL like a gate key: rotate in Vercel if leaked.
+
 ## Factory: CMP “push to completion” + monitoring
 
 These endpoints exist to keep **client outcomes moving** even when branch/PR evidence is missing or GitHub dispatch stalled.
