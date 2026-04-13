@@ -2223,7 +2223,12 @@
 
         function replayThreadFromConsoleJson(consoleJson) {
           try {
-            const msgs = consoleJson && Array.isArray(consoleJson.messages) ? consoleJson.messages : [];
+            const msgs =
+              consoleJson && Array.isArray(consoleJson.messages)
+                ? consoleJson.messages
+                : Array.isArray(consoleJson)
+                  ? consoleJson
+                  : [];
             if (!msgs.length) return;
             const target = isTenantClient() ? $('tenantThread') : thread;
             if (!target) return;
@@ -2863,6 +2868,8 @@
 
         function resolveStructuredBrief(merged) {
           if (!merged || typeof merged !== 'object') return null;
+          const bs = merged.brief_structured;
+          if (bs && typeof bs === 'object') return bs;
           const direct = merged.brief;
           if (direct && typeof direct === 'object') {
             const has = Object.keys(direct).some((k) => {
@@ -3887,9 +3894,8 @@
             if ((!String(descEl.value || '').trim()) && gj.description) {
               descEl.value = String(gj.description);
             }
-            if (gj.console_json) {
-              replayThreadFromConsoleJson(gj.console_json);
-            }
+            if (gj.console_json) replayThreadFromConsoleJson(gj.console_json);
+            else if (gj.refinement_messages) replayThreadFromConsoleJson(gj.refinement_messages);
           } catch (_) {}
         }
 
@@ -4101,7 +4107,7 @@
             const noteEl = $('clientPreviewReviewNote');
             const note = noteEl ? String(noteEl.value || '').trim() : '';
             await withActivity(decision === 'approve' ? 'Recording approval…' : 'Recording change request…', async () => {
-              await post('preview-review', { ticket_id: tid, decision, note });
+              await post('preview-review', { ticket_id: tid, decision, message: note });
               await syncCurrentTicket();
             });
           } catch (e) {
