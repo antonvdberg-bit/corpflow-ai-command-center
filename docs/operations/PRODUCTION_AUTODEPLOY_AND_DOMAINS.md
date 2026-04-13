@@ -36,7 +36,6 @@ If a customer hostname returns Vercel **`404: NOT_FOUND`** with an id like `sin1
 3. Redeploy **Production**.
 
 **Verify:** `GET /` should return **200** (or a redirect, if intentionally configured). If you still see Vercel `NOT_FOUND`, you’re still not reaching the Next router for `/`.
-
 ## Autodeploy loop (expected)
 
 1. Merge to **`main`** (via PR).
@@ -51,7 +50,7 @@ If a customer hostname returns Vercel **`404: NOT_FOUND`** with an id like `sin1
 3. **DNS** at the registrar — match Vercel’s required records (CNAME to `cname.vercel-dns.com` or the A/ALIAS set Vercel shows). Stale A records to old IPs cause NOT_FOUND or wrong project.
 4. **`GET /api/factory/health`** on the **same origin** the customer uses — if this is 404, the hostname is not hitting this app’s Production deployment.
 5. If **only `/`** is 404 but `/change` + `/api/*` are 200, follow **Special case** above (Vercel framework/output settings).
-5. After DNS or domain changes, wait for TTL propagation (minutes to hours).
+6. After DNS or domain changes, wait for TTL propagation (minutes to hours).
 
 ## Automated guards (GitHub Actions)
 
