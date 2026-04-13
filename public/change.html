@@ -317,6 +317,29 @@
         box-shadow: 0 0 8px rgba(52, 211, 153, 0.5);
         animation: cf-pulse 1.5s ease-in-out infinite;
       }
+      .cf-stage-banner {
+        border: 1px solid rgba(71, 85, 105, 0.55);
+        background: rgba(2, 6, 23, 0.55);
+        border-radius: 0.75rem;
+        padding: 0.75rem 0.9rem;
+      }
+      .cf-stage-k {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: rgb(148 163 184);
+      }
+      .cf-stage-v {
+        margin-top: 0.15rem;
+        font-size: 13px;
+        color: rgb(226 232 240);
+        font-weight: 650;
+      }
+      .cf-stage-next {
+        margin-top: 0.25rem;
+        font-size: 12px;
+        color: rgb(203 213 225);
+      }
     </style>
   </head>
   <body class="min-h-screen bg-slate-950 text-slate-100">
@@ -348,6 +371,13 @@
           <a class="text-sky-300 underline" href="/growth">Growth pipeline</a>
           <a class="text-sky-300/80 underline" href="/?admin=true">Back to intake</a>
         </div>
+      </div>
+
+      <div class="mt-4 cf-stage-banner">
+        <div class="cf-stage-k">Current stage</div>
+        <div id="cfWorkflowStage" class="cf-stage-v">—</div>
+        <div class="cf-stage-k mt-2">Next action</div>
+        <div id="cfWorkflowNext" class="cf-stage-next">—</div>
       </div>
 
       <div id="modeBar" class="hidden mt-4 rounded-xl border border-slate-800 bg-slate-900/30 px-4 py-3 text-xs text-slate-200"></div>
@@ -2223,7 +2253,12 @@
 
         function replayThreadFromConsoleJson(consoleJson) {
           try {
-            const msgs = consoleJson && Array.isArray(consoleJson.messages) ? consoleJson.messages : [];
+            const msgs =
+              consoleJson && Array.isArray(consoleJson.messages)
+                ? consoleJson.messages
+                : Array.isArray(consoleJson)
+                  ? consoleJson
+                  : [];
             if (!msgs.length) return;
             const target = isTenantClient() ? $('tenantThread') : thread;
             if (!target) return;
@@ -2457,6 +2492,9 @@
           } catch (_) {}
           try {
             renderCompletionScorecard(eff);
+          } catch (_) {}
+          try {
+            renderWorkflowBannerFromBrief(eff);
           } catch (_) {}
           try {
             renderProgressCard(lastBrief || {});
@@ -2863,6 +2901,8 @@
 
         function resolveStructuredBrief(merged) {
           if (!merged || typeof merged !== 'object') return null;
+          const bs = merged.brief_structured;
+          if (bs && typeof bs === 'object') return bs;
           const direct = merged.brief;
           if (direct && typeof direct === 'object') {
             const has = Object.keys(direct).some((k) => {
@@ -3618,6 +3658,37 @@
           );
         }
 
+        function workflowLabel(state) {
+          const s = String(state || '').trim();
+          const map = {
+            intake: 'Intake',
+            refining: 'Refining',
+            ready_for_estimate: 'Ready for estimate',
+            estimated: 'Estimated',
+            approved_for_build: 'Approved for build',
+            building: 'Building',
+            preview_ready: 'Preview ready',
+            in_review: 'In review',
+            changes_requested: 'Changes requested',
+            client_approved: 'Client approved',
+            publishing: 'Publishing',
+            published: 'Published',
+          };
+          return map[s] || (s ? s : '—');
+        }
+
+        function renderWorkflowBannerFromBrief(merged) {
+          const stEl = $('cfWorkflowStage');
+          const nxEl = $('cfWorkflowNext');
+          if (!stEl || !nxEl) return;
+          const tp = merged && merged.ticket_progress && typeof merged.ticket_progress === 'object' ? merged.ticket_progress : null;
+          const cv = tp && tp.client_view && typeof tp.client_view === 'object' ? tp.client_view : {};
+          const wf = cv.workflow_state != null ? String(cv.workflow_state) : '';
+          const next = cv.workflow_next_action != null ? String(cv.workflow_next_action) : '';
+          stEl.textContent = workflowLabel(wf);
+          nxEl.textContent = next || '—';
+        }
+
         const modeBarHost = $('modeBar');
         if (modeBarHost) {
           modeBarHost.addEventListener('click', (ev) => {
@@ -3887,9 +3958,8 @@
             if ((!String(descEl.value || '').trim()) && gj.description) {
               descEl.value = String(gj.description);
             }
-            if (gj.console_json) {
-              replayThreadFromConsoleJson(gj.console_json);
-            }
+            if (gj.console_json) replayThreadFromConsoleJson(gj.console_json);
+            else if (gj.refinement_messages) replayThreadFromConsoleJson(gj.refinement_messages);
           } catch (_) {}
         }
 
@@ -4101,7 +4171,7 @@
             const noteEl = $('clientPreviewReviewNote');
             const note = noteEl ? String(noteEl.value || '').trim() : '';
             await withActivity(decision === 'approve' ? 'Recording approval…' : 'Recording change request…', async () => {
-              await post('preview-review', { ticket_id: tid, decision, note });
+              await post('preview-review', { ticket_id: tid, decision, message: note });
               await syncCurrentTicket();
             });
           } catch (e) {
