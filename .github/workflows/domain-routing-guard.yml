@@ -6,6 +6,8 @@
 # Configure repository secrets (Settings → Secrets and variables → Actions):
 # - CORPFLOW_CORE_BASE_URL  (e.g. https://core.corpflowai.com)
 # - CORPFLOW_APEX_BASE_URL  (e.g. https://corpflowai.com)  (optional)
+# - CORPFLOW_TENANT_CLIENT_BASE_URL  (e.g. https://lux.corpflowai.com)  (optional)
+#   Catches Vercel NOT_FOUND on tenant Production host while Preview still works.
 #
 # If secrets are unset, the job exits 0 (skipped) so forks stay green.
 
@@ -81,4 +83,42 @@ jobs:
             fi
           done
           echo "Apex routing guard: OK"
+
+      - name: Verify tenant client Production hostname (optional)
+        env:
+          TENANT_BASE: ${{ secrets.CORPFLOW_TENANT_CLIENT_BASE_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "${TENANT_BASE:-}" ]; then
+            echo "Skip: CORPFLOW_TENANT_CLIENT_BASE_URL secret not set."
+            exit 0
+          fi
+          base="${TENANT_BASE%/}"
+          urls=(
+            "$base/"
+            "$base/change"
+            "$base/login"
+            "$base/api/factory/health"
+            "$base/api/tenant/site"
+          )
+          for u in "${urls[@]}"; do
+            echo "GET $u"
+            code="$(curl -sS -L --max-time 30 -o /tmp/body -w "%{http_code}" "$u" || echo "000")"
+            echo "HTTP $code"
+            head -c 400 /tmp/body || true
+            echo
+            if [ "$code" != "200" ]; then
+              echo "::error::Tenant routing guard failed: expected HTTP 200 for $u, got $code (Vercel NOT_FOUND usually means domain not on Production or deploy failed — see docs/operations/PRODUCTION_AUTODEPLOY_AND_DOMAINS.md)"
+              exit 1
+            fi
+          done
+          curl -sS -L --max-time 30 "$base/api/factory/health" | grep -q '"ok"' || {
+            echo "::error::Tenant routing guard: /api/factory/health body missing ok"
+            exit 1
+          }
+          curl -sS -L --max-time 30 "$base/api/tenant/site" | grep -q '"ok"' || {
+            echo "::error::Tenant routing guard: /api/tenant/site body missing ok"
+            exit 1
+          }
+          echo "Tenant client routing guard: OK"
 
