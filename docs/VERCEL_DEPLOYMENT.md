@@ -1,5 +1,7 @@
 # Vercel deployment loop (CorpFlow)
 
+**Customer-facing URLs vs deployments:** Read **`docs/operations/PRODUCTION_AUTODEPLOY_AND_DOMAINS.md`** — one Production spine (`main` → Vercel Production → custom domains). Vercel **`404 NOT_FOUND`** on a hostname like `lux.corpflowai.com` is almost always **domain / DNS / failed Production deploy**, not application routing.
+
 ## What broke production before (Hobby plan)
 
 Vercel **Hobby** rejects projects whose `vercel.json` **crons** run **more than once per day**. A schedule like `*/20 * * * *` caused **every** production deploy to fail at config time — including Git-triggered builds — so `main` moved forward while production stayed on an old commit.
