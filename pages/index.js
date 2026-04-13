@@ -5,6 +5,7 @@ import { PrismaClient } from '@prisma/client';
 
 import { defaultPublicSite, mergeSiteDraft } from '../lib/server/tenant-site-public.js';
 import { verifyTenantPreviewToken } from '../lib/server/tenant-preview-token.js';
+import { isGhostHost } from '../lib/server/ghost-host.js';
 
 /**
  * Minimal tenant marketing site renderer (v1).
@@ -402,6 +403,9 @@ export default function Home({ mode, site }) {
 
 export async function getServerSideProps({ req }) {
   const host = normalizeHost(req);
+  if (host && isGhostHost(host)) {
+    return { redirect: { destination: '/log-stream.html', permanent: false } };
+  }
   const prisma = new PrismaClient();
   try {
     if (!host) {
