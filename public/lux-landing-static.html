@@ -159,6 +159,7 @@
             <button type="submit" id="btnSubmit">Initiate handoff</button>
           </form>
           <div id="msg" class="muted" style="margin-top: 10px; font-size: 12px;">Loading tenant…</div>
+          <pre id="tenantResolutionDebug" class="muted" style="display:none; margin-top:12px; font-size:11px; white-space:pre-wrap; word-break:break-all; max-width:100%;"></pre>
         </div>
       </div>
     </div>
@@ -370,11 +371,17 @@
 
       function tenantSiteApiUrl() {
         try {
-          const p = new URLSearchParams(window.location.search).get('cf_preview');
-          const t = p != null ? String(p).trim() : '';
-          if (t) return '/api/tenant/site?cf_preview=' + encodeURIComponent(t);
-        } catch (_) {}
-        return '/api/tenant/site';
+          const cur = new URL(window.location.href);
+          const pass = new URLSearchParams();
+          for (const k of ['cf_preview', 'cf_debug', 'x-vercel-protection-bypass', 'x-vercel-set-bypass-cookie']) {
+            const v = cur.searchParams.get(k);
+            if (v != null && String(v).trim() !== '') pass.set(k, v);
+          }
+          if ([...pass.keys()].length === 0) return '/api/tenant/site';
+          return '/api/tenant/site?' + pass.toString();
+        } catch (_) {
+          return '/api/tenant/site';
+        }
       }
 
       async function load() {
@@ -390,6 +397,16 @@
             setText('tagline', 'This domain is not mapped to a tenant yet.');
             document.getElementById('tenant').textContent = '—';
             msg('Ask an operator to map this hostname to a tenant_id.');
+            const dbg = document.getElementById('tenantResolutionDebug');
+            if (dbg) {
+              if (j && j.tenant_resolution && typeof j.tenant_resolution === 'object') {
+                dbg.style.display = 'block';
+                dbg.textContent = JSON.stringify(j.tenant_resolution, null, 2);
+              } else {
+                dbg.style.display = 'none';
+                dbg.textContent = '';
+              }
+            }
             return;
           }
           __luxSite = site;

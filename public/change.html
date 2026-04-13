@@ -709,6 +709,10 @@
               <div class="text-[11px] font-semibold text-slate-200 uppercase tracking-wide">Build status</div>
               <div id="pipelineBody" class="mt-2 space-y-2 text-[11px] text-slate-300"></div>
             </div>
+            <div id="cmpDeliveryStateCard" class="hidden mb-4 rounded-xl border border-slate-800 bg-slate-950/50 p-3">
+              <div class="text-[11px] font-semibold text-slate-200 uppercase tracking-wide">Preview → merge status</div>
+              <div id="cmpDeliveryStateBody" class="mt-2 text-[11px] text-slate-300 leading-relaxed space-y-1"></div>
+            </div>
             <div class="flex items-center justify-between gap-2 flex-wrap">
               <div class="text-xs text-slate-300 mb-2">Automation</div>
               <div class="flex items-center gap-2 flex-wrap">
@@ -1936,6 +1940,75 @@
           );
         }
 
+        function renderCmpDeliveryStateStrip(b) {
+          const card = $('cmpDeliveryStateCard');
+          const el = $('cmpDeliveryStateBody');
+          if (!card || !el) return;
+          const tp = b && b.ticket_progress;
+          const cv = tp && tp.client_view && typeof tp.client_view === 'object' ? tp.client_view : {};
+          const cd = cv.cmp_delivery && typeof cv.cmp_delivery === 'object' ? cv.cmp_delivery : null;
+          if (!cd || !String(cd.phase || '').trim()) {
+            card.classList.add('hidden');
+            el.innerHTML = '';
+            return;
+          }
+          card.classList.remove('hidden');
+          const phase = String(cd.phase || '');
+          const titles = {
+            preview_pending: 'Waiting for preview link and pull request',
+            preview_failed: 'Preview or GitHub linkage needs attention',
+            preview_ready: 'Preview link is live — waiting for pull request to link',
+            client_review: 'Open your site preview, then approve or request changes below',
+            client_approved: 'You approved — production merge runs when CI is green and an admin merges (or auto-merge if enabled)',
+            merge_blocked: 'Merge is blocked',
+            merged: 'Merged toward production — allow a few minutes for deploy',
+          };
+          const title = titles[phase] || phase;
+          const last = cd.last_action ? '<div class="text-slate-400">Last step: ' + escapeHtml(String(cd.last_action)) + '</div>' : '';
+          const block =
+            cd.merge_block_reason && String(cd.merge_block_reason).trim()
+              ? '<div class="text-amber-200/95 mt-1">' + escapeHtml(String(cd.merge_block_reason)) + '</div>'
+              : '';
+          const prLine =
+            cd.pr_url && String(cd.pr_url).trim()
+              ? '<div class="mt-1">PR: <a class="text-sky-300 underline break-all" target="_blank" rel="noreferrer" href="' +
+                escapeHtml(String(cd.pr_url)) +
+                '">' +
+                escapeHtml('Open on GitHub') +
+                '</a></div>'
+              : '';
+          const pv =
+            cd.preview_url_effective && String(cd.preview_url_effective).trim()
+              ? '<div class="mt-1 text-slate-400 break-all">Preview: ' + escapeHtml(String(cd.preview_url_effective)) + '</div>'
+              : '';
+          const labelOk =
+            cd.github_label_client_approved === true
+              ? '<div class="text-emerald-400/90 mt-1">GitHub: client-approved label present</div>'
+              : cd.github_label_client_approved === false
+                ? '<div class="text-amber-200/90 mt-1">GitHub: client-approved label missing — re-approve preview or add label in GitHub</div>'
+                : '';
+          const ci =
+            cd.ci_checked === true
+              ? cd.ci_has_failure
+                ? '<div class="text-rose-300/95 mt-1">CI: a check failed on the latest commit</div>'
+                : cd.ci_has_pending
+                  ? '<div class="text-amber-200/90 mt-1">CI: checks still running</div>'
+                  : '<div class="text-emerald-400/90 mt-1">CI: latest checks completed without failure</div>'
+              : '';
+          el.innerHTML =
+            '<div class="font-medium text-slate-100">' +
+            escapeHtml(title) +
+            '</div><div class="text-[10px] uppercase tracking-wide text-slate-500 mt-0.5">Phase: ' +
+            escapeHtml(phase) +
+            '</div>' +
+            last +
+            prLine +
+            pv +
+            labelOk +
+            ci +
+            block;
+        }
+
         function humanTicketPhase(merged, tp) {
           const st = String((tp && tp.status) || (merged && merged.status) || '').trim();
           const sg = String((tp && tp.stage) || (merged && merged.stage) || '').trim();
@@ -1965,12 +2038,14 @@
 
           if (!tid && !approve) {
             card.classList.add('hidden');
+            renderCmpDeliveryStateStrip({});
             return;
           }
           if (isTenant) {
             if (!approve) {
               card.classList.add('hidden');
               body.innerHTML = '';
+              renderCmpDeliveryStateStrip(b);
               return;
             }
             card.classList.remove('hidden');
@@ -2060,6 +2135,7 @@
               );
             }
             body.innerHTML = rowsT.join('');
+            renderCmpDeliveryStateStrip(b);
             return;
           }
           card.classList.remove('hidden');
@@ -2075,6 +2151,7 @@
               ),
             );
             body.innerHTML = rows.join('');
+            renderCmpDeliveryStateStrip(b);
             return;
           }
 
@@ -2109,6 +2186,7 @@
             );
           }
           body.innerHTML = rows.join('');
+          renderCmpDeliveryStateStrip(b);
         }
 
         function setPipelineSubmitting(kind) {
@@ -2415,7 +2493,9 @@
           const a = auto && typeof auto === 'object' ? auto : {};
           const raw = typeof a.preview_url === 'string' ? a.preview_url.trim() : '';
           const client = typeof a.client_site_preview_url === 'string' ? a.client_site_preview_url.trim() : '';
-          return { raw, client, openUrl: client || raw };
+          const signingIssue =
+            typeof a.client_site_preview_signing_issue === 'string' ? a.client_site_preview_signing_issue.trim() : '';
+          return { raw, client, openUrl: client || raw, signingIssue };
         }
 
         /** Tenants use the same API as admins (`promote-status`) to pull PR + Vercel preview into Postgres. */
@@ -2452,13 +2532,18 @@
             const stT = String(tpCv.status || '').toLowerCase();
             const stgT = String(tpCv.stage || '').toLowerCase();
             if (previewFromProgress) {
+              const missSign =
+                pv.signingIssue === 'MISSING_CORPFLOW_TENANT_PREVIEW_SECRET' &&
+                /vercel\.app/i.test(String(previewRaw || previewFromProgress || ''));
               human.push(
                 '<div class="rounded-lg border border-sky-500/20 bg-sky-500/5 px-3 py-2 text-[11px] text-sky-100 leading-relaxed">' +
                   '<strong class="text-sky-200">Site preview:</strong> ' +
                   asLink(previewFromProgress, previewFromProgress) +
                   (previewClient
                     ? '<div class="text-sky-200/80 mt-1.5 leading-snug">Opens your tenant homepage on the preview deployment — you do not need a Vercel account.</div>'
-                    : '') +
+                    : missSign
+                      ? '<div class="text-amber-200/95 mt-1.5 leading-snug"><strong class="text-amber-100">Operator fix:</strong> Vercel Production is missing <code class="text-amber-50">CORPFLOW_TENANT_PREVIEW_SECRET</code>, so this link has no signed <code class="text-amber-50">cf_preview</code> — the preview host will show “not mapped to a tenant”. Add the secret (same value on Preview + Production), redeploy, then <strong class="text-amber-50">Refresh promotion</strong>.</div>'
+                      : '') +
                   '</div>',
               );
             } else if (tpAuto.dispatch_ok === true) {
@@ -2609,6 +2694,9 @@
           }
 
           if (previewFromProgress) {
+            const missSignAdmin =
+              pv.signingIssue === 'MISSING_CORPFLOW_TENANT_PREVIEW_SECRET' &&
+              /vercel\.app/i.test(String(previewRaw || previewFromProgress || ''));
             human.push(
               '<div class="rounded-lg border border-sky-500/20 bg-sky-500/5 px-3 py-2 text-[11px] text-sky-100 leading-relaxed">' +
                 '<strong class="text-sky-200">Site preview (share with client):</strong> ' +
@@ -2617,7 +2705,9 @@
                   ? '<div class="text-sky-200/80 mt-1.5">Signed link for tenant homepage on a <code class="text-[10px]">*.vercel.app</code> host. Raw deployment URL: ' +
                     asLink(previewRaw, previewRaw) +
                     '</div>'
-                  : '') +
+                  : missSignAdmin
+                    ? '<div class="text-amber-200/95 mt-1.5 leading-snug"><strong class="text-amber-100">Missing</strong> <code class="text-amber-50">CORPFLOW_TENANT_PREVIEW_SECRET</code> on Vercel — add it (same on Preview + Production), redeploy, then refresh promotion so the client link includes <code class="text-amber-50">cf_preview</code>.</div>'
+                    : '') +
                 '</div>',
             );
           }
