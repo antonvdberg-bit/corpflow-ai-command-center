@@ -22,6 +22,7 @@ test('preview token round-trip when secret configured', () => {
     const url = buildClientSitePreviewUrl('https://example-abc123.vercel.app/', 'luxe-maurice');
     assert.ok(url && url.includes('cf_preview='));
     const u = new URL(url);
+    assert.equal(u.pathname, '/lux-landing-static');
     const v2 = verifyTenantPreviewToken(u.searchParams.get('cf_preview') || '');
     assert.equal(v2.ok, true);
     assert.equal(v2.tenantId, 'luxe-maurice');
@@ -108,4 +109,16 @@ test('isSafeTenantIdForPreviewToken', () => {
   assert.equal(isSafeTenantIdForPreviewToken('luxe-maurice'), true);
   assert.equal(isSafeTenantIdForPreviewToken('../etc/passwd'), false);
   assert.equal(isSafeTenantIdForPreviewToken(''), false);
+});
+
+test('vercel.app root becomes /lux-landing-static; explicit path preserved', () => {
+  process.env.CORPFLOW_TENANT_PREVIEW_SECRET = 'unit-test-secret-at-least-16-chars';
+  try {
+    const root = new URL(buildClientSitePreviewUrl('https://x.vercel.app', 'luxe-maurice') || '');
+    assert.equal(root.pathname, '/lux-landing-static');
+    const sub = new URL(buildClientSitePreviewUrl('https://x.vercel.app/foo/bar', 'luxe-maurice') || '');
+    assert.equal(sub.pathname, '/foo/bar');
+  } finally {
+    delete process.env.CORPFLOW_TENANT_PREVIEW_SECRET;
+  }
 });
