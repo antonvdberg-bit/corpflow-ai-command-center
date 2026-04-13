@@ -13,6 +13,30 @@
 
 If a customer hostname returns Vercel **`404: NOT_FOUND`** with an id like `sin1::…`, that almost always means **no live Production deployment serves that hostname** (wrong project, domain removed, DNS pointing elsewhere, or last Production build failed). The app’s Node/Next code is not consulted yet — **fix Vercel + DNS first**.
 
+## Special case: only `/` is `NOT_FOUND` but `/change` + `/api/*` work
+
+**Symptom (real prod failure mode):**
+
+- `GET https://lux.corpflowai.com/` returns **Vercel** `404: NOT_FOUND` (plain text, header `X-Vercel-Error: NOT_FOUND`)
+- But these all return **200** on the same host:
+  - `/change` (static HTML)
+  - `/login` (static HTML)
+  - `/api/factory/health` (serverless)
+  - `/api/tenant/site` (serverless)
+
+**Meaning:** the hostname is reaching the correct Vercel project, but **`/` is not being served by Next.js** (and there is no static `public/index.html` fallback). This usually happens when the Vercel project is configured like a static site (static output dir) even though the repo is a Next.js app.
+
+**Fix (Vercel project settings):**
+
+1. Vercel → **Project → Settings → Build & Development Settings**
+2. Ensure:
+   - **Framework Preset** = **Next.js**
+   - **Output Directory** is **blank** (do not set it to `public`)
+   - **Build Command** is the default (or `npm run vercel-build`)
+3. Redeploy **Production**.
+
+**Verify:** `GET /` should return **200** (or a redirect, if intentionally configured). If you still see Vercel `NOT_FOUND`, you’re still not reaching the Next router for `/`.
+
 ## Autodeploy loop (expected)
 
 1. Merge to **`main`** (via PR).
@@ -26,6 +50,7 @@ If a customer hostname returns Vercel **`404: NOT_FOUND`** with an id like `sin1
 2. **Vercel → Settings → Domains** — confirm `lux.corpflowai.com` (and apex/core as needed) is listed on **this** project and shows **Valid**.
 3. **DNS** at the registrar — match Vercel’s required records (CNAME to `cname.vercel-dns.com` or the A/ALIAS set Vercel shows). Stale A records to old IPs cause NOT_FOUND or wrong project.
 4. **`GET /api/factory/health`** on the **same origin** the customer uses — if this is 404, the hostname is not hitting this app’s Production deployment.
+5. If **only `/`** is 404 but `/change` + `/api/*` are 200, follow **Special case** above (Vercel framework/output settings).
 5. After DNS or domain changes, wait for TTL propagation (minutes to hours).
 
 ## Automated guards (GitHub Actions)

@@ -2,6 +2,23 @@
 
 **Customer-facing URLs vs deployments:** Read **`docs/operations/PRODUCTION_AUTODEPLOY_AND_DOMAINS.md`** — one Production spine (`main` → Vercel Production → custom domains). Vercel **`404 NOT_FOUND`** on a hostname like `lux.corpflowai.com` is almost always **domain / DNS / failed Production deploy**, not application routing.
 
+## Quick sanity: ensure Vercel is treating this as a Next.js app
+
+There is a failure mode where the hostname hits the right project and serverless rewrites work, but the Next router never serves `/`.
+
+**Symptom:**
+
+- `/` is **Vercel `404: NOT_FOUND`**
+- but `/change`, `/login`, and `/api/*` are **200** (because `vercel.json` rewrites those to static HTML and a serverless API entry point)
+
+**Fix:** Vercel → **Project → Settings → Build & Development Settings**
+
+- **Framework Preset** = **Next.js**
+- **Output Directory** = *(blank)* (do not set to `public`)
+- **Build Command** = default (or `npm run vercel-build`)
+
+Then redeploy **Production** and re-check `GET /` on the tenant hostname (e.g. `https://lux.corpflowai.com/`).
+
 ## What broke production before (Hobby plan)
 
 Vercel **Hobby** rejects projects whose `vercel.json` **crons** run **more than once per day**. A schedule like `*/20 * * * *` caused **every** production deploy to fail at config time — including Git-triggered builds — so `main` moved forward while production stayed on an old commit.
