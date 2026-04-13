@@ -4,8 +4,11 @@ import assert from 'node:assert/strict';
 import {
   signTenantPreviewToken,
   verifyTenantPreviewToken,
+  verifyTenantPreviewTokenDetailed,
   buildClientSitePreviewUrl,
   isSafeTenantIdForPreviewToken,
+  isTenantPreviewSecretConfigured,
+  withClientSitePreviewFields,
 } from '../lib/server/tenant-preview-token.js';
 
 test('preview token round-trip when secret configured', () => {
@@ -59,6 +62,33 @@ test('sign returns null without secret', () => {
   delete process.env.CORPFLOW_TENANT_PREVIEW_SECRET;
   assert.equal(signTenantPreviewToken('luxe-maurice'), null);
   assert.equal(verifyTenantPreviewToken('anything.here').ok, false);
+  const d = verifyTenantPreviewTokenDetailed('anything.here');
+  assert.equal(d.ok, false);
+  assert.equal(d.reason, 'NO_SECRET_ON_SERVER');
+  assert.equal(isTenantPreviewSecretConfigured(), false);
+});
+
+test('verifyTenantPreviewTokenDetailed reasons', () => {
+  delete process.env.CORPFLOW_TENANT_PREVIEW_SECRET;
+  assert.equal(verifyTenantPreviewTokenDetailed('').reason, 'NO_SECRET_ON_SERVER');
+  process.env.CORPFLOW_TENANT_PREVIEW_SECRET = 'unit-test-secret-at-least-16-chars';
+  try {
+    assert.equal(isTenantPreviewSecretConfigured(), true);
+    assert.equal(verifyTenantPreviewTokenDetailed('').reason, 'TOKEN_ABSENT');
+    assert.equal(verifyTenantPreviewTokenDetailed('nope').reason, 'MALFORMED');
+    const tok = signTenantPreviewToken('luxe-maurice', 3600);
+    assert.ok(tok);
+    assert.equal(verifyTenantPreviewTokenDetailed(tok + 'x').reason, 'BAD_SIGNATURE');
+  } finally {
+    delete process.env.CORPFLOW_TENANT_PREVIEW_SECRET;
+  }
+});
+
+test('withClientSitePreviewFields flags missing secret for vercel.app', () => {
+  delete process.env.CORPFLOW_TENANT_PREVIEW_SECRET;
+  const a = withClientSitePreviewFields({}, 'https://prj-abc123.vercel.app/', 'luxe-maurice');
+  assert.equal(a.client_site_preview_signing_issue, 'MISSING_CORPFLOW_TENANT_PREVIEW_SECRET');
+  assert.equal(a.client_site_preview_url, undefined);
 });
 
 test('reject tampered token', () => {

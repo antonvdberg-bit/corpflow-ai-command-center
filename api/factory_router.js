@@ -89,6 +89,34 @@ function normalizeRoutingPath(req) {
 }
 
 /**
+ * Some serverless runtimes only expose `__path` on `req.query` after the Vercel rewrite while
+ * leaving `cf_preview` (and other pass-through params) on `req.url` only. Merge so tenant preview works.
+ *
+ * @param {import('http').IncomingMessage & { query?: Record<string, unknown> }} req
+ * @returns {void}
+ */
+function augmentReqQueryFromUrl(req) {
+  try {
+    const raw = req.url || '';
+    if (raw.indexOf('?') < 0) return;
+    const u = raw.startsWith('http') ? new URL(raw) : new URL(raw, 'http://localhost');
+    const q = req.query && typeof req.query === 'object' ? { ...req.query } : {};
+    for (const [k, v] of u.searchParams.entries()) {
+      const cur = q[k];
+      const empty =
+        cur === undefined ||
+        cur === null ||
+        (Array.isArray(cur) && cur.length === 0) ||
+        (typeof cur === 'string' && cur.trim() === '');
+      if (empty) q[k] = v;
+    }
+    req.query = q;
+  } catch {
+    /* ignore */
+  }
+}
+
+/**
  * Sync tenant hint from Host (no I/O). Sets req.corpflowContext for downstream handlers (e.g. CMP).
  *
  * **Surface rules:** `surface: "core"` = factory ops host (no client tenant derived from subdomain).
@@ -344,6 +372,8 @@ async function handleFactoryHealth(req, res) {
       default_apex_tenant_id: cfg('CORPFLOW_DEFAULT_TENANT_ID', 'root'),
       tenant_host_map_configured: Boolean(cfg('CORPFLOW_TENANT_HOST_MAP', '').trim()),
       root_domain: cfg('CORPFLOW_ROOT_DOMAIN', 'corpflowai.com'),
+      /** Same value must exist on Preview + Production so `cf_preview` verifies on `*.vercel.app` deployments. */
+      tenant_preview_secret_configured: Boolean(String(cfg('CORPFLOW_TENANT_PREVIEW_SECRET', '')).trim()),
     },
     present,
     hint: ok
@@ -640,6 +670,7 @@ async function handleUiContext(req, res) {
 }
 
 export default async function handler(req, res) {
+  augmentReqQueryFromUrl(req);
   const pathSeg = normalizeRoutingPath(req);
   await applyCorpflowHostTenantResolution(req);
 

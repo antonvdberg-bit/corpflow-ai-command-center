@@ -63,7 +63,7 @@
     try {
       const cur = new URL(window.location.href);
       const pass = new URLSearchParams();
-      for (const k of ['cf_preview', 'x-vercel-protection-bypass', 'x-vercel-set-bypass-cookie']) {
+      for (const k of ['cf_preview', 'cf_debug', 'x-vercel-protection-bypass', 'x-vercel-set-bypass-cookie']) {
         const v = cur.searchParams.get(k);
         if (v != null && String(v).trim() !== '') pass.set(k, v);
       }
