@@ -59,6 +59,21 @@
     }
   }
 
+  function tenantSiteApiUrl() {
+    try {
+      const cur = new URL(window.location.href);
+      const pass = new URLSearchParams();
+      for (const k of ['cf_preview', 'cf_debug', 'x-vercel-protection-bypass', 'x-vercel-set-bypass-cookie']) {
+        const v = cur.searchParams.get(k);
+        if (v != null && String(v).trim() !== '') pass.set(k, v);
+      }
+      if ([...pass.keys()].length === 0) return '/api/tenant/site';
+      return '/api/tenant/site?' + pass.toString();
+    } catch (_) {
+      return '/api/tenant/site';
+    }
+  }
+
   async function init() {
     try {
       const kindEarly = pathKind();
@@ -76,7 +91,7 @@
           /* fall through to tenant/site */
         }
       }
-      const r = await fetch('/api/tenant/site', { method: 'GET' });
+      const r = await fetch(tenantSiteApiUrl(), { method: 'GET' });
       const j = await r.json().catch(() => ({}));
       if (!j.tenant_id || !j.site) return;
 

@@ -709,6 +709,10 @@
               <div class="text-[11px] font-semibold text-slate-200 uppercase tracking-wide">Build status</div>
               <div id="pipelineBody" class="mt-2 space-y-2 text-[11px] text-slate-300"></div>
             </div>
+            <div id="cmpDeliveryStateCard" class="hidden mb-4 rounded-xl border border-slate-800 bg-slate-950/50 p-3">
+              <div class="text-[11px] font-semibold text-slate-200 uppercase tracking-wide">Preview → merge status</div>
+              <div id="cmpDeliveryStateBody" class="mt-2 text-[11px] text-slate-300 leading-relaxed space-y-1"></div>
+            </div>
             <div class="flex items-center justify-between gap-2 flex-wrap">
               <div class="text-xs text-slate-300 mb-2">Automation</div>
               <div class="flex items-center gap-2 flex-wrap">
@@ -736,6 +740,44 @@
               </div>
             </div>
             <div id="automationHuman" class="text-xs text-slate-300 space-y-2 mb-2"></div>
+            <div id="clientPreviewReviewWrap" class="hidden mt-3 space-y-2">
+              <div
+                id="clientPreviewReviewDone"
+                class="hidden rounded-xl border border-emerald-500/25 bg-emerald-950/25 px-3 py-2 text-[11px] text-emerald-100/95 leading-relaxed"
+              ></div>
+              <div
+                id="clientPreviewReviewPanel"
+                class="rounded-xl border border-emerald-500/25 bg-emerald-950/20 px-3 py-3 text-[11px] text-slate-200 space-y-2"
+              >
+                <div class="font-semibold text-emerald-100/95">Preview review</div>
+                <p class="text-slate-400 leading-relaxed">
+                  Open the <strong class="text-slate-300">Site preview</strong> link above, then record your decision here
+                  (required before the team can merge to production).
+                </p>
+                <label class="block text-[10px] text-slate-500 uppercase tracking-wide">Optional note</label>
+                <textarea
+                  id="clientPreviewReviewNote"
+                  class="w-full min-h-[72px] rounded-lg bg-slate-950 border border-slate-800 px-2 py-2 text-sm text-slate-100"
+                  placeholder="What you verified, or what should change…"
+                ></textarea>
+                <div class="flex flex-wrap gap-2 pt-1">
+                  <button
+                    type="button"
+                    id="btnClientPreviewApprove"
+                    class="rounded-lg bg-emerald-600 text-white px-3 py-2 text-xs font-semibold hover:bg-emerald-500"
+                  >
+                    Approve preview
+                  </button>
+                  <button
+                    type="button"
+                    id="btnClientPreviewRequestChanges"
+                    class="rounded-lg border border-amber-500/50 bg-amber-500/10 px-3 py-2 text-xs text-amber-100 hover:bg-amber-500/15"
+                  >
+                    Request changes
+                  </button>
+                </div>
+              </div>
+            </div>
             <details id="automationTechnical" class="group text-[11px] text-slate-500 mb-2 hidden">
               <summary class="cursor-pointer text-sky-400/90 hover:text-sky-300 select-none list-none flex items-center gap-2">
                 <span class="cf-pulse inline-block w-1.5 h-1.5 rounded-full bg-slate-600 group-open:bg-sky-500"></span>
@@ -971,7 +1013,7 @@
           }
           startTenantWorkRotator();
           const auto = cv.automation && typeof cv.automation === 'object' ? cv.automation : {};
-          const previewUrl = typeof auto.preview_url === 'string' ? auto.preview_url.trim() : '';
+          const previewUrl = resolveTenantPreviewUrls(auto).openUrl;
           if (previewUrl) {
             out.textContent = 'Ready';
             out.classList.add('text-emerald-400');
@@ -1745,7 +1787,7 @@
           const buildApproved = /approved/i.test(st) || String(sg).toLowerCase() === 'build';
           const hasDispatch = auto.dispatch_ok === true;
           const dispatchFailed = auto.dispatch_ok === false;
-          const previewUrl = typeof auto.preview_url === 'string' ? auto.preview_url.trim() : '';
+          const previewUrl = resolveTenantPreviewUrls(auto).openUrl;
           const tid = String((merged && merged.ticket_id) || '').trim();
 
           const workspaceRun = buildApproved && !hasDispatch && !dispatchFailed;
@@ -1898,6 +1940,75 @@
           );
         }
 
+        function renderCmpDeliveryStateStrip(b) {
+          const card = $('cmpDeliveryStateCard');
+          const el = $('cmpDeliveryStateBody');
+          if (!card || !el) return;
+          const tp = b && b.ticket_progress;
+          const cv = tp && tp.client_view && typeof tp.client_view === 'object' ? tp.client_view : {};
+          const cd = cv.cmp_delivery && typeof cv.cmp_delivery === 'object' ? cv.cmp_delivery : null;
+          if (!cd || !String(cd.phase || '').trim()) {
+            card.classList.add('hidden');
+            el.innerHTML = '';
+            return;
+          }
+          card.classList.remove('hidden');
+          const phase = String(cd.phase || '');
+          const titles = {
+            preview_pending: 'Waiting for preview link and pull request',
+            preview_failed: 'Preview or GitHub linkage needs attention',
+            preview_ready: 'Preview link is live — waiting for pull request to link',
+            client_review: 'Open your site preview, then approve or request changes below',
+            client_approved: 'You approved — production merge runs when CI is green and an admin merges (or auto-merge if enabled)',
+            merge_blocked: 'Merge is blocked',
+            merged: 'Merged toward production — allow a few minutes for deploy',
+          };
+          const title = titles[phase] || phase;
+          const last = cd.last_action ? '<div class="text-slate-400">Last step: ' + escapeHtml(String(cd.last_action)) + '</div>' : '';
+          const block =
+            cd.merge_block_reason && String(cd.merge_block_reason).trim()
+              ? '<div class="text-amber-200/95 mt-1">' + escapeHtml(String(cd.merge_block_reason)) + '</div>'
+              : '';
+          const prLine =
+            cd.pr_url && String(cd.pr_url).trim()
+              ? '<div class="mt-1">PR: <a class="text-sky-300 underline break-all" target="_blank" rel="noreferrer" href="' +
+                escapeHtml(String(cd.pr_url)) +
+                '">' +
+                escapeHtml('Open on GitHub') +
+                '</a></div>'
+              : '';
+          const pv =
+            cd.preview_url_effective && String(cd.preview_url_effective).trim()
+              ? '<div class="mt-1 text-slate-400 break-all">Preview: ' + escapeHtml(String(cd.preview_url_effective)) + '</div>'
+              : '';
+          const labelOk =
+            cd.github_label_client_approved === true
+              ? '<div class="text-emerald-400/90 mt-1">GitHub: client-approved label present</div>'
+              : cd.github_label_client_approved === false
+                ? '<div class="text-amber-200/90 mt-1">GitHub: client-approved label missing — re-approve preview or add label in GitHub</div>'
+                : '';
+          const ci =
+            cd.ci_checked === true
+              ? cd.ci_has_failure
+                ? '<div class="text-rose-300/95 mt-1">CI: a check failed on the latest commit</div>'
+                : cd.ci_has_pending
+                  ? '<div class="text-amber-200/90 mt-1">CI: checks still running</div>'
+                  : '<div class="text-emerald-400/90 mt-1">CI: latest checks completed without failure</div>'
+              : '';
+          el.innerHTML =
+            '<div class="font-medium text-slate-100">' +
+            escapeHtml(title) +
+            '</div><div class="text-[10px] uppercase tracking-wide text-slate-500 mt-0.5">Phase: ' +
+            escapeHtml(phase) +
+            '</div>' +
+            last +
+            prLine +
+            pv +
+            labelOk +
+            ci +
+            block;
+        }
+
         function humanTicketPhase(merged, tp) {
           const st = String((tp && tp.status) || (merged && merged.status) || '').trim();
           const sg = String((tp && tp.stage) || (merged && merged.stage) || '').trim();
@@ -1908,7 +2019,7 @@
           const auto = cv.automation && typeof cv.automation === 'object' ? cv.automation : {};
           const s = (st + ' ' + sg).toLowerCase();
           if (s.includes('approved') && s.includes('build')) {
-            if (auto.dispatch_ok === true && typeof auto.preview_url === 'string' && auto.preview_url.trim())
+            if (auto.dispatch_ok === true && resolveTenantPreviewUrls(auto).openUrl)
               return { label: 'Ready to review your preview', live: true };
             if (auto.dispatch_ok === true) return { label: 'Build in motion', live: true };
             return { label: 'Preparing your workspace', live: true };
@@ -1927,12 +2038,14 @@
 
           if (!tid && !approve) {
             card.classList.add('hidden');
+            renderCmpDeliveryStateStrip({});
             return;
           }
           if (isTenant) {
             if (!approve) {
               card.classList.add('hidden');
               body.innerHTML = '';
+              renderCmpDeliveryStateStrip(b);
               return;
             }
             card.classList.remove('hidden');
@@ -2022,6 +2135,7 @@
               );
             }
             body.innerHTML = rowsT.join('');
+            renderCmpDeliveryStateStrip(b);
             return;
           }
           card.classList.remove('hidden');
@@ -2037,6 +2151,7 @@
               ),
             );
             body.innerHTML = rows.join('');
+            renderCmpDeliveryStateStrip(b);
             return;
           }
 
@@ -2071,6 +2186,7 @@
             );
           }
           body.innerHTML = rows.join('');
+          renderCmpDeliveryStateStrip(b);
         }
 
         function setPipelineSubmitting(kind) {
@@ -2337,6 +2453,9 @@
             renderAutomation(eff);
           } catch (_) {}
           try {
+            updatePromotionRefreshVisibility();
+          } catch (_) {}
+          try {
             renderCompletionScorecard(eff);
           } catch (_) {}
           try {
@@ -2369,12 +2488,38 @@
           );
         }
 
+        /** Vercel preview hosts are not tenant-mapped; `client_site_preview_url` adds a signed `cf_preview` query. */
+        function resolveTenantPreviewUrls(auto) {
+          const a = auto && typeof auto === 'object' ? auto : {};
+          const raw = typeof a.preview_url === 'string' ? a.preview_url.trim() : '';
+          const client = typeof a.client_site_preview_url === 'string' ? a.client_site_preview_url.trim() : '';
+          const signingIssue =
+            typeof a.client_site_preview_signing_issue === 'string' ? a.client_site_preview_signing_issue.trim() : '';
+          return { raw, client, openUrl: client || raw, signingIssue };
+        }
+
+        /** Tenants use the same API as admins (`promote-status`) to pull PR + Vercel preview into Postgres. */
+        function updatePromotionRefreshVisibility() {
+          if (!promotionRefreshBtn || !ticketEl) return;
+          const tid = String(ticketEl.value || '').trim();
+          const admin = sessionInfo && sessionInfo.logged_in && String(sessionInfo.level || '').toLowerCase() === 'admin';
+          const tenant = isTenantClient();
+          const show = Boolean(tid) && (admin || tenant);
+          promotionRefreshBtn.classList.toggle('hidden', !show);
+          promotionRefreshBtn.textContent = tenant && !admin ? 'Refresh preview link' : 'Refresh promotion';
+        }
+
         function renderAutomation(briefObj) {
           if (!automationLinksEl) return;
+          const previewWrapAdmin = $('clientPreviewReviewWrap');
+          if (previewWrapAdmin && !isTenantClient()) previewWrapAdmin.classList.add('hidden');
           const b = briefObj && typeof briefObj === 'object' ? briefObj : {};
           const tpCv = b.ticket_progress && b.ticket_progress.client_view ? b.ticket_progress.client_view : {};
           const tpAuto = tpCv.automation && typeof tpCv.automation === 'object' ? tpCv.automation : {};
-          const previewFromProgress = typeof tpAuto.preview_url === 'string' ? tpAuto.preview_url.trim() : '';
+          const pv = resolveTenantPreviewUrls(tpAuto);
+          const previewFromProgress = pv.openUrl;
+          const previewRaw = pv.raw;
+          const previewClient = pv.client;
 
           if (isTenantClient()) {
             const human = [];
@@ -2387,10 +2532,26 @@
             const stT = String(tpCv.status || '').toLowerCase();
             const stgT = String(tpCv.stage || '').toLowerCase();
             if (previewFromProgress) {
+              const missSign =
+                pv.signingIssue === 'MISSING_CORPFLOW_TENANT_PREVIEW_SECRET' &&
+                /vercel\.app/i.test(String(previewRaw || previewFromProgress || ''));
               human.push(
                 '<div class="rounded-lg border border-sky-500/20 bg-sky-500/5 px-3 py-2 text-[11px] text-sky-100 leading-relaxed">' +
                   '<strong class="text-sky-200">Site preview:</strong> ' +
                   asLink(previewFromProgress, previewFromProgress) +
+                  (previewClient
+                    ? '<div class="text-sky-200/80 mt-1.5 leading-snug">Opens your tenant homepage on the preview deployment — you do not need a Vercel account.</div>'
+                    : missSign
+                      ? '<div class="text-amber-200/95 mt-1.5 leading-snug"><strong class="text-amber-100">Operator fix:</strong> Vercel Production is missing <code class="text-amber-50">CORPFLOW_TENANT_PREVIEW_SECRET</code>, so this link has no signed <code class="text-amber-50">cf_preview</code> — the preview host will show “not mapped to a tenant”. Add the secret (same value on Preview + Production), redeploy, then <strong class="text-amber-50">Refresh promotion</strong>.</div>'
+                      : '') +
+                  '</div>',
+              );
+            } else if (tpAuto.dispatch_ok === true) {
+              human.push(
+                '<div class="rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-[11px] text-amber-100 leading-relaxed">' +
+                  '<strong class="text-amber-200">Site preview link not showing yet?</strong> When GitHub Actions has finished for your sandbox branch, click ' +
+                  '<strong class="text-amber-50">Refresh preview link</strong> (top of this Automation section) — it loads the pull request and Vercel preview URL from the factory. ' +
+                  'Then use <strong class="text-amber-50">Refresh from server</strong> if the page still looks stale.' +
                   '</div>',
               );
             }
@@ -2457,6 +2618,40 @@
               if (tpAuto.compare_url) techT.push('<div>' + asLink(tpAuto.compare_url, 'Compare to main') + '</div>');
               automationLinksEl.innerHTML = tenantTech.length ? techT.join('') : '';
             }
+            const previewWrap = $('clientPreviewReviewWrap');
+            const previewDone = $('clientPreviewReviewDone');
+            const previewPanel = $('clientPreviewReviewPanel');
+            if (previewWrap && previewDone && previewPanel) {
+              const cvPr = tpCv.preview_review && typeof tpCv.preview_review === 'object' ? tpCv.preview_review : null;
+              const decision = cvPr && String(cvPr.decision || '').trim();
+              const hasOpenPreview = Boolean(previewFromProgress);
+              const approvedPreview = decision === 'approve';
+              const requestedChanges = decision === 'request_changes';
+              const showWrap = hasOpenPreview && (approvedPreview || requestedChanges || !decision);
+              previewWrap.classList.toggle('hidden', !showWrap);
+              if (approvedPreview) {
+                previewDone.classList.remove('hidden');
+                previewDone.textContent =
+                  'You approved this preview. The team can merge when ready; production (e.g. lux.corpflowai.com) updates after merge and deploy.';
+                previewPanel.classList.add('hidden');
+              } else {
+                previewDone.classList.add('hidden');
+                previewDone.textContent = '';
+                previewPanel.classList.toggle('hidden', !hasOpenPreview);
+                if (requestedChanges && hasOpenPreview) {
+                  previewDone.classList.remove('hidden');
+                  previewDone.classList.remove('border-emerald-500/25', 'bg-emerald-950/25', 'text-emerald-100/95');
+                  previewDone.classList.add('border-amber-500/25', 'bg-amber-950/20', 'text-amber-100/90');
+                  previewDone.textContent =
+                    'You requested changes. Update the request or chat with the team; when a new preview is ready, use the buttons below again.';
+                  previewPanel.classList.remove('hidden');
+                } else {
+                  previewDone.classList.add('border-emerald-500/25', 'bg-emerald-950/25', 'text-emerald-100/95');
+                  previewDone.classList.remove('border-amber-500/25', 'bg-amber-950/20', 'text-amber-100/90');
+                }
+              }
+            }
+            updatePromotionRefreshVisibility();
             return;
           }
 
@@ -2499,10 +2694,20 @@
           }
 
           if (previewFromProgress) {
+            const missSignAdmin =
+              pv.signingIssue === 'MISSING_CORPFLOW_TENANT_PREVIEW_SECRET' &&
+              /vercel\.app/i.test(String(previewRaw || previewFromProgress || ''));
             human.push(
               '<div class="rounded-lg border border-sky-500/20 bg-sky-500/5 px-3 py-2 text-[11px] text-sky-100 leading-relaxed">' +
-                '<strong class="text-sky-200">Site preview:</strong> ' +
+                '<strong class="text-sky-200">Site preview (share with client):</strong> ' +
                 asLink(previewFromProgress, previewFromProgress) +
+                (previewClient && previewRaw && previewClient !== previewRaw
+                  ? '<div class="text-sky-200/80 mt-1.5">Signed link for tenant homepage on a <code class="text-[10px]">*.vercel.app</code> host. Raw deployment URL: ' +
+                    asLink(previewRaw, previewRaw) +
+                    '</div>'
+                  : missSignAdmin
+                    ? '<div class="text-amber-200/95 mt-1.5 leading-snug"><strong class="text-amber-100">Missing</strong> <code class="text-amber-50">CORPFLOW_TENANT_PREVIEW_SECRET</code> on Vercel — add it (same on Preview + Production), redeploy, then refresh promotion so the client link includes <code class="text-amber-50">cf_preview</code>.</div>'
+                    : '') +
                 '</div>',
             );
           }
@@ -2518,7 +2723,7 @@
 
           const isAdmin = sessionInfo && sessionInfo.logged_in && String(sessionInfo.level || '').toLowerCase() === 'admin';
           if (overseerBtn) overseerBtn.classList.toggle('hidden', !isAdmin);
-          if (promotionRefreshBtn) promotionRefreshBtn.classList.toggle('hidden', !isAdmin);
+          updatePromotionRefreshVisibility();
           if (promotionMergeBtn) {
             const hasPr = Boolean(storedPromotion && storedPromotion.pr_url);
             promotionMergeBtn.classList.toggle('hidden', !isAdmin || !hasPr);
@@ -2538,12 +2743,14 @@
           const tid = String(ticketEl.value || '').trim();
           if (!tid) return setBanner('Create or paste a Ticket ID first.');
           try {
-            await withActivity('Refreshing promotion status…', async () => {
+            const label =
+              isTenantClient() && !isAdminSession() ? 'Refreshing preview link…' : 'Refreshing promotion status…';
+            await withActivity(label, async () => {
               await post('promote-status', { ticket_id: tid });
               await syncCurrentTicket();
             });
           } catch (e) {
-            setBanner('Promotion refresh failed: ' + String(e && e.message ? e.message : e));
+            setBanner('Refresh failed: ' + String(e && e.message ? e.message : e));
           }
         }
 
@@ -2835,7 +3042,7 @@
           const hasEstimate = Boolean(merged.costing_preview || cv.last_estimate_at);
           const approved = /approved/i.test(st) || sg.toLowerCase() === 'build';
           const dispatched = auto.dispatch_ok === true;
-          const previewUrl = typeof auto.preview_url === 'string' ? auto.preview_url.trim() : '';
+          const previewUrl = resolveTenantPreviewUrls(auto).openUrl;
           const hasPreview = Boolean(previewUrl);
           const clientDecision = cv && typeof cv === 'object' ? cv.preview_review : null;
           const approvedByClient = clientDecision && String(clientDecision.decision || '') === 'approve';
