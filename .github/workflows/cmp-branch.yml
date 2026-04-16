@@ -231,11 +231,41 @@ jobs:
           echo "preview_url=${PREVIEW_URL}" >> "$GITHUB_OUTPUT"
           echo "::notice::Resolved preview URL: ${PREVIEW_URL}"
 
+      - name: Prefer signed Preview URL for verification (optional)
+        id: preview_for_verify
+        if: steps.vercel.outputs.skip != 'true'
+        env:
+          RAW_PREVIEW_URL: ${{ steps.vercel.outputs.preview_url }}
+          TENANT_ID: root
+          CORPFLOW_TENANT_PREVIEW_SECRET: ${{ secrets.CORPFLOW_TENANT_PREVIEW_SECRET }}
+          CORPFLOW_VERCEL_PROTECTION_BYPASS_SECRET: ${{ secrets.CORPFLOW_VERCEL_PROTECTION_BYPASS_SECRET }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: |
+          set -euo pipefail
+          node --input-type=module - <<'NODE' >> "$GITHUB_OUTPUT"
+          import { buildClientSitePreviewUrl } from './lib/server/tenant-preview-token.js';
+          const raw = (process.env.RAW_PREVIEW_URL || '').trim();
+          const tenantId = (process.env.TENANT_ID || 'root').trim();
+          const signed = buildClientSitePreviewUrl(raw, tenantId);
+          if (signed) {
+            console.log('used_signed=true');
+            console.log(`preview_url=${signed}`);
+          } else {
+            console.log('used_signed=false');
+            console.log(`preview_url=${raw}`);
+          }
+          NODE
+          if [ "${{ steps.preview_for_verify.outputs.used_signed }}" = "true" ]; then
+            echo "::notice::Using signed preview URL for verification"
+          else
+            echo "::notice::Using raw preview URL for verification (signed unavailable)"
+          fi
+
       - name: Preview verification (optional; writes visual_check)
         id: pv
         if: steps.vercel.outputs.skip != 'true'
         env:
-          PREVIEW_URL: ${{ steps.vercel.outputs.preview_url }}
+          PREVIEW_URL: ${{ steps.preview_for_verify.outputs.preview_url }}
           TICKET_ID: ${{ steps.meta.outputs.ticket }}
           TENANT_ID: root
           PREVIEW_VERIFY_CONFIG: config/preview-verify.v1.json
