@@ -189,6 +189,64 @@ jobs:
           gh workflow run "Vercel env check" --repo "${{ github.repository }}" --ref "$BR" \
             || { echo "::warning::Could not dispatch Vercel env check."; true; }
 
+      - name: Resolve latest READY Vercel preview URL (optional)
+        id: vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+          TICKET: ${{ steps.meta.outputs.ticket }}
+        run: |
+          set -euo pipefail
+          if [ -z "${VERCEL_TOKEN:-}" ] || [ -z "${VERCEL_PROJECT_ID:-}" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Vercel preview lookup skipped: set secrets VERCEL_TOKEN and VERCEL_PROJECT_ID."
+            exit 0
+          fi
+          BR="cmp/${TICKET}"
+          Q="projectId=${VERCEL_PROJECT_ID}&limit=40&target=preview"
+          if [ -n "${VERCEL_TEAM_ID:-}" ]; then Q="${Q}&teamId=${VERCEL_TEAM_ID}"; fi
+          RESP="$(curl -sS -H "Authorization: Bearer ${VERCEL_TOKEN}" "https://api.vercel.com/v6/deployments?${Q}")"
+          PREVIEW_URL="$(echo "$RESP" | python -c "
+          import json, sys
+          try:
+            data=json.load(sys.stdin)
+            ds=data.get('deployments') or []
+            br='${BR}'
+            ready=[d for d in ds if isinstance(d, dict) and d.get('readyState')=='READY' and (d.get('meta') or {}).get('githubCommitRef')==br]
+            ready.sort(key=lambda d: d.get('createdAt') or 0, reverse=True)
+            u=(ready[0].get('url') if ready else '') or ''
+            u=u.strip()
+            if u and not u.startswith('http'): u='https://' + u
+            print(u)
+          except Exception:
+            print('')
+          ")"
+          if [ -z "$PREVIEW_URL" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::No READY preview deployment found yet for ${BR}."
+            exit 0
+          fi
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+          echo "preview_url=${PREVIEW_URL}" >> "$GITHUB_OUTPUT"
+          echo "::notice::Resolved preview URL: ${PREVIEW_URL}"
+
+      - name: Preview verification (optional; writes visual_check)
+        id: pv
+        if: steps.vercel.outputs.skip != 'true'
+        env:
+          PREVIEW_URL: ${{ steps.vercel.outputs.preview_url }}
+          TICKET_ID: ${{ steps.meta.outputs.ticket }}
+          TENANT_ID: root
+          PREVIEW_VERIFY_CONFIG: config/preview-verify.v1.json
+          OUTPUT_DIR: artifacts/preview-verify
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          node scripts/preview-verify.mjs > /tmp/visual_check.json
+          echo "visual_check_json=$(python -c \"import json; print(json.dumps(open('/tmp/visual_check.json','r',encoding='utf-8').read()))\")" >> "$GITHUB_OUTPUT"
+          echo "::notice::preview-verify wrote visual_check JSON"
+
       # Posts PR metadata back to Vercel/Postgres. Does not run during Vercel build — see .env.template.
       # Note: `secrets` cannot be used in step `if:` — skip inside the script when unset (GitHub validates `if` before secrets exist).
       - name: Callback to Change Console (optional)
@@ -199,25 +257,38 @@ jobs:
           BASE: ${{ steps.meta.outputs.base }}
           PR_NUMBER: ${{ steps.pr.outputs.number }}
           PR_URL: ${{ steps.pr.outputs.url }}
+          PREVIEW_URL: ${{ steps.vercel.outputs.preview_url }}
+          VISUAL_CHECK_JSON: ${{ steps.pv.outputs.visual_check_json }}
         run: |
           set -uo pipefail
           if [ -z "${CALLBACK_URL:-}" ] || [ -z "${CALLBACK_SECRET:-}" ]; then
             echo "CMP callback skipped: set repository secrets CMP_AUTOMATION_CALLBACK_URL and CMP_AUTOMATION_CALLBACK_SECRET to enable."
             exit 0
           fi
-          PAYLOAD=$(TICKET="$TICKET" BASE="$BASE" PR_NUMBER="${PR_NUMBER:-}" PR_URL="${PR_URL:-}" python -c "
+          PAYLOAD=$(TICKET="$TICKET" BASE="$BASE" PR_NUMBER="${PR_NUMBER:-}" PR_URL="${PR_URL:-}" PREVIEW_URL="${PREVIEW_URL:-}" VISUAL_CHECK_JSON="${VISUAL_CHECK_JSON:-}" python -c "
           import json, os
           raw = (os.environ.get('PR_NUMBER') or '').strip()
           n = int(raw) if raw.isdigit() else None
           url = (os.environ.get('PR_URL') or '').strip() or None
-          print(json.dumps({
+          preview = (os.environ.get('PREVIEW_URL') or '').strip() or None
+          vc_raw = (os.environ.get('VISUAL_CHECK_JSON') or '').strip()
+          vc = None
+          if vc_raw:
+              try:
+                  vc = json.loads(json.loads(vc_raw))
+              except Exception:
+                  vc = None
+          out = {
               'event': 'cmp_pr_ready',
               'ticket_id': os.environ['TICKET'],
               'base_ref': os.environ['BASE'],
               'branch_name': 'cmp/' + os.environ['TICKET'],
               'pr_number': n,
               'pr_url': url,
-          }))
+          }
+          if preview: out['preview_url'] = preview
+          if vc and isinstance(vc, dict): out['visual_check'] = vc
+          print(json.dumps(out))
           ")
           CODE=$(curl -sS -o /tmp/cmp_cb_body -w "%{http_code}" -X POST "$CALLBACK_URL" \
             -H "Content-Type: application/json" \
