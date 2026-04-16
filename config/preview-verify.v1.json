@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "defaults": {
+    "timeout_ms": 25000,
+    "routes": [
+      {
+        "path": "/",
+        "access_mode": "public",
+        "required_selectors": ["body"],
+        "forbidden_text": [
+          "This page could not be found",
+          "Application error",
+          "Internal Server Error",
+          "500",
+          "404"
+        ]
+      }
+    ]
+  },
+  "tenants": {
+    "luxe-maurice": {
+      "routes": [
+        {
+          "path": "/",
+          "access_mode": "tokenized_url",
+          "required_selectors": ["body", "#cmp-bubble-host"],
+          "forbidden_text": ["This page could not be found", "Application error"]
+        }
+      ]
+    }
+  }
+}
+
