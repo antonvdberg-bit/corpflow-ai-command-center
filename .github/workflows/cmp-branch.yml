@@ -259,20 +259,25 @@ jobs:
           PROD: ${{ steps.meta.outputs.production }}
         run: |
           set -euo pipefail
-          node --input-type=module - <<'NODE' >> "$GITHUB_OUTPUT"
+          USED_SIGNED="false"
+          PREVIEW_URL_OUT="${RAW_PREVIEW_URL:-}"
+          node --input-type=module - <<'NODE' > /tmp/cmp_preview_for_verify.env
           import { buildClientSitePreviewUrl } from './lib/server/tenant-preview-token.js';
           const raw = (process.env.RAW_PREVIEW_URL || '').trim();
           const tenantId = (process.env.TENANT_ID || 'root').trim();
           const signed = buildClientSitePreviewUrl(raw, tenantId);
-          if (signed) {
-            console.log('used_signed=true');
-            console.log(`preview_url=${signed}`);
-          } else {
-            console.log('used_signed=false');
-            console.log(`preview_url=${raw}`);
-          }
+          const used = Boolean(signed);
+          const outUrl = signed || raw;
+          process.stdout.write(`USED_SIGNED=${used ? 'true' : 'false'}\n`);
+          process.stdout.write(`PREVIEW_URL_OUT=${outUrl}\n`);
           NODE
-          if [ "${{ steps.preview_for_verify.outputs.used_signed }}" = "true" ]; then
+          # shellcheck disable=SC1091
+          source /tmp/cmp_preview_for_verify.env
+          USED_SIGNED="${USED_SIGNED:-false}"
+          PREVIEW_URL_OUT="${PREVIEW_URL_OUT:-${RAW_PREVIEW_URL:-}}"
+          echo "used_signed=${USED_SIGNED}" >> "$GITHUB_OUTPUT"
+          echo "preview_url=${PREVIEW_URL_OUT}" >> "$GITHUB_OUTPUT"
+          if [ "$USED_SIGNED" = "true" ]; then
             echo "::notice::Using signed preview URL for verification"
           else
             if [ "${PROD:-false}" = "true" ]; then
