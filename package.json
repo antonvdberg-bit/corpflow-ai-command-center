@@ -30,8 +30,11 @@
   "dependencies": {
     "@prisma/client": "^6.0.0",
     "next": "^16.0.0",
+    "prisma": "^6.0.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "prisma": "^6.0.0"
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "playwright": "^1.59.1"
   }
 }

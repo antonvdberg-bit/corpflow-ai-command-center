@@ -243,6 +243,8 @@ jobs:
           GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -euo pipefail
+          npm ci
+          npx playwright install --with-deps chromium
           node scripts/preview-verify.mjs > /tmp/visual_check.json
           echo "visual_check_json=$(python -c \"import json; print(json.dumps(open('/tmp/visual_check.json','r',encoding='utf-8').read()))\")" >> "$GITHUB_OUTPUT"
           echo "::notice::preview-verify wrote visual_check JSON"
