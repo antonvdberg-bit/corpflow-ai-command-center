@@ -44,6 +44,13 @@ jobs:
           B=$(echo "$B" | tr -cd '[:alnum:]_./-')
           echo "ticket=$T" >> "$GITHUB_OUTPUT"
           echo "base=${B:-main}" >> "$GITHUB_OUTPUT"
+          BASE_NORM="${B:-main}"
+          BASE_NORM="${BASE_NORM#refs/heads/}"
+          if [ "$BASE_NORM" = "main" ]; then
+            echo "production=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "production=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Checkout
         uses: actions/checkout@v6
@@ -196,11 +203,16 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
           TICKET: ${{ steps.meta.outputs.ticket }}
+          PROD: ${{ steps.meta.outputs.production }}
         run: |
           set -euo pipefail
           if [ -z "${VERCEL_TOKEN:-}" ] || [ -z "${VERCEL_PROJECT_ID:-}" ]; then
+            if [ "${PROD:-false}" = "true" ]; then
+              echo "::error title=Preview lookup misconfigured::Missing required GitHub repo secrets VERCEL_TOKEN and/or VERCEL_PROJECT_ID."
+              exit 1
+            fi
             echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::Vercel preview lookup skipped: set secrets VERCEL_TOKEN and VERCEL_PROJECT_ID."
+            echo "::notice::Vercel preview lookup skipped (non-prod base): set secrets VERCEL_TOKEN and VERCEL_PROJECT_ID."
             exit 0
           fi
           BR="cmp/${TICKET}"
@@ -223,8 +235,12 @@ jobs:
             print('')
           ")"
           if [ -z "$PREVIEW_URL" ]; then
+            if [ "${PROD:-false}" = "true" ]; then
+              echo "::error title=Preview not found::No READY Vercel preview deployment found for ${BR}. (Fail-closed on production base.)"
+              exit 1
+            fi
             echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::No READY preview deployment found yet for ${BR}."
+            echo "::notice::No READY preview deployment found yet for ${BR} (non-prod base)."
             exit 0
           fi
           echo "skip=false" >> "$GITHUB_OUTPUT"
@@ -240,6 +256,7 @@ jobs:
           CORPFLOW_TENANT_PREVIEW_SECRET: ${{ secrets.CORPFLOW_TENANT_PREVIEW_SECRET }}
           CORPFLOW_VERCEL_PROTECTION_BYPASS_SECRET: ${{ secrets.CORPFLOW_VERCEL_PROTECTION_BYPASS_SECRET }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          PROD: ${{ steps.meta.outputs.production }}
         run: |
           set -euo pipefail
           node --input-type=module - <<'NODE' >> "$GITHUB_OUTPUT"
@@ -258,6 +275,10 @@ jobs:
           if [ "${{ steps.preview_for_verify.outputs.used_signed }}" = "true" ]; then
             echo "::notice::Using signed preview URL for verification"
           else
+            if [ "${PROD:-false}" = "true" ]; then
+              echo "::error title=Signed preview URL required::Signed preview URL unavailable (missing CORPFLOW_TENANT_PREVIEW_SECRET and/or Vercel bypass secret). Refusing to verify gated previews on production base."
+              exit 1
+            fi
             echo "::notice::Using raw preview URL for verification (signed unavailable)"
           fi
 
@@ -271,11 +292,24 @@ jobs:
           PREVIEW_VERIFY_CONFIG: config/preview-verify.v1.json
           OUTPUT_DIR: artifacts/preview-verify
           GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          PROD: ${{ steps.meta.outputs.production }}
         run: |
           set -euo pipefail
           npm ci
           npx playwright install --with-deps chromium
           node scripts/preview-verify.mjs > /tmp/visual_check.json
+          if [ ! -s /tmp/visual_check.json ]; then
+            if [ "${PROD:-false}" = "true" ]; then
+              echo "::error title=visual_check missing::preview-verify produced no output."
+              exit 1
+            fi
+          fi
+          python -c "import json; json.load(open('/tmp/visual_check.json','r',encoding='utf-8'))" >/dev/null 2>&1 || {
+            if [ "${PROD:-false}" = "true" ]; then
+              echo "::error title=visual_check invalid::preview-verify output was not valid JSON."
+              exit 1
+            fi
+          }
           {
             echo "visual_check_json<<__VC__"
             cat /tmp/visual_check.json
@@ -292,15 +326,26 @@ jobs:
           CALLBACK_SECRET: ${{ secrets.CMP_AUTOMATION_CALLBACK_SECRET }}
           TICKET: ${{ steps.meta.outputs.ticket }}
           BASE: ${{ steps.meta.outputs.base }}
+          PROD: ${{ steps.meta.outputs.production }}
           PR_NUMBER: ${{ steps.pr.outputs.number }}
           PR_URL: ${{ steps.pr.outputs.url }}
           PREVIEW_URL: ${{ steps.vercel.outputs.preview_url }}
           VISUAL_CHECK_JSON: ${{ steps.pv.outputs.visual_check_json }}
         run: |
-          set -uo pipefail
+          set -euo pipefail
           if [ -z "${CALLBACK_URL:-}" ] || [ -z "${CALLBACK_SECRET:-}" ]; then
-            echo "CMP callback skipped: set repository secrets CMP_AUTOMATION_CALLBACK_URL and CMP_AUTOMATION_CALLBACK_SECRET to enable."
+            if [ "${PROD:-false}" = "true" ]; then
+              echo "::error title=CMP callback misconfigured::Missing required GitHub repo secrets CMP_AUTOMATION_CALLBACK_URL and/or CMP_AUTOMATION_CALLBACK_SECRET."
+              exit 1
+            fi
+            echo "::notice::CMP callback skipped (non-prod base): set repository secrets CMP_AUTOMATION_CALLBACK_URL and CMP_AUTOMATION_CALLBACK_SECRET to enable."
             exit 0
+          fi
+          if [ -z "${VISUAL_CHECK_JSON:-}" ]; then
+            if [ "${PROD:-false}" = "true" ]; then
+              echo "::error title=CMP callback blocked::Missing visual_check_json output from preview verification."
+              exit 1
+            fi
           fi
           PAYLOAD=$(TICKET="$TICKET" BASE="$BASE" PR_NUMBER="${PR_NUMBER:-}" PR_URL="${PR_URL:-}" PREVIEW_URL="${PREVIEW_URL:-}" VISUAL_CHECK_JSON="${VISUAL_CHECK_JSON:-}" python -c "
           import json, os
@@ -332,5 +377,9 @@ jobs:
             -H "x-cmp-automation-secret: $CALLBACK_SECRET" \
             -d "$PAYLOAD") || CODE="000"
           if [ "$CODE" != "200" ]; then
+            if [ "${PROD:-false}" = "true" ]; then
+              echo "::error title=CMP automation-callback failed::HTTP ${CODE}. Body: $(head -c 400 /tmp/cmp_cb_body 2>/dev/null || true)"
+              exit 1
+            fi
             echo "::warning title=CMP automation-callback::HTTP ${CODE} — sandbox branch and PR steps already succeeded. If 401/503, set the same shared secret in Vercel (CMP_AUTOMATION_CALLBACK_SECRET) and GitHub (CMP_AUTOMATION_CALLBACK_SECRET). Body: $(head -c 400 /tmp/cmp_cb_body 2>/dev/null || true)"
           fi

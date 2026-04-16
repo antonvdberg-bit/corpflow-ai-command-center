@@ -38,8 +38,8 @@ jobs:
         run: |
           set -e
           if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
-            echo "Skip: VERCEL_TOKEN and VERCEL_PROJECT_ID secrets not both set."
-            exit 0
+            echo "::error title=Vercel env check misconfigured::Missing required GitHub repo secrets VERCEL_TOKEN and/or VERCEL_PROJECT_ID."
+            exit 1
           fi
           EXTRA=""
           if [ "${{ vars.VERCEL_ENV_COMPREHENSIVE }}" = "true" ]; then
