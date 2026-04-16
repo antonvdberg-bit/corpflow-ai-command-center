@@ -246,7 +246,7 @@ jobs:
           npm ci
           npx playwright install --with-deps chromium
           node scripts/preview-verify.mjs > /tmp/visual_check.json
-          echo "visual_check_json=$(python -c \"import json; print(json.dumps(open('/tmp/visual_check.json','r',encoding='utf-8').read()))\")" >> "$GITHUB_OUTPUT"
+          echo "visual_check_json=$(python -c 'import json, pathlib; print(json.dumps(pathlib.Path(\"/tmp/visual_check.json\").read_text(encoding=\"utf-8\")))')" >> "$GITHUB_OUTPUT"
           echo "::notice::preview-verify wrote visual_check JSON"
 
       # Posts PR metadata back to Vercel/Postgres. Does not run during Vercel build — see .env.template.
