@@ -12,7 +12,7 @@ Before doing any **deployment**, **DNS/traffic split**, **tenant onboarding**, o
 - For automation work, read `docs/automation-framework.md` and `docs/n8n/automation-forward-recipe.md`. Re-verify **ingest** (`CORPFLOW_AUTOMATION_INGEST_SECRET`), **forward** (`CORPFLOW_AUTOMATION_FORWARD_URL` / `*_SECRET`), **approval** secret if used, and **HMAC/header validation** on any new webhook — no silent widening of trust. See `docs/operations/SECURITY_REVIEW_CHECKLIST.md` § webhooks.
 - For CMP behavior, skim `lib/cmp/README.md` (current API + tenancy rules).
 - For **hostname, apex, tenant login, or `/api/tenant/site`**, read **`docs/operations/TENANT_CLIENT_LOGIN.md`** (tenancy model + checklist). Use **`artifacts/`** only as supplementary narrative, not as the sole source of truth.
-- If the request references prior decisions (“we said we’d use `luxe.corpflowai.com`”), search existing docs and code for the decision and follow it.
+- If the request references prior decisions about Luxe URLs, the **official** production site is **`https://lux.corpflowai.com/`**; **`luxe.corpflowai.com`** may exist only as an **optional alias** (same Vercel project + `tenant_hostnames`). Search docs and code and follow the current mapping.
 
 ## DNS / traffic split reminder
 

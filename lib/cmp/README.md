@@ -55,6 +55,7 @@ Machine-first events and playbooks (separate from CMP `action=` router):
   - This intentionally does **not** issue credentials; pair it with `provision-tenant-pin` when you want a PIN for sovereign bootstrap.
 - **`tenant-hostname-upsert`** (POST, factory master only): upserts `tenant_hostnames` (e.g. `acme-corp.corpflowai.com` → `tenant_id` `acme-corp`).
   - Body: `{ host, tenant_id, mode?, enabled?, bypass_client_hostname_policy?: true }` (bypass when enforcement is on and the host is off-stack, a legacy alias, or otherwise exceptional).
+- **Luxe Mauritius (`luxe-maurice`):** official host **`lux.corpflowai.com`**; optional alias **`luxe.corpflowai.com`**. CLI: `npm run factory:upsert-luxe-hosts` (requires `POSTGRES_URL`). Vercel: attach **both** domains to Production on this project. See `docs/operations/PRODUCTION_AUTODEPLOY_AND_DOMAINS.md`.
 - **`provision-tenant-pin`** (POST, factory master only): upserts `tenants.sovereign_pin_hash` (and creates a minimal tenant row if missing) and returns a one-time plaintext PIN.
 - **Auth users (break-glass):** UI `/factory/auth-users` — lists `auth_users` (no password visibility); `POST /api/factory/auth-users/set-password` with factory master to generate or set a new password. API: `GET /api/factory/auth-users/list?tenant_id=`.
 - **`assist-request`** (POST): records a tenant-safe “please investigate” snapshot for a ticket into `recovery_vault_entries` (Postgres) and emits telemetry for triage.

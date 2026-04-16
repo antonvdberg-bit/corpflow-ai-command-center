@@ -50,7 +50,7 @@ Canonical tenant id: **`luxe-maurice`**. Primary host: **`lux.corpflowai.com`** 
 
 **Required in Postgres:**
 
-1. Row in **`tenant_hostnames`**: host `lux.corpflowai.com` → `tenant_id` `luxe-maurice`, `enabled` true. Without this, the edge may guess tenant `lux` from the subdomain and **not** match your DB user/PIN.
+1. Row(s) in **`tenant_hostnames`**: **`lux.corpflowai.com`** (official) and optionally **`luxe.corpflowai.com`** (alias) → `tenant_id` `luxe-maurice`, `enabled` true (`npm run factory:upsert-luxe-hosts`). Without `lux`, the edge may guess tenant `lux` from the subdomain and **not** match your DB user/PIN.
 2. **`tenants.sovereign_pin_hash`** set (provision script `--pin`) **or** **`auth_users`** row with `level=tenant` and matching `tenant_id`.
 
 **Code change (2026-04-03):** Tenant login now treats **`tenant_hostnames` as authoritative**: empty Tenant ID is filled server-side; a mismatched ID returns **`TENANT_ID_HOST_MISMATCH`** with `expected_tenant_id`. See `docs/operations/TENANT_CLIENT_LOGIN.md`.
