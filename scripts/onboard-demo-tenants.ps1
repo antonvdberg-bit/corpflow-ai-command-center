@@ -54,7 +54,8 @@ if ($schema.ok -ne $true) {
 $tenants = @(
   @{ tenant_id = "legal-demo";       slug = "legal-demo";       name = "Legal Demo";       fqdn = "legal.corpflowai.com";      host = "legal.corpflowai.com" },
   @{ tenant_id = "medical-demo";     slug = "medical-demo";     name = "Medical Demo";     fqdn = "medical.corpflowai.com";    host = "medical.corpflowai.com" },
-  @{ tenant_id = "luxe-maurice";     slug = "luxe-maurice";     name = "Luxe Maurice";     fqdn = "luxe.corpflowai.com";       host = "luxe.corpflowai.com" },
+  # Official Luxe production host is lux.corpflowai.com; luxe.corpflowai.com is an optional second mapping (upsert via scripts/upsert-luxe-maurice-hostnames.mjs).
+  @{ tenant_id = "luxe-maurice";     slug = "luxe-maurice";     name = "Luxe Maurice";     fqdn = "lux.corpflowai.com";       host = "lux.corpflowai.com" },
   @{ tenant_id = "compliance-demo";  slug = "compliance-demo";  name = "Compliance Demo";  fqdn = "compliance.corpflowai.com"; host = "compliance.corpflowai.com" }
 )
 

@@ -1,6 +1,6 @@
 # Lux Mauritius tenant site — v1 acceptance (internal)
 
-**Tenant:** `luxe-maurice` · **Primary host:** `lux.corpflowai.com` (CorpFlow-managed).
+**Tenant:** `luxe-maurice` · **Official production URL:** **`https://lux.corpflowai.com/`** (CorpFlow-managed). **Optional alias:** `https://luxe.corpflowai.com/` — same tenant when listed in Vercel Domains (Production) and in Postgres `tenant_hostnames` (use `node scripts/upsert-luxe-maurice-hostnames.mjs`).
 
 Use this list before telling the client the homepage is ready or before a deliberate ship push.
 

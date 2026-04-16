@@ -13,6 +13,7 @@
     "provision:tenant-test": "node scripts/provision-tenant-test-access.mjs",
     "topup:tenant-tokens": "node scripts/top-up-tenant-token-balance.mjs",
     "factory:set-luxe-billing-exempt": "node scripts/set-luxe-maurice-billing-exempt.mjs",
+    "factory:upsert-luxe-hosts": "node scripts/upsert-luxe-maurice-hostnames.mjs",
     "cmp:repair-sandbox": "node scripts/cmp-repair-stuck-sandbox.mjs",
     "cmp:repair-sandbox:execute": "node scripts/cmp-repair-stuck-sandbox.mjs --execute",
     "technical-lead:run": "node scripts/technical-lead-run.mjs",
