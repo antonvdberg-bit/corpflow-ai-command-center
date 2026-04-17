@@ -58,6 +58,12 @@ npm run build
 
 Prisma client generates on `postinstall` / `npm ci`. CI runs Python tests under `core/engine/tests/` plus `npm test`, `npm audit`, and `npm run build` (see `.github/workflows/test.yml`).
 
+### CI / supply chain (maintainers)
+
+- Third-party Actions in workflows that install tooling or touch GitHub API are **pinned to full commit SHAs** (see YAML comments). Bump intentionally after review.
+- Groq chat/completions use **`lib/server/groq-client.js`** — one URL + `resolveGroqModel('primary' | 'technical_lead_rephrase')` (TL rephrase: optional `CORPFLOW_TECHNICAL_LEAD_LLM_MODEL`, else built-in default — not `GROQ_MODEL_NAME`).
+- **CMP action gates:** tenant session actions go through `requireDormantGate` / `requireFactoryMasterOnly` in `lib/cmp/router.js` — high-impact routes (`promote-merge`, `approve-build`, factory-only repair) stay separated from read-only analysis.
+
 ## Cursor Bugbot (optional, free tier)
 
 Enable **[Cursor Bugbot](https://cursor.com/docs/bugbot#setup)** on the GitHub repo for PR-level review comments. Use it as a **fast second pair of eyes** alongside **Agent CI**; it does **not** replace deterministic checks or the **Technical Lead observer** (evidence persisted in Postgres — see below).

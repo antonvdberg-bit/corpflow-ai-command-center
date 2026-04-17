@@ -51,6 +51,7 @@ import {
 import { buildCorpflowHostContext, isApexHostname } from '../lib/server/host-tenant-context.js';
 import { getTenantHostSessionConflict } from '../lib/server/tenant-host-session-gate.js';
 import { cfg, runtimeConfigDiagnostics } from '../lib/server/runtime-config.js';
+import { getGroqApiKey, groqChatCompletionsFetch, resolveGroqModel } from '../lib/server/groq-client.js';
 import { passwordResetDeliveryDiagnostics } from '../lib/server/password-reset-delivery.js';
 import { getSessionFromRequest } from '../lib/server/session.js';
 import { getTenantWalletSnapshot } from '../lib/factory/costing.js';
@@ -400,7 +401,7 @@ async function handleFactoryHealth(req, res) {
 async function handleChat(req, res) {
   const message = firstQuery(req.query, 'message');
   const mode = String(firstQuery(req.query, 'mode') || '').trim().toLowerCase();
-  const key = process.env.GROQ_API_KEY;
+  const key = getGroqApiKey();
   if (!key) {
     return res.status(200).json({ response: 'API Key missing. Please set GROQ_API_KEY in Vercel.' });
   }
@@ -461,23 +462,16 @@ async function handleChat(req, res) {
   }
 
   try {
-    const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${key}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [
-          {
-            role: 'system',
-            content:
-              'You are the Serenity Wellness Concierge. You are professional, empathetic, and luxury-focused. You assist clients in Mauritius with beauty and wellness inquiries.',
-          },
-          { role: 'user', content: String(message) },
-        ],
-      }),
+    const r = await groqChatCompletionsFetch({
+      model: resolveGroqModel('primary'),
+      messages: [
+        {
+          role: 'system',
+          content:
+            'You are the Serenity Wellness Concierge. You are professional, empathetic, and luxury-focused. You assist clients in Mauritius with beauty and wellness inquiries.',
+        },
+        { role: 'user', content: String(message) },
+      ],
     });
     const data = await r.json().catch(() => ({}));
     if (!r.ok) {

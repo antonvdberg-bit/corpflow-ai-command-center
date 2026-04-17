@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Close stale CMP sandbox PRs (no activity)
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b
         with:
           script: |
             const days = 14; // conservative: 2 weeks
@@ -79,7 +79,7 @@ jobs:
             core.info(`Closed ${closed} stale CMP sandbox PR(s).`);
 
       - name: Delete merged CMP branches
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b
         with:
           script: |
             const owner = context.repo.owner;
