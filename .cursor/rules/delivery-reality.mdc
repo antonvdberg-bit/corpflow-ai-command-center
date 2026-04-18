@@ -1,0 +1,70 @@
+---
+description: Delivery completes only when verified in live production (observable world)
+alwaysApply: true
+---
+
+# Delivery reality — observable production
+
+**Principle:** If it did not happen in the **observable world** (live production, customer-visible behavior), it did not happen.
+
+No ticket, change, incident closure, or “done” claim may stand on **internal signals alone**. Repository state and CI are necessary checks; they are **not sufficient** proof of delivery.
+
+## Delivery states (use explicitly)
+
+For every change, distinguish:
+
+1. **Local only** — code exists in a workspace/branch; not necessarily on `main`.
+2. **Merged** — intended commit is on `main` (or agreed release branch).
+3. **Deployed** — Vercel **Production** is serving a deployment whose **source commit** includes the change (identify **deployment ID** + **commit SHA**).
+4. **Live verified** — real **production URL(s)** and **client-facing flow(s)** behave as expected (not Preview-only, not health-only).
+
+**Operational completion** = state **4**. States 1–3 are progress, not completion.
+
+## What does NOT prove delivery (on its own)
+
+- Code exists only locally or on a feature branch
+- Tests pass locally
+- CI is green (including `vercel-env`, Agent CI, `npm test`, `npm run build`)
+- PR merged to `main`
+- Internal or operator-only endpoints healthy (e.g. `/api/factory/health` alone)
+- Database row says `Closed` or ticket status is terminal in CMP **without** live URL verification
+
+Agents and humans must **not** treat the above as “shipped” or “fixed” until **live production** confirms the customer-visible outcome.
+
+## Client-facing routes
+
+Any route or flow that **clients or marketing** use (e.g. tenant hosts, `/`, `/change`, login) requires an explicit **live GET or flow check** against the **real production hostname** — not only a generic health URL on another host.
+
+Minimum reference checks for this repo are listed in **`.cursor/rules/predeploy-decision-checks.mdc`** (extend the list when the change touches other hosts or flows).
+
+## Mandatory verdict rules
+
+- If the intended fix is **not** in the **deployed Production commit**, the verdict **cannot** be **COMPLETE**.
+- If a **client-facing production URL** required for the change is broken (4xx/5xx, wrong content, unusable flow), the verdict **must** be **FAILED** (even if internal APIs are healthy).
+- If **internal** endpoints are healthy but **customer-facing** routes are broken, the verdict **must** be **FAILED**.
+- If work is **only local** or **only merged** but **not deployed and live-verified**, the verdict **must not** be **COMPLETE**.
+- **PARTIAL** — use when code is merged and/or deployed but the **full** delivery audit is incomplete, **or** verification is intentionally split (e.g. waiting for DNS), **or** only a subset of required live checks passed. Do **not** use PARTIAL to hide a broken client URL; that is **FAILED**.
+
+## Delivery Reality Audit (required format)
+
+Use this block when closing a ticket, incident, or change request:
+
+```text
+Delivery Reality Audit:
+- Local fix exists: YES/NO
+- Merged to main: YES/NO
+- Production deployment ID:
+- Commit deployed:
+- Live URLs tested:
+- Expected vs actual result:
+- Client-facing flow usable: YES/NO
+- Final verdict: COMPLETE / PARTIAL / FAILED
+```
+
+**Language discipline:** distinguish **technically merged** (Git), **deployed** (Vercel Production serving that commit), and **operationally complete** (live verified). Do not conflate them in summaries or ticket text.
+
+## CMP / tickets
+
+Database or UI status is **workflow state**, not proof of production behavior. **Closed** (or equivalent) should only align with **COMPLETE** when the audit above is satisfied; otherwise keep language honest (e.g. “merged, deploy pending” / “deployed, live verification pending”).
+
+See also **`lib/cmp/README.md`** § *Ticket status vs operational delivery*.

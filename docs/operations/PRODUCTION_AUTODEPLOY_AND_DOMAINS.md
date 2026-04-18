@@ -47,12 +47,15 @@ If a customer hostname returns Vercel **`404: NOT_FOUND`** with an id like `sin1
 4. Redeploy **Production**.
 
 **Verify:** `GET /` should return **200** with HTML (Lux landing) or your intended marketing page. If **every** path on the hostname returns Vercel `NOT_FOUND`, fix **domain assignment + DNS** first (hostname not on this project).
+
 ## Autodeploy loop (expected)
 
 1. Merge to **`main`** (via PR).
 2. Vercel builds **Production** from `main` (Git integration or deploy hook — see `docs/VERCEL_DEPLOYMENT.md`).
 3. **Domains** tab shows **Valid** for each custom host assigned to Production.
 4. Optional: **GitHub Actions** ping health and tenant surfaces (below) so a broken deploy or routing drift fails CI on a schedule.
+
+**Delivery standard:** merge + green CI do **not** equal “shipped.” After Production is **Ready**, run **live checks** on **customer hostnames** (see **`.cursor/rules/delivery-reality.mdc`** and **`.cursor/rules/predeploy-decision-checks.mdc`**) and record **deployment id**, **commit**, **URLs tested**, and verdict **COMPLETE / PARTIAL / FAILED**. If it did not pass in the observable world, it did not happen.
 
 ## Operator checklist when “production is 404”
 

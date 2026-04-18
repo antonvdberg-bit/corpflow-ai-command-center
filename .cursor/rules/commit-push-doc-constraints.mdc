@@ -5,11 +5,13 @@ alwaysApply: true
 
 # Commit / push — documentation and constraints
 
-When work is **committed and pushed** (or you are about to), treat this as **definition of done**:
+When work is **committed and pushed** (or you are about to), treat this as **definition of done for the Git step** — not **operational delivery**:
+
+- **Merge / push / CI green** prove the repo and automation gates; they do **not** prove **live production** behavior. See **`.cursor/rules/delivery-reality.mdc`** and **`.cursor/rules/predeploy-decision-checks.mdc`** for production verification and the **Delivery Reality Audit** format.
 
 1. **Documentation pass** — Re-read or skim the docs that govern what you changed (see **`docs/CORPFLOW_SHARED_TODO.md`** § *Base process — commit, push, and documentation* for the full list and priorities). Ensure operator-facing steps and env vars still match reality (including `.env.template` when behavior is env-driven).
 2. **Rules and boundaries** — Confirm the change does not violate tenancy/host policy (`docs/operations/TENANT_CLIENT_LOGIN.md`), factory vs client boundaries, automation and secrets expectations (`docs/EXECUTION_BRAIN_VS_HANDS.md`, `docs/automation-framework.md`), CMP/API contracts (`lib/cmp/README.md`), or existing decisions in **`docs/CORPFLOW_SHARED_TODO.md`**. If something must change, update the canonical doc and/or checklist in the same push — not only code.
 3. **Update docs when needed** — New APIs, flags, security behavior, or runbook steps belong in the **canonical** doc for that area; avoid leaving the team with code-only truth.
 4. **Security-sensitive diffs** — If you touched auth, sessions, `api/`, `lib/server/`, `lib/cmp/` gates, Prisma, automation secrets, or webhooks, follow **`security-sensitive-changes.mdc`** and **`docs/operations/SECURITY_REVIEW_CHECKLIST.md`**.
 
-If you cannot verify (e.g. no access to prod env), state what was verified locally and what remains for a human.
+If you cannot verify production (e.g. no access to prod env), state what was verified locally and what remains for a human; **do not** label the overall change **COMPLETE** until **live verification** is done or explicitly handed off with **PARTIAL** scope.

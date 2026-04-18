@@ -63,6 +63,8 @@ After deployment, create separate PR to:
 - Use `openspec archive <change-id> --skip-specs --yes` for tooling-only changes (always pass the change ID explicitly)
 - Run `openspec validate --strict` to confirm the archived change passes checks
 
+**Production delivery:** Treat “deployed” as **Vercel Production serving the merge commit**, and “done” for user-visible work only after **live URL / flow verification** per **`.cursor/rules/delivery-reality.mdc`** (CI and merge alone are insufficient).
+
 ## Before Any Task
 
 **Context Checklist:**
