@@ -51,6 +51,7 @@ import {
 import { buildCorpflowHostContext, isApexHostname } from '../lib/server/host-tenant-context.js';
 import { getTenantHostSessionConflict } from '../lib/server/tenant-host-session-gate.js';
 import { cfg, runtimeConfigDiagnostics } from '../lib/server/runtime-config.js';
+import { getGroqApiKey, groqChatCompletionsFetch, resolveGroqModel } from '../lib/server/groq-client.js';
 import { passwordResetDeliveryDiagnostics } from '../lib/server/password-reset-delivery.js';
 import { getSessionFromRequest } from '../lib/server/session.js';
 import { getTenantWalletSnapshot } from '../lib/factory/costing.js';
@@ -292,7 +293,8 @@ async function handleHealth(req, res) {
 }
 
 /**
- * Factory health: report required env presence (no secret values).
+ * Factory health: readiness aligned with vanguard/vercel-env-policy.json
+ * (non–break-glass admin paths for ok; break-glass key not named in JSON).
  *
  * @param {import('http').IncomingMessage} req
  * @param {import('http').ServerResponse} res
@@ -304,37 +306,36 @@ async function handleFactoryHealth(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const runtime_config = runtimeConfigDiagnostics();
+  const rcFull = runtimeConfigDiagnostics();
+  const runtime_config = {
+    present: rcFull.present,
+    parse_ok: rcFull.parse_ok,
+    key_count: Array.isArray(rcFull.keys) ? rcFull.keys.length : 0,
+    ...(rcFull.present && !rcFull.parse_ok && rcFull.parse_error
+      ? { parse_error: rcFull.parse_error }
+      : {}),
+    ...(rcFull.first_char ? { first_char: rcFull.first_char } : {}),
+  };
+
   const coreRaw = cfg('CORPFLOW_CORE_HOSTS', '').trim();
   const coreHostCount = coreRaw
     ? coreRaw.split(',').map((s) => s.trim()).filter(Boolean).length
     : 0;
 
-  const required = {
-    sovereign: ['MASTER_ADMIN_KEY', 'SOVEREIGN_SESSION_SECRET'],
-    database: ['POSTGRES_URL'],
-  };
-
-  const flat = Array.from(
-    new Set(Object.values(required).flat().map((k) => String(k))),
-  );
-
-  /** @type {Record<string, boolean>} */
-  const present = {};
-  for (const k of flat) {
-    const v = cfg(k, '');
-    present[k] = v != null && String(v).trim() !== '';
-  }
-
-  const masterKey = String(cfg('MASTER_ADMIN_KEY', '')).trim();
+  const postgresOk = Boolean(String(cfg('POSTGRES_URL', '')).trim());
+  const sessionOk = Boolean(String(cfg('SOVEREIGN_SESSION_SECRET', '')).trim());
   const adminPin = String(cfg('ADMIN_PIN', '')).trim();
-  const factoryMasterSecretConfigured = Boolean(masterKey || adminPin);
-  const adminUser = String(cfg('CORPFLOW_ADMIN_USERNAME', '')).trim();
   const adminPw = String(cfg('CORPFLOW_ADMIN_PASSWORD', '')).trim();
   const adminHash = String(cfg('CORPFLOW_ADMIN_PASSWORD_HASH', '')).trim();
+  const adminOperatorReady = Boolean(adminPin || adminPw || adminHash);
+
+  const masterKey = String(cfg('MASTER_ADMIN_KEY', '')).trim();
+  const headerBearerAuthAvailable = Boolean(masterKey || adminPin);
+  const adminUser = String(cfg('CORPFLOW_ADMIN_USERNAME', '')).trim();
   const factoryAdminWebLoginConfigured = Boolean(adminUser && (adminPw || adminHash));
 
-  const ok = flat.every((k) => present[k] === true);
+  const runtimeJsonOk = !rcFull.present || rcFull.parse_ok === true;
+  const ok = postgresOk && sessionOk && adminOperatorReady && runtimeJsonOk;
 
   const automation = {
     cmp_mirror_enabled: String(cfg('CORPFLOW_AUTOMATION_CMP_MIRROR', 'true')).toLowerCase() !== 'false',
@@ -352,20 +353,54 @@ async function handleFactoryHealth(req, res) {
     password_reset_delivery.resend ||
     password_reset_delivery.debug_token_return_enabled;
 
+  let hint = 'All readiness checks passed.';
+  if (!ok) {
+    if (rcFull.present && !rcFull.parse_ok) {
+      hint =
+        'CORPFLOW_RUNTIME_CONFIG_JSON is present but invalid JSON. See runtime_config.parse_error; use strict JSON (no trailing commas, double quotes only).';
+    } else if (!postgresOk || !sessionOk || !adminOperatorReady) {
+      hint =
+        'One or more readiness checks failed. Set POSTGRES_URL, SOVEREIGN_SESSION_SECRET, and at least one operator admin credential (ADMIN_PIN or CORPFLOW_ADMIN_PASSWORD / CORPFLOW_ADMIN_PASSWORD_HASH) per deployment policy.';
+    } else {
+      hint = 'Service degraded; see checks object.';
+    }
+  }
+
+  let auth_hint =
+    'Configure ADMIN_PIN or CORPFLOW_ADMIN_PASSWORD / HASH for script and policy-aligned healthy status; use /login with CORPFLOW_ADMIN_* for browser admin when set.';
+  if (adminOperatorReady && headerBearerAuthAvailable) {
+    auth_hint =
+      'Operator admin credentials are configured; factory routes accept x-session-token / Bearer where applicable.';
+  } else if (adminOperatorReady) {
+    auth_hint =
+      'Operator admin credentials are configured for policy-aligned readiness and supported automation paths.';
+  } else if (headerBearerAuthAvailable && factoryAdminWebLoginConfigured) {
+    auth_hint =
+      'Add ADMIN_PIN or CORPFLOW_ADMIN_PASSWORD / HASH (or rely on configured browser admin) for healthy operator-readiness alongside optional header access.';
+  } else if (headerBearerAuthAvailable) {
+    auth_hint =
+      'Add ADMIN_PIN or CORPFLOW_ADMIN_PASSWORD / HASH for healthy status; optional header or /login paths may still be configured separately.';
+  } else if (factoryAdminWebLoginConfigured) {
+    auth_hint =
+      'Browser admin at /login is available; add ADMIN_PIN or CORPFLOW_ADMIN_PASSWORD / HASH in env for healthy operator-readiness per policy.';
+  }
+
   return res.status(ok ? 200 : 503).json({
     ok,
-    required_env: required,
+    status: ok ? 'healthy' : 'degraded',
+    checks: {
+      database_configured: postgresOk,
+      sovereign_session_configured: sessionOk,
+      admin_operator_ready: adminOperatorReady,
+      runtime_config_valid: runtimeJsonOk,
+    },
     runtime_config,
     automation,
-    password_reset_delivery,
     password_reset_delivery_configured: password_reset_ok,
     password_reset_hint: password_reset_ok
       ? 'Tenant forgot-password can deliver via webhook and/or Resend when user exists.'
       : 'Set CORPFLOW_PASSWORD_RESET_WEBHOOK_URL (n8n → email) and/or CORPFLOW_PASSWORD_RESET_RESEND_API_KEY + CORPFLOW_PASSWORD_RESET_FROM_EMAIL, or use debug token only in non-prod.',
-    /** Scripts/curl need one of these; if false, use /login admin + "Ensure Postgres" button instead. */
-    factory_master_secret_configured: factoryMasterSecretConfigured,
-    /** CORPFLOW_ADMIN_* for browser login at /login (level admin). */
-    factory_admin_web_login_configured: factoryAdminWebLoginConfigured,
+    factory_browser_admin_configured: factoryAdminWebLoginConfigured,
     tenancy_boundary: {
       core_hosts_configured: coreHostCount > 0,
       core_host_count: coreHostCount,
@@ -375,18 +410,8 @@ async function handleFactoryHealth(req, res) {
       /** Same value must exist on Preview + Production so `cf_preview` verifies on `*.vercel.app` deployments. */
       tenant_preview_secret_configured: Boolean(String(cfg('CORPFLOW_TENANT_PREVIEW_SECRET', '')).trim()),
     },
-    present,
-    hint: ok
-      ? 'All required env vars present.'
-      : runtime_config.present && !runtime_config.parse_ok
-        ? 'CORPFLOW_RUNTIME_CONFIG_JSON is present but invalid JSON. See runtime_config.parse_error; use strict JSON (no trailing commas, double quotes only).'
-        : 'Set missing env vars in Vercel Environment Variables.',
-    auth_hint:
-      factoryMasterSecretConfigured
-        ? 'Header auth (x-session-token / Bearer) is supported for factory API routes.'
-        : factoryAdminWebLoginConfigured
-          ? 'No MASTER_ADMIN_KEY/ADMIN_PIN on this deployment: PowerShell ensure-schema will always 403. Log in at /login as factory admin, then use the "Ensure Postgres" / ensure-schema control (session cookie). Or add MASTER_ADMIN_KEY or ADMIN_PIN to Production and redeploy.'
-          : 'Set MASTER_ADMIN_KEY or ADMIN_PIN for script access, or CORPFLOW_ADMIN_USERNAME + password for /login admin.',
+    hint,
+    auth_hint,
   });
 }
 
@@ -400,7 +425,7 @@ async function handleFactoryHealth(req, res) {
 async function handleChat(req, res) {
   const message = firstQuery(req.query, 'message');
   const mode = String(firstQuery(req.query, 'mode') || '').trim().toLowerCase();
-  const key = process.env.GROQ_API_KEY;
+  const key = getGroqApiKey();
   if (!key) {
     return res.status(200).json({ response: 'API Key missing. Please set GROQ_API_KEY in Vercel.' });
   }
@@ -461,23 +486,16 @@ async function handleChat(req, res) {
   }
 
   try {
-    const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${key}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [
-          {
-            role: 'system',
-            content:
-              'You are the Serenity Wellness Concierge. You are professional, empathetic, and luxury-focused. You assist clients in Mauritius with beauty and wellness inquiries.',
-          },
-          { role: 'user', content: String(message) },
-        ],
-      }),
+    const r = await groqChatCompletionsFetch({
+      model: resolveGroqModel('primary'),
+      messages: [
+        {
+          role: 'system',
+          content:
+            'You are the Serenity Wellness Concierge. You are professional, empathetic, and luxury-focused. You assist clients in Mauritius with beauty and wellness inquiries.',
+        },
+        { role: 'user', content: String(message) },
+      ],
     });
     const data = await r.json().catch(() => ({}));
     if (!r.ok) {
