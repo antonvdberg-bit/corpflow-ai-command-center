@@ -34,9 +34,9 @@ If a customer hostname returns Vercel **`404: NOT_FOUND`** with an id like `sin1
 
 **Meaning:** the hostname is reaching **a** deployment, but **`/` is not being handled** the same way as other routes — often a **Vercel / Next routing** mismatch (wrong framework preset, custom output dir, or edge id mismatch) *or* the platform failing before the Next handler runs.
 
-**In-repo mitigation (Lux hosts only):** root **`middleware.js`** rewrites **`/`** on **`lux.corpflowai.com`** and **`luxe.corpflowai.com`** (and `www` variants) to **`/lux-landing-static.html`**, the same static Lux landing used when preview roots 404. Deploy this app to Production so the middleware ships.
+**In-repo mitigation (Lux hosts only):** **`vercel.json`** host-scoped rewrites map **`/`** on **`lux.corpflowai.com`** and **`luxe.corpflowai.com`** (and `www` variants) to **`/lux-landing-static.html`** (same static Lux landing as preview). This avoids relying on Next Edge middleware for `/` (which can surface as **`MIDDLEWARE_INVOCATION_FAILED`** on some deployments). Deploy this app to Production so the config ships.
 
-**Fix (Vercel project settings) — still required if `/` stays broken *after* middleware deploy:**
+**Fix (Vercel project settings) — still required if `/` stays broken *after* deploy:**
 
 1. Vercel → **Project → Settings → Build & Development Settings**
 2. Ensure:
@@ -46,7 +46,7 @@ If a customer hostname returns Vercel **`404: NOT_FOUND`** with an id like `sin1
 3. **Domains:** both **`lux.corpflowai.com`** and (if used) **`luxe.corpflowai.com`** point at **this** project’s **Production** deployment.
 4. Redeploy **Production**.
 
-**Verify:** `GET /` should return **200** with HTML (Lux landing after middleware) or your intended marketing page. If **every** path on the hostname returns Vercel `NOT_FOUND`, fix **domain assignment + DNS** first (hostname not on this project).
+**Verify:** `GET /` should return **200** with HTML (Lux landing) or your intended marketing page. If **every** path on the hostname returns Vercel `NOT_FOUND`, fix **domain assignment + DNS** first (hostname not on this project).
 ## Autodeploy loop (expected)
 
 1. Merge to **`main`** (via PR).
