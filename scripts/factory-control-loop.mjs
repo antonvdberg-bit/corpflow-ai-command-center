@@ -146,7 +146,12 @@ async function factorySection(url) {
     hint: typeof body?.hint === 'string' ? body.hint : '',
     authHint: typeof body?.auth_hint === 'string' ? body.auth_hint : '',
     runtimeParseOk: body?.runtime_config?.parse_ok !== false,
-    presentKeysSample: body?.present ? Object.keys(body.present).filter((k) => !body.present[k]) : [],
+    failedChecks:
+      body?.checks && typeof body.checks === 'object'
+        ? Object.entries(body.checks)
+            .filter(([, v]) => v === false)
+            .map(([k]) => k)
+        : [],
     automation: body?.automation || null,
     tenancy_boundary: body?.tenancy_boundary || null,
   };
@@ -358,8 +363,8 @@ async function main() {
       console.log('  ok:     ', factory.factoryOk);
       if (factory.hint) console.log('  hint:   ', factory.hint);
       if (factory.authHint) console.log('  auth:   ', factory.authHint);
-      if (factory.presentKeysSample?.length)
-        console.log('  missing present.*:', factory.presentKeysSample.slice(0, 8).join(', '));
+      if (factory.failedChecks?.length)
+        console.log('  failed checks:', factory.failedChecks.slice(0, 12).join(', '));
       if (factory.automation) console.log('  automation:', JSON.stringify(factory.automation));
     }
 
