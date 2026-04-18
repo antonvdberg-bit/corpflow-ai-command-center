@@ -116,3 +116,23 @@ test('evaluateTechnicalLeadChecklistV1: Vercel API failure is warning', () => {
   });
   assert.ok(gaps.some((g) => g.id === 'vercel_api'));
 });
+
+test('evaluateTechnicalLeadChecklistV1: closed ticket + non-terminal persisted workflow is error', () => {
+  const { gaps } = evaluateTechnicalLeadChecklistV1({
+    ticket_cmp_status: 'Closed',
+    client_view_workflow_state: 'in_review',
+    closure_kind: '',
+    dispatch_ok: true,
+    pr_number: 1,
+    github: {
+      configured: true,
+      pr_state: 'open',
+      pr_fetch: { ok: true, status: 200 },
+      compare: { ok: true, total_commits: 1, files_changed: 2, commit_messages: ['x'] },
+      check_runs: { ok: true, failed: 0, pending: 0, count: 1 },
+    },
+    vercel: { skipped: true },
+    factory_health: { skipped: true },
+  });
+  assert.ok(gaps.some((g) => g.id === 'change_console_terminal_mismatch'));
+});

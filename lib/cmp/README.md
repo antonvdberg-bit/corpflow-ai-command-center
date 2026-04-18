@@ -12,6 +12,8 @@ CMP fields (e.g. workflow **Closed**, stages, `console_json`) describe **process
 
 Do not close or narrate a ticket as fully “done” for customer impact without **live verification** on the **real production hostname(s)** for that change. Internal health endpoints alone are insufficient when marketing or tenant routes are in scope.
 
+**`/change` workflow display:** `ticket-get` derives **`ticket_progress.client_view.workflow_state`** in **`lib/cmp/_lib/change-workflow-state.js`**. If **`cmp_tickets`** is **`Closed`** but **`console_json.client_view.workflow_state`** was never updated after merge, the API still returns a **terminal** state for the UI (so the console does not stay on “In review”). Operators can inspect any ticket with **`node scripts/audit-cmp-ticket.mjs <ticket_id>`** (requires `POSTGRES_URL`).
+
 ## Environment variables (high level)
 
 | Area | Variables |
