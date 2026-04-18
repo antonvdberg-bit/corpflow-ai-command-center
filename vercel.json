@@ -6,6 +6,26 @@
     }
   },
   "rewrites": [
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "lux.corpflowai.com" }],
+      "destination": "/lux-landing-static.html"
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "www.lux.corpflowai.com" }],
+      "destination": "/lux-landing-static.html"
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "luxe.corpflowai.com" }],
+      "destination": "/lux-landing-static.html"
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "www.luxe.corpflowai.com" }],
+      "destination": "/lux-landing-static.html"
+    },
     { "source": "/lux-landing-static", "destination": "/lux-landing-static.html" },
     { "source": "/api/(.*)", "destination": "/api/factory_router?__path=$1" },
     { "source": "/login", "destination": "/login.html" },
