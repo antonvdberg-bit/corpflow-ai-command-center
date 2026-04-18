@@ -22,3 +22,7 @@ The user leads the project; they are not a full-time engineer. Do **not** write 
 ## When they say they’re blocked
 
 - Treat time lost as real; prioritize **one clear fix path** and **one verification step** (e.g. “you’re in when `/api/auth/me` shows tenant”).
+
+## Delivery and “done”
+
+- **Outcomes** for shipped work should state **live production** truth when claiming completion: **merged**, **deployed** (which commit / Vercel deployment), and **verified on the real URL** — not only CI or internal health. See **`.cursor/rules/delivery-reality.mdc`**.

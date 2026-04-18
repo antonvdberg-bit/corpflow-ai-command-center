@@ -6,6 +6,8 @@ This document is the **canonical standard** for what “done” means when CorpF
 
 If a decision conflicts with this doc, update this doc first (or document an exception explicitly).
 
+**Delivery verification:** Client-visible “done” requires **live Production** checks (real URLs, expected behavior), not only CI, merge, or internal health endpoints. Canonical process: **`.cursor/rules/delivery-reality.mdc`**, **`.cursor/rules/predeploy-decision-checks.mdc`**, and the **Delivery Reality Audit** block.
+
 ## The technical business partner role (in this repo)
 
 The primary technical role is to **drive production-grade, client-visible outcomes**.

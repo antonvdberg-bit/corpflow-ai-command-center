@@ -9,7 +9,7 @@
 
 ## Base process — commit, push, and documentation (agents + humans)
 
-Treat this as part of **definition of done** whenever work is **committed and pushed** (including merge to `main`):
+Treat this as part of **definition of done** whenever work is **committed and pushed** (including merge to `main`). **Git/CI “done” is not customer delivery “done”:** distinguish **local → merged → deployed (Vercel Production commit) → live verified** per **`.cursor/rules/delivery-reality.mdc`**. A ticket or change is **operationally complete** only at **live verified**; use the **Delivery Reality Audit** format there.
 
 1. **Re-evaluate documentation** against the change: operational runbooks (`docs/operations/`, `docs/runbooks/`), `.env.template`, `lib/cmp/README.md`, `docs/automation-framework.md`, and any file this repo names as canonical for the area you touched (e.g. `docs/operations/TENANT_CLIENT_LOGIN.md` for hostname / login / tenancy).
 2. **Check rules, boundaries, and constraints** so nothing is transgressed: tenancy and host policy, factory vs tenant surfaces, secrets and automation boundaries (`docs/EXECUTION_BRAIN_VS_HANDS.md`), items already marked done or decided in this checklist, and Cursor/project rules under `.cursor/rules/`. For **auth, sessions, `api/`, `lib/server/`, `lib/cmp/` gates, Prisma, webhooks, or automation secrets**, also apply **`docs/operations/SECURITY_REVIEW_CHECKLIST.md`** (see `.cursor/rules/security-sensitive-changes.mdc`). If a constraint must change, record the decision **in-repo** (this file, `docs/decisions/`, or a strategy doc) in the same effort — do not ship silent contradictions.
