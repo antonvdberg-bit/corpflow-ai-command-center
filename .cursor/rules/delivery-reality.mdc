@@ -68,3 +68,11 @@ Delivery Reality Audit:
 Database or UI status is **workflow state**, not proof of production behavior. **Closed** (or equivalent) should only align with **COMPLETE** when the audit above is satisfied; otherwise keep language honest (e.g. “merged, deploy pending” / “deployed, live verification pending”).
 
 See also **`lib/cmp/README.md`** § *Ticket status vs operational delivery*.
+
+## Change Console (`/change`) consistency
+
+If **`cmp_tickets.status` / `stage` is `Closed`** (delivery complete in the database) but **`console_json.client_view.workflow_state` is still non-terminal** (e.g. `in_review`), the Change Console would misrepresent reality. That is a **governance defect**: operators and clients must see a terminal workflow (`published` or `closed` / hard-close) when the row is closed.
+
+- **Server behavior:** `lib/cmp/_lib/change-workflow-state.js` derives **`ticket_progress.client_view.workflow_state`** for **`ticket-get`** so `/change` reflects terminal state for closed rows even when JSON was never backfilled.
+- **Audit trail:** **`telemetry_events`** may receive **`cmp.delivery.change_console_workflow_coerced`**; **`automation_events`** may receive **`cmp.delivery.change_console_ui_derived_mismatch`** (idempotent) when persisted vs derived workflows differ on a closed ticket.
+- **Technical Lead checklist:** rule id **`change_console_terminal_mismatch`** flags persisted JSON that is still non-terminal while the CMP row is Closed (run `npm run technical-lead:run -- --ticket=<id>` for a single ticket).
