@@ -1,9 +1,13 @@
 ---
-description: Pre-deploy and DNS/tenant change guardrails (avoid redoing work)
+description: Pre-deploy, post-deploy, and live production verification (delivery reality)
 alwaysApply: true
 ---
 
-# Pre-deploy / pre-infra-change checklist
+# Pre-deploy / post-deploy / live production checklist
+
+**Canonical delivery standard:** **`.cursor/rules/delivery-reality.mdc`** — a change is only **COMPLETE** when **live production** matches intent; merge and CI are not enough.
+
+## Pre-deploy / pre-infra-change
 
 Before doing any **deployment**, **DNS/traffic split**, **tenant onboarding**, or **new “site/marketing” surface** work, do a quick “don’t redo / don’t contradict ourselves” pass:
 
@@ -21,27 +25,51 @@ If apex vs `core.*` (or any hostnames) are moved onto different deployments/edge
 - Update GitHub secret `CORPFLOW_FACTORY_HEALTH_URL` (or add a second health workflow/job) so CI monitors the hostname clients actually use.
 - Re-check tenant host mappings (`tenant_hostnames`) and any host-based tenancy derivation.
 
+## Post-deploy: production identification (required)
+
+Before calling any change **COMPLETE**, record:
+
+- **Commit deployed** — full Git SHA on `main` that Vercel Production built (match GitHub merge commit to deployment).
+- **Production deployment ID** — Vercel deployment id (e.g. `dpl_…`) for that Production build, **Ready**.
+- **Live URLs tested** — list the exact production URLs you hit (not only Preview `*.vercel.app` unless the change is Preview-only by design).
+
+If the fix is not on the **Production** deployment’s commit, **verdict cannot be COMPLETE** (see **delivery-reality.mdc**).
+
 ## Live production surface checks (closure / incident discipline)
 
 **Repo + CI green does not prove customer-facing production is healthy.** A CMP ticket or change is not operationally complete until all of the following hold:
 
-1. **CI** — required GitHub checks pass (including `vercel-env` and Agent CI where applicable).
+1. **CI** — required GitHub checks pass (including `vercel-env` and Agent CI / `test` workflow where applicable).
 2. **Merge** — intended code is on `main` (or agreed release branch).
-3. **Deployment** — Vercel Production deployment for that commit is **Ready** (not Error / canceled).
-4. **Live surfaces** — after deploy, verify **HTTP** and **absence of platform 5xx** on the real hosts clients use.
+3. **Deployment** — Vercel Production deployment for that commit is **Ready** (not Error / canceled); note **deployment ID** + **commit**.
+4. **Live surfaces** — verify **HTTP**, correct content type where relevant, and **absence of platform 5xx** on the **real hosts and paths clients use**.
+5. **Observed behavior** — for the change, compare **expected vs actual** on production (not only “health JSON says ok”).
 
 ### Minimum live GET checks (production)
 
+Use as a **floor**; **add** any host/path your change touches (tenant marketing, login, new routes).
+
 | URL | Expected |
 |-----|----------|
-| `https://lux.corpflowai.com/` | **200** — Lux landing (not `500`, not Vercel `MIDDLEWARE_INVOCATION_FAILED`) |
+| `https://lux.corpflowai.com/` | **200** — Lux landing HTML (not `500`, not Vercel `MIDDLEWARE_INVOCATION_FAILED`) |
 | `https://lux.corpflowai.com/change` | **200** — Change Console static route |
 | `https://core.corpflowai.com/api/factory/health` | **200** — JSON `ok: true` |
 
+**Health alone is not enough** for customer-visible changes: if **`/api/factory/health`** is **200** but **`lux.corpflowai.com/`** (or another required client URL) fails, the delivery verdict is **FAILED**, not COMPLETE.
+
 If **`/`** fails but **`/change`** works, treat as **routing/middleware/platform** failure at the edge, not “app logic only.” **Postgres row status `Closed` is not sufficient** to claim operational completion when live URLs fail.
+
+### Verdict (closure)
+
+- **COMPLETE** — deployment ID + commit recorded; all required **live** checks pass; client-facing flow usable.
+- **PARTIAL** — merged and/or deployed but audit incomplete, or verification intentionally pending (honest scope); **not** for “client URL broken but API ok.”
+- **FAILED** — wrong commit on Production, deploy Error, or any required **client-facing** production URL/flow broken.
+
+Use the **Delivery Reality Audit** block in **delivery-reality.mdc** for written closure.
 
 ### How to verify quickly
 
-- Browser or `curl` / `Invoke-WebRequest` from an operator machine (sanity: status code + first bytes).
-- Vercel → **Deployments** → Production → **Functions** / build output if 5xx persists.
+- Browser or `curl` / `Invoke-WebRequest` from an operator machine (sanity: status code + first bytes of HTML/JSON).
+- Vercel → **Deployments** → Production → confirm **Ready** and **commit**; **Functions** / build output if 5xx persists.
+- GitHub → **Deployments** or `gh api repos/.../deployments` to correlate **Production** with **SHA**.
 

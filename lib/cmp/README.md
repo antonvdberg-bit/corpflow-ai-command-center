@@ -2,6 +2,16 @@
 
 Change Management Process: **Postgres** (`cmp_tickets`, `tenants`, `auth_users` via Prisma), costing, optional n8n webhooks, GitHub `repository_dispatch` for sandbox branches.
 
+## Ticket status vs operational delivery
+
+CMP fields (e.g. workflow **Closed**, stages, `console_json`) describe **process and intent**. They are **not** proof that **production** behaves correctly.
+
+- **Technically merged** — the fix exists on `main` (Git).
+- **Deployed** — Vercel **Production** is serving a deployment built from the commit that contains the fix (record **deployment id** + **SHA**).
+- **Operationally complete** — **live** production URLs and client-facing flows match expectations (see **`.cursor/rules/delivery-reality.mdc`** and **Delivery Reality Audit**).
+
+Do not close or narrate a ticket as fully “done” for customer impact without **live verification** on the **real production hostname(s)** for that change. Internal health endpoints alone are insufficient when marketing or tenant routes are in scope.
+
 ## Environment variables (high level)
 
 | Area | Variables |

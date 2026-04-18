@@ -25,7 +25,10 @@ This repository is the **CorpFlow AI Command Center**: **Next.js** (pages router
 
 1. **`docs/CORPFLOW_SHARED_TODO.md`** — § *Base process — commit, push, and documentation*.
 2. **`.cursor/rules/commit-push-doc-constraints.mdc`** and **`.cursor/rules/security-sensitive-changes.mdc`** (always on).
-3. Security-sensitive edits: **`docs/operations/SECURITY_REVIEW_CHECKLIST.md`**.
+3. **`.cursor/rules/delivery-reality.mdc`** and **`.cursor/rules/predeploy-decision-checks.mdc`** — **operational completion** requires **live production** verification; **CI green and merge are not sufficient** to call a customer-facing change done.
+4. Security-sensitive edits: **`docs/operations/SECURITY_REVIEW_CHECKLIST.md`**.
+
+**Do not treat as proof of delivery:** local tests only, CI success alone, merge to `main` alone, or `/api/factory/health` (or other internal endpoints) alone when the work affects **client-visible** URLs or flows. Record **deployment ID**, **deployed commit**, **live URLs tested**, and **Delivery Reality Audit** verdict (**COMPLETE / PARTIAL / FAILED**) per the rules above.
 
 ## Git note (default branch `main`)
 
@@ -36,6 +39,7 @@ If Git says **`ambiguous argument 'main'`**, a tracked path named **`main`** may
 | Topic | Doc |
 |--------|-----|
 | Priorities & checklist | `docs/CORPFLOW_SHARED_TODO.md` |
+| Delivery reality (live prod = done) | `.cursor/rules/delivery-reality.mdc`, `.cursor/rules/predeploy-decision-checks.mdc` |
 | Production bar (reliable, secure, observable) | `docs/strategy/PRODUCTION_GRADE_CLIENT_OUTCOMES.md` |
 | Host / apex / login / tenancy | `docs/operations/TENANT_CLIENT_LOGIN.md` |
 | Security review triggers | `docs/operations/SECURITY_REVIEW_CHECKLIST.md` |

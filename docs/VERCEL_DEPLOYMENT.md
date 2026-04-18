@@ -2,6 +2,8 @@
 
 **Customer-facing URLs vs deployments:** Read **`docs/operations/PRODUCTION_AUTODEPLOY_AND_DOMAINS.md`** — one Production spine (`main` → Vercel Production → custom domains). **Luxe Mauritius:** canonical URL is **`https://lux.corpflowai.com/`**; **`luxe.corpflowai.com`** is an optional alias when mapped in Vercel + Postgres (`npm run factory:upsert-luxe-hosts`). Vercel **`404 NOT_FOUND`** on a hostname is almost always **domain / DNS / failed Production deploy** or hostname not on this project — not application routing.
 
+**After a Production deploy succeeds:** verify **live** customer URLs and record **deployment id** + **commit** per **`.cursor/rules/delivery-reality.mdc`** — merge and green CI alone are not operational completion.
+
 ## Quick sanity: ensure Vercel is treating this as a Next.js app
 
 There is a failure mode where the hostname hits the right project and serverless rewrites work, but the Next router never serves `/`.
