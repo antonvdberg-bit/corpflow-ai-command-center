@@ -482,8 +482,27 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-6">
-        <div class="lg:col-span-2 rounded-2xl border border-slate-800 bg-slate-900/30 p-4">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 mt-6">
+        <!-- Left: Operator queue -->
+        <div class="lg:col-span-3 rounded-2xl border border-slate-800 bg-slate-900/30 p-4">
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <div class="text-xs font-semibold text-slate-200 tracking-wide">Operator queue</div>
+            <button
+              id="btnLoadTickets"
+              type="button"
+              class="text-xs rounded-lg border border-slate-600 px-3 py-1.5 text-slate-200 hover:bg-slate-800/60"
+            >
+              Refresh
+            </button>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-2 leading-relaxed">
+            Reality-derived queue. You should be able to triage without opening every ticket.
+          </p>
+          <div id="ticketList" class="mt-3 max-h-[min(70vh,760px)] overflow-y-auto text-xs text-slate-300"></div>
+        </div>
+
+        <!-- Center: Primary work area -->
+        <div class="lg:col-span-6 rounded-2xl border border-slate-800 bg-slate-900/30 p-4">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
             <label class="text-xs text-slate-300">
               Locale
@@ -505,23 +524,6 @@
                 You no longer paste master keys here. Login sets a secure HttpOnly cookie.
               </div>
             </div>
-          </div>
-
-          <div class="mt-4 rounded-xl border border-slate-800 bg-slate-950/40 p-4">
-            <div class="flex items-center justify-between gap-2 flex-wrap">
-              <div class="text-xs font-semibold text-slate-200">Recent / open tickets</div>
-              <button
-                id="btnLoadTickets"
-                type="button"
-                class="text-xs rounded-lg border border-slate-600 px-3 py-1.5 text-slate-200 hover:bg-slate-800/60"
-              >
-                Refresh list
-              </button>
-            </div>
-            <p class="text-[11px] text-slate-500 mt-2 leading-relaxed">
-              If <strong class="text-slate-400">Estimate</strong> errors, your ticket is usually still in the database — select it here and continue (or retry Estimate with the same description).
-            </p>
-            <div id="ticketList" class="mt-3 max-h-56 overflow-y-auto space-y-2 text-xs text-slate-300"></div>
           </div>
 
           <div class="mt-4">
@@ -684,6 +686,14 @@
         </div>
 
         <div class="rounded-2xl border border-slate-800 bg-slate-900/30 p-4">
+          <div id="cfExecutionRail" class="mb-4 rounded-xl border border-violet-500/20 bg-violet-950/15 p-4">
+            <div class="text-[10px] font-semibold tracking-[0.25em] text-violet-200/95">NEXT ACTION</div>
+            <p class="text-[11px] text-slate-500 mt-2 leading-relaxed">
+              Single operator instruction derived from the Reality Check. Changes when you select a ticket.
+            </p>
+            <div id="cfExecutionRailBody" class="mt-3 text-sm text-slate-200"></div>
+          </div>
+
           <div class="flex flex-wrap items-center justify-between gap-2">
             <div class="text-xs text-slate-300">Ticket ID</div>
             <button
@@ -2840,6 +2850,82 @@
           wrap.classList.remove('hidden');
         }
 
+        function renderExecutionRail(briefObj) {
+          const host = $('cfExecutionRailBody');
+          if (!host) return;
+          const rp = briefObj && typeof briefObj === 'object' ? briefObj.reality_panel : null;
+          if (!rp || typeof rp !== 'object') {
+            host.innerHTML = '<div class="text-slate-500">Select a ticket to see the single next action.</div>';
+            return;
+          }
+
+          const blocker = rp.blocker && typeof rp.blocker === 'object' ? rp.blocker : {};
+          const blockerCode = String(blocker.code || '').trim();
+          const blockerLabel = String(blocker.label || blockerCode || 'none').trim();
+          const next = rp.next_action && typeof rp.next_action === 'object' ? rp.next_action : {};
+          const nextAct = String(next.action || '').trim().toUpperCase() || 'FIX';
+
+          let titleClass = 'text-sky-100';
+          if (nextAct === 'FIX') titleClass = 'text-amber-100';
+          if (nextAct === 'CLOSE') titleClass = 'text-slate-200';
+
+          let detail = '';
+          if (blockerCode === 'operator_review_required') {
+            detail =
+              '<div class="mt-3 rounded-lg border border-amber-500/40 bg-amber-950/25 px-3 py-2 text-[11px] text-amber-50/95 leading-relaxed">' +
+              '<div class="font-semibold text-amber-100/95">Operator review required</div>' +
+              '<div class="mt-1">A governed draft is withheld. Review/edit it, then post via <span class="font-semibold">Post to thread</span>. No auto-send happens for this ticket until you post.</div>' +
+              '</div>' +
+              '<div class="mt-3 flex flex-wrap gap-2">' +
+              '<button type="button" id="btnExecScrollDraft" class="rounded-lg bg-amber-500/20 border border-amber-500/50 px-3 py-2 text-[11px] font-semibold text-amber-100 hover:bg-amber-500/25">Open draft panel</button>' +
+              '</div>';
+          } else if (nextAct === 'ASK CLIENT') {
+            const missing = rp.what_missing && Array.isArray(rp.what_missing) ? rp.what_missing : [];
+            const qs = missing
+              .map((m) => (m && typeof m === 'object' ? String(m.text || '').trim() : ''))
+              .filter(Boolean)
+              .slice(0, 6);
+            detail =
+              '<div class="mt-3 text-[11px] text-slate-400 leading-relaxed">Send exactly these questions (no extra guessing):</div>' +
+              (qs.length
+                ? '<ul class="mt-2 space-y-1 text-[11px] text-slate-200 list-disc pl-5">' +
+                  qs.map((q) => '<li>' + escapeHtml(q) + '</li>').join('') +
+                  '</ul>'
+                : '<div class="mt-2 text-[11px] text-slate-500">No missing questions recorded yet — verify scope in the brief.</div>');
+          } else if (nextAct === 'SHOW TO CLIENT') {
+            detail =
+              '<div class="mt-3 text-[11px] text-slate-400 leading-relaxed">Open the preview link and send it to the client with the acceptance criteria checklist.</div>';
+          } else if (nextAct === 'CLOSE') {
+            detail = '<div class="mt-3 text-[11px] text-slate-500 leading-relaxed">Ticket is terminal. Close only if reality and audit match.</div>';
+          } else {
+            detail =
+              '<div class="mt-3 text-[11px] text-slate-500 leading-relaxed">Follow the Reality Check blocker and contradictions.</div>';
+          }
+
+          host.innerHTML =
+            '<div class="rounded-xl border border-slate-800 bg-slate-950/40 p-3">' +
+            '<div class="text-[10px] uppercase tracking-wide text-slate-500">Blocker</div>' +
+            '<div class="mt-1 text-[12px] text-slate-200 font-semibold">' +
+            escapeHtml(blockerLabel || 'none') +
+            '</div>' +
+            '<div class="mt-3 text-[10px] uppercase tracking-wide text-slate-500">One next action</div>' +
+            '<div class="mt-1 text-2xl font-extrabold tracking-tight ' +
+            titleClass +
+            '">' +
+            escapeHtml(nextAct) +
+            '</div>' +
+            detail +
+            '</div>';
+
+          const btn = $('btnExecScrollDraft');
+          if (btn) {
+            btn.addEventListener('click', () => {
+              const draft = $('cfDraftReviewPanel');
+              if (draft && draft.scrollIntoView) draft.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+          }
+        }
+
         function setBrief(obj) {
           lastBrief = obj && typeof obj === 'object' ? obj : null;
           if (briefEl) {
@@ -2850,6 +2936,9 @@
           const eff = hydrateBriefFromTicketProgress(lastBrief || {});
           try {
             renderRealityPanel(lastBrief || {});
+          } catch (_) {}
+          try {
+            renderExecutionRail(lastBrief || {});
           } catch (_) {}
           try {
             updateOperatorAssistUi();
@@ -4209,118 +4298,123 @@
           });
         }
 
+        function pillClass(kind) {
+          const k = String(kind || '').toUpperCase();
+          if (k === 'DELIVERED' || k === 'VALID') return 'border-emerald-500/30 bg-emerald-950/25 text-emerald-100/95';
+          if (k === 'PARTIAL') return 'border-amber-500/30 bg-amber-950/25 text-amber-100/95';
+          if (k === 'NOT_DELIVERED' || k === 'MISLEADING' || k === 'MISSING')
+            return 'border-rose-500/30 bg-rose-950/20 text-rose-100/95';
+          return 'border-slate-700 bg-slate-950/40 text-slate-200';
+        }
+
         async function loadTicketList() {
           const listEl = $('ticketList');
           if (!listEl) return;
           listEl.innerHTML = '<div class="text-slate-500 px-1 py-2">Loading…</div>';
           try {
-            const r = await fetch('/api/cmp/router?action=ticket-list&limit=50', { credentials: 'include' });
+            const r = await fetch('/api/cmp/router?action=ticket-operator-queue&limit=50', { credentials: 'include' });
             const j = await r.json().catch(() => ({}));
             if (!r.ok) throw new Error(j.error || j.detail || j.hint || 'http_' + r.status);
-            const tickets = j.tickets || [];
-            const listScope = j.list_scope != null ? String(j.list_scope) : 'tenant';
-            const scopeTenantId = j.scope_tenant_id != null ? String(j.scope_tenant_id) : '';
+            const tickets = Array.isArray(j.tickets) ? j.tickets : [];
             listEl.innerHTML = '';
             if (!tickets.length) {
-              let emptyMsg = 'No tickets found. Create one above.';
-              if (listScope === 'core') {
-                emptyMsg =
-                  'No factory (unscoped) tickets yet. Tickets tied to a client tenant appear only in that tenant’s Change Console — not in this factory list.';
-              } else if (listScope === 'tenant') {
-                emptyMsg = 'No tickets for your organization yet. Create one above.';
-                try {
-                  const storedTid = localStorage.getItem(LS_TICKET) || '';
-                  if (String(storedTid).trim()) {
-                    emptyMsg +=
-                      ' If you still see a Ticket ID below but nothing here, that id is usually a “ghost” (wrong tenant or created before host/session fixes). Click Reset, then create a new ticket.';
-                  }
-                } catch (_) {}
-              }
-              listEl.innerHTML = '<div class="text-slate-500 px-1 py-2 leading-relaxed">' + escapeHtml(emptyMsg) + '</div>';
+              listEl.innerHTML = '<div class="text-slate-500 px-1 py-2 leading-relaxed">No open tickets.</div>';
               return;
             }
 
-            const scopeBar = document.createElement('div');
-            scopeBar.className =
-              'mb-3 rounded-lg border border-slate-700 bg-slate-950/55 px-3 py-2.5 text-[10px] text-slate-400 leading-relaxed space-y-1';
-            if (listScope === 'core') {
-              scopeBar.innerHTML =
-                '<div><span class="text-slate-200 font-semibold">Factory queue</span> — only tickets with no client tenant (<code class="text-slate-500">tenant_id</code> empty). Tenant client work is excluded.</div>';
-            } else if (listScope === 'tenant') {
-              const tidShow = scopeTenantId || (sessionInfo && sessionInfo.tenant_id) || '';
-              scopeBar.innerHTML =
-                '<div><span class="text-slate-200 font-semibold">Your workspace</span> — tickets for tenant <code class="text-sky-300/90 font-mono">' +
-                escapeHtml(tidShow) +
-                '</code> only. Other clients’ tickets are not shown.</div>';
-            } else {
-              scopeBar.innerHTML =
-                '<div><span class="text-amber-200/90 font-semibold">All tenants</span> — factory master list. Rows below may belong to different organizations; each card is labeled.</div>';
-            }
-            listEl.appendChild(scopeBar);
+            const head = document.createElement('div');
+            head.className = 'mb-2 grid grid-cols-12 gap-2 text-[10px] uppercase tracking-wide text-slate-500 px-1';
+            head.innerHTML =
+              '<div class="col-span-5">Ticket</div>' +
+              '<div class="col-span-2 text-center">Delivered</div>' +
+              '<div class="col-span-2 text-center">Preview</div>' +
+              '<div class="col-span-2 text-center">Blocker</div>' +
+              '<div class="col-span-1 text-right">Next</div>';
+            listEl.appendChild(head);
 
-            const listWrap = document.createElement('div');
-            listWrap.className = 'space-y-3';
-            listEl.appendChild(listWrap);
+            const wrap = document.createElement('div');
+            wrap.className = 'space-y-2';
+            listEl.appendChild(wrap);
 
             for (const t of tickets) {
+              const id = t.ticket_id != null ? String(t.ticket_id) : '';
+              const rc = t.requested_change != null ? String(t.requested_change) : '—';
+              const delivered = t.delivered != null ? String(t.delivered) : 'PARTIAL';
+              const preview = t.preview != null ? String(t.preview) : 'MISSING';
+              const blocker = t.blocker != null ? String(t.blocker) : 'none';
+              const next = t.next_action != null ? String(t.next_action) : 'FIX';
+
               const btn = document.createElement('button');
               btn.type = 'button';
               btn.className =
                 'w-full text-left rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-3 shadow-sm hover:border-sky-500/45 hover:bg-slate-950 transition-colors';
-              const d = t.description_preview || '(no description)';
-              const when = t.updated_at ? new Date(t.updated_at).toLocaleString() : '';
-              const rowTenant = t.tenant_id != null && String(t.tenant_id).trim() !== '' ? String(t.tenant_id).trim() : '';
-              let scopeRow = '';
-              if (listScope === 'factory_master') {
-                scopeRow =
-                  '<div class="text-[9px] uppercase tracking-wide mt-2 pt-2 border-t border-slate-800/80 text-slate-500">' +
-                  (rowTenant
-                    ? 'Client tenant · <code class="text-amber-200/85 font-mono normal-case">' +
-                      escapeHtml(rowTenant) +
-                      '</code>'
-                    : 'Core · <span class="text-slate-400 normal-case">unscoped (no tenant)</span>') +
-                  '</div>';
-              }
+
               btn.innerHTML =
+                '<div class="grid grid-cols-12 gap-2 items-start">' +
+                '<div class="col-span-5 min-w-0">' +
                 '<div class="text-[10px] text-slate-500 font-mono break-all leading-snug">' +
-                escapeHtml(t.ticket_id) +
-                '</div><div class="text-slate-300 mt-1.5 text-[11px]">' +
-                escapeHtml(t.status || '') +
-                ' · ' +
-                escapeHtml(t.stage || '') +
-                '</div><div class="text-slate-400 mt-1.5 line-clamp-2 text-[11px] leading-relaxed">' +
-                escapeHtml(d) +
-                '</div><div class="text-[10px] text-slate-600 mt-1.5">' +
-                escapeHtml(when) +
+                escapeHtml(id) +
                 '</div>' +
-                scopeRow;
+                '<div class="mt-1 text-[11px] text-slate-300 line-clamp-2 leading-relaxed">' +
+                escapeHtml(rc) +
+                '</div>' +
+                '</div>' +
+                '<div class="col-span-2 flex justify-center">' +
+                '<span class="inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] ' +
+                pillClass(delivered) +
+                '">' +
+                escapeHtml(delivered.replace(/_/g, ' ')) +
+                '</span>' +
+                '</div>' +
+                '<div class="col-span-2 flex justify-center">' +
+                '<span class="inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] ' +
+                pillClass(preview) +
+                '">' +
+                escapeHtml(preview) +
+                '</span>' +
+                '</div>' +
+                '<div class="col-span-2 flex justify-center">' +
+                '<span class="inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] ' +
+                (blocker === 'none' ? pillClass('VALID') : pillClass('MISLEADING')) +
+                '">' +
+                escapeHtml(blocker) +
+                '</span>' +
+                '</div>' +
+                '<div class="col-span-1 flex justify-end">' +
+                '<span class="text-[10px] font-semibold ' +
+                (String(next).toUpperCase() === 'FIX' ? 'text-amber-200' : 'text-sky-200') +
+                '">' +
+                escapeHtml(String(next).toUpperCase()) +
+                '</span>' +
+                '</div>' +
+                '</div>';
+
               btn.addEventListener('click', async () => {
-                ticketEl.value = t.ticket_id;
+                if (!id) return;
+                ticketEl.value = id;
                 try {
-                  localStorage.setItem(LS_TICKET, t.ticket_id);
+                  localStorage.setItem(LS_TICKET, id);
                 } catch {}
-                setBrief({ ticket_id: t.ticket_id, status: t.status, stage: t.stage, opened_from: 'ticket-list' });
+                setBrief({ ticket_id: id, opened_from: 'operator-queue' });
                 setBanner('');
                 try {
-                  const gr = await fetch(
-                    '/api/cmp/router?action=ticket-get&id=' + encodeURIComponent(t.ticket_id),
-                    { credentials: 'include' },
-                  );
+                  const gr = await fetch('/api/cmp/router?action=ticket-get&id=' + encodeURIComponent(id), {
+                    credentials: 'include',
+                  });
                   const gj = await gr.json().catch(() => ({}));
                   if (gr.ok && gj.description != null && String(gj.description).trim() !== '') {
                     descEl.value = String(gj.description);
                   }
-                  // Admin-only: hydrate stored overseer report if present.
                   if (gr.ok && gj && typeof gj === 'object') {
                     const prev = { ...(lastBrief || {}) };
                     setBrief({ ...prev, ...gj });
                   }
                 } catch (_) {}
                 try {
-                  loadAttachmentList(t.ticket_id);
+                  loadAttachmentList(id);
                 } catch (_) {}
               });
-              listWrap.appendChild(btn);
+              wrap.appendChild(btn);
             }
           } catch (e) {
             listEl.innerHTML =
