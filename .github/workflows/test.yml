@@ -1,8 +1,10 @@
 # Optional repository secrets (Settings → Secrets and variables → Actions):
 #
-# POSTGRES_URL
-#   Same pooled Postgres URL as production Vercel (Prisma). When set, the "Prisma migrate deploy"
-#   step runs on every workflow (push/PR to main). Forks without this secret skip migrate (step succeeds).
+# POSTGRES_URL (often delivered via Infisical OIDC below)
+#   CI does NOT use hosted Postgres unless you opt in: set repository variable
+#   ENABLE_CI_HOSTED_POSTGRES=true (Settings → Secrets and variables → Actions → Variables).
+#   Otherwise POSTGRES_URL / POSTGRES_PRISMA_URL / PRISMA_DATABASE_URL are cleared after fetch
+#   so `prisma migrate deploy` skips and hosted Prisma Postgres operation quota is preserved.
 #
 # Not added by automation — you must paste the value in the GitHub UI (or gh secret set).
 #
@@ -48,6 +50,16 @@ jobs:
         project-slug: "${{ vars.INFISICAL_PROJECT_SLUG }}"
         env-slug: "${{ vars.INFISICAL_ENV_SLUG }}"
         domain: "${{ vars.INFISICAL_DOMAIN }}"
+
+    - name: Strip hosted Postgres from CI (unless opted in)
+      if: ${{ vars.ENABLE_CI_HOSTED_POSTGRES != 'true' }}
+      run: |
+        echo "Clearing POSTGRES_* env in CI (set repo variable ENABLE_CI_HOSTED_POSTGRES=true to allow migrate + hosted DB in Actions)."
+        {
+          echo "POSTGRES_URL="
+          echo "POSTGRES_PRISMA_URL="
+          echo "PRISMA_DATABASE_URL="
+        } >> "$GITHUB_ENV"
 
     # Vercel Hobby rejects crons that run more than once per day; bad config blocks ALL production deploys.
     - name: Vercel Hobby cron guard (vercel.json)
