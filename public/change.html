@@ -78,6 +78,10 @@
         backdrop-filter: blur(10px) saturate(1.2);
         -webkit-backdrop-filter: blur(10px) saturate(1.2);
       }
+      /* Review Draft Mode — room for sticky post strip */
+      body.cf-review-post-strip-active {
+        padding-bottom: calc(5.25rem + env(safe-area-inset-bottom, 0px));
+      }
       .cf-fog-steam {
         position: absolute;
         inset: -20% -10%;
@@ -409,6 +413,10 @@
         <p class="text-[11px] text-slate-500 mb-2 leading-relaxed">
           Review or edit below, then post. Automated sends are disabled for this ticket until you post.
         </p>
+        <div
+          id="cfDraftReviewContext"
+          class="hidden mb-3 rounded-xl border border-amber-500/20 bg-amber-950/10 p-3 text-[11px] text-slate-200 space-y-2"
+        ></div>
         <textarea
           id="cfDraftReviewText"
           class="w-full min-h-[140px] rounded-lg bg-slate-950 border border-slate-700 px-3 py-2 text-sm text-slate-100"
@@ -451,7 +459,7 @@
           <span id="assistStatus" class="text-[10px] text-slate-500"></span>
         </div>
         <p class="text-[10px] text-slate-500 mt-2 leading-relaxed">
-          These checks run in your browser using the latest ticket and automation snapshots. GitHub status refreshes about every 45s; full ticket sync about every 15s.
+          These checks run in your browser using the latest ticket and automation snapshots. GitHub status refreshes about every 4 minutes while this tab is visible; full ticket sync at the same cadence (single-flight, no overlap).
         </p>
       </div>
 
@@ -502,7 +510,7 @@
         </div>
 
         <!-- Center: Primary work area -->
-        <div class="lg:col-span-6 rounded-2xl border border-slate-800 bg-slate-900/30 p-4">
+        <div class="lg:col-span-5 rounded-2xl border border-slate-800 bg-slate-900/30 p-4">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
             <label class="text-xs text-slate-300">
               Locale
@@ -526,7 +534,7 @@
             </div>
           </div>
 
-          <div class="mt-4">
+          <div id="cfIntakeControls" class="mt-4">
             <div class="text-xs text-slate-300 mb-2">Describe the change</div>
             <textarea id="desc" class="w-full min-h-[140px] rounded-xl bg-slate-950 border border-slate-800 px-3 py-3 text-sm" placeholder="Describe what you want changed in plain language…"></textarea>
             <p class="text-[10px] text-slate-500 mt-2 leading-relaxed">
@@ -685,7 +693,7 @@
           </div>
         </div>
 
-        <div class="rounded-2xl border border-slate-800 bg-slate-900/30 p-4">
+        <div class="lg:col-span-4 rounded-2xl border border-slate-800 bg-slate-900/30 p-4">
           <div id="cfExecutionRail" class="mb-4 rounded-xl border border-violet-500/20 bg-violet-950/15 p-4">
             <div class="text-[10px] font-semibold tracking-[0.25em] text-violet-200/95">NEXT ACTION</div>
             <p class="text-[11px] text-slate-500 mt-2 leading-relaxed">
@@ -888,6 +896,29 @@
       </div>
     </div>
 
+    <div
+      id="cfReviewPostStrip"
+      class="hidden fixed inset-x-0 bottom-0 z-[70] border-t border-slate-700/90 bg-slate-950/95 backdrop-blur-md shadow-[0_-12px_40px_rgba(0,0,0,0.45)]"
+      role="region"
+      aria-label="Review and post client response"
+    >
+      <div class="mx-auto max-w-6xl px-4 sm:px-6 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-6">
+        <div class="min-w-0">
+          <p class="text-sm font-semibold text-slate-100 tracking-tight">Ready to send response to client</p>
+          <p class="text-[11px] text-slate-500 mt-0.5">Edit above before sending</p>
+        </div>
+        <div class="shrink-0 flex flex-col sm:items-end gap-1">
+          <button
+            type="button"
+            id="btnCommitDraftSticky"
+            class="w-full sm:w-auto rounded-lg bg-sky-500 text-slate-950 px-6 py-2.5 text-sm font-semibold shadow-lg shadow-sky-950/30 hover:bg-sky-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/80 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+          >
+            Post to thread
+          </button>
+        </div>
+      </div>
+    </div>
+
     <script>
       (function () {
         function bootChangeConsole() {
@@ -986,6 +1017,8 @@
         /** @type {Record<string, unknown>|null} */
         let lastActivityPayload = null;
         let processHealthEvalTimer = null;
+        /** Prevents overlapping `ticket-get` syncs from polling + timers. */
+        let ticketGetInFlight = false;
         /** When we first saw approved+dispatch_ok but GitHub reports no sandbox branch (ms since epoch). */
         let stuckNoBranchSince = null;
         let lastTicketIdForHealth = '';
@@ -1652,7 +1685,7 @@
             return;
           }
           refreshTicketActivity();
-          ticketActivityPollTimer = window.setInterval(refreshTicketActivity, 45000);
+          ticketActivityPollTimer = window.setInterval(refreshTicketActivity, 240000);
           updateProcessHealthFromState();
           processHealthEvalTimer = window.setInterval(updateProcessHealthFromState, 60000);
         }
@@ -1756,6 +1789,170 @@
             pan.classList.add('hidden');
             ta.value = '';
           }
+        }
+
+        function updateReviewDraftMode() {
+          const b = lastBrief || {};
+          const intake = $('cfIntakeControls');
+          const draft = $('cfDraftReviewPanel');
+          const mode = String(b.mode || '').trim();
+          const pending = b.pending_operator_draft;
+          const has = pending && typeof pending === 'object' && String(pending.content || '').trim();
+          const active = mode === 'operator_assisted' && Boolean(has);
+
+          const strip = $('cfReviewPostStrip');
+          const inlinePost = $('btnCommitDraft');
+          const inlineHint = $('cfDraftReviewHint');
+
+          if (active) {
+            if (intake) intake.classList.add('hidden');
+            if (draft) {
+              draft.classList.remove('hidden');
+              // Visual priority: make draft feel like the work surface.
+              draft.classList.add('border-amber-500/35');
+            }
+            if (strip) strip.classList.remove('hidden');
+            document.body.classList.add('cf-review-post-strip-active');
+            if (inlinePost) inlinePost.classList.add('hidden');
+            if (inlineHint) inlineHint.classList.add('hidden');
+          } else {
+            if (intake) intake.classList.remove('hidden');
+            if (draft) draft.classList.remove('border-amber-500/35');
+            if (strip) strip.classList.add('hidden');
+            document.body.classList.remove('cf-review-post-strip-active');
+            if (inlinePost) inlinePost.classList.remove('hidden');
+            if (inlineHint) inlineHint.classList.remove('hidden');
+          }
+        }
+
+        function clipReviewPlain(s, maxLen) {
+          const t = String(s || '')
+            .replace(/\s+/g, ' ')
+            .trim();
+          if (!t) return '';
+          return t.length > maxLen ? t.slice(0, Math.max(0, maxLen - 1)) + '…' : t;
+        }
+
+        function sliceAfterMarkdownHeader(body, headerLineRe) {
+          const s = String(body || '');
+          const m = s.match(headerLineRe);
+          if (!m || m.index == null) return '';
+          let rest = s.slice(m.index + m[0].length);
+          rest = rest.replace(/^\r?\n+/, '');
+          const next = rest.search(/\r?\n##\s/ms);
+          const chunk = next >= 0 ? rest.slice(0, next) : rest;
+          return String(chunk || '').trim();
+        }
+
+        function stripOperatorDraftNoise(sectionText) {
+          let s = String(sectionText || '');
+          s = s.replace(/Draft summary \(for operator review\):[\s\S]*?(?=\n\n|$)/i, '').trim();
+          return s;
+        }
+
+        function questionsFromGovernedSection7(body) {
+          const sec = sliceAfterMarkdownHeader(body, /^##\s*7\.\s*Max 6 questions\s*$/im);
+          const out = [];
+          for (const line of sec.split('\n')) {
+            const t = String(line || '')
+              .replace(/^\s*-\s*/, '')
+              .trim();
+            if (t) out.push(t);
+          }
+          return out.slice(0, 6);
+        }
+
+        function updateDraftReviewContext() {
+          const el = $('cfDraftReviewContext');
+          if (!el) return;
+          const b = lastBrief || {};
+          const mode = String(b.mode || '').trim();
+          const pending = b.pending_operator_draft;
+          const hasDraft = pending && typeof pending === 'object' && String(pending.content || '').trim();
+          const reviewOn = mode === 'operator_assisted' && Boolean(hasDraft);
+
+          if (!reviewOn) {
+            el.classList.add('hidden');
+            el.innerHTML = '';
+            return;
+          }
+
+          const draftText = String(pending.content || '');
+          const rp = b.reality_panel && typeof b.reality_panel === 'object' ? b.reality_panel : {};
+          const brief =
+            b.brief && typeof b.brief === 'object'
+              ? b.brief
+              : b.console_json && typeof b.console_json === 'object' && b.console_json.brief && typeof b.console_json.brief === 'object'
+                ? b.console_json.brief
+                : {};
+
+          let clientReq = '';
+          if (typeof rp.requested_change === 'string' && rp.requested_change.trim() && rp.requested_change !== '—') {
+            clientReq = rp.requested_change.trim();
+          } else if (typeof brief.requested_change === 'string' && brief.requested_change.trim()) {
+            clientReq = brief.requested_change.trim();
+          } else if (typeof b.description === 'string' && b.description.trim()) {
+            clientReq = b.description.trim();
+          }
+          clientReq = clipReviewPlain(clientReq, 360) || '—';
+
+          let understanding = sliceAfterMarkdownHeader(draftText, /^##\s*1\.\s*Understanding\s*$/im);
+          understanding = stripOperatorDraftNoise(understanding);
+          understanding = clipReviewPlain(understanding, 520);
+          if (!understanding) {
+            understanding =
+              'We are handling this as a broad request that needs clear boundaries and a written reply before more build work.';
+          }
+
+          const missingArr = Array.isArray(rp.missing) ? rp.missing : [];
+          let qs = missingArr
+            .filter(function (x) {
+              return x && typeof x === 'object' && String(x.kind || '') === 'brief_question' && String(x.text || '').trim();
+            })
+            .map(function (x) {
+              return String(x.text || '').trim();
+            })
+            .slice(0, 6);
+          if (!qs.length) qs = questionsFromGovernedSection7(draftText);
+          if (!qs.length) {
+            qs = ['What is the one outcome you need to see live first?', 'What is out of scope for the first step?'];
+          }
+
+          const nextStep =
+            'When you post, this message goes to the client thread as your reply, the hold on sending is released, and this review step ends.';
+
+          el.classList.remove('hidden');
+          el.innerHTML =
+            '<div class="space-y-3">' +
+            '<div>' +
+            '<div class="text-[10px] font-semibold uppercase tracking-wide text-amber-200/90">Client request</div>' +
+            '<p class="mt-1 text-[12px] text-slate-100/95 leading-relaxed">' +
+            escapeHtml(clientReq) +
+            '</p>' +
+            '</div>' +
+            '<div>' +
+            '<div class="text-[10px] font-semibold uppercase tracking-wide text-amber-200/90">System understanding</div>' +
+            '<p class="mt-1 text-[12px] text-slate-100/95 leading-relaxed">' +
+            escapeHtml(understanding) +
+            '</p>' +
+            '</div>' +
+            '<div>' +
+            '<div class="text-[10px] font-semibold uppercase tracking-wide text-amber-200/90">Questions to client</div>' +
+            '<ul class="mt-1 list-disc pl-4 space-y-1 text-[12px] text-slate-100/95 leading-relaxed">' +
+            qs
+              .map(function (q) {
+                return '<li>' + escapeHtml(q) + '</li>';
+              })
+              .join('') +
+            '</ul>' +
+            '</div>' +
+            '<div class="pt-2 border-t border-amber-500/20">' +
+            '<div class="text-[10px] font-semibold uppercase tracking-wide text-amber-200/90">Next step</div>' +
+            '<p class="mt-1 text-[12px] text-slate-100/95 leading-relaxed">' +
+            escapeHtml(nextStep) +
+            '</p>' +
+            '</div>' +
+            '</div>';
         }
 
         async function commitAssistantDraftFromUi() {
@@ -2902,8 +3099,19 @@
               '<div class="mt-3 text-[11px] text-slate-500 leading-relaxed">Follow the Reality Check blocker and contradictions.</div>';
           }
 
+          const primaryLabel =
+            blockerCode === 'operator_review_required'
+              ? 'Review draft'
+              : nextAct === 'ASK CLIENT'
+                ? 'Copy questions'
+                : nextAct === 'SHOW TO CLIENT'
+                  ? 'Open preview'
+                  : nextAct === 'CLOSE'
+                    ? 'Close ticket'
+                    : 'Resolve blocker';
+
           host.innerHTML =
-            '<div class="rounded-xl border border-slate-800 bg-slate-950/40 p-3">' +
+            '<div class="rounded-xl border border-slate-800 bg-slate-950/40 p-4">' +
             '<div class="text-[10px] uppercase tracking-wide text-slate-500">Blocker</div>' +
             '<div class="mt-1 text-[12px] text-slate-200 font-semibold">' +
             escapeHtml(blockerLabel || 'none') +
@@ -2915,13 +3123,42 @@
             escapeHtml(nextAct) +
             '</div>' +
             detail +
+            '<div class="mt-3 flex flex-wrap gap-2">' +
+            '<button type="button" id="btnExecPrimary" class="rounded-lg bg-violet-500/20 border border-violet-400/50 px-3 py-2 text-[11px] font-semibold text-violet-100 hover:bg-violet-500/25">' +
+            escapeHtml(primaryLabel) +
+            '</button>' +
+            '</div>' +
             '</div>';
 
-          const btn = $('btnExecScrollDraft');
-          if (btn) {
-            btn.addEventListener('click', () => {
-              const draft = $('cfDraftReviewPanel');
-              if (draft && draft.scrollIntoView) draft.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          const primaryBtn = $('btnExecPrimary');
+          if (primaryBtn) {
+            primaryBtn.addEventListener('click', async () => {
+              if (blockerCode === 'operator_review_required') {
+                const draft = $('cfDraftReviewPanel');
+                if (draft && draft.scrollIntoView) draft.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                return;
+              }
+              if (nextAct === 'ASK CLIENT') {
+                try {
+                  const missing = rp.what_missing && Array.isArray(rp.what_missing) ? rp.what_missing : [];
+                  const qs = missing
+                    .map((m) => (m && typeof m === 'object' ? String(m.text || '').trim() : ''))
+                    .filter(Boolean)
+                    .slice(0, 6);
+                  const text = qs.length ? qs.map((q, i) => `${i + 1}. ${q}`).join('\n') : '';
+                  if (text) await navigator.clipboard.writeText(text);
+                } catch (_) {}
+                return;
+              }
+              if (nextAct === 'SHOW TO CLIENT') {
+                try {
+                  const ex = rp.what_exists && typeof rp.what_exists === 'object' ? rp.what_exists : {};
+                  const p = ex.preview_url != null ? String(ex.preview_url).trim() : '';
+                  if (p) window.open(p, '_blank', 'noopener');
+                } catch (_) {}
+                return;
+              }
+              // FIX/CLOSE are intentionally not auto-executed from the rail yet.
             });
           }
         }
@@ -2945,6 +3182,12 @@
           } catch (_) {}
           try {
             updateDraftReviewPanel();
+          } catch (_) {}
+          try {
+            updateReviewDraftMode();
+          } catch (_) {}
+          try {
+            updateDraftReviewContext();
           } catch (_) {}
           try {
             updatePipelineCardFromBrief(eff);
@@ -4310,6 +4553,15 @@
         async function loadTicketList() {
           const listEl = $('ticketList');
           if (!listEl) return;
+          if (!sessionInfo || !sessionInfo.logged_in) {
+            listEl.innerHTML =
+              '<div class="rounded-xl border border-amber-500/25 bg-amber-950/20 px-3 py-3 text-[11px] text-amber-50/95 space-y-2">' +
+              '<div class="font-semibold text-amber-100/95">Login required</div>' +
+              '<div>Operator queue is derived from ticket truth and requires an authenticated session on this tenant.</div>' +
+              '<div class="pt-1"><a class="text-sky-300 underline" href="/login">Login</a></div>' +
+              '</div>';
+            return;
+          }
           listEl.innerHTML = '<div class="text-slate-500 px-1 py-2">Loading…</div>';
           try {
             const r = await fetch('/api/cmp/router?action=ticket-operator-queue&limit=50', { credentials: 'include' });
@@ -4417,8 +4669,21 @@
               wrap.appendChild(btn);
             }
           } catch (e) {
-            listEl.innerHTML =
-              '<div class="text-rose-300 px-1 py-2">' + escapeHtml(String(e.message || e)) + '</div>';
+            const msg = String(e && e.message ? e.message : e);
+            const needsLogin =
+              msg.includes('DENIED') || msg.includes('MISSING') || msg.includes('403') || msg.includes('Log out') || msg.includes('scope');
+            if (needsLogin) {
+              listEl.innerHTML =
+                '<div class="rounded-xl border border-amber-500/25 bg-amber-950/20 px-3 py-3 text-[11px] text-amber-50/95 space-y-2">' +
+                '<div class="font-semibold text-amber-100/95">Queue unavailable</div>' +
+                '<div class="text-amber-100/90">' +
+                escapeHtml(msg) +
+                '</div>' +
+                '<div class="pt-1"><a class="text-sky-300 underline" href="/login">Go to login</a></div>' +
+                '</div>';
+              return;
+            }
+            listEl.innerHTML = '<div class="text-rose-300 px-1 py-2">' + escapeHtml(msg) + '</div>';
           }
         }
 
@@ -4534,10 +4799,13 @@
         */
 
         async function syncCurrentTicket() {
+          if (!sessionInfo || !sessionInfo.logged_in) return;
+          if (document.visibilityState !== 'visible') return;
+          if (ticketGetInFlight) return;
+          const tid = String(ticketEl.value || '').trim();
+          if (!tid) return;
+          ticketGetInFlight = true;
           try {
-            if (!sessionInfo || !sessionInfo.logged_in) return;
-            const tid = String(ticketEl.value || '').trim();
-            if (!tid) return;
             const gr = await fetch('/api/cmp/router?action=ticket-get&id=' + encodeURIComponent(tid), {
               credentials: 'include',
             });
@@ -4551,15 +4819,20 @@
             }
             if (gj.console_json) replayThreadFromConsoleJson(gj.console_json);
             else if (gj.refinement_messages) replayThreadFromConsoleJson(gj.refinement_messages);
-          } catch (_) {}
+          } catch (_) {
+            /* ignore */
+          } finally {
+            ticketGetInFlight = false;
+          }
         }
 
         // Regular sync: keeps local view aligned with server-side updates (chat, overseer sweep, status/stage).
         setInterval(() => {
+          if (document.visibilityState !== 'visible') return;
           syncCurrentTicket();
           // Keep recent list fresh too (cheap + helpful after sweeps).
           if (sessionInfo && sessionInfo.logged_in) loadTicketList();
-        }, 15000);
+        }, 240000);
 
         $('btnLoadTickets').addEventListener('click', () => {
           loadTicketList();
@@ -4879,6 +5152,12 @@
         const btnCommitDraft = $('btnCommitDraft');
         if (btnCommitDraft) {
           btnCommitDraft.addEventListener('click', function () {
+            void commitAssistantDraftFromUi();
+          });
+        }
+        const btnCommitDraftSticky = $('btnCommitDraftSticky');
+        if (btnCommitDraftSticky) {
+          btnCommitDraftSticky.addEventListener('click', function () {
             void commitAssistantDraftFromUi();
           });
         }
