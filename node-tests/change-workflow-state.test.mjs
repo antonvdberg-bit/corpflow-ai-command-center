@@ -33,3 +33,54 @@ test('deriveWorkflowState: hard_close closure stays closed', () => {
   });
   assert.equal(wf, 'closed');
 });
+
+test('deriveWorkflowState: Approved/Build + incomplete client_decisions gates before automation dispatch', () => {
+  const wf = deriveWorkflowState({
+    status: 'Approved',
+    stage: 'Build',
+    consoleJson: {
+      client_decisions: {
+        sufficient_to_proceed: false,
+        items: [
+          { key: 'first_slice_outcome', status: 'pending', answer: '' },
+          { key: 'first_market_or_country', status: 'pending', answer: '' },
+          { key: 'listings_feed_or_idx_provider_status', status: 'pending', answer: '' },
+          { key: 'crm_destination_or_tooling_preference', status: 'pending', answer: '' },
+          { key: 'first_ai_communication_channel', status: 'pending', answer: '' },
+          { key: 'human_handoff_owner_and_hours', status: 'pending', answer: '' },
+        ],
+      },
+    },
+  });
+  assert.equal(wf, 'awaiting_client_programme_decisions');
+});
+
+test('deriveWorkflowState: Approved/Build + sufficient client_decisions returns approved_for_build (no dispatch yet)', () => {
+  const wf = deriveWorkflowState({
+    status: 'Approved',
+    stage: 'Build',
+    consoleJson: {
+      client_decisions: {
+        sufficient_to_proceed: true,
+        items: [
+          { key: 'first_slice_outcome', status: 'answered', answer: 'a' },
+          { key: 'first_market_or_country', status: 'answered', answer: 'b' },
+          { key: 'listings_feed_or_idx_provider_status', status: 'waived', answer: '' },
+          { key: 'crm_destination_or_tooling_preference', status: 'answered', answer: 'c' },
+          { key: 'first_ai_communication_channel', status: 'answered', answer: 'd' },
+          { key: 'human_handoff_owner_and_hours', status: 'answered', answer: 'e' },
+        ],
+      },
+    },
+  });
+  assert.equal(wf, 'approved_for_build');
+});
+
+test('deriveWorkflowState: Approved/Build without client_decisions object is unchanged', () => {
+  const wf = deriveWorkflowState({
+    status: 'Approved',
+    stage: 'Build',
+    consoleJson: {},
+  });
+  assert.equal(wf, 'approved_for_build');
+});
