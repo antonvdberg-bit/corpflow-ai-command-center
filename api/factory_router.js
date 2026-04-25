@@ -31,6 +31,7 @@ import factoryGithubPrCreateHandler from '../lib/server/factory-github-pr-create
 import factoryResearchFetchHandler from '../lib/server/factory-research-fetch.js';
 import factoryCmpPushHandler from '../lib/server/factory-cmp-push.js';
 import factoryCmpTicketSetDescriptionHandler from '../lib/server/factory-cmp-ticket-set-description.js';
+import factoryCmpActiveWorkSignalHandler from '../lib/server/factory-cmp-active-work-signal.js';
 import {
   handleFactoryAuthUsersList,
   handleFactoryAuthUsersSetPassword,
@@ -733,6 +734,9 @@ export default async function handler(req, res) {
 
   if (pathSeg === 'factory/cmp/push') {
     return factoryCmpPushHandler(req, res);
+  }
+  if (pathSeg === 'factory/cmp/active-work-signal') {
+    return factoryCmpActiveWorkSignalHandler(req, res);
   }
   if (pathSeg === 'factory/cmp/ticket-set-description') {
     return factoryCmpTicketSetDescriptionHandler(req, res);
