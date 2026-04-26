@@ -16,8 +16,6 @@
 name: CMP stuck self-heal
 
 on:
-  schedule:
-    - cron: "*/10 * * * *" # every 10 minutes (UTC)
   workflow_dispatch:
     inputs:
       priority_ticket_ids:
