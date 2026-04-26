@@ -11,8 +11,6 @@
 name: Factory CMP drive
 
 on:
-  schedule:
-    - cron: "*/20 * * * *" # every 20 minutes UTC
   workflow_dispatch: {}
 
 jobs:
