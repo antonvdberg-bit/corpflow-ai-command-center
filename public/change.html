@@ -704,12 +704,42 @@
               Refresh from server
             </button>
           </div>
-          <input id="ticket" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm" placeholder="Paste ticket_id" />
-          <p class="text-[10px] text-slate-500 mt-2 leading-relaxed">
-            Stored in your browser. <strong class="text-slate-400">Refresh from server</strong> loads the latest saved
-            description and status. To send your edited description to CorpFlow, run <strong class="text-slate-400">Estimate</strong>
-            or <strong class="text-slate-400">Approve build</strong>.
-          </p>
+          <div class="mt-2 rounded-xl border border-slate-800 bg-slate-950/60 px-3 py-2">
+            <div class="text-[10px] uppercase tracking-wide text-slate-500">Selected ticket</div>
+            <div id="cfSelectedTicketId" class="mt-1 font-mono text-[11px] text-slate-200 break-all">—</div>
+          </div>
+          <input id="ticket" class="hidden" />
+          <div id="cfClientDecisionAction" class="hidden mt-3 rounded-xl border border-sky-500/25 bg-sky-950/20 p-3">
+            <div class="text-[10px] font-semibold tracking-[0.25em] text-sky-200/95">CLIENT DECISIONS</div>
+            <div class="mt-2 text-[11px] text-slate-300 leading-relaxed">
+              Send the client a one-time link to answer the 4 decisions. No login required for the client.
+            </div>
+            <div class="mt-3 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                id="btnSendClientDecisionRequest"
+                class="rounded-lg bg-sky-500 text-slate-950 px-3 py-2 text-[11px] font-semibold hover:bg-sky-400"
+              >
+                Send client decision request
+              </button>
+              <button
+                type="button"
+                id="btnCopyClientDecisionLink"
+                class="hidden rounded-lg border border-slate-700 px-3 py-2 text-[11px] font-semibold text-slate-200 hover:bg-slate-800/60"
+              >
+                Copy link
+              </button>
+            </div>
+            <div class="mt-3">
+              <input
+                id="clientDecisionLink"
+                class="hidden w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-[11px] text-slate-200"
+                readonly
+              />
+              <div id="clientDecisionLinkMeta" class="hidden mt-2 text-[10px] text-slate-500"></div>
+              <div id="clientDecisionLinkStatus" class="mt-2 text-[10px] text-slate-500"></div>
+            </div>
+          </div>
 
           <div class="mt-5 border-t border-slate-800 pt-4">
             <div class="flex items-start justify-between gap-2 flex-wrap">
@@ -4258,6 +4288,18 @@
           const next = cv.workflow_next_action != null ? String(cv.workflow_next_action) : '';
           stEl.textContent = workflowLabel(wf);
           nxEl.textContent = next || '—';
+
+          // Canonical client decision action surface:
+          // show ONE primary action when workflow requires client programme decisions.
+          try {
+            const box = $('cfClientDecisionAction');
+            if (box) {
+              const need = String(wf || '').trim() === 'awaiting_client_programme_decisions';
+              if (need) box.classList.remove('hidden');
+              else box.classList.add('hidden');
+            }
+          } catch (_) {}
+
           const banner = stEl.closest ? stEl.closest('.cf-stage-banner') : null;
           if (banner && banner.classList) {
             if (wf === 'not_delivered') {
@@ -4391,12 +4433,7 @@
 
               btn.addEventListener('click', async () => {
                 if (!id) return;
-                ticketEl.value = id;
-                try {
-                  localStorage.setItem(LS_TICKET, id);
-                } catch {}
-                setBrief({ ticket_id: id, opened_from: 'operator-queue' });
-                setBanner('');
+                setCurrentTicketId(id, { opened_from: 'operator-queue' });
                 try {
                   const gr = await fetch('/api/cmp/router?action=ticket-get&id=' + encodeURIComponent(id), {
                     credentials: 'include',
@@ -4416,15 +4453,55 @@
               });
               wrap.appendChild(btn);
             }
+
+            // Auto-select first ticket when nothing is selected.
+            try {
+              const cur = String(ticketEl.value || '').trim();
+              if (!cur && tickets[0] && tickets[0].ticket_id) {
+                const firstId = String(tickets[0].ticket_id);
+                // Trigger the first button click for consistent behavior.
+                const firstBtn = wrap.querySelector('button');
+                if (firstBtn) firstBtn.click();
+                else setCurrentTicketId(firstId, { opened_from: 'operator-queue:auto' });
+              }
+            } catch (_) {}
           } catch (e) {
             listEl.innerHTML =
               '<div class="text-rose-300 px-1 py-2">' + escapeHtml(String(e.message || e)) + '</div>';
           }
         }
 
+        function setCurrentTicketId(tid, opts) {
+          const id = String(tid || '').trim();
+          ticketEl.value = id;
+          const show = $('cfSelectedTicketId');
+          if (show) show.textContent = id || '—';
+          try {
+            if (id) localStorage.setItem(LS_TICKET, id);
+            else localStorage.removeItem(LS_TICKET);
+          } catch {}
+          const merged = { ...(lastBrief || {}), ticket_id: id, ...(opts && typeof opts === 'object' ? opts : {}) };
+          setBrief(merged);
+          setBanner('');
+          try {
+            if (isTenantClient()) {
+              updateTenantCountdownFromBrief(merged);
+            }
+          } catch (_) {}
+          try {
+            rescheduleTicketActivityPoll();
+          } catch (_) {}
+          try {
+            if (id) loadAttachmentList(id);
+          } catch (_) {}
+        }
+
         // init defaults
         try { localeSel.value = (navigator.language || 'en').slice(0, 2); } catch {}
-        try { ticketEl.value = localStorage.getItem(LS_TICKET) || ''; } catch {}
+        try {
+          const saved = localStorage.getItem(LS_TICKET) || '';
+          if (saved) setCurrentTicketId(saved, { opened_from: 'localStorage' });
+        } catch {}
         try {
           const tid0 = String(ticketEl.value || '').trim();
           updateBriefSummary(tid0 ? { ticket_id: tid0 } : null);
@@ -4564,23 +4641,7 @@
         $('btnLoadTickets').addEventListener('click', () => {
           loadTicketList();
         });
-        ticketEl.addEventListener('input', () => {
-          try {
-            if (ticketEl.value) localStorage.setItem(LS_TICKET, ticketEl.value);
-            else localStorage.removeItem(LS_TICKET);
-          } catch {}
-          try {
-            if (isTenantClient()) {
-              updateTenantCountdownFromBrief({ ...(lastBrief || {}), ticket_id: ticketEl.value });
-            }
-          } catch (_) {}
-          try {
-            rescheduleTicketActivityPoll();
-          } catch (_) {}
-          try {
-            loadAttachmentList(ticketEl.value);
-          } catch (_) {}
-        });
+        // Ticket id is now set by selecting from the operator queue (no manual paste).
 
         const btnUploadAttachment = $('btnUploadAttachment');
         if (btnUploadAttachment) {
@@ -4596,7 +4657,7 @@
               setBanner('');
               const tid = String(ticketEl.value || '').trim();
               if (!tid) {
-                setBanner('Enter or select a Ticket ID first.');
+                setBanner('Select a ticket first.');
                 return;
               }
               await withActivity('Refreshing ticket from server…', async () => {
@@ -4606,6 +4667,72 @@
               window.setTimeout(() => setBanner(''), 5000);
             } catch (e) {
               setBanner(String(e && e.message ? e.message : e));
+            }
+          });
+        }
+
+        async function mintClientDecisionLink() {
+          const host = $('clientDecisionLinkStatus');
+          const inp = $('clientDecisionLink');
+          const meta = $('clientDecisionLinkMeta');
+          const copyBtn = $('btnCopyClientDecisionLink');
+          const tid = String(ticketEl.value || '').trim();
+          if (!tid) {
+            if (host) host.textContent = 'Select a ticket first.';
+            return;
+          }
+          if (host) host.textContent = 'Generating link…';
+          if (inp) inp.classList.add('hidden');
+          if (meta) meta.classList.add('hidden');
+          if (copyBtn) copyBtn.classList.add('hidden');
+          try {
+            const r = await fetch('/api/cmp/router?action=client-decisions-link-mint', {
+              method: 'POST',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ ticket_id: tid }),
+            });
+            const j = await r.json().catch(() => ({}));
+            if (!r.ok) throw new Error(j.error || j.detail || j.hint || 'http_' + r.status);
+            const url = j.magic_link_url != null ? String(j.magic_link_url) : '';
+            const exp = j.expires_at != null ? String(j.expires_at) : '';
+            if (!url) throw new Error('magic_link_url missing');
+            if (inp) {
+              inp.value = url;
+              inp.classList.remove('hidden');
+            }
+            if (meta) {
+              meta.textContent = exp ? 'Expires: ' + exp : '';
+              meta.classList.remove('hidden');
+            }
+            if (copyBtn) copyBtn.classList.remove('hidden');
+            if (host) host.textContent = 'Link ready.';
+          } catch (e) {
+            if (host) host.textContent = String(e && e.message ? e.message : e);
+          }
+        }
+
+        const btnSendClientDecisionRequest = $('btnSendClientDecisionRequest');
+        if (btnSendClientDecisionRequest) {
+          btnSendClientDecisionRequest.addEventListener('click', () => {
+            mintClientDecisionLink();
+          });
+        }
+        const btnCopyClientDecisionLink = $('btnCopyClientDecisionLink');
+        if (btnCopyClientDecisionLink) {
+          btnCopyClientDecisionLink.addEventListener('click', async () => {
+            const inp = $('clientDecisionLink');
+            const status = $('clientDecisionLinkStatus');
+            const v = inp && typeof inp.value === 'string' ? inp.value : '';
+            if (!v) return;
+            try {
+              await navigator.clipboard.writeText(v);
+              if (status) status.textContent = 'Copied.';
+              window.setTimeout(() => {
+                if (status) status.textContent = '';
+              }, 2500);
+            } catch {
+              if (status) status.textContent = 'Copy failed — select and copy manually.';
             }
           });
         }
