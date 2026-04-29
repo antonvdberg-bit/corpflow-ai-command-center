@@ -752,6 +752,58 @@ export default async function handler(req, res) {
 
   if (pathSeg.startsWith('cmp') || pathSeg.startsWith('cmp/')) {
     prepareCmpRequest(req, pathSeg);
+    // Minimal operator notification hook for AI Concierge Lite:
+    // emit a structured event only after CMP returns 200 for concierge lead creation.
+    try {
+      const action = req?.query?.action != null ? String(req.query.action).trim() : '';
+      const isConciergeCreate = req.method === 'POST' && action === 'concierge-lead-create';
+      if (isConciergeCreate && typeof res.json === 'function') {
+        const origJson = res.json.bind(res);
+        res.json = (payload) => {
+          try {
+            const ok = payload && typeof payload === 'object' && payload.ok === true;
+            if (ok && res.statusCode === 200) {
+              const ctx = req.corpflowContext;
+              const tenantId =
+                ctx && ctx.surface === 'tenant' && ctx.tenant_id ? String(ctx.tenant_id).trim() : null;
+              const leadId = payload?.lead?.id != null ? String(payload.lead.id) : null;
+              const b = req.body && typeof req.body === 'object' ? req.body : {};
+              const name = b?.name != null ? String(b.name).trim() : null;
+              const contact = b?.contact != null ? String(b.contact).trim() : null;
+              const message = b?.message != null ? String(b.message).trim() : null;
+
+              // Console log: immediate visibility in Vercel logs.
+              console.warn(
+                '[concierge_lead_notification]',
+                JSON.stringify({
+                  tenant_id: tenantId,
+                  lead_id: leadId,
+                  name,
+                  contact,
+                  message,
+                  occurred_at: new Date().toISOString(),
+                }),
+              );
+
+              // Persist a structured event for future hooks (n8n/email can subscribe later).
+              void recordTrustedAutomationEvent(prisma, {
+                tenantId,
+                eventType: 'concierge.lead.created',
+                correlationId: leadId,
+                idempotencyKey: leadId ? `concierge.lead.created:${leadId}` : null,
+                source: 'api/cmp/router:concierge-lead-create',
+                payload: { lead_id: leadId, name, contact, message },
+              });
+            }
+          } catch (_) {
+            // never block response
+          }
+          return origJson(payload);
+        };
+      }
+    } catch {
+      // never block CMP routing
+    }
     return cmpHandler(req, res);
   }
 
