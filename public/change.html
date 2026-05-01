@@ -340,6 +340,178 @@
         font-size: 12px;
         color: rgb(203 213 225);
       }
+
+      /* Change Space — stage-focused shell (maps existing workflow_state only) */
+      .cf-change-space-rail {
+        margin-top: 1.25rem;
+        padding: 0.85rem 1rem;
+        border-radius: 1rem;
+        border: 1px solid rgba(51, 65, 85, 0.65);
+        background: linear-gradient(180deg, rgba(15, 23, 42, 0.55), rgba(2, 6, 23, 0.85));
+        overflow-x: auto;
+      }
+      .cf-space-rail-inner {
+        display: flex;
+        gap: 0.35rem;
+        min-width: min-content;
+        align-items: stretch;
+      }
+      .cf-space-step {
+        flex: 1;
+        min-width: 6.5rem;
+        padding: 0.45rem 0.5rem;
+        border-radius: 0.65rem;
+        border: 1px solid rgba(71, 85, 105, 0.55);
+        background: rgba(2, 6, 23, 0.45);
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+        opacity: 0.72;
+      }
+      .cf-space-step--done {
+        opacity: 0.95;
+        border-color: rgba(45, 212, 191, 0.35);
+      }
+      .cf-space-step--current {
+        opacity: 1;
+        border-color: rgba(56, 189, 248, 0.65);
+        background: rgba(12, 74, 110, 0.22);
+        box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.12);
+      }
+      .cf-space-step--upcoming {
+        opacity: 0.55;
+      }
+      .cf-space-step-num {
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgb(148 163 184);
+      }
+      .cf-space-step-label {
+        font-size: 11px;
+        font-weight: 650;
+        color: rgb(226 232 240);
+        line-height: 1.25;
+      }
+      .cf-space-step--current .cf-space-step-label {
+        color: rgb(224 242 254);
+      }
+      .cf-space-hero {
+        margin-bottom: 1rem;
+        padding: 1rem 1.1rem;
+        border-radius: 1rem;
+        border: 1px solid rgba(56, 189, 248, 0.22);
+        background: linear-gradient(135deg, rgba(56, 189, 248, 0.07), rgba(15, 23, 42, 0.65));
+      }
+      .cf-space-hero-kicker {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: rgb(125 211 252);
+      }
+      .cf-space-hero-title {
+        margin: 0.35rem 0 0;
+        font-size: 1.35rem;
+        font-weight: 750;
+        letter-spacing: -0.02em;
+        color: rgb(248 250 252);
+      }
+      .cf-space-hero-purpose {
+        margin: 0.5rem 0 0;
+        font-size: 0.875rem;
+        line-height: 1.55;
+        color: rgb(203 213 225);
+      }
+      .cf-space-hero-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.85rem;
+        margin-top: 1rem;
+      }
+      @media (min-width: 640px) {
+        .cf-space-hero-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      .cf-space-hero-label {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgb(148 163 184);
+      }
+      .cf-space-hero-body {
+        margin: 0.35rem 0 0;
+        font-size: 0.8125rem;
+        line-height: 1.5;
+        color: rgb(226 232 240);
+      }
+      .cf-space-slice {
+        margin-top: 1rem;
+        padding: 0.65rem 0.75rem;
+        border-radius: 0.65rem;
+        border: 1px solid rgba(52, 211, 153, 0.22);
+        background: rgba(6, 78, 59, 0.12);
+        font-size: 0.8125rem;
+        line-height: 1.45;
+        color: rgb(204 251 241);
+      }
+      .cf-space-latest {
+        margin-top: 1rem;
+        padding-top: 0.85rem;
+        border-top: 1px solid rgba(51, 65, 85, 0.55);
+      }
+      .cf-space-primary-cta {
+        margin-top: 1rem;
+        padding-top: 0.85rem;
+        border-top: 1px solid rgba(51, 65, 85, 0.55);
+      }
+      .cf-space-primary-text {
+        margin: 0.35rem 0 0;
+        font-size: 1rem;
+        font-weight: 650;
+        color: rgb(224 242 254);
+      }
+      .cf-space-secondary-next {
+        margin: 0.35rem 0 0;
+        font-size: 0.75rem;
+        line-height: 1.45;
+        color: rgb(148 163 184);
+      }
+      .cf-space-aside-stack .cf-space-aside-block {
+        margin-bottom: 1rem;
+      }
+      .cf-space-aside-block:last-child {
+        margin-bottom: 0;
+      }
+      .cf-space-aside-focus {
+        border-radius: 0.85rem;
+        border: 1px solid rgba(167, 139, 250, 0.35);
+        background: rgba(46, 16, 101, 0.18);
+        padding: 0.85rem;
+      }
+      .cf-space-aside-h {
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: rgb(196 181 253);
+      }
+      .cf-space-aside-p {
+        margin: 0.45rem 0 0;
+        font-size: 0.8125rem;
+        line-height: 1.5;
+        color: rgb(226 232 240);
+      }
+      .cf-space-aside-ul {
+        margin: 0.45rem 0 0;
+        padding-left: 1.1rem;
+        font-size: 0.8125rem;
+        line-height: 1.45;
+        color: rgb(226 232 240);
+      }
     </style>
   </head>
   <body class="min-h-screen bg-slate-950 text-slate-100">
@@ -347,15 +519,16 @@
       <span class="cf-spinner inline-block"></span>
       <span>Checking access…</span>
     </div>
-    <div id="changeAppRoot" class="max-w-5xl mx-auto px-4 py-10">
+    <div id="changeAppRoot" class="max-w-[min(100%,1720px)] mx-auto px-4 py-8">
       <div class="flex items-start justify-between gap-6 flex-wrap">
         <div>
           <div id="cfTenantBrand" class="hidden text-xs tracking-[0.28em] uppercase mb-1.5 font-semibold">
             <span id="cfTenantBrandText"></span>
           </div>
-          <h1 class="text-2xl font-semibold tracking-tight" id="cfConsoleHeadline">Change Console</h1>
-          <p class="text-slate-400 text-sm mt-1">
-            Full-page interactive space for requests + refinement + automation. Clients don’t see n8n; the Factory orchestrates it.
+          <h1 class="text-2xl font-semibold tracking-tight" id="cfConsoleHeadline">Change Space</h1>
+          <p class="text-slate-400 text-sm mt-1 max-w-2xl leading-relaxed">
+            One calm workspace for your change request—from first description through delivery checks. You always see where you are,
+            what we still need, and the single next step.
           </p>
           <p id="cfConsoleTaglineWrap" class="hidden text-slate-400 text-sm mt-2 border-l-2 border-sky-500/30 pl-3">
             <span id="cfConsoleTagline"></span>
@@ -373,7 +546,9 @@
         </div>
       </div>
 
-      <div class="mt-4 cf-stage-banner">
+      <nav id="cfChangeSpaceRail" class="cf-change-space-rail" aria-label="Delivery stages"></nav>
+
+      <div class="hidden cf-stage-banner" aria-hidden="true">
         <div class="cf-stage-k">Current stage</div>
         <div id="cfWorkflowStage" class="cf-stage-v">—</div>
         <div class="cf-stage-k mt-2">Next action</div>
@@ -486,7 +661,7 @@
         <!-- Left: Operator queue -->
         <div class="lg:col-span-3 rounded-2xl border border-slate-800 bg-slate-900/30 p-4">
           <div class="flex items-center justify-between gap-2 flex-wrap">
-            <div class="text-xs font-semibold text-slate-200 tracking-wide">Operator queue</div>
+            <div id="cfQueuePanelTitle" class="text-xs font-semibold text-slate-200 tracking-wide">Your requests</div>
             <button
               id="btnLoadTickets"
               type="button"
@@ -495,14 +670,15 @@
               Refresh
             </button>
           </div>
-          <p class="text-[11px] text-slate-500 mt-2 leading-relaxed">
-            Reality-derived queue. You should be able to triage without opening every ticket.
+          <p id="cfQueuePanelHint" class="text-[11px] text-slate-500 mt-2 leading-relaxed">
+            Open requests for your workspace—select one to see the guided steps in the center.
           </p>
           <div id="ticketList" class="mt-3 max-h-[min(70vh,760px)] overflow-y-auto text-xs text-slate-300"></div>
         </div>
 
         <!-- Center: Primary work area -->
         <div class="lg:col-span-6 rounded-2xl border border-slate-800 bg-slate-900/30 p-4">
+          <div id="cfSpaceStageHero" class="cf-space-hero" aria-live="polite"></div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
             <label class="text-xs text-slate-300">
               Locale
@@ -686,6 +862,7 @@
         </div>
 
         <div class="rounded-2xl border border-slate-800 bg-slate-900/30 p-4">
+          <div id="cfSpaceAsideAttention" class="cf-space-aside-stack mb-4"></div>
           <div id="cfExecutionRail" class="mb-4 rounded-xl border border-violet-500/20 bg-violet-950/15 p-4">
             <div class="text-[10px] font-semibold tracking-[0.25em] text-violet-200/95">NEXT ACTION</div>
             <p class="text-[11px] text-slate-500 mt-2 leading-relaxed">
@@ -790,7 +967,7 @@
 
             <div id="executionActivityCard" class="mb-4 rounded-xl border border-slate-800 bg-slate-950/50 p-3 hidden">
               <div class="flex items-start justify-between gap-2 flex-wrap">
-                <div class="text-[11px] font-semibold text-slate-200 uppercase tracking-wide">Live automation (GitHub)</div>
+                <div class="text-[11px] font-semibold text-slate-200 uppercase tracking-wide">Delivery pipeline</div>
                 <button type="button" id="btnRefreshActivity" class="text-[10px] text-sky-300 hover:text-sky-200 underline">
                   Refresh
                 </button>
@@ -4257,6 +4434,199 @@
           );
         }
 
+        /** Seven-column Change Space UI maps only existing CMP-derived workflow_state (no new engine). */
+        const CF_SPACE_COLUMNS = [
+          { key: 'intake', label: 'Intake', states: ['intake'] },
+          {
+            key: 'clarify',
+            label: 'Clarify',
+            states: ['refining', 'ready_for_estimate', 'awaiting_client_programme_decisions'],
+          },
+          { key: 'draft', label: 'Draft response', states: ['estimated'] },
+          { key: 'review', label: 'Review', states: ['preview_ready', 'in_review', 'changes_requested'] },
+          { key: 'approve', label: 'Approve / Send', states: ['client_approved'] },
+          { key: 'build', label: 'Build / Deliver', states: ['approved_for_build', 'building', 'publishing'] },
+          { key: 'verify', label: 'Verify / Close', states: ['published', 'closed', 'not_delivered'] },
+        ];
+
+        const CF_SPACE_NARRATIVE = {
+          intake: {
+            purpose: 'Capture what you want to improve and why it matters to your business.',
+            required: 'A plain-language description of the change. Links or uploads help when relevant.',
+            exit: 'A ticket exists so we can ask focused follow-ups—nothing starts until you are clear on the goal.',
+            primary: 'Describe your change, then press Create ticket',
+            slice: 'Define one small outcome we can verify first, before larger scope.',
+          },
+          clarify: {
+            purpose: 'Sharpen scope so estimates and delivery match what you expect.',
+            required: 'Answers to follow-up questions; acceptance bullets if you have them.',
+            exit: 'The written brief is complete enough to price and plan the next slice.',
+            primary: 'Reply in the conversation until nothing critical is missing',
+            slice: 'Write down the smallest verifiable deliverable for step one.',
+          },
+          draft: {
+            purpose: 'Review the written plan and pricing snapshot before committing.',
+            required: 'Confirmation you understand scope and trade-offs for this slice.',
+            exit: 'You are ready to approve moving into delivery for what was priced.',
+            primary: 'Run Estimate, then review the numbers',
+            slice: 'Validate pricing and scope for one concrete deliverable only.',
+          },
+          review: {
+            purpose: 'Look at the preview and confirm it matches what you approved.',
+            required: 'Your honest read—what matches, what does not.',
+            exit: 'Either it matches expectations or requested changes are clear.',
+            primary: 'Open the preview link and complete preview review',
+            slice: 'Check one customer-visible path end-to-end.',
+          },
+          approve: {
+            purpose: 'Formal record that you accepted what you reviewed.',
+            required: 'Any final confirmations asked for in this stage.',
+            exit: 'Your acceptance is recorded; delivery can finish publication.',
+            primary: 'Confirm approval when the preview matches what you want',
+            slice: 'No extra scope until the live check passes.',
+          },
+          build: {
+            purpose: 'Delivery work runs toward something you can click and verify.',
+            required: 'Respond if we ask a blocking question; otherwise standby.',
+            exit: 'A preview or live link is ready for your verification.',
+            primary: 'Press Approve build only when you accept the estimate',
+            slice: 'Ship the smallest testable change first.',
+          },
+          verify: {
+            purpose: 'Confirm what customers see matches what was promised.',
+            required: 'Observable proof—usually a live URL you can open.',
+            exit: 'Evidence is captured and everyone agrees the ticket can close.',
+            primary: 'Verify in production using the link we provide',
+            slice: 'Capture proof for one URL or user journey.',
+          },
+        };
+
+        function workflowStateToSpaceColumn(wf) {
+          const s = String(wf || '').trim().toLowerCase();
+          for (let i = 0; i < CF_SPACE_COLUMNS.length; i++) {
+            if (CF_SPACE_COLUMNS[i].states.indexOf(s) >= 0) return i;
+          }
+          return 0;
+        }
+
+        function softenNextForClient(raw) {
+          let s = String(raw || '').trim();
+          if (!s) return '';
+          if (!isTenantClient()) return s;
+          s = s.replace(/\bGitHub\b/gi, 'the delivery pipeline');
+          s = s.replace(/\bsandbox automation\b/gi, 'the preview pipeline');
+          return s;
+        }
+
+        /**
+         * @param {Record<string, unknown>} merged hydrated brief/ticket payload
+         */
+        function renderChangeSpaceChrome(merged) {
+          const rail = $('cfChangeSpaceRail');
+          const hero = $('cfSpaceStageHero');
+          const aside = $('cfSpaceAsideAttention');
+          if (!rail || !hero || !aside) return;
+
+          const tp =
+            merged && merged.ticket_progress && typeof merged.ticket_progress === 'object'
+              ? merged.ticket_progress
+              : null;
+          const cv = tp && tp.client_view && typeof tp.client_view === 'object' ? tp.client_view : {};
+          const wf = cv.workflow_state != null ? String(cv.workflow_state).trim().toLowerCase() : '';
+          const tickId = merged && merged.ticket_id != null ? String(merged.ticket_id).trim() : '';
+
+          const col = workflowStateToSpaceColumn(wf);
+          const effectiveCol = tickId ? col : 0;
+
+          const key = CF_SPACE_COLUMNS[effectiveCol].key;
+          const nar = CF_SPACE_NARRATIVE[key] || CF_SPACE_NARRATIVE.intake;
+
+          let railHtml = '<div class="cf-space-rail-inner">';
+          for (let i = 0; i < CF_SPACE_COLUMNS.length; i++) {
+            const c = CF_SPACE_COLUMNS[i];
+            let cls = 'cf-space-step';
+            if (tickId && i < effectiveCol) cls += ' cf-space-step--done';
+            if (i === effectiveCol) cls += ' cf-space-step--current';
+            if (tickId && i > effectiveCol) cls += ' cf-space-step--upcoming';
+            if (!tickId && i > 0) cls += ' cf-space-step--upcoming';
+            railHtml +=
+              '<div class="' +
+              cls +
+              '" data-step="' +
+              i +
+              '"><span class="cf-space-step-num">Step ' +
+              (i + 1) +
+              '</span><span class="cf-space-step-label">' +
+              escapeHtml(c.label) +
+              '</span></div>';
+          }
+          railHtml += '</div>';
+          rail.innerHTML = railHtml;
+
+          const nextRaw =
+            cv.workflow_next_action != null ? softenNextForClient(String(cv.workflow_next_action)) : '';
+          const miss = resolveMissingInformation(merged && typeof merged === 'object' ? merged : {});
+          const pm = cv.progress_message != null ? String(cv.progress_message).trim() : '';
+
+          hero.innerHTML =
+            '<div class="cf-space-hero-kicker">' +
+            escapeHtml(tickId ? 'Guided step' : 'Start here') +
+            '</div>' +
+            '<h2 class="cf-space-hero-title">' +
+            escapeHtml(CF_SPACE_COLUMNS[effectiveCol].label) +
+            '</h2>' +
+            '<p class="cf-space-hero-purpose">' +
+            escapeHtml(nar.purpose) +
+            '</p>' +
+            '<div class="cf-space-hero-grid">' +
+            '<div><div class="cf-space-hero-label">What we need</div><p class="cf-space-hero-body">' +
+            escapeHtml(nar.required) +
+            '</p></div>' +
+            '<div><div class="cf-space-hero-label">When we can move on</div><p class="cf-space-hero-body">' +
+            escapeHtml(nar.exit) +
+            '</p></div>' +
+            '</div>' +
+            '<div class="cf-space-slice"><strong>First slice</strong> — ' +
+            escapeHtml(nar.slice) +
+            '</div>' +
+            (pm
+              ? '<div class="cf-space-latest"><div class="cf-space-hero-label">Conversation & updates</div><p class="cf-space-hero-body">' +
+                escapeHtml(pm) +
+                '</p></div>'
+              : '') +
+            '<div class="cf-space-primary-cta"><div class="cf-space-hero-label">One primary action</div><p class="cf-space-primary-text">' +
+            escapeHtml(nar.primary) +
+            '</p>' +
+            (nextRaw && nextRaw !== nar.primary
+              ? '<p class="cf-space-secondary-next">' + escapeHtml(nextRaw) + '</p>'
+              : '') +
+            '</div>';
+
+          let asideMiss = '';
+          if (miss.length) {
+            asideMiss =
+              '<div class="cf-space-aside-block"><div class="cf-space-aside-h">What is still missing</div><ul class="cf-space-aside-ul">' +
+              miss
+                .map(function (q) {
+                  return '<li>' + escapeHtml(q) + '</li>';
+                })
+                .join('') +
+              '</ul></div>';
+          } else {
+            asideMiss =
+              '<div class="cf-space-aside-block"><div class="cf-space-aside-h">What is still missing</div><p class="cf-space-aside-p">Nothing flagged in the brief—if something feels unclear, say so in the conversation.</p></div>';
+          }
+
+          aside.innerHTML =
+            '<div class="cf-space-aside-block cf-space-aside-focus"><div class="cf-space-aside-h">How to move forward</div><p class="cf-space-aside-p">' +
+            escapeHtml(nextRaw || nar.primary) +
+            '</p></div>' +
+            asideMiss +
+            '<div class="cf-space-aside-block"><div class="cf-space-aside-h">Exit condition</div><p class="cf-space-aside-p">' +
+            escapeHtml(nar.exit) +
+            '</p></div>';
+        }
+
         function workflowLabel(state) {
           const s = String(state || '').trim();
           const map = {
@@ -4315,6 +4685,10 @@
               stEl.classList.remove('text-rose-100');
             }
           }
+
+          try {
+            renderChangeSpaceChrome(merged && typeof merged === 'object' ? merged : {});
+          } catch (_) {}
         }
 
         const modeBarHost = $('modeBar');
@@ -4352,6 +4726,16 @@
         async function loadTicketList() {
           const listEl = $('ticketList');
           if (!listEl) return;
+          try {
+            const qt = $('cfQueuePanelTitle');
+            const qh = $('cfQueuePanelHint');
+            if (qt) qt.textContent = isTenantClient() ? 'Your requests' : 'Open tickets';
+            if (qh) {
+              qh.textContent = isTenantClient()
+                ? 'Requests for your organization—pick one to continue the guided steps.'
+                : 'Pick a ticket to load details and the guided step panel.';
+            }
+          } catch (_) {}
           listEl.innerHTML = '<div class="text-slate-500 px-1 py-2">Loading…</div>';
           try {
             const r = await fetch('/api/cmp/router?action=ticket-operator-queue&limit=50', { credentials: 'include' });
