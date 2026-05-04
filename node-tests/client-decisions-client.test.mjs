@@ -6,11 +6,16 @@ import { fileURLToPath } from 'node:url';
 
 import {
   applyClientDecisionAnswers,
+  applyClientDecisionAnswersForTicket,
   CLIENT_DECISION_KEYS,
+  ensureClientDecisionsForTicket,
   ensureClientDecisionsOnConsoleJson,
   evaluateClientDecisionsGate,
+  evaluateClientDecisionsGateForTicket,
+  LUX_PHASE1_REVIEW_TICKET_ID,
   mergeProgrammeInternalDecisionsForTicket,
   pickClientDecisionAnswersOnly,
+  pickClientDecisionAnswersOnlyForTicket,
   PROGRAMME_INTERNAL_DECISION_DEFAULTS,
   payloadLeaksInternals,
   UMBRELLA_CLIENT_DECISION_TICKET_IDS,
@@ -124,6 +129,82 @@ test('mergeProgrammeInternalDecisionsForTicket: other tickets unchanged', () => 
   assert.deepEqual(merged, { foo: 1 });
 });
 
+test('Lux umbrella ticket: Phase 1 decision keys replace default four-item shape', () => {
+  const id = LUX_PHASE1_REVIEW_TICKET_ID;
+  assert.ok(UMBRELLA_CLIENT_DECISION_TICKET_IDS.has(id));
+  const stored = {
+    client_decisions: {
+      items: [
+        { key: 'first_slice_outcome', status: 'answered', answer: 'legacy' },
+        { key: 'lux_phase1_direction', status: 'pending', answer: '' },
+      ],
+    },
+  };
+  const ensured = ensureClientDecisionsForTicket(id, stored);
+  const items = Array.isArray(ensured.client_decisions?.items) ? ensured.client_decisions.items : [];
+  assert.equal(items.length, 8);
+  const keys = items.map((x) => String(x.key));
+  assert.equal(keys.includes('first_slice_outcome'), false);
+  assert.equal(keys[0], 'lux_phase1_direction');
+});
+
+test('evaluateClientDecisionsGateForTicket: Lux Phase 1 needs direction, permission, listing approach (images can waive)', () => {
+  const id = LUX_PHASE1_REVIEW_TICKET_ID;
+  const partial = [
+    { key: 'lux_phase1_direction', status: 'answered', answer: 'approve' },
+    { key: 'lux_phase1_notes', status: 'answered', answer: '' },
+    { key: 'lux_phase1_image_hero', status: 'pending', answer: '' },
+    { key: 'lux_phase1_image_property_cards', status: 'waived', answer: '' },
+    { key: 'lux_phase1_image_about', status: 'waived', answer: '' },
+    { key: 'lux_phase1_image_concierge', status: 'waived', answer: '' },
+    { key: 'lux_phase2_permission', status: 'pending', answer: '' },
+    { key: 'lux_phase2_listing_approach', status: 'pending', answer: '' },
+  ];
+  assert.equal(evaluateClientDecisionsGateForTicket(id, partial).sufficient_to_proceed, false);
+
+  const complete = [
+    { key: 'lux_phase1_direction', status: 'answered', answer: 'approve' },
+    { key: 'lux_phase1_notes', status: 'answered', answer: '' },
+    { key: 'lux_phase1_image_hero', status: 'waived', answer: '' },
+    { key: 'lux_phase1_image_property_cards', status: 'waived', answer: '' },
+    { key: 'lux_phase1_image_about', status: 'waived', answer: '' },
+    { key: 'lux_phase1_image_concierge', status: 'waived', answer: '' },
+    { key: 'lux_phase2_permission', status: 'answered', answer: 'no' },
+    { key: 'lux_phase2_listing_approach', status: 'answered', answer: 'staged_curated' },
+  ];
+  assert.equal(evaluateClientDecisionsGateForTicket(id, complete).sufficient_to_proceed, true);
+});
+
+test('applyClientDecisionAnswersForTicket: Lux Phase 1 persists eight rows', () => {
+  const id = LUX_PHASE1_REVIEW_TICKET_ID;
+  const applied = applyClientDecisionAnswersForTicket(id, {
+    stored: { client_decisions: { items: [] }, messages: [] },
+    answersByKey: {
+      lux_phase1_direction: { answer: 'approve' },
+      lux_phase1_notes: { answer: '' },
+      lux_phase1_image_hero: { waive: true },
+      lux_phase1_image_property_cards: { waive: true },
+      lux_phase1_image_about: { waive: true },
+      lux_phase1_image_concierge: { waive: true },
+      lux_phase2_permission: { answer: 'after_changes' },
+      lux_phase2_listing_approach: { answer: 'hybrid' },
+    },
+    meta: { nowIso: '2026-05-04T00:00:00.000Z', messageId: 'msg:test' },
+  });
+  assert.equal(applied.sufficient_to_proceed, true);
+  const items = Array.isArray(applied.next.client_decisions?.items) ? applied.next.client_decisions.items : [];
+  assert.equal(items.length, 8);
+});
+
+test('pickClientDecisionAnswersOnlyForTicket: Lux ticket rejects unknown POST keys', () => {
+  const id = LUX_PHASE1_REVIEW_TICKET_ID;
+  const picked = pickClientDecisionAnswersOnlyForTicket(id, {
+    lux_phase1_direction: { answer: 'approve' },
+    internal_decisions: { evil: true },
+  });
+  assert.equal(Object.keys(picked).length, 1);
+});
+
 test('payloadLeaksInternals: client-decisions-get/submit shapes are safe', () => {
   assert.equal(payloadLeaksInternals({ ok: true, client_decisions: { items: [] } }), false);
   assert.equal(payloadLeaksInternals({ internal_decisions: [] }), true);
@@ -168,6 +249,7 @@ test('submit-client-decisions creates operator_signal and records audit event (n
   assert.equal(fn.includes("type: 'client_answers_received'"), true, 'operator_signal must use client_answers_received type');
   assert.equal(fn.includes("eventType: 'client_answers_received'"), true, 'must record trusted automation event');
   assert.equal(fn.includes("idempotencyKey: `cmp:client_answers_received:${String(ticketId)}`"), true);
+  assert.equal(fn.includes('missing_keys: decisionSpec.keys.filter((k) => missingSet.has(k))'), true);
 
   const respStart = fn.indexOf('return res.status(200).json(');
   assert.ok(respStart >= 0, 'submit handler must return JSON response');
