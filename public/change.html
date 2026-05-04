@@ -374,9 +374,16 @@
       </div>
 
       <div class="mt-4 cf-stage-banner">
-        <div class="cf-stage-k">Current stage</div>
-        <div id="cfWorkflowStage" class="cf-stage-v">—</div>
-        <div class="cf-stage-k mt-2">Next action</div>
+        <div class="flex flex-wrap items-start justify-between gap-2">
+          <div id="cfWorkflowStage" class="cf-stage-v">Stage: —</div>
+          <div
+            id="cfStageTicketMeta"
+            class="text-[10px] text-slate-500 font-mono break-all max-w-[min(100%,24rem)] text-right leading-snug"
+          >
+            —
+          </div>
+        </div>
+        <div class="cf-stage-k mt-2">Next step</div>
         <div id="cfWorkflowNext" class="cf-stage-next">—</div>
       </div>
 
@@ -526,10 +533,44 @@
             </div>
           </div>
 
-          <div class="mt-4">
-            <div class="text-xs text-slate-300 mb-2">Describe the change</div>
-            <textarea id="desc" class="w-full min-h-[140px] rounded-xl bg-slate-950 border border-slate-800 px-3 py-3 text-sm" placeholder="Describe what you want changed in plain language…"></textarea>
-            <p class="text-[10px] text-slate-500 mt-2 leading-relaxed">
+          <div class="mt-4 space-y-4" id="cfDescribeSurface">
+            <div id="cfIntakePurposeBlock" class="hidden rounded-lg border border-sky-500/15 bg-sky-950/20 px-3 py-3 text-sm text-slate-200 leading-relaxed">
+              This is where you describe your request. The clearer this is, the faster we can help you.
+            </div>
+            <div>
+              <label id="cfIntakeInputLabel" for="cf-intake-input" class="hidden text-xs font-medium text-slate-300 mb-2 block"
+                >Your request</label
+              >
+              <div id="cfLegacyDescribeHeading" class="text-xs text-slate-300 mb-2">Describe the change</div>
+              <textarea
+                id="cf-intake-input"
+                class="w-full min-h-[140px] rounded-xl bg-slate-950 border border-slate-800 px-3 py-3 text-sm text-slate-100 placeholder:text-slate-600"
+                placeholder="Describe what you want changed in plain language…"
+              ></textarea>
+            </div>
+            <div id="cfIntakeReadonlyBlock" class="hidden space-y-2">
+              <div class="text-xs font-medium text-slate-300">Existing request</div>
+              <div
+                id="cf-intake-readonly"
+                class="text-sm text-slate-200 whitespace-pre-wrap leading-relaxed rounded-xl border border-slate-800 bg-slate-950/60 px-3 py-3 min-h-[4.5rem]"
+              >
+                —
+              </div>
+            </div>
+            <div id="cfIntakeDoneBlock" class="hidden rounded-lg border border-emerald-500/15 bg-emerald-950/15 px-3 py-3 text-sm text-slate-200 leading-relaxed">
+              You are ready to continue when your request clearly explains what you want changed and what outcome you expect.
+            </div>
+            <div id="cfIntakeSaveRow" class="hidden">
+              <button
+                type="button"
+                id="btnIntakeSaveContinue"
+                class="rounded-lg bg-sky-500 text-slate-950 px-4 py-2.5 text-sm font-semibold hover:bg-sky-400"
+              >
+                Save and continue
+              </button>
+            </div>
+            <div id="cfLegacyActionsBlock">
+            <p id="cfLegacyMediaHint" class="text-[10px] text-slate-500 leading-relaxed">
               <strong class="text-slate-400">Media:</strong> upload files below (after you have a ticket), or paste external
               <strong class="text-slate-400">shareable links</strong> in the box under it.
             </p>
@@ -581,6 +622,7 @@
                 Approve build
               </button>
               <button type="button" id="btnReset" class="rounded-lg border border-slate-800 px-4 py-2 text-sm text-slate-300">Reset</button>
+            </div>
             </div>
           </div>
 
@@ -741,7 +783,7 @@
             </div>
           </div>
 
-          <div class="mt-5 border-t border-slate-800 pt-4">
+          <div id="cfOperatorBriefColumn" class="mt-5 border-t border-slate-800 pt-4">
             <div class="flex items-start justify-between gap-2 flex-wrap">
               <div class="text-xs text-slate-300 mb-1">Brief</div>
               <button
@@ -753,7 +795,7 @@
               </button>
             </div>
             <p class="text-[10px] text-slate-500 mb-2 leading-relaxed">
-              Read-only overview: status, tasks, scope, risks, and estimate. Raw JSON is available to factory admins only.
+              Read-only overview: status, tasks, scope, risks, and estimate.
             </p>
             <div
               id="briefSummary"
@@ -817,17 +859,6 @@
               <ul id="technicalLeadGaps" class="mt-2 text-[10px] text-slate-400 space-y-1 list-disc pl-4 hidden"></ul>
             </div>
 
-            <details id="rawJsonWrap" class="rounded-xl border border-slate-800 bg-slate-950/40 group hidden">
-              <summary
-                class="cursor-pointer text-[10px] text-slate-500 hover:text-slate-400 px-3 py-2 select-none list-none"
-              >
-                Raw JSON (support / admin)
-              </summary>
-              <pre
-                id="brief"
-                class="rounded-b-xl bg-slate-950 border-t border-slate-800 p-3 text-[11px] text-slate-200 whitespace-pre-wrap min-h-[120px] max-h-[min(50vh,420px)] overflow-auto"
-              ></pre>
-            </details>
           </div>
 
           <div class="mt-5 border-t border-slate-800 pt-4">
@@ -924,11 +955,10 @@
         const $ = (id) => document.getElementById(id);
         const banner = $('banner');
         const localeSel = $('locale');
-        const descEl = $('desc');
+        const descEl = $('cf-intake-input');
         const ticketEl = $('ticket');
         const chatEl = $('chat');
         const thread = $('thread');
-        const briefEl = $('brief');
         const automationLinksEl = $('automationLinks');
         const overseerBtn = $('btnOverseer');
         const promotionRefreshBtn = $('btnPromotionRefresh');
@@ -994,15 +1024,6 @@
         }
 
         function applyConsoleLayout() {
-          const rawWrap = $('rawJsonWrap');
-          if (rawWrap) {
-            if (isTenantClient()) rawWrap.classList.add('hidden');
-            else if (isAdminSession()) rawWrap.classList.remove('hidden');
-            else rawWrap.classList.add('hidden');
-          }
-          if (briefEl && (isTenantClient() || !isAdminSession())) {
-            briefEl.textContent = '';
-          }
           // Admin-only controls
           try {
             const sh = $('btnSelfHeal');
@@ -2958,9 +2979,6 @@
 
         function setBrief(obj) {
           lastBrief = obj && typeof obj === 'object' ? obj : null;
-          if (briefEl) {
-            briefEl.textContent = isAdminSession() && lastBrief ? JSON.stringify(lastBrief, null, 2) : '';
-          }
           applyConsoleLayout();
           applyWorkspaceMode();
           const eff = hydrateBriefFromTicketProgress(lastBrief || {});
@@ -3012,6 +3030,9 @@
             if (tId && sessionInfo && sessionInfo.logged_in) {
               void refreshTechnicalLeadAudit(String(tId).trim());
             }
+          } catch (_) {}
+          try {
+            updateIntakeClientSurface(eff);
           } catch (_) {}
         }
         function asLink(href, label) {
@@ -4258,7 +4279,7 @@
         }
 
         function workflowLabel(state) {
-          const s = String(state || '').trim();
+          const s = String(state || '').trim().toLowerCase();
           const map = {
             intake: 'Intake',
             refining: 'Refining',
@@ -4278,16 +4299,88 @@
           return map[s] || (s ? s : '—');
         }
 
+        function computeIsIntakeUx(merged) {
+          const m = merged && typeof merged === 'object' ? merged : {};
+          const tp = m.ticket_progress && typeof m.ticket_progress === 'object' ? m.ticket_progress : null;
+          const cv = tp && tp.client_view && typeof tp.client_view === 'object' ? tp.client_view : {};
+          const wfRaw = cv.workflow_state != null ? String(cv.workflow_state).trim() : '';
+          const wf = wfRaw.toLowerCase();
+          const st = String((tp && tp.status) || m.status || '').trim().toLowerCase();
+          if (st === 'closed') return false;
+          const label = workflowLabel(wfRaw);
+          if (label === 'Intake') return true;
+          if (!wf && (st === 'open' || st === 'created' || !st)) return true;
+          return false;
+        }
+
+        function formatExistingRequestText(merged) {
+          const m = merged && typeof merged === 'object' ? merged : {};
+          const d = m.description != null ? String(m.description).trim() : '';
+          if (d) return d;
+          const bs = m.brief_structured && typeof m.brief_structured === 'object' ? m.brief_structured : null;
+          if (bs && typeof bs.summary === 'string' && bs.summary.trim()) return String(bs.summary).trim();
+          const tp = m.ticket_progress && typeof m.ticket_progress === 'object' ? m.ticket_progress : null;
+          const cv = tp && tp.client_view && typeof tp.client_view === 'object' ? tp.client_view : {};
+          const pm = typeof cv.progress_message === 'string' ? cv.progress_message.trim() : '';
+          if (pm) return pm;
+          return 'No description has been saved on this request yet. Add your wording above.';
+        }
+
+        function updateIntakeClientSurface(merged) {
+          const tid = String(ticketEl.value || '').trim();
+          const isIntake = computeIsIntakeUx(merged);
+          const showIntakeSkin = Boolean(tid && isIntake);
+          const purpose = $('cfIntakePurposeBlock');
+          const label = $('cfIntakeInputLabel');
+          const roBlock = $('cfIntakeReadonlyBlock');
+          const done = $('cfIntakeDoneBlock');
+          const saveR = $('cfIntakeSaveRow');
+          const legHead = $('cfLegacyDescribeHeading');
+          const legacy = $('cfLegacyActionsBlock');
+          const roEl = $('cf-intake-readonly');
+          const ta = descEl;
+          const execRail = $('cfExecutionRail');
+          const tlCard = $('technicalLeadCard');
+          const loggedIn = !!(sessionInfo && sessionInfo.logged_in);
+
+          if (purpose) purpose.classList.toggle('hidden', !(showIntakeSkin || (loggedIn && !tid)));
+          if (label) label.classList.toggle('hidden', !showIntakeSkin);
+          if (roBlock) roBlock.classList.toggle('hidden', !showIntakeSkin);
+          if (done) done.classList.toggle('hidden', !showIntakeSkin);
+          if (saveR) saveR.classList.toggle('hidden', !showIntakeSkin);
+          if (legHead) legHead.classList.toggle('hidden', showIntakeSkin);
+          if (legacy) legacy.classList.toggle('hidden', showIntakeSkin);
+
+          if (execRail) execRail.classList.toggle('hidden', showIntakeSkin);
+          if (tlCard) tlCard.classList.toggle('hidden', showIntakeSkin);
+
+          if (roEl && showIntakeSkin) roEl.textContent = formatExistingRequestText(merged);
+
+          if (ta) {
+            ta.classList.toggle('min-h-[220px]', showIntakeSkin);
+            ta.classList.toggle('min-h-[140px]', !showIntakeSkin);
+          }
+        }
+
         function renderWorkflowBannerFromBrief(merged) {
           const stEl = $('cfWorkflowStage');
           const nxEl = $('cfWorkflowNext');
+          const metaEl = $('cfStageTicketMeta');
           if (!stEl || !nxEl) return;
           const tp = merged && merged.ticket_progress && typeof merged.ticket_progress === 'object' ? merged.ticket_progress : null;
           const cv = tp && tp.client_view && typeof tp.client_view === 'object' ? tp.client_view : {};
           const wf = cv.workflow_state != null ? String(cv.workflow_state) : '';
           const next = cv.workflow_next_action != null ? String(cv.workflow_next_action) : '';
-          stEl.textContent = workflowLabel(wf);
-          nxEl.textContent = next || '—';
+          const stageName = workflowLabel(wf);
+          stEl.textContent = 'Stage: ' + (stageName && stageName !== '—' ? stageName : 'Intake');
+          const tid = String((merged && merged.ticket_id) || ticketEl.value || '').trim();
+          if (metaEl) {
+            metaEl.textContent = tid ? 'Ticket: ' + tid : '—';
+          }
+          const intakeUx = computeIsIntakeUx(merged) && tid;
+          nxEl.textContent = intakeUx
+            ? 'Next step: Add or refine your request, then continue.'
+            : next || '—';
 
           // Canonical client decision action surface:
           // show ONE primary action when workflow requires client programme decisions.
@@ -4543,6 +4636,9 @@
             applyFactoryLinksFromSession();
             if (lastBrief) setBrief(lastBrief);
             else applyWorkspaceMode();
+            try {
+              updateIntakeClientSurface(hydrateBriefFromTicketProgress(lastBrief || {}));
+            } catch (_) {}
 
             // Keep existing badge behavior by calling /api/auth/me as a compatibility check.
             return fetch('/api/auth/me', { credentials: 'include' }).then((r) => r.json()).catch(() => null);
@@ -4561,6 +4657,9 @@
               if (lastBrief) setBrief(lastBrief);
               else applyWorkspaceMode();
               try {
+                updateIntakeClientSurface(hydrateBriefFromTicketProgress(lastBrief || {}));
+              } catch (_) {}
+              try {
                 loadAttachmentList(ticketEl.value);
               } catch (_) {}
             } else {
@@ -4575,6 +4674,9 @@
               applyConsoleLayout();
               applyFactoryLinksFromSession();
               applyWorkspaceMode();
+              try {
+                updateIntakeClientSurface(hydrateBriefFromTicketProgress({}));
+              } catch (_) {}
             }
           })
           .catch(() => {
@@ -4797,6 +4899,10 @@
           const hp = $('processHealthPanel');
           if (hp) hp.classList.add('hidden');
           descEl.value = '';
+          try {
+            const roClr = $('cf-intake-readonly');
+            if (roClr) roClr.textContent = '—';
+          } catch (_) {}
           try {
             const ml = $('mediaLinks');
             if (ml) ml.value = '';
@@ -5094,6 +5200,40 @@
             if (ev.key === 'Enter' && !ev.shiftKey) {
               ev.preventDefault();
               void sendTenantRefine(null);
+            }
+          });
+        }
+
+        const btnIntakeSaveContinue = $('btnIntakeSaveContinue');
+        if (btnIntakeSaveContinue) {
+          btnIntakeSaveContinue.addEventListener('click', async () => {
+            setBanner('');
+            const tid = String(ticketEl.value || '').trim();
+            if (!tid) return setBanner('Select a ticket first.');
+            const d = mergeMediaIntoDescription(String(descEl.value || '').trim());
+            if (!String(d).trim()) return setBanner('Add a short description of your request first.');
+            try {
+              await withActivity('Saving your request…', async () => {
+                const loc = localeSel && localeSel.value ? String(localeSel.value) : 'en';
+                const j = await post('change-chat', {
+                  ticket_id: tid,
+                  message: d,
+                  locale: loc,
+                });
+                setBrief({
+                  ...(lastBrief || {}),
+                  ...j,
+                  ticket_id: tid,
+                  ticket_progress: j.ticket_progress || null,
+                });
+                await syncCurrentTicket();
+                const roEl = $('cf-intake-readonly');
+                if (roEl) roEl.textContent = d;
+              });
+              setBanner('Saved. Your wording is stored on this ticket for the team to review.');
+              window.setTimeout(() => setBanner(''), 5000);
+            } catch (e) {
+              setBanner(String(e && e.message ? e.message : e));
             }
           });
         }
