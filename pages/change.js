@@ -552,6 +552,15 @@ export default function ChangeConsolePage() {
                 <div style={{ marginTop: 6, color: '#94a3b8' }}>
                   Next: {String(ticket?.ticket_progress?.client_view?.workflow_next_action || '—')}
                 </div>
+                {ticket?.lux_programme_summary?.phase_2_status ? (
+                  <div style={{ marginTop: 8, fontSize: 12, color: '#94a3b8', lineHeight: 1.45 }}>
+                    Programme: Phase 1 {String(ticket.lux_programme_summary.phase_1_status || '—')} · Phase 2{' '}
+                    {String(ticket.lux_programme_summary.phase_2_status || '—')}
+                    {ticket.lux_programme_summary.listing_approach
+                      ? ` · listing approach: ${String(ticket.lux_programme_summary.listing_approach)}`
+                      : null}
+                  </div>
+                ) : null}
               </div>
             </div>
           </div>
@@ -581,6 +590,7 @@ export default function ChangeConsolePage() {
                         stage: ticket.stage,
                         workflow_state: ticket?.ticket_progress?.client_view?.workflow_state,
                         client_decisions_summary: ticket.client_decisions_summary || null,
+                        lux_programme_summary: ticket.lux_programme_summary || null,
                         operator_signal: ticket.operator_signal || null,
                       }
                     : { hint: session.logged_in ? 'Select a ticket to load.' : 'Log in to load tickets.' },

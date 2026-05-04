@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { deriveWorkflowState } from '../lib/cmp/_lib/change-workflow-state.js';
+import { buildTicketProgress, deriveWorkflowState } from '../lib/cmp/_lib/change-workflow-state.js';
 
 test('deriveWorkflowState: Closed row yields published even if client_view stuck in_review', () => {
   const consoleJson = {
@@ -79,4 +79,21 @@ test('deriveWorkflowState: Approved/Build without client_decisions object is unc
     consoleJson: {},
   });
   assert.equal(wf, 'approved_for_build');
+});
+
+test('buildTicketProgress: lux_programme.operator_next_action overrides workflow_next_action', () => {
+  const tp = buildTicketProgress(
+    {
+      lux_programme: {
+        operator_next_action: 'Define listing source (staged vs IDX vs hybrid) and implement first property discovery slice.',
+      },
+    },
+    'Approved',
+    'Build',
+    {},
+  );
+  assert.equal(
+    tp.client_view.workflow_next_action,
+    'Define listing source (staged vs IDX vs hybrid) and implement first property discovery slice.',
+  );
 });
