@@ -39,3 +39,31 @@
 See `console_json.lux_programme.operator_next_action` on the ticket after initiation script:
 
 > Define listing source (staged vs IDX vs hybrid) and implement first property discovery slice.
+
+---
+
+## Production verification (recorded 2026-05-04) — ticket `cmo8mjijk0000jl04l1jz0v6d`
+
+**Ticket status:** remains **open** (programme delivery; not closed on this record).
+
+**Merged to main:** PR https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/134 — squash commit `780ea91b9e9a9fd3c2ea9d96be3e8d01c4456b07`.
+
+**GitHub Production deployment (environment hook):** deployment id `4566948292` → SHA `780ea91b9e9a9fd3c2ea9d96be3e8d01c4456b07` (correlate with Vercel Production “Ready” for the same commit).
+
+**Live GET checks**
+
+| URL | Result |
+|-----|--------|
+| `https://lux.corpflowai.com/` | **200** — HTML includes staged listing slugs (`lm-nc-ridge`, `lm-villa-belombre`, …), filter copy (“North & plateau”), status (“Private preview”), `staged_properties` in payload |
+| `https://lux.corpflowai.com/concierge?intent=property&property=lm-nc-ridge` | **200** — concierge page (property banner is client-rendered from `router.query` after hydration) |
+| `https://core.corpflowai.com/api/factory/health` | **200** — non–Lux surface unchanged at health level |
+
+**Lead API (property context)**
+
+- `POST https://lux.corpflowai.com/api/cmp/router?action=concierge-lead-create` with JSON body including `property_slug: "lm-pent-plateau"` → **200**, `lead.id` = `cmoqtjog70003jy04hiyabu1u` (operator can confirm `listing` / `qualification_json.property_interest` on `/change` for Lux session).
+
+**Operator visibility:** confirm on `https://lux.corpflowai.com/change` (authenticated) that the new lead shows property interest / listing ref for `luxe-maurice` only.
+
+**Tenant boundaries:** property slug path server-gated to `luxe-maurice`; no `tenant_id` mutation from client; other tenants not in scope of this slice.
+
+**CMP description note:** if the ticket body should mirror this block, paste this section from the repo or append via operator DB/script using `POSTGRES_URL` (not run from the merge agent environment).
