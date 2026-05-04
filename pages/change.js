@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { LUX_PHASE1_REVIEW_TICKET_ID } from '../lib/cmp/_lib/client-decisions-client.js';
 
 // Non-canonical route – /change is served via public/change.html
 function normalizeLocale(raw) {
@@ -196,6 +197,19 @@ export default function ChangeConsolePage() {
   const wf = ticket?.ticket_progress?.client_view?.workflow_state || '';
   const needClientDecision = String(wf || '').trim() === 'awaiting_client_programme_decisions';
 
+  const approvedBuild =
+    String(ticket?.status || '').trim().toLowerCase() === 'approved' &&
+    String(ticket?.stage || '').trim().toLowerCase() === 'build';
+  const luxPhase1ReviewDone = ticket?.client_decisions_summary?.sufficient_to_proceed === true;
+  const showLuxPhase1ReviewPanel =
+    String(selectedTicketId || '').trim() === LUX_PHASE1_REVIEW_TICKET_ID && approvedBuild && !luxPhase1ReviewDone;
+  const showGenericClientDecisionPanel =
+    needClientDecision &&
+    String(selectedTicketId || '').trim() !== LUX_PHASE1_REVIEW_TICKET_ID &&
+    approvedBuild;
+  const showLuxPhase1ReviewComplete =
+    String(selectedTicketId || '').trim() === LUX_PHASE1_REVIEW_TICKET_ID && approvedBuild && luxPhase1ReviewDone;
+
   const page = {
     fontFamily: 'system-ui, Segoe UI, Roboto, sans-serif',
     padding: 24,
@@ -354,7 +368,88 @@ export default function ChangeConsolePage() {
             </div>
 
             <div style={{ marginTop: 14, borderTop: '1px solid rgba(148,163,184,0.18)', paddingTop: 14 }}>
-              {needClientDecision ? (
+              {showLuxPhase1ReviewPanel ? (
+                <div
+                  style={{
+                    border: '1px solid rgba(56,189,248,0.35)',
+                    borderRadius: 14,
+                    padding: 14,
+                    background: 'rgba(56,189,248,0.08)',
+                  }}
+                >
+                  <div style={{ fontSize: 12, fontWeight: 950, color: '#e0f2fe' }}>Next: Phase 1 client review</div>
+                  <div style={{ marginTop: 6, fontSize: 12, color: '#cbd5e1', lineHeight: 1.45 }}>
+                    Phase 1 is live on lux.corpflowai.com (presentation + concierge only). Send a one-time link so
+                    the client can approve direction, classify images, and authorize (or hold) Phase 2. No login
+                    required for the client.
+                  </div>
+                  <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      onClick={mintClientDecisionLink}
+                      disabled={clientDecisionBusy || !selectedTicketId}
+                      style={{
+                        padding: '10px 12px',
+                        borderRadius: 12,
+                        border: 'none',
+                        background: clientDecisionBusy ? '#94a3b8' : '#38bdf8',
+                        color: '#020617',
+                        fontWeight: 950,
+                        cursor: clientDecisionBusy ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      {clientDecisionBusy ? 'Generating…' : 'Send Phase 1 review request'}
+                    </button>
+                    {clientDecisionLink ? (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const ok = await copyToClipboard(clientDecisionLink);
+                          setClientDecisionStatus(ok ? 'Copied.' : 'Copy failed — select and copy manually.');
+                        }}
+                        style={{
+                          padding: '10px 12px',
+                          borderRadius: 12,
+                          border: '1px solid rgba(148,163,184,0.25)',
+                          background: 'rgba(15,23,42,0.35)',
+                          color: '#e2e8f0',
+                          fontWeight: 900,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Copy link
+                      </button>
+                    ) : null}
+                  </div>
+                  {clientDecisionLink ? (
+                    <div style={{ marginTop: 10 }}>
+                      <input
+                        readOnly
+                        value={clientDecisionLink}
+                        style={{
+                          width: '100%',
+                          padding: 10,
+                          borderRadius: 12,
+                          border: '1px solid rgba(148,163,184,0.25)',
+                          background: 'rgba(2,6,23,0.45)',
+                          color: '#e2e8f0',
+                          fontSize: 12,
+                        }}
+                      />
+                      {clientDecisionExpiresAt ? (
+                        <div style={{ marginTop: 6, fontSize: 11, color: '#94a3b8' }}>
+                          Expires: {clientDecisionExpiresAt}
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
+                  {clientDecisionStatus ? (
+                    <div style={{ marginTop: 8, fontSize: 11, color: '#94a3b8' }}>{clientDecisionStatus}</div>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {showGenericClientDecisionPanel ? (
                 <div
                   style={{
                     border: '1px solid rgba(56,189,248,0.35)',
@@ -365,7 +460,8 @@ export default function ChangeConsolePage() {
                 >
                   <div style={{ fontSize: 12, fontWeight: 950, color: '#e0f2fe' }}>Client input required</div>
                   <div style={{ marginTop: 6, fontSize: 12, color: '#cbd5e1', lineHeight: 1.45 }}>
-                    Send a one-time link so the client can answer the 4 decisions. No login required for the client.
+                    Send a one-time link so the client can answer the programme decisions. No login required for the
+                    client.
                   </div>
                   <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     <button
@@ -433,6 +529,24 @@ export default function ChangeConsolePage() {
                 </div>
               ) : null}
 
+              {showLuxPhase1ReviewComplete ? (
+                <div
+                  style={{
+                    marginTop: showLuxPhase1ReviewPanel || showGenericClientDecisionPanel ? 12 : 0,
+                    border: '1px solid rgba(74,222,128,0.35)',
+                    borderRadius: 14,
+                    padding: 12,
+                    background: 'rgba(74,222,128,0.08)',
+                    fontSize: 12,
+                    color: '#bbf7d0',
+                    lineHeight: 1.45,
+                  }}
+                >
+                  Phase 1 client review form is complete for this ticket. Phase 2 still waits on your delivery
+                  process (no automatic build from this step).
+                </div>
+              ) : null}
+
               <div style={{ marginTop: 14, color: '#cbd5e1', fontSize: 13, lineHeight: 1.5 }}>
                 <div style={{ fontWeight: 900, color: '#e2e8f0' }}>{stage}</div>
                 <div style={{ marginTop: 6, color: '#94a3b8' }}>
@@ -466,6 +580,7 @@ export default function ChangeConsolePage() {
                         status: ticket.status,
                         stage: ticket.stage,
                         workflow_state: ticket?.ticket_progress?.client_view?.workflow_state,
+                        client_decisions_summary: ticket.client_decisions_summary || null,
                         operator_signal: ticket.operator_signal || null,
                       }
                     : { hint: session.logged_in ? 'Select a ticket to load.' : 'Log in to load tickets.' },

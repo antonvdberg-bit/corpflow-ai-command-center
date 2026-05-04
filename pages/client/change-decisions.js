@@ -45,6 +45,8 @@ export default function ClientChangeDecisionsPage() {
   const [submittedOk, setSubmittedOk] = useState(false);
   /** One-time link: after submit or revisiting consumed link — form hidden, thank-you only. */
   const [magicClosed, setMagicClosed] = useState(false);
+  /** Server-provided thank-you (Phase 1 vs default programme copy). */
+  const [thankYouBanner, setThankYouBanner] = useState('');
 
   const idFromUrl = router.isReady ? ticketIdFromQuery(router.query) : '';
   const magicToken = router.isReady ? magicTokenFromQuery(router.query) : '';
@@ -146,6 +148,9 @@ export default function ClientChangeDecisionsPage() {
       }
       if (typeof j.heading === 'string' && j.heading.trim()) setHeading(j.heading.trim());
       if (typeof j.explanation === 'string' && j.explanation.trim()) setExplanation(j.explanation.trim());
+      if (typeof j.thank_you_message === 'string' && j.thank_you_message.trim()) {
+        setThankYouBanner(j.thank_you_message.trim());
+      }
 
       if (j.already_submitted === true && hasMagicLink) {
         setMagicClosed(true);
@@ -202,7 +207,8 @@ export default function ClientChangeDecisionsPage() {
         const key = typeof o.key === 'string' ? o.key.trim() : '';
         if (!key) continue;
         const cur = answersByKey[key] || { answer: '', waive: false };
-        if (key === 'listings_feed_or_idx_provider_status' && cur.waive) {
+        const luxImageWaive = key.startsWith('lux_phase1_image_') && cur.waive;
+        if ((key === 'listings_feed_or_idx_provider_status' && cur.waive) || luxImageWaive) {
           answers[key] = { answer: cur.answer, waive: true };
         } else {
           answers[key] = { answer: cur.answer };
@@ -241,6 +247,9 @@ export default function ClientChangeDecisionsPage() {
         setItems([]);
         setSubmittedOk(false);
         setError('');
+        if (typeof j.thank_you_message === 'string' && j.thank_you_message.trim()) {
+          setThankYouBanner(j.thank_you_message.trim());
+        }
         return;
       }
 
@@ -351,7 +360,9 @@ export default function ClientChangeDecisionsPage() {
             lineHeight: 1.55,
           }}
         >
-          {showMagicThankOnly ? THANK_YOU_MAGIC_DISPLAY : 'Thanks — we’ll review these and prepare the first-slice plan.'}
+          {showMagicThankOnly
+            ? thankYouBanner || THANK_YOU_MAGIC_DISPLAY
+            : 'Thanks — we’ll review these and prepare the first-slice plan.'}
         </div>
       ) : null}
 
@@ -368,10 +379,14 @@ export default function ClientChangeDecisionsPage() {
             const key = typeof o.key === 'string' ? o.key.trim() : `item_${idx}`;
             const q = typeof o.question === 'string' && o.question.trim() ? String(o.question) : key;
             const cur = answersByKey[key] || { answer: '', waive: false };
+            const selectOpts = Array.isArray(o.select_options) ? o.select_options : null;
+            const showIdxWaive = key === 'listings_feed_or_idx_provider_status';
+            const showLuxImageWaive = key.startsWith('lux_phase1_image_');
+            const waived = cur.waive === true;
             return (
               <div key={key || idx} style={{ border: '1px solid #e2e8f0', borderRadius: 14, padding: 14, background: '#fff' }}>
                 <div style={{ fontSize: 14, fontWeight: 650, color: '#0f172a', marginBottom: 8 }}>{q}</div>
-                {key === 'listings_feed_or_idx_provider_status' ? (
+                {showIdxWaive || showLuxImageWaive ? (
                   <label style={{ display: 'flex', gap: 10, alignItems: 'center', fontSize: 13, color: '#334155', marginBottom: 10 }}>
                     <input
                       type="checkbox"
@@ -383,29 +398,64 @@ export default function ClientChangeDecisionsPage() {
                         }))
                       }
                     />
-                    Waive for now (we will revisit IDX/listings before go-live)
+                    {showIdxWaive
+                      ? 'Waive for now (we will revisit IDX/listings before go-live)'
+                      : 'No separate asset pick for this slot yet — waive for now'}
                   </label>
                 ) : null}
-                <textarea
-                  value={cur.answer}
-                  disabled={key === 'listings_feed_or_idx_provider_status' ? cur.waive : false}
-                  onChange={(e) =>
-                    setAnswersByKey((prev) => ({
-                      ...prev,
-                      [key]: { waive: prev[key]?.waive || false, answer: e.target.value },
-                    }))
-                  }
-                  placeholder="Your answer"
-                  style={{
-                    width: '100%',
-                    minHeight: 88,
-                    padding: 12,
-                    borderRadius: 12,
-                    border: '1px solid #cbd5e1',
-                    fontSize: 14,
-                    lineHeight: 1.45,
-                  }}
-                />
+                {selectOpts && selectOpts.length ? (
+                  <select
+                    value={cur.answer}
+                    disabled={waived}
+                    onChange={(e) =>
+                      setAnswersByKey((prev) => ({
+                        ...prev,
+                        [key]: { waive: prev[key]?.waive || false, answer: e.target.value },
+                      }))
+                    }
+                    style={{
+                      width: '100%',
+                      maxWidth: 480,
+                      padding: 10,
+                      borderRadius: 12,
+                      border: '1px solid #cbd5e1',
+                      fontSize: 14,
+                      background: '#fff',
+                    }}
+                  >
+                    {selectOpts.map((opt, oi) => {
+                      const oo = safeObj(opt) || {};
+                      const v = typeof oo.value === 'string' ? oo.value : '';
+                      const lab = typeof oo.label === 'string' && oo.label.trim() ? String(oo.label) : v || '—';
+                      return (
+                        <option key={`${key}_${oi}`} value={v}>
+                          {lab}
+                        </option>
+                      );
+                    })}
+                  </select>
+                ) : (
+                  <textarea
+                    value={cur.answer}
+                    disabled={waived && (showIdxWaive || showLuxImageWaive)}
+                    onChange={(e) =>
+                      setAnswersByKey((prev) => ({
+                        ...prev,
+                        [key]: { waive: prev[key]?.waive || false, answer: e.target.value },
+                      }))
+                    }
+                    placeholder="Your answer"
+                    style={{
+                      width: '100%',
+                      minHeight: 88,
+                      padding: 12,
+                      borderRadius: 12,
+                      border: '1px solid #cbd5e1',
+                      fontSize: 14,
+                      lineHeight: 1.45,
+                    }}
+                  />
+                )}
               </div>
             );
           })}
