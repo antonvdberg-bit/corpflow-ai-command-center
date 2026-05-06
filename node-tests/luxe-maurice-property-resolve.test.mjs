@@ -8,6 +8,8 @@ test('resolveLuxPropertyRef distinguishes curated vs feed', () => {
   assert.equal(c?.discovery_source, 'curated');
   assert.equal(c?.ref, 'lm-nc-ridge');
   assert.equal(c?.listing_provider, 'curated_staged');
+  assert.ok(c?.summary_text && String(c.summary_text).length > 10);
+  assert.ok(Array.isArray(c?.highlights) && c.highlights.length >= 2);
 
   const f = resolveLuxPropertyRef('lxf-grand-baie-apt');
   assert.ok(f);
@@ -15,6 +17,7 @@ test('resolveLuxPropertyRef distinguishes curated vs feed', () => {
   assert.equal(f?.ref, 'lxf-grand-baie-apt');
   assert.equal(f?.listing_provider, 'mock_feed_v1');
   assert.ok(f?.price_range);
+  assert.ok(f?.summary_text && String(f.summary_text).includes('Indicative'));
 });
 
 test('resolveLuxPropertyRef rejects unknown and pathological input', () => {

@@ -331,6 +331,7 @@ export default function LuxeMauriceTenantPresentation({ site }) {
               visibleStaged.length ? (
                 visibleStaged.map((p) => {
                   const href = `/concierge?intent=property&property=${encodeURIComponent(p.slug)}`;
+                  const detailHref = `/property/${encodeURIComponent(p.slug)}`;
                   return (
                     <article
                       key={p.slug}
@@ -359,10 +360,23 @@ export default function LuxeMauriceTenantPresentation({ site }) {
                           <p style={{ marginTop: 10, fontSize: 14, lineHeight: 1.55, color: T.inkMuted }}>{safeStr(p.teaser)}</p>
                         ) : null}
                         <a
+                          href={detailHref}
+                          style={{
+                            display: 'inline-block',
+                            marginTop: 12,
+                            fontSize: 13,
+                            fontWeight: 700,
+                            color: T.goldDeep,
+                            textDecoration: 'none',
+                          }}
+                        >
+                          Property overview →
+                        </a>
+                        <a
                           href={href}
                           style={{
                             display: 'inline-block',
-                            marginTop: 14,
+                            marginTop: 10,
                             padding: '10px 16px',
                             borderRadius: 999,
                             background: T.ink,
@@ -460,6 +474,7 @@ export default function LuxeMauriceTenantPresentation({ site }) {
                 const id = safeStr(p?.id);
                 if (!id) return null;
                 const href = `/concierge?intent=property&property=${encodeURIComponent(id)}`;
+                const detailHref = `/property/${encodeURIComponent(id)}`;
                 return (
                   <article
                     key={id}
@@ -491,10 +506,23 @@ export default function LuxeMauriceTenantPresentation({ site }) {
                         <div style={{ marginTop: 6, fontSize: 11, fontWeight: 650, color: T.inkMuted }}>{safeStr(p.status)}</div>
                       ) : null}
                       <a
+                        href={detailHref}
+                        style={{
+                          display: 'inline-block',
+                          marginTop: 10,
+                          fontSize: 12,
+                          fontWeight: 700,
+                          color: T.inkMuted,
+                          textDecoration: 'none',
+                        }}
+                      >
+                        Property overview →
+                      </a>
+                      <a
                         href={href}
                         style={{
                           display: 'inline-block',
-                          marginTop: 12,
+                          marginTop: 8,
                           padding: '9px 14px',
                           borderRadius: 999,
                           border: `1px solid ${T.goldDeep}`,

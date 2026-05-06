@@ -29,6 +29,7 @@
 - **Homepage cards** render in `components/LuxeMauriceTenantPresentation.js` with filters on curated only; feed list is separate UX band.
 - **Lead API** (`concierge-lead-create`): optional `property_slug` (body field name unchanged) is validated via `resolveLuxPropertyRef` when host tenant is `luxe-maurice`. `qualification_json.property_interest` includes `discovery_source` (`curated` | `feed`), `listing_provider` (`curated_staged` | `mock_feed_v1`), `slug` (stable ref), `region`, `property_type`, `status`, optional `price_range`.
 - **Operator UI**: `/change` lead list shows property interest, **source** (Featured vs Explore feed preview), and price range when present.
+- **Phase 2C detail pages:** `pages/property/[slug].js` (SSR) — **LuxeMaurice host only**; `notFound` for other tenants or unknown refs. Uses **`resolveLuxPropertyRef`** for allowlisted `lm-*` and `lxf-*`; props are server-built only. **`components/LuxeMauricePropertyDetailPage.js`** — hero + overview + highlights + “Request private details” → `/concierge?intent=property&property=<ref>`. Listing cards link **Property overview →** to `/property/<ref>`.
 
 ### Remaining for real IDX (not in this slice)
 
