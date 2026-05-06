@@ -66,7 +66,7 @@ Each phase below must be represented in the ticket’s narrative and acceptance 
   - IDX provider integration **or** staged listings-first (explicit decision)
   - Search/filter and property detail experience
   - Compliance requirements (licensing, disclaimers, data usage) captured
-- **First slice + hybrid (LuxeMaurice, before full IDX):** listing cards on `lux.corpflowai.com`, **minimal** filter/grouping on **featured curated** inventory, plus a distinct **Explore more properties** band for feed-style previews (mock until provider wired). Enquiry CTA per property to `/concierge` with **property context** in the lead. See **`docs/LUX/LUX_PHASE2_FIRST_SLICE_ACCEPTANCE.md`**.
+- **First slice + hybrid + detail pages (LuxeMaurice, before full IDX):** listing cards on `lux.corpflowai.com`, **minimal** filter/grouping on **featured curated** inventory, plus a distinct **Explore more properties** band for feed-style previews (mock until provider wired). **`/property/<ref>`** detail pages (curated + feed) link to `/concierge` with the same property ref. Enquiry CTA per property to `/concierge` with **property context** in the lead. See **`docs/LUX/LUX_PHASE2_FIRST_SLICE_ACCEPTANCE.md`**.
 - **Owner**: Implementer + operator (vendor coordination)
 - **Production verification**: discovery works on production URL; data freshness expectations documented
 - **Operator next action**: define how discovery feeds CRM/operator workflow (Phase 3); until then, follow `lux_programme.operator_next_action` on the ticket when set
