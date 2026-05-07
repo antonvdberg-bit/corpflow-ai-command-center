@@ -36,6 +36,17 @@ function isoToDatetimeLocalValue(iso) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+function safeWrapStyle(extra) {
+  return {
+    maxWidth: '100%',
+    minWidth: 0,
+    boxSizing: 'border-box',
+    overflowWrap: 'anywhere',
+    wordBreak: 'break-word',
+    ...extra,
+  };
+}
+
 function pillStyle(active) {
   return {
     padding: '8px 10px',
@@ -736,7 +747,7 @@ export default function ChangeConsolePage() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 320px) minmax(0, 1fr)', gap: 14 }}>
         <div style={card}>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
             <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
@@ -845,7 +856,7 @@ export default function ChangeConsolePage() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gap: 14 }}>
+        <div style={{ display: 'grid', gap: 14, minWidth: 0 }}>
           <div style={card}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
               <div>
@@ -1346,6 +1357,8 @@ export default function ChangeConsolePage() {
                   lineHeight: 1.45,
                   resize: 'vertical',
                   boxSizing: 'border-box',
+                  overflowWrap: 'anywhere',
+                  wordBreak: 'break-word',
                 }}
               />
               {showIntakeSurface ? (
@@ -1365,6 +1378,7 @@ export default function ChangeConsolePage() {
                       lineHeight: 1.5,
                       whiteSpace: 'pre-wrap',
                       minHeight: '4.5rem',
+                      ...safeWrapStyle(),
                     }}
                   >
                     {ticket ? formatExistingRequestText(ticket) : '—'}
@@ -1427,6 +1441,8 @@ export default function ChangeConsolePage() {
                     overflowX: 'auto',
                     fontSize: 12,
                     color: '#e2e8f0',
+                    whiteSpace: 'pre-wrap',
+                    ...safeWrapStyle(),
                   }}
                 >
                   {JSON.stringify(
