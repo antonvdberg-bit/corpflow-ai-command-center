@@ -5,7 +5,7 @@ This document defines canonical route ownership and production expectations with
 ## Canonical routes
 
 - `/change` is the canonical operator UI route in production.
-- `/change` is served by Vercel rewrite to `public/change.html`.
+- On **Core** hostnames (`core.corpflowai.com`, `www.core.corpflowai.com`), `/change` is served by a **Vercel rewrite** to `public/change.html` (CMP Change Console).
 
 ## Experimental routes
 
@@ -14,8 +14,7 @@ This document defines canonical route ownership and production expectations with
 
 ## Legacy/non-canonical files
 
-- `pages/change.js` is non-canonical for production routing.
-- Keep it as legacy/reference only unless route ownership is formally changed.
+- `pages/change.js` implements `/change` for hosts **without** the Core rewrite (for example tenant hostnames that rely on the Next.js route). Core ops must open **`/change` on the Core hostname** for the canonical static console.
 
 ## Tenant-local service routes
 

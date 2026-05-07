@@ -28,6 +28,16 @@
     },
     { "source": "/lux-landing-static", "destination": "/lux-landing-static.html" },
     { "source": "/api/(.*)", "destination": "/api/factory_router?__path=$1" },
+    {
+      "source": "/change",
+      "has": [{ "type": "host", "value": "core.corpflowai.com" }],
+      "destination": "/change.html"
+    },
+    {
+      "source": "/change",
+      "has": [{ "type": "host", "value": "www.core.corpflowai.com" }],
+      "destination": "/change.html"
+    },
     { "source": "/login", "destination": "/login.html" },
     { "source": "/growth", "destination": "/growth.html" },
     { "source": "/sovereign-intake", "destination": "/sovereign-intake.html" },
