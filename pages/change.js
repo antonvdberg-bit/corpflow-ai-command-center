@@ -490,6 +490,32 @@ export default function ChangeConsolePage() {
     }
   }
 
+  async function proceedAfterEstimate() {
+    const tid = String(selectedTicketId || '').trim();
+    if (!tid) {
+      setError('Select a ticket first.');
+      return;
+    }
+    const desc = String(ticket?.description || requestDraft || '').trim();
+    setBusy(true);
+    setError('');
+    try {
+      const r = await fetch('/api/cmp/router?action=approve-build', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticket_id: tid, description: desc, locale }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error || j.detail || j.hint || `http_${r.status}`);
+      await loadTicketById(tid);
+    } catch (e) {
+      setError(String(e?.message || e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function mintClientDecisionLink() {
     const tid = String(selectedTicketId || '').trim();
     if (!tid) return;
@@ -604,6 +630,11 @@ export default function ChangeConsolePage() {
       : budgetAvailable
         ? 'Standard Billing Client'
         : 'Billing Client';
+
+  const canProceed = Boolean(
+    session.logged_in === true &&
+      (String(session.level || '').toLowerCase() === 'admin' || uiContext?.show_approve_build === true),
+  );
 
   return (
     <div style={{ ...page, background: '#020617', minHeight: '100vh' }}>
@@ -1133,6 +1164,27 @@ export default function ChangeConsolePage() {
                   NEXT ACTIONS
                 </div>
                 <div style={{ marginTop: 12, display: 'grid', gridTemplateColumns: '1fr', gap: 12 }}>
+                  {hasEstimate ? (
+                    <button
+                      type="button"
+                      disabled={busy || !canProceed}
+                      style={{
+                        padding: '12px 14px',
+                        borderRadius: 12,
+                        border: '1px solid rgba(34,197,94,0.35)',
+                        background: busy || !canProceed ? 'rgba(148,163,184,0.18)' : 'rgba(34,197,94,0.14)',
+                        color: busy || !canProceed ? '#94a3b8' : '#dcfce7',
+                        textAlign: 'left',
+                        cursor: busy || !canProceed ? 'not-allowed' : 'pointer',
+                      }}
+                      onClick={() => void proceedAfterEstimate()}
+                    >
+                      <div style={{ fontWeight: 900 }}>Proceed</div>
+                      <div style={{ marginTop: 4, fontSize: 11, color: busy || !canProceed ? '#94a3b8' : '#bbf7d0' }}>
+                        Start the work on this change
+                      </div>
+                    </button>
+                  ) : null}
                   <button
                     type="button"
                     disabled={busy}
@@ -1153,6 +1205,10 @@ export default function ChangeConsolePage() {
                   {!hasEstimate ? (
                     <div style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.45 }}>
                       Accepting an estimate becomes available after you’ve generated one.
+                    </div>
+                  ) : !canProceed ? (
+                    <div style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.45 }}>
+                      Proceeding isn’t available for this session yet.
                     </div>
                   ) : null}
                 </div>
