@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { LUX_PHASE1_REVIEW_TICKET_ID } from '../lib/cmp/_lib/client-decisions-client.js';
+import {
+  LUX_LEAD_CRM_STAGES,
+  activityKindLabel,
+  luxLeadCrmStageLabel,
+} from '../lib/cmp/_lib/lux-lead-operator-workflow.js';
 
 // Non-canonical route – /change is served via public/change.html
 function normalizeLocale(raw) {
@@ -21,6 +26,14 @@ function stageForWorkflowState(wf) {
   if (s === 'ready_for_estimate' || s === 'estimated') return 'Draft';
   if (s === 'refining') return 'Clarify';
   return 'Intake';
+}
+
+function isoToDatetimeLocalValue(iso) {
+  if (!iso) return '';
+  const d = new Date(String(iso));
+  if (Number.isNaN(d.getTime())) return '';
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 function pillStyle(active) {
@@ -52,6 +65,19 @@ export default function ChangeConsolePage() {
   const [clientDecisionExpiresAt, setClientDecisionExpiresAt] = useState('');
   const [clientDecisionStatus, setClientDecisionStatus] = useState('');
   const [leads, setLeads] = useState([]);
+  const [selectedLeadId, setSelectedLeadId] = useState('');
+  const [leadPatchBusy, setLeadPatchBusy] = useState(false);
+  const [leadStageDraft, setLeadStageDraft] = useState('new');
+  const [leadFollowDraft, setLeadFollowDraft] = useState('');
+  const [leadNoteDraft, setLeadNoteDraft] = useState('');
+  const [leadOwnerDraft, setLeadOwnerDraft] = useState('');
+  const [leadNextActionDraft, setLeadNextActionDraft] = useState('');
+  const [leadNextActionNoteDraft, setLeadNextActionNoteDraft] = useState('');
+  const [crmFilterStage, setCrmFilterStage] = useState('all');
+  const [crmFilterOwner, setCrmFilterOwner] = useState('');
+  const [crmFilterProperty, setCrmFilterProperty] = useState('');
+  const [crmFilterHealth, setCrmFilterHealth] = useState('all');
+  const [leadPatchStatus, setLeadPatchStatus] = useState('');
 
   useEffect(() => {
     try {
@@ -98,7 +124,7 @@ export default function ChangeConsolePage() {
   }
 
   async function loadLeads() {
-    const r = await fetch('/api/cmp/router?action=concierge-leads-list&limit=50', {
+    const r = await fetch('/api/cmp/router?action=concierge-leads-list&limit=100', {
       credentials: 'include',
     });
     const j = await r.json().catch(() => ({}));
@@ -106,6 +132,162 @@ export default function ChangeConsolePage() {
     const rows = Array.isArray(j.leads) ? j.leads : [];
     setLeads(rows);
     return rows;
+  }
+
+  const luxLeadCrmEnabled = useMemo(() => {
+    return (
+      session.logged_in === true &&
+      String(session.level || '').toLowerCase() === 'tenant' &&
+      String(session.tenant_id || '').trim() === 'luxe-maurice'
+    );
+  }, [session.logged_in, session.level, session.tenant_id]);
+
+  const crmStageCounts = useMemo(() => {
+    const base = Object.fromEntries(LUX_LEAD_CRM_STAGES.map((s) => [s, 0]));
+    if (!luxLeadCrmEnabled) return base;
+    for (const lead of leads) {
+      const st = lead?.operator_workflow?.stage;
+      if (st && base[st] !== undefined) base[st] += 1;
+    }
+    return base;
+  }, [leads, luxLeadCrmEnabled]);
+
+  const crmOwnerHints = useMemo(() => {
+    if (!luxLeadCrmEnabled) return [];
+    const s = new Set();
+    for (const lead of leads) {
+      const u = lead?.operator_workflow?.owner?.username;
+      if (u) s.add(String(u).trim());
+    }
+    return [...s].sort().slice(0, 40);
+  }, [leads, luxLeadCrmEnabled]);
+
+  const crmVisibleLeads = useMemo(() => {
+    if (!luxLeadCrmEnabled) return leads;
+    const ownerQ = String(crmFilterOwner || '').trim().toLowerCase();
+    const propQ = String(crmFilterProperty || '').trim().toLowerCase();
+    return leads.filter((lead) => {
+      const ow = lead.operator_workflow;
+      if (!ow) return true;
+      if (crmFilterStage !== 'all' && String(ow.stage || '') !== crmFilterStage) return false;
+      if (ownerQ) {
+        const un = ow.owner?.username != null ? String(ow.owner.username).toLowerCase() : '';
+        if (!un.includes(ownerQ)) return false;
+      }
+      if (propQ) {
+        const slug = lead.property_interest?.slug != null ? String(lead.property_interest.slug).toLowerCase() : '';
+        const title = lead.property_interest?.title != null ? String(lead.property_interest.title).toLowerCase() : '';
+        const listing = lead.listing != null ? String(lead.listing).toLowerCase() : '';
+        if (!slug.includes(propQ) && !title.includes(propQ) && !listing.includes(propQ)) return false;
+      }
+      if (crmFilterHealth === 'overdue_follow_up' && !ow.overdue_follow_up) return false;
+      if (crmFilterHealth === 'stale_lead' && !ow.stale_lead) return false;
+      if (crmFilterHealth === 'untouched_new' && !ow.untouched_new) return false;
+      return true;
+    });
+  }, [leads, luxLeadCrmEnabled, crmFilterStage, crmFilterOwner, crmFilterProperty, crmFilterHealth]);
+
+  const selectedLead = useMemo(
+    () => leads.find((x) => String(x.id || '') === String(selectedLeadId || '')) || null,
+    [leads, selectedLeadId],
+  );
+
+  useEffect(() => {
+    if (!luxLeadCrmEnabled || !selectedLead?.operator_workflow) return;
+    const ow = selectedLead.operator_workflow;
+    setLeadStageDraft(String(ow.stage || 'new'));
+    setLeadFollowDraft(ow.follow_up_status != null ? String(ow.follow_up_status) : '');
+    setLeadOwnerDraft(ow.owner?.username != null ? String(ow.owner.username) : '');
+    setLeadNextActionDraft(isoToDatetimeLocalValue(ow.next_action_at));
+    setLeadNextActionNoteDraft(ow.next_action_note != null ? String(ow.next_action_note) : '');
+    setLeadNoteDraft('');
+  }, [
+    luxLeadCrmEnabled,
+    selectedLeadId,
+    selectedLead?.operator_workflow?.stage,
+    selectedLead?.operator_workflow?.follow_up_status,
+    selectedLead?.operator_workflow?.owner?.username,
+    selectedLead?.operator_workflow?.next_action_at,
+    selectedLead?.operator_workflow?.next_action_note,
+  ]);
+
+  function intentLabel(intentVal) {
+    const i = String(intentVal || '').trim();
+    if (i === 'lux_property_enquiry') return 'Property enquiry';
+    if (i === 'ai_concierge_lite') return 'Concierge (general)';
+    return i || '—';
+  }
+
+  function discoveryLabel(ds) {
+    if (String(ds || '') === 'feed') return 'Explore (feed preview)';
+    if (String(ds || '') === 'manual_curated') return 'Manual (curated)';
+    if (String(ds || '') === 'curated') return 'Featured (curated)';
+    return ds ? String(ds) : '—';
+  }
+
+  async function applyLuxLeadOperatorPatch() {
+    const id = String(selectedLeadId || '').trim();
+    if (!id || !luxLeadCrmEnabled) return;
+    setLeadPatchBusy(true);
+    setLeadPatchStatus('');
+    try {
+      const ow = selectedLead?.operator_workflow;
+      const curStage = ow ? String(ow.stage || 'new') : 'new';
+      const curFollow = ow?.follow_up_status != null ? String(ow.follow_up_status) : '';
+      const curOwner = ow?.owner?.username != null ? String(ow.owner.username) : '';
+      const stageChanged = String(leadStageDraft || '') !== curStage;
+      const followChanged = String(leadFollowDraft || '') !== curFollow;
+      const ownerChanged = String(leadOwnerDraft || '').trim() !== curOwner;
+      const noteTrim = String(leadNoteDraft || '').trim();
+      const prevDtLocal = isoToDatetimeLocalValue(ow?.next_action_at);
+      const nextActionChanged = String(leadNextActionDraft || '').trim() !== String(prevDtLocal || '').trim();
+      const curNextNote = ow?.next_action_note != null ? String(ow.next_action_note) : '';
+      const nextNoteChanged = String(leadNextActionNoteDraft || '').trim() !== curNextNote.trim();
+      const body = { lead_id: id };
+      if (stageChanged) body.stage = leadStageDraft;
+      if (followChanged) body.follow_up_status = leadFollowDraft;
+      if (ownerChanged) body.assign_owner = String(leadOwnerDraft || '').trim();
+      if (noteTrim) body.note = noteTrim;
+      if (nextActionChanged) {
+        const trimDt = String(leadNextActionDraft || '').trim();
+        if (!trimDt) body.next_action_at = null;
+        else {
+          const d = new Date(trimDt);
+          if (Number.isNaN(d.getTime())) {
+            setLeadPatchStatus('Invalid next action date/time.');
+            return;
+          }
+          body.next_action_at = d.toISOString();
+        }
+      }
+      if (nextNoteChanged) body.next_action_note = String(leadNextActionNoteDraft || '').trim();
+      if (
+        !body.stage &&
+        body.follow_up_status === undefined &&
+        !body.note &&
+        body.assign_owner === undefined &&
+        body.next_action_at === undefined &&
+        body.next_action_note === undefined
+      ) {
+        setLeadPatchStatus('Nothing to save.');
+        return;
+      }
+      const r = await fetch('/api/cmp/router?action=concierge-lead-operator-patch', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error || j.detail || j.hint || `http_${r.status}`);
+      setLeadPatchStatus('Saved.');
+      setLeadNoteDraft('');
+      await loadLeads();
+    } catch (e) {
+      setLeadPatchStatus(String(e?.message || e));
+    } finally {
+      setLeadPatchBusy(false);
+    }
   }
 
   useEffect(() => {
@@ -602,50 +784,539 @@ export default function ChangeConsolePage() {
           </div>
 
           <div style={card}>
-            <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>LEADS</div>
-            <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
-              {leads.length ? (
-                leads.map((lead) => (
-                  <div
-                    key={String(lead.id || '')}
+            <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
+              LEADS
+              {luxLeadCrmEnabled ? (
+                <span style={{ marginLeft: 8, fontWeight: 700, color: '#67e8f9', letterSpacing: '0.04em' }}>
+                  · LuxeMaurice CRM (concierge)
+                </span>
+              ) : null}
+            </div>
+            {luxLeadCrmEnabled ? (
+              <div
+                style={{
+                  marginTop: 12,
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 8,
+                  alignItems: 'center',
+                }}
+              >
+                {LUX_LEAD_CRM_STAGES.map((s) => (
+                  <span
+                    key={s}
                     style={{
-                      border: '1px solid rgba(148,163,184,0.18)',
-                      borderRadius: 12,
-                      background: 'rgba(2,6,23,0.45)',
-                      padding: 10,
+                      fontSize: 11,
+                      padding: '6px 10px',
+                      borderRadius: 999,
+                      border: '1px solid rgba(148,163,184,0.25)',
+                      background: 'rgba(15,23,42,0.5)',
+                      color: '#e2e8f0',
+                      fontWeight: 700,
                     }}
                   >
-                    <div style={{ fontSize: 12, fontWeight: 800, color: '#e2e8f0' }}>{String(lead.name || 'Lead')}</div>
-                    <div style={{ marginTop: 4, fontSize: 12, color: '#94a3b8' }}>{String(lead.contact || '—')}</div>
-                    {lead.property_interest && lead.property_interest.title ? (
-                      <div style={{ marginTop: 6, fontSize: 11, color: '#bef264', lineHeight: 1.35 }}>
-                        Property interest: {String(lead.property_interest.title)}
-                        {lead.property_interest.slug ? ` · ref ${String(lead.property_interest.slug)}` : ''}
-                        <span style={{ display: 'block', marginTop: 4, color: '#86efac', fontSize: 10 }}>
-                          Source:{' '}
-                          {String(lead.property_interest.discovery_source || '') === 'feed'
-                            ? 'Explore (feed preview)'
-                            : 'Featured (curated)'}
-                        </span>
-                        {lead.property_interest.price_range ? (
-                          <span style={{ display: 'block', marginTop: 2, color: '#a3e635', fontSize: 10 }}>
-                            Range: {String(lead.property_interest.price_range)}
+                    {luxLeadCrmStageLabel(s)}: {crmStageCounts[s] ?? 0}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+            {luxLeadCrmEnabled ? (
+              <div
+                style={{
+                  marginTop: 12,
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+                  gap: 10,
+                  alignItems: 'end',
+                }}
+              >
+                <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4 }}>
+                  Stage
+                  <select
+                    value={crmFilterStage}
+                    onChange={(e) => setCrmFilterStage(e.target.value)}
+                    style={{
+                      padding: '6px 8px',
+                      borderRadius: 10,
+                      border: '1px solid rgba(148,163,184,0.25)',
+                      background: 'rgba(2,6,23,0.65)',
+                      color: '#e2e8f0',
+                      fontSize: 12,
+                    }}
+                  >
+                    <option value="all">All stages</option>
+                    {LUX_LEAD_CRM_STAGES.map((s) => (
+                      <option key={s} value={s}>
+                        {luxLeadCrmStageLabel(s)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4 }}>
+                  Owner contains
+                  <input
+                    list="crm-owner-hints"
+                    value={crmFilterOwner}
+                    onChange={(e) => setCrmFilterOwner(e.target.value)}
+                    placeholder="Filter by owner"
+                    style={{
+                      padding: '6px 8px',
+                      borderRadius: 10,
+                      border: '1px solid rgba(148,163,184,0.25)',
+                      background: 'rgba(2,6,23,0.65)',
+                      color: '#e2e8f0',
+                      fontSize: 12,
+                    }}
+                  />
+                  <datalist id="crm-owner-hints">
+                    {crmOwnerHints.map((h) => (
+                      <option key={h} value={h} />
+                    ))}
+                  </datalist>
+                </label>
+                <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4, gridColumn: 'span 2' }}>
+                  Property (slug / title / ref)
+                  <input
+                    value={crmFilterProperty}
+                    onChange={(e) => setCrmFilterProperty(e.target.value)}
+                    placeholder="e.g. lm- or partial title"
+                    style={{
+                      padding: '6px 8px',
+                      borderRadius: 10,
+                      border: '1px solid rgba(148,163,184,0.25)',
+                      background: 'rgba(2,6,23,0.65)',
+                      color: '#e2e8f0',
+                      fontSize: 12,
+                    }}
+                  />
+                </label>
+                <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4 }}>
+                  Health
+                  <select
+                    value={crmFilterHealth}
+                    onChange={(e) => setCrmFilterHealth(e.target.value)}
+                    style={{
+                      padding: '6px 8px',
+                      borderRadius: 10,
+                      border: '1px solid rgba(148,163,184,0.25)',
+                      background: 'rgba(2,6,23,0.65)',
+                      color: '#e2e8f0',
+                      fontSize: 12,
+                    }}
+                  >
+                    <option value="all">All</option>
+                    <option value="overdue_follow_up">Overdue next action</option>
+                    <option value="stale_lead">Stale (7d+ no touch)</option>
+                    <option value="untouched_new">Untouched New</option>
+                  </select>
+                </label>
+              </div>
+            ) : null}
+            {luxLeadCrmEnabled && leads.length ? (
+              <div style={{ marginTop: 8, fontSize: 11, color: '#64748b' }}>
+                Showing {crmVisibleLeads.length} of {leads.length} loaded leads
+              </div>
+            ) : null}
+            <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
+              {crmVisibleLeads.length ? (
+                crmVisibleLeads.map((lead) => {
+                  const lid = String(lead.id || '');
+                  const activeLux = luxLeadCrmEnabled && lid && lid === selectedLeadId;
+                  const ow = lead.operator_workflow;
+                  return (
+                    <button
+                      key={lid}
+                      type="button"
+                      onClick={() => {
+                        if (luxLeadCrmEnabled) setSelectedLeadId(lid);
+                      }}
+                      style={{
+                        textAlign: 'left',
+                        cursor: luxLeadCrmEnabled ? 'pointer' : 'default',
+                        border:
+                          activeLux && luxLeadCrmEnabled
+                            ? '1px solid rgba(103,232,249,0.45)'
+                            : '1px solid rgba(148,163,184,0.18)',
+                        borderRadius: 12,
+                        background: activeLux && luxLeadCrmEnabled ? 'rgba(103,232,249,0.07)' : 'rgba(2,6,23,0.45)',
+                        padding: 10,
+                        color: 'inherit',
+                        font: 'inherit',
+                      }}
+                    >
+                      <div style={{ fontSize: 12, fontWeight: 800, color: '#e2e8f0' }}>{String(lead.name || 'Lead')}</div>
+                      <div style={{ marginTop: 4, fontSize: 12, color: '#94a3b8' }}>{String(lead.contact || '—')}</div>
+                      <div style={{ marginTop: 6, fontSize: 10, color: '#64748b' }}>
+                        Intent: <span style={{ color: '#94a3b8' }}>{intentLabel(lead.intent)}</span>
+                        {lead.created_at ? (
+                          <span style={{ display: 'block', marginTop: 2 }}>
+                            Created: {new Date(lead.created_at).toLocaleString()}
+                          </span>
+                        ) : null}
+                        {lead.updated_at ? (
+                          <span style={{ display: 'block', marginTop: 2 }}>
+                            Updated: {new Date(lead.updated_at).toLocaleString()}
                           </span>
                         ) : null}
                       </div>
-                    ) : lead.listing ? (
-                      <div style={{ marginTop: 6, fontSize: 11, color: '#bef264' }}>Listing ref: {String(lead.listing)}</div>
-                    ) : null}
-                    {lead.intent === 'lux_property_enquiry' ? (
-                      <div style={{ marginTop: 2, fontSize: 10, color: '#64748b' }}>Intent: property enquiry</div>
-                    ) : null}
-                    <div style={{ marginTop: 6, fontSize: 12, color: '#cbd5e1', lineHeight: 1.4 }}>{String(lead.message || '—')}</div>
-                  </div>
-                ))
+                      {luxLeadCrmEnabled && ow ? (
+                        <div style={{ marginTop: 8, fontSize: 11, color: '#a5f3fc', fontWeight: 750 }}>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+                            <span>Stage: {String(ow.stage_label || luxLeadCrmStageLabel(ow.stage))}</span>
+                            {ow.owner?.username ? (
+                              <span
+                                style={{
+                                  fontSize: 10,
+                                  fontWeight: 800,
+                                  padding: '3px 8px',
+                                  borderRadius: 999,
+                                  background: 'rgba(253,230,138,0.15)',
+                                  border: '1px solid rgba(253,230,138,0.35)',
+                                  color: '#fde68a',
+                                }}
+                              >
+                                Owner · {String(ow.owner.username)}
+                              </span>
+                            ) : null}
+                            {ow.overdue_follow_up ? (
+                              <span
+                                style={{
+                                  fontSize: 10,
+                                  fontWeight: 800,
+                                  padding: '3px 8px',
+                                  borderRadius: 999,
+                                  background: 'rgba(248,113,113,0.15)',
+                                  border: '1px solid rgba(248,113,113,0.4)',
+                                  color: '#fecaca',
+                                }}
+                              >
+                                Overdue next action
+                              </span>
+                            ) : null}
+                            {ow.stale_lead ? (
+                              <span
+                                style={{
+                                  fontSize: 10,
+                                  fontWeight: 800,
+                                  padding: '3px 8px',
+                                  borderRadius: 999,
+                                  background: 'rgba(251,191,36,0.12)',
+                                  border: '1px solid rgba(251,191,36,0.35)',
+                                  color: '#fcd34d',
+                                }}
+                              >
+                                Stale
+                              </span>
+                            ) : null}
+                            {ow.untouched_new ? (
+                              <span
+                                style={{
+                                  fontSize: 10,
+                                  fontWeight: 800,
+                                  padding: '3px 8px',
+                                  borderRadius: 999,
+                                  background: 'rgba(96,165,250,0.12)',
+                                  border: '1px solid rgba(96,165,250,0.35)',
+                                  color: '#bfdbfe',
+                                }}
+                              >
+                                Untouched New
+                              </span>
+                            ) : null}
+                          </div>
+                          {ow.next_action_at ? (
+                            <span style={{ display: 'block', marginTop: 6, fontWeight: 600, color: '#94a3b8' }}>
+                              Next action: {new Date(ow.next_action_at).toLocaleString()}
+                            </span>
+                          ) : null}
+                          {ow.follow_up_status ? (
+                            <span style={{ display: 'block', marginTop: 4, fontWeight: 600, color: '#94a3b8' }}>
+                              Follow-up: {String(ow.follow_up_status)}
+                            </span>
+                          ) : null}
+                          {ow.latest_note?.text ? (
+                            <span style={{ display: 'block', marginTop: 4, fontWeight: 600, color: '#cbd5e1' }}>
+                              Latest note: {String(ow.latest_note.text).slice(0, 160)}
+                              {String(ow.latest_note.text).length > 160 ? '…' : ''}
+                            </span>
+                          ) : null}
+                        </div>
+                      ) : null}
+                      {lead.property_interest && lead.property_interest.title ? (
+                        <div style={{ marginTop: 6, fontSize: 11, color: '#bef264', lineHeight: 1.35 }}>
+                          Property: {String(lead.property_interest.title)}
+                          {lead.property_interest.slug ? ` · ref ${String(lead.property_interest.slug)}` : ''}
+                          <span style={{ display: 'block', marginTop: 4, color: '#86efac', fontSize: 10 }}>
+                            Discovery: {discoveryLabel(lead.property_interest.discovery_source)}
+                          </span>
+                          {lead.property_interest.price_range ? (
+                            <span style={{ display: 'block', marginTop: 2, color: '#a3e635', fontSize: 10 }}>
+                              Range: {String(lead.property_interest.price_range)}
+                            </span>
+                          ) : null}
+                        </div>
+                      ) : lead.listing ? (
+                        <div style={{ marginTop: 6, fontSize: 11, color: '#bef264' }}>Listing ref: {String(lead.listing)}</div>
+                      ) : null}
+                      <div style={{ marginTop: 8, fontSize: 11, color: '#64748b', lineHeight: 1.35 }}>
+                        Client message
+                      </div>
+                      <div style={{ marginTop: 4, fontSize: 12, color: '#cbd5e1', lineHeight: 1.4 }}>{String(lead.message || '—')}</div>
+                    </button>
+                  );
+                })
+              ) : leads.length ? (
+                <div style={{ fontSize: 12, color: '#94a3b8' }}>No leads match filters.</div>
               ) : (
                 <div style={{ fontSize: 12, color: '#94a3b8' }}>No leads yet.</div>
               )}
             </div>
+
+            {luxLeadCrmEnabled && selectedLeadId && selectedLead ? (
+              <div
+                style={{
+                  marginTop: 14,
+                  paddingTop: 14,
+                  borderTop: '1px solid rgba(148,163,184,0.18)',
+                  display: 'grid',
+                  gap: 10,
+                }}
+              >
+                <div style={{ fontSize: 11, fontWeight: 900, color: '#67e8f9', letterSpacing: '0.06em' }}>
+                  OPERATOR ACTIONS — internal only (not visible on concierge)
+                </div>
+                <label style={{ fontSize: 11, color: '#94a3b8', display: 'grid', gap: 6 }}>
+                  Stage
+                  <select
+                    value={leadStageDraft}
+                    onChange={(e) => setLeadStageDraft(e.target.value)}
+                    style={{
+                      padding: '8px 10px',
+                      borderRadius: 10,
+                      border: '1px solid rgba(148,163,184,0.25)',
+                      background: 'rgba(2,6,23,0.65)',
+                      color: '#e2e8f0',
+                      fontSize: 13,
+                    }}
+                  >
+                    {LUX_LEAD_CRM_STAGES.map((s) => (
+                      <option key={s} value={s}>
+                        {luxLeadCrmStageLabel(s)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label style={{ fontSize: 11, color: '#94a3b8', display: 'grid', gap: 6 }}>
+                  Assigned operator (owner)
+                  <input
+                    value={leadOwnerDraft}
+                    onChange={(e) => setLeadOwnerDraft(e.target.value)}
+                    placeholder="Username or handle (clear field + save to unassign)"
+                    style={{
+                      padding: '8px 10px',
+                      borderRadius: 10,
+                      border: '1px solid rgba(148,163,184,0.25)',
+                      background: 'rgba(2,6,23,0.65)',
+                      color: '#e2e8f0',
+                      fontSize: 13,
+                    }}
+                  />
+                </label>
+                <label style={{ fontSize: 11, color: '#94a3b8', display: 'grid', gap: 6 }}>
+                  Next action (local time)
+                  <input
+                    type="datetime-local"
+                    value={leadNextActionDraft}
+                    onChange={(e) => setLeadNextActionDraft(e.target.value)}
+                    style={{
+                      padding: '8px 10px',
+                      borderRadius: 10,
+                      border: '1px solid rgba(148,163,184,0.25)',
+                      background: 'rgba(2,6,23,0.65)',
+                      color: '#e2e8f0',
+                      fontSize: 13,
+                    }}
+                  />
+                  <span style={{ fontSize: 10, color: '#64748b' }}>Clear the field and save to remove the reminder.</span>
+                </label>
+                <label style={{ fontSize: 11, color: '#94a3b8', display: 'grid', gap: 6 }}>
+                  Next action note (optional)
+                  <input
+                    value={leadNextActionNoteDraft}
+                    onChange={(e) => setLeadNextActionNoteDraft(e.target.value)}
+                    placeholder="Short reminder for operators"
+                    style={{
+                      padding: '8px 10px',
+                      borderRadius: 10,
+                      border: '1px solid rgba(148,163,184,0.25)',
+                      background: 'rgba(2,6,23,0.65)',
+                      color: '#e2e8f0',
+                      fontSize: 13,
+                    }}
+                  />
+                </label>
+                <label style={{ fontSize: 11, color: '#94a3b8', display: 'grid', gap: 6 }}>
+                  Follow-up status
+                  <input
+                    value={leadFollowDraft}
+                    onChange={(e) => setLeadFollowDraft(e.target.value)}
+                    placeholder="e.g. Awaiting reply — Mon"
+                    style={{
+                      padding: '8px 10px',
+                      borderRadius: 10,
+                      border: '1px solid rgba(148,163,184,0.25)',
+                      background: 'rgba(2,6,23,0.65)',
+                      color: '#e2e8f0',
+                      fontSize: 13,
+                    }}
+                  />
+                </label>
+                <label style={{ fontSize: 11, color: '#94a3b8', display: 'grid', gap: 6 }}>
+                  Add internal note (appends)
+                  <textarea
+                    value={leadNoteDraft}
+                    onChange={(e) => setLeadNoteDraft(e.target.value)}
+                    rows={3}
+                    placeholder="Visible only to operators on /change — not sent to the client."
+                    style={{
+                      padding: '8px 10px',
+                      borderRadius: 10,
+                      border: '1px solid rgba(148,163,184,0.25)',
+                      background: 'rgba(2,6,23,0.65)',
+                      color: '#e2e8f0',
+                      fontSize: 13,
+                      resize: 'vertical',
+                    }}
+                  />
+                </label>
+                {Array.isArray(selectedLead.operator_workflow?.activity) && selectedLead.operator_workflow.activity.length ? (
+                  <div style={{ fontSize: 11, color: '#94a3b8' }}>
+                    <div style={{ fontWeight: 800, color: '#cbd5e1', marginBottom: 6 }}>Activity</div>
+                    <div
+                      style={{
+                        display: 'grid',
+                        gap: 6,
+                        maxHeight: 220,
+                        overflowY: 'auto',
+                        padding: 8,
+                        borderRadius: 12,
+                        border: '1px solid rgba(148,163,184,0.15)',
+                        background: 'rgba(15,23,42,0.35)',
+                      }}
+                    >
+                      {selectedLead.operator_workflow.activity.map((ev, idx) => (
+                        <div
+                          key={`${ev.at}-${ev.kind}-${idx}`}
+                          style={{
+                            padding: '6px 8px',
+                            borderRadius: 8,
+                            border: '1px solid rgba(148,163,184,0.12)',
+                            background: 'rgba(2,6,23,0.4)',
+                          }}
+                        >
+                          <div style={{ fontSize: 10, color: '#64748b' }}>
+                            {ev.at ? new Date(ev.at).toLocaleString() : ''} · {String(ev.actor_label || '')}
+                          </div>
+                          <div style={{ marginTop: 4, color: '#e2e8f0', fontWeight: 650 }}>
+                            {activityKindLabel(ev.kind)}
+                          </div>
+                          {ev.kind === 'stage_changed' && ev.detail ? (
+                            <div style={{ marginTop: 2, fontSize: 11, color: '#94a3b8' }}>
+                              {String(ev.detail.from || '')} → {String(ev.detail.to || '')}
+                            </div>
+                          ) : null}
+                          {ev.kind === 'follow_up_updated' && ev.detail?.status !== undefined ? (
+                            <div style={{ marginTop: 2, fontSize: 11, color: '#94a3b8' }}>
+                              {String(ev.detail.status || '—')}
+                            </div>
+                          ) : null}
+                          {ev.kind === 'note_added' && ev.detail?.preview ? (
+                            <div style={{ marginTop: 2, fontSize: 11, color: '#94a3b8' }}>
+                              {String(ev.detail.preview)}
+                              {String(ev.detail.preview).length >= 200 ? '…' : ''}
+                            </div>
+                          ) : null}
+                          {ev.kind === 'owner_assigned' && ev.detail?.owner_username ? (
+                            <div style={{ marginTop: 2, fontSize: 11, color: '#fde68a' }}>
+                              {String(ev.detail.owner_username)}
+                            </div>
+                          ) : null}
+                          {ev.kind === 'next_action_updated' ? (
+                            <div style={{ marginTop: 2, fontSize: 11, color: '#94a3b8' }}>
+                              {ev.detail?.next_action_at
+                                ? new Date(String(ev.detail.next_action_at)).toLocaleString()
+                                : '—'}
+                              {ev.detail?.next_action_note_preview ? (
+                                <span style={{ display: 'block', marginTop: 2 }}>
+                                  {String(ev.detail.next_action_note_preview)}
+                                </span>
+                              ) : null}
+                            </div>
+                          ) : null}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+                {selectedLead.operator_workflow?.stage_audit?.length ? (
+                  <div style={{ fontSize: 11, color: '#94a3b8' }}>
+                    <div style={{ fontWeight: 800, color: '#cbd5e1', marginBottom: 6 }}>Stage audit (last entries)</div>
+                    <div style={{ display: 'grid', gap: 6, maxHeight: 140, overflowY: 'auto' }}>
+                      {[...(selectedLead.operator_workflow.stage_audit || [])].reverse().map((a, idx) => (
+                        <div
+                          key={`${a.at}-${idx}`}
+                          style={{ fontSize: 10, color: '#86efac', lineHeight: 1.4 }}
+                        >
+                          {a.at ? new Date(a.at).toLocaleString() : ''} · {String(a.operator_label || '')}:{' '}
+                          {String(a.previous_stage || '')} → {String(a.new_stage || '')}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+                {selectedLead.operator_workflow?.internal_notes?.length ? (
+                  <div style={{ fontSize: 11, color: '#94a3b8' }}>
+                    <div style={{ fontWeight: 800, color: '#cbd5e1', marginBottom: 6 }}>Recent notes</div>
+                    <div style={{ display: 'grid', gap: 8, maxHeight: 180, overflowY: 'auto' }}>
+                      {[...(selectedLead.operator_workflow.internal_notes || [])].reverse().map((n, idx) => (
+                        <div
+                          key={`${n.at}-${idx}`}
+                          style={{
+                            padding: 8,
+                            borderRadius: 10,
+                            border: '1px solid rgba(148,163,184,0.15)',
+                            background: 'rgba(15,23,42,0.45)',
+                          }}
+                        >
+                          <div style={{ fontSize: 10, color: '#64748b' }}>{n.at ? new Date(n.at).toLocaleString() : ''}</div>
+                          <div style={{ marginTop: 4, color: '#e2e8f0', whiteSpace: 'pre-wrap' }}>{String(n.text || '')}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+                <button
+                  type="button"
+                  disabled={leadPatchBusy}
+                  onClick={() => applyLuxLeadOperatorPatch()}
+                  style={{
+                    padding: '10px 14px',
+                    borderRadius: 12,
+                    border: '1px solid rgba(103,232,249,0.35)',
+                    background: 'rgba(103,232,249,0.12)',
+                    color: '#ecfeff',
+                    fontWeight: 850,
+                    fontSize: 13,
+                    cursor: leadPatchBusy ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {leadPatchBusy ? 'Saving…' : 'Save updates'}
+                </button>
+                {leadPatchStatus ? (
+                  <div style={{ fontSize: 11, color: '#94a3b8' }}>{leadPatchStatus}</div>
+                ) : null}
+              </div>
+            ) : null}
           </div>
         </div>
       </div>

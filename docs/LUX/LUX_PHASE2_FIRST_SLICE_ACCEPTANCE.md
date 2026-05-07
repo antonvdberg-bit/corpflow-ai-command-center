@@ -27,8 +27,9 @@
 - **Staged listings** live in `lib/client/luxe-maurice-staged-properties.js` and are injected for `luxe-maurice` in `pages/index.js` as `site.staged_properties`.
 - **Phase 2B hybrid — feed-shaped layer (mock / adapter-ready):** `lib/client/luxe-maurice-feed-properties.js` → `site.feed_properties`; **unified ref resolution** in `lib/client/luxe-maurice-property-resolve.js` (curated slug **or** feed `id`). Homepage: **Featured · developer introductions** (curated) then **Explore more properties** (feed section, dashed cards). Both CTAs use `/concierge?intent=property&property=<stable-ref>`.
 - **Homepage cards** render in `components/LuxeMauriceTenantPresentation.js` with filters on curated only; feed list is separate UX band.
-- **Lead API** (`concierge-lead-create`): optional `property_slug` (body field name unchanged) is validated via `resolveLuxPropertyRef` when host tenant is `luxe-maurice`. `qualification_json.property_interest` includes `discovery_source` (`curated` | `feed`), `listing_provider` (`curated_staged` | `mock_feed_v1`), `slug` (stable ref), `region`, `property_type`, `status`, optional `price_range`.
-- **Operator UI**: `/change` lead list shows property interest, **source** (Featured vs Explore feed preview), and price range when present.
+- **Lead API** (`concierge-lead-create`): optional `property_slug` (body field name unchanged) is validated via `resolveLuxPropertyRef` when host tenant is `luxe-maurice`. `qualification_json.property_interest` includes `discovery_source` (`curated` | `manual_curated` | `feed`), `listing_provider` (`curated_staged` | `manual_curated` | `mock_feed_v1`), `slug` (stable ref), `region`, `property_type`, `status`, optional `price_range`, optional `summary` and `highlights` (manual curated and extended context).
+- **Operator UI**: `/change` lead list shows property interest, **source** (Featured vs **Manual (curated)** vs Explore feed preview), and price range when present. Manual workflow doc: **`docs/LUX/LUX_PHASE2D_MANUAL_PROPERTY_WORKFLOW.md`**.
+- **Phase 2C detail pages:** `pages/property/[slug].js` (SSR) — **LuxeMaurice host only**; `notFound` for other tenants or unknown refs. Uses **`resolveLuxPropertyRef`** for allowlisted `lm-*` and `lxf-*`; props are server-built only. **`components/LuxeMauricePropertyDetailPage.js`** — hero + overview + highlights + “Request private details” → `/concierge?intent=property&property=<ref>`. Listing cards link **Property overview →** to `/property/<ref>`.
 
 ### Remaining for real IDX (not in this slice)
 
@@ -106,3 +107,33 @@ See `console_json.lux_programme.operator_next_action` on the ticket after initia
 **Tenant boundaries:** unchanged — property context path gated to `luxe-maurice` host tenant; no real IDX vendor wired.
 
 **CMP ticket body:** paste this subsection or mirror via `POSTGRES_URL` script if ticket description should match repo (optional).
+
+---
+
+## Production verification — Phase 2D manual curated (recorded 2026-05-07)
+
+**Ticket status:** **open** — programme umbrella `cmo8mjijk0000jl04l1jz0v6d` is **not** closed on this slice alone.
+
+**Merged to main:** PR https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/141 — squash commit `a5c48e8a5282a20ef4312593d2af28242f411368`.
+
+**GitHub Production deployment:** id `4602364222` → SHA `a5c48e8a5282a20ef4312593d2af28242f411368` (correlate with Vercel Production “Ready” for the same commit).
+
+**Workflow reference:** `docs/LUX/LUX_PHASE2D_MANUAL_PROPERTY_WORKFLOW.md`.
+
+**Live GET checks**
+
+| URL | Result |
+|-----|--------|
+| `https://lux.corpflowai.com/` | **200** — HTML includes demo slug `lm-phase2d-manual-demo` with existing curated `lm-*` slugs |
+| `https://lux.corpflowai.com/property/lm-phase2d-manual-demo` | **200** — manual curated detail surface |
+| `https://lux.corpflowai.com/concierge?intent=property&property=lm-phase2d-manual-demo` | **200** — concierge loads (property-interest ribbon is client-hydrated from `router.query`; confirm **Manual curated listing** in browser) |
+
+**Lead API (manual curated)**
+
+- `POST https://lux.corpflowai.com/api/cmp/router?action=concierge-lead-create` with JSON including `property_slug: "lm-phase2d-manual-demo"` → **200**, `lead.id` = `cmouphsfm0000l5045z2g7pxm`; stored `property_interest.discovery_source` = **manual_curated**, `listing_provider` = **manual_curated**, non-empty **`summary`** and **`highlights`** aligned with the catalog row.
+
+**Operator visibility:** host-scoped `concierge-leads-list` returns the same `property_interest` shape `/change` renders (source label **Manual (curated)** when `discovery_source` is `manual_curated`). Confirm the newest row in `/change` while logged in as a Lux operator.
+
+**CMP ticket description:** optional — paste this subsection if the ticket body should mirror production verification (no automated append from CI).
+
+**Client property-loading ready:** **Yes** — replace demo copy via PR using the Phase 2D intake template; no IDX required for this path.
