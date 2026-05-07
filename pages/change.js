@@ -1,6 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/router';
 import { LUX_PHASE1_REVIEW_TICKET_ID } from '../lib/cmp/_lib/client-decisions-client.js';
 import { LUX_PARENT_PROGRAMME_TICKET_ID } from '../lib/cmp/_lib/lux-client-requests.js';
+import {
+  CHANGE_LAYOUT_FIXTURE_LONG_LINE,
+  changeFlexMainChildStyle,
+  changePageShellStyle,
+  changePanelStyle,
+  changePreBlockStyle,
+  changeTextContainStyle,
+} from '../lib/cmp/_lib/change-console-layout.js';
 import {
   LUX_LEAD_CRM_STAGES,
   activityKindLabel,
@@ -34,17 +43,6 @@ function isoToDatetimeLocalValue(iso) {
   if (Number.isNaN(d.getTime())) return '';
   const pad = (n) => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-function safeWrapStyle(extra) {
-  return {
-    maxWidth: '100%',
-    minWidth: 0,
-    boxSizing: 'border-box',
-    overflowWrap: 'anywhere',
-    wordBreak: 'break-word',
-    ...extra,
-  };
 }
 
 function pillStyle(active) {
@@ -124,6 +122,7 @@ function formatHoursBand(low, high) {
 }
 
 export default function ChangeConsolePage() {
+  const router = useRouter();
   const [locale, setLocale] = useState('en');
   const [uiContext, setUiContext] = useState(null);
   const [session, setSession] = useState({ logged_in: false, level: 'anonymous', tenant_id: null });
@@ -166,6 +165,22 @@ export default function ChangeConsolePage() {
   const [luxReqPriority, setLuxReqPriority] = useState('Normal');
   const [luxReqBusy, setLuxReqBusy] = useState(false);
   const [luxReqStatus, setLuxReqStatus] = useState('');
+
+  const showChangeLayoutFixture =
+    process.env.NODE_ENV === 'development' && router.isReady && String(router.query.changeLayoutFixture || '') === '1';
+
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtml = html.style.overflowX;
+    const prevBody = body.style.overflowX;
+    html.style.overflowX = 'hidden';
+    body.style.overflowX = 'hidden';
+    return () => {
+      html.style.overflowX = prevHtml;
+      body.style.overflowX = prevBody;
+    };
+  }, []);
 
   useEffect(() => {
     try {
@@ -691,27 +706,30 @@ export default function ChangeConsolePage() {
   const showIntakeSurface = showIntakeSkin || forceRefine;
   const workflowStageLabel = ticket ? wfLabel : '—';
 
-  const page = {
+  const pageInner = {
     fontFamily: 'system-ui, Segoe UI, Roboto, sans-serif',
     padding: 24,
     maxWidth: 1200,
     margin: '0 auto',
+    width: '100%',
+    minWidth: 0,
+    boxSizing: 'border-box',
     color: '#e2e8f0',
   };
 
-  const card = {
+  const card = changePanelStyle({
     border: '1px solid rgba(148,163,184,0.25)',
     borderRadius: 16,
     background: 'rgba(2,6,23,0.55)',
     padding: 16,
-  };
+  });
 
-  const subtleCard = {
+  const subtleCard = changePanelStyle({
     border: '1px solid rgba(148,163,184,0.18)',
     borderRadius: 16,
     background: 'rgba(2,6,23,0.45)',
     padding: 16,
-  };
+  });
 
   const dollarsOur = cv?.actual_cost_to_client_usd ?? cv?.display_amount_usd ?? null;
   const dollarsMarket = cv?.market_reference_usd ?? cv?.full_market_value_usd ?? null;
@@ -739,7 +757,8 @@ export default function ChangeConsolePage() {
   );
 
   return (
-    <div style={{ ...page, background: '#020617', minHeight: '100vh' }}>
+    <div style={changePageShellStyle({ background: '#020617', minHeight: '100vh' })}>
+      <div style={pageInner}>
       <div style={{ marginBottom: 14 }}>
         <div style={{ fontSize: 24, fontWeight: 950, color: '#f8fafc' }}>Change Console</div>
         <div style={{ marginTop: 6, color: '#94a3b8', fontSize: 13, lineHeight: 1.45 }}>
@@ -747,9 +766,17 @@ export default function ChangeConsolePage() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 320px) minmax(0, 1fr)', gap: 14 }}>
-        <div style={card}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 320px) minmax(0, 1fr)',
+          gap: 14,
+          width: '100%',
+          minWidth: 0,
+        }}
+      >
+        <div style={{ ...card, minWidth: 0 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center', minWidth: 0 }}>
             <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
               OPERATOR QUEUE
             </div>
@@ -828,6 +855,10 @@ export default function ChangeConsolePage() {
                         background: active ? 'rgba(56,189,248,0.10)' : 'rgba(15,23,42,0.35)',
                         color: '#e2e8f0',
                         cursor: 'pointer',
+                        minWidth: 0,
+                        maxWidth: '100%',
+                        width: '100%',
+                        boxSizing: 'border-box',
                       }}
                     >
                       <div
@@ -835,11 +866,20 @@ export default function ChangeConsolePage() {
                           fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
                           fontSize: 10,
                           color: '#94a3b8',
+                          ...changeTextContainStyle(),
                         }}
                       >
                         {id}
                       </div>
-                      <div style={{ marginTop: 6, fontSize: 12, color: '#e2e8f0', lineHeight: 1.35 }}>
+                      <div
+                        style={{
+                          marginTop: 6,
+                          fontSize: 12,
+                          color: '#e2e8f0',
+                          lineHeight: 1.35,
+                          ...changeTextContainStyle(),
+                        }}
+                      >
                         {String(t.requested_change || '—')}
                       </div>
                     </button>
@@ -856,14 +896,24 @@ export default function ChangeConsolePage() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gap: 14, minWidth: 0 }}>
-          <div style={card}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
-              <div>
+        <div style={{ display: 'grid', gap: 14, minWidth: 0, width: '100%', maxWidth: '100%' }}>
+          <div style={{ ...card, minWidth: 0 }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                gap: 10,
+                flexWrap: 'wrap',
+                alignItems: 'flex-start',
+                minWidth: 0,
+                width: '100%',
+              }}
+            >
+              <div style={changeFlexMainChildStyle()}>
                 <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
                   STAGE
                 </div>
-                <div style={{ marginTop: 6, fontSize: 13, color: '#e2e8f0', lineHeight: 1.45 }}>
+                <div style={{ marginTop: 6, fontSize: 13, color: '#e2e8f0', lineHeight: 1.45, ...changeTextContainStyle() }}>
                   <div style={{ fontWeight: 800 }}>
                     Stage:{' '}
                     {selectedTicketId
@@ -878,13 +928,14 @@ export default function ChangeConsolePage() {
                       fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
                       fontSize: 12,
                       color: '#94a3b8',
+                      ...changeTextContainStyle(),
                     }}
                   >
                     Ticket: {selectedTicketId || '—'}
                   </div>
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', flexShrink: 0 }}>
                 {stageTabs.map((s) => (
                   <button key={s} type="button" onClick={() => setStage(s)} style={pillStyle(stage === s)}>
                     {s}
@@ -954,12 +1005,16 @@ export default function ChangeConsolePage() {
                         value={clientDecisionLink}
                         style={{
                           width: '100%',
+                          maxWidth: '100%',
+                          minWidth: 0,
+                          boxSizing: 'border-box',
                           padding: 10,
                           borderRadius: 12,
                           border: '1px solid rgba(148,163,184,0.25)',
                           background: 'rgba(2,6,23,0.45)',
                           color: '#e2e8f0',
                           fontSize: 12,
+                          ...changeTextContainStyle(),
                         }}
                       />
                       {clientDecisionExpiresAt ? (
@@ -1034,12 +1089,16 @@ export default function ChangeConsolePage() {
                         value={clientDecisionLink}
                         style={{
                           width: '100%',
+                          maxWidth: '100%',
+                          minWidth: 0,
+                          boxSizing: 'border-box',
                           padding: 10,
                           borderRadius: 12,
                           border: '1px solid rgba(148,163,184,0.25)',
                           background: 'rgba(2,6,23,0.45)',
                           color: '#e2e8f0',
                           fontSize: 12,
+                          ...changeTextContainStyle(),
                         }}
                       />
                       {clientDecisionExpiresAt ? (
@@ -1073,11 +1132,11 @@ export default function ChangeConsolePage() {
                 </div>
               ) : null}
 
-              <div style={{ marginTop: 14, color: '#cbd5e1', fontSize: 13, lineHeight: 1.5 }}>
-                <div style={{ fontWeight: 900, color: '#e2e8f0' }}>
+              <div style={{ marginTop: 14, color: '#cbd5e1', fontSize: 13, lineHeight: 1.5, minWidth: 0, maxWidth: '100%' }}>
+                <div style={{ fontWeight: 900, color: '#e2e8f0', ...changeTextContainStyle() }}>
                   {selectedTicketId && ticket ? workflowStageLabel : stage}
                 </div>
-                <div style={{ marginTop: 6, color: '#94a3b8' }}>
+                <div style={{ marginTop: 6, color: '#94a3b8', ...changeTextContainStyle() }}>
                   Next:{' '}
                   {showIntakeSurface
                     ? 'Next step: Add or refine your request, then continue.'
@@ -1086,7 +1145,15 @@ export default function ChangeConsolePage() {
                     : String(ticket?.ticket_progress?.client_view?.workflow_next_action || '—')}
                 </div>
                 {ticket?.lux_programme_summary?.phase_2_status ? (
-                  <div style={{ marginTop: 8, fontSize: 12, color: '#94a3b8', lineHeight: 1.45 }}>
+                  <div
+                    style={{
+                      marginTop: 8,
+                      fontSize: 12,
+                      color: '#94a3b8',
+                      lineHeight: 1.45,
+                      ...changeTextContainStyle(),
+                    }}
+                  >
                     Programme: Phase 1 {String(ticket.lux_programme_summary.phase_1_status || '—')} · Phase 2{' '}
                     {String(ticket.lux_programme_summary.phase_2_status || '—')}
                     {ticket.lux_programme_summary.listing_approach
@@ -1099,8 +1166,8 @@ export default function ChangeConsolePage() {
           </div>
 
           {session.logged_in && isReadyForEstimate && !showIntakeSurface ? (
-            <div style={{ display: 'grid', gap: 14 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            <div style={{ display: 'grid', gap: 14, minWidth: 0, width: '100%', maxWidth: '100%' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 14, minWidth: 0 }}>
                 <div style={subtleCard}>
                   <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
                     ESTIMATE
@@ -1136,18 +1203,19 @@ export default function ChangeConsolePage() {
                   <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
                     BUDGET & BILLING
                   </div>
-                  <div style={{ marginTop: 10, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                  <div style={{ marginTop: 10, display: 'flex', gap: 10, alignItems: 'flex-start', minWidth: 0, width: '100%' }}>
                     <div
                       style={{
                         width: 10,
                         height: 10,
                         borderRadius: 999,
                         marginTop: 4,
+                        flexShrink: 0,
                         background: budgetAvailable ? '#22c55e' : budgetUnknown ? '#f59e0b' : '#64748b',
                         boxShadow: budgetAvailable ? '0 0 10px rgba(34,197,94,0.35)' : 'none',
                       }}
                     />
-                    <div style={{ fontSize: 12, color: '#cbd5e1', lineHeight: 1.45 }}>
+                    <div style={{ fontSize: 12, color: '#cbd5e1', lineHeight: 1.45, minWidth: 0, flex: '1 1 0%', ...changeTextContainStyle() }}>
                       <div style={{ fontWeight: 900, color: budgetAvailable ? '#86efac' : budgetUnknown ? '#fcd34d' : '#cbd5e1' }}>
                         {budgetAvailable
                           ? 'Budget is available'
@@ -1195,7 +1263,15 @@ export default function ChangeConsolePage() {
                 </div>
 
                 {hasEstimate ? (
-                  <div style={{ marginTop: 14, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                  <div
+                    style={{
+                      marginTop: 14,
+                      display: 'grid',
+                      gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
+                      gap: 14,
+                      minWidth: 0,
+                    }}
+                  >
                     <div
                       style={{
                         borderRadius: 14,
@@ -1320,7 +1396,7 @@ export default function ChangeConsolePage() {
           ) : null}
 
           {session.logged_in && (!isReadyForEstimate || showIntakeSurface) ? (
-            <div style={card}>
+            <div style={{ ...card, minWidth: 0 }}>
               {session.logged_in && (!selectedTicketId || showIntakeSurface) ? (
                 <div
                   style={{
@@ -1346,7 +1422,10 @@ export default function ChangeConsolePage() {
                 placeholder="Describe what you want changed in plain language…"
                 rows={showIntakeSurface ? 8 : 5}
                 style={{
+                  display: 'block',
                   width: '100%',
+                  maxWidth: '100%',
+                  minWidth: 0,
                   minHeight: showIntakeSurface ? 220 : 140,
                   padding: '12px 14px',
                   borderRadius: 14,
@@ -1356,9 +1435,7 @@ export default function ChangeConsolePage() {
                   fontSize: 13,
                   lineHeight: 1.45,
                   resize: 'vertical',
-                  boxSizing: 'border-box',
-                  overflowWrap: 'anywhere',
-                  wordBreak: 'break-word',
+                  ...changeTextContainStyle(),
                 }}
               />
               {showIntakeSurface ? (
@@ -1378,7 +1455,7 @@ export default function ChangeConsolePage() {
                       lineHeight: 1.5,
                       whiteSpace: 'pre-wrap',
                       minHeight: '4.5rem',
-                      ...safeWrapStyle(),
+                      ...changeTextContainStyle(),
                     }}
                   >
                     {ticket ? formatExistingRequestText(ticket) : '—'}
@@ -1426,23 +1503,20 @@ export default function ChangeConsolePage() {
           ) : null}
 
           {!showIntakeSurface && !isReadyForEstimate ? (
-            <div style={card}>
+            <div style={{ ...card, minWidth: 0 }}>
               <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
                 TICKET SNAPSHOT
               </div>
-              <div style={{ marginTop: 10 }}>
+              <div style={{ marginTop: 10, maxWidth: '100%', minWidth: 0, overflowX: 'hidden' }}>
                 <pre
                   style={{
-                    margin: 0,
                     padding: 12,
                     borderRadius: 14,
                     border: '1px solid rgba(148,163,184,0.18)',
                     background: 'rgba(2,6,23,0.45)',
-                    overflowX: 'auto',
                     fontSize: 12,
                     color: '#e2e8f0',
-                    whiteSpace: 'pre-wrap',
-                    ...safeWrapStyle(),
+                    ...changePreBlockStyle(),
                   }}
                 >
                   {JSON.stringify(
@@ -1467,7 +1541,7 @@ export default function ChangeConsolePage() {
           ) : null}
 
           {!showIntakeSurface && !isReadyForEstimate ? (
-          <div style={card}>
+          <div style={{ ...card, minWidth: 0 }}>
             <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
               LEADS
               {luxLeadCrmEnabled ? (
@@ -2005,7 +2079,7 @@ export default function ChangeConsolePage() {
           ) : null}
 
           {!showIntakeSurface && !isReadyForEstimate && luxLeadCrmEnabled ? (
-            <div style={card}>
+            <div style={{ ...card, minWidth: 0 }}>
               <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
                 REQUEST SOMETHING NEW
               </div>
@@ -2191,9 +2265,20 @@ export default function ChangeConsolePage() {
                           cursor: 'pointer',
                         }}
                       >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline' }}>
-                          <div style={{ fontSize: 12, fontWeight: 850, color: '#e2e8f0' }}>{String(r.title || 'Request')}</div>
-                          <div style={{ fontSize: 10, color: '#64748b' }}>
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            gap: 10,
+                            alignItems: 'baseline',
+                            minWidth: 0,
+                            width: '100%',
+                          }}
+                        >
+                          <div style={{ ...changeFlexMainChildStyle(), fontSize: 12, fontWeight: 850, color: '#e2e8f0', ...changeTextContainStyle() }}>
+                            {String(r.title || 'Request')}
+                          </div>
+                          <div style={{ fontSize: 10, color: '#64748b', flexShrink: 0 }}>
                             {r.created_at ? new Date(r.created_at).toLocaleString() : ''}
                           </div>
                         </div>
@@ -2231,6 +2316,45 @@ export default function ChangeConsolePage() {
           {error}
         </div>
       ) : null}
+
+      {showChangeLayoutFixture ? (
+        <div style={{ ...changePanelStyle({ marginTop: 18, padding: 14 }) }}>
+          <div style={{ fontSize: 11, fontWeight: 900, color: '#fbbf24', letterSpacing: '0.06em' }}>
+            LAYOUT FIXTURE (dev only · ?changeLayoutFixture=1)
+          </div>
+          <div style={{ marginTop: 8, fontSize: 11, color: '#94a3b8', lineHeight: 1.45 }}>
+            Stress panel: long paths, URLs, JSON, and markdown should stay inside the page width.
+          </div>
+          <textarea
+            readOnly
+            value={CHANGE_LAYOUT_FIXTURE_LONG_LINE}
+            rows={8}
+            style={{
+              marginTop: 10,
+              width: '100%',
+              maxWidth: '100%',
+              minWidth: 0,
+              boxSizing: 'border-box',
+              ...changeTextContainStyle({ display: 'block' }),
+            }}
+          />
+          <pre
+            style={{
+              marginTop: 10,
+              padding: 12,
+              borderRadius: 12,
+              border: '1px solid rgba(148,163,184,0.2)',
+              background: 'rgba(2,6,23,0.5)',
+              fontSize: 11,
+              color: '#e2e8f0',
+              ...changePreBlockStyle(),
+            }}
+          >
+            {CHANGE_LAYOUT_FIXTURE_LONG_LINE}
+          </pre>
+        </div>
+      ) : null}
+      </div>
     </div>
   );
 }
