@@ -76,12 +76,13 @@ Each phase below must be represented in the ticket’s narrative and acceptance 
 
 - **Client-visible outcome**: the business can respond reliably; no “lost lead” path.
 - **Scope**:
-  - **First slice (LuxeMaurice):** concierge lead stages + internal notes + follow-up status in `/change` — **`docs/LUX/LUX_PHASE3_FIRST_CRM_SLICE.md`** (no assignment / SLA / external CRM in that slice).
+  - **First slice + 3A.5 hardening (LuxeMaurice):** concierge lead CRM in `/change`, authenticated Lux-only lead list, stage audit + activity feed + assignable owner — **`docs/LUX/LUX_PHASE3_FIRST_CRM_SLICE.md`**.
+  - **Phase 3B (same doc — CRM maturity):** **`next_action_at`** / **`next_action_note`** on `lux_operator_workflow`; computed **`overdue_follow_up`**, **`stale_lead`**, **`untouched_new`**; `/change` filters (stage, owner, property, health); CRM summary strip by stage; assignment visibility + activity (including **`next_action_updated`**). Explicitly excludes automation, AI, notifications, exports, reporting suites, external CRM sync, and extra CRM schema tables.
   - Lead triage, assignment, follow-up status
   - Handoff from web enquiries into operator queue (source-of-truth decision)
   - Internal SLA and escalation
 - **Owner**: Operator (process) + implementer (wiring)
-- **Production verification**: operator can reliably process leads without DB access; audit trail exists
+- **Production verification**: operator can reliably process leads without DB access; audit trail exists; Phase 3B scheduling + filters + summary strip verified on **`https://lux.corpflowai.com/change`** with Lux session; public **`/concierge`** does not expose workflow metadata
 - **Operator next action**: define automation sequences + AI channel (Phase 4 decisions)
 
 ### Phase 4 — Marketing automation + AI engagement
@@ -125,5 +126,5 @@ Each phase below must be represented in the ticket’s narrative and acceptance 
 - Lux v1 acceptance checklist (Phase 0/early site checks): `docs/lux-v1-acceptance.md`
 - Phase 2 first-slice acceptance (ticket `cmo8mjijk0000jl04l1jz0v6d`): `docs/LUX/LUX_PHASE2_FIRST_SLICE_ACCEPTANCE.md`
 - Phase 2D manual property workflow: `docs/LUX/LUX_PHASE2D_MANUAL_PROPERTY_WORKFLOW.md`
-- Phase 3 first CRM slice (LuxeMaurice `/change` leads): `docs/LUX/LUX_PHASE3_FIRST_CRM_SLICE.md`
+- Phase 3 CRM first slice + 3A.5 (LuxeMaurice): `docs/LUX/LUX_PHASE3_FIRST_CRM_SLICE.md`
 
