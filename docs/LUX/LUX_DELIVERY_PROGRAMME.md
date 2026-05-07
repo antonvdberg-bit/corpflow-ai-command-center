@@ -96,6 +96,14 @@ Each phase below must be represented in the ticket’s narrative and acceptance 
 - **Production verification**: automation triggers are observable; failures are recoverable; no secrets leak
 - **Operator next action**: move to Phase 5 verification + client handoff
 
+### Phase 4B — Tenant-scoped request intake (LuxeMaurice, inside `/change`)
+
+- **Purpose**: allow LuxeMaurice operators/clients to create **additional scoped requests** for ongoing refinement work **without overwriting** the master programme ticket `cmo8mjijk0000jl04l1jz0v6d`.
+- **Surface**: Lux tenant session only on `https://lux.corpflowai.com/change` (operator authenticated). Not on public pages.
+- **Model**: creates a **new CMP ticket** scoped to tenant `luxe-maurice` with `console_json.parent_programme_ticket = cmo8mjijk0000jl04l1jz0v6d` and `console_json.lux_request_meta` (type/priority/property reference).
+- **Defaults**: `stage=Intake`, `status=Open`, `workflow_state=awaiting_operator_review`.
+- **Scope exclusions**: not a full PM system — no comments/threads, uploads, notifications, Kanban, email/SMS/WhatsApp sending, automation, AI, or external integrations.
+
 ### Phase 5 — Production reality gate and client handoff
 
 - **Client-visible outcome**: the delivered system matches the programme claims; clients can use it.
