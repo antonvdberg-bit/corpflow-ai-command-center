@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { LUX_PHASE1_REVIEW_TICKET_ID } from '../lib/cmp/_lib/client-decisions-client.js';
+import { LUX_PARENT_PROGRAMME_TICKET_ID } from '../lib/cmp/_lib/lux-client-requests.js';
 import {
   LUX_LEAD_CRM_STAGES,
   activityKindLabel,
@@ -146,6 +147,15 @@ export default function ChangeConsolePage() {
   const [estimateStatus, setEstimateStatus] = useState('');
   const [estimateBusy, setEstimateBusy] = useState(false);
 
+  const [luxRequests, setLuxRequests] = useState([]);
+  const [luxReqType, setLuxReqType] = useState('website_refinement');
+  const [luxReqTitle, setLuxReqTitle] = useState('');
+  const [luxReqDesc, setLuxReqDesc] = useState('');
+  const [luxReqPropertyRef, setLuxReqPropertyRef] = useState('');
+  const [luxReqPriority, setLuxReqPriority] = useState('Normal');
+  const [luxReqBusy, setLuxReqBusy] = useState(false);
+  const [luxReqStatus, setLuxReqStatus] = useState('');
+
   useEffect(() => {
     try {
       setLocale(normalizeLocale(navigator.language));
@@ -199,6 +209,73 @@ export default function ChangeConsolePage() {
     const rows = Array.isArray(j.leads) ? j.leads : [];
     setLeads(rows);
     return rows;
+  }
+
+  async function loadLuxRelatedRequests() {
+    if (!luxLeadCrmEnabled) return [];
+    const r = await fetch('/api/cmp/router?action=lux-client-requests-list&limit=25', { credentials: 'include' });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || j.detail || j.hint || `http_${r.status}`);
+    const rows = Array.isArray(j.requests) ? j.requests : [];
+    setLuxRequests(rows);
+    return rows;
+  }
+
+  async function submitLuxRequest() {
+    if (!luxLeadCrmEnabled) return;
+    setLuxReqBusy(true);
+    setLuxReqStatus('');
+    try {
+      const title = String(luxReqTitle || '').trim();
+      const description = String(luxReqDesc || '').trim();
+      if (!title) {
+        setLuxReqStatus('Title is required.');
+        return;
+      }
+      if (!description) {
+        setLuxReqStatus('Description is required.');
+        return;
+      }
+      const body = {
+        request_type: luxReqType,
+        title,
+        description,
+        priority: luxReqPriority,
+        property_reference: String(luxReqPropertyRef || '').trim() || null,
+      };
+      const r = await fetch('/api/cmp/router?action=lux-client-request-create', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error || j.detail || j.hint || `http_${r.status}`);
+      setLuxReqStatus('Request submitted.');
+      setLuxReqTitle('');
+      setLuxReqDesc('');
+      setLuxReqPropertyRef('');
+      await loadLuxRelatedRequests();
+      const rows = await loadQueue();
+      const createdId = j?.request?.ticket_id ? String(j.request.ticket_id) : '';
+      if (createdId && rows.some((x) => String(x.ticket_id) === createdId)) {
+        setSelectedTicketId(createdId);
+        await loadTicketById(createdId);
+      }
+    } catch (e) {
+      setLuxReqStatus(String(e?.message || e));
+    } finally {
+      setLuxReqBusy(false);
+    }
+  }
+
+  function clearLuxRequestForm() {
+    setLuxReqType('website_refinement');
+    setLuxReqTitle('');
+    setLuxReqDesc('');
+    setLuxReqPropertyRef('');
+    setLuxReqPriority('Normal');
+    setLuxReqStatus('');
   }
 
   const luxLeadCrmEnabled = useMemo(() => {
@@ -379,6 +456,7 @@ export default function ChangeConsolePage() {
         const rows = await loadQueue();
         if (cancelled) return;
         if (isLuxTenant) await loadLeads();
+        if (isLuxTenant) await loadLuxRelatedRequests();
         if (cancelled) return;
         const first = rows[0]?.ticket_id ? String(rows[0].ticket_id) : '';
         if (first) {
@@ -664,6 +742,7 @@ export default function ChangeConsolePage() {
                     String(ctx?.session?.level || '').toLowerCase() === 'tenant' &&
                     String(ctx?.session?.tenant_id || '').trim() === 'luxe-maurice';
                   if (isLuxTenant) await loadLeads();
+                  if (isLuxTenant) await loadLuxRelatedRequests();
                   const first = rows[0]?.ticket_id ? String(rows[0].ticket_id) : '';
                   if (!selectedTicketId && first) await onSelectTicket(first);
                 } catch (e) {
@@ -1893,6 +1972,200 @@ export default function ChangeConsolePage() {
               </div>
             ) : null}
           </div>
+          ) : null}
+
+          {!showIntakeSurface && !isReadyForEstimate && luxLeadCrmEnabled ? (
+            <div style={card}>
+              <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
+                REQUEST SOMETHING NEW
+              </div>
+              <div style={{ marginTop: 8, fontSize: 12, color: '#94a3b8', lineHeight: 1.45 }}>
+                Creates a new tenant-scoped ticket linked to the Lux programme ticket{' '}
+                <span style={{ color: '#e2e8f0', fontWeight: 700 }}>{LUX_PARENT_PROGRAMME_TICKET_ID}</span>. This does not
+                overwrite or close the master programme ticket.
+              </div>
+
+              <div style={{ marginTop: 12, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 10 }}>
+                <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4 }}>
+                  Request type
+                  <select
+                    value={luxReqType}
+                    onChange={(e) => setLuxReqType(e.target.value)}
+                    style={{
+                      padding: '8px 10px',
+                      borderRadius: 10,
+                      border: '1px solid rgba(148,163,184,0.25)',
+                      background: 'rgba(2,6,23,0.65)',
+                      color: '#e2e8f0',
+                      fontSize: 12,
+                    }}
+                  >
+                    <option value="property_update">Property update</option>
+                    <option value="website_refinement">Website refinement</option>
+                    <option value="concierge_workflow">Concierge workflow</option>
+                    <option value="marketing_request">Marketing request</option>
+                    <option value="crm_workflow">CRM workflow</option>
+                    <option value="new_feature">New feature</option>
+                    <option value="support_issue">Support issue</option>
+                  </select>
+                </label>
+
+                <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4 }}>
+                  Priority
+                  <select
+                    value={luxReqPriority}
+                    onChange={(e) => setLuxReqPriority(e.target.value)}
+                    style={{
+                      padding: '8px 10px',
+                      borderRadius: 10,
+                      border: '1px solid rgba(148,163,184,0.25)',
+                      background: 'rgba(2,6,23,0.65)',
+                      color: '#e2e8f0',
+                      fontSize: 12,
+                    }}
+                  >
+                    <option value="Low">Low</option>
+                    <option value="Normal">Normal</option>
+                    <option value="High">High</option>
+                  </select>
+                </label>
+
+                <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4 }}>
+                  Optional property reference
+                  <input
+                    value={luxReqPropertyRef}
+                    onChange={(e) => setLuxReqPropertyRef(e.target.value)}
+                    placeholder="e.g. lm-nc-ridge"
+                    style={{
+                      padding: '8px 10px',
+                      borderRadius: 10,
+                      border: '1px solid rgba(148,163,184,0.25)',
+                      background: 'rgba(2,6,23,0.65)',
+                      color: '#e2e8f0',
+                      fontSize: 12,
+                    }}
+                  />
+                </label>
+              </div>
+
+              <label style={{ marginTop: 10, fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4 }}>
+                Title
+                <input
+                  value={luxReqTitle}
+                  onChange={(e) => setLuxReqTitle(e.target.value)}
+                  placeholder="Short summary"
+                  style={{
+                    padding: '8px 10px',
+                    borderRadius: 10,
+                    border: '1px solid rgba(148,163,184,0.25)',
+                    background: 'rgba(2,6,23,0.65)',
+                    color: '#e2e8f0',
+                    fontSize: 12,
+                  }}
+                />
+              </label>
+
+              <label style={{ marginTop: 10, fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4 }}>
+                Description
+                <textarea
+                  value={luxReqDesc}
+                  onChange={(e) => setLuxReqDesc(e.target.value)}
+                  rows={5}
+                  placeholder="What changed, why it matters, expected outcome."
+                  style={{
+                    padding: '8px 10px',
+                    borderRadius: 10,
+                    border: '1px solid rgba(148,163,184,0.25)',
+                    background: 'rgba(2,6,23,0.65)',
+                    color: '#e2e8f0',
+                    fontSize: 12,
+                    resize: 'vertical',
+                  }}
+                />
+              </label>
+
+              <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={() => void submitLuxRequest()}
+                  disabled={luxReqBusy}
+                  style={{
+                    padding: '10px 14px',
+                    borderRadius: 12,
+                    border: '1px solid rgba(34,197,94,0.35)',
+                    background: 'rgba(34,197,94,0.12)',
+                    color: '#dcfce7',
+                    fontWeight: 850,
+                    fontSize: 13,
+                    cursor: luxReqBusy ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {luxReqBusy ? 'Submitting…' : 'Submit request'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => clearLuxRequestForm()}
+                  disabled={luxReqBusy}
+                  style={{
+                    padding: '10px 14px',
+                    borderRadius: 12,
+                    border: '1px solid rgba(148,163,184,0.35)',
+                    background: 'rgba(15,23,42,0.55)',
+                    color: '#e2e8f0',
+                    fontWeight: 800,
+                    fontSize: 13,
+                    cursor: luxReqBusy ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  Clear
+                </button>
+              </div>
+              {luxReqStatus ? <div style={{ marginTop: 10, fontSize: 12, color: '#94a3b8' }}>{luxReqStatus}</div> : null}
+
+              <div style={{ marginTop: 16, borderTop: '1px solid rgba(148,163,184,0.18)', paddingTop: 14 }}>
+                <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
+                  RELATED REQUESTS
+                </div>
+                <div style={{ marginTop: 6, fontSize: 11, color: '#64748b' }}>Newest first · linked to programme ticket</div>
+                <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
+                  {luxRequests.length ? (
+                    luxRequests.map((r) => (
+                      <button
+                        key={String(r.ticket_id)}
+                        type="button"
+                        onClick={() => void onSelectTicket(String(r.ticket_id))}
+                        style={{
+                          textAlign: 'left',
+                          border: '1px solid rgba(148,163,184,0.18)',
+                          borderRadius: 12,
+                          background: 'rgba(2,6,23,0.45)',
+                          padding: 10,
+                          color: 'inherit',
+                          font: 'inherit',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline' }}>
+                          <div style={{ fontSize: 12, fontWeight: 850, color: '#e2e8f0' }}>{String(r.title || 'Request')}</div>
+                          <div style={{ fontSize: 10, color: '#64748b' }}>
+                            {r.created_at ? new Date(r.created_at).toLocaleString() : ''}
+                          </div>
+                        </div>
+                        <div style={{ marginTop: 6, fontSize: 11, color: '#94a3b8', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                          {r.request_type ? <span>Type: {String(r.request_type).replaceAll('_', ' ')}</span> : null}
+                          {r.priority ? <span>Priority: {String(r.priority)}</span> : null}
+                          {r.stage ? <span>Stage: {String(r.stage)}</span> : null}
+                          {r.status ? <span>Status: {String(r.status)}</span> : null}
+                          {r.property_reference ? <span>Property: {String(r.property_reference)}</span> : null}
+                        </div>
+                      </button>
+                    ))
+                  ) : (
+                    <div style={{ fontSize: 12, color: '#94a3b8' }}>No related requests yet.</div>
+                  )}
+                </div>
+              </div>
+            </div>
           ) : null}
         </div>
       </div>
