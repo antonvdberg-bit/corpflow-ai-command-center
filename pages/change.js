@@ -1,13 +1,20 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import { LUX_PHASE1_REVIEW_TICKET_ID } from '../lib/cmp/_lib/client-decisions-client.js';
 import { LUX_PARENT_PROGRAMME_TICKET_ID } from '../lib/cmp/_lib/lux-client-requests.js';
+import {
+  CHANGE_LAYOUT_EXPECTED_COMMIT_PREFIX,
+  CHANGE_LAYOUT_INSTRUMENTATION_ID,
+  CHANGE_LAYOUT_MARK_VERSION,
+  scanHorizontalOverflow,
+} from '../lib/cmp/_lib/change-layout-debug.js';
 import {
   CHANGE_LAYOUT_FIXTURE_LONG_LINE,
   changeFlexMainChildStyle,
   changePageShellStyle,
   changePanelStyle,
   changePreBlockStyle,
+  changeSelectContainStyle,
   changeTextContainStyle,
 } from '../lib/cmp/_lib/change-console-layout.js';
 import {
@@ -168,6 +175,13 @@ export default function ChangeConsolePage() {
 
   const showChangeLayoutFixture =
     process.env.NODE_ENV === 'development' && router.isReady && String(router.query.changeLayoutFixture || '') === '1';
+
+  const showChangeDebugBanner = router.isReady && String(router.query.debug || '') === '1';
+  const layoutDebugEnabled = router.isReady && String(router.query.layoutDebug || '') === '1';
+
+  const changeRootRef = useRef(null);
+  const layoutOutlineCleanupRef = useRef(() => {});
+  const [layoutDebugSnapshot, setLayoutDebugSnapshot] = useState(null);
 
   useEffect(() => {
     const html = document.documentElement;
@@ -756,9 +770,124 @@ export default function ChangeConsolePage() {
       (String(session.level || '').toLowerCase() === 'admin' || uiContext?.show_approve_build === true),
   );
 
+  useLayoutEffect(() => {
+    if (!layoutDebugEnabled || typeof window === 'undefined') {
+      layoutOutlineCleanupRef.current();
+      layoutOutlineCleanupRef.current = () => {};
+      setLayoutDebugSnapshot(null);
+      return undefined;
+    }
+
+    let cancelled = false;
+    let raf1 = 0;
+    let raf2 = 0;
+
+    const run = () => {
+      if (cancelled) return;
+      const root = changeRootRef.current;
+      if (!root) return;
+
+      layoutOutlineCleanupRef.current();
+      layoutOutlineCleanupRef.current = () => {};
+
+      const scan = scanHorizontalOverflow(root, window);
+      const snapshot = {
+        innerWidth: scan.innerWidth,
+        docScrollWidth: scan.docScrollWidth,
+        docClientWidth: scan.docClientWidth,
+        items: scan.items.map(({ element: _el, ...rest }) => rest),
+      };
+      setLayoutDebugSnapshot(snapshot);
+
+      try {
+        console.info('[layoutDebug]', snapshot);
+      } catch {
+        /* ignore */
+      }
+
+      const touched = [];
+      for (const it of scan.items) {
+        const el = it.element;
+        touched.push({ el, o: el.style.outline, oo: el.style.outlineOffset });
+        if (it.widerThanViewport) {
+          el.style.outline = '3px solid rgba(239,68,68,0.95)';
+        } else {
+          el.style.outline = '2px solid rgba(249,115,22,0.95)';
+        }
+        el.style.outlineOffset = '1px';
+      }
+      layoutOutlineCleanupRef.current = () => {
+        for (const t of touched) {
+          t.el.style.outline = t.o;
+          t.el.style.outlineOffset = t.oo;
+        }
+      };
+    };
+
+    const schedule = () => {
+      raf1 = window.requestAnimationFrame(() => {
+        run();
+        raf2 = window.requestAnimationFrame(run);
+      });
+    };
+
+    schedule();
+    const onResize = () => schedule();
+    window.addEventListener('resize', onResize);
+
+    return () => {
+      cancelled = true;
+      window.cancelAnimationFrame(raf1);
+      window.cancelAnimationFrame(raf2);
+      window.removeEventListener('resize', onResize);
+      layoutOutlineCleanupRef.current();
+      layoutOutlineCleanupRef.current = () => {};
+    };
+  }, [
+    layoutDebugEnabled,
+    router.isReady,
+    selectedTicketId,
+    ticket,
+    leads,
+    luxRequests,
+    showIntakeSurface,
+    isReadyForEstimate,
+    forceRefine,
+    clientDecisionLink,
+    error,
+    busy,
+  ]);
+
   return (
-    <div style={changePageShellStyle({ background: '#020617', minHeight: '100vh' })}>
+    <div ref={changeRootRef} style={changePageShellStyle({ background: '#020617', minHeight: '100vh' })}>
       <div style={pageInner}>
+      {showChangeDebugBanner ? (
+        <div
+          style={{
+            marginBottom: 12,
+            padding: 12,
+            borderRadius: 12,
+            border: '1px solid rgba(251,191,36,0.45)',
+            background: 'rgba(251,191,36,0.08)',
+            fontSize: 11,
+            color: '#fef3c7',
+            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+            ...changeTextContainStyle({ whiteSpace: 'pre-wrap' }),
+          }}
+        >
+          {JSON.stringify(
+            {
+              layout_fix_version: CHANGE_LAYOUT_MARK_VERSION,
+              layout_instrumentation_id: CHANGE_LAYOUT_INSTRUMENTATION_ID,
+              expected_commit_prefix: CHANGE_LAYOUT_EXPECTED_COMMIT_PREFIX,
+              vercel_sha: process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA || null,
+              node_env: process.env.NODE_ENV,
+            },
+            null,
+            2,
+          )}
+        </div>
+      ) : null}
       <div style={{ marginBottom: 14 }}>
         <div style={{ fontSize: 24, fontWeight: 950, color: '#f8fafc' }}>Change Console</div>
         <div style={{ marginTop: 6, color: '#94a3b8', fontSize: 13, lineHeight: 1.45 }}>
@@ -1586,6 +1715,8 @@ export default function ChangeConsolePage() {
                   gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
                   gap: 10,
                   alignItems: 'end',
+                  minWidth: 0,
+                  width: '100%',
                 }}
               >
                 <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4 }}>
@@ -1594,6 +1725,7 @@ export default function ChangeConsolePage() {
                     value={crmFilterStage}
                     onChange={(e) => setCrmFilterStage(e.target.value)}
                     style={{
+                      ...changeSelectContainStyle(),
                       padding: '6px 8px',
                       borderRadius: 10,
                       border: '1px solid rgba(148,163,184,0.25)',
@@ -1654,6 +1786,7 @@ export default function ChangeConsolePage() {
                     value={crmFilterHealth}
                     onChange={(e) => setCrmFilterHealth(e.target.value)}
                     style={{
+                      ...changeSelectContainStyle(),
                       padding: '6px 8px',
                       borderRadius: 10,
                       border: '1px solid rgba(148,163,184,0.25)',
@@ -1849,6 +1982,7 @@ export default function ChangeConsolePage() {
                     value={leadStageDraft}
                     onChange={(e) => setLeadStageDraft(e.target.value)}
                     style={{
+                      ...changeSelectContainStyle(),
                       padding: '8px 10px',
                       borderRadius: 10,
                       border: '1px solid rgba(148,163,184,0.25)',
@@ -2096,6 +2230,7 @@ export default function ChangeConsolePage() {
                     value={luxReqType}
                     onChange={(e) => setLuxReqType(e.target.value)}
                     style={{
+                      ...changeSelectContainStyle(),
                       padding: '8px 10px',
                       borderRadius: 10,
                       border: '1px solid rgba(148,163,184,0.25)',
@@ -2120,6 +2255,7 @@ export default function ChangeConsolePage() {
                     value={luxReqPriority}
                     onChange={(e) => setLuxReqPriority(e.target.value)}
                     style={{
+                      ...changeSelectContainStyle(),
                       padding: '8px 10px',
                       borderRadius: 10,
                       border: '1px solid rgba(148,163,184,0.25)',
@@ -2352,6 +2488,82 @@ export default function ChangeConsolePage() {
           >
             {CHANGE_LAYOUT_FIXTURE_LONG_LINE}
           </pre>
+        </div>
+      ) : null}
+
+      {layoutDebugEnabled && layoutDebugSnapshot ? (
+        <div
+          data-layout-debug-overlay="1"
+          style={{
+            position: 'fixed',
+            bottom: 12,
+            right: 12,
+            zIndex: 99999,
+            maxWidth: 'min(560px, calc(100vw - 24px))',
+            maxHeight: '42vh',
+            overflow: 'auto',
+            padding: 12,
+            borderRadius: 12,
+            border: '1px solid rgba(56,189,248,0.45)',
+            background: 'rgba(2,6,23,0.92)',
+            boxShadow: '0 12px 40px rgba(0,0,0,0.45)',
+            fontSize: 11,
+            color: '#e2e8f0',
+            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+          }}
+        >
+          <div style={{ fontWeight: 950, color: '#7dd3fc', marginBottom: 8 }}>?layoutDebug=1</div>
+          <div style={{ ...changeTextContainStyle({ whiteSpace: 'pre-wrap', marginBottom: 8 }) }}>
+            {JSON.stringify(
+              {
+                docScrollWidth: layoutDebugSnapshot.docScrollWidth,
+                docClientWidth: layoutDebugSnapshot.docClientWidth,
+                innerWidth: layoutDebugSnapshot.innerWidth,
+                docOverflowPx: layoutDebugSnapshot.docScrollWidth - layoutDebugSnapshot.innerWidth,
+              },
+              null,
+              2,
+            )}
+          </div>
+          <div style={{ fontSize: 10, color: '#94a3b8', marginBottom: 6 }}>
+            Red outline: wider than viewport · Orange: internal scroll (scrollWidth {'>'} clientWidth+5)
+          </div>
+          <div style={{ display: 'grid', gap: 6 }}>
+            {(layoutDebugSnapshot.items || []).slice(0, 40).map((row, idx) => (
+              <div
+                key={`${row.path}-${idx}`}
+                style={{
+                  padding: 8,
+                  borderRadius: 10,
+                  border: '1px solid rgba(148,163,184,0.22)',
+                  background: 'rgba(15,23,42,0.55)',
+                  ...changeTextContainStyle(),
+                }}
+              >
+                <div style={{ color: '#fde68a', fontWeight: 800 }}>
+                  {row.widerThanViewport ? 'VIEWPORT ' : ''}
+                  {row.internalOverflow ? 'INTERNAL ' : ''}
+                  {'<'}
+                  {row.tag}
+                  {'>'}
+                </div>
+                <div style={{ marginTop: 4, color: '#cbd5e1', wordBreak: 'break-all' }}>{row.path}</div>
+                <div style={{ marginTop: 4, fontSize: 10, color: '#64748b' }}>
+                  cw:{row.clientWidth} sw:{row.scrollWidth} rectW:{Math.round(row.rectWidth)} rectR:
+                  {Math.round(row.rectRight)}
+                </div>
+                {row.className ? (
+                  <div style={{ marginTop: 4, fontSize: 10, color: '#64748b' }}>class: {row.className}</div>
+                ) : null}
+                {row.styleHint ? (
+                  <div style={{ marginTop: 4, fontSize: 10, color: '#64748b' }}>{row.styleHint}</div>
+                ) : null}
+                {row.textSample ? (
+                  <div style={{ marginTop: 4, fontSize: 10, color: '#94a3b8' }}>{row.textSample}</div>
+                ) : null}
+              </div>
+            ))}
+          </div>
         </div>
       ) : null}
       </div>
