@@ -31,7 +31,16 @@
   "push_excluded_keys": [
     "VERCEL_TOKEN",
     "VERCEL_OIDC_TOKEN",
-    "VERCEL_AUTH_TOKEN"
+    "VERCEL_AUTH_TOKEN",
+    "LUX_SMOKE_BASE_URL",
+    "LUX_SMOKE_TENANT_ID",
+    "LUX_SMOKE_USERNAME",
+    "LUX_SMOKE_PASSWORD",
+    "LUX_SMOKE_TICKET_MASTER",
+    "LUX_SMOKE_TICKET_SHORT",
+    "LUX_SMOKE_OUT_DIR",
+    "LUX_SMOKE_HEADLESS",
+    "LUX_SMOKE_SLOWMO_MS"
   ],
   "default_push_targets": ["production", "preview", "development"],
   "default_env_type": "encrypted"

@@ -15,3 +15,6 @@ core/engine/client_secrets.json
 # Vanguard: append-only local logs (telemetry, token debits) — written at runtime, not source.
 vanguard/audit-trail/*.jsonl
 vanguard/audit/
+
+# Inspection smoke run outputs (full-page screenshots from scripts/smoke-change-overflow.mjs)
+.smoke-screenshots/

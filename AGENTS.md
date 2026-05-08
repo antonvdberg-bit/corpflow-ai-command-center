@@ -30,6 +30,8 @@ This repository is the **CorpFlow AI Command Center**: **Next.js** (pages router
 
 **Do not treat as proof of delivery:** local tests only, CI success alone, merge to `main` alone, or `/api/factory/health` (or other internal endpoints) alone when the work affects **client-visible** URLs or flows. Record **deployment ID**, **deployed commit**, **live URLs tested**, and **Delivery Reality Audit** verdict (**COMPLETE / PARTIAL / FAILED**) per the rules above.
 
+**Lux `/change` UI / layout work** — the **preview-smoke loop is mandatory** before merge and re-run against Production after deploy. See `docs/runbooks/CHANGE_CONSOLE_INSPECTION.md` § 7 (the five steps: preview ready → preview smoke → screenshot/JSON review → merge → production smoke) and `.cursor/rules/predeploy-decision-checks.mdc` § *Lux `/change` UI / layout work*. Static code inspection is **not** sufficient evidence for `/change` UI changes.
+
 ## Git note (default branch `main`)
 
 If Git says **`ambiguous argument 'main'`**, a tracked path named **`main`** may exist at the repo root — see **`docs/operations/GIT_AND_MAIN_BRANCH.md`**. Prefer **`refs/heads/main`** in commands when needed.
@@ -42,6 +44,7 @@ If Git says **`ambiguous argument 'main'`**, a tracked path named **`main`** may
 | Delivery reality (live prod = done) | `.cursor/rules/delivery-reality.mdc`, `.cursor/rules/predeploy-decision-checks.mdc` |
 | Production bar (reliable, secure, observable) | `docs/strategy/PRODUCTION_GRADE_CLIENT_OUTCOMES.md` |
 | Host / apex / login / tenancy | `docs/operations/TENANT_CLIENT_LOGIN.md` |
+| `/change` inspection (smoke / Cursor) | `docs/runbooks/CHANGE_CONSOLE_INSPECTION.md` |
 | Security review triggers | `docs/operations/SECURITY_REVIEW_CHECKLIST.md` |
 | Incident / rotation stub | `docs/runbooks/SECURITY_OR_INCIDENT.md` |
 | Brain vs hands / automation | `docs/EXECUTION_BRAIN_VS_HANDS.md`, `docs/automation-framework.md` |
