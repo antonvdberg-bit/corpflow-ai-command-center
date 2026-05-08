@@ -1,6 +1,22 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/router';
 import { LUX_PHASE1_REVIEW_TICKET_ID } from '../lib/cmp/_lib/client-decisions-client.js';
 import { LUX_PARENT_PROGRAMME_TICKET_ID } from '../lib/cmp/_lib/lux-client-requests.js';
+import {
+  CHANGE_LAYOUT_EXPECTED_COMMIT_PREFIX,
+  CHANGE_LAYOUT_INSTRUMENTATION_ID,
+  CHANGE_LAYOUT_MARK_VERSION,
+  scanHorizontalOverflow,
+} from '../lib/cmp/_lib/change-layout-debug.js';
+import {
+  CHANGE_LAYOUT_FIXTURE_LONG_LINE,
+  changeFlexMainChildStyle,
+  changePageShellStyle,
+  changePanelStyle,
+  changePreBlockStyle,
+  changeSelectContainStyle,
+  changeTextContainStyle,
+} from '../lib/cmp/_lib/change-console-layout.js';
 import {
   LUX_LEAD_CRM_STAGES,
   activityKindLabel,
@@ -113,6 +129,7 @@ function formatHoursBand(low, high) {
 }
 
 export default function ChangeConsolePage() {
+  const router = useRouter();
   const [locale, setLocale] = useState('en');
   const [uiContext, setUiContext] = useState(null);
   const [session, setSession] = useState({ logged_in: false, level: 'anonymous', tenant_id: null });
@@ -155,6 +172,29 @@ export default function ChangeConsolePage() {
   const [luxReqPriority, setLuxReqPriority] = useState('Normal');
   const [luxReqBusy, setLuxReqBusy] = useState(false);
   const [luxReqStatus, setLuxReqStatus] = useState('');
+
+  const showChangeLayoutFixture =
+    process.env.NODE_ENV === 'development' && router.isReady && String(router.query.changeLayoutFixture || '') === '1';
+
+  const showChangeDebugBanner = router.isReady && String(router.query.debug || '') === '1';
+  const layoutDebugEnabled = router.isReady && String(router.query.layoutDebug || '') === '1';
+
+  const changeRootRef = useRef(null);
+  const layoutOutlineCleanupRef = useRef(() => {});
+  const [layoutDebugSnapshot, setLayoutDebugSnapshot] = useState(null);
+
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtml = html.style.overflowX;
+    const prevBody = body.style.overflowX;
+    html.style.overflowX = 'hidden';
+    body.style.overflowX = 'hidden';
+    return () => {
+      html.style.overflowX = prevHtml;
+      body.style.overflowX = prevBody;
+    };
+  }, []);
 
   useEffect(() => {
     try {
@@ -680,27 +720,30 @@ export default function ChangeConsolePage() {
   const showIntakeSurface = showIntakeSkin || forceRefine;
   const workflowStageLabel = ticket ? wfLabel : '—';
 
-  const page = {
+  const pageInner = {
     fontFamily: 'system-ui, Segoe UI, Roboto, sans-serif',
     padding: 24,
     maxWidth: 1200,
     margin: '0 auto',
+    width: '100%',
+    minWidth: 0,
+    boxSizing: 'border-box',
     color: '#e2e8f0',
   };
 
-  const card = {
+  const card = changePanelStyle({
     border: '1px solid rgba(148,163,184,0.25)',
     borderRadius: 16,
     background: 'rgba(2,6,23,0.55)',
     padding: 16,
-  };
+  });
 
-  const subtleCard = {
+  const subtleCard = changePanelStyle({
     border: '1px solid rgba(148,163,184,0.18)',
     borderRadius: 16,
     background: 'rgba(2,6,23,0.45)',
     padding: 16,
-  };
+  });
 
   const dollarsOur = cv?.actual_cost_to_client_usd ?? cv?.display_amount_usd ?? null;
   const dollarsMarket = cv?.market_reference_usd ?? cv?.full_market_value_usd ?? null;
@@ -727,8 +770,138 @@ export default function ChangeConsolePage() {
       (String(session.level || '').toLowerCase() === 'admin' || uiContext?.show_approve_build === true),
   );
 
+  useLayoutEffect(() => {
+    if (!layoutDebugEnabled || typeof window === 'undefined') {
+      layoutOutlineCleanupRef.current();
+      layoutOutlineCleanupRef.current = () => {};
+      setLayoutDebugSnapshot(null);
+      return undefined;
+    }
+
+    let cancelled = false;
+    let raf1 = 0;
+    let raf2 = 0;
+
+    const run = () => {
+      if (cancelled) return;
+      const root = changeRootRef.current;
+      if (!root) return;
+
+      layoutOutlineCleanupRef.current();
+      layoutOutlineCleanupRef.current = () => {};
+
+      const scan = scanHorizontalOverflow(root, window);
+      const snapshot = {
+        innerWidth: scan.innerWidth,
+        docScrollWidth: scan.docScrollWidth,
+        docClientWidth: scan.docClientWidth,
+        items: scan.items.map(({ element: _el, ...rest }) => rest),
+      };
+      setLayoutDebugSnapshot(snapshot);
+
+      try {
+        console.info('[layoutDebug]', snapshot);
+      } catch {
+        /* ignore */
+      }
+
+      try {
+        const cs = window.getComputedStyle(root);
+        console.info('[layoutDebug] changeRoot computed', {
+          display: cs.display,
+          width: cs.width,
+          minWidth: cs.minWidth,
+          maxWidth: cs.maxWidth,
+          overflowX: cs.overflowX,
+          whiteSpace: cs.whiteSpace,
+        });
+      } catch {
+        /* ignore */
+      }
+
+      const touched = [];
+      for (const it of scan.items) {
+        const el = it.element;
+        touched.push({ el, o: el.style.outline, oo: el.style.outlineOffset });
+        if (it.widerThanViewport) {
+          el.style.outline = '3px solid rgba(239,68,68,0.95)';
+        } else {
+          el.style.outline = '2px solid rgba(249,115,22,0.95)';
+        }
+        el.style.outlineOffset = '1px';
+      }
+      layoutOutlineCleanupRef.current = () => {
+        for (const t of touched) {
+          t.el.style.outline = t.o;
+          t.el.style.outlineOffset = t.oo;
+        }
+      };
+    };
+
+    const schedule = () => {
+      raf1 = window.requestAnimationFrame(() => {
+        run();
+        raf2 = window.requestAnimationFrame(run);
+      });
+    };
+
+    schedule();
+    const onResize = () => schedule();
+    window.addEventListener('resize', onResize);
+
+    return () => {
+      cancelled = true;
+      window.cancelAnimationFrame(raf1);
+      window.cancelAnimationFrame(raf2);
+      window.removeEventListener('resize', onResize);
+      layoutOutlineCleanupRef.current();
+      layoutOutlineCleanupRef.current = () => {};
+    };
+  }, [
+    layoutDebugEnabled,
+    router.isReady,
+    selectedTicketId,
+    ticket,
+    leads,
+    luxRequests,
+    showIntakeSurface,
+    isReadyForEstimate,
+    forceRefine,
+    clientDecisionLink,
+    error,
+    busy,
+  ]);
+
   return (
-    <div style={{ ...page, background: '#020617', minHeight: '100vh' }}>
+    <div ref={changeRootRef} style={changePageShellStyle({ background: '#020617', minHeight: '100vh' })}>
+      <div style={pageInner}>
+      {showChangeDebugBanner ? (
+        <div
+          style={{
+            marginBottom: 12,
+            padding: 12,
+            borderRadius: 12,
+            border: '1px solid rgba(251,191,36,0.45)',
+            background: 'rgba(251,191,36,0.08)',
+            fontSize: 11,
+            color: '#fef3c7',
+            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+            ...changeTextContainStyle({ whiteSpace: 'pre-wrap' }),
+          }}
+        >
+          {JSON.stringify(
+            {
+              layout_fix_version: CHANGE_LAYOUT_MARK_VERSION,
+              layout_instrumentation_id: CHANGE_LAYOUT_INSTRUMENTATION_ID,
+              expected_commit_prefix: CHANGE_LAYOUT_EXPECTED_COMMIT_PREFIX,
+              vercel_sha: process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA || null,
+              node_env: process.env.NODE_ENV,
+            },
+            null,
+            2,
+          )}
+        </div>
+      ) : null}
       <div style={{ marginBottom: 14 }}>
         <div style={{ fontSize: 24, fontWeight: 950, color: '#f8fafc' }}>Change Console</div>
         <div style={{ marginTop: 6, color: '#94a3b8', fontSize: 13, lineHeight: 1.45 }}>
@@ -736,9 +909,17 @@ export default function ChangeConsolePage() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: 14 }}>
-        <div style={card}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 320px) minmax(0, 1fr)',
+          gap: 14,
+          width: '100%',
+          minWidth: 0,
+        }}
+      >
+        <div style={{ ...card, minWidth: 0 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center', minWidth: 0 }}>
             <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
               OPERATOR QUEUE
             </div>
@@ -817,6 +998,10 @@ export default function ChangeConsolePage() {
                         background: active ? 'rgba(56,189,248,0.10)' : 'rgba(15,23,42,0.35)',
                         color: '#e2e8f0',
                         cursor: 'pointer',
+                        minWidth: 0,
+                        maxWidth: '100%',
+                        width: '100%',
+                        boxSizing: 'border-box',
                       }}
                     >
                       <div
@@ -824,11 +1009,20 @@ export default function ChangeConsolePage() {
                           fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
                           fontSize: 10,
                           color: '#94a3b8',
+                          ...changeTextContainStyle(),
                         }}
                       >
                         {id}
                       </div>
-                      <div style={{ marginTop: 6, fontSize: 12, color: '#e2e8f0', lineHeight: 1.35 }}>
+                      <div
+                        style={{
+                          marginTop: 6,
+                          fontSize: 12,
+                          color: '#e2e8f0',
+                          lineHeight: 1.35,
+                          ...changeTextContainStyle(),
+                        }}
+                      >
                         {String(t.requested_change || '—')}
                       </div>
                     </button>
@@ -845,14 +1039,24 @@ export default function ChangeConsolePage() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gap: 14 }}>
-          <div style={card}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
-              <div>
+        <div style={{ display: 'grid', gap: 14, minWidth: 0, width: '100%', maxWidth: '100%' }}>
+          <div style={{ ...card, minWidth: 0 }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                gap: 10,
+                flexWrap: 'wrap',
+                alignItems: 'flex-start',
+                minWidth: 0,
+                width: '100%',
+              }}
+            >
+              <div style={changeFlexMainChildStyle()}>
                 <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
                   STAGE
                 </div>
-                <div style={{ marginTop: 6, fontSize: 13, color: '#e2e8f0', lineHeight: 1.45 }}>
+                <div style={{ marginTop: 6, fontSize: 13, color: '#e2e8f0', lineHeight: 1.45, ...changeTextContainStyle() }}>
                   <div style={{ fontWeight: 800 }}>
                     Stage:{' '}
                     {selectedTicketId
@@ -867,13 +1071,14 @@ export default function ChangeConsolePage() {
                       fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
                       fontSize: 12,
                       color: '#94a3b8',
+                      ...changeTextContainStyle(),
                     }}
                   >
                     Ticket: {selectedTicketId || '—'}
                   </div>
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', flexShrink: 0 }}>
                 {stageTabs.map((s) => (
                   <button key={s} type="button" onClick={() => setStage(s)} style={pillStyle(stage === s)}>
                     {s}
@@ -943,12 +1148,16 @@ export default function ChangeConsolePage() {
                         value={clientDecisionLink}
                         style={{
                           width: '100%',
+                          maxWidth: '100%',
+                          minWidth: 0,
+                          boxSizing: 'border-box',
                           padding: 10,
                           borderRadius: 12,
                           border: '1px solid rgba(148,163,184,0.25)',
                           background: 'rgba(2,6,23,0.45)',
                           color: '#e2e8f0',
                           fontSize: 12,
+                          ...changeTextContainStyle(),
                         }}
                       />
                       {clientDecisionExpiresAt ? (
@@ -1023,12 +1232,16 @@ export default function ChangeConsolePage() {
                         value={clientDecisionLink}
                         style={{
                           width: '100%',
+                          maxWidth: '100%',
+                          minWidth: 0,
+                          boxSizing: 'border-box',
                           padding: 10,
                           borderRadius: 12,
                           border: '1px solid rgba(148,163,184,0.25)',
                           background: 'rgba(2,6,23,0.45)',
                           color: '#e2e8f0',
                           fontSize: 12,
+                          ...changeTextContainStyle(),
                         }}
                       />
                       {clientDecisionExpiresAt ? (
@@ -1062,11 +1275,11 @@ export default function ChangeConsolePage() {
                 </div>
               ) : null}
 
-              <div style={{ marginTop: 14, color: '#cbd5e1', fontSize: 13, lineHeight: 1.5 }}>
-                <div style={{ fontWeight: 900, color: '#e2e8f0' }}>
+              <div style={{ marginTop: 14, color: '#cbd5e1', fontSize: 13, lineHeight: 1.5, minWidth: 0, maxWidth: '100%' }}>
+                <div style={{ fontWeight: 900, color: '#e2e8f0', ...changeTextContainStyle() }}>
                   {selectedTicketId && ticket ? workflowStageLabel : stage}
                 </div>
-                <div style={{ marginTop: 6, color: '#94a3b8' }}>
+                <div style={{ marginTop: 6, color: '#94a3b8', ...changeTextContainStyle() }}>
                   Next:{' '}
                   {showIntakeSurface
                     ? 'Next step: Add or refine your request, then continue.'
@@ -1075,7 +1288,15 @@ export default function ChangeConsolePage() {
                     : String(ticket?.ticket_progress?.client_view?.workflow_next_action || '—')}
                 </div>
                 {ticket?.lux_programme_summary?.phase_2_status ? (
-                  <div style={{ marginTop: 8, fontSize: 12, color: '#94a3b8', lineHeight: 1.45 }}>
+                  <div
+                    style={{
+                      marginTop: 8,
+                      fontSize: 12,
+                      color: '#94a3b8',
+                      lineHeight: 1.45,
+                      ...changeTextContainStyle(),
+                    }}
+                  >
                     Programme: Phase 1 {String(ticket.lux_programme_summary.phase_1_status || '—')} · Phase 2{' '}
                     {String(ticket.lux_programme_summary.phase_2_status || '—')}
                     {ticket.lux_programme_summary.listing_approach
@@ -1088,8 +1309,8 @@ export default function ChangeConsolePage() {
           </div>
 
           {session.logged_in && isReadyForEstimate && !showIntakeSurface ? (
-            <div style={{ display: 'grid', gap: 14 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            <div style={{ display: 'grid', gap: 14, minWidth: 0, width: '100%', maxWidth: '100%' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 14, minWidth: 0 }}>
                 <div style={subtleCard}>
                   <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
                     ESTIMATE
@@ -1125,18 +1346,19 @@ export default function ChangeConsolePage() {
                   <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
                     BUDGET & BILLING
                   </div>
-                  <div style={{ marginTop: 10, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                  <div style={{ marginTop: 10, display: 'flex', gap: 10, alignItems: 'flex-start', minWidth: 0, width: '100%' }}>
                     <div
                       style={{
                         width: 10,
                         height: 10,
                         borderRadius: 999,
                         marginTop: 4,
+                        flexShrink: 0,
                         background: budgetAvailable ? '#22c55e' : budgetUnknown ? '#f59e0b' : '#64748b',
                         boxShadow: budgetAvailable ? '0 0 10px rgba(34,197,94,0.35)' : 'none',
                       }}
                     />
-                    <div style={{ fontSize: 12, color: '#cbd5e1', lineHeight: 1.45 }}>
+                    <div style={{ fontSize: 12, color: '#cbd5e1', lineHeight: 1.45, minWidth: 0, flex: '1 1 0%', ...changeTextContainStyle() }}>
                       <div style={{ fontWeight: 900, color: budgetAvailable ? '#86efac' : budgetUnknown ? '#fcd34d' : '#cbd5e1' }}>
                         {budgetAvailable
                           ? 'Budget is available'
@@ -1184,7 +1406,15 @@ export default function ChangeConsolePage() {
                 </div>
 
                 {hasEstimate ? (
-                  <div style={{ marginTop: 14, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                  <div
+                    style={{
+                      marginTop: 14,
+                      display: 'grid',
+                      gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
+                      gap: 14,
+                      minWidth: 0,
+                    }}
+                  >
                     <div
                       style={{
                         borderRadius: 14,
@@ -1309,7 +1539,7 @@ export default function ChangeConsolePage() {
           ) : null}
 
           {session.logged_in && (!isReadyForEstimate || showIntakeSurface) ? (
-            <div style={card}>
+            <div style={{ ...card, minWidth: 0 }}>
               {session.logged_in && (!selectedTicketId || showIntakeSurface) ? (
                 <div
                   style={{
@@ -1335,7 +1565,10 @@ export default function ChangeConsolePage() {
                 placeholder="Describe what you want changed in plain language…"
                 rows={showIntakeSurface ? 8 : 5}
                 style={{
+                  display: 'block',
                   width: '100%',
+                  maxWidth: '100%',
+                  minWidth: 0,
                   minHeight: showIntakeSurface ? 220 : 140,
                   padding: '12px 14px',
                   borderRadius: 14,
@@ -1345,7 +1578,7 @@ export default function ChangeConsolePage() {
                   fontSize: 13,
                   lineHeight: 1.45,
                   resize: 'vertical',
-                  boxSizing: 'border-box',
+                  ...changeTextContainStyle(),
                 }}
               />
               {showIntakeSurface ? (
@@ -1365,6 +1598,7 @@ export default function ChangeConsolePage() {
                       lineHeight: 1.5,
                       whiteSpace: 'pre-wrap',
                       minHeight: '4.5rem',
+                      ...changeTextContainStyle(),
                     }}
                   >
                     {ticket ? formatExistingRequestText(ticket) : '—'}
@@ -1412,21 +1646,20 @@ export default function ChangeConsolePage() {
           ) : null}
 
           {!showIntakeSurface && !isReadyForEstimate ? (
-            <div style={card}>
+            <div style={{ ...card, minWidth: 0 }}>
               <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
                 TICKET SNAPSHOT
               </div>
-              <div style={{ marginTop: 10 }}>
+              <div style={{ marginTop: 10, maxWidth: '100%', minWidth: 0, overflowX: 'hidden' }}>
                 <pre
                   style={{
-                    margin: 0,
                     padding: 12,
                     borderRadius: 14,
                     border: '1px solid rgba(148,163,184,0.18)',
                     background: 'rgba(2,6,23,0.45)',
-                    overflowX: 'auto',
                     fontSize: 12,
                     color: '#e2e8f0',
+                    ...changePreBlockStyle(),
                   }}
                 >
                   {JSON.stringify(
@@ -1451,7 +1684,7 @@ export default function ChangeConsolePage() {
           ) : null}
 
           {!showIntakeSurface && !isReadyForEstimate ? (
-          <div style={card}>
+          <div style={{ ...card, minWidth: 0 }}>
             <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
               LEADS
               {luxLeadCrmEnabled ? (
@@ -1496,14 +1729,17 @@ export default function ChangeConsolePage() {
                   gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
                   gap: 10,
                   alignItems: 'end',
+                  minWidth: 0,
+                  width: '100%',
                 }}
               >
-                <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4 }}>
+                <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4, minWidth: 0 }}>
                   Stage
                   <select
                     value={crmFilterStage}
                     onChange={(e) => setCrmFilterStage(e.target.value)}
                     style={{
+                      ...changeSelectContainStyle(),
                       padding: '6px 8px',
                       borderRadius: 10,
                       border: '1px solid rgba(148,163,184,0.25)',
@@ -1520,7 +1756,7 @@ export default function ChangeConsolePage() {
                     ))}
                   </select>
                 </label>
-                <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4 }}>
+                <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4, minWidth: 0 }}>
                   Owner contains
                   <input
                     list="crm-owner-hints"
@@ -1528,6 +1764,7 @@ export default function ChangeConsolePage() {
                     onChange={(e) => setCrmFilterOwner(e.target.value)}
                     placeholder="Filter by owner"
                     style={{
+                      ...changeSelectContainStyle(),
                       padding: '6px 8px',
                       borderRadius: 10,
                       border: '1px solid rgba(148,163,184,0.25)',
@@ -1542,13 +1779,14 @@ export default function ChangeConsolePage() {
                     ))}
                   </datalist>
                 </label>
-                <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4, gridColumn: 'span 2' }}>
+                <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4, gridColumn: 'span 2', minWidth: 0 }}>
                   Property (slug / title / ref)
                   <input
                     value={crmFilterProperty}
                     onChange={(e) => setCrmFilterProperty(e.target.value)}
                     placeholder="e.g. lm- or partial title"
                     style={{
+                      ...changeSelectContainStyle(),
                       padding: '6px 8px',
                       borderRadius: 10,
                       border: '1px solid rgba(148,163,184,0.25)',
@@ -1558,12 +1796,13 @@ export default function ChangeConsolePage() {
                     }}
                   />
                 </label>
-                <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4 }}>
+                <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4, minWidth: 0 }}>
                   Health
                   <select
                     value={crmFilterHealth}
                     onChange={(e) => setCrmFilterHealth(e.target.value)}
                     style={{
+                      ...changeSelectContainStyle(),
                       padding: '6px 8px',
                       borderRadius: 10,
                       border: '1px solid rgba(148,163,184,0.25)',
@@ -1585,7 +1824,7 @@ export default function ChangeConsolePage() {
                 Showing {crmVisibleLeads.length} of {leads.length} loaded leads
               </div>
             ) : null}
-            <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
+            <div style={{ marginTop: 10, display: 'grid', gap: 8, minWidth: 0, width: '100%' }}>
               {crmVisibleLeads.length ? (
                 crmVisibleLeads.map((lead) => {
                   const lid = String(lead.id || '');
@@ -1610,11 +1849,16 @@ export default function ChangeConsolePage() {
                         padding: 10,
                         color: 'inherit',
                         font: 'inherit',
+                        minWidth: 0,
+                        maxWidth: '100%',
+                        width: '100%',
+                        boxSizing: 'border-box',
+                        overflow: 'hidden',
                       }}
                     >
-                      <div style={{ fontSize: 12, fontWeight: 800, color: '#e2e8f0' }}>{String(lead.name || 'Lead')}</div>
-                      <div style={{ marginTop: 4, fontSize: 12, color: '#94a3b8' }}>{String(lead.contact || '—')}</div>
-                      <div style={{ marginTop: 6, fontSize: 10, color: '#64748b' }}>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: '#e2e8f0', ...changeTextContainStyle() }}>{String(lead.name || 'Lead')}</div>
+                      <div style={{ marginTop: 4, fontSize: 12, color: '#94a3b8', ...changeTextContainStyle() }}>{String(lead.contact || '—')}</div>
+                      <div style={{ marginTop: 6, fontSize: 10, color: '#64748b', ...changeTextContainStyle() }}>
                         Intent: <span style={{ color: '#94a3b8' }}>{intentLabel(lead.intent)}</span>
                         {lead.created_at ? (
                           <span style={{ display: 'block', marginTop: 2 }}>
@@ -1628,8 +1872,8 @@ export default function ChangeConsolePage() {
                         ) : null}
                       </div>
                       {luxLeadCrmEnabled && ow ? (
-                        <div style={{ marginTop: 8, fontSize: 11, color: '#a5f3fc', fontWeight: 750 }}>
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+                        <div style={{ marginTop: 8, fontSize: 11, color: '#a5f3fc', fontWeight: 750, ...changeTextContainStyle() }}>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center', minWidth: 0, maxWidth: '100%' }}>
                             <span>Stage: {String(ow.stage_label || luxLeadCrmStageLabel(ow.stage))}</span>
                             {ow.owner?.username ? (
                               <span
@@ -1693,17 +1937,17 @@ export default function ChangeConsolePage() {
                             ) : null}
                           </div>
                           {ow.next_action_at ? (
-                            <span style={{ display: 'block', marginTop: 6, fontWeight: 600, color: '#94a3b8' }}>
+                            <span style={{ display: 'block', marginTop: 6, fontWeight: 600, color: '#94a3b8', ...changeTextContainStyle() }}>
                               Next action: {new Date(ow.next_action_at).toLocaleString()}
                             </span>
                           ) : null}
                           {ow.follow_up_status ? (
-                            <span style={{ display: 'block', marginTop: 4, fontWeight: 600, color: '#94a3b8' }}>
+                            <span style={{ display: 'block', marginTop: 4, fontWeight: 600, color: '#94a3b8', ...changeTextContainStyle() }}>
                               Follow-up: {String(ow.follow_up_status)}
                             </span>
                           ) : null}
                           {ow.latest_note?.text ? (
-                            <span style={{ display: 'block', marginTop: 4, fontWeight: 600, color: '#cbd5e1' }}>
+                            <span style={{ display: 'block', marginTop: 4, fontWeight: 600, color: '#cbd5e1', ...changeTextContainStyle() }}>
                               Latest note: {String(ow.latest_note.text).slice(0, 160)}
                               {String(ow.latest_note.text).length > 160 ? '…' : ''}
                             </span>
@@ -1711,25 +1955,25 @@ export default function ChangeConsolePage() {
                         </div>
                       ) : null}
                       {lead.property_interest && lead.property_interest.title ? (
-                        <div style={{ marginTop: 6, fontSize: 11, color: '#bef264', lineHeight: 1.35 }}>
+                        <div style={{ marginTop: 6, fontSize: 11, color: '#bef264', lineHeight: 1.35, ...changeTextContainStyle() }}>
                           Property: {String(lead.property_interest.title)}
                           {lead.property_interest.slug ? ` · ref ${String(lead.property_interest.slug)}` : ''}
-                          <span style={{ display: 'block', marginTop: 4, color: '#86efac', fontSize: 10 }}>
+                          <span style={{ display: 'block', marginTop: 4, color: '#86efac', fontSize: 10, ...changeTextContainStyle() }}>
                             Discovery: {discoveryLabel(lead.property_interest.discovery_source)}
                           </span>
                           {lead.property_interest.price_range ? (
-                            <span style={{ display: 'block', marginTop: 2, color: '#a3e635', fontSize: 10 }}>
+                            <span style={{ display: 'block', marginTop: 2, color: '#a3e635', fontSize: 10, ...changeTextContainStyle() }}>
                               Range: {String(lead.property_interest.price_range)}
                             </span>
                           ) : null}
                         </div>
                       ) : lead.listing ? (
-                        <div style={{ marginTop: 6, fontSize: 11, color: '#bef264' }}>Listing ref: {String(lead.listing)}</div>
+                        <div style={{ marginTop: 6, fontSize: 11, color: '#bef264', ...changeTextContainStyle() }}>Listing ref: {String(lead.listing)}</div>
                       ) : null}
                       <div style={{ marginTop: 8, fontSize: 11, color: '#64748b', lineHeight: 1.35 }}>
                         Client message
                       </div>
-                      <div style={{ marginTop: 4, fontSize: 12, color: '#cbd5e1', lineHeight: 1.4 }}>{String(lead.message || '—')}</div>
+                      <div style={{ marginTop: 4, fontSize: 12, color: '#cbd5e1', lineHeight: 1.4, ...changeTextContainStyle() }}>{String(lead.message || '—')}</div>
                     </button>
                   );
                 })
@@ -1759,6 +2003,7 @@ export default function ChangeConsolePage() {
                     value={leadStageDraft}
                     onChange={(e) => setLeadStageDraft(e.target.value)}
                     style={{
+                      ...changeSelectContainStyle(),
                       padding: '8px 10px',
                       borderRadius: 10,
                       border: '1px solid rgba(148,163,184,0.25)',
@@ -1989,7 +2234,7 @@ export default function ChangeConsolePage() {
           ) : null}
 
           {!showIntakeSurface && !isReadyForEstimate && luxLeadCrmEnabled ? (
-            <div style={card}>
+            <div style={{ ...card, minWidth: 0 }}>
               <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
                 REQUEST SOMETHING NEW
               </div>
@@ -2006,6 +2251,7 @@ export default function ChangeConsolePage() {
                     value={luxReqType}
                     onChange={(e) => setLuxReqType(e.target.value)}
                     style={{
+                      ...changeSelectContainStyle(),
                       padding: '8px 10px',
                       borderRadius: 10,
                       border: '1px solid rgba(148,163,184,0.25)',
@@ -2030,6 +2276,7 @@ export default function ChangeConsolePage() {
                     value={luxReqPriority}
                     onChange={(e) => setLuxReqPriority(e.target.value)}
                     style={{
+                      ...changeSelectContainStyle(),
                       padding: '8px 10px',
                       borderRadius: 10,
                       border: '1px solid rgba(148,163,184,0.25)',
@@ -2175,9 +2422,20 @@ export default function ChangeConsolePage() {
                           cursor: 'pointer',
                         }}
                       >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline' }}>
-                          <div style={{ fontSize: 12, fontWeight: 850, color: '#e2e8f0' }}>{String(r.title || 'Request')}</div>
-                          <div style={{ fontSize: 10, color: '#64748b' }}>
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            gap: 10,
+                            alignItems: 'baseline',
+                            minWidth: 0,
+                            width: '100%',
+                          }}
+                        >
+                          <div style={{ ...changeFlexMainChildStyle(), fontSize: 12, fontWeight: 850, color: '#e2e8f0', ...changeTextContainStyle() }}>
+                            {String(r.title || 'Request')}
+                          </div>
+                          <div style={{ fontSize: 10, color: '#64748b', flexShrink: 0 }}>
                             {r.created_at ? new Date(r.created_at).toLocaleString() : ''}
                           </div>
                         </div>
@@ -2215,6 +2473,121 @@ export default function ChangeConsolePage() {
           {error}
         </div>
       ) : null}
+
+      {showChangeLayoutFixture ? (
+        <div style={{ ...changePanelStyle({ marginTop: 18, padding: 14 }) }}>
+          <div style={{ fontSize: 11, fontWeight: 900, color: '#fbbf24', letterSpacing: '0.06em' }}>
+            LAYOUT FIXTURE (dev only · ?changeLayoutFixture=1)
+          </div>
+          <div style={{ marginTop: 8, fontSize: 11, color: '#94a3b8', lineHeight: 1.45 }}>
+            Stress panel: long paths, URLs, JSON, and markdown should stay inside the page width.
+          </div>
+          <textarea
+            readOnly
+            value={CHANGE_LAYOUT_FIXTURE_LONG_LINE}
+            rows={8}
+            style={{
+              marginTop: 10,
+              width: '100%',
+              maxWidth: '100%',
+              minWidth: 0,
+              boxSizing: 'border-box',
+              ...changeTextContainStyle({ display: 'block' }),
+            }}
+          />
+          <pre
+            style={{
+              marginTop: 10,
+              padding: 12,
+              borderRadius: 12,
+              border: '1px solid rgba(148,163,184,0.2)',
+              background: 'rgba(2,6,23,0.5)',
+              fontSize: 11,
+              color: '#e2e8f0',
+              ...changePreBlockStyle(),
+            }}
+          >
+            {CHANGE_LAYOUT_FIXTURE_LONG_LINE}
+          </pre>
+        </div>
+      ) : null}
+
+      {layoutDebugEnabled && layoutDebugSnapshot ? (
+        <div
+          data-layout-debug-overlay="1"
+          style={{
+            position: 'fixed',
+            bottom: 12,
+            right: 12,
+            zIndex: 99999,
+            maxWidth: 'min(560px, calc(100vw - 24px))',
+            maxHeight: '42vh',
+            overflow: 'auto',
+            padding: 12,
+            borderRadius: 12,
+            border: '1px solid rgba(56,189,248,0.45)',
+            background: 'rgba(2,6,23,0.92)',
+            boxShadow: '0 12px 40px rgba(0,0,0,0.45)',
+            fontSize: 11,
+            color: '#e2e8f0',
+            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+          }}
+        >
+          <div style={{ fontWeight: 950, color: '#7dd3fc', marginBottom: 8 }}>?layoutDebug=1</div>
+          <div style={{ ...changeTextContainStyle({ whiteSpace: 'pre-wrap', marginBottom: 8 }) }}>
+            {JSON.stringify(
+              {
+                docScrollWidth: layoutDebugSnapshot.docScrollWidth,
+                docClientWidth: layoutDebugSnapshot.docClientWidth,
+                innerWidth: layoutDebugSnapshot.innerWidth,
+                docOverflowPx: layoutDebugSnapshot.docScrollWidth - layoutDebugSnapshot.innerWidth,
+              },
+              null,
+              2,
+            )}
+          </div>
+          <div style={{ fontSize: 10, color: '#94a3b8', marginBottom: 6 }}>
+            Red outline: wider than viewport · Orange: internal scroll (scrollWidth {'>'} clientWidth+5)
+          </div>
+          <div style={{ display: 'grid', gap: 6 }}>
+            {(layoutDebugSnapshot.items || []).slice(0, 40).map((row, idx) => (
+              <div
+                key={`${row.path}-${idx}`}
+                style={{
+                  padding: 8,
+                  borderRadius: 10,
+                  border: '1px solid rgba(148,163,184,0.22)',
+                  background: 'rgba(15,23,42,0.55)',
+                  ...changeTextContainStyle(),
+                }}
+              >
+                <div style={{ color: '#fde68a', fontWeight: 800 }}>
+                  {row.widerThanViewport ? 'VIEWPORT ' : ''}
+                  {row.internalOverflow ? 'INTERNAL ' : ''}
+                  {'<'}
+                  {row.tag}
+                  {'>'}
+                </div>
+                <div style={{ marginTop: 4, color: '#cbd5e1', wordBreak: 'break-all' }}>{row.path}</div>
+                <div style={{ marginTop: 4, fontSize: 10, color: '#64748b' }}>
+                  cw:{row.clientWidth} sw:{row.scrollWidth} rectW:{Math.round(row.rectWidth)} rectR:
+                  {Math.round(row.rectRight)}
+                </div>
+                {row.className ? (
+                  <div style={{ marginTop: 4, fontSize: 10, color: '#64748b' }}>class: {row.className}</div>
+                ) : null}
+                {row.styleHint ? (
+                  <div style={{ marginTop: 4, fontSize: 10, color: '#64748b' }}>{row.styleHint}</div>
+                ) : null}
+                {row.textSample ? (
+                  <div style={{ marginTop: 4, fontSize: 10, color: '#94a3b8' }}>{row.textSample}</div>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+      </div>
     </div>
   );
 }
