@@ -102,7 +102,20 @@ Each phase below must be represented in the ticket’s narrative and acceptance 
 - **Surface**: Lux tenant session only on `https://lux.corpflowai.com/change` (operator authenticated). Not on public pages.
 - **Model**: creates a **new CMP ticket** scoped to tenant `luxe-maurice` with `console_json.parent_programme_ticket = cmo8mjijk0000jl04l1jz0v6d` and `console_json.lux_request_meta` (type/priority/property reference).
 - **Defaults**: `stage=Intake`, `status=Open`, `workflow_state=awaiting_operator_review`.
-- **Scope exclusions**: not a full PM system — no comments/threads, uploads, notifications, Kanban, email/SMS/WhatsApp sending, automation, AI, or external integrations.
+- **Scope exclusions**: not a full PM system — no comments/threads, notifications, Kanban, email/SMS/WhatsApp sending, automation, AI, or external integrations. Uploads are scoped separately under Phase 4C.
+
+### Phase 4C — Request attachments (private, operator-only)
+
+- **Purpose**: allow Lux operators (and authenticated Lux clients on `/change`) to attach images, video, or PDF to a Lux client-request ticket so the operator has the source material when scoping work.
+- **Surface**: `https://lux.corpflowai.com/change` only. Bytes live in `cmp_ticket_attachments` (already deployed); per-attachment metadata lives in `console_json.lux_request_meta.attachments[]` (Phase 4C.1).
+- **Scope exclusions**: nothing here publishes media to the public Lux site or builds galleries/CDNs/automation/AI.
+
+### Phase 4C.1 — Operator media review
+
+- **Purpose**: give the operator a clear, audited path to mark each uploaded attachment as `pending_review` → `reviewed` → `rejected` with an optional note, before any approved media is reused on the public site (which itself remains a separate, deferred phase).
+- **Surface**: Attachments panel on `/change` for the selected Lux client-request ticket; new CMP action `lux-attachment-review-set` (Lux tenant + Lux host only).
+- **Persistence**: review state writes to `console_json.lux_request_meta.attachments[<id>]` (`review_status`, `review_note`, `reviewed_at`, `reviewed_by`) and appends a `lux_attachment_review` message to `console_json.messages[]`.
+- **Production verification**: see **`docs/LUX/LUX_PHASE4C_ATTACHMENT_REVIEW.md`** for the operator verification checklist (upload, status round-trip, tenant isolation, no public exposure).
 
 ### Phase 5 — Production reality gate and client handoff
 
@@ -135,4 +148,5 @@ Each phase below must be represented in the ticket’s narrative and acceptance 
 - Phase 2 first-slice acceptance (ticket `cmo8mjijk0000jl04l1jz0v6d`): `docs/LUX/LUX_PHASE2_FIRST_SLICE_ACCEPTANCE.md`
 - Phase 2D manual property workflow: `docs/LUX/LUX_PHASE2D_MANUAL_PROPERTY_WORKFLOW.md`
 - Phase 3 CRM first slice + 3A.5 (LuxeMaurice): `docs/LUX/LUX_PHASE3_FIRST_CRM_SLICE.md`
+- Phase 4C / 4C.1 attachment review (operator-only): `docs/LUX/LUX_PHASE4C_ATTACHMENT_REVIEW.md`
 

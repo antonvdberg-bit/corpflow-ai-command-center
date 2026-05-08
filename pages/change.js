@@ -173,6 +173,13 @@ export default function ChangeConsolePage() {
   const [luxReqBusy, setLuxReqBusy] = useState(false);
   const [luxReqStatus, setLuxReqStatus] = useState('');
 
+  const [attachments, setAttachments] = useState([]);
+  const [attachmentsTicketId, setAttachmentsTicketId] = useState('');
+  const [attachmentsBusy, setAttachmentsBusy] = useState(false);
+  const [attachmentsError, setAttachmentsError] = useState('');
+  const [attachmentReviewBusyId, setAttachmentReviewBusyId] = useState('');
+  const [attachmentReviewNoteDrafts, setAttachmentReviewNoteDrafts] = useState({});
+
   const showChangeLayoutFixture =
     process.env.NODE_ENV === 'development' && router.isReady && String(router.query.changeLayoutFixture || '') === '1';
 
@@ -265,6 +272,85 @@ export default function ChangeConsolePage() {
     const rows = Array.isArray(j.requests) ? j.requests : [];
     setLuxRequests(rows);
     return rows;
+  }
+
+  async function loadAttachmentsForTicket(tid) {
+    const id = String(tid || '').trim();
+    if (!id) {
+      setAttachments([]);
+      setAttachmentsTicketId('');
+      return [];
+    }
+    setAttachmentsBusy(true);
+    setAttachmentsError('');
+    try {
+      const r = await fetch('/api/change-attachment/list?ticket_id=' + encodeURIComponent(id), {
+        credentials: 'include',
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        if (r.status === 401) {
+          setAttachmentsError('Your session expired. Please refresh and log in again.');
+        } else if (r.status === 404) {
+          setAttachmentsError('Ticket not found, or attachment access is denied for this tenant.');
+        } else {
+          setAttachmentsError(String(j?.error || j?.detail || j?.hint || `http_${r.status}`));
+        }
+        setAttachments([]);
+        setAttachmentsTicketId(id);
+        return [];
+      }
+      const rows = Array.isArray(j.attachments) ? j.attachments : [];
+      setAttachments(rows);
+      setAttachmentsTicketId(id);
+      return rows;
+    } catch (e) {
+      setAttachmentsError(String(e?.message || e));
+      setAttachments([]);
+      setAttachmentsTicketId(id);
+      return [];
+    } finally {
+      setAttachmentsBusy(false);
+    }
+  }
+
+  async function submitAttachmentReview(attachmentId, reviewStatus) {
+    const tid = String(selectedTicketId || '').trim();
+    const aid = String(attachmentId || '').trim();
+    if (!tid || !aid) return;
+    setAttachmentReviewBusyId(aid);
+    setAttachmentsError('');
+    try {
+      const note = (attachmentReviewNoteDrafts && attachmentReviewNoteDrafts[aid]) || '';
+      const r = await fetch('/api/cmp/router?action=lux-attachment-review-set', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ticket_id: tid,
+          attachment_id: aid,
+          review_status: reviewStatus,
+          review_note: String(note || '').trim() || null,
+        }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        const msg = String(j?.error || j?.detail || j?.hint || '').trim();
+        if (r.status === 403 && msg.toLowerCase().includes('dormant gate')) {
+          throw new Error('Your session expired. Please refresh and log in again.');
+        }
+        throw new Error(msg || `http_${r.status}`);
+      }
+      // Optimistic local update from server response, then refresh to be safe.
+      if (j?.attachment) {
+        setAttachments((prev) => prev.map((row) => (row.attachment_id === aid ? j.attachment : row)));
+      }
+      await loadAttachmentsForTicket(tid);
+    } catch (e) {
+      setAttachmentsError(String(e?.message || e));
+    } finally {
+      setAttachmentReviewBusyId('');
+    }
   }
 
   async function submitLuxRequest() {
@@ -536,6 +622,19 @@ export default function ChangeConsolePage() {
     const d = ticket.description != null ? String(ticket.description) : '';
     setRequestDraft(d);
   }, [selectedTicketId, ticket]);
+
+  useEffect(() => {
+    const tid = String(selectedTicketId || '').trim();
+    if (!tid) {
+      setAttachments([]);
+      setAttachmentsTicketId('');
+      setAttachmentsError('');
+      return;
+    }
+    if (attachmentsTicketId === tid) return;
+    void loadAttachmentsForTicket(tid);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTicketId]);
 
   async function onSelectTicket(id) {
     setError('');
@@ -1683,6 +1782,251 @@ export default function ChangeConsolePage() {
             </div>
           ) : null}
 
+          {!showIntakeSurface && !isReadyForEstimate && selectedTicketId && attachments.length > 0 ? (
+            <div style={{ ...card, minWidth: 0 }}>
+              <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
+                ATTACHMENTS
+                <span style={{ marginLeft: 8, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.04em' }}>
+                  · operator review
+                </span>
+              </div>
+              <div style={{ marginTop: 6, fontSize: 11, color: '#64748b' }}>
+                Private to this tenant · never published until reviewed.
+              </div>
+              {attachmentsBusy ? (
+                <div style={{ marginTop: 10, fontSize: 12, color: '#94a3b8' }}>Loading attachments…</div>
+              ) : null}
+              {attachmentsError ? (
+                <div
+                  style={{
+                    marginTop: 10,
+                    padding: '8px 10px',
+                    borderRadius: 10,
+                    border: '1px solid rgba(244,63,94,0.35)',
+                    background: 'rgba(244,63,94,0.10)',
+                    color: '#fecdd3',
+                    fontSize: 12,
+                    ...changeTextContainStyle(),
+                  }}
+                >
+                  {attachmentsError}
+                </div>
+              ) : null}
+              <div style={{ marginTop: 10, display: 'grid', gap: 10 }}>
+                {attachments.map((a) => {
+                  const aid = String(a.attachment_id || a.id || '');
+                  const isLuxMeta = a.attachment_id != null;
+                  const status = String(a.review_status || (isLuxMeta ? 'pending_review' : '')).toLowerCase();
+                  const statusBadge =
+                    status === 'reviewed'
+                      ? { bg: 'rgba(34,197,94,0.12)', border: 'rgba(34,197,94,0.35)', color: '#dcfce7', label: 'Reviewed' }
+                      : status === 'rejected'
+                        ? { bg: 'rgba(244,63,94,0.10)', border: 'rgba(244,63,94,0.35)', color: '#fecdd3', label: 'Rejected' }
+                        : status === 'pending_review'
+                          ? { bg: 'rgba(250,204,21,0.10)', border: 'rgba(250,204,21,0.35)', color: '#fef08a', label: 'Pending review' }
+                          : { bg: 'rgba(148,163,184,0.10)', border: 'rgba(148,163,184,0.25)', color: '#cbd5e1', label: 'Untracked' };
+                  const sizeKb = Number.isFinite(Number(a.byte_size)) ? Math.round(Number(a.byte_size) / 1024) : null;
+                  const isReviewBusy = attachmentReviewBusyId === aid;
+                  return (
+                    <div
+                      key={aid}
+                      style={{
+                        border: '1px solid rgba(148,163,184,0.18)',
+                        borderRadius: 12,
+                        background: 'rgba(2,6,23,0.45)',
+                        padding: 12,
+                        minWidth: 0,
+                        ...changeTextContainStyle(),
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          justifyContent: 'space-between',
+                          gap: 10,
+                          alignItems: 'baseline',
+                        }}
+                      >
+                        <div style={{ minWidth: 0, fontSize: 13, fontWeight: 800, color: '#e2e8f0', ...changeTextContainStyle() }}>
+                          {String(a.file_name || 'upload')}
+                        </div>
+                        <span
+                          style={{
+                            fontSize: 10,
+                            fontWeight: 800,
+                            padding: '4px 8px',
+                            borderRadius: 999,
+                            border: `1px solid ${statusBadge.border}`,
+                            background: statusBadge.bg,
+                            color: statusBadge.color,
+                            letterSpacing: '0.04em',
+                            textTransform: 'uppercase',
+                            flexShrink: 0,
+                          }}
+                        >
+                          {statusBadge.label}
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          marginTop: 6,
+                          fontSize: 11,
+                          color: '#94a3b8',
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: 8,
+                        }}
+                      >
+                        {a.media_type ? <span>Type: {String(a.media_type)}</span> : null}
+                        {a.content_type ? <span>MIME: {String(a.content_type)}</span> : null}
+                        {sizeKb != null ? <span>Size: {sizeKb} KB</span> : null}
+                        {a.intended_use ? <span>Use: {String(a.intended_use).replaceAll('_', ' ')}</span> : null}
+                        {a.created_at ? <span>Added: {new Date(a.created_at).toLocaleString()}</span> : null}
+                      </div>
+                      {a.notes ? (
+                        <div
+                          style={{
+                            marginTop: 8,
+                            fontSize: 12,
+                            color: '#e2e8f0',
+                            whiteSpace: 'pre-wrap',
+                            ...changeTextContainStyle(),
+                          }}
+                        >
+                          <span style={{ color: '#94a3b8' }}>Notes: </span>
+                          {String(a.notes)}
+                        </div>
+                      ) : null}
+                      {a.review_status === 'reviewed' || a.review_status === 'rejected' ? (
+                        <div style={{ marginTop: 6, fontSize: 11, color: '#94a3b8' }}>
+                          {a.reviewed_by ? <span>Reviewed by {String(a.reviewed_by)}</span> : null}
+                          {a.reviewed_at ? <span> · {new Date(a.reviewed_at).toLocaleString()}</span> : null}
+                          {a.review_note ? (
+                            <div
+                              style={{
+                                marginTop: 4,
+                                color: '#cbd5e1',
+                                whiteSpace: 'pre-wrap',
+                                ...changeTextContainStyle(),
+                              }}
+                            >
+                              "{String(a.review_note)}"
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : null}
+                      <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                        {a.download_url ? (
+                          <a
+                            href={String(a.download_url)}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{
+                              padding: '8px 12px',
+                              borderRadius: 10,
+                              border: '1px solid rgba(56,189,248,0.35)',
+                              background: 'rgba(14,165,233,0.10)',
+                              color: '#bae6fd',
+                              fontWeight: 800,
+                              fontSize: 12,
+                              textDecoration: 'none',
+                            }}
+                          >
+                            View / download
+                          </a>
+                        ) : null}
+                      </div>
+                      {isLuxMeta ? (
+                        <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
+                          <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4 }}>
+                            Review note (optional)
+                            <textarea
+                              value={attachmentReviewNoteDrafts[aid] || ''}
+                              onChange={(e) =>
+                                setAttachmentReviewNoteDrafts((prev) => ({ ...prev, [aid]: e.target.value }))
+                              }
+                              rows={2}
+                              maxLength={1000}
+                              placeholder="Why reviewed/rejected; constraints; follow-up needed."
+                              style={{
+                                padding: '8px 10px',
+                                borderRadius: 10,
+                                border: '1px solid rgba(148,163,184,0.25)',
+                                background: 'rgba(2,6,23,0.65)',
+                                color: '#e2e8f0',
+                                fontSize: 12,
+                                resize: 'vertical',
+                                ...changeTextContainStyle(),
+                              }}
+                            />
+                          </label>
+                          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                            <button
+                              type="button"
+                              disabled={isReviewBusy}
+                              onClick={() => void submitAttachmentReview(aid, 'reviewed')}
+                              style={{
+                                padding: '8px 12px',
+                                borderRadius: 10,
+                                border: '1px solid rgba(34,197,94,0.35)',
+                                background: 'rgba(34,197,94,0.12)',
+                                color: '#dcfce7',
+                                fontWeight: 800,
+                                fontSize: 12,
+                                cursor: isReviewBusy ? 'not-allowed' : 'pointer',
+                              }}
+                            >
+                              Mark reviewed
+                            </button>
+                            <button
+                              type="button"
+                              disabled={isReviewBusy}
+                              onClick={() => void submitAttachmentReview(aid, 'rejected')}
+                              style={{
+                                padding: '8px 12px',
+                                borderRadius: 10,
+                                border: '1px solid rgba(244,63,94,0.35)',
+                                background: 'rgba(244,63,94,0.10)',
+                                color: '#fecdd3',
+                                fontWeight: 800,
+                                fontSize: 12,
+                                cursor: isReviewBusy ? 'not-allowed' : 'pointer',
+                              }}
+                            >
+                              Reject
+                            </button>
+                            <button
+                              type="button"
+                              disabled={isReviewBusy}
+                              onClick={() => void submitAttachmentReview(aid, 'pending_review')}
+                              style={{
+                                padding: '8px 12px',
+                                borderRadius: 10,
+                                border: '1px solid rgba(148,163,184,0.35)',
+                                background: 'rgba(15,23,42,0.55)',
+                                color: '#e2e8f0',
+                                fontWeight: 800,
+                                fontSize: 12,
+                                cursor: isReviewBusy ? 'not-allowed' : 'pointer',
+                              }}
+                            >
+                              Reset to pending
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ marginTop: 8, fontSize: 11, color: '#94a3b8' }}>
+                          Operator review is only available on Lux client-request tickets.
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+
           {!showIntakeSurface && !isReadyForEstimate ? (
           <div style={{ ...card, minWidth: 0 }}>
             <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
@@ -2344,6 +2688,21 @@ export default function ChangeConsolePage() {
                   }}
                 />
               </label>
+
+              <div
+                style={{
+                  marginTop: 10,
+                  padding: '10px 12px',
+                  borderRadius: 12,
+                  border: '1px solid rgba(56,189,248,0.22)',
+                  background: 'rgba(14,165,233,0.06)',
+                  color: '#bae6fd',
+                  fontSize: 12,
+                  lineHeight: 1.45,
+                }}
+              >
+                Uploaded media is private and reviewed by an operator before it is used on the public site.
+              </div>
 
               <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <button
