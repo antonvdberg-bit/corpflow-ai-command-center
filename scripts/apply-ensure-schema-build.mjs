@@ -8,6 +8,7 @@
 import { PrismaClient } from '@prisma/client';
 
 import {
+  deriveNonPoolingUrlFromNeonPooler,
   formatEnsureSchemaStatementLabel,
   resolvePostgresUrlForEnsureSchemaDdl,
 } from '../lib/server/postgres-ensure-schema-connection.js';
@@ -39,8 +40,12 @@ function resolveBuildPostgresUrl() {
       process.env.POSTGRES_PRISMA_URL ||
       '',
   ).trim();
-  const url = nonPool || pooled;
-  return { url, urlMode: nonPool ? 'non_pooling' : pooled ? 'pooled' : 'none' };
+  const derived = !nonPool && pooled ? deriveNonPoolingUrlFromNeonPooler(pooled) : '';
+  const url = nonPool || derived || pooled;
+  return {
+    url,
+    urlMode: nonPool ? 'non_pooling' : derived ? 'derived_non_pooling' : pooled ? 'pooled' : 'none',
+  };
 }
 
 async function main() {
