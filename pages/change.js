@@ -805,6 +805,20 @@ export default function ChangeConsolePage() {
         /* ignore */
       }
 
+      try {
+        const cs = window.getComputedStyle(root);
+        console.info('[layoutDebug] changeRoot computed', {
+          display: cs.display,
+          width: cs.width,
+          minWidth: cs.minWidth,
+          maxWidth: cs.maxWidth,
+          overflowX: cs.overflowX,
+          whiteSpace: cs.whiteSpace,
+        });
+      } catch {
+        /* ignore */
+      }
+
       const touched = [];
       for (const it of scan.items) {
         const el = it.element;
@@ -1719,7 +1733,7 @@ export default function ChangeConsolePage() {
                   width: '100%',
                 }}
               >
-                <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4 }}>
+                <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4, minWidth: 0 }}>
                   Stage
                   <select
                     value={crmFilterStage}
@@ -1742,7 +1756,7 @@ export default function ChangeConsolePage() {
                     ))}
                   </select>
                 </label>
-                <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4 }}>
+                <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4, minWidth: 0 }}>
                   Owner contains
                   <input
                     list="crm-owner-hints"
@@ -1750,6 +1764,7 @@ export default function ChangeConsolePage() {
                     onChange={(e) => setCrmFilterOwner(e.target.value)}
                     placeholder="Filter by owner"
                     style={{
+                      ...changeSelectContainStyle(),
                       padding: '6px 8px',
                       borderRadius: 10,
                       border: '1px solid rgba(148,163,184,0.25)',
@@ -1764,13 +1779,14 @@ export default function ChangeConsolePage() {
                     ))}
                   </datalist>
                 </label>
-                <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4, gridColumn: 'span 2' }}>
+                <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4, gridColumn: 'span 2', minWidth: 0 }}>
                   Property (slug / title / ref)
                   <input
                     value={crmFilterProperty}
                     onChange={(e) => setCrmFilterProperty(e.target.value)}
                     placeholder="e.g. lm- or partial title"
                     style={{
+                      ...changeSelectContainStyle(),
                       padding: '6px 8px',
                       borderRadius: 10,
                       border: '1px solid rgba(148,163,184,0.25)',
@@ -1780,7 +1796,7 @@ export default function ChangeConsolePage() {
                     }}
                   />
                 </label>
-                <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4 }}>
+                <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4, minWidth: 0 }}>
                   Health
                   <select
                     value={crmFilterHealth}
@@ -1808,7 +1824,7 @@ export default function ChangeConsolePage() {
                 Showing {crmVisibleLeads.length} of {leads.length} loaded leads
               </div>
             ) : null}
-            <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
+            <div style={{ marginTop: 10, display: 'grid', gap: 8, minWidth: 0, width: '100%' }}>
               {crmVisibleLeads.length ? (
                 crmVisibleLeads.map((lead) => {
                   const lid = String(lead.id || '');
@@ -1833,11 +1849,16 @@ export default function ChangeConsolePage() {
                         padding: 10,
                         color: 'inherit',
                         font: 'inherit',
+                        minWidth: 0,
+                        maxWidth: '100%',
+                        width: '100%',
+                        boxSizing: 'border-box',
+                        overflow: 'hidden',
                       }}
                     >
-                      <div style={{ fontSize: 12, fontWeight: 800, color: '#e2e8f0' }}>{String(lead.name || 'Lead')}</div>
-                      <div style={{ marginTop: 4, fontSize: 12, color: '#94a3b8' }}>{String(lead.contact || '—')}</div>
-                      <div style={{ marginTop: 6, fontSize: 10, color: '#64748b' }}>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: '#e2e8f0', ...changeTextContainStyle() }}>{String(lead.name || 'Lead')}</div>
+                      <div style={{ marginTop: 4, fontSize: 12, color: '#94a3b8', ...changeTextContainStyle() }}>{String(lead.contact || '—')}</div>
+                      <div style={{ marginTop: 6, fontSize: 10, color: '#64748b', ...changeTextContainStyle() }}>
                         Intent: <span style={{ color: '#94a3b8' }}>{intentLabel(lead.intent)}</span>
                         {lead.created_at ? (
                           <span style={{ display: 'block', marginTop: 2 }}>
@@ -1851,8 +1872,8 @@ export default function ChangeConsolePage() {
                         ) : null}
                       </div>
                       {luxLeadCrmEnabled && ow ? (
-                        <div style={{ marginTop: 8, fontSize: 11, color: '#a5f3fc', fontWeight: 750 }}>
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+                        <div style={{ marginTop: 8, fontSize: 11, color: '#a5f3fc', fontWeight: 750, ...changeTextContainStyle() }}>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center', minWidth: 0, maxWidth: '100%' }}>
                             <span>Stage: {String(ow.stage_label || luxLeadCrmStageLabel(ow.stage))}</span>
                             {ow.owner?.username ? (
                               <span
@@ -1916,17 +1937,17 @@ export default function ChangeConsolePage() {
                             ) : null}
                           </div>
                           {ow.next_action_at ? (
-                            <span style={{ display: 'block', marginTop: 6, fontWeight: 600, color: '#94a3b8' }}>
+                            <span style={{ display: 'block', marginTop: 6, fontWeight: 600, color: '#94a3b8', ...changeTextContainStyle() }}>
                               Next action: {new Date(ow.next_action_at).toLocaleString()}
                             </span>
                           ) : null}
                           {ow.follow_up_status ? (
-                            <span style={{ display: 'block', marginTop: 4, fontWeight: 600, color: '#94a3b8' }}>
+                            <span style={{ display: 'block', marginTop: 4, fontWeight: 600, color: '#94a3b8', ...changeTextContainStyle() }}>
                               Follow-up: {String(ow.follow_up_status)}
                             </span>
                           ) : null}
                           {ow.latest_note?.text ? (
-                            <span style={{ display: 'block', marginTop: 4, fontWeight: 600, color: '#cbd5e1' }}>
+                            <span style={{ display: 'block', marginTop: 4, fontWeight: 600, color: '#cbd5e1', ...changeTextContainStyle() }}>
                               Latest note: {String(ow.latest_note.text).slice(0, 160)}
                               {String(ow.latest_note.text).length > 160 ? '…' : ''}
                             </span>
@@ -1934,25 +1955,25 @@ export default function ChangeConsolePage() {
                         </div>
                       ) : null}
                       {lead.property_interest && lead.property_interest.title ? (
-                        <div style={{ marginTop: 6, fontSize: 11, color: '#bef264', lineHeight: 1.35 }}>
+                        <div style={{ marginTop: 6, fontSize: 11, color: '#bef264', lineHeight: 1.35, ...changeTextContainStyle() }}>
                           Property: {String(lead.property_interest.title)}
                           {lead.property_interest.slug ? ` · ref ${String(lead.property_interest.slug)}` : ''}
-                          <span style={{ display: 'block', marginTop: 4, color: '#86efac', fontSize: 10 }}>
+                          <span style={{ display: 'block', marginTop: 4, color: '#86efac', fontSize: 10, ...changeTextContainStyle() }}>
                             Discovery: {discoveryLabel(lead.property_interest.discovery_source)}
                           </span>
                           {lead.property_interest.price_range ? (
-                            <span style={{ display: 'block', marginTop: 2, color: '#a3e635', fontSize: 10 }}>
+                            <span style={{ display: 'block', marginTop: 2, color: '#a3e635', fontSize: 10, ...changeTextContainStyle() }}>
                               Range: {String(lead.property_interest.price_range)}
                             </span>
                           ) : null}
                         </div>
                       ) : lead.listing ? (
-                        <div style={{ marginTop: 6, fontSize: 11, color: '#bef264' }}>Listing ref: {String(lead.listing)}</div>
+                        <div style={{ marginTop: 6, fontSize: 11, color: '#bef264', ...changeTextContainStyle() }}>Listing ref: {String(lead.listing)}</div>
                       ) : null}
                       <div style={{ marginTop: 8, fontSize: 11, color: '#64748b', lineHeight: 1.35 }}>
                         Client message
                       </div>
-                      <div style={{ marginTop: 4, fontSize: 12, color: '#cbd5e1', lineHeight: 1.4 }}>{String(lead.message || '—')}</div>
+                      <div style={{ marginTop: 4, fontSize: 12, color: '#cbd5e1', lineHeight: 1.4, ...changeTextContainStyle() }}>{String(lead.message || '—')}</div>
                     </button>
                   );
                 })

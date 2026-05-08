@@ -9,10 +9,10 @@ import {
   changeTextContainStyle,
 } from '../lib/cmp/_lib/change-console-layout.js';
 
-test('changePageShellStyle clamps viewport width and hides horizontal spill', () => {
+test('changePageShellStyle uses 100% max-width (not 100vw) to avoid scrollbar-induced overflow', () => {
   const s = changePageShellStyle({ padding: 24 });
   assert.equal(s.width, '100%');
-  assert.equal(s.maxWidth, '100vw');
+  assert.equal(s.maxWidth, '100%');
   assert.equal(s.overflowX, 'hidden');
   assert.equal(s.boxSizing, 'border-box');
   assert.equal(s.padding, 24);
