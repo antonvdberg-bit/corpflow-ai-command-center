@@ -106,6 +106,53 @@ When a Lux client-request ticket is selected and has at least one attachment, an
 
 Attachments are loaded automatically when the selected ticket changes. The list refreshes after a successful review action.
 
+## Phase 4C.2 — reviewed media → property linkage (private)
+
+Goal: allow operators to associate **reviewed** attachments with LuxeMaurice property records so future, governed publishing workflows can draw only from approved assets.
+
+Rules (non-negotiable):
+
+- **Reviewed-only**: only attachments with `review_status === "reviewed"` may be linked.
+- **Lux-only + operator-only**: called only from authenticated Lux tenant session on `lux.corpflowai.com` and guarded by Dormant Gate.
+- **Private**: no public rendering, no public URLs, no binary duplication. Phase 4C.2 only writes metadata on the ticket.
+- **Host-derived tenant scope**: no `tenant_id` accepted from the client.
+
+### Persistence model
+
+Stored only inside the matching attachment metadata entry:
+
+`console_json.lux_request_meta.attachments[].property_links[]`
+
+Shape:
+
+```json
+{
+  "property_slug": "lm-phase2d-manual-demo",
+  "property_title": "…",
+  "intended_slot": "hero",
+  "linked_at": "2026-05-09T00:00:00.000Z",
+  "linked_by": "lux-smoke@corpflowai.com",
+  "link_note": "Optional operator note"
+}
+```
+
+Allowed `intended_slot` values: `hero`, `card`, `detail`, `gallery`, `reference`.
+
+### API actions (operator)
+
+- `POST /api/cmp/router?action=lux-attachment-property-link-set`
+  - Body: `{ ticket_id, attachment_id, property_slug, intended_slot, link_note? }`
+  - Validates `property_slug` via `resolveLuxPropertyRef()`
+  - Enforces reviewed-only; rejects pending/rejected
+- `POST /api/cmp/router?action=lux-attachment-property-link-remove`
+  - Body: `{ ticket_id, attachment_id, property_slug, intended_slot }`
+  - Removes only the matching `(property_slug, intended_slot)` link
+
+### UI behavior
+
+- For **reviewed** attachments only, `/change` shows “Link to property” controls (slug + slot + optional note).
+- Existing property links are listed on the attachment with an “Unlink” control per link.
+
 ## Tenant isolation invariants
 
 - The CMP route validates **both** tenant session (`luxe-maurice`) **and** host context (`lux.corpflowai.com`) before any DB access.

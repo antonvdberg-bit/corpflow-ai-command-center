@@ -117,6 +117,13 @@ Each phase below must be represented in the ticket’s narrative and acceptance 
 - **Persistence**: review state writes to `console_json.lux_request_meta.attachments[<id>]` (`review_status`, `review_note`, `reviewed_at`, `reviewed_by`) and appends a `lux_attachment_review` message to `console_json.messages[]`.
 - **Production verification**: see **`docs/LUX/LUX_PHASE4C_ATTACHMENT_REVIEW.md`** for the operator verification checklist (upload, status round-trip, tenant isolation, no public exposure).
 
+### Phase 4C.2 — Reviewed media → property linkage (private)
+
+- **Purpose**: allow operators to associate **reviewed** attachments with a LuxeMaurice property record, without publishing. This prepares for a later, explicitly governed “publish approved media” phase.
+- **Rule**: reviewed-only (pending/rejected cannot link).
+- **Persistence**: `console_json.lux_request_meta.attachments[].property_links[]` (metadata only; no bytes duplicated).
+- **Surface**: `/change` Attachments panel (reviewed entries only) + CMP actions `lux-attachment-property-link-set` and `lux-attachment-property-link-remove` (Lux tenant + Lux host only).
+
 ### Phase 5 — Production reality gate and client handoff
 
 - **Client-visible outcome**: the delivered system matches the programme claims; clients can use it.

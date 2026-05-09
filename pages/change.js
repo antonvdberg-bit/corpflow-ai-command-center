@@ -179,6 +179,10 @@ export default function ChangeConsolePage() {
   const [attachmentsError, setAttachmentsError] = useState('');
   const [attachmentReviewBusyId, setAttachmentReviewBusyId] = useState('');
   const [attachmentReviewNoteDrafts, setAttachmentReviewNoteDrafts] = useState({});
+  const [attachmentLinkBusyId, setAttachmentLinkBusyId] = useState('');
+  const [attachmentLinkSlugDrafts, setAttachmentLinkSlugDrafts] = useState({});
+  const [attachmentLinkSlotDrafts, setAttachmentLinkSlotDrafts] = useState({});
+  const [attachmentLinkNoteDrafts, setAttachmentLinkNoteDrafts] = useState({});
 
   const showChangeLayoutFixture =
     process.env.NODE_ENV === 'development' && router.isReady && String(router.query.changeLayoutFixture || '') === '1';
@@ -350,6 +354,78 @@ export default function ChangeConsolePage() {
       setAttachmentsError(String(e?.message || e));
     } finally {
       setAttachmentReviewBusyId('');
+    }
+  }
+
+  async function submitAttachmentPropertyLink(attachmentId) {
+    const tid = String(selectedTicketId || '').trim();
+    const aid = String(attachmentId || '').trim();
+    if (!tid || !aid) return;
+    setAttachmentLinkBusyId(aid);
+    setAttachmentsError('');
+    try {
+      const propertySlug = String((attachmentLinkSlugDrafts && attachmentLinkSlugDrafts[aid]) || '').trim();
+      const intendedSlot = String((attachmentLinkSlotDrafts && attachmentLinkSlotDrafts[aid]) || '').trim();
+      const linkNote = String((attachmentLinkNoteDrafts && attachmentLinkNoteDrafts[aid]) || '').trim();
+      const r = await fetch('/api/cmp/router?action=lux-attachment-property-link-set', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ticket_id: tid,
+          attachment_id: aid,
+          property_slug: propertySlug,
+          intended_slot: intendedSlot,
+          link_note: linkNote || null,
+        }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        const msg = String(j?.error || j?.detail || j?.hint || '').trim();
+        if (r.status === 403 && msg.toLowerCase().includes('dormant gate')) {
+          throw new Error('Your session expired. Please refresh and log in again.');
+        }
+        throw new Error(msg || `http_${r.status}`);
+      }
+      await loadAttachmentsForTicket(tid);
+    } catch (e) {
+      setAttachmentsError(String(e?.message || e));
+    } finally {
+      setAttachmentLinkBusyId('');
+    }
+  }
+
+  async function submitAttachmentPropertyUnlink(attachmentId, propertySlug, intendedSlot) {
+    const tid = String(selectedTicketId || '').trim();
+    const aid = String(attachmentId || '').trim();
+    if (!tid || !aid) return;
+    setAttachmentLinkBusyId(aid);
+    setAttachmentsError('');
+    try {
+      const r = await fetch('/api/cmp/router?action=lux-attachment-property-link-remove', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ticket_id: tid,
+          attachment_id: aid,
+          property_slug: String(propertySlug || '').trim(),
+          intended_slot: String(intendedSlot || '').trim(),
+        }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        const msg = String(j?.error || j?.detail || j?.hint || '').trim();
+        if (r.status === 403 && msg.toLowerCase().includes('dormant gate')) {
+          throw new Error('Your session expired. Please refresh and log in again.');
+        }
+        throw new Error(msg || `http_${r.status}`);
+      }
+      await loadAttachmentsForTicket(tid);
+    } catch (e) {
+      setAttachmentsError(String(e?.message || e));
+    } finally {
+      setAttachmentLinkBusyId('');
     }
   }
 
@@ -1827,6 +1903,8 @@ export default function ChangeConsolePage() {
                           : { bg: 'rgba(148,163,184,0.10)', border: 'rgba(148,163,184,0.25)', color: '#cbd5e1', label: 'Untracked' };
                   const sizeKb = Number.isFinite(Number(a.byte_size)) ? Math.round(Number(a.byte_size) / 1024) : null;
                   const isReviewBusy = attachmentReviewBusyId === aid;
+                  const isLinkBusy = attachmentLinkBusyId === aid;
+                  const propertyLinks = Array.isArray(a.property_links) ? a.property_links : [];
                   return (
                     <div
                       key={aid}
@@ -1914,6 +1992,70 @@ export default function ChangeConsolePage() {
                               "{String(a.review_note)}"
                             </div>
                           ) : null}
+                        </div>
+                      ) : null}
+
+                      {propertyLinks.length > 0 ? (
+                        <div style={{ marginTop: 10, fontSize: 11, color: '#94a3b8', display: 'grid', gap: 6 }}>
+                          <div style={{ fontWeight: 800, color: '#cbd5e1', letterSpacing: '0.04em' }}>
+                            Linked properties
+                          </div>
+                          {propertyLinks.map((pl, idx) => {
+                            const slug = String(pl?.property_slug || '');
+                            const slot = String(pl?.intended_slot || '');
+                            return (
+                              <div
+                                key={`${slug}:${slot}:${idx}`}
+                                style={{
+                                  border: '1px solid rgba(148,163,184,0.18)',
+                                  borderRadius: 10,
+                                  background: 'rgba(2,6,23,0.40)',
+                                  padding: '8px 10px',
+                                  minWidth: 0,
+                                }}
+                              >
+                                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+                                  <div style={{ minWidth: 0, color: '#e2e8f0', fontWeight: 800, ...changeTextContainStyle() }}>
+                                    {slug}
+                                    {pl?.property_title ? (
+                                      <span style={{ color: '#94a3b8', fontWeight: 700 }}> · {String(pl.property_title)}</span>
+                                    ) : null}
+                                  </div>
+                                  <div style={{ color: '#94a3b8', fontWeight: 800, flexShrink: 0 }}>
+                                    Slot: {slot || '—'}
+                                  </div>
+                                </div>
+                                <div style={{ marginTop: 4, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                  {pl?.linked_by ? <span>Linked by {String(pl.linked_by)}</span> : null}
+                                  {pl?.linked_at ? <span> · {new Date(pl.linked_at).toLocaleString()}</span> : null}
+                                </div>
+                                {pl?.link_note ? (
+                                  <div style={{ marginTop: 4, color: '#cbd5e1', whiteSpace: 'pre-wrap', ...changeTextContainStyle() }}>
+                                    "{String(pl.link_note)}"
+                                  </div>
+                                ) : null}
+                                <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                  <button
+                                    type="button"
+                                    disabled={isLinkBusy}
+                                    onClick={() => void submitAttachmentPropertyUnlink(aid, slug, slot)}
+                                    style={{
+                                      padding: '8px 12px',
+                                      borderRadius: 10,
+                                      border: '1px solid rgba(148,163,184,0.25)',
+                                      background: 'rgba(148,163,184,0.10)',
+                                      color: '#e2e8f0',
+                                      fontWeight: 800,
+                                      fontSize: 12,
+                                      cursor: isLinkBusy ? 'not-allowed' : 'pointer',
+                                    }}
+                                  >
+                                    Unlink
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       ) : null}
                       <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -2014,6 +2156,110 @@ export default function ChangeConsolePage() {
                               Reset to pending
                             </button>
                           </div>
+
+                          {status === 'reviewed' ? (
+                            <div style={{ marginTop: 6, display: 'grid', gap: 8 }}>
+                              <div style={{ fontSize: 11, color: '#94a3b8' }}>
+                                Phase 4C.2 · link reviewed media to a property (still private; not published).
+                              </div>
+                              <div
+                                style={{
+                                  display: 'grid',
+                                  gridTemplateColumns: 'minmax(0,1fr) minmax(0,140px)',
+                                  gap: 8,
+                                  alignItems: 'end',
+                                }}
+                              >
+                                <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4, minWidth: 0 }}>
+                                  Property slug
+                                  <input
+                                    value={attachmentLinkSlugDrafts[aid] || ''}
+                                    onChange={(e) =>
+                                      setAttachmentLinkSlugDrafts((prev) => ({ ...prev, [aid]: e.target.value }))
+                                    }
+                                    placeholder="lm-phase2d-manual-demo"
+                                    style={{
+                                      padding: '8px 10px',
+                                      borderRadius: 10,
+                                      border: '1px solid rgba(148,163,184,0.25)',
+                                      background: 'rgba(2,6,23,0.65)',
+                                      color: '#e2e8f0',
+                                      fontSize: 12,
+                                      width: '100%',
+                                      minWidth: 0,
+                                      boxSizing: 'border-box',
+                                    }}
+                                  />
+                                </label>
+                                <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4, minWidth: 0 }}>
+                                  Slot
+                                  <select
+                                    value={attachmentLinkSlotDrafts[aid] || 'reference'}
+                                    onChange={(e) =>
+                                      setAttachmentLinkSlotDrafts((prev) => ({ ...prev, [aid]: e.target.value }))
+                                    }
+                                    style={{
+                                      padding: '8px 10px',
+                                      borderRadius: 10,
+                                      border: '1px solid rgba(148,163,184,0.25)',
+                                      background: 'rgba(2,6,23,0.65)',
+                                      color: '#e2e8f0',
+                                      fontSize: 12,
+                                      width: '100%',
+                                      boxSizing: 'border-box',
+                                    }}
+                                  >
+                                    {['hero', 'card', 'detail', 'gallery', 'reference'].map((opt) => (
+                                      <option key={opt} value={opt}>
+                                        {opt}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </label>
+                              </div>
+                              <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4 }}>
+                                Link note (optional)
+                                <textarea
+                                  value={attachmentLinkNoteDrafts[aid] || ''}
+                                  onChange={(e) =>
+                                    setAttachmentLinkNoteDrafts((prev) => ({ ...prev, [aid]: e.target.value }))
+                                  }
+                                  rows={2}
+                                  maxLength={600}
+                                  placeholder="Why this asset belongs on this property."
+                                  style={{
+                                    padding: '8px 10px',
+                                    borderRadius: 10,
+                                    border: '1px solid rgba(148,163,184,0.25)',
+                                    background: 'rgba(2,6,23,0.65)',
+                                    color: '#e2e8f0',
+                                    fontSize: 12,
+                                    resize: 'vertical',
+                                    ...changeTextContainStyle(),
+                                  }}
+                                />
+                              </label>
+                              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                <button
+                                  type="button"
+                                  disabled={isLinkBusy}
+                                  onClick={() => void submitAttachmentPropertyLink(aid)}
+                                  style={{
+                                    padding: '8px 12px',
+                                    borderRadius: 10,
+                                    border: '1px solid rgba(56,189,248,0.35)',
+                                    background: 'rgba(14,165,233,0.10)',
+                                    color: '#bae6fd',
+                                    fontWeight: 800,
+                                    fontSize: 12,
+                                    cursor: isLinkBusy ? 'not-allowed' : 'pointer',
+                                  }}
+                                >
+                                  Link to property
+                                </button>
+                              </div>
+                            </div>
+                          ) : null}
                         </div>
                       ) : (
                         <div style={{ marginTop: 8, fontSize: 11, color: '#94a3b8' }}>
