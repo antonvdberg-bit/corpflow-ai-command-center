@@ -148,3 +148,25 @@ await fetch('/api/change-attachment/upload', {
 - `node-tests/lux-request-attachments.test.mjs` — pure helper tests.
 - `docs/LUX/LUX_DELIVERY_PROGRAMME.md` — programme phase placement.
 - `docs/runbooks/CHANGE_CONSOLE_INSPECTION.md` — Lux `/change` UI / layout fix workflow (preview-smoke loop).
+
+## Delivery Reality Audit (Phase 4C.1)
+
+```text
+Delivery Reality Audit:
+- Local fix exists: YES
+- Merged to main: YES (PR #156, merge commit feeca06c4d6a76582670a43226e3369b4ed13242)
+- Production deployment ID: GitHub deployment 4620068642 (Vercel target_url https://corpflow-ai-command-center-detezelan-corpflowai.vercel.app)
+- Commit deployed: feeca06c4d6a76582670a43226e3369b4ed13242
+- Live URLs tested:
+  - https://lux.corpflowai.com (public)
+  - https://lux.corpflowai.com/concierge (public)
+  - https://lux.corpflowai.com/property/lm-phase2d-manual-demo (public)
+  - https://lux.corpflowai.com/change (authenticated)
+- Expected vs actual result:
+  - Operator login works on Lux host.
+  - Phase 4C.1 smoke created a Lux request ticket, uploaded image+video, listed attachments with metadata,
+    performed reviewed+rejected actions with notes, and confirmed persistence.
+  - Public surfaces contained no attachment metadata or private routes in content.
+- Client-facing flow usable: YES (operator-only flow on /change)
+- Final verdict: COMPLETE
+```
