@@ -4,14 +4,20 @@ import { test } from 'node:test';
 import {
   LUX_ATTACHMENT_DEFAULT_REVIEW_STATUS,
   LUX_ATTACHMENT_INTENDED_USES,
+  LUX_ATTACHMENT_PROPERTY_SLOTS,
   LUX_ATTACHMENT_REVIEW_STATUSES,
+  appendLuxAttachmentPropertyLinkMessage,
   appendLuxAttachmentReviewMessage,
+  applyLuxAttachmentPropertyLinkRemove,
+  applyLuxAttachmentPropertyLinkSet,
   applyLuxAttachmentReview,
   buildLuxAttachmentEntry,
   deriveMediaType,
   normalizeAttachmentIntendedUse,
   normalizeAttachmentNotes,
   normalizeAttachmentReviewStatus,
+  normalizeLuxAttachmentLinkNote,
+  normalizeLuxAttachmentPropertySlot,
   normalizeReviewNote,
   readLuxAttachmentEntries,
   safeLuxAttachmentShape,
@@ -31,6 +37,10 @@ test('LUX_ATTACHMENT_INTENDED_USES is the agreed allowlist', () => {
     LUX_ATTACHMENT_INTENDED_USES,
     ['property_hero', 'property_gallery', 'request_supporting', 'reference_material', 'other'],
   );
+});
+
+test('LUX_ATTACHMENT_PROPERTY_SLOTS is the agreed allowlist', () => {
+  assert.deepEqual(LUX_ATTACHMENT_PROPERTY_SLOTS, ['hero', 'card', 'detail', 'gallery', 'reference']);
 });
 
 test('normalizeAttachmentReviewStatus accepts allowlisted values, rejects others', () => {
@@ -58,6 +68,21 @@ test('normalizeAttachmentNotes trims and caps length', () => {
   assert.equal(normalizeAttachmentNotes(null), null);
   const big = 'x'.repeat(2000);
   assert.equal(normalizeAttachmentNotes(big).length, 1000);
+});
+
+test('normalizeLuxAttachmentPropertySlot accepts allowlisted values and normalizes', () => {
+  assert.equal(normalizeLuxAttachmentPropertySlot('hero'), 'hero');
+  assert.equal(normalizeLuxAttachmentPropertySlot('  GALLERY '), 'gallery');
+  assert.equal(normalizeLuxAttachmentPropertySlot('reference'), 'reference');
+  assert.equal(normalizeLuxAttachmentPropertySlot('publish_now'), null);
+  assert.equal(normalizeLuxAttachmentPropertySlot(''), null);
+});
+
+test('normalizeLuxAttachmentLinkNote trims and caps length', () => {
+  assert.equal(normalizeLuxAttachmentLinkNote(' hi '), 'hi');
+  assert.equal(normalizeLuxAttachmentLinkNote(''), null);
+  const big = 'x'.repeat(5000);
+  assert.equal(normalizeLuxAttachmentLinkNote(big).length, 600);
 });
 
 test('normalizeReviewNote trims and caps length', () => {
@@ -100,6 +125,7 @@ test('buildLuxAttachmentEntry produces a complete operator-only metadata record'
   assert.equal(entry.review_note, null);
   assert.equal(entry.reviewed_at, null);
   assert.equal(entry.reviewed_by, null);
+  assert.deepEqual(entry.property_links, []);
   assert.equal(entry.created_at, '2026-05-08T09:00:00.000Z');
   assert.equal(entry.created_by, 'tenant_session');
 });
@@ -267,6 +293,106 @@ test('safeLuxAttachmentShape returns operator-safe fields and a download_url', (
   assert.equal(shape.download_url, '/api/change-attachment/download?id=att_1');
   assert.equal('data' in shape, false, 'never expose raw bytes');
   assert.equal('tenantId' in shape, false, 'never expose internal tenant id');
+  assert.ok(Array.isArray(shape.property_links), 'property_links is always an array');
+});
+
+test('applyLuxAttachmentPropertyLinkSet enforces reviewed-only and upserts links by (slug, slot)', () => {
+  const reviewed = {
+    lux_request_meta: {
+      attachments: [
+        {
+          ...buildLuxAttachmentEntry({ attachment_id: 'att_1', file_name: 'a.jpg', content_type: 'image/jpeg', byte_size: 1 }),
+          review_status: 'reviewed',
+        },
+      ],
+    },
+  };
+  const r1 = applyLuxAttachmentPropertyLinkSet(reviewed, 'att_1', {
+    property_slug: 'lm-phase2d-manual-demo',
+    property_title: 'Phase2D Demo',
+    intended_slot: 'hero',
+    linked_by: 'op',
+    linked_at: '2026-05-09T00:00:00.000Z',
+    link_note: 'ok',
+  });
+  assert.equal(r1.ok, true);
+  assert.equal(r1.entry.property_links.length, 1);
+  assert.equal(r1.entry.property_links[0].property_slug, 'lm-phase2d-manual-demo');
+  assert.equal(r1.entry.property_links[0].intended_slot, 'hero');
+
+  const r2 = applyLuxAttachmentPropertyLinkSet(r1.consoleJson, 'att_1', {
+    property_slug: 'lm-phase2d-manual-demo',
+    property_title: 'Phase2D Demo',
+    intended_slot: 'hero',
+    linked_by: 'op2',
+    linked_at: '2026-05-09T00:01:00.000Z',
+    link_note: 'new note',
+  });
+  assert.equal(r2.ok, true);
+  assert.equal(r2.entry.property_links.length, 1);
+  assert.equal(r2.entry.property_links[0].linked_by, 'op2');
+  assert.equal(r2.entry.property_links[0].link_note, 'new note');
+});
+
+test('applyLuxAttachmentPropertyLinkSet rejects pending/rejected attachments', () => {
+  const pending = {
+    lux_request_meta: {
+      attachments: [
+        buildLuxAttachmentEntry({ attachment_id: 'att_1', file_name: 'a.jpg', content_type: 'image/jpeg', byte_size: 1 }),
+      ],
+    },
+  };
+  const r = applyLuxAttachmentPropertyLinkSet(pending, 'att_1', {
+    property_slug: 'lm-phase2d-manual-demo',
+    property_title: 't',
+    intended_slot: 'hero',
+  });
+  assert.equal(r.ok, false);
+  assert.equal(r.error, 'REVIEWED_ONLY');
+});
+
+test('applyLuxAttachmentPropertyLinkRemove removes only the matching link', () => {
+  const reviewed = {
+    lux_request_meta: {
+      attachments: [
+        {
+          ...buildLuxAttachmentEntry({ attachment_id: 'att_1', file_name: 'a.jpg', content_type: 'image/jpeg', byte_size: 1 }),
+          review_status: 'reviewed',
+          property_links: [
+            { property_slug: 'lm-phase2d-manual-demo', property_title: 't', intended_slot: 'hero', linked_at: 'x', linked_by: 'y', link_note: null },
+            { property_slug: 'lm-phase2d-manual-demo', property_title: 't', intended_slot: 'gallery', linked_at: 'x', linked_by: 'y', link_note: null },
+          ],
+        },
+      ],
+    },
+  };
+  const r = applyLuxAttachmentPropertyLinkRemove(reviewed, 'att_1', {
+    property_slug: 'lm-phase2d-manual-demo',
+    intended_slot: 'hero',
+  });
+  assert.equal(r.ok, true);
+  assert.equal(r.entry.property_links.length, 1);
+  assert.equal(r.entry.property_links[0].intended_slot, 'gallery');
+});
+
+test('appendLuxAttachmentPropertyLinkMessage appends and is idempotent', () => {
+  const before = { messages: [] };
+  const args = {
+    action: 'linked',
+    at: '2026-05-09T00:00:00.000Z',
+    attachment_id: 'att_1',
+    file_name: 'a.jpg',
+    property_slug: 'lm-phase2d-manual-demo',
+    property_title: 't',
+    intended_slot: 'hero',
+    link_note: 'ok',
+    linked_by: 'op',
+  };
+  const after = appendLuxAttachmentPropertyLinkMessage(before, args);
+  assert.equal(after.messages.length, 1);
+  assert.equal(after.messages[0].kind, 'lux_attachment_property_link');
+  const after2 = appendLuxAttachmentPropertyLinkMessage(after, args);
+  assert.equal(after2.messages.length, 1);
 });
 
 test('safeLuxAttachmentShape works for legacy uploads with no metadata entry', () => {

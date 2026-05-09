@@ -285,13 +285,60 @@ async function publicSurfaceClean(urlPath) {
     fail(`GET ${urlPath} expected 200, got ${r.status}`);
   }
   const body = r.text || JSON.stringify(r.json || {});
-  const forbidden = ['lux_request_meta', 'review_status', 'reviewed_by', 'attachments[', '/api/change-attachment/'];
+  const forbidden = [
+    'lux_request_meta',
+    'review_status',
+    'reviewed_by',
+    'review_note',
+    'property_links',
+    'attachment_id',
+    'linked_by',
+    'attachments[',
+    '/api/change-attachment/',
+  ];
   for (const term of forbidden) {
     if (body.includes(term)) {
       fail(`GET ${urlPath} unexpectedly leaked "${term}" in body.`);
     }
   }
   ok(`public ${urlPath} clean (no attachment metadata)`);
+}
+
+async function setPropertyLink(ticketId, attachmentId, propertySlug, intendedSlot, linkNote) {
+  const r = await http('POST', '/api/cmp/router?action=lux-attachment-property-link-set', {
+    body: {
+      ticket_id: ticketId,
+      attachment_id: attachmentId,
+      property_slug: propertySlug,
+      intended_slot: intendedSlot,
+      link_note: linkNote || null,
+    },
+  });
+  if (r.status !== 200) {
+    fail(
+      `lux-attachment-property-link-set expected 200, got ${r.status} body=${JSON.stringify(r.json).slice(0, 240)}`,
+    );
+  }
+  ok(`lux-attachment-property-link-set(${attachmentId} -> ${propertySlug} / ${intendedSlot}) persisted`);
+  return r.json.attachment;
+}
+
+async function removePropertyLink(ticketId, attachmentId, propertySlug, intendedSlot) {
+  const r = await http('POST', '/api/cmp/router?action=lux-attachment-property-link-remove', {
+    body: {
+      ticket_id: ticketId,
+      attachment_id: attachmentId,
+      property_slug: propertySlug,
+      intended_slot: intendedSlot,
+    },
+  });
+  if (r.status !== 200) {
+    fail(
+      `lux-attachment-property-link-remove expected 200, got ${r.status} body=${JSON.stringify(r.json).slice(0, 240)}`,
+    );
+  }
+  ok(`lux-attachment-property-link-remove(${attachmentId} -> ${propertySlug} / ${intendedSlot}) persisted`);
+  return r.json.attachment;
 }
 
 async function main() {
@@ -336,6 +383,25 @@ async function main() {
   if (!after.get(vidId)?.reviewed_at) fail('reviewed_at missing on video');
   if (after.get(imgId)?.review_note !== 'Smoke: image looks clean.') fail('image review_note not persisted');
   ok('review state persisted for image (reviewed) and video (rejected) with note + reviewer + time');
+
+  // Phase 4C.2 — reviewed-only property association.
+  await setPropertyLink(ticketId, imgId, 'lm-phase2d-manual-demo', 'hero', 'Smoke: approved hero slot.');
+  list = await listAttachments(ticketId);
+  const linked = new Map(list.map((a) => [a.attachment_id, a]));
+  const links = linked.get(imgId)?.property_links || [];
+  if (!Array.isArray(links) || links.length < 1) fail('property_links missing after link');
+  const match = links.find((pl) => pl && pl.property_slug === 'lm-phase2d-manual-demo' && pl.intended_slot === 'hero');
+  if (!match) fail('linked property not found in property_links');
+  ok('property link persisted on reviewed attachment');
+
+  await removePropertyLink(ticketId, imgId, 'lm-phase2d-manual-demo', 'hero');
+  list = await listAttachments(ticketId);
+  const unlinked = new Map(list.map((a) => [a.attachment_id, a]));
+  const linksAfter = unlinked.get(imgId)?.property_links || [];
+  if (Array.isArray(linksAfter) && linksAfter.some((pl) => pl && pl.property_slug === 'lm-phase2d-manual-demo' && pl.intended_slot === 'hero')) {
+    fail('property link still present after unlink');
+  }
+  ok('property unlink persisted');
 
   await negativeNoSession();
 
