@@ -64,6 +64,7 @@ import {
   handleChangeAttachmentPublic,
   handleChangeAttachmentUpload,
 } from '../lib/server/change-attachments.js';
+import { handleLuxPropertyMedia } from '../lib/server/lux-property-media.js';
 import { getChangeConsoleReadinessForTenant } from '../lib/server/change-console-readiness.js';
 import { growthPipelineHandler } from '../lib/server/growth-pipeline.js';
 import { recordTrustedAutomationEvent } from '../lib/automation/internal.js';
@@ -729,6 +730,10 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'change-attachment/public') {
     return handleChangeAttachmentPublic(req, res);
+  }
+
+  if (pathSeg === 'lux/property-media') {
+    return handleLuxPropertyMedia(req, res, prisma);
   }
 
   if (pathSeg === 'growth' || pathSeg.startsWith('growth/')) {
