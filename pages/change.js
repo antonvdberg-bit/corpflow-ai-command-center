@@ -183,6 +183,9 @@ export default function ChangeConsolePage() {
   const [attachmentLinkSlugDrafts, setAttachmentLinkSlugDrafts] = useState({});
   const [attachmentLinkSlotDrafts, setAttachmentLinkSlotDrafts] = useState({});
   const [attachmentLinkNoteDrafts, setAttachmentLinkNoteDrafts] = useState({});
+  const [attachmentPublishBusyKey, setAttachmentPublishBusyKey] = useState('');
+  const [attachmentPublishCaptionDrafts, setAttachmentPublishCaptionDrafts] = useState({});
+  const [attachmentPublishAltDrafts, setAttachmentPublishAltDrafts] = useState({});
 
   const showChangeLayoutFixture =
     process.env.NODE_ENV === 'development' && router.isReady && String(router.query.changeLayoutFixture || '') === '1';
@@ -426,6 +429,88 @@ export default function ChangeConsolePage() {
       setAttachmentsError(String(e?.message || e));
     } finally {
       setAttachmentLinkBusyId('');
+    }
+  }
+
+  function attachmentPublishDraftKey(attachmentId, propertySlug, intendedSlot) {
+    return `${String(attachmentId || '').trim()}|${String(propertySlug || '').trim()}|${String(intendedSlot || '').trim()}`;
+  }
+
+  async function submitAttachmentPropertyPublish(attachmentId, propertySlug, intendedSlot) {
+    const tid = String(selectedTicketId || '').trim();
+    const aid = String(attachmentId || '').trim();
+    const slug = String(propertySlug || '').trim();
+    const slot = String(intendedSlot || '').trim();
+    const pubKey = attachmentPublishDraftKey(aid, slug, slot);
+    if (!tid || !aid || !slug || !slot) return;
+    setAttachmentPublishBusyKey(pubKey);
+    setAttachmentsError('');
+    try {
+      const capDraft = attachmentPublishCaptionDrafts[pubKey];
+      const altDraft = attachmentPublishAltDrafts[pubKey];
+      const r = await fetch('/api/cmp/router?action=lux-attachment-property-publish', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ticket_id: tid,
+          attachment_id: aid,
+          property_slug: slug,
+          intended_slot: slot,
+          public_caption: capDraft != null ? String(capDraft) : null,
+          public_alt_text: altDraft != null ? String(altDraft) : null,
+        }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        const msg = String(j?.error || j?.detail || j?.hint || '').trim();
+        if (r.status === 403 && msg.toLowerCase().includes('dormant gate')) {
+          throw new Error('Your session expired. Please refresh and log in again.');
+        }
+        throw new Error(msg || `http_${r.status}`);
+      }
+      await loadAttachmentsForTicket(tid);
+    } catch (e) {
+      setAttachmentsError(String(e?.message || e));
+    } finally {
+      setAttachmentPublishBusyKey('');
+    }
+  }
+
+  async function submitAttachmentPropertyUnpublish(attachmentId, propertySlug, intendedSlot) {
+    const tid = String(selectedTicketId || '').trim();
+    const aid = String(attachmentId || '').trim();
+    const slug = String(propertySlug || '').trim();
+    const slot = String(intendedSlot || '').trim();
+    const pubKey = attachmentPublishDraftKey(aid, slug, slot);
+    if (!tid || !aid || !slug || !slot) return;
+    setAttachmentPublishBusyKey(pubKey);
+    setAttachmentsError('');
+    try {
+      const r = await fetch('/api/cmp/router?action=lux-attachment-property-unpublish', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ticket_id: tid,
+          attachment_id: aid,
+          property_slug: slug,
+          intended_slot: slot,
+        }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        const msg = String(j?.error || j?.detail || j?.hint || '').trim();
+        if (r.status === 403 && msg.toLowerCase().includes('dormant gate')) {
+          throw new Error('Your session expired. Please refresh and log in again.');
+        }
+        throw new Error(msg || `http_${r.status}`);
+      }
+      await loadAttachmentsForTicket(tid);
+    } catch (e) {
+      setAttachmentsError(String(e?.message || e));
+    } finally {
+      setAttachmentPublishBusyKey('');
     }
   }
 
@@ -1904,6 +1989,8 @@ export default function ChangeConsolePage() {
                   const sizeKb = Number.isFinite(Number(a.byte_size)) ? Math.round(Number(a.byte_size) / 1024) : null;
                   const isReviewBusy = attachmentReviewBusyId === aid;
                   const isLinkBusy = attachmentLinkBusyId === aid;
+                  const mediaTypeLower = String(a.media_type || '').toLowerCase();
+                  const canPublishSlot = status === 'reviewed' && mediaTypeLower === 'image';
                   const propertyLinks = Array.isArray(a.property_links) ? a.property_links : [];
                   return (
                     <div
@@ -2032,6 +2119,147 @@ export default function ChangeConsolePage() {
                                 {pl?.link_note ? (
                                   <div style={{ marginTop: 4, color: '#cbd5e1', whiteSpace: 'pre-wrap', ...changeTextContainStyle() }}>
                                     "{String(pl.link_note)}"
+                                  </div>
+                                ) : null}
+                                {canPublishSlot ? (
+                                  <div
+                                    style={{
+                                      marginTop: 10,
+                                      paddingTop: 8,
+                                      borderTop: '1px solid rgba(148,163,184,0.15)',
+                                      display: 'grid',
+                                      gap: 8,
+                                    }}
+                                  >
+                                    <div style={{ fontSize: 10, fontWeight: 800, color: '#a5b4fc', letterSpacing: '0.04em' }}>
+                                      Phase 4C.3 · public slot (Lux host only)
+                                    </div>
+                                    <div style={{ fontSize: 11, color: '#cbd5e1' }}>
+                                      Publish status:{' '}
+                                      <span style={{ fontWeight: 800 }}>
+                                        {String(pl?.publish_status || 'unpublished')}
+                                      </span>
+                                    </div>
+                                    {pl?.published_at ? (
+                                      <div style={{ fontSize: 10, color: '#94a3b8' }}>
+                                        Published {pl?.published_by ? `by ${String(pl.published_by)} · ` : null}
+                                        {new Date(pl.published_at).toLocaleString()}
+                                      </div>
+                                    ) : null}
+                                    {pl?.unpublished_at ? (
+                                      <div style={{ fontSize: 10, color: '#94a3b8' }}>
+                                        Unpublished {pl?.unpublished_by ? `by ${String(pl.unpublished_by)} · ` : null}
+                                        {new Date(pl.unpublished_at).toLocaleString()}
+                                      </div>
+                                    ) : null}
+                                    <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4 }}>
+                                      Public caption (optional)
+                                      <input
+                                        value={
+                                          attachmentPublishCaptionDrafts[attachmentPublishDraftKey(aid, slug, slot)] ??
+                                          (pl?.public_caption != null ? String(pl.public_caption) : '')
+                                        }
+                                        onChange={(e) =>
+                                          setAttachmentPublishCaptionDrafts((prev) => ({
+                                            ...prev,
+                                            [attachmentPublishDraftKey(aid, slug, slot)]: e.target.value,
+                                          }))
+                                        }
+                                        maxLength={180}
+                                        placeholder="Short caption shown on the public property page."
+                                        style={{
+                                          padding: '8px 10px',
+                                          borderRadius: 10,
+                                          border: '1px solid rgba(148,163,184,0.25)',
+                                          background: 'rgba(2,6,23,0.65)',
+                                          color: '#e2e8f0',
+                                          fontSize: 12,
+                                          ...changeTextContainStyle(),
+                                        }}
+                                      />
+                                    </label>
+                                    <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4 }}>
+                                      Public alt text (optional)
+                                      <input
+                                        value={
+                                          attachmentPublishAltDrafts[attachmentPublishDraftKey(aid, slug, slot)] ??
+                                          (pl?.public_alt_text != null ? String(pl.public_alt_text) : '')
+                                        }
+                                        onChange={(e) =>
+                                          setAttachmentPublishAltDrafts((prev) => ({
+                                            ...prev,
+                                            [attachmentPublishDraftKey(aid, slug, slot)]: e.target.value,
+                                          }))
+                                        }
+                                        maxLength={180}
+                                        placeholder="Accessible description for the public image."
+                                        style={{
+                                          padding: '8px 10px',
+                                          borderRadius: 10,
+                                          border: '1px solid rgba(148,163,184,0.25)',
+                                          background: 'rgba(2,6,23,0.65)',
+                                          color: '#e2e8f0',
+                                          fontSize: 12,
+                                          ...changeTextContainStyle(),
+                                        }}
+                                      />
+                                    </label>
+                                    <div style={{ fontSize: 10, color: '#64748b' }}>
+                                      Set caption/alt before first publish; use Publish again to update public text after
+                                      publishing.
+                                    </div>
+                                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                      <button
+                                        type="button"
+                                        disabled={
+                                          isLinkBusy ||
+                                          attachmentPublishBusyKey === attachmentPublishDraftKey(aid, slug, slot)
+                                        }
+                                        onClick={() => void submitAttachmentPropertyPublish(aid, slug, slot)}
+                                        style={{
+                                          padding: '8px 12px',
+                                          borderRadius: 10,
+                                          border: '1px solid rgba(129,140,248,0.45)',
+                                          background: 'rgba(99,102,241,0.14)',
+                                          color: '#e0e7ff',
+                                          fontWeight: 800,
+                                          fontSize: 12,
+                                          cursor:
+                                            isLinkBusy ||
+                                            attachmentPublishBusyKey === attachmentPublishDraftKey(aid, slug, slot)
+                                              ? 'not-allowed'
+                                              : 'pointer',
+                                        }}
+                                      >
+                                        Publish
+                                      </button>
+                                      <button
+                                        type="button"
+                                        disabled={
+                                          isLinkBusy ||
+                                          attachmentPublishBusyKey === attachmentPublishDraftKey(aid, slug, slot) ||
+                                          String(pl?.publish_status || '').toLowerCase() !== 'published'
+                                        }
+                                        onClick={() => void submitAttachmentPropertyUnpublish(aid, slug, slot)}
+                                        style={{
+                                          padding: '8px 12px',
+                                          borderRadius: 10,
+                                          border: '1px solid rgba(148,163,184,0.35)',
+                                          background: 'rgba(15,23,42,0.55)',
+                                          color: '#e2e8f0',
+                                          fontWeight: 800,
+                                          fontSize: 12,
+                                          cursor:
+                                            isLinkBusy ||
+                                            attachmentPublishBusyKey === attachmentPublishDraftKey(aid, slug, slot) ||
+                                            String(pl?.publish_status || '').toLowerCase() !== 'published'
+                                              ? 'not-allowed'
+                                              : 'pointer',
+                                        }}
+                                      >
+                                        Unpublish
+                                      </button>
+                                    </div>
                                   </div>
                                 ) : null}
                                 <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>

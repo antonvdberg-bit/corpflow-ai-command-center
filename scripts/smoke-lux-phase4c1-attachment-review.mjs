@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Phase 4C.1 live verification — Lux operator media review round-trip.
+ * Phase 4C.1 + 4C.3 live verification — Lux operator media review + property publish round-trip.
  *
  * Targets either a Vercel preview (Protection Bypass required) or production.
  * Strictly read/write to a SINGLE Lux client-request ticket created at the start
@@ -323,6 +323,53 @@ async function setPropertyLink(ticketId, attachmentId, propertySlug, intendedSlo
   return r.json.attachment;
 }
 
+async function publishProperty(ticketId, attachmentId, propertySlug, intendedSlot, publicCaption, publicAlt) {
+  const r = await http('POST', '/api/cmp/router?action=lux-attachment-property-publish', {
+    body: {
+      ticket_id: ticketId,
+      attachment_id: attachmentId,
+      property_slug: propertySlug,
+      intended_slot: intendedSlot,
+      public_caption: publicCaption ?? null,
+      public_alt_text: publicAlt ?? null,
+    },
+  });
+  if (r.status !== 200) {
+    fail(
+      `lux-attachment-property-publish expected 200, got ${r.status} body=${JSON.stringify(r.json).slice(0, 240)}`,
+    );
+  }
+  ok(`lux-attachment-property-publish(${attachmentId} → ${propertySlug} / ${intendedSlot})`);
+  return r.json.attachment;
+}
+
+async function unpublishProperty(ticketId, attachmentId, propertySlug, intendedSlot) {
+  const r = await http('POST', '/api/cmp/router?action=lux-attachment-property-unpublish', {
+    body: {
+      ticket_id: ticketId,
+      attachment_id: attachmentId,
+      property_slug: propertySlug,
+      intended_slot: intendedSlot,
+    },
+  });
+  if (r.status !== 200) {
+    fail(
+      `lux-attachment-property-unpublish expected 200, got ${r.status} body=${JSON.stringify(r.json).slice(0, 240)}`,
+    );
+  }
+  ok(`lux-attachment-property-unpublish(${attachmentId} → ${propertySlug} / ${intendedSlot})`);
+  return r.json.attachment;
+}
+
+async function getPropertyMedia(propertySlug, attachmentId, slot) {
+  return await http(
+    'GET',
+    `/api/lux/property-media?property=${encodeURIComponent(propertySlug)}&attachment=${encodeURIComponent(
+      attachmentId,
+    )}&slot=${encodeURIComponent(slot)}`,
+  );
+}
+
 async function removePropertyLink(ticketId, attachmentId, propertySlug, intendedSlot) {
   const r = await http('POST', '/api/cmp/router?action=lux-attachment-property-link-remove', {
     body: {
@@ -392,7 +439,71 @@ async function main() {
   if (!Array.isArray(links) || links.length < 1) fail('property_links missing after link');
   const match = links.find((pl) => pl && pl.property_slug === 'lm-phase2d-manual-demo' && pl.intended_slot === 'hero');
   if (!match) fail('linked property not found in property_links');
+  if (String(match.publish_status || '').toLowerCase() !== 'unpublished') {
+    fail(`new property link expected publish_status unpublished, got ${match.publish_status}`);
+  }
   ok('property link persisted on reviewed attachment');
+
+  // Phase 4C.3 — public image route + operator publish/unpublish (image-only, Lux host).
+  const pubCaption = 'Smoke 4C3 public caption';
+  const pubAlt = 'Smoke 4C3 public alt';
+  const badSlot = await getPropertyMedia('lm-phase2d-manual-demo', imgId, 'not-a-slot');
+  if (badSlot.status !== 400) fail(`property-media invalid slot expected 400, got ${badSlot.status}`);
+  ok('property-media rejects invalid slot');
+
+  const beforePub = await getPropertyMedia('lm-phase2d-manual-demo', imgId, 'hero');
+  if (beforePub.status !== 404) fail(`property-media before publish expected 404, got ${beforePub.status}`);
+  ok('property-media rejects unpublished linked image');
+
+  await publishProperty(ticketId, imgId, 'lm-phase2d-manual-demo', 'hero', pubCaption, pubAlt);
+  const afterPub = await getPropertyMedia('lm-phase2d-manual-demo', imgId, 'hero');
+  if (afterPub.status !== 200) fail(`property-media after publish expected 200, got ${afterPub.status}`);
+  const ct = String(afterPub.res.headers.get('content-type') || '').toLowerCase();
+  if (!ct.startsWith('image/')) fail(`property-media expected image content-type, got ${ct}`);
+  ok('property-media serves published PNG after publish');
+
+  const wrongProp = await getPropertyMedia('lm-nc-ridge', imgId, 'hero');
+  if (wrongProp.status !== 404) fail(`property-media wrong property ref expected 404, got ${wrongProp.status}`);
+  ok('property-media rejects attachment when property query does not match linked slug');
+
+  const propPage = await http('GET', '/property/lm-phase2d-manual-demo');
+  if (propPage.status !== 200) fail(`GET /property/lm-phase2d-manual-demo expected 200, got ${propPage.status}`);
+  const propBody = propPage.text || JSON.stringify(propPage.json || {});
+  if (!propBody.includes('/api/lux/property-media')) fail('property page missing public media URL after publish');
+  if (!propBody.includes(pubCaption)) fail('property page missing public caption after publish');
+  if (!propBody.includes(pubAlt)) fail('property page missing public alt text after publish');
+  ok('property page shows published hero caption + alt');
+
+  await unpublishProperty(ticketId, imgId, 'lm-phase2d-manual-demo', 'hero');
+  const afterUnpub = await getPropertyMedia('lm-phase2d-manual-demo', imgId, 'hero');
+  if (afterUnpub.status !== 404) fail(`property-media after unpublish expected 404, got ${afterUnpub.status}`);
+  ok('property-media rejects after unpublish');
+
+  const propPage2 = await http('GET', '/property/lm-phase2d-manual-demo');
+  if (propPage2.status !== 200) fail(`GET /property after unpublish expected 200, got ${propPage2.status}`);
+  const propBody2 = propPage2.text || JSON.stringify(propPage2.json || {});
+  if (propBody2.includes(pubCaption)) fail('property page still showed caption after unpublish');
+  ok('property page dropped published caption after unpublish');
+
+  await setReview(ticketId, vidId, 'reviewed', 'Smoke: temporarily reviewed to test publish gate.');
+  await setPropertyLink(ticketId, vidId, 'lm-phase2d-manual-demo', 'gallery', 'Smoke: video link for IMAGE_ONLY gate.');
+  const vidPub = await http('POST', '/api/cmp/router?action=lux-attachment-property-publish', {
+    body: {
+      ticket_id: ticketId,
+      attachment_id: vidId,
+      property_slug: 'lm-phase2d-manual-demo',
+      intended_slot: 'gallery',
+      public_caption: null,
+      public_alt_text: null,
+    },
+  });
+  if (vidPub.status === 200) fail('lux-attachment-property-publish for video unexpectedly succeeded');
+  if (vidPub.status !== 409 || String(vidPub.json?.error || '') !== 'IMAGE_ONLY') {
+    fail(`video publish expected 409 IMAGE_ONLY, got ${vidPub.status} ${JSON.stringify(vidPub.json).slice(0, 200)}`);
+  }
+  ok('lux-attachment-property-publish rejects video with IMAGE_ONLY');
+  await removePropertyLink(ticketId, vidId, 'lm-phase2d-manual-demo', 'gallery');
+  await setReview(ticketId, vidId, 'rejected', 'Smoke: video is a placeholder, reject.');
 
   await removePropertyLink(ticketId, imgId, 'lm-phase2d-manual-demo', 'hero');
   list = await listAttachments(ticketId);

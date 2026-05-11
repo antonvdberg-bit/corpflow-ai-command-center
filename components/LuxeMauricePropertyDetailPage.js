@@ -10,7 +10,7 @@ function safeStr(v) {
 
 /**
  * LuxeMaurice-only property detail (Phase 2C). Props must be server-built — do not trust client-supplied listing fields.
- * @param {{ property: { ref: string, title: string, location: string, property_type: string, status: string | null, price_display: string, discovery_source: 'curated' | 'manual_curated' | 'feed', summary_text: string, highlights: string[], hero_image?: string | null } }} props
+ * @param {{ property: { ref: string, title: string, location: string, property_type: string, status: string | null, price_display: string, discovery_source: 'curated' | 'manual_curated' | 'feed', summary_text: string, highlights: string[], hero_image?: string | null, published_hero?: { src: string, alt: string, caption: string | null } | null } }} props
  */
 export default function LuxeMauricePropertyDetailPage({ property }) {
   const p = property || {};
@@ -20,11 +20,16 @@ export default function LuxeMauricePropertyDetailPage({ property }) {
   const conciergeHref = `/concierge?intent=property&property=${encodeURIComponent(ref)}`;
   const pageTitle = ref ? `${safeStr(p.title)} · Luxurious Mauritius` : 'Property · Luxurious Mauritius';
 
+  const publishedHero = p.published_hero && typeof p.published_hero === 'object' ? p.published_hero : null;
+
   const heroImg = (() => {
+    if (publishedHero && publishedHero.src) {
+      return { src: String(publishedHero.src), alt: safeStr(publishedHero.alt), caption: publishedHero.caption ? safeStr(publishedHero.caption) : null };
+    }
     const s = p.hero_image != null ? String(p.hero_image).trim() : '';
     if (!s.startsWith('/')) return null;
     if (s.includes('..') || s.includes('//')) return null;
-    return s;
+    return { src: s, alt: '', caption: null };
   })();
 
   const heroBorder = isFeed
@@ -93,8 +98,11 @@ export default function LuxeMauricePropertyDetailPage({ property }) {
         >
           {heroImg ? (
             <div style={{ margin: '-28px -26px 18px', height: 200, background: T.placeholder }}>
-              <img src={heroImg} alt="" style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img src={heroImg.src} alt={heroImg.alt || ''} style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
+          ) : null}
+          {heroImg?.caption ? (
+            <p style={{ margin: '-6px 0 14px', fontSize: 12, color: T.inkMuted, lineHeight: 1.5 }}>{heroImg.caption}</p>
           ) : null}
           <p
             style={{
