@@ -144,6 +144,13 @@ Each phase below must be represented in the ticket’s narrative and acceptance 
 - **Rule**: same publish gate as 4C.3 (**reviewed + linked + image + explicit publish**); **`GET /api/lux/property-media?...&slot=card`**; no video; no auto-publish; composition only in **`LuxeMauriceTenantPresentation`** + SSR in **`pages/index.js`** (`luxe-maurice` only).
 - **Surface**: `/change` uses existing slot allowlist + publish controls for **`card`**; no media-library UX.
 
+### Phase 4D.3 — Media lifecycle governance (archive / restore, no byte delete)
+
+- **Purpose**: let operators **retire** media safely: **archive** sets `lifecycle_status: archived`, records audit fields, **unpublishes every** `property_links[]` row for that attachment (metadata + capped per-link **`publish_history`**), and removes the asset from **all** public collectors and **`GET /api/lux/property-media`** without deleting `cmp_ticket_attachments` bytes. **Restore** returns the attachment to `active` but **does not** republish; operators use the normal publish action again.
+- **Rule**: Lux tenant + Lux host + Dormant Gate; same ticket/attachment ownership checks as other Lux attachment CMP actions; **no `tenant_id` in request body** for archive/restore; optional trimmed **`archive_reason`** (≤600 chars), e.g. `replaced by <new attachment id>`.
+- **Persistence**: attachment-level `lifecycle_status`, `archived_*`, `restored_*`, `archive_reason`; link-level `publish_history` (never exposed on `property-media-list`); `lux_attachment_lifecycle` messages on the ticket.
+- **Surface**: `/change` Attachments panel shows lifecycle + history summary + **Archive** / **Restore**; **`lux-attachment-archive`** / **`lux-attachment-restore`**. See **`docs/LUX/LUX_PHASE4C_ATTACHMENT_REVIEW.md`** and **`docs/LUX/LUX_MEDIA_GOVERNANCE.md`**.
+
 ### Phase 5 — Production reality gate and client handoff
 
 - **Client-visible outcome**: the delivered system matches the programme claims; clients can use it.

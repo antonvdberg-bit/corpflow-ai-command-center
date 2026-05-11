@@ -188,6 +188,9 @@ export default function ChangeConsolePage() {
   const [attachmentPublishAltDrafts, setAttachmentPublishAltDrafts] = useState({});
   const [attachmentGalleryOrderDrafts, setAttachmentGalleryOrderDrafts] = useState({});
   const [attachmentGalleryCoverDrafts, setAttachmentGalleryCoverDrafts] = useState({});
+  const [attachmentArchiveBusyId, setAttachmentArchiveBusyId] = useState('');
+  const [attachmentRestoreBusyId, setAttachmentRestoreBusyId] = useState('');
+  const [attachmentArchiveReasonDrafts, setAttachmentArchiveReasonDrafts] = useState({});
 
   const showChangeLayoutFixture =
     process.env.NODE_ENV === 'development' && router.isReady && String(router.query.changeLayoutFixture || '') === '1';
@@ -523,6 +526,72 @@ export default function ChangeConsolePage() {
       setAttachmentsError(String(e?.message || e));
     } finally {
       setAttachmentPublishBusyKey('');
+    }
+  }
+
+  async function submitAttachmentArchive(attachmentId) {
+    const tid = String(selectedTicketId || '').trim();
+    const aid = String(attachmentId || '').trim();
+    if (!tid || !aid) return;
+    setAttachmentArchiveBusyId(aid);
+    setAttachmentsError('');
+    try {
+      const reasonRaw = (attachmentArchiveReasonDrafts && attachmentArchiveReasonDrafts[aid]) || '';
+      const r = await fetch('/api/cmp/router?action=lux-attachment-archive', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ticket_id: tid,
+          attachment_id: aid,
+          archive_reason: String(reasonRaw || '').trim() || null,
+        }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        const msg = String(j?.error || j?.detail || j?.hint || '').trim();
+        if (r.status === 403 && msg.toLowerCase().includes('dormant gate')) {
+          throw new Error('Your session expired. Please refresh and log in again.');
+        }
+        throw new Error(msg || `http_${r.status}`);
+      }
+      await loadAttachmentsForTicket(tid);
+    } catch (e) {
+      setAttachmentsError(String(e?.message || e));
+    } finally {
+      setAttachmentArchiveBusyId('');
+    }
+  }
+
+  async function submitAttachmentRestore(attachmentId) {
+    const tid = String(selectedTicketId || '').trim();
+    const aid = String(attachmentId || '').trim();
+    if (!tid || !aid) return;
+    setAttachmentRestoreBusyId(aid);
+    setAttachmentsError('');
+    try {
+      const r = await fetch('/api/cmp/router?action=lux-attachment-restore', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ticket_id: tid,
+          attachment_id: aid,
+        }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        const msg = String(j?.error || j?.detail || j?.hint || '').trim();
+        if (r.status === 403 && msg.toLowerCase().includes('dormant gate')) {
+          throw new Error('Your session expired. Please refresh and log in again.');
+        }
+        throw new Error(msg || `http_${r.status}`);
+      }
+      await loadAttachmentsForTicket(tid);
+    } catch (e) {
+      setAttachmentsError(String(e?.message || e));
+    } finally {
+      setAttachmentRestoreBusyId('');
     }
   }
 
@@ -1966,6 +2035,22 @@ export default function ChangeConsolePage() {
               <div style={{ marginTop: 6, fontSize: 11, color: '#64748b' }}>
                 Private to this tenant · never published until reviewed.
               </div>
+              <div
+                style={{
+                  marginTop: 8,
+                  fontSize: 11,
+                  color: '#a5b4fc',
+                  lineHeight: 1.45,
+                  border: '1px solid rgba(129,140,248,0.25)',
+                  borderRadius: 10,
+                  padding: '8px 10px',
+                  background: 'rgba(99,102,241,0.08)',
+                }}
+              >
+                Phase 4D.3 · Replace media safely: upload a new attachment, mark it reviewed, link it to the property,
+                publish it, then archive the old attachment. You may set the archive reason to e.g.{' '}
+                <span style={{ color: '#e2e8f0' }}>replaced by &lt;attachment_id or filename&gt;</span>.
+              </div>
               {attachmentsBusy ? (
                 <div style={{ marginTop: 10, fontSize: 12, color: '#94a3b8' }}>Loading attachments…</div>
               ) : null}
@@ -1990,6 +2075,8 @@ export default function ChangeConsolePage() {
                   const aid = String(a.attachment_id || a.id || '');
                   const isLuxMeta = a.attachment_id != null;
                   const status = String(a.review_status || (isLuxMeta ? 'pending_review' : '')).toLowerCase();
+                  const life = String(a.lifecycle_status || 'active').toLowerCase();
+                  const isArchived = life === 'archived';
                   const statusBadge =
                     status === 'reviewed'
                       ? { bg: 'rgba(34,197,94,0.12)', border: 'rgba(34,197,94,0.35)', color: '#dcfce7', label: 'Reviewed' }
@@ -2001,16 +2088,18 @@ export default function ChangeConsolePage() {
                   const sizeKb = Number.isFinite(Number(a.byte_size)) ? Math.round(Number(a.byte_size) / 1024) : null;
                   const isReviewBusy = attachmentReviewBusyId === aid;
                   const isLinkBusy = attachmentLinkBusyId === aid;
+                  const isArchiveBusy = attachmentArchiveBusyId === aid;
+                  const isRestoreBusy = attachmentRestoreBusyId === aid;
                   const mediaTypeLower = String(a.media_type || '').toLowerCase();
-                  const canPublishSlot = status === 'reviewed' && mediaTypeLower === 'image';
+                  const canPublishSlot = status === 'reviewed' && mediaTypeLower === 'image' && !isArchived;
                   const propertyLinks = Array.isArray(a.property_links) ? a.property_links : [];
                   return (
                     <div
                       key={aid}
                       style={{
-                        border: '1px solid rgba(148,163,184,0.18)',
+                        border: `1px solid ${isArchived ? 'rgba(244,63,94,0.35)' : 'rgba(148,163,184,0.18)'}`,
                         borderRadius: 12,
-                        background: 'rgba(2,6,23,0.45)',
+                        background: isArchived ? 'rgba(244,63,94,0.06)' : 'rgba(2,6,23,0.45)',
                         padding: 12,
                         minWidth: 0,
                         ...changeTextContainStyle(),
@@ -2028,22 +2117,42 @@ export default function ChangeConsolePage() {
                         <div style={{ minWidth: 0, fontSize: 13, fontWeight: 800, color: '#e2e8f0', ...changeTextContainStyle() }}>
                           {String(a.file_name || 'upload')}
                         </div>
-                        <span
-                          style={{
-                            fontSize: 10,
-                            fontWeight: 800,
-                            padding: '4px 8px',
-                            borderRadius: 999,
-                            border: `1px solid ${statusBadge.border}`,
-                            background: statusBadge.bg,
-                            color: statusBadge.color,
-                            letterSpacing: '0.04em',
-                            textTransform: 'uppercase',
-                            flexShrink: 0,
-                          }}
-                        >
-                          {statusBadge.label}
-                        </span>
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                          <span
+                            style={{
+                              fontSize: 10,
+                              fontWeight: 800,
+                              padding: '4px 8px',
+                              borderRadius: 999,
+                              border: `1px solid ${statusBadge.border}`,
+                              background: statusBadge.bg,
+                              color: statusBadge.color,
+                              letterSpacing: '0.04em',
+                              textTransform: 'uppercase',
+                              flexShrink: 0,
+                            }}
+                          >
+                            {statusBadge.label}
+                          </span>
+                          {isArchived ? (
+                            <span
+                              style={{
+                                fontSize: 10,
+                                fontWeight: 800,
+                                padding: '4px 8px',
+                                borderRadius: 999,
+                                border: '1px solid rgba(244,63,94,0.45)',
+                                background: 'rgba(244,63,94,0.12)',
+                                color: '#fecdd3',
+                                letterSpacing: '0.04em',
+                                textTransform: 'uppercase',
+                                flexShrink: 0,
+                              }}
+                            >
+                              Archived
+                            </span>
+                          ) : null}
+                        </div>
                       </div>
                       <div
                         style={{
@@ -2060,7 +2169,33 @@ export default function ChangeConsolePage() {
                         {sizeKb != null ? <span>Size: {sizeKb} KB</span> : null}
                         {a.intended_use ? <span>Use: {String(a.intended_use).replaceAll('_', ' ')}</span> : null}
                         {a.created_at ? <span>Added: {new Date(a.created_at).toLocaleString()}</span> : null}
+                        {isLuxMeta ? (
+                          <span style={{ fontWeight: 800, color: isArchived ? '#fecdd3' : '#cbd5e1' }}>
+                            Lifecycle: {life}
+                          </span>
+                        ) : null}
                       </div>
+                      {isLuxMeta && (a.archived_at || a.archive_reason || a.restored_at) ? (
+                        <div style={{ marginTop: 8, fontSize: 11, color: '#94a3b8', display: 'grid', gap: 4 }}>
+                          {a.archived_at ? (
+                            <div>
+                              Archived{a.archived_by ? ` by ${String(a.archived_by)}` : null} ·{' '}
+                              {new Date(a.archived_at).toLocaleString()}
+                            </div>
+                          ) : null}
+                          {a.archive_reason ? (
+                            <div style={{ color: '#cbd5e1', whiteSpace: 'pre-wrap', ...changeTextContainStyle() }}>
+                              Reason: {String(a.archive_reason)}
+                            </div>
+                          ) : null}
+                          {a.restored_at ? (
+                            <div>
+                              Restored{a.restored_by ? ` by ${String(a.restored_by)}` : null} ·{' '}
+                              {new Date(a.restored_at).toLocaleString()}
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : null}
                       {a.notes ? (
                         <div
                           style={{
@@ -2218,6 +2353,21 @@ export default function ChangeConsolePage() {
                                         {new Date(pl.unpublished_at).toLocaleString()}
                                       </div>
                                     ) : null}
+                                    {Array.isArray(pl?.publish_history) && pl.publish_history.length > 0 ? (
+                                      <div style={{ fontSize: 10, color: '#64748b', display: 'grid', gap: 2 }}>
+                                        <div style={{ fontWeight: 800, color: '#94a3b8' }}>Publish history (latest)</div>
+                                        {pl.publish_history.slice(-5).map((h, hi) => (
+                                          <div key={`${slug}:${slot}:hist:${hi}`} style={{ lineHeight: 1.35 }}>
+                                            {h?.at ? `${new Date(String(h.at)).toLocaleString()} · ` : null}
+                                            {h?.action ? String(h.action) : '—'}
+                                            {h?.actor ? ` · ${String(h.actor)}` : null}
+                                            {h?.note ? (
+                                              <span style={{ color: '#cbd5e1' }}>{` — ${String(h.note)}`}</span>
+                                            ) : null}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ) : null}
                                     <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4 }}>
                                       Public caption (optional)
                                       <input
@@ -2279,6 +2429,7 @@ export default function ChangeConsolePage() {
                                         type="button"
                                         disabled={
                                           isLinkBusy ||
+                                          isArchived ||
                                           attachmentPublishBusyKey === attachmentPublishDraftKey(aid, slug, slot)
                                         }
                                         onClick={() => void submitAttachmentPropertyPublish(aid, slug, slot)}
@@ -2291,10 +2442,11 @@ export default function ChangeConsolePage() {
                                           fontWeight: 800,
                                           fontSize: 12,
                                           cursor:
-                                            isLinkBusy ||
-                                            attachmentPublishBusyKey === attachmentPublishDraftKey(aid, slug, slot)
-                                              ? 'not-allowed'
-                                              : 'pointer',
+                                          isLinkBusy ||
+                                          isArchived ||
+                                          attachmentPublishBusyKey === attachmentPublishDraftKey(aid, slug, slot)
+                                            ? 'not-allowed'
+                                            : 'pointer',
                                         }}
                                       >
                                         Publish
@@ -2303,6 +2455,7 @@ export default function ChangeConsolePage() {
                                         type="button"
                                         disabled={
                                           isLinkBusy ||
+                                          isArchived ||
                                           attachmentPublishBusyKey === attachmentPublishDraftKey(aid, slug, slot) ||
                                           String(pl?.publish_status || '').toLowerCase() !== 'published'
                                         }
@@ -2317,6 +2470,7 @@ export default function ChangeConsolePage() {
                                           fontSize: 12,
                                           cursor:
                                             isLinkBusy ||
+                                            isArchived ||
                                             attachmentPublishBusyKey === attachmentPublishDraftKey(aid, slug, slot) ||
                                             String(pl?.publish_status || '').toLowerCase() !== 'published'
                                               ? 'not-allowed'
@@ -2331,7 +2485,7 @@ export default function ChangeConsolePage() {
                                 <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                                   <button
                                     type="button"
-                                    disabled={isLinkBusy}
+                                    disabled={isLinkBusy || isArchived}
                                     onClick={() => void submitAttachmentPropertyUnlink(aid, slug, slot)}
                                     style={{
                                       padding: '8px 12px',
@@ -2341,7 +2495,7 @@ export default function ChangeConsolePage() {
                                       color: '#e2e8f0',
                                       fontWeight: 800,
                                       fontSize: 12,
-                                      cursor: isLinkBusy ? 'not-allowed' : 'pointer',
+                                      cursor: isLinkBusy || isArchived ? 'not-allowed' : 'pointer',
                                     }}
                                   >
                                     Unlink
@@ -2375,6 +2529,71 @@ export default function ChangeConsolePage() {
                       </div>
                       {isLuxMeta ? (
                         <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
+                          <div style={{ fontSize: 10, fontWeight: 800, color: '#a5b4fc', letterSpacing: '0.04em' }}>
+                            Phase 4D.3 · lifecycle
+                          </div>
+                          {!isArchived ? (
+                            <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4 }}>
+                              Archive reason (optional, max 600 chars)
+                              <textarea
+                                value={attachmentArchiveReasonDrafts[aid] || ''}
+                                onChange={(e) =>
+                                  setAttachmentArchiveReasonDrafts((prev) => ({ ...prev, [aid]: e.target.value }))
+                                }
+                                rows={2}
+                                maxLength={600}
+                                placeholder='e.g. replaced by new-hero.png or attachment id clxyz…'
+                                style={{
+                                  padding: '8px 10px',
+                                  borderRadius: 10,
+                                  border: '1px solid rgba(148,163,184,0.25)',
+                                  background: 'rgba(2,6,23,0.65)',
+                                  color: '#e2e8f0',
+                                  fontSize: 12,
+                                  resize: 'vertical',
+                                  ...changeTextContainStyle(),
+                                }}
+                              />
+                            </label>
+                          ) : null}
+                          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                            <button
+                              type="button"
+                              disabled={isArchiveBusy || isRestoreBusy || isArchived}
+                              onClick={() => void submitAttachmentArchive(aid)}
+                              style={{
+                                padding: '8px 12px',
+                                borderRadius: 10,
+                                border: '1px solid rgba(244,63,94,0.45)',
+                                background: 'rgba(244,63,94,0.12)',
+                                color: '#fecdd3',
+                                fontWeight: 800,
+                                fontSize: 12,
+                                cursor:
+                                  isArchiveBusy || isRestoreBusy || isArchived ? 'not-allowed' : 'pointer',
+                              }}
+                            >
+                              {isArchiveBusy ? 'Archiving…' : 'Archive'}
+                            </button>
+                            <button
+                              type="button"
+                              disabled={isArchiveBusy || isRestoreBusy || !isArchived}
+                              onClick={() => void submitAttachmentRestore(aid)}
+                              style={{
+                                padding: '8px 12px',
+                                borderRadius: 10,
+                                border: '1px solid rgba(34,197,94,0.35)',
+                                background: 'rgba(34,197,94,0.10)',
+                                color: '#dcfce7',
+                                fontWeight: 800,
+                                fontSize: 12,
+                                cursor:
+                                  isArchiveBusy || isRestoreBusy || !isArchived ? 'not-allowed' : 'pointer',
+                              }}
+                            >
+                              {isRestoreBusy ? 'Restoring…' : 'Restore'}
+                            </button>
+                          </div>
                           <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4 }}>
                             Review note (optional)
                             <textarea
@@ -2451,7 +2670,7 @@ export default function ChangeConsolePage() {
                             </button>
                           </div>
 
-                          {status === 'reviewed' ? (
+                          {status === 'reviewed' && !isArchived ? (
                             <div style={{ marginTop: 6, display: 'grid', gap: 8 }}>
                               <div style={{ fontSize: 11, color: '#94a3b8' }}>
                                 Phase 4C.2 · link reviewed media to a property (still private; not published).
@@ -2552,6 +2771,11 @@ export default function ChangeConsolePage() {
                                   Link to property
                                 </button>
                               </div>
+                            </div>
+                          ) : status === 'reviewed' && isArchived ? (
+                            <div style={{ marginTop: 8, fontSize: 11, color: '#94a3b8', lineHeight: 1.45 }}>
+                              This attachment is archived. Link and publish controls are disabled; download remains
+                              available. Restore to active if you need to publish again (restore does not auto-republish).
                             </div>
                           ) : null}
                         </div>

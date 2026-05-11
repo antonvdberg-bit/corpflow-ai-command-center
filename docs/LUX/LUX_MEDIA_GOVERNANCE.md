@@ -2,16 +2,22 @@
 
 **Authoritative programme ticket:** `cmo8mjijk0000jl04l1jz0v6d` (not closed by media phases).
 
-This document describes **how media becomes public** on `lux.corpflowai.com` after Phase 4C.x / **4D.1** / **4D.2**, and the **hard boundaries** before CDN, transforms, DAM, automation, or social surfaces exist.
+This document describes **how media becomes public** on `lux.corpflowai.com` after Phase 4C.x / **4D.1** / **4D.2**, plus **Phase 4D.3** (operator **archive / restore** without deleting bytes), and the **hard boundaries** before CDN, transforms, DAM, automation, or social surfaces exist.
 
 ## Lifecycles (strict order)
 
 1. **Upload** — Binary lands in `cmp_ticket_attachments`; metadata row is upserted into `console_json.lux_request_meta.attachments[]` with default `review_status: pending_review`. **Nothing is public.**
 2. **Review** — Operator sets `pending_review` → `reviewed` or `rejected` via `lux-attachment-review-set`. **Rejected media never becomes linkable for public slots in normal flows.** Still not public.
-3. **Link** — Operator associates a **reviewed** attachment with a property ref + `intended_slot` (`hero`, `card`, `detail`, `gallery`, `reference`) via `lux-attachment-property-link-set`. **Still private** (`publish_status: unpublished` on the link).
-4. **Publish** — Operator explicitly calls `lux-attachment-property-publish` for that `(property_slug, intended_slot)` link. **Only then** may bytes be served from `GET /api/lux/property-media` and only for **image** MIME types that pass all server checks.
+3. **Link** — Operator associates a **reviewed** attachment with a property ref + `intended_slot` (`hero`, `card`, `detail`, `gallery`, `reference`) via `lux-attachment-property-link-set`. **Still private** (`publish_status: unpublished` on the link). **Blocked while `lifecycle_status: archived`.**
+4. **Publish** — Operator explicitly calls `lux-attachment-property-publish` for that `(property_slug, intended_slot)` link. **Only then** may bytes be served from `GET /api/lux/property-media` and only for **image** MIME types that pass all server checks. **Blocked while the attachment is archived.**
+5. **Archive (4D.3)** — Operator calls `lux-attachment-archive`. Sets `lifecycle_status: archived` with `archived_at` / `archived_by` / optional `archive_reason`; **every** `property_links[]` row is set to `publish_status: unpublished` if it was published; **binary bytes are not deleted**. Public routes and collectors **ignore** archived attachments even if stale client state suggested otherwise.
+6. **Restore (4D.3)** — Operator calls `lux-attachment-restore`. Sets `lifecycle_status: active` and `restored_at` / `restored_by`; **does not** flip any link back to published — the operator must **publish again** explicitly.
 
-**Auto-publish is forbidden:** no publish on upload, review, or link.
+**Replacement workflow (no binary swap in this slice):** upload a **new** attachment → review → link → publish → archive the old attachment (reason may cite the replacement id or filename).
+
+**Per-link publish history (operator-only):** each `property_links[]` row may carry `publish_history[]` entries `{ at, action, actor, note }` for `published` | `unpublished` | `archived` | `restored` (capped server-side). This is **not** included in `property-media-list` or any public JSON.
+
+**Auto-publish is forbidden:** no publish on upload, review, link, or restore.
 
 ## Slot semantics
 
@@ -25,7 +31,7 @@ This document describes **how media becomes public** on `lux.corpflowai.com` aft
 
 ## Public surfaces (current)
 
-- **`GET /api/lux/property-media?property=&attachment=&slot=`** — Lux host + `luxe-maurice` context; **published + reviewed + image** + matching link; **404** otherwise; conservative cache; **no** raw storage path in response.
+- **`GET /api/lux/property-media?property=&attachment=&slot=`** — Lux host + `luxe-maurice` context; **published + reviewed + image** + matching link + attachment **`lifecycle_status` not `archived`**; **404** otherwise; conservative cache; **no** raw storage path in response.
 - **`GET /api/lux/property-media-list?property=`** — Same host gate; JSON list of **safe** entries (`slot`, `src`, `public_caption`, `public_alt_text`, `gallery_order`, `is_gallery_cover`) for **hero + card + gallery**. **No** operator audit fields, **no** `lux_request_meta`, **no** private download URLs.
 - **`/` (LuxeMaurice acquisition)** — Property cards use **published `card`** image when present (`collectPublishedLuxCardMediaByPropertyRefs`); otherwise same-origin staged hero path or neutral placeholder. Feed cards use the same rule when the feed id resolves.
 - **`/property/[slug]`** — Renders published **hero** (if any) and a **Gallery** grid for published **gallery** slot images with public caption/alt only (card slot is for listing/home cards, not detail layout in this phase).
@@ -34,7 +40,7 @@ This document describes **how media becomes public** on `lux.corpflowai.com` aft
 
 **Public may show:** public image URL (already includes opaque attachment id in query), public caption, public alt text, slot, sort hints safe for display.
 
-**Public must not show:** `lux_request_meta`, `review_note`, `reviewed_by`, `linked_by`, `published_by`, private `/api/change-attachment/download` links, raw storage paths, unpublished/rejected/pending media, **video** on these routes.
+**Public must not show:** `lux_request_meta`, `review_note`, `reviewed_by`, `linked_by`, `published_by`, `publish_history`, lifecycle audit fields, private `/api/change-attachment/download` links, raw storage paths, unpublished/rejected/pending/**archived** media, **video** on these routes.
 
 ## Future: CDN / transforms boundary
 

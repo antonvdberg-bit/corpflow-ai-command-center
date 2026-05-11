@@ -200,6 +200,28 @@ test('collectPublishedLuxPropertyMedia excludes pending and rejected', async () 
   assert.equal(r.published_gallery.length, 0);
 });
 
+test('collectPublishedLuxPropertyMedia excludes archived attachments even if link metadata says published', async () => {
+  const img = { id: 'arc1', tenantId: 'luxe-maurice', contentType: 'image/jpeg' };
+  const cj = {
+    lux_request_meta: {
+      attachments: [
+        {
+          attachment_id: 'arc1',
+          review_status: 'reviewed',
+          lifecycle_status: 'archived',
+          media_type: 'image',
+          property_links: [heroLink(true), galleryLink({ published: true }), cardLink({ published: true, alt: 'x' })],
+        },
+      ],
+    },
+  };
+  const prisma = makePrisma({ consoleJsonList: [cj], attachmentById: { arc1: img } });
+  const r = await collectPublishedLuxPropertyMedia(prisma, PROP);
+  assert.equal(r.published_hero, null);
+  assert.equal(r.published_gallery.length, 0);
+  assert.equal(r.published_card, null);
+});
+
 test('collectPublishedLuxPropertyMedia ignores reference slot for gallery list', async () => {
   const img = { id: 'r1', tenantId: 'luxe-maurice', contentType: 'image/jpeg' };
   const cj = {
@@ -367,4 +389,24 @@ test('collectPublishedLuxCardMediaByPropertyRefs maps one ref and skips video', 
   assert.equal(m.get('lm-phase2d-manual-demo')?.alt, 'batch card');
   assert.equal(m.has('lm-nc-ridge'), false);
   assert.equal(m.size, 1);
+});
+
+test('collectPublishedLuxCardMediaByPropertyRefs excludes archived published card', async () => {
+  const img = { id: 'carc', tenantId: 'luxe-maurice', contentType: 'image/jpeg' };
+  const cj = {
+    lux_request_meta: {
+      attachments: [
+        {
+          attachment_id: 'carc',
+          review_status: 'reviewed',
+          lifecycle_status: 'archived',
+          media_type: 'image',
+          property_links: [cardLink({ published: true, alt: 'should not surface' })],
+        },
+      ],
+    },
+  };
+  const prisma = makePrisma({ consoleJsonList: [cj], attachmentById: { carc: img } });
+  const m = await collectPublishedLuxCardMediaByPropertyRefs(prisma, [PROP]);
+  assert.equal(m.has('lm-phase2d-manual-demo'), false);
 });

@@ -3,7 +3,7 @@
 **Authoritative ticket:** `cmo8mjijk0000jl04l1jz0v6d` (master programme).
 **Surface:** `https://lux.corpflowai.com/change` (Lux tenant session only).
 
-This document covers **Phase 4C** (binary upload to a Lux client-request ticket), **Phase 4C.1** (operator media review), **Phase 4C.2** (reviewed-only property linkage, metadata-only), **Phase 4C.3** (operator-controlled **publish** of reviewed+linked **images** to a narrow public surface), **Phase 4D.1** (governed **multi-image gallery** for `intended_slot === gallery` plus the existing **hero** path), and **Phase 4D.2** (**homepage / listing card** images for `intended_slot === card`). Video and other media types stay private on public routes; there is still **no** auto-publish, **no** CDN/transform pipeline, and **no** signed public download of raw bytes beyond the governed **`/api/lux/property-media`** (and optional **`property-media-list`**) described below. End-to-end lifecycle and slot rules: **`docs/LUX/LUX_MEDIA_GOVERNANCE.md`**.
+This document covers **Phase 4C** (binary upload to a Lux client-request ticket), **Phase 4C.1** (operator media review), **Phase 4C.2** (reviewed-only property linkage, metadata-only), **Phase 4C.3** (operator-controlled **publish** of reviewed+linked **images** to a narrow public surface), **Phase 4D.1** (governed **multi-image gallery** for `intended_slot === gallery` plus the existing **hero** path), **Phase 4D.2** (**homepage / listing card** images for `intended_slot === card`), and **Phase 4D.3** (**archive / restore** lifecycle: archive unpublishes all links; restore does not auto-republish; per-link **`publish_history`** for operator audit only). Video and other media types stay private on public routes; there is still **no** auto-publish, **no** CDN/transform pipeline, and **no** signed public download of raw bytes beyond the governed **`/api/lux/property-media`** (and optional **`property-media-list`**) described below. End-to-end lifecycle and slot rules: **`docs/LUX/LUX_MEDIA_GOVERNANCE.md`**.
 
 ## Scope (intentional, narrow)
 
@@ -29,6 +29,12 @@ In scope for **Phase 4C.3** + **Phase 4D.1** (narrow exceptions):
 - **`/`** (LuxeMaurice acquisition homepage) uses **published `card`** images on property cards when present; otherwise staged same-origin hero or placeholders (**Phase 4D.2**).
 - **`/property/[slug]`** may show a **published hero** (`intended_slot === hero`) and a **Gallery** section for **published gallery** slot images; falls back to the static catalog hero when no published hero qualifies; gallery section omitted when no published gallery images exist.
 
+In scope for **Phase 4D.3**:
+
+- CMP actions **`lux-attachment-archive`** / **`lux-attachment-restore`** (Lux tenant + Lux host + Dormant Gate). Archive sets **`lifecycle_status: archived`**, stamps `archived_at` / `archived_by` / optional `archive_reason`, and sets **every** `property_links[]` row with `publish_status: published` to **`unpublished`** (preserving captions and prior publish timestamps on the row). Restore sets **`lifecycle_status: active`** and `restored_at` / `restored_by`; links stay **unpublished** until the operator publishes again.
+- Per-link **`publish_history`** (capped array of `{ at, action, actor, note }` for `published` \| `unpublished` \| `archived` \| `restored`) is appended on publish, unpublish, archive, and restore. **Never** returned on public list payloads.
+- **`/change`** shows lifecycle fields, a short publish-history summary per link, Archive/Restore controls, and replacement guidance (upload → review → link → publish → archive old).
+
 ## Storage shape
 
 Attachments use **two stores in the same tenant boundary**:
@@ -51,10 +57,18 @@ Each metadata entry has the shape:
   "review_note": null,
   "reviewed_at": null,
   "reviewed_by": null,
+  "lifecycle_status": "active",
+  "archived_at": null,
+  "archived_by": null,
+  "archive_reason": null,
+  "restored_at": null,
+  "restored_by": null,
   "created_at": "2026-05-08T09:00:00.000Z",
   "created_by": "tenant_session"
 }
 ```
+
+New links created by **`lux-attachment-property-link-set`** include `publish_history: []` (then populated by publish/unpublish/archive/restore helpers).
 
 When an operator changes review status, a structured trail is appended to `console_json.messages[]`:
 
@@ -82,7 +96,9 @@ The append is idempotent on `(attachment_id, review_status, at)` to avoid double
 | `POST /api/cmp/router?action=lux-attachment-review-set` | `lux-attachment-review-set` | **Lux tenant + Lux host only** (`luxe-maurice` + `lux.corpflowai.com`) | Sets `review_status`, `review_note`, `reviewed_at`, `reviewed_by` on the matching attachment entry; appends a `lux_attachment_review` message. |
 | `POST /api/cmp/router?action=lux-attachment-property-publish` | `lux-attachment-property-publish` | **Lux tenant + Lux host only** | Publishes a **reviewed + linked + image** attachment for one `(property_slug, intended_slot)`; for **`gallery`**, body may include **`gallery_order`**, **`is_gallery_cover`** (clears other published gallery covers on the ticket for that property). Appends `lux_attachment_property_publish` (`message`: `media published`). |
 | `POST /api/cmp/router?action=lux-attachment-property-unpublish` | `lux-attachment-property-unpublish` | **Lux tenant + Lux host only** | Sets `publish_status` back to `unpublished`; preserves link + review + caption/alt metadata; appends `media unpublished`. |
-| `GET /api/lux/property-media?...` | (public image bytes) | **Lux hostname + tenant host context `luxe-maurice` only** | Serves the image only when published+reviewed+linked slot matches; never exposes operator-only JSON. |
+| `POST /api/cmp/router?action=lux-attachment-archive` | `lux-attachment-archive` | **Lux tenant + Lux host only** | Sets attachment `lifecycle_status: archived`, unpublishes **all** links for that attachment, appends link-level history + `lux_attachment_lifecycle` message; **no byte delete**. |
+| `POST /api/cmp/router?action=lux-attachment-restore` | `lux-attachment-restore` | **Lux tenant + Lux host only** | Sets `lifecycle_status: active` + `restored_*`; **does not** republish. |
+| `GET /api/lux/property-media?...` | (public image bytes) | **Lux hostname + tenant host context `luxe-maurice` only** | Serves the image only when published+reviewed+linked slot matches and attachment is **not archived**; never exposes operator-only JSON. |
 | `GET /api/lux/property-media-list?property=...` | (public JSON list) | **Lux hostname + tenant host context `luxe-maurice` only** | Returns **published** **hero + card + gallery** image entries with **safe** display fields only (`slot`, `src`, captions/alt, sort hints); no attachment audit blob, no raw storage paths. |
 
 ### `lux-attachment-review-set` request body
@@ -223,9 +239,10 @@ await fetch('/api/change-attachment/upload', {
 
 - `lib/cmp/_lib/lux-request-attachments.js` — pure helper module (status enums, normalizers, immutable JSON updaters, safe shape).
 - `lib/server/change-attachments.js` — extended upload + list routes.
-- `lib/cmp/router.js` — `lux-attachment-review-set`, `lux-attachment-property-link-*`, `lux-attachment-property-publish`, `lux-attachment-property-unpublish` handlers + tenant-login allowlist.
-- `lib/server/lux-property-media.js` — public image route handler.
-- `pages/change.js` — Attachments panel + review + link + publish actions.
+- `lib/cmp/router.js` — `lux-attachment-review-set`, `lux-attachment-property-link-*`, `lux-attachment-property-publish`, `lux-attachment-property-unpublish`, **`lux-attachment-archive`**, **`lux-attachment-restore`** handlers + tenant-login allowlist.
+- `lib/server/lux-property-media.js` — public image route handler (**archived** attachments → **404**).
+- `lib/server/lux-published-property-media.js` — public composition (**skips archived** attachments).
+- `pages/change.js` — Attachments panel + review + link + publish + **archive/restore** actions.
 - `pages/property/[slug].js` — optional published hero from recent Lux tickets.
 - `node-tests/lux-request-attachments.test.mjs` — pure helper tests.
 - `docs/LUX/LUX_DELIVERY_PROGRAMME.md` — programme phase placement.
