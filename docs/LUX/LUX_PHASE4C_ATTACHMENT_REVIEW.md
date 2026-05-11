@@ -298,3 +298,27 @@ Delivery Reality Audit:
 - Client-facing flow usable: YES (operator publish gate + narrow public hero + governed media URL)
 - Final verdict: COMPLETE
 ```
+
+## Delivery Reality Audit (Phase 4D.1)
+
+```text
+Delivery Reality Audit:
+- Local fix exists: YES
+- Merged to main: YES — PR **#163** (squash merge commit `485b30014aeca3d74c8e80052a9b03c6c0602dff`)
+- Production deployment ID: GitHub deployment **4643549076** (Vercel target_url `https://corpflow-ai-command-center-ltkqbvoex-corpflowai.vercel.app`, state success)
+- Commit deployed (production): `485b30014aeca3d74c8e80052a9b03c6c0602dff`
+- Live URLs tested:
+  - https://lux.corpflowai.com/change (authenticated)
+  - https://lux.corpflowai.com/api/lux/property-media (GET, hero + gallery slot gate)
+  - https://lux.corpflowai.com/api/lux/property-media-list?property=lm-phase2d-manual-demo (published hero + gallery JSON, safe fields only)
+  - https://lux.corpflowai.com/property/lm-phase2d-manual-demo (gallery grid + captions/alt when published)
+  - https://lux.corpflowai.com/, /concierge (public no-leak smoke)
+- Production smoke: `npm run smoke:lux-phase4c1 -- --target=production` (2026-05-11) — ALL CHECKS PASSED
+  - Gallery publish proof: two reviewed PNGs linked as `gallery`, published with order/caption/alt; `property-media` **200** + `image/*` for both; `property-media-list` returned **≥2** gallery items; `/property/lm-phase2d-manual-demo` HTML showed gallery grid + caption strings from smoke
+  - Gallery unpublish proof: after `lux-attachment-property-unpublish` on one gallery attachment, that image **404**d on `property-media` and disappeared from list + property page while the other published gallery image remained
+  - Video remains private: reviewed video linked to `gallery` then `lux-attachment-property-publish` returned **409 IMAGE_ONLY**; no public gallery bytes for video
+  - Public no-leak: `/`, `/concierge`, `/property/lm-phase2d-manual-demo` smoke forbids `lux_request_meta`, `property_links`, `review_status`, `/api/change-attachment/`, etc. in HTML body — passed
+- Master programme ticket `cmo8mjijk0000jl04l1jz0v6d`: intentionally **not** closed by this phase
+- Client-facing flow usable: YES (operator gallery publish + governed list + property gallery grid)
+- Final verdict: COMPLETE
+```
