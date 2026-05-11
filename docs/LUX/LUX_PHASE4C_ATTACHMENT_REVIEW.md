@@ -364,3 +364,27 @@ Delivery Reality Audit:
 - Client-facing flow usable: YES (homepage listing cards can use governed published card images)
 - Final verdict: COMPLETE
 ```
+
+## Delivery Reality Audit (Phase 4D.3)
+
+```text
+Delivery Reality Audit:
+- Local fix exists: YES
+- Merged to main: YES — PR **#167** (squash merge commit `38710b84fcd7146979748621d79ea767206a81ba`)
+- Production deployment ID: GitHub deployment **4644466974** (Vercel target_url `https://corpflow-ai-command-center-r5zykh5b4-corpflowai.vercel.app`, state success)
+- Commit deployed (production): `38710b84fcd7146979748621d79ea767206a81ba`
+- Live URLs tested:
+  - https://lux.corpflowai.com/change (authenticated)
+  - https://lux.corpflowai.com/api/lux/property-media (GET — archive → 404, restore without republish → 404, explicit republish → 200)
+  - https://lux.corpflowai.com/property/lm-phase2d-manual-demo (hero caption absent after archive)
+  - https://lux.corpflowai.com/, /concierge (public no-leak smoke)
+- Production smoke: `npm run smoke:lux-phase4c1 -- --target=production` (2026-05-11) — ALL CHECKS PASSED
+  - Archive proof: after `lux-attachment-archive`, hero `property-media` **404**; property page HTML no longer contained **Smoke 4C3 public caption**; list payload showed `lifecycle_status: archived`, hero link `publish_status: unpublished`, and `publish_history` contained **unpublished** (auto: attachment archived) + **archived**
+  - Restore proof: `lux-attachment-restore` then `property-media` still **404** (not auto-republished)
+  - Republish proof: `lux-attachment-property-publish` again → **200** + `image/*` on `property-media`
+  - `tenant_id` / `tenantId` in archive body → **400** `TENANT_ID_NOT_ALLOWED_IN_BODY`; publish while archived → **409** `LIFECYCLE_ARCHIVED`
+  - Public no-leak: `/`, `/concierge`, `/property/lm-phase2d-manual-demo` smoke forbids `lux_request_meta`, `property_links`, `review_status`, `/api/change-attachment/`, etc. in HTML body — passed
+- Master programme ticket `cmo8mjijk0000jl04l1jz0v6d`: intentionally **not** closed by this phase
+- Client-facing flow usable: YES (operators can archive/restore without deleting bytes; public surfaces stay clean)
+- Final verdict: COMPLETE
+```
