@@ -9,6 +9,9 @@ import {
   appendLuxAttachmentPropertyLinkMessage,
   appendLuxAttachmentPropertyPublishMessage,
   appendLuxAttachmentReviewMessage,
+  appendLuxLinkPublishHistoryEntry,
+  applyLuxAttachmentArchive,
+  applyLuxAttachmentRestore,
   applyLuxAttachmentPropertyLinkRemove,
   applyLuxAttachmentPropertyLinkSet,
   applyLuxAttachmentPropertyPublish,
@@ -25,6 +28,7 @@ import {
   normalizeLuxGalleryCover,
   normalizeLuxGalleryOrder,
   normalizeReviewNote,
+  LUX_LINK_PUBLISH_HISTORY_MAX,
   readLuxAttachmentEntries,
   safeLuxAttachmentShape,
   upsertLuxAttachmentEntry,
@@ -134,6 +138,9 @@ test('buildLuxAttachmentEntry produces a complete operator-only metadata record'
   assert.deepEqual(entry.property_links, []);
   assert.equal(entry.created_at, '2026-05-08T09:00:00.000Z');
   assert.equal(entry.created_by, 'tenant_session');
+  assert.equal(entry.lifecycle_status, 'active');
+  assert.equal(entry.archived_at, null);
+  assert.equal(entry.archive_reason, null);
 });
 
 test('buildLuxAttachmentEntry rejects invalid intended_use silently (null)', () => {
@@ -452,6 +459,9 @@ test('applyLuxAttachmentPropertyPublish sets publish fields on matching link', (
   assert.equal(link.published_by, 'op');
   assert.equal(link.public_caption, 'cap');
   assert.equal(link.public_alt_text, 'alt');
+  const hist = link.publish_history || [];
+  assert.ok(hist.length >= 1);
+  assert.equal(hist[hist.length - 1].action, 'published');
 });
 
 test('applyLuxAttachmentPropertyPublish rejects pending attachments', () => {
@@ -586,6 +596,182 @@ test('applyLuxAttachmentPropertyUnpublish preserves captions and prior publish a
   assert.equal(link.published_at, '2026-05-10T00:00:00.000Z');
   assert.equal(link.published_by, 'op');
   assert.equal(link.unpublished_by, 'op2');
+  const hist = link.publish_history || [];
+  assert.ok(hist.some((h) => h.action === 'unpublished'));
+});
+
+test('applyLuxAttachmentPropertyPublish rejects archived attachments', () => {
+  const archived = {
+    lux_request_meta: {
+      attachments: [
+        {
+          ...buildLuxAttachmentEntry({ attachment_id: 'att_1', file_name: 'a.jpg', content_type: 'image/jpeg', byte_size: 1 }),
+          review_status: 'reviewed',
+          lifecycle_status: 'archived',
+          property_links: [
+            {
+              property_slug: 'lm-phase2d-manual-demo',
+              property_title: 't',
+              intended_slot: 'hero',
+              linked_at: 'x',
+              linked_by: 'y',
+              publish_status: 'unpublished',
+            },
+          ],
+        },
+      ],
+    },
+  };
+  const r = applyLuxAttachmentPropertyPublish(archived, 'att_1', {
+    property_slug: 'lm-phase2d-manual-demo',
+    intended_slot: 'hero',
+  });
+  assert.equal(r.ok, false);
+  assert.equal(r.error, 'LIFECYCLE_ARCHIVED');
+});
+
+test('applyLuxAttachmentPropertyLinkRemove rejects archived attachments', () => {
+  const archived = {
+    lux_request_meta: {
+      attachments: [
+        {
+          ...buildLuxAttachmentEntry({ attachment_id: 'att_1', file_name: 'a.jpg', content_type: 'image/jpeg', byte_size: 1 }),
+          review_status: 'reviewed',
+          lifecycle_status: 'archived',
+          property_links: [
+            {
+              property_slug: 'lm-phase2d-manual-demo',
+              property_title: 't',
+              intended_slot: 'hero',
+              publish_status: 'unpublished',
+            },
+          ],
+        },
+      ],
+    },
+  };
+  const r = applyLuxAttachmentPropertyLinkRemove(archived, 'att_1', {
+    property_slug: 'lm-phase2d-manual-demo',
+    intended_slot: 'hero',
+  });
+  assert.equal(r.ok, false);
+  assert.equal(r.error, 'LIFECYCLE_ARCHIVED');
+});
+
+test('applyLuxAttachmentPropertyLinkSet rejects archived attachments', () => {
+  const archived = {
+    lux_request_meta: {
+      attachments: [
+        {
+          ...buildLuxAttachmentEntry({ attachment_id: 'att_1', file_name: 'a.jpg', content_type: 'image/jpeg', byte_size: 1 }),
+          review_status: 'reviewed',
+          lifecycle_status: 'archived',
+          property_links: [],
+        },
+      ],
+    },
+  };
+  const r = applyLuxAttachmentPropertyLinkSet(archived, 'att_1', {
+    property_slug: 'lm-phase2d-manual-demo',
+    property_title: 'Demo',
+    intended_slot: 'hero',
+  });
+  assert.equal(r.ok, false);
+  assert.equal(r.error, 'LIFECYCLE_ARCHIVED');
+});
+
+test('applyLuxAttachmentArchive unpublishes all links and appends publish_history', () => {
+  const before = {
+    lux_request_meta: {
+      attachments: [
+        {
+          ...buildLuxAttachmentEntry({ attachment_id: 'att_1', file_name: 'a.jpg', content_type: 'image/jpeg', byte_size: 1 }),
+          review_status: 'reviewed',
+          property_links: [
+            {
+              property_slug: 'lm-phase2d-manual-demo',
+              property_title: 't',
+              intended_slot: 'hero',
+              publish_status: 'published',
+              published_at: '2026-01-01T00:00:00.000Z',
+              published_by: 'op',
+            },
+            {
+              property_slug: 'lm-phase2d-manual-demo',
+              property_title: 't',
+              intended_slot: 'card',
+              publish_status: 'unpublished',
+            },
+          ],
+        },
+      ],
+    },
+  };
+  const r = applyLuxAttachmentArchive(before, 'att_1', {
+    archived_at: '2026-05-11T12:00:00.000Z',
+    archived_by: 'auditor',
+    archive_reason: 'replaced by att_new',
+  });
+  assert.equal(r.ok, true);
+  assert.equal(r.entry.lifecycle_status, 'archived');
+  assert.equal(r.entry.archived_by, 'auditor');
+  const hero = r.entry.property_links.find((pl) => pl.intended_slot === 'hero');
+  assert.equal(hero.publish_status, 'unpublished');
+  const hist = hero.publish_history || [];
+  assert.ok(hist.some((h) => h.action === 'unpublished'));
+  assert.ok(hist.some((h) => h.action === 'archived'));
+  const card = r.entry.property_links.find((pl) => pl.intended_slot === 'card');
+  const ch = card.publish_history || [];
+  assert.ok(ch.some((h) => h.action === 'archived'));
+  assert.ok(!ch.some((h) => h.action === 'unpublished'));
+});
+
+test('applyLuxAttachmentRestore activates without republishing', () => {
+  const archived = {
+    lux_request_meta: {
+      attachments: [
+        {
+          ...buildLuxAttachmentEntry({ attachment_id: 'att_1', file_name: 'a.jpg', content_type: 'image/jpeg', byte_size: 1 }),
+          review_status: 'reviewed',
+          lifecycle_status: 'archived',
+          archived_at: '2026-05-11T12:00:00.000Z',
+          archived_by: 'a',
+          archive_reason: 'old',
+          property_links: [
+            {
+              property_slug: 'lm-phase2d-manual-demo',
+              property_title: 't',
+              intended_slot: 'hero',
+              publish_status: 'unpublished',
+              publish_history: [{ at: 't', action: 'archived', actor: 'a', note: 'old' }],
+            },
+          ],
+        },
+      ],
+    },
+  };
+  const r = applyLuxAttachmentRestore(archived, 'att_1', {
+    restored_at: '2026-05-11T13:00:00.000Z',
+    restored_by: 'b',
+  });
+  assert.equal(r.ok, true);
+  assert.equal(r.entry.lifecycle_status, 'active');
+  assert.equal(r.entry.property_links[0].publish_status, 'unpublished');
+  const h2 = r.entry.property_links[0].publish_history || [];
+  assert.ok(h2.some((h) => h.action === 'restored'));
+});
+
+test('appendLuxLinkPublishHistoryEntry caps length', () => {
+  let link = { publish_history: [] };
+  for (let i = 0; i < LUX_LINK_PUBLISH_HISTORY_MAX + 10; i++) {
+    link = appendLuxLinkPublishHistoryEntry(link, {
+      action: 'published',
+      at: `2026-01-01T00:00:${String(i).padStart(2, '0')}Z`,
+      actor: 'x',
+      note: null,
+    });
+  }
+  assert.equal(link.publish_history.length, LUX_LINK_PUBLISH_HISTORY_MAX);
 });
 
 test('appendLuxAttachmentPropertyPublishMessage appends and is idempotent', () => {

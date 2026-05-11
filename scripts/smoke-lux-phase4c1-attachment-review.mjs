@@ -402,6 +402,32 @@ async function removePropertyLink(ticketId, attachmentId, propertySlug, intended
   return r.json.attachment;
 }
 
+async function archiveLuxAttachment(ticketId, attachmentId, archiveReason) {
+  const r = await http('POST', '/api/cmp/router?action=lux-attachment-archive', {
+    body: {
+      ticket_id: ticketId,
+      attachment_id: attachmentId,
+      archive_reason: archiveReason ?? null,
+    },
+  });
+  if (r.status !== 200) {
+    fail(`lux-attachment-archive expected 200, got ${r.status} body=${JSON.stringify(r.json).slice(0, 240)}`);
+  }
+  ok(`lux-attachment-archive(${attachmentId})`);
+  return r.json.attachment;
+}
+
+async function restoreLuxAttachment(ticketId, attachmentId) {
+  const r = await http('POST', '/api/cmp/router?action=lux-attachment-restore', {
+    body: { ticket_id: ticketId, attachment_id: attachmentId },
+  });
+  if (r.status !== 200) {
+    fail(`lux-attachment-restore expected 200, got ${r.status} body=${JSON.stringify(r.json).slice(0, 240)}`);
+  }
+  ok(`lux-attachment-restore(${attachmentId})`);
+  return r.json.attachment;
+}
+
 async function main() {
   await login();
   const ticketId = await createRequestTicket();
@@ -632,6 +658,73 @@ async function main() {
   ok('homepage card slot cleared after unpublish (fallback)');
 
   await removePropertyLink(ticketId, cardImg, 'lm-phase2d-manual-demo', 'card');
+
+  // Phase 4D.3 — archive unpublishes all links; restore does not auto-republish.
+  await publishProperty(ticketId, imgId, 'lm-phase2d-manual-demo', 'hero', pubCaption, pubAlt);
+  const pre4d3 = await getPropertyMedia('lm-phase2d-manual-demo', imgId, 'hero');
+  if (pre4d3.status !== 200) fail(`4D3: hero expected 200 before archive, got ${pre4d3.status}`);
+  ok('4D3: hero public before archive');
+
+  const tenantIdLeak = await http('POST', '/api/cmp/router?action=lux-attachment-archive', {
+    body: {
+      ticket_id: ticketId,
+      attachment_id: imgId,
+      tenant_id: 'luxe-maurice',
+      archive_reason: 'should reject body tenant_id',
+    },
+  });
+  if (tenantIdLeak.status !== 400 || String(tenantIdLeak.json?.error || '') !== 'TENANT_ID_NOT_ALLOWED_IN_BODY') {
+    fail(`4D3: archive with tenant_id in body expected 400 TENANT_ID_NOT_ALLOWED_IN_BODY, got ${tenantIdLeak.status}`);
+  }
+  ok('4D3: archive rejects tenant_id in body');
+
+  await archiveLuxAttachment(ticketId, imgId, 'replaced by phase4d3-smoke');
+  const postArchMedia = await getPropertyMedia('lm-phase2d-manual-demo', imgId, 'hero');
+  if (postArchMedia.status !== 404) fail(`4D3: property-media expected 404 after archive, got ${postArchMedia.status}`);
+  ok('4D3: archived hero returns 404 on property-media');
+
+  const pubDenied = await http('POST', '/api/cmp/router?action=lux-attachment-property-publish', {
+    body: {
+      ticket_id: ticketId,
+      attachment_id: imgId,
+      property_slug: 'lm-phase2d-manual-demo',
+      intended_slot: 'hero',
+      public_caption: 'x',
+      public_alt_text: 'y',
+    },
+  });
+  if (pubDenied.status !== 409 || String(pubDenied.json?.error || '') !== 'LIFECYCLE_ARCHIVED') {
+    fail(`4D3: publish while archived expected 409 LIFECYCLE_ARCHIVED, got ${pubDenied.status}`);
+  }
+  ok('4D3: publish archived attachment rejected');
+
+  list = await listAttachments(ticketId);
+  const imgRowArch = list.find((x) => x.attachment_id === imgId);
+  if (String(imgRowArch?.lifecycle_status || '') !== 'archived') fail('4D3: lifecycle_status not archived on list');
+  const heroPlArch = (imgRowArch?.property_links || []).find((pl) => pl && pl.intended_slot === 'hero');
+  if (String(heroPlArch?.publish_status || '') !== 'unpublished') fail('4D3: hero link not unpublished after archive');
+  const histArch = heroPlArch?.publish_history || [];
+  if (!histArch.some((h) => h && h.action === 'archived')) fail('4D3: publish_history missing archived');
+  if (!histArch.some((h) => h && h.action === 'unpublished')) fail('4D3: publish_history missing auto-unpublish');
+  ok('4D3: list payload shows archived + unpublish history');
+
+  const prop4d3 = await http('GET', '/property/lm-phase2d-manual-demo');
+  if (prop4d3.status !== 200) fail(`4D3: property page GET expected 200, got ${prop4d3.status}`);
+  const prop4d3Body = prop4d3.text || '';
+  if (prop4d3Body.includes(pubCaption)) fail('4D3: property page still showed hero caption after archive');
+  ok('4D3: property page excludes archived hero');
+
+  await restoreLuxAttachment(ticketId, imgId);
+  const postRestoreMedia = await getPropertyMedia('lm-phase2d-manual-demo', imgId, 'hero');
+  if (postRestoreMedia.status !== 404) fail(`4D3: expected 404 after restore until republish, got ${postRestoreMedia.status}`);
+  ok('4D3: restore does not auto-republish (property-media still 404)');
+
+  await publishProperty(ticketId, imgId, 'lm-phase2d-manual-demo', 'hero', pubCaption, pubAlt);
+  const postRepubMedia = await getPropertyMedia('lm-phase2d-manual-demo', imgId, 'hero');
+  if (postRepubMedia.status !== 200) fail(`4D3: expected 200 after explicit republish, got ${postRepubMedia.status}`);
+  ok('4D3: explicit publish after restore is public again');
+
+  await unpublishProperty(ticketId, imgId, 'lm-phase2d-manual-demo', 'hero');
 
   await removePropertyLink(ticketId, imgId, 'lm-phase2d-manual-demo', 'hero');
   list = await listAttachments(ticketId);
