@@ -277,14 +277,22 @@ Delivery Reality Audit:
 ```text
 Delivery Reality Audit:
 - Local fix exists: YES
-- Merged to main: TBD (record PR + merge commit after push)
-- Live URLs to verify (Lux host):
-  - https://lux.corpflowai.com/change — publish + unpublish reviewed linked image; caption/alt round-trip
-  - GET https://lux.corpflowai.com/api/lux/property-media?... — 200 only when published; 404 unpublished / wrong property / wrong slot
-  - GET https://lux.corpflowai.com/property/lm-phase2d-manual-demo — published hero + caption/alt when configured; fallback when unpublished
-- Expected vs actual result:
-  - Explicit operator publish only; video rejected with IMAGE_ONLY; extended smoke in scripts/smoke-lux-phase4c1-attachment-review.mjs
-  - Public HTML smoke continues to reject lux_request_meta / property_links / review tokens in page body
-- Client-facing flow usable: YES (narrow public hero path + operator gate)
-- Final verdict: TBD after production smoke
+- Merged to main: YES
+  - Feature PR **#160** (squash merge commit `3056bb8ae180d2decb921efb790a5e9fe26b9659`)
+  - Follow-up PR **#161** — `lib/server/lux-property-media.js` deny responses use `Cache-Control: private, no-store` and 200 responses drop `stale-while-revalidate` so unpublish is not masked by CDN; smoke adds per-GET `_cb` (squash merge commit `3a77249f48c20f5fdd19a3cd67105e1356b435f7`)
+- Production deployment ID: GitHub deployment **4643154095** (Vercel target_url `https://corpflow-ai-command-center-n1wlcqn1x-corpflowai.vercel.app`, state success)
+- Commit deployed (production): `3a77249f48c20f5fdd19a3cd67105e1356b435f7`
+- Live URLs tested:
+  - https://lux.corpflowai.com/change (authenticated)
+  - https://lux.corpflowai.com/api/lux/property-media (GET, publish vs unpublish gate)
+  - https://lux.corpflowai.com/property/lm-phase2d-manual-demo (published hero + caption/alt, then fallback after unpublish)
+  - https://lux.corpflowai.com/, /concierge (public no-leak smoke)
+- Production smoke: `npm run smoke:lux-phase4c1 -- --target=production` (2026-05-11) — ALL CHECKS PASSED
+  - Publish proof: `property-media` **200** + `image/*` after `lux-attachment-property-publish`; `/property/lm-phase2d-manual-demo` HTML contained public caption **Smoke 4C3 public caption** + alt **Smoke 4C3 public alt** and `/api/lux/property-media` URL
+  - Unpublish proof: after `lux-attachment-property-unpublish`, `property-media` **404**; property page no longer contained the public caption string
+  - IMAGE_ONLY proof: reviewed video linked to `gallery` then `lux-attachment-property-publish` returned **409 IMAGE_ONLY**
+  - Public no-leak: `/`, `/concierge`, `/property/lm-phase2d-manual-demo` smoke forbids `lux_request_meta`, `property_links`, `review_status`, `/api/change-attachment/`, etc. in HTML body — passed
+- Master programme ticket `cmo8mjijk0000jl04l1jz0v6d`: intentionally **not** closed by this phase
+- Client-facing flow usable: YES (operator publish gate + narrow public hero + governed media URL)
+- Final verdict: COMPLETE
 ```
