@@ -396,3 +396,22 @@ Delivery Reality Audit:
 - Client-facing flow usable: YES (operators can archive/restore without deleting bytes; public surfaces stay clean)
 - Final verdict: COMPLETE
 ```
+
+## Delivery Reality Audit (Phase 4D.4)
+
+```text
+Delivery Reality Audit:
+- Local fix exists: YES (feature commit `e6791072f2a099b5860ff3d2ad9fb5e76dc4d3a5` on branch `lux/phase-4d4-media-ops-polish`)
+- Merged to main: YES — PR **#169** (squash merge commit `10898c7452ea8f01f88a26d33c3db2fcf5106b0b`)
+- Production deployment ID: GitHub deployment **4645293379** (Vercel target_url `https://corpflow-ai-command-center-76v97jt50-corpflowai.vercel.app`, state **success**)
+- Commit deployed (production): `10898c7452ea8f01f88a26d33c3db2fcf5106b0b`
+- Live URLs / bundles checked:
+  - `https://lux.corpflowai.com/change` — **200**; production `_next/static` JS chunks for this page contain operator strings **Where used** and **Needs action** (client bundle proof of 4D.4 UI ship)
+  - Operator browser checklist (authenticated Lux session): open a Lux client-request ticket **with attachments** → confirm **media summary** strip (Total, Pending review, …, Needs action), **Show** filter cycles **All** through **Needs action**, each card shows **Where used** rows (slug/title, slot, Publish, Lifecycle, Visibility), **Test media** badge when filenames/notes match smoke markers, existing **review / link / publish / archive / restore / download** controls unchanged
+- Production smoke: `npm run smoke:lux-phase4c1 -- --target=production` (2026-05-11) — **ALL CHECKS PASSED**
+  - Full lifecycle path still exercises upload → review → link → publish → unpublish → gallery → card → archive → restore → republish → unlink; anonymous `lux-attachment-review-set` still **403**
+  - Public no-leak: `/`, `/concierge`, `/property/lm-phase2d-manual-demo` smoke forbids `lux_request_meta`, `property_links`, `review_status`, `/api/change-attachment/`, etc. in HTML body — **passed**
+- Master programme ticket `cmo8mjijk0000jl04l1jz0v6d`: intentionally **not** closed by this phase
+- Client-facing flow usable: YES (operator-only `/change` ergonomics; **no** new public semantics)
+- Final verdict: COMPLETE
+```
