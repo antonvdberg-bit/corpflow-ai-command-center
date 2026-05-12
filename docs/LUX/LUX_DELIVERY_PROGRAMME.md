@@ -163,6 +163,13 @@ Each phase below must be represented in the ticket’s narrative and acceptance 
 - **Rule**: reuse **`lux-attachment-archive`** / restore semantics from 4D.3; expanded **`detectLuxOperatorTestMediaHint`** + **`luxAttachmentCleanupCandidate`** (not security); **`LUX_ATTACHMENT_ARCHIVE_REASON_SMOKE_DEFAULT`** for one-click smoke archive on `/change`. Smoke script **`--archive-smoke-artifacts`** default **off**; archives **only** attachment ids created in that run. **No** DAM/CDN/video/AI; **no** `/change-v2`.
 - **Surface**: `/change` badges + **Archive as smoke/test artifact**; `scripts/smoke-lux-phase4c1-attachment-review.mjs` summary + optional flag. See **`docs/LUX/LUX_MEDIA_GOVERNANCE.md`** and **`docs/LUX/LUX_PHASE4C_ATTACHMENT_REVIEW.md`**.
 
+### Phase 5A — Media delivery optimization foundation (cache + variant scaffold; no CDN yet)
+
+- **Purpose**: improve **public image delivery** foundations (HTTP `Cache-Control` for published vs denied responses, strict optional **`variant=`** query for future CDN/transform cache keys, normalized **`Content-Type`**, safe **`variant` + `content_type`** on `property-media-list`, lazy/async decoding on listing/property images) **without** changing review/link/publish/archive semantics, **without** video publish, **without** external object storage/CDN.
+- **Rule**: bytes still exit **only** through `lib/server/lux-property-media.js` (`handleLuxPropertyMedia`) after the same gates; collectors in `lib/server/lux-published-property-media.js` and helpers in `lib/cmp/_lib/lux-request-attachments.js` (`buildLuxPublicPropertyMediaSrc`, variant allowlist) remain the **only** supported way to build published `src` URLs. Published **200**: `public, max-age=300, must-revalidate` (**no** `stale-while-revalidate`); denials: `private, no-store`.
+- **Surface**: `lib/server/lux-property-media.js`, `lib/server/lux-published-property-media.js`, `components/LuxeMauricePropertyDetailPage.js`, `components/LuxeMauriceTenantPresentation.js`, `scripts/smoke-lux-phase4c1-attachment-review.mjs`, node tests. See **`docs/LUX/LUX_MEDIA_GOVERNANCE.md`**.
+- **Core assimilation recommendation**: treat **`buildLuxPublicPropertyMediaSrc`** as the canonical URL builder for any new public composition; hang future CDN/transform workers off the **same** route contract so unpublish/archive invalidation stays centralized.
+
 ### Phase 5 — Production reality gate and client handoff
 
 - **Client-visible outcome**: the delivered system matches the programme claims; clients can use it.

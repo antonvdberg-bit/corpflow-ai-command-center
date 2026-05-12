@@ -35,6 +35,9 @@ export default function LuxeMauricePropertyDetailPage({ property }) {
     return { src: s, alt: '', caption: null };
   })();
 
+  const heroAltText = heroImg?.alt ? safeStr(heroImg.alt) : ref ? `${ref} · hero` : 'Property hero image';
+  const galleryAltText = (g) => (safeStr(g.alt) ? safeStr(g.alt) : ref ? `${ref} · gallery` : 'Gallery image');
+
   const heroBorder = isFeed
     ? `1px dashed ${T.border}`
     : isManual
@@ -101,7 +104,14 @@ export default function LuxeMauricePropertyDetailPage({ property }) {
         >
           {heroImg ? (
             <div style={{ margin: '-28px -26px 18px', height: 200, background: T.placeholder }}>
-              <img src={heroImg.src} alt={heroImg.alt || ''} style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img
+                src={heroImg.src}
+                alt={heroAltText}
+                decoding="async"
+                fetchPriority="high"
+                loading="eager"
+                style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }}
+              />
             </div>
           ) : null}
           {heroImg?.caption ? (
@@ -132,7 +142,9 @@ export default function LuxeMauricePropertyDetailPage({ property }) {
                   <figure key={gi} style={{ margin: 0 }}>
                     <img
                       src={safeStr(g.src)}
-                      alt={safeStr(g.alt)}
+                      alt={galleryAltText(g)}
+                      decoding="async"
+                      loading="lazy"
                       style={{
                         display: 'block',
                         width: '100%',
