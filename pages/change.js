@@ -1101,7 +1101,9 @@ export default function ChangeConsolePage() {
   const needClientDecision = String(wf || '').trim() === 'awaiting_client_programme_decisions';
   const wfLabel = ticket ? workflowLabel(String(wf || '')) : '—';
   const wfKey = String(wf || '').trim().toLowerCase();
-  const isReadyForEstimate = wfKey === 'ready_for_estimate';
+  const isReadyForEstimateOnly = wfKey === 'ready_for_estimate';
+  const isEstimatedWorkflow = wfKey === 'estimated';
+  const isEstimateMode = isReadyForEstimateOnly || isEstimatedWorkflow;
   const cv = ticket?.ticket_progress?.client_view && typeof ticket.ticket_progress.client_view === 'object'
     ? ticket.ticket_progress.client_view
     : {};
@@ -1275,7 +1277,7 @@ export default function ChangeConsolePage() {
     leads,
     luxRequests,
     showIntakeSurface,
-    isReadyForEstimate,
+    isEstimateMode,
     forceRefine,
     clientDecisionLink,
     error,
@@ -1693,8 +1695,10 @@ export default function ChangeConsolePage() {
                   Next:{' '}
                   {showIntakeSurface
                     ? 'Next step: Add or refine your request, then continue.'
-                    : isReadyForEstimate
-                      ? 'Get Estimate.'
+                    : isEstimateMode
+                      ? isReadyForEstimateOnly
+                        ? 'Get Estimate.'
+                        : 'Review the estimate and proceed when ready.'
                     : String(ticket?.ticket_progress?.client_view?.workflow_next_action || '—')}
                 </div>
                 {ticket?.lux_programme_summary?.phase_2_status ? (
@@ -1718,39 +1722,48 @@ export default function ChangeConsolePage() {
             </div>
           </div>
 
-          {session.logged_in && isReadyForEstimate && !showIntakeSurface ? (
+          {session.logged_in && isEstimateMode && !showIntakeSurface ? (
             <div style={{ display: 'grid', gap: 14, minWidth: 0, width: '100%', maxWidth: '100%' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 14, minWidth: 0 }}>
-                <div style={subtleCard}>
-                  <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
-                    ESTIMATE
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: isReadyForEstimateOnly ? 'minmax(0, 1fr) minmax(0, 1fr)' : 'minmax(0, 1fr)',
+                  gap: 14,
+                  minWidth: 0,
+                }}
+              >
+                {isReadyForEstimateOnly ? (
+                  <div style={subtleCard}>
+                    <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
+                      ESTIMATE
+                    </div>
+                    <div style={{ marginTop: 8, fontSize: 12, color: '#94a3b8' }}>
+                      Ready to request an estimate for this change.
+                    </div>
+                    <div style={{ marginTop: 12 }}>
+                      <button
+                        type="button"
+                        onClick={() => void requestEstimate()}
+                        disabled={estimateBusy || busy}
+                        style={{
+                          padding: '10px 14px',
+                          borderRadius: 12,
+                          border: '1px solid rgba(56,189,248,0.35)',
+                          background: estimateBusy || busy ? 'rgba(148,163,184,0.18)' : 'rgba(56,189,248,0.14)',
+                          color: estimateBusy || busy ? '#94a3b8' : '#e0f2fe',
+                          fontWeight: 900,
+                          fontSize: 12,
+                          cursor: estimateBusy || busy ? 'not-allowed' : 'pointer',
+                        }}
+                      >
+                        Get Estimate
+                      </button>
+                      {estimateStatus ? (
+                        <div style={{ marginTop: 10, fontSize: 11, color: '#86efac' }}>{estimateStatus}</div>
+                      ) : null}
+                    </div>
                   </div>
-                  <div style={{ marginTop: 8, fontSize: 12, color: '#94a3b8' }}>
-                    Ready to request an estimate for this change.
-                  </div>
-                  <div style={{ marginTop: 12 }}>
-                    <button
-                      type="button"
-                      onClick={() => void requestEstimate()}
-                      disabled={estimateBusy || busy}
-                      style={{
-                        padding: '10px 14px',
-                        borderRadius: 12,
-                        border: '1px solid rgba(56,189,248,0.35)',
-                        background: estimateBusy || busy ? 'rgba(148,163,184,0.18)' : 'rgba(56,189,248,0.14)',
-                        color: estimateBusy || busy ? '#94a3b8' : '#e0f2fe',
-                        fontWeight: 900,
-                        fontSize: 12,
-                        cursor: estimateBusy || busy ? 'not-allowed' : 'pointer',
-                      }}
-                    >
-                      Get Estimate
-                    </button>
-                    {estimateStatus ? (
-                      <div style={{ marginTop: 10, fontSize: 11, color: '#86efac' }}>{estimateStatus}</div>
-                    ) : null}
-                  </div>
-                </div>
+                ) : null}
 
                 <div style={subtleCard}>
                   <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
@@ -1936,7 +1949,7 @@ export default function ChangeConsolePage() {
                   </button>
                   {!hasEstimate ? (
                     <div style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.45 }}>
-                      Accepting an estimate becomes available after you’ve generated one.
+                      Proceed becomes available after you generate an estimate.
                     </div>
                   ) : !canProceed ? (
                     <div style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.45 }}>
@@ -1948,7 +1961,7 @@ export default function ChangeConsolePage() {
             </div>
           ) : null}
 
-          {session.logged_in && (!isReadyForEstimate || showIntakeSurface) ? (
+          {session.logged_in && (!isEstimateMode || showIntakeSurface) ? (
             <div style={{ ...card, minWidth: 0 }}>
               {session.logged_in && (!selectedTicketId || showIntakeSurface) ? (
                 <div
@@ -2055,7 +2068,7 @@ export default function ChangeConsolePage() {
             </div>
           ) : null}
 
-          {!showIntakeSurface && !isReadyForEstimate ? (
+          {!showIntakeSurface && !isEstimateMode ? (
             <div style={{ ...card, minWidth: 0 }}>
               <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
                 TICKET SNAPSHOT
@@ -2093,7 +2106,7 @@ export default function ChangeConsolePage() {
             </div>
           ) : null}
 
-          {!showIntakeSurface && !isReadyForEstimate && selectedTicketId && attachments.length > 0 ? (
+          {!showIntakeSurface && !isEstimateMode && selectedTicketId && attachments.length > 0 ? (
             <div style={{ ...card, minWidth: 0 }}>
               <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
                 ATTACHMENTS
@@ -3118,7 +3131,7 @@ export default function ChangeConsolePage() {
             </div>
           ) : null}
 
-          {!showIntakeSurface && !isReadyForEstimate ? (
+          {!showIntakeSurface && !isEstimateMode ? (
           <div style={{ ...card, minWidth: 0 }}>
             <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
               LEADS
@@ -3668,7 +3681,7 @@ export default function ChangeConsolePage() {
           </div>
           ) : null}
 
-          {!showIntakeSurface && !isReadyForEstimate && luxLeadCrmEnabled ? (
+          {!showIntakeSurface && !isEstimateMode && luxLeadCrmEnabled ? (
             <div style={{ ...card, minWidth: 0 }}>
               <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
                 REQUEST SOMETHING NEW
