@@ -116,6 +116,7 @@ test('collectPublishedLuxPropertyMedia excludes unpublished gallery and non-imag
   const r = await collectPublishedLuxPropertyMedia(prisma, PROP);
   assert.equal(r.published_gallery.length, 1);
   assert.match(r.published_gallery[0].src, /slot=gallery/);
+  assert.match(r.published_gallery[0].src, /variant=gallery/);
 });
 
 test('collectPublishedLuxPropertyMedia sorts cover first then gallery_order then published_at', async () => {
@@ -271,6 +272,7 @@ test('collectPublishedLuxPropertyMedia hero still works alongside gallery', asyn
   const r = await collectPublishedLuxPropertyMedia(prisma, PROP);
   assert.ok(r.published_hero);
   assert.match(r.published_hero.src, /slot=hero/);
+  assert.match(r.published_hero.src, /variant=hero/);
   assert.equal(r.published_gallery.length, 1);
   assert.equal(r.published_card, null);
 });
@@ -306,7 +308,7 @@ test('buildLuxPropertyMediaListPayload items expose only safe keys', async () =>
   const prisma = makePrisma({ consoleJsonList: [cj], attachmentById: { h1: heroAtt, g1: gAtt, c1: cAtt } });
   const payload = await buildLuxPropertyMediaListPayload(prisma, PROP);
   assert.equal(payload.ok, true);
-  const allowed = new Set(['slot', 'src', 'public_caption', 'public_alt_text', 'gallery_order', 'is_gallery_cover']);
+  const allowed = new Set(['slot', 'src', 'public_caption', 'public_alt_text', 'gallery_order', 'is_gallery_cover', 'variant', 'content_type']);
   for (const it of payload.items) {
     for (const k of Object.keys(it)) {
       assert.ok(allowed.has(k), `unexpected key ${k}`);
@@ -339,6 +341,7 @@ test('collectPublishedLuxPropertyMedia includes published card image', async () 
   const r = await collectPublishedLuxPropertyMedia(prisma, PROP);
   assert.ok(r.published_card);
   assert.match(r.published_card.src, /slot=card/);
+  assert.match(r.published_card.src, /variant=card/);
   assert.equal(r.published_card.alt, 'Card alt text');
   assert.equal(r.published_card.caption, 'Cap');
   assert.equal(r.published_card.intended_slot, 'card');

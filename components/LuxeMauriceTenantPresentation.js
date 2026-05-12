@@ -366,6 +366,8 @@ export default function LuxeMauriceTenantPresentation({ site }) {
                           <img
                             src={heroPath}
                             alt={imgAlt}
+                            decoding="async"
+                            loading="lazy"
                             style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }}
                           />
                         ) : null}
@@ -541,6 +543,8 @@ export default function LuxeMauriceTenantPresentation({ site }) {
                         <img
                           src={cardFeedSrc}
                           alt={cardFeedAlt}
+                          decoding="async"
+                          loading="lazy"
                           style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }}
                         />
                       ) : null}

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Phase 4C.1 + 4C.3 + 4D.1 + 4D.2 + 4D.5 live verification — Lux operator media review + property publish + gallery +
- * homepage card + optional smoke artifact archive.
+ * Phase 4C.1 + 4C.3 + 4D.1 + 4D.2 + 4D.5 + 5A live verification — Lux operator media review + property publish + gallery +
+ * homepage card + optional smoke artifact archive + public media cache/variant scaffold.
  *
  * Targets either a Vercel preview (Protection Bypass required) or production.
  * Strictly read/write to a SINGLE Lux client-request ticket created at the start
@@ -379,13 +379,14 @@ async function unpublishProperty(ticketId, attachmentId, propertySlug, intendedS
   return r.json.attachment;
 }
 
-async function getPropertyMedia(propertySlug, attachmentId, slot) {
+async function getPropertyMedia(propertySlug, attachmentId, slot, { variant } = {}) {
   const cb = `${Date.now()}_${Math.random().toString(16).slice(2)}`;
+  const vq = variant ? `&variant=${encodeURIComponent(variant)}` : '';
   return await http(
     'GET',
     `/api/lux/property-media?property=${encodeURIComponent(propertySlug)}&attachment=${encodeURIComponent(
       attachmentId,
-    )}&slot=${encodeURIComponent(slot)}&_cb=${encodeURIComponent(cb)}`,
+    )}&slot=${encodeURIComponent(slot)}${vq}&_cb=${encodeURIComponent(cb)}`,
   );
 }
 
@@ -528,14 +529,31 @@ async function main() {
 
   const beforePub = await getPropertyMedia('lm-phase2d-manual-demo', imgId, 'hero');
   if (beforePub.status !== 404) fail(`property-media before publish expected 404, got ${beforePub.status}`);
+  const cc404 = String(beforePub.res.headers.get('cache-control') || '');
+  if (!cc404.includes('no-store')) fail(`property-media deny expected Cache-Control no-store, got ${cc404}`);
   ok('property-media rejects unpublished linked image');
+
+  const badVariant = await getPropertyMedia('lm-phase2d-manual-demo', imgId, 'hero', { variant: 'xlarge' });
+  if (badVariant.status !== 400) fail(`property-media invalid variant expected 400, got ${badVariant.status}`);
+  ok('property-media rejects invalid variant (5A allowlist)');
 
   await publishProperty(ticketId, imgId, 'lm-phase2d-manual-demo', 'hero', pubCaption, pubAlt);
   const afterPub = await getPropertyMedia('lm-phase2d-manual-demo', imgId, 'hero');
   if (afterPub.status !== 200) fail(`property-media after publish expected 200, got ${afterPub.status}`);
+  const ccOk = String(afterPub.res.headers.get('cache-control') || '');
+  if (!ccOk.includes('public') || !ccOk.includes('max-age=300') || !ccOk.includes('must-revalidate')) {
+    fail(`property-media expected conservative public cache (max-age=300, must-revalidate), got ${ccOk}`);
+  }
+  if (ccOk.includes('stale-while-revalidate')) fail('property-media must not use stale-while-revalidate');
   const ct = String(afterPub.res.headers.get('content-type') || '').toLowerCase();
   if (!ct.startsWith('image/')) fail(`property-media expected image content-type, got ${ct}`);
   ok('property-media serves published PNG after publish');
+
+  const afterPubVariantHero = await getPropertyMedia('lm-phase2d-manual-demo', imgId, 'hero', { variant: 'hero' });
+  if (afterPubVariantHero.status !== 200) fail(`property-media variant=hero expected 200, got ${afterPubVariantHero.status}`);
+  const afterPubVariantOrig = await getPropertyMedia('lm-phase2d-manual-demo', imgId, 'hero', { variant: 'original' });
+  if (afterPubVariantOrig.status !== 200) fail(`property-media variant=original expected 200, got ${afterPubVariantOrig.status}`);
+  ok('property-media accepts allowlisted variant params (5A scaffold)');
 
   const wrongProp = await getPropertyMedia('lm-nc-ridge', imgId, 'hero');
   if (wrongProp.status !== 404) fail(`property-media wrong property ref expected 404, got ${wrongProp.status}`);
@@ -545,6 +563,7 @@ async function main() {
   if (propPage.status !== 200) fail(`GET /property/lm-phase2d-manual-demo expected 200, got ${propPage.status}`);
   const propBody = propPage.text || JSON.stringify(propPage.json || {});
   if (!propBody.includes('/api/lux/property-media')) fail('property page missing public media URL after publish');
+  if (!propBody.includes('variant=hero')) fail('property page missing variant=hero on public media URL (5A)');
   if (!propBody.includes(pubCaption)) fail('property page missing public caption after publish');
   if (!propBody.includes(pubAlt)) fail('property page missing public alt text after publish');
   ok('property page shows published hero caption + alt');
@@ -629,6 +648,12 @@ async function main() {
   }
   const galleryItems = (listR.json.items || []).filter((x) => x && x.slot === 'gallery');
   if (galleryItems.length < 2) fail(`property-media-list expected >=2 gallery items, got ${galleryItems.length}`);
+  for (const it of galleryItems) {
+    if (!it.variant || !it.content_type) fail('property-media-list item missing variant or content_type (5A)');
+    if (!String(it.src || '').includes(`variant=${encodeURIComponent(String(it.variant))}`)) {
+      fail('property-media-list src should echo list variant param');
+    }
+  }
   ok('property-media-list returns safe gallery entries (no private metadata)');
 
   const propGal = await http('GET', '/property/lm-phase2d-manual-demo');
@@ -637,6 +662,7 @@ async function main() {
   if (!propGalBody.includes('Gallery')) fail('property page missing Gallery section');
   if (!propGalBody.includes(capA) || !propGalBody.includes(capB)) fail('property page missing gallery captions');
   if (!propGalBody.includes('slot=gallery')) fail('property page missing gallery media URLs');
+  if (!propGalBody.includes('variant=gallery')) fail('property page missing variant=gallery on gallery URLs (5A)');
   ok('property page renders published gallery grid with captions');
 
   await unpublishProperty(ticketId, galA, 'lm-phase2d-manual-demo', 'gallery');
@@ -683,6 +709,7 @@ async function main() {
   const homeBody1 = home1.text || '';
   if (!homeBody1.includes('/api/lux/property-media')) fail('homepage missing property-media URL');
   if (!homeBody1.includes('slot=card')) fail('homepage missing card-slot property-media URL');
+  if (!homeBody1.includes('variant=card')) fail('homepage missing variant=card on card media URL (5A)');
   if (!homeBody1.includes(cardAltProbe)) fail('homepage missing card image alt text');
   ok('homepage shows published card media for lm-phase2d-manual-demo');
 
