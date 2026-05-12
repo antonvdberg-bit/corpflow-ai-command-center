@@ -44,6 +44,11 @@ import {
   luxAttachmentPublishedImageMissingAlt,
   luxLinkIsCurrentlyPublicOnLuxSite,
   LUX_ATTACHMENT_ARCHIVE_REASON_SMOKE_DEFAULT,
+  LUX_PUBLIC_MEDIA_VARIANTS,
+  buildLuxPublicPropertyMediaSrc,
+  defaultLuxPublicMediaVariantForSlot,
+  normalizeLuxPublicImageContentTypeMime,
+  normalizeLuxPublicMediaVariantParam,
 } from '../lib/cmp/_lib/lux-request-attachments.js';
 
 test('LUX_ATTACHMENT_REVIEW_STATUSES is a frozen tri-state', () => {
@@ -1284,4 +1289,25 @@ test('Phase 4D.5 · luxAttachmentHasAnyCurrentlyPublicLink + cleanup candidate',
 test('Phase 4D.5 · LUX_ATTACHMENT_ARCHIVE_REASON_SMOKE_DEFAULT', () => {
   assert.ok(LUX_ATTACHMENT_ARCHIVE_REASON_SMOKE_DEFAULT.includes('smoke'));
   assert.ok(LUX_ATTACHMENT_ARCHIVE_REASON_SMOKE_DEFAULT.includes('artifact'));
+});
+
+test('Phase 5A · public media variant allowlist + canonical src builder', () => {
+  assert.deepEqual([...LUX_PUBLIC_MEDIA_VARIANTS], ['original', 'card', 'hero', 'gallery']);
+  assert.equal(normalizeLuxPublicMediaVariantParam('hero'), 'hero');
+  assert.equal(normalizeLuxPublicMediaVariantParam(' HERO '), 'hero');
+  assert.equal(normalizeLuxPublicMediaVariantParam('bad'), false);
+  assert.equal(normalizeLuxPublicMediaVariantParam(''), null);
+  assert.equal(defaultLuxPublicMediaVariantForSlot('hero'), 'hero');
+  assert.equal(defaultLuxPublicMediaVariantForSlot('card'), 'card');
+  assert.equal(defaultLuxPublicMediaVariantForSlot('gallery'), 'gallery');
+  assert.equal(defaultLuxPublicMediaVariantForSlot('detail'), 'original');
+  const src = buildLuxPublicPropertyMediaSrc('lm-phase2d-manual-demo', 'a1', 'gallery');
+  assert.match(src, /variant=gallery/);
+  assert.match(src, /slot=gallery/);
+});
+
+test('Phase 5A · normalizeLuxPublicImageContentTypeMime', () => {
+  assert.equal(normalizeLuxPublicImageContentTypeMime('image/png'), 'image/png');
+  assert.equal(normalizeLuxPublicImageContentTypeMime('Image/JPG; charset=binary'), 'image/jpeg');
+  assert.equal(normalizeLuxPublicImageContentTypeMime('video/mp4'), '');
 });
