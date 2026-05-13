@@ -447,3 +447,19 @@ Delivery Reality Audit:
 - Client-facing flow usable: YES (operator cleanup guidance; optional flag archives only smoke-run attachment ids)
 - Final verdict: COMPLETE
 ```
+
+## Delivery Reality Audit (Phase 5A)
+
+```text
+Delivery Reality Audit:
+- Local implementation: YES (branch `lux/phase-5a-media-delivery`, feature commit `189c9d8748f8ed446411f81117c1265d7669bed4`)
+- Merged to main: YES — PR **#173** (squash merge commit `ca1278b193fa034bc80da5691d484ae6966aaf22`)
+- Production deployment (Phase 5A first on main): GitHub deployment **4662297691** (Vercel `corpflow-ai-command-center-l4mik94dz-corpflowai.vercel.app`, state **success**); subsequent production deploy **4662378765** (`33be714c2f3795d9cb6b6ae9b67fe8de803417e4`, PR **#174**) is current tip and includes the same 5A code path.
+- Commit deployed for 5A merge: `ca1278b193fa034bc80da5691d484ae6966aaf22`
+- Live verification:
+  - `npm run smoke:lux-phase4c1 -- --target=production` (2026-05-13) — **ALL CHECKS PASSED**; includes **5A**: deny **`Cache-Control`** contains **no-store** on unpublished `property-media`; published **200** uses **public, max-age=300, must-revalidate** (no `stale-while-revalidate`); **invalid variant → 400**; **variant=hero** / **variant=gallery** / **variant=card** present on `/property/...` and `/` HTML where applicable; `property-media-list` items carry **variant** + **content_type** without forbidden leak strings.
+  - Public no-leak: `/`, `/concierge`, `/property/lm-phase2d-manual-demo` — **passed**
+- Master programme ticket `cmo8mjijk0000jl04l1jz0v6d`: intentionally **not** closed by this phase
+- Client-facing flow usable: YES (unchanged publish rules; better caching/scaffold for future CDN)
+- Final verdict: COMPLETE
+```
