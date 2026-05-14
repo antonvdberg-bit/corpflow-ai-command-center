@@ -8,6 +8,8 @@
 **Tenant context:** `luxe-maurice` — **server-derived from hostname / session**; never accept client-supplied `tenant_id`.  
 **Integrations:** GoHighLevel **waived / not required** for this slice; do not block delivery on GHL.
 
+**Roadmap alignment (2026-05-11):** Phases **5A–5C** in `docs/LUX/LUX_MEDIA_GOVERNANCE.md` are **delivery infrastructure** (cache, `srcset`, storage adapter) for governed imagery — not the P0 product headline. The **P0 LuxeMaurice product** is the **luxury property publishing platform** (`/properties`, Postgres catalogue, concierge handoff, governed public media). Programme labels for work **after 5C** are reframed as: **5D** LuxeMaurice Property CMS UX; **5E** Property Publishing Workflow + Preview; **5F** Video Governance + Controlled Pilot; **5G** AI Editorial Assistance (see `docs/LUX/LUX_DELIVERY_PROGRAMME.md`).
+
 **Related canonical docs (read before build):**
 
 - `docs/LUX/LUX_DELIVERY_PROGRAMME.md` — programme phases and ticket discipline  
@@ -145,6 +147,7 @@ Ship **one narrow vertical slice** that includes all of:
 | `bedrooms`, `bathrooms`, `area_sqm` | optional numerics |
 | `media_refs` | optional `jsonb` — **denormalized hints only**; canonical media remains CMP attachments + publish links |
 | `visibility_status` | `draft` \| `preview` \| `published` \| `archived` |
+| `listing_source` | `manual_admin` \| `staged_demo` \| `future_feed` — **server-set** on write (maps to column `listing_source`; public JSON uses `source`) |
 | `created_by`, `updated_by` | auth user ids or email refs (align with `AuthUser` / session claims) |
 | `published_at` | nullable timestamp |
 | `created_at`, `updated_at` | timestamps |
@@ -175,13 +178,11 @@ Ship **one narrow vertical slice** that includes all of:
 
 Execute in order; each slice should be mergeable and testable.
 
-1. **Schema + Prisma** — table + migration; seed optional dev data only (no prod seed without client approval).  
-2. **Server read API** — tenant-scoped list + get by slug for SSR (`lux.corpflowai.com` only).  
-3. **Public pages** — `pages/properties/index` + detail route; reuse `LuxeMauriceTenantPresentation` tokens where sensible; wire **published** images via existing collectors / `property-media`.  
-4. **Editor UI shell** — auth gate, list own drafts, create/edit form.  
-5. **Media wiring** — reuse upload/review/link/publish from programme ticket or dedicated Lux ticket id **fixed in code or DB**, not env (unless already in `.env.template`).  
-6. **Concierge CTA** — same `concierge-lead-create` + `property_slug`; extend `property_interest` with `entry_path: 'properties' | 'property_detail'` if useful.  
-7. **Production smoke + audit** — §8 + Delivery Reality block in ticket or child ticket.
+0. **Phase 2 Slice A (catalogue persistence + read APIs)** — **COMPLETE when shipped:** Prisma model `LuxListing` / table `lux_listings` (including `listing_source`), tenant-safe **GET** routes: `/api/lux/listings`, `/api/lux/listing?slug=`, **`/api/lux/properties`**, **`/api/lux/properties/<slug>`** (Lux marketing host + `corpflowContext.tenant_id === luxe-maurice` only; **published** rows only on public reads). Optional seed: `scripts/seed-lux-phase2-slice-a.mjs`. Thin **`/properties`** index lists published rows. **Out of scope for Slice A:** visual editor, IDX/MLS, mutating property APIs, closing `cmo8mjijk0000jl04l1jz0v6d`. **Next slices:** `/properties` UX + Postgres-backed public detail copy, then property CMS/editor.  
+1. **Public + editor depth** — beyond Slice A: richer `/properties` + detail from Postgres where slugs align; **`/properties/admin`** (or equivalent) with auth gate and drafts list; mutations remain server-tenant-scoped.  
+2. **Media wiring** — reuse upload/review/link/publish from programme ticket or dedicated Lux ticket id **fixed in code or DB**, not env (unless already in `.env.template`).  
+3. **Concierge CTA** — same `concierge-lead-create` + `property_slug`; extend `property_interest` with `entry_path: 'properties' | 'property_detail'` if useful.  
+4. **Production smoke + audit** — §8 + Delivery Reality block in ticket or child ticket.
 
 ---
 
@@ -197,6 +198,8 @@ No **Done** claim unless **all** are true on **Production** (`lux.corpflowai.com
 - [ ] **Enquiry CTA** completes; lead row shows **property context** in CRM (`/change` or existing list).  
 - [ ] **Anton** and **Jan** can create/edit/publish-request **without** calling a developer for routine content.  
 - [ ] Record: **Vercel deployment id**, **commit SHA**, **live URLs** tested — see `.cursor/rules/delivery-reality.mdc`.
+
+**Slice A vs Reality Gate:** Shipping **read APIs + model** alone does **not** clear §8. The **Reality Gate** stays **Evidence Missing** until live **`/properties`** (and detail + governed imagery + concierge CTA + lead context) is verified on Production as above.
 
 ---
 

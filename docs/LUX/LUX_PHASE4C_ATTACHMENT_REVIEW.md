@@ -513,3 +513,16 @@ Delivery Reality Audit:
 - Client-facing flow usable: YES (same bytes and URLs; adapter + diagnostics only)
 - Final verdict: COMPLETE
 ```
+
+## Delivery Reality Audit (Phase 2 Slice A — Postgres property catalogue reads)
+
+```text
+Delivery Reality Audit:
+- Local implementation: YES — `lux_listings.listing_source`, `lib/server/lux-listings-public.js` (**GET** `/api/lux/listings`, `/api/lux/listing`, `/api/lux/properties`, `/api/lux/properties/<slug>`), `pages/properties.js`, `scripts/seed-lux-phase2-slice-a.mjs`, `node-tests/lux-listings-public.test.mjs`; `npm test` + `npm run build` passed before merge.
+- Merged to main: PENDING — open PR from branch `lux/phase2-slice-a-listings-db-api`.
+- Production deployment: PENDING — redeploy after merge; run optional `node scripts/seed-lux-phase2-slice-a.mjs` against Production Postgres only with operator approval (seed is demonstration + draft, clearly labelled).
+- Live verification: PENDING — e.g. `curl -fsS https://lux.corpflowai.com/api/lux/properties` (expect **200** + JSON when host-routed as Lux tenant; non-empty `properties` after approved seed); `curl -fsS https://lux.corpflowai.com/api/lux/properties/lm-phase2d-manual-demo`; `GET /properties` → **200**. **Note:** a pre-merge HTTP probe of `/api/lux/properties` returned **404** (deployment not yet carrying this commit and/or empty catalogue / host gate).
+- Master programme ticket `cmo8mjijk0000jl04l1jz0v6d`: intentionally **not** closed by this slice.
+- P0 `/properties` Reality Gate (`docs/LUX/39_LuxeMaurice_Phase_2_Build_Brief.md` §8): **still Evidence Missing** until governed public imagery + concierge lead proof + editor slices are live-verified.
+- Final verdict: PARTIAL until Production live checks pass.
+```

@@ -138,6 +138,8 @@ model LuxListing {
   bathrooms        Float?
   areaSqm          Float?    @map("area_sqm")
   mediaRefsJson    Json?     @map("media_refs_json")
+  /// `manual_admin` | `staged_demo` | `future_feed` — set server-side only.
+  listingSource    String    @default("manual_admin") @map("listing_source")
   visibilityStatus String    @map("visibility_status")
   createdById      String?   @map("created_by_id")
   updatedById      String?   @map("updated_by_id")

@@ -4,6 +4,8 @@
 
 This document describes **how media becomes public** on `lux.corpflowai.com` after Phase 4C.x / **4D.1** / **4D.2**, plus **Phase 4D.3** (operator **archive / restore** without deleting bytes), plus **Phase 4D.4** (operator-only **`/change`** summaries, filters, and “where used” copy — **no** new public fields or routes), plus **Phase 4D.5** (operator **cleanup policy** for smoke/test artifacts: expanded hinting, **Cleanup candidate** advisory, optional one-click archive with a standard reason, smoke script summary + optional `--archive-smoke-artifacts` — **still no** hard-delete by default), plus **Phase 5A** (public **cache + `variant=` scaffold** + MIME normalization + safe list metadata — **no** real transforms or external CDN yet), plus **Phase 5B** (strict **`width=`** buckets + **`src_set`** on collectors/list + **`srcset`/`sizes`** on public pages — **still** original bytes only; **`buildLuxPublicMediaTransformPlan`** is abstraction only), plus **Phase 5C** (**storage adapter** behind `handleLuxPropertyMedia`: Postgres bytes today; **`readPublishedLuxMediaBytes`** + safe **`X-Lux-Media-*`** observability headers on **200** only — **no** external object store, **no** CDN upload, **no** real transforms), and the **hard boundaries** before CDN, transforms, DAM, automation, or social surfaces exist.
 
+**Product alignment (2026-05-11, additive):** The **P0 LuxeMaurice surface** is the **property publishing platform** (`/properties`, Postgres `lux_listings`, concierge, governed **`property-media`**). **5A–5C** are the **media delivery layer** that property pages consume; they are not a substitute for catalogue CMS, publishing workflow, or video pilot semantics. See **`docs/LUX/LUX_DELIVERY_PROGRAMME.md`** (**Phase 5D–5G** labels) and **`docs/LUX/39_LuxeMaurice_Phase_2_Build_Brief.md`**.
+
 ## Lifecycles (strict order)
 
 1. **Upload** — Binary lands in `cmp_ticket_attachments`; metadata row is upserted into `console_json.lux_request_meta.attachments[]` with default `review_status: pending_review`. **Nothing is public.**
@@ -87,6 +89,7 @@ Pure **client-side** helpers in `lib/cmp/_lib/lux-request-attachments.js` drive:
 - **`GET /api/lux/property-media-list?property=`** — Same host gate; JSON list of **safe** entries (`slot`, `src`, `src_set`, `variant`, `content_type`, `public_caption`, `public_alt_text`, `gallery_order`, `is_gallery_cover`) for **hero + card + gallery**. **No** operator audit fields, **no** `lux_request_meta`, **no** private download URLs.
 - **`/` (LuxeMaurice acquisition)** — Property cards use **published `card`** image when present (`collectPublishedLuxCardMediaByPropertyRefs`); otherwise same-origin staged hero path or neutral placeholder. Feed cards use the same rule when the feed id resolves.
 - **`/property/[slug]`** — Renders published **hero** (if any) and a **Gallery** grid for published **gallery** slot images with public caption/alt only (card slot is for listing/home cards, not detail layout in this phase).
+- **`GET /api/lux/properties`** / **`GET /api/lux/properties/<slug>`** (Phase 2 Slice A) — **JSON only**; same Lux host + tenant gate as **`/api/lux/listings`**; **published** catalogue rows; **no** attachment bytes. Composes with **`property-media`** when UIs link slugs to governed imagery.
 
 ## Private vs public guarantees
 

@@ -19,6 +19,7 @@ It classifies the current LuxeMaurice work correctly as **Phase 0** and defines 
 - **Current lead capture path**: `/concierge` (posts to `concierge-lead-create` and creates a lead).
 - **Phase 1 → Phase 2 handoff (ticket `cmo8mjijk0000jl04l1jz0v6d` only):** after client approval is recorded, operators run `scripts/lux-ticket-phase2-initiate.mjs` (see script header). That persists **`console_json.lux_programme`** (phase statuses, first-slice scope, `operator_next_action`) and appends description notes. **Phase 2 first-slice acceptance** lives in **`docs/LUX/LUX_PHASE2_FIRST_SLICE_ACCEPTANCE.md`**. **Phase 2B hybrid:** curated cards remain primary; **Explore more properties** adds a feed-shaped mock layer (`lxf-*` ids) with the same concierge handoff — replace `feed_properties` at the adapter when IDX is chosen (see acceptance doc).
 - **Phase 2D manual curated:** operator-managed listings **without IDX** — intake, schema, and audit-friendly `manual_curated` source in leads/`/change`; see **`docs/LUX/LUX_PHASE2D_MANUAL_PROPERTY_WORKFLOW.md`**.
+- **Phase 2 Slice A (Postgres catalogue reads):** `lux_listings` + public **GET** **`/api/lux/properties`** (and legacy **`/api/lux/listings`** / query-detail **`/api/lux/listing`**) on Lux host only — **published** rows in JSON; **`listing_source`** (`manual_admin` \| `staged_demo` \| `future_feed`). Thin **`/properties`** page lists published rows. **Editor / full `/properties` Reality Gate** = subsequent slices; master ticket stays open.
 
 ## Non‑negotiable rules (ticket truth)
 
@@ -182,6 +183,15 @@ Each phase below must be represented in the ticket’s narrative and acceptance 
 - **Rule**: byte reads go through **`getLuxMediaStorageAdapter()`** → **`postgres_attachment_bytes`** today; **`buildLuxPublicMediaTransformPlan`** is wired into the read path (`shouldTransform` stays **false**). Published **200** adds safe **`X-Lux-Media-Backend` / `X-Lux-Media-Variant` / `X-Lux-Media-Transform`** headers only on success.
 - **Surface**: `lib/server/lux-media-storage.js`, `lib/server/lux-property-media.js`, `scripts/smoke-lux-phase4c1-attachment-review.mjs`, node tests, **`docs/LUX/LUX_MEDIA_GOVERNANCE.md`**, **`docs/LUX/LUX_PHASE4C_ATTACHMENT_REVIEW.md`**.
 - **Core assimilation recommendation**: add new backends by extending **`lux-media-storage.js`** selection only after governance stays centralized in **`handleLuxPropertyMedia`**; never serve bytes from a parallel public route.
+
+### Phase 5D–5G — Product roadmap after media delivery foundation (labels; not a rollback of 5A–5C)
+
+**Framing (2026-05-11):** **5A–5C** remain **done or in progress as written** (public image delivery, `srcset`, Postgres byte adapter). They are **infrastructure** under the **P0 product**: **luxury property publishing** for LuxeMaurice. Programme language for **next** client-visible tranches:
+
+- **5D — LuxeMaurice Property CMS UX** — Anton + Jan: create/edit property rows, media association, role-gated admin surfaces (replaces an older “media library UX” placeholder in planning decks).
+- **5E — Property Publishing Workflow + Preview** — draft / preview / publish / archive for **property visibility**, coordinated with existing attachment publish gates.
+- **5F — Video Governance + Controlled Pilot** — **not** “open video publishing”; explicit governance before any public player path (replaces “video publishing” as an unqualified headline).
+- **5G — AI Editorial Assistance** — assisted copy/structure for property editorial work, subject to brand + accuracy gates.
 
 ### Phase 5 — Production reality gate and client handoff
 
