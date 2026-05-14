@@ -25,8 +25,11 @@ import {
 import {
   LUX_ATTACHMENT_ARCHIVE_REASON_SMOKE_DEFAULT,
   LUX_ATTACHMENT_OPERATOR_FILTER_IDS,
+  LUX_AI_SUGGESTION_STATUSES,
+  LUX_VIDEO_GOVERNANCE_STATUSES,
   buildLuxAttachmentWhereUsedRows,
   computeLuxAttachmentMediaSummary,
+  computeLuxVideoAttachmentReadiness,
   detectLuxOperatorTestMediaHint,
   luxAttachmentCleanupCandidate,
   luxAttachmentMatchesOperatorFilter,
@@ -241,8 +244,19 @@ export default function ChangeConsolePage() {
   const [attachmentGalleryCoverDrafts, setAttachmentGalleryCoverDrafts] = useState({});
   const [attachmentArchiveBusyId, setAttachmentArchiveBusyId] = useState('');
   const [attachmentRestoreBusyId, setAttachmentRestoreBusyId] = useState('');
+  const [attachmentVideoGovBusyId, setAttachmentVideoGovBusyId] = useState('');
+  const [attachmentEditorialBusyId, setAttachmentEditorialBusyId] = useState('');
   const [attachmentArchiveReasonDrafts, setAttachmentArchiveReasonDrafts] = useState({});
   const [attachmentOperatorFilter, setAttachmentOperatorFilter] = useState('all');
+  const [luxMediaLibRows, setLuxMediaLibRows] = useState([]);
+  const [luxMediaLibBusy, setLuxMediaLibBusy] = useState(false);
+  const [luxMediaLibErr, setLuxMediaLibErr] = useState('');
+  const [luxMediaLibOpen, setLuxMediaLibOpen] = useState(false);
+  const [luxMediaLibSearch, setLuxMediaLibSearch] = useState('');
+  const [luxMediaLibSlug, setLuxMediaLibSlug] = useState('');
+  const [luxMediaLibSlot, setLuxMediaLibSlot] = useState('');
+  const [luxMediaLibMediaType, setLuxMediaLibMediaType] = useState('');
+  const [luxMediaLibFilter, setLuxMediaLibFilter] = useState('all');
 
   const attachmentMediaSummary = useMemo(
     () => computeLuxAttachmentMediaSummary(attachments),
@@ -385,6 +399,95 @@ export default function ChangeConsolePage() {
       return [];
     } finally {
       setAttachmentsBusy(false);
+    }
+  }
+
+  async function loadLuxMediaLibrary() {
+    if (!luxLeadCrmEnabled) return;
+    setLuxMediaLibBusy(true);
+    setLuxMediaLibErr('');
+    try {
+      const qs = new URLSearchParams();
+      if (luxMediaLibSearch.trim()) qs.set('q', luxMediaLibSearch.trim());
+      if (luxMediaLibSlug.trim()) qs.set('property_slug', luxMediaLibSlug.trim());
+      if (luxMediaLibSlot.trim()) qs.set('slot', luxMediaLibSlot.trim());
+      if (luxMediaLibMediaType.trim()) qs.set('media_type', luxMediaLibMediaType.trim());
+      if (luxMediaLibFilter.trim()) qs.set('filter', luxMediaLibFilter.trim());
+      const r = await fetch(`/api/lux/operator-media-library?${qs.toString()}`, { credentials: 'include' });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(String(j?.error || j?.detail || `http_${r.status}`));
+      setLuxMediaLibRows(Array.isArray(j.rows) ? j.rows : []);
+    } catch (e) {
+      setLuxMediaLibErr(String(e?.message || e));
+      setLuxMediaLibRows([]);
+    } finally {
+      setLuxMediaLibBusy(false);
+    }
+  }
+
+  async function submitAttachmentVideoGovernance(attachmentId, body) {
+    const tid = String(selectedTicketId || '').trim();
+    const aid = String(attachmentId || '').trim();
+    if (!tid || !aid) return;
+    setAttachmentVideoGovBusyId(aid);
+    setAttachmentsError('');
+    try {
+      const r = await fetch('/api/cmp/router?action=lux-attachment-video-governance-set', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticket_id: tid, attachment_id: aid, ...body }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        const msg = String(j?.error || j?.detail || j?.hint || '').trim();
+        if (r.status === 403 && msg.toLowerCase().includes('dormant gate')) {
+          throw new Error('Your session expired. Please refresh and log in again.');
+        }
+        throw new Error(msg || `http_${r.status}`);
+      }
+      if (j?.attachment) {
+        setAttachments((prev) => prev.map((row) => (row.attachment_id === aid ? j.attachment : row)));
+      }
+      await loadAttachmentsForTicket(tid);
+      if (luxMediaLibOpen) await loadLuxMediaLibrary();
+    } catch (e) {
+      setAttachmentsError(String(e?.message || e));
+    } finally {
+      setAttachmentVideoGovBusyId('');
+    }
+  }
+
+  async function submitAttachmentEditorialSuggestion(attachmentId, body) {
+    const tid = String(selectedTicketId || '').trim();
+    const aid = String(attachmentId || '').trim();
+    if (!tid || !aid) return;
+    setAttachmentEditorialBusyId(aid);
+    setAttachmentsError('');
+    try {
+      const r = await fetch('/api/cmp/router?action=lux-attachment-editorial-suggestion-set', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticket_id: tid, attachment_id: aid, ...body }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        const msg = String(j?.error || j?.detail || j?.hint || '').trim();
+        if (r.status === 403 && msg.toLowerCase().includes('dormant gate')) {
+          throw new Error('Your session expired. Please refresh and log in again.');
+        }
+        throw new Error(msg || `http_${r.status}`);
+      }
+      if (j?.attachment) {
+        setAttachments((prev) => prev.map((row) => (row.attachment_id === aid ? j.attachment : row)));
+      }
+      await loadAttachmentsForTicket(tid);
+      if (luxMediaLibOpen) await loadLuxMediaLibrary();
+    } catch (e) {
+      setAttachmentsError(String(e?.message || e));
+    } finally {
+      setAttachmentEditorialBusyId('');
     }
   }
 
@@ -812,6 +915,7 @@ export default function ChangeConsolePage() {
     if (String(ds || '') === 'feed') return 'Explore (feed preview)';
     if (String(ds || '') === 'manual_curated') return 'Manual (curated)';
     if (String(ds || '') === 'curated') return 'Featured (curated)';
+    if (String(ds || '') === 'lux_postgres') return 'Private showcase';
     return ds ? String(ds) : '—';
   }
 
@@ -2103,6 +2207,202 @@ export default function ChangeConsolePage() {
                   )}
                 </pre>
               </div>
+            </div>
+          ) : null}
+
+          {luxLeadCrmEnabled && !showIntakeSurface && !isEstimateMode ? (
+            <div style={{ ...card, minWidth: 0 }}>
+              <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
+                MEDIA LIBRARY (LUX) <span style={{ color: '#94a3b8', fontWeight: 700 }}>· Phase 5D</span>
+              </div>
+              <div style={{ marginTop: 6, fontSize: 11, color: '#64748b', lineHeight: 1.45 }}>
+                Cross-ticket Lux programme requests — JSON metadata only (no bytes). Use Load / refresh after changing
+                filters.
+              </div>
+              <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => setLuxMediaLibOpen((v) => !v)}
+                  style={{
+                    padding: '8px 12px',
+                    borderRadius: 10,
+                    border: '1px solid rgba(129,140,248,0.45)',
+                    background: 'rgba(99,102,241,0.14)',
+                    color: '#e0e7ff',
+                    fontWeight: 800,
+                    fontSize: 12,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {luxMediaLibOpen ? 'Hide' : 'Show'} library panel
+                </button>
+                {luxMediaLibOpen ? (
+                  <button
+                    type="button"
+                    disabled={luxMediaLibBusy}
+                    onClick={() => void loadLuxMediaLibrary()}
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: 10,
+                      border: '1px solid rgba(56,189,248,0.45)',
+                      background: 'rgba(14,165,233,0.12)',
+                      color: '#bae6fd',
+                      fontWeight: 800,
+                      fontSize: 12,
+                      cursor: luxMediaLibBusy ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    {luxMediaLibBusy ? 'Loading…' : 'Load / refresh'}
+                  </button>
+                ) : null}
+              </div>
+              {luxMediaLibOpen ? (
+                <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 8 }}>
+                    <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4 }}>
+                      Search
+                      <input
+                        value={luxMediaLibSearch}
+                        onChange={(e) => setLuxMediaLibSearch(e.target.value)}
+                        style={{
+                          padding: '6px 8px',
+                          borderRadius: 10,
+                          border: '1px solid rgba(148,163,184,0.25)',
+                          background: 'rgba(2,6,23,0.65)',
+                          color: '#e2e8f0',
+                          fontSize: 12,
+                        }}
+                      />
+                    </label>
+                    <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4 }}>
+                      Property slug
+                      <input
+                        value={luxMediaLibSlug}
+                        onChange={(e) => setLuxMediaLibSlug(e.target.value)}
+                        style={{
+                          padding: '6px 8px',
+                          borderRadius: 10,
+                          border: '1px solid rgba(148,163,184,0.25)',
+                          background: 'rgba(2,6,23,0.65)',
+                          color: '#e2e8f0',
+                          fontSize: 12,
+                        }}
+                      />
+                    </label>
+                    <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4 }}>
+                      Slot
+                      <select
+                        value={luxMediaLibSlot}
+                        onChange={(e) => setLuxMediaLibSlot(e.target.value)}
+                        style={{
+                          padding: '6px 8px',
+                          borderRadius: 10,
+                          border: '1px solid rgba(148,163,184,0.25)',
+                          background: 'rgba(2,6,23,0.65)',
+                          color: '#e2e8f0',
+                          fontSize: 12,
+                        }}
+                      >
+                        <option value="">Any</option>
+                        <option value="hero">hero</option>
+                        <option value="gallery">gallery</option>
+                        <option value="card">card</option>
+                        <option value="reference">reference</option>
+                      </select>
+                    </label>
+                    <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4 }}>
+                      Media type
+                      <select
+                        value={luxMediaLibMediaType}
+                        onChange={(e) => setLuxMediaLibMediaType(e.target.value)}
+                        style={{
+                          padding: '6px 8px',
+                          borderRadius: 10,
+                          border: '1px solid rgba(148,163,184,0.25)',
+                          background: 'rgba(2,6,23,0.65)',
+                          color: '#e2e8f0',
+                          fontSize: 12,
+                        }}
+                      >
+                        <option value="">Any</option>
+                        <option value="image">image</option>
+                        <option value="video">video</option>
+                        <option value="document">document</option>
+                      </select>
+                    </label>
+                    <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4 }}>
+                      Filter
+                      <select
+                        value={luxMediaLibFilter}
+                        onChange={(e) => setLuxMediaLibFilter(e.target.value)}
+                        style={{
+                          padding: '6px 8px',
+                          borderRadius: 10,
+                          border: '1px solid rgba(148,163,184,0.25)',
+                          background: 'rgba(2,6,23,0.65)',
+                          color: '#e2e8f0',
+                          fontSize: 12,
+                        }}
+                      >
+                        {LUX_ATTACHMENT_OPERATOR_FILTER_IDS.map((fid) => (
+                          <option key={fid} value={fid}>
+                            {luxOperatorAttachmentFilterLabel(fid)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                  {luxMediaLibErr ? <div style={{ fontSize: 12, color: '#fca5a5' }}>{luxMediaLibErr}</div> : null}
+                  <div
+                    style={{
+                      maxHeight: 280,
+                      overflow: 'auto',
+                      border: '1px solid rgba(148,163,184,0.15)',
+                      borderRadius: 10,
+                      fontSize: 11,
+                      color: '#e2e8f0',
+                    }}
+                  >
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                      <thead>
+                        <tr style={{ textAlign: 'left', color: '#94a3b8' }}>
+                          <th style={{ padding: 8 }}>Ticket</th>
+                          <th style={{ padding: 8 }}>File</th>
+                          <th style={{ padding: 8 }}>Type</th>
+                          <th style={{ padding: 8 }}>Review</th>
+                          <th style={{ padding: 8 }}>Where</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {luxMediaLibRows.length === 0 ? (
+                          <tr>
+                            <td colSpan={5} style={{ padding: 10, color: '#64748b' }}>
+                              No rows — run Load / refresh.
+                            </td>
+                          </tr>
+                        ) : (
+                          luxMediaLibRows.map((row) => {
+                            const wid = String(row.attachment_id || '');
+                            const wu = Array.isArray(row.where_used) ? row.where_used : [];
+                            const wuLabel = wu
+                              .map((w) => `${w.property_slug || ''}·${w.intended_slot || ''}`)
+                              .join(' · ');
+                            return (
+                              <tr key={`${row.ticket_id}:${wid}`} style={{ borderTop: '1px solid rgba(148,163,184,0.12)' }}>
+                                <td style={{ padding: 8, wordBreak: 'break-all' }}>{String(row.ticket_id || '').slice(0, 12)}…</td>
+                                <td style={{ padding: 8, wordBreak: 'break-all' }}>{row.file_name}</td>
+                                <td style={{ padding: 8 }}>{row.media_type}</td>
+                                <td style={{ padding: 8 }}>{row.review_status}</td>
+                                <td style={{ padding: 8 }}>{wuLabel || '—'}</td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ) : null}
             </div>
           ) : null}
 

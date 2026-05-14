@@ -2,6 +2,7 @@ import React from 'react';
 
 import LuxeMauricePropertyDetailPage from '../../components/LuxeMauricePropertyDetailPage.js';
 import { resolveLuxPropertyRef } from '../../lib/client/luxe-maurice-property-resolve.js';
+import { resolveLuxPropertyRefWithPublishedDb } from '../../lib/server/lux-listing-published-query.js';
 import { collectPublishedLuxPropertyMedia } from '../../lib/server/lux-published-property-media.js';
 import { PrismaClient } from '@prisma/client';
 import { verifyTenantPreviewToken } from '../../lib/server/tenant-preview-token.js';
@@ -82,7 +83,10 @@ export async function getServerSideProps({ req, params }) {
       return { notFound: true };
     }
 
-    const resolved = resolveLuxPropertyRef(raw);
+    let resolved = resolveLuxPropertyRef(raw);
+    if (!resolved) {
+      resolved = await resolveLuxPropertyRefWithPublishedDb(prisma, raw);
+    }
     if (!resolved) {
       return { notFound: true };
     }

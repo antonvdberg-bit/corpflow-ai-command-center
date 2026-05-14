@@ -10,13 +10,14 @@ function safeStr(v) {
 
 /**
  * LuxeMaurice-only property detail (Phase 2C). Props must be server-built — do not trust client-supplied listing fields.
- * @param {{ property: { ref: string, title: string, location: string, property_type: string, status: string | null, price_display: string, discovery_source: 'curated' | 'manual_curated' | 'feed', summary_text: string, highlights: string[], hero_image?: string | null, published_hero?: { src: string, src_set?: string, alt: string, caption: string | null } | null, published_gallery?: { src: string, src_set?: string, alt: string, caption: string | null, gallery_order?: number | null, is_gallery_cover?: boolean }[] } }} props
+ * @param {{ property: { ref: string, title: string, location: string, property_type: string, status: string | null, price_display: string, discovery_source: 'curated' | 'manual_curated' | 'feed' | 'lux_postgres', summary_text: string, highlights: string[], hero_image?: string | null, published_hero?: { src: string, src_set?: string, alt: string, caption: string | null } | null, published_gallery?: { src: string, src_set?: string, alt: string, caption: string | null, gallery_order?: number | null, is_gallery_cover?: boolean }[] } }} props
  */
 export default function LuxeMauricePropertyDetailPage({ property }) {
   const p = property || {};
   const ref = safeStr(p.ref);
   const isFeed = p.discovery_source === 'feed';
   const isManual = p.discovery_source === 'manual_curated';
+  const isLuxPostgres = p.discovery_source === 'lux_postgres';
   const conciergeHref = `/concierge?intent=property&property=${encodeURIComponent(ref)}`;
   const pageTitle = ref ? `${safeStr(p.title)} · Luxurious Mauritius` : 'Property · Luxurious Mauritius';
 
@@ -47,7 +48,7 @@ export default function LuxeMauricePropertyDetailPage({ property }) {
 
   const heroBorder = isFeed
     ? `1px dashed ${T.border}`
-    : isManual
+    : isManual || isLuxPostgres
       ? `2px solid ${T.goldDeep}`
       : `1px solid ${T.goldDeep}`;
   const heroBg = isFeed ? T.white : T.sand;
@@ -93,6 +94,8 @@ export default function LuxeMauricePropertyDetailPage({ property }) {
           <span style={{ fontSize: 11, color: T.inkMuted, fontWeight: 650 }}>Explore · market preview</span>
         ) : isManual ? (
           <span style={{ fontSize: 11, color: T.goldDeep, fontWeight: 750 }}>Manual · operator curated</span>
+        ) : isLuxPostgres ? (
+          <span style={{ fontSize: 11, color: T.goldDeep, fontWeight: 750 }}>Private showcase</span>
         ) : (
           <span style={{ fontSize: 11, color: T.goldDeep, fontWeight: 750 }}>Featured · developer-led</span>
         )}

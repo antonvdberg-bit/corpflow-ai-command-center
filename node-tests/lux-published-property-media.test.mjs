@@ -412,6 +412,43 @@ test('collectPublishedLuxCardMediaByPropertyRefs maps one ref and skips video', 
   assert.equal(m.size, 1);
 });
 
+test('collectPublishedLuxCardMediaByPropertyRefs allowUnresolved links published card to non-catalog slug', async () => {
+  const PG = 'lm-pg-published-only';
+  const img = { id: 'c-pg', tenantId: 'luxe-maurice', contentType: 'image/jpeg' };
+  const link = {
+    property_slug: PG,
+    property_title: 'Villa',
+    intended_slot: 'card',
+    linked_at: '2026-01-01T00:00:00.000Z',
+    linked_by: 'op',
+    link_note: null,
+    publish_status: 'published',
+    published_at: '2026-01-02T00:00:00.000Z',
+    published_by: 'op',
+    public_caption: null,
+    public_alt_text: 'pg card alt',
+    unpublished_at: null,
+    unpublished_by: null,
+  };
+  const cj = {
+    lux_request_meta: {
+      attachments: [
+        {
+          attachment_id: 'c-pg',
+          review_status: 'reviewed',
+          media_type: 'image',
+          property_links: [link],
+        },
+      ],
+    },
+  };
+  const prisma = makePrisma({ consoleJsonList: [cj], attachmentById: { 'c-pg': img } });
+  const mDefault = await collectPublishedLuxCardMediaByPropertyRefs(prisma, [PG]);
+  assert.equal(mDefault.size, 0);
+  const m = await collectPublishedLuxCardMediaByPropertyRefs(prisma, [PG], { allowUnresolvedPropertySlugs: true });
+  assert.equal(m.get(PG)?.alt, 'pg card alt');
+});
+
 test('collectPublishedLuxCardMediaByPropertyRefs excludes archived published card', async () => {
   const img = { id: 'carc', tenantId: 'luxe-maurice', contentType: 'image/jpeg' };
   const cj = {
