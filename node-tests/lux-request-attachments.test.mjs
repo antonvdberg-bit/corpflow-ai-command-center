@@ -45,10 +45,15 @@ import {
   luxLinkIsCurrentlyPublicOnLuxSite,
   LUX_ATTACHMENT_ARCHIVE_REASON_SMOKE_DEFAULT,
   LUX_PUBLIC_MEDIA_VARIANTS,
+  LUX_PUBLIC_MEDIA_WIDTH_BUCKETS,
+  buildLuxPublicMediaTransformPlan,
   buildLuxPublicPropertyMediaSrc,
+  buildLuxPublicPropertyMediaSrcSet,
   defaultLuxPublicMediaVariantForSlot,
   normalizeLuxPublicImageContentTypeMime,
   normalizeLuxPublicMediaVariantParam,
+  normalizeLuxPublicMediaWidthParam,
+  resolveLuxPublicMediaVariantRequest,
 } from '../lib/cmp/_lib/lux-request-attachments.js';
 
 test('LUX_ATTACHMENT_REVIEW_STATUSES is a frozen tri-state', () => {
@@ -1310,4 +1315,32 @@ test('Phase 5A · normalizeLuxPublicImageContentTypeMime', () => {
   assert.equal(normalizeLuxPublicImageContentTypeMime('image/png'), 'image/png');
   assert.equal(normalizeLuxPublicImageContentTypeMime('Image/JPG; charset=binary'), 'image/jpeg');
   assert.equal(normalizeLuxPublicImageContentTypeMime('video/mp4'), '');
+});
+
+test('Phase 5B · width buckets + normalizeLuxPublicMediaWidthParam', () => {
+  assert.deepEqual([...LUX_PUBLIC_MEDIA_WIDTH_BUCKETS], [480, 768, 1024, 1440, 1920]);
+  assert.equal(normalizeLuxPublicMediaWidthParam('768'), 768);
+  assert.equal(normalizeLuxPublicMediaWidthParam(''), null);
+  assert.equal(normalizeLuxPublicMediaWidthParam(null), null);
+  assert.equal(normalizeLuxPublicMediaWidthParam('768px'), false);
+  assert.equal(normalizeLuxPublicMediaWidthParam('600'), false);
+});
+
+test('Phase 5B · resolveLuxPublicMediaVariantRequest + transform plan stub', () => {
+  const ok = resolveLuxPublicMediaVariantRequest({ variantRaw: '', widthRaw: '1024', normalizedSlot: 'hero' });
+  assert.equal(ok.ok, true);
+  if (ok.ok) assert.equal(ok.width, 1024);
+  const badW = resolveLuxPublicMediaVariantRequest({ variantRaw: '', widthRaw: '12', normalizedSlot: 'hero' });
+  assert.equal(badW.ok, false);
+  const plan = buildLuxPublicMediaTransformPlan({ variant: 'hero', width: 1024 });
+  assert.equal(plan.shouldTransform, false);
+  assert.equal(plan.source, 'original');
+});
+
+test('Phase 5B · buildLuxPublicPropertyMediaSrcSet hero URLs', () => {
+  const { src, srcSet } = buildLuxPublicPropertyMediaSrcSet('lm-x', 'aid1', 'hero');
+  assert.match(src, /width=1920/);
+  assert.match(srcSet, /768w/);
+  assert.match(srcSet, /1920w/);
+  assert.ok(srcSet.includes(','));
 });

@@ -117,6 +117,8 @@ test('collectPublishedLuxPropertyMedia excludes unpublished gallery and non-imag
   assert.equal(r.published_gallery.length, 1);
   assert.match(r.published_gallery[0].src, /slot=gallery/);
   assert.match(r.published_gallery[0].src, /variant=gallery/);
+  assert.match(r.published_gallery[0].src, /width=1440/);
+  assert.ok(String(r.published_gallery[0].src_set || '').includes('480w'));
 });
 
 test('collectPublishedLuxPropertyMedia sorts cover first then gallery_order then published_at', async () => {
@@ -273,6 +275,8 @@ test('collectPublishedLuxPropertyMedia hero still works alongside gallery', asyn
   assert.ok(r.published_hero);
   assert.match(r.published_hero.src, /slot=hero/);
   assert.match(r.published_hero.src, /variant=hero/);
+  assert.match(r.published_hero.src, /width=1920/);
+  assert.ok(String(r.published_hero.src_set || '').includes('768w'));
   assert.equal(r.published_gallery.length, 1);
   assert.equal(r.published_card, null);
 });
@@ -308,7 +312,17 @@ test('buildLuxPropertyMediaListPayload items expose only safe keys', async () =>
   const prisma = makePrisma({ consoleJsonList: [cj], attachmentById: { h1: heroAtt, g1: gAtt, c1: cAtt } });
   const payload = await buildLuxPropertyMediaListPayload(prisma, PROP);
   assert.equal(payload.ok, true);
-  const allowed = new Set(['slot', 'src', 'public_caption', 'public_alt_text', 'gallery_order', 'is_gallery_cover', 'variant', 'content_type']);
+  const allowed = new Set([
+    'slot',
+    'src',
+    'src_set',
+    'public_caption',
+    'public_alt_text',
+    'gallery_order',
+    'is_gallery_cover',
+    'variant',
+    'content_type',
+  ]);
   for (const it of payload.items) {
     for (const k of Object.keys(it)) {
       assert.ok(allowed.has(k), `unexpected key ${k}`);
@@ -316,6 +330,7 @@ test('buildLuxPropertyMediaListPayload items expose only safe keys', async () =>
     assert.equal('attachment_id' in it, false);
     assert.equal('reviewed_by' in it, false);
     assert.equal('linked_by' in it, false);
+    assert.ok(String(it.src_set || '').includes('w'), 'src_set should list width descriptors');
   }
   const slots = payload.items.map((x) => x.slot);
   assert.ok(slots.includes('hero'));
@@ -342,6 +357,8 @@ test('collectPublishedLuxPropertyMedia includes published card image', async () 
   assert.ok(r.published_card);
   assert.match(r.published_card.src, /slot=card/);
   assert.match(r.published_card.src, /variant=card/);
+  assert.match(r.published_card.src, /width=1024/);
+  assert.ok(String(r.published_card.src_set || '').includes('480w'));
   assert.equal(r.published_card.alt, 'Card alt text');
   assert.equal(r.published_card.caption, 'Cap');
   assert.equal(r.published_card.intended_slot, 'card');
@@ -390,6 +407,7 @@ test('collectPublishedLuxCardMediaByPropertyRefs maps one ref and skips video', 
   const prisma = makePrisma({ consoleJsonList: [cj], attachmentById: { ci: img, cv: vid } });
   const m = await collectPublishedLuxCardMediaByPropertyRefs(prisma, [PROP, 'lm-nc-ridge']);
   assert.equal(m.get('lm-phase2d-manual-demo')?.alt, 'batch card');
+  assert.ok(String(m.get('lm-phase2d-manual-demo')?.src_set || '').includes('768w'));
   assert.equal(m.has('lm-nc-ridge'), false);
   assert.equal(m.size, 1);
 });
