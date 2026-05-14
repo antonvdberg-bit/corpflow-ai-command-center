@@ -22,15 +22,59 @@ export default function ConciergePage() {
   const [success, setSuccess] = useState('');
   const [payload, setPayload] = useState(null);
   const [propertyInterest, setPropertyInterest] = useState(null);
+  /** After client resolve: whether we finished matching `property` query (staged or `/api/lux/listing`). */
+  const [propertyRefState, setPropertyRefState] = useState({ ready: false, matched: false });
 
   useEffect(() => {
     if (!router.isReady) return;
     const rawProp = router.query?.property != null ? String(router.query.property).trim() : '';
     if (!rawProp) {
       setPropertyInterest(null);
+      setPropertyRefState({ ready: false, matched: false });
       return;
     }
-    setPropertyInterest(resolveLuxPropertyRef(rawProp));
+    const sync = resolveLuxPropertyRef(rawProp);
+    if (sync) {
+      setPropertyInterest(sync);
+      setPropertyRefState({ ready: true, matched: true });
+      return;
+    }
+    let cancelled = false;
+    setPropertyInterest(null);
+    setPropertyRefState({ ready: false, matched: false });
+    (async () => {
+      try {
+        const r = await fetch(`/api/lux/listing?slug=${encodeURIComponent(rawProp)}`);
+        const j = await r.json().catch(() => ({}));
+        if (cancelled) return;
+        if (r.ok && j && j.ok === true && j.listing && typeof j.listing === 'object') {
+          const L = j.listing;
+          setPropertyInterest({
+            ref: String(L.slug || '').trim(),
+            title: String(L.title || '').trim(),
+            location: String(L.region_label || '').trim(),
+            property_type: String(L.property_type || '').trim(),
+            status: L.listing_status != null ? String(L.listing_status).trim() : null,
+            price_range: L.price_range != null ? String(L.price_range).trim() : null,
+            discovery_source: 'lux_postgres',
+            summary_text: L.short_teaser != null ? String(L.short_teaser).trim() : '',
+            highlights: Array.isArray(L.highlights) ? L.highlights.map((h) => String(h)).filter(Boolean) : [],
+          });
+          setPropertyRefState({ ready: true, matched: true });
+        } else {
+          setPropertyInterest(null);
+          setPropertyRefState({ ready: true, matched: false });
+        }
+      } catch {
+        if (!cancelled) {
+          setPropertyInterest(null);
+          setPropertyRefState({ ready: true, matched: false });
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [router.isReady, router.query?.property]);
 
   useEffect(() => {
@@ -157,7 +201,8 @@ export default function ConciergePage() {
               border:
                 propertyInterest.discovery_source === 'feed'
                   ? `1px dashed ${T.border}`
-                  : propertyInterest.discovery_source === 'manual_curated'
+                  : propertyInterest.discovery_source === 'manual_curated' ||
+                      propertyInterest.discovery_source === 'lux_postgres'
                     ? `2px solid ${T.goldDeep}`
                     : `1px solid ${T.goldDeep}`,
               background: T.sand,
@@ -172,6 +217,8 @@ export default function ConciergePage() {
                 <span style={{ color: T.inkMuted, fontWeight: 700 }}> · Explore listing (feed preview)</span>
               ) : propertyInterest.discovery_source === 'manual_curated' ? (
                 <span style={{ color: T.inkMuted, fontWeight: 700 }}> · Manual curated listing</span>
+              ) : propertyInterest.discovery_source === 'lux_postgres' ? (
+                <span style={{ color: T.inkMuted, fontWeight: 700 }}> · Private showcase</span>
               ) : (
                 <span style={{ color: T.inkMuted, fontWeight: 700 }}> · Featured (developer-led)</span>
               )}
@@ -189,7 +236,10 @@ export default function ConciergePage() {
               <div style={{ marginTop: 8, fontSize: 14, fontWeight: 650, color: T.ink }}>{propertyInterest.price_range}</div>
             ) : null}
           </div>
-        ) : router.isReady && String(router.query?.property || '').trim() ? (
+        ) : router.isReady &&
+          String(router.query?.property || '').trim() &&
+          propertyRefState.ready &&
+          !propertyRefState.matched ? (
           <div
             style={{
               marginBottom: 22,

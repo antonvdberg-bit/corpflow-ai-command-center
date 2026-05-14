@@ -228,6 +228,32 @@ Delivery Reality Audit (Slice A — read APIs only):
 
 ---
 
+### Slice B — Public `/properties` listing (Phase 2)
+
+**Scope:** Public marketing **`GET /properties`** on the Lux marketing host only (`tenant_hostnames` → `luxe-maurice`), same gate pattern as **`/property/[slug]`**. Listings from **`fetchPublishedLuxListingsPublic`** (published `lux_listings` only). **Premium empty state** when the published set is empty. **Cards** link to **`/property/<slug>`** (detail resolves staged catalogue first, then published Postgres via **`resolveLuxPropertyRefWithPublishedDb`**) and **`/concierge?intent=property`** (+ `property=` when a slug applies). **Card images** use **`collectPublishedLuxCardMediaByPropertyRefs`** with the existing published **card** contract; optional flag **`allowUnresolvedPropertySlugs`** is used only when the caller’s slugs are already server-trusted published listing keys (the `/properties` page). **Concierge:** **`concierge-lead-create`** accepts published Postgres slugs via **`resolveLuxPropertyRefWithPublishedDb`**; the **`/concierge`** page loads listing copy from **`GET /api/lux/listing`** when the slug is not in the staged catalogue.
+
+**Programme §8 Reality Gate:** remains **PARTIAL** until a **real client-created** published listing, governed public imagery, full concierge evidence, and editor capability are all live-verified — **a live `/properties` page with an empty state does not complete the full programme gate.**
+
+**Live verification (post-deploy):** operator records here after Production is Ready — **`GET https://lux.corpflowai.com/properties`** → **200**, premium empty state or listing cards, forbidden internal words absent on HTML, concierge CTA present, non-Lux host returns **404** for this route.
+
+#### Slice B — Delivery Reality Audit (fill after live verify)
+
+```text
+Delivery Reality Audit (Slice B — public /properties):
+- Local fix exists: YES
+- Merged to main: (pending PR)
+- Production deployment ID:
+- Commit deployed:
+- Live URLs tested:
+  - GET https://lux.corpflowai.com/properties
+- Expected vs actual:
+- Client-facing flow usable: (empty state or cards + concierge CTA)
+- Full programme §8 Reality Gate: PARTIAL (no first real published inventory requirement for this slice’s own verdict)
+- Final verdict (Slice B surface): COMPLETE or PARTIAL (record explicitly)
+```
+
+---
+
 ## 9. Open decisions (resolve during implementation / programme note)
 
 1. **Public URL for detail:** `/property/[slug]` (existing) vs `/properties/[slug]` — avoid duplicate canonical URLs; pick one public pattern and redirect or link consistently.  
