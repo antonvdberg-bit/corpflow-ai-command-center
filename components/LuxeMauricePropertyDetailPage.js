@@ -10,7 +10,7 @@ function safeStr(v) {
 
 /**
  * LuxeMaurice-only property detail (Phase 2C). Props must be server-built — do not trust client-supplied listing fields.
- * @param {{ property: { ref: string, title: string, location: string, property_type: string, status: string | null, price_display: string, discovery_source: 'curated' | 'manual_curated' | 'feed', summary_text: string, highlights: string[], hero_image?: string | null, published_hero?: { src: string, alt: string, caption: string | null } | null, published_gallery?: { src: string, alt: string, caption: string | null, gallery_order?: number | null, is_gallery_cover?: boolean }[] } }} props
+ * @param {{ property: { ref: string, title: string, location: string, property_type: string, status: string | null, price_display: string, discovery_source: 'curated' | 'manual_curated' | 'feed', summary_text: string, highlights: string[], hero_image?: string | null, published_hero?: { src: string, src_set?: string, alt: string, caption: string | null } | null, published_gallery?: { src: string, src_set?: string, alt: string, caption: string | null, gallery_order?: number | null, is_gallery_cover?: boolean }[] } }} props
  */
 export default function LuxeMauricePropertyDetailPage({ property }) {
   const p = property || {};
@@ -27,12 +27,19 @@ export default function LuxeMauricePropertyDetailPage({ property }) {
 
   const heroImg = (() => {
     if (publishedHero && publishedHero.src) {
-      return { src: String(publishedHero.src), alt: safeStr(publishedHero.alt), caption: publishedHero.caption ? safeStr(publishedHero.caption) : null };
+      const ss = publishedHero.src_set != null ? String(publishedHero.src_set).trim() : '';
+      return {
+        src: String(publishedHero.src),
+        srcSet: ss || undefined,
+        sizes: ss ? '(max-width: 900px) 100vw, 820px' : undefined,
+        alt: safeStr(publishedHero.alt),
+        caption: publishedHero.caption ? safeStr(publishedHero.caption) : null,
+      };
     }
     const s = p.hero_image != null ? String(p.hero_image).trim() : '';
     if (!s.startsWith('/')) return null;
     if (s.includes('..') || s.includes('//')) return null;
-    return { src: s, alt: '', caption: null };
+    return { src: s, srcSet: undefined, sizes: undefined, alt: '', caption: null };
   })();
 
   const heroAltText = heroImg?.alt ? safeStr(heroImg.alt) : ref ? `${ref} · hero` : 'Property hero image';
@@ -106,6 +113,8 @@ export default function LuxeMauricePropertyDetailPage({ property }) {
             <div style={{ margin: '-28px -26px 18px', height: 200, background: T.placeholder }}>
               <img
                 src={heroImg.src}
+                srcSet={heroImg.srcSet}
+                sizes={heroImg.sizes}
                 alt={heroAltText}
                 decoding="async"
                 fetchPriority="high"
@@ -138,10 +147,14 @@ export default function LuxeMauricePropertyDetailPage({ property }) {
                   gap: 12,
                 }}
               >
-                {publishedGallery.map((g, gi) => (
+                {publishedGallery.map((g, gi) => {
+                  const gs = g.src_set != null ? String(g.src_set).trim() : '';
+                  return (
                   <figure key={gi} style={{ margin: 0 }}>
                     <img
                       src={safeStr(g.src)}
+                      srcSet={gs || undefined}
+                      sizes={gs ? '(max-width: 900px) 50vw, 200px' : undefined}
                       alt={galleryAltText(g)}
                       decoding="async"
                       loading="lazy"
@@ -160,7 +173,8 @@ export default function LuxeMauricePropertyDetailPage({ property }) {
                       </figcaption>
                     ) : null}
                   </figure>
-                ))}
+                  );
+                })}
               </div>
             </section>
           ) : null}

@@ -170,6 +170,12 @@ Each phase below must be represented in the ticket’s narrative and acceptance 
 - **Surface**: `lib/server/lux-property-media.js`, `lib/server/lux-published-property-media.js`, `components/LuxeMauricePropertyDetailPage.js`, `components/LuxeMauriceTenantPresentation.js`, `scripts/smoke-lux-phase4c1-attachment-review.mjs`, node tests. See **`docs/LUX/LUX_MEDIA_GOVERNANCE.md`**.
 - **Core assimilation recommendation**: treat **`buildLuxPublicPropertyMediaSrc`** as the canonical URL builder for any new public composition; hang future CDN/transform workers off the **same** route contract so unpublish/archive invalidation stays centralized.
 
+### Phase 5B — Responsive image semantics (width buckets + `srcset`; still original bytes)
+
+- **Purpose**: add **browser-facing** responsive image hints (`srcset`/`sizes`, optional strict **`width=`** on `property-media`) while preserving **5A cache rules** and the **single** governed byte path through `handleLuxPropertyMedia`. No external CDN; **no** on-the-fly resize in production yet.
+- **Rule**: **`buildLuxPublicPropertyMediaSrc`** may append **`&width=`**; **`buildLuxPublicPropertyMediaSrcSet`** composes list **`src_set`**; **`buildLuxPublicMediaTransformPlan`** is abstraction only (`shouldTransform: false`, `source: original`) until Phase **5C+**. Collectors and **`property-media-list`** include safe **`src_set`**.
+- **Surface**: `lib/cmp/_lib/lux-request-attachments.js`, `lib/server/lux-property-media.js`, `lib/server/lux-published-property-media.js`, `components/LuxeMauricePropertyDetailPage.js`, `components/LuxeMauriceTenantPresentation.js`, `scripts/smoke-lux-phase4c1-attachment-review.mjs`, node tests. See **`docs/LUX/LUX_MEDIA_GOVERNANCE.md`**.
+
 ### Phase 5 — Production reality gate and client handoff
 
 - **Client-visible outcome**: the delivered system matches the programme claims; clients can use it.

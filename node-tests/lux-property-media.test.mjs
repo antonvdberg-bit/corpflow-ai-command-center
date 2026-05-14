@@ -106,7 +106,30 @@ test('handleLuxPropertyMedia · 200 uses public max-age=300 must-revalidate + no
   assert.match(cc, /must-revalidate/);
   assert.equal(res.headers['x-content-type-options'], 'nosniff');
   assert.equal(res.headers['content-type'], 'image/png');
+  assert.equal(res.headers['x-lux-media-source'], 'original');
   assert.ok(!cc.includes('stale-while-revalidate'));
+});
+
+test('handleLuxPropertyMedia · invalid width → 400 + no-store', async () => {
+  const res = makeRes();
+  await handleLuxPropertyMedia(
+    makeReq({ property: PROP, attachment: 'att-pub-1', slot: 'hero', variant: 'hero', width: '999' }),
+    res,
+    makePrismaPublished(),
+  );
+  assert.equal(res.statusCode, 400);
+  assert.match(String(res.headers['cache-control'] || ''), /no-store/);
+});
+
+test('handleLuxPropertyMedia · allowlisted width → 200 (still original bytes)', async () => {
+  const res = makeRes();
+  await handleLuxPropertyMedia(
+    makeReq({ property: PROP, attachment: 'att-pub-1', slot: 'hero', variant: 'hero', width: '768' }),
+    res,
+    makePrismaPublished(),
+  );
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.headers['x-lux-media-source'], 'original');
 });
 
 test('handleLuxPropertyMedia · invalid explicit variant → 400 + no-store', async () => {

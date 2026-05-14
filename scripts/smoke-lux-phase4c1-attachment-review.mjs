@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Phase 4C.1 + 4C.3 + 4D.1 + 4D.2 + 4D.5 + 5A live verification — Lux operator media review + property publish + gallery +
- * homepage card + optional smoke artifact archive + public media cache/variant scaffold.
+ * Phase 4C.1 + 4C.3 + 4D.1 + 4D.2 + 4D.5 + 5A + 5B live verification — Lux operator media review + property publish + gallery +
+ * homepage card + optional smoke artifact archive + public media cache/variant scaffold + responsive srcset width buckets.
  *
  * Targets either a Vercel preview (Protection Bypass required) or production.
  * Strictly read/write to a SINGLE Lux client-request ticket created at the start
@@ -379,14 +379,15 @@ async function unpublishProperty(ticketId, attachmentId, propertySlug, intendedS
   return r.json.attachment;
 }
 
-async function getPropertyMedia(propertySlug, attachmentId, slot, { variant } = {}) {
+async function getPropertyMedia(propertySlug, attachmentId, slot, { variant, width } = {}) {
   const cb = `${Date.now()}_${Math.random().toString(16).slice(2)}`;
   const vq = variant ? `&variant=${encodeURIComponent(variant)}` : '';
+  const wq = width != null && String(width) !== '' ? `&width=${encodeURIComponent(String(width))}` : '';
   return await http(
     'GET',
     `/api/lux/property-media?property=${encodeURIComponent(propertySlug)}&attachment=${encodeURIComponent(
       attachmentId,
-    )}&slot=${encodeURIComponent(slot)}${vq}&_cb=${encodeURIComponent(cb)}`,
+    )}&slot=${encodeURIComponent(slot)}${vq}${wq}&_cb=${encodeURIComponent(cb)}`,
   );
 }
 
@@ -537,6 +538,10 @@ async function main() {
   if (badVariant.status !== 400) fail(`property-media invalid variant expected 400, got ${badVariant.status}`);
   ok('property-media rejects invalid variant (5A allowlist)');
 
+  const badWidth = await getPropertyMedia('lm-phase2d-manual-demo', imgId, 'hero', { width: '3000' });
+  if (badWidth.status !== 400) fail(`property-media invalid width expected 400, got ${badWidth.status}`);
+  ok('property-media rejects invalid width bucket (5B)');
+
   await publishProperty(ticketId, imgId, 'lm-phase2d-manual-demo', 'hero', pubCaption, pubAlt);
   const afterPub = await getPropertyMedia('lm-phase2d-manual-demo', imgId, 'hero');
   if (afterPub.status !== 200) fail(`property-media after publish expected 200, got ${afterPub.status}`);
@@ -547,7 +552,13 @@ async function main() {
   if (ccOk.includes('stale-while-revalidate')) fail('property-media must not use stale-while-revalidate');
   const ct = String(afterPub.res.headers.get('content-type') || '').toLowerCase();
   if (!ct.startsWith('image/')) fail(`property-media expected image content-type, got ${ct}`);
+  const xSrc = String(afterPub.res.headers.get('x-lux-media-source') || '').toLowerCase();
+  if (xSrc !== 'original') fail(`property-media expected X-Lux-Media-Source original, got ${xSrc}`);
   ok('property-media serves published PNG after publish');
+
+  const afterPubWidth = await getPropertyMedia('lm-phase2d-manual-demo', imgId, 'hero', { width: '1024' });
+  if (afterPubWidth.status !== 200) fail(`property-media width=1024 expected 200, got ${afterPubWidth.status}`);
+  ok('property-media accepts allowlisted width (5B)');
 
   const afterPubVariantHero = await getPropertyMedia('lm-phase2d-manual-demo', imgId, 'hero', { variant: 'hero' });
   if (afterPubVariantHero.status !== 200) fail(`property-media variant=hero expected 200, got ${afterPubVariantHero.status}`);
@@ -564,6 +575,8 @@ async function main() {
   const propBody = propPage.text || JSON.stringify(propPage.json || {});
   if (!propBody.includes('/api/lux/property-media')) fail('property page missing public media URL after publish');
   if (!propBody.includes('variant=hero')) fail('property page missing variant=hero on public media URL (5A)');
+  if (!propBody.toLowerCase().includes('srcset=')) fail('property page missing responsive srcset (5B)');
+  if (!propBody.includes('width=1920')) fail('property page hero src missing width=1920 (5B)');
   if (!propBody.includes(pubCaption)) fail('property page missing public caption after publish');
   if (!propBody.includes(pubAlt)) fail('property page missing public alt text after publish');
   ok('property page shows published hero caption + alt');
@@ -650,6 +663,7 @@ async function main() {
   if (galleryItems.length < 2) fail(`property-media-list expected >=2 gallery items, got ${galleryItems.length}`);
   for (const it of galleryItems) {
     if (!it.variant || !it.content_type) fail('property-media-list item missing variant or content_type (5A)');
+    if (!String(it.src_set || '').includes('w')) fail('property-media-list item missing src_set width descriptors (5B)');
     if (!String(it.src || '').includes(`variant=${encodeURIComponent(String(it.variant))}`)) {
       fail('property-media-list src should echo list variant param');
     }
@@ -663,6 +677,7 @@ async function main() {
   if (!propGalBody.includes(capA) || !propGalBody.includes(capB)) fail('property page missing gallery captions');
   if (!propGalBody.includes('slot=gallery')) fail('property page missing gallery media URLs');
   if (!propGalBody.includes('variant=gallery')) fail('property page missing variant=gallery on gallery URLs (5A)');
+  if (!propGalBody.toLowerCase().includes('srcset=')) fail('property page gallery missing srcset (5B)');
   ok('property page renders published gallery grid with captions');
 
   await unpublishProperty(ticketId, galA, 'lm-phase2d-manual-demo', 'gallery');
@@ -710,6 +725,7 @@ async function main() {
   if (!homeBody1.includes('/api/lux/property-media')) fail('homepage missing property-media URL');
   if (!homeBody1.includes('slot=card')) fail('homepage missing card-slot property-media URL');
   if (!homeBody1.includes('variant=card')) fail('homepage missing variant=card on card media URL (5A)');
+  if (!homeBody1.toLowerCase().includes('srcset=')) fail('homepage card image missing srcset (5B)');
   if (!homeBody1.includes(cardAltProbe)) fail('homepage missing card image alt text');
   ok('homepage shows published card media for lm-phase2d-manual-demo');
 

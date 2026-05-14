@@ -340,6 +340,10 @@ export default function LuxeMauriceTenantPresentation({ site }) {
                   const refKey = safeStr(p.slug).toLowerCase();
                   const pubCard = cardMediaObj[refKey];
                   const cardSrc = pubCard && typeof pubCard.src === 'string' ? pubCard.src.trim() : '';
+                  const cardSrcSet =
+                    pubCard && typeof pubCard.src_set === 'string' && String(pubCard.src_set).trim()
+                      ? String(pubCard.src_set).trim()
+                      : '';
                   const staticHero = safeLuxSameOriginPublicImagePath(p?.images?.hero);
                   const heroPath = cardSrc || staticHero;
                   const cardAlt = pubCard && typeof pubCard.alt === 'string' ? pubCard.alt.trim() : '';
@@ -365,6 +369,8 @@ export default function LuxeMauriceTenantPresentation({ site }) {
                         {heroPath ? (
                           <img
                             src={heroPath}
+                            srcSet={cardSrc && cardSrcSet ? cardSrcSet : undefined}
+                            sizes={cardSrc && cardSrcSet ? '(max-width: 640px) 100vw, 360px' : undefined}
                             alt={imgAlt}
                             decoding="async"
                             loading="lazy"
@@ -518,6 +524,10 @@ export default function LuxeMauriceTenantPresentation({ site }) {
                 const feedRefKey = resolvedFeed ? String(resolvedFeed.ref).toLowerCase() : '';
                 const pubCardFeed = feedRefKey ? cardMediaObj[feedRefKey] : null;
                 const cardFeedSrc = pubCardFeed && typeof pubCardFeed.src === 'string' ? pubCardFeed.src.trim() : '';
+                const cardFeedSrcSet =
+                  pubCardFeed && typeof pubCardFeed.src_set === 'string' && String(pubCardFeed.src_set).trim()
+                    ? String(pubCardFeed.src_set).trim()
+                    : '';
                 const cardFeedAlt =
                   (pubCardFeed && typeof pubCardFeed.alt === 'string' ? pubCardFeed.alt.trim() : '') || safeStr(p.title) || 'Property';
                 return (
@@ -542,6 +552,8 @@ export default function LuxeMauriceTenantPresentation({ site }) {
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={cardFeedSrc}
+                          srcSet={cardFeedSrcSet || undefined}
+                          sizes={cardFeedSrcSet ? '(max-width: 640px) 100vw, 320px' : undefined}
                           alt={cardFeedAlt}
                           decoding="async"
                           loading="lazy"
