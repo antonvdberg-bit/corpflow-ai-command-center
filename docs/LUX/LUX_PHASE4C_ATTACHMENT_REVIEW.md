@@ -502,11 +502,14 @@ Delivery Reality Audit:
 
 ```text
 Delivery Reality Audit:
-- Local implementation: pending (see PR after merge)
-- Merged to main: pending PR
-- Production deployment: pending post-merge
-- Live verification: pending `npm run smoke:lux-phase4c1 -- --target=production` (expect **`X-Lux-Media-Backend: postgres`**, **`X-Lux-Media-Transform: original`**, variant headers on published **200**; denials without backend header; governance unchanged)
+- Local implementation: YES — **`lib/server/lux-media-storage.js`** (`postgres_attachment_bytes`), **`readPublishedLuxMediaBytes`**, **`handleLuxPropertyMedia`** integration + observability headers; **`npm test`** + **`npm run build`** passed before merge.
+- Merged to main: YES — PR **#178** (squash merge commit **`447a4d04659bc058ec38ab36d73ff7863e3b562a`**)
+- Production deployment: GitHub deployment **`4684292963`** (Vercel **`corpflow-ai-command-center-d80rx4a16-corpflowai.vercel.app`**, state **success**; **`sha`** = **`447a4d04659bc058ec38ab36d73ff7863e3b562a`**)
+- Live verification (2026-05-14): `npm run smoke:lux-phase4c1 -- --target=production` — **ALL CHECKS PASSED**
+  - **5C headers** on published **200** (hero, width=1024, gallery, card, post-republish): **`X-Lux-Media-Backend: postgres`**, **`X-Lux-Media-Transform: original`**, **`X-Lux-Media-Variant`** matches slot (`hero` / `gallery` / `card`); invalid **variant** / **width** responses do **not** expose **`X-Lux-Media-Backend`**
+  - **Governance:** invalid slot/variant/width, unpublished, wrong property, **IMAGE_ONLY**, **4D3** archive/restore/republish, unpublish — **passed**
+  - **Public no-leak:** **`/`**, **`/concierge`**, **`/property/lm-phase2d-manual-demo`** — **clean**
 - Master programme ticket `cmo8mjijk0000jl04l1jz0v6d`: intentionally **not** closed by this phase
-- Client-facing flow usable: pending production confirmation
-- Final verdict: PARTIAL (pending production smoke record)
+- Client-facing flow usable: YES (same bytes and URLs; adapter + diagnostics only)
+- Final verdict: COMPLETE
 ```
