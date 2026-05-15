@@ -97,6 +97,8 @@ Ship **one narrow vertical slice** that includes all of:
 
 **Operator UX (LuxeMaurice only):** On `lux.corpflowai.com`, `/change` uses the same **cream / gold / editorial** chrome as the public Lux site and `/properties/admin` (light cards, queue badges, collapsed technical JSON, grouped media library). Other tenants keep the existing dark operator shell.
 
+**Operator queue desk (Lux tenant session only):** Queue rows are **grouped** (not reordered in the database) into **Programme**, **Active client work**, **Property & media**, **CRM / leads**, **Uncategorized / internal** (blank or placeholder summaries — muted), and **Test & smoke artifacts** (Phase 4 / QA / attachment smoke heuristics). A **counts** line summarizes bucket sizes. **Hide archived smoke / test artifacts** defaults to **on** (cleaner desk); turning it off or using **Show** reveals the same tickets for audit — **nothing is deleted**. Master programme ticket **`cmo8mjijk0000jl04l1jz0v6d`** remains classified as **Programme** and stays visible when present in the queue. **Live Lux operator verification** of the cleaner layout is still the closure step for this UX slice.
+
 ### Preferred route
 
 - Implement **`/properties/admin`** **or** **`/admin/properties`** (pick one; avoid duplicating both unless middleware clearly canonicalizes).  

@@ -35,7 +35,10 @@ import {
   luxAttachmentMatchesOperatorFilter,
 } from '../lib/cmp/_lib/lux-request-attachments.js';
 import { buildLuxChangeConsoleChrome } from '../lib/client/lux-change-console-theme.js';
-import { classifyLuxChangeQueueTicket, partitionLuxChangeQueueTickets } from '../lib/client/lux-change-queue-classify.js';
+import {
+  classifyLuxChangeQueueTicket,
+  groupLuxOperatorQueueTickets,
+} from '../lib/client/lux-change-queue-classify.js';
 
 function normalizeLocale(raw) {
   const s = String(raw || '').trim().toLowerCase().replace(/_/g, '-');
@@ -109,9 +112,11 @@ function ChangeQueueTicketRow({ t, selectedTicketId, onSelect, luxChrome }) {
   const active = id && id === selectedTicketId;
   const cls = luxChrome ? classifyLuxChangeQueueTicket(t) : null;
   const btnStyle = luxChrome
-    ? cls.bucket === 'smoke_test'
+    ? cls.bucket === 'archived_smoke'
       ? luxChrome.queueBtnSmoke(active)
-      : luxChrome.queueBtn(active)
+      : cls.bucket === 'internal'
+        ? luxChrome.queueBtnInternal(active)
+        : luxChrome.queueBtn(active)
     : {
         textAlign: 'left',
         padding: 12,
@@ -126,9 +131,19 @@ function ChangeQueueTicketRow({ t, selectedTicketId, onSelect, luxChrome }) {
         boxSizing: 'border-box',
       };
   const monoColor = luxChrome ? luxChrome.textMuted : '#94a3b8';
-  const titleColor = luxChrome ? luxChrome.text : '#e2e8f0';
+  const titleColor =
+    luxChrome && cls?.bucket === 'internal' ? luxChrome.textMuted : luxChrome ? luxChrome.text : '#e2e8f0';
+  const summaryText =
+    luxChrome && cls?.bucket === 'internal'
+      ? 'No summary — internal or draft row'
+      : String(t.requested_change || '—');
   return (
-    <button type="button" onClick={() => onSelect(id)} style={btnStyle}>
+    <button
+      type="button"
+      data-lux-queue-ticket-id={id || undefined}
+      onClick={() => onSelect(id)}
+      style={btnStyle}
+    >
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
         {luxChrome && cls ? <span style={luxChrome.badge(cls.bucket)}>{cls.badge}</span> : null}
         <div
@@ -152,9 +167,203 @@ function ChangeQueueTicketRow({ t, selectedTicketId, onSelect, luxChrome }) {
           ...changeTextContainStyle(),
         }}
       >
-        {String(t.requested_change || '—')}
+        {summaryText}
       </div>
     </button>
+  );
+}
+
+/** Lux-only: grouped operator queue with counts, collapsed archives, optional hide. */
+function LuxOperatorQueueList({
+  chrome,
+  grouped,
+  selectedTicketId,
+  onSelectTicket,
+  luxQueueTestsOpen,
+  setLuxQueueTestsOpen,
+  luxQueueInternalOpen,
+  setLuxQueueInternalOpen,
+  luxHideArchivedSmoke,
+  setLuxHideArchivedSmoke,
+  selectedTicketIsArchivedSmoke,
+}) {
+  const c = grouped.counts;
+  const sectionTitleStyle = {
+    marginTop: 12,
+    marginBottom: 6,
+    fontSize: 11,
+    fontWeight: 900,
+    letterSpacing: '0.08em',
+    color: chrome.textLabel,
+  };
+  const firstTitleStyle = { ...sectionTitleStyle, marginTop: 0 };
+
+  function mapRows(rows, keyPrefix) {
+    return rows.map((t) => {
+      const id = String(t.ticket_id || '');
+      return (
+        <ChangeQueueTicketRow
+          key={id || keyPrefix}
+          t={t}
+          selectedTicketId={selectedTicketId}
+          onSelect={onSelectTicket}
+          luxChrome={chrome}
+        />
+      );
+    });
+  }
+
+  return (
+    <>
+      <div
+        style={{
+          marginBottom: 10,
+          fontSize: 11,
+          lineHeight: 1.45,
+          color: chrome.textMuted,
+        }}
+      >
+        Programme ({c.programme}) · Active ({c.activeClient}) · Property ({c.propertyMedia}) · CRM ({c.crmLeads}) ·
+        Internal ({c.internal}) · Smoke ({c.archivedSmoke})
+      </div>
+      <label
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          marginBottom: 10,
+          fontSize: 12,
+          fontWeight: 700,
+          color: chrome.text,
+          cursor: 'pointer',
+          userSelect: 'none',
+        }}
+      >
+        <input
+          type="checkbox"
+          checked={luxHideArchivedSmoke}
+          onChange={(e) => setLuxHideArchivedSmoke(Boolean(e.target.checked))}
+        />
+        Hide archived smoke / test artifacts (queue stays auditable; show to select)
+      </label>
+
+      <div style={{ display: 'grid', gap: 0 }}>
+        {grouped.programme.length ? (
+          <div key="lux-q-programme">
+            <div style={firstTitleStyle}>Programme ({grouped.programme.length})</div>
+            <div style={{ display: 'grid', gap: 8 }}>{mapRows(grouped.programme, 'pg')}</div>
+          </div>
+        ) : null}
+
+        {grouped.activeClient.length ? (
+          <div key="lux-q-active">
+            <div style={sectionTitleStyle}>Active client work ({grouped.activeClient.length})</div>
+            <div style={{ display: 'grid', gap: 8 }}>{mapRows(grouped.activeClient, 'ac')}</div>
+          </div>
+        ) : null}
+
+        {grouped.propertyMedia.length ? (
+          <div key="lux-q-prop">
+            <div style={sectionTitleStyle}>Property & media ({grouped.propertyMedia.length})</div>
+            <div style={{ display: 'grid', gap: 8 }}>{mapRows(grouped.propertyMedia, 'pm')}</div>
+          </div>
+        ) : null}
+
+        {grouped.crmLeads.length ? (
+          <div key="lux-q-crm">
+            <div style={sectionTitleStyle}>CRM / leads ({grouped.crmLeads.length})</div>
+            <div style={{ display: 'grid', gap: 8 }}>{mapRows(grouped.crmLeads, 'cr')}</div>
+          </div>
+        ) : null}
+
+        {grouped.internal.length ? (
+          <details
+            key="lux-q-internal"
+            open={luxQueueInternalOpen}
+            onToggle={(e) => setLuxQueueInternalOpen(Boolean(e.target.open))}
+            style={{
+              marginTop: 4,
+              border: `1px dashed ${chrome.border}`,
+              borderRadius: 12,
+              padding: '8px 10px',
+              background: chrome.sand,
+            }}
+          >
+            <summary
+              style={{
+                cursor: 'pointer',
+                fontSize: 12,
+                fontWeight: 800,
+                color: chrome.textMuted,
+                listStyle: 'none',
+              }}
+            >
+              Uncategorized / internal ({grouped.internal.length})
+            </summary>
+            <div style={{ marginTop: 8, display: 'grid', gap: 8 }}>{mapRows(grouped.internal, 'in')}</div>
+          </details>
+        ) : null}
+
+        {grouped.archivedSmoke.length ? (
+          luxHideArchivedSmoke && !selectedTicketIsArchivedSmoke ? (
+            <div
+              key="lux-q-smoke-hidden"
+              style={{
+                marginTop: 8,
+                padding: '10px 12px',
+                borderRadius: 12,
+                border: `1px dashed ${chrome.border}`,
+                background: chrome.sand,
+                fontSize: 12,
+                color: chrome.textMuted,
+                lineHeight: 1.45,
+              }}
+            >
+              <div style={{ fontWeight: 800, color: chrome.text }}>Test & smoke artifacts ({grouped.archivedSmoke.length})</div>
+              <div style={{ marginTop: 6 }}>
+                Hidden for a cleaner desk. Nothing is deleted — turn off the checkbox above or click Show to review history.
+              </div>
+              <button
+                type="button"
+                onClick={() => setLuxHideArchivedSmoke(false)}
+                style={{
+                  marginTop: 10,
+                  ...chrome.refreshBtn(false),
+                }}
+              >
+                Show smoke / test artifacts
+              </button>
+            </div>
+          ) : (
+            <details
+              key="lux-q-smoke"
+              open={luxQueueTestsOpen}
+              onToggle={(e) => setLuxQueueTestsOpen(Boolean(e.target.open))}
+              style={{
+                marginTop: 8,
+                border: `1px dashed ${chrome.border}`,
+                borderRadius: 12,
+                padding: '8px 10px',
+                background: chrome.sand,
+              }}
+            >
+              <summary
+                style={{
+                  cursor: 'pointer',
+                  fontSize: 12,
+                  fontWeight: 800,
+                  color: chrome.textMuted,
+                  listStyle: 'none',
+                }}
+              >
+                Test & smoke artifacts ({grouped.archivedSmoke.length}) — collapsed by default; still selectable
+              </summary>
+              <div style={{ marginTop: 8, display: 'grid', gap: 8 }}>{mapRows(grouped.archivedSmoke, 'sm')}</div>
+            </details>
+          )
+        ) : null}
+      </div>
+    </>
   );
 }
 
@@ -938,8 +1147,20 @@ export default function ChangeConsolePage() {
     () => (luxLeadCrmEnabled ? buildLuxChangeConsoleChrome() : null),
     [luxLeadCrmEnabled],
   );
-  const luxQueueParts = useMemo(() => partitionLuxChangeQueueTickets(tickets), [tickets]);
+  const luxQueueGrouped = useMemo(() => groupLuxOperatorQueueTickets(tickets), [tickets]);
   const [luxQueueTestsOpen, setLuxQueueTestsOpen] = useState(false);
+  const [luxQueueInternalOpen, setLuxQueueInternalOpen] = useState(false);
+  const [luxHideArchivedSmoke, setLuxHideArchivedSmoke] = useState(true);
+
+  const selectedTicketIsArchivedSmoke = useMemo(() => {
+    if (!selectedTicketId) return false;
+    return luxQueueGrouped.archivedSmoke.some((t) => String(t.ticket_id || '') === String(selectedTicketId));
+  }, [luxQueueGrouped.archivedSmoke, selectedTicketId]);
+
+  useEffect(() => {
+    if (!luxChangeChrome || !selectedTicketId) return;
+    if (selectedTicketIsArchivedSmoke) setLuxHideArchivedSmoke(false);
+  }, [luxChangeChrome, selectedTicketId, selectedTicketIsArchivedSmoke]);
 
   const crmStageCounts = useMemo(() => {
     const base = Object.fromEntries(LUX_LEAD_CRM_STAGES.map((s) => [s, 0]));
@@ -1764,58 +1985,19 @@ export default function ChangeConsolePage() {
                     );
                   })
                 ) : (
-                  <>
-                    {luxQueueParts.primary.map((t) => {
-                      const id = String(t.ticket_id || '');
-                      return (
-                        <ChangeQueueTicketRow
-                          key={id || 'row'}
-                          t={t}
-                          selectedTicketId={selectedTicketId}
-                          onSelect={onSelectTicket}
-                          luxChrome={luxChangeChrome}
-                        />
-                      );
-                    })}
-                    {luxQueueParts.smoke.length ? (
-                      <details
-                        open={luxQueueTestsOpen}
-                        onToggle={(e) => setLuxQueueTestsOpen(Boolean(e.target.open))}
-                        style={{
-                          border: `1px dashed ${luxChangeChrome.border}`,
-                          borderRadius: 12,
-                          padding: '8px 10px',
-                          background: luxChangeChrome.sand,
-                        }}
-                      >
-                        <summary
-                          style={{
-                            cursor: 'pointer',
-                            fontSize: 12,
-                            fontWeight: 800,
-                            color: luxChangeChrome.textMuted,
-                            listStyle: 'none',
-                          }}
-                        >
-                          Test & smoke artifacts ({luxQueueParts.smoke.length}) — deprioritized; still selectable
-                        </summary>
-                        <div style={{ marginTop: 8, display: 'grid', gap: 8 }}>
-                          {luxQueueParts.smoke.map((t) => {
-                            const id = String(t.ticket_id || '');
-                            return (
-                              <ChangeQueueTicketRow
-                                key={id || 'smoke'}
-                                t={t}
-                                selectedTicketId={selectedTicketId}
-                                onSelect={onSelectTicket}
-                                luxChrome={luxChangeChrome}
-                              />
-                            );
-                          })}
-                        </div>
-                      </details>
-                    ) : null}
-                  </>
+                  <LuxOperatorQueueList
+                    chrome={luxChangeChrome}
+                    grouped={luxQueueGrouped}
+                    selectedTicketId={selectedTicketId}
+                    onSelectTicket={onSelectTicket}
+                    luxQueueTestsOpen={luxQueueTestsOpen}
+                    setLuxQueueTestsOpen={setLuxQueueTestsOpen}
+                    luxQueueInternalOpen={luxQueueInternalOpen}
+                    setLuxQueueInternalOpen={setLuxQueueInternalOpen}
+                    luxHideArchivedSmoke={luxHideArchivedSmoke}
+                    setLuxHideArchivedSmoke={setLuxHideArchivedSmoke}
+                    selectedTicketIsArchivedSmoke={selectedTicketIsArchivedSmoke}
+                  />
                 )}
               </div>
             ) : (
