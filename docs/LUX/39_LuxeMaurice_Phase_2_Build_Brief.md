@@ -97,7 +97,7 @@ Ship **one narrow vertical slice** that includes all of:
 
 **Operator UX (LuxeMaurice only):** On `lux.corpflowai.com`, `/change` uses the same **cream / gold / editorial** chrome as the public Lux site and `/properties/admin` (light cards, queue badges, collapsed technical JSON, grouped media library). Other tenants keep the existing dark operator shell.
 
-**Operator queue desk (Lux tenant session only):** Queue rows are **grouped** (not reordered in the database) into **Programme**, **Active client work**, **Property & media**, **CRM / leads**, **Uncategorized / internal** (blank or placeholder summaries — muted), and **Test & smoke artifacts** (Phase 4 / QA / attachment smoke heuristics). A **counts** line summarizes bucket sizes. **Hide archived smoke / test artifacts** defaults to **on** (cleaner desk); turning it off or using **Show** reveals the same tickets for audit — **nothing is deleted**. Master programme ticket **`cmo8mjijk0000jl04l1jz0v6d`** remains classified as **Programme** and stays visible when present in the queue. **Live Lux operator verification** of the cleaner layout is still the closure step for this UX slice.
+**Operator queue desk (Lux tenant session only):** Queue rows are **grouped** (not reordered in the database) into **Programme**, **Active client work**, **Property & media**, **CRM / leads**, **Uncategorized / internal** (blank or placeholder summaries — muted), and **Test & smoke artifacts** (Phase 4 / QA / attachment smoke heuristics). A **counts** line summarizes bucket sizes. **Hide archived smoke / test artifacts** defaults to **on** (cleaner desk); turning it off or using **Show** reveals the same tickets for audit — **nothing is deleted**. Master programme ticket **`cmo8mjijk0000jl04l1jz0v6d`** remains classified as **Programme** and stays visible when present in the queue. **Live Lux operator verification (COMPLETE, 2026-05-15):** on **`https://lux.corpflowai.com/change`** with a signed-in LuxeMaurice operator session, production deployment **`4696761118`** (PR **#194**, merge **`f1c15b25d5ccb3273681f016225f2e4d7647d68f`**) — confirmed **grouped queue**; **`cmo8mjijk0000jl04l1jz0v6d`** visible under Programme; **smoke/test artifacts hidden by default**; **hide toggle** and **Show** path work; **smoke ticket remains selectable** after reveal; **no ticket deletion** (UI-only grouping). Master programme ticket **remains open** in CMP (not closed on this verification).
 
 ### Preferred route
 
@@ -361,6 +361,30 @@ Delivery Reality Audit:
 - Lux operator session checks still required: confirm cream shell, programme card, smoke bucket, accordions, quick links, technical JSON opens, attachment actions unchanged.
 - Client-facing flow usable (Lux operator desk): PARTIAL until Lux session verification recorded
 - Final verdict: PARTIAL (merge + Production deployment on SHA above; **Lux-session UI verification pending**)
+```
+
+---
+
+## 13. Delivery Reality Audit — Lux `/change` queue desk cleanup (PR #194)
+
+**Scope:** Operator workspace grouping and “hide archived smoke” UX only — **no** CMP storage or workflow semantics changes; **`/change-v2` untouched**; master **`cmo8mjijk0000jl04l1jz0v6d` not closed** here.
+
+```text
+Delivery Reality Audit (queue desk cleanup):
+- Local fix exists: YES (shipped in PR #194)
+- Merged to main: YES (squash)
+- Production deployment ID (GitHub): 4696761118
+- Commit deployed (merge): f1c15b25d5ccb3273681f016225f2e4d7647d68f
+- Live URL tested: https://lux.corpflowai.com/change (signed-in LuxeMaurice tenant operator)
+- Confirmed:
+  - Grouped queue (Programme / Active / Property & media / CRM / Internal / Smoke sections)
+  - Programme ticket cmo8mjijk0000jl04l1jz0v6d visible
+  - Smoke/test artifacts hidden by default
+  - Hide toggle and Show affordance work
+  - Smoke ticket remains selectable (no data removal from queue API)
+  - No ticket deletion
+- Client-facing Lux operator desk (queue slice): YES
+- Final verdict: COMPLETE
 ```
 
 ---
