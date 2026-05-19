@@ -11,7 +11,7 @@ const styles = {
   shell: { maxWidth: 1120, margin: '0 auto', padding: '42px 20px 56px' },
   nav: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' },
   badge: { display: 'inline-flex', alignItems: 'center', gap: 8, border: '1px solid rgba(255,255,255,0.16)', borderRadius: 999, padding: '8px 12px', background: 'rgba(255,255,255,0.06)', color: '#c6d7ea', fontSize: 13 },
-  hero: { marginTop: 44, display: 'grid', gridTemplateColumns: 'minmax(0, 1.15fr) minmax(280px, 0.85fr)', gap: 24, alignItems: 'start' },
+  hero: { marginTop: 44, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24, alignItems: 'start' },
   h1: { margin: 0, fontSize: 'clamp(38px, 7vw, 76px)', lineHeight: 0.96, letterSpacing: '-0.055em', maxWidth: 790 },
   lead: { marginTop: 20, fontSize: 'clamp(17px, 2vw, 22px)', lineHeight: 1.55, color: '#c9d8e8', maxWidth: 760 },
   card: { border: '1px solid rgba(255,255,255,0.13)', borderRadius: 26, background: 'rgba(255,255,255,0.07)', boxShadow: '0 24px 80px rgba(0,0,0,0.28)', padding: 22, backdropFilter: 'blur(14px)' },
@@ -41,7 +41,7 @@ const regionCopy = {
     title: 'International businesses',
     price: 'from USD 150',
     subtitle: 'For businesses outside Mauritius that want the same 48-hour setup with international payment rails.',
-    payments: ['PayPal', 'Google Pay where available', 'Wise'],
+    payments: ['PayPal', 'Google Pay where available', 'Wise', 'USD pricing'],
     cta: 'Start international intake',
   },
 };
@@ -206,7 +206,7 @@ export default function AiLeadRescueLanding({ host = '' }) {
         </section>
 
         <footer style={{ marginTop: 36, color: '#9fb2c8', fontSize: 12, lineHeight: 1.6 }}>
-          AI Lead Rescue is powered by CorpFlowAI. Payment paths are separated for Mauritius and international clients. This page collects intake only; payment is handled through the appropriate route after review.
+          AI Lead Rescue is powered by CorpFlowAI. Payment paths are separated for Mauritius and international clients. This page collects intake only; payment is handled through the appropriate route after review. Results vary by business and lead volume; this is not legal, tax, or accounting advice.
         </footer>
       </main>
     </div>
