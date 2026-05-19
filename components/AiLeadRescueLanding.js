@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import Head from 'next/head';
 
+import PublicSiteFooter from './PublicSiteFooter.js';
+
 const styles = {
   page: {
     minHeight: '100vh',
@@ -251,9 +253,7 @@ export default function AiLeadRescueLanding({ host = '' }) {
           </div>
         </section>
 
-        <footer style={{ marginTop: 36, color: '#9fb2c8', fontSize: 12, lineHeight: 1.6 }}>
-          AI Lead Rescue is powered by CorpFlowAI. Payment paths are separated for Mauritius and international clients. This page collects intake only; payment is handled through the appropriate route after review. Results vary by business and lead volume; this is not legal, tax, or accounting advice.
-        </footer>
+        <PublicSiteFooter extra="AI Lead Rescue is powered by CorpFlowAI. Payment paths are separated for Mauritius and international clients. This page collects intake only; payment is handled through the appropriate route after review." />
       </main>
     </div>
   );
