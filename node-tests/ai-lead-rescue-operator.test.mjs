@@ -170,6 +170,31 @@ describe('ai-lead-rescue-operator', () => {
     );
   });
 
+  it('v1 setup checklist matches the canonical 13-item Cursor requirement in order', () => {
+    /* Source of truth: original Cursor requirement for Requirement 3 — 13 items, in order. */
+    assert.deepEqual(
+      AI_LEAD_RESCUE_SETUP_CHECKLIST_V1.map((i) => i.label),
+      [
+        'Intake reviewed',
+        'Payment / invoice confirmed',
+        'Lead source selected',
+        'Google Sheet created',
+        'Telegram destination confirmed',
+        'Test lead submitted',
+        'Alert received',
+        'Lead appears in sheet',
+        'Follow-up status board created',
+        'Daily summary configured',
+        'Client hand-over message sent',
+        '7-day monitoring started',
+        'Monthly monitoring offered',
+      ],
+    );
+    assert.equal(AI_LEAD_RESCUE_SETUP_CHECKLIST_V1.length, 13);
+    const keys = AI_LEAD_RESCUE_SETUP_CHECKLIST_V1.map((i) => i.key);
+    assert.equal(new Set(keys).size, keys.length, 'checklist keys must be unique');
+  });
+
   it('mergeAiLeadRescueChecklistItemPatch sets completed_at on done and clears on pending', () => {
     const now1 = '2026-05-20T08:00:00.000Z';
     const now2 = '2026-05-20T09:00:00.000Z';
@@ -177,35 +202,35 @@ describe('ai-lead-rescue-operator', () => {
 
     const r1 = mergeAiLeadRescueChecklistItemPatch(
       qj0,
-      { key: 'kickoff_call_held', state: 'done', note: 'Booked for Wed' },
+      { key: 'intake_reviewed', state: 'done', note: 'Reviewed and verified business + region' },
       'anton@corpflowai.com',
       now1,
     );
     assert.equal(r1.ok, true);
     const parsed1 = parseAiLeadRescueSetupChecklist(r1.qj);
-    const row1 = parsed1.items.find((i) => i.key === 'kickoff_call_held');
+    const row1 = parsed1.items.find((i) => i.key === 'intake_reviewed');
     assert.equal(row1.state, 'done');
     assert.equal(row1.completed_at, now1);
-    assert.equal(row1.note, 'Booked for Wed');
+    assert.equal(row1.note, 'Reviewed and verified business + region');
     assert.equal(row1.actor_label, 'anton@corpflowai.com');
     assert.equal(parsed1.completed_count, 1);
 
     /* Other items remain pending. */
     for (const it of parsed1.items) {
-      if (it.key !== 'kickoff_call_held') assert.equal(it.state, 'pending');
+      if (it.key !== 'intake_reviewed') assert.equal(it.state, 'pending');
     }
 
     const r2 = mergeAiLeadRescueChecklistItemPatch(
       r1.qj,
-      { key: 'kickoff_call_held', state: 'in_progress' },
+      { key: 'intake_reviewed', state: 'in_progress' },
       'anton@corpflowai.com',
       now2,
     );
     assert.equal(r2.ok, true);
-    const row2 = parseAiLeadRescueSetupChecklist(r2.qj).items.find((i) => i.key === 'kickoff_call_held');
+    const row2 = parseAiLeadRescueSetupChecklist(r2.qj).items.find((i) => i.key === 'intake_reviewed');
     assert.equal(row2.state, 'in_progress');
     assert.equal(row2.completed_at, null, 'completed_at cleared when state regresses');
-    assert.equal(row2.note, 'Booked for Wed', 'note preserved when patch omits note');
+    assert.equal(row2.note, 'Reviewed and verified business + region', 'note preserved when patch omits note');
   });
 
   it('mergeAiLeadRescueChecklistItemPatch rejects unknown key and unknown state', () => {
@@ -215,7 +240,7 @@ describe('ai-lead-rescue-operator', () => {
       { ok: false, error: 'INVALID_CHECKLIST_KEY' },
     );
     assert.deepEqual(
-      mergeAiLeadRescueChecklistItemPatch(qj0, { key: 'kickoff_call_held', state: 'wat' }, 'op', '2026-05-20T08:00:00.000Z'),
+      mergeAiLeadRescueChecklistItemPatch(qj0, { key: 'intake_reviewed', state: 'wat' }, 'op', '2026-05-20T08:00:00.000Z'),
       { ok: false, error: 'INVALID_CHECKLIST_STATE' },
     );
   });
