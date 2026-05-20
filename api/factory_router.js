@@ -70,6 +70,7 @@ import { handleLuxPropertyMediaList } from '../lib/server/lux-published-property
 import { tryHandleLuxListingsPublicRead } from '../lib/server/lux-listings-public.js';
 import { getChangeConsoleReadinessForTenant } from '../lib/server/change-console-readiness.js';
 import { growthPipelineHandler } from '../lib/server/growth-pipeline.js';
+import { adminLeadRescueHandler } from '../lib/server/admin-lead-rescue-api.js';
 import { recordTrustedAutomationEvent } from '../lib/automation/internal.js';
 import { emitLogicFailure } from '../lib/cmp/_lib/telemetry.js';
 import factoryCmpTicketSummariesHandler from '../lib/server/factory-cmp-ticket-summaries.js';
@@ -776,6 +777,10 @@ export default async function handler(req, res) {
 
   if (pathSeg === 'growth' || pathSeg.startsWith('growth/')) {
     return growthPipelineHandler(req, res, pathSeg);
+  }
+
+  if (pathSeg === 'factory/lead-rescue' || pathSeg.startsWith('factory/lead-rescue/')) {
+    return adminLeadRescueHandler(req, res, pathSeg);
   }
 
   if (pathSeg === 'factory/cmp/push') {
