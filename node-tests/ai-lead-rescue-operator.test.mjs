@@ -2,15 +2,23 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import {
+  AI_LEAD_RESCUE_CHECKLIST_ITEM_STATES,
   AI_LEAD_RESCUE_INTAKE_NOTIFICATION_EVENT,
   AI_LEAD_RESCUE_PRODUCT,
+  AI_LEAD_RESCUE_SETUP_CHECKLIST_V1,
+  AI_LEAD_RESCUE_SETUP_CHECKLIST_VERSION,
+  AI_LEAD_RESCUE_SETUP_ELIGIBLE_STATUSES,
   aiLeadRescueRegionPathLabel,
   buildAiLeadRescueIntakeNotification,
   defaultAiLeadRescueOperator,
   isAiLeadRescueLead,
+  isAiLeadRescueSetupStatus,
+  leadRowToAiLeadRescueDetail,
   leadRowToAiLeadRescueListItem,
+  mergeAiLeadRescueChecklistItemPatch,
   mergeAiLeadRescueOperatorPatch,
   normalizeAiLeadRescueStatus,
+  parseAiLeadRescueSetupChecklist,
   parseIntakeMeta,
 } from '../lib/cmp/_lib/ai-lead-rescue-operator.js';
 
@@ -124,6 +132,126 @@ describe('ai-lead-rescue-operator', () => {
     assert.match(text, new RegExp(`Submitted at: ${submittedAt.replace(/[.+]/g, '\\$&')}`));
     assert.match(text, /Admin detail link: https:\/\/corpflowai\.com\/admin\/lead-rescue\/lead_42/);
     assert.match(text, /Next action: Review and reply within 2 business hours\./);
+  });
+
+  it('isAiLeadRescueSetupStatus matches the 5 eligible statuses only', () => {
+    assert.deepEqual([...AI_LEAD_RESCUE_SETUP_ELIGIBLE_STATUSES], [
+      'PAID_SETUP',
+      'SETUP_IN_PROGRESS',
+      'LIVE_PILOT',
+      'MONITORING_OFFERED',
+      'MONTHLY_ACTIVE',
+    ]);
+    for (const s of AI_LEAD_RESCUE_SETUP_ELIGIBLE_STATUSES) {
+      assert.equal(isAiLeadRescueSetupStatus(s), true, `${s} should be eligible`);
+    }
+    for (const s of ['NEW_INTAKE', 'QUALIFYING', 'DEMO_OFFERED', 'DEMO_BOOKED', 'QUOTE_SENT', 'PAYMENT_PENDING', 'LOST', 'PAUSED']) {
+      assert.equal(isAiLeadRescueSetupStatus(s), false, `${s} should NOT be eligible`);
+    }
+    assert.equal(isAiLeadRescueSetupStatus(''), false);
+    assert.equal(isAiLeadRescueSetupStatus(null), false);
+  });
+
+  it('parseAiLeadRescueSetupChecklist returns v1 items with default pending state', () => {
+    const out = parseAiLeadRescueSetupChecklist({ ai_lead_rescue_operator: {} });
+    assert.equal(out.version, AI_LEAD_RESCUE_SETUP_CHECKLIST_VERSION);
+    assert.equal(out.total_count, AI_LEAD_RESCUE_SETUP_CHECKLIST_V1.length);
+    assert.equal(out.completed_count, 0);
+    assert.equal(out.all_done, false);
+    for (const item of out.items) {
+      assert.equal(item.state, 'pending');
+      assert.equal(item.completed_at, null);
+      assert.equal(item.note, null);
+      assert.ok(item.label, 'item label must be present');
+    }
+    assert.deepEqual(
+      out.items.map((i) => i.key),
+      AI_LEAD_RESCUE_SETUP_CHECKLIST_V1.map((i) => i.key),
+    );
+  });
+
+  it('mergeAiLeadRescueChecklistItemPatch sets completed_at on done and clears on pending', () => {
+    const now1 = '2026-05-20T08:00:00.000Z';
+    const now2 = '2026-05-20T09:00:00.000Z';
+    const qj0 = { intake_meta: { product: AI_LEAD_RESCUE_PRODUCT }, ai_lead_rescue_operator: defaultAiLeadRescueOperator(now1) };
+
+    const r1 = mergeAiLeadRescueChecklistItemPatch(
+      qj0,
+      { key: 'kickoff_call_held', state: 'done', note: 'Booked for Wed' },
+      'anton@corpflowai.com',
+      now1,
+    );
+    assert.equal(r1.ok, true);
+    const parsed1 = parseAiLeadRescueSetupChecklist(r1.qj);
+    const row1 = parsed1.items.find((i) => i.key === 'kickoff_call_held');
+    assert.equal(row1.state, 'done');
+    assert.equal(row1.completed_at, now1);
+    assert.equal(row1.note, 'Booked for Wed');
+    assert.equal(row1.actor_label, 'anton@corpflowai.com');
+    assert.equal(parsed1.completed_count, 1);
+
+    /* Other items remain pending. */
+    for (const it of parsed1.items) {
+      if (it.key !== 'kickoff_call_held') assert.equal(it.state, 'pending');
+    }
+
+    const r2 = mergeAiLeadRescueChecklistItemPatch(
+      r1.qj,
+      { key: 'kickoff_call_held', state: 'in_progress' },
+      'anton@corpflowai.com',
+      now2,
+    );
+    assert.equal(r2.ok, true);
+    const row2 = parseAiLeadRescueSetupChecklist(r2.qj).items.find((i) => i.key === 'kickoff_call_held');
+    assert.equal(row2.state, 'in_progress');
+    assert.equal(row2.completed_at, null, 'completed_at cleared when state regresses');
+    assert.equal(row2.note, 'Booked for Wed', 'note preserved when patch omits note');
+  });
+
+  it('mergeAiLeadRescueChecklistItemPatch rejects unknown key and unknown state', () => {
+    const qj0 = { intake_meta: { product: AI_LEAD_RESCUE_PRODUCT } };
+    assert.deepEqual(
+      mergeAiLeadRescueChecklistItemPatch(qj0, { key: 'not-a-real-key', state: 'done' }, 'op', '2026-05-20T08:00:00.000Z'),
+      { ok: false, error: 'INVALID_CHECKLIST_KEY' },
+    );
+    assert.deepEqual(
+      mergeAiLeadRescueChecklistItemPatch(qj0, { key: 'kickoff_call_held', state: 'wat' }, 'op', '2026-05-20T08:00:00.000Z'),
+      { ok: false, error: 'INVALID_CHECKLIST_STATE' },
+    );
+  });
+
+  it('checklist item states cover pending/in_progress/done/skipped', () => {
+    assert.deepEqual([...AI_LEAD_RESCUE_CHECKLIST_ITEM_STATES], [
+      'pending',
+      'in_progress',
+      'done',
+      'skipped',
+    ]);
+  });
+
+  it('leadRowToAiLeadRescueDetail flags setup_checklist_eligible from status', () => {
+    const now = '2026-05-20T08:00:00.000Z';
+    const baseRow = {
+      id: 'lead_x',
+      tenantId: 'corpflowai',
+      name: 'Jane',
+      email: 'jane@acme.test',
+      phone: '',
+      contact: null,
+      message: '',
+      intent: '',
+      qualificationJson: { intake_meta: { product: AI_LEAD_RESCUE_PRODUCT } },
+      createdAt: new Date(now),
+      updatedAt: new Date(now),
+    };
+    const eligible = leadRowToAiLeadRescueDetail({ ...baseRow, status: 'PAID_SETUP' });
+    assert.equal(eligible.setup_checklist_eligible, true);
+    assert.equal(eligible.setup_checklist.total_count, AI_LEAD_RESCUE_SETUP_CHECKLIST_V1.length);
+
+    const notYet = leadRowToAiLeadRescueDetail({ ...baseRow, status: 'QUALIFYING' });
+    assert.equal(notYet.setup_checklist_eligible, false);
+    /* Checklist still parsed (UI just hides until eligible), so operators can pre-check progress in tests. */
+    assert.equal(notYet.setup_checklist.total_count, AI_LEAD_RESCUE_SETUP_CHECKLIST_V1.length);
   });
 
   it('falls back to relative admin path and "not provided" when fields missing', () => {
