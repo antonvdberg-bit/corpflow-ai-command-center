@@ -14,6 +14,7 @@ import { verifyTenantPreviewToken } from '../lib/server/tenant-preview-token.js'
 import { isGhostHost } from '../lib/server/ghost-host.js';
 import { listVisualAssetManifests } from '../lib/visualAssets/loadManifest.js';
 import { selectHomepageAssets } from '../lib/visualAssets/selectHomepageAssets.js';
+import { selectLeadRescueAssets } from '../lib/visualAssets/selectLeadRescueAssets.js';
 
 /**
  * Minimal tenant marketing site renderer (v1).
@@ -367,9 +368,9 @@ function TenantSite({ site }) {
 
 const AI_LEAD_RESCUE_HOST = 'aileadrescue.corpflowai.com';
 
-export default function Home({ mode, site, host, homepageAssets }) {
+export default function Home({ mode, site, host, homepageAssets, leadRescueAssets }) {
   if (mode === 'ai_lead_rescue') {
-    return <AiLeadRescueLanding host={host || AI_LEAD_RESCUE_HOST} />;
+    return <AiLeadRescueLanding host={host || AI_LEAD_RESCUE_HOST} leadRescueAssets={leadRescueAssets || null} />;
   }
   if (mode === 'tenant_site' && site?.client_ui?.lux_acquisition === true) {
     return <LuxeMauriceTenantPresentation site={site} />;
@@ -409,13 +410,39 @@ function buildHomepageAssetsSafe() {
   }
 }
 
+/**
+ * Same defensive shape as `buildHomepageAssetsSafe` but for the AI
+ * Lead Rescue surface, used when the request resolves to the
+ * `aileadrescue.corpflowai.com` host. The `/lead-rescue` path under
+ * the apex host has its own SSG entry in `pages/lead-rescue.js`.
+ */
+function buildLeadRescueAssetsSafe() {
+  try {
+    const pool = listVisualAssetManifests('lead-rescue').concat(listVisualAssetManifests('shared'));
+    const seen = new Set();
+    const deduped = [];
+    for (const m of pool) {
+      if (!m || typeof m.id !== 'string') continue;
+      if (seen.has(m.id)) continue;
+      seen.add(m.id);
+      deduped.push(m);
+    }
+    return selectLeadRescueAssets(deduped);
+  } catch (err) {
+    try {
+      console.warn('[ai-lead-rescue] asset selection failed; rendering without manifests', err && err.message ? err.message : err);
+    } catch {}
+    return null;
+  }
+}
+
 export async function getServerSideProps({ req }) {
   const host = normalizeHost(req);
   if (host && isGhostHost(host)) {
     return { redirect: { destination: '/log-stream.html', permanent: false } };
   }
   if (host === AI_LEAD_RESCUE_HOST) {
-    return { props: { mode: 'ai_lead_rescue', site: null, host: AI_LEAD_RESCUE_HOST } };
+    return { props: { mode: 'ai_lead_rescue', site: null, host: AI_LEAD_RESCUE_HOST, leadRescueAssets: buildLeadRescueAssetsSafe() } };
   }
   const prisma = new PrismaClient();
   try {
