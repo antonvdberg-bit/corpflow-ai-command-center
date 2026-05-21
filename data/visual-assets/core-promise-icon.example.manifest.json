@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0.0",
+  "id": "core-promise-icon-visible-work",
+  "surface": "core",
+  "kind": "icon",
+  "title": "CORE promise icon — visible work",
+  "description": "Single-stroke SVG icon representing 'make business work visible'. Used in CORE landing and shared cards across surfaces.",
+  "source": {
+    "type": "cdn",
+    "url": "https://cdn.corpflowai.com/marketing/core/icons/visible-work.svg",
+    "content_hash": "sha256:placeholder2222222222222222222222222222222222222222222222222222"
+  },
+  "licence": {
+    "tier": "corpflow_owned",
+    "owner": "CorpFlowAI",
+    "terms": "Original CorpFlowAI mark. Free to reuse across CorpFlowAI surfaces; do not redistribute as stock."
+  },
+  "accessibility": {
+    "alt": "Single-stroke icon of an eye over a checklist representing visible business work",
+    "lang": "en",
+    "decorative": false
+  },
+  "usage": {
+    "allowed_surfaces": ["core", "shared", "lead-rescue", "concierge"],
+    "primary_cta": "See how it works",
+    "notes": "Pairs with the CorpFlowAI core promise: 'Make business work visible, trackable, and easier to act on.'"
+  },
+  "lifecycle": {
+    "state": "published",
+    "created_at": "2026-04-22",
+    "reviewed_at": "2026-05-10"
+  }
+}
