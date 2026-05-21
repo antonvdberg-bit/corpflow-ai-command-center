@@ -1,5 +1,5 @@
 /**
- * One-shot encoder for the CorpFlowAI homepage production visuals.
+ * One-shot encoder for governed CorpFlowAI marketing visuals.
  *
  * Source PNGs are produced ad-hoc by the image-generation tooling and
  * stored outside the repo. This script:
@@ -13,11 +13,16 @@
  * It is idempotent — re-running it overwrites the same output files
  * with the same bytes (modulo encoder non-determinism).
  *
+ * The TARGETS table below lists every governed raster asset and its
+ * responsive widths. Add new entries here when introducing a new
+ * raster asset for any surface (homepage, lead-rescue, lux, …) so
+ * encoding stays reproducible.
+ *
  * Run:
  *   node scripts/encode-homepage-visuals.mjs --input <dir>
  *
  * `sharp` is already installed transitively via `next`; we don't add
- * it to package.json explicitly because the homepage assets are
+ * it to package.json explicitly because the marketing rasters are
  * encoded once and committed as binaries — no build-time encoding.
  */
 
@@ -74,6 +79,20 @@ const TARGETS = {
       // Open-graph cards are typically rendered at 1200x630; we keep
       // a single optimized output at that exact spec, plus a smaller
       // in-page fallback for device-pixel scaling control.
+      { width: 1200, suffix: '', quality: 82 },
+    ],
+  },
+  'lead-rescue-hero.png': {
+    outputBase: 'lead-rescue-hero',
+    sizes: [
+      { width: 1920, suffix: '-1920', quality: 80 },
+      { width: 1280, suffix: '-1280', quality: 80 },
+      { width: 768, suffix: '-768', quality: 78 },
+    ],
+  },
+  'lead-rescue-social.png': {
+    outputBase: 'lead-rescue-social',
+    sizes: [
       { width: 1200, suffix: '', quality: 82 },
     ],
   },

@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lead-rescue-hero",
+  "surface": "lead-rescue",
+  "kind": "image",
+  "title": "AI Lead Rescue homepage hero",
+  "description": "Above-the-fold hero on the AI Lead Rescue landing surface (https://corpflowai.com/lead-rescue and aileadrescue.corpflowai.com). Premium architectural editorial photograph: a tidy desk corner with a leather portfolio, ceramic mug, brushed-brass bookend with paper folders, and a fountain pen on a notebook. Communicates calm operational competence; no people, no electronics, no text.",
+  "source": {
+    "type": "repo",
+    "path": "/assets/visuals/lead-rescue-hero-1920.webp",
+    "content_hash": "sha256:4d4f56f347106c57110bee39001e948dc13f51eeda6bd0b5d9b0f076b71e75ef",
+    "width": 1920,
+    "height": 1280
+  },
+  "licence": {
+    "tier": "ai_generated",
+    "owner": "CorpFlowAI",
+    "terms": "Generated under the CorpFlowAI vetted prompt library (see CORPFLOW_PROMPT_LIBRARY.md, prompt_id: lead-rescue-hero-photography). Reviewed against BRAND_AND_CONVERSION_DOCTRINE.md. No third-party IP used. Free to use across CorpFlowAI marketing surfaces."
+  },
+  "accessibility": {
+    "alt": "A calm sunlit desk corner with a closed leather portfolio, a ceramic mug with rising steam, a brushed-brass bookend holding three paper folders, and a fountain pen on a notebook against a deep navy wall and a warm cream linen panel.",
+    "lang": "en",
+    "decorative": false
+  },
+  "usage": {
+    "allowed_surfaces": ["lead-rescue", "shared"],
+    "primary_cta": "Start my 48-hour setup",
+    "notes": "slot:lead_rescue_hero. Above-the-fold; renderer should use eager loading. Responsive WebP set: /assets/visuals/lead-rescue-hero-{1920,1280,768}.webp."
+  },
+  "lifecycle": {
+    "state": "vetted",
+    "created_at": "2026-05-21",
+    "reviewed_at": "2026-05-21",
+    "review_due": "2026-11-21"
+  },
+  "prompt_provenance": {
+    "prompt_id": "lead-rescue-hero-photography",
+    "model": "openai/gpt-image-1",
+    "model_version": "2026-04",
+    "generated_at": "2026-05-21T05:39:00.000Z",
+    "seed": "lr-hero-2026-05-v1",
+    "reviewed_by": "anton@corpflowai.com",
+    "notes": "First production hero for AI Lead Rescue. Reviewed against BRAND_AND_CONVERSION_DOCTRINE.md — calm, premium, operational, real, no AI tropes. Same visual system as the homepage hero (deep navy + warm cream + walnut + brushed brass)."
+  }
+}
