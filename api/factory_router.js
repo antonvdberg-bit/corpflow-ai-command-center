@@ -12,7 +12,8 @@ import technicalLeadCronHandler, {
   handleTechnicalLeadAuditsList,
   handleTechnicalLeadFactoryMaster,
 } from '../lib/server/technical-lead-cron.js';
-import { buildProductionPulseV1Report } from '../scripts/production-pulse.mjs';
+// Lazy-loaded inside `handleProductionPulseRuntime` via dynamic import() so this CJS-transpiled
+// API route never `require()`s the .mjs ESM file (Vercel may split the function bundle).
 import cmpMonitorCronHandler from '../lib/server/cmp-monitor-cron.js';
 import cmpHandler from '../lib/cmp/router.js';
 import feedbackHandler from '../lib/server/feedback.js';
@@ -408,7 +409,7 @@ async function handleFactoryHealth(req, res) {
     password_reset_delivery_configured: password_reset_ok,
     password_reset_hint: password_reset_ok
       ? 'Tenant forgot-password can deliver via webhook and/or Resend when user exists.'
-      : 'Set CORPFLOW_PASSWORD_RESET_WEBHOOK_URL (n8n → email) and/or CORPFLOW_PASSWORD_RESET_RESEND_API_KEY + CORPFLOW_PASSWORD_RESET_FROM_EMAIL, or use debug token only in non-prod.',
+      : 'Set N8N_EMAIL_WEBHOOK_URL (+ N8N_EMAIL_WEBHOOK_SECRET, EMAIL_FROM) for n8n Gmail delivery, or CORPFLOW_PASSWORD_RESET_RESEND_API_KEY + CORPFLOW_PASSWORD_RESET_FROM_EMAIL for Resend. Legacy CORPFLOW_PASSWORD_RESET_WEBHOOK_URL still works.',
     factory_browser_admin_configured: factoryAdminWebLoginConfigured,
     tenancy_boundary: {
       core_hosts_configured: coreHostCount > 0,
@@ -437,7 +438,8 @@ async function handleProductionPulseRuntime(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
   try {
-    const body = await buildProductionPulseV1Report(prisma);
+    const mod = await import('../scripts/production-pulse.mjs');
+    const body = await mod.buildProductionPulseV1Report(prisma);
     const ok = Boolean(body && typeof body === 'object' && body.ok === true);
     return res.status(ok ? 200 : 503).json(body);
   } catch (e) {
