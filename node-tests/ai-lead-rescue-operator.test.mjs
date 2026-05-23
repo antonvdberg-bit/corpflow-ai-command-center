@@ -1,0 +1,145 @@
+import assert from 'node:assert/strict';
+import { describe, it } from 'node:test';
+
+import {
+  AI_LEAD_RESCUE_INTAKE_NOTIFICATION_EVENT,
+  AI_LEAD_RESCUE_PRODUCT,
+  aiLeadRescueRegionPathLabel,
+  buildAiLeadRescueIntakeNotification,
+  defaultAiLeadRescueOperator,
+  isAiLeadRescueLead,
+  leadRowToAiLeadRescueListItem,
+  mergeAiLeadRescueOperatorPatch,
+  normalizeAiLeadRescueStatus,
+  parseIntakeMeta,
+} from '../lib/cmp/_lib/ai-lead-rescue-operator.js';
+
+describe('ai-lead-rescue-operator', () => {
+  it('normalizes status values', () => {
+    assert.equal(normalizeAiLeadRescueStatus('new_intake'), 'NEW_INTAKE');
+    assert.equal(normalizeAiLeadRescueStatus('INVALID'), null);
+  });
+
+  it('detects product from intake_meta', () => {
+    const qj = { intake_meta: { product: AI_LEAD_RESCUE_PRODUCT } };
+    assert.equal(isAiLeadRescueLead(qj), true);
+    assert.equal(parseIntakeMeta(qj).product, AI_LEAD_RESCUE_PRODUCT);
+  });
+
+  it('does not classify other products as AI Lead Rescue (no notification trigger)', () => {
+    /* tenant-intake.js emits corpflow.lead_rescue.intake_received only when isAiLeadRescueLead === true */
+    assert.equal(isAiLeadRescueLead({ intake_meta: { product: 'concierge' } }), false);
+    assert.equal(isAiLeadRescueLead({ intake_meta: {} }), false);
+    assert.equal(isAiLeadRescueLead({}), false);
+    assert.equal(isAiLeadRescueLead(null), false);
+    assert.equal(isAiLeadRescueLead(undefined), false);
+  });
+
+  it('merges operator patch and list projection', () => {
+    const now = '2026-05-19T12:00:00.000Z';
+    const qj = {
+      intake_meta: {
+        product: AI_LEAD_RESCUE_PRODUCT,
+        business_name: 'Acme Co',
+        region_path: 'mauritius',
+      },
+      ai_lead_rescue_operator: defaultAiLeadRescueOperator(now),
+    };
+    const merged = mergeAiLeadRescueOperatorPatch(
+      qj,
+      { status: undefined, owner: 'anton', setup_price: 6900, currency: 'MUR' },
+      'anton@corpflowai.com',
+      now,
+    );
+    const row = {
+      id: 'lead_1',
+      tenantId: 'corpflowai',
+      name: 'Jane',
+      email: 'jane@acme.test',
+      phone: '+230123',
+      contact: null,
+      message: 'Need faster follow-up',
+      intent: 'Need faster follow-up',
+      status: 'QUALIFYING',
+      qualificationJson: merged,
+      createdAt: new Date(now),
+      updatedAt: new Date(now),
+    };
+    const item = leadRowToAiLeadRescueListItem(row);
+    assert.equal(item.business_name, 'Acme Co');
+    assert.equal(item.owner, 'anton');
+    assert.equal(item.setup_price, 6900);
+    assert.equal(item.currency, 'MUR');
+    assert.equal(item.detail_path, '/admin/lead-rescue/lead_1');
+  });
+
+  it('uses notification event name corpflow.lead_rescue.intake_received', () => {
+    assert.equal(AI_LEAD_RESCUE_INTAKE_NOTIFICATION_EVENT, 'corpflow.lead_rescue.intake_received');
+  });
+
+  it('labels region path for operator notification', () => {
+    assert.equal(aiLeadRescueRegionPathLabel('mauritius'), 'Mauritius');
+    assert.equal(aiLeadRescueRegionPathLabel('international'), 'International');
+    assert.equal(aiLeadRescueRegionPathLabel(''), 'Not selected');
+    assert.equal(aiLeadRescueRegionPathLabel('not_selected'), 'Not selected');
+  });
+
+  it('builds operator notification payload with required fields and formatted text', () => {
+    const submittedAt = '2026-05-20T08:00:00.000Z';
+    const out = buildAiLeadRescueIntakeNotification({
+      leadId: 'lead_42',
+      tenantId: 'corpflowai',
+      submittedAt,
+      prospect: {
+        business_name: 'Acme Mauritius',
+        contact_name: 'Jane Doe',
+        email: 'jane@acme.test',
+        phone: '+230 555 1234',
+        region_path: 'mauritius',
+        lead_sources: 'Website, WhatsApp',
+        preferred_payment_path: 'SMB Mauritius / local invoice / MUR pricing',
+        source_host: 'corpflowai.com',
+      },
+      publicBaseUrl: 'https://corpflowai.com',
+    });
+
+    assert.equal(out.product, AI_LEAD_RESCUE_PRODUCT);
+    assert.equal(out.lead_id, 'lead_42');
+    assert.equal(out.tenant_id, 'corpflowai');
+    assert.equal(out.submitted_at, submittedAt);
+    assert.equal(out.admin_detail_path, '/admin/lead-rescue/lead_42');
+    assert.equal(out.admin_detail_url, 'https://corpflowai.com/admin/lead-rescue/lead_42');
+    assert.equal(out.next_action, 'Review and reply within 2 business hours.');
+    assert.equal(out.prospect.region_label, 'Mauritius');
+
+    const text = out.notification_text;
+    assert.match(text, /^New AI Lead Rescue intake$/m);
+    assert.match(text, /Business: Acme Mauritius/);
+    assert.match(text, /Contact: Jane Doe/);
+    assert.match(text, /Email: jane@acme\.test/);
+    assert.match(text, /Phone \/ WhatsApp: \+230 555 1234/);
+    assert.match(text, /Region: Mauritius/);
+    assert.match(text, /Lead sources: Website, WhatsApp/);
+    assert.match(text, /Preferred payment path: SMB Mauritius/);
+    assert.match(text, new RegExp(`Submitted at: ${submittedAt.replace(/[.+]/g, '\\$&')}`));
+    assert.match(text, /Admin detail link: https:\/\/corpflowai\.com\/admin\/lead-rescue\/lead_42/);
+    assert.match(text, /Next action: Review and reply within 2 business hours\./);
+  });
+
+  it('falls back to relative admin path and "not provided" when fields missing', () => {
+    const out = buildAiLeadRescueIntakeNotification({
+      leadId: 'lead_99',
+      tenantId: null,
+      submittedAt: new Date('2026-05-20T08:00:00.000Z'),
+      prospect: {
+        email: 'only@example.test',
+      },
+    });
+    assert.equal(out.admin_detail_url, '/admin/lead-rescue/lead_99');
+    assert.match(out.notification_text, /Business: \(not provided\)/);
+    assert.match(out.notification_text, /Contact: \(not provided\)/);
+    assert.match(out.notification_text, /Phone \/ WhatsApp: \(not provided\)/);
+    assert.match(out.notification_text, /Preferred payment path: \(not selected\)/);
+    assert.match(out.notification_text, /Region: Not selected/);
+  });
+});
