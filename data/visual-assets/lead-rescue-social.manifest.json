@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lead-rescue-social",
+  "surface": "lead-rescue",
+  "kind": "social_card",
+  "title": "AI Lead Rescue social card",
+  "description": "Open-graph / Twitter / LinkedIn share card for the AI Lead Rescue surface (https://corpflowai.com/lead-rescue and aileadrescue.corpflowai.com). Premium architectural editorial photograph: a tidy desk corner with a leather portfolio, a small ceramic mug, and a brushed-brass document tray holding three paper folders against a deep navy wall.",
+  "source": {
+    "type": "repo",
+    "path": "/assets/visuals/lead-rescue-social.webp",
+    "content_hash": "sha256:59cc70dc8960e5bfa78102edcae370d46a9f17ba3b2f8b6def2b84352a8d6be2",
+    "width": 1200,
+    "height": 800
+  },
+  "licence": {
+    "tier": "ai_generated",
+    "owner": "CorpFlowAI",
+    "terms": "Generated under the CorpFlowAI vetted prompt library (see CORPFLOW_PROMPT_LIBRARY.md, prompt_id: lead-rescue-social-card-architectural). Reviewed against BRAND_AND_CONVERSION_DOCTRINE.md. No third-party IP used. Free to use across CorpFlowAI marketing surfaces."
+  },
+  "accessibility": {
+    "alt": "A calm modern desk corner: a polished dark-walnut surface with a closed leather portfolio, a small ceramic mug, and a brushed-brass document tray holding three paper folders against a deep navy wall in soft afternoon light.",
+    "lang": "en",
+    "decorative": false
+  },
+  "usage": {
+    "allowed_surfaces": ["lead-rescue", "shared"],
+    "notes": "slot:lead_rescue_social_card. Used as og:image and twitter:image for the AI Lead Rescue page. Source is 1200×800 (the generator's native ratio); social platforms typically letterbox to 1200×630 — image composition keeps the subject clear of the OG safe-area edges."
+  },
+  "lifecycle": {
+    "state": "vetted",
+    "created_at": "2026-05-21",
+    "reviewed_at": "2026-05-21",
+    "review_due": "2026-11-21"
+  },
+  "prompt_provenance": {
+    "prompt_id": "lead-rescue-social-card-architectural",
+    "model": "openai/gpt-image-1",
+    "model_version": "2026-04",
+    "generated_at": "2026-05-21T05:40:00.000Z",
+    "seed": "lr-social-2026-05-v1",
+    "reviewed_by": "anton@corpflowai.com",
+    "notes": "Reviewed against BRAND_AND_CONVERSION_DOCTRINE.md — calm, restrained, premium, no AI tropes, no text/logos/people. Replaces the legacy 'lead-rescue-social-card' flat-illustration prompt for the production page."
+  }
+}

@@ -176,6 +176,79 @@ elements, NO over-saturated colors, NO stock-photo composition.
 [Append global brand constraints]
 ```
 
+### `lead-rescue-hero-photography`
+
+- **Use case:** Hero photograph anchoring the AI Lead Rescue landing page (`https://corpflowai.com/lead-rescue` and the `aileadrescue.corpflowai.com` host). Communicates calm operational competence — "your work is captured, your follow-ups are visible". Distinct from the homepage hero by composition (close desk corner instead of room interior) but shares the same restrained palette.
+- **Surface:** `lead-rescue` (also usable on `shared`).
+- **Kind:** `image` (raster, encoded to optimized WebP at 1920/1280/768 widths for responsive serving).
+- **Lifecycle:** `vetted`.
+- **Reviewer:** anton@corpflowai.com.
+
+Prompt:
+
+```
+Premium architectural editorial photograph for an enterprise B2B website
+hero. Wide cinematic 16:10 composition, photorealistic, magazine-quality.
+Subject: a calm, sunlit office desk corner from a slight overhead angle,
+conveying operational order and quiet competence. On a polished dark-walnut
+desk surface: a single closed leather portfolio neatly aligned, a small
+ceramic mug with one wisp of steam rising, a brushed-brass bookend holding
+three slim paper file folders stacked vertically with crisp neutral edges,
+and a fountain pen resting on a thin notebook with a closed cover. Soft
+late-afternoon daylight enters from off-frame on the right, casting long
+gentle shadows across the desk surface. Background out of focus: a deep
+navy painted wall on the upper left, a tall warm-cream linen-textured panel
+on the upper right, with a slim brushed-brass vertical reveal between them.
+Restrained palette: deep navy, warm cream, dark walnut, brushed brass, soft
+daylight white. Atmosphere: calm, controlled, operationally reassuring,
+premium, grounded, human.
+
+Strict constraints: NO people, NO faces, NO hands, NO electronics, NO
+laptops, NO phones, NO screens, NO monitors, NO text, NO letters, NO
+numbers, NO words, NO logos, NO signage, NO brand marks, NO charts, NO
+graphs, NO icons, NO arrows, NO neon, NO glow, NO holograms, NO robots,
+NO machinery, NO sci-fi, NO futuristic elements, NO over-saturated colors,
+NO stock-photo composition, NO chrome surfaces, NO gradient overlays.
+Architectural Digest / Wallpaper magazine aesthetic — restrained,
+structured, premium, real, operationally human.
+
+[Append global brand constraints]
+```
+
+### `lead-rescue-social-card-architectural`
+
+- **Use case:** Open-graph / Twitter / LinkedIn share card for `https://corpflowai.com/lead-rescue` and `aileadrescue.corpflowai.com`. Premium architectural treatment matching the homepage social card aesthetic. Replaces the earlier flat-illustration `lead-rescue-social-card` for the production page (the flat illustration prompt remains in this library for surfaces that prefer that treatment).
+- **Surface:** `lead-rescue` (also usable on `shared`).
+- **Kind:** `social_card` (1200 × 630, encoded to optimized WebP).
+- **Lifecycle:** `vetted`.
+- **Reviewer:** anton@corpflowai.com.
+
+Prompt:
+
+```
+Open-graph social-share card, 1200 × 630, ultra-wide horizontal composition.
+Premium architectural editorial photograph for an enterprise B2B brand. Calm
+overhead-angle photograph of a tidy modern desk corner: a polished
+dark-walnut surface fills the lower two-thirds, a small brushed-brass
+document tray on the right holding three crisp slim paper folders aligned
+vertically, a single closed leather portfolio centered, a small ceramic mug
+to the left empty and quiet. Soft directional warm afternoon side-light
+from off-frame on the right casts long gentle shadows across the desk
+surface. Background visible only as a deep navy painted wall in the upper
+third. Restrained palette: deep navy, dark walnut, brushed brass, warm
+cream, soft daylight white. Atmosphere of operational calm, controlled
+order, quiet competence.
+
+Strict constraints: NO people, NO faces, NO hands, NO electronics, NO
+laptops, NO phones, NO screens, NO monitors, NO televisions, NO text, NO
+letters, NO numbers, NO words, NO logos, NO signage, NO charts, NO graphs,
+NO arrows, NO icons, NO neon, NO glow, NO holograms, NO robots, NO sci-fi,
+NO futuristic elements, NO over-saturated colors, NO stock-photo
+composition, NO chrome surfaces. Architectural Digest editorial aesthetic.
+
+[Append global brand constraints]
+```
+
 ### `concierge-handoff-illustration`
 
 - **Use case:** Quiet supporting illustration for `/concierge` explaining "talk to a human → we set it up".
