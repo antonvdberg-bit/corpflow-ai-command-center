@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lead-rescue-social-card-hero",
+  "surface": "lead-rescue",
+  "kind": "social_card",
+  "title": "AI Lead Rescue — open-graph card",
+  "description": "Open-graph / share card used when /lead-rescue is shared in Telegram, WhatsApp, LinkedIn.",
+  "source": {
+    "type": "ai_generated",
+    "url": "https://cdn.corpflowai.com/marketing/lead-rescue/og-hero-v3.png",
+    "content_hash": "sha256:placeholder1111111111111111111111111111111111111111111111111111",
+    "width": 1200,
+    "height": 630
+  },
+  "licence": {
+    "tier": "ai_generated",
+    "owner": "CorpFlowAI",
+    "terms": "Generated under the CorpFlowAI vetted prompt library; no third-party IP used. Free to use across CorpFlowAI marketing surfaces."
+  },
+  "accessibility": {
+    "alt": "Simple flat illustration of a notepad, a phone alert, and a checklist, captioned 'AI Lead Rescue — every lead, captured'.",
+    "lang": "en",
+    "decorative": false
+  },
+  "usage": {
+    "allowed_surfaces": ["lead-rescue", "shared"],
+    "primary_cta": "Get my pilot quote",
+    "notes": "Used as og:image and twitter:image for /lead-rescue. Avoid implying revenue guarantees per BRAND_AND_CONVERSION_DOCTRINE.md."
+  },
+  "lifecycle": {
+    "state": "vetted",
+    "created_at": "2026-05-18",
+    "reviewed_at": "2026-05-19"
+  },
+  "prompt_provenance": {
+    "prompt_id": "lead-rescue-social-card",
+    "model": "openai/gpt-image-1",
+    "model_version": "2026-04",
+    "generated_at": "2026-05-18T10:14:00.000Z",
+    "seed": "lr-card-2026-05-v3",
+    "reviewed_by": "anton@corpflowai.com",
+    "notes": "Third generation pass. Earlier passes were rejected for over-glossy visuals that contradicted the doctrine."
+  }
+}
