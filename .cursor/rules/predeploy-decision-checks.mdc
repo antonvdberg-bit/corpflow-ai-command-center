@@ -73,3 +73,17 @@ Use the **Delivery Reality Audit** block in **delivery-reality.mdc** for written
 - Vercel → **Deployments** → Production → confirm **Ready** and **commit**; **Functions** / build output if 5xx persists.
 - GitHub → **Deployments** or `gh api repos/.../deployments` to correlate **Production** with **SHA**.
 
+## Lux `/change` UI / layout work — mandatory preview-smoke loop
+
+For any change touching `pages/change.js`, the `/change` layout helpers in `lib/cmp/_lib/change-*`, or any Lux-only render block on `lux.corpflowai.com/change`, the **preview smoke loop is part of the standard delivery process** — not optional and not replaceable by static code inspection.
+
+Per **`docs/runbooks/CHANGE_CONSOLE_INSPECTION.md`** § 7:
+
+1. **Deploy preview** — push the branch; ensure the Vercel preview deployment for the head commit is `READY` (redeploy if it errored on a transient build issue).
+2. **Run smoke against preview** — `npm run smoke:change-overflow` with `LUX_SMOKE_BASE_URL=<preview *.vercel.app URL>` and `VERCEL_AUTOMATION_BYPASS_SECRET` set. Required result: both master and short tickets show `overflow=0px`, `widerCount=0`.
+3. **Verify artifacts** — inspect the screenshots and JSON in `.smoke-screenshots/`; confirm the master ticket fits the 1440px viewport with no horizontal scroll. Use `?layoutDebug=1` on the preview when offender paths are non-obvious.
+4. **Merge only after smoke passes** — never merge a Lux `/change` UI/layout PR with a failing or unrun preview smoke; agents and operators must record the preview smoke result in the PR before merge.
+5. **Run smoke again against Production** — after Vercel Production deploys the merge commit, re-run with `LUX_SMOKE_BASE_URL=https://lux.corpflowai.com` (no bypass needed). Record production deployment ID + commit + smoke result in the **Delivery Reality Audit** before flipping the verdict to `COMPLETE`. A green preview smoke alone is **PARTIAL**, not COMPLETE.
+
+If preview smoke or production smoke fails, fix the offenders (apply `changeFlexMainChildStyle()`, `changeTextContainStyle()`, `minmax(0, …)` grid tracks, `minWidth: 0` on grid items per `lib/cmp/_lib/change-console-layout.js`) and re-run from step 1. Do **not** declare the change COMPLETE until step 5 passes on `lux.corpflowai.com`.
+
