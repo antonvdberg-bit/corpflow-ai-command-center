@@ -344,7 +344,7 @@ This is the **live queue** of approved or pending packets for autonomous executi
 - **Verification evidence:** PR URL, audit report, evidence artifacts under `artifacts/migration-audits/`.
 - **Rollback plan:** revert PR.
 - **Owner:** Approver = Anton; Executor = Cursor; Reviewer = Anton.
-- **Status:** PENDING.
+- **Status:** COMPLETE — audit shipped at `artifacts/migration-audits/2026-05-24-luxe-maurice/migration-audit.md` (PR opening). Verdict PARTIAL on tenant state (driven by §C SEO gap and §D analytics/SC absence) — every floor URL still serves 200 and login + password reset are operational. 7 candidate fix packets named in §F; top three: Lux SEO fix PR (est. 44→70/100\*), `CORPFLOW_FACTORY_HEALTH_URL` secret fix, Search Console verification.
 
 ---
 
