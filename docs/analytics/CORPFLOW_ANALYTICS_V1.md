@@ -1,7 +1,11 @@
 # CorpFlow Analytics v1 — Plausible (canonical)
 
-**Status:** Canonical (v1, 2026-05-25)
-**Architectural decision:** `docs/decisions/20260525-plausible-analytics-v1.md`
+**Status:** Canonical (v1, 2026-05-25; refined 2026-05-26 with the internal-vs-client-facing boundary).
+**Architectural decisions:**
+
+- `docs/decisions/20260525-plausible-analytics-v1.md` — Plausible vs alternatives (provider choice).
+- `docs/decisions/20260526-plausible-internal-vs-client-facing-boundary.md` — host/path scope (umbrella site, apex paths internal, subdomains client-facing, tenant domains off-platform).
+
 **Owner:** Anton (operator) for accounts/sites/secrets; Cursor for adapter + audit reports.
 **Companion docs (read first; this doc does not restate them):**
 
@@ -9,32 +13,49 @@
 - `docs/execution/ANALYTICS_SEARCH_CONSOLE_INDEXING_CHECKLIST.md` — per-surface checklist.
 - `docs/operations/SEARCH_CONSOLE_INDEXING_ROLLOUT.md` — Search Console operator playbook (independent of analytics).
 - `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md` — buyer-intent CTA discipline that drives event names.
-- `docs/compliance/DATA_MAP_AND_SUBPROCESSORS.md` — must list Plausible before any runtime install.
+- `docs/compliance/DATA_MAP_AND_SUBPROCESSORS.md` — Plausible Insights row (already added).
 
 ---
 
 ## 1. Decision summary (one screen)
 
 - **Provider:** Plausible Insights.
-- **Sites in scope:** `corpflowai.com` (apex), `lux.corpflowai.com` (Lux marketing), future tenant marketing subdomains.
-- **Sites NOT in scope:** `core.corpflowai.com`, any factory route, `/change`, `/admin`, `/login`, `/master`, `/lux-editor`, `/lux-guide`, `/sovereign-intake`, `/api/*`, password-reset routes, any authenticated tenant-private surface.
+- **One umbrella Plausible site** for all CorpFlow-owned client-facing marketing surfaces (script: `pa-atDLaFbloSL8__2jS9sxi.js`).
+- **Sites in scope (umbrella v1):** `corpflowai.com` (apex marketing root + `/about` + `/standards` + future public apex pages), `aileadrescue.corpflowai.com` (Lead Rescue marketing). Future CorpFlow client-facing subdomains join the same umbrella site.
+- **Sites NOT in scope:**
+  - `core.corpflowai.com` — factory; never measured.
+  - All `<tenant>.corpflowai.com` (`lux.corpflowai.com`, `luxe.corpflowai.com`, future tenants) — these are CorpFlow-internal staging/working surfaces for tenants editing their published sites; **never measured**.
+  - Apex paths that house **internal product working surfaces** (today: `/lead-rescue`, `/concierge`, `/properties`, `/property`); future internal paths added to `APEX_DENY_PATH_PREFIXES` in `lib/analytics/config.js`.
+  - Operator/admin routes: `/change`, `/admin`, `/login`, `/master`, `/lux-editor`, `/lux-guide`, `/sovereign-intake`, `/core-lux-migration-repair`, `/api/*`, `/_next/*`.
+  - Password-reset and token-bearing URLs: anything with `?token=`, `?reset=`, `?ticket=`, or substring `reset-password` / `forgot-password`.
+- **Tenant client-facing marketing on tenants' own real domains** (e.g. `luxemaurice.com`): the tenant runs **their own** Plausible registration on their own domain. CorpFlow's umbrella site does not track them; CorpFlow code does not embed their snippets.
 - **GA4:** **not added in v1.** A future tenant-scoped exception is allowed via a separate ADR.
 - **Hard gates (`docs/execution/CORPFLOW_AUTONOMOUS_ACTIONS_POLICY.md` §3):** Plausible-account creation, DNS records (custom subdomain proxy), runtime snippet install — all Anton-approved.
+- **Kill switch:** `NEXT_PUBLIC_PLAUSIBLE_ENABLED` (Vercel env). Defaults OFF. Flip on once Plausible-side apex registration is verified and `aileadrescue.corpflowai.com` is in the Plausible site's "Domains" list.
 - **Privacy posture:** no cookies, no fingerprint, no PII in event props. EU/UK/CH visitors do **not** see a consent banner because Plausible's collection is non-personal.
 
 ---
 
-## 2. Tenant-aware analytics — what it means here
+## 2. Stakeholder grouping — internal vs client-facing vs tenant-owned
 
-CorpFlow runs **multiple marketing surfaces on different hostnames**, each owned by a different stakeholder (apex = CorpFlow itself; `lux.corpflowai.com` = Lux client; future tenants = future clients). The analytics layer must reflect that:
+**Refined 2026-05-26** by `docs/decisions/20260526-plausible-internal-vs-client-facing-boundary.md`. CorpFlow runs marketing across three categories of surfaces, and the analytics layer treats them very differently:
+
+| Surface type | Examples | Plausible? | Why |
+|---|---|---|---|
+| **Internal product working surfaces** (apex paths) | `corpflowai.com/lead-rescue`, future `/concierge`, `/properties`, `/property/*` | **Never** | Operators iterate on the product set here before exposing to clients. Tracking would create noise from operator clicks and pollute buyer-funnel attribution. |
+| **CorpFlow client-facing marketing** (apex root + dedicated subdomains) | `corpflowai.com/`, `corpflowai.com/about`, `corpflowai.com/standards`, `aileadrescue.corpflowai.com`, future `<product>.corpflowai.com` | **Yes — umbrella Plausible site** | One dashboard, filterable by hostname (apex vs lead_rescue) and path. Lets CorpFlow read its whole portfolio in one place. |
+| **Tenant working surfaces** (tenant subdomains under CorpFlow) | `lux.corpflowai.com`, `luxe.corpflowai.com`, future `<tenant>.corpflowai.com` | **Never** | These are *CorpFlow-internal* preview/edit surfaces where tenants update their published sites. Not buyer-facing. |
+| **Tenant client-facing marketing** (tenants' own real domains) | `luxemaurice.com`, future tenant domains | **Tenant runs their own.** Out of CorpFlow's umbrella site and out of CorpFlow code. | Stakeholder isolation by registration boundary. Each tenant's data stays with the tenant. |
+
+### Concrete properties of the umbrella
 
 | Concern | Approach |
 |---|---|
-| **Site separation** | One Plausible "site" per public hostname. Apex traffic ≠ Lux traffic ≠ future-tenant traffic. Operator dashboards are independent. |
-| **Event-name namespacing** | All custom events are prefixed by surface (`apex.*` / `lux.*`) so a single internal report can group by tenant if ever federated. |
-| **Cross-tenant data leakage** | Forbidden by design. The adapter never sends a tenant's identifier off-domain in event props (e.g. no `tenant_id` field, no ticket IDs). The Plausible site = the host = the only tenant scope that ever leaves our origin. |
-| **Internal/private surfaces** | Adapter early-returns on configured deny-paths (factory routes, `/change`, `/admin`, etc.). Even loading the snippet there would create a false event count. |
-| **Dev / preview deployments** | `NEXT_PUBLIC_PLAUSIBLE_ENABLED=false` (or unset) on Preview environments and `localhost`. Production-only snippet attach. |
+| **Site identity** | One Plausible site (umbrella). All in-scope hostnames are added to that site's "Site Settings → Domains" in the Plausible dashboard. Switching from "one site per host" to umbrella is the 2026-05-26 refinement; per-tenant isolation is achieved by tenants' own off-platform Plausible registrations on their own domains, not by per-host site IDs in CorpFlow's account. |
+| **Event-name namespacing** | All custom events carry a `marketing_surface` prop (`apex` \| `lead_rescue` \| future labels) so the dashboard can group by surface even when filtering by hostname is not enough. |
+| **Cross-tenant data leakage** | The adapter never sends `tenant_id`, ticket IDs, email addresses, or any free-text input as an event prop. Plausible Auto auto-tracks pageviews; custom events strip forbidden keys (§3.4) before send. |
+| **Internal/private surfaces** | Single deny-list in `lib/analytics/config.js` decides for the whole app — operator routes, internal apex paths, tenant subdomains. The script never loads on a denied surface. |
+| **Dev / preview deployments** | `NEXT_PUBLIC_PLAUSIBLE_ENABLED=false` (or unset) for Preview. `*.vercel.app` and `localhost` are also deny-listed in code so a misconfigured env never leaks Preview traffic into production analytics. |
 
 ---
 
@@ -52,30 +73,47 @@ Every event is **(a) named by buyer intent**, **(b) tied to a specific page or c
 | Contact Click | `apex.contact.click` | Click of any `mailto:` / `tel:` link in apex marketing | `link_kind` (`email` \| `phone`) | the actual email/phone literal |
 | Lead Rescue Form Submit | `apex.lead-rescue.form-submit` | Successful POST to the apex lead-rescue intake | `form_variant` (if A/B), `currency` (if pricing path) | `name`, `email`, `phone`, free-text fields |
 
-### 3.2 Lux (`lux.corpflowai.com`)
+### 3.2 Lead Rescue (`aileadrescue.corpflowai.com`)
+
+> Reference table for the next event-wiring packet. v1 ships pageviews only; custom events land in a follow-up PR alongside the click handlers in `components/AiLeadRescueLanding.js`.
 
 | Plausible goal name (display) | Internal event name | Trigger | Props (allowed) | Props (forbidden) |
 |---|---|---|---|---|
-| Page view | (provider default) | Plausible auto | `path`, `referrer` | tenant-data fields, `console_*` |
-| Concierge CTA Click | `lux.concierge.cta-click` | Click of the "Private concierge" / "Private enquiry" CTA | `placement` (`hero` / `card-row` / `footer`) | none |
-| Property Detail View | `lux.property.detail-view` | A visit to `/property/<slug>` (Plausible can also auto-handle this as a custom path goal) | `property_slug` (slug only — already in URL) | property price, owner, internal notes |
-| Property Enquiry Click | `lux.property.enquiry-click` | Click of "Request details" / "Private enquiry" on a property card | `property_slug`, `placement` | property price, contact info |
-| WhatsApp Click | `lux.whatsapp.click` | Click of any `wa.me/…` link in Lux marketing (when added) | `placement` | the WhatsApp number literal |
-| Client Login Visit | `lux.client-login.visit` | Page-view of the client-login destination on the Lux host (count only — **no event props**) | none | none |
+| Page view | (provider default) | Plausible auto | `path`, `referrer` | full URL with token query, any PII |
+| Lead Rescue CTA Click | `lead_rescue.cta-click` | Click of any of the buyer-intent CTAs in `components/AiLeadRescueLanding.js` | `cta_label` (canonical name from doctrine), `placement` (`hero` / `pricing` / `footer`), `marketing_surface: 'lead_rescue'` | the visible localised text, `email`, `name`, `phone` |
+| Lead Rescue Form Submit | `lead_rescue.form-submit` | Successful POST to the Lead Rescue intake | `form_variant` (if A/B), `currency` (if pricing path), `marketing_surface: 'lead_rescue'` | `name`, `email`, `phone`, free-text fields |
+| Pricing Path Click | `lead_rescue.pricing-path-click` | Click of a pricing-path card (`stripe` / `eft` / etc.) | `path_kind`, `marketing_surface: 'lead_rescue'` | none |
 
-### 3.3 What never gets an event (not just forbidden, but **must not load the script**)
+### 3.3 Tenant client-facing marketing — out of scope
+
+For tenants who publish their own marketing on their own real domains (e.g. `luxemaurice.com` for Lux), the tenant runs **their own** Plausible registration. CorpFlow does not define an event taxonomy for those — the tenant decides their own goals, sender stakeholder, and access. CorpFlow's umbrella never receives that data.
+
+Earlier drafts of this doc carried a `lux.*` event taxonomy targeted at `lux.corpflowai.com`. That was replaced on 2026-05-26 because `lux.corpflowai.com` is a CorpFlow-internal working/staging surface, not Lux's public marketing. The reference table below survives as a pattern for whatever future tenant taxonomy is needed (on the tenant's own domain, owned by the tenant) — not as in-scope work for CorpFlow's umbrella.
+
+| Plausible goal name (display, reference) | Internal event name | Trigger | Props (allowed) | Props (forbidden) |
+|---|---|---|---|---|
+| Page view | (provider default) | Plausible auto | `path`, `referrer` | tenant-data fields, `console_*` |
+| Concierge CTA Click | `<tenant>.concierge.cta-click` | Click of "Private concierge" / "Private enquiry" CTA | `placement` (`hero` / `card-row` / `footer`) | none |
+| Property Detail View | `<tenant>.property.detail-view` | Visit to `/property/<slug>` | `property_slug` | property price, owner, internal notes |
+| Property Enquiry Click | `<tenant>.property.enquiry-click` | Click of "Request details" / "Private enquiry" on a property card | `property_slug`, `placement` | property price, contact info |
+| WhatsApp Click | `<tenant>.whatsapp.click` | Click of any `wa.me/…` link | `placement` | the WhatsApp number literal |
+
+### 3.4 What never gets an event (not just forbidden, but **must not load the script**)
 
 - `core.corpflowai.com` (factory).
+- All `<tenant>.corpflowai.com` (Lux, future tenant working surfaces).
+- `*.vercel.app` (Preview deployments) and `localhost` (dev).
 - `/change` and any sub-route (operator console).
 - `/admin/*`.
-- `/login`, `/master`, `/lux-editor`, `/lux-guide`, `/sovereign-intake`.
-- `/api/*` (these are JSON; analytics is for HTML pages only).
-- Password-reset URLs (any path containing `reset-password`, `reset-token`, `forgot-password`).
+- `/login`, `/master`, `/lux-editor`, `/lux-guide`, `/sovereign-intake`, `/core-lux-migration-repair`.
+- `/api/*`, `/_next/*` (these are JSON / framework internals; analytics is for HTML pages only).
+- Password-reset URLs (any path containing `reset-password`, `forgot-password`).
 - Any URL whose query string contains a one-time token (`?token=`, `?reset=`, `?ticket=…`).
+- On the apex specifically: `/lead-rescue`, `/concierge`, `/properties`, `/property/*` (internal product working space — see ADR `20260526-plausible-internal-vs-client-facing-boundary.md`).
 
-The adapter's deny-path matcher is the single source of truth — see §5.
+The adapter's deny-list (`lib/analytics/config.js`) is the single source of truth — see §5.
 
-### 3.4 Forbidden prop values (no matter the event)
+### 3.5 Forbidden prop values (no matter the event)
 
 - Email addresses, phone numbers, names, free-text input.
 - Tenant identifiers (`tenant_id`), ticket identifiers, lead IDs.
@@ -123,28 +161,38 @@ export function getProvider() { /* returns 'plausible' | 'null' based on env */ 
 
 `lib/analytics/providers/` is the only place Plausible-specific code lives. To add Fathom or self-hosted Umami later, drop a new file in that folder, register it in `getProvider()`, switch `NEXT_PUBLIC_ANALYTICS_PROVIDER`. All event call sites stay identical. This is what makes the provider decision in `docs/decisions/20260525-plausible-analytics-v1.md` reversible.
 
-### 4.4 Tenant/domain awareness
+### 4.4 Host config (umbrella site model)
 
-`lib/analytics/config.js` exports a host → site-config map:
+`lib/analytics/config.js` exports the canonical lists:
 
 ```js
-export const SITE_CONFIG = Object.freeze({
-  'corpflowai.com':       { siteId: 'corpflowai.com',       enabled_when: 'production' },
-  'lux.corpflowai.com':   { siteId: 'lux.corpflowai.com',   enabled_when: 'production' },
-  // future tenants append here
-  'core.corpflowai.com':  { siteId: null,                   enabled_when: 'never' },
-  // Preview / development hosts: not listed → null provider.
+// Umbrella site — these load the Plausible Auto snippet (subject to path deny-list)
+export const ALLOW_HOSTS = Object.freeze([
+  'corpflowai.com',
+  'aileadrescue.corpflowai.com',
+]);
+
+// Marketing-surface label attached to custom events from each host
+export const MARKETING_SURFACE_BY_HOST = Object.freeze({
+  'corpflowai.com': 'apex',
+  'aileadrescue.corpflowai.com': 'lead_rescue',
 });
 ```
 
-The Plausible "site ID" matches the hostname by convention, which keeps operator setup trivial (one Plausible site per host).
+Adding a new CorpFlow client-facing host is two lines: append to `ALLOW_HOSTS`, append to `MARKETING_SURFACE_BY_HOST`. Then add the same hostname to the umbrella Plausible site's "Site Settings → Domains" in the Plausible dashboard so events count.
 
-### 4.5 Snippet load strategy
+Tenant client-facing domains (`luxemaurice.com`, etc.) are **not added here** — they're outside CorpFlow's umbrella. See §2.
 
-- **Where:** `pages/_app.js`, after `<Head>`, via `next/script` with `strategy="afterInteractive"`. Never inlined; never blocking.
-- **When:** only when `isAnalyticsEnabledForPath(host, router.pathname)` returns `true` AND `process.env.NEXT_PUBLIC_PLAUSIBLE_ENABLED === 'true'`.
-- **Where the script comes from:** `NEXT_PUBLIC_PLAUSIBLE_SRC` (typically `https://plausible.io/js/script.js` or a custom-domain proxy when Anton sets one up). Custom-domain proxy is recommended for ad-blocker resilience but is itself a DNS gate.
-- **Domain attribute:** `data-domain={NEXT_PUBLIC_PLAUSIBLE_DOMAIN || hostname}`. Falls back to `window.location.hostname` if the env is unset, so a misconfigured domain does not collapse to "all hosts share a site".
+### 4.5 Snippet load strategy (Plausible Auto)
+
+- **Where:** `pages/_app.js`, conditionally rendered after `<Head>`. The mount uses `next/script` with `strategy="afterInteractive"`. Never inlined; never blocking.
+- **When:** only when **all** of these are true:
+  1. `process.env.NEXT_PUBLIC_PLAUSIBLE_ENABLED === 'true'` (kill switch on),
+  2. `host` is in `ALLOW_HOSTS` (resolved client-side from `window.location.hostname`),
+  3. `path` is not in any deny-list (`DENY_PATH_PREFIXES`, `APEX_DENY_PATH_PREFIXES` if apex, `DENY_PATH_SUBSTRINGS`, `DENY_QUERY_KEYS`).
+- **Plausible Auto, not the older `script.js`:** the umbrella site uses Plausible's bundled-config script (`pa-<hash>.js`). The script identity is encoded in the URL — there is **no `data-domain` attribute** for Plausible Auto. The `NEXT_PUBLIC_PLAUSIBLE_SRC` env var lets operators swap to a custom-subdomain proxy without code change; default is `components/analytics/PlausibleScript.js#DEFAULT_PLAUSIBLE_AUTO_SRC`.
+- **Two `<Script>` tags:** the loader (`pa-<hash>.js`) and the init shim that attaches `window.plausible` so callers can fire custom events. Both `afterInteractive`.
+- **SSR safety:** the conditional mount only renders client-side (host comes from `window.location.hostname` after hydration). The SSR HTML never contains the script tags — so a misconfigured Vercel build never leaks the snippet into a denied environment.
 - **No analytics on private routes by default:** even with the env on, the deny-list in `config.js` early-returns. The deny-list is shipped in code, not env, so it cannot drift.
 
 ### 4.6 Suggested env placeholders
@@ -189,25 +237,36 @@ The adapter is `lib/analytics/`. It must **not** be imported from any module und
 *reset-password*              (substring — covers /forgot-password, /reset-password, etc.)
 ```
 
-### 5.2 Deny-hosts
+### 5.2 Deny-paths on apex specifically (in addition to 5.1)
+
+```
+/lead-rescue                  (and any sub-paths — internal product working space)
+/concierge                    (tenant-context route, not apex public marketing)
+/properties                   (tenant-context)
+/property                     (and any sub-paths — tenant-context)
+```
+
+These are denied **only** on the apex hostname. The same paths on `aileadrescue.corpflowai.com` (if any ever exist) are not apex-denied — host gating still applies, so they fall through to the standard checks.
+
+### 5.3 Deny-hosts
 
 ```
 core.corpflowai.com           (factory; never marketing)
+lux.corpflowai.com            (tenant working surface — see §2)
+luxe.corpflowai.com           (alias of Lux; same posture)
+<tenant>.corpflowai.com       (any tenant working surface — denied by absence from ALLOW_HOSTS)
 localhost                     (dev)
 *.vercel.app                  (preview deployments)
 ```
 
-### 5.3 Allow-paths default
-
-`/` and any path **not** matched by 5.1, when host is in 5.2's allow set. This is the **whitelist-by-default-on-public-marketing-host** posture.
+The host check is positive: `ALLOW_HOSTS.includes(host)` must be true; everything else is denied by default. The exact deny-list above is defensive (catches obvious dev/preview hosts even if someone adds them to ALLOW_HOSTS by mistake).
 
 ### 5.4 Allow-hosts
 
 ```
-corpflowai.com
-lux.corpflowai.com
-luxe.corpflowai.com           (alias of Lux; same site ID)
-<future-tenant>.corpflowai.com (added per migration packet)
+corpflowai.com                (apex marketing root + /about, /standards, future public apex pages)
+aileadrescue.corpflowai.com   (Lead Rescue marketing)
+<future-product>.corpflowai.com (added per graduation: ADR 20260526)
 ```
 
 ---
@@ -228,13 +287,11 @@ If any gate is open, this doc is the source of truth for **what work is ready to
 
 ## 7. Rollout order
 
-Per `docs/operations/ANALYTICS_SEARCH_CONSOLE_ROLLOUT_PLAN.md`, deliberately apex-first:
+Per `docs/operations/ANALYTICS_SEARCH_CONSOLE_ROLLOUT_PLAN.md`, refined 2026-05-26 to the umbrella model:
 
-1. **Apex** (`corpflowai.com`) — Plausible site created → `DATA_MAP_AND_SUBPROCESSORS.md` updated → runtime PR with the §4 adapter + apex-only enable → smoke-test in Plausible dashboard within an hour of deploy → first-week evidence captured under `artifacts/audits/<date>-apex-analytics-rollout/`.
-2. **Lux** (`lux.corpflowai.com`) — only after apex is COMPLETE. Same recipe with Lux site ID. Conversion goals from §3.2 configured before snippet flips on. Per-tenant migration audit (`docs/execution/CURRENT_CLIENT_MIGRATION_AUDIT_TEMPLATE.md` Section D) is updated to PASS.
-3. **Future tenants** — per migration packet. The adapter does not change; only `lib/analytics/config.js` adds the new host row.
-
-The order is not negotiable: shipping Lux before apex would mean the apex (CorpFlow's own marketing surface, where every other surface links) has no measurement.
+1. **Umbrella site v1** (`corpflowai.com` apex + `aileadrescue.corpflowai.com`) — Plausible umbrella site registered (already done) → `DATA_MAP_AND_SUBPROCESSORS.md` updated (in this PR) → runtime adapter PR with the §4 design + kill-switch off (this PR) → Anton verifies Plausible-side apex registration AND adds `aileadrescue.corpflowai.com` to the umbrella site's Site Settings → Domains → Anton flips `NEXT_PUBLIC_PLAUSIBLE_ENABLED=true` in Vercel → smoke-test in Plausible dashboard within an hour → first-week evidence captured under `artifacts/audits/<date>-umbrella-analytics-rollout/`.
+2. **Future CorpFlow product subdomains** — graduate from `corpflowai.com/<path>` (internal, denied) to `<product>.corpflowai.com` (client-facing, allowed). Two-line code diff (`ALLOW_HOSTS` + `MARKETING_SURFACE_BY_HOST`) plus one Plausible UI click (add to umbrella site's Domains).
+3. **Tenant client-facing analytics on tenants' own domains** — out of CorpFlow's umbrella. Tenant runs their own Plausible registration on their own domain; CorpFlow does not embed it. If a tenant later wants CorpFlow to operate analytics on their behalf, that's a separate paid engagement and a future ADR.
 
 ---
 
@@ -261,18 +318,21 @@ The adapter in §4 is the reason this is one-PR work, not a re-write.
 
 ---
 
-## 10. Status (2026-05-25)
+## 10. Status (2026-05-26)
 
 | Stage | State | Owner |
 |---|---|---|
-| Decision recorded | ✅ `docs/decisions/20260525-plausible-analytics-v1.md` | done |
-| Canonical doc (this file) | ✅ this PR | done |
-| Plausible site for apex created | ⏳ Anton | gated |
-| Plausible site for Lux created | ⏳ Anton (after apex) | gated |
-| `DATA_MAP_AND_SUBPROCESSORS.md` updated | ⏳ separate small PR before runtime | Cursor (next packet) |
-| Runtime adapter PR (apex) | ⏳ awaits Anton's go-ahead per §6 gate 4 | Cursor |
-| Runtime enablement (apex env flip) | ⏳ awaits adapter merge | Anton |
-| Runtime adapter PR (Lux) | ⏳ awaits apex COMPLETE | Cursor |
-| Runtime enablement (Lux env flip) | ⏳ | Anton |
+| Provider decision recorded | ✅ `docs/decisions/20260525-plausible-analytics-v1.md` | done |
+| Internal-vs-client-facing boundary recorded | ✅ `docs/decisions/20260526-plausible-internal-vs-client-facing-boundary.md` | done |
+| Canonical doc (this file) | ✅ revised 2026-05-26 (umbrella model) | done |
+| Plausible umbrella site registered | ✅ Anton (apex registration verification still in progress on Plausible side) | done |
+| `aileadrescue.corpflowai.com` added to umbrella site Domains | ⏳ Anton (after apex verification completes) | gated |
+| `DATA_MAP_AND_SUBPROCESSORS.md` Plausible row | ✅ this PR | done |
+| `lib/analytics/` adapter + `<PlausibleScript />` mount | ✅ this PR | done |
+| `node-tests/analytics-policy.test.mjs` | ✅ this PR | done |
+| Kill-switch env `NEXT_PUBLIC_PLAUSIBLE_ENABLED` (default OFF) | ✅ this PR (placeholder in `.env.template`) | done |
+| Runtime enablement (Vercel env flip) | ⏳ awaits adapter merge + Plausible-side verification | Anton |
+| Custom event wiring (Lead Rescue CTAs etc.) | ⏳ separate follow-up packet | Cursor |
+| Future CorpFlow product subdomain graduation | ⏳ per product | per packet |
 
 When a row flips, update this section in the same PR as the change.
