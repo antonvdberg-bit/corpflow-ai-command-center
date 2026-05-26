@@ -73,10 +73,14 @@ If Git says **`ambiguous argument 'main'`**, a tracked path named **`main`** may
 | Security review triggers | `docs/operations/SECURITY_REVIEW_CHECKLIST.md` |
 | Incident / rotation stub | `docs/runbooks/SECURITY_OR_INCIDENT.md` |
 | Brain vs hands / automation | `docs/EXECUTION_BRAIN_VS_HANDS.md`, `docs/automation-framework.md` |
+| **Monitoring & 24/7 execution architecture (single component map — read first when adding any monitor, scheduled job, or alert path)** | **`docs/operations/MONITORING_ARCHITECTURE.md`** |
 | n8n forward | `docs/n8n/automation-forward-recipe.md` |
 | CMP API surface | `lib/cmp/README.md` |
 | Vercel / cron / Technical Lead / Bugbot | `docs/VERCEL_DEPLOYMENT.md` |
 | Factory control loop (off-laptop drift monitor) | `docs/operations/FACTORY_CONTROL_LOOP.md` |
+| **Monitoring & 24/7 execution architecture (canonical component map — § 3 surface table, § 4 health-vs-connectivity, § 5 `corpflow-exec-01` non-goals, § 6 named future packets, § 7 open items)** | **`docs/operations/MONITORING_ARCHITECTURE.md`** |
+| Delivery verdict + 24/7 alerts (CMP per-ticket) | `docs/operations/DELIVERY_VERDICT_AND_ALERTS.md` |
+| Production pulse runtime endpoint (DB reachability JSON) | `docs/operations/PRODUCTION_PULSE_V1.md` |
 | Analytics / Search Console / indexing — operational rollout plan (apex → Lux → future tenants) | `docs/operations/ANALYTICS_SEARCH_CONSOLE_ROLLOUT_PLAN.md` |
 | **Analytics v1 (Plausible) — canonical doc + adapter design** | **`docs/analytics/CORPFLOW_ANALYTICS_V1.md`** |
 | **Search Console + indexing operator playbook** | **`docs/operations/SEARCH_CONSOLE_INDEXING_ROLLOUT.md`** |

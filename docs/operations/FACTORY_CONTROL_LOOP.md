@@ -2,6 +2,10 @@
 
 Source of truth for the daily drift check that used to depend on Anton's laptop running `npm run control:loop`. Implementation: **`.github/workflows/factory-control-loop.yml`** (canonical).
 
+> **Where this fits.** Row 3 (`factory-control-loop.yml`) in the **monitoring & 24/7 execution architecture** component map — see **`docs/operations/MONITORING_ARCHITECTURE.md`** § 3 for the surface table, § 4 for why a green `/api/factory/health` alone is not a DB-connectivity proof, and § 5 for the relationship to the `corpflow-exec-01` execution node.
+
+> **Where this fits in the wider monitoring picture:** `docs/operations/MONITORING_ARCHITECTURE.md` is the **single component map** for everything that monitors the factory deployment (this loop, Production Pulse, Vercel in-app crons, alert paths, the new `corpflow-exec-01` execution node). Read that doc first if you need the bird's-eye view; this doc stays the canonical detail for the loop itself.
+
 ## Purpose
 
 Detect drift between four control points without operator action:
@@ -82,6 +86,7 @@ CI: GitHub → Actions → *Factory control loop* → Run workflow.
 
 ## See also
 
+- **`docs/operations/MONITORING_ARCHITECTURE.md`** — single component map for monitoring + 24/7 execution (parent of this doc).
 - `scripts/factory-control-loop.mjs` — core check; CI-safe, exits 0/1 on health verdict.
 - `scripts/post-control-loop-telegram-alert.mjs` — alert helper.
 - `node-tests/post-control-loop-telegram-alert.test.mjs` — unit tests.

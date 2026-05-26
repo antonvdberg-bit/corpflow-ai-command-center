@@ -1,5 +1,7 @@
 # Delivery verdict + 24/7 alerts (CMP)
 
+> **Where this fits.** Row 6 (`/api/cron/cmp-monitor`) in the **monitoring & 24/7 execution architecture** component map — see **`docs/operations/MONITORING_ARCHITECTURE.md`** § 3 for the surface table (this monitor's alert path is shared Telegram + n8n `corpflow.ops_alert.v1`, classified as `operator_escalation` per Comms v1) and § 8 for the change-discipline that applies when adding new alert paths. This doc remains the canonical source for the per-ticket delivery-verdict rules below.
+
 ## What this does
 
 When a ticket is in **Approved / Build**, the factory continuously computes a **delivery verdict** and persists it on the ticket (`cmp_tickets.console_json.client_view.delivery_verdict`) so **`/change`** can show progress without GitHub/Vercel tabs.
