@@ -547,7 +547,7 @@ This is the **live queue** of approved or pending packets for autonomous executi
 
 First runtime packet derived from the Lux quality audit's top-10 fix list (fix #2). Shipped as a separate PR on top of `main` (independent of #237 / #238 — touches different files so no merge conflict).
 
-#### Packet `lux-concierge-seo-head` (RUNTIME COMPLETE in PR; awaiting Vercel Production verification)
+#### Packet `lux-concierge-seo-head` (COMPLETE — live-verified in production 2026-05-27)
 
 - **Branch:** `feat/lux-concierge-seo-head` (off `main`).
 - **PR title:** `feat(seo): add Lux concierge SEO metadata`.
@@ -565,7 +565,23 @@ First runtime packet derived from the Lux quality audit's top-10 fix list (fix #
   - [ ] `https://corpflowai.com/concierge` (apex) returns 200 with the same metadata BUT canonical pointing back to `https://lux.corpflowai.com/concierge` (intentional — Lux brand owns the page).
   - [ ] `https://corpflowai.com/` (apex marketing) unaffected — still serves CorpFlowAI public home.
   - [ ] `https://lux.corpflowai.com/` (Lux static landing rewrite) unaffected.
-- **Verdict:** RUNTIME COMPLETE in repo (tests + helper + page edit + docs all landed); pending Vercel Production deploy + live verification per `delivery-reality.mdc`. Treat as PARTIAL until the live-verification checklist above is signed off.
+- **Verdict (live-verified 2026-05-27):** **COMPLETE.** Merged via squash commit `eacb8d3fb2` ([PR #239](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/239)), deployed by Vercel Production deployment **`4831280707`** (commit `eacb8d3fb2`, status `success` at `2026-05-27T07:09:44Z`, alias `https://corpflow-ai-command-center-dr419cc1q-corpflowai.vercel.app`), and live-probed from `corpflow-exec-01` at `2026-05-27T07:12:16Z`.
+
+<!-- CONCIERGE_SEO_HEAD_VERIFIED_2026_05_27 -->
+##### Production verification evidence (captured 2026-05-27)
+
+| URL probed | HTTP | Key tags / behavior |
+|---|---|---|
+| `https://lux.corpflowai.com/concierge` | **200** | `<title>Private concierge · Luxurious Mauritius</title>`; `<meta name="description">` present; `<meta name="robots" content="index, follow">`; `<link rel="canonical" href="https://lux.corpflowai.com/concierge">`; `og:title` / `og:description` / `og:url` / `og:type=website` / `og:site_name=Luxurious Mauritius`; `twitter:card=summary_large_image` / `twitter:title` / `twitter:description`. All 12 tags present in initial SSR HTML. |
+| `https://corpflowai.com/concierge` | **200** | Same 12 tags. `canonical` and `og:url` correctly collapse to `https://lux.corpflowai.com/concierge` (no cross-tenant leak — apex serves Lux content under Lux canonical, as designed). |
+| `https://lux.corpflowai.com/concierge?property=heritage-villa-test` | **200** | `canonical` strips query (correct discipline). `og:url` stays at canonical because the property ref is React state, not threaded through `getServerSideProps`; documented v1 limitation, **not** a defect. |
+| `https://lux.corpflowai.com/` | **200** | Title `Luxurious Mauritius · LuxeMaurice` unchanged. No homepage regression. |
+| `https://corpflowai.com/` | **200** | Title `CorpFlowAI · Practical AI-assisted workflow systems` unchanged. No apex regression. |
+| `https://core.corpflowai.com/api/factory/health` | **200** | `ok: true`, `status: healthy`, all sub-checks pass. No factory regression. |
+
+- **Known v1 scope note (intentional, not a bug):** `og:url` for `/concierge?property=…` collapses to the canonical (no query) under SSR because `propertyInterest` is React state populated client-side; the helper *does* support property-aware `og:url` once the page threads the query through `getServerSideProps`. Captured as a future small-scope enhancement, not blocking.
+- **Cross-tenant leak check:** explicit. Apex `/concierge` serves Lux content with Lux canonical — Google will index `lux.corpflowai.com/concierge` and consolidate signals there; no duplicate-content split between hosts.
+- **Audit trajectory update (queued, not in this PR):** the Lux quality audit artifact `artifacts/quality-audits/2026-05-27-luxe-maurice-quality-v1.md` lives only on the still-open **PR #237** (not yet on `main`). The +2.5 trajectory note (current **59/100*** → **~61.5/100***) will be appended to that artifact *after* PR #237 merges, in a separate tiny docs PR — not forced here.
 
 ### Status table (Goal 6, cumulative — refreshed 2026-05-27)
 
@@ -579,5 +595,5 @@ First runtime packet derived from the Lux quality audit's top-10 fix list (fix #
 | 6.6 lux-trust-policy-remediation | DESIGN COMPLETE (PR #238). Implementation packet PENDING. |
 | 6.7 quality-score-evolution-v2 | DESIGN COMPLETE (PR #238). Cutover gated on G1–G5. |
 | 6.8 publication-engine-v1-design | PENDING (future design). |
-| **6.9 lux-concierge-seo-head** | **RUNTIME COMPLETE (this PR); pending Vercel Prod + live verify.** |
+| **6.9 lux-concierge-seo-head** | **COMPLETE — live-verified in production 2026-05-27** (merge `eacb8d3fb2`, deploy `4831280707`, all 12 SEO tags confirmed on `lux.corpflowai.com/concierge`; audit-artifact trajectory note +2.5 deferred to post-#237-merge follow-up). |
 
