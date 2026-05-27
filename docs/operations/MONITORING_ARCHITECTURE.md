@@ -14,6 +14,7 @@
 - `docs/communications/CORPFLOW_COMMUNICATIONS_V1.md` — outbound email model; `operator_escalation` event used by ops alerts.
 - `docs/automation-framework.md` — automation forward (n8n) envelope contract used by ops alerts.
 - `docs/quality/CORPFLOW_WEBSITE_QUALITY_SYSTEM_V1.md` — v1 quality system; § 3.8 *Monitoring / runtime health* consumes this doc's § 2 / § 3 / § 5 evidence.
+- `docs/operations/TELEGRAM_ALERT_WIRING_PACKET_V1.md` — alert-channel wiring contract; § 4 / § 4.3 consume this packet's payload contract, severity ladder, anti-spam rule.
 
 ---
 
@@ -97,6 +98,8 @@ Two senders, byte-compatible contracts (intentional — same chat, same bot, sam
 - **Server side:** `lib/server/ops-alerts.js` `sendTelegramOpsAlert()` (used by #4 and any future server-emitted alert).
 
 Both POST to `https://api.telegram.org/bot<TOKEN>/sendMessage` with JSON `{chat_id, text}`. Body is capped at 3500 chars (Telegram limit is 4096; we leave room for retries / suffixing). Both skip silently when `TELEGRAM_BOT_TOKEN` or `TELEGRAM_ALERT_CHAT_ID` is unset.
+
+> **Cross-ref:** Payload contract, severity ladder (P0/P1/P2), anti-spam dedup rule, and phased rollout for the silent monitors are documented in `docs/operations/TELEGRAM_ALERT_WIRING_PACKET_V1.md` (the bounded execution unit). New emitters added under § 9 *Add-a-new-monitor recipe* must conform to that packet's § 4 + § 8 governance.
 
 Message body shape (for both): header line (repo + run #) → recommended action → run URL → one-liner per failed check → top 5 fix-level actions.
 
@@ -294,7 +297,7 @@ The state of each monitor + each known future packet. When a future packet gradu
 
 | Packet id | One-liner | Pre-conditions |
 |---|---|---|
-| `cmp-internal-cron-alerts` | Wire #5 / #6 / #8 through `lib/server/ops-alerts.js` with typed `kind` for n8n routing. | (none — pure code change). |
+| `cmp-internal-cron-alerts` | Wire #5 / #6 / #8 through `lib/server/ops-alerts.js` with typed `kind` for n8n routing. **Phase 3 of `docs/operations/TELEGRAM_ALERT_WIRING_PACKET_V1.md`.** | (none — pure code change). |
 | `exec01-cron-pulse` | Run `scripts/production-pulse.mjs` on a 30-min cron from `corpflow-exec-01` with Telegram alerts; diversifies alert path away from GitHub Actions. | A separate Telegram bot/chat (independent of GitHub's), narrow-scope. Box has only the public pulse URL. |
 | `exec01-quality-audit-runner` | Schedule the read-only quality-audit probe (`docs/quality/CORPFLOW_WEBSITE_QUALITY_SYSTEM_V1.md`; the older `docs/execution/WEBSITE_QUALITY_MEASUREMENT_FRAMEWORK.md` 5-dim rubric remains readable) to run weekly per tenant and write evidence under `~/audits/`. | Probe scripts are read-only; no auth required for tenant marketing surfaces. |
 | `diagnose-postgres-env-scheduled` | Promote #9 from manual to weekly with a checked-in expected-shape baseline; alert on drift. | Decide where the baseline lives (in-repo JSON or env var). |

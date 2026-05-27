@@ -667,3 +667,55 @@ This is the **live queue** of approved or pending packets for autonomous executi
 ## Archive
 
 (Empty — first queue, started 2026-05-23.)
+
+
+<!-- GOAL_6_FOLLOWUP_INSERT_2026_05_27 -->
+
+### Goal 6 follow-up — 2026-05-27 — operational visibility + remediation design
+
+Continued execution on `corpflow-exec-01` (stacked PR on top of `docs/quality-system-v1`).
+
+#### Packet 6.3 — apex Search Console execution (PARTIAL — preflight COMPLETE, operator-PENDING)
+
+- **Doc:** `docs/operations/SEARCH_CONSOLE_EXECUTION_PACKET.md` (shipped in PR #237).
+- **New evidence:** `artifacts/search-console/2026-05-27-apex-preflight.md` — read-only public-surface preflight from `corpflow-exec-01`.
+  - Verdict: **READY** for Anton's §3 operator steps. Apex home + sitemap (6 URLs) + robots.txt all clean; 404 page correctly `noindex`; `www` correctly 307→apex; no `noindex` mistakes on indexable routes.
+  - 3 non-blocking notes recorded: `/contact` missing from sitemap, no `llms.txt`, `<link rel="canonical">` not visible in partial probe (re-verify at T+0 full HTML capture).
+- **Operator gate still pending:** Anton's DNS TXT + Search Console UI verification + sitemap submit + 5 indexing requests (~15 min total, per `SEARCH_CONSOLE_EXECUTION_PACKET.md` §3).
+
+#### Packet 6.5 — Telegram alert wiring (DESIGN COMPLETE, operator-PENDING)
+
+- **Doc:** `docs/operations/TELEGRAM_ALERT_WIRING_PACKET_V1.md` (new, this PR).
+- **Inventory (2026-05-27):** only 2 alert paths today — #1 factory-control-loop (CI) + #4 cmp-delivery-monitor (server-side). 5 silent monitors named: #5, #6, #8 server-side + #10 + factory-housekeeping CI-side.
+- **Design:** payload contract (text-only, 3500-char cap, single Evidence URL, named Recommended-action), severity ladder (P0/P1/P2/P3 with strict P0 emission policy), anti-spam dedup (`kind × severity × hour_bucket`), phased rollout (Phase 0 secrets → 1 confirm → 2 CI silent → 3 server silent → 4 dedup → 5 ladder codification), test plan + rollback per phase, governance rules ("no success alerts", "no transient retries", "no per-tenant noise without per-tenant dedup").
+- **Operator gate:** Anton sets `TELEGRAM_BOT_TOKEN` + `TELEGRAM_ALERT_CHAT_ID` (GitHub repo secret AND Vercel Production env). Pre-action verified via existing presence-only boot step.
+
+#### Packet 6.6 — Lux trust + policy surfaces remediation (DESIGN COMPLETE — implementation packet awaits)
+
+- **Doc:** `docs/quality/LUX_TRUST_AND_POLICY_REMEDIATION_PLAN.md` (new, this PR).
+- **Source:** Lux audit §2.6 (PR #237) — apex policy routes reachable on `lux.*` but serving CorpFlow-branded content (byte-equal across hosts).
+- **Recommendation:** Option A (tenant-host-aware rendering in the existing 5 routes via `tenant_hostnames` resolver + per-tenant JSON content); rejected B (per-tenant `pages/lux-*.js` — does not scale) and C (CMS — wrong order of operations for v1).
+- **Implementation packet to follow (`lux-trust-policy-impl-v1`):** 3 sub-PRs (α resolver + tests, β host-aware rendering, γ Lux content + sitemap). Closes Lux audit fixes #5 + #6 + #7 + #9 (~+5.5 points on §3.6 + §3.9).
+- **Gates:** Anton/counsel approves Lux content JSON before PR γ. Live verification per `predeploy-decision-checks.mdc`.
+
+#### Packet 6.7 — quality-score evolution v2 (DESIGN ONLY)
+
+- **Doc:** `docs/quality/QUALITY_SCORE_EVOLUTION_V2.md` (new, this PR).
+- **Primary contribution:** anti-gaming philosophy (§9) — 8 named forbidden practices, the synthetic-gamed-tenant Gate G2 dry-run test (gamed manifest must score ≤45/100), the buyer-test heuristic.
+- **Cutover gates G1–G5:** measurement coverage (apex SC + Lighthouse + Plausible ≥30 days each), anti-gaming pre-check, dual-audit reconciliation (Δ ≤ 5), client-reporting alignment, Anton approval.
+- **Trend scoring + historical snapshots + critical-failure short-circuit:** new in v2 — a site unreachable, serving wrong-tenant content, or with exposed operator namespace scores 0/100 regardless of other dims.
+- **Premium tier (85+) in v2:** requires absolute ≥85 AND trend-positive/stable AND zero P0-fix backlog — codifies "Conversion beats completeness" doctrine.
+
+### Status table (Goal 6, cumulative — refreshed 2026-05-27)
+
+| Packet | Status |
+|---|---|
+| 6.1 quality-system-v1 | COMPLETE (PR #237). |
+| 6.2 lux-quality-report-v1 | COMPLETE (PR #237). |
+| 6.3 search-console-apex | DOC COMPLETE (PR #237) + PREFLIGHT COMPLETE (this PR). Operator §3 PENDING. |
+| 6.4 client-performance-reporting-model | COMPLETE design-only (PR #237). Implementation gated on G1 of 6.7. |
+| 6.5 telegram-alert-wiring | DESIGN COMPLETE (this PR). Operator Gate 0 PENDING. |
+| 6.6 lux-trust-policy-remediation | DESIGN COMPLETE (this PR). Implementation packet `lux-trust-policy-impl-v1` PENDING. |
+| 6.7 quality-score-evolution-v2 | DESIGN COMPLETE (this PR). Cutover gated on G1–G5. |
+| 6.8 publication-engine-v1-design | PENDING (future design, blocks 6.7's §5.5 row). |
+
