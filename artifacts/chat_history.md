@@ -92,6 +92,34 @@
 - **Verification:** floor URLs unchanged post-merge (apex, Lux home, Lux `/change`, factory health all 200). Per `.cursor/rules/delivery-reality.mdc`, since the dead rewrites had no client-visible effect, this packet did not require an additional live probe beyond the standard floor.
 
 ---
+## 2026-05-28 — Packet 6.11: canonical doc reference audit + repair
+
+<!-- CANONICAL_DOC_REFS_AUDIT_2026_05_28_HIST -->
+
+Packet 6.11 — landed docs-only. Closes the broken canonical-reference graph identified during the night audit (12 distinct missing targets / 16 reference sites across docs + .cursor/rules + artifacts/chat_history.md).
+
+Resolved (HIGH + MEDIUM = 0 after merge):
+
+- **HIGH:** 3/3 — created v0 stubs at `docs/operations/SECRETS_SYNC.md`, `docs/publication/CORPFLOW_PUBLICATION_ENGINE_V1.md`, `docs/quality/CORPFLOW_WEBSITE_QUALITY_SYSTEM_V2.md`. Each stub names its owner packet and the canonical sources of record until that packet ships.
+- **MEDIUM (file-existence class):** 3/3 — created v0 stubs at `docs/execution/EVIDENCE_FORMAT.md`, `docs/decisions/20260410-luxe-autopilot-pilot-scope.md`, `docs/operations/LUXE_AUTONOMY_PILOT_RUNBOOK.md`. The last two are back-reference stubs that name the existing `docs/decisions/JOURNAL.md` rows (JE-2026-04-10-1, JE-2026-04-10-5) as the decisions of record; this approach avoids editing the frozen 2026-04-10 chat-history entry that also references them.
+- **MEDIUM (path-redirect class):** 1/1 — in `docs/execution/WEEKEND_EXECUTION_QUEUE.md` (lines 148 + 185) the two references to the never-landed path *docs/execution/LAPTOP_DEPENDENCIES_AUDIT.md* (intentionally italicised, not backticked, so it stays out of the canonical-ref graph) were redirected to the audit that actually landed at `artifacts/audits/2026-05-23-weekend/05-laptop-local-dependencies.md`.
+
+LOW (left as recognized placeholder patterns, no code or runtime change):
+- `artifacts/analytics-audits/2026-05-XX-corpflowai-apex/plan.md`
+- `artifacts/migration-audits/2026-05-XX-luxe-maurice/migration-audit.md`
+- `artifacts/production-health-snapshots/2026-05-23-production-health.md` (intentionally loose — referrer says "or similar dated path")
+- `artifacts/quality-audits/2026-05-XX-luxe-maurice/quality-score.md`
+- `artifacts/chat_history_archive.md` (forward reference to a future archive)
+
+Verification:
+- Post-merge audit (predicted on this branch): HIGH=0, MEDIUM=0, LOW=5.
+- Files changed: 8 (6 NEW stubs + `docs/execution/WEEKEND_EXECUTION_QUEUE.md` + this entry).
+- `docs/decisions/JOURNAL.md` intentionally NOT edited — rows JE-2026-04-10-1 and JE-2026-04-10-5 remain exactly as they landed in April; the new back-reference stubs absorb the resolution.
+- No runtime / env / secrets / DNS / DB / tenant_id / analytics / Plausible / Search Console / Telegram behaviour / Vercel config / GitHub Actions / deployment-settings changes.
+- `npm test` passed locally on `corpflow-exec-01` before push.
+
+Closure verdict: docs-only; final Delivery Reality Audit verdict = COMPLETE after merge and audit-zero on `main` is confirmed.
+
 ## Timeline (key themes)
 
 ### 2025–2026 — Cloud factory, governance, and Vercel hardening

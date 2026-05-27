@@ -145,7 +145,7 @@ This is the **live queue** of approved or pending packets for autonomous executi
 
 - **Goal:** Enumerate every step in current "production" workflows that still requires Anton's laptop (a local script, a manual paste, a credential only on disk) so we can plan their migration off-laptop.
 - **Definition of Done:**
-  - [ ] New doc `docs/execution/LAPTOP_DEPENDENCIES_AUDIT.md` listing each laptop-bound step:
+  - [ ] Audit landed at `artifacts/audits/2026-05-23-weekend/05-laptop-local-dependencies.md` listing each laptop-bound step (originally planned at a docs/execution path; landed in the audits tree instead — see Packet 6.11):
     - What it does.
     - What file or tool it lives in (e.g. `scripts/*.ps1`, local `.env`, browser session).
     - Who can do it today (only Anton, vs. anyone with repo access).
@@ -182,7 +182,7 @@ This is the **live queue** of approved or pending packets for autonomous executi
     - Failure / retry behavior.
     - Where the audit trail lands (`automation_events`, GitHub Actions log, n8n execution URL).
     - Rollback plan for the migrated job.
-  - [ ] Doc cross-links from `docs/EXECUTION_BRAIN_VS_HANDS.md` and `docs/execution/LAPTOP_DEPENDENCIES_AUDIT.md` (1.5).
+  - [ ] Doc cross-links from `docs/EXECUTION_BRAIN_VS_HANDS.md` and `artifacts/audits/2026-05-23-weekend/05-laptop-local-dependencies.md` (1.5).
   - [ ] `npm test` and `npm run build` pass on the PR branch.
   - [ ] PR opened against `main`, CI green.
 - **Scope:**
