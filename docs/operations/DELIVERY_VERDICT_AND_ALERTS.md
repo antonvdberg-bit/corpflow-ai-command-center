@@ -1,6 +1,6 @@
 # Delivery verdict + 24/7 alerts (CMP)
 
-> **Where this fits.** Row 6 (`/api/cron/cmp-monitor`) in the **monitoring & 24/7 execution architecture** component map — see **`docs/operations/MONITORING_ARCHITECTURE.md`** § 3 for the surface table (this monitor's alert path is shared Telegram + n8n `corpflow.ops_alert.v1`, classified as `operator_escalation` per Comms v1) and § 8 for the change-discipline that applies when adding new alert paths. This doc remains the canonical source for the per-ticket delivery-verdict rules below.
+> **Where this fits.** **Monitor #4** (`/api/cron/cmp-monitor`) in the **monitoring & 24/7 execution architecture** component map — see **`docs/operations/MONITORING_ARCHITECTURE.md`** § 2 for the full 12-monitor surface table (this monitor's alert path is shared Telegram via `lib/server/ops-alerts.js` + n8n forward `corpflow.ops_alert.v1`, classified as `operator_escalation` per Comms v1 — both detailed in § 4.1 / § 4.2) and § 9 for the add-a-new-monitor recipe that applies when adding new alert paths. This doc remains the canonical source for the per-ticket delivery-verdict rules below.
 
 ## What this does
 
