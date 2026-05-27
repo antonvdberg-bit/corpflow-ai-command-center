@@ -667,3 +667,61 @@ This is the **live queue** of approved or pending packets for autonomous executi
 ## Archive
 
 (Empty — first queue, started 2026-05-23.)
+
+
+<!-- CONCIERGE_SEO_HEAD_2026_05_27 -->
+
+### Goal 6 follow-up — 2026-05-27 — Lux concierge SEO `<Head>` fix (RUNTIME packet — first to ship)
+
+First runtime packet derived from the Lux quality audit's top-10 fix list (fix #2). Shipped as a separate PR on top of `main` (independent of #237 / #238 — touches different files so no merge conflict).
+
+#### Packet `lux-concierge-seo-head` (COMPLETE — live-verified in production 2026-05-27)
+
+- **Branch:** `feat/lux-concierge-seo-head` (off `main`).
+- **PR title:** `feat(seo): add Lux concierge SEO metadata`.
+- **Files (3):**
+  - `lib/client/concierge-seo.js` (new) — pure SSR-callable helper.
+  - `pages/concierge.js` (modified) — `getServerSideProps` + `useMemo` + full SEO `<Head>`.
+  - `node-tests/concierge-seo.test.mjs` (new) — 12 unit tests.
+- **What changed:** The `/concierge` page now emits `<title>` + `<meta name="description">` + `<meta name="robots" content="index, follow">` + `<link rel="canonical">` + 5 `og:*` tags + 3 `twitter:*` tags on every request, with host-aware canonical URL.
+- **Tenant-safety stance:** the page is Lux-only today (imports `LUXE_MAURICE_*` brand tokens). The helper documents this explicitly and collapses canonical to `https://lux.corpflowai.com/concierge` for any non-Lux host. When `lux-trust-policy-impl-v1` ships host-aware rendering, the helper's `isLuxHost` branch becomes the extension point for per-tenant SEO.
+- **No DB / no tenant_id / no env / no analytics / no Plausible / no Search Console / no DNS** changes.
+- **Verification:** `npm test` **418/418 PASS** locally on `corpflow-exec-01` (+12 over the 406 baseline). `npm run build` deliberately skipped (heavy for 2 GB box); Vercel Preview build handles the next gate.
+- **Expected Lux audit score impact:** §3.1 *SEO/indexing* +1.5 (concierge head meta complete), §3.9 *Content completeness* +1 (sitemap-listed surface gains complete head). **Total: ~+2.5 on the next Lux audit** (closes the audit's fix #2 row).
+- **Live-verification checklist (after Vercel Production deploys the merged PR, per `delivery-reality.mdc`):**
+  - [ ] `https://lux.corpflowai.com/concierge` returns 200 with `<meta name="description">`, `<link rel="canonical" href="https://lux.corpflowai.com/concierge">`, `og:title`, `og:description`, `og:url`, `og:type=website`, `og:site_name=Luxurious Mauritius`, `twitter:card=summary_large_image`.
+  - [ ] `https://corpflowai.com/concierge` (apex) returns 200 with the same metadata BUT canonical pointing back to `https://lux.corpflowai.com/concierge` (intentional — Lux brand owns the page).
+  - [ ] `https://corpflowai.com/` (apex marketing) unaffected — still serves CorpFlowAI public home.
+  - [ ] `https://lux.corpflowai.com/` (Lux static landing rewrite) unaffected.
+- **Verdict (live-verified 2026-05-27):** **COMPLETE.** Merged via squash commit `eacb8d3fb2` ([PR #239](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/239)), deployed by Vercel Production deployment **`4831280707`** (commit `eacb8d3fb2`, status `success` at `2026-05-27T07:09:44Z`, alias `https://corpflow-ai-command-center-dr419cc1q-corpflowai.vercel.app`), and live-probed from `corpflow-exec-01` at `2026-05-27T07:12:16Z`.
+
+<!-- CONCIERGE_SEO_HEAD_VERIFIED_2026_05_27 -->
+##### Production verification evidence (captured 2026-05-27)
+
+| URL probed | HTTP | Key tags / behavior |
+|---|---|---|
+| `https://lux.corpflowai.com/concierge` | **200** | `<title>Private concierge · Luxurious Mauritius</title>`; `<meta name="description">` present; `<meta name="robots" content="index, follow">`; `<link rel="canonical" href="https://lux.corpflowai.com/concierge">`; `og:title` / `og:description` / `og:url` / `og:type=website` / `og:site_name=Luxurious Mauritius`; `twitter:card=summary_large_image` / `twitter:title` / `twitter:description`. All 12 tags present in initial SSR HTML. |
+| `https://corpflowai.com/concierge` | **200** | Same 12 tags. `canonical` and `og:url` correctly collapse to `https://lux.corpflowai.com/concierge` (no cross-tenant leak — apex serves Lux content under Lux canonical, as designed). |
+| `https://lux.corpflowai.com/concierge?property=heritage-villa-test` | **200** | `canonical` strips query (correct discipline). `og:url` stays at canonical because the property ref is React state, not threaded through `getServerSideProps`; documented v1 limitation, **not** a defect. |
+| `https://lux.corpflowai.com/` | **200** | Title `Luxurious Mauritius · LuxeMaurice` unchanged. No homepage regression. |
+| `https://corpflowai.com/` | **200** | Title `CorpFlowAI · Practical AI-assisted workflow systems` unchanged. No apex regression. |
+| `https://core.corpflowai.com/api/factory/health` | **200** | `ok: true`, `status: healthy`, all sub-checks pass. No factory regression. |
+
+- **Known v1 scope note (intentional, not a bug):** `og:url` for `/concierge?property=…` collapses to the canonical (no query) under SSR because `propertyInterest` is React state populated client-side; the helper *does* support property-aware `og:url` once the page threads the query through `getServerSideProps`. Captured as a future small-scope enhancement, not blocking.
+- **Cross-tenant leak check:** explicit. Apex `/concierge` serves Lux content with Lux canonical — Google will index `lux.corpflowai.com/concierge` and consolidate signals there; no duplicate-content split between hosts.
+- **Audit trajectory update (queued, not in this PR):** the Lux quality audit artifact `artifacts/quality-audits/2026-05-27-luxe-maurice-quality-v1.md` lives only on the still-open **PR #237** (not yet on `main`). The +2.5 trajectory note (current **59/100*** → **~61.5/100***) will be appended to that artifact *after* PR #237 merges, in a separate tiny docs PR — not forced here.
+
+### Status table (Goal 6, cumulative — refreshed 2026-05-27)
+
+| Packet | Status |
+|---|---|
+| 6.1 quality-system-v1 | COMPLETE (PR #237). |
+| 6.2 lux-quality-report-v1 | COMPLETE (PR #237). |
+| 6.3 search-console-apex | DOC COMPLETE (PR #237) + PREFLIGHT COMPLETE (PR #238). Operator §3 PENDING. |
+| 6.4 client-performance-reporting-model | COMPLETE design-only (PR #237). |
+| 6.5 telegram-alert-wiring | DESIGN COMPLETE (PR #238). Operator Gate 0 PENDING. |
+| 6.6 lux-trust-policy-remediation | DESIGN COMPLETE (PR #238). Implementation packet PENDING. |
+| 6.7 quality-score-evolution-v2 | DESIGN COMPLETE (PR #238). Cutover gated on G1–G5. |
+| 6.8 publication-engine-v1-design | PENDING (future design). |
+| **6.9 lux-concierge-seo-head** | **COMPLETE — live-verified in production 2026-05-27** (merge `eacb8d3fb2`, deploy `4831280707`, all 12 SEO tags confirmed on `lux.corpflowai.com/concierge`; audit-artifact trajectory note +2.5 deferred to post-#237-merge follow-up). |
+
