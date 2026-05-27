@@ -28,6 +28,22 @@
 
 ---
 
+## 2026-05-27 — Telegram inbound webhook documented (PR #241 merged)
+
+<!-- TELEGRAM_WEBHOOK_DOCS_MERGED_HIST -->
+
+**Status:** COMPLETE (docs-only — no runtime / production surface change).
+
+- **PR:** [#241](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/241) — `docs(monitoring): document existing Telegram inbound webhook registration` — merged via squash commit `c16e1a5d` at `2026-05-27T11:00:47Z`.
+- **What it documents:** the Telegram bot at `https://corpflowai.com/api/webhook` is registered **on Telegram's servers** against the active `TELEGRAM_BOT_TOKEN`. No repo script calls `setWebhook` — verified via `grep` across all committed runtime / script / workflow / shell files. The registration was set manually and lives outside any GitHub diff or CI gate.
+- **Canonical home:** new § 4.4 *Inbound webhook — Telegram → repo (operationally separate from outbound)* in `docs/operations/MONITORING_ARCHITECTURE.md`. Cross-references in `FACTORY_INVENTORY.md` (the `/api/webhook` row), § 6 blind-spot bullet 4, and § 7 roles-and-ownership rotation row.
+- **Operational invariant locked in:** rotating `TELEGRAM_BOT_TOKEN` **does not** carry the inbound webhook over — the new bot starts with empty webhook config on Telegram's side. After every token rotation the operator must re-run the equivalent of `curl -F "url=https://corpflowai.com/api/webhook" "https://api.telegram.org/bot<NEW_TOKEN>/setWebhook"`. This is now stated in § 4.4 (invariant 2), § 6 (blind spot 4), and § 7 (rotation row).
+- **Inbound vs outbound:** both surfaces use the same `TELEGRAM_BOT_TOKEN`, but they fail independently. Outbound senders also use `TELEGRAM_ALERT_CHAT_ID`; inbound has no chat-id env (it learns the chat id per incoming message). Documented to prevent future packets accidentally conflating the two.
+- **Pending follow-up (queued, not yet ready):** `docs/operations/TELEGRAM_ALERT_WIRING_PACKET_V1.md` (currently on the still-open PR #238) is the natural operator-facing home for an equivalent note. After PR #238 merges, a separate small docs PR will port § 4.4 into the packet doc and leave a one-line cross-link in `MONITORING_ARCHITECTURE.md`. Until then, § 4.4 is the canonical source.
+- **Discipline:** Per `.cursor/rules/delivery-reality.mdc`, this packet is docs-only and therefore did not require a live production probe. The verdict flipped to COMPLETE only after the merge SHA, the `main` HEAD advance, and the on-disk sentinel + marker were all confirmed on `corpflow-exec-01` (no placeholder values; no premature COMPLETE).
+
+---
+
 ## Timeline (key themes)
 
 ### 2025–2026 — Cloud factory, governance, and Vercel hardening
