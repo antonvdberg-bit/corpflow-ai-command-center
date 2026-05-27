@@ -287,3 +287,48 @@ All four are small refinements; this audit was scored under the v1 system rules 
 - `pages/_app.js`, `pages/_document.js`, `pages/404.js`, `pages/sitemap.xml.js`, `public/robots.txt` (per PR #222).
 - `components/LuxeMauriceTenantPresentation.js`, `components/LuxeMauricePropertyDetailPage.js` (per PR #222 Head pattern).
 - `vercel.json` lines 9-28 (dead static rewrites — flagged §2.1 + §3.10).
+
+---
+
+## Trajectory note — post-concierge-SEO (2026-05-27)
+
+<!-- TRAJECTORY_POST_CONCIERGE_SEO -->
+
+**Projected score movement against the same v1 rubric and the same PENDING items:** **59/100\* → ~61.5/100\*** following the Lux concierge SEO `<Head>` fix.
+
+This note is a projection, not a re-audit. The audit body above (sections §1–§10) is left unchanged so the original measured state is preserved verbatim. Only the two dimensions that the concierge SEO fix demonstrably affected are restated below; every other asterisked PENDING row (Lighthouse Performance / Accessibility / Mobile, Search Console verification, og:image) is unchanged.
+
+### Movement breakdown
+
+| Dimension | Before | After | Δ | Why |
+|---|---|---|---|---|
+| §3.1 SEO / indexing | 6/10\* | ~7.5/10\* | **+1.5** | Concierge page now serves complete head meta (title, description, robots, canonical, full `og:*`, full `twitter:*`), closing the gap called out in §2.1 and §3.1 of the audit body. |
+| §3.9 Content completeness | 6/10 | ~7/10 | **+1** | Sitemap-listed concierge surface now matches the head-meta floor that home + property pages already met. |
+| **Total** | **59/100\*** | **~61.5/100\*** | **+2.5** | Other rows unchanged; same PENDING discipline. |
+
+### Why this is durably recorded, not informally claimed
+
+- **PR #239** — `feat(seo): add Lux concierge SEO metadata`, merged `2026-05-27T07:08:52Z` (squash commit `eacb8d3fb2`). Vercel Production deployment `4831280707` (state `success`). All 12 SEO tags live-verified on `https://lux.corpflowai.com/concierge` from `corpflow-exec-01` at `2026-05-27T07:12:16Z` (`<title>`, `<meta name="description">`, `<meta name="robots">`, `<link rel="canonical">`, full `og:*` set, full `twitter:*` set). Apex collapse to Lux canonical also verified — no duplicate-content split between `corpflowai.com/concierge` and `lux.corpflowai.com/concierge`.
+- **PR #240** — `docs(history): close Lux concierge SEO metadata packet`, merged `2026-05-27T11:10:23Z` (squash commit `98287ec6`). Packet 6.9 marked **`COMPLETE — live-verified in production 2026-05-27`** in `docs/execution/WEEKEND_EXECUTION_QUEUE.md` line 598 with explicit references to the merge commit and Vercel deployment ID above.
+
+Together: the concierge SEO `<Head>` fix is **merged**, **live-verified in production**, and **durably recorded** on `main`. The trajectory above reflects that durably-recorded state.
+
+### Why this remains asterisked
+
+The asterisk discipline from the audit body (§3 footnote, §6 mapping narrative) is intentionally preserved. Specifically:
+
+- This is a **projection** against the same rubric — not a re-measurement of any PENDING row.
+- The Lighthouse-gated rows (§3.2 Accessibility, §3.3 Performance, §3.4 Mobile usability) are unchanged because no Lighthouse mobile run has happened since PR #239 landed.
+- The Search Console row (§3.1 sub-component) is unchanged because the apex-first SC rollout is still operator-pending per the Packet 6.3 packet at `docs/operations/SEARCH_CONSOLE_EXECUTION_PACKET.md`.
+- `og:image` is still missing on Lux marketing surfaces; the +1.5 in §3.1 above does not credit `og:image`.
+
+A formal re-audit on the v1 system would re-measure those rows and could move the headline number further; this note does not.
+
+### Next material rerating event
+
+A Lighthouse mobile run on `https://lux.corpflowai.com/` (operator-owned per Goal 6) would let us drop the asterisks on §3.2 / §3.3 / §3.4 and either lift or confirm the headline. Combined with the structural fixes ranked in the audit body's "Top 10 fixes" (privacy/terms/about routes per `docs/quality/LUX_TRUST_AND_POLICY_REMEDIATION_PLAN.md`, og:image, Telegram alerts per `docs/operations/TELEGRAM_ALERT_WIRING_PACKET_V1.md`, dead-rewrite cleanup now landed in PR #242), the high-confidence ceiling without visual redesign remains **~75–78/100\*** — **unchanged** from the audit body's §5 trajectory.
+
+### Discipline
+
+Per `.cursor/rules/delivery-reality.mdc`: this trajectory note documents a projection backed by a **live-verified runtime change** (PR #239 + deployment `4831280707`) and a **durably-recorded closure** (PR #240's queue marker on `main`). The note itself is docs-only; no runtime, env, DNS, Vercel-config, Telegram, DB, `tenant_id`, analytics, Plausible, or Search Console surface is touched.
+
