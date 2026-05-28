@@ -37,8 +37,11 @@ If any of those rules conflict with this doc, **those rules win**.
 ## 3. Naming (frozen for v1)
 
 - **Coordination issue title (exact):** `Operator Bridge — Active Work Queue`
+- **Coordination issue number:** **#249** (confirmed 2026-05-28 by Anton; see `docs/decisions/JOURNAL.md` JE-2026-05-28-2).
 - **Coordination issue body anchor:** `<!-- OPERATOR_BRIDGE_V1_ISSUE -->`
 - **Canonical doc path:** `docs/operations/OPERATOR_BRIDGE_V1.md` (this file)
+- **Day-to-day operator runbook:** `docs/runbooks/OPERATOR_BRIDGE.md`
+- **Multi-executor protocol (Cursor + Codex Cloud + future internal agent):** `docs/execution/DELIVERY_ACCELERATION_V1.md`
 - **Closure record path:** `artifacts/chat_history.md`
 - **Suggested labels (not created until v1.1):** `bridge:holding`, `bridge:ready-to-merge`, `bridge:needs-operator`, `bridge:blocked`, `bridge:complete`. v1 of this protocol does **not** create labels.
 
@@ -47,10 +50,13 @@ If any of those rules conflict with this doc, **those rules win**.
 | Actor | Owns | Does NOT own |
 |---|---|---|
 | **Anton (operator)** | Merges. Secrets. DNS. Billing. External accounts (GitHub, Vercel, Plausible, Search Console, Telegram, payment processors). All operator-only actions per `CORPFLOW_AUTONOMOUS_ACTIONS_POLICY.md` §3. Final verdicts. | Drafting in-repo content. Running tests. Opening PRs. Routine status reporting. |
-| **Cursor (in-repo executor)** | Drafting docs and code on approved branches. Running `npm test`, build, audits. Opening PRs against `main`. Posting status. Verifying merges, sentinels, live URLs (read-only). | Merging PRs. Editing secrets, DNS, env vars, deployment settings. Pushing to `main` directly. Touching forbidden surfaces (see §6). |
-| **ChatGPT (planning author)** | Authoring instructions, packet definitions, decision text, policy framing — delivered **through Anton**. | Direct repository writes. Direct CI access. Direct merges. Any autonomous loop with Cursor that bypasses Anton. |
+| **Cursor (in-repo executor)** | Drafting docs and code on approved branches (`docs/*`, `chore/*`, `feat/*`, `fix/*`, `refactor/*`). Running `npm test`, build, audits. Opening PRs against `main`. Posting status. Verifying merges, sentinels, live URLs (read-only). | Merging PRs. Editing secrets, DNS, env vars, deployment settings. Pushing to `main` directly. Touching forbidden surfaces (see §6). |
+| **Codex Cloud (in-repo executor, added 2026-05-28)** | Same as Cursor, with mandatory branch prefix `codex/*` (see `docs/execution/DELIVERY_ACCELERATION_V1.md` §5). Identical AAP §2 latitude. Posts STATUS with `**Executor:** Codex Cloud` header. | Identical to Cursor: never merges its own PRs, never edits secrets / DNS / env / deployment settings, never touches forbidden surfaces. Additionally cannot touch `lib/server/`, `lib/cmp/`, `api/`, `middleware.*`, `prisma/`, `.env*`, `.github/workflows/`, `vercel.json` in v1 of `DELIVERY_ACCELERATION_V1.md`. |
+| **ChatGPT (planning author)** | Authoring instructions, packet definitions, decision text, policy framing — delivered **through Anton**. | Direct repository writes. Direct CI access. Direct merges. Any autonomous loop with Cursor or Codex Cloud that bypasses Anton. |
 
-**Rule of thumb:** ChatGPT proposes, Anton approves, Cursor executes, Anton merges, Cursor verifies. The bridge makes each handoff one-click instead of multi-paragraph.
+**Rule of thumb:** ChatGPT proposes, Anton approves, the named Executor (Cursor or Codex Cloud) executes, Anton merges, the same Executor verifies. The bridge makes each handoff one-click instead of multi-paragraph.
+
+**Executor identity in STATUS comments (added 2026-05-28):** every status / closure comment posted to issue #249 must include a `**Executor:** Cursor | Codex Cloud | Internal agent` header so packet-collisions are visible and the audit trail is unambiguous across executors. See `docs/execution/DELIVERY_ACCELERATION_V1.md` §7 and `docs/runbooks/OPERATOR_BRIDGE.md` §3 for examples.
 
 ## 5. Message schemas
 
@@ -136,7 +142,7 @@ Operator-only clicks should be the **only** thing Anton has to do for routine pa
 Land this protocol doc + AGENTS.md row + shared-TODO cross-link. No issue created. No automation. No labels. Cursor and Anton continue to use chat as the live coordination surface, but they reference this doc when needed.
 
 **Phase 1 — create the coordination issue (separate, operator-initiated):**
-Anton manually opens one GitHub Issue titled `Operator Bridge — Active Work Queue` containing the anchor `<!-- OPERATOR_BRIDGE_V1_ISSUE -->` and a pinned link back to this doc. Cursor begins posting `Cursor status` comments using the schema in §5.1. Anton (or ChatGPT-via-Anton) posts decisions using §5.2.
+Anton manually opens one GitHub Issue titled `Operator Bridge — Active Work Queue` containing the anchor `<!-- OPERATOR_BRIDGE_V1_ISSUE -->` and a pinned link back to this doc. Cursor begins posting `Cursor status` comments using the schema in §5.1. Anton (or ChatGPT-via-Anton) posts decisions using §5.2. **Status:** issue **#249** confirmed 2026-05-28 (see `docs/decisions/JOURNAL.md` JE-2026-05-28-2). Codex Cloud joins this same issue once installed per `docs/execution/DELIVERY_ACCELERATION_V1.md` §11.
 
 **Phase 2 — adopt label vocabulary (optional, requires operator action in GitHub UI):**
 Anton creates the five `bridge:*` labels listed in §3. Cursor applies them via `gh pr view` / `gh issue edit` calls inside its status updates. Labels are advisory; the headers in §5 remain authoritative.
@@ -172,6 +178,8 @@ After this PR merges and is live-verified per `delivery-reality.mdc`, Anton can 
 
 ## 11. Cross-references
 
+- Delivery Acceleration v1 protocol (Cursor + Codex Cloud + future internal agent): `docs/execution/DELIVERY_ACCELERATION_V1.md`
+- Day-to-day operator runbook (how to post STATUS in practice): `docs/runbooks/OPERATOR_BRIDGE.md`
 - Execution policy: `docs/execution/CORPFLOW_AUTONOMOUS_ACTIONS_POLICY.md`
 - Packet structure: `docs/execution/CORPFLOW_EXECUTION_PACKET_STANDARD.md`
 - Current queue: `docs/execution/WEEKEND_EXECUTION_QUEUE.md`
