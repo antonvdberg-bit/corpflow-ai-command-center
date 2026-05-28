@@ -28,6 +28,32 @@
 
 ---
 
+## 2026-05-28 — Delivery Acceleration v1 protocol shipped (PR #252 merged)
+
+<!-- DELIVERY_ACCELERATION_V1_MERGED_2026_05_28_HIST -->
+
+**Status:** COMPLETE (docs-only verdict shape — no client-facing surface changed; per `.cursor/rules/delivery-reality.mdc` `Live URLs tested: n/a — docs-only`, `Client-facing flow usable: YES`).
+
+- **PR:** [#252](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/252) — `docs(operations): add Delivery Acceleration v1 protocol` — merged via squash commit `031f12cc1e197c4fc588a727b0eaecf5a1a2734c` at `2026-05-28T01:53:07Z`.
+- **Why:** Cursor is the only in-repo coding executor today. While Cursor works one packet (LR-1 commercial-readiness), every other approved packet sits PENDING. The protocol adds **Codex Cloud** as a second bounded Executor — with explicit branch / packet-claim / STATUS-reporting discipline — without changing any AAP §3 hard gate, any forbidden surface, or the operator-owned merge rule. A future internal CorpFlow agent gets a phased roadmap (phases 0–5) but is not installed in v1.
+- **Anton decisions recorded as `JE-2026-05-28-2`:** runtime = **Codex Cloud** (hosted, not Codex CLI); coordination = **Operator Bridge issue #249**; LR-1 (`feat/lead-rescue/usd-launch-pilot`) unaffected by this protocol.
+- **Six paths touched (all docs / AGENTS.md only):**
+  - **NEW** `docs/execution/DELIVERY_ACCELERATION_V1.md` (multi-executor protocol; actor model; Codex Cloud runtime posture + GitHub App least-privilege table; branch / PR discipline; packet-claim rules; STATUS schema addition `**Executor:**` header; hard limits carried verbatim from AAP §3; internal-agent phased roadmap phases 0–5; immediate safe use cases; onboarding sequence; rollback path).
+  - **NEW** `docs/runbooks/OPERATOR_BRIDGE.md` (operator-facing day-to-day companion to `OPERATOR_BRIDGE_V1.md` — when to post, required `**Executor:**` header, branch-prefix table, forbidden content, five concrete STATUS / Operator decision / closure examples).
+  - **EDIT** `docs/operations/OPERATOR_BRIDGE_V1.md` (fills in **#249** in §3 Naming; adds Codex Cloud row to §4 actor table; requires `**Executor:**` header on all STATUS comments in §4 rule-of-thumb; marks §8 Phase 1 confirmed; cross-links the two new docs in §11).
+  - **EDIT** `AGENTS.md` Must-read table (2 new rows + update existing Operator Bridge row to name #249 and include Codex Cloud).
+  - **EDIT** `docs/execution/WEEKEND_EXECUTION_QUEUE.md` (new **Goal 7 — Delivery Acceleration v1** with Packet 7.1 COMPLETE + Packet 7.2 PENDING for Codex Cloud install).
+  - **EDIT** `docs/decisions/JOURNAL.md` (append-only `JE-2026-05-28-2`).
+- **Binding rules now in force on `main`:** Cursor branch namespaces unchanged (`docs/*`, `chore/*`, `feat/*`, `fix/*`, `refactor/*`). **Codex Cloud branch prefix `codex/*` mandatory** once installed. Every STATUS / closure comment on #249 must include `**Executor:** Cursor | Codex Cloud | Internal agent`. `Owner: Executor` field on each packet is binding; one executor per branch, one author per PR. **Neither executor self-merges.** AAP §3 hard gates unchanged. `.github/workflows/cmp-product-automerge.yml` remains off by default, `cmp/*` only, and is **not** extended to `codex/*`.
+- **Codex Cloud GitHub App least-privilege (named in §4.1 of the protocol, applied when Anton installs):** Contents read+write, PRs read+write, Issues read+write (so Codex can post to #249); **denied:** Actions read, Secrets read, Environments, Administration, Webhooks/Workflows write. Install on `corpflow-ai-command-center` only, never org-wide.
+- **Bridge dogfooding:** First-ever multi-executor STATUS posted to #249 ([comment 4560023729](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/249#issuecomment-4560023729) — `Executor: Cursor`, `State: AWAITING_APPROVAL`). Closure posted on merge ([comment 4560179874](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/249#issuecomment-4560179874) — `Executor: Cursor`, merge SHA + Delivery Reality Audit `Final verdict: COMPLETE`).
+- **Hiccups during execution (resolved, recorded for posterity):** (1) `origin/main` advanced to `39093c37` (LR-1 PR #251) mid-execution → rebased; `JOURNAL.md` had the expected append-only conflict between `JE-2026-05-28-1` (LR-1) and `JE-2026-05-28-2` (this protocol); kept both rows in chronological order. (2) A terminal context switch silently moved HEAD to local `main` and a first amend rewrote LR-1's local commit; caught via post-rebase verification; `git reset --hard origin/main` restored local main to `39093c37` (unpushed, no remote impact); re-ran amend on the correct branch with explicit branch-safety guards thereafter. (3) Final force-push used `--force-with-lease` on my own branch — never `main`.
+- **Hard limits honoured:** zero secrets / env / DNS / DB / `tenant_id` / Plausible / Search Console / Telegram / Vercel settings / GitHub settings / payment / `.cursor/rules/*` / `CORPFLOW_AUTONOMOUS_ACTIONS_POLICY.md` touched. No runtime code. No workflow files. No `corpflow-exec-01` scheduling. No client-facing surface change.
+- **Packet 7.2 — Codex Cloud install — operator-only, not in PR #252:** Anton creates OpenAI API key in own dashboard (never paste anywhere repo-side); installs Codex Cloud GitHub App on this repo only with the §4.1 least-privilege set; records bot username in a follow-up docs-only PR; drafts the first Codex Cloud packet from §10 safe-use-cases list with `Owner: Executor = Codex Cloud`. New operator playbook `docs/runbooks/CODEX_CLOUD_INSTALL.md` (ships in this same chat-history follow-up PR) provides the click-by-click sequence including pre-flight checks, OpenAI key handling, GitHub App permission table, bot-username recording, branch-protection sanity check, first-packet smoke choice, rollback path, and decision-record cadence.
+- **Verification (docs-only Delivery Reality Audit shape):** Local fix exists YES, Merged to main YES (`031f12cc`), Production deployment ID n/a (docs-only no Production behavior change), Commit deployed `031f12cc1e197c4fc588a727b0eaecf5a1a2734c`, Live URLs tested n/a (docs-only), Client-facing flow usable YES, **Final verdict: COMPLETE**. Pre-merge CI green (421/421 node-tests, Next.js 16.2.1 build green, Vercel Preview Ready, `vercel-env` pass, `cmp-delivery-files` skipped as expected for non-`cmp/*` branch).
+
+---
+
 ## 2026-05-28 — Lead Rescue front-of-house simplified to single USD-first launch pilot (LR-1)
 
 <!-- LEAD_RESCUE_USD_LAUNCH_PILOT_2026_05_28_HIST -->

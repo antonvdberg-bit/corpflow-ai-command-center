@@ -67,6 +67,7 @@ If Git says **`ambiguous argument 'main'`**, a tracked path named **`main`** may
 | **Operator Bridge v1 — coordination protocol (ChatGPT ↔ Anton ↔ Cursor + Codex Cloud)** — coordination issue **#249** | **`docs/operations/OPERATOR_BRIDGE_V1.md`** |
 | **Operator Bridge — day-to-day runbook (how Cursor / Codex Cloud post STATUS to #249)** | **`docs/runbooks/OPERATOR_BRIDGE.md`** |
 | **Delivery Acceleration v1 — multi-executor protocol (Cursor + Codex Cloud + future internal agent)** | **`docs/execution/DELIVERY_ACCELERATION_V1.md`** |
+| **Codex Cloud install — operator playbook (Packet 7.2: pre-flight, OpenAI key, GitHub App least-privilege, bot username, first-packet smoke, rollback)** | **`docs/runbooks/CODEX_CLOUD_INSTALL.md`** |
 | Marketing / conversion doctrine | `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md` |
 | Delivery reality (live prod = done) | `.cursor/rules/delivery-reality.mdc`, `.cursor/rules/predeploy-decision-checks.mdc` |
 | Production bar (reliable, secure, observable) | `docs/strategy/PRODUCTION_GRADE_CLIENT_OUTCOMES.md` |
