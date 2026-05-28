@@ -261,10 +261,10 @@ export default function CorpFlowPublicHome(props) {
               into a CRM.
             </p>
             <ul style={s.list}>
-              <li>Pilot from $150 / MUR 6,900 after intake review</li>
-              <li>Payment handled after scope confirmation — no card or banking details on this website</li>
-              <li>Mauritius businesses: local invoice and MUR route</li>
-              <li>International businesses: USD route through PayPal, Wise, or Google Pay where available</li>
+              <li>USD 150 launch pilot — invoiced after intake review</li>
+              <li>48-hour setup, 7 days of pilot monitoring</li>
+              <li>No card or banking details on this website</li>
+              <li>Payment route confirmed on the invoice, not on this page</li>
             </ul>
             <p style={{ ...s.muted, fontSize: 13 }}>
               We do not guarantee new revenue. We help make sure existing enquiries are captured, visible, and followed
@@ -288,10 +288,9 @@ export default function CorpFlowPublicHome(props) {
 
         <Section label="Pricing" title="Starting points — final scope confirmed after intake.">
           <ul style={s.list}>
-            <li>AI Lead Rescue pilot from $150 / MUR 6,900</li>
-            <li>Final scope and payment route confirmed after intake review</li>
-            <li>Mauritius businesses use local invoice / MUR pricing where applicable</li>
-            <li>International businesses use USD pricing through PayPal, Wise, or Google Pay where available</li>
+            <li>AI Lead Rescue launch pilot — USD 150</li>
+            <li>Invoiced after intake review and scope confirmation</li>
+            <li>Payment route is on the invoice, not on this website</li>
             <li>We do not collect card or banking details on this website</li>
           </ul>
         </Section>

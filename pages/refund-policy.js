@@ -21,6 +21,14 @@ export default function RefundPolicyPage() {
         </p>
       </section>
       <section style={ps.section}>
+        <h2 style={ps.h2}>AI Lead Rescue launch pilot</h2>
+        <p style={ps.p}>
+          The AI Lead Rescue USD 150 launch pilot is invoiced after intake review and scope confirmation. Refunds are
+          available before setup work has started. Once the 48-hour setup work has begun, refunds are discretionary or
+          prorated based on the work already performed, in line with the general setup-fee policy above.
+        </p>
+      </section>
+      <section style={ps.section}>
         <h2 style={ps.h2}>Monitoring and ongoing services</h2>
         <p style={ps.p}>
           Monthly monitoring or support, when offered, can usually be cancelled before the next billing period. Fees for
