@@ -697,20 +697,25 @@ This is the **live queue** of approved or pending packets for autonomous executi
 ### Packet 7.2 — Codex Cloud install + first packet (operator-only, future)
 
 - **Goal:** Anton installs the Codex Cloud GitHub App on this repo only (least-privilege per `DELIVERY_ACCELERATION_V1.md` §4.1), creates the OpenAI API key in his own dashboard, and approves the first Codex Cloud packet (a low-risk docs-only use case from §10).
+- **Operator playbook:** **`docs/runbooks/CODEX_CLOUD_INSTALL.md`** (click-by-click sequence — pre-flight, OpenAI key handling, GitHub App permission table, bot-username recording, branch-protection sanity check, first-packet smoke selection, rollback path, decision-record cadence).
 - **Definition of Done:**
-  - [ ] GitHub App installed on `corpflow-ai-command-center` only with the permission set in `DELIVERY_ACCELERATION_V1.md` §4.1.
-  - [ ] Codex Cloud bot's GitHub username recorded in a follow-up doc-only PR that updates `DELIVERY_ACCELERATION_V1.md` §4.1.
-  - [ ] First Codex Cloud packet approved by Anton in this queue with `Owner: Executor = Codex Cloud`.
+  - [ ] Pre-flight items in `CODEX_CLOUD_INSTALL.md` §1 all pass.
+  - [ ] OpenAI API key created in Anton's dashboard with name `corpflow-codex-cloud-<YYYY-MM-DD>` and spend cap set (`CODEX_CLOUD_INSTALL.md` §2). Value never enters the repo or any agent context.
+  - [ ] GitHub App installed on `corpflow-ai-command-center` only with the permission set in `DELIVERY_ACCELERATION_V1.md` §4.1 / `CODEX_CLOUD_INSTALL.md` §3.
+  - [ ] Codex Cloud bot's GitHub username recorded in a follow-up doc-only PR that updates `DELIVERY_ACCELERATION_V1.md` §4.1 with the literal username (`CODEX_CLOUD_INSTALL.md` §4).
+  - [ ] Branch-protection sanity check (`CODEX_CLOUD_INSTALL.md` §5) passes — Codex Cloud cannot bypass operator merge; not in `cmp-product-automerge.yml` allowlist.
+  - [ ] First Codex Cloud packet approved by Anton in this queue with `Owner: Executor = Codex Cloud`, drawn from the §10 safe-use-cases list of `DELIVERY_ACCELERATION_V1.md` (recommended: docs consistency audit per `CODEX_CLOUD_INSTALL.md` §6).
   - [ ] Codex Cloud posts the first `IN_PROGRESS` STATUS to issue #249 using the schema in `OPERATOR_BRIDGE_V1.md` §5.1 + the `**Executor:** Codex Cloud` header.
+  - [ ] Journal entry for the install (per `CODEX_CLOUD_INSTALL.md` §9 cadence table).
 - **Scope:** Anton-only operator steps + one follow-up doc PR by the named Executor (Cursor or Codex Cloud, depending on who Anton names).
-- **Constraints:** No code change required for the install itself. No new repo secret. No new workflow file. No change to `main` at install time.
-- **Risks:** GitHub App permissions over-scoped at install time — mitigated by §4.1 least-privilege table; Anton verifies in the GitHub App UI before clicking Install.
+- **Constraints:** No code change required for the install itself. No new repo secret. No new workflow file. No change to `main` at install time. OpenAI API key value never enters this repo, `.env*`, GitHub Actions secrets, Vercel env, `artifacts/`, chat, or any PR.
+- **Risks:** (1) GitHub App permissions over-scoped at install time — mitigated by §4.1 least-privilege table; Anton verifies in the GitHub App UI before clicking Install. (2) OpenAI key value leaks into repo or chat — mitigated by `CODEX_CLOUD_INSTALL.md` §2's allowed/forbidden table; if it slips, rotate immediately per §2 and `SECURITY_OR_INCIDENT.md`. (3) First Codex packet picks a high-risk use case — mitigated by §6's recommended order (docs consistency audit first).
 - **Allowed actions:** Anton clicks in GitHub UI + OpenAI dashboard. Cursor / Codex Cloud edit the protocol doc only after install + bot username known.
 - **Approval gates:** AAP §3 Anton-only (App install + key creation).
-- **Verification evidence:** App installation visible in repo Settings → Integrations; bot username recorded in PR; first Codex Cloud STATUS comment visible on #249.
-- **Rollback plan:** Anton uninstalls the App from this repo via GitHub settings. Open `codex/*` PRs can be closed without merge.
+- **Verification evidence:** App installation visible in repo Settings → Integrations; bot username recorded in follow-up PR; first Codex Cloud STATUS comment visible on #249; first Codex Cloud PR diff stays inside `artifacts/audits/`.
+- **Rollback plan:** Per `CODEX_CLOUD_INSTALL.md` §8 — uninstall GitHub App via Settings → Integrations + revoke OpenAI key + post `HOLDING` on #249. To revert the protocol entirely: single revert PR of merge commit `031f12cc` (PR #252).
 - **Owner:** Approver = Anton. Executor = Anton (install) + Cursor / Codex Cloud (follow-up doc PR). Reviewer = Anton.
-- **Status:** PENDING — operator-only, not in this PR.
+- **Status:** PENDING — operator-only. Operator playbook is ready (`docs/runbooks/CODEX_CLOUD_INSTALL.md`); Anton can execute when ready.
 
 ### Queue summary (Goal 7)
 
