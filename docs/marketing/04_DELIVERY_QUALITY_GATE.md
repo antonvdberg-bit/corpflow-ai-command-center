@@ -103,3 +103,19 @@ Handoff: [one paragraph with exact implementation instructions]
 ## 5. Final release rule
 
 No prospect-facing or client-facing work should be shipped without a visible quality-gate statement in the PR, issue, chat handoff, or approval note.
+
+## 6. Where the visible quality-gate statement lives
+
+For pull requests in this repository, the visible quality-gate statement is the `## Marketing / Sales Quality Gate` section in `.github/PULL_REQUEST_TEMPLATE.md`. GitHub renders that template into every new PR description automatically. Authors fill it in; reviewers refuse to approve buyer-facing or client-facing PRs without a completed score (or an explicit `Not applicable — no prospect-facing or client-facing surface changed.` line for refactors that genuinely do not touch those surfaces).
+
+The PR template embeds:
+
+- The four required doctrine docs from § 2 of this file (`00_NON_NEGOTIABLE_MARKETING_COMMUNICATION_STANDARD.md`, `01_AGENT_OUTPUT_CONTRACT.md`, `02_MULTIMODAL_CONTENT_PLAYBOOK.md`, and this file).
+- The seven scoring categories from § 3, with the **12 / 14 minimum publish score**.
+- A pre-data measurement checklist that applies until Plausible, CRM, intake, and sales data are sufficient to evaluate live conversion outcomes.
+- Explicit *Proof* and *Validation asset* status flags so the reviewer can see whether a buyer-facing surface is shipping with complete, partial, or pending evidence.
+- A one-sentence reviewer statement closing with `passes / does not pass / is not applicable to` the gate.
+
+Layer-3 enforcement is **soft**: CI does not fail on a low score. The mechanism is reviewer discipline, made unavoidable by the visible PR-template section. Layer-4 enforcement (CI fails PRs that touch buyer-facing surfaces without a quality-gate marker) is deliberately deferred until the team has lived with Layer-3 long enough to know which file-path triggers are safe to gate hard.
+
+When this section changes — for example, a new doctrine doc is added or a scoring category is renamed — `.github/PULL_REQUEST_TEMPLATE.md` must be updated in the same PR so the two artefacts never drift.
