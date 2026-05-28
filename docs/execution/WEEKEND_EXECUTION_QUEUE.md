@@ -664,6 +664,65 @@ This is the **live queue** of approved or pending packets for autonomous executi
 
 ---
 
+## Goal 7 — Delivery Acceleration v1 (multi-executor onboarding)
+
+**Why this goal:** Cursor is the only in-repo coding executor today. While Cursor works one packet, every other approved packet sits PENDING. Goal 7 adds **Codex Cloud** as a second bounded Executor — with explicit branch-prefix discipline, packet-claim discipline, and Operator Bridge #249 STATUS schema — **without** changing any AAP §3 hard gate, any forbidden surface, or the operator-owned merge rule. A future internal CorpFlow agent gets a phased roadmap (phases 0–5) but is not installed in v1.
+
+**Anton decisions recorded 2026-05-28 (see `docs/decisions/JOURNAL.md` JE-2026-05-28-2):** runtime = **Codex Cloud** (hosted, not Codex CLI); coordination = **issue #249**; LR-1 (in flight on `feat/lead-rescue/usd-launch-pilot`) is the **AI Lead Rescue commercial-readiness** execution and is unaffected by this protocol.
+
+### Packet 7.1 — Delivery Acceleration v1 protocol (docs-only)
+
+- **Goal:** Establish a written protocol that lets Codex Cloud act as a second bounded Executor alongside Cursor — with explicit branch discipline (`codex/*`), packet-claim discipline (`Owner: Executor` binding), and an Operator Bridge #249 STATUS schema — without changing any §3 hard gate, any runtime surface, or any secret.
+- **Definition of Done:**
+  - [x] `docs/execution/DELIVERY_ACCELERATION_V1.md` exists with: executor model, `codex/*` branch rule, `Owner: Executor` binding, GitHub App least-privilege table, Codex Cloud onboarding steps, internal-agent phased roadmap, immediate safe use cases.
+  - [x] `docs/runbooks/OPERATOR_BRIDGE.md` exists as the operator-facing day-to-day runbook (companion to `OPERATOR_BRIDGE_V1.md`) — when to post, required `**Executor:**` header, branch-prefix table, forbidden content, five concrete examples.
+  - [x] `docs/operations/OPERATOR_BRIDGE_V1.md` updated to (a) fill in issue **#249** in §3 Naming, (b) add Codex Cloud row to §4 actor table, (c) require `**Executor:**` header in §4 rule-of-thumb, (d) mark Phase 1 of §8 migration plan as confirmed, (e) cross-link the two new docs in §11.
+  - [x] `AGENTS.md` Must-read table gains 2 new rows (runbook + protocol) and updates the existing Operator Bridge row to name #249 and include Codex Cloud.
+  - [x] `docs/execution/WEEKEND_EXECUTION_QUEUE.md` adds this Goal 7 with this packet marked COMPLETE post-merge.
+  - [x] `docs/decisions/JOURNAL.md` gains append-only row `JE-2026-05-28-2`.
+  - [x] Diff touches only `docs/` and `AGENTS.md` — zero changes to `.cursor/rules/*`, `CORPFLOW_AUTONOMOUS_ACTIONS_POLICY.md`, `.env.template`, `vercel.json`, `.github/workflows/*`, `prisma/`, `lib/server/`, `lib/cmp/`, `api/`, `middleware.*`.
+  - [x] `npm test` passes; `npm run build` passes.
+  - [ ] PR opened against `main`, CI green.
+  - [ ] Anton merges. Delivery Reality Audit verdict: COMPLETE (docs-only shape).
+- **Scope:** In — the five doc changes above + one PR titled `docs(operations): add Delivery Acceleration v1 protocol` on branch `docs/delivery-acceleration-v1-protocol`. Out — installing Codex Cloud, creating the GitHub App, creating any OpenAI key, any `policy:` PR amending `CORPFLOW_AUTONOMOUS_ACTIONS_POLICY.md`, any runtime / env / workflow / secret / DNS / DB change, any change to `corpflow-exec-01`, any change to `cmp-product-automerge.yml`, any AI Lead Rescue (LR-1) change.
+- **Constraints:** docs-only. Only tightens policy, never loosens. All `.cursor/rules/*` and AAP §3 gates unchanged. No secret values anywhere. Codex Cloud GitHub App permissions, when Anton installs it, must follow the least-privilege list in `DELIVERY_ACCELERATION_V1.md` §4.1. `codex/*` branches Codex-only; non-`codex/*` branches Cursor- or Anton-only. Neither Executor self-merges.
+- **Risks:** (1) Codex Cloud GitHub App over-scoped — mitigated by least-privilege list + uninstall as rollback. (2) #249 noisy — schema mandates posts only at state transitions + blockers + evidence. (3) Secret leak in PR text — protocol forbids; Anton review is the human stop. (4) Packet collision between executors — `Owner: Executor` binding + STATUS `**Executor:**` line make collisions visible immediately. (5) Doc drift after Codex installed — JE-2026-05-28-2 journal entry creates the audit trail; future Codex install packets must update the protocol in the same PR.
+- **Allowed actions:** AAP §2.1 read, §2.2 doc updates (only the 5 paths above), §2.3 branch `docs/delivery-acceleration-v1-protocol`, §2.4 `npm ci` / `npm test` / `npm run build`, §2.6 one `gh pr create`, §2.7 PR check-run evidence (no secrets).
+- **Approval gates:** pre-merge. Pre-production / pre-secret-change / pre-DNS / pre-billing all n/a (docs-only).
+- **Verification evidence:** PR URL, CI status, Delivery Reality Audit block in PR description (docs-only verdict shape: `Live URLs tested: n/a — docs-only`, `Client-facing flow usable: YES (no client-facing surface changed)`, `Final verdict: COMPLETE` once merged).
+- **Rollback plan:** Single revert of the merge commit removes all five doc changes atomically. No downstream runtime depends on this protocol (Codex Cloud is not yet installed). If Codex Cloud has been installed by the time we revert, Anton uninstalls the GitHub App via GitHub settings (separate from this revert).
+- **Owner:** Approver = Anton. Executor = Cursor (Codex is not yet onboarded). Reviewer = Anton.
+- **Status:** COMPLETE in this PR (pending Anton merge + Delivery Reality Audit closure).
+
+### Packet 7.2 — Codex Cloud install + first packet (operator-only, future)
+
+- **Goal:** Anton installs the Codex Cloud GitHub App on this repo only (least-privilege per `DELIVERY_ACCELERATION_V1.md` §4.1), creates the OpenAI API key in his own dashboard, and approves the first Codex Cloud packet (a low-risk docs-only use case from §10).
+- **Definition of Done:**
+  - [ ] GitHub App installed on `corpflow-ai-command-center` only with the permission set in `DELIVERY_ACCELERATION_V1.md` §4.1.
+  - [ ] Codex Cloud bot's GitHub username recorded in a follow-up doc-only PR that updates `DELIVERY_ACCELERATION_V1.md` §4.1.
+  - [ ] First Codex Cloud packet approved by Anton in this queue with `Owner: Executor = Codex Cloud`.
+  - [ ] Codex Cloud posts the first `IN_PROGRESS` STATUS to issue #249 using the schema in `OPERATOR_BRIDGE_V1.md` §5.1 + the `**Executor:** Codex Cloud` header.
+- **Scope:** Anton-only operator steps + one follow-up doc PR by the named Executor (Cursor or Codex Cloud, depending on who Anton names).
+- **Constraints:** No code change required for the install itself. No new repo secret. No new workflow file. No change to `main` at install time.
+- **Risks:** GitHub App permissions over-scoped at install time — mitigated by §4.1 least-privilege table; Anton verifies in the GitHub App UI before clicking Install.
+- **Allowed actions:** Anton clicks in GitHub UI + OpenAI dashboard. Cursor / Codex Cloud edit the protocol doc only after install + bot username known.
+- **Approval gates:** AAP §3 Anton-only (App install + key creation).
+- **Verification evidence:** App installation visible in repo Settings → Integrations; bot username recorded in PR; first Codex Cloud STATUS comment visible on #249.
+- **Rollback plan:** Anton uninstalls the App from this repo via GitHub settings. Open `codex/*` PRs can be closed without merge.
+- **Owner:** Approver = Anton. Executor = Anton (install) + Cursor / Codex Cloud (follow-up doc PR). Reviewer = Anton.
+- **Status:** PENDING — operator-only, not in this PR.
+
+### Queue summary (Goal 7)
+
+| # | Packet | Goal | State | Risk | Approval gates beyond pre-merge |
+|---|--------|------|-------|------|---------------------------------|
+| 7.1 | Delivery Acceleration v1 protocol (docs-only) | 7 | COMPLETE in this PR | Doc drift if Codex installed without doc update | None (docs-only) |
+| 7.2 | Codex Cloud install + first packet | 7 | PENDING | GitHub App over-scope | §3 Anton-only (App install + OpenAI key) |
+
+**Both Goal 7 packets are docs-only or operator-only by design.** No runtime code, no workflow files, no env values, no new secrets. The first Codex Cloud packet (per `DELIVERY_ACCELERATION_V1.md` §11.6) must be from the §10 safe-use-case list — not a runtime or `lib/server/` change.
+
+---
+
 ## Archive
 
 (Empty — first queue, started 2026-05-23.)
