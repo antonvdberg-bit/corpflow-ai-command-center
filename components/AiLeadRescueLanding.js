@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React from 'react';
 import Head from 'next/head';
 
 import PublicSiteFooter from './PublicSiteFooter.js';
@@ -29,8 +29,6 @@ const styles = {
   h2: { margin: '8px 0 0', fontSize: 30, letterSpacing: '-0.03em' },
   muted: { color: '#aebfd1', lineHeight: 1.65 },
   list: { margin: '14px 0 0', paddingLeft: 18, color: '#d6e4f2', lineHeight: 1.8 },
-  tabButton: { borderRadius: 999, border: '1px solid rgba(255,255,255,0.16)', background: 'rgba(255,255,255,0.06)', color: '#c9d8e8', padding: '10px 14px', fontWeight: 750, cursor: 'pointer' },
-  activeTab: { background: '#2dd4bf', color: '#031018', borderColor: '#2dd4bf' },
   input: { width: '100%', boxSizing: 'border-box', padding: '11px 12px', borderRadius: 14, border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(0,0,0,0.20)', color: '#eef6ff' },
   heroVisualFrame: {
     position: 'relative',
@@ -79,46 +77,6 @@ const styles = {
   },
 };
 
-const regionCopy = {
-  mauritius: {
-    title: 'Mauritius businesses',
-    price: 'from MUR 6,900',
-    subtitle: 'Local invoice, MUR pricing, and SMB Mauritius payment path after intake review.',
-    payments: ['Local invoice', 'MUR pricing', 'SMB Mauritius payment path'],
-    cta: 'Start intake — Mauritius',
-    path: 'SMB Mauritius / local invoice / MUR pricing',
-  },
-  international: {
-    title: 'International businesses',
-    price: 'from USD 150',
-    subtitle: 'USD pricing and international payment route after intake review.',
-    payments: ['USD pricing', 'PayPal / Wise / Google Pay where available', 'International payment route'],
-    cta: 'Start intake — International',
-    path: 'PayPal / Wise / Google Pay where available',
-  },
-};
-
-function RegionCard({ active, region, onSelect }) {
-  const c = regionCopy[region];
-  return (
-    <div
-      className="lr-region-card"
-      style={{ ...styles.card, outline: active ? '2px solid #2dd4bf' : 'none' }}
-    >
-      <div style={styles.label}>{region === 'mauritius' ? 'Domestic route' : 'International route'}</div>
-      <h3 style={{ margin: '8px 0 0', fontSize: 24 }}>{c.title}</h3>
-      <div style={{ marginTop: 8, color: '#2dd4bf', fontWeight: 850, fontSize: 22 }}>{c.price}</div>
-      <p style={styles.muted}>{c.subtitle}</p>
-      <ul style={styles.list}>
-        {c.payments.map((p) => <li key={p}>{p}</li>)}
-      </ul>
-      <button type="button" onClick={() => onSelect(region)} style={{ ...styles.cta, ...styles.primary, marginTop: 16, width: '100%' }} className="lr-cta-primary">
-        {c.cta}
-      </button>
-    </div>
-  );
-}
-
 /**
  * Render a single AI Lead Rescue slot from a governed manifest.
  *
@@ -159,12 +117,22 @@ function LeadRescueSlot({
  */
 
 /**
+ * AI Lead Rescue landing page.
+ *
+ * Single-offer page (per `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md` §
+ * AI Lead Rescue doctrine, *Single offer rule*): one offer — the
+ * `AI Lead Rescue Setup — USD 150 launch pilot`, invoiced after intake review.
+ * Currency, invoice route, and payment provider are operator decisions made
+ * after intake review and communicated to the buyer on the invoice — never
+ * a buyer decision on this landing page. The intake form posts to
+ * `/api/tenant/intake`; the server-side handler in `lib/server/tenant-intake.js`
+ * still accepts `meta.region_path` and `meta.preferred_payment_path` for
+ * backward compatibility, but this page no longer asks the buyer to choose
+ * a region or payment route.
+ *
  * @param {{ host?: string, leadRescueAssets?: LeadRescueAssetSelection | null }} props
  */
 export default function AiLeadRescueLanding({ host = '', leadRescueAssets }) {
-  const [region, setRegion] = useState('');
-  const selected = useMemo(() => (region ? regionCopy[region] : null), [region]);
-
   const assets = leadRescueAssets || null;
   const heroAsset = assets ? assets.lead_rescue_hero : null;
   const processAsset = assets ? assets.lead_rescue_process : null;
@@ -196,10 +164,8 @@ export default function AiLeadRescueLanding({ host = '', leadRescueAssets }) {
       intent: String(fd.get('message') || '').trim(),
       meta: {
         product: 'ai-lead-rescue',
-        region_path: region || 'not_selected',
         business_name: String(fd.get('business_name') || '').trim(),
         lead_sources: String(fd.get('lead_sources') || '').trim(),
-        preferred_payment_path: selected ? selected.path : 'not_selected',
         host,
         page: '/lead-rescue',
       },
@@ -213,7 +179,6 @@ export default function AiLeadRescueLanding({ host = '', leadRescueAssets }) {
       if (!r.ok) throw new Error('intake_failed');
       alert('Thank you — your AI Lead Rescue intake was submitted. We will contact you shortly.');
       form.reset();
-      setRegion('');
     } catch {
       alert('Could not submit the intake. Please contact us directly or try again shortly.');
     }
@@ -223,17 +188,20 @@ export default function AiLeadRescueLanding({ host = '', leadRescueAssets }) {
     <div style={styles.page}>
       <Head>
         <title>AI Lead Rescue · Powered by CorpFlowAI</title>
-        <meta name="description" content="48-hour lead capture, instant alerts, follow-up logging, and daily lead summaries for small businesses. Intake-first, no card details on this site." />
+        <meta
+          name="description"
+          content="USD 150 launch pilot. 48-hour setup that captures new enquiries, alerts the owner, logs every lead, and surfaces follow-ups daily — invoiced after intake review."
+        />
         {socialImageUrl ? (
           <>
             <meta property="og:type" content="website" />
             <meta property="og:title" content="AI Lead Rescue · Powered by CorpFlowAI" />
-            <meta property="og:description" content="48-hour lead capture, instant alerts, follow-up logging, and daily lead summaries for small businesses." />
+            <meta property="og:description" content="USD 150 launch pilot. 48-hour setup for lead capture, instant alerts, follow-up logging, and daily summaries." />
             <meta property="og:image" content={socialImageUrl} />
             <meta property="og:url" content="https://corpflowai.com/lead-rescue" />
             <meta name="twitter:card" content="summary_large_image" />
             <meta name="twitter:title" content="AI Lead Rescue · Powered by CorpFlowAI" />
-            <meta name="twitter:description" content="48-hour lead capture, instant alerts, follow-up logging, and daily lead summaries for small businesses." />
+            <meta name="twitter:description" content="USD 150 launch pilot. 48-hour setup for lead capture, instant alerts, follow-up logging, and daily summaries." />
             <meta name="twitter:image" content={socialImageUrl} />
           </>
         ) : null}
@@ -249,10 +217,10 @@ export default function AiLeadRescueLanding({ host = '', leadRescueAssets }) {
 
         <section style={styles.hero}>
           <div>
-            <span style={styles.badge}>48-hour setup · lead capture · instant alerts · follow-up board</span>
+            <span style={styles.badge}>USD 150 launch pilot · 48-hour setup · no card on this page</span>
             <h1 style={styles.h1}>Stop losing leads because follow-up is too slow.</h1>
             <p style={styles.lead}>
-              AI Lead Rescue captures new enquiries, alerts the owner/operator, logs every lead in a simple follow-up board, and sends a daily summary — without rebuilding your website or forcing you into a CRM.
+              AI Lead Rescue captures new enquiries, alerts the owner or operator, logs every lead, and surfaces follow-ups daily — without rebuilding your website or forcing a CRM migration.
             </p>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 24 }}>
               <a style={{ ...styles.cta, ...styles.primary }} href="#intake" className="lr-cta-primary">Start my 48-hour setup</a>
@@ -262,17 +230,17 @@ export default function AiLeadRescueLanding({ host = '', leadRescueAssets }) {
 
           <aside style={styles.card} className="lr-region-card">
             <div style={styles.label}>Launch offer</div>
-            <h2 style={{ ...styles.h2, fontSize: 28 }}>48-hour pilot setup from $150 / MUR 6,900</h2>
+            <h2 style={{ ...styles.h2, fontSize: 28 }}>USD 150 launch pilot · 48-hour setup</h2>
             <ul style={styles.list}>
-              <li>Connect one lead source: form, email, WhatsApp/manual intake, or Google Form</li>
-              <li>Instant owner/operator alert</li>
+              <li>One lead source connected (form, email, WhatsApp, or Google Form)</li>
+              <li>Instant owner / operator alert</li>
               <li>Google Sheet lead log</li>
               <li>Simple follow-up status board</li>
               <li>Daily lead summary</li>
               <li>7 days of pilot monitoring</li>
             </ul>
             <p style={{ ...styles.muted, fontSize: 13 }}>
-              First pilots are intentionally simple: no CRM rebuild, no website rebuild, no long strategy project.
+              Invoiced after we review your intake. No card or banking details on this page.
             </p>
           </aside>
         </section>
@@ -304,8 +272,16 @@ export default function AiLeadRescueLanding({ host = '', leadRescueAssets }) {
           </div>
         </section>
 
+        <section style={styles.section}>
+          <div style={styles.label}>What problem we solve</div>
+          <h2 style={styles.h2}>Most small businesses do not lose leads because they lack a website.</h2>
+          <p style={styles.muted}>
+            They lose leads because enquiries arrive in different places and follow-up depends on memory. AI Lead Rescue makes the work visible: capture the enquiry, alert the right person, log the record, track the next step, and summarize what still needs attention.
+          </p>
+        </section>
+
         <section id="how-it-works" style={styles.section}>
-          <div style={styles.label}>What happens in 48 hours</div>
+          <div style={styles.label}>How the setup works</div>
           <h2 style={styles.h2}>A lightweight rescue system, not a long software project.</h2>
 
           {processAsset ? (
@@ -322,7 +298,7 @@ export default function AiLeadRescueLanding({ host = '', leadRescueAssets }) {
             <div style={styles.card} className="lr-step-card">
               <div style={styles.label}>Step 1</div>
               <h3>Connect one lead source</h3>
-              <p style={styles.muted}>We start with what you already use: your website form, email inbox, WhatsApp/manual intake, or a lightweight Google Form.</p>
+              <p style={styles.muted}>We start with what you already use: your website form, email inbox, WhatsApp / manual intake, or a lightweight Google Form.</p>
             </div>
             <div style={styles.card} className="lr-step-card">
               <div style={styles.label}>Step 2</div>
@@ -333,6 +309,44 @@ export default function AiLeadRescueLanding({ host = '', leadRescueAssets }) {
               <div style={styles.label}>Step 3</div>
               <h3>Daily summary and follow-up board</h3>
               <p style={styles.muted}>A daily summary keeps the owner aware of open leads, stale follow-ups, and missed opportunities.</p>
+            </div>
+          </div>
+        </section>
+
+        <section style={styles.section}>
+          <div style={styles.label}>What we need from you</div>
+          <h2 style={styles.h2}>Four small inputs to start the 48-hour pilot.</h2>
+          <ul style={styles.list}>
+            <li>The one lead source we should plug in first.</li>
+            <li>The owner or operator destination for alerts (Telegram or email).</li>
+            <li>One named contact on your side for the 48-hour setup window.</li>
+            <li>Approval on the USD 150 invoice we send after we review your intake.</li>
+          </ul>
+        </section>
+
+        <section style={styles.section}>
+          <div style={styles.label}>What happens after intake</div>
+          <h2 style={styles.h2}>Four steps from form to live pilot.</h2>
+          <div style={{ ...styles.grid, marginTop: 16 }}>
+            <div style={styles.card} className="lr-step-card">
+              <div style={styles.label}>Step 1</div>
+              <h3>We review your intake</h3>
+              <p style={styles.muted}>Within 2 business hours of submission. We confirm the right first lead source and the alert destination.</p>
+            </div>
+            <div style={styles.card} className="lr-step-card">
+              <div style={styles.label}>Step 2</div>
+              <h3>We email a USD invoice</h3>
+              <p style={styles.muted}>USD 150 launch pilot. The agreed payment route is on the invoice — no card details on this page.</p>
+            </div>
+            <div style={styles.card} className="lr-step-card">
+              <div style={styles.label}>Step 3</div>
+              <h3>You pay; the 48-hour clock starts</h3>
+              <p style={styles.muted}>Once payment lands, we begin the setup. You get daily updates during the build.</p>
+            </div>
+            <div style={styles.card} className="lr-step-card">
+              <div style={styles.label}>Step 4</div>
+              <h3>Live pilot + 7-day monitoring</h3>
+              <p style={styles.muted}>Lead source connected, alerts live, log running, daily summary delivered. We watch for the first week.</p>
             </div>
           </div>
         </section>
@@ -374,43 +388,46 @@ export default function AiLeadRescueLanding({ host = '', leadRescueAssets }) {
           ) : null}
         </section>
 
-        <section id="payment-paths" style={styles.section}>
-          <div style={styles.label}>Region and invoice route</div>
-          <h2 style={styles.h2}>Start with the same 48-hour setup. Choose your region at intake.</h2>
-          <p style={styles.muted}>
-            We support Mauritius and international businesses with separate payment and invoice routes after your intake is reviewed.
-          </p>
-          <div style={{ ...styles.grid, marginTop: 16 }}>
-            <RegionCard region="mauritius" active={region === 'mauritius'} onSelect={setRegion} />
-            <RegionCard region="international" active={region === 'international'} onSelect={setRegion} />
-          </div>
+        <section style={styles.section}>
+          <div style={styles.label}>What is not included</div>
+          <h2 style={styles.h2}>What this 48-hour pilot will not do.</h2>
+          <ul style={styles.list}>
+            <li>No website rebuild.</li>
+            <li>No CRM migration.</li>
+            <li>No paid ads, SEO, or copywriting work.</li>
+            <li>No multi-channel outbound campaigns.</li>
+          </ul>
         </section>
 
         <section style={styles.section}>
-          <div style={styles.highlightCard}>
-            <div style={styles.label}>Payment after intake review</div>
-            <p style={{ ...styles.muted, margin: 0 }}>
-              Payment is handled after intake review. You do not enter card or banking details on this page. Mauritius businesses receive the local invoice/MUR route. International businesses receive the USD route through PayPal, Wise, or Google Pay where available.
-            </p>
-          </div>
+          <div style={styles.label}>What is not guaranteed</div>
+          <h2 style={styles.h2}>Honest limits.</h2>
+          <p style={styles.muted}>
+            We do not guarantee new revenue. We do not promise more leads. We help make sure existing enquiries are captured, visible, and followed up. Results depend on your business, your enquiry volume, and how you act on what becomes visible.
+          </p>
+        </section>
+
+        <section id="payment-paths" style={styles.section}>
+          <div style={styles.label}>How payment works</div>
+          <h2 style={styles.h2}>One USD 150 invoice, sent after we review your intake.</h2>
+          <ul style={styles.list}>
+            <li>Submit intake on this page — no card or banking details collected here.</li>
+            <li>We review your intake and confirm scope.</li>
+            <li>We email a USD invoice with the agreed payment route.</li>
+            <li>You pay; the 48-hour setup clock starts.</li>
+          </ul>
+          <p style={{ ...styles.muted, fontSize: 13 }}>
+            The payment route on the invoice is decided after intake review, not by you on this page.
+          </p>
         </section>
 
         <section id="intake" style={styles.section}>
           <div style={{ ...styles.card, maxWidth: 760 }}>
             <div style={styles.label}>Final CTA</div>
-            <h2 style={styles.h2}>{selected ? `${selected.title}: ${selected.price}` : 'Start your AI Lead Rescue intake'}</h2>
+            <h2 style={styles.h2}>Start your AI Lead Rescue intake</h2>
             <p style={styles.muted}>
-              {selected
-                ? `Selected payment route: ${selected.payments.join(' / ')}.`
-                : 'Select your business location so we can route the correct pricing and payment path.'}
+              Tell us your business, where leads arrive today, and the follow-up problem you want fixed first. We review every intake within 2 business hours.
             </p>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
-              {Object.keys(regionCopy).map((r) => (
-                <button key={r} type="button" onClick={() => setRegion(r)} style={{ ...styles.tabButton, ...(region === r ? styles.activeTab : {}) }}>
-                  {regionCopy[r].title}
-                </button>
-              ))}
-            </div>
             <form onSubmit={submitLead} style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10 }}>
               <input required name="business_name" placeholder="Business name" style={styles.input} />
               <input required name="name" placeholder="Your name" style={styles.input} />
@@ -421,7 +438,7 @@ export default function AiLeadRescueLanding({ host = '', leadRescueAssets }) {
               <button type="submit" style={{ ...styles.cta, ...styles.primary }} className="lr-cta-primary">Request AI Lead Rescue setup</button>
             </form>
             <p style={{ ...styles.muted, fontSize: 12 }}>
-              Payment links/invoice details are issued after intake review. Do not enter card or banking details on this page.
+              Payment links and invoice details are issued after intake review. Do not enter card or banking details on this page.
             </p>
             <p style={{ ...styles.muted, fontSize: 12 }}>
               We do not guarantee new revenue. We help make sure existing enquiries are captured, visible, and followed up.
@@ -429,7 +446,7 @@ export default function AiLeadRescueLanding({ host = '', leadRescueAssets }) {
           </div>
         </section>
 
-        <PublicSiteFooter extra="AI Lead Rescue is powered by CorpFlowAI. Payment paths are separated for Mauritius and international clients. This page collects intake only; payment is handled through the appropriate route after review." />
+        <PublicSiteFooter extra="AI Lead Rescue is powered by CorpFlowAI. The USD 150 launch pilot is invoiced after intake review; this page collects intake only and does not collect card or banking details." />
       </main>
 
       <style jsx global>{`

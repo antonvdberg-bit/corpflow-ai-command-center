@@ -208,20 +208,19 @@ Supporting copy:
 
 Required payment trust copy:
 
-**Payment is handled after intake review. You do not enter card or banking details on this page. Mauritius businesses receive the local invoice/MUR route. International businesses receive the USD route through PayPal, Wise, or Google Pay where available.**
+**Payment is handled after intake review. You do not enter card or banking details on this page. We send a USD invoice through the agreed route after we confirm scope.**
 
 Required no-guarantee copy:
 
 **We do not guarantee new revenue. We help make sure existing enquiries are captured, visible, and followed up.**
 
-Route rule:
+Single offer rule:
 
-Do not use **Choose payment path** as a primary CTA. The offer is one 48-hour setup. Mauritius vs International is a routing/payment detail after intent is established.
+The public landing page advertises **one** offer: **AI Lead Rescue Setup — USD 150 launch pilot**. Currency, invoice route, and payment provider are **operator decisions** made after intake review and communicated to the buyer on the invoice — not buyer decisions on the landing page.
 
-Preferred route copy:
+The page must not ask the buyer to pick a region, currency, or payment route before submitting intake. Mauritius, EUR, GBP, or any other operator-side currency arrangements are recorded on the Commercial card on `/admin/lead-rescue/[id]` after qualification — they do not appear in the public-facing offer.
 
-- Start intake - Mauritius
-- Start intake - International
+Do not use **Choose payment path**, **Choose your region**, **Start intake — Mauritius**, **Start intake — International**, or any equivalent route-as-CTA wording.
 
 Preferred global CTA:
 
