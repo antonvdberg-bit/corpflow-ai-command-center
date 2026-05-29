@@ -1,0 +1,118 @@
+# Generate walkthrough video — LR-Proof-2 build packet (CF-VID-NNNN renders)
+#
+# Trigger: workflow_dispatch only. No push/PR/schedule. Anyone with repo
+# write access may dispatch (per Anton's § 16 decision 5, recommended default).
+#
+# What this workflow does:
+#   1. Validates the walkthrough YAML against the JSON Schema.
+#   2. Starts a tiny static mock server on http://127.0.0.1:4173.
+#   3. Records the walkthrough via Playwright (headless Chromium, no audio).
+#   4. Encodes WebM -> MP4 with burned-in captions (FFmpeg drawtext) +
+#      a companion .vtt for HTML5 accessibility.
+#   5. Writes the .provenance.json audit-trail anchor.
+#   6. Uploads .artifacts/ as a single workflow artifact (90-day retention).
+#
+# What this workflow does NOT do:
+#   - No commit to the repo.
+#   - No PR creation or comment.
+#   - No call to any production URL.
+#   - No real client data, real PII, or real Telegram resources in any frame.
+#   - No Phase 2 wiring of the artifact into pages/lead-rescue.js — that is
+#     a separate PR authorised by Anton on Operator Bridge #249 after the
+#     final cut is signed off.
+#
+# Pinned third-party Actions (supply-chain): full commit SHAs.
+
+name: Generate walkthrough video
+
+on:
+  workflow_dispatch:
+    inputs:
+      walkthrough_id:
+        description: "Walkthrough id (CF-VID-NNNN). Default: CF-VID-0001."
+        required: true
+        default: "CF-VID-0001"
+      dry_run:
+        description: "Validate YAML only (no Playwright, no FFmpeg, no artifact)."
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: Set up Node 22
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Validate walkthrough YAML
+        run: node scripts/video/validate.mjs --id "${{ inputs.walkthrough_id }}"
+
+      - name: Install Playwright browsers (Chromium only)
+        if: ${{ inputs.dry_run == false }}
+        run: npx playwright install --with-deps chromium
+
+      - name: Install FFmpeg
+        if: ${{ inputs.dry_run == false }}
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg fonts-dejavu-core
+
+      - name: Start mock server
+        if: ${{ inputs.dry_run == false }}
+        run: |
+          nohup node scripts/video/serve-mock.mjs --id "${{ inputs.walkthrough_id }}" > .artifacts-mock.log 2>&1 &
+          echo $! > .mock-server.pid
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            if curl -sf http://127.0.0.1:4173/ > /dev/null; then
+              echo "mock server up on attempt $i"
+              break
+            fi
+            sleep 1
+          done
+
+      - name: Run walkthrough (Playwright -> raw .webm)
+        if: ${{ inputs.dry_run == false }}
+        run: node scripts/video/run-walkthrough.mjs --id "${{ inputs.walkthrough_id }}"
+
+      - name: Encode MP4 + VTT
+        if: ${{ inputs.dry_run == false }}
+        run: node scripts/video/encode-mp4.mjs --id "${{ inputs.walkthrough_id }}"
+
+      - name: Write provenance JSON
+        if: ${{ inputs.dry_run == false }}
+        run: node scripts/video/write-provenance.mjs --id "${{ inputs.walkthrough_id }}"
+
+      - name: Stop mock server
+        if: ${{ always() && inputs.dry_run == false }}
+        run: |
+          if [ -f .mock-server.pid ]; then
+            kill "$(cat .mock-server.pid)" 2>/dev/null || true
+            rm -f .mock-server.pid
+          fi
+
+      - name: Inventory artifacts
+        if: ${{ inputs.dry_run == false }}
+        run: |
+          ls -la .artifacts/ || true
+          ls -la .artifacts/raw/ || true
+
+      - name: Upload artifact
+        if: ${{ inputs.dry_run == false }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: walkthrough-${{ inputs.walkthrough_id }}-${{ github.run_id }}
+          path: .artifacts/
+          retention-days: 90
+          if-no-files-found: error
