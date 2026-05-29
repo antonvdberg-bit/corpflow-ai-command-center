@@ -151,6 +151,7 @@ This is the **observable-world** check list — what an operator (or Cursor on a
 | `https://lux.corpflowai.com/` | **200** + tenant-correct HTML (Lux markers present) | tenant marketing surface; catches the apex-fallback failure mode |
 | `https://lux.corpflowai.com/change` | **200** | Change Console (operator surface) — this also implicitly hits CMP routes |
 | `https://corpflowai.com/` | **200** + apex marketing HTML (not Vercel `MIDDLEWARE_INVOCATION_FAILED`, not 500) | apex marketing root |
+| `https://aileadrescue.corpflowai.com/` | **200** + AI Lead Rescue marketing HTML (`<video>` + `lead-rescue-walkthrough-v1.mp4` references + "What you see every morning" + "Representational example only" markers) | Lead Rescue marketing surface — graduated to always-on 2026-05-29 (Anton, Bridge `#249`) after the Vercel domain mapping was restored and PR #266 went live. Catches the same platform-mapping drift that produced `DEPLOYMENT_NOT_FOUND` on this host until 2026-05-29 ~12:30 UTC+4. |
 
 ### Add when scope demands (for a specific change)
 
@@ -158,7 +159,6 @@ This is the **observable-world** check list — what an operator (or Cursor on a
 |---|---|---|
 | `https://lux.corpflowai.com/api/tenant/site` | tenant resolution touched | JSON `slug:"luxe-maurice"`, `tenant_registered:true` |
 | `https://lux.corpflowai.com/api/ui/context` | tenant resolution touched | JSON `tenant_registered:true`, `login_route:"client"`, no `onboarding` fallback |
-| `https://aileadrescue.corpflowai.com/` | Lead Rescue surface touched (when graduated — step-2) | Lead Rescue marketing HTML |
 | `https://core.corpflowai.com/api/factory/technical-lead/audits?ticket_id=<id>` | Technical Lead Phase B verification | JSON with `audits[]` rows for the ticket |
 | `https://corpflowai.com/<surface>` (`/lead-rescue`, `/concierge`, `/properties`, …) | apex sub-routes touched | per-route expected status + content |
 

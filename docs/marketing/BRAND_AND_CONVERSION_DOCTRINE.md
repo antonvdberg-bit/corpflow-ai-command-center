@@ -143,6 +143,8 @@ Suggested values:
 | Success green | `#22C55E` | Confirmation/status only |
 | Warning amber | `#F59E0B` | Urgency/status only |
 
+> **Superseded 2026-05-29 (Anton, Operator Bridge `#249`):** the canonical CorpFlowAI accent / primary CTA is **teal `#2dd4bf`**, ratifying the colour already shipping on `corpflowai.com`, `corpflowai.com/lead-rescue`, and `aileadrescue.corpflowai.com`. The signal-blue value above is retained for historical context; it was never implemented in the runtime. The full canonical v1 palette (named tokens for background, text, accent, status pairs, etc.) and its scope (apex CorpFlowAI surfaces; tenant brands such as Lux, Concierge, France remain separate by design; `/change` operator surface remains slate / sky-400 by design) lives in **`docs/marketing/CORPFLOW_BRAND_IDENTITY_V1_PROPOSAL.md`**.
+
 Primary CTAs must stand out immediately. Do not overuse accent colors.
 
 ## Typography direction
@@ -150,6 +152,8 @@ Primary CTAs must stand out immediately. Do not overuse accent colors.
 Use modern, legible, professional typography.
 
 Recommended fonts: Inter, Geist, Manrope, IBM Plex Sans, DM Sans.
+
+> **Status note 2026-05-29:** `Inter` is the chosen face for CorpFlowAI v1 and is declared in inline `font-family` strings on every apex public component, but **Inter has never been loaded** (no `next/font`, `<link rel="preload">`, `@font-face`, or Google Fonts CDN reference in the runtime). Effective body type today falls through to the OS system sans (`ui-sans-serif` / `system-ui`). Self-hosting Inter Variable is queued as `LR-Brand-Identity-2 step 2` per `docs/marketing/CORPFLOW_BRAND_IDENTITY_V1_PROPOSAL.md` § 6 Phase B, and will be approved and shipped as its own gated runtime PR.
 
 H1s must be outcome-led, not feature-led.
 

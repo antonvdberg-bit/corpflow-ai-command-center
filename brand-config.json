@@ -1,23 +1,3 @@
 {
-    "logo": {
-        "path": "/assets/logos/LogoSQBK.png",
-        "scale": 8.0,
-        "height": "160px",
-        "link": "/"
-    },
-    "logo-scale": "6.5",
-    "Primary colour": "#FF5733",
-    "headline ": "Autonomous Business Systems",
-    "CorpflowAI command centere": "audit",
-    "Research Loop": "conversion",
-    "Master control sheet": "Client Ready",
-    "MedSpa_Hook_1": "Look Restored, Not 'Done",
-    "MedSpa_Hook_2": "The 60-Minute Facelift Alternative",
-    "MedSpa_Hook_3": "Reverse 5 Years of Sun Damage",
-    "final_test": "success",
-    "SYSTEM VERIFIED": "",
-    "PROTOCOL ACTIVE": "",
-    "Scale <span class=\"italic text-blue-500\">Instantly.</span>": "medspa_hook_1",
-    "medspa_hook_1": "new hook ",
-    "MedSpa AI <span class=\"italic text-blue-500\">Unleashed.</span>": ""
+  "_superseded": "This file is intentionally a stub. The canonical CorpFlowAI brand identity v1 lives in docs/marketing/CORPFLOW_BRAND_IDENTITY_V1_PROPOSAL.md (merged 2026-05-29 via PR #267). Any consumer expecting fields like .logo.path, .Primary colour, etc. is reading a legacy contract that no longer reflects production. The active CorpFlowAI runtime does not consume this file; the apex Next.js pages render brand styles via inline style objects in components/CorpFlowPublicHome.js, components/AiLeadRescueLanding.js, and components/PublicPolicyLayout.js. The legacy loaders at public/assets/logos/theme.js, assets/logos/theme.js, and core/web/assets/logos/theme.js are the only known historical readers; they remain in-tree only because no live customer-facing surface still calls them."
 }
