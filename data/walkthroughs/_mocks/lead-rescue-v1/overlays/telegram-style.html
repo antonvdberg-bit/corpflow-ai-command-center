@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Telegram-style overlay (redacted, representational)</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: transparent;
+        font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+      }
+      .overlay {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        width: 360px;
+        background: #1f2937;
+        color: #f9fafb;
+        border-radius: 16px;
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.5);
+        padding: 16px 18px;
+        display: grid;
+        grid-template-columns: 40px 1fr;
+        gap: 12px;
+        align-items: flex-start;
+      }
+      .overlay .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #2563eb;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 16px;
+      }
+      .overlay .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+      }
+      .overlay .header .name {
+        font-weight: 700;
+        font-size: 14px;
+        color: #ffffff;
+      }
+      .overlay .header .time {
+        font-size: 12px;
+        color: #94a3b8;
+      }
+      .overlay .body {
+        font-size: 13px;
+        line-height: 1.5;
+        color: #e2e8f0;
+      }
+      .overlay .repmark {
+        margin-top: 10px;
+        display: inline-block;
+        background: #fef3c7;
+        border: 1px solid #fbbf24;
+        color: #78350f;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 999px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="overlay" data-walkthrough="telegram-style-overlay" role="status" aria-label="Representational alert overlay (redacted)">
+      <div class="avatar">CF</div>
+      <div>
+        <div class="header">
+          <div class="name">CorpFlow AI bot (representational)</div>
+          <div class="time">02:47</div>
+        </div>
+        <div class="body">
+          New enquiry captured.<br />
+          From: Synthetic Customer A · WEB form<br />
+          Action: assign owner + reply within 2 business hours
+        </div>
+        <span class="repmark">Representational example only</span>
+      </div>
+    </div>
+  </body>
+</html>

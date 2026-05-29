@@ -1,0 +1,23 @@
+{
+  "version": "1",
+  "description": "Shared caption style for all CorpFlowAI walkthrough videos. Burned-in via FFmpeg drawtext. Per LR-Proof-2 § 16 decision 8 (Anton, 2026-05-29 02:55 UTC) — recommended safe defaults.",
+  "font_family": "DejaVu Sans",
+  "font_size_px": 28,
+  "font_color": "white",
+  "font_weight": "bold",
+  "shadow_color": "black",
+  "shadow_x": 1,
+  "shadow_y": 1,
+  "background_band": {
+    "enabled": true,
+    "color": "black",
+    "opacity": 0.55,
+    "padding_horizontal_px": 16,
+    "padding_vertical_px": 10
+  },
+  "position": {
+    "horizontal": "center",
+    "vertical": "bottom",
+    "margin_bottom_px": 40
+  }
+}

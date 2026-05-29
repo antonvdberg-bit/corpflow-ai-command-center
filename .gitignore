@@ -15,3 +15,8 @@ core/engine/client_secrets.json
 # Vanguard: append-only local logs (telemetry, token debits) — written at runtime, not source.
 vanguard/audit-trail/*.jsonl
 vanguard/audit/
+
+# LR-Proof-2 video pipeline: render outputs are workflow artifacts, never committed.
+# Phase 2 PRs commit signed-off .mp4/.vtt to public/assets/video/<surface>/ explicitly.
+.artifacts/
+.mock-server.pid

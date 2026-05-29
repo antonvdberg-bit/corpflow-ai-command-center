@@ -1,0 +1,178 @@
+/*
+ * Mock surface for LR-Proof-2 walkthrough CF-VID-0001 — lead-rescue-walkthrough-v1.
+ *
+ * Per the LR-Proof-2 build packet's hard limits:
+ *   - This is static HTML/CSS only. No real backend, no real tenant_id, no real PII.
+ *   - The "Representational example only" marker is mandatory and visible at all times.
+ *   - All names, phone numbers, email addresses, and amounts are synthetic.
+ */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+  background: #f3f4f6;
+  color: #0f172a;
+  -webkit-font-smoothing: antialiased;
+}
+
+.shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 240px 1fr;
+}
+
+.sidebar {
+  background: #0f172a;
+  color: #cbd5e1;
+  padding: 24px;
+}
+
+.sidebar .brand {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #ffffff;
+  margin-bottom: 32px;
+}
+
+.sidebar .nav-item {
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  font-size: 14px;
+  cursor: default;
+}
+
+.sidebar .nav-item.active {
+  background: #1e293b;
+  color: #ffffff;
+}
+
+.main {
+  padding: 32px 40px;
+}
+
+.main h1 {
+  margin: 0 0 4px;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.main .subtitle {
+  margin: 0 0 28px;
+  color: #475569;
+  font-size: 15px;
+}
+
+.repmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fef3c7;
+  border: 1px solid #fbbf24;
+  color: #78350f;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  margin-bottom: 16px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.summary .card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+}
+
+.summary .card .label {
+  font-size: 12px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 8px;
+}
+
+.summary .card .value {
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.enquiry-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.enquiry-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 18px 20px;
+  border: 1px solid #e5e7eb;
+  display: grid;
+  grid-template-columns: 60px 1fr auto;
+  gap: 16px;
+  align-items: center;
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+}
+
+.enquiry-card[data-walkthrough-highlight="on"] {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+.enquiry-card .channel-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: #e0f2fe;
+  color: #0369a1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+}
+
+.enquiry-card .meta .name {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.enquiry-card .meta .preview {
+  font-size: 14px;
+  color: #475569;
+}
+
+.enquiry-card .status {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #166534;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.enquiry-card .status.pending {
+  background: #fef3c7;
+  color: #854d0e;
+}

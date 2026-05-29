@@ -1,0 +1,137 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://corpflowai.com/schemas/walkthrough/v1.json",
+  "title": "CorpFlowAI walkthrough YAML schema (v1)",
+  "description": "Source-of-truth structure for one renderable marketing video walkthrough. See docs/marketing/LR_PROOF_2_VIDEO_PIPELINE_PROPOSAL.md for the full design.",
+  "type": "object",
+  "required": ["walkthrough"],
+  "additionalProperties": false,
+  "properties": {
+    "walkthrough": {
+      "type": "object",
+      "required": ["id", "status", "owner", "last_reviewed", "meta", "mock", "caption_style_ref", "disclosure", "beats"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^CF-VID-[0-9]{4}$",
+          "description": "Catalog id, e.g. CF-VID-0001"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["draft", "approved", "deprecated"]
+        },
+        "owner": { "type": "string", "minLength": 1 },
+        "last_reviewed": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+        "next_review_due": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+        "meta": {
+          "type": "object",
+          "required": [
+            "title",
+            "target_surface",
+            "output_basename",
+            "aspect_ratio",
+            "resolution",
+            "framerate_fps",
+            "audio",
+            "locale",
+            "target_duration_seconds_min",
+            "target_duration_seconds_max"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "title": { "type": "string", "minLength": 1 },
+            "target_surface": { "type": "string", "pattern": "^https?://" },
+            "target_quality_gate_lift": { "type": "string" },
+            "target_duration_seconds_min": { "type": "integer", "minimum": 5, "maximum": 600 },
+            "target_duration_seconds_max": { "type": "integer", "minimum": 5, "maximum": 600 },
+            "output_basename": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]+[a-z0-9]$" },
+            "aspect_ratio": { "type": "string", "enum": ["16:9", "4:3", "1:1", "9:16"] },
+            "resolution": { "type": "string", "pattern": "^[0-9]{3,4}x[0-9]{3,4}$" },
+            "framerate_fps": { "type": "integer", "enum": [24, 25, 30, 60] },
+            "audio": { "type": "string", "enum": ["none"] },
+            "locale": { "type": "string", "pattern": "^[a-z]{2}(-[A-Z]{2})?$" }
+          }
+        },
+        "mock": {
+          "type": "object",
+          "required": [
+            "base_url",
+            "served_from",
+            "real_tenant_used",
+            "real_telegram_used",
+            "real_pii_present",
+            "representational_marker"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "base_url": { "type": "string", "pattern": "^http://127\\.0\\.0\\.1:[0-9]+$" },
+            "served_from": { "type": "string", "minLength": 1 },
+            "real_tenant_used": { "type": "boolean", "const": false },
+            "real_telegram_used": { "type": "boolean", "const": false },
+            "real_pii_present": { "type": "boolean", "const": false },
+            "representational_marker": { "type": "string", "minLength": 1 }
+          }
+        },
+        "caption_style_ref": { "type": "string", "minLength": 1 },
+        "disclosure": {
+          "type": "object",
+          "required": ["final_card_html_ref", "final_card_duration_seconds", "text"],
+          "additionalProperties": false,
+          "properties": {
+            "final_card_html_ref": { "type": "string", "minLength": 1 },
+            "final_card_duration_seconds": { "type": "integer", "minimum": 1, "maximum": 30 },
+            "text": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "beats": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "start_seconds", "duration_seconds", "action"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "type": "integer", "minimum": 1 },
+              "start_seconds": { "type": "number", "minimum": 0 },
+              "duration_seconds": { "type": "number", "minimum": 0.5, "maximum": 30 },
+              "caption": { "type": "string" },
+              "cursor": { "type": "string", "enum": ["hidden", "visible"] },
+              "action": {
+                "type": "object",
+                "required": ["type"],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "navigate",
+                      "wait",
+                      "wait_and_highlight",
+                      "click",
+                      "scroll",
+                      "show_overlay",
+                      "hide_overlay",
+                      "show_disclosure_card"
+                    ]
+                  },
+                  "url": { "type": "string" },
+                  "selector": { "type": "string" },
+                  "overlay_html_ref": { "type": "string" },
+                  "scroll_y": { "type": "integer" }
+                }
+              }
+            }
+          }
+        },
+        "provenance": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    }
+  }
+}

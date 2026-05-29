@@ -1,0 +1,157 @@
+# LR-Proof-2 build packet — first walkthrough (CF-VID-0001)
+#
+# Source-of-truth YAML for the 45-60 second silent walkthrough that
+# becomes lead-rescue-walkthrough-v1.mp4 after Anton signs off the
+# first cut and authorises Phase 2.
+#
+# Anchored to:
+#   - docs/marketing/LR_PROOF_2_VIDEO_PIPELINE_PROPOSAL.md (architecture)
+#   - docs/marketing/PROOF_VALIDATION_ASSET_PLAN_LR_V1.md § 6 (storyboard)
+#   - Operator Bridge #249 issuecomment-4569335854 (seven Phase 1 choices)
+#   - Operator Bridge #249 (this packet's Operator decision — eight § 16 defaults)
+#
+# Captions match approved claims on https://corpflowai.com/lead-rescue and
+# never assert a number the live page does not already assert.
+
+walkthrough:
+  id: "CF-VID-0001"
+  status: "draft"
+  owner: "Anton"
+  last_reviewed: "2026-05-29"
+  next_review_due: "2026-06-29"
+
+  meta:
+    title: "Lead Rescue — 45 to 60 second silent walkthrough (v1)"
+    target_surface: "https://corpflowai.com/lead-rescue"
+    target_quality_gate_lift: "Conversion logic 1/2 -> 2/2"
+    target_duration_seconds_min: 45
+    target_duration_seconds_max: 60
+    output_basename: "lead-rescue-walkthrough-v1"
+    aspect_ratio: "16:9"
+    resolution: "1280x720"
+    framerate_fps: 30
+    audio: "none"
+    locale: "en"
+
+  mock:
+    base_url: "http://127.0.0.1:4173"
+    served_from: "data/walkthroughs/_mocks/lead-rescue-v1/"
+    real_tenant_used: false
+    real_telegram_used: false
+    real_pii_present: false
+    representational_marker: "Representational example only"
+
+  caption_style_ref: "data/walkthroughs/_shared/captions.style.json"
+
+  disclosure:
+    final_card_html_ref: "data/walkthroughs/_shared/disclosure-card.html"
+    final_card_duration_seconds: 7
+    text:
+      - "Representational example only"
+      - "No real client data, no real Telegram resources"
+      - "Visual generated and assisted by AI tooling, reviewed by humans"
+
+  beats:
+    - id: 1
+      start_seconds: 0
+      duration_seconds: 5
+      cursor: "hidden"
+      caption: "A small business owner opens the morning view"
+      action:
+        type: "navigate"
+        url: "/morning-view.html"
+
+    - id: 2
+      start_seconds: 5
+      duration_seconds: 6
+      cursor: "hidden"
+      caption: "An enquiry came in overnight from the website form"
+      action:
+        type: "wait_and_highlight"
+        selector: "[data-walkthrough='enquiry-card-1']"
+
+    - id: 3
+      start_seconds: 11
+      duration_seconds: 6
+      cursor: "hidden"
+      caption: "A redacted alert was already sent"
+      action:
+        type: "show_overlay"
+        overlay_html_ref: "data/walkthroughs/_mocks/lead-rescue-v1/overlays/telegram-style.html"
+
+    - id: 4
+      start_seconds: 17
+      duration_seconds: 3
+      cursor: "hidden"
+      caption: ""
+      action:
+        type: "hide_overlay"
+
+    - id: 5
+      start_seconds: 20
+      duration_seconds: 5
+      cursor: "hidden"
+      caption: "One enquiry is still awaiting reply"
+      action:
+        type: "wait_and_highlight"
+        selector: "[data-walkthrough='summary'] .card:nth-child(3)"
+
+    - id: 6
+      start_seconds: 25
+      duration_seconds: 5
+      cursor: "hidden"
+      caption: ""
+      action:
+        type: "wait_and_highlight"
+        selector: "[data-walkthrough='enquiry-card-2']"
+
+    - id: 7
+      start_seconds: 30
+      duration_seconds: 5
+      cursor: "hidden"
+      caption: ""
+      action:
+        type: "wait_and_highlight"
+        selector: "[data-walkthrough='enquiry-card-3']"
+
+    - id: 8
+      start_seconds: 35
+      duration_seconds: 5
+      cursor: "hidden"
+      caption: "Within 48 hours, every channel feeds this view"
+      action:
+        type: "wait_and_highlight"
+        selector: "[data-walkthrough='summary']"
+
+    - id: 9
+      start_seconds: 40
+      duration_seconds: 5
+      cursor: "hidden"
+      caption: "All numbers and names are representational"
+      action:
+        type: "wait_and_highlight"
+        selector: "[data-walkthrough='rep-mark']"
+
+    - id: 10
+      start_seconds: 45
+      duration_seconds: 7
+      cursor: "hidden"
+      caption: ""
+      action:
+        type: "show_disclosure_card"
+
+  provenance:
+    walkthrough_yaml_sha: "<filled at runtime by write-provenance.mjs>"
+    workflow_run_id: "<filled at runtime>"
+    workflow_run_url: "<filled at runtime>"
+    repo_commit_sha: "<filled at runtime>"
+    playwright_version: "<filled at runtime>"
+    chromium_version: "<filled at runtime>"
+    ffmpeg_version: "<filled at runtime>"
+    node_version: "<filled at runtime>"
+    generated_at_iso: "<filled at runtime>"
+    ai_tooling_disclosed: true
+    human_review_required: true
+    final_cut_signed_off_by: null
+    final_cut_signed_off_at_iso: null
+    phase_2_authorisation_comment_url: null
