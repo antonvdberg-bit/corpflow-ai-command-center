@@ -1,9 +1,21 @@
 # CorpFlowAI brand identity v1 — proposal (`LR-Brand-Identity-1`)
 
-**Status:** docs-only proposal awaiting Anton's decision.
-**Type:** standalone proposal, runs in parallel with `LR-Proof-1 Phase 2` (PR #266 — un-branded video integration). Not a code change.
+**Status (2026-05-29):**
+- **Phase A** (this proposal): MERGED via PR [#267](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/267) (commit `d6efbe01`); Anton's "use defaults" reply on Operator Bridge `#249` authorised Phase B to begin.
+- **Phase B step 1** (mechanical: `brand-config.json` stub + doctrine supersession note + monitoring host graduation): IN PROGRESS in PR `feat/lr-brand-identity-2-step-1-docs-and-monitoring`. Docs + config only, no runtime regression risk.
+- **Phase B step 2** (self-host Inter Variable): QUEUED — awaits its own gated PR after step 1 lands.
+- **Phase B step 3** (favicon + apple-touch-icon + og-image via wordmark renderer pipeline): QUEUED — awaits its own gated PR after step 2 lands.
+- **Phase C** (optional SVG mark — `LR-Brand-Identity-3`): NOT AUTHORISED.
+- **Phase D** (optional walkthrough rebrand — `LR-Proof-1 Phase 3`): NOT AUTHORISED.
+
+**Why split Phase B:** § 6 of this proposal listed three commits inside Phase B. Treating them as three small gated PRs keeps each diff reviewable, lets the doctrine supersession note ship the moment it is merged (no doctrine-runtime drift window), and isolates the binary-asset work (Inter `.woff2`, favicon/og PNGs) from the mechanical config work. Each step's `delivery-reality.mdc` audit is independently verifiable.
+
+**Type:** standalone proposal; ran in parallel with `LR-Proof-1 Phase 2` (PR #266 — un-branded video integration). Both are now COMPLETE. This proposal is the canonical brand-identity reference for all subsequent CorpFlowAI buyer-facing surfaces.
+
 **Authored:** 2026-05-29 by Cursor under Operator Bridge `#249`.
-**Decision lineage:** Anton, 2026-05-29 — "1. proceed with un-branded Phase 2 PR now 2. Yes please [draft this proposal] 3. teal `#2dd4bf`."
+**Decision lineage:**
+- Anton, 2026-05-29 (initial three decisions): "1. proceed with un-branded Phase 2 PR now 2. Yes please [draft this proposal] 3. teal `#2dd4bf`."
+- Anton, 2026-05-29 (Phase B authorisation): "use defaults" — adopting Path A (wordmark only), self-host Inter, replace `brand-config.json` with stub, apply doctrine supersession in the Phase B PR, queue walkthrough rebrand as optional.
 
 ---
 
