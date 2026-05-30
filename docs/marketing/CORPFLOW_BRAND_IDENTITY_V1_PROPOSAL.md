@@ -1,9 +1,9 @@
 # CorpFlowAI brand identity v1 — proposal (`LR-Brand-Identity-1`)
 
-**Status (2026-05-29):**
+**Status (2026-05-30):**
 - **Phase A** (this proposal): MERGED via PR [#267](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/267) (commit `d6efbe01`); Anton's "use defaults" reply on Operator Bridge `#249` authorised Phase B to begin.
-- **Phase B step 1** (mechanical: `brand-config.json` stub + doctrine supersession note + monitoring host graduation): IN PROGRESS in PR `feat/lr-brand-identity-2-step-1-docs-and-monitoring`. Docs + config only, no runtime regression risk.
-- **Phase B step 2** (self-host Inter Variable): QUEUED — awaits its own gated PR after step 1 lands.
+- **Phase B step 1** (mechanical: `brand-config.json` stub + doctrine supersession note + `aileadrescue.corpflowai.com` graduated to always-on monitoring): MERGED via PR [#270](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/270) (merge commit `2681dfc0`); Production deployment `4870054463` is `Ready` (state `success`). Docs + config only — no runtime regression.
+- **Phase B step 2** (self-host Inter Variable): IN PROGRESS in branch `feat/lr-brand-identity-2-step-2-self-host-inter` (this PR). Adds `public/assets/fonts/InterVariable.woff2` (rsms/inter v4.1, OFL-1.1, 344 KB, no italic), `public/assets/fonts/OFL.txt`, `public/assets/fonts/README.md` (provenance + SHA-256s), and a single `@font-face` block in `pages/_document.js` `<Head>` with `font-display: swap`. **No `<link rel="preload">`** — keeps Lux and operator surfaces from fetching a font they do not reference. Live verification: apex `/` and `/lead-rescue` must return `200` and the woff2 must serve `200` with `content-type: font/woff2`.
 - **Phase B step 3** (favicon + apple-touch-icon + og-image via wordmark renderer pipeline): QUEUED — awaits its own gated PR after step 2 lands.
 - **Phase C** (optional SVG mark — `LR-Brand-Identity-3`): NOT AUTHORISED.
 - **Phase D** (optional walkthrough rebrand — `LR-Proof-1 Phase 3`): NOT AUTHORISED.
@@ -16,6 +16,7 @@
 **Decision lineage:**
 - Anton, 2026-05-29 (initial three decisions): "1. proceed with un-branded Phase 2 PR now 2. Yes please [draft this proposal] 3. teal `#2dd4bf`."
 - Anton, 2026-05-29 (Phase B authorisation): "use defaults" — adopting Path A (wordmark only), self-host Inter, replace `brand-config.json` with stub, apply doctrine supersession in the Phase B PR, queue walkthrough rebrand as optional.
+- Anton, 2026-05-30 (post-#270 merge): "#270 merged, proceed with step 2, drop OBS fallback" — authorises Phase B step 2 (self-host Inter Variable as a runtime change) and retires the OBS-on-laptop fallback from `LR_PROOF_2_VIDEO_PIPELINE_PROPOSAL.md` (the Playwright + FFmpeg pipeline now stands as the only approved CorpFlowAI walkthrough video production path).
 
 ---
 
