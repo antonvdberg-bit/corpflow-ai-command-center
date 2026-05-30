@@ -1,8 +1,12 @@
 # LR-Proof-2 — Server-side video generation pipeline (proposal v1)
 
-Status: Proposal only. This document is a design specification for a server-side video generation pipeline that would produce CorpFlowAI marketing assets (starting with the LR-Proof-1 v1 walkthrough) without requiring a human at a desktop running OBS Studio. Approval of this proposal authorises a separate **build packet** to write the runtime code; this proposal itself adds no runtime, no dependencies, no workflow files, and no video assets.
+> **Status update 2026-05-30 (Anton, Operator Bridge `#249`): the OBS-on-laptop fallback path is RETIRED.** The Playwright + FFmpeg server-side pipeline described in this proposal — built and shipped in PR [#263](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/263), repaired in PR [#264](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/264), and used to produce the signed-off `CF-VID-0001` walkthrough integrated into `/lead-rescue` via PR [#266](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/266) — is now the **sole approved CorpFlowAI walkthrough video production path**. Every reference below to "the OBS path remains valid as a fallback" is **superseded** and kept only for historical context. Anton's directive: *"#270 merged, proceed with step 2, drop OBS fallback"*. See § 4 (Decision 4) and § 14 below — both blocks are now historical and **must not** be cited as live decisions in new packets. Going forward, every CorpFlowAI walkthrough is produced through the GitHub Actions pipeline at `.github/workflows/generate-walkthrough-video.yml`; one-off OBS-on-laptop captures are not accepted as production assets.
 
-This proposal is a named alternative path to the OBS-on-laptop approach approved for LR-Proof-1 Phase 1 (the seven choices recorded at Operator Bridge #249 issuecomment-4569335854). The OBS path remains valid as a fallback. This proposal does not invalidate it; it offers a reproducible, off-laptop path that becomes increasingly valuable as the number of marketing videos grows.
+Status: This document was originally framed as proposal-only. Following PR #263/#264 it is the **as-built specification** of the server-side pipeline now in production. The "Status: Proposal only" wording below is preserved for historical authenticity; the runtime described here is real and currently produces CorpFlowAI walkthrough videos.
+
+Original framing (preserved): This document is a design specification for a server-side video generation pipeline that would produce CorpFlowAI marketing assets (starting with the LR-Proof-1 v1 walkthrough) without requiring a human at a desktop running OBS Studio. Approval of this proposal authorises a separate **build packet** to write the runtime code; this proposal itself adds no runtime, no dependencies, no workflow files, and no video assets.
+
+This proposal is a named alternative path to the OBS-on-laptop approach approved for LR-Proof-1 Phase 1 (the seven choices recorded at Operator Bridge #249 issuecomment-4569335854). ~~The OBS path remains valid as a fallback.~~ **(Retired 2026-05-30 — see status block above.)** This proposal does not invalidate it; it offers a reproducible, off-laptop path that becomes increasingly valuable as the number of marketing videos grows.
 
 ## 1. Why now
 
@@ -520,7 +524,7 @@ The seven Phase 1 choices Anton approved at issuecomment-4569335854 stay binding
 - **Decision 1 (demo tenant `demo-lead-rescue-validation`)** — implemented as `data/walkthroughs/_mocks/lead-rescue-v1/`. No real Postgres tenant is provisioned. The runner asserts `mock.real_tenant_used == false`.
 - **Decision 2 (redacted Telegram-style overlay)** — implemented as static HTML/CSS at `data/walkthroughs/_mocks/lead-rescue-v1/overlays/telegram-style.html`. No real Telegram chat id, no real bot, no production Telegram secrets. The runner asserts `mock.real_telegram_used == false`.
 - **Decision 3 (silent + burned-in captions)** — implemented as `audio: "none"` in YAML, FFmpeg `-an`, and per-beat `drawtext` filters. No narration in any form.
-- **Decision 4 (OBS Studio preferred)** — superseded by this proposal *iff* approved. OBS path stays valid as a fallback if Anton or a contractor wants to record a one-off without the pipeline.
+- **Decision 4 (OBS Studio preferred)** — superseded by this proposal (approved and built — PR #263 / #264; first cut signed off and shipped via PR #266). **The OBS-on-laptop fallback was retired on 2026-05-30 (Anton, Operator Bridge `#249`). The Playwright + FFmpeg server-side pipeline is now the sole approved CorpFlowAI walkthrough video production path.** If a one-off ever requires OBS again, that requires an explicit, named exception packet under `delivery-reality.mdc`; it is not a default.
 - **Decision 5 (same-origin hosting later)** — unchanged. The Phase 2 PR commits `.mp4` to `public/assets/video/lead-rescue/`. The pipeline does not commit anything itself.
 - **Decision 6 (production owner = Anton or contractor)** — superseded by *Anton or anyone with workflow-run permission*. Cursor still does not press `Run workflow` autonomously. The trigger is `workflow_dispatch` precisely so the run is operator-initiated.
 - **Decision 7 (Anton alone signs off the final cut)** — unchanged. Anton downloads the artifact, watches the `.mp4`, and posts the `### Operator decision` authorising Phase 2.
@@ -599,6 +603,8 @@ GitHub-hosted Linux minutes are billed at 1x. At even 20 runs per month for firs
 
 ## 14. Comparison to the OBS path (and when each wins)
 
+> **Historical only — the OBS path was retired 2026-05-30** (Anton, Operator Bridge `#249`). This table is preserved as the original proposal framing and as evidence of the decision criteria that were considered before the server pipeline was built and adopted as the sole approved path. **Do not** cite this table as authority for choosing OBS in new packets; the only path now is the server pipeline. If a future scenario genuinely warrants OBS again, raise a named exception packet rather than re-litigating this comparison.
+
 | Scenario | OBS-on-laptop wins | Server pipeline wins |
 |---|---|---|
 | One-off video, you want it produced today, you have OBS already | x |  |
@@ -642,7 +648,7 @@ These are the decisions the build packet's `### Operator decision` will need ans
 
 ## 17. What this proposal does NOT decide
 
-- Does not decide who records the LR-Proof-1 Phase 1 video if Anton chooses to **not** approve the build packet. The OBS-on-laptop path remains valid in that case.
+- ~~Does not decide who records the LR-Proof-1 Phase 1 video if Anton chooses to **not** approve the build packet. The OBS-on-laptop path remains valid in that case.~~ **(Resolved.** The build packet was approved and shipped (PRs #263 / #264 / #266); the OBS fallback was subsequently retired on 2026-05-30 — see status block at top of file.**)**
 - Does not decide the Lead Rescue payment path (still open; recommended default `manual USD invoice first`).
 - Does not decide whether the apex `/` gets a separate walkthrough or shares the lead-rescue one. Future packet.
 - Does not decide whether pre-pilot validation videos count as a substitute for real-client testimonials in the Quality Gate proof score. They do not. Validation video raises Conversion logic, not Proof and trust. (Confirming the LR-Proof-1 plan § 6 stance.)
