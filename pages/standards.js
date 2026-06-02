@@ -140,6 +140,11 @@ export default function StandardsPage() {
             artifact we build (Google Sheets, scripts, configurations) belongs to the client.
             If you choose to step away, you take everything with you.
           </li>
+          <li>
+            <strong style={{ color: '#dbe7f5' }}>No card data on CorpFlowAI servers.</strong>{' '}
+            Card capture, when offered in future, will happen exclusively on the payment provider&rsquo;s hosted
+            page over TLS.
+          </li>
         </ul>
       </section>
 

@@ -9,7 +9,11 @@ export default function RefundPolicyPage() {
         <h2 style={ps.h2}>Payment timing</h2>
         <p style={ps.p}>
           Payment is handled after intake review and scope confirmation. This website does not collect card or banking
-          details.
+          details. All transactions for the AI Lead Rescue launch pilot are processed in USD.
+        </p>
+        <p style={ps.p}>
+          Each successful payment is acknowledged by a PDF invoice issued by CorpFlowAI Ltd recording the invoice
+          number, line item, ticket amount, currency, payment route, and payment-confirmation timestamp.
         </p>
       </section>
       <section style={ps.section}>
