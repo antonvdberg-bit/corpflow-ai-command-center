@@ -41,12 +41,30 @@ export default function TermsPage() {
           You may not use our services for unlawful activity, abusive communications, or attempts to compromise systems.
           We may decline or stop work that creates security, legal, or operational risk.
         </p>
+        <p style={ps.p}>
+          CorpFlowAI services are offered globally for lawful business use. We may decline an engagement if local
+          sanctions, regulatory, or trust-and-safety reasons apply.
+        </p>
+      </section>
+      <section style={ps.section}>
+        <h2 style={ps.h2}>Service fulfilment</h2>
+        <p style={ps.p}>
+          The AI Lead Rescue launch pilot is a digital service. There is no physical shipment. Lead Rescue setup is
+          targeted within 48 hours after payment confirmation and receipt of all required client information. Where
+          additional clarification, access, client input, or scope confirmation is needed, setup will normally be
+          completed within 5 business days unless otherwise agreed.
+        </p>
       </section>
       <section style={ps.section}>
         <h2 style={ps.h2}>Payment</h2>
         <p style={ps.p}>
           Payment is handled after intake review and scope confirmation. This website does not collect card or banking
-          details. Payment instructions are provided through the agreed invoice or payment route.
+          details. Payment instructions are provided through the agreed invoice or payment route. All transactions for
+          the AI Lead Rescue launch pilot are processed in USD.
+        </p>
+        <p style={ps.p}>
+          Each successful payment is acknowledged by a PDF invoice issued by CorpFlowAI Ltd recording the invoice
+          number, line item, ticket amount, currency, payment route, and payment-confirmation timestamp.
         </p>
       </section>
       <section style={ps.section}>
