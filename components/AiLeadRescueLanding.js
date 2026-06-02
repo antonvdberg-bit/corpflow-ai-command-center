@@ -419,6 +419,11 @@ export default function AiLeadRescueLanding({ host = '', leadRescueAssets }) {
           <p style={{ ...styles.muted, fontSize: 13 }}>
             The payment route on the invoice is decided after intake review, not by you on this page.
           </p>
+          <p style={{ ...styles.muted, fontSize: 13 }}>
+            All transactions for the AI Lead Rescue launch pilot are processed in USD. Service questions:{' '}
+            <a href="mailto:support@corpflowai.com" style={{ color: '#7dd3fc' }}>support@corpflowai.com</a>{' '}
+            (acknowledged within two working days).
+          </p>
         </section>
 
         <section id="intake" style={styles.section}>

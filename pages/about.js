@@ -117,6 +117,20 @@ export default function AboutPage() {
       <hr style={ts.divider} />
 
       <section style={ps.section}>
+        <p style={ts.sectionLabel}>Company</p>
+        <h2 style={ps.h2}>CorpFlowAI Ltd</h2>
+        <p style={ps.p}>
+          CorpFlowAI Ltd is a Mauritian-registered company. Registered office: Dextra Lane Lot No. 3 Phase 1,
+          Trou Aux Biches, Mauritius. Business Registration Number: C25228280. Service contact:{' '}
+          <a href="mailto:support@corpflowai.com" style={{ color: '#7dd3fc' }}>support@corpflowai.com</a>
+          {' '}(acknowledged within two working days). All transactions for the AI Lead Rescue launch pilot are
+          processed in USD.
+        </p>
+      </section>
+
+      <hr style={ts.divider} />
+
+      <section style={ps.section}>
         <p style={ts.sectionLabel}>Where to next</p>
         <h2 style={ps.h2}>If you want to dig further</h2>
         <p style={ps.p}>

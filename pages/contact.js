@@ -28,6 +28,19 @@ export default function ContactPage() {
           Existing clients with portal access may use <Link href="/login" style={{ color: '#7dd3fc' }}>client login</Link>.
         </p>
       </section>
+      <section style={ps.section}>
+        <h2 style={ps.h2}>Customer support and complaints</h2>
+        <p style={ps.p}>
+          For service support, write to{' '}
+          <a href="mailto:support@corpflowai.com" style={{ color: '#7dd3fc' }}>support@corpflowai.com</a>. We
+          acknowledge messages within two working days for routine queries and within one business day during
+          active pilot windows. Complaints are acknowledged in writing within two working days and answered
+          with either a resolution, a partial refund where applicable under our{' '}
+          <Link href="/refund-policy" style={{ color: '#7dd3fc' }}>refund and cancellation policy</Link>, or a
+          written explanation. If a complaint is not resolved at the support level, you may request founder
+          review by replying to the same thread.
+        </p>
+      </section>
     </PublicPolicyLayout>
   );
 }

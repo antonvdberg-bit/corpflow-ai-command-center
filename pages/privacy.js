@@ -33,6 +33,14 @@ export default function PrivacyPage() {
         <p style={ps.p}>We do not sell personal data. We do not collect card or banking details through this public website.</p>
       </section>
       <section style={ps.section}>
+        <h2 style={ps.h2}>Payment-card transmission</h2>
+        <p style={ps.p}>
+          This website does not capture, transmit, or store card data. When CorpFlowAI offers a hosted payment-link or
+          hosted-checkout option in future, card details will be entered on the payment provider&rsquo;s hosted page
+          over TLS. Card details are never transmitted to or stored on CorpFlowAI servers.
+        </p>
+      </section>
+      <section style={ps.section}>
         <h2 style={ps.h2}>Retention and updates</h2>
         <p style={ps.p}>
           We retain information for as long as needed to deliver services, meet reasonable business records needs, and

@@ -49,6 +49,11 @@ export default function PublicSiteFooter({ extra }) {
         </Link>
       </div>
       <div style={{ marginTop: 12 }}>
+        CorpFlowAI Ltd · Dextra Lane Lot No. 3 Phase 1, Trou Aux Biches, Mauritius · BRN C25228280 · Service questions:{' '}
+        <a href="mailto:support@corpflowai.com" style={linkStyle}>support@corpflowai.com</a>{' '}
+        (acknowledged within two working days). All transactions for the AI Lead Rescue launch pilot are processed in USD.
+      </div>
+      <div style={{ marginTop: 12 }}>
         This website provides general service information. Final terms may be confirmed in the applicable invoice or
         service agreement. We do not guarantee new revenue. Results vary by business and lead volume. This is not legal,
         tax, or accounting advice.
