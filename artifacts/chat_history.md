@@ -28,6 +28,42 @@
 
 ---
 
+## 2026-06-03 — ERPNext Phase D Accountant Pack v1 (docs-only)
+
+<!-- ERPNEXT_ACCOUNTANT_REVIEW_PACK_V1_HIST -->
+
+**Status:** Review-pack artefact, **docs-only**. No production ERPNext changes; no edits to the ERPNext sandbox state on `corpflow-exec-01-u69678`; no secrets / API keys / OAuth tokens / DB credentials present; no real bank account number / SWIFT / BIC / IBAN / routing in repo (only the public bank name *State Bank of Mauritius* and account-class names like "Mauritius Domestic Bank — Main"); no edits to `api/` / `lib/` / `components/` / `pages/` / `prisma/` / runtime files; no DNS / mail-routing / Telegram / Plausible / Search Console / payment-settings / GitHub-workflow-files / Vercel-project-settings touched; no pricing / offer / page-copy changes on customer-facing surfaces. Recorded as `JE-2026-06-03-3`. Anton's DECISION on Operator Bridge [#249](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/249) (2026-06-03 *"AUTHORISE — ERPNext-Phase-D-Accountant-Pack-1"*) authorised this packet.
+
+**What this packet adds:** new doc `docs/finance/ERPNEXT_ACCOUNTANT_REVIEW_PACK_V1.md` — a self-contained review pack a Mauritius-licensed accountant can read end-to-end and respond to with the written sign-off needed to close HB-2 (CoA review) and HB-3 (VAT decision) per `ERPNEXT_PRODUCTION_READINESS_EVALUATION.md` § 7. **14 sections covering all 10 items Anton's DECISION listed:** (1) draft Chart of Accounts in § 1, (2) AI Lead Rescue item / revenue treatment in § 2, (3) USD invoice / MUR bank receipt flow in § 3, (4) FX gain/loss treatment in § 4, (5) VAT posture in § 5, (6) pro-forma vs Sales Invoice in § 6, (7) recurring monthly service in § 7, (8) bank reconciliation assumptions in § 8, (9) **32 specific written questions** for the accountant in § 9 (Q-CoA-1..5, Q-Rev-1..3, Q-Flow-1..3, Q-FX-1..3, Q-VAT-1..7, Q-Doc-1..4, Q-Recur-1..3, Q-Bank-1..4), (10) **sign-off checklist** in § 10 with three sub-tables — § 10.1 HB-2 closure (5 items), § 10.2 HB-3 closure (4 items), § 10.3 advisory non-blocking (2 items), § 10.4 four-step CorpFlowAI commitments post-sign-off.
+
+**Public seller identity included for the accountant's reference (already on live page per `JE-2026-06-02-4 PAY-SBM-2`):** legal name `CorpFlowAI Ltd`, BRN `C25228280`, registered office `Dextra Lane Lot No. 3 Phase 1, Trou Aux Biches, Mauritius`, support email `support@corpflowai.com`, public domain `corpflowai.com`, customer-facing offer page `https://corpflowai.com/lead-rescue`, currency posture USD-denominated invoices to all customers worldwide for v1 per `JE-2026-05-28-1`, operating bank State Bank of Mauritius (MUR base + USD multi-currency).
+
+**W1–W5 verbatim wording preserved character-for-character** from `LR-Manual-Invoice-Template-V1` § 1 and the live page (`/terms`, `/refund-policy`, `/contact`): W1 *"Payment instructions are sent separately after intake approval."*, W2 *"Setup begins after payment confirmation and receipt of required client information."*, W3 *"Lead Rescue setup is targeted within 48 hours after payment confirmation and receipt of all required client information. Where additional clarification, access, client input, or scope confirmation is needed, setup will normally be completed within 5 business days unless otherwise agreed."*, W4 *"No revenue, lead volume, or conversion outcome is guaranteed."*, W5 *"VAT/tax treatment pending accountant confirmation."* — these are reproduced in § 6.1 of the pack so the accountant sees the exact wording they are being asked to confirm or amend in Q-Doc-3.
+
+**Cursor's recommendations the accountant is asked to confirm or amend (none are pre-approved):**
+
+- ERPNext document-type **Path A (Quotation; PDF retitled to *"Pro-forma invoice"*)** preferred over Path B (Sales Invoice Draft) — § 6.2 (Q-Doc-2).
+- **Realisation-only FX policy** (no month-end mark-to-market on USD receivables) for v1 on materiality grounds — § 4.2 (Q-FX-1).
+- **`Foreign Exchange Gain` and `Foreign Exchange Loss` as separate accounts** (cleaner P&L) preferred over single dual-purpose ERPNext stock account — § 1.1 + § 4.2 (Q-CoA-4 + Q-FX-3).
+- **Single `Service Revenue — Lead Rescue Setup`** account preferred over granular sub-accounts on simplicity grounds — § 1.3 (Q-CoA-2).
+- **Subprocessor costs absorbed** as operating expense (cleaner; no per-invoice line item) preferred over recharged — § 2.3 (Q-Rev-3).
+- **Monthly close within 5 business days of month-end** preferred cadence for a small trading company with 1–10 invoices/month — § 8.3 (Q-Bank-1).
+- **MUR 0.01 closing-balance tolerance** and **> 5% manual journals = no-go signal** — § 8.3 (Q-Bank-2).
+- **7-year retention** for bank statement evidence (Mauritian standard practice) — § 8.3 (Q-Bank-4).
+- **Re-evaluation trigger MUR 100,000/month** (pre-warning, well below the threshold the accountant identifies) — § 5.3 (Q-VAT-7).
+
+**Honest limits acknowledged in § 11:** no PDF rendered from the ERPNext sandbox during Phase C (sandbox arithmetic verified in-database; PDF render path documented but not exercised — `ERPNext-PDF-Smoke-1` is a separate forward packet); no real bank-account/SWIFT/IBAN in repo; no production ERPNext instance exists at the time of writing; Phase C numbers are sandbox-illustrative; Mauritius VAT specifics deliberately not pinned to numbers (must come from the accountant); recurring monthly service is forward-looking CAN-DEFER; **Phase D is not initiated by this pack** — closing HB-2 + HB-3 unblocks two of four hard blockers, but HB-4 (redacted bank CSV reconciliation) and HB-1 (Phase D operator-approval row) remain open.
+
+**Hard limits honoured by THIS packet:** zero edits to ERPNext production (no production instance exists yet); zero edits to ERPNext sandbox state on `corpflow-exec-01-u69678`; zero secrets / API keys / OAuth tokens / DB credentials present; zero real bank account number / SWIFT / BIC / IBAN / routing detail in repo; zero edits to `api/` / `lib/` / `prisma/` / `middleware*` / `scripts/` / `components/` / `pages/` / `public/` / `.github/` / `node-tests/` / `tests/` / `core/engine/` / `.env*` / `vercel.json` / `next.config*` / `package*.json` / `tsconfig*`; zero DNS / mail-routing / Telegram / Plausible / Search Console / payment-settings / GitHub-workflow-files / Vercel-project-settings touched; zero pricing / offer / page-copy changes on customer-facing surfaces. **No new operational hold introduced.** Phase D start gate (`JE-2026-05-29-1`) is unchanged; HB-1/HB-2/HB-3/HB-4 are unchanged in their open state until separately closed.
+
+**ANTON TO-DO (after merge):**
+
+1. Review and `MERGE` PR (number assigned at PR open).
+2. Identify and engage a Mauritius-licensed accountant. Send them this pack as the brief; the accountant does not need to read any other repo file to provide written sign-off (every fact this pack relies on is reproduced inline).
+3. Receive the accountant's signed § 10 checklist back. If § 10.1 + § 10.2 are all ✓, the closure `JOURNAL.md` row template in § 5.4 of the pack is the recording action — once recorded, **HB-2 + HB-3 close**, leaving HB-4 (redacted bank CSV cycle) and HB-1 (Phase D operator-approval row) as the remaining two hard blockers.
+4. If the accountant amends § 10.1 + § 10.2, the amendments incorporate into a follow-up packet `ERPNEXT_ACCOUNTANT_REVIEW_PACK_V1.1` before any production setup work begins.
+
+**Standing holds (unchanged):** Phase D not initiated · Phase C² · runbook §8.1 · production ERPNext · scheduler · payment gateway configuration · Lead Rescue wording adoption · SBM application submission · PAY-SBM-3 · NDA / MCIB · Freshdesk activation · `support.corpflowai.com` CNAME · DKIM/SPF · live-chat · AI chatbot · n8n migration · public site-copy adding portal URL · Pomelli activation · `JE-2026-06-02-4` ID collision (declared in PR #287 DRA, accepted, no fix this packet) · HB-1 / HB-2 / HB-3 / HB-4 (the four hard blockers from `JE-2026-06-03-2` § 7).
 ## 2026-06-03 — Cold-Sprint-V1-Tracking — Lead Rescue Plausible custom-event baseline (4 events, runtime PR)
 
 <!-- COLD_SPRINT_V1_TRACKING_HIST -->
