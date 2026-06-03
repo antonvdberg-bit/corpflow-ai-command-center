@@ -162,6 +162,9 @@ Phase D · Phase C² · runbook §8.1 · production ERPNext · scheduler · paym
 4. If the accountant amends § 10.1 + § 10.2, the amendments incorporate into a follow-up packet `ERPNEXT_ACCOUNTANT_REVIEW_PACK_V1.1` before any production setup work begins.
 
 **Standing holds (unchanged):** Phase D not initiated · Phase C² · runbook §8.1 · production ERPNext · scheduler · payment gateway configuration · Lead Rescue wording adoption · SBM application submission · PAY-SBM-3 · NDA / MCIB · Freshdesk activation · `support.corpflowai.com` CNAME · DKIM/SPF · live-chat · AI chatbot · n8n migration · public site-copy adding portal URL · Pomelli activation · `JE-2026-06-02-4` ID collision (declared in PR #287 DRA, accepted, no fix this packet) · HB-1 / HB-2 / HB-3 / HB-4 (the four hard blockers from `JE-2026-06-03-2` § 7).
+
+**Follow-up PR #294 (merged 2026-06-03 `57c7e999`):** small docs-only addition of `§ 0.0 — One-page summary (start here)` to the top of `docs/finance/ERPNEXT_ACCOUNTANT_REVIEW_PACK_V1.md`. Single file, +25 / −0; 13-row glance table cross-referencing every supporting section, closing with *"If you read nothing else, read § 1 (CoA), § 5 (VAT), and § 10 (sign-off checklist)."* No new facts; every claim points back to an existing § in the merged pack. Anton's DECISION on Bridge [#249](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/249) (2026-06-03 *"AUTHORISE — ERPNext-Accountant-Pack-1"*) authorised this follow-up. Hard limits identical to PR #292 — no secrets, no real bank account number / SWIFT / BIC / IBAN, no runtime change, no production change, no sandbox mutation. Branch deleted post-merge.
+
 ## 2026-06-03 — Cold-Sprint-V1-Tracking — Lead Rescue Plausible custom-event baseline (4 events, runtime PR)
 
 <!-- COLD_SPRINT_V1_TRACKING_HIST -->
