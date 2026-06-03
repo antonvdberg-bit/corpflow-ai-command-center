@@ -28,6 +28,49 @@
 
 ---
 
+## 2026-06-02 — LR-Manual-Invoice-Template-1 (docs/template-only)
+
+<!-- LR_MANUAL_INVOICE_TEMPLATE_V1_HIST -->
+
+**Status:** Docs/template-only artefact. No runtime code, public page copy, payment configuration, ERPNext production setting, env var, secret, DNS record, Vercel config, GitHub setting, or DB schema is changed by this packet. Recorded as `JE-2026-06-02-7` (slots 1–6 taken earlier the same day by `LR-Pay-1` PR #281, `LR-Mauritius-Outreach-Copy-1` PR #282, `PAY-SBM-1` PR #283, `PAY-SBM-2` PR #284, `Support-Feasibility-V1` PR #285, `SUPPORT-1` PR #286; the intake-to-invoice workflow audit in PR #287 took a duplicate `JE-2026-06-02-4` slot in the merged file — pre-existing collision left untouched by this packet). Anton's DECISION on Operator Bridge [#249](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/249) (comment `4598889042`, *"AUTHORISE — LR-Manual-Invoice-Template-1"*) authorised this docs/template-only packet.
+
+**What this packet adds:** new doc `docs/finance/AI_LEAD_RESCUE_MANUAL_PRO_FORMA_TEMPLATE_V1.md` (13 sections covering hard limits + sensitive-data exclusion, five required verbatim sentences W1–W5, repo-safe markdown template, 8 required placeholders, single-offer line-item rule, 10-step local-PDF operator instructions including the two-email pro-forma + payment-instructions design, coexistence matrix with 9 merged surfaces, 12-row verification rubric, standing-holds summary, 8 open questions Q1–Q8 with Cursor defaults, 7-step ANTON TO-DO, cross-references, change-log) plus this JOURNAL row plus this chat-history entry.
+
+**Verbatim required wording (W1–W5):**
+- W1 *"Payment instructions are sent separately after intake approval."*
+- W2 *"Setup begins after payment confirmation and receipt of required client information."*
+- W3 *"Lead Rescue setup is targeted within 48 hours after payment confirmation and receipt of all required client information. Where additional clarification, access, client input, or scope confirmation is needed, setup will normally be completed within 5 business days unless otherwise agreed."*
+- W4 *"No revenue, lead volume, or conversion outcome is guaranteed."*
+- W5 *"VAT/tax treatment pending accountant confirmation."*
+
+All five mirror the merged PAY-SBM-2 (`0fd9312b`) live page copy verbatim (terms, refund-policy, contact, public-site-footer, lead-rescue landing).
+
+**Required safe placeholders (8 of 8):** `[INVOICE_NUMBER]` / `[ISSUE_DATE]` / `[VALID_UNTIL]` / `[CLIENT_LEGAL_NAME]` / `[CLIENT_EMAIL]` / `[CLIENT_ADDRESS_OPTIONAL]` / `[CORPFLOWAI_APPROVED_PAYMENT_INSTRUCTIONS_SENT_SEPARATELY]` / `[TAX/VAT_STATUS_PENDING_ACCOUNTANT_CONFIRMATION]`. All eight literally present in the § 2 template.
+
+**Single line item (single-offer rule):** *"AI Lead Rescue Setup — USD 150 launch pilot"* at USD 150.00 — locked by `JE-2026-05-28-1`. No second tier, no recurring component, no setup/onboarding/monitoring/discount/surcharge line.
+
+**Two-email design rationale:** The pro-forma itself carries no payment URL / link / button / QR / acquirer details. After intake approval, Anton sends a separate payment-instructions email from `support@corpflowai.com` with the actual SBM / Wise / Peach / SBM-MUR-transfer / SBM-USD-transfer details. Benefits: (a) reduces leakage if pro-forma is forwarded; (b) lets route be decided per-client; (c) matches the merged PAY-SBM-2 live wording *"This website does not collect card or banking details"*.
+
+**Public details mirrored on the template (already public via PAY-SBM-2):** `CorpFlowAI Ltd`, `Dextra Lane Lot No. 3 Phase 1, Trou Aux Biches, Mauritius`, `BRN C25228280`, `support@corpflowai.com`.
+
+**Hard limits honoured:** zero real banking details (no account / SWIFT / BIC / IBAN / routing / sort-code / branch-code); zero payment links (no PayPal / Wise / SBM / Peach / Stripe / acquirer hosted-checkout URL); zero personal phone / identity / KYC data; zero signed documents (NDA / MCIB / merchant pre-screening / business-continuity-plan); zero customer-specific data; zero live-payment-gateway claims (no *"SBM gateway is live"*, no *"Pay now"*, no *"online card payment available"*, no *"instant checkout"*); zero revenue / lead-volume / conversion guarantees; zero API keys / OAuth tokens / n8n secrets / Vercel env / GitHub Secrets / Prisma credentials / production-DB connection strings; zero edits to `api/` / `lib/` / `prisma/` / `middleware*` / `scripts/` / `components/` / `pages/` / `public/` / `.github/` / `node-tests/` / `tests/` / `core/engine/` / `.env*` / `vercel.json` / `next.config*` / `package*.json` / `tsconfig*`; zero ERPNext production / scheduler / payment-gateway-configuration / DNS / mail-routing / env-vars / Telegram / Plausible / Search Console / payment-settings / GitHub-workflow-files / Vercel-project-settings touched.
+
+**Standing holds (unchanged):** Phase D · Phase C² · runbook §8.1 hardening · production ERPNext · scheduler · payment gateway configuration · Lead Rescue wording adoption · SBM application submission · PAY-SBM-3 · NDA / MCIB signing · Freshdesk account creation · trial · paid plan · `support` CNAME · DKIM/SPF · live-chat · AI chatbot · n8n migration · public site-copy adding portal URL.
+
+**New holds introduced by this packet:** none. Template artefact only — no operational hold needed.
+
+**ANTON TO-DO when issuing the first real pro-forma:**
+1. Decide Q1–Q8 from § 10 (or accept defaults: `CF-PF-2026-NNNN` numbering, 14-day validity, client address line included if known, literal *"Pending accountant confirmation"* tax line, top-left logo, single pro-forma per client v1, English only, 7-year local retention).
+2. Confirm with accountant Mauritius VAT applicability for MU/SA/USA/AU/EU business customers.
+3. Build the first PDF locally in Word / Pages / Google Docs from `docs/finance/AI_LEAD_RESCUE_MANUAL_PRO_FORMA_TEMPLATE_V1.md` § 5.
+4. Send pro-forma + separate payment-instructions email from `support@corpflowai.com`.
+5. Record reference locally (suggested layout: `~/CorpFlowAI/pro-formas/2026/CF-PF-2026-NNNN.{docx,pdf}`).
+6. Request a small template-revision PR (`LR-Manual-Invoice-Template-V1.1`) only after 3 real pro-formas have been issued and the wording needs refinement based on real client feedback — Cursor will act on an explicit DECISION only.
+
+**Verdict per `.cursor/rules/delivery-reality.mdc` § docs-only:** **COMPLETE** at PR merge (no customer-visible URL to probe by design — the template is operator-internal documentation; the Friday operator workflow it supports will be exercised locally by Anton when issuing the first real pro-forma to a Mauritius warm-network client and recorded in a follow-up STATUS report on Bridge #249).
+
+---
+
 ## 2026-06-02 — AI Lead Rescue intake-to-invoice operator workflow audit (docs-only)
 
 <!-- AI_LEAD_RESCUE_INVOICE_WORKFLOW_AUDIT_V1_HIST -->
