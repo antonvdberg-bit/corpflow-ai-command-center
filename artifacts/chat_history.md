@@ -28,6 +28,32 @@
 
 ---
 
+## 2026-06-03 — ERPNext Phase D Production Readiness Evaluation (docs-only)
+
+<!-- ERPNEXT_PRODUCTION_READINESS_EVALUATION_V1_HIST -->
+
+**Status:** Evaluation artefact, **docs-only**. No production ERPNext changes; no edits to the ERPNext sandbox state on `corpflow-exec-01-u69678`; no secrets / API keys / OAuth tokens / DB credentials present; no real bank details (only public Anton-approved values quoted); no edits to `api/` / `lib/` / `components/` / `pages/` / `prisma/` / runtime files; no DNS / mail-routing / Telegram / Plausible / Search Console / payment-settings / GitHub-workflow-files / Vercel-project-settings touched; no pricing / offer / page-copy changes on customer-facing surfaces. Recorded as `JE-2026-06-03-2`. Anton's DECISION on Operator Bridge [#249](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/249) (2026-06-03 *"APPROVED — open ERPNext Phase D Production Readiness Evaluation"*) authorised this packet, parallel to and explicitly separated from the Pomelli marketing-sprint workstream (`JE-2026-06-03-1`).
+
+**What this packet adds:** new doc `docs/finance/ERPNEXT_PRODUCTION_READINESS_EVALUATION.md` (14 sections covering hard limits, executive verdict at top, ERPNext capability Q1, current sandbox state Q2, 18-item production setup checklist Q3, accountant control Q4, 11-step intake-to-invoice workflow Q5, go/no-go verdict Q6 with 4 HARD-BLOCKERS + 9 MUST + 6 SHOULD + 7 CAN-DEFER itemised, 7 open questions Q-A through Q-G with Cursor defaults, honest limits, standing holds, hard-limits-honoured, cross-references to 11 sibling docs + 11 decision rows, 8 recommended next packets, verdict per delivery-reality.mdc) plus this JOURNAL row plus this chat-history entry.
+
+**Top-line verdict (§ 1 of new doc):** **NO-GO today** for using ERPNext production to generate the first real CorpFlowAI AI Lead Rescue pro-forma invoice. Four HARD BLOCKERS open: HB-1 Phase D operator-approval row not authorised (`JE-2026-05-29-1` requires fresh authorisation), HB-2 Mauritius-licensed accountant CoA review pending, HB-3 VAT decision pending accountant, HB-4 redacted MU bank CSV reconciliation cycle not yet exercised (Phase C cycle 3 was synthetic 3-line CSV only). The production instance does not exist; the Print Format / Letter Head / Company doctype are unfilled. **The manual-PDF path documented in `LR-Manual-Invoice-Template-V1` (PR #288, `JE-2026-06-02-7`) is the correct mechanism for the first 1–3 paying pilots.** **CONDITIONAL GO 4–6 weeks out** dependent on accountant turnaround, **GO for first submitted Sales Invoice 8–10 weeks out** after one month of real bank reconciliation data validates the workflow.
+
+**Recommended sequencing:** Friday launch + first paying pilot uses manual PDF → Week 2-4 Anton engages Mauritius-licensed accountant to close HB-2 + HB-3 + Anton exports redacted SBM bank CSV → Cursor imports + reconciles to close HB-4 → Anton writes Phase D authorisation row to close HB-1 → Week 4-6 Cursor executes the 9 MUST items M-1 through M-9 (≈ 6-8 working days) under Phase D approval → Week 6-10 second paying pilot uses ERPNext Quotation + Sales Invoice; the 6 SHOULD items S-1 through S-6 close in parallel during the first month of real receipts.
+
+**Cutover model = parallel install, not promotion.** Sandbox stays as the test bed (or torn down per `ERPNEXT_SANDBOX_INSTALL.md` § 15) alongside a fresh production install. No sandbox transactional data crosses to production. Production Company is `CorpFlowAI Ltd` (not `CorpFlowAI Sandbox`); production Item is `LR-SETUP-USD-150` (no `SBX-` prefix); production CoA is built fresh per `ERPNEXT_SANDBOX_PLAN_V1.md` § 2.1 + accountant review; production user / role mapping clones the sandbox custom `Accountant Read-Only` Role + 9 DocPerm rows from `JE-2026-06-01-5`.
+
+**Hard limits honoured by THIS packet:** zero edits to ERPNext production (no production instance exists yet); zero edits to ERPNext sandbox state on `corpflow-exec-01-u69678`; zero secrets / API keys / OAuth tokens / DB credentials; zero real bank account number / SWIFT / BIC / IBAN / routing / sort-code / branch-code / payment links / personal phone / signed forms / customer data; zero live-payment-gateway claims; zero revenue / lead-volume / conversion guarantees; zero edits to `api/` / `lib/` / `prisma/` / `middleware*` / `scripts/` / `components/` / `pages/` / `public/` / `.github/` / `node-tests/` / `tests/` / `core/engine/` / `.env*` / `vercel.json` / `next.config*` / `package*.json` / `tsconfig*`; zero DNS / mail-routing / Telegram / Plausible / Search Console / payment-settings / GitHub-workflow-files / Vercel-project-settings touched; zero pricing / offer / page-copy changes on customer-facing surfaces. Public Anton-approved values (`CorpFlowAI Ltd`, BRN `C25228280`, registered office `Dextra Lane Lot No. 3 Phase 1, Trou Aux Biches, Mauritius`, support email `support@corpflowai.com` per `JE-2026-06-02-4 PAY-SBM-2`) are quoted verbatim where they appear on live customer-facing surfaces. **No new operational hold introduced.** Phase D start gate (`JE-2026-05-29-1`) is unchanged.
+
+**ANTON TO-DO (after merge):**
+
+1. Review and `MERGE` PR (number assigned at PR open).
+2. When ready to start closing the 4 HARD BLOCKERS, the recommended sequence is: open `LR-Accountant-Engage-1` (closes HB-2 + HB-3 via accountant engagement) → open `ERPNext-Bank-CSV-Test-1` (closes HB-4 once redacted SBM CSV is available) → record Phase D authorisation row to close HB-1.
+3. Phase D production install (`ERPNext-Production-Setup-1` covering M-1..M-9) is a **separate** packet that opens only after the four HARD BLOCKERS close; it is explicitly NOT authorised by this evaluation.
+
+**Standing holds (unchanged):** Phase D not initiated · Phase C² · runbook §8.1 · production ERPNext · scheduler · payment gateway configuration · Lead Rescue wording adoption · SBM application submission · PAY-SBM-3 · NDA / MCIB · Freshdesk activation · `support.corpflowai.com` CNAME · DKIM/SPF · live-chat · AI chatbot · n8n migration · public site-copy adding portal URL · Pomelli activation · `JE-2026-06-02-4` ID collision (declared in PR #287 DRA, accepted, no fix this packet).
+
+---
+
 ## 2026-06-03 — Pomelli / AI Lead Rescue Mauritius Cold-Market Marketing Sprint v1 (research + proposal, docs-only)
 
 <!-- POMELLI_LEAD_RESCUE_MAURITIUS_SPRINT_V1_HIST -->
