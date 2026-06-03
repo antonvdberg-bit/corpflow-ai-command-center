@@ -220,7 +220,7 @@ export default function AiLeadRescueLanding({ host = '', leadRescueAssets }) {
             href="#intake"
             className="lr-cta-secondary"
             onClick={() => trackEvent('lr_primary_cta_click', { props: { location: 'nav' } })}
-          >Start the 48-hour setup</a>
+          >Start my 48-hour setup</a>
         </nav>
 
         <section style={styles.hero}>
@@ -228,7 +228,10 @@ export default function AiLeadRescueLanding({ host = '', leadRescueAssets }) {
             <span style={styles.badge}>USD 150 launch pilot · 48-hour setup · no card on this page</span>
             <h1 style={styles.h1}>Stop losing leads because follow-up is too slow.</h1>
             <p style={styles.lead}>
-              AI Lead Rescue captures new enquiries, alerts the owner or operator, logs every lead, and surfaces follow-ups daily — without rebuilding your website or forcing a CRM migration.
+              WhatsApp messages you missed. Website enquiries with no reply. Facebook DMs that slipped past. That is the gap — AI Lead Rescue captures new enquiries, alerts the owner or operator, logs every lead, and surfaces follow-ups daily, without rebuilding your website or forcing a CRM migration.
+            </p>
+            <p style={{ marginTop: 14, fontSize: 14, color: '#9fb2c8', maxWidth: 760 }}>
+              Built by a Mauritius-based operating-systems team.
             </p>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 24 }}>
               <a
