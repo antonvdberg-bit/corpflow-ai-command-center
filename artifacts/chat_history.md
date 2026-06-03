@@ -28,6 +28,73 @@
 
 ---
 
+## 2026-06-03 — Cold-Sprint-V1-Copy — minimal `/lead-rescue` hero copy improvements for cold Mauritian prospects (runtime PR)
+
+<!-- COLD_SPRINT_V1_COPY_HIST -->
+
+**Status:** Small runtime PR landing the smallest safe `/lead-rescue` hero copy improvements now that Plausible custom-event tracking is live (verified post-PR #293: four events firing on apex, zero on Lux negative control). **No backend changes.** No new env var names. No pricing / payment / form-field / ERPNext / Pomelli / route / asset / API / DB change. Three edits to one file (`components/AiLeadRescueLanding.js`). Recorded as `JE-2026-06-03-5`. Anton's chat DECISION (2026-06-03 *"AUTHORISE — Cold-Sprint-V1-Copy"*) authorised this packet.
+
+### The brief (decoded)
+
+Anton's brief asks for the smallest safe copy edits so cold Mauritian prospects answer *"Am I losing customers who already tried to contact me?"* in the first five seconds — leading with missed-enquiry channels (WhatsApp / website forms / Facebook DMs / follow-up gaps) instead of the generic *"AI Lead Rescue captures..."* phrasing, improving CTA wording, keeping USD 150 / no-card / invoiced-after-review / no-guarantee posture intact, and adding a Mauritius trust line only if it is doctrine-safe and not overclaiming.
+
+### What this packet changes (3 edits, 1 file)
+
+1. **Nav CTA wording aligned to doctrine.** Nav anchor changed from *"Start the 48-hour setup"* to *"Start my 48-hour setup"* — removing the the/my drift between nav and hero so the doctrine-canonical *"Preferred global CTA: Start my 48-hour setup"* (`docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md` § AI Lead Rescue doctrine) appears verbatim in three places: nav + hero primary + intake-form button. SSG output verifies *"Start my 48-hour setup"* count = 3, *"Start the 48-hour setup"* count = 0.
+2. **Hero subheadline leads with missed-enquiry channels.** The subheadline (`<p style={styles.lead}>` ~line 230) now reads *"WhatsApp messages you missed. Website enquiries with no reply. Facebook DMs that slipped past. That is the gap — AI Lead Rescue captures new enquiries, alerts the owner or operator, logs every lead, and surfaces follow-ups daily, without rebuilding your website or forcing a CRM migration."* The doctrine-canonical product description is preserved verbatim after the three short buyer-pain fragments.
+3. **Mauritius HQ-fact trust line.** New `<p>` between subheadline and CTA buttons (~line 234): *"Built by a Mauritius-based operating-systems team."* — the wording pre-vetted in `POMELLI_LEAD_RESCUE_MAURITIUS_SPRINT_V1.md` § 4 P-1 as a doctrine-safe HQ fact (not a clientele claim, not a revenue claim).
+
+### What this packet does NOT change (deliberate scope tightening)
+
+- H1 *"Stop losing leads because follow-up is too slow."* unchanged — verbatim doctrine-canonical.
+- Hero primary CTA *"Start my 48-hour setup"* unchanged — verbatim doctrine-canonical.
+- Hero secondary CTA *"See how it works"* unchanged — verbatim doctrine-canonical.
+- Required no-guarantee copy *"We do not guarantee new revenue. We help make sure existing enquiries are captured, visible, and followed up."* unchanged.
+- Required payment trust copy *"Payment is handled after intake review. You do not enter card or banking details on this page."* unchanged.
+- USD 150 launch pilot wording, single-offer rule (`JE-2026-05-28-1`), USD-only narrative posture (`JE-2026-05-28-3`) all preserved verbatim.
+- All three `trackEvent` call sites + the two inside `submitLead` are byte-for-byte unchanged — only the visible button/link text was edited; `onClick` props, `href` targets, `className`, and the form handler are untouched. PR #291 + PR #293 tracking contract preserved exactly.
+- Form structure, video, asset manifests, payment-route section, intake API payload shape, refund / terms / contact pages, footer — all untouched.
+
+### Coverage of Pomelli sprint § 8 PR-B (Cold-Sprint-V1-Copy)
+
+P-1 (Mauritius HQ-fact trust line) **shipped**. P-3 (re-style *"See how it works"* as tertiary text-link), P-6 (refund-link inline in intake form), P-11 (OG/Twitter description Mauritius hook), P-12 (hero badge wrap CSS) **deferred** to follow-up PRs by deliberate scope tightening — not in Anton's first-5-seconds brief. The hero-subheadline channels-first rewrite is broader than the P-1..P-12 list narrowly enumerated; it implements the *"Lead with missed enquiries, WhatsApp, website forms, social DMs, and follow-up gaps"* directive in Anton's brief and is consistent with Pomelli sprint § 3 G1 finding (no specific buyer-pain channels named in the hero).
+
+### Verification
+
+- `npm test` `448/448` pass (no test changes — copy edits don't touch any test fixture or assertion).
+- `npm run build` clean (`/lead-rescue` SSG rebuilt at 800ms with no warnings; route still SSG `●`).
+- `npm run check:marketing-quality-gate` PASS (six doctrine docs present, marker terms intact).
+- `ReadLints` no errors on `components/AiLeadRescueLanding.js`.
+- SSG output (`.next/server/pages/lead-rescue.html`) inspected: H1 *"Stop losing leads because follow-up is too slow"* present; all three new buyer-pain fragments present (*"WhatsApp messages you missed"*, *"Website enquiries with no reply"*, *"Facebook DMs that slipped past"*); Mauritius line present; *"Start my 48-hour setup"* count = 3 (nav + hero + intake button); *"Start the 48-hour setup"* count = 0 (drift removed); USD 150 launch pilot present; *"no card on this page"* present; no-guarantee copy intact.
+- Client bundle (`.next/static/chunks/0wdk306s_e0xh.js`) confirmed to include `lr_primary_cta_click`, *"Mauritius-based operating-systems"*, *"WhatsApp messages you missed"*, *"Start my 48-hour"*.
+
+### Verdict per `.cursor/rules/delivery-reality.mdc`
+
+**PARTIAL** at PR merge — local + CI checks GREEN; live verification (post-deploy) requires:
+
+1. `corpflowai.com/lead-rescue` HTML contains the three new buyer-pain fragments + Mauritius trust line + nav CTA *"Start my 48-hour setup"* + zero *"Start the 48-hour setup"* drift.
+2. The four PR #291 Plausible events still fire on apex post-deploy (sanity that this packet's copy edits did not silently break the existing onClick handlers).
+3. Lux + Core + preview negative control still no-Plausible (sanity that PR #293 host-gated loader still denies).
+
+Verdict flips to **COMPLETE** in the PR closure DRA on Bridge `#249` once these three checks are recorded.
+
+### ANTON TO-DO (after merge)
+
+1. Wait for Vercel Production `READY` on the merge commit.
+2. Open `https://corpflowai.com/lead-rescue` — confirm hero now reads *"WhatsApp messages you missed. Website enquiries with no reply. Facebook DMs that slipped past. That is the gap — ..."* and the small line *"Built by a Mauritius-based operating-systems team."* sits between the subheadline and the CTA buttons.
+3. Click the **nav** *"Start my 48-hour setup"* CTA — confirm Plausible Custom Events shows `lr_primary_cta_click` with `location:nav`.
+4. Click the **hero** primary *"Start my 48-hour setup"* CTA — confirm `lr_primary_cta_click` with `location:hero`.
+5. Click the **hero secondary** *"See how it works"* — confirm `lr_secondary_cta_click`.
+6. Submit one sandbox/test intake — confirm both `lr_intake_submit_attempt` and `lr_intake_submit_success`.
+7. Negative control: open `https://lux.corpflowai.com/lead-rescue` in a new tab — confirm DevTools Network shows zero requests to `plausible.io`.
+8. Post the closure DRA on Bridge `#249` recording deployment ID + merge commit + the seven check results, flipping verdict from PARTIAL to COMPLETE.
+
+### Standing holds (unchanged)
+
+Phase D · Phase C² · runbook §8.1 · production ERPNext · scheduler · payment gateway configuration · Lead Rescue wording adoption (`LR-Pay-1`) · SBM application submission · `PAY-SBM-3` · NDA / MCIB · Freshdesk account creation · `support.corpflowai.com` CNAME · DKIM/SPF · live-chat · AI chatbot · n8n migration · public site-copy adding portal URL · Pomelli activation. Cold-outreach campaign execution remains HELD pending PR-I docs-only landing per Pomelli sprint § 8 stopping rule. Remaining sprint § 8 PRs (PR-D / PR-E / PR-F / PR-G / PR-H / PR-I) remain HELD pending individual DECISIONs.
+
+---
+
 ## 2026-06-03 — Cold-Sprint-V1-Tracking-Fix — Option C: SSG runtime host-gated Plausible loader (runtime fix)
 
 <!-- COLD_SPRINT_V1_TRACKING_FIX_OPTION_C_HIST -->
