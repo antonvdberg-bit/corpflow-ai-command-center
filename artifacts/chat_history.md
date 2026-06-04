@@ -28,6 +28,152 @@
 
 ---
 
+## 2026-06-04 — `ERPNext-Production-Shell-Recipe-Drift-Fix-1` — recipe v1.1 (docs-only — **COMPLETE-AT-PR-MERGE**)
+
+<!-- ERPNEXT_PRODUCTION_SHELL_RECIPE_DRIFT_FIX_1_HIST -->
+
+**Status:** Recorded as `JE-2026-06-04-6` in `docs/decisions/JOURNAL.md`. The canonical recipe `docs/runbooks/ERPNEXT_PRODUCTION_SHELL_SETUP_RECIPE.md` is now at **v1.1** (change log entry added). **Verdict per `.cursor/rules/delivery-reality.mdc` § docs-only: COMPLETE at PR merge** for the recipe artefact (operator + agent governance; the live verification that informed v1.1 already landed under `JE-2026-06-04-5` at state 4 LIVE VERIFIED).
+
+### Why this PR now
+
+`JE-2026-06-04-5` proved the recipe's first L3 execution surface (Block A discovery on `corpflowai-production.localhost` on `corpflow-exec-01-u69678`). That execution surfaced seven concrete drift points between the v1 recipe and live reality:
+
+1. Recipe used Docker Compose project name `erpnext-production` / `erpnext-sandbox`; live system uses `corpflowai-production` / `corpflowai-sandbox` (per `docker compose ls` output captured in `JE-2026-06-04-5`).
+2. Inline `compose.cf-production-port.yaml` override would have merged (not replaced) the inherited `compose.noproxy.yaml` `ports:` list under Docker Compose v2 default merge semantics — risking port-conflict / double-binding.
+3. No sanity check before `bench new-site` verified that `DB_PASSWORD` / `MARIADB_ROOT_PASSWORD` / `MYSQL_ROOT_PASSWORD` / credentials file all agreed.
+4. No `host_name` setup step — recipe § 16 would always fail with `wkhtmltopdf ConnectionRefusedError` until this was set.
+5. § 16 Quotation idempotency check used `'remarks'` field which doesn't exist in v15 (v15 uses `customer_remarks`) — caused the `pymysql.err.OperationalError: (1054, "Unknown column 'remarks' in 'SELECT'")` discovered live.
+6. No safeguards for `Warehouse Type: Transit` and Mauritius `Address Template` seeds — fresh v15 stacks sometimes ship without these.
+7. § 9 Letter Head section presented classic Letter Head as the canonical answer; reality is that Print Designer + Chrome PDF backend is the long-term answer (per `JE-2026-06-04-4` eval).
+
+### What changed (file by file)
+
+| File | Change |
+|---|---|
+| `docs/runbooks/ERPNEXT_PRODUCTION_SHELL_SETUP_RECIPE.md` | All 7 corrections applied surgically. New § 5 alignment note, new § 7.5 (host_name + PDF smoke), new § 7.6 (seed safeguards), § 9 emergency/transitional advisory. v1.1 change-log entry added. |
+| `docs/decisions/JOURNAL.md` | `JE-2026-06-04-6` added (chronological order: `-1` → `-2` → `-3` → `-4` → `-5` → `-6`). |
+| `artifacts/chat_history.md` | This section. |
+| `AGENTS.md` | **Not updated** — the recipe file path didn't change; existing Must-read row from `JE-2026-06-04-3` continues to point to the now-corrected recipe. |
+
+### Correction 1 — Docker Compose project names
+
+- `replace_all` of `-p erpnext-production` → `-p corpflowai-production` (25 occurrences).
+- `replace_all` of `-p erpnext-sandbox` → `-p corpflowai-sandbox` (10 occurrences).
+- Targeted prose replacements where `erpnext-production` / `erpnext-sandbox` referred to the Docker project (lines 118, 281, 289, 317, 1462, 1482, 1583, and the v4 verification row).
+- **Deliberately kept unchanged:** all filesystem directory paths `~/erpnext-production/` and `~/erpnext-sandbox/` and credential file paths `~/.erpnext-production-credentials` / `~/.erpnext-sandbox-credentials` — these match Anton's live filesystem (the directory naming was chosen at clone time and is decoupled from the operationally-meaningful Docker Compose project name).
+- **New § 5 alignment note** explicitly explains the distinction so future operators don't confuse the two.
+
+### Correction 2 — Port override hardening (`ports: !override`)
+
+The v1 inline `compose.cf-production-port.yaml` override declared a plain `ports:` list. Docker Compose v2 MERGES `ports:` lists across overlays by default, so the inherited `compose.noproxy.yaml` `ports: ["8080:8080"]` would have stayed live alongside the production `ports: ["127.0.0.1:8081:8080"]` — port conflict or double-binding chaos.
+
+v1.1 fix:
+
+```yaml
+services:
+  frontend:
+    ports: !override
+      - "127.0.0.1:8081:8080"
+  websocket:
+    ports: !override
+      - "127.0.0.1:13001:9000"
+```
+
+The `!override` tag tells Compose to REPLACE (not merge) the inherited list. Same treatment for the socketio port `13001:9000` to avoid collision with the sandbox stack's `13000:9000`.
+
+### Correction 3 — DB root password pre-flight check
+
+New step inserted in § 6 before `bench new-site`:
+
+```bash
+docker compose -p corpflowai-production exec -T -e MARIADB_ROOT_PASSWORD="$MARIADB_ROOT_PASSWORD" db \
+  bash -lc 'mysql --user=root --password="$MARIADB_ROOT_PASSWORD" -e "SELECT 1 AS db_root_password_works\G" 2>&1 | grep -E "db_root_password_works|ERROR"'
+```
+
+The grep matches on the literal string `db_root_password_works` (the result column alias) — never on the password value. Reports either `db_root_password_works: 1` (success) or `ERROR 1045 (28000): Access denied` (mismatch → stop, reconcile, do NOT run `bench new-site`).
+
+### Correction 4 — Host_name + PDF smoke (NEW § 7.5)
+
+New whole section between § 7 (wizard bypass) and § 8 (Company doctype extension). Contains:
+
+1. `bench --site corpflowai-production.localhost set-config host_name "http://frontend:8080"`
+2. `bench --site corpflowai-production.localhost clear-cache`
+3. Frappe-API readback (`frappe.utils.get_url()` + `frappe.conf.get('host_name')`).
+4. Minimal raw-HTML PDF smoke (6-line inline HTML, zero doctype dependencies — smallest possible blast radius).
+5. `docker compose cp` of the PDF out to host filesystem.
+6. Optional `docker compose restart queue-short queue-long scheduler` for background-rendered PDFs.
+
+Plus a full causal-chain explanation of why this is required (Docker DNS only knows Compose service names; backend container cannot resolve loopback hostname `corpflowai-production.localhost`) and explicit cross-links to `JE-2026-06-04-5`, the Print Designer eval § 3 *Diagnosis*, and upstream Frappe issues `#36018` and `#1589`.
+
+### Correction 5 — Seed safeguards (NEW § 7.6)
+
+Idempotent Python orchestrator inside the existing backend container — zero new shell complexity, follows the same `frappe.init` / `frappe.connect` pattern as § 7 wizard bypass. Uses `frappe.db.exists()` short-circuit guards to seed:
+
+- `Warehouse Type: Transit` (required for some Item submission paths + any Stock Entry of type "Material Transfer").
+- `Address Template: Mauritius` (used by Address doctype rendering on Letter Heads and Print Formats).
+
+Both prints `already_present` on every subsequent invocation; never duplicates rows.
+
+### Correction 6 — v15 Quotation `customer_remarks`
+
+```python
+# v1 (BROKEN against v15):
+existing = frappe.db.get_value('Quotation',
+    {'party_name': customer, 'remarks': ['like', f'%{TAG}%'], 'docstatus': 0}, 'name')
+# ...
+'remarks': f'TEST-ONLY PDF SMOKE — DO NOT SEND TO CLIENT. {TAG}',
+```
+
+```python
+# v1.1 (CORRECT for v15):
+existing = frappe.db.get_value('Quotation',
+    {'party_name': customer, 'customer_remarks': ['like', f'%{TAG}%'], 'docstatus': 0}, 'name')
+# ...
+'customer_remarks': f'TEST-ONLY PDF SMOKE — DO NOT SEND TO CLIENT. {TAG}',
+```
+
+In-code comment explicitly references the live-discovery evidence from `JE-2026-06-04-5` Block A so future operators understand why the field changed.
+
+### Correction 7 — Letter Head emergency / transitional warning
+
+§ 9 title is now: **"Letter Head + CorpFlowAI branding — (v1.1) EMERGENCY / TRANSITIONAL ONLY"**.
+
+A prominent blockquote at the top of the section explains:
+
+- Canonical long-term answer is **Frappe Print Designer + Chrome PDF backend** (cross-link to `docs/finance/ERPNEXT_PRINT_DESIGNER_EVALUATION_V1.md` / `JE-2026-06-04-4`).
+- Classic Letter Head UI is fragile in v15 — image scaling unreliable, raw HTML / `<script>` / comment markers visibly leak.
+- Anton's first attempt hit four symptoms (captured in `JE-2026-06-04-4`); only one was a host_name issue (fixed in `JE-2026-06-04-5`); the rest are intrinsic to classic Letter Head.
+- wkhtmltopdf upstream was archived 2023.
+
+Operator instructions:
+
+- **DO** run the text-only Letter Head creation script (intentionally minimal).
+- **DO NOT** hand-edit `<script>` / complex HTML / paste comment markers in the UI for branded client PDFs.
+- **DO NOT** rely on this Letter Head for production-grade buyer-facing PDFs.
+- **DO** authorise `ERPNext-PrintDesigner-Install-1` before any real client invoice / pro-forma is sent.
+
+The minimal text-only Letter Head creation script itself stays unchanged from v1 — it's there as a placeholder so § 16 PDF smoke can render something without manual UI work.
+
+### Hard limits honoured
+
+This PR is documentation only. Zero edits to runtime / scripts / env / secrets. Zero host commands executed from L1. Zero ERPNext production-shell or sandbox mutation by this PR. The live `host_name` value on `corpflowai-production.localhost` set under `JE-2026-06-04-5` is unchanged by this PR's merge or revert — v1.1 corrections will be applied to the production shell only when Anton next paste-runs the recipe end-to-end (or paste-runs individual updated blocks).
+
+### What stays HELD
+
+All standing holds from `JE-2026-06-04-3` carry forward. This PR is a recipe correction, not an authorisation; HB-2 / HB-3 / HB-4 / Phase D / first submitted Sales Invoice / first ERPNext-emailed PDF to a real client / sandbox tear-down four-condition gate all still HELD. `ERPNext-PrintDesigner-Install-1` (Packet 2 from `JE-2026-06-04-4` § 7.2) remains UNAUTHORISED.
+
+### Cross-references
+
+- Authorisation: chat DECISION 2026-06-04 *"AUTHORISE — ERPNext-Production-Shell-Recipe-Drift-Fix-1"*.
+- Live execution evidence that informed v1.1: `JE-2026-06-04-5` (host_name fix closure).
+- Recipe: `docs/runbooks/ERPNEXT_PRODUCTION_SHELL_SETUP_RECIPE.md` (now at v1.1).
+- Print Designer evaluation: `docs/finance/ERPNEXT_PRINT_DESIGNER_EVALUATION_V1.md`.
+- Production-shell hard contract: `JE-2026-06-04-1`.
+- Execution boundary (L1/L2/L3): `docs/operations/SERVER_AGENT_ACCESS_AND_EXECUTION_BOUNDARY_V1.md`.
+- Bridge coordination: [#249](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/249).
+
+---
+
 ## 2026-06-04 — `ERPNext-Production-Shell-host_name-Fix-1` — execution closure (**COMPLETE**, live verified on box)
 
 <!-- ERPNEXT_PRODUCTION_SHELL_HOST_NAME_FIX_1_CLOSURE_HIST -->

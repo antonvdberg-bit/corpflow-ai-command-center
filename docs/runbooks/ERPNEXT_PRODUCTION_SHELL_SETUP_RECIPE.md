@@ -115,7 +115,7 @@ ss -tlnp 2>/dev/null | grep -E ':(8080|8081|11000|13000)\s' || echo '(no conflic
 
 **Capacity check:** `free -h` total must be ≥ 4 GiB available (today: 6.5 GiB available per `JE-2026-05-31-2`); `df -h /` must show ≥ 20 GB free. If either fails, **STOP** and post to bridge #249 — adding a second ERPNext stack to a tight box will OOM under load.
 
-**Sandbox state check:** `docker ps` must show the sandbox containers running (project `erpnext-sandbox`). If sandbox is down, fix it first (sandbox preservation rule from `JE-2026-06-04-1`). If sandbox containers are not present at all, double-check the host — you may have SSH'd to the wrong box.
+**Sandbox state check:** `docker ps` must show the sandbox containers running (Docker Compose project `corpflowai-sandbox`). If sandbox is down, fix it first (sandbox preservation rule from `JE-2026-06-04-1`). If sandbox containers are not present at all, double-check the host — you may have SSH'd to the wrong box.
 
 **Expected output to share back with Cursor at L1:**
 
@@ -133,16 +133,16 @@ ss -tlnp 2>/dev/null | grep -E ':(8080|8081|11000|13000)\s' || echo '(no conflic
 
 ```bash
 echo '--- SANDBOX HEALTH ---'
-docker compose -p erpnext-sandbox ps --format 'table {{.Service}}\t{{.Status}}\t{{.Health}}'
+docker compose -p corpflowai-sandbox ps --format 'table {{.Service}}\t{{.Status}}\t{{.Health}}'
 
 echo '--- FRESH SANDBOX BACKUP (Phase B-a preservation gate) ---'
-docker compose -p erpnext-sandbox exec backend bench --site corpflowai-sandbox.localhost backup --with-files
+docker compose -p corpflowai-sandbox exec backend bench --site corpflowai-sandbox.localhost backup --with-files
 
 echo '--- BACKUP FILES (look for the new timestamp at the bottom) ---'
-docker compose -p erpnext-sandbox exec backend ls -lt sites/corpflowai-sandbox.localhost/private/backups/ | head -10
+docker compose -p corpflowai-sandbox exec backend ls -lt sites/corpflowai-sandbox.localhost/private/backups/ | head -10
 
 echo '--- BACKUP FILE SIZES + SHA-256 (for the four newest files) ---'
-docker compose -p erpnext-sandbox exec backend bash -c '
+docker compose -p corpflowai-sandbox exec backend bash -c '
   cd sites/corpflowai-sandbox.localhost/private/backups
   for f in $(ls -t | head -4); do
     sha256sum "$f"
@@ -150,7 +150,7 @@ docker compose -p erpnext-sandbox exec backend bash -c '
 '
 ```
 
-**Expected behaviour:** every sandbox row in `docker compose -p erpnext-sandbox ps` shows `Up (healthy)` or `Up`. The `bench backup --with-files` produces 4 files: `<TIMESTAMP>-database.sql.gz`, `<TIMESTAMP>-site_config_backup.json`, `<TIMESTAMP>-files.tar`, `<TIMESTAMP>-private-files.tar`.
+**Expected behaviour:** every sandbox row in `docker compose -p corpflowai-sandbox ps` shows `Up (healthy)` or `Up`. The `bench backup --with-files` produces 4 files: `<TIMESTAMP>-database.sql.gz`, `<TIMESTAMP>-site_config_backup.json`, `<TIMESTAMP>-files.tar`, `<TIMESTAMP>-private-files.tar`.
 
 **Stop conditions (do NOT proceed if any are true):**
 
@@ -278,7 +278,14 @@ If any value above accidentally lands in `.env`, stop and rotate the leaked cred
 
 ## 5. Bring up the production stack
 
-**Goal:** Start the production-shell containers under Docker project `erpnext-production`, isolated from sandbox (which uses `-p erpnext-sandbox`).
+**Goal:** Start the production-shell containers under Docker Compose project `corpflowai-production`, isolated from sandbox (which uses `-p corpflowai-sandbox`).
+
+> **Note on directory vs Docker project naming (v1.1 alignment):** Anton's live system uses two distinct naming conventions:
+> - **Filesystem directories** stay as `~/erpnext-production/` and `~/erpnext-sandbox/` (chosen at clone time; the path is arbitrary as long as you `cd` there before running `docker compose`).
+> - **Credential files** stay as `~/.erpnext-production-credentials` and `~/.erpnext-sandbox-credentials` (chosen at first-run time; arbitrary).
+> - **Docker Compose project names** MUST be `corpflowai-production` and `corpflowai-sandbox` (these are the actual project names on the box — confirmed via `docker compose ls` on `corpflow-exec-01-u69678` in `JE-2026-06-04-5` — and all `-p <project>` flags in this recipe target these names).
+>
+> Do not confuse the two. The recipe deliberately keeps the legacy directory naming so it matches Anton's existing filesystem; the Docker project flags are the operationally meaningful identifier.
 
 ```bash
 cd ~/erpnext-production/frappe_docker
@@ -286,15 +293,25 @@ cd ~/erpnext-production/frappe_docker
 echo '--- CHECK FOR PORT CONFLICT (production shell wants its OWN port) ---'
 ss -tlnp 2>/dev/null | grep -E ':(8081|13001)\s' || echo '(no port conflict on 8081 / 13001 — production stack will bind to these)'
 
-echo '--- BRING UP PRODUCTION STACK (project name erpnext-production) ---'
+echo '--- BRING UP PRODUCTION STACK (Docker Compose project name corpflowai-production) ---'
 # Bind production frontend to host port 8081 (sandbox already owns 8080).
-# This requires the noproxy overlay to map 8081:8080 in compose:
-# we add a small inline override file instead of editing the upstream overlay.
+# v1.1 hardening: the inherited `compose.noproxy.yaml` already declares `ports:` on
+# the `frontend` service. Docker Compose v2 MERGES the `ports:` list across overlays
+# rather than replacing it — so a plain `ports: [127.0.0.1:8081:8080]` in our
+# override would APPEND, not replace, leaving the noproxy default still bound and
+# causing either a port conflict or two host-port bindings on the same container.
+#
+# Fix: use the `!override` tag so Compose REPLACES the inherited list. Same idea
+# for the socketio port (`13001:9000`) so the production stack does not collide
+# with the sandbox stack's `13000:9000`.
 cat > overrides/compose.cf-production-port.yaml <<'YML'
 services:
   frontend:
-    ports:
+    ports: !override
       - "127.0.0.1:8081:8080"
+  websocket:
+    ports: !override
+      - "127.0.0.1:13001:9000"
 YML
 
 docker compose \
@@ -303,26 +320,26 @@ docker compose \
   -f overrides/compose.redis.yaml \
   -f overrides/compose.noproxy.yaml \
   -f overrides/compose.cf-production-port.yaml \
-  -p erpnext-production \
+  -p corpflowai-production \
   up -d
 
 echo '--- WAIT FOR HEALTH (first pull may take 5–10 min if images not cached) ---'
 sleep 30
-docker compose -p erpnext-production ps --format 'table {{.Service}}\t{{.Status}}\t{{.Health}}'
+docker compose -p corpflowai-production ps --format 'table {{.Service}}\t{{.Status}}\t{{.Health}}'
 
 echo '--- VERIFY BOTH PROJECTS ARE RUNNING (sandbox preserved) ---'
 docker compose ls
 ```
 
-**Expected behaviour:** `docker compose ls` shows two projects: `erpnext-sandbox` (preserved) and `erpnext-production` (new). Every row in `docker compose -p erpnext-production ps` shows `Up` or `Up (healthy)` after a few minutes. The sandbox port (`8080`) and the production port (`8081`) are bound on `127.0.0.1` only (loopback; no external exposure).
+**Expected behaviour:** `docker compose ls` shows two projects: `corpflowai-sandbox` (preserved) and `corpflowai-production` (new). Every row in `docker compose -p corpflowai-production ps` shows `Up` or `Up (healthy)` after a few minutes. The sandbox port (`8080`) and the production port (`8081`) are bound on `127.0.0.1` only (loopback; no external exposure).
 
 **Stop conditions:**
 
-- Any production container is `Restarting` or `Exited` after 5 minutes → run `docker compose -p erpnext-production logs --tail=100 <service>` and share with Cursor.
-- Sandbox containers go unhealthy (memory pressure from the second stack) → consider stopping the production stack (`docker compose -p erpnext-production stop`) and reassessing capacity before proceeding.
+- Any production container is `Restarting` or `Exited` after 5 minutes → run `docker compose -p corpflowai-production logs --tail=100 <service>` and share with Cursor.
+- Sandbox containers go unhealthy (memory pressure from the second stack) → consider stopping the production stack (`docker compose -p corpflowai-production stop`) and reassessing capacity before proceeding.
 - `docker compose ls` only shows one project → the production stack failed to start; check the overlay file paths.
 
-**Expected output to share back:** `docker compose ls` (2 projects), `docker compose -p erpnext-production ps` (all healthy), `docker compose -p erpnext-sandbox ps` (still healthy).
+**Expected output to share back:** `docker compose ls` (2 projects), `docker compose -p corpflowai-production ps` (all healthy), `docker compose -p corpflowai-sandbox ps` (still healthy).
 
 ---
 
@@ -334,23 +351,34 @@ docker compose ls
 cd ~/erpnext-production/frappe_docker
 source ~/.erpnext-production-credentials
 
+echo '--- (v1.1) PRE-FLIGHT: VERIFY DB ROOT PASSWORD IS WIRED CORRECTLY ---'
+# v1.1 lesson learned: bench new-site fails with cryptic OperationalError if any of
+# DB_PASSWORD / MARIADB_ROOT_PASSWORD in .env, the MariaDB container's actual root
+# password, and the credentials sourced from ~/.erpnext-production-credentials drift
+# apart. Verify all three agree BEFORE running bench new-site. This check never
+# prints the password value; only success/failure.
+docker compose -p corpflowai-production exec -T -e MARIADB_ROOT_PASSWORD="$MARIADB_ROOT_PASSWORD" db \
+  bash -lc 'mysql --user=root --password="$MARIADB_ROOT_PASSWORD" -e "SELECT 1 AS db_root_password_works\G" 2>&1 | grep -E "db_root_password_works|ERROR"'
+
 echo '--- CREATE FRESH PRODUCTION SITE ---'
-docker compose -p erpnext-production exec backend bench new-site corpflowai-production.localhost \
+docker compose -p corpflowai-production exec backend bench new-site corpflowai-production.localhost \
   --mariadb-root-password "$MARIADB_ROOT_PASSWORD" \
   --admin-password "$ADMIN_PASSWORD" \
   --mariadb-user-host-login-scope='%'
 
 echo '--- INSTALL ERPNEXT APP ON THE PRODUCTION SITE ---'
-docker compose -p erpnext-production exec backend bench --site corpflowai-production.localhost install-app erpnext
+docker compose -p corpflowai-production exec backend bench --site corpflowai-production.localhost install-app erpnext
 
 echo '--- CONFIRM SITE REACHABLE ON LOOPBACK (expect HTTP/1.1 200 or 302) ---'
 curl -sI http://localhost:8081 -H 'Host: corpflowai-production.localhost' | head -5
 
 echo '--- LIST INSTALLED APPS ON THE PRODUCTION SITE ---'
-docker compose -p erpnext-production exec backend bench --site corpflowai-production.localhost list-apps
+docker compose -p corpflowai-production exec backend bench --site corpflowai-production.localhost list-apps
 ```
 
-**Expected output:** `bench new-site` completes without error. `bench install-app erpnext` takes a few minutes and finishes with `Installing erpnext...` followed by `Installed`. `curl -sI` returns `HTTP/1.1 200 OK` or `HTTP/1.1 302 Found` (302 is the redirect to the setup wizard, which we'll bypass in § 7). `list-apps` returns at least `frappe` and `erpnext`.
+**Expected output:**
+- **(v1.1) DB root password sanity check:** the `mysql --user=root` probe returns `db_root_password_works: 1`. If it returns `ERROR 1045 (28000): Access denied for user 'root'`, the password in `~/.erpnext-production-credentials` does not match what MariaDB actually has. Stop, do NOT run `bench new-site`; reconcile the password (re-read `.env`, check `MARIADB_ROOT_PASSWORD=` line, re-source credentials, re-`docker compose up -d` if needed).
+- `bench new-site` completes without error. `bench install-app erpnext` takes a few minutes and finishes with `Installing erpnext...` followed by `Installed`. `curl -sI` returns `HTTP/1.1 200 OK` or `HTTP/1.1 302 Found` (302 is the redirect to the setup wizard, which we'll bypass in § 7). `list-apps` returns at least `frappe` and `erpnext`.
 
 **Note on `--no-mariadb-socket` vs `--mariadb-user-host-login-scope='%'`:** the sandbox install used `--no-mariadb-socket` (which is now deprecated in MariaDB 11.x). This recipe uses the modern form `--mariadb-user-host-login-scope='%'` per the sandbox runbook § 6 deprecation note. Either form works as of 2026-05; the modern form is preferred for the production shell.
 
@@ -358,7 +386,7 @@ docker compose -p erpnext-production exec backend bench --site corpflowai-produc
 
 - `bench new-site` fails with `mysql.connector.errors.OperationalError` → MariaDB container is not ready yet; wait 60 s and re-run. The site name is idempotent only if the previous attempt completed fully; partial failures may require `bench drop-site corpflowai-production.localhost --root-password "$MARIADB_ROOT_PASSWORD" --no-backup --force` before retry.
 - `install-app erpnext` fails with a Python traceback → share the full traceback with Cursor (NOT containing any DB password values).
-- `curl -sI` returns 5xx → the backend container is not ready; check `docker compose -p erpnext-production logs --tail=50 backend`.
+- `curl -sI` returns 5xx → the backend container is not ready; check `docker compose -p corpflowai-production logs --tail=50 backend`.
 
 **Expected output to share back:** the `bench new-site` final line, `bench install-app erpnext` final line, `curl -sI` first 5 lines, `bench list-apps` output.
 
@@ -377,7 +405,7 @@ docker compose -p erpnext-production exec backend bench --site corpflowai-produc
 ```bash
 cd ~/erpnext-production/frappe_docker
 
-docker compose -p erpnext-production exec -T \
+docker compose -p corpflowai-production exec -T \
   --workdir /home/frappe/frappe-bench \
   backend /home/frappe/frappe-bench/env/bin/python - <<'PY'
 import os
@@ -442,6 +470,173 @@ PY
 
 ---
 
+## 7.5. (v1.1) PDF rendering: set `host_name` and confirm wkhtmltopdf is unblocked
+
+**Goal:** Set the Frappe `host_name` to a URL the backend container can reach via Docker DNS, then confirm PDF generation works. This step was missing from v1 of the recipe and was added in v1.1 after `JE-2026-06-04-5` proved that without it, every PDF rendering attempt fails with `wkhtmltopdf ConnectionRefusedError`.
+
+**Why this is required (and why it is NOT a Letter Head problem):** when `host_name` is unset, Frappe's PDF wrapper passes the site's loopback hostname (`corpflowai-production.localhost`) to wkhtmltopdf as the asset-fetch base URL. The backend container cannot resolve `corpflowai-production.localhost` (Docker's internal DNS only knows Compose service names — `frontend`, `db`, etc. — not host loopback aliases). wkhtmltopdf then hits `ConnectionRefusedError` when fetching its own asset URLs (CSS, fonts, dynamic content). Setting `host_name` to `http://frontend:8080` resolves through Docker DNS to the frontend container, which proxies back to the backend; wkhtmltopdf successfully fetches assets and completes the render. See `docs/finance/ERPNEXT_PRINT_DESIGNER_EVALUATION_V1.md` § 3 *Diagnosis* for the full causal chain.
+
+```bash
+cd ~/erpnext-production/frappe_docker
+
+echo '--- (v1.1) SET host_name TO DOCKER-INTERNAL URL ---'
+docker compose -p corpflowai-production exec -T backend \
+  bench --site corpflowai-production.localhost set-config host_name "http://frontend:8080"
+
+echo '--- CLEAR FRAPPE CACHE SO NEW VALUE IS PICKED UP ---'
+docker compose -p corpflowai-production exec -T backend \
+  bench --site corpflowai-production.localhost clear-cache
+
+echo '--- VERIFY host_name VALUE VIA FRAPPE API (read-only; no secrets) ---'
+docker compose -p corpflowai-production exec -T --workdir /home/frappe/frappe-bench backend \
+  /home/frappe/frappe-bench/env/bin/python - <<'PY'
+import os
+os.chdir('/home/frappe/frappe-bench/sites')
+import frappe
+frappe.init(site='corpflowai-production.localhost', sites_path='/home/frappe/frappe-bench/sites')
+frappe.connect()
+print('HOST_NAME_FROM_FRAPPE_GET_URL:', frappe.utils.get_url())
+print('HOST_NAME_FROM_SITE_CONFIG:', frappe.conf.get('host_name'))
+PY
+
+echo '--- MINIMAL PDF SMOKE (raw HTML; zero doctype dependencies; confirms wkhtmltopdf path works) ---'
+docker compose -p corpflowai-production exec -T --workdir /home/frappe/frappe-bench backend \
+  /home/frappe/frappe-bench/env/bin/python - <<'PY'
+import os
+os.chdir('/home/frappe/frappe-bench/sites')
+import frappe
+frappe.init(site='corpflowai-production.localhost', sites_path='/home/frappe/frappe-bench/sites')
+frappe.connect()
+from frappe.utils.pdf import get_pdf
+html = '''<!doctype html><html><head><meta charset="utf-8"><title>host_name smoke</title></head>
+<body style="font-family: sans-serif; padding: 24px;">
+<h1>CorpFlowAI host_name fix smoke test</h1>
+<p>If you can read this PDF, wkhtmltopdf can reach the backend through Docker DNS.</p>
+<p>Smoke sentinel: HOST_NAME_FIX_SMOKE_OK</p>
+</body></html>'''
+pdf_bytes = get_pdf(html)
+pdf_path = '/tmp/host_name_fix_smoke.pdf'
+with open(pdf_path, 'wb') as f:
+    f.write(pdf_bytes)
+print('PDF_PATH:', pdf_path)
+print('PDF_SIZE_BYTES:', os.path.getsize(pdf_path))
+print('PDF_FIRST_4_BYTES_HEX:', pdf_bytes[:4].hex())  # expect 25504446 = "%PDF"
+print('SMOKE_VERDICT:', 'PASS' if pdf_bytes[:4] == b'%PDF' else 'FAIL')
+PY
+
+echo '--- COPY SMOKE PDF OUT TO HOST FILESYSTEM (so Anton can scp + visually verify) ---'
+docker compose -p corpflowai-production cp backend:/tmp/host_name_fix_smoke.pdf ~/host_name_fix_smoke.pdf
+ls -la ~/host_name_fix_smoke.pdf
+```
+
+**Expected output:**
+- `HOST_NAME_FROM_FRAPPE_GET_URL: http://frontend:8080`
+- `HOST_NAME_FROM_SITE_CONFIG: http://frontend:8080`
+- `PDF_FIRST_4_BYTES_HEX: 25504446` (= `%PDF`)
+- `SMOKE_VERDICT: PASS`
+- `PDF_SIZE_BYTES` somewhere between 15 KB – 25 KB
+- `~/host_name_fix_smoke.pdf` exists on the host filesystem
+
+**Re-run safety:** `bench set-config` is idempotent — re-running with the same value is a no-op. `clear-cache` is always safe. The smoke PDF overwrites `/tmp/host_name_fix_smoke.pdf` on every run.
+
+**Stop conditions:**
+- `SMOKE_VERDICT: FAIL` → wkhtmltopdf is still failing. Capture the full Python traceback (NOT containing any secrets) and share with Cursor. Do NOT proceed to § 8.
+- `HOST_NAME_FROM_FRAPPE_GET_URL` returns the site's loopback hostname instead of `http://frontend:8080` → `clear-cache` was bypassed; re-run the clear-cache command and re-verify.
+- `docker compose cp` fails → the PDF wasn't actually written; the Python step silently failed. Re-run the PDF smoke and capture full output.
+
+**Optional: worker restart for background-rendered PDFs.** Interactive PDF renders (UI download, REST API) pick up the new `host_name` immediately after `clear-cache`. Background-rendered PDFs (email attachments scheduled via Frappe's queue workers) may need a worker restart to pick up the new value:
+
+```bash
+docker compose -p corpflowai-production restart queue-short queue-long scheduler
+```
+
+This is **optional** — the recipe's interactive smoke (above) is sufficient to confirm the fix. Restart is recommended once before any production-grade PDF-via-email workflow runs.
+
+**Expected output to share back:** the four `HOST_NAME_…` / `PDF_…` / `SMOKE_VERDICT` lines, the `~/host_name_fix_smoke.pdf` `ls -la` line.
+
+**Cross-references:**
+- `JE-2026-06-04-5` — original closure where this fix was discovered + first executed against `corpflowai-production.localhost`.
+- `docs/finance/ERPNEXT_PRINT_DESIGNER_EVALUATION_V1.md` § 3 *Diagnosis* — full causal chain for the `ConnectionRefusedError`.
+- `frappe/erpnext` Issue #36018; `frappe/frappe_docker` Issue #1589 — upstream issues confirming this is the canonical Frappe-Docker `host_name` pattern.
+
+---
+
+## 7.6. (v1.1) Seed safeguards: `Warehouse Type: Transit` + default Mauritius `Address Template`
+
+**Goal:** Ensure two ERPNext seeds that are *usually* installed by `bench install-app erpnext` but occasionally missing on fresh stacks are present. Without them, recipe § 8 (Address) and § 11 (Item) can fail with cryptic `LinkValidationError: Could not find Warehouse Type: Transit` or `LinkValidationError: Could not find Address Template: Mauritius`. Both safeguards are idempotent and run inside the existing backend container — zero new shell complexity, zero secrets touched.
+
+```bash
+cd ~/erpnext-production/frappe_docker
+
+docker compose -p corpflowai-production exec -T \
+  --workdir /home/frappe/frappe-bench \
+  backend /home/frappe/frappe-bench/env/bin/python - <<'PY'
+import os
+os.chdir('/home/frappe/frappe-bench/sites')
+import frappe
+frappe.init(site='corpflowai-production.localhost', sites_path='/home/frappe/frappe-bench/sites')
+frappe.connect()
+frappe.set_user('Administrator')
+
+# Safeguard 1: Warehouse Type "Transit" — required for some Item submission paths
+# and for any Stock Entry of type "Material Transfer". Standard ERPNext install
+# usually creates it; fresh v15 docker installs sometimes skip it.
+WAREHOUSE_TYPE = 'Transit'
+if frappe.db.exists('Warehouse Type', WAREHOUSE_TYPE):
+    print('WAREHOUSE_TYPE_TRANSIT: already_present')
+else:
+    wt = frappe.get_doc({
+        'doctype': 'Warehouse Type',
+        'name':    WAREHOUSE_TYPE,
+    })
+    wt.insert(ignore_permissions=True)
+    frappe.db.commit()
+    print('WAREHOUSE_TYPE_TRANSIT: created')
+
+# Safeguard 2: default Mauritius Address Template. ERPNext seeds an Address
+# Template per country at install; if missing, Address doctype creation falls
+# back to the generic template and looks odd in printed PDFs.
+COUNTRY = 'Mauritius'
+TEMPLATE_NAME = COUNTRY  # Address Template is keyed by Country name in v15.
+if frappe.db.exists('Address Template', TEMPLATE_NAME):
+    print(f'ADDRESS_TEMPLATE_{COUNTRY}: already_present')
+else:
+    # Minimal Mauritius template: street line + city + country.
+    # The visible rendering on a Letter Head / Print Format uses the
+    # template defined here unless a Country-specific override is added.
+    at = frappe.get_doc({
+        'doctype':      'Address Template',
+        'country':      COUNTRY,
+        'is_default':   0,  # Do NOT flip is_default; keep ERPNext default behaviour.
+        'template':     '{{ address_line1 }}<br>{% if address_line2 %}{{ address_line2 }}<br>{% endif %}'
+                        '{{ city }}<br>{{ country }}',
+    })
+    at.insert(ignore_permissions=True)
+    frappe.db.commit()
+    print(f'ADDRESS_TEMPLATE_{COUNTRY}: created')
+
+# Read-only sanity check (no secrets):
+print('WAREHOUSE_TYPE_COUNT:', frappe.db.count('Warehouse Type'))
+print('ADDRESS_TEMPLATE_COUNT:', frappe.db.count('Address Template'))
+PY
+```
+
+**Expected output:**
+- `WAREHOUSE_TYPE_TRANSIT: already_present` (most common) **or** `WAREHOUSE_TYPE_TRANSIT: created`
+- `ADDRESS_TEMPLATE_Mauritius: already_present` **or** `ADDRESS_TEMPLATE_Mauritius: created`
+- `WAREHOUSE_TYPE_COUNT: <small integer>` (typically 4–7)
+- `ADDRESS_TEMPLATE_COUNT: <small integer>` (typically 1–10 depending on which country seeds were created)
+
+**Re-run safety:** both seeds use `frappe.db.exists()` short-circuit guards. Re-running prints `already_present` on every subsequent invocation and never duplicates rows.
+
+**Stop conditions:**
+- `LinkValidationError: Could not find Country: Mauritius` → the Country seed itself is missing; this means `setup_complete` in § 7 was incomplete. Re-run § 7.
+- Anything else with a Python traceback → share with Cursor (no secrets in the orchestrator).
+
+**Expected output to share back:** the four lines starting with `WAREHOUSE_TYPE_TRANSIT:`, `ADDRESS_TEMPLATE_Mauritius:`, `WAREHOUSE_TYPE_COUNT:`, `ADDRESS_TEMPLATE_COUNT:`.
+
+---
+
 ## 8. Company doctype — extend with address + identity fields (JE-2026-06-04-1 mandates)
 
 **Goal:** Fill the Company doctype with the public CorpFlowAI identity fields required by `JE-2026-06-04-1` (Mauritius, BRN, registered office, support email). These are the same values that appear in `pages/contact.js` and `PAY_SBM_2_PAGE_COMPLIANCE_COPY.md` — no new public information is created here.
@@ -449,7 +644,7 @@ PY
 ```bash
 cd ~/erpnext-production/frappe_docker
 
-docker compose -p erpnext-production exec -T \
+docker compose -p corpflowai-production exec -T \
   --workdir /home/frappe/frappe-bench \
   backend /home/frappe/frappe-bench/env/bin/python - <<'PY'
 import os
@@ -527,14 +722,31 @@ PY
 
 ---
 
-## 9. Letter Head + CorpFlowAI branding
+## 9. Letter Head + CorpFlowAI branding — **(v1.1) EMERGENCY / TRANSITIONAL ONLY**
 
-**Goal:** Create a Letter Head doctype that prints the public CorpFlowAI identity on every Quotation / Sales Invoice PDF. The Letter Head is purely visual — it does not affect GL posting.
+> **(v1.1) Read this first.** The classic ERPNext Letter Head doctype is no longer the canonical path for CorpFlowAI client-facing PDFs. It remains in this recipe **only** as an emergency / transitional fallback so the production shell can issue *something* presentable while Print Designer is being installed under its own packet.
+>
+> **Canonical long-term answer:** **Frappe Print Designer + Chrome PDF backend** — see **`docs/finance/ERPNEXT_PRINT_DESIGNER_EVALUATION_V1.md`** (`JE-2026-06-04-4`). The Print Designer install runs under a separate `ERPNext-PrintDesigner-Install-1` authorisation packet, with its own visual-template work.
+>
+> **Why this section is now transitional, not canonical:**
+> - The classic Letter Head UI (HTML / Header / Footer / Image fields) is fragile in v15 — image scaling is unreliable, raw HTML / `<script>` / comment markers visibly leak into the rendered PDF if pasted into the wrong field, and the visual editor cannot produce production-grade marketing PDFs.
+> - Anton's first attempt at manual Letter Head editing on this production shell hit four symptoms (image scaling broken, script bleed-through, `wkhtmltopdf ConnectionRefusedError`, error-prone UI) — captured in `JE-2026-06-04-4`. Only the `ConnectionRefusedError` was a host_name issue (fixed under `JE-2026-06-04-5`); the visual fragility is intrinsic to classic Letter Head.
+> - wkhtmltopdf upstream was archived in 2023 — the underlying renderer for classic Letter Head is no longer maintained.
+>
+> **Operator instructions for v1.1:**
+> - **DO** run the text-only Letter Head creation script below (it is intentionally minimal — no image, no HTML editing surface required).
+> - **DO NOT** hand-edit `<script>`, complex HTML, or paste comment markers into the Letter Head UI for branded client PDFs.
+> - **DO NOT** rely on this Letter Head for any production-grade buyer-facing PDF; use it only as a placeholder until Print Designer is installed.
+> - **DO** authorise `ERPNext-PrintDesigner-Install-1` (see `ERPNEXT_PRINT_DESIGNER_EVALUATION_V1.md` § 7.2) before any real client invoice / pro-forma is sent.
+>
+> The remainder of § 9 below stays unchanged from v1; it creates a deliberately minimal text-only Letter Head so the recipe's § 16 PDF smoke can render *something* without manual UI work.
+
+**Goal:** Create a Letter Head doctype that prints the public CorpFlowAI identity on every Quotation / Sales Invoice PDF. The Letter Head is purely visual — it does not affect GL posting. **In v1.1 this is the emergency / transitional placeholder, NOT the production-grade answer.**
 
 ```bash
 cd ~/erpnext-production/frappe_docker
 
-docker compose -p erpnext-production exec -T \
+docker compose -p corpflowai-production exec -T \
   --workdir /home/frappe/frappe-bench \
   backend /home/frappe/frappe-bench/env/bin/python - <<'PY'
 import os
@@ -626,7 +838,7 @@ If Anton wants a logo on the Letter Head:
 ```bash
 cd ~/erpnext-production/frappe_docker
 
-docker compose -p erpnext-production exec -T \
+docker compose -p corpflowai-production exec -T \
   --workdir /home/frappe/frappe-bench \
   backend /home/frappe/frappe-bench/env/bin/python - <<'PY'
 import os
@@ -728,7 +940,7 @@ These are recorded in `JE-2026-06-04-3` as still-pending in the operational JOUR
 ```bash
 cd ~/erpnext-production/frappe_docker
 
-docker compose -p erpnext-production exec -T \
+docker compose -p corpflowai-production exec -T \
   --workdir /home/frappe/frappe-bench \
   backend /home/frappe/frappe-bench/env/bin/python - <<'PY'
 import os
@@ -866,7 +1078,7 @@ PY
 ```bash
 cd ~/erpnext-production/frappe_docker
 
-docker compose -p erpnext-production exec -T \
+docker compose -p corpflowai-production exec -T \
   --workdir /home/frappe/frappe-bench \
   backend /home/frappe/frappe-bench/env/bin/python - <<'PY'
 import os
@@ -932,7 +1144,7 @@ PY
 ```bash
 cd ~/erpnext-production/frappe_docker
 
-docker compose -p erpnext-production exec -T \
+docker compose -p corpflowai-production exec -T \
   --workdir /home/frappe/frappe-bench \
   backend /home/frappe/frappe-bench/env/bin/python - <<'PY'
 import os
@@ -1090,7 +1302,7 @@ PY
 ```bash
 cd ~/erpnext-production/frappe_docker
 
-docker compose -p erpnext-production exec -T \
+docker compose -p corpflowai-production exec -T \
   --workdir /home/frappe/frappe-bench \
   backend /home/frappe/frappe-bench/env/bin/python - <<'PY'
 import os
@@ -1216,7 +1428,7 @@ PY
 ```bash
 cd ~/erpnext-production/frappe_docker
 
-docker compose -p erpnext-production exec -T \
+docker compose -p corpflowai-production exec -T \
   --workdir /home/frappe/frappe-bench \
   backend /home/frappe/frappe-bench/env/bin/python - <<'PY'
 import os
@@ -1271,7 +1483,7 @@ PY
 ```bash
 cd ~/erpnext-production/frappe_docker
 
-docker compose -p erpnext-production exec -T \
+docker compose -p corpflowai-production exec -T \
   --workdir /home/frappe/frappe-bench \
   backend /home/frappe/frappe-bench/env/bin/python - <<'PY'
 import os
@@ -1288,11 +1500,16 @@ frappe.set_user('Administrator')
 customer = 'Test Buyer (CFLR-DRY-RUN)'
 item_code = 'LR-SETUP-USD-150'
 
-# Create ONE test quotation; idempotent via custom remarks tag.
+# Create ONE test quotation; idempotent via the customer_remarks tag.
+# v1.1 fix: ERPNext v15 Quotation doctype has `customer_remarks` (Text Long), not
+# `remarks` — confirmed live in `JE-2026-06-04-5` (the v1 recipe failed Block A
+# discovery with `pymysql.err.OperationalError: (1054, "Unknown column 'remarks'
+# in 'SELECT'")` against this same site). The fieldname change is the only delta;
+# semantics + idempotency behaviour are identical.
 TAG = 'CFLR-DRY-RUN-PDF-SMOKE-V1'
 
 existing = frappe.db.get_value('Quotation',
-    {'party_name': customer, 'remarks': ['like', f'%{TAG}%'], 'docstatus': 0}, 'name')
+    {'party_name': customer, 'customer_remarks': ['like', f'%{TAG}%'], 'docstatus': 0}, 'name')
 
 if existing:
     qname = existing
@@ -1306,7 +1523,7 @@ else:
         'currency':       'USD',
         'selling_price_list': frappe.db.get_value('Price List',
             {'currency': 'USD', 'selling': 1, 'enabled': 1}, 'name'),
-        'remarks':        f'TEST-ONLY PDF SMOKE — DO NOT SEND TO CLIENT. {TAG}',
+        'customer_remarks': f'TEST-ONLY PDF SMOKE — DO NOT SEND TO CLIENT. {TAG}',
         'items': [{
             'item_code': item_code,
             'qty':       1,
@@ -1345,7 +1562,7 @@ print('QUOTATION_DOCSTATUS:', frappe.db.get_value('Quotation', qname, 'docstatus
 PY
 
 # Now from outside the container — sanity check the PDF actually exists on the container FS.
-docker compose -p erpnext-production exec -T backend ls -la /tmp/ | grep CFLR-PRODUCTION-SHELL-SMOKE || echo '(no PDF found in container /tmp/)'
+docker compose -p corpflowai-production exec -T backend ls -la /tmp/ | grep CFLR-PRODUCTION-SHELL-SMOKE || echo '(no PDF found in container /tmp/)'
 ```
 
 **Expected output:** `PDF_PATH: /tmp/CFLR-PRODUCTION-SHELL-SMOKE-CFLR-QUO-…pdf`. `PDF_SIZE_BYTES` is typically 25 KB – 80 KB for a simple Quotation. `PDF_FIRST_4_BYTES_HEX: 25504446` (the literal `%PDF` magic bytes). `QUOTATION_DOCSTATUS: 0` (draft, NOT submitted).
@@ -1354,8 +1571,8 @@ docker compose -p erpnext-production exec -T backend ls -la /tmp/ | grep CFLR-PR
 
 ```bash
 # From outside the container, copy the PDF out to the host so Anton can inspect it.
-SMOKE_PDF=$(docker compose -p erpnext-production exec -T backend bash -c 'ls -t /tmp/CFLR-PRODUCTION-SHELL-SMOKE-*.pdf | head -1')
-docker compose -p erpnext-production cp backend:$SMOKE_PDF ~/erpnext-production/$(basename $SMOKE_PDF)
+SMOKE_PDF=$(docker compose -p corpflowai-production exec -T backend bash -c 'ls -t /tmp/CFLR-PRODUCTION-SHELL-SMOKE-*.pdf | head -1')
+docker compose -p corpflowai-production cp backend:$SMOKE_PDF ~/erpnext-production/$(basename $SMOKE_PDF)
 ls -la ~/erpnext-production/CFLR-PRODUCTION-SHELL-SMOKE-*.pdf
 ```
 
@@ -1421,9 +1638,9 @@ After § 1–§ 17 complete, both Anton and Cursor walk through this list before
 | # | Check | Source | Status |
 |---|---|---|---|
 | V1 | Host is `corpflow-exec-01-u69678` (no HOST_MISMATCH) | § 1 `hostname` | |
-| V2 | Sandbox containers still `Up (healthy)` | § 1 + § 2 `docker compose -p erpnext-sandbox ps` | |
+| V2 | Sandbox containers still `Up (healthy)` | § 1 + § 2 `docker compose -p corpflowai-sandbox ps` | |
 | V3 | Fresh sandbox backup file SHA-256s captured | § 2 | |
-| V4 | Production Docker project `erpnext-production` running; all containers `Up` or `Up (healthy)` | § 5 | |
+| V4 | Production Docker Compose project `corpflowai-production` running; all containers `Up` or `Up (healthy)` | § 5 | |
 | V5 | Production site `corpflowai-production.localhost` reachable on `127.0.0.1:8081` (HTTP 200/302) | § 6 | |
 | V6 | ERPNext app installed on production site | § 6 `bench list-apps` | |
 | V7 | Setup wizard complete (`SETUP_COMPLETE_BEFORE: 1` on re-run) | § 7 | |
@@ -1459,8 +1676,8 @@ If the operator wants to remove the production shell without affecting the sandb
 ```bash
 cd ~/erpnext-production/frappe_docker
 
-# Stop and remove production containers + volumes (sandbox is project erpnext-sandbox; untouched).
-docker compose -p erpnext-production down -v
+# Stop and remove production containers + volumes (sandbox is Docker project corpflowai-sandbox; untouched).
+docker compose -p corpflowai-production down -v
 
 # Drop the Frappe site (also archives it to <bench>/archived/sites/).
 # NOTE: this command runs against a fresh container start — if `down -v` removed the volume,
@@ -1479,10 +1696,10 @@ docker volume prune -f
 # Only run `docker image prune` if disk pressure requires it AND you've taken a sandbox backup first.
 
 # Verify:
-docker compose ls | grep erpnext-production && echo 'STILL RUNNING — check' || echo 'production project removed'
+docker compose ls | grep corpflowai-production && echo 'STILL RUNNING — check' || echo 'production project removed'
 ls -lah ~/erpnext-production 2>/dev/null || echo 'production directory removed'
 ls -lah ~/.erpnext-production-credentials 2>/dev/null || echo 'production credentials removed'
-docker compose -p erpnext-sandbox ps --format 'table {{.Service}}\t{{.Status}}'  # sandbox preserved
+docker compose -p corpflowai-sandbox ps --format 'table {{.Service}}\t{{.Status}}'  # sandbox preserved
 ```
 
 ### 19.2 No-go rules (when to halt before § 19.1)
@@ -1507,7 +1724,7 @@ The existing Phase B-a sandbox is **preserved by default**. The sandbox may be r
 ```bash
 # Only run this block AFTER all four conditions above are met.
 cd ~/erpnext-sandbox/frappe_docker
-docker compose -p erpnext-sandbox down -v
+docker compose -p corpflowai-sandbox down -v
 cd ~
 rm -rf ~/erpnext-sandbox
 rm -f ~/.erpnext-sandbox-credentials
@@ -1538,7 +1755,7 @@ After § 1–§ 18 complete, Anton pastes the following 8 evidence blocks back i
 
 1. **Host identity:** `hostname` + `whoami` + `pwd` from § 1.
 2. **Sandbox preservation:** the 4 backup file SHA-256s from § 2.
-3. **Production stack health:** `docker compose ls` + `docker compose -p erpnext-production ps` from § 5.
+3. **Production stack health:** `docker compose ls` + `docker compose -p corpflowai-production ps` from § 5.
 4. **Site bring-up:** `bench install-app erpnext` final line + `curl -sI` first 5 lines from § 6.
 5. **Wizard bypass result:** the 7 `SETUP_COMPLETE_…` / `COMPANY_ROW:` / `ACCOUNT_COUNT:` / `USER_COUNT:` lines from § 7.
 6. **Identity + branding:** `COMPANY_VERIFY` dict from § 8 + `LETTER_HEAD_VERIFY` dict from § 9 + `CREATED`/`EXISTED` lines from § 10 + `ITEM_VERIFY` dict from § 11.
@@ -1580,4 +1797,5 @@ After § 1–§ 18 complete, Anton pastes the following 8 evidence blocks back i
 
 ## 22. Change log
 
-- **v1, 2026-06-04** — initial canonical recipe (this PR consumes `JE-2026-06-04-3`). Authored at L1 (Cursor on Anton's Windows laptop) per `JE-2026-06-04-1` + Anton's structured `AskQuestion` decisions (Q1 Option B + Q2 boundary runbook now + PR-B full scope). Adapted from `ERPNEXT_SANDBOX_INSTALL.md` §§ 5 / 6 / 7.1 / 12 / 15 with production-shell deltas (separate Docker project `erpnext-production` vs sandbox `erpnext-sandbox`, separate site `corpflowai-production.localhost` vs sandbox `corpflowai-sandbox.localhost`, separate credentials file `~/.erpnext-production-credentials` vs sandbox `~/.erpnext-sandbox-credentials`, separate host port `8081` vs sandbox `8080`, Letter Head + Pro-forma Print Format + Sales Invoice DRAFT Print Format + Item `LR-SETUP-USD-150` + `CFLR-…` naming series + test PDF smoke added). Awaits Anton's L3 execution on `corpflow-exec-01-u69678`; the execution closure row will be a future `JE-YYYY-MM-DD-N` once executed.
+- **v1, 2026-06-04** — initial canonical recipe (this PR consumes `JE-2026-06-04-3`). Authored at L1 (Cursor on Anton's Windows laptop) per `JE-2026-06-04-1` + Anton's structured `AskQuestion` decisions (Q1 Option B + Q2 boundary runbook now + PR-B full scope). Adapted from `ERPNEXT_SANDBOX_INSTALL.md` §§ 5 / 6 / 7.1 / 12 / 15 with production-shell deltas (separate Docker project `erpnext-production` vs sandbox `erpnext-sandbox` — **v1.1 NOTE: live reality on `corpflow-exec-01-u69678` is `corpflowai-production` / `corpflowai-sandbox`; corrected in v1.1**, separate site `corpflowai-production.localhost` vs sandbox `corpflowai-sandbox.localhost`, separate credentials file `~/.erpnext-production-credentials` vs sandbox `~/.erpnext-sandbox-credentials`, separate host port `8081` vs sandbox `8080`, Letter Head + Pro-forma Print Format + Sales Invoice DRAFT Print Format + Item `LR-SETUP-USD-150` + `CFLR-…` naming series + test PDF smoke added). Awaits Anton's L3 execution on `corpflow-exec-01-u69678`; the execution closure row will be a future `JE-YYYY-MM-DD-N` once executed.
+- **v1.1, 2026-06-04** — recipe drift fix (`JE-2026-06-04-6`). Seven corrections from live execution evidence captured in `JE-2026-06-04-5`: (1) Docker Compose project names corrected from `erpnext-production` / `erpnext-sandbox` to `corpflowai-production` / `corpflowai-sandbox` (the `-p <project>` flags + prose; filesystem directories `~/erpnext-production/` / `~/erpnext-sandbox/` and credential file paths `~/.erpnext-*-credentials` deliberately kept because they match Anton's live filesystem); (2) `compose.cf-production-port.yaml` override hardened with `ports: !override` syntax so it overrides — not merely appends to — the inherited `compose.noproxy.yaml` port binding (covers both `127.0.0.1:8081:8080` frontend and `127.0.0.1:13001:9000` socketio); (3) § 6 gains a non-secret DB-root-password sanity check before `bench new-site` (verifies `mariadb --user=root --password=...` works from inside the backend container before site creation; prevents the cascade of cryptic `OperationalError` failures); (4) § 7.5 new sub-section adds the `host_name` set-config step + minimal PDF smoke confirmation (resolves the `wkhtmltopdf ConnectionRefusedError` discovered in `JE-2026-06-04-5`); (5) § 16 v15 Quotation field corrected from `remarks` to `customer_remarks` (closes the `pymysql.err.OperationalError: (1054, "Unknown column 'remarks' in 'SELECT'")` latent bug); (6) § 11 + § 8 gain idempotent safeguards for missing `Warehouse Type: Transit` seed and missing default Mauritius `Address Template` (both ride on existing Path B Python orchestrator pattern, zero new shell complexity); (7) § 9 Letter Head section marked **EMERGENCY / TRANSITIONAL only** with prominent cross-link to `docs/finance/ERPNEXT_PRINT_DESIGNER_EVALUATION_V1.md` (Print Designer + Chrome PDF backend is the canonical long-term answer for client-facing PDFs; classic Letter Head hand-editing of HTML/scripts is not how production-quality CorpFlowAI PDFs should be built). v1.1 changes are bounded entirely to this document, `docs/decisions/JOURNAL.md`, and `artifacts/chat_history.md` — zero runtime / scripts / env / secrets / host commands.
