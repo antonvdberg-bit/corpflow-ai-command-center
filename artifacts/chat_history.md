@@ -28,6 +28,57 @@
 
 ---
 
+## 2026-06-05 — `ERPNext-CFLR-ProForma-Template-Build-Packet-1` — `CFLR Mauritius Pro-forma Invoice v1` Print Designer build runbook (docs-only — **COMPLETE-AT-PR-MERGE**)
+
+<!-- ERPNEXT_CFLR_PRO_FORMA_TEMPLATE_BUILD_PACKET_1_HIST -->
+
+**Status:** Recorded as `JE-2026-06-05-2` in `docs/decisions/JOURNAL.md`. New canonical doc `docs/runbooks/ERPNEXT_CFLR_PRO_FORMA_TEMPLATE_BUILD_PACKET_V1.md` (anchor sentinel `<!-- ERPNEXT_CFLR_PRO_FORMA_TEMPLATE_BUILD_PACKET_V1 -->`). **Verdict per `.cursor/rules/delivery-reality.mdc` § docs-only: COMPLETE at PR merge** for the operator-runbook artefact (operator + agent governance; no customer-visible URL to probe by design). The host-side execution it specifies is a separate piece of work — gated on `ERPNext-PrintDesigner-Install-1` (Packet 2 from `JE-2026-06-04-4` § 7.2, still UNAUTHORISED as of this entry) closing — and reports its own STATUS on Bridge [#249](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/249) with a separate future `JE-YYYY-MM-DD-N` closure row carrying EV-1..EV-11 evidence + PASS/PARTIAL/FAIL verdict.
+
+### What landed (PR scope)
+
+Pure docs / operator-runbook artefact. The packet pairs with the design specification from `JE-2026-06-05-1`: the **brief is the spec**; this **packet is the operator runbook** that Anton will run at the L3 keyboard on `corpflow-exec-01-u69678` after Print Designer install closes.
+
+- **14 sections** in `ERPNEXT_CFLR_PRO_FORMA_TEMPLATE_BUILD_PACKET_V1.md`:
+  - § 0 hard limits honoured by THIS PR (13 explicit out-of-scope categories: server commands / production-shell mutation / sandbox mutation / Print Designer install / Sales Invoice / GL posting / VAT activation / real bank details / invoices issued / runtime files / DNS-DB-Vercel-GitHub-Postgres-Prisma config / pricing / page-copy / L3 host work).
+  - § 1 prerequisites PR-1..PR-8 (Print Designer install AUTHORISED + EXECUTED + production-shell `Up` 9-containers + sandbox preserved per `JE-2026-06-04-1` + Item `LR-SETUP-USD-150` + test customer `Test Buyer (CFLR-DRY-RUN)` + naming series `CFLR-QUO-.YYYY.-.NNN` + HB-1..HB-4 still acceptable as HELD).
+  - § 2 pre-flight UI-PF-1..UI-PF-7 (SSH tunnel `ssh -L 8081:localhost:8081` per recipe § 17 + ERPNext UI at `http://localhost:8081/login` + Administrator login from `~/.erpnext-production-credentials` never pasted to chat + `bench list-apps` shows `print_designer` + Print Designer UI at `/printdesigner` + Chrome PDF backend available + read-only safety gate confirming no real customer / Sales Invoice / Payment Entry / VAT-active template / real bank account digits exist beyond test surfaces).
+  - § 3 template creation UI-CREATE-1..UI-CREATE-7 (Name `CFLR Mauritius Pro-forma Invoice v1` exact string + Doctype `Quotation` explicitly NOT `Sales Invoice` + A4 + 25/20 mm margins + `pdf_generator=Chrome` with wkhtmltopdf fallback per `JE-2026-06-04-5` host_name fix).
+  - § 4 layout instructions UI-LAYOUT-1..UI-LAYOUT-18 across 11 visual blocks per design brief F1..F30 (palette + Inter typography / seller-identity F1..F5 / document-identity F10..F14 with W-Title left teal accent bar = mark #1/3 / header rule = mark #2/3 / `BILL TO` F6..F9 / line-items F15..F19 / totals F20..F22 with above-totals rule = mark #3/3 + literal `Pending accountant confirmation` VAT row / payment placeholder F23 with W1 verbatim only and explicit FB-3+FB-10+FB-11+FB-12 protection / service-fulfilment + disclaimers F24..F27 with W2+W3+W4+W5 verbatim / footer F28..F30 / save + preview).
+  - § 5 required wording — 6 verbatim strings W-Title + W1..W5 (with short-form W3 drift note carried from design brief).
+  - § 6 forbidden wording — 12 patterns FB-1..FB-12 + defensive Python orchestrator that re-renders the test Quotation via `frappe.get_print()`, sweeps for case-insensitive forbidden substrings + 3 regex patterns (`MU\d{2}…` IBAN / `[A-Z]{4}MU…` SWIFT-BIC / `\b\d{8,}\b` 8+ consecutive digits) + verbatim case-sensitive required-wording presence — any violation → non-zero exit. Pattern follows `ERPNEXT_PRODUCTION_SHELL_SETUP_RECIPE.md` v1.1 § 13.
+  - § 7 test data plan TEST-1..TEST-5 (re-use `Test Buyer (CFLR-DRY-RUN)` + `LR-SETUP-USD-150` + recipe § 16 test Quotation with `customer_remarks` sentinel per `JE-2026-06-04-6` correction; never submit Quotation; never convert; never post Payment Entry; never email PDF to real client).
+  - § 8 verification V-1..V-13 (PDF smoke orchestrator with `%PDF` magic check + size 30-200 KB range + `docstatus=0` preserved + sandbox preservation check + no `wkhtmltopdf ConnectionRefusedError` in backend logs) + visual review (logo scales 100% + 50% / no script text / no broken image / one page / W-Title + W1..W5 verbatim / FB-1..FB-12 absent) + composite PASS/PARTIAL/FAIL verdict + EV-1..EV-11 Anton evidence checklist for Bridge #249 paste-back.
+  - § 9 rollback RB-1..RB-6 (disable Print Format `Disabled=1` **do not delete** + revert default to placeholder `CFLR Pro-forma Invoice` from recipe § 13 or stock `Standard` + keep classic Letter Head disabled if broken per recipe v1.1 § 9 EMERGENCY/TRANSITIONAL ONLY + 24-hour minimum wait before delete + optional delete after diagnostics + manual Word/Pages template `AI_LEAD_RESCUE_MANUAL_PRO_FORMA_TEMPLATE_V1.md` `JE-2026-06-02-7` remains canonical fallback throughout).
+  - § 10 standing holds unchanged.
+  - § 11 honest limits (Print Designer UI may have evolved beyond pinned v1.6.7 / no PDF rendered by THIS PR / no host commands / no canonical logo asset committed / AC-1 visual-professionalism is operator's subjective call / defensive sweep is back-stop / Chrome may need separate `setup-chrome` per container / test Quotation fall-back).
+  - § 12 cross-references to 11 sibling docs + the full `JE-2026-06-04-1..6` chain + design brief `JE-2026-06-05-1`.
+  - § 13 verdict per `.cursor/rules/delivery-reality.mdc` § docs-only = **COMPLETE-AT-PR-MERGE**.
+  - § 14 change log v1 2026-06-05.
+
+### Hard limits honoured
+
+- Zero server commands by THIS PR; zero ERPNext production-shell mutation (`corpflowai-production.localhost`); zero ERPNext sandbox mutation (`corpflowai-sandbox.localhost`); zero change to live `host_name = http://frontend:8080` from `JE-2026-06-04-5`; zero Print Designer install (Packet 2 is separate); zero Sales Invoice / GL posting / VAT activation; zero real bank / SWIFT / IBAN / payment-gateway / OAuth token added to repo; zero invoices issued; zero edits to `api/` / `lib/` / `components/` / `pages/` / `prisma/` / `middleware*` / `scripts/` / `public/` / `.github/` / `node-tests/` / `tests/` / `core/engine/` / `.env*` / `vercel.json` / `next.config*` / `package*.json` / `tsconfig*`; zero DNS / mail-routing / Telegram / Plausible / Search Console / payment-settings / Vercel / Postgres / Neon / Prisma-schema changes; zero pricing / page-copy changes on customer-facing surfaces; zero host commands executed from this L1 session — HOST_MISMATCH guard from `JE-2026-06-04-1` not triggered.
+- Only public Anton-approved values quoted (`CorpFlowAI Ltd` + BRN `C25228280` + registered office + `support@corpflowai.com` per `JE-2026-06-02-4 PAY-SBM-2`).
+
+### Standing holds (unchanged)
+
+HB-1 (full Phase D beyond narrowed shell-setup) · HB-2 (accountant CoA review) · HB-3 (VAT decision) · HB-4 (real MU bank CSV reconciliation) · Phase D go-live · first submitted Sales Invoice · first ERPNext-emailed PDF to real client · `ERPNext-PrintDesigner-Install-1` Packet 2 from `JE-2026-06-04-4` § 7.2 still gates the host-side execution of this runbook · sandbox tear-down four-condition gate from `JE-2026-06-04-1` · all standing holds from `JE-2026-06-05-1` § *Standing holds*.
+
+### Cross-references
+
+- Authorisation: chat DECISION 2026-06-05 *"AUTHORISE — ERPNext-CFLR-ProForma-Template-Build-Packet-1"*.
+- The runbook: `docs/runbooks/ERPNEXT_CFLR_PRO_FORMA_TEMPLATE_BUILD_PACKET_V1.md`.
+- Design specification (the spec this runbook executes): `docs/finance/CFLR_MAURITIUS_PRO_FORMA_TEMPLATE_DESIGN_BRIEF_V1.md` (`JE-2026-06-05-1`).
+- Print Designer evaluation + Packet 2 install shape: `docs/finance/ERPNEXT_PRINT_DESIGNER_EVALUATION_V1.md` (`JE-2026-06-04-4`).
+- Production-shell setup recipe (placeholder Print Format § 13 + Letter Head emergency advisory + SSH tunnel § 17 + test customer § 15 + test Quotation § 16): `docs/runbooks/ERPNEXT_PRODUCTION_SHELL_SETUP_RECIPE.md` v1.1 (`JE-2026-06-04-3` + `JE-2026-06-04-6`).
+- Manual Word/Pages pro-forma template (W1..W5 source + canonical fallback): `docs/finance/AI_LEAD_RESCUE_MANUAL_PRO_FORMA_TEMPLATE_V1.md` (`JE-2026-06-02-7`).
+- host_name fix that structurally unblocks PDF rendering: `JE-2026-06-04-5`.
+- Brand doctrine + accent: `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md` + `docs/marketing/CORPFLOW_BRAND_IDENTITY_V1_PROPOSAL.md` BI-D-1.
+- Execution boundary (L1/L2/L3): `docs/operations/SERVER_AGENT_ACCESS_AND_EXECUTION_BOUNDARY_V1.md` (`JE-2026-06-04-2`).
+- Bridge coordination: [#249](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/249).
+
+---
+
 ## 2026-06-05 — `ERPNext-ProForma-Template-Design-Brief-1` — `CFLR Mauritius Pro-forma Invoice v1` design specification (docs-only — **COMPLETE-AT-PR-MERGE**)
 
 <!-- ERPNEXT_PRO_FORMA_TEMPLATE_DESIGN_BRIEF_1_HIST -->
