@@ -28,6 +28,57 @@
 
 ---
 
+## 2026-06-04 — ERPNext-Production-Shell-Setup-Host-Agent-1 — Phase D narrowed-scope authorisation (docs-only JE row — **COMPLETE-AT-PR-MERGE**)
+
+<!-- ERPNEXT_PRODUCTION_SHELL_AUTHORISATION_JE_2026_06_04_1_HIST -->
+
+**Status:** Recorded as `JE-2026-06-04-1` in `docs/decisions/JOURNAL.md`. **Verdict per `.cursor/rules/delivery-reality.mdc` § docs-only: COMPLETE at PR merge** for the *authorisation row*; the subsequent **host-side execution** of `ERPNext-Production-Shell-Setup-Host-Agent-1` on `corpflow-exec-01-u69678` is a separate piece of work that must report its own STATUS on bridge [#249](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/249) once the on-server Cursor session executes. Anton's chat DECISION (2026-06-04 *"AUTHORISE — ERPNext-Production-Shell-Setup-Host-Agent-1"* + follow-up *"Decision: A. Yes — draft and merge the JE-2026-06-04-N authorisation row first, docs-only, before any ERPNext production-shell work runs on the server."*) authorised this docs-only authorisation row. Bridge handoff comment `issuecomment-4617719340` on issue #249.
+
+### Why an authorisation row before any host work
+
+`JE-2026-05-29-1` requires fresh operator authorisation for Phase D. `docs/finance/ERPNEXT_PRODUCTION_READINESS_EVALUATION.md` § 7.1 enumerates four hard blockers — **HB-1** (Phase D operator approval row), **HB-2** (Mauritius-licensed accountant CoA review), **HB-3** (VAT decision), **HB-4** (real redacted MU bank CSV reconciliation). This row closes **HB-1 for a narrowed scope only** (production-shell setup), and explicitly preserves HB-2 + HB-3 + HB-4 as standing holds for the broader Phase D (revenue-posting / VAT-active / real-bank / real-client surface) start.
+
+### What the row authorises (narrowly)
+
+- Fresh ERPNext **production shell** on `corpflow-exec-01-u69678` parallel-installed alongside the existing sandbox (no IP-rebind, no DB promotion).
+- Suggested internal site name `corpflowai-production.localhost` (loopback-only on `127.0.0.1`; no DNS, no TLS, no public exposure, no SMTP).
+- Fresh administrator credentials stored on the host at `~/.erpnext-production-credentials` (`chmod 600`; file path reported, never the contents — same pattern as `~/.erpnext-sandbox-credentials` from `JE-2026-06-01-1`).
+- Company doctype (`CorpFlowAI Ltd` / Mauritius / BRN `C25228280` / registered office `Dextra Lane Lot No. 3 Phase 1, Trou Aux Biches, Mauritius` / `support@corpflowai.com`), Letter Head + CorpFlowAI branding, Quotation Print Format displayed as *"Pro-forma invoice"*, Sales Invoice Print Format draft (NOT labelled *"Tax invoice"* / *"VAT invoice"*), Item `LR-SETUP-USD-150` (no `SBX-` prefix; name *"AI Lead Rescue Setup (USD 150 launch pilot)"* verbatim per `BRAND_AND_CONVERSION_DOCTRINE.md` § *AI Lead Rescue doctrine* and `JE-2026-05-28-1`).
+- Broad scalable revenue categories (Productized Service Revenue / Implementation-Setup Revenue / Recurring Subscription-Retainer Revenue / Consulting-Advisory Revenue / Software-Platform Access Revenue / Other Operating Revenue / Foreign Exchange Gain-Loss) — Lead Rescue is an ERPNext **Item**, not the backbone of the Chart of Accounts.
+- Test-only customer + test-only Quotation PDF smoke with W1–W5 footer wording verbatim from `docs/finance/AI_LEAD_RESCUE_MANUAL_PRO_FORMA_TEMPLATE_V1.md` § 1; PASS / PARTIAL / FAIL reported on bridge #249.
+- Optional idempotent server-side bypass per `docs/runbooks/ERPNEXT_SANDBOX_INSTALL.md` § 7.1 if the UI setup wizard fails (same three quirks recorded in `JE-2026-06-01-1`).
+
+### What the row explicitly does NOT authorise
+
+(1) ERPNext accounting go-live; (2) issuing any pro-forma / quotation / invoice to a real client; (3) submitting any Sales Invoice (no GL posting on production); (4) activating VAT or using *"Tax invoice"* / *"VAT invoice"* anywhere; (5) entering any real bank account number / SWIFT / BIC / IBAN / routing / sort-code / card or payment credentials / payment-gateway API keys / client secrets; (6) configuring DNS, TLS, SMTP, reverse proxy, or any public exposure of the production site; (7) any change to the CorpFlowAI app runtime, Vercel project settings, GitHub workflow files or settings, Postgres / Neon / Prisma schema, n8n, Plausible, Search Console, Telegram, or any client-facing surface; (8) inventing new env var names; (9) printing passwords / secrets in chat or logs; (10) promoting the sandbox database to production (parallel install only, per `ERPNEXT_PRODUCTION_READINESS_EVALUATION.md` § 3 Q2.4); (11) importing sandbox transactional data into production; (12) deleting the sandbox by default.
+
+### `HOST_MISMATCH` execution guard
+
+The host-side execution must occur only from a Cursor session running directly on `corpflow-exec-01-u69678` (or with equivalent host-local Docker / Frappe / bench access). Any other host — including Anton's Windows laptop without an SSH bridge to the box — must stop immediately with the literal status code `HOST_MISMATCH`, post evidence to bridge #249, and await the operator opening a Cursor session on the correct host. (This Windows laptop session does **not** have SSH client / SSH key / SSH config in place, so the guard is not even tested by this docs-only PR.)
+
+### Sandbox preservation rule
+
+The existing Phase B-a sandbox produced by `JE-2026-06-01-1` (PR [#275](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/275), commit `6abb6f4d`) and exercised through Phase C (`JE-2026-06-01-3` + `JE-2026-06-01-5`) is preserved by default. The sandbox may be removed only when ALL of: (i) a final sandbox backup/export is produced with documented path, (ii) the production-shell site is reachable on the box, (iii) the test-only Quotation PDF smoke completes with PASS or PARTIAL, AND (iv) Anton has issued explicit removal approval as a separate chat DECISION on bridge #249. Removal without all four is forbidden.
+
+### Standing holds preserved (still HELD by this row)
+
+HB-2 (accountant CoA review) · HB-3 (VAT decision) · HB-4 (real redacted MU bank CSV) · full Phase D (revenue-posting / VAT-active / real-bank / real-client surface) · Phase C² · runbook §8.1 hardening · production ERPNext go-live · scheduler · payment gateway configuration · Lead Rescue wording adoption (`LR-Pay-1`) · SBM application submission · `PAY-SBM-3` · NDA / MCIB · Freshdesk activation · `support.corpflowai.com` CNAME · DKIM/SPF · live-chat · AI chatbot · n8n migration · public site-copy adding portal URL · Pomelli activation.
+
+### Hard limits honoured by this PR
+
+Zero edits to ERPNext production (no production instance exists yet); zero edits to ERPNext sandbox state on `corpflow-exec-01-u69678`; zero host commands executed from this Windows laptop session; zero secrets / API keys / OAuth tokens / DB credentials touched; zero real bank account number / SWIFT / BIC / IBAN / routing in repo; zero edits to runtime / Prisma / API / `lib/` / `components/` / `pages/` / `public/` / `.github/` / test files / env templates / Vercel / GitHub config; zero changes to DNS / mail-routing / Telegram / Plausible / Search Console / payment settings. Pure docs / authorisation-row artefact.
+
+### Files changed
+
+- `docs/decisions/JOURNAL.md` (+1 row, +1 blank line).
+- `artifacts/chat_history.md` (this entry).
+
+### Reversibility
+
+A future superseding `JE-YYYY-MM-DD-N` row that explicitly references and reverses this row (preferred) **or** a single revert PR of the merge commit (removes the row + this entry atomically). Revert does **not** undo any host-side production-shell setup that may already have been performed on `corpflow-exec-01-u69678` — for that, follow `docs/runbooks/ERPNEXT_SANDBOX_INSTALL.md` § 15 tear-down adapted to the production-shell site only (drop `corpflowai-production.localhost`, remove `~/.erpnext-production-credentials`); the existing sandbox project / site / credentials file is preserved by the sandbox preservation rule above.
+
+---
+
 ## 2026-06-03 — Cold-Sprint-V1-Copy — minimal `/lead-rescue` hero copy improvements for cold Mauritian prospects (runtime PR — **COMPLETE**)
 
 <!-- COLD_SPRINT_V1_COPY_HIST -->
