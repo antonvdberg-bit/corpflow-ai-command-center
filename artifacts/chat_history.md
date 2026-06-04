@@ -28,6 +28,88 @@
 
 ---
 
+## 2026-06-04 — Server agent access & execution boundary v1 — canonical runbook (docs-only — **COMPLETE-AT-PR-MERGE**)
+
+<!-- SERVER_AGENT_ACCESS_AND_EXECUTION_BOUNDARY_V1_HIST -->
+
+**Status:** Recorded as `JE-2026-06-04-2` in `docs/decisions/JOURNAL.md`. New canonical doc **`docs/operations/SERVER_AGENT_ACCESS_AND_EXECUTION_BOUNDARY_V1.md`** + new `AGENTS.md` Must-read row. **Verdict per `.cursor/rules/delivery-reality.mdc` § docs-only: COMPLETE at PR merge** (operator + agent governance; no customer-visible URL to probe by design).
+
+### Why this runbook now
+
+Anton's APPROVED investigation directive on bridge [#249 issuecomment-4617928519](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/249#issuecomment-4617928519) (2026-06-04 *"Operator / ChatGPT decision — investigate server-side Cursor/agent execution reality"*) flagged that the prior handoff comment [#249 issuecomment-4617719340](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/249#issuecomment-4617719340) had stated *"resume in a Cursor instance running on `corpflow-exec-01-u69678` itself (same posture as Phase B-a sandbox install)"* — both clauses factually wrong. No such Cursor instance has ever existed (forbidden by `MONITORING_ARCHITECTURE.md` § 11.3 hard rule *"❌ No Cursor server extension — no remote Cursor Agent yet (deferred at bootstrap)"*), and Phase B-a was Anton-at-keyboard pasting Cursor-authored commands over SSH from his own terminal (per `JE-2026-05-31-2`).
+
+Cursor's investigation report (in chat) concluded the server-side reality is: **repo IS cloned + GH CLI authed + SSH access for `anton`**, but **NO persistent Cursor / agent / daemon / tunnel / code-server / Cursor Remote session exists on the box, and that absence is deliberate policy.** Anton's structured decision via `AskQuestion` (2026-06-04): **Q1 = Option B** (use the proven Phase B-a model — Cursor on laptop drafts the full command recipe; Anton SSHes from his own terminal and pastes; Anton shares output back; Cursor captures into JE + bridge STATUS); **Q2 = "Yes — open the Server Agent Access / Execution Boundary Runbook now (parallel)"**. This runbook is the Q2 deliverable.
+
+### What the runbook formalises (the three execution layers)
+
+| # | Layer | Where | Examples |
+|---|---|---|---|
+| **L1** | Laptop brain | Cursor on Anton's Windows machine | Authoring code / docs / commands / commit messages / PR bodies / STATUS comments; reading repo; running `npm test` locally; capturing evidence from chat output; opening PRs |
+| **L2** | Cloud hands | Vercel (HTTP + cron), GitHub Actions, Postgres/Neon, n8n (on its own host, separate from `corpflow-exec-01-u69678`), Codex Cloud (OpenAI infra) | All scheduled / event-driven 24/7 execution; the 12 monitors in `MONITORING_ARCHITECTURE.md` § 2; `codex/*` branches |
+| **L3** | Box hands (operator-driven) | `corpflow-exec-01-u69678` (`5.78.213.185`, Ubuntu 24.04, 4 vCPU / 7.5 GiB / 150 GB post-`JE-2026-05-31-2` resize) via SSH from Anton's terminal | One-off operator commands: `docker compose …`, `bench …`, `git pull`, ERPNext install / bench operations, sandbox tear-down, read-only audits |
+
+**Cursor never executes on L3 directly.** Cursor's role with respect to L3 is **author commands at L1 + capture evidence at L1**; Anton's hands type / paste the L3 bytes in his own SSH terminal.
+
+### The canonical-absence list (§ 6 of the runbook)
+
+A layer that does not appear in § 2 of the runbook is **not a CorpFlow execution layer**. Specifically, none of the following exists today and none may be silently introduced:
+
+- Cursor session on `corpflow-exec-01-u69678`
+- Cursor Remote SSH endpoint to the box
+- `code-server` / VS Code Server on the box
+- Web-shell / browser terminal on the box
+- Persistent daemon / systemd / cron / `at` on the box
+- Codex Cloud on the box (per `DELIVERY_ACCELERATION_V1.md` § 4.3)
+- Tailscale / WireGuard / reverse-tunnel from box to laptop
+- Production secrets on the box
+- Vercel deploy capability from the box
+- Tenant DB exports on the box
+- n8n on the box (deferred via packet `n8n-on-exec01`)
+
+The runbook adds the discipline: *"if an agent or handoff comment claims one of these surfaces exists, demand the file path / process / port / config row that proves it; if none can be produced, the claim is wrong."*
+
+### `HOST_MISMATCH` semantics (§ 7 of the runbook)
+
+A Cursor session must stop and emit `HOST_MISMATCH` when ALL of: (a) the packet authorisation row in JOURNAL.md requires execution on `corpflow-exec-01-u69678`, (b) the current session is not running on that host, (c) the packet requires bytes to change on L3. The session then posts evidence to bridge #249 (which JE row required L3; current session host; why L3 is unreachable; next-correct action) and hands off to Anton + L1 in the § 5.4 collaboration pattern. **Never fabricate L3 output. Never proceed silently.**
+
+### Decision tree (§ 8 of the runbook)
+
+Per-class layer assignment so future packets pick the right surface without inventing a new layer:
+
+- Docs-only edit → **L1**
+- Scheduled / event-driven repo automation → **L2** (GitHub Actions or Vercel cron) — passes `MIGRATION_TO_SERVER_CHECKLIST.md`
+- Read-only HTTP probe → **L1 or L2**
+- DB write → **L2 via audited API route**, never direct
+- Vercel deploy → **L2 (Vercel itself, triggered by push to `main`)**
+- DNS / billing / repo settings → **Anton directly** (AAP §3 hard gates)
+- One-off shell command on `corpflow-exec-01-u69678` → **L3 via § 5.4 pattern** (Cursor authors at L1, Anton pastes at L3, Cursor captures evidence at L1)
+- "Cursor on the box itself" → **does not exist as a class** (§ 6 absence list)
+
+### Gate for lifting any § 5.3 hard rule (§ 10 of the runbook)
+
+If a future packet proposes installing Cursor Remote SSH on the box, or adding a cron job, or migrating n8n to `corpflow-exec-01`, or putting production secrets on the box: the packet must (1) write an ADR under `docs/decisions/YYYYMMDD-<topic>.md`, (2) pass `MIGRATION_TO_SERVER_CHECKLIST.md` § 2, (3) add a new row in `MONITORING_ARCHITECTURE.md` § 2 in the same PR, (4) update the boundary runbook to move the surface from § 6 absence to § 5 allowed, (5) add an `AGENTS.md` Must-read row, (6) record a `JE-YYYY-MM-DD-N` row, (7) get Anton's merge approval.
+
+### Known doc-drift item explicitly NOT fixed by this PR
+
+`MONITORING_ARCHITECTURE.md` § 11.3 + § 2 monitor #12 were authored 2026-05-27 (pre-resize) and still name the pre-resize spec `2 vCPU / 2 GB / 38 GB`. The post-resize identity from `JE-2026-05-31-2` is **4 vCPU / 7,751 MiB RAM / 150 GB / 2 GB swap** under hostname `corpflow-exec-01-u69678`. The boundary runbook flags this in § 5.1 + § 10. Fix is a separate small docs-only PR (not bundled here so the cross-doc drift is visible and Anton-approved).
+
+### Files changed
+
+- `docs/operations/SERVER_AGENT_ACCESS_AND_EXECUTION_BOUNDARY_V1.md` (new, +260 lines).
+- `AGENTS.md` (+1 Must-read row).
+- `docs/decisions/JOURNAL.md` (+1 row `JE-2026-06-04-2`).
+- `artifacts/chat_history.md` (this entry).
+
+### Standing holds (unchanged)
+
+Phase D · HB-2 · HB-3 · HB-4 · Phase C² · runbook §8.1 hardening · production ERPNext go-live · scheduler · payment gateway configuration · Lead Rescue wording adoption (`LR-Pay-1`) · SBM application submission · `PAY-SBM-3` · NDA / MCIB · Freshdesk activation · `support.corpflowai.com` CNAME · DKIM/SPF · live-chat · AI chatbot · n8n migration · public site-copy adding portal URL · Pomelli activation · `MONITORING_ARCHITECTURE.md` § 11.3 stale-spec doc-drift · `ERPNext-Production-Shell-Setup-Host-Agent-1` host-side execution HELD by `JE-2026-06-04-1` HOST_MISMATCH guard (now formalised by this runbook).
+
+### Reversibility
+
+A future superseding `JE-YYYY-MM-DD-N` row that explicitly references and reverses this row (preferred — keeps the doc as historical artefact), **or** a single revert PR of the merge commit (removes the runbook + `AGENTS.md` row + JE row + this entry atomically). Revert removes the synthesis but does NOT change the underlying canonical docs whose rules this runbook merely names in one place — those keep applying regardless.
+
+---
+
 ## 2026-06-04 — ERPNext-Production-Shell-Setup-Host-Agent-1 — Phase D narrowed-scope authorisation (docs-only JE row — **COMPLETE-AT-PR-MERGE**)
 
 <!-- ERPNEXT_PRODUCTION_SHELL_AUTHORISATION_JE_2026_06_04_1_HIST -->
