@@ -28,6 +28,64 @@
 
 ---
 
+## 2026-06-05 — `ERPNext-ProForma-Template-Design-Brief-1` — `CFLR Mauritius Pro-forma Invoice v1` design specification (docs-only — **COMPLETE-AT-PR-MERGE**)
+
+<!-- ERPNEXT_PRO_FORMA_TEMPLATE_DESIGN_BRIEF_1_HIST -->
+
+**Status:** Recorded as `JE-2026-06-05-1` in `docs/decisions/JOURNAL.md`. New canonical doc `docs/finance/CFLR_MAURITIUS_PRO_FORMA_TEMPLATE_DESIGN_BRIEF_V1.md` (anchor sentinel `<!-- CFLR_MAURITIUS_PRO_FORMA_TEMPLATE_DESIGN_BRIEF_V1 -->`). **Verdict per `.cursor/rules/delivery-reality.mdc` § docs-only: COMPLETE at PR merge** for the design-specification artefact (operator + agent governance; no customer-visible URL to probe by design). The Print Designer install + template build it specifies is a separate piece of work (`ERPNext-PrintDesigner-Install-1`, Packet 2 from `JE-2026-06-04-4` § 7.2, still UNAUTHORISED) and reports its own STATUS on bridge [#249](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/249) when authorised + executed.
+
+### Why this PR now
+
+Anton's chat DECISION (2026-06-05 *"AUTHORISE — ERPNext-ProForma-Template-Design-Brief-1"*) directed Cursor to author a complete design / specification brief for the **first CorpFlowAI ERPNext Print Designer template**: a Mauritius pro-forma invoice for AI Lead Rescue. The Print Designer install on the existing production shell (`corpflowai-production.localhost` on `corpflow-exec-01-u69678`) may happen separately; this packet prepares the template brief so that once Print Designer is installed, Anton knows exactly what to build visually — without any further design back-and-forth, without any drift from the canonical W1..W5 wording, and without any risk of forbidden wording slipping in (revenue guarantees, "Tax invoice", "Pay now", etc.).
+
+### What changed (file by file)
+
+| File | Change |
+|---|---|
+| `docs/finance/CFLR_MAURITIUS_PRO_FORMA_TEMPLATE_DESIGN_BRIEF_V1.md` | **New canonical brief.** 18 sections / ~500 lines covering the 10 numbered requirements in Anton's AUTHORISE message + standing holds / verification rubric / open questions / honest limits / cross-references / change log. |
+| `docs/decisions/JOURNAL.md` | `JE-2026-06-05-1` row added (chronological order continues from `JE-2026-06-04-6`). |
+| `artifacts/chat_history.md` | This section. |
+| `AGENTS.md` | **Not updated** — this brief is design input to the future Packet 2 install, not a new must-read in the same sense as the production-shell recipe or execution-boundary runbook. The brief itself is discovered via `docs/finance/` and the chain of JOURNAL rows. |
+
+### Headlines
+
+- **Template name:** `CFLR Mauritius Pro-forma Invoice v1` — `doc_type=Quotation`, `pdf_generator=chrome` (Print Designer's Chrome PDF backend per `JE-2026-06-04-4` § 4 Option A; bypasses wkhtmltopdf).
+- **Source doctype:** `Quotation` (Path A per `ERPNEXT_PRODUCTION_READINESS_EVALUATION.md` § 2 Q1.2). Rejected Sales-Invoice-Draft because of accidental-submission GL-posting risk. Naming series `CFLR-QUO-.YYYY.-.NNN` per `JE-2026-06-04-3` § 12.
+- **Purpose (what it IS):** pre-payment quotation; visually professional for CEO / clinic owner / property owner; ERPNext-native equivalent of the manual Word/Pages pro-forma in `AI_LEAD_RESCUE_MANUAL_PRO_FORMA_TEMPLATE_V1.md`.
+- **Purpose (what it is NOT):** not a tax invoice / not a VAT invoice / not a receipt / not a payment-confirmation email / not a demand for payment until intake approval is confirmed in writing.
+- **Required visible fields:** **30 fields across 8 visual blocks** (seller-identity F1..F5 / buyer-identity F6..F9 / document-identity F10..F14 / line-item F15..F19 / totals F20..F22 / payment placeholder F23 / setup-start + no-guarantee + tax-treatment F24..F27 / footer F28..F30). Source bindings recorded for each field (Company doctype / Quotation doctype / Item doctype / Customer doctype / static text).
+- **Required wording (verbatim, 6 strings):** W-Title `Pro-forma invoice` / W1 `Payment instructions are sent separately after intake approval.` / W2 `Setup begins after payment confirmation and receipt of required client information.` / W3 `Setup target: 48 hours after payment confirmation, subject to client responsiveness and required access/information.` / W4 `No revenue, lead volume, or conversion outcome is guaranteed.` / W5 `VAT/tax treatment pending accountant confirmation.` **One drift note recorded**: Anton's AUTHORISE specified the short-form W3 above; the manual template + live `/terms` use the longer 48-hours-and-5-business-days W3. If accountant or operator decides to align on the long form, the change lands on production Print Format + live page + this brief together per `ERPNEXT_ACCOUNTANT_REVIEW_PACK_V1.md` § 6 Q-Doc-3.
+- **Forbidden wording (12 patterns FB-1..FB-12):** `Tax invoice` / `VAT invoice` / `Pay now` / `PayPal accepted` / `Wise accepted` / `Instant checkout` / revenue-guarantee / lead-volume-guarantee / conversion-guarantee phrasings + card-scheme + payment-provider wordmarks + real bank/SWIFT/IBAN/routing digits + payment URLs / buttons / QR codes. Defensive forbidden-wording assertion design follows the proven pattern in `ERPNEXT_PRODUCTION_SHELL_SETUP_RECIPE.md` § 13 (post-render HTML regex sweep; non-zero exit on match; abort install if any forbidden substring present).
+- **Visual direction:** clean / premium / high-trust / lots of whitespace / clear hierarchy / no clutter / no cheap invoice-template look. Single accent colour `#2dd4bf` (canonical CorpFlowAI teal per `BRAND_IDENTITY_V1_PROPOSAL.md` BI-D-1), used sparingly (at most three small marks per page: header rule + total rule + W-Title left bar). Inter typography (single family). A4 page, 25 mm top-bottom / 20 mm left-right margins. Logo top-left ~22 mm wide per Cursor recommendation; **note**: no canonical CorpFlowAI logo file is currently committed to `public/assets/logos/` (only `theme.js` references `LogoSQBK.jpg`/`LogoSQBK.png`); Anton uploads via Print Designer UI at build time, or the template renders text-only as acceptable v1 fallback.
+- **Future variants planned (NOT in v1):** MU tax/VAT invoice (HARD-BLOCKED on HB-2 + HB-3) · SA pro-forma + invoice · USA pro-forma + invoice (US Letter page size) · generic quotation (W5 removed) · MU bilingual EN+FR.
+- **Acceptance criteria (11 testable AC-1..AC-11):** visually professional for CEO buyer / Chrome PDF renders cleanly / logo scales correctly / no script text / no broken image / no `wkhtmltopdf ConnectionRefusedError` (two layers: Chrome bypass + `JE-2026-06-04-5` host_name fix) / all required wording present / no forbidden wording / no real bank details / one page for one-line-item / reverts cleanly. **`COMPLETE` verdict on the future install requires all 11.**
+- **Anton UI checklist:** pre-flight UI-0a..UI-0e (production-shell up + tunnel + Print Designer installed + `pdf_generator=chrome` available + Item `LR-SETUP-USD-150` + test Customer `Test Buyer (CFLR-DRY-RUN)`) → build UI-1..UI-13 (new template / A4 / seller block / document-identity / teal rule / `BILL TO` / line items / totals + `Pending accountant confirmation` / teal rule / payment placeholder W1 / service-fulfilment + disclaimers W2..W5 / footer / save) → visual comparison UI-14..UI-16 (render against test Quotation / side-by-side with manual pro-forma / second-device legibility) → evidence EV-1..EV-9 (Print Format record + timestamp / rendered PDF scp'd off box / two screenshots at 100% + 50% zoom / `frappe.get_print()` smoke output / forbidden + required wording grep outputs / `docker compose ls` sandbox preservation / PASS/PARTIAL/FAIL verdict).
+
+### Hard limits honoured
+
+This PR is documentation only. Zero edits to runtime / scripts / env / secrets. Zero host commands executed from L1 (HOST_MISMATCH guard from `JE-2026-06-04-1` not triggered — no L3 work attempted in this packet). Zero Print Designer install. Zero ERPNext production-shell mutation (the post-`JE-2026-06-04-5` `host_name = http://frontend:8080` value, the placeholder `CFLR Pro-forma Invoice` Print Format if Anton ever created it, the manually-created `CorpFlowAI Letterhead` Letter Head — all untouched). Zero ERPNext sandbox mutation. Zero invoices issued. Zero Sales Invoice creation or submission. Zero GL posting. Zero VAT activation. Zero real bank / SWIFT / IBAN / routing digits in repo. Zero payment-gateway configuration. Zero secrets. Only public Anton-approved values quoted (legal name `CorpFlowAI Ltd`, BRN `C25228280`, registered office, support email).
+
+### What stays HELD
+
+All standing holds from `JE-2026-06-04-6` carry forward. This PR is a design specification, not an authorisation. HB-1 (full Phase D beyond narrowed shell-setup scope) / HB-2 / HB-3 / HB-4 / Phase D go-live / first submitted Sales Invoice / first ERPNext-emailed PDF to a real client / sandbox tear-down four-condition gate all still HELD. **`ERPNext-PrintDesigner-Install-1` (Packet 2 from `JE-2026-06-04-4` § 7.2) remains UNAUTHORISED**; this brief is its design input but does not authorise the install. The install requires its own separate `AUTHORISE — ERPNext-PrintDesigner-Install-1` chat DECISION from Anton.
+
+### Cross-references
+
+- Authorisation: chat DECISION 2026-06-05 *"AUTHORISE — ERPNext-ProForma-Template-Design-Brief-1"*.
+- The brief: `docs/finance/CFLR_MAURITIUS_PRO_FORMA_TEMPLATE_DESIGN_BRIEF_V1.md`.
+- Source of W1..W5 verbatim wording: `docs/finance/AI_LEAD_RESCUE_MANUAL_PRO_FORMA_TEMPLATE_V1.md` § 1 (`JE-2026-06-02-7`).
+- Print Designer decision artefact: `docs/finance/ERPNEXT_PRINT_DESIGNER_EVALUATION_V1.md` (`JE-2026-06-04-4`).
+- Phase D production-readiness eval (M-Print broader scope): `docs/finance/ERPNEXT_PRODUCTION_READINESS_EVALUATION.md` (`JE-2026-06-03-2`).
+- Accountant review pack (Q-Doc / Q-VAT constraints): `docs/finance/ERPNEXT_ACCOUNTANT_REVIEW_PACK_V1.md` (`JE-2026-06-03-3`).
+- Production-shell setup recipe (placeholder `CFLR Pro-forma Invoice` Print Format + Letter Head emergency / transitional advisory + § 17 SSH tunnel): `docs/runbooks/ERPNEXT_PRODUCTION_SHELL_SETUP_RECIPE.md` v1.1 (`JE-2026-06-04-3` + `JE-2026-06-04-6`).
+- host_name fix that structurally unblocks PDF rendering: `JE-2026-06-04-5`.
+- Brand doctrine (single-offer rule + canonical Item label + no-guarantee line): `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md` § *AI Lead Rescue doctrine*.
+- Canonical accent colour: `docs/marketing/CORPFLOW_BRAND_IDENTITY_V1_PROPOSAL.md` BI-D-1.
+- Execution boundary (L1/L2/L3): `docs/operations/SERVER_AGENT_ACCESS_AND_EXECUTION_BOUNDARY_V1.md` (`JE-2026-06-04-2`).
+- Bridge coordination: [#249](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/249).
+
+---
+
 ## 2026-06-04 — `ERPNext-Production-Shell-Recipe-Drift-Fix-1` — recipe v1.1 (docs-only — **COMPLETE-AT-PR-MERGE**)
 
 <!-- ERPNEXT_PRODUCTION_SHELL_RECIPE_DRIFT_FIX_1_HIST -->
