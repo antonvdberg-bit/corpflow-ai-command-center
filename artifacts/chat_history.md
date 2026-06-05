@@ -148,6 +148,50 @@ All standing holds from `JE-2026-06-05-3` carry forward unchanged. HB-1 (full Ph
 - Accountant pack: `docs/finance/ERPNEXT_ACCOUNTANT_REVIEW_PACK_V1.md` (`JE-2026-06-03-3`).
 - Manual Word/Pages pro-forma fallback (canonical for first pilots): `docs/finance/AI_LEAD_RESCUE_MANUAL_PRO_FORMA_TEMPLATE_V1.md` (`JE-2026-06-02-7`).
 - Bridge coordination: [#249](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/249).
+## 2026-06-05 — `AI-Lead-Rescue-Mauritius-Sales-Activation-Pack-1` — operator-ready sales playbook (docs-only — **COMPLETE-AT-PR-MERGE**)
+
+<!-- AI_LEAD_RESCUE_MAURITIUS_SALES_ACTIVATION_PACK_1_HIST -->
+
+**Status:** Recorded as `JE-2026-06-05-6` in `docs/decisions/JOURNAL.md`. New canonical doc `docs/marketing/AI_LEAD_RESCUE_MAURITIUS_SALES_ACTIVATION_PACK_V1.md` (anchor sentinel `<!-- AI_LEAD_RESCUE_MAURITIUS_SALES_ACTIVATION_PACK_V1 -->`). **Verdict per `.cursor/rules/delivery-reality.mdc` § docs-only: COMPLETE at PR merge** for the operator-playbook artefact (operator + agent governance; no customer-visible URL to probe by design). The sales activity it enables runs in Anton's L1 / off-repo workflow; the **results** (intake submissions, paid pilots, testimonials, decisions to escalate or wait) are recorded on the Commercial card in `/admin/lead-rescue/[id]` and summarised back to Bridge [#249](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/249) per § 4 Friday review + § 7 evidence checklist.
+
+### JE-ID note (parallel workstreams)
+
+`JE-2026-06-05-4` and `JE-2026-06-05-5` are reserved locally on Anton's machine for the parallel Print Designer install / editor-fix workstream and will land via their own PRs. This activation pack uses `JE-2026-06-05-6` to avoid an ID collision when both PR chains merge to `origin/main`.
+
+### What's in the pack (15 sections)
+
+1. **§ 0 hard limits** — zero runtime / scripts / env / DNS / payment-settings / GitHub-workflows / Vercel / Postgres / Neon / Prisma changes; zero ERPNext production-shell or sandbox mutation; zero Print Designer install or template build; zero invoices issued by THIS PR; zero claim contradicts the live `/lead-rescue` page.
+2. **§ 1 what Anton can sell today** — 8-row table sourcing every customer-visible commitment to live `/lead-rescue` sentinels (`USD 150 launch pilot` + `48-hour setup` + `no card on this page` + `invoiced after we review your intake` + `We do not guarantee new revenue`).
+3. **§ 2 who to target first** — Mauritius property / clinics / contractors / owner-managed warm-network; cold lists out per `JE-2026-06-01-4` § 4.4.
+4. **§ 3 20-person warm-network list** — 9-column schema + 5 list-hygiene rules; populated list never appears in repo or AI prompts.
+5. **§ 4 daily execution plan Mon–Fri** — ~90 min/day; stretch = 1–2 paying pilots; minimum = 1+ intake submission; if 0 intakes by Fri 16:30 → STOP and rework list.
+6. **§ 5 9 paste-safe message scripts** — WhatsApp / LinkedIn / email openers + first follow-up + 4 reply patterns (send-me-details / how-much / is-this-AI / will-this-guarantee-leads) + payment-confirmation; pair with canonical outreach copy `AI_LEAD_RESCUE_MAURITIUS_OUTREACH_COPY_V1.md` (`JE-2026-06-02-2`).
+7. **§ 6 lead-handling workflow** — full ASCII diagram intake → manual pro-forma → payment landed → 48-hour setup → 7-day monitoring → outcome → testimonial; 5 boundaries the workflow does NOT cross.
+8. **§ 7 evidence checklist EV-1..EV-12** — per-pilot data captured: Plausible event / intake row / pro-forma sent / payment status / delivery status / testimonial-or-decline / time-to-intake-review / time-to-setup-done / lead-source mix / channel that converted / reason prospect bought / operator end-of-pilot notes.
+9. **§ 8 12 DN-1..DN-12 do-not-say guardrails** — guaranteed leads / instant-AI / pay-now / automated-payment / tax-invoice / ERPNext-invoice-ready / trusted-by / PayPal-Wise-cards / specific bank digits / same-day setup / discounts / client real name without § 7.6 permission.
+10. **§ 9 decision points** — when to accept (4 conditions all true) / decline (5 triggers + verbatim script) / escalate to custom quote (3 triggers + verbatim script — do NOT send USD 150 pro-forma) / wait for accountant or ERPNext (3 wait-triggers + verbatim hold script).
+11. **§ 10 final Anton daily checklist** — 10-item end-of-day glance + Fri 16:30 week-end gate.
+12. **§ 11 standing holds** — HB-1..HB-4 + Phase D + first submitted Sales Invoice + first ERPNext-emailed PDF to real client + Anton's locally-reserved `JE-2026-06-05-4` / `-5` Print Designer install / editor-fix workstream landing via their own PRs.
+13. **§ 12 honest limits** — no CRM / no measured-data tuning / no French body / no automated send / no statistical proof / no retainer or production-price conversion / no commitment that payment-route stays SBM wire / AI Lead Rescue is NOT a CRM, website, payment processor, booking engine, SMS gateway, or customer-replying bot.
+14. **§ 13 cross-references** — 15+ sibling docs + full decision-row chain `JE-2026-05-28-1..3` + `JE-2026-06-01-4..6` + `JE-2026-06-02-2..7` + `JE-2026-06-03-1` + `JE-2026-06-04-1..6` + `JE-2026-06-05-1..3` + this row.
+15. **§ 14 verdict per `.cursor/rules/delivery-reality.mdc` § docs-only** = **COMPLETE-AT-PR-MERGE**. **§ 15 change log v1 2026-06-05.**
+
+### Hard limits honoured by THIS PR
+
+Zero runtime / scripts / env / DNS / Vercel / GitHub-workflows / Postgres / Neon / Prisma changes; zero ERPNext production-shell mutation (`host_name = http://frontend:8080` from `JE-2026-06-04-5` unchanged); zero ERPNext sandbox mutation; zero Print Designer install / template build; zero Sales Invoice / GL / VAT / `Tax invoice` / `VAT invoice` wording; zero real bank / SWIFT / BIC / IBAN / payment-gateway / OAuth token added; zero invoices issued; zero pricing / page-copy changes on customer-facing surfaces; zero new claims that contradict the live `/lead-rescue` page (auto-cross-checked against live-page sentinels per `JE-2026-06-01-6` § 1.1); zero host commands from L1 — HOST_MISMATCH guard from `JE-2026-06-04-1` not triggered; only the public Anton-approved seller-identity values quoted (CorpFlowAI Ltd + BRN C25228280 + registered office Dextra Lane + support@corpflowai.com per PAY-SBM-2 `JE-2026-06-02-4`).
+
+### Standing holds (unchanged)
+
+HB-1 · HB-2 · HB-3 · HB-4 · Phase D go-live · first submitted Sales Invoice · first ERPNext-emailed PDF to real client · `ERPNext-PrintDesigner-Install-1` Packet 2 still on its own authorisation chain · `ERPNext-First-Real-Pro-Forma-Send` HELD on AC-1..AC-11 + HB-1..HB-4 closure · sandbox tear-down four-condition gate · `LR-Mauritius-Outreach-Copy-V1.1` measured-data refinement not authorised by this pack · `LR-French-Creole-Variants-1` deferred · `LR-Mauritius-Enterprise-Track-1` deferred · all standing holds from `JE-2026-06-05-1` / `JE-2026-06-05-2` / `JE-2026-06-05-3` · Anton's locally-reserved Print Designer install / editor-fix workstream `JE-2026-06-05-4` / `JE-2026-06-05-5` will land via their own PRs.
+
+### Pointers
+
+- Authorisation: chat DECISION 2026-06-05 *"AUTHORISE — AI-Lead-Rescue-Mauritius-Sales-Activation-Pack-1"*.
+- New canonical doc: `docs/marketing/AI_LEAD_RESCUE_MAURITIUS_SALES_ACTIVATION_PACK_V1.md`.
+- Live page (do not contradict): `https://corpflowai.com/lead-rescue` (verified by `JE-2026-06-01-6` § 1.1).
+- Canonical channel copy this pack pairs with (not duplicated): `docs/marketing/AI_LEAD_RESCUE_MAURITIUS_OUTREACH_COPY_V1.md` (`JE-2026-06-02-2`).
+- Canonical payment doc for first paying pilots (manual fallback): `docs/finance/AI_LEAD_RESCUE_MANUAL_PRO_FORMA_TEMPLATE_V1.md` (`JE-2026-06-02-7`).
+- Future ERPNext-native equivalent (design + build runbook): `JE-2026-06-05-1` + `JE-2026-06-05-2`; closure of install per `JE-2026-06-05-3`.
 
 ---
 
