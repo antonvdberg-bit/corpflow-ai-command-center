@@ -88,21 +88,32 @@ The bind-mount Compose override `~/erpnext-production/frappe_docker/overrides/co
 | `redis-cache` | n/a | Redis; doesn't need code |
 | `redis-queue` | n/a | Redis; doesn't need code |
 
-`bench build` (run inside the `backend` container) writes the compiled JS / CSS bundles to `apps/print_designer/print_designer/public/dist/` on the bind-mounted source — which is shared with the 5 Python services. `bench build` then symlinks `sites/assets/print_designer/` → `apps/print_designer/print_designer/public/` (the symlink path is **absolute**, not relative). The `sites/` volume is shared with the `frontend` container.
+`bench build` (run inside the `backend` container) writes the compiled JS / CSS bundles to `apps/print_designer/print_designer/public/dist/` on the bind-mounted source — which is shared with the 5 Python services that share the same bind-mount.
 
 When the browser requests `http://localhost:8081/assets/print_designer/dist/js/print_designer.bundle.UDIPLQSC.js`:
 
 1. nginx in the `frontend` container handles the request.
-2. nginx resolves the alias to `/home/frappe/frappe-bench/sites/assets/print_designer/dist/js/print_designer.bundle.UDIPLQSC.js`.
-3. That path follows the symlink to `/home/frappe/frappe-bench/apps/print_designer/print_designer/public/dist/js/print_designer.bundle.UDIPLQSC.js` — an **absolute path inside the frontend container's filesystem**.
-4. The `frontend` container has **no bind-mount** for `apps/print_designer/`, so that path is empty (or the directory does not exist).
-5. nginx returns 404.
+2. nginx config (`location /assets` → `root /home/frappe/frappe-bench/sites`) maps it to `/home/frappe/frappe-bench/sites/assets/print_designer/dist/js/print_designer.bundle.UDIPLQSC.js` on the frontend container's filesystem.
+3. **In the frontend container's view, `sites/assets/print_designer/` does not exist** — neither as a directory nor as a symlink.
+4. nginx returns 404.
 
-### § 2.3 The fix
+**Why the frontend container doesn't have it** (the finding that took the v1 fix-and-discover loop to surface):
 
-Add the **same bind-mount** to the `frontend` service in the existing Compose override, then `docker compose up -d` to recreate only the frontend container. The other 5 services have an unchanged mount spec, so Compose will not recreate them. The `backend` container's IP does not change, so the 502 nginx-upstream-IP-cache issue from `JE-2026-06-05-4` § 2.6 does **not** recur.
+- `bench build` running in the **backend** container produced the dist files correctly at `apps/print_designer/print_designer/public/dist/` (shared with backend's bind-mount).
+- `bench build` did **not** create a `sites/assets/print_designer` symlink in the backend's view, OR if it did, that symlink does not appear in the frontend's view despite both containers nominally mounting the same `corpflowai-production_sites` Docker volume per `docker inspect`.
+- Execution evidence from 2026-06-05 05:36 UTC confirmed this directly: `docker compose exec backend ln -sfn ... sites/assets/print_designer` succeeded with exit 0, and `docker compose exec frontend ls sites/assets/print_designer` returned "No such file or directory" seconds later. Backend's `sites/assets/` `.` mtime was the time of the symlink creation (`05:33`); frontend's was the original image build (`May 29 12:18`). Different `assets.json` file sizes (3796 bytes vs 3508 bytes) confirmed they were genuinely different directories.
+- The likely root cause is a frappe-docker / Docker volume-overlay quirk specific to this installation — possibly the frontend image's entrypoint copies a baked-in `sites/assets/` over the volume mount on startup, masking it for the `sites/assets/<app>` subpath specifically. Not investigated further because the workaround is simple and the editor-canvas business need is unblocked.
 
-After the fix, nginx resolves the bundle URL to a real file on disk (via the bind-mount), returns 200, browser executes the JS, `frappe.ui.PrintDesigner` registers, canvas renders.
+### § 2.3 The fix (final form — both halves required)
+
+Single `docker compose up -d` after extending the existing `compose.print-designer-mount.yaml` override to give the `frontend` service **TWO bind-mounts**, not one:
+
+1. **`apps/print_designer/`** — same as the 5 Python services. Provides the source on disk so that absolute-path symlink targets can resolve.
+2. **`sites/assets/print_designer/`** — bind-mounted directly to the host's `print_designer/print_designer/public/` directory. Bypasses any symlink-resolution dependency entirely: nginx finds the files at the exact path it expects, served from the host filesystem.
+
+Only the `frontend` container is recreated by `docker compose up -d` because only its mount spec changed. The other 5 Python services have unchanged specs → Compose detects no diff → no recreation → backend IP stays stable → no risk of the `JE-2026-06-05-4` § 2.6 nginx-upstream-IP-cache 502 issue recurring.
+
+After the fix, nginx resolves the bundle URL to a real file served directly from the host bind-mount, returns HTTP 200, browser executes the JS, `frappe.ui.PrintDesigner` registers, canvas renders. This fix is **persistent** — bind-mounts in the Compose override survive container recreation, image upgrade, and `--force-recreate`.
 
 ---
 
@@ -129,20 +140,21 @@ The block does:
 1. Auto-discovers the current Compose file list via `docker inspect` of the backend container (no operator memory required).
 2. Auto-discovers the print-designer-mount override file path within that list.
 3. Backs up the current override file (timestamped).
-4. Writes the new override file with the **frontend service** added (preserving all 5 existing service mounts).
+4. Writes the new override file with the **frontend service given TWO bind-mounts** — `apps/print_designer/` AND `sites/assets/print_designer/` — preserving the 5 existing Python-service `apps/` bind-mounts.
 5. Runs `docker compose up -d` with the discovered file list (recreates **only frontend** because only frontend's spec changed; other services see no diff).
-6. Verifies the bind-mount worked: frontend container can now see the print_designer dist directory.
-7. Confirms all 9 production containers are `Up`, sandbox preserved.
-8. Prints clear next-step instructions for the operator.
+6. Verifies the bind-mount: frontend container can now see the bundle file directly at the path nginx expects.
+7. Verifies nginx serves the bundle (`HTTP 200`).
+8. Confirms all 9 production containers are `Up`, sandbox preserved.
+9. Prints clear next-step instructions for the operator.
 
-**Copy the entire block below — from `bash` line down to the closing `'OPERATOR_BLOCK_DONE'` line — and paste into your SSH session in one go:**
+**Copy the entire block below — from `bash -c '` line down to the closing `'` line — and paste into your SSH session in one go:**
 
 ```bash
 bash -c '
 set -e
 
 echo "=================================================="
-echo "ERPNext-PrintDesigner-Editor-Fix-1"
+echo "ERPNext-PrintDesigner-Editor-Fix-1 (v2 dual bind-mount)"
 echo "Time on box: $(date -u)"
 echo "=================================================="
 echo ""
@@ -153,7 +165,6 @@ CONFIG_FILES=$(docker inspect corpflowai-production-backend-1 \
 echo "Files: $CONFIG_FILES"
 echo ""
 
-# Build -f flag chain
 COMPOSE_FLAGS=""
 IFS="," read -ra FILES <<< "$CONFIG_FILES"
 for f in "${FILES[@]}"; do
@@ -162,7 +173,6 @@ done
 echo "Compose flags: $COMPOSE_FLAGS"
 echo ""
 
-# Find the print-designer-mount override
 PD_OVERRIDE=""
 for f in "${FILES[@]}"; do
   case "$f" in
@@ -184,12 +194,13 @@ cp "$PD_OVERRIDE" "$BACKUP"
 echo "Backup created: $BACKUP"
 echo ""
 
-echo "=== Step 3: Write new override with frontend service added ==="
+echo "=== Step 3: Write new override with DUAL bind-mount for frontend ==="
 cat > "$PD_OVERRIDE" <<"YAML_END"
 services:
   frontend:
     volumes:
       - /home/anton/erpnext-production/host-apps/print_designer:/home/frappe/frappe-bench/apps/print_designer
+      - /home/anton/erpnext-production/host-apps/print_designer/print_designer/public:/home/frappe/frappe-bench/sites/assets/print_designer
   backend:
     volumes:
       - /home/anton/erpnext-production/host-apps/print_designer:/home/frappe/frappe-bench/apps/print_designer
@@ -216,35 +227,40 @@ echo "=== Step 4: Apply (recreates frontend only; other services unchanged) ==="
 docker compose -p corpflowai-production $COMPOSE_FLAGS up -d
 echo ""
 
-echo "=== Step 5: Wait 15s for frontend to be ready ==="
+echo "=== Step 5: Wait 15s for frontend ==="
 sleep 15
 echo ""
 
-echo "=== Step 6: Verify frontend container now sees print_designer dist ==="
-docker compose -p corpflowai-production exec -T frontend ls -la /home/frappe/frappe-bench/apps/print_designer/print_designer/public/dist/js/ 2>&1 | head -10
+echo "=== Step 6: Verify bundle accessible directly via bind-mount (no symlink) ==="
+docker compose -p corpflowai-production exec -T frontend ls -la /home/frappe/frappe-bench/sites/assets/print_designer/dist/js/print_designer.bundle.UDIPLQSC.js 2>&1
 echo ""
 
-echo "=== Step 7: Confirm 9 production containers Up ==="
-docker compose -p corpflowai-production ps
+echo "=== Step 7: Verify nginx serves bundle (expect HTTP 200) ==="
+docker compose -p corpflowai-production exec -T frontend curl -sI -w "HTTP %{http_code}\n" http://localhost:8080/assets/print_designer/dist/js/print_designer.bundle.UDIPLQSC.js 2>&1 | tail -3
 echo ""
 
-echo "=== Step 8: Confirm sandbox preserved (not touched) ==="
-docker compose -p corpflowai-sandbox ps 2>&1 | head -10
+echo "=== Step 8: Production health (9 containers Up) ==="
+docker compose -p corpflowai-production ps --format "table {{.Name}}\t{{.Status}}"
+echo ""
+
+echo "=== Step 9: Sandbox preservation (not touched) ==="
+docker compose -p corpflowai-sandbox ps --format "table {{.Name}}\t{{.Status}}" 2>&1 | head -10
 echo ""
 
 echo "=================================================="
 echo "FIX APPLIED. Operator next step:"
-echo "  1. Open INCOGNITO browser window (clears cache)"
-echo "  2. Visit http://localhost:8081/login -> log in as Administrator"
-echo "  3. Navigate to Print Format list"
-echo "  4. Open Sales Invoice PD Format v2 -> click Edit Format"
-echo "  5. EXPECTED: visual designer canvas renders (not blank)"
+echo "  1. Open INCOGNITO browser window (Ctrl+Shift+N) — clears cache"
+echo "  2. Visit http://localhost:8081/app/print-designer/Sales%20Invoice%20PD%20Format%20v2"
+echo "  3. Log in as Administrator if prompted"
+echo "  4. EXPECTED: visual designer canvas renders (toolbar, template body, right panel)"
 echo "=================================================="
 echo "OPERATOR_BLOCK_DONE"
 '
 ```
 
 **Why the outer `bash -c "..."` wrapper:** it makes the entire multi-line script land as one process invocation regardless of how your terminal handles pasted newlines. If any line gets interrupted or mis-pasted, the wrapper's exit code surfaces the error cleanly rather than half-executing.
+
+**Why the dual bind-mount (vs the v1 single bind-mount):** during execution on 2026-06-05, the v1 single bind-mount succeeded at making the source files visible to the frontend container's `apps/` path, but nginx serves from `sites/assets/print_designer/` (per the nginx config inspected in execution diagnostic D-5), and that path was empty in the frontend container despite `corpflowai-production_sites` being nominally a shared Docker volume per `docker inspect`. The second bind-mount (`sites/assets/print_designer/` → host `public/`) bypasses the volume-sharing quirk entirely by giving nginx a direct host-filesystem path to serve. See § 2.2 finding details + § 9 for the documented honest limit.
 
 ---
 
@@ -349,6 +365,7 @@ This restores the previous override file (the one without the frontend bind-moun
 
 ## § 9 — Honest limits + known unrelated issues
 
+- **frappe-docker volume-overlay quirk (v2 finding from execution 2026-06-05)** — `corpflowai-production_sites` is nominally a shared Docker volume between `backend` and `frontend` per `docker inspect ... --format '{{ .Mounts }}'`, but in practice the `sites/assets/` subpath behaves as if it is NOT shared between the two containers: a symlink created in backend's view does not appear in frontend's view; the directories have different `mtime` and different `assets.json` file sizes when read seconds apart. The likely cause is the frontend image's entrypoint copying its baked-in `sites/assets/` over the mounted volume on startup, masking it for that subpath specifically. This was discovered during the v1 fix-and-discover loop (initial attempt with single bind-mount + symlink-from-backend failed; final fix uses dual bind-mount that bypasses the volume layer for the specific assets path). Not investigated further beyond what was needed to ship the editor fix. **Implication for future Frappe apps installed via the same bind-mount pattern**: any app whose static assets must be served by nginx needs the same dual bind-mount pattern as `print_designer` — extend the `compose.print-designer-mount.yaml` override (or author a sibling override) with a second `sites/assets/<app>` bind-mount for each such app.
 - **Browser cache** — the fix changes nothing on the browser side. If the operator does NOT use an incognito window (or hard-refresh / clear cache for `localhost:8081`), the browser may still serve the stale cached HTML page that references the dead 404 URL. Always use incognito for UI-1.
 - **SocketIO `Invalid origin` 400** — observed in the original `JE-2026-06-05-4` browser console as `Error connecting to socket.io: Invalid origin` + `400 Bad Request` on `/socket.io/?EIO=4&transport=polling`. This is **a separate issue**: the websocket service rejects the `http://localhost:8081` browser origin because it expects a configured allowed-origins list (typically `http://frontend:8080` for the internal Docker DNS path). It affects only real-time updates (multi-user editing, live notifications). The visual editor canvas itself works without it. Address in a separate future packet `ERPNext-PrintDesigner-SocketIO-Origin-Fix-1` (not drafted; not authorised by THIS PR).
 - **Frappe v15 `microtemplate.js: Error in Template: <h3>Print Format Help</h3>...`** — observed in the original browser console; this is a Frappe v15 cosmetic bug in the Print Format help microtemplate (the embedded Jinja-style `for row in doc.items` confuses the JS microtemplate parser). Not Print Designer specific; exists on every Frappe v15 install. Ignorable.
@@ -404,17 +421,22 @@ This fix is operator-paste instructions only + a single Docker volume mount addi
 
 ## § 12 — Verdict per `.cursor/rules/delivery-reality.mdc`
 
-This is a *hybrid* artefact: docs runbook (THIS PR) + a host-side fix executed later by the operator.
+This is a *hybrid* artefact: docs runbook + a host-side fix executed by the operator.
 
-- **For THIS PR (the runbook artefact):** **COMPLETE-AT-PR-MERGE** per `.cursor/rules/delivery-reality.mdc` § docs-only — operator + agent governance; no customer-visible URL to probe by design.
-- **For the host-side fix execution (separate from THIS PR's merge):** verdict is recorded as a separate future `JE-2026-06-05-N` row on Bridge [#249](https://github.com/antonvdberg-bit/operator-bridge-issues) once Anton has run § 4 + § 5 and reported EV-1..EV-6 evidence. The verdict will be FIX-PASS / FIX-PARTIAL / FIX-FAIL per § 6.
+- **For the runbook artefact (THIS PR):** **COMPLETE-AT-PR-MERGE** per `.cursor/rules/delivery-reality.mdc` § docs-only — operator + agent governance; no customer-visible URL to probe by design.
+- **For the host-side fix execution:** **FIX-PASS, executed 2026-06-05 05:51 UTC** at L3 keyboard on `corpflow-exec-01-u69678` — recorded as `JE-2026-06-05-7` (closure flip). Evidence captured:
+  - `EV-1` execution block output: `PERSISTENT_FIX_DONE` printed; Step 4 `corpflowai-production-frontend-1 Started 16.1s` (only one container recreated); Step 6 confirmed bundle file `1212393 Jun 5 00:29 print_designer.bundle.UDIPLQSC.js` accessible at `sites/assets/print_designer/dist/js/` via the new bind-mount; Step 7 `HTTP 200`; Step 8 9/9 production containers `Up`; Step 9 sandbox preserved 5 days uptime.
+  - `EV-2` browser canvas screenshot: Print Designer visual editor rendered — toolbox left, template body middle (`{{ customer_name }}`, `{{ posting_date }}`, `{{ due_date }}`, `{{ status }}`, company Tax ID `C25228280`, line-item table, Grand Total), right panel (Custom Data / Save / Page Settings A4 297×210mm / Page Margins / Header-Footer).
+  - `EV-3` browser console: no `bundle 404`, no `PrintDesigner is not a constructor`, only the documented-as-cosmetic SocketIO `Invalid origin` + benign Print Designer image preload warnings.
+- **Persistence:** the dual bind-mount lives in the Compose override file and survives container recreation, image upgrade, and `--force-recreate`. No runtime-symlink dependency.
+- **Install verdict flip:** `JE-2026-06-05-4` PARTIAL → PASS achieved via this fix (blocker B-1 *visual designer canvas verification* CLOSED). Blocker B-2 *PDF generator decision* remains operator's call (Chrome-vs-wkhtmltopdf), but does not block template build authorisation if Anton accepts wkhtmltopdf fallback for v1.
+- **What this unblocks:** Anton's separate `AUTHORISE — ERPNext-CFLR-ProForma-Template-Build-1` chat DECISION for the pro-forma template build per `JE-2026-06-05-2` runbook. Template build remains HELD on that explicit chat decision; not auto-promoted.
 
-If FIX-PASS: a follow-up small docs-only PR `ERPNext-PrintDesigner-Install-Closure-Flip-1` (not drafted by THIS PR) records the install verdict flip from PARTIAL (`JE-2026-06-05-4`) to PASS (`JE-2026-06-05-N`), enabling the next separate `AUTHORISE — ERPNext-CFLR-ProForma-Template-Build-1` chat DECISION to authorise template build execution.
-
-If FIX-FAIL: rollback via § 8; install state stays PARTIAL with the editor unusable; manual Word/Pages pro-forma remains canonical client-facing mechanism; diagnostic continues in a separate Bridge #249 thread.
+If a future regression appears (editor goes blank again after a Compose change, image upgrade, or `bench` operation), use § 8 *Rollback* to restore the previous override, then re-author with the dual-bind-mount pattern preserved.
 
 ---
 
 ## § 13 — Change log
 
+- **v2, 2026-06-05** — amendments based on execution outcome (post-FIX-PASS at 05:51 UTC). Changes: § 2.2 final paragraph rewritten — removed incorrect "the `sites/` volume is shared with the `frontend` container" assertion + added the documented-via-execution-evidence finding that nominal Docker volume sharing does NOT translate to filesystem sharing at the `sites/assets/<app>` subpath (different `mtime`, different `assets.json` sizes confirmed seconds apart); § 2.3 fix description updated from "add bind-mount for `apps/print_designer/`" (v1 single-mount) to "add TWO bind-mounts: `apps/print_designer/` AND `sites/assets/print_designer/`" (v2 dual-mount — bypasses volume layer for the asset path); § 4 operator-paste block replaced with the final dual-bind-mount version + Step 7 added curl test for HTTP 200; § 9 added new top-bullet documenting the frappe-docker volume-overlay quirk + implication for any future bind-mounted Frappe app whose assets must be served by nginx; § 12 verdict updated to record FIX-PASS execution at 2026-06-05 05:51 UTC with EV-1..EV-3 evidence + install verdict flip `JE-2026-06-05-4` PARTIAL → PASS recorded as `JE-2026-06-05-7`. The fix is now **persistent across container lifecycle events** (recreation, image upgrade, `--force-recreate`) because both bind-mounts live in the Compose override, not in a writable layer. No change to hard limits, prerequisites, pre-flight, browser smoke, verification matrix, evidence checklist, rollback, standing holds, or cross-references.
 - **v1, 2026-06-05** — initial editor-fix runbook. 13 sections covering hard limits + prerequisites PR-1..PR-6 (install PARTIAL per `JE-2026-06-05-4` + production-shell `Up` + sandbox preserved + override file exists + host_name unchanged + standing holds acceptable as HELD) + root cause analysis (§ 2.1 symptom = 404 on hashed `print_designer.bundle.<hash>.js` + `Uncaught TypeError: frappe.ui.PrintDesigner is not a constructor`; § 2.2 architecture mismatch = bind-mount applied to 5 Python services but not to frontend nginx; § 2.3 fix = add `frontend:` to override + `docker compose up -d`) + pre-flight PF-1..PF-5 (SSH + production health + sandbox preservation + override file present + smoking gun confirmation that frontend container's `apps/print_designer/` is empty) + single paste-safe operator block § 4 (auto-discovers compose file list via `docker inspect` + auto-discovers print-designer-mount override path + timestamped backup + heredoc-rewrites override with frontend service added preserving all 5 existing services + `docker compose up -d` recreates frontend only + 15s wait + verification listing of dist JS files inside frontend container + production health re-check + sandbox preservation re-check + final next-step banner) + browser smoke UI-1..UI-7 (incognito window + login + Print Format list + open `Sales Invoice PD Format v2` + click `Edit Format` + confirm visual designer canvas renders + DevTools clean of bundle 404 + ignore pre-existing `microtemplate.js` + SocketIO unrelated errors) + verification matrix FIX-PASS / FIX-PARTIAL / FIX-FAIL + evidence checklist EV-1..EV-6 (block output tail + canvas screenshot + DevTools screenshot + verdict + optional B-2 PDF generator decision + optional closure-flip request) + rollback § 8 (restore most recent timestamped backup + `docker compose up -d`; sandbox / host_name / Print Designer source / 5-service bind-mount / real-client / real-bank / real-payment / VAT / GL surfaces all untouched by rollback) + honest limits (browser cache → incognito mandatory; SocketIO Invalid origin separate future packet; Frappe v15 microtemplate cosmetic; persistence gaps F-1 + F-2 unaddressed; Print Designer UI affordances may vary; no PDF rendered by THIS PR; AC-1..AC-11 not validated by THIS PR) + standing holds unchanged (HB-1..HB-4 / Phase D / first submitted Sales Invoice / first ERPNext-emailed PDF to real client / template build host-side execution / persistence packet / Chrome backend setup packet / SocketIO origin fix packet / sandbox tear-down / all `JE-2026-06-05-1..4` standing holds) + cross-references to 11 sibling docs + verdict per `.cursor/rules/delivery-reality.mdc` = COMPLETE-AT-PR-MERGE for runbook artefact with host-side fix verdict recorded as separate future `JE-2026-06-05-N` row + change log v1 2026-06-05. (`JE-2026-06-05-5`.)
