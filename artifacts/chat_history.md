@@ -28,6 +28,60 @@
 
 ---
 
+## 2026-06-05 — `ERPNext-PrintDesigner-Workstream-Alignment-1` — install-completion alignment after L3 install session (docs-only — **COMPLETE-AT-PR-MERGE**; install state PARTIAL with 2 operator-clearable blockers)
+
+<!-- ERPNEXT_PRINT_DESIGNER_WORKSTREAM_ALIGNMENT_1_HIST -->
+
+**Status:** Recorded as `JE-2026-06-05-4` in `docs/decisions/JOURNAL.md`. New canonical doc `docs/finance/ERPNEXT_PRINT_DESIGNER_WORKSTREAM_ALIGNMENT_2026_06_05.md` (anchor sentinel `<!-- ERPNEXT_PRINT_DESIGNER_WORKSTREAM_ALIGNMENT_2026_06_05 -->`). **Verdict per `.cursor/rules/delivery-reality.mdc` § docs-only: COMPLETE at PR merge** for the alignment artefact. The install state the doc describes is **PARTIAL** (closure verdict C-15 per `JE-2026-06-05-3` schema applied to the actual install); two operator-clearable blockers gate the next decision and clear in ~10 minutes of UI work; the template build runbook host-side execution remains HELD on a separate `AUTHORISE — ERPNext-CFLR-ProForma-Template-Build-1` chat DECISION + the install verdict being flipped to PASS (or PARTIAL gaps explicitly accepted).
+
+### Why this PR now
+
+Anton ran the host-side Print Designer install on `corpflow-exec-01-u69678` (2026-06-04 23:00 → 2026-06-05 01:40 UTC) under a chain of operator-paste blocks. The install completed successfully but via an **architecturally different path** from the original Packet 2 shape: `bench get-app` failed with multi-container `ModuleNotFoundError` because it only installs to the backend container's writable layer (the other 4 Python services — `scheduler`, `queue-long`, `queue-short`, `websocket` — crashed when Frappe tried to import `print_designer` from `apps.txt`). The recovered approach used a **bind-mount Docker Compose override** so all 5 Python services see the same `apps/print_designer/` source directory. Several auxiliary issues (frontend build needing `yarn install`, 502 from nginx upstream IP cache after backend container recreation, gunicorn worker exhaustion) were all resolved during the session. After install, Anton authorised this alignment packet to consolidate every workstream into one canonical state snapshot.
+
+### What landed (PR scope)
+
+Pure docs / alignment / evidence artefact. **3 files** changed:
+
+| File | Change |
+|---|---|
+| `docs/finance/ERPNEXT_PRINT_DESIGNER_WORKSTREAM_ALIGNMENT_2026_06_05.md` | **New canonical alignment doc.** 8 sections covering hard limits + one-line state + install closure evidence (C-1..C-15 per `JE-2026-06-05-3` schema) + current-state table (11 workstreams W-1..W-12) + next-gate decision (PARTIAL verdict + blockers B-1+B-2 + follow-ups F-1+F-2) + operator handoff (what Anton can do / must not do / what Cursor does next / what stays held / 6 evidence requirements before real-client ERPNext PDF) + cross-references + change log. |
+| `docs/decisions/JOURNAL.md` | `JE-2026-06-05-4` row added at top of table (newest-first ordering). |
+| `artifacts/chat_history.md` | This section. |
+| `AGENTS.md` | **Not updated** — alignment doc is a state snapshot, not a new must-read in the same sense as the production-shell recipe or execution-boundary runbook; discoverable via `docs/finance/` and JOURNAL chain. |
+
+### Headlines
+
+- **Install closure verdict: PARTIAL** per `JE-2026-06-05-3` C-1..C-15 schema. **Not PASS** because C-6 Chrome PDF backend not surfaced via `bench setup-chrome` (wkhtmltopdf fallback live per `JE-2026-06-04-5`) and C-14 has explained-but-documented operational warnings (visual designer canvas test not yet performed end-to-end; non-persistent worker count hot-bump 2→6 via SIGTTIN; non-persistent venv `.pth` for the pip install). **Not FAIL** because all hard rules pass (production 9 containers `Up`, `print_designer` in `apps.txt`, ERPNext UI loads, `host_name = http://frontend:8080` unchanged from `JE-2026-06-04-5`, sandbox preserved 4 days uptime, no new real Customer / Quotation / Sales Invoice / GL / VAT / bank / payment-gateway / public-exposure data).
+- **Print Designer v1.6.7 confirmed installed** via three UI surfaces (Installed Applications shows `print_designer 1.6.7 HEAD` alongside `frappe 15.109.0` + `erpnext 15.109.1`; Print Format list shows 22 rows including seeded demo templates `Sales Invoice PD Format v2` + `Sales Order PD v2` strong fixture-ran confirmation; New Print Format form shows the PD-added `PDF Generator` field absent on vanilla Frappe).
+- **Two blockers (B-1, B-2) before template build can be safely authorised** — both operator-clearable in ~10 minutes: **B-1** visual designer canvas verification (Anton opens `Sales Invoice PD Format v2` → `Edit Format` button → expected full-screen canvas loads, 5 min); **B-2** PDF generator decision (accept wkhtmltopdf fallback for v1 OR run `bench setup-chrome` on backend, decision-level).
+- **Two non-blocking operational follow-ups (F-1, F-2)** bundle into a future small operator-paste packet `ERPNext-PrintDesigner-Persistence-1` (not drafted): **F-1** worker count persistence via Compose override `GUNICORN_WORKERS=6`; **F-2** pip install persistence via entrypoint hook OR custom Dockerfile layer that runs `pip install -e apps/print_designer` if `.pth` missing. Both gate full PASS verdict but do NOT gate template build because the bind-mount source itself persists via the Compose override; manual re-run of `pip install -e` is documented and reproducible.
+- **Current-state table (11 workstreams W-1..W-12)**: production shell LIVE / sandbox LIVE-and-preserved / Print Designer install PARTIAL-bind-mount / Chrome PDF backend NOT INSTALLED / classic Letter Head DEFERRED EMERGENCY-TRANSITIONAL / CFLR design brief MERGED PR #303 / CFLR build runbook MERGED PR #304 (host-side execution HELD) / install closure checklist MERGED PR #305 (schema applied here) / manual Word/Pages fallback LIVE canonical for first 1-3 pilots / Phase D accounting HELD / accountant blockers HB-2+HB-3+HB-4 PENDING / sales-outreach CONTINUE off-repo.
+- **Next-gate recommendation**: do NOT yet authorise template build. Anton clears B-1 + B-2 in ~10 min → flip verdict PARTIAL → PASS via short follow-up exchange + one-row JE update → then `AUTHORISE — ERPNext-CFLR-ProForma-Template-Build-1` as originally expected per packet decision rule. Manual Word/Pages pro-forma remains canonical fallback until rendered PDF passes AC-1..AC-11 and HB-1..HB-4 close + separate `ERPNext-First-Real-Pro-Forma-Send` packet authorised.
+
+### Hard limits honoured
+
+This PR is documentation only. Zero edits to runtime / scripts / env / secrets. Zero host commands executed from L1. Zero ERPNext production-shell mutation by this PR (the post-`JE-2026-06-04-5` `host_name = http://frontend:8080`, the live Print Designer install state from the operator-paste session, the bind-mount Compose override, the 6 hot-bumped gunicorn workers, the non-persistent venv `.pth` — all untouched). Zero ERPNext sandbox mutation. Zero Print Designer install change. Zero template creation / edit / build. Zero Sales Invoice / GL posting / VAT activation. Zero real bank / SWIFT / IBAN / payment-gateway / OAuth token added. Zero invoices issued. Zero edits to `api/` / `lib/` / `components/` / `pages/` / `prisma/` / `middleware*` / `scripts/` / `public/` / `.github/` / `node-tests/` / `tests/` / `core/engine/` / `.env*` / `vercel.json` / `next.config*` / `package*.json` / `tsconfig*`. Zero DNS / mail-routing / Telegram / Plausible / Search Console / payment-settings / GitHub-workflows / Vercel / Postgres / Neon / Prisma-schema changes. Zero pricing / page-copy changes on customer-facing surfaces. HOST_MISMATCH guard from `JE-2026-06-04-1` not triggered (no L3 work attempted by this PR). Only public Anton-approved values quoted (`CorpFlowAI Ltd` — no BRN / address / email needed in this alignment doc itself).
+
+### What stays HELD
+
+All standing holds from `JE-2026-06-05-3` carry forward unchanged. HB-1 (full Phase D beyond narrowed shell-setup scope) / HB-2 / HB-3 / HB-4 / Phase D go-live / first submitted Sales Invoice on production / first email of any ERPNext-generated PDF to a real client / sandbox tear-down four-condition gate all still HELD. **`ERPNext-CFLR-ProForma-Template-Build-1` host-side execution remains HELD** on (a) Anton clearing B-1 + B-2 (install verdict flip PARTIAL → PASS), (b) separate `AUTHORISE — …` chat DECISION. **`ERPNext-PrintDesigner-Persistence-1` (F-1 + F-2 packet, not yet drafted) — not authorised. ERPNext-PrintDesigner-Chrome-Setup-1 (Chrome backend setup-chrome packet, not yet drafted) — not authorised.**
+
+### Cross-references
+
+- Authorisation: chat DECISION 2026-06-05 *"AUTHORISE — ERPNext-PrintDesigner-Workstream-Alignment-1"*.
+- The alignment doc: `docs/finance/ERPNEXT_PRINT_DESIGNER_WORKSTREAM_ALIGNMENT_2026_06_05.md`.
+- Install closure schema applied: `docs/runbooks/ERPNEXT_PRINT_DESIGNER_INSTALL_CLOSURE_CHECKLIST_V1.md` (`JE-2026-06-05-3`).
+- Print Designer evaluation (Packet 2 install shape): `docs/finance/ERPNEXT_PRINT_DESIGNER_EVALUATION_V1.md` (`JE-2026-06-04-4`).
+- CFLR design brief (template the build runbook executes): `docs/finance/CFLR_MAURITIUS_PRO_FORMA_TEMPLATE_DESIGN_BRIEF_V1.md` (`JE-2026-06-05-1`).
+- CFLR build runbook (HELD on install verdict + AUTHORISE): `docs/runbooks/ERPNEXT_CFLR_PRO_FORMA_TEMPLATE_BUILD_PACKET_V1.md` (`JE-2026-06-05-2`).
+- Production-shell recipe v1.1: `docs/runbooks/ERPNEXT_PRODUCTION_SHELL_SETUP_RECIPE.md` (`JE-2026-06-04-3` + `JE-2026-06-04-6`).
+- host_name fix that structurally unblocks PDF rendering: `JE-2026-06-04-5`.
+- Production-shell narrowed-scope authorisation: `JE-2026-06-04-1`.
+- Execution boundary (L1/L2/L3): `docs/operations/SERVER_AGENT_ACCESS_AND_EXECUTION_BOUNDARY_V1.md` (`JE-2026-06-04-2`).
+- Production-readiness eval + HB-1..HB-4: `docs/finance/ERPNEXT_PRODUCTION_READINESS_EVALUATION.md` (`JE-2026-06-03-2`).
+- Accountant pack: `docs/finance/ERPNEXT_ACCOUNTANT_REVIEW_PACK_V1.md` (`JE-2026-06-03-3`).
+- Manual Word/Pages pro-forma fallback (canonical for first pilots): `docs/finance/AI_LEAD_RESCUE_MANUAL_PRO_FORMA_TEMPLATE_V1.md` (`JE-2026-06-02-7`).
+- Bridge coordination: [#249](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/249).
 ## 2026-06-05 — `AI-Lead-Rescue-Mauritius-Sales-Activation-Pack-1` — operator-ready sales playbook (docs-only — **COMPLETE-AT-PR-MERGE**)
 
 <!-- AI_LEAD_RESCUE_MAURITIUS_SALES_ACTIVATION_PACK_1_HIST -->
