@@ -5,6 +5,7 @@ import { trackEvent } from '../lib/analytics/index.js';
 import PublicSiteFooter from './PublicSiteFooter.js';
 import VisualAssetRenderer, { isAiGeneratedManifest } from './VisualAssetRenderer.js';
 import AssetProvenanceDisclosure from './AssetProvenanceDisclosure.js';
+import LeadRescueBot from './LeadRescueBot.js';
 
 const styles = {
   page: {
@@ -454,7 +455,7 @@ export default function AiLeadRescueLanding({ host = '', leadRescueAssets }) {
             <p style={styles.muted}>
               Tell us your business, where leads arrive today, and the follow-up problem you want fixed first. We review every intake within 2 business hours.
             </p>
-            <form onSubmit={submitLead} style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10 }}>
+            <form data-lr-intake-form onSubmit={submitLead} style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10 }}>
               <input required name="business_name" placeholder="Business name" style={styles.input} />
               <input required name="name" placeholder="Your name" style={styles.input} />
               <input required type="email" name="email" placeholder="Email" style={styles.input} />
@@ -474,6 +475,9 @@ export default function AiLeadRescueLanding({ host = '', leadRescueAssets }) {
 
         <PublicSiteFooter extra="AI Lead Rescue is powered by CorpFlowAI. The USD 150 launch pilot is invoiced after intake review; this page collects intake only and does not collect card or banking details." />
       </main>
+
+      {/* AI Lead Rescue chat assistant — kill-switch via NEXT_PUBLIC_LR_BOT_ENABLED (default OFF). */}
+      <LeadRescueBot />
 
       <style jsx global>{`
         @media (prefers-reduced-motion: no-preference) {
