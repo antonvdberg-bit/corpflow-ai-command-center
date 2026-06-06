@@ -255,6 +255,24 @@ Preferred global CTA:
 
 - Start my 48-hour setup
 
+### AI Lead Rescue assistant on the page (chatbot)
+
+Activated under packet `AI-Lead-Rescue-Chatbot-V1-Build-1` (see `JE-2026-06-05-10`).
+Canonical research + design: `docs/strategy/AI_LEAD_RESCUE_CHATBOT_VOICEBOT_OPTIONS_AUDIT_V1.md`.
+
+Posture (locked at audit time, enforced in code by the six-layer guardrail floor in `lib/server/lead-rescue-bot/`):
+
+- The on-page assistant is a **pre-sale qualifier**. It is not a customer-support agent, not a payment system, not a CRM, and not a general-purpose AI. It does not contradict the `O7` SUPPORT hold in `docs/operations/SUPPORT_SYSTEM_FEASIBILITY_V1.md` (no automated reply, no AI-deflection claim).
+- It may ONLY discuss the single AI Lead Rescue offer (USD 150 launch pilot) and what we need from the visitor to start intake. It may not discuss other CorpFlow products, internal architecture, tenant names, ERPNext, CMP, JOURNAL, or factory operations.
+- It has exactly two tools, both client-side:
+  1. `scroll_to_intake()` — moves the page to the intake form.
+  2. `prefill_intake_form({ ... })` — populates the existing intake form fields. **NEVER submits the form.** The visitor still clicks **Request AI Lead Rescue setup** themselves.
+- It must never offer or imply: revenue / lead-volume / conversion guarantees, discounts, free trials, scope changes, banking instructions (cards, IBAN, SWIFT, MCB account, Stripe links), 24/7 AI support, AI replacement of a human team, hype vocabulary (revolutionary, game-changing, 10x, fully autonomous, AI-powered everything).
+- If a visitor pastes banking-class data into the chat, the input is replaced with `[REDACTED]` before any LLM call. The bot returns a canonical refusal and offers the intake form. No banking data is ever sent to OpenAI or persisted in CorpFlow.
+- Two kill-switch envs (`NEXT_PUBLIC_LR_BOT_ENABLED` for the UI bundle, `CORPFLOW_LEAD_RESCUE_BOT_SERVER_ENABLED` for the API endpoint) default to OFF. Production stays OFF until preview verification has passed and the security review block has been re-signed.
+
+The locked system prompt floor lives verbatim in `lib/server/lead-rescue-bot/system-prompt.js` and is itself a copy of the audit doc § 7. Changes to either must be made in the same change set and reference a new JOURNAL row authorising the change. The runtime PR cannot weaken the doctrine prompt without an explicit doctrine-change packet.
+
 ## AI Lead Rescue visual reference
 
 AI Lead Rescue should feel like a fast-response operations desk for small businesses.

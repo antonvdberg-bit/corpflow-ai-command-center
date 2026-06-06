@@ -27,6 +27,7 @@ import tenantHostMapUpsertHandler from '../lib/server/tenant-host-map.js';
 import tenantSiteHandler from '../lib/server/tenant-site.js';
 import tenantSiteReadHandler from '../lib/server/tenant-site-read.js';
 import tenantIntakeHandler from '../lib/server/tenant-intake.js';
+import leadRescueBotTurnHandler from '../lib/server/lead-rescue-bot/handler.js';
 import tenantSitePublicHandler from '../lib/server/tenant-site-public.js';
 import { handleTenantLeadCreate, handleTenantLeadQualify } from '../lib/server/tenant-leads.js';
 import tenantLoginDebugHandler from '../lib/server/tenant-login-debug.js';
@@ -874,6 +875,9 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'tenant/intake') {
     return tenantIntakeHandler(req, res);
+  }
+  if (pathSeg === 'lead-rescue/bot/turn') {
+    return leadRescueBotTurnHandler(req, res);
   }
   if (pathSeg === 'tenant/site') {
     return tenantSitePublicHandler(req, res);

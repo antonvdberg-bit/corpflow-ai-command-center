@@ -74,6 +74,22 @@ Every event is **(a) named by buyer intent**, **(b) tied to a specific page or c
 | Contact Click | `apex.contact.click` | Click of any `mailto:` / `tel:` link in apex marketing | `link_kind` (`email` \| `phone`) | the actual email/phone literal |
 | Lead Rescue Form Submit | `apex.lead-rescue.form-submit` | Successful POST to the apex lead-rescue intake | `form_variant` (if A/B), `currency` (if pricing path) | `name`, `email`, `phone`, free-text fields |
 
+#### 3.1.a Lead Rescue assistant (chatbot on `/lead-rescue`)
+
+Activated under packet `AI-Lead-Rescue-Chatbot-V1-Build-1` (`JE-2026-06-05-10`). Wired in `components/LeadRescueBot.js` behind the `NEXT_PUBLIC_LR_BOT_ENABLED` kill-switch (default OFF). All `lr_bot_*` events carry **no PII** in props; the only correlation key is `session_id_prefix` (the first 6 chars of an opaque per-tab UUID — not a stable visitor identifier and not a CMP ticket id).
+
+| Plausible goal name (display) | Internal event name | Trigger | Props (allowed) | Props (forbidden) |
+|---|---|---|---|---|
+| Lead Rescue Bot Open | `lr_bot_open` | Visitor clicks the floating "Ask the assistant" FAB | `session_id_prefix` | any PII, visitor message contents |
+| Lead Rescue Bot First Message | `lr_bot_first_message` | First user turn in a session | `session_id_prefix` | the message contents |
+| Lead Rescue Bot Assistant Response | `lr_bot_assistant_response` | Non-refusal assistant turn completes | `session_id_prefix`, `turns` | assistant text, model name |
+| Lead Rescue Bot Refusal | `lr_bot_refusal` | Any refusal class fires (input/output filter, rate limit, vendor outage, out-of-scope) | `session_id_prefix`, `refusal_class` (one of `banking_data_in_input`, `rate_limited`, `out_of_scope_offer`, `guarantee_attempted`, `discount_attempted`, `banking_output_attempted`, `hype_vocabulary`, `internal_error`, `vendor_unavailable`) | the offending text, raw regex pattern |
+| Lead Rescue Bot Intake Handoff | `lr_bot_intake_handoff` | Bot scrolled to the intake form or pre-filled it | `session_id_prefix`, `method` (`scroll` \| `prefill`), `fields_filled` (integer, 0–6) | the field values |
+| Lead Rescue Bot Closed | `lr_bot_closed` | Visitor closes the chat panel | `session_id_prefix`, `turns` | none |
+| Lead Rescue Bot Error | `lr_bot_error` | Fetch failure or non-2xx without a parseable body | `session_id_prefix`, `status` (HTTP code, if known) or `reason` | raw error text |
+
+Server-side refusals also emit `emitLogicFailure({ source: 'lead_rescue_bot.output_filter_blocked' | 'lead_rescue_bot.openai_responses_call', … })` with the matched pattern + assistant-text preview redacted via `redactForTelemetry`. Those rows live in CorpFlow's telemetry sink (file_local by default, Postgres when `TELEMETRY_TARGET=postgres`) and are reviewed daily during week-1 monitoring per the audit § 8 plan.
+
 ### 3.2 Lead Rescue (`aileadrescue.corpflowai.com`)
 
 > Reference table for the next event-wiring packet. v1 ships pageviews only; custom events land in a follow-up PR alongside the click handlers in `components/AiLeadRescueLanding.js`.
