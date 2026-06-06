@@ -224,9 +224,35 @@ Console (DevTools → Console) also receives namespaced `console.info('[ai-lead-
 
 When the live save failure is fully diagnosed, the diagnostic panel and Test click button must be removed or downgraded — they are not part of the long-term operator UX.
 
-### Root cause found on 2026-06-06 — React hydration mismatch (PR #321)
+### Root cause found on 2026-06-06 — Turbopack `_clientMiddlewareManifest.js` 404 (PR #323)
 
-The 2026-06-06 save-not-firing P0 was a **React hydration failure** on `/admin/lead-rescue/[id]`, fixed by PR #321.
+The 2026-06-06 save-not-firing P0 was **NOT a React hydration mismatch** as initially hypothesised. It was a **Next.js 16 / Turbopack client-runtime bug** ([vercel/next.js#90381](https://github.com/vercel/next.js/issues/90381)) on dynamic routes.
+
+The deployed Production browser was reporting in the Console (red error, x4):
+
+```
+Error: Failed to load client middleware manifest
+  at p.getMiddleware (17.2d.q1r6ki9.js:1:12237)
+  at U (0hov~lu_vgg.js:1:14681)
+  ...
+  at turbopack-17-zutaxm61.x.js:1
+```
+
+Turbopack-built bundles try to fetch `/_next/static/<buildId>/_clientMiddlewareManifest.js` unconditionally on dynamic routes even when the project has no `middleware.{js,ts}` file. The 404 cascades through `registerChunk` / module-evaluation, the page-specific chunk never finishes initialising, React never hydrates, no event listeners attach. From the operator's point of view: the page renders (because SSR HTML is fine), but every click on Save / Test click / a checkbox silently no-ops. The PR #320 diagnostic panel's `Save handler mounted: NO` line was the surface signal — the mount `useEffect` could not run because the JS that runs effects never finished loading.
+
+PR #321's date-formatter fix was real and correct (the locale-sensitive `toLocaleString` IS a latent hydration risk) but it was not the active root cause. The Turbopack bug was preventing client JS execution before any hydration logic could run, so changes to component render code had zero observable effect.
+
+The fix in **PR #323**:
+
+- Switched `package.json` `build` and `vercel-build` scripts from `next build` (Turbopack default in Next 16) to `next build --webpack`. Webpack's manifest pipeline does not fabricate a phantom `_clientMiddlewareManifest.js` request when no middleware exists.
+- Verified: Webpack-built `.next/static/<buildId>/` contains only `_buildManifest.js` and `_ssgManifest.js`. No phantom client-middleware-manifest fetch from the client runtime.
+- The `--webpack` flag is a documented, supported Next.js 16 escape hatch. It will revert to Turbopack default once the upstream fix lands in a stable patch release.
+
+The PR #321 deterministic UTC formatter and PR #320 diagnostic panel remain in place — they are still defensively correct (no locale-sensitive render output, and the operator can read live build provenance on the page).
+
+### Earlier (incorrect) hypothesis kept for the record — React hydration mismatch via locale-sensitive `fmtDate`
+
+This was PR #321's framing. It was a real latent bug:
 
 What the PR #320 diagnostic panel showed live:
 
