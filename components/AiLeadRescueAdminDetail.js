@@ -10,6 +10,21 @@ import {
 
 const DETAIL_FETCH_TIMEOUT_MS = 25_000;
 
+// 2026-06-06 P0 live save diagnostics — bumped whenever the save wiring
+// changes so the operator can visually confirm which build is being served.
+// If this string does not appear on the live detail page, the deployed bundle
+// is not what we think it is.
+const DETAIL_BUNDLE_VERSION = 'save-wiring-v2';
+
+function logDiag(event, payload) {
+  if (typeof console === 'undefined' || typeof console.info !== 'function') return;
+  try {
+    console.info(`[ai-lead-rescue/detail] ${event}`, payload || {});
+  } catch {
+    /* never throw from diagnostics */
+  }
+}
+
 const pageStyle = {
   minHeight: '100vh',
   background: '#050505',
@@ -311,6 +326,18 @@ export default function AiLeadRescueAdminDetail(props = {}) {
   const [checklistDrafts, setChecklistDrafts] = useState({});
   const [checklistSaving, setChecklistSaving] = useState(null);
   const [checklistError, setChecklistError] = useState(null);
+  // 2026-06-06 P0 live save diagnostics. These are intentionally rendered on
+  // the page so an operator can tell, by looking, whether: (a) the bundle is
+  // the expected one, (b) the click handler is attached, (c) clicks are
+  // reaching React at all, (d) save() is making it past validation. They
+  // must be removed/downgraded once root-cause is identified.
+  const [saveDiagnostics, setSaveDiagnostics] = useState({
+    handlerMounted: false,
+    lastClickAt: '',
+    phase: 'idle', // 'idle' | 'clicked' | 'saving' | 'saved' | 'error'
+    lastResponseStatus: '',
+    testClickAt: '',
+  });
   const skipFirstFetchRef = useRef(hasInitialLead || hasInitialError);
   const inFlightAbortRef = useRef(null);
 
@@ -347,6 +374,18 @@ export default function AiLeadRescueAdminDetail(props = {}) {
       hydrateForm(initialLead);
     }
   }, [hasInitialLead, initialLead, hydrateForm]);
+
+  // 2026-06-06 P0 live save diagnostics — flip handlerMounted to YES once the
+  // component is alive in the browser, and console.info that mount. If the
+  // diagnostic panel still says NO in the live UI, React has not hydrated
+  // this component (hydration failure / bundle mismatch / global JS error).
+  useEffect(() => {
+    setSaveDiagnostics((d) => ({ ...d, handlerMounted: true }));
+    logDiag('component mounted', {
+      bundle: DETAIL_BUNDLE_VERSION,
+      leadId: leadId || '',
+    });
+  }, [leadId]);
 
   const load = useCallback(async () => {
     if (!leadId) {
@@ -491,6 +530,20 @@ export default function AiLeadRescueAdminDetail(props = {}) {
     // a native form POST that silently reloads the page. The button is
     // now type="button" with explicit onClick, so clicking can never fall
     // through to a native form submission.
+
+    // 2026-06-06 P0 live save diagnostics — these MUST run before any early
+    // return so the diagnostic panel and console always show that the click
+    // reached this function. If you click Save and the panel still shows
+    // `Save phase: idle`, the click never reached `save()`.
+    const clickIso = new Date().toISOString();
+    setSaveDiagnostics((d) => ({
+      ...d,
+      lastClickAt: clickIso,
+      phase: 'clicked',
+      lastResponseStatus: '',
+    }));
+    logDiag('save clicked', { leadId: leadId || '', clickIso });
+
     if (e && typeof e.preventDefault === 'function') e.preventDefault();
     if (saving) return; // re-entry guard (double-click)
     if (!leadId) {
@@ -499,11 +552,13 @@ export default function AiLeadRescueAdminDetail(props = {}) {
         message: 'Cannot save: no lead id present.',
         http_status: null,
       });
+      setSaveDiagnostics((d) => ({ ...d, phase: 'error' }));
       return;
     }
     setSaving(true);
     setError(null);
     setSavedMsg('Saving…');
+    setSaveDiagnostics((d) => ({ ...d, phase: 'saving' }));
     try {
       const body = {
         id: leadId,
@@ -520,12 +575,20 @@ export default function AiLeadRescueAdminDetail(props = {}) {
         invoice_reference: invoiceRef || null,
         payment_notes: paymentNotes || null,
       };
+      logDiag('save payload prepared', {
+        leadId: leadId || '',
+        hasStatus: !!body.status,
+        hasNextAction: !!body.next_action,
+        keys: Object.keys(body),
+      });
       const r = await fetch('/api/factory/lead-rescue/patch', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         credentials: 'include',
         body: JSON.stringify(body),
       });
+      logDiag('save response', { httpStatus: r.status, ok: r.ok });
+      setSaveDiagnostics((d) => ({ ...d, lastResponseStatus: String(r.status) }));
       let data = null;
       try {
         data = await r.json();
@@ -538,11 +601,13 @@ export default function AiLeadRescueAdminDetail(props = {}) {
           (data && (data.message || data.detail)) || `Request failed with HTTP ${r.status}.`;
         setError({ code, message: msg, http_status: r.status });
         setSavedMsg('');
+        setSaveDiagnostics((d) => ({ ...d, phase: 'error' }));
         return;
       }
       setLead(normalizeLead(data && data.lead));
       hydrateForm(data && data.lead);
       setSavedMsg('Saved.');
+      setSaveDiagnostics((d) => ({ ...d, phase: 'saved' }));
     } catch (err) {
       setError({
         code: 'SAVE_FAILED',
@@ -550,6 +615,7 @@ export default function AiLeadRescueAdminDetail(props = {}) {
         http_status: null,
       });
       setSavedMsg('');
+      setSaveDiagnostics((d) => ({ ...d, phase: 'error' }));
     } finally {
       setSaving(false);
     }
@@ -796,7 +862,37 @@ export default function AiLeadRescueAdminDetail(props = {}) {
                   </p>
                 ) : null}
 
-                <div style={{ marginTop: 12 }}>
+                {/*
+                  2026-06-06 P0 live save diagnostics — visible on the page so
+                  the operator can read the state of the click handler
+                  without DevTools. Remove or downgrade once root cause of the
+                  "Save produces no visible reaction" failure is found.
+                */}
+                <div
+                  data-testid="ai-lead-rescue-diag"
+                  style={{
+                    marginTop: 12,
+                    padding: '10px 12px',
+                    background: 'rgba(125, 211, 252, 0.06)',
+                    border: '1px dashed rgba(125, 211, 252, 0.35)',
+                    borderRadius: 8,
+                    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+                    fontSize: 12,
+                    color: '#cbd5e1',
+                    whiteSpace: 'pre-wrap',
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {`Detail bundle: ${DETAIL_BUNDLE_VERSION}
+Lead id: ${leadId || '(none)'}
+Save handler mounted: ${saveDiagnostics.handlerMounted ? 'YES' : 'NO'}
+Last save click: ${saveDiagnostics.lastClickAt || '(none)'}
+Save phase: ${saveDiagnostics.phase}
+Last patch response status: ${saveDiagnostics.lastResponseStatus || '(none)'}
+Last Test click: ${saveDiagnostics.testClickAt || '(none)'}`}
+                </div>
+
+                <div style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <button
                     type="button"
                     onClick={save}
@@ -806,7 +902,74 @@ export default function AiLeadRescueAdminDetail(props = {}) {
                   >
                     {saving ? 'Saving…' : 'Save changes'}
                   </button>
+                  {/*
+                    Test click — never calls the API. Pure local-state probe
+                    so we can tell whether React click handlers are alive at
+                    all on this page. If this button updates the diagnostic
+                    line but Save does not, the bug is inside `save()` or its
+                    binding. If this button also produces no reaction, the
+                    page has a hydration/bundle/overlay failure and React is
+                    not attaching handlers.
+                  */}
+                  <button
+                    type="button"
+                    data-testid="ai-lead-rescue-test-click"
+                    onClick={() => {
+                      const nowIso = new Date().toISOString();
+                      setSaveDiagnostics((d) => ({ ...d, testClickAt: nowIso }));
+                      logDiag('test click', { nowIso });
+                    }}
+                    style={{
+                      ...btn,
+                      background: '#7dd3fc',
+                      color: '#031018',
+                    }}
+                  >
+                    Test click
+                  </button>
                 </div>
+
+                {/*
+                  Raw save diagnostic — exposes a copy/paste fetch call so
+                  the operator can hit the same PATCH endpoint directly from
+                  DevTools while authenticated, bypassing all UI wiring.
+                  Patches a harmless field only (`next_action`). Lets us tell
+                  API persistence apart from UI click wiring.
+                */}
+                <details
+                  data-testid="ai-lead-rescue-raw-patch"
+                  style={{ marginTop: 12, color: '#8899aa', fontSize: 12 }}
+                >
+                  <summary style={{ cursor: 'pointer' }}>
+                    Open raw save diagnostic (paste in DevTools while signed in)
+                  </summary>
+                  <pre
+                    style={{
+                      marginTop: 8,
+                      padding: 12,
+                      background: 'rgba(0,0,0,0.45)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      borderRadius: 8,
+                      color: '#eef6ff',
+                      overflowX: 'auto',
+                    }}
+                  >
+{`fetch('/api/factory/lead-rescue/patch', {
+  method: 'PATCH',
+  credentials: 'include',
+  headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+  body: JSON.stringify({
+    id: ${JSON.stringify(leadId || '')},
+    next_action: 'DR audit — raw patch ' + new Date().toISOString(),
+  }),
+}).then(r => r.json().then(j => ({ status: r.status, body: j }))).then(console.log).catch(console.error);`}
+                  </pre>
+                  <p style={{ marginTop: 6 }}>
+                    If this call returns <code>{`{ ok: true, lead: { … } }`}</code> with HTTP 200
+                    but the Save button still shows no reaction, the bug is inside the React
+                    Save wiring — not the API.
+                  </p>
+                </details>
               </form>
 
               {lead.setup_checklist_eligible && lead.setup_checklist.items.length > 0 ? (

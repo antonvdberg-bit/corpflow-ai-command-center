@@ -194,13 +194,35 @@ If `/admin/lead-rescue` shows a permanent `Loading…` or an error banner, work 
 
 ## Troubleshooting — clicking Save produces no visible reaction
 
-If you click **Save** on the detail page and nothing happens (no "Saving…", no "Saved.", no error), this was the 2026-06-06 P0 — fixed by PR #318. The Save button is now wired via explicit `onClick={save}` with `type="button"`, and the surrounding form's `onSubmit` is a deterministic no-op preventDefault. Native browser form submission can no longer fall through and silently reload the page.
+If you click **Save** on the detail page and nothing happens (no "Saving…", no "Saved.", no error), the detail page now renders a **visible diagnostic panel** directly above the Save button that tells you, at a glance, where the chain is breaking. Read it from top to bottom:
 
-If you still see no reaction:
+```
+Detail bundle: save-wiring-v2
+Lead id: <the id from the URL, or (none) if missing>
+Save handler mounted: YES | NO
+Last save click: <ISO timestamp, or (none)>
+Save phase: idle | clicked | saving | saved | error
+Last patch response status: <HTTP status, or (none)>
+Last Test click: <ISO timestamp, or (none)>
+```
 
-1. **Hard-refresh the page** (Ctrl+F5 / Cmd+Shift+R) to clear a stale Service Worker / cached bundle.
-2. **Inspect the Save button** in DevTools — it must carry `data-testid="ai-lead-rescue-save"` and `type="button"`. If `type="submit"` is present, the deployed bundle predates PR #318 — verify the deployed commit on Vercel Production.
-3. **Open DevTools → Network** and click Save. A `PATCH /api/factory/lead-rescue/patch` request must appear. If no request fires, JavaScript hydration is broken — capture the browser console error and attach it to the issue.
+How to read each line:
+
+1. **`Detail bundle: save-wiring-v2`** — if this line does not appear at all on the page, Production is **not** serving the build with the diagnostics. Verify the deployed commit on Vercel Production and clear the browser cache.
+2. **`Save handler mounted: YES`** — if it says `NO`, React did not hydrate the page. Look in DevTools → Console for a red hydration / runtime error; that is the bug.
+3. **`Last Test click: …`** — there is a blue **Test click** button beside Save. Pressing it updates this line only (no API call). If the timestamp does not move, click events from React are not reaching the page at all (CSP, hydration failure, overlay). If it moves but **Save** does not, the bug is inside the Save handler.
+4. **`Save phase: clicked` after pressing Save** — the Save handler writes this *before* any validation or fetch, so it must transition out of `idle` on every click. If it stays `idle` after a click, the click event is not being delivered to `save()`.
+5. **`Save phase: saving` → `saved` (or `error`)** — once `clicked`, the handler then transitions to `saving` (request in flight), then `saved` on HTTP 200 or `error` on any failure.
+6. **`Last patch response status: <NNN>`** — populated as soon as the `PATCH /api/factory/lead-rescue/patch` request returns. Status `200` means the API persisted the change; a non-`200` means look at the inline error block beside Save.
+
+There is also a **`Open raw save diagnostic`** disclosure beneath the buttons. Expand it for a copy/paste `fetch(...)` snippet that PATCHes only `next_action` from DevTools while you are still signed in. Use it to separate UI wiring from API persistence:
+
+- If the raw snippet returns `{ ok: true, lead: { … } }` (HTTP 200) but clicking Save still shows `Save phase: idle`, the bug is in the React UI wiring — not the API.
+- If the raw snippet also fails, the bug is in the API or session, not the UI.
+
+Console (DevTools → Console) also receives namespaced `console.info('[ai-lead-rescue/detail] …')` events for `component mounted`, `save clicked`, `save payload prepared`, and `save response`. They never log notes, payment fields, owner, or `last_contacted` values — only structural booleans and the HTTP status. Filter the console by `ai-lead-rescue/detail` to follow the click chain end-to-end.
+
+When the live save failure is fully diagnosed, the diagnostic panel and Test click button must be removed or downgraded — they are not part of the long-term operator UX.
 
 ## Troubleshooting — save does not persist or the PAID_SETUP checklist does not appear
 
