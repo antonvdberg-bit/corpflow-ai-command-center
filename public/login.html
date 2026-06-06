@@ -400,65 +400,146 @@
           return document.getElementById(id);
         }
 
+        /**
+         * Synchronously decide whether to force factory-admin mode
+         * based on the URL.  Runs BEFORE any await so the first
+         * visible paint already shows the correct chrome — no async
+         * race between `/api/ui/context`, `/api/tenant/site`
+         * (tenant-chrome.js) and a stale tenant session can produce
+         * an orange/blue oscillation.
+         *
+         * Returns true when:
+         *   - `?next=` begins with `/admin/` (canonical factory
+         *     routes that require an admin session, e.g.
+         *     `/admin/lead-rescue`), AND
+         *   - the current host is a factory surface (apex
+         *     `corpflowai.com`, `core.corpflowai.com`, any
+         *     `*.vercel.app` preview, or localhost).
+         *
+         * Returns false on tenant subdomains (e.g.
+         * `lux.corpflowai.com`) so their normal client/PIN login is
+         * preserved exactly as it is today.
+         *
+         * @param {string} search - `window.location.search`
+         * @param {string} hostname - `window.location.hostname`
+         */
+        function shouldForceFactoryAdminMode(search, hostname) {
+          try {
+            var q = new URLSearchParams(search || '');
+            var n = q.get('next') || '';
+            if (!(n.indexOf('/admin/') === 0 || n === '/admin')) return false;
+            var h = String(hostname || '').toLowerCase();
+            if (!h) return true;
+            if (h === 'corpflowai.com') return true;
+            if (h === 'core.corpflowai.com') return true;
+            if (h.length > '.vercel.app'.length && h.lastIndexOf('.vercel.app') === h.length - '.vercel.app'.length) return true;
+            if (h === 'localhost' || h === '127.0.0.1') return true;
+            return false;
+          } catch (_) {
+            return false;
+          }
+        }
+
+        var forcedFactoryAdmin = shouldForceFactoryAdminMode(
+          window.location.search,
+          window.location.hostname,
+        );
+
+        if (forcedFactoryAdmin) {
+          // Lock the page to factory-admin mode synchronously.  These
+          // marker datasets MUST be set before any await so
+          // tenant-chrome.js (which runs immediately after this
+          // inline script's sync portion) can read them and skip
+          // every tenant theme / column mutation.  Hiding the
+          // tenant column here also breaks the
+          // maybeRedirectIfSession() loop (it only ever runs in
+          // client mode) so a stale tenant session cannot bounce
+          // the operator into a continuous /admin/lead-rescue ⇄
+          // /login redirect cycle.
+          document.documentElement.dataset.cfLoginMode = 'operator';
+          document.documentElement.dataset.cfForcedLoginMode = 'admin-next';
+          if (loadingEl) loadingEl.classList.add('hidden');
+          if (onboardRoot) onboardRoot.classList.add('hidden');
+          if (simpleRoot) simpleRoot.classList.add('hidden');
+          if (opRoot) opRoot.classList.remove('hidden');
+          var _tenantCol = document.getElementById('loginTenantColumn');
+          var _factoryCol = document.getElementById('loginFactoryColumn');
+          var _grid = document.getElementById('loginGrid');
+          if (_tenantCol) _tenantCol.classList.add('hidden');
+          if (_factoryCol) _factoryCol.classList.remove('hidden');
+          if (_grid) {
+            _grid.classList.remove('md:grid-cols-2');
+            _grid.classList.add('md:grid-cols-1');
+          }
+          document.documentElement.classList.remove('cf-login-pending');
+          document.title = 'Factory admin login';
+        }
+
         let login_route = 'operator';
         let clientTenantId = '';
         let ctxJson = null;
-        try {
-          const r = await fetch('/api/ui/context', { credentials: 'same-origin' });
-          const j = await r.json();
-          ctxJson = j;
-          const tid = j && j.tenant_id != null ? String(j.tenant_id).trim() : '';
-          if (j && String(j.login_route || '').trim()) {
-            login_route = String(j.login_route).trim();
-          } else if (j && j.surface === 'tenant' && tid) {
-            login_route = 'client';
-          } else if (j && j.surface === 'core') {
-            login_route = 'operator';
-          } else if (j && j.surface === 'tenant' && !tid) {
-            login_route = 'onboarding';
-          }
-          if (login_route === 'client' && tid) {
-            clientTenantId = tid;
-            window.__cfClientTenantId = tid;
-          }
-        } catch (_) {}
+        if (!forcedFactoryAdmin) {
+          try {
+            const r = await fetch('/api/ui/context', { credentials: 'same-origin' });
+            const j = await r.json();
+            ctxJson = j;
+            const tid = j && j.tenant_id != null ? String(j.tenant_id).trim() : '';
+            if (j && String(j.login_route || '').trim()) {
+              login_route = String(j.login_route).trim();
+            } else if (j && j.surface === 'tenant' && tid) {
+              login_route = 'client';
+            } else if (j && j.surface === 'core') {
+              login_route = 'operator';
+            } else if (j && j.surface === 'tenant' && !tid) {
+              login_route = 'onboarding';
+            }
+            if (login_route === 'client' && tid) {
+              clientTenantId = tid;
+              window.__cfClientTenantId = tid;
+            }
+          } catch (_) {}
+        }
 
         const mode = login_route === 'client' ? 'client' : 'operator';
-        document.documentElement.dataset.cfLoginMode = login_route === 'onboarding' ? 'onboarding' : mode;
-        if (loadingEl) loadingEl.classList.add('hidden');
+        if (!forcedFactoryAdmin) {
+          document.documentElement.dataset.cfLoginMode = login_route === 'onboarding' ? 'onboarding' : mode;
+          if (loadingEl) loadingEl.classList.add('hidden');
+        }
 
         var mismatchParam = false;
         try {
           mismatchParam = new URLSearchParams(window.location.search).get('tenant_mismatch') === '1';
         } catch (_) {}
-        if (login_route === 'onboarding') {
-          if (onboardRoot) onboardRoot.classList.remove('hidden');
-          simpleRoot.classList.add('hidden');
-          opRoot.classList.add('hidden');
-          document.title = 'Workspace setup';
-          const coreEl = $('loginOnboardingCoreLink');
-          const coreUrl = ctxJson && ctxJson.core_login_url ? String(ctxJson.core_login_url).trim() : '';
-          if (coreEl && coreUrl) {
-            coreEl.textContent = '';
-            const a = document.createElement('a');
-            a.href = coreUrl;
-            a.className = 'text-sky-300 underline';
-            a.rel = 'noopener';
-            a.textContent = 'Open factory admin login (core)';
-            coreEl.appendChild(a);
-            coreEl.classList.remove('hidden');
+        if (!forcedFactoryAdmin) {
+          if (login_route === 'onboarding') {
+            if (onboardRoot) onboardRoot.classList.remove('hidden');
+            simpleRoot.classList.add('hidden');
+            opRoot.classList.add('hidden');
+            document.title = 'Workspace setup';
+            const coreEl = $('loginOnboardingCoreLink');
+            const coreUrl = ctxJson && ctxJson.core_login_url ? String(ctxJson.core_login_url).trim() : '';
+            if (coreEl && coreUrl) {
+              coreEl.textContent = '';
+              const a = document.createElement('a');
+              a.href = coreUrl;
+              a.className = 'text-sky-300 underline';
+              a.rel = 'noopener';
+              a.textContent = 'Open factory admin login (core)';
+              coreEl.appendChild(a);
+              coreEl.classList.remove('hidden');
+            }
+          } else if (login_route === 'client') {
+            simpleRoot.classList.remove('hidden');
+            opRoot.classList.add('hidden');
+            if (onboardRoot) onboardRoot.classList.add('hidden');
+            document.title = 'Log in';
+          } else {
+            opRoot.classList.remove('hidden');
+            simpleRoot.classList.add('hidden');
+            if (onboardRoot) onboardRoot.classList.add('hidden');
           }
-        } else if (login_route === 'client') {
-          simpleRoot.classList.remove('hidden');
-          opRoot.classList.add('hidden');
-          if (onboardRoot) onboardRoot.classList.add('hidden');
-          document.title = 'Log in';
-        } else {
-          opRoot.classList.remove('hidden');
-          simpleRoot.classList.add('hidden');
-          if (onboardRoot) onboardRoot.classList.add('hidden');
+          document.documentElement.classList.remove('cf-login-pending');
         }
-        document.documentElement.classList.remove('cf-login-pending');
 
         try {
           var rp = new URLSearchParams(window.location.search);
@@ -866,7 +947,15 @@
             }
           });
 
-          refreshSessionBanner();
+          // Skip the initial session probe when we're locked to
+          // factory-admin via ?next=/admin/...  A stale tenant session
+          // would otherwise paint a green "Logged in as tenant (...)"
+          // banner on a factory-admin form, which is both misleading
+          // and visually noisy.  The admin login below will rotate
+          // any stale cookie when the operator signs in.
+          if (!forcedFactoryAdmin) {
+            refreshSessionBanner();
+          }
 
           const inp = $('tenantId');
           const hint = $('tenantIdHostLock');

@@ -78,6 +78,16 @@
     try {
       const kindEarly = pathKind();
       if (kindEarly === 'login') {
+        // When the inline login script has locked the page to
+        // factory-admin mode (e.g. the operator was redirected here
+        // from a /admin/... page), bail out before touching the DOM.
+        // Applying a tenant theme or hiding the Factory Admin column
+        // here would cause the orange/blue oscillation operators
+        // reported on 2026-06-06 — see PR title
+        // "fix(auth): lock login mode for admin redirects".
+        if (document.documentElement.dataset.cfForcedLoginMode === 'admin-next') {
+          return;
+        }
         try {
           const cr = await fetch('/api/ui/context', { credentials: 'same-origin' });
           const cj = await cr.json().catch(() => ({}));
