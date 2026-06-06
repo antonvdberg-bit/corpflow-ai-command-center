@@ -170,6 +170,49 @@ The notes, payment-notes, and intake-message fields are jsonb / free-text and ar
 
 If a client sends one of these by mistake (e.g. pastes a card into a WhatsApp screenshot), **redact before recording** and tell them to use a payment provider directly.
 
+## Troubleshooting — admin list will not load
+
+If `/admin/lead-rescue` shows a permanent `Loading…` or an error banner, work through the following in order. The page is intentionally robust against this failure: the table is SSR-pre-populated, the client adds a 25 s timeout on the refresh fetch, and any failure surfaces an explicit error envelope with HTTP status + retry — so an operator should never be stuck on an unactionable spinner.
+
+1. **Read the error banner.** It surfaces the HTTP status (e.g. `HTTP 500`), the error code (e.g. `LEAD_RESCUE_LIST_FAILED`), and a human-readable message. Press **Retry** first.
+2. **Open raw API.** The banner also exposes a `Open raw API` link to `/api/factory/lead-rescue/list?…`. Open it in a new tab while authenticated as factory admin:
+   - **`{ ok: true, leads: [...] }`** — the API is healthy; the issue was a transient cold start. Reload the page.
+   - **`{ ok: false, error: "LEAD_RESCUE_LIST_FAILED", message: "..." }`** — DB call failed. Inspect `message` (typically a Prisma / connection error); confirm `POSTGRES_URL` in Vercel and Neon availability.
+   - **`{ ok: false, error: "FACTORY_AUTH_REQUIRED" }`** — the admin session expired between SSR and the client fetch. Reload after re-authenticating.
+3. **Confirm a recent intake actually persisted.** From psql or Neon SQL Editor:
+
+   ```sql
+   SELECT id, tenant_id, email, status, created_at
+   FROM leads
+   WHERE qualification_json -> 'intake_meta' ->> 'product' = 'ai-lead-rescue'
+   ORDER BY created_at DESC
+   LIMIT 20;
+   ```
+
+   If the intake does not appear, the issue is upstream of the operator cockpit (tenant intake / host context); follow `docs/operations/TENANT_CLIENT_LOGIN.md` to confirm the submitting host resolves to a registered tenant.
+4. **Confirm the deployment includes the SSR fallback.** `view-source:` on the page should contain the SSR-rendered `<tr>` rows for current leads or the SSR-rendered error envelope. If you see *only* `Loading…` in the raw HTML, the deployment predates the SSR fallback fix — redeploy / verify the deployed commit on Vercel Production.
+
+## Troubleshooting — save does not persist or the PAID_SETUP checklist does not appear
+
+If you save a field on `/admin/lead-rescue/[id]` and the change is gone after a refresh, or you set status to `PAID_SETUP` and the 13-item setup checklist does not appear:
+
+1. **Look for the inline error block right above the Save button.** After this fix the save error and save success messages render *next to* the Save button, not only at the top of the page — a silent save failure is no longer possible at the UX layer.
+2. **Use "Open raw API" in the error block** to inspect the `PATCH /api/factory/lead-rescue/patch` response in a new tab. The stable envelope is `{ ok: true, lead: {...} }` on success or `{ ok: false, error, message, http_status }` on failure. Compare the returned `lead.operations.status` and `lead.setup_checklist_eligible` with what you expected.
+3. **Confirm the response shape end-to-end.** The pin is in `node-tests/admin-lead-rescue-patch-api.test.mjs`: setting `status: 'PAID_SETUP'` always returns `setup_checklist_eligible: true` and the canonical 13-item checklist in the response, **and** a subsequent detail-loader read returns the same status. If both of those are not visible after a successful save, the deployment predates the persistence fix — verify the deployed commit on Vercel Production.
+4. **Checklist progress survives non-checklist saves.** `mergeAiLeadRescueOperatorPatch` now preserves the stored `setup_checklist` block from `qualification_json.ai_lead_rescue_operator`. Editing "Next action" / "Owner" / commercial fields no longer wipes checklist state — pinned by the `saving operator fields after a checklist save does NOT wipe checklist progress` regression test.
+
+## Troubleshooting — detail page is blank/black after clicking "Open"
+
+The detail page at `/admin/lead-rescue/[id]` follows the same robustness contract as the list page: the data is SSR-fetched via a shared loader, the React tree is wrapped in an error boundary (so a render-time throw becomes a visible error block, never a black screen), every nested field access goes through a `normalizeLead()` shim with safe defaults, and the Back-to-pipeline link is always rendered outside the boundary. If an operator ever sees a fully blank/black page, the page chrome itself failed to render — that is a deployment / build problem, not an application logic problem.
+
+1. **Confirm the navigation URL.** It should look like `https://corpflowai.com/admin/lead-rescue/<lead-id>` with `lead-id` matching what the list row shows. If `lead-id` is missing or the wrong shape, the page surfaces `ID_REQUIRED` and a Back-to-list link instead of blanking.
+2. **Read the error block.** When something fails to load, the page now shows an explicit alert with HTTP status, error code, message, **Retry**, **Back to list**, and **Open raw API** controls. Press **Open raw API** to inspect `/api/factory/lead-rescue/get?id=<lead-id>` in a new tab while authenticated:
+   - **`{ ok: true, lead: {...} }`** — API healthy; click **Retry**.
+   - **`{ ok: false, error: "LEAD_NOT_FOUND" }`** — the lead was deleted or its `qualification_json` no longer matches the AI Lead Rescue product. Return to the list.
+   - **`{ ok: false, error: "LEAD_RESCUE_GET_FAILED" }`** — DB call failed; inspect `message`.
+   - **`{ ok: false, error: "FACTORY_AUTH_REQUIRED" }`** — the admin session expired between SSR and client fetch. Reload after re-authenticating.
+3. **If you see a completely black page with no Back link.** That means even the page chrome failed to render — almost always a stale or broken deployed bundle. Verify the deployed commit on Vercel Production matches the head of `main`, redeploy if not, and clear browser cache. If the issue persists, capture the browser console error and attach it to the issue.
+
 ## Live verification checklist (do before calling any change COMPLETE)
 
 CI green and a merged PR are not proof of delivery. Before marking any AI Lead Rescue change `COMPLETE`, walk through:
