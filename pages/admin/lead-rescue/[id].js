@@ -2,14 +2,49 @@ import AiLeadRescueAdminDetail from '../../../components/AiLeadRescueAdminDetail
 import { requireAdminPageSession } from '../../../lib/server/admin-page-gate.js';
 import { loadAiLeadRescueDetailData } from '../../../lib/server/admin-lead-rescue-api.js';
 
-export default function AdminLeadRescueDetailPage({ initialLead, initialError, leadId }) {
+export default function AdminLeadRescueDetailPage({
+  initialLead,
+  initialError,
+  leadId,
+  buildInfo,
+}) {
   return (
     <AiLeadRescueAdminDetail
       initialLead={initialLead}
       initialError={initialError}
       leadId={leadId}
+      buildInfo={buildInfo}
     />
   );
+}
+
+/**
+ * Reads Vercel build-time / runtime env vars and returns a JSON-serializable
+ * `buildInfo` object that gets rendered into the diagnostic panel. Letting the
+ * operator read the **deployed commit SHA** on the live page is the only
+ * ground-truth way to confirm which build is being served — bumping a string
+ * constant in source is not enough.
+ *
+ * Vercel sets these automatically on every deployment:
+ *   - VERCEL_GIT_COMMIT_SHA       full git SHA of the deployed commit
+ *   - VERCEL_GIT_COMMIT_REF       branch / tag
+ *   - VERCEL_DEPLOYMENT_ID        e.g. dpl_…
+ *   - VERCEL_ENV                  'production' | 'preview' | 'development'
+ *
+ * Local dev: all fall back to safe placeholders so the panel never crashes.
+ */
+function readBuildInfo() {
+  const sha = process.env.VERCEL_GIT_COMMIT_SHA || '';
+  const ref = process.env.VERCEL_GIT_COMMIT_REF || '';
+  const deploymentId = process.env.VERCEL_DEPLOYMENT_ID || '';
+  const vercelEnv = process.env.VERCEL_ENV || 'local';
+  return {
+    commitSha: sha,
+    commitShaShort: sha ? sha.slice(0, 12) : 'local-dev',
+    commitRef: ref,
+    deploymentId,
+    vercelEnv,
+  };
 }
 
 /**
@@ -67,6 +102,7 @@ export async function getServerSideProps({ req, params }) {
       initialLead,
       initialError,
       leadId: id,
+      buildInfo: readBuildInfo(),
     },
   };
 }

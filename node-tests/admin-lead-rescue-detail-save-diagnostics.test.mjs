@@ -54,13 +54,24 @@ function readComponentSource() {
 }
 
 describe('AiLeadRescueAdminDetail — live save diagnostics contract', () => {
-  it('declares the DETAIL_BUNDLE_VERSION constant with value `save-wiring-v2`', () => {
+  it('declares a DETAIL_BUNDLE_VERSION constant whose value is bumped when the panel schema changes', () => {
     const src = readComponentSource();
+    // The constant must exist and currently match the PR #322 schema
+    // (which added Commit / Deployment / Env lines). Bump this value when
+    // you change the panel labels so the operator can visually verify
+    // which build of the panel is being served.
     assert.match(
       src,
-      /const\s+DETAIL_BUNDLE_VERSION\s*=\s*['"]save-wiring-v2['"]/,
-      'DETAIL_BUNDLE_VERSION must equal `save-wiring-v2` so the operator can verify the deployed bundle.',
+      /const\s+DETAIL_BUNDLE_VERSION\s*=\s*['"]v3-with-deploy-info['"]/,
+      'DETAIL_BUNDLE_VERSION must equal `v3-with-deploy-info` for the PR #322 panel schema.',
     );
+  });
+
+  it('renders Commit / Deployment / Env lines sourced from buildInfo prop', () => {
+    const src = readComponentSource();
+    assert.match(src, /Commit:\s*\$\{buildInfo\.commitShaShort\}/);
+    assert.match(src, /Deployment:\s*\$\{buildInfo\.deploymentId\s*\|\|\s*['"]\(local\)['"]\}/);
+    assert.match(src, /Env:\s*\$\{buildInfo\.vercelEnv\}/);
   });
 
   it('exposes a logDiag helper that gates on console.info', () => {

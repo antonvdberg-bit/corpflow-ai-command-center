@@ -11,11 +11,13 @@ import { fmtDateStableUtc } from '../lib/format/utc-date.js';
 
 const DETAIL_FETCH_TIMEOUT_MS = 25_000;
 
-// 2026-06-06 P0 live save diagnostics — bumped whenever the save wiring
-// changes so the operator can visually confirm which build is being served.
-// If this string does not appear on the live detail page, the deployed bundle
-// is not what we think it is.
-const DETAIL_BUNDLE_VERSION = 'save-wiring-v2';
+// 2026-06-06 P0 live save diagnostics — bumped whenever the diagnostic panel
+// SCHEMA changes (label set, ordering, semantics) so the operator can visually
+// confirm which build of the panel is being served. The deployed COMMIT SHA
+// is the actual deploy-version identifier and is shown directly under this
+// label — sourced from `process.env.VERCEL_GIT_COMMIT_SHA` via
+// `[id].js#getServerSideProps`.
+const DETAIL_BUNDLE_VERSION = 'v3-with-deploy-info';
 
 function logDiag(event, payload) {
   if (typeof console === 'undefined' || typeof console.info !== 'function') return;
@@ -298,10 +300,32 @@ function DetailErrorBlock({ error, leadId, loading, onRetry }) {
  *   initialLead?: object | null,
  *   initialError?: { error?: string, message?: string, http_status?: number } | null,
  *   leadId?: string,
+ *   buildInfo?: {
+ *     commitSha?: string,
+ *     commitShaShort?: string,
+ *     commitRef?: string,
+ *     deploymentId?: string,
+ *     vercelEnv?: string,
+ *   } | null,
  * }} props
  */
 export default function AiLeadRescueAdminDetail(props = {}) {
-  const { initialLead, initialError, leadId: leadIdFromProps } = props;
+  const {
+    initialLead,
+    initialError,
+    leadId: leadIdFromProps,
+    buildInfo: buildInfoProp,
+  } = props;
+  // Normalize buildInfo so the panel never has to do `?.` chains and the
+  // panel render output is identical between SSR (where prop may be undefined
+  // in old call paths) and CSR (where the parent always passes a value).
+  const buildInfo = {
+    commitSha: (buildInfoProp && buildInfoProp.commitSha) || '',
+    commitShaShort: (buildInfoProp && buildInfoProp.commitShaShort) || 'local-dev',
+    commitRef: (buildInfoProp && buildInfoProp.commitRef) || '',
+    deploymentId: (buildInfoProp && buildInfoProp.deploymentId) || '',
+    vercelEnv: (buildInfoProp && buildInfoProp.vercelEnv) || 'local',
+  };
   const router = useRouter();
   const leadIdFromRouter = typeof router.query.id === 'string' ? router.query.id : '';
   const leadId = leadIdFromProps || leadIdFromRouter;
@@ -387,9 +411,13 @@ export default function AiLeadRescueAdminDetail(props = {}) {
     setSaveDiagnostics((d) => ({ ...d, handlerMounted: true }));
     logDiag('component mounted', {
       bundle: DETAIL_BUNDLE_VERSION,
+      commitShaShort: buildInfo.commitShaShort,
+      commitRef: buildInfo.commitRef,
+      deploymentId: buildInfo.deploymentId,
+      vercelEnv: buildInfo.vercelEnv,
       leadId: leadId || '',
     });
-  }, [leadId]);
+  }, [leadId, buildInfo.commitShaShort, buildInfo.commitRef, buildInfo.deploymentId, buildInfo.vercelEnv]);
 
   const load = useCallback(async () => {
     if (!leadId) {
@@ -888,6 +916,9 @@ export default function AiLeadRescueAdminDetail(props = {}) {
                   }}
                 >
                   {`Detail bundle: ${DETAIL_BUNDLE_VERSION}
+Commit: ${buildInfo.commitShaShort}${buildInfo.commitRef ? ` (${buildInfo.commitRef})` : ''}
+Deployment: ${buildInfo.deploymentId || '(local)'}
+Env: ${buildInfo.vercelEnv}
 Lead id: ${leadId || '(none)'}
 Save handler mounted: ${saveDiagnostics.handlerMounted ? 'YES' : 'NO'}
 Last save click: ${saveDiagnostics.lastClickAt || '(none)'}
