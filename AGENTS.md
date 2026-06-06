@@ -53,6 +53,7 @@ Non-negotiable summary:
 - For AI Lead Rescue, do not use **“Choose payment path”** as the primary CTA.
 - Every external communication must combine attention + comprehension + proof + aesthetic discipline + a clear next action (Hook / Proof / Depth doctrine).
 - Every attention asset must point to a validation asset (dual-asset pattern). Standalone hooks without a depth path are not shipped.
+- **Stay above the line:** sell managed outcomes, vertical workflows, client-specific context, and secure accountable operations — **not** generic AI wrappers, generic chatbots, or generic AI agents. See **`docs/strategy/ABOVE_THE_LINE_STRATEGY_DOCTRINE.md`**.
 
 If a marketing surface looks polished but the intended buyer does not understand the offer, trust the path, and know exactly what to do next, the change is **PARTIAL**, not complete.
 
@@ -88,6 +89,7 @@ If Git says **`ambiguous argument 'main'`**, a tracked path named **`main`** may
 | **Strategy source captures** — index for distilled external strategy material (videos, podcasts, essays). The README itself is the index; individual captures are **task-conditional reading**, not mandatory for every task. Read a capture only when working on the area it informs, or when proposing a doctrine change. Doctrine changes never happen inside a capture. | `docs/strategy/sources/README.md` |
 | Delivery reality (live prod = done) | `.cursor/rules/delivery-reality.mdc`, `.cursor/rules/predeploy-decision-checks.mdc` |
 | Production bar (reliable, secure, observable) | `docs/strategy/PRODUCTION_GRADE_CLIENT_OUTCOMES.md` |
+| **Above-the-Line Strategy Doctrine** — **mandatory strategic evaluation lens** for any new offer, feature, marketing claim, or technical build. CorpFlowAI competes **above the commodity line** (managed outcomes, vertical workflows, proprietary client context, trust-heavy / secure workflows, owned distribution) and uses generic AI as **leverage**, not as the moat. AI Lead Rescue is a **wedge** into managed lead / growth operations, not the destination. | **`docs/strategy/ABOVE_THE_LINE_STRATEGY_DOCTRINE.md`** |
 | Host / apex / login / tenancy | `docs/operations/TENANT_CLIENT_LOGIN.md` |
 | **Postgres provider (Neon — sole approved)** — required when touching DB env vars or diagnosing DB issues. **Neon is the only approved Postgres provider for production. Prisma Accelerate / `db.prisma.io` is deprecated and must not appear in active runtime configuration. Any `db.prisma.io` reference is configuration drift; see `docs/operations/POSTGRES_PROVIDER.md` §4a/§4b/§5b for the playbook.** | `docs/operations/POSTGRES_PROVIDER.md` |
 | Outbound email / communications — required when adding any send-mail capability or comms event | `docs/communications/CORPFLOW_COMMUNICATIONS_V1.md` |

@@ -25,6 +25,18 @@ A page is not done because it looks good. A page is done only when the intended 
 
 **Effectiveness beats decoration. Clarity beats cleverness. Conversion beats completeness.**
 
+## Strategic guardrail — Above-the-Line Doctrine
+
+Marketing positioning must be consistent with the **`docs/strategy/ABOVE_THE_LINE_STRATEGY_DOCTRINE.md`** strategic evaluation doctrine. That doctrine is mandatory; this section names the marketing implications.
+
+- **Marketing must not position CorpFlowAI as a generic AI wrapper / chatbot / agent company.** Generic AI chatbots, generic AI agents, generic content generators, generic prompt-to-app wrappers, generic dashboard builders, and generic workflow glue are commoditised by major platforms; CorpFlowAI does not compete in that layer.
+- **AI Lead Rescue is a wedge into managed lead / growth operations** — not the full company, not "our AI agent." Buyer-facing copy must frame Lead Rescue as a managed lead-response operating workflow with human review and accountability, not as a generic chatbot, generic lead form, generic CRM board, or generic automation demo.
+- **Buyer-facing claims must emphasise managed outcomes, accountability, workflow depth, and trust** — not novelty of AI. Allowed-claims rules in § *Copy rules* still apply.
+- **The chatbot, where present, is positioned as a narrow concierge and routing aid only** — not as the strategic moat.
+- **Marketing surfaces that drift below the line** (e.g. lead with "AI agent for your business," promise generic AI-powered everything, sell a generic dashboard, or use generic-tool framing as the headline value) are **PARTIAL**, not complete, even when the page looks attractive.
+
+A marketing surface passes this guardrail when the intended buyer can see a managed outcome they want, understand who is accountable for delivering it, and recognise that CorpFlowAI's value is the running function — not a generic AI tool reskinned.
+
 ## Definition of done
 
 A marketing or intake surface is complete only when all of these are true:
