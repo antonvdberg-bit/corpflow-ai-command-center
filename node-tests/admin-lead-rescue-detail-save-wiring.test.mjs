@@ -194,4 +194,60 @@ describe('pages/admin/lead-rescue/[id] — hydration-shape contract', () => {
       'initialLead must be JSON-roundtripped so Prisma Date fields cannot create a hydration mismatch',
     );
   });
+
+  it('reads VERCEL_GIT_COMMIT_SHA / VERCEL_DEPLOYMENT_ID / VERCEL_ENV in getServerSideProps', () => {
+    assert.match(
+      pageSrc,
+      /process\.env\.VERCEL_GIT_COMMIT_SHA/,
+      'getServerSideProps must read VERCEL_GIT_COMMIT_SHA so the diagnostic panel shows the deployed commit.',
+    );
+    assert.match(
+      pageSrc,
+      /process\.env\.VERCEL_DEPLOYMENT_ID/,
+      'getServerSideProps must read VERCEL_DEPLOYMENT_ID so the diagnostic panel shows the deployment id.',
+    );
+    assert.match(
+      pageSrc,
+      /process\.env\.VERCEL_ENV/,
+      'getServerSideProps must read VERCEL_ENV so the diagnostic panel shows production / preview / development.',
+    );
+  });
+
+  it('exposes buildInfo as an SSR prop and forwards it to AiLeadRescueAdminDetail', () => {
+    assert.match(
+      pageSrc,
+      /buildInfo:\s*readBuildInfo\(\)/,
+      'buildInfo must be set on the SSR props payload via readBuildInfo().',
+    );
+    assert.match(
+      pageSrc,
+      /<AiLeadRescueAdminDetail[\s\S]*?buildInfo=\{buildInfo\}/,
+      'The page component must forward buildInfo to AiLeadRescueAdminDetail.',
+    );
+  });
+
+  it('readBuildInfo returns plain string fields (JSON-serializable, no Date / function leakage)', () => {
+    // Accept both ES6 shorthand (`deploymentId,`) and long-form
+    // (`deploymentId: deploymentId`) when asserting the return shape.
+    assert.match(
+      pageSrc,
+      /commitSha:\s*sha\b/,
+      'readBuildInfo must expose commitSha as a plain string field.',
+    );
+    assert.match(
+      pageSrc,
+      /commitShaShort:\s*sha\s*\?\s*sha\.slice\(0,\s*12\)\s*:\s*['"]local-dev['"]/,
+      'readBuildInfo must expose commitShaShort (12-char prefix) or `local-dev` fallback.',
+    );
+    assert.match(
+      pageSrc,
+      /\bdeploymentId\s*[,}]|deploymentId:\s*deploymentId\b/,
+      'readBuildInfo must expose deploymentId as a plain string field.',
+    );
+    assert.match(
+      pageSrc,
+      /\bvercelEnv\s*[,}]|vercelEnv:\s*vercelEnv\b/,
+      'readBuildInfo must expose vercelEnv as a plain string field.',
+    );
+  });
 });
