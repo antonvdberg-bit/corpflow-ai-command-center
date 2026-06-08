@@ -28,87 +28,71 @@
 
 ---
 
-## 2026-06-08 — AI Lead Rescue operator cockpit reliability — P0 incident response chain (PR #315 → PR #328; verified live on `lux.corpflowai.com/admin/lead-rescue`)
+## 2026-06-08 — AI Lead Rescue operator cockpit reliability — P0 incident response chain (PR #315 → PR #328)
 
 <!-- AI_LEAD_RESCUE_OPERATOR_COCKPIT_P0_CHAIN_2026_06_08_HIST -->
 
-**Status:** **COMPLETE.** Anton verified each step live on production as it merged; final confirmation 2026-06-08 *"PR #328 merged and all tested ok"*. Status changes (forward-only), `next_action` edits, and Setup checklist toggles all persist across consecutive PATCHes on the same warm Vercel function instance. The temporary diagnostic scaffolding that accumulated during the 6-day investigation is removed; the production surface is back to the intended UX with a static regression test pinning the cleanup. The full chronicle of root causes 1–5 lives in `docs/operations/AI_LEAD_RESCUE_OPERATOR_RUNBOOK.md` (sections preserved verbatim as the permanent post-mortem).
+**Summary:** AI Lead Rescue operator cockpit is now live-verified reliable on `https://lux.corpflowai.com/admin/lead-rescue`.
 
-**Why this matters:** the operator cockpit at `/admin/lead-rescue` is the single tool that turns `/lead-rescue` intakes into paid setup → monitoring. From 2026-06-03 onwards it had a cascade of failures (list stuck on "Loading…", detail page blank, Save button silently no-op, then API 500s once the UI was fixed) that made the cockpit unusable in production while the marketing landing page kept generating leads. Anton drove a tight P0 loop with live verification on every merge.
+### PRs in this chain
 
-### The chain — five root causes uncovered in order
-
-| Layer | PR | Root cause |
+| PR | Merge SHA | Title |
 |---|---|---|
-| List loader | **#315** (`e113e40f`) | Admin list endpoint defaulted to a tenant filter that excluded factory-master sessions → SSR fallback rendered "Loading…" forever. Fixed by widening the loader, adding SSR-rendered rows on the server, and a proper error envelope. |
-| Detail-page render | **#316** (`5de1e97e`) | `getServerSideProps` returned `Date` objects from Prisma that crashed JSON serialization → page rendered blank/black. Fixed with `ErrorBoundary`, `normalizeLead()`, `AbortController` for fetches, and a `DetailErrorBlock` affordance so the operator never sees an unactionable surface. |
-| Detail-page persistence | **#317** (`89a7624e`) | Operator updates didn't survive a reload. The PATCH normalizer was discarding `setup_checklist` and the success/error envelope wasn't being rendered inline. Fixed by preserving the checklist on the round-trip and moving success/error pills inside the form. |
-| Save wiring | **#319** (`f15cceba`) | Save button relied on the form's `onSubmit`; on hydration failure, clicks fell through to a native form POST that silently reloaded with SSR data. Fixed by making the Save button `type="button"` with explicit `onClick={save}` and a no-op `preventDefault()` form `onSubmit`. |
-| Diagnostic instrumentation | **#320** (`f6f45e63`) / **#321** (`2610cc24`) / **#322** (`e69cb2a7`) | Diagnostic panel + Test click button + raw-patch DevTools snippet added so the operator could read `Save handler mounted: YES/NO`, click phase, deployed commit, deployment ID, env from the page itself. PR #321 swapped locale-sensitive `toLocaleString()` for a deterministic `fmtDateStableUtc` (new `lib/format/utc-date.js`) — a structurally-correct preventative fix even though it was not the actual root cause. |
-| **Root cause 1 (build):** Next.js 16 + Turbopack `_clientMiddlewareManifest.js` 404 | **#323** (`477bb8a2`) | The smoking gun for `Save handler mounted: NO` was a Turbopack client-runtime bug ([vercel/next.js#90381](https://github.com/vercel/next.js/issues/90381)) on dynamic routes — the missing-manifest 404 cascaded through chunk init and React never hydrated. Fixed by switching the build to Webpack via `next build --webpack` in `package.json`. Save handler then mounted as `YES` and clicks reached `save()`. |
-| **Root cause 2 (Prisma binary):** query-engine `.so.node` not bundled into Vercel functions | **#324** (`2163ade1`) | With hydration restored, PATCH started returning HTTP 500 *"Engine is not yet connected"*. The `libquery_engine-rhel-openssl-3.0.x.so.node` binary was not being included in the serverless function bundle. Fixed by adding `next.config.mjs` with `@prisma/nextjs-monorepo-workaround-plugin` and `vercel.json` `functions["api/factory_router.js"].includeFiles`. |
-| **Root cause 3 (cold-start race):** engine not connected on first PATCH after cold spawn | **#325** (`49fa8cc0`) | Even with the binary present, the first PATCH on a fresh instance raced the engine boot. Added a module-level eager `prisma.$connect().catch(...)` plus a single-shot retry helper `withPrismaColdStartRetry` (transient-error detection: "Engine is not yet connected", "Response from the Engine was empty"). |
-| UI guardrail + retry widening | **#326** (`3fb35449`) | Backward status transitions were allowed in the UI (data-integrity hazard) and the PR #325 retry budget was too tight. Added `getAiLeadRescueForwardStatuses()` for a forward-only status dropdown with an explanatory note, and widened the retry budget to 1500 ms × 2 retries. |
-| **Root cause 4 (Vercel + Prisma anti-pattern):** handler tore down the engine after every request | **#327** (`2a6eb421`) | Status changes were *still* hitting "Engine is not yet connected" on every PATCH after a successful one. Root cause: `adminLeadRescueHandler` was calling `await prisma.$disconnect().catch(() => {})` in a `finally` block after every request, killing the very engine PR #325's eager `$connect()` had warmed. The function instance outlives any single request on Vercel; the engine must stay warm. Removed the `$disconnect()` line. This is the canonical Vercel + Prisma pattern; a static regression test in `node-tests/admin-lead-rescue-cold-start-retry.test.mjs` now pins the absence of `prisma.$disconnect()` in the handler module. |
-| Diagnostic cleanup | **#328** (`77937fe8`) | With the root cause resolved, removed the diagnostic panel / Test click button / raw-patch `<details>` / `buildInfo` SSR plumbing / `logDiag` console helper from the production surface. Kept all the production controls (Save button, inline error block, Saved. pill, forward-only status dropdown, Setup checklist) and the defensive `save()` handler. A new inverted regression test pins that `buildInfo` / `VERCEL_GIT_COMMIT_SHA` are not re-introduced. Net diff: −516 lines, 13 deleted diagnostic-only assertions. |
+| #315 | `e113e40f` | resolve admin list loading failure |
+| #316 | `5de1e97e` | prevent blank detail page |
+| #317 | `89a7624e` | persist detail updates and checklist eligibility |
+| #319 | `f15cceba` | wire detail save action |
+| #320 | `f6f45e63` | add live save diagnostics |
+| #321 | `2610cc24` | make detail dates hydration-stable |
+| #322 | `e69cb2a7` | show deployed commit in diagnostic panel |
+| #323 | `477bb8a2` | switch off Turbopack to bypass `_clientMiddlewareManifest` 404 |
+| #324 | `2163ade1` | trace query engine binary into every Vercel function bundle |
+| #325 | `49fa8cc0` | retry transient Prisma engine cold-start |
+| #326 | `3fb35449` | widen cold-start retry budget + forward-only status dropdown |
+| #327 | `2a6eb421` | keep Prisma engine warm across requests root cause |
+| #328 | `77937fe8` | remove temporary save diagnostics |
 
-### Files touched (canonical surface)
+### Root causes uncovered
 
-- `pages/admin/lead-rescue/index.js` (#315) — SSR list rendering + error envelope.
-- `pages/admin/lead-rescue/[id].js` (#316, #317, #321, #322, #328) — SSR detail loader + ErrorBoundary + JSON-roundtrip of `initialLead` to pin SSR/CSR shape.
-- `components/AiLeadRescueAdminDetail.js` (#316, #317, #319, #320, #321, #322, #326, #328) — the detail editor; Save wiring, forward-only dropdown, inline error/success, hydration-safe date rendering.
-- `lib/server/admin-lead-rescue-api.js` (#315, #317, #325, #326, #327) — list loader, PATCH normalizer, eager `prisma.$connect()`, retry helper, removed `$disconnect()`.
-- `lib/cmp/_lib/ai-lead-rescue-operator.js` (#326) — added `getAiLeadRescueForwardStatuses()`.
-- `lib/format/utc-date.js` (#321; new) — deterministic UTC date formatter shared by SSR and CSR.
-- `next.config.mjs` (#324; new) — Webpack monorepo workaround plugin for Prisma binaries.
-- `vercel.json` (#324) — `functions["api/factory_router.js"].includeFiles` for the query-engine `.so.node`.
-- `package.json` (#323) — `build` and `build:vercel` scripts pinned to `next build --webpack` (Next 16 + Turbopack bug bypass).
-- `node-tests/admin-lead-rescue-*.test.mjs` (multiple) — regression tests for save wiring, retry helper, no-`$disconnect()` assertion, no-`buildInfo` cleanup assertion.
-- `docs/operations/AI_LEAD_RESCUE_OPERATOR_RUNBOOK.md` — five "Root cause found …" chronicle sections + a post-cleanup *Troubleshooting* section + a *Diagnostic UI cleanup — PR #328* section.
+- Admin list loader / client-only loading trap.
+- Blank detail page / missing defensive SSR + error boundary.
+- Save action not visibly wired due to hydration failure.
+- SSR/CSR date formatting mismatch from locale-sensitive date rendering.
+- Turbopack `_clientMiddlewareManifest` 404 issue.
+- Prisma query engine binary not bundled consistently into Vercel functions.
+- Prisma cold-start / `$connect()` race.
+- Prisma `$disconnect()` anti-pattern causing repeated engine teardown across serverless requests.
 
-### Headlines
+### Final verified flow
 
-- **Three days, five root causes, one production URL.** Verified live on `https://lux.corpflowai.com/admin/lead-rescue` (factory-master session) and a representative detail page after every merge. Final confirmation: status + Setup checklist + `next_action` all persist across consecutive PATCHes.
-- **Two structural fixes that other client-facing surfaces benefit from.** The Webpack build (PR #323) and the no-`$disconnect()` handler pattern (PR #327) remove latent classes of failure that could have hit any other Vercel + Next 16 + Prisma route. PR #327's regression test pins the anti-pattern out of the lead-rescue file specifically; ~10 other server modules still call `$disconnect()` and are queued for the same treatment if they ever surface symptoms (none reported yet).
-- **Neon driver adapter migration demoted to non-urgent.** Going into the chain, migrating to `@prisma/adapter-neon` with `engineType = "client"` was queued as the "real" fix. With PR #327 in place, the failure mode it would have solved no longer reproduces, so the migration is now a hygiene improvement rather than incident response. Captured at the end of the runbook chronicle.
-- **Cleanup is regression-tested.** PR #328's static test (`does NOT plumb buildInfo / Vercel commit metadata through the page`) means the diagnostic panel cannot silently come back. If we ever need in-page diagnostics again, the runbook now directs them to a separate `/admin/lead-rescue/[id]/__diagnostics` route gated behind a query-string flag.
-- **`fmtDateStableUtc` (`lib/format/utc-date.js`) is a quietly-useful by-product.** Any SSR page that renders timestamps should prefer it over `toLocaleString()` to avoid hydration mismatch — same locale across server and browser.
+- Login to operator surface.
+- List loads.
+- Audit leads visible.
+- Detail page opens.
+- Save works.
+- Status transition persists.
+- `PAID_SETUP` persists.
+- Canonical 13-item checklist appears.
+- Checklist item state persists.
+- Temporary diagnostics removed in PR #328.
 
-### Standing holds (unchanged)
+### Reference
 
-`HB-1..HB-4` · Phase D ERPNext go-live · all `JE-2026-06-04-*` / `JE-2026-06-05-*` holds · `AI-Lead-Rescue-Chatbot-V1-Build-1` and the four follow-on chatbot/voicebot packets (not initiated). The chatbot audit recorded under `JE-2026-06-05-9` is unaffected by this chain; the operator cockpit is the back-office surface, the chatbot is a future front-of-funnel surface.
+Detailed runbook / chronology: `docs/operations/AI_LEAD_RESCUE_OPERATOR_RUNBOOK.md`.
 
-**New holds introduced:** none.
-
-**Held back from THIS entry (separate, still PARTIAL):** PR #312 + PR #314 (login autofill semantics + deterministic login mode/theme). Factory-admin path confirmed COMPLETE earlier; the **tenant-subdomain regression** verification on `https://lux.corpflowai.com/login` is still pending. Their combined entry stays held until that check is recorded.
-
-### Cross-references
-
-- Operator runbook (canonical post-mortem of root causes 1–5): `docs/operations/AI_LEAD_RESCUE_OPERATOR_RUNBOOK.md`.
-- Vercel + Prisma anti-pattern (PR #327): Prisma docs are explicit that `$disconnect()` must not be called in a Vercel serverless request handler.
-- Next.js 16 + Turbopack bug (PR #323): [vercel/next.js#90381](https://github.com/vercel/next.js/issues/90381) — `_clientMiddlewareManifest.js` 404 on dynamic routes when no `middleware.{js,ts}` exists.
-- Marketing landing page that feeds this cockpit: `pages/lead-rescue.js` (unchanged by this chain).
-- Database provider canonical doc: `docs/operations/POSTGRES_PROVIDER.md` (Neon; `db.prisma.io` deprecated).
-
-### Delivery Reality Audit (final, for the chain)
+### Delivery Reality Audit
 
 ```text
 Delivery Reality Audit:
-- Local fix exists: YES (all 13 PRs)
-- Merged to main: YES (#315 e113e40f → #328 77937fe8)
-- Production deployment ID: Vercel Production has deployed each merged commit
-  through to 77937fe8 (PR #328); final deploy verified by Anton 2026-06-08.
-- Commit deployed: 77937fe8 (PR #328 — latest in the chain)
-- Live URLs tested: https://lux.corpflowai.com/admin/lead-rescue (list) +
-  https://lux.corpflowai.com/admin/lead-rescue/<lead-id> (detail editor)
-- Expected vs actual result: Status change (forward-only), next_action edit,
-  and Setup checklist toggles all persist across consecutive PATCHes. No
-  "Engine is not yet connected" errors. No diagnostic scaffolding visible.
-- Client-facing flow usable: YES — operators can now run the cockpit at
-  factory speed; lead-rescue intakes can be progressed PAID_SETUP → MONITORING
-  without UI workarounds.
+- Local fix exists: YES
+- Merged to main: YES (PR #315 through PR #328)
+- Production verified: YES
+- Live URL: https://lux.corpflowai.com/admin/lead-rescue
+- Client/operator-facing flow usable: YES
 - Final verdict: COMPLETE
 ```
+
+**Held back from this entry:** PR #312 and PR #314 (login autofill semantics + deterministic login mode/theme) are **not** included in this COMPLETE entry. Their combined chat-history entry remains held until the `https://lux.corpflowai.com/login` tenant-subdomain regression is verified.
 
 ---
 
