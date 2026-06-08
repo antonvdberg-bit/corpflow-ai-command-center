@@ -314,6 +314,57 @@ The list is capped at **200 entries** per lead in storage (oldest dropped first)
 
 The same hard rules in the *What not to store* section below apply verbatim to every activity field. **No card numbers, banking credentials, passwords, OTPs, or private health details.** The activity log is jsonb in `qualification_json.ai_lead_rescue_operator.activity[]` and is operator-visible — treat it like an internal CRM note.
 
+### Activity log lifecycle scope
+
+The Activity Log is **operator-side tracking for any AI Lead Rescue record that already exists in the operator cockpit** (`/admin/lead-rescue/[id]`). It is **not yet** a standalone pre-intake prospecting CRM. Use this section to decide whether a given prospect-touch belongs in the Activity Log or in the prospect-list spreadsheet.
+
+#### In scope (use the Activity Log)
+
+Once a lead row exists in the cockpit — i.e. the prospect has submitted the public intake form at `/lead-rescue`, **or** the operator has deliberately created a manual intake/prospect record for them — the Activity Log is the canonical timeline for **all** of the following:
+
+- Warm outreach (`outbound_opener`, `outbound_followup`) on WhatsApp / LinkedIn / email / Facebook / phone.
+- Prospect replies (`prospect_replied`) — paraphrased one-liners only; never the full message.
+- Booked discovery calls (`call_booked`).
+- Discovery call notes (`note`).
+- Manual pro-forma sends (`manual_pro_forma_sent`).
+- Payment confirmations (`payment_confirmed_manual`).
+- Delivery handoff to the 13-item setup checklist (`delivery_handoff`).
+- Bad-fit / declined outcomes (`bad_fit`).
+- Operator-internal notes (`note`, channel `internal`).
+- Follow-up scheduling (`follow_up_scheduled` plus `next_action_date`).
+
+The Activity Log timeline is the per-lead audit trail. Use it consistently — gaps in the timeline degrade the operator hand-off the moment a second operator joins.
+
+#### Out of scope (do NOT use the Activity Log)
+
+The Activity Log does **not** cover the pre-intake prospecting layer. Specifically:
+
+- A prospect the operator has identified but has **not yet** reached out to.
+- A prospect the operator is researching for warm-network fit.
+- A prospect the operator has sent a first outreach to **before** they exist as a cockpit row.
+- A list of prospects the operator is triaging by fit score.
+- Notes about warm-network introducers or referral sources who are not themselves a lead.
+
+For all of the above, use the **prospect list template** (`docs/sales/AI_LEAD_RESCUE_PROSPECT_LIST_TEMPLATE.md`) — a private operator Google Sheet. The prospect list lives *off the runtime* deliberately: it is not in any database, not in the public site, and not visible to anyone outside the operator.
+
+#### Transition point: prospect list → cockpit
+
+A prospect moves from the **prospect list sheet** to the **cockpit Activity Log** at exactly one trigger: **a cockpit row exists for them**. That happens via one of two paths:
+
+1. **Canonical path (default).** The prospect submits the public intake form at `/lead-rescue`. The intake handler creates the lead row; the operator opens `/admin/lead-rescue/[id]` and starts logging activity from that point on. Update column T (*Activity log reference*) in the prospect-list sheet to `/admin/lead-rescue/<lead-id>` so the sheet and cockpit are cross-linked.
+2. **Deliberate manual path (rare).** The operator has closed a paying pilot conversation entirely off-form (e.g. on a discovery call) and the buyer has not filled the public intake form. Per `docs/operations/AI_LEAD_RESCUE_OPERATOR_RUNBOOK.md` § *From paid pilot to setup*, the canonical fix is to **ask the buyer to submit the public intake form** rather than fabricate a synthetic intake row. Until that submission lands, the prospect stays in the prospect-list sheet, not the cockpit.
+
+#### Future enhancement (not built — do not promise)
+
+If a future operational need genuinely requires tracking a prospect **inside the cockpit before they submit the public intake**, the right shape is a deliberate, audited workflow:
+
+- A manual *operator-creates-lead-row* path with the same auth gates as the rest of `/admin/lead-rescue` (factory master only), or
+- A bulk-import feature for cleanly-sourced operator-curated prospect rows.
+
+**Neither of those is built today and neither should be built without a separate authorisation packet.** The doctrine line is `docs/marketing/AI_LEAD_RESCUE_FIRST_PAID_PILOTS.md` § 13 *What NOT to build yet* — no CRM rebuild, no chatbot expansion, no second productized service line, no self-serve checkout, before 4 paying pilots are running cleanly. A pre-intake prospecting CRM falls in that same hold pattern.
+
+If an operator needs the workflow before that authorisation exists: stay in the prospect-list sheet (`docs/sales/AI_LEAD_RESCUE_PROSPECT_LIST_TEMPLATE.md`) and accept the friction.
+
 ## What not to store
 
 The notes, payment-notes, and intake-message fields are jsonb / free-text and are **operator-visible**. Treat them as you would any internal CRM note, and **never** paste any of the following into any field:
