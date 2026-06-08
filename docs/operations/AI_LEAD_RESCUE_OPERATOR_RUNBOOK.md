@@ -161,6 +161,107 @@ Each row saves independently via the existing factory PATCH route — there is n
 
 The canonical order is locked in by an assertion in `node-tests/ai-lead-rescue-operator.test.mjs`. If you need to add or rename an item, update the v1 list in `lib/cmp/_lib/ai-lead-rescue-operator.js`, update the test, update this table, and bump the checklist `version` if the change is breaking.
 
+## From paid pilot to setup
+
+This section is the **operator's bridge** from *"the wire cleared"* to *"the 7-day monitoring window has begun"*. It pairs with the commercial-side launch pack at `docs/marketing/AI_LEAD_RESCUE_FIRST_PAID_PILOTS.md` and the post-payment onboarding runbook at `docs/operations/AI_LEAD_RESCUE_PAID_PILOT_ONBOARDING.md`. Both must be read together for first paying pilots — the marketing doc explains *what is sold*; this section explains *what the operator does next*.
+
+### Where the operator receives a paid pilot
+
+A paid pilot becomes the operator's responsibility at one of three trigger points (in priority order):
+
+1. **Wire transfer cleared in SBM** (warm-network primary route — Mauritius pilots and international USD wires). Operator confirms by checking the bank, then proceeds.
+2. **Manual confirmation by Anton** (e.g. *"USD 150 from {buyer} cleared today, pilot starts tomorrow"*) — used when the operator-machine and bank are not the same person, or the operator and Anton are different people in a future hand-off.
+3. **Operator's own confirmation** that the pro-forma path closed (operator-issued invoice, operator-side wire confirmation) — used when the operator is also the bank-signatory.
+
+Each of those must be backed by a real bank-side confirmation. **Do not start the 48-hour setup window on the basis of *"they said they'd send the wire"*.** The operator's most expensive resource is setup time; no free pilots even temporarily.
+
+### What status to set
+
+The moment the wire is confirmed:
+
+1. Open `/admin/lead-rescue/[id]` for this prospect (the same row that holds their public intake submission).
+2. Move status to `PAID_SETUP`.
+3. Save the lead. Confirm the **Setup checklist** card appears below the Operator card (it only appears at `PAID_SETUP` and later — see § *How to use the setup checklist* above).
+
+If the lead has not yet submitted the public intake form (`/lead-rescue`) — e.g. the operator closed the deal on a discovery call before the buyer filled the form — **do not create a synthetic intake row**. Instead: ask the buyer to submit the public intake form (link sent over WhatsApp + email) so the lead enters the system through the canonical path. Then move status to `PAID_SETUP` once the row exists.
+
+### When to move to PAID_SETUP
+
+Move to `PAID_SETUP` only when **all** of the following are true:
+
+- Wire has cleared the operator's bank account (not *"transfer initiated"* — *"funds present"*).
+- Operator has confirmed the buyer's working WhatsApp number + email (canonical source: discovery call notes — see `docs/sales/AI_LEAD_RESCUE_DISCOVERY_CALL_SCRIPT.md` § 5 Q12).
+- Operator has 48 contiguous hours of capacity to run the setup window. **Do not** move to `PAID_SETUP` on a Friday evening if the operator has no weekend availability — slip the start to the following Monday and tell the buyer: *"Your wire is confirmed. To run the setup window with full attention, I'm starting it Monday morning so the 48-hour window doesn't bleed into the weekend with patchy operator coverage."* The buyer almost always prefers honesty about timing to a half-attended start.
+
+### When the checklist appears
+
+The 13-item Setup checklist card appears on the detail page from `PAID_SETUP` onwards (5 statuses: `PAID_SETUP`, `SETUP_IN_PROGRESS`, `LIVE_PILOT`, `MONITORING_OFFERED`, `MONTHLY_ACTIVE`). Before payment, the card is hidden and the API returns `CHECKLIST_NOT_ELIGIBLE` for any patch attempt. This is intentional: the checklist is **operational scaffolding for paid work**, not a sales tool.
+
+The 13 items are the canonical operational steps — the operator works each one in order, ticks `done` (or `skipped` if it does not apply to this client), and the page header reads `X/13 complete`.
+
+### How to track setup completion
+
+For first paying pilots, the operator runs the Setup checklist in **two parallel surfaces**:
+
+1. **The cockpit checklist** — `/admin/lead-rescue/[id]` Setup checklist card. The canonical, audited progress record for the platform.
+2. **The post-payment onboarding doc** — `docs/operations/AI_LEAD_RESCUE_PAID_PILOT_ONBOARDING.md` § 7 (*Operator checklist mapping*) explains how each operator action maps to the cockpit's 13-item list, with the section-by-section workflow detail the cockpit alone does not capture.
+
+When in doubt, the cockpit is the source of truth. The doc gives the operator the *how*; the cockpit is the *audit*.
+
+### How to use the activity log for outreach and follow-up
+
+> **Status note (2026-06-08):** the runtime activity-log feature ships in a separate PR (`feat(lead-rescue): add outbound activity log` — runtime PR pending merge as of this docs PR). **Do not depend on the activity log being live in production until that PR is merged and live-verified.** Until then, operator outreach actions go in the existing **Notes** field on the Operator card, with one short bullet per outreach event (date, channel, type, brief note). The full *How to use the activity log* operator section will land with the runtime PR — that PR is the source of truth for activity-log behaviour and warnings.
+
+When the activity-log feature is live in production:
+
+- The operator records each outbound or inbound action as an activity entry on the detail page (channel + type + optional note + optional next action).
+- The activity-log timeline becomes the per-lead audit trail for outreach (vs. the cockpit Notes field, which becomes a less structured scratchpad).
+- The operator follows the *what-not-to-store* warnings from the activity log's own section in this runbook (no PII beyond first name; no card / banking / health detail; no full message thread copy-pasted; no buyer-confidential gossip about other leads).
+- The post-payment onboarding doc (`docs/operations/AI_LEAD_RESCUE_PAID_PILOT_ONBOARDING.md`) names specific activity-log entry types at each step: `payment_confirmed_manual` when the wire clears, `delivery_handoff` at the end of the 48-hour setup, `note` for daily-summary cadence touchpoints.
+
+Until the runtime PR ships, treat all of the above as **planned**, not live. Do not retro-fit notes-field content into the activity log later — that creates a misleading audit trail with one block of stamped-at-import time. Operator notes from the *"before activity log was live"* period stay in the Notes field for historical fidelity.
+
+### When to mark live
+
+Move status from `SETUP_IN_PROGRESS` → `LIVE_PILOT` (or whichever post-handover monitoring state the cockpit names) **only when** all of the following are true:
+
+- Lead source is connected end-to-end (test enquiry has flowed source → operator alert → operator sheet → buyer daily summary).
+- Buyer has received and acknowledged the hand-over message (a WhatsApp thumbs-up reaction is enough for first paid pilots; no formal sign-off needed).
+- The Sheet is shared view-only with the buyer (Tab 1 only — see `docs/operations/AI_LEAD_RESCUE_PAID_PILOT_ONBOARDING.md` § 5).
+- At least 8 of the 13 cockpit checklist items are `done` (the infrastructure-side ones: payment, client info, lead source identified+connected, alerts wired, sheet setup+shared, first summary sent, handover sent).
+- Operator next-action on the Operator card is set to: *"Send daily summary at {time} for next 7 days. End-of-pilot conversation on {ISO date 7 days ahead}."*.
+
+If any of those is missing, **do not flip to `LIVE_PILOT`** — keep status at `SETUP_IN_PROGRESS` and message the buyer honestly about the slip:
+
+```text
+Hi {first name}, quick update — setup window has run a few hours
+over. {What's missing} is still pending because {one-line honest
+reason}. I'll have it ready by {realistic ISO time}. Sorry for the
+slip.
+```
+
+### How to record monthly monitoring accepted
+
+The 7-day monitoring window does **not** auto-convert to monthly monitoring. At day 7, the operator runs the *end-of-pilot recap* conversation (`docs/operations/AI_LEAD_RESCUE_PAID_PILOT_ONBOARDING.md` § 12 and `docs/sales/AI_LEAD_RESCUE_DISCOVERY_CALL_SCRIPT.md` § 6 close pattern adapted for the recap).
+
+If the buyer accepts monthly monitoring:
+
+1. Send a separate manual pro-forma per `docs/sales/AI_LEAD_RESCUE_PRICING_GUIDE.md` § 1.1 — USD 99/month or ~MUR 4,500/month, **billed in advance** for the first month.
+2. Once that wire clears, move status `LIVE_PILOT` → `MONITORING_OFFERED` → `MONTHLY_ACTIVE`.
+3. Update the Commercial card: `Monthly monitoring price` numeric value, `Currency`, `Payment status: paid`, `Invoice / reference` set to the new monthly invoice number (e.g. `AILR-M-2026-001`).
+4. Set Operator next-action to: *"Monthly recap on {ISO date 30 days ahead}; end-of-month invoice review then."*.
+5. Tick checklist items 12 (`monitoring_7_day_started`) and 13 (`monthly_monitoring_offered`) as `done`. The 7-day-monitoring-started item is `done` because it's now historically true; the monthly-offered item is `done` because the offer was made and accepted.
+
+If the buyer declines monthly monitoring:
+
+1. Acknowledge politely (no pressure, no urgency framing — see `docs/sales/AI_LEAD_RESCUE_DISCOVERY_CALL_SCRIPT.md` § 9 patterns).
+2. Leave the buyer's Sheet shared view-only for one more week as a courtesy.
+3. Move status to a terminal state — `LOST` if it's a clean *"not now"*, `PAUSED` if the buyer asked to revisit later (e.g. *"come back in 3 months"*).
+4. Tick checklist items 12 and 13 as `done` either way (the offer was made; the operational pilot completed).
+5. If the buyer asked to revisit, set next-action date to the agreed re-engagement date on the Operator card.
+
+**Do not** silently drop a non-renewing pilot into a soft-deleted state without an end-of-pilot recap — the recap is part of the *managed* in *managed lead-response operating workflow*, and skipping it is exactly the agency-style behaviour that erodes the buyer's trust over time.
+
 ## What not to store
 
 The notes, payment-notes, and intake-message fields are jsonb / free-text and are **operator-visible**. Treat them as you would any internal CRM note, and **never** paste any of the following into any field:
