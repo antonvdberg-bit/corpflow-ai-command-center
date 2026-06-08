@@ -566,7 +566,7 @@ describe('source-level contract — admin-lead-rescue-api.js', () => {
     // The bounded retry uses a single `for (let attempt = 0; attempt <= maxRetries; ...)`
     // loop — that pattern is explicitly allowed. We forbid unbounded `while` loops on
     // attempt counts and any "exponential" naming, both of which would signal scope creep
-    // into a general-purpose retry that belongs in the strategic driver-adapter PR (#327).
+    // into a general-purpose retry that belongs in the strategic driver-adapter PR.
     assert.doesNotMatch(
       src,
       /while\s*\(\s*true\s*\)|exponential\s*backoff|setTimeout\s*\([^)]*Math\.pow/i,
@@ -577,6 +577,36 @@ describe('source-level contract — admin-lead-rescue-api.js', () => {
       src,
       /COLD_START_RETRY_MAX_RETRIES/,
       'withPrismaColdStartRetry must respect the documented retry budget constant',
+    );
+  });
+
+  it('does NOT call prisma.$disconnect() inside the request handler (PR #327)', () => {
+    // 2026-06-08 PR #327 — the previous handler ended every request with
+    // `await prisma.$disconnect().catch(() => {})`. In Vercel serverless this
+    // tears down the Prisma engine subprocess between requests, defeating the
+    // eager `$connect()` warm-up and producing "Engine is not yet connected"
+    // on every PATCH/GET after the first request on a warm function instance.
+    // This is the root cause that PR #325 and PR #326 retry budgets were
+    // trying (and failing) to outrun.
+    //
+    // The handler must NEVER explicitly disconnect. Vercel reaps idle
+    // function instances on its own schedule; until then the connection
+    // stays warm across requests (Prisma's documented Vercel pattern).
+    //
+    // We allow `prisma.$connect()` (we WANT eager connect at module load).
+    // We forbid `prisma.$disconnect()` ANYWHERE in this file.
+    const src = readSrc();
+    assert.doesNotMatch(
+      src,
+      /prisma\.\$disconnect\s*\(/,
+      'admin-lead-rescue-api.js must not call prisma.$disconnect() — keep the engine warm across requests on a Vercel function instance (PR #327)',
+    );
+    // Sanity: the eager $connect MUST still be there. If both are absent we
+    // have regressed away from the canonical Vercel + Prisma pattern.
+    assert.match(
+      src,
+      /prisma\.\$connect\s*\(\s*\)\s*\.catch\b/,
+      'Module-level eager prisma.$connect().catch(...) must be present (PR #325)',
     );
   });
 });
