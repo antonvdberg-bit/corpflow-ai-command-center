@@ -28,6 +28,50 @@
 
 ---
 
+## 2026-06-08 — AI Lead Rescue first-paid-pilots launch pack (`LeadRescue-First-Paid-Pilots-Launch-Pack-1` — `JE-2026-06-08-2`; docs-only PR; **PARTIAL until merged**)
+
+<!-- AI_LEAD_RESCUE_FIRST_PAID_PILOTS_LAUNCH_PACK_2026_06_08_HIST -->
+
+**Status:** **PARTIAL.** Docs-only PR opened on branch `docs/lead-rescue-first-paid-pilots-launch-pack`; verdict flips to **COMPLETE** on merge per `.cursor/rules/delivery-reality.mdc` § docs-only because no runtime / client-visible flow is touched. Pairs with the runtime activity-log PR #331 (`JE-2026-06-08-1` — separate PR, separate verdict track). The two PRs are intentionally not mixed: PR #331 is runtime / cockpit / persistence; this PR is commercial / outreach / sales / pricing / operator-handoff docs.
+
+**Why this matters:** the AI Lead Rescue operator cockpit went from broken (PR #315 → PR #328 chain) to live + verified on 2026-06-08, and the runtime activity log (PR #331) extends the cockpit so outreach + replies + follow-ups + payment confirmations + delivery handoffs can be audited per-lead. With both runtime tracks moving, the missing link was the **commercial playbook** — what to actually sell, who to message, how to message them, what to charge, what to do after the wire clears, what NOT to build yet, and how to keep CorpFlowAI *above the line* per the brand doctrine. This pack closes that gap so Anton can run paying pilots end-to-end starting this week without re-inventing scripts, pricing, or post-payment workflow per pilot.
+
+### What landed (6 new docs + 2 doc updates)
+
+- `docs/marketing/AI_LEAD_RESCUE_FIRST_PAID_PILOTS.md` — first-paid-pilots commercial playbook (objective = first 1–4 paying pilots; Mauritius property first; pilot offer = USD 150; pricing recommendation; outreach + discovery + qualification + objection summaries; pilot success criteria; post-payment checklist; what NOT to build yet; activity-log fit with explicit "planned / pending PR #331" caveat).
+- `docs/sales/AI_LEAD_RESCUE_OUTREACH_SCRIPTS.md` — paste-ready scripts for WhatsApp / email / LinkedIn DM (no-link msg-1 + msg-2-with-link) / Facebook page / warm-intro request / no-reply + interested follow-ups + 7 named objection replies + a forbidden-vocabulary checklist.
+- `docs/sales/AI_LEAD_RESCUE_DISCOVERY_CALL_SCRIPT.md` — 15-minute discovery call with Q1–Q12 qualification structure, a 6-step paid-pilot close, 9.1–9.4 soft-close patterns (talk-to-partner / smaller-scale / free-trial / discount), 10-minute post-call operator hygiene including activity-log entries.
+- `docs/operations/AI_LEAD_RESCUE_PAID_PILOT_ONBOARDING.md` — operator-side post-payment runbook: intake checklist after wire confirmation, what client info to collect (and what to NEVER collect: card / CVV / NIC / passport / payroll / health / vendor exports), channels-to-connect priority order, Telegram alert is operator-side only (buyer never sees Telegram), Google Sheet structure (Tab 1 *Leads* view-only to buyer + Tab 2 *Activity* operator-internal), daily summary cadence (manual for first 4 pilots), operator-checklist mapping to the 13-item cockpit checklist, hand-over message template, 6-condition 48-hour definition-of-done, day-7 end-of-pilot recap (no auto-renewal).
+- `docs/sales/AI_LEAD_RESCUE_PRICING_GUIDE.md` — operator-side pricing reference: USD 150 setup pilot one-off + USD 99/month monitoring; MUR equivalents = operator-side conversion at SBM rate (~MUR 7,000 setup + ~MUR 4,500/month, NOT a separate Mauritius price tier); included / excluded checklists; discount rules (no free pilots ever, no pay-on-results, permitted = -10% second-pilot-paid-together / case-study comp month-1 monitoring / -USD 30 ex-CorpFlow operator client / warm-network introducer share = 20% pilot fee + 10% month-1 monitoring one-time, never ongoing); manual pro-forma path = SBM Bank Mauritius wire with "pro-forma issued pending VAT activation — this is not a tax invoice" footer per HB-2 + HB-3 hold; "no guaranteed revenue" language with explicit allowed-vs-forbidden phrasing tables.
+- `docs/sales/AI_LEAD_RESCUE_PROSPECT_LIST_TEMPLATE.md` — 20-column tracker (A–T) + 1–5 fit-score rubric + 3-batch targets (25 Mauritius property → 25 contractors-trades → 25 clinics-admin) with 3-replies quality gate between batches; cadence = ≤10 first-touches/day + max 2 follow-ups per prospect + no bulk-send tools; warm-network only (cold-scrape forbidden); explicit list of what does NOT go in the sheet.
+- `docs/operations/AI_LEAD_RESCUE_OPERATOR_RUNBOOK.md` — added *From paid pilot to setup* section: where the operator receives a paid pilot (SBM wire confirmation OR operator confirmation); when to move to `PAID_SETUP`; when the 13-item checklist appears; how to track setup completion; how to use the activity log (with explicit "feature ships in PR #331 — until merged + live-verified, use Notes field" caveat); when to flip to `LIVE_PILOT` (5-condition gate); how to record monthly monitoring accepted (separate manual pro-forma + cockpit status `MONITORING_OFFERED` → `MONTHLY_ACTIVE`).
+- `AGENTS.md` — added doctrine bullet + must-read row: AI Lead Rescue commercial work (first paying pilots phase) requires reading the launch pack before proposing new funnels / paid ads / bulk email / chatbot expansion / sales tier / CRM install. Contradictions update the launch pack first, then ship the contradicting work.
+
+### Doctrine compliance (auto-cross-checked against live `/lead-rescue` sentinels per `JE-2026-06-01-6`)
+
+USD 150 launch pilot **single-offer rule** preserved · *"no card on the public page"* preserved · *"invoiced after we review your intake"* preserved · *"48-hour setup"* preserved · *"We do not guarantee new revenue"* preserved (every doc has explicit allowed-vs-forbidden phrasing tables) · manual-pro-forma path preserved (`JE-2026-06-02-7`) · SBM warm-network primary route preserved (`JE-2026-06-01-4 / JE-2026-06-02-4 PAY-SBM-2`) · ERPNext PDF / Sales Invoice path remains held pending Print Designer install closure + `HB-1..HB-4` clearance · activity-log feature treated as **planned** (PR #331), not live, throughout the pack so docs do not depend on a non-merged feature · Above-the-Line strategic doctrine preserved (positioned as *managed lead-response operating workflow with a human operator*, never as a generic chatbot, AI agent, sales automation, or guaranteed-outcome sale).
+
+### What this unblocks (immediate)
+
+Anton can run the warm-network outreach cycle end-to-end starting now. First batch = 25 Mauritius property prospects per `docs/sales/AI_LEAD_RESCUE_PROSPECT_LIST_TEMPLATE.md` § 6.1, using the paste-ready scripts in `docs/sales/AI_LEAD_RESCUE_OUTREACH_SCRIPTS.md`, the 15-min discovery script in `docs/sales/AI_LEAD_RESCUE_DISCOVERY_CALL_SCRIPT.md`, and the post-payment runbook in `docs/operations/AI_LEAD_RESCUE_PAID_PILOT_ONBOARDING.md`. The pack does not require runtime change to operate: first paying pilots can run on the existing cockpit + Notes-field today, then transition to the activity-log card once PR #331 lands and is live-verified.
+
+### Hard limits honoured by this PR
+
+Zero edits to `api/` / `lib/` / `components/` / `pages/` / `prisma/` / `middleware*` / `scripts/` / `public/` / `.github/` / `node-tests/` / `tests/` / `core/engine/` / `.env*` / `vercel.json` / `next.config*` / `package*.json` / `tsconfig*` · zero new env vars (`.env.template` unchanged) · zero secrets · zero ERPNext production-shell mutation · zero ERPNext sandbox mutation · zero Print Designer install / template build · zero Sales Invoice / GL posting / VAT activation / `Tax invoice` / `VAT invoice` wording on customer-facing surfaces · zero real bank account / SWIFT / BIC / IBAN / routing / sort-code / branch-code / card-number / payment-gateway-API-key / OAuth-token / KYC-grade personal data / signed NDA-MCIB form / customer-specific data · zero invoices issued by THIS PR · zero changes to DNS / mail-routing / Telegram / Plausible / Search Console / payment-settings / GitHub-workflow-files / Vercel-project-settings / Postgres / Neon / Prisma schema · zero pricing / offer / page-copy changes on customer-facing surfaces (`/lead-rescue` live page sentinels unchanged) · zero new public exposure · zero L3 host commands (HOST_MISMATCH guard from `JE-2026-06-04-1` not triggered).
+
+### Standing holds (unchanged by this PR)
+
+HB-1 · HB-2 · HB-3 · HB-4 · Phase D go-live · first submitted Sales Invoice · first ERPNext-emailed PDF to real client · `ERPNext-CFLR-ProForma-Template-Build-1` host-side execution still HELD on its own AUTHORISE chain · `ERPNext-PrintDesigner-Persistence-1` · `ERPNext-PrintDesigner-Chrome-Setup-1` · sandbox tear-down four-condition gate · all `JE-2026-06-05-1..9` standing holds · `JE-2026-06-08-1` activity-log runtime PR remains in PARTIAL state until merged + live-verified (separate PR #331 — this docs PR does not change that verdict). **New holds introduced by this row:** none.
+
+### Verdict track
+
+- This PR (docs launch pack): **PARTIAL → COMPLETE-AT-MERGE** because no runtime / client-visible flow changed.
+- PR #331 (runtime activity log): tracked separately under `JE-2026-06-08-1`; verdict track is independent and remains **PARTIAL** until live-verified at `lux.corpflowai.com/admin/lead-rescue/[id]`.
+- Live `/lead-rescue` page: unchanged by this PR.
+
+---
+
+## 2026-06-08 — AI Lead Rescue operator cockpit reliability — P0 incident response chain (PR #315 → PR #328; verified live on `lux.corpflowai.com/admin/lead-rescue`)
 ## 2026-06-08 — AI Lead Rescue operator cockpit reliability — P0 incident response chain (PR #315 → PR #328)
 
 <!-- AI_LEAD_RESCUE_OPERATOR_COCKPIT_P0_CHAIN_2026_06_08_HIST -->
