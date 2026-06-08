@@ -358,9 +358,40 @@ What PR #326 still does NOT change:
 - No change to factory-admin auth or response envelopes.
 - No backward-transition logic at the API layer (it remains permissive).
 
-Strategic follow-up — PR #327 (queued, not yet open):
+### Fifth root cause found on 2026-06-08 — handler `$disconnect` after every request defeats the eager `$connect` (PR #327)
 
-Migrate `lib/server/admin-lead-rescue-api.js` (and eventually the broader codebase) to Prisma 6's **Neon driver adapter** (`@prisma/adapter-neon`) with `engineType = "client"`. That removes the Rust query-engine binary entirely from the serverless function bundle, which removes the entire class of "Engine is not yet connected" / "Response from the Engine was empty" failures along with it. PR #327 is the long-term answer; PR #326 buys the time to do it cleanly.
+After PR #326 merged with the forward-only dropdown visible and the wider retry budget deployed, Anton confirmed two facts in production:
+
+1. The forward-only UI behaviour worked exactly as designed.
+2. **Every status change still produced** `Invalid prisma.lead.update() invocation: Engine is not yet connected.` (or the same wording on `findUnique`).
+
+The retry budget — 3 attempts × 1500 ms = up to 4.5 seconds of wait — was being exhausted on every PATCH that wasn't the first request on a fresh function instance. Something was tearing down the engine between requests.
+
+The culprit was on line 645 of `lib/server/admin-lead-rescue-api.js`, in the handler's `finally` block:
+
+```js
+} finally {
+  await prisma.$disconnect().catch(() => {});
+}
+```
+
+This had been there since the file was written. PR #325 added the eager `prisma.$connect()` at module load to warm the engine for incoming requests, but the per-request `$disconnect()` was undoing that work after every successful response: the engine subprocess was killed, all DB connections closed, and the next request on the same warm Vercel function instance had to spawn a new engine from scratch. **The retry budgets in PR #325 (250 ms × 1 retry) and PR #326 (1500 ms × 2 retries) were tactical patches against symptoms of this anti-pattern, not against the underlying race.**
+
+This is the canonical Vercel + Prisma anti-pattern. Prisma's own documentation is explicit: in Vercel serverless, **do not call `$disconnect()`**. The function instance outlives any single request; Vercel reaps idle instances on its own schedule (typically several minutes after the last invocation). Keeping the connection alive across requests is the documented pattern.
+
+What PR #327 changes:
+
+- **Removed the `await prisma.$disconnect().catch(() => {})` line from `adminLeadRescueHandler`.** The handler now has no `finally` block. The module-level eager `$connect()` introduced in PR #325 now actually works as intended: the engine warms once when the function instance boots and stays warm for the entire instance lifetime.
+- **Static regression test** — `node-tests/admin-lead-rescue-cold-start-retry.test.mjs` now asserts that `lib/server/admin-lead-rescue-api.js` does NOT contain `prisma.$disconnect()` anywhere. The test will fail if a future change re-introduces the anti-pattern. The complementary assertion that the eager `$connect()` is still present remains in place.
+
+What PR #327 deliberately does NOT change:
+
+- No other server file is touched. Other modules in the codebase (~10 files) still call `$disconnect()` after their requests — they may have the same latent issue, but they're not what Anton is hitting and they're not on the AI Lead Rescue critical path.
+- The retry helpers from PR #325 and PR #326 stay in place. They were never the wrong solution; they were just patching the wrong layer. They remain useful for the genuinely-first request after a fresh function spawn (when even the eager `$connect()` may race the first incoming request) and as defence-in-depth against Neon scale-to-zero hiccups.
+
+Strategic follow-up — PR #328 (queued, no longer urgent):
+
+Migrate `lib/server/admin-lead-rescue-api.js` (and eventually the broader codebase) to Prisma 6's **Neon driver adapter** (`@prisma/adapter-neon`) with `engineType = "client"`. That removes the Rust query-engine binary entirely from the serverless function bundle, which removes the entire class of "Engine is not yet connected" / "Response from the Engine was empty" failures along with it. PR #328 is the long-term answer; with PR #327 in place, the failure mode that motivated PR #328 should be effectively gone, so PR #328 becomes a hygiene improvement rather than an incident response.
 
 ### Earlier (incorrect) hypothesis kept for the record — React hydration mismatch via locale-sensitive `fmtDate`
 
