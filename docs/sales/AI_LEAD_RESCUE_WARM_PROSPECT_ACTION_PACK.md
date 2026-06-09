@@ -8,6 +8,14 @@
 
 <!-- AI_LEAD_RESCUE_WARM_PROSPECT_ACTION_PACK_V1 -->
 
+## Scope note (active first-pilots focus)
+
+The **active cold-cadence niche** is **Mauritius property operators** — see `docs/sales/AI_LEAD_RESCUE_MAURITIUS_PROPERTY_OUTREACH_PACK.md` for the property-specific outreach pack and `artifacts/lead_rescue_mauritius_property_first_25_template.csv` for the property prospect tracker.
+
+This warm prospect action pack stays **niche-agnostic** because the warm prospect can be in any sector (often a friend-of-a-friend introduction, an existing contact, or a referral). The 5-question discovery, Option A vs Option B logic, pro-forma path, and decline scripts apply regardless of niche. Where examples below mention property, contractor, or clinic, treat them as illustrative — the structure is the same for any small business that loses enquiries because they arrive in too many places.
+
+The generic cold outreach pack (`docs/sales/AI_LEAD_RESCUE_COLD_OUTREACH_PACK.md`) and generic 7-day execution checklist (`docs/marketing/AI_LEAD_RESCUE_FIRST_7_DAYS_EXECUTION_CHECKLIST.md`) remain available as **niche-agnostic templates** for future second-niche expansion. They are not the active operating pack right now; the property pack is.
+
 ## 1. 5-question discovery checklist
 
 Ask in order. Stop and listen between each. **Do not** stack two questions in one breath. Total time: ~5 minutes if Anton is disciplined.

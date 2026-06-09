@@ -269,7 +269,106 @@ Proposal sent (Action Pack § 5).
 
 The **HANDOFF LINE** is the architectural boundary. Sales operators / spreadsheet activity stays above the line. Cockpit records / Activity Log / paid-pilot artefacts stay below.
 
-## 9. Open questions / not-yet-decided
+## 9. Handoff types — explicit transition checklists
+
+The decision tree in § 8 names the architectural boundary. This section breaks out the **three** specific handoff transitions an operator runs in week 1 and beyond, so each transition has a checklist rather than relying on memory.
+
+### 9.1 Handoff: cold prospect list → cockpit
+
+**Trigger:** the prospect submits intake at `https://corpflowai.com/lead-rescue` (or, in rare cases, takes the out-of-band path in § 3.2).
+
+**Sales-surface side (the spreadsheet — `artifacts/lead_rescue_mauritius_property_first_25_template.csv`):**
+
+- [ ] **Locate the prospect's row.** Search by Business name + Contact person.
+- [ ] **Update `Status`** → `Active intake submitted`.
+- [ ] **Update `Notes`** → append: *"Intake received {ISO date}; cockpit_id={id}; channel={whichever cold channel they replied through}."*
+- [ ] **Update `Next action`** → *"Operator qualification within 2 business hours"*.
+- [ ] **Do NOT delete the spreadsheet row.** It stays as the audit trail of the cold cadence that produced this paying prospect.
+
+**Delivery-surface side (the cockpit — `/admin/lead-rescue/{id}`):**
+
+- [ ] **Open the cockpit record** within 2 business hours of the Telegram alert.
+- [ ] **Run the qualification flow** per `docs/operations/AI_LEAD_RESCUE_OPERATOR_RUNBOOK.md` § *How to qualify a prospect*.
+- [ ] **Add `note` activity-log entry**, channel `internal`: *"Qualification started; cold-cadence source = {channel}; spreadsheet row reference = `lead_rescue_mauritius_property_first_25_template.csv` row {N}."*. (No personal data beyond what's on intake; no copy-paste of the buyer's reply chain.)
+- [ ] **Continue to § 5 *When to send the pro-forma*** in this doc once qualification clears.
+
+**What does NOT cross the line:**
+
+- ❌ Cold-cadence message variants used (those stay in the spreadsheet `Notes` column).
+- ❌ Pre-intake follow-up dates / second-follow-up timing (the cockpit's first activity-log entry is the qualification note; not the cold-cadence chronology).
+- ❌ The full text of cold-cadence replies (summarise; don't paste).
+
+### 9.2 Handoff: warm prospect call → proposal
+
+**Trigger:** Anton has finished the 5-question discovery (`docs/sales/AI_LEAD_RESCUE_WARM_PROSPECT_ACTION_PACK.md` § 1) and the warm prospect has explicitly agreed to either Option A or Option B.
+
+**On the call (warm prospect → conversation closure):**
+
+- [ ] **Confirm Option A or Option B** — get a clear *"yes"*. *"Maybe, let me think"* is **not** a yes; do not proceed to proposal until it's a yes.
+- [ ] **Confirm decision-maker** — Action Pack § 1 Q5. If a second decision-maker exists, defer the proposal until they're on the call.
+- [ ] **Confirm intake URL** — Anton tells the prospect the next step is to fill `https://corpflowai.com/lead-rescue` and mention "Option {A/B}" in the message field.
+- [ ] **Confirm timeline expectation** — *"I'll send a pro-forma within 2 business hours of receiving your intake."*
+
+**Within 2 business hours of the call (sales-surface side):**
+
+- [ ] **Locate the warm prospect's row** in `artifacts/lead_rescue_mauritius_property_first_25_template.csv` (Warm/cold = Warm; this is the row from Day 1 of the 7-day plan).
+- [ ] **Update `Status`** → `Replied — interested`.
+- [ ] **Update `Notes`** → append: *"Discovery call completed {ISO date}; chose Option {A/B}; awaiting intake submission."*.
+- [ ] **Send the proposal message** verbatim from `docs/sales/AI_LEAD_RESCUE_WARM_PROSPECT_ACTION_PACK.md` § 5 (paste-ready), via the channel the warm prospect used.
+
+**When the warm prospect submits intake:**
+
+- [ ] Trigger 9.1 (handoff cold list → cockpit) — same checklist; the only difference is `Notes` mentions *Warm-network referral*.
+- [ ] **Add an extra activity-log `note` entry**, channel `internal`: *"Warm-network referral; introducer = {first name only, or 'direct'}; pre-intake conversation summary = {one sentence}."*.
+
+**What does NOT cross the line (warm version):**
+
+- ❌ Personal-relationship metadata (e.g. *"met at coffee shop, mutual friend X"*) in the cockpit. That stays in operator-private notes.
+- ❌ The full text of the discovery call. Summarise: *"Warm prospect chose Option B for villa-rental site + pilot."*
+- ❌ Anton's voice memos / call recordings — the cockpit is text-only.
+
+### 9.3 Handoff: website add-on → delivery
+
+**Trigger:** the warm prospect has chosen Option B (lead-ready website + AI Lead Rescue) per the warm-prospect website add-on doc (`docs/sales/AI_LEAD_RESCUE_WARM_PROSPECT_WEBSITE_ADDON.md`).
+
+This handoff is **dual** — it has a website-build phase **before** the AI Lead Rescue pilot phase. Both phases share the same cockpit record.
+
+**Sales side → Pre-build:**
+
+- [ ] **Pro-forma sent and wire received** for the combined Option B amount (USD 600 / 900 / 1 200 / 1 500 band per `AI_LEAD_RESCUE_WARM_PROSPECT_WEBSITE_ADDON.md` § 9.2).
+- [ ] **Status moves to `PAID_SETUP`** in the cockpit, but operator notes: *"Website-build window precedes AI Lead Rescue 48-hour setup."*
+- [ ] **Add `note` activity-log entry**, channel `internal`: *"Option B engagement. Website build window: {ISO start} → {ISO start + 5 working days}. AI Lead Rescue 48-hour setup begins after website goes live. Combined operational completion gate per AI_LEAD_RESCUE_WARM_PROSPECT_WEBSITE_ADDON.md § 12.3."*.
+
+**Build phase (Days 1–5 of the website add-on plan):**
+
+- [ ] **Operator runs the build** per `docs/sales/AI_LEAD_RESCUE_WARM_PROSPECT_WEBSITE_ADDON.md` § 12.1 (9-point website-build "done" gate).
+- [ ] **Activity-log entries during build** — one `note` per material milestone:
+  - *"Website draft v1 sent to buyer at {timestamp}; revision window opens."*
+  - *"Buyer revisions received {timestamp}; consolidated into single pass."*
+  - *"Website draft v2 sent at {timestamp}; awaiting acknowledgement."*
+  - *"Website live at {production URL} at {timestamp}; HTTP 200; mobile rendering verified iOS + Android; form posts into intake handler end-to-end."*
+
+**Transition to AI Lead Rescue 48-hour setup:**
+
+- [ ] **Add `note` activity-log entry**: *"Website build complete (9/9 gate). Starting AI Lead Rescue 48-hour setup window. Form on the new website is the connected lead source for the pilot."*.
+- [ ] **The AI Lead Rescue 48-hour setup** then runs per `docs/operations/AI_LEAD_RESCUE_PAID_PILOT_ONBOARDING.md` § 1, with the new website form already wired as the named lead source.
+- [ ] **`lead_source_selected` checklist item** is set to: *"Website form (built under this engagement) at {production URL}/contact"*.
+
+**Combined operational completion gate (per the website add-on doc § 12.3):**
+
+- [ ] Website-build "done" (§ 12.1) — 9/9.
+- [ ] AI Lead Rescue 48-hour "done" (§ 12.2) — at least 8/13 setup-checklist items.
+- [ ] Buyer-side daily summary received in WhatsApp + email at least once.
+- [ ] Hand-over message sent + acknowledged.
+- [ ] **`COMPLETE` only when this combined gate passes on the buyer's actual production URL** — not a preview deployment.
+
+**What does NOT cross the line (Option B version):**
+
+- ❌ Website source code, design files, copy drafts in the cockpit `console_json`. Those live in the operator's private artefacts; the cockpit only references the production URL.
+- ❌ Domain registrar credentials. The buyer owns the domain in their own registrar; the operator does not store registrar passwords.
+- ❌ Hosting credentials beyond the operator's own Vercel account. If the website is on the operator's Vercel account, the operator owns deploy access; the buyer does not.
+
+## 10. Open questions / not-yet-decided
 
 These are flagged here so they're not silently invented in the cockpit:
 
@@ -290,12 +389,17 @@ These are flagged here so they're not silently invented in the cockpit:
 - `docs/operations/AI_LEAD_RESCUE_OPERATOR_RUNBOOK.md` — cockpit operations + Activity Log lifecycle scope (§ *Activity log lifecycle scope*).
 - `docs/operations/AI_LEAD_RESCUE_PAID_PILOT_ONBOARDING.md` — 48-hour setup window detailed runbook.
 - `docs/sales/AI_LEAD_RESCUE_WARM_PROSPECT_ACTION_PACK.md` — warm-prospect call-time crib sheet (proposal + pro-forma wording).
-- `docs/sales/AI_LEAD_RESCUE_COLD_OUTREACH_PACK.md` — cold cadence (sales surface).
+- `docs/sales/AI_LEAD_RESCUE_WARM_PROSPECT_WEBSITE_ADDON.md` — long-form Option B reasoning + combined operational completion gate (referenced from § 9.3).
+- `docs/sales/AI_LEAD_RESCUE_MAURITIUS_PROPERTY_OUTREACH_PACK.md` — active cold-cadence pack for the property niche (referenced from § 9.1).
+- `docs/sales/AI_LEAD_RESCUE_COLD_OUTREACH_PACK.md` — niche-agnostic cold cadence template (template; not the active pack).
 - `docs/sales/AI_LEAD_RESCUE_PRICING_GUIDE.md` — canonical pricing + manual pro-forma path.
 - `docs/sales/AI_LEAD_RESCUE_DISCOVERY_CALL_SCRIPT.md` — 15-minute discovery script.
 - `docs/finance/AI_LEAD_RESCUE_INVOICE_WORKFLOW_AUDIT.md` — pro-forma PDF template + buyer-detail capture.
-- `artifacts/lead_rescue_first_25_prospect_template.csv` — sales-surface spreadsheet structure.
-- `docs/marketing/AI_LEAD_RESCUE_FIRST_7_DAYS_EXECUTION_CHECKLIST.md` — week-1 day-by-day usage of this handoff line.
+- `artifacts/lead_rescue_mauritius_property_first_25_template.csv` — active sales-surface spreadsheet for the property niche.
+- `artifacts/lead_rescue_first_25_prospect_template.csv` — niche-agnostic spreadsheet template (kept for second-niche expansion).
+- `docs/marketing/AI_LEAD_RESCUE_MAURITIUS_PROPERTY_7_DAY_ACTION_PLAN.md` — active week-1 day-by-day usage of this handoff line.
+- `docs/marketing/AI_LEAD_RESCUE_FIRST_7_DAYS_EXECUTION_CHECKLIST.md` — niche-agnostic week-1 template.
+- `docs/strategy/AI_LEAD_RESCUE_DENTIST_AGENT_PARKING_LOT.md` — parked future second niche; not active.
 - `.cursor/rules/delivery-reality.mdc` — only **live verified** is `COMPLETE`.
 - `docs/operations/SECURITY_REVIEW_CHECKLIST.md` — triggers when handing off changes the trust boundary.
 
