@@ -23,22 +23,41 @@ import PublicSiteFooter from './PublicSiteFooter.js';
  *  - Inter Variable (self-hosted at `/assets/fonts/InterVariable.woff2`,
  *    declared in `pages/_document.js`) at editorial weights:
  *    200–300 for display, 400 for body, 600–700 for CTAs / labels.
- *  - Three hand-authored editorial SVG marks live in
- *    `/public/assets/visuals/lead-rescue-property-*.svg`:
- *      · `…hero.svg`     — hero-side editorial composition (horizon
- *                          + coastline contours + brushed-brass margin
- *                          + small north arrow + tracked caption
- *                          "Mauritius North & West"). No real
- *                          property, agency, or person depicted.
- *      · `…workflow.svg` — abstract 5-node workflow ribbon
- *                          (channels → log → alert → board → summary).
- *      · `…region.svg`   — abstract region mark used at low
- *                          opacity as a decorative watermark.
- *                          Hand-drawn, intentionally not a traced map.
- *    All three are CorpFlowAI-owned (no third-party IP), pure SVG
- *    (no photographs, no logos), each well under 4 KB. Decorative
- *    role only; alt text on the wrapping `<img>` describes the
- *    composition for screen readers.
+ *  - Visuals shipped from `/public/assets/visuals/`:
+ *      · `lead-rescue-property-hero-{640,1024,1600}.webp` and
+ *        `lead-rescue-property-hero-1024.jpg` — an editorial aerial
+ *        photograph of the Mauritius West coast (turquoise lagoon
+ *        meeting volcanic mountains, no people, no identifiable
+ *        property, no boats, no logos). The image was generated
+ *        with explicit restraint guardrails (no travel-brochure
+ *        composition, no people, no buildings, no real-estate
+ *        identifiers) by the Cursor image-generation tool, then
+ *        exported to responsive WebP variants by
+ *        `scripts/optimize-property-hero.mjs` (Sharp) and the
+ *        original > 3 MB source PNG was discarded. The image is
+ *        CorpFlowAI-owned and does not depict any real property,
+ *        agency, or person; the alt text describes it for screen
+ *        readers. Loaded via `<picture>` so old browsers fall back
+ *        to the 1024 JPEG.
+ *      · `lead-rescue-property-workflow.svg` — abstract 5-node
+ *        workflow ribbon (channels → log → alert → board → summary).
+ *      · `lead-rescue-property-region.svg` — a simplified, properly
+ *        proportioned Mauritius outline rendered as an editorial
+ *        map: the full coastline as a thin charcoal hairline, the
+ *        North & West coast picked out with a slightly heavier
+ *        brushed-brass arc, and five labelled markers (Cap
+ *        Malheureux, Grand Baie, Port Louis, Tamarin, Le Morne).
+ *        The SVG also carries a small north arrow and an approx.
+ *        scale bar. The map is for service-area illustration only;
+ *        it is not a navigation chart and does not show roads,
+ *        properties, agencies, or any real-estate inventory. Now
+ *        rendered as a clearly visible block in a "Service area
+ *        + Language" row beneath the segments grid (replacing the
+ *        previous low-opacity decorative watermark, which user
+ *        feedback flagged as too quiet for a property-sector page).
+ *    All visual assets are CorpFlowAI-owned (no third-party IP, no
+ *    Pixabay or stock dependencies). The SVGs are decorative or
+ *    illustrative; the hero photograph is editorial.
  *  - The "what you see every morning" cockpit panel remains rendered
  *    as HTML/CSS with explicit "illustrative example" labelling and
  *    fake property leads (`EXAMPLE: …`).
@@ -108,11 +127,15 @@ const styles = {
   heroBody: { maxWidth: 720, minWidth: 0 },
   heroVisualWrap: {
     position: 'relative', width: '100%',
+    aspectRatio: '4 / 5',
     border: `1px solid ${palette.hairlineSoft}`,
     background: palette.cream, borderRadius: 6, overflow: 'hidden',
     boxShadow: '0 1px 0 rgba(15, 76, 76, 0.04), 0 14px 40px rgba(15, 76, 76, 0.05)',
   },
-  heroVisual: { width: '100%', height: 'auto', display: 'block' },
+  heroVisual: {
+    width: '100%', height: '100%', display: 'block',
+    objectFit: 'cover', objectPosition: 'center 42%',
+  },
   eyebrow: {
     fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase',
     color: palette.teal, fontWeight: 700, marginBottom: 28,
@@ -236,13 +259,30 @@ const styles = {
     padding: '14px 22px', fontSize: 12, color: palette.faint,
     background: palette.warmSand, borderTop: `1px solid ${palette.hairlineSoft}`,
   },
-  segmentsHeader: { position: 'relative' },
-  regionMotifWrap: {
-    position: 'absolute', top: -28, right: -16,
-    width: 188, height: 232, opacity: 0.45,
-    pointerEvents: 'none',
+  segmentsHeader: {},
+  serviceAreaRow: {
+    marginTop: 28,
+    display: 'grid',
+    gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.15fr)',
+    gap: 16, alignItems: 'stretch',
   },
-  regionMotif: { width: '100%', height: '100%', display: 'block' },
+  serviceAreaCard: {
+    background: palette.paper,
+    border: `1px solid ${palette.hairlineSoft}`,
+    borderRadius: 4,
+    padding: '22px 24px',
+    display: 'flex', flexDirection: 'column', gap: 12,
+  },
+  serviceAreaHeading: {
+    fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase',
+    color: palette.teal, fontWeight: 700,
+  },
+  serviceAreaCaption: { fontSize: 14, color: palette.muted, lineHeight: 1.55 },
+  serviceAreaMapWrap: {
+    marginTop: 4,
+    width: '100%', maxWidth: 320, marginLeft: 'auto', marginRight: 'auto',
+  },
+  serviceAreaMap: { width: '100%', height: 'auto', display: 'block' },
   segments: {
     display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
     gap: 16, marginTop: 36,
@@ -258,9 +298,10 @@ const styles = {
   segmentTitle: { fontSize: 18, color: palette.ink, fontWeight: 600, marginBottom: 8 },
   segmentBody: { color: palette.muted, fontSize: 14, lineHeight: 1.6 },
   multilingualCard: {
-    marginTop: 28, padding: '22px 24px',
+    padding: '22px 24px',
     background: palette.warmSand, border: `1px solid ${palette.hairlineSoft}`,
     borderRadius: 4,
+    display: 'flex', flexDirection: 'column', gap: 8,
   },
   multilingualHeading: {
     fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase',
@@ -517,15 +558,22 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
               </div>
             </div>
             <aside style={styles.heroVisualWrap} className="lr-property-hero-aside" aria-hidden="false">
-              <img
-                src="/assets/visuals/lead-rescue-property-hero.svg"
-                alt="Editorial composition with three thin teal horizon lines, a soft coastline curve echoed by two faint topographic contours, a brushed-brass margin rule with two small register dots, a small north arrow, and a tracked-out caption reading Mauritius North and West."
-                width="600"
-                height="750"
-                style={styles.heroVisual}
-                loading="eager"
-                decoding="async"
-              />
+              <picture>
+                <source
+                  type="image/webp"
+                  srcSet="/assets/visuals/lead-rescue-property-hero-640.webp 640w, /assets/visuals/lead-rescue-property-hero-1024.webp 1024w, /assets/visuals/lead-rescue-property-hero-1600.webp 1600w"
+                  sizes="(max-width: 900px) min(360px, calc(100vw - 48px)), 430px"
+                />
+                <img
+                  src="/assets/visuals/lead-rescue-property-hero-1024.jpg"
+                  alt="Editorial aerial view of a quiet Mauritius West-coast lagoon at calm morning light. A curving sand beach meets clear turquoise water, with dark volcanic mountains rising in the distance. No people, no buildings, no boats."
+                  width="1024"
+                  height="683"
+                  style={styles.heroVisual}
+                  loading="eager"
+                  decoding="async"
+                />
+              </picture>
             </aside>
           </div>
         </section>
@@ -606,17 +654,6 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
 
         <section style={styles.section}>
           <div style={styles.segmentsHeader}>
-            <div style={styles.regionMotifWrap} className="lr-property-region-motif-wrap" aria-hidden="true">
-              <img
-                src="/assets/visuals/lead-rescue-property-region.svg"
-                alt=""
-                width="400"
-                height="500"
-                style={styles.regionMotif}
-                loading="lazy"
-                decoding="async"
-              />
-            </div>
             <div style={styles.sectionLabel}>Who this is for</div>
             <h2 style={styles.h2}>Property operators who already get the enquiries — they just need the workflow that keeps them.</h2>
           </div>
@@ -629,10 +666,29 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
               </article>
             ))}
           </div>
-          <div style={styles.multilingualCard}>
-            <div style={styles.multilingualHeading}>Language</div>
-            <div style={styles.multilingualBody}>
-              Calls are easiest in English, but the written workflow can support French lead summaries and French enquiry handling where required. Customer-facing replies are reviewed before sending.
+          <div style={styles.serviceAreaRow} className="lr-property-service-area-row">
+            <div style={styles.serviceAreaCard}>
+              <div style={styles.serviceAreaHeading}>Service area</div>
+              <div style={styles.serviceAreaCaption}>
+                The pilot is run for property operators on the North and West coast — Cap Malheureux through Grand Baie, Port Louis, Tamarin, Black River, and down to Le Morne. Other parts of the island on request.
+              </div>
+              <div style={styles.serviceAreaMapWrap}>
+                <img
+                  src="/assets/visuals/lead-rescue-property-region.svg"
+                  alt="Simplified map of Mauritius with the coastline drawn as a charcoal hairline. The North and West coast is highlighted with a heavier brushed-brass arc, and five small markers label Cap Malheureux, Grand Baie, Port Louis, Tamarin, and Le Morne. A small north arrow and an approximate ten-kilometre scale bar are shown for orientation."
+                  width="400"
+                  height="540"
+                  style={styles.serviceAreaMap}
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+            </div>
+            <div style={styles.multilingualCard}>
+              <div style={styles.multilingualHeading}>Language</div>
+              <div style={styles.multilingualBody}>
+                Calls are easiest in English, but the written workflow can support French lead summaries and French enquiry handling where required. Customer-facing replies are reviewed before sending.
+              </div>
             </div>
           </div>
         </section>
@@ -734,15 +790,14 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
           border-bottom: 0;
         }
         @media (prefers-reduced-motion: no-preference) {
-          .lr-property-hero-aside img {
+          .lr-property-hero-aside picture img {
             animation: lrPropHeroSettle 1400ms ease-out 120ms both;
           }
           @keyframes lrPropHeroSettle {
             from { opacity: 0; transform: translateY(8px); }
             to   { opacity: 1; transform: translateY(0); }
           }
-          .lr-property-workflow-visual-wrap img,
-          .lr-property-region-motif-wrap img {
+          .lr-property-workflow-visual-wrap img {
             animation: lrPropFadeIn 1100ms ease-out 220ms both;
           }
           @keyframes lrPropFadeIn {
@@ -761,12 +816,14 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
             margin-bottom: 8px;
           }
         }
+        @media (max-width: 720px) {
+          .lr-property-service-area-row {
+            grid-template-columns: minmax(0, 1fr) !important;
+          }
+        }
         @media (max-width: 560px) {
           .lr-property-hero-aside {
-            display: none !important;
-          }
-          .lr-property-region-motif-wrap {
-            display: none !important;
+            max-width: 320px;
           }
         }
         @media (max-width: 720px) {
