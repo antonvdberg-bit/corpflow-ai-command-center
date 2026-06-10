@@ -1,93 +1,185 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg
   xmlns="http://www.w3.org/2000/svg"
-  viewBox="0 0 400 500"
+  viewBox="0 0 400 540"
   preserveAspectRatio="xMidYMid meet"
   role="img"
   aria-hidden="true"
   font-family="Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
 >
-  <title>AI Lead Rescue property edition - region motif</title>
-  <desc>An abstract editorial region mark. A simplified, hand-drawn island silhouette is rendered in a thin teal hairline; a slightly heavier brushed-brass arc traces the north-west portion of the silhouette; a small north arrow and a tracked-out caption "North and West" sit beside it. The shape is intentionally abstract and is not a traced or accurate map of any real territory.</desc>
+  <title>Mauritius - North and West service area</title>
+  <desc>A simplified map of Mauritius drawn from the public outline of the island. The full coastline is shown in a thin charcoal hairline; the North and West coast (from the Le Morne peninsula in the south-west, up the West coast through Black River and Tamarin, around Port Louis, and along the North coast through Grand Baie to Cap Malheureux) is highlighted with a slightly heavier brushed-brass stroke. Five small markers and labels indicate Cap Malheureux, Grand Baie, Port Louis, Tamarin, and Le Morne. A small north arrow sits in the upper-right. The map is for service-area illustration only; it is not a navigation chart.</desc>
 
   <defs>
-    <linearGradient id="lr-prop-region-fill" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="rgba(15, 76, 76, 0.04)"/>
-      <stop offset="100%" stop-color="rgba(15, 76, 76, 0.01)"/>
+    <linearGradient id="lr-prop-region-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FBF8F2"/>
+      <stop offset="100%" stop-color="#F4ECDF"/>
     </linearGradient>
   </defs>
 
-  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <rect width="400" height="540" fill="url(#lr-prop-region-bg)"/>
+
+  <g stroke="rgba(15, 76, 76, 0.10)" stroke-width="0.5" fill="none">
+    <line x1="40"  y1="80"  x2="360" y2="80"/>
+    <line x1="40"  y1="180" x2="360" y2="180"/>
+    <line x1="40"  y1="280" x2="360" y2="280"/>
+    <line x1="40"  y1="380" x2="360" y2="380"/>
+    <line x1="80"  y1="40"  x2="80"  y2="440"/>
+    <line x1="200" y1="40"  x2="200" y2="440"/>
+    <line x1="320" y1="40"  x2="320" y2="440"/>
+  </g>
+
+  <g transform="translate(0,0)">
     <path
-      d="M 198 56
-         C 226 56, 248 64, 264 84
-         C 280 102, 290 124, 296 146
-         C 302 168, 304 192, 304 218
-         C 304 244, 300 270, 290 300
-         C 280 328, 264 354, 240 376
-         C 222 392, 198 402, 174 402
-         C 152 402, 130 394, 116 380
-         C 100 364, 92 344, 92 322
-         C 92 296, 96 268, 100 240
-         C 102 218, 104 196, 110 176
-         C 116 156, 124 134, 138 116
-         C 152 96, 170 76, 184 66
-         C 188 62, 192 58, 198 56 Z"
-      fill="url(#lr-prop-region-fill)"
-      stroke="rgba(15, 76, 76, 0.45)"
+      d="M 226 64
+         C 228 64, 232 66, 233 70
+         C 233 74, 230 76, 224 76
+         C 218 76, 214 78, 208 80
+         C 200 82, 188 80, 178 84
+         C 168 88, 158 90, 148 96
+         C 140 100, 132 104, 126 110
+         C 120 116, 116 122, 112 130
+         C 108 138, 106 146, 104 154
+         C 102 164, 100 174, 100 184
+         C 100 192, 102 198, 102 204
+         C 102 210, 100 216, 100 222
+         C 100 232, 102 240, 100 250
+         C 98 260, 94 268, 94 280
+         C 94 292, 100 302, 102 314
+         C 104 324, 102 334, 100 344
+         C 98 352, 98 358, 102 366
+         C 106 374, 110 380, 114 386
+         C 116 392, 116 398, 116 404
+         C 116 410, 118 416, 124 416
+         C 130 414, 138 410, 146 412
+         C 154 414, 160 420, 168 420
+         C 178 420, 184 412, 192 410
+         C 202 408, 212 410, 222 414
+         C 232 416, 242 416, 252 412
+         C 262 408, 270 402, 280 398
+         C 290 394, 300 388, 304 380
+         C 308 372, 308 364, 308 356
+         C 308 348, 306 340, 306 332
+         C 306 322, 308 312, 308 302
+         C 308 290, 306 278, 306 266
+         C 306 254, 308 244, 308 232
+         C 308 220, 304 208, 302 196
+         C 300 184, 298 174, 294 164
+         C 290 154, 286 146, 282 138
+         C 278 130, 272 124, 266 118
+         C 260 112, 254 108, 246 104
+         C 238 100, 230 96, 224 90
+         C 220 86, 220 80, 224 74
+         C 226 70, 226 66, 226 64 Z"
+      fill="rgba(15, 76, 76, 0.06)"
+      stroke="rgba(26, 26, 26, 0.55)"
       stroke-width="1.1"
+      stroke-linejoin="round"
     />
 
     <path
-      d="M 198 56
-         C 184 60, 168 72, 152 88
-         C 136 104, 124 122, 116 142
-         C 110 158, 106 174, 102 192"
-      stroke="rgba(156, 122, 61, 0.85)"
-      stroke-width="1.8"
+      d="M 100 222
+         C 100 210, 102 198, 102 192
+         C 102 184, 100 176, 102 168
+         C 104 158, 108 148, 112 138
+         C 118 128, 124 120, 132 112
+         C 140 104, 150 100, 160 94
+         C 170 88, 180 84, 192 82
+         C 204 80, 216 78, 224 76"
+      fill="none"
+      stroke="rgba(156, 122, 61, 0.95)"
+      stroke-width="2.2"
+      stroke-linecap="round"
+    />
+    <path
+      d="M 116 404
+         C 114 396, 110 388, 106 380
+         C 102 372, 100 364, 100 354
+         C 100 344, 102 334, 100 324
+         C 98 316, 96 306, 98 298
+         C 100 286, 102 274, 100 262
+         C 98 250, 100 238, 100 230"
+      fill="none"
+      stroke="rgba(156, 122, 61, 0.95)"
+      stroke-width="2.2"
+      stroke-linecap="round"
     />
   </g>
 
-  <g transform="translate(330, 84)" stroke="rgba(15, 76, 76, 0.7)" stroke-width="1" fill="none" stroke-linecap="round">
+  <g>
+    <circle cx="226" cy="64"  r="3" fill="rgba(15, 76, 76, 0.95)"/>
+    <circle cx="180" cy="84"  r="3" fill="rgba(15, 76, 76, 0.95)"/>
+    <circle cx="106" cy="190" r="3" fill="rgba(15, 76, 76, 0.95)"/>
+    <circle cx="100" cy="296" r="3" fill="rgba(15, 76, 76, 0.95)"/>
+    <circle cx="116" cy="404" r="3" fill="rgba(15, 76, 76, 0.95)"/>
+  </g>
+
+  <g font-size="11" font-weight="600" fill="rgba(26, 26, 26, 0.85)">
+    <text x="234" y="60">Cap Malheureux</text>
+    <text x="184" y="78">Grand Baie</text>
+    <text x="50"  y="194" text-anchor="end">Port Louis</text>
+    <text x="50"  y="300" text-anchor="end">Tamarin</text>
+    <text x="50"  y="408" text-anchor="end">Le Morne</text>
+  </g>
+
+  <g font-size="9" fill="rgba(26, 26, 26, 0.55)">
+    <text x="234" y="74">North</text>
+    <text x="184" y="92">North</text>
+    <text x="50"  y="208" text-anchor="end">West / capital</text>
+    <text x="50"  y="314" text-anchor="end">West coast</text>
+    <text x="50"  y="422" text-anchor="end">South-West</text>
+  </g>
+
+  <g transform="translate(346, 64)" stroke="rgba(15, 76, 76, 0.85)" stroke-width="1" fill="none" stroke-linecap="round">
     <circle cx="0" cy="0" r="14"/>
-    <line x1="0" y1="-14" x2="0" y2="-3"/>
-    <line x1="-3" y1="-7" x2="0" y2="-12"/>
-    <line x1="3"  y1="-7" x2="0" y2="-12"/>
+    <line x1="0" y1="-14" x2="0" y2="-2"/>
+    <line x1="-3" y1="-7" x2="0" y2="-13"/>
+    <line x1="3"  y1="-7" x2="0" y2="-13"/>
   </g>
   <text
-    x="330" y="115"
+    x="346" y="92"
     text-anchor="middle"
     font-size="9"
     letter-spacing="0.20em"
-    fill="rgba(15, 76, 76, 0.7)"
+    fill="rgba(15, 76, 76, 0.85)"
     font-weight="700"
   >N.</text>
 
-  <g fill="rgba(156, 122, 61, 0.9)">
-    <circle cx="120" cy="140" r="2"/>
+  <g>
+    <line x1="40" y1="476" x2="170" y2="476" stroke="rgba(26, 26, 26, 0.55)" stroke-width="1" stroke-linecap="round"/>
+    <text
+      x="40" y="468"
+      font-size="9"
+      letter-spacing="0.18em"
+      fill="rgba(26, 26, 26, 0.55)"
+      font-weight="600"
+    >APPROX.</text>
+    <text
+      x="40" y="492"
+      font-size="9"
+      letter-spacing="0.18em"
+      fill="rgba(26, 26, 26, 0.45)"
+    >10 km</text>
+    <line x1="40" y1="478" x2="40" y2="474" stroke="rgba(26, 26, 26, 0.55)" stroke-width="1"/>
+    <line x1="105" y1="478" x2="105" y2="474" stroke="rgba(26, 26, 26, 0.55)" stroke-width="1"/>
+    <line x1="170" y1="478" x2="170" y2="474" stroke="rgba(26, 26, 26, 0.55)" stroke-width="1"/>
   </g>
 
-  <text
-    x="200" y="448"
-    text-anchor="middle"
-    font-size="10"
-    letter-spacing="0.30em"
-    fill="rgba(26, 26, 26, 0.65)"
-    font-weight="700"
-  >NORTH &#38; WEST</text>
-  <text
-    x="200" y="466"
-    text-anchor="middle"
-    font-size="9"
-    letter-spacing="0.24em"
-    fill="rgba(26, 26, 26, 0.45)"
-    font-weight="500"
-  >abstract region mark</text>
-
-  <g stroke="rgba(15, 76, 76, 0.18)" stroke-width="0.6" fill="none" stroke-linecap="round">
-    <line x1="200" y1="60"  x2="200" y2="40"/>
-    <line x1="200" y1="404" x2="200" y2="424"/>
-    <line x1="84"  y1="232" x2="64"  y2="232"/>
-    <line x1="316" y1="232" x2="336" y2="232"/>
+  <g>
+    <text
+      x="232" y="496"
+      font-size="11"
+      letter-spacing="0.28em"
+      fill="rgba(26, 26, 26, 0.78)"
+      font-weight="700"
+    >MAURITIUS</text>
+    <text
+      x="232" y="514"
+      font-size="9"
+      letter-spacing="0.24em"
+      fill="rgba(15, 76, 76, 0.75)"
+      font-weight="600"
+    >NORTH &#38; WEST SERVICE AREA</text>
+    <line x1="232" y1="500" x2="360" y2="500" stroke="rgba(156, 122, 61, 0.55)" stroke-width="0.6"/>
   </g>
 </svg>
