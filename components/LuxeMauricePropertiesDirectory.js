@@ -7,6 +7,12 @@ import {
   buildLuxPropertyConciergeHref,
   LUX_PROPERTIES_PUBLIC_COPY,
 } from '../lib/client/luxe-maurice-properties-public.js';
+import {
+  LuxeMauriceFontStylesheet,
+  LuxeMauriceWordmark,
+  LuxEyebrow,
+  LuxHairline,
+} from './LuxeMauriceBrandPrimitives.js';
 
 export {
   buildLuxPropertyConciergeHref,
@@ -20,10 +26,18 @@ function safeStr(v) {
 
 /**
  * LuxeMaurice `/properties` — *Private Opportunities* directory.
- * Repositioned 2026-06-11 to the LuxeMaurice Private Wealth & Lifestyle
- * Platform direction. Renders **published** rows only; premium empty state
- * when the published set is empty. No fake inventory; no external real-estate
- * feed integration is required on this surface.
+ *
+ * Brand-fidelity rebuild (2026-06-11). Editorial layout — each opportunity
+ * presents as a private investment memorandum (full-bleed photo + serif
+ * title + gold eyebrow + concise editorial body), not a listing tile.
+ * No hard borders, hairline dividers only, generous negative space.
+ *
+ * Reference benchmarks: Aman residences index, Sotheby's Private Office
+ * exclusive offerings, Four Seasons Private Residences portfolio.
+ *
+ * Renders **published** rows only; premium empty state when the published
+ * set is empty. No fake inventory; no external real-estate feed integration
+ * is required on this surface.
  *
  * @param {{
  *   listings: Array<{
@@ -46,16 +60,18 @@ export default function LuxeMauricePropertiesDirectory({ listings, cardMediaBySl
   return (
     <div
       style={{
-        fontFamily: T.fontUi,
+        fontFamily: T.fontBody,
         minHeight: '100vh',
-        background: T.charcoalDeep,
+        background: T.charcoal,
         color: T.ivory,
       }}
     >
       <Head>
         <title>{LUX_PROPERTIES_PUBLIC_COPY.pageTitle}</title>
+        <LuxeMauriceFontStylesheet />
       </Head>
 
+      {/* ─── Quiet header — monogram wordmark + section eyebrow ─────── */}
       <header
         style={{
           display: 'flex',
@@ -63,135 +79,128 @@ export default function LuxeMauricePropertiesDirectory({ listings, cardMediaBySl
           justifyContent: 'space-between',
           gap: 16,
           flexWrap: 'wrap',
-          padding: '22px 32px',
-          background: T.charcoalDeep,
-          borderBottom: `1px solid ${T.dividerSoft}`,
+          padding: '28px clamp(20px, 4vw, 56px)',
         }}
       >
-        <Link
+        <LuxeMauriceWordmark
+          variant="compact"
+          tone="ivory"
+          showSignature={false}
           href="/"
-          style={{
-            fontSize: 11,
-            letterSpacing: '0.22em',
-            textTransform: 'uppercase',
-            color: T.goldEditorial,
-            textDecoration: 'none',
-            fontWeight: 700,
-          }}
-        >
-          ← LuxeMaurice
-        </Link>
+        />
         <span
           style={{
+            fontFamily: T.fontBody,
             fontSize: 11,
-            letterSpacing: '0.22em',
-            textTransform: 'uppercase',
-            color: T.ivoryMuted,
             fontWeight: 700,
+            letterSpacing: '0.32em',
+            textTransform: 'uppercase',
+            color: T.gold,
           }}
         >
           {LUX_PROPERTIES_PUBLIC_COPY.headerTagline}
         </span>
       </header>
 
-      <main style={{ maxWidth: 1120, margin: '0 auto', padding: '64px 32px 96px' }}>
+      <main style={{ maxWidth: 1180, margin: '0 auto', padding: '64px clamp(20px, 4vw, 56px) 120px' }}>
+        {/* ─── Editorial title block ──────────────────────────────────── */}
+        <div style={{ maxWidth: 760, marginBottom: 80 }}>
+          <LuxEyebrow>
+            {empty
+              ? LUX_PROPERTIES_PUBLIC_COPY.emptyKicker
+              : LUX_PROPERTIES_PUBLIC_COPY.listKicker}
+          </LuxEyebrow>
+          <h1
+            style={{
+              margin: '28px 0 24px',
+              fontFamily: T.fontDisplay,
+              fontWeight: 400,
+              fontSize: 'clamp(2.4rem, 5vw, 3.8rem)',
+              lineHeight: 1.1,
+              letterSpacing: -0.4,
+              color: T.ivory,
+            }}
+          >
+            {empty
+              ? LUX_PROPERTIES_PUBLIC_COPY.emptyTitle
+              : LUX_PROPERTIES_PUBLIC_COPY.listTitle}
+          </h1>
+          <p
+            style={{
+              margin: 0,
+              maxWidth: 600,
+              fontFamily: T.fontBody,
+              fontSize: 16,
+              lineHeight: 1.85,
+              color: T.ivoryMuted,
+            }}
+          >
+            {empty
+              ? LUX_PROPERTIES_PUBLIC_COPY.emptyBody
+              : LUX_PROPERTIES_PUBLIC_COPY.listSubtitle}
+          </p>
+        </div>
+
         {empty ? (
+          /* ─── Empty state — editorial, single CTA ─────────────────── */
           <section
             style={{
-              borderRadius: T.radiusLg,
-              border: `1px solid ${T.dividerSoft}`,
-              background: T.charcoalSoft,
-              padding: 'clamp(56px, 8vw, 96px) clamp(36px, 6vw, 64px)',
+              padding: 'clamp(72px, 12vw, 140px) clamp(24px, 6vw, 80px)',
+              borderTop: `1px solid ${T.hairlineSoft}`,
+              borderBottom: `1px solid ${T.hairlineSoft}`,
               textAlign: 'center',
             }}
           >
-            <div
-              style={{
-                fontSize: 11,
-                letterSpacing: '0.32em',
-                textTransform: 'uppercase',
-                color: T.goldEditorial,
-                fontWeight: 700,
-              }}
-            >
-              {LUX_PROPERTIES_PUBLIC_COPY.emptyKicker}
+            <div style={{ margin: '0 auto 32px', width: 40 }}>
+              <LuxHairline tone="gold" />
             </div>
-            <h1
-              style={{
-                margin: '24px auto 0',
-                fontSize: 'clamp(1.9rem, 4vw, 2.8rem)',
-                lineHeight: 1.15,
-                fontWeight: 500,
-                fontFamily: T.fontDisplay,
-                color: T.ivory,
-                maxWidth: 720,
-              }}
-            >
-              {LUX_PROPERTIES_PUBLIC_COPY.emptyTitle}
-            </h1>
             <p
               style={{
-                margin: '24px auto 0',
-                maxWidth: 580,
-                fontSize: 17,
-                lineHeight: 1.7,
+                margin: '0 auto 36px',
+                maxWidth: 560,
+                fontFamily: T.fontDisplay,
+                fontStyle: 'italic',
+                fontWeight: 400,
+                fontSize: 'clamp(1.3rem, 2.2vw, 1.6rem)',
+                lineHeight: 1.55,
                 color: T.ivoryMuted,
               }}
             >
-              {LUX_PROPERTIES_PUBLIC_COPY.emptyBody}
+              Each opportunity is prepared for review before it appears here. Speak with
+              a private advisor for availability, terms, and next steps.
             </p>
-            <div style={{ marginTop: 40 }}>
-              <Link
-                href={buildLuxPropertyConciergeHref(null)}
-                style={{
-                  display: 'inline-block',
-                  padding: '15px 28px',
-                  borderRadius: 999,
-                  background: T.goldEditorial,
-                  color: T.charcoalDeep,
-                  fontWeight: 700,
-                  fontSize: 13,
-                  letterSpacing: '0.14em',
-                  textTransform: 'uppercase',
-                  textDecoration: 'none',
-                }}
-              >
-                {LUX_PROPERTIES_PUBLIC_COPY.emptyCta}
-              </Link>
-            </div>
+            <Link
+              href={buildLuxPropertyConciergeHref(null)}
+              style={{
+                display: 'inline-block',
+                padding: '16px 30px',
+                borderRadius: T.radiusEditorial,
+                background: T.gold,
+                color: T.charcoal,
+                fontFamily: T.fontBody,
+                fontWeight: 700,
+                fontSize: 12.5,
+                letterSpacing: '0.2em',
+                textTransform: 'uppercase',
+                textDecoration: 'none',
+              }}
+            >
+              {LUX_PROPERTIES_PUBLIC_COPY.emptyCta}
+            </Link>
           </section>
         ) : (
           <>
-            <div style={{ marginBottom: 44 }}>
-              <div
-                style={{
-                  fontSize: 11,
-                  letterSpacing: '0.28em',
-                  textTransform: 'uppercase',
-                  color: T.goldEditorial,
-                  fontWeight: 700,
-                }}
-              >
-                {LUX_PROPERTIES_PUBLIC_COPY.listKicker}
-              </div>
-              <h1
-                style={{
-                  margin: '18px 0 0',
-                  fontSize: 'clamp(1.9rem, 4vw, 2.8rem)',
-                  lineHeight: 1.15,
-                  fontWeight: 500,
-                  fontFamily: T.fontDisplay,
-                  color: T.ivory,
-                }}
-              >
-                {LUX_PROPERTIES_PUBLIC_COPY.listTitle}
-              </h1>
-              <p style={{ margin: '18px 0 0', maxWidth: 720, fontSize: 16, lineHeight: 1.7, color: T.ivoryMuted }}>
-                {LUX_PROPERTIES_PUBLIC_COPY.listSubtitle}
-              </p>
-            </div>
+            <LuxHairline tone="ivory" />
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 24 }}>
+            {/* ─── Memorandum cards — full image + editorial type ──── */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                gap: 'clamp(48px, 6vw, 80px) clamp(32px, 4vw, 56px)',
+                paddingTop: 64,
+              }}
+            >
               {list.map((row) => {
                 const slug = safeStr(row.slug);
                 const key = slug.toLowerCase();
@@ -202,101 +211,154 @@ export default function LuxeMauricePropertiesDirectory({ listings, cardMediaBySl
                   <article
                     key={slug || row.title}
                     style={{
-                      borderRadius: T.radiusLg,
-                      border: `1px solid ${T.dividerSoft}`,
-                      background: T.charcoalSoft,
-                      overflow: 'hidden',
                       display: 'flex',
                       flexDirection: 'column',
+                      gap: 24,
                     }}
                   >
-                    <div style={{ height: 196, background: T.charcoal }}>
+                    <Link
+                      href={`/property/${encodeURIComponent(slug)}`}
+                      style={{
+                        display: 'block',
+                        aspectRatio: '4 / 3',
+                        background: T.charcoalSoft,
+                        overflow: 'hidden',
+                        textDecoration: 'none',
+                      }}
+                    >
                       {cardImg && cardImg.src ? (
                         <img
                           src={cardImg.src}
                           srcSet={cardImg.src_set || undefined}
-                          sizes={cardImg.src_set ? '(max-width: 640px) 100vw, 320px' : undefined}
-                          alt={safeStr(cardImg.alt) || `${slug} · preview`}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                          sizes={cardImg.src_set ? '(max-width: 640px) 100vw, 360px' : undefined}
+                          alt={safeStr(cardImg.alt) || `${slug} · private opportunity`}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            display: 'block',
+                          }}
                           decoding="async"
                           loading="lazy"
                         />
-                      ) : null}
-                    </div>
-                    <div style={{ padding: '22px 22px 24px', flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      ) : (
+                        <div
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: T.ivoryMuted,
+                            fontFamily: T.fontDisplay,
+                            fontStyle: 'italic',
+                            fontSize: 14,
+                          }}
+                        >
+                          Private — image pending advisor review
+                        </div>
+                      )}
+                    </Link>
+
+                    <div>
                       <div
                         style={{
+                          fontFamily: T.fontBody,
                           fontSize: 10,
-                          letterSpacing: '0.22em',
-                          textTransform: 'uppercase',
-                          color: T.ivoryMuted,
                           fontWeight: 700,
+                          letterSpacing: '0.32em',
+                          textTransform: 'uppercase',
+                          color: T.gold,
                         }}
                       >
-                        {safeStr(row.region_label)}
+                        {safeStr(row.region_label)} · {safeStr(row.property_type)}
                       </div>
                       <h2
                         style={{
-                          margin: 0,
-                          fontSize: 20,
-                          lineHeight: 1.3,
+                          margin: '16px 0 14px',
                           fontFamily: T.fontDisplay,
-                          color: T.ivory,
                           fontWeight: 500,
+                          fontSize: 26,
+                          lineHeight: 1.25,
+                          color: T.ivory,
+                          letterSpacing: 0.2,
                         }}
                       >
-                        {safeStr(row.title)}
+                        <Link
+                          href={`/property/${encodeURIComponent(slug)}`}
+                          style={{ color: T.ivory, textDecoration: 'none' }}
+                        >
+                          {safeStr(row.title)}
+                        </Link>
                       </h2>
-                      <div style={{ fontSize: 13, color: T.ivoryMuted }}>{safeStr(row.property_type)}</div>
                       {row.listing_status ? (
                         <div
                           style={{
+                            margin: '0 0 12px',
+                            fontFamily: T.fontBody,
                             fontSize: 11,
-                            letterSpacing: '0.16em',
-                            textTransform: 'uppercase',
-                            color: T.goldEditorial,
                             fontWeight: 700,
+                            letterSpacing: '0.22em',
+                            textTransform: 'uppercase',
+                            color: T.ivoryMuted,
                           }}
                         >
                           {safeStr(row.listing_status)}
                         </div>
                       ) : null}
-                      {price ? <div style={{ fontSize: 15, fontWeight: 600, color: T.ivory }}>{price}</div> : null}
-                      {teaser ? (
-                        <p style={{ margin: 0, fontSize: 14, lineHeight: 1.65, color: T.ivoryMuted, flex: 1 }}>{teaser}</p>
+                      {price ? (
+                        <div
+                          style={{
+                            margin: '0 0 14px',
+                            fontFamily: T.fontDisplay,
+                            fontStyle: 'italic',
+                            fontWeight: 500,
+                            fontSize: 17,
+                            color: T.gold,
+                          }}
+                        >
+                          {price}
+                        </div>
                       ) : null}
-                      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 12 }}>
+                      {teaser ? (
+                        <p
+                          style={{
+                            margin: '0 0 22px',
+                            fontFamily: T.fontBody,
+                            fontSize: 14.5,
+                            lineHeight: 1.85,
+                            color: T.ivoryMuted,
+                          }}
+                        >
+                          {teaser}
+                        </p>
+                      ) : null}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, alignItems: 'center' }}>
                         <Link
                           href={`/property/${encodeURIComponent(slug)}`}
                           style={{
-                            flex: '1 1 140px',
-                            textAlign: 'center',
-                            padding: '11px 14px',
-                            borderRadius: 999,
-                            border: `1px solid ${T.divider}`,
-                            color: T.ivory,
+                            fontFamily: T.fontBody,
+                            fontSize: 11,
                             fontWeight: 700,
-                            fontSize: 12,
-                            letterSpacing: '0.14em',
+                            letterSpacing: '0.28em',
                             textTransform: 'uppercase',
+                            color: T.gold,
                             textDecoration: 'none',
+                            borderBottom: `1px solid ${T.hairline}`,
+                            paddingBottom: 4,
                           }}
                         >
-                          {LUX_PROPERTIES_PUBLIC_COPY.cardCtaDetails}
+                          {LUX_PROPERTIES_PUBLIC_COPY.cardCtaDetails} →
                         </Link>
                         <Link
                           href={buildLuxPropertyConciergeHref(slug)}
                           style={{
-                            flex: '1 1 140px',
-                            textAlign: 'center',
-                            padding: '11px 14px',
-                            borderRadius: 999,
-                            background: T.goldEditorial,
-                            color: T.charcoalDeep,
+                            fontFamily: T.fontBody,
+                            fontSize: 11,
                             fontWeight: 700,
-                            fontSize: 12,
-                            letterSpacing: '0.14em',
+                            letterSpacing: '0.28em',
                             textTransform: 'uppercase',
+                            color: T.ivoryMuted,
                             textDecoration: 'none',
                           }}
                         >
@@ -309,24 +371,79 @@ export default function LuxeMauricePropertiesDirectory({ listings, cardMediaBySl
               })}
             </div>
 
-            <div style={{ marginTop: 56, textAlign: 'center' }}>
+            {/* ─── Closing CTA strip ───────────────────────────────── */}
+            <div
+              style={{
+                marginTop: 120,
+                padding: '64px 32px',
+                borderTop: `1px solid ${T.hairlineSoft}`,
+                borderBottom: `1px solid ${T.hairlineSoft}`,
+                textAlign: 'center',
+              }}
+            >
+              <LuxEyebrow center>Private Advisory</LuxEyebrow>
+              <p
+                style={{
+                  margin: '24px auto 32px',
+                  maxWidth: 520,
+                  fontFamily: T.fontDisplay,
+                  fontStyle: 'italic',
+                  fontWeight: 400,
+                  fontSize: 'clamp(1.3rem, 2.2vw, 1.6rem)',
+                  lineHeight: 1.5,
+                  color: T.ivory,
+                }}
+              >
+                A private advisor responds within one business day.
+              </p>
               <Link
                 href={buildLuxPropertyConciergeHref(null)}
                 style={{
-                  fontSize: 12,
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                  color: T.goldEditorial,
-                  textDecoration: 'none',
+                  display: 'inline-block',
+                  padding: '16px 30px',
+                  borderRadius: T.radiusEditorial,
+                  background: T.gold,
+                  color: T.charcoal,
+                  fontFamily: T.fontBody,
                   fontWeight: 700,
+                  fontSize: 12.5,
+                  letterSpacing: '0.2em',
+                  textTransform: 'uppercase',
+                  textDecoration: 'none',
                 }}
               >
-                {LUX_PROPERTIES_PUBLIC_COPY.emptyCta} →
+                {LUX_PROPERTIES_PUBLIC_COPY.emptyCta}
               </Link>
             </div>
           </>
         )}
       </main>
+
+      {/* ─── Minimal footer ────────────────────────────────────────────── */}
+      <footer
+        style={{
+          padding: '56px 32px 64px',
+          background: T.charcoalDeep,
+          borderTop: `1px solid ${T.hairlineSoft}`,
+          textAlign: 'center',
+        }}
+      >
+        <LuxeMauriceWordmark variant="stacked" tone="ivory" showSignature />
+        <p
+          style={{
+            margin: '36px auto 0',
+            maxWidth: 600,
+            fontFamily: T.fontBody,
+            fontSize: 11.5,
+            lineHeight: 1.8,
+            color: T.ivoryMuted,
+          }}
+        >
+          Information on this page is indicative and not legal, tax, or immigration
+          advice. Nothing here is an offer or solicitation; terms are agreed in writing
+          through a private advisor.
+        </p>
+      </footer>
     </div>
   );
 }
