@@ -61,14 +61,14 @@ test('resolveLuxPropertyRefWithPublishedDb: published Postgres row', async () =>
 
 test('LUX_PROPERTIES_PUBLIC_COPY keys are stable', () => {
   assert.ok(LUX_PROPERTIES_PUBLIC_COPY.emptyKicker.length > 4);
-  assert.ok(LUX_PROPERTIES_PUBLIC_COPY.emptyCta.includes('concierge'));
+  assert.ok(LUX_PROPERTIES_PUBLIC_COPY.emptyCta.toLowerCase().includes('consultation'));
 });
 
-test('empty state copy matches Slice B brief', () => {
-  assert.equal(LUX_PROPERTIES_PUBLIC_COPY.emptyKicker, 'Private property showcase');
+test('empty state copy matches LuxeMaurice Vision-Aligned Public Experience (Slice 1)', () => {
+  assert.equal(LUX_PROPERTIES_PUBLIC_COPY.emptyKicker, 'Private opportunities');
   assert.ok(
     LUX_PROPERTIES_PUBLIC_COPY.emptyBody.includes(
-      'The first LuxeMaurice property is being prepared for client review.',
+      'Private opportunities are being prepared for client review.',
     ),
   );
 });

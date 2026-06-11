@@ -20,3 +20,8 @@ vanguard/audit/
 # Phase 2 PRs commit signed-off .mp4/.vtt to public/assets/video/<surface>/ explicitly.
 .artifacts/
 .mock-server.pid
+
+# Brand-fidelity screenshot output from `scripts/lux-vision-screenshots.mjs`.
+# Re-generated locally; never committed.
+.lux-vision-screenshots/
+.smoke-screenshots/

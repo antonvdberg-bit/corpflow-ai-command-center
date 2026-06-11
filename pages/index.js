@@ -6,7 +6,6 @@ import { PrismaClient } from '@prisma/client';
 import AiLeadRescueLanding from '../components/AiLeadRescueLanding.js';
 import CorpFlowPublicHome from '../components/CorpFlowPublicHome.js';
 import LuxeMauriceTenantPresentation from '../components/LuxeMauriceTenantPresentation.js';
-import { LUXE_MAURICE_FEED_PROPERTIES } from '../lib/client/luxe-maurice-feed-properties.js';
 import { LUXE_MAURICE_STAGED_PROPERTIES } from '../lib/client/luxe-maurice-staged-properties.js';
 import { collectPublishedLuxCardMediaByPropertyRefs } from '../lib/server/lux-published-property-media.js';
 import { defaultPublicSite, mergeSiteDraft } from '../lib/server/tenant-site-public.js';
@@ -510,47 +509,48 @@ export async function getServerSideProps({ req }) {
     }
 
     // Luxe Mauritius: brand-aligned island presentation + UI flags (SSR only; tenant_id unchanged; no API changes).
+    // Repositioned 2026-06-11 to the Private Wealth & Lifestyle Platform direction.
     if (tenantId === 'luxe-maurice') {
       const operatorDebug = parseSearchParam(req, 'debug') === '1';
       site.client_ui = { lux_acquisition: true, operator_debug: operatorDebug };
 
       site.meta = site.meta && typeof site.meta === 'object' ? site.meta : {};
-      site.meta.page_title = 'Luxurious Mauritius · LuxeMaurice';
+      site.meta.page_title = 'LuxeMaurice · Private Wealth & Lifestyle Platform for Mauritius';
 
       site.hero = site.hero && typeof site.hero === 'object' ? site.hero : {};
       site.hero.title = 'LuxeMaurice';
-      site.hero.headline = 'Luxurious Mauritius';
-      site.hero.tagline = 'Discover exclusive luxury properties in Mauritius';
-      site.hero.cta_label = 'Private concierge';
+      site.hero.headline = 'Private. Curated. Considered.';
+      site.hero.tagline = 'Private Wealth & Lifestyle Platform for Mauritius';
+      site.hero.cta_label = 'Request a private consultation';
       site.hero.cta_href = '/concierge';
 
       site.sections = site.sections && typeof site.sections === 'object' ? site.sections : {};
       site.sections.about =
         site.sections.about && typeof site.sections.about === 'object' ? site.sections.about : {};
-      site.sections.about.title = 'Why Mauritius?';
+      site.sections.about.title = 'Mauritius as a strategic base';
       site.sections.about.body =
-        'Mauritius pairs natural beauty with political stability, a favourable climate, and a credible lifestyle for global buyers. Clear tax and residency frameworks, Indian Ocean positioning, and a maturing luxury market make it a strong choice for residences that double as long-term holdings.';
+        'For internationally mobile families and private investors, Mauritius pairs natural beauty with political stability, a favourable climate, and a credible long-term lifestyle. We present it as five overlapping propositions — lifestyle, security, connectivity, legacy, and opportunity — and help discerning clients enter it on terms appropriate to their life and balance sheet.';
 
       site.sections.services =
         site.sections.services && typeof site.sections.services === 'object' ? site.sections.services : {};
-      site.sections.services.title = 'Upcoming properties';
+      site.sections.services.title = 'Private opportunities';
       site.sections.services.intro =
-        'Developer-led opportunities across the island — from north-coast apartments to low-density villas. Availability and private previews are confirmed through our concierge; nothing here is an offer until terms are agreed in writing.';
+        'Curated completed residences and development partnerships across the island. Public previews where appropriate; private depth on enquiry. Nothing on this site is an offer until terms are agreed in writing.';
 
       const existingSvc = Array.isArray(site.sections.services.items) ? site.sections.services.items : [];
       if (!existingSvc.length) {
         site.sections.services.items = [
           {
-            name: 'North coast residences',
-            detail: 'Beach-close apartments with services nearby. Ask the concierge for current developer inventory.',
+            name: 'Completed luxury residences',
+            detail: 'Finished, furnished, exceptional properties — for clients who value privacy, immediacy, and architectural quality that does not need defending.',
           },
           {
-            name: 'Villa enclave collection',
-            detail: 'Spacious plots and ocean outlooks. Private previews and brochures on request.',
+            name: 'Development partnerships',
+            detail: 'Buy into considered plans. Participate in finishes, materials, and furnishings. Direct decisions from anywhere in the world, with calm governance.',
           },
           {
-            name: 'Pipeline releases',
-            detail: 'Buy direct from the developer — join the early preview list for upcoming launches.',
+            name: 'Owner Experience',
+            detail: 'Invitation-only environment for engaged clients — project status, progress, decisions, procurement, and concierge support, in one private thread.',
           },
         ];
       }
@@ -560,19 +560,17 @@ export async function getServerSideProps({ req }) {
           ? site.staged_properties
           : LUXE_MAURICE_STAGED_PROPERTIES;
 
-      site.feed_properties =
-        Array.isArray(site.feed_properties) && site.feed_properties.length
-          ? site.feed_properties
-          : LUXE_MAURICE_FEED_PROPERTIES;
+      /* Vision-aligned (2026-06-11): no feed-shaped preview inventory on public surfaces.
+       * The Phase 2B `lxf-*` preview band is no longer rendered. `feed_properties`
+       * is intentionally an empty array — direct navigation to a `lxf-*` slug is
+       * still resolved by `resolveLuxPropertyRef` for backward compatibility,
+       * but no link from the public site points there. */
+      site.feed_properties = [];
 
       /** Phase 4D.2 — resolved slug/id → safe published card image (for homepage cards only). */
       const cardRefInputs = [];
       for (const p of site.staged_properties || []) {
         if (p?.slug) cardRefInputs.push(String(p.slug));
-      }
-      for (const p of site.feed_properties || []) {
-        const fid = p?.id != null ? String(p.id).trim() : '';
-        if (fid) cardRefInputs.push(fid);
       }
       const cardMap = await collectPublishedLuxCardMediaByPropertyRefs(prisma, cardRefInputs);
       site.lux_published_card_media = Object.fromEntries(cardMap);

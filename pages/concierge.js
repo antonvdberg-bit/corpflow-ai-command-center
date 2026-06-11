@@ -6,25 +6,57 @@ import { useRouter } from 'next/router';
 import { LUXE_MAURICE_BRAND_TOKENS as T } from '../lib/client/luxe-maurice-brand-theme.js';
 import { resolveLuxPropertyRef } from '../lib/client/luxe-maurice-property-resolve.js';
 import { buildConciergeSeo } from '../lib/client/concierge-seo.js';
+import {
+  LuxeMauriceFontStylesheet,
+  LuxeMauriceWordmark,
+  LuxEyebrow,
+  LuxHairline,
+} from '../components/LuxeMauriceBrandPrimitives.js';
 
 function str(v) {
   return v != null ? String(v) : '';
 }
 
+const INTENT_OPTIONS = [
+  { id: 'completed_residence', label: 'Completed residence' },
+  { id: 'development_partnership', label: 'Development partnership' },
+  { id: 'relocation', label: 'Relocation to Mauritius' },
+  { id: 'investment', label: 'Investment / diversification' },
+  { id: 'ownership_support', label: 'Ongoing ownership support' },
+];
+
+/**
+ * `/concierge` — *Private Advisory* surface for `lux.corpflowai.com` (also
+ * rendered with the same Lux content on apex `/concierge` until the
+ * host-aware split lands).
+ *
+ * Brand-fidelity rebuild (2026-06-11). Editorial form: serif heading,
+ * underline-only inputs (no card chrome), single private-consultation CTA.
+ * Reference benchmarks: Aman concierge enquiry, Sotheby's Private Office
+ * enquiry page.
+ *
+ * The lead-creation API and the persisted `property_slug` / `property_title`
+ * payload are deliberately unchanged so existing operator workflows on
+ * `/change` continue to receive the same lead context. No DB schema change.
+ * No new env vars.
+ */
 export default function ConciergePage({ seoHost = '' } = {}) {
   const router = useRouter();
   const showDebugPayload = router.query?.debug === '1';
 
   const [name, setName] = useState('');
   const [contact, setContact] = useState('');
+  const [intentTags, setIntentTags] = useState([]);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [payload, setPayload] = useState(null);
   const [propertyInterest, setPropertyInterest] = useState(null);
-  /** After client resolve: whether we finished matching `property` query (staged or `/api/lux/listing`). */
-  const [propertyRefState, setPropertyRefState] = useState({ ready: false, matched: false });
+  const [propertyRefState, setPropertyRefState] = useState({
+    ready: false,
+    matched: false,
+  });
 
   useEffect(() => {
     if (!router.isReady) return;
@@ -59,7 +91,9 @@ export default function ConciergePage({ seoHost = '' } = {}) {
             price_range: L.price_range != null ? String(L.price_range).trim() : null,
             discovery_source: 'lux_postgres',
             summary_text: L.short_teaser != null ? String(L.short_teaser).trim() : '',
-            highlights: Array.isArray(L.highlights) ? L.highlights.map((h) => String(h)).filter(Boolean) : [],
+            highlights: Array.isArray(L.highlights)
+              ? L.highlights.map((h) => String(h)).filter(Boolean)
+              : [],
           });
           setPropertyRefState({ ready: true, matched: true });
         } else {
@@ -104,6 +138,10 @@ export default function ConciergePage({ seoHost = '' } = {}) {
     [name, contact, message],
   );
 
+  function toggleIntent(id) {
+    setIntentTags((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  }
+
   async function onSubmit(e) {
     e.preventDefault();
     if (!canSubmit || busy) return;
@@ -112,10 +150,17 @@ export default function ConciergePage({ seoHost = '' } = {}) {
     setSuccess('');
     setPayload(null);
     try {
+      const intentLabels = intentTags
+        .map((id) => INTENT_OPTIONS.find((o) => o.id === id))
+        .filter(Boolean)
+        .map((o) => o.label);
+      const intentPrefix = intentLabels.length
+        ? `Seeking: ${intentLabels.join(', ')}.\n\n`
+        : '';
       const body = {
         name: name.trim(),
         contact: contact.trim(),
-        message: message.trim(),
+        message: `${intentPrefix}${message.trim()}`,
       };
       if (propertyInterest) {
         body.property_slug = propertyInterest.ref;
@@ -129,9 +174,10 @@ export default function ConciergePage({ seoHost = '' } = {}) {
       const j = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(j.error || j.detail || `http_${r.status}`);
       setPayload(j);
-      setSuccess('Thank you. A private advisor will be in touch shortly.');
+      setSuccess('Thank you. A private advisor will be in touch within one business day.');
       setName('');
       setContact('');
+      setIntentTags([]);
       setMessage('');
     } catch (err) {
       setError(str(err?.message || err));
@@ -140,13 +186,36 @@ export default function ConciergePage({ seoHost = '' } = {}) {
     }
   }
 
+  /* ─── Atom: editorial input — hairline underline, transparent bg ── */
+  const editorialInput = (props) => (
+    <input
+      {...props}
+      style={{
+        display: 'block',
+        width: '100%',
+        marginTop: 12,
+        padding: '14px 0',
+        border: 'none',
+        borderBottom: `1px solid ${T.hairlineSoft}`,
+        background: 'transparent',
+        color: T.ivory,
+        fontFamily: T.fontBody,
+        fontSize: 16,
+        outline: 'none',
+        letterSpacing: 'normal',
+        textTransform: 'none',
+        fontWeight: 400,
+      }}
+    />
+  );
+
   return (
     <div
       style={{
-        fontFamily: T.fontUi,
+        fontFamily: T.fontBody,
         minHeight: '100vh',
-        background: T.pageBg,
-        color: T.ink,
+        background: T.charcoal,
+        color: T.ivory,
       }}
     >
       <Head>
@@ -162,272 +231,432 @@ export default function ConciergePage({ seoHost = '' } = {}) {
         <meta name="twitter:card" content={seo.twitterCard} />
         <meta name="twitter:title" content={seo.twitterTitle} />
         <meta name="twitter:description" content={seo.twitterDescription} />
+        <LuxeMauriceFontStylesheet />
       </Head>
-      <main style={{ maxWidth: 720, margin: '0 auto', padding: '48px 28px 64px' }}>
-        <div style={{ marginBottom: 28 }}>
-          <Link
-            href="/"
-            style={{
-              fontSize: 12,
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              color: T.goldDeep,
-              textDecoration: 'none',
-              fontWeight: 750,
-            }}
-          >
-            ← Luxurious Mauritius
-          </Link>
-        </div>
 
-        <p
+      {/* ─── Header ───────────────────────────────────────────────────── */}
+      <header
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 16,
+          flexWrap: 'wrap',
+          padding: '28px clamp(20px, 4vw, 56px)',
+        }}
+      >
+        <LuxeMauriceWordmark
+          variant="compact"
+          tone="ivory"
+          showSignature={false}
+          href="/"
+        />
+        <Link
+          href="/properties"
           style={{
-            margin: '0 0 10px',
+            fontFamily: T.fontBody,
             fontSize: 11,
-            letterSpacing: '0.14em',
+            fontWeight: 700,
+            letterSpacing: '0.32em',
             textTransform: 'uppercase',
-            color: T.inkMuted,
-            fontWeight: 700,
+            color: T.gold,
+            textDecoration: 'none',
           }}
         >
-          LuxeMaurice
-        </p>
-        <h1
-          style={{
-            margin: '0 0 14px',
-            fontSize: 34,
-            lineHeight: 1.12,
-            fontWeight: 700,
-            letterSpacing: 0.02,
-            fontFamily: T.fontDisplay,
-            color: T.ink,
-          }}
-        >
-          Private concierge
-        </h1>
-        <p style={{ margin: '0 0 10px', fontSize: 17, lineHeight: 1.6, color: T.inkMuted, maxWidth: 560 }}>
-          Share how we can help with Mauritius property — developments you like, timing, and the best way to reach you.
-          Your note is read by a single advisor who works directly with the developer pipeline.
-        </p>
-        <p style={{ margin: '0 0 36px', fontSize: 15, lineHeight: 1.55, color: T.inkMuted, maxWidth: 560 }}>
-          We respond within one business day. Developer-backed opportunities only; nothing here is an offer until
-          agreed in writing.
-        </p>
+          Private Opportunities →
+        </Link>
+      </header>
 
-        {propertyInterest ? (
-          <div
+      <main
+        style={{
+          maxWidth: 760,
+          margin: '0 auto',
+          padding: '56px clamp(20px, 4vw, 56px) 120px',
+        }}
+      >
+        {/* ─── Title block ──────────────────────────────────────────── */}
+        <section style={{ marginBottom: 64, textAlign: 'left' }}>
+          <LuxEyebrow>Private Advisory</LuxEyebrow>
+          <h1
             style={{
-              marginBottom: 22,
-              padding: 16,
-              borderRadius: T.radiusMd,
-              border:
-                propertyInterest.discovery_source === 'feed'
-                  ? `1px dashed ${T.border}`
-                  : propertyInterest.discovery_source === 'manual_curated' ||
-                      propertyInterest.discovery_source === 'lux_postgres'
-                    ? `2px solid ${T.goldDeep}`
-                    : `1px solid ${T.goldDeep}`,
-              background: T.sand,
-              color: T.ink,
-              fontSize: 15,
-              lineHeight: 1.55,
+              margin: '28px 0 28px',
+              fontFamily: T.fontDisplay,
+              fontWeight: 400,
+              fontSize: 'clamp(2.4rem, 5vw, 3.8rem)',
+              lineHeight: 1.1,
+              letterSpacing: -0.4,
+              color: T.ivory,
             }}
           >
-            <div style={{ fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: T.goldDeep, fontWeight: 800 }}>
-              Property interest
-              {propertyInterest.discovery_source === 'feed' ? (
-                <span style={{ color: T.inkMuted, fontWeight: 700 }}> · Explore listing (feed preview)</span>
-              ) : propertyInterest.discovery_source === 'manual_curated' ? (
-                <span style={{ color: T.inkMuted, fontWeight: 700 }}> · Manual curated listing</span>
-              ) : propertyInterest.discovery_source === 'lux_postgres' ? (
-                <span style={{ color: T.inkMuted, fontWeight: 700 }}> · Private showcase</span>
-              ) : (
-                <span style={{ color: T.inkMuted, fontWeight: 700 }}> · Featured (developer-led)</span>
-              )}
+            Request a private consultation.
+          </h1>
+          <div style={{ width: 40, marginBottom: 28 }}>
+            <LuxHairline tone="gold" />
+          </div>
+          <p
+            style={{
+              margin: '0 0 16px',
+              maxWidth: 560,
+              fontFamily: T.fontDisplay,
+              fontStyle: 'italic',
+              fontWeight: 400,
+              fontSize: 'clamp(1.15rem, 1.7vw, 1.35rem)',
+              lineHeight: 1.65,
+              color: T.ivoryMuted,
+            }}
+          >
+            Tell us briefly what you are seeking in Mauritius.
+          </p>
+          <p
+            style={{
+              margin: 0,
+              maxWidth: 560,
+              fontFamily: T.fontBody,
+              fontSize: 15,
+              lineHeight: 1.85,
+              color: T.ivoryMuted,
+            }}
+          >
+            Your note is read by a single private advisor and held in complete
+            discretion. A response follows within one business day. Nothing here is
+            an offer; terms are agreed in writing once a private advisory
+            conversation is under way.
+          </p>
+        </section>
+
+        {/* ─── Referenced opportunity (when arrived from /property) ─── */}
+        {propertyInterest ? (
+          <section
+            style={{
+              marginBottom: 56,
+              padding: '24px 0',
+              borderTop: `1px solid ${T.hairline}`,
+              borderBottom: `1px solid ${T.hairline}`,
+            }}
+          >
+            <div
+              style={{
+                fontFamily: T.fontBody,
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: '0.36em',
+                textTransform: 'uppercase',
+                color: T.gold,
+              }}
+            >
+              Private opportunity referenced
             </div>
-            <div style={{ marginTop: 8, fontWeight: 750 }}>
+            <div
+              style={{
+                marginTop: 12,
+                fontFamily: T.fontDisplay,
+                fontSize: 22,
+                fontWeight: 500,
+                color: T.ivory,
+              }}
+            >
               {propertyInterest.title}
               {propertyInterest.status ? (
-                <span style={{ color: T.inkMuted, fontWeight: 600 }}> · {propertyInterest.status}</span>
+                <span
+                  style={{
+                    color: T.ivoryMuted,
+                    fontFamily: T.fontBody,
+                    fontStyle: 'italic',
+                    fontSize: 14,
+                    marginLeft: 12,
+                  }}
+                >
+                  · {propertyInterest.status}
+                </span>
               ) : null}
             </div>
-            <div style={{ marginTop: 6, fontSize: 14, color: T.inkMuted }}>
+            <div
+              style={{
+                marginTop: 8,
+                fontFamily: T.fontBody,
+                fontSize: 13,
+                color: T.ivoryMuted,
+              }}
+            >
               {propertyInterest.location} · {propertyInterest.property_type}
             </div>
             {propertyInterest.price_range ? (
-              <div style={{ marginTop: 8, fontSize: 14, fontWeight: 650, color: T.ink }}>{propertyInterest.price_range}</div>
+              <div
+                style={{
+                  marginTop: 10,
+                  fontFamily: T.fontDisplay,
+                  fontStyle: 'italic',
+                  fontSize: 18,
+                  color: T.gold,
+                }}
+              >
+                {propertyInterest.price_range}
+              </div>
             ) : null}
-          </div>
+          </section>
         ) : router.isReady &&
           String(router.query?.property || '').trim() &&
           propertyRefState.ready &&
           !propertyRefState.matched ? (
-          <div
+          <p
             style={{
-              marginBottom: 22,
-              padding: 14,
-              borderRadius: T.radiusMd,
-              border: `1px solid ${T.border}`,
-              background: T.white,
-              color: T.inkMuted,
-              fontSize: 14,
+              marginBottom: 40,
+              padding: '18px 0',
+              borderTop: `1px solid ${T.hairlineSoft}`,
+              borderBottom: `1px solid ${T.hairlineSoft}`,
+              fontFamily: T.fontDisplay,
+              fontStyle: 'italic',
+              fontSize: 15,
+              color: T.ivoryMuted,
+              maxWidth: 560,
             }}
           >
-            We could not match that property reference. You can still send a general enquiry below.
-          </div>
+            We could not match that private opportunity reference. You can still send
+            a general enquiry below.
+          </p>
         ) : null}
 
+        {/* ─── Editorial form — hairline underline inputs ─────────── */}
         <form
           onSubmit={onSubmit}
           style={{
-            border: `1px solid ${T.border}`,
-            borderRadius: T.radiusLg,
-            background: T.white,
-            padding: 26,
             display: 'grid',
-            gap: 16,
-            boxShadow: '0 16px 48px rgba(28,25,23,0.06)',
+            gap: 40,
           }}
         >
-          <label style={{ fontSize: 13, color: T.inkMuted, fontWeight: 650 }}>
+          <label
+            style={{
+              fontFamily: T.fontBody,
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: '0.32em',
+              textTransform: 'uppercase',
+              color: T.gold,
+            }}
+          >
             Name
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Full name"
-              style={{
-                display: 'block',
-                width: '100%',
-                marginTop: 8,
-                padding: '12px 14px',
-                borderRadius: T.radiusMd,
-                border: `1px solid ${T.borderStrong}`,
-                background: T.pageBg,
-                color: T.ink,
-                fontSize: 15,
-              }}
-            />
+            {editorialInput({
+              value: name,
+              onChange: (e) => setName(e.target.value),
+              placeholder: 'Full name',
+              type: 'text',
+              autoComplete: 'name',
+            })}
           </label>
 
-          <label style={{ fontSize: 13, color: T.inkMuted, fontWeight: 650 }}>
+          <label
+            style={{
+              fontFamily: T.fontBody,
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: '0.32em',
+              textTransform: 'uppercase',
+              color: T.gold,
+            }}
+          >
             Preferred contact
-            <input
-              value={contact}
-              onChange={(e) => setContact(e.target.value)}
-              placeholder="Email or telephone"
-              style={{
-                display: 'block',
-                width: '100%',
-                marginTop: 8,
-                padding: '12px 14px',
-                borderRadius: T.radiusMd,
-                border: `1px solid ${T.borderStrong}`,
-                background: T.pageBg,
-                color: T.ink,
-                fontSize: 15,
-              }}
-            />
+            {editorialInput({
+              value: contact,
+              onChange: (e) => setContact(e.target.value),
+              placeholder: 'Email or telephone',
+              type: 'text',
+              autoComplete: 'email',
+            })}
           </label>
 
-          <label style={{ fontSize: 13, color: T.inkMuted, fontWeight: 650 }}>
-            Your enquiry
+          <div>
+            <div
+              style={{
+                fontFamily: T.fontBody,
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: '0.32em',
+                textTransform: 'uppercase',
+                color: T.gold,
+              }}
+            >
+              Tell us what you are seeking in Mauritius
+            </div>
+            <div
+              style={{
+                marginTop: 18,
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 10,
+              }}
+            >
+              {INTENT_OPTIONS.map((opt) => {
+                const active = intentTags.includes(opt.id);
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => toggleIntent(opt.id)}
+                    aria-pressed={active}
+                    style={{
+                      padding: '11px 18px',
+                      borderRadius: T.radiusEditorial,
+                      border: `1px solid ${active ? T.gold : T.hairlineSoft}`,
+                      background: active ? T.gold : 'transparent',
+                      color: active ? T.charcoal : T.ivoryMuted,
+                      fontFamily: T.fontBody,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      letterSpacing: '0.22em',
+                      textTransform: 'uppercase',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <label
+            style={{
+              fontFamily: T.fontBody,
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: '0.32em',
+              textTransform: 'uppercase',
+              color: T.gold,
+            }}
+          >
+            Your message
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Developments of interest, budget range, and when you would like to visit."
+              placeholder="A few words about timing, location, family context, or anything you would like the advisor to know in advance."
               style={{
                 display: 'block',
                 width: '100%',
-                minHeight: 140,
-                marginTop: 8,
-                padding: '12px 14px',
-                borderRadius: T.radiusMd,
-                border: `1px solid ${T.borderStrong}`,
-                background: T.pageBg,
-                color: T.ink,
-                fontSize: 15,
-                lineHeight: 1.45,
+                minHeight: 180,
+                marginTop: 12,
+                padding: '14px 0',
+                border: 'none',
+                borderBottom: `1px solid ${T.hairlineSoft}`,
+                background: 'transparent',
+                color: T.ivory,
+                fontFamily: T.fontBody,
+                fontSize: 16,
+                lineHeight: 1.7,
+                outline: 'none',
+                letterSpacing: 'normal',
+                textTransform: 'none',
+                fontWeight: 400,
+                resize: 'vertical',
               }}
             />
           </label>
 
-          <button
-            type="submit"
-            disabled={!canSubmit || busy}
-            style={{
-              border: 'none',
-              borderRadius: T.radiusMd,
-              padding: '15px 20px',
-              background: !canSubmit || busy ? '#a8a29e' : T.gold,
-              color: T.white,
-              fontWeight: 800,
-              fontSize: 15,
-              letterSpacing: 0.02,
-              cursor: !canSubmit || busy ? 'not-allowed' : 'pointer',
-            }}
-          >
-            {busy ? 'Submitting…' : 'Speak with a Private Advisor'}
-          </button>
+          <div style={{ marginTop: 12 }}>
+            <button
+              type="submit"
+              disabled={!canSubmit || busy}
+              style={{
+                border: 'none',
+                borderRadius: T.radiusEditorial,
+                padding: '18px 32px',
+                background:
+                  !canSubmit || busy ? 'rgba(168, 132, 44, 0.32)' : T.gold,
+                color: T.charcoal,
+                fontFamily: T.fontBody,
+                fontWeight: 700,
+                fontSize: 12.5,
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
+                cursor: !canSubmit || busy ? 'not-allowed' : 'pointer',
+              }}
+            >
+              {busy ? 'Submitting…' : 'Request a Private Consultation'}
+            </button>
+          </div>
         </form>
 
         {success ? (
-          <div
+          <p
             style={{
-              marginTop: 18,
-              border: `1px solid ${T.border}`,
-              background: T.sand,
-              color: T.ink,
-              borderRadius: T.radiusMd,
-              padding: 16,
-              fontSize: 15,
-              lineHeight: 1.5,
+              marginTop: 40,
+              padding: '20px 0',
+              borderTop: `1px solid ${T.hairline}`,
+              borderBottom: `1px solid ${T.hairline}`,
+              fontFamily: T.fontDisplay,
+              fontStyle: 'italic',
+              fontSize: 17,
+              lineHeight: 1.6,
+              color: T.ivory,
             }}
           >
             {success}
-          </div>
+          </p>
         ) : null}
 
         {error ? (
-          <div
+          <p
             style={{
-              marginTop: 18,
-              border: '1px solid rgba(220,38,38,0.35)',
-              background: '#fef2f2',
-              color: '#991b1b',
-              borderRadius: T.radiusMd,
-              padding: 14,
+              marginTop: 28,
+              padding: '16px 0',
+              borderTop: '1px solid rgba(220,38,38,0.45)',
+              borderBottom: '1px solid rgba(220,38,38,0.45)',
+              color: '#f1c4c4',
+              fontFamily: T.fontBody,
               fontSize: 14,
+              lineHeight: 1.6,
             }}
           >
             {error}
-          </div>
+          </p>
         ) : null}
 
         {showDebugPayload && payload ? (
           <pre
             style={{
-              marginTop: 18,
-              padding: 14,
-              borderRadius: T.radiusMd,
-              border: `1px solid ${T.border}`,
-              background: T.white,
-              color: T.inkMuted,
+              marginTop: 32,
+              padding: 16,
+              border: `1px solid ${T.hairlineSoft}`,
+              background: T.charcoalSoft,
+              color: T.ivoryMuted,
               overflowX: 'auto',
               fontSize: 11,
+              fontFamily: 'monospace',
             }}
           >
             {JSON.stringify(payload, null, 2)}
           </pre>
         ) : null}
 
-        <p style={{ marginTop: 40, textAlign: 'center', fontSize: 12, color: T.inkMuted, lineHeight: 1.55 }}>
-          Information is used solely to respond to your enquiry.
+        <p
+          style={{
+            marginTop: 64,
+            textAlign: 'center',
+            fontFamily: T.fontBody,
+            fontSize: 11.5,
+            lineHeight: 1.8,
+            color: T.ivoryMuted,
+            letterSpacing: 0.04,
+          }}
+        >
+          Information is used solely to respond to your enquiry. Not legal, tax, or
+          immigration advice.
         </p>
       </main>
+
+      {/* ─── Footer ───────────────────────────────────────────────────── */}
+      <footer
+        style={{
+          padding: '56px 32px 64px',
+          background: T.charcoalDeep,
+          borderTop: `1px solid ${T.hairlineSoft}`,
+          textAlign: 'center',
+        }}
+      >
+        <LuxeMauriceWordmark variant="stacked" tone="ivory" showSignature />
+      </footer>
     </div>
   );
 }
-
 
 // __concierge_gssp_v1__
 // Server-side capture of the request host so the SEO canonical + og:url
