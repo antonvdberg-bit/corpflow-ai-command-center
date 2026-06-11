@@ -9,21 +9,20 @@ function safeStr(v) {
 }
 
 /**
- * LuxeMaurice-only property detail (Phase 2C). Props must be server-built — do not trust client-supplied listing fields.
+ * LuxeMaurice-only property detail (Phase 2C).
+ * Repositioned 2026-06-11 to read as a *private opportunity overview* under the
+ * LuxeMaurice Private Wealth & Lifestyle Platform direction. Props are still
+ * server-built — do not trust client-supplied listing fields.
+ * Published-only visibility is preserved upstream in `pages/property/[slug].js`.
+ *
  * @param {{ property: { ref: string, title: string, location: string, property_type: string, status: string | null, price_display: string, discovery_source: 'curated' | 'manual_curated' | 'feed' | 'lux_postgres', summary_text: string, highlights: string[], hero_image?: string | null, published_hero?: { src: string, src_set?: string, alt: string, caption: string | null } | null, published_gallery?: { src: string, src_set?: string, alt: string, caption: string | null, gallery_order?: number | null, is_gallery_cover?: boolean }[] }, editor_preview?: boolean }} props
  */
 export default function LuxeMauricePropertyDetailPage({ property, editor_preview }) {
   const p = property || {};
   const ref = safeStr(p.ref);
-  const isFeed = p.discovery_source === 'feed';
-  const isManual = p.discovery_source === 'manual_curated';
-  const isLuxPostgres = p.discovery_source === 'lux_postgres';
   const conciergeHref = `/concierge?intent=property&property=${encodeURIComponent(ref)}`;
-  const pageTitle = ref ? `${safeStr(p.title)} · Luxurious Mauritius` : 'Property · Luxurious Mauritius';
+  const pageTitle = ref ? `${safeStr(p.title)} · Private Opportunity · LuxeMaurice` : 'Private Opportunity · LuxeMaurice';
 
-  // SEO description: prefer the curated summary, fall back to a synthesized line
-  // built from location + property type + price so the page is always indexable
-  // even when summary_text is empty.
   const summaryRaw = safeStr(p.summary_text);
   const propertyType = safeStr(p.property_type);
   const location = safeStr(p.location);
@@ -39,7 +38,7 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
   const seoDescriptionRaw =
     summaryRaw ||
     synthesizedSummary ||
-    'Luxurious Mauritius — private previews of developer-led residences. Request a private enquiry through our concierge.';
+    'LuxeMaurice — a private opportunity overview. Request a private consultation to discuss availability, terms, and next steps.';
   const seoDescription =
     seoDescriptionRaw.length > 320 ? `${seoDescriptionRaw.slice(0, 317)}…` : seoDescriptionRaw;
   const seoCanonical = ref ? `https://lux.corpflowai.com/property/${ref}` : 'https://lux.corpflowai.com/';
@@ -70,23 +69,16 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
     return { src: s, srcSet: undefined, sizes: undefined, alt: '', caption: null };
   })();
 
-  const heroAltText = heroImg?.alt ? safeStr(heroImg.alt) : ref ? `${ref} · hero` : 'Property hero image';
+  const heroAltText = heroImg?.alt ? safeStr(heroImg.alt) : ref ? `${ref} · hero` : 'Private opportunity hero image';
   const galleryAltText = (g) => (safeStr(g.alt) ? safeStr(g.alt) : ref ? `${ref} · gallery` : 'Gallery image');
-
-  const heroBorder = isFeed
-    ? `1px dashed ${T.border}`
-    : isManual || isLuxPostgres
-      ? `2px solid ${T.goldDeep}`
-      : `1px solid ${T.goldDeep}`;
-  const heroBg = isFeed ? T.white : T.sand;
 
   return (
     <div
       style={{
         fontFamily: T.fontUi,
         minHeight: '100vh',
-        background: T.pageBg,
-        color: T.ink,
+        background: T.charcoalDeep,
+        color: T.ivory,
       }}
     >
       <Head>
@@ -103,6 +95,7 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
         <meta name="twitter:description" content={seoDescription} />
         {seoOgImage ? <meta name="twitter:image" content={seoOgImage} /> : null}
       </Head>
+
       <header
         style={{
           display: 'flex',
@@ -110,74 +103,75 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
           justifyContent: 'space-between',
           gap: 16,
           flexWrap: 'wrap',
-          padding: '18px 28px',
-          background: T.white,
-          borderBottom: `1px solid ${T.border}`,
+          padding: '22px 32px',
+          background: T.charcoalDeep,
+          borderBottom: `1px solid ${T.dividerSoft}`,
         }}
       >
         <Link
           href="/"
           style={{
-            fontSize: 12,
-            letterSpacing: '0.1em',
+            fontSize: 11,
+            letterSpacing: '0.22em',
             textTransform: 'uppercase',
-            color: T.goldDeep,
+            color: T.goldEditorial,
             textDecoration: 'none',
-            fontWeight: 750,
+            fontWeight: 700,
           }}
         >
-          ← Luxurious Mauritius
+          ← LuxeMaurice
         </Link>
-        {isFeed ? (
-          <span style={{ fontSize: 11, color: T.inkMuted, fontWeight: 650 }}>Explore · market preview</span>
-        ) : isManual ? (
-          <span style={{ fontSize: 11, color: T.goldDeep, fontWeight: 750 }}>Manual · operator curated</span>
-        ) : isLuxPostgres ? (
-          <span style={{ fontSize: 11, color: T.goldDeep, fontWeight: 750 }}>Private showcase</span>
-        ) : (
-          <span style={{ fontSize: 11, color: T.goldDeep, fontWeight: 750 }}>Featured · developer-led</span>
-        )}
+        <span
+          style={{
+            fontSize: 11,
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase',
+            color: T.ivoryMuted,
+            fontWeight: 700,
+          }}
+        >
+          Private opportunity overview
+        </span>
       </header>
 
       {editor_preview ? (
         <div
           style={{
             margin: '0 auto',
-            maxWidth: 800,
-            padding: '14px 28px 0',
+            maxWidth: 880,
+            padding: '16px 32px 0',
             fontSize: 14,
             lineHeight: 1.5,
-            color: T.heroDeep,
-            fontWeight: 650,
+            color: T.ivory,
+            fontWeight: 600,
           }}
         >
           <div
             style={{
               borderRadius: T.radiusMd,
-              border: `1px solid ${T.goldDeep}`,
-              background: T.sand,
-              padding: '12px 16px',
+              border: `1px solid ${T.goldEditorial}`,
+              background: T.charcoalSoft,
+              padding: '14px 18px',
             }}
           >
-            Private preview — this URL is for editors only and is not the public listing. Remove{' '}
-            <code style={{ fontSize: 12 }}>?preview=1</code> to open the visitor-facing page when the property is published.
+            Private preview — this URL is for editors only and is not the published opportunity overview. Remove{' '}
+            <code style={{ fontSize: 12 }}>?preview=1</code> to open the visitor-facing page when the opportunity is published.
           </div>
         </div>
       ) : null}
 
-      <main style={{ maxWidth: 800, margin: '0 auto', padding: '40px 28px 72px' }}>
-        <div
+      <main style={{ maxWidth: 880, margin: '0 auto', padding: '48px 32px 88px' }}>
+        <section
           style={{
             borderRadius: T.radiusLg,
-            border: heroBorder,
-            background: heroBg,
-            padding: '28px 26px 30px',
-            boxShadow: isFeed ? 'none' : '0 12px 40px rgba(28,25,23,0.06)',
+            border: `1px solid ${T.dividerSoft}`,
+            background: T.charcoalSoft,
+            padding: '0 0 32px',
             overflow: 'hidden',
           }}
         >
           {heroImg ? (
-            <div style={{ margin: '-28px -26px 18px', height: 200, background: T.placeholder }}>
+            <div style={{ height: 320, background: T.charcoal, borderBottom: `1px solid ${T.dividerSoft}` }}>
               <img
                 src={heroImg.src}
                 srcSet={heroImg.srcSet}
@@ -191,158 +185,257 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
             </div>
           ) : null}
           {heroImg?.caption ? (
-            <p style={{ margin: '-6px 0 14px', fontSize: 12, color: T.inkMuted, lineHeight: 1.5 }}>{heroImg.caption}</p>
+            <p style={{ margin: '14px 32px 0', fontSize: 12, color: T.ivoryMuted, lineHeight: 1.5 }}>{heroImg.caption}</p>
           ) : null}
-          {publishedGallery.length > 0 ? (
-            <section style={{ marginTop: 20 }}>
-              <h2
+          <div style={{ padding: '32px 32px 0' }}>
+            <p
+              style={{
+                margin: '0 0 12px',
+                fontSize: 11,
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
+                color: T.goldEditorial,
+                fontWeight: 700,
+              }}
+            >
+              {safeStr(p.location)} · {safeStr(p.property_type)}
+            </p>
+            <h1
+              style={{
+                margin: '0 0 18px',
+                fontSize: 'clamp(1.7rem, 4vw, 2.4rem)',
+                lineHeight: 1.15,
+                fontWeight: 500,
+                fontFamily: T.fontDisplay,
+                color: T.ivory,
+                letterSpacing: -0.3,
+              }}
+            >
+              {safeStr(p.title)}
+            </h1>
+            {p.status ? (
+              <p
                 style={{
-                  margin: '0 0 12px',
-                  fontSize: 15,
-                  fontFamily: T.fontDisplay,
-                  color: T.ink,
-                  letterSpacing: '0.06em',
+                  margin: '0 0 14px',
+                  fontSize: 12,
+                  letterSpacing: '0.16em',
                   textTransform: 'uppercase',
+                  fontWeight: 700,
+                  color: T.goldEditorial,
                 }}
               >
-                Gallery
-              </h2>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-                  gap: 12,
-                }}
-              >
-                {publishedGallery.map((g, gi) => {
-                  const gs = g.src_set != null ? String(g.src_set).trim() : '';
-                  return (
+                {safeStr(p.status)}
+              </p>
+            ) : null}
+            <p style={{ margin: 0, fontSize: 18, fontWeight: 600, color: T.ivory }}>{safeStr(p.price_display)}</p>
+          </div>
+        </section>
+
+        <section style={{ marginTop: 40 }}>
+          <h2
+            style={{
+              margin: '0 0 14px',
+              fontSize: 12,
+              letterSpacing: '0.24em',
+              textTransform: 'uppercase',
+              fontWeight: 700,
+              color: T.goldEditorial,
+            }}
+          >
+            Opportunity overview
+          </h2>
+          <p style={{ margin: 0, fontSize: 17, lineHeight: 1.8, color: T.ivory, fontWeight: 400 }}>{safeStr(p.summary_text)}</p>
+        </section>
+
+        {publishedGallery.length > 0 ? (
+          <section style={{ marginTop: 40 }}>
+            <h2
+              style={{
+                margin: '0 0 14px',
+                fontSize: 12,
+                letterSpacing: '0.24em',
+                textTransform: 'uppercase',
+                fontWeight: 700,
+                color: T.goldEditorial,
+              }}
+            >
+              Gallery
+            </h2>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+                gap: 14,
+              }}
+            >
+              {publishedGallery.map((g, gi) => {
+                const gs = g.src_set != null ? String(g.src_set).trim() : '';
+                return (
                   <figure key={gi} style={{ margin: 0 }}>
                     <img
                       src={safeStr(g.src)}
                       srcSet={gs || undefined}
-                      sizes={gs ? '(max-width: 900px) 50vw, 200px' : undefined}
+                      sizes={gs ? '(max-width: 900px) 50vw, 220px' : undefined}
                       alt={galleryAltText(g)}
                       decoding="async"
                       loading="lazy"
                       style={{
                         display: 'block',
                         width: '100%',
-                        height: 120,
+                        height: 140,
                         objectFit: 'cover',
                         borderRadius: 10,
-                        border: `1px solid ${T.border}`,
+                        border: `1px solid ${T.dividerSoft}`,
+                        background: T.charcoal,
                       }}
                     />
                     {g.caption ? (
-                      <figcaption style={{ marginTop: 6, fontSize: 11, color: T.inkMuted, lineHeight: 1.45 }}>
+                      <figcaption style={{ marginTop: 6, fontSize: 11, color: T.ivoryMuted, lineHeight: 1.5 }}>
                         {safeStr(g.caption)}
                       </figcaption>
                     ) : null}
                   </figure>
-                  );
-                })}
-              </div>
-            </section>
-          ) : null}
-          <p
-            style={{
-              margin: '0 0 8px',
-              fontSize: 11,
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
-              color: T.inkMuted,
-              fontWeight: 700,
-            }}
-          >
-            {safeStr(p.location)} · {safeStr(p.property_type)}
-          </p>
-          <h1
-            style={{
-              margin: '0 0 12px',
-              fontSize: 'clamp(1.55rem, 3.5vw, 2.1rem)',
-              lineHeight: 1.15,
-              fontWeight: 700,
-              fontFamily: T.fontDisplay,
-              color: T.ink,
-            }}
-          >
-            {safeStr(p.title)}
-          </h1>
-          {p.status ? (
-            <p style={{ margin: '0 0 10px', fontSize: 14, fontWeight: 650, color: isFeed ? T.inkMuted : T.goldDeep }}>{safeStr(p.status)}</p>
-          ) : null}
-          <p style={{ margin: 0, fontSize: 18, fontWeight: 750, color: T.ink }}>{safeStr(p.price_display)}</p>
-        </div>
-
-        <section style={{ marginTop: 32 }}>
-          <h2 style={{ margin: '0 0 12px', fontSize: 18, fontFamily: T.fontDisplay, color: T.ink }}>Overview</h2>
-          <p style={{ margin: 0, fontSize: 16, lineHeight: 1.65, color: T.inkMuted }}>{safeStr(p.summary_text)}</p>
-        </section>
+                );
+              })}
+            </div>
+          </section>
+        ) : null}
 
         {Array.isArray(p.highlights) && p.highlights.length ? (
-          <section style={{ marginTop: 28 }}>
-            <h2 style={{ margin: '0 0 12px', fontSize: 18, fontFamily: T.fontDisplay, color: T.ink }}>Highlights</h2>
-            <ul style={{ margin: 0, paddingLeft: 20, color: T.inkMuted, lineHeight: 1.65, fontSize: 15 }}>
+          <section style={{ marginTop: 40 }}>
+            <h2
+              style={{
+                margin: '0 0 14px',
+                fontSize: 12,
+                letterSpacing: '0.24em',
+                textTransform: 'uppercase',
+                fontWeight: 700,
+                color: T.goldEditorial,
+              }}
+            >
+              Advisory notes
+            </h2>
+            <ul style={{ margin: 0, paddingLeft: 22, color: T.ivory, lineHeight: 1.75, fontSize: 16 }}>
               {p.highlights.map((h, i) => (
-                <li key={i} style={{ marginBottom: 8 }}>
-                  {safeStr(h)}
+                <li key={i} style={{ marginBottom: 10, color: T.ivory }}>
+                  <span style={{ color: T.ivoryMuted }}>{safeStr(h)}</span>
                 </li>
               ))}
             </ul>
           </section>
         ) : null}
 
-        <section style={{ marginTop: 28 }}>
-          <h2 style={{ margin: '0 0 12px', fontSize: 18, fontFamily: T.fontDisplay, color: T.ink }}>At a glance</h2>
+        <section style={{ marginTop: 40 }}>
+          <h2
+            style={{
+              margin: '0 0 14px',
+              fontSize: 12,
+              letterSpacing: '0.24em',
+              textTransform: 'uppercase',
+              fontWeight: 700,
+              color: T.goldEditorial,
+            }}
+          >
+            At a glance
+          </h2>
           <dl
             style={{
               margin: 0,
               display: 'grid',
-              gridTemplateColumns: 'minmax(120px, 160px) 1fr',
-              gap: '10px 16px',
+              gridTemplateColumns: 'minmax(140px, 180px) 1fr',
+              gap: '12px 18px',
               fontSize: 14,
-              color: T.inkMuted,
+              color: T.ivoryMuted,
             }}
           >
-            <dt style={{ fontWeight: 700, color: T.ink }}>Reference</dt>
+            <dt style={{ fontWeight: 700, color: T.ivory, letterSpacing: 0.02 }}>Reference</dt>
             <dd style={{ margin: 0 }}>{ref}</dd>
-            <dt style={{ fontWeight: 700, color: T.ink }}>Region</dt>
+            <dt style={{ fontWeight: 700, color: T.ivory }}>Region</dt>
             <dd style={{ margin: 0 }}>{safeStr(p.location)}</dd>
-            <dt style={{ fontWeight: 700, color: T.ink }}>Type</dt>
+            <dt style={{ fontWeight: 700, color: T.ivory }}>Type</dt>
             <dd style={{ margin: 0 }}>{safeStr(p.property_type)}</dd>
             {p.status ? (
               <>
-                <dt style={{ fontWeight: 700, color: T.ink }}>Status</dt>
+                <dt style={{ fontWeight: 700, color: T.ivory }}>Status</dt>
                 <dd style={{ margin: 0 }}>{safeStr(p.status)}</dd>
               </>
             ) : null}
-            <dt style={{ fontWeight: 700, color: T.ink }}>Pricing</dt>
+            <dt style={{ fontWeight: 700, color: T.ivory }}>Pricing</dt>
             <dd style={{ margin: 0 }}>{safeStr(p.price_display)}</dd>
           </dl>
         </section>
 
-        <div style={{ marginTop: 36 }}>
+        <section
+          style={{
+            marginTop: 56,
+            padding: '36px 32px',
+            borderRadius: T.radiusLg,
+            border: `1px solid ${T.divider}`,
+            background: T.charcoalSoft,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 11,
+              letterSpacing: '0.28em',
+              textTransform: 'uppercase',
+              color: T.goldEditorial,
+              fontWeight: 700,
+            }}
+          >
+            Begin a private conversation
+          </div>
+          <h3
+            style={{
+              margin: '16px 0 14px',
+              fontFamily: T.fontDisplay,
+              fontSize: 'clamp(1.4rem, 2.6vw, 1.85rem)',
+              lineHeight: 1.3,
+              color: T.ivory,
+              fontWeight: 500,
+            }}
+          >
+            Discuss this private opportunity with a private advisor.
+          </h3>
+          <p style={{ margin: 0, fontSize: 14.5, lineHeight: 1.7, color: T.ivoryMuted, maxWidth: 600 }}>
+            Your enquiry reaches the same private advisory channel as the rest of LuxeMaurice. Your advisor sees this
+            opportunity reference and responds within one business day.
+          </p>
           <a
             href={conciergeHref}
             style={{
               display: 'inline-block',
-              padding: '14px 22px',
+              marginTop: 26,
+              padding: '14px 26px',
               borderRadius: 999,
-              background: T.ink,
-              color: T.white,
-              fontWeight: 800,
-              fontSize: 15,
+              background: T.goldEditorial,
+              color: T.charcoalDeep,
+              fontWeight: 700,
+              fontSize: 13,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
               textDecoration: 'none',
             }}
           >
-            Request private details
+            Request a private consultation
           </a>
-          <p style={{ marginTop: 14, fontSize: 13, color: T.inkMuted, lineHeight: 1.5 }}>
-            You will reach the same private concierge flow as from the main listings — your advisor sees this property reference.
-          </p>
-        </div>
+        </section>
       </main>
+
+      <footer
+        style={{
+          padding: '28px 32px 44px',
+          textAlign: 'center',
+          fontSize: 12,
+          color: T.ivoryMuted,
+          lineHeight: 1.7,
+          background: T.charcoalDeep,
+          borderTop: `1px solid ${T.dividerSoft}`,
+        }}
+      >
+        Information on this page is indicative and not legal, tax, or immigration advice. Nothing here is an offer or
+        solicitation; terms are agreed in writing through a private advisor.
+      </footer>
     </div>
   );
 }

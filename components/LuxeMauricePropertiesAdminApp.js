@@ -215,7 +215,7 @@ export default function LuxeMauricePropertiesAdminApp() {
       }}
     >
       <Head>
-        <title>Property desk · Luxurious Mauritius</title>
+        <title>Private opportunities desk · LuxeMaurice</title>
       </Head>
       <header
         style={{
@@ -240,17 +240,18 @@ export default function LuxeMauricePropertiesAdminApp() {
             fontWeight: 750,
           }}
         >
-          ← Properties
+          ← Private opportunities
         </Link>
-        <span style={{ fontSize: 11, color: T.inkMuted, fontWeight: 650 }}>Private acquisitions desk</span>
+        <span style={{ fontSize: 11, color: T.inkMuted, fontWeight: 650 }}>Private opportunities desk</span>
       </header>
 
       <main style={{ maxWidth: 1120, margin: '0 auto', padding: '32px 24px 80px', display: 'grid', gap: 28 }}>
         <div>
-          <h1 style={{ margin: 0, fontFamily: T.fontDisplay, fontSize: 32, color: T.heroDeep }}>Property content</h1>
+          <h1 style={{ margin: 0, fontFamily: T.fontDisplay, fontSize: 32, color: T.heroDeep }}>Private opportunities</h1>
           <p style={{ margin: '10px 0 0', maxWidth: 720, fontSize: 16, lineHeight: 1.6, color: T.inkMuted }}>
-            Curate listings for Luxurious Mauritius. Nothing here publishes itself — choose visibility explicitly. Media stays
-            under the same review and publish rules as the Change Console.
+            Curate private opportunities for LuxeMaurice — completed residences and development partnerships.
+            Nothing here publishes itself — choose visibility explicitly. Media stays under the same review and publish
+            rules as the Change Console.
           </p>
         </div>
 
@@ -293,7 +294,7 @@ export default function LuxeMauricePropertiesAdminApp() {
               onClick={() => {
                 setForm(emptyForm());
                 setError('');
-                setStatusMsg('New listing — fill in fields and save.');
+                setStatusMsg('New private opportunity — fill in fields and save.');
               }}
               style={{
                 marginTop: 14,
@@ -306,7 +307,7 @@ export default function LuxeMauricePropertiesAdminApp() {
                 cursor: 'pointer',
               }}
             >
-              New listing
+              New private opportunity
             </button>
             <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 420, overflow: 'auto' }}>
               {listings.map((row) => (

@@ -22,13 +22,13 @@ test('isLuxHost: apex + unknown hosts are not Lux', () => {
 
 test('buildConciergeSeo: Lux host returns Lux-branded SSR metadata', () => {
   const seo = buildConciergeSeo({ host: 'lux.corpflowai.com' });
-  assert.equal(seo.title, 'Private concierge · Luxurious Mauritius');
+  assert.equal(seo.title, 'Private advisory · LuxeMaurice');
   assert.match(seo.description, /private advisor/i);
   assert.match(seo.description, /Mauritius/);
   assert.equal(seo.canonical, 'https://lux.corpflowai.com/concierge');
   assert.equal(seo.ogUrl, 'https://lux.corpflowai.com/concierge');
   assert.equal(seo.ogType, 'website');
-  assert.equal(seo.ogSiteName, 'Luxurious Mauritius');
+  assert.equal(seo.ogSiteName, 'LuxeMaurice');
   assert.equal(seo.twitterCard, 'summary_large_image');
   assert.equal(seo.robots, 'index, follow');
   assert.equal(seo.canonicalHost, 'lux.corpflowai.com');
@@ -37,7 +37,7 @@ test('buildConciergeSeo: Lux host returns Lux-branded SSR metadata', () => {
 
 test('buildConciergeSeo: apex host receives Lux content + Lux canonical (today\'s reality)', () => {
   const seo = buildConciergeSeo({ host: 'corpflowai.com' });
-  assert.equal(seo.title, 'Private concierge · Luxurious Mauritius');
+  assert.equal(seo.title, 'Private advisory · LuxeMaurice');
   assert.equal(seo.canonical, 'https://lux.corpflowai.com/concierge');
   assert.equal(seo.canonicalHost, 'lux.corpflowai.com');
   assert.equal(seo.isLuxHost, false);
@@ -63,7 +63,7 @@ test('buildConciergeSeo: propertyTitle is woven into title + description + ogTit
   });
   assert.equal(
     seo.title,
-    'Private concierge · Bel Ombre Estate Villa 14 · Luxurious Mauritius',
+    'Private advisory · Bel Ombre Estate Villa 14 · LuxeMaurice',
   );
   assert.match(seo.description, /Bel Ombre Estate Villa 14/);
   assert.equal(seo.ogTitle, seo.title);
