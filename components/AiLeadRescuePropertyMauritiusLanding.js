@@ -29,35 +29,36 @@ import PublicSiteFooter from './PublicSiteFooter.js';
  *        photograph of the Mauritius West coast (turquoise lagoon
  *        meeting volcanic mountains, no people, no identifiable
  *        property, no boats, no logos). The image was generated
- *        with explicit restraint guardrails (no travel-brochure
- *        composition, no people, no buildings, no real-estate
- *        identifiers) by the Cursor image-generation tool, then
- *        exported to responsive WebP variants by
- *        `scripts/optimize-property-hero.mjs` (Sharp) and the
- *        original > 3 MB source PNG was discarded. The image is
- *        CorpFlowAI-owned and does not depict any real property,
- *        agency, or person; the alt text describes it for screen
- *        readers. Loaded via `<picture>` so old browsers fall back
- *        to the 1024 JPEG.
- *      · `lead-rescue-property-workflow.svg` — abstract 5-node
- *        workflow ribbon (channels → log → alert → board → summary).
- *      · `lead-rescue-property-region.svg` — a simplified, properly
- *        proportioned Mauritius outline rendered as an editorial
- *        map: the full coastline as a thin charcoal hairline, the
- *        North & West coast picked out with a slightly heavier
- *        brushed-brass arc, and five labelled markers (Cap
- *        Malheureux, Grand Baie, Port Louis, Tamarin, Le Morne).
- *        The SVG also carries a small north arrow and an approx.
- *        scale bar. The map is for service-area illustration only;
- *        it is not a navigation chart and does not show roads,
- *        properties, agencies, or any real-estate inventory. Now
- *        rendered as a clearly visible block in a "Service area
- *        + Language" row beneath the segments grid (replacing the
- *        previous low-opacity decorative watermark, which user
- *        feedback flagged as too quiet for a property-sector page).
- *    All visual assets are CorpFlowAI-owned (no third-party IP, no
- *    Pixabay or stock dependencies). The SVGs are decorative or
- *    illustrative; the hero photograph is editorial.
+ *        with explicit restraint guardrails by the Cursor
+ *        image-generation tool and optimised by
+ *        `scripts/optimize-property-hero.mjs` (Sharp). The hero
+ *        aside no longer carries the white-card framing that user
+ *        feedback flagged as restraining the photograph; the image
+ *        now sits on its own with a soft drop-shadow and a small
+ *        editorial "Mauritius · West coast" eyebrow chip in its
+ *        bottom-left corner.
+ *      · `lead-rescue-property-map-{640,1024,1600}.webp` and
+ *        `lead-rescue-property-map-1024.jpg` — a real, public-domain
+ *        NASA satellite image of the island of Mauritius (NASA
+ *        World Wind / OnEarth WMS pseudocolor layer, 2006), via
+ *        Wikimedia Commons (`File:Mauritius_OnEarth_WMS.jpg`,
+ *        public-domain US-government work). Lightly graded by
+ *        `scripts/optimize-property-map.mjs` (Sharp) — small
+ *        saturation lift + gentle gamma; geographic content
+ *        unchanged. Replaces the previous hand-drawn region SVG
+ *        (which user feedback said "simply does not work") and is
+ *        now the centrepiece of a combined Operating-area panel
+ *        that subsumes the Service-area and Language cards into a
+ *        single coherent block. A small "Public domain · NASA /
+ *        NASA World Wind" credit sits in the image corner.
+ *    All workflow icons are now hand-authored inline SVG marks
+ *    rendered inside each step card (`WorkflowStepIcon`); the
+ *    standalone abstract workflow ribbon SVG that shipped in #338
+ *    has been retired because user feedback called it "an
+ *    afterthought" and asked for the graphic and step content to
+ *    live together. The icons reuse the same channel-cluster /
+ *    log / alert / board / summary visual language so the page
+ *    still has a consistent flow grammar.
  *  - The "what you see every morning" cockpit panel remains rendered
  *    as HTML/CSS with explicit "illustrative example" labelling and
  *    fake property leads (`EXAMPLE: …`).
@@ -67,10 +68,18 @@ import PublicSiteFooter from './PublicSiteFooter.js';
  *    handler in `lib/server/tenant-intake.js` with
  *    `meta.product = 'ai-lead-rescue'` (exact match for the AI Lead
  *    Rescue notification path), `meta.lead_rescue_variant =
- *    'property-mauritius'`, and `meta.page =
- *    '/lead-rescue/property-mauritius'`. The handler stores meta in
- *    `qualificationJson.intake_meta`, so the variant is visible on
- *    `/admin/lead-rescue/[id]`. The operator alert path is unchanged.
+ *    'property-mauritius'`, `meta.property_segments` (an array,
+ *    because almost every Mauritius property prospect we have
+ *    identified runs more than one of these segments at once —
+ *    user feedback explicitly rejected the previous single-select
+ *    dropdown), and `meta.property_segment` (a legacy single-string
+ *    field set to the only chosen segment when exactly one is
+ *    ticked, or to `'multiple'` otherwise — kept for backward
+ *    compatibility with any existing operator-cockpit reads), and
+ *    `meta.page = '/lead-rescue/property-mauritius'`. The handler
+ *    stores meta verbatim in `qualificationJson.intake_meta`, so
+ *    both fields are visible on `/admin/lead-rescue/[id]`. The
+ *    operator alert path is unchanged.
  *
  * Doctrine compliance:
  *  - Single offer rule preserved (USD 150 launch pilot, invoiced after
@@ -90,13 +99,17 @@ const palette = {
   warmSand: '#F1E8D8',
   paper: '#FFFFFF',
   ink: '#1A1A1A',
+  inkDeep: '#0F0F0F',
   muted: '#5A5A5A',
   faint: '#8A8A8A',
   hairline: 'rgba(15, 76, 76, 0.14)',
   hairlineSoft: 'rgba(26, 26, 26, 0.08)',
+  hairlineMid: 'rgba(26, 26, 26, 0.16)',
   teal: '#0F4C4C',
   tealSoft: 'rgba(15, 76, 76, 0.08)',
+  tealStrong: '#0A3636',
   brass: '#9C7A3D',
+  brassSoft: 'rgba(156, 122, 61, 0.16)',
 };
 
 const styles = {
@@ -128,13 +141,28 @@ const styles = {
   heroVisualWrap: {
     position: 'relative', width: '100%',
     aspectRatio: '4 / 5',
-    border: `1px solid ${palette.hairlineSoft}`,
-    background: palette.cream, borderRadius: 6, overflow: 'hidden',
-    boxShadow: '0 1px 0 rgba(15, 76, 76, 0.04), 0 14px 40px rgba(15, 76, 76, 0.05)',
+    borderRadius: 4, overflow: 'hidden',
+    boxShadow: '0 26px 60px rgba(15, 76, 76, 0.18), 0 6px 14px rgba(15, 76, 76, 0.10)',
   },
   heroVisual: {
     width: '100%', height: '100%', display: 'block',
     objectFit: 'cover', objectPosition: 'center 42%',
+  },
+  heroVisualEyebrow: {
+    position: 'absolute', left: 16, bottom: 14,
+    display: 'inline-flex', alignItems: 'center', gap: 8,
+    background: 'rgba(10, 54, 54, 0.62)',
+    color: '#FAF6F0',
+    padding: '8px 12px',
+    borderRadius: 2,
+    fontSize: 10, letterSpacing: '0.24em', textTransform: 'uppercase',
+    fontWeight: 700,
+    backdropFilter: 'blur(4px)',
+    WebkitBackdropFilter: 'blur(4px)',
+  },
+  heroVisualEyebrowDot: {
+    width: 4, height: 4, borderRadius: '50%',
+    background: '#E2C892',
   },
   eyebrow: {
     fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase',
@@ -185,26 +213,28 @@ const styles = {
   },
   body: { marginTop: 18, color: palette.muted, lineHeight: 1.65, fontSize: 16, maxWidth: 680 },
   divider: { height: 1, background: palette.hairlineSoft, margin: '64px 0 0' },
-  workflowVisualWrap: {
-    marginTop: 28, padding: '8px 12px',
-    border: `1px solid ${palette.hairlineSoft}`,
-    background: palette.paper, borderRadius: 4, overflow: 'hidden',
-  },
-  workflowVisual: { width: '100%', height: 'auto', display: 'block' },
   workflowBand: {
-    display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-    gap: 12, marginTop: 16,
+    display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
+    gap: 14, marginTop: 36,
   },
   workflowStep: {
     background: palette.paper, border: `1px solid ${palette.hairlineSoft}`,
-    padding: '20px 18px', borderRadius: 4, position: 'relative',
+    padding: '22px 20px 20px', borderRadius: 4,
+    display: 'flex', flexDirection: 'column', gap: 14,
+    position: 'relative', minHeight: 220,
+  },
+  workflowStepIconWrap: {
+    width: 56, height: 56, borderRadius: 4,
+    background: palette.warmSand,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    borderTop: `1px solid ${palette.brassSoft}`,
   },
   workflowStepIndex: {
-    fontSize: 11, letterSpacing: '0.22em', color: palette.teal,
-    fontWeight: 700, marginBottom: 8,
+    fontSize: 10, letterSpacing: '0.24em', color: palette.brass,
+    fontWeight: 700,
   },
-  workflowStepTitle: { fontSize: 16, color: palette.ink, fontWeight: 600, marginBottom: 6 },
-  workflowStepBody: { color: palette.muted, fontSize: 13, lineHeight: 1.55 },
+  workflowStepTitle: { fontSize: 15, color: palette.ink, fontWeight: 600, lineHeight: 1.3 },
+  workflowStepBody: { color: palette.muted, fontSize: 13, lineHeight: 1.55, marginTop: 'auto' },
   cockpit: {
     marginTop: 28, background: palette.paper,
     border: `1px solid ${palette.hairlineSoft}`, borderRadius: 6, overflow: 'hidden',
@@ -236,17 +266,29 @@ const styles = {
   cockpitTableHead: {
     padding: '14px 22px', borderTop: `1px solid ${palette.hairlineSoft}`,
     borderBottom: `1px solid ${palette.hairlineSoft}`,
-    display: 'grid', gridTemplateColumns: '1.6fr 1fr 0.8fr 0.6fr',
+    display: 'grid', gridTemplateColumns: '1.5fr 0.95fr 0.8fr 0.85fr 0.6fr',
     gap: 12, fontSize: 11, letterSpacing: '0.18em',
     textTransform: 'uppercase', color: palette.faint, fontWeight: 600,
   },
   cockpitRow: {
     padding: '16px 22px', borderBottom: `1px solid ${palette.hairlineSoft}`,
-    display: 'grid', gridTemplateColumns: '1.6fr 1fr 0.8fr 0.6fr',
+    display: 'grid', gridTemplateColumns: '1.5fr 0.95fr 0.8fr 0.85fr 0.6fr',
     gap: 12, alignItems: 'center', fontSize: 14,
   },
   cockpitName: { color: palette.ink, fontWeight: 500 },
   cockpitMeta: { color: palette.muted, fontSize: 13 },
+  cockpitAssignee: {
+    display: 'inline-flex', alignItems: 'center', gap: 8,
+    color: palette.ink, fontSize: 13,
+  },
+  cockpitAssigneeAvatar: {
+    width: 22, height: 22, borderRadius: '50%',
+    background: palette.warmSand, color: palette.teal,
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: 10, fontWeight: 700, letterSpacing: '0.04em',
+    border: `1px solid ${palette.brassSoft}`,
+    flex: '0 0 auto',
+  },
   badge: {
     fontSize: 11, letterSpacing: '0.06em', padding: '3px 8px',
     borderRadius: 3, fontWeight: 600, display: 'inline-block',
@@ -259,63 +301,89 @@ const styles = {
     padding: '14px 22px', fontSize: 12, color: palette.faint,
     background: palette.warmSand, borderTop: `1px solid ${palette.hairlineSoft}`,
   },
-  segmentsHeader: {},
-  serviceAreaRow: {
-    marginTop: 28,
-    display: 'grid',
-    gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.15fr)',
-    gap: 16, alignItems: 'stretch',
-  },
-  serviceAreaCard: {
-    background: palette.paper,
-    border: `1px solid ${palette.hairlineSoft}`,
-    borderRadius: 4,
-    padding: '22px 24px',
-    display: 'flex', flexDirection: 'column', gap: 12,
-  },
-  serviceAreaHeading: {
-    fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase',
-    color: palette.teal, fontWeight: 700,
-  },
-  serviceAreaCaption: { fontSize: 14, color: palette.muted, lineHeight: 1.55 },
-  serviceAreaMapWrap: {
-    marginTop: 4,
-    width: '100%', maxWidth: 320, marginLeft: 'auto', marginRight: 'auto',
-  },
-  serviceAreaMap: { width: '100%', height: 'auto', display: 'block' },
   segments: {
-    display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+    display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
     gap: 16, marginTop: 36,
   },
   segmentCard: {
     background: palette.paper, border: `1px solid ${palette.hairlineSoft}`,
-    padding: '24px 22px', borderRadius: 4,
+    padding: '26px 24px', borderRadius: 4,
+    display: 'flex', flexDirection: 'column', gap: 8,
   },
   segmentLabel: {
     fontSize: 10, letterSpacing: '0.22em', color: palette.teal,
-    textTransform: 'uppercase', fontWeight: 700, marginBottom: 10,
+    textTransform: 'uppercase', fontWeight: 700,
   },
-  segmentTitle: { fontSize: 18, color: palette.ink, fontWeight: 600, marginBottom: 8 },
+  segmentTitle: { fontSize: 18, color: palette.ink, fontWeight: 600, lineHeight: 1.35 },
   segmentBody: { color: palette.muted, fontSize: 14, lineHeight: 1.6 },
-  multilingualCard: {
-    padding: '22px 24px',
-    background: palette.warmSand, border: `1px solid ${palette.hairlineSoft}`,
-    borderRadius: 4,
-    display: 'flex', flexDirection: 'column', gap: 8,
+  operatingArea: {
+    marginTop: 36,
+    background: palette.paper,
+    border: `1px solid ${palette.hairlineSoft}`,
+    borderRadius: 4, overflow: 'hidden',
+    display: 'grid',
+    gridTemplateColumns: 'minmax(0, 1.05fr) minmax(0, 1fr)',
+    boxShadow: '0 1px 0 rgba(15, 76, 76, 0.04), 0 18px 50px rgba(15, 76, 76, 0.06)',
   },
-  multilingualHeading: {
+  operatingAreaMapWrap: {
+    position: 'relative',
+    background: '#0A1A2A',
+    minHeight: 320,
+    overflow: 'hidden',
+  },
+  operatingAreaMap: {
+    width: '100%', height: '100%', display: 'block',
+    objectFit: 'cover', objectPosition: 'center center',
+  },
+  operatingAreaCredit: {
+    position: 'absolute', right: 12, bottom: 10,
+    color: 'rgba(250, 246, 240, 0.78)',
+    fontSize: 10, letterSpacing: '0.10em',
+    background: 'rgba(10, 26, 42, 0.55)',
+    padding: '4px 8px',
+    borderRadius: 2,
+  },
+  operatingAreaBody: {
+    padding: '32px 32px 28px',
+    display: 'flex', flexDirection: 'column', gap: 22,
+  },
+  operatingAreaSection: {
+    display: 'flex', flexDirection: 'column', gap: 10,
+  },
+  operatingAreaDivider: {
+    height: 1, background: palette.hairlineSoft, margin: '4px 0 4px',
+  },
+  operatingAreaHeading: {
     fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase',
-    color: palette.teal, fontWeight: 700, marginBottom: 8,
+    color: palette.teal, fontWeight: 700,
   },
-  multilingualBody: { fontSize: 15, color: palette.ink, lineHeight: 1.6, fontWeight: 400 },
+  operatingAreaText: { color: palette.ink, fontSize: 15, lineHeight: 1.6, fontWeight: 400 },
+  operatingAreaTowns: {
+    display: 'flex', flexWrap: 'wrap', gap: '6px 14px',
+    fontSize: 12, color: palette.muted, letterSpacing: '0.04em',
+  },
+  operatingAreaTown: {
+    display: 'inline-flex', alignItems: 'center', gap: 6,
+  },
+  operatingAreaTownDot: {
+    width: 4, height: 4, borderRadius: '50%', background: palette.brass,
+  },
   trustList: {
-    display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-    gap: 0, marginTop: 28,
-    border: `1px solid ${palette.hairlineSoft}`, background: palette.hairlineSoft,
+    marginTop: 28,
+    border: `1px solid ${palette.hairlineSoft}`,
+    background: palette.paper,
+    borderRadius: 4,
   },
-  trustItem: { background: palette.paper, padding: '20px 22px' },
-  trustItemTitle: { fontSize: 14, color: palette.ink, fontWeight: 600, marginBottom: 6 },
-  trustItemBody: { fontSize: 13, color: palette.muted, lineHeight: 1.55 },
+  trustItem: {
+    display: 'grid',
+    gridTemplateColumns: 'minmax(160px, 0.7fr) minmax(0, 1.5fr)',
+    gap: 24,
+    padding: '22px 26px',
+    borderBottom: `1px solid ${palette.hairlineSoft}`,
+    alignItems: 'baseline',
+  },
+  trustItemTitle: { fontSize: 15, color: palette.ink, fontWeight: 600, letterSpacing: '0.005em' },
+  trustItemBody: { fontSize: 14, color: palette.muted, lineHeight: 1.6 },
   pricingCard: {
     marginTop: 28, padding: '28px 30px', background: palette.paper,
     border: `1px solid ${palette.hairlineSoft}`, borderRadius: 4,
@@ -341,6 +409,31 @@ const styles = {
     border: `1px solid ${palette.hairlineSoft}`, background: palette.cream,
     color: palette.ink, fontFamily: 'inherit', fontSize: 14, borderRadius: 3,
   },
+  formGroup: {
+    display: 'flex', flexDirection: 'column', gap: 10,
+    padding: '14px 16px',
+    border: `1px solid ${palette.hairlineSoft}`,
+    background: palette.cream,
+    borderRadius: 3,
+  },
+  formGroupLabel: {
+    fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase',
+    color: palette.faint, fontWeight: 600,
+  },
+  formGroupHint: { fontSize: 12, color: palette.faint, lineHeight: 1.5 },
+  checkboxGrid: {
+    display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    gap: '10px 16px',
+  },
+  checkboxItem: {
+    display: 'flex', alignItems: 'flex-start', gap: 10,
+    fontSize: 14, color: palette.ink, lineHeight: 1.4,
+    cursor: 'pointer',
+  },
+  checkboxControl: {
+    width: 16, height: 16, marginTop: 2,
+    accentColor: palette.teal, flex: '0 0 auto',
+  },
   formNote: { fontSize: 12, color: palette.faint, lineHeight: 1.5, marginTop: 14 },
   noGuarantee: {
     marginTop: 12, padding: '14px 18px', background: palette.warmSand,
@@ -353,30 +446,96 @@ const styles = {
 const workflowSteps = [
   {
     index: '01',
+    iconKey: 'channels',
     title: 'Channel intake',
     body: 'WhatsApp, Facebook, website forms, listing portals, and missed calls — every enquiry route you already use.',
   },
   {
     index: '02',
+    iconKey: 'log',
     title: 'Lead log',
     body: 'A single, time-stamped record per enquiry. No duplicate, no lost message, no "did anyone reply?".',
   },
   {
     index: '03',
+    iconKey: 'alert',
     title: 'Owner / operator alert',
     body: 'The right person is told the moment a new enquiry lands — no waiting for the next inbox check.',
   },
   {
     index: '04',
+    iconKey: 'board',
     title: 'Follow-up board',
     body: 'Open enquiries, replies sent, viewings scheduled, and stale leads — all visible without chasing colleagues.',
   },
   {
     index: '05',
+    iconKey: 'summary',
     title: 'Daily summary',
     body: 'A short morning view: new enquiries, follow-ups due, and what slipped past 48 hours without a reply.',
   },
 ];
+
+function WorkflowStepIcon({ iconKey }) {
+  const stroke = '#1A1A1A';
+  const accent = '#9C7A3D';
+  switch (iconKey) {
+    case 'channels':
+      return (
+        <svg viewBox="0 0 32 32" width="28" height="28" fill="none" aria-hidden="true">
+          <circle cx="9" cy="9" r="2.4" fill={stroke} />
+          <circle cx="22" cy="9" r="2.4" fill={stroke} />
+          <circle cx="9" cy="22" r="2.4" fill={stroke} />
+          <circle cx="22" cy="22" r="2.4" fill={stroke} />
+          <circle cx="16" cy="16" r="3" fill={accent} />
+        </svg>
+      );
+    case 'log':
+      return (
+        <svg viewBox="0 0 32 32" width="28" height="28" fill="none" aria-hidden="true">
+          <rect x="5" y="7" width="22" height="18" rx="1" stroke={stroke} strokeWidth="1.4" />
+          <line x1="8.5" y1="12" x2="23.5" y2="12" stroke={stroke} strokeWidth="1.2" strokeLinecap="round" />
+          <line x1="8.5" y1="16" x2="20" y2="16" stroke={stroke} strokeWidth="1.2" strokeLinecap="round" />
+          <line x1="8.5" y1="20" x2="22" y2="20" stroke={accent} strokeWidth="1.4" strokeLinecap="round" />
+        </svg>
+      );
+    case 'alert':
+      return (
+        <svg viewBox="0 0 32 32" width="28" height="28" fill="none" aria-hidden="true">
+          <path
+            d="M16 6 L25 18 H7 L16 6 Z"
+            stroke={stroke}
+            strokeWidth="1.4"
+            strokeLinejoin="round"
+          />
+          <line x1="16" y1="11" x2="16" y2="15" stroke={stroke} strokeWidth="1.4" strokeLinecap="round" />
+          <circle cx="16" cy="22.5" r="1.4" fill={accent} />
+          <line x1="16" y1="18" x2="16" y2="20.5" stroke={stroke} strokeWidth="1.4" strokeLinecap="round" />
+        </svg>
+      );
+    case 'board':
+      return (
+        <svg viewBox="0 0 32 32" width="28" height="28" fill="none" aria-hidden="true">
+          <rect x="5" y="8" width="6" height="16" rx="1" stroke={stroke} strokeWidth="1.4" />
+          <rect x="13" y="8" width="6" height="16" rx="1" stroke={stroke} strokeWidth="1.4" />
+          <rect x="21" y="8" width="6" height="16" rx="1" stroke={stroke} strokeWidth="1.4" />
+          <rect x="6.5" y="9.5" width="3" height="3" fill={accent} rx="0.6" />
+          <rect x="14.5" y="13" width="3" height="3" fill={stroke} rx="0.6" opacity="0.7" />
+          <rect x="22.5" y="17" width="3" height="3" fill={stroke} rx="0.6" opacity="0.4" />
+        </svg>
+      );
+    case 'summary':
+      return (
+        <svg viewBox="0 0 32 32" width="28" height="28" fill="none" aria-hidden="true">
+          <line x1="6" y1="10" x2="26" y2="10" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="6" y1="16" x2="22" y2="16" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="6" y1="22" x2="18" y2="22" stroke={accent} strokeWidth="1.8" strokeLinecap="round" />
+        </svg>
+      );
+    default:
+      return null;
+  }
+}
 
 const cockpitMetrics = [
   { label: 'New today', value: '4' },
@@ -390,6 +549,8 @@ const cockpitRows = [
     name: 'EXAMPLE: 4-bed villa enquiry — Tamarin',
     meta: 'WhatsApp · Buyer · EUR budget',
     when: '08:42 today',
+    assignee: 'AR',
+    assigneeName: 'EXAMPLE: A. Ramdoyal',
     badgeStyle: 'badgeNew',
     badgeText: 'New',
   },
@@ -397,6 +558,8 @@ const cockpitRows = [
     name: 'EXAMPLE: Long-let inquiry — Grand Baie',
     meta: 'Website form · Tenant · 12 mo',
     when: 'Yesterday',
+    assignee: 'JF',
+    assigneeName: 'EXAMPLE: J. Fanchette',
     badgeStyle: 'badgeReplied',
     badgeText: 'Replied',
   },
@@ -404,6 +567,8 @@ const cockpitRows = [
     name: 'EXAMPLE: Site visit request — Black River',
     meta: 'Facebook DM · Buyer · weekend',
     when: 'Yesterday',
+    assignee: 'FD',
+    assigneeName: 'EXAMPLE: Front desk',
     badgeStyle: 'badgeBooked',
     badgeText: 'Viewing',
   },
@@ -411,9 +576,25 @@ const cockpitRows = [
     name: 'EXAMPLE: Serviced apt — 6-night stay — Flic en Flac',
     meta: 'Listing portal · Guest · Aug',
     when: '2 days ago',
+    assignee: '—',
+    assigneeName: 'EXAMPLE: Unassigned',
     badgeStyle: 'badgeFollowup',
     badgeText: 'Follow-up',
   },
+];
+
+const segmentOptions = [
+  { value: 'real_estate_agency', label: 'Real estate agency' },
+  { value: 'villa_rental', label: 'Villa rental operator' },
+  { value: 'property_manager', label: 'Property manager' },
+  { value: 'serviced_apartment_str', label: 'Serviced apartments / short-term rentals' },
+  { value: 'commercial_property', label: 'Commercial / office space' },
+  { value: 'other_property', label: 'Other property' },
+];
+
+const operatingAreaTowns = [
+  'Cap Malheureux', 'Grand Baie', 'Pereybère', 'Trou aux Biches', 'Pointe aux Cannoniers',
+  'Port Louis', 'Tamarin', 'Black River', 'Flic en Flac', 'Le Morne',
 ];
 
 const segments = [
@@ -468,6 +649,13 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
     trackEvent('lr_property_intake_submit_attempt');
     const form = e.currentTarget;
     const fd = new FormData(form);
+
+    const propertySegments = fd.getAll('property_segment').map((v) => String(v).trim()).filter(Boolean);
+    if (propertySegments.length === 0) {
+      alert('Please select at least one property segment that fits your operation.');
+      return;
+    }
+
     const payload = {
       name: String(fd.get('name') || '').trim(),
       email: String(fd.get('email') || '').trim(),
@@ -477,7 +665,8 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
         product: 'ai-lead-rescue',
         lead_rescue_variant: 'property-mauritius',
         business_name: String(fd.get('business_name') || '').trim(),
-        property_segment: String(fd.get('property_segment') || '').trim(),
+        property_segments: propertySegments,
+        property_segment: propertySegments.length === 1 ? propertySegments[0] : 'multiple',
         lead_sources: String(fd.get('lead_sources') || '').trim(),
         host,
         page: '/lead-rescue/property-mauritius',
@@ -562,7 +751,7 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
                 <source
                   type="image/webp"
                   srcSet="/assets/visuals/lead-rescue-property-hero-640.webp 640w, /assets/visuals/lead-rescue-property-hero-1024.webp 1024w, /assets/visuals/lead-rescue-property-hero-1600.webp 1600w"
-                  sizes="(max-width: 900px) min(360px, calc(100vw - 48px)), 430px"
+                  sizes="(max-width: 900px) min(420px, calc(100vw - 48px)), 460px"
                 />
                 <img
                   src="/assets/visuals/lead-rescue-property-hero-1024.jpg"
@@ -574,6 +763,10 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
                   decoding="async"
                 />
               </picture>
+              <span style={styles.heroVisualEyebrow} aria-hidden="true">
+                <span style={styles.heroVisualEyebrowDot} />
+                Mauritius · West coast
+              </span>
             </aside>
           </div>
         </section>
@@ -586,21 +779,13 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
           <p style={styles.body}>
             Five steps, all visible. WhatsApp, Facebook, the website form, listing portals, and calls flow into one lead log. The owner or operator is alerted. A follow-up board shows what has been replied to, what is awaiting a response, and what has gone cold. A short daily summary keeps everyone honest about the leads that quietly slipped past forty-eight hours.
           </p>
-          <div style={styles.workflowVisualWrap} className="lr-property-workflow-visual-wrap">
-            <img
-              src="/assets/visuals/lead-rescue-property-workflow.svg"
-              alt="Abstract horizontal flow with five thin nodes connected on a single hairline. Left to right: a cluster of small dots labelled CHANNELS for WhatsApp, Facebook, site, listing, and calls; a small rectangle labelled LEAD LOG; a chevron labelled ALERT for the owner or operator; a small grid labelled FOLLOW-UP for replied, awaiting, and stale; a stack of three lines labelled SUMMARY for the morning view."
-              width="1200"
-              height="200"
-              style={styles.workflowVisual}
-              loading="lazy"
-              decoding="async"
-            />
-          </div>
-          <div style={styles.workflowBand}>
+          <div style={styles.workflowBand} className="lr-property-workflow-band">
             {workflowSteps.map((step) => (
-              <div key={step.index} style={styles.workflowStep}>
-                <div style={styles.workflowStepIndex}>{step.index}</div>
+              <div key={step.index} style={styles.workflowStep} className="lr-property-workflow-step">
+                <div style={styles.workflowStepIconWrap} aria-hidden="true">
+                  <WorkflowStepIcon iconKey={step.iconKey} />
+                </div>
+                <div style={styles.workflowStepIndex}>STEP {step.index}</div>
                 <div style={styles.workflowStepTitle}>{step.title}</div>
                 <div style={styles.workflowStepBody}>{step.body}</div>
               </div>
@@ -634,6 +819,7 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
               <div>Enquiry</div>
               <div>Source</div>
               <div>When</div>
+              <div>Assigned to</div>
               <div>Status</div>
             </div>
             {cockpitRows.map((row) => (
@@ -641,6 +827,10 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
                 <div style={styles.cockpitName}>{row.name}</div>
                 <div style={styles.cockpitMeta}>{row.meta}</div>
                 <div style={styles.cockpitMeta}>{row.when}</div>
+                <div style={styles.cockpitAssignee}>
+                  <span style={styles.cockpitAssigneeAvatar} aria-hidden="true">{row.assignee}</span>
+                  <span>{row.assigneeName}</span>
+                </div>
                 <div>
                   <span style={{ ...styles.badge, ...styles[row.badgeStyle] }}>{row.badgeText}</span>
                 </div>
@@ -653,11 +843,9 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
         </section>
 
         <section style={styles.section}>
-          <div style={styles.segmentsHeader}>
-            <div style={styles.sectionLabel}>Who this is for</div>
-            <h2 style={styles.h2}>Property operators who already get the enquiries — they just need the workflow that keeps them.</h2>
-          </div>
-          <div style={styles.segments}>
+          <div style={styles.sectionLabel}>Who this is for</div>
+          <h2 style={styles.h2}>Property operators who already get the enquiries — they just need the workflow that keeps them.</h2>
+          <div style={styles.segments} className="lr-property-segments-grid">
             {segments.map((seg) => (
               <article key={seg.label} style={styles.segmentCard} className="lr-property-segment">
                 <div style={styles.segmentLabel}>{seg.label}</div>
@@ -666,28 +854,54 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
               </article>
             ))}
           </div>
-          <div style={styles.serviceAreaRow} className="lr-property-service-area-row">
-            <div style={styles.serviceAreaCard}>
-              <div style={styles.serviceAreaHeading}>Service area</div>
-              <div style={styles.serviceAreaCaption}>
-                The pilot is run for property operators on the North and West coast — Cap Malheureux through Grand Baie, Port Louis, Tamarin, Black River, and down to Le Morne. Other parts of the island on request.
-              </div>
-              <div style={styles.serviceAreaMapWrap}>
+        </section>
+
+        <section style={styles.section} aria-labelledby="operating-area-heading">
+          <div style={styles.sectionLabel}>Operating in Mauritius</div>
+          <h2 id="operating-area-heading" style={styles.h2}>Where we run the pilot — and how the workflow handles language.</h2>
+          <div style={styles.operatingArea} className="lr-property-operating-area">
+            <div style={styles.operatingAreaMapWrap}>
+              <picture>
+                <source
+                  type="image/webp"
+                  srcSet="/assets/visuals/lead-rescue-property-map-640.webp 640w, /assets/visuals/lead-rescue-property-map-1024.webp 1024w, /assets/visuals/lead-rescue-property-map-1600.webp 1600w"
+                  sizes="(max-width: 720px) 100vw, 540px"
+                />
                 <img
-                  src="/assets/visuals/lead-rescue-property-region.svg"
-                  alt="Simplified map of Mauritius with the coastline drawn as a charcoal hairline. The North and West coast is highlighted with a heavier brushed-brass arc, and five small markers label Cap Malheureux, Grand Baie, Port Louis, Tamarin, and Le Morne. A small north arrow and an approximate ten-kilometre scale bar are shown for orientation."
-                  width="400"
-                  height="540"
-                  style={styles.serviceAreaMap}
+                  src="/assets/visuals/lead-rescue-property-map-1024.jpg"
+                  alt="Real public-domain NASA satellite image of the island of Mauritius, viewed from above. The island fills most of the frame, surrounded by deep navy ocean. The mountainous green interior, paler coastal plains, and turquoise lagoon along the coast are clearly visible. Some natural cloud cover crosses the island. Used as a service-area illustration; no roads or place names overlaid."
+                  width="1024"
+                  height="1465"
+                  style={styles.operatingAreaMap}
                   loading="lazy"
                   decoding="async"
                 />
-              </div>
+              </picture>
+              <span style={styles.operatingAreaCredit}>
+                Public domain · NASA / NASA World Wind
+              </span>
             </div>
-            <div style={styles.multilingualCard}>
-              <div style={styles.multilingualHeading}>Language</div>
-              <div style={styles.multilingualBody}>
-                Calls are easiest in English, but the written workflow can support French lead summaries and French enquiry handling where required. Customer-facing replies are reviewed before sending.
+            <div style={styles.operatingAreaBody}>
+              <div style={styles.operatingAreaSection}>
+                <div style={styles.operatingAreaHeading}>Service area</div>
+                <p style={styles.operatingAreaText}>
+                  The pilot is run for property operators on the North and West coast — Cap Malheureux through Grand Baie, Port Louis, Tamarin, Black River, and down to Le Morne. Other parts of the island on request.
+                </p>
+                <div style={styles.operatingAreaTowns} aria-label="Towns covered by the pilot">
+                  {operatingAreaTowns.map((town) => (
+                    <span key={town} style={styles.operatingAreaTown}>
+                      <span style={styles.operatingAreaTownDot} aria-hidden="true" />
+                      {town}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div style={styles.operatingAreaDivider} />
+              <div style={styles.operatingAreaSection}>
+                <div style={styles.operatingAreaHeading}>Language</div>
+                <p style={styles.operatingAreaText}>
+                  Calls are easiest in English, but the written workflow can support French lead summaries and French enquiry handling where required. Customer-facing replies are reviewed before sending.
+                </p>
               </div>
             </div>
           </div>
@@ -698,7 +912,7 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
           <h2 style={styles.h2}>Honest limits — so you know exactly what you are buying.</h2>
           <div style={styles.trustList}>
             {trustBoundaries.map((item) => (
-              <div key={item.title} style={styles.trustItem}>
+              <div key={item.title} style={styles.trustItem} className="lr-property-trust-list-item">
                 <div style={styles.trustItemTitle}>{item.title}</div>
                 <div style={styles.trustItemBody}>{item.body}</div>
               </div>
@@ -729,14 +943,25 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
           <div style={styles.intakeCard}>
             <form onSubmit={submitLead} style={styles.formGrid} aria-label="Mauritius property pilot outline request">
               <input required name="business_name" placeholder="Business name" style={styles.input} autoComplete="organization" />
-              <select required name="property_segment" defaultValue="" style={styles.input} aria-label="Property segment">
-                <option value="" disabled>Property segment</option>
-                <option value="real_estate_agency">Real estate agency</option>
-                <option value="villa_rental">Villa rental operator</option>
-                <option value="property_manager">Property manager</option>
-                <option value="serviced_apartment_str">Serviced apartments / short-term rentals</option>
-                <option value="other_property">Other property</option>
-              </select>
+              <fieldset style={styles.formGroup} className="lr-property-form-group">
+                <legend style={styles.formGroupLabel}>Property segment · select all that apply</legend>
+                <div style={styles.checkboxGrid} className="lr-property-checkbox-grid">
+                  {segmentOptions.map((opt) => (
+                    <label key={opt.value} style={styles.checkboxItem} className="lr-property-checkbox-item">
+                      <input
+                        type="checkbox"
+                        name="property_segment"
+                        value={opt.value}
+                        style={styles.checkboxControl}
+                      />
+                      <span>{opt.label}</span>
+                    </label>
+                  ))}
+                </div>
+                <div style={styles.formGroupHint}>
+                  Many Mauritius property operators run more than one of these in parallel — tick every segment that fits.
+                </div>
+              </fieldset>
               <input required name="name" placeholder="Your name" style={styles.input} autoComplete="name" />
               <input required type="email" name="email" placeholder="Email" style={styles.input} autoComplete="email" />
               <input name="phone" placeholder="Phone or WhatsApp (optional)" style={styles.input} autoComplete="tel" />
@@ -766,9 +991,9 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
             transition: background 220ms ease, transform 220ms ease, box-shadow 220ms ease;
           }
           .lr-property-cta-primary:hover {
-            background: #1A1A1A;
+            background: #0A3636;
             transform: translateY(-1px);
-            box-shadow: 0 12px 32px rgba(15, 76, 76, 0.18);
+            box-shadow: 0 16px 38px rgba(15, 76, 76, 0.22);
           }
           .lr-property-cta-secondary {
             transition: border-color 220ms ease, background 220ms ease;
@@ -785,24 +1010,45 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
             border-color: rgba(15, 76, 76, 0.32);
             box-shadow: 0 14px 36px rgba(15, 76, 76, 0.08);
           }
-        }
-        .lr-property-cockpit-row:last-child {
-          border-bottom: 0;
-        }
-        @media (prefers-reduced-motion: no-preference) {
+          .lr-property-workflow-step {
+            transition: border-color 260ms ease, box-shadow 260ms ease, transform 260ms ease;
+          }
+          .lr-property-workflow-step:hover {
+            transform: translateY(-1px);
+            border-color: rgba(15, 76, 76, 0.32);
+            box-shadow: 0 14px 36px rgba(15, 76, 76, 0.08);
+          }
           .lr-property-hero-aside picture img {
             animation: lrPropHeroSettle 1400ms ease-out 120ms both;
+            transition: transform 1200ms ease;
           }
           @keyframes lrPropHeroSettle {
             from { opacity: 0; transform: translateY(8px); }
             to   { opacity: 1; transform: translateY(0); }
           }
-          .lr-property-workflow-visual-wrap img {
+          .lr-property-operating-area picture img {
             animation: lrPropFadeIn 1100ms ease-out 220ms both;
           }
           @keyframes lrPropFadeIn {
             from { opacity: 0; }
             to   { opacity: 1; }
+          }
+        }
+
+        .lr-property-trust-list-item:last-child {
+          border-bottom: 0 !important;
+        }
+        .lr-property-cockpit-row:last-of-type {
+          border-bottom: 0;
+        }
+
+        .lr-property-checkbox-item:hover span {
+          color: #0F4C4C;
+        }
+
+        @media (max-width: 1100px) {
+          .lr-property-workflow-band {
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
           }
         }
         @media (max-width: 900px) {
@@ -812,32 +1058,52 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
           }
           .lr-property-hero-aside {
             order: -1;
-            max-width: 360px;
+            max-width: 480px;
             margin-bottom: 8px;
           }
-        }
-        @media (max-width: 720px) {
-          .lr-property-service-area-row {
+          .lr-property-operating-area {
             grid-template-columns: minmax(0, 1fr) !important;
           }
-        }
-        @media (max-width: 560px) {
-          .lr-property-hero-aside {
-            max-width: 320px;
+          .lr-property-operating-area picture img {
+            aspect-ratio: 4 / 3;
+            object-fit: cover;
           }
         }
         @media (max-width: 720px) {
+          .lr-property-segments-grid {
+            grid-template-columns: minmax(0, 1fr) !important;
+          }
+          .lr-property-workflow-band {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
+          .lr-property-checkbox-grid {
+            grid-template-columns: minmax(0, 1fr) !important;
+          }
+          .lr-property-trust-list-item {
+            grid-template-columns: minmax(0, 1fr) !important;
+            gap: 6px !important;
+            padding: 18px 22px !important;
+          }
           .lr-property-cockpit-thead {
             display: none !important;
           }
           .lr-property-cockpit-row {
-            grid-template-columns: 1fr 0.6fr !important;
-            row-gap: 4px;
+            grid-template-columns: 1fr 0.7fr !important;
+            row-gap: 6px;
           }
           .lr-property-cockpit-row > div:nth-child(2),
-          .lr-property-cockpit-row > div:nth-child(3) {
+          .lr-property-cockpit-row > div:nth-child(3),
+          .lr-property-cockpit-row > div:nth-child(4) {
             grid-column: 1 / -1;
             font-size: 12px;
+          }
+        }
+        @media (max-width: 540px) {
+          .lr-property-workflow-band {
+            grid-template-columns: minmax(0, 1fr) !important;
+          }
+          .lr-property-hero-aside {
+            max-width: 100%;
           }
         }
       `}</style>
