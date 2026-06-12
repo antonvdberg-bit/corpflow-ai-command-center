@@ -28,6 +28,53 @@
 
 ---
 
+## 2026-06-12 — LuxeMaurice `/change` usability overhaul — CRM noise filter, Media workspace rename, Add content panel for sprint tickets C1–C4, demo opportunity removed from public surfaces (PR #347)
+
+<!-- LUXEMAURICE_CHANGE_USABILITY_FIXES_2026_06_12_HIST -->
+
+**Status:** PARTIAL — code merged + tests + build green; **TASK 6 production verification pending** Vercel Production deployment + Jan/Anton walk-through per `.cursor/rules/delivery-reality.mdc`. The PARTIAL/COMPLETE verdict for the **Content Population Sprint** is unaffected — this packet only changes how the desk *looks and feels*, not whether the Reality Gate has fired.
+
+**Why this work exists:** PR [#346](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/346) cleaned the historical noise out of the operator desk but did not change *how* operators interact with the remaining work. After Jan + Anton walked through `https://lux.corpflowai.com/change`, five concrete blockers remained for using the desk as a content workspace (not an engineering console):
+
+1. `LEADS · LuxeMaurice CRM (concierge)` read `New: 14` because every historical Phase 2 / Phase 3 verification fixture (`@example.com`, `@example.invalid`, `@placeholder.local`, `@corpflowai.invalid`, names like `PHASE2D-VERIFY`, `Phase3 CRM verify`, `Notify Test`) counted as a real lead. Real concierge leads at the time of writing: **2**, both from Jan (`jam@luxemaurice.com`, `+23055081350`).
+2. `Media library · cross-ticket index (Phase 5D)` exposed `Phase 5D` + `JSON metadata only (no bytes)` to a non-engineer operator.
+3. Content sprint tickets C1–C4 had no obvious upload path; the primary CTA was the generic Intake / Clarify / Draft / Review / Build stage pills.
+4. Sprint tasks were framed as workflow stages, not content actions.
+5. The hardcoded staged catalog still rendered the demo opportunity `lm-phase2d-manual-demo` ("Le Château — manual workflow demonstration") publicly on `/`, on `/property/[slug]`, in `/concierge?property=`, and in the sitemap.
+
+**Non-negotiables (held throughout):** no deletes; no mutation of master programme `cmo8mjijk0000jl04l1jz0v6d`; no mutation of active content sprint parent `cmqa2y2ga0000l704glnfro1f`; no mutation of any lead row in `prisma.lead`; tenant boundaries preserved; media governance unchanged; no new env vars; no schema migration; no IDX / MLS / fake inventory introduced (the demo entry is **hidden**, not faked).
+
+**Where the new logic lives (all pure / unit-tested where possible):**
+
+- `lib/cmp/_lib/lux-lead-system-test-heuristic.js` — pure `classifyLuxLeadSystemTest(lead)` returning `{ system_generated, reason }`. Flags rows whose contact / name / message / `qualificationJson` match repo verification fixtures or whose listing references the `lm-phase2d-manual-demo` slug. 14 unit tests including both real Jan leads as a regression backstop. `handleConciergeLeadsList` enriches every lead with `system_generated` + `system_generated_reason` and returns a top-level `counts: { total, real, system_generated }` summary.
+- `lib/cmp/_lib/lux-sprint-meta-extract.js` — pure `extractLuxSprintMetaForApi(consoleJson)` that surfaces `{ parent_sprint_ticket, parent_programme_ticket, sprint_code }` on `ticket-get` for sprint children (returns `undefined` otherwise, so the existing API shape stays stable). 7 unit tests.
+- `lib/client/lux-content-sprint-guidance.js` — per-C panel title / short line / upload steps / task-specific guidance / checklist scaffolding for C1–C4 + `getLuxContentSprintGuidance`, `normalizeLuxContentSprintCode`, `isLuxContentSprintTicket` helpers and a `LUX_CONTENT_SPRINT_GENERIC_GUIDANCE` fallback. 8 unit tests.
+- `components/LuxContentSprintPanel.js` — Add content panel rendered above the workflow card on sprint tickets. Primary CTA (`Upload content`), secondary guidance, upload + review steps, task-specific guidance, content checklist with session-only state. Persistence on `console_json.lux_content_sprint_checklist[]` is documented as a follow-up in `LUX_CONTENT_POPULATION_SPRINT.md` § 8b.
+- `lib/client/luxe-maurice-staged-properties.js` — adds `demo: true` to the `lm-phase2d-manual-demo` entry plus `isLuxStagedDemoEntry`, `isLuxStagedDemoSlug`, `getPublicLuxStagedProperties` helpers. 5 new unit tests.
+- `pages/change.js` — wires the four UX changes:
+  - **Media workspace** rename + collapsed `Technical note` (`data-testid="lux-media-workspace-technical-note"`).
+  - **CRM noise filter:** `crmShowSystemGenerated` defaults to `false`, derives `operatorViewLeads`; counts pills + visible list pull from the filtered view. Inline toggle `data-testid="lux-crm-system-generated-toggle"` and per-row badge `data-testid="lux-crm-system-generated-badge"` surface the hidden rows for audit.
+  - **Sprint detection:** computes `luxSprintMeta` and `isLuxContentSprintTicketSelected` from `ticket.lux_sprint_meta`. Renders `<LuxContentSprintPanel>` above the workflow card on sprint tickets.
+  - **Workflow pills:** for sprint tickets only, the five stage pills move into a closed `<details data-testid="lux-stage-tabs-advanced-collapsed">` summary labelled `Advanced workflow state ▾`. Non-sprint tickets continue to surface the pills inline (`data-testid="lux-stage-tabs-primary"`).
+- `pages/index.js`, `pages/property/[slug].js`, `pages/concierge.js`, `pages/sitemap.xml.js` — public-surface guards. `pages/property/[slug].js` returns `notFound` on demo slugs unless `?preview=1` + an authenticated editor session.
+- `scripts/lux-leads-inspect.mjs`, `scripts/lux-public-surfaces-inspect.mjs` — read-only inspection helpers used to validate the heuristic and confirm `lux_listings` rows = 0 (so `/properties` correctly shows the premium empty state).
+
+**Tests:** 45 new / extended. Full suite: `npm test` → **729 / 729 pass**. `npm run build` → green.
+
+**Documentation:**
+
+- New canonical runbook: `docs/runbooks/LUX_CHANGE_USABILITY_FIXES_2026_06_12.md` — every file, default, opt-out, and the pre- + post-merge verification matrix.
+- `docs/LUX/39_LuxeMaurice_Phase_2_Build_Brief.md` — new **§17 `/change` usability fixes — 2026-06-12 (PR #347)** + Output summary row.
+- `docs/LUX/LUX_CONTENT_POPULATION_SPRINT.md` — new **§ 8b Sprint UX overlay**, **§ 8c CRM noise filter**, **§ 8d Demo opportunity hidden**.
+
+**Cross-references:**
+
+- Programme strategic ticket: `cmo8mjijk0000jl04l1jz0v6d` — **untouched, still Open**.
+- Sprint parent ticket: `cmqa2y2ga0000l704glnfro1f` — **untouched, still Open**.
+- Sprint children: `cmqa57uyt0000xf803uav5x8x` (C1), `cmqa57ve00001xf80tpgmjeiz` (C2), `cmqa57vlg0002xf805d7azdk2` (C3), `cmqa57vsr0003xf80y543sx20` (C4) — now render the Add content panel on `/change`.
+
+---
+
 ## 2026-06-12 — LuxeMaurice operator queue cleanup — 18 historical Phase 4C.1 smoke / test artifact tickets hard-closed (audit preserved); `archived_completed` classifier bucket added
 
 <!-- LUXEMAURICE_OPERATOR_QUEUE_CLEANUP_2026_06_11_HIST -->

@@ -6,7 +6,10 @@ import { PrismaClient } from '@prisma/client';
 import AiLeadRescueLanding from '../components/AiLeadRescueLanding.js';
 import CorpFlowPublicHome from '../components/CorpFlowPublicHome.js';
 import LuxeMauriceTenantPresentation from '../components/LuxeMauriceTenantPresentation.js';
-import { LUXE_MAURICE_STAGED_PROPERTIES } from '../lib/client/luxe-maurice-staged-properties.js';
+import {
+  LUXE_MAURICE_STAGED_PROPERTIES,
+  getPublicLuxStagedProperties,
+} from '../lib/client/luxe-maurice-staged-properties.js';
 import { collectPublishedLuxCardMediaByPropertyRefs } from '../lib/server/lux-published-property-media.js';
 import { defaultPublicSite, mergeSiteDraft } from '../lib/server/tenant-site-public.js';
 import { verifyTenantPreviewToken } from '../lib/server/tenant-preview-token.js';
@@ -555,10 +558,16 @@ export async function getServerSideProps({ req }) {
         ];
       }
 
-      site.staged_properties =
+      // Public homepage must never render demo / placeholder entries (e.g. the
+      // `lm-phase2d-manual-demo` "Le Château" workflow demonstration) as if they
+      // were real curated inventory. `getPublicLuxStagedProperties` strips entries
+      // marked `demo: true` from the canonical catalog and from any tenant-supplied
+      // override list.
+      const stagedSource =
         Array.isArray(site.staged_properties) && site.staged_properties.length
           ? site.staged_properties
           : LUXE_MAURICE_STAGED_PROPERTIES;
+      site.staged_properties = getPublicLuxStagedProperties(stagedSource);
 
       /* Vision-aligned (2026-06-11): no feed-shaped preview inventory on public surfaces.
        * The Phase 2B `lxf-*` preview band is no longer rendered. `feed_properties`

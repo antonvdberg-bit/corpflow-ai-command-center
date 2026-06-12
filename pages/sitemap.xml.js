@@ -39,12 +39,15 @@ const APEX_PATHS = [
 
 const LUX_STATIC_PATHS = ['/', '/concierge'];
 
+// `lm-phase2d-manual-demo` is a demo / placeholder entry in the staged catalog
+// (see `lib/client/luxe-maurice-staged-properties.js#isLuxStagedDemoSlug`) and is
+// intentionally absent from the public sitemap so search engines and operators do
+// not surface it as real opportunity inventory.
 const LUX_PROPERTY_REFS = [
   'lm-nc-ridge',
   'lm-villa-belombre',
   'lm-pent-plateau',
   'lm-pipeline-q4',
-  'lm-phase2d-manual-demo',
   'lxf-grand-baie-apt',
   'lxf-tamarin-villa',
   'lxf-poste-lafayette',
