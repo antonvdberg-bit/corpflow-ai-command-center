@@ -39,6 +39,11 @@ import {
   classifyLuxChangeQueueTicket,
   groupLuxOperatorQueueTickets,
 } from '../lib/client/lux-change-queue-classify.js';
+import {
+  isLuxContentSprintTicket,
+  normalizeLuxContentSprintCode,
+} from '../lib/client/lux-content-sprint-guidance.js';
+import LuxContentSprintPanel from '../components/LuxContentSprintPanel.js';
 
 function normalizeLocale(raw) {
   const s = String(raw || '').trim().toLowerCase().replace(/_/g, '-');
@@ -501,6 +506,13 @@ export default function ChangeConsolePage() {
   const [crmFilterOwner, setCrmFilterOwner] = useState('');
   const [crmFilterProperty, setCrmFilterProperty] = useState('');
   const [crmFilterHealth, setCrmFilterHealth] = useState('all');
+  // CRM noise filter: by default the LEADS · New count and visible list exclude
+  // server-flagged `system_generated` leads (Phase 2 / Phase 3 / smoke verification
+  // fixtures with @example.com / @placeholder.local / @corpflowai.invalid contacts,
+  // etc.). Operators can toggle them back in via "Show internal/test" without losing
+  // audit access — the rows still exist in Postgres, the API still returns them,
+  // we only filter them client-side from the operator view.
+  const [crmShowSystemGenerated, setCrmShowSystemGenerated] = useState(false);
   const [leadPatchStatus, setLeadPatchStatus] = useState('');
   const [requestDraft, setRequestDraft] = useState('');
   const [intakeNotice, setIntakeNotice] = useState('');
@@ -1162,31 +1174,61 @@ export default function ChangeConsolePage() {
     if (selectedTicketIsArchivedSmoke) setLuxHideArchivedSmoke(false);
   }, [luxChangeChrome, selectedTicketId, selectedTicketIsArchivedSmoke]);
 
+  // LuxeMaurice Content Population Sprint detection — drives the Add content panel
+  // and the collapsed Advanced workflow state controls. Server-side `ticket-get`
+  // returns `ticket.lux_sprint_meta` with `sprint_code` for sprint children only
+  // (no raw console_json exposure required).
+  const luxSprintMeta = useMemo(() => {
+    const meta = ticket && ticket.lux_sprint_meta && typeof ticket.lux_sprint_meta === 'object' ? ticket.lux_sprint_meta : null;
+    if (!meta) return null;
+    const code = normalizeLuxContentSprintCode(meta.sprint_code);
+    return code ? { ...meta, sprint_code: code } : null;
+  }, [ticket]);
+
+  const isLuxContentSprintTicketSelected = useMemo(
+    () => isLuxContentSprintTicket(luxSprintMeta),
+    [luxSprintMeta],
+  );
+
+  // The operator-facing view of leads. Default-excludes `system_generated` rows
+  // so the LEADS · New strip + visible list only count real concierge leads. Toggle
+  // `crmShowSystemGenerated` to include them when auditing.
+  const operatorViewLeads = useMemo(() => {
+    if (!luxLeadCrmEnabled) return leads;
+    if (crmShowSystemGenerated) return leads;
+    return leads.filter((lead) => lead?.system_generated !== true);
+  }, [leads, luxLeadCrmEnabled, crmShowSystemGenerated]);
+
+  const systemGeneratedLeadCount = useMemo(() => {
+    if (!luxLeadCrmEnabled) return 0;
+    return leads.reduce((n, l) => (l?.system_generated === true ? n + 1 : n), 0);
+  }, [leads, luxLeadCrmEnabled]);
+
   const crmStageCounts = useMemo(() => {
     const base = Object.fromEntries(LUX_LEAD_CRM_STAGES.map((s) => [s, 0]));
     if (!luxLeadCrmEnabled) return base;
-    for (const lead of leads) {
+    for (const lead of operatorViewLeads) {
       const st = lead?.operator_workflow?.stage;
       if (st && base[st] !== undefined) base[st] += 1;
     }
     return base;
-  }, [leads, luxLeadCrmEnabled]);
+  }, [operatorViewLeads, luxLeadCrmEnabled]);
 
   const crmOwnerHints = useMemo(() => {
     if (!luxLeadCrmEnabled) return [];
     const s = new Set();
-    for (const lead of leads) {
+    for (const lead of operatorViewLeads) {
       const u = lead?.operator_workflow?.owner?.username;
       if (u) s.add(String(u).trim());
     }
     return [...s].sort().slice(0, 40);
-  }, [leads, luxLeadCrmEnabled]);
+  }, [operatorViewLeads, luxLeadCrmEnabled]);
 
   const crmVisibleLeads = useMemo(() => {
-    if (!luxLeadCrmEnabled) return leads;
+    if (!luxLeadCrmEnabled) return operatorViewLeads;
     const ownerQ = String(crmFilterOwner || '').trim().toLowerCase();
     const propQ = String(crmFilterProperty || '').trim().toLowerCase();
-    return leads.filter((lead) => {
+    return operatorViewLeads.filter((lead) => {
       const ow = lead.operator_workflow;
       if (!ow) return true;
       if (crmFilterStage !== 'all' && String(ow.stage || '') !== crmFilterStage) return false;
@@ -1205,7 +1247,14 @@ export default function ChangeConsolePage() {
       if (crmFilterHealth === 'untouched_new' && !ow.untouched_new) return false;
       return true;
     });
-  }, [leads, luxLeadCrmEnabled, crmFilterStage, crmFilterOwner, crmFilterProperty, crmFilterHealth]);
+  }, [
+    operatorViewLeads,
+    luxLeadCrmEnabled,
+    crmFilterStage,
+    crmFilterOwner,
+    crmFilterProperty,
+    crmFilterHealth,
+  ]);
 
   const selectedLead = useMemo(
     () => leads.find((x) => String(x.id || '') === String(selectedLeadId || '')) || null,
@@ -2069,6 +2118,13 @@ export default function ChangeConsolePage() {
             </div>
           ) : null}
 
+          {isLuxContentSprintTicketSelected && luxChangeChrome ? (
+            <LuxContentSprintPanel
+              sprintCode={luxSprintMeta?.sprint_code || null}
+              chrome={luxChangeChrome}
+            />
+          ) : null}
+
           <div style={{ ...card, minWidth: 0 }}>
             <div
               style={{
@@ -2122,13 +2178,57 @@ export default function ChangeConsolePage() {
                   </div>
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', flexShrink: 0 }}>
-                {stageTabs.map((s) => (
-                  <button key={s} type="button" onClick={() => setStage(s)} style={pillStyle(stage === s, luxChangeChrome)}>
-                    {s}
-                  </button>
-                ))}
-              </div>
+              {isLuxContentSprintTicketSelected ? (
+                <details
+                  data-testid="lux-stage-tabs-advanced-collapsed"
+                  style={{ flexShrink: 0, maxWidth: '100%', minWidth: 0 }}
+                >
+                  <summary
+                    style={{
+                      cursor: 'pointer',
+                      listStyle: 'none',
+                      fontSize: 11,
+                      fontWeight: 800,
+                      color: luxInk ? luxInk.muted : '#94a3b8',
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    Advanced workflow state ▾
+                  </summary>
+                  <div
+                    data-testid="lux-stage-tabs-advanced-buttons"
+                    style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}
+                  >
+                    {stageTabs.map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => setStage(s)}
+                        style={pillStyle(stage === s, luxChangeChrome)}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                  <div style={{ marginTop: 8, fontSize: 11, color: luxInk ? luxInk.muted : '#94a3b8', lineHeight: 1.4 }}>
+                    Generic Intake / Clarify / Draft / Review / Build controls. The content sprint
+                    panel above is the primary interaction for this ticket; use these stage controls
+                    only when you need to drive the underlying workflow state machine.
+                  </div>
+                </details>
+              ) : (
+                <div
+                  data-testid="lux-stage-tabs-primary"
+                  style={{ display: 'flex', gap: 8, flexWrap: 'wrap', flexShrink: 0 }}
+                >
+                  {stageTabs.map((s) => (
+                    <button key={s} type="button" onClick={() => setStage(s)} style={pillStyle(stage === s, luxChangeChrome)}>
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div style={{ marginTop: 14, borderTop: `1px solid ${luxInk ? luxInk.borderHairline : 'rgba(148,163,184,0.18)'}`, paddingTop: 14 }}>
@@ -2817,15 +2917,27 @@ export default function ChangeConsolePage() {
           {luxChangeChrome && !showIntakeSurface && !isEstimateMode ? (
             <LuxChangeCollapsibleSection
               chrome={luxChangeChrome}
-              summary="Media library · cross-ticket index (Phase 5D)"
+              summary="Media workspace"
               cardStyle={{ ...card, minWidth: 0 }}
               defaultOpen={false}
               sectionId="lux-media-workspace"
             >
-                <div style={{ marginTop: 0, fontSize: 11, color: luxChangeChrome.textMuted, lineHeight: 1.45 }}>
-                  Cross-ticket Lux programme requests — JSON metadata only (no bytes). Use Load / refresh after changing
+                <div style={{ marginTop: 0, fontSize: 12, color: luxChangeChrome.textMuted, lineHeight: 1.45 }}>
+                  Review approved images and videos across LuxeMaurice content requests. Use this area to find media
+                  that has already been uploaded, reviewed, linked, or published. Use Load / refresh after changing
                   filters.
                 </div>
+                <details
+                  data-testid="lux-media-workspace-technical-note"
+                  style={{ marginTop: 8, fontSize: 11, color: luxChangeChrome.textMuted, lineHeight: 1.45 }}
+                >
+                  <summary style={{ cursor: 'pointer', listStyle: 'none', fontWeight: 700 }}>Technical note</summary>
+                  <div style={{ marginTop: 4 }}>
+                    Cross-ticket Lux programme requests — metadata only (no media bytes are loaded here, the storage
+                    layer streams bytes separately). Persistence model is described in
+                    docs/LUX/LUX_PHASE4C_ATTACHMENT_REVIEW.md.
+                  </div>
+                </details>
               <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 <button
                   type="button"
@@ -4055,6 +4167,43 @@ export default function ChangeConsolePage() {
                 </span>
               ) : null}
             </div>
+            {luxLeadCrmEnabled && systemGeneratedLeadCount > 0 ? (
+              <div
+                data-testid="lux-crm-system-generated-toggle"
+                style={{
+                  marginTop: 6,
+                  fontSize: 11,
+                  color: '#94a3b8',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 8,
+                  alignItems: 'center',
+                  lineHeight: 1.4,
+                }}
+              >
+                <span>
+                  {crmShowSystemGenerated
+                    ? `Showing ${systemGeneratedLeadCount} internal / test lead${systemGeneratedLeadCount === 1 ? '' : 's'} alongside real leads.`
+                    : `${systemGeneratedLeadCount} internal / test lead${systemGeneratedLeadCount === 1 ? '' : 's'} hidden from real-lead counts.`}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setCrmShowSystemGenerated((v) => !v)}
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    padding: '3px 8px',
+                    borderRadius: 999,
+                    border: '1px solid rgba(148,163,184,0.4)',
+                    background: 'rgba(15,23,42,0.55)',
+                    color: '#e2e8f0',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {crmShowSystemGenerated ? 'Hide internal / test' : 'Show internal / test'}
+                </button>
+              </div>
+            ) : null}
             {luxLeadCrmEnabled ? (
               <div
                 style={{
@@ -4218,7 +4367,29 @@ export default function ChangeConsolePage() {
                         overflow: 'hidden',
                       }}
                     >
-                      <div style={{ fontSize: 12, fontWeight: 800, color: '#e2e8f0', ...changeTextContainStyle() }}>{String(lead.name || 'Lead')}</div>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: '#e2e8f0', ...changeTextContainStyle() }}>
+                        {String(lead.name || 'Lead')}
+                        {lead?.system_generated === true ? (
+                          <span
+                            data-testid="lux-crm-system-generated-badge"
+                            title={`Hidden by default — ${lead.system_generated_reason || 'matches internal/test heuristic'}`}
+                            style={{
+                              marginLeft: 6,
+                              fontSize: 9,
+                              fontWeight: 800,
+                              padding: '2px 6px',
+                              borderRadius: 999,
+                              background: 'rgba(148,163,184,0.18)',
+                              border: '1px solid rgba(148,163,184,0.35)',
+                              color: '#cbd5e1',
+                              letterSpacing: '0.04em',
+                              textTransform: 'uppercase',
+                            }}
+                          >
+                            internal/test
+                          </span>
+                        ) : null}
+                      </div>
                       <div style={{ marginTop: 4, fontSize: 12, color: '#94a3b8', ...changeTextContainStyle() }}>{String(lead.contact || '—')}</div>
                       <div style={{ marginTop: 6, fontSize: 10, color: '#64748b', ...changeTextContainStyle() }}>
                         Intent: <span style={{ color: '#94a3b8' }}>{intentLabel(lead.intent)}</span>

@@ -2,6 +2,7 @@ import React from 'react';
 
 import LuxeMauricePropertyDetailPage from '../../components/LuxeMauricePropertyDetailPage.js';
 import { resolveLuxPropertyRef } from '../../lib/client/luxe-maurice-property-resolve.js';
+import { isLuxStagedDemoSlug } from '../../lib/client/luxe-maurice-staged-properties.js';
 import {
   fetchLuxListingDraftPreviewRow,
   resolveLuxPropertyRefWithPublishedDb,
@@ -151,6 +152,14 @@ export async function getServerSideProps({ req, params, query }) {
           },
         },
       };
+    }
+
+    // Demo / placeholder staged entries (e.g. `lm-phase2d-manual-demo`) must not
+    // render publicly as if they were real opportunity pages. They remain reachable
+    // via `?preview=1` for authenticated editors (handled above) and via audit
+    // tooling, but a plain public hit returns 404.
+    if (isLuxStagedDemoSlug(raw)) {
+      return { notFound: true };
     }
 
     let resolved = resolveLuxPropertyRef(raw);

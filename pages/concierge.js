@@ -5,6 +5,7 @@ import { useRouter } from 'next/router';
 
 import { LUXE_MAURICE_BRAND_TOKENS as T } from '../lib/client/luxe-maurice-brand-theme.js';
 import { resolveLuxPropertyRef } from '../lib/client/luxe-maurice-property-resolve.js';
+import { isLuxStagedDemoSlug } from '../lib/client/luxe-maurice-staged-properties.js';
 import { buildConciergeSeo } from '../lib/client/concierge-seo.js';
 import {
   LuxeMauriceFontStylesheet,
@@ -64,6 +65,14 @@ export default function ConciergePage({ seoHost = '' } = {}) {
     if (!rawProp) {
       setPropertyInterest(null);
       setPropertyRefState({ ready: false, matched: false });
+      return;
+    }
+    // Demo / placeholder staged entries (e.g. `lm-phase2d-manual-demo`) must not
+    // become the concierge property context. Treat like no `?property=` was given;
+    // the form still loads, just without seeded property-specific copy.
+    if (isLuxStagedDemoSlug(rawProp)) {
+      setPropertyInterest(null);
+      setPropertyRefState({ ready: true, matched: false });
       return;
     }
     const sync = resolveLuxPropertyRef(rawProp);

@@ -495,6 +495,40 @@ Each child carries both `parent_programme_ticket=cmo8mjijk0000jl04l1jz0v6d` (so 
 
 ---
 
+## 17. `/change` usability fixes — 2026-06-12 (PR #347)
+
+**Why this section exists.** PR #346 cleaned the historical noise out of the operator desk but did not change *how* operators interact with the remaining work. After Jan + Anton walked through `https://lux.corpflowai.com/change` together, five concrete blockers remained for using the desk as a content workspace (not an engineering console):
+
+1. `LEADS · LuxeMaurice CRM (concierge)` read `New: 14` because every historical Phase 2 / Phase 3 verification fixture (`@example.com`, `@example.invalid`, `@placeholder.local`, `@corpflowai.invalid`, `PHASE2D-VERIFY`, `Notify Test`, …) counted as a real lead. Real concierge leads at the time of writing: 2 (both from Jan).
+2. `Media library · cross-ticket index (Phase 5D)` exposed Phase tags + "JSON metadata only" to a non-engineer audience.
+3. No obvious upload path on sprint child tickets C1–C4; the primary CTA was the generic Intake / Clarify / Draft / Review / Build stage pills.
+4. Sprint tasks were framed as workflow stages, not content actions.
+5. The homepage staged catalog still rendered `lm-phase2d-manual-demo` ("Le Château — manual workflow demonstration") publicly.
+
+**Runbook (canonical):** `docs/runbooks/LUX_CHANGE_USABILITY_FIXES_2026_06_12.md` lists every file, default, opt-out, and the pre- + post-merge verification matrix.
+
+**Pure helpers (unit-tested):**
+
+- `lib/cmp/_lib/lux-lead-system-test-heuristic.js` — server-side `classifyLuxLeadSystemTest(lead)` returning `{ system_generated, reason }`. Used by `handleConciergeLeadsList` to enrich the API response with per-row `system_generated` flags + a top-level `counts: { total, real, system_generated }` summary. 14 unit tests including the two real Jan leads as a regression backstop.
+- `lib/cmp/_lib/lux-sprint-meta-extract.js` — pure `extractLuxSprintMetaForApi(consoleJson)` that surfaces the tenant-safe `{ parent_sprint_ticket, parent_programme_ticket, sprint_code }` block on `ticket-get`. 7 unit tests.
+- `lib/client/lux-content-sprint-guidance.js` — per-C panel title / short line / upload steps / task guidance / checklist scaffolding + `getLuxContentSprintGuidance`, `normalizeLuxContentSprintCode`, `isLuxContentSprintTicket`. 8 unit tests.
+
+**UI:**
+
+- `components/LuxContentSprintPanel.js` — renders the Add content panel + content checklist on sprint tickets. Checklist state is component-local (session-only) in v1; persistence on `console_json.lux_content_sprint_checklist[]` is documented as a follow-up in `LUX_CONTENT_POPULATION_SPRINT.md` § 8b.
+- `pages/change.js` — Media workspace rename + collapsed Technical note, CRM noise filter with inline toggle + per-row badge, sprint detection from `ticket.lux_sprint_meta`, sprint panel rendered above the workflow card, stage pills moved into a closed `<details>` for sprint tickets only.
+
+**Public surface guards (TASK 5):**
+
+- `lib/client/luxe-maurice-staged-properties.js` — adds `demo: true` to the `lm-phase2d-manual-demo` entry + `isLuxStagedDemoEntry` / `isLuxStagedDemoSlug` / `getPublicLuxStagedProperties` helpers. 5 new unit tests.
+- `pages/index.js`, `pages/property/[slug].js`, `pages/concierge.js`, `pages/sitemap.xml.js` — filtered to hide the demo opportunity from public surfaces. `?preview=1` + authenticated editor session remains the only path to render the demo.
+
+**Tests:** 45 new / extended. Full suite: `npm test` → 729 pass, 0 fail. `npm run build` → green.
+
+**Status:** PARTIAL — code merged + tests + build green; **TASK 6 production verification pending** Vercel Production deployment + Jan/Anton walk-through per `.cursor/rules/delivery-reality.mdc`. The PARTIAL/COMPLETE verdict for the **Content Population Sprint** is unaffected — this packet only changes how the desk *looks and feels*, not whether the Reality Gate has fired.
+
+---
+
 ## Output summary (for Anton / PM)
 
 | Item | Value |
@@ -509,3 +543,4 @@ Each child carries both `parent_programme_ticket=cmo8mjijk0000jl04l1jz0v6d` (so 
 | **Vision-aligned public experience (PR #343)** | §14 — **COMPLETE** (live-verified 2026-06-11 on `lux.corpflowai.com`). Programme §8 Reality Gate still **PARTIAL** under Slice C scope (first real client-published listing + editor E2E + governed public imagery). |
 | **Vision-aligned content population sprint** | §15 — formalized 2026-06-11 in CMP (sprint parent `cmqa2y2ga0000l704glnfro1f`, four `Property & media` children C1–C4). **PARTIAL** until Reality Gate is live-verified and Jan + Anton sign off; closes the §14 commercial-usability gap. |
 | **Operator queue cleanup** | §16 — 2026-06-11. 18 historical Phase 4C.1 smoke / test artifact tickets hard-closed via `scripts/lux-close-phase4c1-smoke-tickets.mjs --execute`; canonical `buildHardCloseConsoleJsonPatch` used; both protected ids (`cmo8mjijk0000jl04l1jz0v6d`, `cmqa2y2ga0000l704glnfro1f`) untouched. Operator desk default view now reads `Programme (1) · Active (1) · Property (4) · CRM (0) · Internal (0) · Smoke (0)`; audit view with `--include-closed` shows `Archived / completed (32)`. **COMPLETE** in CMP / DB; production verification = open `https://lux.corpflowai.com/change` with a Lux operator session and confirm Smoke (0) and that both protected ids remain visible and open. |
+| **`/change` usability fixes (PR #347)** | §17 — 2026-06-12. CRM `New: 14` → real-leads-only (currently 2 from Jan), Media library → Media workspace, sprint child tickets get Add content panel + content checklist + collapsed Advanced workflow state, `lm-phase2d-manual-demo` removed from homepage / `/property/[slug]` / `/concierge` / sitemap. 45 new tests; full suite green; production build green. **PARTIAL** until Vercel Production deploys + Jan + Anton walk-through (TASK 6 in the runbook). |

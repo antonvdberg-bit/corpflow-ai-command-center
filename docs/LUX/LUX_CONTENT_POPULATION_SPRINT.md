@@ -250,6 +250,23 @@ The 4 in Property & media is the **sprint children C1–C4** — intentional act
 
 Each child opens with `awaiting_operator_review` and the operator advances workflow per the same conventions used today for Phase 4B requests.
 
+### 8b. Sprint UX overlay shipped 2026-06-12 (PR #347)
+
+Operator feedback after the queue cleanup was that the desk still felt like an engineering workflow console for sprint work — generic Intake / Clarify / Draft / Review / Build pills as the primary interaction, an opaque "Media library · cross-ticket index (Phase 5D)" label, and no obvious way to attach content. PR #347 reshapes the experience on top of the same data model:
+
+- **Add content panel** — every sprint child carries `console_json.lux_request_meta.sprint_code` (`C1`/`C2`/`C3`/`C4`) and `console_json.parent_sprint_ticket`. The `ticket-get` API surfaces these to the tenant-safe client as `ticket.lux_sprint_meta` (see `lib/cmp/_lib/lux-sprint-meta-extract.js`). When set, `/change` renders `components/LuxContentSprintPanel.js` above the workflow card with per-sprint guidance defined in `lib/client/lux-content-sprint-guidance.js`. The panel lists the upload + review steps, the task-specific guidance (e.g. C2 references `/properties/admin` and the five-image minimum), and a content checklist whose items are pulled from the same module.
+- **Advanced workflow state collapsed** — for sprint tickets, the Intake / Clarify / Draft / Review / Build pills move into a closed `<details data-testid="lux-stage-tabs-advanced-collapsed">` summary so the desk does not lead with workflow controls. Non-sprint tickets continue to surface the pills inline.
+- **Media workspace** — the operator label and helper copy switch to client-friendly language ("Media workspace" / "Review approved images and videos across LuxeMaurice content requests"). The engineering phrasing remains, but only under a collapsed `Technical note` for engineers who need it.
+- **Checklist persistence** — v1 ships the checklist as **derived operator guidance only** (component-local state). The user's brief explicitly said *"If checklist persistence is not already available, implement first as derived/operator guidance and document persistence as follow-up."* A follow-up packet will persist checklist state on `console_json.lux_content_sprint_checklist[]` via an `lux-content-sprint-checklist-patch` action with an idempotency key per item; until then operators rely on the master sprint doc and console ticket history for cross-session state.
+
+### 8c. CRM noise filter shipped 2026-06-12 (PR #347)
+
+The `LEADS · LuxeMaurice CRM (concierge)` count was inflating to "New: 14" because the underlying `prisma.lead.findMany({ tenantId: 'luxe-maurice' })` returned every historical Phase 2 / Phase 3 verification fixture (`@example.com`, `@example.invalid`, `@placeholder.local`, `@corpflowai.invalid`, names like `PHASE2D-VERIFY`, `Phase3 CRM verify`, `Notify Test`, etc.). PR #347 introduces a server-side classifier (`lib/cmp/_lib/lux-lead-system-test-heuristic.js`) that the `concierge-leads-list` handler runs over each row before serialising. Each lead carries a `system_generated: boolean` flag and the response includes a `counts: { total, real, system_generated }` summary. `/change` default-hides flagged rows from the LEADS counts strip and the visible list; an inline "Show internal / test" toggle preserves audit access without dropping any data. Real client leads (currently the two from Jan — `jam@luxemaurice.com` and `+23055081350`) continue to count exactly as before.
+
+### 8d. Demo opportunity hidden from public surfaces (PR #347)
+
+The hardcoded staged catalog (`lib/client/luxe-maurice-staged-properties.js`) historically included `lm-phase2d-manual-demo` — the "Le Château — manual workflow demonstration" entry whose teaser explicitly says *"Placeholder for Phase 2D manual curated intake — replace with client-approved copy when ready."* Because `pages/index.js` falls back to the canonical catalog when no per-tenant override exists, the homepage was rendering it alongside real editorial entries. PR #347 marks the entry `demo: true` and adds `isLuxStagedDemoEntry` / `isLuxStagedDemoSlug` / `getPublicLuxStagedProperties` helpers. The homepage filters the catalog through `getPublicLuxStagedProperties`, `pages/property/[slug].js` returns 404 on demo slugs unless `?preview=1` + an authenticated editor session, `pages/concierge.js` drops the demo property context, and `pages/sitemap.xml.js` no longer advertises the slug. The entry stays in the catalog for editor-preview audit paths.
+
 ---
 
 ## 9. Cross-references
@@ -261,3 +278,7 @@ Each child opens with `awaiting_operator_review` and the operator advances workf
 - `docs/LUX/LUX_PHASE2D_MANUAL_PROPERTY_WORKFLOW.md` — canonical manual intake path used in C2.
 - `lib/cmp/_lib/lux-client-requests.js` — Phase 4B request shape that the four sprint children use.
 - `lib/client/lux-change-queue-classify.js` — classifier that places the sprint children into the **Property & media** bucket on the operator desk.
+- `lib/client/lux-content-sprint-guidance.js` + `components/LuxContentSprintPanel.js` — Add content panel + checklist scaffolding rendered on C1–C4 (PR #347).
+- `lib/cmp/_lib/lux-sprint-meta-extract.js` — pure extraction of the sprint linkage block surfaced by `ticket-get` (PR #347).
+- `lib/cmp/_lib/lux-lead-system-test-heuristic.js` — server-side noise classifier behind the LEADS · New count correction (PR #347).
+- `docs/runbooks/LUX_CHANGE_USABILITY_FIXES_2026_06_12.md` — runbook for the PR #347 packet.
