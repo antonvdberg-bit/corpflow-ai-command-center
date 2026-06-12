@@ -111,6 +111,21 @@ Each child is created via the same Phase 4B convention used by `lib/cmp/_lib/lux
 - `lm-pipeline-q4`
 - `lm-phase2d-manual-demo`
 
+**Updated audit (2026-06-12, live probe of `https://lux.corpflowai.com/sitemap.xml` + per-slug `GET /property/<slug>`):** the placeholder set is larger than the 2026-06-11 audit captured. **Three additional `lxf-*` slugs** are advertised in `/sitemap.xml` and also serve `200 OK` with zero `<img>` tags and the default monogram as the page title — i.e. indexable by Google as empty/skeleton property pages, directly contradicting "Confidence at distance" / "Invited. Not advertised.":
+
+| Slug | In 2026-06-11 audit | In sitemap (live) | Live page | Recommended decision |
+|---|---|---|---|---|
+| `lm-villa-belombre` | yes | yes | 200, 0 imgs | (a) or (b) |
+| `lm-pent-plateau` | yes | yes | 200, 0 imgs | (a) or (b) |
+| `lm-nc-ridge` | yes | yes | 200, 0 imgs | (a) or (b) |
+| `lm-pipeline-q4` | yes | yes | 200, 0 imgs | (a) or (b) |
+| `lm-phase2d-manual-demo` | yes | confirm via re-probe | (already `demo: true` in staged-properties; should not leak) | (a) confirm gated |
+| `lxf-grand-baie-apt` | **NO (new finding 2026-06-12)** | yes | 200, 0 imgs | (a) or (b) |
+| `lxf-tamarin-villa` | **NO (new finding 2026-06-12)** | yes | 200, 0 imgs | (a) or (b) |
+| `lxf-poste-lafayette` | **NO (new finding 2026-06-12)** | yes | 200, 0 imgs | (a) or (b) |
+
+The 3 `lxf-*` slugs are likely residue from earlier LuxFrance / LuxeFrance staging work that was not retired when the LuxeMaurice repositioning landed. They must be addressed by the same per-slug decision matrix that governs the `lm-*` set, or option (a) gated behind `?preview=1` so anonymous traffic cannot reach them. Operator-paste runbook with per-slug one-shot commands: **`docs/runbooks/LUX_CONTENT_SPRINT_C3_PLACEHOLDER_CLEANUP.md`** (added in the same PR as this audit update).
+
 **Recommended option per slug** (operator chooses per-slug):
 
 - (a) Gate behind `?preview=1` operator session only (default recommendation).
@@ -121,8 +136,8 @@ Each child is created via the same Phase 4B convention used by `lib/cmp/_lib/lux
 
 **Acceptance criteria:**
 
-- Each of the five preview slugs is either (a) no longer reachable to anonymous users (404 or operator-only `?preview=1`) or (b) replaced by a real published listing under C2 or (c) clearly labelled illustrative.
-- Sitemap audited; no stale `lm-*` preview paths advertised publicly without label.
+- Each of the **eight** preview slugs (5 `lm-*` + 3 `lxf-*`) is either (a) no longer reachable to anonymous users (404 or operator-only `?preview=1`) or (b) replaced by a real published listing under C2 or (c) clearly labelled illustrative.
+- Sitemap audited; no stale `lm-*` or `lxf-*` preview paths advertised publicly without label.
 - All audit history preserved (no row deleted).
 
 ### C4 — Jan validation E2E
