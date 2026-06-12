@@ -1,6 +1,63 @@
-# LuxeMaurice `/change` usability fixes — 2026-06-12 (PR #347, follow-up PR #348)
+# LuxeMaurice `/change` usability fixes — 2026-06-12 (PR #347, follow-up PR #348, follow-up PR #349)
 
-**Status:** PARTIAL — PR #347 merged (`a406f352`) and **PR #348** wires the regressed "Upload content" button to the existing governed attachment pipeline. Live production verification (TASK 6 + PR #348 button reach) remains pending Vercel Production deployment + Jan/Anton walk-through per `.cursor/rules/delivery-reality.mdc`.
+**Status:** PARTIAL — PR #347 merged (`a406f352`), PR #348 merged (`c800ef56`), and **PR #349** unblocks the "Upload content" button on the sprint child tickets that PR #348 still hid behind the intake-stage guard. Live production verification remains pending Vercel Production deployment + Jan/Anton walk-through per `.cursor/rules/delivery-reality.mdc`.
+
+## P0 follow-up — PR #349 (2026-06-12)
+
+**Regression:** After PR #348 merged, clicking **Upload content** on a C1–C4 Content Population Sprint ticket reached the unavailable-state branch and showed an `alert(...)` plus the inline error pill:
+
+> Upload area is not available right now. Try reloading /change with this ticket open.
+
+The button wiring, handler, and fallback path were all correct — but the upload target itself was never mounted for sprint tickets.
+
+**Root cause (verified):** In PR #348 the *Upload to this ticket* section was guarded by `!showIntakeSurface && !isEstimateMode && selectedTicketId`. `showIntakeSurface = showIntakeSkin || forceRefine` and `showIntakeSkin = Boolean(selectedTicketId && ticket && computeIsIntakeUx(ticket))`. The sprint child tickets C1–C4 created by PR #345 sit in the **Intake** workflow stage by design (they are fresh sprint work items, not legacy in-progress tickets), so `computeIsIntakeUx(ticket)` returns `true` for them → `showIntakeSurface` is `true` → the upload section was never rendered → `luxAttachmentUploadSectionRef.current` and `luxAttachmentUploadInputRef.current` were both `null` → `handleSprintUploadContentClick` correctly fell through to the non-silent fallback.
+
+`<LuxContentSprintPanel>` does *not* share the `!showIntakeSurface` guard (its only condition is `isLuxContentSprintTicketSelected && luxChangeChrome`), so the **Upload content** button rendered while its target did not.
+
+**Fix:**
+
+1. **Loosen the upload-section guard** in `pages/change.js` from `!showIntakeSurface && !isEstimateMode && selectedTicketId` → `!isEstimateMode && selectedTicketId`. Operators need to attach media to in-flight sprint work regardless of intake stage; the section is still hidden during estimate mode (where the surface is read-only quote review). A code comment documents the prior false-positive.
+2. **Trigger the OS file picker directly** by calling `input.click()` at the end of `handleSprintUploadContentClick` (option (b) from the brief). Browsers permit programmatic clicks on file inputs only inside the same user-gesture handler, and `handleSprintUploadContentClick` is exactly that handler, so the native file picker now opens synchronously on the first click — no scroll-then-click second step required. Wrapped in `try/catch` so a restrictive environment falls back to scroll + focus (option (a)) without throwing.
+
+**Files changed (PR #349):**
+
+* `pages/change.js`
+  * Render guard on the Upload to this ticket section relaxed (still respects `!isEstimateMode && selectedTicketId`; comment explains why intake-stage sprint tickets must be allowed through).
+  * `handleSprintUploadContentClick` now performs `scrollIntoView` → `focus({preventScroll:true})` → `click()` so the OS file picker opens immediately.
+* `node-tests/lux-content-sprint-upload-button.test.mjs`
+  * Existing test renamed: *handleSprintUploadContentClick with scroll + focus + click + unavailable fallback*; now asserts `input.click()` is invoked.
+  * **New test** *PR #349 regression guard: upload section renders without the !showIntakeSurface gate* — parses `pages/change.js`, locates the JSX conditional that opens the upload section, and asserts the conditional does not include `!showIntakeSurface` (still requires `!isEstimateMode`). This guarantees the regression cannot return through a future refactor.
+
+**Tests + build (PR #349):** `npm test` — 739 passing assertions, 53 suites, 0 failing (up from 738 in PR #348; +1 new). `npm run build` — green.
+
+**What is intentionally NOT changed (PR #349):**
+
+* `computeIsIntakeUx` — unchanged. The intake-skin behaviour (describe-the-change textarea, save-continue logic, etc.) for non-sprint tickets is preserved by not touching the helper.
+* `/api/change-attachment/upload` contract, `cmpTicketAttachment` storage, tenant / session / auth checks, media governance — all unchanged from PR #348.
+* `LuxContentSprintPanel` static-fallback affordance — still present for non-Lux operator chrome.
+* `public/change.html` — untouched.
+
+**Live verification plan (PR #349):**
+
+1. Wait for Vercel Production to mark the PR #349 merge commit `Ready`.
+2. Open `https://lux.corpflowai.com/change` as a Lux operator session.
+3. For each of C1, C2, C3, C4 (children of sprint `cmqa2y2ga0000l704glnfro1f`):
+   * Select the ticket.
+   * Click **Upload content**.
+   * Confirm the OS file picker opens immediately. No `alert(...)`. No "Upload area is not available right now" message.
+   * Optionally pick a small safe test image (≤3 MB). Confirm the status pill turns green (*Uploaded and available on this ticket: …*) and the new attachment appears in the existing ATTACHMENTS list below for review / link / publish.
+   * Do **not** publish test media publicly.
+4. Open a non-sprint ticket and confirm the Upload to this ticket section still renders and behaves identically.
+5. Open an estimate-mode ticket and confirm the section remains hidden (the `!isEstimateMode` guard still applies).
+6. Record Vercel Production deployment ID + commit SHA + Lux URL + screenshot in `artifacts/chat_history.md`. Flip the PR #347 + PR #348 + PR #349 verdict to `COMPLETE` only after Jan and Anton confirm the picker opens on the first click and the attachment row reaches the ticket.
+
+**Rollback (PR #349):** revert PR #349 — the previous behaviour returns (button reaches unavailable fallback on sprint tickets). No migrations.
+
+---
+
+## Original PR #347 / PR #348 entries
+
+**Status:** PARTIAL — PR #347 merged (`a406f352`) and **PR #348** wired the regressed "Upload content" button to the existing governed attachment pipeline. Live production verification (TASK 6 + PR #348 button reach) remains pending Vercel Production deployment + Jan/Anton walk-through per `.cursor/rules/delivery-reality.mdc`.
 
 ## P0 follow-up — PR #348 (2026-06-12)
 

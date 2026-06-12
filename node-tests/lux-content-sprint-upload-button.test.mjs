@@ -55,16 +55,50 @@ test('pages/change.js wires onUploadClick on the Content sprint panel', () => {
   );
 });
 
-test('pages/change.js defines handleSprintUploadContentClick with scroll + focus + unavailable fallback', () => {
+test('pages/change.js defines handleSprintUploadContentClick with scroll + focus + click + unavailable fallback', () => {
   const src = readRepo('pages/change.js');
   assert.match(src, /function handleSprintUploadContentClick\(\)/);
   // Must scroll to the upload section.
   assert.match(src, /section\.scrollIntoView\(/);
   // Must focus the file input.
   assert.match(src, /input\.focus\(/);
+  // PR #349 (P0 follow-up to PR #348): must trigger the OS file picker directly,
+  // not only scroll/focus. Option (b) from the brief: trigger existing file input
+  // click. This works because the handler is inside the user-gesture click.
+  assert.match(src, /input\.click\(\)/);
   // Must NOT silently no-op when the section is missing: alert + status text.
   assert.match(src, /Upload area is not available right now/);
   assert.match(src, /window\?\.alert\?\.\(/);
+});
+
+test('PR #349 regression guard: upload section renders without the !showIntakeSurface gate', () => {
+  const src = readRepo('pages/change.js');
+  // The Upload to this ticket section must NOT be gated on `!showIntakeSurface`.
+  // Sprint child tickets C1–C4 sit in Intake by design (created by PR #345), so
+  // any guard that includes `!showIntakeSurface` here will silently hide the
+  // section and make the "Upload content" button reach the unavailable fallback.
+  const ANCHOR = 'id="lux-ticket-attachment-upload"';
+  const idx = src.indexOf(ANCHOR);
+  assert.ok(idx > 0, 'Upload section anchor must be present');
+  // The opening JSX condition is at most ~600 chars before the anchor.
+  const windowStart = Math.max(0, idx - 800);
+  const preceding = src.slice(windowStart, idx);
+  // Walk backwards to find the most recent `{...selectedTicketId... ? (` opener.
+  const openerRe = /\{[^{}\n]*selectedTicketId[^{}\n]*\?\s*\(/g;
+  let lastMatch = null;
+  let m;
+  while ((m = openerRe.exec(preceding)) !== null) {
+    lastMatch = m;
+  }
+  assert.ok(lastMatch, 'Could not locate the JSX conditional that gates the upload section');
+  const condition = lastMatch[0];
+  assert.doesNotMatch(
+    condition,
+    /!\s*showIntakeSurface/,
+    `Upload section conditional must not gate on !showIntakeSurface; got: ${condition}`,
+  );
+  // The condition should still respect estimate mode.
+  assert.match(condition, /!\s*isEstimateMode/);
 });
 
 test('pages/change.js exposes a stable upload anchor id + testid for the sprint button to target', () => {
