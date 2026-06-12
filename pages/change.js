@@ -875,6 +875,16 @@ export default function ChangeConsolePage() {
         // Focus failures are non-fatal; the section has scrolled into view.
       }
     }
+    // Option (b) from the brief: trigger the native file picker directly. Browsers
+    // allow `input.click()` on a file input only inside the same user gesture, and
+    // `handleSprintUploadContentClick` IS that user gesture, so the picker opens
+    // synchronously. Wrapped in try/catch so a restrictive environment falls back
+    // to scroll + focus (option (a)) without throwing.
+    try {
+      input.click();
+    } catch {
+      // No-op: the section has already scrolled into view and the input is focused.
+    }
   }
 
   async function loadAttachmentsForTicket(tid) {
@@ -3321,7 +3331,18 @@ export default function ChangeConsolePage() {
             </LuxChangeCollapsibleSection>
           ) : null}
 
-          {!showIntakeSurface && !isEstimateMode && selectedTicketId ? (
+          {/*
+           * Render the Upload to this ticket section whenever a ticket is selected
+           * and we are not in estimate-only mode. Sprint child tickets C1–C4 sit in
+           * the Intake workflow stage by design (they were created as fresh sprint
+           * work items in PR #345), so the earlier `!showIntakeSurface` guard
+           * silently gated them out — operators clicking the "Upload content"
+           * button on a sprint ticket reached the unavailable-state fallback. The
+           * operator needs to attach media to in-flight sprint work regardless of
+           * intake stage, so this section is always available on a selected ticket
+           * outside estimate mode.
+           */}
+          {!isEstimateMode && selectedTicketId ? (
             <div
               id="lux-ticket-attachment-upload"
               data-testid="lux-ticket-attachment-upload"

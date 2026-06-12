@@ -28,6 +28,43 @@
 
 ---
 
+## 2026-06-12 — LuxeMaurice `/change` Upload content button: render guard relaxed + native file picker opens directly on click (PR #349, P0 follow-up to PR #348)
+
+<!-- LUXEMAURICE_UPLOAD_CONTENT_BUTTON_PICKER_2026_06_12_HIST -->
+
+**Status:** PARTIAL — PR [#349](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/349) unblocks the regression Jan and Anton hit immediately after PR [#348](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/348) merged: clicking **Upload content** on a C1–C4 sprint ticket showed `Upload area is not available right now. Try reloading /change with this ticket open.` instead of opening a file picker. Live production verification pending Vercel Production deployment + Jan/Anton walk-through per `.cursor/rules/delivery-reality.mdc`. Master programme `cmo8mjijk0000jl04l1jz0v6d` and sprint parent `cmqa2y2ga0000l704glnfro1f` remain **open**.
+
+**Why the button still failed after PR #348:** PR #348 placed the *Upload to this ticket* section under the same render guard the existing ATTACHMENTS collapsible used: `!showIntakeSurface && !isEstimateMode && selectedTicketId`. `showIntakeSurface` is `true` whenever `computeIsIntakeUx(ticket)` returns `true`, and that helper returns `true` for any ticket whose workflow label resolves to `Intake`. The sprint child tickets C1–C4 created during PR #345 sit in **Intake** by design (they are fresh sprint work items, not legacy in-progress requests). So for exactly the tickets the button targets, the section was never mounted, the section/input refs were both `null`, and `handleSprintUploadContentClick` correctly fell through to its non-silent fallback. `<LuxContentSprintPanel>` does *not* share that guard, so the button rendered while its target did not — the "wired button without a destination" footprint the operator screenshot reported.
+
+**Fix:**
+
+1. **Loosened the upload-section guard** to `!isEstimateMode && selectedTicketId`. Operators need to attach media to in-flight sprint work regardless of intake stage; the section is still hidden during estimate-only mode (read-only quote review). A code comment in `pages/change.js` documents the prior false-positive and the rationale.
+2. **Native file picker opens directly on click** — `handleSprintUploadContentClick` now performs `scrollIntoView` → `focus({preventScroll:true})` → `input.click()` (option (b) from the brief). Browsers permit programmatic clicks on file inputs only inside the same user-gesture handler, and this handler *is* that gesture, so the OS picker opens synchronously on the first click. `try/catch` keeps option (a) (scroll + focus) as a fallback for restrictive environments.
+
+**Files changed (PR #349):**
+
+* `pages/change.js` — render guard for the *Upload to this ticket* section relaxed (still respects `!isEstimateMode && selectedTicketId`; in-line comment explains why intake-stage sprint tickets must be allowed through). `handleSprintUploadContentClick` adds `input.click()` so the picker opens immediately.
+* `node-tests/lux-content-sprint-upload-button.test.mjs` — existing handler test now asserts `input.click()`; **new test** *PR #349 regression guard: upload section renders without the !showIntakeSurface gate* parses the JSX conditional that opens the section and asserts the conditional does not include `!showIntakeSurface` (still requires `!isEstimateMode`). The regression cannot return through a future refactor without tripping this guard.
+
+**Tests + build:** `npm test` — 739 passing assertions, 53 suites, 0 failing (up from 738 in PR #348; +1 new). `npm run build` — green.
+
+**Things explicitly NOT touched (PR #349):** `computeIsIntakeUx` (intake-skin behaviour for non-sprint tickets is preserved by not touching the helper), `/api/change-attachment/upload` contract, `cmpTicketAttachment` storage, `resolveUploadScope` / `assertTicketAccess` tenancy / session checks, media governance (review → link → publish on allowed slots), `LuxContentSprintPanel` static fallback for non-Lux operator chrome, `public/change.html`.
+
+**Live verification plan (pending):**
+
+1. Wait for Vercel Production to mark the PR #349 merge commit `Ready`.
+2. Open `https://lux.corpflowai.com/change` as a Lux operator session.
+3. For each of C1, C2, C3, C4: select ticket → click **Upload content** → confirm the OS file picker opens immediately (no `alert`, no fallback message) → optionally pick a small safe test image (≤3 MB), confirm the green status pill and the new attachment in the ATTACHMENTS list for review/link/publish → **do not publish test media publicly**.
+4. Open a non-sprint ticket and confirm the section still renders and behaves identically.
+5. Open an estimate-mode ticket and confirm the section remains hidden (the `!isEstimateMode` guard still applies).
+6. Record Vercel Production deployment ID + commit SHA + Lux URL + screenshot in `artifacts/chat_history.md`. Flip PR #347 + PR #348 + PR #349 verdict to `COMPLETE` only after Jan and Anton confirm.
+
+**Rollback:** revert PR #349 — previous "button without target" behaviour returns on sprint tickets; no migrations.
+
+**Runbook:** `docs/runbooks/LUX_CHANGE_USABILITY_FIXES_2026_06_12.md` (extended with `P0 follow-up — PR #349 (2026-06-12)` section).
+
+---
+
 ## 2026-06-12 — LuxeMaurice `/change` Upload content button wired to the existing governed attachment pipeline (PR #348, follow-up to PR #347)
 
 <!-- LUXEMAURICE_UPLOAD_CONTENT_BUTTON_WIRING_2026_06_12_HIST -->
