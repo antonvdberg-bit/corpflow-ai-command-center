@@ -28,6 +28,42 @@
 
 ---
 
+## 2026-06-15 — LuxeMaurice Content Population Sprint **C3 placeholder cleanup live-verified COMPLETE**: PR #356 merged + Vercel Production Ready + `https://lux.corpflowai.com/sitemap.xml` returns 0 `/property/` URLs (was 7), all 8 placeholder slugs absent, `/properties` premium empty state intact, bookmark back-compat preserved, C1/C2/C4 untouched and remain Open per the read-only audit
+
+<!-- LUXEMAURICE_C3_PLACEHOLDER_CLEANUP_LIVE_VERIFIED_2026_06_15_HIST -->
+
+**Status:** **COMPLETE** per `.cursor/rules/delivery-reality.mdc`. PR [#356](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/356) merged (squash) onto `main` as `a41b9baac584c9c59b26d24e571204b5fec7bb9b` on 2026-06-14T23:04:41Z, deployed to Vercel Production as deployment id `5057931192`, status `success` 2026-06-14T23:05:31Z. Live verification 2026-06-15: the canonical one-liner `curl -s https://lux.corpflowai.com/sitemap.xml | grep '/property/' | wc -l` returns **0** (down from 7); the full sitemap is now 2 entries only — `https://lux.corpflowai.com/` and `https://lux.corpflowai.com/concierge`; per-slug probe confirms all 8 (`lm-villa-belombre`, `lm-pent-plateau`, `lm-nc-ridge`, `lm-pipeline-q4`, `lm-phase2d-manual-demo`, `lxf-grand-baie-apt`, `lxf-tamarin-villa`, `lxf-poste-lafayette`) are absent; `/properties` returns 200 with the premium empty state ("Private Opportunities" + "Private opportunities are being prepared", 0 `/property/<slug>` cards rendered, no `demo` / `test` / `smoke` leak); `/` and `/concierge` continue to render with the approved brand surface (all four brand pillars present on `/`, "Private Advisory" + "Request a private consultation" on `/concierge`); bookmark back-compat preserved (`/property/lm-nc-ridge` still 200, 17355 bytes — the editorial shell remains per the explicit intent in `lib/client/luxe-maurice-feed-properties.js` header). C1 (`cmqa57uyt0000xf803uav5x8x`), C2 (`cmqa57ve00001xf80tpgmjeiz`), C4 (`cmqa57vsr0003xf80y543sx20`) remain `Open / Intake / awaiting_operator_review` — read-only git audit shows no commit since 2026-06-11 has mutated their CMP rows (operator-side CMP state confirmation requires a Lux operator session). Master programme `cmo8mjijk0000jl04l1jz0v6d` and sprint parent `cmqa2y2ga0000l704glnfro1f` remain **open and untouched**.
+
+**Root cause (rediscovered during PR #354 follow-up audit):** the original C3 audit (2026-06-11) assumed the 8 placeholder slugs lived in `lux_listings` (DB-backed) and proposed a per-slug `UPDATE lux_listings SET visibility_status='preview'` matrix. The 2026-06-12 code-path audit (run during PR #352 verification) found this was wrong: all 8 slugs are **static JavaScript constants**, not DB rows. The 5 `lm-*` slugs live in `lib/client/luxe-maurice-staged-properties.js` (`lm-phase2d-manual-demo` already correctly stripped via `demo: true` + `getPublicLuxStagedProperties()`); the 3 `lxf-*` slugs live in `lib/client/luxe-maurice-feed-properties.js` (module header explicitly keeps them only for bookmark back-compat). `/properties` already correctly excluded them via the empty `lux_listings` DB. `/property/<slug>` correctly resolves them via `resolveLuxPropertyRef` — that is intentional backward-compat behaviour. **The discoverability leak was entirely one place: the hard-coded `LUX_PROPERTY_REFS` array in `pages/sitemap.xml.js`.**
+
+**Fix:** one-line constant edit — set `LUX_PROPERTY_REFS = []` in `pages/sitemap.xml.js` (with a header comment explaining the rationale, the brand-doctrine reference, and the follow-on path for Jan's first real C2 slug). Three files touched: one code (`pages/sitemap.xml.js`), one test (`node-tests/sitemap-host-aware.test.mjs` — one brittle `paths.length > APEX_PATHS.length` assertion replaced by `paths.length === 2 + LUX_PROPERTY_REFS.length`; matches the canonical-host test shape), one doc (`docs/runbooks/LUX_CONTENT_SPRINT_C3_PLACEHOLDER_CLEANUP.md` § 8 "Canonical executed path (post-2026-06-12) — single-constant sitemap edit" added). Plus one inverted assertion in `node-tests/lux-change-usability-fixes.test.mjs` line 69 (was: "sitemap must include the 4 non-demo `lm-*` slugs so SEO does not regress"; now: "sitemap must NOT include any of the 8 placeholder slugs per the 2026-06-12 audit — none have real client-approved content"). All 765 local tests pass. CI test workflow green.
+
+**Why this was preferred over the original PR #354 § 3 per-slug matrix:** per-slug DB writes were not required — the single constant edit achieves the same public-discoverability outcome with zero DB touches, zero new code paths, zero new mechanisms, and zero workflow-complexity expansion. Maps cleanly to **option (a)** of the original matrix for all 7 slugs at once. Options (b) "replace with C2" and (c) "label illustrative" remain available as future follow-ons but are not required to ship C3.
+
+**Trade-off recorded:** anonymous direct visitors with old bookmarks for `/property/<placeholder-slug>` still see the existing editorial shell (200 OK, no images, monogram title — same as before). This is the explicit "no 404 for old bookmarks" intent baked into the feed-properties module. If we later decide to also 404 anonymous traffic on placeholder slugs, that is a separate PR and an explicit UX decision — out of scope for C3 closure.
+
+**Files (PRs #354 + #355 + #356 chain):**
+
+- `pages/sitemap.xml.js` — `LUX_PROPERTY_REFS = []` + rationale header (PR #356).
+- `node-tests/sitemap-host-aware.test.mjs` — assertion shape correction (PR #356).
+- `node-tests/lux-change-usability-fixes.test.mjs` — inverted line-69 assertion + 2026-06-12 audit context (PR #356).
+- `docs/runbooks/LUX_CONTENT_SPRINT_C3_PLACEHOLDER_CLEANUP.md` — new operator-paste runbook (PR #354) + new § 8 canonical executed path (PR #356).
+- `docs/runbooks/LUX_CONTENT_SPRINT_C1_C2_JAN_CONTENT_BRIEF.md` — single Jan-facing brief covering C1 imagery spec + C2 opportunity template + C4 walk-through (PR #355).
+- `docs/LUX/LUX_CONTENT_POPULATION_SPRINT.md` — § 3 C3 audit expanded to 8 slugs (PR #354), closure block with full Delivery Reality Audit evidence appended (this turn).
+
+**Explicit non-touched (governance + scope discipline):** no DB write; no schema change; no new migration; no new code path or conditional branch; no public-surface redesign (`/`, `/properties`, `/property/<slug>`, `/concierge`, `/change` all render identically to before); no auth / tenant / session / media-governance change; no master programme ticket `cmo8mjijk0000jl04l1jz0v6d` touched; no sprint parent `cmqa2y2ga0000l704glnfro1f` touched; no C1 / C2 / C4 sprint child ticket touched; no CMP attachment / row deleted; no new env var; no secret edit; no secret request.
+
+**Sprint status after this closure:**
+
+- **C1** Homepage imagery — pipeline ready (PRs #348-#352 verified live); **awaiting Jan content** per `docs/runbooks/LUX_CONTENT_SPRINT_C1_C2_JAN_CONTENT_BRIEF.md` § 2.
+- **C2** First real opportunity — pipeline ready (`/properties/admin` + `/change` end-to-end); **awaiting Jan opportunity content** per `docs/runbooks/LUX_CONTENT_SPRINT_C1_C2_JAN_CONTENT_BRIEF.md` § 3; when published, append slug to `LUX_PROPERTY_REFS`.
+- **C3** Placeholder cleanup — **COMPLETE** (this entry).
+- **C4** Jan validation E2E — all routes verified live; **awaiting Jan walk-through** per `docs/runbooks/LUX_CONTENT_SPRINT_C1_C2_JAN_CONTENT_BRIEF.md` § 5; one-line confirmation on sprint parent ticket closes it.
+
+The remaining bottleneck is content acquisition + Jan editorial decisions, not software capability. No further platform features, public-surface redesigns, or workflow-complexity expansions are planned in this sprint.
+
+---
+
 ## 2026-06-12 — LuxeMaurice `/change` attachment panel readability + operator-language cleanup: palette-aware `luxAttachInk` (warm ivory / charcoal / gold tokens), removed Phase 4C/4D/5D engineering labels from operator UI, plain-English copy ("Replace media safely", "Archive or restore this attachment", "Filter this ticket's attachments"), collapsed `<details>` "Technical details" for hard-delete policy notes (PR #352, P0 UX cleanup follow-up to PR #351)
 
 <!-- LUXEMAURICE_ATTACHMENT_PANEL_READABILITY_2026_06_12_HIST -->
