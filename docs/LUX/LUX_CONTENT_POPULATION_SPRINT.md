@@ -1,6 +1,7 @@
 # LuxeMaurice Content Population Sprint — operational programme
 
-**Status (2026-06-11):** Programme formalized in CMP — sprint parent enriched, **four child workstreams live** (`Open / Intake / awaiting_operator_review`).  
+**Status (2026-06-15):** Programme formalized in CMP (2026-06-11); **C3 placeholder cleanup live-verified COMPLETE on production 2026-06-15** (PR #356 merged `a41b9baa`, Vercel Production `5057931192` Ready, `https://lux.corpflowai.com/sitemap.xml` returns 0 `/property/` URLs vs 7 pre-cleanup, all 8 placeholder slugs absent from sitemap, premium empty state on `/properties` intact, bookmark back-compat on `/property/<lm|lxf-*>` preserved); **C1 / C2 / C4 remain Open / Intake / awaiting_operator_review** (no CMP ticket mutation since 2026-06-11; awaiting Jan content per `docs/runbooks/LUX_CONTENT_SPRINT_C1_C2_JAN_CONTENT_BRIEF.md`).  
+**Status (2026-06-11, historical):** Programme formalized in CMP — sprint parent enriched, **four child workstreams live** (`Open / Intake / awaiting_operator_review`).  
 **Sprint parent ticket:** `cmqa2y2ga0000l704glnfro1f` (created 2026-06-11 22:39 UTC; promoted to operational sprint parent 2026-06-11 23:42 UTC).  
 **Master strategic ticket:** `cmo8mjijk0000jl04l1jz0v6d` — **remains open; not modified by this sprint**.  
 **Tenant:** `luxe-maurice`.  
@@ -139,6 +140,26 @@ The 3 `lxf-*` slugs are likely residue from earlier LuxFrance / LuxeFrance stagi
 - Each of the **eight** preview slugs (5 `lm-*` + 3 `lxf-*`) is either (a) no longer reachable to anonymous users (404 or operator-only `?preview=1`) or (b) replaced by a real published listing under C2 or (c) clearly labelled illustrative.
 - Sitemap audited; no stale `lm-*` or `lxf-*` preview paths advertised publicly without label.
 - All audit history preserved (no row deleted).
+
+**C3 closure (live-verified 2026-06-15):** ✅ **COMPLETE** per `.cursor/rules/delivery-reality.mdc`.
+
+| Evidence field | Value |
+|---|---|
+| PR | [#356](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/356) — `fix(lux): C3 placeholder cleanup - drop 7 placeholder property refs from sitemap (single-constant edit)` |
+| Merge commit | `a41b9baac584c9c59b26d24e571204b5fec7bb9b` (squash, on `main` 2026-06-14T23:04:41Z, merged by `antonvdberg-bit`) |
+| Production deployment | Vercel `5057931192` for SHA `a41b9baa`, status `success` at 2026-06-14T23:05:31Z |
+| Sitemap one-liner | `curl -s https://lux.corpflowai.com/sitemap.xml \| grep '/property/' \| wc -l` → **0** (was 7 pre-cleanup) |
+| Sitemap content (live) | 2 entries only — `https://lux.corpflowai.com/` and `https://lux.corpflowai.com/concierge` |
+| Per-slug sitemap probe | All 8 slugs (`lm-villa-belombre`, `lm-pent-plateau`, `lm-nc-ridge`, `lm-pipeline-q4`, `lm-phase2d-manual-demo`, `lxf-grand-baie-apt`, `lxf-tamarin-villa`, `lxf-poste-lafayette`) → **absent** |
+| `/properties` | 200, 7617 bytes, "Private Opportunities" + "Private opportunities are being prepared" present, 0 `/property/<slug>` cards rendered, no `demo` / `test` / `smoke` leak |
+| `/` brand markers | 200, 58171 bytes, all four brand pillars present ("Private. Curated. Considered." / "This is not a property website" / "Invited. Not advertised" / "Confidence at distance") |
+| `/concierge` | 200, 13800 bytes, "Private Advisory" + "Request a private consultation" present |
+| Bookmark back-compat | `/property/lm-nc-ridge` → 200 (17355 bytes) — editorial shell preserved for old bookmarks per the explicit intent in `lib/client/luxe-maurice-feed-properties.js` header |
+| Tickets untouched | No git commit since 2026-06-11 has mutated CMP rows for C1 (`cmqa57uyt0000xf803uav5x8x`), C2 (`cmqa57ve00001xf80tpgmjeiz`), C4 (`cmqa57vsr0003xf80y543sx20`); all three remain `Open / Intake / awaiting_operator_review` (read-only audit; operator-side CMP state confirmation requires a Lux operator session) |
+| Operator runbook (canonical path) | `docs/runbooks/LUX_CONTENT_SPRINT_C3_PLACEHOLDER_CLEANUP.md` § 8 |
+| Final verdict | **COMPLETE** |
+
+**Follow-on (not blocking C3 closure):** when Jan's first real C2 opportunity slug is approved + published, append it to `LUX_PROPERTY_REFS` in `pages/sitemap.xml.js` so the new opportunity is discoverable on Google. Same single-constant edit pattern — no new mechanism.
 
 ### C4 — Jan validation E2E
 
