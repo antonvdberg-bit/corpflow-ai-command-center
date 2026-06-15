@@ -66,6 +66,7 @@ import {
   handleChangeAttachmentPublic,
   handleChangeAttachmentUpload,
 } from '../lib/server/change-attachments.js';
+import { handleMembershipEffective, handleMembershipList } from '../lib/server/membership-api.js';
 import { handleLuxPropertyMedia } from '../lib/server/lux-property-media.js';
 import { handleLuxPropertyMediaList } from '../lib/server/lux-published-property-media.js';
 import { tryHandleLuxListingsPublicRead } from '../lib/server/lux-listings-public.js';
@@ -772,6 +773,13 @@ export default async function handler(req, res) {
     }
     if (pathSeg === 'ui/context') {
       return handleUiContext(req, res);
+    }
+
+    if (pathSeg === 'membership/effective') {
+      return handleMembershipEffective(req, res);
+    }
+    if (pathSeg === 'membership/list') {
+      return handleMembershipList(req, res);
     }
 
   if (pathSeg === 'change-attachment/upload') {
