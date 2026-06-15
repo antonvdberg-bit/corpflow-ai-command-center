@@ -28,6 +28,72 @@
 
 ---
 
+## 2026-06-15 — Multi-tenant **platform-stream boundary + approved vocabulary (governance lock)** — docs-only. Two design docs are added to `main` with a binding stream-boundary preamble and a four-noun vocabulary that becomes canonical across all future multi-tenant platform work:
+
+- `docs/operations/MULTI_TENANT_CONTAINMENT_AND_VISUAL_SEPARATION_AUDIT.md` (read-only MT-1 audit; ~454 lines) — owns the cross-tenant contamination model, visual-separation requirements, tenant isolation tests, audit trail requirements, the eight-packet MT-1..MT-8 implementation plan, and the canonical home of the four-noun vocabulary in §5.
+- `docs/operations/OPERATOR_MULTI_TENANT_CREDENTIAL_V1.md` (r2; ~797 lines, link-stable filename) — owns the `user_tenant_memberships` membership-matrix design, the `auth_users.factory_master` capability, the 9 required user flows, the 8-packet IM-1..IM-8 implementation plan, and the 12 tampering tests §9.5b. Title intentionally retains "OPERATOR" for link stability; the doc now explicitly covers both operators **and** multi-tenant clients (§1.4, §2.3.A, §4.8).
+
+<!-- MULTI_TENANT_STREAM_BOUNDARY_VOCAB_2026_06_15_HIST -->
+
+**The four approved nouns (binding across both docs):**
+
+1. **Core Capability** — reusable, CorpFlow-owned functional unit; code shared by all tenants (lives in `lib/`, `api/`, `pages/`, `components/`; defaults in `automation_playbooks` with `tenant_scope='factory'`, `docs/`, seeders).
+2. **Tenant Deployment** — the tenant-specific activation of a Core Capability (a `tenants` row + `tenant_hostnames` row + `tenant_personas` row + tenant-scoped child rows together).
+3. **Tenant Override** — a tenant-specific difference on top of a Tenant Deployment (config value, visual asset, instruction, process step, workflow variant; lives on the same tenant row or in a tenant-scoped child table).
+4. **Promotion to Core** — an anonymised improvement that started as a Tenant Override and is rolled up into the Core Capability via an explicit packet; never silent, always per-tenant adoption afterwards.
+
+**Two binding rules that follow from these nouns:**
+
+- A Tenant Override never silently affects another tenant — cross-tenant inheritance only happens through an explicit Promotion to Core followed by a forward-promotion packet.
+- A Core Capability is owned by the platform stream; a Tenant Deployment + its Overrides are owned by that tenant's delivery stream. The platform stream changes Core Capabilities and the membership matrix; it does not change any tenant's Deployment content (chatbot prompt, brand, CRM data, sandbox content).
+
+**Stream boundary — what this stream does NOT touch (codified in both docs):**
+
+- No chatbot work (Living Word chatbot, Lux concierge, future tenants' chatbots all stay with their respective delivery streams).
+- No tenant sandbox creation or seeding.
+- No tenant delivery artifact mutation (`artifacts/quality-audits/<tenant>/` files are read for context only).
+- No DB write from these docs.
+- No auth/session code change (every gate in `lib/server/auth.js`, `lib/server/session.js`, `lib/cmp/router.js` is governed by the credential doc IM-5/IM-6 packets, each independently approved).
+- No blurring with tenant delivery work — a change cannot land via this stream if its main effect is to deliver value for one tenant.
+
+**Implementation gate (codified in the credential doc §33):**
+
+The 8-packet plan IM-1..IM-8 in the credential doc and the parallel MT-1..MT-8 plan in the audit doc exist for **design completeness** only — to prove the design is decomposable into reviewable units. They are **not** authorisation to begin implementing. Each IM/MT packet starts only after Anton's explicit, per-packet approval, per `docs/execution/CORPFLOW_EXECUTION_PACKET_STANDARD.md` and the auto-applied rules `.cursor/rules/security-sensitive-changes.mdc` + `.cursor/rules/predeploy-decision-checks.mdc` + `.cursor/rules/delivery-reality.mdc`. IM-1 was approved and shipped (2026-06-15, PR #359 1c46dfbc + PR #361 843ef8f0); IM-2..IM-8 are explicitly **not started** and require their own approvals.
+
+**Why this matters:**
+
+Without this governance lock, three failure modes are open:
+
+- Core/tenant mixing — a "factory" change quietly leaks tenant-specific content (e.g. today's `api/factory_router.js → handleChat` hardcoding one tenant's persona prompt).
+- Tenant brand or prompt content accidentally promoted into Core — IM-1..IM-8 / MT-8 specifically guards against this with the anonymisation review step.
+- Design documentation mistaken for implementation authorization — the "Implementation gate" preamble in each doc makes per-packet approval explicit.
+
+**Boundary discipline preserved:**
+
+This PR contains **only** the two design docs and this chat-history bullet. It does **not** touch any tenant's delivery artifacts, the visual-separation v1 code (`components/TenantChromeHeader.js` + helpers stay untracked for their own future PR), the Living Word chatbot code (`lib/server/chat-widget/*` stays in its delivery stream), or any schema / API / auth / session / Vercel / DNS surface. No IM-2 code is included; IM-2 scope proposal will be returned for approval after this PR merges.
+
+**Delivery Reality Audit (Stream-Boundary Docs PR):**
+
+```text
+Delivery Reality Audit (stream-boundary docs):
+- Local fix exists: YES
+- Merged to main: <PENDING — Cursor appends PR # + merge SHA after merge>
+- Production deployment ID: <PENDING — Vercel deploys the docs change; no runtime effect>
+- Commit deployed: <PENDING>
+- Live URLs tested: None required — docs-only PR, zero runtime surface.
+- Expected vs actual result: docs/operations/MULTI_TENANT_CONTAINMENT_AND_VISUAL_SEPARATION_AUDIT.md
+    and docs/operations/OPERATOR_MULTI_TENANT_CREDENTIAL_V1.md present on main with the four
+    approved nouns + stream-boundary preamble + implementation gate.
+- Client-facing flow usable: YES (no client-facing surface change at all).
+- No runtime behaviour change: YES.
+- No new env vars: YES.
+- Existing tests still pass: YES (verified at the PR's CI run).
+- Rollback plan: revert PR; docs disappear from main, no DB/Vercel impact.
+- Final verdict: PENDING (will flip to COMPLETE after merge + main HEAD confirms both docs present)
+```
+
+---
+
 ## 2026-06-15 — Multi-tenant **IM-1 schema packet** (additive, behaviour-free) — first implementation packet from the approved r2 membership-matrix design in `docs/operations/OPERATOR_MULTI_TENANT_CREDENTIAL_V1.md`. Ships the foundation for the `user_tenant_memberships` membership matrix without changing any visible behaviour: a new `user_tenant_memberships` table with a partial-unique `(user_id, tenant_id) WHERE revoked_at IS NULL` index for soft-revoke semantics, a new `auth_users.factory_master boolean NOT NULL DEFAULT false` column guarded by a Postgres CHECK constraint (`auth_users_factory_master_admin_only` — admins-only), and new `automation_events.actor_user_id` + `telemetry_events.actor_user_id` nullable audit columns (each with a single-column index). Anton's `factory_master=true` flip is **NOT** applied as part of the migration — it is a separate operator step run via `scripts/promote-factory-master.mjs --username=anton` only after the schema deploys and Anton has confirmed his auth_users row via the read-only verification query in the DRA. All DDL is additive (`create table if not exists`, `add column if not exists`, `do $$ ... if not exists ... end $$` block for the CHECK) and applies on every Vercel build via the existing `scripts/apply-ensure-schema-build.mjs`; a formal `prisma/migrations/20260615080000_im_1_user_tenant_memberships/migration.sql` is the historical record (`prisma migrate resolve --applied` post-deploy if ensure-schema landed it first per existing convention). Files: `lib/server/postgres-ensure-schema-statements.js` (8 new statements appended), `prisma/schema.prisma` (3 model edits + 1 new model `UserTenantMembership`), the migration SQL, `scripts/seed-user-tenant-memberships.mjs` (idempotent backfill from `auth_users.tenant_id` for `level='tenant'` rows only), `scripts/promote-factory-master.mjs --username=<name>` (separate one-off, idempotent, refuses `level='tenant'` rows). Tests added (no live DB required): `node-tests/im-1-schema-shape.test.mjs` asserts the DDL strings declare every column / index / constraint named in the design doc §2.3 + §2.6; `node-tests/im-1-seed-idempotency.test.mjs` exercises the seeder in-memory and proves it is idempotent on re-run, never seeds admin / orphan / disabled rows, and treats revoked rows as absent so a re-grant succeeds.
 
 <!-- MULTI_TENANT_IM_1_SCHEMA_2026_06_15_HIST -->
