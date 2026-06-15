@@ -747,6 +747,26 @@ export default async function handler(req, res) {
     if (pathSeg === 'chat') {
       return handleChat(req, res);
     }
+    if (pathSeg === 'chat-widget/loader.js') {
+      const mod = await import('../lib/server/chat-widget/handlers.js');
+      return mod.handleChatWidgetLoader(req, res);
+    }
+    if (pathSeg === 'chat-widget/start') {
+      const mod = await import('../lib/server/chat-widget/handlers.js');
+      return mod.handleChatWidgetStart(req, res);
+    }
+    if (pathSeg === 'chat-widget/step') {
+      const mod = await import('../lib/server/chat-widget/handlers.js');
+      return mod.handleChatWidgetStep(req, res);
+    }
+    if (pathSeg === 'chat-widget/submit') {
+      const mod = await import('../lib/server/chat-widget/handlers.js');
+      return mod.handleChatWidgetSubmit(req, res);
+    }
+    if (pathSeg === 'chat-widget/admin/kill-switch') {
+      const mod = await import('../lib/server/chat-widget/handlers.js');
+      return mod.handleChatWidgetKillSwitch(req, res);
+    }
     if (pathSeg === 'stats') {
       return handleStats(req, res);
     }
