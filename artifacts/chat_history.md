@@ -28,6 +28,70 @@
 
 ---
 
+## 2026-06-15 — Multi-tenant **IM-2 read-side membership API + tampering tests** — implementation packet (read-only API surface, additive, no schema change). Second implementation packet from the approved r2 membership-matrix design in `docs/operations/OPERATOR_MULTI_TENANT_CREDENTIAL_V1.md`. Ships the helper, two Core-host-only read endpoints, and the 12-vector tampering test suite — with **zero** session-shape change, **zero** UI change, **zero** CMP enforcement change, **zero** tenant picker work, **zero** writes to `user_tenant_memberships`, and **zero** new env vars (`requireCoreHost` deliberately reuses the existing `CORPFLOW_CORE_HOSTS` resolver in `lib/server/host-tenant-context.js` — single source of truth for Core vs tenant surface). New files: `lib/server/effective-memberships.js` (helper `getEffectiveMemberships(userId, { prismaClient? })` with defensive in-JS re-check that factory_master expansion only fires for `level='admin' AND enabled=true`, bounded to `tenant_status='Active'`, never cached; tags each row `source='explicit' | 'factory_master'`); `lib/server/host-policy.js` (thin wrapper exposing `requireCoreHost(req)` / `isCoreHost(req)` / `assertCoreHostOrReject(req, res)`); `lib/server/membership-api.js` (handlers for the two endpoints below); `node-tests/user-tenant-membership-tampering.test.mjs` (18 tests: vectors v1–v12 plus v5b / v11b / v11c sub-vectors plus three extras). Edited: `api/factory_router.js` — adds **6 lines** (one named import + two `pathSeg ===` branches), no existing route logic touched. Endpoints: `GET /api/membership/effective` returns the session user's own effective matrix only — `?user_id=` triggers explicit `400 UNEXPECTED_USER_ID` (per Anton's guardrail #1, query tampering must be visible not silent); `GET /api/membership/list?user_id=<id>` requires Core host + admin-level session + DB-backed `auth_users.factory_master=true`; tenant hosts always receive `403 SWITCH_NOT_ALLOWED_FROM_HOST`. Session payloads without `user_id` (legacy env-master / PIN) receive `400 NO_USER_ID_IN_SESSION` — explicit so the IM-8 deprecation of those legacy paths is observable.
+
+<!-- MULTI_TENANT_IM_2_READ_APIS_2026_06_15_HIST -->
+
+**Status:** **PARTIAL** per `.cursor/rules/delivery-reality.mdc` — code, tests, and all local gates green (810/810 `npm test` = +18 from IM-1's 792 baseline, clean `npx next build --webpack`, clean `npx prisma validate`, zero lint errors). PR # + merge SHA + Vercel Production deployment ID + Ready timestamp + live endpoint verification on `core.corpflowai.com` are appended below as each step lands. Cannot flip to **COMPLETE** until live `GET https://core.corpflowai.com/api/membership/effective` confirms the expected 401/400/403/200 contract on Production AND a tenant-host call to `/api/membership/list` returns `403 SWITCH_NOT_ALLOWED_FROM_HOST` AND `lux.corpflowai.com/` + `lux.corpflowai.com/change` remain green (no regression — IM-2 touches no rendering code).
+
+**Why this matters:** IM-1 only added the schema. IM-2 is the first packet that lets future surfaces (the picker UX in IM-3, the session enrichment in IM-5, the CMP enforcement layer in IM-6) call a single canonical function for "what tenants is this user actually allowed to see?" without each one reinventing the rules. The 12 tampering vectors prove that the read APIs cannot be bypassed by URL / host-header / body / cookie / method tampering — which is the security baseline that IM-5 / IM-6 will inherit unchanged when they ship their write paths and switch flows.
+
+**Boundary discipline:** IM-2 ships on the dedicated branch `feat/platform-multi-tenant-im-2` (off `origin/main` at `93701206`, the merged stream-boundary commit). The IM-1 schema work was already merged separately (PR #359 / #361 — IM-1 row in this file is **COMPLETE**). The visual-separation v1 work, the chatbot work under `lib/server/chat-widget/`, the Living Word delivery scripts under `scripts/*living-word-mauritius*.mjs`, and the apex Search Console rollout are owned by their own delivery streams and are not touched by this packet. Future IM-3 / IM-4 / IM-5 / IM-6 / IM-7 / IM-8 packets each ship their own PR off a fresh `feat/platform-multi-tenant-im-<n>` branch.
+
+**Delivery Reality Audit (IM-2) — appended as evidence lands:**
+
+```text
+Delivery Reality Audit (IM-2):
+- Local fix exists: YES
+- Merged to main: <PENDING — Cursor appends PR # + merge SHA after merge>
+- Production deployment ID: <PENDING — Cursor appends Vercel deployment ID + Ready timestamp>
+- Commit deployed: <PENDING>
+- Live URLs tested:
+    Required live verification on Production after deploy (all read-only — no writes
+    are performed against production data for IM-2):
+      1) GET https://core.corpflowai.com/api/membership/effective
+           (no session cookie)  → expect 401 UNAUTHENTICATED
+      2) GET https://core.corpflowai.com/api/membership/effective?user_id=anything
+           (no session cookie)  → expect 400 UNEXPECTED_USER_ID (proves tampering
+             is rejected BEFORE the auth check, so the error message is visible
+             to anyone probing the endpoint — desirable for audit)
+      3) GET https://lux.corpflowai.com/api/membership/effective
+           → expect 403 SWITCH_NOT_ALLOWED_FROM_HOST (tenant host cannot call
+             the read API; future IM-5 switch-tenant uses the same gate)
+      4) GET https://lux.corpflowai.com/api/membership/list?user_id=anyone
+           → expect 403 SWITCH_NOT_ALLOWED_FROM_HOST
+      5) POST https://core.corpflowai.com/api/membership/effective
+           → expect 405 METHOD_NOT_ALLOWED + Allow: GET
+      6) Regression sanity: GET https://lux.corpflowai.com/, /change,
+           https://core.corpflowai.com/, https://core.corpflowai.com/api/factory/health
+           → all still 200 (IM-2 touches zero rendering / zero existing handlers).
+- Expected vs actual result: <PENDING — Cursor appends after Production checks>
+- Client-facing flow usable: N/A — endpoints are Core-host operator surface only.
+    Lux + Living Word client surfaces unchanged.
+- No runtime behaviour change for existing callers: YES (existing routes untouched;
+    new dispatch branches only fire for the two new pathSeg values).
+- No new env vars: YES (.env.template unchanged; `requireCoreHost` reuses the
+    pre-existing CORPFLOW_CORE_HOSTS via buildCorpflowHostContext).
+- No schema change: YES (zero edits to prisma/schema.prisma, zero edits to
+    lib/server/postgres-ensure-schema-statements.js, zero new migration files).
+- No session-shape change: YES (session.payload contract unchanged; IM-2 only
+    READS .user_id / .typ — IM-5 will be the packet that enriches it).
+- No CMP enforcement change: YES (lib/cmp/router.js untouched; IM-6 owns that).
+- No UI change: YES (pages/change.js + components/* untouched).
+- Existing tests still pass: YES (810/810 local; baseline before IM-2 was 792).
+- New tests: 18 (vectors v1–v12 plus v5b / v11b / v11c sub-vectors plus three
+    extras: disabled-row, unknown-user, blank-user).
+- Rollback plan: revert PR; the two new routes disappear; helper + host-policy
+    modules become unreferenced and inert; no schema / session / UI / CMP /
+    cron / env-var changes to undo. Blast radius is strictly "two new 404s
+    would re-appear" if a future caller had already started using the routes.
+- Final verdict: PARTIAL (will flip to COMPLETE only after step 6 regression
+    sanity + steps 1–5 endpoint contract checks against lux.corpflowai.com
+    and core.corpflowai.com on Production)
+```
+
+---
+
 ## 2026-06-15 — Multi-tenant **platform-stream boundary + approved vocabulary (governance lock)** — docs-only. Two design docs are added to `main` with a binding stream-boundary preamble and a four-noun vocabulary that becomes canonical across all future multi-tenant platform work:
 
 - `docs/operations/MULTI_TENANT_CONTAINMENT_AND_VISUAL_SEPARATION_AUDIT.md` (read-only MT-1 audit; ~454 lines) — owns the cross-tenant contamination model, visual-separation requirements, tenant isolation tests, audit trail requirements, the eight-packet MT-1..MT-8 implementation plan, and the canonical home of the four-noun vocabulary in §5.
