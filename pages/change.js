@@ -50,6 +50,8 @@ import {
   coreSwitchUrl,
   shouldShowSwitchLink,
 } from '../lib/ui/tenant-host-switch-link.js';
+import { shouldRenderPicker as shouldRenderCoreTenantPicker } from '../lib/ui/core-tenant-picker-helpers.js';
+import CoreTenantPicker from '../components/CoreTenantPicker.js';
 
 function normalizeLocale(raw) {
   const s = String(raw || '').trim().toLowerCase().replace(/_/g, '-');
@@ -2250,6 +2252,27 @@ export default function ChangeConsolePage() {
     effectiveMembershipsCount: uiContext?.effective_memberships_count,
   });
 
+  /**
+   * IM-3 (2026-06-16) — Core-host workspace picker render gate.
+   *
+   * The gate is intentionally STRICTER than IM-4 (it requires
+   * surface === 'core' and effective_memberships_count >= 1, vs IM-4's
+   * tenant-host + count > 1). Guardrail #5: tenant-host /change HTML must
+   * remain free of `Your workspaces`, picker IDs, other tenant names, IDs,
+   * or hostnames — `shouldRenderCoreTenantPicker` enforces that by
+   * returning false on every tenant-host render path.
+   *
+   * The picker itself does NOT re-fetch /api/ui/context — we pass the
+   * already-resolved `actingTenantId` and `effective_memberships_count`
+   * as props so the picker only fetches the IM-2 memberships endpoint and
+   * the IM-5 switch/leave POSTs.
+   */
+  const showCoreTenantPicker = shouldRenderCoreTenantPicker({
+    surface: uiContext?.surface,
+    sessionLogged: session?.logged_in === true,
+    effectiveMembershipsCount: uiContext?.effective_memberships_count,
+  });
+
   return (
     <div ref={changeRootRef} style={luxChangeChrome ? luxChangeChrome.shellStyle() : changePageShellStyle({ background: '#020617', minHeight: '100vh' })}>
       <div style={pageInner}>
@@ -2281,6 +2304,12 @@ export default function ChangeConsolePage() {
             {SWITCH_WORKSPACE_LINK_TEXT}
           </a>
         </div>
+      ) : null}
+      {showCoreTenantPicker ? (
+        <CoreTenantPicker
+          actingTenantId={uiContext?.acting_tenant_id ?? null}
+          effectiveMembershipsCount={uiContext?.effective_memberships_count ?? null}
+        />
       ) : null}
       {showChangeDebugBanner ? (
         <div
