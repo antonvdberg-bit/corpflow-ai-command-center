@@ -69,6 +69,7 @@ import {
 import { handleMembershipEffective, handleMembershipList } from '../lib/server/membership-api.js';
 import { getEffectiveMemberships } from '../lib/server/effective-memberships.js';
 import { computeEffectiveMembershipsCountForUiContext } from '../lib/ui/tenant-host-switch-link.js';
+import { handleMembershipSwitch, handleMembershipLeave } from '../lib/server/switch-leave-api.js';
 import { handleLuxPropertyMedia } from '../lib/server/lux-property-media.js';
 import { handleLuxPropertyMediaList } from '../lib/server/lux-published-property-media.js';
 import { tryHandleLuxListingsPublicRead } from '../lib/server/lux-listings-public.js';
@@ -719,6 +720,23 @@ async function handleUiContext(req, res) {
     getEffectiveMembershipsFn: getEffectiveMemberships,
   });
 
+  /**
+   * IM-5 (2026-06-15) — additive `acting_tenant_id` field. Mirror of the
+   * session payload's acting_tenant_id (set by /api/membership/switch +
+   * /leave), or null for anonymous / env-master / PIN / pre-IM-5 sessions.
+   * Returns ONLY a tenant id or null — never a tenant name or hostname (per
+   * Anton's IM-4 guardrail #5, preserved in IM-5).
+   *
+   * IM-5 does NOT change CMP or tenant-host enforcement behavior — this
+   * field is purely informational on the wire for the IM-3 picker UX to
+   * read. IM-6 will be the packet that decides how CMP / tenant-host gates
+   * consume this value.
+   */
+  const acting_tenant_id =
+    sess?.ok && sess?.payload && sess.payload.acting_tenant_id != null
+      ? String(sess.payload.acting_tenant_id)
+      : null;
+
   return res.status(200).json({
     ok: true,
     host: ctx.host,
@@ -739,6 +757,7 @@ async function handleUiContext(req, res) {
     tenant_host_session_mismatch: Boolean(hostSessionConflict),
     tenant_host_session: hostSessionConflict,
     effective_memberships_count,
+    acting_tenant_id,
   });
 }
 
@@ -796,6 +815,12 @@ export default async function handler(req, res) {
     }
     if (pathSeg === 'membership/list') {
       return handleMembershipList(req, res);
+    }
+    if (pathSeg === 'membership/switch') {
+      return handleMembershipSwitch(req, res);
+    }
+    if (pathSeg === 'membership/leave') {
+      return handleMembershipLeave(req, res);
     }
 
   if (pathSeg === 'change-attachment/upload') {
