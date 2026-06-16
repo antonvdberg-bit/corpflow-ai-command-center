@@ -126,11 +126,11 @@ From `MONITORING_ARCHITECTURE.md` § 11.3, restated:
 - ❌ **No production secrets on the box** — no `POSTGRES_URL`, `MASTER_ADMIN_KEY`, `VERCEL_TOKEN`, Stripe keys, Gmail tokens. The box is treated as *less trusted than Vercel Production* until proven otherwise.
 - ❌ **No DB writes** — any DB-touching script runs from an operator session against a copy/dev DB only.
 - ❌ **No Vercel deploys** triggered from the box — no `vercel deploy`, no deploy-hook curl.
-- ❌ **No scheduled jobs** — no cron, no systemd timers, no `at`. Anything scheduled today still lives on L2 (Vercel cron or GitHub Actions).
+- ❌ **No scheduled jobs** — no cron, no systemd timers, no `at`. Anything scheduled today still lives on L2 (Vercel cron or GitHub Actions). *(One narrow named exception: the **Uptime Kuma** container's internal probe scheduler — see § 5.5. The `cron` / `systemd timer` / `at` rule is otherwise unchanged.)*
 - ❌ **No tenant data** — no DB exports, content snapshots, or tenant secrets.
 - ❌ **No n8n migration yet** — n8n stays where it is until packet `n8n-on-exec01` is approved.
 - ❌ **No Cursor server extension** — no remote Cursor Agent, no Cursor Remote SSH endpoint, no `code-server`, no VS Code Server installed on the box. **Deferred at bootstrap and reaffirmed by this runbook v1.**
-- ❌ **No Docker / Ollama / Postgres install beyond the ERPNext sandbox + (authorised) production-shell scope.** Adds attack surface and memory pressure.
+- ❌ **No Docker / Ollama / Postgres install beyond the ERPNext sandbox + (authorised) production-shell scope.** Adds attack surface and memory pressure. *(One narrow named exception: the **Uptime Kuma** container — see § 5.5. The rule is otherwise unchanged; no other Docker workload is authorized by the Kuma carve-out.)*
 
 ### 5.4 The Cursor + Anton L3 collaboration pattern (the proven Phase B-a model)
 
@@ -172,6 +172,32 @@ Step 5.  Cursor (L1) opens a docs-only PR with the JOURNAL row +
 - Credentials live on L3 in `~/.erpnext-sandbox-credentials` / `~/.erpnext-production-credentials` (`chmod 600`) — Cursor reports the file *path*, never the *contents*.
 - Evidence flows L3 → Anton's chat → L1 → JOURNAL.md / bridge #249.
 
+### 5.5 Authorized exceptions to § 5.3 hard rules (named, narrow, packet-gated)
+
+**Doctrine:** § 5.3 hard rules **stay in force**. Each row below is a **named, narrow exception** authorized by a specific ADR + packet that passed the § 10 gate. The exception is the named container / surface, **not** a category. Adding a second name to this table requires a new ADR + new authorization packet + new § 10 gate run — there is no "Docker is now OK" generalization, ever.
+
+**Canonical authorization language (cite verbatim — same wording in the ADR § 2.1, in the authorization packet § 1.1, and in `JE-2026-06-15-1`):**
+
+> **This packet authorizes only the minimum execution boundary change needed for Uptime Kuma to run as a monitoring service on `corpflow-exec-01-u69678`.**
+>
+> **It does not authorize general Docker usage, general scheduled jobs, additional self-hosted applications, backups/restic, chatbot/live-chat platforms, AI frameworks, or production shell access beyond the documented Kuma installation/operation path.**
+
+Any future row added below must come with its own ADR-anchored canonical paragraph at the same level of narrowness. Paraphrase is not authorized.
+
+| Authorized exception | Packet that authorized it | What is permitted (narrow) | What § 5.3 rule(s) the exception lifts (and only this far) | Rollback |
+|---|---|---|---|---|
+| **Uptime Kuma** — single Docker container on `corpflow-exec-01-u69678`, `127.0.0.1:3001` loopback only, persistent volume `~/uptime-kuma-data/`, internal probe scheduler | `JE-2026-06-15-1` — `docs/decisions/20260615-uptime-kuma-on-exec01.md` (ADR) + `docs/execution/UPTIME_KUMA_ON_EXEC01_AUTHORIZATION_PACKET.md` (packet) | One Kuma container; HTTP probes (GET-only) against the seven CorpFlow public floor URLs in `MONITORING_ARCHITECTURE.md` § 5 + the n8n host's own health endpoint; Kuma's own Telegram bot (separate from in-repo `TELEGRAM_BOT_TOKEN`) + optional SMTP for alerts; UI access via SSH local-port-forward (`ssh -L 3001:localhost:3001`); operator-managed admin password / bot token / SMTP creds in Kuma's encrypted SQLite DB at `~/uptime-kuma-data/kuma.db` (`chmod 600`); zero CorpFlow secrets on the box | (a) "No Docker / Ollama / Postgres install beyond the ERPNext sandbox + (authorised) production-shell scope" — lifted **only** for the named Kuma container, **not** for any other Docker workload; (b) "No scheduled jobs" — lifted **only** for Kuma's internal probe scheduler running inside the named container, **not** for `cron`/`systemd timer`/`at` outside Kuma | `docker compose -p uptime-kuma down` (≤ 60 s) → `docker compose down -v` + `rm -rf ~/uptime-kuma-data/` (≤ 5 min) → revert authorization packet's merge commit (≤ 1 hour); details in ADR § 5 |
+
+**Explicit non-generalization (re-stated for clarity):**
+
+- This carve-out is for **Uptime Kuma** alone. It does **not** authorize Chatwoot, Open WebUI, Coolify, Langfuse, AgentSpan, OpenJarvis, generic chatbot, generic agent framework, additional monitoring tool, additional self-hosted tool of any kind, or any second container.
+- This carve-out is for **`corpflow-exec-01-u69678`** alone. It does not authorize Kuma on a sibling VM or on the laptop.
+- This carve-out is for **third-location uptime monitoring** alone. It does not authorize Kuma to probe state-mutating routes, factory-master endpoints, tenant data, or anything that requires a CorpFlow secret.
+- This carve-out is for **loopback-only access**. It does not authorize a public port, a reverse proxy, a public DNS record, or any change to `cors`/`csp`/`x-frame-options` on CorpFlow surfaces.
+- This carve-out's **install runbook is a separate follow-up packet** (`UPTIME_KUMA_ON_EXEC01_INSTALL_RUNBOOK_V1`). The authorization packet alone does not put Kuma on the box.
+
+**How to read this table when proposing new work:** if you are about to write *"this is similar to the Kuma exception, so we can also …"*, **stop**. Each named exception is the result of its own ADR + its own threat model + its own packet. Sameness is not authorization. Open a new ADR.
+
 ---
 
 ## 6. What does NOT exist as an execution layer (canonical absence list)
@@ -184,7 +210,7 @@ A layer that does not appear in § 2 above is **not a CorpFlow execution layer**
 | Cursor Remote SSH endpoint configured to the box | Does not exist | Same rule as above |
 | `code-server` / VS Code Server on the box | Does not exist | Same rule as above |
 | Web-shell / browser terminal on the box | Does not exist | No such service installed; would require opening a port + reverse proxy, both forbidden in v1 |
-| Persistent daemon / systemd service / cron / `at` job on the box | Does not exist | § 11.3 hard rule — *"No scheduled jobs"* |
+| Persistent daemon / systemd service / cron / `at` job on the box | Does not exist (with one named exception — see § 5.5: the **Uptime Kuma** container's internal probe scheduler is authorized **only** as that named carve-out and **only** inside that named container; no `cron` / `systemd timer` / `at` outside Kuma is authorized) | § 11.3 hard rule — *"No scheduled jobs"* |
 | Codex Cloud running on the box | Does not exist | `DELIVERY_ACCELERATION_V1.md` § 4.3 — *"Codex Cloud runs in OpenAI's infrastructure, not on Anton's laptop and not on `corpflow-exec-01`"* |
 | Tailscale / WireGuard / reverse-tunnel from box to laptop | Does not exist | Repo-wide grep returns zero hits; would expand attack surface |
 | Production secrets on the box | Does not exist | § 11.3 hard rule — explicit list of secrets that may not be on the box |
@@ -193,6 +219,8 @@ A layer that does not appear in § 2 above is **not a CorpFlow execution layer**
 | n8n process on the box | Does not exist | Packet `n8n-on-exec01` is named in `MONITORING_ARCHITECTURE.md` § 11.2 future packets but NOT approved; n8n still on its current host |
 
 **The rule:** if an agent or handoff comment claims one of these surfaces exists, demand the file path / process / port / config row that proves it. If none can be produced, the claim is wrong.
+
+**Exception clarifier (2026-06-15, `JE-2026-06-15-1`):** The only authorized lifting of any row in this table is the **Uptime Kuma** carve-out documented in § 5.5 (Docker container row + scheduled-jobs row, **only** for the named Kuma container, **only** on `corpflow-exec-01-u69678`, **only** loopback-bound for third-location monitoring). Any future authorized exception must appear in § 5.5 with its own ADR + packet — and must explicitly identify which absence-list row(s) it lifts and how narrowly. No row in the table above is lifted by category.
 
 ---
 
@@ -318,3 +346,4 @@ If a future packet proposes lifting any § 5.3 hard rule (e.g. installing Cursor
 ## 13. Change log
 
 - **v1, 2026-06-04** — initial canonical version. Triggered by bridge [#249 issuecomment-4617928519](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/249#issuecomment-4617928519). Synthesises rules already in `EXECUTION_BRAIN_VS_HANDS.md`, `MONITORING_ARCHITECTURE.md` § 11.3, `DELIVERY_ACCELERATION_V1.md` § 4.3, `MIGRATION_TO_SERVER_CHECKLIST.md`, `ERPNEXT_SANDBOX_INSTALL.md` § 10. Recorded as `JE-2026-06-04-2`.
+- **v1.1, 2026-06-15** — added § 5.5 *Authorized exceptions to § 5.3 hard rules (named, narrow, packet-gated)* and listed **Uptime Kuma** on `corpflow-exec-01-u69678` as the **first and only** named carve-out, authorized by `docs/decisions/20260615-uptime-kuma-on-exec01.md` + `docs/execution/UPTIME_KUMA_ON_EXEC01_AUTHORIZATION_PACKET.md` (`JE-2026-06-15-1`). § 5.3's two affected rules ("No Docker / Ollama / Postgres beyond ERPNext sandbox + production-shell" and "No scheduled jobs") gained parenthetical pointers at § 5.5; rule wording itself unchanged. § 6 absence-list "Persistent daemon / systemd / cron / `at`" row gained an in-line clarifier; a new "Exception clarifier" paragraph was added under § 6 explaining that the only authorized lifting of any row is the Uptime Kuma carve-out, narrow and named. The carve-out is **not** a category-level lift: any further exception requires its own ADR + authorization packet + § 10 gate. No § 5.3 hard rule is removed by this version.
