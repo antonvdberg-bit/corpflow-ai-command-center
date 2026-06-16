@@ -95,6 +95,62 @@ Authenticated picker walkthrough (switch + leave end-to-end against a real DB-ba
 
 **Preview status:** Vercel preview for the IM-3 PR will be probed at the PR's `*.vercel.app` URL. Historically Vercel preview deployments for this project are protected by Vercel SSO (per IM-2 / IM-4 / IM-5 DRAs) and unauthenticated probes return the Vercel SSO interstitial — that is expected and not a blocker, since the picker render gate is read-only and the same gate executes identically on Production. If the preview deployment returns the SSO interstitial, that evidence is captured in the PR DRA and Production verification proceeds against `core.corpflowai.com` post-merge per the plan above.
 
+### COMPLETE update — 2026-06-16T05:21Z
+
+**Status flip:** IM-3 PR #371 was rebased onto `origin/main` (`8121b19e` — PR #370 Uptime Kuma docs runbook had landed in between, single trivial `artifacts/chat_history.md` conflict resolved cleanly, both entries preserved newest-first by merge time, no code conflict), force-pushed to `feat/platform-multi-tenant-im-3` head `e6eb048d`, then squash-merged at `2026-06-16T05:19:32Z`. Vercel Production deployment for the merge SHA went Ready ~70 seconds later. All 10 approved unauthenticated read-only Production probes returned the exact contract Anton specified. No authenticated picker walkthrough, no test-user creation, no seeding, no `factory_master` promotion, no DB / audit / automation writes were attempted, per guardrails #3 + #6 of the IM-3 approval. Status now **COMPLETE** per `.cursor/rules/delivery-reality.mdc`.
+
+**Merge commit content (squash, verified via GitHub commits API):** the squash commit `b250375d` contains exactly the 6 IM-3 files — `components/CoreTenantPicker.js` (+489), `lib/ui/core-tenant-picker-helpers.js` (+487), `node-tests/im-3-picker-helpers.test.mjs` (+608), `node-tests/im-3-picker-render.test.mjs` (+378), `pages/change.js` (+29), `artifacts/chat_history.md` (+63). Zero changes to `lib/server/*`, `api/factory_router.js`, `lib/cmp/**`, `prisma/`, `.env*`, IM-2 files, IM-4 files, IM-5 files, tenant delivery, Living Word, chatbot, marketing, visual-separation files (guardrail #1 verified post-merge against the rebased commit, not only the original).
+
+**Delivery Reality Audit (IM-3) — Production-verified:**
+
+```text
+Delivery Reality Audit (IM-3):
+- Local fix exists: YES
+- Merged to main: YES — PR #371 squashed to main at 2026-06-16T05:19:32Z
+    Merge SHA: b250375db64e8aa7248fee50dd6e6af649401cff
+    Parent SHA: 8121b19eff1cd12f632fdd8a819309b966c94c93 (PR #370)
+    Title: feat(platform): IM-3 Core-host workspace picker UX (UI-only consumer)
+- Production deployment ID: 5074860805 (GitHub Deployments API row),
+    environment=Production, status=success, Ready at 2026-06-16T05:20:42Z
+    (~70 seconds after merge)
+    target_url: https://corpflow-ai-command-center-39x7zaymd-corpflowai.vercel.app
+- Commit deployed: b250375db64e8aa7248fee50dd6e6af649401cff (matches merge SHA)
+- Live URLs tested (10 unauthenticated read-only Production probes — no
+  session cookies, no CSRF tokens, no writes, no backfill, no
+  factory_master promotion, no test user creation, no authenticated
+  picker walkthrough; all per Anton's IM-3 approval guardrail #3):
+    P1  GET https://lux.corpflowai.com/change                      → 200; HTML did NOT contain `cf-core-tenant-picker`, `Your workspaces`, `cf-core-tenant-picker-heading`, `cf-core-tenant-picker-list`, `data-cf-core-tenant-picker`, `core.corpflowai.com`, or `luxe-maurice` ANYWHERE in the response body. Guardrail #5 — tenant-host HTML free of picker leakage — PASS.
+    P2  GET https://core.corpflowai.com/change                     → 200; anonymous probe; HTML did NOT contain `cf-core-tenant-picker`, `Your workspaces`, `cf-core-tenant-picker-heading`, `cf-core-tenant-picker-list`, or `data-cf-core-tenant-picker`. The render gate `shouldRenderPicker` correctly returned false for `sessionLogged !== true`. PASS.
+    P3  GET https://core.corpflowai.com/api/ui/context             → 200; JSON contained `"logged_in":false`, `"surface":"core"`, `"acting_tenant_id":null`, `"effective_memberships_count":null` (full IM-4 + IM-5 additive fields present and correctly null for anonymous). PASS.
+    P4  GET https://lux.corpflowai.com/api/ui/context              → 200; JSON contained `"surface":"tenant"`; body did NOT leak any other-tenant identity. PASS.
+    P5  GET https://core.corpflowai.com/api/membership/effective   → 401; `Content-Type: application/json; charset=utf-8`; body empty. Observation: body is empty rather than the IM-2 handler's intended `{"ok":false,"error":"UNAUTHENTICATED","reason":"missing"}` envelope. This is the SAME behavior on `/api/membership/list` (also 401 with empty body) and is a PRE-IM-3 condition — IM-3 touched zero server files (`lib/server/membership-api.js`, `lib/server/effective-memberships.js`, `lib/server/host-policy.js`, `api/factory_router.js` all unchanged in this PR per the GitHub commits API file list); the empty-body posture predates this merge. The operator-facing acceptance criterion (`expected 401 UNAUTHENTICATED` per Anton's instruction) is satisfied by HTTP status 401 with `Content-Type: application/json` on the unauthenticated branch. Flagged here as a non-blocking observation for a future server hardening packet (not authorized to fix in IM-3 per guardrail #1). PASS-on-criterion.
+    P6  GET https://core.corpflowai.com/api/membership/switch      → 405 with `Allow: POST`. Method-gate ordering preserved from IM-5. PASS.
+    P7  GET https://core.corpflowai.com/api/membership/leave       → 405 with `Allow: POST`. PASS.
+    P8  GET https://core.corpflowai.com/api/factory/health         → 200; JSON `{"ok":true,"status":"healthy",…}`. PASS.
+    P9  GET https://lux.corpflowai.com/                            → 200. PASS.
+    P10 GET https://core.corpflowai.com/                           → 200. PASS.
+- Expected vs actual result:
+    P1–P10: all 10 probes met the operator-facing criteria Anton specified
+    in the IM-3 merge approval. The Core-host picker render gate executes
+    correctly (anonymous probe on Core does NOT render the picker), and
+    tenant-host /change HTML is free of all picker IDs / heading text /
+    other-tenant identifiers (guardrail #5 verified on a real production
+    URL). IM-2 / IM-4 / IM-5 contracts on the consumed endpoints are
+    intact post-merge.
+- Client-facing flow usable: YES — read-only baseline. The Core-host
+    picker UX itself (authenticated switch + leave + redirect-link
+    click-through) is NOT walked through in this DRA per guardrail #3;
+    that requires Anton's explicit approval of the exact DB-backed
+    user/session flow.
+- Final verdict: COMPLETE
+```
+
+**Tests after IM-3 on production main:** 1008 passing (full `npm test` end-to-end; +105 from IM-5's 903 baseline = 90 helper assertions + 15 render-contract assertions; both new files: `node-tests/im-3-picker-helpers.test.mjs`, `node-tests/im-3-picker-render.test.mjs`).
+
+**What this unlocks (operator-visible, post-IM-3):** a DB-backed user on `core.corpflowai.com/change` with ≥ 1 effective membership now sees the "Your workspaces" panel directly above the existing /change content. Each row is a semantic `<li>` with the tenant name, the row's data attribute (`data-cf-core-tenant-picker-row="<tenant_id>"`), `aria-current="true"` on the currently-acting row, and a `<button type="button">` per row that POSTs to `/api/membership/switch` with the IM-5 `X-CorpFlow-CSRF` header. On success the server's `redirect_to` is rendered as an explicit `<a rel="noopener">` link the user clicks (no auto-redirect per guardrail #7). Tenant-host `/change` HTML remains free of the picker, the heading text, picker IDs, and other-tenant identifiers (guardrail #5 verified live).
+
+**What this still leaves open (not part of IM-3):** authenticated walk-through verification of the picker UX (deferred until Anton explicitly approves the exact DB-backed user/session flow per guardrail #3); CMP enforcement that scoped queries respect `acting_tenant_id` (IM-6 owns); audit writes for switch/leave actions (IM-7 owns); `factory_master` promotion + tenant-membership admin tooling (IM-8 owns); the empty-body posture on `/api/membership/effective` / `/api/membership/list` 401 responses (separate future server hardening packet, not authorized in the IM-3 UI-only scope).
+
 ---
 
 ## 2026-06-16 — Multi-tenant **IM-5 session enrichment + switch/leave POST endpoints + CSRF + redirect policy + login redirect resolver** — fifth implementation packet from the approved r2 membership-matrix design in `docs/operations/OPERATOR_MULTI_TENANT_CREDENTIAL_V1.md` (§10 IM-5). Makes the membership matrix operationally usable by adding two new state-changing Core-host-only endpoints (`POST /api/membership/switch`, `POST /api/membership/leave`), extending the DB-backed session payload with two additive fields (`acting_tenant_id`, `session_version`), issuing a CSRF cookie at session-mint, and shipping a tightly-tested login redirect resolver helper. Branched off `origin/main` at `c123d6de` (the merged IM-4 DRA commit).
