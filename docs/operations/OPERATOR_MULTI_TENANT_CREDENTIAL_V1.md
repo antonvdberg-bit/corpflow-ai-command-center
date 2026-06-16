@@ -1079,9 +1079,13 @@ IM-1 schema only ────────────► IM-2 read APIs ──�
 - Verification evidence: `SELECT id, username, enabled FROM auth_users WHERE username LIKE 'bootstrap+%@corpflowai.com'` shows all enabled=false; audit query shows no logins on those rows for one billing cycle; Anton's recent actions all carry his persistent `user_id` (not a per-tenant bootstrap `user_id`).
 - Rollback: re-enable rows (one UPDATE).
 
----
+### Future server-hardening notes — observed during production verification, NOT part of the IM-1 … IM-8 packet split
 
-## 11. Explicit non-goals (v1, r2)
+The following observations were captured during read-only production verification of IM-1 … IM-5 and IM-3 but are **not** authorised under any of those packets' scopes. They are recorded here as future, separately-approved work — never as silent regressions or as scope-creep additions to an in-flight packet.
+
+- **`GET /api/membership/effective` and `GET /api/membership/list` return 401 with an empty body on unauthenticated probes** (Production, observed `2026-06-16T05:30Z` during IM-3 DRA verification). The status code is correct (`401`) and the `Content-Type` is correct (`application/json; charset=utf-8`), but the response body is empty rather than the IM-2 handler's intended `{"ok":false,"error":"UNAUTHENTICATED","reason":"missing"}` envelope. This is a *pre-existing* condition in the IM-2 endpoints (same posture on both `/effective` and `/list`); it is **not** caused by IM-3 (the IM-3 squash commit `b250375d` touched zero server files — verified via the GitHub commits API). The operator-facing acceptance criterion for IM-3's DRA (`expected 401 UNAUTHENTICATED`) was satisfied by the 401 + JSON-content-type pair on the unauthenticated branch. The cleanest place to fix this is a small server-hardening packet that probes the request path (Vercel edge auth interceptor vs Next.js route handler vs `getSessionFromRequest` early-return) and ensures the JSON envelope is emitted to the wire on every 401 / 403 path. **Not authorised under IM-6** (IM-6's scope is host-acting-tenant alignment + factory-master tightening on tenant-scoped CMP routes, not envelope hardening on membership read APIs).
+
+
 
 This design intentionally excludes:
 
