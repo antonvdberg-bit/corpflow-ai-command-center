@@ -6,6 +6,8 @@
 **Date:** 2026-06-16
 **Mode:** Implementation planning first — minimal scaffolding implemented in this same packet (assessed safe per §10).
 
+> **v1 visual refinement (2026-06-16):** the sandbox layout was rebuilt for visual fidelity (hero, top nav, five-pillars row, get-involved grid, next-gen card row, sunday/location/contact strip, placeholder events, footer). Per-section red `SandboxBanner` warning boxes were **removed**; the persistent fixed orange `TestEnvironmentRibbon` is now the single non-removable sandbox marker. Strings that mirror **published public facts** from the live homepage (pillar names, service time, address, phone, email, ministry names, age bands) are intentionally used to give the sandbox a "recognisable facsimile" feel. See **§12** for the full v1 refinement record. The original v0 design and conservative-copy posture remain in §1–§11 below as historical context; §12 supersedes the relevant parts of §3 and §4.
+
 The sandbox is a CorpFlow-hosted, tenant-scoped, `noindex,nofollow` test environment that approximates Living Word Mauritius's public site **structure** (not its visual identity, not its content claims). It exists so the chatbot, future scheduling logic, future AI features, and future process-routing work can be exercised against a realistic-shaped surface **without ever touching `livingwordmauritius.com`, `www.livingwordmauritius.com`, `network.livingwordmauritius.com`, GoHighLevel, or any external WordPress install**.
 
 This is **not** a clone of the church website. It is a labelled CorpFlow test surface that happens to mirror section structure for the purpose of chatbot path validation and future feature scaffolding.
@@ -510,3 +512,99 @@ The sandbox is a small, safe, well-bounded surface for chatbot, AI, scheduling, 
 The minimum implementation (three small files, ~520 lines total, no DB / migration / config changes) is safe to create in this packet because it is uncommitted and undeployed; Anton retains control of when, if ever, the sandbox URL becomes live.
 
 Next concrete step (separate packet, when chosen): "**Living Word visual sandbox v0 — branch + PR**" — pushes the three local files to a feature branch, opens a PR, lets Vercel Preview build, then merges + deploys when ready. Until then, the sandbox is a local-only scaffold.
+
+---
+
+## 14. v1 visual refinement (2026-06-16)
+
+This section records the refinement from sandbox v0 (briefed for "approximate structure, conservative copy, clearly labelled as a test environment") to sandbox v1 (briefed for "recognisable facsimile rather than generic prototype" while preserving every safety control).
+
+### 14.1 What changed
+
+| Surface | v0 | v1 |
+|---|---|---|
+| Persistent fixed orange ribbon | Present | **Present (unchanged)** — single non-removable sandbox marker |
+| Per-section red `SandboxBanner` warning boxes | Present at the top of every section block | **Removed.** Brief: "remove the repeated in-page warning boxes" |
+| Top inline yellow banner | Already removed in the prior ribbon-posture packet | n/a |
+| Layout | Plain narrow column (max-width 720px), section blocks with thin grey border | Full-width sections with hero, top nav, five-pillars row, get-involved grid, next-gen card row, sunday/location/contact strip, placeholder events, footer |
+| Colour palette | Neutral system grey + soft warning colours | **Deep navy (`#0E1F3A`) + warm gold (`#C9A961`) + cream (`#F5F1EA`)** — designed to feel church-appropriate without copying any specific brand asset |
+| Typography | System sans throughout | System serif (Georgia / "Times New Roman" / "PT Serif") for headings + system sans for body — gives an editorial / pastoral feel without loading external fonts |
+| Hero section | None (just a plain `<header>` with `<h1>`) | Tall navy hero with eyebrow, large serif title, tagline, gold CTA button |
+| Five pillars (Serve / Worship / Impact / Fellowship / Teach) | Not present | New section with 5 cards, each citing a verse reference and the verse text published on the live homepage |
+| Next-generation ministry section | Not present | New navy-themed section with three ministry cards (Children's Church 4–12 / Daughters of Grace 12–18 / The Forge 12–18) — names and age bands as published on the live homepage |
+| Sunday service / location / contact | Folded into the generic "Contact" section block | Three-card strip with the Sunday service time, the Grand Baie venue + address, and the contact phone / email — all as published on the live homepage |
+| Placeholder events | Standalone "ScheduleBlock" with red banner | Subtle list of placeholder fixture entries with gold dot markers; clearly labelled as "schedule fixtures" not real listings |
+| Footer | Plain grey footer | Navy footer with brand wordmark, sandbox note, tenant + host metadata, and an explicit copyright line distinguishing the church (real org) from CorpFlow (sandbox operator) |
+
+### 14.2 Why the per-section red banners were removed
+
+The per-section banners served the same purpose as the persistent fixed ribbon: tell the tester "this is a sandbox, not the live site". Once the persistent ribbon is in place (which is non-dismissible, fixed at the top of the viewport, above the chat widget z-index, with the verbatim brief-supplied text), the per-section banners became visual clutter that hurt the recognisable-facsimile goal without adding any safety value the ribbon doesn't already provide.
+
+The persistent ribbon's specification (orange `#EA580C` background, white bold text, `position: fixed`, `top: 0`, `z-index: 2147483640`, exact text `TEST ENVIRONMENT — Not the live Living Word Mauritius website`, non-dismissible, mobile-wrap-safe) is unchanged from §3.3.1.
+
+### 14.3 What facts are mirrored from the public site
+
+The brief explicitly authorises "use real/public imagery from the public site where feasible" and "include the public Living Word logo / wordmark if straightforward". v1 takes a deliberate middle path:
+
+**Mirrored (text only — no copyrighted assets)**
+
+| Fact | Source | Use in v1 |
+|---|---|---|
+| Welcome paragraph wording (community of Christ followers, divinity / death / resurrection, transcends age / gender / race / geography / socioeconomic lines) | Live homepage `Welcome to Living Word` block | About section body |
+| Five pillars: Serve / Worship / Impact / Fellowship / Teach with their canonical verse references | Live homepage five-pillars block | Pillars section |
+| Verse text for each pillar (1 Peter 4:10, 1 Chronicles 16:29, Mark 16:15, Hebrews 10:24–25, Matthew 28:20) | Live homepage five-pillars block | Pillars section |
+| Sunday service time: "Sundays · 9:30 am · In Person" | Live homepage hero | Sunday service card |
+| Venue + address: "Living Word Church, Grand Baie · Richmond Hill Building, Super U Complex, La Salette Road, Grand Baie, Mauritius" | Live homepage contact block | Location card |
+| Email: `info@livingwordmauritius.com` | Live homepage contact block | Contact card |
+| Phone: `+230 5538 2181` | Live homepage contact block | Contact card |
+| Ministry names + age bands: "Children's Church (Ages 4–12)", "Daughters of Grace (Girls 12–18)", "The Forge (Boys 12–18)" | Live homepage Next Generation block | Next Generation cards |
+| Tagline: "Blessed to be a blessing" (Get Involved heading) | Live homepage Get Involved block | Get Involved section heading |
+| Tagline: "Building futures in faith" (Next Generation heading) | Live homepage Next Generation block | Next Generation section heading |
+
+**Not mirrored (deliberately)**
+
+| Item | Why |
+|---|---|
+| Logo file / wordmark image | No copyright clearance; brief allows but does not require; visual fidelity achieved via colour + serif type instead |
+| Photographs (pastor, congregation, building, events) | Copyright concern; brief says "approved/public assets only" — safer to use no images than to host copyrighted assets |
+| Specific upcoming event dates | Changes weekly on the live site; would go stale and could mislead; placeholder fixtures are clearly marked as such |
+| Donation amounts (Buckets of Hope Rs200 / Rs1000) | Campaign-specific; risk of confusing real campaign signal |
+| Sermon archive titles | Frequently updated; not material to chatbot placement testing |
+| Pastor name in hero copy | Pastor Riaan Pretorius is publicly named on the live site, but the sandbox uses generic "the church team" wording in CTAs to avoid implying he personally responds via the chat |
+| Hot-linked images / scripts from `livingwordmauritius.com` | Would generate traffic to the live site (mild "touch" risk) and creates an external dependency the sandbox doesn't need |
+
+### 14.4 Preserved safety controls (re-stated)
+
+Every brief-listed safety control still holds in v1. Nothing in the visual refinement weakened them:
+
+- `/site-preview` only serves on `living-word-mauritius.corpflowai.com` (host gate in `getServerSideProps` unchanged).
+- Non-Living-Word hosts return `notFound: true` (404).
+- `<meta name="robots" content="noindex,nofollow" />` present in `<Head>`.
+- Persistent orange ribbon at the top, fixed, non-dismissible, scroll-persistent, above chat widget z-index.
+- Ribbon text exactly: `TEST ENVIRONMENT — Not the live Living Word Mauritius website`.
+- Page does not claim to be the real church website (eyebrow says "CorpFlow sandbox · modelled on livingwordmauritius.com"; footer copyright line explicitly separates the church and CorpFlow; sandbox note repeats `livingwordmauritius.com` as the real-content destination).
+- Conservative-content posture: only published public facts are mirrored; no facts are invented; uncertain items use neutral routing copy.
+- Chat widget loader still loads, but `chat_widget_configs.enabled = false` for `living-word-mauritius` (unchanged).
+
+### 14.5 Files changed in the v1 refinement
+
+| File | v0 | v1 |
+|---|---|---|
+| `pages/site-preview.js` | ~210 lines, narrow column, plain section blocks, per-section red banners | ~600 lines, full-width hero + nav + 8 sections + footer, navy / gold / cream palette, system serif headings |
+| `lib/sandbox/living-word-sandbox-content.js` | `SANDBOX_BANNER` + `SANDBOX_SECTIONS` (8 generic-routing entries) | Restructured: `HERO`, `ABOUT`, `PILLARS`, `GET_INVOLVED`, `NEXT_GEN`, `SUNDAY_SERVICE`, `LOCATION`, `CONTACT`, `EVENTS_PLACEHOLDER`, `NEXT_STEP`, `NAV`, `FOOTER`. `SANDBOX_BANNER` removed. |
+| `lib/sandbox/test-environment-ribbon.js` | Unchanged | Unchanged |
+| `lib/sandbox/living-word-schedule-shape.js` | Unchanged | Unchanged |
+
+### 14.6 What the v1 refinement does NOT change
+
+- Tenant ID (`living-word-mauritius`).
+- Sandbox host (`living-word-mauritius.corpflowai.com`).
+- Sandbox route (`/site-preview`).
+- Host gate (`getServerSideProps` allow-list = single LWM host).
+- `noindex,nofollow` posture.
+- Persistent fixed orange ribbon component, message, position, z-index.
+- Schedule data shape (still JSDoc-typed `ScheduleEntry`, still 5 placeholder entries, still `approved: false` / `source: 'placeholder'`).
+- Chat widget configuration (`enabled = false` for the LWM tenant).
+- DB schema, migrations, env vars, package.json.
+- Any external host (`livingwordmauritius.com`, `network.livingwordmauritius.com`, GoHighLevel, DNS).
+- Luxe / `lux_listings` / multi-tenant operator switching work.
