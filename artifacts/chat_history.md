@@ -28,6 +28,18 @@
 
 ---
 
+## 2026-06-17 — Multi-tenant **IM-5.5 Operator identity bootstrap — COMPLETE.** Anton executed `docs/runbooks/OPERATOR_IDENTITY_BOOTSTRAP_IM_5_5.md` on his laptop (username `anton`, row id `cmqhtirgb0000xf0ktu03alm6`, `level=admin`, `factory_master=true`, `enabled=true`, `tenant_id=null`, zero `user_tenant_memberships` rows). Cursor re-ran `scripts/verify-operator-identity-bootstrap.mjs` read-only at 2026-06-17 08:44 UTC against production Neon (`ep-mute-tooth-an0pclzd-pooler.c-6.us-east-1.aws.neon.tech / neondb`): **VERDICT READY** (exit 0) — exactly one enabled DB-backed admin with `factory_master=true`, no orphan memberships, IM-6 readiness gate unblocked. Runbook merged via PR #375 (`afc4f457`). Legacy env-master lane preserved. No Cursor-side row creation, promotion, password handling, or non-SELECT SQL.
+
+<!-- IM_5_5_OPERATOR_IDENTITY_COMPLETE_2026_06_17_HIST -->
+
+---
+
+## 2026-06-17 — Multi-tenant **IM-6 CMP enforcement (`acting_tenant_id` binding)** — **PARTIAL** per `.cursor/rules/delivery-reality.mdc`. Branched `feat/platform-multi-tenant-im-6` off `origin/main` at `73a3d9f5` after IM-5.5 READY. **Scope:** bind `acting_tenant_id` at the CMP boundary via DB-backed membership recheck, tenant-host alignment, scoped ticket visibility, and factory-master picker-context rules. **Files:** `lib/cmp/_lib/cmp-membership-enforcement.js` (new pure helpers + `assertMembershipEnforcement` async entry), `lib/cmp/router.js` (host boundary extension, central membership recheck in handler, `requireFactoryMasterOnly` sync picker-context gate, `resolveTenantIdForScopedTicketRead` + `resolveCmpTicketListScope` scoping), `pages/change.js` (`getServerSideProps` SSR mismatch redirect mirroring `public/change.html`), `node-tests/im-6-cmp-enforcement.test.mjs` (+21 tests), this bullet. **Wire codes:** existing `TENANT_HOST_SESSION_MISMATCH` extended to DB-backed `acting_tenant_id`; new `ACTING_TENANT_NOT_IN_EFFECTIVE_MEMBERSHIPS` (403); new `FACTORY_MASTER_REQUIRES_PICKER_CONTEXT` (403); new `MEMBERSHIP_RECHECK_UNAVAILABLE` (503). **Legacy escape hatches preserved:** env-master admin (no `user_id`), `MASTER_ADMIN_KEY` token, sovereign JWT, legacy PIN tenant sessions. **Local gates:** `npm test` 1012/1012 (+21), `npm run build` success (`/change` now `ƒ` dynamic), `ReadLints` zero errors. **Out of scope honored:** no schema/env/session/login/CSRF/IM-2/3/4/5 contract changes, no CMP allowlist edits, no audit writes, no visual separation / Living Word / chatbot / marketing / tenant delivery / factory-master grant UI. **Status PARTIAL:** merge + Production deploy + read-only unauthenticated probes pending; no authenticated production probes without separate approval.
+
+<!-- IM_6_CMP_ENFORCEMENT_2026_06_17_HIST -->
+
+---
+
 ## 2026-06-17 — **Phase 1A Step 1 — n8n automation-forward COMPLETE (`JE-2026-06-17-2`).** Closure after n8n execution **#1124** detail review: Webhook node succeeded; IF node (forward-secret / routing validation) succeeded for same execution after expected envelope received; body confirms `corpflow.automation.envelope.v1` envelope matching § 7.1 / § 7.2. IF node success recorded as auditable non-secret validation path — no secret/header value in repo. **§ 7.1 PASS / § 7.2 PASS / § 7.3 PASS. Step 1 COMPLETE.** Step 2 COMPLETE (unchanged). Step 3 restic HELD on explicit authorization. **Files:** Phase 1A artifact § 7.3 + § 8; `docs/CORPFLOW_SHARED_TODO.md`; `docs/decisions/JOURNAL.md`; this bullet. Docs-only; no secrets; no L3; no restic.
 
 <!-- STEP1_N8N_COMPLETE_2026_06_17_HIST -->
