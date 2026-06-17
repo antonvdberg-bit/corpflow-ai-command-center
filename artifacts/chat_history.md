@@ -28,6 +28,12 @@
 
 ---
 
+## 2026-06-17 — Multi-tenant **IM-7 audit trail population** — **PARTIAL** per `.cursor/rules/delivery-reality.mdc`. Branched `feat/platform-multi-tenant-im-7` off `origin/main` after IM-6 sealed (`1286bb1b`). **Scope:** central `audit-actor-context` resolver; `actor_user_id` on new `automation_events` / `telemetry_events` rows for DB-backed sessions; successful `cmp.operator.switched_tenant` / `cmp.operator.left_tenant` five-tuple events; CMP router writes via `recordCmpAutomationEvent`; legacy lanes preserved (`actor_user_id=null`); no rejection events; operator-activity query deferred to IM-7.1. **Files:** `lib/server/audit-actor-context.js`, `lib/automation/internal.js`, `lib/cmp/_lib/telemetry.js`, `lib/server/switch-leave-api.js`, `lib/cmp/router.js`, `node-tests/im-7-audit-population.test.mjs`, this bullet. **Out of scope honored:** no schema/env/session/login/CSRF/IM-6 changes; no operator-activity API in v1 slice; no membership grant/revoke events; no historical backfill. **Status PARTIAL:** merge + Production deploy + read-only floor probes pending; post-cutover SELECT proof operator-run only.
+
+<!-- IM_7_AUDIT_POPULATION_2026_06_17_HIST -->
+
+---
+
 ## 2026-06-17 — Multi-tenant **IM-5.5 Operator identity bootstrap — COMPLETE.** Anton executed `docs/runbooks/OPERATOR_IDENTITY_BOOTSTRAP_IM_5_5.md` on his laptop (username `anton`, row id `cmqhtirgb0000xf0ktu03alm6`, `level=admin`, `factory_master=true`, `enabled=true`, `tenant_id=null`, zero `user_tenant_memberships` rows). Cursor re-ran `scripts/verify-operator-identity-bootstrap.mjs` read-only at 2026-06-17 08:44 UTC against production Neon (`ep-mute-tooth-an0pclzd-pooler.c-6.us-east-1.aws.neon.tech / neondb`): **VERDICT READY** (exit 0) — exactly one enabled DB-backed admin with `factory_master=true`, no orphan memberships, IM-6 readiness gate unblocked. Runbook merged via PR #375 (`afc4f457`). Legacy env-master lane preserved. No Cursor-side row creation, promotion, password handling, or non-SELECT SQL.
 
 <!-- IM_5_5_OPERATOR_IDENTITY_COMPLETE_2026_06_17_HIST -->
