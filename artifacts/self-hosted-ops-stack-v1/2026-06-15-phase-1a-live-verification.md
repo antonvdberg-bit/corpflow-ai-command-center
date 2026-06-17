@@ -350,6 +350,7 @@ n8n_workflow_version             : 90e75d5c
 secret_logged_or_committed       : NO
 
 # n8n execution body view (redacted — no secrets)
+schema                           : corpflow.automation.envelope.v1
 id                               : cmqha6wi80000l104f7gwr5fc
 occurred_at                      : 2026-06-16T23:36:34.065Z
 tenant_id                        : global
@@ -361,7 +362,7 @@ source                           : self-hosted-ops-stack-v1-step-1
 payload.note                     : Step 1 verification - Phase 1A live verification, no secrets
 payload.artifact_ref             : artifacts/self-hosted-ops-stack-v1/2026-06-15-phase-1a-live-verification.md
 
-payload_confirmed_vs_7_1_7_2     : YES — id, occurred_at, tenant_scope, event_type, risk_tier, source, payload.note, payload.artifact_ref match § 7.1 / § 7.2
+payload_confirmed_vs_7_1_7_2     : YES — schema, id, occurred_at, tenant_scope, event_type, risk_tier, source, payload.note, payload.artifact_ref match § 7.1 / § 7.2
 forward_secret_header_validated  : not independently confirmed inside n8n execution detail; workflow success is strongly indicative (SECRET-VALIDATION-IMPLIED)
 operator_note                    : Initial round (JE-2026-06-16-4) recorded execution success at matching timestamp only. Follow-up round (JE-2026-06-17-1) inspected n8n execution body view and confirmed payload fields above. Forward-secret validation node/path remains the open item before Step 1 can be marked COMPLETE.
 ```
@@ -484,7 +485,7 @@ Delivery Reality Audit (Step 1 — n8n automation-forward live verification):
 - Final verdict:                          PAYLOAD-CONFIRMED / SECRET-VALIDATION-IMPLIED (NOT COMPLETE)
 ```
 
-**Step 1 status (2026-06-17):** § **7.1 ingest PASS** (`ops.self_hosted.test.v1` accepted 2026-06-16T23:36:34Z). § **7.2 automation_events read-back PASS** (matched on `idempotencyKey` via camelCase-safe script — see § 7.2 implementation note). § **7.3 n8n consumer PAYLOAD-CONFIRMED / SECRET-VALIDATION-IMPLIED** — execution #1124 body view confirms `event_type: ops.self_hosted.test.v1` and all key fields match § 7.1 / § 7.2 (`id` `cmqha6wi…`, `source`, `payload.note`, `payload.artifact_ref`); workflow forward-secret validation node/path **not** independently confirmed inside n8n execution detail. **Step 1 is not marked COMPLETE.** Remaining item for COMPLETE: confirm the workflow's forward-secret validation node/path passed, or document an equivalent auditable non-secret validation mechanism. Monitor # 13 sub-probe 8 (`/healthz`) confirms n8n *liveness* only — it does **not** substitute for § 7.3 consumer verification.
+**Step 1 status (2026-06-17):** § **7.1 ingest PASS** (`ops.self_hosted.test.v1` accepted 2026-06-16T23:36:34Z). § **7.2 automation_events read-back PASS** (matched on `idempotencyKey` via camelCase-safe script — see § 7.2 implementation note). § **7.3 n8n consumer PAYLOAD-CONFIRMED / SECRET-VALIDATION-IMPLIED** — execution #1124 body view confirms `schema: corpflow.automation.envelope.v1`, `event_type: ops.self_hosted.test.v1`, and all key fields match § 7.1 / § 7.2 (`id` `cmqha6wi…`, `source`, `payload.note`, `payload.artifact_ref`); workflow forward-secret validation node/path **not** independently confirmed inside n8n execution detail. **Step 1 is not marked COMPLETE.** Remaining item for COMPLETE: confirm the workflow's forward-secret validation node/path passed, or document an equivalent auditable non-secret validation mechanism. Monitor # 13 sub-probe 8 (`/healthz`) confirms n8n *liveness* only — it does **not** substitute for § 7.3 consumer verification.
 
 ```text
 Delivery Reality Audit (Step 2 — Uptime Kuma install on corpflow-exec-01-u69678; all 8 sub-probes Up):
