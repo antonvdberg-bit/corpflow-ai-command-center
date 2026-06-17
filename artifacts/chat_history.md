@@ -28,6 +28,12 @@
 
 ---
 
+## 2026-06-18 — **Social Intents chat destination reference (docs-only).** Captured [Social Intents](https://www.socialintents.com/) as a **REFERENCE-ONLY / DESTINATION-SHAPE** benchmark for future CorpFlow Chat / Concierge — not an approved vendor or install. New doc: `docs/product/CHAT_DESTINATION_REFERENCE_SOCIAL_INTENTS.md`. Key distinction: Social Intents routes into external team tools (Teams, Slack, Google Chat); CorpFlow destination is a **native concierge surface** with n8n + internal workflows and external channels as adapters. Guardrails: no Social Intents/Chatwoot/Open WebUI/Dify installs, no env vars, no app code, no public chat endpoints, no containers, no n8n changes, no restic. Verdict: **REFERENCE CAPTURED — NO IMPLEMENTATION AUTHORIZED**.
+
+<!-- SOCIAL_INTENTS_CHAT_DESTINATION_REF_2026_06_18_HIST -->
+
+---
+
 ## 2026-06-17 — Multi-tenant **IM-7 audit trail population** — **COMPLETE.** PR [#387](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/387) squash-merged to `main` as `e64ca6031782bcf49d15dddb1da051589421e603` (2026-06-17T10:46:24Z). Vercel Production deployment `GcodQDAY92Ywhe5Y2Zx8S4oLVi8v` (GitHub deployment `5093034082`) reached **Ready** at 2026-06-17T10:47:21Z on commit `e64ca603`. **Approved read-only unauthenticated DRA probes (all PASS):** `GET https://lux.corpflowai.com/change` → 200 HTML; `GET https://core.corpflowai.com/change` → 200 HTML; `GET https://core.corpflowai.com/api/factory/health` → 200 `{"ok":true,...}`; `GET https://lux.corpflowai.com/api/ui/context` → 200 anonymous JSON. **No authenticated probes, switch/leave in production, synthetic cookies, mutating CMP actions, or operator-activity queries were run by Cursor.** Scope delivered: `audit-actor-context` resolver; `actor_user_id` on new `automation_events`/`telemetry_events` for DB-backed sessions; successful `cmp.operator.switched_tenant`/`left_tenant` five-tuple events; CMP `recordCmpAutomationEvent` wrapper; legacy lanes preserved; rejection events not emitted; operator-activity read surface deferred to IM-7.1. **Post-cutover SELECT audit proof:** operator-run only (pending Anton performing one intentional switch/leave). **Verdict:** COMPLETE per `.cursor/rules/delivery-reality.mdc` for implementation + floor probes; operator audit SELECT is a separate follow-up evidence step.
 
 <!-- IM_7_AUDIT_POPULATION_2026_06_17_HIST -->
