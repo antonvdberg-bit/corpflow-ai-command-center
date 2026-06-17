@@ -5891,3 +5891,56 @@ export default function ChangeConsolePage() {
   );
 }
 
+/**
+ * IM-6 — SSR tenant-host mismatch redirect for DB-backed sessions.
+ * Mirrors `public/change.html` client redirect (`tenant_mismatch=1`) without
+ * breaking anonymous access, Core `/change`, or the IM-3 picker gate.
+ */
+export async function getServerSideProps({ req, resolvedUrl }) {
+  const { getSessionFromRequest } = await import('../lib/server/session.js');
+  const { buildCorpflowHostContext } = await import('../lib/server/host-tenant-context.js');
+  const { readActingTenantId, readSessionUserId } = await import(
+    '../lib/cmp/_lib/cmp-membership-enforcement.js'
+  );
+  const { PrismaClient } = await import('@prisma/client');
+
+  const sess = getSessionFromRequest(req);
+  const userId = readSessionUserId(sess);
+  if (!userId) return { props: {} };
+
+  const ctx = buildCorpflowHostContext(req);
+  if (ctx.surface !== 'tenant' || !ctx.host) return { props: {} };
+
+  let hostTenantId = ctx.tenant_id != null ? String(ctx.tenant_id).trim() : '';
+  const prisma = new PrismaClient();
+  try {
+    const row = await prisma.tenantHostname.findUnique({
+      where: { host: ctx.host },
+      select: { tenantId: true, enabled: true },
+    });
+    if (row?.enabled === true && row.tenantId) {
+      hostTenantId = String(row.tenantId).trim();
+    }
+  } catch {
+    /* best-effort — fall back to sync host context */
+  } finally {
+    await prisma.$disconnect().catch(() => {});
+  }
+
+  if (!hostTenantId) return { props: {} };
+
+  const actingTid = readActingTenantId(sess);
+  if (actingTid && actingTid === hostTenantId) return { props: {} };
+
+  const nextPath =
+    typeof resolvedUrl === 'string' && resolvedUrl.startsWith('/')
+      ? resolvedUrl
+      : '/change';
+  return {
+    redirect: {
+      destination: `/login?tenant_mismatch=1&next=${encodeURIComponent(nextPath)}`,
+      permanent: false,
+    },
+  };
+}
+
