@@ -10,7 +10,7 @@
 - `docs/automation-framework.md` (`POST /api/automation/ingest` contract).
 - `docs/n8n/automation-forward-recipe.md` (channel separation; envelope shape).
 
-**Verdict (current):** **PAYLOAD-CONFIRMED / SECRET-VALIDATION-IMPLIED** (Step 1) + **COMPLETE** (Step 2) — Step 1 producer ingest and `automation_events` read-back are **PASS** (§ 7.1 / § 7.2, captured 2026-06-16T23:36:34Z); n8n consumer payload is **PAYLOAD-CONFIRMED / SECRET-VALIDATION-IMPLIED** (§ 7.3 — execution #1124 body view confirms forwarded event matches § 7.1 / § 7.2; workflow forward-secret validation node/path **not** independently confirmed). Step 1 is **not** marked COMPLETE. Step 2 (Uptime Kuma) is COMPLETE end-to-end per `JE-2026-06-16-3`. See § 8.
+**Verdict (current):** **COMPLETE** (Step 1) + **COMPLETE** (Step 2) — Step 1 end-to-end n8n automation-forward verification is **COMPLETE** per `JE-2026-06-17-2`: § **7.1 ingest PASS**, § **7.2 automation_events read-back PASS**, § **7.3 n8n consumer PASS** (execution #1124 — forwarded envelope confirmed in body view; IF node succeeded as the auditable non-secret forward-secret / routing validation path). Step 2 (Uptime Kuma) is COMPLETE end-to-end per `JE-2026-06-16-3`. Step 3 (restic) remains **HELD** on explicit authorization. See § 8.
 
 ---
 
@@ -302,7 +302,7 @@ If at any point the operator suspects the ingest secret or forward secret has le
 
 ## 7. Operator evidence blocks (paste here once the recipes in § 3 / § 4 are run)
 
-These blocks record operator evidence captured per the rules in § 3.3 and § 4.2. § 7.1 and § 7.2 are **PASS** (2026-06-16T23:36:34Z). § 7.3 is **PAYLOAD-CONFIRMED / SECRET-VALIDATION-IMPLIED** — n8n execution #1124 body view confirms the forwarded payload matches § 7.1 ingest and § 7.2 read-back; workflow forward-secret validation node/path **not** independently confirmed. Step 1 verdict is **PAYLOAD-CONFIRMED / SECRET-VALIDATION-IMPLIED**, not COMPLETE.
+These blocks record operator evidence captured per the rules in § 3.3 and § 4.2. § 7.1, § 7.2, and § 7.3 are all **PASS** (evidence captured 2026-06-16T23:36:34Z; § 7.3 closure completed 2026-06-17 per `JE-2026-06-17-2`). Step 1 verdict is **COMPLETE**.
 
 ### 7.1 Step 1 — ingest evidence — **PASS**
 
@@ -337,19 +337,22 @@ match_id_first8     : cmqha6wi...
 Captured-by: Anton
 Captured-at (UTC): 2026-06-16T23:36:34Z
 
-### 7.3 Step 1 — n8n consumer evidence — **PAYLOAD-CONFIRMED / SECRET-VALIDATION-IMPLIED**
+### 7.3 Step 1 — n8n consumer evidence — **PASS**
 
-n8n execution **#1124** succeeded at a timestamp matching § 7.1 / § 7.2. A later round inspected the n8n execution **body view** and confirmed the forwarded event payload matches the § 7.1 ingest id and § 7.2 read-back fields. The workflow's forward-secret validation node/path was **not** independently confirmed inside n8n execution detail — success is strongly indicative (`SECRET-VALIDATION-IMPLIED`) but not overstated as independently verified.
+n8n execution **#1124** succeeded at a timestamp matching § 7.1 / § 7.2. Operator inspected the n8n execution detail: **Webhook node** green / succeeded; **IF node** (forward-secret / routing validation) green / succeeded for the same execution after receiving the expected forwarded event envelope. The IF node's succeeded status is recorded as the **auditable non-secret validation path** for forward-secret / routing — no secret or header value is recorded or exposed in this artifact.
 
 ```
 matching_execution_started_at   : 2026-06-16T23:36:34Z
-matching_execution_status        : success
+matching_execution_started_ui   : Jun 17, 03:36:34 (local UTC+4)
+matching_execution_status        : Succeeded
 n8n_execution_id                 : 1124
 n8n_execution_duration           : 6ms
 n8n_workflow_version             : 90e75d5c
+webhook_node_status              : green / succeeded
+if_node_status                   : green / succeeded (forward-secret / routing validation — auditable non-secret path)
 secret_logged_or_committed       : NO
 
-# n8n execution body view (redacted — no secrets)
+# n8n execution body view (redacted — no secrets, no header values)
 schema                           : corpflow.automation.envelope.v1
 id                               : cmqha6wi80000l104f7gwr5fc
 occurred_at                      : 2026-06-16T23:36:34.065Z
@@ -363,12 +366,12 @@ payload.note                     : Step 1 verification - Phase 1A live verificat
 payload.artifact_ref             : artifacts/self-hosted-ops-stack-v1/2026-06-15-phase-1a-live-verification.md
 
 payload_confirmed_vs_7_1_7_2     : YES — schema, id, occurred_at, tenant_scope, event_type, risk_tier, source, payload.note, payload.artifact_ref match § 7.1 / § 7.2
-forward_secret_header_validated  : not independently confirmed inside n8n execution detail; workflow success is strongly indicative (SECRET-VALIDATION-IMPLIED)
-operator_note                    : Initial round (JE-2026-06-16-4) recorded execution success at matching timestamp only. Follow-up round (JE-2026-06-17-1) inspected n8n execution body view and confirmed payload fields above. Forward-secret validation node/path remains the open item before Step 1 can be marked COMPLETE.
+forward_secret_routing_validated : PASS — IF node succeeded for same execution after expected envelope received (auditable non-secret validation path; no secret/header value recorded)
+operator_note                    : Initial round (`JE-2026-06-16-4`) recorded execution success at matching timestamp. Follow-up (`JE-2026-06-17-1`) confirmed payload in body view. Closure round (`JE-2026-06-17-2`) confirmed Webhook + IF nodes both succeeded — Step 1 marked COMPLETE.
 ```
 
 Captured-by: Anton
-Captured-at (UTC): 2026-06-16T23:36:34Z (execution); payload body view captured follow-up round after PR #382 merge (`JE-2026-06-17-1`)
+Captured-at (UTC): 2026-06-16T23:36:34Z (execution); n8n execution detail closure captured 2026-06-17 (`JE-2026-06-17-2`)
 
 ### 7.4 Step 2 — Uptime Kuma install evidence (operator-executed 2026-06-16; K1–K4 PASS, K5 PASS-by-construction, all 8 sub-probes Up — sub-probe 8 added later same day)
 
@@ -471,21 +474,21 @@ Authorization basis:  PR #367 / JE-2026-06-15-1 / ADR docs/decisions/20260615-up
 
 ---
 
-## 8. Verdict (current — updated 2026-06-17 after § 7.3 payload body-view confirmation)
+## 8. Verdict (current — updated 2026-06-17 after Step 1 COMPLETE closure)
 
 ```text
 Delivery Reality Audit (Step 1 — n8n automation-forward live verification):
-- Local fix exists:                       YES (producer wiring live on Vercel Production; harmless test event accepted and persisted)
-- Merged to main:                         JE-2026-06-16-4 landed via PR #382; this § 7.3 upgrade pending this docs-only follow-up PR (JE-2026-06-17-1)
+- Local fix exists:                       YES (producer wiring live on Vercel Production; harmless test event accepted, persisted, forwarded, and consumed)
+- Merged to main:                         pending this docs-only closure PR (JE-2026-06-17-2); prior evidence rounds JE-2026-06-16-4 / JE-2026-06-17-1
 - Production deployment ID:               n/a — no Vercel deploy required for evidence capture (existing Production app served the ingest)
 - Commit deployed:                        n/a — evidence is live operational truth on existing Production
-- Live URLs tested:                       POST https://core.corpflowai.com/api/automation/ingest (200 accepted); GET https://core.corpflowai.com/api/automation/events (200 read-back match); n8n execution #1124 body view (payload confirmed — § 7.3)
-- Expected vs actual result:              § 7.1 ingest PASS / § 7.2 automation_events read-back PASS / § 7.3 n8n consumer PAYLOAD-CONFIRMED-SECRET-VALIDATION-IMPLIED (execution body confirms forwarded payload matches § 7.1 / § 7.2; forward-secret validation node/path not independently confirmed)
-- Client-facing flow usable:              YES for producer path (ingest accepted, row persisted, factory-only read-back confirmed); consumer payload confirmed in n8n; forward-secret validation remains the open item
-- Final verdict:                          PAYLOAD-CONFIRMED / SECRET-VALIDATION-IMPLIED (NOT COMPLETE)
+- Live URLs tested:                       POST https://core.corpflowai.com/api/automation/ingest (200 accepted); GET https://core.corpflowai.com/api/automation/events (200 read-back match); n8n execution #1124 detail (Webhook + IF nodes succeeded; body envelope confirmed — § 7.3)
+- Expected vs actual result:              § 7.1 ingest PASS / § 7.2 automation_events read-back PASS / § 7.3 n8n consumer PASS (forwarded envelope confirmed; IF node succeeded as auditable non-secret forward-secret / routing validation path)
+- Client-facing flow usable:              YES — producer ingest → Postgres read-back → n8n consumer end-to-end verified without leaking secrets
+- Final verdict:                          COMPLETE
 ```
 
-**Step 1 status (2026-06-17):** § **7.1 ingest PASS** (`ops.self_hosted.test.v1` accepted 2026-06-16T23:36:34Z). § **7.2 automation_events read-back PASS** (matched on `idempotencyKey` via camelCase-safe script — see § 7.2 implementation note). § **7.3 n8n consumer PAYLOAD-CONFIRMED / SECRET-VALIDATION-IMPLIED** — execution #1124 body view confirms `schema: corpflow.automation.envelope.v1`, `event_type: ops.self_hosted.test.v1`, and all key fields match § 7.1 / § 7.2 (`id` `cmqha6wi…`, `source`, `payload.note`, `payload.artifact_ref`); workflow forward-secret validation node/path **not** independently confirmed inside n8n execution detail. **Step 1 is not marked COMPLETE.** Remaining item for COMPLETE: confirm the workflow's forward-secret validation node/path passed, or document an equivalent auditable non-secret validation mechanism. Monitor # 13 sub-probe 8 (`/healthz`) confirms n8n *liveness* only — it does **not** substitute for § 7.3 consumer verification.
+**Step 1 status (2026-06-17, closure):** § **7.1 ingest PASS**. § **7.2 automation_events read-back PASS**. § **7.3 n8n consumer PASS** — execution #1124 Webhook node succeeded; body contains expected `corpflow.automation.envelope.v1` envelope matching § 7.1 / § 7.2; IF node (forward-secret / routing validation) succeeded for the same execution — recorded as the auditable non-secret validation path without recording any secret or header value. **Step 1 is COMPLETE** per `JE-2026-06-17-2`. Monitor # 13 sub-probe 8 (`/healthz`) confirms n8n *liveness* only — it does **not** substitute for § 7.3 consumer verification (which is now independently satisfied).
 
 ```text
 Delivery Reality Audit (Step 2 — Uptime Kuma install on corpflow-exec-01-u69678; all 8 sub-probes Up):
@@ -501,7 +504,7 @@ Delivery Reality Audit (Step 2 — Uptime Kuma install on corpflow-exec-01-u6967
 
 **Step 2 status (unchanged):** Uptime Kuma COMPLETE end-to-end per `JE-2026-06-16-3`. No deferred sub-probes remain.
 
-**Step 3 status (unchanged):** Eligibility gate fully satisfied (Step 2 = COMPLETE). Step 3 (restic) **not** initiated — held on explicit *"Do not proceed to restic"* directive until separate authorization.
+**Step 3 status (unchanged):** Eligibility gate fully satisfied (Step 1 = COMPLETE; Step 2 = COMPLETE). Step 3 (restic) **not** initiated — held on explicit *"Do not proceed to restic"* directive until separate authorization.
 
 ---
 
@@ -513,4 +516,5 @@ Delivery Reality Audit (Step 2 — Uptime Kuma install on corpflow-exec-01-u6967
 - **2026-06-16 (later same day)** — § 7.4 filled in with operator-executed install evidence; § 8 verdict flipped from PARTIAL → COMPLETE-WITH-N8N-DEFERRED for Step 2; closure PR #373 opened by Cursor at L1 and merged 2026-06-16T07:01:15Z at `a9157216` (`JE-2026-06-16-2`). Monitor 8 / n8n explicitly deferred (operator chose deferral over guessing the URL family). Step 3 (restic) eligibility gate substantively satisfied but Step 3 NOT initiated by this PR per user instruction.
 - **2026-06-16 (end of same day, after PR #373 merge)** — Anton confirmed canonical n8n health URL family (`<n8n-host>/healthz` — n8n v1.x anonymous health endpoint, GET-only, returns `{"status":"ok"}` 200, no auth, no state mutation) and added sub-probe 8 inside Kuma's UI through the SSH tunnel; sub-probe Up at 60 s; Telegram alert path test-confirmed for sub-probe 8. § 7.4 heading + opening paragraph + monitors-table row 8 + K3 row + Verdict line + Notes/deviations bullet updated; § 8 DRA flipped from COMPLETE-WITH-N8N-DEFERRAL → COMPLETE; Step 3 eligibility now fully satisfied (still not initiated per user instruction). Recorded by `JE-2026-06-16-3` and docs-sync PR #376.
 - **2026-06-16 (later same day, after Step 2 closure)** — § 7.1 ingest evidence **PASS** + § 7.2 `automation_events` read-back evidence **PASS** + § 7.3 n8n consumer evidence **PARTIAL / STRONGLY INDICATED** (execution #1124 succeeded at matching timestamp 2026-06-16T23:36:34Z; payload/event-type and forward-secret not independently inspected inside n8n execution detail). § 7.2 implementation note added (live API returns camelCase fields; operator used camelCase-safe read-back script). § 8 Step 1 DRA added with verdict **PARTIAL-CONSUMER-CONFIRMATION** (Step 1 **not** marked COMPLETE). Recorded by `JE-2026-06-16-4` and docs-only evidence PR #382. No L3 commands by Cursor; no secrets; no env vars; no app code; no restic; no new self-hosted tools.
-- **2026-06-17 (follow-up after PR #382 merge)** — § 7.3 upgraded **PARTIAL / STRONGLY INDICATED** → **PAYLOAD-CONFIRMED / SECRET-VALIDATION-IMPLIED** after operator inspected n8n execution #1124 body view (payload fields match § 7.1 / § 7.2; forward-secret validation node/path still not independently confirmed). § 7 intro + header verdict + § 8 Step 1 DRA updated. Step 1 **not** marked COMPLETE. Recorded by `JE-2026-06-17-1` and this docs-only follow-up PR. No L3 commands by Cursor; no secrets; no env vars; no app code; no restic; no new self-hosted tools.
+- **2026-06-17 (follow-up after PR #382 merge)** — § 7.3 upgraded **PARTIAL / STRONGLY INDICATED** → **PAYLOAD-CONFIRMED / SECRET-VALIDATION-IMPLIED** after operator inspected n8n execution #1124 body view (payload fields match § 7.1 / § 7.2; forward-secret validation node/path still not independently confirmed). Recorded by `JE-2026-06-17-1` and docs-only follow-up PR #383. Step 1 **not** marked COMPLETE.
+- **2026-06-17 (closure)** — § 7.3 upgraded **PAYLOAD-CONFIRMED / SECRET-VALIDATION-IMPLIED** → **PASS**; Step 1 verdict flipped to **COMPLETE** after operator confirmed n8n execution #1124 Webhook + IF nodes both succeeded (IF node = auditable non-secret forward-secret / routing validation path; no secret/header value recorded). § 7 intro + header verdict + § 8 Step 1 DRA updated. Recorded by `JE-2026-06-17-2` and this docs-only closure PR. No L3 commands by Cursor; no secrets; no env vars; no app code; no restic; no new self-hosted tools.

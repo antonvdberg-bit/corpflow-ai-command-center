@@ -28,6 +28,12 @@
 
 ---
 
+## 2026-06-17 — **Phase 1A Step 1 — n8n automation-forward COMPLETE (`JE-2026-06-17-2`).** Closure after n8n execution **#1124** detail review: Webhook node succeeded; IF node (forward-secret / routing validation) succeeded for same execution after expected envelope received; body confirms `corpflow.automation.envelope.v1` envelope matching § 7.1 / § 7.2. IF node success recorded as auditable non-secret validation path — no secret/header value in repo. **§ 7.1 PASS / § 7.2 PASS / § 7.3 PASS. Step 1 COMPLETE.** Step 2 COMPLETE (unchanged). Step 3 restic HELD on explicit authorization. **Files:** Phase 1A artifact § 7.3 + § 8; `docs/CORPFLOW_SHARED_TODO.md`; `docs/decisions/JOURNAL.md`; this bullet. Docs-only; no secrets; no L3; no restic.
+
+<!-- STEP1_N8N_COMPLETE_2026_06_17_HIST -->
+
+---
+
 ## 2026-06-17 — **Phase 1A Step 1 — § 7.3 n8n execution body-view payload confirmation (`JE-2026-06-17-1`; verdict PAYLOAD-CONFIRMED / SECRET-VALIDATION-IMPLIED, Step 1 NOT COMPLETE).** Follow-up after PR #382 merge: Anton inspected n8n execution **#1124** body view and confirmed forwarded payload matches § 7.1 ingest and § 7.2 read-back (`schema` `corpflow.automation.envelope.v1`, `id` `cmqha6wi…`, `event_type` `ops.self_hosted.test.v1`, `source` `self-hosted-ops-stack-v1-step-1`, `payload.note`, `payload.artifact_ref`, etc.). **§ 7.1 ingest PASS** (unchanged). **§ 7.2 automation_events read-back PASS** (unchanged). **§ 7.3 n8n consumer PAYLOAD-CONFIRMED / SECRET-VALIDATION-IMPLIED** — payload confirmed in execution body view; workflow forward-secret validation node/path **not** independently confirmed (`SECRET-VALIDATION-IMPLIED` from succeeded execution only). `secret_logged_or_committed: NO`. **Files:** Phase 1A artifact § 7.3 + § 8 Step 1 DRA; `docs/CORPFLOW_SHARED_TODO.md` Step 1 + Step 3 rows; `docs/decisions/JOURNAL.md` `JE-2026-06-17-1`; this bullet. **Hard limits:** docs-only; zero app/runtime edits; zero secrets; zero L3 commands by Cursor; no restic; no new self-hosted tools. Remaining Step 1 item: confirm forward-secret validation node/path passed or equivalent auditable non-secret mechanism.
 
 <!-- STEP1_N8N_PAYLOAD_CONFIRMED_2026_06_17_HIST -->
