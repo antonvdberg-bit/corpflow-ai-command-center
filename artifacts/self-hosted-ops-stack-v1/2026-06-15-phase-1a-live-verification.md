@@ -350,31 +350,133 @@ secret_logged_or_committed       : NO  (must always be NO; if YES, follow SECURI
 Captured-by: <operator name>
 Captured-at (UTC): <fill in>
 
-### 7.4 Step 2 — Uptime Kuma evidence (template authored 2026-06-16; pending operator L3 execution)
+### 7.4 Step 2 — Uptime Kuma install evidence (operator-executed 2026-06-16; K1–K4 PASS, K5 PASS-by-construction, all 8 sub-probes Up — sub-probe 8 added later same day)
 
-Until the operator runs `docs/runbooks/UPTIME_KUMA_ON_EXEC01_INSTALL_RUNBOOK_V1.md` end-to-end at L3 and § 11 of the runbook returns K1=PASS / K2=PASS / K3=PASS / K4=PASS / K5=PASS, this section stays empty. The evidence shape is the § 12 *Evidence template* of the runbook — paste the filled-in block here verbatim (no secrets, no tokens, no chat ids; see runbook § 12.2 for the credential-incident guard). The accompanying closure PR per § 13 of the runbook flips Step 2 from `INSTALL-RUNBOOK-AUTHORED-PENDING-OPERATOR-EXECUTION` → `COMPLETE` and appends the corresponding `JE-YYYY-MM-DD-N` row to `docs/decisions/JOURNAL.md`.
+Anton ran `docs/runbooks/UPTIME_KUMA_ON_EXEC01_INSTALL_RUNBOOK_V1.md` end-to-end at L3 on `corpflow-exec-01-u69678` on 2026-06-16. Cursor at L1 captured the operator's evidence summary (no secrets, no tokens, no chat ids) into the runbook § 12 evidence shape below, opened the docs-only closure PR (#373, merged 2026-06-16T07:01:15Z at `a9157216`, `JE-2026-06-16-2`) with the verdict **COMPLETE-WITH-N8N-DEFERRED** — Kuma installed, seven CorpFlow public floor URLs probed every 60 s, alert path operationally independent of n8n; sub-probe 8 (n8n origin) explicitly deferred at install time because the operator was not 100% sure of the correct URL and chose to defer rather than configure a guess (correct per runbook § 12.2 — *"Do NOT paste the actual n8n URL into this artifact; just confirm the URL family"*). **Later the same day (2026-06-16, before the next packet round started)**, Anton confirmed the canonical n8n health URL family (`<n8n-host>/healthz` — the n8n v1.x anonymous health endpoint, GET-only, returns `{"status":"ok"}` 200, no auth, no state mutation), added sub-probe 8 inside Kuma's UI through the SSH tunnel, observed it Up at 60 s, and test-confirmed the Telegram alert path for sub-probe 8 specifically. This second event closes the deferral and is recorded by `JE-2026-06-16-3`. The verdict for Step 2 therefore moves from **COMPLETE-WITH-N8N-DEFERRED** → **COMPLETE** in this PR (no n8n migration, no public port exposure, no additional containers — sub-probe 8 add is entirely a Kuma UI configuration change inside the existing carve-out).
+
+```text
+# Uptime Kuma install evidence — corpflow-exec-01-u69678
+
+Operator: Anton
+Date (UTC):           2026-06-16
+Date (local UTC+4):   2026-06-16
+Runbook executed:     docs/runbooks/UPTIME_KUMA_ON_EXEC01_INSTALL_RUNBOOK_V1.md
+Authorization basis:  PR #367 / JE-2026-06-15-1 / ADR docs/decisions/20260615-uptime-kuma-on-exec01.md
+                      + PR #370 / JE-2026-06-16-1 (install runbook authoring)
+
+## Install evidence
+
+- Pinned image:       louislam/uptime-kuma:1.23.13
+- Image digest:       (held off-repo; § 5.4.b operator output not pasted into the artifact — does not affect verdict)
+- Container name:     uptime-kuma
+- Compose project:    uptime-kuma
+- Data dir:           ~/uptime-kuma-data/   (mode 700)
+- Compose file:       ~/uptime-kuma/compose.yaml
+- Host port mapping:  127.0.0.1:3001->3001/tcp                (operator-observed in `docker ps` PORTS column)
+- Container status:   Up 39 minutes (healthy)                 (operator-observed in `docker ps` STATUS column)
+
+## Pre-flight (§ 5.1)
+
+- hostname matched corpflow-exec-01-u69678:                       YES
+- Capacity OK (4 vCPU / ~7.5 GiB / >= 30 GiB free):               YES (assumed — post-resize 2026-06-04 capacity envelope; no warning observed)
+- Docker + Compose v2 present:                                    YES
+- ERPNext sandbox containers Up before install:                   YES (observed running before install; not intentionally touched)
+- ERPNext production-shell containers Up before install:          YES (observed running before install; not intentionally touched)
+- No prior uptime-kuma container or compose project:              YES (fresh install)
+- Port 3001 free on host:                                         YES
+
+## Loopback-only verification (§ 5.6)
+
+- ss -tlnp showed 127.0.0.1:3001 (NOT 0.0.0.0 / NOT :::):         PASS  (host-side mapping `127.0.0.1:3001->3001/tcp` confirmed by `docker ps`)
+- On-box curl http://127.0.0.1:3001/ returned Kuma HTML:          PASS  (`curl -I http://127.0.0.1:3001` returned `HTTP/1.1 302 Found` with `Location: /dashboard` — the canonical Kuma "redirect to setup/dashboard" response)
+- Off-box curl http://5.78.213.185:3001/ returned non-zero exit:  PASS  (operator laptop: `curl -I --connect-timeout 8 http://5.78.213.185:3001` returned `curl: (28) Connection timed out after 8016 milliseconds` — exit 28 = the canonical K2 PASS signal per runbook § 5.6.c / § 11 K2)
+
+## ERPNext untouched (§ 5.7)
+
+- Sandbox containers still Up after install:                      YES (running before install; not intentionally touched after)
+- Production-shell containers still Up after install:             YES (running before install; not intentionally touched after)
+- Only NEW container is uptime-kuma (no watchtower/sidecar):      YES
+
+## Monitors (§ 8)
+
+| # | Friendly name                  | Status at 90s | Notes                |
+|---|--------------------------------|---------------|----------------------|
+| 1 | core-factory-health            | Up            | https://core.corpflowai.com/api/factory/health           |
+| 2 | core-production-pulse-runtime  | Up            | https://core.corpflowai.com/api/factory/production-pulse/runtime |
+| 3 | corpflowai-apex-root           | Up            | https://corpflowai.com/                                  |
+| 4 | corpflowai-lead-rescue         | Up            | https://corpflowai.com/lead-rescue                       |
+| 5 | aileadrescue-apex-root         | Up            | https://aileadrescue.corpflowai.com/                     |
+| 6 | lux-apex-root                  | Up            | https://lux.corpflowai.com/                              |
+| 7 | lux-change-console             | Up            | https://lux.corpflowai.com/change                        |
+| 8 | n8n-health                     | Up            | Added 2026-06-16 by Anton inside Kuma's UI through the SSH tunnel once the URL family was confirmed. Canonical n8n v1.x anonymous health endpoint (`/healthz`); GET-only; returns `{"status":"ok"}` 200; no auth; no state mutation. Up at 60 s; Telegram alert path test-confirmed for sub-probe 8 specifically. URL family operator-confirmed; URL itself recorded only inside Kuma's SQLite DB at `~/uptime-kuma-data/kuma.db`, never in this repo per runbook § 12.2. Recorded by `JE-2026-06-16-3`. Does **not** point at the production webhook ingest path (`<n8n-host>/webhook/automation-forward`) — that route is state-mutating and would create real `automation_events` rows on every probe; it is explicitly forbidden per runbook § 8.5 anti-pattern guard. |
+
+(URL for monitor 8 not pasted into this artifact — operator records the actual URL only inside Kuma per runbook § 12.2.)
+
+## Notifications (§ 9)
+
+- § 9.1 Kuma Telegram bot configured (separate from in-repo bot):  YES (credentials held in operator's Infisical vault, separate from in-repo `TELEGRAM_BOT_TOKEN`)
+- § 9.2 SMTP backup configured (optional):                         NOT-CONFIGURED (optional; v1 PASSes K1–K5 without it)
+- § 9.3 n8n SECONDARY-only configured (optional):                  NOT-CONFIGURED (optional; n8n is not in any alert path in this install — failure-domain isolation is therefore by-construction stronger than the runbook K5 floor requires)
+- § 9.1 bot is verifiably DIFFERENT from in-repo TELEGRAM_BOT_TOKEN: YES (separate BotFather bot, separate token, credentials held in Infisical not in-repo)
+
+## K1 – K5 verification (§ 11)
+
+| Check | Description                                              | Result            | Evidence                                                                                                       |
+|-------|----------------------------------------------------------|-------------------|----------------------------------------------------------------------------------------------------------------|
+| K1    | Kuma UI reachable via SSH tunnel                         | PASS              | Operator opened SSH tunnel `ssh -L 3001:localhost:3001 anton@5.78.213.185`; browsed to `http://localhost:3001/`; Kuma UI rendered. Reinforced by the on-box `HTTP/1.1 302 Found Location: /dashboard` from § 5.6.b. |
+| K2    | Kuma UI NOT reachable from public internet               | PASS              | Operator laptop (off-box, public network) `curl -I --connect-timeout 8 http://5.78.213.185:3001` returned `curl: (28) Connection timed out after 8016 milliseconds`. Exit 28 = the canonical K2 PASS signal per runbook § 5.6.c / § 11 K2.                          |
+| K3    | All 8 monitors Up within 60–90 s                         | PASS              | All 8 / 8 monitors Up — the seven CorpFlow public floor URLs (monitors 1–7) Up at install (2026-06-16, `JE-2026-06-16-2`); monitor 8 (n8n `/healthz`) Up after sub-probe-add later the same day (2026-06-16, `JE-2026-06-16-3`). The earlier K3=PASS-WITH-DEFERRAL state recorded in PR #373 is closed by this PR. |
+| K4    | Telegram test alert delivered via Kuma's own bot         | PASS              | Built-in **Settings → Notifications → Test** delivered the test message to the operator's Telegram chat from the new Kuma BotFather bot (separate token from in-repo `TELEGRAM_BOT_TOKEN`). K4 Test 1 PASS. K4 Test 2 (forced-failure) not separately exercised — the canonical K4 PASS signal is the Test-button delivery, which is satisfied. |
+| K5    | Alert path independent of n8n                            | PASS-BY-CONSTRUCTION | n8n is NOT configured as a notifier in this install (§ 9.2 SMTP not-configured + § 9.3 n8n forwarding not-configured). The PRIMARY notifier is Kuma's own Telegram bot direct to `api.telegram.org`. There is therefore no n8n in any alert path to bring down — the failure mode K5 guards against (Kuma routing alerts through n8n; n8n down = silent outage) is structurally impossible. The K5 explicit test (stop n8n + force a fail + verify alert) was not separately performed because there is no n8n in the loop to stop; the K5 *invariant* is satisfied by-construction. |
+
+## Verdict
+
+- Overall: **PASS** (K1=PASS / K2=PASS / K3=PASS / K4=PASS / K5=PASS-BY-CONSTRUCTION) — all 8 sub-probes Up after the sub-probe 8 add later same day.
+- Two closure PRs in sequence: install closure PR #373 (`JE-2026-06-16-2`, merged 2026-06-16T07:01:15Z at `a9157216`) flipped Monitor #13 → ✅ active and Step 2 → COMPLETE-WITH-N8N-DEFERRED. **This PR (`JE-2026-06-16-3`)** is the small docs-only sync that moves Step 2 → COMPLETE and Monitor #13 → "all 8 sub-probes Up" once Anton added sub-probe 8 inside Kuma's UI later the same day. No new code, no new envs, no new container, no n8n migration, no port-binding change.
+
+## Rollback / disable readiness
+
+- § 10.1 (`docker compose -p uptime-kuma stop`) understood by operator and reversible immediately: YES
+- § 10.2.c (data-dir wipe) understood as destructive and only used post-revert: YES
+- § 10.3 (repo revert path) understood: YES
+
+## Notes / deviations from runbook
+
+- **Monitor 8 (n8n origin) — initially deferred (PR #373), now Up (this PR).** Not a runbook deviation; runbook § 8.2.8 explicitly says the URL is operator-confirmed at install time and § 12.2 explicitly says do not paste it into the artifact. Anton's initial deferral over guessing the URL family was the conservative, runbook-compliant call. Later the same day (2026-06-16), Anton confirmed the canonical n8n v1.x anonymous health endpoint (`/healthz`, GET-only, returns `{"status":"ok"}` 200, no auth, no state mutation), added sub-probe 8 directly inside Kuma's UI through the SSH tunnel (no PR needed for the *configuration* — recorded in Kuma's SQLite DB at `~/uptime-kuma-data/kuma.db`), observed it Up at 60 s, and test-confirmed the Telegram alert path for sub-probe 8 specifically. Recorded by `JE-2026-06-16-3` and this docs-sync PR.
+- **K4 Test 2 (forced-failure)** not separately performed — the built-in **Test** button delivery is the canonical K4 PASS signal in runbook § 11 K4 Test 1; Test 2 is belt-and-suspenders only.
+- **K5 explicit test** not separately performed — n8n is not in any alert path in this install (§ 9.2 + § 9.3 both not-configured), so K5 is satisfied by-construction. This is logically stronger than the runbook K5 floor.
+- **Image digest** (`§ 5.4.b operator output`) not pasted into the artifact — this is a runbook **reduction** for redaction safety, not a deviation. Future closure PRs can re-include the digest if Anton wants the byte-precise pin recorded; for v1 closure, the pinned image *tag* (`louislam/uptime-kuma:1.23.13`) is sufficient.
+- **Optional § 9.2 SMTP backup** not configured — runbook § 9.2 explicitly marks SMTP as OPTIONAL and says K1–K5 PASS without it. Operator chose Telegram-only as v1.
+- **Credentials held in Infisical** — Anton's standard secret-store; out-of-repo, out-of-runbook, out-of-chat. The runbook § 7.1 / § 9.1 do not prescribe the secret-store medium; "operator's password manager" in the runbook applies to Infisical equally well as to a 1Password / Bitwarden vault.
 
 ---
 
-## 8. Verdict (current)
+## 8. Verdict (current — updated 2026-06-16 after Monitor 8 / n8n sub-probe add)
 
 ```text
-Delivery Reality Audit:
-- Local fix exists: YES (this artifact + SHARED_TODO update)
-- Merged to main: NO (this artifact is staged in working tree)
-- Production deployment ID: N/A — Phase 1A is verification-only, no production deploy is part of this packet
-- Commit deployed: N/A
-- Live URLs tested: see § 2.1 — seven public production URLs, all 200, all within < 1.1 s
-- Expected vs actual result: producer side is live and wired (§ 2.2); secret-bearing + n8n-consumer + Kuma-monitor checks await operator (§ 3 / § 4 / § 5)
-- Client-facing flow usable: UNCHANGED (no production behavior modified by this packet)
-- Final verdict: PARTIAL — public probes done at L1; Step 1 ingest/round-trip and Step 2 Kuma install + monitors are gated to operator (Step 2 also needs the § 5.2 separate packet first)
+Delivery Reality Audit (Step 2 — Uptime Kuma install on corpflow-exec-01-u69678; all 8 sub-probes Up):
+- Local fix exists:                       YES (live container on the box; ~/uptime-kuma-data/ persistent; sub-probe 8 added inside Kuma UI 2026-06-16 — JE-2026-06-16-3)
+- Merged to main:                         install closure PR #373 merged 2026-06-16T07:01:15Z at a9157216 (JE-2026-06-16-2). Sub-probe 8 add docs-sync PR (this PR, JE-2026-06-16-3) pending Anton's merge.
+- Production deployment ID:               n/a — does not deploy to Vercel
+- Commit deployed:                        n/a — runs on `corpflow-exec-01-u69678` (L3), not Vercel. Repository state: `a9157216` (PR #373 merge) + this PR.
+- Live URLs tested:                       all 8 monitors Up (§ 7.4 monitors 1–7 + sub-probe 8); off-box public unreachability of host:3001 confirmed (curl exit 28); SSH-tunnel UI reachable; sub-probe 8 Telegram alert path test-confirmed
+- Expected vs actual result:              K1=PASS / K2=PASS / K3=PASS (all 8 sub-probes Up — earlier K3=PASS-WITH-DEFERRAL state closed) / K4=PASS (extended to sub-probe 8) / K5=PASS-BY-CONSTRUCTION (n8n still not in alert path; sub-probe 8 monitors n8n's *availability* but its alert routes around n8n entirely)
+- Client-facing flow usable:              YES — all 8 monitored surfaces (seven CorpFlow public floor URLs + n8n `/healthz`) return their expected responses to Kuma's probes; alerts route to operator's Telegram chat via Kuma's own bot independently of n8n
+- Final verdict:                          COMPLETE
 ```
 
-Step 1 will move from PARTIAL to COMPLETE when § 7.1 + § 7.2 + § 7.3 are filled in (or § 7.3 explicitly opted out of as "n8n admin not accessed in this round").
-Step 2 will move from PARTIAL to COMPLETE only after the separate Kuma-install packet (per § 5.2) has shipped and § 7.4 has been filled in.
+**Step 2 status (2026-06-16, end of day):** Uptime Kuma is installed at L3 on `corpflow-exec-01-u69678`, loopback-bound to `127.0.0.1:3001`, probing all 8 surfaces (seven CorpFlow public floor URLs + n8n `/healthz`) every 60 s with Telegram-direct alerting via Kuma's own BotFather bot (separate from in-repo `TELEGRAM_BOT_TOKEN`). Sub-probe 8 was added by Anton inside Kuma's UI through the SSH tunnel later the same day (`JE-2026-06-16-3`); Telegram alert path test-confirmed for sub-probe 8 specifically. **Blind spot # 7 of `MONITORING_ARCHITECTURE.md` § 6 (no third-location uptime monitoring) is closed end-to-end.** No deferred sub-probes remain.
+
+**Step 1 status (unchanged by this PR):** Still **PARTIAL**. Step 1 will move to COMPLETE when § 7.1 + § 7.2 + § 7.3 are filled in by the operator (or § 7.3 explicitly opted out of as "n8n admin not accessed in this round"). The closure PR for Step 1 is a separate future PR; it is not bundled into this docs-sync PR. (Note: Monitor # 13's sub-probe 8 in Kuma is a *liveness* check on n8n's `/healthz`. It does **not** verify the automation-forward end-to-end flow — that is what Step 1 § 7.1 / § 7.2 / § 7.3 cover.)
+
+**Step 3 status (unchanged by this PR):** Eligibility gate **fully** satisfied as of 2026-06-16 — Step 2 is COMPLETE end-to-end. Step 3 (restic) authoring is now eligible for the next packet round, but **not** initiated by this PR — the user has directed *"Do not proceed to restic"* until they explicitly authorize the Step 3 restic packet.
 
 ---
 
 ## 9. Change log
 
 - **2026-06-15** — Created. L1 evidence captured (§ 2). Operator-side recipes drafted (§ 3 / § 4). Kuma install gating recorded (§ 5). Rollback steps listed (§ 6). Evidence blocks left as placeholders for the operator to fill in (§ 7).
+- **2026-06-15 (later same day)** — § 5 reworked from "BLOCKED" to "PENDING AUTHORIZATION PACKET, no longer generally blocked" once `UPTIME_KUMA_ON_EXEC01_AUTHORIZATION_V1` was authored at L1.
+- **2026-06-16** — § 5.2 status update + § 7.4 evidence-paste pointer added when the install runbook follow-up packet `UPTIME_KUMA_ON_EXEC01_INSTALL_RUNBOOK_V1` was authored at L1 (PR #370 / `JE-2026-06-16-1`, merged 2026-06-16T03:47:12Z at `8121b19e`).
+- **2026-06-16 (later same day)** — § 7.4 filled in with operator-executed install evidence; § 8 verdict flipped from PARTIAL → COMPLETE-WITH-N8N-DEFERRED for Step 2; closure PR #373 opened by Cursor at L1 and merged 2026-06-16T07:01:15Z at `a9157216` (`JE-2026-06-16-2`). Monitor 8 / n8n explicitly deferred (operator chose deferral over guessing the URL family). Step 3 (restic) eligibility gate substantively satisfied but Step 3 NOT initiated by this PR per user instruction.
+- **2026-06-16 (end of same day, after PR #373 merge)** — Anton confirmed canonical n8n health URL family (`<n8n-host>/healthz` — n8n v1.x anonymous health endpoint, GET-only, returns `{"status":"ok"}` 200, no auth, no state mutation) and added sub-probe 8 inside Kuma's UI through the SSH tunnel; sub-probe Up at 60 s; Telegram alert path test-confirmed for sub-probe 8. § 7.4 heading + opening paragraph + monitors-table row 8 + K3 row + Verdict line + Notes/deviations bullet updated; § 8 DRA flipped from COMPLETE-WITH-N8N-DEFERRAL → COMPLETE; Step 3 eligibility now fully satisfied (still not initiated per user instruction). Recorded by `JE-2026-06-16-3` and this docs-sync PR. No new code, no new envs, no new container, no n8n migration, no port-binding change, no widening of the § 5.5 carve-out — sub-probe 8 add is entirely a Kuma UI configuration change inside the existing carve-out.
