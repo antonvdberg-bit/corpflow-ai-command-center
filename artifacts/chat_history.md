@@ -28,6 +28,12 @@
 
 ---
 
+## 2026-06-18 — **Codex Cloud activation packet v1 (docs-only — execution policy, Anton review).** New `docs/execution/CODEX_CLOUD_ACTIVATION_PACKET_V1.md`: verified state (protocol ready, Codex **not installed**, no `codex/*` branches, #249 OPEN); **Today's activation checklist** for Anton; first packet `Codex Cloud docs consistency audit` / `codex/docs-consistency-audit-v1` / output `artifacts/audits/<date>-docs-consistency.md`; Packet 7.3 added to `WEEKEND_EXECUTION_QUEUE.md`. Posture: Codex Cloud = L2 executor #2 in OpenAI infra; no CLI on exec-01; no autonomous merge. **NO RUNTIME CHANGE — AWAITING ANTON OPERATOR STEPS.**
+
+<!-- CODEX_CLOUD_ACTIVATION_PACKET_V1_2026_06_18_HIST -->
+
+---
+
 ## 2026-06-18 — **Codex utilization plan v1 (docs-only — execution policy, Anton review).** New `docs/execution/CODEX_UTILIZATION_PLAN_V1.md`: June 2026 OpenAI Codex product sync; confirms **Cursor = L1**, **Codex Cloud = L2 executor #2**, **`corpflow-exec-01` = L3 operator box**; Plus-first entitlement (scarce usage); allowed/forbidden task lists; one-week evaluation rubric; server-side Codex CLI **`NOT AUTHORIZED / FUTURE EVALUATION ONLY`**; first packet `Codex Cloud docs consistency audit` / `codex/docs-consistency-audit-v1`. Updated `DELIVERY_ACCELERATION_V1.md` §4.2 (Plus-first), `CODEX_CLOUD_INSTALL.md`, `SERVER_AGENT_ACCESS_AND_EXECUTION_BOUNDARY_V1.md` §6, `AGENTS.md`. Packet 7.2 install still **PENDING**. **NO IMPLEMENTATION AUTHORIZED** by this PR alone.
 
 <!-- CODEX_UTILIZATION_PLAN_V1_2026_06_18_HIST -->
