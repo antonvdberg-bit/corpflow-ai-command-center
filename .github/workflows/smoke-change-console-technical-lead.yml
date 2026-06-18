@@ -1,0 +1,89 @@
+# Smoke Change Console — technical-lead audits (read-only, cron Bearer)
+#
+# Packet B — Laptop burn-down P1 manual GHA smoke (no schedule in v1).
+# Precondition: Packet A merged — GET /api/factory/technical-lead/audits accepts
+# Authorization: Bearer CORPFLOW_CRON_SECRET (same as Vercel crons).
+#
+# No MASTER_ADMIN_KEY, ADMIN_PIN, POSTGRES_URL, or tenant credentials in this workflow.
+#
+# Repo secrets (Settings → Secrets and variables → Actions):
+#   CORPFLOW_CORE_BASE_URL      e.g. https://core.corpflowai.com
+#   CORPFLOW_CRON_SECRET        same value as Vercel CORPFLOW_CRON_SECRET / CRON_SECRET
+#   CMP_SMOKE_CHANGE_TICKET_ID  one CMP ticket id with (optional) technical_lead_audits rows
+#
+# Manual dispatch: GitHub → Actions → "Smoke Change Console technical-lead audits" → Run workflow
+# Expected: HTTP 2xx, JSON ok:true. Auth failure → HTTP 401/403 → workflow fails.
+#
+# If secrets are unset, job exits 0 (skipped) so forks stay green.
+#
+# References:
+#   docs/execution/LAPTOP_BURN_DOWN_P0_CLOSEOUT_READINESS_V1.md §6
+#   docs/execution/MIGRATION_TO_SERVER_CHECKLIST.md
+#   .github/workflows/factory-cmp-drive.yml — cron Bearer pattern
+
+name: Smoke Change Console technical-lead audits
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: smoke-change-console-technical-lead
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: GET technical-lead audits (cron Bearer, read-only)
+        env:
+          CORE_BASE: ${{ secrets.CORPFLOW_CORE_BASE_URL }}
+          CRON_SECRET: ${{ secrets.CORPFLOW_CRON_SECRET }}
+          TICKET_ID: ${{ secrets.CMP_SMOKE_CHANGE_TICKET_ID }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CORE_BASE:-}" ] || [ -z "${CRON_SECRET:-}" ] || [ -z "${TICKET_ID:-}" ]; then
+            echo "Skip: set CORPFLOW_CORE_BASE_URL, CORPFLOW_CRON_SECRET, and CMP_SMOKE_CHANGE_TICKET_ID to enable."
+            exit 0
+          fi
+
+          core="${CORE_BASE%/}"
+          endpoint="${core}/api/factory/technical-lead/audits"
+          echo "Endpoint: GET /api/factory/technical-lead/audits?ticket_id=<CMP_SMOKE_CHANGE_TICKET_ID>&limit=1"
+          echo "Auth: Authorization Bearer (CORPFLOW_CRON_SECRET — value not printed)"
+
+          code="$(curl -sS -o /tmp/smoke-tl-audits.json -w "%{http_code}" -G \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            --data-urlencode "ticket_id=${TICKET_ID}" \
+            --data-urlencode "limit=1" \
+            "${endpoint}")"
+
+          echo "HTTP ${code}"
+
+          if [ "${code}" = "401" ] || [ "${code}" = "403" ]; then
+            echo "::error::Auth failed (HTTP ${code}) — cron Bearer rejected on technical-lead audits"
+            head -c 800 /tmp/smoke-tl-audits.json || true
+            echo
+            exit 1
+          fi
+
+          if [ "${code}" -lt 200 ] || [ "${code}" -ge 300 ]; then
+            echo "::error::Expected HTTP 2xx, got ${code}"
+            head -c 800 /tmp/smoke-tl-audits.json || true
+            echo
+            exit 1
+          fi
+
+          python3 - <<'PY'
+          import json, sys
+          with open("/tmp/smoke-tl-audits.json") as f:
+              data = json.load(f)
+          ok_true = data.get("ok") is True
+          print("ok:true found:", ok_true)
+          if not ok_true:
+              print("::error::Response JSON missing ok:true")
+              sys.exit(1)
+          print("Smoke passed: read-only technical-lead audits accepts cron Bearer")
+          PY
