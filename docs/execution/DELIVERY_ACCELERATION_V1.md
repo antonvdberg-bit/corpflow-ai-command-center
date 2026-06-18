@@ -215,6 +215,7 @@ To revert this protocol entirely:
 
 ## 13. Cross-references
 
+- **Codex Cloud activation packet (state + operator checklist + Packet 7.3):** `docs/execution/CODEX_CLOUD_ACTIVATION_PACKET_V1.md`
 - **Codex utilization plan (June 2026 product sync, Plus-first, evaluation rubric):** `docs/execution/CODEX_UTILIZATION_PLAN_V1.md`
 - Operator Bridge architecture and schemas: `docs/operations/OPERATOR_BRIDGE_V1.md`
 - Operator Bridge day-to-day runbook: `docs/runbooks/OPERATOR_BRIDGE.md`

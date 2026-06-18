@@ -84,6 +84,8 @@ If Git says **`ambiguous argument 'main'`**, a tracked path named **`main`** may
 | **Operator Bridge v1 — coordination protocol (ChatGPT ↔ Anton ↔ Cursor + Codex Cloud)** — coordination issue **#249** | **`docs/operations/OPERATOR_BRIDGE_V1.md`** |
 | **Operator Bridge — day-to-day runbook (how Cursor / Codex Cloud post STATUS to #249)** | **`docs/runbooks/OPERATOR_BRIDGE.md`** |
 | **Delivery Acceleration v1 — multi-executor protocol (Cursor + Codex Cloud + future internal agent)** | **`docs/execution/DELIVERY_ACCELERATION_V1.md`** |
+| **Codex Cloud install — operator playbook (Packet 7.2: pre-flight, GitHub App least-privilege, bot username, first-packet smoke, rollback)** | **`docs/runbooks/CODEX_CLOUD_INSTALL.md`** |
+| **Codex Cloud activation packet v1 — activation state, operator checklist, first packet 7.3 assignment** | **`docs/execution/CODEX_CLOUD_ACTIVATION_PACKET_V1.md`** |
 | **Codex utilization plan v1 — product sync, Plus-first entitlement, evaluation rubric, server CLI not authorized** | **`docs/execution/CODEX_UTILIZATION_PLAN_V1.md`** |
 | **Codex Cloud install — operator playbook (Packet 7.2: pre-flight, ChatGPT Plus sign-in preferred, GitHub App least-privilege, bot username, first-packet smoke, rollback)** | **`docs/runbooks/CODEX_CLOUD_INSTALL.md`** |
 | **Laptop dependency burn-down v1 — off-laptop migration queue (P0–P2), auth-normalization recommendation** | **`docs/execution/LAPTOP_DEPENDENCY_BURN_DOWN_V1.md`** |

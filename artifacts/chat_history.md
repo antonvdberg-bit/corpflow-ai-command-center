@@ -31,6 +31,9 @@
 ## 2026-06-18 — **Laptop dependency burn-down v1 (docs-only — planning, Anton review).** New `docs/execution/LAPTOP_DEPENDENCY_BURN_DOWN_V1.md`: problem statement; completed off-laptop progress (Step 1 n8n COMPLETE, Step 2 Kuma COMPLETE, Step 3 restic pending, P0 control loop **already on GHA**); P0–P2 candidate tables with auth/mutation analysis; recommends P0 close-out then cron-auth-normalization before Change Console smoke GHA; Lux phase4c1 **not** for prod schedule (mutates). Verdict: **BURN-DOWN QUEUE CREATED — IMPLEMENTATION PACKETS REQUIRED**.
 
 <!-- LAPTOP_DEPENDENCY_BURN_DOWN_V1_2026_06_18_HIST -->
+## 2026-06-18 — **Codex Cloud activation packet v1 (docs-only — execution policy, Anton review).** New `docs/execution/CODEX_CLOUD_ACTIVATION_PACKET_V1.md`: verified state (protocol ready, Codex **not installed**, no `codex/*` branches, #249 OPEN); **Today's activation checklist** for Anton; first packet `Codex Cloud docs consistency audit` / `codex/docs-consistency-audit-v1` / output `artifacts/audits/<date>-docs-consistency.md`; Packet 7.3 added to `WEEKEND_EXECUTION_QUEUE.md`. Posture: Codex Cloud = L2 executor #2 in OpenAI infra; no CLI on exec-01; no autonomous merge. **NO RUNTIME CHANGE — AWAITING ANTON OPERATOR STEPS.**
+
+<!-- CODEX_CLOUD_ACTIVATION_PACKET_V1_2026_06_18_HIST -->
 
 ---
 
