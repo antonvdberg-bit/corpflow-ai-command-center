@@ -1,6 +1,7 @@
 # Codex Cloud install — operator playbook (Packet 7.2)
 
 **Audience:** Anton (operator). This is the click-by-click sequence for installing Codex Cloud as a second bounded Executor.
+**Activation packet (state snapshot + today's checklist):** `docs/execution/CODEX_CLOUD_ACTIVATION_PACKET_V1.md`
 **Canonical protocol:** `docs/execution/DELIVERY_ACCELERATION_V1.md` (rules and constraints) and `docs/operations/OPERATOR_BRIDGE_V1.md` (coordination).
 **Tracking packet:** Goal 7 / Packet 7.2 in `docs/execution/WEEKEND_EXECUTION_QUEUE.md`.
 **Tracking issue:** Operator Bridge **#249**.
@@ -151,6 +152,7 @@ Avoid one journal row per Codex PR after the first; the chat history (`artifacts
 ## 10. References
 
 - Protocol (rules + constraints): `docs/execution/DELIVERY_ACCELERATION_V1.md`
+- **Activation packet (state + checklist + Packet 7.3):** `docs/execution/CODEX_CLOUD_ACTIVATION_PACKET_V1.md`
 - Operator Bridge architecture: `docs/operations/OPERATOR_BRIDGE_V1.md`
 - Operator Bridge day-to-day runbook (STATUS posting): `docs/runbooks/OPERATOR_BRIDGE.md`
 - What requires approval: `docs/execution/CORPFLOW_AUTONOMOUS_ACTIONS_POLICY.md` §3
