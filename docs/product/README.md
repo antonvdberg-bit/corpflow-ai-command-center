@@ -34,6 +34,7 @@ Use one or more of:
 | `DESTINATION-SHAPE` | Future CorpFlow destination capabilities described |
 | `CANDIDATE-CAPTURED` | Candidate recorded for later evaluation |
 | `SERIOUS-CANDIDATE / EVALUATE-FIRST` | High-priority candidate; evaluate before build |
+| `SERIOUS-CANDIDATE / DEPLOY-FIRST-PILOT` | Proven manual path; API or pilot deployment is the next bounded step — not production automation |
 | `NO IMPLEMENTATION AUTHORIZED` | Required on every capture — no install, no runtime, no env |
 
 **Do not use** `AUTHORIZED`, `SELECTED`, `IMPLEMENTING`, or `COMPLETE` unless Anton **separately and explicitly** authorizes implementation.
@@ -45,7 +46,7 @@ Use one or more of:
 | Entry | Status | Captured |
 | ----- | ------ | -------- |
 | [CHAT_DESTINATION_REFERENCE_SOCIAL_INTENTS.md](./CHAT_DESTINATION_REFERENCE_SOCIAL_INTENTS.md) | `REFERENCE-ONLY / DESTINATION-SHAPE` | 2026-06-18 |
-| [MARKETING_AUTOMATION_CONTENT_ENGINE_CANDIDATES.md](./MARKETING_AUTOMATION_CONTENT_ENGINE_CANDIDATES.md) | `SERIOUS-CANDIDATE / EVALUATE-FIRST` | 2026-06-18 |
+| [MARKETING_AUTOMATION_CONTENT_ENGINE_CANDIDATES.md](./MARKETING_AUTOMATION_CONTENT_ENGINE_CANDIDATES.md) | Google Vids `EVALUATE-FIRST`; GPT Image `DEPLOY-FIRST-PILOT` | 2026-06-18 |
 
 ---
 
