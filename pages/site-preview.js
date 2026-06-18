@@ -50,6 +50,11 @@ import {
 } from '../lib/sandbox/living-word-sandbox-content.js';
 import { PLACEHOLDER_SCHEDULE } from '../lib/sandbox/living-word-schedule-shape.js';
 import { TestEnvironmentRibbon } from '../lib/sandbox/test-environment-ribbon.js';
+import {
+  formatScheduleEntrySubtitle,
+  getApprovedScheduleEntriesForTenant,
+  serializeScheduleEntryForProps,
+} from '../lib/server/tenant-schedule/entries.js';
 
 const TEST_RIBBON_MESSAGE =
   'TEST ENVIRONMENT \u2014 Not the live Living Word Mauritius website';
@@ -92,11 +97,35 @@ export async function getServerSideProps(ctx) {
   if (!ALLOWED_HOSTS.has(host)) {
     return { notFound: true };
   }
+
+  const { PrismaClient } = await import('@prisma/client');
+  const prisma = new PrismaClient();
+  let scheduleEntries = [];
+  let scheduleSource = 'placeholder';
+
+  try {
+    const rows = await getApprovedScheduleEntriesForTenant(prisma, SANDBOX_TENANT_ID, {
+      purpose: 'site_preview',
+    });
+    if (rows.length > 0) {
+      scheduleEntries = rows.map(serializeScheduleEntryForProps);
+      scheduleSource = 'database';
+    }
+  } catch {
+    scheduleEntries = [];
+    scheduleSource = 'placeholder';
+  } finally {
+    await prisma.$disconnect().catch(() => {});
+  }
+
   return {
     props: {
       tenantId: SANDBOX_TENANT_ID,
       host,
       placeholderCount: PLACEHOLDER_SCHEDULE.length,
+      scheduleEntries,
+      scheduleSource,
+      approvedScheduleCount: scheduleEntries.length,
     },
   };
 }
@@ -600,7 +629,14 @@ function ServiceLocationContactSection() {
   );
 }
 
-function EventsSection({ entries }) {
+function EventsSection({ entries, scheduleSource }) {
+  const isDatabase = scheduleSource === 'database';
+  const eyebrow = isDatabase ? 'Approved schedule' : 'Schedule fixtures';
+  const title = isDatabase ? 'Upcoming from church records' : EVENTS_PLACEHOLDER.heading;
+  const intro = isDatabase
+    ? 'These entries come from the tenant-scoped schedule database (approved rows only). Unapproved fixtures remain in the database but are not shown here.'
+    : EVENTS_PLACEHOLDER.body;
+
   return (
     <section
       id="events"
@@ -611,7 +647,7 @@ function EventsSection({ entries }) {
       }}
     >
       <div style={{ maxWidth: 900, margin: '0 auto' }}>
-        <SectionHeading eyebrow="Schedule fixtures" title={EVENTS_PLACEHOLDER.heading} />
+        <SectionHeading eyebrow={eyebrow} title={title} />
         <p
           style={{
             margin: '0 0 24px',
@@ -620,7 +656,7 @@ function EventsSection({ entries }) {
             textAlign: 'center',
           }}
         >
-          {EVENTS_PLACEHOLDER.body}
+          {intro}
         </p>
         <ul
           style={{
@@ -650,7 +686,7 @@ function EventsSection({ entries }) {
                   height: 12,
                   borderRadius: '50%',
                   background: COLOURS.gold,
-                  opacity: 0.75,
+                  opacity: isDatabase ? 1 : 0.75,
                 }}
               />
               <div style={{ flex: 1 }}>
@@ -670,8 +706,21 @@ function EventsSection({ entries }) {
                     color: COLOURS.textMuted,
                   }}
                 >
-                  {e.category} &middot; {e.recurrence} &middot; placeholder fixture (not a real listing)
+                  {isDatabase
+                    ? formatScheduleEntrySubtitle(e)
+                    : `${e.category} · ${e.recurrence} · placeholder fixture (not a real listing)`}
                 </p>
+                {e.description ? (
+                  <p
+                    style={{
+                      margin: '6px 0 0',
+                      font: `400 13px/1.5 ${FONTS.sans}`,
+                      color: COLOURS.text,
+                    }}
+                  >
+                    {e.description}
+                  </p>
+                ) : null}
               </div>
             </li>
           ))}
@@ -708,7 +757,18 @@ function NextStepSection() {
   );
 }
 
-function FooterSection({ tenantId, host, placeholderCount }) {
+function FooterSection({
+  tenantId,
+  host,
+  placeholderCount,
+  scheduleSource,
+  approvedScheduleCount,
+}) {
+  const scheduleLine =
+    scheduleSource === 'database'
+      ? `${approvedScheduleCount} approved schedule ${approvedScheduleCount === 1 ? 'entry' : 'entries'} (database)`
+      : `${placeholderCount} placeholder schedule entries (no approved DB rows)`;
+
   return (
     <footer
       style={{
@@ -746,8 +806,7 @@ function FooterSection({ tenantId, host, placeholderCount }) {
           }}
         >
           tenant <code>{tenantId}</code> &middot; host <code>{host}</code> &middot;{' '}
-          {placeholderCount} placeholder schedule entries &middot; widget
-          kill-switch is independent of this page
+          {scheduleLine} &middot; widget kill-switch is independent of this page
         </p>
         <p
           style={{
@@ -763,7 +822,19 @@ function FooterSection({ tenantId, host, placeholderCount }) {
   );
 }
 
-export default function SitePreviewPage({ tenantId, host, placeholderCount }) {
+export default function SitePreviewPage({
+  tenantId,
+  host,
+  placeholderCount,
+  scheduleEntries,
+  scheduleSource,
+  approvedScheduleCount,
+}) {
+  const displayEntries =
+    scheduleSource === 'database' && scheduleEntries.length > 0
+      ? scheduleEntries
+      : PLACEHOLDER_SCHEDULE;
+
   return (
     <>
       <Head>
@@ -811,12 +882,14 @@ export default function SitePreviewPage({ tenantId, host, placeholderCount }) {
         <GetInvolvedSection />
         <NextGenSection />
         <ServiceLocationContactSection />
-        <EventsSection entries={PLACEHOLDER_SCHEDULE} />
+        <EventsSection entries={displayEntries} scheduleSource={scheduleSource} />
         <NextStepSection />
         <FooterSection
           tenantId={tenantId}
           host={host}
           placeholderCount={placeholderCount}
+          scheduleSource={scheduleSource}
+          approvedScheduleCount={approvedScheduleCount}
         />
       </div>
     </>

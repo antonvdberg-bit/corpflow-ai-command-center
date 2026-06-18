@@ -483,3 +483,41 @@ model ChatWidgetRateLimit {
   @@index([windowStart])
   @@map("chat_widget_rate_limits")
 }
+
+/// Tenant-scoped schedule entries for sandbox / chatbot / future AI retrieval.
+/// Living Word schedule-source v1 — see
+/// artifacts/quality-audits/2026-06-11-living-word-mauritius/ai-dynamic-scheduling-design.md
+/// Only rows with approved=true and (expires_at null or future) are served to
+/// site-preview or chatbot consumers. tenant_id is a string column (no FK) for
+/// the same loose-coupling pattern as chat_widget_* tables.
+model TenantScheduleEntry {
+  id                    String    @id @default(cuid())
+  tenantId              String    @map("tenant_id")
+  category              String
+  title                 String
+  description           String?
+  startsAt              DateTime? @map("starts_at")
+  endsAt                DateTime? @map("ends_at")
+  recurrence            String    @default("once")
+  weeklyDayOfWeek       Int?      @map("weekly_day_of_week")
+  weeklyTime            String?   @map("weekly_time")
+  locationName          String?   @map("location_name")
+  locationMapUrl        String?   @map("location_map_url")
+  ageBand               String?   @map("age_band")
+  visibility            String    @default("public")
+  approved              Boolean   @default(false)
+  approvedBy            String?   @map("approved_by")
+  approvedAt            DateTime? @map("approved_at")
+  source                String    @default("placeholder")
+  lastReviewedAt        DateTime? @map("last_reviewed_at")
+  expiresAt             DateTime? @map("expires_at")
+  chatbotAnswerEligible Boolean   @default(false) @map("chatbot_answer_eligible")
+  notes                 String?
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  @@index([tenantId, approved])
+  @@index([tenantId, category])
+  @@index([tenantId, expiresAt])
+  @@map("tenant_schedule_entries")
+}
