@@ -2,7 +2,7 @@
 
 **Status:** Protocol documentation only. No automation, no installs, no runtime change.
 **Owner:** Anton (operator / approver / merger).
-**Drafted:** 2026-05-28.
+**Drafted:** 2026-05-28. **Updated:** 2026-06-18 — utilization posture refined in `docs/execution/CODEX_UTILIZATION_PLAN_V1.md`.
 **Companion:** `docs/operations/OPERATOR_BRIDGE_V1.md` (bridge architecture, message schemas, hold rules).
 **Coordination issue:** **GitHub issue #249** — `Operator Bridge — Active Work Queue`.
 
@@ -74,11 +74,16 @@ When Anton installs the Codex Cloud GitHub App on this repo, the installation mu
 
 If GitHub's App permission model changes the names above, the principle wins: **read + write to non-`main` branches and PR/Issue surfaces only**.
 
-### 4.2 OpenAI API key
+### 4.2 OpenAI entitlement (ChatGPT Plus first)
 
-- Anton creates the key in his own OpenAI dashboard.
-- The key is pasted only into Codex Cloud's own setup UI.
-- The key never appears in this repo, in `.env*`, in GitHub Actions secrets, in Vercel env, in `artifacts/`, in chat, or in any PR description.
+**Preferred (2026-06-18):** Anton signs in to Codex Cloud with **ChatGPT Plus** so cloud tasks and GitHub integration consume subscription-included limits. See `docs/execution/CODEX_UTILIZATION_PLAN_V1.md` §6.
+
+**Fallback:** Anton creates an OpenAI API key in his own dashboard **only if** Plus limits are insufficient and Anton explicitly approves API spend. Per OpenAI docs, API-key-only Codex paths do **not** include cloud/GitHub features — unsuitable as the primary CorpFlow Cloud executor path.
+
+Regardless of path:
+
+- Credentials are entered only in Codex Cloud's own setup UI (or ChatGPT sign-in flow).
+- Values never appear in this repo, in `.env*`, in GitHub Actions secrets, in Vercel env, in `artifacts/`, in chat, or in any PR description.
 
 ### 4.3 Codex Cloud as an operational surface
 
@@ -211,6 +216,7 @@ To revert this protocol entirely:
 ## 13. Cross-references
 
 - **Codex Cloud activation packet (state + operator checklist + Packet 7.3):** `docs/execution/CODEX_CLOUD_ACTIVATION_PACKET_V1.md`
+- **Codex utilization plan (June 2026 product sync, Plus-first, evaluation rubric):** `docs/execution/CODEX_UTILIZATION_PLAN_V1.md`
 - Operator Bridge architecture and schemas: `docs/operations/OPERATOR_BRIDGE_V1.md`
 - Operator Bridge day-to-day runbook: `docs/runbooks/OPERATOR_BRIDGE.md`
 - Packet structure: `docs/execution/CORPFLOW_EXECUTION_PACKET_STANDARD.md`

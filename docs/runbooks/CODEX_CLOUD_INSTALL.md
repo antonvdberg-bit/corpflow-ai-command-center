@@ -21,7 +21,13 @@ Confirm out loud (or in #249) before opening any third-party UI:
 
 If any pre-flight item fails, **STOP** and post a `HOLDING` comment on #249 before continuing.
 
-## 2. OpenAI API key (Anton dashboard only)
+## 2. OpenAI entitlement (ChatGPT Plus first — preferred)
+
+1. Sign in to Codex Cloud with **ChatGPT (Plus)** so cloud tasks and GitHub integration use subscription-included limits. See `docs/execution/CODEX_UTILIZATION_PLAN_V1.md` §6.
+2. Treat Plus cloud-task limits as **scarce** — one Codex packet at a time during the evaluation week.
+3. **Only if Plus limits block work and Anton approves API spend:** fall back to API key creation below.
+
+### 2b. OpenAI API key (fallback — Anton dashboard only)
 
 1. Sign in at `https://platform.openai.com/`.
 2. Navigate: **API Keys → Create new secret key**.
@@ -110,7 +116,7 @@ In `docs/execution/WEEKEND_EXECUTION_QUEUE.md`, add a sub-packet under Goal 7:
 - **Owner:** Approver = Anton. Executor = Codex Cloud. Reviewer = Anton.
 - **Allowed paths:** read everything; write only artifacts/audits/<date>-docs-consistency.md.
 - **Forbidden paths:** anything outside artifacts/audits/ in this packet.
-- **Branch:** codex/docs-consistency-audit-<date>
+- **Branch:** `codex/docs-consistency-audit-v1` (or `codex/docs-consistency-audit-<date>` if date-stamped variant preferred)
 - **STATUS posts:** to #249, with `**Executor:** Codex Cloud` header per OPERATOR_BRIDGE_V1.md §5.1.
 - **Status:** APPROVED (or PENDING if you want a final review before Codex picks up).
 ```
@@ -153,6 +159,7 @@ Avoid one journal row per Codex PR after the first; the chat history (`artifacts
 
 - Protocol (rules + constraints): `docs/execution/DELIVERY_ACCELERATION_V1.md`
 - **Activation packet (state + checklist + Packet 7.3):** `docs/execution/CODEX_CLOUD_ACTIVATION_PACKET_V1.md`
+- **Codex utilization plan (Plus-first, evaluation rubric, first packet):** `docs/execution/CODEX_UTILIZATION_PLAN_V1.md`
 - Operator Bridge architecture: `docs/operations/OPERATOR_BRIDGE_V1.md`
 - Operator Bridge day-to-day runbook (STATUS posting): `docs/runbooks/OPERATOR_BRIDGE.md`
 - What requires approval: `docs/execution/CORPFLOW_AUTONOMOUS_ACTIONS_POLICY.md` §3

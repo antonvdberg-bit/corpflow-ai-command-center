@@ -15,7 +15,8 @@
 - `docs/execution/DELIVERY_ACCELERATION_V1.md` § 3 + § 4.3 — actor model; explicit statement that Codex Cloud runs in OpenAI infra (not on `corpflow-exec-01`).
 - `docs/execution/MIGRATION_TO_SERVER_CHECKLIST.md` — gate that every new server-side execution surface must pass.
 - `docs/execution/CORPFLOW_AUTONOMOUS_ACTIONS_POLICY.md` §§ 2–3 — what each actor may do unattended vs gated.
-- `docs/runbooks/CODEX_CLOUD_INSTALL.md` — how Codex Cloud is installed (GitHub App, OpenAI key); confirms Codex Cloud is not on `corpflow-exec-01`.
+- `docs/runbooks/CODEX_CLOUD_INSTALL.md` — how Codex Cloud is installed (GitHub App, ChatGPT Plus sign-in preferred); confirms Codex Cloud is not on `corpflow-exec-01`.
+- `docs/execution/CODEX_UTILIZATION_PLAN_V1.md` — June 2026 product sync, allowed/forbidden tasks, Plus-first entitlement, evaluation rubric, server-side CLI not authorized.
 - `docs/runbooks/ERPNEXT_SANDBOX_INSTALL.md` § 10 — operator UI access via SSH tunnel; canonical example of the operator-driven SSH pattern.
 
 If any of those conflict with this doc, **those docs win** — this doc is a synthesis, not a new policy.
@@ -212,6 +213,7 @@ A layer that does not appear in § 2 above is **not a CorpFlow execution layer**
 | Web-shell / browser terminal on the box | Does not exist | No such service installed; would require opening a port + reverse proxy, both forbidden in v1 |
 | Persistent daemon / systemd service / cron / `at` job on the box | Does not exist (with one named exception — see § 5.5: the **Uptime Kuma** container's internal probe scheduler is authorized **only** as that named carve-out and **only** inside that named container; no `cron` / `systemd timer` / `at` outside Kuma is authorized) | § 11.3 hard rule — *"No scheduled jobs"* |
 | Codex Cloud running on the box | Does not exist | `DELIVERY_ACCELERATION_V1.md` § 4.3 — *"Codex Cloud runs in OpenAI's infrastructure, not on Anton's laptop and not on `corpflow-exec-01`"* |
+| Codex CLI / Codex daemon / MCP server on the box | Does not exist | `docs/execution/CODEX_UTILIZATION_PLAN_V1.md` §8 — **`NOT AUTHORIZED / FUTURE EVALUATION ONLY`**; would imply a fourth execution layer + violate § 5.3 no-daemon rule |
 | Tailscale / WireGuard / reverse-tunnel from box to laptop | Does not exist | Repo-wide grep returns zero hits; would expand attack surface |
 | Production secrets on the box | Does not exist | § 11.3 hard rule — explicit list of secrets that may not be on the box |
 | Vercel deploy capability from the box | Does not exist | § 11.3 hard rule |

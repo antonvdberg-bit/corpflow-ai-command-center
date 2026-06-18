@@ -669,6 +669,9 @@ This is the **live queue** of approved or pending packets for autonomous executi
 **Why this goal:** Cursor is the only in-repo coding executor today. While Cursor works one packet, every other approved packet sits PENDING. Goal 7 adds **Codex Cloud** as a second bounded Executor — with explicit branch-prefix discipline, packet-claim discipline, and Operator Bridge #249 STATUS schema — **without** changing any AAP §3 hard gate, any forbidden surface, or the operator-owned merge rule. A future internal CorpFlow agent gets a phased roadmap (phases 0–5) but is not installed in v1.
 
 **Utilization + activation (2026-06-18):** `docs/execution/CODEX_UTILIZATION_PLAN_V1.md` ([PR #394](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/394), pending merge); **`docs/execution/CODEX_CLOUD_ACTIVATION_PACKET_V1.md`** (activation state + operator checklist + Packet 7.3 assignment).
+**Anton decisions recorded 2026-05-28 (see `docs/decisions/JOURNAL.md` JE-2026-05-28-2):** runtime = **Codex Cloud** (hosted, not Codex CLI on laptop or `corpflow-exec-01`); coordination = **issue #249**; LR-1 (in flight on `feat/lead-rescue/usd-launch-pilot`) is the **AI Lead Rescue commercial-readiness** execution and is unaffected by this protocol.
+
+**Utilization plan (2026-06-18):** `docs/execution/CODEX_UTILIZATION_PLAN_V1.md` — June 2026 OpenAI product sync, ChatGPT Plus-first entitlement, evaluation rubric, server-side Codex CLI **not authorized**, first live packet branch `codex/docs-consistency-audit-v1`.
 
 ### Packet 7.1 — Delivery Acceleration v1 protocol (docs-only)
 
