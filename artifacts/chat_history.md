@@ -28,6 +28,12 @@
 
 ---
 
+## 2026-06-18 — **GitHits dev tooling candidate (docs-only — library capture).** New `docs/execution/DEV_TOOLING_CANDIDATES.md` + library index row: GitHits `SERIOUS-CANDIDATE / DEV-CAPABILITY ACCELERATOR` for version-aware OSS implementation context for Cursor/Codex. Evaluation plan docs-only through local MCP gate. Verdict: **GITHITS CAPTURED AS DEV TOOLING CANDIDATE — NO INSTALLATION AUTHORIZED**.
+
+<!-- GITHITS_DEV_TOOLING_CANDIDATE_2026_06_18_HIST -->
+
+---
+
 ## 2026-06-18 — **Laptop dependency burn-down v1 (docs-only — planning, Anton review).** New `docs/execution/LAPTOP_DEPENDENCY_BURN_DOWN_V1.md`: problem statement; completed off-laptop progress (Step 1 n8n COMPLETE, Step 2 Kuma COMPLETE, Step 3 restic pending, P0 control loop **already on GHA**); P0–P2 candidate tables with auth/mutation analysis; recommends P0 close-out then cron-auth-normalization before Change Console smoke GHA; Lux phase4c1 **not** for prod schedule (mutates). Verdict: **BURN-DOWN QUEUE CREATED — IMPLEMENTATION PACKETS REQUIRED**.
 
 <!-- LAPTOP_DEPENDENCY_BURN_DOWN_V1_2026_06_18_HIST -->
