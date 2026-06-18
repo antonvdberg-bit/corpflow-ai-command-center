@@ -228,6 +228,7 @@ Mirror to `artifacts/chat_history.md` in the same PR or a tiny follow-up.
 ## 9. References
 
 - Bridge architecture, schemas, hold rules, guardrails: `docs/operations/OPERATOR_BRIDGE_V1.md`
+- **Bridge digest (rollup format + automation phases):** `docs/operations/OPERATOR_BRIDGE_DIGEST_V1.md`
 - Delivery Acceleration v1 protocol (multi-executor model + Codex Cloud posture): `docs/execution/DELIVERY_ACCELERATION_V1.md`
 - Packet structure: `docs/execution/CORPFLOW_EXECUTION_PACKET_STANDARD.md`
 - What requires approval: `docs/execution/CORPFLOW_AUTONOMOUS_ACTIONS_POLICY.md`

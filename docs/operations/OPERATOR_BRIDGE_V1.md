@@ -180,6 +180,7 @@ After this PR merges and is live-verified per `delivery-reality.mdc`, Anton can 
 
 - Delivery Acceleration v1 protocol (Cursor + Codex Cloud + future internal agent): `docs/execution/DELIVERY_ACCELERATION_V1.md`
 - Day-to-day operator runbook (how to post STATUS in practice): `docs/runbooks/OPERATOR_BRIDGE.md`
+- **Digest planning (rollup of #249 + PRs):** `docs/operations/OPERATOR_BRIDGE_DIGEST_V1.md`
 - Execution policy: `docs/execution/CORPFLOW_AUTONOMOUS_ACTIONS_POLICY.md`
 - Packet structure: `docs/execution/CORPFLOW_EXECUTION_PACKET_STANDARD.md`
 - Current queue: `docs/execution/WEEKEND_EXECUTION_QUEUE.md`

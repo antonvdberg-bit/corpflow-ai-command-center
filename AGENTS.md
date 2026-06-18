@@ -83,6 +83,7 @@ If Git says **`ambiguous argument 'main'`**, a tracked path named **`main`** may
 | **Per-client migration audit (identity, login, marketing, off-laptop)** | **`docs/execution/CURRENT_CLIENT_MIGRATION_AUDIT_TEMPLATE.md`** |
 | **Operator Bridge v1 — coordination protocol (ChatGPT ↔ Anton ↔ Cursor + Codex Cloud)** — coordination issue **#249** | **`docs/operations/OPERATOR_BRIDGE_V1.md`** |
 | **Operator Bridge — day-to-day runbook (how Cursor / Codex Cloud post STATUS to #249)** | **`docs/runbooks/OPERATOR_BRIDGE.md`** |
+| **Operator Bridge Digest v1 — read-only rollup of #249 + open PRs (planning; no automation)** | **`docs/operations/OPERATOR_BRIDGE_DIGEST_V1.md`** |
 | **Delivery Acceleration v1 — multi-executor protocol (Cursor + Codex Cloud + future internal agent)** | **`docs/execution/DELIVERY_ACCELERATION_V1.md`** |
 | **Codex Cloud install — operator playbook (Packet 7.2: pre-flight, GitHub App least-privilege, bot username, first-packet smoke, rollback)** | **`docs/runbooks/CODEX_CLOUD_INSTALL.md`** |
 | **Codex Cloud activation packet v1 — activation state, operator checklist, first packet 7.3 assignment** | **`docs/execution/CODEX_CLOUD_ACTIVATION_PACKET_V1.md`** |
