@@ -53,6 +53,7 @@ import {
   describeMembershipRow,
   shouldShowLeaveButton,
   describeOpenRedirectLink,
+  resolveEffectiveActingTenantId,
 } from '../lib/ui/core-tenant-picker-helpers.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -568,6 +569,12 @@ test('IM-3 — shouldShowLeaveButton: only true for non-empty string acting tena
   assert.equal(shouldShowLeaveButton(''), false);
   assert.equal(shouldShowLeaveButton(0), false);
   assert.equal(shouldShowLeaveButton('lux-mauritius'), true);
+});
+
+test('IM-3 — resolveEffectiveActingTenantId: leave override null does not fall back to stale prop', () => {
+  assert.equal(resolveEffectiveActingTenantId(null, 'corpflowai'), null);
+  assert.equal(resolveEffectiveActingTenantId(undefined, 'corpflowai'), 'corpflowai');
+  assert.equal(resolveEffectiveActingTenantId('luxe-maurice', 'corpflowai'), 'luxe-maurice');
 });
 
 test('IM-3 — describeOpenRedirectLink: returns null on missing / non-https', () => {
