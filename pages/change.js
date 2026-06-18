@@ -1541,12 +1541,24 @@ export default function ChangeConsolePage() {
   }
 
   const luxLeadCrmEnabled = useMemo(() => {
-    return (
-      session.logged_in === true &&
+    if (!session.logged_in) return false;
+    const isLuxTenant =
       String(session.level || '').toLowerCase() === 'tenant' &&
-      String(session.tenant_id || '').trim() === 'luxe-maurice'
-    );
-  }, [session.logged_in, session.level, session.tenant_id]);
+      String(session.tenant_id || '').trim() === 'luxe-maurice';
+    const isAdminActingLux =
+      String(session.level || '').toLowerCase() === 'admin' &&
+      String(uiContext?.acting_tenant_id || '').trim() === 'luxe-maurice' &&
+      uiContext?.surface === 'tenant' &&
+      String(uiContext?.tenant_id || '').trim() === 'luxe-maurice';
+    return isLuxTenant || isAdminActingLux;
+  }, [
+    session.logged_in,
+    session.level,
+    session.tenant_id,
+    uiContext?.acting_tenant_id,
+    uiContext?.surface,
+    uiContext?.tenant_id,
+  ]);
 
   const luxChangeChrome = useMemo(
     () => (luxLeadCrmEnabled ? buildLuxChangeConsoleChrome() : null),
@@ -1761,19 +1773,29 @@ export default function ChangeConsolePage() {
         const ctx = await refreshUiContext();
         if (cancelled) return;
         const loggedIn = ctx?.session?.logged_in === true;
-        const isLuxTenant =
-          loggedIn &&
-          String(ctx?.session?.level || '').toLowerCase() === 'tenant' &&
-          String(ctx?.session?.tenant_id || '').trim() === 'luxe-maurice';
         const isTenantScoped =
           loggedIn &&
           String(ctx?.session?.level || '').toLowerCase() === 'tenant' &&
           String(ctx?.session?.tenant_id || '').trim().length > 0;
-        const shouldLoadQueue = loggedIn && (ctx?.surface === 'core' || isTenantScoped);
+        const actingTid = String(ctx?.acting_tenant_id || '').trim();
+        const hostTid = String(ctx?.tenant_id || '').trim();
+        const isAdminActingOnHost =
+          loggedIn &&
+          String(ctx?.session?.level || '').toLowerCase() === 'admin' &&
+          ctx?.surface === 'tenant' &&
+          actingTid &&
+          hostTid &&
+          actingTid === hostTid;
+        const shouldLoadQueue = loggedIn && (ctx?.surface === 'core' || isTenantScoped || isAdminActingOnHost);
         if (!shouldLoadQueue) return;
 
         const rows = await loadQueue();
         if (cancelled) return;
+        const isLuxTenant =
+          (loggedIn &&
+            String(ctx?.session?.level || '').toLowerCase() === 'tenant' &&
+            String(ctx?.session?.tenant_id || '').trim() === 'luxe-maurice') ||
+          (isAdminActingOnHost && actingTid === 'luxe-maurice');
         if (isLuxTenant) await loadLeads();
         if (isLuxTenant) await loadLuxRelatedRequests();
         if (cancelled) return;
@@ -2309,6 +2331,15 @@ export default function ChangeConsolePage() {
         <CoreTenantPicker
           actingTenantId={uiContext?.acting_tenant_id ?? null}
           effectiveMembershipsCount={uiContext?.effective_memberships_count ?? null}
+          onWorkspaceChanged={async () => {
+            setError('');
+            try {
+              await refreshUiContext();
+              await loadQueue();
+            } catch (e) {
+              setError(String(e?.message || e));
+            }
+          }}
         />
       ) : null}
       {showChangeDebugBanner ? (
@@ -2494,10 +2525,19 @@ export default function ChangeConsolePage() {
                 try {
                   const ctx = await refreshUiContext();
                   const rows = await loadQueue();
-                  const isLuxTenant =
+                  const actingTid = String(ctx?.acting_tenant_id || '').trim();
+                  const hostTid = String(ctx?.tenant_id || '').trim();
+                  const isAdminActingLux =
                     ctx?.session?.logged_in === true &&
-                    String(ctx?.session?.level || '').toLowerCase() === 'tenant' &&
-                    String(ctx?.session?.tenant_id || '').trim() === 'luxe-maurice';
+                    String(ctx?.session?.level || '').toLowerCase() === 'admin' &&
+                    ctx?.surface === 'tenant' &&
+                    actingTid === 'luxe-maurice' &&
+                    hostTid === 'luxe-maurice';
+                  const isLuxTenant =
+                    (ctx?.session?.logged_in === true &&
+                      String(ctx?.session?.level || '').toLowerCase() === 'tenant' &&
+                      String(ctx?.session?.tenant_id || '').trim() === 'luxe-maurice') ||
+                    isAdminActingLux;
                   if (isLuxTenant) await loadLeads();
                   if (isLuxTenant) await loadLuxRelatedRequests();
                   const first = rows[0]?.ticket_id ? String(rows[0].ticket_id) : '';
@@ -2537,7 +2577,44 @@ export default function ChangeConsolePage() {
                     {' '}
                     ({String(session.tenant_id)})
                   </span>
+                ) : uiContext?.acting_tenant_id ? (
+                  <span>
+                    {' '}
+                    (acting: {String(uiContext.acting_tenant_id)})
+                  </span>
                 ) : null}
+                {' · '}
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setBusy(true);
+                    setError('');
+                    try {
+                      const r = await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+                      if (!r.ok) {
+                        const j = await r.json().catch(() => ({}));
+                        throw new Error(j?.error || `http_${r.status}`);
+                      }
+                      window.location.href = '/login';
+                    } catch (e) {
+                      setError(String(e?.message || e));
+                    } finally {
+                      setBusy(false);
+                    }
+                  }}
+                  disabled={busy}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    color: luxChangeChrome ? luxChangeChrome.link : '#7dd3fc',
+                    textDecoration: 'underline',
+                    cursor: busy ? 'not-allowed' : 'pointer',
+                    font: 'inherit',
+                  }}
+                >
+                  Sign out
+                </button>
               </span>
             ) : (
               <span>
@@ -5902,6 +5979,8 @@ export async function getServerSideProps({ req, resolvedUrl }) {
   const { readActingTenantId, readSessionUserId } = await import(
     '../lib/cmp/_lib/cmp-membership-enforcement.js'
   );
+  const { resolveChangeConsoleSsrGate } = await import('../lib/server/change-console-ssr-gate.js');
+  const { cfg } = await import('../lib/server/runtime-config.js');
   const { PrismaClient } = await import('@prisma/client');
 
   const sess = getSessionFromRequest(req);
@@ -5927,20 +6006,30 @@ export async function getServerSideProps({ req, resolvedUrl }) {
     await prisma.$disconnect().catch(() => {});
   }
 
-  if (!hostTenantId) return { props: {} };
-
-  const actingTid = readActingTenantId(sess);
-  if (actingTid && actingTid === hostTenantId) return { props: {} };
-
   const nextPath =
     typeof resolvedUrl === 'string' && resolvedUrl.startsWith('/')
       ? resolvedUrl
       : '/change';
-  return {
-    redirect: {
-      destination: `/login?tenant_mismatch=1&next=${encodeURIComponent(nextPath)}`,
-      permanent: false,
-    },
-  };
+
+  const gate = resolveChangeConsoleSsrGate({
+    userId,
+    sessionTyp: sess?.payload?.typ,
+    surface: ctx.surface,
+    hostTenantId: hostTenantId || null,
+    actingTenantId: readActingTenantId(sess),
+    nextPath,
+    coreHostsEnv: cfg('CORPFLOW_CORE_HOSTS', ''),
+  });
+
+  if (gate.kind === 'redirect') {
+    return {
+      redirect: {
+        destination: gate.destination,
+        permanent: false,
+      },
+    };
+  }
+
+  return { props: {} };
 }
 

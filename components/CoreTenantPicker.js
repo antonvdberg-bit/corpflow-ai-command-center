@@ -89,6 +89,7 @@ import {
   shouldShowLeaveButton,
   describeOpenRedirectLink,
   formatErrorMessage,
+  resolveEffectiveActingTenantId,
 } from '../lib/ui/core-tenant-picker-helpers.js';
 
 const CONTAINER_STYLE = {
@@ -215,7 +216,11 @@ const REDIRECT_LINK_STYLE = {
  * Anything outside the contract above is NOT a render concern — it
  * belongs in the helpers module so it can be tested without a DOM.
  */
-export default function CoreTenantPicker({ actingTenantId = null, effectiveMembershipsCount = null }) {
+export default function CoreTenantPicker({
+  actingTenantId = null,
+  effectiveMembershipsCount = null,
+  onWorkspaceChanged = null,
+}) {
   const [lifecycle, setLifecycle] = useState(PICKER_LIFECYCLE.INITIAL);
   const [memberships, setMemberships] = useState([]);
   const [statusMessage, setStatusMessage] = useState('Loading your workspaces…');
@@ -223,12 +228,13 @@ export default function CoreTenantPicker({ actingTenantId = null, effectiveMembe
   const [rowStates, setRowStates] = useState({});
   const [openRedirect, setOpenRedirect] = useState(null);
   const [csrfAvailable, setCsrfAvailable] = useState(true);
-  // Echo from server after a successful switch (so the row reflects the
-  // newest acting tenant without re-fetching context). null until first
-  // successful action.
-  const [overrideActingTenantId, setOverrideActingTenantId] = useState(null);
+  // Echo from server after a successful switch/leave. `undefined` = use prop.
+  const [overrideActingTenantId, setOverrideActingTenantId] = useState(undefined);
 
-  const effectiveActingTenantId = overrideActingTenantId !== null ? overrideActingTenantId : actingTenantId;
+  const effectiveActingTenantId = resolveEffectiveActingTenantId(
+    overrideActingTenantId,
+    actingTenantId,
+  );
 
   /**
    * Load memberships on mount. Wrapped in `useCallback` so the effect's
@@ -315,6 +321,9 @@ export default function CoreTenantPicker({ actingTenantId = null, effectiveMembe
               isLeave: false,
             }),
           );
+          if (typeof onWorkspaceChanged === 'function') {
+            await onWorkspaceChanged();
+          }
           return;
         }
         setRowStates((prev) => ({ ...prev, [tenantId]: PICKER_ROW_STATE.ERROR }));
@@ -326,7 +335,7 @@ export default function CoreTenantPicker({ actingTenantId = null, effectiveMembe
         setStatusKind('error');
       }
     },
-    [],
+    [onWorkspaceChanged],
   );
 
   const handleLeave = useCallback(async () => {
@@ -363,6 +372,9 @@ export default function CoreTenantPicker({ actingTenantId = null, effectiveMembe
         );
         // Clear any submitting row state so the UI returns to idle.
         setRowStates({});
+        if (typeof onWorkspaceChanged === 'function') {
+          await onWorkspaceChanged();
+        }
         return;
       }
       setStatusMessage(formatErrorMessage(parsed.kind));
@@ -371,7 +383,7 @@ export default function CoreTenantPicker({ actingTenantId = null, effectiveMembe
       setStatusMessage(formatErrorMessage('network_error'));
       setStatusKind('error');
     }
-  }, []);
+  }, [onWorkspaceChanged]);
 
   // Sanity gate (the parent enforces the primary gate via shouldRenderPicker;
   // this is a belt-and-braces check). If a future caller mounts us with

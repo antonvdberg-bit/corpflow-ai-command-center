@@ -54,6 +54,19 @@
 
         <div id="banner" class="hidden mt-6 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-rose-200 text-sm"></div>
         <div
+          id="clientSessionBar"
+          class="hidden mt-6 rounded-xl border border-sky-500/35 bg-sky-500/10 px-4 py-3 text-sm text-sky-100 flex flex-wrap items-center justify-between gap-3"
+        >
+          <span id="clientSessionBarText" class="leading-relaxed"></span>
+          <button
+            type="button"
+            id="btnClientLogout"
+            class="shrink-0 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 px-3 py-1.5 text-sm font-semibold text-slate-100"
+          >
+            Sign out
+          </button>
+        </div>
+        <div
           id="propertyDeskGateBanner"
           class="hidden mt-6 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-amber-100 text-sm leading-relaxed"
         ></div>
@@ -213,6 +226,19 @@
         </p>
 
         <div id="bannerOp" class="hidden mt-6 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-rose-200 text-sm"></div>
+        <div
+          id="operatorSessionBar"
+          class="hidden mt-6 rounded-xl border border-sky-500/35 bg-sky-500/10 px-4 py-3 text-sm text-sky-100 flex flex-wrap items-center justify-between gap-3"
+        >
+          <span id="operatorSessionBarText" class="leading-relaxed"></span>
+          <button
+            type="button"
+            id="btnLogoutProminent"
+            class="shrink-0 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 px-3 py-1.5 text-sm font-semibold text-slate-100"
+          >
+            Sign out
+          </button>
+        </div>
         <div id="okOp" class="hidden mt-6 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-emerald-200 text-sm"></div>
 
         <div id="loginGrid" class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -567,7 +593,7 @@
             ok.textContent = '';
             banner.classList.remove('hidden');
             banner.textContent =
-              'Your browser was still signed in to a different workspace than this site. If you have not already, sign out (Factory login has a Logout button), then sign in again for this hostname.';
+              'Your browser was still signed in to a different workspace than this site. Use Sign out below, then sign in again for this hostname.';
           }
         }
 
@@ -743,6 +769,48 @@
 
           await maybeRedirectIfSession();
 
+          async function refreshClientSessionBanner() {
+            try {
+              const r = await fetch('/api/auth/me', { credentials: 'include' });
+              const j = await r.json();
+              const bar = $('clientSessionBar');
+              const barText = $('clientSessionBarText');
+              if (j && j.logged_in) {
+                const label =
+                  'Signed in as ' +
+                  j.level +
+                  (j.tenant_id ? ' (' + j.tenant_id + ')' : '') +
+                  (j.username ? ' — ' + j.username : '') +
+                  '.';
+                if (bar && barText) {
+                  barText.textContent = label;
+                  bar.classList.remove('hidden');
+                }
+              } else if (bar) {
+                bar.classList.add('hidden');
+              }
+            } catch (_) {
+              const bar = $('clientSessionBar');
+              if (bar) bar.classList.add('hidden');
+            }
+          }
+
+          if ($('btnClientLogout')) {
+            $('btnClientLogout').addEventListener('click', async () => {
+              err('');
+              try {
+                await post('/api/auth/logout', {});
+                const bar = $('clientSessionBar');
+                if (bar) bar.classList.add('hidden');
+                good('Signed out. You can sign in again below.');
+              } catch (e) {
+                err(String(e.message || e));
+              }
+            });
+          }
+
+          await refreshClientSessionBanner();
+
           try {
             var nq = new URLSearchParams(window.location.search);
             if (nq.get('next') === '/properties/admin') {
@@ -807,7 +875,14 @@
             } catch (e) {
               let m = String(e.message || e);
               const jb = e.corpflowBody && typeof e.corpflowBody === 'object' ? e.corpflowBody : null;
-              if (jb && jb.expected_tenant_id) {
+              const typedTid = String($('tenantId').value || '').trim().toLowerCase();
+              if (
+                (m.indexOf('INVALID_CREDENTIALS') !== -1 || m.indexOf('USER_NOT_FOUND') !== -1) &&
+                (typedTid === 'anton' || typedTid === 'admin')
+              ) {
+                m =
+                  'anton is the Factory Admin username — use the left column (Factory Admin), not Tenant ID. If you still see a Lux session above, sign out first.';
+              } else if (jb && jb.expected_tenant_id) {
                 m += ' — Expected Tenant ID for this host: "' + String(jb.expected_tenant_id) + '".';
               }
               if (jb && jb.hint) m += ' ' + String(jb.hint);
@@ -848,33 +923,62 @@
           });
 
           $('btnLogout').addEventListener('click', async () => {
+            await signOutSession();
+          });
+
+          if ($('btnLogoutProminent')) {
+            $('btnLogoutProminent').addEventListener('click', async () => {
+              await signOutSession();
+            });
+          }
+
+          async function signOutSession() {
             err('');
             try {
               await post('/api/auth/logout', {});
-              good('Logged out.');
               $('factoryTools').classList.add('hidden');
               $('ensureDbOut').classList.add('hidden');
               $('ensureDbOut').textContent = '';
+              const bar = $('operatorSessionBar');
+              if (bar) bar.classList.add('hidden');
+              good('Signed out. You can sign in again below.');
             } catch (e) {
               err(String(e.message || e));
             }
-          });
+          }
 
           async function refreshSessionBanner() {
             try {
               const r = await fetch('/api/auth/me', { credentials: 'include' });
               const j = await r.json();
+              const bar = $('operatorSessionBar');
+              const barText = $('operatorSessionBarText');
               if (j && j.logged_in) {
-                good('Logged in as ' + j.level + (j.tenant_id ? ' (' + j.tenant_id + ')' : '') + '.');
-                if (j.level === 'admin') {
+                let label =
+                  'Signed in as ' + j.level + (j.tenant_id ? ' (' + j.tenant_id + ')' : '') + '.';
+                if (String(j.level || '').toLowerCase() === 'tenant') {
+                  label +=
+                    ' To use Factory Admin, sign out first — then use the left column (username anton), not Client / Tenant.';
+                } else if (String(j.level || '').toLowerCase() === 'admin') {
+                  label += ' Open Change Console or pick a workspace after sign-in.';
+                }
+                good(label);
+                if (bar && barText) {
+                  barText.textContent = label;
+                  bar.classList.remove('hidden');
+                }
+                if (String(j.level || '').toLowerCase() === 'admin') {
                   $('factoryTools').classList.remove('hidden');
                 } else {
                   $('factoryTools').classList.add('hidden');
                 }
               } else {
+                if (bar) bar.classList.add('hidden');
                 $('factoryTools').classList.add('hidden');
               }
             } catch (_) {
+              const bar = $('operatorSessionBar');
+              if (bar) bar.classList.add('hidden');
               $('factoryTools').classList.add('hidden');
             }
           }
