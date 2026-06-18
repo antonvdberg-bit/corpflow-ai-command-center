@@ -28,6 +28,12 @@
 
 ---
 
+## 2026-06-18 — **IM-6.1 hotfix — operator Lux session, picker leave, and login sign-out — COMPLETE / SEALED.** PR [#406](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/406) squash-merged to `main` as `4aa678439f74bda580657d3908989d7e36c82095` (2026-06-18T22:43:29Z). Vercel Production deployment `5116377708` reached **Ready** at 2026-06-18T22:44:21Z on commit `4aa678439f74bda580657d3908989d7e36c82095` (deployed commit matches merge SHA: **YES**). **Live URLs (operator-accepted, 7/7 PASS):** `https://core.corpflowai.com/login`, `https://core.corpflowai.com/change`, `https://lux.corpflowai.com/change`. **Product checks:** Core login carries to Lux after workspace switch; tenant-host admin without aligned acting → Core picker (not login loop); picker leave/switch does not snap back to CorpFlowAI LTD; ticket queue refreshes after switch/leave; login pages show signed-in/sign-out bar; Change Console sign-out next to session line. **Scope:** auth/session/picker/login only (`session.js` cookie domain, `change-console-ssr-gate.js`, `CoreTenantPicker`, `pages/change.js`, `public/login.html`). **Exclusions:** no schema, env, tenant delivery, Living Word, chatbot, marketing, or unrelated packet work. **Verdict:** COMPLETE / SEALED per `.cursor/rules/delivery-reality.mdc`.
+
+<!-- IM_6_1_OPERATOR_LUX_SESSION_2026_06_18_HIST -->
+
+---
+
 ## 2026-06-18 — **GitHits dev tooling candidate (docs-only — library capture).** New `docs/execution/DEV_TOOLING_CANDIDATES.md` + library index row: GitHits `SERIOUS-CANDIDATE / DEV-CAPABILITY ACCELERATOR` for version-aware OSS implementation context for Cursor/Codex. Evaluation plan docs-only through local MCP gate. Verdict: **GITHITS CAPTURED AS DEV TOOLING CANDIDATE — NO INSTALLATION AUTHORIZED**.
 
 <!-- GITHITS_DEV_TOOLING_CANDIDATE_2026_06_18_HIST -->
