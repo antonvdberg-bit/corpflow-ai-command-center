@@ -28,6 +28,9 @@
 
 ---
 
+## 2026-06-18 — **Codex utilization plan v1 (docs-only — execution policy, Anton review).** New `docs/execution/CODEX_UTILIZATION_PLAN_V1.md`: June 2026 OpenAI Codex product sync; confirms **Cursor = L1**, **Codex Cloud = L2 executor #2**, **`corpflow-exec-01` = L3 operator box**; Plus-first entitlement (scarce usage); allowed/forbidden task lists; one-week evaluation rubric; server-side Codex CLI **`NOT AUTHORIZED / FUTURE EVALUATION ONLY`**; first packet `Codex Cloud docs consistency audit` / `codex/docs-consistency-audit-v1`. Updated `DELIVERY_ACCELERATION_V1.md` §4.2 (Plus-first), `CODEX_CLOUD_INSTALL.md`, `SERVER_AGENT_ACCESS_AND_EXECUTION_BOUNDARY_V1.md` §6, `AGENTS.md`. Packet 7.2 install still **PENDING**. **NO IMPLEMENTATION AUTHORIZED** by this PR alone.
+
+<!-- CODEX_UTILIZATION_PLAN_V1_2026_06_18_HIST -->
 ## 2026-06-18 — **OpenAI GPT Image — marketing automation candidate (docs-only).** Added to `docs/product/MARKETING_AUTOMATION_CONTENT_ENGINE_CANDIDATES.md` as **`SERIOUS-CANDIDATE / DEPLOY-FIRST-PILOT`**. Sources: [GPT Image prompting guide](https://developers.openai.com/cookbook/examples/multimodal/image-gen-models-prompting-guide), [OpenAI Image generation API](https://platform.openai.com/docs/guides/image-generation). Anton signal: manual ChatGPT image gen already high quality for Lux Maurice. Operating modes: manual-first → semi-automated briefs → API pilot → production (not authorized). Billing: ChatGPT Plus ≠ API platform billing. Verdict: **CANDIDATE CAPTURED — PILOT RECOMMENDED — NO PRODUCTION AUTOMATION AUTHORIZED**.
 
 <!-- OPENAI_GPT_IMAGE_MARKETING_CANDIDATE_2026_06_18_HIST -->
