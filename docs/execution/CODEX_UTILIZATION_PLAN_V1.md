@@ -1,8 +1,8 @@
 # Codex utilization plan v1
 
-**Status:** Execution policy capture — **awaiting Anton review before treating as live operator policy.**
+**Status:** Live operator policy — PR #394 merged; Codex Cloud evaluation active under the bounded L2 executor rules.
 
-**Verdict:** `NO IMPLEMENTATION AUTHORIZED` by this document alone. Installing Codex Cloud, creating keys, or assigning runtime packets still requires Anton per `docs/runbooks/CODEX_CLOUD_INSTALL.md` (Packet 7.2, currently **PENDING**).
+**Verdict:** `BOUNDED DOCS/AUDIT EXECUTION AUTHORIZED BY PACKET ONLY`. This plan does not authorize runtime implementation, secrets, env changes, production deploys, L3/server commands, Codex CLI/server installs, or autonomous merge. Packet 7.2 activation has completed enough for Packet 7.3/7.4 Codex Cloud docs work; any further runtime packet still requires Anton approval.
 
 **Owner:** Anton (approver / merger / entitlement holder).
 
@@ -15,7 +15,7 @@
 - `docs/runbooks/CODEX_CLOUD_INSTALL.md`
 - `docs/operations/OPERATOR_BRIDGE_V1.md`
 
-If any conflict, **those canonical docs win** until Anton merges this plan and any downstream amendments.
+If any conflict, **those canonical docs win** unless this merged plan and downstream amendments explicitly update the boundary.
 
 ---
 
@@ -65,7 +65,7 @@ Shared **rolling usage limits** apply across local messages and cloud tasks (doc
 | OpenAI API key pasted only into Codex setup | **Refined:** prefer **ChatGPT Plus sign-in** for Codex Cloud so cloud tasks + GitHub integration work inside subscription limits; API key path is fallback for API-only local use **without** cloud/GitHub features | **Update install runbook** (see §6) |
 | `codex/*` branch namespace; no shared branches with Cursor | Unchanged | **Still correct** |
 | Anton merges; no autonomous Codex merge | Unchanged; `.github/workflows/cmp-product-automerge.yml` remains `cmp/*` only | **Still correct** |
-| Packet 7.2 install **PENDING** | Codex Cloud not yet installed (`git ls-remote --heads origin 'codex/*'` expected empty) | **Unchanged — no drift** |
+| Packet 7.2 install **completed enough for first packets** | Codex Cloud is now acting as L2 executor #2 on `codex/*` packet branches | **Updated by Packet 7.4** |
 
 **Conclusion (unless future evidence contradicts):** Use **Codex Cloud as L2 executor #2**. Do **not** install Codex CLI or any Codex daemon on `corpflow-exec-01`. Do **not** introduce a fourth execution layer.
 

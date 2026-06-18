@@ -2,11 +2,11 @@
 
 **Packet ID:** `Codex-Cloud-Activation-1`
 
-**Status:** `ACTIVATION PENDING` — protocol on `main`; **Codex Cloud not yet installed**; first packet not yet assigned to Codex.
+**Status:** `ACTIVATED FOR BOUNDED DOCS PACKETS` — protocol on `main`; Codex Cloud is acting as L2 executor #2 for `codex/*` docs/audit packets; runtime/server/secret authority remains forbidden.
 
-**Verdict:** `ACTIVATION PACKET CAPTURED — NO RUNTIME CHANGE — AWAITING ANTON OPERATOR STEPS`
+**Verdict:** `ACTIVATION CAPTURED — NO RUNTIME CHANGE — CODEX DOCS PACKETS ACTIVE`
 
-**Owner:** Approver = Anton. Executor (this packet) = Cursor (docs only). First live Codex executor packet = **Codex Cloud** (after install).
+**Owner:** Approver = Anton. Executor (this packet) = Cursor (docs only). Current live Codex executor packets = **Codex Cloud** on `codex/*` branches after Packet 7.2 activation.
 
 **Captured:** 2026-06-18.
 
@@ -18,7 +18,7 @@
 - `docs/operations/SERVER_AGENT_ACCESS_AND_EXECUTION_BOUNDARY_V1.md` — L1/L2/L3 map
 - `docs/execution/CORPFLOW_AUTONOMOUS_ACTIONS_POLICY.md` — §2 allowed / §3 gated actions
 
-**Pending companion (not on `main` until merged):** `docs/execution/CODEX_UTILIZATION_PLAN_V1.md` ([PR #394](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/394)) — Plus-first entitlement, evaluation rubric, server CLI not authorized.
+**Companion policy on `main`:** `docs/execution/CODEX_UTILIZATION_PLAN_V1.md` ([PR #394](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/394), merged) — Plus-first entitlement, evaluation rubric, server CLI not authorized.
 
 ---
 
@@ -50,15 +50,15 @@ Evidence gathered read-only from repo + GitHub (no install actions by Cursor).
 | Codex Cloud install runbook | **DONE** | `docs/runbooks/CODEX_CLOUD_INSTALL.md` |
 | Server boundary doc (Codex not on box) | **DONE** | `SERVER_AGENT_ACCESS_AND_EXECUTION_BOUNDARY_V1.md` §4.1, §6 |
 | Goal 7 Packet 7.1 (protocol docs) | **COMPLETE** | `WEEKEND_EXECUTION_QUEUE.md` |
-| Goal 7 Packet 7.2 (install + first packet) | **PENDING** | Same queue — operator steps not executed |
-| Remote `codex/*` branches | **NONE** | `git ls-remote --heads origin 'codex/*'` → empty |
-| Codex Cloud GitHub App installed | **NOT DONE** | No bot commits; no `codex/*` branches |
+| Goal 7 Packet 7.2 (install + first packet) | **COMPLETE ENOUGH FOR CODEX DOCS PACKETS** | Codex Cloud is now executing `codex/*` Packet 7.3/7.4 docs work |
+| Remote `codex/*` branches | **PRESENT / ACTIVE** | First Codex docs packet branch observed by Packet 7.4 context |
+| Codex Cloud GitHub App installed | **ACTIVE FOR DOCS PACKETS** | Codex Cloud is acting as L2 executor #2; bot username may still require doc capture if not recorded elsewhere |
 | Codex bot username recorded | **NOT DONE** | `DELIVERY_ACCELERATION_V1.md` §4.1 still generic |
-| First Codex packet assigned | **NOT DONE** | See §4 below — ready to assign after install |
-| Codex `IN_PROGRESS` STATUS on #249 | **NOT DONE** | Awaiting install + packet claim |
-| Utilization plan on `main` | **PENDING MERGE** | [PR #394](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/394) open |
+| First Codex packet assigned | **DONE** | Packet 7.3 audit completed; Packet 7.4 remediation in progress |
+| Codex `IN_PROGRESS` STATUS on #249 | **ENV-DEPENDENT** | Codex should post when GitHub App permissions/remotes allow; Packet 7.3 noted local posting was unavailable in that checkout |
+| Utilization plan on `main` | **MERGED** | [PR #394](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/394) merged |
 
-**Summary:** CorpFlow is **protocol-ready** but **Codex Cloud is not activated**. Remaining work is **Anton operator steps only** (plus one follow-up docs PR for bot username after first Codex push).
+**Summary:** CorpFlow is **Codex Cloud activated for bounded docs/audit packets**. Remaining work is limited to doc state cleanup, bot-username capture if still missing, and Anton review/merge of `codex/*` PRs; no runtime, server, secret, DNS, billing, or autonomous-merge authority is added.
 
 ---
 
@@ -146,7 +146,7 @@ Assign only **after** GitHub App install + branch-protection sanity pass.
 - **Branch:** codex/docs-consistency-audit-v1
 - **Allowed paths:** read entire repo; write only artifacts/audits/<YYYY-MM-DD>-docs-consistency.md
 - **Forbidden:** all runtime paths; no secrets; no merge by Codex
-- **Status:** APPROVED (assign after Packet 7.2 install checklist complete)
+- **Status:** COMPLETE / AWAITING REVIEW; Packet 7.4 is the follow-up P2 docs-only remediation packet
 - **Bridge:** STATUS posts to #249 with **Executor:** Codex Cloud
 ```
 
@@ -157,8 +157,8 @@ Assign only **after** GitHub App install + branch-protection sanity pass.
 1. **Merge [PR #394](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/394)** (Codex utilization plan) when satisfied — optional before install but recommended.
 2. **Merge this activation packet PR** when satisfied.
 3. **Run §3 Today's activation checklist** — Anton clicks only; follow `CODEX_CLOUD_INSTALL.md` for detail.
-4. **Approve Packet 7.3** in queue (or post assignment comment on #249).
-5. **Codex executes** docs consistency audit → PR → Anton review → Anton merge.
+4. **Review Packet 7.3 / Packet 7.4 PRs**; Anton remains the only merge authority.
+5. **Codex executes** assigned docs packet → PR → Anton review → Anton merge.
 6. **Follow-up docs PR** — record Codex bot username in `DELIVERY_ACCELERATION_V1.md` §4.1.
 7. **One-week evaluation** — per utilization plan rubric after first merge (when PR #394 on `main`).
 

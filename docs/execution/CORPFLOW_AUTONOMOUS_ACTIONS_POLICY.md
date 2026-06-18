@@ -1,7 +1,7 @@
 # CorpFlow Autonomous Actions Policy (v1)
 
 **Status:** Canonical (v1, 2026-05-23)
-**Audience:** Anton (project owner), Cursor agents, contractors
+**Audience:** Anton (project owner), Cursor agents (L1 primary executor), Codex Cloud (L2 bounded second executor), contractors
 **Companion docs:** `docs/execution/CORPFLOW_EXECUTION_PACKET_STANDARD.md`, `docs/execution/WEEKEND_EXECUTION_QUEUE.md`
 **Cross-refs:** `.cursor/rules/delivery-reality.mdc`, `.cursor/rules/predeploy-decision-checks.mdc`, `.cursor/rules/security-sensitive-changes.mdc`, `.cursor/rules/commit-push-doc-constraints.mdc`, `docs/operations/SECURITY_REVIEW_CHECKLIST.md`, `docs/EXECUTION_BRAIN_VS_HANDS.md`
 
@@ -9,9 +9,18 @@
 
 ## 1. Purpose
 
-This policy defines what a Cursor agent (or trusted contractor operating under the same rules) **may** and **may not** do **without further approval** from Anton, once a work packet has been approved per `CORPFLOW_EXECUTION_PACKET_STANDARD.md`.
+This policy defines what an assigned executor — Cursor as L1 primary executor, Codex Cloud as L2 bounded second executor, or a trusted contractor operating under the same rules — **may** and **may not** do **without further approval** from Anton, once a work packet has been approved per `CORPFLOW_EXECUTION_PACKET_STANDARD.md`.
 
 The split is deliberately conservative for v1: anything that touches **production**, **real client data**, **secrets**, **DNS**, **billing**, **auth/security logic**, or **destructive database state** stops at an approval gate, even when the packet says "go".
+
+
+**Executor posture (2026-06-18):**
+
+- **Cursor = L1 primary executor** for in-repo work.
+- **Codex Cloud = L2 bounded second executor** for explicitly assigned `codex/*` packet branches.
+- **`corpflow-exec-01-u69678` = L3 operator-driven box**; Codex must not install or run Codex CLI, a daemon, MCP server, or any agent on that box.
+- **No fourth execution layer** is authorized.
+- **No autonomous merge** is authorized; Anton remains final merge authority.
 
 If a particular packet wants tighter restrictions than this policy, the **packet wins**.
 If a particular packet wants looser restrictions than this policy, the **policy wins**, until the policy is amended in a separate, explicit PR Anton approves.
@@ -20,7 +29,7 @@ If a particular packet wants looser restrictions than this policy, the **policy 
 
 ## 2. Allowed without further approval
 
-A Cursor agent operating under an approved packet **may** do the following without re-asking, provided the packet's `Allowed actions` block lists them and the packet's `Constraints` are not violated.
+An assigned executor operating under an approved packet **may** do the following without re-asking, provided the packet's `Allowed actions` block lists them and the packet's `Constraints` are not violated.
 
 ### 2.1 Read-only inspection
 
@@ -39,7 +48,7 @@ A Cursor agent operating under an approved packet **may** do the following witho
 
 ### 2.3 Branch creation
 
-- Create new branches under namespaces such as `docs/*`, `chore/*`, `feat/*`, `fix/*`, `refactor/*`.
+- Create new branches under namespaces such as `docs/*`, `chore/*`, `feat/*`, `fix/*`, `refactor/*`, or `codex/*` when a Codex Cloud packet explicitly assigns that branch prefix.
 - Never push directly to `main`. Never delete remote branches that are not the agent's own.
 - Never force-push to shared branches (`main`, release branches, anyone else's PR branch).
 
@@ -56,7 +65,7 @@ A Cursor agent operating under an approved packet **may** do the following witho
 - Read Preview deployment URLs and exercise them with `curl` or browser-style automation **against the Preview host only** (e.g. `*.vercel.app`).
 - Compare Preview behavior to expected output and record diff in PR.
 
-Cursor **does not** promote a Preview to Production. Promotion happens by **merging the PR**, which is an Anton action under §3.
+An executor **does not** promote a Preview to Production. Promotion happens by **merging the PR**, which is an Anton action under §3.
 
 ### 2.6 PR creation
 
@@ -65,7 +74,7 @@ Cursor **does not** promote a Preview to Production. Promotion happens by **merg
 - Respond to PR review comments with code changes when those changes stay inside the packet's `Scope` and `Constraints`.
 - Update PR body with verification evidence as work progresses.
 
-Cursor **does not** merge PRs. Even when CI is green and the packet looks done, the agent stops at `AWAITING_APPROVAL (pre-merge)` per the packet standard.
+Executors **do not** merge PRs. Even when CI is green and the packet looks done, the executor stops at `AWAITING_APPROVAL (pre-merge)` per the packet standard.
 
 ### 2.7 Screenshots and evidence capture
 
@@ -83,7 +92,7 @@ Cursor **does not** merge PRs. Even when CI is green and the packet looks done, 
 
 ## 3. Requires Anton's explicit approval
 
-A Cursor agent **must stop and ask** before taking any of the following actions, **even if the packet says "go"**. These are **hard gates**: the agent posts current evidence, sets state to `AWAITING_APPROVAL`, and waits.
+An assigned executor **must stop and ask** before taking any of the following actions, **even if the packet says "go"**. These are **hard gates**: the agent posts current evidence, sets state to `AWAITING_APPROVAL`, and waits.
 
 ### 3.1 Production deploy
 
@@ -170,7 +179,7 @@ A Cursor agent **must stop and ask** before taking any of the following actions,
 
 ## 4. Behavior at a gate
 
-When Cursor reaches a gate in §3 (or any gate the packet defines), it **must**:
+When an executor reaches a gate in §3 (or any gate the packet defines), it **must**:
 
 1. Stop work on the gated action.
 2. Update the packet status block to `AWAITING_APPROVAL`.

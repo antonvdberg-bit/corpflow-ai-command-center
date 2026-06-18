@@ -1,7 +1,7 @@
 # CorpFlow Weekend Execution Queue (v1)
 
 **Status:** Active queue (started 2026-05-23)
-**Audience:** Anton (approver), Cursor agents (executor)
+**Audience:** Anton (approver), Cursor agents (L1 primary executor), Codex Cloud (L2 bounded second executor for `codex/*` packets)
 **Companion docs:** `docs/execution/CORPFLOW_EXECUTION_PACKET_STANDARD.md`, `docs/execution/CORPFLOW_AUTONOMOUS_ACTIONS_POLICY.md`
 **Cross-refs:** `.cursor/rules/delivery-reality.mdc`, `.cursor/rules/predeploy-decision-checks.mdc`, `docs/EXECUTION_BRAIN_VS_HANDS.md`, `docs/CORPFLOW_SHARED_TODO.md`
 
@@ -16,7 +16,7 @@ This is the **live queue** of approved or pending packets for autonomous executi
 - Packets stay here until they reach `COMPLETE` or `FAILED`. Then they move to the **Archive** at the bottom (or are summarized in `artifacts/chat_history.md`).
 - If a packet is `BLOCKED`, the blocker is named and the packet stays visible until resolved.
 
-**Branch / PR convention:** docs-only packets land on `docs/<short-name>` branches; runtime packets land on `feat/<short-name>` or `fix/<short-name>`. Cursor never merges its own PRs.
+**Branch / PR convention:** Cursor docs-only packets land on `docs/<short-name>` branches; runtime packets land on `feat/<short-name>` or `fix/<short-name>`. Codex Cloud packets land on `codex/<short-name>` branches only. Executors never merge their own PRs; Anton remains merge authority.
 
 ---
 
@@ -24,7 +24,7 @@ This is the **live queue** of approved or pending packets for autonomous executi
 
 **Why this goal:** Today, parts of CorpFlow's "always-on" surface still depend on Anton's laptop, undocumented decisions, or implicit knowledge. The first weekend queue moves the **brain** off Anton's laptop and into the **repo + cloud** so future autonomous packets have stable ground to stand on.
 
-**North star outcome:** Any approved Cursor agent (or contractor) can land a docs-only or non-production packet end-to-end, with evidence, **without Anton being awake**. Production deploys, secrets, DNS, billing, and auth still gate on Anton — by design.
+**North star outcome:** Any approved Cursor agent, Codex Cloud packet, or contractor can land a docs-only or non-production packet end-to-end, with evidence, **without Anton being awake**. Production deploys, secrets, DNS, billing, and auth still gate on Anton — by design.
 
 ---
 
@@ -666,9 +666,9 @@ This is the **live queue** of approved or pending packets for autonomous executi
 
 ## Goal 7 — Delivery Acceleration v1 (multi-executor onboarding)
 
-**Why this goal:** Cursor is the only in-repo coding executor today. While Cursor works one packet, every other approved packet sits PENDING. Goal 7 adds **Codex Cloud** as a second bounded Executor — with explicit branch-prefix discipline, packet-claim discipline, and Operator Bridge #249 STATUS schema — **without** changing any AAP §3 hard gate, any forbidden surface, or the operator-owned merge rule. A future internal CorpFlow agent gets a phased roadmap (phases 0–5) but is not installed in v1.
+**Why this goal:** Cursor was the only in-repo coding executor before Goal 7. Goal 7 adds **Codex Cloud** as a second bounded Executor — with explicit branch-prefix discipline, packet-claim discipline, and Operator Bridge #249 STATUS schema — **without** changing any AAP §3 hard gate, any forbidden surface, or the operator-owned merge rule. A future internal CorpFlow agent gets a phased roadmap (phases 0–5) but is not installed in v1.
 
-**Utilization + activation (2026-06-18):** `docs/execution/CODEX_UTILIZATION_PLAN_V1.md` ([PR #394](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/394), pending merge); **`docs/execution/CODEX_CLOUD_ACTIVATION_PACKET_V1.md`** (activation state + operator checklist + Packet 7.3 assignment).
+**Utilization + activation (2026-06-18):** `docs/execution/CODEX_UTILIZATION_PLAN_V1.md` ([PR #394](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/394), merged); **`docs/execution/CODEX_CLOUD_ACTIVATION_PACKET_V1.md`** (activation state + operator checklist + Packet 7.3/7.4 assignment).
 **Anton decisions recorded 2026-05-28 (see `docs/decisions/JOURNAL.md` JE-2026-05-28-2):** runtime = **Codex Cloud** (hosted, not Codex CLI on laptop or `corpflow-exec-01`); coordination = **issue #249**; LR-1 (in flight on `feat/lead-rescue/usd-launch-pilot`) is the **AI Lead Rescue commercial-readiness** execution and is unaffected by this protocol.
 
 **Utilization plan (2026-06-18):** `docs/execution/CODEX_UTILIZATION_PLAN_V1.md` — June 2026 OpenAI product sync, ChatGPT Plus-first entitlement, evaluation rubric, server-side Codex CLI **not authorized**, first live packet branch `codex/docs-consistency-audit-v1`.
@@ -693,9 +693,9 @@ This is the **live queue** of approved or pending packets for autonomous executi
 - **Allowed actions:** AAP §2.1 read, §2.2 doc updates (only the 5 paths above), §2.3 branch `docs/delivery-acceleration-v1-protocol`, §2.4 `npm ci` / `npm test` / `npm run build`, §2.6 one `gh pr create`, §2.7 PR check-run evidence (no secrets).
 - **Approval gates:** pre-merge. Pre-production / pre-secret-change / pre-DNS / pre-billing all n/a (docs-only).
 - **Verification evidence:** PR URL, CI status, Delivery Reality Audit block in PR description (docs-only verdict shape: `Live URLs tested: n/a — docs-only`, `Client-facing flow usable: YES (no client-facing surface changed)`, `Final verdict: COMPLETE` once merged).
-- **Rollback plan:** Single revert of the merge commit removes all five doc changes atomically. No downstream runtime depends on this protocol (Codex Cloud is not yet installed). If Codex Cloud has been installed by the time we revert, Anton uninstalls the GitHub App via GitHub settings (separate from this revert).
+- **Rollback plan:** Single revert of the merge commit removes all five doc changes atomically. No downstream runtime depends on this protocol. If Codex Cloud must be rolled back, Anton uninstalls the GitHub App via GitHub settings (separate from this revert).
 - **Owner:** Approver = Anton. Executor = Cursor (Codex is not yet onboarded). Reviewer = Anton.
-- **Status:** COMPLETE in this PR (pending Anton merge + Delivery Reality Audit closure).
+- **Status:** COMPLETE — protocol merged before Packet 7.3/7.4 Codex docs work.
 
 ### Packet 7.2 — Codex Cloud install (operator-only)
 
@@ -719,7 +719,7 @@ This is the **live queue** of approved or pending packets for autonomous executi
 - **Verification evidence:** App installation visible in repo Settings → Integrations; bot username recorded in follow-up PR; first Codex Cloud STATUS comment visible on #249; first Codex Cloud PR diff stays inside `artifacts/audits/`.
 - **Rollback plan:** Per `CODEX_CLOUD_INSTALL.md` §8 — uninstall GitHub App via Settings → Integrations + revoke OpenAI key + post `HOLDING` on #249. To revert the protocol entirely: single revert PR of merge commit `031f12cc` (PR #252).
 - **Owner:** Approver = Anton. Executor = Anton (install) + Cursor / Codex Cloud (follow-up doc PR). Reviewer = Anton.
-- **Status:** PENDING — operator-only. Activation packet + install runbook ready; Anton executes §3 checklist in `CODEX_CLOUD_ACTIVATION_PACKET_V1.md`.
+- **Status:** COMPLETE ENOUGH FOR CODEX DOCS PACKETS — operator-only activation has allowed Codex Cloud to run Packet 7.3/7.4 docs work. No runtime, server, secret, DNS, billing, or autonomous-merge authority was added.
 
 ### Packet 7.3 — Codex Cloud docs consistency audit (first live packet)
 
@@ -730,17 +730,18 @@ This is the **live queue** of approved or pending packets for autonomous executi
 - **Forbidden:** all runtime paths (`lib/server/`, `api/`, `prisma/`, etc.); secrets; merge by Codex; shared branch with Cursor
 - **Bridge:** STATUS posts to #249 with `**Executor:** Codex Cloud`
 - **Prerequisite:** Packet 7.2 activation checklist complete
-- **Status:** **READY TO ASSIGN** after 7.2 — not started until Codex Cloud installed
+- **Status:** COMPLETE / AWAITING REVIEW — audit artifact created at `artifacts/audits/2026-06-18-codex-docs-consistency.md`; P2 remediation continues in Packet 7.4.
 
 ### Queue summary (Goal 7)
 
 | # | Packet | Goal | State | Risk | Approval gates beyond pre-merge |
 |---|--------|------|-------|------|---------------------------------|
-| 7.1 | Delivery Acceleration v1 protocol (docs-only) | 7 | COMPLETE in this PR | Doc drift if Codex installed without doc update | None (docs-only) |
-| 7.2 | Codex Cloud install (activation) | 7 | PENDING | GitHub App over-scope | §3 Anton-only |
-| 7.3 | Codex Cloud docs consistency audit | 7 | READY TO ASSIGN (after 7.2) | Wrong-path diff | Pre-merge; Codex must not merge |
+| 7.1 | Delivery Acceleration v1 protocol (docs-only) | 7 | COMPLETE | Doc drift if Codex installed without doc update | None (docs-only) |
+| 7.2 | Codex Cloud install (activation) | 7 | COMPLETE ENOUGH FOR CODEX DOCS PACKETS | GitHub App over-scope | §3 Anton-only |
+| 7.3 | Codex Cloud docs consistency audit | 7 | COMPLETE / AWAITING REVIEW | Wrong-path diff | Pre-merge; Codex must not merge |
+| 7.4 | Codex docs consistency remediation | 7 | AWAITING_APPROVAL | Over-broad remediation | Pre-merge; Codex must not merge |
 
-**Goal 7 packets are docs-only or operator-only by design.** No runtime code, no workflow files, no env values, no new secrets. Packet 7.3 must stay inside `artifacts/audits/` — not a runtime or `lib/server/` change.
+**Goal 7 packets are docs-only or operator-only by design.** No runtime code, no workflow files, no env values, no new secrets. Packet 7.3 stayed inside `artifacts/audits/`; Packet 7.4 is docs-only P2 remediation. Neither packet authorizes runtime or `lib/server/` changes.
 
 ---
 

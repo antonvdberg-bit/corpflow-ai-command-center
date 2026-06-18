@@ -118,7 +118,7 @@ In `docs/execution/WEEKEND_EXECUTION_QUEUE.md`, add a sub-packet under Goal 7:
 - **Forbidden paths:** anything outside artifacts/audits/ in this packet.
 - **Branch:** `codex/docs-consistency-audit-v1` (or `codex/docs-consistency-audit-<date>` if date-stamped variant preferred)
 - **STATUS posts:** to #249, with `**Executor:** Codex Cloud` header per OPERATOR_BRIDGE_V1.md §5.1.
-- **Status:** APPROVED (or PENDING if you want a final review before Codex picks up).
+- **Status:** Packet 7.3 complete / awaiting Anton review; Packet 7.4 is the follow-up P2 docs-only remediation packet awaiting Anton review.
 ```
 
 Once approved, Codex Cloud claims and posts `IN_PROGRESS` to #249.

@@ -1,6 +1,6 @@
 # Operator Bridge v1 — coordination protocol between ChatGPT, Cursor, and Anton
 
-**Status:** Protocol documentation only. Not yet wired to a GitHub Issue or automation.
+**Status:** Protocol documentation with live coordination issue **#249** confirmed; posting remains manual/GitHub-permission-dependent unless separate automation is authorized.
 **Owner:** Anton (operator).
 **Drafted:** 2026-05-27.
 **Anchor sentinel:** `<!-- OPERATOR_BRIDGE_V1_ANCHOR -->`
@@ -142,7 +142,7 @@ Operator-only clicks should be the **only** thing Anton has to do for routine pa
 Land this protocol doc + AGENTS.md row + shared-TODO cross-link. No issue created. No automation. No labels. Cursor and Anton continue to use chat as the live coordination surface, but they reference this doc when needed.
 
 **Phase 1 — create the coordination issue (separate, operator-initiated):**
-Anton manually opens one GitHub Issue titled `Operator Bridge — Active Work Queue` containing the anchor `<!-- OPERATOR_BRIDGE_V1_ISSUE -->` and a pinned link back to this doc. Cursor begins posting `Cursor status` comments using the schema in §5.1. Anton (or ChatGPT-via-Anton) posts decisions using §5.2. **Status:** issue **#249** confirmed 2026-05-28 (see `docs/decisions/JOURNAL.md` JE-2026-05-28-2). Codex Cloud joins this same issue once installed per `docs/execution/DELIVERY_ACCELERATION_V1.md` §11.
+Anton manually opens one GitHub Issue titled `Operator Bridge — Active Work Queue` containing the anchor `<!-- OPERATOR_BRIDGE_V1_ISSUE -->` and a pinned link back to this doc. Cursor and Codex Cloud post executor-labeled STATUS comments using the schema in §5.1. Anton (or ChatGPT-via-Anton) posts decisions using §5.2. **Status:** issue **#249** confirmed 2026-05-28 (see `docs/decisions/JOURNAL.md` JE-2026-05-28-2). Codex Cloud uses this same issue when GitHub App permissions/remotes allow, per `docs/execution/DELIVERY_ACCELERATION_V1.md` §11.
 
 **Phase 2 — adopt label vocabulary (optional, requires operator action in GitHub UI):**
 Anton creates the five `bridge:*` labels listed in §3. Cursor applies them via `gh pr view` / `gh issue edit` calls inside its status updates. Labels are advisory; the headers in §5 remain authoritative.
