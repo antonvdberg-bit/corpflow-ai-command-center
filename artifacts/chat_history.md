@@ -28,6 +28,12 @@
 
 ---
 
+## 2026-06-18 — **OpenAI GPT Image — marketing automation candidate (docs-only).** Added to `docs/product/MARKETING_AUTOMATION_CONTENT_ENGINE_CANDIDATES.md` as **`SERIOUS-CANDIDATE / DEPLOY-FIRST-PILOT`**. Sources: [GPT Image prompting guide](https://developers.openai.com/cookbook/examples/multimodal/image-gen-models-prompting-guide), [OpenAI Image generation API](https://platform.openai.com/docs/guides/image-generation). Anton signal: manual ChatGPT image gen already high quality for Lux Maurice. Operating modes: manual-first → semi-automated briefs → API pilot → production (not authorized). Billing: ChatGPT Plus ≠ API platform billing. Verdict: **CANDIDATE CAPTURED — PILOT RECOMMENDED — NO PRODUCTION AUTOMATION AUTHORIZED**.
+
+<!-- OPENAI_GPT_IMAGE_MARKETING_CANDIDATE_2026_06_18_HIST -->
+
+---
+
 ## 2026-06-18 — **CorpFlow Candidate & Reference Library — canonical name + index (docs-only).** Established standing library name **`CorpFlow Candidate & Reference Library`** with index at `docs/product/README.md`; updated `.cursor/rules/library-capture-auto-merge.mdc` with canonical name, allowed statuses, and narrowed auto-merge guardrails; tagged existing captures (Social Intents, Google Vids) as library members. Auto-merge applies only to PRs clearly belonging to this library. Verdict: **NO IMPLEMENTATION AUTHORIZED**.
 
 <!-- CORPFLOW_CANDIDATE_REFERENCE_LIBRARY_2026_06_18_HIST -->
