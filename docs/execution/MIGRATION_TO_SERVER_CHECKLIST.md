@@ -2,7 +2,7 @@
 
 **Status:** Canonical (v1, 2026-05-23)
 **Audience:** Anton, Cursor agents, contractors
-**Companion docs:** `docs/execution/CORPFLOW_AUTONOMOUS_ACTIONS_POLICY.md`, `docs/execution/WEEKEND_EXECUTION_QUEUE.md`, `artifacts/audits/2026-05-23-weekend/05-laptop-local-dependencies.md`
+**Companion docs:** `docs/execution/CORPFLOW_AUTONOMOUS_ACTIONS_POLICY.md`, `docs/execution/WEEKEND_EXECUTION_QUEUE.md`, `artifacts/audits/2026-05-23-weekend/05-laptop-local-dependencies.md`, **`docs/execution/LAPTOP_DEPENDENCY_BURN_DOWN_V1.md`**
 **Cross-refs:** `.cursor/rules/security-sensitive-changes.mdc`, `docs/operations/SECURITY_REVIEW_CHECKLIST.md`, `docs/EXECUTION_BRAIN_VS_HANDS.md`, `.env.template`
 
 ---
