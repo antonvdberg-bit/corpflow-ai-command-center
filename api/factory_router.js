@@ -806,6 +806,10 @@ export default async function handler(req, res) {
       const mod = await import('../lib/server/chat-widget/handlers.js');
       return mod.handleChatWidgetSubmit(req, res);
     }
+    if (pathSeg === 'chat-widget/ask') {
+      const mod = await import('../lib/server/chat-widget/handlers-ask.js');
+      return mod.handleChatWidgetAsk(req, res);
+    }
     if (pathSeg === 'chat-widget/admin/kill-switch') {
       const mod = await import('../lib/server/chat-widget/handlers.js');
       return mod.handleChatWidgetKillSwitch(req, res);

@@ -18,8 +18,14 @@ test('LIVING_WORD_FLOW_V3 validates', () => {
   assert.equal(flow.nodes['contact-submit'].next_after, 'request-complete');
 });
 
-test('welcome menu still has eight starter options', () => {
+test('welcome menu has nine options including Ask a question', () => {
   const opts = LIVING_WORD_FLOW_V3.nodes.welcome.options;
+  assert.equal(opts.length, 9);
+  assert.ok(opts.some((o) => o.label === 'Ask a question' && o.widget_action === 'ai_ask'));
+});
+
+test('guided starter paths remain eight besides Ask a question', () => {
+  const opts = LIVING_WORD_FLOW_V3.nodes.welcome.options.filter((o) => !o.widget_action);
   assert.equal(opts.length, 8);
 });
 

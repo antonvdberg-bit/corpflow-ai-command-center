@@ -94,3 +94,4 @@ Smoke script: `node scripts/verify-retrieval-ai-living-word.mjs`
 - Luxe / lux_listings
 - CMP tickets from AI
 - Embeddings / vector DB
+- No outbound email / WhatsApp / SMS
