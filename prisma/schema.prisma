@@ -523,3 +523,73 @@ model TenantScheduleEntry {
   @@index([tenantId, expiresAt])
   @@map("tenant_schedule_entries")
 }
+
+/// Tenant workflow foundation v1 — versioned definitions, runs, and operator steps.
+/// Event-driven from automation_events; tenant-scoped; idempotent runs per source event.
+/// See lib/server/tenant-workflow/README.md
+model WorkflowDefinition {
+  id               String   @id @default(cuid())
+  tenantId         String   @map("tenant_id")
+  workflowKey      String   @map("workflow_key")
+  version          Int      @default(1)
+  name             String
+  triggerEventType String   @map("trigger_event_type")
+  status           String   @default("active")
+  definitionJson   Json     @map("definition_json")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  runs WorkflowRun[]
+
+  @@unique([tenantId, workflowKey, version], name: "workflow_definitions_tenant_key_version")
+  @@index([tenantId, triggerEventType, status])
+  @@map("workflow_definitions")
+}
+
+model WorkflowRun {
+  id                   String   @id @default(cuid())
+  tenantId             String   @map("tenant_id")
+  workflowDefinitionId String   @map("workflow_definition_id")
+  workflowKey          String   @map("workflow_key")
+  workflowVersion      Int      @map("workflow_version")
+  sourceEventId        String   @map("source_event_id")
+  sourceEventType      String   @map("source_event_type")
+  sourceThreadId       String?  @map("source_thread_id")
+  idempotencyKey       String   @map("idempotency_key")
+  status               String   @default("open")
+  currentStepKey       String?  @map("current_step_key")
+  contextJson          Json?    @map("context_json")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  definition WorkflowDefinition @relation(fields: [workflowDefinitionId], references: [id], onDelete: Restrict)
+  steps      WorkflowStep[]
+
+  @@unique([tenantId, idempotencyKey], name: "workflow_runs_tenant_idem")
+  @@index([tenantId, status])
+  @@index([tenantId, sourceEventId])
+  @@index([tenantId, sourceThreadId])
+  @@map("workflow_runs")
+}
+
+model WorkflowStep {
+  id            String    @id @default(cuid())
+  tenantId      String    @map("tenant_id")
+  workflowRunId String    @map("workflow_run_id")
+  stepKey       String    @map("step_key")
+  stepType      String    @map("step_type")
+  title         String
+  status        String    @default("open")
+  assignedTo    String?   @map("assigned_to")
+  dueAt         DateTime? @map("due_at")
+  dataJson      Json?     @map("data_json")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  run WorkflowRun @relation(fields: [workflowRunId], references: [id], onDelete: Cascade)
+
+  @@unique([workflowRunId, stepKey], name: "workflow_steps_run_step_key")
+  @@index([tenantId, status])
+  @@index([workflowRunId])
+  @@map("workflow_steps")
+}
