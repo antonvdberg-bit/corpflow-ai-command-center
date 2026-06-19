@@ -73,6 +73,7 @@ import {
   handleTenantWorkflowStepsList,
   handleTenantWorkflowStepUpdate,
 } from '../lib/server/tenant-workflow-api.js';
+import { handleTenantKnowledgeAtomsList } from '../lib/server/tenant-knowledge-api.js';
 import { getEffectiveMemberships } from '../lib/server/effective-memberships.js';
 import { computeEffectiveMembershipsCountForUiContext } from '../lib/ui/tenant-host-switch-link.js';
 import { handleMembershipSwitch, handleMembershipLeave } from '../lib/server/switch-leave-api.js';
@@ -994,6 +995,9 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'factory/tenant-workflows/step-update') {
     return handleTenantWorkflowStepUpdate(req, res, prisma);
+  }
+  if (pathSeg === 'factory/tenant-knowledge/atoms') {
+    return handleTenantKnowledgeAtomsList(req, res, prisma);
   }
   if (pathSeg === 'factory/github/pr-create') {
     return factoryGithubPrCreateHandler(req, res);
