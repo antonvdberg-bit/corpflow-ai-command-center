@@ -23,12 +23,15 @@ Reusable, tenant-scoped workflow runtime for operator follow-up tasks driven by 
 2. **Backfill:** `node scripts/process-lwm-chatbot-lead-workflows.mjs`
 3. **Seed definition:** `node scripts/seed-workflow-lwm-chatbot-lead-v1.mjs`
 
-## Operator visibility (read-only)
+## Operator visibility (read-only + inbox UI)
 
 Factory master on Core host:
 
 - `GET /api/factory/tenant-workflows/runs?tenant_id=living-word-mauritius&status=open`
 - `GET /api/factory/tenant-workflows/steps?tenant_id=living-word-mauritius&status=open`
+- `PATCH /api/factory/tenant-workflows/step-update` — mark step `completed` or `cancelled` (tenant-scoped)
+
+**Operator page (admin session):** `/factory/living-word-workflows` — Living Word chatbot follow-up inbox (no outbound send).
 
 ## Rollback
 
