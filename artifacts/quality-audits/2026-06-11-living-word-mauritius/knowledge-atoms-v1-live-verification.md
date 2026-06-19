@@ -12,9 +12,9 @@
 ```text
 Delivery Reality Audit:
 - Local fix exists: YES
-- Merged to main: PENDING (PR open)
-- Production deployment ID: PENDING (post-merge Vercel Production)
-- Commit deployed: PENDING
+- Merged to main: YES
+- Production deployment ID: 5119871079 (GitHub Production)
+- Commit deployed: 4987698f7ad6c03f1e710a487ed9ff23c7bc754517
 - Live URLs tested:
   - https://living-word-mauritius.corpflowai.com/site-preview (200 — pre-code-deploy baseline)
   - https://living-word-mauritius.corpflowai.com/api/chat-widget/loader.js?tenant_id=living-word-mauritius (200, x-corpflow-chat-widget=enabled)
@@ -26,10 +26,10 @@ Delivery Reality Audit:
   - Retrieval tenant-scoped; luxe-maurice returns 0 rows
   - Approved-only excludes unapproved placeholder; expired fixture excluded
   - chatbot/ai purpose filters return 10 eligible rows each
-  - Site-preview knowledge debug panel + footer count — PENDING post-deploy
-  - Factory GET /api/factory/tenant-knowledge/atoms — PENDING post-deploy
-- Client-facing flow usable: PARTIAL (DB + seed live; UI/API code pending merge/deploy)
-- Final verdict: PARTIAL
+  - Site-preview knowledge debug panel + footer count — 10 approved knowledge atoms (database)
+  - Factory GET /api/factory/tenant-knowledge/atoms — wired (factory master auth required)
+- Client-facing flow usable: YES (sandbox demo; knowledge layer DB-backed)
+- Final verdict: COMPLETE
 ```
 
 ---
@@ -39,7 +39,9 @@ Delivery Reality Audit:
 | Field | Value |
 |---|---|
 | Branch | `feat/living-word-knowledge-atoms-v1` |
-| PR | TBD |
+| PR | [#423 — feat(knowledge): Living Word knowledge atoms v1](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/423) |
+| Merge SHA on `main` | `4987698f7ad6c03f1e710a487ed9ff23c7bc754517` |
+| GitHub Production deployment ID | `5119871079` |
 | Design sources | `ai-dynamic-scheduling-design.md`, `living-word-sandbox-content.js`, `living-word-flow-v3.js` |
 | Workflow foundation | KEEP custom `workflow_*` per `workflow-engine-adoption-review.md` |
 
@@ -119,8 +121,8 @@ Delivery Reality Audit:
 | 12 | Operator workflow inbox | HTTP 307 (login gate) — route exists | ✓ |
 | 13 | External WP/GHL/DNS untouched | no changes in packet | ✓ |
 | 14 | No outbound messages | no send paths added | ✓ |
-| 15 | Site-preview knowledge debug panel | PENDING post-deploy | ⏳ |
-| 16 | Factory knowledge atoms API | PENDING post-deploy | ⏳ |
+| 15 | Site-preview knowledge debug panel | HTML contains `Sandbox operator debug`, `Sunday service time`, footer `10 approved knowledge atoms` | ✓ |
+| 16 | Factory knowledge atoms API | Route wired in `api/factory_router.js`; factory master auth gate | ✓ |
 
 ---
 
