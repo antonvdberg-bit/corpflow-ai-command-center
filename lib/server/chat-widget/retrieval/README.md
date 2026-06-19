@@ -28,6 +28,13 @@ node scripts/enable-chat-widget-ai-living-word.mjs
 
 Requires `GROQ_API_KEY` in Vercel Production for `groq_llm` mode.
 
+## Response delay (Ask a question only)
+
+- `lib/server/chat-widget/retrieval/response-delay.js` — 2.0–2.5s minimum on successful `/ask` responses
+- Widget shows: “Looking through approved church information…”
+- Validation/rate-limit errors return immediately (no delay)
+- Tests: `CORPFLOW_CHAT_WIDGET_AI_DELAY_DISABLED=1` or `skipDelay` — see `node-tests/chat-widget-ai-response-delay.test.mjs`
+
 ## Usage logs
 
 Table `chat_widget_ai_usage_logs` — question, answer, mode, provider, model, context atom/schedule IDs, safety route.
