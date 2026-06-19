@@ -71,6 +71,7 @@ import { handleOperatorActivityList } from '../lib/server/operator-activity-api.
 import {
   handleTenantWorkflowRunsList,
   handleTenantWorkflowStepsList,
+  handleTenantWorkflowStepUpdate,
 } from '../lib/server/tenant-workflow-api.js';
 import { getEffectiveMemberships } from '../lib/server/effective-memberships.js';
 import { computeEffectiveMembershipsCountForUiContext } from '../lib/ui/tenant-host-switch-link.js';
@@ -990,6 +991,9 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'factory/tenant-workflows/steps') {
     return handleTenantWorkflowStepsList(req, res, prisma);
+  }
+  if (pathSeg === 'factory/tenant-workflows/step-update') {
+    return handleTenantWorkflowStepUpdate(req, res, prisma);
   }
   if (pathSeg === 'factory/github/pr-create') {
     return factoryGithubPrCreateHandler(req, res);
