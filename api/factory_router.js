@@ -67,6 +67,7 @@ import {
   handleChangeAttachmentUpload,
 } from '../lib/server/change-attachments.js';
 import { handleMembershipEffective, handleMembershipList } from '../lib/server/membership-api.js';
+import { handleOperatorActivityList } from '../lib/server/operator-activity-api.js';
 import { getEffectiveMemberships } from '../lib/server/effective-memberships.js';
 import { computeEffectiveMembershipsCountForUiContext } from '../lib/ui/tenant-host-switch-link.js';
 import { handleMembershipSwitch, handleMembershipLeave } from '../lib/server/switch-leave-api.js';
@@ -976,6 +977,9 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'factory/technical-lead/audits') {
     return handleTechnicalLeadAuditsList(req, res);
+  }
+  if (pathSeg === 'factory/operator-activity') {
+    return handleOperatorActivityList(req, res);
   }
   if (pathSeg === 'factory/github/pr-create') {
     return factoryGithubPrCreateHandler(req, res);
