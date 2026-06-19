@@ -410,6 +410,8 @@ model ChatWidgetConfig {
   aiBudgetMonthlyUsd     Float    @default(0) @map("ai_budget_monthly_usd")
   aiBudgetSpentUsd       Float    @default(0) @map("ai_budget_spent_usd")
   aiBudgetMonthYyyymm    String?  @map("ai_budget_month_yyyymm")
+  aiEnabled              Boolean  @default(false) @map("ai_enabled")
+  aiSessionMessageCap    Int      @default(5) @map("ai_session_message_cap")
   messagesThisMonth      Int      @default(0) @map("messages_this_month")
   messagesMonthYyyymm    String?  @map("messages_month_yyyymm")
   createdAt              DateTime @default(now()) @map("created_at")
@@ -484,6 +486,31 @@ model ChatWidgetRateLimit {
   @@index([tenantId, ipHash])
   @@index([windowStart])
   @@map("chat_widget_rate_limits")
+}
+
+/// Chat widget retrieval AI v1 — usage audit log (sandbox / tenant-scoped).
+model ChatWidgetAiUsageLog {
+  id               String   @id @default(cuid())
+  tenantId         String   @map("tenant_id")
+  threadId         String   @map("thread_id")
+  question         String
+  answer           String?
+  mode             String
+  provider         String?
+  model            String?
+  contextAtomIds   Json?    @map("context_atom_ids")
+  scheduleEntryIds Json?    @map("schedule_entry_ids")
+  safetyRoute      String?  @map("safety_route")
+  refusalReason    String?  @map("refusal_reason")
+  tokenPrompt      Int?     @map("token_prompt")
+  tokenCompletion  Int?     @map("token_completion")
+  tokenTotal       Int?     @map("token_total")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, threadId])
+  @@index([threadId, createdAt])
+  @@map("chat_widget_ai_usage_logs")
 }
 
 /// Tenant-scoped schedule entries for sandbox / chatbot / future AI retrieval.
