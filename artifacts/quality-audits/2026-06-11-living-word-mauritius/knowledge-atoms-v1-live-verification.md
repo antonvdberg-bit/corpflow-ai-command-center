@@ -39,7 +39,7 @@ Delivery Reality Audit:
 | Field | Value |
 |---|---|
 | Branch | `feat/living-word-knowledge-atoms-v1` |
-| PR | TBD |
+| PR | [#423 — feat(knowledge): Living Word knowledge atoms v1](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/423) |
 | Design sources | `ai-dynamic-scheduling-design.md`, `living-word-sandbox-content.js`, `living-word-flow-v3.js` |
 | Workflow foundation | KEEP custom `workflow_*` per `workflow-engine-adoption-review.md` |
 
