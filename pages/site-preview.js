@@ -55,6 +55,10 @@ import {
   getApprovedScheduleEntriesForTenant,
   serializeScheduleEntryForProps,
 } from '../lib/server/tenant-schedule/entries.js';
+import {
+  getKnowledgeAtomsForTenant,
+  serializeKnowledgeAtomSummaryLine,
+} from '../lib/server/tenant-knowledge/atoms.js';
 
 const TEST_RIBBON_MESSAGE =
   'TEST ENVIRONMENT \u2014 Not the live Living Word Mauritius website';
@@ -102,6 +106,8 @@ export async function getServerSideProps(ctx) {
   const prisma = new PrismaClient();
   let scheduleEntries = [];
   let scheduleSource = 'placeholder';
+  let knowledgeSummaries = [];
+  let approvedKnowledgeCount = 0;
 
   try {
     const rows = await getApprovedScheduleEntriesForTenant(prisma, SANDBOX_TENANT_ID, {
@@ -114,6 +120,27 @@ export async function getServerSideProps(ctx) {
   } catch {
     scheduleEntries = [];
     scheduleSource = 'placeholder';
+  }
+
+  try {
+    const knowledgeRows = await getKnowledgeAtomsForTenant(prisma, SANDBOX_TENANT_ID, {
+      approvedOnly: true,
+    });
+    approvedKnowledgeCount = knowledgeRows.length;
+    knowledgeSummaries = knowledgeRows.map((row) =>
+      serializeKnowledgeAtomSummaryLine({
+        id: row.id,
+        atomKey: row.atomKey,
+        title: row.title,
+        category: row.category,
+        approved: row.approved,
+        chatbotAnswerEligible: row.chatbotAnswerEligible,
+        aiAnswerEligible: row.aiAnswerEligible,
+      }),
+    );
+  } catch {
+    knowledgeSummaries = [];
+    approvedKnowledgeCount = 0;
   } finally {
     await prisma.$disconnect().catch(() => {});
   }
@@ -126,6 +153,8 @@ export async function getServerSideProps(ctx) {
       scheduleEntries,
       scheduleSource,
       approvedScheduleCount: scheduleEntries.length,
+      knowledgeSummaries,
+      approvedKnowledgeCount,
     },
   };
 }
@@ -763,11 +792,13 @@ function FooterSection({
   placeholderCount,
   scheduleSource,
   approvedScheduleCount,
+  approvedKnowledgeCount,
 }) {
   const scheduleLine =
     scheduleSource === 'database'
       ? `${approvedScheduleCount} approved schedule ${approvedScheduleCount === 1 ? 'entry' : 'entries'} (database)`
       : `${placeholderCount} placeholder schedule entries (no approved DB rows)`;
+  const knowledgeLine = `${approvedKnowledgeCount} approved knowledge ${approvedKnowledgeCount === 1 ? 'atom' : 'atoms'} (database)`;
 
   return (
     <footer
@@ -806,7 +837,7 @@ function FooterSection({
           }}
         >
           tenant <code>{tenantId}</code> &middot; host <code>{host}</code> &middot;{' '}
-          {scheduleLine} &middot; widget kill-switch is independent of this page
+          {scheduleLine} &middot; {knowledgeLine} &middot; widget kill-switch is independent of this page
         </p>
         <p
           style={{
@@ -822,6 +853,70 @@ function FooterSection({
   );
 }
 
+function KnowledgeSandboxPanel({ summaries, count }) {
+  if (!count) return null;
+  return (
+    <section
+      style={{
+        maxWidth: 960,
+        margin: '0 auto 32px',
+        padding: '0 24px',
+      }}
+      aria-label="Approved knowledge sandbox debug"
+    >
+      <div
+        style={{
+          border: `1px dashed ${COLOURS.border}`,
+          borderRadius: 10,
+          background: COLOURS.creamSoft,
+          padding: '16px 18px',
+        }}
+      >
+        <p
+          style={{
+            margin: '0 0 8px',
+            font: `600 11px/1.4 ${FONTS.sans}`,
+            letterSpacing: '0.14em',
+            textTransform: 'uppercase',
+            color: COLOURS.navySoft,
+          }}
+        >
+          Sandbox operator debug &middot; approved knowledge available ({count})
+        </p>
+        <p
+          style={{
+            margin: '0 0 12px',
+            font: `400 12px/1.5 ${FONTS.sans}`,
+            color: COLOURS.textMuted,
+          }}
+        >
+          Future AI retrieval will answer only from these approved atoms. This panel is internal to the
+          CorpFlow test environment — not part of the public church website.
+        </p>
+        <ul
+          style={{
+            margin: 0,
+            paddingLeft: 18,
+            font: `400 13px/1.5 ${FONTS.sans}`,
+            color: COLOURS.text,
+          }}
+        >
+          {summaries.slice(0, 12).map((item) => (
+            <li key={String(item.id)}>
+              <strong>{item.title}</strong>{' '}
+              <span style={{ color: COLOURS.textMuted }}>
+                ({item.category}
+                {item.chatbotAnswerEligible ? ' · chatbot' : ''}
+                {item.aiAnswerEligible ? ' · ai' : ''})
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+}
+
 export default function SitePreviewPage({
   tenantId,
   host,
@@ -829,6 +924,8 @@ export default function SitePreviewPage({
   scheduleEntries,
   scheduleSource,
   approvedScheduleCount,
+  knowledgeSummaries,
+  approvedKnowledgeCount,
 }) {
   const displayEntries =
     scheduleSource === 'database' && scheduleEntries.length > 0
@@ -884,12 +981,14 @@ export default function SitePreviewPage({
         <ServiceLocationContactSection />
         <EventsSection entries={displayEntries} scheduleSource={scheduleSource} />
         <NextStepSection />
+        <KnowledgeSandboxPanel summaries={knowledgeSummaries} count={approvedKnowledgeCount} />
         <FooterSection
           tenantId={tenantId}
           host={host}
           placeholderCount={placeholderCount}
           scheduleSource={scheduleSource}
           approvedScheduleCount={approvedScheduleCount}
+          approvedKnowledgeCount={approvedKnowledgeCount}
         />
       </div>
     </>
