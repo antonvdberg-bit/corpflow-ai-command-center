@@ -772,7 +772,9 @@ Tenants do not see the operator's email or auth_users.id by default. The cmp_tic
 
 ### 7.5 Querying operator activity
 
-Factory master can query "every action taken by operator X across all tenants" via SELECT ... FROM automation_events WHERE actor_user_id = ? - the actor_user_id index makes this cheap. Today, equivalent queries require joining auth_users on email patterns and are brittle; the new schema makes operator audit a first-class shape.
+Factory master can query "every action taken by operator X across all tenants" via **`GET /api/factory/operator-activity`** (IM-7.1) on the Core host — or, until IM-7.1 is deployed, via `SELECT ... FROM automation_events WHERE actor_user_id = ?`. The `actor_user_id` index (IM-1) makes the scan cheap. Today, equivalent queries without IM-7.1 require joining `auth_users` on email patterns and are brittle; IM-7 population + IM-7.1 read API make operator audit a first-class shape.
+
+**IM-7.1 contract (summary):** Core-only; GET-only; DB-backed `factory_master=true` session; required `actor_user_id`; optional `since` / `until` / `event_type` (exact allowlist of six operator/membership event types) / `limit` (max 100) / `cursor`; projected payload only (five-tuple + `session_version` for switch/leave); no `ip`, `ua`, or raw `payload_json` in responses. See §10 Packet IM-7.1.
 
 ---
 
@@ -810,6 +812,7 @@ Per .cursor/rules/security-sensitive-changes.mdc and docs/operations/SECURITY_RE
 |---|---|
 | api/operator/switch-tenant.* | New auth-flow endpoint that mutates session state. **Core-host-scoped.** |
 | api/operator/leave-tenant.* | Same. **Core-host-scoped.** |
+| api/factory/operator-activity.* | IM-7.1 factory-master read API; projected `automation_events` payload — no raw `payload_json`, `ip`, or `ua` in responses. |
 | api/ui/context.* | Context surface gains operator_memberships - reflected output sensitivity. |
 | lib/server/auth.js | Session payload shape change. |
 | lib/server/session.* | Cookie re-issue path on switch. |
@@ -1081,6 +1084,21 @@ IM-1 schema only ────────────► IM-2 read APIs ──�
 - Approval gates: Anton approves Production deploy; security reviewer signs off on the logging surface (§9.6).
 - Verification evidence: post-deploy `SELECT actor_user_id, event_type, count(*) FROM automation_events WHERE created_at > '<cutover>' GROUP BY 1,2` shows full population; old rows still null.
 - Rollback: revert PR; the column stays (IM-1 schema) but is null on rows produced after rollback.
+
+### Packet IM-7.1 — Operator-activity read API (factory forensics)
+
+- Goal: expose `GET /api/factory/operator-activity` on **Core host only** so factory master can list allowlisted operator audit rows from `automation_events` by `actor_user_id` without raw Neon SELECTs.
+- Definition of Done:
+  - Route wired in `api/factory_router.js` → `lib/server/operator-activity-api.js`.
+  - Gating mirrors `GET /api/membership/list`: DB-backed admin session, `factory_master=true`; legacy env-master without `user_id`, `MASTER_ADMIN_KEY` alone, and cron Bearer **denied**.
+  - Query params (v1 only): `actor_user_id` (required), `since`, `until`, `event_type` (exact allowlist — six IM-7 event types), `limit` (max 100, hard `400 LIMIT_TOO_HIGH`), `cursor`.
+  - Payload **projection** only — no raw `payload_json`, no `ip` / `ua` / secrets / `idempotency_key` in response.
+  - `node-tests/im-7-1-operator-activity.test.mjs` green; production DRA: unauthenticated Core/Lux probes + operator-run authenticated fetch by Anton.
+- Scope: `lib/server/operator-activity-api.js` (new), `api/factory_router.js`, tests, ops docs. **No** changes to IM-7 write path, `GET /api/automation/events`, schema, env, or UI.
+- Constraints: read-only; `automation_events` table only in v1; no `to_tenant_id` filter; no `actor_username` enrichment.
+- Approval gates: Anton approves Production deploy; security reviewer signs off on reflected-output sensitivity (§9.6).
+- Verification evidence: Anton authenticated `GET ...?actor_user_id=cmqhtirgb0000xf0ktu03alm6&limit=5` returns ≥1 `cmp.operator.switched_tenant` row with `to_tenant_id=luxe-maurice`, `source_host=core.corpflowai.com`, no `ip`/`ua`.
+- Rollback: revert PR; endpoint 404; no DB rollback.
 
 ### Packet IM-8 — Deprecate bootstrap+`<tenant>@corpflowai.com` rows + per-tenant operator credentials
 

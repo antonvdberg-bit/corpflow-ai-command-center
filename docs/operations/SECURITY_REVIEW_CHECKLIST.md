@@ -15,6 +15,7 @@
 ## 2. Authorization & tenant isolation
 
 - [ ] **Factory-only** routes remain gated (master admin / designated secrets), not callable from tenant browsers without auth.
+- [ ] **Factory read APIs with projected audit payloads** (e.g. `GET /api/factory/operator-activity`, IM-7.1) return only allowlisted fields; no raw `payload_json`, `ip`, `ua`, tokens, or `idempotency_key` in JSON responses.
 - [ ] **Tenant-scoped** handlers resolve `tenant_id` from **authoritative** sources (host map, session, validated body) and **reject** cross-tenant access (`TENANT_ID_HOST_MISMATCH` pattern where applicable).
 - [ ] **No** trust of client-supplied tenant id alone when it conflicts with host map or session.
 
@@ -57,4 +58,4 @@
 
 ---
 
-*Last updated: 2026-04-04 — extend when new surfaces (e.g. uploads, billing) ship.*
+*Last updated: 2026-06-19 — IM-7.1 operator-activity read API trigger.*
