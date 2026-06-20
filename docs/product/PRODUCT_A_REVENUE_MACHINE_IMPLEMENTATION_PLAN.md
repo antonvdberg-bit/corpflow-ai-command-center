@@ -301,12 +301,13 @@ Drive is **draft + operator reference** — repo runbooks remain production doct
 | ----- | --- |
 | Automation ingest + n8n forward | `docs/automation-framework.md` |
 | Product A intake webhook payload | `docs/product/PRODUCT_A_INTAKE_WEBHOOK.md` |
-| Product A Sheets/n8n ops (Codex track) | `docs/product/PRODUCT_A_NON_GHL_DATA_WORKFLOW_PACKET.md` |
+| Product A Sheets/n8n ops packet | `docs/product/PRODUCT_A_NON_GHL_DATA_WORKFLOW_PACKET.md` |
+| Product A operator prompt library | `docs/marketing/PRODUCT_A_US_MEDSPA_PROMPT_LIBRARY.md` |
 | Brand / no-guarantee language | `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md` |
 | Above-the-line positioning | `docs/strategy/ABOVE_THE_LINE_STRATEGY_DOCTRINE.md` |
 | Lead Rescue delivery (post-sale) | `docs/operations/AI_LEAD_RESCUE_OPERATOR_RUNBOOK.md` |
 | Sales vs delivery boundary | `docs/operations/AI_LEAD_RESCUE_SALES_TO_DELIVERY_HANDOFF.md` |
-| Google Workspace delivery patterns | `docs/strategy/AI_DELIVERY_CAPABILITY_PLAYBOOK_V1.md` |
+| Google tooling acceleration (internal) | `docs/strategy/GOOGLE_ACCELERATION_LANE.md` |
 | Ops alerts | `docs/operations/TELEGRAM_ALERT_WIRING_PACKET_V1.md` |
 
 ---
