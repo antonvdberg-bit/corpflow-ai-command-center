@@ -19,6 +19,7 @@
 | [PRODUCT_A_REVENUE_MACHINE_IMPLEMENTATION_PLAN.md](./PRODUCT_A_REVENUE_MACHINE_IMPLEMENTATION_PLAN.md) | Canonical plan |
 | [PRODUCT_A_INTAKE_WEBHOOK.md](./PRODUCT_A_INTAKE_WEBHOOK.md) | `POST /api/product-a/intake` payload + deploy checklist |
 | [../marketing/PRODUCT_A_US_MEDSPA_PROMPT_LIBRARY.md](../marketing/PRODUCT_A_US_MEDSPA_PROMPT_LIBRARY.md) | Operator prompts — audit, Gmail drafts, follow-up, reply classification |
+| [../n8n/product-a-us-clinics-implementation-pack.md](../n8n/product-a-us-clinics-implementation-pack.md) | Detailed n8n build runbook — complements § 3 below |
 | [../n8n/automation-forward-recipe.md](../n8n/automation-forward-recipe.md) | Automation envelope forward |
 
 ---
@@ -60,6 +61,7 @@
 | **A — Automation forward (recommended)** | `CORPFLOW_AUTOMATION_FORWARD_URL` already set; branch on `event_type === intake.product_a.us_clinic.v1` |
 | **B — Direct webhook** | `N8N_PRODUCT_A_INTAKE_WEBHOOK_URL` set; receives flat `corpflow.product_a.intake.v1` JSON |
 
+Payload shapes: `docs/product/PRODUCT_A_INTAKE_WEBHOOK.md`. **Step-by-step n8n build:** `docs/n8n/product-a-us-clinics-implementation-pack.md`.
 Payload shapes: `docs/product/PRODUCT_A_INTAKE_WEBHOOK.md`.
 
 ### 3.2 Steps
@@ -118,6 +120,7 @@ Synthetic placeholder rows only (`example.invalid`). Replace before any real out
 | `prospect_status` | `not_contacted` / `messaged` / `replied` / `declined` |
 | `source` | e.g. `cold-outreach-florida-v1` |
 | `notes` | Operator research |
+| `next_action` | Next manual step |
 | `next_action` | Next manual step — research / verification only until § 6.3 drafting gate passes |
 
 ---
@@ -145,6 +148,9 @@ Until a row passes the drafting gate below, **no Gmail outreach draft** and **no
 
 ### 6.3 Drafting rule
 
+Outreach drafting is allowed **only after** manual verification is complete, audit is drafted, **Pipeline Stage** becomes **Approved for draft**, and **Anton Approval** becomes **Yes**.
+
+Until then: **Drafting allowed = No** (matches fit score 1–10 defaults above).
 Outreach drafting is allowed **only after all** of the following:
 
 1. Manual verification is complete.
@@ -172,6 +178,7 @@ Do not resume outreach without explicit operator reset and re-verification.
 ## 7. Operator wiring checklist
 
 1. Create Google Sheet from leads CSV template (§ 2).
+2. Build n8n workflow per `docs/n8n/product-a-us-clinics-implementation-pack.md` (or § 3 summary above).
 2. Wire n8n workflow § 3 to Sheet + operator notification.
 3. Confirm Phase 1 intake live: `https://corpflowai.com/product-a/us-clinics`.
 4. Submit one test intake; confirm Sheet row within 60s.
