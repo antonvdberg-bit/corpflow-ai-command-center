@@ -11,11 +11,14 @@
 ```text
 Delivery Reality Audit:
 - Local fix exists: YES
-- Merged to main: PENDING
-- Production deployment ID: PENDING
-- Commit deployed: PENDING
-- Live URLs tested: PENDING
-- Final verdict: PENDING
+- Merged to main: YES
+- Production deployment ID: 5121657589
+- Commit deployed: ad4e56ed
+- Live URLs tested:
+  - https://living-word-mauritius.corpflowai.com/site-preview (200)
+  - POST /api/chat-widget/ask — elapsed_ms 2733, delay_ok true, thinking_message present
+  - Emergency safety_refusal still works
+- Final verdict: COMPLETE
 ```
 
 ---
@@ -57,14 +60,14 @@ Documented in design artifact §12 — structured `tenant_schedule_entries` as c
 
 | # | Check | Result |
 |---|--------|:------:|
-| 1 | `/site-preview` 200 | ⏳ |
-| 2 | Chatbot enabled | ⏳ |
-| 3 | Ask a question works | ⏳ |
-| 4 | Response ≥ ~2s on `/ask` success | ⏳ |
-| 5 | Thinking message visible | ⏳ |
-| 6 | AI still approved atoms/schedules only | ⏳ |
-| 7 | No outbound messages | ⏳ |
-| 8 | Workflow inbox intact | ⏳ |
+| 1 | `/site-preview` 200 | ✓ |
+| 2 | Chatbot enabled | ✓ |
+| 3 | Ask a question works | ✓ |
+| 4 | Response ≥ ~2s on `/ask` success | ✓ (2733ms) |
+| 5 | Thinking message visible | ✓ (API field + widget copy) |
+| 6 | AI still approved atoms/schedules only | ✓ (no crawl code added) |
+| 7 | No outbound messages | ✓ |
+| 8 | Workflow inbox intact | ✓ (unchanged) |
 
 ---
 
