@@ -28,6 +28,12 @@
 
 ---
 
+## 2026-06-20 — **Product radar intake (docs-only — library capture, issue #429).** New `docs/product/PRODUCT_RADAR_CANDIDATES.md` + library index row: Guild.ai and Retool `PILOT / STUDY PATTERN`; There Is An AI For That Launch `WATCH / RADAR SOURCE`; ownAI `WATCH / SANDBOX LATER`. Verdict: **RADAR INTAKE CAPTURED: GUILD.AI, RETOOL, TAAFT LAUNCH, OWNAI — NO INSTALLATION AUTHORIZED**.
+
+<!-- PRODUCT_RADAR_CANDIDATES_2026_06_20_HIST -->
+
+---
+
 ## 2026-06-19 — **Multi-tenant platform stream close-down — COMPLETE / SEALED.** PR [#412](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/412) squash-merged to `main` as `24362d61ecd247e0f3c0cc3cc9022fd977f44aae` (2026-06-19T01:38:03Z). Vercel Production deployment `5117596832` reached **Ready** on commit `24362d61`. **IM-7.1 verdict:** PASS — `GET https://core.corpflowai.com/api/factory/operator-activity?actor_user_id=cmqhtirgb0000xf0ktu03alm6&limit=5` (authenticated Factory Admin on Core) → 200 `ok:true`, projected events including `cmp.operator.switched_tenant` / `to_tenant_id=luxe-maurice` / `source_host=core.corpflowai.com`; no `ip`, `ua`, raw payload passthrough, or secrets. **Gate checks (Part A):** unauth Core operator-activity → 401; Lux host → 403; `core…/api/factory/health` → 200. **Operator flow (Part C):** Core login → Lux switch → session line + sign-out — PASS. **Platform stream verdict:** COMPLETE (IM-5.5 COMPLETE; IM-6 / IM-6.1 / IM-7 SEALED; IM-7 post-cutover PASS; IM-7.1 PASS). **Safe client operation blocker:** none. **Final decision:** freeze platform stream; resume client/product delivery. **Explicit hold:** no IM-8, no IM-7.2, no new platform packets unless a client-blocking production defect appears. **Scope delivered (IM-7.1):** Core-only read API for allowlisted `automation_events` by `actor_user_id` — `lib/server/operator-activity-api.js`, `api/factory_router.js`; no schema/env/UI/write-path changes.
 
 <!-- PLATFORM_STREAM_CLOSE_DOWN_2026_06_19_HIST -->
