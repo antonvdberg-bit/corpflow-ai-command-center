@@ -104,6 +104,8 @@ Synthetic placeholder rows only (`example.invalid`). Replace before any real out
 
 **Use:** pre-intake cold/warm prospect tracking **separate from** live intake rows. When a prospect submits `/product-a/us-clinics`, append to the **leads** sheet — do not merge prospect CSV automatically.
 
+**Verification ≠ outreach approval:** Completing manual verification or assigning a fit score (§ 6) does **not** set **Drafting allowed = Yes**. Sample `next_action` values are research steps only — not permission to draft or send.
+
 | Column | Purpose |
 | ------ | ------- |
 | `clinic_name` | Target clinic |
@@ -116,7 +118,7 @@ Synthetic placeholder rows only (`example.invalid`). Replace before any real out
 | `prospect_status` | `not_contacted` / `messaged` / `replied` / `declined` |
 | `source` | e.g. `cold-outreach-florida-v1` |
 | `notes` | Operator research |
-| `next_action` | Next manual step |
+| `next_action` | Next manual step — research / verification only until § 6.3 drafting gate passes |
 
 ---
 
@@ -143,9 +145,14 @@ Until a row passes the drafting gate below, **no Gmail outreach draft** and **no
 
 ### 6.3 Drafting rule
 
-Outreach drafting is allowed **only after** manual verification is complete, audit is drafted, **Pipeline Stage** becomes **Approved for draft**, and **Anton Approval** becomes **Yes**.
+Outreach drafting is allowed **only after all** of the following:
 
-Until then: **Drafting allowed = No** (matches fit score 1–10 defaults above).
+1. Manual verification is complete.
+2. Audit is drafted.
+3. **Pipeline Stage** becomes **Approved for draft**.
+4. **Anton Approval** becomes **Yes**.
+
+Until all four are true: **Drafting allowed = No** (matches fit score 1–10 defaults in § 6.1). **Verification alone never unlocks drafting.**
 
 ### 6.4 Disqualifier override
 
@@ -179,3 +186,4 @@ Do not resume outreach without explicit operator reset and re-verification.
 | ------- | ---------- | ------ |
 | v1 | 2026-06-20 | Initial ops packet — Sheet schema, n8n spec, audit rubric, Florida CSV sample |
 | v1.1 | 2026-06-20 | First 10 Verification Status Rules — fit score bands, approval/drafting gates, disqualifier override |
+| v1.1.1 | 2026-06-20 | Drafting rule as explicit 4-step gate; CSV/sample guidance — verification does not unlock outreach drafts |
