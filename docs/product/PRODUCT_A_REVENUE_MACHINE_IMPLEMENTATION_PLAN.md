@@ -301,6 +301,7 @@ Drive is **draft + operator reference** — repo runbooks remain production doct
 | ----- | --- |
 | Automation ingest + n8n forward | `docs/automation-framework.md` |
 | Product A intake webhook payload | `docs/product/PRODUCT_A_INTAKE_WEBHOOK.md` |
+| Product A Sheets/n8n ops (Codex track) | `docs/product/PRODUCT_A_NON_GHL_DATA_WORKFLOW_PACKET.md` |
 | Brand / no-guarantee language | `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md` |
 | Above-the-line positioning | `docs/strategy/ABOVE_THE_LINE_STRATEGY_DOCTRINE.md` |
 | Lead Rescue delivery (post-sale) | `docs/operations/AI_LEAD_RESCUE_OPERATOR_RUNBOOK.md` |

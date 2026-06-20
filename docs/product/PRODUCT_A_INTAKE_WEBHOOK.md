@@ -5,6 +5,8 @@
 **n8n workflow name:** `product-a-us-clinic-intake-v1`  
 **Implementation plan:** `docs/product/PRODUCT_A_REVENUE_MACHINE_IMPLEMENTATION_PLAN.md`
 
+**Companion (Codex — Sheets/n8n ops, not site code):** `docs/product/PRODUCT_A_NON_GHL_DATA_WORKFLOW_PACKET.md` — CSV templates under `docs/product/product-a-csv-templates/`. Wire n8n using this doc or the intake webhook spec below; do not duplicate ops packet content in site PRs.
+
 ---
 
 ## Delivery paths

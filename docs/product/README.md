@@ -49,8 +49,16 @@ Use one or more of:
 | [MARKETING_AUTOMATION_CONTENT_ENGINE_CANDIDATES.md](./MARKETING_AUTOMATION_CONTENT_ENGINE_CANDIDATES.md) | Google Vids `EVALUATE-FIRST`; GPT Image `DEPLOY-FIRST-PILOT` | 2026-06-18 |
 | [../execution/DEV_TOOLING_CANDIDATES.md](../execution/DEV_TOOLING_CANDIDATES.md) | GitHits `SERIOUS-CANDIDATE / DEV-CAPABILITY ACCELERATOR` | 2026-06-18 |
 | [PRODUCT_RADAR_CANDIDATES.md](./PRODUCT_RADAR_CANDIDATES.md) | Guild.ai + Retool `PILOT / STUDY PATTERN`; TAAFT Launch `WATCH / RADAR SOURCE`; ownAI `WATCH / SANDBOX LATER` — **NO INSTALLATION AUTHORIZED** | 2026-06-20 |
-| [PRODUCT_A_REVENUE_MACHINE_IMPLEMENTATION_PLAN.md](./PRODUCT_A_REVENUE_MACHINE_IMPLEMENTATION_PLAN.md) | Product A (US medspa / aesthetic / elective clinics) — manual-first revenue machine; Google Sheets + n8n + Gmail drafts | 2026-06-20 |
-| [PRODUCT_A_INTAKE_WEBHOOK.md](./PRODUCT_A_INTAKE_WEBHOOK.md) | Product A intake API + n8n payload (`POST /api/product-a/intake`) | 2026-06-20 |
+
+### Product A — US clinics revenue machine (Phase 1)
+
+Site intake is **this PR** (`/product-a/us-clinics`, `POST /api/product-a/intake`). Sheets / n8n operating specs are **Codex track** — do not duplicate in site PRs.
+
+| Doc | Owner track | Role |
+| --- | ----------- | ---- |
+| [PRODUCT_A_REVENUE_MACHINE_IMPLEMENTATION_PLAN.md](./PRODUCT_A_REVENUE_MACHINE_IMPLEMENTATION_PLAN.md) | Cursor Phase 1 | Canonical plan — offer, stack, phases |
+| [PRODUCT_A_INTAKE_WEBHOOK.md](./PRODUCT_A_INTAKE_WEBHOOK.md) | Cursor Phase 1 | Intake API payload, env vars, deploy checklist |
+| [PRODUCT_A_NON_GHL_DATA_WORKFLOW_PACKET.md](./PRODUCT_A_NON_GHL_DATA_WORKFLOW_PACKET.md) | Codex | Sheets schema, CSV templates, n8n workflow specs, audit rubric, sample prospect batch — **merge/rebase onto branch separately** |
 
 ---
 
