@@ -9,6 +9,7 @@
 - `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md`
 - `docs/marketing/CORPFLOW_CONTENT_MODEL.md`
 - `docs/marketing/CORPFLOW_ASSET_GOVERNANCE.md`
+- `docs/marketing/PRODUCT_A_US_MEDSPA_PROMPT_LIBRARY.md` — operator text prompts for Product A audit / draft / follow-up / reply workflows (separate from visual `prompt_id` entries below)
 - `lib/visualAssets/schema.js` (the validator enforces a `prompt_id` whose value matches an entry below)
 
 ## Why a prompt library
@@ -44,6 +45,14 @@ Negative: text overlays we did not write, fake UI elements, fake brand logos, gl
 3D AI clichés, revenue guarantees, "$$$", crypto/finance hype, casino imagery,
 celebrity likeness, photorealistic faces of identifiable people without a release.
 ```
+
+## Vertical operator prompt libraries (text)
+
+Visual asset prompts below use `prompt_id` values validated by `lib/visualAssets/schema.js`. **Operator text prompts** (Gmail drafts, audit prep, reply classification) for Product A live in a separate canonical library — do not merge the two namespaces.
+
+| Library | Surface | Workflows |
+| ------- | ------- | --------- |
+| [PRODUCT_A_US_MEDSPA_PROMPT_LIBRARY.md](./PRODUCT_A_US_MEDSPA_PROMPT_LIBRARY.md) | `product-a` (`/product-a/us-clinics`) | Audit prep, Gmail draft, follow-up, reply classification |
 
 ## Prompts (v1)
 

@@ -62,6 +62,7 @@
 | **B — Direct webhook** | `N8N_PRODUCT_A_INTAKE_WEBHOOK_URL` set; receives flat `corpflow.product_a.intake.v1` JSON |
 
 Payload shapes: `docs/product/PRODUCT_A_INTAKE_WEBHOOK.md`. **Step-by-step n8n build:** `docs/n8n/product-a-us-clinics-implementation-pack.md`.
+Payload shapes: `docs/product/PRODUCT_A_INTAKE_WEBHOOK.md`.
 
 ### 3.2 Steps
 
@@ -105,6 +106,8 @@ Synthetic placeholder rows only (`example.invalid`). Replace before any real out
 
 **Use:** pre-intake cold/warm prospect tracking **separate from** live intake rows. When a prospect submits `/product-a/us-clinics`, append to the **leads** sheet — do not merge prospect CSV automatically.
 
+**Verification ≠ outreach approval:** Completing manual verification or assigning a fit score (§ 6) does **not** set **Drafting allowed = Yes**. Sample `next_action` values are research steps only — not permission to draft or send.
+
 | Column | Purpose |
 | ------ | ------- |
 | `clinic_name` | Target clinic |
@@ -118,6 +121,7 @@ Synthetic placeholder rows only (`example.invalid`). Replace before any real out
 | `source` | e.g. `cold-outreach-florida-v1` |
 | `notes` | Operator research |
 | `next_action` | Next manual step |
+| `next_action` | Next manual step — research / verification only until § 6.3 drafting gate passes |
 
 ---
 
@@ -147,6 +151,14 @@ Until a row passes the drafting gate below, **no Gmail outreach draft** and **no
 Outreach drafting is allowed **only after** manual verification is complete, audit is drafted, **Pipeline Stage** becomes **Approved for draft**, and **Anton Approval** becomes **Yes**.
 
 Until then: **Drafting allowed = No** (matches fit score 1–10 defaults above).
+Outreach drafting is allowed **only after all** of the following:
+
+1. Manual verification is complete.
+2. Audit is drafted.
+3. **Pipeline Stage** becomes **Approved for draft**.
+4. **Anton Approval** becomes **Yes**.
+
+Until all four are true: **Drafting allowed = No** (matches fit score 1–10 defaults in § 6.1). **Verification alone never unlocks drafting.**
 
 ### 6.4 Disqualifier override
 
@@ -167,6 +179,7 @@ Do not resume outreach without explicit operator reset and re-verification.
 
 1. Create Google Sheet from leads CSV template (§ 2).
 2. Build n8n workflow per `docs/n8n/product-a-us-clinics-implementation-pack.md` (or § 3 summary above).
+2. Wire n8n workflow § 3 to Sheet + operator notification.
 3. Confirm Phase 1 intake live: `https://corpflowai.com/product-a/us-clinics`.
 4. Submit one test intake; confirm Sheet row within 60s.
 5. Run audit using rubric § 4 on first real call.
@@ -180,3 +193,4 @@ Do not resume outreach without explicit operator reset and re-verification.
 | ------- | ---------- | ------ |
 | v1 | 2026-06-20 | Initial ops packet — Sheet schema, n8n spec, audit rubric, Florida CSV sample |
 | v1.1 | 2026-06-20 | First 10 Verification Status Rules — fit score bands, approval/drafting gates, disqualifier override |
+| v1.1.1 | 2026-06-20 | Drafting rule as explicit 4-step gate; CSV/sample guidance — verification does not unlock outreach drafts |
