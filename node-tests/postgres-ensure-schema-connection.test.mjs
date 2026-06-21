@@ -5,6 +5,7 @@ import {
   deriveNonPoolingUrlFromNeonPooler,
   detectPostgresUrlDrift,
   formatEnsureSchemaStatementLabel,
+  resolvePostgresDriftBuildOutcome,
   resolvePostgresUrlForEnsureSchemaDdl,
   scanPostgresEnvForDrift,
 } from '../lib/server/postgres-ensure-schema-connection.js';
@@ -58,4 +59,13 @@ test('scanPostgresEnvForDrift reports the offending env key', () => {
   });
   assert.ok(drift);
   assert.equal(drift.env_key, 'POSTGRES_URL');
+});
+
+test('resolvePostgresDriftBuildOutcome fails only on Vercel production', () => {
+  assert.equal(
+    resolvePostgresDriftBuildOutcome({ vercel: true, vercelEnv: 'production' }),
+    'fatal',
+  );
+  assert.equal(resolvePostgresDriftBuildOutcome({ vercel: true, vercelEnv: 'preview' }), 'skip');
+  assert.equal(resolvePostgresDriftBuildOutcome({ vercel: false, vercelEnv: null }), 'skip');
 });
