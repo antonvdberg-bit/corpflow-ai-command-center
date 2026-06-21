@@ -28,6 +28,12 @@
 
 ---
 
+## 2026-06-20 — **Product radar intake batch 2 (docs-only — library capture, issue #435).** Extended `docs/product/PRODUCT_RADAR_CANDIDATES.md` + library index: claude-code-local `WATCH / LOCAL OPERATOR AI PATTERN`; gpt4free `REJECT FOR PRODUCTION / RISK REFERENCE ONLY`; AnyVids `WATCH / UNVERIFIED`; Drafted `PRIORITY PILOT / LUX AI`; MakeInfographic.ai `PILOT / MARKETING ONLY`. Codex-vs-Cursor executor note added. Verdict: **RADAR INTAKE CAPTURED: CLAUDE-CODE-LOCAL, GPT4FREE, ANYVIDS, DRAFTED, MAKEINFOGRAPHIC — NO INSTALLATION AUTHORIZED**.
+
+<!-- PRODUCT_RADAR_CANDIDATES_435_2026_06_20_HIST -->
+
+---
+
 ## 2026-06-20 — **Product radar intake (docs-only — library capture, issue #429).** New `docs/product/PRODUCT_RADAR_CANDIDATES.md` + library index row: Guild.ai and Retool `PILOT / STUDY PATTERN`; There Is An AI For That Launch `WATCH / RADAR SOURCE`; ownAI `WATCH / SANDBOX LATER`. Verdict: **RADAR INTAKE CAPTURED: GUILD.AI, RETOOL, TAAFT LAUNCH, OWNAI — NO INSTALLATION AUTHORIZED**.
 
 <!-- PRODUCT_RADAR_CANDIDATES_2026_06_20_HIST -->
