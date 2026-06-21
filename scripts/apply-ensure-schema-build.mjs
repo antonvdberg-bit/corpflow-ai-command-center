@@ -9,8 +9,10 @@ import { PrismaClient } from '@prisma/client';
 
 import {
   deriveNonPoolingUrlFromNeonPooler,
+  detectPostgresUrlDrift,
   formatEnsureSchemaStatementLabel,
   resolvePostgresUrlForEnsureSchemaDdl,
+  scanPostgresEnvForDrift,
 } from '../lib/server/postgres-ensure-schema-connection.js';
 import { ENSURE_SCHEMA_STATEMENTS } from '../lib/server/postgres-ensure-schema-statements.js';
 
@@ -54,8 +56,38 @@ async function main() {
     return;
   }
 
+  const envDrift = scanPostgresEnvForDrift(process.env);
+  if (envDrift) {
+    console.error(
+      '[ensure_schema_build] FATAL',
+      JSON.stringify({
+        drift: true,
+        env_key: envDrift.env_key,
+        code: envDrift.code,
+        message: envDrift.reason,
+        playbook: 'docs/operations/POSTGRES_PROVIDER.md §5b',
+      }),
+    );
+    process.exit(1);
+  }
+
   const { url: pgUrl, urlMode } = resolveBuildPostgresUrl();
   const onVercelProd = Boolean(process.env.VERCEL) && String(process.env.VERCEL_ENV || '') === 'production';
+
+  const selectedUrlDrift = detectPostgresUrlDrift(pgUrl);
+  if (selectedUrlDrift) {
+    console.error(
+      '[ensure_schema_build] FATAL',
+      JSON.stringify({
+        drift: true,
+        url_mode: urlMode,
+        code: selectedUrlDrift.code,
+        message: selectedUrlDrift.reason,
+        playbook: 'docs/operations/POSTGRES_PROVIDER.md §5b',
+      }),
+    );
+    process.exit(1);
+  }
 
   if (!pgUrl) {
     if (onVercelProd) {

@@ -26,6 +26,10 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { spawnSync } from 'child_process';
+import {
+  POSTGRES_DRIFT_ENV_KEYS,
+  scanPostgresEnvForDrift,
+} from '../lib/server/postgres-ensure-schema-connection.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
@@ -212,6 +216,38 @@ async function fetchAllEnvs(ctx) {
   return all;
 }
 
+async function fetchProductionEnvsDecrypted(ctx) {
+  const { projectId, teamId } = ctx;
+  const sp = { decrypt: 'true' };
+  if (teamId) sp.teamId = teamId;
+  const data = await vercelFetch('GET', `/v9/projects/${encodeURIComponent(projectId)}/env`, {
+    teamId,
+    searchParams: sp,
+  });
+  return Array.isArray(data?.envs) ? data.envs : [];
+}
+
+/**
+ * Scan decryptable Production DB env rows for Prisma Postgres / Accelerate drift.
+ * Never logs secret values.
+ *
+ * @param {Array<{ key?: string, target?: string[], type?: string, value?: string }>} envs
+ */
+function scanVercelProductionPostgresDrift(envs) {
+  const syntheticEnv = {};
+  for (const e of envs) {
+    const key = String(e?.key || '');
+    if (!POSTGRES_DRIFT_ENV_KEYS.includes(key)) continue;
+    const targets = Array.isArray(e?.target) ? e.target : [];
+    if (!targets.includes('production')) continue;
+    const isSensitive = String(e?.type || '').toLowerCase() === 'sensitive';
+    const decryptable = !isSensitive && Object.prototype.hasOwnProperty.call(e, 'value');
+    if (!decryptable) continue;
+    syntheticEnv[key] = e.value;
+  }
+  return scanPostgresEnvForDrift(syntheticEnv);
+}
+
 function remoteKeySetFromEnvs(envs) {
   const set = new Set();
   for (const e of envs) {
@@ -257,7 +293,7 @@ async function getRemoteKeys(backend, ctx) {
   return { keys: parseVercelEnvLs(r.stdout || ''), envs: null };
 }
 
-function runCheck(remoteKeys, policy, flags) {
+function runCheck(remoteKeys, policy, flags, postgresDrift = null) {
   const missing = [];
   for (const k of policy.required_keys || []) {
     if (!remoteKeys.has(k)) missing.push(k);
@@ -285,11 +321,20 @@ function runCheck(remoteKeys, policy, flags) {
     console.error('Missing comprehensive_important_keys:');
     for (const k of compMissing) console.error(`  - ${k}`);
   }
+  if (postgresDrift) {
+    console.error('Postgres provider drift detected on Vercel Production (decryptable env only):');
+    console.error(`  - env_key=${postgresDrift.env_key} code=${postgresDrift.code}`);
+    console.error(`  - ${postgresDrift.reason}`);
+    console.error('  - Playbook: docs/operations/POSTGRES_PROVIDER.md §5b');
+    console.error('  - Also run: GitHub Actions → Diagnose Vercel Postgres env (no values)');
+  }
 
-  const fail = missing.length > 0 || anyFails.length > 0 || compMissing.length > 0;
+  const fail =
+    missing.length > 0 || anyFails.length > 0 || compMissing.length > 0 || Boolean(postgresDrift);
   if (!fail) {
     console.log('vercel-env check: OK (policy gates satisfied).');
     if (flags.comprehensive) console.log('  (--comprehensive important set included.)');
+    console.log('  (Postgres drift scan: no prisma.io / prisma:// in decryptable Production DB envs.)');
   }
   process.exit(fail ? 1 : 0);
 }
@@ -434,7 +479,20 @@ Local link: npx vercel link  → .vercel/project.json
   if (cmd === 'check') {
     const ctx = backend === 'api' ? resolveProjectContext() : null;
     const { keys } = await getRemoteKeys(backend, ctx);
-    runCheck(keys, policy, flags);
+    let postgresDrift = null;
+    if (backend === 'api' && ctx) {
+      try {
+        const decryptedEnvs = await fetchProductionEnvsDecrypted(ctx);
+        postgresDrift = scanVercelProductionPostgresDrift(decryptedEnvs);
+      } catch (e) {
+        console.error(
+          `Postgres drift scan skipped (Vercel decrypt fetch failed): ${
+            e instanceof Error ? e.message : e
+          }`,
+        );
+      }
+    }
+    runCheck(keys, policy, flags, postgresDrift);
     return;
   }
 
