@@ -1,5 +1,14 @@
 import React from 'react';
+import Link from 'next/link';
 import PublicPolicyLayout, { policyStyles as ps } from '../components/PublicPolicyLayout.js';
+import {
+  CURRENCY_PRIMARY,
+  CURRENCY_SECONDARY,
+  MERCHANT_LEGAL_NAME,
+  MERCHANT_OUTLET_COUNTRY,
+  TRANSACTION_RECEIPT_FIELDS,
+  formatCurrencyDisclosure,
+} from '../lib/public/merchant-identity.js';
 
 export default function TermsPage() {
   return (
@@ -7,9 +16,13 @@ export default function TermsPage() {
       <section style={ps.section}>
         <h2 style={ps.h2}>Service description</h2>
         <p style={ps.p}>
-          CorpFlowAI provides practical AI-assisted workflow systems for small businesses, including productized offers
-          such as AI Lead Rescue. Services may include intake review, workflow setup, alerts, logging, summaries, and
-          optional monitoring.
+          {MERCHANT_LEGAL_NAME} provides practical AI-assisted workflow systems for small businesses, including
+          productized offers such as AI Lead Rescue. Services may include intake review, workflow setup, alerts,
+          logging, summaries, and optional monitoring. See the{' '}
+          <Link href="/services" style={{ color: '#7dd3fc' }}>
+            services page
+          </Link>{' '}
+          for a complete description.
         </p>
       </section>
       <section style={ps.section}>
@@ -47,24 +60,51 @@ export default function TermsPage() {
         </p>
       </section>
       <section style={ps.section}>
-        <h2 style={ps.h2}>Service fulfilment</h2>
+        <h2 style={ps.h2}>Service fulfilment and delivery</h2>
         <p style={ps.p}>
           The AI Lead Rescue launch pilot is a digital service. There is no physical shipment. Lead Rescue setup is
           targeted within 48 hours after payment confirmation and receipt of all required client information. Where
           additional clarification, access, client input, or scope confirmation is needed, setup will normally be
           completed within 5 business days unless otherwise agreed.
         </p>
+        <p style={ps.p}>
+          Full delivery terms:{' '}
+          <Link href="/delivery-policy" style={{ color: '#7dd3fc' }}>
+            delivery policy
+          </Link>
+          .
+        </p>
       </section>
       <section style={ps.section}>
-        <h2 style={ps.h2}>Payment</h2>
+        <h2 style={ps.h2}>Payment and currencies</h2>
         <p style={ps.p}>
           Payment is handled after intake review and scope confirmation. This website does not collect card or banking
-          details. Payment instructions are provided through the agreed invoice or payment route. All transactions for
-          the AI Lead Rescue launch pilot are processed in USD.
+          details on the marketing pages. Payment instructions are provided through the agreed invoice or hosted payment
+          link from our acquiring bank when card payments are enabled.
         </p>
+        <p style={ps.p}>{formatCurrencyDisclosure()}</p>
         <p style={ps.p}>
-          Each successful payment is acknowledged by a PDF invoice issued by CorpFlowAI Ltd recording the invoice
-          number, line item, ticket amount, currency, payment route, and payment-confirmation timestamp.
+          Primary launch-pilot currency: {CURRENCY_PRIMARY}. Mauritius pro-forma currency where applicable:{' '}
+          {CURRENCY_SECONDARY}.
+        </p>
+      </section>
+      <section style={ps.section}>
+        <h2 style={ps.h2}>Receipts and transaction records</h2>
+        <p style={ps.p}>
+          Each successful payment is acknowledged by a PDF invoice or receipt issued by {MERCHANT_LEGAL_NAME}. Records
+          include, where applicable:
+        </p>
+        <ul style={ps.ul}>
+          {TRANSACTION_RECEIPT_FIELDS.map((field) => (
+            <li key={field}>{field}</li>
+          ))}
+        </ul>
+        <p style={ps.p}>
+          Payment-card security:{' '}
+          <Link href="/payment-security" style={{ color: '#7dd3fc' }}>
+            payment security policy
+          </Link>
+          .
         </p>
       </section>
       <section style={ps.section}>
@@ -78,8 +118,8 @@ export default function TermsPage() {
       <section style={ps.section}>
         <h2 style={ps.h2}>Governing law</h2>
         <p style={ps.p}>
-          The applicable governing law and contracting entity will be confirmed on the invoice or service agreement for
-          the specific engagement.
+          {MERCHANT_LEGAL_NAME} is incorporated in {MERCHANT_OUTLET_COUNTRY}. The applicable governing law and contracting
+          entity will be confirmed on the invoice or service agreement for the specific engagement.
         </p>
       </section>
     </PublicPolicyLayout>

@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import PublicPolicyLayout, { policyStyles as ps } from '../components/PublicPolicyLayout.js';
+import { formatCurrencyDisclosure } from '../lib/public/merchant-identity.js';
 
 export default function RefundPolicyPage() {
   return (
@@ -9,7 +10,7 @@ export default function RefundPolicyPage() {
         <h2 style={ps.h2}>Payment timing</h2>
         <p style={ps.p}>
           Payment is handled after intake review and scope confirmation. This website does not collect card or banking
-          details. All transactions for the AI Lead Rescue launch pilot are processed in USD.
+          details on the marketing pages. {formatCurrencyDisclosure()}
         </p>
         <p style={ps.p}>
           Each successful payment is acknowledged by a PDF invoice issued by CorpFlowAI Ltd recording the invoice
@@ -37,6 +38,25 @@ export default function RefundPolicyPage() {
         <p style={ps.p}>
           Monthly monitoring or support, when offered, can usually be cancelled before the next billing period. Fees for
           work already delivered remain due.
+        </p>
+      </section>
+      <section style={ps.section}>
+        <h2 style={ps.h2}>Digital services — returns</h2>
+        <p style={ps.p}>
+          Services are digital. There are no physical goods to return and no shipping refunds. Cancellation and refund
+          rights are described in the sections below and on our{' '}
+          <Link href="/delivery-policy" style={{ color: '#7dd3fc' }}>
+            delivery policy
+          </Link>
+          .
+        </p>
+      </section>
+      <section style={ps.section}>
+        <h2 style={ps.h2}>Chargebacks (when card payments are live)</h2>
+        <p style={ps.p}>
+          When card payments are processed through our bank&apos;s gateway, chargebacks are handled through the
+          bank&apos;s dispute process. CorpFlowAI supplies engagement evidence (intake, scope confirmation, delivery
+          records, and support correspondence) within the timeline the bank specifies.
         </p>
       </section>
       <section style={ps.section}>

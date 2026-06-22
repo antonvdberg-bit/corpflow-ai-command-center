@@ -32,9 +32,16 @@ const APEX_PATHS = [
   '/lead-rescue',
   '/lead-rescue/property-mauritius',
   '/about',
+  '/services',
   '/process',
   '/standards',
   '/onboarding',
+  '/contact',
+  '/privacy',
+  '/terms',
+  '/refund-policy',
+  '/delivery-policy',
+  '/payment-security',
 ];
 
 const LUX_STATIC_PATHS = ['/', '/concierge'];
