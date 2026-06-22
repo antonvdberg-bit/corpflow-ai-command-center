@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 import {
   CUSTOMER_SERVICE_EMAIL,
+  CUSTOMER_SERVICE_PHONE,
   MERCHANT_BRN,
   MERCHANT_LEGAL_NAME,
   MERCHANT_OUTLET_COUNTRY,
