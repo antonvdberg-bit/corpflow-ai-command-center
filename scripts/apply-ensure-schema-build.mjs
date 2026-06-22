@@ -9,8 +9,11 @@ import { PrismaClient } from '@prisma/client';
 
 import {
   deriveNonPoolingUrlFromNeonPooler,
+  detectPostgresUrlDrift,
   formatEnsureSchemaStatementLabel,
+  resolvePostgresDriftBuildOutcome,
   resolvePostgresUrlForEnsureSchemaDdl,
+  scanPostgresEnvForDrift,
 } from '../lib/server/postgres-ensure-schema-connection.js';
 import { ENSURE_SCHEMA_STATEMENTS } from '../lib/server/postgres-ensure-schema-statements.js';
 
@@ -48,14 +51,57 @@ function resolveBuildPostgresUrl() {
   };
 }
 
+/**
+ * @param {{ env_key?: string, code: string, reason: string, url_mode?: string }} drift
+ * @returns {'fatal' | 'skip'}
+ */
+function logPostgresDriftAndResolveOutcome(drift) {
+  const outcome = resolvePostgresDriftBuildOutcome();
+  const payload = {
+    drift: true,
+    ...(drift.env_key ? { env_key: drift.env_key } : {}),
+    ...(drift.url_mode ? { url_mode: drift.url_mode } : {}),
+    code: drift.code,
+    message: drift.reason,
+    playbook: 'docs/operations/POSTGRES_PROVIDER.md §5b',
+    vercel_env: process.env.VERCEL_ENV || null,
+    build_outcome: outcome,
+  };
+
+  if (outcome === 'fatal') {
+    console.error('[ensure_schema_build] FATAL', JSON.stringify(payload));
+    return 'fatal';
+  }
+
+  const prefix = process.env.VERCEL
+    ? '[ensure_schema_build] SKIP: postgres provider drift on preview/development — ensure-schema DDL skipped; repoint before Production deploy'
+    : '[ensure_schema_build] SKIP: postgres provider drift in local env';
+  console.warn(prefix, JSON.stringify(payload));
+  return 'skip';
+}
+
 async function main() {
   if (String(process.env.CORPFLOW_SKIP_ENSURE_SCHEMA_BUILD || '').toLowerCase() === 'true') {
     console.log('[ensure_schema_build] SKIP: CORPFLOW_SKIP_ENSURE_SCHEMA_BUILD=true');
     return;
   }
 
+  const envDrift = scanPostgresEnvForDrift(process.env);
+  if (envDrift) {
+    if (logPostgresDriftAndResolveOutcome(envDrift) === 'fatal') process.exit(1);
+    return;
+  }
+
   const { url: pgUrl, urlMode } = resolveBuildPostgresUrl();
   const onVercelProd = Boolean(process.env.VERCEL) && String(process.env.VERCEL_ENV || '') === 'production';
+
+  const selectedUrlDrift = detectPostgresUrlDrift(pgUrl);
+  if (selectedUrlDrift) {
+    if (logPostgresDriftAndResolveOutcome({ ...selectedUrlDrift, url_mode: urlMode }) === 'fatal') {
+      process.exit(1);
+    }
+    return;
+  }
 
   if (!pgUrl) {
     if (onVercelProd) {
