@@ -10,10 +10,43 @@
 
 - 2026-06-20 — issue [#429](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/429) — Guild.ai, Retool, TAAFT Launch, ownAI.
 - 2026-06-20 — issue [#435](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/435) — claude-code-local, gpt4free, AnyVids, Drafted, MakeInfographic.ai.
+- 2026-06-22 — **weekly product radar** — Langfuse, Chatwoot, OpenJarvis, OpenClaw, Agyn, Twenty CRM, Mixpost, Cal.diy, AgentSight / AgentTrace, n8n hardening track.
+- 2026-06-22 — **Product A direction sync** — AgentSpan verified; Twenty/EspoCRM bake-off; Postiz social discovery; Chatwoot as standard inbox (see `PRODUCT_A_REVENUE_MACHINE_IMPLEMENTATION_PLAN.md` v2).
 
 **Overall repo verdict (issue #429):** `RADAR INTAKE CAPTURED: GUILD.AI, RETOOL, TAAFT LAUNCH, OWNAI — NO INSTALLATION AUTHORIZED`
 
 **Overall repo verdict (issue #435):** `RADAR INTAKE CAPTURED: CLAUDE-CODE-LOCAL, GPT4FREE, ANYVIDS, DRAFTED, MAKEINFOGRAPHIC — NO INSTALLATION AUTHORIZED`
+
+**Overall repo verdict (weekly radar 2026-06-22):** `WEEKLY PRODUCT RADAR CAPTURED — LANGFUSE, CHATWOOT, OPENJARVIS, OPENCLAW, AGYN, TWENTY, MIXPOST, CAL.DIY, AGENTSIGHT/AGENTTRACE, N8N HARDENING — NO INSTALLATION AUTHORIZED`
+
+---
+
+## Weekly product radar — 2026-06-22 (ranked shortlist)
+
+**Cadence:** Anton's weekly peripheral radar — ranked recommendations, adoption risks, self-hosting posture, and pilot gates. **Recommendations are directional only**; every entry below still carries **`NO IMPLEMENTATION AUTHORIZED`** until Anton approves a separate authorization packet.
+
+| Rank | Entry | Recommendation | Self-host | Pilot gate (bounded next step) |
+| ---- | ----- | -------------- | --------- | ------------------------------ |
+| 1 | [Langfuse](#langfuse--llm-observability--prompt-management) | **ADOPT / PILOT IMMEDIATELY** | Yes (OSS + cloud) | Sandbox Langfuse instance; instrument **one** non-production Lead Rescue / chatbot flow only |
+| 2 | [n8n hardening track](#n8n-hardening-track--workflow-spine-security-process) | **ADOPT PROCESS** | Already on `corpflow-exec-01` | Trusted users only; no public editor; version pin + update policy; credential inventory; backup/restore test; review Code nodes; isolate secret-touching workflows |
+| 3 | [Chatwoot](#chatwoot--customer-support--live-chat-inbox) | **PILOT / PRODUCT A INBOX STANDARD** | Yes (OSS) | Demo medspa inbox: widget, pre-chat form, lead classification, human handoff, n8n sync (not CRM) |
+| 4 | [Social scheduling discovery](#social-scheduling-discovery--postiz-mixpost) | **DISCOVERY / PILOT LIGHTLY** | Varies | Postiz + Mixpost + others; internal accounts only; no GHL-native scheduling |
+| 5 | [OpenJarvis](#openjarvis--local-personal-ai-architecture) | **WATCH / RESEARCH** | Yes (local) | Research-only until repo maturity and deployment path verified |
+| 6 | [OpenClaw](#openclaw--self-hosted-agentic-operator-assistant) | **WATCH / SANDBOX ONLY** | Yes (self-hosted) | Disposable VPS only; no production credentials, client data, production DB, or broad network permissions |
+| 7 | [AgentSight / AgentTrace](#agentsight--agenttrace--agent-observability-alternatives) | **WATCH AS AGENTSPAN ALTERNATIVES** | Varies | No install; compare against [AgentSpan](#agentspan--durable-agent-execution-runtime) |
+| 8 | [Agyn](#agyn--zero-trust-agent-runtime-reference) | **WATCH / ARCHITECTURE REFERENCE** | K8s-style (heavy) | No install; likely too early and too heavy |
+| 9 | [Twenty CRM](#twenty-crm--crm-bake-off-candidate) | **CRM BAKE-OFF CANDIDATE** | Yes (OSS) | Sandbox bake-off vs EspoCRM; GHL migration-away |
+| 10 | [Cal.diy](#caldiy--scheduling-infrastructure-reference) | **REVISIT / DO NOT USE FOR CLIENT PRODUCTION NOW** | Community self-host | Not for client production; repo warns personal/non-production intent |
+
+**Cross-cutting adoption risks (this week):**
+
+| Risk | Affected entries | Mitigation |
+| ---- | ---------------- | ---------- |
+| Standing § 5.5 carve-out is **Uptime Kuma only** | Langfuse, Chatwoot, OpenClaw, Mixpost | Separate ADR + authorization packet + § 10 gate before any L3 install |
+| n8n RCE-class and agentic workflow hijacking | n8n hardening, Chatwoot/n8n sync pilots | Adopt hardening process **before** expanding n8n surface area |
+| CRM duplication / GHL lock-in | Twenty, EspoCRM, legacy GHL at clients | GHL migration-away; Twenty vs EspoCRM bake-off; prefer maintained product sets |
+| Community scheduling not production-grade | Cal.diy | Reference only for client production scheduling |
+| Agent execution runtime premature | AgentSpan | Revisit after Langfuse + Chatwoot + CRM bake-off |
 
 ---
 
@@ -30,6 +63,20 @@
 | [AnyVids](#anyvids--unverified-media-tool) | `WATCH / UNVERIFIED` | 2026-06-20 |
 | [Drafted](#drafted--ai-house-plans--lux-ai-priority-pilot) | `PRIORITY PILOT / OPERATOR-SIDE ONLY` | 2026-06-20 |
 | [MakeInfographic.ai](#makeinfographicai--marketing-infographic-generator) | `PILOT / OPERATOR-SIDE ONLY` | 2026-06-20 |
+| [Langfuse](#langfuse--llm-observability--prompt-management) | `ADOPT / PILOT IMMEDIATELY` | 2026-06-22 |
+| [n8n hardening track](#n8n-hardening-track--workflow-spine-security-process) | `ADOPT PROCESS` | 2026-06-22 |
+| [Chatwoot](#chatwoot--customer-support--live-chat-inbox) | `PILOT / PRODUCT A INBOX STANDARD` | 2026-06-22 |
+| [Social scheduling discovery](#social-scheduling-discovery--postiz-mixpost) | `DISCOVERY / PILOT LIGHTLY` | 2026-06-22 |
+| [Postiz](#postiz--social-scheduler-candidate) | `DISCOVERY` | 2026-06-22 |
+| [Mixpost](#mixpost--self-hosted-social-scheduler) | `DISCOVERY CANDIDATE` | 2026-06-22 |
+| [OpenJarvis](#openjarvis--local-personal-ai-architecture) | `WATCH / RESEARCH` | 2026-06-22 |
+| [OpenClaw](#openclaw--self-hosted-agentic-operator-assistant) | `WATCH / SANDBOX ONLY` | 2026-06-22 |
+| [AgentSight / AgentTrace](#agentsight--agenttrace--agent-observability-alternatives) | `WATCH AS AGENTSPAN ALTERNATIVES` | 2026-06-22 |
+| [AgentSpan](#agentspan--durable-agent-execution-runtime) | `WATCH / REVISIT` | 2026-06-22 |
+| [Agyn](#agyn--zero-trust-agent-runtime-reference) | `WATCH / ARCHITECTURE REFERENCE` | 2026-06-22 |
+| [Twenty CRM](#twenty-crm--crm-bake-off-candidate) | `CRM BAKE-OFF CANDIDATE` | 2026-06-22 |
+| [EspoCRM](#espocrm--crm-bake-off-candidate) | `CRM BAKE-OFF CANDIDATE` | 2026-06-22 |
+| [Cal.diy](#caldiy--scheduling-infrastructure-reference) | `REVISIT / NO CLIENT PRODUCTION NOW` | 2026-06-22 |
 
 ---
 
@@ -712,6 +759,472 @@
 
 ---
 
+## Langfuse — LLM observability / prompt management
+
+**Status:** `ADOPT / PILOT IMMEDIATELY`
+
+**Verdict:** `LANGFUSE CAPTURED AS LLM OBSERVABILITY PILOT — NO INSTALLATION AUTHORIZED`
+
+**URL:** https://langfuse.com/ · https://github.com/langfuse/langfuse
+
+**NO IMPLEMENTATION AUTHORIZED** by this capture alone.
+
+### Why Anton added it
+
+- **LLM observability**, prompt management, evals, datasets, and tracing — directly relevant to Lead Rescue, AI receptionist, chatbot, and operator-agent workflows.
+- Highest-priority pilot in the 2026-06-22 weekly radar: closes the observability gap before scaling AI surfaces.
+
+### Self-hosting notes
+
+| Mode | Notes |
+| ---- | ----- |
+| Self-hosted OSS | Docker / Helm; separate Postgres recommended for Langfuse data |
+| Langfuse Cloud | Faster pilot; still requires separate security review before production traces |
+| CorpFlow constraint | **Not** authorized on `corpflow-exec-01` without ADR + authorization packet (standing holds list Langfuse explicitly) |
+
+### Pilot gate (bounded next step)
+
+1. **Sandbox Langfuse instance** — operator-side or disposable cloud project; **not** production `POSTGRES_URL`.
+2. Instrument **one** non-production Lead Rescue or chatbot flow only.
+3. Evaluate: trace quality, prompt versioning, eval datasets, PII redaction, retention, and cost.
+4. **Decision gate** — written approval before production traces, tenant data, or L3 install.
+
+### Adoption risks
+
+| Risk | Mitigation |
+| ---- | ---------- |
+| Client PII in traces | Sandbox flow only; redaction policy before production |
+| Second production database temptation | Langfuse may use its own DB — **not** CorpFlow production Postgres without explicit packet |
+| Premature L3 install | Defer to authorization packet; Uptime Kuma is the only § 5.5 carve-out today |
+
+### Guardrails (this capture)
+
+- No installation. No MCP config. No env vars. No runtime code. No production credentials or client data.
+
+### Related canonical docs
+
+- `docs/operations/SELF_HOSTED_OPS_STACK_V1.md` — Langfuse out of scope for Phase 1.
+- `docs/operations/SERVER_AGENT_ACCESS_AND_EXECUTION_BOUNDARY_V1.md` — L3 install requires packet.
+
+---
+
+## n8n hardening track — workflow spine security process
+
+**Status:** `ADOPT PROCESS`
+
+**Verdict:** `N8N HARDENING PROCESS CAPTURED — NO WORKFLOW OR RUNTIME CHANGES AUTHORIZED BY THIS CAPTURE`
+
+**Context:** n8n on `corpflow-exec-01` remains the **workflow spine**; hardening is **mandatory** due to recent RCE-class vulnerabilities and agentic workflow hijacking risks.
+
+**NO IMPLEMENTATION AUTHORIZED** by this capture alone — process adoption and operator checklist only.
+
+### Why Anton added it
+
+- n8n is already production-adjacent (Kuma sub-probe 8, automation forward, Lead Rescue ops).
+- Security posture must improve **before** expanding Chatwoot/GHL sync pilots or new secret-touching workflows.
+
+### Mandatory gates (operator process — adopt immediately)
+
+| Gate | Requirement |
+| ---- | ----------- |
+| Trusted users only | Remove or disable untrusted accounts; audit who can edit workflows |
+| No public editor | Editor UI not exposed to the public internet |
+| Version pinning + update policy | Pin image/version; documented review before upgrades |
+| Credential inventory | List every n8n credential; rotate on schedule |
+| Backup / restore test | Prove workflow + credential recovery |
+| Review Code nodes | No arbitrary code without human review |
+| Isolate secret-touching workflows | Separate credentials and access for workflows that touch secrets |
+
+### Adoption risks
+
+| Risk | Mitigation |
+| ---- | ---------- |
+| RCE via Code node or vulnerable version | Pin version; review Code nodes; patch cadence |
+| Agentic workflow hijacking | Trusted users only; no public editor; isolate secrets |
+| Expanding n8n before hardening | Chatwoot/GHL sync pilots wait on baseline hardening evidence |
+
+### Guardrails (this capture)
+
+- Docs/process capture only. No n8n config changes, no workflow edits, no credential rotation in this PR.
+
+### Related canonical docs
+
+- `docs/automation-framework.md`, `docs/n8n/automation-forward-recipe.md`
+- `docs/operations/MONITORING_ARCHITECTURE.md` — n8n health sub-probe
+
+---
+
+## Chatwoot — customer support / live chat inbox
+
+**Status:** `PILOT / PRODUCT A INBOX STANDARD`
+
+**Verdict:** `CHATWOOT IS PRODUCT A CONVERSATION INBOX STANDARD — NO INSTALLATION AUTHORIZED`
+
+**URL:** https://www.chatwoot.com/ · https://github.com/chatwoot/chatwoot
+
+**NO IMPLEMENTATION AUTHORIZED** by this capture alone.
+
+### Why Anton added it
+
+- CorpFlowAI **standard** for website chat, live chat, and conversation inbox.
+- **Not the CRM** — pairs with Twenty/EspoCRM bake-off winner for records.
+- Potential **website lead capture** and **human handoff** for Product A medspa and Lead Rescue surfaces.
+
+### Self-hosting notes
+
+| Item | Notes |
+| ---- | ----- |
+| Stack | Rails + Postgres + Redis; heavier than Kuma |
+| CorpFlow constraint | Explicitly on forbidden list until separate ADR + authorization packet |
+
+### Pilot gate (bounded next step)
+
+Demo **medspa inbox**: website widget, pre-chat form, lead classification, human handoff, **n8n sync** — **sandbox only**, no production client data. **Not** GHL sync.
+
+### Adoption risks
+
+| Risk | Mitigation |
+| ---- | ---------- |
+| Confused with CRM | Document boundary: Chatwoot = inbox only |
+| Second app on exec-01 | Not authorized without packet; consider disposable VPS for pilot |
+| n8n sync before hardening | Complete n8n hardening gates first |
+
+### Guardrails (this capture)
+
+- No installation. No widget on production tenant hosts. No client data.
+
+### Related canonical docs
+
+- `docs/product/PRODUCT_A_REVENUE_MACHINE_IMPLEMENTATION_PLAN.md` § 19
+- `docs/product/CHAT_DESTINATION_REFERENCE_SOCIAL_INTENTS.md` — destination shape vs install
+
+---
+
+## Social scheduling discovery — Postiz, Mixpost
+
+**Status:** `DISCOVERY / PILOT LIGHTLY`
+
+**Verdict:** `SOCIAL SCHEDULING DISCOVERY CAPTURED — NO DEFAULT VENDOR — NO INSTALLATION AUTHORIZED`
+
+**NO IMPLEMENTATION AUTHORIZED** by this capture alone.
+
+### Why Anton added it
+
+- Self-hosted / productized **social media scheduling** for CorpFlowAI content production.
+- **Do not default to Mixpost.** **GHL-native social scheduling is not an option.**
+
+### Candidates
+
+| Candidate | URL | Notes |
+| --------- | --- | ----- |
+| Postiz | https://postiz.com/ | Discovery |
+| Mixpost | https://mixpost.app/ | One candidate — not default |
+| Others | TBD | Add maintained product sets as discovered |
+
+### Pilot gate
+
+Internal CorpFlowAI accounts only first; no client accounts until API/platform policy reviewed.
+
+### Guardrails
+
+- No installation. No GHL social modules.
+
+### Related canonical docs
+
+- `docs/product/PRODUCT_A_REVENUE_MACHINE_IMPLEMENTATION_PLAN.md` § 17
+
+---
+
+## Postiz — social scheduler candidate
+
+**Status:** `DISCOVERY`
+
+**Verdict:** `POSTIZ CAPTURED AS SOCIAL SCHEDULING CANDIDATE — NO INSTALLATION AUTHORIZED`
+
+**URL:** https://postiz.com/
+
+**NO IMPLEMENTATION AUTHORIZED** by this capture alone.
+
+Part of social scheduling discovery track — see [Social scheduling discovery](#social-scheduling-discovery--postiz-mixpost).
+
+---
+
+## Mixpost — self-hosted social scheduler
+
+**Status:** `DISCOVERY CANDIDATE` (not default)
+
+**Verdict:** `MIXPOST CAPTURED AS SOCIAL SCHEDULING CANDIDATE — NO INSTALLATION AUTHORIZED`
+
+**URL:** https://mixpost.app/
+
+**NO IMPLEMENTATION AUTHORIZED** by this capture alone.
+
+### Why Anton added it
+
+- Self-hosted **social media scheduler** for CorpFlowAI content production (operator marketing cadence).
+
+### Self-hosting notes
+
+| Item | Notes |
+| ---- | ----- |
+| PHP/Laravel stack | Separate install; not on CorpFlow Vercel app |
+| Platform APIs | Requires OAuth tokens per social network |
+
+### Pilot gate (bounded next step)
+
+**Internal CorpFlowAI accounts only** first. **No client accounts** until API/platform policy and permissions are reviewed.
+
+### Adoption risks
+
+| Risk | Mitigation |
+| ---- | ---------- |
+| Platform ToS / API policy violations | Internal accounts only; legal review before client use |
+| OAuth token storage | Sandbox credentials only; no production CorpFlow secrets |
+
+### Guardrails (this capture)
+
+- No installation. No client social accounts. No production OAuth in repo.
+
+### Related canonical docs
+
+- `docs/product/MARKETING_AUTOMATION_CONTENT_ENGINE_CANDIDATES.md`
+- `docs/marketing/02_MULTIMODAL_CONTENT_PLAYBOOK.md`
+
+---
+
+## OpenJarvis — local personal-AI architecture
+
+**Status:** `WATCH / RESEARCH`
+
+**Verdict:** `OPENJARVIS CAPTURED AS LOCAL AI ARCHITECTURE RESEARCH — NO INSTALLATION AUTHORIZED`
+
+**URL:** https://github.com/OpenJarvis (verify repo maturity during research)
+
+**NO IMPLEMENTATION AUTHORIZED** by this capture alone.
+
+### Why Anton added it
+
+- **Decomposed local personal-AI architecture** — promising for future operator productivity and lower API cost.
+
+### Constraint
+
+**Research-only** until repo maturity and deployment path are verified.
+
+### Adoption risks
+
+| Risk | Mitigation |
+| ---- | ---------- |
+| Immature OSS | No install until maturity review |
+| Confusion with production agents | Pattern study only |
+
+### Guardrails (this capture)
+
+- No installation. No MCP config. On standing forbidden list for L3 until packet.
+
+---
+
+## OpenClaw — self-hosted agentic operator assistant
+
+**Status:** `WATCH / SANDBOX ONLY`
+
+**Verdict:** `OPENCLAW CAPTURED AS SANDBOX AGENT PATTERN — NO INSTALLATION AUTHORIZED`
+
+**URL:** Verify official repo during sandbox research
+
+**NO IMPLEMENTATION AUTHORIZED** by this capture alone.
+
+### Why Anton added it
+
+- **Self-hosted agentic operator assistant** pattern — study for future operator tooling.
+
+### Constraint
+
+**Disposable VPS only.** No production credentials, no client data, no production DB, no broad network permissions.
+
+### Adoption risks
+
+| Risk | Mitigation |
+| ---- | ---------- |
+| Agent with broad tool access | Disposable VPS; no CorpFlow secrets |
+| Data exfiltration | No client data; network egress restricted in sandbox |
+
+### Guardrails (this capture)
+
+- No installation on `corpflow-exec-01`, Vercel, or production Postgres.
+
+---
+
+## AgentSight / AgentTrace — agent observability alternatives
+
+**Status:** `WATCH AS AGENTSPAN ALTERNATIVES`
+
+**Verdict:** `AGENTSIGHT / AGENTTRACE CAPTURED AS OBSERVABILITY RESEARCH — NO INSTALLATION AUTHORIZED`
+
+**NO IMPLEMENTATION AUTHORIZED** by this capture alone.
+
+### Why Anton added it
+
+- **Agent observability / security research** alternatives to AgentSpan for future governance.
+
+### Note
+
+Compare during research passes; no install authorized. See [AgentSpan](#agentspan--durable-agent-execution-runtime).
+
+### Guardrails (this capture)
+
+- Research and docs only. No install. No production agent instrumentation.
+
+---
+
+## AgentSpan — durable agent execution runtime
+
+**Status:** `WATCH / REVISIT`
+
+**Verdict:** `AGENTSPAN VERIFIED — WATCH / REVISIT — NO INSTALLATION AUTHORIZED`
+
+**URL:** https://agentspan.ai (verified 2026-06-22)
+
+**Category:** Durable execution runtime for AI agents.
+
+**NO IMPLEMENTATION AUTHORIZED** by this capture alone.
+
+### Why Anton added it
+
+- Potential **agent execution runtime** for future CorpFlow operator-agent workflows.
+- **Not** a Product A immediate dependency.
+
+### Constraint
+
+- **WATCH / REVISIT** only.
+- **Not** connected to production credentials or client data.
+- Revisit after **Langfuse + Chatwoot + CRM bake-off**.
+
+### Guardrails (this capture)
+
+- No install. No MCP. No production credentials or client data.
+
+### Related canonical docs
+
+- `docs/product/PRODUCT_A_REVENUE_MACHINE_IMPLEMENTATION_PLAN.md` § 18
+
+---
+
+## Agyn — zero-trust agent runtime reference
+
+**Status:** `WATCH / ARCHITECTURE REFERENCE`
+
+**Verdict:** `AGYN CAPTURED AS ARCHITECTURE REFERENCE — NO INSTALLATION AUTHORIZED`
+
+**URL:** Verify during architecture study
+
+**NO IMPLEMENTATION AUTHORIZED** by this capture alone.
+
+### Why Anton added it
+
+- **Zero-trust, least-privilege, Kubernetes-style agent runtime** ideas — useful reference for future CorpFlow agent governance.
+
+### Constraint
+
+**No install.** Likely too early and too heavy for current ops posture.
+
+### Guardrails (this capture)
+
+- Architecture reference only. No K8s cluster. No L3 install.
+
+### Related canonical docs
+
+- `docs/strategy/ABOVE_THE_LINE_STRATEGY_DOCTRINE.md`
+- Guild.ai entry in this doc — complementary governance pattern study
+
+---
+
+## Twenty CRM — CRM bake-off candidate
+
+**Status:** `CRM BAKE-OFF CANDIDATE`
+
+**Verdict:** `TWENTY CRM IN BAKE-OFF VS ESPOCRM — NO INSTALLATION AUTHORIZED`
+
+**URL:** https://twenty.com/
+
+**NO IMPLEMENTATION AUTHORIZED** by this capture alone.
+
+### Why Anton added it
+
+- **AI-oriented open CRM** — candidate in **Twenty vs EspoCRM** bake-off.
+- GoHighLevel is **legacy/migration-away** — not system of record.
+
+### Bake-off scenario
+
+Prospect → company/contact → website audit → fit score → outreach status → booked call → proposal → onboarding → follow-up task. Prefer **maintained product set** over custom CRM development.
+
+### Guardrails (this capture)
+
+- No install until bake-off completes and ADR authorizes winner.
+- No GHL as long-term CRM.
+
+### Related canonical docs
+
+- `docs/product/PRODUCT_A_REVENUE_MACHINE_IMPLEMENTATION_PLAN.md` § 16
+
+---
+
+## EspoCRM — CRM bake-off candidate
+
+**Status:** `CRM BAKE-OFF CANDIDATE`
+
+**Verdict:** `ESPOCRM IN BAKE-OFF VS TWENTY — NO INSTALLATION AUTHORIZED`
+
+**URL:** https://www.espocrm.com/
+
+**NO IMPLEMENTATION AUTHORIZED** by this capture alone.
+
+### Why Anton added it
+
+- Mature **open-source CRM** — candidate in **Twenty vs EspoCRM** bake-off against same operator scenario as Twenty.
+
+### Guardrails (this capture)
+
+- Sandbox bake-off only until authorization packet.
+- Prefer maintained product set over custom CorpFlow CRM code.
+
+### Related canonical docs
+
+- `docs/product/PRODUCT_A_REVENUE_MACHINE_IMPLEMENTATION_PLAN.md` § 16
+
+---
+
+## Cal.diy — scheduling infrastructure reference
+
+**Status:** `REVISIT / DO NOT USE FOR CLIENT PRODUCTION NOW`
+
+**Verdict:** `CAL.DIY CAPTURED AS SCHEDULING REFERENCE — NO CLIENT PRODUCTION USE AUTHORIZED`
+
+**URL:** https://github.com/calcom/cal.com (Cal.com ecosystem; verify Cal.diy fork/community posture)
+
+**NO IMPLEMENTATION AUTHORIZED** by this capture alone.
+
+### Why Anton added it
+
+- **Scheduling infrastructure** is strategically relevant for medspa booking and Lead Rescue follow-up flows.
+- Upstream/community docs warn that **community self-hosting is intended for personal, non-production use**.
+
+### Constraint
+
+**Do not use for client production scheduling now.** Revisit when hosting posture, SLA, and security review support client-facing booking.
+
+### Adoption risks
+
+| Risk | Mitigation |
+| ---- | ---------- |
+| Non-production community fork | Not for client production |
+| Calendar PII | No client data in unreviewed scheduling pilots |
+
+### Guardrails (this capture)
+
+- No install. No client booking URLs. Reference architecture only.
+
+---
+
 ## Executor model — Codex vs Cursor (issue #435)
 
 **Operating decision:** Use **Codex more**, but **not as PR owner**.
@@ -731,3 +1244,5 @@
 | ------- | ---------- | ------ |
 | v1 | 2026-06-20 | Issue #429 radar intake: Guild.ai, Retool, TAAFT Launch, ownAI. |
 | v2 | 2026-06-20 | Issue #435 radar intake: claude-code-local, gpt4free, AnyVids, Drafted, MakeInfographic.ai; Codex vs Cursor executor note. |
+| v3 | 2026-06-22 | Weekly product radar: Langfuse, n8n hardening, Chatwoot, Mixpost, OpenJarvis, OpenClaw, AgentSight/AgentTrace, AgentSpan, Agyn, Twenty CRM, Cal.diy — ranked shortlist + pilot gates. |
+| v4 | 2026-06-22 | Product A direction sync: AgentSpan verified (agentspan.ai); Chatwoot inbox standard; Twenty/EspoCRM bake-off; Postiz + social discovery; GHL migration-away. |
