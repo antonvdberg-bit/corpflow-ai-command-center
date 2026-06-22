@@ -656,35 +656,3 @@ model TenantKnowledgeAtom {
   @@index([tenantId, aiAnswerEligible])
   @@map("tenant_knowledge_atoms")
 }
-
-/// MPGS payment orders (TEST gateway spike). Paid state is set only after server-side Retrieve Order.
-model PaymentOrder {
-  id                  String    @id @default(cuid())
-  orderReference      String    @unique @map("order_reference")
-  leadId              String?   @map("lead_id")
-  purchaserName       String    @map("purchaser_name")
-  purchaserEmail      String    @map("purchaser_email")
-  amountMinor         Int       @map("amount_minor")
-  currency            String
-  status              String    @default("pending")
-  gatewayMode         String    @default("test") @map("gateway_mode")
-  flowType            String    @default("payment_link") @map("flow_type")
-  description         String?
-  mpgsOrderId         String?   @map("mpgs_order_id")
-  mpgsSessionId       String?   @map("mpgs_session_id")
-  successIndicator    String?   @map("success_indicator")
-  paymentLinkUrl      String?   @map("payment_link_url")
-  redirectSeenAt      DateTime? @map("redirect_seen_at")
-  resultIndicatorSeen String?   @map("result_indicator_seen")
-  verifiedPaidAt      DateTime? @map("verified_paid_at")
-  gatewayStatus       String?   @map("gateway_status")
-  authorizationCode   String?   @map("authorization_code")
-  cardLastFour        String?   @map("card_last_four")
-  metadataJson        Json?     @map("metadata_json")
-  createdAt           DateTime  @default(now()) @map("created_at")
-  updatedAt           DateTime  @updatedAt @map("updated_at")
-
-  @@index([leadId])
-  @@index([status])
-  @@map("payment_orders")
-}

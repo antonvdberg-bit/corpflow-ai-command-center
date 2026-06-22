@@ -32,13 +32,12 @@ export default function PaymentSecurityPage() {
         </p>
       </section>
       <section style={ps.section}>
-        <h2 style={ps.h2}>Visa, Mastercard, and UPI</h2>
+        <h2 style={ps.h2}>Visa and Mastercard</h2>
         <p style={ps.p}>
           When SBM e-Commerce merchant approval is complete, we intend to accept Visa and Mastercard through the
-          bank&apos;s hosted payment page. UPI may be offered only if SBM confirms it for our merchant profile and
-          publishes the applicable acceptance rules. Card scheme logos are not displayed on this website until live
-          acceptance begins and usage guidelines are confirmed with the bank. No logo or acceptance line on this site
-          should be read as live acceptance before that point.
+          bank&apos;s hosted payment page. Card scheme logos are not displayed on this website until live acceptance
+          begins and usage guidelines are confirmed with the bank. No card logo on this site should be read as live
+          acceptance before that point.
         </p>
       </section>
       <section style={ps.section}>

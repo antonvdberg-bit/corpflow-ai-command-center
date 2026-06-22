@@ -21,7 +21,7 @@
 | 7 | Privacy / consumer data privacy policy | `/privacy`; privacy contact via `CustomerServiceContact` | Subprocessor summary includes SBM/MPGS when live |
 | 8 | Security policy for payment card transmission | `/payment-security`; `/privacy` § Payment-card transmission; `/standards` § Security posture | No card storage on CorpFlowAI; bank-hosted page |
 | 9 | Merchant outlet country: Mauritius | `MERCHANT_OUTLET_COUNTRY` in `lib/public/merchant-identity.js`; footer; `/about`; `/terms` | Stated explicitly |
-| 10 | Visa / MasterCard / UPI acceptance wording (no live acceptance implied) | `/payment-security` § Visa, Mastercard, and UPI | Text only — no logos until SBM approval + live acceptance |
+| 10 | Visa and Mastercard symbols only where appropriate; no implied live acceptance | `/payment-security` § Visa and Mastercard | **Text only — no logos** until SBM approval + live acceptance |
 | 11 | Transaction receipt field readiness | `/payment-security` § Receipts; `/terms` § Receipts; `TRANSACTION_RECEIPT_FIELDS` in `lib/public/merchant-identity.js` | ERPNext/PDF invoice path uses same fields at payment time (future packet) |
 
 ---
@@ -75,13 +75,7 @@ Forbidden-phrase audit: no *Pay now*, *instant checkout*, or live card-acceptanc
 - Does not change ERPNext, Prisma, middleware, or payment API routes  
 - Does not add secrets to `.env.template`
 
-Gateway integration (TEST Payment-by-Link spike): **`docs/finance/PAY_SBM_4_MPGS_TEST_PAYMENT_BY_LINK_CHECKLIST.md`**
-
----
-
-## Phase 2 pointer
-
-Website compliance (Phase 1) is in this PR. MPGS TEST Payment-by-Link (Phase 2) lives in the same branch with factory-only API routes under `lib/server/payments/` and buyer return page `/pay/return`. See PAY-SBM-4 checklist for test steps and verification discipline.
+Gateway integration remains a **separate authorised packet** after SBM approval in principle.
 
 ---
 
