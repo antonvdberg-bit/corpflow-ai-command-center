@@ -48,6 +48,7 @@ const NAV_LINKS = [
 const FOOTER_LINKS = [
   { href: '/', label: 'Home' },
   { href: '/lead-rescue', label: 'AI Lead Rescue' },
+  { href: '/services', label: 'Services' },
   { href: '/about', label: 'About' },
   { href: '/process', label: 'Process' },
   { href: '/standards', label: 'Standards' },
@@ -55,6 +56,8 @@ const FOOTER_LINKS = [
   { href: '/privacy', label: 'Privacy' },
   { href: '/terms', label: 'Terms' },
   { href: '/refund-policy', label: 'Refunds' },
+  { href: '/delivery-policy', label: 'Delivery' },
+  { href: '/payment-security', label: 'Payment security' },
 ];
 
 export const policyStyles = {

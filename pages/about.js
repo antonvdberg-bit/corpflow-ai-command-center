@@ -1,6 +1,14 @@
 import React from 'react';
 import Link from 'next/link';
 import PublicPolicyLayout, { policyStyles as ps, trustStyles as ts } from '../components/PublicPolicyLayout.js';
+import CustomerServiceContact from '../components/CustomerServiceContact.js';
+import {
+  MERCHANT_BRN,
+  MERCHANT_LEGAL_NAME,
+  MERCHANT_OUTLET_COUNTRY,
+  MERCHANT_REGISTERED_OFFICE,
+  formatCurrencyDisclosure,
+} from '../lib/public/merchant-identity.js';
 
 /**
  * /about - Institutional principles + founder's note.
@@ -120,11 +128,15 @@ export default function AboutPage() {
         <p style={ts.sectionLabel}>Company</p>
         <h2 style={ps.h2}>CorpFlowAI Ltd</h2>
         <p style={ps.p}>
-          CorpFlowAI Ltd is a Mauritian-registered company. Registered office: Dextra Lane Lot No. 3 Phase 1,
-          Trou Aux Biches, Mauritius. Business Registration Number: C25228280. Service contact:{' '}
-          <a href="mailto:support@corpflowai.com" style={{ color: '#7dd3fc' }}>support@corpflowai.com</a>
-          {' '}(acknowledged within two working days). All transactions for the AI Lead Rescue launch pilot are
-          processed in USD.
+          {MERCHANT_LEGAL_NAME} is a Mauritian-registered company. Registered office: {MERCHANT_REGISTERED_OFFICE}.
+          Business Registration Number: {MERCHANT_BRN}. Merchant outlet country: {MERCHANT_OUTLET_COUNTRY}.
+        </p>
+        <CustomerServiceContact />
+        <p style={ps.p}>{formatCurrencyDisclosure()}</p>
+        <p style={ps.p}>
+          <Link href="/services" style={{ color: '#7dd3fc' }}>
+            Full services description
+          </Link>
         </p>
       </section>
 

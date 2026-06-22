@@ -3,6 +3,7 @@ import Head from 'next/head';
 
 import { trackEvent } from '../lib/analytics/index.js';
 import PublicSiteFooter from './PublicSiteFooter.js';
+import { formatCurrencyDisclosure } from '../lib/public/merchant-identity.js';
 import VisualAssetRenderer, { isAiGeneratedManifest } from './VisualAssetRenderer.js';
 import AssetProvenanceDisclosure from './AssetProvenanceDisclosure.js';
 
@@ -441,9 +442,10 @@ export default function AiLeadRescueLanding({ host = '', leadRescueAssets }) {
             The payment route on the invoice is decided after intake review, not by you on this page.
           </p>
           <p style={{ ...styles.muted, fontSize: 13 }}>
-            All transactions for the AI Lead Rescue launch pilot are processed in USD. Service questions:{' '}
+            {formatCurrencyDisclosure()} Service questions:{' '}
             <a href="mailto:support@corpflowai.com" style={{ color: '#7dd3fc' }}>support@corpflowai.com</a>{' '}
-            (acknowledged within two working days).
+            (acknowledged within two working days). Payment security:{' '}
+            <a href="/payment-security" style={{ color: '#7dd3fc' }}>/payment-security</a>.
           </p>
         </section>
 
