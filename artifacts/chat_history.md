@@ -28,6 +28,18 @@
 
 ---
 
+## 2026-06-22 — **Product A stack direction (docs-only).** `PRODUCT_A_REVENUE_MACHINE_IMPLEMENTATION_PLAN.md` v2: Langfuse observability from start (trace fields + sandbox pilot); Chatwoot standard conversation inbox (not CRM); GHL legacy/migration-away; Twenty vs EspoCRM CRM bake-off; social scheduling discovery (Postiz, Mixpost — no default); AgentSpan verified at agentspan.ai watch/revisit; Living Word Mauritius widget inspection (GHL on external WP, CorpFlow native widget disabled on sandbox). Radar doc v4 aligned. **NO INSTALLATION AUTHORIZED**.
+
+<!-- PRODUCT_A_STACK_DIRECTION_2026_06_22_HIST -->
+
+---
+
+## 2026-06-22 — **Weekly product radar (docs-only — library capture).** Updated `docs/product/PRODUCT_RADAR_CANDIDATES.md` v3 + library index: ranked shortlist — Langfuse `ADOPT/PILOT IMMEDIATELY`; n8n hardening `ADOPT PROCESS`; Chatwoot `PILOT`; Mixpost `PILOT LIGHTLY`; OpenJarvis `WATCH/RESEARCH`; OpenClaw `WATCH/SANDBOX ONLY`; AgentSight/AgentTrace `WATCH AS AGENTSPAN ALTERNATIVES`; AgentSpan `WATCH/UNVERIFIED`; Agyn `WATCH/ARCHITECTURE REFERENCE`; Twenty CRM `REVISIT AFTER GHL BASELINE`; Cal.diy `REVISIT/NO CLIENT PRODUCTION NOW`. Verdict: **WEEKLY PRODUCT RADAR CAPTURED — NO INSTALLATION AUTHORIZED**.
+
+<!-- WEEKLY_PRODUCT_RADAR_2026_06_22_HIST -->
+
+---
+
 ## 2026-06-20 — **Product radar intake batch 2 (docs-only — library capture, issue #435).** Extended `docs/product/PRODUCT_RADAR_CANDIDATES.md` + library index: claude-code-local `WATCH / LOCAL OPERATOR AI PATTERN`; gpt4free `REJECT FOR PRODUCTION / RISK REFERENCE ONLY`; AnyVids `WATCH / UNVERIFIED`; Drafted `PRIORITY PILOT / LUX AI`; MakeInfographic.ai `PILOT / MARKETING ONLY`. Codex-vs-Cursor executor note added. Verdict: **RADAR INTAKE CAPTURED: CLAUDE-CODE-LOCAL, GPT4FREE, ANYVIDS, DRAFTED, MAKEINFOGRAPHIC — NO INSTALLATION AUTHORIZED**.
 
 <!-- PRODUCT_RADAR_CANDIDATES_435_2026_06_20_HIST -->

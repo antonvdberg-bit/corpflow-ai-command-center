@@ -10,6 +10,8 @@
 
 **Revision note (2026-06-20):** v1 stack is **Google Workspace + n8n + CorpFlowAI intake**. No third-party CRM, pipeline builder, or marketing-automation platform in the first version.
 
+**Revision note (2026-06-22):** Anton decisions captured — **Langfuse** is part of Product A measurement from the start; **Chatwoot** is the standard website chat/live-chat/conversation inbox (not the CRM); **GoHighLevel** is legacy/migration-away only; **Twenty vs EspoCRM** is the CRM replacement bake-off; **social scheduling** requires candidate discovery (do not default to Mixpost); **AgentSpan** verified at agentspan.ai but watch/revisit only. **No install or production config authorized by this revision.**
+
 ---
 
 ## 1. Purpose
@@ -36,32 +38,49 @@ Product A is **above-the-line**: managed workflow + website delivery for a verti
 
 ---
 
-## 3. Hard rule — v1 stack (non-negotiable)
+## 3. Hard rules — v1 operations + strategic direction (non-negotiable)
 
-**First version uses only the replacement stack in § 4.** Do not add external CRM, pipeline, hosted marketing-form, drip-automation, or calendar-to-CRM dependencies.
+### 3.1 v1 operations (unchanged until operator closeout)
 
-That means **no**:
+**First live intake motion** uses only the replacement stack in § 4 for pre-sale pipeline. Do not add hosted marketing-form drip-automation or calendar-to-external-CRM sync in v1.
 
-- Third-party CRM pipelines or deal stages
+That means **no** (for v1 live intake):
+
+- Third-party CRM pipelines or deal stages wired to intake
 - Hosted marketing forms tied to external CRM
-- Drip automations, SMS blasts, or workflow-builder dependencies
+- Drip automations, SMS blasts, or workflow-builder dependencies on external platforms
 - Calendar booking widgets that sync into external CRM
 - UI copy, docs, or automation specs that imply an all-in-one marketing platform
 
-**v1 source of truth:** Google Sheet (operator CRM) + Postgres only where CorpFlowAI native intake already exists.
+**v1 pre-sale source of truth:** Google Sheet (operator CRM) + Postgres only where CorpFlowAI native intake already exists.
+
+### 3.2 Strategic direction (2026-06-22 — docs capture)
+
+| Topic | Direction |
+| ----- | --------- |
+| **GoHighLevel** | **Legacy / migration-away only.** Do not position GHL as system of record. Do not build new strategic dependency on GHL. Existing GHL at client sites (e.g. Living Word) is a decommission target, not a CorpFlow spine. |
+| **CRM** | **Twenty vs EspoCRM bake-off** — see § 16. Prefer maintained product sets over custom CRM development. GHL-native CRM is not an option. |
+| **Conversation inbox** | **Chatwoot** is CorpFlowAI's standard website chat / live chat / conversation inbox. Chatwoot is **not** the CRM. |
+| **AI observability** | **Langfuse** from the start for Product A AI traceability — see § 15. |
+| **Social scheduling** | **Candidate discovery** — Postiz, Mixpost, and other maintained product sets; do not default to Mixpost; GHL-native social scheduling is **not** an option — see § 17. |
+| **AgentSpan** | Verified at https://agentspan.ai — durable execution runtime for AI agents. **WATCH / REVISIT** only; not a Product A immediate dependency — see § 18. |
 
 ---
 
-## 4. Replacement stack (v1)
+## 4. Replacement stack (v1 + strategic layers)
 
 | Layer | Tool | Role |
 | ----- | ---- | ---- |
-| **Temporary CRM / pipeline** | Google Sheets | Single operator sheet — all pre-sale and in-audit leads until delivery handoff. |
-| **Workflow spine** | n8n | Intake webhook → Sheet append → operator notification → optional Gmail draft creation. See `docs/automation-framework.md`. |
+| **Temporary CRM / pipeline** | Google Sheets | Single operator sheet — all pre-sale and in-audit leads until delivery handoff **or** CRM bake-off winner is authorized. |
+| **Workflow spine** | n8n | Intake webhook → Sheet append → operator notification → optional Gmail draft creation. Hardening process mandatory before expanding secret-touching workflows. See `docs/product/PRODUCT_RADAR_CANDIDATES.md` § n8n hardening. |
 | **Outreach** | Gmail drafts | Human-approved email only — operator reviews and sends. No auto-send in v1. |
 | **Audit calls** | Google Calendar **or** simple booking link (Calendly / Google Appointment Schedule) | Audit scheduling only; no CRM sync required. |
 | **Intake surface** | CorpFlowAI native landing + form **or** Google Form (fallback) | Public capture; fields in § 6. |
 | **Knowledge base** | Google Drive docs | Offer copy, audit checklist, objection handling, delivery SOPs, vertical notes. |
+| **Conversation inbox (standard)** | **Chatwoot** (target) | Website chat / live chat / human handoff inbox — **not** CRM. Pilot: medspa demo inbox; n8n sync after hardening. |
+| **AI observability (required)** | **Langfuse** (target) | Traces for Lead Rescue drafts, classification, handoff — from sandbox pilot onward. See § 15. |
+| **CRM (future — bake-off)** | **Twenty** or **EspoCRM** | Replacement for GHL + Sheets when bake-off completes — see § 16. |
+| **Legacy (migration-away)** | GoHighLevel | Existing client widgets only; no new CorpFlow dependency; decommission path per tenant. |
 | **Future CRM (optional)** | CorpFlowAI Command Center | **After** manual motion is proven — not v1. |
 
 ---
@@ -271,7 +290,13 @@ Drive is **draft + operator reference** — repo runbooks remain production doct
 - [ ] Website rebuild/migration as separate statement of work
 - [ ] Still no external CRM — Sheet row moves to `won` + delivery checklist
 
-### Phase 4 — Optional Command Center CRM (future gate)
+### Phase 1.5 — Sandbox pilots (docs-authorized direction; install requires packet)
+
+- [ ] Langfuse sandbox + medspa enquiry pilot flow (§ 15.2) — synthetic data only
+- [ ] Chatwoot demo medspa inbox pilot scoped (§ 19) — after n8n hardening baseline
+- [ ] CRM bake-off sandbox scripts for Twenty and EspoCRM (§ 16)
+
+### Phase 4 — CRM + inbox production (future gate)
 
 **Gate criteria (all required):**
 
@@ -281,6 +306,9 @@ Drive is **draft + operator reference** — repo runbooks remain production doct
 
 **Future scope (not v1):**
 
+- CRM bake-off winner as system of record (Twenty or EspoCRM)
+- Chatwoot production inbox wired to Product A / Lead Rescue handoff
+- Langfuse production traces with PII policy
 - `/admin/product-a` or extended lead-rescue pipeline for US clinic vertical
 - Postgres as system of record; Sheet retired or read-only archive
 
@@ -289,9 +317,162 @@ Drive is **draft + operator reference** — repo runbooks remain production doct
 ## 13. UI / copy guardrails
 
 - Never show third-party CRM logos or “integrated with …” badges on Product A surfaces.
+- **Never position GoHighLevel** as system of record, strategic partner, or required integration.
 - CTA language stays audit-first, not “Buy now” or “Start automation.”
 - Lead Rescue references must match managed-workflow doctrine — not chatbot-first.
 - US clinic page is separate from Mauritius Lead Rescue surfaces unless explicitly cross-linked.
+- Chatwoot may be referenced as conversation inbox / handoff layer — not as CRM.
+
+---
+
+## 15. Langfuse — Product A AI observability (required from the start)
+
+**Status:** Direction captured — **no install authorized by this doc alone.**
+
+Langfuse must be included in Product A **from the start** for AI traceability across Lead Rescue, receptionist, chatbot, and operator-agent workflows.
+
+### 15.1 Required trace fields
+
+Every Product A AI step that touches a lead or enquiry should emit a Langfuse trace (or span) including, where applicable:
+
+| Field | Notes |
+| ----- | ----- |
+| Lead / enquiry input | Redacted snapshot or reference id — no raw PII in sandbox pilot |
+| Prompt version | Version id or hash of prompt template used |
+| Model / provider | e.g. `openai/gpt-4o`, `groq/...` |
+| Classification | Intent, fit score, urgency, route decision |
+| Generated response / draft | Operator-facing draft text or summary |
+| Escalation / handoff decision | Human vs auto; Chatwoot inbox vs email vs none |
+| Latency | End-to-end and per-step ms |
+| Cost | Token or $ estimate where provider exposes it |
+| Final outcome | Where available: booked, replied, lost, escalated |
+
+### 15.2 Sandbox pilot (bounded — no real client data)
+
+**Flow:** medspa enquiry → classification → Lead Rescue draft → handoff decision → outcome → **Langfuse trace**.
+
+| Step | Pilot rule |
+| ---- | ---------- |
+| Enquiry | Synthetic or operator-authored test enquiry only |
+| Classification | Logged to Langfuse with prompt version |
+| Lead Rescue draft | Human-review posture; trace retained |
+| Handoff decision | Record Chatwoot vs email vs none in trace metadata |
+| Outcome | Operator marks test outcome for eval dataset |
+| Langfuse | Sandbox instance or cloud project — **not** production `POSTGRES_URL` |
+
+**Gate:** separate authorization packet before production client data or tenant traces.
+
+---
+
+## 16. CRM replacement bake-off — Twenty vs EspoCRM
+
+**Status:** Evaluation track — **no install authorized by this doc alone.**
+
+GoHighLevel is **not** the long-term CRM. Product A and CorpFlow client operations should migrate to a **maintained open CRM product set**, not custom CRM development.
+
+### 16.1 Candidates
+
+| Candidate | URL | Notes |
+| --------- | --- | ----- |
+| **Twenty** | https://twenty.com/ | AI-oriented open CRM; modern UX; Postgres-based |
+| **EspoCRM** | https://www.espocrm.com/ | Mature OSS CRM; broad entity model; PHP stack |
+
+**Not in bake-off:** GoHighLevel (legacy only), custom in-repo CRM as first choice.
+
+### 16.2 Evaluation scenario (operator bake-off script)
+
+Run the same scenario on each candidate in a **sandbox** with synthetic data:
+
+1. **Prospect** created from website enquiry
+2. **Company / contact** linked
+3. **Website audit** note attached
+4. **Fit score** field or tag
+5. **Outreach status** updated (draft sent, replied, no response)
+6. **Booked call** on calendar or task
+7. **Proposal** stage
+8. **Onboarding** checklist started
+9. **Follow-up task** assigned
+
+**Preference:** choose a **maintained product set** that covers the scenario without bespoke CorpFlow CRM code.
+
+### 16.3 Gate
+
+- Bake-off completes before any production client CRM migration.
+- Winner requires ADR + authorization packet + security review.
+- Until then, Google Sheet remains pre-sale pipeline for Product A v1.
+
+---
+
+## 17. Social scheduling — candidate discovery track
+
+**Status:** Discovery — **no default vendor; no install authorized by this doc alone.**
+
+Do **not** default to Mixpost. Do **not** use GHL-native social scheduling.
+
+### 17.1 Candidates (initial list)
+
+| Candidate | URL | Status |
+| --------- | --- | ------ |
+| **Postiz** | https://postiz.com/ | Discovery |
+| **Mixpost** | https://mixpost.app/ | Discovery — one candidate, not default |
+| *Others* | TBD | Add maintained product sets as discovered |
+
+**Scope for first pilot (when authorized):** internal CorpFlowAI accounts only; no client accounts until API/platform policy reviewed.
+
+---
+
+## 18. AgentSpan — watch / revisit
+
+**Status:** `WATCH / REVISIT` — **not** a Product A immediate dependency.
+
+| Item | Value |
+| ---- | ----- |
+| **URL** | https://agentspan.ai (verified 2026-06-22) |
+| **Category** | Durable execution runtime for AI agents |
+| **Product A** | Out of scope for v1 and sandbox pilot |
+| **Constraints** | No connection to production credentials or client data |
+| **Revisit gate** | After Langfuse + Chatwoot + CRM bake-off complete |
+
+See also `docs/product/PRODUCT_RADAR_CANDIDATES.md` § AgentSpan.
+
+---
+
+## 19. Chat / inbox direction — Chatwoot standard
+
+**Chatwoot** is CorpFlowAI's **standard** website chat, live chat, and conversation inbox layer.
+
+| Rule | Detail |
+| ---- | ------ |
+| Chatwoot **is** | Omnichannel inbox, website widget, pre-chat forms, human handoff |
+| Chatwoot **is not** | CRM, system of record, or replacement for Twenty/EspoCRM bake-off winner |
+| Product A pilot | Demo medspa inbox: widget → classification → Lead Rescue draft → handoff → n8n |
+| Install | Requires ADR + authorization packet; not on `corpflow-exec-01` without packet |
+
+### 19.1 Living Word Mauritius — chat widget inspection (repo evidence)
+
+**Inspection task (read-only, 2026-06-22):** search deployed site / repo for existing chat widget vendors.
+
+| Surface | Finding |
+| ------- | ------- |
+| `https://livingwordmauritius.com/` (external WordPress) | **GoHighLevel (LeadConnector) widget** — documented in `artifacts/quality-audits/2026-06-11-living-word-mauritius/chatbot-options-assessment.md`; migration-away target |
+| `https://living-word-mauritius.corpflowai.com/` (CorpFlow sandbox) | **CorpFlow native chat widget** (`/api/chat-widget/loader.js`) — server-side `enabled=false` (no-op stub); see `visual-sandbox-v0-live-verification.md` |
+| Third-party vendors searched | **No** Chatwoot, Crisp, Intercom, Tawk, Tidio, Botpress, Voiceflow, Landbot, or LiveChat embed found in CorpFlow repo for Living Word deploy |
+| Prior assessment | Chatwoot evaluated for LWM v0 — **DEFER** for church v0 (no agents on staff); CorpFlow-native widget recommended for deterministic intake |
+
+**Follow-up (when authorized):** external homepage fetch to confirm GHL script still present before decommission packet.
+
+---
+
+## 20. GoHighLevel — legacy / migration-away
+
+| Rule | Detail |
+| ---- | ------ |
+| Positioning | **Never** system of record; **never** new strategic dependency |
+| Existing use | Client-owned GHL widgets (e.g. Living Word) — decommission per tenant packet |
+| Product A | No GHL sync in v1 intake; no GHL logos on Product A surfaces |
+| Replacement | Chatwoot (inbox) + CRM bake-off winner (records) + n8n (workflow) |
+
+Companion: `docs/product/PRODUCT_A_NON_GHL_DATA_WORKFLOW_PACKET.md` — Sheets/n8n path explicitly non-GHL.
 
 ---
 
@@ -303,6 +484,8 @@ Drive is **draft + operator reference** — repo runbooks remain production doct
 | Product A intake webhook payload | `docs/product/PRODUCT_A_INTAKE_WEBHOOK.md` |
 | Product A Sheets/n8n ops packet | `docs/product/PRODUCT_A_NON_GHL_DATA_WORKFLOW_PACKET.md` |
 | Product A operator prompt library | `docs/marketing/PRODUCT_A_US_MEDSPA_PROMPT_LIBRARY.md` |
+| Product radar (Langfuse, Chatwoot, CRM, AgentSpan) | `docs/product/PRODUCT_RADAR_CANDIDATES.md` |
+| Living Word chatbot assessment | `artifacts/quality-audits/2026-06-11-living-word-mauritius/chatbot-options-assessment.md` |
 | Brand / no-guarantee language | `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md` |
 | Above-the-line positioning | `docs/strategy/ABOVE_THE_LINE_STRATEGY_DOCTRINE.md` |
 | Lead Rescue delivery (post-sale) | `docs/operations/AI_LEAD_RESCUE_OPERATOR_RUNBOOK.md` |
@@ -312,7 +495,7 @@ Drive is **draft + operator reference** — repo runbooks remain production doct
 
 ---
 
-## 15. Definition of done — v1 revenue machine
+## 21. Definition of done — v1 revenue machine
 
 v1 is **done** when all of the following are true:
 
@@ -320,8 +503,9 @@ v1 is **done** when all of the following are true:
 2. Submit creates a Google Sheet row within 60 seconds (verified with test submission).
 3. Anton receives operator notification on each new row.
 4. At least one real audit booked and tracked through Sheet statuses.
-5. Zero dependency on external CRM pipelines, forms, or automations.
+5. Zero dependency on **new** external CRM pipelines, GHL as system of record, or GHL-native automations.
 6. Documentation in this file matches what is actually wired in n8n and on the page.
+7. **Strategic direction (2026-06-22)** documented: Langfuse trace fields, Chatwoot inbox standard, GHL migration-away, CRM bake-off, social discovery track, AgentSpan watch — even if pilots not yet executed.
 
 ---
 
@@ -330,3 +514,4 @@ v1 is **done** when all of the following are true:
 | Version | Date (UTC) | Change |
 | ------- | ---------- | ------ |
 | v1 | 2026-06-20 | Initial plan — Google Sheets + n8n + manual follow-up; no external CRM in v1. |
+| v2 | 2026-06-22 | Anton decisions: Langfuse observability, Chatwoot inbox standard, GHL legacy, Twenty vs EspoCRM bake-off, social scheduling discovery, AgentSpan verified watch, Living Word widget inspection, sandbox pilot spec. |
