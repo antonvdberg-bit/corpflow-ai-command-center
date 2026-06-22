@@ -13,6 +13,7 @@ import {
   formatEnsureSchemaStatementLabel,
   resolvePostgresDriftBuildOutcome,
   resolvePostgresUrlForEnsureSchemaDdl,
+  scanPostgresEnvForActiveBuildDrift,
   scanPostgresEnvForDrift,
 } from '../lib/server/postgres-ensure-schema-connection.js';
 import { ENSURE_SCHEMA_STATEMENTS } from '../lib/server/postgres-ensure-schema-statements.js';
@@ -86,7 +87,7 @@ async function main() {
     return;
   }
 
-  const envDrift = scanPostgresEnvForDrift(process.env);
+  const envDrift = scanPostgresEnvForActiveBuildDrift(process.env);
   if (envDrift) {
     if (logPostgresDriftAndResolveOutcome(envDrift) === 'fatal') process.exit(1);
     return;

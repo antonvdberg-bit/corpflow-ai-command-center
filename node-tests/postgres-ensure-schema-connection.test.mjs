@@ -7,6 +7,7 @@ import {
   formatEnsureSchemaStatementLabel,
   resolvePostgresDriftBuildOutcome,
   resolvePostgresUrlForEnsureSchemaDdl,
+  scanPostgresEnvForActiveBuildDrift,
   scanPostgresEnvForDrift,
 } from '../lib/server/postgres-ensure-schema-connection.js';
 
@@ -68,4 +69,24 @@ test('resolvePostgresDriftBuildOutcome fails only on Vercel production', () => {
   );
   assert.equal(resolvePostgresDriftBuildOutcome({ vercel: true, vercelEnv: 'preview' }), 'skip');
   assert.equal(resolvePostgresDriftBuildOutcome({ vercel: false, vercelEnv: null }), 'skip');
+});
+
+test('scanPostgresEnvForActiveBuildDrift ignores shadowed legacy keys', () => {
+  const neon =
+    'postgresql://user:secret@ep-mute-tooth-an0pclzd-pooler.c-6.us-east-1.aws.neon.tech:5432/neondb';
+  const drift = scanPostgresEnvForActiveBuildDrift({
+    POSTGRES_URL: neon,
+    POSTGRES_PRISMA_URL: 'postgresql://user:secret@db.prisma.io:5432/database',
+  });
+  assert.equal(drift, null);
+});
+
+test('scanPostgresEnvForActiveBuildDrift still flags drift on the active pooled key', () => {
+  const drift = scanPostgresEnvForActiveBuildDrift({
+    POSTGRES_URL: 'postgresql://user:secret@db.prisma.io:5432/database',
+    DATABASE_URL:
+      'postgresql://user:secret@ep-mute-tooth-an0pclzd-pooler.c-6.us-east-1.aws.neon.tech:5432/neondb',
+  });
+  assert.ok(drift);
+  assert.equal(drift.env_key, 'POSTGRES_URL');
 });
