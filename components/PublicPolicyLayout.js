@@ -1,6 +1,7 @@
 import React from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import PublicSiteFooter from './PublicSiteFooter.js';
 
 /**
  * Editorial layout shared by CorpFlowAI policy pages and the institutional
@@ -43,21 +44,6 @@ const NAV_LINKS = [
   { href: '/process', label: 'Process' },
   { href: '/standards', label: 'Standards' },
   { href: '/contact', label: 'Contact' },
-];
-
-const FOOTER_LINKS = [
-  { href: '/', label: 'Home' },
-  { href: '/lead-rescue', label: 'AI Lead Rescue' },
-  { href: '/services', label: 'Services' },
-  { href: '/about', label: 'About' },
-  { href: '/process', label: 'Process' },
-  { href: '/standards', label: 'Standards' },
-  { href: '/onboarding', label: 'Onboarding' },
-  { href: '/privacy', label: 'Privacy' },
-  { href: '/terms', label: 'Terms' },
-  { href: '/refund-policy', label: 'Refunds' },
-  { href: '/delivery-policy', label: 'Delivery' },
-  { href: '/payment-security', label: 'Payment security' },
 ];
 
 export const policyStyles = {
@@ -208,23 +194,7 @@ export const trustStyles = {
 };
 
 function PolicyFooter() {
-  return (
-    <footer style={baseStyles.footer}>
-      This website provides general service information. Final terms may be confirmed in the applicable invoice or
-      service agreement. CorpFlowAI does not guarantee new revenue. Results vary by business and lead volume. This
-      is not legal, tax, or accounting advice.
-      <div style={{ marginTop: 14 }}>
-        {FOOTER_LINKS.map((l, i) => (
-          <React.Fragment key={l.href}>
-            {i > 0 ? ' · ' : null}
-            <Link href={l.href} style={baseStyles.link}>
-              {l.label}
-            </Link>
-          </React.Fragment>
-        ))}
-      </div>
-    </footer>
-  );
+  return <PublicSiteFooter />;
 }
 
 /**
