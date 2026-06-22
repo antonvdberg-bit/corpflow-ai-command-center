@@ -48,7 +48,17 @@ Use one or more of:
 | [CHAT_DESTINATION_REFERENCE_SOCIAL_INTENTS.md](./CHAT_DESTINATION_REFERENCE_SOCIAL_INTENTS.md) | `REFERENCE-ONLY / DESTINATION-SHAPE` | 2026-06-18 |
 | [MARKETING_AUTOMATION_CONTENT_ENGINE_CANDIDATES.md](./MARKETING_AUTOMATION_CONTENT_ENGINE_CANDIDATES.md) | Google Vids `EVALUATE-FIRST`; GPT Image `DEPLOY-FIRST-PILOT` | 2026-06-18 |
 | [../execution/DEV_TOOLING_CANDIDATES.md](../execution/DEV_TOOLING_CANDIDATES.md) | GitHits `SERIOUS-CANDIDATE / DEV-CAPABILITY ACCELERATOR` | 2026-06-18 |
-| [PRODUCT_RADAR_CANDIDATES.md](./PRODUCT_RADAR_CANDIDATES.md) | Guild.ai + Retool `PILOT / STUDY PATTERN`; TAAFT Launch `WATCH / RADAR SOURCE`; ownAI `WATCH / SANDBOX LATER` — **NO INSTALLATION AUTHORIZED** | 2026-06-20 |
+| [PRODUCT_RADAR_CANDIDATES.md](./PRODUCT_RADAR_CANDIDATES.md) | Issue #429: Guild.ai, Retool, TAAFT, ownAI; Issue #435: claude-code-local, gpt4free (rejected prod), AnyVids, Drafted (Lux priority), MakeInfographic — **NO INSTALLATION AUTHORIZED** | 2026-06-20 |
+
+### Product A — US clinics revenue machine
+
+| Doc | Role |
+| --- | ---- |
+| [PRODUCT_A_REVENUE_MACHINE_IMPLEMENTATION_PLAN.md](./PRODUCT_A_REVENUE_MACHINE_IMPLEMENTATION_PLAN.md) | Canonical plan — offer, stack, phases |
+| [PRODUCT_A_INTAKE_WEBHOOK.md](./PRODUCT_A_INTAKE_WEBHOOK.md) | Intake API payload, env vars, deploy checklist |
+| [PRODUCT_A_NON_GHL_DATA_WORKFLOW_PACKET.md](./PRODUCT_A_NON_GHL_DATA_WORKFLOW_PACKET.md) | Sheets schema, CSV templates, n8n specs, audit rubric, Florida sample batch |
+
+CSV templates: [product-a-csv-templates/](./product-a-csv-templates/)
 
 ---
 

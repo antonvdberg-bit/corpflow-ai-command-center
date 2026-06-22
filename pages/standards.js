@@ -142,8 +142,11 @@ export default function StandardsPage() {
           </li>
           <li>
             <strong style={{ color: '#dbe7f5' }}>No card data on CorpFlowAI servers.</strong>{' '}
-            Card capture, when offered in future, will happen exclusively on the payment provider&rsquo;s hosted
-            page over TLS.
+            Card capture, when offered, happens exclusively on the payment provider&apos;s hosted page over TLS. See{' '}
+            <Link href="/payment-security" style={{ color: '#7dd3fc' }}>
+              payment security
+            </Link>
+            .
           </li>
         </ul>
       </section>

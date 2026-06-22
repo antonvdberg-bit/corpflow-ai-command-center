@@ -6,9 +6,14 @@
 
 **Default verdict on every entry:** `NO IMPLEMENTATION AUTHORIZED` unless Anton separately approves evaluation or install.
 
-**Captured:** 2026-06-20 (issue [#429](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/429) — Guild.ai, Retool, TAAFT Launch, ownAI).
+**Captured:**
 
-**Overall repo verdict:** `RADAR INTAKE CAPTURED: GUILD.AI, RETOOL, TAAFT LAUNCH, OWNAI — NO INSTALLATION AUTHORIZED`
+- 2026-06-20 — issue [#429](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/429) — Guild.ai, Retool, TAAFT Launch, ownAI.
+- 2026-06-20 — issue [#435](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/435) — claude-code-local, gpt4free, AnyVids, Drafted, MakeInfographic.ai.
+
+**Overall repo verdict (issue #429):** `RADAR INTAKE CAPTURED: GUILD.AI, RETOOL, TAAFT LAUNCH, OWNAI — NO INSTALLATION AUTHORIZED`
+
+**Overall repo verdict (issue #435):** `RADAR INTAKE CAPTURED: CLAUDE-CODE-LOCAL, GPT4FREE, ANYVIDS, DRAFTED, MAKEINFOGRAPHIC — NO INSTALLATION AUTHORIZED`
 
 ---
 
@@ -20,6 +25,11 @@
 | [Retool](#retool--internal-app-builder--ai-assisted-operations-console) | `PILOT / STUDY PATTERN` | 2026-06-20 |
 | [There Is An AI For That Launch](#there-is-an-ai-for-that-launch--ai-product-radar-source) | `WATCH / RADAR SOURCE` | 2026-06-20 |
 | [ownAI](#ownai--local-self-evolving-ai-companion--memory-pattern) | `WATCH / SANDBOX LATER` | 2026-06-20 |
+| [claude-code-local](#claude-code-local--local-offline-coding-assistant-pattern) | `WATCH / LOCAL OPERATOR AI PATTERN` | 2026-06-20 |
+| [gpt4free](#gpt4free--multi-provider-api-risk-reference) | `REJECT FOR PRODUCTION / RISK REFERENCE ONLY` | 2026-06-20 |
+| [AnyVids](#anyvids--unverified-media-tool) | `WATCH / UNVERIFIED` | 2026-06-20 |
+| [Drafted](#drafted--ai-house-plans--lux-ai-priority-pilot) | `PRIORITY PILOT / OPERATOR-SIDE ONLY` | 2026-06-20 |
+| [MakeInfographic.ai](#makeinfographicai--marketing-infographic-generator) | `PILOT / OPERATOR-SIDE ONLY` | 2026-06-20 |
 
 ---
 
@@ -331,8 +341,393 @@
 
 ---
 
+## claude-code-local — local / offline coding assistant pattern
+
+**Status:** `WATCH / LOCAL OPERATOR AI PATTERN`
+
+**Verdict:** `CLAUDE-CODE-LOCAL CAPTURED AS LOCAL OPERATOR PATTERN — NO INSTALLATION AUTHORIZED`
+
+**URL:** https://github.com/nicedreamzapp/claude-code-local
+
+**NO IMPLEMENTATION AUTHORIZED** by this capture alone.
+
+### Why Anton added it
+
+- **Local / offline coding assistant** pattern for Apple Silicon — useful for privacy-sensitive operator workflows and future weekend / offline research.
+- Repo claims local Claude Code-style usage through an **MLX / Anthropic-compatible local server** and large local models.
+- Meaningful **hardware requirements** and uses modified / abliterated model variants — must not be installed into CorpFlow production or trusted with client data until reviewed.
+
+### Claimed capabilities (vendor — verify during evaluation)
+
+| Capability | Notes |
+| ---------- | ----- |
+| Local MLX server | Anthropic-compatible API on Apple Silicon |
+| Large local models | High RAM / disk requirements |
+| Offline / privacy-sensitive coding | Operator workstation use case |
+| Claude Code-style workflow | Local alternative to cloud coding agent |
+
+*Treat vendor claims as **hypotheses** until verified in a bounded operator-side evaluation.*
+
+### Potential CorpFlow use cases
+
+| Use case | Executor |
+| -------- | -------- |
+| Study offline operator coding patterns | Anton (sandbox workstation) |
+| Weekend / offline research without cloud dependency | Operator (L1 laptop) |
+| Privacy-sensitive packet drafting (no client data) | Operator sandbox only |
+
+**Out of scope for default use:** production server, production credentials, client data, CorpFlow runtime dependency.
+
+### Evaluation plan (ordered — none authorized by this capture)
+
+1. **Docs capture only** — this section (complete).
+2. **Pattern study only** — read repo README, license, and model/security notes; no install yet.
+3. **Future pilot** — operator workstation only, not production server.
+4. **No production / runtime install** on Vercel, Postgres, or tenant surfaces.
+5. **No server / L3 install** on `corpflow-exec-01`.
+6. **No secrets** — no CorpFlow env vars, tokens, or client data.
+7. **Decision gate** — license / model / security review complete; operator-side sandbox only; no real client data; written approval before install.
+
+### Risks / questions
+
+| Risk | Mitigation |
+| ---- | ---------- |
+| Modified / abliterated model variants | Security and license review before any pilot |
+| High hardware requirements | Operator workstation only; not production server |
+| Client data on local models | Prohibited without separate security review |
+| Confusion with production coding agents | Pattern study only; Cursor remains repo executor |
+
+### Guardrails (this capture)
+
+- No installation.
+- No MCP config.
+- No npm/npx/package install.
+- No workflow changes.
+- No runtime code.
+- No env vars or secrets.
+- No changes to `.env.template`, production app, or production Postgres.
+- No production server install authorized.
+
+### Related canonical docs
+
+- `docs/strategy/GOOGLE_ACCELERATION_LANE.md` — local AI bounds.
+- `docs/operations/SERVER_AGENT_ACCESS_AND_EXECUTION_BOUNDARY_V1.md` — L1 laptop vs L2 vs L3.
+
+---
+
+## gpt4free — multi-provider API risk reference
+
+**Status:** `REJECT FOR PRODUCTION / WATCH ONLY AS RISK REFERENCE`
+
+**Verdict:** `GPT4FREE REJECTED FOR PRODUCTION — RISK REFERENCE ONLY — NO INSTALLATION AUTHORIZED`
+
+**URL:** https://github.com/xtekky/gpt4free
+
+**NO IMPLEMENTATION AUTHORIZED** by this capture alone.
+
+**Explicit rejection:** **Not authorized** for CorpFlow client work, production, outreach, or sensitive data. Capture is a **compliance / risk reference only**.
+
+### Why Anton added it
+
+- Exposes an **OpenAI-compatible API**, provider adapters, Docker / Python install paths, browser / cookie / HAR flows, MCP, and media tools.
+- Operating model creates serious **compliance, credential, ToS, privacy, and reliability** risk.
+- Useful as a **negative reference** when evaluating similar multi-provider wrapper tools.
+
+### Claimed capabilities (vendor — do not verify via install)
+
+| Capability | Risk note |
+| ---------- | --------- |
+| OpenAI-compatible API | Provider ToS / credential exposure risk |
+| Multi-provider adapters | Unreliable; compliance unknown |
+| Browser / cookie / HAR flows | **Prohibited** — no cookies, no HAR files |
+| Docker / Python install | Not authorized |
+| MCP integration | **Not authorized** |
+
+*Do **not** install or configure to "verify" capabilities. Treat as a risk catalog entry only.*
+
+### Potential CorpFlow use cases
+
+| Use case | Executor |
+| -------- | -------- |
+| Risk reference when evaluating API wrapper tools | Architecture / security review |
+| Training material: what **not** to adopt | Operator / agent guidance |
+
+**Out of scope permanently:** production runtime, client work, outreach automation, MCP config, provider cookies / HAR, production credentials, sensitive data.
+
+### Evaluation plan (ordered — none authorized by this capture)
+
+1. **Docs capture only** — this section (complete).
+2. **No install** — ever, unless Anton explicitly reverses this rejection in a separate security-reviewed packet (not expected).
+3. **No MCP config**, no provider cookies, no HAR flows, no provider scraping.
+4. **No production credentials** passed to or through gpt4free.
+5. **Decision gate** — this tool remains **rejected for production / client use**; reference only.
+
+### Risks / questions
+
+| Risk | Mitigation |
+| ---- | ---------- |
+| ToS / compliance violation | **Reject** — do not use for CorpFlow work |
+| Credential / cookie / HAR exposure | **Prohibited** — no browser auth flows |
+| Unreliable provider adapters | Not a production dependency candidate |
+| MCP sprawl | No MCP config authorized |
+| Agent temptation to "try it locally" | Explicit rejection in this capture |
+
+### Guardrails (this capture)
+
+- No installation.
+- No MCP config.
+- No npm/npx/package/Docker install.
+- No provider cookies or HAR files.
+- No provider scraping.
+- No workflow changes.
+- No runtime code.
+- No env vars or secrets.
+- No changes to `.env.template`, production app, or production Postgres.
+- **Rejected for production, client work, and sensitive data.**
+
+### Related canonical docs
+
+- `docs/strategy/GOOGLE_ACCELERATION_LANE.md` — approved acceleration lanes only.
+- `docs/operations/SECURITY_REVIEW_CHECKLIST.md` — third-party tool trust boundaries.
+- `docs/strategy/ABOVE_THE_LINE_STRATEGY_DOCTRINE.md` — no commodity wrapper moat.
+
+---
+
+## AnyVids — unverified media tool
+
+**Status:** `WATCH / UNVERIFIED`
+
+**Verdict:** `ANYVIDS CAPTURED AS UNVERIFIED WATCH ITEM — NO INSTALLATION AUTHORIZED`
+
+**URL:** https://anyvids.ai/
+
+**NO IMPLEMENTATION AUTHORIZED** by this capture alone.
+
+### Why Anton added it
+
+- Submitted as a potential **media / video tool** candidate.
+- Page could **not be reliably opened** during initial review — treat as **unverified** until operator or Codex browser review confirms what it does.
+- Must verify pricing, rights, outputs, export limits, and data policy before any pilot.
+
+### Claimed capabilities (vendor — unverified)
+
+| Capability | Notes |
+| ---------- | ----- |
+| Media / video generation (assumed) | **Unverified** — page not reliably reachable in initial pass |
+| Pricing / export / rights | Unknown until operator review |
+| Data policy | Unknown until operator review |
+
+*All claims are **unverified hypotheses** until an operator confirms the live site.*
+
+### Potential CorpFlow use cases
+
+| Use case | Executor |
+| -------- | -------- |
+| Future marketing / content radar (if verified useful) | Operator manual review first |
+| Compare against Google Vids / approved content engine candidates | Codex research packet |
+
+**Out of scope until verified:** install, client workflow, production integration, required dependency.
+
+### Evaluation plan (ordered — none authorized by this capture)
+
+1. **Docs capture only** — this section (complete).
+2. **Operator / Codex browser review** — confirm site reachable, product scope, pricing, rights, exports, data policy.
+3. **No install** until verification complete and written approval obtained.
+4. **No production / runtime dependency** on Vercel, Postgres, or tenant surfaces.
+5. **Decision gate** — verified product description; operator-side sandbox only; no real client data; written approval before install or integration.
+
+### Risks / questions
+
+| Risk | Mitigation |
+| ---- | ---------- |
+| Site unverified in initial pass | Manual browser review required |
+| Unknown licensing / commercial rights | Do not use in client-facing materials until confirmed |
+| Duplicate of existing content-engine candidates | Compare against `MARKETING_AUTOMATION_CONTENT_ENGINE_CANDIDATES.md` |
+
+### Guardrails (this capture)
+
+- No installation.
+- No MCP config.
+- No npm/npx/package install.
+- No workflow changes.
+- No runtime code.
+- No env vars or secrets.
+- No changes to `.env.template`, production app, or production Postgres.
+- No client workflow until verified.
+
+### Related canonical docs
+
+- `docs/product/MARKETING_AUTOMATION_CONTENT_ENGINE_CANDIDATES.md` — existing video/content candidates.
+- `docs/marketing/02_MULTIMODAL_CONTENT_PLAYBOOK.md` — attention / validation asset rules.
+
+---
+
+## Drafted — AI house plans / Lux AI priority pilot
+
+**Status:** `PRIORITY PILOT / OPERATOR-SIDE ONLY`
+
+**Verdict:** `DRAFTED CAPTURED AS LUX AI PRIORITY PILOT — NO PRODUCTION INTEGRATION AUTHORIZED`
+
+**URL:** https://www.drafted.ai/
+
+**NO IMPLEMENTATION AUTHORIZED** by this capture alone.
+
+**Priority note:** **Highest-priority item in issue #435 batch.** Directly relevant to **Lux AI / Luxe Maurice** future property and architecture visualization workflows.
+
+### Why Anton added it
+
+- Appears to generate / free-download **AI house plans** with floorplans and exterior render imagery.
+- Page title advertises **PDF and CAD downloads**.
+- Directly relevant to Lux-style **property concept packs**, floorplan visuals, and architecture visualization for `lux.corpflowai.com` / Luxe Maurice.
+- Pilot quickly, but **operator-side only** — no integration into production app yet.
+
+### Claimed capabilities (vendor — verify during pilot)
+
+| Capability | Notes |
+| ---------- | ----- |
+| AI house plan generation | Floorplans + exterior renders |
+| PDF / CAD export | Verify formats and quality in pilot |
+| Free download (claimed) | Confirm licensing and commercial-use terms |
+| Exterior render imagery | Lux property concept pack candidate |
+
+*Treat vendor claims as **hypotheses** until verified in a bounded operator-side pilot.*
+
+### Potential CorpFlow use cases
+
+| Use case | Executor |
+| -------- | -------- |
+| Lux / Luxe Maurice property concept packs | Operator pilot → review before any tenant publish |
+| Architecture visualization for property marketing | Marketing / Lux AI packets |
+| Floorplan + render assets for validation paths | Operator-side generation + manual review |
+
+**Out of scope for default use:** production app integration, automated tenant publish, client data in third-party tool without review.
+
+### Evaluation plan (ordered — operator pilot is next bounded step, not authorized by this capture alone)
+
+1. **Docs capture only** — this section (complete).
+2. **Operator-side pilot** — Anton or Codex produces sample outputs; Cursor does not own pilot execution.
+3. **First pilot evaluates:** output quality, licensing / commercial-use terms, export formats, watermarking, suitability for client-facing Lux materials, Lux-style property concept pack fit.
+4. **No production / runtime integration** on Vercel, Postgres, or tenant surfaces until separate packet.
+5. **No secrets** — no CorpFlow env vars, tokens, or client PII passed to Drafted.
+6. **Decision gate** — verified licensing and commercial rights; operator-side only; no real client data in first pilot; written approval before production integration.
+
+### Risks / questions
+
+| Risk | Mitigation |
+| ---- | ---------- |
+| Commercial-use / licensing unclear | Verify before any client-facing Lux publish |
+| Watermarks on free tier | Confirm in pilot |
+| CAD/PDF export quality | Operator review before tenant use |
+| Production integration premature | Operator pilot first; no app wiring yet |
+
+### Guardrails (this capture)
+
+- No installation into CorpFlow production app.
+- No MCP config.
+- No npm/npx/package install in repo.
+- No workflow changes.
+- No runtime code.
+- No env vars or secrets.
+- No changes to `.env.template`, production app, or production Postgres.
+- Operator-side pilot only until separate authorization.
+
+### Related canonical docs
+
+- `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md` — no fake evidence; Lux brand-safe visuals.
+- `docs/marketing/04_DELIVERY_QUALITY_GATE.md` — buyer-facing assets must pass quality gate.
+- `docs/strategy/ABOVE_THE_LINE_STRATEGY_DOCTRINE.md` — Lux managed outcomes, not generic AI wrappers.
+- Tenant host: `lux.corpflowai.com` / `luxe-maurice`.
+
+---
+
+## MakeInfographic.ai — marketing infographic generator
+
+**Status:** `PILOT / OPERATOR-SIDE ONLY`
+
+**Verdict:** `MAKEINFOGRAPHIC CAPTURED AS MARKETING PILOT — NO PRODUCTION INTEGRATION AUTHORIZED`
+
+**URL:** https://www.makeinfographic.ai/
+
+**NO IMPLEMENTATION AUTHORIZED** by this capture alone.
+
+### Why Anton added it
+
+- Useful for quick **explainer infographics**, timelines, comparison visuals, process charts, and social / landing visuals for CorpFlowAI marketing.
+- Site advertises text / notes / data → infographics, PNG / PDF downloads, no sign-up free use, daily free credits, styles, aspect ratios, and resolution tiers.
+- Pilot for **marketing assets only** — do not integrate into app / runtime.
+
+### Claimed capabilities (vendor — verify during pilot)
+
+| Capability | Notes |
+| ---------- | ----- |
+| Text / notes / data → infographics | Marketing explainer use case |
+| PNG / PDF download | Verify resolution tiers |
+| No sign-up free use (claimed) | Confirm in pilot |
+| Styles / aspect ratios | Social and landing variants |
+
+*Treat vendor claims as **hypotheses** until verified in a bounded operator-side pilot.*
+
+### Potential CorpFlow use cases
+
+| Use case | Executor |
+| -------- | -------- |
+| CorpFlowAI marketing infographics (process, comparison, timeline) | Operator pilot |
+| Social / landing visual variants | Marketing packets (manual review) |
+| Hook → validation path companion visuals | Per dual-asset pattern in marketing doctrine |
+
+**Out of scope for default use:** production app integration, automated publish, client-facing use without commercial-rights confirmation.
+
+### Evaluation plan (ordered — none authorized by this capture alone)
+
+1. **Docs capture only** — this section (complete).
+2. **Operator-side pilot** — generate sample infographics; confirm commercial rights and watermark.
+3. **No production / runtime integration** on Vercel, Postgres, or tenant surfaces.
+4. **No secrets** — no CorpFlow env vars or client data.
+5. **Decision gate** — verified commercial rights and watermark policy; operator-side only; written approval before client-facing use or app integration.
+
+### Risks / questions
+
+| Risk | Mitigation |
+| ---- | ---------- |
+| Commercial rights / watermark on free tier | Confirm before client-facing publish |
+| Overlap with GPT Image / Google tools | Compare against `MARKETING_AUTOMATION_CONTENT_ENGINE_CANDIDATES.md` |
+| Production integration premature | Marketing pilot only |
+
+### Guardrails (this capture)
+
+- No installation into CorpFlow production app.
+- No MCP config.
+- No npm/npx/package install in repo.
+- No workflow changes.
+- No runtime code.
+- No env vars or secrets.
+- No changes to `.env.template`, production app, or production Postgres.
+- Marketing assets only; confirm commercial rights before client-facing use.
+
+### Related canonical docs
+
+- `docs/product/MARKETING_AUTOMATION_CONTENT_ENGINE_CANDIDATES.md` — existing content engine candidates.
+- `docs/marketing/00_NON_NEGOTIABLE_MARKETING_COMMUNICATION_STANDARD.md` — Hook / Proof / Depth.
+- `docs/marketing/04_DELIVERY_QUALITY_GATE.md` — quality gate before publish.
+
+---
+
+## Executor model — Codex vs Cursor (issue #435)
+
+**Operating decision:** Use **Codex more**, but **not as PR owner**.
+
+| Role | Executor | Typical work |
+| ---- | -------- | ------------ |
+| **Research & prototype** | Codex Cloud | Product due diligence, evaluation matrices, scripts, extraction, data cleanup, prospect research, local experiments, draft docs, proof-of-concept output (e.g. Drafted Lux pilot notes, AnyVids browser review) |
+| **Repo & delivery** | Cursor | Final code / docs changes, PR creation, `npm test` / `npm run build` verification, merge-ready work |
+
+**For this intake (#435):** Codex may produce deep evaluation matrices and Drafted / Lux pilot notes. **Cursor owns** the repo capture, PR, and verification. Neither executor is authorized to install gpt4free, configure MCP for rejected tools, or wire any of these into production by this capture alone.
+
+---
+
 ## Document history
 
 | Version | Date (UTC) | Change |
 | ------- | ---------- | ------ |
 | v1 | 2026-06-20 | Issue #429 radar intake: Guild.ai, Retool, TAAFT Launch, ownAI. |
+| v2 | 2026-06-20 | Issue #435 radar intake: claude-code-local, gpt4free, AnyVids, Drafted, MakeInfographic.ai; Codex vs Cursor executor note. |

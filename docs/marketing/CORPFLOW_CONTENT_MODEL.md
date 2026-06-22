@@ -9,6 +9,7 @@
 - `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md` — the operating doctrine every surface must honour.
 - `docs/marketing/CORPFLOW_ASSET_GOVERNANCE.md` — how visual assets are sourced, attributed, retired.
 - `docs/marketing/CORPFLOW_PROMPT_LIBRARY.md` — vetted prompts for AI-generated assets.
+- `docs/marketing/PRODUCT_A_US_MEDSPA_PROMPT_LIBRARY.md` — canonical operator text prompts for Product A US clinic sales workflows (audit, Gmail drafts, follow-up, reply classification).
 - `lib/visualAssets/schema.js` — programmatic schema for asset manifests.
 
 ## Why a content model

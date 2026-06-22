@@ -1,5 +1,8 @@
 import React from 'react';
+import Link from 'next/link';
 import PublicPolicyLayout, { policyStyles as ps } from '../components/PublicPolicyLayout.js';
+import CustomerServiceContact from '../components/CustomerServiceContact.js';
+import { formatCurrencyDisclosure } from '../lib/public/merchant-identity.js';
 
 export default function PrivacyPage() {
   return (
@@ -36,9 +39,25 @@ export default function PrivacyPage() {
         <h2 style={ps.h2}>Payment-card transmission</h2>
         <p style={ps.p}>
           This website does not capture, transmit, or store card data. When CorpFlowAI offers a hosted payment-link or
-          hosted-checkout option in future, card details will be entered on the payment provider&rsquo;s hosted page
-          over TLS. Card details are never transmitted to or stored on CorpFlowAI servers.
+          hosted-checkout option, card details are entered on the payment provider&apos;s hosted page over TLS. Card
+          details are never transmitted to or stored on CorpFlowAI servers. See the{' '}
+          <Link href="/payment-security" style={{ color: '#7dd3fc' }}>
+            payment security policy
+          </Link>{' '}
+          for full detail.
         </p>
+      </section>
+      <section style={ps.section}>
+        <h2 style={ps.h2}>Subprocessors</h2>
+        <p style={ps.p}>
+          We use infrastructure providers to host and operate the website (for example Vercel for hosting and Neon for
+          database storage). Payment acquiring, when live, is processed by State Bank of Mauritius through the MPGS
+          gateway; card data stays on the bank-hosted page. We do not sell personal data.
+        </p>
+      </section>
+      <section style={ps.section}>
+        <h2 style={ps.h2}>Privacy contact</h2>
+        <CustomerServiceContact />
       </section>
       <section style={ps.section}>
         <h2 style={ps.h2}>Retention and updates</h2>
