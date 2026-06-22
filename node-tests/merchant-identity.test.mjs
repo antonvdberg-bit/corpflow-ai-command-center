@@ -44,6 +44,7 @@ test('transaction receipt fields cover SBM minimum set', () => {
   assert.match(joined, /Masked card/i);
 });
 
-test('customer service phone is optional until operator sets it', () => {
-  assert.equal(hasCustomerServicePhone(), false);
+test('customer service phone is set for SBM website compliance', () => {
+  assert.equal(hasCustomerServicePhone(), true);
+  assert.match(CUSTOMER_SERVICE_PHONE, /\+230/);
 });
