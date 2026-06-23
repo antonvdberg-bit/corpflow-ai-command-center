@@ -28,6 +28,10 @@
 
 ---
 
+---
+
+## 2026-06-23 — **PAY-SBM-4 MPGS TEST env deviation (PR #441).** Infisical exposes development/staging/production only; Infisical→Vercel sync placed all 13 `CORPFLOW_MPGS_*` keys on **Vercel Production**, not Preview. **Approved temporary deviation:** Anton enters MPGS TEST keys **directly on Vercel Preview** only (remove from Production); optional branch scope `feat/pay-sbm-4-mpgs-payment-by-link`; `CORPFLOW_MPGS_PUBLIC_BASE_URL` = PR #441 Preview host (no trailing slash). Agent CI must not receive MPGS keys. Documented in `docs/finance/PAY_SBM_4_INFISICAL_SECRETS.md` § *Temporary deviation* and operator runbook. **Cleanup later:** map Infisical staging → Vercel Preview. No live payment link until diagnostics `operational: true`.
+
 ## 2026-06-20 — **Product radar intake batch 2 (docs-only — library capture, issue #435).** Extended `docs/product/PRODUCT_RADAR_CANDIDATES.md` + library index: claude-code-local `WATCH / LOCAL OPERATOR AI PATTERN`; gpt4free `REJECT FOR PRODUCTION / RISK REFERENCE ONLY`; AnyVids `WATCH / UNVERIFIED`; Drafted `PRIORITY PILOT / LUX AI`; MakeInfographic.ai `PILOT / MARKETING ONLY`. Codex-vs-Cursor executor note added. Verdict: **RADAR INTAKE CAPTURED: CLAUDE-CODE-LOCAL, GPT4FREE, ANYVIDS, DRAFTED, MAKEINFOGRAPHIC — NO INSTALLATION AUTHORIZED**.
 
 <!-- PRODUCT_RADAR_CANDIDATES_435_2026_06_20_HIST -->

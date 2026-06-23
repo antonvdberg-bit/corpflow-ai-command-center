@@ -6,13 +6,21 @@
 
 ---
 
-## Part A — Infisical secrets (set before TEST)
+## Part A — Secrets before TEST
 
-**Primary store: Infisical** (Preview environment — syncs to Vercel Preview). Do **not** paste credentials into Cursor, GitHub, or chat.
+**Canonical long-term:** Infisical → Vercel Preview (`docs/finance/PAY_SBM_4_INFISICAL_SECRETS.md`).
 
-Canonical names and sync steps: **`docs/finance/PAY_SBM_4_INFISICAL_SECRETS.md`**.
+**PAY-SBM-4 TEST (approved deviation):** Because Infisical→Vercel mapping lands MPGS keys on **Production** only, enter the **13** keys **directly in Vercel → Preview** for this spike:
 
-Add these keys in **Infisical** under the environment that maps to **Vercel Preview** only (leave **Production** unset or `CORPFLOW_MPGS_ENABLED=false`).
+1. **Remove** all `CORPFLOW_MPGS_*` keys from Vercel **Production**.
+2. **Add** the same 13 keys to Vercel **Preview** only (copy values from Infisical — do not paste into chat).
+3. **Optional branch scope:** `feat/pay-sbm-4-mpgs-payment-by-link` if the UI offers it.
+4. **Do not** add MPGS keys to Agent CI / GitHub Infisical OIDC.
+5. **`CORPFLOW_MPGS_PUBLIC_BASE_URL`:** `https://corpflow-ai-command-center-96xmzjh67-corpflowai.vercel.app` (no trailing slash).
+
+**Cleanup later:** Map Infisical staging → Vercel Preview; delete manual Preview duplicates once sync is correct.
+
+Do **not** paste credentials into Cursor, GitHub, or chat.
 
 | Variable | What to set | Notes |
 |----------|-------------|-------|
@@ -30,7 +38,7 @@ Add these keys in **Infisical** under the environment that maps to **Vercel Prev
 | `CORPFLOW_MPGS_HOSTED_CHECKOUT_ENABLED` | `false` | Payment Link v1 |
 | `CORPFLOW_MPGS_PUBLIC_BASE_URL` | Your **Preview** URL | e.g. `https://corpflow-ai-command-center-….vercel.app` (not `corpflowai.com`) |
 
-After Infisical entry: **sync Infisical → Vercel Preview**, then **redeploy Preview** (env changes require a new deployment).
+After Vercel Preview entry: **redeploy PR #441 Preview**, then run diagnostics (Part B). Env changes require a new deployment.
 
 ### MPGS merchant portal (TEST)
 

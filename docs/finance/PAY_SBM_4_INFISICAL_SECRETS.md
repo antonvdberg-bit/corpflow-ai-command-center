@@ -20,6 +20,26 @@ Per `docs/communications/CORPFLOW_COMMUNICATIONS_V1.md` §2 and `docs/operations
 
 ---
 
+## Temporary deviation — PAY-SBM-4 TEST only (approved)
+
+**Why:** Infisical exposes **development / staging / production** environments only. The Infisical→Vercel integration currently maps MPGS values to **Vercel Production**, not **Vercel Preview**. PR **#441** Preview deployments therefore do not receive MPGS env until Preview is populated.
+
+**Approved for this TEST spike only:** Anton may enter the **13** `CORPFLOW_MPGS_*` keys **directly in Vercel** with target **Preview** only (values from Infisical — never pasted into chat, GitHub, or repo).
+
+| Safeguard | Requirement |
+|-----------|-------------|
+| Production | **Remove** all 13 MPGS TEST keys from Vercel **Production** |
+| Preview | **Add** all 13 keys on Vercel **Preview** |
+| Branch scope (optional) | If Vercel UI offers branch scoping, use `feat/pay-sbm-4-mpgs-payment-by-link` |
+| Agent CI | **Do not** add MPGS keys to the CI Infisical slice |
+| `CORPFLOW_MPGS_PUBLIC_BASE_URL` | `https://corpflow-ai-command-center-96xmzjh67-corpflowai.vercel.app` (no trailing slash) |
+
+**After entry:** Redeploy PR #441 Preview, then `GET /api/factory/payments/mpgs/diagnostics` (factory master browser session or approved bypass). **No `create-link` until diagnostics `operational: true` and Anton approves one TEST run.**
+
+**Cleanup (later):** Map Infisical **staging** (or equivalent) → Vercel **Preview** in the integration; remove duplicate manual Preview rows; record in `artifacts/chat_history.md` when restored to Infisical-first path.
+
+---
+
 ## Infisical target (where Anton enters values)
 
 | Field | Value |
@@ -66,7 +86,9 @@ Code reads these via `cfg()` in `lib/server/payments/mpgs-config.js` and `.env.t
 
 ### When manual Vercel Preview entry is allowed
 
-Only if **Infisical → Vercel Preview sync fails** and you cannot fix sync in the same session. In that case: upsert **Preview target only** via Vercel UI or `npm run vercel:env:push -- --targets=preview` using values **sourced from Infisical** (not pasted into chat). Document the deviation in `artifacts/chat_history.md`. Reset Vercel from Infisical when sync is restored.
+**PAY-SBM-4 TEST (current):** Manual Vercel **Preview** entry is **approved** — see § *Temporary deviation* above. Infisical has no Preview-equivalent target in the current mapping.
+
+**General rule:** If Infisical → Vercel Preview sync works in future, prefer Infisical-first (`POSTGRES_PROVIDER.md` §4a). Until then: upsert **Preview target only** via Vercel UI; **never** Production for MPGS TEST. Document any deviation in `artifacts/chat_history.md` when scope changes.
 
 ### Why Vercel still holds copies
 

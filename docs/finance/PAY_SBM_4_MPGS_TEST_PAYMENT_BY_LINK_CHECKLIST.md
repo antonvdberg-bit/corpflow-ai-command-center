@@ -20,9 +20,9 @@
 
 ---
 
-## Env placeholders (Infisical → Vercel Preview)
+## Env placeholders (Vercel Preview — PAY-SBM-4 TEST)
 
-**Operator enters values in Infisical only** (Preview-linked environment). Sync to Vercel Preview; redeploy. See **`docs/finance/PAY_SBM_4_INFISICAL_SECRETS.md`**.
+**Approved deviation:** Infisical has no Preview target in the current mapping; enter the **13** keys on **Vercel Preview only** (values from Infisical). Remove all MPGS keys from Vercel **Production**. See **`docs/finance/PAY_SBM_4_INFISICAL_SECRETS.md`** § *Temporary deviation*.
 
 | Variable | Purpose | Example placeholder |
 |----------|---------|---------------------|
@@ -46,7 +46,7 @@
 
 ## Operator manual steps (before TEST run)
 
-1. **Infisical (Preview environment)** — set MPGS vars above; sync to Vercel Preview; leave Production unset/disabled.
+1. **Vercel Preview (direct entry for TEST)** — add 13 MPGS vars on **Preview** only; **remove** from **Production**; optional branch `feat/pay-sbm-4-mpgs-payment-by-link`; redeploy PR #441 Preview.
 2. **MPGS merchant portal** — whitelist return URL: `{CORPFLOW_MPGS_PUBLIC_BASE_URL}{CORPFLOW_MPGS_RETURN_PATH}?order_ref=*` and cancel URL (confirm exact pattern with SBM).
 3. **Deploy Preview** — merge PAY-SBM-4 PR; wait for Preview **Ready**.
 4. **Schema** — factory master `POST /api/factory/postgres/ensure-schema` (or rely on build DDL).
