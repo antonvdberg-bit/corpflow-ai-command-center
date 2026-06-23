@@ -17,6 +17,25 @@ import {
   createPaymentStore,
 } from '../lib/server/payments/payment-store.js';
 
+const ALL_MPGS_ENV_KEYS = [...new Set(Object.values(MPGS_ENV_KEYS))];
+
+function snapshotMpgsEnv() {
+  const snap = {};
+  for (const k of ALL_MPGS_ENV_KEYS) snap[k] = process.env[k];
+  return snap;
+}
+
+function clearMpgsEnv() {
+  for (const k of ALL_MPGS_ENV_KEYS) delete process.env[k];
+}
+
+function restoreMpgsEnv(snap) {
+  for (const k of ALL_MPGS_ENV_KEYS) {
+    if (snap[k] === undefined) delete process.env[k];
+    else process.env[k] = snap[k];
+  }
+}
+
 test('buildPaymentLinkRequestBody matches SBM Payment Link shape', () => {
   const body = buildPaymentLinkRequestBody({
     attemptReference: 'CFLR-TEST-001',
@@ -40,13 +59,25 @@ test('buildPaymentLinkRequestBody matches SBM Payment Link shape', () => {
 });
 
 test('getMpgsApiVersion defaults to 66 per SBM TEST manual', () => {
-  assert.equal(getMpgsApiVersion(), '66');
+  const snap = snapshotMpgsEnv();
+  clearMpgsEnv();
+  try {
+    assert.equal(getMpgsApiVersion(), '66');
+  } finally {
+    restoreMpgsEnv(snap);
+  }
 });
 
 test('missing MPGS config fails closed — not operational when disabled', () => {
-  assert.equal(isMpgsEnabled(), false);
-  assert.equal(hasMpgsCredentials(), false);
-  assert.equal(isMpgsOperational(), false);
+  const snap = snapshotMpgsEnv();
+  clearMpgsEnv();
+  try {
+    assert.equal(isMpgsEnabled(), false);
+    assert.equal(hasMpgsCredentials(), false);
+    assert.equal(isMpgsOperational(), false);
+  } finally {
+    restoreMpgsEnv(snap);
+  }
 });
 
 test('redirect success status alone does not mark paid without capture', () => {
@@ -85,8 +116,14 @@ test('currency mismatch blocks verified paid', () => {
 });
 
 test('production mode is guarded — default mode is test not production', () => {
-  assert.equal(getMpgsMode(), 'test');
-  assert.notEqual(getMpgsMode(), 'production');
+  const snap = snapshotMpgsEnv();
+  clearMpgsEnv();
+  try {
+    assert.equal(getMpgsMode(), 'test');
+    assert.notEqual(getMpgsMode(), 'production');
+  } finally {
+    restoreMpgsEnv(snap);
+  }
 });
 
 test('recordRedirectSeen is idempotent on duplicate return', async () => {

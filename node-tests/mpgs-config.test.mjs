@@ -12,6 +12,24 @@ import {
 } from '../lib/server/payments/mpgs-config.js';
 
 const ENV_KEY = MPGS_ENV_KEYS.PUBLIC_BASE_URL;
+const ALL_MPGS_ENV_KEYS = [...new Set(Object.values(MPGS_ENV_KEYS))];
+
+function snapshotMpgsEnv() {
+  const snap = {};
+  for (const k of ALL_MPGS_ENV_KEYS) snap[k] = process.env[k];
+  return snap;
+}
+
+function clearMpgsEnv() {
+  for (const k of ALL_MPGS_ENV_KEYS) delete process.env[k];
+}
+
+function restoreMpgsEnv(snap) {
+  for (const k of ALL_MPGS_ENV_KEYS) {
+    if (snap[k] === undefined) delete process.env[k];
+    else process.env[k] = snap[k];
+  }
+}
 
 test('MPGS env keys follow CORPFLOW_MPGS_ prefix convention', () => {
   assert.equal(MPGS_ENV_KEYS.ENABLED, 'CORPFLOW_MPGS_ENABLED');
@@ -22,22 +40,40 @@ test('MPGS env keys follow CORPFLOW_MPGS_ prefix convention', () => {
 });
 
 test('getMpgsMode defaults to test when unset', () => {
-  assert.equal(getMpgsMode(), 'test');
+  const snap = snapshotMpgsEnv();
+  clearMpgsEnv();
+  try {
+    assert.equal(getMpgsMode(), 'test');
+  } finally {
+    restoreMpgsEnv(snap);
+  }
 });
 
 test('getMpgsApiVersion defaults to 66 when unset', () => {
-  assert.equal(getMpgsApiVersion(), '66');
+  const snap = snapshotMpgsEnv();
+  clearMpgsEnv();
+  try {
+    assert.equal(getMpgsApiVersion(), '66');
+  } finally {
+    restoreMpgsEnv(snap);
+  }
 });
 
 test('mpgsConfigDiagnostics exposes no secret values', () => {
-  const d = mpgsConfigDiagnostics();
-  assert.equal(typeof d.enabled, 'boolean');
-  assert.equal(d.mode, 'test');
-  assert.equal('api_password' in d, false);
-  assert.equal('merchant_id' in d, false);
-  assert.equal(d.merchant_id_present, false);
-  assert.equal(typeof d.mpgs_public_base_url_present, 'boolean');
-  assert.equal(typeof d.mpgs_public_base_url_valid, 'boolean');
+  const snap = snapshotMpgsEnv();
+  clearMpgsEnv();
+  try {
+    const d = mpgsConfigDiagnostics();
+    assert.equal(typeof d.enabled, 'boolean');
+    assert.equal(d.mode, 'test');
+    assert.equal('api_password' in d, false);
+    assert.equal('merchant_id' in d, false);
+    assert.equal(d.merchant_id_present, false);
+    assert.equal(typeof d.mpgs_public_base_url_present, 'boolean');
+    assert.equal(typeof d.mpgs_public_base_url_valid, 'boolean');
+  } finally {
+    restoreMpgsEnv(snap);
+  }
 });
 
 test('CORPFLOW_MPGS_PUBLIC_BASE_URL builds return/cancel URLs from path env keys', () => {
