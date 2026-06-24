@@ -115,3 +115,32 @@ test('TEST mode rejects corpflowai.com for CORPFLOW_MPGS_PUBLIC_BASE_URL', () =>
     else process.env[ENV_KEY] = prev;
   }
 });
+
+test('TEST mode allows test.corpflowai.com for CORPFLOW_MPGS_PUBLIC_BASE_URL', () => {
+  const prev = process.env[ENV_KEY];
+  process.env[ENV_KEY] = 'https://test.corpflowai.com';
+  try {
+    const result = validateMpgsPublicBaseUrl();
+    assert.equal(result.ok, true);
+    assert.equal(
+      buildMpgsReturnUrl('CFLR-1'),
+      'https://test.corpflowai.com/pay/return?order_ref=CFLR-1',
+    );
+  } finally {
+    if (prev === undefined) delete process.env[ENV_KEY];
+    else process.env[ENV_KEY] = prev;
+  }
+});
+
+test('TEST mode still rejects lux.corpflowai.com for CORPFLOW_MPGS_PUBLIC_BASE_URL', () => {
+  const prev = process.env[ENV_KEY];
+  process.env[ENV_KEY] = 'https://lux.corpflowai.com';
+  try {
+    const result = validateMpgsPublicBaseUrl();
+    assert.equal(result.ok, false);
+    assert.equal(result.reason, 'test_must_use_preview_host');
+  } finally {
+    if (prev === undefined) delete process.env[ENV_KEY];
+    else process.env[ENV_KEY] = prev;
+  }
+});
