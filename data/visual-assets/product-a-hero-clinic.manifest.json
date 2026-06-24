@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0.0",
+  "id": "product-a-hero-clinic",
+  "surface": "product-a",
+  "kind": "image",
+  "title": "Product A US clinics hero — temporary placeholder",
+  "description": "Temporary governed placeholder for the Product A / US clinics hero background (/product-a/us-clinics). Tasteful abstract luxury visual in warm stone and blush tones evoking a calm premium treatment environment. Vector-only, CorpFlowAI-authored, no people and no clinical/medical detail. Replace with a vetted premium medspa/aesthetic-clinic interior photograph (stock_licensed or ai_generated with provenance) before production launch.",
+  "source": {
+    "type": "repo",
+    "path": "/assets/product-a/hero-clinic-placeholder.svg"
+  },
+  "licence": {
+    "tier": "corpflow_owned",
+    "owner": "CorpFlowAI",
+    "terms": "CorpFlowAI-authored vector placeholder. No third-party IP, no stock, no AI generation. Temporary; replace per the replacement note in usage.notes and bump the id on replacement (never overwrite a published path)."
+  },
+  "accessibility": {
+    "alt": "Soft warm stone and blush abstract suggesting a calm, premium clinic treatment environment.",
+    "lang": "en",
+    "decorative": true
+  },
+  "usage": {
+    "allowed_surfaces": ["product-a"],
+    "primary_cta": "Request a Website & Lead Rescue Audit",
+    "notes": "slot:product_a_hero. Full-bleed fixed background under a dark scrim; rendered decoratively (alt=\"\") because surrounding copy carries the meaning. REPLACEMENT: swap for a vetted premium medspa/aesthetic-clinic interior or calm luxury treatment-room photograph — responsive AVIF/WebP set, no identifiable patients, no real before/after, no clinical PII. On replacement, create a new id (e.g. product-a-hero-clinic-v2) and retire this manifest."
+  },
+  "lifecycle": {
+    "state": "draft",
+    "created_at": "2026-06-25"
+  }
+}

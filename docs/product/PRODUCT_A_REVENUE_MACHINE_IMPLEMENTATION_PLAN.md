@@ -147,6 +147,12 @@ flowchart LR
 
 **Default recommendation:** Option A if a Product A route ships in the same sprint; Option B for same-day live test.
 
+### 6.5 Visual standard (non-negotiable — first adopter)
+
+Product A / US Clinics is the **first surface to adopt** `docs/marketing/CORPFLOW_VISUAL_STANDARD_HUMAN_FIRST_BEAUTY_LAYER.md`. The page (`components/ProductAUsClinicLanding.js`, route `/product-a/us-clinics`) must present a **beautiful, audience-appropriate photographic background** (refined clinic interiors, calm luxury treatment environments, premium skincare / aesthetic / wellness imagery, or tasteful abstract luxury) with content on **"3D glass"** frosted panels, layered (photo → scrim → glass cards → CTA), visually compelling within four seconds before the copy is read.
+
+Constraints (do not trade away for beauty): primary CTA *Request a Website & Lead Rescue Audit* stays the most prominent above-the-fold action; WCAG AA contrast on glass over the worst-case region of the photo; optimized responsive images with no LCP/CLS regression; mobile-first; `prefers-reduced-motion` / `prefers-reduced-transparency` respected. No identifiable patients, no fabricated before/after, no clinical PII; every background photo is a governed asset per `docs/marketing/CORPFLOW_ASSET_GOVERNANCE.md`. The reusable "photo + glass" component/token system (built per the visual standard § 6) is reused here first, then rolled into other public surfaces — not re-styled one-off. The detailed build plan — primitives, a11y/perf checks, asset governance, and additive Plausible before/after measurement — is `docs/product/PRODUCT_A_BEAUTY_LAYER_IMPLEMENTATION_PACKET_V1.md`. The intake API, event contract, and form field names/required behaviour are **unchanged** by the beauty layer. Runtime restyle is gated work (`.cursor/rules/delivery-reality.mdc`).
+
 ---
 
 ## 7. Google Sheet — temporary CRM schema
@@ -487,6 +493,8 @@ Companion: `docs/product/PRODUCT_A_NON_GHL_DATA_WORKFLOW_PACKET.md` — Sheets/n
 | Product radar (Langfuse, Chatwoot, CRM, AgentSpan) | `docs/product/PRODUCT_RADAR_CANDIDATES.md` |
 | Living Word chatbot assessment | `artifacts/quality-audits/2026-06-11-living-word-mauritius/chatbot-options-assessment.md` |
 | Brand / no-guarantee language | `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md` |
+| Visual standard (photo + glass; first adopter) | `docs/marketing/CORPFLOW_VISUAL_STANDARD_HUMAN_FIRST_BEAUTY_LAYER.md` |
+| Beauty layer implementation packet (this surface) | `docs/product/PRODUCT_A_BEAUTY_LAYER_IMPLEMENTATION_PACKET_V1.md` |
 | Above-the-line positioning | `docs/strategy/ABOVE_THE_LINE_STRATEGY_DOCTRINE.md` |
 | Lead Rescue delivery (post-sale) | `docs/operations/AI_LEAD_RESCUE_OPERATOR_RUNBOOK.md` |
 | Sales vs delivery boundary | `docs/operations/AI_LEAD_RESCUE_SALES_TO_DELIVERY_HANDOFF.md` |

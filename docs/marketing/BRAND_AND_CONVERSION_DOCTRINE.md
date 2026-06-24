@@ -14,8 +14,9 @@ This doctrine governs **the offer** — how CorpFlowAI's products are positioned
 - **`docs/marketing/03_CONTENT_ATOM_SCHEMA.md`** — reusable structured units of marketing/sales truth for AI retrieval.
 - **`docs/marketing/04_DELIVERY_QUALITY_GATE.md`** — preflight checklist + 12/14 scoring model + mandatory handoff format.
 - **`docs/marketing/05_AGENT_COMPULSION_MECHANISM.md`** — four-layer enforcement (source-of-truth, prompt preamble, PR checklist, automated check at `scripts/check-marketing-quality-gate.mjs`).
+- **`docs/marketing/CORPFLOW_VISUAL_STANDARD_HUMAN_FIRST_BEAUTY_LAYER.md`** — non-negotiable visual presentation standard for public marketing surfaces (beautiful audience-appropriate photographic backgrounds + "3D glass" panels, layered composition, four-second beauty test). It **refines and supersedes the hero/presentation layer of § *Visual direction* and § *AI Lead Rescue visual reference* below** (see the supersession note in § *Visual direction*); it does **not** relax any conversion, copy, claims, CTA, single-offer, or above-the-line rule.
 
-The auto-applied rule **`.cursor/rules/brand-conversion-doctrine.mdc`** treats this doctrine and the six companion standards as a single canonical set. Future decisions may supersede individual sections; they may not silently contradict the set.
+The auto-applied rule **`.cursor/rules/brand-conversion-doctrine.mdc`** treats this doctrine and the companion standards as a single canonical set. Future decisions may supersede individual sections; they may not silently contradict the set.
 
 ## Non-negotiable rule
 
@@ -144,6 +145,8 @@ Correct flow:
 4. Payment or invoice route appears after intake review or after region selection.
 
 ## Visual direction
+
+> **Superseded for the public-marketing hero/presentation layer (2026-06-25, Anton directive):** `docs/marketing/CORPFLOW_VISUAL_STANDARD_HUMAN_FIRST_BEAUTY_LAYER.md` now **requires** a beautiful, audience-appropriate **photographic background** plus a "**3D glass**" (frosted, layered) content-panel system as the first impression on every public marketing surface, within the first four seconds. That standard narrows "avoid stock photos" to its real intent (avoid *cheap/cliché* stock; premium vetted photography is encouraged), reframes "random 3D shapes" as the deliberate glass-panel system, and keeps interface-like cards / screenshots / diagrams as proof content **below** the hero. Everything else in this section (voice, restraint, high contrast, premium feel) still holds. Conversion clarity still wins over beauty in any conflict (§ *Definition of done*). The paragraphs below are retained for context and continue to govern non-hero surfaces and the operator visual language.
 
 CorpFlowAI should look like a premium operations command center, not a generic AI startup page.
 
@@ -295,7 +298,9 @@ Visual cues: lead cards, alert states, simple timeline, follow-up statuses, dail
 
 Suggested hero visual: new enquiry submitted -> Telegram alert sent -> lead logged -> follow-up status updated -> daily summary generated.
 
-Avoid generic AI robot imagery, complex dashboards, dense analytics charts, fake enterprise UI that does not match the pilot, and stock photos.
+Avoid generic AI robot imagery, complex dashboards, dense analytics charts, fake enterprise UI that does not match the pilot, and cheap/cliché stock photos.
+
+> **Note (2026-06-25):** the public-marketing hero/presentation layer of Lead Rescue surfaces follows `docs/marketing/CORPFLOW_VISUAL_STANDARD_HUMAN_FIRST_BEAUTY_LAYER.md` — premium, audience-appropriate photographic backgrounds on "3D glass" panels are now required, not avoided. "Avoid stock photos" here means avoid *cheap/cliché* stock; high-quality vetted/licensed photography is encouraged. The lead-card / alert / timeline cues above remain valid as proof/depth content below the hero.
 
 ## Mandatory review checklist
 
