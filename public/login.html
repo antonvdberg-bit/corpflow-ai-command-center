@@ -458,6 +458,7 @@
             if (!h) return true;
             if (h === 'corpflowai.com') return true;
             if (h === 'core.corpflowai.com') return true;
+            if (h === 'test.corpflowai.com') return true;
             if (h.length > '.vercel.app'.length && h.lastIndexOf('.vercel.app') === h.length - '.vercel.app'.length) return true;
             if (h === 'localhost' || h === '127.0.0.1') return true;
             return false;
