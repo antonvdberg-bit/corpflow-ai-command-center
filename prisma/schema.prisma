@@ -656,3 +656,57 @@ model TenantKnowledgeAtom {
   @@index([tenantId, aiAnswerEligible])
   @@map("tenant_knowledge_atoms")
 }
+
+/// Approved payable (invoice / payment record) — parent of MPGS payment attempts.
+model PaymentRecord {
+  id               String           @id @default(cuid())
+  recordReference  String           @unique @map("record_reference")
+  source           String           @default("manual")
+  sourceId         String?          @map("source_id")
+  purchaserName    String           @map("purchaser_name")
+  purchaserEmail   String           @map("purchaser_email")
+  amountMinor      Int              @map("amount_minor")
+  currency         String
+  description      String?
+  status           String           @default("approved")
+  approvedAt       DateTime         @default(now()) @map("approved_at")
+  approvedBy       String?          @map("approved_by")
+  paidAt           DateTime?        @map("paid_at")
+  fulfilmentStatus String           @default("blocked") @map("fulfilment_status")
+  metadataJson     Json?            @map("metadata_json")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+  attempts         PaymentAttempt[]
+
+  @@index([status])
+  @@index([sourceId])
+  @@map("payment_records")
+}
+
+/// MPGS Payment Link session. Paid only after server-side Retrieve Order.
+model PaymentAttempt {
+  id                  String        @id @default(cuid())
+  paymentRecordId     String        @map("payment_record_id")
+  attemptReference    String        @unique @map("attempt_reference")
+  flowType            String        @default("payment_link") @map("flow_type")
+  status              String        @default("pending")
+  gatewayMode         String        @default("test") @map("gateway_mode")
+  mpgsOrderId         String?       @map("mpgs_order_id")
+  mpgsSessionId       String?       @map("mpgs_session_id")
+  successIndicator    String?       @map("success_indicator")
+  paymentLinkUrl      String?       @map("payment_link_url")
+  redirectSeenAt      DateTime?     @map("redirect_seen_at")
+  resultIndicatorSeen String?       @map("result_indicator_seen")
+  verifiedPaidAt      DateTime?     @map("verified_paid_at")
+  gatewayStatus       String?       @map("gateway_status")
+  authorizationCode   String?       @map("authorization_code")
+  cardLastFour        String?       @map("card_last_four")
+  metadataJson        Json?         @map("metadata_json")
+  createdAt           DateTime      @default(now()) @map("created_at")
+  updatedAt           DateTime      @updatedAt @map("updated_at")
+  paymentRecord       PaymentRecord @relation(fields: [paymentRecordId], references: [id], onDelete: Cascade)
+
+  @@index([paymentRecordId])
+  @@index([status])
+  @@map("payment_attempts")
+}

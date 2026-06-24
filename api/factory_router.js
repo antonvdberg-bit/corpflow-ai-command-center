@@ -88,6 +88,15 @@ import { recordTrustedAutomationEvent } from '../lib/automation/internal.js';
 import { emitLogicFailure } from '../lib/cmp/_lib/telemetry.js';
 import factoryCmpTicketSummariesHandler from '../lib/server/factory-cmp-ticket-summaries.js';
 import handleClientDecisionsLinkMint from '../lib/server/factory-client-decisions-link-mint.js';
+import {
+  handleMpgsCreatePaymentLink,
+  handleMpgsDiagnostics,
+  handleMpgsHostedCheckoutCreate,
+  handleMpgsPaymentStatus,
+  handleMpgsReturnApi,
+  handleMpgsVerifyOrder,
+  handlePaymentRecordCreate,
+} from '../lib/server/payments/mpgs-payment-api.js';
 
 const prisma = new PrismaClient();
 
@@ -880,6 +889,28 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'factory/cmp/client-decisions-link-mint') {
     return handleClientDecisionsLinkMint(req, res);
+  }
+
+  if (pathSeg === 'factory/payments/records/create') {
+    return handlePaymentRecordCreate(req, res, prisma);
+  }
+  if (pathSeg === 'factory/payments/mpgs/create-link') {
+    return handleMpgsCreatePaymentLink(req, res, prisma);
+  }
+  if (pathSeg === 'factory/payments/mpgs/verify') {
+    return handleMpgsVerifyOrder(req, res, prisma);
+  }
+  if (pathSeg === 'factory/payments/mpgs/status') {
+    return handleMpgsPaymentStatus(req, res, prisma);
+  }
+  if (pathSeg === 'factory/payments/mpgs/diagnostics') {
+    return handleMpgsDiagnostics(req, res);
+  }
+  if (pathSeg === 'factory/payments/mpgs/hosted-checkout/create') {
+    return handleMpgsHostedCheckoutCreate(req, res);
+  }
+  if (pathSeg === 'payments/mpgs/return') {
+    return handleMpgsReturnApi(req, res, prisma);
   }
 
   if (pathSeg.startsWith('cmp') || pathSeg.startsWith('cmp/')) {
