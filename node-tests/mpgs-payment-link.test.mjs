@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { buildPaymentLinkRequestBody } from '../lib/server/payments/mpgs-client.js';
+import { buildPaymentLinkRequestBody, parseMpgsInitiateCheckoutResponse } from '../lib/server/payments/mpgs-client.js';
 import {
   MPGS_ENV_KEYS,
   getMpgsApiVersion,
@@ -56,6 +56,41 @@ test('buildPaymentLinkRequestBody matches SBM Payment Link shape', () => {
   assert.equal(body.order.currency, 'USD');
   assert.equal(body.paymentLink.expiryDateTime, '2026-06-25T12:00:00.000Z');
   assert.equal(body.paymentLink.numberOfAllowedAttempts, 3);
+});
+
+test('parseMpgsInitiateCheckoutResponse accepts Payment Link SUCCESS without session.id', () => {
+  const parsed = parseMpgsInitiateCheckoutResponse({
+    checkoutMode: 'PAYMENT_LINK',
+    merchant: 'TEST000000000000',
+    result: 'SUCCESS',
+    successIndicator: 'b6e58756356f4a54',
+    paymentLink: {
+      id: 'PAYLINK0001059613374N3991706F98',
+      url: 'https://test-gateway.mastercard.com/pbl/PAYLINK0001059613374N3991706F98',
+      expiryDateTime: '2026-06-27T09:23:24.191Z',
+      numberOfAllowedAttempts: 3,
+    },
+  });
+  assert.equal(parsed.ok, true);
+  if (!parsed.ok) return;
+  assert.equal(parsed.sessionId, 'PAYLINK0001059613374N3991706F98');
+  assert.equal(parsed.successIndicator, 'b6e58756356f4a54');
+  assert.match(parsed.paymentLinkUrl, /^https:\/\/test-gateway\.mastercard\.com\/pbl\//);
+});
+
+test('parseMpgsInitiateCheckoutResponse still accepts hosted checkout session.id shape', () => {
+  const parsed = parseMpgsInitiateCheckoutResponse({
+    result: 'SUCCESS',
+    successIndicator: 'abc123',
+    session: { id: 'SESSION0001' },
+    paymentLink: {
+      id: 'PAYLINK1',
+      url: 'https://test-gateway.mastercard.com/pbl/PAYLINK1',
+    },
+  });
+  assert.equal(parsed.ok, true);
+  if (!parsed.ok) return;
+  assert.equal(parsed.sessionId, 'SESSION0001');
 });
 
 test('getMpgsApiVersion defaults to 66 per SBM TEST manual', () => {

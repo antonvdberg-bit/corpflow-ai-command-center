@@ -1,8 +1,21 @@
 # PAY-SBM-4 — Infisical secrets (MPGS TEST)
 
-**Status:** Operator reference. **TEST only.** **No implementation authorization** beyond PAY-SBM-4 Preview spike.
+**Status:** Operator reference. **TEST only.** Stable TEST host: **`https://test.corpflowai.com`** (factory core on Production — not Vercel Preview).
 
 **Do not** paste Merchant ID, Password 1, Operator ID, API responses, or gateway credentials into Cursor, GitHub, ChatGPT, docs, comments, screenshots, or logs.
+
+---
+
+## PAY-SBM-4 TEST platform (2026-06)
+
+| Item | Value |
+|------|--------|
+| **TEST hostname** | `https://test.corpflowai.com` — add to Vercel Domains (Production) + `CORPFLOW_CORE_HOSTS` |
+| **MPGS public base URL** | `https://test.corpflowai.com` (`CORPFLOW_MPGS_PUBLIC_BASE_URL`) |
+| **Vercel env target** | **Production** only (`CORPFLOW_MPGS_MODE=test`, TEST gateway) |
+| **Preview / `*.vercel.app`** | **Not used** for MPGS TEST (deprecated for this spike) |
+
+Code allows `test.corpflowai.com` as TEST `CORPFLOW_MPGS_PUBLIC_BASE_URL` while blocking lux/apex/core (`lib/server/payments/mpgs-config.js`).
 
 ---
 
@@ -11,34 +24,31 @@
 Per `docs/communications/CORPFLOW_COMMUNICATIONS_V1.md` §2 and `docs/operations/POSTGRES_PROVIDER.md` §4a:
 
 1. **Infisical** holds the values (authoritative).
-2. **Vercel Preview** receives them via the existing **Infisical → Vercel sync** path (or `npm run vercel:env:*` upsert from Infisical-sourced local file — not manual Vercel UI entry unless sync is broken).
-3. **Redeploy Preview** after sync so serverless functions pick up new env (Vercel ties env to deployments).
+2. **Vercel Production** receives them via the existing **Infisical → Vercel sync** path (or `npm run vercel:env:*` upsert from Infisical-sourced local file — not manual Vercel UI entry unless sync is broken).
+3. **Redeploy Production** after sync so serverless functions pick up new env (Vercel ties env to deployments).
 
-**Production:** Do **not** add MPGS secrets to the Infisical environment that syncs to **Vercel Production**. Leave Production unset or `CORPFLOW_MPGS_ENABLED=false`.
+**Preview:** Do **not** add MPGS secrets to Vercel Preview for PAY-SBM-4 TEST.
 
 **Agent CI:** `.github/workflows/test.yml` Infisical OIDC slice does **not** need MPGS vars — CI uses mock/off defaults.
 
 ---
 
-## Temporary deviation — PAY-SBM-4 TEST only (approved)
+## Superseded — Preview-only deviation (do not use)
 
-**Why:** Infisical exposes **development / staging / production** environments only. The Infisical→Vercel integration currently maps MPGS values to **Vercel Production**, not **Vercel Preview**. PR **#441** Preview deployments therefore do not receive MPGS env until Preview is populated.
+The following applied only while TEST ran on Vercel Preview; **use `test.corpflowai.com` on Production instead.**
 
-**Approved for this TEST spike only:** Anton may enter the **13** `CORPFLOW_MPGS_*` keys **directly in Vercel** with target **Preview** only (values from Infisical — never pasted into chat, GitHub, or repo).
+<details>
+<summary>Archived Preview spike notes</summary>
+
+**Why (historical):** Infisical→Vercel mapping landed MPGS on Production while Preview was empty; operators temporarily used Preview URLs.
 
 | Safeguard | Requirement |
 |-----------|-------------|
-| Production | **Remove** all 13 MPGS TEST keys from Vercel **Production** |
-| Preview | **Add** all 13 keys on Vercel **Preview** |
-| Branch scope (optional) | If Vercel UI offers branch scoping, use `feat/pay-sbm-4-mpgs-payment-by-link` |
-| Agent CI | **Do not** add MPGS keys to the CI Infisical slice |
-| `CORPFLOW_MPGS_PUBLIC_BASE_URL` | `https://corpflow-ai-command-center-96xmzjh67-corpflowai.vercel.app` (no trailing slash) |
+| Production | Remove MPGS keys from Production **during Preview spike only** |
+| Preview | Add 13 keys on Preview |
+| `CORPFLOW_MPGS_PUBLIC_BASE_URL` | `https://<preview-host>.vercel.app` |
 
-**After entry:** Redeploy PR #441 Preview, then `GET /api/factory/payments/mpgs/diagnostics` (factory master browser session or approved bypass). **No `create-link` until diagnostics `operational: true` and Anton approves one TEST run.**
-
-**Cleanup (later):** Map Infisical **staging** (or equivalent) → Vercel **Preview** in the integration; remove duplicate manual Preview rows; record in `artifacts/chat_history.md` when restored to Infisical-first path.
-
----
+</details>
 
 ## Infisical target (where Anton enters values)
 
@@ -70,7 +80,7 @@ Enter these **names** in Infisical under the Preview environment. Values are ope
 | `CORPFLOW_MPGS_PAYMENT_LINK_EXPIRY_HOURS` | Optional | `72` |
 | `CORPFLOW_MPGS_PAYMENT_LINK_ALLOWED_ATTEMPTS` | Optional | `3` |
 | `CORPFLOW_MPGS_HOSTED_CHECKOUT_ENABLED` | Yes | `false` (Payment Link v1) |
-| `CORPFLOW_MPGS_PUBLIC_BASE_URL` | Yes | PAY-SBM-4 Preview HTTPS origin only (e.g. `https://<branch>.vercel.app` — no trailing slash, no path; not `corpflowai.com`) |
+| `CORPFLOW_MPGS_PUBLIC_BASE_URL` | Yes | `https://test.corpflowai.com` — no trailing slash, no path |
 
 Code reads these via `cfg()` in `lib/server/payments/mpgs-config.js` and `.env.template` § MPGS.
 

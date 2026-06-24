@@ -2,23 +2,21 @@
 
 **Audience:** Anton (operator). **TEST only.** Do not paste Password 1, Merchant ID, or API responses containing secrets into chat or git.
 
-**Prerequisite:** PAY-SBM-3 live on `corpflowai.com`. PAY-SBM-4 PR merged to a **Preview** deployment.
+**Prerequisite:** PAY-SBM-3 live on `corpflowai.com`. PAY-SBM-4 merged to **Production** (`main`). Stable TEST host: **`https://test.corpflowai.com`** (factory core surface — list in `CORPFLOW_CORE_HOSTS`).
 
 ---
 
 ## Part A — Secrets before TEST
 
-**Canonical long-term:** Infisical → Vercel Preview (`docs/finance/PAY_SBM_4_INFISICAL_SECRETS.md`).
+**Canonical:** Infisical → Vercel **Production** for PAY-SBM-4 TEST on `test.corpflowai.com` (`docs/finance/PAY_SBM_4_INFISICAL_SECRETS.md`).
 
-**PAY-SBM-4 TEST (approved deviation):** Because Infisical→Vercel mapping lands MPGS keys on **Production** only, enter the **13** keys **directly in Vercel → Preview** for this spike:
+**Do not** use Vercel Preview or moving `*.vercel.app` URLs for MPGS TEST.
 
-1. **Remove** all `CORPFLOW_MPGS_*` keys from Vercel **Production**.
-2. **Add** the same 13 keys to Vercel **Preview** only (copy values from Infisical — do not paste into chat).
-3. **Optional branch scope:** `feat/pay-sbm-4-mpgs-payment-by-link` if the UI offers it.
-4. **Do not** add MPGS keys to Agent CI / GitHub Infisical OIDC.
-5. **`CORPFLOW_MPGS_PUBLIC_BASE_URL`:** `https://corpflow-ai-command-center-96xmzjh67-corpflowai.vercel.app` (no trailing slash).
-
-**Cleanup later:** Map Infisical staging → Vercel Preview; delete manual Preview duplicates once sync is correct.
+1. **Remove** all `CORPFLOW_MPGS_*` keys from Vercel **Preview** (if any remain from the earlier spike).
+2. **Add** the **13** keys on Vercel **Production** only (copy values from Infisical — do not paste into chat).
+3. **Do not** add MPGS keys to Agent CI / GitHub Infisical OIDC.
+4. **`CORPFLOW_MPGS_PUBLIC_BASE_URL`:** `https://test.corpflowai.com` (no trailing slash).
+5. **`CORPFLOW_CORE_HOSTS`:** must include `test.corpflowai.com` (e.g. `core.corpflowai.com,test.corpflowai.com`).
 
 Do **not** paste credentials into Cursor, GitHub, or chat.
 
@@ -36,9 +34,9 @@ Do **not** paste credentials into Cursor, GitHub, or chat.
 | `CORPFLOW_MPGS_PAYMENT_LINK_EXPIRY_HOURS` | `72` | Optional |
 | `CORPFLOW_MPGS_PAYMENT_LINK_ALLOWED_ATTEMPTS` | `3` | Optional |
 | `CORPFLOW_MPGS_HOSTED_CHECKOUT_ENABLED` | `false` | Payment Link v1 |
-| `CORPFLOW_MPGS_PUBLIC_BASE_URL` | Your **Preview** URL | e.g. `https://corpflow-ai-command-center-….vercel.app` (not `corpflowai.com`) |
+| `CORPFLOW_MPGS_PUBLIC_BASE_URL` | Your **TEST** host | `https://test.corpflowai.com` (not apex/lux/core; not `*.vercel.app`) |
 
-After Vercel Preview entry: **redeploy PR #441 Preview**, then run diagnostics (Part B). Env changes require a new deployment.
+After Vercel Production entry: **redeploy Production**, then run diagnostics (Part B). Env changes require a new deployment.
 
 ### MPGS merchant portal (TEST)
 
@@ -55,23 +53,23 @@ Whitelist return URLs to match:
 
 ## Part B — One TEST Payment Link (factory master session)
 
-Use browser logged in as **factory master**, or API client with factory master cookie.
+Use browser logged in as **factory master** on `core.corpflowai.com` or `test.corpflowai.com` (same `.corpflowai.com` session).
 
 ### 1. Schema
 
-`POST https://<preview>/api/factory/postgres/ensure-schema`  
+`POST https://<test-host>/api/factory/postgres/ensure-schema`  
 (factory master auth)
 
 ### 2. Diagnostics
 
-`GET https://<preview>/api/factory/payments/mpgs/diagnostics`
+`GET https://test.corpflowai.com/api/factory/payments/mpgs/diagnostics`
 
 Expect: `operational: true`, `mode: "test"`, `api_version: "66"`, `merchant_id_present: true`, `mpgs_public_base_url_present: true`, `mpgs_public_base_url_valid: true`  
 (no password or merchant id in response)
 
 ### 3. Create approved payment record
 
-`POST https://<preview>/api/factory/payments/records/create`
+`POST https://test.corpflowai.com/api/factory/payments/records/create`
 
 ```json
 {
@@ -87,7 +85,7 @@ Save `payment_record_id` and `record_reference`.
 
 ### 4. Create Payment Link
 
-`POST https://<preview>/api/factory/payments/mpgs/create-link`
+`POST https://test.corpflowai.com/api/factory/payments/mpgs/create-link`
 
 ```json
 {
@@ -109,7 +107,7 @@ Complete payment; you should land on `/pay/return?order_ref=<attempt_reference>`
 
 ### 6. Verify server-side (Retrieve Order)
 
-`POST https://<preview>/api/factory/payments/mpgs/verify`
+`POST https://test.corpflowai.com/api/factory/payments/mpgs/verify`
 
 ```json
 {
@@ -149,7 +147,7 @@ Do **not** capture:
 
 ## Rollback
 
-1. `CORPFLOW_MPGS_ENABLED=false` in Infisical (Preview env) → sync → redeploy Preview.
+1. `CORPFLOW_MPGS_ENABLED=false` in Infisical (Production) → sync → redeploy Production.
 2. Revert PAY-SBM-4 merge if needed.
 3. Payment rows remain audit-only; fulfilment was never auto-started.
 
