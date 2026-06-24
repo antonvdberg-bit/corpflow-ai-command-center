@@ -75,6 +75,10 @@ import {
   handleTenantWorkflowStepUpdate,
 } from '../lib/server/tenant-workflow-api.js';
 import { handleTenantKnowledgeAtomsList } from '../lib/server/tenant-knowledge-api.js';
+import {
+  handleGhlLivingWordEnvReadiness,
+  handleGhlLivingWordProbe,
+} from '../lib/server/ghl-readonly-probe-api.js';
 import { getEffectiveMemberships } from '../lib/server/effective-memberships.js';
 import { computeEffectiveMembershipsCountForUiContext } from '../lib/ui/tenant-host-switch-link.js';
 import { handleMembershipSwitch, handleMembershipLeave } from '../lib/server/switch-leave-api.js';
@@ -1037,6 +1041,12 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'factory/tenant-knowledge/atoms') {
     return handleTenantKnowledgeAtomsList(req, res, prisma);
+  }
+  if (pathSeg === 'factory/ghl/living-word/env-readiness') {
+    return handleGhlLivingWordEnvReadiness(req, res);
+  }
+  if (pathSeg === 'factory/ghl/living-word/probe') {
+    return handleGhlLivingWordProbe(req, res);
   }
   if (pathSeg === 'factory/github/pr-create') {
     return factoryGithubPrCreateHandler(req, res);

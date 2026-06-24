@@ -1,6 +1,6 @@
 # Execution packet — Living Word GHL Read-Only Sync Probe v1
 
-**Status:** **APPROVED AS DOCUMENTATION ONLY — IMPLEMENTATION BLOCKED**  
+**Status:** **IMPLEMENTED — live probe pending Production deploy**  
 **Date prepared:** 2026-06-23  
 **Date committed:** 2026-06-24  
 **Tenant:** `living-word-mauritius`  
@@ -33,7 +33,7 @@ CORPFLOW_GHL_LIVING_WORD_MAURITIUS_LOCATION_ID=
 CORPFLOW_GHL_LIVING_WORD_MAURITIUS_PIT=
 ```
 
-**Current state (2026-06-24):** GHL token **not** available in approved environment. **No GHL API calls** until implementation gate clears.
+**Current state (2026-06-24):** GHL env vars on Vercel Production; factory routes `GET /api/factory/ghl/living-word/probe` and `GET /api/factory/ghl/living-word/env-readiness` implemented. Live probe run records verification artifact after deploy.
 
 ---
 
@@ -189,10 +189,10 @@ No factory HTTP route required for v1 — CLI script sufficient.
 
 ```text
 Packet: LWM-GHL-ReadOnly-Sync-Probe-v1
-Documentation: ON MAIN (this file, after merge)
-Implementation: BLOCKED
-Blocked on: Read-only GHL PIT + Vercel factory env + explicit "implement probe v1" approval
-Depends on: ghl-api-data-inventory-sync-design-v1.md (PR #444, 72b8753f)
+Documentation: ON MAIN
+Implementation: MERGED PENDING / RUN ON PRODUCTION AFTER DEPLOY
+Blocked on: Production deploy + factory-master probe invocation
+Depends on: ghl-api-data-inventory-sync-design-v1.md (PR #444)
 ```
 
 ---
