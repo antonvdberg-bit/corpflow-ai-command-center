@@ -33,6 +33,7 @@ This model is the contract.
 | `france` | `corpflowai.com/france` | French-market enquiries | `pages/france.js` |
 | `change` | `corpflowai.com/change` | Existing CorpFlowAI clients reviewing change tickets | `pages/change.js` (factory + tenant gated) |
 | `core` | (planned) `core.corpflowai.com/*` | Top-of-funnel buyers learning the CorpFlowAI promise | `docs/CORE/*` (in flight) |
+| `product-a` | `corpflowai.com/product-a/us-clinics` | US medspas / aesthetic / elective clinics | `components/ProductAUsClinicLanding.js` + `docs/product/PRODUCT_A_REVENUE_MACHINE_IMPLEMENTATION_PLAN.md` |
 | `shared` | Cross-surface | n/a | Reusable assets / copy fragments |
 
 A surface key is the smallest unit that owns a conversion goal. Adding a new surface requires updating this table **and** the `VISUAL_ASSET_SURFACES` enum in `lib/visualAssets/schema.js`.
@@ -161,6 +162,7 @@ Every surface must declare **one** primary conversion goal. Examples:
 - `lux` → "See availability" / "Request a stay".
 - `concierge` → "Talk to a human".
 - `core` → "See how it works".
+- `product-a` → "Request a Website & Lead Rescue Audit".
 
 If a content row's CTA contradicts the surface's primary goal, the brand-doctrine reviewer must reject it before `lifecycle.state = vetted`.
 
