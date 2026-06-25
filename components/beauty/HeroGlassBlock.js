@@ -18,7 +18,7 @@ import GlassPanel from './GlassPanel.js';
  */
 export default function HeroGlassBlock({ eyebrow, title, lead, actions, style, children }) {
   return (
-    <GlassPanel variant={{ padding: 28 }} style={{ maxWidth: 760, ...style }}>
+    <GlassPanel variant={{ padding: 28, elevation: 3 }} style={{ maxWidth: 760, ...style }}>
       {eyebrow}
       {title}
       {lead}
