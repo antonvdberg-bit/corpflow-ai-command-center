@@ -1,10 +1,14 @@
 # Living Word — Production deployment options + data residency decision (v1)
 
-**Date:** 2026-06-24  
+**Date:** 2026-06-24 (updated 2026-06-26)  
 **Tenant:** `living-word-mauritius`  
 **Mode:** architecture / design / governance only — **no code, no DB, no external changes**
 
 **Purpose:** Record Anton’s latest answers and recommend a **low-friction launch path** that does **not** depend on WordPress admin access, while keeping CorpFlow as the intended successor to GHL — with explicit gates for privacy, data location, pilot scope, and church approval.
+
+**Update log:**
+
+- **2026-06-26** — Anton confirmed: he will identify the 10-person pilot group; pilot is **adult volunteers only**; **youth/children** and **prayer/counselling free-text** excluded from pilot v1; participants **explicitly consent**; **privacy/data-protection notice is unknown** → CorpFlow drafts one (see [`pilot-privacy-consent-notice-draft-v1.md`](./pilot-privacy-consent-notice-draft-v1.md)) for **church board** approval; English-only launch with **Afrikaans / Kreol / French** to follow as quickly as practical; **first priority form = member information collection/update** via a **two-step Member Update Flow** (§8A); other forms wait until that flow is tested and production-ready.
 
 **Hard constraints (this packet):** no application code, schema, WordPress, GHL, DNS, chatbot state, forms implementation, production embed, secrets, outbound messages, Luxe, or multi-tenant operator switching changes.
 
@@ -29,8 +33,10 @@
 | **WordPress embed** | **Optional** hidden test page **only if Brad confirms** technical capability; **public embed** only after pastor/church approval |
 | **GHL cutover** | **After** CorpFlow sandbox proof + pilot + mapping — not before |
 | **System of record** | **CorpFlow acceptable in principle** — subject to **Mauritius privacy / data-location** check |
-| **Pilot size** | ~**10 people**, adults preferred, explicit consent, **no prayer/counselling bodies**, **no child/youth PII** unless separately approved |
-| **Language** | **English launch**; future **Afrikaans / Kreol / French** via approved atoms — **no uncontrolled AI translation** |
+| **Pilot group** | **Anton identifies** the ~**10 adult volunteers**; explicit consent; **no prayer/counselling bodies**; **no child/youth PII** in pilot v1 |
+| **First form** | **Member information collection/update** — a **two-step Member Update Flow** (§8A); other forms wait until it is tested + production-ready |
+| **Privacy notice** | **Unknown / likely missing** → CorpFlow drafts a plain-English notice for **church board** approval (see `pilot-privacy-consent-notice-draft-v1.md`) |
+| **Language** | **English launch**; **Afrikaans / Kreol / French** as quickly as practical after launch via approved atoms — **no uncontrolled AI translation** |
 | **Business Network** | **Separate** from pastoral/member CRM for now |
 
 ---
@@ -245,15 +251,102 @@ Until Brad answers §4.3 and a technical review is done:
 | Rule | Detail |
 |------|--------|
 | **Size** | ~10 participants — enough to test workflow, not a bulk migration |
-| **Population** | **Adults only** if possible (connectors, volunteers, staff liaisons) |
-| **Consent** | Explicit consent checkbox + `consent_basis` / timestamp on member row (design) |
-| **Channels** | CorpFlow-hosted form/chat URL + QR — not WordPress embed required |
-| **Excluded fields** | Prayer/counselling **message bodies**; crisis detail; **child/youth names, ages, schools** |
+| **Who picks the group** | **Anton identifies** the pilot participants (no self-serve public sign-up in pilot v1) |
+| **Population** | **Adult volunteers only** — no minors in pilot v1 |
+| **Consent** | **Explicit** opt-in before any data is stored; consent text approved by **church board**; `consent_basis` + timestamp recorded (design) |
+| **First form** | **Member Update Flow v1** (§8A) — verify/update existing member contact details |
+| **Channels** | CorpFlow-hosted form/chat URL + QR — **no** WordPress embed required |
+| **Excluded fields** | Prayer/counselling **free-text bodies**; crisis detail; **child/youth** names, ages, schools; **medical / legal / financial** details |
 | **Excluded paths** | Youth/children intake paths may show **info + redirect to contact church** only in pilot |
-| **AI** | Optional off for pilot; if on, retrieval from **approved English atoms only** |
+| **AI** | Off for pilot by default; if on, retrieval from **approved English atoms only** |
 | **Outbound** | **Manual** operator follow-up — no auto email/SMS |
 | **GHL** | **Unchanged** on public site during pilot |
-| **Success criteria** | Submission → operator inbox → workflow steps completed; church reviewers satisfied |
+| **Success criteria** | Member Update submission → operator review workflow → resolved without incident; pilot volunteers + church board satisfied |
+
+---
+
+## 8A. Member Update Flow v1 — First Production Candidate
+
+**Decision (Anton, 2026-06-26):** the **first** production form is **member information collection/update**, not net-new lead intake. It is the only intake built and tested in pilot v1; **all other forms wait** until this flow is production-ready.
+
+### 8A.1 Goal
+
+Let an existing church member **verify and correct their own contact details** in two simple steps, writing a reviewable update into the CorpFlow member layer — reducing manual admin load on volunteers.
+
+### 8A.2 Two-step flow (design)
+
+```text
+Step 1 — Identify
+  Person enters: full name + (email and/or WhatsApp/mobile)
+  → look up existing record (CorpFlow-staged GHL data and/or tenant_members)
+
+Step 2 — Confirm / update
+  → if matched:   return a PREFILLED update form (current details shown)
+     if no match: return a BLANK update form (treated as "new/unconfirmed")
+  → person confirms or edits: name, email, WhatsApp/mobile, preferred contact method,
+     and church-admin contact fields in scope (no sensitive categories)
+  → submit:
+       1. write RAW submission evidence (immutable)
+       2. UPSERT canonical member/contact (no blind overwrite — see conflict handling)
+       3. create OPERATOR REVIEW workflow step (human confirms before canonical trust)
+```
+
+### 8A.3 Dependency on GHL read-only probe
+
+This flow’s **prefill** quality depends on the **GHL read-only probe field manifest** (`ghl-read-only-sync-probe-v1-*`):
+
+- The probe’s **custom-field manifest** + **contact field shape** define which fields are safe and useful to prefill.
+- **No canonical import** happens because of the probe — prefill in pilot may start from **manually staged** records or a later read-only sync; the mapping report (Phase 2) governs which GHL fields map to which CorpFlow fields.
+- Until mapping is approved, prefill can be **limited to fields the member themselves provides/confirms**, with GHL data used only as a lookup hint.
+
+### 8A.4 Matching strategy (identify step)
+
+| Priority | Match key | Notes |
+|----------|-----------|-------|
+| 1 | Normalised **email** (lowercase, trimmed) | Primary |
+| 2 | **WhatsApp/mobile** in E.164 | Secondary |
+| 3 | **Name** (fuzzy) + one contact key | Tie-breaker only — never name alone |
+| — | No confident match | Treat as **unconfirmed**; blank form; operator decides if new member |
+
+Ambiguous/multiple matches → **do not auto-merge**; present minimal confirmation and flag for operator.
+
+### 8A.5 Data shape (pilot v1 — in scope)
+
+| Field | Purpose |
+|-------|---------|
+| First name / surname | Identity |
+| Email | Contact + match key |
+| WhatsApp / mobile | Contact + match key |
+| Preferred contact method | Admin routing |
+| Member/contact admin fields agreed with church | Directory upkeep |
+| Update confirmation metadata (timestamp, consent, source = `member_update_v1`) | Audit |
+
+**Explicitly excluded in pilot v1:** child/youth personal data; prayer/counselling free-text; medical/legal/financial details.
+
+### 8A.6 Persistence + review (design — not implemented here)
+
+| Layer | Behaviour |
+|-------|-----------|
+| Raw evidence | Immutable `tenant_form_submissions`-style row (full submitted payload) |
+| Canonical | `tenant_members` upsert — **never** null a populated field with a blank; newer CorpFlow edits not overwritten |
+| Workflow | `tenant.member.update.submitted` → operator review step before canonical record is trusted/published |
+| Audit | `automation_events` count-level entry; no sensitive bodies |
+
+### 8A.7 Conflict handling
+
+| Case | Handling |
+|------|----------|
+| Submitted email already on a **different** member | `mapping_status = conflict`; operator queue; no auto-merge |
+| Member edits a field that differs from staged GHL value | Keep both; operator confirms which is authoritative |
+| Empty/blank submitted field | **Skip** — do not erase existing good data |
+| Duplicate submissions (retry) | Idempotency key dedupe |
+
+### 8A.8 Boundaries
+
+- **No** child/youth or prayer/counselling sensitive fields in pilot v1.
+- **No** outbound auto-messaging — operator follow-up only.
+- **No** WordPress embed required — hosted CorpFlow URL + QR/link.
+- Implementation is a **separate approved packet** (Member/Contact Intake + Member Update Flow) — this section is design only.
 
 ---
 
@@ -262,7 +355,7 @@ Until Brad answers §4.3 and a technical review is done:
 | Phase | Language | Mechanism |
 |-------|----------|-----------|
 | **Launch** | **English only** | Flows, forms, knowledge atoms, schedule copy |
-| **Phase 2** | Afrikaans, Kreol, French | **Separate approved** `tenant_knowledge_atoms` (or locale column); UI labels via static i18n JSON |
+| **Phase 2 (as quickly as practical after launch)** | Afrikaans, Kreol, French | **Separate approved** `tenant_knowledge_atoms` (or locale column); UI labels via static i18n JSON |
 | **Phase 3+** | Other languages | Same pattern — church-approved content only |
 | **Forbidden** | Runtime AI translation of official answers | Groq must **not** translate unapproved HTML/GHL/export text into visitor answers |
 
@@ -281,8 +374,8 @@ Work proceeds to the next gate only when the prior gate is **explicitly satisfie
 | Gate | ID | Owner | Entry criteria | Exit criteria |
 |------|-----|-------|----------------|---------------|
 | **Brad technical capability** | `GATE-BRAD` | Anton → Brad | This packet approved | Written answers to §4.2 (links vs JS vs iframe vs blocked) |
-| **Privacy / data protection posture** | `GATE-PRIVACY` | Anton + pastor/DPO | Pilot contemplated | Acceptable data-location option (§6) chosen; subprocessors disclosed; youth/prayer policy documented |
-| **Pilot scope** | `GATE-PILOT` | Anton + pastor | Gates BRAD + PRIVACY in progress | ~10 adult participants identified; consent text approved; excluded fields signed off |
+| **Privacy / data protection posture** | `GATE-PRIVACY` | Anton + **church board** | Pilot contemplated | **Board approves** the pilot privacy/consent notice (`pilot-privacy-consent-notice-draft-v1.md`); acceptable data-location option (§6) chosen; subprocessors disclosed; youth/prayer exclusions documented |
+| **Pilot scope** | `GATE-PILOT` | Anton + church board | Gates BRAD + PRIVACY in progress | **Anton’s ~10 adult volunteers identified**; consent text board-approved; first form = Member Update Flow (§8A); excluded fields signed off |
 | **System-of-record location** | `GATE-SOR` | Anton + church | GATE-PRIVACY | Written alignment: CorpFlow Postgres (or MU alternative) as SoR for pilot |
 | **GHL data inventory / probe** | `GATE-GHL` | Anton (GHL admin) | Read-only PIT on Vercel Production | Probe v1 complete (`ghl-read-only-sync-probe-v1-live-verification.md` COMPLETE); mapping packet scoped — **no import before mapping** |
 | **Sandbox proof** | `GATE-SANDBOX` | Anton | Ongoing | Church reviewers accept sandbox chat/forms/knowledge on tenant host |
@@ -303,8 +396,10 @@ Work proceeds to the next gate only when the prior gate is **explicitly satisfie
 
 | Packet | Relationship |
 |--------|----------------|
+| **Member Update Flow v1 (§8A)** | **First** production form — implemented + tested before any other form |
+| **Pilot privacy/consent notice draft** | `pilot-privacy-consent-notice-draft-v1.md` — board approval gates the pilot |
 | **Member/Contact Intake Foundation v1** | Implements Phase B hosted forms — **not blocked on Brad** |
-| **GHL read-only probe v1** | Feeds `GATE-GHL` — no canonical import until mapping report |
+| **GHL read-only probe v1** | Feeds `GATE-GHL` + Member Update Flow prefill manifest — no canonical import until mapping report |
 | **GHL field mapping (Phase 2)** | After probe COMPLETE |
 | **WordPress embed** | Only after `GATE-BRAD` + `GATE-PUBLIC` |
 | **Business Network CRM** | Separate future packet |
@@ -327,12 +422,14 @@ Work proceeds to the next gate only when the prior gate is **explicitly satisfie
 
 ## 13. Recommended immediate next steps (ordered)
 
-1. **Send Brad question list** (§4) — links/QR capability is enough for pilot.
-2. **Send pastor governance list** (§5) — pilot scope + SoR + English-only launch.
-3. **Complete GHL probe** on Production (factory auth) — `GATE-GHL`.
-4. **Implement hosted pilot URLs** (Member/Contact Intake Foundation) — no WordPress dependency.
-5. **Draft church-facing data residency one-pager** (non-legal) after GATE-PRIVACY conversation.
-6. **Defer** WordPress embed and GHL removal until gates clear.
+1. **Board-review the pilot privacy/consent notice** (`pilot-privacy-consent-notice-draft-v1.md`) — `GATE-PRIVACY`.
+2. **Anton confirms the ~10 adult volunteer pilot list** — `GATE-PILOT`.
+3. **Send Brad question list** (§4) — links/QR capability is enough for pilot.
+4. **Send pastor/board governance list** (§5) — pilot scope + SoR + English-only launch.
+5. **Complete GHL probe** on Production (factory auth) — `GATE-GHL`; field manifest feeds Member Update Flow prefill.
+6. **Spec the Member Update Flow v1** (§8A) as a separate implementation packet — first form built and tested.
+7. **Draft church-facing data residency one-pager** (non-legal) after GATE-PRIVACY conversation.
+8. **Defer** all other forms, WordPress embed, and GHL removal until the Member Update Flow is production-ready and gates clear.
 
 ---
 
@@ -341,11 +438,13 @@ Work proceeds to the next gate only when the prior gate is **explicitly satisfie
 | Check | Result |
 |-------|:------:|
 | Design-only — no code/DB/external changes | ✓ |
-| Anton context updates captured | ✓ |
+| Anton context updates captured (2026-06-26) | ✓ |
 | Revised launch path (link/QR first) | ✓ |
 | Brad + pastor question lists | ✓ |
 | Data-location options + WP DB caution | ✓ |
 | Pilot + multilingual + decision gates | ✓ |
+| Member Update Flow v1 (§8A) added | ✓ |
+| Privacy/consent notice draft linked + board-approval gate | ✓ |
 | Business Network separation noted | ✓ |
 | No secrets | ✓ |
 
