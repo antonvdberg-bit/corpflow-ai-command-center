@@ -145,6 +145,7 @@ execution queue.
 | 2026-06-25 | **Operator Control Board v1 adopted** as the active operating structure (this doc). | [#463](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/463) | **Merged / active.** |
 | 2026-06-25 | **Workspace Studio = candidate/prototype layer only**; n8n remains the governed workflow spine. | [#460](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/460) | **Merged.** |
 | 2026-06-25 | **Codex US-medspa artifact CAPTURED.** Recovered via operator-supplied transfer-safe text (original branch `work` / SHA `5a216e35…` never reached GitHub); imported as **bounded research/input material, not doctrine**. Anton review required before outreach. Capture authorizes **no** outreach/build/CRM/n8n/production change. | [#462](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/462) | **Merged** (commit `db092eb3`). |
+| 2026-06-25 | **US Medspa Revenue Machine — Google Sheet + Audit Workflow v0** packet: turn the captured artifact into a controlled human-run process (Sheet structure, audit-status flow, Anton approval gate, manual send/follow-up states). Process-only; all outreach human-approved. | [#467](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/467) | **Open — docs-only.** No automated outreach; no app/CRM/DB/n8n. |
 
 ## 9. Status block
 
