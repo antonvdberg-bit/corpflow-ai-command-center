@@ -81,7 +81,7 @@ PRs, **Codex** for research inputs only.
 |---|---|---|---|---|---|
 | 1 | SBM banking/payment readiness | **P0** | Anton physical action first, then Cursor only after bank resolution | **Blocked** until bank visit | No payment production switch; resolution is an operator physical action. |
 | 2 | Product A market-readiness | **P0** | Cursor + Anton QA | **Active** | Buyer-facing work follows the brand/conversion doctrine + delivery-reality verification. |
-| 3 | Marketing Automation Arm / US medspa revenue machine | **P0** | Cursor for docs, Codex for research inputs only | **Active** | Codex research is input, not authorization; outreach stays human-approved. |
+| 3 | Marketing Automation Arm / US medspa revenue machine | **P0** | Cursor for docs, Codex for research inputs only | **Active** | Codex research artifact CAPTURED (PR #462) as bounded research/input — Anton review required before outreach; next step is the Sheet + Audit Workflow v0 packet. Codex research is input, not authorization; outreach stays human-approved. |
 | 4 | Cloudflare R2 + Infisical + restic backups | **P1** | Infrastructure workstream / Cursor as needed | **Active but gated** | Do **not** back up the production DB yet; do **not** touch `POSTGRES_URL`; do **not** integrate R2 into the production app yet. |
 | 5 | Website-wide beauty layer rollout | **P1** | Cursor | **Active** after governed rollout plan | Per-surface gated PRs; photo licence verified before any governed hero ships `published` (`docs/marketing/CORPFLOW_BEAUTY_LAYER_ROLLOUT_PLAN_V1.md`). |
 | 6 | Chatbot / marketing-site intake assistant | **P1** | Specification first, then Cursor | **Candidate** | Spec only first (`docs/marketing/WEBSITE_LEAD_RESCUE_INTAKE_ASSISTANT_SPEC_V1.md`); no implementation without separate approval. No autonomous sales outreach; human-approved intake/follow-up only. |
@@ -144,7 +144,7 @@ execution queue.
 |---|---|---|---|
 | 2026-06-25 | **Operator Control Board v1 adopted** as the active operating structure (this doc). | [#463](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/463) | **Merged / active.** |
 | 2026-06-25 | **Workspace Studio = candidate/prototype layer only**; n8n remains the governed workflow spine. | [#460](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/460) | **Merged.** |
-| 2026-06-25 | **Codex US-medspa artifact** capture/reference. Source unreachable (branch `work` 404, SHA 404/422); PR adds a placeholder/reference note only and does **not** claim import/capture/verification. | [#462](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/462) | **HOLD — pending retrieval.** Do not merge while it would claim the artifact was imported/captured/verified; merge allowed only once the artifact is recovered, or as a clearly-labelled pending-retrieval note. |
+| 2026-06-25 | **Codex US-medspa artifact CAPTURED.** Recovered via operator-supplied transfer-safe text (original branch `work` / SHA `5a216e35…` never reached GitHub); imported as **bounded research/input material, not doctrine**. Anton review required before outreach. Capture authorizes **no** outreach/build/CRM/n8n/production change. | [#462](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/462) | **Merged** (commit `db092eb3`). |
 
 ## 9. Status block
 
