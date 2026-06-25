@@ -182,10 +182,12 @@ needed but not yet present).
 | Lead Rescue integration roadmap | `docs/strategy/AI_LEAD_RESCUE_INTEGRATION_ROADMAP.md` | EXISTS |
 
 > Note on Codex artifact: `docs/marketing/research/us-medspa-revenue-machine-inputs.md`
-> (reported at short ref `9c7ecc9`) is **not present on `main`** and is treated as
-> **not yet captured**. It is excluded from this inventory until Codex supplies a
-> full branch / PR / SHA or re-outputs the artifact for Cursor to import in a
-> separate docs-only PR.
+> — **CAPTURED** (PR #462). Bounded research/input material from Codex, recovered
+> 2026-06-25 via operator-supplied transfer-safe text (original branch `work` / SHA
+> `5a216e35…` never reached GitHub). Contains prospect table, audit rubric, Sheets
+> template fields, outreach starters, and Vids scripts. **Anton review required
+> before outreach**; not doctrine. Referenced from
+> `docs/marketing-automation-arm.md` §15.
 
 ---
 
