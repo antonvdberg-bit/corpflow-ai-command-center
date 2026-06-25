@@ -283,15 +283,13 @@ promotes a specific finding after review.
 
 | Artifact | Intended path | Source | Capture status |
 |----------|---------------|--------|----------------|
-| US medspa revenue-machine inputs | `docs/marketing/research/us-medspa-revenue-machine-inputs.md` | Codex — branch `work`, full SHA `5a216e35da4795b998749cb8aae574154f317bf1` | **NOT YET CAPTURED** (reference unreachable on the repo as of 2026-06-25; see capture-status note) |
+| US medspa revenue-machine inputs | `docs/marketing/research/us-medspa-revenue-machine-inputs.md` | Codex (local workspace); recovered 2026-06-25 via operator-supplied transfer-safe text (original branch `work` / SHA `5a216e35…` never reached GitHub) | **CAPTURED** — bounded research/input material; **Anton review required before outreach** |
 
-The full capture status, the 2026-06-25 reachability verification (branch `work`
-→ HTTP 404, SHA → 404/422 "no commit found"), and the exact next action to make
-it importable live in
-[`docs/marketing/research/us-medspa-revenue-machine-inputs.md`](marketing/research/us-medspa-revenue-machine-inputs.md)
-— a status/pointer note, **not** the artifact itself. Cursor imports the actual
-research content in a separate docs-only PR only once Codex pushes a reachable
-branch / full SHA or pastes the artifact into #249.
+The artifact contains prospect rows, audit rubric, Google Sheets template fields,
+outreach template starters, and Google Vids script drafts. It is **research /
+input material**, not doctrine — review against this playbook and the canonical
+doctrines before any outreach or collateral use. Capturing it does **not**
+authorize outreach, build, CRM, or production change.
 
 Boundaries (carried from §12–§13 and the Operator Dispatch Router):
 
