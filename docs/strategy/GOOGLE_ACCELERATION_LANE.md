@@ -44,13 +44,14 @@ Operating implications:
 | Gemini Canvas | Turn documents into presentations. | Proposals, pitch decks, discovery decks, strategy decks. | Deck draft. Final reviewed before sending to a client or prospect. | Generic-looking decks that drift below the line; pasting confidential proposal context. | P1 |
 | Gemini image / Nano Banana tooling | Image generation / editing and sketch / reference visual concepts. | Diagrams, marketing visuals, mockups, pitch visuals. | Visual draft. **Never used to fabricate evidence** (no fake screenshots, fake dashboards, fake testimonials, fake metrics). | Fabricated evidence; brand-violating imagery (robots, neon AI swirls, etc.). | P1 |
 | AI Studio multi-speaker audio | Generate conversational audio. | Training audio, client explainer audio, founder briefings. | Audio draft. Disclose AI-generated where the audience would reasonably expect human authorship. | Synthetic-voice impersonation; undisclosed AI audio in client-facing material. | P2 |
+| Google Workspace Studio (Workspace Studio flows) | Build flows with Gemini AI (templates or scratch): variables, conditional / custom steps, third-party actions, Sheet watching, webhook connections, flow testing / sharing ([help](https://support.google.com/workspace-studio/?p=workflows#topic=16433255)). | **Candidate** Workspace-native marketing-ops flows: Sheet watching on the prospect tracker, approval prompts/reminders, Gmail / Chat-adjacent routing, Drive collateral handling, flow prototypes. | **Prototype / pilot only. n8n remains the governed production workflow spine.** Non-sensitive marketing data only. | Drift into running governed/production workflows on Workspace Studio; auto-sending cold outreach; loading sensitive client data; assuming untested access works. | P1 (subject to access). |
 
 ## Prototype vs production matrix
 
 | Work type | Google tool role | Existing CorpFlowAI production role | Rule |
 | --------- | ---------------- | ----------------------------------- | ---- |
 | App prototype | AI Studio / Gemini Canvas to sketch UI + behaviour. | Cursor + repo + Vercel ship the production app. | Prototype freely; productionisation goes through PR + Delivery Reality. |
-| Workflow prototype | Opal to sketch the workflow shape. | n8n hosts the governed production workflow with HMAC / ingest / forward secrets per `docs/automation-framework.md`. | Sketches stay in Opal; production workflows are n8n only until a separate architecture decision says otherwise. |
+| Workflow prototype | Opal to sketch the workflow shape; Workspace Studio to prototype Workspace-native flows (Sheet watch, approval prompts, Gmail / Chat routing, Drive handling). | n8n hosts the governed production workflow with HMAC / ingest / forward secrets per `docs/automation-framework.md`. | Sketches/pilots stay in Opal / Workspace Studio; production workflows are n8n only until a separate architecture decision says otherwise. Workspace Studio pilots use non-sensitive data only and never auto-send cold outreach or bypass Anton approval. |
 | n8n production workflow | None (Google tools do not run client workflows). | n8n + Postgres + CorpFlowAI app. | Do not move a live client workflow onto a Google tool. |
 | Client-facing proposal | Gemini Canvas to draft. | Reviewed PDF / deck stored under `docs/` or operator drive becomes the approved collateral. | Doctrine + brand review before sending. |
 | Landing page copy | NotebookLM / Gemini for a first draft from existing approved copy. | Production copy lives in the repo (e.g. `pages/lead-rescue/`, apex marketing components) and ships via PR. | Final buyer-facing copy must pass `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md` and `docs/marketing/04_DELIVERY_QUALITY_GATE.md`. |
@@ -65,6 +66,7 @@ Important distinctions:
 
 - **Google AI Studio can prototype; Cursor / repo / Vercel productionise.**
 - **Opal can sketch workflows; n8n governs production workflows.**
+- **Workspace Studio can prototype/pilot Workspace-native flows on non-sensitive data; n8n remains the governed production workflow spine.**
 - **NotebookLM can explain docs; repo docs remain source of truth.**
 - **Gemini Canvas can draft decks; reviewed PDFs / decks become approved collateral.**
 - **Image tools can draft visuals; they cannot create fake screenshots or fake evidence.**
@@ -158,6 +160,7 @@ Anything that does not clearly belong in one of the five buckets is dropped — 
 | Pomelli / Google Labs | Operator-confirmed URL (TBD) | TBD | TBD | Requires operator browser verification | TBD | TBD | Region availability may block access; confirm from operator browser. |
 | Gemini image tools | Operator-confirmed URL (TBD) | TBD | TBD | Requires operator browser verification | TBD | TBD | Includes Nano Banana surface; operator confirms entry point. |
 | AI Studio multi-speaker audio | Operator-confirmed URL (TBD) | TBD | TBD | Requires operator browser verification | TBD | TBD | Likely a feature within AI Studio; confirm location. |
+| Google Workspace Studio | Operator-confirmed URL (TBD); help: `https://support.google.com/workspace-studio/?p=workflows` | TBD | TBD | Requires operator browser verification | TBD | TBD | Candidate Workspace-native flow tool; n8n stays the governed spine. Do not claim access tested unless Anton tested it in a logged-in Workspace browser. |
 
 Cursor cannot interactively test these tools because login / browser / Google-account access is not available to the agent. Rows above are intentionally marked **TBD** and **Requires operator browser verification**. Do not pretend the tools were tested.
 
