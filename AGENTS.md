@@ -81,6 +81,7 @@ If Git says **`ambiguous argument 'main'`**, a tracked path named **`main`** may
 | **Website quality scoring (per-tenant audit)** | **`docs/execution/WEBSITE_QUALITY_MEASUREMENT_FRAMEWORK.md`** |
 | **Analytics / Search Console / indexing per surface** | **`docs/execution/ANALYTICS_SEARCH_CONSOLE_INDEXING_CHECKLIST.md`** |
 | **Per-client migration audit (identity, login, marketing, off-laptop)** | **`docs/execution/CURRENT_CLIENT_MIGRATION_AUDIT_TEMPLATE.md`** |
+| **Operator Control Board v1 — priority model (P0/P1/P2/Blocked/Deferred) + active workstream table** — top-level "what matters now / who owns it"; sits above the execution queue, beside #249 | **`docs/operations/CORPFLOW_OPERATOR_CONTROL_BOARD_V1.md`** |
 | **Operator Bridge v1 — coordination protocol (ChatGPT ↔ Anton ↔ Cursor + Codex Cloud)** — coordination issue **#249** | **`docs/operations/OPERATOR_BRIDGE_V1.md`** |
 | **Operator Bridge — day-to-day runbook (how Cursor / Codex Cloud post STATUS to #249)** | **`docs/runbooks/OPERATOR_BRIDGE.md`** |
 | **Delivery Acceleration v1 — multi-executor protocol (Cursor + Codex Cloud + future internal agent)** | **`docs/execution/DELIVERY_ACCELERATION_V1.md`** |
