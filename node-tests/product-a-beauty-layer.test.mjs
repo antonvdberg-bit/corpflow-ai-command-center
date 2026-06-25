@@ -100,6 +100,22 @@ describe('Product A beauty layer — intake contract is preserved', () => {
     assert.ok(COMPONENT.includes('No payment on this page.'));
   });
 
+  it('does not paint an opaque page background over the photo layer (visibility regression guard)', () => {
+    // The page must form a stacking context and must NOT set an opaque
+    // background on the .pa-page element — that bug (PR #450) painted #06111f
+    // above the fixed photo and produced a flat black layout.
+    assert.ok(COMPONENT.includes("isolation: 'isolate'"), 'page must form a stacking context via isolation');
+    const pageStyle = COMPONENT.match(/page:\s*\{[\s\S]*?\n  \}/);
+    assert.ok(pageStyle, 'page style block not found');
+    assert.ok(
+      !/background:\s*'#06111f'/.test(pageStyle[0]),
+      'page must not set an opaque #06111f background over the photo layer',
+    );
+    // photo/scrim must render below the content (explicit non-negative order).
+    assert.ok(COMPONENT.includes('zIndex={0}'), 'photo background should be zIndex 0');
+    assert.ok(COMPONENT.includes('zIndex={1}'), 'scrim should be zIndex 1');
+  });
+
   it('keeps the primary CTA a solid (non-translucent) fill', () => {
     assert.match(COMPONENT, /primary:\s*\{\s*background:\s*'#2dd4bf'/);
     // the primary style object must not introduce blur/translucency.

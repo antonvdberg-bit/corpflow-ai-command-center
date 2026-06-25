@@ -4,7 +4,7 @@
   "surface": "product-a",
   "kind": "image",
   "title": "Product A US clinics hero — temporary placeholder",
-  "description": "Temporary governed placeholder for the Product A / US clinics hero background (/product-a/us-clinics). Tasteful abstract luxury visual in warm stone and blush tones evoking a calm premium treatment environment. Vector-only, CorpFlowAI-authored, no people and no clinical/medical detail. Replace with a vetted premium medspa/aesthetic-clinic interior photograph (stock_licensed or ai_generated with provenance) before production launch.",
+  "description": "Temporary governed placeholder for the Product A / US clinics hero background (/product-a/us-clinics). Warm, calm premium treatment-room visual: deep espresso base with a soft amber window-light source, blush highlights, low-contrast furniture forms, and a hint of botanical calm — clear tonal variation so the frosted-glass panels read against it. Vector-only, CorpFlowAI-authored, no people and no clinical/medical detail. Replace with a vetted premium medspa/aesthetic-clinic interior photograph (stock_licensed or ai_generated with provenance) before production launch.",
   "source": {
     "type": "repo",
     "path": "/assets/product-a/hero-clinic-placeholder.svg"
@@ -15,7 +15,7 @@
     "terms": "CorpFlowAI-authored vector placeholder. No third-party IP, no stock, no AI generation. Temporary; replace per the replacement note in usage.notes and bump the id on replacement (never overwrite a published path)."
   },
   "accessibility": {
-    "alt": "Soft warm stone and blush abstract suggesting a calm, premium clinic treatment environment.",
+    "alt": "Warm, calm premium treatment room lit by soft amber light, suggesting an elegant clinic environment.",
     "lang": "en",
     "decorative": true
   },
