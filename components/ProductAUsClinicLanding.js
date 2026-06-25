@@ -11,13 +11,28 @@ import HeroGlassBlock from './beauty/HeroGlassBlock.js';
 import CtaGlassBlock from './beauty/CtaGlassBlock.js';
 import { GLASS_GLOBAL_CSS } from '../lib/ui/glass.js';
 
-// Human-First Beauty Layer hero. Temporary governed placeholder asset; see
-// data/visual-assets/product-a-hero-clinic.manifest.json for the replacement note.
-const HERO_IMAGE = '/assets/product-a/hero-clinic-placeholder.svg';
+// Human-First Beauty Layer hero. Governed medspa-interior photograph; see
+// data/visual-assets/product-a-hero-medspa.manifest.json for provenance and the
+// replacement note. Responsive AVIF/WebP/JPG derivatives (2400w desktop, 1280w
+// mobile) are generated from the licensed source under public/assets/product-a/.
+const HERO_BASE = '/assets/product-a/product-a-hero-medspa-v1';
+const HERO_IMAGE = `${HERO_BASE}.jpg`;
+const HERO_SOURCES = [
+  { type: 'image/avif', media: '(max-width: 768px)', srcSet: `${HERO_BASE}-1280.avif` },
+  { type: 'image/webp', media: '(max-width: 768px)', srcSet: `${HERO_BASE}-1280.webp` },
+  { media: '(max-width: 768px)', srcSet: `${HERO_BASE}-1280.jpg` },
+  { type: 'image/avif', srcSet: `${HERO_BASE}.avif` },
+  { type: 'image/webp', srcSet: `${HERO_BASE}.webp` },
+];
 
 const PAGE_CSS =
   GLASS_GLOBAL_CSS +
-  '.pa-page a:focus-visible,.pa-page button:focus-visible,.pa-page input:focus-visible,.pa-page textarea:focus-visible{outline:2px solid #2dd4bf;outline-offset:2px;border-radius:8px;}';
+  '.pa-page a:focus-visible,.pa-page button:focus-visible,.pa-page input:focus-visible,.pa-page textarea:focus-visible{outline:2px solid #2dd4bf;outline-offset:2px;border-radius:8px;}' +
+  // The nav is the only copy that sits directly on the photograph (all other
+  // text lives on dark frosted-glass panels). A soft shadow keeps it AA-legible
+  // over a bright hero without darkening the photo with a heavier scrim — the
+  // photographic foundation must stay clearly visible above the fold.
+  '.pa-page nav{text-shadow:0 1px 3px rgba(3,8,15,0.55);}';
 
 const styles = {
   page: {
@@ -176,11 +191,18 @@ export default function ProductAUsClinicLanding() {
           name="description"
           content="Request a Website & Lead Rescue audit for US medspas, aesthetic clinics, and elective clinics. Enquiry capture review without forcing a CRM migration."
         />
-        <link rel="preload" as="image" href={HERO_IMAGE} />
+        <link
+          rel="preload"
+          as="image"
+          type="image/avif"
+          href={`${HERO_BASE}.avif`}
+          imageSrcSet={`${HERO_BASE}-1280.avif 1280w, ${HERO_BASE}.avif 2400w`}
+          imageSizes="100vw"
+        />
         <style dangerouslySetInnerHTML={{ __html: PAGE_CSS }} />
       </Head>
 
-      <PhotoBackground fixed priority zIndex={0} fallbackSrc={HERO_IMAGE} alt="" />
+      <PhotoBackground fixed priority zIndex={0} fallbackSrc={HERO_IMAGE} sources={HERO_SOURCES} alt="" />
       <Scrim fixed tone="dark" zIndex={1} />
 
       <main style={styles.shell}>
