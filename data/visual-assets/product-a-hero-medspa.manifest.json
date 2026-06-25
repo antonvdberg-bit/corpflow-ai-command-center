@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0.0",
+  "id": "product-a-hero-medspa-v1",
+  "surface": "product-a",
+  "kind": "image",
+  "title": "Product A US clinics hero — medspa interior",
+  "description": "Governed hero background for the Product A / US clinics page (/product-a/us-clinics): a calm, premium wellness-clinic interior — a potted aloe plant on a light wood floor with a softly blurred lounge area and bright, airy daylight. Warm, human, and non-clinical; no people, no patients, and no medical/clinical detail or PII. Responsive AVIF/WebP/JPG derivatives (2400w desktop, 1280w mobile) generated from the licensed source.",
+  "source": {
+    "type": "repo",
+    "path": "/assets/product-a/product-a-hero-medspa-v1.jpg"
+  },
+  "provenance": {
+    "source_filename": "product-a-hero-medspa-source.jpg",
+    "source_dimensions": "5184x3456",
+    "drive_folder_url": "https://drive.google.com/drive/folders/1_2LvyulXiabsN2-j8SnPrGj3-m-0pz8E?usp=drive_link",
+    "supplied_by": "CorpFlowAI (marketing-hub Drive)",
+    "optimised_with": "sharp (jpeg mozjpeg q80, webp q78, avif q50)",
+    "derivatives": [
+      "/assets/product-a/product-a-hero-medspa-v1.avif",
+      "/assets/product-a/product-a-hero-medspa-v1.webp",
+      "/assets/product-a/product-a-hero-medspa-v1.jpg",
+      "/assets/product-a/product-a-hero-medspa-v1-1280.avif",
+      "/assets/product-a/product-a-hero-medspa-v1-1280.webp",
+      "/assets/product-a/product-a-hero-medspa-v1-1280.jpg"
+    ],
+    "verification_status": "Original photo licence/source not independently verified in this PR — confirm owned vs stock-licensed before production sign-off."
+  },
+  "licence": {
+    "tier": "corpflow_owned",
+    "owner": "CorpFlowAI",
+    "terms": "Supplied by CorpFlowAI from the marketing-hub Drive as the Product A hero. Original photo licence/provenance not independently verified in this PR; confirm rights (owned vs stock-licensed) before production sign-off. No identifiable people, patients, or clinical PII."
+  },
+  "accessibility": {
+    "alt": "Calm, premium wellness-clinic interior: a potted aloe plant on a light wood floor in a bright, airy room.",
+    "lang": "en",
+    "decorative": true
+  },
+  "usage": {
+    "allowed_surfaces": ["product-a"],
+    "primary_cta": "Request a Website & Lead Rescue Audit",
+    "notes": "slot:product_a_hero. Full-bleed fixed background under a gentle dark-tinted scrim; rendered decoratively (alt=\"\") because the surrounding copy carries the meaning. Dark frosted-glass panels sit above it. REPLACEMENT: to change the hero, add a new derivative set and a new manifest id (e.g. product-a-hero-medspa-v2), then retire this one — never overwrite a published path."
+  },
+  "lifecycle": {
+    "state": "draft",
+    "created_at": "2026-06-25"
+  }
+}

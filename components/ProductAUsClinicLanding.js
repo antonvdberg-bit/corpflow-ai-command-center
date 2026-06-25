@@ -9,15 +9,30 @@ import GlassPanel from './beauty/GlassPanel.js';
 import GlassCardGrid from './beauty/GlassCardGrid.js';
 import HeroGlassBlock from './beauty/HeroGlassBlock.js';
 import CtaGlassBlock from './beauty/CtaGlassBlock.js';
-import { GLASS_GLOBAL_CSS } from '../lib/ui/glass.js';
+import { GLASS_GLOBAL_CSS, GLASS_TOKENS } from '../lib/ui/glass.js';
 
-// Human-First Beauty Layer hero. Temporary governed placeholder asset; see
-// data/visual-assets/product-a-hero-clinic.manifest.json for the replacement note.
-const HERO_IMAGE = '/assets/product-a/hero-clinic-placeholder.svg';
+// Human-First Beauty Layer hero. Governed medspa-interior photograph; see
+// data/visual-assets/product-a-hero-medspa.manifest.json for provenance and the
+// replacement note. Responsive AVIF/WebP/JPG derivatives (2400w desktop, 1280w
+// mobile) are generated from the licensed source under public/assets/product-a/.
+const HERO_BASE = '/assets/product-a/product-a-hero-medspa-v1';
+const HERO_IMAGE = `${HERO_BASE}.jpg`;
+const HERO_SOURCES = [
+  { type: 'image/avif', media: '(max-width: 768px)', srcSet: `${HERO_BASE}-1280.avif` },
+  { type: 'image/webp', media: '(max-width: 768px)', srcSet: `${HERO_BASE}-1280.webp` },
+  { media: '(max-width: 768px)', srcSet: `${HERO_BASE}-1280.jpg` },
+  { type: 'image/avif', srcSet: `${HERO_BASE}.avif` },
+  { type: 'image/webp', srcSet: `${HERO_BASE}.webp` },
+];
 
 const PAGE_CSS =
   GLASS_GLOBAL_CSS +
-  '.pa-page a:focus-visible,.pa-page button:focus-visible,.pa-page input:focus-visible,.pa-page textarea:focus-visible{outline:2px solid #2dd4bf;outline-offset:2px;border-radius:8px;}';
+  '.pa-page a:focus-visible,.pa-page button:focus-visible,.pa-page input:focus-visible,.pa-page textarea:focus-visible{outline:2px solid #2dd4bf;outline-offset:2px;border-radius:8px;}' +
+  // The nav is the only copy that sits directly on the photograph (all other
+  // text lives on dark frosted-glass panels). A soft shadow keeps it AA-legible
+  // over a bright hero without darkening the photo with a heavier scrim — the
+  // photographic foundation must stay clearly visible above the fold.
+  '.pa-page nav{text-shadow:0 1px 3px rgba(3,8,15,0.55);}';
 
 const styles = {
   page: {
@@ -36,17 +51,6 @@ const styles = {
   },
   shell: { position: 'relative', zIndex: 2, maxWidth: 1120, margin: '0 auto', padding: '42px 20px 56px' },
   nav: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' },
-  badge: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 8,
-    border: '1px solid rgba(255,255,255,0.18)',
-    borderRadius: 999,
-    padding: '8px 12px',
-    background: 'rgba(255,255,255,0.08)',
-    color: '#dceaf7',
-    fontSize: 13,
-  },
   h1: { margin: 0, fontSize: 'clamp(34px, 6vw, 64px)', lineHeight: 1.02, letterSpacing: '-0.045em', maxWidth: 760 },
   lead: { marginTop: 20, fontSize: 'clamp(17px, 2vw, 21px)', lineHeight: 1.55, color: '#dbe7f3', maxWidth: 720 },
   section: { marginTop: 28 },
@@ -65,7 +69,7 @@ const styles = {
     cursor: 'pointer',
     textDecoration: 'none',
   },
-  primary: { background: '#2dd4bf', color: '#031018' },
+  primary: { background: GLASS_TOKENS.ctaWarm, color: GLASS_TOKENS.ctaWarmText, boxShadow: GLASS_TOKENS.ctaWarmShadow },
   secondary: { background: 'rgba(255,255,255,0.12)', color: '#eef6ff', border: '1px solid rgba(255,255,255,0.20)' },
   input: {
     width: '100%',
@@ -176,11 +180,18 @@ export default function ProductAUsClinicLanding() {
           name="description"
           content="Request a Website & Lead Rescue audit for US medspas, aesthetic clinics, and elective clinics. Enquiry capture review without forcing a CRM migration."
         />
-        <link rel="preload" as="image" href={HERO_IMAGE} />
+        <link
+          rel="preload"
+          as="image"
+          type="image/avif"
+          href={`${HERO_BASE}.avif`}
+          imageSrcSet={`${HERO_BASE}-1280.avif 1280w, ${HERO_BASE}.avif 2400w`}
+          imageSizes="100vw"
+        />
         <style dangerouslySetInnerHTML={{ __html: PAGE_CSS }} />
       </Head>
 
-      <PhotoBackground fixed priority zIndex={0} fallbackSrc={HERO_IMAGE} alt="" />
+      <PhotoBackground fixed priority zIndex={0} fallbackSrc={HERO_IMAGE} sources={HERO_SOURCES} alt="" />
       <Scrim fixed tone="dark" zIndex={1} />
 
       <main style={styles.shell}>
@@ -200,9 +211,8 @@ export default function ProductAUsClinicLanding() {
 
         <GlassCardGrid minColWidth={300} gap={24} style={{ marginTop: 44, alignItems: 'start' }}>
           <HeroGlassBlock
-            eyebrow={<span style={styles.badge}>US medspas · aesthetic clinics · elective clinics</span>}
             title={
-              <h1 style={{ ...styles.h1, marginTop: 16 }}>Stop losing bookings because enquiries disappear.</h1>
+              <h1 style={styles.h1}>Stop losing bookings because enquiries disappear.</h1>
             }
             lead={
               <p style={styles.lead}>
@@ -231,7 +241,7 @@ export default function ProductAUsClinicLanding() {
             }
           />
 
-          <GlassPanel>
+          <GlassPanel variant={{ elevation: 1 }}>
             <div style={styles.label}>What you get</div>
             <h2 style={{ ...styles.h2, fontSize: 24 }}>A practical audit — not a software pitch.</h2>
             <ul style={styles.list}>
@@ -397,7 +407,15 @@ export default function ProductAUsClinicLanding() {
           </CtaGlassBlock>
         </section>
 
-        <PublicSiteFooter extra="Product A Website & Lead Rescue audits for US medspas and aesthetic clinics. Intake only — no card or banking details on this page." />
+        <GlassPanel
+          variant={{ fill: GLASS_TOKENS.glassFillSoft, padding: 22, elevation: 1 }}
+          style={{ marginTop: 40 }}
+        >
+          <PublicSiteFooter
+            flush
+            extra="Product A Website & Lead Rescue audits for US medspas and aesthetic clinics. Intake only — no card or banking details on this page."
+          />
+        </GlassPanel>
       </main>
     </div>
   );

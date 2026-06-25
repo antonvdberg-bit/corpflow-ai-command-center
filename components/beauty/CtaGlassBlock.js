@@ -13,7 +13,7 @@ import { GLASS_TOKENS } from '../../lib/ui/glass.js';
  */
 export default function CtaGlassBlock({ style, children }) {
   return (
-    <GlassPanel variant={{ fill: GLASS_TOKENS.glassFillStrong, padding: 24 }} style={style}>
+    <GlassPanel variant={{ fill: GLASS_TOKENS.glassFillStrong, padding: 24, elevation: 3 }} style={style}>
       {children}
     </GlassPanel>
   );
