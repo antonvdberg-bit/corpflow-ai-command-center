@@ -51,17 +51,6 @@ const styles = {
   },
   shell: { position: 'relative', zIndex: 2, maxWidth: 1120, margin: '0 auto', padding: '42px 20px 56px' },
   nav: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' },
-  badge: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 8,
-    border: '1px solid rgba(255,255,255,0.18)',
-    borderRadius: 999,
-    padding: '8px 12px',
-    background: 'rgba(255,255,255,0.08)',
-    color: '#dceaf7',
-    fontSize: 13,
-  },
   h1: { margin: 0, fontSize: 'clamp(34px, 6vw, 64px)', lineHeight: 1.02, letterSpacing: '-0.045em', maxWidth: 760 },
   lead: { marginTop: 20, fontSize: 'clamp(17px, 2vw, 21px)', lineHeight: 1.55, color: '#dbe7f3', maxWidth: 720 },
   section: { marginTop: 28 },
@@ -222,9 +211,8 @@ export default function ProductAUsClinicLanding() {
 
         <GlassCardGrid minColWidth={300} gap={24} style={{ marginTop: 44, alignItems: 'start' }}>
           <HeroGlassBlock
-            eyebrow={<span style={styles.badge}>US medspas · aesthetic clinics · elective clinics</span>}
             title={
-              <h1 style={{ ...styles.h1, marginTop: 16 }}>Stop losing bookings because enquiries disappear.</h1>
+              <h1 style={styles.h1}>Stop losing bookings because enquiries disappear.</h1>
             }
             lead={
               <p style={styles.lead}>
