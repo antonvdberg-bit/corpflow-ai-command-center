@@ -3,7 +3,7 @@
   "id": "product-a-hero-clinic",
   "surface": "product-a",
   "kind": "image",
-  "title": "Product A US clinics hero — temporary placeholder",
+  "title": "Product A US clinics hero — temporary placeholder (retired)",
   "description": "Temporary governed placeholder for the Product A / US clinics hero background (/product-a/us-clinics). Warm, calm premium treatment-room visual: deep espresso base with a soft amber window-light source, blush highlights, low-contrast furniture forms, and a hint of botanical calm — clear tonal variation so the frosted-glass panels read against it. Vector-only, CorpFlowAI-authored, no people and no clinical/medical detail. Replace with a vetted premium medspa/aesthetic-clinic interior photograph (stock_licensed or ai_generated with provenance) before production launch.",
   "source": {
     "type": "repo",
@@ -22,10 +22,11 @@
   "usage": {
     "allowed_surfaces": ["product-a"],
     "primary_cta": "Request a Website & Lead Rescue Audit",
-    "notes": "slot:product_a_hero. Full-bleed fixed background under a dark scrim; rendered decoratively (alt=\"\") because surrounding copy carries the meaning. REPLACEMENT: swap for a vetted premium medspa/aesthetic-clinic interior or calm luxury treatment-room photograph — responsive AVIF/WebP set, no identifiable patients, no real before/after, no clinical PII. On replacement, create a new id (e.g. product-a-hero-clinic-v2) and retire this manifest."
+    "notes": "RETIRED — superseded by product-a-hero-medspa-v1 (real medspa-interior photograph; see product-a-hero-medspa.manifest.json). This vector placeholder is no longer referenced by /product-a/us-clinics. REPLACEMENT history: swapped for a vetted premium medspa/aesthetic-clinic interior photograph (responsive AVIF/WebP/JPG set, no identifiable patients, no clinical PII)."
   },
   "lifecycle": {
-    "state": "draft",
-    "created_at": "2026-06-25"
+    "state": "retired",
+    "created_at": "2026-06-25",
+    "retired_at": "2026-06-25"
   }
 }

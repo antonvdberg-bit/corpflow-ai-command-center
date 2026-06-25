@@ -134,24 +134,53 @@ describe('Product A beauty layer — intake contract is preserved', () => {
 });
 
 describe('Product A beauty layer — governed hero asset', () => {
-  it('ships the placeholder binary referenced by the component', () => {
+  const HERO_BASE = 'public/assets/product-a/product-a-hero-medspa-v1';
+
+  it('ships the governed medspa hero derivatives referenced by the component', () => {
     assert.ok(
-      COMPONENT.includes('/assets/product-a/hero-clinic-placeholder.svg'),
-      'component should reference the placeholder asset',
+      COMPONENT.includes('/assets/product-a/product-a-hero-medspa-v1'),
+      'component should reference the medspa hero asset base',
+    );
+    // responsive picture: desktop (2400w) + mobile (1280w) in AVIF/WebP/JPG.
+    for (const rel of [
+      `${HERO_BASE}.jpg`,
+      `${HERO_BASE}.webp`,
+      `${HERO_BASE}.avif`,
+      `${HERO_BASE}-1280.jpg`,
+      `${HERO_BASE}-1280.webp`,
+      `${HERO_BASE}-1280.avif`,
+    ]) {
+      assert.ok(existsSync(path.join(REPO_ROOT, rel)), `missing hero derivative: ${rel}`);
+    }
+    // the temporary placeholder must be fully swapped out of the runtime.
+    assert.ok(
+      !COMPONENT.includes('hero-clinic-placeholder'),
+      'placeholder must be removed from the component',
     );
     assert.ok(
-      existsSync(path.join(REPO_ROOT, 'public/assets/product-a/hero-clinic-placeholder.svg')),
-      'placeholder SVG must exist under public/',
+      !existsSync(path.join(REPO_ROOT, 'public/assets/product-a/hero-clinic-placeholder.svg')),
+      'retired placeholder SVG should no longer ship under public/',
     );
   });
 
-  it('has a valid, no-PII visual-asset manifest with a replacement note', () => {
-    const manifest = JSON.parse(read('data/visual-assets/product-a-hero-clinic.manifest.json'));
-    const result = validateVisualAssetManifest(manifest, { source: 'product-a-hero-clinic.manifest.json' });
+  it('has a valid, no-PII medspa hero manifest with provenance + replacement note', () => {
+    const manifest = JSON.parse(read('data/visual-assets/product-a-hero-medspa.manifest.json'));
+    const result = validateVisualAssetManifest(manifest, { source: 'product-a-hero-medspa.manifest.json' });
     assert.deepEqual(result.errors, []);
     assert.equal(result.ok, true);
     assert.equal(manifest.surface, 'product-a');
     assert.equal(manifest.lifecycle.state, 'draft');
     assert.match(manifest.usage.notes, /REPLACEMENT/);
+    // provenance must record where the source came from (no PII, public Drive URL).
+    const json = JSON.stringify(manifest);
+    assert.match(json, /product-a-hero-medspa-source\.jpg/);
+    assert.match(json, /drive\.google\.com/);
+  });
+
+  it('retires the superseded placeholder manifest cleanly', () => {
+    const retired = JSON.parse(read('data/visual-assets/product-a-hero-clinic.manifest.json'));
+    const result = validateVisualAssetManifest(retired, { source: 'product-a-hero-clinic.manifest.json' });
+    assert.deepEqual(result.errors, []);
+    assert.equal(retired.lifecycle.state, 'retired');
   });
 });
