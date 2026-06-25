@@ -84,7 +84,7 @@ PRs, **Codex** for research inputs only.
 | 3 | Marketing Automation Arm / US medspa revenue machine | **P0** | Cursor for docs, Codex for research inputs only | **Active** | Codex research is input, not authorization; outreach stays human-approved. |
 | 4 | Cloudflare R2 + Infisical + restic backups | **P1** | Infrastructure workstream / Cursor as needed | **Active but gated** | Do **not** back up the production DB yet; do **not** touch `POSTGRES_URL`; do **not** integrate R2 into the production app yet. |
 | 5 | Website-wide beauty layer rollout | **P1** | Cursor | **Active** after governed rollout plan | Per-surface gated PRs; photo licence verified before any governed hero ships `published` (`docs/marketing/CORPFLOW_BEAUTY_LAYER_ROLLOUT_PLAN_V1.md`). |
-| 6 | Chatbot / marketing-site intake assistant | **P1** | Specification first, then Cursor | **Candidate** | No autonomous sales outreach; human-approved intake/follow-up only. |
+| 6 | Chatbot / marketing-site intake assistant | **P1** | Specification first, then Cursor | **Candidate** | Spec only first (`docs/marketing/WEBSITE_LEAD_RESCUE_INTAKE_ASSISTANT_SPEC_V1.md`); no implementation without separate approval. No autonomous sales outreach; human-approved intake/follow-up only. |
 | 7 | SBM payment integration preparation | **P1** | Docs/spec first, then Cursor | **Candidate** | No real secrets; no payment production switch until approved. |
 | 8 | ERP documentation cleanup | **P2** | Cursor / docs | **Waiting for capacity** | Docs-only; no ERPNext production setup implied. |
 | 9 | NotebookLM source sets | **P2** | Anton / Workspace | **Later**, once approved docs stabilize | Briefing/summarization only; no sensitive client data (`docs/operations/OPERATOR_DISPATCH_ROUTER.md` §7.2). |
@@ -134,8 +134,20 @@ if they conflict, update the canonical doc first, then this board.
 - `docs/marketing/CORPFLOW_BEAUTY_LAYER_ROLLOUT_PLAN_V1.md` — governed beauty-layer rollout.
 - `.cursor/rules/delivery-reality.mdc` — only **live verified** is `COMPLETE`.
 
-## 8. Status block
+## 8. Recent governance decisions (ledger)
 
-- **Delivery state:** Local → intended **Merged** after operator review. Docs-only; nothing to deploy.
+Append-only, newest first. Each row is an operator decision recorded on #249 and
+reflected here. This is a lightweight ledger, not a replacement for #249 or the
+execution queue.
+
+| Date | Decision | PR | State |
+|---|---|---|---|
+| 2026-06-25 | **Operator Control Board v1 adopted** as the active operating structure (this doc). | [#463](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/463) | **Merged / active.** |
+| 2026-06-25 | **Workspace Studio = candidate/prototype layer only**; n8n remains the governed workflow spine. | [#460](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/460) | **Merged.** |
+| 2026-06-25 | **Codex US-medspa artifact** capture/reference. Source unreachable (branch `work` 404, SHA 404/422); PR adds a placeholder/reference note only and does **not** claim import/capture/verification. | [#462](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/462) | **HOLD — pending retrieval.** Do not merge while it would claim the artifact was imported/captured/verified; merge allowed only once the artifact is recovered, or as a clearly-labelled pending-retrieval note. |
+
+## 9. Status block
+
+- **Delivery state:** v1 doc **Merged** (PR #463); this ledger update is an incremental docs-only edit. Docs-only; nothing to deploy.
 - **Implementation:** none. No runtime code, no env, no secrets, no DB, no second app/database.
 - **Verdict:** PARTIAL by design — governance documented; execution continues to flow through #249 + the execution queue under existing gates.
