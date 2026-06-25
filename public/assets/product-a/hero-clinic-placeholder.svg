@@ -1,43 +1,67 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Calm luxury treatment-room placeholder in warm stone and blush tones">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Warm, calm premium treatment-room placeholder with soft amber light">
   <defs>
-    <linearGradient id="base" x1="0" y1="0" x2="0.35" y2="1">
-      <stop offset="0" stop-color="#f3e9df"/>
-      <stop offset="0.45" stop-color="#e7d3c4"/>
-      <stop offset="1" stop-color="#caa896"/>
+    <linearGradient id="room" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0" stop-color="#241a12"/>
+      <stop offset="0.5" stop-color="#2c1f15"/>
+      <stop offset="1" stop-color="#160f0a"/>
     </linearGradient>
-    <radialGradient id="glowWarm" cx="0.28" cy="0.30" r="0.55">
-      <stop offset="0" stop-color="#fff6ec" stop-opacity="0.85"/>
-      <stop offset="1" stop-color="#fff6ec" stop-opacity="0"/>
+    <radialGradient id="window" cx="0.78" cy="0.24" r="0.6">
+      <stop offset="0" stop-color="#e8c489" stop-opacity="0.82"/>
+      <stop offset="0.45" stop-color="#c79a5e" stop-opacity="0.40"/>
+      <stop offset="1" stop-color="#c79a5e" stop-opacity="0"/>
     </radialGradient>
-    <radialGradient id="glowBlush" cx="0.80" cy="0.22" r="0.5">
-      <stop offset="0" stop-color="#e9c6bd" stop-opacity="0.7"/>
-      <stop offset="1" stop-color="#e9c6bd" stop-opacity="0"/>
+    <radialGradient id="warmFill" cx="0.30" cy="0.62" r="0.6">
+      <stop offset="0" stop-color="#9c6f43" stop-opacity="0.34"/>
+      <stop offset="1" stop-color="#9c6f43" stop-opacity="0"/>
     </radialGradient>
-    <radialGradient id="depth" cx="0.5" cy="1.05" r="0.9">
-      <stop offset="0" stop-color="#3a2a26" stop-opacity="0.40"/>
-      <stop offset="1" stop-color="#3a2a26" stop-opacity="0"/>
+    <radialGradient id="blush" cx="0.52" cy="0.18" r="0.5">
+      <stop offset="0" stop-color="#e7b4a0" stop-opacity="0.30"/>
+      <stop offset="1" stop-color="#e7b4a0" stop-opacity="0"/>
     </radialGradient>
-    <linearGradient id="sheen" x1="0" y1="0" x2="1" y2="0.2">
-      <stop offset="0" stop-color="#ffffff" stop-opacity="0"/>
-      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0.10"/>
-      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    <linearGradient id="lightBand" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f3dcb4" stop-opacity="0"/>
+      <stop offset="0.4" stop-color="#f3dcb4" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#f3dcb4" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="vignette" cx="0.5" cy="0.46" r="0.75">
+      <stop offset="0.55" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="1" stop-color="#0d0805" stop-opacity="0.62"/>
+    </radialGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1d140d" stop-opacity="0"/>
+      <stop offset="1" stop-color="#0f0a07" stop-opacity="0.85"/>
     </linearGradient>
   </defs>
 
-  <rect width="1600" height="1000" fill="url(#base)"/>
+  <!-- warm room base -->
+  <rect width="1600" height="1000" fill="url(#room)"/>
 
-  <!-- soft calm forms suggesting a serene, uncluttered treatment space -->
-  <ellipse cx="470" cy="360" rx="900" ry="640" fill="url(#glowWarm)"/>
-  <ellipse cx="1280" cy="240" rx="620" ry="520" fill="url(#glowBlush)"/>
-
-  <g opacity="0.55">
-    <path d="M0 720 C 380 640 720 700 1120 600 C 1360 540 1520 560 1600 540 L 1600 1000 L 0 1000 Z" fill="#b98c77" opacity="0.35"/>
-    <path d="M0 820 C 420 770 860 820 1260 740 C 1430 705 1540 720 1600 705 L 1600 1000 L 0 1000 Z" fill="#9c6f5c" opacity="0.40"/>
+  <!-- soft architectural light bands (suggesting tall windows / linen drapes) -->
+  <g opacity="0.8">
+    <rect x="1040" y="-40" width="150" height="1080" fill="url(#lightBand)"/>
+    <rect x="1230" y="-40" width="120" height="1080" fill="url(#lightBand)" opacity="0.7"/>
+    <rect x="1400" y="-40" width="110" height="1080" fill="url(#lightBand)" opacity="0.55"/>
   </g>
 
-  <!-- subtle vertical sheen evoking a quiet, refined interior -->
-  <rect x="980" y="0" width="240" height="1000" fill="url(#sheen)"/>
-  <rect x="300" y="0" width="160" height="1000" fill="url(#sheen)" opacity="0.6"/>
+  <!-- primary warm light source (calm, luxurious, not clinical) -->
+  <ellipse cx="1250" cy="240" rx="720" ry="600" fill="url(#window)"/>
+  <ellipse cx="470" cy="640" rx="720" ry="560" fill="url(#warmFill)"/>
+  <ellipse cx="830" cy="150" rx="640" ry="420" fill="url(#blush)"/>
 
-  <rect width="1600" height="1000" fill="url(#depth)"/>
+  <!-- soft low-contrast forms suggesting a serene treatment space -->
+  <g opacity="0.5">
+    <rect x="120" y="560" width="560" height="300" rx="46" fill="#3a2a1c"/>
+    <rect x="150" y="585" width="500" height="40" rx="20" fill="#5a4128" opacity="0.7"/>
+    <ellipse cx="1300" cy="720" rx="280" ry="150" fill="#2a1d13"/>
+  </g>
+
+  <!-- a hint of botanical calm in the corner -->
+  <g opacity="0.32" fill="#1c2716">
+    <ellipse cx="90" cy="220" rx="120" ry="220" transform="rotate(-18 90 220)"/>
+    <ellipse cx="180" cy="170" rx="90" ry="180" transform="rotate(8 180 170)"/>
+  </g>
+
+  <!-- grounding floor + cinematic vignette -->
+  <rect x="0" y="640" width="1600" height="360" fill="url(#floor)"/>
+  <rect width="1600" height="1000" fill="url(#vignette)"/>
 </svg>

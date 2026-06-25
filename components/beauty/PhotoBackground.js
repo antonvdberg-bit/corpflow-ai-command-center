@@ -16,6 +16,7 @@ import React from 'react';
  *   alt?: string,
  *   priority?: boolean,
  *   fixed?: boolean,
+ *   zIndex?: number,
  *   objectPosition?: string,
  *   style?: React.CSSProperties,
  * }} props
@@ -26,6 +27,7 @@ export default function PhotoBackground({
   alt = '',
   priority = false,
   fixed = false,
+  zIndex = 0,
   objectPosition = 'center',
   style,
 }) {
@@ -36,9 +38,9 @@ export default function PhotoBackground({
       style={{
         position: fixed ? 'fixed' : 'absolute',
         inset: 0,
-        zIndex: -2,
+        zIndex,
         overflow: 'hidden',
-        backgroundColor: '#06111f',
+        backgroundColor: '#0f1b2e',
         ...style,
       }}
     >
@@ -51,6 +53,7 @@ export default function PhotoBackground({
           alt={alt}
           decoding="async"
           loading={priority ? 'eager' : 'lazy'}
+          fetchpriority={priority ? 'high' : undefined}
           style={{
             width: '100%',
             height: '100%',

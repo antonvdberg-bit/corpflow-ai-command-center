@@ -6,9 +6,9 @@ import { GLASS_TOKENS } from '../../lib/ui/glass.js';
  * readability — strengthen the scrim before touching panel opacity when a
  * contrast check fails over a bright region of the photo.
  *
- * @param {{ tone?: 'dark'|'light', fixed?: boolean, style?: React.CSSProperties }} props
+ * @param {{ tone?: 'dark'|'light', fixed?: boolean, zIndex?: number, style?: React.CSSProperties }} props
  */
-export default function Scrim({ tone = 'dark', fixed = false, style }) {
+export default function Scrim({ tone = 'dark', fixed = false, zIndex = 1, style }) {
   const background = tone === 'light' ? GLASS_TOKENS.scrimLight : GLASS_TOKENS.scrimDark;
   return (
     <div
@@ -16,7 +16,7 @@ export default function Scrim({ tone = 'dark', fixed = false, style }) {
       style={{
         position: fixed ? 'fixed' : 'absolute',
         inset: 0,
-        zIndex: -1,
+        zIndex,
         background,
         pointerEvents: 'none',
         ...style,
