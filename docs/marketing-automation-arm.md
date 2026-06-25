@@ -269,3 +269,37 @@ Week one of the arm is successful when:
 - the **first Google Vids assets** planned.
 
 These are operating-surface outcomes; none require production changes.
+
+---
+
+## 15. Approved research inputs (capture status)
+
+Codex may supply **research / data / script artifacts** that inform this arm.
+Such artifacts are **approved research / input material**, not doctrine: they are
+inputs to be reviewed against this playbook and the canonical doctrines, and they
+**do not override** anything in §1–§14 or in
+`docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md` unless Anton explicitly
+promotes a specific finding after review.
+
+| Artifact | Intended path | Source | Capture status |
+|----------|---------------|--------|----------------|
+| US medspa revenue-machine inputs | `docs/marketing/research/us-medspa-revenue-machine-inputs.md` | Codex — branch `work`, full SHA `5a216e35da4795b998749cb8aae574154f317bf1` | **NOT YET CAPTURED** (reference unreachable on the repo as of 2026-06-25; see capture-status note) |
+
+The full capture status, the 2026-06-25 reachability verification (branch `work`
+→ HTTP 404, SHA → 404/422 "no commit found"), and the exact next action to make
+it importable live in
+[`docs/marketing/research/us-medspa-revenue-machine-inputs.md`](marketing/research/us-medspa-revenue-machine-inputs.md)
+— a status/pointer note, **not** the artifact itself. Cursor imports the actual
+research content in a separate docs-only PR only once Codex pushes a reachable
+branch / full SHA or pastes the artifact into #249.
+
+Boundaries (carried from §12–§13 and the Operator Dispatch Router):
+
+- **Codex remains a research / data / script worker only** and **never owns PRs**
+  (`docs/operations/OPERATOR_DISPATCH_ROUTER.md` §7.1). Cursor owns repo/docs PRs.
+- Captured research is **input**, not authorization. It does not, by itself,
+  trigger any build, outreach, or production change.
+- Outreach stays **AI-assisted and human-approved** per §8; no automated cold
+  outreach.
+- No new app, no second database, no `POSTGRES_URL` change, no env vars, no
+  `.env.template` edits, no secrets are implied by capturing research.
