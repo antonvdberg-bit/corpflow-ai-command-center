@@ -11,6 +11,7 @@
 - `docs/analytics/CORPFLOW_ANALYTICS_V1.md` — Plausible decision + tenant-aware boundary that feeds the Analytics dimension.
 - `docs/operations/MONITORING_ARCHITECTURE.md` — runtime monitor map that feeds the Monitoring / runtime health dimension.
 - `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md` — non-negotiable conversion clarity overrides every total.
+- `docs/marketing/CORPFLOW_VISUAL_STANDARD_HUMAN_FIRST_BEAUTY_LAYER.md` — non-negotiable human-first visual presentation standard for public marketing surfaces (doctrine-binding within §3.5 / §4.1).
 - `.cursor/rules/delivery-reality.mdc` — live-prod-only "Operational" rule.
 - `docs/quality/CLIENT_PERFORMANCE_REPORTING_MODEL.md` — what clients eventually see monthly (design-only v1).
 
@@ -135,6 +136,8 @@ Source of truth: `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md`. **Conversion
 | Trust path explicit (logos / proof / pricing or pricing-anchor stated) | 1.5 |
 | Payment / region / routing complexity appears **after** buyer intent | 1.5 |
 
+**Visual beauty layer (doctrine-binding gate, not a separate score):** per `docs/marketing/CORPFLOW_VISUAL_STANDARD_HUMAN_FIRST_BEAUTY_LAYER.md`, a public marketing surface whose hero is *not* visually beautiful / human-first within four seconds (no audience-appropriate photographic foundation, no "3D glass" layered presentation, generic-SaaS-gradient or dashboard-first first impression) is **Visual-PARTIAL** — see the §4.1 doctrine override. This does not change the 10 conversion-clarity points; it is a binding qualitative gate on the verdict label for public marketing surfaces, applied the same way the conversion-clarity doctrine override is.
+
 ### 3.6 Trust architecture (0–10) — does the site look operated by a real business?
 
 | Item | Points |
@@ -229,6 +232,8 @@ Per `BRAND_AND_CONVERSION_DOCTRINE.md`, a site with **Conversion clarity ≤ 4 /
 
 Per `delivery-reality.mdc`, a `Production-ready` or `Premium` total is only valid when the site is **live-verified** on the production hostname at audit time. A 90/100 audit on a Preview deployment does not earn the label until the same audit runs against the production hostname.
 
+Per `docs/marketing/CORPFLOW_VISUAL_STANDARD_HUMAN_FIRST_BEAUTY_LAYER.md`, a **public marketing surface** whose hero fails the human-first visual standard (no beautiful audience-appropriate photographic foundation, no layered "3D glass" presentation, or a generic-gradient / dashboard-first first impression that does not read as premium within four seconds) is **Visual-PARTIAL** for buyer-facing usage **regardless of total**. The audit's verdict line **must** carry the visual-standard note; the total does not earn the `Premium` or `Production-ready` label until the visual beauty layer is met. This gate applies only to in-scope public marketing surfaces (§2); it never applies to operator surfaces (`/change`, `/admin`, factory, login) or to tenant brands with their own separate identity.
+
 ---
 
 ## 5. Evidence requirements
@@ -306,6 +311,7 @@ The new v1 system is canonical from 2026-05-27 forward.
 ### 6.2 How the new dimensions tie into doctrine and architecture
 
 - §3.5 Conversion clarity binds to `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md`. Doctrine non-negotiables override total verdicts.
+- §3.5 also binds the **visual beauty layer** to `docs/marketing/CORPFLOW_VISUAL_STANDARD_HUMAN_FIRST_BEAUTY_LAYER.md`: a public marketing surface that fails the human-first beauty standard is `Visual-PARTIAL` regardless of total (§4.1).
 - §3.8 Monitoring binds to `docs/operations/MONITORING_ARCHITECTURE.md`. Any new monitor must be reflected in §2 of that doc per its §9 binding rule.
 - §3.7 Analytics binds to `docs/analytics/CORPFLOW_ANALYTICS_V1.md` for installed analytics, and to `docs/operations/SEARCH_CONSOLE_INDEXING_ROLLOUT.md` + `docs/operations/SEARCH_CONSOLE_EXECUTION_PACKET.md` for Search Console rollout.
 - §3.10 Tenant routing binds to `docs/operations/TENANT_CLIENT_LOGIN.md` for the tenant ↔ host model.
@@ -403,6 +409,7 @@ In addition to `WEBSITE_QUALITY_REPORTING_STANDARD.md` §9 anti-patterns, this s
 - `docs/operations/MONITORING_ARCHITECTURE.md` — runtime monitor map (feeds §3.8).
 - `docs/quality/CLIENT_PERFORMANCE_REPORTING_MODEL.md` — design for monthly client reports (consumes audit scores).
 - `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md` — doctrine non-negotiables.
+- `docs/marketing/CORPFLOW_VISUAL_STANDARD_HUMAN_FIRST_BEAUTY_LAYER.md` — human-first visual presentation standard (Visual-PARTIAL gate in §3.5 / §4.1).
 - `docs/execution/CURRENT_CLIENT_MIGRATION_AUDIT_TEMPLATE.md` — Section C consumes the quality score.
 - `.cursor/rules/delivery-reality.mdc` — live-prod-only "Operational" rule.
 

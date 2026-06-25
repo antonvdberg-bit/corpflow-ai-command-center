@@ -57,6 +57,7 @@ Use one or more of:
 | [PRODUCT_A_REVENUE_MACHINE_IMPLEMENTATION_PLAN.md](./PRODUCT_A_REVENUE_MACHINE_IMPLEMENTATION_PLAN.md) | Canonical plan — Langfuse, Chatwoot inbox, GHL legacy, Twenty/EspoCRM bake-off, social discovery, AgentSpan watch (v2, 2026-06-22) |
 | [PRODUCT_A_INTAKE_WEBHOOK.md](./PRODUCT_A_INTAKE_WEBHOOK.md) | Intake API payload, env vars, deploy checklist |
 | [PRODUCT_A_NON_GHL_DATA_WORKFLOW_PACKET.md](./PRODUCT_A_NON_GHL_DATA_WORKFLOW_PACKET.md) | Sheets schema, CSV templates, n8n specs, audit rubric, Florida sample batch |
+| [PRODUCT_A_BEAUTY_LAYER_IMPLEMENTATION_PACKET_V1.md](./PRODUCT_A_BEAUTY_LAYER_IMPLEMENTATION_PACKET_V1.md) | Human-First Beauty Layer adoption (photo + frosted glass) for `/product-a/us-clinics` — reusable primitives, a11y/perf, asset governance, Plausible before/after; docs-only, runtime gated |
 
 CSV templates: [product-a-csv-templates/](./product-a-csv-templates/)
 

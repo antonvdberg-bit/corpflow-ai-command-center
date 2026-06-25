@@ -94,10 +94,11 @@ All designs and visual briefs must prioritize:
 - Clear section logic.
 - Minimal visual noise.
 - Meaningful imagery.
-- Screenshots, diagrams, or product visuals over generic stock imagery.
 - Premium restraint over decorative excess.
 
 The visual layer must make the message easier to understand.
+
+> **Public-marketing visual presentation layer (2026-06-25, non-negotiable):** for public-facing websites, landing pages, product pages, and marketing surfaces, the *first impression* is governed by `docs/marketing/CORPFLOW_VISUAL_STANDARD_HUMAN_FIRST_BEAUTY_LAYER.md` — a beautiful, audience-appropriate **photographic background** plus a "**3D glass**" frosted-panel system, layered (photo → scrim → glass cards → CTA), beautiful within four seconds before the copy is read. That standard refines "screenshots/diagrams over generic stock imagery": cheap/cliché stock is still forbidden, but premium vetted photography is now *required* as the hero foundation, with screenshots/diagrams/product visuals serving as proof content **below** the hero. Beauty still never overrides clarity, contrast, CTA prominence, or form completion.
 
 ## 7. Copy standard
 

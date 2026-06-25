@@ -14,6 +14,7 @@ When work touches public marketing pages, landing pages, intake pages, pricing p
 - `docs/marketing/03_CONTENT_ATOM_SCHEMA.md` — reusable structured marketing knowledge for AI retrieval.
 - `docs/marketing/04_DELIVERY_QUALITY_GATE.md` — preflight checklist + 12/14 scoring model + handoff format.
 - `docs/marketing/05_AGENT_COMPULSION_MECHANISM.md` — four-layer enforcement (source-of-truth, prompt preamble, PR checklist, automated check).
+- `docs/marketing/CORPFLOW_VISUAL_STANDARD_HUMAN_FIRST_BEAUTY_LAYER.md` — non-negotiable visual presentation standard for public marketing surfaces (beautiful audience-appropriate photographic backgrounds + "3D glass" panels, layered composition, four-second beauty test). Refines/supersedes the hero/presentation layer of the brand doctrine's visual direction; does not relax any conversion/copy/claims/CTA rule.
 
 These are canonical unless a newer in-repo decision explicitly supersedes them. The brand/conversion doctrine and the execution standards are complementary, not alternatives — the brand doctrine governs the offer; the execution standards govern how the offer is communicated.
 
@@ -28,6 +29,7 @@ These are canonical unless a newer in-repo decision explicitly supersedes them. 
 - For AI Lead Rescue, do not use `Choose payment path` as the primary CTA.
 - Every external communication must combine attention + comprehension + proof + aesthetic discipline + a clear next action (Hook / Proof / Depth doctrine).
 - Every attention asset must point to a validation asset (dual-asset pattern). Standalone hooks without a depth path are not shipped.
+- Public marketing surfaces must meet the human-first visual standard: a beautiful, audience-appropriate photographic background on "3D glass" panels, visually compelling within four seconds — without weakening readability, CTA prominence, performance, or form completion (`docs/marketing/CORPFLOW_VISUAL_STANDARD_HUMAN_FIRST_BEAUTY_LAYER.md`).
 - No prospect-facing or client-facing work is shipped without a visible quality-gate statement (target score ≥ 12/14 per `docs/marketing/04_DELIVERY_QUALITY_GATE.md`).
 
 ## Required review before merge

@@ -7,6 +7,7 @@
 **Companion docs:**
 
 - `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md`
+- `docs/marketing/CORPFLOW_VISUAL_STANDARD_HUMAN_FIRST_BEAUTY_LAYER.md` — public marketing surfaces now *require* beautiful audience-appropriate photographic backgrounds; those photos are governed assets under this doc (licence, alt, lifecycle, no PII / no clinical details).
 - `docs/marketing/CORPFLOW_CONTENT_MODEL.md`
 - `docs/marketing/CORPFLOW_PROMPT_LIBRARY.md`
 - `docs/operations/SECURITY_REVIEW_CHECKLIST.md`
