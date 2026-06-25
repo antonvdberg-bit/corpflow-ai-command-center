@@ -207,7 +207,8 @@ When Step 3 is authored, it must:
 - Reference the service inventory in § 1 of this doc as the canonical scope of "what gets backed up."
 - Document a **restore drill** that targets a **disposable directory or disposable server path** — never production volumes, never the production Postgres.
 - Reuse Postgres backup guidance from `docs/operations/POSTGRES_PROVIDER.md` (Neon-managed); this packet does **not** add a second production database, and Step 3 must not either.
-- Use **placeholders only** for repository names, S3/B2 bucket names, restic passwords, and any other credentials. Real values go in the operator's local config or password manager.
+- Use **placeholders only** for repository names, bucket names, restic passwords, and any other credentials. Real values go in the operator's local config or password manager.
+- Target the **approved object-storage destination** named in § 5 (**Cloudflare R2**, S3-compatible `s3:` backend) — the provider choice is already settled, so Step 3 does not need to re-decide it. Note: § 5 is a **destination decision only**; it does **not** lift this Step 3 execution hold.
 - Not include any `.env` file in git.
 
 Until Step 3 is authored and verified, the repo's existing backup posture is:
@@ -217,7 +218,74 @@ Until Step 3 is authored and verified, the repo's existing backup posture is:
 
 ---
 
-## 5. Cross-links (canonical docs this baseline points at)
+## 5. Cloudflare R2 — object storage for ops backups and internal artifacts
+
+**Status:** **destination decision only** (provider chosen) — added 2026-06-25. This section names **Cloudflare R2** as the **approved object-storage destination** for self-hosted ops backups and internal artifacts. It does **not** lift the Step 3 (restic) execution hold in § 4, does **not** authorize any install by Cursor, and does **not** change the production app or the production Postgres.
+
+> **Scope discipline (read once).** Choosing the destination ≠ authorizing the backup tooling to run. restic implementation (§ 4 Step 3) remains **eligible / not initiated** under Anton's standing hold (*"do not proceed to restic"* until separate authorization — see `docs/CORPFLOW_SHARED_TODO.md`). When that hold is lifted and Step 3 is authored, **R2 is the bucket destination it should target** — operators do not need to re-litigate the provider choice.
+
+### 5.1 Why R2 (provider decision)
+
+- **S3-compatible API** — works with restic's `s3:` backend and standard S3 tooling without a proprietary client or new app-runtime dependency.
+- **No egress fees** — restore drills and periodic verification reads do not incur per-GB egress charges, which keeps restore-testing cheap and therefore likely to actually happen.
+- **Operator-owned account** — the R2 bucket lives in the operator's Cloudflare account, alongside the existing CorpFlow DNS surface, not inside the production app's trust boundary.
+
+This is an **ops/infrastructure destination choice**. It is deliberately kept **out of** the production Next.js app and **out of** the production Postgres trust boundary.
+
+### 5.2 Approved Phase 1 uses (ops backups + internal artifacts only)
+
+R2 is approved as the destination for the following, **once the relevant tooling is separately authorized** (e.g. § 4 Step 3 restic):
+
+- **restic backup repository** for self-hosted server data (the volumes/configs enumerated in § 1's service inventory — n8n, Uptime Kuma, reverse proxy, etc.).
+- **n8n workflow / config exports** — JSON workflow exports and n8n config snapshots from the ops server.
+- **Uptime Kuma data backups** — host-side `tar` of `~/uptime-kuma-data/` (the external backup path already referenced in `docs/runbooks/UPTIME_KUMA_ON_EXEC01_INSTALL_RUNBOOK_V1.md`), pushed to R2.
+- **Docker Compose / reverse-proxy config backups** — the compose files and proxy config that define the self-hosted stack.
+- **Internal marketing / media artifacts where appropriate** — internal-only working media and large internal artifacts that should not live in git. (Internal staging, **not** a public CDN — see § 5.3.)
+- **Restore-test evidence files** — the non-secret evidence captured during restore drills (snapshot ids, `restic check` output, file hashes, timestamps).
+
+### 5.3 Explicitly NOT approved yet (do not treat as authorized)
+
+- **No production app file storage** — the production Next.js app does **not** read from or write to R2. No SDK, no runtime credential, no app code path.
+- **No client upload storage** — client-supplied files are out of scope for this Phase 1 destination decision.
+- **No public asset CDN** — R2 is for internal ops artifacts; do **not** document or configure a public bucket policy. Public buckets are **not** approved.
+- **No direct production `POSTGRES_URL` backup target** — Postgres backups remain managed by **Neon** (`docs/operations/POSTGRES_PROVIDER.md`). Sending production database dumps to R2 requires a **separate approved runbook** and is **not** authorized by this section.
+- **No credentials in repo** — R2 account id, bucket name, endpoint URL, access key, and secret key live in the operator's password manager / Infisical / the server's local config. Never in git, never in this doc (see § 5.4 placeholders).
+- **No MCP / tool integration** — no MCP server, agent tool, or automation is wired to R2 by this section.
+
+This list preserves the existing boundaries: **one production app, one production Postgres via `POSTGRES_URL`** (Neon). This section adds **no** second production app and **no** second production database.
+
+### 5.4 Setup guidance — placeholders only (no real values)
+
+When the operator provisions the bucket (operator-owned action, not a Cursor action), the following values are needed. **These are placeholders** — real values are entered into the operator's password manager / server-local config / Infisical, never into this repo:
+
+| Placeholder | What it is | Where it lives |
+|---|---|---|
+| `<R2_ACCOUNT_ID>` | Cloudflare account id that owns the R2 bucket | Operator password manager / Infisical |
+| `<R2_BUCKET_NAME>` | Bucket name for ops backups + internal artifacts (e.g. an `ops-backups`-style name) | Operator password manager / Infisical |
+| `<R2_ENDPOINT_URL>` | S3-compatible endpoint, shape `https://<R2_ACCOUNT_ID>.r2.cloudflarestorage.com` | Operator password manager / Infisical |
+| `<R2_ACCESS_KEY_ID>` | R2 API token access key id (scoped to the one bucket) | Operator password manager / Infisical / server-local env (not repo) |
+| `<R2_SECRET_ACCESS_KEY>` | R2 API token secret access key | Operator password manager / Infisical / server-local env (not repo) |
+
+These are **not** CorpFlow app env var names and are **not** added to `.env.template`. They are server-side / operator-side configuration for the ops box only.
+
+### 5.5 restic verification guidance (when § 4 Step 3 is authorized)
+
+This is the **destination-side verification shape** for the eventual restic packet. It is documented here so the provider choice and its proof are co-located. **None of these commands are run by Cursor**; they are operator steps on the ops server once Step 3 is authorized.
+
+restic addresses R2 through its `s3:` backend, e.g. repository `s3:<R2_ENDPOINT_URL>/<R2_BUCKET_NAME>` with `AWS_ACCESS_KEY_ID=<R2_ACCESS_KEY_ID>` / `AWS_SECRET_ACCESS_KEY=<R2_SECRET_ACCESS_KEY>` exported in the operator shell (never in git).
+
+1. **Initialize the repository against R2 from the server** — `restic init` against `s3:<R2_ENDPOINT_URL>/<R2_BUCKET_NAME>`. Confirms credentials + endpoint reach the bucket.
+2. **Run one backup** — `restic backup <disposable-or-ops-config-path>`. First snapshot for a harmless/ops path (not production volumes, not the production Postgres).
+3. **List snapshots** — `restic snapshots`. Confirms the snapshot landed in R2 and is enumerable.
+4. **Verify repository integrity** — `restic check`. Confirms repository structure + pack integrity in R2.
+5. **Restore one harmless test file into a disposable directory** — `restic restore <snapshot-id> --target <disposable-dir> --include <one-harmless-file>`. Restore target is a **disposable directory** — never a production volume, never the production Postgres.
+6. **Record evidence without secrets** — capture snapshot id, `restic check` verdict line, restored-file hash, and timestamps into the ops evidence artifact (e.g. under `artifacts/self-hosted-ops-stack-v1/`). Evidence contains **no** access key, secret key, endpoint host with credentials, or repository password.
+
+When this runs, it satisfies the § 4 Step 3 restore-drill requirement and the `docs/CORPFLOW_SHARED_TODO.md` P1 item. Until then, R2 is a **chosen destination on paper only** — nothing is provisioned or backed up by this section.
+
+---
+
+## 6. Cross-links (canonical docs this baseline points at)
 
 - `.env.template` — single source of truth for all env var **names** referenced above. Real values live in Vercel / GitHub repo secrets / operator's password manager, never in git.
 - `docs/automation-framework.md` — `POST /api/automation/ingest` contract, high-risk prefix list, optional forward semantics.
@@ -227,10 +295,12 @@ Until Step 3 is authored and verified, the repo's existing backup posture is:
 - `docs/operations/MONITORING_ARCHITECTURE.md` — the 12 in-repo monitors today; § 5 always-on minimum live URLs; § 6 known blind spots that Kuma helps cover (# 3, # 7).
 - `docs/operations/POSTGRES_PROVIDER.md` — Neon-only mandate; referenced from the doctrine ("one production Postgres via `POSTGRES_URL`") and from § 4 (Step 3 deferred).
 - `docs/operations/TENANT_CLIENT_LOGIN.md` — tenant resolution model that Step 2's client-host monitor verifies indirectly.
-- `docs/CORPFLOW_SHARED_TODO.md` — P1 checklist items that track Step 1 / Step 2 / Step 3 evidence.
+- `docs/CORPFLOW_SHARED_TODO.md` — P1 checklist items that track Step 1 / Step 2 / Step 3 evidence, plus the Cloudflare R2 backup-destination item (§ 5).
+- `docs/runbooks/UPTIME_KUMA_ON_EXEC01_INSTALL_RUNBOOK_V1.md` — § 5 names R2 as the destination for the host-side `tar` of `~/uptime-kuma-data/` referenced there (no S3 export from inside Kuma).
 
 ---
 
-## 6. Change log
+## 7. Change log
 
+- **2026-06-25** — Added § 5 (renumbered Cross-links → § 6, Change log → § 7). Names **Cloudflare R2** as the approved object-storage **destination** for self-hosted ops backups + internal artifacts. Destination decision only — does **not** lift the Step 3 (restic) execution hold (§ 4), does **not** authorize any install by Cursor, adds **no** app integration, **no** secrets, **no** new CorpFlow env var names, and **no** `.env.template` change. One production app + one production Postgres via `POSTGRES_URL` (Neon) preserved.
 - **2026-06-15** — Initial Phase 1 baseline. Step 1 (n8n automation-forward verification) + Step 2 (Uptime Kuma monitoring) authored. Step 3 (restic) explicitly deferred (§ 4). All env var names cross-checked against `.env.template`; no new names introduced.
