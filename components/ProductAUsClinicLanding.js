@@ -21,14 +21,20 @@ const PAGE_CSS =
 
 const styles = {
   page: {
+    // Forms its own stacking context (position + isolation) WITHOUT an opaque
+    // page background, so the fixed photographic layer below paints through.
+    // Previously this positioned (z-auto) element carried an opaque deep-navy
+    // fill that painted ABOVE the negative-z-index photo/scrim and hid them —
+    // that is what made the page read as a flat black SaaS layout. The deep
+    // fallback colour now lives on the PhotoBackground container instead.
     position: 'relative',
+    isolation: 'isolate',
     minHeight: '100vh',
     overflowX: 'hidden',
-    background: '#06111f',
     color: '#eef6ff',
     fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
   },
-  shell: { position: 'relative', zIndex: 1, maxWidth: 1120, margin: '0 auto', padding: '42px 20px 56px' },
+  shell: { position: 'relative', zIndex: 2, maxWidth: 1120, margin: '0 auto', padding: '42px 20px 56px' },
   nav: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' },
   badge: {
     display: 'inline-flex',
@@ -174,8 +180,8 @@ export default function ProductAUsClinicLanding() {
         <style dangerouslySetInnerHTML={{ __html: PAGE_CSS }} />
       </Head>
 
-      <PhotoBackground fixed priority fallbackSrc={HERO_IMAGE} alt="" />
-      <Scrim fixed tone="dark" />
+      <PhotoBackground fixed priority zIndex={0} fallbackSrc={HERO_IMAGE} alt="" />
+      <Scrim fixed tone="dark" zIndex={1} />
 
       <main style={styles.shell}>
         <nav style={styles.nav}>
