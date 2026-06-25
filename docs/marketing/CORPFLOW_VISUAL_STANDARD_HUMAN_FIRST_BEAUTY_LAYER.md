@@ -126,7 +126,7 @@ These are **doc-level direction**, not yet shipped tokens. Final names, values, 
 
 1. Build the reusable primitives once (background, scrim, glass panel, glass grid, hero block, CTA block).
 2. **Apply first to Product A / US Clinics** (`components/ProductAUsClinicLanding.js`, route `/product-a/us-clinics`). See `docs/product/PRODUCT_A_REVENUE_MACHINE_IMPLEMENTATION_PLAN.md` § 6.
-3. **Then roll the same visual language** into the apex home, lead-rescue surfaces, and other CorpFlowAI public marketing surfaces — reusing the same components/tokens, not re-styling each page.
+3. **Then roll the same visual language** into the apex home, lead-rescue surfaces, and other CorpFlowAI public marketing surfaces — reusing the same components/tokens, not re-styling each page. The site-wide sequence, in-scope/excluded surfaces, the shared `PublicMarketingPhotoGlassShell` recommendation, per-page assets, phases, and risks are detailed in `docs/marketing/CORPFLOW_BEAUTY_LAYER_ROLLOUT_PLAN_V1.md`.
 
 ## 7. Explicit supersession over prior visual guidance (public marketing surfaces only)
 
