@@ -147,10 +147,15 @@ needed but not yet present).
 | Lead Rescue integration roadmap | `docs/strategy/AI_LEAD_RESCUE_INTEGRATION_ROADMAP.md` | EXISTS |
 
 > Note on Codex artifact: `docs/marketing/research/us-medspa-revenue-machine-inputs.md`
-> (reported at short ref `9c7ecc9`) is **not present on `main`** and is treated as
-> **not yet captured**. It is excluded from this inventory until Codex supplies a
-> full branch / PR / SHA or re-outputs the artifact for Cursor to import in a
-> separate docs-only PR.
+> (reported on branch `work`, full SHA `5a216e35da4795b998749cb8aae574154f317bf1`)
+> is **NOT YET CAPTURED**. Cursor verified the supplied references on 2026-06-25:
+> the SHA returns HTTP 404 (`No commit found`) and branch `work` returns HTTP 404
+> (`Branch not found`) on `antonvdberg-bit/corpflow-ai-command-center`, so it
+> cannot be imported. Capture status and the exact next action live in
+> `docs/marketing/research/us-medspa-revenue-machine-inputs.md` (a status/pointer
+> note, not the artifact). It stays excluded from this inventory until Codex
+> pushes a reachable branch / full SHA or pastes the artifact into #249 for
+> Cursor to import in a separate docs-only PR.
 
 ---
 
