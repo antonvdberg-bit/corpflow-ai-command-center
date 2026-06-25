@@ -9,7 +9,7 @@ import GlassPanel from './beauty/GlassPanel.js';
 import GlassCardGrid from './beauty/GlassCardGrid.js';
 import HeroGlassBlock from './beauty/HeroGlassBlock.js';
 import CtaGlassBlock from './beauty/CtaGlassBlock.js';
-import { GLASS_GLOBAL_CSS } from '../lib/ui/glass.js';
+import { GLASS_GLOBAL_CSS, GLASS_TOKENS } from '../lib/ui/glass.js';
 
 // Human-First Beauty Layer hero. Governed medspa-interior photograph; see
 // data/visual-assets/product-a-hero-medspa.manifest.json for provenance and the
@@ -80,7 +80,7 @@ const styles = {
     cursor: 'pointer',
     textDecoration: 'none',
   },
-  primary: { background: '#2dd4bf', color: '#031018' },
+  primary: { background: GLASS_TOKENS.ctaWarm, color: GLASS_TOKENS.ctaWarmText, boxShadow: GLASS_TOKENS.ctaWarmShadow },
   secondary: { background: 'rgba(255,255,255,0.12)', color: '#eef6ff', border: '1px solid rgba(255,255,255,0.20)' },
   input: {
     width: '100%',
@@ -253,7 +253,7 @@ export default function ProductAUsClinicLanding() {
             }
           />
 
-          <GlassPanel>
+          <GlassPanel variant={{ elevation: 1 }}>
             <div style={styles.label}>What you get</div>
             <h2 style={{ ...styles.h2, fontSize: 24 }}>A practical audit — not a software pitch.</h2>
             <ul style={styles.list}>
@@ -419,7 +419,15 @@ export default function ProductAUsClinicLanding() {
           </CtaGlassBlock>
         </section>
 
-        <PublicSiteFooter extra="Product A Website & Lead Rescue audits for US medspas and aesthetic clinics. Intake only — no card or banking details on this page." />
+        <GlassPanel
+          variant={{ fill: GLASS_TOKENS.glassFillSoft, padding: 22, elevation: 1 }}
+          style={{ marginTop: 40 }}
+        >
+          <PublicSiteFooter
+            flush
+            extra="Product A Website & Lead Rescue audits for US medspas and aesthetic clinics. Intake only — no card or banking details on this page."
+          />
+        </GlassPanel>
       </main>
     </div>
   );

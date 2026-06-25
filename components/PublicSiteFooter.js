@@ -11,7 +11,7 @@ import {
 
 const linkStyle = { color: '#7dd3fc', textDecoration: 'none' };
 
-export default function PublicSiteFooter({ extra }) {
+export default function PublicSiteFooter({ extra, flush = false }) {
   const phoneSegment = hasCustomerServicePhone() ? (
     <>
       {' · '}
@@ -21,8 +21,15 @@ export default function PublicSiteFooter({ extra }) {
     </>
   ) : null;
 
+  // `flush` drops the top margin/padding/divider so the footer can sit inside a
+  // surrounding surface (e.g. a glass panel) that already provides separation.
+  // Default (false) preserves the standalone footer used across other pages.
+  const footerStyle = flush
+    ? { fontSize: 12, color: '#9fb2c8', lineHeight: 1.65 }
+    : { marginTop: 40, paddingTop: 24, borderTop: '1px solid rgba(255,255,255,0.12)', fontSize: 12, color: '#9fb2c8', lineHeight: 1.65 };
+
   return (
-    <footer style={{ marginTop: 40, paddingTop: 24, borderTop: '1px solid rgba(255,255,255,0.12)', fontSize: 12, color: '#9fb2c8', lineHeight: 1.65 }}>
+    <footer style={footerStyle}>
       {extra ? <div style={{ marginBottom: 12 }}>{extra}</div> : null}
       <div>
         <Link href="/lead-rescue" style={linkStyle}>
