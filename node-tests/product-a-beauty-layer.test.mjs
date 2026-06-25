@@ -180,8 +180,29 @@ describe('Product A beauty layer — layered glass + readable footer (refinement
     assert.match(GLASS, /export function glassElevationShadow/);
     assert.match(GLASS, /glassSheen:/);
     // panel style composites the sheen over the fill and uses elevation shadows.
-    assert.match(GLASS, /glassElevationShadow\(opts\.elevation/);
+    assert.match(GLASS, /const elevation = opts\.elevation \?\? 2/);
+    assert.match(GLASS, /glassElevationShadow\(elevation\)/);
     assert.match(GLASS, /\$\{sheen\},\s*\$\{fill\}/);
+  });
+
+  it('deepens depth with a dual-layer (ambient+key) shadow and subtle z-lift', () => {
+    // Two cast layers per elevation give a tight ambient separation plus a soft
+    // rear shadow; a small translateY lift reinforces the z-stack (no CLS).
+    assert.match(GLASS, /const \[ambient, key\] =/);
+    assert.match(GLASS, /export function glassElevationLift/);
+    // primary panels lift more than recessed ones.
+    assert.match(GLASS, /\{\s*1:\s*0,\s*2:\s*1,\s*3:\s*3\s*\}/);
+    // lift is applied as a transform in the panel style.
+    assert.match(GLASS, /transform: lift \? `translateY\(-\$\{lift\}px\)` : undefined/);
+  });
+
+  it('removes the cluttering hero eyebrow line (only copy change)', () => {
+    assert.ok(
+      !COMPONENT.includes('US medspas · aesthetic clinics · elective clinics'),
+      'hero eyebrow line should be removed',
+    );
+    // audience is still expressed elsewhere (meta description / body copy).
+    assert.ok(COMPONENT.includes('aesthetic clinics'), 'audience context should remain in copy');
   });
 });
 

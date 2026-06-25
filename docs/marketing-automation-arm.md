@@ -231,7 +231,8 @@ dependency.
 | ChatGPT / OpenAI | Technical director and reviewer. |
 | Cursor | Repo / docs executor and PR implementer. |
 | Codex | Bounded research / data / script worker only. |
-| n8n | Workflow spine (reminders / notifications, per §9). |
+| n8n | **Governed** workflow spine (reminders / notifications, per §9). Remains the governed production workflow spine. |
+| Google Workspace Studio | **Candidate** Workspace-native workflow / prototyping layer (Sheet watching, approval prompts, Gmail / Chat routing, Drive handling). Pilot only, non-sensitive data; does **not** replace n8n; no automated cold outreach. See `docs/marketing/MARKETING_COLLATERAL_INVENTORY.md` §2.1 and `docs/strategy/GOOGLE_ACCELERATION_LANE.md`. |
 | Google Workspace | Operating surface (system of record for the pipeline). |
 | Google Vids | Communication / video-asset pilot (per §10). |
 | GoHighLevel (GHL) | Available tactically, **not** the strategic system of record. |
