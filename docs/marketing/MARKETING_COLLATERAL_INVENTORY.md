@@ -38,11 +38,46 @@ missing / where it lives" map, plus a proposal-only future activation path.
 |-------|------|-----------|
 | **Repo docs** (`docs/**`) | Doctrine / canonical source of truth. | Wins on brand, copy, claims, quality, outreach rules. |
 | **Google Drive "CorpFlowAI - Marketing & Brand Hub"** | Working collateral library for human-facing assets (logos, one-pagers, Vids scripts/exports, templates, onboarding docs, proof). | Working copies; never overrides repo doctrine. |
-| **n8n** | Workflow spine (reminders / status / notifications). | Per `docs/marketing-automation-arm.md` §9 — reminders only, no automated cold outreach. |
+| **n8n** | **Governed** workflow spine (reminders / status / notifications). | Per `docs/marketing-automation-arm.md` §9 — reminders only, no automated cold outreach. **Remains the governed production workflow spine.** |
+| **Google Workspace Studio (Workspace Studio flows)** | **Candidate** Workspace-native workflow / prototyping layer for marketing ops. | Candidate / pilot only (§2.1). Non-sensitive marketing data only; does **not** replace n8n. |
 | **Existing production app + Postgres (`POSTGRES_URL`)** | Possible **future** activation module only. | Proposal only (§9). No second app, no second DB, no CRM build. |
 
 Rule: if Drive and repo disagree, **repo doctrine wins**. Drive holds the
 presented / formatted version for humans.
+
+### 2.1 Google Workspace Studio (candidate Workspace-side workflow tool)
+
+Authorized as a **candidate** by issue #249 ("Add Google Workspace Studio to
+marketing mechanism inventory"). Google Workspace Studio lets users build flows
+(with Gemini AI, from templates or scratch) using variables, conditional steps,
+custom steps, third-party actions, Sheet watching/management, webhook
+connections, and flow testing/sharing
+([Google Workspace Studio workflows help](https://support.google.com/workspace-studio/?p=workflows#topic=16433255)).
+
+**Candidate role — Workspace-native marketing ops flows:**
+
+- Sheet watching on the prospect tracker (status changes).
+- Approval prompts / reminders for Anton.
+- Gmail / Google Chat-adjacent routing of notifications.
+- Drive collateral handling (filing / labelling working copies in the Brand Hub).
+- Flow prototypes for marketing operations.
+
+**Boundaries (non-negotiable):**
+
+- **n8n remains the governed production workflow spine for now.** Workspace
+  Studio does **not** replace n8n unless a later documented architecture decision
+  changes that.
+- It is **not** the production system of record.
+- It **must not** auto-send cold outreach and **must not** bypass Anton's
+  approval (consistent with `docs/marketing-automation-arm.md` §8–§9).
+- It may be piloted **only with non-sensitive marketing workflow data** — no
+  client PII, credentials, secrets, payment, medical, or other sensitive data —
+  unless a separate security / privacy review exists per
+  `docs/operations/SECURITY_REVIEW_CHECKLIST.md`.
+- **Access is untested by agents.** Cursor / agents must **not** claim Workspace
+  Studio access has been tested unless Anton tested it in a logged-in Google
+  Workspace browser and recorded the result. Treat capability as
+  *Requires operator browser verification*.
 
 ---
 
