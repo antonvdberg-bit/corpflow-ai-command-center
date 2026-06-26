@@ -18,6 +18,12 @@ Authorized by the Marketing Automation Arm work (Operator Bridge issue #249).
 Companion docs: `docs/marketing-automation-arm.md` (§6 tracker fields, §8 human-
 approval policy, §9 n8n boundary) and `docs/marketing/MARKETING_COLLATERAL_INVENTORY.md`.
 
+> **Next iteration:** a friction-reducing redesign is proposed in
+> `docs/marketing/US_MEDSPA_REVENUE_MACHINE_SHEET_UPDATE_PROCESS_V2.md` (single
+> `Apply Validated Queue` action, fail-closed, run log, standard Codex drop-zone
+> packet). v1 remains the **operator-tested, ready-for-use** process until v2 is
+> adopted and tested.
+
 ---
 
 ## 1. Packet header
