@@ -2,13 +2,22 @@
 /**
  * Invoke Living Word GHL read-only probe on Vercel Production (factory auth).
  *
- * Usage (operator machine — never paste GHL PIT into chat):
- *   MASTER_ADMIN_KEY=... node scripts/invoke-ghl-living-word-probe.mjs
+ * Factory auth source (no per-run export needed):
+ *   This script auto-loads repo-root `.env.local` then `.env` via
+ *   `bootstrap-repo-env.mjs`. Put the factory master credential in `.env.local`
+ *   (gitignored) once — the value MUST match Vercel Production's
+ *   `MASTER_ADMIN_KEY` (resolved there from `CORPFLOW_RUNTIME_CONFIG_JSON`,
+ *   source of truth: Infisical). A shell `$env:MASTER_ADMIN_KEY` still wins if set.
+ *   See docs/operations/SECRETS_SYNC.md and `.env.template` § MASTER_ADMIN_KEY.
+ *
+ * Usage (operator machine — never paste the key or GHL PIT into chat):
+ *   node scripts/invoke-ghl-living-word-probe.mjs
  *
  * Optional:
  *   CORPFLOW_FACTORY_BASE_URL=https://core.corpflowai.com
  *   GHL_PROBE_WRITE_ARTIFACT=1  — write verification markdown (redacted) to artifacts/
  */
+import './bootstrap-repo-env.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -24,10 +33,18 @@ const baseUrl = String(process.env.CORPFLOW_FACTORY_BASE_URL || 'https://core.co
   /\/$/,
   '',
 );
-const masterKey = String(process.env.MASTER_ADMIN_KEY || '').trim();
+// Server accepts MASTER_ADMIN_KEY or its ADMIN_PIN alias (lib/server/factory-master-auth.js).
+const masterKey = String(process.env.MASTER_ADMIN_KEY || process.env.ADMIN_PIN || '').trim();
 
 if (!masterKey) {
-  console.error('MASTER_ADMIN_KEY is required to call the factory probe endpoint.');
+  console.error(
+    [
+      'No factory master credential found.',
+      'Set MASTER_ADMIN_KEY (or ADMIN_PIN) in repo-root .env.local — the value must match',
+      "Vercel Production (source of truth: Infisical). This script auto-loads .env.local/.env;",
+      'no per-run shell export is required. See docs/operations/SECRETS_SYNC.md.',
+    ].join(' '),
+  );
   process.exit(1);
 }
 
@@ -40,6 +57,17 @@ const res = await fetch(url, {
     Accept: 'application/json',
   },
 });
+
+if (res.status === 403) {
+  console.error(
+    [
+      'Factory auth rejected (403 factory_master_required).',
+      'The MASTER_ADMIN_KEY/ADMIN_PIN in .env.local does not match Vercel Production.',
+      'Sync the current Production value (from Infisical / runtime config) into .env.local;',
+      'do not paste it into chat, commits, or logs.',
+    ].join(' '),
+  );
+}
 
 const report = await res.json();
 const safeOut = { httpStatus: res.status, ...report };
