@@ -38,7 +38,7 @@ of the following is changed by this document.
 | Command ledger | GitHub issue **#249** is the command ledger / source of truth for operator decisions and dispatch packets. | #249, `docs/operations/OPERATOR_DISPATCH_ROUTER.md` §2 |
 | Doctrine | Repo docs remain canonical doctrine. | `AGENTS.md`, `.cursor/rules/*` |
 | Cursor | Owns repo/docs/code **PR execution**. | `docs/operations/OPERATOR_DISPATCH_ROUTER.md` §3 |
-| Codex | Research/data/script worker only; **never owns PRs**. | `docs/operations/OPERATOR_DISPATCH_ROUTER.md` §7.1 |
+| Codex | Research/data/script worker only; **never owns PRs**. Handoffs must be transfer-safe (no local-only branch/SHA). | `docs/operations/OPERATOR_DISPATCH_ROUTER.md` §7.1, `docs/operations/CODEX_INTEGRATION_CONTRACT_V1.md` |
 | n8n | Future **notify-only** workflow spine first; no automated cold outreach. | `docs/marketing-automation-arm.md` §9, `docs/operations/OPERATOR_DISPATCH_ROUTER.md` §5 |
 | Google Drive Brand Hub | Working collateral library (human-facing copies). | `docs/marketing/MARKETING_COLLATERAL_INVENTORY.md` |
 | NotebookLM | Briefing/summarization only; not an execution layer. | `docs/operations/OPERATOR_DISPATCH_ROUTER.md` §7.2 |
@@ -81,10 +81,10 @@ PRs, **Codex** for research inputs only.
 |---|---|---|---|---|---|
 | 1 | SBM banking/payment readiness | **P0** | Anton physical action first, then Cursor only after bank resolution | **Blocked** until bank visit | No payment production switch; resolution is an operator physical action. |
 | 2 | Product A market-readiness | **P0** | Cursor + Anton QA | **Active** | Buyer-facing work follows the brand/conversion doctrine + delivery-reality verification. |
-| 3 | Marketing Automation Arm / US medspa revenue machine | **P0** | Cursor for docs, Codex for research inputs only | **Active** | Codex research is input, not authorization; outreach stays human-approved. |
+| 3 | Marketing Automation Arm / US medspa revenue machine | **P0** | Cursor for docs, Codex for research inputs only | **Active** | Codex research artifact CAPTURED (PR #462) as bounded research/input — Anton review required before outreach; next step is the Sheet + Audit Workflow v0 packet. Codex research is input, not authorization; outreach stays human-approved. |
 | 4 | Cloudflare R2 + Infisical + restic backups | **P1** | Infrastructure workstream / Cursor as needed | **Active but gated** | Do **not** back up the production DB yet; do **not** touch `POSTGRES_URL`; do **not** integrate R2 into the production app yet. |
 | 5 | Website-wide beauty layer rollout | **P1** | Cursor | **Active** after governed rollout plan | Per-surface gated PRs; photo licence verified before any governed hero ships `published` (`docs/marketing/CORPFLOW_BEAUTY_LAYER_ROLLOUT_PLAN_V1.md`). |
-| 6 | Chatbot / marketing-site intake assistant | **P1** | Specification first, then Cursor | **Candidate** | No autonomous sales outreach; human-approved intake/follow-up only. |
+| 6 | Chatbot / marketing-site intake assistant | **P1** | Specification first, then Cursor | **Candidate** | Spec only first (`docs/marketing/WEBSITE_LEAD_RESCUE_INTAKE_ASSISTANT_SPEC_V1.md`); no implementation without separate approval. No autonomous sales outreach; human-approved intake/follow-up only. |
 | 7 | SBM payment integration preparation | **P1** | Docs/spec first, then Cursor | **Candidate** | No real secrets; no payment production switch until approved. |
 | 8 | ERP documentation cleanup | **P2** | Cursor / docs | **Waiting for capacity** | Docs-only; no ERPNext production setup implied. |
 | 9 | NotebookLM source sets | **P2** | Anton / Workspace | **Later**, once approved docs stabilize | Briefing/summarization only; no sensitive client data (`docs/operations/OPERATOR_DISPATCH_ROUTER.md` §7.2). |
@@ -126,6 +126,7 @@ if they conflict, update the canonical doc first, then this board.
 - `docs/operations/OPERATOR_BRIDGE_V1.md` — coordination protocol (how decisions/STATUS are recorded on #249).
 - `docs/runbooks/OPERATOR_BRIDGE.md` — day-to-day STATUS runbook.
 - `docs/operations/OPERATOR_DISPATCH_ROUTER.md` — dispatch mechanism + executor boundaries.
+- `docs/operations/CODEX_INTEGRATION_CONTRACT_V1.md` — Codex handoff contract (transfer-safe output formats, forbidden actions, `Audit Update Queue` Sheet schema, validation rules).
 - `docs/execution/WEEKEND_EXECUTION_QUEUE.md` — packet-level live queue.
 - `docs/execution/CORPFLOW_EXECUTION_PACKET_STANDARD.md` — packet structure.
 - `docs/execution/CORPFLOW_AUTONOMOUS_ACTIONS_POLICY.md` — what may run without further approval vs. Anton-only gates.
@@ -134,8 +135,21 @@ if they conflict, update the canonical doc first, then this board.
 - `docs/marketing/CORPFLOW_BEAUTY_LAYER_ROLLOUT_PLAN_V1.md` — governed beauty-layer rollout.
 - `.cursor/rules/delivery-reality.mdc` — only **live verified** is `COMPLETE`.
 
-## 8. Status block
+## 8. Recent governance decisions (ledger)
 
-- **Delivery state:** Local → intended **Merged** after operator review. Docs-only; nothing to deploy.
+Append-only, newest first. Each row is an operator decision recorded on #249 and
+reflected here. This is a lightweight ledger, not a replacement for #249 or the
+execution queue.
+
+| Date | Decision | PR | State |
+|---|---|---|---|
+| 2026-06-25 | **Operator Control Board v1 adopted** as the active operating structure (this doc). | [#463](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/463) | **Merged / active.** |
+| 2026-06-25 | **Workspace Studio = candidate/prototype layer only**; n8n remains the governed workflow spine. | [#460](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/460) | **Merged.** |
+| 2026-06-25 | **Codex US-medspa artifact CAPTURED.** Recovered via operator-supplied transfer-safe text (original branch `work` / SHA `5a216e35…` never reached GitHub); imported as **bounded research/input material, not doctrine**. Anton review required before outreach. Capture authorizes **no** outreach/build/CRM/n8n/production change. | [#462](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/462) | **Merged** (commit `db092eb3`). |
+| 2026-06-25 | **US Medspa Revenue Machine — Google Sheet + Audit Workflow v0** packet: turn the captured artifact into a controlled human-run process (Sheet structure, audit-status flow, Anton approval gate, manual send/follow-up states). Process-only; all outreach human-approved. | [#467](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/467) | **Open — docs-only.** No automated outreach; no app/CRM/DB/n8n. |
+
+## 9. Status block
+
+- **Delivery state:** v1 doc **Merged** (PR #463); this ledger update is an incremental docs-only edit. Docs-only; nothing to deploy.
 - **Implementation:** none. No runtime code, no env, no secrets, no DB, no second app/database.
 - **Verdict:** PARTIAL by design — governance documented; execution continues to flow through #249 + the execution queue under existing gates.

@@ -231,7 +231,8 @@ dependency.
 | ChatGPT / OpenAI | Technical director and reviewer. |
 | Cursor | Repo / docs executor and PR implementer. |
 | Codex | Bounded research / data / script worker only. |
-| n8n | Workflow spine (reminders / notifications, per §9). |
+| n8n | **Governed** workflow spine (reminders / notifications, per §9). Remains the governed production workflow spine. |
+| Google Workspace Studio | **Candidate** Workspace-native workflow / prototyping layer (Sheet watching, approval prompts, Gmail / Chat routing, Drive handling). Pilot only, non-sensitive data; does **not** replace n8n; no automated cold outreach. See `docs/marketing/MARKETING_COLLATERAL_INVENTORY.md` §2.1 and `docs/strategy/GOOGLE_ACCELERATION_LANE.md`. |
 | Google Workspace | Operating surface (system of record for the pipeline). |
 | Google Vids | Communication / video-asset pilot (per §10). |
 | GoHighLevel (GHL) | Available tactically, **not** the strategic system of record. |
@@ -269,3 +270,39 @@ Week one of the arm is successful when:
 - the **first Google Vids assets** planned.
 
 These are operating-surface outcomes; none require production changes.
+
+---
+
+## 15. Approved research inputs (capture status)
+
+Codex may supply **research / data / script artifacts** that inform this arm.
+Such artifacts are **approved research / input material**, not doctrine: they are
+inputs to be reviewed against this playbook and the canonical doctrines, and they
+**do not override** anything in §1–§14 or in
+`docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md` unless Anton explicitly
+promotes a specific finding after review.
+
+| Artifact | Intended path | Source | Capture status |
+|----------|---------------|--------|----------------|
+| US medspa revenue-machine inputs | `docs/marketing/research/us-medspa-revenue-machine-inputs.md` | Codex (local workspace); recovered 2026-06-25 via operator-supplied transfer-safe text (original branch `work` / SHA `5a216e35…` never reached GitHub) | **CAPTURED** — bounded research/input material; **Anton review required before outreach** |
+
+The artifact contains prospect rows, audit rubric, Google Sheets template fields,
+outreach template starters, and Google Vids script drafts. It is **research /
+input material**, not doctrine — review against this playbook and the canonical
+doctrines before any outreach or collateral use. Capturing it does **not**
+authorize outreach, build, CRM, or production change.
+
+Boundaries (carried from §12–§13 and the Operator Dispatch Router):
+
+- **Codex remains a research / data / script worker only** and **never owns PRs**
+  (`docs/operations/OPERATOR_DISPATCH_ROUTER.md` §7.1). Cursor owns repo/docs PRs.
+- **Codex handoffs must be transfer-safe** per
+  `docs/operations/CODEX_INTEGRATION_CONTRACT_V1.md`: full content / CSV / patch /
+  manifest only (no local-only branch/SHA), and any Sheet input flows through the
+  `Audit Update Queue` schema with no approval/send/follow-up fields.
+- Captured research is **input**, not authorization. It does not, by itself,
+  trigger any build, outreach, or production change.
+- Outreach stays **AI-assisted and human-approved** per §8; no automated cold
+  outreach.
+- No new app, no second database, no `POSTGRES_URL` change, no env vars, no
+  `.env.template` edits, no secrets are implied by capturing research.
