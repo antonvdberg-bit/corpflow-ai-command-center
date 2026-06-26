@@ -1,57 +1,33 @@
 # Living Word — GHL read-only sync probe v1 (live verification)
 
-**Status:** **PARTIAL** — probe route deployed; auth switched to admin **session** (no master key); live probe pending an operator session login. No GHL API calls made.
+**Status:** **COMPLETE** (probe scope) — live read-only probe executed on Vercel Production via **admin `corpflow_session` only** (no `MASTER_ADMIN_KEY`).
 
-**Timestamp (UTC):** 2026-06-26 (no-master-key auth pass)
-
-**Environment target:** Vercel Production factory (`core.corpflowai.com`)
+**Timestamp (UTC):** 2026-06-26T11:05:53.367Z
+**Tenant:** `living-word-mauritius`
+**Environment target:** vercel_production_factory
+**API calls:** 10 / 19
 
 ## Statements
 
 - **No secrets exposed** in this artifact
-- **No GHL writes** performed (pending live run)
+- **No `MASTER_ADMIN_KEY`** used for probe execution (admin session cookie only)
+- **No GHL writes** performed
 - **No outbound messages** sent
 - **No public site / DNS / GHL config** changes
+- **No real member names, emails, phones, or message bodies** committed (field names/counts/metadata only)
 
-## Security policy — no master key in any process
+## Endpoints / categories checked
 
-**`MASTER_ADMIN_KEY` must never be used by an operator process, script, or automation.** It is deliberately **not** provisioned in Vercel or Infisical for this reason. Operator-run factory scripts authenticate via the admin **session** channel only.
-
-## Confirmed factory auth model
-
-`verifyFactoryMasterAuth()` (`lib/server/factory-master-auth.js`) accepts an **admin session cookie** (`corpflow_session`, signed JWT, `typ === 'admin'`) as its first and intended path. (It also has a legacy Bearer/`x-session-token` = `MASTER_ADMIN_KEY` fallback, but that secret is intentionally absent in Production, so that path is dead by design and is not used here.)
-
-The admin session is minted by logging in at `/login` with **`CORPFLOW_ADMIN_USERNAME` / `CORPFLOW_ADMIN_PASSWORD`** (the approved, provisioned secrets) — never the master key.
-
-## Root cause of the earlier 403
-
-The probe script authenticated with `MASTER_ADMIN_KEY`, which is intentionally not present in Production — so the Bearer path could never succeed. The fix removes that path entirely.
-
-## Fix applied (config only — no secret values, no production change)
-
-- `scripts/invoke-ghl-living-word-probe.mjs` **no longer references `MASTER_ADMIN_KEY` / `ADMIN_PIN`**. It now sends the admin `corpflow_session` cookie (via `CORPFLOW_SESSION` or `GHL_PROBE_COOKIE`, auto-loaded from `.env.local`).
-- `.env.template` records the no-master-key-in-process policy.
-
-## How to complete this artifact (operator)
-
-1. Log in as the factory admin in a browser at `https://core.corpflowai.com/login` (uses `CORPFLOW_ADMIN_USERNAME` / `CORPFLOW_ADMIN_PASSWORD`).
-2. Copy the `corpflow_session` cookie value (DevTools → Application → Cookies). Put it in repo-root `.env.local` as `CORPFLOW_SESSION=<value>`. Never paste it into chat, commits, PRs, or logs.
-3. Run (the script auto-loads `.env.local`):
-
-```powershell
-$env:GHL_PROBE_WRITE_ARTIFACT = "1"
-node scripts/invoke-ghl-living-word-probe.mjs
-```
-
-4. On exit code **0** the script overwrites this artifact with the redacted manifest. A **403** means the session is missing/expired — re-log in and refresh `CORPFLOW_SESSION`.
-
-Or simply open this authenticated GET in the **logged-in admin browser**:
-
-`https://core.corpflowai.com/api/factory/ghl/living-word/probe?tenant_id=living-word-mauritius`
-
-Env readiness (no GHL calls):
-
-`https://core.corpflowai.com/api/factory/ghl/living-word/env-readiness`
+- `GET /locations/s3s8FXVgfq50uU7HIFSE` — HTTP 200 — ok
+- `GET /locations/s3s8FXVgfq50uU7HIFSE/customFields?model=contact` — HTTP 200 — ok
+- `POST /contacts/search` — HTTP 200 — ok
+- `POST /contacts/search` — HTTP 200 — ok
+- `GET /forms/?locationId=s3s8FXVgfq50uU7HIFSE` — HTTP 200 — ok
+- `GET /forms/submissions?locationId=s3s8FXVgfq50uU7HIFSE&limit=1` — HTTP 200 — ok
+- `GET /opportunities/pipelines?locationId=s3s8FXVgfq50uU7HIFSE` — HTTP 200 — ok
+- `GET /calendars/?locationId=s3s8FXVgfq50uU7HIFSE` — HTTP 200 — ok
+- `GET /surveys/?locationId=s3s8FXVgfq50uU7HIFSE` — HTTP 200 — ok
+- `GET /users/search?locationId=s3s8FXVgfq50uU7HIFSE` — HTTP 422 — failed
 
 ## Sensitive domains intentionally excluded
 
@@ -62,22 +38,99 @@ Env readiness (no GHL calls):
 - outbound_send
 - webhooks_register
 
+## Summary metadata
+
+- **Location:** [redacted-name] (`s3s8FXVgfq50uU7HIFSE`)
+- **Contacts total (estimate):** 642
+- **Distinct tags in sample:** —
+- **Custom fields (contact model):** 51
+- **Forms:** 6
+- **Surveys:** 1
+- **Pipelines:** 4
+- **Calendars:** 1
+
+## Field manifest (custom fields)
+
+| id | name | key | dataType |
+|----|------|-----|----------|
+| 0QclTETrVVxObuXCSIhb | [redacted-name] | contact.barista_team_active | SINGLE_OPTIONS |
+| 1mVQlcHvYd7w6zWUFo4N | [redacted-name] | contact.prayer_team_joined | DATE |
+| 44iYcWfu3cXmPXRWJbbu | [redacted-name] | contact.i_want_to_join | CHECKBOX |
+| 45e7wMlkDqYUGldphl95 | [redacted-name] | contact.wordgroups_joined | DATE |
+| 6oTZTQxZWIXps0fVhshL | [redacted-name] | contact.barista_team_joined | DATE |
+| 9AVODffNDQ7WsSWvEMdV | [redacted-name] | contact.events_n_lifestyle_leader | TEXT |
+| 9Z0Ekd8EUPif87iF2opZ | [redacted-name] | contact.mens_ignite_leader | TEXT |
+| B0NzcWktOPMEy0SVIhPj | [redacted-name] | contact.worship_team_joined | DATE |
+| BH8cT9R2prcDlr3fua7B | [redacted-name] | contact.bloom_ladies_leader | TEXT |
+| BKwiFAIwp6BnXzjRv0wA | [redacted-name] | contact.i_have_a_prayer_request | TEXT |
+| EU4Fg2gnYnmAejQRabg2 | [redacted-name] | contact.emergency_contact_person_name | TEXT |
+| EZ4Sce9BzC5F2XWHmWCw | [redacted-name] | contact.wordgroups_leader | TEXT |
+| FRY4NeuIPSaXvVFRM2sI | [redacted-name] | contact.approval_status | SINGLE_OPTIONS |
+| Fpnbv5GzypSDX6K8ylh2 | [redacted-name] | contact.ready_to_serve | CHECKBOX |
+| KMrYklYkndG4vAJrgJa1 | [redacted-name] | contact.tech__media_team_active | SINGLE_OPTIONS |
+| NlHjf6yxTn8Dsp5a5sbj | [redacted-name] | contact.ushers_team_leader | TEXT |
+| O3K1UMI62I939XMX0M5a | [redacted-name] | contact.ushers_team_joined | DATE |
+| O3oIcc0PjG08Ah5Zl8wW | [redacted-name] | contact.prefill_url | TEXT |
+| OdhW50MVIlKGHXaIKOKs | [redacted-name] | contact.update_type | RADIO |
+| OecIWv7dptjEYkhoTkgp | [redacted-name] | contact.business_name | TEXT |
+| PHX9nHmMqclhbAPh59rI | [redacted-name] | contact.phone_2 | TEXT |
+| UZhPnL6BXfAQSUUFOS3N | [redacted-name] | contact.profile_update_shortlink | TEXT |
+| VAzJD34fEboEllTi8LG6 | [redacted-name] | contact.trinity_kids_status | SINGLE_OPTIONS |
+| WRgovr54uLQf8eMmHA1A | [redacted-name] | contact.mens_ignite_active | SINGLE_OPTIONS |
+| WWtyntpj2HyrxkqY0kNg | [redacted-name] | contact.barista_team_leader | TEXT |
+| XRh3ESBG4xyPVnk1mdoi | [redacted-name] | contact.update_your_profile | LARGE_TEXT |
+| XXZUhixqs67gyhwFmrtH | [redacted-name] | contact.mens_ignite_joined | DATE |
+| XdX4vW6IQCYRzh01sfL8 | [redacted-name] | contact.preferred_communication | SINGLE_OPTIONS |
+| Y9JL215yXnCPh8sJ1vBT | [redacted-name] | contact.events__lifestyle_joined | DATE |
+| azV2QxuLl0SB8cFELOai | [redacted-name] | contact.gender_sex_1 | SINGLE_OPTIONS |
+| cLoMnATjKk3U0Ucrn7EN | [redacted-name] | contact.how_many_people | TEXT |
+| crjWUYoz7qWrIcx7an0i | [redacted-name] | contact.wordgroups_active | SINGLE_OPTIONS |
+| d9WZJ9vQJou2LdwjKfvQ | [redacted-name] | contact.users_group_status | SINGLE_OPTIONS |
+| e9fLZ4XXjlczewMW2Pu4 | [redacted-name] | contact.events__lifestyle_active | SINGLE_OPTIONS |
+| eUoODww0v9g4VVMXwsOC | [redacted-name] | contact.bloom_ladies_active | SINGLE_OPTIONS |
+| fd63y1h9h25t9bQo1fbV | [redacted-name] | contact.email_2 | TEXT |
+| hDEajjzkXJFJhgdZf31y | [redacted-name] | contact.prayer_team_leader | TEXT |
+| i9iyZU4OORpopBd6heSg | [redacted-name] | contact.bloom_ladies_joined | DATE |
+| iI4pFPmnXWcHWQSxkmeI | [redacted-name] | contact.prayer_team_actice | SINGLE_OPTIONS |
+| lCkSnOxqezwltVpy0Y6A | [redacted-name] | contact.emergency_contact_phone_number | TEXT |
+| lJ9rZGx9r01vI880Bn30 | [redacted-name] | contact.last_data_qa_date | DATE |
+| lOtp1PLbTKOGGYTUjciF | [redacted-name] | contact.i_am_ready_to_serve_on_a_team_s | CHECKBOX |
+| llYWnKDQ8jsirpENDKvS | [redacted-name] | contact.to_celebrate_we_will_pledge_a_rs_200_donation_on_your_behalf_please_select_a_charity_below | CHECKBOX |
+| mRnPfqgWFUCRg5kZ5J8A | [redacted-name] | contact.member_type | SINGLE_OPTIONS |
+| mbIaUKjfb0HPpRyEvn0I | [redacted-name] | contact.tech_n_media_team_leader | TEXT |
+| mtsFtf00f00bEFE0ad1t | [redacted-name] | contact.trinity_kids_joined | DATE |
+| nCDjceTVPHRoxudczJ3K | [redacted-name] | contact.worship_team_active | SINGLE_OPTIONS |
+| qXQavzZGBIHvgJCZVHXt | [redacted-name] | contact.add_me_to_church_communications_for_updates_and_events | CHECKBOX |
+| rGRIbl34zuO0VNR6Orb9 | [redacted-name] | contact.trinity_kids_team_leader | TEXT |
+| t3Ax8zP9SZdS7faCHLDU | [redacted-name] | contact.worship_team_leader | TEXT |
+| tXgTyd3xLUyXDofVhHxk | [redacted-name] | contact.tech__media_team_joined | DATE |
+
+## Forms metadata
+
+- `YvuQtsoSWj76pk7dR7Cb` — [redacted-name]
+- `L5463D74CHceRkq3qbnS` — [redacted-name]
+- `i7Uc7MPcwNu6pgHsNenm` — [redacted-name]
+- `UoXTs5jRHO5vFaOlyHSl` — [redacted-name]
+- `uV3bc9e8IyEqGIWX9rRH` — [redacted-name]
+- `T5Rf9UNjqT2l4A60MKva` — [redacted-name]
+
 ## Recommended next packet
 
-Living Word GHL field mapping report (Phase 2) — **not** direct canonical import.
+**Member Update Flow schema/form design v1** from this field manifest — see [`member-update-flow-schema-form-design-v1.md`](./member-update-flow-schema-form-design-v1.md). Not direct canonical import.
 
 ## Delivery Reality Audit
 
 ```text
-Local fix exists: YES (probe uses admin session cookie; no MASTER_ADMIN_KEY in process)
-Merged to main: PENDING (see auth PR)
-Production deployment ID: probe route live (403 without admin session)
-Commit deployed: GHL probe implementation on main (prior PR)
-Live probe executed: NO (blocked on operator admin session login)
-API call count: 0
+Local fix exists: YES
+Merged to main: YES (probe route + session-only operator script, PR #478)
+Production deployment ID: live probe against core.corpflowai.com (2026-06-26)
+Commit deployed: 76268977 (main) + prior GHL probe implementation
+Live probe executed: YES
+Auth method: admin corpflow_session (factory login) — no MASTER_ADMIN_KEY
+API call count: 10 / 19
 GHL writes: NO
 Secrets in artifact: NO
-Real member data in artifact: NO
-Final verdict: PARTIAL (auth switched to session-only; awaiting operator login)
-Client-facing flow usable: N/A
+Real member data in artifact: NO (redacted field names only)
+Final verdict: COMPLETE (probe scope)
+Client-facing flow usable: N/A (inventory only)
 ```
