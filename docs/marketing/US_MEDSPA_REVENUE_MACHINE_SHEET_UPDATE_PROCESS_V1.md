@@ -2,7 +2,8 @@
 
 > **Status:** OPERATING PROCESS + EMBEDDED APPS SCRIPT — docs-only in this repo.
 > **OPERATOR-TESTED 2026-06-26** (validate / dry-run / apply / undo all passed on
-> the first 5 audited prospects — see §9 for evidence).
+> the first 5 audited prospects; a **second Codex batch** of 5 more prospects then
+> ran cleanly through the same controlled process — see §9 for both runs).
 > **NO IMPLEMENTATION AUTHORIZED beyond the Google Sheet.** This file changes no
 > app runtime code, dependencies, env vars, `.env.template`, database schema/data,
 > `POSTGRES_URL`, Vercel config, GitHub settings, routes, deployment, secrets, or
@@ -555,6 +556,8 @@ approved, set a send channel, or change identity/contact/source/date columns.
 
 ## 9. Operator test evidence — 2026-06-26
 
+### Run 1 — first 5 audited prospects
+
 The process was run end-to-end by the operator on the first 5 audited prospects in
 **`CorpFlowAI - US Medspa Revenue Machine`**. All four menu actions passed.
 
@@ -588,6 +591,35 @@ Google Sheets — see the §5 operator note. Mitigation: leave the queue date bl
 (script auto-stamps) or format the column as plain text. After clearing the queue
 date values, validation passed and the run completed safely.
 
-**Verdict:** the Sheet-side controlled update process is **operator-tested** and
-fit for repeated use. Approval and sending remain 100% manual and outside this
-script.
+### Run 2 — second Codex batch (5 more prospects)
+
+After Run 1, the operator processed a **second Codex batch** through the same
+controlled `Audit Update Queue` process.
+
+Batch 2 source prospects:
+
+- Bella Glo Med Spa
+- Dr. Sheena Kong Med Spa
+- La Belle Medspa
+- ETX Inject
+- Dr. G Medical Solutions Aesthetics
+
+Result:
+
+- **Validate — PASS** (ran cleanly).
+- **Dry run — PASS** (ran cleanly; no changes written).
+- **Apply — PASS** (ran cleanly; `Prospects` updated successfully).
+- **No outreach was sent.**
+- **Approval/send fields remain manual-only** (`anton_approval_status` /
+  `approved_send_channel` untouched; drafts stay pending Anton review).
+- **Codex did not write directly to Google Sheets** — input arrived as an
+  `Audit Update Queue` payload and the operator applied it via the menu.
+- The update remained entirely within the controlled `Audit Update Queue` process.
+
+This second batch confirms the process is repeatable across Codex batches without
+widening trust: the same allow-list, the same protected approval/send columns, and
+the same human-applied menu flow held on a fresh set of prospects.
+
+**Verdict:** the Sheet-side controlled update process is **operator-tested across
+two Codex batches** and fit for repeated use. Approval and sending remain 100%
+manual and outside this script.
