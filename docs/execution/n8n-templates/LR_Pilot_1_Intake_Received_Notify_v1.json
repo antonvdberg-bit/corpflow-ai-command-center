@@ -1,0 +1,100 @@
+{
+  "name": "LR Pilot 1 - Intake Received Notify v1",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lr-pilot1-intake-notify",
+        "options": {}
+      },
+      "id": "11111111-1111-4111-8111-111111111111",
+      "name": "Automation Forward Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "REPLACE_OR_REUSE_EXISTING_FORWARD_WEBHOOK",
+      "notes": "Stage 6 only. In production, prefer copying the IF + Telegram nodes into the EXISTING automation-forward workflow (after its forward-secret validation node) so this reuses the already-configured CORPFLOW_AUTOMATION_FORWARD_URL. Do NOT change CORPFLOW_AUTOMATION_FORWARD_URL (env change, out of scope)."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.body.event_type }}",
+              "value2": "corpflow.lead_rescue.intake_received"
+            }
+          ]
+        }
+      },
+      "id": "22222222-2222-4222-8222-222222222222",
+      "name": "IF intake_received",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        520,
+        300
+      ],
+      "notes": "If the n8n preview shows the body is not wrapped, change the expression to {{ $json.event_type }}."
+    },
+    {
+      "parameters": {
+        "chatId": "REPLACE_WITH_OPERATOR_CHAT_ID",
+        "text": "=New AI Lead Rescue intake — action required\nBusiness: {{ $json.body.payload.prospect.business_name }}\nFirst name: {{ ($json.body.payload.prospect.contact_name || '').split(' ')[0] }}\nRef: {{ $json.body.payload.lead_id }}\nReview: {{ $json.body.payload.admin_detail_url }}\nAction: Review within 2 business hours",
+        "additionalFields": {
+          "disable_web_page_preview": true
+        }
+      },
+      "id": "33333333-3333-4333-8333-333333333333",
+      "name": "Notify Operator (Telegram)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        820,
+        220
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "REPLACE_WITH_OPERATOR_TELEGRAM_CREDENTIAL_ID",
+          "name": "REPLACE_WITH_OPERATOR_TELEGRAM_CREDENTIAL_NAME"
+        }
+      },
+      "notes": "Internal operator notification ONLY. Not a customer-facing send. Replace chatId with the operator chat id and attach an operator-held Telegram credential after import. No token value is stored in this template."
+    }
+  ],
+  "connections": {
+    "Automation Forward Webhook": {
+      "main": [
+        [
+          {
+            "node": "IF intake_received",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF intake_received": {
+      "main": [
+        [
+          {
+            "node": "Notify Operator (Telegram)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templatecredSetupNote": "Inactive by default. No secrets, no real credential values. Stage 6 notify-only. Replace the REPLACE_* placeholders before activating."
+  },
+  "tags": []
+}
