@@ -45,6 +45,10 @@ Canonical references (read alongside; do not duplicate):
 - `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md` — brand/conversion rules.
 - `docs/operations/SECURITY_REVIEW_CHECKLIST.md` — required before any data-handling
   change beyond a manual working sheet.
+- `docs/operations/CODEX_INTEGRATION_CONTRACT_V1.md` — Codex handoff contract. Any
+  Codex-supplied Sheet input must arrive as a valid **`Audit Update Queue`** CSV
+  (contract §4–§5); a human applies approved values into the tabs below. Codex
+  never writes the Sheet and never sets approval/send fields.
 
 Rule: if the artifact and a doctrine doc disagree, **doctrine wins**. The artifact
 is input to be reviewed, not a standing instruction.

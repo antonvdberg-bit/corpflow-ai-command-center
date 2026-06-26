@@ -134,8 +134,9 @@ This describes the **shape only**. No workflow JSON, credentials, webhook secret
 ### 7.1 Codex boundary
 
 - **Scope:** research, data gathering, and script artifacts only.
-- **No PR ownership.** Output is pasted into #249, or delivered as a branch / full Git SHA for **Cursor** to import and own.
+- **No PR ownership.** Output is pasted into #249, or delivered as **transfer-safe content** (full file content, CSV block, `git diff` patch, or JSON manifest) for **Cursor** to import and own. A **local-only branch / SHA is not a valid handoff** — see `docs/operations/CODEX_INTEGRATION_CONTRACT_V1.md`.
 - Codex does not merge, deploy, touch secrets/env, or send outreach. (See `docs/execution/DELIVERY_ACCELERATION_V1.md` for executor latitude.)
+- **Codex handoff format + Sheet input** are governed by `docs/operations/CODEX_INTEGRATION_CONTRACT_V1.md` (approved output formats, forbidden actions, the `Audit Update Queue` CSV schema, and validation rules).
 
 ### 7.2 NotebookLM boundary
 
