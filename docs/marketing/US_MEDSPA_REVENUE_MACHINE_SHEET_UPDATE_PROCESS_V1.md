@@ -1,6 +1,8 @@
 # US Medspa Revenue Machine — Controlled Sheet Update Process v1
 
 > **Status:** OPERATING PROCESS + EMBEDDED APPS SCRIPT — docs-only in this repo.
+> **OPERATOR-TESTED 2026-06-26** (validate / dry-run / apply / undo all passed on
+> the first 5 audited prospects — see §9 for evidence).
 > **NO IMPLEMENTATION AUTHORIZED beyond the Google Sheet.** This file changes no
 > app runtime code, dependencies, env vars, `.env.template`, database schema/data,
 > `POSTGRES_URL`, Vercel config, GitHub settings, routes, deployment, secrets, or
@@ -463,6 +465,17 @@ Design guarantees:
    - Add a column `anton_approval_status` to the queue → expect the whole run to
      **ABORT** with nothing changed.
 
+> **Operator note — `last_reviewed_date` date coercion (observed 2026-06-26).**
+> When the test CSV is pasted into the Sheet, Google Sheets may auto-convert a
+> `YYYY-MM-DD` cell into a **date object**, which the validator then reads as a
+> formatted value and rejects with `last_reviewed_date must be YYYY-MM-DD`. Two
+> safe options: (a) **leave `last_reviewed_date` blank in the queue** — the script
+> auto-stamps today's date on apply (see §4 `rmRun_` auto-stamp), or (b) format the
+> `last_reviewed_date` column as **plain text** (`Format → Number → Plain text`)
+> before pasting so the literal `YYYY-MM-DD` string is preserved. Clearing the queue
+> date values was the path used in the passing test below; the script handled the
+> run safely and stamped the date on apply.
+
 ### Test CSV (paste into `Audit Update Queue`)
 
 ```csv
@@ -506,6 +519,10 @@ One-time setup:
 Each time you receive audit updates (e.g. a CSV from Codex/Cursor):
 
 1. Paste/import the CSV into **`Audit Update Queue`** (replace previous queue rows).
+   If you include `last_reviewed_date`, either leave it blank (the script
+   auto-stamps today on apply) or format that column as **plain text** before
+   pasting so Sheets does not convert `YYYY-MM-DD` into a date object (see the §5
+   operator note).
 2. **Revenue Machine → 1. Validate Audit Update Queue** — fix any `INVALID` rows
    shown in `validation_message`.
 3. **Revenue Machine → 2. Apply Audit Updates (DRY RUN)** — sanity-check the
@@ -533,3 +550,44 @@ approved, set a send channel, or change identity/contact/source/date columns.
   not touch the production app, DB, `POSTGRES_URL`, env vars, or `.env.template`.
 - **Future (proposal only):** if queue volume grows, a `dry-run diff` export or a
   per-field change log tab could be added — still Sheet-side, still no outreach.
+
+---
+
+## 9. Operator test evidence — 2026-06-26
+
+The process was run end-to-end by the operator on the first 5 audited prospects in
+**`CorpFlowAI - US Medspa Revenue Machine`**. All four menu actions passed.
+
+**1. Validate Audit Update Queue — PASS**
+
+- VALID rows: **5**
+- INVALID rows: **0**
+
+**2. Apply Audit Updates (DRY RUN) — PASS**
+
+- No changes written (Prospects unchanged).
+- Preview matched **5** Prospects rows: rows **2, 3, 4, 5, 6**.
+- Fields previewed for update: `cta_clarity_score_1_5`, `booking_path_score_1_5`,
+  `mobile_trust_speed_score_1_5`, `service_clarity_score_1_5`,
+  `lead_capture_score_1_5`, `lead_rescue_rating`, `audit_status`,
+  `personalized_angle`, `draft_outreach_subject`, `draft_outreach_body`, `owner`.
+
+**3. Apply Audit Updates — PASS**
+
+- Applied: **5** rows. Skipped/invalid: **0**.
+- Backup created: **`Backup_Prospects_20260626_104232`**.
+- Apps Script reported approval/send columns were **not** changed and drafts
+  remain **pending Anton review**.
+
+**4. Undo Last Apply — PASS**
+
+- `Prospects` restored from `Backup_Prospects_20260626_104232`.
+
+**Known behavior surfaced during the test:** `last_reviewed_date` date coercion by
+Google Sheets — see the §5 operator note. Mitigation: leave the queue date blank
+(script auto-stamps) or format the column as plain text. After clearing the queue
+date values, validation passed and the run completed safely.
+
+**Verdict:** the Sheet-side controlled update process is **operator-tested** and
+fit for repeated use. Approval and sending remain 100% manual and outside this
+script.
