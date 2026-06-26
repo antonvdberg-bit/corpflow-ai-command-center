@@ -1,9 +1,12 @@
 # US Medspa Revenue Machine — Controlled Sheet Update Process v1
 
 > **Status:** OPERATING PROCESS + EMBEDDED APPS SCRIPT — docs-only in this repo.
-> **OPERATOR-TESTED 2026-06-26** (validate / dry-run / apply / undo all passed on
-> the first 5 audited prospects; a **second Codex batch** of 5 more prospects then
-> ran cleanly through the same controlled process — see §9 for both runs).
+> **OPERATOR-TESTED 2026-06-26 — READY FOR CONTROLLED NORMAL USE** after **three
+> successful Codex batches** (15 prospects total) through the same controlled
+> process: validate / dry-run / apply (and undo on Run 1) all passed, with
+> approval/send columns untouched every time — see §9 for all three runs. Existing
+> guardrails are unchanged: no outreach automation, no Codex direct Sheet writes,
+> no approval/send mutation, approval and sending remain manual only.
 > **NO IMPLEMENTATION AUTHORIZED beyond the Google Sheet.** This file changes no
 > app runtime code, dependencies, env vars, `.env.template`, database schema/data,
 > `POSTGRES_URL`, Vercel config, GitHub settings, routes, deployment, secrets, or
@@ -620,6 +623,45 @@ This second batch confirms the process is repeatable across Codex batches withou
 widening trust: the same allow-list, the same protected approval/send columns, and
 the same human-applied menu flow held on a fresh set of prospects.
 
+### Run 3 — final operator-confidence batch (5 more prospects)
+
+A third Codex batch was processed end-to-end through the same controlled
+`Audit Update Queue` process as a final confidence check.
+
+Batch 3 source prospects:
+
+- InjectCo
+- Urbane Aesthetiks Medspa
+- MEDSPA 33
+- Vital Skin and Body
+- MedSpa 22
+
+**1. Validate Audit Update Queue — PASS**
+
+- VALID rows: **5**
+- INVALID rows: **0**
+
+**2. Apply Audit Updates (DRY RUN) — PASS**
+
+- No changes written.
+- Target rows previewed correctly: Prospects rows **12, 13, 14, 15, 16**.
+- Fields previewed for update: `cta_clarity_score_1_5`, `booking_path_score_1_5`,
+  `mobile_trust_speed_score_1_5`, `service_clarity_score_1_5`,
+  `lead_capture_score_1_5`, `lead_rescue_rating`, `audit_status`,
+  `personalized_angle`, `draft_outreach_subject`, `draft_outreach_body`, `owner`.
+
+**3. Apply Audit Updates — PASS**
+
+- Applied: **5** rows. Skipped/invalid: **0**.
+- Backup created: **`Backup_Prospects_20260626_114024`**.
+- Approval/send columns were **not** changed.
+- Drafts remain **pending Anton review**.
+
+**Readiness:** with three successful batches (15 prospects total), the Sheet-side
+controlled update process is **ready for controlled normal use**. All existing
+guardrails are retained: **no outreach automation, no Codex direct Sheet writes,
+no approval/send mutation, and approval and sending remain manual only.**
+
 **Verdict:** the Sheet-side controlled update process is **operator-tested across
-two Codex batches** and fit for repeated use. Approval and sending remain 100%
-manual and outside this script.
+three Codex batches** and ready for controlled normal use. Approval and sending
+remain 100% manual and outside this script.
