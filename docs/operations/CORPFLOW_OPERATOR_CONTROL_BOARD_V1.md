@@ -38,7 +38,7 @@ of the following is changed by this document.
 | Command ledger | GitHub issue **#249** is the command ledger / source of truth for operator decisions and dispatch packets. | #249, `docs/operations/OPERATOR_DISPATCH_ROUTER.md` §2 |
 | Doctrine | Repo docs remain canonical doctrine. | `AGENTS.md`, `.cursor/rules/*` |
 | Cursor | Owns repo/docs/code **PR execution**. | `docs/operations/OPERATOR_DISPATCH_ROUTER.md` §3 |
-| Codex | Research/data/script worker only; **never owns PRs**. | `docs/operations/OPERATOR_DISPATCH_ROUTER.md` §7.1 |
+| Codex | Research/data/script worker only; **never owns PRs**. Handoffs must be transfer-safe (no local-only branch/SHA). | `docs/operations/OPERATOR_DISPATCH_ROUTER.md` §7.1, `docs/operations/CODEX_INTEGRATION_CONTRACT_V1.md` |
 | n8n | Future **notify-only** workflow spine first; no automated cold outreach. | `docs/marketing-automation-arm.md` §9, `docs/operations/OPERATOR_DISPATCH_ROUTER.md` §5 |
 | Google Drive Brand Hub | Working collateral library (human-facing copies). | `docs/marketing/MARKETING_COLLATERAL_INVENTORY.md` |
 | NotebookLM | Briefing/summarization only; not an execution layer. | `docs/operations/OPERATOR_DISPATCH_ROUTER.md` §7.2 |
@@ -126,6 +126,7 @@ if they conflict, update the canonical doc first, then this board.
 - `docs/operations/OPERATOR_BRIDGE_V1.md` — coordination protocol (how decisions/STATUS are recorded on #249).
 - `docs/runbooks/OPERATOR_BRIDGE.md` — day-to-day STATUS runbook.
 - `docs/operations/OPERATOR_DISPATCH_ROUTER.md` — dispatch mechanism + executor boundaries.
+- `docs/operations/CODEX_INTEGRATION_CONTRACT_V1.md` — Codex handoff contract (transfer-safe output formats, forbidden actions, `Audit Update Queue` Sheet schema, validation rules).
 - `docs/execution/WEEKEND_EXECUTION_QUEUE.md` — packet-level live queue.
 - `docs/execution/CORPFLOW_EXECUTION_PACKET_STANDARD.md` — packet structure.
 - `docs/execution/CORPFLOW_AUTONOMOUS_ACTIONS_POLICY.md` — what may run without further approval vs. Anton-only gates.

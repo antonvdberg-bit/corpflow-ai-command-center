@@ -296,6 +296,10 @@ Boundaries (carried from §12–§13 and the Operator Dispatch Router):
 
 - **Codex remains a research / data / script worker only** and **never owns PRs**
   (`docs/operations/OPERATOR_DISPATCH_ROUTER.md` §7.1). Cursor owns repo/docs PRs.
+- **Codex handoffs must be transfer-safe** per
+  `docs/operations/CODEX_INTEGRATION_CONTRACT_V1.md`: full content / CSV / patch /
+  manifest only (no local-only branch/SHA), and any Sheet input flows through the
+  `Audit Update Queue` schema with no approval/send/follow-up fields.
 - Captured research is **input**, not authorization. It does not, by itself,
   trigger any build, outreach, or production change.
 - Outreach stays **AI-assisted and human-approved** per §8; no automated cold
