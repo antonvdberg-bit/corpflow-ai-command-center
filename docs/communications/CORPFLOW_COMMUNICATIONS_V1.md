@@ -226,6 +226,7 @@ export async function recordCommunicationEvidence(event_id, result) { /* ... */ 
 
 ## 10) Related
 
+- `docs/operations/EMAIL_AUTOMATION_INBOUND_OUTBOUND_WORKFLOW_V1.md` — inbound reply detection, thread correlation, human-approval workflow, and first safe pilot slice (issue #486; design only, no runtime).
 - `docs/n8n/password-reset-email-recipe.md` — wire-level n8n recipe (the only Phase 1 live event).
 - `lib/server/email-delivery.js` — current server-side helper (`sendN8nTransactionalEmail()`, `n8nEmailDeliveryDiagnostics()`).
 - `lib/server/password-reset-delivery.js` — current Phase 1 caller; reference implementation for future events.
