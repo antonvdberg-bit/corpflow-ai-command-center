@@ -1,6 +1,6 @@
 # LR Pilot #1 — n8n notify-only spine v1 (Stage 6: intake received)
 
-**Status:** Runbook for the smallest useful notify-only slice. **Stage 6 only.** Notify/remind only — no automated outreach, no customer-facing message, no payment/ERPNext/DB-schema/app-code change. The n8n workflow itself is built by the operator in the n8n UI on `corpflow-exec-01-u69678` (loopback-only); this repo holds the **build instructions + evidence template + rollback**, never secrets.
+**Status:** **OPERATOR-TESTED / WORKING (2026-06-29).** Built and verified on `corpflow-exec-01-u69678` via Option A (grafted into the existing automation-forward workflow). See **§7.1 Recorded operator evidence**. Stage 6 only. Notify/remind only — no automated outreach, no customer-facing message, no payment/ERPNext/DB-schema/app-code change. The n8n workflow itself is built by the operator in the n8n UI on `corpflow-exec-01-u69678` (loopback-only); this repo holds the **build instructions + evidence template + rollback**, never secrets.
 
 **Anchor sentinel:** `<!-- LR_PILOT_1_N8N_NOTIFY_SPINE_V1 -->`
 
@@ -121,6 +121,29 @@ Rollback method:          deactivate/delete branch lr-pilot1-intake-notify-v1 (�
 ```
 
 Do **not** record bot tokens, chat-id values, forward-secret values, or full payload JSON with email/phone in the evidence.
+
+## 7.1 Recorded operator evidence (2026-06-29)
+
+Operator (Anton) built the branch via **Option A** (grafted into the existing automation-forward workflow) and ran a live test. Result: **WORKING.**
+
+```text
+Workflow:                 existing automation-forward workflow + grafted IF/Code/Telegram branch
+Trigger used:             existing automation-forward Webhook → IF event_type == corpflow.lead_rescue.intake_received
+IF branch matched:        YES (corpflow.lead_rescue.intake_received)
+Code node:                produced the Telegram message
+Notification destination: Telegram → Anton's private chat (bot @CorpFlow_Sentry_bot; chat-id value not recorded)
+Telegram API response:    ok: true
+Notification fired:       YES
+Message content verified: business name, contact name, lead reference, admin detail URL, "Review within 2 business hours"
+Customer-facing send:     NONE
+Other systems touched:    none (no payment, no WhatsApp/SMS, no ERPNext, no DB schema, no app code, no env change)
+Task row created:         NO (deferred for v1 — notification only)
+Rollback method:          deactivate/remove the grafted branch (§8)
+```
+
+`@CorpFlow_Sentry_bot` is the bot **username** (a public handle), not a secret. No bot token, chat-id value, or forward-secret value is recorded here.
+
+> **Security note (forward secret exposure):** during this test the **automation-forward secret was exposed** in chat/screenshots. `CORPFLOW_AUTOMATION_FORWARD_SECRET` (and its matching n8n validation value) must be **rotated**. The rotation plan is prepared and awaiting operator approval before execution — see `docs/runbooks/SECURITY_OR_INCIDENT.md` and the rotation sequence handed to the operator. **Do not** treat this secret as trustworthy until rotation completes.
 
 ## 8. Rollback
 
