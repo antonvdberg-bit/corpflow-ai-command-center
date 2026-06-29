@@ -178,6 +178,9 @@ After this PR merges and is live-verified per `delivery-reality.mdc`, Anton can 
 
 ## 11. Cross-references
 
+- Parallel Execution Board v1 (concurrency/lanes + dispatcher cadence): `docs/operations/PARALLEL_EXECUTION_BOARD_V1.md` — the lane layer that sits beside #249; digests are posted here per `docs/operations/OPERATOR_PROGRESS_DIGEST_V1.md`.
+- Cursor Dispatcher Checklist v1 (per-dispatch routine): `docs/operations/CURSOR_DISPATCHER_CHECKLIST_V1.md`
+- Codex Task Register v1 (research request/return log): `docs/operations/CODEX_TASK_REGISTER_V1.md`
 - Delivery Acceleration v1 protocol (Cursor + Codex Cloud + future internal agent): `docs/execution/DELIVERY_ACCELERATION_V1.md`
 - Day-to-day operator runbook (how to post STATUS in practice): `docs/runbooks/OPERATOR_BRIDGE.md`
 - Execution policy: `docs/execution/CORPFLOW_AUTONOMOUS_ACTIONS_POLICY.md`
