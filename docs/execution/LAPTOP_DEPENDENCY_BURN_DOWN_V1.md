@@ -217,6 +217,7 @@ Every implementation packet that moves a job off the laptop **must** satisfy `do
 | `docs/operations/MONITORING_ARCHITECTURE.md` | Monitor #1 control loop, full L2 map |
 | `docs/operations/FACTORY_CONTROL_LOOP.md` | P0 runbook |
 | `docs/execution/CODEX_CLOUD_ACTIVATION_PACKET_V1.md` | Parallel L2 executor #2 |
+| `docs/execution/CLOUD_FIRST_AGENT_EXECUTION_MIGRATION_V1.md` | Migration epic design — bucket table, Codex GitHub handoff, cloud-first model (#485) |
 | `.github/workflows/factory-control-loop.yml` | P0 implementation |
 | `.github/workflows/factory-cmp-drive.yml` | Cron-secret auth pattern to copy |
 
