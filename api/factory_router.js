@@ -30,6 +30,11 @@ import tenantIntakeHandler from '../lib/server/tenant-intake.js';
 import productAIntakeHandler from '../lib/server/product-a-intake.js';
 import tenantSitePublicHandler from '../lib/server/tenant-site-public.js';
 import { handleTenantLeadCreate, handleTenantLeadQualify } from '../lib/server/tenant-leads.js';
+import {
+  memberUpdateIdentifyHandler,
+  memberUpdateSchemaHandler,
+  memberUpdateSubmitHandler,
+} from '../lib/server/living-word/member-update-api.js';
 import tenantLoginDebugHandler from '../lib/server/tenant-login-debug.js';
 import { handleCoreLuxTicketMigrationRepair } from '../lib/server/core-lux-ticket-migration-repair.js';
 import factoryGithubPrCreateHandler from '../lib/server/factory-github-pr-create.js';
@@ -1002,6 +1007,15 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'tenant/leads/qualify') {
     return handleTenantLeadQualify(req, res);
+  }
+  if (pathSeg === 'tenant/living-word/member-update') {
+    return memberUpdateSchemaHandler(req, res);
+  }
+  if (pathSeg === 'tenant/living-word/member-update/identify') {
+    return memberUpdateIdentifyHandler(req, res);
+  }
+  if (pathSeg === 'tenant/living-word/member-update/submit') {
+    return memberUpdateSubmitHandler(req, res);
   }
   if (pathSeg === 'factory/host-map/upsert') {
     return tenantHostMapUpsertHandler(req, res);
