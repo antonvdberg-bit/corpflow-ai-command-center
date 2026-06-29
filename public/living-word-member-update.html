@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Living Word — Member Update (TEST TENANT, NOT PUBLIC)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background:#0b1220; color:#e2e8f0; font-family: 'Inter', system-ui, sans-serif; }
+    .panel { background: rgba(255,255,255,0.04); border:1px solid rgba(148,163,184,0.25); }
+    label { font-size: 12px; letter-spacing: .04em; color:#94a3b8; }
+    input, select { background: rgba(255,255,255,0.06); border:1px solid rgba(148,163,184,0.3); color:#e2e8f0; }
+    input:focus, select:focus { outline:none; border-color:#38bdf8; }
+  </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+  <div class="max-w-2xl mx-auto">
+    <div class="panel rounded-lg p-3 mb-4 border-amber-500/50 bg-amber-500/10 text-amber-200 text-xs tracking-wide">
+      <strong>TEST TENANT — NOT PUBLIC.</strong>
+      Living Word Member Update Flow v1. Admin session required. Synthetic test records only — no real members, no GHL writes, no persistence. Operator review required before any real update.
+    </div>
+
+    <div class="panel rounded-lg p-6">
+      <h1 class="text-xl font-light tracking-wide mb-1">Update your details</h1>
+      <p class="text-sm text-slate-400 mb-6">Living Word Mauritius — pilot (test).</p>
+
+      <!-- Step 1: identify -->
+      <form id="identifyForm" class="space-y-4">
+        <h2 class="text-sm uppercase tracking-widest text-sky-300">Step 1 — Identify</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div><label>First name</label><input id="id_first_name" class="w-full p-2 rounded mt-1" required /></div>
+          <div><label>Last name</label><input id="id_last_name" class="w-full p-2 rounded mt-1" required /></div>
+          <div><label>Email</label><input id="id_email" type="email" class="w-full p-2 rounded mt-1" /></div>
+          <div><label>Phone</label><input id="id_phone" type="tel" class="w-full p-2 rounded mt-1" /></div>
+        </div>
+        <p class="text-xs text-slate-500">Provide at least an email or a phone number.</p>
+        <button type="submit" class="px-4 py-2 rounded bg-sky-500 text-slate-900 font-semibold text-sm">Find my record</button>
+      </form>
+
+      <!-- Step 2: update (hidden until identify) -->
+      <form id="updateForm" class="space-y-4 hidden mt-8 pt-6 border-t border-slate-700">
+        <h2 class="text-sm uppercase tracking-widest text-sky-300">Step 2 — Confirm / update</h2>
+        <div id="matchBadge" class="text-xs"></div>
+        <div id="updateFields" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+        <label class="flex items-center gap-2 text-slate-300 text-sm">
+          <input id="f_consent_acknowledged" type="checkbox" class="w-4 h-4" />
+          I confirm these details may be reviewed by a Living Word operator before any update.
+        </label>
+        <button type="submit" class="px-4 py-2 rounded bg-emerald-500 text-slate-900 font-semibold text-sm">Submit for operator review</button>
+      </form>
+
+      <pre id="out" class="text-[11px] text-slate-400 whitespace-pre-wrap mt-6"></pre>
+    </div>
+  </div>
+
+  <script>
+    const BASE = '/api/factory_router?__path=';
+    const out = document.getElementById('out');
+    let schema = null;
+    let lastIdentify = null;
+
+    function show(obj) { out.textContent = typeof obj === 'string' ? obj : JSON.stringify(obj, null, 2); }
+
+    async function call(path, method, body) {
+      const res = await fetch(BASE + encodeURIComponent(path), {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: body ? JSON.stringify(body) : undefined,
+      });
+      const json = await res.json().catch(() => ({}));
+      return { status: res.status, json };
+    }
+
+    async function loadSchema() {
+      const r = await call('tenant/living-word/member-update', 'GET');
+      if (r.status !== 200) { show('Admin session required. Sign in as factory admin, then reload.\n\n' + JSON.stringify(r.json, null, 2)); return; }
+      schema = r.json;
+    }
+
+    function renderUpdateFields(prefill) {
+      const wrap = document.getElementById('updateFields');
+      wrap.innerHTML = '';
+      for (const f of schema.update_fields) {
+        if (f.key === 'consent_acknowledged') continue;
+        const val = prefill && prefill[f.key] !== undefined ? prefill[f.key] : '';
+        const id = 'f_' + f.key;
+        const labelText = f.key.replace(/_/g, ' ');
+        let control;
+        if (f.type === 'checkbox') {
+          control = `<label class="flex items-center gap-2 text-slate-300 text-sm mt-5"><input id="${id}" type="checkbox" class="w-4 h-4" ${val ? 'checked' : ''}/> ${labelText}</label>`;
+          wrap.insertAdjacentHTML('beforeend', `<div>${control}</div>`);
+          continue;
+        }
+        if (f.type === 'select') {
+          const opts = ['<option value=""></option>'].concat(
+            (schema.provisional_enums[f.enumKey] || []).map((o) => `<option value="${o}" ${o === val ? 'selected' : ''}>${o}</option>`)
+          ).join('');
+          control = `<select id="${id}" class="w-full p-2 rounded mt-1">${opts}</select>`;
+        } else {
+          const t = f.type === 'email' ? 'email' : f.type === 'tel' ? 'tel' : 'text';
+          control = `<input id="${id}" type="${t}" value="${String(val).replace(/"/g, '&quot;')}" class="w-full p-2 rounded mt-1" ${f.required ? 'required' : ''} />`;
+        }
+        wrap.insertAdjacentHTML('beforeend', `<div><label>${labelText}${f.required ? ' *' : ''}</label>${control}</div>`);
+      }
+    }
+
+    document.getElementById('identifyForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!schema) await loadSchema();
+      if (!schema) return;
+      lastIdentify = {
+        first_name: document.getElementById('id_first_name').value,
+        last_name: document.getElementById('id_last_name').value,
+        email: document.getElementById('id_email').value,
+        phone: document.getElementById('id_phone').value,
+      };
+      const r = await call('tenant/living-word/member-update/identify', 'POST', lastIdentify);
+      if (r.status !== 200) { show(r.json); return; }
+      const badge = document.getElementById('matchBadge');
+      const s = r.json.match.status;
+      const color = s === 'matched' ? 'text-emerald-300' : s === 'ambiguous' ? 'text-amber-300' : 'text-slate-400';
+      badge.className = 'text-xs ' + color;
+      badge.textContent = 'Match: ' + s + (r.json.match.matched_by !== 'none' ? ' (by ' + r.json.match.matched_by + ')' : '');
+      renderUpdateFields(r.json.prefill);
+      document.getElementById('updateForm').classList.remove('hidden');
+      show('Identify ok. Review fields below, then submit for operator review.');
+    });
+
+    document.getElementById('updateForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const update = {};
+      for (const f of schema.update_fields) {
+        const el = document.getElementById('f_' + f.key);
+        if (!el) continue;
+        update[f.key] = f.type === 'checkbox' ? el.checked : el.value;
+      }
+      const r = await call('tenant/living-word/member-update/submit', 'POST', { identify: lastIdentify, update });
+      show(r.json);
+    });
+
+    loadSchema();
+  </script>
+</body>
+</html>
