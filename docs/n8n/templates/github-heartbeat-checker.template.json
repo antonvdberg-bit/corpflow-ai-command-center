@@ -1,0 +1,168 @@
+{
+  "name": "CorpFlowAI — GitHub Heartbeat Checker (TEMPLATE, INACTIVE, SECRET-FREE)",
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateSource": "docs/runbooks/N8N_GITHUB_HEARTBEAT_CHECKER_V1.md",
+    "note": "Stage 1 template for issue #495. NO CREDENTIALS, NO TOKENS, NO CHAT IDS, NO WEBHOOK SECRETS, NO ENV VALUES. Attach a read-only GitHub credential and set Telegram references inside n8n's own credential/env store before activating (Stage 2, Anton-gated)."
+  },
+  "nodes": [
+    {
+      "id": "sticky-setup",
+      "name": "SETUP — read before activating",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-460, -120],
+      "parameters": {
+        "width": 460,
+        "height": 360,
+        "content": "## Heartbeat Checker (Stage 1 template)\n\n**Inactive by design.** Activation is Anton-gated (issue #495 Stage 2).\n\nBefore activating, IN n8n ONLY (never in the repo):\n1. Attach a **read-only GitHub credential** (least scope: issues + PRs read) to the three GitHub HTTP nodes.\n2. Set **TELEGRAM_BOT_TOKEN** and **TELEGRAM_ALERT_CHAT_ID** in n8n's env/credential store (reuse the existing alert path or a dedicated heartbeat bot — Anton's call).\n3. Confirm internal-monitoring only: no customer-facing sends.\n\nThresholds + alert format: see the runbook.\nSilent on success; alert only on error/fatal; dedupe key = kind × target × hour."
+      }
+    },
+    {
+      "id": "schedule",
+      "name": "Every 3 hours",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [40, 40],
+      "parameters": {
+        "rule": {
+          "interval": [
+            { "field": "hours", "hoursInterval": 3 }
+          ]
+        }
+      }
+    },
+    {
+      "id": "gh-493-comments",
+      "name": "GitHub: #493 comments",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [320, -120],
+      "parameters": {
+        "url": "https://api.github.com/repos/antonvdberg-bit/corpflow-ai-command-center/issues/493/comments?per_page=10&sort=created&direction=desc",
+        "options": {}
+      }
+    },
+    {
+      "id": "gh-open-prs",
+      "name": "GitHub: open PRs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [320, 40],
+      "parameters": {
+        "url": "https://api.github.com/repos/antonvdberg-bit/corpflow-ai-command-center/pulls?state=open&per_page=50",
+        "options": {}
+      }
+    },
+    {
+      "id": "gh-open-issues",
+      "name": "GitHub: open Action-Plan issues",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [320, 200],
+      "parameters": {
+        "url": "https://api.github.com/repos/antonvdberg-bit/corpflow-ai-command-center/issues?state=open&labels=automation&per_page=50",
+        "options": {}
+      }
+    },
+    {
+      "id": "evaluate",
+      "name": "Evaluate staleness",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [620, 40],
+      "parameters": {
+        "jsType": "javaScript",
+        "mode": "runOnceForAllItems",
+        "jsCode": "// CorpFlowAI heartbeat evaluation (read-only). Thresholds mirror the runbook.\n// Inputs: three HTTP nodes (comments, PRs, issues). Output: alert objects (may be empty).\nconst now = Date.now();\nconst H = 3600 * 1000;\nconst comments = $('GitHub: #493 comments').all().map(i => i.json).flat();\nconst prs = $('GitHub: open PRs').all().map(i => i.json).flat();\n\nconst alerts = [];\n\n// 1) Dispatcher-digest freshness on #493 (> 12h => error)\nconst digest = comments.find(c => c && typeof c.body === 'string' && c.body.includes('Dispatcher Digest'));\nconst lastDigestMs = digest ? new Date(digest.created_at).getTime() : 0;\nif (!digest || (now - lastDigestMs) > 12 * H) {\n  const staleH = digest ? Math.round((now - lastDigestMs) / H) : null;\n  alerts.push({ kind: 'digest_stale', target: '#493', severity: 'error', stale: staleH ? staleH + 'h' : 'none found', why: 'no dispatcher digest within the 12h active-day window', next: 'Cursor posts a dispatcher digest', anton: false });\n}\n\n// 2) Open-PR WIP cap (> 2 => error)\nif (Array.isArray(prs) && prs.length > 2) {\n  alerts.push({ kind: 'wip_cap', target: 'open PRs', severity: 'error', stale: 'n/a', why: prs.length + ' open PRs exceeds WIP cap of 2', next: 'merge or close PRs to drain WIP', anton: true });\n}\n\n// 3) Oldest open PR with unsurfaced CI (> 6h open => warn/error)\nif (Array.isArray(prs)) {\n  for (const pr of prs) {\n    const ageH = (now - new Date(pr.created_at).getTime()) / H;\n    if (ageH > 6) {\n      alerts.push({ kind: 'pr_ci_unsurfaced', target: 'PR #' + pr.number, severity: ageH > 12 ? 'error' : 'warning', stale: Math.round(ageH) + 'h', why: 'PR open > 6h; confirm CI/build result is surfaced', next: 'surface CI result in a dispatcher digest', anton: false });\n    }\n  }\n}\n\n// Severity ladder: only error/fatal page. Warnings are logged, not paged.\nconst paging = alerts.filter(a => a.severity === 'error' || a.severity === 'fatal');\nreturn [{ json: { checked: ['#493 comments', 'open PRs', 'open Action-Plan issues'], alert_count: paging.length, alerts: paging, all_signals: alerts, evaluated_at_utc: new Date(now).toISOString() } }];"
+      }
+    },
+    {
+      "id": "if-alert",
+      "name": "Any error-level alert?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [900, 40],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "typeValidation": "strict" },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.alert_count }}",
+              "rightValue": 0,
+              "operator": { "type": "number", "operation": "gt" }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "telegram-alert",
+      "name": "Telegram alert (attach token/chat id in n8n)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1200, -60],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $env.TELEGRAM_BOT_TOKEN }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"chat_id\": \"{{ $env.TELEGRAM_ALERT_CHAT_ID }}\",\n  \"text\": {{ JSON.stringify('CorpFlowAI Heartbeat — error — ' + $now.toFormat('dd LLL HH:mm') + ' UTC+4\\n' + $json.alerts.map(a => 'Item: ' + a.target + '\\nWhy: ' + a.why + '\\nNext: ' + a.next + '\\nAnton required: ' + (a.anton ? 'yes' : 'no')).join('\\n---\\n')) }}\n}",
+        "options": {}
+      }
+    },
+    {
+      "id": "noop-silent",
+      "name": "Silent success (no alert)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [1200, 160],
+      "parameters": {}
+    },
+    {
+      "id": "sticky-telegram",
+      "name": "Telegram secret note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [1160, -300],
+      "parameters": {
+        "width": 360,
+        "height": 200,
+        "content": "## Telegram = references only\n\n`{{ $env.TELEGRAM_BOT_TOKEN }}` and `{{ $env.TELEGRAM_ALERT_CHAT_ID }}` are **references**, resolved from n8n's own env/credential store at runtime.\n\nNever paste the actual token or chat id into this template, the repo, or chat. Reuse the existing alert path or a dedicated heartbeat bot."
+      }
+    }
+  ],
+  "connections": {
+    "Every 3 hours": {
+      "main": [
+        [
+          { "node": "GitHub: #493 comments", "type": "main", "index": 0 },
+          { "node": "GitHub: open PRs", "type": "main", "index": 0 },
+          { "node": "GitHub: open Action-Plan issues", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "GitHub: #493 comments": {
+      "main": [[{ "node": "Evaluate staleness", "type": "main", "index": 0 }]]
+    },
+    "GitHub: open PRs": {
+      "main": [[{ "node": "Evaluate staleness", "type": "main", "index": 0 }]]
+    },
+    "GitHub: open Action-Plan issues": {
+      "main": [[{ "node": "Evaluate staleness", "type": "main", "index": 0 }]]
+    },
+    "Evaluate staleness": {
+      "main": [[{ "node": "Any error-level alert?", "type": "main", "index": 0 }]]
+    },
+    "Any error-level alert?": {
+      "main": [
+        [{ "node": "Telegram alert (attach token/chat id in n8n)", "type": "main", "index": 0 }],
+        [{ "node": "Silent success (no alert)", "type": "main", "index": 0 }]
+      ]
+    }
+  }
+}
