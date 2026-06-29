@@ -100,9 +100,9 @@ Revert the PR. No DB migration applied in this phase, so no schema rollback need
 Packet status:
 - State: IN PROGRESS
 - Last update: 2026-06-29
-- Branch: (local — not yet pushed)
-- PR: (none yet)
-- Local checks: npm test = 1220 pass, npm run build = (see CI)
+- Branch: feat/lwm-member-update-flow-test-tenant-pilot-v1
+- PR: #482
+- Local checks: npm test = 1220 pass, npm run build = pass
 - Persistence: in-memory synthetic seed only; DB proposal awaiting approval
 - Live URLs tested: n/a until Preview deploy
 - Verdict: LOCAL ONLY — not COMPLETE
