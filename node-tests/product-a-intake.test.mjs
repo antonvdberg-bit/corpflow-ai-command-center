@@ -24,6 +24,7 @@ describe('validateProductAIntakeBody', () => {
     });
     assert.equal(result.ok, true);
     if (!result.ok) return;
+    assert.equal(result.variant, 'us_clinic');
     assert.equal(result.data.email, 'jordan@example.com');
     assert.equal(result.data.website, 'https://radiance.example.com');
     assert.equal(result.data.phone, null);
@@ -69,7 +70,7 @@ describe('buildProductAIntakePayload', () => {
         city_state: 'Miami, FL',
         biggest_problem: 'Forms go nowhere',
       },
-      { received_at: '2026-06-20T12:00:00.000Z', host: 'corpflowai.com' },
+      { received_at: '2026-06-20T12:00:00.000Z', host: 'corpflowai.com', variant: 'us_clinic' },
     );
 
     assert.equal(payload.schema, PRODUCT_A_INTAKE_SCHEMA);

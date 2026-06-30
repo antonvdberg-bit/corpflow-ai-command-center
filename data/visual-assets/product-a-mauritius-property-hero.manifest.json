@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0.0",
+  "id": "product-a-mauritius-property-hero-v1",
+  "surface": "product-a",
+  "kind": "image",
+  "title": "Product A Mauritius property hero — calm reception interior",
+  "description": "Full-bleed photo+glass hero background for /product-a/mauritius (premium tier — Website & Lead Rescue Audit for Mauritius property operators). Shares the governed reception-interior derivative set with the Lead Rescue property wedge for visual consistency in the property vertical.",
+  "source": {
+    "type": "repo",
+    "path": "/assets/visuals/lead-rescue-property-reception-hero-v1.jpg"
+  },
+  "provenance": {
+    "shared_with": "lead-rescue-property-reception-hero-v1",
+    "source_dimensions": "1024x687",
+    "verification_status": "DRAFT placeholder — same asset family as lead-rescue-property-reception-hero-v1; replace with approved >=2400px master before lifecycle.state=published.",
+    "lifecycle_note": "Consumed as static shell background on ProductAMauritiusPropertyLanding via PublicMarketingPhotoGlassShell."
+  },
+  "licence": {
+    "tier": "ai_generated",
+    "owner": "CorpFlowAI",
+    "terms": "AI-generated placeholder shared with the Lead Rescue property wedge hero. Replace with provenance-confirmed master before production sign-off."
+  },
+  "prompt_provenance": {
+    "prompt_id": "product-a-mauritius-property-hero",
+    "model": "unspecified-image-model"
+  },
+  "accessibility": {
+    "alt": "Calm, premium property reception interior with soft daylight and a welcoming desk area.",
+    "lang": "en",
+    "decorative": true
+  },
+  "usage": {
+    "allowed_surfaces": ["product-a"],
+    "primary_cta": "Request a Website & Lead Rescue Audit",
+    "notes": "slot:product_a_mauritius_hero_background. Full-bleed fixed background under dark scrim via PublicMarketingPhotoGlassShell. Derivatives at /assets/visuals/lead-rescue-property-reception-hero-v1* (shared). REPLACEMENT: new manifest id + derivative set when a dedicated Product A master is approved."
+  },
+  "lifecycle": {
+    "state": "draft",
+    "created_at": "2026-06-30"
+  }
+}

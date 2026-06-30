@@ -49,6 +49,34 @@ No outbound email, SMS, or CRM platform calls from this handler.
 | `city_state` | yes | |
 | `biggest_problem` | yes | |
 
+### Mauritius property variant (`/product-a/mauritius`)
+
+Set `market` to `mauritius-property` and use Mauritius field names. Emits `event_type: intake.product_a.mauritius.v1` and `schema: corpflow.product_a.intake.mauritius.v1`. See `docs/marketing/PRODUCT_A_MAURITIUS_PROPERTY_OFFER_V1.md`.
+
+```json
+{
+  "market": "mauritius-property",
+  "agency_name": "North Coast Realty",
+  "website": "https://northcoast.example.mu",
+  "contact_name": "Marie Duval",
+  "email": "marie@northcoast.example.mu",
+  "phone": "+230 5 123 4567",
+  "city_region": "Grand Baie",
+  "biggest_problem": "Property24 and WhatsApp viewing requests never meet in one follow-up list."
+}
+```
+
+| Field | Required | Notes |
+| ----- | -------- | ----- |
+| `market` | yes | Must be `mauritius-property` |
+| `agency_name` | yes | |
+| `website` | yes | `https://` added server-side if omitted |
+| `contact_name` | yes | |
+| `email` | yes | lowercased server-side |
+| `phone` | no | omitted or empty → `null` |
+| `city_region` | yes | Mauritius city or region (not US `city_state`) |
+| `biggest_problem` | yes | |
+
 ---
 
 ## Response (success)
