@@ -18,6 +18,7 @@ Give Anton everything required to convert the first **1–4 paying pilots** for 
 - the existing Mauritius copy / outreach pack `docs/marketing/AI_LEAD_RESCUE_MAURITIUS_OUTREACH_COPY_V1.md` + `docs/marketing/AI_LEAD_RESCUE_MAURITIUS_SALES_ACTIVATION_PACK_V1.md`,
 - the manual pro-forma fallback `docs/finance/AI_LEAD_RESCUE_MANUAL_PRO_FORMA_TEMPLATE_V1.md` (canonical until the ERPNext Print Designer build clears `JE-2026-06-05-2` AC-1..AC-11),
 - the Mauritius-first outreach + ERPNext + manual POP operating flow `docs/operations/MAURITIUS_OUTREACH_ERPNext_POP_FLOW_V1.md` (proceed locally with manual proof-of-payment verification while SBM international card collection remains unresolved).
+- the Mauritius property **premium tier** offer brief `docs/marketing/PRODUCT_A_MAURITIUS_PROPERTY_OFFER_V1.md` (Website & Lead Rescue Audit — separate funnel from the USD 150 wedge; runtime page gated on follow-up implementation PR).
 
 This pack does **not** invent new copy that already exists elsewhere; it sequences it into a paid-pilot playbook.
 
@@ -102,7 +103,24 @@ The public, customer-facing offer is exactly what `https://corpflowai.com/lead-r
 | Invoicing trigger | **After intake review** (target: 2 business hours after the buyer submits intake) |
 | What we do NOT guarantee | **Revenue. Lead volume. Conversion outcome.** No exceptions |
 
-The single-offer rule is non-negotiable. **Do not invent tiers, discounts, or add-ons** in conversations with paying pilots. Variations (e.g. monthly monitoring after the pilot, currency on the invoice) are operator-side decisions made *after* intake review and communicated on the invoice — not menu items the buyer chooses on the page or in DMs.
+The single-offer rule is non-negotiable **on each Lead Rescue public surface**. **Do not invent tiers, discounts, or add-ons** in conversations with paying pilots when selling the wedge. Variations (e.g. monthly monitoring after the pilot, currency on the invoice) are operator-side decisions made *after* intake review and communicated on the invoice — not menu items the buyer chooses on the page or in DMs.
+
+### 4a. Mauritius tier ladder — wedge + premium (property vertical)
+
+**Authorized 2026-06-30** (Anton decision; doctrine update in `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md` § *Mauritius property commercial tier ladder*).
+
+Mauritius property may use **two separate URLs**, each with **one offer on that page**:
+
+| Tier | URL | What the buyer gets | When to use |
+| ---- | --- | ------------------- | ----------- |
+| **Wedge** | `/lead-rescue/property-mauritius` (or pan-vertical `/lead-rescue`) | USD 150 launch pilot — follow-up visibility on existing channels | Default warm-network outreach; buyer has a workable site; pain is missed enquiries |
+| **Premium** | `/product-a/mauritius` *(page ships in follow-up implementation PR)* | Website & Lead Rescue Audit — rebuild/migration + enquiry capture + operating workflow | Buyer needs website scope **and** managed lead operations; quote after audit intake |
+
+**This section does not change § 4 for Lead Rescue pages.** Lead Rescue URLs still show **only** the USD 150 pilot. Product A pricing is **never** on Lead Rescue pages.
+
+**Outreach default during the first 1–4 paid pilots:** send the wedge unless the conversation surfaces clear website-rebuild need (see routing table in `docs/marketing/PRODUCT_A_MAURITIUS_PROPERTY_OFFER_V1.md` § 6).
+
+**Objection addendum — "We need a new website"** (property niche): acknowledge scope; send `/product-a/mauritius` for audit intake instead of forcing the USD 150 wedge. Do not quote a project price in chat — intake first.
 
 ## 5. Pricing recommendation (operator-side)
 
@@ -164,7 +182,7 @@ The full library lives in **`docs/sales/AI_LEAD_RESCUE_OUTREACH_SCRIPTS.md`** §
 - **"Send me details"** → send the page link with one sentence framing what they will see.
 - **"How much?"** → USD 150 launch pilot; everything is on the page; invoiced after intake review.
 - **"We already use WhatsApp"** → great — the pilot connects WhatsApp + the other channels into one Monday-morning view; we do not replace WhatsApp.
-- **"We already have a website"** → we are not selling website services; we connect the enquiries the website already produces into a daily lead list.
+- **"We already have a website"** → we are not selling website services on the **wedge**; we connect the enquiries the website already produces into a daily lead list. If they need a **new or rebuilt** site, route to Product A Mauritius property (`/product-a/mauritius`) — see § 4a.
 - **"We do not want a CRM"** → we are not a CRM. The pilot is a lead-response operating workflow, not a database migration.
 - **"Is this AI spam?"** → fair question. The operator (Anton) personally reviews intake; AI assists with capture and summary, but follow-up decisions are human. Nothing is auto-sent to the buyer's customers without operator review.
 
@@ -219,7 +237,7 @@ The doctrine line is: **first 4 paying pilots before any expansion build.** Unti
 - A chatbot expansion (covered separately under the chatbot audit `JE-2026-06-05-9`; build packet not authorised by THIS PR).
 - A bulk-email or bulk-WhatsApp campaign system (forbidden by doctrine; warm-network only).
 - A paid-ads channel (Google Ads / Meta Ads / LinkedIn Ads) (forbidden as default by THIS PR).
-- A second productized service line (restaurant marketing, contractor quote-pipeline, finance reconciliation) (held until pilot wedge is proven).
+- A second productized service line (restaurant marketing, contractor quote-pipeline, finance reconciliation) (held until pilot wedge is proven). **Exception:** Product A Mauritius property (`/product-a/mauritius`) is documented as the **premium tier** above the wedge (`docs/marketing/PRODUCT_A_MAURITIUS_PROPERTY_OFFER_V1.md`) — **runtime page ships only in a separate implementation PR**; warm outreach default remains the USD 150 wedge.
 - A self-serve checkout / Stripe integration (held; manual pro-forma is the canonical payment path until the doctrine changes via a separate JOURNAL row).
 - A multi-tenant CRM rebuild (NO-GO per `docs/strategy/CORPFLOWAI_CRM_REUSE_AUDIT_V1.md`).
 - A Frappe CRM install (DEFER — 30-day pilot candidate, not first-paid-pilots layer).
@@ -248,7 +266,8 @@ The activity log is **append-only** and **server-stamps** the timestamp + operat
 
 - `docs/strategy/ABOVE_THE_LINE_STRATEGY_DOCTRINE.md` — strategic guardrail (AI Lead Rescue stays above the line as a managed lead-response operating workflow).
 - `docs/strategy/GOOGLE_ACCELERATION_LANE.md` — Google AI tools may draft collateral, never replace the operator system or fabricate evidence.
-- `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md` — single-offer rule, CTA rules, allowed claims, no-guarantee copy.
+- `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md` — single-offer rule, CTA rules, allowed claims, no-guarantee copy; § *Mauritius property commercial tier ladder*.
+- `docs/marketing/PRODUCT_A_MAURITIUS_PROPERTY_OFFER_V1.md` — premium tier (Website & Lead Rescue Audit) for Mauritius property; routing wedge vs premium.
 - `docs/marketing/AI_LEAD_RESCUE_MAURITIUS_OUTREACH_COPY_V1.md` — canonical channel copy library (LinkedIn / WhatsApp / email / follow-up).
 - `docs/marketing/AI_LEAD_RESCUE_MAURITIUS_SALES_ACTIVATION_PACK_V1.md` — operator playbook the day-to-day rhythm is built on.
 - `docs/marketing/AI_LEAD_RESCUE_MAURITIUS_LAUNCH_READINESS.md` — launch readiness inventory.

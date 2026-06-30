@@ -12,9 +12,9 @@
 
 **Revision note (2026-06-22):** Anton decisions captured — **Langfuse** is part of Product A measurement from the start; **Chatwoot** is the standard website chat/live-chat/conversation inbox (not the CRM); **GoHighLevel** is legacy/migration-away only; **Twenty vs EspoCRM** is the CRM replacement bake-off; **social scheduling** requires candidate discovery (do not default to Mixpost); **AgentSpan** verified at agentspan.ai but watch/revisit only. **No install or production config authorized by this revision.**
 
----
+**Revision note (2026-06-30):** Mauritius property **premium tier** documented in `docs/marketing/PRODUCT_A_MAURITIUS_PROPERTY_OFFER_V1.md` — separate funnel from the USD 150 Lead Rescue wedge; US `/product-a/us-clinics` unchanged. Runtime `/product-a/mauritius` ships only after doctrine reconciliation merges.
 
-## 1. Purpose
+---
 
 Define the **smallest revenue machine** that can sell and deliver Product A without over-building infrastructure before the sales motion is proven.
 

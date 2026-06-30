@@ -28,7 +28,8 @@ Mauritius-first POP operating semantics. Where this packet and a canonical doc d
 
 **Canonical inputs (read alongside; do not duplicate):**
 
-- `docs/marketing/AI_LEAD_RESCUE_FIRST_PAID_PILOTS.md` — single offer (USD 150 launch pilot), Mauritius-first, warm-network, no-guarantee posture.
+- `docs/marketing/AI_LEAD_RESCUE_FIRST_PAID_PILOTS.md` — single offer (USD 150 launch pilot) on Lead Rescue surfaces; Mauritius-first; warm-network; no-guarantee posture; § 4a tier ladder (wedge + Product A premium).
+- `docs/marketing/PRODUCT_A_MAURITIUS_PROPERTY_OFFER_V1.md` — premium tier (Website & Lead Rescue Audit) for property buyers who need website scope; separate funnel from the wedge.
 - `docs/finance/AI_LEAD_RESCUE_MANUAL_PRO_FORMA_TEMPLATE_V1.md` — manual pro-forma template + **verbatim wording W1–W5** + sensitive-data exclusion list.
 - `docs/marketing/AI_LEAD_RESCUE_MAURITIUS_OUTREACH_COPY_V1.md` + `docs/marketing/AI_LEAD_RESCUE_MAURITIUS_SALES_ACTIVATION_PACK_V1.md` — outreach copy.
 - `docs/operations/AI_LEAD_RESCUE_OPERATOR_RUNBOOK.md` — operator runbook (intake → setup).
