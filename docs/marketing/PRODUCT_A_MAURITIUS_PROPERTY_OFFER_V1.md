@@ -10,7 +10,7 @@
 
 <!-- PRODUCT_A_MAURITIUS_PROPERTY_OFFER_V1 -->
 
-**Runtime gate:** A separate implementation PR may ship `/product-a/mauritius` **only after** this packet and the doctrine / launch-pack updates in the same docs PR are merged. This doc does **not** authorize n8n changes, ERPNext schema changes, or payment integration.
+**Runtime gate:** Doctrine reconciliation merged in PR #505. The `/product-a/mauritius` page and Mauritius intake variant ship in the follow-up implementation PR on `feat/product-a-mauritius-page`.
 
 ---
 
