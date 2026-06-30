@@ -16,7 +16,8 @@ Give Anton everything required to convert the first **1–4 paying pilots** for 
 - the operator cockpit at `/admin/lead-rescue` (status pipeline + 13-item setup checklist + activity log per `JE-2026-06-08-1` once that runtime PR ships),
 - the existing operator runbook `docs/operations/AI_LEAD_RESCUE_OPERATOR_RUNBOOK.md`,
 - the existing Mauritius copy / outreach pack `docs/marketing/AI_LEAD_RESCUE_MAURITIUS_OUTREACH_COPY_V1.md` + `docs/marketing/AI_LEAD_RESCUE_MAURITIUS_SALES_ACTIVATION_PACK_V1.md`,
-- the manual pro-forma fallback `docs/finance/AI_LEAD_RESCUE_MANUAL_PRO_FORMA_TEMPLATE_V1.md` (canonical until the ERPNext Print Designer build clears `JE-2026-06-05-2` AC-1..AC-11).
+- the manual pro-forma fallback `docs/finance/AI_LEAD_RESCUE_MANUAL_PRO_FORMA_TEMPLATE_V1.md` (canonical until the ERPNext Print Designer build clears `JE-2026-06-05-2` AC-1..AC-11),
+- the Mauritius-first outreach + ERPNext + manual POP operating flow `docs/operations/MAURITIUS_OUTREACH_ERPNext_POP_FLOW_V1.md` (proceed locally with manual proof-of-payment verification while SBM international card collection remains unresolved).
 
 This pack does **not** invent new copy that already exists elsewhere; it sequences it into a paid-pilot playbook.
 
