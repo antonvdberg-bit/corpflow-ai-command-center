@@ -221,6 +221,7 @@ external service — they are counted by reading GitHub state at digest time.
 - `docs/operations/CODEX_INTEGRATION_CONTRACT_V1.md` — Codex transfer-safe output contract.
 - `docs/execution/WEEKEND_EXECUTION_QUEUE.md` — packet-level live queue.
 - `docs/execution/CORPFLOW_AUTONOMOUS_ACTIONS_POLICY.md` — §2 allowed / §3 Anton-only.
+- `docs/operations/AUTONOMOUS_THROUGHPUT_RECOVERY_AND_STOCKTAKE_V1.md` — 48-hour recovery snapshot + asset stocktake (#507); n8n issue-comment write-back recommendation; Factory/`change` alignment; Living Word demo path.
 - `.cursor/rules/delivery-reality.mdc` — only **live verified** is `COMPLETE`.
 
 ## 11. Status block
