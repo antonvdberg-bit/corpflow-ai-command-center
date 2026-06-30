@@ -286,6 +286,33 @@ Doctrine constraints on this localisation:
 - **Pan-vertical `/lead-rescue` is unchanged** by this localisation. It continues to use the apex required payment trust copy above ("USD invoice through the agreed route").
 - **Any additional landing surface** that wants to localise the public-page payment framing requires an explicit doctrine update **here** before the surface ships. Silent loosening of the single-offer rule across surfaces is a doctrine violation.
 
+### Mauritius property commercial tier ladder (authorized 2026-06-30)
+
+Anton decision: Mauritius property may expose **two separate public funnels** — each obeys **single-offer on its own URL**. This is not a multi-offer menu on one page.
+
+| Tier | Canonical route | Public offer (one per page) |
+| ---- | --------------- | --------------------------- |
+| **Wedge** | `/lead-rescue`, `/lead-rescue/property-mauritius` | **AI Lead Rescue Setup — USD 150 launch pilot** (unchanged) |
+| **Premium** | `/product-a/mauritius` *(implementation PR after this doctrine update)* | **Request a Website & Lead Rescue Audit** — Mauritius property edition (scope + quote after intake review; no card on page) |
+
+**Lead Rescue surfaces (wedge):**
+
+- Advertise **only** the USD 150 launch pilot on each Lead Rescue URL.
+- **Never** show Product A project pricing, website-rebuild packages, or a tier comparison table on Lead Rescue pages.
+- Continuation / monthly monitoring remains operator-side / post-review (unchanged).
+
+**Product A Mauritius property surface (premium):**
+
+- Advertise **only** the audit intake path on `/product-a/mauritius`.
+- **No** USD 150 pilot price as the primary hero offer on this page.
+- **No** monthly monitoring or project price on the public page — quoted after intake review.
+- May include **one** short “lighter entry path” line pointing buyers who only need follow-up on an existing site to `/lead-rescue/property-mauritius`. That line must not compete with the primary CTA.
+- Payment trust copy follows the Mauritius manual pro-forma posture in `docs/operations/MAURITIUS_OUTREACH_ERPNext_POP_FLOW_V1.md` (no card on page; POP before work starts).
+
+**Operator routing (warm network):** Default outreach link remains the Lead Rescue wedge unless the buyer clearly needs website rebuild scope. Full routing table: `docs/marketing/PRODUCT_A_MAURITIUS_PROPERTY_OFFER_V1.md` § 6.
+
+**US Product A:** `/product-a/us-clinics` is unchanged and is not part of this Mauritius ladder.
+
 Preferred global CTA:
 
 - Start my 48-hour setup
