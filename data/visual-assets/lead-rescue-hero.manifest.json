@@ -25,13 +25,13 @@
   "usage": {
     "allowed_surfaces": ["lead-rescue", "shared"],
     "primary_cta": "Start my 48-hour setup",
-    "notes": "slot:lead_rescue_hero. Above-the-fold; renderer should use eager loading. Responsive WebP set: /assets/visuals/lead-rescue-hero-{1920,1280,768}.webp."
+    "notes": "RETIRED. Superseded by the dark photo+glass system: /lead-rescue now renders a full-bleed fixed hero background (placeholder manifest lead-rescue-spa-sunset-hero-v1) via PublicMarketingPhotoGlassShell, so the in-flow editorial desk hero is no longer rendered. Kept for provenance/history only; not eligible for selection while retired."
   },
   "lifecycle": {
-    "state": "vetted",
+    "state": "retired",
     "created_at": "2026-05-21",
     "reviewed_at": "2026-05-21",
-    "review_due": "2026-11-21"
+    "retired_at": "2026-06-30"
   },
   "prompt_provenance": {
     "prompt_id": "lead-rescue-hero-photography",
