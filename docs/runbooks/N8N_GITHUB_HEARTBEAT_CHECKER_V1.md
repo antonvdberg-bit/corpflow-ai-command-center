@@ -179,6 +179,7 @@ inactive, to avoid implying a monitor that does not yet run.
 
 ## 10. Cross-references
 
+- `docs/runbooks/N8N_GITHUB_HEARTBEAT_ACTIVATION_READINESS_V1.md` — Stage 2 activation-readiness packet (pre-flight checklist, exact n8n click-path, two-part validation test).
 - `docs/n8n/templates/github-heartbeat-checker.template.json` — the Stage 1 secret-free template.
 - `docs/operations/PARALLEL_EXECUTION_BOARD_V1.md` — lanes, WIP limits, digest cadence.
 - `docs/operations/OPERATOR_PROGRESS_DIGEST_V1.md` — digest format the heartbeat checks for.
