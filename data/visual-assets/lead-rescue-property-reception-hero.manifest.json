@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lead-rescue-property-reception-hero-v1",
+  "surface": "lead-rescue",
+  "kind": "image",
+  "title": "AI Lead Rescue Mauritius property hero — calm reception interior",
+  "description": "Full-bleed photo+glass hero background for the AI Lead Rescue Mauritius property page (/lead-rescue/property-mauritius): a calm, premium reception / lounge interior with a marble desk, white orchids, soft daylight, warm wood, and framed Mauritius coastal artworks on the wall. Warm, human, restrained-luxury; no people, no identifiable individuals, no logos, no PII. Responsive AVIF/WebP/JPG derivatives (desktop + 768w mobile) generated from the source.",
+  "source": {
+    "type": "repo",
+    "path": "/assets/visuals/lead-rescue-property-reception-hero-v1.jpg"
+  },
+  "provenance": {
+    "source_filename": "lead-rescue-property-reception-hero-source.jpg",
+    "source_dimensions": "1024x687",
+    "supplied_by": "Anton (operator) — AI-generated, supplied via chat for the dark photo+glass alignment of the Mauritius property page",
+    "optimised_with": "sharp (jpeg mozjpeg q80, webp q78, avif q50) via scripts/optimize-lead-rescue-reception-hero.mjs",
+    "derivatives": [
+      "/assets/visuals/lead-rescue-property-reception-hero-v1.avif",
+      "/assets/visuals/lead-rescue-property-reception-hero-v1.webp",
+      "/assets/visuals/lead-rescue-property-reception-hero-v1.jpg",
+      "/assets/visuals/lead-rescue-property-reception-hero-v1-768.avif",
+      "/assets/visuals/lead-rescue-property-reception-hero-v1-768.webp",
+      "/assets/visuals/lead-rescue-property-reception-hero-v1-768.jpg"
+    ],
+    "verification_status": "DRAFT placeholder. AI-generated; the supplied source is only 1024x687, which is below the >=2400x1600 target for a crisp full-bleed desktop background. Replace with a provenance-confirmed, higher-resolution master before this page goes to lifecycle.state=published."
+  },
+  "licence": {
+    "tier": "ai_generated",
+    "owner": "CorpFlowAI",
+    "terms": "AI-generated image supplied by the operator for use as the Mauritius property page hero. Treated as a draft placeholder; confirm AI-generation rights and replace with an approved >=2400px master before production sign-off. No identifiable people, no logos, no PII."
+  },
+  "prompt_provenance": {
+    "prompt_id": "lead-rescue-property-reception-hero",
+    "model": "unspecified-image-model"
+  },
+  "accessibility": {
+    "alt": "Calm, premium property reception interior in soft daylight: a marble desk with white orchids, warm wood cabinetry, and framed Mauritius coastal artworks on a pale blue wall.",
+    "lang": "en",
+    "decorative": true
+  },
+  "usage": {
+    "allowed_surfaces": ["lead-rescue"],
+    "primary_cta": "Request the Mauritius property pilot outline",
+    "notes": "slot:lead_rescue_property_hero. Full-bleed fixed background under a dark-tinted scrim via PublicMarketingPhotoGlassShell; rendered decoratively (alt=\"\") because the surrounding copy carries the meaning. Dark frosted-glass panels sit above it. REPLACEMENT: to change the hero, add a new derivative set and a new manifest id (e.g. lead-rescue-property-reception-hero-v2), then retire this one — never overwrite a published path."
+  },
+  "lifecycle": {
+    "state": "draft",
+    "created_at": "2026-06-30"
+  }
+}

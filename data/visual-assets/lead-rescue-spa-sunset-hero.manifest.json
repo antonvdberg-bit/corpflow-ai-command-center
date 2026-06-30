@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lead-rescue-spa-sunset-hero-v1",
+  "surface": "lead-rescue",
+  "kind": "image",
+  "title": "AI Lead Rescue hero — Mauritius spa at sunset",
+  "description": "Full-bleed photo+glass hero background for the main AI Lead Rescue page (/lead-rescue): a calm, premium Mauritius beachside spa setting at sunset — twin treatment beds with rolled towels and frangipani flowers, tiki torches, palms, and a tranquil lagoon with Le Morne in the distance. Warm, human, restrained-luxury; no identifiable people, no PII. Responsive AVIF/WebP/JPG derivatives (desktop + 768w mobile).",
+  "source": {
+    "type": "repo",
+    "path": "/assets/visuals/lead-rescue-spa-sunset-hero-v1.jpg"
+  },
+  "provenance": {
+    "source_filename": "lead-rescue-spa-sunset-hero-source.jpg",
+    "source_dimensions": "1024x687",
+    "supplied_by": "Anton (operator) — AI-generated, supplied via chat for the dark photo+glass alignment of the main /lead-rescue page",
+    "optimised_with": "sharp (jpeg mozjpeg q80, webp q78, avif q50) via scripts/optimize-lead-rescue-spa-hero.mjs",
+    "derivatives": [
+      "/assets/visuals/lead-rescue-spa-sunset-hero-v1.avif",
+      "/assets/visuals/lead-rescue-spa-sunset-hero-v1.webp",
+      "/assets/visuals/lead-rescue-spa-sunset-hero-v1.jpg",
+      "/assets/visuals/lead-rescue-spa-sunset-hero-v1-768.avif",
+      "/assets/visuals/lead-rescue-spa-sunset-hero-v1-768.webp",
+      "/assets/visuals/lead-rescue-spa-sunset-hero-v1-768.jpg"
+    ],
+    "verification_status": "DRAFT placeholder. AI-generated; the supplied source is only 1024x687 (below the >=2400x1600 target for a crisp full-bleed desktop background) and carries a small 'Mauritius' script watermark in the lower-right. Also note this is a wellness/hospitality-Mauritius scene on an otherwise pan-vertical page — confirm it is the intended brand direction for the main funnel. Replace with a clean, provenance-confirmed, higher-resolution master before lifecycle.state=published.",
+    "lifecycle_note": "Held at lifecycle.state=draft so selectLeadRescueAssets() never auto-selects it into the in-flow lead_rescue_hero slot; this asset is consumed only as the static full-bleed shell background via components/AiLeadRescueLanding.js."
+  },
+  "licence": {
+    "tier": "ai_generated",
+    "owner": "CorpFlowAI",
+    "terms": "AI-generated image supplied by the operator for use as the main /lead-rescue page hero. Treated as a draft placeholder; confirm AI-generation rights, remove the watermark, and replace with an approved >=2400px master before production sign-off. No identifiable people, no PII."
+  },
+  "prompt_provenance": {
+    "prompt_id": "lead-rescue-spa-sunset-hero",
+    "model": "unspecified-image-model"
+  },
+  "accessibility": {
+    "alt": "Calm Mauritius beachside spa at sunset: twin treatment beds with rolled towels and frangipani flowers, tiki torches, palms, and a tranquil lagoon with a mountain in the distance.",
+    "lang": "en",
+    "decorative": true
+  },
+  "usage": {
+    "allowed_surfaces": ["lead-rescue"],
+    "primary_cta": "Start my 48-hour setup",
+    "notes": "slot:lead_rescue_hero_background. Full-bleed fixed background under a dark-tinted scrim via PublicMarketingPhotoGlassShell; rendered decoratively (alt=\"\") because the surrounding copy carries the meaning. Dark frosted-glass panels sit above it. REPLACEMENT: to change the hero, add a new derivative set and a new manifest id (e.g. lead-rescue-spa-sunset-hero-v2), then retire this one — never overwrite a published path."
+  },
+  "lifecycle": {
+    "state": "draft",
+    "created_at": "2026-06-30"
+  }
+}
