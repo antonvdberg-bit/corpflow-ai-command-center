@@ -417,7 +417,7 @@ ERPNext minimum when operator uses sandbox: `docs/operations/MAURITIUS_OUTREACH_
 | 1 | Pro-forma / invoice issued (if not already) | `docs/finance/AI_LEAD_RESCUE_MANUAL_PRO_FORMA_TEMPLATE_V1.md` |
 | 2 | POP received from client | `docs/operations/MAURITIUS_OUTREACH_ERPNext_POP_FLOW_V1.md` § 3 |
 | 3 | Operator verifies cleared funds manually | Anton-only gate |
-| 4 | Onboarding checklist started | `docs/operations/AI_LEAD_RESCUE_PAID_PILOT_ONBOARDING.md` |
+| 4 | Onboarding checklist started | `docs/operations/MAURITIUS_PAID_PILOT_DEAL_DESK_V1.md` + `docs/operations/MAURITIUS_CLIENT_ONBOARDING_CHECKLIST_V1.md` |
 | 5 | Delivery board / operator cockpit updated | `docs/operations/AI_LEAD_RESCUE_OPERATOR_RUNBOOK.md` |
 | 6 | 48-hour setup + 7-day monitoring executed | Operator runbook + sales-to-delivery handoff |
 | 7 | Service live; pilot close + optional monthly offer | Pricing guide — post-pilot only |
