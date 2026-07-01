@@ -256,7 +256,7 @@ Bounded, smallest-first. Each is a separate PR; none self-merges.
 
 ## 14. Cross-references
 
-- `docs/LIVING_WORD/LIVING_WORD_TUESDAY_DEMO_SCRIPT_V1.md` — Tuesday demo click-path (2026-07-07).
+- `docs/LIVING_WORD/LIVING_WORD_TUESDAY_WHATSAPP_DEMO_PACKET_V1.md` — **WhatsApp live demo** (7 July): TEST labeling, message templates, logo, feedback CTA, participant handling (operator-held).
 - `docs/LIVING_WORD/LIVING_WORD_GHL_LEGACY_ONBOARDING_AND_UPDATE_FIELD_MAP_V1.md` — GHL Phase 1/2 + operator field list → CorpFlow allowlist.
 - `artifacts/quality-audits/2026-06-11-living-word-mauritius/demo-ready-sandbox-activation.md` — current demo posture + rollback (primary reuse).
 - `artifacts/quality-audits/2026-06-11-living-word-mauritius/member-update-flow-v1-sandbox-implementation-packet.md` — Member Update Flow v1 build (PR #482) + gates.
