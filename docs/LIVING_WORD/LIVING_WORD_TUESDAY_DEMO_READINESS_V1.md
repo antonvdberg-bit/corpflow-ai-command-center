@@ -4,6 +4,7 @@
 **Tenant:** `living-word-mauritius` **only**.
 **Owner:** Anton (operator) for every hard gate; Cursor for docs/PR execution.
 **Created:** 2026-06-30.
+**Demo date:** **Tuesday 7 July 2026** (2026-07-07) — confirmed by Anton, 2026-06-30.
 **Command log:** GitHub issue [#249](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/249) (live). Doctrine reference: [#493](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/493). Recovery stocktake: [#507](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/507).
 **Anchor sentinel:** `<!-- LIVING_WORD_TUESDAY_DEMO_READINESS_V1 -->`
 
@@ -72,7 +73,8 @@ This plan **reuses and cross-links** the existing Living Word material under `ar
 |---|---|---|
 | Demo copy polish on `/site-preview` (service-time wording, WordGroups, Business Network placeholders → approved wording) | Docs/copy + admin-gated UI | **Should-have** |
 | Member-update form **preview smoke** with admin session (identify synthetic → submit → review payload) | Preview verification | **Must-have** (proves the walkthrough) |
-| Demo script (the exact click path Anton follows) | Docs | **Must-have** — see §11 / cross-link `demo-ready-sandbox-activation.md` §9 |
+| Demo script (the exact click path Anton follows) | Docs | **Must-have** — `docs/LIVING_WORD/LIVING_WORD_TUESDAY_DEMO_SCRIPT_V1.md` (demo date 2026-07-07) |
+| GHL legacy field map (onboarding + update phases) | Docs | **Must-have** — `docs/LIVING_WORD/LIVING_WORD_GHL_LEGACY_ONBOARDING_AND_UPDATE_FIELD_MAP_V1.md` |
 | Additional approved schedule rows | Operator (pastor-approved only) | Nice-to-have; do **not** approve unverified fixtures |
 | Any new page/section | — | **No** — out of scope for Tuesday |
 
@@ -221,6 +223,7 @@ Per AAP §3 / Parallel Execution Board §7 — stop and ask:
 | **Demo copy refinement** | Cursor → Anton/owner sign-off | Draft approved-wording copy (services, WordGroups, Business Network) | Copy draft for sign-off | Owner sign-off before live | Yes (sign-off) |
 | **Schedule rows** | Anton/pastor | Approve any additional real service rows | Approved DB rows | Pastor approval + DB | Yes |
 | **Demo-morning verification** | Cursor | Re-probe `/site-preview` + chatbot + loader header; post "demo-ready" to #249 | One-line live confirmation | Read-only | No |
+| **Demo-morning date** | — | **2026-07-07** | Re-probe on morning of 7 July | — | — |
 | **CMP alignment (when feedback lands)** | Cursor | Open one CMP ticket for the first client deliverable | CMP ticket + `/change` row | Per §8 | At deliverable |
 
 WIP stays within the Parallel Execution Board caps (≤2 open Cursor PRs).
@@ -231,10 +234,11 @@ WIP stays within the Parallel Execution Board caps (≤2 open Cursor PRs).
 
 Bounded, smallest-first. Each is a separate PR; none self-merges.
 
-1. **PR A — Demo script (docs-only).** `docs/LIVING_WORD/LIVING_WORD_TUESDAY_DEMO_SCRIPT_V1.md` — exact click path, fallback if a surface is down, talking points (reuse `demo-ready-sandbox-activation.md` §9). *Docs-only; no Anton beyond merge.*
-2. **PR B — Demo copy refinement (admin-gated UI + copy).** Polish `/site-preview` placeholder wording → approved wording (draft, behind owner sign-off). *Small, low-risk; Preview-verified; Anton merges + owner signs off copy.*
-3. **PR C — Member-update form demo refinement (admin-gated).** Label/layout polish + synthetic-seed walkthrough hardening; **no DB, no canonical write**. *Preview smoke required; Anton merges.*
-4. **PR D — Demo content / mock-data structure (docs + synthetic seed).** Document the synthetic record set + mock form copy for the deferred forms (family/household, ministry interest, prayer, volunteer). *Docs/seed only; no real data.*
+1. **PR A — Demo script (docs-only).** `docs/LIVING_WORD/LIVING_WORD_TUESDAY_DEMO_SCRIPT_V1.md` — exact click path, fallback if a surface is down, talking points (demo date **2026-07-07**). *Shipped in follow-up PR after #509.*
+2. **PR A2 — GHL legacy field map (docs-only).** `docs/LIVING_WORD/LIVING_WORD_GHL_LEGACY_ONBOARDING_AND_UPDATE_FIELD_MAP_V1.md` — Phase 1 onboarding vs Phase 2 update workflow + operator field list mapped to Tuesday allowlist. *Shipped in same PR.*
+3. **PR B — Demo copy refinement (admin-gated UI + copy).** Polish `/site-preview` placeholder wording → approved wording (draft, behind owner sign-off). *Small, low-risk; Preview-verified; Anton merges + owner signs off copy.*
+4. **PR C — Member-update form demo refinement (admin-gated).** Label/layout polish + synthetic-seed walkthrough hardening; **no DB, no canonical write**. *Preview smoke required; Anton merges.*
+5. **PR D — Demo content / mock-data structure (docs + synthetic seed).** Document the synthetic record set + mock form copy for the deferred forms (family/household, ministry interest, prayer, volunteer). *Docs/seed only; no real data.*
 
 (Chatbot needs **no** new PR for Tuesday — it is already live-verified. A future "retrieval copy sign-off" PR is gated on owner approval, not Tuesday.)
 
@@ -252,7 +256,9 @@ Bounded, smallest-first. Each is a separate PR; none self-merges.
 
 ## 14. Cross-references
 
-- `artifacts/quality-audits/2026-06-11-living-word-mauritius/demo-ready-sandbox-activation.md` — current demo posture + demo script + rollback (primary reuse).
+- `docs/LIVING_WORD/LIVING_WORD_TUESDAY_DEMO_SCRIPT_V1.md` — Tuesday demo click-path (2026-07-07).
+- `docs/LIVING_WORD/LIVING_WORD_GHL_LEGACY_ONBOARDING_AND_UPDATE_FIELD_MAP_V1.md` — GHL Phase 1/2 + operator field list → CorpFlow allowlist.
+- `artifacts/quality-audits/2026-06-11-living-word-mauritius/demo-ready-sandbox-activation.md` — current demo posture + rollback (primary reuse).
 - `artifacts/quality-audits/2026-06-11-living-word-mauritius/member-update-flow-v1-sandbox-implementation-packet.md` — Member Update Flow v1 build (PR #482) + gates.
 - `artifacts/quality-audits/2026-06-11-living-word-mauritius/member-update-flow-schema-form-design-v1.md` — form schema + field allowlist/denylist.
 - `artifacts/quality-audits/2026-06-11-living-word-mauritius/member-update-flow-v1-db-migration-proposal-v1.md` — DB migration **gate** (not applied).
