@@ -28,6 +28,8 @@
 | Pricing | `docs/sales/AI_LEAD_RESCUE_PRICING_GUIDE.md` |
 | Manual pro-forma | `docs/finance/AI_LEAD_RESCUE_MANUAL_PRO_FORMA_TEMPLATE_V1.md` |
 | Proof rules | `docs/marketing/PROOF_VALIDATION_ASSET_PLAN_LR_V1.md` |
+| Sales vs delivery boundary | `docs/operations/AI_LEAD_RESCUE_SALES_TO_DELIVERY_HANDOFF.md` |
+| Evidence gap (§15) | This doc — minimum before "delivered" |
 
 ---
 
@@ -346,3 +348,91 @@ This operator pack stays in the **pre-proof** posture until Anton captures §8 e
 ## 14. Delivery verdict
 
 **Docs-only.** **COMPLETE-AT-PR-MERGE** for the artefact. First paying pilot remains Anton-operated.
+
+---
+
+## 15. Operator evidence and dashboard gap (C2 — minimum before "delivered")
+
+This section names the **smallest evidence set** Anton needs before calling the first USD 150 pilot **delivered** — without building a new CRM, second database, or revenue dashboard.
+
+### 15.1 What must be captured manually (operator-held)
+
+| # | Evidence | Where it lives | When |
+| - | -------- | -------------- | ---- |
+| E1 | Warm outreach sent + channel + date | Private spreadsheet / notes (sales surface) | Before intake |
+| E2 | Qualification call notes (§4 all true) | Private notes or cockpit activity log after intake | Before pro-forma |
+| E3 | Intake submission timestamp + cockpit id | `/admin/lead-rescue/[id]` | On intake |
+| E4 | Pro-forma sent date + buyer email used | Cockpit activity log | After review |
+| E5 | POP received + **cleared funds verified** date | Cockpit activity log (no bank digits) | Before setup |
+| E6 | One lead source connected + test enquiry proof | Cockpit checklist + private screenshot | Within 48h setup |
+| E7 | Daily summaries sent (days 1–7) | Cockpit activity log + buyer WhatsApp/email | Pilot window |
+| E8 | Day-7 recap notes (counts only) | Cockpit activity log | End of pilot |
+| E9 | Testimonial permission (if asked) | Written client reply — private until G7 | After day 7 |
+
+**Verdict rule:** pilot is **delivered** when E1–E8 are true for that buyer. E9 is optional for delivery; required only before any publish.
+
+### 15.2 What proof is **not** allowed yet
+
+Per `PROOF_VALIDATION_ASSET_PLAN_LR_V1.md` §3 — unchanged:
+
+- No published testimonials, client names, logos, or case cards on `/lead-rescue` or outreach.
+- No fabricated metrics (% uplift, revenue saved, "trusted by").
+- No "paying client" social proof until written permission after E8.
+
+Structural proof on the live page (USD 150, 48h, 7 days, no guarantee) **stays** — do not add new claims.
+
+### 15.3 What `/change` can track now (and what it is not)
+
+| Surface | Role for Lead Rescue first pilot |
+| ------- | -------------------------------- |
+| **`/admin/lead-rescue/[id]`** | **Primary delivery cockpit** — status pipeline, setup checklist, activity log (`AI_LEAD_RESCUE_SALES_TO_DELIVERY_HANDOFF.md`). |
+| **`/change`** | **Not the Lead Rescue operator console.** Use only if a separate CMP delivery ticket is opened for a **code/marketing change** tied to the pilot (e.g. a follow-up PR). Do not open `/change` tickets for every sales touch — that duplicates the spreadsheet + cockpit. |
+| **Pre-intake prospects** | **Spreadsheet only** — never `/change`, never cockpit until intake (`handoff` doc §1). |
+
+**Smallest safe alignment:** one cockpit row per paying intake; optional one CMP/`/change` ticket only when a **shipped deliverable** (not every operator step) needs factory tracking.
+
+### 15.4 What must **not** become a new CRM or second database
+
+| Temptation | Correct posture |
+| ---------- | ---------------- |
+| Track all 25 warm prospects in Postgres | **No** — spreadsheet until intake |
+| Build a Lead Rescue CRM module | **No** — cockpit + handoff doc |
+| Duplicate intake in Google Sheet after cockpit exists | **No** — cockpit is source of truth post-intake |
+| n8n auto-logging every DM to DB | **No** — manual activity log entries |
+| Second app / second Postgres | **Never** |
+
+One app, one Postgres (`POSTGRES_URL`). Lead Rescue delivery state lives in existing `lead_rescue_intakes` + cockpit JSON — not a parallel system.
+
+### 15.5 What can wait until **after** the first paid pilot
+
+| Item | Wait because |
+| ---- | ------------ |
+| Revenue / conversion dashboard | No honest numbers until one pilot completes |
+| Automated POP → status update | Manual verify is the gate today |
+| Published case study on site | Needs E8 + G7 |
+| ERPNext production invoicing | Manual pro-forma is canonical |
+| Cold 25-prospect automation | Warm path must prove one pilot first |
+| `/change` workflow for every operator step | Over-process before revenue proof |
+| Validation video (CF-VID-0001) on page | Optional; not blocking first invoice |
+| Monthly monitoring on public page | Post–day-7 conversation only |
+
+### 15.6 How to avoid overbuilding before revenue proof
+
+1. **One pilot, one cockpit row, one lead source** — resist multi-channel scope in pilot 1.
+2. **Spreadsheet until intake; cockpit after intake** — do not merge the surfaces early.
+3. **Manual evidence in activity log** beats a new dashboard widget.
+4. **Do not open implementation PRs** for CRM, analytics, or payment automation until pilot 1 is **delivered** (E1–E8) and Anton reviews.
+5. **Proof publish is a separate gate** (G7) — delivery ≠ marketing proof.
+
+### 15.7 Minimum "delivered" checklist (operator sign-off)
+
+```text
+[ ] Cleared payment verified (E5)
+[ ] 48h setup checklist complete in cockpit (E6)
+[ ] 7 daily summaries sent (E7)
+[ ] Day-7 recap completed (E8)
+[ ] No public testimonial or metric published without G7
+[ ] Delivery verdict: DELIVERED (operator) — not yet COMPLETE (live marketing proof)
+```
+
+**Delivery Reality:** first pilot **delivered** = operator evidence E1–E8. **Marketing COMPLETE** for proof = additional G7 + publish packet — deferred.
