@@ -30,6 +30,8 @@
 | Proof rules | `docs/marketing/PROOF_VALIDATION_ASSET_PLAN_LR_V1.md` |
 | Sales vs delivery boundary | `docs/operations/AI_LEAD_RESCUE_SALES_TO_DELIVERY_HANDOFF.md` |
 | Evidence gap (§15) | This doc — minimum before "delivered" |
+| Outreach candidate worksheet (C4) | `docs/lead-rescue/FIRST_OUTREACH_CANDIDATE_WORKSHEET.md` |
+| Fulfilment evidence checklist (C5) | `docs/lead-rescue/FIRST_PAID_PILOT_FULFILMENT_EVIDENCE_CHECKLIST.md` |
 
 ---
 
