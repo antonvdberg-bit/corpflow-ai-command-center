@@ -32,6 +32,8 @@
 | Evidence gap (§15) | This doc — minimum before "delivered" |
 | Outreach candidate worksheet (C4) | `docs/lead-rescue/FIRST_OUTREACH_CANDIDATE_WORKSHEET.md` |
 | Fulfilment evidence checklist (C5) | `docs/lead-rescue/FIRST_PAID_PILOT_FULFILMENT_EVIDENCE_CHECKLIST.md` |
+| ERPNext sandbox rehearsal (money path) | `docs/operations/ERPNEXT_LEAD_RESCUE_PAID_PILOT_REHEARSAL_V1.md` |
+| Backbone decision (ERPNext retained; Odoo rejected for July) | `docs/operations/ERP_BACKBONE_DECISION_AUDIT_V1.md` |
 
 ---
 
@@ -43,8 +45,8 @@ Get **one paying pilot** through a clean manual path:
 2. Send a **short, personal** message (templates §3).
 3. **Qualify** on a 15-minute call (§4).
 4. Buyer submits intake at **`https://corpflowai.com/lead-rescue`**.
-5. Send **manual USD pro-forma**; payment instructions **separately** (§5).
-6. Verify **cleared funds** manually before any setup.
+5. Send **manual USD pro-forma** (or ERPNext Quotation PDF only if §11 go/no-go in rehearsal runbook passes); payment instructions **separately** (§5).
+6. Verify **cleared funds** manually before any setup; record in ERPNext sandbox if rehearsal complete (`ERPNEXT_LEAD_RESCUE_PAID_PILOT_REHEARSAL_V1.md`).
 7. Deliver **48-hour setup** + **7-day monitoring** (§6–§7).
 8. Capture **proof** only with client permission (§8).
 
