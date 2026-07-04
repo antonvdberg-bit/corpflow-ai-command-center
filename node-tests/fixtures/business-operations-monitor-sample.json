@@ -1,0 +1,60 @@
+{
+  "schema": "corpflow.business_operations_monitor.v1",
+  "version": 1,
+  "ok": false,
+  "evaluated_at": "2026-07-04T12:00:00.000Z",
+  "product": "ai-lead-rescue",
+  "summary": {
+    "urgent": 1,
+    "warning": 3,
+    "info": 1,
+    "actionRequired": 4
+  },
+  "sources": [
+    { "name": "corpflowai_db", "ok": true },
+    { "name": "erpnext", "ok": null, "skipped": true }
+  ],
+  "findings": [
+    {
+      "severity": "urgent",
+      "source": "corpflowai",
+      "objectType": "setup",
+      "objectRef": "lead:fixture_lead_setup_window",
+      "status": "SETUP_IN_PROGRESS (2/13 checklist)",
+      "ageHours": 30,
+      "actionRequired": "Complete 48-hour paid setup window",
+      "antonNeeded": true,
+      "recommendedNextAction": "Work setup checklist items; send buyer hand-over before window breach per AI_LEAD_RESCUE_PAID_PILOT_ONBOARDING.md",
+      "safeToIgnore": false,
+      "link": "https://core.corpflowai.com/admin/lead-rescue/fixture_lead_setup_window"
+    },
+    {
+      "severity": "warning",
+      "source": "corpflowai",
+      "objectType": "lead",
+      "objectRef": "lead:fixture_lead_new_intake",
+      "status": "NEW_INTAKE",
+      "ageHours": 2.5,
+      "actionRequired": "Review new Lead Rescue intake",
+      "antonNeeded": false,
+      "recommendedNextAction": "Open admin lead detail, move to QUALIFYING, assign owner, log intake_reviewed activity",
+      "safeToIgnore": false,
+      "link": "https://core.corpflowai.com/admin/lead-rescue/fixture_lead_new_intake"
+    }
+  ],
+  "thresholds": {
+    "intakeReviewWarningHours": 2,
+    "intakeReviewUrgentHours": 4,
+    "invoiceMissingWarningHours": 12,
+    "invoiceMissingUrgentHours": 24,
+    "paymentPendingWarningHours": 72,
+    "paymentPendingUrgentHours": 120,
+    "setupWindowWarningHours": 24,
+    "setupWindowUrgentHours": 48,
+    "clientReviewWarningHours": 48,
+    "clientReviewUrgentHours": 96,
+    "deliveryStaleWarningHours": 48,
+    "deliveryStaleUrgentHours": 72
+  },
+  "_note": "Synthetic sample from npm run / node scripts/business-operations-monitor.mjs --fixtures. No PII."
+}

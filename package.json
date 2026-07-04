@@ -31,6 +31,8 @@
     "vercel:env:push:cli": "node scripts/vercel-env.mjs push --backend=cli --force",
     "production:pulse": "node scripts/production-pulse.mjs",
     "production:pulse:test": "node --test node-tests/production-pulse.test.mjs",
+    "business-ops:monitor": "node scripts/business-operations-monitor.mjs",
+    "business-ops:monitor:fixtures": "node scripts/business-operations-monitor.mjs --fixtures",
     "check:marketing-quality-gate": "node scripts/check-marketing-quality-gate.mjs",
     "video:validate": "node scripts/video/validate.mjs",
     "video:serve-mock": "node scripts/video/serve-mock.mjs",

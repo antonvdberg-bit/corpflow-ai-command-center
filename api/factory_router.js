@@ -484,6 +484,42 @@ async function handleProductionPulseRuntime(req, res) {
 }
 
 /**
+ * Business Operations Monitor v1 — read-only Lead Rescue + CMP findings for n8n schedulers.
+ *
+ * @param {import('http').IncomingMessage} req
+ * @param {import('http').ServerResponse} res
+ * @returns {Promise<void>}
+ */
+async function handleBusinessOperationsMonitor(req, res) {
+  if (req.method !== 'GET') {
+    res.setHeader('Allow', 'GET');
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+  try {
+    const { verifyFactoryMasterOrCronBearer } = await import('../lib/server/factory-master-auth.js');
+    if (!verifyFactoryMasterOrCronBearer(req)) {
+      return res.status(401).json({
+        schema: 'corpflow.business_operations_monitor.v1',
+        ok: false,
+        error: 'UNAUTHORIZED',
+        message: 'Factory master session or CORPFLOW_CRON_SECRET Bearer required.',
+      });
+    }
+    const mod = await import('../scripts/business-operations-monitor.mjs');
+    const body = await mod.buildBusinessOperationsMonitorLiveReport(prisma, { pingFactoryHealth: false });
+    const ok = Boolean(body && typeof body === 'object' && body.ok === true);
+    return res.status(ok ? 200 : 503).json(body);
+  } catch (e) {
+    return res.status(500).json({
+      schema: 'corpflow.business_operations_monitor.v1',
+      ok: false,
+      error: 'BUSINESS_OPS_MONITOR_FAILED',
+      message: String(e?.message || e),
+    });
+  }
+}
+
+/**
  * Groq chat — parity with former `api/index.py` FastAPI route.
  *
  * @param {import('http').IncomingMessage} req
@@ -805,6 +841,9 @@ export default async function handler(req, res) {
     }
     if (pathSeg === 'factory/production-pulse/runtime') {
       return handleProductionPulseRuntime(req, res);
+    }
+    if (pathSeg === 'factory/business-operations-monitor') {
+      return handleBusinessOperationsMonitor(req, res);
     }
     if (pathSeg === 'chat') {
       return handleChat(req, res);

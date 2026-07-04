@@ -1,0 +1,156 @@
+{
+  "name": "CorpFlowAI — Business Operations Monitor v1 (TEMPLATE, INACTIVE, SECRET-FREE)",
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateSource": "docs/runbooks/BUSINESS_OPERATIONS_MONITOR_V1.md",
+    "note": "Stage 1 template. NO CREDENTIALS, NO TOKENS, NO CHAT IDS. Set CORPFLOW_MONITOR_BASE_URL, CORPFLOW_CRON_SECRET, TELEGRAM_* in n8n env store before activating (Stage 2, Anton-gated)."
+  },
+  "nodes": [
+    {
+      "id": "sticky-setup",
+      "name": "SETUP — read before activating",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-480, -140],
+      "parameters": {
+        "width": 480,
+        "height": 380,
+        "content": "## Business Operations Monitor v1\n\n**Inactive by design.** Activation is Anton-gated.\n\nBefore activating, IN n8n ONLY:\n1. `CORPFLOW_MONITOR_BASE_URL` → e.g. `https://core.corpflowai.com`\n2. `CORPFLOW_CRON_SECRET` → same as Vercel Production cron secret\n3. `TELEGRAM_BOT_TOKEN` + `TELEGRAM_ALERT_CHAT_ID` → existing ops alert path\n4. Optional ERPNext sandbox ping: enable the disabled ERPNext node + set `ERPNEXT_MONITOR_URL` / `ERPNEXT_API_KEY` in n8n only\n\nPolls `GET /api/factory/business-operations-monitor` (read-only).\nAlerts on urgent findings only; silent on green runs."
+      }
+    },
+    {
+      "id": "schedule",
+      "name": "Every 2 hours",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [40, 40],
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "hours", "hoursInterval": 2 }]
+        }
+      }
+    },
+    {
+      "id": "fetch-monitor",
+      "name": "CorpFlowAI: business-ops monitor",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [320, 40],
+      "parameters": {
+        "url": "={{ ($env.CORPFLOW_MONITOR_BASE_URL || 'https://core.corpflowai.com').replace(/\\/$/, '') + '/api/factory/business-operations-monitor' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.CORPFLOW_CRON_SECRET }}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "evaluate",
+      "name": "Evaluate findings",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [620, 40],
+      "parameters": {
+        "jsType": "javaScript",
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Read-only — format CorpFlow business-ops monitor JSON for Telegram paging.\nconst body = $input.first().json;\nconst findings = Array.isArray(body.findings) ? body.findings : [];\nconst summary = body.summary && typeof body.summary === 'object' ? body.summary : {};\nconst urgent = findings.filter(f => f && f.severity === 'urgent' && !f.safeToIgnore);\nconst warnAction = findings.filter(f => f && f.severity === 'warning' && f.antonNeeded && !f.safeToIgnore);\nconst page = urgent.length ? urgent : warnAction;\nconst lines = page.slice(0, 8).map(f => [\n  `[${String(f.severity).toUpperCase()}] ${f.objectType} ${f.objectRef}`,\n  `Action: ${f.actionRequired}`,\n  `Next: ${f.recommendedNextAction}`,\n  f.link ? `Link: ${f.link}` : null,\n].filter(Boolean).join('\\n'));\nreturn [{ json: {\n  schema: body.schema,\n  ok: body.ok,\n  evaluated_at: body.evaluated_at,\n  urgent_count: urgent.length,\n  action_required: summary.actionRequired || 0,\n  should_alert: page.length > 0,\n  alert_text: page.length\n    ? 'CorpFlowAI Business Ops — action needed\\n\\n' + lines.join('\\n\\n---\\n\\n')\n    : '',\n  findings_page: page,\n} }];"
+      }
+    },
+    {
+      "id": "if-alert",
+      "name": "Any urgent/action finding?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [900, 40],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "typeValidation": "strict" },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.should_alert }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "true" }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "telegram-alert",
+      "name": "Telegram alert (env refs only)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1200, -40],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $env.TELEGRAM_BOT_TOKEN }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"chat_id\": \"{{ $env.TELEGRAM_ALERT_CHAT_ID }}\",\n  \"text\": {{ JSON.stringify($json.alert_text.slice(0, 3500)) }}\n}",
+        "options": {}
+      }
+    },
+    {
+      "id": "noop-silent",
+      "name": "Silent success",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [1200, 160],
+      "parameters": {}
+    },
+    {
+      "id": "erpnext-optional",
+      "name": "ERPNext optional ping (DISABLED)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [320, 220],
+      "disabled": true,
+      "parameters": {
+        "url": "={{ ($env.ERPNEXT_MONITOR_URL || '').replace(/\\/$/, '') + '/api/resource/Sales Invoice?limit_page_length=1' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=token {{ $env.ERPNEXT_API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Every 2 hours": {
+      "main": [[{ "node": "CorpFlowAI: business-ops monitor", "type": "main", "index": 0 }]]
+    },
+    "CorpFlowAI: business-ops monitor": {
+      "main": [[{ "node": "Evaluate findings", "type": "main", "index": 0 }]]
+    },
+    "Evaluate findings": {
+      "main": [[{ "node": "Any urgent/action finding?", "type": "main", "index": 0 }]]
+    },
+    "Any urgent/action finding?": {
+      "main": [
+        [{ "node": "Telegram alert (env refs only)", "type": "main", "index": 0 }],
+        [{ "node": "Silent success", "type": "main", "index": 0 }]
+      ]
+    }
+  }
+}
