@@ -530,6 +530,7 @@ export default function ChangeConsolePage() {
   const [crmShowSystemGenerated, setCrmShowSystemGenerated] = useState(false);
   const [leadPatchStatus, setLeadPatchStatus] = useState('');
   const [requestDraft, setRequestDraft] = useState('');
+  const [createRequestDraft, setCreateRequestDraft] = useState('');
   const [intakeNotice, setIntakeNotice] = useState('');
   const [forceRefine, setForceRefine] = useState(false);
   const [estimateStatus, setEstimateStatus] = useState('');
@@ -1870,14 +1871,25 @@ export default function ChangeConsolePage() {
     }
   }
 
+  async function startNewTicketComposer() {
+    setError('');
+    setCreateStatus('');
+    setCreateRequestDraft('');
+    setSelectedTicketId('');
+    setTicket(null);
+    setRequestDraft('');
+    setForceRefine(false);
+    setIntakeNotice('');
+  }
+
   async function createTicket() {
     if (!session.logged_in) {
       setError('Login required before creating or editing tickets.');
       return;
     }
-    const desc = String(requestDraft || '').trim();
+    const desc = String(createRequestDraft || '').trim();
     if (!desc) {
-      setError('Describe the change you want before creating a ticket.');
+      setError('Paste or type your new request in the Create ticket box first.');
       return;
     }
     setBusy(true);
@@ -1895,6 +1907,7 @@ export default function ChangeConsolePage() {
       const tid = String(j.ticket_id || '').trim();
       if (!tid) throw new Error('Missing ticket_id');
       setCreateStatus('Ticket created.');
+      setCreateRequestDraft('');
       await loadQueue();
       setSelectedTicketId(tid);
       await loadTicketById(tid);
@@ -2761,10 +2774,37 @@ export default function ChangeConsolePage() {
                   color: luxChangeChrome ? luxChangeChrome.textMuted : '#94a3b8',
                 }}
               >
-                Describe a new change below, then click Create ticket. You can also select an existing ticket from the
-                queue.
+                Paste a <strong>new</strong> request here. This box is separate from any ticket you have selected in
+                the queue — it will not copy an existing ticket&apos;s text.
               </div>
               <div style={{ marginTop: 10 }}>
+                <textarea
+                  data-testid="lux-change-create-ticket-draft"
+                  value={createRequestDraft}
+                  onChange={(e) => setCreateRequestDraft(e.target.value)}
+                  placeholder="Paste or type what you want changed in plain language…"
+                  rows={6}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    maxWidth: '100%',
+                    minWidth: 0,
+                    minHeight: 120,
+                    padding: '10px 12px',
+                    borderRadius: 12,
+                    border: luxChangeChrome
+                      ? `1px solid ${luxChangeChrome.border}`
+                      : '1px solid rgba(51,65,85,0.65)',
+                    background: luxChangeChrome ? luxChangeChrome.white : 'rgba(2,6,23,0.72)',
+                    color: luxChangeChrome ? luxChangeChrome.text : '#f1f5f9',
+                    fontSize: 13,
+                    lineHeight: 1.45,
+                    resize: 'vertical',
+                    ...changeTextContainStyle(),
+                  }}
+                />
+              </div>
+              <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
                 <button
                   type="button"
                   data-testid="lux-change-create-ticket-btn"
@@ -2796,8 +2836,26 @@ export default function ChangeConsolePage() {
                 >
                   Create ticket
                 </button>
+                <button
+                  type="button"
+                  data-testid="lux-change-start-new-ticket-btn"
+                  onClick={() => void startNewTicketComposer()}
+                  disabled={busy}
+                  style={{
+                    padding: '10px 14px',
+                    borderRadius: 12,
+                    border: '1px solid rgba(148,163,184,0.35)',
+                    background: 'transparent',
+                    color: luxChangeChrome ? luxChangeChrome.textMuted : '#94a3b8',
+                    fontWeight: 700,
+                    fontSize: 12,
+                    cursor: busy ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  Clear & start fresh
+                </button>
                 {createStatus ? (
-                  <div style={{ marginTop: 8, fontSize: 11, color: luxChangeChrome ? luxChangeChrome.text : '#86efac' }}>
+                  <div style={{ fontSize: 11, color: luxChangeChrome ? luxChangeChrome.text : '#86efac' }}>
                     {createStatus}
                   </div>
                 ) : null}
@@ -3585,7 +3643,11 @@ export default function ChangeConsolePage() {
                 </div>
               ) : null}
               <div style={{ fontSize: showIntakeSkin ? 11 : 12, fontWeight: 600, color: '#cbd5e1', marginBottom: 8 }}>
-                {showIntakeSurface ? 'Your request' : 'Describe the change'}
+                {showIntakeSurface
+                  ? 'Your request'
+                  : selectedTicketId
+                    ? 'Selected ticket — refine description'
+                    : 'Describe the change'}
               </div>
               <textarea
                 value={requestDraft}

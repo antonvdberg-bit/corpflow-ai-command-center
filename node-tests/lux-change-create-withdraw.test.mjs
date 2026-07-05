@@ -69,10 +69,14 @@ test('ticket-mutable-guard — denies closed ticket mutations', () => {
 test('change.js — session gate + create ticket panel + withdraw control', () => {
   const change = readRepo('pages/change.js');
   assert.match(change, /const \[sessionReady, setSessionReady\] = useState\(false\)/);
+  assert.match(change, /const \[createRequestDraft, setCreateRequestDraft\] = useState\(''\)/);
   assert.match(change, /data-testid="lux-change-session-checking"/);
   assert.match(change, /Login required before creating or editing tickets\./);
   assert.match(change, /data-testid="lux-change-create-ticket-panel"/);
+  assert.match(change, /data-testid="lux-change-create-ticket-draft"/);
   assert.match(change, /data-testid="lux-change-create-ticket-btn"/);
+  assert.match(change, /createRequestDraft/);
+  assert.match(change, /const desc = String\(createRequestDraft \|\| ''\)\.trim\(\)/);
   assert.match(change, /action=ticket-create/);
   assert.match(change, /data-testid="lux-change-withdraw-ticket-btn"/);
   assert.match(change, /action=ticket-withdraw/);
