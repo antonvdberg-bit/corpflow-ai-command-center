@@ -3,6 +3,10 @@ import { useRouter } from 'next/router';
 import { LUX_PHASE1_REVIEW_TICKET_ID } from '../lib/cmp/_lib/client-decisions-client.js';
 import { LUX_PARENT_PROGRAMME_TICKET_ID } from '../lib/cmp/_lib/lux-client-requests.js';
 import {
+  isCmpTicketOperatorOpen,
+  OPERATOR_WITHDRAWAL_PROTECTED_TICKET_IDS,
+} from '../lib/cmp/_lib/ticket-operator-withdraw.js';
+import {
   CHANGE_LAYOUT_EXPECTED_COMMIT_PREFIX,
   CHANGE_LAYOUT_INSTRUMENTATION_ID,
   CHANGE_LAYOUT_MARK_VERSION,
@@ -490,6 +494,9 @@ export default function ChangeConsolePage() {
   const [locale, setLocale] = useState('en');
   const [uiContext, setUiContext] = useState(null);
   const [session, setSession] = useState({ logged_in: false, level: 'anonymous', tenant_id: null });
+  const [sessionReady, setSessionReady] = useState(false);
+  const [createStatus, setCreateStatus] = useState('');
+  const [withdrawStatus, setWithdrawStatus] = useState('');
   const [tickets, setTickets] = useState([]);
   const [selectedTicketId, setSelectedTicketId] = useState('');
   const [ticket, setTicket] = useState(null);
@@ -1807,6 +1814,8 @@ export default function ChangeConsolePage() {
       } catch (e) {
         if (cancelled) return;
         setError(String(e?.message || e));
+      } finally {
+        if (!cancelled) setSessionReady(true);
       }
     })();
     return () => {
@@ -1846,6 +1855,7 @@ export default function ChangeConsolePage() {
     setError('');
     setIntakeNotice('');
     setEstimateStatus('');
+    setWithdrawStatus('');
     setForceRefine(false);
     setClientDecisionLink('');
     setClientDecisionExpiresAt('');
@@ -1857,6 +1867,85 @@ export default function ChangeConsolePage() {
       await loadTicketById(tid);
     } catch (e) {
       setError(String(e?.message || e));
+    }
+  }
+
+  async function createTicket() {
+    if (!session.logged_in) {
+      setError('Login required before creating or editing tickets.');
+      return;
+    }
+    const desc = String(requestDraft || '').trim();
+    if (!desc) {
+      setError('Describe the change you want before creating a ticket.');
+      return;
+    }
+    setBusy(true);
+    setError('');
+    setCreateStatus('Creating ticket…');
+    try {
+      const r = await fetch('/api/cmp/router?action=ticket-create', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: desc, locale }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error || j.detail || j.hint || `http_${r.status}`);
+      const tid = String(j.ticket_id || '').trim();
+      if (!tid) throw new Error('Missing ticket_id');
+      setCreateStatus('Ticket created.');
+      await loadQueue();
+      setSelectedTicketId(tid);
+      await loadTicketById(tid);
+      window.setTimeout(() => setCreateStatus(''), 5000);
+    } catch (e) {
+      setCreateStatus('');
+      setError(String(e?.message || e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function withdrawSelectedTicket() {
+    const tid = String(selectedTicketId || '').trim();
+    if (!tid) {
+      setError('Select a ticket to withdraw.');
+      return;
+    }
+    if (!session.logged_in) {
+      setError('Login required before creating or editing tickets.');
+      return;
+    }
+    if (OPERATOR_WITHDRAWAL_PROTECTED_TICKET_IDS.includes(tid)) {
+      setError('This programme ticket cannot be withdrawn from the tenant console.');
+      return;
+    }
+    const ok = window.confirm(
+      'Withdraw this ticket? It stays in history but cannot proceed to estimate, build, or deploy unless reopened by CorpFlow.',
+    );
+    if (!ok) return;
+    setBusy(true);
+    setError('');
+    setWithdrawStatus('Withdrawing ticket…');
+    try {
+      const r = await fetch('/api/cmp/router?action=ticket-withdraw', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticket_id: tid }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error || j.detail || j.hint || `http_${r.status}`);
+      setWithdrawStatus('Ticket withdrawn. Audit history preserved.');
+      await loadQueue();
+      await loadTicketById(tid);
+      window.setTimeout(() => setWithdrawStatus(''), 6000);
+    } catch (e) {
+      setWithdrawStatus('');
+      setError(String(e?.message || e));
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -2026,6 +2115,19 @@ export default function ChangeConsolePage() {
   const showIntakeSkin = Boolean(selectedTicketId && ticket && computeIsIntakeUx(ticket));
   const showIntakeSurface = showIntakeSkin || forceRefine;
   const workflowStageLabel = ticket ? wfLabel : '—';
+  const selectedTicketIsOpen = Boolean(
+    selectedTicketId &&
+      ticket &&
+      isCmpTicketOperatorOpen({
+        status: ticket.status,
+        stage: ticket.stage,
+        consoleJson: {
+          client_view: ticket?.ticket_progress?.client_view || ticket?.client_view || {},
+        },
+      }),
+  );
+  const canWithdrawSelectedTicket =
+    selectedTicketIsOpen && !OPERATOR_WITHDRAWAL_PROTECTED_TICKET_IDS.includes(String(selectedTicketId || '').trim());
 
   const pageInner = luxChangeChrome
     ? { ...luxChangeChrome.pageInner }
@@ -2569,7 +2671,9 @@ export default function ChangeConsolePage() {
           </div>
 
           <div style={{ marginTop: 10, fontSize: 12, color: luxChangeChrome ? luxChangeChrome.textMuted : '#94a3b8' }}>
-            {session.logged_in ? (
+            {!sessionReady ? (
+              <span data-testid="lux-change-session-checking">Checking session…</span>
+            ) : session.logged_in ? (
               <span>
                 Session: <strong style={{ color: luxChangeChrome ? luxChangeChrome.text : '#e2e8f0' }}>{String(session.level || '')}</strong>
                 {session.tenant_id ? (
@@ -2617,11 +2721,89 @@ export default function ChangeConsolePage() {
                 </button>
               </span>
             ) : (
-              <span>
-                Not logged in. <a href="/login" style={{ color: luxChangeChrome ? luxChangeChrome.link : '#7dd3fc' }}>Login</a>
+              <span data-testid="lux-change-login-required">
+                Login required before creating or editing tickets.{' '}
+                <a href="/login" style={{ color: luxChangeChrome ? luxChangeChrome.link : '#7dd3fc' }}>
+                  Login
+                </a>
               </span>
             )}
           </div>
+
+          {sessionReady && session.logged_in ? (
+            <div
+              data-testid="lux-change-create-ticket-panel"
+              style={{
+                marginTop: 12,
+                padding: '12px 14px',
+                borderRadius: 12,
+                border: luxChangeChrome
+                  ? `1px solid ${luxChangeChrome.gold}`
+                  : '1px solid rgba(56,189,248,0.35)',
+                background: luxChangeChrome ? luxChangeChrome.white : 'rgba(14,165,233,0.08)',
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 900,
+                  letterSpacing: '0.06em',
+                  color: luxChangeChrome ? luxChangeChrome.heroDeep : '#e0f2fe',
+                }}
+              >
+                CREATE TICKET
+              </div>
+              <div
+                style={{
+                  marginTop: 6,
+                  fontSize: 12,
+                  lineHeight: 1.45,
+                  color: luxChangeChrome ? luxChangeChrome.textMuted : '#94a3b8',
+                }}
+              >
+                Describe a new change below, then click Create ticket. You can also select an existing ticket from the
+                queue.
+              </div>
+              <div style={{ marginTop: 10 }}>
+                <button
+                  type="button"
+                  data-testid="lux-change-create-ticket-btn"
+                  onClick={() => void createTicket()}
+                  disabled={busy}
+                  style={
+                    luxChangeChrome
+                      ? {
+                          padding: '10px 16px',
+                          borderRadius: 999,
+                          border: `1px solid ${luxChangeChrome.gold}`,
+                          background: busy ? luxChangeChrome.sand : luxChangeChrome.gold,
+                          color: luxChangeChrome.heroDeep,
+                          fontWeight: 800,
+                          fontSize: 13,
+                          cursor: busy ? 'not-allowed' : 'pointer',
+                        }
+                      : {
+                          padding: '10px 16px',
+                          borderRadius: 12,
+                          border: 'none',
+                          background: busy ? '#64748b' : '#38bdf8',
+                          color: '#020617',
+                          fontWeight: 800,
+                          fontSize: 13,
+                          cursor: busy ? 'not-allowed' : 'pointer',
+                        }
+                  }
+                >
+                  Create ticket
+                </button>
+                {createStatus ? (
+                  <div style={{ marginTop: 8, fontSize: 11, color: luxChangeChrome ? luxChangeChrome.text : '#86efac' }}>
+                    {createStatus}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
 
           <div style={{ marginTop: 12 }}>
             {tickets.length ? (
@@ -2783,6 +2965,39 @@ export default function ChangeConsolePage() {
                   >
                     Ticket: {selectedTicketId || '—'}
                   </div>
+                  {canWithdrawSelectedTicket ? (
+                    <div style={{ marginTop: 10 }}>
+                      <button
+                        type="button"
+                        data-testid="lux-change-withdraw-ticket-btn"
+                        onClick={() => void withdrawSelectedTicket()}
+                        disabled={busy}
+                        style={{
+                          padding: '8px 12px',
+                          borderRadius: 10,
+                          border: '1px solid rgba(248,113,113,0.45)',
+                          background: busy ? 'rgba(148,163,184,0.18)' : 'rgba(127,29,29,0.22)',
+                          color: busy ? '#94a3b8' : '#fecaca',
+                          fontWeight: 800,
+                          fontSize: 12,
+                          cursor: busy ? 'not-allowed' : 'pointer',
+                        }}
+                      >
+                        Withdraw / Cancel ticket
+                      </button>
+                      {withdrawStatus ? (
+                        <div style={{ marginTop: 6, fontSize: 11, color: '#86efac' }}>{withdrawStatus}</div>
+                      ) : null}
+                    </div>
+                  ) : selectedTicketId && ticket && !selectedTicketIsOpen ? (
+                    <div
+                      data-testid="lux-change-ticket-withdrawn-notice"
+                      style={{ marginTop: 10, fontSize: 11, color: luxInk ? luxInk.muted : '#94a3b8', lineHeight: 1.45 }}
+                    >
+                      This ticket is withdrawn or closed. It remains in history but cannot proceed to estimate, build,
+                      or deploy.
+                    </div>
+                  ) : null}
                 </div>
               </div>
               {isLuxContentSprintTicketSelected ? (
@@ -3327,6 +3542,26 @@ export default function ChangeConsolePage() {
                     </div>
                   ) : null}
                 </div>
+              </div>
+            </div>
+          ) : null}
+
+          {sessionReady && !session.logged_in ? (
+            <div
+              data-testid="lux-change-login-gate-main"
+              style={{
+                ...card,
+                minWidth: 0,
+                border: '1px solid rgba(248,113,113,0.35)',
+                background: 'rgba(127,29,29,0.12)',
+              }}
+            >
+              <div style={{ fontSize: 14, fontWeight: 900, color: '#fecaca' }}>Login required</div>
+              <div style={{ marginTop: 8, fontSize: 13, color: '#fca5a5', lineHeight: 1.5 }}>
+                Login required before creating or editing tickets.{' '}
+                <a href="/login" style={{ color: '#7dd3fc', fontWeight: 700 }}>
+                  Go to login
+                </a>
               </div>
             </div>
           ) : null}
