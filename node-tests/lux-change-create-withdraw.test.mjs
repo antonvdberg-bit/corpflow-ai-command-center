@@ -66,6 +66,14 @@ test('ticket-mutable-guard — denies closed ticket mutations', () => {
   assert.equal(calls[0].error, 'TICKET_CLOSED');
 });
 
+test('Lux change console theme exports deskInk contrast tokens', () => {
+  const theme = readRepo('lib/client/lux-change-console-theme.js');
+  assert.match(theme, /deskInk:/);
+  assert.match(theme, /withdrawBtn/);
+  assert.match(theme, /proceedBtn/);
+  assert.match(theme, /changeRequestBtn/);
+});
+
 test('change.js — session gate + create ticket panel + withdraw control', () => {
   const change = readRepo('pages/change.js');
   assert.match(change, /const \[sessionReady, setSessionReady\] = useState\(false\)/);
@@ -79,6 +87,7 @@ test('change.js — session gate + create ticket panel + withdraw control', () =
   assert.match(change, /const desc = String\(createRequestDraft \|\| ''\)\.trim\(\)/);
   assert.match(change, /action=ticket-create/);
   assert.match(change, /data-testid="lux-change-withdraw-ticket-btn"/);
+  assert.match(change, /luxDeskInk/);
   assert.match(change, /action=ticket-withdraw/);
   assert.match(change, /Withdraw \/ Cancel ticket/);
 });
@@ -89,5 +98,5 @@ test('router.js — ticket-withdraw action registered for tenant sessions', () =
   assert.match(router, /case 'ticket-withdraw':/);
   assert.match(router, /'ticket-withdraw'/);
   assert.match(router, /cmp\.ticket\.withdrawn/);
-  assert.match(router, /denyIfTicketClosed/);
+  assert.match(router, /notifyLuxTicketOperatorEmail/);
 });

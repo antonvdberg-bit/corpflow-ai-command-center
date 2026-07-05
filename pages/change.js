@@ -2241,6 +2241,8 @@ export default function ChangeConsolePage() {
         successBorder: 'rgba(34,197,94,0.35)',
       };
 
+  const luxDeskInk = luxChangeChrome?.deskInk ?? null;
+
   const dollarsOur = cv?.actual_cost_to_client_usd ?? cv?.display_amount_usd ?? null;
   const dollarsMarket = cv?.market_reference_usd ?? cv?.full_market_value_usd ?? null;
   const hoursBand = formatHoursBand(cv?.effort_hours_low, cv?.effort_hours_high);
@@ -3030,7 +3032,7 @@ export default function ChangeConsolePage() {
                         data-testid="lux-change-withdraw-ticket-btn"
                         onClick={() => void withdrawSelectedTicket()}
                         disabled={busy}
-                        style={{
+                        style={luxDeskInk ? luxDeskInk.withdrawBtn(busy) : {
                           padding: '8px 12px',
                           borderRadius: 10,
                           border: '1px solid rgba(248,113,113,0.45)',
@@ -3044,7 +3046,15 @@ export default function ChangeConsolePage() {
                         Withdraw / Cancel ticket
                       </button>
                       {withdrawStatus ? (
-                        <div style={{ marginTop: 6, fontSize: 11, color: '#86efac' }}>{withdrawStatus}</div>
+                        <div
+                          style={{
+                            marginTop: 6,
+                            fontSize: 11,
+                            color: luxDeskInk ? luxDeskInk.success : '#86efac',
+                          }}
+                        >
+                          {withdrawStatus}
+                        </div>
                       ) : null}
                     </div>
                   ) : selectedTicketId && ticket && !selectedTicketIsOpen ? (
@@ -3299,11 +3309,26 @@ export default function ChangeConsolePage() {
                 </div>
               ) : null}
 
-              <div style={{ marginTop: 14, color: '#cbd5e1', fontSize: 13, lineHeight: 1.5, minWidth: 0, maxWidth: '100%' }}>
-                <div style={{ fontWeight: 900, color: '#e2e8f0', ...changeTextContainStyle() }}>
+              <div
+                style={{
+                  marginTop: 14,
+                  color: luxDeskInk ? luxDeskInk.body : '#cbd5e1',
+                  fontSize: 13,
+                  lineHeight: 1.5,
+                  minWidth: 0,
+                  maxWidth: '100%',
+                }}
+              >
+                <div
+                  style={{
+                    fontWeight: 900,
+                    color: luxDeskInk ? luxDeskInk.sectionLabel : '#e2e8f0',
+                    ...changeTextContainStyle(),
+                  }}
+                >
                   {selectedTicketId && ticket ? workflowStageLabel : stage}
                 </div>
-                <div style={{ marginTop: 6, color: '#94a3b8', ...changeTextContainStyle() }}>
+                <div style={{ marginTop: 6, color: luxDeskInk ? luxDeskInk.muted : '#94a3b8', ...changeTextContainStyle() }}>
                   Next:{' '}
                   {showIntakeSurface
                     ? 'Next step: Add or refine your request, then continue.'
@@ -3377,10 +3402,17 @@ export default function ChangeConsolePage() {
               >
                 {isReadyForEstimateOnly ? (
                   <div style={subtleCard}>
-                    <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
+                    <div
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 900,
+                        color: luxDeskInk ? luxDeskInk.sectionLabel : '#cbd5e1',
+                        letterSpacing: '0.08em',
+                      }}
+                    >
                       ESTIMATE
                     </div>
-                    <div style={{ marginTop: 8, fontSize: 12, color: '#94a3b8' }}>
+                    <div style={{ marginTop: 8, fontSize: 12, color: luxDeskInk ? luxDeskInk.muted : '#94a3b8' }}>
                       Ready to request an estimate for this change.
                     </div>
                     <div style={{ marginTop: 12 }}>
@@ -3388,28 +3420,47 @@ export default function ChangeConsolePage() {
                         type="button"
                         onClick={() => void requestEstimate()}
                         disabled={estimateBusy || busy}
-                        style={{
-                          padding: '10px 14px',
-                          borderRadius: 12,
-                          border: '1px solid rgba(56,189,248,0.35)',
-                          background: estimateBusy || busy ? 'rgba(148,163,184,0.18)' : 'rgba(56,189,248,0.14)',
-                          color: estimateBusy || busy ? '#94a3b8' : '#e0f2fe',
-                          fontWeight: 900,
-                          fontSize: 12,
-                          cursor: estimateBusy || busy ? 'not-allowed' : 'pointer',
-                        }}
+                        style={
+                          luxDeskInk
+                            ? luxDeskInk.estimateCtaBtn(estimateBusy || busy)
+                            : {
+                                padding: '10px 14px',
+                                borderRadius: 12,
+                                border: '1px solid rgba(56,189,248,0.35)',
+                                background: estimateBusy || busy ? 'rgba(148,163,184,0.18)' : 'rgba(56,189,248,0.14)',
+                                color: estimateBusy || busy ? '#94a3b8' : '#e0f2fe',
+                                fontWeight: 900,
+                                fontSize: 12,
+                                cursor: estimateBusy || busy ? 'not-allowed' : 'pointer',
+                              }
+                        }
                       >
                         Get Estimate
                       </button>
                       {estimateStatus ? (
-                        <div style={{ marginTop: 10, fontSize: 11, color: '#86efac' }}>{estimateStatus}</div>
+                        <div
+                          style={{
+                            marginTop: 10,
+                            fontSize: 11,
+                            color: luxDeskInk ? luxDeskInk.success : '#86efac',
+                          }}
+                        >
+                          {estimateStatus}
+                        </div>
                       ) : null}
                     </div>
                   </div>
                 ) : null}
 
                 <div style={subtleCard}>
-                  <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
+                  <div
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 900,
+                      color: luxDeskInk ? luxDeskInk.sectionLabel : '#cbd5e1',
+                      letterSpacing: '0.08em',
+                    }}
+                  >
                     BUDGET & BILLING
                   </div>
                   <div style={{ marginTop: 10, display: 'flex', gap: 10, alignItems: 'flex-start', minWidth: 0, width: '100%' }}>
@@ -3424,8 +3475,32 @@ export default function ChangeConsolePage() {
                         boxShadow: budgetAvailable ? '0 0 10px rgba(34,197,94,0.35)' : 'none',
                       }}
                     />
-                    <div style={{ fontSize: 12, color: '#cbd5e1', lineHeight: 1.45, minWidth: 0, flex: '1 1 0%', ...changeTextContainStyle() }}>
-                      <div style={{ fontWeight: 900, color: budgetAvailable ? '#86efac' : budgetUnknown ? '#fcd34d' : '#cbd5e1' }}>
+                    <div
+                      style={{
+                        fontSize: 12,
+                        color: luxDeskInk ? luxDeskInk.body : '#cbd5e1',
+                        lineHeight: 1.45,
+                        minWidth: 0,
+                        flex: '1 1 0%',
+                        ...changeTextContainStyle(),
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontWeight: 900,
+                          color: budgetAvailable
+                            ? luxDeskInk
+                              ? luxDeskInk.success
+                              : '#86efac'
+                            : budgetUnknown
+                              ? luxDeskInk
+                                ? luxDeskInk.warn
+                                : '#fcd34d'
+                              : luxDeskInk
+                                ? luxDeskInk.body
+                                : '#cbd5e1',
+                        }}
+                      >
                         {budgetAvailable
                           ? 'Budget is available'
                           : budgetUnknown
@@ -3434,27 +3509,25 @@ export default function ChangeConsolePage() {
                               ? 'Not a billing client'
                               : 'Not a billing client'}
                       </div>
-                      <div style={{ marginTop: 6, color: '#94a3b8' }}>
+                      <div style={{ marginTop: 6, color: luxDeskInk ? luxDeskInk.muted : '#94a3b8' }}>
                         {budgetAvailable
                           ? 'Sufficient budget is available for this change.'
                           : budgetUnknown
                             ? 'Budget tracking is not connected for this client yet.'
                             : 'Budget tracking is not available.'}
                       </div>
-                      <div style={{ marginTop: 10, fontSize: 11, color: '#94a3b8' }}>
+                      <div style={{ marginTop: 10, fontSize: 11, color: luxDeskInk ? luxDeskInk.muted : '#94a3b8' }}>
                         Client type:{' '}
-                        <span
-                          style={{
-                            display: 'inline-block',
-                            marginLeft: 6,
-                            padding: '3px 10px',
-                            borderRadius: 999,
-                            border: '1px solid rgba(148,163,184,0.22)',
-                            background: 'rgba(15,23,42,0.35)',
-                            color: '#e2e8f0',
-                            fontWeight: 800,
-                          }}
-                        >
+                        <span style={luxDeskInk ? luxDeskInk.budgetPill : {
+                          display: 'inline-block',
+                          marginLeft: 6,
+                          padding: '3px 10px',
+                          borderRadius: 999,
+                          border: '1px solid rgba(148,163,184,0.22)',
+                          background: 'rgba(15,23,42,0.35)',
+                          color: '#e2e8f0',
+                          fontWeight: 800,
+                        }}>
                           {clientTypeLabel}
                         </span>
                       </div>
@@ -3464,10 +3537,17 @@ export default function ChangeConsolePage() {
               </div>
 
               <div style={subtleCard}>
-                <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
+                <div
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 900,
+                    color: luxDeskInk ? luxDeskInk.sectionLabel : '#cbd5e1',
+                    letterSpacing: '0.08em',
+                  }}
+                >
                   ESTIMATE SUMMARY
                 </div>
-                <div style={{ marginTop: 8, fontSize: 12, color: '#94a3b8' }}>
+                <div style={{ marginTop: 8, fontSize: 12, color: luxDeskInk ? luxDeskInk.muted : '#94a3b8' }}>
                   Based on analysis of this change request.
                 </div>
 
@@ -3481,66 +3561,114 @@ export default function ChangeConsolePage() {
                       minWidth: 0,
                     }}
                   >
-                    <div
-                      style={{
-                        borderRadius: 14,
-                        border: '1px solid rgba(56,189,248,0.22)',
-                        background: 'rgba(56,189,248,0.06)',
-                        padding: 14,
-                      }}
-                    >
-                      <div style={{ fontSize: 11, fontWeight: 900, color: '#93c5fd', letterSpacing: '0.08em' }}>
+                    <div style={luxDeskInk ? luxDeskInk.marketBox : {
+                      borderRadius: 14,
+                      border: '1px solid rgba(56,189,248,0.22)',
+                      background: 'rgba(56,189,248,0.06)',
+                      padding: 14,
+                    }}>
+                      <div
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 900,
+                          color: luxDeskInk ? luxDeskInk.marketBox.label : '#93c5fd',
+                          letterSpacing: '0.08em',
+                        }}
+                      >
                         TYPICAL MARKET ESTIMATE
                       </div>
-                      <div style={{ marginTop: 10, fontSize: 11, color: '#94a3b8' }}>Estimated Man-Hours</div>
-                      <div style={{ marginTop: 6, fontSize: 18, fontWeight: 950, color: '#bfdbfe' }}>
+                      <div style={{ marginTop: 10, fontSize: 11, color: luxDeskInk ? luxDeskInk.marketBox.caption : '#94a3b8' }}>
+                        Estimated Man-Hours
+                      </div>
+                      <div
+                        style={{
+                          marginTop: 6,
+                          fontSize: 18,
+                          fontWeight: 950,
+                          color: luxDeskInk ? luxDeskInk.marketBox.value : '#bfdbfe',
+                        }}
+                      >
                         {hoursBand || 'Not available yet'}
                       </div>
-                      <div style={{ marginTop: 10, fontSize: 11, color: '#94a3b8' }}>Estimated Cost</div>
-                      <div style={{ marginTop: 6, fontSize: 16, fontWeight: 950, color: '#93c5fd' }}>
+                      <div style={{ marginTop: 10, fontSize: 11, color: luxDeskInk ? luxDeskInk.marketBox.caption : '#94a3b8' }}>
+                        Estimated Cost
+                      </div>
+                      <div
+                        style={{
+                          marginTop: 6,
+                          fontSize: 16,
+                          fontWeight: 950,
+                          color: luxDeskInk ? luxDeskInk.marketBox.label : '#93c5fd',
+                        }}
+                      >
                         {marketUsd || 'Not available yet'}
                       </div>
                       {!marketUsd ? (
-                        <div style={{ marginTop: 10, fontSize: 11, color: '#94a3b8' }}>
+                        <div style={{ marginTop: 10, fontSize: 11, color: luxDeskInk ? luxDeskInk.marketBox.caption : '#94a3b8' }}>
                           Market comparison can be added later.
                         </div>
                       ) : null}
                     </div>
 
-                    <div
-                      style={{
-                        borderRadius: 14,
-                        border: '1px solid rgba(34,197,94,0.22)',
-                        background: 'rgba(34,197,94,0.06)',
-                        padding: 14,
-                      }}
-                    >
-                      <div style={{ fontSize: 11, fontWeight: 900, color: '#86efac', letterSpacing: '0.08em' }}>
+                    <div style={luxDeskInk ? luxDeskInk.ourBox : {
+                      borderRadius: 14,
+                      border: '1px solid rgba(34,197,94,0.22)',
+                      background: 'rgba(34,197,94,0.06)',
+                      padding: 14,
+                    }}>
+                      <div
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 900,
+                          color: luxDeskInk ? luxDeskInk.ourBox.label : '#86efac',
+                          letterSpacing: '0.08em',
+                        }}
+                      >
                         OUR ESTIMATE
                       </div>
-                      <div style={{ marginTop: 10, fontSize: 11, color: '#94a3b8' }}>Estimated Man-Hours</div>
-                      <div style={{ marginTop: 6, fontSize: 18, fontWeight: 950, color: '#bbf7d0' }}>
+                      <div style={{ marginTop: 10, fontSize: 11, color: luxDeskInk ? luxDeskInk.ourBox.caption : '#94a3b8' }}>
+                        Estimated Man-Hours
+                      </div>
+                      <div
+                        style={{
+                          marginTop: 6,
+                          fontSize: 18,
+                          fontWeight: 950,
+                          color: luxDeskInk ? luxDeskInk.ourBox.value : '#bbf7d0',
+                        }}
+                      >
                         {hoursBand || 'Not available yet'}
                       </div>
-                      <div style={{ marginTop: 10, fontSize: 11, color: '#94a3b8' }}>Estimated Cost</div>
-                      <div style={{ marginTop: 6, fontSize: 16, fontWeight: 950, color: '#86efac' }}>
+                      <div style={{ marginTop: 10, fontSize: 11, color: luxDeskInk ? luxDeskInk.ourBox.caption : '#94a3b8' }}>
+                        Estimated Cost
+                      </div>
+                      <div
+                        style={{
+                          marginTop: 6,
+                          fontSize: 16,
+                          fontWeight: 950,
+                          color: luxDeskInk ? luxDeskInk.ourBox.label : '#86efac',
+                        }}
+                      >
                         {ourUsd || 'Not available yet'}
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div style={{ marginTop: 14, fontSize: 12, color: '#94a3b8' }}>Estimate not generated yet.</div>
+                  <div style={{ marginTop: 14, fontSize: 12, color: luxDeskInk ? luxDeskInk.muted : '#94a3b8' }}>
+                    Estimate not generated yet.
+                  </div>
                 )}
 
                 <div
                   style={{
                     marginTop: 14,
                     borderRadius: 12,
-                    border: '1px solid rgba(148,163,184,0.14)',
-                    background: 'rgba(15,23,42,0.35)',
+                    border: `1px solid ${luxDeskInk ? luxDeskInk.footnoteBorder : 'rgba(148,163,184,0.14)'}`,
+                    background: luxDeskInk ? luxDeskInk.footnoteBg : 'rgba(15,23,42,0.35)',
                     padding: 10,
                     fontSize: 11,
-                    color: '#94a3b8',
+                    color: luxDeskInk ? luxDeskInk.muted : '#94a3b8',
                   }}
                 >
                   Estimates are preliminary and may change after clarification or scope adjustments.
@@ -3548,7 +3676,14 @@ export default function ChangeConsolePage() {
               </div>
 
               <div style={subtleCard}>
-                <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
+                <div
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 900,
+                    color: luxDeskInk ? luxDeskInk.sectionLabel : '#cbd5e1',
+                    letterSpacing: '0.08em',
+                  }}
+                >
                   NEXT ACTIONS
                 </div>
                 <div style={{ marginTop: 12, display: 'grid', gridTemplateColumns: '1fr', gap: 12 }}>
@@ -3556,19 +3691,35 @@ export default function ChangeConsolePage() {
                     <button
                       type="button"
                       disabled={busy || !canProceed}
-                      style={{
-                        padding: '12px 14px',
-                        borderRadius: 12,
-                        border: '1px solid rgba(34,197,94,0.35)',
-                        background: busy || !canProceed ? 'rgba(148,163,184,0.18)' : 'rgba(34,197,94,0.14)',
-                        color: busy || !canProceed ? '#94a3b8' : '#dcfce7',
-                        textAlign: 'left',
-                        cursor: busy || !canProceed ? 'not-allowed' : 'pointer',
-                      }}
+                      style={
+                        luxDeskInk
+                          ? luxDeskInk.proceedBtn(busy || !canProceed)
+                          : {
+                              padding: '12px 14px',
+                              borderRadius: 12,
+                              border: '1px solid rgba(34,197,94,0.35)',
+                              background: busy || !canProceed ? 'rgba(148,163,184,0.18)' : 'rgba(34,197,94,0.14)',
+                              color: busy || !canProceed ? '#94a3b8' : '#dcfce7',
+                              textAlign: 'left',
+                              cursor: busy || !canProceed ? 'not-allowed' : 'pointer',
+                            }
+                      }
                       onClick={() => void proceedAfterEstimate()}
                     >
                       <div style={{ fontWeight: 900 }}>Proceed</div>
-                      <div style={{ marginTop: 4, fontSize: 11, color: busy || !canProceed ? '#94a3b8' : '#bbf7d0' }}>
+                      <div
+                        style={{
+                          marginTop: 4,
+                          fontSize: 11,
+                          color: luxDeskInk
+                            ? busy || !canProceed
+                              ? luxDeskInk.muted
+                              : luxDeskInk.successSoft
+                            : busy || !canProceed
+                              ? '#94a3b8'
+                              : '#bbf7d0',
+                        }}
+                      >
                         Start the work on this change
                       </div>
                     </button>
@@ -3576,26 +3727,32 @@ export default function ChangeConsolePage() {
                   <button
                     type="button"
                     disabled={busy}
-                    style={{
-                      padding: '12px 14px',
-                      borderRadius: 12,
-                      border: '1px solid rgba(56,189,248,0.22)',
-                      background: 'rgba(56,189,248,0.06)',
-                      color: '#e0f2fe',
-                      textAlign: 'left',
-                      cursor: busy ? 'not-allowed' : 'pointer',
-                    }}
+                    style={
+                      luxDeskInk
+                        ? luxDeskInk.changeRequestBtn(busy)
+                        : {
+                            padding: '12px 14px',
+                            borderRadius: 12,
+                            border: '1px solid rgba(56,189,248,0.22)',
+                            background: 'rgba(56,189,248,0.06)',
+                            color: '#e0f2fe',
+                            textAlign: 'left',
+                            cursor: busy ? 'not-allowed' : 'pointer',
+                          }
+                    }
                     onClick={() => setForceRefine(true)}
                   >
                     <div style={{ fontWeight: 900 }}>Change Request</div>
-                    <div style={{ marginTop: 4, fontSize: 11, color: '#94a3b8' }}>Modify the overall change</div>
+                    <div style={{ marginTop: 4, fontSize: 11, color: luxDeskInk ? luxDeskInk.muted : '#94a3b8' }}>
+                      Modify the overall change
+                    </div>
                   </button>
                   {!hasEstimate ? (
-                    <div style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.45 }}>
+                    <div style={{ fontSize: 11, color: luxDeskInk ? luxDeskInk.muted : '#94a3b8', lineHeight: 1.45 }}>
                       Proceed becomes available after you generate an estimate.
                     </div>
                   ) : !canProceed ? (
-                    <div style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.45 }}>
+                    <div style={{ fontSize: 11, color: luxDeskInk ? luxDeskInk.muted : '#94a3b8', lineHeight: 1.45 }}>
                       Proceeding isn’t available for this session yet.
                     </div>
                   ) : null}
