@@ -72,6 +72,8 @@ test('Lux change console theme exports deskInk contrast tokens', () => {
   assert.match(theme, /withdrawBtn/);
   assert.match(theme, /proceedBtn/);
   assert.match(theme, /changeRequestBtn/);
+  assert.match(theme, /navPill/);
+  assert.match(theme, /mediaWorkspace/);
 });
 
 test('change.js — session gate + create ticket panel + withdraw control', () => {
@@ -88,6 +90,11 @@ test('change.js — session gate + create ticket panel + withdraw control', () =
   assert.match(change, /action=ticket-create/);
   assert.match(change, /data-testid="lux-change-withdraw-ticket-btn"/);
   assert.match(change, /luxDeskInk/);
+  assert.match(change, /data-lux-change-notify-bar/);
+  assert.match(change, /mediaWorkspace/);
+  assert.match(change, /lux-media-workspace/);
+  assert.match(change, /lux-change-notify-prefs-get/);
+  assert.match(change, /LuxeMauriceFontStylesheet/);
   assert.match(change, /action=ticket-withdraw/);
   assert.match(change, /Withdraw \/ Cancel ticket/);
 });
@@ -99,4 +106,6 @@ test('router.js — ticket-withdraw action registered for tenant sessions', () =
   assert.match(router, /'ticket-withdraw'/);
   assert.match(router, /cmp\.ticket\.withdrawn/);
   assert.match(router, /notifyLuxTicketOperatorEmail/);
+  assert.match(router, /lux-change-notify-prefs-get/);
+  assert.match(router, /loadLuxAiHandoffContextForGroq/);
 });

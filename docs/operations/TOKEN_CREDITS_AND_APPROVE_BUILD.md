@@ -25,6 +25,13 @@ $env:POSTGRES_URL="postgresql://..."
 node scripts/set-luxe-maurice-billing-exempt.mjs
 ```
 
+**Paying client (Lux commercial):** clear exemption when billing should apply:
+
+```bash
+npm run factory:clear-luxe-billing-exempt
+# or: node scripts/clear-luxe-maurice-billing-exempt.mjs
+```
+
 3. Confirm: **`GET /api/ui/context`** while logged in as that tenant → **`billing_exempt: true`**, **`show_approve_build: true`** without needing a positive balance.
 
 **Effect:** No token pre-check and **no debit** on approve-build for that tenant. Estimates can show **$0** client line; audit benchmark fields unchanged.
@@ -63,4 +70,4 @@ Each **Approve build** debits roughly **`displayed_client_usd`** (benchmark × *
 
 ---
 
-*Last updated: 2026-04-10 — Lux script `scripts/set-luxe-maurice-billing-exempt.mjs`; no global exempt-all env.*
+*Last updated: 2026-07-06 — Lux paying-client script `scripts/clear-luxe-maurice-billing-exempt.mjs`; legacy exempt script retained for break-glass only.*
