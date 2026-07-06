@@ -10,6 +10,7 @@ import {
 } from '../lib/server/cursor-cloud-agent-client.js';
 import {
   buildDispatcherActivationPlan,
+  buildSmokeInternalCursorRouting,
   dedupeStateAddKey,
   DISPATCHER_ACTIVATION_MODE_CURSOR_LIVE,
   DISPATCHER_ACTIVATION_MODE_DRY_RUN,
@@ -17,6 +18,7 @@ import {
   routingDedupeKey,
   runDispatcherActivation,
   selectActivationDecisions,
+  injectSmokeInternalCursorRouting,
 } from '../lib/server/dispatcher-agent-activation.js';
 
 const sample = JSON.parse(
@@ -198,5 +200,31 @@ describe('dispatcher cursor live activation', () => {
       mode: DISPATCHER_ACTIVATION_MODE_CURSOR_LIVE,
     });
     assert.equal(plan.mode, DISPATCHER_ACTIVATION_MODE_CURSOR_LIVE);
+  });
+
+  it('smoke internal injects cursor routing when none eligible', async () => {
+    const report = injectSmokeInternalCursorRouting(
+      { routings: [{ owner: 'anton', gated: true, objectRef: 'x' }] },
+      { smokeInternal: true },
+    );
+    const cursor = report.routings.filter((r) => r.owner === 'cursor');
+    assert.equal(cursor.length, 1);
+    assert.match(cursor[0].executorPrompt, /smoke/i);
+  });
+
+  it('API key is not echoed in fail-closed error', async () => {
+    const secret = 'sk-super-secret-test-key';
+    await assert.rejects(
+      () =>
+        runDispatcherActivation(
+          { routings: [cursorRouting()] },
+          { mode: DISPATCHER_ACTIVATION_MODE_CURSOR_LIVE, cursorApiKey: '' },
+        ),
+      (err) => {
+        assert.match(err.message, /CURSOR_API_KEY missing/);
+        assert.equal(String(err.message).includes(secret), false);
+        return true;
+      },
+    );
   });
 });

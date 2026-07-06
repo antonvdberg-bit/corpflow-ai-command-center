@@ -29,6 +29,11 @@ on:
         options:
           - dry_run
           - cursor_live
+      smoke_internal:
+        description: "Inject internal cursor smoke routing when no cursor routings (first smoke)"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -58,10 +63,16 @@ jobs:
           set -euo pipefail
           if [ "${{ github.event_name }}" = "schedule" ]; then
             echo "mode=dry_run" >> "$GITHUB_OUTPUT"
+            echo "smoke_internal=0" >> "$GITHUB_OUTPUT"
             echo "Scheduled run — forcing dry_run"
           else
             echo "mode=${{ inputs.activation_mode }}" >> "$GITHUB_OUTPUT"
-            echo "Manual run — activation_mode=${{ inputs.activation_mode }}"
+            if [ "${{ inputs.smoke_internal }}" = "true" ]; then
+              echo "smoke_internal=1" >> "$GITHUB_OUTPUT"
+            else
+              echo "smoke_internal=0" >> "$GITHUB_OUTPUT"
+            fi
+            echo "Manual run — activation_mode=${{ inputs.activation_mode }} smoke_internal=${{ inputs.smoke_internal }}"
           fi
 
       # Pinned SHAs (supply chain): tag v4
@@ -102,6 +113,7 @@ jobs:
       - name: Run dispatcher activation
         env:
           DISPATCHER_ACTIVATION_MODE: ${{ steps.mode.outputs.mode }}
+          DISPATCHER_ACTIVATION_SMOKE_INTERNAL: ${{ steps.mode.outputs.smoke_internal }}
           DISPATCHER_ACTIVATION_STATE_PATH: .dispatcher-activation-state/dedupe.json
           CORPFLOW_CORE_BASE_URL: ${{ secrets.CORPFLOW_CORE_BASE_URL }}
           CORPFLOW_FACTORY_HEALTH_URL: ${{ secrets.CORPFLOW_FACTORY_HEALTH_URL }}

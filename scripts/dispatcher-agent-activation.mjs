@@ -97,6 +97,7 @@ async function emitActivation(report, opts) {
     mode,
     dedupeState,
     cursorApiKey,
+    smokeInternal: opts.smokeInternal,
   });
 
   console.log(formatActivationResultText(result));
@@ -120,24 +121,26 @@ function resolveCliOptions() {
   const dedupePath = String(
     process.env.DISPATCHER_ACTIVATION_STATE_PATH || DEFAULT_DEDUPE_PATH,
   ).trim();
-  const activate = process.argv.includes('--activate') || process.argv.includes('--fetch');
-  const persistDedupe = process.argv.includes('--persist-dedupe') || mode === 'cursor_live';
-  return { mode, dedupePath, activate, persistDedupe };
+  const smokeInternal =
+    process.env.DISPATCHER_ACTIVATION_SMOKE_INTERNAL === '1' ||
+    process.argv.includes('--smoke-internal');
+  return { mode, dedupePath, smokeInternal };
 }
 
 async function runCli() {
-  const { mode, dedupePath, persistDedupe } = resolveCliOptions();
+  const { mode, dedupePath, smokeInternal } = resolveCliOptions();
+  const persistDedupe = process.argv.includes('--persist-dedupe') || mode === 'cursor_live';
 
   if (process.argv.includes('--fixtures')) {
     const report = readJsonFile(FIXTURE_DISPATCHER);
-    await emitActivation(report, { mode, dedupePath, persistDedupe: false });
+    await emitActivation(report, { mode, dedupePath, persistDedupe: false, smokeInternal });
     process.exit(0);
   }
 
   const fileIdx = process.argv.indexOf('--file');
   if (fileIdx >= 0 && process.argv[fileIdx + 1]) {
     const report = readJsonFile(String(process.argv[fileIdx + 1]).trim());
-    await emitActivation(report, { mode, dedupePath, persistDedupe: false });
+    await emitActivation(report, { mode, dedupePath, persistDedupe: false, smokeInternal });
     process.exit(0);
   }
 
@@ -160,7 +163,7 @@ async function runCli() {
     }
 
     const report = await fetchDispatcherReport(url, token);
-    await emitActivation(report, { mode, dedupePath, persistDedupe });
+    await emitActivation(report, { mode, dedupePath, persistDedupe, smokeInternal });
     process.exit(0);
   }
 
