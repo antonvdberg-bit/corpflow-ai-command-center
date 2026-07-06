@@ -1,0 +1,230 @@
+{
+  "name": "CorpFlowAI — Business Operations Dispatcher v1 (TEMPLATE, INACTIVE, SECRET-FREE)",
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateSource": "docs/runbooks/BUSINESS_OPERATIONS_DISPATCHER_V1.md",
+    "note": "Stage 1 dispatcher template. Pages Anton ONLY when owner=anton or gated=true. Cursor/Codex routings post to GitHub issue queue. NO CREDENTIALS in repo."
+  },
+  "nodes": [
+    {
+      "id": "sticky-setup",
+      "name": "SETUP — dispatcher paging rules",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-520, -160],
+      "parameters": {
+        "width": 520,
+        "height": 400,
+        "content": "## Business Operations Dispatcher v1\n\n**Inactive by design.**\n\nEnv in n8n ONLY:\n- CORPFLOW_MONITOR_BASE_URL\n- CORPFLOW_CRON_SECRET\n- TELEGRAM_BOT_TOKEN + TELEGRAM_ALERT_CHAT_ID (Anton-gated pages ONLY)\n- CORPFLOW_DISPATCHER_GITHUB_ISSUE (default 249)\n- GITHUB_TOKEN credential for issue comments\n\n**Paging rule:** Telegram fires only when routing.owner=anton OR routing.gated=true.\n\nCursor/Codex → GitHub comment queue on #249.\nn8n → digest/retry branch.\nno_action → silent."
+      }
+    },
+    {
+      "id": "schedule",
+      "name": "Every 2 hours",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [40, 40],
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "hours", "hoursInterval": 2 }]
+        }
+      }
+    },
+    {
+      "id": "fetch-dispatcher",
+      "name": "CorpFlowAI: business-ops dispatcher",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [320, 40],
+      "parameters": {
+        "url": "={{ ($env.CORPFLOW_MONITOR_BASE_URL || 'https://core.corpflowai.com').replace(/\\/$/, '') + '/api/factory/business-operations-dispatcher' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $env.CORPFLOW_CRON_SECRET }}" },
+            { "name": "Accept", "value": "application/json" }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "split-routes",
+      "name": "Split routings by owner",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [620, 40],
+      "parameters": {
+        "jsType": "javaScript",
+        "mode": "runOnceForAllItems",
+        "jsCode": "const body = $input.first().json;\nconst routings = Array.isArray(body.routings) ? body.routings : [];\nconst anton = routings.filter(r => r && (r.owner === 'anton' || r.gated === true));\nconst cursor = routings.filter(r => r && r.owner === 'cursor');\nconst codex = routings.filter(r => r && r.owner === 'codex');\nconst n8n = routings.filter(r => r && r.owner === 'n8n');\nconst silent = routings.length > 0 && anton.length === 0 && cursor.length === 0 && codex.length === 0 && n8n.length === 0;\nconst fmt = (list, label) => list.slice(0, 6).map(r => `[${r.severity}] ${r.objectRef}\\n${r.executorPrompt || r.recommendedNextAction}`).join('\\n\\n---\\n\\n');\nreturn [{ json: {\n  schema: body.schema,\n  evaluated_at: body.evaluated_at,\n  page_anton: anton.length,\n  anton_alert_text: anton.length ? 'CorpFlowAI Business Ops — Anton gate\\n\\n' + fmt(anton, 'anton') : '',\n  cursor_queue_text: cursor.length ? '### Dispatcher — Cursor queue\\n\\n**Executor:** Cursor\\n\\n' + fmt(cursor, 'cursor') : '',\n  codex_queue_text: codex.length ? '### Dispatcher — Codex queue\\n\\n**Executor:** Codex Cloud\\n\\n' + fmt(codex, 'codex') : '',\n  n8n_digest_count: n8n.length,\n  silent_success: silent,\n  should_telegram: anton.length > 0,\n  should_github_cursor: cursor.length > 0,\n  should_github_codex: codex.length > 0,\n} }];"
+      }
+    },
+    {
+      "id": "if-telegram",
+      "name": "Anton gate?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [920, -80],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "typeValidation": "strict" },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.should_telegram }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "true" }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "telegram-anton",
+      "name": "Telegram — Anton gated only",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1200, -160],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $env.TELEGRAM_BOT_TOKEN }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"chat_id\": \"{{ $env.TELEGRAM_ALERT_CHAT_ID }}\",\n  \"text\": {{ JSON.stringify($json.anton_alert_text.slice(0, 3500)) }}\n}",
+        "options": {}
+      }
+    },
+    {
+      "id": "if-cursor-gh",
+      "name": "Cursor queue?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [920, 80],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "typeValidation": "strict" },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.should_github_cursor }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "true" }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "github-cursor",
+      "name": "GitHub: Cursor queue comment",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1200, 40],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.github.com/repos/antonvdberg-bit/corpflow-ai-command-center/issues/{{ $env.CORPFLOW_DISPATCHER_GITHUB_ISSUE || '249' }}/comments",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Accept", "value": "application/vnd.github+json" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.GITHUB_TOKEN }}" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"body\": {{ JSON.stringify($json.cursor_queue_text) }}\n}",
+        "options": {}
+      }
+    },
+    {
+      "id": "if-codex-gh",
+      "name": "Codex queue?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [920, 240],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "typeValidation": "strict" },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.should_github_codex }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "true" }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "github-codex",
+      "name": "GitHub: Codex queue comment",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1200, 200],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.github.com/repos/antonvdberg-bit/corpflow-ai-command-center/issues/{{ $env.CORPFLOW_DISPATCHER_GITHUB_ISSUE || '249' }}/comments",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Accept", "value": "application/vnd.github+json" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.GITHUB_TOKEN }}" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"body\": {{ JSON.stringify($json.codex_queue_text) }}\n}",
+        "options": {}
+      }
+    },
+    {
+      "id": "noop-silent",
+      "name": "Silent success",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [1200, 360],
+      "parameters": {}
+    }
+  ],
+  "connections": {
+    "Every 2 hours": {
+      "main": [[{ "node": "CorpFlowAI: business-ops dispatcher", "type": "main", "index": 0 }]]
+    },
+    "CorpFlowAI: business-ops dispatcher": {
+      "main": [[{ "node": "Split routings by owner", "type": "main", "index": 0 }]]
+    },
+    "Split routings by owner": {
+      "main": [
+        [
+          { "node": "Anton gate?", "type": "main", "index": 0 },
+          { "node": "Cursor queue?", "type": "main", "index": 0 },
+          { "node": "Codex queue?", "type": "main", "index": 0 },
+          { "node": "Silent success", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Anton gate?": {
+      "main": [
+        [{ "node": "Telegram — Anton gated only", "type": "main", "index": 0 }],
+        [{ "node": "Silent success", "type": "main", "index": 0 }]
+      ]
+    },
+    "Cursor queue?": {
+      "main": [
+        [{ "node": "GitHub: Cursor queue comment", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Codex queue?": {
+      "main": [
+        [{ "node": "GitHub: Codex queue comment", "type": "main", "index": 0 }],
+        []
+      ]
+    }
+  }
+}

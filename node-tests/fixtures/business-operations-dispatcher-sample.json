@@ -1,0 +1,50 @@
+{
+  "schema": "corpflow.business_operations_dispatcher.v1",
+  "version": 1,
+  "ok": false,
+  "evaluated_at": "2026-07-06T05:25:23.949Z",
+  "monitor_schema": "corpflow.business_operations_monitor.v1",
+  "summary": {
+    "routes": { "anton": 2, "cursor": 2, "codex": 1, "n8n": 1, "no_action": 0 },
+    "page_anton": 2,
+    "silent": false
+  },
+  "routings": [
+    {
+      "owner": "anton",
+      "severity": "urgent",
+      "objectType": "invoice",
+      "objectRef": "lead:fixture_lead_invoice_missing",
+      "gated": true,
+      "antonNeeded": true,
+      "reason": "Commercial or payment judgement — hard-gated operator decision.",
+      "executorPrompt": "Operator decision required (lead:fixture_lead_invoice_missing): Record pro-forma / ERPNext invoice reference."
+    },
+    {
+      "owner": "cursor",
+      "severity": "urgent",
+      "objectType": "delivery",
+      "objectRef": "ticket:fixture_ticket_in_review",
+      "gated": false,
+      "antonNeeded": false,
+      "reason": "CMP delivery stale — repo/app/admin tooling work (PR, preview, CI surfacing)."
+    },
+    {
+      "owner": "n8n",
+      "severity": "warning",
+      "objectType": "lead",
+      "objectRef": "lead:fixture_lead_new_intake",
+      "gated": false,
+      "reason": "Intake review reminder — n8n digest/queue only."
+    },
+    {
+      "owner": "codex",
+      "severity": "info",
+      "objectType": "monitor",
+      "objectRef": "source:erpnext",
+      "gated": false,
+      "reason": "ERPNext cross-check not configured; research/decision memo if integration is blocking pilots."
+    }
+  ],
+  "_note": "Synthetic sample from npm run business-ops:dispatcher:fixtures. Telegram pages only routings with owner=anton or gated=true."
+}
