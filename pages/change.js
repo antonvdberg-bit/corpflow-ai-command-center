@@ -4661,7 +4661,7 @@ export default function ChangeConsolePage() {
                 link to a property slug, and (when approved) publish on an allowed slot.
               </div>
             </div>
-            )}
+            )
           ) : null}
 
           {/*
