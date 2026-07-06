@@ -161,34 +161,24 @@ test('PR #350: emits a diagnostic console.warn when the fallback path is reached
 
 test('PR #351: ATTACHMENTS list renders for sprint tickets (mirrors PR #350 upload-section bypass)', () => {
   const src = readRepo('pages/change.js');
-  // Locate the per-ticket ATTACHMENTS list collapsible — identified by its summary.
-  const SUMMARY = 'summary="This ticket · attachments, review, link, publish"';
-  const idx = src.indexOf(SUMMARY);
-  assert.ok(idx > 0, 'ATTACHMENTS list section must be present');
-  // Walk backwards to find the JSX conditional that gates this section.
-  const windowStart = Math.max(0, idx - 1500);
-  const preceding = src.slice(windowStart, idx);
-  const openerRe = /\{[^{}\n]*selectedTicketId[^{}\n]*\?\s*\(/g;
-  let lastMatch = null;
-  let m;
-  while ((m = openerRe.exec(preceding)) !== null) {
-    lastMatch = m;
-  }
-  assert.ok(lastMatch, 'Could not locate the JSX conditional that gates the ATTACHMENTS list');
-  const condition = lastMatch[0];
-  // The ATTACHMENTS list MUST include the sprint-ticket bypass so the operator
-  // can see the uploaded row on C1–C4 tickets. PR #351 root cause:
-  // intake-stage sprint tickets had `!showIntakeSurface === false`, so the list
-  // was never rendered and the operator concluded "the file was dropped".
+  const CONDITION =
+    'selectedTicketId && (!isEstimateMode || isLuxContentSprintTicketSelected) && attachments.length > 0';
+  const idx = src.indexOf(CONDITION);
+  assert.ok(idx > 0, 'ATTACHMENTS list sprint-bypass conditional must be present');
   assert.match(
-    condition,
+    src,
+    /'This ticket · attachments, review, link, publish'|`Evidence attachments \(\$\{attachments\.length\}\)`/,
+    'ATTACHMENTS collapsible must retain operator-facing summary strings',
+  );
+  assert.match(
+    src.slice(Math.max(0, idx - 200), idx + CONDITION.length + 200),
     /isLuxContentSprintTicketSelected/,
-    `ATTACHMENTS list conditional must include isLuxContentSprintTicketSelected (sprint bypass); got: ${condition}`,
+    'ATTACHMENTS list conditional must include isLuxContentSprintTicketSelected (sprint bypass)',
   );
   assert.doesNotMatch(
-    condition,
+    src,
     /!\s*showIntakeSurface\s*&&\s*!\s*isEstimateMode\s*&&\s*selectedTicketId\s*&&\s*attachments\.length\s*>\s*0/,
-    `ATTACHMENTS list conditional must not be the legacy intake-blocked form; got: ${condition}`,
+    'ATTACHMENTS list conditional must not be the legacy intake-blocked form',
   );
 });
 
