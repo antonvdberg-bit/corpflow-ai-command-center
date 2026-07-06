@@ -47,6 +47,10 @@ import {
   groupLuxOperatorQueueTickets,
 } from '../lib/client/lux-change-queue-classify.js';
 import {
+  applyLuxChangeContextHashOverrides,
+  classifyLuxChangeTicketContext,
+} from '../lib/client/lux-change-ticket-context.js';
+import {
   isLuxContentSprintTicket,
   normalizeLuxContentSprintCode,
 } from '../lib/client/lux-content-sprint-guidance.js';
@@ -104,12 +108,25 @@ function pillStyle(active, chrome) {
 }
 
 /** Lux-only: `<details>` accordion so media tools are not all expanded at once. */
-function LuxChangeCollapsibleSection({ chrome, summary, cardStyle, children, defaultOpen = false, sectionId }) {
+function LuxChangeCollapsibleSection({
+  chrome,
+  summary,
+  cardStyle,
+  children,
+  defaultOpen = false,
+  sectionId,
+  remountKey,
+}) {
   if (!chrome) {
     return <div style={cardStyle}>{children}</div>;
   }
   return (
-    <details id={sectionId} style={{ ...cardStyle, minWidth: 0 }} defaultOpen={defaultOpen}>
+    <details
+      key={remountKey || sectionId || summary}
+      id={sectionId}
+      style={{ ...cardStyle, minWidth: 0 }}
+      defaultOpen={defaultOpen}
+    >
       <summary
         style={{
           cursor: 'pointer',
@@ -125,6 +142,25 @@ function LuxChangeCollapsibleSection({ chrome, summary, cardStyle, children, def
       <div style={{ marginTop: 12 }}>{children}</div>
     </details>
   );
+}
+
+/** Lux CRM panel shell — collapsible on Lux; plain card elsewhere. */
+function ChangeCrmLeadsPanel({ luxChrome, luxTicketContextProfile, selectedTicketId, card, children }) {
+  if (luxChrome) {
+    return (
+      <LuxChangeCollapsibleSection
+        chrome={luxChrome}
+        summary="Leads · LuxeMaurice CRM (concierge)"
+        cardStyle={{ ...card, minWidth: 0 }}
+        defaultOpen={luxTicketContextProfile.crmLeadsDefaultOpen}
+        remountKey={`crm-${selectedTicketId || 'none'}-${luxTicketContextProfile.context}`}
+        sectionId="lux-crm-leads-workspace"
+      >
+        {children}
+      </LuxChangeCollapsibleSection>
+    );
+  }
+  return <div style={{ ...card, minWidth: 0 }}>{children}</div>;
 }
 
 function ChangeQueueTicketRow({ t, selectedTicketId, onSelect, luxChrome }) {
@@ -1660,6 +1696,34 @@ export default function ChangeConsolePage() {
     [luxSprintMeta],
   );
 
+  const luxTicketContextProfile = useMemo(() => {
+    if (!luxChangeChrome || !selectedTicketId) {
+      return classifyLuxChangeTicketContext({});
+    }
+    const queueRow = tickets.find((t) => String(t.ticket_id || '') === String(selectedTicketId)) || null;
+    const base = classifyLuxChangeTicketContext({
+      ticket_id: selectedTicketId,
+      requested_change: queueRow?.requested_change || ticket?.description || ticket?.title || '',
+      status: ticket?.status,
+      stage: ticket?.stage,
+      workflow_state: ticket?.ticket_progress?.client_view?.workflow_state,
+      lux_sprint_meta: luxSprintMeta,
+    });
+    return applyLuxChangeContextHashOverrides(base, { mediaWorkspaceHashOpen: luxMediaWorkspaceHashOpen });
+  }, [
+    luxChangeChrome,
+    selectedTicketId,
+    tickets,
+    ticket,
+    luxSprintMeta,
+    luxMediaWorkspaceHashOpen,
+  ]);
+
+  useEffect(() => {
+    if (!luxChangeChrome || !selectedTicketId) return;
+    setLuxMediaLibOpen(luxTicketContextProfile.mediaLibraryDefaultOpen);
+  }, [luxChangeChrome, selectedTicketId, luxTicketContextProfile.context, luxTicketContextProfile.mediaLibraryDefaultOpen]);
+
   // The operator-facing view of leads. Default-excludes `system_generated` rows
   // so the LEADS · New strip + visible list only count real concierge leads. Toggle
   // `crmShowSystemGenerated` to include them when auditing.
@@ -2657,9 +2721,11 @@ export default function ChangeConsolePage() {
                     </a>
                   </>
                 ) : null}
+                {!luxTicketContextProfile.buildControlFocus ? (
                 <a href="#lux-media-workspace" style={luxChangeChrome.navPill('default')}>
                   Media workspace
                 </a>
+                ) : null}
               </div>
               <div style={luxChangeChrome.notifyBar()} data-lux-change-notify-bar="true">
                 <label style={luxChangeChrome.notifyCheckboxLabel()}>
@@ -3068,6 +3134,51 @@ export default function ChangeConsolePage() {
               chrome={luxChangeChrome}
               onUploadClick={handleSprintUploadContentClick}
             />
+          ) : null}
+
+          {luxChangeChrome && selectedTicketId && luxTicketContextProfile.buildControlFocus ? (
+            <div
+              data-testid="lux-change-context-profile"
+              data-lux-change-context={luxTicketContextProfile.context}
+              style={{
+                ...card,
+                minWidth: 0,
+                border: `1px solid ${luxChangeChrome.gold}`,
+                background: `linear-gradient(180deg, ${luxChangeChrome.white} 0%, ${luxChangeChrome.sand} 100%)`,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 900,
+                  letterSpacing: '0.08em',
+                  color: luxChangeChrome.textLabel,
+                }}
+              >
+                Build control focus · {luxTicketContextProfile.label}
+              </div>
+              <div style={{ marginTop: 8, fontSize: 13, color: luxChangeChrome.text, lineHeight: 1.55 }}>
+                This ticket prioritizes estimate, proceed, and audit evidence. Media workspace and CRM leads stay
+                collapsed unless you expand them — private lead data stays out of the approval path.
+              </div>
+              {proceedBlockReason ? (
+                <div
+                  data-testid="lux-change-context-proceed-block"
+                  style={{
+                    marginTop: 10,
+                    fontSize: 12,
+                    color: luxChangeChrome.heroDeep,
+                    lineHeight: 1.45,
+                    padding: '8px 10px',
+                    borderRadius: 10,
+                    border: `1px solid ${luxChangeChrome.border}`,
+                    background: luxChangeChrome.white,
+                  }}
+                >
+                  <strong>Blocking proceed:</strong> {proceedBlockReason}
+                </div>
+              ) : null}
+            </div>
           ) : null}
 
           <div style={{ ...card, minWidth: 0 }}>
@@ -4076,7 +4187,8 @@ export default function ChangeConsolePage() {
               chrome={luxChangeChrome}
               summary="Media workspace"
               cardStyle={{ ...card, minWidth: 0 }}
-              defaultOpen={luxMediaWorkspaceHashOpen}
+              defaultOpen={luxTicketContextProfile.mediaWorkspaceDefaultOpen}
+              remountKey={`media-ws-${selectedTicketId}-${luxTicketContextProfile.context}`}
               sectionId="lux-media-workspace"
             >
                 <div
@@ -4258,6 +4370,157 @@ export default function ChangeConsolePage() {
            * Content sprint panel always has a target.
            */}
           {selectedTicketId && (!isEstimateMode || isLuxContentSprintTicketSelected) ? (
+            luxChangeChrome ? (
+              <LuxChangeCollapsibleSection
+                chrome={luxChangeChrome}
+                summary={
+                  luxTicketContextProfile.uploadPanelDefaultOpen
+                    ? 'Upload to this ticket'
+                    : 'Upload evidence (optional)'
+                }
+                cardStyle={{
+                  ...card,
+                  minWidth: 0,
+                  border: '1px solid rgba(168,132,44,0.35)',
+                  background: 'rgba(168,132,44,0.05)',
+                }}
+                defaultOpen={luxTicketContextProfile.uploadPanelDefaultOpen}
+                remountKey={`upload-${selectedTicketId}-${luxTicketContextProfile.context}`}
+                sectionId="lux-ticket-attachment-upload"
+              >
+                <div
+                  data-testid="lux-ticket-attachment-upload"
+                  ref={luxAttachmentUploadSectionRef}
+                  style={{ minWidth: 0 }}
+                >
+                  <div
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 900,
+                      letterSpacing: '0.08em',
+                      color: luxInk ? luxInk.label : '#cbd5e1',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    Upload to this ticket
+                  </div>
+                  <div
+                    style={{
+                      marginTop: 6,
+                      fontSize: 12,
+                      color: luxInk ? luxInk.body : '#e2e8f0',
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    Choose an image, video, or PDF to attach to this ticket. The file is
+                    governed by the existing LuxeMaurice attachment pipeline: it is uploaded
+                    privately, then reviewed, linked, and only published when explicitly
+                    approved on an allowed slot (hero, gallery, or card). Nothing becomes
+                    public from this step alone.
+                  </div>
+                  <div
+                    style={{
+                      marginTop: 12,
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: 10,
+                      alignItems: 'center',
+                    }}
+                  >
+                    <input
+                      ref={luxAttachmentUploadInputRef}
+                      id="lux-ticket-attachment-upload-input"
+                      name="lux-ticket-attachment-upload-input"
+                      data-testid="lux-ticket-attachment-upload-input"
+                      type="file"
+                      accept="image/*,video/*,application/pdf"
+                      onChange={handleAttachmentUploadInputChange}
+                      disabled={uploadBusy}
+                      style={{ fontSize: 12, color: luxInk ? luxInk.body : '#e2e8f0', maxWidth: '100%' }}
+                    />
+                    <span
+                      style={{
+                        fontSize: 11,
+                        color: luxInk ? luxInk.muted : '#94a3b8',
+                        lineHeight: 1.45,
+                      }}
+                    >
+                      Max ~3 MB per upload via /change. Larger assets go through the operator
+                      ingest path documented in docs/LUX/LUX_MEDIA_GOVERNANCE.md.
+                    </span>
+                  </div>
+                  {uploadStatus ? (
+                    <div
+                      data-testid="lux-ticket-attachment-upload-status"
+                      data-status-kind={uploadStatusKind}
+                      style={{
+                        marginTop: 10,
+                        fontSize: 12,
+                        lineHeight: 1.5,
+                        padding: '8px 10px',
+                        borderRadius: 10,
+                        color:
+                          uploadStatusKind === 'error'
+                            ? '#fecaca'
+                            : uploadStatusKind === 'ok'
+                              ? '#bbf7d0'
+                              : uploadStatusKind === 'info'
+                                ? '#bae6fd'
+                                : '#e2e8f0',
+                        border: `1px solid ${
+                          uploadStatusKind === 'error'
+                            ? 'rgba(248,113,113,0.4)'
+                            : uploadStatusKind === 'ok'
+                              ? 'rgba(74,222,128,0.4)'
+                              : uploadStatusKind === 'info'
+                                ? 'rgba(125,211,252,0.4)'
+                                : 'rgba(148,163,184,0.3)'
+                        }`,
+                        background:
+                          uploadStatusKind === 'error'
+                            ? 'rgba(248,113,113,0.1)'
+                            : uploadStatusKind === 'ok'
+                              ? 'rgba(74,222,128,0.1)'
+                              : uploadStatusKind === 'info'
+                                ? 'rgba(125,211,252,0.1)'
+                                : 'rgba(15,23,42,0.35)',
+                      }}
+                    >
+                      {uploadStatus}
+                    </div>
+                  ) : null}
+                  {lastUploadedAttachment ? (
+                    <div
+                      data-testid="lux-ticket-attachment-upload-last"
+                      style={{
+                        marginTop: 10,
+                        fontSize: 12,
+                        color: luxChangeChrome.successSoft,
+                        lineHeight: 1.45,
+                      }}
+                    >
+                      <strong>Just uploaded:</strong> {lastUploadedAttachment.file_name}{' '}
+                      <span style={{ color: luxInk ? luxInk.muted : '#94a3b8' }}>
+                        ({Math.round(lastUploadedAttachment.byte_size / 1024)} KB)
+                      </span>
+                      . Scroll to attachments to review / link / publish (current count: {attachments.length}).
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        marginTop: 10,
+                        fontSize: 11,
+                        color: luxInk ? luxInk.muted : '#94a3b8',
+                        lineHeight: 1.45,
+                      }}
+                    >
+                      After upload, scroll down to the ATTACHMENTS section to mark reviewed,
+                      link to a property slug, and (when approved) publish on an allowed slot.
+                    </div>
+                  )}
+                </div>
+              </LuxChangeCollapsibleSection>
+            ) : (
             <div
               id="lux-ticket-attachment-upload"
               data-testid="lux-ticket-attachment-upload"
@@ -4398,6 +4661,7 @@ export default function ChangeConsolePage() {
                 link to a property slug, and (when approved) publish on an allowed slot.
               </div>
             </div>
+            )}
           ) : null}
 
           {/*
@@ -4415,9 +4679,14 @@ export default function ChangeConsolePage() {
           {selectedTicketId && (!isEstimateMode || isLuxContentSprintTicketSelected) && attachments.length > 0 ? (
             <LuxChangeCollapsibleSection
               chrome={luxChangeChrome}
-              summary="This ticket · attachments, review, link, publish"
+              summary={
+                luxTicketContextProfile.buildControlFocus
+                  ? `Evidence attachments (${attachments.length})`
+                  : 'This ticket · attachments, review, link, publish'
+              }
               cardStyle={{ ...card, minWidth: 0 }}
-              defaultOpen={Boolean(luxChangeChrome)}
+              defaultOpen={luxTicketContextProfile.attachmentsDefaultOpen}
+              remountKey={`attach-${selectedTicketId}-${luxTicketContextProfile.context}`}
             >
             <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: 12, fontWeight: 900, color: luxAttachInk.label, letterSpacing: '0.08em' }}>
@@ -5498,7 +5767,13 @@ export default function ChangeConsolePage() {
           ) : null}
 
           {!showIntakeSurface && !isEstimateMode ? (
-          <div style={{ ...card, minWidth: 0 }}>
+          <ChangeCrmLeadsPanel
+            luxChrome={luxChangeChrome}
+            luxTicketContextProfile={luxTicketContextProfile}
+            selectedTicketId={selectedTicketId}
+            card={card}
+          >
+            <div data-testid="lux-crm-leads-panel" style={{ minWidth: 0 }}>
             <div style={{ fontSize: 12, fontWeight: 900, color: '#cbd5e1', letterSpacing: '0.08em' }}>
               LEADS
               {luxLeadCrmEnabled ? (
@@ -6103,7 +6378,8 @@ export default function ChangeConsolePage() {
                 ) : null}
               </div>
             ) : null}
-          </div>
+            </div>
+          </ChangeCrmLeadsPanel>
           ) : null}
 
           {!showIntakeSurface && !isEstimateMode && luxLeadCrmEnabled ? (
