@@ -64,6 +64,7 @@ test('ticket-mutable-guard — denies closed ticket mutations', () => {
   assert.ok(out);
   assert.equal(calls[0].status, 409);
   assert.equal(calls[0].error, 'TICKET_CLOSED');
+  assert.equal(calls[0].extra.operator_message, 'This ticket is closed — approval is not available.');
 });
 
 test('Lux change console theme exports deskInk contrast tokens', () => {
@@ -111,4 +112,5 @@ test('router.js — ticket-withdraw action registered for tenant sessions', () =
   assert.match(router, /lux-change-notify-prefs-get/);
   assert.match(router, /mapApproveBuildServerException/);
   assert.match(router, /operator_message/);
+  assert.match(router, /import \{ denyIfTicketClosed \} from '\.\/_lib\/ticket-mutable-guard\.js';/);
 });

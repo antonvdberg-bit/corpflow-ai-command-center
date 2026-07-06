@@ -67,6 +67,18 @@ test('formatCmpRouterOperatorError — estimate required', () => {
   assert.match(msg, /estimate exists/i);
 });
 
+test('formatCmpRouterOperatorError — closed ticket approval blocked', () => {
+  const msg = formatCmpRouterOperatorError(
+    {
+      error: 'TICKET_CLOSED',
+      operator_message: 'This ticket is closed — approval is not available.',
+    },
+    409,
+    { action: 'approve-build' },
+  );
+  assert.equal(msg, 'This ticket is closed — approval is not available.');
+});
+
 test('mapApproveBuildServerException — provisioning', () => {
   const msg = mapApproveBuildServerException('provisioning failed (exit 1): stderr');
   assert.match(msg, /provisioning/i);
