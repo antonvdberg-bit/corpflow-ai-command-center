@@ -2266,7 +2266,8 @@ export default function ChangeConsolePage() {
     String(selectedTicketId || '').trim() === LUX_RECOVERY_ROADMAP_TICKET_ID && approvedBuild && !luxRecoveryRoadmapDone;
   const showLuxRecoveryDecisionReceived =
     String(selectedTicketId || '').trim() === LUX_RECOVERY_ROADMAP_TICKET_ID &&
-    recoveryOperatorSignal?.type === 'client_answers_received';
+    (recoveryOperatorSignal?.type === 'client_product_direction_confirmation' ||
+      recoveryOperatorSignal?.type === 'client_answers_received');
   const showGenericClientDecisionPanel =
     needClientDecision &&
     String(selectedTicketId || '').trim() !== LUX_PHASE1_REVIEW_TICKET_ID &&
@@ -3435,11 +3436,11 @@ export default function ChangeConsolePage() {
                     background: 'rgba(168,132,44,0.1)',
                   }}
                 >
-                  <div style={{ fontSize: 12, fontWeight: 950, color: '#F4EFE8' }}>Next: client recovery roadmap</div>
+                  <div style={{ fontSize: 12, fontWeight: 950, color: '#F4EFE8' }}>Next: product direction confirmation</div>
                   <div style={{ marginTop: 6, fontSize: 12, color: '#cbd5e1', lineHeight: 1.45 }}>
                     Send a one-time link to <code style={{ color: '#e2e8f0' }}>/client/recovery-roadmap</code> so Jan can
-                    review Release 1 (First Real Opportunity), see what is later / not MVP, and submit approve / changes /
-                    not approved with notes. No login required for the client.
+                    confirm or correct our understanding of each product pillar, set priorities, and note what we
+                    misunderstood. No login required for the client.
                   </div>
                   <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     <button
@@ -3456,7 +3457,7 @@ export default function ChangeConsolePage() {
                         cursor: clientDecisionBusy ? 'not-allowed' : 'pointer',
                       }}
                     >
-                      {clientDecisionBusy ? 'Generating…' : 'Send recovery roadmap link'}
+                      {clientDecisionBusy ? 'Generating…' : 'Send product direction link'}
                     </button>
                     {clientDecisionLink ? (
                       <button
@@ -3527,7 +3528,7 @@ export default function ChangeConsolePage() {
                         : 'rgba(127,29,29,0.2)',
                   }}
                 >
-                  <div style={{ fontSize: 12, fontWeight: 950, color: '#e2e8f0' }}>Client recovery decision received</div>
+                  <div style={{ fontSize: 12, fontWeight: 950, color: '#e2e8f0' }}>Client product direction confirmation</div>
                   <div style={{ marginTop: 6, fontSize: 12, color: '#cbd5e1', lineHeight: 1.45 }}>
                     {recoveryOperatorSignal?.decision_label
                       ? `Decision: ${recoveryOperatorSignal.decision_label}`
@@ -3576,8 +3577,8 @@ export default function ChangeConsolePage() {
                     lineHeight: 1.45,
                   }}
                 >
-                  Release 1 client decision is complete for this ticket. Review the answers above and proceed with
-                  content delivery when ready.
+                  Product direction confirmation is complete for this ticket. Review pillar choices and corrections
+                  above before resuming delivery work.
                 </div>
               ) : null}
 
