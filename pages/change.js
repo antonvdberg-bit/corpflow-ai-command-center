@@ -4495,7 +4495,7 @@ export default function ChangeConsolePage() {
                       style={{
                         marginTop: 10,
                         fontSize: 12,
-                        color: luxChangeChrome.successSoft,
+                        color: luxChangeChrome.deskInk.successSoft,
                         lineHeight: 1.45,
                       }}
                     >
