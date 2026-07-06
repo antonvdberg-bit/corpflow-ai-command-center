@@ -1,0 +1,49 @@
+{
+  "schema": "corpflow.business_operations_dispatcher.v1",
+  "version": 1,
+  "ok": false,
+  "evaluated_at": "2026-07-06T09:15:00.000Z",
+  "monitor_schema": "corpflow.business_operations_monitor.v1",
+  "summary": {
+    "routes": {
+      "anton": 7,
+      "cursor": 0,
+      "codex": 1,
+      "n8n": 0,
+      "no_action": 0
+    },
+    "page_anton": 7,
+    "silent": false
+  },
+  "routings": [
+    {
+      "owner": "anton",
+      "severity": "urgent",
+      "source": "corpflowai",
+      "objectType": "invoice",
+      "objectRef": "lead:fixture_invoice_gate",
+      "gated": true,
+      "reason": "Commercial or payment judgement — hard-gated operator decision.",
+      "recommendedNextAction": "Record pro-forma reference",
+      "executorPrompt": "Operator decision required (lead:fixture_invoice_gate): Record pro-forma reference.",
+      "antonNeeded": true,
+      "safeToIgnore": false,
+      "link": "/admin/lead-rescue/fixture_invoice_gate"
+    },
+    {
+      "owner": "codex",
+      "severity": "info",
+      "source": "erpnext",
+      "objectType": "monitor",
+      "objectRef": "source:erpnext",
+      "gated": false,
+      "reason": "ERPNext cross-check not configured; research/decision memo if integration is blocking pilots.",
+      "recommendedNextAction": "Evaluate ERPNext cross-check",
+      "executorPrompt": "Research or decision memo (source:erpnext): Evaluate ERPNext cross-check.",
+      "antonNeeded": false,
+      "safeToIgnore": false,
+      "link": null
+    }
+  ],
+  "_note": "Simulates production HTTP 503 when dispatcher ok=false (action required)."
+}

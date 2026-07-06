@@ -4,16 +4,25 @@ import { describe, it } from 'node:test';
 
 import {
   buildDispatcherActivationPlan,
+  BUSINESS_OPS_DISPATCHER_SCHEMA,
   DRY_RUN_ACTION_BY_OWNER,
   DISPATCHER_ACTIVATION_MODE_DRY_RUN,
   DISPATCHER_ACTIVATION_SCHEMA,
   formatActivationPlanText,
   groupRoutingsForActivationPlan,
+  parseDispatcherFetchResponse,
   resolveDispatcherActivationUrl,
 } from '../lib/server/dispatcher-agent-activation.js';
 
 const sample = JSON.parse(
   fs.readFileSync('node-tests/fixtures/business-operations-dispatcher-sample.json', 'utf8'),
+);
+
+const actionRequired503 = JSON.parse(
+  fs.readFileSync(
+    'node-tests/fixtures/business-operations-dispatcher-action-required-503.json',
+    'utf8',
+  ),
 );
 
 describe('dispatcher-agent-activation', () => {
@@ -62,5 +71,43 @@ describe('dispatcher-agent-activation', () => {
   it('resolveDispatcherActivationUrl appends to core base', () => {
     const url = resolveDispatcherActivationUrl('https://core.corpflowai.com');
     assert.equal(url, 'https://core.corpflowai.com/api/factory/business-operations-dispatcher');
+  });
+
+  it('parseDispatcherFetchResponse accepts HTTP 503 with valid dispatcher schema', () => {
+    const body = JSON.stringify(actionRequired503);
+    const { report, httpStatus } = parseDispatcherFetchResponse(503, body);
+    assert.equal(httpStatus, 503);
+    assert.equal(report.schema, BUSINESS_OPS_DISPATCHER_SCHEMA);
+    assert.equal(report.ok, false);
+    assert.equal(report.summary?.page_anton, 7);
+    assert.equal(report.summary?.routes?.anton, 7);
+    assert.equal(report.summary?.routes?.codex, 1);
+
+    const activation = buildDispatcherActivationPlan(report);
+    assert.equal(activation.totals.would_activate, 1);
+    assert.equal(activation.totals.skip, 1);
+    assert.equal(activation.plan.codex[0].action, DRY_RUN_ACTION_BY_OWNER.codex);
+    assert.equal(activation.plan.anton[0].action, DRY_RUN_ACTION_BY_OWNER.anton);
+  });
+
+  it('parseDispatcherFetchResponse rejects non-JSON body', () => {
+    assert.throws(
+      () => parseDispatcherFetchResponse(503, 'not json'),
+      /not JSON/,
+    );
+  });
+
+  it('parseDispatcherFetchResponse rejects JSON with wrong schema', () => {
+    assert.throws(
+      () => parseDispatcherFetchResponse(503, JSON.stringify({ schema: 'other', ok: false })),
+      /invalid schema/,
+    );
+  });
+
+  it('parseDispatcherFetchResponse rejects auth failure without dispatcher schema', () => {
+    assert.throws(
+      () => parseDispatcherFetchResponse(401, JSON.stringify({ error: 'UNAUTHORIZED' })),
+      /invalid schema/,
+    );
   });
 });
