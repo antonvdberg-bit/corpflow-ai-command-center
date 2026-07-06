@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { LUX_PHASE1_REVIEW_TICKET_ID } from '../lib/cmp/_lib/client-decisions-client.js';
+import { LUX_PHASE1_REVIEW_TICKET_ID, LUX_RECOVERY_ROADMAP_TICKET_ID } from '../lib/cmp/_lib/client-decisions-client.js';
 import { LUX_PARENT_PROGRAMME_TICKET_ID } from '../lib/cmp/_lib/lux-client-requests.js';
 import {
   isCmpTicketOperatorOpen,
@@ -2254,11 +2254,23 @@ export default function ChangeConsolePage() {
     String(ticket?.status || '').trim().toLowerCase() === 'approved' &&
     String(ticket?.stage || '').trim().toLowerCase() === 'build';
   const luxPhase1ReviewDone = ticket?.client_decisions_summary?.sufficient_to_proceed === true;
+  const luxRecoveryRoadmapDone = ticket?.client_decisions_summary?.sufficient_to_proceed === true;
+  const recoveryOperatorSignal =
+    ticket?.operator_signal && typeof ticket.operator_signal === 'object' ? ticket.operator_signal : null;
+  const recoveryDecisionAnswers = Array.isArray(ticket?.client_decisions_answers)
+    ? ticket.client_decisions_answers
+    : [];
   const showLuxPhase1ReviewPanel =
     String(selectedTicketId || '').trim() === LUX_PHASE1_REVIEW_TICKET_ID && approvedBuild && !luxPhase1ReviewDone;
+  const showLuxRecoveryRoadmapPanel =
+    String(selectedTicketId || '').trim() === LUX_RECOVERY_ROADMAP_TICKET_ID && approvedBuild && !luxRecoveryRoadmapDone;
+  const showLuxRecoveryDecisionReceived =
+    String(selectedTicketId || '').trim() === LUX_RECOVERY_ROADMAP_TICKET_ID &&
+    recoveryOperatorSignal?.type === 'client_answers_received';
   const showGenericClientDecisionPanel =
     needClientDecision &&
     String(selectedTicketId || '').trim() !== LUX_PHASE1_REVIEW_TICKET_ID &&
+    String(selectedTicketId || '').trim() !== LUX_RECOVERY_ROADMAP_TICKET_ID &&
     approvedBuild;
   const showLuxPhase1ReviewComplete =
     String(selectedTicketId || '').trim() === LUX_PHASE1_REVIEW_TICKET_ID && approvedBuild && luxPhase1ReviewDone;
@@ -3411,6 +3423,161 @@ export default function ChangeConsolePage() {
                   {clientDecisionStatus ? (
                     <div style={{ marginTop: 8, fontSize: 11, color: '#94a3b8' }}>{clientDecisionStatus}</div>
                   ) : null}
+                </div>
+              ) : null}
+
+              {showLuxRecoveryRoadmapPanel ? (
+                <div
+                  style={{
+                    border: '1px solid rgba(168,132,44,0.45)',
+                    borderRadius: 14,
+                    padding: 14,
+                    background: 'rgba(168,132,44,0.1)',
+                  }}
+                >
+                  <div style={{ fontSize: 12, fontWeight: 950, color: '#F4EFE8' }}>Next: client recovery roadmap</div>
+                  <div style={{ marginTop: 6, fontSize: 12, color: '#cbd5e1', lineHeight: 1.45 }}>
+                    Send a one-time link to <code style={{ color: '#e2e8f0' }}>/client/recovery-roadmap</code> so Jan can
+                    review Release 1 (First Real Opportunity), see what is later / not MVP, and submit approve / changes /
+                    not approved with notes. No login required for the client.
+                  </div>
+                  <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      onClick={mintClientDecisionLink}
+                      disabled={clientDecisionBusy || !selectedTicketId}
+                      style={{
+                        padding: '10px 12px',
+                        borderRadius: 12,
+                        border: 'none',
+                        background: clientDecisionBusy ? '#94a3b8' : '#A8842C',
+                        color: '#111111',
+                        fontWeight: 950,
+                        cursor: clientDecisionBusy ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      {clientDecisionBusy ? 'Generating…' : 'Send recovery roadmap link'}
+                    </button>
+                    {clientDecisionLink ? (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const ok = await copyToClipboard(clientDecisionLink);
+                          setClientDecisionStatus(ok ? 'Copied.' : 'Copy failed — select and copy manually.');
+                        }}
+                        style={{
+                          padding: '10px 12px',
+                          borderRadius: 12,
+                          border: '1px solid rgba(148,163,184,0.25)',
+                          background: 'rgba(15,23,42,0.35)',
+                          color: '#e2e8f0',
+                          fontWeight: 900,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Copy link
+                      </button>
+                    ) : null}
+                  </div>
+                  {clientDecisionLink ? (
+                    <div style={{ marginTop: 10 }}>
+                      <input
+                        readOnly
+                        value={clientDecisionLink}
+                        style={{
+                          width: '100%',
+                          maxWidth: '100%',
+                          minWidth: 0,
+                          boxSizing: 'border-box',
+                          padding: 10,
+                          borderRadius: 12,
+                          border: '1px solid rgba(148,163,184,0.25)',
+                          background: 'rgba(2,6,23,0.45)',
+                          color: '#e2e8f0',
+                          fontSize: 12,
+                          ...changeTextContainStyle(),
+                        }}
+                      />
+                      {clientDecisionExpiresAt ? (
+                        <div style={{ marginTop: 6, fontSize: 11, color: '#94a3b8' }}>
+                          Expires: {clientDecisionExpiresAt}
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
+                  {clientDecisionStatus ? (
+                    <div style={{ marginTop: 8, fontSize: 11, color: '#94a3b8' }}>{clientDecisionStatus}</div>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {showLuxRecoveryDecisionReceived ? (
+                <div
+                  style={{
+                    marginTop: showLuxRecoveryRoadmapPanel ? 12 : 0,
+                    border:
+                      recoveryOperatorSignal?.status === 'ready_for_review'
+                        ? '1px solid rgba(74,222,128,0.35)'
+                        : '1px solid rgba(248,113,113,0.35)',
+                    borderRadius: 14,
+                    padding: 14,
+                    background:
+                      recoveryOperatorSignal?.status === 'ready_for_review'
+                        ? 'rgba(74,222,128,0.08)'
+                        : 'rgba(127,29,29,0.2)',
+                  }}
+                >
+                  <div style={{ fontSize: 12, fontWeight: 950, color: '#e2e8f0' }}>Client recovery decision received</div>
+                  <div style={{ marginTop: 6, fontSize: 12, color: '#cbd5e1', lineHeight: 1.45 }}>
+                    {recoveryOperatorSignal?.decision_label
+                      ? `Decision: ${recoveryOperatorSignal.decision_label}`
+                      : recoveryOperatorSignal?.message || 'Client submitted a response.'}
+                    {recoveryOperatorSignal?.submitted_at ? (
+                      <span style={{ display: 'block', marginTop: 4, color: '#94a3b8' }}>
+                        Submitted: {recoveryOperatorSignal.submitted_at}
+                      </span>
+                    ) : null}
+                    {recoveryOperatorSignal?.source_page ? (
+                      <span style={{ display: 'block', marginTop: 2, color: '#94a3b8' }}>
+                        Source: {recoveryOperatorSignal.source_page}
+                      </span>
+                    ) : null}
+                    {recoveryOperatorSignal?.anton_action_required === true ? (
+                      <span style={{ display: 'block', marginTop: 6, color: '#fbbf24', fontWeight: 800 }}>
+                        Anton action required
+                      </span>
+                    ) : null}
+                  </div>
+                  {recoveryDecisionAnswers.length ? (
+                    <div style={{ marginTop: 10, fontSize: 12, color: '#e2e8f0', lineHeight: 1.5 }}>
+                      {recoveryDecisionAnswers.map((row) => (
+                        <div key={row.key} style={{ marginBottom: 8 }}>
+                          <div style={{ fontWeight: 800, color: '#94a3b8' }}>{row.question}</div>
+                          <div style={{ whiteSpace: 'pre-wrap' }}>{row.answer || '—'}</div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {luxRecoveryRoadmapDone &&
+              String(selectedTicketId || '').trim() === LUX_RECOVERY_ROADMAP_TICKET_ID &&
+              approvedBuild ? (
+                <div
+                  style={{
+                    marginTop: showLuxRecoveryRoadmapPanel ? 12 : 0,
+                    border: '1px solid rgba(74,222,128,0.35)',
+                    borderRadius: 14,
+                    padding: 12,
+                    background: 'rgba(74,222,128,0.08)',
+                    fontSize: 12,
+                    color: '#bbf7d0',
+                    lineHeight: 1.45,
+                  }}
+                >
+                  Release 1 client decision is complete for this ticket. Review the answers above and proceed with
+                  content delivery when ready.
                 </div>
               ) : null}
 

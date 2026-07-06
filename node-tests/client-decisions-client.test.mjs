@@ -267,3 +267,68 @@ test('/change-v2 can render client answers received signal', () => {
   assert.equal(src.includes('Ready for operator review'), true);
   assert.equal(src.includes('Answers incomplete'), true);
 });
+
+test('recovery roadmap ticket: spec, mint path, operator signal enrichment', async () => {
+  const {
+    LUX_RECOVERY_ROADMAP_TICKET_ID,
+    RECOVERY_LUX_CLIENT_DECISION_KEYS,
+    enrichOperatorSignalForTicket,
+    evaluateClientDecisionsGateForTicket,
+    resolveClientDecisionsMintPath,
+    applyClientDecisionAnswersForTicket,
+  } = await import('../lib/cmp/_lib/client-decisions-client.js');
+
+  assert.equal(RECOVERY_LUX_CLIENT_DECISION_KEYS.length, 2);
+  assert.equal(resolveClientDecisionsMintPath(LUX_RECOVERY_ROADMAP_TICKET_ID, ''), '/client/recovery-roadmap');
+  assert.equal(resolveClientDecisionsMintPath('other-ticket', ''), '/client/change-decisions');
+  assert.equal(
+    resolveClientDecisionsMintPath('other-ticket', '/client/recovery-roadmap'),
+    '/client/recovery-roadmap',
+  );
+
+  const partial = [
+    { key: 'lux_recovery_release1_decision', status: 'pending', answer: '' },
+    { key: 'lux_recovery_release1_notes', status: 'pending', answer: '' },
+  ];
+  assert.equal(evaluateClientDecisionsGateForTicket(LUX_RECOVERY_ROADMAP_TICKET_ID, partial).sufficient_to_proceed, false);
+
+  const applied = applyClientDecisionAnswersForTicket(LUX_RECOVERY_ROADMAP_TICKET_ID, {
+    stored: { client_decisions: { items: partial }, messages: [] },
+    answersByKey: {
+      lux_recovery_release1_decision: { answer: 'approve' },
+      lux_recovery_release1_notes: { answer: 'Looks good.' },
+    },
+    meta: { nowIso: '2026-07-06T00:00:00.000Z', messageId: 'msg:test' },
+  });
+  assert.equal(applied.sufficient_to_proceed, true);
+
+  const enriched = enrichOperatorSignalForTicket(
+    LUX_RECOVERY_ROADMAP_TICKET_ID,
+    { type: 'client_answers_received', status: 'ready_for_review' },
+    {
+      lux_recovery_release1_decision: { answer: 'request_changes' },
+      lux_recovery_release1_notes: { answer: 'Need different imagery order.' },
+    },
+  );
+  assert.equal(enriched.source_page, '/client/recovery-roadmap');
+  assert.equal(enriched.decision_label, 'Request changes');
+  assert.equal(enriched.anton_action_required, true);
+  assert.equal(enriched.client_notes, 'Need different imagery order.');
+});
+
+test('Lux /change renders recovery roadmap client decision surface', () => {
+  const p = path.join(repoRoot, 'pages', 'change.js');
+  const src = fs.readFileSync(p, 'utf8');
+  assert.equal(src.includes('LUX_RECOVERY_ROADMAP_TICKET_ID'), true);
+  assert.equal(src.includes('Send recovery roadmap link'), true);
+  assert.equal(src.includes('Client recovery decision received'), true);
+  assert.equal(src.includes('client_decisions_answers'), true);
+});
+
+test('recovery-roadmap page exists with Release 1 packages', () => {
+  const p = path.join(repoRoot, 'pages', 'client', 'recovery-roadmap.js');
+  const src = fs.readFileSync(p, 'utf8');
+  assert.equal(src.includes('LUX_RECOVERY_RELEASE1_PACKAGES'), true);
+  assert.equal(src.includes('submit-client-decisions'), true);
+  assert.equal(src.includes('Release 1'), true);
+});
