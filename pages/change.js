@@ -40,6 +40,7 @@ import {
   luxAttachmentMatchesOperatorFilter,
 } from '../lib/cmp/_lib/lux-request-attachments.js';
 import { buildLuxChangeConsoleChrome } from '../lib/client/lux-change-console-theme.js';
+import { formatCmpRouterOperatorError } from '../lib/cmp/_lib/cmp-operator-error-copy.js';
 import { LuxeMauriceFontStylesheet } from '../components/LuxeMauriceBrandPrimitives.js';
 import {
   classifyLuxChangeQueueTicket,
@@ -2097,6 +2098,14 @@ export default function ChangeConsolePage() {
       setError('Select a ticket first.');
       return;
     }
+    if (!session.logged_in) {
+      setError('Login required before approval.');
+      return;
+    }
+    if (proceedBlockReason) {
+      setError(proceedBlockReason);
+      return;
+    }
     const desc = String(ticket?.description || requestDraft || '').trim();
     setBusy(true);
     setError('');
@@ -2108,7 +2117,9 @@ export default function ChangeConsolePage() {
         body: JSON.stringify({ ticket_id: tid, description: desc, locale }),
       });
       const j = await r.json().catch(() => ({}));
-      if (!r.ok) throw new Error(j.error || j.detail || j.hint || `http_${r.status}`);
+      if (!r.ok) {
+        throw new Error(formatCmpRouterOperatorError(j, r.status, { action: 'approve-build' }));
+      }
       await loadTicketById(tid);
     } catch (e) {
       setError(String(e?.message || e));
@@ -2326,10 +2337,45 @@ export default function ChangeConsolePage() {
         ? 'Standard Billing Client'
         : 'Billing Client';
 
-  const canProceed = Boolean(
-    session.logged_in === true &&
-      (String(session.level || '').toLowerCase() === 'admin' || uiContext?.show_approve_build === true),
-  );
+  const isAdminSession = session.logged_in === true && String(session.level || '').toLowerCase() === 'admin';
+
+  const proceedBlockReason = useMemo(() => {
+    if (!session.logged_in) return 'Login required before approval.';
+    if (!selectedTicketId || !ticket) return 'Select a ticket before approval.';
+    if (approvedBuild) return 'This ticket is already approved for build.';
+    if (!selectedTicketIsOpen) return 'This ticket is closed — approval is not available.';
+    if (!hasEstimate) return 'This ticket cannot be approved until an estimate exists.';
+    if (!isEstimatedWorkflow && !isReadyForEstimateOnly) {
+      return 'Proceed is only available after an estimate is saved on this ticket.';
+    }
+    if (!isAdminSession && uiContext?.show_approve_build !== true) {
+      if (isTenantClient && billingExempt) return null;
+      if (isTenantClient && budgetUnknown) {
+        return 'Unable to verify billing credits — refresh the page or contact support.';
+      }
+      if (isTenantClient) {
+        return 'Insufficient token credits to approve this build. Top up the tenant wallet or enable billing exemption.';
+      }
+      return 'Proceeding isn’t available for this session yet.';
+    }
+    return null;
+  }, [
+    session.logged_in,
+    selectedTicketId,
+    ticket,
+    approvedBuild,
+    selectedTicketIsOpen,
+    hasEstimate,
+    isEstimatedWorkflow,
+    isReadyForEstimateOnly,
+    isAdminSession,
+    uiContext?.show_approve_build,
+    isTenantClient,
+    billingExempt,
+    budgetUnknown,
+  ]);
+
+  const canProceed = proceedBlockReason === null;
 
   useLayoutEffect(() => {
     if (!layoutDebugEnabled || typeof window === 'undefined') {
@@ -3803,7 +3849,7 @@ export default function ChangeConsolePage() {
                     </div>
                   ) : !canProceed ? (
                     <div style={{ fontSize: 11, color: luxDeskInk ? luxDeskInk.muted : '#94a3b8', lineHeight: 1.45 }}>
-                      Proceeding isn’t available for this session yet.
+                      {proceedBlockReason || 'Proceeding isn’t available for this session yet.'}
                     </div>
                   ) : null}
                 </div>

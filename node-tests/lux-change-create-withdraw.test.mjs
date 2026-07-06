@@ -95,6 +95,8 @@ test('change.js — session gate + create ticket panel + withdraw control', () =
   assert.match(change, /lux-media-workspace/);
   assert.match(change, /lux-change-notify-prefs-get/);
   assert.match(change, /LuxeMauriceFontStylesheet/);
+  assert.match(change, /formatCmpRouterOperatorError/);
+  assert.match(change, /proceedBlockReason/);
   assert.match(change, /action=ticket-withdraw/);
   assert.match(change, /Withdraw \/ Cancel ticket/);
 });
@@ -107,5 +109,6 @@ test('router.js — ticket-withdraw action registered for tenant sessions', () =
   assert.match(router, /cmp\.ticket\.withdrawn/);
   assert.match(router, /notifyLuxTicketOperatorEmail/);
   assert.match(router, /lux-change-notify-prefs-get/);
-  assert.match(router, /loadLuxAiHandoffContextForGroq/);
+  assert.match(router, /mapApproveBuildServerException/);
+  assert.match(router, /operator_message/);
 });
