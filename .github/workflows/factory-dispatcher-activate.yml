@@ -1,0 +1,81 @@
+# Polls business-operations dispatcher and prints a dry-run agent activation plan.
+# Phase 1 only — does NOT call Cursor Cloud API, Codex Cloud, GitHub issues, or DB.
+#
+# Repo secrets (Settings → Secrets and variables → Actions):
+# - CORPFLOW_CORE_BASE_URL   e.g. https://core.corpflowai.com
+# - CORPFLOW_CRON_SECRET     same value as Vercel CORPFLOW_CRON_SECRET / CRON_SECRET
+# - CORPFLOW_FACTORY_HEALTH_URL  (optional) fallback to derive dispatcher URL
+#
+# If required secrets are missing, the job exits 0 (skipped) so forks stay green.
+#
+# References:
+#   docs/execution/DISPATCHER_AGENT_ACTIVATION_V1.md
+#   docs/runbooks/BUSINESS_OPERATIONS_DISPATCHER_V1.md
+#   scripts/dispatcher-agent-activation.mjs
+#   lib/server/dispatcher-agent-activation.js
+
+name: Factory dispatcher activate (dry-run)
+
+on:
+  schedule:
+    - cron: "0 */2 * * *" # Every 2 hours at :00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: factory-dispatcher-activate
+  cancel-in-progress: false
+
+jobs:
+  dry-run:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      # Pinned SHAs (supply chain): tag v6 — bump via `gh api repos/actions/checkout/commits/refs/tags/v6 --jq .sha`
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      # Pinned SHAs (supply chain): tag v6 — bump via `gh api repos/actions/setup-node/commits/refs/tags/v6 --jq .sha`
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
+        with:
+          node-version: "20"
+
+      - name: Show integration status (presence-only)
+        run: |
+          set -euo pipefail
+          echo "Dispatcher activator dry-run (Phase 1 — no executor calls)"
+          if [ -n "${CORE_BASE_PRESENT:-}" ] || [ -n "${HEALTH_URL_PRESENT:-}" ]; then
+            echo "  dispatcher URL source       : configured"
+          else
+            echo "  dispatcher URL source       : SKIPPED (set CORPFLOW_CORE_BASE_URL or CORPFLOW_FACTORY_HEALTH_URL)"
+          fi
+          if [ -n "${CRON_SECRET_PRESENT:-}" ]; then
+            echo "  CORPFLOW_CRON_SECRET        : configured"
+          else
+            echo "  CORPFLOW_CRON_SECRET        : SKIPPED"
+          fi
+        env:
+          CORE_BASE_PRESENT: ${{ secrets.CORPFLOW_CORE_BASE_URL != '' && '1' || '' }}
+          HEALTH_URL_PRESENT: ${{ secrets.CORPFLOW_FACTORY_HEALTH_URL != '' && '1' || '' }}
+          CRON_SECRET_PRESENT: ${{ secrets.CORPFLOW_CRON_SECRET != '' && '1' || '' }}
+
+      - name: Dry-run activation plan
+        env:
+          CORPFLOW_CORE_BASE_URL: ${{ secrets.CORPFLOW_CORE_BASE_URL }}
+          CORPFLOW_FACTORY_HEALTH_URL: ${{ secrets.CORPFLOW_FACTORY_HEALTH_URL }}
+          CORPFLOW_CRON_SECRET: ${{ secrets.CORPFLOW_CRON_SECRET }}
+        run: node scripts/dispatcher-agent-activation.mjs --fetch
+
+      - name: Upload activation plan artifact (always)
+        if: ${{ always() }}
+        # Pinned SHAs (supply chain): tag v4 — bump via `gh api repos/actions/upload-artifact/commits/refs/tags/v4 --jq .sha`
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: dispatcher-activation-dry-run
+          path: |
+            activation-plan.json
+          if-no-files-found: ignore
+          retention-days: 7
