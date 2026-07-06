@@ -24,7 +24,8 @@ vanguard/audit/
 # Brand-fidelity screenshot output from `scripts/lux-vision-screenshots.mjs`.
 # Re-generated locally; never committed.
 .lux-vision-screenshots/
-.smoke-screenshots/
+.activation-plan.json
+.dispatcher-activation-state/
 # Local preview screenshots from beauty-layer page checks. Re-generated locally; never committed.
 .preview-shots/
 # Local verification snapshots used by Lux operator scripts: production-audit
