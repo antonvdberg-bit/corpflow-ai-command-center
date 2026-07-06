@@ -116,6 +116,7 @@ Prevent re-firing the same routing every 2 hours. Candidate keys: `owner + objec
 
 ### Phase 3 — Cursor activation
 
+- 2026-07-06: First GitHub Actions `cursor_live` smoke completed (internal ops smoke only; no secrets recorded).
 - Anton adds `CURSOR_API_KEY` to GHA secrets.
 - Activator calls `POST https://api.cursor.com/v1/agents` with `executorPrompt`, repo URL, `autoCreatePR: true`.
 - Post activation receipt to #249 (audit trail only).
