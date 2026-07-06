@@ -116,6 +116,10 @@ GHA cache persists `.dispatcher-activation-state/dedupe.json`. Key: `owner:objec
 
 ### Phase 3 — Cursor live activation (manual GHA only)
 
+- 2026-07-06: First GitHub Actions `cursor_live` smoke completed (internal ops smoke only; no secrets recorded).
+- Anton adds `CURSOR_API_KEY` to GHA secrets.
+- Activator calls `POST https://api.cursor.com/v1/agents` with `executorPrompt`, repo URL, `autoCreatePR: true`.
+- Post activation receipt to #249 (audit trail only).
 - `workflow_dispatch` input `activation_mode: cursor_live`; **scheduled runs stay `dry_run`**.
 - Secret: `CURSOR_API_KEY` (GHA only; never logged).
 - `POST https://api.cursor.com/v1/agents` with `executorPrompt`, repo `antonvdberg-bit/corpflow-ai-command-center`, `startingRef: main`, `autoCreatePR: true`.
