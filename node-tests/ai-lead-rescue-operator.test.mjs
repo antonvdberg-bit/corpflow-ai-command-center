@@ -396,6 +396,7 @@ describe('ai-lead-rescue-operator activity log', () => {
       'bad_fit',
       'follow_up_scheduled',
       'note',
+      'intake_closed_test_data',
     ]);
   });
 
