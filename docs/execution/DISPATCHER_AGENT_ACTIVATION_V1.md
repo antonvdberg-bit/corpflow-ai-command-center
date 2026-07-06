@@ -44,7 +44,7 @@ Companion policy docs (unchanged):
 | **0** | This doc + cross-links | **In progress (this PR)** |
 | **1** | GHA dry-run workflow + plan formatter + tests | **In progress (this PR)** |
 | **2** | Dedupe ledger (idempotency keys) | Not started |
-| **3** | Live Cursor Cloud Agents API activation | Not authorized in this PR |
+| **3** | Live Cursor Cloud Agents API activation | **In progress (this PR)** |
 | **4** | Live Codex Cloud activation (requires Packet 7.2) | Not authorized in this PR |
 | **5** | Retire n8n cursor/codex comment-queue nodes | Not started |
 | **6** | Live verification + Delivery Reality Audit | Not started |
@@ -108,18 +108,22 @@ npm run dispatcher:activate:fetch
 
 `dispatcher:activate:fetch` requires local `.env` with `CORPFLOW_CRON_SECRET` and factory URL — optional; CI uses GHA secrets.
 
-## 5. Future phases (not in this PR)
+## 5. Phase 2–4
 
-### Phase 2 — dedupe ledger
+### Phase 2 — dedupe ledger (v1 shipped with Phase 3)
 
-Prevent re-firing the same routing every 2 hours. Candidate keys: `owner + objectType + objectRef + severity`. Store in `automation_events` or GitHub issue labels — **Anton approves** storage choice.
+GHA cache persists `.dispatcher-activation-state/dedupe.json`. Key: `owner:objectType:objectRef:severity`. No DB writes.
 
-### Phase 3 — Cursor activation
+### Phase 3 — Cursor live activation (manual GHA only)
 
 - 2026-07-06: First GitHub Actions `cursor_live` smoke completed (internal ops smoke only; no secrets recorded).
 - Anton adds `CURSOR_API_KEY` to GHA secrets.
 - Activator calls `POST https://api.cursor.com/v1/agents` with `executorPrompt`, repo URL, `autoCreatePR: true`.
 - Post activation receipt to #249 (audit trail only).
+- `workflow_dispatch` input `activation_mode: cursor_live`; **scheduled runs stay `dry_run`**.
+- Secret: `CURSOR_API_KEY` (GHA only; never logged).
+- `POST https://api.cursor.com/v1/agents` with `executorPrompt`, repo `antonvdberg-bit/corpflow-ai-command-center`, `startingRef: main`, `autoCreatePR: true`.
+- Max **1** live Cursor activation per run. `codex` remains dry-run only.
 
 ### Phase 4 — Codex activation
 
