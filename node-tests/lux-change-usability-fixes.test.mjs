@@ -38,7 +38,7 @@ test('TASK 2 — /change Media workspace copy replaces the engineering label', (
   assert.equal(change.includes('JSON metadata only (no bytes)'), false);
   // The technical detail is allowed in a collapsed "Technical note" only.
   assert.match(change, /data-testid="lux-media-workspace-technical-note"/);
-  assert.match(change, /<summary[^>]*>Technical note<\/summary>/);
+  assert.match(change, /<summary[^>]*>\s*Technical note\s*<\/summary>/);
 });
 
 test('TASK 1 — change.js wires system_generated filter + toggle + badge', () => {

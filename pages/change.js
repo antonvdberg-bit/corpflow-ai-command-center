@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { LUX_PHASE1_REVIEW_TICKET_ID } from '../lib/cmp/_lib/client-decisions-client.js';
 import { LUX_PARENT_PROGRAMME_TICKET_ID } from '../lib/cmp/_lib/lux-client-requests.js';
@@ -39,6 +40,7 @@ import {
   luxAttachmentMatchesOperatorFilter,
 } from '../lib/cmp/_lib/lux-request-attachments.js';
 import { buildLuxChangeConsoleChrome } from '../lib/client/lux-change-console-theme.js';
+import { LuxeMauriceFontStylesheet } from '../components/LuxeMauriceBrandPrimitives.js';
 import {
   classifyLuxChangeQueueTicket,
   groupLuxOperatorQueueTickets,
@@ -592,6 +594,7 @@ export default function ChangeConsolePage() {
   const [luxMediaLibSlot, setLuxMediaLibSlot] = useState('');
   const [luxMediaLibMediaType, setLuxMediaLibMediaType] = useState('');
   const [luxMediaLibFilter, setLuxMediaLibFilter] = useState('all');
+  const [luxMediaWorkspaceHashOpen, setLuxMediaWorkspaceHashOpen] = useState(false);
 
   const attachmentMediaSummary = useMemo(
     () => computeLuxAttachmentMediaSummary(attachments),
@@ -697,6 +700,43 @@ export default function ChangeConsolePage() {
     const rows = Array.isArray(j.leads) ? j.leads : [];
     setLeads(rows);
     return rows;
+  }
+
+  async function loadLuxNotifyPrefs() {
+    const r = await fetch('/api/cmp/router?action=lux-change-notify-prefs-get', { credentials: 'include' });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || j.detail || `http_${r.status}`);
+    const prefs = j.prefs && typeof j.prefs === 'object' ? j.prefs : {};
+    setLuxNotifyEnabled(prefs.enabled !== false);
+    setLuxNotifyEmail(prefs.email != null ? String(prefs.email) : '');
+    setLuxNotifyLoaded(true);
+    return prefs;
+  }
+
+  async function saveLuxNotifyPrefs() {
+    setLuxNotifySaving(true);
+    setLuxNotifyStatus('');
+    try {
+      const r = await fetch('/api/cmp/router?action=lux-change-notify-prefs-set', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          enabled: luxNotifyEnabled === true,
+          email: luxNotifyEmail.trim(),
+        }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error || j.detail || `http_${r.status}`);
+      const prefs = j.prefs && typeof j.prefs === 'object' ? j.prefs : {};
+      setLuxNotifyEnabled(prefs.enabled !== false);
+      setLuxNotifyEmail(prefs.email != null ? String(prefs.email) : '');
+      setLuxNotifyStatus('Saved.');
+    } catch (e) {
+      setLuxNotifyStatus(String(e?.message || e));
+    } finally {
+      setLuxNotifySaving(false);
+    }
   }
 
   async function loadLuxRelatedRequests() {
@@ -1576,11 +1616,27 @@ export default function ChangeConsolePage() {
   const [luxQueueTestsOpen, setLuxQueueTestsOpen] = useState(false);
   const [luxQueueInternalOpen, setLuxQueueInternalOpen] = useState(false);
   const [luxHideArchivedSmoke, setLuxHideArchivedSmoke] = useState(true);
+  const [luxNotifyEnabled, setLuxNotifyEnabled] = useState(true);
+  const [luxNotifyEmail, setLuxNotifyEmail] = useState('');
+  const [luxNotifyStatus, setLuxNotifyStatus] = useState('');
+  const [luxNotifySaving, setLuxNotifySaving] = useState(false);
+  const [luxNotifyLoaded, setLuxNotifyLoaded] = useState(false);
 
   const selectedTicketIsArchivedSmoke = useMemo(() => {
     if (!selectedTicketId) return false;
     return luxQueueGrouped.archivedSmoke.some((t) => String(t.ticket_id || '') === String(selectedTicketId));
   }, [luxQueueGrouped.archivedSmoke, selectedTicketId]);
+
+  useEffect(() => {
+    if (!luxChangeChrome || !router.isReady) return;
+    if (typeof window === 'undefined') return;
+    if (window.location.hash === '#lux-media-workspace') {
+      setLuxMediaWorkspaceHashOpen(true);
+      setLuxMediaLibOpen(true);
+      const el = document.getElementById('lux-media-workspace');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [luxChangeChrome, router.isReady]);
 
   useEffect(() => {
     if (!luxChangeChrome || !selectedTicketId) return;
@@ -1806,6 +1862,13 @@ export default function ChangeConsolePage() {
           (isAdminActingOnHost && actingTid === 'luxe-maurice');
         if (isLuxTenant) await loadLeads();
         if (isLuxTenant) await loadLuxRelatedRequests();
+        if (isLuxTenant) {
+          try {
+            await loadLuxNotifyPrefs();
+          } catch {
+            setLuxNotifyLoaded(true);
+          }
+        }
         if (cancelled) return;
         const first = rows[0]?.ticket_id ? String(rows[0].ticket_id) : '';
         if (first) {
@@ -2206,15 +2269,15 @@ export default function ChangeConsolePage() {
         inputBg: luxChangeChrome.white,
         inputBorder: luxChangeChrome.border,
         inputText: luxChangeChrome.text,
-        warnText: '#92400e',
-        warnBg: 'rgba(217,119,6,0.10)',
-        warnBorder: 'rgba(217,119,6,0.35)',
-        dangerText: '#9f1239',
-        dangerBg: 'rgba(190,18,60,0.08)',
-        dangerBorder: 'rgba(190,18,60,0.35)',
-        successText: '#166534',
-        successBg: 'rgba(22,163,74,0.10)',
-        successBorder: 'rgba(22,163,74,0.35)',
+        warnText: '#fcd34d',
+        warnBg: 'rgba(217,119,6,0.14)',
+        warnBorder: 'rgba(252,211,77,0.35)',
+        dangerText: '#fda4af',
+        dangerBg: 'rgba(190,18,60,0.18)',
+        dangerBorder: 'rgba(253,164,175,0.35)',
+        successText: '#86efac',
+        successBg: 'rgba(22,163,74,0.14)',
+        successBorder: 'rgba(134,239,172,0.35)',
       }
     : {
         cardBg: 'rgba(2,6,23,0.40)',
@@ -2414,6 +2477,11 @@ export default function ChangeConsolePage() {
 
   return (
     <div ref={changeRootRef} style={luxChangeChrome ? luxChangeChrome.shellStyle() : changePageShellStyle({ background: '#020617', minHeight: '100vh' })}>
+      {luxChangeChrome ? (
+        <Head>
+          <LuxeMauriceFontStylesheet />
+        </Head>
+      ) : null}
       <div style={pageInner}>
       {showSwitchWorkspaceLink ? (
         <div
@@ -2489,118 +2557,100 @@ export default function ChangeConsolePage() {
       <div style={{ marginBottom: 14 }}>
         {luxChangeChrome ? (
           <>
-            <div style={{ fontFamily: luxChangeChrome.fontDisplay, fontSize: 28, fontWeight: 700, color: luxChangeChrome.heroDeep }}>
+            <div
+              style={{
+                fontFamily: luxChangeChrome.fontDisplay,
+                fontSize: 'clamp(1.75rem, 3vw, 2.25rem)',
+                fontWeight: 400,
+                color: luxChangeChrome.heroDeep,
+                letterSpacing: -0.3,
+              }}
+            >
               LuxeMaurice · Change Console
             </div>
-            <div style={{ marginTop: 8, color: luxChangeChrome.textMuted, fontSize: 14, lineHeight: 1.55 }}>
-              Operator workspace on Lux — same programme as the public site and property desk. Pick a ticket, then use one
-              governed action at a time.
+            <div style={{ marginTop: 10, color: luxChangeChrome.textMuted, fontSize: 14, lineHeight: 1.65, maxWidth: 720 }}>
+              Private operator workspace — same editorial programme as{' '}
+              <a href="/concierge" style={{ color: luxChangeChrome.gold, textDecoration: 'none' }}>
+                concierge
+              </a>
+              , properties, and the property desk. Pick a ticket, then take one governed action at a time.
             </div>
-            <div style={{ marginTop: 14, display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
-              <a
-                href="/properties"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  padding: '8px 14px',
-                  borderRadius: 999,
-                  border: `1px solid ${luxChangeChrome.gold}`,
-                  color: luxChangeChrome.gold,
-                  fontWeight: 800,
-                  fontSize: 12,
-                  textDecoration: 'none',
-                  background: luxChangeChrome.white,
-                }}
-              >
-                Public /properties
-              </a>
-              <a
-                href="/properties/admin"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  padding: '8px 14px',
-                  borderRadius: 999,
-                  border: `1px solid ${luxChangeChrome.gold}`,
-                  color: luxChangeChrome.gold,
-                  fontWeight: 800,
-                  fontSize: 12,
-                  textDecoration: 'none',
-                  background: luxChangeChrome.white,
-                }}
-              >
-                Property editor
-              </a>
-              <a
-                href="/concierge"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  padding: '8px 14px',
-                  borderRadius: 999,
-                  border: `1px solid ${luxChangeChrome.border}`,
-                  color: luxChangeChrome.text,
-                  fontWeight: 750,
-                  fontSize: 12,
-                  textDecoration: 'none',
-                  background: luxChangeChrome.sand,
-                }}
-              >
-                Concierge
-              </a>
-              {luxOperatorPropertySlugHint ? (
-                <>
-                  <a
-                    href={`/property/${encodeURIComponent(luxOperatorPropertySlugHint)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      padding: '8px 14px',
-                      borderRadius: 999,
-                      border: `1px solid ${luxChangeChrome.border}`,
-                      color: luxChangeChrome.heroDeep,
-                      fontWeight: 800,
-                      fontSize: 12,
-                      textDecoration: 'none',
-                      background: luxChangeChrome.white,
-                    }}
-                  >
-                    Listing · {luxOperatorPropertySlugHint}
-                  </a>
-                  <a
-                    href={`/property/${encodeURIComponent(luxOperatorPropertySlugHint)}?preview=1`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      padding: '8px 14px',
-                      borderRadius: 999,
-                      border: `1px solid ${luxChangeChrome.border}`,
-                      color: luxChangeChrome.text,
-                      fontWeight: 750,
-                      fontSize: 12,
-                      textDecoration: 'none',
-                      background: luxChangeChrome.sand,
-                    }}
-                  >
-                    Preview (staff)
-                  </a>
-                </>
-              ) : null}
-              <a
-                href="#lux-media-workspace"
-                style={{
-                  padding: '8px 14px',
-                  borderRadius: 999,
-                  border: `1px solid ${luxChangeChrome.border}`,
-                  color: luxChangeChrome.text,
-                  fontWeight: 750,
-                  fontSize: 12,
-                  textDecoration: 'none',
-                  background: luxChangeChrome.white,
-                }}
-              >
-                Media workspace
-              </a>
+            <div style={{ marginTop: 16, display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'stretch' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', flex: '1 1 360px' }}>
+                <a href="/properties" target="_blank" rel="noopener noreferrer" style={luxChangeChrome.navPill('gold')}>
+                  Public /properties
+                </a>
+                <a
+                  href="/properties/admin"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={luxChangeChrome.navPill('gold')}
+                >
+                  Property editor
+                </a>
+                <a href="/concierge" target="_blank" rel="noopener noreferrer" style={luxChangeChrome.navPill('highlight')}>
+                  Concierge
+                </a>
+                {luxOperatorPropertySlugHint ? (
+                  <>
+                    <a
+                      href={`/property/${encodeURIComponent(luxOperatorPropertySlugHint)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={luxChangeChrome.navPill('default')}
+                    >
+                      Listing · {luxOperatorPropertySlugHint}
+                    </a>
+                    <a
+                      href={`/property/${encodeURIComponent(luxOperatorPropertySlugHint)}?preview=1`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={luxChangeChrome.navPill('highlight')}
+                    >
+                      Preview (staff)
+                    </a>
+                  </>
+                ) : null}
+                <a href="#lux-media-workspace" style={luxChangeChrome.navPill('default')}>
+                  Media workspace
+                </a>
+              </div>
+              <div style={luxChangeChrome.notifyBar()} data-lux-change-notify-bar="true">
+                <label style={luxChangeChrome.notifyCheckboxLabel()}>
+                  <input
+                    type="checkbox"
+                    checked={luxNotifyEnabled}
+                    onChange={(e) => setLuxNotifyEnabled(e.target.checked)}
+                    disabled={!luxNotifyLoaded || luxNotifySaving}
+                  />
+                  Ticket email updates
+                </label>
+                <input
+                  type="email"
+                  value={luxNotifyEmail}
+                  onChange={(e) => setLuxNotifyEmail(e.target.value)}
+                  placeholder="jan@luxemaurice.com"
+                  disabled={!luxNotifyEnabled || !luxNotifyLoaded || luxNotifySaving}
+                  style={{
+                    ...luxChangeChrome.input(),
+                    flex: '1 1 180px',
+                    minWidth: 160,
+                    opacity: luxNotifyEnabled ? 1 : 0.55,
+                  }}
+                  aria-label="Ticket notification email"
+                />
+                <button
+                  type="button"
+                  onClick={() => void saveLuxNotifyPrefs()}
+                  disabled={!luxNotifyLoaded || luxNotifySaving}
+                  style={luxChangeChrome.refreshBtn(luxNotifySaving)}
+                >
+                  {luxNotifySaving ? 'Saving…' : 'Save'}
+                </button>
+                {luxNotifyStatus ? (
+                  <span style={{ fontSize: 11, color: luxChangeChrome.textMuted }}>{luxNotifyStatus}</span>
+                ) : null}
+              </div>
             </div>
           </>
         ) : (
@@ -3980,39 +4030,43 @@ export default function ChangeConsolePage() {
               chrome={luxChangeChrome}
               summary="Media workspace"
               cardStyle={{ ...card, minWidth: 0 }}
-              defaultOpen={false}
+              defaultOpen={luxMediaWorkspaceHashOpen}
               sectionId="lux-media-workspace"
             >
-                <div style={{ marginTop: 0, fontSize: 12, color: luxChangeChrome.textMuted, lineHeight: 1.45 }}>
-                  Review approved images and videos across LuxeMaurice content requests. Use this area to find media
-                  that has already been uploaded, reviewed, linked, or published. Use Load / refresh after changing
-                  filters.
+                <div
+                  style={{
+                    marginTop: 0,
+                    fontFamily: luxChangeChrome.fontDisplay,
+                    fontSize: 18,
+                    fontWeight: 400,
+                    color: luxChangeChrome.heroDeep,
+                    lineHeight: 1.35,
+                  }}
+                >
+                  Governed media library
+                </div>
+                <div style={{ marginTop: 8, fontSize: 13, color: luxChangeChrome.mediaWorkspace.body, lineHeight: 1.55 }}>
+                  Review approved images and videos across LuxeMaurice content requests. Find media that has been uploaded,
+                  reviewed, linked, or published. Use Load / refresh after changing filters.
                 </div>
                 <details
                   data-testid="lux-media-workspace-technical-note"
-                  style={{ marginTop: 8, fontSize: 11, color: luxChangeChrome.textMuted, lineHeight: 1.45 }}
+                  style={{ marginTop: 10, fontSize: 11, color: luxChangeChrome.mediaWorkspace.body, lineHeight: 1.45 }}
                 >
-                  <summary style={{ cursor: 'pointer', listStyle: 'none', fontWeight: 700 }}>Technical note</summary>
+                  <summary style={{ cursor: 'pointer', listStyle: 'none', fontWeight: 700, color: luxChangeChrome.gold }}>
+                    Technical note
+                  </summary>
                   <div style={{ marginTop: 4 }}>
                     Cross-ticket Lux programme requests — metadata only (no media bytes are loaded here, the storage
                     layer streams bytes separately). Persistence model is described in
                     docs/LUX/LUX_PHASE4C_ATTACHMENT_REVIEW.md.
                   </div>
                 </details>
-              <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 <button
                   type="button"
                   onClick={() => setLuxMediaLibOpen((v) => !v)}
-                  style={{
-                    padding: '8px 12px',
-                    borderRadius: 10,
-                    border: '1px solid rgba(129,140,248,0.45)',
-                    background: 'rgba(99,102,241,0.14)',
-                    color: '#e0e7ff',
-                    fontWeight: 800,
-                    fontSize: 12,
-                    cursor: 'pointer',
-                  }}
+                  style={luxChangeChrome.mediaWorkspace.actionBtn(luxMediaLibOpen ? 'secondary' : 'primary')}
                 >
                   {luxMediaLibOpen ? 'Hide' : 'Show'} library panel
                 </button>
@@ -4022,14 +4076,9 @@ export default function ChangeConsolePage() {
                     disabled={luxMediaLibBusy}
                     onClick={() => void loadLuxMediaLibrary()}
                     style={{
-                      padding: '8px 12px',
-                      borderRadius: 10,
-                      border: '1px solid rgba(56,189,248,0.45)',
-                      background: 'rgba(14,165,233,0.12)',
-                      color: '#bae6fd',
-                      fontWeight: 800,
-                      fontSize: 12,
+                      ...luxChangeChrome.mediaWorkspace.actionBtn('primary'),
                       cursor: luxMediaLibBusy ? 'not-allowed' : 'pointer',
+                      opacity: luxMediaLibBusy ? 0.6 : 1,
                     }}
                   >
                     {luxMediaLibBusy ? 'Loading…' : 'Load / refresh'}
@@ -4037,51 +4086,30 @@ export default function ChangeConsolePage() {
                 ) : null}
               </div>
               {luxMediaLibOpen ? (
-                <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 8 }}>
-                    <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4 }}>
+                <div style={{ marginTop: 14, display: 'grid', gap: 12 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 12 }}>
+                    <label style={luxChangeChrome.mediaWorkspace.fieldLabel}>
                       Search
                       <input
                         value={luxMediaLibSearch}
                         onChange={(e) => setLuxMediaLibSearch(e.target.value)}
-                        style={{
-                          padding: '6px 8px',
-                          borderRadius: 10,
-                          border: '1px solid rgba(148,163,184,0.25)',
-                          background: 'rgba(2,6,23,0.65)',
-                          color: '#e2e8f0',
-                          fontSize: 12,
-                        }}
+                        style={luxChangeChrome.mediaWorkspace.fieldInput}
                       />
                     </label>
-                    <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4 }}>
+                    <label style={luxChangeChrome.mediaWorkspace.fieldLabel}>
                       Property slug
                       <input
                         value={luxMediaLibSlug}
                         onChange={(e) => setLuxMediaLibSlug(e.target.value)}
-                        style={{
-                          padding: '6px 8px',
-                          borderRadius: 10,
-                          border: '1px solid rgba(148,163,184,0.25)',
-                          background: 'rgba(2,6,23,0.65)',
-                          color: '#e2e8f0',
-                          fontSize: 12,
-                        }}
+                        style={luxChangeChrome.mediaWorkspace.fieldInput}
                       />
                     </label>
-                    <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4 }}>
+                    <label style={luxChangeChrome.mediaWorkspace.fieldLabel}>
                       Slot
                       <select
                         value={luxMediaLibSlot}
                         onChange={(e) => setLuxMediaLibSlot(e.target.value)}
-                        style={{
-                          padding: '6px 8px',
-                          borderRadius: 10,
-                          border: '1px solid rgba(148,163,184,0.25)',
-                          background: 'rgba(2,6,23,0.65)',
-                          color: '#e2e8f0',
-                          fontSize: 12,
-                        }}
+                        style={luxChangeChrome.mediaWorkspace.fieldSelect}
                       >
                         <option value="">Any</option>
                         <option value="hero">hero</option>
@@ -4090,19 +4118,12 @@ export default function ChangeConsolePage() {
                         <option value="reference">reference</option>
                       </select>
                     </label>
-                    <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4 }}>
+                    <label style={luxChangeChrome.mediaWorkspace.fieldLabel}>
                       Media type
                       <select
                         value={luxMediaLibMediaType}
                         onChange={(e) => setLuxMediaLibMediaType(e.target.value)}
-                        style={{
-                          padding: '6px 8px',
-                          borderRadius: 10,
-                          border: '1px solid rgba(148,163,184,0.25)',
-                          background: 'rgba(2,6,23,0.65)',
-                          color: '#e2e8f0',
-                          fontSize: 12,
-                        }}
+                        style={luxChangeChrome.mediaWorkspace.fieldSelect}
                       >
                         <option value="">Any</option>
                         <option value="image">image</option>
@@ -4110,19 +4131,12 @@ export default function ChangeConsolePage() {
                         <option value="document">document</option>
                       </select>
                     </label>
-                    <label style={{ fontSize: 10, color: '#94a3b8', display: 'grid', gap: 4 }}>
+                    <label style={luxChangeChrome.mediaWorkspace.fieldLabel}>
                       Filter
                       <select
                         value={luxMediaLibFilter}
                         onChange={(e) => setLuxMediaLibFilter(e.target.value)}
-                        style={{
-                          padding: '6px 8px',
-                          borderRadius: 10,
-                          border: '1px solid rgba(148,163,184,0.25)',
-                          background: 'rgba(2,6,23,0.65)',
-                          color: '#e2e8f0',
-                          fontSize: 12,
-                        }}
+                        style={luxChangeChrome.mediaWorkspace.fieldSelect}
                       >
                         {LUX_ATTACHMENT_OPERATOR_FILTER_IDS.map((fid) => (
                           <option key={fid} value={fid}>
@@ -4132,31 +4146,24 @@ export default function ChangeConsolePage() {
                       </select>
                     </label>
                   </div>
-                  {luxMediaLibErr ? <div style={{ fontSize: 12, color: '#fca5a5' }}>{luxMediaLibErr}</div> : null}
-                  <div
-                    style={{
-                      maxHeight: 280,
-                      overflow: 'auto',
-                      border: '1px solid rgba(148,163,184,0.15)',
-                      borderRadius: 10,
-                      fontSize: 11,
-                      color: '#e2e8f0',
-                    }}
-                  >
+                  {luxMediaLibErr ? (
+                    <div style={{ fontSize: 12, color: luxChangeChrome.mediaWorkspace.error }}>{luxMediaLibErr}</div>
+                  ) : null}
+                  <div style={luxChangeChrome.mediaWorkspace.tableShell}>
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                       <thead>
-                        <tr style={{ textAlign: 'left', color: '#94a3b8' }}>
-                          <th style={{ padding: 8 }}>Ticket</th>
-                          <th style={{ padding: 8 }}>File</th>
-                          <th style={{ padding: 8 }}>Type</th>
-                          <th style={{ padding: 8 }}>Review</th>
-                          <th style={{ padding: 8 }}>Where</th>
+                        <tr>
+                          <th style={luxChangeChrome.mediaWorkspace.tableHeaderCell}>Ticket</th>
+                          <th style={luxChangeChrome.mediaWorkspace.tableHeaderCell}>File</th>
+                          <th style={luxChangeChrome.mediaWorkspace.tableHeaderCell}>Type</th>
+                          <th style={luxChangeChrome.mediaWorkspace.tableHeaderCell}>Review</th>
+                          <th style={luxChangeChrome.mediaWorkspace.tableHeaderCell}>Where</th>
                         </tr>
                       </thead>
                       <tbody>
                         {luxMediaLibRows.length === 0 ? (
                           <tr>
-                            <td colSpan={5} style={{ padding: 10, color: '#64748b' }}>
+                            <td colSpan={5} style={{ padding: 10, color: luxChangeChrome.mediaWorkspace.tableEmpty }}>
                               No rows — run Load / refresh.
                             </td>
                           </tr>
@@ -4168,12 +4175,17 @@ export default function ChangeConsolePage() {
                               .map((w) => `${w.property_slug || ''}·${w.intended_slot || ''}`)
                               .join(' · ');
                             return (
-                              <tr key={`${row.ticket_id}:${wid}`} style={{ borderTop: '1px solid rgba(148,163,184,0.12)' }}>
-                                <td style={{ padding: 8, wordBreak: 'break-all' }}>{String(row.ticket_id || '').slice(0, 12)}…</td>
-                                <td style={{ padding: 8, wordBreak: 'break-all' }}>{row.file_name}</td>
-                                <td style={{ padding: 8 }}>{row.media_type}</td>
-                                <td style={{ padding: 8 }}>{row.review_status}</td>
-                                <td style={{ padding: 8 }}>{wuLabel || '—'}</td>
+                              <tr
+                                key={`${row.ticket_id}:${wid}`}
+                                style={{ borderTop: luxChangeChrome.mediaWorkspace.tableRowBorder }}
+                              >
+                                <td style={luxChangeChrome.mediaWorkspace.tableCell}>
+                                  {String(row.ticket_id || '').slice(0, 12)}…
+                                </td>
+                                <td style={luxChangeChrome.mediaWorkspace.tableCell}>{row.file_name}</td>
+                                <td style={luxChangeChrome.mediaWorkspace.tableCell}>{row.media_type}</td>
+                                <td style={luxChangeChrome.mediaWorkspace.tableCell}>{row.review_status}</td>
+                                <td style={luxChangeChrome.mediaWorkspace.tableCell}>{wuLabel || '—'}</td>
                               </tr>
                             );
                           })

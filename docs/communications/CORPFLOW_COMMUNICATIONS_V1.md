@@ -74,7 +74,7 @@ Use exactly these strings when adding new events. Pick the **kind** (system-tran
 | `delivery_ready` | planned | client-facing | `support@corpflowai.com` | CMP ticket reaches `Closed` with a live production URL | **Operator must approve.** Body links to the changed surface; no internal commit SHAs. |
 | `ticket_closed` | planned | client-facing | `support@corpflowai.com` | CMP ticket closes (no preview link needed) | **Operator must approve.** |
 | `concierge_lead_received` | planned | operator-only (internal) | `sales@corpflowai.com` | `/api/main` lead intake on any tenant marketing surface | Auto-send (operators only). Never goes to the lead's address — only to the configured internal recipient list. |
-| `lux_ticket_update` | ✅ live (LuxeMaurice) | operator-only (tenant) | `support@corpflowai.com` | `ticket-create` / `ticket-withdraw` on `luxe-maurice` tenant | Auto-send to `jan@luxemaurice.com` (override `CORPFLOW_LUX_TICKET_NOTIFY_EMAIL`). Schema `corpflow.email.lux_ticket_update.v1`. Requires n8n email webhook to route by `purpose`. |
+| `lux_ticket_update` | ✅ live (LuxeMaurice) | operator-only (tenant) | `support@corpflowai.com` | `ticket-create` / `ticket-withdraw` on `luxe-maurice` tenant | Auto-send when enabled in `/change` notify bar (`tenant_personas.persona_json.lux_change_notify`). Default inbox `jan@luxemaurice.com` (override env `CORPFLOW_LUX_TICKET_NOTIFY_EMAIL`). Schema `corpflow.email.lux_ticket_update.v1`. Requires n8n email webhook to route by `purpose`. |
 | `operator_escalation` | planned | operator-only (internal) | `support@corpflowai.com` | `lib/cmp/_lib/cmp-operator-escalation.js` decides a ticket needs human help | Auto-send (operators only). |
 
 **Kind decoded.**
