@@ -9,6 +9,7 @@ import { pathToFileURL } from 'node:url';
 import {
   buildDispatcherActivationPlan,
   formatActivationPlanText,
+  parseDispatcherFetchResponse,
   resolveDispatcherActivationUrl,
 } from '../lib/server/dispatcher-agent-activation.js';
 
@@ -26,18 +27,32 @@ function readJsonFile(path) {
  * @param {string} token
  */
 async function fetchDispatcherReport(url, token) {
-  const res = await fetch(url, {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/json',
-    },
-  });
-  const body = await res.text();
-  if (!res.ok) {
-    throw new Error(`dispatcher GET failed HTTP ${res.status}: ${body.slice(0, 500)}`);
+  let res;
+  try {
+    res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+      },
+      redirect: 'follow',
+      signal: AbortSignal.timeout(30000),
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new Error(`dispatcher GET unreachable: ${msg}`);
   }
-  return JSON.parse(body);
+
+  const body = await res.text();
+  const { report, httpStatus } = parseDispatcherFetchResponse(res.status, body);
+
+  if (httpStatus < 200 || httpStatus >= 300) {
+    console.log(
+      `dispatcher HTTP ${httpStatus} (schema valid; action may be required; continuing dry-run)`,
+    );
+  }
+
+  return report;
 }
 
 /**
