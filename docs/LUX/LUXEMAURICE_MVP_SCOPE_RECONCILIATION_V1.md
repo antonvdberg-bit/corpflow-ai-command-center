@@ -10,6 +10,115 @@
 
 ---
 
+## Client-readable delivery roadmap — what Jan will see
+
+*This section is written for Jan and LuxeMaurice principals. It describes the recovery plan in plain language. The technical sections below remain for operator governance.*
+
+### The situation in one paragraph
+
+LuxeMaurice already has a **live platform** at [https://lux.corpflowai.com](https://lux.corpflowai.com/) with the right **look and structure** — Private Opportunities, private advisory, and a publishing path for your team. What is **not finished yet** is your **real content**: homepage photography, one real private opportunity, and the end-to-end path from a visitor viewing that opportunity to requesting a private consultation. The recovery plan focuses on that **first complete commercial journey** — not on rebuilding everything in the v1–v14 Drive packages as a separate product.
+
+### What we are going to change
+
+We will move LuxeMaurice from **“brand-ready but empty”** to **“one real opportunity live, end to end.”** Concretely:
+
+- Replace placeholder treatment with **your approved images** on the homepage.
+- Publish **one** real private opportunity (not a demo or test listing).
+- Show that opportunity on a **full detail page** with your copy and gallery.
+- Let visitors **request private access** through the advisory form.
+- Confirm that **you** can log in, review, edit, and publish through your editor.
+- Keep **nothing public** until you have approved the images and wording.
+
+We are **not** replacing the live site with the Drive v14 package. We are **finishing the live CorpFlow platform** with your content.
+
+### How many work packages, and what comes first
+
+There are **11 client-visible work packages** below. **Seven are grouped as the first release** because together they prove one full path:
+
+> A visitor lands on LuxeMaurice → sees real brand and imagery → opens **one real opportunity** → reads the memorandum → **requests private access** → you and the operator can **manage that opportunity** behind the scenes.
+
+The other four are **later** or **not part of this MVP**.
+
+### Delivery roadmap table
+
+| Priority | Work package | What Jan will see | Do now / later / not MVP | Dependency | Rough effort / sequencing |
+|:--------:|--------------|-------------------|---------------------------|------------|---------------------------|
+| 1 | **Clean public site** | No demo or placeholder listings presented as real; directory shows only genuine content | **Do now** (largely complete; final check before first publish) | None | **Small** — operator verification |
+| 2 | **Real homepage imagery** | Homepage with your Mauritius photography — not empty or generic placeholders | **Do now** | You send approved image package | **Medium** — upload, review, publish |
+| 3 | **Media and copy approval** | Clear rule: nothing goes live without your sign-off on images and text | **Do now** (grouped with 2–7) | Part of every publish step | **Ongoing** — built into workflow |
+| 4 | **One real private opportunity** | A single listing in Private Opportunities — your wording, your property | **Do now** | You provide opportunity copy + photos | **Medium** — create in editor, draft |
+| 5 | **Opportunity detail page** | Full memorandum page for that listing — hero, gallery, advisory link | **Do now** | Package 4 drafted | **Small** — follows listing creation |
+| 6 | **Private advisory enquiry** | Visitor can request a consultation; enquiry reaches your team | **Do now** | Package 5 live on production | **Small** — test one real enquiry |
+| 7 | **Your editor walk-through** | You log into the property editor, edit the opportunity, and confirm publish works | **Do now** | Packages 4–6 ready | **Medium** — one guided session + fixes |
+| 8 | **More opportunities (catalogue)** | Additional listings beyond the first one | **Later** | First release complete and signed off | **Repeating** — per listing after MVP |
+| 9 | **Owner portal and dashboards** | Private tools for owners and internal reporting | **Later** | MVP stable; separate programme phase | **Large** — future phase |
+| 10 | **WhatsApp, SMS, automated email** | Automated messaging to clients or leads | **Later / not MVP** | Separate approval and setup | **Medium–large** |
+| 11 | **Formal quotation (ERPNext)** | Issued quote or pro-forma for commercial work | **Later / not MVP** | MVP scope agreed; operator step | **Operator-led** — not blocking first release |
+
+**Grouped first release (packages 1–7):** These ship together as **Release 1 — First Real Opportunity.** They are intentionally bundled so you can show one complete story to a prospect, not seven separate mini-launches.
+
+**Later (packages 8–11):** Expand the catalogue and add owner tools, messaging automation, and commercial paperwork — **after** Release 1 is live and you are satisfied with it.
+
+### What is not included in this MVP
+
+To set expectations clearly, the following are **out of scope** for the first release:
+
+| Not in MVP | Plain meaning |
+|------------|---------------|
+| Full v14 / Drive rebuild | We do not merge or redeploy the fourteen AI-generated packages as the live product |
+| IDX / property feed | No automatic import from external listing feeds |
+| Multiple live listings | MVP is **one** opportunity; a full catalogue comes later |
+| Executive dashboard | Internal reporting suite — future phase |
+| Owner experience portal | Invitation-only owner tools — future phase |
+| WhatsApp / SMS | Not active in MVP; needs separate decision |
+| ERPNext quotation | No formal quote issued as part of MVP delivery |
+| Broad marketing automation | No bulk campaigns or funnel automation on Lux in MVP |
+| “Everything in the handover zip is live” | The Drive packages informed planning; production is CorpFlow |
+
+### What Jan must provide (before Release 1 can be validated)
+
+| You provide | Why it matters |
+|-------------|----------------|
+| **Homepage image package** (minimum four approved images: hero, lifestyle, arrival, owner-experience) | So the homepage looks finished, not placeholder |
+| **One opportunity** — title, region, description, highlights, pricing language (on application) | So Private Opportunities shows something real |
+| **Gallery images** for that opportunity (minimum five) | So the memorandum page looks credible |
+| **Alt text and rights** for each image | Accessibility and governance |
+| **Written approval** to publish each image and text on `lux.corpflowai.com` | Nothing goes live without your consent |
+| **One editor session** — log in, review, edit, confirm publish | Proves you can run the platform yourself |
+
+Detailed specs: `docs/runbooks/LUX_CONTENT_SPRINT_C1_C2_JAN_CONTENT_BRIEF.md`.
+
+### What value you see after each step
+
+| After this step | What becomes true for you |
+|-----------------|---------------------------|
+| Clean public site | You are not embarrassed by demo listings on Google or the sitemap |
+| Homepage imagery live | The site looks like LuxeMaurice, not a template |
+| Approval control working | You trust that only approved material is public |
+| One opportunity drafted | You have a real memorandum to review (preview, not public yet) |
+| Opportunity published | A prospect can browse **one** real opportunity on the live site |
+| Concierge working | A prospect can reach you through the advisory form |
+| Editor walk-through done | You know you can update content without waiting on a developer |
+| **Release 1 complete** | You can show a prospect: home → opportunity → request consultation — on the **live** site |
+
+### Rough sequencing (no fixed dates)
+
+Effort bands are **relative**, not promises. Actual timing depends heavily on **how quickly approved content arrives**.
+
+| Phase | Packages | Effort band | Notes |
+|-------|----------|-------------|-------|
+| **Release 1** | 1–7 (grouped) | **Several focused weeks** once content is supplied | Blocked until image + opportunity package delivered |
+| **Catalogue expansion** | 8 | **Repeating** per listing | After Release 1 sign-off |
+| **Platform expansion** | 9–11 | **Months** — separate decisions | Not part of recovery MVP |
+
+We do not state a go-live date here. Release 1 completes when the acceptance checklist (§7) passes and you sign off — not when a zip file is “deployed.”
+
+### How this feeds communication with you
+
+This section will inform a **recovery note** (internal issue #538) **only after Anton approves** this document. It is **not** an email or message to you yet.
+
+---
+
 ## Authority rule (non-negotiable)
 
 > **Production truth = CorpFlow `luxe-maurice` on `lux.corpflowai.com`.**  
