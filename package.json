@@ -34,6 +34,8 @@
     "production:pulse:test": "node --test node-tests/production-pulse.test.mjs",
     "business-ops:monitor": "node scripts/business-operations-monitor.mjs",
     "business-ops:monitor:fixtures": "node scripts/business-operations-monitor.mjs --fixtures",
+    "business-ops:dispatcher": "node scripts/business-operations-dispatcher.mjs",
+    "business-ops:dispatcher:fixtures": "node scripts/business-operations-dispatcher.mjs --fixtures",
     "check:marketing-quality-gate": "node scripts/check-marketing-quality-gate.mjs",
     "video:validate": "node scripts/video/validate.mjs",
     "video:serve-mock": "node scripts/video/serve-mock.mjs",

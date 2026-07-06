@@ -132,7 +132,13 @@ Sample artifact: `node-tests/fixtures/business-operations-monitor-sample.json`.
 
 When Stage 2 activates, add Monitor #14 row to `docs/operations/MONITORING_ARCHITECTURE.md` §2 per §9 recipe (same PR as activation or immediate docs follow-up).
 
-## 9. Related docs
+## 9. Dispatcher v1 (successor for n8n paging)
+
+Monitor v1 pages Anton for every urgent finding. **Dispatcher v1** classifies findings to executors and pages Anton only when `owner=anton` or `gated=true`.
+
+See **`docs/runbooks/BUSINESS_OPERATIONS_DISPATCHER_V1.md`** and `docs/n8n/templates/business-operations-dispatcher-v1.template.json`.
+
+## 10. Related docs
 
 - `docs/operations/AI_LEAD_RESCUE_OPERATOR_RUNBOOK.md`
 - `docs/lead-rescue/FIRST_PAID_PILOT_OPERATOR_PACK.md`
