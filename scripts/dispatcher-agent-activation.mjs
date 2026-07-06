@@ -1,25 +1,54 @@
 /**
- * Dispatcher agent activation — CLI (dry-run Phase 1).
+ * Dispatcher agent activation — CLI (dry-run + optional Cursor live).
  *
  * @see docs/execution/DISPATCHER_AGENT_ACTIVATION_V1.md
  */
 import fs from 'node:fs';
+import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import {
-  buildDispatcherActivationPlan,
-  formatActivationPlanText,
+  formatActivationResultText,
+  normalizeActivationMode,
+  normalizeDedupeState,
   parseDispatcherFetchResponse,
   resolveDispatcherActivationUrl,
+  runDispatcherActivation,
 } from '../lib/server/dispatcher-agent-activation.js';
 
 const FIXTURE_DISPATCHER = 'node-tests/fixtures/business-operations-dispatcher-sample.json';
+const DEFAULT_DEDUPE_PATH = '.dispatcher-activation-state/dedupe.json';
 
 /**
- * @param {string} path
+ * @param {string} filePath
  */
-function readJsonFile(path) {
-  return JSON.parse(fs.readFileSync(path, 'utf8'));
+function readJsonFile(filePath) {
+  return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+}
+
+/**
+ * @param {string} filePath
+ * @returns {import('../lib/server/dispatcher-agent-activation.js').DispatcherActivationDedupeState}
+ */
+function loadDedupeStateFile(filePath) {
+  try {
+    if (!fs.existsSync(filePath)) {
+      return normalizeDedupeState(null);
+    }
+    return normalizeDedupeState(readJsonFile(filePath));
+  } catch {
+    return normalizeDedupeState(null);
+  }
+}
+
+/**
+ * @param {string} filePath
+ * @param {import('../lib/server/dispatcher-agent-activation.js').DispatcherActivationDedupeState} state
+ */
+function saveDedupeStateFile(filePath, state) {
+  const dir = path.dirname(filePath);
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(filePath, `${JSON.stringify(state, null, 2)}\n`);
 }
 
 /**
@@ -48,7 +77,7 @@ async function fetchDispatcherReport(url, token) {
 
   if (httpStatus < 200 || httpStatus >= 300) {
     console.log(
-      `dispatcher HTTP ${httpStatus} (schema valid; action may be required; continuing dry-run)`,
+      `dispatcher HTTP ${httpStatus} (schema valid; action may be required; continuing)`,
     );
   }
 
@@ -57,31 +86,65 @@ async function fetchDispatcherReport(url, token) {
 
 /**
  * @param {Record<string, unknown>} report
+ * @param {{ mode: string, dedupePath: string, persistDedupe: boolean }} opts
  */
-function emitPlan(report) {
-  const plan = buildDispatcherActivationPlan(report);
-  const json = JSON.stringify(plan, null, 2);
-  console.log(formatActivationPlanText(plan));
+async function emitActivation(report, opts) {
+  const mode = normalizeActivationMode(opts.mode);
+  const dedupeState = loadDedupeStateFile(opts.dedupePath);
+  const cursorApiKey = String(process.env.CURSOR_API_KEY || '').trim();
+
+  const result = await runDispatcherActivation(report, {
+    mode,
+    dedupeState,
+    cursorApiKey,
+    smokeInternal: opts.smokeInternal,
+  });
+
+  console.log(formatActivationResultText(result));
+  const json = JSON.stringify(result, null, 2);
   console.log(json);
   fs.writeFileSync('activation-plan.json', json);
-  return plan;
+
+  if (opts.persistDedupe && mode === 'cursor_live' && result.live?.cursor) {
+    saveDedupeStateFile(opts.dedupePath, result.dedupeState);
+    console.log(`dedupe state updated: ${opts.dedupePath}`);
+  }
+
+  return result;
+}
+
+function resolveCliOptions() {
+  const mode = normalizeActivationMode(
+    process.env.DISPATCHER_ACTIVATION_MODE ||
+      (process.argv.includes('--cursor-live') ? 'cursor_live' : 'dry_run'),
+  );
+  const dedupePath = String(
+    process.env.DISPATCHER_ACTIVATION_STATE_PATH || DEFAULT_DEDUPE_PATH,
+  ).trim();
+  const smokeInternal =
+    process.env.DISPATCHER_ACTIVATION_SMOKE_INTERNAL === '1' ||
+    process.argv.includes('--smoke-internal');
+  return { mode, dedupePath, smokeInternal };
 }
 
 async function runCli() {
+  const { mode, dedupePath, smokeInternal } = resolveCliOptions();
+  const persistDedupe = process.argv.includes('--persist-dedupe') || mode === 'cursor_live';
+
   if (process.argv.includes('--fixtures')) {
     const report = readJsonFile(FIXTURE_DISPATCHER);
-    emitPlan(report);
+    await emitActivation(report, { mode, dedupePath, persistDedupe: false, smokeInternal });
     process.exit(0);
   }
 
   const fileIdx = process.argv.indexOf('--file');
   if (fileIdx >= 0 && process.argv[fileIdx + 1]) {
     const report = readJsonFile(String(process.argv[fileIdx + 1]).trim());
-    emitPlan(report);
+    await emitActivation(report, { mode, dedupePath, persistDedupe: false, smokeInternal });
     process.exit(0);
   }
 
-  if (process.argv.includes('--fetch')) {
+  if (process.argv.includes('--fetch') || process.argv.includes('--activate')) {
     const coreBase = String(process.env.CORPFLOW_CORE_BASE_URL || '').trim();
     const healthUrl = String(
       process.env.CORPFLOW_FACTORY_HEALTH_URL || process.env.FACTORY_HEALTH_URL || '',
@@ -100,12 +163,12 @@ async function runCli() {
     }
 
     const report = await fetchDispatcherReport(url, token);
-    emitPlan(report);
+    await emitActivation(report, { mode, dedupePath, persistDedupe, smokeInternal });
     process.exit(0);
   }
 
   console.error(
-    'Usage: node scripts/dispatcher-agent-activation.mjs --fixtures | --file <path> | --fetch',
+    'Usage: node scripts/dispatcher-agent-activation.mjs --fixtures | --file <path> | --fetch [--activate] [--cursor-live]',
   );
   process.exit(2);
 }

@@ -16,6 +16,18 @@ import {
 
 const THANK_YOU_PRODUCT_DIRECTION =
   "Thank you — we've received your product direction confirmation. Your team will review and follow up.";
+  LUX_RECOVERY_EFFORT_NOTE,
+  LUX_RECOVERY_JAN_MUST_PROVIDE,
+  LUX_RECOVERY_LATER_ITEMS,
+  LUX_RECOVERY_NOT_MVP,
+  LUX_RECOVERY_RELEASE1_PACKAGES,
+  LUX_RECOVERY_RELEASE1_SUMMARY,
+  LUX_RECOVERY_RELEASE1_TITLE,
+  LUX_RECOVERY_SITUATION_PARAGRAPH,
+} from '../../lib/client/lux-recovery-roadmap-content.js';
+
+const THANK_YOU_RECOVERY =
+  "Thank you — we've received your decision on Release 1. Your team will review and follow up.";
 
 /** @param {unknown} v */
 function safeObj(v) {
@@ -49,6 +61,12 @@ function overallLabel(value) {
   if (value === 'confirm') return 'Confirm our understanding';
   if (value === 'correct') return 'Correct our understanding';
   return value || '—';
+function decisionLabel(value) {
+  const v = String(value || '').trim();
+  if (v === 'approve') return 'Approve Release 1 scope';
+  if (v === 'request_changes') return 'Request changes';
+  if (v === 'not_approved') return 'Not approved — explain concerns';
+  return v || '—';
 }
 
 export default function LuxRecoveryRoadmapPage() {
@@ -63,6 +81,11 @@ export default function LuxRecoveryRoadmapPage() {
   const [magicClosed, setMagicClosed] = useState(false);
   const [thankYouBanner, setThankYouBanner] = useState('');
 
+  const [sufficientToProceed, setSufficientToProceed] = useState(false);
+  const [magicClosed, setMagicClosed] = useState(false);
+  const [thankYouBanner, setThankYouBanner] = useState('');
+
+  const idFromUrl = router.isReady ? ticketIdFromQuery(router.query) : '';
   const magicToken = router.isReady ? magicTokenFromQuery(router.query) : '';
   const hasMagicLink = magicToken.length >= 32;
   const hasTicket = ticketId.trim().length >= 18;
@@ -74,6 +97,11 @@ export default function LuxRecoveryRoadmapPage() {
   }, [router.isReady, router.query]);
 
   const getHeaders = useMemo(() => ({ 'Content-Type': 'application/json' }), []);
+  const getHeaders = useMemo(() => {
+    const h = { 'Content-Type': 'application/json' };
+    return h;
+  }, []);
+
   const getHeadersForGet = useMemo(() => ({}), []);
 
   const seedAnswers = useCallback((list) => {
@@ -94,6 +122,13 @@ export default function LuxRecoveryRoadmapPage() {
     if (id.length < 18) return;
     if (!hasMagicLink) {
       setError('Open the personalised link your team sent you to review product direction and submit your confirmation.');
+    if (id.length < 18) {
+      setItems([]);
+      setSufficientToProceed(false);
+      return;
+    }
+    if (!hasMagicLink) {
+      setError('Open the personalised link your team sent you to view this roadmap and submit your decision.');
       return;
     }
     setLoadBusy(true);
@@ -116,11 +151,13 @@ export default function LuxRecoveryRoadmapPage() {
       if (j.already_submitted === true) {
         setMagicClosed(true);
         setItems([]);
+        setSufficientToProceed(j.client_decisions?.sufficient_to_proceed === true);
         return;
       }
       const cd = safeObj(j.client_decisions) || {};
       const list = Array.isArray(cd.items) ? cd.items.map((x) => (safeObj(x) ? { ...x } : {})) : [];
       setItems(list);
+      setSufficientToProceed(cd.sufficient_to_proceed === true);
       seedAnswers(list);
       setMagicClosed(false);
     } catch (e) {
@@ -134,6 +171,8 @@ export default function LuxRecoveryRoadmapPage() {
   useEffect(() => {
     if (!router.isReady || !hasMagicLink) return;
     if (ticketId.trim().length < 18) return;
+    const id = ticketId.trim();
+    if (id.length < 18) return;
     const t = setTimeout(() => load(), 200);
     return () => clearTimeout(t);
   }, [router.isReady, ticketId, load, hasMagicLink]);
@@ -182,6 +221,9 @@ export default function LuxRecoveryRoadmapPage() {
         setThankYouBanner(THANK_YOU_PRODUCT_DIRECTION);
       } else {
         setError('Please confirm or correct the overall direction and choose a priority for each pillar.');
+        setThankYouBanner(THANK_YOU_RECOVERY);
+      } else {
+        setError('Please choose a decision before submitting.');
         seedAnswers(Array.isArray(cd.items) ? cd.items : items);
       }
     } catch (e) {
@@ -208,6 +250,44 @@ export default function LuxRecoveryRoadmapPage() {
     <>
       <Head>
         <title>{LUX_PRODUCT_DIRECTION_PAGE_TITLE} — LuxeMaurice</title>
+  const decisionItem = items.find((it) => safeObj(it)?.key === 'lux_recovery_release1_decision');
+  const notesItem = items.find((it) => safeObj(it)?.key === 'lux_recovery_release1_notes');
+  const decisionOpts = Array.isArray(safeObj(decisionItem)?.select_options)
+    ? /** @type {Array<{ value: string, label: string }>} */ (safeObj(decisionItem).select_options)
+    : [
+        { value: '', label: 'Choose one…' },
+        { value: 'approve', label: 'Approve Release 1 scope' },
+        { value: 'request_changes', label: 'Request changes' },
+        { value: 'not_approved', label: 'Not approved — explain concerns' },
+      ];
+
+  const showForm = hasMagicLink && hasTicket && !magicClosed && items.length > 0;
+
+  const pageStyle = {
+    minHeight: '100vh',
+    background: T.charcoal,
+    color: T.ivory,
+    fontFamily: T.fontBody,
+  };
+
+  const sectionStyle = {
+    maxWidth: 760,
+    margin: '0 auto',
+    padding: '0 24px 48px',
+  };
+
+  const cardStyle = {
+    border: `1px solid ${T.hairline}`,
+    borderRadius: T.radiusLg,
+    padding: '20px 22px',
+    background: T.charcoalSoft,
+    marginBottom: 16,
+  };
+
+  return (
+    <>
+      <Head>
+        <title>Recovery roadmap — LuxeMaurice</title>
         <meta name="robots" content="noindex,nofollow" />
         <LuxeMauriceFontStylesheet />
       </Head>
@@ -215,6 +295,9 @@ export default function LuxRecoveryRoadmapPage() {
         <header style={{ ...sectionStyle, paddingTop: 32, paddingBottom: 20, textAlign: 'center' }}>
           <LuxeMauriceWordmark />
           <LuxEyebrow>Private platform recovery</LuxEyebrow>
+        <header style={{ ...sectionStyle, paddingTop: 32, paddingBottom: 24, textAlign: 'center' }}>
+          <LuxeMauriceWordmark />
+          <LuxEyebrow style={{ marginTop: 20 }}>Private platform recovery</LuxEyebrow>
           <h1
             style={{
               margin: '12px 0 0',
@@ -225,6 +308,10 @@ export default function LuxRecoveryRoadmapPage() {
             }}
           >
             {LUX_PRODUCT_DIRECTION_PAGE_TITLE}
+              color: T.ivory,
+            }}
+          >
+            Your delivery roadmap
           </h1>
         </header>
 
@@ -244,6 +331,7 @@ export default function LuxRecoveryRoadmapPage() {
           >
             {LUX_PRODUCT_DIRECTION_EVIDENCE_NOTE}
           </p>
+          <p style={{ margin: '0 0 28px', color: T.ivoryMuted, fontSize: 16, lineHeight: 1.65 }}>{LUX_RECOVERY_SITUATION_PARAGRAPH}</p>
 
           <div style={{ marginBottom: 28 }}>
             <LuxHairline />
@@ -313,6 +401,21 @@ export default function LuxRecoveryRoadmapPage() {
                     </select>
                   </div>
                 ) : null}
+          <LuxEyebrow>{LUX_RECOVERY_RELEASE1_TITLE}</LuxEyebrow>
+          <p style={{ margin: '10px 0 20px', fontSize: 15, lineHeight: 1.6, color: T.ivoryMuted }}>{LUX_RECOVERY_RELEASE1_SUMMARY}</p>
+
+          <div style={{ display: 'grid', gap: 14, marginBottom: 32 }}>
+            {LUX_RECOVERY_RELEASE1_PACKAGES.map((pkg) => (
+              <div key={pkg.priority} style={cardStyle}>
+                <div style={{ fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', color: T.gold, marginBottom: 6 }}>
+                  Step {pkg.priority}
+                </div>
+                <div style={{ fontFamily: T.fontDisplay, fontSize: '1.25rem', marginBottom: 8 }}>{pkg.name}</div>
+                <div style={{ fontSize: 14, color: T.ivoryMuted, lineHeight: 1.55, marginBottom: 10 }}>{pkg.whatYouSee}</div>
+                <div style={{ fontSize: 13, color: T.stoneSoft, lineHeight: 1.5 }}>
+                  <span style={{ color: T.gold }}>After this step: </span>
+                  {pkg.valueAfter}
+                </div>
               </div>
             ))}
           </div>
@@ -325,6 +428,34 @@ export default function LuxRecoveryRoadmapPage() {
           <p style={{ margin: '10px 0 28px', fontSize: 14, color: T.ivoryMuted, lineHeight: 1.65 }}>
             {LUX_FIRST_VISIBLE_RELEASE_BODY}
           </p>
+          <LuxEyebrow>What we need from you</LuxEyebrow>
+          <ul style={{ margin: '12px 0 32px', paddingLeft: 20, color: T.ivoryMuted, fontSize: 14, lineHeight: 1.65 }}>
+            {LUX_RECOVERY_JAN_MUST_PROVIDE.map((row) => (
+              <li key={row.item} style={{ marginBottom: 10 }}>
+                <strong style={{ color: T.ivory, fontWeight: 600 }}>{row.item}</strong> — {row.why}
+              </li>
+            ))}
+          </ul>
+
+          <LuxEyebrow>Later — not part of Release 1</LuxEyebrow>
+          <ul style={{ margin: '12px 0 16px', paddingLeft: 20, color: T.ivoryMuted, fontSize: 14, lineHeight: 1.6 }}>
+            {LUX_RECOVERY_LATER_ITEMS.map((item) => (
+              <li key={item} style={{ marginBottom: 6 }}>
+                {item}
+              </li>
+            ))}
+          </ul>
+
+          <div style={{ ...cardStyle, marginBottom: 32 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: T.ivory, marginBottom: 10 }}>Not included in this release</div>
+            {LUX_RECOVERY_NOT_MVP.map((row) => (
+              <div key={row.label} style={{ fontSize: 13, color: T.ivoryMuted, lineHeight: 1.55, marginBottom: 8 }}>
+                <span style={{ color: T.ivory }}>{row.label}</span> — {row.meaning}
+              </div>
+            ))}
+          </div>
+
+          <p style={{ margin: '0 0 32px', fontSize: 13, color: T.stoneSoft, lineHeight: 1.55 }}>{LUX_RECOVERY_EFFORT_NOTE}</p>
 
           <div style={{ marginBottom: 28 }}>
             <LuxHairline />
@@ -340,6 +471,18 @@ export default function LuxRecoveryRoadmapPage() {
           ) : null}
 
           {loadBusy ? <p style={{ marginTop: 14, fontSize: 14, color: T.ivoryMuted }}>Loading…</p> : null}
+          <LuxEyebrow>Your decision</LuxEyebrow>
+
+          {!hasMagicLink ? (
+            <div style={{ ...cardStyle, marginTop: 14, color: T.ivoryMuted, fontSize: 14, lineHeight: 1.55 }}>
+              This page is shared through a private link from your CorpFlowAI team. If you expected to submit a decision here,
+              use the link they sent you (it includes a secure token).
+            </div>
+          ) : null}
+
+          {loadBusy ? (
+            <p style={{ marginTop: 14, fontSize: 14, color: T.ivoryMuted }}>Loading…</p>
+          ) : null}
 
           {magicClosed ? (
             <div
@@ -354,6 +497,7 @@ export default function LuxRecoveryRoadmapPage() {
               }}
             >
               {thankYouBanner || THANK_YOU_PRODUCT_DIRECTION}
+              {thankYouBanner || THANK_YOU_RECOVERY}
             </div>
           ) : null}
 
@@ -372,6 +516,20 @@ export default function LuxRecoveryRoadmapPage() {
                   setAnswersByKey((prev) => ({
                     ...prev,
                     lux_product_direction_overall: { answer: e.target.value },
+                htmlFor="lux-recovery-decision"
+                style={{ display: 'block', fontSize: 14, fontWeight: 600, marginBottom: 10, color: T.ivory }}
+              >
+                {typeof safeObj(decisionItem)?.question === 'string'
+                  ? String(safeObj(decisionItem).question)
+                  : 'Do you approve Release 1 — First Real Opportunity — as proposed above?'}
+              </label>
+              <select
+                id="lux-recovery-decision"
+                value={answersByKey.lux_recovery_release1_decision?.answer || ''}
+                onChange={(e) =>
+                  setAnswersByKey((prev) => ({
+                    ...prev,
+                    lux_recovery_release1_decision: { answer: e.target.value },
                   }))
                 }
                 style={{
@@ -407,6 +565,31 @@ export default function LuxRecoveryRoadmapPage() {
                   }))
                 }
                 placeholder="Tell us what we got wrong about your vision, priorities, or the materials you supplied."
+                {decisionOpts.map((opt, i) => (
+                  <option key={`${opt.value}_${i}`} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+
+              <label
+                htmlFor="lux-recovery-notes"
+                style={{ display: 'block', fontSize: 14, fontWeight: 600, marginBottom: 10, color: T.ivory }}
+              >
+                {typeof safeObj(notesItem)?.question === 'string'
+                  ? String(safeObj(notesItem).question)
+                  : 'Notes, changes requested, or concerns'}
+              </label>
+              <textarea
+                id="lux-recovery-notes"
+                value={answersByKey.lux_recovery_release1_notes?.answer || ''}
+                onChange={(e) =>
+                  setAnswersByKey((prev) => ({
+                    ...prev,
+                    lux_recovery_release1_notes: { answer: e.target.value },
+                  }))
+                }
+                placeholder="Optional if you fully approve. Required detail if you request changes or are not approving."
                 style={{
                   width: '100%',
                   minHeight: 120,
@@ -440,6 +623,7 @@ export default function LuxRecoveryRoadmapPage() {
                 }}
               >
                 {busy ? 'Submitting…' : 'Submit product direction confirmation'}
+                {busy ? 'Submitting…' : 'Submit decision'}
               </button>
             </div>
           ) : null}
@@ -464,6 +648,9 @@ export default function LuxRecoveryRoadmapPage() {
           {magicClosed && answersByKey.lux_product_direction_overall?.answer ? (
             <p style={{ marginTop: 12, fontSize: 13, color: T.stoneSoft }}>
               Recorded: {overallLabel(answersByKey.lux_product_direction_overall.answer)}
+          {magicClosed && answersByKey.lux_recovery_release1_decision?.answer ? (
+            <p style={{ marginTop: 12, fontSize: 13, color: T.stoneSoft }}>
+              Recorded: {decisionLabel(answersByKey.lux_recovery_release1_decision.answer)}
             </p>
           ) : null}
         </main>

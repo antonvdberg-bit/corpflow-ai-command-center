@@ -1,25 +1,39 @@
-# Polls business-operations dispatcher and prints a dry-run agent activation plan.
-# Phase 1 only — does NOT call Cursor Cloud API, Codex Cloud, GitHub issues, or DB.
+# Polls business-operations dispatcher and runs agent activation.
+# Default: dry-run plan only. Manual workflow_dispatch may set activation_mode=cursor_live.
+# Scheduled runs always remain dry_run until Anton enables live schedule separately.
 #
 # Repo secrets (Settings → Secrets and variables → Actions):
 # - CORPFLOW_CORE_BASE_URL   e.g. https://core.corpflowai.com
 # - CORPFLOW_CRON_SECRET     same value as Vercel CORPFLOW_CRON_SECRET / CRON_SECRET
 # - CORPFLOW_FACTORY_HEALTH_URL  (optional) fallback to derive dispatcher URL
+# - CURSOR_API_KEY           required for activation_mode=cursor_live only (never logged)
 #
-# If required secrets are missing, the job exits 0 (skipped) so forks stay green.
+# If dispatcher secrets are missing, the job exits 0 (skipped) so forks stay green.
 #
 # References:
 #   docs/execution/DISPATCHER_AGENT_ACTIVATION_V1.md
-#   docs/runbooks/BUSINESS_OPERATIONS_DISPATCHER_V1.md
 #   scripts/dispatcher-agent-activation.mjs
-#   lib/server/dispatcher-agent-activation.js
 
-name: Factory dispatcher activate (dry-run)
+name: Factory dispatcher activate
 
 on:
   schedule:
-    - cron: "0 */2 * * *" # Every 2 hours at :00 UTC
-  workflow_dispatch: {}
+    - cron: "0 */2 * * *" # Every 2 hours at :00 UTC — dry_run only
+  workflow_dispatch:
+    inputs:
+      activation_mode:
+        description: "dry_run (default) or cursor_live (manual smoke only)"
+        required: true
+        default: dry_run
+        type: choice
+        options:
+          - dry_run
+          - cursor_live
+      smoke_internal:
+        description: "Inject internal cursor smoke routing when no cursor routings (first smoke)"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -29,24 +43,52 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  dry-run:
+  activate:
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
-      # Pinned SHAs (supply chain): tag v6 — bump via `gh api repos/actions/checkout/commits/refs/tags/v6 --jq .sha`
+      # Pinned SHAs (supply chain): tag v6
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
-      # Pinned SHAs (supply chain): tag v6 — bump via `gh api repos/actions/setup-node/commits/refs/tags/v6 --jq .sha`
+      # Pinned SHAs (supply chain): tag v6
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
         with:
           node-version: "20"
 
+      - name: Resolve activation mode
+        id: mode
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            echo "mode=dry_run" >> "$GITHUB_OUTPUT"
+            echo "smoke_internal=0" >> "$GITHUB_OUTPUT"
+            echo "Scheduled run — forcing dry_run"
+          else
+            echo "mode=${{ inputs.activation_mode }}" >> "$GITHUB_OUTPUT"
+            if [ "${{ inputs.smoke_internal }}" = "true" ]; then
+              echo "smoke_internal=1" >> "$GITHUB_OUTPUT"
+            else
+              echo "smoke_internal=0" >> "$GITHUB_OUTPUT"
+            fi
+            echo "Manual run — activation_mode=${{ inputs.activation_mode }} smoke_internal=${{ inputs.smoke_internal }}"
+          fi
+
+      # Pinned SHAs (supply chain): tag v4
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        continue-on-error: true
+        id: dedupe-cache
+        with:
+          path: .dispatcher-activation-state
+          key: dispatcher-activation-dedupe-v1-${{ github.repository }}
+          restore-keys: |
+            dispatcher-activation-dedupe-v1-${{ github.repository }}
+
       - name: Show integration status (presence-only)
         run: |
           set -euo pipefail
-          echo "Dispatcher activator dry-run (Phase 1 — no executor calls)"
+          echo "Dispatcher activator mode: ${{ steps.mode.outputs.mode }}"
           if [ -n "${CORE_BASE_PRESENT:-}" ] || [ -n "${HEALTH_URL_PRESENT:-}" ]; then
             echo "  dispatcher URL source       : configured"
           else
@@ -57,25 +99,36 @@ jobs:
           else
             echo "  CORPFLOW_CRON_SECRET        : SKIPPED"
           fi
+          if [ -n "${CURSOR_KEY_PRESENT:-}" ]; then
+            echo "  CURSOR_API_KEY              : configured"
+          else
+            echo "  CURSOR_API_KEY              : not set (required for cursor_live)"
+          fi
         env:
           CORE_BASE_PRESENT: ${{ secrets.CORPFLOW_CORE_BASE_URL != '' && '1' || '' }}
           HEALTH_URL_PRESENT: ${{ secrets.CORPFLOW_FACTORY_HEALTH_URL != '' && '1' || '' }}
           CRON_SECRET_PRESENT: ${{ secrets.CORPFLOW_CRON_SECRET != '' && '1' || '' }}
+          CURSOR_KEY_PRESENT: ${{ secrets.CURSOR_API_KEY != '' && '1' || '' }}
 
-      - name: Dry-run activation plan
+      - name: Run dispatcher activation
         env:
+          DISPATCHER_ACTIVATION_MODE: ${{ steps.mode.outputs.mode }}
+          DISPATCHER_ACTIVATION_SMOKE_INTERNAL: ${{ steps.mode.outputs.smoke_internal }}
+          DISPATCHER_ACTIVATION_STATE_PATH: .dispatcher-activation-state/dedupe.json
           CORPFLOW_CORE_BASE_URL: ${{ secrets.CORPFLOW_CORE_BASE_URL }}
           CORPFLOW_FACTORY_HEALTH_URL: ${{ secrets.CORPFLOW_FACTORY_HEALTH_URL }}
           CORPFLOW_CRON_SECRET: ${{ secrets.CORPFLOW_CRON_SECRET }}
-        run: node scripts/dispatcher-agent-activation.mjs --fetch
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+        run: node scripts/dispatcher-agent-activation.mjs --fetch --activate --persist-dedupe
 
-      - name: Upload activation plan artifact (always)
+      - name: Upload activation result artifact (always)
         if: ${{ always() }}
-        # Pinned SHAs (supply chain): tag v4 — bump via `gh api repos/actions/upload-artifact/commits/refs/tags/v4 --jq .sha`
+        # Pinned SHAs (supply chain): tag v4
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: dispatcher-activation-dry-run
+          name: dispatcher-activation-result
           path: |
             activation-plan.json
+            .dispatcher-activation-state/dedupe.json
           if-no-files-found: ignore
           retention-days: 7
