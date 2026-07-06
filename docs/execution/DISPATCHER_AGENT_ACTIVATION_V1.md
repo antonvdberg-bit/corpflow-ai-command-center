@@ -73,7 +73,7 @@ If secrets are missing, the job **exits 0 (skipped)** so forks stay green.
 ### 4.2 What the dry-run does
 
 1. `GET` the dispatcher endpoint (read-only).
-2. Parse `routings[]`.
+2. Parse `routings[]`. **HTTP 503 (or other non-2xx) is valid** when the JSON body has `schema: corpflow.business_operations_dispatcher.v1` — the dispatcher returns 503 when `ok: false` / action is required, same pattern as the monitor endpoint.
 3. Group by `owner` and print a **dry-run activation plan**:
    - `cursor` → `WOULD_ACTIVATE_CURSOR_CLOUD_API`
    - `codex` → `WOULD_ACTIVATE_CODEX_CLOUD`
