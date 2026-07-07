@@ -35,6 +35,12 @@ import {
   memberUpdateSchemaHandler,
   memberUpdateSubmitHandler,
 } from '../lib/server/living-word/member-update-api.js';
+import {
+  demoFormChainForm1Handler,
+  demoFormChainForm2Handler,
+  demoFormChainForm2SessionHandler,
+  demoFormChainStatusHandler,
+} from '../lib/server/living-word/demo-form-chain-api.js';
 import tenantLoginDebugHandler from '../lib/server/tenant-login-debug.js';
 import { handleCoreLuxTicketMigrationRepair } from '../lib/server/core-lux-ticket-migration-repair.js';
 import factoryGithubPrCreateHandler from '../lib/server/factory-github-pr-create.js';
@@ -1098,6 +1104,18 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'tenant/living-word/member-update/submit') {
     return memberUpdateSubmitHandler(req, res);
+  }
+  if (pathSeg === 'tenant/living-word/demo-form-chain/status') {
+    return demoFormChainStatusHandler(req, res);
+  }
+  if (pathSeg === 'tenant/living-word/demo-form-chain/form-1') {
+    return demoFormChainForm1Handler(req, res);
+  }
+  if (pathSeg === 'tenant/living-word/demo-form-chain/form-2-session') {
+    return demoFormChainForm2SessionHandler(req, res);
+  }
+  if (pathSeg === 'tenant/living-word/demo-form-chain/form-2') {
+    return demoFormChainForm2Handler(req, res);
   }
   if (pathSeg === 'factory/host-map/upsert') {
     return tenantHostMapUpsertHandler(req, res);
