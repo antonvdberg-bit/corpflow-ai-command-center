@@ -35,18 +35,32 @@ const validForm1 = () => ({
   last_name: 'Alpha',
   email: 'test.alpha@example.test',
   phone: '+23050000001',
-  member_type: 'member',
-  ready_to_serve: true,
+  member_type: 'visitor',
   consent_demo: true,
 });
 
 const validForm2 = () => ({
   email_confirm: 'test.alpha@example.test',
-  address_line_1: '1 Demo Street',
-  city: 'Port Louis',
+  email_secondary: '',
+  city: 'Trou Aux Biches',
+  country: 'MU',
+  emergency_contact_name: 'ICE Contact',
+  emergency_contact_phone: '+23050000002',
+  gender: 'male',
   preferred_communication: 'email',
-  interested_in_serving: true,
-  ready_to_serve: true,
+  date_of_birth: '1990-01-01',
+  whatsapp_number: '+23057759716',
+  phone_secondary: '',
+  consent_transactional: true,
+  ushers_team_active: 'yes',
+  trinity_kids_active: 'no',
+  worship_team_active: 'no',
+  wordgroups_active: 'yes',
+  prayer_team_active: 'no',
+  mens_ignite_active: 'no',
+  tech_media_team_active: 'no',
+  events_lifestyle_active: 'no',
+  barista_team_active: 'no',
   consent_acknowledged: true,
 });
 
@@ -77,6 +91,13 @@ describe('validateForm1Body', () => {
     assert.equal(r.ok, true);
   });
 
+  it('rejects regular_attender member type', () => {
+    const r = validateForm1Body({ ...validForm1(), member_type: 'regular_attender' });
+    assert.equal(r.ok, false);
+    if (r.ok) return;
+    assert.equal(r.error, 'invalid_enum');
+  });
+
   it('requires consent_demo', () => {
     const r = validateForm1Body({ ...validForm1(), consent_demo: false });
     assert.equal(r.ok, false);
@@ -93,14 +114,25 @@ describe('validateForm1Body', () => {
 });
 
 describe('validateForm2Body', () => {
-  it('accepts valid form 2 without whatsapp/sms comm pref', () => {
+  it('accepts GHL-shaped form 2 fields', () => {
     const r = validateForm2Body(validForm2());
     assert.equal(r.ok, true);
+    if (!r.ok) return;
+    assert.equal(r.data.ushers_team_active, 'yes');
+    assert.equal(r.data.whatsapp_number, '+23057759716');
   });
 
-  it('rejects whatsapp comm preference', () => {
-    const r = validateForm2Body({ ...validForm2(), preferred_communication: 'whatsapp' });
+  it('requires gender and whatsapp_number', () => {
+    const r = validateForm2Body({ ...validForm2(), gender: '', whatsapp_number: '' });
     assert.equal(r.ok, false);
+  });
+
+  it('requires transactional consent', () => {
+    const r = validateForm2Body({ ...validForm2(), consent_transactional: false });
+    assert.equal(r.ok, false);
+    if (r.ok) return;
+    assert.equal(r.error, 'consent_required');
+    assert.equal(r.field, 'consent_transactional');
   });
 });
 

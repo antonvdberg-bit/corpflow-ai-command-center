@@ -1,6 +1,7 @@
 /**
  * Living Word Mauritius — TEST DEMO Form 2 (profile follow-up via email link).
  *
+ * Multi-step layout aligned with legacy GHL Profile Verification screens.
  * Route: /living-word/form-2?token=
  */
 
@@ -9,35 +10,249 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
 import {
+  COMM_PREF_OPTIONS,
+  COUNTRY_OPTIONS,
+  emptyForm2State,
+  FORM2_STEP_LABELS,
+  GENDER_OPTIONS,
+  TEAM_ACTIVE_FIELDS,
+  TEST_DEMO_CONSENT_TEXT,
+  TRANSACTIONAL_CONSENT_TEXT,
+  YN_OPTIONS,
+} from '../../lib/living-word/demo-form-chain-fields.js';
+import {
   API_FORM2,
   API_FORM2_SESSION,
   buttonStyle,
   cardStyle,
+  COLOURS,
   DemoPageShell,
   DEMO_LABEL,
   fieldStyle,
   labelStyle,
+  stepNavStyle,
 } from '../../lib/living-word/demo-form-chain-page.js';
 
-const COMM_PREFS = [
-  { value: 'email', label: 'Email' },
-  { value: 'phone', label: 'Phone call' },
-];
+const STEP_COUNT = FORM2_STEP_LABELS.length;
+
+function StepFields({ step, form, updateField }) {
+  if (step === 0) {
+    return (
+      <>
+        <label style={labelStyle()}>
+          Email *
+          <input
+            style={fieldStyle()}
+            type="email"
+            required
+            readOnly
+            value={form.email_confirm}
+          />
+        </label>
+        <label style={labelStyle()}>
+          Email 2
+          <input
+            style={fieldStyle()}
+            type="email"
+            placeholder="Any other email on which we can contact you"
+            value={form.email_secondary}
+            onChange={(e) => updateField('email_secondary', e.target.value)}
+          />
+        </label>
+        <label style={labelStyle()}>
+          City
+          <input
+            style={fieldStyle()}
+            value={form.city}
+            onChange={(e) => updateField('city', e.target.value)}
+          />
+        </label>
+        <label style={labelStyle()}>
+          Country
+          <select
+            style={fieldStyle()}
+            value={form.country}
+            onChange={(e) => updateField('country', e.target.value)}
+          >
+            {COUNTRY_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label style={labelStyle()}>
+          Emergency Contact Person Name
+          <input
+            style={fieldStyle()}
+            placeholder="Please add ICE preferred name and surname"
+            value={form.emergency_contact_name}
+            onChange={(e) => updateField('emergency_contact_name', e.target.value)}
+          />
+        </label>
+        <label style={labelStyle()}>
+          Emergency Contact Phone Number
+          <input
+            style={fieldStyle()}
+            type="tel"
+            placeholder="Please add ICE Phone Number"
+            value={form.emergency_contact_phone}
+            onChange={(e) => updateField('emergency_contact_phone', e.target.value)}
+          />
+        </label>
+      </>
+    );
+  }
+
+  if (step === 1) {
+    return (
+      <>
+        <label style={labelStyle()}>
+          Gender / Sex 1 *
+          <select
+            style={fieldStyle()}
+            required
+            value={form.gender}
+            onChange={(e) => updateField('gender', e.target.value)}
+          >
+            <option value="">Please select</option>
+            {GENDER_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label style={labelStyle()}>
+          Preferred Communication *
+          <select
+            style={fieldStyle()}
+            required
+            value={form.preferred_communication}
+            onChange={(e) => updateField('preferred_communication', e.target.value)}
+          >
+            <option value="">How would you like us to connect with you</option>
+            {COMM_PREF_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label style={labelStyle()}>
+          Date Of Birth
+          <input
+            style={fieldStyle()}
+            type="date"
+            value={form.date_of_birth}
+            onChange={(e) => updateField('date_of_birth', e.target.value)}
+          />
+        </label>
+        <label style={labelStyle()}>
+          WhatsApp Number *
+          <input
+            style={fieldStyle()}
+            type="tel"
+            required
+            placeholder="Collected for demo only — no WhatsApp messages sent"
+            value={form.whatsapp_number}
+            onChange={(e) => updateField('whatsapp_number', e.target.value)}
+          />
+        </label>
+        <label
+          style={{
+            ...labelStyle(),
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 8,
+            marginTop: 8,
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={form.consent_transactional}
+            onChange={(e) => updateField('consent_transactional', e.target.checked)}
+          />
+          <span style={{ fontWeight: 400, fontSize: 13 }}>{TRANSACTIONAL_CONSENT_TEXT}</span>
+        </label>
+        <label style={labelStyle()}>
+          Phone 2
+          <input
+            style={fieldStyle()}
+            type="tel"
+            placeholder="Any other phone number on which we can call you"
+            value={form.phone_secondary}
+            onChange={(e) => updateField('phone_secondary', e.target.value)}
+          />
+        </label>
+      </>
+    );
+  }
+
+  const teams =
+    step === 2 ? TEAM_ACTIVE_FIELDS.slice(0, 5) : TEAM_ACTIVE_FIELDS.slice(5);
+
+  return (
+    <>
+      {teams.map((f) => (
+        <label key={f.key} style={labelStyle()}>
+          {f.label}
+          <select
+            style={fieldStyle()}
+            value={form[f.key]}
+            onChange={(e) => updateField(f.key, e.target.value)}
+          >
+            {YN_OPTIONS.map((o) => (
+              <option key={o.value || 'empty'} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      ))}
+      {step === STEP_COUNT - 1 ? (
+        <label
+          style={{
+            ...labelStyle(),
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 8,
+            marginTop: 16,
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={form.consent_acknowledged}
+            onChange={(e) => updateField('consent_acknowledged', e.target.checked)}
+          />
+          <span style={{ fontWeight: 400, fontSize: 13 }}>{TEST_DEMO_CONSENT_TEXT}</span>
+        </label>
+      ) : null}
+    </>
+  );
+}
+
+function stepIsValid(step, form) {
+  if (step === 0) return Boolean(form.email_confirm);
+  if (step === 1) {
+    return (
+      Boolean(form.gender) &&
+      Boolean(form.preferred_communication) &&
+      Boolean(form.whatsapp_number) &&
+      Boolean(form.consent_transactional)
+    );
+  }
+  if (step === STEP_COUNT - 1) return Boolean(form.consent_acknowledged);
+  return true;
+}
 
 export default function LivingWordForm2Page() {
   const router = useRouter();
   const token = typeof router.query.token === 'string' ? router.query.token : '';
 
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({
-    email_confirm: '',
-    address_line_1: '',
-    city: '',
-    preferred_communication: 'email',
-    interested_in_serving: false,
-    ready_to_serve: false,
-    consent_acknowledged: false,
-  });
+  const [step, setStep] = useState(0);
+  const [form, setForm] = useState(emptyForm2State);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
@@ -62,7 +277,7 @@ export default function LivingWordForm2Page() {
             setForm((prev) => ({
               ...prev,
               email_confirm: j.prefill?.email_confirm || '',
-              ready_to_serve: Boolean(j.prefill?.ready_to_serve),
+              whatsapp_number: j.prefill?.whatsapp_number || j.prefill?.phone || '',
             }));
           }
           setLoading(false);
@@ -83,8 +298,26 @@ export default function LivingWordForm2Page() {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  function goNext() {
+    if (!stepIsValid(step, form)) {
+      setError('Please complete required fields on this step.');
+      return;
+    }
+    setError('');
+    setStep((s) => Math.min(s + 1, STEP_COUNT - 1));
+  }
+
+  function goPrev() {
+    setError('');
+    setStep((s) => Math.max(s - 1, 0));
+  }
+
   async function onSubmit(e) {
     e.preventDefault();
+    if (!stepIsValid(step, form)) {
+      setError('Please complete required fields before submitting.');
+      return;
+    }
     setBusy(true);
     setError('');
     setResult(null);
@@ -96,7 +329,7 @@ export default function LivingWordForm2Page() {
       });
       const j = await r.json();
       if (!r.ok || !j.ok) {
-        setError(j.error || 'Submit failed');
+        setError(j.error || j.field || 'Submit failed');
         return;
       }
       setResult(j);
@@ -134,95 +367,45 @@ export default function LivingWordForm2Page() {
             </pre>
           </div>
         ) : (
-          <div style={cardStyle()}>
-            <form onSubmit={onSubmit}>
-              <label style={labelStyle()}>
-                Confirm email
-                <input
-                  style={fieldStyle()}
-                  type="email"
-                  required
-                  readOnly
-                  value={form.email_confirm}
-                />
-              </label>
-              <label style={labelStyle()}>
-                Address line
-                <input
-                  style={fieldStyle()}
-                  required
-                  value={form.address_line_1}
-                  onChange={(e) => updateField('address_line_1', e.target.value)}
-                />
-              </label>
-              <label style={labelStyle()}>
-                City
-                <input
-                  style={fieldStyle()}
-                  required
-                  value={form.city}
-                  onChange={(e) => updateField('city', e.target.value)}
-                />
-              </label>
-              <label style={labelStyle()}>
-                Communications preference
-                <select
-                  style={fieldStyle()}
-                  required
-                  value={form.preferred_communication}
-                  onChange={(e) => updateField('preferred_communication', e.target.value)}
-                >
-                  {COMM_PREFS.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label style={{ ...labelStyle(), display: 'flex', alignItems: 'center', gap: 8 }}>
-                <input
-                  type="checkbox"
-                  checked={form.interested_in_serving}
-                  onChange={(e) => updateField('interested_in_serving', e.target.checked)}
-                />
-                Interested in serving on a team
-              </label>
-              <label style={{ ...labelStyle(), display: 'flex', alignItems: 'center', gap: 8 }}>
-                <input
-                  type="checkbox"
-                  checked={form.ready_to_serve}
-                  onChange={(e) => updateField('ready_to_serve', e.target.checked)}
-                />
-                I am ready to serve
-              </label>
-              <label
-                style={{
-                  ...labelStyle(),
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: 8,
-                  marginTop: 16,
-                }}
-              >
-                <input
-                  type="checkbox"
-                  required
-                  checked={form.consent_acknowledged}
-                  onChange={(e) => updateField('consent_acknowledged', e.target.checked)}
-                />
-                <span>
-                  I confirm this TEST DEMO submission may be reviewed by operators. No real member
-                  record is updated automatically.
-                </span>
-              </label>
+          <div style={{ ...cardStyle(), padding: 0, overflow: 'hidden' }}>
+            <div style={{ padding: '20px 24px 0' }}>
+              <p style={{ margin: '0 0 4px', fontSize: 13, color: COLOURS.muted }}>
+                Step {step + 1} of {STEP_COUNT}: {FORM2_STEP_LABELS[step]}
+              </p>
+            </div>
+            <form onSubmit={onSubmit} style={{ padding: '0 24px 24px' }}>
+              <StepFields step={step} form={form} updateField={updateField} />
               {error ? <p style={{ color: '#b91c1c' }}>{error}</p> : null}
-              <button type="submit" style={buttonStyle(busy)} disabled={busy}>
-                {busy ? 'Submitting…' : 'Submit Form 2'}
-              </button>
+              <div style={stepNavStyle()}>
+                <button type="button" onClick={goPrev} disabled={step === 0} style={stepButtonStyle(false)}>
+                  ← PREV
+                </button>
+                {step < STEP_COUNT - 1 ? (
+                  <button type="button" onClick={goNext} style={stepButtonStyle(true)}>
+                    NEXT →
+                  </button>
+                ) : (
+                  <button type="submit" style={stepButtonStyle(true)} disabled={busy}>
+                    {busy ? 'Submitting…' : 'SUBMIT'}
+                  </button>
+                )}
+              </div>
             </form>
           </div>
         )}
       </DemoPageShell>
     </>
   );
+}
+
+function stepButtonStyle(primary) {
+  return {
+    background: 'transparent',
+    border: 'none',
+    color: '#fff',
+    fontWeight: 700,
+    fontSize: 14,
+    cursor: 'pointer',
+    opacity: primary ? 1 : 0.85,
+  };
 }

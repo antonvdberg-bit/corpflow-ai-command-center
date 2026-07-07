@@ -7,6 +7,7 @@
 import Head from 'next/head';
 import { useState } from 'react';
 
+import { FORM1_MEMBER_TYPES } from '../../lib/living-word/demo-form-chain-fields.js';
 import {
   API_FORM1,
   buttonStyle,
@@ -17,20 +18,13 @@ import {
   labelStyle,
 } from '../../lib/living-word/demo-form-chain-page.js';
 
-const MEMBER_TYPES = [
-  { value: 'member', label: 'Member' },
-  { value: 'regular_attender', label: 'Regular attender' },
-  { value: 'visitor', label: 'Visitor' },
-];
-
 export default function LivingWordForm1Page() {
   const [form, setForm] = useState({
     first_name: '',
     last_name: '',
     email: 'test.alpha@example.test',
     phone: '+23050000001',
-    member_type: 'member',
-    ready_to_serve: false,
+    member_type: 'visitor',
     consent_demo: false,
   });
   const [busy, setBusy] = useState(false);
@@ -124,20 +118,12 @@ export default function LivingWordForm1Page() {
                 value={form.member_type}
                 onChange={(e) => updateField('member_type', e.target.value)}
               >
-                {MEMBER_TYPES.map((t) => (
+                {FORM1_MEMBER_TYPES.map((t) => (
                   <option key={t.value} value={t.value}>
                     {t.label}
                   </option>
                 ))}
               </select>
-            </label>
-            <label style={{ ...labelStyle(), display: 'flex', alignItems: 'center', gap: 8 }}>
-              <input
-                type="checkbox"
-                checked={form.ready_to_serve}
-                onChange={(e) => updateField('ready_to_serve', e.target.checked)}
-              />
-              I am ready to serve
             </label>
             <label
               style={{
