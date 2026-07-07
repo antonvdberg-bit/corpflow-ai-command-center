@@ -14,6 +14,7 @@ import {
   dedupeStateAddKey,
   DISPATCHER_ACTIVATION_MODE_CURSOR_LIVE,
   DISPATCHER_ACTIVATION_MODE_DRY_RUN,
+  evaluateThroughputPacketGate,
   normalizeDedupeState,
   routingDedupeKey,
   runDispatcherActivation,
@@ -24,6 +25,15 @@ import {
 const sample = JSON.parse(
   fs.readFileSync('node-tests/fixtures/business-operations-dispatcher-sample.json', 'utf8'),
 );
+
+const validThroughputPacket = {
+  business_outcome: 'Unblock Lux client delivery visibility',
+  linked_issue_or_ticket: 'ticket:fixture_ticket_in_review',
+  delivery_surface: '/change client console',
+  evidence_required: 'preview smoke screenshot and npm test result',
+  cost_risk_cap: 'One scoped PR only; max one Cursor activation per run',
+  allowed_category: 'client-delivery',
+};
 
 /** @type {import('../lib/server/business-operations-dispatcher.js').BusinessOpsRouting} */
 function cursorRouting(overrides = {}) {
@@ -41,6 +51,7 @@ function cursorRouting(overrides = {}) {
     antonNeeded: false,
     safeToIgnore: false,
     link: '/change?ticket=fixture_ticket_in_review',
+    throughput_packet: validThroughputPacket,
     ...overrides,
   };
 }
@@ -100,7 +111,11 @@ describe('dispatcher cursor live activation', () => {
       ...sample,
       routings: sample.routings.map((r) =>
         r.owner === 'cursor'
-          ? { ...r, executorPrompt: cursorRouting().executorPrompt }
+          ? {
+              ...r,
+              executorPrompt: cursorRouting().executorPrompt,
+              throughput_packet: validThroughputPacket,
+            }
           : r,
       ),
     };
@@ -193,6 +208,67 @@ describe('dispatcher cursor live activation', () => {
     const capped = decisions.filter((d) => d.action === 'SKIP_CURSOR_CAP');
     assert.equal(activate.length, 1);
     assert.equal(capped.length, 1);
+  });
+
+  it('dispatcher cursor_live requires a complete throughput packet', async () => {
+    let calls = 0;
+    const fetch = async () => {
+      calls += 1;
+      throw new Error('should not call Cursor API without packet');
+    };
+
+    const result = await runDispatcherActivation(
+      { ...sample, routings: [cursorRouting({ throughput_packet: undefined })] },
+      {
+        mode: DISPATCHER_ACTIVATION_MODE_CURSOR_LIVE,
+        dedupeState: normalizeDedupeState(null),
+        cursorApiKey: 'sk-test',
+        cursorDeps: { fetch },
+      },
+    );
+
+    assert.equal(calls, 0);
+    assert.equal(result.live.cursor, null);
+    assert.equal(result.decisions[0].action, 'SKIP_THROUGHPUT_PACKET');
+    assert.equal(result.decisions[0].throughput_packet_eligible, false);
+    assert.deepEqual(result.decisions[0].throughput_packet_missing_fields, [
+      'business_outcome',
+      'linked_issue_or_ticket',
+      'delivery_surface',
+      'evidence_required',
+      'cost_risk_cap',
+      'allowed_category',
+    ]);
+  });
+
+  it('throughput packet rejects invalid allowed_category', () => {
+    const gate = evaluateThroughputPacketGate(
+      cursorRouting({
+        throughput_packet: {
+          ...validThroughputPacket,
+          allowed_category: 'random-busywork',
+        },
+      }),
+    );
+
+    assert.equal(gate.eligible, false);
+    assert.deepEqual(gate.invalid_fields, ['allowed_category']);
+    assert.match(gate.reason, /allowed/);
+  });
+
+  it('activation decisions include audit fields from throughput packet', () => {
+    const decisions = selectActivationDecisions([cursorRouting()], {
+      mode: DISPATCHER_ACTIVATION_MODE_CURSOR_LIVE,
+      requireThroughputPacket: true,
+    });
+
+    assert.equal(decisions[0].action, 'ACTIVATE_CURSOR');
+    assert.equal(decisions[0].throughputGate?.eligible, true);
+    assert.equal(decisions[0].throughputGate?.packet?.allowed_category, 'client-delivery');
+    assert.equal(
+      decisions[0].throughputGate?.packet?.business_outcome,
+      'Unblock Lux client delivery visibility',
+    );
   });
 
   it('buildDispatcherActivationPlan respects mode label', () => {

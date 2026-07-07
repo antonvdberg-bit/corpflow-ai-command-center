@@ -246,6 +246,27 @@ describe('cursor-ops-status', () => {
     assert.equal(status.target_issue, '553');
   });
 
+  it('cursor_live throughput packet rejection writes blocked status', () => {
+    const status = buildCursorOpsStatusFromActivation(
+      DISPATCHER_ACTIVATION_MODE_CURSOR_LIVE,
+      {
+        decisions: [
+          {
+            owner: 'cursor',
+            objectRef: 'ticket:low-value-doc',
+            action: 'SKIP_THROUGHPUT_PACKET',
+          },
+        ],
+        live: { cursor: null },
+      },
+      { workflow: { runId: '999', jobId: 'activate' } },
+    );
+
+    assert.equal(status.activation_status, 'blocked');
+    assert.match(status.blocked_reason || '', /SKIP_THROUGHPUT_PACKET/);
+    assert.equal(status.need_anton, true);
+  });
+
   it('started live activation without PR sets next_check_after_minutes', async () => {
     const fetch = async () =>
       new Response(

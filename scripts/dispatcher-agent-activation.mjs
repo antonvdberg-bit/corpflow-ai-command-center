@@ -9,6 +9,7 @@ import { pathToFileURL } from 'node:url';
 
 import {
   buildDirectIssueActivationReport,
+  DISPATCHER_ACTIVATION_AUDIT_FILENAME,
   fetchGitHubIssue,
   formatActivationResultText,
   normalizeActivationMode,
@@ -36,6 +37,14 @@ import {
 const FIXTURE_DISPATCHER = 'node-tests/fixtures/business-operations-dispatcher-sample.json';
 const DEFAULT_DEDUPE_PATH = '.dispatcher-activation-state/dedupe.json';
 const CURSOR_OPS_STATUS_PATH = CURSOR_OPS_STATUS_FILENAME;
+
+/**
+ * @param {string | null | undefined} value
+ */
+function parseBooleanFlag(value) {
+  const normalized = String(value || '').trim().toLowerCase();
+  return ['1', 'true', 'yes', 'on', 'enabled'].includes(normalized);
+}
 
 /**
  * @param {string} filePath
@@ -107,6 +116,50 @@ async function fetchDispatcherReport(url, token) {
  */
 function writeCursorOpsStatus(status) {
   fs.writeFileSync(CURSOR_OPS_STATUS_PATH, `${JSON.stringify(status, null, 2)}\n`);
+}
+
+/**
+ * @param {Record<string, unknown> | null | undefined} result
+ * @param {{ error?: Error | string | null, requireThroughputPacket?: boolean, directIssue?: boolean }} [ctx]
+ */
+function writeActivationAudit(result, ctx = {}) {
+  const decisions = Array.isArray(result?.decisions) ? result.decisions : [];
+  const audit = {
+    schema: 'corpflow.dispatcher_activation_audit.v1',
+    generated_at: new Date().toISOString(),
+    mode: result?.mode || null,
+    require_throughput_packet: Boolean(ctx.requireThroughputPacket),
+    direct_issue_manual_override: Boolean(ctx.directIssue),
+    error: ctx.error
+      ? ctx.error instanceof Error
+        ? ctx.error.message
+        : String(ctx.error)
+      : null,
+    candidates: decisions.map((d) => ({
+      owner: d.owner || null,
+      objectRef: d.objectRef || null,
+      objectType: d.objectType || null,
+      severity: d.severity || null,
+      gated: Boolean(d.gated),
+      action: d.action || null,
+      why: d.reason || null,
+      category: d.category || null,
+      business_outcome: d.business_outcome || null,
+      evidence_required: d.evidence_required || null,
+      linked_issue_or_ticket: d.linked_issue_or_ticket || null,
+      delivery_surface: d.delivery_surface || null,
+      spend_risk_note: d.spend_risk_note || null,
+      throughput_packet_eligible: d.throughput_packet_eligible ?? null,
+      throughput_packet_missing_fields: Array.isArray(d.throughput_packet_missing_fields)
+        ? d.throughput_packet_missing_fields
+        : [],
+      throughput_packet_invalid_fields: Array.isArray(d.throughput_packet_invalid_fields)
+        ? d.throughput_packet_invalid_fields
+        : [],
+    })),
+  };
+  fs.writeFileSync(DISPATCHER_ACTIVATION_AUDIT_FILENAME, `${JSON.stringify(audit, null, 2)}\n`);
+  return audit;
 }
 
 function resolveWorkflowContext() {
@@ -263,6 +316,7 @@ async function finalizeOpsStatus(ctx) {
  *   githubToken?: string,
  *   repoFullName?: string,
  *   postComment?: boolean,
+ *   requireThroughputPacket?: boolean,
  * }} opts
  */
 async function emitActivation(report, opts) {
@@ -297,12 +351,17 @@ async function emitActivation(report, opts) {
       cursorApiKey,
       smokeInternal: opts.smokeInternal,
       directIssue: Boolean(opts.directIssue),
+      requireThroughputPacket: Boolean(opts.requireThroughputPacket),
     });
 
     console.log(formatActivationResultText(result));
     const json = JSON.stringify(result, null, 2);
     console.log(json);
     fs.writeFileSync('activation-plan.json', json);
+    writeActivationAudit(result, {
+      requireThroughputPacket: opts.requireThroughputPacket,
+      directIssue: opts.directIssue,
+    });
 
     if (opts.persistDedupe && mode === 'cursor_live' && result.live?.cursor) {
       saveDedupeStateFile(opts.dedupePath, result.dedupeState);
@@ -315,6 +374,11 @@ async function emitActivation(report, opts) {
       'activation-plan.json',
       `${JSON.stringify({ ok: false, error: error.message }, null, 2)}\n`,
     );
+    writeActivationAudit(result, {
+      error,
+      requireThroughputPacket: opts.requireThroughputPacket,
+      directIssue: opts.directIssue,
+    });
   }
 
   const status = await finalizeOpsStatus({
@@ -365,6 +429,7 @@ function resolveCliOptions() {
     process.env.GITHUB_REPOSITORY || process.env.GITHUB_REPO || '',
   ).trim();
   const postComment = process.env.DISPATCHER_ACTIVATION_POST_COMMENT === '1';
+  const cursorLiveEnabled = parseBooleanFlag(process.env.CURSOR_LIVE_ENABLED);
   return {
     mode,
     dedupePath,
@@ -374,6 +439,7 @@ function resolveCliOptions() {
     githubToken,
     repoFullName,
     postComment,
+    cursorLiveEnabled,
   };
 }
 
@@ -424,7 +490,18 @@ async function runCli() {
     githubToken,
     repoFullName,
     postComment,
+    cursorLiveEnabled,
   } = resolveCliOptions();
+  if (
+    eventName === 'schedule' &&
+    mode === 'cursor_live' &&
+    !cursorLiveEnabled
+  ) {
+    throw new Error(
+      'CURSOR_LIVE_ENABLED is not true — scheduled cursor_live disabled by kill switch (fail closed)',
+    );
+  }
+
   const persistDedupe = process.argv.includes('--persist-dedupe') || mode === 'cursor_live';
   const activationOpts = {
     mode,
@@ -436,6 +513,7 @@ async function runCli() {
     githubToken,
     repoFullName,
     postComment,
+    requireThroughputPacket: mode === 'cursor_live',
   };
 
   try {
@@ -466,6 +544,7 @@ async function runCli() {
           persistDedupe,
           smokeInternal: false,
           directIssue: true,
+          requireThroughputPacket: false,
         });
         process.exit(0);
       }
@@ -507,6 +586,14 @@ async function runCli() {
     );
     process.exit(2);
   } catch (err) {
+    if (!fs.existsSync('activation-plan.json')) {
+      const message = err instanceof Error ? err.message : String(err);
+      fs.writeFileSync(
+        'activation-plan.json',
+        `${JSON.stringify({ ok: false, error: message }, null, 2)}\n`,
+      );
+      writeActivationAudit(null, { error: err instanceof Error ? err : String(err) });
+    }
     if (!fs.existsSync(CURSOR_OPS_STATUS_PATH)) {
       const observability = createEmptyObservability(targetIssue || null);
       const workflow = resolveWorkflowContext();

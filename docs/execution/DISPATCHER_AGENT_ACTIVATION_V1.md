@@ -77,6 +77,12 @@ Companion policy docs (unchanged):
 | `CORPFLOW_FACTORY_HEALTH_URL` | Optional fallback to derive dispatcher URL |
 | `CURSOR_API_KEY` | Required for `activation_mode=cursor_live` only |
 
+**Repo variable / optional secret:**
+
+| Name | Purpose |
+|------|---------|
+| `CURSOR_LIVE_ENABLED` | Emergency disable / scheduled-live kill switch. Scheduled runs remain `dry_run` unless this value is set to `true` (or `1` / `enabled`). Set it to `false`, unset it, or remove it to disable scheduled `cursor_live`. |
+
 Built-in **`GITHUB_TOKEN`** (`issues: read`) fetches `target_issue` title/body when direct-issue activation is used.
 
 If secrets are missing, the job **exits 0 (skipped)** so forks stay green.
@@ -131,15 +137,34 @@ npm run dispatcher:activate:fetch
 
 GHA cache persists `.dispatcher-activation-state/dedupe.json`. Key: `owner:objectType:objectRef:severity`. No DB writes.
 
-### Phase 3 — Cursor live activation (manual GHA only)
+### Phase 3 — Cursor live activation
 
 - 2026-07-06: First GitHub Actions `cursor_live` smoke completed (internal ops smoke only; no secrets recorded).
-- `workflow_dispatch` input `activation_mode: cursor_live`; **scheduled runs stay `dry_run`**.
+- `workflow_dispatch` input `activation_mode: cursor_live` remains available for manual approved activations.
+- Scheduled runs may enter `cursor_live` only when `CURSOR_LIVE_ENABLED=true`; otherwise the workflow forces `dry_run`.
+- Scheduled `cursor_live` is fail-closed behind a throughput packet gate. Cursor is the executor, not the chooser.
 - Optional `workflow_dispatch` input `target_issue` — **manual only**. When set to a numeric GitHub issue (e.g. `553`), the activator **skips dispatcher cursor routings** and builds **exactly one** Cursor candidate from that issue (title, URL, body in `executorPrompt`). Blank `target_issue` preserves the existing dispatcher fetch path.
 - Secret: `CURSOR_API_KEY` (GHA only; never logged).
 - `POST https://api.cursor.com/v1/agents` with `executorPrompt`, repo `antonvdberg-bit/corpflow-ai-command-center`, `startingRef: main`, `autoCreatePR: true`.
 - Max **1** live Cursor activation per run. `codex` remains dry-run only.
 - Post activation receipt to #249 (audit trail only).
+
+#### Scheduled `cursor_live` throughput packet gate
+
+Dispatcher-sourced scheduled `cursor_live` candidates must include a structured `throughput_packet` (or `throughputPacket`) with every field below. Missing fields or an unapproved category produce `SKIP_THROUGHPUT_PACKET`; no Cursor API call is made.
+
+| Field | Requirement |
+|-------|-------------|
+| `business_outcome` | Named commercial or delivery outcome. |
+| `linked_issue_or_ticket` | GitHub issue, PR, or `/change` ticket. |
+| `delivery_surface` | Exact app, admin, client, or operator surface affected. |
+| `evidence_required` | Preview URL, live URL, endpoint result, screenshot, test, or runtime proof. |
+| `cost_risk_cap` | Why this is safe within the current Cursor spend cap. |
+| `allowed_category` | One of: `revenue`, `client-delivery`, `production-verification`, `lead-rescue`, `lux-recovery`, `paid-pilot`, `ops-unblocker`. |
+
+Block-by-default routing remains in force for docs-only work without delivery evidence, architecture essays, speculative refactors, experimental frameworks, new tools/vendors, new app/database surfaces, polish without client/revenue impact, and anything lacking evidence requirements.
+
+**Operational kill switch:** if Cursor produces 2 low-value PRs in a row, set repository variable/secret `CURSOR_LIVE_ENABLED=false` (or unset/remove it). Scheduled runs then force `dry_run` until routing rules are corrected.
 
 #### Manual run — direct issue activation (Option B)
 
@@ -179,7 +204,9 @@ Requires repo secret **`CURSOR_API_KEY`**.
 
 ### Status artifact
 
-Every run writes **`cursor-ops-status.json`** and uploads it in the **`dispatcher-activation-result`** workflow artifact (alongside `activation-plan.json` and dedupe state).
+Every run writes **`cursor-ops-status.json`** and uploads it in the **`dispatcher-activation-result`** workflow artifact (alongside `activation-plan.json`, **`activation-audit.json`**, and dedupe state).
+
+`activation-audit.json` uses schema `corpflow.dispatcher_activation_audit.v1` and records every evaluated candidate with action/skipped reason, category, business outcome, evidence required, linked issue/ticket, delivery surface, and spend-risk note.
 
 | Field | Meaning |
 |-------|---------|
@@ -257,7 +284,7 @@ If `activation_status` is **`started`** and **`pr_url` / `pr_number` are still e
 - Read/write GitHub issue comments only (no email/WhatsApp/SMS).
 - No database, no new env vars, no production deploy, no auto-merge.
 - Cursor may open a PR only; Anton merges.
-- **Does not authorize unattended scheduled `cursor_live`** — scheduled runs remain `dry_run`; spend guardrails (#553) are a prerequisite for that future step.
+- **Scheduled `cursor_live` is disabled unless `CURSOR_LIVE_ENABLED=true` and the candidate passes the throughput packet gate**. This PR only permits Cursor to open PRs; it does not authorize autonomous merge, production deploy, client sends, WhatsApp/SMS/email, payment action, or DB/schema/env changes.
 
 ### Phase 4 — Codex activation
 
