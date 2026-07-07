@@ -8,12 +8,15 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import {
+  buildDirectIssueActivationReport,
+  fetchGitHubIssue,
   formatActivationResultText,
   normalizeActivationMode,
   normalizeDedupeState,
   parseDispatcherFetchResponse,
   resolveDispatcherActivationUrl,
   runDispatcherActivation,
+  validateDirectIssueActivationContext,
 } from '../lib/server/dispatcher-agent-activation.js';
 
 const FIXTURE_DISPATCHER = 'node-tests/fixtures/business-operations-dispatcher-sample.json';
@@ -86,7 +89,7 @@ async function fetchDispatcherReport(url, token) {
 
 /**
  * @param {Record<string, unknown>} report
- * @param {{ mode: string, dedupePath: string, persistDedupe: boolean }} opts
+ * @param {{ mode: string, dedupePath: string, persistDedupe: boolean, smokeInternal?: boolean, directIssue?: boolean }} opts
  */
 async function emitActivation(report, opts) {
   const mode = normalizeActivationMode(opts.mode);
@@ -98,6 +101,7 @@ async function emitActivation(report, opts) {
     dedupeState,
     cursorApiKey,
     smokeInternal: opts.smokeInternal,
+    directIssue: Boolean(opts.directIssue),
   });
 
   console.log(formatActivationResultText(result));
@@ -124,11 +128,61 @@ function resolveCliOptions() {
   const smokeInternal =
     process.env.DISPATCHER_ACTIVATION_SMOKE_INTERNAL === '1' ||
     process.argv.includes('--smoke-internal');
-  return { mode, dedupePath, smokeInternal };
+  const targetIssueArgIdx = process.argv.indexOf('--target-issue');
+  const targetIssue =
+    process.env.DISPATCHER_ACTIVATION_TARGET_ISSUE ||
+    (targetIssueArgIdx >= 0 ? process.argv[targetIssueArgIdx + 1] : '');
+  const eventName =
+    process.env.DISPATCHER_ACTIVATION_EVENT_NAME ||
+    process.env.GITHUB_EVENT_NAME ||
+    '';
+  const githubToken = String(
+    process.env.GITHUB_TOKEN || process.env.GH_TOKEN || '',
+  ).trim();
+  const repoFullName = String(process.env.GITHUB_REPO || '').trim();
+  return { mode, dedupePath, smokeInternal, targetIssue, eventName, githubToken, repoFullName };
+}
+
+/**
+ * @param {{ targetIssue: string, eventName: string, githubToken: string, repoFullName: string }} opts
+ */
+async function resolveDirectIssueReport(opts) {
+  const validation = validateDirectIssueActivationContext({
+    targetIssue: opts.targetIssue,
+    eventName: opts.eventName,
+  });
+
+  if (!validation.allowed) {
+    if (validation.reason === 'blank') {
+      return null;
+    }
+    if (validation.reason === 'scheduled_run_forbidden') {
+      throw new Error(
+        `target_issue=${validation.issueNumber} is not allowed on scheduled runs (manual workflow_dispatch only)`,
+      );
+    }
+    throw new Error(
+      `target_issue invalid (${validation.reason}) — use a numeric GitHub issue number only`,
+    );
+  }
+
+  const issue = await fetchGitHubIssue(validation.issueNumber, {
+    token: opts.githubToken,
+    repoFullName: opts.repoFullName || undefined,
+  });
+
+  console.log(
+    `Direct-issue activation: #${issue.number} — ${String(issue.title || '').trim() || '(no title)'}`,
+  );
+
+  return buildDirectIssueActivationReport(issue, {
+    repoFullName: opts.repoFullName || undefined,
+  });
 }
 
 async function runCli() {
-  const { mode, dedupePath, smokeInternal } = resolveCliOptions();
+  const { mode, dedupePath, smokeInternal, targetIssue, eventName, githubToken, repoFullName } =
+    resolveCliOptions();
   const persistDedupe = process.argv.includes('--persist-dedupe') || mode === 'cursor_live';
 
   if (process.argv.includes('--fixtures')) {
@@ -145,6 +199,24 @@ async function runCli() {
   }
 
   if (process.argv.includes('--fetch') || process.argv.includes('--activate')) {
+    const directReport = await resolveDirectIssueReport({
+      targetIssue,
+      eventName,
+      githubToken,
+      repoFullName,
+    });
+
+    if (directReport) {
+      await emitActivation(directReport, {
+        mode,
+        dedupePath,
+        persistDedupe,
+        smokeInternal: false,
+        directIssue: true,
+      });
+      process.exit(0);
+    }
+
     const coreBase = String(process.env.CORPFLOW_CORE_BASE_URL || '').trim();
     const healthUrl = String(
       process.env.CORPFLOW_FACTORY_HEALTH_URL || process.env.FACTORY_HEALTH_URL || '',
@@ -168,7 +240,7 @@ async function runCli() {
   }
 
   console.error(
-    'Usage: node scripts/dispatcher-agent-activation.mjs --fixtures | --file <path> | --fetch [--activate] [--cursor-live]',
+    'Usage: node scripts/dispatcher-agent-activation.mjs --fixtures | --file <path> | --fetch [--activate] [--cursor-live] [--target-issue <n>]',
   );
   process.exit(2);
 }
