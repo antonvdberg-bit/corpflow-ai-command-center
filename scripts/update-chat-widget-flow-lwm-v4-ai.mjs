@@ -9,17 +9,17 @@
 
 import './bootstrap-repo-env.mjs';
 import { PrismaClient } from '@prisma/client';
-import { LIVING_WORD_FLOW_V3 } from '../lib/server/chat-widget/living-word-flow-v3.js';
+import { LIVING_WORD_FLOW_ASK_ONLY } from '../lib/server/chat-widget/living-word-flow-ask-only.js';
 import { validateFlow } from '../lib/server/chat-widget/flow.js';
 
 const prisma = new PrismaClient();
 const dryRun = process.argv.includes('--dry-run');
 const TENANT_ID = 'living-word-mauritius';
-const FLOW_VERSION = 4;
+const FLOW_VERSION = 5;
 
 async function main() {
-  validateFlow(LIVING_WORD_FLOW_V3);
-  const askOpt = LIVING_WORD_FLOW_V3.nodes.welcome.options.find((o) => o.widget_action === 'ai_ask');
+  validateFlow(LIVING_WORD_FLOW_ASK_ONLY);
+  const askOpt = LIVING_WORD_FLOW_ASK_ONLY.nodes.welcome.options.find((o) => o.widget_action === 'ai_ask');
   if (!askOpt) throw new Error('flow_missing_ai_ask_option');
 
   const existing = await prisma.chatWidgetConfig.findUnique({
@@ -39,8 +39,8 @@ async function main() {
           dry_run: true,
           tenant_id: TENANT_ID,
           flow_version: FLOW_VERSION,
-          node_count: Object.keys(LIVING_WORD_FLOW_V3.nodes).length,
-          welcome_options: LIVING_WORD_FLOW_V3.nodes.welcome.options.length,
+          node_count: Object.keys(LIVING_WORD_FLOW_ASK_ONLY.nodes).length,
+          welcome_options: LIVING_WORD_FLOW_ASK_ONLY.nodes.welcome.options.length,
         },
         null,
         2,
@@ -52,7 +52,7 @@ async function main() {
   const row = await prisma.chatWidgetConfig.update({
     where: { tenantId: TENANT_ID },
     data: {
-      flowJson: LIVING_WORD_FLOW_V3,
+      flowJson: LIVING_WORD_FLOW_ASK_ONLY,
       flowVersion: FLOW_VERSION,
     },
     select: { tenantId: true, enabled: true, flowVersion: true, aiEnabled: true, updatedAt: true },

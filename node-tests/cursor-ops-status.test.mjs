@@ -10,13 +10,21 @@ import {
 } from '../lib/server/cursor-cloud-agent-client.js';
 import {
   applyStaleRuleToStatus,
+  assertStrictTargetIssueObservabilityPrerequisites,
   buildCursorOpsStatus,
   buildCursorOpsStatusFromActivation,
+  buildObservabilityFailedStatus,
+  createEmptyObservability,
   CURSOR_OPS_STATUS_FILENAME,
   CURSOR_OPS_STALE_AFTER_MINUTES,
-  formatCursorOpsStatusComment,
+  DISPATCHER_ACTIVATION_RESULT_ARTIFACT_NAME,
+  formatCursorActivationFinishedComment,
+  formatCursorActivationStartedComment,
   formatCursorOpsStatusLogBlock,
+  postCursorActivationStartedComment,
+  postGitHubIssueComment,
   redactSecretsFromText,
+  requiresStrictTargetIssueObservability,
   sanitizeCursorOpsStatus,
 } from '../lib/server/cursor-ops-status.js';
 import {
@@ -77,6 +85,132 @@ describe('cursor-ops-status', () => {
     assert.equal(
       parsePrNumberFromUrl('https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/556'),
       556,
+    );
+  });
+
+  it('requiresStrictTargetIssueObservability is true for manual target_issue only', () => {
+    assert.equal(
+      requiresStrictTargetIssueObservability({
+        eventName: 'workflow_dispatch',
+        targetIssue: '553',
+      }),
+      true,
+    );
+    assert.equal(
+      requiresStrictTargetIssueObservability({ eventName: 'schedule', targetIssue: '553' }),
+      false,
+    );
+    assert.equal(
+      requiresStrictTargetIssueObservability({ eventName: 'workflow_dispatch', targetIssue: '' }),
+      false,
+    );
+  });
+
+  it('STARTED comment body includes target_issue, workflow_run_url, activation_mode, commit SHA', () => {
+    const body = formatCursorActivationStartedComment({
+      targetIssue: '553',
+      activationMode: 'cursor_live',
+      workflowRunId: '28830123456',
+      workflowRunUrl:
+        'https://github.com/antonvdberg-bit/corpflow-ai-command-center/actions/runs/28830123456',
+      commitSha: '4c651fc2abc',
+    });
+    assert.match(body, /Cursor activation started/);
+    assert.match(body, /started_preflight/);
+    assert.match(body, /target_issue:\*\* 553/);
+    assert.match(body, /activation_mode:\*\* cursor_live/);
+    assert.match(body, /28830123456/);
+    assert.match(body, /4c651fc2abc/);
+    assert.match(body, /dispatcher-activation-result/);
+  });
+
+  it('FINISHED comment body includes activation_status, agent URL, PR, blocked_reason, need_anton', () => {
+    const body = formatCursorActivationFinishedComment(
+      buildCursorOpsStatus({
+        activation_status: 'blocked',
+        target_issue: '553',
+        cursor_agent_url: 'https://cursor.com/agents/bc-553',
+        pr_url: 'https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/560',
+        pr_number: '560',
+        blocked_reason: 'CURSOR_API_KEY missing',
+        need_anton: true,
+        workflow_run_url:
+          'https://github.com/antonvdberg-bit/corpflow-ai-command-center/actions/runs/1',
+      }),
+    );
+    assert.match(body, /Cursor activation finished/);
+    assert.match(body, /activation_status:\*\* blocked/);
+    assert.match(body, /cursor_agent_url:\*\* https:\/\/cursor.com\/agents\/bc-553/);
+    assert.match(body, /pull\/560/);
+    assert.match(body, /CURSOR_API_KEY missing/);
+    assert.match(body, /need_anton:\*\* yes/);
+  });
+
+  it('missing GITHUB_TOKEN for manual target_issue fails prerequisites', () => {
+    assert.throws(
+      () =>
+        assertStrictTargetIssueObservabilityPrerequisites({
+          eventName: 'workflow_dispatch',
+          targetIssue: '553',
+          githubToken: '',
+        }),
+      /GITHUB_TOKEN missing/,
+    );
+  });
+
+  it('STARTED comment post failure throws for manual target_issue', async () => {
+    const fetch = async () =>
+      new Response(JSON.stringify({ message: 'Forbidden' }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+    await assert.rejects(
+      () =>
+        postCursorActivationStartedComment(
+          {
+            targetIssue: '553',
+            activationMode: 'cursor_live',
+            workflowRunId: '1',
+            workflowRunUrl: 'https://github.com/o/r/actions/runs/1',
+            commitSha: 'abc',
+          },
+          { token: 'gh-test', repoFullName: 'antonvdberg-bit/corpflow-ai-command-center', fetch },
+        ),
+      /GitHub comment HTTP 403/,
+    );
+  });
+
+  it('observability_failed status includes observability block', () => {
+    const obs = createEmptyObservability('553');
+    const status = buildObservabilityFailedStatus(
+      buildCursorOpsStatus({ target_issue: '553', activation_status: 'started' }),
+      new Error('FINISHED comment failed'),
+      obs,
+    );
+    assert.equal(status.activation_status, 'observability_failed');
+    assert.equal(status.observability.observability_failed, true);
+    assert.match(status.observability.observability_error || '', /FINISHED comment failed/);
+    assert.equal(status.observability.comment_issue, '553');
+  });
+
+  it('postGitHubIssueComment never includes token in thrown error body', async () => {
+    const secret = 'ghp_super_secret_test_token_abcdef';
+    const fetch = async (_url, init) => {
+      assert.equal(String(init.headers?.Authorization).includes(secret), true);
+      return new Response('bad', { status: 401 });
+    };
+    await assert.rejects(
+      () =>
+        postGitHubIssueComment(553, 'test', {
+          token: secret,
+          repoFullName: 'antonvdberg-bit/corpflow-ai-command-center',
+          fetch,
+        }),
+      (err) => {
+        assert.equal(String(err.message).includes(secret), false);
+        return true;
+      },
     );
   });
 
@@ -215,34 +349,28 @@ describe('cursor-ops-status', () => {
     assert.equal(redactSecretsFromText(`token ${secret}`).includes(secret), false);
   });
 
-  it('formatCursorOpsStatusLogBlock includes required fields', () => {
+  it('formatCursorOpsStatusLogBlock includes observability flags', () => {
     const text = formatCursorOpsStatusLogBlock(
       buildCursorOpsStatus({
         activation_status: 'started',
         target_issue: '553',
         cursor_agent_url: 'https://cursor.com/agents/bc-553',
+        observability: {
+          started_comment_posted: true,
+          finished_comment_posted: false,
+          comment_issue: '553',
+          observability_failed: false,
+          observability_error: null,
+        },
       }),
     );
     assert.match(text, /CURSOR OPS STATUS/);
     assert.match(text, /activation_status: started/);
     assert.match(text, /target_issue: 553/);
+    assert.match(text, /observability.started_comment_posted: true/);
   });
 
-  it('formatCursorOpsStatusComment is safe for GitHub posting', () => {
-    const body = formatCursorOpsStatusComment(
-      buildCursorOpsStatus({
-        activation_status: 'blocked',
-        target_issue: '553',
-        blocked_reason: 'CURSOR_API_KEY missing',
-        need_anton: true,
-      }),
-    );
-    assert.match(body, /Cursor activation status/);
-    assert.match(body, /\*\*Status:\*\* blocked/);
-    assert.match(body, /\*\*Target issue:\*\* 553/);
-  });
-
-  it('summary script reads cursor-ops-status.json', () => {
+  it('summary artifact name is dispatcher-activation-result', () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cursor-ops-status-'));
     const filePath = path.join(dir, CURSOR_OPS_STATUS_FILENAME);
     const status = buildCursorOpsStatus({
@@ -254,6 +382,6 @@ describe('cursor-ops-status', () => {
     const loaded = JSON.parse(fs.readFileSync(filePath, 'utf8'));
     assert.equal(loaded.activation_status, 'started');
     assert.equal(loaded.target_issue, '553');
-    assert.equal(loaded.artifact_name, 'cursor-ops-status');
+    assert.equal(loaded.artifact_name, DISPATCHER_ACTIVATION_RESULT_ARTIFACT_NAME);
   });
 });
