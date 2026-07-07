@@ -178,6 +178,7 @@ After this PR merges and is live-verified per `delivery-reality.mdc`, Anton can 
 
 ## 11. Cross-references
 
+- **Business Survival Operating Doctrine (mandatory):** `docs/operations/CORPFLOWAI_BUSINESS_SURVIVAL_OPERATING_DOCTRINE.md` — the business-level layer above this protocol: four required systems, founder 10/80/10 split (Anton must not become prompt courier / status stitcher), Delivery Queue v1, and the survival test. Bridge coordination exists to serve that doctrine, not replace it.
 - Parallel Execution Board v1 (concurrency/lanes + dispatcher cadence): `docs/operations/PARALLEL_EXECUTION_BOARD_V1.md` — the lane layer that sits beside #249; digests are posted here per `docs/operations/OPERATOR_PROGRESS_DIGEST_V1.md`.
 - Cursor Dispatcher Checklist v1 (per-dispatch routine): `docs/operations/CURSOR_DISPATCHER_CHECKLIST_V1.md`
 - Codex Task Register v1 (research request/return log): `docs/operations/CODEX_TASK_REGISTER_V1.md`
