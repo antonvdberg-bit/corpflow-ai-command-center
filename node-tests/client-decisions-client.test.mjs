@@ -349,6 +349,8 @@ test('recovery-roadmap page: client recovery review slice', () => {
   assert.equal(src.includes('data-testid="lux-recovery-first-decision"'), true);
   assert.equal(src.includes('data-testid="lux-recovery-review-only"'), true);
   assert.equal(src.includes('data-testid="lux-recovery-decision-form"'), true);
+  assert.equal(src.includes('LUX_FIRST_VISIBLE_RELEASE'), false, 'review page must not merge separate release copy block');
+  assert.equal(src.includes('LUX_PRODUCT_DIRECTION_EVIDENCE_NOTE'), false, 'no product-direction evidence block in review-only page');
   for (const needle of ['internal_decisions', 'console_json', 'reality_panel', 'change_stage_debug', 'operator_signal']) {
     assert.equal(src.includes(needle), false, `unexpected ${needle} in client page`);
   }
