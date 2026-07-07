@@ -443,6 +443,13 @@ export async function getServerSideProps({ req }) {
   if (host && isGhostHost(host)) {
     return { redirect: { destination: '/log-stream.html', permanent: false } };
   }
+  if (
+    host &&
+    (host === 'living-word-mauritius.corpflowai.com' ||
+      host === 'www.living-word-mauritius.corpflowai.com')
+  ) {
+    return { redirect: { destination: '/site-preview', permanent: false } };
+  }
   if (host === AI_LEAD_RESCUE_HOST) {
     return { props: { mode: 'ai_lead_rescue', site: null, host: AI_LEAD_RESCUE_HOST, leadRescueAssets: buildLeadRescueAssetsSafe() } };
   }

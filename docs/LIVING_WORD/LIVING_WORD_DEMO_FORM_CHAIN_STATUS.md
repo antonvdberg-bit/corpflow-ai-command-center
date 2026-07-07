@@ -30,7 +30,7 @@
 | Demo hub + status | `/living-word/demo` |
 | Form 1 | `/living-word/form-1` |
 | Form 2 (tokenized) | `/living-word/form-2?token=<from-form-1-or-email>` |
-| Sandbox site | `/site-preview` (host-gated) |
+| Sandbox site | `/site-preview` (host-gated); **`/` redirects here** on `living-word-mauritius.corpflowai.com` |
 | Status API | `GET /api/factory_router?__path=tenant/living-word/demo-form-chain/status` |
 | Form 1 API | `POST /api/factory_router?__path=tenant/living-word/demo-form-chain/form-1` |
 | Form 2 session | `GET /api/factory_router?__path=tenant/living-word/demo-form-chain/form-2-session&token=` |
