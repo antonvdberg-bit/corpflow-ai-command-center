@@ -273,7 +273,8 @@ Bounded, smallest-first. Each is a separate PR; none self-merges.
 
 ## 15. Status block
 
-- **Delivery state:** Local → intended **Merged** after operator review. Docs-first; nothing to deploy, nothing to live-verify (no surface changed by this PR).
-- **Implementation:** none. No runtime code, no env, no secrets, no DB, no `POSTGRES_URL`, no DNS, no second app/database, no paid tool, no external send.
-- **Verdict:** PARTIAL by design — the demo readiness plan + 48-hour board + PR sequence are documented; the demo itself runs on already-live sandbox assets; client-facing launch and real-data steps stay gated on Anton.
-- **Decision provenance:** dispatched on #249 (2026-06-30); doctrine ref #493; recovery ref #507. This status block is the in-repo decision record.
+- **Delivery state:** **CLOSED** — Tuesday 2026-07-07 TEST DEMO delivered on `living-word-mauritius.corpflowai.com`. Merged PRs #557–#561; live verification recorded in `docs/LIVING_WORD/LIVING_WORD_DEMO_FORM_CHAIN_STATUS.md`.
+- **Further requirements:** **None** for the Tuesday demo lane unless Anton opens a new client deliverable (e.g. public launch, real data import, WordPress embed) as a separate gated packet.
+- **Implementation delivered:** form chain, site-preview palette (Elementor teal/white), ask-only chatbot, `/` redirect, GHL-shaped forms — all TEST DEMO scoped.
+- **Verdict:** **COMPLETE** (TEST DEMO scope). Public launch, real member data, DB migration, and external sends remain **gated** on Anton.
+- **Decision provenance:** dispatched on #249 (2026-06-30); closure posted 2026-07-07.

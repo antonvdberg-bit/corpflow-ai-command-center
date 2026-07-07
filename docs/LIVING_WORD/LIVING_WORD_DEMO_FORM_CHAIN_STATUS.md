@@ -1,10 +1,28 @@
 # Living Word Mauritius — TEST DEMO form chain status
 
-**Status:** TEST DEMO implementation (PR branch `feat/living-word-demo-email-form-chain`). **Not merged. Not deployed to production unless separately approved.**
+**Status:** **CLOSED** — Tuesday TEST DEMO delivered (2026-07-07). No further demo requirements unless Anton opens a new packet.
 
 **Label:** `[LIVING WORD — TEST DEMO]` on every surface.
 
 **Tenant:** `living-word-mauritius` only.
+
+---
+
+## Delivery Reality Audit (closure)
+
+```text
+Delivery Reality Audit:
+- Local fix exists: YES
+- Merged to main: YES (#557–#561)
+- Production deployment: Vercel Production on commit 4c58c891 (PR #561 merge)
+- Live URLs tested:
+  - https://living-word-mauritius.corpflowai.com/site-preview — 200, Elementor teal/white palette live
+  - https://living-word-mauritius.corpflowai.com/living-word/demo — 200
+  - GET demo-form-chain/status — ok:true, demo_chain_verdict:READY
+- Expected vs actual: Branded sandbox, ask-only chatbot, form chain, email path — match intent
+- Client-facing flow usable: YES (TEST DEMO scope; orange ribbon; synthetic data only)
+- Final verdict: COMPLETE (TEST DEMO lane)
+```
 
 ---
 
@@ -40,7 +58,19 @@
 
 ---
 
-## Test data rules
+## Merged delivery (reference)
+
+| PR | Summary |
+|----|---------|
+| #557 | Form chain + email link + demo routes |
+| #558 | Form 1/2 GHL-shaped fields |
+| #559 | Tenant `/` → `/site-preview` |
+| #560 | Ask-only chatbot UX |
+| #561 | Site palette aligned to live Elementor (teal/white) |
+
+---
+
+## Test data rules (unchanged — still enforced)
 
 - **Emails:** `@example.test` only (e.g. `test.alpha@example.test`)
 - **Phone / address:** synthetic demo values only
@@ -52,55 +82,17 @@
 
 ---
 
-## Email behavior
+## What is explicitly out of scope (post-demo)
 
-| Item | Value |
-|------|--------|
-| Path | Existing `sendN8nTransactionalEmail` → n8n webhook (`N8N_EMAIL_WEBHOOK_URL` / legacy password-reset webhook) |
-| Subject | `[LIVING WORD — TEST DEMO] Your second form is ready` |
-| Body | TEST DEMO label, short explanation, Form 2 hyperlink |
-| WhatsApp | **Excluded** — copy notes WhatsApp can replace this later once approved |
-| SMS | **Excluded** |
-| Fallback | If webhook not configured or send fails → `BLOCKED_PENDING_EXISTING_EMAIL_PATH` + preview in status API and Form 1 response |
-
----
-
-## Verification status
-
-| Check | Expected |
-|-------|----------|
-| Form 1 TEST DEMO label | Visible in ribbon + page title |
-| Form 2 TEST DEMO label | Visible in ribbon + page title |
-| Form 1 → Form 2 unlock | Token + path returned on submit |
-| Email payload | Contains `form2_url` + `test_demo_label` |
-| No WhatsApp/SMS/GHL | Handlers return `whatsapp: false`, `sms: false`, `ghl_write: false` |
-| Email blocked fallback | Safe preview when `N8N_EMAIL_WEBHOOK_URL` unset |
-
-**Verdict after merge/deploy:** operator must run live checks on `living-word-mauritius.corpflowai.com` before calling **COMPLETE**.
-
----
-
-## What Anton must do for the demo
-
-1. **Use Preview or production** after PR merge approval (this PR is **not auto-merged**).
-2. **Email:** ensure `N8N_EMAIL_WEBHOOK_URL` (+ secret) is set in Vercel if live email send is required; otherwise use on-screen Form 2 link from Form 1 response.
-3. **Walkthrough:** `/living-word/demo` → `/site-preview` → chatbot → `/living-word/form-1` with `test.alpha@example.test` → email or copy link → Form 2.
-4. **Do not** enable WhatsApp runtime for this demo.
-5. **Do not** treat submissions as real member updates — operator review / narration only.
-
----
-
-## Known limitations
-
-- In-memory sessions reset on cold start / new serverless instance
-- Email recipients restricted to `@example.test`
-- No persistence to Postgres or GHL
-- Chat widget on Living Word tenant is **ask-only** (no guided menu bubbles); after each answer the input + **Ask** control returns (no “back to menu”)
-- Separate from admin-gated `/living-word-member-update.html` pilot (PR #482)
-- WhatsApp demo packet remains optional and **not** wired to this chain
+- WhatsApp / SMS runtime for this chain
+- GHL or canonical member writes
+- WordPress embed / DNS cutover / public launch
+- Real member-data import
+- Member Update Flow DB migration (separate gated packet — PR #482)
+- Additional demo copy polish unless owner opens a new deliverable
 
 ---
 
 ## Safety statement
 
-**No** WhatsApp, SMS, GHL, canonical member writes, public launch, payment actions, new env vendors, or DB/schema changes in this packet.
+**No** WhatsApp, SMS, GHL, canonical member writes, public launch, payment actions, new env vendors, or DB/schema changes in this packet. TEST DEMO lane is **closed**.
