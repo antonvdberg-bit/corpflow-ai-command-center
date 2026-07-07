@@ -18,7 +18,7 @@
 6. System sends **TEST DEMO email** with Form 2 hyperlink via **existing n8n transactional path** (`N8N_EMAIL_WEBHOOK_URL`)
 7. If email path unavailable → **BLOCKED_PENDING_EXISTING_EMAIL_PATH**; Form 2 link shown on screen + preview in status API
 8. Recipient opens **Form 2** from email — `/living-word/form-2?token=…`
-9. Complete address, communications preference, serving interest, consent
+9. Complete multi-step Form 2 (contact, personal info, team Y/N screens) and submit
 10. Submit → operator-review JSON only (**no canonical write**)
 
 ---
