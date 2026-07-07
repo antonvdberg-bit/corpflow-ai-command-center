@@ -164,6 +164,8 @@ Dispatcher-sourced scheduled `cursor_live` candidates must include a structured 
 
 Block-by-default routing remains in force for docs-only work without delivery evidence, architecture essays, speculative refactors, experimental frameworks, new tools/vendors, new app/database surfaces, polish without client/revenue impact, and anything lacking evidence requirements.
 
+**Runtime packets cannot be satisfied by docs-only PRs.** Per `docs/operations/CORPFLOWAI_BUSINESS_SURVIVAL_OPERATING_DOCTRINE.md` §3–§4, an activated packet classified as runtime / client-visible is only satisfied by a PR with runtime evidence (preview URL, live URL, endpoint result, screenshot, or test output against the actual surface). A docs-only PR against such a packet is a failed packet, not a completed one.
+
 **Operational kill switch:** if Cursor produces 2 low-value PRs in a row, set repository variable/secret `CURSOR_LIVE_ENABLED=false` (or unset/remove it). Scheduled runs then force `dry_run` until routing rules are corrected.
 
 #### Manual run — direct issue activation (Option B)
@@ -311,6 +313,7 @@ If `activation_status` is **`started`** and **`pr_url` / `pr_number` are still e
 
 ## 8. Related docs
 
+- `docs/operations/CORPFLOWAI_BUSINESS_SURVIVAL_OPERATING_DOCTRINE.md` — business-level doctrine (mandatory): output-type classification, docs-only-cannot-close-runtime rule, Delivery Queue v1
 - `docs/runbooks/BUSINESS_OPERATIONS_DISPATCHER_V1.md` — dispatcher endpoint + routing rules
 - `docs/runbooks/BUSINESS_OPERATIONS_MONITOR_V1.md` — upstream monitor
 - `docs/operations/OPERATOR_BRIDGE_V1.md` — #249 coordination (audit receipts, not activation trigger)
