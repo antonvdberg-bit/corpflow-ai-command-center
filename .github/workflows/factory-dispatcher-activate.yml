@@ -1,13 +1,14 @@
 # Polls business-operations dispatcher and runs agent activation.
 # Default: dry-run plan only. Manual workflow_dispatch may set activation_mode=cursor_live.
 # Optional target_issue bypasses dispatcher cursor routings for one direct GitHub issue.
-# Scheduled runs always remain dry_run until Anton enables live schedule separately.
+# Scheduled runs become cursor_live only when repository variable/secret CURSOR_LIVE_ENABLED=true.
 #
 # Repo secrets (Settings → Secrets and variables → Actions):
 # - CORPFLOW_CORE_BASE_URL   e.g. https://core.corpflowai.com
 # - CORPFLOW_CRON_SECRET     same value as Vercel CORPFLOW_CRON_SECRET / CRON_SECRET
 # - CORPFLOW_FACTORY_HEALTH_URL  (optional) fallback to derive dispatcher URL
 # - CURSOR_API_KEY           required for activation_mode=cursor_live only (never logged)
+# - CURSOR_LIVE_ENABLED      optional repo variable/secret; true enables scheduled cursor_live
 #
 # If dispatcher secrets are missing, the job exits 0 (skipped) so forks stay green.
 #
@@ -19,7 +20,7 @@ name: Factory dispatcher activate
 
 on:
   schedule:
-    - cron: "0 */2 * * *" # Every 2 hours at :00 UTC — dry_run only
+    - cron: "0 */2 * * *" # Every 2 hours at :00 UTC — dry_run unless CURSOR_LIVE_ENABLED=true
   workflow_dispatch:
     inputs:
       activation_mode:
@@ -67,13 +68,21 @@ jobs:
 
       - name: Resolve activation mode
         id: mode
+        env:
+          CURSOR_LIVE_ENABLED: ${{ vars.CURSOR_LIVE_ENABLED || secrets.CURSOR_LIVE_ENABLED || '' }}
         run: |
           set -euo pipefail
           if [ "${{ github.event_name }}" = "schedule" ]; then
-            echo "mode=dry_run" >> "$GITHUB_OUTPUT"
+            live_enabled="$(printf '%s' "${CURSOR_LIVE_ENABLED:-}" | tr '[:upper:]' '[:lower:]')"
+            if [ "$live_enabled" = "true" ] || [ "$live_enabled" = "1" ] || [ "$live_enabled" = "enabled" ]; then
+              echo "mode=cursor_live" >> "$GITHUB_OUTPUT"
+              echo "Scheduled run — CURSOR_LIVE_ENABLED is enabled; cursor_live requires throughput packet gate"
+            else
+              echo "mode=dry_run" >> "$GITHUB_OUTPUT"
+              echo "Scheduled run — forcing dry_run because CURSOR_LIVE_ENABLED is not true"
+            fi
             echo "smoke_internal=0" >> "$GITHUB_OUTPUT"
             echo "target_issue=" >> "$GITHUB_OUTPUT"
-            echo "Scheduled run — forcing dry_run (target_issue ignored)"
           else
             echo "mode=${{ inputs.activation_mode }}" >> "$GITHUB_OUTPUT"
             if [ "${{ inputs.smoke_internal }}" = "true" ]; then
@@ -119,11 +128,17 @@ jobs:
           else
             echo "  CURSOR_API_KEY              : not set (required for cursor_live)"
           fi
+          if [ -n "${CURSOR_LIVE_ENABLED_PRESENT:-}" ]; then
+            echo "  CURSOR_LIVE_ENABLED         : configured (value not logged)"
+          else
+            echo "  CURSOR_LIVE_ENABLED         : not set (scheduled cursor_live disabled)"
+          fi
         env:
           CORE_BASE_PRESENT: ${{ secrets.CORPFLOW_CORE_BASE_URL != '' && '1' || '' }}
           HEALTH_URL_PRESENT: ${{ secrets.CORPFLOW_FACTORY_HEALTH_URL != '' && '1' || '' }}
           CRON_SECRET_PRESENT: ${{ secrets.CORPFLOW_CRON_SECRET != '' && '1' || '' }}
           CURSOR_KEY_PRESENT: ${{ secrets.CURSOR_API_KEY != '' && '1' || '' }}
+          CURSOR_LIVE_ENABLED_PRESENT: ${{ (vars.CURSOR_LIVE_ENABLED != '' || secrets.CURSOR_LIVE_ENABLED != '') && '1' || '' }}
 
       - name: Run dispatcher activation
         env:
@@ -134,6 +149,7 @@ jobs:
           TARGET_ISSUE: ${{ steps.mode.outputs.target_issue }}
           DISPATCHER_ACTIVATION_EVENT_NAME: ${{ github.event_name }}
           DISPATCHER_ACTIVATION_STATE_PATH: .dispatcher-activation-state/dedupe.json
+          CURSOR_LIVE_ENABLED: ${{ vars.CURSOR_LIVE_ENABLED || secrets.CURSOR_LIVE_ENABLED || '' }}
           CORPFLOW_CORE_BASE_URL: ${{ secrets.CORPFLOW_CORE_BASE_URL }}
           CORPFLOW_FACTORY_HEALTH_URL: ${{ secrets.CORPFLOW_FACTORY_HEALTH_URL }}
           CORPFLOW_CRON_SECRET: ${{ secrets.CORPFLOW_CRON_SECRET }}
@@ -156,6 +172,7 @@ jobs:
           name: dispatcher-activation-result
           path: |
             activation-plan.json
+            activation-audit.json
             cursor-ops-status.json
             .dispatcher-activation-state/dedupe.json
           if-no-files-found: ignore
