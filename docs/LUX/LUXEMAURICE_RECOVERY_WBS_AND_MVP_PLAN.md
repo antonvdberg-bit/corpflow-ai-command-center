@@ -1,9 +1,9 @@
 # LuxeMaurice Recovery — WBS and Phased MVP Delivery Plan
 
-**Status:** Planning / control document only. **No implementation authorized** by this file alone.  
+**Status:** Docs / planning / control only. **NO IMPLEMENTATION AUTHORIZED** by this file alone unless Anton separately approves a delivery chunk.
 **Parent control issue:** [GitHub #529](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/529)  
 **Tenant:** `luxe-maurice` · **Production host:** [https://lux.corpflowai.com](https://lux.corpflowai.com) · **Control plane:** [https://lux.corpflowai.com/change](https://lux.corpflowai.com/change)  
-**Last updated:** 2026-07-06
+**Last updated:** 2026-07-07
 
 ---
 
@@ -21,6 +21,17 @@ The client (Jan / LuxeMaurice principal) is commercially at risk: delivery has b
 This document is the **parent control artefact** for that programme. Child issues and PRs hang under **#529**. Isolated bug fixes (#523, #527, #528) remain valid but are **subordinate** to this plan — they do not define the programme.
 
 **Operator rule from here:** No Lux work ships to production, no client-facing communication, and no commercial artefact (quotation, email blast) without an explicit chunk boundary and Anton approval gate in this plan.
+
+### Current control state (2026-07-07)
+
+| Item | Current state | Recovery implication |
+|------|---------------|----------------------|
+| Parent programme | #529 remains **open** and is the only active LuxMaurice parent | All Lux recovery work must link back here |
+| Prior `/change` blockage | #523 is **closed** | Create/withdraw stays on regression-watch, not a new feature stream |
+| Concierge `/change` chrome / notification prefs | PR #527 is **merged** | Notification delivery remains unverified until n8n/inbox proof exists |
+| Approve-build blocker | #528 is **closed** via PR #530 | Next gate is production/preview validation that the operator sees a useful safe reason or a valid Proceed path, not a generic banner |
+| Audit and MVP reconciliation | #536 and #537 are **closed** with docs-only outputs | Treat `LUXEMAURICE_RECOVERY_AUDIT_V1.md` and `LUXEMAURICE_MVP_SCOPE_RECONCILIATION_V1.md` as current inputs |
+| Jan recovery communication | #538 was **closed as not planned** | No client send or recovery note draft proceeds unless Anton explicitly reopens/authorizes it |
 
 ---
 
@@ -46,12 +57,12 @@ Canonical references: `docs/LUX/LUXEMAURICE_REPOSITIONING_2026_06_11.md`, `docs/
 | Concierge lead intake | **Live** — posts to CMP, CRM strip on `/change` | `pages/concierge.js`, `concierge-lead-create` |
 | Property editor | **Auth-gated** — `/properties/admin` | `docs/LUX/39_LuxeMaurice_Phase_2_Build_Brief.md` |
 | Media governance | **Partial** — review → link → publish pipeline on `/change`; no hard-delete by default | `docs/LUX/LUX_MEDIA_GOVERNANCE.md` |
-| Change Console (Lux) | **Improved but not operationally complete** — create/withdraw (#523–#525), concierge chrome (#527), approve-build blocker (#528 / PR #530) | `https://lux.corpflowai.com/change` |
+| Change Console (Lux) | **Improved but not operationally complete** — create/withdraw (#523–#525), concierge chrome (#527), approve-build guard/error-copy fix (#528 / PR #530); valid-state Proceed and smoke evidence remain gates | `https://lux.corpflowai.com/change` |
 | Programme master ticket | **Still open** — `cmo8mjijk0000jl04l1jz0v6d` | §8 Reality Gate **PARTIAL** |
 | First real client-published listing | **Not done** | Programme gate open |
 | Editor E2E on production chrome | **Not fully verified** | Programme gate open |
 | Governed public imagery on real listing | **Not done** | Programme gate open |
-| Email to Jan on ticket events | **Code merged (#527); route not live-verified** | n8n `lux_ticket_update` branch TBD |
+| Email to Jan on ticket events | **Code merged (#527); route not live-verified; no client send authorized** | n8n `lux_ticket_update` branch TBD |
 | ERPNext quotation | **Scope doc only** — no Quotation doctype issued | `docs/finance/LUXEMAURICE_CHANGE_CONSOLE_QUOTATION_SCOPE_V1.md` |
 | Client billing posture | **Intended paying client** — `billing_exempt` clear script exists; production DB state operator-confirmed | `scripts/clear-luxe-maurice-billing-exempt.mjs` |
 
@@ -71,11 +82,11 @@ Client-supplied material (external to this repo until ingested):
 | Risk | Description |
 |------|-------------|
 | **Dual truth** | Live CorpFlow tenant vs client Drive v1–v14 — two “systems” in the client’s mind. |
-| **Reactive fixes** | #523–#528 addressed symptoms without a consolidated MVP narrative. |
+| **Reactive fixes** | #523–#528 addressed symptoms; future work must now be chunked under #529 instead of continuing ad hoc. |
 | **Programme vs recovery** | Master ticket + phase docs vs new client redesign — unclear which scope is authoritative until reconciliation. |
 | **Data readiness** | Listings/properties not structured for first real published opportunity; placeholder slugs removed from sitemap. |
-| **Control plane incomplete** | `/change` Proceed → `approve-build` blocked or opaque; undermines operator and client trust in “managed delivery.” |
-| **Comms unverified** | Ticket email + future WhatsApp — code paths exist or planned; production delivery not proven. |
+| **Control plane incomplete** | `/change` Proceed now has improved guard/error copy in repo via #530, but valid-state production/preview evidence still has to be recorded before it is trusted as the control plane. |
+| **Comms unverified** | Ticket email + future WhatsApp — code paths exist or are discussed; production delivery is not proven and client sends are on hold. |
 | **Commercial gap** | Quotation scope documented; no issued quote — client may perceive billing/delivery misalignment. |
 | **Overbuild temptation** | v14 enterprise material describes full platform; MVP must be explicitly smaller. |
 
@@ -84,7 +95,7 @@ Client-supplied material (external to this repo until ingested):
 1. **Scope authority** — Signed-off MVP definition: which elements come from CorpFlow live tenant, which from v13/v14, what is deferred.
 2. **Data model alignment** — Property/listing fields, media buckets, migration order (v13) vs Prisma/CMP attachment model.
 3. **Control plane trust** — `/change` must support create → estimate → proceed (approve-build) → audit without generic failures.
-4. **Client expectation reset** — Written recovery note to Jan: what happened, what we are doing now, what MVP means, dates honest not aspirational.
+4. **Client expectation reset** — Structured Jan-facing plan can be drafted from #537 only after Anton authorizes the communication path; #538 is closed as not planned.
 5. **Notification + commercial paths** — n8n route verification and quotation creation are **gates**, not parallel side quests.
 6. **Ingestion boundary** — What from Drive is **reference-only** in repo (`artifacts/`, docs) vs what becomes **production code** (separate authorized chunks).
 
@@ -104,6 +115,8 @@ Client-supplied material (external to this repo until ingested):
 | Change Console | `/change` | Programme control plane |
 | Login | `/login` | Tenant session boundary |
 
+**Read-only live snapshot (2026-07-07):** `GET /`, `GET /change`, and `GET /concierge` on `https://lux.corpflowai.com` returned **200 text/html** from this workspace. This proves the public routes respond; it does **not** prove login, Proceed, notification delivery, editor E2E, or publish flow completion.
+
 ### 3.2 CorpFlowAI `/change` control plane (Lux)
 
 | Capability | Issue / PR | Status |
@@ -113,9 +126,9 @@ Client-supplied material (external to this repo until ingested):
 | Create-draft isolation | #525 | Merged |
 | Desk contrast + Jan email code | #526 | Merged |
 | Concierge chrome + notify prefs + handoff Groq | #527 | Merged |
-| Approve-build failure / opaque errors | #528, PR #530 | Fix pending merge/deploy |
+| Approve-build failure / opaque errors | #528, PR #530 | Issue closed / PR merged; still needs controlled Proceed validation evidence |
 | Notification prefs UI | #527 | Merged — prefs in `tenant_personas.persona_json` |
-| Groq handoff context | #527 | Requires Drive sync to `artifacts/luxe-maurice-ai-handoff/` |
+| Groq handoff context | #527 | Requires approved non-secret Drive sync to `artifacts/luxe-maurice-ai-handoff/` before relying on handoff-loaded telemetry |
 
 ### 3.3 Client Drive packages
 
@@ -134,16 +147,18 @@ Client-supplied material (external to this repo until ingested):
 - `docs/LUX/LUX_PHASE3_FIRST_CRM_SLICE.md` — concierge CRM on `/change`
 - `docs/finance/LUXEMAURICE_CHANGE_CONSOLE_QUOTATION_SCOPE_V1.md` — quotation line items (not issued)
 
-### 3.5 Open issues and blockers
+### 3.5 Open issues, closed controls, and blockers
 
 | Item | Issue | Owner | Blocker type |
 |------|-------|-------|----------------|
 | Recovery programme control | **#529** (this plan) | Anton + Cursor | Governance |
-| Approve-build / Proceed | #528, PR #530 | Cursor | Control plane |
+| Approve-build / Proceed evidence | #528 (closed), PR #530 (merged) | Cursor + Anton | Control plane verification |
 | Create/withdraw regression watch | #523 (closed) | Operator | Verification |
-| Jan email live proof | — | Operator + n8n | Comms gate |
-| ERPNext quotation | — | Anton / finance | Commercial gate |
-| v1–v14 full audit | TBD child of #529 | Cursor | Scope reconciliation |
+| Concierge chrome / notification prefs | #527 (merged) | Operator + n8n | Comms gate; delivery unverified |
+| Jan recovery communication | #538 (closed not planned) | Anton | Explicit hold; no send |
+| ERPNext quotation | — | Anton / finance | Commercial gate; not generated |
+| v1–v14 full audit | #536 (closed) | Cursor | Docs-only baseline; line-level Drive supplement still optional |
+| MVP scope reconciliation | #537 (closed) | Anton + Cursor | Approval gate before build chunks |
 | First real published listing | Programme §8 | Jan + operator | MVP content |
 | `billing_exempt` production state | Script ready | Anton | Commercial |
 
@@ -206,16 +221,16 @@ Client-supplied material (external to this repo until ingested):
 | **Client-facing** | Internal only |
 | **Dependencies** | None |
 
-### Chunk 1 — Control plane stabilization
+### Chunk 1 — Control plane stabilization evidence
 
 | Field | Value |
 |-------|--------|
-| **Objective** | `/change` supports trustworthy create → estimate → proceed path |
-| **Inputs** | PR #530; production deploy approval |
-| **Tasks** | Merge/deploy #530; live verify Proceed; smoke `npm run smoke:change-overflow` |
-| **Verification** | Delivery Reality Audit on `lux.corpflowai.com/change`; no generic “Approve build failed” |
-| **Acceptance** | Proceed succeeds OR shows explicit operator-safe reason; #528 closable |
-| **Anton gate** | Production deploy approval |
+| **Objective** | Prove `/change` supports a trustworthy create → estimate → Proceed path, or blocks with a useful operator-safe reason |
+| **Inputs** | #523, #527, #528, PR #530, live Lux session, relevant ticket state |
+| **Tasks** | Confirm production contains PR #530; re-test create/withdraw; re-test Proceed in invalid and valid states; run required `/change` smoke when a preview/production check is in scope |
+| **Verification** | Delivery Reality Audit on `lux.corpflowai.com/change`; no generic “Approve build failed”; explicit response path captured without secrets |
+| **Acceptance** | Proceed succeeds only in a valid approved workflow state OR is disabled/blocked with explicit operator-safe reason; #528 remains closed with evidence attached to #529/child issue |
+| **Anton gate** | Any production deploy/redeploy or client-visible demo requires Anton approval |
 | **Client-facing** | Internal demo optional |
 | **Dependencies** | Chunk 0 approved |
 
@@ -225,10 +240,10 @@ Client-supplied material (external to this repo until ingested):
 |-------|--------|
 | **Objective** | Single gap matrix: CorpFlow live vs client packages |
 | **Inputs** | Drive v1–v14 download; live URL checklist; repo map |
-| **Tasks** | Child issue: full audit; produce `docs/LUX/LUXEMAURICE_RECOVERY_AUDIT_V1.md` (future) |
-| **Verification** | Audit doc reviewed by Anton; no secrets in repo |
-| **Acceptance** | Every v13/v14 module tagged: adopt / adapt / defer / reject |
-| **Anton gate** | Audit sign-off |
+| **Tasks** | Child issue #536 produced `docs/LUX/LUXEMAURICE_RECOVERY_AUDIT_V1.md`; optional supplement only if non-secret Drive artefacts are safely ingested |
+| **Verification** | Audit doc exists; no secrets in repo; evidence limits stated |
+| **Acceptance** | Major v13/v14 modules tagged adopt / adapt / defer / reject at module level; any deeper line-level reuse waits for a supplement |
+| **Anton gate** | Audit sign-off before using Drive material as build input |
 | **Client-facing** | Internal only |
 | **Dependencies** | Chunk 1 |
 
@@ -238,22 +253,22 @@ Client-supplied material (external to this repo until ingested):
 |-------|--------|
 | **Objective** | One-page MVP: in-scope surfaces, data, roles, success metrics |
 | **Inputs** | Audit; repositioning docs; v13 QA acceptance tests |
-| **Tasks** | MVP scope doc; map v13 QA to CorpFlow routes |
-| **Verification** | MVP doc linked from #529 |
-| **Acceptance** | Explicit non-goals listed; Jan-facing summary draft ready |
+| **Tasks** | Child issue #537 produced `docs/LUX/LUXEMAURICE_MVP_SCOPE_RECONCILIATION_V1.md`; map v13 QA subset to CorpFlow routes as follow-up when content arrives |
+| **Verification** | MVP doc linked from #529 and this WBS |
+| **Acceptance** | Explicit non-goals listed; “First Real Opportunity” slice is the controlled MVP candidate |
 | **Anton gate** | MVP scope approved before build chunks |
-| **Client-facing** | Recovery note draft (not sent until Chunk 4 gate) |
+| **Client-facing** | Jan-facing section exists in #537 as a source; not sent until a separate Anton gate |
 | **Dependencies** | Chunk 2 |
 
-### Chunk 4 — Client recovery communication (Jan)
+### Chunk 4 — Client recovery communication (Jan) — on hold
 
 | Field | Value |
 |-------|--------|
 | **Objective** | Reset expectations without overpromising |
 | **Inputs** | MVP doc; honest delivery state |
-| **Tasks** | Draft recovery note; Anton edit; optional call with Jan |
+| **Tasks** | **Held** after #538 was closed as not planned; if Anton reopens, draft from #537 with proof/limits and no send until approved |
 | **Verification** | Anton approves text before send |
-| **Acceptance** | Client understands MVP, timeline, and single delivery track |
+| **Acceptance** | If reopened, client understands MVP, sequencing, proof limits, and single delivery track |
 | **Anton gate** | **Required before send** |
 | **Client-facing** | Yes — email or call |
 | **Dependencies** | Chunk 3 |
@@ -348,33 +363,35 @@ Each follows the same template: objective → inputs → tasks → verification 
 
 ## 8. Immediate 48-hour recovery plan
 
-| Hour block | Action | Owner |
-|------------|--------|-------|
-| **0–8h** | Merge this WBS PR; link #529; open child issues (§11) | Cursor |
-| **0–8h** | **Stop** random Lux feature PRs not tied to a chunk | All |
-| **8–24h** | Review/merge PR #530; deploy with Anton approval; verify Proceed on production | Cursor + Anton |
-| **8–24h** | Live re-verify #523 create/withdraw on `/change` | Operator |
-| **24–48h** | Start Chunk 2 audit outline (Drive inventory checklist) | Cursor |
-| **24–48h** | Draft Jan recovery note **internal only** — not sent | Cursor + Anton |
-| **24–48h** | Define MVP Chunk 1 candidate (one listing) with Jan input | Anton |
-| **Do not** | Jan email test until Chunk 7 | — |
-| **Do not** | Present ERPNext quotation until Chunk 8 artefact exists | — |
+This is a control window, not a promise to ship production functionality.
+
+| Window | Action | Owner |
+|--------|--------|-------|
+| **Now** | Keep #529 as the only active Lux parent; reject new Lux side tracks that do not cite a WBS chunk | Anton + all executors |
+| **Now** | Merge/update this WBS packet so the control state reflects #527, #528/#530, #536, #537, and #538 accurately | Cursor |
+| **Now** | Use #536 and #537 as the current internal baseline; do not restart a separate planning stream | Cursor + Anton |
+| **Next control check** | Verify `/change` create/withdraw and Proceed behavior with PR #530 present; record whether the result is success or explicit operator-safe block | Cursor + Anton |
+| **Next control check** | Confirm the first MVP chunk remains **Release 1 — First Real Opportunity** from #537, not v14 wholesale rebuild | Anton |
+| **If Anton reopens comms** | Draft a Jan-facing structured plan from #537; keep it internal until Anton approves exact send/call language | Cursor + Anton |
+| **Do not** | Send Jan email tests, WhatsApp/SMS, or outreach until Chunk 7 / explicit Anton send gate | — |
+| **Do not** | Create or present ERPNext quotation until Chunk 8 / Anton commercial gate | — |
+| **Do not** | Deploy, change env/secrets, change DB/schema, or ingest Drive code into runtime from this WBS PR | — |
 
 ---
 
 ## 9. 30 / 60 / 90-day recovery plan
 
-### 30 days — Control + baseline + MVP definition
+### 30-day control horizon — Control + baseline + MVP definition
 
-- #529 children open; Chunks 0–3 complete
+- #529 remains the single recovery parent; old side tracks stay subordinate or closed
 - `/change` control plane stable (Chunk 1)
-- v1–v14 audit doc (Chunk 2)
-- Signed MVP scope (Chunk 3)
-- Jan recovery note sent (Chunk 4)
-- Listing readiness started (Chunk 5)
+- v1–v14 audit doc accepted as baseline (Chunk 2 / #536)
+- Signed MVP scope accepted as build boundary (Chunk 3 / #537)
+- Jan-facing communication either remains held (#538) or is reopened with Anton's explicit approval
+- Listing readiness starts only against the signed “First Real Opportunity” slice (Chunk 5)
 - Notification + quotation gates **scheduled**, not rushed
 
-### 60 days — First valuable slice in production
+### 60-day control horizon — First valuable slice in production
 
 - **One** real curated listing published (Chunk 6)
 - CRM → editor → publish path demonstrated to Jan
@@ -382,7 +399,7 @@ Each follows the same template: objective → inputs → tasks → verification 
 - Executive dashboard **spec only** unless MVP scope expands
 - Email route verified (Chunk 7) before broader comms automation
 
-### 90 days — Controlled MVP launch
+### 90-day control horizon — Controlled MVP launch
 
 - Buyer journey complete for MVP listings set (not full catalogue)
 - Approval-based communications (email; WhatsApp only if separately authorized)
@@ -391,7 +408,7 @@ Each follows the same template: objective → inputs → tasks → verification 
 - Operational handover pack for Jan (editor + `/change` + concierge)
 - Programme master ticket §8 gates re-evaluated with evidence
 
-**Honesty clause:** Dates slip if audit reveals large v13/v14 divergence or client changes scope. Update #529 and this doc — do not silently narrow MVP.
+**Honesty clause:** These are control horizons, not delivery promises. If audit findings or client scope change the work, update #529 and this doc — do not silently narrow MVP.
 
 ---
 
@@ -417,13 +434,13 @@ Explicitly **out of MVP** unless Anton opens a new authorised chunk:
 
 | Child issue (proposed title) | Maps to | Notes |
 |----------------------------|---------|--------|
-| Fix `/change` approve-build failure | #528, PR #530, Chunk 1 | Close when live verified |
+| Fix `/change` approve-build failure | #528, PR #530, Chunk 1 | Closed; keep evidence under #529 |
 | Confirm `/change` create/withdraw flow | #523, Chunk 1 | Regression watch |
-| Full v1–v14 client codebase audit | Chunk 2 | Docs-only output first |
-| Productized MVP scope reconciliation | Chunk 3 | Requires audit |
+| Full v1–v14 client codebase audit | #536, Chunk 2 | Closed docs-only output; optional supplement if Drive is safely ingested |
+| Productized MVP scope reconciliation | #537, Chunk 3 | Closed docs-only output; Anton gate still required before build |
 | Client data/listing readiness pack | Chunk 5 | Jan content dependency |
 | Lux MVP Chunk 1 build plan | Chunk 6 | After MVP sign-off |
-| Jan client recovery communication draft | Chunk 4 | Anton approves send |
+| Jan client recovery communication draft | #538, Chunk 4 | Closed not planned; reopen only by Anton |
 | Notification / n8n `lux_ticket_update` verification | Chunk 7 | Before Jan email test |
 | ERPNext quotation manual creation pack | Chunk 8 | Scope doc exists |
 | Executive dashboard MVP spec | Chunk 11 / R8 | 60–90 day |
@@ -435,7 +452,7 @@ Explicitly **out of MVP** unless Anton opens a new authorised chunk:
 
 ## Governance statement (this PR)
 
-- **Planning / control only** — no runtime changes authorized by this document alone.
+- **Docs / planning / control only** — no runtime changes authorized by this document alone unless Anton separately approves a delivery chunk.
 - **No production deploy performed** as part of this doc PR.
 - **No env/secrets changed.**
 - **No DB/schema change performed.**
