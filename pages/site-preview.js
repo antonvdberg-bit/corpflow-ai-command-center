@@ -8,10 +8,9 @@
  *     viewport is now the single non-removable sandbox marker.
  *   - Layout was rebuilt with a hero, top nav, five-pillars row, get-involved
  *     grid, next-gen card row, sunday-service / location / contact strip, and
- *     a placeholder events block. The visual treatment (deep navy + warm
- *     gold + cream + system serif headings) intentionally resembles the
- *     public church site at livingwordmauritius.com so testers can
- *     meaningfully assess chatbot placement and site-context.
+ *     a placeholder events block. Visual treatment follows the public church
+ *     site Elementor kit (gray text, white surfaces, teal/cyan accents) — not
+ *     the earlier navy/gold sandbox prototype.
  *   - Strings that mirror PUBLISHED public facts from the live homepage
  *     (pastor / pillar names / verses / address / phone / email / service
  *     time / ministry names / age bands) are intentionally used per the
@@ -139,11 +138,12 @@ function NavBar() {
     <nav
       aria-label="Sandbox sections"
       style={{
-        background: COLOURS.navyDeep,
-        color: COLOURS.textOnDark,
-        borderBottom: `1px solid ${COLOURS.navySoft}`,
+        background: COLOURS.white,
+        color: COLOURS.text,
+        borderBottom: `1px solid ${COLOURS.border}`,
         padding: '14px 24px',
         font: `500 14px/1.4 ${FONTS.sans}`,
+        boxShadow: '0 1px 8px rgba(0,0,0,0.04)',
       }}
     >
       <div
@@ -159,7 +159,7 @@ function NavBar() {
         <span
           style={{
             font: `700 18px/1.2 ${FONTS.serif}`,
-            color: COLOURS.gold,
+            color: COLOURS.primary,
             letterSpacing: 0.4,
             marginRight: 'auto',
           }}
@@ -171,7 +171,7 @@ function NavBar() {
             key={item.id}
             href={`#${item.id}`}
             style={{
-              color: COLOURS.textOnDark,
+              color: COLOURS.text,
               textDecoration: 'none',
               padding: '4px 0',
               borderBottom: '1px solid transparent',
@@ -191,12 +191,11 @@ function HeroSection() {
       id="hero"
       style={{
         position: 'relative',
-        background:
-          `linear-gradient(135deg, ${COLOURS.navy} 0%, ${COLOURS.navyDeep} 100%)`,
-        color: COLOURS.textOnDark,
+        background: COLOURS.white,
+        color: COLOURS.text,
         padding: '80px 24px 96px',
         textAlign: 'center',
-        borderBottom: `4px solid ${COLOURS.gold}`,
+        borderBottom: `3px solid ${COLOURS.primary}`,
       }}
     >
       <div style={{ maxWidth: 820, margin: '0 auto' }}>
@@ -206,7 +205,7 @@ function HeroSection() {
             fontSize: 13,
             letterSpacing: 2,
             textTransform: 'uppercase',
-            color: COLOURS.gold,
+            color: COLOURS.primary,
             font: `600 13px/1.2 ${FONTS.sans}`,
           }}
         >
@@ -216,7 +215,7 @@ function HeroSection() {
           style={{
             margin: '0 0 20px',
             font: `400 56px/1.1 ${FONTS.serif}`,
-            color: COLOURS.textOnDark,
+            color: COLOURS.heading,
             letterSpacing: 0.5,
           }}
         >
@@ -227,7 +226,7 @@ function HeroSection() {
             margin: '0 auto 28px',
             maxWidth: 640,
             font: `400 17px/1.6 ${FONTS.sans}`,
-            color: COLOURS.textOnDarkMuted,
+            color: COLOURS.textMuted,
           }}
         >
           {HERO.tagline}
@@ -244,14 +243,14 @@ function HeroSection() {
             aria-disabled="true"
             style={{
               display: 'inline-block',
-              background: COLOURS.gold,
-              color: COLOURS.navyDeep,
+              background: COLOURS.primary,
+              color: COLOURS.white,
               padding: '14px 28px',
               borderRadius: 4,
               font: `600 14px/1 ${FONTS.sans}`,
               letterSpacing: 1,
               textTransform: 'uppercase',
-              opacity: 0.85,
+              opacity: 0.95,
               cursor: 'default',
             }}
           >
@@ -260,7 +259,7 @@ function HeroSection() {
           <span
             style={{
               font: `400 12px/1.4 ${FONTS.sans}`,
-              color: COLOURS.textOnDarkMuted,
+              color: COLOURS.textMuted,
               maxWidth: 420,
             }}
           >
@@ -280,7 +279,7 @@ function SectionHeading({ eyebrow, title }) {
           style={{
             margin: '0 0 8px',
             font: `600 12px/1.2 ${FONTS.sans}`,
-            color: COLOURS.gold,
+            color: COLOURS.primary,
             letterSpacing: 2,
             textTransform: 'uppercase',
           }}
@@ -292,7 +291,7 @@ function SectionHeading({ eyebrow, title }) {
         style={{
           margin: 0,
           font: `400 32px/1.2 ${FONTS.serif}`,
-          color: COLOURS.navy,
+          color: COLOURS.heading,
           letterSpacing: 0.3,
         }}
       >
@@ -364,7 +363,7 @@ function PillarsSection() {
               style={{
                 background: COLOURS.creamSoft,
                 border: `1px solid ${COLOURS.border}`,
-                borderTop: `3px solid ${COLOURS.gold}`,
+                borderTop: `3px solid ${COLOURS.primary}`,
                 padding: '24px 20px',
                 textAlign: 'center',
               }}
@@ -373,7 +372,7 @@ function PillarsSection() {
                 style={{
                   margin: '0 0 12px',
                   font: `400 22px/1.2 ${FONTS.serif}`,
-                  color: COLOURS.navy,
+                  color: COLOURS.heading,
                   letterSpacing: 0.3,
                 }}
               >
@@ -383,7 +382,7 @@ function PillarsSection() {
                 style={{
                   margin: '0 0 12px',
                   font: `600 11px/1.2 ${FONTS.sans}`,
-                  color: COLOURS.gold,
+                  color: COLOURS.secondary,
                   letterSpacing: 1.5,
                   textTransform: 'uppercase',
                 }}
@@ -413,7 +412,7 @@ function GetInvolvedSection() {
     <section
       id="get-involved"
       style={{
-        background: COLOURS.cream,
+        background: COLOURS.surfaceAlt,
         padding: '72px 24px',
         borderBottom: `1px solid ${COLOURS.border}`,
       }}
@@ -443,7 +442,7 @@ function GetInvolvedSection() {
                 style={{
                   margin: 0,
                   font: `400 22px/1.2 ${FONTS.serif}`,
-                  color: COLOURS.navy,
+                  color: COLOURS.heading,
                 }}
               >
                 {g.title}
@@ -463,7 +462,7 @@ function GetInvolvedSection() {
                   style={{
                     margin: 0,
                     font: `600 12px/1.4 ${FONTS.sans}`,
-                    color: COLOURS.gold,
+                    color: COLOURS.primary,
                     letterSpacing: 0.5,
                   }}
                 >
@@ -483,10 +482,10 @@ function NextGenSection() {
     <section
       id="next-gen"
       style={{
-        background: COLOURS.navy,
-        color: COLOURS.textOnDark,
+        background: COLOURS.surfaceAlt,
+        color: COLOURS.text,
         padding: '72px 24px',
-        borderBottom: `4px solid ${COLOURS.gold}`,
+        borderBottom: `1px solid ${COLOURS.border}`,
       }}
     >
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
@@ -495,7 +494,7 @@ function NextGenSection() {
             style={{
               margin: '0 0 8px',
               font: `600 12px/1.2 ${FONTS.sans}`,
-              color: COLOURS.gold,
+              color: COLOURS.primary,
               letterSpacing: 2,
               textTransform: 'uppercase',
             }}
@@ -506,7 +505,7 @@ function NextGenSection() {
             style={{
               margin: 0,
               font: `400 32px/1.2 ${FONTS.serif}`,
-              color: COLOURS.textOnDark,
+              color: COLOURS.heading,
               letterSpacing: 0.3,
             }}
           >
@@ -524,17 +523,18 @@ function NextGenSection() {
             <article
               key={n.id}
               style={{
-                background: COLOURS.navyDeep,
-                border: `1px solid ${COLOURS.navySoft}`,
-                borderLeft: `3px solid ${COLOURS.gold}`,
+                background: COLOURS.white,
+                border: `1px solid ${COLOURS.border}`,
+                borderLeft: `3px solid ${COLOURS.primary}`,
                 padding: '24px 22px',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.06)',
               }}
             >
               <h3
                 style={{
                   margin: '0 0 6px',
                   font: `400 22px/1.2 ${FONTS.serif}`,
-                  color: COLOURS.textOnDark,
+                  color: COLOURS.heading,
                 }}
               >
                 {n.title}
@@ -543,7 +543,7 @@ function NextGenSection() {
                 style={{
                   margin: '0 0 12px',
                   font: `600 11px/1.2 ${FONTS.sans}`,
-                  color: COLOURS.gold,
+                  color: COLOURS.secondary,
                   letterSpacing: 1.5,
                   textTransform: 'uppercase',
                 }}
@@ -554,7 +554,7 @@ function NextGenSection() {
                 style={{
                   margin: 0,
                   font: `400 14px/1.6 ${FONTS.sans}`,
-                  color: COLOURS.textOnDarkMuted,
+                  color: COLOURS.textMuted,
                 }}
               >
                 {n.body}
@@ -571,13 +571,13 @@ function ServiceLocationContactSection() {
   const cardStyle = {
     background: COLOURS.white,
     border: `1px solid ${COLOURS.border}`,
-    borderTop: `3px solid ${COLOURS.gold}`,
+    borderTop: `3px solid ${COLOURS.primary}`,
     padding: '28px 26px',
   };
   const cardHeading = {
     margin: '0 0 12px',
     font: `400 22px/1.2 ${FONTS.serif}`,
-    color: COLOURS.navy,
+    color: COLOURS.heading,
   };
   const cardLine = {
     margin: '0 0 8px',
@@ -689,7 +689,7 @@ function EventsSection({ entries, scheduleSource }) {
                   width: 12,
                   height: 12,
                   borderRadius: '50%',
-                  background: COLOURS.gold,
+                  background: COLOURS.primary,
                   opacity: isDatabase ? 1 : 0.75,
                 }}
               />
@@ -698,7 +698,7 @@ function EventsSection({ entries, scheduleSource }) {
                   style={{
                     margin: '0 0 2px',
                     font: `600 15px/1.3 ${FONTS.serif}`,
-                    color: COLOURS.navy,
+                    color: COLOURS.heading,
                   }}
                 >
                   {e.title}
@@ -739,7 +739,7 @@ function NextStepSection() {
     <section
       id="next-step"
       style={{
-        background: COLOURS.cream,
+        background: COLOURS.surfaceAlt,
         padding: '72px 24px',
         borderBottom: `1px solid ${COLOURS.border}`,
         textAlign: 'center',
@@ -778,10 +778,11 @@ function FooterSection({
   return (
     <footer
       style={{
-        background: COLOURS.navyDeep,
-        color: COLOURS.textOnDark,
+        background: COLOURS.surfaceAlt,
+        color: COLOURS.text,
         padding: '48px 24px 56px',
         textAlign: 'center',
+        borderTop: `1px solid ${COLOURS.border}`,
       }}
     >
       <div style={{ maxWidth: 900, margin: '0 auto' }}>
@@ -789,7 +790,7 @@ function FooterSection({
           style={{
             margin: '0 0 12px',
             font: `400 24px/1.2 ${FONTS.serif}`,
-            color: COLOURS.gold,
+            color: COLOURS.primary,
             letterSpacing: 0.4,
           }}
         >
@@ -799,7 +800,7 @@ function FooterSection({
           style={{
             margin: '0 0 18px',
             font: `400 14px/1.6 ${FONTS.sans}`,
-            color: COLOURS.textOnDarkMuted,
+            color: COLOURS.textMuted,
           }}
         >
           {FOOTER.sandboxNote}
@@ -808,7 +809,7 @@ function FooterSection({
           style={{
             margin: '0 0 12px',
             font: `400 12px/1.5 ${FONTS.sans}`,
-            color: COLOURS.textOnDarkMuted,
+            color: COLOURS.textMuted,
           }}
         >
           tenant <code>{tenantId}</code> &middot; host <code>{host}</code> &middot;{' '}
@@ -818,7 +819,7 @@ function FooterSection({
           style={{
             margin: 0,
             font: `400 11px/1.5 ${FONTS.sans}`,
-            color: COLOURS.textOnDarkMuted,
+            color: COLOURS.textMuted,
           }}
         >
           {FOOTER.copyrightLine}
@@ -853,7 +854,7 @@ function KnowledgeSandboxPanel({ summaries, count }) {
             font: `600 11px/1.4 ${FONTS.sans}`,
             letterSpacing: '0.14em',
             textTransform: 'uppercase',
-            color: COLOURS.navySoft,
+            color: COLOURS.muted,
           }}
         >
           Sandbox operator debug &middot; approved knowledge available ({count})
@@ -935,7 +936,7 @@ export default function SitePreviewPage({
 
       <div
         style={{
-          background: COLOURS.cream,
+          background: COLOURS.white,
           color: COLOURS.text,
           font: `15px/1.55 ${FONTS.sans}`,
           minHeight: '100vh',
