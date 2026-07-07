@@ -2,6 +2,8 @@
 
 This document is the **default context** for future chats, Cursor sessions, and GitHub-connected workflows. If product behavior, UI, or delivery expectations disagree with this playbook, **update this doc first**, then align code and `/change`.
 
+> **Survival doctrine (mandatory):** how CorpFlowAI must operate as a business — the four required systems (operations, growth/OKR, metrics, founder 10/80/10), Delivery Queue v1, and the survival test — lives in **`docs/operations/CORPFLOWAI_BUSINESS_SURVIVAL_OPERATING_DOCTRINE.md`**. Tooling activity is not progress; client-visible delivery is.
+
 ---
 
 ## 1. Business model

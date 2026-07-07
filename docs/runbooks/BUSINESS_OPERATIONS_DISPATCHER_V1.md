@@ -22,6 +22,8 @@ The **dispatcher** consumes `corpflow.business_operations_monitor.v1` findings a
 
 **Anton Telegram paging rule (v1):** page **only** when `owner = anton` **or** `gated = true`. Cursor/Codex/n8n routings do **not** page Anton.
 
+**Doctrine note:** dispatched executor work is governed by `docs/operations/CORPFLOWAI_BUSINESS_SURVIVAL_OPERATING_DOCTRINE.md` — runtime / client-visible packets cannot be satisfied by docs-only PRs, and every packet needs output type, surface, evidence requirement, stale threshold, and approval gates.
+
 The monitor endpoint is **unchanged**. Use the dispatcher endpoint for n8n going forward.
 
 ## 1. HTTP endpoint (read-only)

@@ -4,6 +4,8 @@ This document defines the **canonical product flow** for delivering client chang
 
 If the UI, backend, and operator behavior disagree, **this doc wins** and the product must be corrected.
 
+> **Business-level rules:** `/change` tickets are one station on the single standard delivery path (create work → prioritise → build → preview → review → approve → deploy → validate) defined in **`docs/operations/CORPFLOWAI_BUSINESS_SURVIVAL_OPERATING_DOCTRINE.md`**. Docs-only output cannot close runtime / client-visible tickets.
+
 ## Canonical stages
 
 1. **Intake**
