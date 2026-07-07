@@ -43,7 +43,8 @@ on:
 
 permissions:
   contents: read
-  issues: read
+  issues: write
+  pull-requests: read
 
 concurrency:
   group: factory-dispatcher-activate
@@ -137,6 +138,9 @@ jobs:
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPO: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_JOB: ${{ github.job }}
+          DISPATCHER_ACTIVATION_POST_COMMENT: "1"
         run: node scripts/dispatcher-agent-activation.mjs --fetch --activate --persist-dedupe
 
       - name: Upload activation result artifact (always)
@@ -147,6 +151,7 @@ jobs:
           name: dispatcher-activation-result
           path: |
             activation-plan.json
+            cursor-ops-status.json
             .dispatcher-activation-state/dedupe.json
           if-no-files-found: ignore
           retention-days: 7
