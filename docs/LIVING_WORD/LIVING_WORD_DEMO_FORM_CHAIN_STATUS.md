@@ -95,6 +95,7 @@
 - In-memory sessions reset on cold start / new serverless instance
 - Email recipients restricted to `@example.test`
 - No persistence to Postgres or GHL
+- Chat widget on Living Word tenant is **ask-only** (no guided menu bubbles); after each answer the input + **Ask** control returns (no “back to menu”)
 - Separate from admin-gated `/living-word-member-update.html` pilot (PR #482)
 - WhatsApp demo packet remains optional and **not** wired to this chain
 

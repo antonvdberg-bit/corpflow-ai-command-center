@@ -50,6 +50,7 @@ import {
 } from '../lib/sandbox/living-word-sandbox-content.js';
 import { PLACEHOLDER_SCHEDULE } from '../lib/sandbox/living-word-schedule-shape.js';
 import { TestEnvironmentRibbon } from '../lib/sandbox/test-environment-ribbon.js';
+import { COLOURS, LIVING_WORD_FONTS } from '../lib/living-word/living-word-site-theme.js';
 import {
   formatScheduleEntrySubtitle,
   getApprovedScheduleEntriesForTenant,
@@ -67,33 +68,7 @@ const ALLOWED_HOSTS = new Set(['living-word-mauritius.corpflowai.com']);
 
 const SANDBOX_TENANT_ID = 'living-word-mauritius';
 
-/**
- * Visual identity \u2014 deep navy + warm gold + cream + system serif headings.
- * Designed to feel like the public church site without copying any specific
- * brand asset (no logo file, no photographs, no exact-match colour codes).
- */
-const COLOURS = {
-  navy: '#0E1F3A',
-  navyDeep: '#0A1830',
-  navySoft: '#1E2F4D',
-  gold: '#C9A961',
-  goldSoft: '#E8D9A8',
-  cream: '#F5F1EA',
-  creamSoft: '#FAF7F1',
-  white: '#FFFFFF',
-  border: '#E5E0D5',
-  text: '#1A1A1A',
-  textMuted: '#6B6258',
-  textOnDark: '#F5F1EA',
-  textOnDarkMuted: '#B8B0A0',
-};
-
-const FONTS = {
-  serif:
-    'Georgia, "Times New Roman", "PT Serif", Cambria, serif',
-  sans:
-    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-};
+const FONTS = LIVING_WORD_FONTS;
 
 export async function getServerSideProps(ctx) {
   const rawHost = ctx?.req?.headers?.host || '';
