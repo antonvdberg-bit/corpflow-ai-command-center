@@ -1,6 +1,6 @@
 # Living Word Mauritius — Tuesday demo script (v1)
 
-**Status:** Docs-only runbook. **No runtime change.**
+**Status:** **CLOSED** — Tuesday TEST DEMO delivered 2026-07-07. Reference runbook only; no further demo work required.
 **Demo date:** **Tuesday 7 July 2026** (2026-07-07).
 **Tenant:** `living-word-mauritius` only — controlled sandbox, admin-gated member-update walkthrough.
 **Audience:** Church leadership (+ optional WordPress provider).
