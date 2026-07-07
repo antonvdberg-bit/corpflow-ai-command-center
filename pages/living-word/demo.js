@@ -52,7 +52,7 @@ export default function LivingWordDemoHubPage() {
       </Head>
       <DemoPageShell title="Demo form chain">
         <div style={cardStyle()}>
-          <h2 style={{ marginTop: 0, fontSize: 18, color: COLOURS.navy }}>Demo status</h2>
+          <h2 style={{ marginTop: 0, fontSize: 18, color: COLOURS.heading }}>Demo status</h2>
           <p style={{ margin: '8px 0' }}>
             Living Word demo chain:{' '}
             <strong style={{ color: verdictColour(verdict) }}>{verdict}</strong>
