@@ -9,10 +9,26 @@ import {
   LUX_FIRST_VISIBLE_RELEASE_TITLE,
   LUX_PILLAR_CLIENT_CHOICES,
   LUX_PRODUCT_DIRECTION_EVIDENCE_NOTE,
-  LUX_PRODUCT_DIRECTION_INTRO,
-  LUX_PRODUCT_DIRECTION_PAGE_TITLE,
   LUX_PRODUCT_DIRECTION_PILLARS,
 } from '../../lib/client/lux-product-direction-content.js';
+import {
+  LUX_RECOVERY_48H_PLAN,
+  LUX_RECOVERY_EFFORT_NOTE,
+  LUX_RECOVERY_FIRST_DECISION_BODY,
+  LUX_RECOVERY_FIRST_DECISION_TITLE,
+  LUX_RECOVERY_JAN_MUST_PROVIDE,
+  LUX_RECOVERY_LATER_ITEMS,
+  LUX_RECOVERY_NOT_MVP,
+  LUX_RECOVERY_PAGE_SUBTITLE,
+  LUX_RECOVERY_PAGE_TITLE,
+  LUX_RECOVERY_READY_NOW,
+  LUX_RECOVERY_RELEASE1_PACKAGES,
+  LUX_RECOVERY_RELEASE1_SUMMARY,
+  LUX_RECOVERY_RELEASE1_TITLE,
+  LUX_RECOVERY_REVIEW_ONLY_NOTE,
+  LUX_RECOVERY_SITUATION_PARAGRAPH,
+  luxRecoveryPackageStatusLabel,
+} from '../../lib/client/lux-recovery-roadmap-content.js';
 
 const THANK_YOU_PRODUCT_DIRECTION =
   "Thank you — we've received your product direction confirmation. Your team will review and follow up.";
@@ -85,11 +101,7 @@ export default function LuxRecoveryRoadmapPage() {
   const load = useCallback(async () => {
     const id = ticketId.trim();
     setError('');
-    if (id.length < 18) return;
-    if (!hasMagicLink) {
-      setError('Open the personalised link your team sent you to review product direction and submit your confirmation.');
-      return;
-    }
+    if (id.length < 18 || !hasMagicLink) return;
     setLoadBusy(true);
     try {
       const tokQ = `&token=${encodeURIComponent(magicToken)}`;
@@ -201,14 +213,14 @@ export default function LuxRecoveryRoadmapPage() {
   return (
     <>
       <Head>
-        <title>{LUX_PRODUCT_DIRECTION_PAGE_TITLE} — LuxeMaurice</title>
+        <title>{LUX_RECOVERY_PAGE_TITLE} — LuxeMaurice</title>
         <meta name="robots" content="noindex,nofollow" />
         <LuxeMauriceFontStylesheet />
       </Head>
-      <div style={pageStyle}>
+      <div style={pageStyle} data-testid="lux-recovery-roadmap-page">
         <header style={{ ...sectionStyle, paddingTop: 32, paddingBottom: 20, textAlign: 'center' }}>
           <LuxeMauriceWordmark />
-          <LuxEyebrow>LuxeMaurice platform</LuxEyebrow>
+          <LuxEyebrow>LuxeMaurice platform recovery</LuxEyebrow>
           <h1
             style={{
               margin: '12px 0 0',
@@ -218,15 +230,130 @@ export default function LuxRecoveryRoadmapPage() {
               lineHeight: 1.2,
             }}
           >
-            {LUX_PRODUCT_DIRECTION_PAGE_TITLE}
+            {LUX_RECOVERY_PAGE_TITLE}
           </h1>
+          <p style={{ margin: '10px 0 0', fontSize: 15, color: T.ivoryMuted, lineHeight: 1.5 }}>{LUX_RECOVERY_PAGE_SUBTITLE}</p>
         </header>
 
         <main style={sectionStyle}>
-          <p style={{ margin: '0 0 16px', color: T.ivoryMuted, fontSize: 16, lineHeight: 1.65 }}>{LUX_PRODUCT_DIRECTION_INTRO}</p>
+          <p style={{ margin: '0 0 28px', color: T.ivoryMuted, fontSize: 16, lineHeight: 1.65 }}>{LUX_RECOVERY_SITUATION_PARAGRAPH}</p>
+
+          <div style={{ marginBottom: 28 }}>
+            <LuxHairline />
+          </div>
+
+          <LuxEyebrow>Ready now</LuxEyebrow>
+          <div data-testid="lux-recovery-ready-now" style={{ display: 'grid', gap: 12, margin: '12px 0 32px' }}>
+            {LUX_RECOVERY_READY_NOW.map((row) => (
+              <div key={row.label} style={cardStyle}>
+                <div style={{ fontFamily: T.fontDisplay, fontSize: '1.05rem', marginBottom: 6, color: T.ivory }}>{row.label}</div>
+                <div style={{ fontSize: 14, color: T.ivoryMuted, lineHeight: 1.55 }}>{row.detail}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ marginBottom: 28 }}>
+            <LuxHairline />
+          </div>
+
+          <LuxEyebrow>{LUX_RECOVERY_RELEASE1_TITLE}</LuxEyebrow>
+          <p style={{ margin: '10px 0 20px', fontSize: 15, lineHeight: 1.6, color: T.ivoryMuted }}>{LUX_RECOVERY_RELEASE1_SUMMARY}</p>
+
+          <div style={{ display: 'grid', gap: 14, marginBottom: 32 }}>
+            {LUX_RECOVERY_RELEASE1_PACKAGES.map((pkg) => (
+              <div key={pkg.priority} style={cardStyle} data-testid={`lux-recovery-release1-step-${pkg.priority}`}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 6 }}>
+                  <div style={{ fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', color: T.gold }}>
+                    Step {pkg.priority}
+                  </div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: T.stoneSoft }}>{luxRecoveryPackageStatusLabel(pkg.status)}</div>
+                </div>
+                <div style={{ fontFamily: T.fontDisplay, fontSize: '1.2rem', marginBottom: 8 }}>{pkg.name}</div>
+                <div style={{ fontSize: 14, color: T.ivoryMuted, lineHeight: 1.55, marginBottom: 10 }}>{pkg.whatYouSee}</div>
+                <div style={{ fontSize: 13, color: T.stoneSoft, lineHeight: 1.5 }}>
+                  <span style={{ color: T.gold }}>After this step: </span>
+                  {pkg.valueAfter}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ marginBottom: 28 }}>
+            <LuxHairline />
+          </div>
+
+          <LuxEyebrow>What we need from you</LuxEyebrow>
+          <ul
+            data-testid="lux-recovery-jan-must-provide"
+            style={{ margin: '12px 0 32px', paddingLeft: 20, color: T.ivoryMuted, fontSize: 14, lineHeight: 1.65 }}
+          >
+            {LUX_RECOVERY_JAN_MUST_PROVIDE.map((row) => (
+              <li key={row.item} style={{ marginBottom: 10 }}>
+                <strong style={{ color: T.ivory, fontWeight: 600 }}>{row.item}</strong> — {row.why}
+              </li>
+            ))}
+          </ul>
+
+          <LuxEyebrow>Not part of Release 1 MVP</LuxEyebrow>
+          <div data-testid="lux-recovery-not-mvp" style={{ ...cardStyle, marginBottom: 16 }}>
+            {LUX_RECOVERY_NOT_MVP.map((row) => (
+              <div key={row.label} style={{ fontSize: 13, color: T.ivoryMuted, lineHeight: 1.55, marginBottom: 8 }}>
+                <span style={{ color: T.ivory }}>{row.label}</span> — {row.meaning}
+              </div>
+            ))}
+          </div>
+
+          <LuxEyebrow>Later — after Release 1</LuxEyebrow>
+          <ul style={{ margin: '12px 0 32px', paddingLeft: 20, color: T.ivoryMuted, fontSize: 14, lineHeight: 1.6 }}>
+            {LUX_RECOVERY_LATER_ITEMS.map((item) => (
+              <li key={item} style={{ marginBottom: 6 }}>
+                {item}
+              </li>
+            ))}
+          </ul>
+
+          <div style={{ marginBottom: 28 }}>
+            <LuxHairline />
+          </div>
+
+          <LuxEyebrow>Next 48 hours — delivery plan</LuxEyebrow>
+          <div data-testid="lux-recovery-48h-plan" style={{ display: 'grid', gap: 12, margin: '12px 0 32px' }}>
+            {LUX_RECOVERY_48H_PLAN.map((row, i) => (
+              <div key={row.step} style={cardStyle}>
+                <div style={{ fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', color: T.gold, marginBottom: 6 }}>
+                  Step {i + 1}
+                </div>
+                <div style={{ fontFamily: T.fontDisplay, fontSize: '1.05rem', marginBottom: 6, color: T.ivory }}>{row.step}</div>
+                <div style={{ fontSize: 14, color: T.ivoryMuted, lineHeight: 1.55 }}>{row.outcome}</div>
+              </div>
+            ))}
+          </div>
+
+          <div
+            data-testid="lux-recovery-first-decision"
+            style={{
+              ...cardStyle,
+              marginBottom: 32,
+              borderColor: 'rgba(168, 132, 44, 0.45)',
+              background: 'rgba(168, 132, 44, 0.08)',
+            }}
+          >
+            <div style={{ fontFamily: T.fontDisplay, fontSize: '1.15rem', marginBottom: 10, color: T.ivory }}>
+              {LUX_RECOVERY_FIRST_DECISION_TITLE}
+            </div>
+            <p style={{ margin: 0, fontSize: 14, color: T.ivoryMuted, lineHeight: 1.6 }}>{LUX_RECOVERY_FIRST_DECISION_BODY}</p>
+          </div>
+
+          <p style={{ margin: '0 0 32px', fontSize: 13, color: T.stoneSoft, lineHeight: 1.55 }}>{LUX_RECOVERY_EFFORT_NOTE}</p>
+
+          <div style={{ marginBottom: 28 }}>
+            <LuxHairline />
+          </div>
+
+          <LuxEyebrow>Product pillars — confirm our understanding</LuxEyebrow>
           <p
             style={{
-              margin: '0 0 28px',
+              margin: '10px 0 16px',
               padding: '14px 16px',
               borderRadius: T.radiusLg,
               border: `1px solid ${T.hairline}`,
@@ -238,15 +365,9 @@ export default function LuxRecoveryRoadmapPage() {
           >
             {LUX_PRODUCT_DIRECTION_EVIDENCE_NOTE}
           </p>
-
-          <div style={{ marginBottom: 28 }}>
-            <LuxHairline />
-          </div>
-
-          <LuxEyebrow>Product pillars — our working understanding</LuxEyebrow>
-          <p style={{ margin: '10px 0 20px', fontSize: 14, color: T.ivoryMuted, lineHeight: 1.55 }}>
-            For each area below: what we think you want, what exists today, the gap, and our suggested priority. Please
-            correct anything that is wrong.
+          <p style={{ margin: '0 0 20px', fontSize: 14, color: T.ivoryMuted, lineHeight: 1.55 }}>
+            For each area: what we think you want, what exists today, the gap, and our suggested priority. Please correct
+            anything that is wrong when you submit your confirmation.
           </p>
 
           <div style={{ display: 'grid', gap: 14, marginBottom: 32 }}>
@@ -311,14 +432,8 @@ export default function LuxRecoveryRoadmapPage() {
             ))}
           </div>
 
-          <div style={{ marginBottom: 28 }}>
-            <LuxHairline />
-          </div>
-
           <LuxEyebrow>{LUX_FIRST_VISIBLE_RELEASE_TITLE}</LuxEyebrow>
-          <p style={{ margin: '10px 0 28px', fontSize: 14, color: T.ivoryMuted, lineHeight: 1.65 }}>
-            {LUX_FIRST_VISIBLE_RELEASE_BODY}
-          </p>
+          <p style={{ margin: '10px 0 28px', fontSize: 14, color: T.ivoryMuted, lineHeight: 1.65 }}>{LUX_FIRST_VISIBLE_RELEASE_BODY}</p>
 
           <div style={{ marginBottom: 28 }}>
             <LuxHairline />
@@ -327,9 +442,11 @@ export default function LuxRecoveryRoadmapPage() {
           <LuxEyebrow>Your confirmation</LuxEyebrow>
 
           {!hasMagicLink ? (
-            <div style={{ ...cardStyle, marginTop: 14, color: T.ivoryMuted, fontSize: 14, lineHeight: 1.55 }}>
-              This page is shared through a private link from your team. Use that link to submit pillar priorities and
-              correct our understanding.
+            <div
+              data-testid="lux-recovery-review-only"
+              style={{ ...cardStyle, marginTop: 14, color: T.ivoryMuted, fontSize: 14, lineHeight: 1.55 }}
+            >
+              {LUX_RECOVERY_REVIEW_ONLY_NOTE}
             </div>
           ) : null}
 
@@ -352,7 +469,7 @@ export default function LuxRecoveryRoadmapPage() {
           ) : null}
 
           {showForm ? (
-            <div style={{ marginTop: 14, ...cardStyle }}>
+            <div data-testid="lux-recovery-decision-form" style={{ marginTop: 14, ...cardStyle }}>
               <label
                 htmlFor="lux-product-direction-overall"
                 style={{ display: 'block', fontSize: 14, fontWeight: 600, marginBottom: 10, color: T.ivory }}

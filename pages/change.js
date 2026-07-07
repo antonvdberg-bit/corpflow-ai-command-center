@@ -2262,8 +2262,11 @@ export default function ChangeConsolePage() {
     : [];
   const showLuxPhase1ReviewPanel =
     String(selectedTicketId || '').trim() === LUX_PHASE1_REVIEW_TICKET_ID && approvedBuild && !luxPhase1ReviewDone;
+  const isLuxRecoveryRoadmapTicket = String(selectedTicketId || '').trim() === LUX_RECOVERY_ROADMAP_TICKET_ID;
+  const luxRecoveryReviewPreviewPath = '/client/recovery-roadmap';
   const showLuxRecoveryRoadmapPanel =
-    String(selectedTicketId || '').trim() === LUX_RECOVERY_ROADMAP_TICKET_ID && approvedBuild && !luxRecoveryRoadmapDone;
+    isLuxRecoveryRoadmapTicket && approvedBuild && !luxRecoveryRoadmapDone;
+  const showLuxRecoveryReviewOperatorStrip = isLuxRecoveryRoadmapTicket;
   const showLuxRecoveryDecisionReceived =
     String(selectedTicketId || '').trim() === LUX_RECOVERY_ROADMAP_TICKET_ID &&
     (recoveryOperatorSignal?.type === 'client_product_direction_confirmation' ||
@@ -3427,7 +3430,7 @@ export default function ChangeConsolePage() {
                 </div>
               ) : null}
 
-              {showLuxRecoveryRoadmapPanel ? (
+              {showLuxRecoveryReviewOperatorStrip ? (
                 <div
                   style={{
                     border: '1px solid rgba(168,132,44,0.45)',
@@ -3435,14 +3438,33 @@ export default function ChangeConsolePage() {
                     padding: 14,
                     background: 'rgba(168,132,44,0.1)',
                   }}
+                  data-testid="lux-recovery-operator-strip"
                 >
-                  <div style={{ fontSize: 12, fontWeight: 950, color: '#F4EFE8' }}>Next: product direction confirmation</div>
+                  <div style={{ fontSize: 12, fontWeight: 950, color: '#F4EFE8' }}>Lux recovery review surface</div>
                   <div style={{ marginTop: 6, fontSize: 12, color: '#cbd5e1', lineHeight: 1.45 }}>
-                    Send a one-time link to <code style={{ color: '#e2e8f0' }}>/client/recovery-roadmap</code> so Jan can
-                    confirm or correct our understanding of each product pillar, set priorities, and note what we
-                    misunderstood. No login required for the client.
+                    Open <code style={{ color: '#e2e8f0' }}>{luxRecoveryReviewPreviewPath}</code> to preview what Jan sees
+                    (ready now, Release 1, content needed, not-MVP, 48-hour plan). Mint a one-time link when you are
+                    ready for Jan to submit product direction confirmation — no login required for the client.
                   </div>
                   <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <a
+                      href={luxRecoveryReviewPreviewPath}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        padding: '10px 12px',
+                        borderRadius: 12,
+                        border: '1px solid rgba(148,163,184,0.35)',
+                        background: 'rgba(15,23,42,0.35)',
+                        color: '#e2e8f0',
+                        fontWeight: 900,
+                        textDecoration: 'none',
+                        fontSize: 12,
+                      }}
+                    >
+                      Open recovery review preview
+                    </a>
+                    {showLuxRecoveryRoadmapPanel ? (
                     <button
                       type="button"
                       onClick={mintClientDecisionLink}
@@ -3457,8 +3479,9 @@ export default function ChangeConsolePage() {
                         cursor: clientDecisionBusy ? 'not-allowed' : 'pointer',
                       }}
                     >
-                      {clientDecisionBusy ? 'Generating…' : 'Send product direction link'}
+                      {clientDecisionBusy ? 'Generating…' : 'Mint decision link for Jan'}
                     </button>
+                    ) : null}
                     {clientDecisionLink ? (
                       <button
                         type="button"
@@ -3509,13 +3532,19 @@ export default function ChangeConsolePage() {
                   {clientDecisionStatus ? (
                     <div style={{ marginTop: 8, fontSize: 11, color: '#94a3b8' }}>{clientDecisionStatus}</div>
                   ) : null}
+                  {!showLuxRecoveryRoadmapPanel && !luxRecoveryRoadmapDone ? (
+                    <div style={{ marginTop: 8, fontSize: 11, color: '#94a3b8' }}>
+                      Mint decision link is available when this ticket is Approved / Build and client confirmation is
+                      still outstanding.
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
 
               {showLuxRecoveryDecisionReceived ? (
                 <div
                   style={{
-                    marginTop: showLuxRecoveryRoadmapPanel ? 12 : 0,
+                    marginTop: showLuxRecoveryReviewOperatorStrip ? 12 : 0,
                     border:
                       recoveryOperatorSignal?.status === 'ready_for_review'
                         ? '1px solid rgba(74,222,128,0.35)'
@@ -3567,7 +3596,7 @@ export default function ChangeConsolePage() {
               approvedBuild ? (
                 <div
                   style={{
-                    marginTop: showLuxRecoveryRoadmapPanel ? 12 : 0,
+                    marginTop: showLuxRecoveryReviewOperatorStrip ? 12 : 0,
                     border: '1px solid rgba(74,222,128,0.35)',
                     borderRadius: 14,
                     padding: 12,
@@ -3577,8 +3606,8 @@ export default function ChangeConsolePage() {
                     lineHeight: 1.45,
                   }}
                 >
-                  Product direction confirmation is complete for this ticket. Review pillar choices and corrections
-                  above before resuming delivery work.
+                  Recovery review confirmation is complete for this ticket. Review pillar choices and corrections above
+                  before resuming delivery work.
                 </div>
               ) : null}
 
