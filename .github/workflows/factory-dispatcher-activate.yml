@@ -1,5 +1,6 @@
 # Polls business-operations dispatcher and runs agent activation.
 # Default: dry-run plan only. Manual workflow_dispatch may set activation_mode=cursor_live.
+# Optional target_issue bypasses dispatcher cursor routings for one direct GitHub issue.
 # Scheduled runs always remain dry_run until Anton enables live schedule separately.
 #
 # Repo secrets (Settings → Secrets and variables → Actions):
@@ -34,9 +35,15 @@ on:
         required: false
         default: false
         type: boolean
+      target_issue:
+        description: "Optional GitHub issue number for direct Cursor activation (manual only; blank = dispatcher)"
+        required: false
+        default: ""
+        type: string
 
 permissions:
   contents: read
+  issues: read
 
 concurrency:
   group: factory-dispatcher-activate
@@ -64,7 +71,8 @@ jobs:
           if [ "${{ github.event_name }}" = "schedule" ]; then
             echo "mode=dry_run" >> "$GITHUB_OUTPUT"
             echo "smoke_internal=0" >> "$GITHUB_OUTPUT"
-            echo "Scheduled run — forcing dry_run"
+            echo "target_issue=" >> "$GITHUB_OUTPUT"
+            echo "Scheduled run — forcing dry_run (target_issue ignored)"
           else
             echo "mode=${{ inputs.activation_mode }}" >> "$GITHUB_OUTPUT"
             if [ "${{ inputs.smoke_internal }}" = "true" ]; then
@@ -72,7 +80,8 @@ jobs:
             else
               echo "smoke_internal=0" >> "$GITHUB_OUTPUT"
             fi
-            echo "Manual run — activation_mode=${{ inputs.activation_mode }} smoke_internal=${{ inputs.smoke_internal }}"
+            echo "target_issue=${{ inputs.target_issue }}" >> "$GITHUB_OUTPUT"
+            echo "Manual run — activation_mode=${{ inputs.activation_mode }} smoke_internal=${{ inputs.smoke_internal }} target_issue=${{ inputs.target_issue }}"
           fi
 
       # Pinned SHAs (supply chain): tag v4
@@ -89,6 +98,11 @@ jobs:
         run: |
           set -euo pipefail
           echo "Dispatcher activator mode: ${{ steps.mode.outputs.mode }}"
+          if [ -n "${{ steps.mode.outputs.target_issue }}" ]; then
+            echo "  target_issue               : ${{ steps.mode.outputs.target_issue }} (direct-issue path)"
+          else
+            echo "  target_issue               : (blank — dispatcher fetch)"
+          fi
           if [ -n "${CORE_BASE_PRESENT:-}" ] || [ -n "${HEALTH_URL_PRESENT:-}" ]; then
             echo "  dispatcher URL source       : configured"
           else
@@ -114,11 +128,15 @@ jobs:
         env:
           DISPATCHER_ACTIVATION_MODE: ${{ steps.mode.outputs.mode }}
           DISPATCHER_ACTIVATION_SMOKE_INTERNAL: ${{ steps.mode.outputs.smoke_internal }}
+          DISPATCHER_ACTIVATION_TARGET_ISSUE: ${{ steps.mode.outputs.target_issue }}
+          DISPATCHER_ACTIVATION_EVENT_NAME: ${{ github.event_name }}
           DISPATCHER_ACTIVATION_STATE_PATH: .dispatcher-activation-state/dedupe.json
           CORPFLOW_CORE_BASE_URL: ${{ secrets.CORPFLOW_CORE_BASE_URL }}
           CORPFLOW_FACTORY_HEALTH_URL: ${{ secrets.CORPFLOW_FACTORY_HEALTH_URL }}
           CORPFLOW_CRON_SECRET: ${{ secrets.CORPFLOW_CRON_SECRET }}
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPO: ${{ github.repository }}
         run: node scripts/dispatcher-agent-activation.mjs --fetch --activate --persist-dedupe
 
       - name: Upload activation result artifact (always)

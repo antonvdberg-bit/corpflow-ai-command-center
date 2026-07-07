@@ -60,6 +60,14 @@ Companion policy docs (unchanged):
 | `schedule` | Every 2 hours (`0 */2 * * *` UTC) |
 | `workflow_dispatch` | Manual run |
 
+**Manual inputs (`workflow_dispatch`):**
+
+| Input | Default | Purpose |
+|-------|---------|---------|
+| `activation_mode` | `dry_run` | `dry_run` or `cursor_live` |
+| `smoke_internal` | `false` | Inject internal smoke cursor routing when dispatcher has none |
+| `target_issue` | *(blank)* | Numeric GitHub issue for direct Cursor activation; blank = dispatcher fetch |
+
 **Repo secrets (same pattern as `factory-cmp-drive.yml`):**
 
 | Secret | Purpose |
@@ -67,6 +75,9 @@ Companion policy docs (unchanged):
 | `CORPFLOW_CORE_BASE_URL` | e.g. `https://core.corpflowai.com` |
 | `CORPFLOW_CRON_SECRET` | Same value as Vercel `CORPFLOW_CRON_SECRET` / `CRON_SECRET` |
 | `CORPFLOW_FACTORY_HEALTH_URL` | Optional fallback to derive dispatcher URL |
+| `CURSOR_API_KEY` | Required for `activation_mode=cursor_live` only |
+
+Built-in **`GITHUB_TOKEN`** (`issues: read`) fetches `target_issue` title/body when direct-issue activation is used.
 
 If secrets are missing, the job **exits 0 (skipped)** so forks stay green.
 
@@ -95,13 +106,15 @@ If secrets are missing, the job **exits 0 (skipped)** so forks stay green.
 | Path | Role |
 |------|------|
 | `lib/server/dispatcher-agent-activation.js` | Pure plan builder (`corpflow.dispatcher_agent_activation.v1`) |
-| `scripts/dispatcher-agent-activation.mjs` | CLI: `--fixtures`, `--file`, `--fetch` |
+| `scripts/dispatcher-agent-activation.mjs` | CLI: `--fixtures`, `--file`, `--fetch`, `--target-issue` |
 | `node-tests/dispatcher-agent-activation.test.mjs` | Formatter tests (no live secrets) |
+| `node-tests/dispatcher-direct-issue-activation.test.mjs` | Direct `target_issue` activation tests |
 
 ### 4.5 Local verification
 
 ```powershell
 node --test node-tests/dispatcher-agent-activation.test.mjs
+node --test node-tests/dispatcher-direct-issue-activation.test.mjs
 npm run dispatcher:activate:fixtures
 npm run dispatcher:activate:fetch
 ```
@@ -117,13 +130,32 @@ GHA cache persists `.dispatcher-activation-state/dedupe.json`. Key: `owner:objec
 ### Phase 3 — Cursor live activation (manual GHA only)
 
 - 2026-07-06: First GitHub Actions `cursor_live` smoke completed (internal ops smoke only; no secrets recorded).
-- Anton adds `CURSOR_API_KEY` to GHA secrets.
-- Activator calls `POST https://api.cursor.com/v1/agents` with `executorPrompt`, repo URL, `autoCreatePR: true`.
-- Post activation receipt to #249 (audit trail only).
 - `workflow_dispatch` input `activation_mode: cursor_live`; **scheduled runs stay `dry_run`**.
+- Optional `workflow_dispatch` input `target_issue` — **manual only**. When set to a numeric GitHub issue (e.g. `553`), the activator **skips dispatcher cursor routings** and builds **exactly one** Cursor candidate from that issue (title, URL, body in `executorPrompt`). Blank `target_issue` preserves the existing dispatcher fetch path.
 - Secret: `CURSOR_API_KEY` (GHA only; never logged).
 - `POST https://api.cursor.com/v1/agents` with `executorPrompt`, repo `antonvdberg-bit/corpflow-ai-command-center`, `startingRef: main`, `autoCreatePR: true`.
 - Max **1** live Cursor activation per run. `codex` remains dry-run only.
+- Post activation receipt to #249 (audit trail only).
+
+#### Manual run — direct issue activation (Option B)
+
+Use when the production dispatcher returns **zero** `owner=cursor` routings but Anton wants to activate one approved GitHub issue directly.
+
+1. GitHub → **Actions** → **Factory dispatcher activate** → **Run workflow**.
+2. Set:
+   - `activation_mode` = **`cursor_live`**
+   - `target_issue` = **`553`** (numeric issue only; first target: Cursor spend/value/burn-rate guardrails)
+   - Leave `smoke_internal` **unchecked** unless you intend the internal smoke routing.
+3. Ensure repo secret **`CURSOR_API_KEY`** is set (required for `cursor_live`).
+4. Workflow uses built-in **`GITHUB_TOKEN`** (`issues: read`) to fetch the issue title/body — no extra secret.
+5. Expected: one Cursor Cloud agent created, PR opened by Cursor (Anton merges manually). Artifact `dispatcher-activation-result` includes `activation-plan.json`.
+
+**Safety (unchanged):** no auto-merge, no production deploy, no env/DB changes, no client sends. Scheduled runs **ignore** `target_issue` and remain `dry_run` only.
+
+```text
+activation_mode=cursor_live
+target_issue=553
+```
 
 ### Phase 4 — Codex activation
 
