@@ -31,6 +31,11 @@
       "has": [{ "type": "host", "value": "www.luxe.corpflowai.com" }],
       "destination": "/lux-landing-static.html"
     },
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "living-word-mauritius.corpflowai.com" }],
+      "destination": "/site-preview"
+    },
     { "source": "/lux-landing-static", "destination": "/lux-landing-static.html" },
     { "source": "/api/(.*)", "destination": "/api/factory_router?__path=$1" },
     { "source": "/login", "destination": "/login.html" },
