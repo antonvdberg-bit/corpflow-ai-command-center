@@ -18,9 +18,17 @@ import {
   runDispatcherActivation,
   validateDirectIssueActivationContext,
 } from '../lib/server/dispatcher-agent-activation.js';
+import {
+  buildCursorOpsStatus,
+  buildCursorOpsStatusFromActivation,
+  CURSOR_OPS_STATUS_FILENAME,
+  formatCursorOpsStatusLogBlock,
+  postCursorOpsStatusComment,
+} from '../lib/server/cursor-ops-status.js';
 
 const FIXTURE_DISPATCHER = 'node-tests/fixtures/business-operations-dispatcher-sample.json';
 const DEFAULT_DEDUPE_PATH = '.dispatcher-activation-state/dedupe.json';
+const CURSOR_OPS_STATUS_PATH = CURSOR_OPS_STATUS_FILENAME;
 
 /**
  * @param {string} filePath
@@ -88,33 +96,126 @@ async function fetchDispatcherReport(url, token) {
 }
 
 /**
+ * @param {import('../lib/server/cursor-ops-status.js').ReturnType<typeof buildCursorOpsStatus>} status
+ */
+function writeCursorOpsStatus(status) {
+  fs.writeFileSync(CURSOR_OPS_STATUS_PATH, `${JSON.stringify(status, null, 2)}\n`);
+}
+
+function resolveWorkflowContext() {
+  return {
+    runId: String(process.env.GITHUB_RUN_ID || '').trim() || null,
+    jobId: String(process.env.GITHUB_JOB || '').trim() || null,
+  };
+}
+
+/**
+ * @param {{
+ *   mode: string,
+ *   targetIssue: string,
+ *   result?: Record<string, unknown> | null,
+ *   error?: Error | string | null,
+ *   startedAt: string,
+ *   githubToken: string,
+ *   repoFullName: string,
+ *   postComment?: boolean,
+ * }} ctx
+ */
+async function finalizeOpsStatus(ctx) {
+  const status = buildCursorOpsStatusFromActivation(ctx.mode, ctx.result, {
+    error: ctx.error,
+    targetIssue: ctx.targetIssue,
+    workflow: resolveWorkflowContext(),
+    startedAt: ctx.startedAt,
+  });
+
+  writeCursorOpsStatus(status);
+  console.log(formatCursorOpsStatusLogBlock(status));
+
+  if (ctx.postComment && ctx.githubToken) {
+    try {
+      await postCursorOpsStatusComment(status, {
+        token: ctx.githubToken,
+        repoFullName: ctx.repoFullName || undefined,
+      });
+      console.log(
+        `Cursor ops status comment posted to issue #${status.target_issue || '249'}`,
+      );
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.log(`Cursor ops status comment skipped: ${msg}`);
+    }
+  }
+
+  return status;
+}
+
+/**
  * @param {Record<string, unknown>} report
- * @param {{ mode: string, dedupePath: string, persistDedupe: boolean, smokeInternal?: boolean, directIssue?: boolean }} opts
+ * @param {{
+ *   mode: string,
+ *   dedupePath: string,
+ *   persistDedupe: boolean,
+ *   smokeInternal?: boolean,
+ *   directIssue?: boolean,
+ *   targetIssue?: string,
+ *   githubToken?: string,
+ *   repoFullName?: string,
+ *   postComment?: boolean,
+ * }} opts
  */
 async function emitActivation(report, opts) {
   const mode = normalizeActivationMode(opts.mode);
   const dedupeState = loadDedupeStateFile(opts.dedupePath);
   const cursorApiKey = String(process.env.CURSOR_API_KEY || '').trim();
+  const startedAt = new Date().toISOString();
 
-  const result = await runDispatcherActivation(report, {
-    mode,
-    dedupeState,
-    cursorApiKey,
-    smokeInternal: opts.smokeInternal,
-    directIssue: Boolean(opts.directIssue),
-  });
+  let result = null;
+  let error = null;
 
-  console.log(formatActivationResultText(result));
-  const json = JSON.stringify(result, null, 2);
-  console.log(json);
-  fs.writeFileSync('activation-plan.json', json);
+  try {
+    result = await runDispatcherActivation(report, {
+      mode,
+      dedupeState,
+      cursorApiKey,
+      smokeInternal: opts.smokeInternal,
+      directIssue: Boolean(opts.directIssue),
+    });
 
-  if (opts.persistDedupe && mode === 'cursor_live' && result.live?.cursor) {
-    saveDedupeStateFile(opts.dedupePath, result.dedupeState);
-    console.log(`dedupe state updated: ${opts.dedupePath}`);
+    console.log(formatActivationResultText(result));
+    const json = JSON.stringify(result, null, 2);
+    console.log(json);
+    fs.writeFileSync('activation-plan.json', json);
+
+    if (opts.persistDedupe && mode === 'cursor_live' && result.live?.cursor) {
+      saveDedupeStateFile(opts.dedupePath, result.dedupeState);
+      console.log(`dedupe state updated: ${opts.dedupePath}`);
+    }
+  } catch (err) {
+    error = err instanceof Error ? err : new Error(String(err));
+    console.error(error.message);
+    fs.writeFileSync(
+      'activation-plan.json',
+      `${JSON.stringify({ ok: false, error: error.message }, null, 2)}\n`,
+    );
   }
 
-  return result;
+  const status = await finalizeOpsStatus({
+    mode,
+    targetIssue: String(opts.targetIssue || ''),
+    result,
+    error,
+    startedAt,
+    githubToken: String(opts.githubToken || ''),
+    repoFullName: String(opts.repoFullName || ''),
+    postComment: Boolean(opts.postComment),
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  return { result, status };
 }
 
 function resolveCliOptions() {
@@ -140,7 +241,17 @@ function resolveCliOptions() {
     process.env.GITHUB_TOKEN || process.env.GH_TOKEN || '',
   ).trim();
   const repoFullName = String(process.env.GITHUB_REPO || '').trim();
-  return { mode, dedupePath, smokeInternal, targetIssue, eventName, githubToken, repoFullName };
+  const postComment = process.env.DISPATCHER_ACTIVATION_POST_COMMENT === '1';
+  return {
+    mode,
+    dedupePath,
+    smokeInternal,
+    targetIssue,
+    eventName,
+    githubToken,
+    repoFullName,
+    postComment,
+  };
 }
 
 /**
@@ -181,68 +292,111 @@ async function resolveDirectIssueReport(opts) {
 }
 
 async function runCli() {
-  const { mode, dedupePath, smokeInternal, targetIssue, eventName, githubToken, repoFullName } =
-    resolveCliOptions();
+  const {
+    mode,
+    dedupePath,
+    smokeInternal,
+    targetIssue,
+    eventName,
+    githubToken,
+    repoFullName,
+    postComment,
+  } = resolveCliOptions();
   const persistDedupe = process.argv.includes('--persist-dedupe') || mode === 'cursor_live';
+  const activationOpts = {
+    mode,
+    dedupePath,
+    persistDedupe,
+    smokeInternal,
+    targetIssue,
+    githubToken,
+    repoFullName,
+    postComment,
+  };
 
-  if (process.argv.includes('--fixtures')) {
-    const report = readJsonFile(FIXTURE_DISPATCHER);
-    await emitActivation(report, { mode, dedupePath, persistDedupe: false, smokeInternal });
-    process.exit(0);
-  }
+  try {
+    if (process.argv.includes('--fixtures')) {
+      const report = readJsonFile(FIXTURE_DISPATCHER);
+      await emitActivation(report, { ...activationOpts, persistDedupe: false });
+      process.exit(0);
+    }
 
-  const fileIdx = process.argv.indexOf('--file');
-  if (fileIdx >= 0 && process.argv[fileIdx + 1]) {
-    const report = readJsonFile(String(process.argv[fileIdx + 1]).trim());
-    await emitActivation(report, { mode, dedupePath, persistDedupe: false, smokeInternal });
-    process.exit(0);
-  }
+    const fileIdx = process.argv.indexOf('--file');
+    if (fileIdx >= 0 && process.argv[fileIdx + 1]) {
+      const report = readJsonFile(String(process.argv[fileIdx + 1]).trim());
+      await emitActivation(report, { ...activationOpts, persistDedupe: false });
+      process.exit(0);
+    }
 
-  if (process.argv.includes('--fetch') || process.argv.includes('--activate')) {
-    const directReport = await resolveDirectIssueReport({
-      targetIssue,
-      eventName,
-      githubToken,
-      repoFullName,
-    });
-
-    if (directReport) {
-      await emitActivation(directReport, {
-        mode,
-        dedupePath,
-        persistDedupe,
-        smokeInternal: false,
-        directIssue: true,
+    if (process.argv.includes('--fetch') || process.argv.includes('--activate')) {
+      const directReport = await resolveDirectIssueReport({
+        targetIssue,
+        eventName,
+        githubToken,
+        repoFullName,
       });
+
+      if (directReport) {
+        await emitActivation(directReport, {
+          ...activationOpts,
+          persistDedupe,
+          smokeInternal: false,
+          directIssue: true,
+        });
+        process.exit(0);
+      }
+
+      const coreBase = String(process.env.CORPFLOW_CORE_BASE_URL || '').trim();
+      const healthUrl = String(
+        process.env.CORPFLOW_FACTORY_HEALTH_URL || process.env.FACTORY_HEALTH_URL || '',
+      ).trim();
+      const url =
+        resolveDispatcherActivationUrl(coreBase) ||
+        resolveDispatcherActivationUrl(healthUrl);
+
+      const token = String(process.env.CORPFLOW_CRON_SECRET || process.env.CRON_SECRET || '').trim();
+
+      if (!url || !token) {
+        console.log(
+          'Skip: set CORPFLOW_CORE_BASE_URL (or CORPFLOW_FACTORY_HEALTH_URL) and CORPFLOW_CRON_SECRET.',
+        );
+        const status = buildCursorOpsStatus({
+          ...buildCursorOpsStatusFromActivation(mode, null, {
+            targetIssue,
+            workflow: resolveWorkflowContext(),
+          }),
+          activation_status: 'skipped',
+          notes: 'Dispatcher secrets missing — activation skipped (fork-safe exit 0).',
+        });
+        writeCursorOpsStatus(status);
+        console.log(formatCursorOpsStatusLogBlock(status));
+        process.exit(0);
+      }
+
+      const report = await fetchDispatcherReport(url, token);
+      await emitActivation(report, activationOpts);
       process.exit(0);
     }
 
-    const coreBase = String(process.env.CORPFLOW_CORE_BASE_URL || '').trim();
-    const healthUrl = String(
-      process.env.CORPFLOW_FACTORY_HEALTH_URL || process.env.FACTORY_HEALTH_URL || '',
-    ).trim();
-    const url =
-      resolveDispatcherActivationUrl(coreBase) ||
-      resolveDispatcherActivationUrl(healthUrl);
-
-    const token = String(process.env.CORPFLOW_CRON_SECRET || process.env.CRON_SECRET || '').trim();
-
-    if (!url || !token) {
-      console.log(
-        'Skip: set CORPFLOW_CORE_BASE_URL (or CORPFLOW_FACTORY_HEALTH_URL) and CORPFLOW_CRON_SECRET.',
-      );
-      process.exit(0);
+    console.error(
+      'Usage: node scripts/dispatcher-agent-activation.mjs --fixtures | --file <path> | --fetch [--activate] [--cursor-live] [--target-issue <n>]',
+    );
+    process.exit(2);
+  } catch (err) {
+    if (!fs.existsSync(CURSOR_OPS_STATUS_PATH)) {
+      await finalizeOpsStatus({
+        mode,
+        targetIssue,
+        result: null,
+        error: err instanceof Error ? err : new Error(String(err)),
+        startedAt: new Date().toISOString(),
+        githubToken,
+        repoFullName,
+        postComment,
+      });
     }
-
-    const report = await fetchDispatcherReport(url, token);
-    await emitActivation(report, { mode, dedupePath, persistDedupe, smokeInternal });
-    process.exit(0);
+    process.exit(1);
   }
-
-  console.error(
-    'Usage: node scripts/dispatcher-agent-activation.mjs --fixtures | --file <path> | --fetch [--activate] [--cursor-live] [--target-issue <n>]',
-  );
-  process.exit(2);
 }
 
 const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
