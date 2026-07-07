@@ -19,11 +19,18 @@ import {
   validateDirectIssueActivationContext,
 } from '../lib/server/dispatcher-agent-activation.js';
 import {
+  assertStrictTargetIssueObservabilityPrerequisites,
   buildCursorOpsStatus,
   buildCursorOpsStatusFromActivation,
+  buildObservabilityFailedStatus,
+  createEmptyObservability,
   CURSOR_OPS_STATUS_FILENAME,
   formatCursorOpsStatusLogBlock,
+  postCursorActivationFinishedComment,
+  postCursorActivationStartedComment,
   postCursorOpsStatusComment,
+  requiresStrictTargetIssueObservability,
+  resolveGithubWorkflowContextFromEnv,
 } from '../lib/server/cursor-ops-status.js';
 
 const FIXTURE_DISPATCHER = 'node-tests/fixtures/business-operations-dispatcher-sample.json';
@@ -96,16 +103,20 @@ async function fetchDispatcherReport(url, token) {
 }
 
 /**
- * @param {import('../lib/server/cursor-ops-status.js').ReturnType<typeof buildCursorOpsStatus>} status
+ * @param {ReturnType<typeof buildCursorOpsStatus>} status
  */
 function writeCursorOpsStatus(status) {
   fs.writeFileSync(CURSOR_OPS_STATUS_PATH, `${JSON.stringify(status, null, 2)}\n`);
 }
 
 function resolveWorkflowContext() {
+  const gh = resolveGithubWorkflowContextFromEnv();
   return {
-    runId: String(process.env.GITHUB_RUN_ID || '').trim() || null,
-    jobId: String(process.env.GITHUB_JOB || '').trim() || null,
+    runId: gh.runId,
+    jobId: gh.jobId,
+    workflowRunUrl: gh.workflowRunUrl,
+    sha: gh.sha,
+    repository: gh.repository,
   };
 }
 
@@ -113,38 +124,127 @@ function resolveWorkflowContext() {
  * @param {{
  *   mode: string,
  *   targetIssue: string,
- *   result?: Record<string, unknown> | null,
- *   error?: Error | string | null,
- *   startedAt: string,
+ *   eventName: string,
  *   githubToken: string,
  *   repoFullName: string,
  *   postComment?: boolean,
+ *   observability: import('../lib/server/cursor-ops-status.js').CursorOpsObservability,
+ *   startedAt: string,
+ * }} ctx
+ */
+async function postStartedCommentIfRequired(ctx) {
+  const strict = requiresStrictTargetIssueObservability({
+    eventName: ctx.eventName,
+    targetIssue: ctx.targetIssue,
+  });
+  if (!strict) return;
+
+  assertStrictTargetIssueObservabilityPrerequisites({
+    eventName: ctx.eventName,
+    targetIssue: ctx.targetIssue,
+    githubToken: ctx.githubToken,
+  });
+
+  const workflow = resolveWorkflowContext();
+  await postCursorActivationStartedComment(
+    {
+      targetIssue: ctx.targetIssue,
+      activationMode: ctx.mode,
+      workflowRunId: workflow.runId,
+      workflowRunUrl: workflow.workflowRunUrl,
+      commitSha: workflow.sha,
+    },
+    {
+      token: ctx.githubToken,
+      repoFullName: ctx.repoFullName || workflow.repository || undefined,
+    },
+  );
+
+  ctx.observability.started_comment_posted = true;
+  ctx.observability.comment_issue = String(ctx.targetIssue);
+  console.log(`Cursor activation STARTED comment posted to issue #${ctx.targetIssue}`);
+}
+
+/**
+ * @param {{
+ *   mode: string,
+ *   targetIssue: string,
+ *   eventName: string,
+ *   githubToken: string,
+ *   repoFullName: string,
+ *   postComment?: boolean,
+ *   result?: Record<string, unknown> | null,
+ *   error?: Error | string | null,
+ *   observability: import('../lib/server/cursor-ops-status.js').CursorOpsObservability,
+ *   startedAt: string,
  * }} ctx
  */
 async function finalizeOpsStatus(ctx) {
-  const status = buildCursorOpsStatusFromActivation(ctx.mode, ctx.result, {
+  const workflow = resolveWorkflowContext();
+  let status = buildCursorOpsStatusFromActivation(ctx.mode, ctx.result, {
     error: ctx.error,
     targetIssue: ctx.targetIssue,
-    workflow: resolveWorkflowContext(),
+    workflow: {
+      runId: workflow.runId,
+      jobId: workflow.jobId,
+      workflowRunUrl: workflow.workflowRunUrl,
+    },
     startedAt: ctx.startedAt,
+    observability: ctx.observability,
   });
 
   writeCursorOpsStatus(status);
   console.log(formatCursorOpsStatusLogBlock(status));
 
-  if (ctx.postComment && ctx.githubToken) {
-    try {
+  const strict = requiresStrictTargetIssueObservability({
+    eventName: ctx.eventName,
+    targetIssue: ctx.targetIssue,
+  });
+
+  const shouldPostFinished =
+    strict || (ctx.postComment && ctx.githubToken && (ctx.targetIssue || true));
+
+  if (!shouldPostFinished) {
+    return status;
+  }
+
+  try {
+    if (strict) {
+      await postCursorActivationFinishedComment(status, {
+        token: ctx.githubToken,
+        repoFullName: ctx.repoFullName || workflow.repository || undefined,
+      });
+    } else if (ctx.postComment && ctx.githubToken) {
       await postCursorOpsStatusComment(status, {
         token: ctx.githubToken,
-        repoFullName: ctx.repoFullName || undefined,
+        repoFullName: ctx.repoFullName || workflow.repository || undefined,
       });
-      console.log(
-        `Cursor ops status comment posted to issue #${status.target_issue || '249'}`,
-      );
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.log(`Cursor ops status comment skipped: ${msg}`);
     }
+    ctx.observability.finished_comment_posted = true;
+    if (!ctx.observability.comment_issue && status.target_issue) {
+      ctx.observability.comment_issue = status.target_issue;
+    }
+    status = buildCursorOpsStatus({
+      ...status,
+      observability: { ...ctx.observability },
+      last_seen_at: new Date().toISOString(),
+    });
+    writeCursorOpsStatus(status);
+    console.log(
+      `Cursor activation FINISHED comment posted to issue #${status.target_issue || '249'}`,
+    );
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    if (strict) {
+      status = buildObservabilityFailedStatus(status, message, {
+        ...ctx.observability,
+        finished_comment_posted: false,
+      });
+      writeCursorOpsStatus(status);
+      console.log(formatCursorOpsStatusLogBlock(status));
+      throw new Error(`FINISHED comment failed for target_issue #${ctx.targetIssue}: ${message}`);
+    }
+    console.log(`Cursor ops FINISHED comment skipped (non-strict): ${message}`);
   }
 
   return status;
@@ -159,6 +259,7 @@ async function finalizeOpsStatus(ctx) {
  *   smokeInternal?: boolean,
  *   directIssue?: boolean,
  *   targetIssue?: string,
+ *   eventName?: string,
  *   githubToken?: string,
  *   repoFullName?: string,
  *   postComment?: boolean,
@@ -169,6 +270,22 @@ async function emitActivation(report, opts) {
   const dedupeState = loadDedupeStateFile(opts.dedupePath);
   const cursorApiKey = String(process.env.CURSOR_API_KEY || '').trim();
   const startedAt = new Date().toISOString();
+  const targetIssue = String(opts.targetIssue || '').trim();
+  const eventName = String(opts.eventName || '').trim();
+  const githubToken = String(opts.githubToken || '').trim();
+  const repoFullName = String(opts.repoFullName || '').trim();
+  const observability = createEmptyObservability(targetIssue || null);
+
+  await postStartedCommentIfRequired({
+    mode,
+    targetIssue,
+    eventName,
+    githubToken,
+    repoFullName,
+    postComment: opts.postComment,
+    observability,
+    startedAt,
+  });
 
   let result = null;
   let error = null;
@@ -202,13 +319,15 @@ async function emitActivation(report, opts) {
 
   const status = await finalizeOpsStatus({
     mode,
-    targetIssue: String(opts.targetIssue || ''),
+    targetIssue,
+    eventName,
+    githubToken,
+    repoFullName,
+    postComment: opts.postComment,
     result,
     error,
+    observability,
     startedAt,
-    githubToken: String(opts.githubToken || ''),
-    repoFullName: String(opts.repoFullName || ''),
-    postComment: Boolean(opts.postComment),
   });
 
   if (error) {
@@ -220,7 +339,8 @@ async function emitActivation(report, opts) {
 
 function resolveCliOptions() {
   const mode = normalizeActivationMode(
-    process.env.DISPATCHER_ACTIVATION_MODE ||
+    process.env.ACTIVATION_MODE ||
+      process.env.DISPATCHER_ACTIVATION_MODE ||
       (process.argv.includes('--cursor-live') ? 'cursor_live' : 'dry_run'),
   );
   const dedupePath = String(
@@ -231,6 +351,7 @@ function resolveCliOptions() {
     process.argv.includes('--smoke-internal');
   const targetIssueArgIdx = process.argv.indexOf('--target-issue');
   const targetIssue =
+    process.env.TARGET_ISSUE ||
     process.env.DISPATCHER_ACTIVATION_TARGET_ISSUE ||
     (targetIssueArgIdx >= 0 ? process.argv[targetIssueArgIdx + 1] : '');
   const eventName =
@@ -240,7 +361,9 @@ function resolveCliOptions() {
   const githubToken = String(
     process.env.GITHUB_TOKEN || process.env.GH_TOKEN || '',
   ).trim();
-  const repoFullName = String(process.env.GITHUB_REPO || '').trim();
+  const repoFullName = String(
+    process.env.GITHUB_REPOSITORY || process.env.GITHUB_REPO || '',
+  ).trim();
   const postComment = process.env.DISPATCHER_ACTIVATION_POST_COMMENT === '1';
   return {
     mode,
@@ -309,6 +432,7 @@ async function runCli() {
     persistDedupe,
     smokeInternal,
     targetIssue,
+    eventName,
     githubToken,
     repoFullName,
     postComment,
@@ -384,16 +508,37 @@ async function runCli() {
     process.exit(2);
   } catch (err) {
     if (!fs.existsSync(CURSOR_OPS_STATUS_PATH)) {
-      await finalizeOpsStatus({
-        mode,
-        targetIssue,
-        result: null,
-        error: err instanceof Error ? err : new Error(String(err)),
-        startedAt: new Date().toISOString(),
-        githubToken,
-        repoFullName,
-        postComment,
-      });
+      const observability = createEmptyObservability(targetIssue || null);
+      const workflow = resolveWorkflowContext();
+      try {
+        if (
+          requiresStrictTargetIssueObservability({ eventName, targetIssue }) &&
+          !observability.started_comment_posted
+        ) {
+          assertStrictTargetIssueObservabilityPrerequisites({
+            eventName,
+            targetIssue,
+            githubToken,
+          });
+        }
+      } catch {
+        // fall through to status write below
+      }
+      const failedStatus = buildObservabilityFailedStatus(
+        buildCursorOpsStatusFromActivation(mode, null, {
+          targetIssue,
+          workflow: {
+            runId: workflow.runId,
+            jobId: workflow.jobId,
+            workflowRunUrl: workflow.workflowRunUrl,
+          },
+          observability,
+        }),
+        err instanceof Error ? err : new Error(String(err)),
+        observability,
+      );
+      writeCursorOpsStatus(failedStatus);
+      console.log(formatCursorOpsStatusLogBlock(failedStatus));
     }
     process.exit(1);
   }

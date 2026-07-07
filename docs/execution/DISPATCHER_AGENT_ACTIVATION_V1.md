@@ -183,14 +183,16 @@ Every run writes **`cursor-ops-status.json`** and uploads it in the **`dispatche
 
 | Field | Meaning |
 |-------|---------|
-| `activation_status` | `started`, `skipped`, `blocked`, `failed`, `pr_opened`, `complete`, `unknown`, `stale_pending_review`, `stale_needs_check` |
+| `activation_status` | `started`, `skipped`, `blocked`, `failed`, `pr_opened`, `complete`, `unknown`, `stale_pending_review`, `stale_needs_check`, `observability_failed` |
 | `workflow_run_id` | GitHub Actions run to inspect logs |
+| `workflow_run_url` | Direct link to the workflow run |
 | `target_issue` | Direct issue number (e.g. `553`) or null for dispatcher path |
 | `cursor_agent_url` | Cursor Cloud agent URL when started |
 | `pr_url` / `pr_number` | PR when visible in Cursor API response |
 | `blocked_reason` | Why activation did not start |
 | `need_anton` | Whether operator action is required |
 | `next_check_after_minutes` | Suggested re-check interval (default **10**) |
+| `observability` | STARTED/FINISHED comment flags + `observability_failed` when issue comments could not be posted |
 
 Local summary:
 
@@ -201,27 +203,54 @@ node scripts/cursor-ops-status-summary.mjs --file cursor-ops-status.json
 
 ### How ChatGPT / n8n should interpret status
 
-1. Download artifact **`dispatcher-activation-result`** from the workflow run (or read the status comment on the target issue / **#249**).
-2. Parse **`cursor-ops-status.json`** — no secrets are included.
-3. Interpret:
+1. **For `target_issue` runs:** read **STARTED** and **FINISHED** comments on that issue first (e.g. #553).
+2. Download artifact **`dispatcher-activation-result`** from the workflow run URL in the comment (or job log).
+3. Parse **`cursor-ops-status.json`** — no secrets are included.
+4. Interpret:
    - `skipped` + `dry_run` → no live activation; re-run with `cursor_live` if intended.
    - `blocked` / `failed` → read `blocked_reason`; `need_anton: true` means stop unattended automation.
+   - `observability_failed` → issue comments missing; **green Actions alone is not acceptable** — fix token/permissions and re-run.
    - `started` + empty `pr_url` → agent running; re-check after `next_check_after_minutes`.
    - `pr_opened` → inspect `pr_url`; Anton still merges manually.
    - `stale_pending_review` → no PR within stale window (see below).
 
 Job logs also print a **`CURSOR OPS STATUS`** block with the same fields.
 
-### Stale-after-10-minutes rule
+### Manual target_issue observability contract
 
-If `activation_status` is **`started`** and **`pr_url` / `pr_number` are still empty** **10 minutes** after `started_at`, consumers should treat the activation as **`stale_pending_review`** (`need_anton: true`). v0 does **not** poll Cursor automatically; n8n or a later monitor pass can apply this rule when re-reading the artifact.
+**A manual `workflow_dispatch` run with `target_issue` set is only operationally successful when the target issue receives both comments:**
+
+1. **`Cursor activation started`** — posted **before** Cursor activation (`activation_status: started_preflight`)
+2. **`Cursor activation finished`** — posted **after** activation with final status (including `blocked`, `failed`, `started`, `pr_opened`, or `observability_failed`)
+
+**Green GitHub Actions without these issue comments is not acceptable** for manual `target_issue` runs.
+
+Failure modes (job **must fail**):
+
+- Missing `GITHUB_TOKEN` (`github.token` in workflow — **not** `secrets.GITHUB_TOKEN`)
+- STARTED comment cannot be posted → fail **before** Cursor activation
+- FINISHED comment cannot be posted → write `cursor-ops-status.json` with `observability_failed`, then fail the job
+
+Dispatcher-only runs (blank `target_issue`) may still post to **#249** when comment posting is enabled; failure there does not fail the job.
+
+ChatGPT/n8n inspection order:
+
+1. Target issue comments (#553)
+2. Artifact **`dispatcher-activation-result`** → **`cursor-ops-status.json`**
+3. Workflow run logs (`CURSOR OPS STATUS` block)
 
 ### Status comments
 
-When `DISPATCHER_ACTIVATION_POST_COMMENT=1` (enabled in GHA), the activator posts a short markdown comment:
+When `DISPATCHER_ACTIVATION_POST_COMMENT=1` (enabled in GHA):
 
-- **`target_issue` set** → comment on that issue (e.g. #553)
-- **otherwise** → comment on Operator Bridge **#249**
+- **`target_issue` set (manual)** → **required** STARTED + FINISHED comments on that issue; job fails if either is missing
+- **otherwise** → optional FINISHED comment on Operator Bridge **#249**
+
+Workflow uses **`GITHUB_TOKEN: ${{ github.token }}`** with `issues: write`.
+
+### Stale-after-10-minutes rule
+
+If `activation_status` is **`started`** and **`pr_url` / `pr_number` are still empty** **10 minutes** after `started_at`, consumers should treat the activation as **`stale_pending_review`** (`need_anton: true`). v0 does **not** poll Cursor automatically; n8n or a later monitor pass can apply this rule when re-reading the artifact.
 
 ### Safety boundaries (Control Tower v0)
 

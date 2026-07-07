@@ -44,7 +44,7 @@ on:
 permissions:
   contents: read
   issues: write
-  pull-requests: read
+  actions: read
 
 concurrency:
   group: factory-dispatcher-activate
@@ -128,18 +128,23 @@ jobs:
       - name: Run dispatcher activation
         env:
           DISPATCHER_ACTIVATION_MODE: ${{ steps.mode.outputs.mode }}
+          ACTIVATION_MODE: ${{ steps.mode.outputs.mode }}
           DISPATCHER_ACTIVATION_SMOKE_INTERNAL: ${{ steps.mode.outputs.smoke_internal }}
           DISPATCHER_ACTIVATION_TARGET_ISSUE: ${{ steps.mode.outputs.target_issue }}
+          TARGET_ISSUE: ${{ steps.mode.outputs.target_issue }}
           DISPATCHER_ACTIVATION_EVENT_NAME: ${{ github.event_name }}
           DISPATCHER_ACTIVATION_STATE_PATH: .dispatcher-activation-state/dedupe.json
           CORPFLOW_CORE_BASE_URL: ${{ secrets.CORPFLOW_CORE_BASE_URL }}
           CORPFLOW_FACTORY_HEALTH_URL: ${{ secrets.CORPFLOW_FACTORY_HEALTH_URL }}
           CORPFLOW_CRON_SECRET: ${{ secrets.CORPFLOW_CRON_SECRET }}
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_REPO: ${{ github.repository }}
           GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
           GITHUB_JOB: ${{ github.job }}
+          GITHUB_SHA: ${{ github.sha }}
           DISPATCHER_ACTIVATION_POST_COMMENT: "1"
         run: node scripts/dispatcher-agent-activation.mjs --fetch --activate --persist-dedupe
 
