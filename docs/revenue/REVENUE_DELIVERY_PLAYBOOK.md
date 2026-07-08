@@ -81,7 +81,7 @@ Warm intro or inbound interest
 
 **Templates:** `docs/revenue/templates/` (10 files).
 
-**Companion docs:** `docs/revenue/MAURITIUS_PAID_PILOT_SALES_PACK_V1.md`, `docs/revenue/MAURITIUS_DISCOVERY_AND_FOLLOW_UP_SEQUENCE_V1.md`.
+**Companion docs:** `docs/revenue/MAURITIUS_PAID_PILOT_SALES_PACK_V1.md`, `docs/revenue/MAURITIUS_DISCOVERY_AND_FOLLOW_UP_SEQUENCE_V1.md`, `docs/operations/ERPNEXT_FIRST_REVENUE_OPERATING_SYSTEM_EVALUATION.md`.
 
 ---
 
@@ -216,5 +216,6 @@ Minimum live GET checks after deploy: `https://corpflowai.com/offers/ai-lead-res
 | Offer config (code) | `lib/public/rapid-delivery-offers.js` |
 | Offer component | `components/RapidDeliveryOfferPage.js` |
 | Templates index | `docs/revenue/templates/` |
+| ERPNext-first evaluation | `docs/operations/ERPNEXT_FIRST_REVENUE_OPERATING_SYSTEM_EVALUATION.md` |
 | Contact fallback | `/contact` |
 | Legacy wedge (USD 150 pilot) | `/lead-rescue` — separate funnel; do not merge offers on one page |
