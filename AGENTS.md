@@ -17,6 +17,49 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 
 <!-- OPENSPEC:END -->
 
+# CorpFlowAI Agent Instructions
+
+When producing implementation work for this repository, Codex must output a `CODEX_PACKET_V1` only unless explicitly instructed otherwise.
+
+Codex must not:
+- create or claim pull requests
+- deploy
+- use, inspect, print, rotate, or modify secrets
+- change production data or schema
+- add migrations
+- add payment runtime
+- add email runtime
+- add WhatsApp runtime
+- add SMS runtime
+- perform external outreach
+- broaden scope beyond the requested packet
+
+Required output format:
+
+CODEX_PACKET_V1
+
+Purpose:
+Business outcome:
+Linked issue or ticket:
+Target branch suggestion:
+Target files:
+Patch or full file contents:
+Verification commands:
+Expected PR title:
+Explicit non-actions:
+Warnings / assumptions:
+Stop condition:
+
+Make the packet apply-ready for Cursor.
+
+Cursor must:
+- apply only the files listed in the packet
+- avoid broadening scope
+- run the listed verification commands
+- open a PR only after applying and verifying
+- return PR URL, branch, commit SHA, and verification summary
+- stop and report a blocker if scope expands or repository instructions conflict
+
 # CorpFlow AI Command Center — agent guide
 
 This repository is the **CorpFlow AI Command Center**: **Next.js** (pages router), **Node** server/API routes, **Prisma** + **Postgres**, CMP/automation under `lib/cmp/` and `lib/automation/`. Ignore the **legacy Python / Antigravity template** section at the bottom unless you are explicitly working in `core/engine/` Python.
