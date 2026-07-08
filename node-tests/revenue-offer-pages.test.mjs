@@ -138,6 +138,18 @@ describe('Revenue delivery playbook — exists and states ERPNext-first', () => 
   });
 });
 
+describe('ERPNext-first revenue operating system evaluation — exists', () => {
+  it('evaluation doc exists with ERPNext system-of-record and no production posting rule', () => {
+    const rel = 'docs/operations/ERPNEXT_FIRST_REVENUE_OPERATING_SYSTEM_EVALUATION.md';
+    assert.equal(exists(rel), true, 'missing ERPNEXT_FIRST_REVENUE_OPERATING_SYSTEM_EVALUATION.md');
+    const content = read(rel);
+    assert.ok(content.includes('ERPNext is the system of record'), 'ERPNext-first principle missing');
+    assert.ok(content.includes('thin public/revenue wrapper'), 'CorpFlowAI wrapper boundary missing');
+    assert.ok(content.includes('No ERPNext production posting'), 'production posting non-action missing');
+    assert.ok(content.includes('ERPNext configuration map'), 'configuration map missing');
+  });
+});
+
 describe('Revenue offer config — three offers with MUR pricing', () => {
   it('defines exactly three slugs', () => {
     assert.equal(RAPID_DELIVERY_OFFER_SLUGS.length, 3);
