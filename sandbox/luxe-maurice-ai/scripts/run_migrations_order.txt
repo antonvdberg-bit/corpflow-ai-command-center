@@ -1,0 +1,10 @@
+# LuxeMaurice AI — SQL migration execution order
+#
+# After ingesting Jan's Drive package, list exactly 15 migration filenames here
+# (one per line, in the order Jan's README specifies). Example:
+#
+# 001_initial_schema.sql
+# 002_properties.sql
+# ...
+#
+# Until filenames are added, migration runner will fail closed with migration_order_empty.

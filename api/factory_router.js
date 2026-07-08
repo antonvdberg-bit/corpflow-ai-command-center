@@ -93,6 +93,7 @@ import {
 import { getEffectiveMemberships } from '../lib/server/effective-memberships.js';
 import { computeEffectiveMembershipsCountForUiContext } from '../lib/ui/tenant-host-switch-link.js';
 import { handleMembershipSwitch, handleMembershipLeave } from '../lib/server/switch-leave-api.js';
+import { handleLuxAiSandboxHealth } from '../lib/server/lux-ai-sandbox-api.js';
 import { handleLuxPropertyMedia } from '../lib/server/lux-property-media.js';
 import { handleLuxPropertyMediaList } from '../lib/server/lux-published-property-media.js';
 import { tryHandleLuxListingsPublicRead } from '../lib/server/lux-listings-public.js';
@@ -954,6 +955,9 @@ export default async function handler(req, res) {
     return handleChangeAttachmentPublic(req, res);
   }
 
+  if (pathSeg === 'lux/ai-sandbox/health') {
+    return handleLuxAiSandboxHealth(req, res);
+  }
   if (pathSeg === 'lux/property-media') {
     return handleLuxPropertyMedia(req, res, prisma);
   }
