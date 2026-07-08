@@ -2742,6 +2742,9 @@ export default function ChangeConsolePage() {
                   Media workspace
                 </a>
                 ) : null}
+                <a href="/change/lux-feedback" style={luxChangeChrome.navPill('gold')}>
+                  Owner feedback queue
+                </a>
               </div>
               <div style={luxChangeChrome.notifyBar()} data-lux-change-notify-bar="true">
                 <label style={luxChangeChrome.notifyCheckboxLabel()}>
