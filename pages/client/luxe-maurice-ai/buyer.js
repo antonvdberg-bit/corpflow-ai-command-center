@@ -11,6 +11,10 @@ import {
   getPropertyById,
   listProperties,
 } from '../../../lib/client/luxe-maurice-ai-data.js';
+import {
+  LUXE_MAURICE_AI_SECTION_PAD,
+  luxeMauriceAiCtaPrimary,
+} from '../../../lib/client/luxe-maurice-ai-layout.js';
 
 const inputStyle = {
   width: '100%',
@@ -68,7 +72,12 @@ export default function LuxeMauriceAiBuyerPage({ properties }) {
         }));
       }
     }
-  }, [router.isReady, router.query.property]);
+    const catRaw = router.query.category;
+    const cat = Array.isArray(catRaw) ? catRaw[0] : catRaw;
+    if (typeof cat === 'string' && cat.trim()) {
+      setForm((prev) => ({ ...prev, access_category: cat.trim() }));
+    }
+  }, [router.isReady, router.query.property, router.query.category]);
 
   const selectedOpportunity = useMemo(() => {
     if (!form.property_id) return null;
@@ -129,24 +138,44 @@ export default function LuxeMauriceAiBuyerPage({ properties }) {
     <LuxeMauriceAiPreviewShell
       active="request"
       title="Private access request"
-      description="Register your private access intent for Mauritius luxury opportunities."
+      description="Request private access across any LuxeMaurice AI channel — residence, yacht, aviation, experience, or advisory."
     >
-      <section style={{ padding: '48px clamp(20px, 4vw, 56px)', maxWidth: 720 }}>
+      <section style={{ padding: LUXE_MAURICE_AI_SECTION_PAD, maxWidth: 720, margin: '0 auto', boxSizing: 'border-box' }}>
         <LuxEyebrow>Private access request</LuxEyebrow>
         <h1
           style={{
             marginTop: 14,
             fontFamily: T.fontDisplay,
-            fontSize: 'clamp(32px, 5vw, 40px)',
+            fontSize: 'clamp(28px, 6vw, 40px)',
             fontWeight: 500,
+            lineHeight: 1.15,
           }}
         >
           Request private access
         </h1>
-        <p style={{ marginTop: 12, color: T.ivoryMuted, lineHeight: 1.65 }}>
-          Share your category, budget, timing, and intent confidentially. Your request flows directly
-          into the advisor pipeline preview.
+        <p style={{ marginTop: 12, color: T.ivoryMuted, lineHeight: 1.65, fontSize: 'clamp(14px, 2.5vw, 16px)' }}>
+          Choose your channel — residence, yacht, aviation, island experience, or advisory mandate. Your request
+          appears immediately in the{' '}
+          <Link href={`${LUXE_MAURICE_AI_BASE}/crm`} style={{ color: T.gold }}>
+            advisor pipeline
+          </Link>{' '}
+          preview for operator review.
         </p>
+
+        <div
+          style={{
+            marginTop: 20,
+            padding: '14px 16px',
+            border: `1px solid ${T.hairline}`,
+            background: 'rgba(201, 169, 98, 0.08)',
+            fontSize: 13,
+            lineHeight: 1.55,
+            color: T.ivoryMuted,
+          }}
+        >
+          <strong style={{ color: T.ivory }}>What happens next:</strong> submit → advisor pipeline row → discreet
+          follow-up. No automatic email or messaging in this preview.
+        </div>
 
         {selectedOpportunity ? (
           <p
@@ -238,7 +267,13 @@ export default function LuxeMauriceAiBuyerPage({ properties }) {
               ))}
             </select>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
+              gap: 16,
+            }}
+          >
             <div>
               <label htmlFor="budget_min" style={labelStyle}>
                 Access budget from (USD)
@@ -345,18 +380,12 @@ export default function LuxeMauriceAiBuyerPage({ properties }) {
           <button
             type="submit"
             disabled={busy}
-            style={{
+            style={luxeMauriceAiCtaPrimary({
               marginTop: 8,
-              padding: '16px 28px',
-              background: T.gold,
-              color: T.charcoal,
-              border: 'none',
-              fontSize: 12,
-              fontWeight: 700,
-              letterSpacing: '0.2em',
-              textTransform: 'uppercase',
+              width: '100%',
               cursor: busy ? 'wait' : 'pointer',
-            }}
+              opacity: busy ? 0.7 : 1,
+            })}
           >
             Submit access request
           </button>

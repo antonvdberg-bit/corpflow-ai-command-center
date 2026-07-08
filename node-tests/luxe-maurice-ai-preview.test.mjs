@@ -126,22 +126,26 @@ test('luxe maurice ai preview: landing hero image asset exists locally', () => {
 test('luxe maurice ai preview: landing renders premium hero and private luxury access language', () => {
   const src = readRepo('pages/client/luxe-maurice-ai/index.js');
   const landing = readRepo('lib/client/luxe-maurice-ai-landing.js');
+  const layout = readRepo('lib/client/luxe-maurice-ai-layout.js');
   assert.match(landing, /luxury-coastal-private-access-hero\.png/);
   assert.match(src, /LUXE_MAURICE_AI_HERO_IMAGE/);
   assert.match(landing, /Private access to Mauritius/i);
-  assert.match(landing, /most exceptional opportunities/i);
+  assert.match(landing, /multi-channel private-access platform/i);
+  assert.match(layout, /multi-channel private access/i);
   assert.match(src, /Request Private Access/i);
-  assert.match(src, /View Private Opportunities/i);
-  assert.match(src, /Curated access categories/i);
+  assert.match(src, /Explore Access Catalogue/i);
+  assert.match(src, /Access channels — equal weight/i);
   assert.match(src, /yacht/i);
   assert.match(src, /aviation/i);
-  assert.match(src, /collector assets/i);
+  assert.match(src, /island experience/i);
+  assert.match(src, /bespoke-island-experience-collector/);
 });
 
-test('luxe maurice ai preview: catalogue route shows Private Opportunities with mixed types', () => {
+test('luxe maurice ai preview: catalogue route shows multi-channel access with category filters', () => {
   const src = readRepo('pages/client/luxe-maurice-ai/properties/index.js');
-  assert.match(src, /Private opportunities/i);
-  assert.match(src, /Access catalogue/i);
+  assert.match(src, /Multi-channel access catalogue/i);
+  assert.match(src, /Curated private access/i);
+  assert.match(src, /categoryFilter/);
   assert.match(src, /category_label/);
   assert.match(src, /getStaticProps/);
 });
@@ -159,7 +163,9 @@ test('luxe maurice ai preview: access request form includes category and intent 
   assert.match(src, /Private access request/i);
   assert.match(src, /access_category/);
   assert.match(src, /access_intent/);
+  assert.match(src, /advisor pipeline/i);
   assert.match(src, /Submit access request/i);
+  assert.match(src, /router\.query\.category/);
 });
 
 test('luxe maurice ai preview: advisor pipeline renders mixed-category enquiries', () => {
@@ -167,11 +173,20 @@ test('luxe maurice ai preview: advisor pipeline renders mixed-category enquiries
   assert.match(src, /Advisor pipeline/i);
   assert.match(src, /access_category/);
   assert.match(src, /next_action/);
-  assert.match(src, /Access intent/i);
+  assert.match(src, /LeadCard/);
+  assert.match(src, /New access request/);
 
   const leads = listLeads();
   assert.ok(leads.some((l) => l.access_category === 'residence'));
   assert.ok(leads.some((l) => l.access_category === 'yacht_marine'));
+});
+
+test('luxe maurice ai preview: shell exposes multi-channel nav and category quick links', () => {
+  const src = readRepo('components/LuxeMauriceAiPreviewShell.js');
+  assert.match(src, /Multi-channel preview/i);
+  assert.match(src, /LUXE_MAURICE_AI_MULTI_CHANNEL_TAGLINE/);
+  assert.match(src, /All channels/);
+  assert.match(src, /Advisor pipeline/);
 });
 
 test('luxe maurice ai preview: client-facing copy avoids internal implementation language', () => {
