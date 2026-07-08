@@ -322,21 +322,48 @@ test('recovery roadmap ticket: product direction spec, mint path, operator signa
   assert.equal(enriched.anton_action_required, true);
 });
 
-test('Lux /change renders product direction client surface', () => {
+test('Lux /change renders recovery review operator surface', () => {
   const p = path.join(repoRoot, 'pages', 'change.js');
   const src = fs.readFileSync(p, 'utf8');
   assert.equal(src.includes('LUX_RECOVERY_ROADMAP_TICKET_ID'), true);
-  assert.equal(src.includes('Send product direction link'), true);
+  assert.equal(src.includes('Open recovery review preview'), true);
+  assert.equal(src.includes('Mint decision link for Jan'), true);
   assert.equal(src.includes('Client product direction confirmation'), true);
   assert.equal(src.includes('client_decisions_answers'), true);
+  assert.equal(src.includes('data-testid="lux-recovery-operator-strip"'), true);
 });
 
-test('recovery-roadmap page: product direction confirmation', () => {
-  const p = path.join(repoRoot, 'pages', 'client', 'recovery-roadmap.js');
-  const src = fs.readFileSync(p, 'utf8');
+test('recovery-roadmap page: client recovery review slice', () => {
+  const pagePath = path.join(repoRoot, 'pages', 'client', 'recovery-roadmap.js');
+  const src = fs.readFileSync(pagePath, 'utf8');
+  assert.equal(src.includes('LUX_RECOVERY_READY_NOW'), true);
+  assert.equal(src.includes('LUX_RECOVERY_RELEASE1_PACKAGES'), true);
+  assert.equal(src.includes('LUX_RECOVERY_48H_PLAN'), true);
+  assert.equal(src.includes('LUX_RECOVERY_NOT_MVP'), true);
   assert.equal(src.includes('LUX_PRODUCT_DIRECTION_PILLARS'), true);
   assert.equal(src.includes('submit-client-decisions'), true);
-  assert.equal(src.includes('LUX_PRODUCT_DIRECTION_PAGE_TITLE'), true);
-  assert.equal(src.includes('What have we misunderstood'), true);
-  assert.equal(src.includes('LUX_FIRST_VISIBLE_RELEASE_TITLE'), true);
+  assert.equal(src.includes('data-testid="lux-recovery-roadmap-page"'), true);
+  assert.equal(src.includes('data-testid="lux-recovery-ready-now"'), true);
+  assert.equal(src.includes('data-testid="lux-recovery-jan-must-provide"'), true);
+  assert.equal(src.includes('data-testid="lux-recovery-not-mvp"'), true);
+  assert.equal(src.includes('data-testid="lux-recovery-48h-plan"'), true);
+  assert.equal(src.includes('data-testid="lux-recovery-first-decision"'), true);
+  assert.equal(src.includes('data-testid="lux-recovery-review-only"'), true);
+  assert.equal(src.includes('data-testid="lux-recovery-decision-form"'), true);
+  assert.equal(src.includes('LUX_FIRST_VISIBLE_RELEASE'), false, 'review page must not merge separate release copy block');
+  assert.equal(src.includes('LUX_PRODUCT_DIRECTION_EVIDENCE_NOTE'), false, 'no product-direction evidence block in review-only page');
+  for (const forbidden of [
+    'Clean public site',
+    'Real homepage imagery',
+    'One real private opportunity',
+    'Opportunity detail page',
+    'Your editor walk-through',
+    'Live brand surface',
+    'Publishing workflow',
+  ]) {
+    assert.equal(src.includes(forbidden), false, `forbidden listing-platform copy in page: ${forbidden}`);
+  }
+  for (const needle of ['internal_decisions', 'console_json', 'reality_panel', 'change_stage_debug', 'operator_signal']) {
+    assert.equal(src.includes(needle), false, `unexpected ${needle} in client page`);
+  }
 });

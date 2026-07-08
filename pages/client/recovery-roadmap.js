@@ -4,18 +4,26 @@ import { useRouter } from 'next/router';
 
 import { LuxeMauriceFontStylesheet, LuxeMauriceWordmark, LuxEyebrow, LuxHairline } from '../../components/LuxeMauriceBrandPrimitives.js';
 import { LUXE_MAURICE_BRAND_TOKENS as T } from '../../lib/client/luxe-maurice-brand-theme.js';
+import { LUX_PILLAR_CLIENT_CHOICES, LUX_PRODUCT_DIRECTION_PILLARS } from '../../lib/client/lux-product-direction-content.js';
 import {
-  LUX_FIRST_VISIBLE_RELEASE_BODY,
-  LUX_FIRST_VISIBLE_RELEASE_TITLE,
-  LUX_PILLAR_CLIENT_CHOICES,
-  LUX_PRODUCT_DIRECTION_EVIDENCE_NOTE,
-  LUX_PRODUCT_DIRECTION_INTRO,
-  LUX_PRODUCT_DIRECTION_PAGE_TITLE,
-  LUX_PRODUCT_DIRECTION_PILLARS,
-} from '../../lib/client/lux-product-direction-content.js';
+  LUX_RECOVERY_48H_PLAN,
+  LUX_RECOVERY_FIRST_DECISION_BODY,
+  LUX_RECOVERY_FIRST_DECISION_TITLE,
+  LUX_RECOVERY_JAN_MUST_PROVIDE,
+  LUX_RECOVERY_NOT_MVP,
+  LUX_RECOVERY_PAGE_SUBTITLE,
+  LUX_RECOVERY_PAGE_TITLE,
+  LUX_RECOVERY_READY_NOW,
+  LUX_RECOVERY_RELEASE1_PACKAGES,
+  LUX_RECOVERY_RELEASE1_SUMMARY,
+  LUX_RECOVERY_RELEASE1_TITLE,
+  LUX_RECOVERY_REVIEW_ONLY_NOTE,
+  LUX_RECOVERY_SITUATION_PARAGRAPH,
+  luxRecoveryPackageStatusLabel,
+} from '../../lib/client/lux-recovery-roadmap-content.js';
 
-const THANK_YOU_PRODUCT_DIRECTION =
-  "Thank you — we've received your product direction confirmation. Your team will review and follow up.";
+const THANK_YOU_CONFIRMATION =
+  "Thank you — we've received your confirmation. Your team will review and follow up.";
 
 /** @param {unknown} v */
 function safeObj(v) {
@@ -85,11 +93,7 @@ export default function LuxRecoveryRoadmapPage() {
   const load = useCallback(async () => {
     const id = ticketId.trim();
     setError('');
-    if (id.length < 18) return;
-    if (!hasMagicLink) {
-      setError('Open the personalised link your team sent you to review product direction and submit your confirmation.');
-      return;
-    }
+    if (id.length < 18 || !hasMagicLink) return;
     setLoadBusy(true);
     try {
       const tokQ = `&token=${encodeURIComponent(magicToken)}`;
@@ -173,7 +177,7 @@ export default function LuxRecoveryRoadmapPage() {
       const cd = safeObj(j.client_decisions) || {};
       if (cd.sufficient_to_proceed === true) {
         setMagicClosed(true);
-        setThankYouBanner(THANK_YOU_PRODUCT_DIRECTION);
+        setThankYouBanner(THANK_YOU_CONFIRMATION);
       } else {
         setError('Please confirm or correct the overall direction and choose a priority for each pillar.');
         seedAnswers(Array.isArray(cd.items) ? cd.items : items);
@@ -201,14 +205,14 @@ export default function LuxRecoveryRoadmapPage() {
   return (
     <>
       <Head>
-        <title>{LUX_PRODUCT_DIRECTION_PAGE_TITLE} — LuxeMaurice</title>
+        <title>{LUX_RECOVERY_PAGE_TITLE} — LuxeMaurice</title>
         <meta name="robots" content="noindex,nofollow" />
         <LuxeMauriceFontStylesheet />
       </Head>
-      <div style={pageStyle}>
+      <div style={pageStyle} data-testid="lux-recovery-roadmap-page">
         <header style={{ ...sectionStyle, paddingTop: 32, paddingBottom: 20, textAlign: 'center' }}>
           <LuxeMauriceWordmark />
-          <LuxEyebrow>LuxeMaurice platform</LuxEyebrow>
+          <LuxEyebrow>LuxeMaurice recovery</LuxEyebrow>
           <h1
             style={{
               margin: '12px 0 0',
@@ -218,66 +222,170 @@ export default function LuxRecoveryRoadmapPage() {
               lineHeight: 1.2,
             }}
           >
-            {LUX_PRODUCT_DIRECTION_PAGE_TITLE}
+            {LUX_RECOVERY_PAGE_TITLE}
           </h1>
+          <p style={{ margin: '10px 0 0', fontSize: 15, color: T.ivoryMuted, lineHeight: 1.5 }}>{LUX_RECOVERY_PAGE_SUBTITLE}</p>
         </header>
 
         <main style={sectionStyle}>
-          <p style={{ margin: '0 0 16px', color: T.ivoryMuted, fontSize: 16, lineHeight: 1.65 }}>{LUX_PRODUCT_DIRECTION_INTRO}</p>
-          <p
-            style={{
-              margin: '0 0 28px',
-              padding: '14px 16px',
-              borderRadius: T.radiusLg,
-              border: `1px solid ${T.hairline}`,
-              background: 'rgba(168, 132, 44, 0.08)',
-              color: T.ivoryMuted,
-              fontSize: 14,
-              lineHeight: 1.6,
-            }}
-          >
-            {LUX_PRODUCT_DIRECTION_EVIDENCE_NOTE}
-          </p>
+          <p style={{ margin: '0 0 28px', color: T.ivoryMuted, fontSize: 16, lineHeight: 1.65 }}>{LUX_RECOVERY_SITUATION_PARAGRAPH}</p>
 
           <div style={{ marginBottom: 28 }}>
             <LuxHairline />
           </div>
 
-          <LuxEyebrow>Product pillars — our working understanding</LuxEyebrow>
-          <p style={{ margin: '10px 0 20px', fontSize: 14, color: T.ivoryMuted, lineHeight: 1.55 }}>
-            For each area below: what we think you want, what exists today, the gap, and our suggested priority. Please
-            correct anything that is wrong.
-          </p>
+          <LuxEyebrow>Ready now</LuxEyebrow>
+          <div data-testid="lux-recovery-ready-now" style={{ display: 'grid', gap: 12, margin: '12px 0 32px' }}>
+            {LUX_RECOVERY_READY_NOW.map((row) => (
+              <div key={row.label} style={cardStyle}>
+                <div style={{ fontFamily: T.fontDisplay, fontSize: '1.05rem', marginBottom: 6, color: T.ivory }}>{row.label}</div>
+                <div style={{ fontSize: 14, color: T.ivoryMuted, lineHeight: 1.55 }}>{row.detail}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ marginBottom: 28 }}>
+            <LuxHairline />
+          </div>
+
+          <LuxEyebrow>{LUX_RECOVERY_RELEASE1_TITLE}</LuxEyebrow>
+          <p style={{ margin: '10px 0 20px', fontSize: 15, lineHeight: 1.6, color: T.ivoryMuted }}>{LUX_RECOVERY_RELEASE1_SUMMARY}</p>
 
           <div style={{ display: 'grid', gap: 14, marginBottom: 32 }}>
-            {LUX_PRODUCT_DIRECTION_PILLARS.map((pillar) => (
-              <div key={pillar.key} style={cardStyle}>
-                <div style={{ fontFamily: T.fontDisplay, fontSize: '1.2rem', marginBottom: 12 }}>{pillar.title}</div>
-                <div style={{ display: 'grid', gap: 8, fontSize: 13, lineHeight: 1.55, color: T.ivoryMuted }}>
-                  <div>
-                    <span style={{ color: T.gold, fontWeight: 600 }}>What we understand you want: </span>
-                    {pillar.whatWeUnderstand}
+            {LUX_RECOVERY_RELEASE1_PACKAGES.map((pkg) => (
+              <div key={pkg.priority} style={cardStyle} data-testid={`lux-recovery-release1-step-${pkg.priority}`}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 6 }}>
+                  <div style={{ fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', color: T.gold }}>
+                    Package {pkg.priority}
                   </div>
-                  <div>
-                    <span style={{ color: T.gold, fontWeight: 600 }}>What exists today: </span>
-                    {pillar.corpflowToday}
-                  </div>
-                  <div>
-                    <span style={{ color: T.gold, fontWeight: 600 }}>Gap: </span>
-                    {pillar.gap}
-                  </div>
-                  <div>
-                    <span style={{ color: T.gold, fontWeight: 600 }}>Suggested priority: </span>
-                    {pillar.suggestedPriorityLabel}
+                  <div
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: T.stoneSoft,
+                      textTransform: 'lowercase',
+                    }}
+                  >
+                    {luxRecoveryPackageStatusLabel(pkg.status)}
                   </div>
                 </div>
-                {showForm ? (
-                  <div style={{ marginTop: 14 }}>
+                <div style={{ fontFamily: T.fontDisplay, fontSize: '1.2rem', marginBottom: 8 }}>{pkg.name}</div>
+                <div style={{ fontSize: 14, color: T.ivoryMuted, lineHeight: 1.55 }}>{pkg.whatYouSee}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ marginBottom: 28 }}>
+            <LuxHairline />
+          </div>
+
+          <LuxEyebrow>What we need from you</LuxEyebrow>
+          <ul
+            data-testid="lux-recovery-jan-must-provide"
+            style={{ margin: '12px 0 32px', paddingLeft: 20, color: T.ivoryMuted, fontSize: 14, lineHeight: 1.65 }}
+          >
+            {LUX_RECOVERY_JAN_MUST_PROVIDE.map((row) => (
+              <li key={row.item} style={{ marginBottom: 10 }}>
+                <strong style={{ color: T.ivory, fontWeight: 600 }}>{row.item}</strong> — {row.why}
+              </li>
+            ))}
+          </ul>
+
+          <LuxEyebrow>Not part of MVP</LuxEyebrow>
+          <div data-testid="lux-recovery-not-mvp" style={{ ...cardStyle, marginBottom: 32 }}>
+            {LUX_RECOVERY_NOT_MVP.map((row) => (
+              <div key={row.label} style={{ fontSize: 13, color: T.ivoryMuted, lineHeight: 1.55, marginBottom: 8 }}>
+                <span style={{ color: T.ivory }}>{row.label}</span> — {row.meaning}
+              </div>
+            ))}
+          </div>
+
+          <div style={{ marginBottom: 28 }}>
+            <LuxHairline />
+          </div>
+
+          <LuxEyebrow>Next 48 hours</LuxEyebrow>
+          <div data-testid="lux-recovery-48h-plan" style={{ display: 'grid', gap: 12, margin: '12px 0 32px' }}>
+            {LUX_RECOVERY_48H_PLAN.map((row) => (
+              <div key={row.step} style={cardStyle}>
+                <div style={{ fontFamily: T.fontDisplay, fontSize: '1.05rem', marginBottom: 6, color: T.ivory }}>{row.step}</div>
+                <div style={{ fontSize: 14, color: T.ivoryMuted, lineHeight: 1.55 }}>{row.outcome}</div>
+              </div>
+            ))}
+          </div>
+
+          <div
+            data-testid="lux-recovery-first-decision"
+            style={{
+              ...cardStyle,
+              marginBottom: 32,
+              borderColor: 'rgba(168, 132, 44, 0.45)',
+              background: 'rgba(168, 132, 44, 0.08)',
+            }}
+          >
+            <div style={{ fontFamily: T.fontDisplay, fontSize: '1.15rem', marginBottom: 10, color: T.ivory }}>
+              {LUX_RECOVERY_FIRST_DECISION_TITLE}
+            </div>
+            <p style={{ margin: 0, fontSize: 14, color: T.ivoryMuted, lineHeight: 1.6 }}>{LUX_RECOVERY_FIRST_DECISION_BODY}</p>
+          </div>
+
+          <div style={{ marginBottom: 28 }}>
+            <LuxHairline />
+          </div>
+
+          {!hasMagicLink ? (
+            <div
+              data-testid="lux-recovery-review-only"
+              style={{ ...cardStyle, color: T.ivoryMuted, fontSize: 14, lineHeight: 1.55 }}
+            >
+              {LUX_RECOVERY_REVIEW_ONLY_NOTE}
+            </div>
+          ) : null}
+
+          {loadBusy ? <p style={{ marginTop: 14, fontSize: 14, color: T.ivoryMuted }}>Loading…</p> : null}
+
+          {magicClosed ? (
+            <div
+              style={{
+                marginTop: 14,
+                ...cardStyle,
+                borderColor: 'rgba(74, 222, 128, 0.35)',
+                background: 'rgba(74, 222, 128, 0.08)',
+                color: '#bbf7d0',
+                fontSize: 15,
+                lineHeight: 1.55,
+              }}
+            >
+              {thankYouBanner || THANK_YOU_CONFIRMATION}
+            </div>
+          ) : null}
+
+          {showForm ? (
+            <>
+              <LuxEyebrow>Your confirmation</LuxEyebrow>
+              <p style={{ margin: '10px 0 20px', fontSize: 14, color: T.ivoryMuted, lineHeight: 1.55 }}>
+                Confirm or correct our understanding for each product area below, then submit once.
+              </p>
+
+              <div style={{ display: 'grid', gap: 14, marginBottom: 24 }}>
+                {LUX_PRODUCT_DIRECTION_PILLARS.map((pillar) => (
+                  <div key={pillar.key} style={cardStyle}>
+                    <div style={{ fontFamily: T.fontDisplay, fontSize: '1.1rem', marginBottom: 12 }}>{pillar.title}</div>
+                    <div style={{ display: 'grid', gap: 8, fontSize: 13, lineHeight: 1.55, color: T.ivoryMuted, marginBottom: 14 }}>
+                      <div>
+                        <span style={{ color: T.gold, fontWeight: 600 }}>What we understand: </span>
+                        {pillar.whatWeUnderstand}
+                      </div>
+                      <div>
+                        <span style={{ color: T.gold, fontWeight: 600 }}>Suggested priority: </span>
+                        {pillar.suggestedPriorityLabel}
+                      </div>
+                    </div>
                     <label
                       htmlFor={pillar.key}
                       style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 8, color: T.ivory }}
                     >
-                      Your choice for this pillar
+                      Your choice
                     </label>
                     <select
                       id={pillar.key}
@@ -306,136 +414,94 @@ export default function LuxRecoveryRoadmapPage() {
                       ))}
                     </select>
                   </div>
-                ) : null}
+                ))}
               </div>
-            ))}
-          </div>
 
-          <div style={{ marginBottom: 28 }}>
-            <LuxHairline />
-          </div>
+              <div data-testid="lux-recovery-decision-form" style={{ ...cardStyle }}>
+                <label
+                  htmlFor="lux-product-direction-overall"
+                  style={{ display: 'block', fontSize: 14, fontWeight: 600, marginBottom: 10, color: T.ivory }}
+                >
+                  Overall — confirm or correct this recovery direction
+                </label>
+                <select
+                  id="lux-product-direction-overall"
+                  value={answersByKey.lux_product_direction_overall?.answer || ''}
+                  onChange={(e) =>
+                    setAnswersByKey((prev) => ({
+                      ...prev,
+                      lux_product_direction_overall: { answer: e.target.value },
+                    }))
+                  }
+                  style={{
+                    width: '100%',
+                    maxWidth: 520,
+                    padding: '12px 14px',
+                    borderRadius: T.radiusLg,
+                    border: `1px solid ${T.hairline}`,
+                    background: T.charcoal,
+                    color: T.ivory,
+                    fontSize: 14,
+                    marginBottom: 16,
+                  }}
+                >
+                  <option value="">Choose one…</option>
+                  <option value="confirm">Confirm — proceed with this Release 1 direction</option>
+                  <option value="correct">Request changes before Release 1 work continues</option>
+                </select>
 
-          <LuxEyebrow>{LUX_FIRST_VISIBLE_RELEASE_TITLE}</LuxEyebrow>
-          <p style={{ margin: '10px 0 28px', fontSize: 14, color: T.ivoryMuted, lineHeight: 1.65 }}>
-            {LUX_FIRST_VISIBLE_RELEASE_BODY}
-          </p>
+                <label
+                  htmlFor="lux-product-direction-misunderstood"
+                  style={{ display: 'block', fontSize: 14, fontWeight: 600, marginBottom: 10, color: T.ivory }}
+                >
+                  Notes or corrections
+                </label>
+                <textarea
+                  id="lux-product-direction-misunderstood"
+                  value={answersByKey.lux_product_direction_misunderstood?.answer || ''}
+                  onChange={(e) =>
+                    setAnswersByKey((prev) => ({
+                      ...prev,
+                      lux_product_direction_misunderstood: { answer: e.target.value },
+                    }))
+                  }
+                  placeholder="What should we change about priorities, scope, or our understanding?"
+                  style={{
+                    width: '100%',
+                    minHeight: 120,
+                    padding: 14,
+                    borderRadius: T.radiusLg,
+                    border: `1px solid ${T.hairline}`,
+                    background: T.charcoal,
+                    color: T.ivory,
+                    fontSize: 14,
+                    lineHeight: 1.5,
+                    resize: 'vertical',
+                  }}
+                />
 
-          <div style={{ marginBottom: 28 }}>
-            <LuxHairline />
-          </div>
-
-          <LuxEyebrow>Your confirmation</LuxEyebrow>
-
-          {!hasMagicLink ? (
-            <div style={{ ...cardStyle, marginTop: 14, color: T.ivoryMuted, fontSize: 14, lineHeight: 1.55 }}>
-              This page is shared through a private link from your team. Use that link to submit pillar priorities and
-              correct our understanding.
-            </div>
-          ) : null}
-
-          {loadBusy ? <p style={{ marginTop: 14, fontSize: 14, color: T.ivoryMuted }}>Loading…</p> : null}
-
-          {magicClosed ? (
-            <div
-              style={{
-                marginTop: 14,
-                ...cardStyle,
-                borderColor: 'rgba(74, 222, 128, 0.35)',
-                background: 'rgba(74, 222, 128, 0.08)',
-                color: '#bbf7d0',
-                fontSize: 15,
-                lineHeight: 1.55,
-              }}
-            >
-              {thankYouBanner || THANK_YOU_PRODUCT_DIRECTION}
-            </div>
-          ) : null}
-
-          {showForm ? (
-            <div style={{ marginTop: 14, ...cardStyle }}>
-              <label
-                htmlFor="lux-product-direction-overall"
-                style={{ display: 'block', fontSize: 14, fontWeight: 600, marginBottom: 10, color: T.ivory }}
-              >
-                Confirm or correct our understanding of the LuxeMaurice product direction
-              </label>
-              <select
-                id="lux-product-direction-overall"
-                value={answersByKey.lux_product_direction_overall?.answer || ''}
-                onChange={(e) =>
-                  setAnswersByKey((prev) => ({
-                    ...prev,
-                    lux_product_direction_overall: { answer: e.target.value },
-                  }))
-                }
-                style={{
-                  width: '100%',
-                  maxWidth: 520,
-                  padding: '12px 14px',
-                  borderRadius: T.radiusLg,
-                  border: `1px solid ${T.hairline}`,
-                  background: T.charcoal,
-                  color: T.ivory,
-                  fontSize: 14,
-                  marginBottom: 16,
-                }}
-              >
-                <option value="">Choose one…</option>
-                <option value="confirm">Confirm our understanding of the product direction</option>
-                <option value="correct">Correct our understanding — priorities need changes</option>
-              </select>
-
-              <label
-                htmlFor="lux-product-direction-misunderstood"
-                style={{ display: 'block', fontSize: 14, fontWeight: 600, marginBottom: 10, color: T.ivory }}
-              >
-                What have we misunderstood?
-              </label>
-              <textarea
-                id="lux-product-direction-misunderstood"
-                value={answersByKey.lux_product_direction_misunderstood?.answer || ''}
-                onChange={(e) =>
-                  setAnswersByKey((prev) => ({
-                    ...prev,
-                    lux_product_direction_misunderstood: { answer: e.target.value },
-                  }))
-                }
-                placeholder="Tell us what we got wrong about your vision, priorities, or the materials you supplied."
-                style={{
-                  width: '100%',
-                  minHeight: 120,
-                  padding: 14,
-                  borderRadius: T.radiusLg,
-                  border: `1px solid ${T.hairline}`,
-                  background: T.charcoal,
-                  color: T.ivory,
-                  fontSize: 14,
-                  lineHeight: 1.5,
-                  resize: 'vertical',
-                }}
-              />
-
-              <button
-                type="button"
-                onClick={() => submit()}
-                disabled={busy}
-                style={{
-                  marginTop: 18,
-                  width: '100%',
-                  maxWidth: 420,
-                  padding: '14px 18px',
-                  borderRadius: T.radiusLg,
-                  border: 'none',
-                  background: busy ? T.stone : T.gold,
-                  color: T.charcoal,
-                  fontSize: 15,
-                  fontWeight: 700,
-                  cursor: busy ? 'not-allowed' : 'pointer',
-                }}
-              >
-                {busy ? 'Submitting…' : 'Submit product direction confirmation'}
-              </button>
-            </div>
+                <button
+                  type="button"
+                  onClick={() => submit()}
+                  disabled={busy}
+                  style={{
+                    marginTop: 18,
+                    width: '100%',
+                    maxWidth: 420,
+                    padding: '14px 18px',
+                    borderRadius: T.radiusLg,
+                    border: 'none',
+                    background: busy ? T.stone : T.gold,
+                    color: T.charcoal,
+                    fontSize: 15,
+                    fontWeight: 700,
+                    cursor: busy ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {busy ? 'Submitting…' : 'Submit confirmation'}
+                </button>
+              </div>
+            </>
           ) : null}
 
           {error ? (
