@@ -13,6 +13,14 @@ import {
   LUXE_MAURICE_AI_HERO_IMAGE,
   LUXE_MAURICE_AI_HERO_SUBHEADLINE,
 } from '../../../lib/client/luxe-maurice-ai-landing.js';
+import {
+  LUXE_MAURICE_AI_CTA_ROW,
+  LUXE_MAURICE_AI_SECTION_PAD,
+  luxeMauriceAiBuyerCategoryHref,
+  luxeMauriceAiCatalogueCategoryHref,
+  luxeMauriceAiCtaPrimary,
+  luxeMauriceAiCtaSecondary,
+} from '../../../lib/client/luxe-maurice-ai-layout.js';
 
 export default function LuxeMauriceAiLandingPage({ featured }) {
   const cards = Array.isArray(featured) ? featured : [];
@@ -21,13 +29,13 @@ export default function LuxeMauriceAiLandingPage({ featured }) {
     <LuxeMauriceAiPreviewShell
       active="home"
       title="LuxeMaurice AI"
-      description="Private luxury access to Mauritius — residences, yachts, aviation, collector assets, and curated island experiences."
+      description="Multi-channel private luxury access to Mauritius — residences, yachts, aviation, island experiences, and advisory introductions."
     >
       <section
         aria-labelledby="lux-maurice-ai-hero-heading"
         style={{
           position: 'relative',
-          minHeight: 'clamp(640px, 92vh, 920px)',
+          minHeight: 'clamp(520px, 88svh, 920px)',
           display: 'flex',
           alignItems: 'flex-end',
           overflow: 'hidden',
@@ -47,7 +55,7 @@ export default function LuxeMauriceAiLandingPage({ featured }) {
             width: '100%',
             height: '100%',
             objectFit: 'cover',
-            objectPosition: '68% center',
+            objectPosition: 'center 40%',
           }}
         />
         <div
@@ -56,11 +64,10 @@ export default function LuxeMauriceAiLandingPage({ featured }) {
             position: 'absolute',
             inset: 0,
             background: `linear-gradient(
-              105deg,
-              rgba(10, 10, 10, 0.92) 0%,
-              rgba(17, 17, 17, 0.78) 38%,
-              rgba(17, 17, 17, 0.35) 62%,
-              rgba(17, 17, 17, 0.12) 100%
+              180deg,
+              rgba(10, 10, 10, 0.35) 0%,
+              rgba(10, 10, 10, 0.72) 45%,
+              rgba(10, 10, 10, 0.94) 100%
             )`,
           }}
         />
@@ -69,18 +76,21 @@ export default function LuxeMauriceAiLandingPage({ featured }) {
             position: 'relative',
             zIndex: 1,
             width: '100%',
-            padding: 'clamp(48px, 8vw, 88px) clamp(20px, 4vw, 56px)',
+            padding: LUXE_MAURICE_AI_SECTION_PAD,
+            paddingBottom: 'clamp(36px, 8vw, 72px)',
           }}
         >
           <div
             style={{
-              maxWidth: 620,
-              padding: 'clamp(28px, 4vw, 40px)',
-              background: 'rgba(17, 17, 17, 0.55)',
+              maxWidth: 640,
+              width: '100%',
+              padding: 'clamp(22px, 4vw, 36px)',
+              background: 'rgba(17, 17, 17, 0.62)',
               backdropFilter: 'blur(12px)',
               WebkitBackdropFilter: 'blur(12px)',
               border: `1px solid ${T.hairlineSoft}`,
               boxShadow: '0 24px 64px rgba(0, 0, 0, 0.35)',
+              boxSizing: 'border-box',
             }}
           >
             <div
@@ -88,17 +98,17 @@ export default function LuxeMauriceAiLandingPage({ featured }) {
                 width: 48,
                 height: 1,
                 background: T.gold,
-                marginBottom: 20,
+                marginBottom: 16,
               }}
               aria-hidden="true"
             />
-            <LuxEyebrow>Curated private access · Mauritius</LuxEyebrow>
+            <LuxEyebrow>Multi-channel private access · Mauritius</LuxEyebrow>
             <h1
               id="lux-maurice-ai-hero-heading"
               style={{
-                marginTop: 18,
+                marginTop: 14,
                 fontFamily: T.fontDisplay,
-                fontSize: 'clamp(34px, 5.5vw, 52px)',
+                fontSize: 'clamp(30px, 7vw, 52px)',
                 fontWeight: 500,
                 lineHeight: 1.12,
                 color: T.ivory,
@@ -108,53 +118,23 @@ export default function LuxeMauriceAiLandingPage({ featured }) {
             </h1>
             <p
               style={{
-                marginTop: 18,
-                fontSize: 'clamp(16px, 2vw, 18px)',
+                marginTop: 16,
+                fontSize: 'clamp(15px, 2.5vw, 18px)',
                 lineHeight: 1.65,
                 color: T.ivoryMuted,
               }}
             >
               {LUXE_MAURICE_AI_HERO_SUBHEADLINE}
             </p>
-            <div
-              style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: 14,
-                marginTop: 32,
-              }}
-            >
-              <Link
-                href={`${LUXE_MAURICE_AI_BASE}/buyer`}
-                style={{
-                  display: 'inline-block',
-                  padding: '14px 28px',
-                  background: T.gold,
-                  color: T.charcoal,
-                  fontSize: 12,
-                  fontWeight: 700,
-                  letterSpacing: '0.2em',
-                  textTransform: 'uppercase',
-                  textDecoration: 'none',
-                }}
-              >
+            <div style={LUXE_MAURICE_AI_CTA_ROW}>
+              <Link href={`${LUXE_MAURICE_AI_BASE}/buyer`} style={luxeMauriceAiCtaPrimary({ flex: '1 1 200px' })}>
                 Request Private Access
               </Link>
               <Link
                 href={`${LUXE_MAURICE_AI_BASE}/properties`}
-                style={{
-                  display: 'inline-block',
-                  padding: '14px 28px',
-                  border: `1px solid ${T.hairline}`,
-                  color: T.ivory,
-                  fontSize: 12,
-                  fontWeight: 700,
-                  letterSpacing: '0.2em',
-                  textTransform: 'uppercase',
-                  textDecoration: 'none',
-                }}
+                style={luxeMauriceAiCtaSecondary({ flex: '1 1 200px' })}
               >
-                View Private Opportunities
+                Explore Access Catalogue
               </Link>
             </div>
           </div>
@@ -163,75 +143,90 @@ export default function LuxeMauriceAiLandingPage({ featured }) {
 
       <section
         style={{
-          padding: '40px clamp(20px, 4vw, 56px)',
+          padding: LUXE_MAURICE_AI_SECTION_PAD,
           background: T.charcoalSoft,
           borderTop: `1px solid ${T.hairlineSoft}`,
           borderBottom: `1px solid ${T.hairlineSoft}`,
         }}
       >
-        <LuxEyebrow>Curated access categories</LuxEyebrow>
-        <p style={{ marginTop: 12, color: T.ivoryMuted, maxWidth: 640, lineHeight: 1.65 }}>
-          Private residences remain at the core — alongside yacht and marine access, VIP aviation
-          arrivals, collector assets, bespoke island experiences, and discreet advisory mandates.
+        <LuxEyebrow>Access channels — equal weight</LuxEyebrow>
+        <p style={{ marginTop: 12, color: T.ivoryMuted, maxWidth: 640, lineHeight: 1.65, fontSize: 'clamp(14px, 2.5vw, 16px)' }}>
+          Residences are one channel among many. Yacht & marine, private aviation, island experiences, collector
+          assets, and advisory mandates share the same private-access path — a full multi-channel platform, not a
+          residences-only catalogue.
         </p>
         <div
           style={{
-            marginTop: 24,
+            marginTop: 22,
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 220px), 1fr))',
-            gap: 16,
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 200px), 1fr))',
+            gap: 12,
           }}
         >
           {LUXE_MAURICE_AI_ACCESS_CATEGORIES.map((cat) => (
-            <div
+            <Link
               key={cat.key}
+              href={luxeMauriceAiCatalogueCategoryHref(cat.key)}
               style={{
-                padding: '18px 20px',
+                padding: '16px 18px',
                 border: `1px solid ${T.hairlineSoft}`,
+                textDecoration: 'none',
+                color: 'inherit',
+                minHeight: 72,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
               }}
             >
               <p
                 style={{
+                  margin: 0,
                   fontSize: 10,
                   fontWeight: 700,
-                  letterSpacing: '0.2em',
+                  letterSpacing: '0.18em',
                   textTransform: 'uppercase',
                   color: T.gold,
                 }}
               >
-                {cat.label}
+                {cat.short}
               </p>
-            </div>
+              <p style={{ margin: '6px 0 0', fontSize: 13, color: T.ivoryMuted, lineHeight: 1.45 }}>{cat.label}</p>
+            </Link>
           ))}
+        </div>
+        <div style={{ marginTop: 20 }}>
+          <Link href={luxeMauriceAiBuyerCategoryHref('')} style={luxeMauriceAiCtaSecondary({ minWidth: 0 })}>
+            Start a private access request →
+          </Link>
         </div>
       </section>
 
-      <section style={{ padding: '48px clamp(20px, 4vw, 56px)' }}>
-        <LuxEyebrow>Featured curated opportunities</LuxEyebrow>
+      <section style={{ padding: LUXE_MAURICE_AI_SECTION_PAD }}>
+        <LuxEyebrow>Featured across channels</LuxEyebrow>
         <p style={{ marginTop: 10, color: T.ivoryMuted, maxWidth: 560, lineHeight: 1.6 }}>
-          A cross-section of private access — from island residences to yacht charter and VIP
-          arrival coordination.
+          One opportunity per channel — residence, yacht, aviation, and island experience — so owners see multi-channel
+          parity, not a property catalogue alone.
         </p>
         <LuxHairline />
         <div
           style={{
-            marginTop: 32,
+            marginTop: 28,
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))',
-            gap: 28,
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))',
+            gap: 24,
           }}
         >
           {cards.map((p) => (
             <article key={p.id}>
               <Link
                 href={`${LUXE_MAURICE_AI_BASE}/properties/${p.slug}`}
-                style={{ textDecoration: 'none', color: 'inherit' }}
+                style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
               >
                 <div
                   style={{
                     aspectRatio: '4 / 3',
                     background: previewHeroGradient(p.slug, T.placeholder),
-                    marginBottom: 16,
+                    marginBottom: 14,
                   }}
                   aria-hidden
                 />
@@ -239,7 +234,7 @@ export default function LuxeMauriceAiLandingPage({ featured }) {
                   style={{
                     fontSize: 10,
                     fontWeight: 700,
-                    letterSpacing: '0.24em',
+                    letterSpacing: '0.22em',
                     textTransform: 'uppercase',
                     color: T.gold,
                   }}
@@ -250,7 +245,7 @@ export default function LuxeMauriceAiLandingPage({ featured }) {
                   style={{
                     marginTop: 8,
                     fontFamily: T.fontDisplay,
-                    fontSize: 24,
+                    fontSize: 'clamp(20px, 4vw, 24px)',
                     fontWeight: 500,
                     lineHeight: 1.25,
                   }}
@@ -273,10 +268,11 @@ export async function getStaticProps() {
     all.find((o) => o.slug === 'sample-coastal-residence'),
     all.find((o) => o.slug === 'private-yacht-lagoon-charter'),
     all.find((o) => o.slug === 'vip-arrival-aviation-service'),
+    all.find((o) => o.slug === 'bespoke-island-experience-collector'),
   ].filter(Boolean);
   return {
     props: {
-      featured: mixed.length ? mixed : all.slice(0, 3),
+      featured: mixed.length ? mixed : all.slice(0, 4),
     },
   };
 }
