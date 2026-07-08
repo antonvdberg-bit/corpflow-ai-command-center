@@ -334,9 +334,10 @@ test('Lux /change renders recovery review operator surface', () => {
 });
 
 test('recovery-roadmap page: client recovery review slice', () => {
-  const p = path.join(repoRoot, 'pages', 'client', 'recovery-roadmap.js');
-  const src = fs.readFileSync(p, 'utf8');
+  const pagePath = path.join(repoRoot, 'pages', 'client', 'recovery-roadmap.js');
+  const src = fs.readFileSync(pagePath, 'utf8');
   assert.equal(src.includes('LUX_RECOVERY_READY_NOW'), true);
+  assert.equal(src.includes('LUX_RECOVERY_RELEASE1_PACKAGES'), true);
   assert.equal(src.includes('LUX_RECOVERY_48H_PLAN'), true);
   assert.equal(src.includes('LUX_RECOVERY_NOT_MVP'), true);
   assert.equal(src.includes('LUX_PRODUCT_DIRECTION_PILLARS'), true);
@@ -351,6 +352,17 @@ test('recovery-roadmap page: client recovery review slice', () => {
   assert.equal(src.includes('data-testid="lux-recovery-decision-form"'), true);
   assert.equal(src.includes('LUX_FIRST_VISIBLE_RELEASE'), false, 'review page must not merge separate release copy block');
   assert.equal(src.includes('LUX_PRODUCT_DIRECTION_EVIDENCE_NOTE'), false, 'no product-direction evidence block in review-only page');
+  for (const forbidden of [
+    'Clean public site',
+    'Real homepage imagery',
+    'One real private opportunity',
+    'Opportunity detail page',
+    'Your editor walk-through',
+    'Live brand surface',
+    'Publishing workflow',
+  ]) {
+    assert.equal(src.includes(forbidden), false, `forbidden listing-platform copy in page: ${forbidden}`);
+  }
   for (const needle of ['internal_decisions', 'console_json', 'reality_panel', 'change_stage_debug', 'operator_signal']) {
     assert.equal(src.includes(needle), false, `unexpected ${needle} in client page`);
   }
