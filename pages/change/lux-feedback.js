@@ -4,21 +4,26 @@ import Link from 'next/link';
 
 import { buildLuxChangeConsoleChrome } from '../../lib/client/lux-change-console-theme.js';
 import {
+  LUX_OWNER_FEEDBACK_ACTIVE_BASELINE_BANNER,
+  LUX_OWNER_FEEDBACK_ACTIVE_PRODUCT_SURFACE,
+  LUX_OWNER_FEEDBACK_HISTORICAL_ITEMS,
   LUX_OWNER_FEEDBACK_ITEMS,
   LUX_OWNER_FEEDBACK_NEXT_SLICE,
+  LUX_OWNER_FEEDBACK_PRODUCT_CATEGORIES,
   LUX_OWNER_FEEDBACK_QUEUE_META,
   countLuxOwnerFeedbackAwaitingAnton,
   countLuxOwnerFeedbackByStatus,
+  luxOwnerFeedbackCategoryLabel,
   luxOwnerFeedbackPriorityLabel,
   luxOwnerFeedbackStatusLabel,
 } from '../../lib/client/lux-owner-feedback-queue.js';
 import { changeTextContainStyle } from '../../lib/cmp/_lib/change-console-layout.js';
 
 /**
- * /change/lux-feedback — LuxeMaurice owner feedback delivery queue (operator control).
+ * /change/lux-feedback — LuxeMaurice AI new product feedback queue (operator control).
  *
- * Config-backed from documented programme sources (#529, WBS, recovery audit, content sprint).
- * NOT live client-submitted runtime feedback. No DB/schema changes.
+ * Active baseline: /client/luxe-maurice-ai multi-channel private-access product.
+ * Historical #529 / property-only items are separated — they do not drive the next slice.
  */
 
 const STATUS_FILTERS = [
@@ -38,6 +43,78 @@ function priorityColor(priority, chrome) {
   return chrome.textMuted;
 }
 
+/** @param {import('../../lib/client/lux-owner-feedback-queue.js').LuxOwnerFeedbackItem} item */
+function FeedbackCard({ item, chrome, muted = false }) {
+  return (
+    <article
+      key={item.id}
+      style={{
+        ...chrome.card,
+        ...changeTextContainStyle(),
+        opacity: muted ? 0.82 : 1,
+        border: muted ? `1px solid ${chrome.borderStone}` : chrome.card.border,
+      }}
+    >
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+        <span style={{ fontFamily: chrome.mono, fontSize: 11, color: chrome.textMuted }}>{item.id}</span>
+        <span style={{ ...chrome.badge('property_media'), fontSize: 10 }}>
+          {luxOwnerFeedbackCategoryLabel(item.category)}
+        </span>
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 900,
+            color: priorityColor(item.priority, chrome),
+            letterSpacing: '0.06em',
+          }}
+        >
+          {luxOwnerFeedbackPriorityLabel(item.priority)}
+        </span>
+        <span style={{ ...chrome.badge('programme'), fontSize: 10 }}>{luxOwnerFeedbackStatusLabel(item.status)}</span>
+        {item.antonApprovalRequired ? (
+          <span style={{ ...chrome.badge('crm_leads'), fontSize: 10 }}>Anton approval required</span>
+        ) : null}
+      </div>
+
+      <h2 style={{ margin: '10px 0 6px', fontSize: 15, fontWeight: 750, color: chrome.text, lineHeight: 1.45 }}>
+        {item.feedback}
+      </h2>
+
+      <div style={{ display: 'grid', gap: 10, marginTop: 12, fontSize: 13, lineHeight: 1.55 }}>
+        <div>
+          <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', color: chrome.textLabel }}>
+            Affected surface
+          </div>
+          <div style={{ color: chrome.textMuted }}>{item.affectedSurface}</div>
+        </div>
+        <div>
+          <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', color: chrome.textLabel }}>
+            Proposed response
+          </div>
+          <div style={{ color: chrome.text }}>{item.proposedResponse}</div>
+        </div>
+        <div>
+          <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', color: chrome.textLabel }}>
+            Next visible fix
+          </div>
+          <div style={{ color: chrome.sand }}>{item.nextVisibleFix}</div>
+        </div>
+        {item.previewEvidenceLink ? (
+          <div>
+            <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', color: chrome.textLabel }}>
+              Preview evidence
+            </div>
+            <a href={item.previewEvidenceLink} style={{ color: chrome.link, fontSize: 13, wordBreak: 'break-all' }}>
+              {item.previewEvidenceLink}
+            </a>
+          </div>
+        ) : null}
+        <div style={{ fontSize: 11, color: chrome.textMuted }}>Source: {item.sourceRef}</div>
+      </div>
+    </article>
+  );
+}
+
 export default function LuxOwnerFeedbackQueuePage() {
   const chrome = useMemo(() => buildLuxChangeConsoleChrome(), []);
   const [statusFilter, setStatusFilter] = useState('all');
@@ -53,17 +130,17 @@ export default function LuxOwnerFeedbackQueuePage() {
   return (
     <div style={{ minHeight: '100vh', background: chrome.shellBg }}>
       <Head>
-        <title>LuxeMaurice owner feedback queue · Change Console</title>
+        <title>{LUX_OWNER_FEEDBACK_QUEUE_META.pageTitle} · Change Console</title>
         <meta name="robots" content="noindex, nofollow" />
         <meta
           name="description"
-          content="Operator-facing LuxeMaurice owner feedback delivery queue. Config-backed control surface — not live client runtime."
+          content="Operator-facing LuxeMaurice AI new product feedback queue. Active baseline: /client/luxe-maurice-ai."
         />
       </Head>
 
       <main style={chrome.pageInner}>
         <p style={{ margin: '0 0 8px', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: chrome.textLabel }}>
-          Operator control · config-backed
+          Operator control · config-backed · new product baseline
         </p>
         <h1
           style={{
@@ -75,49 +152,73 @@ export default function LuxOwnerFeedbackQueuePage() {
             letterSpacing: -0.3,
           }}
         >
-          LuxeMaurice owner feedback queue
+          {LUX_OWNER_FEEDBACK_QUEUE_META.pageTitle}
         </h1>
         <p style={{ margin: '0 0 18px', fontSize: 14, lineHeight: 1.65, color: chrome.textMuted, maxWidth: 760 }}>
-          Visible delivery loop for Jan / LuxeMaurice owner concerns captured in programme docs and{' '}
-          <strong style={{ color: chrome.text }}>{LUX_OWNER_FEEDBACK_QUEUE_META.programmeIssue}</strong>. Anton,
-          Cursor, and ChatGPT use this desk to see status, proposed responses, and the next 2–6 hour slice — not
-          scattered chat.
+          Visible delivery loop for the <strong style={{ color: chrome.text }}>new LuxeMaurice AI</strong> multi-channel
+          private-access product at{' '}
+          <strong style={{ color: chrome.gold }}>{LUX_OWNER_FEEDBACK_ACTIVE_PRODUCT_SURFACE}</strong>. Anton, Cursor,
+          and ChatGPT use this desk for status, proposed responses, and the next 2–6 hour slice.
         </p>
+
+        <div
+          style={{
+            ...chrome.card,
+            marginBottom: 18,
+            border: `2px solid ${chrome.gold}`,
+            background: 'rgba(201,169,98,0.12)',
+            fontSize: 14,
+            lineHeight: 1.6,
+            color: chrome.text,
+            fontWeight: 650,
+          }}
+        >
+          {LUX_OWNER_FEEDBACK_ACTIVE_BASELINE_BANNER}
+        </div>
 
         <div
           style={{
             ...chrome.subtleCard,
             marginBottom: 18,
-            border: `1px solid ${chrome.goldDeep}`,
-            background: 'rgba(201,169,98,0.08)',
             fontSize: 13,
             lineHeight: 1.6,
-            color: chrome.text,
+            color: chrome.textMuted,
           }}
         >
-          <strong>Data source:</strong>{' '}
-          {LUX_OWNER_FEEDBACK_QUEUE_META.exactOwnerQuotesFound
-            ? 'Exact owner/programme feedback was found in repo docs and GitHub #529 — items below are traced to source references.'
-            : 'No exact owner quotes in repo — placeholder operator queue only.'}{' '}
-          <strong>Not</strong> live client-submitted runtime. Update{' '}
-          <span style={{ fontFamily: chrome.mono, fontSize: 12 }}>lib/client/lux-owner-feedback-queue.js</span> when
-          new feedback is captured.
+          <strong style={{ color: chrome.text }}>Historical context:</strong>{' '}
+          {LUX_OWNER_FEEDBACK_QUEUE_META.historicalContextIssue} is the old recovery programme — kept below for reference
+          only. {LUX_OWNER_FEEDBACK_QUEUE_META.prSlice} delivers this new-product feedback queue. Update{' '}
+          <span style={{ fontFamily: chrome.mono, fontSize: 12 }}>lib/client/lux-owner-feedback-queue.js</span> when new
+          owner feedback is captured.
         </div>
 
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 20 }}>
           <Link href="/change" style={chrome.navPill('gold')}>
             ← Change Console
           </Link>
-          <Link href="/client/recovery-roadmap" style={chrome.navPill('default')} target="_blank" rel="noopener noreferrer">
-            Recovery review (client)
+          <Link href={LUX_OWNER_FEEDBACK_ACTIVE_PRODUCT_SURFACE} style={chrome.navPill('highlight')} target="_blank" rel="noopener noreferrer">
+            LuxeMaurice AI product
           </Link>
-          <a
-            href={`/change?id=${encodeURIComponent(LUX_OWNER_FEEDBACK_QUEUE_META.recoveryTicketId)}`}
-            style={chrome.navPill('highlight')}
-          >
-            Recovery ticket
-          </a>
+          <Link href={`${LUX_OWNER_FEEDBACK_ACTIVE_PRODUCT_SURFACE}/buyer`} style={chrome.navPill('default')} target="_blank" rel="noopener noreferrer">
+            Buyer access flow
+          </Link>
+          <Link href={`${LUX_OWNER_FEEDBACK_ACTIVE_PRODUCT_SURFACE}/crm`} style={chrome.navPill('default')} target="_blank" rel="noopener noreferrer">
+            Advisor CRM preview
+          </Link>
         </div>
+
+        <section style={{ ...chrome.subtleCard, marginBottom: 20 }}>
+          <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', color: chrome.textLabel }}>
+            New product categories
+          </div>
+          <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {LUX_OWNER_FEEDBACK_PRODUCT_CATEGORIES.map((cat) => (
+              <span key={cat.key} style={{ ...chrome.badge('property'), fontSize: 10 }}>
+                {cat.label}
+              </span>
+            ))}
+          </div>
+        </section>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 22 }}>
           {Object.entries(statusCounts).map(([status, count]) => (
@@ -135,10 +236,11 @@ export default function LuxOwnerFeedbackQueuePage() {
             Next 2–6 hour delivery slice
           </div>
           <div style={{ marginTop: 8, fontSize: 13, color: chrome.textMuted, lineHeight: 1.55 }}>
-            Linked recovery ticket{' '}
+            Active product surface{' '}
             <span style={{ fontFamily: chrome.mono, fontSize: 11, color: chrome.text }}>
-              {LUX_OWNER_FEEDBACK_QUEUE_META.recoveryTicketId}
+              {LUX_OWNER_FEEDBACK_ACTIVE_PRODUCT_SURFACE}
             </span>
+            — not the old property-only site.
           </div>
           <div style={{ marginTop: 14, display: 'grid', gap: 12 }}>
             {LUX_OWNER_FEEDBACK_NEXT_SLICE.map((step) => (
@@ -169,17 +271,14 @@ export default function LuxOwnerFeedbackQueuePage() {
             Approval gate summary
           </div>
           <p style={{ margin: '10px 0 0', fontSize: 13, lineHeight: 1.6, color: chrome.textMuted }}>
-            <strong style={{ color: chrome.text }}>{awaitingAnton}</strong> open item(s) require Anton approval before
-            client send, production deploy, or external comms. No item on this page auto-sends to Jan.
+            <strong style={{ color: chrome.text }}>{awaitingAnton}</strong> open new-product item(s) require Anton
+            approval before client send or production deploy. No item on this page auto-sends to Jan.
           </p>
-          <ul style={{ margin: '12px 0 0', paddingLeft: 18, fontSize: 13, color: chrome.textMuted, lineHeight: 1.65 }}>
-            <li>Preview / internal operator review — no Anton gate for queue visibility itself.</li>
-            <li>Client decision link mint — Anton approves send.</li>
-            <li>Production deploy — Anton approves (per #529 governance).</li>
-            <li>Jan email / ERPNext quotation — held until verified artifacts exist.</li>
-          </ul>
         </section>
 
+        <div style={{ marginBottom: 8, fontSize: 12, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', color: chrome.textLabel }}>
+          Active new-product feedback
+        </div>
         <div style={{ marginBottom: 12, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {STATUS_FILTERS.map((filter) => (
             <button
@@ -193,72 +292,32 @@ export default function LuxOwnerFeedbackQueuePage() {
           ))}
         </div>
 
-        <div style={{ display: 'grid', gap: 14 }}>
+        <div style={{ display: 'grid', gap: 14, marginBottom: 28 }}>
           {filteredItems.map((item) => (
-            <article key={item.id} style={{ ...chrome.card, ...changeTextContainStyle() }}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-                <span style={{ fontFamily: chrome.mono, fontSize: 11, color: chrome.textMuted }}>{item.id}</span>
-                <span
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 900,
-                    color: priorityColor(item.priority, chrome),
-                    letterSpacing: '0.06em',
-                  }}
-                >
-                  {luxOwnerFeedbackPriorityLabel(item.priority)}
-                </span>
-                <span style={{ ...chrome.badge('programme'), fontSize: 10 }}>{luxOwnerFeedbackStatusLabel(item.status)}</span>
-                {item.antonApprovalRequired ? (
-                  <span style={{ ...chrome.badge('crm_leads'), fontSize: 10 }}>Anton approval required</span>
-                ) : null}
-              </div>
-
-              <h2 style={{ margin: '10px 0 6px', fontSize: 15, fontWeight: 750, color: chrome.text, lineHeight: 1.45 }}>
-                {item.feedback}
-              </h2>
-
-              <div style={{ display: 'grid', gap: 10, marginTop: 12, fontSize: 13, lineHeight: 1.55 }}>
-                <div>
-                  <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', color: chrome.textLabel }}>
-                    Affected surface
-                  </div>
-                  <div style={{ color: chrome.textMuted }}>{item.affectedSurface}</div>
-                </div>
-                <div>
-                  <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', color: chrome.textLabel }}>
-                    Proposed response
-                  </div>
-                  <div style={{ color: chrome.text }}>{item.proposedResponse}</div>
-                </div>
-                <div>
-                  <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', color: chrome.textLabel }}>
-                    Next visible fix
-                  </div>
-                  <div style={{ color: chrome.sand }}>{item.nextVisibleFix}</div>
-                </div>
-                {item.previewEvidenceLink ? (
-                  <div>
-                    <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', color: chrome.textLabel }}>
-                      Preview evidence
-                    </div>
-                    <a href={item.previewEvidenceLink} style={{ color: chrome.link, fontSize: 13, wordBreak: 'break-all' }}>
-                      {item.previewEvidenceLink}
-                    </a>
-                  </div>
-                ) : null}
-                <div style={{ fontSize: 11, color: chrome.textMuted }}>
-                  Source: {item.sourceRef}
-                </div>
-              </div>
-            </article>
+            <FeedbackCard key={item.id} item={item} chrome={chrome} />
           ))}
         </div>
+
+        <section style={{ marginBottom: 24 }}>
+          <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', color: chrome.textLabel, marginBottom: 8 }}>
+            Historical / legacy Lux context
+          </div>
+          <p style={{ margin: '0 0 14px', fontSize: 13, color: chrome.textMuted, lineHeight: 1.6, maxWidth: 720 }}>
+            Old property-only site and #529 recovery items. <strong style={{ color: chrome.text }}>Do not drive</strong>{' '}
+            the next delivery slice unless they directly affect the new LuxeMaurice AI product.
+          </p>
+          <div style={{ display: 'grid', gap: 14 }}>
+            {LUX_OWNER_FEEDBACK_HISTORICAL_ITEMS.map((item) => (
+              <FeedbackCard key={item.id} item={item} chrome={chrome} muted />
+            ))}
+          </div>
+        </section>
 
         <footer style={{ marginTop: 32, paddingTop: 16, borderTop: `1px solid ${chrome.border}`, fontSize: 12, color: chrome.textMuted, lineHeight: 1.7 }}>
           <p style={{ margin: '0 0 8px' }}>
             Canonical doc: <span style={{ fontFamily: chrome.mono }}>docs/LUX/LUX_OWNER_FEEDBACK_DELIVERY_QUEUE.md</span>
-            · Programme parent {LUX_OWNER_FEEDBACK_QUEUE_META.programmeIssue} · Last config update{' '}
+            · {LUX_OWNER_FEEDBACK_QUEUE_META.historicalContextIssue} historical only ·{' '}
+            {LUX_OWNER_FEEDBACK_QUEUE_META.prSlice} new product baseline · Last config update{' '}
             {LUX_OWNER_FEEDBACK_QUEUE_META.lastUpdated}.
           </p>
           <p style={{ margin: 0 }}>

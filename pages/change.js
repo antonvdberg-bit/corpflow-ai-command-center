@@ -2743,7 +2743,7 @@ export default function ChangeConsolePage() {
                 </a>
                 ) : null}
                 <a href="/change/lux-feedback" style={luxChangeChrome.navPill('gold')}>
-                  Owner feedback queue
+                  New product feedback
                 </a>
               </div>
               <div style={luxChangeChrome.notifyBar()} data-lux-change-notify-bar="true">
