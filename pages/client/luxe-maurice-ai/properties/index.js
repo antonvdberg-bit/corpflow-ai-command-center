@@ -10,18 +10,6 @@ import {
 } from '../../../../lib/client/luxe-maurice-ai-data.js';
 
 function residenceFacts(bedrooms, bathrooms) {
-import { listProperties } from '../../../../lib/client/luxe-maurice-ai-data.js';
-
-function heroGradient(slug) {
-  const palettes = {
-    'sample-coastal-residence': 'linear-gradient(145deg, #2a2520 0%, #4a4034 45%, #1a1817 100%)',
-    'lagoon-villa-estate': 'linear-gradient(145deg, #1e2a2e 0%, #3d5248 50%, #111111 100%)',
-    'golf-residence-anahita': 'linear-gradient(145deg, #252820 0%, #4a5238 50%, #0f0f0f 100%)',
-  };
-  return palettes[slug] || T.placeholder;
-}
-
-function factLine(bedrooms, bathrooms) {
   const parts = [];
   if (bedrooms != null) parts.push(`${bedrooms} bed`);
   if (bathrooms != null) parts.push(`${bathrooms} bath`);
@@ -39,12 +27,6 @@ export default function LuxeMauriceAiPropertiesPage({ properties }) {
     >
       <section style={{ padding: '48px clamp(20px, 4vw, 56px)' }}>
         <LuxEyebrow>Access catalogue</LuxEyebrow>
-      active="properties"
-      title="Private opportunities"
-      description="LuxeMaurice AI property catalogue — published private opportunities in Mauritius."
-    >
-      <section style={{ padding: '48px clamp(20px, 4vw, 56px)' }}>
-        <LuxEyebrow>Property catalogue</LuxEyebrow>
         <h1
           style={{
             marginTop: 16,
@@ -58,9 +40,6 @@ export default function LuxeMauriceAiPropertiesPage({ properties }) {
         <p style={{ marginTop: 12, color: T.ivoryMuted, maxWidth: 620, lineHeight: 1.6 }}>
           Residences, yacht access, aviation arrivals, collector assets, and bespoke island
           experiences — each profile opens a private memorandum with an advisory introduction path.
-        <p style={{ marginTop: 12, color: T.ivoryMuted, maxWidth: 560, lineHeight: 1.6 }}>
-          Published opportunities across Mauritius. Each profile opens a private memorandum view with
-          enquiry path to your advisory team.
         </p>
         <LuxHairline />
 
@@ -81,7 +60,6 @@ export default function LuxeMauriceAiPropertiesPage({ properties }) {
                   style={{
                     aspectRatio: '16 / 10',
                     background: previewHeroGradient(p.slug, T.placeholder),
-                    background: heroGradient(p.slug),
                     marginBottom: 18,
                   }}
                   aria-hidden
@@ -98,8 +76,6 @@ export default function LuxeMauriceAiPropertiesPage({ properties }) {
                   {p.category_label}
                 </p>
                 <p style={{ marginTop: 6, fontSize: 12, color: T.stoneSoft }}>{p.location_label}</p>
-                  {p.location_label}
-                </p>
                 <h2
                   style={{
                     marginTop: 8,
@@ -118,7 +94,6 @@ export default function LuxeMauriceAiPropertiesPage({ properties }) {
                     : p.access_model
                       ? ` · ${p.access_model}`
                       : ''}
-                  {factLine(p.bedrooms, p.bathrooms) ? ` · ${factLine(p.bedrooms, p.bathrooms)}` : ''}
                 </p>
                 <p
                   style={{
@@ -130,7 +105,6 @@ export default function LuxeMauriceAiPropertiesPage({ properties }) {
                   }}
                 >
                   {p.availability || p.status}
-                  {p.status}
                 </p>
                 <Link
                   href={`${LUXE_MAURICE_AI_BASE}/properties/${p.slug}`}
