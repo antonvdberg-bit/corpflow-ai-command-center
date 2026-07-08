@@ -12,18 +12,18 @@ import {
 const BASE = '/client/luxe-maurice-ai';
 
 const NAV = [
-  { href: BASE, label: 'Home' },
-  { href: `${BASE}/properties`, label: 'Properties' },
-  { href: `${BASE}/buyer`, label: 'Enquire' },
-  { href: `${BASE}/crm`, label: 'Advisor view' },
+  { href: BASE, label: 'Home', activeKey: 'home' },
+  { href: `${BASE}/properties`, label: 'Access catalogue', activeKey: 'catalogue' },
+  { href: `${BASE}/buyer`, label: 'Request access', activeKey: 'request' },
+  { href: `${BASE}/crm`, label: 'Advisor pipeline', activeKey: 'pipeline' },
 ];
 
 /**
- * Shared shell for LuxeMaurice AI v1 preview routes.
+ * Shared shell for LuxeMaurice AI v2 preview routes.
  * @param {{ title: string, description?: string, children: React.ReactNode, active?: string }} props
  */
 export default function LuxeMauriceAiPreviewShell({ title, description, children, active }) {
-  const pageTitle = title.includes('LuxeMaurice') ? title : `${title} · LuxeMaurice AI v1 preview`;
+  const pageTitle = title.includes('LuxeMaurice') ? title : `${title} · LuxeMaurice AI v2 preview`;
 
   return (
     <div
@@ -68,7 +68,7 @@ export default function LuxeMauriceAiPreviewShell({ title, description, children
               padding: '6px 12px',
             }}
           >
-            v1 preview
+            v2 preview
           </span>
         </div>
         <nav
@@ -80,7 +80,7 @@ export default function LuxeMauriceAiPreviewShell({ title, description, children
           }}
         >
           {NAV.map((item) => {
-            const isActive = active === item.href || active === item.label.toLowerCase();
+            const isActive = active === item.activeKey;
             return (
               <Link
                 key={item.href}
@@ -121,11 +121,11 @@ export default function LuxeMauriceAiPreviewShell({ title, description, children
             lineHeight: 1.35,
           }}
         >
-          Private wealth & lifestyle opportunities in Mauritius
+          Private access to Mauritius luxury opportunities
         </p>
-        <p style={{ marginTop: 12, fontSize: 13, color: T.ivoryMuted, maxWidth: 520, lineHeight: 1.6 }}>
-          LuxeMaurice AI v1 preview — curated property intelligence, buyer enquiry, and advisor lead
-          workflow. Discreet by design.
+        <p style={{ marginTop: 12, fontSize: 13, color: T.ivoryMuted, maxWidth: 560, lineHeight: 1.6 }}>
+          LuxeMaurice AI v2 preview — curated residences, yachts, aviation, collector assets, island
+          experiences, and advisory introductions. Discreet by design — not an open marketplace.
         </p>
       </footer>
     </div>

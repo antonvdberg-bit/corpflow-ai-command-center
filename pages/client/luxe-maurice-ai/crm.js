@@ -4,7 +4,7 @@ import Link from 'next/link';
 import LuxeMauriceAiPreviewShell, { LUXE_MAURICE_AI_BASE } from '../../../components/LuxeMauriceAiPreviewShell.js';
 import { LUXE_MAURICE_BRAND_TOKENS as T } from '../../../lib/client/luxe-maurice-brand-theme.js';
 import { LuxEyebrow, LuxHairline } from '../../../components/LuxeMauriceBrandPrimitives.js';
-import { listLeads } from '../../../lib/client/luxe-maurice-ai-data.js';
+import { getCategoryLabel, listLeads } from '../../../lib/client/luxe-maurice-ai-data.js';
 
 function formatDate(iso) {
   if (!iso) return '—';
@@ -30,11 +30,6 @@ function formatBudget(profile) {
   return '—';
 }
 
-function requirementSummary(requirements) {
-  if (!Array.isArray(requirements) || !requirements.length) return '—';
-  return requirements.map((r) => `${r.key}: ${r.value}`).join(' · ');
-}
-
 export default function LuxeMauriceAiCrmPage({ initialLeads }) {
   const [leads, setLeads] = useState(Array.isArray(initialLeads) ? initialLeads : []);
 
@@ -44,12 +39,12 @@ export default function LuxeMauriceAiCrmPage({ initialLeads }) {
 
   return (
     <LuxeMauriceAiPreviewShell
-      active="advisor view"
-      title="Advisor lead view"
-      description="Operator preview of buyer enquiries and lead scoring for LuxeMaurice AI."
+      active="pipeline"
+      title="Advisor pipeline"
+      description="Operator preview of private access requests and advisory scoring for LuxeMaurice AI."
     >
       <section style={{ padding: '48px clamp(20px, 4vw, 56px)' }}>
-        <LuxEyebrow>Advisor workflow</LuxEyebrow>
+        <LuxEyebrow>Advisor pipeline</LuxEyebrow>
         <h1
           style={{
             marginTop: 14,
@@ -58,15 +53,15 @@ export default function LuxeMauriceAiCrmPage({ initialLeads }) {
             fontWeight: 500,
           }}
         >
-          Lead list
+          Advisor pipeline
         </h1>
-        <p style={{ marginTop: 12, color: T.ivoryMuted, maxWidth: 620, lineHeight: 1.65 }}>
-          Enquiries from the buyer wizard appear here with budget, location preferences, status, and
-          match score. Submit a test enquiry on the{' '}
+        <p style={{ marginTop: 12, color: T.ivoryMuted, maxWidth: 640, lineHeight: 1.65 }}>
+          Private access requests across all categories — residences, yachts, aviation, experiences,
+          and advisory mandates. Submit a test request on the{' '}
           <Link href={`${LUXE_MAURICE_AI_BASE}/buyer`} style={{ color: T.gold }}>
-            buyer form
+            access request form
           </Link>{' '}
-          to see a new row appear in this preview.
+          to see a new row appear.
         </p>
         <LuxHairline />
 
@@ -74,32 +69,40 @@ export default function LuxeMauriceAiCrmPage({ initialLeads }) {
           <table
             style={{
               width: '100%',
-              minWidth: 720,
+              minWidth: 860,
               borderCollapse: 'collapse',
               fontSize: 14,
             }}
           >
             <thead>
               <tr style={{ borderBottom: `1px solid ${T.hairline}` }}>
-                {['Buyer', 'Budget', 'Location / type', 'Property', 'Status', 'Score', 'Created'].map(
-                  (h) => (
-                    <th
-                      key={h}
-                      scope="col"
-                      style={{
-                        textAlign: 'left',
-                        padding: '12px 16px 12px 0',
-                        fontSize: 10,
-                        fontWeight: 700,
-                        letterSpacing: '0.18em',
-                        textTransform: 'uppercase',
-                        color: T.gold,
-                      }}
-                    >
-                      {h}
-                    </th>
-                  ),
-                )}
+                {[
+                  'Principal',
+                  'Category',
+                  'Access intent',
+                  'Budget range',
+                  'Opportunity',
+                  'Status',
+                  'Score',
+                  'Next action',
+                  'Created',
+                ].map((h) => (
+                  <th
+                    key={h}
+                    scope="col"
+                    style={{
+                      textAlign: 'left',
+                      padding: '12px 16px 12px 0',
+                      fontSize: 10,
+                      fontWeight: 700,
+                      letterSpacing: '0.18em',
+                      textTransform: 'uppercase',
+                      color: T.gold,
+                    }}
+                  >
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
@@ -112,13 +115,16 @@ export default function LuxeMauriceAiCrmPage({ initialLeads }) {
                     <span style={{ fontSize: 13, color: T.ivoryMuted }}>{lead.buyer?.email}</span>
                   </td>
                   <td style={{ padding: '16px 16px 16px 0', color: T.ivoryMuted, verticalAlign: 'top' }}>
+                    {getCategoryLabel(lead.access_category)}
+                  </td>
+                  <td style={{ padding: '16px 16px 16px 0', color: T.ivoryMuted, verticalAlign: 'top' }}>
+                    {lead.access_intent || lead.profile?.timeline || '—'}
+                  </td>
+                  <td style={{ padding: '16px 16px 16px 0', color: T.ivoryMuted, verticalAlign: 'top' }}>
                     {formatBudget(lead.profile)}
                   </td>
                   <td style={{ padding: '16px 16px 16px 0', color: T.ivoryMuted, verticalAlign: 'top' }}>
-                    {requirementSummary(lead.requirements)}
-                  </td>
-                  <td style={{ padding: '16px 16px 16px 0', color: T.ivoryMuted, verticalAlign: 'top' }}>
-                    {lead.property?.title || 'General'}
+                    {lead.opportunity?.title || lead.property?.title || 'General mandate'}
                   </td>
                   <td style={{ padding: '16px 16px 16px 0', verticalAlign: 'top' }}>
                     <span
@@ -138,15 +144,13 @@ export default function LuxeMauriceAiCrmPage({ initialLeads }) {
                       <>
                         <strong style={{ color: T.ivory }}>{lead.score.score}</strong>
                         <span style={{ color: T.ivoryMuted }}> · {lead.score.score_band}</span>
-                        {lead.match?.match_score ? (
-                          <div style={{ fontSize: 12, color: T.stoneSoft, marginTop: 4 }}>
-                            Match {lead.match.match_score}
-                          </div>
-                        ) : null}
                       </>
                     ) : (
                       '—'
                     )}
+                  </td>
+                  <td style={{ padding: '16px 16px 16px 0', color: T.stoneSoft, verticalAlign: 'top' }}>
+                    {lead.next_action || 'Schedule private consultation'}
                   </td>
                   <td style={{ padding: '16px 0', color: T.ivoryMuted, verticalAlign: 'top' }}>
                     {formatDate(lead.created_at)}
@@ -156,7 +160,7 @@ export default function LuxeMauriceAiCrmPage({ initialLeads }) {
             </tbody>
           </table>
           {leads.length === 0 ? (
-            <p style={{ marginTop: 24, color: T.ivoryMuted }}>No leads in preview yet.</p>
+            <p style={{ marginTop: 24, color: T.ivoryMuted }}>No requests in preview yet.</p>
           ) : null}
         </div>
       </section>
