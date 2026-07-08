@@ -3,18 +3,13 @@ import Link from 'next/link';
 import LuxeMauriceAiPreviewShell, { LUXE_MAURICE_AI_BASE } from '../../../../components/LuxeMauriceAiPreviewShell.js';
 import { LUXE_MAURICE_BRAND_TOKENS as T } from '../../../../lib/client/luxe-maurice-brand-theme.js';
 import { LuxEyebrow, LuxHairline } from '../../../../components/LuxeMauriceBrandPrimitives.js';
-import { listProperties } from '../../../../lib/client/luxe-maurice-ai-data.js';
+import {
+  isResidenceCategory,
+  listProperties,
+  previewHeroGradient,
+} from '../../../../lib/client/luxe-maurice-ai-data.js';
 
-function heroGradient(slug) {
-  const palettes = {
-    'sample-coastal-residence': 'linear-gradient(145deg, #2a2520 0%, #4a4034 45%, #1a1817 100%)',
-    'lagoon-villa-estate': 'linear-gradient(145deg, #1e2a2e 0%, #3d5248 50%, #111111 100%)',
-    'golf-residence-anahita': 'linear-gradient(145deg, #252820 0%, #4a5238 50%, #0f0f0f 100%)',
-  };
-  return palettes[slug] || T.placeholder;
-}
-
-function factLine(bedrooms, bathrooms) {
+function residenceFacts(bedrooms, bathrooms) {
   const parts = [];
   if (bedrooms != null) parts.push(`${bedrooms} bed`);
   if (bathrooms != null) parts.push(`${bathrooms} bath`);
@@ -26,12 +21,12 @@ export default function LuxeMauriceAiPropertiesPage({ properties }) {
 
   return (
     <LuxeMauriceAiPreviewShell
-      active="properties"
+      active="catalogue"
       title="Private opportunities"
-      description="LuxeMaurice AI property catalogue — published private opportunities in Mauritius."
+      description="LuxeMaurice AI access catalogue — curated private luxury opportunities in Mauritius."
     >
       <section style={{ padding: '48px clamp(20px, 4vw, 56px)' }}>
-        <LuxEyebrow>Property catalogue</LuxEyebrow>
+        <LuxEyebrow>Access catalogue</LuxEyebrow>
         <h1
           style={{
             marginTop: 16,
@@ -42,9 +37,9 @@ export default function LuxeMauriceAiPropertiesPage({ properties }) {
         >
           Private opportunities
         </h1>
-        <p style={{ marginTop: 12, color: T.ivoryMuted, maxWidth: 560, lineHeight: 1.6 }}>
-          Published opportunities across Mauritius. Each profile opens a private memorandum view with
-          enquiry path to your advisory team.
+        <p style={{ marginTop: 12, color: T.ivoryMuted, maxWidth: 620, lineHeight: 1.6 }}>
+          Residences, yacht access, aviation arrivals, collector assets, and bespoke island
+          experiences — each profile opens a private memorandum with an advisory introduction path.
         </p>
         <LuxHairline />
 
@@ -64,7 +59,7 @@ export default function LuxeMauriceAiPropertiesPage({ properties }) {
                 <div
                   style={{
                     aspectRatio: '16 / 10',
-                    background: heroGradient(p.slug),
+                    background: previewHeroGradient(p.slug, T.placeholder),
                     marginBottom: 18,
                   }}
                   aria-hidden
@@ -78,8 +73,9 @@ export default function LuxeMauriceAiPropertiesPage({ properties }) {
                     color: T.gold,
                   }}
                 >
-                  {p.location_label}
+                  {p.category_label}
                 </p>
+                <p style={{ marginTop: 6, fontSize: 12, color: T.stoneSoft }}>{p.location_label}</p>
                 <h2
                   style={{
                     marginTop: 8,
@@ -93,7 +89,11 @@ export default function LuxeMauriceAiPropertiesPage({ properties }) {
                 </h2>
                 <p style={{ marginTop: 10, fontSize: 14, color: T.ivoryMuted }}>
                   {p.price_label}
-                  {factLine(p.bedrooms, p.bathrooms) ? ` · ${factLine(p.bedrooms, p.bathrooms)}` : ''}
+                  {isResidenceCategory(p.opportunity_category) && residenceFacts(p.bedrooms, p.bathrooms)
+                    ? ` · ${residenceFacts(p.bedrooms, p.bathrooms)}`
+                    : p.access_model
+                      ? ` · ${p.access_model}`
+                      : ''}
                 </p>
                 <p
                   style={{
@@ -104,7 +104,7 @@ export default function LuxeMauriceAiPropertiesPage({ properties }) {
                     color: T.stoneSoft,
                   }}
                 >
-                  {p.status}
+                  {p.availability || p.status}
                 </p>
                 <Link
                   href={`${LUXE_MAURICE_AI_BASE}/properties/${p.slug}`}

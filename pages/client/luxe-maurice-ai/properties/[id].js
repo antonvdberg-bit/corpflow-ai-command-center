@@ -3,25 +3,21 @@ import Link from 'next/link';
 import LuxeMauriceAiPreviewShell, { LUXE_MAURICE_AI_BASE } from '../../../../components/LuxeMauriceAiPreviewShell.js';
 import { LUXE_MAURICE_BRAND_TOKENS as T } from '../../../../lib/client/luxe-maurice-brand-theme.js';
 import { LuxEyebrow, LuxHairline } from '../../../../components/LuxeMauriceBrandPrimitives.js';
-import { getPropertyById, listProperties } from '../../../../lib/client/luxe-maurice-ai-data.js';
-
-function heroGradient(slug) {
-  const palettes = {
-    'sample-coastal-residence': 'linear-gradient(145deg, #2a2520 0%, #4a4034 45%, #1a1817 100%)',
-    'lagoon-villa-estate': 'linear-gradient(145deg, #1e2a2e 0%, #3d5248 50%, #111111 100%)',
-    'golf-residence-anahita': 'linear-gradient(145deg, #252820 0%, #4a5238 50%, #0f0f0f 100%)',
-  };
-  return palettes[slug] || T.placeholder;
-}
+import {
+  getPropertyById,
+  isResidenceCategory,
+  listProperties,
+  previewHeroGradient,
+} from '../../../../lib/client/luxe-maurice-ai-data.js';
 
 export default function LuxeMauriceAiPropertyDetailPage({ detail, notFound }) {
   if (notFound || !detail) {
     return (
-      <LuxeMauriceAiPreviewShell active="properties" title="Opportunity not found">
+      <LuxeMauriceAiPreviewShell active="catalogue" title="Opportunity not found">
         <section style={{ padding: '48px clamp(20px, 4vw, 56px)' }}>
-          <p style={{ color: T.ivoryMuted }}>This opportunity is not available in the v1 preview.</p>
+          <p style={{ color: T.ivoryMuted }}>This opportunity is not available in the v2 preview.</p>
           <Link href={`${LUXE_MAURICE_AI_BASE}/properties`} style={{ color: T.gold }}>
-            ← Back to catalogue
+            ← Back to access catalogue
           </Link>
         </section>
       </LuxeMauriceAiPreviewShell>
@@ -30,15 +26,18 @@ export default function LuxeMauriceAiPropertyDetailPage({ detail, notFound }) {
 
   const { property, gallery, detail: facts } = detail;
   const enquiryHref = `${LUXE_MAURICE_AI_BASE}/buyer?property=${encodeURIComponent(property.slug)}`;
+  const isResidence = isResidenceCategory(facts?.opportunity_category);
 
   return (
     <LuxeMauriceAiPreviewShell
-      active="properties"
+      active="catalogue"
       title={property.title}
       description={property.summary || property.title}
     >
       <section style={{ padding: '40px clamp(20px, 4vw, 56px) 0' }}>
-        <LuxEyebrow>{property.region_label}</LuxEyebrow>
+        <LuxEyebrow>
+          {facts?.category_label || property.category_label} · {property.region_label}
+        </LuxEyebrow>
         <h1
           style={{
             marginTop: 14,
@@ -69,7 +68,7 @@ export default function LuxeMauriceAiPropertyDetailPage({ detail, notFound }) {
           style={{
             aspectRatio: '21 / 9',
             maxHeight: 480,
-            background: heroGradient(property.slug),
+            background: previewHeroGradient(property.slug, T.placeholder),
             marginBottom: 24,
           }}
           role="img"
@@ -89,7 +88,7 @@ export default function LuxeMauriceAiPropertyDetailPage({ detail, notFound }) {
                 key={g.id}
                 style={{
                   aspectRatio: '4 / 3',
-                  background: heroGradient(property.slug),
+                  background: previewHeroGradient(property.slug, T.placeholder),
                   opacity: 0.85,
                 }}
                 aria-hidden
@@ -132,11 +131,14 @@ export default function LuxeMauriceAiPropertyDetailPage({ detail, notFound }) {
               lineHeight: 2,
             }}
           >
+            <li>Category: {facts?.category_label || property.category_label}</li>
             <li>Location: {property.location_label}</li>
-            {facts?.property_type ? <li>Type: {facts.property_type.replace(/_/g, ' ')}</li> : null}
-            {facts?.bedrooms != null ? <li>Bedrooms: {facts.bedrooms}</li> : null}
-            {facts?.bathrooms != null ? <li>Bathrooms: {facts.bathrooms}</li> : null}
-            {facts?.area_sqm != null ? <li>Area: {facts.area_sqm} m²</li> : null}
+            {facts?.access_model ? <li>Access model: {facts.access_model}</li> : null}
+            {facts?.availability ? <li>Availability: {facts.availability}</li> : null}
+            {facts?.capacity_note ? <li>Capacity: {facts.capacity_note}</li> : null}
+            {isResidence && facts?.bedrooms != null ? <li>Bedrooms: {facts.bedrooms}</li> : null}
+            {isResidence && facts?.bathrooms != null ? <li>Bathrooms: {facts.bathrooms}</li> : null}
+            {isResidence && facts?.area_sqm != null ? <li>Area: {facts.area_sqm} m²</li> : null}
             <li>Status: {property.status}</li>
           </ul>
         </div>
@@ -146,6 +148,7 @@ export default function LuxeMauriceAiPropertyDetailPage({ detail, notFound }) {
             padding: 28,
             background: T.charcoalSoft,
             border: `1px solid ${T.hairlineSoft}`,
+            maxWidth: 400,
           }}
         >
           <p
@@ -157,10 +160,11 @@ export default function LuxeMauriceAiPropertyDetailPage({ detail, notFound }) {
               color: T.gold,
             }}
           >
-            Private enquiry
+            Advisory introduction
           </p>
           <p style={{ marginTop: 12, fontSize: 14, lineHeight: 1.6, color: T.ivoryMuted }}>
-            Register your interest for a confidential consultation on this opportunity.
+            Request a confidential introduction to discuss access, timing, and next steps with your
+            private advisor.
           </p>
           <Link
             href={enquiryHref}
@@ -178,7 +182,7 @@ export default function LuxeMauriceAiPropertyDetailPage({ detail, notFound }) {
               textDecoration: 'none',
             }}
           >
-            Request consultation
+            Request private access
           </Link>
         </aside>
       </section>

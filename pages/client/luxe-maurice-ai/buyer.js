@@ -5,7 +5,12 @@ import Link from 'next/link';
 import LuxeMauriceAiPreviewShell, { LUXE_MAURICE_AI_BASE } from '../../../components/LuxeMauriceAiPreviewShell.js';
 import { LUXE_MAURICE_BRAND_TOKENS as T } from '../../../lib/client/luxe-maurice-brand-theme.js';
 import { LuxEyebrow } from '../../../components/LuxeMauriceBrandPrimitives.js';
-import { createEnquiry, getPropertyById, listProperties } from '../../../lib/client/luxe-maurice-ai-data.js';
+import {
+  LUXE_MAURICE_AI_ACCESS_CATEGORIES,
+  createEnquiry,
+  getPropertyById,
+  listProperties,
+} from '../../../lib/client/luxe-maurice-ai-data.js';
 
 const inputStyle = {
   width: '100%',
@@ -30,7 +35,7 @@ const labelStyle = {
 
 export default function LuxeMauriceAiBuyerPage({ properties }) {
   const router = useRouter();
-  const propertyOptions = Array.isArray(properties) ? properties : [];
+  const opportunityOptions = Array.isArray(properties) ? properties : [];
 
   const [form, setForm] = useState({
     full_name: '',
@@ -39,8 +44,9 @@ export default function LuxeMauriceAiBuyerPage({ properties }) {
     budget_min: '',
     budget_max: '',
     desired_location: '',
+    access_category: '',
     property_type: '',
-    buying_intent: '',
+    access_intent: '',
     notes: '',
     property_id: '',
   });
@@ -55,12 +61,16 @@ export default function LuxeMauriceAiBuyerPage({ properties }) {
     if (typeof slug === 'string' && slug.trim()) {
       const match = getPropertyById(slug.trim());
       if (match?.property?.id) {
-        setForm((prev) => ({ ...prev, property_id: match.property.id }));
+        setForm((prev) => ({
+          ...prev,
+          property_id: match.property.id,
+          access_category: match.detail?.opportunity_category || match.property.opportunity_category || '',
+        }));
       }
     }
   }, [router.isReady, router.query.property]);
 
-  const selectedProperty = useMemo(() => {
+  const selectedOpportunity = useMemo(() => {
     if (!form.property_id) return null;
     return getPropertyById(form.property_id)?.property ?? null;
   }, [form.property_id]);
@@ -84,17 +94,20 @@ export default function LuxeMauriceAiBuyerPage({ properties }) {
         budget_max: form.budget_max,
         currency_code: 'USD',
         desired_location: form.desired_location,
+        access_category: form.access_category,
         property_type: form.property_type,
-        buying_intent: form.buying_intent,
+        access_intent: form.access_intent,
         notes: form.notes,
         property_id: form.property_id || undefined,
       });
       setBusy(false);
       if (!result.ok) {
-        setError(result.error || 'Unable to submit enquiry.');
+        setError(result.error || 'Unable to submit request.');
         return;
       }
-      setSuccess('Thank you — your enquiry has been received. An advisor will follow up privately.');
+      setSuccess(
+        'Thank you — your private access request has been received. An advisor will follow up discreetly.',
+      );
       setForm({
         full_name: '',
         email: '',
@@ -102,8 +115,9 @@ export default function LuxeMauriceAiBuyerPage({ properties }) {
         budget_min: '',
         budget_max: '',
         desired_location: '',
+        access_category: form.access_category,
         property_type: '',
-        buying_intent: '',
+        access_intent: '',
         notes: '',
         property_id: form.property_id,
       });
@@ -113,12 +127,12 @@ export default function LuxeMauriceAiBuyerPage({ properties }) {
 
   return (
     <LuxeMauriceAiPreviewShell
-      active="enquire"
-      title="Buyer enquiry"
-      description="Register your buying intent for private Mauritius property opportunities."
+      active="request"
+      title="Private access request"
+      description="Register your private access intent for Mauritius luxury opportunities."
     >
       <section style={{ padding: '48px clamp(20px, 4vw, 56px)', maxWidth: 720 }}>
-        <LuxEyebrow>Buyer wizard</LuxEyebrow>
+        <LuxEyebrow>Private access request</LuxEyebrow>
         <h1
           style={{
             marginTop: 14,
@@ -127,14 +141,14 @@ export default function LuxeMauriceAiBuyerPage({ properties }) {
             fontWeight: 500,
           }}
         >
-          Register your buying intent
+          Request private access
         </h1>
         <p style={{ marginTop: 12, color: T.ivoryMuted, lineHeight: 1.65 }}>
-          Share your preferences confidentially. Your details feed directly into the advisor lead
-          workflow shown in the preview CRM view.
+          Share your category, budget, timing, and intent confidentially. Your request flows directly
+          into the advisor pipeline preview.
         </p>
 
-        {selectedProperty ? (
+        {selectedOpportunity ? (
           <p
             style={{
               marginTop: 20,
@@ -144,7 +158,7 @@ export default function LuxeMauriceAiBuyerPage({ properties }) {
               color: T.ivoryMuted,
             }}
           >
-            Enquiring about: <strong style={{ color: T.ivory }}>{selectedProperty.title}</strong>
+            Relating to: <strong style={{ color: T.ivory }}>{selectedOpportunity.title}</strong>
           </p>
         ) : null}
 
@@ -160,7 +174,7 @@ export default function LuxeMauriceAiBuyerPage({ properties }) {
           >
             {success}{' '}
             <Link href={`${LUXE_MAURICE_AI_BASE}/crm`} style={{ color: T.gold }}>
-              View in advisor lead list →
+              View advisor pipeline →
             </Link>
           </div>
         ) : null}
@@ -205,10 +219,29 @@ export default function LuxeMauriceAiBuyerPage({ properties }) {
             </label>
             <input id="phone" name="phone" value={form.phone} onChange={onChange} style={inputStyle} />
           </div>
+          <div>
+            <label htmlFor="access_category" style={labelStyle}>
+              Desired category
+            </label>
+            <select
+              id="access_category"
+              name="access_category"
+              value={form.access_category}
+              onChange={onChange}
+              style={inputStyle}
+            >
+              <option value="">Select category…</option>
+              {LUXE_MAURICE_AI_ACCESS_CATEGORIES.map((cat) => (
+                <option key={cat.key} value={cat.key}>
+                  {cat.label}
+                </option>
+              ))}
+            </select>
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             <div>
               <label htmlFor="budget_min" style={labelStyle}>
-                Budget from (USD)
+                Access budget from (USD)
               </label>
               <input
                 id="budget_min"
@@ -221,7 +254,7 @@ export default function LuxeMauriceAiBuyerPage({ properties }) {
             </div>
             <div>
               <label htmlFor="budget_max" style={labelStyle}>
-                Budget to (USD)
+                Access budget to (USD)
               </label>
               <input
                 id="budget_max"
@@ -235,12 +268,12 @@ export default function LuxeMauriceAiBuyerPage({ properties }) {
           </div>
           <div>
             <label htmlFor="desired_location" style={labelStyle}>
-              Desired location
+              Location / region
             </label>
             <input
               id="desired_location"
               name="desired_location"
-              placeholder="e.g. West Coast, Grand Baie"
+              placeholder="e.g. West Coast, Grand Baie, SSR arrival"
               value={form.desired_location}
               onChange={onChange}
               style={inputStyle}
@@ -248,25 +281,20 @@ export default function LuxeMauriceAiBuyerPage({ properties }) {
           </div>
           <div>
             <label htmlFor="property_type" style={labelStyle}>
-              Property type
+              Preference detail (optional)
             </label>
-            <select
+            <input
               id="property_type"
               name="property_type"
+              placeholder="e.g. 4-bed villa, 42m yacht, light jet"
               value={form.property_type}
               onChange={onChange}
               style={inputStyle}
-            >
-              <option value="">Select…</option>
-              <option value="Completed residence">Completed residence</option>
-              <option value="Off-plan villa">Off-plan villa</option>
-              <option value="Apartment">Apartment</option>
-              <option value="Estate / land">Estate / land</option>
-            </select>
+            />
           </div>
           <div>
             <label htmlFor="property_id" style={labelStyle}>
-              Property of interest (optional)
+              Specific opportunity (optional)
             </label>
             <select
               id="property_id"
@@ -275,29 +303,30 @@ export default function LuxeMauriceAiBuyerPage({ properties }) {
               onChange={onChange}
               style={inputStyle}
             >
-              <option value="">General enquiry</option>
-              {propertyOptions.map((p) => (
+              <option value="">General access request</option>
+              {opportunityOptions.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.title}
+                  {p.category_label} — {p.title}
                 </option>
               ))}
             </select>
           </div>
           <div>
-            <label htmlFor="buying_intent" style={labelStyle}>
-              Buying intent / timeline
+            <label htmlFor="access_intent" style={labelStyle}>
+              Access intent / timing
             </label>
             <select
-              id="buying_intent"
-              name="buying_intent"
-              value={form.buying_intent}
+              id="access_intent"
+              name="access_intent"
+              value={form.access_intent}
               onChange={onChange}
               style={inputStyle}
             >
               <option value="">Select…</option>
               <option value="Ready within 3 months">Ready within 3 months</option>
               <option value="6-12 months">6–12 months</option>
-              <option value="12+ months — exploring">12+ months — exploring</option>
+              <option value="Seasonal window">Seasonal window</option>
+              <option value="Exploring — advisory introduction">Exploring — advisory introduction</option>
             </select>
           </div>
           <div>
@@ -329,7 +358,7 @@ export default function LuxeMauriceAiBuyerPage({ properties }) {
               cursor: busy ? 'wait' : 'pointer',
             }}
           >
-            Submit enquiry
+            Submit access request
           </button>
         </form>
       </section>
