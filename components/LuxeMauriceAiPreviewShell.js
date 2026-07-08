@@ -24,6 +24,18 @@ const NAV = [
  */
 export default function LuxeMauriceAiPreviewShell({ title, description, children, active }) {
   const pageTitle = title.includes('LuxeMaurice') ? title : `${title} · LuxeMaurice AI v2 preview`;
+  { href: BASE, label: 'Home' },
+  { href: `${BASE}/properties`, label: 'Properties' },
+  { href: `${BASE}/buyer`, label: 'Enquire' },
+  { href: `${BASE}/crm`, label: 'Advisor view' },
+];
+
+/**
+ * Shared shell for LuxeMaurice AI v1 preview routes.
+ * @param {{ title: string, description?: string, children: React.ReactNode, active?: string }} props
+ */
+export default function LuxeMauriceAiPreviewShell({ title, description, children, active }) {
+  const pageTitle = title.includes('LuxeMaurice') ? title : `${title} · LuxeMaurice AI v1 preview`;
 
   return (
     <div
@@ -69,6 +81,7 @@ export default function LuxeMauriceAiPreviewShell({ title, description, children
             }}
           >
             v2 preview
+            v1 preview
           </span>
         </div>
         <nav
@@ -81,6 +94,7 @@ export default function LuxeMauriceAiPreviewShell({ title, description, children
         >
           {NAV.map((item) => {
             const isActive = active === item.activeKey;
+            const isActive = active === item.href || active === item.label.toLowerCase();
             return (
               <Link
                 key={item.href}
@@ -126,6 +140,11 @@ export default function LuxeMauriceAiPreviewShell({ title, description, children
         <p style={{ marginTop: 12, fontSize: 13, color: T.ivoryMuted, maxWidth: 560, lineHeight: 1.6 }}>
           LuxeMaurice AI v2 preview — curated residences, yachts, aviation, collector assets, island
           experiences, and advisory introductions. Discreet by design — not an open marketplace.
+          Private wealth & lifestyle opportunities in Mauritius
+        </p>
+        <p style={{ marginTop: 12, fontSize: 13, color: T.ivoryMuted, maxWidth: 520, lineHeight: 1.6 }}>
+          LuxeMaurice AI v1 preview — curated property intelligence, buyer enquiry, and advisor lead
+          workflow. Discreet by design.
         </p>
       </footer>
     </div>

@@ -8,6 +8,16 @@ import {
   listProperties,
   previewHeroGradient,
 } from '../../../lib/client/luxe-maurice-ai-data.js';
+import { listProperties } from '../../../lib/client/luxe-maurice-ai-data.js';
+
+function heroGradient(slug) {
+  const palettes = {
+    'sample-coastal-residence': 'linear-gradient(145deg, #2a2520 0%, #4a4034 45%, #1a1817 100%)',
+    'lagoon-villa-estate': 'linear-gradient(145deg, #1e2a2e 0%, #3d5248 50%, #111111 100%)',
+    'golf-residence-anahita': 'linear-gradient(145deg, #252820 0%, #4a5238 50%, #0f0f0f 100%)',
+  };
+  return palettes[slug] || T.placeholder;
+}
 
 export default function LuxeMauriceAiLandingPage({ featured }) {
   const cards = Array.isArray(featured) ? featured : [];
@@ -17,6 +27,8 @@ export default function LuxeMauriceAiLandingPage({ featured }) {
       active="home"
       title="LuxeMaurice AI v2 preview"
       description="Private luxury access to Mauritius — residences, yachts, aviation, collector assets, and curated island experiences."
+      title="LuxeMaurice AI v1 preview"
+      description="Private luxury property opportunities in Mauritius — catalogue, enquiry, and advisor workflow preview."
     >
       <section
         style={{
@@ -25,6 +37,7 @@ export default function LuxeMauriceAiLandingPage({ featured }) {
         }}
       >
         <LuxEyebrow>Mauritius · Private luxury access</LuxEyebrow>
+        <LuxEyebrow>Mauritius · Private opportunities</LuxEyebrow>
         <h1
           style={{
             marginTop: 20,
@@ -37,6 +50,11 @@ export default function LuxeMauriceAiLandingPage({ featured }) {
           }}
         >
           Private access to curated luxury opportunities
+            maxWidth: 720,
+            color: T.ivory,
+          }}
+        >
+          Curated luxury property intelligence
         </h1>
         <p
           style={{
@@ -50,6 +68,11 @@ export default function LuxeMauriceAiLandingPage({ featured }) {
           LuxeMaurice AI connects principals to discreet Mauritius access — private residences,
           yacht charters, VIP arrivals, collector assets, bespoke island experiences, and advisory
           introductions. Curated opportunities, not an open marketplace.
+            maxWidth: 560,
+          }}
+        >
+          Explore private opportunities across Mauritius, register your buying intent, and see how
+          your advisory team tracks qualified enquiries — all in one discreet v1 preview.
         </p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginTop: 32 }}>
           <Link
@@ -67,6 +90,7 @@ export default function LuxeMauriceAiLandingPage({ featured }) {
             }}
           >
             Browse access catalogue
+            View properties
           </Link>
           <Link
             href={`${LUXE_MAURICE_AI_BASE}/buyer`}
@@ -83,6 +107,7 @@ export default function LuxeMauriceAiLandingPage({ featured }) {
             }}
           >
             Request private access
+            Start buyer enquiry
           </Link>
           <Link
             href={`${LUXE_MAURICE_AI_BASE}/crm`}
@@ -98,6 +123,7 @@ export default function LuxeMauriceAiLandingPage({ featured }) {
             }}
           >
             Advisor pipeline →
+            Advisor lead view →
           </Link>
         </div>
       </section>
@@ -145,6 +171,8 @@ export default function LuxeMauriceAiLandingPage({ featured }) {
 
       <section style={{ padding: '48px clamp(20px, 4vw, 56px)' }}>
         <LuxEyebrow>Featured curated opportunities</LuxEyebrow>
+      <section style={{ padding: '48px clamp(20px, 4vw, 56px)' }}>
+        <LuxEyebrow>Featured opportunities</LuxEyebrow>
         <LuxHairline />
         <div
           style={{
@@ -164,6 +192,7 @@ export default function LuxeMauriceAiLandingPage({ featured }) {
                   style={{
                     aspectRatio: '4 / 3',
                     background: previewHeroGradient(p.slug, T.placeholder),
+                    background: heroGradient(p.slug),
                     marginBottom: 16,
                   }}
                   aria-hidden
@@ -178,6 +207,7 @@ export default function LuxeMauriceAiLandingPage({ featured }) {
                   }}
                 >
                   {p.category_label} · {p.region_label}
+                  {p.region_label}
                 </p>
                 <h2
                   style={{
@@ -210,6 +240,9 @@ export async function getStaticProps() {
   return {
     props: {
       featured: mixed.length ? mixed : all.slice(0, 3),
+  return {
+    props: {
+      featured: all.slice(0, 3),
     },
   };
 }

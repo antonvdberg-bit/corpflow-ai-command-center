@@ -9,6 +9,16 @@ import {
   listProperties,
   previewHeroGradient,
 } from '../../../../lib/client/luxe-maurice-ai-data.js';
+import { getPropertyById, listProperties } from '../../../../lib/client/luxe-maurice-ai-data.js';
+
+function heroGradient(slug) {
+  const palettes = {
+    'sample-coastal-residence': 'linear-gradient(145deg, #2a2520 0%, #4a4034 45%, #1a1817 100%)',
+    'lagoon-villa-estate': 'linear-gradient(145deg, #1e2a2e 0%, #3d5248 50%, #111111 100%)',
+    'golf-residence-anahita': 'linear-gradient(145deg, #252820 0%, #4a5238 50%, #0f0f0f 100%)',
+  };
+  return palettes[slug] || T.placeholder;
+}
 
 export default function LuxeMauriceAiPropertyDetailPage({ detail, notFound }) {
   if (notFound || !detail) {
@@ -18,6 +28,11 @@ export default function LuxeMauriceAiPropertyDetailPage({ detail, notFound }) {
           <p style={{ color: T.ivoryMuted }}>This opportunity is not available in the v2 preview.</p>
           <Link href={`${LUXE_MAURICE_AI_BASE}/properties`} style={{ color: T.gold }}>
             ← Back to access catalogue
+      <LuxeMauriceAiPreviewShell active="properties" title="Opportunity not found">
+        <section style={{ padding: '48px clamp(20px, 4vw, 56px)' }}>
+          <p style={{ color: T.ivoryMuted }}>This opportunity is not available in the v1 preview.</p>
+          <Link href={`${LUXE_MAURICE_AI_BASE}/properties`} style={{ color: T.gold }}>
+            ← Back to catalogue
           </Link>
         </section>
       </LuxeMauriceAiPreviewShell>
@@ -31,6 +46,10 @@ export default function LuxeMauriceAiPropertyDetailPage({ detail, notFound }) {
   return (
     <LuxeMauriceAiPreviewShell
       active="catalogue"
+
+  return (
+    <LuxeMauriceAiPreviewShell
+      active="properties"
       title={property.title}
       description={property.summary || property.title}
     >
@@ -38,6 +57,7 @@ export default function LuxeMauriceAiPropertyDetailPage({ detail, notFound }) {
         <LuxEyebrow>
           {facts?.category_label || property.category_label} · {property.region_label}
         </LuxEyebrow>
+        <LuxEyebrow>{property.region_label}</LuxEyebrow>
         <h1
           style={{
             marginTop: 14,
@@ -69,6 +89,7 @@ export default function LuxeMauriceAiPropertyDetailPage({ detail, notFound }) {
             aspectRatio: '21 / 9',
             maxHeight: 480,
             background: previewHeroGradient(property.slug, T.placeholder),
+            background: heroGradient(property.slug),
             marginBottom: 24,
           }}
           role="img"
@@ -89,6 +110,7 @@ export default function LuxeMauriceAiPropertyDetailPage({ detail, notFound }) {
                 style={{
                   aspectRatio: '4 / 3',
                   background: previewHeroGradient(property.slug, T.placeholder),
+                  background: heroGradient(property.slug),
                   opacity: 0.85,
                 }}
                 aria-hidden
@@ -139,6 +161,11 @@ export default function LuxeMauriceAiPropertyDetailPage({ detail, notFound }) {
             {isResidence && facts?.bedrooms != null ? <li>Bedrooms: {facts.bedrooms}</li> : null}
             {isResidence && facts?.bathrooms != null ? <li>Bathrooms: {facts.bathrooms}</li> : null}
             {isResidence && facts?.area_sqm != null ? <li>Area: {facts.area_sqm} m²</li> : null}
+            <li>Location: {property.location_label}</li>
+            {facts?.property_type ? <li>Type: {facts.property_type.replace(/_/g, ' ')}</li> : null}
+            {facts?.bedrooms != null ? <li>Bedrooms: {facts.bedrooms}</li> : null}
+            {facts?.bathrooms != null ? <li>Bathrooms: {facts.bathrooms}</li> : null}
+            {facts?.area_sqm != null ? <li>Area: {facts.area_sqm} m²</li> : null}
             <li>Status: {property.status}</li>
           </ul>
         </div>
@@ -165,6 +192,10 @@ export default function LuxeMauriceAiPropertyDetailPage({ detail, notFound }) {
           <p style={{ marginTop: 12, fontSize: 14, lineHeight: 1.6, color: T.ivoryMuted }}>
             Request a confidential introduction to discuss access, timing, and next steps with your
             private advisor.
+            Private enquiry
+          </p>
+          <p style={{ marginTop: 12, fontSize: 14, lineHeight: 1.6, color: T.ivoryMuted }}>
+            Register your interest for a confidential consultation on this opportunity.
           </p>
           <Link
             href={enquiryHref}
@@ -183,6 +214,7 @@ export default function LuxeMauriceAiPropertyDetailPage({ detail, notFound }) {
             }}
           >
             Request private access
+            Request consultation
           </Link>
         </aside>
       </section>
