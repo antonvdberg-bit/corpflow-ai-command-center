@@ -20,7 +20,7 @@ The **dispatcher** consumes `corpflow.business_operations_monitor.v1` findings a
 | **n8n** | Intake digests, monitor retries, lead owner reminders — hosted automation only |
 | **no_action** | Safe informational findings — silent success |
 
-**Anton Telegram paging rule (v1):** page **only** when `owner = anton` **or** `gated = true`. Cursor/Codex/n8n routings do **not** page Anton.
+**Anton Telegram paging rule (v1):** checkpoint Telegram alerts are **not** sent from this dispatcher poll. They are emitted server-side via `corpflow.ops_alert.v1` on the existing automation-forward webhook for exactly four kinds (see `docs/n8n/automation-forward-recipe.md` §5). This workflow posts Cursor/Codex queue comments only.
 
 **Doctrine note:** dispatched executor work is governed by `docs/operations/CORPFLOWAI_BUSINESS_SURVIVAL_OPERATING_DOCTRINE.md` — runtime / client-visible packets cannot be satisfied by docs-only PRs, and every packet needs output type, surface, evidence requirement, stale threshold, and approval gates.
 
@@ -90,7 +90,7 @@ Template: `docs/n8n/templates/business-operations-dispatcher-v1.template.json`
 
 1. Poll dispatcher endpoint
 2. Split `routings` by `owner`
-3. `owner=anton` OR `gated=true` → Telegram (max 8 items)
+3. `owner=anton` OR `gated=true` → **no Telegram here** (checkpoint alerts use automation-forward §5)
 4. `owner=cursor` → GitHub comment on #249 with `**Executor:** Cursor` + `executorPrompt`
 5. `owner=codex` → GitHub comment on #249 with `**Executor:** Codex Cloud` + `executorPrompt`
 6. `owner=n8n` → internal digest/retry branch (no customer sends)

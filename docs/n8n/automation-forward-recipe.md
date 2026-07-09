@@ -11,6 +11,7 @@ When `CORPFLOW_AUTOMATION_FORWARD_URL` points at an **n8n Webhook** node, every 
    - **`cmp.github.callback`** → when `preview_url` is set, notify the client channel.
    - **`cmp.estimate.recorded`** → optional CRM row / spreadsheet (Google Sheets node).
    - **`corpflow.lead_rescue.intake_received`** → operator notification on a new AI Lead Rescue intake (`/lead-rescue`). The envelope **`payload`** already contains a pre-formatted **`notification_text`** field you can pipe straight into Telegram / email / Slack — no further templating needed. Structured fields are also present (`payload.prospect.*`, `payload.admin_detail_url`, `payload.lead_id`) for spreadsheet rows or CRM mirrors. Idempotency key is `lead-rescue:intake:<lead_id>` so retries do not double-notify.
+   - **`corpflow.ops_alert.v1`** (envelope field) with **`kind`** in the four operator checkpoint kinds below → **Telegram to Anton only** when your existing Telegram credential is attached. Pipe **`message`** or **`meta.notification_text`** straight into the Telegram node (same pattern as Lead Rescue). **Do not** auto-send client email or WhatsApp from this branch.
    - **`intake.product_a.us_clinic.v1`** → Product A US clinic audit intake (`/product-a/us-clinics`). Branch to workflow **`product-a-us-clinic-intake-v1`**. Intake fields are in **`payload`** (flat `corpflow.product_a.intake.v1`). Full build runbook: **`docs/n8n/product-a-us-clinics-implementation-pack.md`**. Ops context: **`docs/product/PRODUCT_A_NON_GHL_DATA_WORKFLOW_PACKET.md`**. No auto-send to prospect — Gmail **drafts only**, operator approval required.
 
 ## 2) Vercel env
@@ -52,3 +53,32 @@ For outbound email (`password_reset`, future `estimate_ready`, `concierge_lead_r
 - Env vars (preferred names): `N8N_EMAIL_WEBHOOK_URL`, `N8N_EMAIL_WEBHOOK_SECRET`, `EMAIL_FROM` (legacy `CORPFLOW_PASSWORD_RESET_WEBHOOK_*` still read as fallbacks).
 
 Keep the two workflows in n8n distinct: different webhook paths, different shared secrets, different downstream branches.
+
+## 5) Operator checkpoint alerts (Anton Telegram only)
+
+When `CORPFLOW_AUTOMATION_FORWARD_URL` is configured, the app emits **`corpflow.ops_alert.v1`** envelopes **only** for these four **`kind`** values (see `lib/server/operator-checkpoint-alert.js`):
+
+| `kind` | When emitted |
+|--------|----------------|
+| `production_validation_failure` | CMP delivery verdict blocked or Reality Gate failed after promote-merge |
+| `client_approval_needed` | Preview URL first attached — client must review on `/change` |
+| `production_approval_needed` | Client approved preview — operator promote-merge gate |
+| `external_email_client_send_approval_needed` | Change Console AI reply withheld pending operator approval |
+
+**n8n branch (reuse existing automation-forward workflow + Telegram credential):**
+
+1. After forward-secret validation, IF `envelope == corpflow.ops_alert.v1` (or top-level `kind` present).
+2. IF `kind` is one of the four rows above.
+3. Telegram → Send Message using `{{ $json.message }}` or `{{ $json.meta.notification_text }}` (pre-formatted; no secrets in body).
+
+**Message shape (already formatted server-side):**
+
+```text
+CorpFlowAI checkpoint:
+- What needs approval: …
+- Link: …
+- Risk: …
+- Required answer: APPROVE / HOLD / FIX
+```
+
+**Do not** create a new Telegram bot or chat for this — reuse the operator Telegram credential already on the automation-forward workflow. **Do not** fan out to client channels from this branch.
