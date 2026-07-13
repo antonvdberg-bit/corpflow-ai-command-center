@@ -1,12 +1,13 @@
 import React from 'react';
 import Link from 'next/link';
 
-import CorpFlowPublicShell from './public/CorpFlowPublicShell.js';
+import CorpFlowPublicPhotoShell from './public/CorpFlowPublicPhotoShell.js';
 import PublicHero from './public/PublicHero.js';
 import OfferCard from './public/OfferCard.js';
 import OutcomeSection from './public/OutcomeSection.js';
 import DeliverySteps from './public/DeliverySteps.js';
 import PublicCtaBand from './public/PublicCtaBand.js';
+import PublicTrustBand from './public/PublicTrustBand.js';
 import {
   buildPublicPageMeta,
   CORPflow_DELIVERY_STEPS,
@@ -21,6 +22,7 @@ const meta = buildPublicPageMeta({
   description:
     'Recover missed revenue, repair weak digital journeys, and launch working client experiences quickly. Lead response, premium landing pages, and customer recovery sprints from Mauritius.',
   path: '/',
+  ogImage: '/assets/visuals/corpflow-home-hero.jpg',
 });
 
 /**
@@ -30,7 +32,7 @@ export default function CorpFlowPublicHome() {
   const offers = listPublicOffers();
 
   return (
-    <CorpFlowPublicShell meta={meta} headerCta={CORPflow_HOMEPAGE_HERO.primaryCta}>
+    <CorpFlowPublicPhotoShell meta={meta} visualKey="home" headerCta={CORPflow_HOMEPAGE_HERO.primaryCta}>
       <PublicHero {...CORPflow_HOMEPAGE_HERO} />
 
       <OutcomeSection id="offers" label="What you can buy now" title="Three delivery sprints — starting prices in MUR">
@@ -76,13 +78,26 @@ export default function CorpFlowPublicHome() {
         </div>
       </OutcomeSection>
 
+      <PublicTrustBand>
+        <p style={{ ...cfBody, margin: 0, color: '#eef6ff' }}>
+          ERPNext remains the system of record for prospects, quotes, and deposits. CorpFlowAI is the public selling and
+          delivery wrapper — visible output within 24–72 hours after deposit clearance, without revenue guarantees.
+        </p>
+      </PublicTrustBand>
+
       <OutcomeSection label="Engagement model" title="Starting prices — final scope after discovery">
         <ul style={{ ...cfBody, paddingLeft: 20, margin: 0 }}>
           <li>AI Lead Rescue Sprint — from MUR 35,000</li>
           <li>Premium Landing Page Rescue — from MUR 45,000</li>
           <li>Customer Recovery &amp; Reputation Management Sprint — from MUR 45,000</li>
           <li>50% deposit before work commences; balance per quote</li>
-          <li>Legacy USD 150 launch pilot remains at <Link href="/lead-rescue" style={{ color: CF.link }}>/lead-rescue</Link> — separate funnel</li>
+          <li>
+            Legacy USD 150 launch pilot remains at{' '}
+            <Link href="/lead-rescue" style={{ color: CF.link }}>
+              /lead-rescue
+            </Link>{' '}
+            — separate funnel
+          </li>
         </ul>
       </OutcomeSection>
 
@@ -92,6 +107,6 @@ export default function CorpFlowPublicHome() {
         primaryCta={CORPflow_HOMEPAGE_HERO.primaryCta}
         secondaryCta={{ label: 'View all sprints', href: '/offers/ai-lead-rescue' }}
       />
-    </CorpFlowPublicShell>
+    </CorpFlowPublicPhotoShell>
   );
 }
