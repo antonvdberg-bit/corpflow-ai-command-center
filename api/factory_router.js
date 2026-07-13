@@ -96,6 +96,7 @@ import { handleMembershipSwitch, handleMembershipLeave } from '../lib/server/swi
 import { handleLuxPropertyMedia } from '../lib/server/lux-property-media.js';
 import { handleLuxPropertyMediaList } from '../lib/server/lux-published-property-media.js';
 import { tryHandleLuxListingsPublicRead } from '../lib/server/lux-listings-public.js';
+import { handleLuxeMauriceAiPrivateAccessRequest } from '../lib/server/luxe-maurice-ai-private-access-request.js';
 import { getChangeConsoleReadinessForTenant } from '../lib/server/change-console-readiness.js';
 import { growthPipelineHandler } from '../lib/server/growth-pipeline.js';
 import { adminLeadRescueHandler } from '../lib/server/admin-lead-rescue-api.js';
@@ -959,6 +960,9 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'lux/property-media-list') {
     return handleLuxPropertyMediaList(req, res, prisma);
+  }
+  if (pathSeg === 'lux/luxe-maurice-ai/private-access-request') {
+    return handleLuxeMauriceAiPrivateAccessRequest(req, res, prisma);
   }
   if (await tryHandleLuxListingsPublicRead(req, res, prisma, pathSeg)) {
     return;

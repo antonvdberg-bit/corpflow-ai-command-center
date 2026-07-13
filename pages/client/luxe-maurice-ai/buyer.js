@@ -1,13 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
-import Link from 'next/link';
 
-import LuxeMauriceAiPreviewShell, { LUXE_MAURICE_AI_BASE } from '../../../components/LuxeMauriceAiPreviewShell.js';
+import LuxeMauriceAiPreviewShell from '../../../components/LuxeMauriceAiPreviewShell.js';
 import { LUXE_MAURICE_BRAND_TOKENS as T } from '../../../lib/client/luxe-maurice-brand-theme.js';
 import { LuxEyebrow } from '../../../components/LuxeMauriceBrandPrimitives.js';
 import {
   LUXE_MAURICE_AI_ACCESS_CATEGORIES,
-  createEnquiry,
   getPropertyById,
   listProperties,
 } from '../../../lib/client/luxe-maurice-ai-data.js';
@@ -15,6 +13,8 @@ import {
   LUXE_MAURICE_AI_SECTION_PAD,
   luxeMauriceAiCtaPrimary,
 } from '../../../lib/client/luxe-maurice-ai-layout.js';
+
+const PRIVATE_ACCESS_REQUEST_API = '/api/lux/luxe-maurice-ai/private-access-request';
 
 const inputStyle = {
   width: '100%',
@@ -57,6 +57,7 @@ export default function LuxeMauriceAiBuyerPage({ properties }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [referenceId, setReferenceId] = useState('');
 
   useEffect(() => {
     if (!router.isReady) return;
@@ -90,48 +91,80 @@ export default function LuxeMauriceAiBuyerPage({ properties }) {
   }, []);
 
   const onSubmit = useCallback(
-    (e) => {
+    async (e) => {
       e.preventDefault();
       setBusy(true);
       setError('');
       setSuccess('');
-      const result = createEnquiry({
-        full_name: form.full_name,
-        email: form.email,
-        phone: form.phone,
-        budget_min: form.budget_min,
-        budget_max: form.budget_max,
-        currency_code: 'USD',
-        desired_location: form.desired_location,
-        access_category: form.access_category,
-        property_type: form.property_type,
-        access_intent: form.access_intent,
-        notes: form.notes,
-        property_id: form.property_id || undefined,
-      });
-      setBusy(false);
-      if (!result.ok) {
-        setError(result.error || 'Unable to submit request.');
-        return;
+      setReferenceId('');
+
+      const opp = form.property_id
+        ? opportunityOptions.find((p) => p.id === form.property_id) || getPropertyById(form.property_id)?.property
+        : null;
+
+      try {
+        const res = await fetch(PRIVATE_ACCESS_REQUEST_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            full_name: form.full_name,
+            email: form.email,
+            phone: form.phone,
+            budget_min: form.budget_min,
+            budget_max: form.budget_max,
+            currency_code: 'USD',
+            desired_location: form.desired_location,
+            access_category: form.access_category,
+            property_type: form.property_type,
+            access_intent: form.access_intent,
+            notes: form.notes,
+            property_id: form.property_id || undefined,
+            property_slug: opp?.slug || undefined,
+          }),
+        });
+
+        const payload = await res.json().catch(() => ({}));
+
+        if (!res.ok || payload?.ok !== true) {
+          setError(
+            typeof payload?.error === 'string' && payload.error
+              ? payload.error
+              : 'Unable to submit your request. Please try again.',
+          );
+          return;
+        }
+
+        const ref =
+          typeof payload.reference_id === 'string' && payload.reference_id.trim()
+            ? payload.reference_id.trim()
+            : '';
+        const msg =
+          typeof payload.message === 'string' && payload.message.trim()
+            ? payload.message.trim()
+            : 'Your private access request has been received for advisor review.';
+
+        setReferenceId(ref);
+        setSuccess(msg);
+        setForm({
+          full_name: '',
+          email: '',
+          phone: '',
+          budget_min: '',
+          budget_max: '',
+          desired_location: '',
+          access_category: form.access_category,
+          property_type: '',
+          access_intent: '',
+          notes: '',
+          property_id: form.property_id,
+        });
+      } catch {
+        setError('Unable to submit your request. Please check your connection and try again.');
+      } finally {
+        setBusy(false);
       }
-      setSuccess(
-        'Thank you — your private access request has been received. An advisor will follow up discreetly.',
-      );
-      setForm({
-        full_name: '',
-        email: '',
-        phone: '',
-        budget_min: '',
-        budget_max: '',
-        desired_location: '',
-        access_category: form.access_category,
-        property_type: '',
-        access_intent: '',
-        notes: '',
-        property_id: form.property_id,
-      });
     },
-    [form],
+    [form, opportunityOptions],
   );
 
   return (
@@ -154,12 +187,8 @@ export default function LuxeMauriceAiBuyerPage({ properties }) {
           Request private access
         </h1>
         <p style={{ marginTop: 12, color: T.ivoryMuted, lineHeight: 1.65, fontSize: 'clamp(14px, 2.5vw, 16px)' }}>
-          Choose your channel — residence, yacht, aviation, island experience, or advisory mandate. Your request
-          appears immediately in the{' '}
-          <Link href={`${LUXE_MAURICE_AI_BASE}/crm`} style={{ color: T.gold }}>
-            advisor pipeline
-          </Link>{' '}
-          preview for operator review.
+          Choose your channel — residence, yacht, aviation, island experience, or advisory mandate. Your request is
+          stored securely for advisor review.
         </p>
 
         <div
@@ -173,8 +202,8 @@ export default function LuxeMauriceAiBuyerPage({ properties }) {
             color: T.ivoryMuted,
           }}
         >
-          <strong style={{ color: T.ivory }}>What happens next:</strong> submit → advisor pipeline row → discreet
-          follow-up. No automatic email or messaging in this preview.
+          <strong style={{ color: T.ivory }}>What happens next:</strong> submit → advisor review → discreet follow-up.
+          You will receive a reference number for your request.
         </div>
 
         {selectedOpportunity ? (
@@ -199,12 +228,15 @@ export default function LuxeMauriceAiBuyerPage({ properties }) {
               background: T.goldSoft,
               border: `1px solid ${T.hairline}`,
               color: T.ivory,
+              lineHeight: 1.6,
             }}
           >
-            {success}{' '}
-            <Link href={`${LUXE_MAURICE_AI_BASE}/crm`} style={{ color: T.gold }}>
-              View advisor pipeline →
-            </Link>
+            {success}
+            {referenceId ? (
+              <p style={{ marginTop: 12, fontSize: 13, color: T.ivoryMuted }}>
+                Reference: <strong style={{ color: T.ivory, letterSpacing: '0.06em' }}>{referenceId}</strong>
+              </p>
+            ) : null}
           </div>
         ) : null}
 

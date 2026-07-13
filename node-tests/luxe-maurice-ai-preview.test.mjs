@@ -163,7 +163,8 @@ test('luxe maurice ai preview: access request form includes category and intent 
   assert.match(src, /Private access request/i);
   assert.match(src, /access_category/);
   assert.match(src, /access_intent/);
-  assert.match(src, /advisor pipeline/i);
+  assert.match(src, /advisor review/i);
+  assert.match(src, /private-access-request/);
   assert.match(src, /Submit access request/i);
   assert.match(src, /router\.query\.category/);
 });
