@@ -74,11 +74,40 @@ test('luxe training pack: required files exist', () => {
   assert.ok(fs.existsSync(path.join(PACK, '05-graphics/captures')));
 });
 
-test('luxe training pack: manifest lists all eight graphic filenames', () => {
+test('luxe training pack: all eight PNG graphics physically exist', () => {
+  for (const name of EXPECTED_GRAPHICS) {
+    const p = path.join(PACK, '05-graphics/captures', name);
+    assert.ok(fs.existsSync(p), `missing capture ${name}`);
+    const st = fs.statSync(p);
+    assert.ok(st.size > 1000, `${name} too small`);
+    const buf = fs.readFileSync(p);
+    assert.equal(buf[0], 0x89);
+    assert.equal(buf[1], 0x50);
+    assert.equal(buf[2], 0x4e);
+    assert.equal(buf[3], 0x47);
+  }
+});
+
+test('luxe training pack: manifest lists all eight graphic filenames as captured', () => {
   const manifest = readPack('05-graphics/GRAPHICS_MANIFEST.md');
   for (const name of EXPECTED_GRAPHICS) {
     assert.match(manifest, new RegExp(name.replace('.', '\\.')), `manifest missing ${name}`);
   }
+  assert.match(manifest, /06-advisor-pipeline-live-request\.png[\s\S]*CAPTURED/);
+  assert.match(manifest, /08-change-console-lead-workflow\.png[\s\S]*CAPTURED/);
+  assert.match(manifest, /PRIVACY_REVIEWED/);
+  assert.match(manifest, /CROPPED_TO_TRAINING_LEAD_AND_OPERATOR_ACTIONS/);
+  assert.doesNotMatch(manifest, /CAPTURE_REQUIRED/);
+});
+
+test('luxe training pack: README says all eight graphics present and approval incomplete', () => {
+  const readme = readPack('README.md');
+  assert.match(readme, /All eight required (screenshots|graphics) are present/i);
+  assert.match(readme, /Approval checklist/i);
+  assert.match(readme, /\[ \] All graphics use fictional training data/);
+  assert.match(readme, /\[ \] Anton approved pack for client send/);
+  assert.match(readme, /\[ \] No client send has occurred/);
+  assert.match(readme, /ready for Anton’s final privacy and client-send review/);
 });
 
 test('luxe training pack: Jan-facing guides avoid forbidden internal terms', () => {
@@ -100,25 +129,36 @@ test('luxe training pack: backend limitations documented', () => {
   assert.match(status, /fully complete/i);
 });
 
-test('luxe training pack: README includes approval checklist', () => {
-  const readme = readPack('README.md');
-  assert.match(readme, /Approval checklist/i);
-  assert.match(readme, /All graphics use fictional training data/);
-  assert.match(readme, /No client send has occurred/);
-  assert.match(readme, /Safe to send Jan/i);
-  assert.match(readme, /Do not send Jan/i);
-});
-
 test('luxe training pack: no secrets or env values in pack text', () => {
   const allText = REQUIRED_FILES.map(readPack).join('\n');
   for (const pattern of SECRET_PATTERNS) {
     assert.equal(pattern.test(allText), false, `secret-like pattern in pack: ${pattern}`);
   }
+  assert.doesNotMatch(allText, /@luxemaurice\.com/);
+  assert.doesNotMatch(allText, /\+230\d{7,}/);
 });
 
-test('luxe training pack: operator guide references live change actions', () => {
+test('luxe training pack: operator guide describes focused-lead workflow', () => {
   const op = readPack('03-operator-workflow-guide/OPERATOR_CHANGE_WORKFLOW.md');
   assert.match(op, /concierge-leads-list/);
   assert.match(op, /concierge-lead-operator-patch/);
   assert.match(op, /does \*\*not\*\* support these edits/i);
+  assert.match(op, /Show all leads/);
+  assert.match(op, /Clear selection/);
+  assert.match(op, /OPERATOR ACTIONS/);
+  assert.match(op, /08-change-console-lead-workflow\.png/);
+  assert.match(op, /focuses on that row/i);
+});
+
+test('luxe training pack: advisor guide references screenshot 06', () => {
+  const adv = readPack('02-advisor-workflow-guide/ADVISOR_REVIEW_GUIDE.md');
+  assert.match(adv, /06-advisor-pipeline-live-request\.png/);
+  assert.match(adv, /Received for advisor review/);
+});
+
+test('luxe training pack: video 03 reflects focused-lead operator flow', () => {
+  const vid = readPack('04-training-video-scripts/VIDEO_03_OPERATOR_WORKFLOW.md');
+  assert.match(vid, /08-change-console-lead-workflow\.png/);
+  assert.match(vid, /Show all leads/);
+  assert.match(vid, /OPERATOR ACTIONS/);
 });
