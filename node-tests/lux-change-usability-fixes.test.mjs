@@ -53,6 +53,17 @@ test('TASK 1 — change.js wires system_generated filter + toggle + badge', () =
   assert.match(change, /data-testid="lux-crm-system-generated-badge"/);
 });
 
+test('Lux CRM — selecting a lead can focus the list and show all again', () => {
+  const change = readRepo('pages/change.js');
+  assert.match(change, /const \[crmFocusSelectedLead, setCrmFocusSelectedLead\] = useState\(false\)/);
+  assert.match(change, /const crmListLeads = useMemo/);
+  assert.match(change, /data-testid="lux-crm-lead-focus-bar"/);
+  assert.match(change, /Show all leads/);
+  assert.match(change, /setCrmFocusSelectedLead\(true\)/);
+  assert.match(change, /data-testid="lux-crm-lead-focus-prompt"/);
+  assert.match(change, /Focus list on this lead/);
+});
+
 test('TASK 3 + 4 — change.js detects sprint tickets, renders panel, collapses stage tabs', () => {
   const change = readRepo('pages/change.js');
   assert.match(change, /import LuxContentSprintPanel from '\.\.\/components\/LuxContentSprintPanel\.js'/);

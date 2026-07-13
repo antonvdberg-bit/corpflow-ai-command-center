@@ -567,6 +567,7 @@ export default function ChangeConsolePage() {
   // audit access — the rows still exist in Postgres, the API still returns them,
   // we only filter them client-side from the operator view.
   const [crmShowSystemGenerated, setCrmShowSystemGenerated] = useState(false);
+  const [crmFocusSelectedLead, setCrmFocusSelectedLead] = useState(false);
   const [leadPatchStatus, setLeadPatchStatus] = useState('');
   const [requestDraft, setRequestDraft] = useState('');
   const [createRequestDraft, setCreateRequestDraft] = useState('');
@@ -1788,6 +1789,24 @@ export default function ChangeConsolePage() {
     crmFilterOwner,
     crmFilterProperty,
     crmFilterHealth,
+  ]);
+
+  const crmListLeads = useMemo(() => {
+    if (!luxLeadCrmEnabled || !crmFocusSelectedLead || !selectedLeadId) return crmVisibleLeads;
+    const sid = String(selectedLeadId);
+    const fromVisible = crmVisibleLeads.find((l) => String(l.id || '') === sid);
+    if (fromVisible) return [fromVisible];
+    const fromOperator = operatorViewLeads.find((l) => String(l.id || '') === sid);
+    if (fromOperator) return [fromOperator];
+    const fromAll = leads.find((l) => String(l.id || '') === sid);
+    return fromAll ? [fromAll] : crmVisibleLeads;
+  }, [
+    crmVisibleLeads,
+    operatorViewLeads,
+    leads,
+    luxLeadCrmEnabled,
+    crmFocusSelectedLead,
+    selectedLeadId,
   ]);
 
   const selectedLead = useMemo(
@@ -6147,12 +6166,105 @@ export default function ChangeConsolePage() {
             ) : null}
             {luxLeadCrmEnabled && leads.length ? (
               <div style={{ marginTop: 8, fontSize: 11, color: '#64748b' }}>
-                Showing {crmVisibleLeads.length} of {leads.length} loaded leads
+                Showing {crmListLeads.length} of {leads.length} loaded leads
+                {crmFocusSelectedLead && selectedLeadId ? ' · focused on selected lead' : ''}
+              </div>
+            ) : null}
+            {luxLeadCrmEnabled && crmFocusSelectedLead && selectedLeadId && selectedLead ? (
+              <div
+                data-testid="lux-crm-lead-focus-bar"
+                style={{
+                  marginTop: 10,
+                  padding: '10px 12px',
+                  borderRadius: 12,
+                  border: '1px solid rgba(103,232,249,0.35)',
+                  background: 'rgba(103,232,249,0.08)',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 10,
+                  alignItems: 'center',
+                  fontSize: 12,
+                  color: '#cbd5e1',
+                  lineHeight: 1.45,
+                }}
+              >
+                <span style={{ fontWeight: 700, color: '#e2e8f0' }}>
+                  Focused on {String(selectedLead.name || 'selected lead')}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setCrmFocusSelectedLead(false)}
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    padding: '4px 10px',
+                    borderRadius: 999,
+                    border: '1px solid rgba(148,163,184,0.4)',
+                    background: 'rgba(15,23,42,0.55)',
+                    color: '#e2e8f0',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Show all leads ({operatorViewLeads.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedLeadId('');
+                    setCrmFocusSelectedLead(false);
+                  }}
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    padding: '4px 10px',
+                    borderRadius: 999,
+                    border: '1px solid rgba(148,163,184,0.25)',
+                    background: 'transparent',
+                    color: '#94a3b8',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Clear selection
+                </button>
+              </div>
+            ) : null}
+            {luxLeadCrmEnabled && selectedLeadId && selectedLead && !crmFocusSelectedLead ? (
+              <div
+                data-testid="lux-crm-lead-focus-prompt"
+                style={{
+                  marginTop: 10,
+                  fontSize: 11,
+                  color: '#94a3b8',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 8,
+                  alignItems: 'center',
+                }}
+              >
+                <span>
+                  Working on <strong style={{ color: '#e2e8f0' }}>{String(selectedLead.name || 'selected lead')}</strong>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setCrmFocusSelectedLead(true)}
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    padding: '4px 10px',
+                    borderRadius: 999,
+                    border: '1px solid rgba(103,232,249,0.35)',
+                    background: 'rgba(103,232,249,0.1)',
+                    color: '#a5f3fc',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Focus list on this lead
+                </button>
               </div>
             ) : null}
             <div style={{ marginTop: 10, display: 'grid', gap: 8, minWidth: 0, width: '100%' }}>
-              {crmVisibleLeads.length ? (
-                crmVisibleLeads.map((lead) => {
+              {crmListLeads.length ? (
+                crmListLeads.map((lead) => {
                   const lid = String(lead.id || '');
                   const activeLux = luxLeadCrmEnabled && lid && lid === selectedLeadId;
                   const ow = lead.operator_workflow;
@@ -6161,7 +6273,10 @@ export default function ChangeConsolePage() {
                       key={lid}
                       type="button"
                       onClick={() => {
-                        if (luxLeadCrmEnabled) setSelectedLeadId(lid);
+                        if (luxLeadCrmEnabled) {
+                          setSelectedLeadId(lid);
+                          setCrmFocusSelectedLead(true);
+                        }
                       }}
                       style={{
                         textAlign: 'left',
