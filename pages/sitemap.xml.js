@@ -29,6 +29,9 @@ function normalizeHost(req) {
 
 const APEX_PATHS = [
   '/',
+  '/offers/ai-lead-rescue',
+  '/offers/premium-landing-page-rescue',
+  '/offers/customer-reputation-recovery',
   '/lead-rescue',
   '/lead-rescue/property-mauritius',
   '/about',

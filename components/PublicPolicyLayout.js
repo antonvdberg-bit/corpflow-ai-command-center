@@ -1,7 +1,8 @@
 import React from 'react';
 import Head from 'next/head';
-import Link from 'next/link';
-import PublicSiteFooter from './PublicSiteFooter.js';
+import CorpFlowPublicHeader from './public/CorpFlowPublicHeader.js';
+import CorpFlowPublicFooter from './public/CorpFlowPublicFooter.js';
+import { buildPublicPageMeta } from '../lib/public/corpflow-public-market.js';
 
 /**
  * Editorial layout shared by CorpFlowAI policy pages and the institutional
@@ -37,14 +38,6 @@ const baseStyles = {
   updated: { color: '#9fb2c8', fontSize: 13, marginBottom: 24 },
   footer: { marginTop: 48, paddingTop: 22, borderTop: '1px solid rgba(255,255,255,0.12)', fontSize: 12, color: '#9fb2c8', lineHeight: 1.65 },
 };
-
-const NAV_LINKS = [
-  { href: '/lead-rescue', label: 'AI Lead Rescue' },
-  { href: '/about', label: 'About' },
-  { href: '/process', label: 'Process' },
-  { href: '/standards', label: 'Standards' },
-  { href: '/contact', label: 'Contact' },
-];
 
 export const policyStyles = {
   section: { marginTop: 28 },
@@ -193,14 +186,11 @@ export const trustStyles = {
   },
 };
 
-function PolicyFooter() {
-  return <PublicSiteFooter />;
-}
-
 /**
  * @param {{
  *   title: string;
  *   description?: string;
+ *   path?: string;
  *   showUpdated?: boolean;
  *   updatedLabel?: string;
  *   width?: 'narrow' | 'wide';
@@ -210,41 +200,40 @@ function PolicyFooter() {
 export default function PublicPolicyLayout({
   title,
   description,
+  path = '',
   showUpdated = true,
   updatedLabel,
   width = 'narrow',
   children,
 }) {
   const maxWidth = width === 'wide' ? 960 : 800;
-  const shellStyle = { maxWidth, margin: '0 auto', padding: '42px 20px 56px' };
+  const shellStyle = { maxWidth, margin: '0 auto', padding: '32px 20px 56px' };
+  const meta = buildPublicPageMeta({
+    title,
+    description: description || `${title} — CorpFlowAI Ltd (Mauritius).`,
+    path,
+  });
 
   return (
     <div style={baseStyles.page}>
       <Head>
-        <title>{title} · CorpFlowAI</title>
-        {description ? <meta name="description" content={description} /> : null}
+        <title>{meta.title}</title>
+        <meta name="description" content={meta.description} />
+        {meta.canonical ? <link rel="canonical" href={meta.canonical} /> : null}
+        <meta property="og:title" content={meta.ogTitle} />
+        <meta property="og:description" content={meta.ogDescription} />
+        {meta.ogUrl ? <meta property="og:url" content={meta.ogUrl} /> : null}
       </Head>
       <main style={shellStyle}>
-        <nav style={baseStyles.nav}>
-          <Link href="/" style={baseStyles.brand}>
-            CorpFlowAI
-          </Link>
-          <div style={baseStyles.navLinks}>
-            {NAV_LINKS.map((l) => (
-              <Link key={l.href} href={l.href} style={baseStyles.link}>
-                {l.label}
-              </Link>
-            ))}
-          </div>
-        </nav>
+        <CorpFlowPublicHeader />
         <h1 style={baseStyles.h1}>{title}</h1>
         {showUpdated ? (
           <p style={baseStyles.updated}>
-            {updatedLabel || 'Last updated: May 2026. This page may be updated from time to time.'}
+            {updatedLabel || 'Last updated: July 2026. This page may be updated from time to time.'}
           </p>
         ) : null}
         {children}
-        <PolicyFooter />
+        <CorpFlowPublicFooter />
       </main>
     </div>
   );

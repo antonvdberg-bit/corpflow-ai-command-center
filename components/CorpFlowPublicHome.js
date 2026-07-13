@@ -1,409 +1,97 @@
 import React from 'react';
-import Head from 'next/head';
 import Link from 'next/link';
 
-import PublicSiteFooter from './PublicSiteFooter.js';
-import VisualAssetRenderer, { isAiGeneratedManifest } from './VisualAssetRenderer.js';
-import AssetProvenanceDisclosure from './AssetProvenanceDisclosure.js';
+import CorpFlowPublicShell from './public/CorpFlowPublicShell.js';
+import PublicHero from './public/PublicHero.js';
+import OfferCard from './public/OfferCard.js';
+import OutcomeSection from './public/OutcomeSection.js';
+import DeliverySteps from './public/DeliverySteps.js';
+import PublicCtaBand from './public/PublicCtaBand.js';
+import {
+  buildPublicPageMeta,
+  CORPflow_DELIVERY_STEPS,
+  CORPflow_HOMEPAGE_HERO,
+  CORPflow_PROOF_EXAMPLE,
+  listPublicOffers,
+} from '../lib/public/corpflow-public-market.js';
+import { cfBody, cfCard, cfGrid, CF } from './public/corpflow-public-styles.js';
 
-const s = {
-  page: {
-    minHeight: '100vh',
-    background: 'linear-gradient(135deg, #06111f 0%, #0b1f33 45%, #101827 100%)',
-    color: '#eef6ff',
-    fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-  },
-  shell: { maxWidth: 1120, margin: '0 auto', padding: '42px 20px 56px' },
-  nav: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' },
-  brand: { fontWeight: 900, fontSize: 22, letterSpacing: '-0.01em' },
-  sub: { color: '#9fb2c8', fontSize: 13 },
-  label: { fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7dd3fc', fontWeight: 800 },
-  h1: { margin: '16px 0 0', fontSize: 'clamp(32px, 6vw, 52px)', lineHeight: 1.05, letterSpacing: '-0.04em', maxWidth: 820 },
-  lead: { marginTop: 18, fontSize: 'clamp(16px, 2vw, 20px)', lineHeight: 1.6, color: '#c9d8e8', maxWidth: 760 },
-  section: { marginTop: 44 },
-  h2: { margin: '8px 0 0', fontSize: 28, letterSpacing: '-0.03em' },
-  muted: { color: '#aebfd1', lineHeight: 1.65 },
-  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16, marginTop: 20 },
-  card: {
-    border: '1px solid rgba(255,255,255,0.10)',
-    borderRadius: 22,
-    background: 'rgba(255,255,255,0.04)',
-    padding: 22,
-    transition: 'border-color 320ms ease, background 320ms ease, transform 320ms ease',
-  },
-  highlight: { border: '1px solid rgba(45,212,191,0.34)', borderRadius: 22, background: 'rgba(45,212,191,0.08)', padding: 22 },
-  cta: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: 16, padding: '13px 18px', fontWeight: 800, textDecoration: 'none', cursor: 'pointer' },
-  primary: { background: '#2dd4bf', color: '#031018', border: 0 },
-  secondary: { background: 'rgba(255,255,255,0.09)', color: '#eef6ff', border: '1px solid rgba(255,255,255,0.15)' },
-  list: { margin: '12px 0 0', paddingLeft: 18, color: '#d6e4f2', lineHeight: 1.75 },
-  heroVisualFrame: {
-    position: 'relative',
-    marginTop: 32,
-    borderRadius: 22,
-    overflow: 'hidden',
-    border: '1px solid rgba(255,255,255,0.10)',
-    background: '#06111f',
-    aspectRatio: '16 / 10',
-  },
-  heroVisualOverlay: {
-    position: 'absolute',
-    inset: 0,
-    background: 'linear-gradient(180deg, rgba(6,17,31,0) 60%, rgba(6,17,31,0.55) 100%)',
-    pointerEvents: 'none',
-  },
-  heroProvenanceWrap: {
-    marginTop: 8,
-  },
-  servicesVisualBand: {
-    marginTop: 18,
-    marginBottom: 4,
-    borderRadius: 18,
-    overflow: 'hidden',
-    border: '1px solid rgba(255,255,255,0.08)',
-    background: '#06111f',
-  },
-  trustVisualBand: {
-    marginTop: 22,
-    borderRadius: 14,
-    overflow: 'hidden',
-    border: '1px solid rgba(255,255,255,0.08)',
-    background: '#0b1f33',
-  },
-};
-
-function Section({ id, label, title, children }) {
-  return (
-    <section id={id} style={s.section}>
-      {label ? <div style={s.label}>{label}</div> : null}
-      {title ? <h2 style={s.h2}>{title}</h2> : null}
-      {children}
-    </section>
-  );
-}
+const meta = buildPublicPageMeta({
+  title: 'CorpFlowAI — bounded delivery sprints',
+  description:
+    'Recover missed revenue, repair weak digital journeys, and launch working client experiences quickly. Lead response, premium landing pages, and customer recovery sprints from Mauritius.',
+  path: '/',
+});
 
 /**
- * Render a single homepage slot from a governed manifest.
- *
- * Rules:
- * - If `manifest` is null/undefined, returns `null` (slot is empty;
- *   layout collapses gracefully).
- * - If the manifest is AI-generated, an `AssetProvenanceDisclosure`
- *   is rendered just below the asset; otherwise no disclosure.
- * - Above-fold slots (hero) opt into eager loading via `eager`.
- *
- * `wrapperStyle` lets each slot integrate visually with its
- * surrounding section without leaking layout details into the
- * renderer itself.
+ * @param {{ homepageAssets?: unknown }} props — legacy prop retained for pages/index.js SSR; visuals optional.
  */
-function HomepageSlot({ manifest, slotId, eager = false, wrapperStyle, rendererStyle, overlay, provenanceWrapperStyle, className }) {
-  if (!manifest) return null;
+export default function CorpFlowPublicHome() {
+  const offers = listPublicOffers();
+
   return (
-    <div data-slot-id={slotId} style={wrapperStyle} className={className}>
-      <VisualAssetRenderer manifest={manifest} eager={eager} style={rendererStyle} />
-      {overlay || null}
-      {isAiGeneratedManifest(manifest) ? (
-        <div style={provenanceWrapperStyle}>
-          <AssetProvenanceDisclosure manifest={manifest} />
+    <CorpFlowPublicShell meta={meta} headerCta={CORPflow_HOMEPAGE_HERO.primaryCta}>
+      <PublicHero {...CORPflow_HOMEPAGE_HERO} />
+
+      <OutcomeSection id="offers" label="What you can buy now" title="Three delivery sprints — starting prices in MUR">
+        <p style={cfBody}>
+          Final scope is confirmed after discovery. Third-party fees are quoted separately where applicable. No
+          guaranteed revenue outcomes.
+        </p>
+        <div style={cfGrid}>
+          {offers.map((offer) => (
+            <OfferCard key={offer.slug} offer={offer} />
+          ))}
         </div>
-      ) : null}
-    </div>
-  );
-}
+      </OutcomeSection>
 
-/**
- * @typedef {import('../lib/visualAssets/selectHomepageAssets.js').HomepageAssetSelection} HomepageAssetSelection
- */
+      <OutcomeSection label="Why revenue leaks" title="Slow follow-up, weak pages, and silent complaints cost real money">
+        <ul style={{ ...cfBody, paddingLeft: 20, margin: 0 }}>
+          <li>Enquiries arrive across WhatsApp, email, forms, and social — but no one owns the follow-up path.</li>
+          <li>Landing pages hide the offer or fail on mobile, so buyers bounce before they reach you.</li>
+          <li>Complaints and reviews stack up in DMs while the team responds ad hoc or not at all.</li>
+        </ul>
+      </OutcomeSection>
 
-/**
- * @param {{ homepageAssets?: HomepageAssetSelection | null }} props
- */
-export default function CorpFlowPublicHome(props) {
-  const homepageAssets = (props && typeof props.homepageAssets === 'object' && props.homepageAssets) || null;
-  const heroAsset = homepageAssets?.homepage_hero || null;
-  const servicesGraphicAsset = homepageAssets?.homepage_services_graphic || null;
-  const trustBandAsset = homepageAssets?.homepage_trust_band || null;
-  const socialCardAsset = homepageAssets?.homepage_social_card || null;
+      <DeliverySteps steps={CORPflow_DELIVERY_STEPS} />
 
-  const socialCardUrl = (() => {
-    if (!socialCardAsset) return null;
-    const src = socialCardAsset.source;
-    if (!src || typeof src !== 'object') return null;
-    if (typeof src.url === 'string' && /^https:\/\//.test(src.url)) return src.url;
-    if (typeof src.path === 'string' && src.path.startsWith('/')) {
-      return src.path;
-    }
-    return null;
-  })();
-  const socialCardAlt = socialCardAsset?.accessibility?.alt || '';
-
-  return (
-    <div style={s.page}>
-      <Head>
-        <title>CorpFlowAI · Practical AI-assisted workflow systems</title>
-        <meta
-          name="description"
-          content="CorpFlowAI helps small businesses capture enquiries, route work, alert owners, log follow-ups, and keep daily operations visible."
-        />
-        {socialCardUrl ? <meta property="og:image" content={socialCardUrl} /> : null}
-        {socialCardUrl ? <meta name="twitter:image" content={socialCardUrl} /> : null}
-        {socialCardUrl && socialCardAlt ? <meta property="og:image:alt" content={socialCardAlt} /> : null}
-        {socialCardUrl ? <meta name="twitter:card" content="summary_large_image" /> : null}
-      </Head>
-      <main style={s.shell}>
-        <nav style={s.nav}>
-          <div>
-            <div style={s.brand}>CorpFlowAI</div>
-            <div style={s.sub}>Practical workflow systems for small businesses</div>
-          </div>
-          <Link href="/lead-rescue" className="cf-cta-primary" style={{ ...s.cta, ...s.primary }}>
-            Start with AI Lead Rescue
+      <OutcomeSection label="Proof" title={CORPflow_PROOF_EXAMPLE.title}>
+        <div style={cfCard}>
+          <p style={cfBody}>
+            <strong style={{ color: CF.text }}>Problem:</strong> {CORPflow_PROOF_EXAMPLE.problem}
+          </p>
+          <p style={cfBody}>
+            <strong style={{ color: CF.text }}>Delivered:</strong> {CORPflow_PROOF_EXAMPLE.delivered}
+          </p>
+          <p style={cfBody}>
+            <strong style={{ color: CF.text }}>Approach:</strong> {CORPflow_PROOF_EXAMPLE.approach}
+          </p>
+          <p style={{ ...cfBody, fontSize: 13, color: CF.textFaint }}>
+            Named case study publication: {CORPflow_PROOF_EXAMPLE.namedPublication} (internal register — not a public
+            legal claim).
+          </p>
+          <Link href={CORPflow_PROOF_EXAMPLE.publicLink.href} style={{ color: CF.link, fontWeight: 600 }}>
+            {CORPflow_PROOF_EXAMPLE.publicLink.label} →
           </Link>
-        </nav>
+        </div>
+      </OutcomeSection>
 
-        <header style={{ marginTop: 40 }}>
-          <div style={s.label}>Business services</div>
-          <h1 style={s.h1}>Practical AI-assisted workflow systems for small businesses.</h1>
-          <p style={s.lead}>
-            CorpFlowAI helps businesses capture enquiries, route work, alert owners and operators, log follow-ups, and
-            keep daily operations visible — without forcing a full CRM rebuild.
-          </p>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 24 }}>
-            <Link href="/lead-rescue" className="cf-cta-primary" style={{ ...s.cta, ...s.primary }}>
-              Start with AI Lead Rescue
-            </Link>
-            <a href="#services" className="cf-cta-secondary" style={{ ...s.cta, ...s.secondary }}>
-              See services
-            </a>
-          </div>
-          {heroAsset ? (
-            <HomepageSlot
-              manifest={heroAsset}
-              slotId="homepage_hero"
-              eager
-              wrapperStyle={s.heroVisualFrame}
-              rendererStyle={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-              overlay={<div style={s.heroVisualOverlay} aria-hidden="true" />}
-              className="cf-hero-visual"
-              provenanceWrapperStyle={{
-                position: 'absolute',
-                left: 14,
-                bottom: 10,
-                zIndex: 2,
-              }}
-            />
-          ) : null}
-        </header>
+      <OutcomeSection label="Engagement model" title="Starting prices — final scope after discovery">
+        <ul style={{ ...cfBody, paddingLeft: 20, margin: 0 }}>
+          <li>AI Lead Rescue Sprint — from MUR 35,000</li>
+          <li>Premium Landing Page Rescue — from MUR 45,000</li>
+          <li>Customer Recovery &amp; Reputation Management Sprint — from MUR 45,000</li>
+          <li>50% deposit before work commences; balance per quote</li>
+          <li>Legacy USD 150 launch pilot remains at <Link href="/lead-rescue" style={{ color: CF.link }}>/lead-rescue</Link> — separate funnel</li>
+        </ul>
+      </OutcomeSection>
 
-        <Section label="What we do" title="Make work visible so it gets followed up.">
-          <p style={{ ...s.muted, marginTop: 12, maxWidth: 820 }}>
-            We design and deploy lightweight operating workflows for businesses that receive enquiries through websites,
-            forms, email, WhatsApp, and listings. Our focus is practical delivery: capture the work, alert the right
-            person, log the record, and summarize what still needs attention.
-          </p>
-          <ul style={s.list}>
-            <li>Lead capture and follow-up visibility</li>
-            <li>Workflow automation for forms, sheets, alerts, and handoffs</li>
-            <li>Owner and operator alerts when new work arrives</li>
-            <li>Lightweight dashboards and daily summaries</li>
-            <li>Production monitoring and evidence logs for deployed workflows where relevant</li>
-          </ul>
-        </Section>
-
-        <Section id="services" label="Services" title="Productized setup and monitoring.">
-          {servicesGraphicAsset ? (
-            <HomepageSlot
-              manifest={servicesGraphicAsset}
-              slotId="homepage_services_graphic"
-              wrapperStyle={s.servicesVisualBand}
-              rendererStyle={{ width: '100%', height: 'auto', display: 'block' }}
-              className="cf-services-visual"
-              provenanceWrapperStyle={s.heroProvenanceWrap}
-            />
-          ) : null}
-          <div style={s.grid}>
-            <div style={s.card} className="cf-service-card">
-              <h3 style={{ marginTop: 0 }}>AI Lead Rescue</h3>
-              <p style={s.muted}>
-                48-hour pilot setup for lead capture, owner/operator alerts, a Google Sheet lead log, a simple follow-up
-                board, and a daily summary.
-              </p>
-              <Link href="/lead-rescue" className="cf-cta-primary" style={{ ...s.cta, ...s.primary, marginTop: 12 }}>
-                View AI Lead Rescue
-              </Link>
-            </div>
-            <div style={s.card} className="cf-service-card">
-              <h3 style={{ marginTop: 0 }}>Workflow Automation Setup</h3>
-              <p style={s.muted}>
-                Lightweight automations for forms, sheets, alerts, summaries, and operational handoffs between people and
-                tools you already use.
-              </p>
-            </div>
-            <div style={s.card} className="cf-service-card">
-              <h3 style={{ marginTop: 0 }}>Operations Visibility Dashboards</h3>
-              <p style={s.muted}>
-                Simple dashboards and evidence logs so owners can see what needs attention without adopting a heavy CRM.
-              </p>
-            </div>
-            <div style={s.card} className="cf-service-card">
-              <h3 style={{ marginTop: 0 }}>Monitoring and Support</h3>
-              <p style={s.muted}>
-                Scheduled checks, alerts, and maintenance for deployed workflows after the initial pilot is live.
-              </p>
-            </div>
-          </div>
-        </Section>
-
-        <Section label="Featured offer" title="AI Lead Rescue — 48-hour pilot setup">
-          <div style={{ ...s.highlight, marginTop: 16 }}>
-            <p style={s.muted}>
-              Stop losing leads because follow-up is too slow. AI Lead Rescue captures enquiries, alerts the
-              owner/operator, logs every lead, and sends a daily summary — without rebuilding your website or forcing you
-              into a CRM.
-            </p>
-            <ul style={s.list}>
-              <li>USD 150 launch pilot — invoiced after intake review</li>
-              <li>48-hour setup, 7 days of pilot monitoring</li>
-              <li>No card or banking details on this website</li>
-              <li>Payment route confirmed on the invoice, not on this page</li>
-            </ul>
-            <p style={{ ...s.muted, fontSize: 13 }}>
-              We do not guarantee new revenue. We help make sure existing enquiries are captured, visible, and followed
-              up.
-            </p>
-            <Link href="/lead-rescue" className="cf-cta-primary" style={{ ...s.cta, ...s.primary, marginTop: 12 }}>
-              Start my 48-hour setup
-            </Link>
-          </div>
-        </Section>
-
-        <Section label="How engagement works" title="Simple intake-first process.">
-          <ol style={s.list}>
-            <li>Submit intake through our public form</li>
-            <li>We review fit and scope</li>
-            <li>We confirm setup path and payment route</li>
-            <li>We build the first workflow</li>
-            <li>We verify and monitor the pilot</li>
-          </ol>
-        </Section>
-
-        <Section label="Pricing" title="Starting points — final scope confirmed after intake.">
-          <ul style={s.list}>
-            <li>AI Lead Rescue launch pilot — USD 150</li>
-            <li>Invoiced after intake review and scope confirmation</li>
-            <li>Payment route is on the invoice, not on this website</li>
-            <li>We do not collect card or banking details on this website</li>
-          </ul>
-        </Section>
-
-        <Section label="Trust" title="Built for real operators, not hype.">
-          <ul style={s.list}>
-            <li>We do not guarantee new revenue.</li>
-            <li>We help make existing enquiries and follow-ups visible.</li>
-            <li>We do not replace your website, CRM, WhatsApp, or sales process.</li>
-            <li>We start with lightweight pilots before larger systems.</li>
-          </ul>
-          {trustBandAsset ? (
-            <HomepageSlot
-              manifest={trustBandAsset}
-              slotId="homepage_trust_band"
-              wrapperStyle={s.trustVisualBand}
-              rendererStyle={{ width: '100%', height: 'auto', display: 'block' }}
-              className="cf-trust-visual"
-            />
-          ) : null}
-        </Section>
-
-        <Section id="contact" label="Contact" title="Get in touch">
-          <p style={s.muted}>
-            The fastest way to reach us is the intake form on{' '}
-            <Link href="/lead-rescue" style={{ color: '#7dd3fc' }}>
-              /lead-rescue
-            </Link>
-            . Tell us where your enquiries arrive and what follow-up problem you want fixed first.
-          </p>
-          <p style={s.muted}>
-            For general questions, use the <Link href="/contact">contact page</Link>. Official business contact details
-            and contracting entity will be confirmed on the invoice or service agreement.
-          </p>
-        </Section>
-
-        <PublicSiteFooter extra="CorpFlowAI provides AI-assisted workflow setup and monitoring services for small businesses." />
-      </main>
-
-      {/*
-        Subtle motion only. Per BRAND_AND_CONVERSION_DOCTRINE.md and the
-        delivery brief: slow gradients, soft fades, gentle hover, no
-        attention-seeking effects. Every animation is gated behind
-        `prefers-reduced-motion: no-preference` so users with motion
-        sensitivities see a fully static page.
-      */}
-      <style jsx global>{`
-        @media (prefers-reduced-motion: no-preference) {
-          .cf-hero-visual img,
-          .cf-hero-visual video {
-            transform: scale(1.0);
-            transform-origin: center;
-            transition: transform 1400ms cubic-bezier(0.22, 0.61, 0.36, 1);
-            animation: cfHeroSettle 1600ms ease-out both;
-          }
-          .cf-hero-visual:hover img,
-          .cf-hero-visual:hover video {
-            transform: scale(1.012);
-          }
-
-          @keyframes cfHeroSettle {
-            from {
-              opacity: 0;
-              transform: scale(1.02);
-            }
-            to {
-              opacity: 1;
-              transform: scale(1.0);
-            }
-          }
-
-          .cf-services-visual,
-          .cf-trust-visual {
-            opacity: 0;
-            animation: cfFadeIn 900ms ease-out 200ms both;
-          }
-
-          @keyframes cfFadeIn {
-            from {
-              opacity: 0;
-              transform: translateY(4px);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
-          }
-
-          .cf-service-card:hover {
-            border-color: rgba(125, 211, 252, 0.30);
-            background: rgba(255, 255, 255, 0.06);
-            transform: translateY(-1px);
-          }
-
-          .cf-cta-primary,
-          .cf-cta-secondary {
-            transition: transform 220ms ease, box-shadow 220ms ease, background 220ms ease;
-          }
-          .cf-cta-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px -10px rgba(45, 212, 191, 0.65);
-          }
-          .cf-cta-secondary:hover {
-            background: rgba(255, 255, 255, 0.14);
-          }
-        }
-
-        @media (max-width: 600px) {
-          .cf-hero-visual {
-            aspect-ratio: 4 / 3;
-          }
-        }
-      `}</style>
-    </div>
+      <PublicCtaBand
+        title="Ready to start a discovery conversation?"
+        body="Tell us your business name, how customers reach you, and which problem hurts most. We confirm fit, scope, deposit, and timeline before any invoice."
+        primaryCta={CORPflow_HOMEPAGE_HERO.primaryCta}
+        secondaryCta={{ label: 'View all sprints', href: '/offers/ai-lead-rescue' }}
+      />
+    </CorpFlowPublicShell>
   );
 }
