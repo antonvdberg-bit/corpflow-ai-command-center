@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.0.0",
+  "id": "corpflow-trust-band",
+  "surface": "core",
+  "kind": "image",
+  "title": "CorpFlowAI public trust band background",
+  "description": "Section band only behind homepage operating-posture copy — never a full-page hero. Decorative background only — no baked-in text, logos, buttons, or contact details. Desktop master is currently 1024x438 (below preferred 2400px; no upscaling). NEEDS_ANTON: replace with ≥2400px clean master before lifecycle published.",
+  "source": {
+    "type": "repo",
+    "path": "/assets/visuals/corpflow-trust-band.jpg",
+    "content_hash": "sha256:ee322ec0fd31fbddcf4361b6edd178181fb68ee2294517804bbdd7a673ddf0e7",
+    "width": 1024,
+    "height": 438
+  },
+  "provenance": {
+    "source_filename": "Trust (chat upload) → corpflow-trust-band-source.jpg",
+    "expected_canonical_filename": "futuristic_tech_ocean_with_glowing_patterns.png",
+    "source_dimensions": "1024x438",
+    "supplied_by": "Anton (operator) — AI-generated background-only visuals supplied via Cursor chat after rejected text-baked mockups",
+    "optimised_with": "sharp (jpeg mozjpeg q80, webp q78, avif q50) via scripts/optimize-corpflow-public-heroes.mjs",
+    "derivatives": [
+      "/assets/visuals/corpflow-trust-band.avif",
+      "/assets/visuals/corpflow-trust-band.webp",
+      "/assets/visuals/corpflow-trust-band.jpg",
+      "/assets/visuals/corpflow-trust-band-768.avif",
+      "/assets/visuals/corpflow-trust-band-768.webp",
+      "/assets/visuals/corpflow-trust-band-768.jpg"
+    ],
+    "object_position": "75% center",
+    "verification_status": "DRAFT. Background-only acceptance criteria verified by visual inspection (no text/logo/controls). Source width 1024 < preferred 2400 — ship as draft; regenerate from higher-resolution master before production COMPLETE."
+  },
+  "licence": {
+    "tier": "ai_generated",
+    "owner": "CorpFlowAI",
+    "terms": "AI-generated decorative background for CorpFlowAI public marketing. Free for CorpFlowAI marketing surfaces. No third-party stock licence retained. Do not use on LuxeMaurice or Core operator UIs."
+  },
+  "prompt_provenance": {
+    "prompt_id": "corpflow-trust-band",
+    "model": "unspecified-image-model",
+    "model_version": "2026-07",
+    "generated_at": "2026-07-13T00:00:00.000Z",
+    "reviewed_by": "anton@corpflowai.com",
+    "notes": "Background-only revision after text-baked mockups were rejected. Prohibited use: full-page mockup with baked copy; LuxeMaurice tenant branding; Core admin surfaces."
+  },
+  "accessibility": {
+    "alt": "Abstract blue waterfront horizon with a subtle connected-network pattern.",
+    "lang": "en",
+    "decorative": true
+  },
+  "usage": {
+    "allowed_surfaces": [
+      "core",
+      "shared"
+    ],
+    "notes": "Public route /. Rendered decoratively (alt=\"\") under PublicMarketingPhotoGlassShell or PublicTrustBand; live HTML carries meaning. Prohibited: baked-in CTAs, contact details, offer prices, or 7-step process infographic."
+  },
+  "lifecycle": {
+    "state": "draft",
+    "created_at": "2026-07-14"
+  }
+}

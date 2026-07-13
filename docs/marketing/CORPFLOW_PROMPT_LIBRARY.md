@@ -154,6 +154,114 @@ over-saturated colors. Architectural Digest / Wallpaper magazine aesthetic.
 [Append global brand constraints]
 ```
 
+### `corpflow-home-hero`
+
+- **Use case:** Full-bleed decorative background behind live HTML on `https://corpflowai.com/` (market-readiness shell). Copy, CTAs, and prices remain HTML — never baked into the image.
+- **Surface:** `core` (also usable on `shared`).
+- **Kind:** `image` (AVIF/WebP/JPG; current draft master 1024×576 — regenerate at ≥2400 before `published`).
+- **Lifecycle:** `draft`.
+- **Reviewer:** anton@corpflowai.com.
+
+Prompt:
+
+```
+Cinematic landscape background only for a B2B public website hero.
+Left third dark and relatively empty for live HTML overlay; right two-thirds
+scenic coastal waterfront cityscape at sunset with calm water and skyline.
+Subtle restrained glowing digital network lines/nodes in the sky — atmosphere
+only, not UI. Photorealistic, premium, no people close-up.
+
+Strict constraints: NO text, NO letters, NO numbers, NO logos, NO buttons,
+NO forms, NO icons as controls, NO contact details, NO phone numbers,
+NO email addresses, NO baked-in CTAs, NO charts, NO infographics,
+NO recognisable private client data.
+
+[Append global brand constraints]
+```
+
+### `corpflow-contact-hero`
+
+- **Use case:** Decorative background behind live contact actions on `/contact`.
+- **Surface:** `core` / `shared`.
+- **Kind:** `image` (same encoding notes as `corpflow-home-hero`).
+- **Lifecycle:** `draft`.
+- **Reviewer:** anton@corpflowai.com.
+
+Prompt:
+
+```
+Warm coastal skyline at sunset as a full-bleed website background only.
+Dark left/centre for HTML readability; scenic focal point on the right.
+Restrained technology network motif in sky — no UI chrome.
+
+Strict constraints: NO text, NO logos, NO buttons, NO forms, NO contact
+information, NO icons as page controls, NO marketing claims in-image.
+
+[Append global brand constraints]
+```
+
+### `corpflow-about-hero`
+
+- **Use case:** Decorative background behind About HTML on `/about`.
+- **Surface:** `core` / `shared`.
+- **Kind:** `image`.
+- **Lifecycle:** `draft`.
+- **Reviewer:** anton@corpflowai.com.
+
+Prompt:
+
+```
+Elevated coastal city view at sunset with subtle connected-network overlay.
+Background-only asset: dark negative space on the left for HTML; mountain /
+skyline focal point on the right.
+
+Strict constraints: NO text, NO logos, NO buttons, NO forms, NO team claims
+or certifications in-image, NO private information.
+
+[Append global brand constraints]
+```
+
+### `corpflow-process-hero`
+
+- **Use case:** Decorative backdrop for `/process` five-stage delivery HTML (not a seven-step infographic).
+- **Surface:** `core` / `shared`.
+- **Kind:** `image`.
+- **Lifecycle:** `draft`.
+- **Reviewer:** anton@corpflowai.com.
+
+Prompt:
+
+```
+Modern waterfront terrace overlooking a coastal skyline at sunset, with
+subtle directional digital light trails. Background only — process steps
+and CTAs are HTML outside the image.
+
+Strict constraints: NO text, NO numbered steps, NO logos, NO buttons,
+NO forms, NO seven-step infographic, NO marketing claims in-image.
+
+[Append global brand constraints]
+```
+
+### `corpflow-trust-band`
+
+- **Use case:** Quiet section-band background on the homepage trust/operating-posture strip — never a full-page hero.
+- **Surface:** `core` / `shared`.
+- **Kind:** `image`.
+- **Lifecycle:** `draft`.
+- **Reviewer:** anton@corpflowai.com.
+
+Prompt:
+
+```
+Abstract blue waterfront horizon with a subtle connected-network pattern.
+Wide landscape suitable as a short trust/proof section band behind HTML.
+
+Strict constraints: NO text, NO logos, NO buttons, NO forms, NO contact
+details, NO full-page mockup layout.
+
+[Append global brand constraints]
+```
+
 ### `corpflow-homepage-social-card`
 
 - **Use case:** Open-graph / Twitter / LinkedIn share card for `https://corpflowai.com/`. Used as `og:image` and `twitter:image`.

@@ -1,20 +1,41 @@
 import React from 'react';
 import Link from 'next/link';
-import PublicPolicyLayout, { policyStyles as ps } from '../components/PublicPolicyLayout.js';
+import CorpFlowPublicPhotoShell from '../components/public/CorpFlowPublicPhotoShell.js';
 import CustomerServiceContact from '../components/CustomerServiceContact.js';
-import { buildGeneralDiscoveryMailto, listPublicOffers } from '../lib/public/corpflow-public-market.js';
-import { cfBtnPrimary } from '../components/public/corpflow-public-styles.js';
+import { policyStyles as ps } from '../components/PublicPolicyLayout.js';
+import { buildGeneralDiscoveryMailto, buildPublicPageMeta, listPublicOffers } from '../lib/public/corpflow-public-market.js';
+import { cfBtnPrimary, cfBtnSecondary } from '../components/public/corpflow-public-styles.js';
+
+const h1 = {
+  margin: '16px 0 8px',
+  fontSize: 'clamp(28px, 4.6vw, 38px)',
+  letterSpacing: '-0.03em',
+  lineHeight: 1.15,
+  color: '#eef6ff',
+};
+const updated = { color: '#9fb2c8', fontSize: 13, marginBottom: 24 };
 
 export default function ContactPage() {
   const offers = listPublicOffers();
   const discoveryMailto = buildGeneralDiscoveryMailto();
+  const meta = buildPublicPageMeta({
+    title: 'Contact',
+    description:
+      'Book a discovery conversation about CorpFlowAI delivery sprints — lead response, premium landing pages, and customer recovery. Mauritius operators welcome.',
+    path: '/contact',
+    ogImage: '/assets/visuals/corpflow-contact-hero.jpg',
+  });
 
   return (
-    <PublicPolicyLayout
-      title="Contact"
-      description="Book a discovery conversation about CorpFlowAI delivery sprints — lead response, premium landing pages, and customer recovery. Mauritius operators welcome."
-      path="/contact"
+    <CorpFlowPublicPhotoShell
+      meta={meta}
+      visualKey="contact"
+      maxWidth={800}
+      headerCta={{ label: 'View sprints', href: '/offers/ai-lead-rescue' }}
     >
+      <h1 style={h1}>Contact</h1>
+      <p style={updated}>Book a discovery conversation. Official details confirmed on invoice.</p>
+
       <section style={ps.section}>
         <h2 style={ps.h2}>Book a discovery conversation</h2>
         <p style={ps.p}>
@@ -25,7 +46,7 @@ export default function ContactPage() {
           <a href={discoveryMailto} style={cfBtnPrimary}>
             Email to book discovery
           </a>
-          <Link href="/offers/ai-lead-rescue" style={{ ...cfBtnPrimary, background: 'rgba(255,255,255,0.09)', color: '#eef6ff', border: '1px solid rgba(255,255,255,0.15)' }}>
+          <Link href="/offers/ai-lead-rescue" style={cfBtnSecondary}>
             View delivery sprints
           </Link>
         </div>
@@ -95,6 +116,6 @@ export default function ContactPage() {
           by replying to the same thread.
         </p>
       </section>
-    </PublicPolicyLayout>
+    </CorpFlowPublicPhotoShell>
   );
 }

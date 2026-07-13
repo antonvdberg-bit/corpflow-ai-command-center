@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.0.0",
+  "id": "corpflow-contact-hero",
+  "surface": "core",
+  "kind": "image",
+  "title": "CorpFlowAI contact hero background",
+  "description": "Full-bleed photo+glass hero behind live HTML contact actions. Decorative background only — no baked-in text, logos, buttons, or contact details. Desktop master is currently 1024x576 (below preferred 2400px; no upscaling). NEEDS_ANTON: replace with ≥2400px clean master before lifecycle published.",
+  "source": {
+    "type": "repo",
+    "path": "/assets/visuals/corpflow-contact-hero.jpg",
+    "content_hash": "sha256:718f0b2e32412d70522007876ef96ccd13066438b2a6935b9f4066e0029d2d84",
+    "width": 1024,
+    "height": 576
+  },
+  "provenance": {
+    "source_filename": "Contact__2 (chat upload) → corpflow-contact-hero-source.jpg",
+    "expected_canonical_filename": "sunset_skyline_with_tech_overlays.png",
+    "source_dimensions": "1024x576",
+    "supplied_by": "Anton (operator) — AI-generated background-only visuals supplied via Cursor chat after rejected text-baked mockups",
+    "optimised_with": "sharp (jpeg mozjpeg q80, webp q78, avif q50) via scripts/optimize-corpflow-public-heroes.mjs",
+    "derivatives": [
+      "/assets/visuals/corpflow-contact-hero.avif",
+      "/assets/visuals/corpflow-contact-hero.webp",
+      "/assets/visuals/corpflow-contact-hero.jpg",
+      "/assets/visuals/corpflow-contact-hero-768.avif",
+      "/assets/visuals/corpflow-contact-hero-768.webp",
+      "/assets/visuals/corpflow-contact-hero-768.jpg"
+    ],
+    "object_position": "72% center",
+    "verification_status": "DRAFT. Background-only acceptance criteria verified by visual inspection (no text/logo/controls). Source width 1024 < preferred 2400 — ship as draft; regenerate from higher-resolution master before production COMPLETE."
+  },
+  "licence": {
+    "tier": "ai_generated",
+    "owner": "CorpFlowAI",
+    "terms": "AI-generated decorative background for CorpFlowAI public marketing. Free for CorpFlowAI marketing surfaces. No third-party stock licence retained. Do not use on LuxeMaurice or Core operator UIs."
+  },
+  "prompt_provenance": {
+    "prompt_id": "corpflow-contact-hero",
+    "model": "unspecified-image-model",
+    "model_version": "2026-07",
+    "generated_at": "2026-07-13T00:00:00.000Z",
+    "reviewed_by": "anton@corpflowai.com",
+    "notes": "Background-only revision after text-baked mockups were rejected. Prohibited use: full-page mockup with baked copy; LuxeMaurice tenant branding; Core admin surfaces."
+  },
+  "accessibility": {
+    "alt": "Warm coastal skyline at sunset with a restrained technology network motif.",
+    "lang": "en",
+    "decorative": true
+  },
+  "usage": {
+    "allowed_surfaces": [
+      "core",
+      "shared"
+    ],
+    "notes": "Public route /contact. Rendered decoratively (alt=\"\") under PublicMarketingPhotoGlassShell or PublicTrustBand; live HTML carries meaning. Prohibited: baked-in CTAs, contact details, offer prices, or 7-step process infographic."
+  },
+  "lifecycle": {
+    "state": "draft",
+    "created_at": "2026-07-14"
+  }
+}
