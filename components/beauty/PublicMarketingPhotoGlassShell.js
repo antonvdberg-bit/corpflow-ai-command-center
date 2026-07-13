@@ -36,6 +36,8 @@ import { GLASS_GLOBAL_CSS, GLASS_TOKENS } from '../../lib/ui/glass.js';
  *     preload?: boolean,        // emit the AVIF responsive preload (default true when base set)
  *   },
  *   scrimTone?: 'dark'|'light',
+ *   scrimStyle?: React.CSSProperties,
+ *   publicScrimHook?: boolean,
  *   pageClassName?: string,
  *   maxWidth?: number,
  *   contentStyle?: React.CSSProperties,
@@ -46,6 +48,8 @@ import { GLASS_GLOBAL_CSS, GLASS_TOKENS } from '../../lib/ui/glass.js';
 export default function PublicMarketingPhotoGlassShell({
   hero = {},
   scrimTone = 'dark',
+  scrimStyle,
+  publicScrimHook = false,
   pageClassName = 'cf-glass-page',
   maxWidth = 1120,
   contentStyle,
@@ -104,7 +108,13 @@ export default function PublicMarketingPhotoGlassShell({
           objectPosition={hero.objectPosition || 'center'}
         />
       ) : null}
-      <Scrim fixed tone={scrimTone} zIndex={1} />
+      <Scrim
+        fixed
+        tone={scrimTone}
+        zIndex={1}
+        style={scrimStyle}
+        publicScrimHook={publicScrimHook || Boolean(scrimStyle)}
+      />
 
       <main style={{ position: 'relative', zIndex: 2, maxWidth, margin: '0 auto', padding: '42px 20px 56px', ...contentStyle }}>
         {children}

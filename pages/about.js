@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
-import PublicPolicyLayout, { policyStyles as ps, trustStyles as ts } from '../components/PublicPolicyLayout.js';
+import CorpFlowPublicPhotoShell from '../components/public/CorpFlowPublicPhotoShell.js';
+import { policyStyles as ps, trustStyles as ts } from '../components/PublicPolicyLayout.js';
 import CustomerServiceContact from '../components/CustomerServiceContact.js';
 import {
   MERCHANT_BRN,
@@ -9,17 +10,11 @@ import {
   MERCHANT_REGISTERED_OFFICE,
   formatCurrencyDisclosure,
 } from '../lib/public/merchant-identity.js';
+import { buildPublicPageMeta } from '../lib/public/corpflow-public-market.js';
 
 /**
  * /about - Institutional principles + founder's note.
- *
- * Part of the CorpFlowAI trust-architecture layer (companions:
- * /process, /standards, /onboarding). Text-first by design - there is
- * no decorative photograph here. Per
- * `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md`:
- *   "Effectiveness beats decoration. Clarity beats cleverness."
- * The institutional voice lands harder when the page reads like a
- * service brief, not a brochure.
+ * Photo background is decorative only; all claims stay in HTML.
  */
 
 const PRINCIPLES = [
@@ -54,12 +49,19 @@ const PRINCIPLES = [
 ];
 
 export default function AboutPage() {
+  const meta = buildPublicPageMeta({
+    title: 'About CorpFlowAI',
+    description:
+      'CorpFlowAI is a small operations company that builds lightweight AI-assisted workflow systems for small businesses. Pilots, not platforms. Operational, not impressive.',
+    path: '/about',
+    ogImage: '/assets/visuals/corpflow-about-hero.jpg',
+  });
+
   return (
-    <PublicPolicyLayout
-      title="About CorpFlowAI"
-      description="CorpFlowAI is a small operations company that builds lightweight AI-assisted workflow systems for small businesses. Pilots, not platforms. Operational, not impressive."
-      width="wide"
-    >
+    <CorpFlowPublicPhotoShell meta={meta} visualKey="about" maxWidth={960} headerCta={{ label: 'Book discovery', href: '/contact' }}>
+      <h1 style={{ margin: '16px 0 8px', fontSize: 'clamp(28px, 4.6vw, 38px)', letterSpacing: '-0.03em', lineHeight: 1.15, color: '#eef6ff' }}>
+        About CorpFlowAI
+      </h1>
       <p style={ts.lead}>
         CorpFlowAI is a small operations company that builds lightweight AI-assisted workflow
         systems for small businesses. We focus on what is real, lightweight, and operational
@@ -181,6 +183,6 @@ export default function AboutPage() {
           </Link>
         </div>
       </section>
-    </PublicPolicyLayout>
+    </CorpFlowPublicPhotoShell>
   );
 }

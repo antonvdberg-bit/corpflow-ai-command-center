@@ -1,21 +1,12 @@
 import React from 'react';
 import Link from 'next/link';
-import PublicPolicyLayout, { policyStyles as ps, trustStyles as ts } from '../components/PublicPolicyLayout.js';
+import CorpFlowPublicPhotoShell from '../components/public/CorpFlowPublicPhotoShell.js';
+import { policyStyles as ps, trustStyles as ts } from '../components/PublicPolicyLayout.js';
+import { buildPublicPageMeta } from '../lib/public/corpflow-public-market.js';
 
 /**
- * /process - The five stages of a CorpFlowAI engagement, plus the
- * explicit "what we do / what we do not do" panels.
- *
- * Companion to /about (principles), /standards (review cadence and
- * monitoring), and /onboarding (the first 14 days, day by day).
- *
- * Visual anchor: the governed `corpflow-process-timeline` SVG manifest
- * (see `data/visual-assets/corpflow-process-timeline.manifest.json`).
- * The image is referenced statically here so the page renders correctly
- * even before the runtime manifest loader is on `main`. When the
- * runtime stack lands, this can be retrofitted to use
- * `loadVisualAssetManifest('corpflow-process-timeline')` without
- * changing the alt text or path.
+ * /process - Five stages of a CorpFlowAI engagement.
+ * Photo background is decorative only; process copy stays in HTML (not the rejected 7-step infographic).
  */
 
 const STAGES = [
@@ -68,12 +59,19 @@ const DONT_LIST = [
 ];
 
 export default function ProcessPage() {
+  const meta = buildPublicPageMeta({
+    title: 'How a CorpFlowAI engagement runs',
+    description:
+      'Every CorpFlowAI engagement begins as a 48-hour or 7-day pilot scoped to one capture-and-follow-up problem. This page describes the five stages, what we do, and what we do not do.',
+    path: '/process',
+    ogImage: '/assets/visuals/corpflow-process-hero.jpg',
+  });
+
   return (
-    <PublicPolicyLayout
-      title="How a CorpFlowAI engagement runs"
-      description="Every CorpFlowAI engagement begins as a 48-hour or 7-day pilot scoped to one capture-and-follow-up problem. This page describes the five stages, what we do, and what we do not do."
-      width="wide"
-    >
+    <CorpFlowPublicPhotoShell meta={meta} visualKey="process" maxWidth={960} headerCta={{ label: 'Book discovery', href: '/contact' }}>
+      <h1 style={{ margin: '16px 0 8px', fontSize: 'clamp(28px, 4.6vw, 38px)', letterSpacing: '-0.03em', lineHeight: 1.15, color: '#eef6ff' }}>
+        How a CorpFlowAI engagement runs
+      </h1>
       <p style={ts.lead}>
         Every CorpFlowAI engagement begins as a short pilot scoped to one specific capture-and-follow-up
         problem. We do not start month-long projects on day one. We do not take payment before review.
@@ -190,6 +188,6 @@ export default function ProcessPage() {
           </Link>
         </div>
       </section>
-    </PublicPolicyLayout>
+    </CorpFlowPublicPhotoShell>
   );
 }

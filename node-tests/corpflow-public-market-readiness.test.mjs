@@ -88,9 +88,9 @@ describe('CorpFlow public market readiness — route files exist', () => {
 });
 
 describe('CorpFlow public market readiness — shared shell on priority pages', () => {
-  it('homepage uses CorpFlowPublicShell and commercial hero', () => {
+  it('homepage uses public photo shell and commercial hero', () => {
     const home = read('components/CorpFlowPublicHome.js');
-    assert.ok(home.includes('CorpFlowPublicShell'));
+    assert.ok(home.includes('CorpFlowPublicPhotoShell') || home.includes('CorpFlowPublicShell'));
     assert.ok(home.includes('OfferCard'));
     assert.ok(home.includes('CORPflow_HOMEPAGE_HERO'));
     assert.ok(home.includes('PublicHero'));
