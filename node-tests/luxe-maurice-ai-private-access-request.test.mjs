@@ -10,11 +10,17 @@ import {
   LUXE_MAURICE_AI_TENANT_SLUG,
   buildLivePrivateAccessConfirmation,
   buildPrivateAccessLeadCreateInput,
+  buildPrivateAccessLeadListWhere,
   buildPrivateAccessQualificationJson,
   formatPrivateAccessReferenceId,
+  isPrivateAccessLeadRow,
+  mapLeadRowToAdvisorPipelineItem,
   resolveLuxeMauriceAccessRequestTenant,
   validatePrivateAccessRequestBody,
 } from '../lib/luxe-maurice-ai/private-access-request.js';
+import {
+  resolveLuxeMauriceAdvisorPipelineSession,
+} from '../lib/server/luxe-maurice-ai-private-access-request.js';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -120,10 +126,71 @@ test('private access request: buyer form uses server endpoint', () => {
   assert.doesNotMatch(src, /localStorage/i);
 });
 
-test('private access request: factory router registers lux route', () => {
+test('private access request: factory router registers lux routes', () => {
   const src = readRepo('api/factory_router.js');
   assert.match(src, /lux\/luxe-maurice-ai\/private-access-request/);
+  assert.match(src, /lux\/luxe-maurice-ai\/private-access-requests/);
   assert.match(src, /handleLuxeMauriceAiPrivateAccessRequest/);
+  assert.match(src, /handleLuxeMauriceAiPrivateAccessRequestsList/);
+});
+
+test('private access request: list filters by tenant and intent', () => {
+  const where = buildPrivateAccessLeadListWhere(LUXE_MAURICE_AI_TENANT_SLUG);
+  assert.equal(where.tenantId, 'luxe-maurice');
+  assert.equal(where.intent, LUXE_MAURICE_AI_ACCESS_REQUEST_INTENT);
+
+  const luxRow = {
+    id: 'clx123',
+    intent: LUXE_MAURICE_AI_ACCESS_REQUEST_INTENT,
+    qualificationJson: {
+      access_request: { source: LUXE_MAURICE_AI_ACCESS_REQUEST_SOURCE, access_category: 'residence' },
+    },
+    name: 'Jan Test',
+    email: 'jan@luxemaurice.com',
+    createdAt: '2026-07-13T10:00:00.000Z',
+  };
+  assert.equal(isPrivateAccessLeadRow(luxRow), true);
+
+  const wrongIntent = { ...luxRow, intent: 'concierge' };
+  assert.equal(isPrivateAccessLeadRow(wrongIntent), false);
+
+  const wrongSource = {
+    ...luxRow,
+    qualificationJson: { access_request: { source: 'other-source' } },
+  };
+  assert.equal(isPrivateAccessLeadRow(wrongSource), false);
+
+  const mapped = mapLeadRowToAdvisorPipelineItem(luxRow);
+  assert.ok(mapped);
+  assert.match(mapped.reference_id, /^LM-REQ-/);
+  assert.equal(mapped.access_category, 'residence');
+  assert.equal(mapped.persisted, true);
+  assert.equal(mapLeadRowToAdvisorPipelineItem(wrongIntent), null);
+});
+
+test('private access request: advisor list requires luxe-maurice tenant session', () => {
+  const luxTenant = resolveLuxeMauriceAdvisorPipelineSession({
+    corpflowContext: { surface: 'tenant', tenant_id: 'luxe-maurice' },
+    headers: {},
+  });
+  assert.equal(luxTenant.ok, false);
+  assert.equal(luxTenant.status, 403);
+
+  const wrongHost = resolveLuxeMauriceAdvisorPipelineSession({
+    corpflowContext: { surface: 'tenant', tenant_id: 'france' },
+    headers: {},
+  });
+  assert.equal(wrongHost.ok, false);
+  assert.equal(wrongHost.status, 403);
+});
+
+test('private access request: client tenant_id cannot override list tenant context', () => {
+  const wrongTenant = resolveLuxeMauriceAccessRequestTenant({
+    corpflowContext: { surface: 'tenant', tenant_id: 'france' },
+    query: { tenant_id: 'luxe-maurice' },
+  });
+  assert.equal(wrongTenant.ok, false);
+  assert.equal(wrongTenant.status, 403);
 });
 
 test('private access request: client-facing copy avoids forbidden internal terms', () => {

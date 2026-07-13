@@ -14,6 +14,7 @@ import {
   getLeadScore,
   getPropertyById,
   isResidenceCategory,
+  listDemonstrationAdvisorLeads,
   listLeads,
   listProperties,
   luxeMauriceAiCopyAuditGuard,
@@ -171,13 +172,17 @@ test('luxe maurice ai preview: access request form includes category and intent 
 
 test('luxe maurice ai preview: advisor pipeline renders mixed-category enquiries', () => {
   const src = readRepo('pages/client/luxe-maurice-ai/crm.js');
-  assert.match(src, /Advisor pipeline/i);
+  assert.match(src, /Advisor review workspace/i);
+  assert.match(src, /private-access-requests/);
+  assert.match(src, /noindex/i);
   assert.match(src, /access_category/);
   assert.match(src, /next_action/);
   assert.match(src, /LeadCard/);
   assert.match(src, /New access request/);
+  assert.match(src, /Demonstration records/i);
+  assert.doesNotMatch(src, /listLeads\(/);
 
-  const leads = listLeads();
+  const leads = listDemonstrationAdvisorLeads();
   assert.ok(leads.some((l) => l.access_category === 'residence'));
   assert.ok(leads.some((l) => l.access_category === 'yacht_marine'));
 });
