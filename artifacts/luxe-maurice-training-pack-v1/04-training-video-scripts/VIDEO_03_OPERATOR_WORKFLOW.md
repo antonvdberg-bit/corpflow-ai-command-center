@@ -18,14 +18,14 @@
 
 ---
 
-## Scene 2 — Locate the request
+## Scene 2 — Locate and focus the request
 
 | | |
 |---|---|
-| **Screen** | LEADS section — list loaded via concierge-leads-list |
-| **Narrator** | “Find the private access request by name, contact, or LM-REQ reference. Training example: LuxeMaurice Training User.” |
-| **Action** | Scroll LEADS · New strip. Select the training lead row. |
-| **Result** | Lead detail panel opens with operator workflow fields. |
+| **Screen** | LEADS section — Training User selected |
+| **Narrator** | “Find the private access request by name or contact. Training example: LuxeMaurice Training User. Select the row — the list focuses on that lead and operator actions appear directly below.” |
+| **Action** | Show internal / test if needed. Click the training lead. Point to **Focused on …**, **Show all leads**, and **Clear selection**. |
+| **Result** | One focused lead card; OPERATOR ACTIONS visible underneath. |
 | **Graphic** | `08-change-console-lead-workflow.png` |
 
 ---
@@ -34,9 +34,9 @@
 
 | | |
 |---|---|
-| **Screen** | Lead detail — operator workflow |
-| **Narrator** | “Review stage, follow-up status, owner, next action date, and activity history before making changes.” |
-| **Action** | Point to stage label and activity list. |
+| **Screen** | OPERATOR ACTIONS panel |
+| **Narrator** | “Review stage, follow-up status, owner, next action date, and activity before making changes.” |
+| **Action** | Point to Stage and Activity. |
 | **Result** | Operator sees current state. |
 
 ---
@@ -46,10 +46,10 @@
 | | |
 |---|---|
 | **Screen** | Lead workflow edit controls |
-| **Narrator** | “Update stage or next action as your process requires. Saving calls concierge-lead-operator-patch — the workflow is persisted in Postgres.” |
+| **Narrator** | “Update stage or next action as your process requires. Save to keep the reminder for your team.” |
 | **Action** | Change next action note to a training-safe example. Save. |
 | **Result** | Success feedback in UI; activity log updates. |
-| **Caution** | Use training lead only. Do not display unrelated client records. |
+| **Caution** | Use training lead only. Use Show all leads only when switching to another request. |
 
 ---
 
@@ -57,11 +57,11 @@
 
 | | |
 |---|---|
-| **Screen** | Split or voice over — CRM vs Change |
-| **Narrator** | “The v2 Advisor Pipeline shows requests for advisors but does not support editing yet. Operators work here in Change Console. Outbound email and WhatsApp are not automated — that remains a future delivery slice.” |
+| **Screen** | Split or voice over — Advisor Pipeline vs Change |
+| **Narrator** | “The Advisor Pipeline shows requests for advisors but does not support editing yet. Operators work here in Change Console. Outbound email and WhatsApp are not automated — that remains a planned future enhancement.” |
 | **Action** | Optional: brief cut to Advisor Pipeline read-only view. |
 | **Result** | Viewer understands split responsibilities. |
-| **Boundary** | Do not imply full backend automation is complete. |
+| **Boundary** | Do not imply full workflow automation is complete. |
 
 ---
 

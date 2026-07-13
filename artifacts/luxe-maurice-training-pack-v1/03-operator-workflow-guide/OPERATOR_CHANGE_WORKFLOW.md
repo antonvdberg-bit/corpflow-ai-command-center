@@ -63,15 +63,26 @@ In the LEADS list:
 1. Find the lead by name, contact, or recent created time.
 2. Private access requests use intent **`lux_private_access_request`**.
 3. Use the **LM-REQ-…** reference from the client or Advisor Pipeline when matching.
-4. By default, system-generated test rows may be hidden — use the show/hide control if you need to see all rows.
+4. By default, demonstration and internal/test rows may be hidden — use **Show internal / test** if you need to see the training row.
+5. **Select the lead.** The list focuses on that row (other leads are temporarily hidden) and **OPERATOR ACTIONS** appears directly underneath.
 
-Select the lead to open the detail panel.
+Focus controls:
+
+| Control | Result |
+|---------|--------|
+| **Show all leads** | Restores the full list; the selected lead stays highlighted |
+| **Clear selection** | Clears the selection and exits focus mode |
+| **Focus list on this lead** | Re-collapses the list after browsing all leads |
+
+![Change Console lead workflow](../05-graphics/captures/08-change-console-lead-workflow.png)
+
+*Figure 8 — Focused training lead with OPERATOR ACTIONS directly below*
 
 ---
 
 ## 5. Review current stage
 
-The lead detail shows **operator workflow** fields:
+With the lead focused, the **OPERATOR ACTIONS** panel shows workflow fields:
 
 | Field | Meaning |
 |-------|---------|
@@ -115,11 +126,7 @@ Save changes. The lead’s `operator_workflow` in Postgres is updated.
 | Advisor Pipeline read view | Advisor assignment in v2 CRM |
 | `/change` stage, notes, owner, next action | Outbound email / WhatsApp / SMS automation |
 | `concierge-leads-list` and `concierge-lead-operator-patch` | Automated client confirmation messages |
-| | Automated advisor notifications |
-
-![Change Console lead workflow](../05-graphics/captures/08-change-console-lead-workflow.png)
-
-*Figure 8 — Operator LEADS workflow in Change Console (crop to training request only before sharing)*
+| Focused lead list + OPERATOR ACTIONS below selection | Automated advisor notifications |
 
 ---
 
@@ -127,7 +134,8 @@ Save changes. The lead’s `operator_workflow` in Postgres is updated.
 
 When capturing operator screenshots:
 
-- Crop to the **LuxeMaurice Training User** row only.
+- Select the **LuxeMaurice Training User** row so the list focuses.
+- Capture the focused lead plus **OPERATOR ACTIONS** only.
 - Do not share screenshots that show unrelated client names, emails, or phone numbers.
 - Do not include session tokens, cookies, or browser developer tools.
 
@@ -135,9 +143,12 @@ When capturing operator screenshots:
 
 ## Quick reference
 
-| Action | Route |
+| Action | Where |
 |--------|-------|
-| List leads | `concierge-leads-list` |
-| Update lead workflow | `concierge-lead-operator-patch` |
+| List leads | Change Console LEADS · `concierge-leads-list` |
+| Focus a lead | Click the lead row |
+| Show full list again | **Show all leads** |
+| Clear selection | **Clear selection** |
+| Update lead workflow | OPERATOR ACTIONS · `concierge-lead-operator-patch` |
 | Advisor read-only view | `/client/luxe-maurice-ai/crm` |
 | Client submission | `/client/luxe-maurice-ai/buyer` |

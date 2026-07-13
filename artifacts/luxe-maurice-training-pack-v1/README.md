@@ -33,8 +33,8 @@ Version-controlled training materials for Jan and the LuxeMaurice team. Document
 - This README (internal routing)
 - Raw repository paths or internal file names in client emails
 - `05-graphics/GRAPHICS_CAPTURE_CHECKLIST.md` (operator instructions)
-- Screenshots marked `CAPTURE_REQUIRED` or `REDACTION_REQUIRED`
-- `/change` captures showing unrelated client names or contact details
+- Uncropped `/change` captures showing unrelated client names or contact details
+- Any screenshot that has not completed Anton’s final privacy review
 - Any test output, CI logs, or implementation notes
 - Secrets, tokens, environment variable names, or session cookies
 
@@ -59,12 +59,13 @@ Complete before any client send:
 
 See `05-graphics/GRAPHICS_MANIFEST.md` for per-image capture status.
 
-**Captured automatically (production, 2026-07-13):** `01`–`05`, `07` — via `node scripts/luxe-maurice-training-pack-capture.mjs` (04 used fictional training submission).
+**All eight required screenshots are present** in `05-graphics/captures/` (completed 2026-07-14):
 
-**Still requires manual capture (authenticated):**
+- `01`–`05`, `07` — public / signed-out captures (automated + training submission for 04)
+- `06` — authenticated Advisor Pipeline with fictional training request (**CAPTURED · PRIVACY_REVIEWED**)
+- `08` — `/change` focused training lead + OPERATOR ACTIONS after lead-focus behaviour (**CAPTURED · PRIVACY_REVIEWED · CROPPED_TO_TRAINING_LEAD_AND_OPERATOR_ACTIONS**)
 
-- `06-advisor-pipeline-live-request.png` — LuxeMaurice tenant sign-in required
-- `08-change-console-lead-workflow.png` — `/change` operator session; crop to training request only
+All eight required graphics are present and ready for Anton’s final privacy and client-send review.
 
 ---
 
