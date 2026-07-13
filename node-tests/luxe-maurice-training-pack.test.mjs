@@ -103,11 +103,25 @@ test('luxe training pack: manifest lists all eight graphic filenames as captured
 test('luxe training pack: README says all eight graphics present and approval incomplete', () => {
   const readme = readPack('README.md');
   assert.match(readme, /All eight required (screenshots|graphics) are present/i);
-  assert.match(readme, /Approval checklist/i);
-  assert.match(readme, /\[ \] All graphics use fictional training data/);
-  assert.match(readme, /\[ \] Anton approved pack for client send/);
+  assert.match(readme, /Anton review checklist/i);
+  assert.match(readme, /\[ \] All eight graphics are present/);
+  assert.match(readme, /\[ \] All graphics use fictional training data only/);
+  assert.match(readme, /\[ \] Graphic 06 browser-chrome crop decision/);
+  assert.match(readme, /\[ \] Anton approved pack for client-send preparation/);
   assert.match(readme, /\[ \] No client send has occurred/);
   assert.match(readme, /ready for Anton’s final privacy and client-send review/);
+});
+
+test('luxe training pack: README Where to view lists live surfaces and repo folder', () => {
+  const readme = readPack('README.md');
+  assert.match(readme, /Where to view/i);
+  assert.match(readme, /https:\/\/lux\.corpflowai\.com\/client\/luxe-maurice-ai/);
+  assert.match(readme, /https:\/\/lux\.corpflowai\.com\/client\/luxe-maurice-ai\/properties/);
+  assert.match(readme, /https:\/\/lux\.corpflowai\.com\/client\/luxe-maurice-ai\/buyer/);
+  assert.match(readme, /https:\/\/lux\.corpflowai\.com\/client\/luxe-maurice-ai\/crm/);
+  assert.match(readme, /https:\/\/lux\.corpflowai\.com\/change/);
+  assert.match(readme, /artifacts\/luxe-maurice-training-pack-v1\//);
+  assert.match(readme, /not public website pages/i);
 });
 
 test('luxe training pack: Jan-facing guides avoid forbidden internal terms', () => {
