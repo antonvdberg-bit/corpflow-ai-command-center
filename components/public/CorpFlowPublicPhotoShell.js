@@ -14,7 +14,7 @@ import {
  *
  * @param {{
  *   meta: { title: string, description: string, canonical?: string, ogTitle?: string, ogDescription?: string, ogUrl?: string, ogImage?: string, twitterCard?: string },
- *   visualKey: 'home'|'contact'|'about'|'process',
+ *   visualKey: 'home'|'contact'|'about'|'process'|'services'|'standards'|'onboarding',
  *   children: React.ReactNode,
  *   maxWidth?: number,
  *   headerCta?: { label: string, href: string } | null,

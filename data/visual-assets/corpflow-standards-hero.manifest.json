@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0.0",
+  "id": "corpflow-standards-hero",
+  "surface": "core",
+  "kind": "image",
+  "title": "CorpFlowAI standards hero background",
+  "description": "Full-bleed photo+glass hero behind live HTML operational standards copy. Decorative background only — no baked-in text, logos, buttons, or contact details. Desktop master currently 1536x1024 (below preferred 2400px; no upscaling). Generated via Cursor image tool for CorpFlowAI secondary public pages.",
+  "source": {
+    "type": "repo",
+    "path": "/assets/visuals/corpflow-standards-hero.jpg",
+    "content_hash": "sha256:792fa4b4ca13ad9635a5b1a31342013d6adb6fbb2bb2de1188f30dd22e8eb636",
+    "width": 1536,
+    "height": 1024
+  },
+  "provenance": {
+    "source_filename": "corpflow-standards-hero-source.png (Cursor GenerateImage) → corpflow-standards-hero-source.jpg",
+    "source_dimensions": "1536x1024",
+    "supplied_by": "Cursor GenerateImage — operator-directed secondary public heroes (2026-07-14)",
+    "optimised_with": "sharp (jpeg mozjpeg q80, webp q78, avif q50)",
+    "derivatives": [
+      "/assets/visuals/corpflow-standards-hero.avif",
+      "/assets/visuals/corpflow-standards-hero.webp",
+      "/assets/visuals/corpflow-standards-hero.jpg",
+      "/assets/visuals/corpflow-standards-hero-768.avif",
+      "/assets/visuals/corpflow-standards-hero-768.webp",
+      "/assets/visuals/corpflow-standards-hero-768.jpg"
+    ],
+    "object_position": "72% center",
+    "verification_status": "DRAFT. Background-only acceptance verified (no text/logo/controls). Width 1536 < preferred 2400."
+  },
+  "licence": {
+    "tier": "ai_generated",
+    "owner": "CorpFlowAI",
+    "terms": "AI-generated decorative background for CorpFlowAI public marketing. Free for CorpFlowAI marketing surfaces. Do not use on LuxeMaurice or Core operator UIs."
+  },
+  "prompt_provenance": {
+    "prompt_id": "corpflow-standards-hero",
+    "model": "cursor-generate-image",
+    "model_version": "2026-07",
+    "generated_at": "2026-07-14T00:00:00.000Z",
+    "reviewed_by": "anton@corpflowai.com",
+    "notes": "Secondary public page heroes after #591. Prohibited use: baked-in copy; LuxeMaurice; Core admin."
+  },
+  "accessibility": {
+    "alt": "Nighttime modern terrace over dark coastal water with restrained cyan network light trails.",
+    "lang": "en",
+    "decorative": true
+  },
+  "usage": {
+    "allowed_surfaces": [
+      "core",
+      "shared"
+    ],
+    "notes": "Public route /standards. Decorative under CorpFlowPublicPhotoShell; live HTML carries meaning."
+  },
+  "lifecycle": {
+    "state": "draft",
+    "created_at": "2026-07-14"
+  }
+}

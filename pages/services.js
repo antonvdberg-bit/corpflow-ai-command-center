@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
-import PublicPolicyLayout, { policyStyles as ps } from '../components/PublicPolicyLayout.js';
+import CorpFlowPublicPhotoShell from '../components/public/CorpFlowPublicPhotoShell.js';
+import { policyStyles as ps } from '../components/PublicPolicyLayout.js';
 import CustomerServiceContact from '../components/CustomerServiceContact.js';
 import {
   CURRENCY_PRIMARY,
@@ -9,13 +10,32 @@ import {
   MERCHANT_OUTLET_COUNTRY,
   formatCurrencyDisclosure,
 } from '../lib/public/merchant-identity.js';
+import { buildPublicPageMeta } from '../lib/public/corpflow-public-market.js';
+
+const h1 = {
+  margin: '16px 0 8px',
+  fontSize: 'clamp(28px, 4.6vw, 38px)',
+  letterSpacing: '-0.03em',
+  lineHeight: 1.15,
+  color: '#eef6ff',
+};
 
 export default function ServicesPage() {
+  const meta = buildPublicPageMeta({
+    title: 'Services',
+    description: 'Complete description of digital services offered by CorpFlowAI Ltd, a Mauritius-based operations company.',
+    path: '/services',
+    ogImage: '/assets/visuals/corpflow-services-hero.jpg',
+  });
+
   return (
-    <PublicPolicyLayout
-      title="Services"
-      description="Complete description of digital services offered by CorpFlowAI Ltd, a Mauritius-based operations company."
+    <CorpFlowPublicPhotoShell
+      meta={meta}
+      visualKey="services"
+      maxWidth={800}
+      headerCta={{ label: 'Book discovery', href: '/contact' }}
     >
+      <h1 style={h1}>Services</h1>
       <section style={ps.section}>
         <h2 style={ps.h2}>Who we are</h2>
         <p style={ps.p}>
@@ -76,6 +96,6 @@ export default function ServicesPage() {
         <h2 style={ps.h2}>Customer service</h2>
         <CustomerServiceContact />
       </section>
-    </PublicPolicyLayout>
+    </CorpFlowPublicPhotoShell>
   );
 }

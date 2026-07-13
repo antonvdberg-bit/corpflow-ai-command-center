@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0.0",
+  "id": "corpflow-services-hero",
+  "surface": "core",
+  "kind": "image",
+  "title": "CorpFlowAI services hero background",
+  "description": "Full-bleed photo+glass hero behind live HTML services copy. Decorative background only — no baked-in text, logos, buttons, or contact details. Desktop master currently 1536x1024 (below preferred 2400px; no upscaling). Generated via Cursor image tool for CorpFlowAI secondary public pages.",
+  "source": {
+    "type": "repo",
+    "path": "/assets/visuals/corpflow-services-hero.jpg",
+    "content_hash": "sha256:18d0a8b2ec4ca9f717fbdc1b46dcd1511f83c28dcaab14bc638f67fb7a34f8e5",
+    "width": 1536,
+    "height": 1024
+  },
+  "provenance": {
+    "source_filename": "corpflow-services-hero-source.png (Cursor GenerateImage) → corpflow-services-hero-source.jpg",
+    "source_dimensions": "1536x1024",
+    "supplied_by": "Cursor GenerateImage — operator-directed secondary public heroes (2026-07-14)",
+    "optimised_with": "sharp (jpeg mozjpeg q80, webp q78, avif q50)",
+    "derivatives": [
+      "/assets/visuals/corpflow-services-hero.avif",
+      "/assets/visuals/corpflow-services-hero.webp",
+      "/assets/visuals/corpflow-services-hero.jpg",
+      "/assets/visuals/corpflow-services-hero-768.avif",
+      "/assets/visuals/corpflow-services-hero-768.webp",
+      "/assets/visuals/corpflow-services-hero-768.jpg"
+    ],
+    "object_position": "70% center",
+    "verification_status": "DRAFT. Background-only acceptance verified (no text/logo/controls). Width 1536 < preferred 2400."
+  },
+  "licence": {
+    "tier": "ai_generated",
+    "owner": "CorpFlowAI",
+    "terms": "AI-generated decorative background for CorpFlowAI public marketing. Free for CorpFlowAI marketing surfaces. Do not use on LuxeMaurice or Core operator UIs."
+  },
+  "prompt_provenance": {
+    "prompt_id": "corpflow-services-hero",
+    "model": "cursor-generate-image",
+    "model_version": "2026-07",
+    "generated_at": "2026-07-14T00:00:00.000Z",
+    "reviewed_by": "anton@corpflowai.com",
+    "notes": "Secondary public page heroes after #591. Prohibited use: baked-in copy; LuxeMaurice; Core admin."
+  },
+  "accessibility": {
+    "alt": "Coastal city waterfront at sunset with a subtle digital network overlay.",
+    "lang": "en",
+    "decorative": true
+  },
+  "usage": {
+    "allowed_surfaces": [
+      "core",
+      "shared"
+    ],
+    "notes": "Public route /services. Decorative under CorpFlowPublicPhotoShell; live HTML carries meaning."
+  },
+  "lifecycle": {
+    "state": "draft",
+    "created_at": "2026-07-14"
+  }
+}

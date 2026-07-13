@@ -1,17 +1,15 @@
 import React from 'react';
 import Link from 'next/link';
-import PublicPolicyLayout, { policyStyles as ps, trustStyles as ts } from '../components/PublicPolicyLayout.js';
+import CorpFlowPublicPhotoShell from '../components/public/CorpFlowPublicPhotoShell.js';
+import { policyStyles as ps, trustStyles as ts } from '../components/PublicPolicyLayout.js';
+import { buildPublicPageMeta } from '../lib/public/corpflow-public-market.js';
 
 /**
  * /onboarding - The first fourteen days of a CorpFlowAI engagement,
  * day by day. Companion to /about, /process, and /standards.
  *
- * Visual anchor: the governed `corpflow-onboarding-journey` SVG
- * manifest (see
- * `data/visual-assets/corpflow-onboarding-journey.manifest.json`).
- * Referenced statically here for the same reason as /process - the
- * runtime manifest loader is staged behind a separate PR and this page
- * must render correctly on `main` regardless of the loader landing.
+ * Photo background is decorative. Timeline SVG remains the HTML visual
+ * anchor for the 14-day steps (see corpflow-onboarding-journey manifest).
  */
 
 const STEPS = [
@@ -67,12 +65,32 @@ const NOT_ASKED_LIST = [
 ];
 
 export default function OnboardingPage() {
+  const meta = buildPublicPageMeta({
+    title: 'Client onboarding',
+    description:
+      'The first fourteen days of a CorpFlowAI engagement, day by day. Operator review, written scoping, 48-hour setup, seven-day operator-watched pilot, review meeting, continue or close.',
+    path: '/onboarding',
+    ogImage: '/assets/visuals/corpflow-onboarding-hero.jpg',
+  });
+
   return (
-    <PublicPolicyLayout
-      title="Client onboarding"
-      description="The first fourteen days of a CorpFlowAI engagement, day by day. Operator review, written scoping, 48-hour setup, seven-day operator-watched pilot, review meeting, continue or close."
-      width="wide"
+    <CorpFlowPublicPhotoShell
+      meta={meta}
+      visualKey="onboarding"
+      maxWidth={960}
+      headerCta={{ label: 'Book discovery', href: '/contact' }}
     >
+      <h1
+        style={{
+          margin: '16px 0 8px',
+          fontSize: 'clamp(28px, 4.6vw, 38px)',
+          letterSpacing: '-0.03em',
+          lineHeight: 1.15,
+          color: '#eef6ff',
+        }}
+      >
+        Client onboarding
+      </h1>
       <p style={ts.lead}>
         This is what the first two weeks of a CorpFlowAI engagement look like. Each step
         below is real work that a person does &mdash; nothing is auto-routed, nothing is
@@ -191,6 +209,6 @@ export default function OnboardingPage() {
           </Link>
         </div>
       </section>
-    </PublicPolicyLayout>
+    </CorpFlowPublicPhotoShell>
   );
 }

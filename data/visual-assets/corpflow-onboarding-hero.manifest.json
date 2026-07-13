@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0.0",
+  "id": "corpflow-onboarding-hero",
+  "surface": "core",
+  "kind": "image",
+  "title": "CorpFlowAI onboarding hero background",
+  "description": "Full-bleed photo+glass hero behind live HTML 14-day onboarding copy. Decorative background only — no baked-in text, logos, buttons, or contact details. Desktop master currently 1536x1024 (below preferred 2400px; no upscaling). Generated via Cursor image tool for CorpFlowAI secondary public pages.",
+  "source": {
+    "type": "repo",
+    "path": "/assets/visuals/corpflow-onboarding-hero.jpg",
+    "content_hash": "sha256:e2dbc7aa315130d8a7e6691914cb6c7508fff448de9d8e1c2602d234fa6aad66",
+    "width": 1536,
+    "height": 1024
+  },
+  "provenance": {
+    "source_filename": "corpflow-onboarding-hero-source.png (Cursor GenerateImage) → corpflow-onboarding-hero-source.jpg",
+    "source_dimensions": "1536x1024",
+    "supplied_by": "Cursor GenerateImage — operator-directed secondary public heroes (2026-07-14)",
+    "optimised_with": "sharp (jpeg mozjpeg q80, webp q78, avif q50)",
+    "derivatives": [
+      "/assets/visuals/corpflow-onboarding-hero.avif",
+      "/assets/visuals/corpflow-onboarding-hero.webp",
+      "/assets/visuals/corpflow-onboarding-hero.jpg",
+      "/assets/visuals/corpflow-onboarding-hero-768.avif",
+      "/assets/visuals/corpflow-onboarding-hero-768.webp",
+      "/assets/visuals/corpflow-onboarding-hero-768.jpg"
+    ],
+    "object_position": "68% center",
+    "verification_status": "DRAFT. Background-only acceptance verified (no text/logo/controls). Width 1536 < preferred 2400."
+  },
+  "licence": {
+    "tier": "ai_generated",
+    "owner": "CorpFlowAI",
+    "terms": "AI-generated decorative background for CorpFlowAI public marketing. Free for CorpFlowAI marketing surfaces. Do not use on LuxeMaurice or Core operator UIs."
+  },
+  "prompt_provenance": {
+    "prompt_id": "corpflow-onboarding-hero",
+    "model": "cursor-generate-image",
+    "model_version": "2026-07",
+    "generated_at": "2026-07-14T00:00:00.000Z",
+    "reviewed_by": "anton@corpflowai.com",
+    "notes": "Secondary public page heroes after #591. Prohibited use: baked-in copy; LuxeMaurice; Core admin."
+  },
+  "accessibility": {
+    "alt": "Modern glass walkway toward a coastal sunrise with subtle digital light trails.",
+    "lang": "en",
+    "decorative": true
+  },
+  "usage": {
+    "allowed_surfaces": [
+      "core",
+      "shared"
+    ],
+    "notes": "Public route /onboarding. Decorative under CorpFlowPublicPhotoShell; live HTML carries meaning."
+  },
+  "lifecycle": {
+    "state": "draft",
+    "created_at": "2026-07-14"
+  }
+}

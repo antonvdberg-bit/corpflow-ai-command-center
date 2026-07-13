@@ -15,6 +15,9 @@ const SLOT_IDS = [
   'corpflow-about-hero',
   'corpflow-process-hero',
   'corpflow-trust-band',
+  'corpflow-services-hero',
+  'corpflow-standards-hero',
+  'corpflow-onboarding-hero',
 ];
 
 const ROUTE_FILES = {
@@ -22,6 +25,9 @@ const ROUTE_FILES = {
   contact: 'pages/contact.js',
   about: 'pages/about.js',
   process: 'pages/process.js',
+  services: 'pages/services.js',
+  standards: 'pages/standards.js',
+  onboarding: 'pages/onboarding.js',
 };
 
 function read(rel) {
@@ -48,7 +54,7 @@ describe('CorpFlowAI governed public visuals — manifests', () => {
     });
   }
 
-  it('prompt library includes all five prompt_ids', () => {
+  it('prompt library includes required secondary prompt_ids', () => {
     const library = read('docs/marketing/CORPFLOW_PROMPT_LIBRARY.md');
     for (const id of SLOT_IDS) {
       assert.match(library, new RegExp(`### \`${id}\``), `missing prompt library entry for ${id}`);
@@ -68,11 +74,14 @@ describe('CorpFlowAI governed public visuals — responsive derivatives', () => 
 });
 
 describe('CorpFlowAI governed public visuals — route wiring', () => {
-  it('exports five visual slots with expected routes', () => {
+  it('exports visual slots with expected routes', () => {
     assert.equal(CORPFLOW_PUBLIC_VISUALS.home.route, '/');
     assert.equal(CORPFLOW_PUBLIC_VISUALS.contact.route, '/contact');
     assert.equal(CORPFLOW_PUBLIC_VISUALS.about.route, '/about');
     assert.equal(CORPFLOW_PUBLIC_VISUALS.process.route, '/process');
+    assert.equal(CORPFLOW_PUBLIC_VISUALS.services.route, '/services');
+    assert.equal(CORPFLOW_PUBLIC_VISUALS.standards.route, '/standards');
+    assert.equal(CORPFLOW_PUBLIC_VISUALS.onboarding.route, '/onboarding');
     assert.equal(CORPFLOW_PUBLIC_VISUALS.trust.id, 'corpflow-trust-band');
   });
 
@@ -115,6 +124,26 @@ describe('CorpFlowAI governed public visuals — route wiring', () => {
     assert.match(src, /visualKey="process"/);
     assert.match(src, /five stages/i);
     assert.doesNotMatch(src, /seven.?step/i);
+    assert.doesNotMatch(src, /href=["']\/change["']/);
+  });
+
+  it('services uses corpflow-services-hero', () => {
+    const src = read(ROUTE_FILES.services);
+    assert.match(src, /visualKey="services"/);
+    assert.doesNotMatch(src, /href=["']\/change["']/);
+  });
+
+  it('standards uses corpflow-standards-hero', () => {
+    const src = read(ROUTE_FILES.standards);
+    assert.match(src, /visualKey="standards"/);
+    assert.doesNotMatch(src, /href=["']\/change["']/);
+  });
+
+  it('onboarding uses corpflow-onboarding-hero and keeps 14-day HTML', () => {
+    const src = read(ROUTE_FILES.onboarding);
+    assert.match(src, /visualKey="onboarding"/);
+    assert.match(src, /corpflow-onboarding-journey\.svg/);
+    assert.match(src, /Day 0|Day 14|fourteen days|first 14 days/i);
     assert.doesNotMatch(src, /href=["']\/change["']/);
   });
 

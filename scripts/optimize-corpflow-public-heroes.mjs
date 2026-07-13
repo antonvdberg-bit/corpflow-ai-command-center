@@ -29,6 +29,9 @@ const SLOTS = [
   { id: 'corpflow-about-hero', source: 'corpflow-about-hero-source.jpg' },
   { id: 'corpflow-process-hero', source: 'corpflow-process-hero-source.jpg' },
   { id: 'corpflow-trust-band', source: 'corpflow-trust-band-source.jpg' },
+  { id: 'corpflow-services-hero', source: 'corpflow-services-hero-source.jpg' },
+  { id: 'corpflow-standards-hero', source: 'corpflow-standards-hero-source.jpg' },
+  { id: 'corpflow-onboarding-hero', source: 'corpflow-onboarding-hero-source.jpg' },
 ];
 
 const widths = [
