@@ -4,33 +4,29 @@ import Link from 'next/link';
 
 import { trackEvent } from '../lib/analytics/index.js';
 import { MERCHANT_LEGAL_NAME } from '../lib/public/merchant-identity.js';
+import {
+  OFFER_FAQ_BY_SLUG,
+  OFFER_NOT_INCLUDED_BY_SLUG,
+  buildPublicPageMeta,
+  formatMur,
+} from '../lib/public/corpflow-public-market.js';
 import { buildDiscoveryCallMailto } from '../lib/public/rapid-delivery-offers.js';
-import PublicSiteFooter from './PublicSiteFooter.js';
+import CorpFlowPublicFooter from './public/CorpFlowPublicFooter.js';
+import CorpFlowPublicHeader from './public/CorpFlowPublicHeader.js';
 import PublicMarketingPhotoGlassShell from './beauty/PublicMarketingPhotoGlassShell.js';
 import GlassPanel from './beauty/GlassPanel.js';
 import GlassCardGrid from './beauty/GlassCardGrid.js';
 import HeroGlassBlock from './beauty/HeroGlassBlock.js';
 import CtaGlassBlock from './beauty/CtaGlassBlock.js';
 import { GLASS_TOKENS } from '../lib/ui/glass.js';
+import { cfBtnPrimary, cfBtnSecondary } from './public/corpflow-public-styles.js';
 
 const text = GLASS_TOKENS.text;
 const muted = '#cdd9e6';
 const faint = '#9fb2c4';
 
 const styles = {
-  nav: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' },
-  brandMark: { fontWeight: 900, fontSize: 22, color: text },
-  brandSub: { color: muted, fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 2 },
-  navLink: {
-    background: 'rgba(255,255,255,0.10)',
-    color: text,
-    border: '1px solid rgba(255,255,255,0.18)',
-    padding: '9px 14px',
-    borderRadius: 12,
-    fontSize: 13,
-    fontWeight: 700,
-    textDecoration: 'none',
-  },
+  label: { fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7dd3fc', fontWeight: 800 },
   h1: {
     margin: '14px 0 0',
     fontSize: 'clamp(34px, 5.8vw, 58px)',
@@ -41,7 +37,6 @@ const styles = {
   },
   lead: { marginTop: 20, fontSize: 'clamp(17px, 1.9vw, 21px)', lineHeight: 1.55, color: muted, maxWidth: 720 },
   section: { marginTop: 28 },
-  label: { fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7dd3fc', fontWeight: 800 },
   h2: { margin: '8px 0 0', fontSize: 'clamp(24px, 3vw, 30px)', letterSpacing: '-0.03em', color: text },
   muted: { color: '#bccdde', lineHeight: 1.65, margin: '12px 0 0' },
   list: { margin: '14px 0 0', paddingLeft: 18, color: '#e0ecf7', lineHeight: 1.8 },
@@ -54,26 +49,12 @@ const styles = {
     color: '#d6f5ef',
     lineHeight: 1.6,
   },
-  cta: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 16,
-    padding: '13px 18px',
-    border: 0,
-    fontWeight: 800,
-    cursor: 'pointer',
-    textDecoration: 'none',
-  },
-  primary: { background: GLASS_TOKENS.ctaWarm, color: GLASS_TOKENS.ctaWarmText, boxShadow: GLASS_TOKENS.ctaWarmShadow },
-  secondary: { background: 'rgba(255,255,255,0.12)', color: text, border: '1px solid rgba(255,255,255,0.20)' },
   note: { marginTop: 14, fontSize: 14, color: faint, lineHeight: 1.65, maxWidth: 720 },
   link: { color: '#7dd3fc', textDecoration: 'none' },
+  faqItem: { marginTop: 16 },
+  faqQ: { fontWeight: 700, color: text, margin: '0 0 6px' },
+  faqA: { margin: 0, color: muted, lineHeight: 1.65, fontSize: 14.5 },
 };
-
-function formatMur(amount) {
-  return `MUR ${amount.toLocaleString('en-US')}`;
-}
 
 /**
  * Shared rapid-delivery offer surface for /offers/* routes.
@@ -83,6 +64,15 @@ function formatMur(amount) {
  */
 export default function RapidDeliveryOfferPage({ offer }) {
   const mailtoHref = buildDiscoveryCallMailto(offer);
+  const meta = buildPublicPageMeta({
+    title: offer.title,
+    description: offer.metaDescription,
+    path: offer.path,
+    ogImage: `${offer.heroBase}.jpg`,
+  });
+  const faq = OFFER_FAQ_BY_SLUG[offer.slug] || [];
+  const notIncluded = OFFER_NOT_INCLUDED_BY_SLUG[offer.slug] || [];
+
   const heroBase = offer.heroBase;
   const heroSources = [
     { type: 'image/avif', media: '(max-width: 768px)', srcSet: `${heroBase}-768.avif` },
@@ -98,8 +88,7 @@ export default function RapidDeliveryOfferPage({ offer }) {
   }
 
   const footer = (
-    <PublicSiteFooter
-      flush
+    <CorpFlowPublicFooter
       extra={`${offer.title} — ${MERCHANT_LEGAL_NAME}. Discovery call only on this page; no card or banking details collected here. Deposit and quote follow manual review.`}
     />
   );
@@ -107,9 +96,14 @@ export default function RapidDeliveryOfferPage({ offer }) {
   return (
     <>
       <Head>
-        <title>{offer.title} · CorpFlowAI</title>
-        <meta name="description" content={offer.metaDescription} />
-        <link rel="canonical" href={`https://corpflowai.com${offer.path}`} />
+        <title>{meta.title}</title>
+        <meta name="description" content={meta.description} />
+        <link rel="canonical" href={meta.canonical} />
+        <meta property="og:title" content={meta.ogTitle} />
+        <meta property="og:description" content={meta.ogDescription} />
+        <meta property="og:url" content={meta.ogUrl} />
+        <meta property="og:image" content={meta.ogImage} />
+        <meta name="twitter:card" content={meta.twitterCard} />
       </Head>
 
       <PublicMarketingPhotoGlassShell
@@ -122,44 +116,35 @@ export default function RapidDeliveryOfferPage({ offer }) {
           sources: heroSources,
           preloadSrcSet: heroPreloadSrcSet,
           objectPosition: offer.heroObjectPosition || 'center 40%',
-          alt: '',
+          alt: `${offer.title} — CorpFlowAI delivery sprint`,
         }}
       >
-        <nav style={styles.nav}>
-          <div>
-            <div style={styles.brandMark}>CorpFlowAI</div>
-            <div style={styles.brandSub}>{offer.pageLabel}</div>
-          </div>
-          <a
-            style={styles.navLink}
-            href={mailtoHref}
-            onClick={() => handleCtaClick('nav')}
-          >
-            Request Discovery Call
-          </a>
-        </nav>
+        <CorpFlowPublicHeader cta={{ label: 'Request discovery', href: '/contact' }} />
 
-        <GlassCardGrid minColWidth={300} gap={24} style={{ marginTop: 44, alignItems: 'start' }}>
+        <GlassCardGrid minColWidth={300} gap={24} style={{ marginTop: 32, alignItems: 'start' }}>
           <HeroGlassBlock>
             <div style={styles.label}>Rapid visible delivery · Mauritius</div>
             <h1 style={styles.h1}>{offer.headline}</h1>
             <p style={styles.lead}>{offer.subhead}</p>
             <div style={styles.priceBox}>
-              <strong>From {formatMur(offer.startingPriceMur)}</strong>
+              <strong>Starting from {formatMur(offer.startingPriceMur)}</strong>
               <div style={{ marginTop: 6, fontSize: 14, opacity: 0.95 }}>
-                Deposit: {offer.depositNote} · Timeline: {offer.deliveryTimeline.split('.')[0]}.
+                Final scope confirmed after discovery. Third-party fees quoted separately where applicable.
+              </div>
+              <div style={{ marginTop: 6, fontSize: 14, opacity: 0.95 }}>
+                Deposit: {offer.depositNote} · {offer.deliveryTimeline.split('.')[0]}.
               </div>
             </div>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 24 }}>
               <a
-                style={{ ...styles.cta, ...styles.primary }}
+                style={{ ...cfBtnPrimary, boxShadow: GLASS_TOKENS.ctaWarmShadow, background: GLASS_TOKENS.ctaWarm, color: GLASS_TOKENS.ctaWarmText }}
                 href={mailtoHref}
                 onClick={() => handleCtaClick('hero_primary')}
               >
                 Request Discovery Call
               </a>
-              <Link href="/contact" style={{ ...styles.cta, ...styles.secondary }} onClick={() => handleCtaClick('hero_secondary')}>
-                Contact page
+              <Link href="/contact" style={cfBtnSecondary} onClick={() => handleCtaClick('hero_secondary')}>
+                Book discovery conversation
               </Link>
             </div>
           </HeroGlassBlock>
@@ -184,8 +169,8 @@ export default function RapidDeliveryOfferPage({ offer }) {
 
         <div style={styles.section}>
           <GlassPanel variant={{ fill: GLASS_TOKENS.glassFill, padding: 24, elevation: 2 }}>
-            <div style={styles.label}>Visible output · 24–72 hours</div>
-            <h2 style={styles.h2}>What you receive in the first delivery window</h2>
+            <div style={styles.label}>What is delivered</div>
+            <h2 style={styles.h2}>Visible output within 24–72 hours</h2>
             <ul style={styles.list}>
               {offer.deliveredOutputs.map((item) => (
                 <li key={item}>{item}</li>
@@ -194,18 +179,28 @@ export default function RapidDeliveryOfferPage({ offer }) {
           </GlassPanel>
         </div>
 
+        <div style={styles.section}>
+          <GlassPanel variant={{ fill: GLASS_TOKENS.glassFill, padding: 24, elevation: 2 }}>
+            <div style={styles.label}>What is not included</div>
+            <ul style={styles.list}>
+              {notIncluded.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </GlassPanel>
+        </div>
+
         <GlassCardGrid minColWidth={280} gap={20} style={{ marginTop: 28 }}>
           <GlassPanel variant={{ fill: GLASS_TOKENS.glassFill, padding: 22, elevation: 2 }}>
-            <div style={styles.label}>Starting price</div>
-            <p style={{ ...styles.muted, marginTop: 8, fontSize: 22, fontWeight: 800, color: text }}>
-              From {formatMur(offer.startingPriceMur)}
+            <div style={styles.label}>How the engagement works</div>
+            <p style={styles.muted}>
+              Discovery call → written quote → 50% deposit → manual bank verification → approval to proceed → visible
+              delivery → preview feedback → release approval.
             </p>
-            <p style={styles.muted}>Final quote confirmed after discovery. No guaranteed revenue or lead-volume promises.</p>
           </GlassPanel>
           <GlassPanel variant={{ fill: GLASS_TOKENS.glassFill, padding: 22, elevation: 2 }}>
             <div style={styles.label}>Deposit requirement</div>
             <p style={styles.muted}>{offer.depositNote}</p>
-            <p style={styles.muted}>Work commences only after manual bank verification of cleared funds.</p>
           </GlassPanel>
           <GlassPanel variant={{ fill: GLASS_TOKENS.glassFill, padding: 22, elevation: 2 }}>
             <div style={styles.label}>Delivery timeline</div>
@@ -228,10 +223,18 @@ export default function RapidDeliveryOfferPage({ offer }) {
           <GlassPanel variant={{ fill: GLASS_TOKENS.glassFill, padding: 24, elevation: 2 }}>
             <div style={styles.label}>Proof · rapid visible delivery</div>
             <p style={styles.muted}>{offer.proofLanguage}</p>
-            <p style={styles.note}>
-              CorpFlowAI helps businesses stop losing leads, customers, reputation, and revenue because digital operations
-              are too slow, fragmented, or invisible.
-            </p>
+          </GlassPanel>
+        </div>
+
+        <div style={styles.section}>
+          <GlassPanel variant={{ fill: GLASS_TOKENS.glassFill, padding: 24, elevation: 2 }}>
+            <div style={styles.label}>Frequently asked questions</div>
+            {faq.map((item) => (
+              <div key={item.q} style={styles.faqItem}>
+                <p style={styles.faqQ}>{item.q}</p>
+                <p style={styles.faqA}>{item.a}</p>
+              </div>
+            ))}
           </GlassPanel>
         </div>
 
@@ -240,27 +243,27 @@ export default function RapidDeliveryOfferPage({ offer }) {
             <div style={styles.label}>Next step</div>
             <h2 style={styles.h2}>Request a discovery call</h2>
             <p style={styles.muted}>
-              Tell us your business name, how customers reach you today, and which problem hurts most. We will confirm fit,
+              Tell us your business name, how customers reach you today, and which problem hurts most. We confirm fit,
               scope, deposit, and timeline before any invoice.
             </p>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 20 }}>
               <a
-                style={{ ...styles.cta, ...styles.primary }}
+                style={{ ...cfBtnPrimary, background: GLASS_TOKENS.ctaWarm, color: GLASS_TOKENS.ctaWarmText, boxShadow: GLASS_TOKENS.ctaWarmShadow }}
                 href={mailtoHref}
                 onClick={() => handleCtaClick('footer_primary')}
               >
                 Request Discovery Call
               </a>
-              <Link href="/contact" style={{ ...styles.cta, ...styles.secondary }} onClick={() => handleCtaClick('footer_secondary')}>
-                General contact
+              <Link href="/" style={cfBtnSecondary} onClick={() => handleCtaClick('footer_secondary')}>
+                View all sprints
               </Link>
             </div>
             <p style={styles.note}>
-              Prefer email without opening your mail app? Visit{' '}
+              Prefer the contact page? Visit{' '}
               <Link href="/contact" style={styles.link}>
                 /contact
               </Link>{' '}
-              and reference {offer.title} in your message.
+              and reference {offer.title}.
             </p>
           </CtaGlassBlock>
         </div>
