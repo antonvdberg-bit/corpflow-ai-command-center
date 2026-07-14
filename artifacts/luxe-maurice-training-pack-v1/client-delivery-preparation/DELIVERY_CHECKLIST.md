@@ -1,22 +1,20 @@
 # Delivery checklist — LuxeMaurice Training Pack
 
-Leave all items unchecked until Anton (or the named owner) confirms each step.
-
-**No pack has been sent to Jan. No email / WhatsApp / SMS has been sent.**
+**No pack has been sent by the packaging agent.** Send is Anton's transmission step using `SEND_PACKET_2026-07-14.md`.
 
 ---
 
-- [ ] Anton reviewed the complete review edition
-- [ ] Anton changes recorded
-- [ ] Requested changes completed
-- [ ] All eight graphics approved
-- [ ] Fictional-data and privacy review complete
-- [ ] Guides match current live behaviour
-- [ ] Limitations stated accurately
-- [ ] Delivery package inventory checked
-- [ ] Draft email approved
-- [ ] Draft WhatsApp message approved if used
-- [ ] Anton explicitly approved external send
+- [x] Anton reviewed the complete review edition
+- [x] Anton changes recorded
+- [x] Requested changes completed
+- [x] All eight graphics approved
+- [x] Fictional-data and privacy review complete
+- [x] Guides match current live behaviour
+- [x] Limitations stated accurately
+- [x] Delivery package inventory checked
+- [x] Draft email approved
+- [x] Draft WhatsApp message approved if used
+- [x] Anton explicitly approved external send
 - [ ] Pack sent to Jan
 - [ ] Delivery evidence recorded
 - [ ] Jan feedback captured
@@ -25,6 +23,6 @@ Leave all items unchecked until Anton (or the named owner) confirms each step.
 
 ## Notes
 
-- Outbound messaging automation is **not live**.
+- Outbound messaging automation is **not live** as a platform capability for training packs.
 - Client follow-up after a Private Access Request remains **human-led**.
-- Drafts in this folder are not permission to contact Jan.
+- Anton approved send on 2026-07-14; transmission still requires attaching the package and pressing Send in email (and optional WhatsApp).

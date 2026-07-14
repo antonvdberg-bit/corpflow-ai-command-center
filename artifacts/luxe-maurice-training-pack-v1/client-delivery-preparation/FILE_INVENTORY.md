@@ -26,13 +26,15 @@ Intended files for Jan once Anton approves external send. Paths are relative to 
 | `guides/ADVISOR_REVIEW_GUIDE.md` | Advisor Pipeline review |
 | `guides/OPERATOR_CHANGE_WORKFLOW.md` | Operator Change Console workflow |
 
-## Video scripts
+## Video scripts (optional)
+
+Recorded videos are **not required** for this pack. Scripts remain available if you later want to film short walkthroughs.
 
 | File | Purpose |
 |------|---------|
-| `scripts/VIDEO_01_CLIENT_JOURNEY.md` | Screen-recording script — client journey |
-| `scripts/VIDEO_02_ADVISOR_JOURNEY.md` | Screen-recording script — advisor journey |
-| `scripts/VIDEO_03_OPERATOR_WORKFLOW.md` | Screen-recording script — operator workflow |
+| `scripts/VIDEO_01_CLIENT_JOURNEY.md` | Optional screen-recording script — client journey |
+| `scripts/VIDEO_02_ADVISOR_JOURNEY.md` | Optional screen-recording script — advisor journey |
+| `scripts/VIDEO_03_OPERATOR_WORKFLOW.md` | Optional screen-recording script — operator workflow |
 
 ## Status
 

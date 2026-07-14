@@ -1,342 +1,343 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>LuxeMaurice Training Pack — Review Edition</title>
-  <style>
-    :root {
-      --bg: #0b0b0b;
-      --panel: #141414;
-      --gold: #c5a059;
-      --text: #f5f2ea;
-      --muted: #b7b2a6;
-      --line: #2a2a2a;
-      --max: 920px;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.55;
-    }
-    a { color: var(--gold); }
-    header.hero {
-      padding: 2.5rem 1.25rem 1.5rem;
-      border-bottom: 1px solid var(--line);
-      background: linear-gradient(180deg, #18150f 0%, var(--bg) 100%);
-    }
-    .wrap { max-width: var(--max); margin: 0 auto; padding: 0 1.25rem 3rem; }
-    .brand {
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--gold);
-      font-size: 0.85rem;
-      font-weight: 600;
-    }
-    h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; font-weight: 500; }
-    h1 { font-size: 2rem; margin: 0.6rem 0 0.75rem; }
-    h2 { font-size: 1.45rem; margin-top: 2.25rem; color: var(--gold); border-bottom: 1px solid var(--line); padding-bottom: 0.35rem; }
-    h3 { font-size: 1.1rem; margin-top: 1.4rem; }
-    .lede { color: var(--muted); max-width: 42rem; }
-    .badge {
-      display: inline-block;
-      border: 1px solid var(--gold);
-      color: var(--gold);
-      padding: 0.2rem 0.55rem;
-      font-size: 0.75rem;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      margin-bottom: 0.75rem;
-    }
-    nav.toc {
-      position: sticky;
-      top: 0;
-      z-index: 5;
-      background: rgba(11,11,11,0.94);
-      border-bottom: 1px solid var(--line);
-      backdrop-filter: blur(6px);
-    }
-    nav.toc .wrap {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.65rem 1rem;
-      padding-top: 0.75rem;
-      padding-bottom: 0.75rem;
-      font-size: 0.86rem;
-    }
-    nav.toc a { text-decoration: none; }
-    nav.toc a:hover { text-decoration: underline; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 1rem 0;
-      font-size: 0.92rem;
-    }
-    th, td {
-      border: 1px solid var(--line);
-      padding: 0.55rem 0.65rem;
-      text-align: left;
-      vertical-align: top;
-    }
-    th { background: var(--panel); color: var(--gold); }
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      padding: 1rem 1.1rem;
-      margin: 1rem 0;
-    }
-    .warn {
-      border-left: 3px solid var(--gold);
-    }
-    ul.check { list-style: none; padding-left: 0; }
-    ul.check li { margin: 0.35rem 0; }
-    figure.graphic {
-      margin: 1.5rem 0 2rem;
-      background: #000;
-      border: 1px solid var(--line);
-      padding: 0.75rem;
-    }
-    figure.graphic img {
-      display: block;
-      width: 100%;
-      height: auto;
-      max-width: 1280px;
-    }
-    figure.graphic figcaption { color: var(--gold); margin-bottom: 0.6rem; }
-    figure.graphic .file { color: var(--muted); font-size: 0.8rem; margin: 0.5rem 0 0; }
-    footer {
-      margin-top: 3rem;
-      padding-top: 1rem;
-      border-top: 1px solid var(--line);
-      color: var(--muted);
-      font-size: 0.9rem;
-    }
-    @media print {
-      nav.toc { position: static; }
-      body { background: #fff; color: #111; }
-      a { color: #000; }
-      .badge, h2, .brand, figure.graphic figcaption { color: #8a6a2f; }
-      .panel { background: #f7f7f7; }
-      figure.graphic { break-inside: avoid; }
-    }
-  </style>
+ <meta charset="utf-8" />
+ <meta name="viewport" content="width=device-width, initial-scale=1" />
+ <title>LuxeMaurice Training Pack - Review Edition</title>
+ <style>
+ :root {
+ --bg: #0b0b0b;
+ --panel: #141414;
+ --gold: #c5a059;
+ --text: #f5f2ea;
+ --muted: #b7b2a6;
+ --line: #2a2a2a;
+ --max: 920px;
+ }
+ * { box-sizing: border-box; }
+ body {
+ margin: 0;
+ font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+ background: var(--bg);
+ color: var(--text);
+ line-height: 1.55;
+ }
+ a { color: var(--gold); }
+ header.hero {
+ padding: 2.5rem 1.25rem 1.5rem;
+ border-bottom: 1px solid var(--line);
+ background: linear-gradient(180deg, #18150f 0%, var(--bg) 100%);
+ }
+ .wrap { max-width: var(--max); margin: 0 auto; padding: 0 1.25rem 3rem; }
+ .brand {
+ letter-spacing: 0.18em;
+ text-transform: uppercase;
+ color: var(--gold);
+ font-size: 0.85rem;
+ font-weight: 600;
+ }
+ h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; font-weight: 500; }
+ h1 { font-size: 2rem; margin: 0.6rem 0 0.75rem; }
+ h2 { font-size: 1.45rem; margin-top: 2.25rem; color: var(--gold); border-bottom: 1px solid var(--line); padding-bottom: 0.35rem; }
+ h3 { font-size: 1.1rem; margin-top: 1.4rem; }
+ .lede { color: var(--muted); max-width: 42rem; }
+ .badge {
+ display: inline-block;
+ border: 1px solid var(--gold);
+ color: var(--gold);
+ padding: 0.2rem 0.55rem;
+ font-size: 0.75rem;
+ letter-spacing: 0.06em;
+ text-transform: uppercase;
+ margin-bottom: 0.75rem;
+ }
+ nav.toc {
+ position: sticky;
+ top: 0;
+ z-index: 5;
+ background: rgba(11,11,11,0.94);
+ border-bottom: 1px solid var(--line);
+ backdrop-filter: blur(6px);
+ }
+ nav.toc .wrap {
+ display: flex;
+ flex-wrap: wrap;
+ gap: 0.65rem 1rem;
+ padding-top: 0.75rem;
+ padding-bottom: 0.75rem;
+ font-size: 0.86rem;
+ }
+ nav.toc a { text-decoration: none; }
+ nav.toc a:hover { text-decoration: underline; }
+ table {
+ width: 100%;
+ border-collapse: collapse;
+ margin: 1rem 0;
+ font-size: 0.92rem;
+ }
+ th, td {
+ border: 1px solid var(--line);
+ padding: 0.55rem 0.65rem;
+ text-align: left;
+ vertical-align: top;
+ }
+ th { background: var(--panel); color: var(--gold); }
+ .panel {
+ background: var(--panel);
+ border: 1px solid var(--line);
+ padding: 1rem 1.1rem;
+ margin: 1rem 0;
+ }
+ .warn {
+ border-left: 3px solid var(--gold);
+ }
+ ul.check { list-style: none; padding-left: 0; }
+ ul.check li { margin: 0.35rem 0; }
+ figure.graphic {
+ margin: 1.5rem 0 2rem;
+ background: #000;
+ border: 1px solid var(--line);
+ padding: 0.75rem;
+ }
+ figure.graphic img {
+ display: block;
+ width: 100%;
+ height: auto;
+ max-width: 1280px;
+ }
+ figure.graphic figcaption { color: var(--gold); margin-bottom: 0.6rem; }
+ figure.graphic .file { color: var(--muted); font-size: 0.8rem; margin: 0.5rem 0 0; }
+ footer {
+ margin-top: 3rem;
+ padding-top: 1rem;
+ border-top: 1px solid var(--line);
+ color: var(--muted);
+ font-size: 0.9rem;
+ }
+ @media print {
+ nav.toc { position: static; }
+ body { background: #fff; color: #111; }
+ a { color: #000; }
+ .badge, h2, .brand, figure.graphic figcaption { color: #8a6a2f; }
+ .panel { background: #f7f7f7; }
+ figure.graphic { break-inside: avoid; }
+ }
+ </style>
 </head>
 <body>
-  <header class="hero">
-    <div class="wrap">
-      <div class="brand">LuxeMaurice · Training Pack Review Edition</div>
-      <div class="badge">Internal review — no external send</div>
-      <h1>LuxeMaurice Training Pack — Review Edition</h1>
-      <p class="lede">Single place for Anton to inspect the full training pack, record corrections, and approve client-send preparation. Intended recipient when approved: Jan / LuxeMaurice.</p>
-    </div>
-  </header>
+ <header class="hero">
+ <div class="wrap">
+ <div class="brand">LuxeMaurice · Training Pack Review Edition</div>
+ <div class="badge">Internal review - no external send</div>
+ <h1>LuxeMaurice Training Pack - Review Edition</h1>
+ <p class="lede">Single place for Anton to inspect the full training pack, record corrections, and approve client-send preparation. Intended recipient when approved: Jan / LuxeMaurice.</p>
+ </div>
+ </header>
 
-  <nav class="toc" aria-label="Review navigation">
-    <div class="wrap">
-      <a href="#purpose">Purpose</a>
-      <a href="#capabilities">Capabilities</a>
-      <a href="#limitations">Limitations</a>
-      <a href="#advisor">Advisor</a>
-      <a href="#operator">Operator</a>
-      <a href="#graphics">Graphics</a>
-      <a href="#guides">Guides</a>
-      <a href="#videos">Videos</a>
-      <a href="#changes">Anton changes</a>
-      <a href="#approval">Approval</a>
-    </div>
-  </nav>
+ <nav class="toc" aria-label="Review navigation">
+ <div class="wrap">
+ <a href="#purpose">Purpose</a>
+ <a href="#capabilities">Capabilities</a>
+ <a href="#limitations">Limitations</a>
+ <a href="#advisor">Advisor</a>
+ <a href="#operator">Operator</a>
+ <a href="#graphics">Graphics</a>
+ <a href="#guides">Guides</a>
+ <a href="#videos">Videos</a>
+ <a href="#changes">Anton changes</a>
+ <a href="#approval">Approval</a>
+ </div>
+ </nav>
 
-  <main class="wrap">
-    <section id="purpose">
-      <h2>1. Pack purpose</h2>
-      <p>Explain the live Private Access Request journey end to end: client submission, advisor review, operator lead management, and honest current limitations — so LuxeMaurice can train against the real platform.</p>
-      <div class="panel warn">
-        <strong>No external send has occurred.</strong> Draft messages exist for later approval only. Do not treat this HTML file as a sent package.
-      </div>
-    </section>
+ <main class="wrap">
+ <section id="purpose">
+ <h2>1. Pack purpose</h2>
+ <p>Explain the live Private Access Request journey end to end: client submission, advisor review, operator lead management, and honest current limitations - so LuxeMaurice can train against the real platform.</p>
+ <div class="panel warn">
+ <strong>No external send has occurred.</strong> Draft messages exist for later approval only. Do not treat this HTML file as a sent package.
+ </div>
+ </section>
 
-    <section id="recipient">
-      <h2>2. Intended recipient</h2>
-      <p><strong>Jan / LuxeMaurice</strong>, after Anton explicitly approves client-send preparation and (separately) any actual external send.</p>
-    </section>
+ <section id="recipient">
+ <h2>2. Intended recipient</h2>
+ <p><strong>Jan / LuxeMaurice</strong>, after Anton explicitly approves client-send preparation and (separately) any actual external send.</p>
+ </section>
 
-    <section id="capabilities">
-      <h2>3. Current product capabilities</h2>
-      <table>
-        <thead><tr><th>Capability</th><th>Live today</th></tr></thead>
-        <tbody>
-          <tr><td>Private Access Request form</td><td>Yes — <code>/client/luxe-maurice-ai/buyer</code></td></tr>
-          <tr><td>On-screen <code>LM-REQ-…</code> reference</td><td>Yes</td></tr>
-          <tr><td>Authenticated Advisor Pipeline (read-only review)</td><td>Yes — <code>/client/luxe-maurice-ai/crm</code></td></tr>
-          <tr><td>Signed-out privacy (no persisted client detail)</td><td>Yes</td></tr>
-          <tr><td>Operator lead workflow in Change Console</td><td>Yes — <code>/change</code></td></tr>
-          <tr><td>Focused selected-lead list + OPERATOR ACTIONS</td><td>Yes</td></tr>
-        </tbody>
-      </table>
-      <h3>Live surfaces</h3>
-      <ul>
-        <li><code>https://lux.corpflowai.com/client/luxe-maurice-ai</code></li>
-        <li><code>https://lux.corpflowai.com/client/luxe-maurice-ai/properties</code></li>
-        <li><code>https://lux.corpflowai.com/client/luxe-maurice-ai/buyer</code></li>
-        <li><code>https://lux.corpflowai.com/client/luxe-maurice-ai/crm</code></li>
-        <li><code>https://lux.corpflowai.com/change</code></li>
-      </ul>
-      <p>Short aliases such as <code>/private-opportunities</code> are not the live routes for this pack.</p>
-    </section>
+ <section id="capabilities">
+ <h2>3. Current product capabilities</h2>
+ <table>
+ <thead><tr><th>Capability</th><th>Live today</th></tr></thead>
+ <tbody>
+ <tr><td>Private Access Request form</td><td>Yes - <code>/client/luxe-maurice-ai/buyer</code></td></tr>
+ <tr><td>On-screen <code>LM-REQ-…</code> reference</td><td>Yes</td></tr>
+ <tr><td>Authenticated Advisor Pipeline (read-only review)</td><td>Yes - <code>/client/luxe-maurice-ai/crm</code></td></tr>
+ <tr><td>Signed-out privacy (no persisted client detail)</td><td>Yes</td></tr>
+ <tr><td>Operator lead workflow in Change Console</td><td>Yes - <code>/change</code></td></tr>
+ <tr><td>Focused selected-lead list + OPERATOR ACTIONS</td><td>Yes</td></tr>
+ </tbody>
+ </table>
+ <h3>Live surfaces</h3>
+ <ul>
+ <li><code>https://lux.corpflowai.com/client/luxe-maurice-ai</code></li>
+ <li><code>https://lux.corpflowai.com/client/luxe-maurice-ai/properties</code></li>
+ <li><code>https://lux.corpflowai.com/client/luxe-maurice-ai/buyer</code></li>
+ <li><code>https://lux.corpflowai.com/client/luxe-maurice-ai/crm</code></li>
+ <li><code>https://lux.corpflowai.com/change</code></li>
+ </ul>
+ <p>Short aliases such as <code>/private-opportunities</code> are not the live routes for this pack.</p>
+ </section>
 
-    <section id="limitations">
-      <h2>4. Current limitations</h2>
-      <ul>
-        <li>Advisor Pipeline does <strong>not</strong> edit stage or notes — it is a review surface.</li>
-        <li>Outbound email / WhatsApp / SMS automation is <strong>not live</strong>.</li>
-        <li>Follow-up after submission remains <strong>human-led</strong>.</li>
-        <li>Automated client confirmation and advisor notification are <strong>not live</strong>.</li>
-      </ul>
-    </section>
+ <section id="limitations">
+ <h2>4. Current limitations</h2>
+ <ul>
+ <li>Advisor Pipeline does <strong>not</strong> edit stage or notes - it is a review surface.</li>
+ <li>Outbound email / WhatsApp / SMS automation is <strong>not live</strong>.</li>
+ <li>Follow-up after submission remains <strong>human-led</strong>.</li>
+ <li>Automated client confirmation and advisor notification are <strong>not live</strong>.</li>
+ </ul>
+ </section>
 
-    <section id="advisor">
-      <h2>5. Advisor workflow summary</h2>
-      <ol>
-        <li>Sign in to the LuxeMaurice tenant on <code>lux.corpflowai.com</code>.</li>
-        <li>Open Advisor Pipeline (<code>/client/luxe-maurice-ai/crm</code>).</li>
-        <li>Review persisted requests under <strong>Received for advisor review</strong>.</li>
-        <li>Treat Demonstration records as layout examples only.</li>
-        <li>Do not expect outbound messaging from this screen — contact remains human-led.</li>
-      </ol>
-    </section>
+ <section id="advisor">
+ <h2>5. Advisor workflow summary</h2>
+ <ol>
+ <li>Sign in to the LuxeMaurice tenant on <code>lux.corpflowai.com</code>.</li>
+ <li>Open Advisor Pipeline (<code>/client/luxe-maurice-ai/crm</code>).</li>
+ <li>Review persisted requests under <strong>Received for advisor review</strong>.</li>
+ <li>Treat Demonstration records as layout examples only.</li>
+ <li>Do not expect outbound messaging from this screen - contact remains human-led.</li>
+ </ol>
+ </section>
 
-    <section id="operator">
-      <h2>6. Operator workflow summary</h2>
-      <ol>
-        <li>Open <code>/change</code>.</li>
-        <li>Locate <strong>LEADS · LuxeMaurice CRM (concierge)</strong>.</li>
-        <li>Select a lead — the list focuses on that row.</li>
-        <li>Use <strong>OPERATOR ACTIONS</strong> directly below the focused lead.</li>
-        <li>Update stage, owner, next action, or notes where supported.</li>
-        <li>Use <strong>Show all leads</strong>, <strong>Clear selection</strong>, and <strong>Focus list on this lead</strong> as needed.</li>
-      </ol>
-    </section>
+ <section id="operator">
+ <h2>6. Operator workflow summary</h2>
+ <ol>
+ <li>Open <code>/change</code>.</li>
+ <li>Locate <strong>LEADS · LuxeMaurice CRM (concierge)</strong>.</li>
+ <li>Select a lead - the list focuses on that row.</li>
+ <li>Use <strong>OPERATOR ACTIONS</strong> directly below the focused lead.</li>
+ <li>Update stage, owner, next action, or notes where supported.</li>
+ <li>Use <strong>Show all leads</strong>, <strong>Clear selection</strong>, and <strong>Focus list on this lead</strong> as needed.</li>
+ </ol>
+ </section>
 
-    <section id="graphics">
-      <h2>7. Graphics 01–08</h2>
-      <p>Presentation files from <code>../05-graphics/captures/</code>. Graphic 06 is <strong>BROWSER_CHROME_CROPPED</strong>. Graphic 08 is cropped to the training lead and OPERATOR ACTIONS. Fictional training data only.</p>
-      
-    <figure id="g-01" class="graphic">
-      <figcaption><strong>Graphic 01</strong> — Landing — LuxeMaurice AI home</figcaption>
-      <img src="../05-graphics/captures/01-landing-page.png" alt="Landing — LuxeMaurice AI home" width="1280" />
-      <p class="file"><code>01-landing-page.png</code></p>
-    </figure>
+ <section id="graphics">
+ <h2>7. Graphics 01 - 08</h2>
+ <p>Presentation files from <code>../05-graphics/captures/</code>. Graphic 06 is <strong>BROWSER_CHROME_CROPPED</strong> and <strong>FOCUSED_TO_TRAINING_REQUEST</strong>. Graphic 08 is cropped to the training lead and OPERATOR ACTIONS. Fictional training data only.</p>
+ 
+ <figure id="g-01" class="graphic">
+ <figcaption><strong>Graphic 01</strong> - Landing - LuxeMaurice AI home</figcaption>
+ <img src="../05-graphics/captures/01-landing-page.png" alt="Landing - LuxeMaurice AI home" width="1280" />
+ <p class="file"><code>01-landing-page.png</code></p>
+ </figure>
 
-    <figure id="g-02" class="graphic">
-      <figcaption><strong>Graphic 02</strong> — Access catalogue — private opportunities</figcaption>
-      <img src="../05-graphics/captures/02-private-opportunities.png" alt="Access catalogue — private opportunities" width="1280" />
-      <p class="file"><code>02-private-opportunities.png</code></p>
-    </figure>
+ <figure id="g-02" class="graphic">
+ <figcaption><strong>Graphic 02</strong> - Access catalogue - private opportunities</figcaption>
+ <img src="../05-graphics/captures/02-private-opportunities.png" alt="Access catalogue - private opportunities" width="1280" />
+ <p class="file"><code>02-private-opportunities.png</code></p>
+ </figure>
 
-    <figure id="g-03" class="graphic">
-      <figcaption><strong>Graphic 03</strong> — Private Access Request form</figcaption>
-      <img src="../05-graphics/captures/03-private-access-request-form.png" alt="Private Access Request form" width="1280" />
-      <p class="file"><code>03-private-access-request-form.png</code></p>
-    </figure>
+ <figure id="g-03" class="graphic">
+ <figcaption><strong>Graphic 03</strong> - Private Access Request form</figcaption>
+ <img src="../05-graphics/captures/03-private-access-request-form.png" alt="Private Access Request form" width="1280" />
+ <p class="file"><code>03-private-access-request-form.png</code></p>
+ </figure>
 
-    <figure id="g-04" class="graphic">
-      <figcaption><strong>Graphic 04</strong> — Submitted request and on-screen reference</figcaption>
-      <img src="../05-graphics/captures/04-request-submitted-reference.png" alt="Submitted request and on-screen reference" width="1280" />
-      <p class="file"><code>04-request-submitted-reference.png</code></p>
-    </figure>
+ <figure id="g-04" class="graphic">
+ <figcaption><strong>Graphic 04</strong> - Submitted request and on-screen reference</figcaption>
+ <img src="../05-graphics/captures/04-request-submitted-reference.png" alt="Submitted request and on-screen reference" width="1280" />
+ <p class="file"><code>04-request-submitted-reference.png</code></p>
+ </figure>
 
-    <figure id="g-05" class="graphic">
-      <figcaption><strong>Graphic 05</strong> — Advisor Pipeline — signed-out sign-in prompt</figcaption>
-      <img src="../05-graphics/captures/05-advisor-sign-in-prompt.png" alt="Advisor Pipeline — signed-out sign-in prompt" width="1280" />
-      <p class="file"><code>05-advisor-sign-in-prompt.png</code></p>
-    </figure>
+ <figure id="g-05" class="graphic">
+ <figcaption><strong>Graphic 05</strong> - Advisor Pipeline - signed-out sign-in prompt</figcaption>
+ <img src="../05-graphics/captures/05-advisor-sign-in-prompt.png" alt="Advisor Pipeline - signed-out sign-in prompt" width="1280" />
+ <p class="file"><code>05-advisor-sign-in-prompt.png</code></p>
+ </figure>
 
-    <figure id="g-06" class="graphic">
-      <figcaption><strong>Graphic 06</strong> — Advisor Pipeline — persisted training request</figcaption>
-      <img src="../05-graphics/captures/06-advisor-pipeline-live-request.png" alt="Advisor Pipeline — persisted training request" width="1280" />
-      <p class="file"><code>06-advisor-pipeline-live-request.png</code></p>
-    </figure>
+ <figure id="g-06" class="graphic">
+ <figcaption><strong>Graphic 06</strong> - Advisor Pipeline - focused training request card</figcaption>
+ <img src="../05-graphics/captures/06-advisor-pipeline-live-request.png" alt="Advisor Pipeline - focused training request card" width="1280" />
+ <p class="file"><code>06-advisor-pipeline-live-request.png</code></p>
+ </figure>
 
-    <figure id="g-07" class="graphic">
-      <figcaption><strong>Graphic 07</strong> — Demonstration records (layout only)</figcaption>
-      <img src="../05-graphics/captures/07-demonstration-records.png" alt="Demonstration records (layout only)" width="1280" />
-      <p class="file"><code>07-demonstration-records.png</code></p>
-    </figure>
+ <figure id="g-07" class="graphic">
+ <figcaption><strong>Graphic 07</strong> - Demonstration records (layout only)</figcaption>
+ <img src="../05-graphics/captures/07-demonstration-records.png" alt="Demonstration records (layout only)" width="1280" />
+ <p class="file"><code>07-demonstration-records.png</code></p>
+ </figure>
 
-    <figure id="g-08" class="graphic">
-      <figcaption><strong>Graphic 08</strong> — Change Console — focused lead and OPERATOR ACTIONS</figcaption>
-      <img src="../05-graphics/captures/08-change-console-lead-workflow.png" alt="Change Console — focused lead and OPERATOR ACTIONS" width="1280" />
-      <p class="file"><code>08-change-console-lead-workflow.png</code></p>
-    </figure>
-    </section>
+ <figure id="g-08" class="graphic">
+ <figcaption><strong>Graphic 08</strong> - Change Console - focused lead and OPERATOR ACTIONS</figcaption>
+ <img src="../05-graphics/captures/08-change-console-lead-workflow.png" alt="Change Console - focused lead and OPERATOR ACTIONS" width="1280" />
+ <p class="file"><code>08-change-console-lead-workflow.png</code></p>
+ </figure>
+ </section>
 
-    <section id="guides">
-      <h2>8. Complete guides</h2>
-      <ul>
-        <li><a href="../01-client-review-guide/CLIENT_PRIVATE_ACCESS_GUIDE.md">Client Private Access Guide</a></li>
-        <li><a href="../02-advisor-workflow-guide/ADVISOR_REVIEW_GUIDE.md">Advisor Review Guide</a></li>
-        <li><a href="../03-operator-workflow-guide/OPERATOR_CHANGE_WORKFLOW.md">Operator Change Workflow</a></li>
-        <li><a href="../06-backend-status/BACKEND_STATUS_AND_LIMITATIONS.md">Backend status and limitations</a></li>
-        <li><a href="../client-delivery-preparation/">Jan delivery package (preparation)</a></li>
-      </ul>
-    </section>
+ <section id="guides">
+ <h2>8. Complete guides</h2>
+ <ul>
+ <li><a href="../01-client-review-guide/CLIENT_PRIVATE_ACCESS_GUIDE.md">Client Private Access Guide</a></li>
+ <li><a href="../02-advisor-workflow-guide/ADVISOR_REVIEW_GUIDE.md">Advisor Review Guide</a></li>
+ <li><a href="../03-operator-workflow-guide/OPERATOR_CHANGE_WORKFLOW.md">Operator Change Workflow</a></li>
+ <li><a href="../06-backend-status/BACKEND_STATUS_AND_LIMITATIONS.md">Backend status and limitations</a></li>
+ <li><a href="../client-delivery-preparation/">Jan delivery package (preparation)</a></li>
+ </ul>
+ </section>
 
-    <section id="videos">
-      <h2>9. Training video scripts</h2>
-      <ul>
-        <li><a href="../04-training-video-scripts/VIDEO_01_CLIENT_JOURNEY.md">Video 01 — Client journey</a></li>
-        <li><a href="../04-training-video-scripts/VIDEO_02_ADVISOR_JOURNEY.md">Video 02 — Advisor journey</a></li>
-        <li><a href="../04-training-video-scripts/VIDEO_03_OPERATOR_WORKFLOW.md">Video 03 — Operator workflow</a></li>
-      </ul>
-    </section>
+ <section id="videos">
+ <h2>9. Video scripts (optional)</h2>
+      <p>Recorded videos are <strong>not required</strong> for client-send preparation. Graphics 01-08 plus the written guides are sufficient. Scripts below remain optional for later recording.</p>
+ <ul>
+ <li><a href="../04-training-video-scripts/VIDEO_01_CLIENT_JOURNEY.md">Video 01 - Client journey</a></li>
+ <li><a href="../04-training-video-scripts/VIDEO_02_ADVISOR_JOURNEY.md">Video 02 - Advisor journey</a></li>
+ <li><a href="../04-training-video-scripts/VIDEO_03_OPERATOR_WORKFLOW.md">Video 03 - Operator workflow</a></li>
+ </ul>
+ </section>
 
-    <section id="changes">
-      <h2>10. Anton’s requested changes</h2>
-      <p>Record and track corrections in <a href="./ANTON_REVIEW_CHANGES.md">ANTON_REVIEW_CHANGES.md</a> using <code>AR-*</code> rows. Revision loop documented in <a href="./README.md">review/README.md</a>.</p>
-      <div class="panel">
-        <p><strong>Review questions</strong></p>
-        <ul>
-          <li>Is the client-facing tone appropriate?</li>
-          <li>Are the advisor steps accurate?</li>
-          <li>Are the operator steps accurate?</li>
-          <li>Are any screenshots unclear?</li>
-          <li>Is any confidential information visible?</li>
-          <li>Are the stated limitations acceptable?</li>
-          <li>Is the pack ready for Jan?</li>
-        </ul>
-      </div>
-    </section>
+ <section id="changes">
+ <h2>10. Anton’s requested changes</h2>
+ <p>Record and track corrections in <a href="./ANTON_REVIEW_CHANGES.md">ANTON_REVIEW_CHANGES.md</a> using <code>AR-*</code> rows. Revision loop documented in <a href="./README.md">review/README.md</a>.</p>
+ <div class="panel">
+ <p><strong>Review questions</strong></p>
+ <ul>
+ <li>Is the client-facing tone appropriate?</li>
+ <li>Are the advisor steps accurate?</li>
+ <li>Are the operator steps accurate?</li>
+ <li>Are any screenshots unclear?</li>
+ <li>Is any confidential information visible?</li>
+ <li>Are the stated limitations acceptable?</li>
+ <li>Is the pack ready for Jan?</li>
+ </ul>
+ </div>
+ </section>
 
-    <section id="approval">
-      <h2>11. Final approval checklist</h2>
-      <p>Leave items unchecked until Anton confirms.</p>
-      <ul class="check">
-        <li>[ ] Anton reviewed the complete review edition</li>
-        <li>[ ] Anton changes recorded (if any)</li>
-        <li>[ ] Requested changes completed</li>
-        <li>[ ] All eight graphics approved</li>
-        <li>[ ] Fictional-data and privacy review complete</li>
-        <li>[ ] Guides match current live behaviour</li>
-        <li>[ ] Limitations stated accurately</li>
-        <li>[ ] Approved for client-send preparation</li>
-        <li>[ ] Approved for actual external send</li>
-        <li>[ ] Pack sent to Jan</li>
-      </ul>
-    </section>
+ <section id="approval">
+ <h2>11. Final approval checklist</h2>
+ <p>Leave items unchecked until Anton confirms.</p>
+ <ul class="check">
+ <li>[ ] Anton reviewed the complete review edition</li>
+ <li>[ ] Anton changes recorded (if any)</li>
+ <li>[ ] Requested changes completed</li>
+ <li>[ ] All eight graphics approved</li>
+ <li>[ ] Fictional-data and privacy review complete</li>
+ <li>[ ] Guides match current live behaviour</li>
+ <li>[ ] Limitations stated accurately</li>
+ <li>[ ] Approved for client-send preparation</li>
+ <li>[ ] Approved for actual external send</li>
+ <li>[ ] Pack sent to Jan</li>
+ </ul>
+ </section>
 
-    <section id="send-status">
-      <h2>12. External send status</h2>
-      <div class="panel warn">
-        <strong>No external send has occurred.</strong> No email, WhatsApp, or SMS was sent to Jan or anyone else as part of preparing this review edition.
-      </div>
-    </section>
+ <section id="send-status">
+ <h2>12. External send status</h2>
+ <div class="panel warn">
+ <strong>No external send has occurred.</strong> No email, WhatsApp, or SMS was sent to Jan or anyone else as part of preparing this review edition.
+ </div>
+ </section>
 
-    <footer>
-      Open locally in a browser. Print to PDF from the browser if needed. Assets are repository-local only — this page makes no network calls by design.
-    </footer>
-  </main>
+ <footer>
+ Open locally in a browser. Print to PDF from the browser if needed. Assets are repository-local only - this page makes no network calls by design.
+ </footer>
+ </main>
 </body>
 </html>

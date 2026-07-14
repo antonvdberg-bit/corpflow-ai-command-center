@@ -1,7 +1,10 @@
 # Draft email to Jan
 
-**Status: DRAFT — NOT SENT**  
-Do not send until Anton explicitly approves external send on the delivery checklist and in `review/ANTON_REVIEW_CHANGES.md`.
+**Status: DRAFT READY TO SEND — transmission by Anton**  
+Anton approved external send on 2026-07-14. This draft is prepared for Anton to send from email.
+
+**To:** jan@luxemaurice.com  
+**From:** Anton / CorpFlowAI
 
 ---
 
@@ -19,9 +22,9 @@ It covers:
 - current operational limitations (including that follow-up remains human-led — no automated email, WhatsApp, or SMS from the platform today);
 - suggested training steps for a short walkthrough and practical practice.
 
-The materials include written guides, screenshot graphics with a safe training demonstration identity, and short video scripts you can use for internal recording.
+The materials include written guides and a full screenshot sequence (graphics 01–08) using a safe training demonstration identity. Optional video scripts are available if you later want to record short walkthroughs; recorded videos are not part of this initial pack.
 
-The pack is designed to support a short guided walkthrough followed by practical use of the live platform:
+The pack is designed to support a short guided walkthrough on the live platform using the guides and screenshots:
 
 - Landing and catalogue: `https://lux.corpflowai.com/client/luxe-maurice-ai`
 - Private Access Request: `https://lux.corpflowai.com/client/luxe-maurice-ai/buyer`

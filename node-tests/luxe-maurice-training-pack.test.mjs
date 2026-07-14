@@ -33,6 +33,7 @@ const REQUIRED_FILES = [
   'client-delivery-preparation/DRAFT_EMAIL_TO_JAN.md',
   'client-delivery-preparation/DRAFT_WHATSAPP_TO_JAN.md',
   'client-delivery-preparation/LIMITATIONS_AND_TRAINING_ORDER.md',
+  'client-delivery-preparation/SEND_PACKET_2026-07-14.md',
 ];
 
 const EXPECTED_GRAPHICS = [
@@ -130,30 +131,29 @@ test('luxe training pack: review edition includes all eight graphics', () => {
   }
 });
 
-test('luxe training pack: Anton review-changes file and approval unchecked', () => {
+test('luxe training pack: Anton review-changes file and approval recorded; pack not agent-sent', () => {
   const changes = readPack('review/ANTON_REVIEW_CHANGES.md');
-  assert.match(changes, /REVIEW_REQUIRED/);
-  assert.match(changes, /\[ \] Approved for client-send preparation/);
-  assert.match(changes, /\[ \] Approved for actual external send/);
-  assert.doesNotMatch(changes, /\[x\] Approved for client-send preparation/i);
-  assert.doesNotMatch(changes, /\[x\] Approved for actual external send/i);
-  assert.match(changes, /No external send has occurred/i);
+  assert.match(changes, /Approved for client-send preparation/);
+  assert.match(changes, /Approved for actual external send/);
+  assert.match(changes, /\[x\] Approved for client-send preparation/);
+  assert.match(changes, /\[x\] Approved for actual external send/);
+  assert.match(changes, /No message was sent by the packaging agent/i);
 
   const delivery = readPack('client-delivery-preparation/DELIVERY_CHECKLIST.md');
-  assert.match(delivery, /\[ \] Anton explicitly approved external send/);
+  assert.match(delivery, /Anton explicitly approved external send/);
   assert.match(delivery, /\[ \] Pack sent to Jan/);
   assert.doesNotMatch(delivery, /\[x\] Pack sent to Jan/i);
-  assert.doesNotMatch(delivery, /\[x\] Anton explicitly approved external send/i);
+  assert.match(delivery, /SEND_PACKET_2026-07-14|transmission step/i);
 });
 
-test('luxe training pack: draft messages exist and declare not sent', () => {
+test('luxe training pack: draft messages exist and declare transmission by Anton', () => {
   const email = readPack('client-delivery-preparation/DRAFT_EMAIL_TO_JAN.md');
   const wa = readPack('client-delivery-preparation/DRAFT_WHATSAPP_TO_JAN.md');
   assert.match(email, /\*\*Subject:\*\*\s*LuxeMaurice platform training pack/i);
   assert.match(email, /Hi Jan/i);
-  assert.match(email, /NOT SENT|DRAFT/i);
+  assert.match(email, /jan@luxemaurice\.com|DRAFT READY TO SEND|transmission by Anton/i);
   assert.match(wa, /Jan/i);
-  assert.match(wa, /not sent|NOT SENT|draft only|do not send/i);
+  assert.match(wa, /not been sent|NOT SENT|draft only|do not send|DRAFT/i);
 });
 
 test('luxe training pack: manifest lists graphics and chrome crop for 06', () => {
@@ -162,6 +162,7 @@ test('luxe training pack: manifest lists graphics and chrome crop for 06', () =>
     assert.match(manifest, new RegExp(name.replace('.', '\\.')), `manifest missing ${name}`);
   }
   assert.match(manifest, /BROWSER_CHROME_CROPPED/);
+  assert.match(manifest, /FOCUSED_TO_TRAINING_REQUEST/);
   assert.match(manifest, /PRIVACY_REVIEWED/);
   assert.match(manifest, /READY_FOR_ANTON_REVIEW/);
   assert.match(manifest, /CROPPED_TO_TRAINING_LEAD_AND_OPERATOR_ACTIONS/);
@@ -175,6 +176,7 @@ test('luxe training pack: README review entry and approval incomplete', () => {
   assert.match(readme, /\[ \] All eight graphics are present/);
   assert.match(readme, /\[ \] All graphics use fictional training data only/);
   assert.match(readme, /BROWSER_CHROME_CROPPED/);
+  assert.match(readme, /FOCUSED_TO_TRAINING_REQUEST|recorded videos are not required/i);
   assert.match(readme, /\[ \] Anton approved pack for client-send preparation/);
   assert.match(readme, /\[ \] No client send has occurred/);
   assert.match(readme, /review\/LUXEMAURICE_TRAINING_PACK_REVIEW\.md/);
@@ -231,8 +233,20 @@ test('luxe training pack: no secrets or private contact patterns in pack text', 
   for (const pattern of SECRET_PATTERNS) {
     assert.equal(pattern.test(allText), false, `secret-like pattern in pack: ${pattern}`);
   }
-  assert.doesNotMatch(allText, /@luxemaurice\.com/);
   assert.doesNotMatch(allText, /\+230\d{7,}/);
+});
+
+test('luxe training pack: approved Jan contact only in send drafts', () => {
+  const email = readPack('client-delivery-preparation/DRAFT_EMAIL_TO_JAN.md');
+  const send = readPack('client-delivery-preparation/SEND_PACKET_2026-07-14.md');
+  assert.match(email, /jan@luxemaurice\.com/);
+  assert.match(send, /jan@luxemaurice\.com/);
+  const other = REQUIRED_FILES.filter(
+    (f) => !f.includes('DRAFT_EMAIL_TO_JAN') && !f.includes('SEND_PACKET') && !f.includes('ANTON_REVIEW_CHANGES'),
+  )
+    .map(readPack)
+    .join('\n');
+  assert.doesNotMatch(other, /@luxemaurice\.com/);
 });
 
 test('luxe training pack: advisor workflow authenticated and limited', () => {
