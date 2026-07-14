@@ -53,7 +53,7 @@ These repo artifacts are for **Anton review and packaging**. They are not public
 | `01-client-review-guide/` | Client-facing journey — submit a Private Access Request |
 | `02-advisor-workflow-guide/` | Advisor review workspace — read persisted requests |
 | `03-operator-workflow-guide/` | Operator path via `/change` with focused-lead OPERATOR ACTIONS |
-| `04-training-video-scripts/` | Three 2–4 minute screen-recording scripts |
+| `04-training-video-scripts/` | Optional screen-recording scripts (not required for send while graphics 01–08 are complete) |
 | `05-graphics/` | Screenshot manifest, capture checklist, PNG captures |
 | `06-backend-status/` | What is live now vs planned future enhancements |
 
@@ -87,15 +87,16 @@ Complete before any client send. Leave items unchecked until Anton confirms.
 [ ] All eight graphics are present in 05-graphics/captures/
 [ ] All graphics use fictional training data only
 [ ] No unrelated client PII is visible in any graphic
-[ ] Graphic 06 browser-chrome crop completed (BROWSER_CHROME_CROPPED) — accepted in review edition
-[ ] Training guides and video scripts are ready and match live behaviour
+[ ] Graphic 06 browser-chrome crop completed (BROWSER_CHROME_CROPPED · FOCUSED_TO_TRAINING_REQUEST)
+[ ] Training guides and screenshot sequence (01–08) are ready and match live behaviour
+[ ] Video recordings are optional (not required for client-send preparation; scripts remain for later use if wanted)
 [ ] Limitations are stated truthfully (do not claim platform outbound messaging is enabled; Advisor Pipeline remains read-only)
 [ ] Anton approved pack for client-send preparation
 [ ] Anton approved actual external send
 [ ] No client send has occurred
 ```
 
-**Status:** All eight required graphics are present. Graphic **06** browser-chrome crop is **completed** (`BROWSER_CHROME_CROPPED · PRIVACY_REVIEWED · READY_FOR_ANTON_REVIEW`). Final client-send approvals remain **required** — **no client send from this pack**.
+**Status:** All eight required graphics are present. Graphic **06** is cropped (`BROWSER_CHROME_CROPPED · FOCUSED_TO_TRAINING_REQUEST · PRIVACY_REVIEWED · READY_FOR_ANTON_REVIEW`). **Recorded videos are not required** — the screenshot progression plus guides are sufficient for client-send preparation. Final client-send approvals remain **required** — **no client send from this pack**.
 
 ---
 
@@ -106,8 +107,10 @@ See `05-graphics/GRAPHICS_MANIFEST.md` for per-image capture status.
 **All eight required screenshots are present** in `05-graphics/captures/` (completed 2026-07-14):
 
 - `01`–`05`, `07` — public / signed-out captures
-- `06` — authenticated Advisor Pipeline with fictional training request (**BROWSER_CHROME_CROPPED · PRIVACY_REVIEWED · READY_FOR_ANTON_REVIEW**)
+- `06` — authenticated Advisor Pipeline training request (**BROWSER_CHROME_CROPPED · FOCUSED_TO_TRAINING_REQUEST · PRIVACY_REVIEWED · READY_FOR_ANTON_REVIEW**)
 - `08` — `/change` focused training lead + OPERATOR ACTIONS (**CROPPED_TO_TRAINING_LEAD_AND_OPERATOR_ACTIONS · PRIVACY_REVIEWED · READY_FOR_ANTON_REVIEW**)
+
+**Videos:** Written scripts exist under `04-training-video-scripts/` for optional later recording. They are **not** a gate for client-send preparation while graphics 01–08 and the guides are complete.
 
 ---
 

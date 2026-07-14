@@ -8,7 +8,8 @@ REVIEW_REQUIRED
 
 | ID | Area | Anton request | Owner | Status | Resolution |
 |---|---|---|---|---|---|
-| AR-001 | Example | Replace or revise this row when Anton requests a change | Cursor | OPEN | |
+| AR-001 | Graphics | Crop graphic 06 as suggested (browser chrome + focus training request) | Cursor | RESOLVED | Graphic 06 now `BROWSER_CHROME_CROPPED · FOCUSED_TO_TRAINING_REQUEST`. Presentation file updated in captures + client-delivery graphics. PRE_CROP retained in source-review. |
+| AR-002 | Videos | Proceed without recorded videos; screenshot progression is sufficient | Cursor | RESOLVED | Pack and Jan drafts updated: recorded videos are optional / not a send gate. Scripts kept for later if wanted. |
 
 ## Review questions
 

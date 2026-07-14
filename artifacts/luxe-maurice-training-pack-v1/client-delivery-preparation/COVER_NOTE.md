@@ -18,7 +18,7 @@ It covers:
 - what is live today, including that follow-up remains human-led;
 - suggested order for a short walkthrough and practical practice.
 
-Training materials use a fictional demonstration identity (LuxeMaurice Training User) so screenshots stay safe to share internally.
+Training materials use a fictional demonstration identity (LuxeMaurice Training User) with a full screenshot sequence (graphics 01–08) so the pack stays clear and safe to share. Recorded videos are not required for this pack.
 
 Please review the guides and graphics, then let us know any adjustments you need before we schedule the walkthrough.
 

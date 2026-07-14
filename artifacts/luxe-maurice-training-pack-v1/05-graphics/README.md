@@ -32,7 +32,7 @@ PNG screenshots for guides, the review edition, and Jan delivery packaging.
 03-private-access-request-form.png
 04-request-submitted-reference.png
 05-advisor-sign-in-prompt.png
-06-advisor-pipeline-live-request.png   ← BROWSER_CHROME_CROPPED · PRIVACY_REVIEWED · READY_FOR_ANTON_REVIEW
+06-advisor-pipeline-live-request.png   ← BROWSER_CHROME_CROPPED · FOCUSED_TO_TRAINING_REQUEST · PRIVACY_REVIEWED · READY_FOR_ANTON_REVIEW
 07-demonstration-records.png
 08-change-console-lead-workflow.png    ← CROPPED_TO_TRAINING_LEAD_AND_OPERATOR_ACTIONS · PRIVACY_REVIEWED · READY_FOR_ANTON_REVIEW
 ```

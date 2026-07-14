@@ -7,7 +7,7 @@
 | `03-private-access-request-form.png` | `/client/luxe-maurice-ai/buyer` | Signed out | Optional (empty form OK) | Request form layout | Client guide §3; Video 1 scene 3 | CAPTURED · READY_FOR_ANTON_REVIEW | None required |
 | `04-request-submitted-reference.png` | `/client/luxe-maurice-ai/buyer` | Signed out | Fictional training user + LM-REQ | Confirmation and reference | Client guide §6; Video 1 scene 5 | CAPTURED · PRIVACY_REVIEWED · READY_FOR_ANTON_REVIEW | PRIVACY_REVIEWED — training row only |
 | `05-advisor-sign-in-prompt.png` | `/client/luxe-maurice-ai/crm` | Signed out | None | Privacy posture — no persisted client detail | Advisor guide §2, §6; Video 2 scene 5 | CAPTURED · PRIVACY_REVIEWED · READY_FOR_ANTON_REVIEW | PRIVACY_REVIEWED |
-| `06-advisor-pipeline-live-request.png` | `/client/luxe-maurice-ai/crm` | Signed-in LuxeMaurice tenant | LuxeMaurice Training User / training@example.invalid / LM-REQ-PGVZ7HMI | Persisted request card under Received for advisor review | Advisor guide §3–4; Video 2 scene 2–3 | CAPTURED · BROWSER_CHROME_CROPPED · PRIVACY_REVIEWED · READY_FOR_ANTON_REVIEW | Browser chrome cropped (decision completed — no further Anton crop decision required); fictional training data only; source preserved under `05-graphics/source-review/` when present |
+| `06-advisor-pipeline-live-request.png` | `/client/luxe-maurice-ai/crm` | Signed-in LuxeMaurice tenant | LuxeMaurice Training User / training@example.invalid / LM-REQ-PGVZ7HMI | Persisted request card under Received for advisor review | Advisor guide §3–4; optional Video 2 scene 2–3 | CAPTURED · BROWSER_CHROME_CROPPED · FOCUSED_TO_TRAINING_REQUEST · PRIVACY_REVIEWED · READY_FOR_ANTON_REVIEW | Browser chrome removed and frame focused on the training request under Received for advisor review; fictional training data only; PRE_CROP preserved under `05-graphics/source-review/` |
 | `07-demonstration-records.png` | `/client/luxe-maurice-ai/crm` | Signed out | Sample layout only | Demonstration records section | Advisor guide §5; Video 2 scene 4 | CAPTURED · READY_FOR_ANTON_REVIEW | None required |
 | `08-change-console-lead-workflow.png` | `/change` | Operator /change session | LuxeMaurice Training User / training@example.invalid | Focused lead + OPERATOR ACTIONS (select lead → list collapses) | Operator guide §4–6; Video 3 scene 2–4 | CAPTURED · PRIVACY_REVIEWED · CROPPED_TO_TRAINING_LEAD_AND_OPERATOR_ACTIONS · READY_FOR_ANTON_REVIEW | CROPPED_TO_TRAINING_LEAD_AND_OPERATOR_ACTIONS — training lead + operator actions only |
 
@@ -23,13 +23,14 @@
 ## Capture status values
 
 - **CAPTURED** — PNG present in the pack
-- **BROWSER_CHROME_CROPPED** — browser chrome removed for training presentation (graphic 06 decision completed)
+- **BROWSER_CHROME_CROPPED** — browser chrome removed for training presentation
+- **FOCUSED_TO_TRAINING_REQUEST** — graphic 06 focused on Received for advisor review + training request card
 - **CROPPED_TO_TRAINING_LEAD_AND_OPERATOR_ACTIONS** — graphic 08 focused to training lead + OPERATOR ACTIONS
 - **PRIVACY_REVIEWED** — inspected for fictional training data only; no real client PII
 - **READY_FOR_ANTON_REVIEW** — available in the review edition for Anton’s final client-send review
 - **PENDING_RECAPTURE** — PNG missing or needs a fresh capture (not used while all eight graphics are present)
 
-As of 2026-07-14, **all eight graphics are CAPTURED**. No graphics are pending recapture. Graphic **06** crop decision is **complete** (`BROWSER_CHROME_CROPPED`).
+As of 2026-07-14, **all eight graphics are CAPTURED**. No graphics are pending recapture. Graphic **06** crop is **complete** (`BROWSER_CHROME_CROPPED · FOCUSED_TO_TRAINING_REQUEST`).
 
 ---
 
@@ -38,9 +39,9 @@ As of 2026-07-14, **all eight graphics are CAPTURED**. No graphics are pending r
 | | 06 | 08 |
 |---|----|----|
 | **Presentation file** | `captures/06-advisor-pipeline-live-request.png` | `captures/08-change-console-lead-workflow.png` |
-| **Source used** | Authenticated Advisor Pipeline training row; browser chrome cropped for presentation | Operator capture after focused-lead behaviour; cropped to training lead + OPERATOR ACTIONS |
+| **Source used** | Authenticated Advisor Pipeline training row; browser chrome removed; focused to training request card | Operator capture after focused-lead behaviour; cropped to training lead + OPERATOR ACTIONS |
 | **Privacy** | Fictional training request only | Fictional training lead + operator actions; no unrelated lead rows |
-| **Status** | BROWSER_CHROME_CROPPED · PRIVACY_REVIEWED · READY_FOR_ANTON_REVIEW | CROPPED_TO_TRAINING_LEAD_AND_OPERATOR_ACTIONS · PRIVACY_REVIEWED · READY_FOR_ANTON_REVIEW |
+| **Status** | BROWSER_CHROME_CROPPED · FOCUSED_TO_TRAINING_REQUEST · PRIVACY_REVIEWED · READY_FOR_ANTON_REVIEW | CROPPED_TO_TRAINING_LEAD_AND_OPERATOR_ACTIONS · PRIVACY_REVIEWED · READY_FOR_ANTON_REVIEW |
 
 ---
 

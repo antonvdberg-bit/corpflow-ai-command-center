@@ -162,6 +162,7 @@ test('luxe training pack: manifest lists graphics and chrome crop for 06', () =>
     assert.match(manifest, new RegExp(name.replace('.', '\\.')), `manifest missing ${name}`);
   }
   assert.match(manifest, /BROWSER_CHROME_CROPPED/);
+  assert.match(manifest, /FOCUSED_TO_TRAINING_REQUEST/);
   assert.match(manifest, /PRIVACY_REVIEWED/);
   assert.match(manifest, /READY_FOR_ANTON_REVIEW/);
   assert.match(manifest, /CROPPED_TO_TRAINING_LEAD_AND_OPERATOR_ACTIONS/);
@@ -175,6 +176,7 @@ test('luxe training pack: README review entry and approval incomplete', () => {
   assert.match(readme, /\[ \] All eight graphics are present/);
   assert.match(readme, /\[ \] All graphics use fictional training data only/);
   assert.match(readme, /BROWSER_CHROME_CROPPED/);
+  assert.match(readme, /FOCUSED_TO_TRAINING_REQUEST|recorded videos are not required/i);
   assert.match(readme, /\[ \] Anton approved pack for client-send preparation/);
   assert.match(readme, /\[ \] No client send has occurred/);
   assert.match(readme, /review\/LUXEMAURICE_TRAINING_PACK_REVIEW\.md/);

@@ -153,7 +153,7 @@ Captures live under [`../05-graphics/captures/`](../05-graphics/captures/). Mani
 
 ![Advisor Pipeline live training request](../05-graphics/captures/06-advisor-pipeline-live-request.png)
 
-*Authenticated review of the LuxeMaurice Training User request. Browser chrome cropped · privacy reviewed · ready for Anton review.*
+*[Authenticated review of the LuxeMaurice Training User request. Browser chrome removed and frame focused on the training request card · privacy reviewed · ready for Anton review.]*
 
 ### 07 — Demonstration records
 
@@ -180,13 +180,17 @@ Captures live under [`../05-graphics/captures/`](../05-graphics/captures/). Mani
 
 ---
 
-## 9. Video scripts
+## 9. Video scripts (optional)
+
+Recorded videos are **not required** for client-send preparation. The screenshot sequence (graphics 01–08) plus the written guides are sufficient.
+
+Optional scripts remain available if LuxeMaurice later wants short screen recordings:
 
 | Script | Path |
 |--------|------|
-| Video 1 — Client journey | [`../04-training-video-scripts/VIDEO_01_CLIENT_JOURNEY.md`](../04-training-video-scripts/VIDEO_01_CLIENT_JOURNEY.md) |
-| Video 2 — Advisor journey | [`../04-training-video-scripts/VIDEO_02_ADVISOR_JOURNEY.md`](../04-training-video-scripts/VIDEO_02_ADVISOR_JOURNEY.md) |
-| Video 3 — Operator workflow | [`../04-training-video-scripts/VIDEO_03_OPERATOR_WORKFLOW.md`](../04-training-video-scripts/VIDEO_03_OPERATOR_WORKFLOW.md) |
+| Video 1 - Client journey | [`../04-training-video-scripts/VIDEO_01_CLIENT_JOURNEY.md`](../04-training-video-scripts/VIDEO_01_CLIENT_JOURNEY.md) |
+| Video 2 - Advisor journey | [`../04-training-video-scripts/VIDEO_02_ADVISOR_JOURNEY.md`](../04-training-video-scripts/VIDEO_02_ADVISOR_JOURNEY.md) |
+| Video 3 - Operator workflow | [`../04-training-video-scripts/VIDEO_03_OPERATOR_WORKFLOW.md`](../04-training-video-scripts/VIDEO_03_OPERATOR_WORKFLOW.md) |
 
 ---
 
@@ -209,8 +213,8 @@ Leave all items unchecked until Anton confirms.
 [ ] Capabilities and limitations match live behaviour
 [ ] Advisor and operator steps are accurate
 [ ] Graphics 01–08 are clear and privacy-safe (fictional training data only)
-[ ] Graphic 06 browser-chrome crop accepted (completed: BROWSER_CHROME_CROPPED)
-[ ] Guides and video scripts are ready
+[ ] Graphic 06 crop accepted (BROWSER_CHROME_CROPPED · FOCUSED_TO_TRAINING_REQUEST)
+[ ] Guides and screenshot sequence are ready (recorded videos not required)
 [ ] Anton changes in ANTON_REVIEW_CHANGES.md addressed or none outstanding
 [ ] Approved for client-send preparation
 [ ] Approved for actual external send
