@@ -22,7 +22,7 @@ If you are not signed in, the Advisor Pipeline will not show persisted request d
 2. The page is marked **Advisor review workspace** and is not indexed by search engines.
 3. Canonical route: `https://lux.corpflowai.com/client/luxe-maurice-ai/crm`
 
-![Advisor sign-in prompt when signed out](../05-graphics/captures/05-advisor-sign-in-prompt.png)
+![Advisor sign-in prompt when signed out](../graphics/05-advisor-sign-in-prompt.png)
 
 *Figure 5 — Signed-out visitors see a sign-in prompt (no persisted client detail)*
 
@@ -34,7 +34,7 @@ When signed in, the **Received for advisor review** section lists **persisted** 
 
 Each request shows **Pending advisor review** (or the current status) until your team updates workflow in the operator console.
 
-![Advisor pipeline with live request](../05-graphics/captures/06-advisor-pipeline-live-request.png)
+![Advisor pipeline with live request](../graphics/06-advisor-pipeline-live-request.png)
 
 *Figure 6 — Persisted request visible after LuxeMaurice sign-in*
 
@@ -71,7 +71,7 @@ The page has two distinct sections:
 | **Received for advisor review** | **Live** submissions from the Private Access Request form — requires sign-in |
 | **Demonstration records** | Fixed **training examples** for layout reference — not live client submissions |
 
-![Demonstration records section](../05-graphics/captures/07-demonstration-records.png)
+![Demonstration records section](../graphics/07-demonstration-records.png)
 
 *Figure 7 — Demonstration records (training layout only)*
 

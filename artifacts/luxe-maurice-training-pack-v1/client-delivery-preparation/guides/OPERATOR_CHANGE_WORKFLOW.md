@@ -68,7 +68,7 @@ Focus controls:
 | **Clear selection** | Clears the selection and exits focus mode |
 | **Focus list on this lead** | Re-collapses the list after browsing all leads |
 
-![Change Console lead workflow](../05-graphics/captures/08-change-console-lead-workflow.png)
+![Change Console lead workflow](../graphics/08-change-console-lead-workflow.png)
 
 *Figure 8 — Focused training lead with OPERATOR ACTIONS directly below*
 
