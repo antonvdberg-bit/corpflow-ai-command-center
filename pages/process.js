@@ -20,7 +20,7 @@ const STAGES = [
     n: 2,
     title: 'Pilot scope',
     duration: 'half a day to one day',
-    body: 'We confirm in writing exactly what the pilot will and will not include. Out-of-scope items are listed explicitly. We then issue a USD invoice for the pilot.',
+    body: 'We confirm in writing exactly what the engagement will and will not include. Out-of-scope items are listed explicitly. Mauritius delivery sprints are then invoiced in MUR (manual bank transfer). The separate launch pilot at /lead-rescue is invoiced in USD.',
   },
   {
     n: 3,
@@ -157,10 +157,13 @@ export default function ProcessPage() {
         <p style={ts.sectionLabel}>Money</p>
         <h2 style={ps.h2}>Payment after review</h2>
         <p style={ps.p}>
-          We do not take payment before intake review. After a CorpFlowAI operator confirms
-          we can help, you receive a USD invoice for the pilot. Payment is processed
-          off-site; this site does not collect card or banking details. The refund window
-          for cancellation before pilot setup begins is published separately on{' '}
+          We do not take payment before intake review. Mauritius delivery sprints (from MUR
+          35,000 / MUR 45,000) are invoiced in MUR by manual bank transfer — we are still
+          obtaining a USD account for that path, so those clients are not asked to pay in USD.
+          The separate AI Lead Rescue launch pilot receives a USD invoice after operator
+          confirmation. Payment is processed off-site; this site does not collect card or
+          banking details. The refund window for cancellation before setup begins is published
+          separately on{' '}
           <Link href="/refund-policy" style={{ color: '#7dd3fc' }}>
             the refund policy page
           </Link>

@@ -30,6 +30,10 @@ Choose offer (/ or /offers/{slug})
 | Revenue checklist + desk link | `/change/revenue` |
 | USD wedge (unchanged) | `/lead-rescue` → `/admin/lead-rescue` |
 
+## Payment (MUR sprints)
+
+Mauritius delivery-sprint clients pay in **MUR** (manual bank transfer / ERPNext invoice). CorpFlowAI is still obtaining a USD account for that path — do not instruct MUR sprint clients to pay in USD. The `/lead-rescue` USD 150 pilot remains a separate USD-quoted wedge.
+
 ## APIs
 
 - `POST /api/tenant/intake` with `meta.product = corpflow-rapid-delivery` (+ business_name, enquiry_channels, primary_pain, offer_slug)

@@ -84,8 +84,8 @@ export default function TermsPage() {
         </p>
         <p style={ps.p}>{formatCurrencyDisclosure()}</p>
         <p style={ps.p}>
-          Primary launch-pilot currency: {CURRENCY_PRIMARY}. Mauritius pro-forma currency where applicable:{' '}
-          {CURRENCY_SECONDARY}.
+          Launch-pilot currency (separate /lead-rescue path): {CURRENCY_PRIMARY}. Mauritius delivery-sprint currency:{' '}
+          {CURRENCY_SECONDARY} (manual bank transfer; USD account for that sprint path still being obtained).
         </p>
       </section>
       <section style={ps.section}>

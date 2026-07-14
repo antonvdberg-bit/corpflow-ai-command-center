@@ -78,8 +78,16 @@ export default function ServicesPage() {
         <h2 style={ps.h2}>Currencies</h2>
         <p style={ps.p}>{formatCurrencyDisclosure()}</p>
         <p style={ps.p}>
-          International buyers are invoiced in {CURRENCY_PRIMARY}. Mauritius warm-network buyers may receive a
-          pro-forma in {CURRENCY_SECONDARY} at the equivalent of the USD launch pilot on the day of invoicing.
+          <strong style={{ color: '#dbe7f5' }}>Mauritius delivery sprints</strong> (from MUR 35,000 /
+          MUR 45,000 on <Link href="/offers/ai-lead-rescue" style={{ color: '#7dd3fc' }}>/offers/*</Link>
+          ): invoiced and paid in {CURRENCY_SECONDARY} by manual bank transfer. A USD account for that
+          sprint path is still being obtained — MUR clients are not asked to pay those deposits in USD.
+        </p>
+        <p style={ps.p}>
+          <strong style={{ color: '#dbe7f5' }}>AI Lead Rescue launch pilot</strong> (
+          <Link href="/lead-rescue" style={{ color: '#7dd3fc' }}>/lead-rescue</Link>): quoted in{' '}
+          {CURRENCY_PRIMARY} 150 after intake review. Mauritius warm-network buyers may still receive a
+          local pro-forma in {CURRENCY_SECONDARY} at the USD 150 equivalent for that pilot only.
         </p>
       </section>
       <section style={ps.section}>
