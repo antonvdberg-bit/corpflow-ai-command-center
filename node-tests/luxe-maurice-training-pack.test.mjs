@@ -258,8 +258,14 @@ test('luxe training pack: approved Jan contact only in send drafts', () => {
   const send = readPack('client-delivery-preparation/SEND_PACKET_2026-07-14.md');
   assert.match(email, /jan@luxemaurice\.com/);
   assert.match(send, /jan@luxemaurice\.com/);
+  const handoff = readPack('client-delivery-preparation/CHATGPT_SEND_AND_FEEDBACK_HANDOFF.md');
+  assert.match(handoff, /jan@luxemaurice\.com/);
   const other = REQUIRED_FILES.filter(
-    (f) => !f.includes('DRAFT_EMAIL_TO_JAN') && !f.includes('SEND_PACKET') && !f.includes('ANTON_REVIEW_CHANGES'),
+    (f) =>
+      !f.includes('DRAFT_EMAIL_TO_JAN') &&
+      !f.includes('SEND_PACKET') &&
+      !f.includes('ANTON_REVIEW_CHANGES') &&
+      !f.includes('CHATGPT_SEND_AND_FEEDBACK_HANDOFF'),
   )
     .map(readPack)
     .join('\n');
