@@ -144,6 +144,7 @@ export default function DiscoveryIntakeForm({
       <h2 style={{ margin: '0 0 8px', fontSize: 22, color: '#eef6ff' }}>{heading}</h2>
       <p style={{ margin: '0 0 16px', color: '#aebfd1', lineHeight: 1.65, fontSize: 15 }}>
         Structured request — you get an on-screen reference immediately. We confirm scope before any invoice.
+        Mauritius delivery sprints settle in MUR by bank transfer; no payment is taken on this form.
       </p>
       <form onSubmit={onSubmit} style={{ display: 'grid', gap: 14, maxWidth: 560 }}>
         {!lockedOffer ? (

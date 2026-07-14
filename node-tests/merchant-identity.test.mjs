@@ -22,10 +22,14 @@ test('merchant identity exposes PAY-SBM-2 approved public values', () => {
   assert.equal(CUSTOMER_SERVICE_EMAIL, 'support@corpflowai.com');
 });
 
-test('currency disclosure mentions USD and MUR', () => {
+test('currency disclosure distinguishes MUR sprints from USD pilot', () => {
   const text = formatCurrencyDisclosure();
   assert.match(text, /USD/);
   assert.match(text, /MUR/);
+  assert.match(text, /delivery sprints/i);
+  assert.match(text, /still obtaining a USD account/i);
+  assert.match(text, /not asked to pay in USD/i);
+  assert.match(text, /lead-rescue/i);
 });
 
 test('merchant identity line includes outlet country', () => {

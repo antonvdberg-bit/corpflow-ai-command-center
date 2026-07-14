@@ -105,7 +105,7 @@ Script: `docs/revenue/templates/discovery-call-script.md`.
 | ---- | ---- |
 | Quote | Written scope tied to buyer’s “success in 72 hours” language |
 | Deposit | **50%** required before work commences |
-| Payment | Manual bank transfer only — **no checkout runtime** on offer pages |
+| Payment | Manual bank transfer in **MUR** for Mauritius delivery sprints (ERPNext invoice). **USD banking for this sprint path is still being obtained** — do not ask MUR sprint clients to settle in USD. No checkout runtime on offer pages |
 | POP | Client sends proof of payment |
 | Verification | Operator confirms **cleared funds** in bank — POP screenshot alone is **not** sufficient |
 | Start clock | 24–72h delivery window starts after verification + access/assets |
