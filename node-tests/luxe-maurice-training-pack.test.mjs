@@ -1,12 +1,14 @@
 /**
- * LuxeMaurice Training Pack v1 — file presence, copy guard, manifest guard.
+ * LuxeMaurice Training Pack v1 — presence, copy guards, review edition, delivery prep.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { execSync } from 'node:child_process';
 
 const PACK = path.join(process.cwd(), 'artifacts', 'luxe-maurice-training-pack-v1');
+const ROOT = process.cwd();
 
 const REQUIRED_FILES = [
   'README.md',
@@ -20,6 +22,17 @@ const REQUIRED_FILES = [
   '05-graphics/GRAPHICS_CAPTURE_CHECKLIST.md',
   '05-graphics/GRAPHICS_MANIFEST.md',
   '06-backend-status/BACKEND_STATUS_AND_LIMITATIONS.md',
+  'review/README.md',
+  'review/LUXEMAURICE_TRAINING_PACK_REVIEW.md',
+  'review/LUXEMAURICE_TRAINING_PACK_REVIEW.html',
+  'review/ANTON_REVIEW_CHANGES.md',
+  'client-delivery-preparation/README.md',
+  'client-delivery-preparation/COVER_NOTE.md',
+  'client-delivery-preparation/FILE_INVENTORY.md',
+  'client-delivery-preparation/DELIVERY_CHECKLIST.md',
+  'client-delivery-preparation/DRAFT_EMAIL_TO_JAN.md',
+  'client-delivery-preparation/DRAFT_WHATSAPP_TO_JAN.md',
+  'client-delivery-preparation/LIMITATIONS_AND_TRAINING_ORDER.md',
 ];
 
 const EXPECTED_GRAPHICS = [
@@ -41,6 +54,13 @@ const JAN_FACING = [
   '04-training-video-scripts/VIDEO_02_ADVISOR_JOURNEY.md',
   '04-training-video-scripts/VIDEO_03_OPERATOR_WORKFLOW.md',
   '06-backend-status/BACKEND_STATUS_AND_LIMITATIONS.md',
+  'client-delivery-preparation/COVER_NOTE.md',
+  'client-delivery-preparation/DRAFT_EMAIL_TO_JAN.md',
+  'client-delivery-preparation/DRAFT_WHATSAPP_TO_JAN.md',
+  'client-delivery-preparation/LIMITATIONS_AND_TRAINING_ORDER.md',
+  'client-delivery-preparation/guides/CLIENT_PRIVATE_ACCESS_GUIDE.md',
+  'client-delivery-preparation/guides/ADVISOR_REVIEW_GUIDE.md',
+  'client-delivery-preparation/guides/OPERATOR_CHANGE_WORKFLOW.md',
 ];
 
 const FORBIDDEN_JAN_COPY = [
@@ -67,11 +87,17 @@ function readPack(rel) {
   return fs.readFileSync(path.join(PACK, rel), 'utf8');
 }
 
+function collectPackText(rels) {
+  return rels.map(readPack).join('\n');
+}
+
 test('luxe training pack: required files exist', () => {
   for (const rel of REQUIRED_FILES) {
     assert.ok(fs.existsSync(path.join(PACK, rel)), `missing ${rel}`);
   }
   assert.ok(fs.existsSync(path.join(PACK, '05-graphics/captures')));
+  assert.ok(fs.existsSync(path.join(PACK, 'client-delivery-preparation')));
+  assert.ok(fs.existsSync(path.join(PACK, 'review')));
 });
 
 test('luxe training pack: all eight PNG graphics physically exist', () => {
@@ -88,28 +114,71 @@ test('luxe training pack: all eight PNG graphics physically exist', () => {
   }
 });
 
-test('luxe training pack: manifest lists all eight graphic filenames as captured', () => {
+test('luxe training pack: delivery package copies all eight graphics', () => {
+  for (const name of EXPECTED_GRAPHICS) {
+    const p = path.join(PACK, 'client-delivery-preparation/graphics', name);
+    assert.ok(fs.existsSync(p), `missing delivery graphic ${name}`);
+  }
+});
+
+test('luxe training pack: review edition includes all eight graphics', () => {
+  const md = readPack('review/LUXEMAURICE_TRAINING_PACK_REVIEW.md');
+  const html = readPack('review/LUXEMAURICE_TRAINING_PACK_REVIEW.html');
+  for (const name of EXPECTED_GRAPHICS) {
+    assert.match(md, new RegExp(name.replace('.', '\\.')), `review md missing ${name}`);
+    assert.match(html, new RegExp(name.replace('.', '\\.')), `review html missing ${name}`);
+  }
+});
+
+test('luxe training pack: Anton review-changes file and approval unchecked', () => {
+  const changes = readPack('review/ANTON_REVIEW_CHANGES.md');
+  assert.match(changes, /REVIEW_REQUIRED/);
+  assert.match(changes, /\[ \] Approved for client-send preparation/);
+  assert.match(changes, /\[ \] Approved for actual external send/);
+  assert.doesNotMatch(changes, /\[x\] Approved for client-send preparation/i);
+  assert.doesNotMatch(changes, /\[x\] Approved for actual external send/i);
+  assert.match(changes, /No external send has occurred/i);
+
+  const delivery = readPack('client-delivery-preparation/DELIVERY_CHECKLIST.md');
+  assert.match(delivery, /\[ \] Anton explicitly approved external send/);
+  assert.match(delivery, /\[ \] Pack sent to Jan/);
+  assert.doesNotMatch(delivery, /\[x\] Pack sent to Jan/i);
+  assert.doesNotMatch(delivery, /\[x\] Anton explicitly approved external send/i);
+});
+
+test('luxe training pack: draft messages exist and declare not sent', () => {
+  const email = readPack('client-delivery-preparation/DRAFT_EMAIL_TO_JAN.md');
+  const wa = readPack('client-delivery-preparation/DRAFT_WHATSAPP_TO_JAN.md');
+  assert.match(email, /\*\*Subject:\*\*\s*LuxeMaurice platform training pack/i);
+  assert.match(email, /Hi Jan/i);
+  assert.match(email, /NOT SENT|DRAFT/i);
+  assert.match(wa, /Jan/i);
+  assert.match(wa, /not sent|NOT SENT|draft only|do not send/i);
+});
+
+test('luxe training pack: manifest lists graphics and chrome crop for 06', () => {
   const manifest = readPack('05-graphics/GRAPHICS_MANIFEST.md');
   for (const name of EXPECTED_GRAPHICS) {
     assert.match(manifest, new RegExp(name.replace('.', '\\.')), `manifest missing ${name}`);
   }
-  assert.match(manifest, /06-advisor-pipeline-live-request\.png[\s\S]*CAPTURED/);
-  assert.match(manifest, /08-change-console-lead-workflow\.png[\s\S]*CAPTURED/);
+  assert.match(manifest, /BROWSER_CHROME_CROPPED/);
   assert.match(manifest, /PRIVACY_REVIEWED/);
+  assert.match(manifest, /READY_FOR_ANTON_REVIEW/);
   assert.match(manifest, /CROPPED_TO_TRAINING_LEAD_AND_OPERATOR_ACTIONS/);
   assert.doesNotMatch(manifest, /CAPTURE_REQUIRED/);
 });
 
-test('luxe training pack: README says all eight graphics present and approval incomplete', () => {
+test('luxe training pack: README review entry and approval incomplete', () => {
   const readme = readPack('README.md');
   assert.match(readme, /All eight required (screenshots|graphics) are present/i);
   assert.match(readme, /Anton review checklist/i);
   assert.match(readme, /\[ \] All eight graphics are present/);
   assert.match(readme, /\[ \] All graphics use fictional training data only/);
-  assert.match(readme, /\[ \] Graphic 06 browser-chrome crop decision/);
+  assert.match(readme, /BROWSER_CHROME_CROPPED/);
   assert.match(readme, /\[ \] Anton approved pack for client-send preparation/);
   assert.match(readme, /\[ \] No client send has occurred/);
-  assert.match(readme, /ready for Anton’s final privacy and client-send review/);
+  assert.match(readme, /review\/LUXEMAURICE_TRAINING_PACK_REVIEW\.md/);
+  assert.match(readme, /No external send has occurred/i);
 });
 
 test('luxe training pack: README Where to view lists live surfaces and repo folder', () => {
@@ -133,6 +202,20 @@ test('luxe training pack: Jan-facing guides avoid forbidden internal terms', () 
   }
 });
 
+test('luxe training pack: no claim that outbound messaging is live', () => {
+  const corpus = collectPackText([
+    ...JAN_FACING,
+    'README.md',
+    'review/LUXEMAURICE_TRAINING_PACK_REVIEW.md',
+    'review/LUXEMAURICE_TRAINING_PACK_REVIEW.html',
+    'client-delivery-preparation/DELIVERY_CHECKLIST.md',
+  ]);
+  assert.doesNotMatch(corpus, /\boutbound (email|WhatsApp|SMS) (automation )?is live\b/i);
+  assert.doesNotMatch(corpus, /\b(email|WhatsApp|SMS) automation is live\b/i);
+  assert.doesNotMatch(corpus, /\boutbound messaging (automation )?is live\b/i);
+  assert.match(corpus, /Not live/i);
+});
+
 test('luxe training pack: backend limitations documented', () => {
   const status = readPack('06-backend-status/BACKEND_STATUS_AND_LIMITATIONS.md');
   assert.match(status, /Live now/i);
@@ -143,7 +226,7 @@ test('luxe training pack: backend limitations documented', () => {
   assert.match(status, /fully complete/i);
 });
 
-test('luxe training pack: no secrets or env values in pack text', () => {
+test('luxe training pack: no secrets or private contact patterns in pack text', () => {
   const allText = REQUIRED_FILES.map(readPack).join('\n');
   for (const pattern of SECRET_PATTERNS) {
     assert.equal(pattern.test(allText), false, `secret-like pattern in pack: ${pattern}`);
@@ -152,22 +235,28 @@ test('luxe training pack: no secrets or env values in pack text', () => {
   assert.doesNotMatch(allText, /\+230\d{7,}/);
 });
 
+test('luxe training pack: advisor workflow authenticated and limited', () => {
+  const adv = readPack('02-advisor-workflow-guide/ADVISOR_REVIEW_GUIDE.md');
+  const review = readPack('review/LUXEMAURICE_TRAINING_PACK_REVIEW.md');
+  assert.match(adv, /06-advisor-pipeline-live-request\.png/);
+  assert.match(adv, /Received for advisor review/);
+  assert.match(adv, /sign(?:ed)?[- ]?in/i);
+  assert.match(adv, /read-only|does not (edit|update)|cannot (edit|update)|review (surface|workspace)/i);
+  assert.match(review, /read-only/i);
+  assert.match(review, /Not live/i);
+});
+
 test('luxe training pack: operator guide describes focused-lead workflow', () => {
   const op = readPack('03-operator-workflow-guide/OPERATOR_CHANGE_WORKFLOW.md');
-  assert.match(op, /concierge-leads-list/);
-  assert.match(op, /concierge-lead-operator-patch/);
   assert.match(op, /does \*\*not\*\* support these edits/i);
   assert.match(op, /Show all leads/);
   assert.match(op, /Clear selection/);
+  assert.match(op, /Focus list on this lead/);
   assert.match(op, /OPERATOR ACTIONS/);
   assert.match(op, /08-change-console-lead-workflow\.png/);
-  assert.match(op, /focuses on that row/i);
-});
-
-test('luxe training pack: advisor guide references screenshot 06', () => {
-  const adv = readPack('02-advisor-workflow-guide/ADVISOR_REVIEW_GUIDE.md');
-  assert.match(adv, /06-advisor-pipeline-live-request\.png/);
-  assert.match(adv, /Received for advisor review/);
+  assert.match(op, /focuses on that row|Focused on/i);
+  assert.match(op, /LEADS · LuxeMaurice CRM \(concierge\)|LuxeMaurice CRM \(concierge\)/);
+  assert.match(op, /Save updates|stage/i);
 });
 
 test('luxe training pack: video 03 reflects focused-lead operator flow', () => {
@@ -175,4 +264,49 @@ test('luxe training pack: video 03 reflects focused-lead operator flow', () => {
   assert.match(vid, /08-change-console-lead-workflow\.png/);
   assert.match(vid, /Show all leads/);
   assert.match(vid, /OPERATOR ACTIONS/);
+});
+
+test('luxe training pack: review HTML is self-contained local assets', () => {
+  const html = readPack('review/LUXEMAURICE_TRAINING_PACK_REVIEW.html');
+  assert.match(html, /no network calls|repository-local|Open locally/i);
+  assert.doesNotMatch(html, /https?:\/\/(?!lux\.corpflowai\.com)/i);
+  assert.match(html, /\.\.\/05-graphics\/captures\//);
+});
+
+test('luxe training pack: no runtime app files changed in this worktree vs main (when available)', () => {
+  try {
+    const out = execSync('git diff --name-only origin/main...HEAD', {
+      cwd: ROOT,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    const names = out
+      .split(/\r?\n/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const runtime = names.filter(
+      (n) =>
+        /^(pages|api|lib\/server|lib\/cmp|middleware|prisma)\//.test(n) ||
+        n === 'middleware.js' ||
+        n === 'middleware.ts',
+    );
+    assert.deepEqual(runtime, [], `unexpected runtime paths: ${runtime.join(', ')}`);
+  } catch (err) {
+    // Before first commit on branch, compare against working tree vs HEAD.
+    const out = execSync('git diff --name-only HEAD', {
+      cwd: ROOT,
+      encoding: 'utf8',
+    });
+    const names = out
+      .split(/\r?\n/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const runtime = names.filter(
+      (n) =>
+        /^(pages|api|lib\/server|lib\/cmp|middleware|prisma)\//.test(n) ||
+        n === 'middleware.js' ||
+        n === 'middleware.ts',
+    );
+    assert.deepEqual(runtime, [], `unexpected runtime paths vs HEAD: ${runtime.join(', ')}`);
+  }
 });

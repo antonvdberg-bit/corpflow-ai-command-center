@@ -26,7 +26,7 @@ There is **no** automated email, WhatsApp, or SMS from the platform today.
 2. Go to **LuxeMaurice AI** on the LuxeMaurice tenant site: `https://lux.corpflowai.com/client/luxe-maurice-ai`.
 3. You will see the landing page with private access channels: residences, yachts, aviation, island experiences, and advisory introductions.
 
-![LuxeMaurice AI landing page](../05-graphics/captures/01-landing-page.png)
+![LuxeMaurice AI landing page](../graphics/01-landing-page.png)
 
 *Figure 1 — LuxeMaurice AI home*
 
@@ -40,7 +40,7 @@ There is **no** automated email, WhatsApp, or SMS from the platform today.
 
 Live catalogue route: `https://lux.corpflowai.com/client/luxe-maurice-ai/properties`
 
-![Private opportunities catalogue](../05-graphics/captures/02-private-opportunities.png)
+![Private opportunities catalogue](../graphics/02-private-opportunities.png)
 
 *Figure 2 — Access catalogue*
 
@@ -52,7 +52,7 @@ Live catalogue route: `https://lux.corpflowai.com/client/luxe-maurice-ai/propert
 2. The **Private access request** form opens at `https://lux.corpflowai.com/client/luxe-maurice-ai/buyer`.
 3. If you arrived from a specific opportunity, the form may pre-select that category or opportunity.
 
-![Private Access Request form](../05-graphics/captures/03-private-access-request-form.png)
+![Private Access Request form](../graphics/03-private-access-request-form.png)
 
 *Figure 3 — Request access form*
 
@@ -94,7 +94,7 @@ On success you will see:
 
 Keep this reference for your records. Quote it in any follow-up with your advisor.
 
-![Request submitted with reference](../05-graphics/captures/04-request-submitted-reference.png)
+![Request submitted with reference](../graphics/04-request-submitted-reference.png)
 
 *Figure 4 — Confirmation and LM-REQ reference*
 
