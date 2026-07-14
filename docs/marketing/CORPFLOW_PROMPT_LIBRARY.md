@@ -262,6 +262,63 @@ details, NO full-page mockup layout.
 [Append global brand constraints]
 ```
 
+### `corpflow-services-hero`
+
+- **Use case:** Decorative background behind live HTML on `/services`.
+- **Surface:** `core` / `shared`.
+- **Kind:** `image` (AVIF/WebP/JPG; draft master 1536×1024).
+- **Lifecycle:** `draft`.
+- **Reviewer:** anton@corpflowai.com.
+
+Prompt:
+
+```
+Wide cinematic 16:9 website hero BACKGROUND ONLY. Left third deep dark navy
+empty space for HTML. Right: coastal city waterfront at golden sunset with
+glass towers, calm water, subtle cyan digital network arcs in sky.
+No text, logos, buttons, forms, icons, contact details, or marketing claims.
+
+[Append global brand constraints]
+```
+
+### `corpflow-standards-hero`
+
+- **Use case:** Decorative background behind live HTML on `/standards`.
+- **Surface:** `core` / `shared`.
+- **Kind:** `image`.
+- **Lifecycle:** `draft`.
+- **Reviewer:** anton@corpflowai.com.
+
+Prompt:
+
+```
+Wide cinematic 16:9 BACKGROUND ONLY for operational standards page.
+Left third deep dark navy. Right: nighttime modern glass terrace over dark
+coastal water with restrained cyan network light trails. Institutional,
+premium, calm. No text, logos, badges, certificates, buttons, or forms.
+
+[Append global brand constraints]
+```
+
+### `corpflow-onboarding-hero`
+
+- **Use case:** Decorative background behind live HTML on `/onboarding`.
+- **Surface:** `core` / `shared`.
+- **Kind:** `image`.
+- **Lifecycle:** `draft`.
+- **Reviewer:** anton@corpflowai.com.
+
+Prompt:
+
+```
+Wide cinematic 16:9 BACKGROUND ONLY for onboarding page. Left third deep dark
+navy. Right: modern glass walkway leading toward coastal sunrise with subtle
+digital light trails suggesting a clear path forward. No people, text, logos,
+numbered steps, buttons, or forms.
+
+[Append global brand constraints]
+```
+
 ### `corpflow-homepage-social-card`
 
 - **Use case:** Open-graph / Twitter / LinkedIn share card for `https://corpflowai.com/`. Used as `og:image` and `twitter:image`.

@@ -1,13 +1,15 @@
 import React from 'react';
 import Link from 'next/link';
-import PublicPolicyLayout, { policyStyles as ps, trustStyles as ts } from '../components/PublicPolicyLayout.js';
+import CorpFlowPublicPhotoShell from '../components/public/CorpFlowPublicPhotoShell.js';
+import { policyStyles as ps, trustStyles as ts } from '../components/PublicPolicyLayout.js';
+import { buildPublicPageMeta } from '../lib/public/corpflow-public-market.js';
 
 /**
  * /standards - Operational standards: review cadence, monitoring,
  * payment-after-review, no-guarantee positioning, and governance.
  *
- * Companion to /about, /process, and /onboarding. Text-first; no
- * decorative imagery. The institutional voice carries the trust here.
+ * Companion to /about, /process, and /onboarding. Photo background is
+ * decorative only; institutional HTML carries the trust claims.
  *
  * Per `.cursor/rules/delivery-reality.mdc`, "operational completion"
  * is defined by live verification on the real production URL, not by
@@ -35,12 +37,32 @@ const PILLARS = [
 ];
 
 export default function StandardsPage() {
+  const meta = buildPublicPageMeta({
+    title: 'Operational standards',
+    description:
+      'How CorpFlowAI runs engagements: review cadence, monitoring, payment after review, no-guarantee positioning, and the governance applied to visual assets and security.',
+    path: '/standards',
+    ogImage: '/assets/visuals/corpflow-standards-hero.jpg',
+  });
+
   return (
-    <PublicPolicyLayout
-      title="Operational standards"
-      description="How CorpFlowAI runs engagements: review cadence, monitoring, payment after review, no-guarantee positioning, and the governance applied to visual assets and security."
-      width="wide"
+    <CorpFlowPublicPhotoShell
+      meta={meta}
+      visualKey="standards"
+      maxWidth={960}
+      headerCta={{ label: 'Book discovery', href: '/contact' }}
     >
+      <h1
+        style={{
+          margin: '16px 0 8px',
+          fontSize: 'clamp(28px, 4.6vw, 38px)',
+          letterSpacing: '-0.03em',
+          lineHeight: 1.15,
+          color: '#eef6ff',
+        }}
+      >
+        Operational standards
+      </h1>
       <p style={ts.lead}>
         This page describes the operational standards we apply to every CorpFlowAI engagement.
         It is not a contract &mdash; final terms are confirmed on the invoice or service
@@ -175,6 +197,6 @@ export default function StandardsPage() {
           </Link>
         </div>
       </section>
-    </PublicPolicyLayout>
+    </CorpFlowPublicPhotoShell>
   );
 }

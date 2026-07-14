@@ -26,6 +26,12 @@ const shots = [
   { file: '07-process-desktop.png', path: '/process', width: 1440, height: 900 },
   { file: '08-process-mobile.png', path: '/process', width: 390, height: 844 },
   { file: '09-trust-band.png', path: '/', width: 1440, height: 900, scrollTo: '[aria-label="Operating posture"]' },
+  { file: '10-services-desktop.png', path: '/services', width: 1440, height: 900 },
+  { file: '11-services-mobile.png', path: '/services', width: 390, height: 844 },
+  { file: '12-standards-desktop.png', path: '/standards', width: 1440, height: 900 },
+  { file: '13-standards-mobile.png', path: '/standards', width: 390, height: 844 },
+  { file: '14-onboarding-desktop.png', path: '/onboarding', width: 1440, height: 900 },
+  { file: '15-onboarding-mobile.png', path: '/onboarding', width: 390, height: 844 },
 ];
 
 const browser = await chromium.launch();
