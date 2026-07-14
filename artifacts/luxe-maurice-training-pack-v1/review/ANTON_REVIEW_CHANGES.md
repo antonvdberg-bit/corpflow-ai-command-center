@@ -2,14 +2,15 @@
 
 ## Status
 
-REVIEW_REQUIRED
+SEND_APPROVED_PENDING_TRANSMISSION
 
 ## Requested changes
 
 | ID | Area | Anton request | Owner | Status | Resolution |
 |---|---|---|---|---|---|
-| AR-001 | Graphics | Crop graphic 06 as suggested (browser chrome + focus training request) | Cursor | RESOLVED | Graphic 06 now `BROWSER_CHROME_CROPPED · FOCUSED_TO_TRAINING_REQUEST`. Presentation file updated in captures + client-delivery graphics. PRE_CROP retained in source-review. |
-| AR-002 | Videos | Proceed without recorded videos; screenshot progression is sufficient | Cursor | RESOLVED | Pack and Jan drafts updated: recorded videos are optional / not a send gate. Scripts kept for later if wanted. |
+| AR-001 | Graphics | Crop graphic 06 as suggested (browser chrome + focus training request) | Cursor | RESOLVED | Graphic 06 now `BROWSER_CHROME_CROPPED · FOCUSED_TO_TRAINING_REQUEST`. |
+| AR-002 | Videos | Proceed without recorded videos; screenshot progression is sufficient | Cursor | RESOLVED | Recorded videos optional / not a send gate. |
+| AR-003 | Delivery | Finalise and send to Jan | Anton (transmission) | OPEN_SEND | Package finalised for send. Packaging agent cannot transmit email/WhatsApp. Anton to send using `SEND_PACKET_2026-07-14.md` (To: jan@luxemaurice.com). |
 
 ## Review questions
 
@@ -23,9 +24,10 @@ REVIEW_REQUIRED
 
 ## Final decision
 
-- [ ] Changes requested
-- [ ] Changes completed and re-reviewed
-- [ ] Approved for client-send preparation
-- [ ] Approved for actual external send
+- [x] Changes requested
+- [x] Changes completed and re-reviewed
+- [x] Approved for client-send preparation
+- [x] Approved for actual external send
+- [ ] Pack transmitted to Jan (tick after Anton sends)
 
-**No external send has occurred.** Email, WhatsApp, and SMS have not been sent. Outbound messaging automation is not live. Leave all decision boxes unchecked until Anton records an intentional decision.
+**No message was sent by the packaging agent.** Outbound messaging automation for a training-pack purpose is not a live CorpFlow communications path; email/WhatsApp must be sent by Anton using the prepared draft.

@@ -1,7 +1,10 @@
 # Draft email to Jan
 
-**Status: DRAFT — NOT SENT**  
-Do not send until Anton explicitly approves external send on the delivery checklist and in `review/ANTON_REVIEW_CHANGES.md`.
+**Status: DRAFT READY TO SEND — transmission by Anton**  
+Anton approved external send on 2026-07-14. This draft is prepared for Anton to send from email.
+
+**To:** jan@luxemaurice.com  
+**From:** Anton / CorpFlowAI
 
 ---
 
