@@ -26,7 +26,7 @@ const STEPS = [
   {
     label: 'Day 2',
     title: 'Decision and scoping',
-    body: 'If the engagement fits, we send a written pilot scope: what is in, what is out, and what counts as "pilot complete". We also issue a USD invoice for the pilot.',
+    body: 'If the engagement fits, we send a written scope: what is in, what is out, and what counts as complete. Mauritius delivery sprints are invoiced in MUR (manual bank transfer). The separate launch pilot at /lead-rescue is invoiced in USD.',
   },
   {
     label: 'Day 3 to Day 5',
@@ -46,7 +46,7 @@ const STEPS = [
   {
     label: 'Day 14',
     title: 'Continue or close',
-    body: 'You decide, with the data in front of you. Continue means a written next-month scope, billed in USD. Close means we hand over everything we built (the Sheet, the alert config, the summary template) and step back. Either way, you keep the artifacts.',
+    body: 'You decide, with the data in front of you. Continue means a written next-month scope (MUR for Mauritius delivery sprints; USD for the separate launch pilot). Close means we hand over everything we built (the Sheet, the alert config, the summary template) and step back. Either way, you keep the artifacts.',
   },
 ];
 

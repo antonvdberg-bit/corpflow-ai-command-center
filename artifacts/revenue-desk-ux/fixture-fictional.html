@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fictional fixture — CorpFlowAI revenue desk UX evidence</title>
+  <style>
+    :root { --bg:#06111f; --panel:rgba(255,255,255,.04); --border:rgba(255,255,255,.1); --text:#eef6ff; --muted:#aebfd1; --accent:#2dd4bf; --link:#7dd3fc; }
+    body { margin:0; font-family:Inter,system-ui,sans-serif; background:linear-gradient(160deg,#06111f,#0b1f33 48%,#0a1628); color:var(--text); }
+    main { max-width:1120px; margin:0 auto; padding:28px 18px 64px; }
+    .eyebrow { font-size:11.5px; letter-spacing:.16em; font-weight:800; color:var(--accent); }
+    h1 { margin:8px 0 10px; letter-spacing:-.03em; }
+    .cards { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px; margin:18px 0; }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:14px; }
+    .card .k { font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:#9fb2c8; }
+    .card .v { font-size:28px; font-weight:800; margin-top:4px; }
+    .lead { background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:16px; margin-top:12px; }
+    .badge { display:inline-flex; padding:3px 9px; border-radius:999px; background:rgba(125,211,252,.15); color:#7dd3fc; font-size:11.5px; font-weight:700; }
+    .actions button, .actions a { display:inline-flex; margin:4px 4px 0 0; padding:9px 12px; border-radius:10px; border:1px solid var(--border); background:transparent; color:var(--text); text-decoration:none; font-size:13px; }
+    .detail, .proposal { margin-top:16px; border:1px solid rgba(45,212,191,.28); border-radius:14px; padding:18px; background:var(--panel); }
+    .warn { color:#fbbf24; font-weight:600; font-size:13px; }
+    .note { color:var(--muted); font-size:13px; }
+    @media (max-width:700px){ .cards{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  </style>
+</head>
+<body>
+  <main data-fixture="revenue-desk-desktop">
+    <p class="eyebrow">CORPFLOWAI REVENUE</p>
+    <h1>Rapid-delivery discovery desk</h1>
+    <p class="note">Fictional preview evidence only — not production data. External commercial contact remains a manual Anton-approved action.</p>
+    <div class="cards" aria-label="summary">
+      <div class="card"><div class="k">New</div><div class="v">2</div></div>
+      <div class="card"><div class="k">Reviewing</div><div class="v">1</div></div>
+      <div class="card"><div class="k">Discovery booked</div><div class="v">0</div></div>
+      <div class="card"><div class="k">Proposal required</div><div class="v">1</div></div>
+      <div class="card"><div class="k">Won</div><div class="v">0</div></div>
+    </div>
+    <article class="lead" data-fixture="lead-card">
+      <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap">
+        <code style="color:var(--accent)">CF-DEMO01</code>
+        <span class="badge">New</span>
+      </div>
+      <h2 style="margin:10px 0 4px;font-size:17px">North Coast Suites Ltd</h2>
+      <p class="note">Asha Patel · AI Lead Rescue Sprint · Prefers WhatsApp</p>
+      <p>Missed enquiries overnight across Instagram and hotel front desk.</p>
+      <label class="note">Update status
+        <select aria-label="status">
+          <option>New</option>
+          <option>Reviewing</option>
+          <option>Discovery booked</option>
+          <option>Proposal required</option>
+          <option>Proposal sent</option>
+          <option>Won</option>
+          <option>Not proceeding</option>
+        </select>
+      </label>
+      <div class="actions">
+        <button type="button">View details</button>
+        <button type="button">Prepare proposal</button>
+        <button type="button">Copy proposal</button>
+        <a href="#">Open public offer</a>
+        <a href="#">Open revenue cockpit</a>
+      </div>
+    </article>
+    <section class="detail" data-fixture="lead-detail">
+      <h2>Lead detail · CF-DEMO01</h2>
+      <p><strong>Business</strong> North Coast Suites Ltd<br/>
+      <strong>Contact</strong> Asha Patel · asha@example.test · +230 5xxx xxxx<br/>
+      <strong>Offer</strong> AI Lead Rescue Sprint<br/>
+      <strong>Primary pain</strong> Missed enquiries overnight</p>
+      <p class="warn">External commercial contact remains a manual Anton-approved action.</p>
+    </section>
+    <section class="proposal" data-fixture="proposal-preview">
+      <h2>Proposal-ready summary · CF-DEMO01</h2>
+      <div class="actions">
+        <button type="button">Copy proposal summary</button>
+        <button type="button">Copy plain text</button>
+        <button type="button">Close</button>
+      </div>
+      <p><strong>Recommended sprint</strong> AI Lead Rescue Sprint</p>
+      <p><strong>Starting price</strong> from MUR 35,000</p>
+      <p><strong>Delivery proof</strong> CorpFlowAI has delivered working lead-capture, operator-review and follow-up workflows without requiring a second CRM or exposing private client information.</p>
+      <p class="note">Offer link: https://corpflowai.com/offers/ai-lead-rescue</p>
+    </section>
+  </main>
+</body>
+</html>

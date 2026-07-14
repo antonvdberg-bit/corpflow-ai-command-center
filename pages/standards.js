@@ -28,7 +28,7 @@ const PILLARS = [
   },
   {
     label: 'Payment after review',
-    body: 'No card or banking details are collected on this website. After intake review, we issue a USD invoice for the pilot. The cancellation window before pilot setup begins is published separately on the refund-policy page.',
+    body: 'No card or banking details are collected on this website. Mauritius delivery sprints are invoiced in MUR (manual bank transfer) after review. The separate AI Lead Rescue launch pilot is invoiced in USD. Cancellation windows before setup begins are published on the refund-policy page.',
   },
   {
     label: 'No revenue guarantees',
@@ -148,8 +148,10 @@ export default function StandardsPage() {
           </li>
           <li>
             <strong style={{ color: '#dbe7f5' }}>Intake first, payment second.</strong> The
-            public website does not capture card or banking details. A USD invoice is
-            issued only after intake review, off-site.
+            public website does not capture card or banking details. Mauritius delivery
+            sprints are invoiced in MUR by manual bank transfer. The separate AI Lead Rescue
+            launch pilot is invoiced in USD after intake review, off-site. CorpFlowAI is still
+            obtaining a USD account for the MUR sprint path.
           </li>
           <li>
             <strong style={{ color: '#dbe7f5' }}>Least-access pilots.</strong> A pilot

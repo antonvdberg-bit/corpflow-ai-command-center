@@ -40,7 +40,7 @@ const PRINCIPLES = [
   },
   {
     title: 'Intake first, payment after review.',
-    body: 'No card or banking details are collected on this website. A USD invoice is issued only after a CorpFlowAI operator reviews your intake and confirms the work fits.',
+    body: 'No card or banking details are collected on this website. After a CorpFlowAI operator reviews your request and confirms fit, Mauritius delivery sprints are invoiced in MUR (manual bank transfer). The separate AI Lead Rescue launch pilot at /lead-rescue is invoiced in USD.',
   },
   {
     title: 'No revenue guarantees.',
@@ -110,10 +110,10 @@ export default function AboutPage() {
           </p>
           <p style={{ margin: '0 0 14px' }}>
             We are based in Mauritius and work with clients in Mauritius and internationally.
-            Pilots are priced in USD so the offer reads the same to every prospect on this
-            website. After intake review we issue a single USD invoice, regardless of where
-            you sit. Billing in one currency is part of the calm we are trying to install
-            {' \u2014 '}not a negotiation point.
+            Mauritius delivery sprints (the offers on this site priced from MUR 35,000 / MUR 45,000) are
+            paid in MUR by manual bank transfer — we are still obtaining a USD account for that path, so
+            those clients are not asked to settle in USD. The separate AI Lead Rescue launch pilot remains
+            a USD-quoted wedge. The currency on each invoice is confirmed before you pay.
           </p>
           <p style={{ margin: 0 }}>
             CorpFlowAI is not a growth platform. It is an operations company. The number we
