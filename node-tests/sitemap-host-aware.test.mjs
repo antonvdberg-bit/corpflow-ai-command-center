@@ -37,11 +37,16 @@ describe('sitemap.xml / buildEntries', () => {
     const { paths, today } = buildEntries('corpflowai.com');
     assert.match(today, /^\d{4}-\d{2}-\d{2}$/);
     assert.equal(paths.length, expectedApexPathCount());
-    assert.ok(paths.some((e) => e.loc.endsWith('/insights')));
-    assert.ok(paths.some((e) => e.loc.endsWith('/videos')));
-    assert.ok(paths.some((e) => e.loc.includes('/insights/')));
+    assert.ok(APEX_PATHS.includes('/insights'));
+    assert.ok(APEX_PATHS.includes('/videos'));
     for (const e of paths) {
       assert.match(e.loc, /^https:\/\/corpflowai\.com/);
+    }
+    for (const insight of listInsightsForStaticPaths()) {
+      assert.ok(
+        paths.some((e) => e.loc === `https://corpflowai.com/insights/${insight.slug}`),
+        `missing insight sitemap entry ${insight.slug}`,
+      );
     }
   });
 
@@ -65,7 +70,7 @@ describe('sitemap.xml / buildEntries', () => {
 
   it('falls back to apex for empty host', () => {
     const { paths } = buildEntries('');
-    assert.equal(paths.length, APEX_PATHS.length);
+    assert.equal(paths.length, expectedApexPathCount());
   });
 });
 
