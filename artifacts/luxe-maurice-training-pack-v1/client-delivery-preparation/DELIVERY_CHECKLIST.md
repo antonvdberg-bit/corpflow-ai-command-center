@@ -1,6 +1,6 @@
 # Delivery checklist — LuxeMaurice Training Pack
 
-**No pack has been sent by the packaging agent.** Send is Anton's transmission step using `SEND_PACKET_2026-07-14.md`.
+**Pack sent by Anton via email on 2026-07-14.** Evidence recorded in `SEND_PACKET_2026-07-14.md`.
 
 ---
 
@@ -15,8 +15,8 @@
 - [x] Draft email approved
 - [x] Draft WhatsApp message approved if used
 - [x] Anton explicitly approved external send
-- [ ] Pack sent to Jan
-- [ ] Delivery evidence recorded
+- [x] Pack sent to Jan
+- [x] Delivery evidence recorded
 - [ ] Jan feedback captured
 
 ---
@@ -25,4 +25,5 @@
 
 - Outbound messaging automation is **not live** as a platform capability for training packs.
 - Client follow-up after a Private Access Request remains **human-led**.
-- Anton approved send on 2026-07-14; transmission still requires attaching the package and pressing Send in email (and optional WhatsApp).
+- Anton confirmed email transmission to Jan in ChatGPT on 2026-07-14 at approximately 05:10 Africa/Johannesburg time.
+- Jan feedback remains open and should be monitored separately.
