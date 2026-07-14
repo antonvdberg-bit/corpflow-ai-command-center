@@ -21,6 +21,8 @@ import HeroGlassBlock from './beauty/HeroGlassBlock.js';
 import CtaGlassBlock from './beauty/CtaGlassBlock.js';
 import { GLASS_TOKENS } from '../lib/ui/glass.js';
 import { cfBtnPrimary, cfBtnSecondary } from './public/corpflow-public-styles.js';
+import PublishingVideoSection from './public/PublishingVideoSection.js';
+import { getVideosForOffer } from '../lib/public/insights-content.js';
 
 const text = GLASS_TOKENS.text;
 const muted = '#cdd9e6';
@@ -73,6 +75,7 @@ export default function RapidDeliveryOfferPage({ offer }) {
   });
   const faq = OFFER_FAQ_BY_SLUG[offer.slug] || [];
   const notIncluded = OFFER_NOT_INCLUDED_BY_SLUG[offer.slug] || [];
+  const offerVideos = getVideosForOffer(offer.slug);
 
   const heroBase = offer.heroBase;
   const heroSources = [
@@ -227,6 +230,13 @@ export default function RapidDeliveryOfferPage({ offer }) {
             <p style={styles.muted}>{offer.proofLanguage}</p>
           </GlassPanel>
         </div>
+
+        <PublishingVideoSection
+          videos={offerVideos}
+          title="Video briefings for this sprint"
+          body="Short practical briefings related to this offer are being prepared. Approved YouTube videos will appear here without changing the page structure."
+          compact
+        />
 
         <div style={styles.section}>
           <GlassPanel variant={{ fill: GLASS_TOKENS.glassFill, padding: 24, elevation: 2 }}>

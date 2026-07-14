@@ -40,6 +40,14 @@ export default function CorpFlowPublicFooter({ extra }) {
             Contact
           </Link>
           {' · '}
+          <Link href="/insights" style={cfLink}>
+            Insights
+          </Link>
+          {' · '}
+          <Link href="/videos" style={cfLink}>
+            Videos
+          </Link>
+          {' · '}
           <Link href="/privacy" style={cfLink}>
             Privacy
           </Link>
