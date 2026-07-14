@@ -14,28 +14,16 @@
 
 ## Attach / include
 
+**Primary (for Jan):**
+
+- `LUXEMAURICE_TRAINING_PACK_FOR_JAN.pdf`
+- Optional: `LUXEMAURICE_TRAINING_PACK_FOR_JAN.html`
+
 Folder:
 
 `artifacts/luxe-maurice-training-pack-v1/client-delivery-preparation/`
 
-Minimum client set:
-
-- `COVER_NOTE.md`
-- `guides/` (all three)
-- `graphics/` (01–08 PNGs)
-- `LIMITATIONS_AND_TRAINING_ORDER.md`
-- `status/BACKEND_STATUS_AND_LIMITATIONS.md` (optional detail)
-
-Optional:
-
-- `scripts/` video scripts (optional; not required)
-
-Do **not** attach:
-
-- `review/`
-- `05-graphics/source-review/`
-- `GRAPHICS_CAPTURE_CHECKLIST.md`
-- internal README routing files unless requested
+Do **not** make raw `.md` guides the primary client attachment.
 
 ## Draft email body
 

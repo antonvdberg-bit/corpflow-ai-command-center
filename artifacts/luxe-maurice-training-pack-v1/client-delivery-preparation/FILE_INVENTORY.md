@@ -10,13 +10,17 @@ Intended files for Jan once Anton approves external send. Paths are relative to 
 
 | File | Purpose |
 |------|---------|
-| `COVER_NOTE.md` | Short client cover note |
+| `LUXEMAURICE_TRAINING_PACK_FOR_JAN.pdf` | **Primary Jan deliverable** |
+| `LUXEMAURICE_TRAINING_PACK_FOR_JAN.html` | Browser-readable pack (same content; images embedded) |
+| `CHATGPT_SEND_AND_FEEDBACK_HANDOFF.md` | Handoff for send + Jan feedback monitoring |
+| `COVER_NOTE.md` | Short client cover note (also included in PDF/HTML) |
 | `FILE_INVENTORY.md` | This inventory |
-| `DELIVERY_CHECKLIST.md` | Operator delivery gates (internal until send) |
-| `DRAFT_EMAIL_TO_JAN.md` | Draft email — **not sent** |
-| `DRAFT_WHATSAPP_TO_JAN.md` | Draft WhatsApp text — **not sent** |
-| `LIMITATIONS_AND_TRAINING_ORDER.md` | Current limits + suggested training order |
-| `README.md` | Package orientation (internal packaging note) |
+| `DELIVERY_CHECKLIST.md` | Operator delivery gates |
+| `DRAFT_EMAIL_TO_JAN.md` | Draft email |
+| `DRAFT_WHATSAPP_TO_JAN.md` | Draft WhatsApp text |
+| `LIMITATIONS_AND_TRAINING_ORDER.md` | Limits + training order |
+| `SEND_PACKET_2026-07-14.md` | Send packet / evidence |
+| `README.md` | Package orientation |
 
 ## Guides
 

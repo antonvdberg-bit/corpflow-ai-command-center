@@ -22,9 +22,9 @@ It covers:
 - current operational limitations (including that follow-up remains human-led — no automated email, WhatsApp, or SMS from the platform today);
 - suggested training steps for a short walkthrough and practical practice.
 
-The materials include written guides and a full screenshot sequence (graphics 01–08) using a safe training demonstration identity. Optional video scripts are available if you later want to record short walkthroughs; recorded videos are not part of this initial pack.
+The materials include a client-ready **PDF** (and matching HTML) covering the journey with screenshots. Markdown source guides remain in the repo for operators; Jan should receive the PDF.
 
-The pack is designed to support a short guided walkthrough on the live platform using the guides and screenshots:
+Suggested live routes for walkthrough:
 
 - Landing and catalogue: `https://lux.corpflowai.com/client/luxe-maurice-ai`
 - Private Access Request: `https://lux.corpflowai.com/client/luxe-maurice-ai/buyer`

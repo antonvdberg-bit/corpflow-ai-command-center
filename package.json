@@ -3,6 +3,7 @@
     "postinstall": "prisma generate",
     "db:migrate:deploy": "prisma migrate deploy",
     "vercel-build": "prisma generate && node scripts/apply-ensure-schema-build.mjs && next build --webpack && node scripts/ensure-vercel-next-output-stubs.mjs",
+    "build:lux-jan-pack": "node scripts/build-lux-jan-training-pack-html-pdf.mjs",
     "build": "next build --webpack",
     "verify:ci": "npm run verify:vercel-hobby-crons && npm test && npm run build",
     "verify:vercel-hobby-crons": "node scripts/validate-vercel-hobby-crons.mjs",
