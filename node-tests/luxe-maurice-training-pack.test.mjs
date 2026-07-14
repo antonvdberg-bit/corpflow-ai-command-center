@@ -157,10 +157,24 @@ test('luxe training pack: Anton review-changes file and approval recorded; pack 
   assert.match(changes, /No message was sent by the packaging agent/i);
 
   const delivery = readPack('client-delivery-preparation/DELIVERY_CHECKLIST.md');
+  const send = readPack('client-delivery-preparation/SEND_PACKET_2026-07-14.md');
   assert.match(delivery, /Anton explicitly approved external send/);
-  assert.match(delivery, /\[ \] Pack sent to Jan/);
-  assert.doesNotMatch(delivery, /\[x\] Pack sent to Jan/i);
-  assert.match(delivery, /SEND_PACKET_2026-07-14|transmission step/i);
+  assert.match(delivery, /SEND_PACKET_2026-07-14|transmission step|Evidence recorded/i);
+
+  const pendingSend = /\[ \] Pack sent to Jan/.test(delivery);
+  const recordedSend = /\[x\] Pack sent to Jan/i.test(delivery);
+  assert.ok(pendingSend || recordedSend, 'DELIVERY_CHECKLIST must include Pack sent to Jan checkbox');
+  assert.equal(pendingSend && recordedSend, false, 'Pack sent to Jan cannot be both checked and unchecked');
+
+  if (recordedSend) {
+    assert.match(delivery, /\[x\] Delivery evidence recorded/i);
+    assert.match(send, /\*\*Pack sent to Jan:\*\*\s*YES/i);
+    assert.match(send, /Anton confirmed|mail sent|Email transmission/i);
+    assert.doesNotMatch(send, /No message was sent by the packaging agent/i);
+  } else {
+    assert.doesNotMatch(delivery, /\[x\] Pack sent to Jan/i);
+    assert.match(send, /\*\*Pack sent to Jan:\*\*\s*NO/i);
+  }
 });
 
 test('luxe training pack: draft messages exist and declare transmission by Anton', () => {
