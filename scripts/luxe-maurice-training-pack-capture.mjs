@@ -59,7 +59,13 @@ async function main() {
       'Training demonstration request — safe to use in LuxeMaurice training materials.',
     );
     await page.click('button[type="submit"]');
-    await page.waitForTimeout(3000);
+    await page.waitForFunction(
+      () => /LM-REQ-|received for advisor review/i.test(document.body.innerText),
+      null,
+      { timeout: 25000 },
+    );
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(400);
     await shot(page, '04-request-submitted-reference.png');
   } else {
     console.log('skip 04 — set LUX_TRAINING_SUBMIT_FORM=1 to capture submitted reference');
