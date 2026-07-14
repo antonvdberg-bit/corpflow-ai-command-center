@@ -15,11 +15,13 @@ import {
  *   deliver → feedback → release → maintenance.
  *
  * Boundaries (intentional):
- * - ERPNext is the system of record. This page is only the selling/operator
- *   wrapper. Any lane state here is UI-only (browser localStorage) and must
- *   be re-recorded authoritatively in ERPNext.
- * - No CRM build, no payment runtime, no email/WhatsApp/SMS runtime, no DB
- *   or schema changes, no secrets, no external outreach, no paid tools.
+ * - Live MUR discovery intakes persist to the existing `leads` table (product
+ *   `corpflow-rapid-delivery`) and are operated at `/admin/rapid-delivery`.
+ * - ERPNext remains the commercial system of record for invoices/quotes.
+ * - Stage lanes below may still use browser localStorage as an optional
+ *   checklist — never as the authoritative prospect list.
+ * - No second CRM, no payment runtime, no automated email/WhatsApp/SMS outreach
+ *   (outreach requires separate Anton approval).
  *
  * Canonical process: docs/revenue/REVENUE_DELIVERY_PLAYBOOK.md
  */
@@ -338,6 +340,15 @@ export default function RevenueOperatorCockpit() {
         <div style={styles.targetBanner}>
           <span style={styles.targetLabel}>Current target</span>
           <span style={styles.targetValue}>{MONTH_END_TARGET}</span>
+        </div>
+
+        <div style={{ ...styles.boundary, borderColor: 'rgba(45,212,191,0.35)' }}>
+          <strong>Live MUR discovery intakes</strong> (from public structured forms) are stored on the existing{' '}
+          <code style={styles.code}>leads</code> table — not in the local checklist below. Open the factory desk:{' '}
+          <Link href="/admin/rapid-delivery" style={{ color: c.good, fontWeight: 700 }}>
+            /admin/rapid-delivery
+          </Link>{' '}
+          to review, qualify, and copy a proposal-ready summary. Outreach still requires explicit Anton approval.
         </div>
 
         <div style={styles.boundary}>

@@ -104,9 +104,10 @@ describe('CorpFlow public market readiness — shared shell on priority pages', 
     assert.ok(offer.includes('What is not included'));
   });
 
-  it('contact page has discovery CTA and offer links', () => {
+  it('contact page has discovery form and offer links', () => {
     const contact = read('pages/contact.js');
-    assert.ok(contact.includes('Book a discovery conversation'));
+    assert.ok(contact.includes('DiscoveryIntakeForm'));
+    assert.ok(contact.includes('id="discovery"'));
     assert.ok(contact.includes('buildGeneralDiscoveryMailto'));
     assert.ok(contact.includes('/offers/ai-lead-rescue'));
   });
@@ -136,8 +137,8 @@ describe('CorpFlow public market readiness — three offer prices', () => {
 });
 
 describe('CorpFlow public market readiness — CTA destinations', () => {
-  it('homepage primary CTA targets /contact', () => {
-    assert.equal(CORPflow_HOMEPAGE_HERO.primaryCta.href, '/contact');
+  it('homepage primary CTA targets discovery form', () => {
+    assert.equal(CORPflow_HOMEPAGE_HERO.primaryCta.href, '/contact#discovery');
   });
 
   it('public surfaces do not link primary flows to /change', () => {
@@ -146,11 +147,15 @@ describe('CorpFlow public market readiness — CTA destinations', () => {
     assert.ok(!stripped.includes("href='/change'"), 'must not link to /change');
   });
 
-  it('offer pages use mailto discovery not API payment', () => {
+  it('offer pages use structured discovery form, not payment APIs', () => {
     const offer = read('components/RapidDeliveryOfferPage.js');
+    assert.ok(offer.includes('DiscoveryIntakeForm'));
+    assert.ok(offer.includes('id="discovery"'));
     assert.ok(offer.includes('buildDiscoveryCallMailto'));
     assert.ok(!offer.includes("fetch('/api/"));
     assert.ok(!/stripe|mpgs|checkout/i.test(offer));
+    const form = read('components/public/DiscoveryIntakeForm.js');
+    assert.ok(form.includes("fetch('/api/tenant/intake'"));
   });
 });
 

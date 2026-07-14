@@ -1,11 +1,11 @@
 # CorpFlowAI public CTA and intake map
 
-**Status:** Operator verification register · **Updated:** 2026-07-13  
+**Status:** Operator verification register · **Updated:** 2026-07-14
 **Anchor:** `<!-- CORPFLOWAI_PUBLIC_CTA_INTAKE_MAP_V1 -->`
 
 <!-- CORPFLOWAI_PUBLIC_CTA_INTAKE_MAP_V1 -->
 
-Traces every primary public CTA on priority routes. **No new email/WhatsApp/SMS runtime, payment, or DB/schema changes in this PR.**
+Traces every primary public CTA on priority routes. MUR sprint discovery now persists via `POST /api/tenant/intake` (`meta.product = corpflow-rapid-delivery`) into the existing `leads` table. Operator desk: `/admin/rapid-delivery` (+ cockpit link on `/change/revenue`). **No automated outreach** without separate Anton approval.
 
 ---
 
@@ -15,7 +15,7 @@ Traces every primary public CTA on priority routes. **No new email/WhatsApp/SMS 
 
 | Source route | Button text | Destination | Form/API | Persistence | Success | Failure | Operator follow-up | Analytics | Current result |
 | ------------ | ----------- | ----------- | -------- | ----------- | ------- | ------- | ------------------ | --------- | -------------- |
-| `/` hero | Book a discovery conversation | `/contact` | — | — | Contact page loads | 404 if route broken | Anton reads email / ERPNext when configured | — | **Working** |
+| `/` hero | Book a discovery conversation | `/contact#discovery` | form | `leads` | Reference on screen | Validation / tenant context | `/admin/rapid-delivery` | — | **Working** |
 | `/` hero | View delivery sprints | `#offers` | — | — | In-page scroll | — | — | — | **Working** |
 | `/` offer cards | View sprint → | `/offers/{slug}` | — | — | Offer page loads | — | — | — | **Working** |
 
@@ -23,17 +23,18 @@ Traces every primary public CTA on priority routes. **No new email/WhatsApp/SMS 
 
 | Source route | Button text | Destination | Form/API | Persistence | Success | Failure | Operator follow-up | Analytics | Current result |
 | ------------ | ----------- | ----------- | -------- | ----------- | ------- | ------- | ------------------ | --------- | -------------- |
-| `/offers/{slug}` | Request Discovery Call | `mailto:support@corpflowai.com` | User mail client | Operator inbox / ERPNext | Mail compose opens | No mail client | Discovery → quote | `revenue_offer_cta_click` | **Working** |
-| `/offers/{slug}` | Book discovery conversation | `/contact` | — | — | Contact page | — | mailto on contact | `revenue_offer_cta_click` | **Working** |
+| `/offers/{slug}` | Request discovery | `#discovery` form | `POST /api/tenant/intake` | `leads` (`corpflow-rapid-delivery`) | On-screen `CF-…` reference | Validation | `/admin/rapid-delivery` | `revenue_offer_cta_click` | **Working** |
+| `/offers/{slug}` | Email fallback | `mailto:support@corpflowai.com` | mail client | Inbox only | Compose opens | No mail client | Manual | — | **Working** |
 
 ### `/contact`
 
 | Source route | Button text | Destination | Form/API | Persistence | Success | Failure | Operator follow-up | Analytics | Current result |
 | ------------ | ----------- | ----------- | -------- | ----------- | ------- | ------- | ------------------ | --------- | -------------- |
-| `/contact` | Email to book discovery | `mailto:support@corpflowai.com` | User mail client | Operator inbox | Compose opens | — | Discovery call | — | **Working** |
-| `/contact` | Go to AI Lead Rescue intake | `/lead-rescue` | — | — | Intake page | — | `POST /api/tenant/intake` | — | **Working** |
+| `/contact` | Submit discovery request | `POST /api/tenant/intake` | form | `leads` | On-screen reference | Validation | `/admin/rapid-delivery` | — | **Working** |
+| `/contact` | Email fallback | `mailto:support@corpflowai.com` | mail client | Inbox only | Compose opens | — | Manual | — | **Working** |
+| `/contact` | Go to AI Lead Rescue intake | `/lead-rescue` | — | — | Intake page | — | `/admin/lead-rescue` | — | **Working** |
 
-### `/lead-rescue` (specialist — not redesigned in this PR)
+### `/lead-rescue` (specialist — USD wedge; unchanged)
 
 | Source route | Button text | Destination | Form/API | Persistence | Success | Failure | Operator follow-up | Analytics | Current result |
 | ------------ | ----------- | ----------- | -------- | ----------- | ------- | ------- | ------------------ | --------- | -------------- |
@@ -51,8 +52,12 @@ Traces every primary public CTA on priority routes. **No new email/WhatsApp/SMS 
 ## ERPNext-first operator path (manual)
 
 ```text
-mailto / contact → discovery → quote → deposit → manual verification →
-approval → delivery → preview → release → invoice
+structured form (/contact or /offers/*)
+→ CF- reference on screen
+→ /admin/rapid-delivery (qualify + proposal summary)
+→ discovery call + delivery proof (/offers/*, /standards)
+→ quote email only after Anton approval
+→ deposit → verify → deliver → ERPNext invoice
 ```
 
-Authoritative records: **ERPNext**. CorpFlowAI: public pages + `/change/revenue` checklist only.
+Authoritative records: **ERPNext**. CorpFlowAI holds public capture + operator desk (`/admin/rapid-delivery`, `/change/revenue`).

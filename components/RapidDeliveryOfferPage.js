@@ -13,6 +13,7 @@ import {
 import { buildDiscoveryCallMailto } from '../lib/public/rapid-delivery-offers.js';
 import CorpFlowPublicFooter from './public/CorpFlowPublicFooter.js';
 import CorpFlowPublicHeader from './public/CorpFlowPublicHeader.js';
+import DiscoveryIntakeForm from './public/DiscoveryIntakeForm.js';
 import PublicMarketingPhotoGlassShell from './beauty/PublicMarketingPhotoGlassShell.js';
 import GlassPanel from './beauty/GlassPanel.js';
 import GlassCardGrid from './beauty/GlassCardGrid.js';
@@ -119,7 +120,7 @@ export default function RapidDeliveryOfferPage({ offer }) {
           alt: `${offer.title} — CorpFlowAI delivery sprint`,
         }}
       >
-        <CorpFlowPublicHeader cta={{ label: 'Request discovery', href: '/contact' }} />
+        <CorpFlowPublicHeader cta={{ label: 'Request discovery', href: '#discovery' }} />
 
         <GlassCardGrid minColWidth={300} gap={24} style={{ marginTop: 32, alignItems: 'start' }}>
           <HeroGlassBlock>
@@ -138,13 +139,13 @@ export default function RapidDeliveryOfferPage({ offer }) {
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 24 }}>
               <a
                 style={{ ...cfBtnPrimary, boxShadow: GLASS_TOKENS.ctaWarmShadow, background: GLASS_TOKENS.ctaWarm, color: GLASS_TOKENS.ctaWarmText }}
-                href={mailtoHref}
+                href="#discovery"
                 onClick={() => handleCtaClick('hero_primary')}
               >
-                Request Discovery Call
+                Request discovery
               </a>
               <Link href="/contact" style={cfBtnSecondary} onClick={() => handleCtaClick('hero_secondary')}>
-                Book discovery conversation
+                Open contact page
               </Link>
             </div>
           </HeroGlassBlock>
@@ -238,33 +239,43 @@ export default function RapidDeliveryOfferPage({ offer }) {
           </GlassPanel>
         </div>
 
+        <div style={styles.section} id="discovery">
+          <GlassPanel variant={{ fill: GLASS_TOKENS.glassFill, padding: 24, elevation: 2 }}>
+            <DiscoveryIntakeForm
+              defaultOfferSlug={offer.slug}
+              lockedOffer
+              heading={`Request discovery — ${offer.title}`}
+            />
+            <p style={styles.note}>
+              Prefer email?{' '}
+              <a href={mailtoHref} style={styles.link} onClick={() => handleCtaClick('mailto_fallback')}>
+                Open mail client
+              </a>{' '}
+              (no automatic reference id).
+            </p>
+          </GlassPanel>
+        </div>
+
         <div style={styles.section}>
           <CtaGlassBlock>
             <div style={styles.label}>Next step</div>
-            <h2 style={styles.h2}>Request a discovery call</h2>
+            <h2 style={styles.h2}>Submit the discovery form above</h2>
             <p style={styles.muted}>
-              Tell us your business name, how customers reach you today, and which problem hurts most. We confirm fit,
-              scope, deposit, and timeline before any invoice.
+              You receive an on-screen reference immediately. We confirm fit, scope, deposit, and timeline before any
+              invoice.
             </p>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 20 }}>
               <a
                 style={{ ...cfBtnPrimary, background: GLASS_TOKENS.ctaWarm, color: GLASS_TOKENS.ctaWarmText, boxShadow: GLASS_TOKENS.ctaWarmShadow }}
-                href={mailtoHref}
+                href="#discovery"
                 onClick={() => handleCtaClick('footer_primary')}
               >
-                Request Discovery Call
+                Jump to discovery form
               </a>
               <Link href="/" style={cfBtnSecondary} onClick={() => handleCtaClick('footer_secondary')}>
                 View all sprints
               </Link>
             </div>
-            <p style={styles.note}>
-              Prefer the contact page? Visit{' '}
-              <Link href="/contact" style={styles.link}>
-                /contact
-              </Link>{' '}
-              and reference {offer.title}.
-            </p>
           </CtaGlassBlock>
         </div>
       </PublicMarketingPhotoGlassShell>
