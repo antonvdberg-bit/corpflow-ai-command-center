@@ -100,6 +100,7 @@ import { handleLuxeMauriceAiPrivateAccessRequest, handleLuxeMauriceAiPrivateAcce
 import { getChangeConsoleReadinessForTenant } from '../lib/server/change-console-readiness.js';
 import { growthPipelineHandler } from '../lib/server/growth-pipeline.js';
 import { adminLeadRescueHandler } from '../lib/server/admin-lead-rescue-api.js';
+import { adminRapidDeliveryHandler } from '../lib/server/admin-rapid-delivery-api.js';
 import { recordTrustedAutomationEvent } from '../lib/automation/internal.js';
 import { emitLogicFailure } from '../lib/cmp/_lib/telemetry.js';
 import factoryCmpTicketSummariesHandler from '../lib/server/factory-cmp-ticket-summaries.js';
@@ -977,6 +978,10 @@ export default async function handler(req, res) {
 
   if (pathSeg === 'factory/lead-rescue' || pathSeg.startsWith('factory/lead-rescue/')) {
     return adminLeadRescueHandler(req, res, pathSeg);
+  }
+
+  if (pathSeg === 'factory/rapid-delivery' || pathSeg.startsWith('factory/rapid-delivery/')) {
+    return adminRapidDeliveryHandler(req, res, pathSeg);
   }
 
   if (pathSeg === 'factory/cmp/push') {

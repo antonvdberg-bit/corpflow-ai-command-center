@@ -2,9 +2,10 @@ import React from 'react';
 import Link from 'next/link';
 import CorpFlowPublicPhotoShell from '../components/public/CorpFlowPublicPhotoShell.js';
 import CustomerServiceContact from '../components/CustomerServiceContact.js';
+import DiscoveryIntakeForm from '../components/public/DiscoveryIntakeForm.js';
 import { policyStyles as ps } from '../components/PublicPolicyLayout.js';
 import { buildGeneralDiscoveryMailto, buildPublicPageMeta, listPublicOffers } from '../lib/public/corpflow-public-market.js';
-import { cfBtnPrimary, cfBtnSecondary } from '../components/public/corpflow-public-styles.js';
+import { cfBtnSecondary } from '../components/public/corpflow-public-styles.js';
 
 const h1 = {
   margin: '16px 0 8px',
@@ -34,18 +35,21 @@ export default function ContactPage() {
       headerCta={{ label: 'View sprints', href: '/offers/ai-lead-rescue' }}
     >
       <h1 style={h1}>Contact</h1>
-      <p style={updated}>Book a discovery conversation. Official details confirmed on invoice.</p>
+      <p style={updated}>
+        Submit a structured discovery request. You receive an on-screen reference immediately. Official commercial
+        details are confirmed on invoice.
+      </p>
 
-      <section style={ps.section}>
-        <h2 style={ps.h2}>Book a discovery conversation</h2>
-        <p style={ps.p}>
-          The fastest path to scope a delivery sprint is a short discovery call. Tell us your business name, how customers
-          reach you today, and which problem hurts most — slow follow-up, weak landing page, or reputation recovery.
+      <section style={ps.section} id="discovery">
+        <DiscoveryIntakeForm heading="Book a discovery conversation" />
+        <p style={{ ...ps.p, marginTop: 16 }}>
+          Prefer email?{' '}
+          <a href={discoveryMailto} style={{ color: '#7dd3fc' }}>
+            Open mail client
+          </a>{' '}
+          (no automatic reference id).
         </p>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, margin: '8px 0 16px' }}>
-          <a href={discoveryMailto} style={cfBtnPrimary}>
-            Email to book discovery
-          </a>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, margin: '16px 0 8px' }}>
           <Link href="/offers/ai-lead-rescue" style={cfBtnSecondary}>
             View delivery sprints
           </Link>
@@ -66,8 +70,8 @@ export default function ContactPage() {
       <section style={ps.section}>
         <h2 style={ps.h2}>Legacy AI Lead Rescue intake (USD pilot)</h2>
         <p style={ps.p}>
-          The USD 150 launch pilot uses a separate intake form with persistence to our operator queue — not the contact
-          page.
+          The USD 150 launch pilot uses a separate intake form with persistence to our operator queue — not this MUR
+          discovery form.
         </p>
         <p style={ps.p}>
           <Link href="/lead-rescue" style={{ color: '#2dd4bf', fontWeight: 700 }}>

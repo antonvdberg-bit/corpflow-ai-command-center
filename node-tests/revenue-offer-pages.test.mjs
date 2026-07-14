@@ -78,7 +78,10 @@ describe('Revenue offer pages — required commercial copy', () => {
       assert.ok(combined.includes(String(offer.startingPriceMur)), 'starting price missing');
       assert.ok(/24–72|24-72/i.test(combined), '24-72 hour timeline language missing');
       assert.ok(/deposit/i.test(combined), 'deposit language missing');
-      assert.ok(combined.includes('Request Discovery Call'), 'discovery CTA label missing');
+      assert.ok(
+        combined.includes('Request discovery') || combined.includes('Request Discovery Call'),
+        'discovery CTA label missing',
+      );
       assert.ok(combined.includes('proofLanguage') || offer.proofLanguage.length > 20, 'proof language missing');
     });
   }
@@ -101,16 +104,18 @@ describe('Revenue offer pages — forbidden internal terms', () => {
   }
 });
 
-describe('Revenue offer pages — CTA is mailto discovery (no payment runtime)', () => {
-  it('buildDiscoveryCallMailto targets support email with subject', () => {
+describe('Revenue offer pages — CTA is structured discovery (no payment runtime)', () => {
+  it('buildDiscoveryCallMailto remains available as fallback', () => {
     const offer = getRapidDeliveryOffer('ai-lead-rescue');
     const href = buildDiscoveryCallMailto(offer);
     assert.ok(href.startsWith('mailto:support@corpflowai.com'), 'mailto must use support@corpflowai.com');
     assert.ok(href.includes('Discovery%20call%20request'), 'subject must reference discovery call');
   });
 
-  it('component does not add fetch payment or intake runtime', () => {
-    assert.ok(!COMPONENT.includes("fetch('/api/"), 'offer page must not POST to API routes');
+  it('offer page embeds discovery form; payment checkout stays out', () => {
+    assert.ok(COMPONENT.includes('DiscoveryIntakeForm'), 'offer page must embed DiscoveryIntakeForm');
+    assert.ok(COMPONENT.includes('id="discovery"'), 'offer page must expose #discovery anchor');
+    assert.ok(!COMPONENT.includes("fetch('/api/"), 'offer page must not inline fetch (form owns intake POST)');
     assert.ok(!/stripe|mpgs|checkout/i.test(COMPONENT), 'must not embed payment checkout');
   });
 });
