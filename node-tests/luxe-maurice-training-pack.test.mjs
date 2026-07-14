@@ -34,6 +34,9 @@ const REQUIRED_FILES = [
   'client-delivery-preparation/DRAFT_WHATSAPP_TO_JAN.md',
   'client-delivery-preparation/LIMITATIONS_AND_TRAINING_ORDER.md',
   'client-delivery-preparation/SEND_PACKET_2026-07-14.md',
+  'client-delivery-preparation/CHATGPT_SEND_AND_FEEDBACK_HANDOFF.md',
+  'client-delivery-preparation/LUXEMAURICE_TRAINING_PACK_FOR_JAN.html',
+  'client-delivery-preparation/LUXEMAURICE_TRAINING_PACK_FOR_JAN.pdf',
 ];
 
 const EXPECTED_GRAPHICS = [
@@ -120,6 +123,20 @@ test('luxe training pack: delivery package copies all eight graphics', () => {
     const p = path.join(PACK, 'client-delivery-preparation/graphics', name);
     assert.ok(fs.existsSync(p), `missing delivery graphic ${name}`);
   }
+});
+
+test('luxe training pack: Jan PDF and HTML deliverables exist', () => {
+  const html = path.join(PACK, 'client-delivery-preparation/LUXEMAURICE_TRAINING_PACK_FOR_JAN.html');
+  const pdf = path.join(PACK, 'client-delivery-preparation/LUXEMAURICE_TRAINING_PACK_FOR_JAN.pdf');
+  assert.ok(fs.existsSync(html), 'missing Jan HTML');
+  assert.ok(fs.existsSync(pdf), 'missing Jan PDF');
+  assert.ok(fs.statSync(html).size > 100000, 'Jan HTML too small');
+  assert.ok(fs.statSync(pdf).size > 50000, 'Jan PDF too small');
+  const htmlText = fs.readFileSync(html, 'utf8');
+  assert.match(htmlText, /LuxeMaurice AI training pack/);
+  assert.match(htmlText, /data:image\/png;base64,/);
+  assert.doesNotMatch(htmlText, /\bCursor\b/);
+  assert.doesNotMatch(htmlText, /\bGitHub\b/);
 });
 
 test('luxe training pack: review edition includes all eight graphics', () => {
@@ -241,8 +258,14 @@ test('luxe training pack: approved Jan contact only in send drafts', () => {
   const send = readPack('client-delivery-preparation/SEND_PACKET_2026-07-14.md');
   assert.match(email, /jan@luxemaurice\.com/);
   assert.match(send, /jan@luxemaurice\.com/);
+  const handoff = readPack('client-delivery-preparation/CHATGPT_SEND_AND_FEEDBACK_HANDOFF.md');
+  assert.match(handoff, /jan@luxemaurice\.com/);
   const other = REQUIRED_FILES.filter(
-    (f) => !f.includes('DRAFT_EMAIL_TO_JAN') && !f.includes('SEND_PACKET') && !f.includes('ANTON_REVIEW_CHANGES'),
+    (f) =>
+      !f.includes('DRAFT_EMAIL_TO_JAN') &&
+      !f.includes('SEND_PACKET') &&
+      !f.includes('ANTON_REVIEW_CHANGES') &&
+      !f.includes('CHATGPT_SEND_AND_FEEDBACK_HANDOFF'),
   )
     .map(readPack)
     .join('\n');
