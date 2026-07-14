@@ -74,38 +74,42 @@ BANK CREDIT VISIBLE
 
 | Stream | Priority | Owner | Branch | PR | Status | Blockers | Anton decision | Next action | Evidence | Completion criteria |
 | ------ | -------- | ----- | ------ | -- | ------ | -------- | -------------- | ----------- | -------- | ------------------- |
-| **A — ERPNext quote-to-cash OS** | P0 | Cursor | `docs/erpnext-quote-to-cash-operating-system` | This PR | **In progress** | None (docs-only) | Approve PR merge | Merge + link from playbook | `docs/erpnext/*`, `artifacts/corpflowai-commercial-ops/` | All 11 ERPNext runbooks + record mapping + delivery release checklist exist; NEEDS_ANTON table published |
-| **B — Public surfaces live verify** | P0 | Anton + Cursor | `main` (merged) | Prior PRs | **PARTIAL** | Production deploy audit | Approve live URL sign-off | Live GET on `/offers/*` + `/contact` | Delivery Reality Audit | All three offer pages **200** on production with correct MUR prices + discovery CTA |
-| **C — Social + warm outreach** | P1 | Anton | — | — | **Blocked** | Meta holds; avatar consent | Approve first profile + first send batch | Draft only until gates close | Sent-message log (private) | First approved warm outreach sent; no automated bulk |
-| **D — Sales assets (PDF, case study)** | P1 | Anton + Cursor | TBD | — | **Not started** | Case study permission | Confirm anonymised proof | One-page offer PDF | PDF + permission on file | Offer PDF + at least one proof asset approved |
-| **E — ERPNext production config** | P2 | Anton + Cursor | Gated packets | — | **Blocked** | Phase D hard blockers (HB-1–4) | Approve sandbox vs production shell for first posting | Accountant engage + redacted bank CSV | Sandbox screenshots / production deploy ID | First real Quotation PDF to buyer from authorised environment |
+| **A — ERPNext quote-to-cash + delivery release** | P0 | Cursor | `docs/erpnext-quote-to-cash-operating-system` | [#603](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/603) | **PR open** | Phase D for live posting | Approve sandbox-vs-production for first buyer PDF | Merge docs; rehearse in sandbox | `docs/erpnext/*`, delivery release checklist | Runbooks + record mapping + clearance rule + test plan published; no production GL posts |
+| **B — HeyGen + Canva launch media factory** | P0 | Cursor + Anton (capture) | `docs/corpflowai-launch-media-production-kit` | TBD | **In progress** | Temporary HeyGen/Canva access; avatar consent | Approve likeness/voice (NA-001) + capture checklist | Generate exports while access remains | `artifacts/corpflowai-launch-media/` | Full script/storyboard/Canva kit ready; renders only after Anton consent |
+| **C — Social profile foundation** | P1 | Anton (manual) + Cursor (pack) | `docs/corpflowai-social-launch-foundation` | TBD | **In progress** | Meta holds; no auto-create | Approve first profile creation (NA-003) | Anton creates LinkedIn first using pack | `artifacts/corpflowai-social-launch/` | Profiles named/copied; Anton completes platform setup; no publish without approval |
+| **D — Website insights + video hub** | P1 | Cursor | `feat/corpflowai-insights-and-video-hub` | TBD | **In progress** | YouTube URLs pending | Confirm logo/CTA (NA-005); approve Production deploy | Ship Preview with polished coming-soon video states | `/insights`, `/videos` | Routes live on Preview; no broken embeds; Production deploy gated |
+| **E — Launch campaign + manual outreach prep** | P1 | Cursor (drafts) + Anton (send) | `docs/corpflowai-launch-campaign` | [#602](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/602) | **PR open** | Outreach approval gate | Approve first warm batch (NA-004) | Merge drafts; Anton approves one send | `artifacts/corpflowai-launch-campaign/` | 30-day calendar + drafts marked DRAFT ONLY; zero outbound sends until approved |
+
+**Related (not renamed streams):** public offer URL live-verify and ERPNext Phase D production config remain **gates inside A/E**, not separate programme streams.
 
 ---
 
 ## 4. Wave plan
 
-### Wave 1 — Sell on manual path (now → week 2)
+### Wave 1 — begin immediately (docs + media prep)
 
-- Public offer pages + templates carry sales
-- Postgres intake + `/admin/rapid-delivery` for qualification
-- Manual quote/deposit emails; ERPNext sandbox practice optional
-- **No ERPNext production posting**
-- Target: 1–3 discovery calls → 1 deposit verified
+- Stream A audit + ERPNext runbooks
+- Stream B scripts + production kit (while HeyGen/Canva access is live)
+- Stream C profile copy + asset requirements
+- Stream E campaign + outreach drafts
+- Manual quote/deposit path carries sales; **no ERPNext production posting**
+- Target: docs merged; media pack ready for Anton capture
 
-### Wave 2 — ERPNext sandbox rehearsal (week 2–4)
+### Wave 2 — once scripts + content model stable
 
-- Sandbox Lead → Customer → Quotation → Payment Entry for real prospects (no buyer send from sandbox until Print Format verified)
-- Record mapping CF-… ↔ ERPNext maintained per `docs/erpnext/ERPNEXT_RECORD_MAPPING.md`
-- Close HB-4 (redacted bank CSV) in sandbox
-- Target: end-to-end sandbox cycle for one prospect
+- Stream D website insights/video implementation
+- Canva asset population + HeyGen production from approved scripts
+- Social profile **manual** setup by Anton
+- ERPNext sandbox rehearsal (Customer → Quotation → Payment Entry) using `docs/erpnext/ERPNEXT_TEST_TRANSACTION_PLAN.md`
+- Target: Preview insights hub; sandbox end-to-end for one synthetic prospect
 
-### Wave 3 — Production ERPNext cutover (week 4–10, gated)
+### Wave 3 — after finance process + public assets ready
 
-- Requires: accountant CoA + VAT decision + Phase D authorisation + MUST items M-1–M-9
-- First production Quotation to real buyer
-- First submitted Sales Invoice posts GL revenue
-- MUR sprint invoicing in production (separate from USD 150 wedge items)
-- Target: authoritative ERPNext PDFs for MUR sprints
+- Controlled launch content publication (Anton)
+- First manual outreach batch (Anton-approved)
+- Qualification → ERPNext quotation test → first cleared-payment process
+- Production ERPNext cutover only after Phase D hard blockers + MUST items
+- Target: first deposit cleared + delivery released under the clearance rule
 
 ---
 
