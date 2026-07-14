@@ -1,3 +1,5 @@
+import { listInsightsForStaticPaths } from '../lib/public/insights-content.js';
+
 /**
  * Host-aware sitemap (Packet 4.1 / Lux SEO fix).
  *
@@ -45,6 +47,8 @@ const APEX_PATHS = [
   '/refund-policy',
   '/delivery-policy',
   '/payment-security',
+  '/insights',
+  '/videos',
 ];
 
 const LUX_STATIC_PATHS = ['/', '/concierge'];
@@ -91,8 +95,15 @@ function buildEntries(host) {
     return { paths, today };
   }
   const base = 'https://corpflowai.com';
+  const insightPaths = listInsightsForStaticPaths().map((insight) => ({
+    loc: `${base}/insights/${insight.slug}`,
+    priority: '0.5',
+  }));
   return {
-    paths: APEX_PATHS.map((p) => ({ loc: base + p, priority: p === '/' ? '1.0' : '0.6' })),
+    paths: [
+      ...APEX_PATHS.map((p) => ({ loc: base + p, priority: p === '/' ? '1.0' : '0.6' })),
+      ...insightPaths,
+    ],
     today,
   };
 }

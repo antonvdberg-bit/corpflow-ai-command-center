@@ -2,8 +2,13 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
 import sitemapPage, { __testing__ } from '../pages/sitemap.xml.js';
+import { listInsightsForStaticPaths } from '../lib/public/insights-content.js';
 
 const { isLuxHost, buildEntries, renderSitemap, APEX_PATHS, LUX_PROPERTY_REFS } = __testing__;
+
+function expectedApexPathCount() {
+  return APEX_PATHS.length + listInsightsForStaticPaths().length;
+}
 
 describe('sitemap.xml / isLuxHost', () => {
   it('matches the canonical Lux host', () => {
@@ -31,9 +36,17 @@ describe('sitemap.xml / buildEntries', () => {
   it('returns apex entries for apex / unknown host', () => {
     const { paths, today } = buildEntries('corpflowai.com');
     assert.match(today, /^\d{4}-\d{2}-\d{2}$/);
-    assert.equal(paths.length, APEX_PATHS.length);
+    assert.equal(paths.length, expectedApexPathCount());
+    assert.ok(APEX_PATHS.includes('/insights'));
+    assert.ok(APEX_PATHS.includes('/videos'));
     for (const e of paths) {
       assert.match(e.loc, /^https:\/\/corpflowai\.com/);
+    }
+    for (const insight of listInsightsForStaticPaths()) {
+      assert.ok(
+        paths.some((e) => e.loc === `https://corpflowai.com/insights/${insight.slug}`),
+        `missing insight sitemap entry ${insight.slug}`,
+      );
     }
   });
 
@@ -57,7 +70,7 @@ describe('sitemap.xml / buildEntries', () => {
 
   it('falls back to apex for empty host', () => {
     const { paths } = buildEntries('');
-    assert.equal(paths.length, APEX_PATHS.length);
+    assert.equal(paths.length, expectedApexPathCount());
   });
 });
 

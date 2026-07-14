@@ -8,6 +8,7 @@ import OutcomeSection from './public/OutcomeSection.js';
 import DeliverySteps from './public/DeliverySteps.js';
 import PublicCtaBand from './public/PublicCtaBand.js';
 import PublicTrustBand from './public/PublicTrustBand.js';
+import PublishingVideoSection from './public/PublishingVideoSection.js';
 import {
   buildPublicPageMeta,
   CORPflow_DELIVERY_STEPS,
@@ -15,6 +16,7 @@ import {
   CORPflow_PROOF_EXAMPLE,
   listPublicOffers,
 } from '../lib/public/corpflow-public-market.js';
+import { VIDEO_LIBRARY } from '../lib/public/insights-content.js';
 import { cfBody, cfCard, cfGrid, CF } from './public/corpflow-public-styles.js';
 
 const meta = buildPublicPageMeta({
@@ -56,6 +58,12 @@ export default function CorpFlowPublicHome() {
       </OutcomeSection>
 
       <DeliverySteps steps={CORPflow_DELIVERY_STEPS} />
+
+      <PublishingVideoSection
+        videos={VIDEO_LIBRARY.slice(0, 1)}
+        title="See the delivery approach before you decide"
+        body="Our flagship briefing will walk through the governed path from discovery to live production validation. The written insight library is available now."
+      />
 
       <OutcomeSection label="Proof" title={CORPflow_PROOF_EXAMPLE.title}>
         <div style={cfCard}>
