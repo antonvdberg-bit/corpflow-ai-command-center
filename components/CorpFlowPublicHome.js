@@ -8,7 +8,6 @@ import OutcomeSection from './public/OutcomeSection.js';
 import DeliverySteps from './public/DeliverySteps.js';
 import PublicCtaBand from './public/PublicCtaBand.js';
 import PublicTrustBand from './public/PublicTrustBand.js';
-import PublishingVideoSection from './public/PublishingVideoSection.js';
 import {
   buildPublicPageMeta,
   CORPflow_DELIVERY_STEPS,
@@ -16,8 +15,10 @@ import {
   CORPflow_PROOF_EXAMPLE,
   listPublicOffers,
 } from '../lib/public/corpflow-public-market.js';
-import { VIDEO_LIBRARY } from '../lib/public/insights-content.js';
+import { shouldEmitCorpFlowBrandAssets } from '../lib/public/corpflow-brand-assets.js';
 import { cfBody, cfCard, cfGrid, CF } from './public/corpflow-public-styles.js';
+
+const FLAGSHIP_VIDEO_PATH = '/media/corpflowai/corpflowai-flagship-homepage-final-1080p.mp4';
 
 const meta = buildPublicPageMeta({
   title: 'CorpFlowAI — bounded delivery sprints',
@@ -27,11 +28,68 @@ const meta = buildPublicPageMeta({
   ogImage: '/assets/visuals/corpflow-home-hero.jpg',
 });
 
+function FlagshipVideoSection() {
+  return (
+    <section aria-labelledby="corpflow-flagship-video-title" style={{ marginTop: 36 }}>
+      <p
+        style={{
+          margin: 0,
+          color: CF.link,
+          fontSize: 12,
+          fontWeight: 800,
+          letterSpacing: '0.12em',
+          textTransform: 'uppercase',
+        }}
+      >
+        Flagship video
+      </p>
+      <h2
+        id="corpflow-flagship-video-title"
+        style={{
+          margin: '8px 0 10px',
+          color: CF.text,
+          fontSize: 'clamp(23px, 3vw, 30px)',
+          letterSpacing: '-0.02em',
+        }}
+      >
+        Meet CorpFlowAI
+      </h2>
+      <p style={{ ...cfBody, margin: '0 0 16px', maxWidth: 760 }}>
+        See how CorpFlowAI turns practical business problems into visible, governed delivery.
+      </p>
+      <div
+        style={{
+          aspectRatio: '16 / 9',
+          overflow: 'hidden',
+          borderRadius: 16,
+          border: '1px solid rgba(125,211,252,0.22)',
+          background: '#020b14',
+          boxShadow: '0 24px 64px rgba(2, 6, 23, 0.28)',
+        }}
+      >
+        <video
+          aria-label="Meet CorpFlowAI flagship video"
+          title="Meet CorpFlowAI"
+          controls
+          playsInline
+          preload="metadata"
+          style={{ display: 'block', width: '100%', height: '100%', objectFit: 'contain' }}
+        >
+          <source src={FLAGSHIP_VIDEO_PATH} type="video/mp4" />
+          Your browser does not support HTML5 video.{' '}
+          <a href={FLAGSHIP_VIDEO_PATH}>Open the approved CorpFlowAI flagship video</a>.
+        </video>
+      </div>
+    </section>
+  );
+}
+
 /**
  * @param {{ homepageAssets?: unknown, host?: string | null, search?: string | null }} props
  */
 export default function CorpFlowPublicHome({ host = null, search = null }) {
   const offers = listPublicOffers();
+  const showFlagshipVideo = shouldEmitCorpFlowBrandAssets(host, { search });
 
   return (
     <CorpFlowPublicPhotoShell
@@ -42,6 +100,8 @@ export default function CorpFlowPublicHome({ host = null, search = null }) {
       brandSearch={search}
     >
       <PublicHero {...CORPflow_HOMEPAGE_HERO} />
+
+      {showFlagshipVideo ? <FlagshipVideoSection /> : null}
 
       <OutcomeSection id="offers" label="What you can buy now" title="Three delivery sprints — starting prices in MUR">
         <p style={cfBody}>
@@ -64,12 +124,6 @@ export default function CorpFlowPublicHome({ host = null, search = null }) {
       </OutcomeSection>
 
       <DeliverySteps steps={CORPflow_DELIVERY_STEPS} />
-
-      <PublishingVideoSection
-        videos={VIDEO_LIBRARY.slice(0, 1)}
-        title="See the delivery approach before you decide"
-        body="Our flagship briefing will walk through the governed path from discovery to live production validation. The written insight library is available now."
-      />
 
       <OutcomeSection label="Proof" title={CORPflow_PROOF_EXAMPLE.title}>
         <div style={cfCard}>
