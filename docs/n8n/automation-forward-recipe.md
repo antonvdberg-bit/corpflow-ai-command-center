@@ -57,6 +57,10 @@ Before requesting Anton's approval:
 3. Run and record: one valid lead, one valid alert, missing text, unknown event,
    duplicate event, and a 12-event burst. Expected Telegram counts are
    `1, 1, 0, 0, 1 maximum, 5 maximum`.
+   On Windows, run
+   `powershell -ExecutionPolicy Bypass -File scripts/test-n8n-automation-forward-issue-611.ps1`;
+   it prompts privately for the new test URL and Header Auth value and does not
+   store either value in command history or the repository.
 4. Confirm invalid Header Auth returns 4xx and authenticated ignored events return
    2xx without reaching Telegram.
 5. Record sanitized execution IDs/timestamps and obtain Anton's explicit approval.
