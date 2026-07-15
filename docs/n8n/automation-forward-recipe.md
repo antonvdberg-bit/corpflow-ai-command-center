@@ -31,8 +31,8 @@ Required order:
 4. Deduplicate on envelope `id` (or the lead/alert stable fallback) before sending.
 5. Apply a burst cap before Telegram.
 6. Use `={{ $json.telegram_text }}` (one leading `=`) and a final nonblank IF.
-7. Respond immediately with 2xx for authenticated accepted/ignored events so
-   callers do not retry; authentication failures remain 4xx.
+7. Respond with bounded 2xx after routing completes so sequential callers cannot
+   overlap the static-data guard; authentication failures remain 4xx.
 
 An inactive, secret-free test workflow implementing these guards is available at
 `docs/n8n/templates/automation-forward-issue-611-safe-test.template.json`.
@@ -62,7 +62,8 @@ Before requesting Anton's approval:
    it prompts privately for the new test URL and Header Auth value and does not
    store either value in command history or the repository.
 4. Confirm invalid Header Auth returns 4xx and authenticated ignored events return
-   2xx without reaching Telegram.
+   2xx without reaching Telegram. The test Webhook must use **When Last Node
+   Finishes**, not **Immediately**, so the matrix does not race static-data saves.
 5. Record sanitized execution IDs/timestamps and obtain Anton's explicit approval.
 
 Only after approval: create a new production webhook path and forward secret,

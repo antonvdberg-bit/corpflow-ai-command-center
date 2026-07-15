@@ -56,11 +56,11 @@ function validAlert(id = 'alert-event-1') {
   };
 }
 
-test('issue 611 template is inactive, authenticated, and responds immediately', () => {
+test('issue 611 template is inactive, authenticated, and responds after routing', () => {
   assert.equal(template.active, false);
   const webhook = template.nodes.find((node) => node.name === 'Authenticated Test Webhook');
   assert.equal(webhook.parameters.authentication, 'headerAuth');
-  assert.equal(webhook.parameters.responseMode, 'onReceived');
+  assert.equal(webhook.parameters.responseMode, 'lastNode');
   assert.equal(template.meta.production_reactivation_authorized, false);
 
   const telegramNodes = template.nodes.filter((node) => node.type === 'n8n-nodes-base.telegram');

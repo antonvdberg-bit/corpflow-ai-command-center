@@ -7,7 +7,7 @@
         "httpMethod": "POST",
         "path": "issue-611-automation-forward-test",
         "authentication": "headerAuth",
-        "responseMode": "onReceived",
+        "responseMode": "lastNode",
         "options": {}
       },
       "id": "61100000-0000-4000-8000-000000000001",
@@ -24,7 +24,7 @@
           "name": "REPLACE_WITH_TEST_HEADER_AUTH_CREDENTIAL_NAME"
         }
       },
-      "notes": "Inactive test-only webhook. Attach a test Header Auth credential in n8n. Never reuse or expose the production webhook path or secret."
+      "notes": "Inactive test-only webhook. Attach a test Header Auth credential in n8n. Respond after the last node so sequential callers cannot overlap the static-data dedupe/rate guard. Never reuse or expose the production webhook path or secret."
     },
     {
       "parameters": {
