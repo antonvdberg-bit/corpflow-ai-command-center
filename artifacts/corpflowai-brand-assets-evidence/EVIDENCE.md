@@ -35,6 +35,10 @@ Unit tests continue to assert Core / Lux / Living Word / other tenants do not em
 - Local fix exists: YES
 - Merged to main: NO
 - Production deployment ID: n/a (do not deploy)
-- Preview: new deployment after this commit (do not reuse FA2M9YQBR9FunS1Z2RYaXv5Y6NSr)
+- Commit: f539e14852454c110655c561a3716a1f214171b4
+- Asset correction commit: 92136afa64a3e0b2bca00b5942d06b1f4e4970fc
+- Preview deployment ID: AutKRbCFPeR7MdbtDzPSWwRm3BTk
+- Preview URL: https://corpflow-ai-command-center-git-cursor-corpflo-0a45c3-corpflowai.vercel.app
+- Do not reuse: FA2M9YQBR9FunS1Z2RYaXv5Y6NSr or earlier
 - Final verdict: PARTIAL (preview approval pending)
 ```
