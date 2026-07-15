@@ -25,7 +25,9 @@
 - `favicon-16x16.png` / `favicon-32x32.png`
 - `favicon-size-contact-sheet-white.png` (16/32/180 on light and dark)
 - `approved-source/` — original Anton attachments used for the bake
-- `browser-tab-screenshot.png` + strip / zoom (headed Chromium under Xvfb against local `next start`)
+- `browser-tab-screenshot.png` + strip (headed Chromium under Xvfb against local `next start`; viewport content — tab chrome not available in Playwright page screenshots)
+- `favicon-tab-mock.png` + `favicon-size-light-dark-zoom.png` + `browser-tab-favicon-zoom.png` (served Anton-baked 16/32 on light and dark)
+- `served-favicon-32.png` (bytes fetched from local `next start` at `?v=white-alpha-v5`)
 
 ## Host boundary
 

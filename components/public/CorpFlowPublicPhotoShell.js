@@ -21,6 +21,8 @@ import {
  *   headerCta?: { label: string, href: string } | null,
  *   footerExtra?: string,
  *   pageClassName?: string,
+ *   brandHost?: string | null,
+ *   brandSearch?: string | null,
  * }} props
  */
 export default function CorpFlowPublicPhotoShell({
@@ -31,13 +33,15 @@ export default function CorpFlowPublicPhotoShell({
   headerCta,
   footerExtra,
   pageClassName,
+  brandHost = null,
+  brandSearch = null,
 }) {
   const hero = buildPublicVisualHero(visualKey);
   const className = pageClassName || `cf-public-photo-${visualKey}`;
 
   return (
     <>
-      <CorpFlowBrandMetadata />
+      <CorpFlowBrandMetadata host={brandHost} search={brandSearch} />
       <Head>
         <title>{meta.title}</title>
         <meta name="description" content={meta.description} />
