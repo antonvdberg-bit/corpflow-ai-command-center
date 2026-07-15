@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Prepare the updated LuxeMaurice user guide and training walkthrough package for Jan’s verification. This packet records readiness only; it does not authorize or perform transmission.
+Prepare the updated LuxeMaurice user guide and training walkthrough package for Jan’s verification. This packet records readiness and the confirmed follow-up email transmission.
 
 ## Documentation review result
 
@@ -43,21 +43,21 @@ The PDF/HTML verification edition is dated 15 July 2026. The rebuilt PDF is 19 p
 - [x] Human-led follow-up and no-platform-messaging limitations present
 - [x] PDF/HTML rebuilt locally with graphics 09–11
 - [x] Follow-up email draft prepared
-- [ ] Anton reviewed updated PDF
-- [ ] Anton approved follow-up email
-- [ ] Follow-up email sent by Anton / ChatGPT
-- [ ] Transmission evidence recorded below
+- [x] Anton reviewed updated PDF
+- [x] Anton approved follow-up email
+- [x] Follow-up email sent by Anton / ChatGPT
+- [x] Transmission evidence recorded below
 - [ ] Jan verification response captured
 
-## Transmission evidence — fill only after actual send
+## Transmission evidence
 
 | Field | Value |
 |-------|-------|
-| Sent at | |
+| Sent at | 2026-07-15 approximately 16:23 Africa/Johannesburg |
 | Channel | Email |
-| Operator | |
-| Message/thread evidence | |
-| Attachment confirmed | |
+| Operator | Anton van den Berg |
+| Message/thread evidence | Anton confirmed in ChatGPT: "done - sent" |
+| Attachment confirmed | `LUXEMAURICE_TRAINING_PACK_FOR_JAN.pdf` attached manually before send per ChatGPT handoff |
 
 ## Jan response classification
 
@@ -69,9 +69,8 @@ Record one result after Jan replies:
 
 ## Non-actions confirmed
 
-- No email, WhatsApp, or SMS was sent while preparing this packet.
-- Jan was not contacted.
-- Anton approval is still required before any follow-up send.
+- Follow-up email sent manually by Anton after PR #609 merged and Anton approved the corrected PDF.
+- No WhatsApp or SMS was sent for this follow-up.
 - No messaging automation was triggered.
-- No production deployment was performed.
-- No runtime, database, schema, environment, or secret changes were made.
+- No production deployment was performed by the follow-up send evidence update.
+- No runtime, database, schema, environment, or secret changes were made by the follow-up send evidence update.
