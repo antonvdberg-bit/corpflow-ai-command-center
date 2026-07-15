@@ -39,8 +39,10 @@ Unit tests assert Core / Lux / Living Word / other tenants do not emit `/brand/c
 - Local fix exists: YES
 - Merged to main: NO
 - Production deployment ID: n/a (do not deploy)
-- Commit: (see latest push on this branch)
+- Commit: 9dbb3e51e634bf8ce46c637928357a5415e073a3
+- Preview deployment ID: CDeAyKsrHcxxLTWBkv4DFVHnpidr
 - Preview URL: https://corpflow-ai-command-center-git-cursor-corpflo-0a45c3-corpflowai.vercel.app
-- Do not reuse prior deployment IDs without a new Ready build for this commit
+- Do not reuse: AutKRbCFPeR7MdbtDzPSWwRm3BTk, FA2M9YQBR9FunS1Z2RYaXv5Y6NSr, 64Y9CSpimgQbDZtUFJhJRCcXfmFx
+- Asset version query: ?v=white-alpha-v5 (hard-refresh / new tab after Ready)
 - Final verdict: PARTIAL (preview approval pending; no production)
 ```
