@@ -10,6 +10,9 @@
 | `06-advisor-pipeline-live-request.png` | `/client/luxe-maurice-ai/crm` | Signed-in LuxeMaurice tenant | LuxeMaurice Training User / training@example.invalid / LM-REQ-PGVZ7HMI | Persisted request card under Received for advisor review | Advisor guide §3–4; optional Video 2 scene 2–3 | CAPTURED · BROWSER_CHROME_CROPPED · FOCUSED_TO_TRAINING_REQUEST · PRIVACY_REVIEWED · READY_FOR_ANTON_REVIEW | Browser chrome removed and frame focused on the training request under Received for advisor review; fictional training data only; PRE_CROP preserved under `05-graphics/source-review/` |
 | `07-demonstration-records.png` | `/client/luxe-maurice-ai/crm` | Signed out | Sample layout only | Demonstration records section | Advisor guide §5; Video 2 scene 4 | CAPTURED · READY_FOR_ANTON_REVIEW | None required |
 | `08-change-console-lead-workflow.png` | `/change` | Operator /change session | LuxeMaurice Training User / training@example.invalid | Focused lead + OPERATOR ACTIONS (select lead → list collapses) | Operator guide §4–6; Video 3 scene 2–4 | CAPTURED · PRIVACY_REVIEWED · CROPPED_TO_TRAINING_LEAD_AND_OPERATOR_ACTIONS · READY_FOR_ANTON_REVIEW | CROPPED_TO_TRAINING_LEAD_AND_OPERATOR_ACTIONS — training lead + operator actions only |
+| `09-change-content-sprint-upload.png` | `/change` | No live session required | No client PII; C1/C2 workflow labels only | Illustrated existing Add content + Upload content workflow | Content update guide §2 | GENERATED_FROM_EXISTING_UI_COPY · PRIVACY_REVIEWED | Clearly labelled illustrated guide; no live data |
+| `10-change-attachment-review-publish.png` | `/change` | No live session required | Fictional attachment only | Illustrated existing attachment review, property link, and image publish controls | Content update guide §2 | GENERATED_FROM_EXISTING_UI_COPY · PRIVACY_REVIEWED | Clearly labelled illustrated guide; no live data |
+| `11-properties-admin-listing-editor.png` | `/properties/admin` | No live session required | Fictional training listing only | Illustrated existing listing editor and visibility controls | Content update guide §1 | GENERATED_FROM_EXISTING_UI_COPY · PRIVACY_REVIEWED | Clearly labelled illustrated guide; no live data |
 
 ---
 
@@ -28,9 +31,10 @@
 - **CROPPED_TO_TRAINING_LEAD_AND_OPERATOR_ACTIONS** — graphic 08 focused to training lead + OPERATOR ACTIONS
 - **PRIVACY_REVIEWED** — inspected for fictional training data only; no real client PII
 - **READY_FOR_ANTON_REVIEW** — available in the review edition for Anton’s final client-send review
-- **PENDING_RECAPTURE** — PNG missing or needs a fresh capture (not used while all eight graphics are present)
+- **GENERATED_FROM_EXISTING_UI_COPY** — illustrated guide built from the existing route/control labels; not represented as a live screenshot
+- **PENDING_RECAPTURE** — PNG missing or needs a fresh capture
 
-As of 2026-07-14, **all eight graphics are CAPTURED**. No graphics are pending recapture. Graphic **06** crop is **complete** (`BROWSER_CHROME_CROPPED · FOCUSED_TO_TRAINING_REQUEST`).
+Graphics 01–08 are captures. Graphics 09–11 are privacy-safe illustrated guides generated from the existing route/control labels so the client can see the workflow without exposing production data. Graphic **06** crop is complete.
 
 ---
 
@@ -59,4 +63,4 @@ Optional 04:
 LUX_TRAINING_SUBMIT_FORM=1 node scripts/luxe-maurice-training-pack-capture.mjs
 ```
 
-Authenticated captures 06 and 08 remain **manual** for future recaptures — see `GRAPHICS_CAPTURE_CHECKLIST.md`.
+Authenticated captures 06 and 08 remain **manual**. Graphics 09–11 are generated illustrated guides.

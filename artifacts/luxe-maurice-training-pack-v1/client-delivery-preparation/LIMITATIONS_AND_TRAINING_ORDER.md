@@ -19,6 +19,11 @@
 | Automated confirmation to the guest after submit | **Not live** |
 | Automated advisor notifications | **Not live** |
 | Follow-up after a request is submitted | **Human-led** by your team |
+| General self-service CMS for every page/content type | **Not available** |
+| Property/listing text + visibility | Existing protected `/properties/admin` editor |
+| Image/video/PDF upload + review | Existing governed `/change` attachment workflow |
+| Public images and galleries | Explicitly reviewed, linked, and published `image/*` only |
+| Public PDF download or video player | **Not implemented** — placement/hosting surface must be prepared and approved |
 
 Do not expect the platform to send messages on your behalf today. Discreet follow-up is handled by advisors and operators using the contact details provided on the request.
 
@@ -36,7 +41,10 @@ Do not expect the platform to send messages on your behalf today. Discreet follo
 3. **Operator workflow (guide + graphic 08)**  
    Open `/change` → LEADS → select training lead → confirm focus + OPERATOR ACTIONS → practise stage / next-action updates → use Show all leads / Clear selection / Focus list on this lead.
 
-4. **Live practice round**  
+4. **Website content workflow (graphics 09–11)**
+   `/properties/admin` listing text/visibility → `/change` Upload content → attachment review → image link/publish → verify live page.
+
+5. **Live practice round**
    Submit one training request, review it in Advisor Pipeline, update it in Change Console, then agree how your team will handle real human-led follow-up.
 
 **Videos:** Not required for this pack. Optional scripts remain in `scripts/` if you later want to record walkthroughs.

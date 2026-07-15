@@ -1,10 +1,12 @@
 # Client delivery preparation — LuxeMaurice Training Pack
 
-Draft **Jan-facing** package assembled from the training pack review edition.
+**Jan-facing** package assembled from the training pack review edition.
 
-**Status:** preparation only.  
-**External send:** requires Anton’s explicit approval.  
-**No email, WhatsApp, or SMS has been sent.** Outbound messaging automation is not live.
+**Original send:** Anton sent the initial PDF to Jan by email on 2026-07-14.
+
+**Follow-up status:** corrected verification edition now explains the existing `/change` governed upload workflow and `/properties/admin` listing editor; **not sent**.
+
+**External follow-up:** requires Anton’s explicit approval and human transmission. Outbound messaging automation is not live.
 
 ---
 
@@ -17,9 +19,12 @@ Draft **Jan-facing** package assembled from the training pack review edition.
 | File inventory | [`FILE_INVENTORY.md`](./FILE_INVENTORY.md) |
 | Delivery checklist | [`DELIVERY_CHECKLIST.md`](./DELIVERY_CHECKLIST.md) |
 | Draft email to Jan | [`DRAFT_EMAIL_TO_JAN.md`](./DRAFT_EMAIL_TO_JAN.md) |
+| Draft verification follow-up email | [`DRAFT_FOLLOW_UP_EMAIL_TO_JAN.md`](./DRAFT_FOLLOW_UP_EMAIL_TO_JAN.md) |
+| Verification follow-up send packet | [`FOLLOW_UP_SEND_PACKET_2026-07-15.md`](./FOLLOW_UP_SEND_PACKET_2026-07-15.md) |
 | Draft WhatsApp to Jan | [`DRAFT_WHATSAPP_TO_JAN.md`](./DRAFT_WHATSAPP_TO_JAN.md) |
 | Limitations and training order | [`LIMITATIONS_AND_TRAINING_ORDER.md`](./LIMITATIONS_AND_TRAINING_ORDER.md) |
 | Guides | [`guides/`](./guides/) |
+| Website content-update guide | [`guides/HOW_TO_UPDATE_WEBSITE_CONTENT.md`](./guides/HOW_TO_UPDATE_WEBSITE_CONTENT.md) |
 | Video scripts | [`scripts/`](./scripts/) |
 | Status / limitations excerpt | [`status/`](./status/) |
 | Graphics (copies for package) | [`graphics/`](./graphics/) — PNGs placed when packaging for send |
@@ -28,12 +33,12 @@ Internal Anton review remains under [`../review/`](../review/). Do not treat thi
 
 ---
 
-## Before any send
+## Before the verification follow-up
 
-1. Anton completes review via [`../review/LUXEMAURICE_TRAINING_PACK_REVIEW.md`](../review/LUXEMAURICE_TRAINING_PACK_REVIEW.md).
-2. Open `AR-*` items in [`../review/ANTON_REVIEW_CHANGES.md`](../review/ANTON_REVIEW_CHANGES.md) are resolved.
-3. [`DELIVERY_CHECKLIST.md`](./DELIVERY_CHECKLIST.md) items through inventory and draft approval are checked by Anton.
-4. Anton explicitly checks **Approved for actual external send** in the review changes file **and** on the delivery checklist.
-5. Only then may a human send the approved drafts.
+1. Anton reviews the rebuilt PDF and the follow-up email draft.
+2. [`DELIVERY_CHECKLIST.md`](./DELIVERY_CHECKLIST.md) records follow-up approval.
+3. A human attaches `LUXEMAURICE_TRAINING_PACK_FOR_JAN.pdf` and sends the approved draft.
+4. Send evidence is recorded in [`FOLLOW_UP_SEND_PACKET_2026-07-15.md`](./FOLLOW_UP_SEND_PACKET_2026-07-15.md).
+5. Jan’s verification response is captured as accepted, changes required, or unclear.
 
-Until that gate is crossed, everything here is a **draft**.
+Until Anton approves and a human transmits it, the follow-up remains a **draft**.

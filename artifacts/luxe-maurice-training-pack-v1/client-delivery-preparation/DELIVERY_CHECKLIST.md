@@ -21,9 +21,33 @@
 
 ---
 
+## Updated verification follow-up
+
+- [x] Existing PDF/HTML checked against Jan's user-guide and training-material request
+- [x] Client, advisor, and operator journeys included
+- [x] Screenshots 01–08 included
+- [x] Human-led follow-up and no-platform-messaging limitations included
+- [x] Practical walkthrough/training order included
+- [x] Existing `/change` governed upload workflow included
+- [x] Existing `/properties/admin` listing editor included
+- [x] Photos, PDF brochures, videos, text updates, and property/listing details covered
+- [x] Verification checklist and Approved / Changes needed response included
+- [x] No parallel content system, general CMS, or auto-publish claimed
+- [x] Illustrated graphics 09–11 show the existing upload/review/publish/editor controls without production data
+- [x] Updated PDF/HTML rebuilt locally with graphics 09–11
+- [x] Follow-up email draft prepared
+- [ ] Anton reviewed updated PDF
+- [ ] Anton approved follow-up email
+- [ ] Updated verification follow-up sent to Jan
+- [ ] Follow-up transmission evidence recorded
+- [ ] Jan verification response captured
+
+---
+
 ## Notes
 
 - Outbound messaging automation is **not live** as a platform capability for training packs.
 - Client follow-up after a Private Access Request remains **human-led**.
 - Anton confirmed email transmission to Jan in ChatGPT on 2026-07-14 at approximately 05:10 Africa/Johannesburg time.
-- Jan feedback remains open and should be monitored separately.
+- PR #609 was corrected after Anton review because the first follow-up version did not answer Jan's content-upload/content-display question.
+- The corrected 2026-07-15 verification follow-up remains a draft. No follow-up email, WhatsApp, or SMS has been sent.

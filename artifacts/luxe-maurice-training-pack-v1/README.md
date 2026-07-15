@@ -14,9 +14,9 @@ Version-controlled training materials for Jan and the LuxeMaurice team. Document
 | **Review edition (HTML)** | [`review/LUXEMAURICE_TRAINING_PACK_REVIEW.html`](./review/LUXEMAURICE_TRAINING_PACK_REVIEW.html) |
 | **Record changes (`AR-*`)** | [`review/ANTON_REVIEW_CHANGES.md`](./review/ANTON_REVIEW_CHANGES.md) |
 | **How the review loop works** | [`review/README.md`](./review/README.md) |
-| **Jan delivery package (drafts)** | [`client-delivery-preparation/`](./client-delivery-preparation/) |
+| **Jan delivery package and follow-up packet** | [`client-delivery-preparation/`](./client-delivery-preparation/) |
 
-**No external send has occurred.** Email, WhatsApp, and SMS have not been sent. Outbound messaging automation is not live. Anton approval is still required before any client send.
+**Delivery status:** Anton sent the original training pack to Jan by email on 2026-07-14; evidence is recorded in `client-delivery-preparation/SEND_PACKET_2026-07-14.md`. The updated verification follow-up is prepared but **has not been sent**. Outbound messaging automation is not live, and Anton approval is required before the follow-up email is sent.
 
 ---
 
@@ -49,17 +49,18 @@ These repo artifacts are for **Anton review and packaging**. They are not public
 | Folder | Purpose |
 |--------|---------|
 | `review/` | **Single Anton review entry** + change-request loop |
-| `client-delivery-preparation/` | Draft Jan package, cover note, draft messages, checklist |
+| `client-delivery-preparation/` | Jan package, send evidence, verification follow-up draft, checklist |
 | `01-client-review-guide/` | Client-facing journey — submit a Private Access Request |
 | `02-advisor-workflow-guide/` | Advisor review workspace — read persisted requests |
 | `03-operator-workflow-guide/` | Operator path via `/change` with focused-lead OPERATOR ACTIONS |
 | `04-training-video-scripts/` | Optional screen-recording scripts (not required for send while graphics 01–08 are complete) |
 | `05-graphics/` | Screenshot manifest, capture checklist, PNG captures |
 | `06-backend-status/` | What is live now vs planned future enhancements |
+| `07-content-update-workflow/` | Managed workflow for photos, documents, videos, copy, listings, and verification |
 
 ---
 
-## Safe to send Jan (after Anton approval)
+## Safe to send Jan (after follow-up approval)
 
 - Materials assembled under `client-delivery-preparation/` (guides, scripts, status, approved graphics)
 - Source equivalents in `01`–`04` and `06` once Anton confirms they match the approved review edition
@@ -75,28 +76,29 @@ These repo artifacts are for **Anton review and packaging**. They are not public
 - Any screenshot that has not completed Anton’s final privacy review
 - Any test output, CI logs, or implementation notes
 - Secrets, tokens, environment variable names, or session cookies
-- Draft email / WhatsApp text before Anton approves **actual external send**
+- Draft follow-up email before Anton approves **actual external send**
 
 ---
 
-## Anton review checklist
+## Delivery and follow-up status
 
-Complete before any client send. Leave items unchecked until Anton confirms.
+The original pack review and send are complete. The verification follow-up remains gated on Anton approval and human transmission.
 
 ```text
-[ ] All eight graphics are present in 05-graphics/captures/
-[ ] All graphics use fictional training data only
-[ ] No unrelated client PII is visible in any graphic
-[ ] Graphic 06 browser-chrome crop completed (BROWSER_CHROME_CROPPED · FOCUSED_TO_TRAINING_REQUEST)
-[ ] Training guides and screenshot sequence (01–08) are ready and match live behaviour
-[ ] Video recordings are optional (not required for client-send preparation; scripts remain for later use if wanted)
-[ ] Limitations are stated truthfully (do not claim platform outbound messaging is enabled; Advisor Pipeline remains read-only)
-[ ] Anton approved pack for client-send preparation
-[ ] Anton approved actual external send
-[ ] No client send has occurred
+[x] All eight graphics are present and use fictional training data
+[x] Graphic 06 browser-chrome crop completed (BROWSER_CHROME_CROPPED · FOCUSED_TO_TRAINING_REQUEST)
+[x] Training guides and screenshot sequence (01–08) match the documented workflow
+[x] Website content guide explains the existing /change and /properties/admin workflows
+[x] Illustrated workflow graphics 09–11 generated from existing UI labels and privacy-reviewed
+[x] Video content remains scripts/storyboards; no recorded videos are claimed
+[x] Limitations state that follow-up is human-led and platform outbound messaging is not live
+[x] Original pack sent by Anton on 2026-07-14
+[ ] Anton approved updated verification follow-up
+[ ] Updated verification follow-up sent to Jan
+[ ] Jan verification response captured
 ```
 
-**Status:** All eight required graphics are present. Graphic **06** is cropped (`BROWSER_CHROME_CROPPED · FOCUSED_TO_TRAINING_REQUEST · PRIVACY_REVIEWED · READY_FOR_ANTON_REVIEW`). **Recorded videos are not required** — the screenshot progression plus guides are sufficient for client-send preparation. Final client-send approvals remain **required** — **no client send from this pack**.
+**Status:** The corrected follow-up reuses the existing `/change` governed upload workflow and `/properties/admin` listing editor. No parallel content system is part of the package. Public PDF/video display is not claimed. Graphics 09–11 and the PDF/HTML rebuild are complete; Anton review remains open. **No follow-up send has occurred.**
 
 ---
 
