@@ -13,6 +13,7 @@ import {
 import { buildDiscoveryCallMailto } from '../lib/public/rapid-delivery-offers.js';
 import CorpFlowPublicFooter from './public/CorpFlowPublicFooter.js';
 import CorpFlowPublicHeader from './public/CorpFlowPublicHeader.js';
+import CorpFlowBrandMetadata from './public/CorpFlowBrandMetadata.js';
 import DiscoveryIntakeForm from './public/DiscoveryIntakeForm.js';
 import PublicMarketingPhotoGlassShell from './beauty/PublicMarketingPhotoGlassShell.js';
 import GlassPanel from './beauty/GlassPanel.js';
@@ -99,6 +100,7 @@ export default function RapidDeliveryOfferPage({ offer }) {
 
   return (
     <>
+      <CorpFlowBrandMetadata />
       <Head>
         <title>{meta.title}</title>
         <meta name="description" content={meta.description} />

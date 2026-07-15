@@ -1,0 +1,21 @@
+{
+  "name": "CorpFlowAI",
+  "short_name": "CorpFlowAI",
+  "description": "Bounded delivery sprints for lead response, premium web conversion, and customer recovery.",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#06111f",
+  "theme_color": "#06111f",
+  "icons": [
+    {
+      "src": "/brand/corpflowai/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/brand/corpflowai/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

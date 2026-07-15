@@ -3,6 +3,7 @@ import Head from 'next/head';
 import PublicMarketingPhotoGlassShell from '../beauty/PublicMarketingPhotoGlassShell.js';
 import CorpFlowPublicHeader from './CorpFlowPublicHeader.js';
 import CorpFlowPublicFooter from './CorpFlowPublicFooter.js';
+import CorpFlowBrandMetadata from './CorpFlowBrandMetadata.js';
 import {
   buildPublicVisualHero,
   CORPFLOW_PUBLIC_HERO_SCRIM_DESKTOP,
@@ -36,6 +37,7 @@ export default function CorpFlowPublicPhotoShell({
 
   return (
     <>
+      <CorpFlowBrandMetadata />
       <Head>
         <title>{meta.title}</title>
         <meta name="description" content={meta.description} />

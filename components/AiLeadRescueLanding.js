@@ -3,6 +3,7 @@ import Head from 'next/head';
 
 import { trackEvent } from '../lib/analytics/index.js';
 import PublicSiteFooter from './PublicSiteFooter.js';
+import CorpFlowBrandMetadata from './public/CorpFlowBrandMetadata.js';
 import { formatCurrencyDisclosure } from '../lib/public/merchant-identity.js';
 import VisualAssetRenderer, { isAiGeneratedManifest } from './VisualAssetRenderer.js';
 import AssetProvenanceDisclosure from './AssetProvenanceDisclosure.js';
@@ -182,6 +183,7 @@ export default function AiLeadRescueLanding({ host = '', leadRescueAssets }) {
 
   return (
     <>
+      <CorpFlowBrandMetadata />
       <Head>
         <title>AI Lead Rescue · Powered by CorpFlowAI</title>
         <meta

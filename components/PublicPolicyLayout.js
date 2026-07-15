@@ -2,6 +2,7 @@ import React from 'react';
 import Head from 'next/head';
 import CorpFlowPublicHeader from './public/CorpFlowPublicHeader.js';
 import CorpFlowPublicFooter from './public/CorpFlowPublicFooter.js';
+import CorpFlowBrandMetadata from './public/CorpFlowBrandMetadata.js';
 import { buildPublicPageMeta } from '../lib/public/corpflow-public-market.js';
 
 /**
@@ -216,6 +217,7 @@ export default function PublicPolicyLayout({
 
   return (
     <div style={baseStyles.page}>
+      <CorpFlowBrandMetadata />
       <Head>
         <title>{meta.title}</title>
         <meta name="description" content={meta.description} />
