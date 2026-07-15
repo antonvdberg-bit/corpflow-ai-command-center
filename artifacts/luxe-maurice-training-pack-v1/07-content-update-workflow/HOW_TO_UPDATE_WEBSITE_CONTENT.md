@@ -1,107 +1,99 @@
-# How LuxeMaurice content gets added to the website
+# How to upload and update LuxeMaurice website content
 
-## Current workflow
+LuxeMaurice already has two protected content tools. No separate CMS or second upload system is needed.
 
-Today, LuxeMaurice website content updates are handled as a **managed CorpFlowAI update workflow**. There are protected internal tools for controlled listing fields and governed media review, but they are **not a general self-service CMS or upload portal** for all website content.
+## Where to go
 
-Jan sends the approved assets and content details to CorpFlowAI. CorpFlowAI applies the update, checks the correct visibility and privacy settings, verifies it on the live site, and sends Jan the preview or live link for confirmation.
+- **Property/listing text and visibility:** `https://lux.corpflowai.com/properties/admin`
+- **Images, videos, and PDFs/documents:** `https://lux.corpflowai.com/change`
 
-A broader self-service content upload experience can be considered as a future enhancement after the current editor and media workflow has been completed and verified end to end with Jan.
+Sign in with the authorised LuxeMaurice tenant/editor account. Jan's account is allowlisted for the property editor in the current code. The complete Jan production walk-through still needs to be verified; Anton can co-pilot if the session or governance steps need support.
 
-Nothing is published automatically when content is provided.
+## 1. Add or edit property/listing text
 
----
+1. Open `/properties/admin`.
+2. Select an existing opportunity or choose **New private opportunity**.
+3. Complete the listing fields: title, slug, region, property type, listing status, price guidance, teaser, description, highlights, bedrooms, bathrooms, and area.
+4. Select **Save**.
+5. Set visibility deliberately:
+   - `draft` — saved, not public;
+   - `preview` — available for authorised preview;
+   - `published` — eligible for the public catalogue/detail page;
+   - `archived` — retired from public use.
+6. Preview the opportunity before publication, then verify `/properties` and `/property/<slug>` after it is published.
 
-## 1. Property photos and image galleries
+Nothing publishes merely because text was entered or saved.
 
-Please provide:
+## 2. Upload and publish images/photos
 
-- high-resolution JPEG, PNG, or WebP images;
-- the property or listing reference/title;
-- the preferred order: **hero image first**, followed by the required gallery order;
-- optional captions and image descriptions;
-- any privacy, sensitivity, usage-rights, or expiry notes;
-- which images may be public, private, advisor-only, or request-only.
+1. Open `/change`.
+2. Select the relevant LuxeMaurice content sprint ticket:
+   - **C1** — homepage imagery;
+   - **C2** — first real private opportunity;
+   - **C3** — placeholder/public-state cleanup;
+   - **C4** — Jan end-to-end validation.
+3. In **Add content**, select **Upload content**.
+4. Choose an image from the operating-system file picker. The current default endpoint accepts `image/*`; the UI also accepts video and PDF. The current default limit is 3 MB per file and 8 files per ticket unless existing deployment configuration overrides it.
+5. Confirm the green upload message appears and the file is visible in **Attachments**.
+6. Select **Mark reviewed** after approval.
+7. Link the reviewed image to the property/opportunity slug.
+8. Choose the allowed public slot:
+   - `hero`;
+   - `card`;
+   - `gallery`.
+9. Add public alt text/caption where required. For galleries, set order and one cover image.
+10. Select **Publish**. Upload, review, and link do not publish automatically.
+11. Verify the image on `/`, `/properties`, or `/property/<slug>` as appropriate.
 
-CorpFlowAI reviews the files, links approved images to the correct property and placement, publishes only the approved public images, and checks the hero and gallery order on the live page.
+## 3. Upload PDFs/documents
 
----
+The existing `/change` upload endpoint accepts exact MIME `application/pdf`.
 
-## 2. PDF brochures and other documents
+1. Open the relevant ticket and select **Upload content**.
+2. Choose the PDF.
+3. Confirm it appears in **Attachments**.
+4. Review it and keep it as a governed private attachment with a secure view/download link.
 
-Please provide:
+**Current public-display limit:** PDFs/documents do not have a public Luxe brochure/download component today. If Jan wants a PDF shown publicly, CorpFlowAI must first add or configure the approved public link/download surface. Do not treat attachment upload as public publication.
 
-- the PDF file;
-- the public display name;
-- the property or page it belongs to;
-- whether it should be **downloadable**, **view-only**, or **private/request-only**;
-- any version number, replacement date, or expiry note.
+## 4. Upload or provide videos
 
-PDF files are not automatically displayed when supplied. CorpFlowAI confirms the required access level and prepares the appropriate link or document presentation before publication. Private documents remain outside the public website unless explicitly approved.
+The existing `/change` endpoint accepts `video/*`, so a video can be stored and reviewed as a governed ticket attachment.
 
----
+**Current public-display limit:** Luxe public property media only serves reviewed and explicitly published `image/*`. There is no current public video player, transcoding flow, or video publish slot.
 
-## 3. Videos and walkthrough links
+Current safe options:
 
-Preferred:
+- provide a YouTube, Vimeo, or approved private-hosted link for CorpFlowAI/operator placement after approval; or
+- upload the raw video to the ticket for private review, then agree the hosting/embed step separately.
 
-- a YouTube, Vimeo, or approved private-hosted link if the video is already hosted;
-- the video title;
-- the property, listing, or page it belongs to;
-- a thumbnail image if available;
-- the visibility preference: **public**, **private**, or **request-only**.
+Do not claim that uploading a video makes it appear publicly.
 
-If Jan provides a raw video file, CorpFlowAI must prepare, host, or embed it before it can appear on the website. Raw video files do not publish automatically, and the current property-image workflow does not directly display video as public property media.
+## 5. What Jan can do and what remains governed
 
----
+With the authorised account, Jan can use `/properties/admin` to create/edit listing text and visibility, and can use `/change` to upload supported files, review attachments, link approved images, and use the explicit image publish controls.
 
-## 4. Text and page-copy updates
+CorpFlowAI/operator remains responsible for:
 
-Please provide:
+- confirming rights, privacy, and public wording;
+- ensuring the correct property and slot are selected;
+- adding any missing public PDF or video link/embed surface;
+- helping with credentials/session issues;
+- verifying the live result before the work is treated as complete.
 
-- the exact replacement text, or clear bullet-point changes;
-- the target page and section;
-- confirmation that the wording is approved;
-- the required language or languages, if more than one is needed;
-- any wording that must remain private or advisor-only.
+There is no full general-purpose CMS and no auto-publish.
 
-CorpFlowAI applies the approved text to the correct page, checks formatting and links, and sends the resulting page for verification.
-
----
-
-## 5. Property and listing details
-
-For a new or updated opportunity, please provide:
-
-- property name/title;
-- location;
-- price or status, where approved for publication;
-- bedrooms, bathrooms, and area, where applicable;
-- short description;
-- long description;
-- key features;
-- contact or call-to-action preference;
-- visibility: **public**, **private**, **advisor-only**, **coming soon**, **sold**, or **hidden**.
-
-CorpFlowAI creates or updates the controlled listing record, applies the approved visibility, connects the approved media, and checks the request/private-access path. A listing does not become public merely because its details were supplied.
-
----
-
-## 6. Verification after an update
-
-After the update is applied, CorpFlowAI sends Jan a preview or live URL.
+## 6. Verify after publication
 
 Jan checks:
 
-- content accuracy;
-- image and gallery order;
-- that each document or video opens correctly;
-- that visibility and privacy are correct;
-- that the call to action and request flow are correct.
+- text, price/status, and listing details;
+- hero, card, and gallery image choice/order;
+- visibility and privacy;
+- the live page and call-to-action;
+- any approved document or video link that CorpFlowAI has separately placed.
 
-Jan then replies with one of:
+Jan then replies:
 
-- **Approved** — the update is accepted;
-- **Changes needed** — list the exact corrections required.
-
-CorpFlowAI applies any agreed corrections and sends the updated link for final confirmation.
+- **Approved** — the result is accepted; or
+- **Changes needed** — list the exact correction.

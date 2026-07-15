@@ -28,11 +28,13 @@
 - [x] Screenshots 01–08 included
 - [x] Human-led follow-up and no-platform-messaging limitations included
 - [x] Practical walkthrough/training order included
-- [x] Managed website content-update workflow included
+- [x] Existing `/change` governed upload workflow included
+- [x] Existing `/properties/admin` listing editor included
 - [x] Photos, PDF brochures, videos, text updates, and property/listing details covered
 - [x] Verification checklist and Approved / Changes needed response included
-- [x] No general self-service CMS/upload portal claimed
-- [x] Updated PDF/HTML rebuilt locally
+- [x] No parallel content system, general CMS, or auto-publish claimed
+- [x] Illustrated graphics 09–11 show the existing upload/review/publish/editor controls without production data
+- [x] Updated PDF/HTML rebuilt locally with graphics 09–11
 - [x] Follow-up email draft prepared
 - [ ] Anton reviewed updated PDF
 - [ ] Anton approved follow-up email

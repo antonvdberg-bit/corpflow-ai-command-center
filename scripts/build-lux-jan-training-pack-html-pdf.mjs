@@ -16,8 +16,23 @@ import { chromium } from 'playwright';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const pack = path.join(root, 'artifacts', 'luxe-maurice-training-pack-v1', 'client-delivery-preparation');
 const graphicsDir = path.join(pack, 'graphics');
+const captureGraphicsDir = path.join(
+  root,
+  'artifacts',
+  'luxe-maurice-training-pack-v1',
+  '05-graphics',
+  'captures',
+);
 const outHtml = path.join(pack, 'LUXEMAURICE_TRAINING_PACK_FOR_JAN.html');
 const outPdf = path.join(pack, 'LUXEMAURICE_TRAINING_PACK_FOR_JAN.pdf');
+const localChrome =
+  process.platform === 'win32' ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe' : '';
+
+function browserLaunchOptions() {
+  return localChrome && fs.existsSync(localChrome)
+    ? { headless: true, executablePath: localChrome }
+    : { headless: true };
+}
 
 const GRAPHICS = [
   ['01-landing-page.png', 'Figure 1 - LuxeMaurice AI home'],
@@ -28,7 +43,108 @@ const GRAPHICS = [
   ['06-advisor-pipeline-live-request.png', 'Figure 6 - Persisted training request (focused)'],
   ['07-demonstration-records.png', 'Figure 7 - Demonstration records (layout only)'],
   ['08-change-console-lead-workflow.png', 'Figure 8 - Focused lead and OPERATOR ACTIONS'],
+  ['09-change-content-sprint-upload.png', 'Figure 9 - Illustrated C1/C2 Upload content workflow using existing controls'],
+  ['10-change-attachment-review-publish.png', 'Figure 10 - Illustrated attachment review, link, and image publish controls'],
+  ['11-properties-admin-listing-editor.png', 'Figure 11 - Illustrated existing property/listing editor and visibility controls'],
 ];
+
+const CONTENT_WORKFLOW_GRAPHICS = [
+  {
+    filename: '09-change-content-sprint-upload.png',
+    eyebrow: 'Existing /change workflow · illustrated guide',
+    title: 'Add content to a LuxeMaurice sprint ticket',
+    body: `
+      <div class="columns">
+        <aside>
+          <small>PROPERTY & MEDIA</small>
+          <button class="ticket active">C1 · Homepage imagery</button>
+          <button class="ticket">C2 · First private opportunity</button>
+          <button class="ticket">C4 · Jan validation</button>
+        </aside>
+        <section class="workspace">
+          <span class="badge">C1 CONTENT SPRINT</span>
+          <h2>Add content</h2>
+          <p>Attach client-approved images, videos, or documents to this sprint task.</p>
+          <button class="primary">Upload content</button>
+          <ol>
+            <li>Choose a supported image, video, or PDF.</li>
+            <li>Confirm the uploaded attachment appears.</li>
+            <li>Review it before any public use.</li>
+          </ol>
+          <div class="notice">Nothing becomes public at the upload step.</div>
+        </section>
+      </div>`,
+  },
+  {
+    filename: '10-change-attachment-review-publish.png',
+    eyebrow: 'Existing /change governance · illustrated guide',
+    title: 'Review, link, and publish an approved image',
+    body: `
+      <section class="workspace wide">
+        <div class="summary"><b>Total 1</b><b>Reviewed 1</b><b>Linked 1</b><b>Published 0</b></div>
+        <div class="attachment">
+          <div><span class="badge success">REVIEWED</span><h2>training-villa-hero.webp</h2><p>image/webp · fictional training file</p></div>
+          <button class="secondary">Mark reviewed</button>
+          <div class="rule"></div>
+          <h3>Link this reviewed file to a property or opportunity</h3>
+          <div class="fields"><label>Property slug<input value="lm-training-villa" readonly></label><label>Public slot<select><option>hero</option><option>card</option><option>gallery</option></select></label></div>
+          <button class="secondary">Link to property</button>
+          <div class="notice">Linking keeps the file private until Publish is selected.</div>
+          <button class="primary">Publish approved image</button>
+        </div>
+      </section>`,
+  },
+  {
+    filename: '11-properties-admin-listing-editor.png',
+    eyebrow: 'Existing /properties/admin workflow · illustrated guide',
+    title: 'Create or edit listing text and visibility',
+    body: `
+      <div class="columns admin">
+        <aside><small>INVENTORY</small><p>Draft 1 · Preview 0 · Published 0</p><button class="ticket active">Training Villa LM-101</button><button class="secondary">New private opportunity</button></aside>
+        <section class="workspace">
+          <div class="visibility"><b>Quick visibility</b><button>draft</button><button>preview</button><button class="selected">published</button><button>archived</button></div>
+          <div class="fields"><label>Title<input value="Training Villa LM-101" readonly></label><label>Region<input value="Grand Baie (fictional)" readonly></label></div>
+          <div class="fields"><label>Listing status<input value="Available" readonly></label><label>Price guidance<input value="On application" readonly></label></div>
+          <label>Description<textarea readonly>Fictional training copy used only to demonstrate the existing listing editor.</textarea></label>
+          <button class="primary">Save private opportunity</button>
+          <div class="notice">Saving and visibility are deliberate controls. Nothing auto-publishes.</div>
+        </section>
+      </div>`,
+  },
+];
+
+function workflowGraphicHtml(graphic) {
+  return `<!doctype html><html><head><meta charset="utf-8"><style>
+    *{box-sizing:border-box} body{margin:0;background:#11100e;color:#f4efe4;font-family:Inter,Segoe UI,Arial,sans-serif}
+    main{width:1400px;min-height:900px;padding:54px 62px;background:radial-gradient(circle at 90% 0,#3b3020 0,transparent 32%),#11100e}
+    .eyebrow,small{color:#d0ad62;font-size:13px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+    h1{font-family:Georgia,serif;font-size:48px;font-weight:500;margin:12px 0 34px} h2{font-family:Georgia,serif;font-size:32px;margin:10px 0} h3{font-size:17px}
+    p,li,label{color:#d8d0c1;font-size:17px;line-height:1.55}.columns{display:grid;grid-template-columns:330px 1fr;gap:26px}.columns.admin{grid-template-columns:300px 1fr}
+    aside,.workspace,.attachment{background:#f5f0e6;color:#27231d;border:1px solid #d8c9aa;border-radius:18px;padding:26px;box-shadow:0 18px 52px #0008}
+    aside p,.workspace p,.workspace li,.workspace label,.attachment p{color:#625b50}.workspace.wide{max-width:1050px}.ticket,.secondary,.primary,.visibility button{display:block;width:100%;border-radius:9px;border:1px solid #b89b5b;padding:13px 15px;margin-top:12px;text-align:left;font-weight:750;background:#fff;color:#2b261e}
+    .ticket.active,.visibility .selected{background:#2d2a24;color:#fff}.primary{background:#b8903f;color:#fff;text-align:center;font-size:17px}.secondary{width:auto;display:inline-block;background:#fff}
+    .badge{display:inline-block;background:#2d2a24;color:#fff;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:800;letter-spacing:.08em}.badge.success{background:#446a4d}
+    .notice{margin-top:18px;border-left:4px solid #b8903f;background:#eee3ca;padding:14px;color:#493d28;font-weight:700}.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}.summary b{background:#eee3ca;border-radius:10px;padding:14px;color:#493d28}
+    .attachment{box-shadow:none}.rule{height:1px;background:#d8c9aa;margin:20px 0}.fields{display:grid;grid-template-columns:1fr 1fr;gap:16px}label{display:grid;gap:7px;font-weight:700}input,select,textarea{width:100%;border:1px solid #cbbd9f;border-radius:8px;padding:12px;background:#fff;color:#302a22;font:inherit}textarea{min-height:120px}.visibility{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:20px}.visibility button{width:auto;margin:0;padding:8px 12px}.visibility b{margin-right:5px}
+  </style></head><body><main><div class="eyebrow">${graphic.eyebrow}</div><h1>${graphic.title}</h1>${graphic.body}</main></body></html>`;
+}
+
+async function writeContentWorkflowGraphics() {
+  fs.mkdirSync(graphicsDir, { recursive: true });
+  fs.mkdirSync(captureGraphicsDir, { recursive: true });
+  const browser = await chromium.launch(browserLaunchOptions());
+  try {
+    const page = await browser.newPage({ viewport: { width: 1400, height: 900 }, deviceScaleFactor: 1 });
+    for (const graphic of CONTENT_WORKFLOW_GRAPHICS) {
+      await page.setContent(workflowGraphicHtml(graphic), { waitUntil: 'load' });
+      const capturePath = path.join(captureGraphicsDir, graphic.filename);
+      await page.screenshot({ path: capturePath, fullPage: true });
+      fs.copyFileSync(capturePath, path.join(graphicsDir, graphic.filename));
+    }
+  } finally {
+    await browser.close();
+  }
+}
 
 function esc(s) {
   return String(s)
@@ -212,51 +328,54 @@ function buildHtml() {
     </section>
 
     <section id="content-updates">
-      <h2>How LuxeMaurice content gets added to the website</h2>
+      <h2>How to upload and update LuxeMaurice website content</h2>
       <div class="panel">
-        <p>Today, LuxeMaurice <strong>website content updates</strong> are handled as a <strong>managed CorpFlowAI update workflow</strong>. There are protected internal tools for controlled listing fields and governed media review, but they are <strong>not a general self-service CMS or upload portal</strong> for all website content.</p>
-        <p>Jan sends the approved assets and content details to CorpFlowAI. CorpFlowAI applies the update, checks visibility and privacy, verifies it on the live site, and sends Jan the preview or live link for confirmation. Nothing is published automatically when content is provided.</p>
-        <p>A broader self-service content upload experience can be considered as a future enhancement after the current editor and media workflow has been completed and verified end to end with Jan.</p>
+        <p>LuxeMaurice already has two protected tools. Use <span class="url">https://lux.corpflowai.com/properties/admin</span> for property/listing text and visibility. Use <span class="url">https://lux.corpflowai.com/change</span> for images, videos, and PDF/document attachments.</p>
+        <p>This is not a general CMS and nothing auto-publishes. The existing workflow is: <strong>upload → review → link → publish → verify</strong>. Jan can use it with the authorised LuxeMaurice tenant/editor account; Anton can co-pilot. Jan's complete production walk-through remains to be verified.</p>
       </div>
 
-      <h3>Property photos and image galleries</h3>
-      <p>Please provide:</p>
+      <h3>A. Property/listing text and visibility — /properties/admin</h3>
+      <ol>
+        <li>Open <span class="url">https://lux.corpflowai.com/properties/admin</span> and sign in.</li>
+        <li>Select an opportunity or choose <strong>New private opportunity</strong>.</li>
+        <li>Complete title, slug, region, property type, listing status, price guidance, teaser, description, highlights, bedrooms, bathrooms, and area.</li>
+        <li>Select <strong>Save</strong>.</li>
+        <li>Set visibility deliberately: <code>draft</code>, <code>preview</code>, <code>published</code>, or <code>archived</code>.</li>
+        <li>Preview first; after publication verify <span class="url">/properties</span> and <span class="url">/property/&lt;slug&gt;</span>.</li>
+      </ol>
+      <p>Saving text does not make it public automatically.</p>
+      ${figure('11-properties-admin-listing-editor.png', 'Figure 11 - Illustrated existing property/listing editor and visibility controls')}
+
+      <h3>B. Images/photos — /change</h3>
+      <ol>
+        <li>Open <span class="url">https://lux.corpflowai.com/change</span> and select the relevant C1–C4 content sprint ticket (C1 homepage imagery; C2 first real opportunity).</li>
+        <li>In <strong>Add content</strong>, select <strong>Upload content</strong> and choose an image.</li>
+        <li>Confirm the green upload result and the file in <strong>Attachments</strong>.</li>
+        <li>Select <strong>Mark reviewed</strong>.</li>
+        <li>Link the reviewed image to the property/opportunity slug.</li>
+        <li>Choose <code>hero</code>, <code>card</code>, or <code>gallery</code>; add public alt/caption details and gallery order/cover where needed.</li>
+        <li>Select <strong>Publish</strong>, then verify the corresponding live page.</li>
+      </ol>
+      <p>The current endpoint accepts <code>image/*</code>, <code>video/*</code>, and exact <code>application/pdf</code>. The current default limit is 3 MB per file and 8 files per ticket unless existing deployment configuration overrides it.</p>
+      ${figure('09-change-content-sprint-upload.png', 'Figure 9 - Illustrated C1/C2 Upload content workflow using existing controls')}
+      ${figure('10-change-attachment-review-publish.png', 'Figure 10 - Illustrated attachment review, link, and image publish controls')}
+
+      <h3>C. PDFs/documents</h3>
+      <p>Use <strong>Upload content</strong> on the relevant <span class="url">/change</span> ticket. PDFs are accepted as <code>application/pdf</code>, appear as governed attachments, and can be securely viewed/downloaded by authorised users.</p>
+      <p><strong>Current public-display limit:</strong> Luxe pages do not currently compose a public brochure/download component. CorpFlowAI must add or configure the approved public link/download surface before a PDF can appear publicly. Upload alone is not publication.</p>
+
+      <h3>D. Videos/walkthroughs</h3>
+      <p>The existing endpoint accepts <code>video/*</code> for private governed review. Public Luxe property media currently serves only reviewed and explicitly published <code>image/*</code>; there is no public video player, transcoding flow, or video publish slot.</p>
+      <p>Use a YouTube, Vimeo, or approved private-hosted link for operator placement after approval, or upload raw video for private review and agree the hosting/embed step separately.</p>
+
+      <h3>E. What is self-service and what remains governed</h3>
+
       <ul>
-        <li>High-resolution JPEG, PNG, or WebP images.</li>
-        <li>The property or listing reference/title.</li>
-        <li>The preferred order: <strong>hero image first</strong>, followed by the gallery order.</li>
-        <li>Optional captions and image descriptions.</li>
-        <li>Any privacy, sensitivity, usage-rights, or expiry notes.</li>
-        <li>Which images may be public, private, advisor-only, or request-only.</li>
+        <li><strong>Jan can:</strong> create/edit listing text and visibility in <span class="url">/properties/admin</span>; upload supported files in <span class="url">/change</span>; review attachments; link approved images; and use explicit image publish controls with the authorised account.</li>
+        <li><strong>CorpFlowAI/operator still checks:</strong> rights, privacy, public wording, correct property/slot, any missing PDF/video display surface, and the final live result.</li>
       </ul>
-      <p>CorpFlowAI reviews the files, links approved images to the correct property and placement, publishes only approved public images, and checks the hero and gallery order on the live page.</p>
 
-      <h3>PDF brochures and other documents</h3>
-      <p>Please provide the PDF file, its public display name, the property or page it belongs to, whether it should be downloadable, view-only, or private/request-only, and any version or expiry notes.</p>
-      <p>PDF files are not automatically displayed when supplied. CorpFlowAI confirms the access level and prepares the appropriate link or document presentation before publication. Private documents remain outside the public website unless explicitly approved.</p>
-
-      <h3>Videos and walkthrough links</h3>
-      <p>Preferred: provide a YouTube, Vimeo, or approved private-hosted link if the video is already hosted, together with the video title, target page or listing, thumbnail image if available, and visibility preference (public, private, or request-only).</p>
-      <p>If a raw video file is provided, CorpFlowAI must prepare, host, or embed it before it can appear on the website. Raw video files do not publish automatically, and the current property-image workflow does not directly display video as public property media.</p>
-
-      <h3>Text and page-copy updates</h3>
-      <p>Please provide the exact replacement text or clear bullet-point changes, the target page and section, approval status, required language or languages, and any wording that must remain private or advisor-only.</p>
-      <p>CorpFlowAI applies the approved text to the correct page, checks formatting and links, and sends the resulting page for verification.</p>
-
-      <h3>Property and listing details</h3>
-      <p>For a new or updated opportunity, please provide:</p>
-      <ul>
-        <li>Property name/title and location.</li>
-        <li>Price or status, where approved for publication.</li>
-        <li>Bedrooms, bathrooms, and area, where applicable.</li>
-        <li>Short description, long description, and key features.</li>
-        <li>Contact or call-to-action preference.</li>
-        <li>Visibility: public, private, advisor-only, coming soon, sold, or hidden.</li>
-      </ul>
-      <p>CorpFlowAI creates or updates the controlled listing record, applies the approved visibility, connects approved media, and checks the request/private-access path. A listing does not become public merely because its details were supplied.</p>
-
-      <h3>Verify the update after it goes live</h3>
-      <p>CorpFlowAI sends Jan a preview or live URL. Jan checks:</p>
+      <h3>F. Verify after publication</h3>
       <ul>
         <li>Content accuracy and image order.</li>
         <li>That each document or video opens correctly.</li>
@@ -335,6 +454,10 @@ function buildHtml() {
           <tr><td>Advisor Pipeline (signed-in review)</td><td>Live - read-only for stage / notes</td></tr>
           <tr><td>Operator stage, owner, next action, notes in Change Console</td><td>Live</td></tr>
           <tr><td>Focused selected-lead list + OPERATOR ACTIONS</td><td>Live</td></tr>
+          <tr><td>/properties/admin listing text + draft/preview/published/archived visibility</td><td>Existing protected workflow</td></tr>
+          <tr><td>/change image upload → review → link → hero/card/gallery publish</td><td>Existing governed workflow</td></tr>
+          <tr><td>PDF/video upload and private review</td><td>Existing governed attachment workflow</td></tr>
+          <tr><td>Public PDF download or public video player</td><td><strong>Not implemented</strong> — CorpFlowAI placement/build step required</td></tr>
           <tr><td>Outbound email / WhatsApp / SMS from the platform</td><td><strong>Not live</strong></td></tr>
           <tr><td>Automated client confirmation or advisor notification</td><td><strong>Not live</strong></td></tr>
           <tr><td>Follow-up after submission</td><td><strong>Human-led</strong> by your team</td></tr>
@@ -343,13 +466,13 @@ function buildHtml() {
     </section>
 
     <section id="gallery">
-      <h2>5. Screenshot gallery (01-08)</h2>
-      <p>All eight training graphics in sequence. Demonstration data only.</p>
+      <h2>5. Training graphics gallery (01-11)</h2>
+      <p>All eleven training graphics in sequence. Graphics 09–11 are clearly labelled illustrated guides based on the existing controls.</p>
       ${GRAPHICS.map(([file, caption]) => figure(file, caption)).join('\n')}
     </section>
 
     <footer>
-      LuxeMaurice user guide and training walkthrough · Verification edition 15 July 2026 · CorpFlowAI · Demonstration screenshots only
+      LuxeMaurice user guide and training walkthrough · Verification edition 15 July 2026 · CorpFlowAI · Demonstration data only
     </footer>
   </main>
 </body>
@@ -357,7 +480,7 @@ function buildHtml() {
 }
 
 async function writePdf(htmlPath, pdfPath) {
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch(browserLaunchOptions());
   const page = await browser.newPage();
   await page.goto(pathToFileURL(htmlPath).href, { waitUntil: 'load', timeout: 120000 });
   await page.pdf({
@@ -369,7 +492,8 @@ async function writePdf(htmlPath, pdfPath) {
   await browser.close();
 }
 
-const html = buildHtml();
+await writeContentWorkflowGraphics();
+const html = buildHtml().replace(/[ \t]+$/gm, '');
 fs.writeFileSync(outHtml, html, 'utf8');
 console.log('wrote', outHtml, fs.statSync(outHtml).size);
 

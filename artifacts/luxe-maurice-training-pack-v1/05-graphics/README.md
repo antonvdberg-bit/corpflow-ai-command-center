@@ -17,14 +17,14 @@ PNG screenshots for guides, the review edition, and Jan delivery packaging.
 
 | Location | Audience | Use |
 |----------|----------|-----|
-| **`captures/`** | Anton review edition + Jan package | Final training PNGs (01–08). The review HTML and Markdown reference these files. |
+| **`captures/`** | Anton review edition + Jan package | Final training PNGs. Captures 01–08 plus illustrated existing-workflow guides 09–11. |
 | **`source-review/`** | Operators only (when present) | Pre-crop / browser-chrome sources retained for comparison. **Never** place in the Jan-facing package. |
 
 ---
 
-## Capture status (2026-07-14)
+## Graphics status (2026-07-15)
 
-**All eight required graphics are present** in `captures/`:
+**All eleven required graphics are present** in `captures/`:
 
 ```text
 01-landing-page.png
@@ -35,9 +35,12 @@ PNG screenshots for guides, the review edition, and Jan delivery packaging.
 06-advisor-pipeline-live-request.png   ← BROWSER_CHROME_CROPPED · FOCUSED_TO_TRAINING_REQUEST · PRIVACY_REVIEWED · READY_FOR_ANTON_REVIEW
 07-demonstration-records.png
 08-change-console-lead-workflow.png    ← CROPPED_TO_TRAINING_LEAD_AND_OPERATOR_ACTIONS · PRIVACY_REVIEWED · READY_FOR_ANTON_REVIEW
+09-change-content-sprint-upload.png    ← ILLUSTRATED EXISTING /change WORKFLOW · PRIVACY_REVIEWED
+10-change-attachment-review-publish.png ← ILLUSTRATED EXISTING GOVERNANCE CONTROLS · PRIVACY_REVIEWED
+11-properties-admin-listing-editor.png ← ILLUSTRATED EXISTING EDITOR CONTROLS · PRIVACY_REVIEWED
 ```
 
-See `GRAPHICS_MANIFEST.md` for privacy and crop notes. Graphic **06** browser-chrome crop is **completed** — no further Anton decision is required for that crop.
+See `GRAPHICS_MANIFEST.md` for privacy and crop notes. Graphics 09–11 are clearly labelled illustrated guides generated from the existing UI/control labels; they are not presented as live-data screenshots.
 
 ## Capture tooling (free, in-repo)
 

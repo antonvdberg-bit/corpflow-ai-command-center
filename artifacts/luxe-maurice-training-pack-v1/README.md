@@ -88,7 +88,8 @@ The original pack review and send are complete. The verification follow-up remai
 [x] All eight graphics are present and use fictional training data
 [x] Graphic 06 browser-chrome crop completed (BROWSER_CHROME_CROPPED · FOCUSED_TO_TRAINING_REQUEST)
 [x] Training guides and screenshot sequence (01–08) match the documented workflow
-[x] Website content-update workflow explains what Jan provides and how CorpFlowAI verifies publication
+[x] Website content guide explains the existing /change and /properties/admin workflows
+[x] Illustrated workflow graphics 09–11 generated from existing UI labels and privacy-reviewed
 [x] Video content remains scripts/storyboards; no recorded videos are claimed
 [x] Limitations state that follow-up is human-led and platform outbound messaging is not live
 [x] Original pack sent by Anton on 2026-07-14
@@ -97,7 +98,7 @@ The original pack review and send are complete. The verification follow-up remai
 [ ] Jan verification response captured
 ```
 
-**Status:** The PDF/HTML now includes Jan’s requested website content-update workflow. It clearly describes the current process as managed by CorpFlowAI rather than a general self-service CMS/upload portal. A corrected verification edition and follow-up email packet are prepared for Anton approval. **No follow-up send has occurred.**
+**Status:** The corrected follow-up reuses the existing `/change` governed upload workflow and `/properties/admin` listing editor. No parallel content system is part of the package. Public PDF/video display is not claimed. Graphics 09–11 and the PDF/HTML rebuild are complete; Anton review remains open. **No follow-up send has occurred.**
 
 ---
 

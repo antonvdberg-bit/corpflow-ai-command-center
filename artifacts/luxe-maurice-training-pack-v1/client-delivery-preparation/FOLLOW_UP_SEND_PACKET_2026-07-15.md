@@ -8,16 +8,16 @@ Prepare the updated LuxeMaurice user guide and training walkthrough package for 
 
 **PR #609 corrected after Anton review.** The first follow-up version covered the general training journey but did not answer Jan's actual content-upload/content-display question.
 
-The corrected package adds **How LuxeMaurice content gets added to the website**, covering:
+The corrected package adds **How to upload and update LuxeMaurice website content**, covering the existing tools:
 
-- property photos and gallery order;
-- PDF brochures and document visibility;
-- videos, walkthrough links, thumbnails, and raw-file handling;
-- text and page-copy updates;
-- property/listing details and visibility;
+- `/properties/admin` listing text and visibility;
+- `/change` C1/C2 **Upload content** flow;
+- attachment confirmation, review, property link, and image publish controls;
+- image hero/card/gallery publication;
+- private PDF/video attachment handling and their current public-display limits;
 - preview/live verification and Jan's Approved / Changes needed response.
 
-The client-facing truth is a **managed CorpFlowAI update workflow**. Protected internal listing and media tools exist, but they are not presented as a general self-service CMS/upload portal. Jan's end-to-end self-service workflow has not been live-verified, and documents/videos are not automatically published.
+No parallel content system was created. The package reuses the existing protected tools. Jan's allowlisted account can use the editor and tenant attachment controls, but Jan's end-to-end production walk-through is still a verification gate. Documents/videos can be uploaded for governed review; public PDF/video display is not implemented.
 
 No recorded training videos are claimed. The existing video materials remain optional scripts/storyboards for a future guided recording if separately approved.
 
@@ -27,19 +27,21 @@ No recorded training videos are claimed. The existing video materials remain opt
 - **Optional browser copy:** `LUXEMAURICE_TRAINING_PACK_FOR_JAN.html`
 - **Follow-up email draft:** `DRAFT_FOLLOW_UP_EMAIL_TO_JAN.md`
 
-The PDF/HTML verification edition is dated 15 July 2026 and asks Jan to confirm acceptance or request changes.
+The PDF/HTML verification edition is dated 15 July 2026. The rebuilt PDF is 19 pages and asks Jan to confirm acceptance or request changes.
 
 ## Approval and send gates
 
 - [x] Existing package scope checked against Jan’s user-guide and training-material request
 - [x] PR #609 corrected after Anton review
-- [x] Website content-update workflow added
-- [x] Managed CorpFlowAI workflow stated; no general self-service CMS claim
+- [x] Existing `/change` governed upload workflow documented
+- [x] Existing `/properties/admin` listing editor documented
+- [x] No parallel content system or general self-service CMS claim
 - [x] Photos, PDF brochures, videos, text updates, and property/listing details covered
 - [x] Preview/live verification checklist included
 - [x] Screenshots 01–08 present
+- [x] Illustrated workflow graphics 09–11 generated from existing UI labels and privacy-reviewed
 - [x] Human-led follow-up and no-platform-messaging limitations present
-- [x] PDF/HTML rebuilt locally
+- [x] PDF/HTML rebuilt locally with graphics 09–11
 - [x] Follow-up email draft prepared
 - [ ] Anton reviewed updated PDF
 - [ ] Anton approved follow-up email

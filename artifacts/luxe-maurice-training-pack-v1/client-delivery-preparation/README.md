@@ -4,7 +4,7 @@
 
 **Original send:** Anton sent the initial PDF to Jan by email on 2026-07-14.
 
-**Follow-up status:** corrected verification edition now includes the managed website content-update workflow; **not sent**.
+**Follow-up status:** corrected verification edition now explains the existing `/change` governed upload workflow and `/properties/admin` listing editor; **not sent**.
 
 **External follow-up:** requires Anton’s explicit approval and human transmission. Outbound messaging automation is not live.
 
