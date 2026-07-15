@@ -3,6 +3,7 @@ import Head from 'next/head';
 
 import { trackEvent } from '../lib/analytics/index.js';
 import PublicSiteFooter from './PublicSiteFooter.js';
+import CorpFlowBrandMetadata from './public/CorpFlowBrandMetadata.js';
 import { formatCurrencyDisclosure } from '../lib/public/merchant-identity.js';
 import VisualAssetRenderer, { isAiGeneratedManifest } from './VisualAssetRenderer.js';
 import AssetProvenanceDisclosure from './AssetProvenanceDisclosure.js';
@@ -118,9 +119,9 @@ function LeadRescueSlot({
  * (draft placeholder, see lead-rescue-spa-sunset-hero.manifest.json); the
  * mid-page process / dashboard / trust visuals remain governed slots.
  *
- * @param {{ host?: string, leadRescueAssets?: LeadRescueAssetSelection | null }} props
+ * @param {{ host?: string, search?: string, leadRescueAssets?: LeadRescueAssetSelection | null }} props
  */
-export default function AiLeadRescueLanding({ host = '', leadRescueAssets }) {
+export default function AiLeadRescueLanding({ host = '', search = '', leadRescueAssets }) {
   const assets = leadRescueAssets || null;
   const processAsset = assets ? assets.lead_rescue_process : null;
   const dashboardAsset = assets ? assets.lead_rescue_dashboard : null;
@@ -182,6 +183,7 @@ export default function AiLeadRescueLanding({ host = '', leadRescueAssets }) {
 
   return (
     <>
+      <CorpFlowBrandMetadata host={host || null} search={search || ''} />
       <Head>
         <title>AI Lead Rescue · Powered by CorpFlowAI</title>
         <meta

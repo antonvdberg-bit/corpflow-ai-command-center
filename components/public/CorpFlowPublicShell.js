@@ -2,6 +2,7 @@ import React from 'react';
 import Head from 'next/head';
 import CorpFlowPublicHeader from './CorpFlowPublicHeader.js';
 import CorpFlowPublicFooter from './CorpFlowPublicFooter.js';
+import CorpFlowBrandMetadata from './CorpFlowBrandMetadata.js';
 import { cfPage, cfShell } from './corpflow-public-styles.js';
 
 /**
@@ -12,11 +13,22 @@ import { cfPage, cfShell } from './corpflow-public-styles.js';
  *   maxWidth?: number,
  *   headerCta?: { label: string, href: string } | null,
  *   footerExtra?: string,
+ *   brandHost?: string | null,
+ *   brandSearch?: string | null,
  * }} props
  */
-export default function CorpFlowPublicShell({ meta, children, maxWidth, headerCta, footerExtra }) {
+export default function CorpFlowPublicShell({
+  meta,
+  children,
+  maxWidth,
+  headerCta,
+  footerExtra,
+  brandHost = null,
+  brandSearch = null,
+}) {
   return (
     <div style={cfPage}>
+      <CorpFlowBrandMetadata host={brandHost} search={brandSearch} />
       <Head>
         <title>{meta.title}</title>
         <meta name="description" content={meta.description} />

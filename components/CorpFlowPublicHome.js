@@ -28,13 +28,19 @@ const meta = buildPublicPageMeta({
 });
 
 /**
- * @param {{ homepageAssets?: unknown }} props — legacy prop retained for pages/index.js SSR; visuals optional.
+ * @param {{ homepageAssets?: unknown, host?: string | null, search?: string | null }} props
  */
-export default function CorpFlowPublicHome() {
+export default function CorpFlowPublicHome({ host = null, search = null }) {
   const offers = listPublicOffers();
 
   return (
-    <CorpFlowPublicPhotoShell meta={meta} visualKey="home" headerCta={CORPflow_HOMEPAGE_HERO.primaryCta}>
+    <CorpFlowPublicPhotoShell
+      meta={meta}
+      visualKey="home"
+      headerCta={CORPflow_HOMEPAGE_HERO.primaryCta}
+      brandHost={host}
+      brandSearch={search}
+    >
       <PublicHero {...CORPflow_HOMEPAGE_HERO} />
 
       <OutcomeSection id="offers" label="What you can buy now" title="Three delivery sprints — starting prices in MUR">

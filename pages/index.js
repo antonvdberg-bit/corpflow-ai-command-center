@@ -370,9 +370,15 @@ function TenantSite({ site }) {
 
 const AI_LEAD_RESCUE_HOST = 'aileadrescue.corpflowai.com';
 
-export default function Home({ mode, site, host, homepageAssets, leadRescueAssets }) {
+export default function Home({ mode, site, host, homepageAssets, leadRescueAssets, search }) {
   if (mode === 'ai_lead_rescue') {
-    return <AiLeadRescueLanding host={host || AI_LEAD_RESCUE_HOST} leadRescueAssets={leadRescueAssets || null} />;
+    return (
+      <AiLeadRescueLanding
+        host={host || AI_LEAD_RESCUE_HOST}
+        search={search || ''}
+        leadRescueAssets={leadRescueAssets || null}
+      />
+    );
   }
   if (mode === 'tenant_site' && site?.client_ui?.lux_acquisition === true) {
     return <LuxeMauriceTenantPresentation site={site} />;
@@ -381,9 +387,21 @@ export default function Home({ mode, site, host, homepageAssets, leadRescueAsset
     return <TenantSite site={site} />;
   }
   if (mode === 'corpflow_marketing') {
-    return <CorpFlowPublicHome homepageAssets={homepageAssets || null} />;
+    return (
+      <CorpFlowPublicHome
+        homepageAssets={homepageAssets || null}
+        host={host || null}
+        search={search || ''}
+      />
+    );
   }
-  return <CorpFlowPublicHome homepageAssets={homepageAssets || null} />;
+  return (
+    <CorpFlowPublicHome
+      homepageAssets={homepageAssets || null}
+      host={host || null}
+      search={search || ''}
+    />
+  );
 }
 
 /**
@@ -440,6 +458,16 @@ function buildLeadRescueAssetsSafe() {
 
 export async function getServerSideProps({ req }) {
   const host = normalizeHost(req);
+  const search = (() => {
+    try {
+      const raw = req?.url || '';
+      const u = raw.startsWith('http') ? new URL(raw) : new URL(raw, 'http://localhost');
+      return u.search || '';
+    } catch {
+      return '';
+    }
+  })();
+  const withHost = (props) => ({ ...props, host: host || null, search });
   if (host && isGhostHost(host)) {
     return { redirect: { destination: '/log-stream.html', permanent: false } };
   }
@@ -451,12 +479,19 @@ export async function getServerSideProps({ req }) {
     return { redirect: { destination: '/site-preview', permanent: false } };
   }
   if (host === AI_LEAD_RESCUE_HOST) {
-    return { props: { mode: 'ai_lead_rescue', site: null, host: AI_LEAD_RESCUE_HOST, leadRescueAssets: buildLeadRescueAssetsSafe() } };
+    return {
+      props: withHost({
+        mode: 'ai_lead_rescue',
+        site: null,
+        host: AI_LEAD_RESCUE_HOST,
+        leadRescueAssets: buildLeadRescueAssetsSafe(),
+      }),
+    };
   }
   const prisma = new PrismaClient();
   try {
     if (!host) {
-      return { props: { mode: 'corpflow_marketing', site: null, homepageAssets: buildHomepageAssetsSafe() } };
+      return { props: withHost({ mode: 'corpflow_marketing', site: null, homepageAssets: buildHomepageAssetsSafe() }) };
     }
 
     const root = String(process.env.CORPFLOW_ROOT_DOMAIN || 'corpflowai.com')
@@ -464,7 +499,7 @@ export async function getServerSideProps({ req }) {
       .replace(/^\./, '')
       .trim();
     if (host === root || host === `www.${root}`) {
-      return { props: { mode: 'corpflow_marketing', site: null, homepageAssets: buildHomepageAssetsSafe() } };
+      return { props: withHost({ mode: 'corpflow_marketing', site: null, homepageAssets: buildHomepageAssetsSafe() }) };
     }
 
     // Resolve tenant by DB host mapping first; fallback to null.
@@ -487,7 +522,7 @@ export async function getServerSideProps({ req }) {
       }
     }
     if (!tenantId) {
-      return { props: { mode: 'corpflow_marketing', site: null, homepageAssets: buildHomepageAssetsSafe() } };
+      return { props: withHost({ mode: 'corpflow_marketing', site: null, homepageAssets: buildHomepageAssetsSafe() }) };
     }
 
     const [persona, tenantRow] = await Promise.all([
@@ -599,9 +634,9 @@ export async function getServerSideProps({ req }) {
       };
     }
 
-    return { props: { mode: 'tenant_site', site } };
+    return { props: withHost({ mode: 'tenant_site', site }) };
   } catch (_) {
-    return { props: { mode: 'corpflow_marketing', site: null, homepageAssets: buildHomepageAssetsSafe() } };
+    return { props: withHost({ mode: 'corpflow_marketing', site: null, homepageAssets: buildHomepageAssetsSafe() }) };
   } finally {
     await prisma.$disconnect().catch(() => {});
   }
