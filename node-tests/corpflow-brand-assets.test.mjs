@@ -7,6 +7,7 @@ import { inflateSync } from 'node:zlib';
 
 import {
   CORPFLOW_BRAND_ASSET_PATHS,
+  CORPFLOW_BRAND_ASSET_VERSION,
   CORPFLOW_BRAND_THEME_COLOR,
   listCorpFlowBrandHeadTags,
   shouldEmitCorpFlowBrandAssets,
@@ -89,6 +90,16 @@ describe('CorpFlowAI brand assets — head tags and wiring', () => {
     assert.ok(tags.some((t) => t.rel === 'apple-touch-icon'));
   });
 
+  it('cache-busts icon hrefs when brand asset version is set', () => {
+    assert.ok(CORPFLOW_BRAND_ASSET_VERSION);
+    const tags = listCorpFlowBrandHeadTags();
+    const icons = tags.filter((t) => t.rel === 'icon' || t.rel === 'apple-touch-icon');
+    assert.ok(icons.length >= 3);
+    for (const tag of icons) {
+      assert.match(String(tag.href), new RegExp(`[?&]v=${CORPFLOW_BRAND_ASSET_VERSION}(?:&|$)`));
+    }
+  });
+
   it('manifest JSON is valid and points at brand icons', () => {
     const raw = readFileSync(path.join(ROOT, 'public/brand/corpflowai/site.webmanifest'), 'utf8');
     const json = JSON.parse(raw);
@@ -148,6 +159,18 @@ describe('CorpFlowAI brand assets — white background derivatives', () => {
         assert.deepEqual([r, g, b], [255, 255, 255], `${rel} rgb at ${x},${y}`);
       }
     }
+  });
+
+  it('keeps the supplied blue/teal tile (does not flatten mark onto pure white)', () => {
+    // Right-of-center sampling should hit cyan/teal face-or-tile paint from Anton's pack,
+    // not a white-only canvas that erased the rounded tile.
+    const { width, height, getPixel } = readPngRgba(
+      path.join(ROOT, 'public/brand/corpflowai/favicon-32x32.png'),
+    );
+    const [r, g, b, a] = getPixel(Math.floor(width * 0.72), Math.floor(height * 0.45));
+    assert.equal(a, 255);
+    assert.ok(g > 120 && b > 140, `expected teal/cyan paint, got ${r},${g},${b}`);
+    assert.ok(!(r > 245 && g > 245 && b > 245), 'mark must not be erased to white');
   });
 });
 

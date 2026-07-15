@@ -1,33 +1,35 @@
-# CorpFlowAI brand assets — verification evidence (white-background correction)
+# CorpFlowAI brand assets — verification evidence (transparent-alpha repair)
 
 **Branch:** `cursor/corpflowai-brand-assets-317d`  
 **PR:** https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/608  
 
-## Root cause (coloured / teal-looking favicon)
+## Root cause
 
-1. **Bad source:** `corpflowai-mark.svg` — agent recreation (rejected by Anton).
-2. **Bad processing:** SVG → PNG kept **transparent** corners outside the rounded tile.
-3. **Observable failure:** Browser tabs rendered a solid teal/coloured square without a readable white surround.
+1. **Rejected earlier:** agent SVG recreation (`corpflowai-mark.svg`).
+2. **Supplied pack:** Anton’s PNG/JPG attachments use **transparency** for exterior corners and connected human-face cutouts.
+3. **Observable failure:** Browser tabs / dark tools did not match the supplied graphics (holes fill as black or the mark collapses).
+4. **Wrong attempt avoided:** flattening the blue/teal tile to white erased the supplied composition.
 
 ## Correction
 
-- Canonical master is now Anton’s approved raster as `corpflowai-favicon-approved-source.png`.
-- Transparent pixels were filled with **opaque white** only (no redraw; no colour rewrite of artwork).
-- Rejected SVG removed.
-- Regenerated: `favicon.ico` (16/32/48), `favicon-16x16.png`, `favicon-32x32.png`, `apple-touch-icon.png`, `android-chrome-192x192.png`, `android-chrome-512x512.png`.
-- `theme-color` metadata remains navy for chrome UI only; it does **not** paint favicon pixels.
+- Canonical master = Anton `android-chrome-512x512.png` with transparent pixels composited to **opaque white only** (no redraw).
+- Tab / touch / Android sizes taken from Anton’s exact pack files, then the same white alpha bake.
+- `favicon.ico` embeds baked 16 / 32 / 48 frames.
+- Head tags + manifest use `?v=white-alpha-v5` so cached transparent icons are not reused.
+- Theme-color remains navy for chrome UI only; it does **not** paint favicon pixels.
 
 ## Evidence files
 
-- `01-approved-source-white-bg.png`
+- `01-approved-source-white-bg.png` (baked master)
 - `android-chrome-512x512.png` / `android-chrome-192x192.png` / `apple-touch-icon.png`
 - `favicon-16x16.png` / `favicon-32x32.png`
 - `favicon-size-contact-sheet-white.png` (16/32/180 on light and dark)
-- `browser-tab-screenshot.png` + `browser-tab-strip.png` + `browser-tab-favicon-zoom.png` (headed Chromium under Xvfb against local `next start`)
+- `approved-source/` — original Anton attachments used for the bake
+- `browser-tab-screenshot.png` + strip / zoom (headed Chromium under Xvfb against local `next start`)
 
 ## Host boundary
 
-Unit tests continue to assert Core / Lux / Living Word / other tenants do not emit `/brand/corpflowai` links; no root `favicon.ico`; Lux static HTML unchanged.
+Unit tests assert Core / Lux / Living Word / other tenants do not emit `/brand/corpflowai` links; no root `favicon.ico`; Lux static HTML unchanged.
 
 ## Delivery Reality Audit
 
@@ -35,10 +37,8 @@ Unit tests continue to assert Core / Lux / Living Word / other tenants do not em
 - Local fix exists: YES
 - Merged to main: NO
 - Production deployment ID: n/a (do not deploy)
-- Commit: f539e14852454c110655c561a3716a1f214171b4
-- Asset correction commit: 92136afa64a3e0b2bca00b5942d06b1f4e4970fc
-- Preview deployment ID: AutKRbCFPeR7MdbtDzPSWwRm3BTk
+- Commit: (see latest push on this branch)
 - Preview URL: https://corpflow-ai-command-center-git-cursor-corpflo-0a45c3-corpflowai.vercel.app
-- Do not reuse: FA2M9YQBR9FunS1Z2RYaXv5Y6NSr or earlier
-- Final verdict: PARTIAL (preview approval pending)
+- Do not reuse prior deployment IDs without a new Ready build for this commit
+- Final verdict: PARTIAL (preview approval pending; no production)
 ```
