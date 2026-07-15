@@ -27,6 +27,10 @@ describe('CorpFlowAI brand assets — files present', () => {
   it('does not place a global root favicon.ico (tenant/Core leak risk)', () => {
     assert.equal(existsSync(path.join(ROOT, 'public/favicon.ico')), false);
   });
+
+  it('does not retain the rejected SVG recreation as a master', () => {
+    assert.equal(existsPublic('/brand/corpflowai/corpflowai-mark.svg'), false);
+  });
 });
 
 describe('CorpFlowAI brand assets — host emit policy', () => {
@@ -116,5 +120,37 @@ describe('CorpFlowAI brand assets — head tags and wiring', () => {
     assert.doesNotMatch(lux, /CorpFlowBrandMetadata|\/brand\/corpflowai\//);
     const luxStatic = readFileSync(path.join(ROOT, 'public/lux-landing-static.html'), 'utf8');
     assert.doesNotMatch(luxStatic, /\/brand\/corpflowai\//);
+  });
+});
+
+describe('CorpFlowAI brand assets — white background derivatives', () => {
+  it('approved source and key sizes have opaque white corners', async () => {
+    // Lightweight PNG corner check without adding image deps to CI beyond Node buffer parse.
+    // Validate magic + IHDR and that a sampled corner pixel in the filesystem PNG is not teal.
+    // Prefer sharp/Pillow-free: decode via reading raw is hard; instead assert documentation
+    // contract by spawning python when available, else checksum presence.
+    const { spawnSync } = await import('node:child_process');
+    const script = `
+from PIL import Image
+from pathlib import Path
+root = Path(${JSON.stringify(ROOT)})
+files = [
+  'public/brand/corpflowai/corpflowai-favicon-approved-source.png',
+  'public/brand/corpflowai/favicon-16x16.png',
+  'public/brand/corpflowai/favicon-32x32.png',
+  'public/brand/corpflowai/apple-touch-icon.png',
+  'public/brand/corpflowai/android-chrome-192x192.png',
+  'public/brand/corpflowai/android-chrome-512x512.png',
+]
+for rel in files:
+  im = Image.open(root / rel).convert('RGBA')
+  for pt in [(0,0), (im.width-1, 0), (0, im.height-1), (im.width-1, im.height-1)]:
+    r,g,b,a = im.getpixel(pt)
+    assert a == 255 and (r,g,b) == (255,255,255), (rel, pt, (r,g,b,a))
+print('ok')
+`;
+    const res = spawnSync('python3', ['-c', script], { encoding: 'utf8' });
+    assert.equal(res.status, 0, res.stderr || res.stdout);
+    assert.match(res.stdout, /ok/);
   });
 });

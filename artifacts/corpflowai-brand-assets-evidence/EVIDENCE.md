@@ -1,53 +1,40 @@
-# CorpFlowAI brand assets — verification evidence
+# CorpFlowAI brand assets — verification evidence (white-background correction)
 
 **Branch:** `cursor/corpflowai-brand-assets-317d`  
 **PR:** https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/608  
-**Commit:** `1eed9c406c4abdd1e086aebb5b81007f3b4c703a`  
-**Vercel Preview:** https://corpflow-ai-command-center-git-cursor-corpflo-0a45c3-corpflowai.vercel.app  
-**Preview deployment:** Ready (`6A1AaTqnzK4xPUdhXKa3zvvvriq2`)  
-**Note:** Preview is behind Vercel Authentication SSO; anonymous `curl` from this agent receives `302` to SSO. Asset HTTP `200` + Hydrated metadata verified against local `next start` on `127.0.0.1:3099` (same commit build). Anton can open the Preview URL while signed into Vercel.
 
-## Checks
+## Root cause (coloured / teal-looking favicon)
 
-| Check | Result |
-|-------|--------|
-| `node --test node-tests/corpflow-brand-assets.test.mjs` | Pass (21) |
-| `npm run check:marketing-quality-gate` | Pass |
-| `npm test` | Pass (1615) |
-| `npm run build` | Pass |
-| No `public/favicon.ico` | Confirmed |
-| No Windows/local paths in `.next` | Confirmed |
-| Local asset `200`s under `/brand/corpflowai/*` | Confirmed |
-| Manifest theme `#06111f` | Confirmed |
-| Hydrated `link[rel=icon]` + apple + manifest on localhost | Confirmed |
-| Header/footer remain text wordmark | Confirmed (screenshots) |
-| Lux files unchanged / no `/brand/corpflowai` references | Confirmed by tests |
+1. **Bad source:** `corpflowai-mark.svg` — agent recreation (rejected by Anton).
+2. **Bad processing:** SVG → PNG kept **transparent** corners outside the rounded tile.
+3. **Observable failure:** Browser tabs rendered a solid teal/coloured square without a readable white surround.
 
-## Screenshots
+## Correction
 
-- `favicon-size-contact-sheet.png` — 16/32/48/180 on light vs dark
-- `favicon-tab-mock.png` — tab mock using live 32 + 16 icons
-- `preview-header-desktop.png` — desktop header (text wordmark unchanged)
-- `preview-header-mobile.png` — mobile header
-- `preview-footer-desktop.png` — footer (text wordmark unchanged)
+- Canonical master is now Anton’s approved raster as `corpflowai-favicon-approved-source.png`.
+- Transparent pixels were filled with **opaque white** only (no redraw; no colour rewrite of artwork).
+- Rejected SVG removed.
+- Regenerated: `favicon.ico` (16/32/48), `favicon-16x16.png`, `favicon-32x32.png`, `apple-touch-icon.png`, `android-chrome-192x192.png`, `android-chrome-512x512.png`.
+- `theme-color` metadata remains navy for chrome UI only; it does **not** paint favicon pixels.
+
+## Evidence files
+
+- `01-approved-source-white-bg.png`
+- `android-chrome-512x512.png` / `android-chrome-192x192.png` / `apple-touch-icon.png`
+- `favicon-16x16.png` / `favicon-32x32.png`
+- `favicon-size-contact-sheet-white.png` (16/32/180 on light and dark)
+- `browser-tab-screenshot.png` + `browser-tab-strip.png` + `browser-tab-favicon-zoom.png` (headed Chromium under Xvfb against local `next start`)
+
+## Host boundary
+
+Unit tests continue to assert Core / Lux / Living Word / other tenants do not emit `/brand/corpflowai` links; no root `favicon.ico`; Lux static HTML unchanged.
 
 ## Delivery Reality Audit
 
 ```text
-Delivery Reality Audit:
 - Local fix exists: YES
 - Merged to main: NO
-- Production deployment ID: n/a (preview only; do not deploy)
-- Commit deployed: Preview serves 1eed9c40 (Vercel Ready)
-- Live URLs tested: Preview URL Ready (SSO); local next start asset/metadata/screenshot verification
-- Expected vs actual result: CorpFlowAI-only icons + host gate; text wordmark retained — matches
-- Client-facing flow usable: PARTIAL (preview / local; Production not updated)
-- Final verdict: PARTIAL
+- Production deployment ID: n/a (do not deploy)
+- Preview: new deployment after this commit (do not reuse FA2M9YQBR9FunS1Z2RYaXv5Y6NSr)
+- Final verdict: PARTIAL (preview approval pending)
 ```
-
-## Anton approval gate
-
-1. Confirm SVG/PNG mark fidelity vs workstation masters.
-2. Confirm 16×16 readability is acceptable.
-3. Approve Preview look before any merge / Production deploy.
-4. Optional: approve client-delivery video beat (`NEEDS_ANTON` remains blocked).
