@@ -1,0 +1,237 @@
+{
+  "name": "CorpFlow automation forward - issue 611 safe test",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "issue-611-automation-forward-test",
+        "authentication": "headerAuth",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "61100000-0000-4000-8000-000000000001",
+      "name": "Authenticated Test Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_TEST_HEADER_AUTH_CREDENTIAL_ID",
+          "name": "REPLACE_WITH_TEST_HEADER_AUTH_CREDENTIAL_NAME"
+        }
+      },
+      "notes": "Inactive test-only webhook. Attach a test Header Auth credential in n8n. Never reuse or expose the production webhook path or secret."
+    },
+    {
+      "parameters": {
+        "jsCode": "const CHECKPOINT_KINDS = new Set([\n  'production_validation_failure',\n  'client_approval_needed',\n  'production_approval_needed',\n  'external_email_client_send_approval_needed',\n]);\nconst MAX_MESSAGES_PER_MINUTE = 5;\nconst DEDUPE_TTL_MS = 24 * 60 * 60 * 1000;\nconst BURST_WINDOW_MS = 60 * 1000;\n\nconst root = $input.first().json || {};\nconst body = root.body && typeof root.body === 'object' ? root.body : root;\nconst now = Date.now();\nlet route = '';\nlet telegramText = '';\nlet stableEventId = '';\n\nif (String(body.event_type || '').trim() === 'corpflow.lead_rescue.intake_received') {\n  const payload = body.payload && typeof body.payload === 'object' ? body.payload : {};\n  const prospect = payload.prospect && typeof payload.prospect === 'object' ? payload.prospect : {};\n  const leadId = String(payload.lead_id || body.correlation_id || body.id || '').trim();\n  const businessName = String(prospect.business_name || '').trim() || '(business name missing)';\n  const contactName = String(prospect.contact_name || '').trim() || '(first name missing)';\n  const adminUrl = String(payload.admin_detail_url || payload.admin_detail_path || '').trim();\n  if (!leadId || !adminUrl) return [];\n  route = 'lead_rescue';\n  stableEventId = String(body.id || leadId).trim();\n  telegramText = `Lead Rescue intake received\\n\\nBusiness: ${businessName}\\nFirst name: ${contactName}\\nLead ref: ${leadId}\\nReview URL: ${adminUrl}\\n\\nAction required: Review within 2 business hours.`;\n} else if (String(body.envelope || '').trim() === 'corpflow.ops_alert.v1') {\n  const kind = String(body.kind || '').trim();\n  const message = String(body.message || body.meta?.notification_text || '').trim();\n  if (!CHECKPOINT_KINDS.has(kind) || !message) return [];\n  route = 'ops_alert';\n  stableEventId = String(\n    body.id ||\n    body.event_id ||\n    body.idempotency_key ||\n    `${body.envelope}:${kind}:${body.ticket_id || 'global'}:${body.at || ''}`\n  ).trim();\n  telegramText = message;\n} else {\n  return [];\n}\n\nif (!stableEventId || !telegramText.trim()) return [];\n\nconst state = $getWorkflowStaticData('global');\nstate.seen_event_ids = state.seen_event_ids || {};\nstate.message_times = Array.isArray(state.message_times) ? state.message_times : [];\nfor (const [eventId, seenAt] of Object.entries(state.seen_event_ids)) {\n  if (!Number.isFinite(seenAt) || now - seenAt >= DEDUPE_TTL_MS) delete state.seen_event_ids[eventId];\n}\nstate.message_times = state.message_times.filter(\n  (sentAt) => Number.isFinite(sentAt) && now - sentAt < BURST_WINDOW_MS,\n);\nif (state.seen_event_ids[stableEventId]) return [];\nif (state.message_times.length >= MAX_MESSAGES_PER_MINUTE) return [];\n\nstate.seen_event_ids[stableEventId] = now;\nstate.message_times.push(now);\nreturn [{\n  json: {\n    route,\n    event_id: stableEventId,\n    telegram_text: telegramText.trim().slice(0, 3500),\n  },\n}];"
+      },
+      "id": "61100000-0000-4000-8000-000000000002",
+      "name": "Validate Route Dedupe and Limit",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        256,
+        0
+      ],
+      "notes": "Fails closed for unknown/missing types and blank text. Deduplicates stable event IDs for 24h and allows at most five unique messages per minute."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "61100000-0000-4000-8000-000000000011",
+              "leftValue": "={{ $json.route }}",
+              "rightValue": "lead_rescue",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "61100000-0000-4000-8000-000000000012",
+              "leftValue": "={{ $json.telegram_text }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "61100000-0000-4000-8000-000000000003",
+      "name": "Lead Rescue Text Nonblank",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        512,
+        -96
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "61100000-0000-4000-8000-000000000013",
+              "leftValue": "={{ $json.route }}",
+              "rightValue": "ops_alert",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "61100000-0000-4000-8000-000000000014",
+              "leftValue": "={{ $json.telegram_text }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "61100000-0000-4000-8000-000000000004",
+      "name": "Alert Text Nonblank",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        512,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "REPLACE_WITH_OPERATOR_CHAT_ID",
+        "text": "={{ $json.telegram_text }}",
+        "additionalFields": {
+          "disable_web_page_preview": true
+        }
+      },
+      "id": "61100000-0000-4000-8000-000000000005",
+      "name": "Test Notify Anton - Lead Rescue",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        768,
+        -96
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "REPLACE_WITH_OPERATOR_TELEGRAM_CREDENTIAL_ID",
+          "name": "REPLACE_WITH_OPERATOR_TELEGRAM_CREDENTIAL_NAME"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "REPLACE_WITH_OPERATOR_CHAT_ID",
+        "text": "={{ $json.telegram_text }}",
+        "additionalFields": {
+          "disable_web_page_preview": true
+        }
+      },
+      "id": "61100000-0000-4000-8000-000000000006",
+      "name": "Test Notify Anton - Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        768,
+        96
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "REPLACE_WITH_OPERATOR_TELEGRAM_CREDENTIAL_ID",
+          "name": "REPLACE_WITH_OPERATOR_TELEGRAM_CREDENTIAL_NAME"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Authenticated Test Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate Route Dedupe and Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Route Dedupe and Limit": {
+      "main": [
+        [
+          {
+            "node": "Lead Rescue Text Nonblank",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Alert Text Nonblank",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead Rescue Text Nonblank": {
+      "main": [
+        [
+          {
+            "node": "Test Notify Anton - Lead Rescue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alert Text Nonblank": {
+      "main": [
+        [
+          {
+            "node": "Test Notify Anton - Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "tags": [],
+  "meta": {
+    "incident": "GitHub issue #611",
+    "production_reactivation_authorized": false,
+    "contains_secrets": false
+  }
+}

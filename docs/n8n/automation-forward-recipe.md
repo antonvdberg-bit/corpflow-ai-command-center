@@ -14,6 +14,60 @@ When `CORPFLOW_AUTOMATION_FORWARD_URL` points at an **n8n Webhook** node, every 
    - **`corpflow.ops_alert.v1`** (envelope field) with **`kind`** in the four operator checkpoint kinds below → **Telegram to Anton only** when your existing Telegram credential is attached. Pipe **`message`** or **`meta.notification_text`** straight into the Telegram node (same pattern as Lead Rescue). **Do not** auto-send client email or WhatsApp from this branch.
    - **`intake.product_a.us_clinic.v1`** → Product A US clinic audit intake (`/product-a/us-clinics`). Branch to workflow **`product-a-us-clinic-intake-v1`**. Intake fields are in **`payload`** (flat `corpflow.product_a.intake.v1`). Full build runbook: **`docs/n8n/product-a-us-clinics-implementation-pack.md`**. Ops context: **`docs/product/PRODUCT_A_NON_GHL_DATA_WORKFLOW_PACKET.md`**. No auto-send to prospect — Gmail **drafts only**, operator approval required.
 
+### 1.1 Mandatory fail-closed notification guard
+
+The automation-forward webhook receives every accepted automation event, not only
+Lead Rescue and checkpoint alerts. Never wire an IF node's false/default output
+directly to Telegram.
+
+Required order:
+
+1. Authenticate at the Webhook node with n8n Header Auth. Authentication mismatch
+   must stop before any Code or Telegram node.
+2. Explicitly allow only:
+   - `event_type == corpflow.lead_rescue.intake_received`, or
+   - `envelope == corpflow.ops_alert.v1` with one of the four §5 checkpoint kinds.
+3. Return zero items for missing/unknown types or blank/whitespace text.
+4. Deduplicate on envelope `id` (or the lead/alert stable fallback) before sending.
+5. Apply a burst cap before Telegram.
+6. Use `={{ $json.telegram_text }}` (one leading `=`) and a final nonblank IF.
+7. Respond immediately with 2xx for authenticated accepted/ignored events so
+   callers do not retry; authentication failures remain 4xx.
+
+An inactive, secret-free test workflow implementing these guards is available at
+`docs/n8n/templates/automation-forward-issue-611-safe-test.template.json`.
+Import and exercise it only with n8n's test webhook and test Header Auth
+credential. It does not authorize production activation.
+
+**Incident #611:** the former production workflow used an inverted `notEquals`
+authentication IF and passed unrelated standard envelopes into an Alerts Code
+node that returned an item with blank text. Keep that workflow inactive until the
+issue's test matrix passes and Anton explicitly approves reactivation.
+
+### 1.2 Incident #611 reactivation gate
+
+Do not reuse the exposed production webhook URL. Reactivation is an
+operator-approved maintenance action, not part of the repository repair.
+
+Before requesting Anton's approval:
+
+1. Import the inactive safe-test template under a new test webhook path.
+2. Attach test Header Auth and Telegram credentials inside n8n; never place their
+   values in the export, issue, screenshots, or repository.
+3. Run and record: one valid lead, one valid alert, missing text, unknown event,
+   duplicate event, and a 12-event burst. Expected Telegram counts are
+   `1, 1, 0, 0, 1 maximum, 5 maximum`.
+4. Confirm invalid Header Auth returns 4xx and authenticated ignored events return
+   2xx without reaching Telegram.
+5. Record sanitized execution IDs/timestamps and obtain Anton's explicit approval.
+
+Only after approval: create a new production webhook path and forward secret,
+update n8n Header Auth and the Vercel forward URL/secret in one maintenance
+window, activate the hardened workflow, send one operator-only canary, and watch
+executions plus Telegram for 15 minutes. Keep the old workflow inactive; never
+reactivate it as-is. Roll back by deactivating the new workflow and removing the
+new Vercel forward URL until the routing defect is corrected.
+
 ## 2) Vercel env
 
 | Variable | Value |
