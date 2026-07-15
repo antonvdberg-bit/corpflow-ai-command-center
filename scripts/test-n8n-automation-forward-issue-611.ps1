@@ -179,7 +179,7 @@ try {
     Write-Host "Keep the test workflow separate from production and deactivate it after evidence capture."
 }
 finally {
-    Set-Clipboard -Value ""
+    Set-Clipboard -Value "cleared-by-issue-611-runner"
     $testSecret = $null
     $script:WebhookUrl = $null
 }
