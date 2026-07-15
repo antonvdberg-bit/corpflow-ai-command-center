@@ -21,9 +21,26 @@
 
 ---
 
+## Updated verification follow-up
+
+- [x] Existing PDF/HTML checked against Jan's user-guide and training-material request
+- [x] Client, advisor, and operator journeys included
+- [x] Screenshots 01–08 included
+- [x] Human-led follow-up and no-platform-messaging limitations included
+- [x] Practical walkthrough/training order included
+- [x] Updated PDF/HTML rebuilt locally
+- [x] Follow-up email draft prepared
+- [ ] Anton reviewed updated PDF
+- [ ] Anton approved follow-up email
+- [ ] Updated verification follow-up sent to Jan
+- [ ] Follow-up transmission evidence recorded
+- [ ] Jan verification response captured
+
+---
+
 ## Notes
 
 - Outbound messaging automation is **not live** as a platform capability for training packs.
 - Client follow-up after a Private Access Request remains **human-led**.
 - Anton confirmed email transmission to Jan in ChatGPT on 2026-07-14 at approximately 05:10 Africa/Johannesburg time.
-- Jan feedback remains open and should be monitored separately.
+- The 2026-07-15 verification follow-up remains a draft. No follow-up email, WhatsApp, or SMS has been sent.

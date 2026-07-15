@@ -170,9 +170,9 @@ function buildHtml() {
 <body>
   <header class="hero">
     <div class="wrap">
-      <div class="brand">LuxeMaurice · Platform training pack</div>
+      <div class="brand">LuxeMaurice · User guide and training walkthrough</div>
       <h1>LuxeMaurice AI training pack</h1>
-      <p class="lede">A practical walkthrough of the live Private Access Request journey: client submission, advisor review, and operator lead management. Prepared for Jan and the LuxeMaurice team by CorpFlowAI.</p>
+      <p class="lede">A practical user guide and training walkthrough of the live Private Access Request journey: client submission, advisor review, and operator lead management. Prepared for Jan and the LuxeMaurice team by CorpFlowAI.</p>
     </div>
   </header>
 
@@ -191,11 +191,12 @@ function buildHtml() {
       <h2>Cover note</h2>
       <div class="panel">
         <p>Dear Jan,</p>
-        <p>Please find the LuxeMaurice platform training pack prepared for your team. It covers how a guest submits a Private Access Request, how advisors review requests after sign-in, how operators manage stage and notes in Change Console, what is live today, and a suggested training order.</p>
-        <p>Screenshots use a fictional demonstration identity (<strong>LuxeMaurice Training User</strong> / <span class="url">training@example.invalid</span>) so the pack stays safe for internal training. Recorded videos are not required.</p>
-        <p>Please review this pack and send through any questions or changes you would like us to address.</p>
+        <p>Please find the updated LuxeMaurice user guide and training walkthrough material prepared for your team. It covers how a guest submits a Private Access Request, how advisors review requests after sign-in, how operators manage stage and notes in Change Console, what is live today, and a suggested training order.</p>
+        <p>Screenshots use a fictional demonstration identity (<strong>LuxeMaurice Training User</strong> / <span class="url">training@example.invalid</span>) so the pack stays safe for internal training. The walkthrough material is structured for a guided training session; it does not claim that recorded videos are included.</p>
+        <p>Please review and confirm whether this is acceptable, or let us know if you would like any changes before we treat the training pack as final.</p>
         <p>Kind regards,<br/>Anton<br/>CorpFlowAI</p>
       </div>
+      <p><strong>Verification edition:</strong> 15 July 2026</p>
       <p><strong>Live site:</strong> <span class="url">https://lux.corpflowai.com/client/luxe-maurice-ai</span></p>
     </section>
 
@@ -292,7 +293,7 @@ function buildHtml() {
     </section>
 
     <footer>
-      LuxeMaurice platform training pack · CorpFlowAI · For Jan / LuxeMaurice team use · Demonstration screenshots only
+      LuxeMaurice user guide and training walkthrough · Verification edition 15 July 2026 · CorpFlowAI · Demonstration screenshots only
     </footer>
   </main>
 </body>

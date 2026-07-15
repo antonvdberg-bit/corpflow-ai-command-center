@@ -34,6 +34,8 @@ const REQUIRED_FILES = [
   'client-delivery-preparation/DRAFT_WHATSAPP_TO_JAN.md',
   'client-delivery-preparation/LIMITATIONS_AND_TRAINING_ORDER.md',
   'client-delivery-preparation/SEND_PACKET_2026-07-14.md',
+  'client-delivery-preparation/DRAFT_FOLLOW_UP_EMAIL_TO_JAN.md',
+  'client-delivery-preparation/FOLLOW_UP_SEND_PACKET_2026-07-15.md',
   'client-delivery-preparation/CHATGPT_SEND_AND_FEEDBACK_HANDOFF.md',
   'client-delivery-preparation/LUXEMAURICE_TRAINING_PACK_FOR_JAN.html',
   'client-delivery-preparation/LUXEMAURICE_TRAINING_PACK_FOR_JAN.pdf',
@@ -60,6 +62,7 @@ const JAN_FACING = [
   '06-backend-status/BACKEND_STATUS_AND_LIMITATIONS.md',
   'client-delivery-preparation/COVER_NOTE.md',
   'client-delivery-preparation/DRAFT_EMAIL_TO_JAN.md',
+  'client-delivery-preparation/DRAFT_FOLLOW_UP_EMAIL_TO_JAN.md',
   'client-delivery-preparation/DRAFT_WHATSAPP_TO_JAN.md',
   'client-delivery-preparation/LIMITATIONS_AND_TRAINING_ORDER.md',
   'client-delivery-preparation/guides/CLIENT_PRIVATE_ACCESS_GUIDE.md',
@@ -134,7 +137,11 @@ test('luxe training pack: Jan PDF and HTML deliverables exist', () => {
   assert.ok(fs.statSync(pdf).size > 50000, 'Jan PDF too small');
   const htmlText = fs.readFileSync(html, 'utf8');
   assert.match(htmlText, /LuxeMaurice AI training pack/);
+  assert.match(htmlText, /user guide and training walkthrough/i);
+  assert.match(htmlText, /Verification edition:<\/strong> 15 July 2026/);
+  assert.match(htmlText, /no automated email \/ WhatsApp \/ SMS from the platform today/i);
   assert.match(htmlText, /data:image\/png;base64,/);
+  assert.equal((htmlText.match(/<figcaption>/g) || []).length, 16, 'Jan HTML must include figures 01-08 in guides and gallery');
   assert.doesNotMatch(htmlText, /\bCursor\b/);
   assert.doesNotMatch(htmlText, /\bGitHub\b/);
 });
@@ -187,6 +194,28 @@ test('luxe training pack: draft messages exist and declare transmission by Anton
   assert.match(wa, /not been sent|NOT SENT|draft only|do not send|DRAFT/i);
 });
 
+test('luxe training pack: Jan verification follow-up is ready but not sent', () => {
+  const email = readPack('client-delivery-preparation/DRAFT_FOLLOW_UP_EMAIL_TO_JAN.md');
+  const packet = readPack('client-delivery-preparation/FOLLOW_UP_SEND_PACKET_2026-07-15.md');
+  const checklist = readPack('client-delivery-preparation/DELIVERY_CHECKLIST.md');
+
+  assert.match(email, /\*\*Subject:\*\*\s*Updated LuxeMaurice training documentation for verification/i);
+  assert.match(email, /user guide material/i);
+  assert.match(email, /training walkthrough structure and screenshots/i);
+  assert.match(email, /confirm whether this is acceptable/i);
+  assert.match(email, /DRAFT\s*[—-]\s*NOT SENT/i);
+  assert.doesNotMatch(email, /\bPR\s*#?\d+|Markdown|capture checklist/i);
+
+  assert.match(packet, /existing Jan-facing package already included/i);
+  assert.match(packet, /No recorded training videos are claimed/i);
+  assert.match(packet, /\[ \] Anton approved follow-up email/);
+  assert.match(packet, /\[ \] Follow-up email sent by Anton \/ ChatGPT/);
+  assert.match(packet, /No email, WhatsApp, or SMS was sent/i);
+
+  assert.match(checklist, /\[ \] Updated verification follow-up sent to Jan/);
+  assert.match(checklist, /\[ \] Jan verification response captured/);
+});
+
 test('luxe training pack: manifest lists graphics and chrome crop for 06', () => {
   const manifest = readPack('05-graphics/GRAPHICS_MANIFEST.md');
   for (const name of EXPECTED_GRAPHICS) {
@@ -200,18 +229,18 @@ test('luxe training pack: manifest lists graphics and chrome crop for 06', () =>
   assert.doesNotMatch(manifest, /CAPTURE_REQUIRED/);
 });
 
-test('luxe training pack: README review entry and approval incomplete', () => {
+test('luxe training pack: README records original send and pending follow-up', () => {
   const readme = readPack('README.md');
   assert.match(readme, /All eight required (screenshots|graphics) are present/i);
-  assert.match(readme, /Anton review checklist/i);
-  assert.match(readme, /\[ \] All eight graphics are present/);
-  assert.match(readme, /\[ \] All graphics use fictional training data only/);
+  assert.match(readme, /Delivery and follow-up status/i);
+  assert.match(readme, /\[x\] All eight graphics are present and use fictional training data/);
   assert.match(readme, /BROWSER_CHROME_CROPPED/);
   assert.match(readme, /FOCUSED_TO_TRAINING_REQUEST|recorded videos are not required/i);
-  assert.match(readme, /\[ \] Anton approved pack for client-send preparation/);
-  assert.match(readme, /\[ \] No client send has occurred/);
+  assert.match(readme, /\[x\] Original pack sent by Anton on 2026-07-14/);
+  assert.match(readme, /\[ \] Anton approved updated verification follow-up/);
+  assert.match(readme, /\[ \] Updated verification follow-up sent to Jan/);
   assert.match(readme, /review\/LUXEMAURICE_TRAINING_PACK_REVIEW\.md/);
-  assert.match(readme, /No external send has occurred/i);
+  assert.match(readme, /updated verification follow-up is prepared but \*\*has not been sent\*\*/i);
 });
 
 test('luxe training pack: README Where to view lists live surfaces and repo folder', () => {

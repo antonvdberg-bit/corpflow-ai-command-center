@@ -1,8 +1,8 @@
 # File inventory — Jan-facing package
 
-Intended files for Jan once Anton approves external send. Paths are relative to `client-delivery-preparation/`.
+Files for the original delivery and the updated verification follow-up. Paths are relative to `client-delivery-preparation/`.
 
-**Status:** inventory for preparation. **Pack has not been sent.**
+**Status:** original PDF sent by Anton on 2026-07-14. Updated verification follow-up prepared on 2026-07-15; **follow-up not sent**.
 
 ---
 
@@ -17,9 +17,11 @@ Intended files for Jan once Anton approves external send. Paths are relative to 
 | `FILE_INVENTORY.md` | This inventory |
 | `DELIVERY_CHECKLIST.md` | Operator delivery gates |
 | `DRAFT_EMAIL_TO_JAN.md` | Draft email |
+| `DRAFT_FOLLOW_UP_EMAIL_TO_JAN.md` | Draft updated-documentation verification email |
 | `DRAFT_WHATSAPP_TO_JAN.md` | Draft WhatsApp text |
 | `LIMITATIONS_AND_TRAINING_ORDER.md` | Limits + training order |
 | `SEND_PACKET_2026-07-14.md` | Send packet / evidence |
+| `FOLLOW_UP_SEND_PACKET_2026-07-15.md` | Follow-up readiness, approval gates, and pending evidence |
 | `README.md` | Package orientation |
 
 ## Guides
