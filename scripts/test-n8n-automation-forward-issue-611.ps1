@@ -48,7 +48,18 @@ function Invoke-MatrixRequest {
 }
 
 $script:WebhookUrl = Read-PrivateValue "Paste the NEW TEST workflow Production URL"
-$testSecret = Read-PrivateValue "Paste the NEW TEST Header Auth value"
+$secretBytes = New-Object byte[] 32
+$random = [Security.Cryptography.RandomNumberGenerator]::Create()
+try {
+    $random.GetBytes($secretBytes)
+}
+finally {
+    $random.Dispose()
+}
+$testSecret = [Convert]::ToBase64String($secretBytes)
+$secretBytes = $null
+Set-Clipboard -Value $testSecret
+Read-Host "A fresh test Header Auth value is copied. Paste it into the n8n test credential, save and publish ONLY the test workflow, then press Enter here" | Out-Null
 $runId = [Guid]::NewGuid().ToString("N")
 $now = [DateTimeOffset]::UtcNow.ToString("o")
 
@@ -168,6 +179,7 @@ try {
     Write-Host "Keep the test workflow separate from production and deactivate it after evidence capture."
 }
 finally {
+    Set-Clipboard -Value ""
     $testSecret = $null
     $script:WebhookUrl = $null
 }
