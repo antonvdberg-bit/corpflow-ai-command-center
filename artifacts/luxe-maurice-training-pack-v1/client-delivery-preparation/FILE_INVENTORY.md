@@ -2,7 +2,7 @@
 
 Files for the original delivery and the updated verification follow-up. Paths are relative to `client-delivery-preparation/`.
 
-**Status:** original PDF sent by Anton on 2026-07-14. Updated verification follow-up prepared on 2026-07-15; **follow-up not sent**.
+**Status:** original PDF sent by Anton on 2026-07-14. Corrected verification follow-up now includes the website content-update workflow; **follow-up not sent**.
 
 ---
 
@@ -31,6 +31,7 @@ Files for the original delivery and the updated verification follow-up. Paths ar
 | `guides/CLIENT_PRIVATE_ACCESS_GUIDE.md` | Client Private Access Request journey |
 | `guides/ADVISOR_REVIEW_GUIDE.md` | Advisor Pipeline review |
 | `guides/OPERATOR_CHANGE_WORKFLOW.md` | Operator Change Console workflow |
+| `guides/HOW_TO_UPDATE_WEBSITE_CONTENT.md` | Managed website content-update workflow and what Jan should provide |
 
 ## Video scripts (optional)
 

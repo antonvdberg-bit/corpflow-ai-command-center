@@ -19,6 +19,9 @@
 | Automated confirmation to the guest after submit | **Not live** |
 | Automated advisor notifications | **Not live** |
 | Follow-up after a request is submitted | **Human-led** by your team |
+| General self-service CMS/upload portal for all website content | **Not available as the current verified client workflow** |
+| Website content updates | **Managed by CorpFlowAI** from approved assets/details through verification |
+| Automatic PDF or video publication | **Not live** — placement/hosting must be prepared and approved |
 
 Do not expect the platform to send messages on your behalf today. Discreet follow-up is handled by advisors and operators using the contact details provided on the request.
 

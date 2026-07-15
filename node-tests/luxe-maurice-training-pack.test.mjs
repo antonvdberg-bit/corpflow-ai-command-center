@@ -22,6 +22,7 @@ const REQUIRED_FILES = [
   '05-graphics/GRAPHICS_CAPTURE_CHECKLIST.md',
   '05-graphics/GRAPHICS_MANIFEST.md',
   '06-backend-status/BACKEND_STATUS_AND_LIMITATIONS.md',
+  '07-content-update-workflow/HOW_TO_UPDATE_WEBSITE_CONTENT.md',
   'review/README.md',
   'review/LUXEMAURICE_TRAINING_PACK_REVIEW.md',
   'review/LUXEMAURICE_TRAINING_PACK_REVIEW.html',
@@ -33,6 +34,7 @@ const REQUIRED_FILES = [
   'client-delivery-preparation/DRAFT_EMAIL_TO_JAN.md',
   'client-delivery-preparation/DRAFT_WHATSAPP_TO_JAN.md',
   'client-delivery-preparation/LIMITATIONS_AND_TRAINING_ORDER.md',
+  'client-delivery-preparation/guides/HOW_TO_UPDATE_WEBSITE_CONTENT.md',
   'client-delivery-preparation/SEND_PACKET_2026-07-14.md',
   'client-delivery-preparation/DRAFT_FOLLOW_UP_EMAIL_TO_JAN.md',
   'client-delivery-preparation/FOLLOW_UP_SEND_PACKET_2026-07-15.md',
@@ -60,6 +62,7 @@ const JAN_FACING = [
   '04-training-video-scripts/VIDEO_02_ADVISOR_JOURNEY.md',
   '04-training-video-scripts/VIDEO_03_OPERATOR_WORKFLOW.md',
   '06-backend-status/BACKEND_STATUS_AND_LIMITATIONS.md',
+  '07-content-update-workflow/HOW_TO_UPDATE_WEBSITE_CONTENT.md',
   'client-delivery-preparation/COVER_NOTE.md',
   'client-delivery-preparation/DRAFT_EMAIL_TO_JAN.md',
   'client-delivery-preparation/DRAFT_FOLLOW_UP_EMAIL_TO_JAN.md',
@@ -68,6 +71,7 @@ const JAN_FACING = [
   'client-delivery-preparation/guides/CLIENT_PRIVATE_ACCESS_GUIDE.md',
   'client-delivery-preparation/guides/ADVISOR_REVIEW_GUIDE.md',
   'client-delivery-preparation/guides/OPERATOR_CHANGE_WORKFLOW.md',
+  'client-delivery-preparation/guides/HOW_TO_UPDATE_WEBSITE_CONTENT.md',
 ];
 
 const FORBIDDEN_JAN_COPY = [
@@ -140,6 +144,19 @@ test('luxe training pack: Jan PDF and HTML deliverables exist', () => {
   assert.match(htmlText, /user guide and training walkthrough/i);
   assert.match(htmlText, /Verification edition:<\/strong> 15 July 2026/);
   assert.match(htmlText, /no automated email \/ WhatsApp \/ SMS from the platform today/i);
+  assert.match(htmlText, /How LuxeMaurice content gets added to the website/i);
+  assert.match(htmlText, /managed CorpFlowAI update workflow/i);
+  assert.match(htmlText, /not a general self-service CMS or upload portal/i);
+  for (const phrase of [
+    'Property photos',
+    'PDF brochures',
+    'Videos and walkthrough links',
+    'Text and page-copy updates',
+    'Property and listing details',
+    'Verify the update',
+  ]) {
+    assert.match(htmlText, new RegExp(phrase, 'i'), `Jan HTML missing content-update phrase: ${phrase}`);
+  }
   assert.match(htmlText, /data:image\/png;base64,/);
   assert.equal((htmlText.match(/<figcaption>/g) || []).length, 16, 'Jan HTML must include figures 01-08 in guides and gallery');
   assert.doesNotMatch(htmlText, /\bCursor\b/);
@@ -200,13 +217,15 @@ test('luxe training pack: Jan verification follow-up is ready but not sent', () 
   const checklist = readPack('client-delivery-preparation/DELIVERY_CHECKLIST.md');
 
   assert.match(email, /\*\*Subject:\*\*\s*Updated LuxeMaurice training documentation for verification/i);
-  assert.match(email, /user guide material/i);
-  assert.match(email, /training walkthrough structure and screenshots/i);
-  assert.match(email, /confirm whether this is acceptable/i);
+  assert.match(email, /dedicated section explaining how LuxeMaurice website content updates are handled/i);
+  assert.match(email, /property photos, PDF brochures\/documents, videos or walkthrough links, text updates, and property\/listing details/i);
+  assert.match(email, /confirm whether this answers your question about how content is provided and displayed/i);
   assert.match(email, /DRAFT\s*[—-]\s*NOT SENT/i);
   assert.doesNotMatch(email, /\bPR\s*#?\d+|Markdown|capture checklist/i);
 
-  assert.match(packet, /existing Jan-facing package already included/i);
+  assert.match(packet, /PR #609 corrected after Anton review/i);
+  assert.match(packet, /did not answer Jan's actual content-upload\/content-display question/i);
+  assert.match(packet, /managed CorpFlowAI update workflow/i);
   assert.match(packet, /No recorded training videos are claimed/i);
   assert.match(packet, /\[ \] Anton approved follow-up email/);
   assert.match(packet, /\[ \] Follow-up email sent by Anton \/ ChatGPT/);
@@ -240,7 +259,30 @@ test('luxe training pack: README records original send and pending follow-up', (
   assert.match(readme, /\[ \] Anton approved updated verification follow-up/);
   assert.match(readme, /\[ \] Updated verification follow-up sent to Jan/);
   assert.match(readme, /review\/LUXEMAURICE_TRAINING_PACK_REVIEW\.md/);
-  assert.match(readme, /updated verification follow-up is prepared but \*\*has not been sent\*\*/i);
+  assert.match(readme, /corrected verification edition and follow-up email packet are prepared/i);
+  assert.match(readme, /No follow-up send has occurred/i);
+});
+
+test('luxe training pack: content-update guide documents managed workflow truthfully', () => {
+  const source = readPack('07-content-update-workflow/HOW_TO_UPDATE_WEBSITE_CONTENT.md');
+  const delivery = readPack('client-delivery-preparation/guides/HOW_TO_UPDATE_WEBSITE_CONTENT.md');
+  const corpus = `${source}\n${delivery}`;
+
+  assert.match(corpus, /website content updates/i);
+  assert.match(corpus, /managed CorpFlowAI update workflow/i);
+  assert.match(corpus, /not a general self-service CMS or upload portal/i);
+  assert.match(corpus, /property photos/i);
+  assert.match(corpus, /PDF brochures/i);
+  assert.match(corpus, /videos and walkthrough links/i);
+  assert.match(corpus, /text and page-copy updates/i);
+  assert.match(corpus, /property and listing details/i);
+  assert.match(corpus, /verify|verification/i);
+  assert.match(corpus, /hero image first/i);
+  assert.match(corpus, /downloadable.*view-only.*private\/request-only/is);
+  assert.match(corpus, /YouTube, Vimeo/i);
+  assert.match(corpus, /raw video file.*prepare, host, or embed/is);
+  assert.match(corpus, /Approved.*Changes needed/is);
+  assert.doesNotMatch(corpus, /\buse the CMS\b|\bupload the files in the dashboard\b|videos can be uploaded directly/i);
 });
 
 test('luxe training pack: README Where to view lists live surfaces and repo folder', () => {

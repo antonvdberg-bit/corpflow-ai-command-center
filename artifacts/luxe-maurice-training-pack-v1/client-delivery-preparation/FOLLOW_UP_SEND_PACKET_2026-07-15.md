@@ -6,14 +6,18 @@ Prepare the updated LuxeMaurice user guide and training walkthrough package for 
 
 ## Documentation review result
 
-The existing Jan-facing package already included:
+**PR #609 corrected after Anton review.** The first follow-up version covered the general training journey but did not answer Jan's actual content-upload/content-display question.
 
-- the client Private Access journey;
-- the Advisor Pipeline review guide;
-- the operator Change Console workflow;
-- screenshots 01–08 using fictional training data;
-- clear limitations that follow-up is human-led and platform email, WhatsApp, and SMS automation is not live;
-- a practical walkthrough and training order.
+The corrected package adds **How LuxeMaurice content gets added to the website**, covering:
+
+- property photos and gallery order;
+- PDF brochures and document visibility;
+- videos, walkthrough links, thumbnails, and raw-file handling;
+- text and page-copy updates;
+- property/listing details and visibility;
+- preview/live verification and Jan's Approved / Changes needed response.
+
+The client-facing truth is a **managed CorpFlowAI update workflow**. Protected internal listing and media tools exist, but they are not presented as a general self-service CMS/upload portal. Jan's end-to-end self-service workflow has not been live-verified, and documents/videos are not automatically published.
 
 No recorded training videos are claimed. The existing video materials remain optional scripts/storyboards for a future guided recording if separately approved.
 
@@ -28,6 +32,11 @@ The PDF/HTML verification edition is dated 15 July 2026 and asks Jan to confirm 
 ## Approval and send gates
 
 - [x] Existing package scope checked against Jan’s user-guide and training-material request
+- [x] PR #609 corrected after Anton review
+- [x] Website content-update workflow added
+- [x] Managed CorpFlowAI workflow stated; no general self-service CMS claim
+- [x] Photos, PDF brochures, videos, text updates, and property/listing details covered
+- [x] Preview/live verification checklist included
 - [x] Screenshots 01–08 present
 - [x] Human-led follow-up and no-platform-messaging limitations present
 - [x] PDF/HTML rebuilt locally
@@ -59,6 +68,8 @@ Record one result after Jan replies:
 ## Non-actions confirmed
 
 - No email, WhatsApp, or SMS was sent while preparing this packet.
+- Jan was not contacted.
+- Anton approval is still required before any follow-up send.
 - No messaging automation was triggered.
 - No production deployment was performed.
 - No runtime, database, schema, environment, or secret changes were made.

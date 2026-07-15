@@ -4,7 +4,7 @@
 
 **Original send:** Anton sent the initial PDF to Jan by email on 2026-07-14.
 
-**Follow-up status:** updated verification edition and email draft prepared; **not sent**.
+**Follow-up status:** corrected verification edition now includes the managed website content-update workflow; **not sent**.
 
 **External follow-up:** requires Anton’s explicit approval and human transmission. Outbound messaging automation is not live.
 
@@ -24,6 +24,7 @@
 | Draft WhatsApp to Jan | [`DRAFT_WHATSAPP_TO_JAN.md`](./DRAFT_WHATSAPP_TO_JAN.md) |
 | Limitations and training order | [`LIMITATIONS_AND_TRAINING_ORDER.md`](./LIMITATIONS_AND_TRAINING_ORDER.md) |
 | Guides | [`guides/`](./guides/) |
+| Website content-update guide | [`guides/HOW_TO_UPDATE_WEBSITE_CONTENT.md`](./guides/HOW_TO_UPDATE_WEBSITE_CONTENT.md) |
 | Video scripts | [`scripts/`](./scripts/) |
 | Status / limitations excerpt | [`status/`](./status/) |
 | Graphics (copies for package) | [`graphics/`](./graphics/) — PNGs placed when packaging for send |

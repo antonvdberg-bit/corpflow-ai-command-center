@@ -28,6 +28,10 @@
 - [x] Screenshots 01–08 included
 - [x] Human-led follow-up and no-platform-messaging limitations included
 - [x] Practical walkthrough/training order included
+- [x] Managed website content-update workflow included
+- [x] Photos, PDF brochures, videos, text updates, and property/listing details covered
+- [x] Verification checklist and Approved / Changes needed response included
+- [x] No general self-service CMS/upload portal claimed
 - [x] Updated PDF/HTML rebuilt locally
 - [x] Follow-up email draft prepared
 - [ ] Anton reviewed updated PDF
@@ -43,4 +47,5 @@
 - Outbound messaging automation is **not live** as a platform capability for training packs.
 - Client follow-up after a Private Access Request remains **human-led**.
 - Anton confirmed email transmission to Jan in ChatGPT on 2026-07-14 at approximately 05:10 Africa/Johannesburg time.
-- The 2026-07-15 verification follow-up remains a draft. No follow-up email, WhatsApp, or SMS has been sent.
+- PR #609 was corrected after Anton review because the first follow-up version did not answer Jan's content-upload/content-display question.
+- The corrected 2026-07-15 verification follow-up remains a draft. No follow-up email, WhatsApp, or SMS has been sent.

@@ -10,9 +10,9 @@ Hi Jan,
 
 Please find attached the updated LuxeMaurice training documentation pack for your verification.
 
-It includes the user guide material for the client private-access journey, Advisor Pipeline review, and internal Change Console lead workflow, together with the training walkthrough structure and screenshots.
+This version now includes a dedicated section explaining how LuxeMaurice website content updates are handled, including property photos, PDF brochures/documents, videos or walkthrough links, text updates, and property/listing details.
 
-Please review and confirm whether this is acceptable, or let us know if you would like any changes before we treat the training pack as final.
+Please review and confirm whether this answers your question about how content is provided and displayed on the website, or let us know what still needs to be clarified.
 
 Kind regards,  
 Anton  

@@ -56,6 +56,7 @@ These repo artifacts are for **Anton review and packaging**. They are not public
 | `04-training-video-scripts/` | Optional screen-recording scripts (not required for send while graphics 01–08 are complete) |
 | `05-graphics/` | Screenshot manifest, capture checklist, PNG captures |
 | `06-backend-status/` | What is live now vs planned future enhancements |
+| `07-content-update-workflow/` | Managed workflow for photos, documents, videos, copy, listings, and verification |
 
 ---
 
@@ -87,6 +88,7 @@ The original pack review and send are complete. The verification follow-up remai
 [x] All eight graphics are present and use fictional training data
 [x] Graphic 06 browser-chrome crop completed (BROWSER_CHROME_CROPPED · FOCUSED_TO_TRAINING_REQUEST)
 [x] Training guides and screenshot sequence (01–08) match the documented workflow
+[x] Website content-update workflow explains what Jan provides and how CorpFlowAI verifies publication
 [x] Video content remains scripts/storyboards; no recorded videos are claimed
 [x] Limitations state that follow-up is human-led and platform outbound messaging is not live
 [x] Original pack sent by Anton on 2026-07-14
@@ -95,7 +97,7 @@ The original pack review and send are complete. The verification follow-up remai
 [ ] Jan verification response captured
 ```
 
-**Status:** The existing PDF/HTML already satisfies the requested user-guide and training-walkthrough scope. A dated verification edition and follow-up email packet are prepared for Anton approval. **No follow-up send has occurred.**
+**Status:** The PDF/HTML now includes Jan’s requested website content-update workflow. It clearly describes the current process as managed by CorpFlowAI rather than a general self-service CMS/upload portal. A corrected verification edition and follow-up email packet are prepared for Anton approval. **No follow-up send has occurred.**
 
 ---
 
