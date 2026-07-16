@@ -60,8 +60,14 @@ test('issue 611 template is inactive, authenticated, and responds after routing'
   assert.equal(template.active, false);
   const webhook = template.nodes.find((node) => node.name === 'Authenticated Test Webhook');
   assert.equal(webhook.parameters.authentication, 'headerAuth');
-  assert.equal(webhook.parameters.responseMode, 'lastNode');
+  assert.equal(webhook.parameters.responseMode, 'responseNode');
   assert.equal(template.meta.production_reactivation_authorized, false);
+
+  const responseNodes = template.nodes.filter(
+    (node) => node.type === 'n8n-nodes-base.respondToWebhook',
+  );
+  assert.equal(responseNodes.length, 1);
+  assert.equal(responseNodes[0].parameters.options.responseCode, 200);
 
   const telegramNodes = template.nodes.filter((node) => node.type === 'n8n-nodes-base.telegram');
   assert.equal(telegramNodes.length, 2);
@@ -90,7 +96,10 @@ test('valid alert produces exactly one populated alert notification', async () =
 test('missing alert text produces zero notifications', async () => {
   const route = createRouterHarness();
   const result = await route({ ...validAlert(), message: '   ' });
-  assert.deepEqual(result, []);
+  assert.equal(result.length, 1);
+  assert.equal(result[0].json.route, 'ignored');
+  assert.equal(result[0].json.skip_reason, 'alert_text_blank');
+  assert.equal(result[0].json.telegram_text, '');
 });
 
 test('unknown event produces zero notifications', async () => {
@@ -101,7 +110,10 @@ test('unknown event produces zero notifications', async () => {
     event_type: 'cmp.operator.switched_tenant',
     payload: {},
   });
-  assert.deepEqual(result, []);
+  assert.equal(result.length, 1);
+  assert.equal(result[0].json.route, 'ignored');
+  assert.equal(result[0].json.skip_reason, 'unknown_event');
+  assert.equal(result[0].json.telegram_text, '');
 });
 
 test('duplicate event produces at most one notification', async () => {
@@ -109,7 +121,10 @@ test('duplicate event produces at most one notification', async () => {
   const first = await route(validLead('duplicate-event'));
   const second = await route(validLead('duplicate-event'), 1_800_000_000_100);
   assert.equal(first.length, 1);
-  assert.deepEqual(second, []);
+  assert.equal(first[0].json.route, 'lead_rescue');
+  assert.equal(second.length, 1);
+  assert.equal(second[0].json.route, 'ignored');
+  assert.equal(second[0].json.skip_reason, 'duplicate_event');
 });
 
 test('burst protection caps unique notifications at five per minute', async () => {
@@ -120,7 +135,7 @@ test('burst protection caps unique notifications at five per minute', async () =
       validAlert(`burst-event-${index}`),
       1_800_000_000_000 + index,
     );
-    notifications += result.length;
+    notifications += result.filter((item) => item.json.route !== 'ignored').length;
   }
   assert.equal(notifications, 5);
 });

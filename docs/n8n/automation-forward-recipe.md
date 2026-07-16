@@ -27,7 +27,9 @@ Required order:
 2. Explicitly allow only:
    - `event_type == corpflow.lead_rescue.intake_received`, or
    - `envelope == corpflow.ops_alert.v1` with one of the four §5 checkpoint kinds.
-3. Return zero items for missing/unknown types or blank/whitespace text.
+3. Mark missing/unknown types or blank/whitespace text as `route: ignored` with
+   empty `telegram_text`; route that control item directly to the response node,
+   never Telegram.
 4. Deduplicate on envelope `id` (or the lead/alert stable fallback) before sending.
 5. Apply a burst cap before Telegram.
 6. Use `={{ $json.telegram_text }}` (one leading `=`) and a final nonblank IF.
@@ -62,8 +64,10 @@ Before requesting Anton's approval:
    it prompts privately for the new test URL and Header Auth value and does not
    store either value in command history or the repository.
 4. Confirm invalid Header Auth returns 4xx and authenticated ignored events return
-   2xx without reaching Telegram. The test Webhook must use **When Last Node
-   Finishes**, not **Immediately**, so the matrix does not race static-data saves.
+   2xx without reaching Telegram. The test Webhook must use **Using Respond to
+   Webhook Node**, with all notification and ignored branches ending at the one
+   `Respond 200` node. Do not use **Immediately** or **When Last Node Finishes**;
+   sequential matrix calls must wait for the static-data guard to finish.
 5. Record sanitized execution IDs/timestamps and obtain Anton's explicit approval.
 
 Only after approval: create a new production webhook path and forward secret,

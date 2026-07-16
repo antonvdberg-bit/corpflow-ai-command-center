@@ -7,7 +7,7 @@
         "httpMethod": "POST",
         "path": "issue-611-automation-forward-test",
         "authentication": "headerAuth",
-        "responseMode": "lastNode",
+        "responseMode": "responseNode",
         "options": {}
       },
       "id": "61100000-0000-4000-8000-000000000001",
@@ -24,11 +24,11 @@
           "name": "REPLACE_WITH_TEST_HEADER_AUTH_CREDENTIAL_NAME"
         }
       },
-      "notes": "Inactive test-only webhook. Attach a test Header Auth credential in n8n. Respond after the last node so sequential callers cannot overlap the static-data dedupe/rate guard. Never reuse or expose the production webhook path or secret."
+      "notes": "Inactive test-only webhook. Attach a test Header Auth credential in n8n. Every authenticated route terminates at one Respond to Webhook node after routing, notification, dedupe, or rate rejection. Never reuse or expose the production webhook path or secret."
     },
     {
       "parameters": {
-        "jsCode": "const CHECKPOINT_KINDS = new Set([\n  'production_validation_failure',\n  'client_approval_needed',\n  'production_approval_needed',\n  'external_email_client_send_approval_needed',\n]);\nconst MAX_MESSAGES_PER_MINUTE = 5;\nconst DEDUPE_TTL_MS = 24 * 60 * 60 * 1000;\nconst BURST_WINDOW_MS = 60 * 1000;\n\nconst root = $input.first().json || {};\nconst body = root.body && typeof root.body === 'object' ? root.body : root;\nconst now = Date.now();\nlet route = '';\nlet telegramText = '';\nlet stableEventId = '';\n\nif (String(body.event_type || '').trim() === 'corpflow.lead_rescue.intake_received') {\n  const payload = body.payload && typeof body.payload === 'object' ? body.payload : {};\n  const prospect = payload.prospect && typeof payload.prospect === 'object' ? payload.prospect : {};\n  const leadId = String(payload.lead_id || body.correlation_id || body.id || '').trim();\n  const businessName = String(prospect.business_name || '').trim() || '(business name missing)';\n  const contactName = String(prospect.contact_name || '').trim() || '(first name missing)';\n  const adminUrl = String(payload.admin_detail_url || payload.admin_detail_path || '').trim();\n  if (!leadId || !adminUrl) return [];\n  route = 'lead_rescue';\n  stableEventId = String(body.id || leadId).trim();\n  telegramText = `Lead Rescue intake received\\n\\nBusiness: ${businessName}\\nFirst name: ${contactName}\\nLead ref: ${leadId}\\nReview URL: ${adminUrl}\\n\\nAction required: Review within 2 business hours.`;\n} else if (String(body.envelope || '').trim() === 'corpflow.ops_alert.v1') {\n  const kind = String(body.kind || '').trim();\n  const message = String(body.message || body.meta?.notification_text || '').trim();\n  if (!CHECKPOINT_KINDS.has(kind) || !message) return [];\n  route = 'ops_alert';\n  stableEventId = String(\n    body.id ||\n    body.event_id ||\n    body.idempotency_key ||\n    `${body.envelope}:${kind}:${body.ticket_id || 'global'}:${body.at || ''}`\n  ).trim();\n  telegramText = message;\n} else {\n  return [];\n}\n\nif (!stableEventId || !telegramText.trim()) return [];\n\nconst state = $getWorkflowStaticData('global');\nstate.seen_event_ids = state.seen_event_ids || {};\nstate.message_times = Array.isArray(state.message_times) ? state.message_times : [];\nfor (const [eventId, seenAt] of Object.entries(state.seen_event_ids)) {\n  if (!Number.isFinite(seenAt) || now - seenAt >= DEDUPE_TTL_MS) delete state.seen_event_ids[eventId];\n}\nstate.message_times = state.message_times.filter(\n  (sentAt) => Number.isFinite(sentAt) && now - sentAt < BURST_WINDOW_MS,\n);\nif (state.seen_event_ids[stableEventId]) return [];\nif (state.message_times.length >= MAX_MESSAGES_PER_MINUTE) return [];\n\nstate.seen_event_ids[stableEventId] = now;\nstate.message_times.push(now);\nreturn [{\n  json: {\n    route,\n    event_id: stableEventId,\n    telegram_text: telegramText.trim().slice(0, 3500),\n  },\n}];"
+        "jsCode": "const CHECKPOINT_KINDS = new Set([\n  'production_validation_failure',\n  'client_approval_needed',\n  'production_approval_needed',\n  'external_email_client_send_approval_needed',\n]);\nconst MAX_MESSAGES_PER_MINUTE = 5;\nconst DEDUPE_TTL_MS = 24 * 60 * 60 * 1000;\nconst BURST_WINDOW_MS = 60 * 1000;\nconst ignored = (reason, eventId = '') => [{\n  json: {\n    route: 'ignored',\n    event_id: eventId || null,\n    telegram_text: '',\n    skip_reason: reason,\n  },\n}];\n\nconst root = $input.first().json || {};\nconst body = root.body && typeof root.body === 'object' ? root.body : root;\nconst now = Date.now();\nlet route = '';\nlet telegramText = '';\nlet stableEventId = '';\n\nif (String(body.event_type || '').trim() === 'corpflow.lead_rescue.intake_received') {\n  const payload = body.payload && typeof body.payload === 'object' ? body.payload : {};\n  const prospect = payload.prospect && typeof payload.prospect === 'object' ? payload.prospect : {};\n  const leadId = String(payload.lead_id || body.correlation_id || body.id || '').trim();\n  const businessName = String(prospect.business_name || '').trim() || '(business name missing)';\n  const contactName = String(prospect.contact_name || '').trim() || '(first name missing)';\n  const adminUrl = String(payload.admin_detail_url || payload.admin_detail_path || '').trim();\n  if (!leadId || !adminUrl) return ignored('lead_missing_required_fields', String(body.id || leadId));\n  route = 'lead_rescue';\n  stableEventId = String(body.id || leadId).trim();\n  telegramText = `Lead Rescue intake received\\n\\nBusiness: ${businessName}\\nFirst name: ${contactName}\\nLead ref: ${leadId}\\nReview URL: ${adminUrl}\\n\\nAction required: Review within 2 business hours.`;\n} else if (String(body.envelope || '').trim() === 'corpflow.ops_alert.v1') {\n  const kind = String(body.kind || '').trim();\n  const message = String(body.message || body.meta?.notification_text || '').trim();\n  if (!CHECKPOINT_KINDS.has(kind)) return ignored('alert_kind_not_allowed', String(body.id || ''));\n  if (!message) return ignored('alert_text_blank', String(body.id || ''));\n  route = 'ops_alert';\n  stableEventId = String(\n    body.id ||\n    body.event_id ||\n    body.idempotency_key ||\n    `${body.envelope}:${kind}:${body.ticket_id || 'global'}:${body.at || ''}`\n  ).trim();\n  telegramText = message;\n} else {\n  return ignored('unknown_event', String(body.id || ''));\n}\n\nif (!stableEventId) return ignored('stable_event_id_missing');\nif (!telegramText.trim()) return ignored('telegram_text_blank', stableEventId);\n\nconst state = $getWorkflowStaticData('global');\nstate.seen_event_ids = state.seen_event_ids || {};\nstate.message_times = Array.isArray(state.message_times) ? state.message_times : [];\nfor (const [eventId, seenAt] of Object.entries(state.seen_event_ids)) {\n  if (!Number.isFinite(seenAt) || now - seenAt >= DEDUPE_TTL_MS) delete state.seen_event_ids[eventId];\n}\nstate.message_times = state.message_times.filter(\n  (sentAt) => Number.isFinite(sentAt) && now - sentAt < BURST_WINDOW_MS,\n);\nif (state.seen_event_ids[stableEventId]) return ignored('duplicate_event', stableEventId);\nif (state.message_times.length >= MAX_MESSAGES_PER_MINUTE) return ignored('burst_rate_limited', stableEventId);\n\nstate.seen_event_ids[stableEventId] = now;\nstate.message_times.push(now);\nreturn [{\n  json: {\n    route,\n    event_id: stableEventId,\n    telegram_text: telegramText.trim().slice(0, 3500),\n    skip_reason: null,\n  },\n}];"
       },
       "id": "61100000-0000-4000-8000-000000000002",
       "name": "Validate Route Dedupe and Limit",
@@ -171,6 +171,24 @@
           "name": "REPLACE_WITH_OPERATOR_TELEGRAM_CREDENTIAL_NAME"
         }
       }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "accepted",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "61100000-0000-4000-8000-000000000007",
+      "name": "Respond 200",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1024,
+        0
+      ],
+      "notes": "One explicit response path for successful notification, ignored event, duplicate, or burst rejection. Authentication failures remain n8n Header Auth responses."
     }
   ],
   "connections": {
@@ -192,11 +210,6 @@
             "node": "Lead Rescue Text Nonblank",
             "type": "main",
             "index": 0
-          },
-          {
-            "node": "Alert Text Nonblank",
-            "type": "main",
-            "index": 0
           }
         ]
       ]
@@ -209,6 +222,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Alert Text Nonblank",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -217,6 +237,35 @@
         [
           {
             "node": "Test Notify Anton - Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond 200",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test Notify Anton - Lead Rescue": {
+      "main": [
+        [
+          {
+            "node": "Respond 200",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test Notify Anton - Alert": {
+      "main": [
+        [
+          {
+            "node": "Respond 200",
             "type": "main",
             "index": 0
           }
