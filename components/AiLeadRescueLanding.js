@@ -28,6 +28,10 @@ const HERO_SOURCES = [
 ];
 const HERO_PRELOAD_SRCSET = `${HERO_BASE}-768.avif 768w, ${HERO_BASE}.avif 2400w`;
 
+/** Canonical runtime path — one file; do not duplicate under other public folders. */
+const AI_LEAD_RESCUE_INTRO_VIDEO_PATH =
+  '/media/corpflowai/ai-lead-rescue-sprint-intro-1080p.mp4';
+
 const text = GLASS_TOKENS.text; // #eef6ff
 const muted = '#c9d8e8';
 const mutedBody = '#aebfd1';
@@ -92,6 +96,55 @@ function LeadRescueSlot({
         </div>
       ) : null}
     </div>
+  );
+}
+
+/**
+ * Service-specific intro video for AI Lead Rescue only.
+ * Rendered only by this landing component (/lead-rescue and aileadrescue host).
+ * Never used as the CorpFlowAI homepage flagship.
+ */
+function AiLeadRescueIntroVideoSection() {
+  return (
+    <section
+      aria-labelledby="ai-lead-rescue-intro-video-title"
+      style={styles.section}
+      data-slot-id="ai_lead_rescue_intro_video"
+    >
+      <GlassPanel>
+        <div style={styles.label}>Product introduction</div>
+        <h2 id="ai-lead-rescue-intro-video-title" style={styles.h2}>
+          See AI Lead Rescue in action
+        </h2>
+        <p style={{ ...styles.muted, marginTop: 10, maxWidth: 720 }}>
+          A short introduction to how the AI Lead Rescue Sprint supports faster, clearer enquiry
+          follow-up.
+        </p>
+        <div
+          style={{
+            ...styles.visualFrame,
+            aspectRatio: '16 / 9',
+            background: '#020b14',
+          }}
+        >
+          <video
+            aria-label="See AI Lead Rescue in action"
+            title="See AI Lead Rescue in action"
+            controls
+            playsInline
+            preload="metadata"
+            style={{ display: 'block', width: '100%', height: '100%', objectFit: 'contain' }}
+          >
+            <source src={AI_LEAD_RESCUE_INTRO_VIDEO_PATH} type="video/mp4" />
+            Your browser does not support HTML5 video.{' '}
+            <a href={AI_LEAD_RESCUE_INTRO_VIDEO_PATH} style={styles.link}>
+              Open the AI Lead Rescue introduction video
+            </a>
+            .
+          </video>
+        </div>
+      </GlassPanel>
+    </section>
   );
 }
 
@@ -273,6 +326,8 @@ export default function AiLeadRescueLanding({ host = '', search = '', leadRescue
             </p>
           </GlassPanel>
         </GlassCardGrid>
+
+        <AiLeadRescueIntroVideoSection />
 
         <section style={styles.section}>
           <GlassPanel variant={{ fill: 'rgba(45,212,191,0.10)', border: 'rgba(45,212,191,0.34)' }}>
