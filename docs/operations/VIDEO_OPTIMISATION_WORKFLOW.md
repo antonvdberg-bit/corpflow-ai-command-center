@@ -9,6 +9,11 @@ Use this workflow only after content approval. It creates a smaller website copy
 
 Master MP4 files are ignored by Git. Keep them as the recovery source and never use a master path as the output.
 
+Canonical runtime examples (one path per asset — do not duplicate under other public folders):
+
+- Homepage flagship: `/media/corpflowai/corpflowai-flagship-homepage-final-1080p.mp4`
+- AI Lead Rescue intro (service page only): `/media/corpflowai/ai-lead-rescue-sprint-intro-1080p.mp4`
+
 ## Prerequisites and command
 
 The primary execution home is the operator-controlled repo clone on `corpflow-exec-01-u69678`, not Anton's laptop. This remains an interactive L3 tool: no daemon, cron, public port, production secret, database access, or deploy capability is added.
@@ -59,8 +64,8 @@ Compare SHA-256 checksums before and after transfer. Do not delete the handoff s
 
 ```bash
 npm run video:optimise -- \
-  artifacts/video-masters/ai-lead-rescue-final-master.mp4 \
-  public/media/corpflowai/ai-lead-rescue-final-web.mp4
+  artifacts/video-masters/ai-lead-rescue-sprint-intro-master.mp4 \
+  public/media/corpflowai/ai-lead-rescue-sprint-intro-1080p.mp4
 ```
 
 Defaults are H.264, CRF 24, preset `slow`, AAC 128 kb/s, MP4 fast start, and the source resolution and frame rate. Explicit overrides are available only when an approved delivery specification requires them:
