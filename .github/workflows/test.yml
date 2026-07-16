@@ -75,6 +75,13 @@ jobs:
         cache: npm
 
     - name: Node dependencies + automation unit tests
+      env:
+        # Fail closed even though lib/automation/forward.js also suppresses
+        # forwarding under Node's test runner. A direct placeholder overrides
+        # any production-like value supplied inside CORPFLOW_RUNTIME_CONFIG_JSON.
+        NODE_ENV: test
+        CORPFLOW_AUTOMATION_FORWARD_URL: "https://example.invalid/automation-forward-disabled-in-tests"
+        CORPFLOW_AUTOMATION_FORWARD_SECRET: "unit-test-placeholder-not-a-secret"
       run: |
         npm ci
         npm test
