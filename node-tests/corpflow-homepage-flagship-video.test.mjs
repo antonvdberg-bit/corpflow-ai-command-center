@@ -14,7 +14,7 @@ const VIDEO_PATH = path.join(
   'corpflowai',
   'corpflowai-flagship-homepage-final-1080p.mp4',
 );
-const EXPECTED_BYTES = 36_559_614;
+const EXPECTED_BYTES = 17_329_161;
 
 describe('CorpFlowAI homepage flagship video', () => {
   it('ships the approved compressed MP4 below the 50 MiB warning threshold', () => {

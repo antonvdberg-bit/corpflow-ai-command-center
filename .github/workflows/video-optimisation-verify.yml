@@ -1,0 +1,81 @@
+name: Verify website videos
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - "scripts/optimise-video.sh"
+      - "artifacts/video-masters/**/*.mp4"
+      - "public/media/corpflowai/**/*.mp4"
+  push:
+    branches: [ main ]
+    paths:
+      - "scripts/optimise-video.sh"
+      - "artifacts/video-masters/**/*.mp4"
+      - "public/media/corpflowai/**/*.mp4"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      # Pinned tag v6 commit; keep supply-chain updates intentional.
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: Install FFmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Validate optimisation script syntax
+        run: bash -n scripts/optimise-video.sh
+
+      - name: Verify generated website MP4 assets
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          shopt -s nullglob globstar
+
+          files=(public/media/corpflowai/**/*.mp4)
+          if (( ${#files[@]} == 0 )); then
+            echo "::error::No website MP4 assets found under public/media/corpflowai/."
+            exit 1
+          fi
+
+          for file in "${files[@]}"; do
+            echo "Verifying $file"
+            ffprobe -v error "$file" >/dev/null
+
+            format=$(ffprobe -v error -show_entries format=format_name -of default=noprint_wrappers=1:nokey=1 "$file")
+            video_codec=$(ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 "$file")
+            audio_codec=$(ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 "$file")
+            duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$file")
+            resolution=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 "$file")
+
+            [[ "$format" == *mp4* ]] || {
+              echo "::error file=$file::Container is not MP4 (ffprobe: $format)."
+              exit 1
+            }
+            [[ "$video_codec" == "h264" ]] || {
+              echo "::error file=$file::Video codec is $video_codec, expected h264."
+              exit 1
+            }
+            [[ "$audio_codec" == "aac" ]] || {
+              echo "::error file=$file::Audio codec is ${audio_codec:-missing}, expected aac."
+              exit 1
+            }
+            awk -v duration="$duration" 'BEGIN { exit !(duration > 0) }' || {
+              echo "::error file=$file::Duration is invalid: $duration."
+              exit 1
+            }
+
+            echo "format=$format video=$video_codec audio=$audio_codec duration=${duration}s resolution=$resolution"
+          done
+
+      - name: Confirm verification-only posture
+        run: |
+          echo "This workflow probes tracked assets only."
+          echo "It does not generate commits, push files, or deploy."

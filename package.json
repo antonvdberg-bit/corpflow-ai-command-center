@@ -40,6 +40,7 @@
     "dispatcher:activate:fixtures": "node scripts/dispatcher-agent-activation.mjs --fixtures",
     "dispatcher:activate:fetch": "node scripts/dispatcher-agent-activation.mjs --fetch",
     "check:marketing-quality-gate": "node scripts/check-marketing-quality-gate.mjs",
+    "video:optimise": "bash scripts/optimise-video.sh",
     "video:validate": "node scripts/video/validate.mjs",
     "video:serve-mock": "node scripts/video/serve-mock.mjs",
     "video:run": "node scripts/video/run-walkthrough.mjs",
