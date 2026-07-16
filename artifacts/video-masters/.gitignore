@@ -1,0 +1,3 @@
+# Approved master video files stay local and immutable.
+*.mp4
+!.gitignore
