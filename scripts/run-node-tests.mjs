@@ -10,11 +10,21 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, '..');
 const dir = path.join(root, 'node-tests');
+const deterministicTest = path.join(dir, 'im-7-1-operator-activity.test.mjs');
 const files = fs
   .readdirSync(dir)
   .filter((f) => f.endsWith('.mjs'))
   .map((f) => path.join(dir, f))
+  .filter((f) => f !== deterministicTest)
   .sort();
 
-const r = spawnSync(process.execPath, ['--test', ...files], { stdio: 'inherit', cwd: root });
-process.exit(r.status ?? 1);
+const standard = spawnSync(process.execPath, ['--test', ...files], { stdio: 'inherit', cwd: root });
+if ((standard.status ?? 1) !== 0) process.exit(standard.status ?? 1);
+
+const fixedClock = path.join(root, 'scripts', 'test-fixed-clock-im-7-1.mjs');
+const deterministic = spawnSync(
+  process.execPath,
+  ['--import', fixedClock, '--test', deterministicTest],
+  { stdio: 'inherit', cwd: root },
+);
+process.exit(deterministic.status ?? 1);
