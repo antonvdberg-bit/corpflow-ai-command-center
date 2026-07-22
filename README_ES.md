@@ -14,7 +14,7 @@ Idioma: [English](README.md) | [中文](README_CN.md) | **Español**
 [![Claude](https://img.shields.io/badge/Claude-D97757?style=for-the-badge&logo=anthropic&logoColor=white)](https://anthropic.com/)
 [![Gemini](https://img.shields.io/badge/Gemini-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/)
 [![OpenAI](https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white)](https://openai.com/)
-[![Qwen](https://img.shields.io/badge/Qwen-5A29E4?style=for-the-badge)](https://qwen.ai/)
+[![Qwen](https://img.shields.io/badge/Qwen-5A29E4?style=for-the-badge)](http://web.archive.org/web/20260721201816/https://qwen.ai/)
 [![GLM](https://img.shields.io/badge/GLM-1A73E8?style=for-the-badge)](https://open.bigmodel.cn/)
 [![DeepSeek](https://img.shields.io/badge/DeepSeek-0A84FF?style=for-the-badge)](https://deepseek.com/)
 [![MiniMax](https://img.shields.io/badge/MiniMax-FF6600?style=for-the-badge)](https://minimax.chat/)
