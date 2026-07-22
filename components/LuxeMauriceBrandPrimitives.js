@@ -15,6 +15,9 @@ import {
  * `components/LuxeMauricePropertiesDirectory.js`,
  * `components/LuxeMauricePropertyDetailPage.js`). Other tenants render
  * `TenantSite` and never reach these primitives.
+ *
+ * Client-facing rename stage 1 (#619): visible wordmark text is presented as
+ * Rare & Exclusive while technical identifiers remain unchanged.
  */
 
 /**
@@ -50,23 +53,15 @@ export function LuxeMauriceFontStylesheet() {
 }
 
 /**
- * LuxeMaurice monogram — geometric, hairline. Interpretation of the
- * brand-guideline mark: two diagonal "M" peaks with intersecting "W"
- * interior diagonals, forming an angular crown silhouette. Stroke uses
- * `currentColor`, so the monogram inherits the brand-gold colour from
- * whatever wraps it.
- *
- * The mark is intentionally minimal — luxury editorial brands (Aman,
- * Sotheby's Private Office, Four Seasons Private Residences) all favour
- * geometric, low-detail marks. Heavier lines or extra ornament would
- * read as decorative rather than confident.
+ * Existing geometric monogram retained temporarily during rename stage 1.
+ * Permanent logo / monogram replacement remains a separate client approval gate.
  *
  * @param {{ size?: number, color?: string, title?: string }} props
  */
 export function LuxeMauriceMonogram({
   size = 44,
   color = T.gold,
-  title = 'LuxeMaurice monogram',
+  title = 'Rare & Exclusive temporary monogram',
 }) {
   return (
     <svg
@@ -85,11 +80,8 @@ export function LuxeMauriceMonogram({
         strokeLinecap="square"
         strokeLinejoin="miter"
       >
-        {/* Outer angular "M" frame */}
         <path d="M 8 54 L 8 12 L 32 42 L 56 12 L 56 54" />
-        {/* Inner "W" diagonals that meet the centre apex */}
         <path d="M 16 54 L 32 34 L 48 54" />
-        {/* Centre hairline rising through the crown */}
         <path d="M 32 42 L 32 22" strokeOpacity="0.7" />
       </g>
     </svg>
@@ -97,17 +89,16 @@ export function LuxeMauriceMonogram({
 }
 
 /**
- * Full LuxeMaurice wordmark plate — monogram + wordmark + signature.
+ * Full Lux wordmark plate — monogram + wordmark + signature.
  *
  * `variant`:
- *   - `'compact'`  Header / navigation use. Monogram + LUXEMAURICE on one row.
- *   - `'stacked'`  Hero / footer use. Monogram above wordmark above signature.
+ *   - `'compact'`  Header / navigation use.
+ *   - `'stacked'`  Hero / footer use.
  *   - `'small'`    Inline trust marks, footer credit.
  *
  * `tone`:
- *   - `'ivory'`    Light wordmark on dark plates (hero, header, footer).
- *   - `'charcoal'` Dark wordmark on ivory plates (Strategic Base / Private
- *                   Opportunities ivory band).
+ *   - `'ivory'`    Light wordmark on dark plates.
+ *   - `'charcoal'` Dark wordmark on ivory plates.
  */
 export function LuxeMauriceWordmark({
   variant = 'compact',
@@ -124,17 +115,15 @@ export function LuxeMauriceWordmark({
     variant === 'stacked' ? 26 : variant === 'small' ? 13 : 16;
   const monogramSize =
     variant === 'stacked' ? 58 : variant === 'small' ? 22 : 36;
-  // Letter-spacing collapses at narrower wordmark sizes so the wordmark
-  // still fits on a 390px-wide mobile viewport without horizontal scroll.
   const wordmarkTrack =
-    variant === 'stacked' ? '0.34em' : '0.32em';
+    variant === 'stacked' ? '0.22em' : '0.18em';
 
   const inner = (
     <span
       style={{
         display: 'inline-flex',
         flexDirection: variant === 'stacked' ? 'column' : 'row',
-        alignItems: variant === 'stacked' ? 'center' : 'center',
+        alignItems: 'center',
         gap: variant === 'stacked' ? 18 : 12,
         textDecoration: 'none',
         color: wordmarkColor,
@@ -162,7 +151,7 @@ export function LuxeMauriceWordmark({
             paddingRight: 0,
           }}
         >
-          LuxeMaurice
+          Rare &amp; Exclusive
         </span>
         {showSignature ? (
           <span
@@ -171,10 +160,10 @@ export function LuxeMauriceWordmark({
               fontSize: variant === 'stacked' ? 11 : 9.5,
               fontWeight: 600,
               color: signatureColor,
-              letterSpacing: '0.34em',
+              letterSpacing: '0.24em',
               textTransform: 'uppercase',
               lineHeight: 1.4,
-              paddingLeft: variant === 'stacked' ? '0.34em' : '0.34em',
+              paddingLeft: variant === 'stacked' ? '0.24em' : '0.24em',
             }}
           >
             {LUXE_MAURICE_BRAND_SIGNATURE}
@@ -189,7 +178,7 @@ export function LuxeMauriceWordmark({
     <a
       href={href}
       style={{ display: 'inline-flex', textDecoration: 'none' }}
-      aria-label="LuxeMaurice — Private Wealth & Lifestyle Platform"
+      aria-label="Rare & Exclusive Collection — Private Wealth & Lifestyle Platform for Mauritius"
     >
       {inner}
     </a>
@@ -199,9 +188,6 @@ export function LuxeMauriceWordmark({
 /**
  * Small editorial eyebrow — gold letterspaced uppercase label. Used
  * throughout the public surfaces as the kicker above serif headings.
- *
- * Centralised here so every Lux page emits the exact same eyebrow shape
- * and so brand-fidelity tests have a single anchor point.
  */
 export function LuxEyebrow({ children, tone = 'ivory', center = false }) {
   const color = tone === 'ivory' ? T.gold : T.goldDeep;
