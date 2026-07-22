@@ -1,9 +1,12 @@
 /**
- * Vercel `vercel-build`: apply the same idempotent DDL as POST /api/factory/postgres/ensure-schema
- * using POSTGRES_URL only (no master key). Runs after `prisma generate`, before `next build`.
+ * Vercel production `vercel-build`: apply the same idempotent DDL as
+ * POST /api/factory/postgres/ensure-schema using POSTGRES_URL only (no master key).
+ * Runs after `prisma generate`, before `next build`.
  *
- * Skip when no usable Postgres URL is available (local `next build`, some CI).
- * Fails the build on production Vercel when Postgres URL is missing (misconfiguration).
+ * Cost/safety guard:
+ * - Vercel preview and development builds always skip database DDL.
+ * - Local/CI builds continue to skip when no usable Postgres URL is available.
+ * - Production Vercel builds retain the existing fail-closed behaviour.
  */
 import { PrismaClient } from '@prisma/client';
 
@@ -14,7 +17,6 @@ import {
   resolvePostgresDriftBuildOutcome,
   resolvePostgresUrlForEnsureSchemaDdl,
   scanPostgresEnvForActiveBuildDrift,
-  scanPostgresEnvForDrift,
 } from '../lib/server/postgres-ensure-schema-connection.js';
 import { ENSURE_SCHEMA_STATEMENTS } from '../lib/server/postgres-ensure-schema-statements.js';
 
@@ -87,6 +89,19 @@ async function main() {
     return;
   }
 
+  const onVercel = Boolean(process.env.VERCEL);
+  const vercelEnv = String(process.env.VERCEL_ENV || '');
+  const onVercelProd = onVercel && vercelEnv === 'production';
+
+  // Preview/development deployments must never execute DDL against a shared database.
+  // This avoids unnecessary Neon wake-ups and blocks accidental production mutation from PR builds.
+  if (onVercel && !onVercelProd) {
+    console.log(
+      `[ensure_schema_build] SKIP: database DDL disabled for Vercel ${vercelEnv || 'non-production'} builds`,
+    );
+    return;
+  }
+
   const envDrift = scanPostgresEnvForActiveBuildDrift(process.env);
   if (envDrift) {
     if (logPostgresDriftAndResolveOutcome(envDrift) === 'fatal') process.exit(1);
@@ -94,7 +109,6 @@ async function main() {
   }
 
   const { url: pgUrl, urlMode } = resolveBuildPostgresUrl();
-  const onVercelProd = Boolean(process.env.VERCEL) && String(process.env.VERCEL_ENV || '') === 'production';
 
   const selectedUrlDrift = detectPostgresUrlDrift(pgUrl);
   if (selectedUrlDrift) {
