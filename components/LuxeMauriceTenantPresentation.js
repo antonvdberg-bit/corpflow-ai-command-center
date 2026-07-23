@@ -9,15 +9,104 @@ import {
 } from '../lib/client/luxe-maurice-brand-theme.js';
 import {
   LuxeMauriceFontStylesheet,
-  LuxeMauriceWordmark,
   LuxEyebrow,
   LuxHairline,
-  RareExclusiveStackedWordmark,
 } from './LuxeMauriceBrandPrimitives.js';
 import { safeLuxSameOriginPublicImagePath } from '../lib/client/luxe-maurice-property-resolve.js';
 
 function safeStr(v) {
   return v != null ? String(v).trim() : '';
+}
+
+function RareExclusiveStackedWordmark({
+  tone = 'charcoal',
+  size = 'hero',
+  showSignature = true,
+}) {
+  const isIvory = tone === 'ivory';
+  const color = isIvory ? T.ivory : T.charcoal;
+  const wordSize =
+    size === 'hero'
+      ? 'clamp(3.4rem, 9vw, 7.8rem)'
+      : size === 'small'
+        ? 18
+        : 28;
+  const ampSize =
+    size === 'hero'
+      ? 'clamp(1.8rem, 4vw, 3.2rem)'
+      : size === 'small'
+        ? 14
+        : 22;
+  const signatureSize = size === 'hero' ? 11 : 9.5;
+
+  return (
+    <span
+      style={{
+        display: 'inline-flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        textAlign: 'center',
+        color,
+      }}
+    >
+      <span
+        style={{
+          fontFamily: T.fontDisplay,
+          fontWeight: 400,
+          fontSize: wordSize,
+          lineHeight: 0.86,
+          letterSpacing: size === 'hero' ? '0.16em' : '0.12em',
+          textTransform: 'uppercase',
+          paddingLeft: size === 'hero' ? '0.16em' : '0.12em',
+        }}
+      >
+        Rare
+      </span>
+      <span
+        aria-hidden="true"
+        style={{
+          margin: size === 'hero' ? '0.24em 0 0.16em' : '0.18em 0 0.12em',
+          fontFamily: T.fontDisplay,
+          fontWeight: 400,
+          fontStyle: 'italic',
+          fontSize: ampSize,
+          lineHeight: 1,
+          color: T.gold,
+        }}
+      >
+        &amp;
+      </span>
+      <span
+        style={{
+          fontFamily: T.fontDisplay,
+          fontWeight: 400,
+          fontSize: wordSize,
+          lineHeight: 0.86,
+          letterSpacing: size === 'hero' ? '0.16em' : '0.12em',
+          textTransform: 'uppercase',
+          paddingLeft: size === 'hero' ? '0.16em' : '0.12em',
+        }}
+      >
+        Exclusive
+      </span>
+      {showSignature ? (
+        <span
+          style={{
+            marginTop: size === 'hero' ? 28 : 10,
+            fontFamily: T.fontBody,
+            fontSize: signatureSize,
+            fontWeight: 700,
+            letterSpacing: size === 'hero' ? '0.42em' : '0.24em',
+            lineHeight: 1.4,
+            color: T.gold,
+            textTransform: 'uppercase',
+          }}
+        >
+          {LUXE_MAURICE_BRAND_SIGNATURE}
+        </span>
+      ) : null}
+    </span>
+  );
 }
 
 /**
@@ -27,9 +116,8 @@ function safeStr(v) {
  * lux.corpflowai.com is the active client test surface for this tenant. Anton
  * has instructed that Jan-approved visual direction changes should be built and
  * published as visible client test work rather than held behind repeated
- * interim approval steps. The site remains technically on the existing Lux
- * tenant identifiers while the public presentation follows the approved
- * Option A - Ivory Editorial direction.
+ * interim approval steps. Technical tenant identifiers remain unchanged while
+ * the public presentation follows the approved Option A - Ivory Editorial direction.
  */
 export default function LuxeMauriceTenantPresentation({ site }) {
   const s = site || {};
@@ -55,7 +143,9 @@ export default function LuxeMauriceTenantPresentation({ site }) {
     safeStr(meta.description)?.replace(/LuxeMaurice/gi, 'Rare & Exclusive Collection') ||
     'Rare & Exclusive Collection is a private Mauritius advisory and residence platform for discerning international clients seeking curated access, quiet guidance and considered ownership support.';
   const seoDescription =
-    seoDescriptionRaw.length > 320 ? `${seoDescriptionRaw.slice(0, 317)}...` : seoDescriptionRaw;
+    seoDescriptionRaw.length > 320
+      ? `${seoDescriptionRaw.slice(0, 317)}...`
+      : seoDescriptionRaw;
   const seoCanonical = 'https://lux.corpflowai.com/';
   const seoOgImage =
     safeStr(meta.og_image_url) ||
@@ -131,7 +221,13 @@ export default function LuxeMauriceTenantPresentation({ site }) {
   );
 
   const sectionTitle = ({ eyebrow, title, body, center = false }) => (
-    <div style={{ maxWidth: center ? 760 : 720, margin: center ? '0 auto' : 0, textAlign: center ? 'center' : 'left' }}>
+    <div
+      style={{
+        maxWidth: center ? 760 : 720,
+        margin: center ? '0 auto' : 0,
+        textAlign: center ? 'center' : 'left',
+      }}
+    >
       <LuxEyebrow tone="charcoal" center={center}>{eyebrow}</LuxEyebrow>
       <h2
         style={{
@@ -162,14 +258,14 @@ export default function LuxeMauriceTenantPresentation({ site }) {
     </div>
   );
 
-  const STRATEGIC_BASE = [
+  const strategicBase = [
     ['01', 'Lifestyle', 'Climate, privacy, schooling, sport and long-term family quality of life.'],
     ['02', 'Security', 'A stable, well-governed island environment for settlement and ownership.'],
     ['03', 'Connectivity', 'Indian Ocean positioning with links to Africa, Asia, the Gulf and Europe.'],
     ['04', 'Legacy', 'A calm place to build assets and transfer value across generations.'],
   ];
 
-  const JOURNEYS = [
+  const journeys = [
     {
       title: 'Completed residence buyer',
       body: 'For clients seeking finished, furnished and exceptional residences selected for privacy, architectural quality and immediacy.',
@@ -180,21 +276,14 @@ export default function LuxeMauriceTenantPresentation({ site }) {
     },
   ];
 
-  const APPROACH = [
+  const approach = [
     ['Private', 'No open-market noise. Conversations begin by introduction and continue with discretion.'],
     ['Curated', 'Every opportunity is selected, prepared and explained before a client is asked to decide.'],
     ['Considered', 'The experience is calm, editorial and precise from first enquiry to ownership support.'],
   ];
 
   return (
-    <div
-      style={{
-        fontFamily: T.fontBody,
-        background: T.ivory,
-        color: T.charcoal,
-        minHeight: '100vh',
-      }}
-    >
+    <div style={{ fontFamily: T.fontBody, background: T.ivory, color: T.charcoal, minHeight: '100vh' }}>
       <Head>
         <title>{pageTitle}</title>
         <meta name="description" content={seoDescription} />
@@ -225,7 +314,9 @@ export default function LuxeMauriceTenantPresentation({ site }) {
           background: 'rgba(244, 239, 232, 0.94)',
         }}
       >
-        <LuxeMauriceWordmark variant="small" tone="charcoal" showSignature={false} href="/" />
+        <a href="/" style={{ textDecoration: 'none' }} aria-label="Rare & Exclusive Collection">
+          <RareExclusiveStackedWordmark tone="charcoal" size="small" showSignature={false} />
+        </a>
         <nav
           aria-label="Rare and Exclusive Collection"
           style={{ display: 'flex', alignItems: 'center', gap: 28, flexWrap: 'wrap' }}
@@ -262,81 +353,25 @@ export default function LuxeMauriceTenantPresentation({ site }) {
             display: 'grid',
             placeItems: 'center',
             padding: '80px 24px 96px',
-            background:
-              'linear-gradient(180deg, #F4EFE8 0%, #EFE6D8 52%, #F8F4EE 100%)',
+            background: 'linear-gradient(180deg, #F4EFE8 0%, #EFE6D8 52%, #F8F4EE 100%)',
             overflow: 'hidden',
             textAlign: 'center',
           }}
         >
-          <div
-            aria-hidden="true"
-            style={{
-              position: 'absolute',
-              inset: 36,
-              border: `1px solid ${T.hairlineStone}`,
-              pointerEvents: 'none',
-            }}
-          />
-          <div
-            aria-hidden="true"
-            style={{
-              position: 'absolute',
-              width: 360,
-              height: 360,
-              borderRadius: '50%',
-              top: '12%',
-              right: '-120px',
-              background: 'rgba(168, 132, 44, 0.10)',
-              filter: 'blur(4px)',
-            }}
-          />
-          <div
-            style={{
-              position: 'relative',
-              maxWidth: 980,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-            }}
-          >
+          <div aria-hidden="true" style={{ position: 'absolute', inset: 36, border: `1px solid ${T.hairlineStone}`, pointerEvents: 'none' }} />
+          <div aria-hidden="true" style={{ position: 'absolute', width: 360, height: 360, borderRadius: '50%', top: '12%', right: '-120px', background: 'rgba(168, 132, 44, 0.10)', filter: 'blur(4px)' }} />
+          <div style={{ position: 'relative', maxWidth: 980, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <LuxEyebrow tone="charcoal" center>Private Mauritius residences</LuxEyebrow>
             <div style={{ marginTop: 42 }}>
               <RareExclusiveStackedWordmark tone="charcoal" size="hero" showSignature />
             </div>
-            <p
-              style={{
-                margin: '46px auto 0',
-                maxWidth: 680,
-                fontFamily: T.fontDisplay,
-                fontSize: 'clamp(1.35rem, 2.4vw, 2rem)',
-                fontStyle: 'italic',
-                lineHeight: 1.5,
-                color: T.stone,
-              }}
-            >
+            <p style={{ margin: '46px auto 0', maxWidth: 680, fontFamily: T.fontDisplay, fontSize: 'clamp(1.35rem, 2.4vw, 2rem)', fontStyle: 'italic', lineHeight: 1.5, color: T.stone }}>
               {headline}
             </p>
-            <p
-              style={{
-                margin: '18px auto 0',
-                maxWidth: 620,
-                fontFamily: T.fontBody,
-                fontSize: 15,
-                lineHeight: 1.8,
-                color: T.stone,
-              }}
-            >
+            <p style={{ margin: '18px auto 0', maxWidth: 620, fontFamily: T.fontBody, fontSize: 15, lineHeight: 1.8, color: T.stone }}>
               {tagline}
             </p>
-            <div
-              style={{
-                marginTop: 42,
-                display: 'flex',
-                flexWrap: 'wrap',
-                justifyContent: 'center',
-                gap: 14,
-              }}
-            >
+            <div style={{ marginTop: 42, display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 14 }}>
               {ctaPrimary(safeStr(hero.cta_label) || 'Request Private Access', safeStr(hero.cta_href) || '/concierge')}
               {ctaQuiet('View Private Opportunities', '/properties')}
             </div>
@@ -346,33 +381,13 @@ export default function LuxeMauriceTenantPresentation({ site }) {
         <section style={{ padding: 'clamp(84px, 12vw, 150px) 32px', background: T.ivory }}>
           <div style={{ maxWidth: 980, margin: '0 auto', textAlign: 'center' }}>
             <LuxEyebrow tone="charcoal" center>A private editorial platform</LuxEyebrow>
-            <p
-              style={{
-                margin: '34px auto 0',
-                maxWidth: 820,
-                fontFamily: T.fontDisplay,
-                fontWeight: 400,
-                fontSize: 'clamp(2.2rem, 4.8vw, 4.2rem)',
-                lineHeight: 1.15,
-                color: T.charcoal,
-                letterSpacing: -0.5,
-              }}
-            >
+            <p style={{ margin: '34px auto 0', maxWidth: 820, fontFamily: T.fontDisplay, fontWeight: 400, fontSize: 'clamp(2.2rem, 4.8vw, 4.2rem)', lineHeight: 1.15, color: T.charcoal, letterSpacing: -0.5 }}>
               Not a property portal. A quiet route into carefully prepared Mauritius opportunities.
             </p>
             <div style={{ margin: '48px auto 0', width: 64 }}>
               <LuxHairline tone="gold" />
             </div>
-            <p
-              style={{
-                margin: '42px auto 0',
-                maxWidth: 700,
-                fontFamily: T.fontBody,
-                fontSize: 16.5,
-                lineHeight: 1.9,
-                color: T.stone,
-              }}
-            >
+            <p style={{ margin: '42px auto 0', maxWidth: 700, fontFamily: T.fontBody, fontSize: 16.5, lineHeight: 1.9, color: T.stone }}>
               Rare & Exclusive Collection is built for clients who do not want noise, search pages or public pressure. The experience is curated, discreet and advisory-led from first conversation to ownership support.
             </p>
           </div>
@@ -387,20 +402,9 @@ export default function LuxeMauriceTenantPresentation({ site }) {
             })}
             <div style={{ marginTop: 72 }}>
               <LuxHairline tone="stone" />
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
-                }}
-              >
-                {STRATEGIC_BASE.map(([num, title, body], i) => (
-                  <article
-                    key={title}
-                    style={{
-                      padding: '38px 26px 42px',
-                      borderRight: i < STRATEGIC_BASE.length - 1 ? `1px solid ${T.hairlineStone}` : 'none',
-                    }}
-                  >
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))' }}>
+                {strategicBase.map(([num, title, body], i) => (
+                  <article key={title} style={{ padding: '38px 26px 42px', borderRight: i < strategicBase.length - 1 ? `1px solid ${T.hairlineStone}` : 'none' }}>
                     <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.32em', color: T.gold, textTransform: 'uppercase' }}>{num}</div>
                     <h3 style={{ margin: '18px 0 14px', fontFamily: T.fontDisplay, fontSize: 26, fontWeight: 500, color: T.charcoal }}>{title}</h3>
                     <p style={{ margin: 0, fontSize: 14.5, lineHeight: 1.75, color: T.stone }}>{body}</p>
@@ -420,28 +424,13 @@ export default function LuxeMauriceTenantPresentation({ site }) {
               body: 'A completed-residence buyer and a development partner need different information, but they both need discretion, clarity and a private advisor who can keep the process calm.',
               center: true,
             })}
-            <div
-              style={{
-                marginTop: 72,
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                gap: 0,
-                borderTop: `1px solid ${T.hairlineStone}`,
-                borderBottom: `1px solid ${T.hairlineStone}`,
-              }}
-            >
-              {JOURNEYS.map((j, i) => (
-                <article
-                  key={j.title}
-                  style={{
-                    padding: '52px clamp(24px, 4vw, 56px)',
-                    borderRight: i < JOURNEYS.length - 1 ? `1px solid ${T.hairlineStone}` : 'none',
-                  }}
-                >
+            <div style={{ marginTop: 72, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 0, borderTop: `1px solid ${T.hairlineStone}`, borderBottom: `1px solid ${T.hairlineStone}` }}>
+              {journeys.map((j, i) => (
+                <article key={j.title} style={{ padding: '52px clamp(24px, 4vw, 56px)', borderRight: i < journeys.length - 1 ? `1px solid ${T.hairlineStone}` : 'none' }}>
                   <LuxEyebrow tone="charcoal">Journey 0{i + 1}</LuxEyebrow>
                   <h3 style={{ margin: '24px 0 18px', fontFamily: T.fontDisplay, fontWeight: 400, fontSize: 34, lineHeight: 1.12, color: T.charcoal }}>{j.title}</h3>
                   <p style={{ margin: 0, fontSize: 15.5, lineHeight: 1.85, color: T.stone }}>{j.body}</p>
-                  <a href="/concierge" style={{ display: 'inline-block', marginTop: 34, fontSize: 11, fontWeight: 700, letterSpacing: '0.28em', color: T.gold, textTransform: 'uppercase', textDecoration: 'none' }}>Begin a private conversation -</a>
+                  <a href="/concierge" style={{ display: 'inline-block', marginTop: 34, fontSize: 11, fontWeight: 700, letterSpacing: '0.28em', color: T.gold, textTransform: 'uppercase', textDecoration: 'none' }}>Begin a private conversation</a>
                 </article>
               ))}
             </div>
@@ -455,14 +444,7 @@ export default function LuxeMauriceTenantPresentation({ site }) {
               title: 'Invited. Not advertised.',
               body: 'Opportunities are prepared for review before being shown. Public listing behaviour is intentionally avoided; the site points the right clients toward private advisory access.',
             })}
-            <div
-              style={{
-                marginTop: 64,
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                gap: 42,
-              }}
-            >
+            <div style={{ marginTop: 64, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 42 }}>
               {visibleStaged.length ? (
                 visibleStaged.map((p) => {
                   const refKey = safeStr(p.slug).toLowerCase();
@@ -481,7 +463,7 @@ export default function LuxeMauriceTenantPresentation({ site }) {
                         <LuxEyebrow tone="charcoal">{safeStr(p.region) || 'Mauritius'}</LuxEyebrow>
                         <h3 style={{ margin: '18px 0 12px', fontFamily: T.fontDisplay, fontWeight: 500, fontSize: 26, lineHeight: 1.2, color: T.charcoal }}>{safeStr(p.title) || 'Private opportunity'}</h3>
                         {p.teaser ? <p style={{ margin: 0, fontSize: 14.5, lineHeight: 1.75, color: T.stone }}>{safeStr(p.teaser)}</p> : null}
-                        <a href={`/property/${encodeURIComponent(p.slug)}`} style={{ display: 'inline-block', marginTop: 24, fontSize: 11, fontWeight: 700, letterSpacing: '0.26em', color: T.gold, textTransform: 'uppercase', textDecoration: 'none' }}>Opportunity memorandum -</a>
+                        <a href={`/property/${encodeURIComponent(p.slug)}`} style={{ display: 'inline-block', marginTop: 24, fontSize: 11, fontWeight: 700, letterSpacing: '0.26em', color: T.gold, textTransform: 'uppercase', textDecoration: 'none' }}>Opportunity memorandum</a>
                       </div>
                     </article>
                   );
@@ -506,7 +488,7 @@ export default function LuxeMauriceTenantPresentation({ site }) {
             })}
             <div style={{ marginTop: 70 }}>
               <LuxHairline tone="stone" />
-              {APPROACH.map(([title, body], i) => (
+              {approach.map(([title, body], i) => (
                 <div key={title} style={{ display: 'grid', gridTemplateColumns: 'minmax(160px, 260px) 1fr', gap: 'clamp(24px, 6vw, 80px)', padding: '34px 0', borderBottom: `1px solid ${T.hairlineStone}` }}>
                   <div>
                     <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.34em', color: T.gold, textTransform: 'uppercase' }}>0{i + 1}</div>
