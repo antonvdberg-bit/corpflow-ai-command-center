@@ -6,6 +6,7 @@ import { PrismaClient } from '@prisma/client';
 import AiLeadRescueLanding from '../components/AiLeadRescueLanding.js';
 import CorpFlowPublicHome from '../components/CorpFlowPublicHome.js';
 import LuxeMauriceTenantPresentation from '../components/LuxeMauriceTenantPresentation.js';
+import RareExclusiveTenantPresentation from '../components/RareExclusiveTenantPresentation.js';
 import {
   LUXE_MAURICE_STAGED_PROPERTIES,
   getPublicLuxStagedProperties,
@@ -22,6 +23,11 @@ import { selectLeadRescueAssets } from '../lib/visualAssets/selectLeadRescueAsse
  * Minimal tenant marketing site renderer (v1).
  * - If request host resolves to a tenant via Postgres host mapping, render that tenant's site draft.
  * - Otherwise, keep the existing minimal landing (core / unknown).
+ *
+ * Lux isolation: RareExclusiveTenantPresentation is used only when
+ * site.client_ui.lux_acquisition === true (lux.corpflowai.com). Apex
+ * corpflowai.com marketing, management/admin, and other tenants are unchanged.
+ * LuxeMauriceTenantPresentation remains the intact fallback for that branch.
  */
 
 function normalizeHost(req) {
@@ -381,6 +387,11 @@ export default function Home({ mode, site, host, homepageAssets, leadRescueAsset
     );
   }
   if (mode === 'tenant_site' && site?.client_ui?.lux_acquisition === true) {
+    // lux_acquisition / lux.corpflowai.com only — Option A Ivory Editorial.
+    // CorpFlow apex marketing and non-lux tenants never enter this branch.
+    if (typeof RareExclusiveTenantPresentation === 'function') {
+      return <RareExclusiveTenantPresentation site={site} />;
+    }
     return <LuxeMauriceTenantPresentation site={site} />;
   }
   if (mode === 'tenant_site') {
