@@ -116,9 +116,7 @@ function fakePrismaForOperatorActivity({ authUsers = [], events = [] } = {}) {
                   }
                   if (part.occurredAt && part.id?.lt) {
                     const cursorAt = part.occurredAt;
-                    return (
-                      t === cursorAt.getTime() && id < part.id.lt
-                    );
+                    return t === cursorAt.getTime() && id < part.id.lt;
                   }
                   return false;
                 });
@@ -152,10 +150,6 @@ async function signedAdminCookie(payload) {
   assert.ok(signed.ok);
   return `corpflow_session=${signed.token}`;
 }
-
-// -------------------------------------------------------------
-// Pure projection + query parsing
-// -------------------------------------------------------------
 
 test('projectOperatorActivityPayload — strips ip/ua and unknown keys', () => {
   const projected = projectOperatorActivityPayload('cmp.operator.switched_tenant', {
@@ -224,10 +218,6 @@ test('findUnexpectedQueryParam — rejects user_id', () => {
   assert.equal(findUnexpectedQueryParam({ actor_user_id: ACTOR_ID, user_id: 'evil' }), 'user_id');
   assert.equal(findUnexpectedQueryParam({ actor_user_id: ACTOR_ID, __path: 'factory/operator-activity' }), null);
 });
-
-// -------------------------------------------------------------
-// Handler gates (T1–T10)
-// -------------------------------------------------------------
 
 test(
   '[T1] POST → 405 METHOD_NOT_ALLOWED',
@@ -407,6 +397,10 @@ test(
   withCoreHostEnv(async () => {
     const now = new Date('2026-06-18T23:39:05.447Z');
     const older = new Date('2026-06-17T12:00:00.000Z');
+    const requestWindow = {
+      since: '2026-06-17T00:00:00.000Z',
+      until: '2026-06-19T00:00:00.000Z',
+    };
     const prisma = fakePrismaForOperatorActivity({
       authUsers: [
         { id: CALLER_FM_ID, level: 'admin', enabled: true, factoryMaster: true },
@@ -457,7 +451,7 @@ test(
     const cookie = await signedAdminCookie({ typ: 'admin', user_id: CALLER_FM_ID });
     const req = fakeReq({
       cookies: cookie,
-      query: { actor_user_id: ACTOR_ID, limit: '1' },
+      query: { actor_user_id: ACTOR_ID, limit: '1', ...requestWindow },
     });
     const res = fakeRes();
     await handleOperatorActivityList(req, res, { prismaClient: prisma });
@@ -481,6 +475,7 @@ test(
         actor_user_id: ACTOR_ID,
         limit: '1',
         cursor: res.captured.body.next_cursor,
+        ...requestWindow,
       },
     });
     const res2 = fakeRes();
