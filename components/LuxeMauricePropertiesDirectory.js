@@ -7,12 +7,14 @@ import {
   buildLuxPropertyConciergeHref,
   LUX_PROPERTIES_PUBLIC_COPY,
 } from '../lib/client/luxe-maurice-properties-public.js';
+import { LuxEyebrow, LuxHairline } from './LuxeMauriceBrandPrimitives.js';
 import {
   LuxeMauriceFontStylesheet,
-  LuxeMauriceWordmark,
-  LuxEyebrow,
-  LuxHairline,
-} from './LuxeMauriceBrandPrimitives.js';
+  RareExclusiveIvoryFooter,
+  RareExclusiveIvoryHeader,
+  rareExclusiveCtaGoldStyle,
+  rareExclusivePageShellStyle,
+} from './RareExclusiveIvoryShell.js';
 
 export {
   buildLuxPropertyConciergeHref,
@@ -25,32 +27,11 @@ function safeStr(v) {
 }
 
 /**
- * LuxeMaurice `/properties` — *Private Opportunities* directory.
+ * Rare & Exclusive Collection `/properties` — Ivory Editorial Private Opportunities.
  *
- * Brand-fidelity rebuild (2026-06-11). Editorial layout — each opportunity
- * presents as a private investment memorandum (full-bleed photo + serif
- * title + gold eyebrow + concise editorial body), not a listing tile.
- * No hard borders, hairline dividers only, generous negative space.
- *
- * Reference benchmarks: Aman residences index, Sotheby's Private Office
- * exclusive offerings, Four Seasons Private Residences portfolio.
- *
- * Renders **published** rows only; premium empty state when the published
- * set is empty. No fake inventory; no external real-estate feed integration
- * is required on this surface.
- *
- * @param {{
- *   listings: Array<{
- *     slug: string,
- *     title: string,
- *     region_label: string,
- *     property_type: string,
- *     listing_status: string | null,
- *     price_range: string | null,
- *     short_teaser: string | null,
- *   }>,
- *   cardMediaBySlug: Record<string, { src: string, src_set?: string, alt: string, caption?: string | null }>,
- * }} props
+ * Shared design system with homepage / concierge / property detail (Issue #633).
+ * Renders published rows only; premium empty state when empty. Demo inventory
+ * is excluded upstream. No fake feed inventory.
  */
 export default function LuxeMauricePropertiesDirectory({ listings, cardMediaBySlug }) {
   const list = Array.isArray(listings) ? listings : [];
@@ -58,54 +39,17 @@ export default function LuxeMauricePropertiesDirectory({ listings, cardMediaBySl
   const empty = list.length === 0;
 
   return (
-    <div
-      style={{
-        fontFamily: T.fontBody,
-        minHeight: '100vh',
-        background: T.charcoal,
-        color: T.ivory,
-      }}
-    >
+    <div style={rareExclusivePageShellStyle()}>
       <Head>
         <title>{LUX_PROPERTIES_PUBLIC_COPY.pageTitle}</title>
         <LuxeMauriceFontStylesheet />
       </Head>
 
-      {/* ─── Quiet header — monogram wordmark + section eyebrow ─────── */}
-      <header
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 16,
-          flexWrap: 'wrap',
-          padding: '28px clamp(20px, 4vw, 56px)',
-        }}
-      >
-        <LuxeMauriceWordmark
-          variant="compact"
-          tone="ivory"
-          showSignature={false}
-          href="/"
-        />
-        <span
-          style={{
-            fontFamily: T.fontBody,
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: '0.32em',
-            textTransform: 'uppercase',
-            color: T.gold,
-          }}
-        >
-          {LUX_PROPERTIES_PUBLIC_COPY.headerTagline}
-        </span>
-      </header>
+      <RareExclusiveIvoryHeader activeHref="/properties" />
 
       <main style={{ maxWidth: 1180, margin: '0 auto', padding: '64px clamp(20px, 4vw, 56px) 120px' }}>
-        {/* ─── Editorial title block ──────────────────────────────────── */}
         <div style={{ maxWidth: 760, marginBottom: 80 }}>
-          <LuxEyebrow>
+          <LuxEyebrow tone="charcoal">
             {empty
               ? LUX_PROPERTIES_PUBLIC_COPY.emptyKicker
               : LUX_PROPERTIES_PUBLIC_COPY.listKicker}
@@ -118,7 +62,7 @@ export default function LuxeMauricePropertiesDirectory({ listings, cardMediaBySl
               fontSize: 'clamp(2.4rem, 5vw, 3.8rem)',
               lineHeight: 1.1,
               letterSpacing: -0.4,
-              color: T.ivory,
+              color: T.charcoal,
             }}
           >
             {empty
@@ -132,23 +76,36 @@ export default function LuxeMauricePropertiesDirectory({ listings, cardMediaBySl
               fontFamily: T.fontBody,
               fontSize: 16,
               lineHeight: 1.85,
-              color: T.ivoryMuted,
+              color: T.stone,
             }}
           >
             {empty
               ? LUX_PROPERTIES_PUBLIC_COPY.emptyBody
               : LUX_PROPERTIES_PUBLIC_COPY.listSubtitle}
           </p>
+          <p
+            style={{
+              margin: '20px 0 0',
+              fontFamily: T.fontBody,
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.28em',
+              textTransform: 'uppercase',
+              color: T.gold,
+            }}
+          >
+            {LUX_PROPERTIES_PUBLIC_COPY.headerTagline}
+          </p>
         </div>
 
         {empty ? (
-          /* ─── Empty state — editorial, single CTA ─────────────────── */
           <section
             style={{
               padding: 'clamp(72px, 12vw, 140px) clamp(24px, 6vw, 80px)',
-              borderTop: `1px solid ${T.hairlineSoft}`,
-              borderBottom: `1px solid ${T.hairlineSoft}`,
+              borderTop: `1px solid ${T.hairlineStone}`,
+              borderBottom: `1px solid ${T.hairlineStone}`,
               textAlign: 'center',
+              background: '#FBF8F2',
             }}
           >
             <div style={{ margin: '0 auto 32px', width: 40 }}>
@@ -163,36 +120,19 @@ export default function LuxeMauricePropertiesDirectory({ listings, cardMediaBySl
                 fontWeight: 400,
                 fontSize: 'clamp(1.3rem, 2.2vw, 1.6rem)',
                 lineHeight: 1.55,
-                color: T.ivoryMuted,
+                color: T.stone,
               }}
             >
               Each opportunity is prepared for review before it appears here. Speak with
               a private advisor for availability, terms, and next steps.
             </p>
-            <Link
-              href={buildLuxPropertyConciergeHref(null)}
-              style={{
-                display: 'inline-block',
-                padding: '16px 30px',
-                borderRadius: T.radiusEditorial,
-                background: T.gold,
-                color: T.charcoal,
-                fontFamily: T.fontBody,
-                fontWeight: 700,
-                fontSize: 12.5,
-                letterSpacing: '0.2em',
-                textTransform: 'uppercase',
-                textDecoration: 'none',
-              }}
-            >
+            <Link href={buildLuxPropertyConciergeHref(null)} style={rareExclusiveCtaGoldStyle()}>
               {LUX_PROPERTIES_PUBLIC_COPY.emptyCta}
             </Link>
           </section>
         ) : (
           <>
-            <LuxHairline tone="ivory" />
-
-            {/* ─── Memorandum cards — full image + editorial type ──── */}
+            <LuxHairline tone="stone" />
             <div
               style={{
                 display: 'grid',
@@ -221,9 +161,10 @@ export default function LuxeMauricePropertiesDirectory({ listings, cardMediaBySl
                       style={{
                         display: 'block',
                         aspectRatio: '4 / 3',
-                        background: T.charcoalSoft,
+                        background: '#E7DED0',
                         overflow: 'hidden',
                         textDecoration: 'none',
+                        border: `1px solid ${T.hairlineStone}`,
                       }}
                     >
                       {cardImg && cardImg.src ? (
@@ -249,7 +190,7 @@ export default function LuxeMauricePropertiesDirectory({ listings, cardMediaBySl
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            color: T.ivoryMuted,
+                            color: T.stone,
                             fontFamily: T.fontDisplay,
                             fontStyle: 'italic',
                             fontSize: 14,
@@ -280,13 +221,13 @@ export default function LuxeMauricePropertiesDirectory({ listings, cardMediaBySl
                           fontWeight: 500,
                           fontSize: 26,
                           lineHeight: 1.25,
-                          color: T.ivory,
+                          color: T.charcoal,
                           letterSpacing: 0.2,
                         }}
                       >
                         <Link
                           href={`/property/${encodeURIComponent(slug)}`}
-                          style={{ color: T.ivory, textDecoration: 'none' }}
+                          style={{ color: T.charcoal, textDecoration: 'none' }}
                         >
                           {safeStr(row.title)}
                         </Link>
@@ -300,7 +241,7 @@ export default function LuxeMauricePropertiesDirectory({ listings, cardMediaBySl
                             fontWeight: 700,
                             letterSpacing: '0.22em',
                             textTransform: 'uppercase',
-                            color: T.ivoryMuted,
+                            color: T.stone,
                           }}
                         >
                           {safeStr(row.listing_status)}
@@ -327,7 +268,7 @@ export default function LuxeMauricePropertiesDirectory({ listings, cardMediaBySl
                             fontFamily: T.fontBody,
                             fontSize: 14.5,
                             lineHeight: 1.85,
-                            color: T.ivoryMuted,
+                            color: T.stone,
                           }}
                         >
                           {teaser}
@@ -358,7 +299,7 @@ export default function LuxeMauricePropertiesDirectory({ listings, cardMediaBySl
                             fontWeight: 700,
                             letterSpacing: '0.28em',
                             textTransform: 'uppercase',
-                            color: T.ivoryMuted,
+                            color: T.stone,
                             textDecoration: 'none',
                           }}
                         >
@@ -371,17 +312,19 @@ export default function LuxeMauricePropertiesDirectory({ listings, cardMediaBySl
               })}
             </div>
 
-            {/* ─── Closing CTA strip ───────────────────────────────── */}
             <div
               style={{
                 marginTop: 120,
                 padding: '64px 32px',
-                borderTop: `1px solid ${T.hairlineSoft}`,
-                borderBottom: `1px solid ${T.hairlineSoft}`,
+                borderTop: `1px solid ${T.hairlineStone}`,
+                borderBottom: `1px solid ${T.hairlineStone}`,
                 textAlign: 'center',
+                background: '#FBF8F2',
               }}
             >
-              <LuxEyebrow center>Private Advisory</LuxEyebrow>
+              <LuxEyebrow tone="charcoal" center>
+                Private Advisory
+              </LuxEyebrow>
               <p
                 style={{
                   margin: '24px auto 32px',
@@ -391,27 +334,12 @@ export default function LuxeMauricePropertiesDirectory({ listings, cardMediaBySl
                   fontWeight: 400,
                   fontSize: 'clamp(1.3rem, 2.2vw, 1.6rem)',
                   lineHeight: 1.5,
-                  color: T.ivory,
+                  color: T.charcoal,
                 }}
               >
                 A private advisor responds within one business day.
               </p>
-              <Link
-                href={buildLuxPropertyConciergeHref(null)}
-                style={{
-                  display: 'inline-block',
-                  padding: '16px 30px',
-                  borderRadius: T.radiusEditorial,
-                  background: T.gold,
-                  color: T.charcoal,
-                  fontFamily: T.fontBody,
-                  fontWeight: 700,
-                  fontSize: 12.5,
-                  letterSpacing: '0.2em',
-                  textTransform: 'uppercase',
-                  textDecoration: 'none',
-                }}
-              >
+              <Link href={buildLuxPropertyConciergeHref(null)} style={rareExclusiveCtaGoldStyle()}>
                 {LUX_PROPERTIES_PUBLIC_COPY.emptyCta}
               </Link>
             </div>
@@ -419,31 +347,7 @@ export default function LuxeMauricePropertiesDirectory({ listings, cardMediaBySl
         )}
       </main>
 
-      {/* ─── Minimal footer ────────────────────────────────────────────── */}
-      <footer
-        style={{
-          padding: '56px 32px 64px',
-          background: T.charcoalDeep,
-          borderTop: `1px solid ${T.hairlineSoft}`,
-          textAlign: 'center',
-        }}
-      >
-        <LuxeMauriceWordmark variant="stacked" tone="ivory" showSignature />
-        <p
-          style={{
-            margin: '36px auto 0',
-            maxWidth: 600,
-            fontFamily: T.fontBody,
-            fontSize: 11.5,
-            lineHeight: 1.8,
-            color: T.ivoryMuted,
-          }}
-        >
-          Information on this page is indicative and not legal, tax, or immigration
-          advice. Nothing here is an offer or solicitation; terms are agreed in writing
-          through a private advisor.
-        </p>
-      </footer>
+      <RareExclusiveIvoryFooter />
     </div>
   );
 }
