@@ -5,6 +5,7 @@ import { LUXE_MAURICE_BRAND_TOKENS as T } from '../lib/client/luxe-maurice-brand
 import { LuxEyebrow, LuxHairline } from './LuxeMauriceBrandPrimitives.js';
 import {
   LuxeMauriceFontStylesheet,
+  RARE_EXCLUSIVE_ADVISORY_IMAGE,
   RARE_EXCLUSIVE_PUBLIC_BRAND,
   RARE_EXCLUSIVE_STRAPLINE,
   RareExclusiveEditorialSpine,
@@ -12,7 +13,6 @@ import {
   RareExclusiveHeroVisual,
   RareExclusiveIvoryFooter,
   RareExclusiveIvoryHeader,
-  RareExclusiveLifestylePanel,
   RareExclusiveOpaquePanel,
   RareExclusiveStackedWordmark,
   RareExclusiveTextLink,
@@ -121,7 +121,9 @@ export default function RareExclusiveTenantPresentation({ site }) {
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
-              padding: 'clamp(48px, 7vw, 88px) clamp(28px, 5vw, 72px)',
+              padding: 'clamp(48px, 6vw, 88px) clamp(32px, 4.5vw, 64px)',
+              minWidth: 0,
+              overflow: 'visible',
             }}
           >
             <RareExclusiveStackedWordmark
@@ -188,7 +190,7 @@ export default function RareExclusiveTenantPresentation({ site }) {
         <section
           id="upcoming"
           style={{
-            padding: 'clamp(48px, 7vw, 80px) clamp(20px, 3vw, 40px)',
+            padding: 'clamp(56px, 7vw, 88px) clamp(24px, 3.5vw, 48px)',
             background: T.ivory,
           }}
         >
@@ -197,7 +199,7 @@ export default function RareExclusiveTenantPresentation({ site }) {
             style={{
               display: 'grid',
               gridTemplateColumns: '1fr 1fr',
-              gap: 24,
+              gap: 28,
             }}
           >
             <article
@@ -310,7 +312,12 @@ export default function RareExclusiveTenantPresentation({ site }) {
                 </div>
               </RareExclusiveOpaquePanel>
               <div style={{ minHeight: 260, position: 'relative' }}>
-                <RareExclusiveLifestylePanel variant="sea" />
+                <RareExclusiveHeroVisual
+                  src={RARE_EXCLUSIVE_ADVISORY_IMAGE}
+                  alt="Mauritius lagoon and private terrace — owner lifestyle"
+                  showCaption={false}
+                  objectPosition="center 40%"
+                />
               </div>
             </article>
           </div>
