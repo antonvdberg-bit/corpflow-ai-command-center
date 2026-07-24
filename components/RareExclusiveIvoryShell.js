@@ -21,13 +21,20 @@ export const RARE_EXCLUSIVE_PUBLIC_BRAND = 'Rare & Exclusive Collection';
 export const RARE_EXCLUSIVE_HERO_IMAGE =
   '/luxe-maurice-ai/luxury-coastal-private-access-hero.png';
 
+/** Concierge / Owner Experience lifestyle plate — committed public-safe asset. */
+export const RARE_EXCLUSIVE_ADVISORY_IMAGE =
+  '/luxe-maurice-ai/mauritius-private-advisory-lifestyle.jpg';
+
 export const RARE_EXCLUSIVE_STRAPLINE =
   'Private Wealth & Lifestyle Platform for Mauritius';
 
 export const RARE_EXCLUSIVE_PRIVILEGE_QUOTE = 'Not just properties. A privilege.';
 
-/** Contained magazine spine — Issue #636 editorial width (not full-bleed stretch). */
-export const RARE_EXCLUSIVE_EDITORIAL_MAX = 1080;
+/**
+ * Contained editorial width — wide enough for split hero wordmark + photo,
+ * without full-bleed stretch. ~1440 is a common luxury marketing content max.
+ */
+export const RARE_EXCLUSIVE_EDITORIAL_MAX = 1440;
 
 export const RARE_EXCLUSIVE_AVAILABILITY_DISCLAIMER =
   'Availability, pricing, and terms are confirmed privately through a private advisor. Nothing on this page is an offer or solicitation.';
@@ -112,7 +119,7 @@ export function RareExclusiveStackedWordmark({
   const color = isIvory ? T.ivory : T.charcoal;
   const wordSize =
     size === 'hero'
-      ? 'clamp(3.4rem, 8.5vw, 7.2rem)'
+      ? 'clamp(2.35rem, 4.2vw, 4.35rem)'
       : size === 'medium'
         ? 28
         : size === 'nav'
@@ -120,13 +127,13 @@ export function RareExclusiveStackedWordmark({
           : 18;
   const ampSize =
     size === 'hero'
-      ? 'clamp(1.7rem, 3.8vw, 3rem)'
+      ? 'clamp(1.35rem, 2.4vw, 2.15rem)'
       : size === 'medium'
         ? 20
         : size === 'nav'
           ? 12
           : 14;
-  const track = size === 'hero' ? '0.14em' : size === 'nav' ? '0.14em' : '0.12em';
+  const track = size === 'hero' ? '0.1em' : size === 'nav' ? '0.14em' : '0.12em';
   const alignItems = align === 'start' ? 'flex-start' : 'center';
   const textAlign = align === 'start' ? 'left' : 'center';
 
@@ -138,6 +145,8 @@ export function RareExclusiveStackedWordmark({
         alignItems,
         textAlign,
         color,
+        maxWidth: '100%',
+        minWidth: 0,
       }}
     >
       <span
@@ -145,10 +154,11 @@ export function RareExclusiveStackedWordmark({
           fontFamily: T.fontDisplay,
           fontWeight: 400,
           fontSize: wordSize,
-          lineHeight: 0.86,
+          lineHeight: 0.9,
           letterSpacing: track,
           textTransform: 'uppercase',
           paddingLeft: track,
+          whiteSpace: 'nowrap',
         }}
       >
         Rare
@@ -172,10 +182,11 @@ export function RareExclusiveStackedWordmark({
           fontFamily: T.fontDisplay,
           fontWeight: 400,
           fontSize: wordSize,
-          lineHeight: 0.86,
+          lineHeight: 0.9,
           letterSpacing: track,
           textTransform: 'uppercase',
           paddingLeft: track,
+          whiteSpace: 'nowrap',
         }}
       >
         Exclusive
@@ -210,6 +221,7 @@ export function RareExclusiveHeroVisual({
   showCaption = false,
   /** Soft left-edge fade into ivory (Concept A hero / card treatment). */
   fadeLeft = false,
+  objectPosition = 'center',
 }) {
   return (
     <div
@@ -233,7 +245,7 @@ export function RareExclusiveHeroVisual({
           width: '100%',
           height: '100%',
           objectFit: 'cover',
-          objectPosition: 'center',
+          objectPosition,
         }}
       />
       <div
@@ -444,7 +456,7 @@ export function RareExclusiveFeatureBar() {
     >
       <div
         style={{
-          maxWidth: 1180,
+          maxWidth: RARE_EXCLUSIVE_EDITORIAL_MAX,
           margin: '0 auto',
           display: 'grid',
           gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
@@ -507,7 +519,7 @@ export function RareExclusiveIvoryHeader({ activeHref = '' }) {
         position: 'relative',
         zIndex: 20,
         borderBottom: `1px solid ${T.hairlineStone}`,
-        background: '#F7F2EA',
+        background: T.ivory,
       }}
       className="re-ivory-header"
     >
@@ -612,7 +624,7 @@ export function RareExclusiveIvoryFooter({ note }) {
     <footer
       style={{
         padding: '64px 20px 48px',
-        background: '#EFE8DC',
+        background: T.ivory,
         color: T.stone,
         textAlign: 'center',
         borderTop: `1px solid ${T.hairlineStone}`,
@@ -680,20 +692,24 @@ export function rareExclusivePageShellStyle() {
   return {
     fontFamily: T.fontBody,
     minHeight: '100vh',
-    background: '#EDE6DA',
+    /* Same ivory as content — avoids pillar-box gutters that fight the layout. */
+    background: T.ivory,
     color: T.charcoal,
   };
 }
 
-/** Centered magazine spine — restores controlled editorial width (Issue #636). */
+/**
+ * Centered editorial content width (~1440). Subtle side padding on wide screens;
+ * no heavy floating-card shadow (that read as clash + “too narrow”).
+ */
 export function RareExclusiveEditorialSpine({ children, style = {} }) {
   return (
     <div
       style={{
         maxWidth: RARE_EXCLUSIVE_EDITORIAL_MAX,
+        width: '100%',
         margin: '0 auto',
         background: T.ivory,
-        boxShadow: '0 0 0 1px rgba(107, 98, 86, 0.12), 0 24px 64px rgba(17, 17, 17, 0.06)',
         ...style,
       }}
     >
@@ -719,24 +735,37 @@ export function RareExclusiveOpaquePanel({ children, style = {} }) {
   );
 }
 
-/** Interior page hero band with crest + optional lifestyle graphic. */
+/**
+ * Interior page hero band with crest + lifestyle photograph.
+ * Prefer committed photos over abstract SVG panels (avoids visual clash).
+ * visual: 'photo' | 'advisory' | 'sea' | 'terrace'
+ */
 export function RareExclusiveInteriorHero({
   eyebrow,
   title,
   body,
-  visual = 'terrace',
+  visual = 'photo',
 }) {
+  const useAdvisory =
+    visual === 'advisory' || visual === 'sea' || visual === 'terrace';
+  const photoSrc = useAdvisory
+    ? RARE_EXCLUSIVE_ADVISORY_IMAGE
+    : RARE_EXCLUSIVE_HERO_IMAGE;
+  const photoAlt = useAdvisory
+    ? 'Mauritius lagoon and private terrace — private advisory setting'
+    : 'Mauritius coastal residence — private lifestyle setting';
+
   return (
     <section
       style={{
         display: 'grid',
-        gridTemplateColumns: 'minmax(0, 1.15fr) minmax(0, 0.85fr)',
+        gridTemplateColumns: 'minmax(0, 1.05fr) minmax(280px, 0.95fr)',
         borderBottom: `1px solid ${T.hairlineStone}`,
         background: T.ivory,
       }}
       className="re-interior-hero"
     >
-      <div style={{ padding: 'clamp(40px, 6vw, 72px) clamp(24px, 4vw, 48px)' }}>
+      <div style={{ padding: 'clamp(44px, 6vw, 80px) clamp(28px, 4vw, 56px)', minWidth: 0 }}>
         <div style={{ marginBottom: 20 }}>
           <RareExclusiveCrest size={40} />
         </div>
@@ -759,7 +788,7 @@ export function RareExclusiveInteriorHero({
             margin: '18px 0 18px',
             fontFamily: T.fontDisplay,
             fontWeight: 400,
-            fontSize: 'clamp(2.1rem, 4vw, 3.2rem)',
+            fontSize: 'clamp(2.1rem, 3.6vw, 3.1rem)',
             lineHeight: 1.12,
             color: T.charcoal,
           }}
@@ -770,7 +799,7 @@ export function RareExclusiveInteriorHero({
           <p
             style={{
               margin: 0,
-              maxWidth: 480,
+              maxWidth: 520,
               fontFamily: T.fontBody,
               fontSize: 15.5,
               lineHeight: 1.8,
@@ -781,17 +810,18 @@ export function RareExclusiveInteriorHero({
           </p>
         ) : null}
       </div>
-      <div style={{ minHeight: 260, borderLeft: `1px solid ${T.hairlineStone}` }}>
-        {visual === 'photo' ? (
-          <RareExclusiveHeroVisual showCaption={false} />
-        ) : (
-          <RareExclusiveLifestylePanel variant={visual === 'sea' ? 'sea' : 'terrace'} />
-        )}
+      <div style={{ minHeight: 300, borderLeft: `1px solid ${T.hairlineStone}` }}>
+        <RareExclusiveHeroVisual
+          src={photoSrc}
+          alt={photoAlt}
+          showCaption={false}
+          objectPosition={useAdvisory ? 'center 40%' : 'center'}
+        />
       </div>
       <style>{`
         @media (max-width: 800px) {
           .re-interior-hero { grid-template-columns: 1fr !important; }
-          .re-interior-hero > div:last-child { min-height: 220px !important; border-left: none !important; border-top: 1px solid rgba(107,98,86,0.22); }
+          .re-interior-hero > div:last-child { min-height: 240px !important; border-left: none !important; border-top: 1px solid rgba(107,98,86,0.22); }
         }
       `}</style>
     </section>
