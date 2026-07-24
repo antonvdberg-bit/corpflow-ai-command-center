@@ -1,11 +1,8 @@
 /**
- * Rare & Exclusive Collection — Ivory Editorial public experience audit.
+ * Rare & Exclusive Collection — Concept A Ivory Editorial public experience audit.
  *
- * Purpose: prevent silent regression of the Ivory Editorial direction
- * (Issue #633) across lux.corpflowai.com public routes:
- * homepage, /properties, /property/[slug], /concierge.
- *
- * This is a string-level audit, not an HTTP/E2E test.
+ * Purpose: prevent silent regression of the approved Concept A visual direction
+ * (Issue #633) across lux.corpflowai.com public routes.
  */
 
 import test from 'node:test';
@@ -31,10 +28,6 @@ function readFile(rel) {
   return fs.readFileSync(path.join(repoRoot, rel), 'utf8');
 }
 
-/**
- * Live Lux public surfaces (Ivory Editorial).
- * LuxeMauriceTenantPresentation remains as fallback and is not the live homepage.
- */
 const PUBLIC_LUX_SURFACES = [
   'components/RareExclusiveTenantPresentation.js',
   'components/LuxeMauricePropertiesDirectory.js',
@@ -56,10 +49,7 @@ test('public Lux surfaces do not present IDX / MLS / external-feed language', ()
   for (const rel of PUBLIC_LUX_SURFACES) {
     const src = readFile(rel);
     for (const pat of FORBIDDEN_PUBLIC_PATTERNS) {
-      assert.ok(
-        !pat.test(src),
-        `forbidden public copy pattern ${pat} found in ${rel}`,
-      );
+      assert.ok(!pat.test(src), `forbidden ${pat} in ${rel}`);
     }
   }
 });
@@ -82,31 +72,31 @@ test('LUX_PROPERTIES_PUBLIC_COPY: Rare & Exclusive Private Opportunities framing
   );
   assert.equal(LUX_PROPERTIES_PUBLIC_COPY.emptyCta, 'Request a private consultation');
   assert.equal(LUX_PROPERTIES_PUBLIC_COPY.headerTagline, 'Invited. Not advertised.');
-  assert.ok(
-    !Object.values(LUX_PROPERTIES_PUBLIC_COPY).join(' ').includes('LuxeMaurice'),
-    'public properties copy must not show LuxeMaurice',
-  );
+  assert.ok(!Object.values(LUX_PROPERTIES_PUBLIC_COPY).join(' ').includes('LuxeMaurice'));
 });
 
-test('Ivory Editorial homepage renders approved vision anchors', () => {
+test('Concept A homepage renders approved Ivory Editorial anchors', () => {
   const src = readFile('components/RareExclusiveTenantPresentation.js');
   for (const anchor of [
-    'Private Wealth & Lifestyle Platform',
-    'This is not a property website.',
-    'Mauritius as a strategic base',
-    'Two buyers. One standard of care.',
-    'Invited. Not advertised.',
-    'Confidence at distance.',
-    'Private Advisory',
     'RareExclusiveStackedWordmark',
     'RareExclusiveHeroVisual',
     'RareExclusiveIvoryHeader',
+    'RareExclusiveFeatureBar',
+    'RARE_EXCLUSIVE_STRAPLINE',
+    'Discover Our Collection',
+    'Request an Invitation',
+    'Access Beyond the Market',
+    'Life. Elevated. Always.',
+    'Private Opportunities',
+    'Owner Experience',
+    'This is not a property website.',
+    'Private Advisory',
   ]) {
-    assert.ok(src.includes(anchor), `homepage missing required anchor: ${anchor}`);
+    assert.ok(src.includes(anchor), `homepage missing: ${anchor}`);
   }
 });
 
-test('homepage hero plate carries the brand wordmark + signature', () => {
+test('brand signature + strapline constants remain stable', () => {
   assert.equal(LUXE_MAURICE_BRAND_SIGNATURE, 'Private. Curated. Considered.');
   assert.equal(
     LUXE_MAURICE_BRAND_STRAPLINE,
@@ -114,17 +104,27 @@ test('homepage hero plate carries the brand wordmark + signature', () => {
   );
 });
 
-test('homepage shell exposes Mauritius strategic-base pillars', () => {
-  const src = readFile('components/RareExclusiveTenantPresentation.js');
-  for (const label of ['Lifestyle', 'Security', 'Connectivity', 'Legacy', 'Opportunity']) {
-    assert.ok(src.includes(`'${label}'`), `homepage missing strategic-base pillar: ${label}`);
-  }
-});
-
-test('homepage shell exposes the two client journeys', () => {
-  const src = readFile('components/RareExclusiveTenantPresentation.js');
-  for (const title of ['Completed Residence Buyer', 'Development Partner']) {
-    assert.ok(src.includes(`title: '${title}'`), `homepage missing client journey: ${title}`);
+test('Ivory shell implements Concept A crest, nav, feature pillars, privilege quote', () => {
+  const src = readFile('components/RareExclusiveIvoryShell.js');
+  for (const name of [
+    'RareExclusiveCrest',
+    'RareExclusiveStackedWordmark',
+    'RareExclusiveHeroVisual',
+    'RareExclusiveFeatureBar',
+    'RareExclusiveLifestylePanel',
+    'Properties',
+    'Lifestyle',
+    'Destination Mauritius',
+    'Private Services',
+    'Invitation Only',
+    'Curated Properties',
+    'Discretion & Privacy',
+    'Owner Concierge',
+    'Mauritius Expertise',
+    'Not just properties. A privilege.',
+    'R&E',
+  ]) {
+    assert.ok(src.includes(name), `Ivory shell missing: ${name}`);
   }
 });
 
@@ -135,9 +135,6 @@ test('/properties surface uses Ivory Editorial shell + Private Opportunities fra
   assert.ok(src.includes('LUX_PROPERTIES_PUBLIC_COPY.emptyKicker'));
   assert.ok(src.includes('LUX_PROPERTIES_PUBLIC_COPY.emptyBody'));
   assert.ok(src.includes('LUX_PROPERTIES_PUBLIC_COPY.emptyCta'));
-  assert.ok(
-    src.includes('Private Opportunities') || src.includes('Private opportunities'),
-  );
 });
 
 test('/property/[slug] shell reads as Ivory Editorial private opportunity memorandum', () => {
@@ -153,9 +150,9 @@ test('/property/[slug] shell reads as Ivory Editorial private opportunity memora
     'RareExclusiveIvoryHeader',
     'Rare & Exclusive Collection',
   ]) {
-    assert.ok(src.includes(anchor), `property detail missing required anchor: ${anchor}`);
+    assert.ok(src.includes(anchor), `property detail missing: ${anchor}`);
   }
-  assert.ok(!src.includes('· LuxeMaurice'), 'property detail must not show LuxeMaurice brand');
+  assert.ok(!src.includes('· LuxeMaurice'));
 });
 
 test('/concierge surface uses Ivory Editorial + Private Advisory framing', () => {
@@ -172,28 +169,9 @@ test('/concierge surface uses Ivory Editorial + Private Advisory framing', () =>
     'Ongoing ownership support',
     'RareExclusiveIvoryHeader',
   ]) {
-    assert.ok(src.includes(anchor), `/concierge missing required anchor: ${anchor}`);
+    assert.ok(src.includes(anchor), `/concierge missing: ${anchor}`);
   }
 });
-
-test('Ivory shell exposes stacked wordmark, nav, and hero visual', () => {
-  const src = readFile('components/RareExclusiveIvoryShell.js');
-  for (const name of [
-    'RareExclusiveStackedWordmark',
-    'RareExclusiveHeroVisual',
-    'RareExclusiveIvoryHeader',
-    'RareExclusiveIvoryFooter',
-    'Properties',
-    'Lifestyle',
-    'Destination Mauritius',
-    'Private Services',
-    'Invitation Only',
-  ]) {
-    assert.ok(src.includes(name), `Ivory shell missing: ${name}`);
-  }
-});
-
-/* ─── Brand fidelity — palette + typography ────────────────────────────── */
 
 test('LuxeMaurice brand theme uses the exact four-colour brand system', () => {
   assert.equal(T.charcoal, '#111111');
@@ -226,7 +204,6 @@ test('LuxeMaurice brand typography stack matches Cormorant Garamond / Inter spec
 });
 
 test('LuxeMaurice design-language pillars match the brand guideline', () => {
-  assert.ok(Array.isArray(LUXE_MAURICE_DESIGN_PILLARS));
   assert.equal(LUXE_MAURICE_DESIGN_PILLARS.length, 4);
   assert.deepEqual(
     LUXE_MAURICE_DESIGN_PILLARS.map((p) => p.label),
@@ -241,11 +218,7 @@ test('all live Lux public surfaces load Cormorant Garamond stylesheet', () => {
     'components/LuxeMauricePropertyDetailPage.js',
     'pages/concierge.js',
   ]) {
-    const src = readFile(rel);
-    assert.ok(
-      src.includes('LuxeMauriceFontStylesheet'),
-      `${rel} must load Cormorant Garamond`,
-    );
+    assert.ok(readFile(rel).includes('LuxeMauriceFontStylesheet'), `${rel} missing font load`);
   }
 });
 
@@ -256,11 +229,7 @@ test('all live Lux public surfaces use the Ivory Editorial header', () => {
     'components/LuxeMauricePropertyDetailPage.js',
     'pages/concierge.js',
   ]) {
-    const src = readFile(rel);
-    assert.ok(
-      src.includes('RareExclusiveIvoryHeader'),
-      `${rel} must use RareExclusiveIvoryHeader`,
-    );
+    assert.ok(readFile(rel).includes('RareExclusiveIvoryHeader'), `${rel} missing header`);
   }
 });
 
@@ -277,14 +246,11 @@ test('brand primitives module still exports monogram + wordmark + font styleshee
   }
 });
 
-test('SSR Lux branch on / does not seed fake feed inventory on public surface', () => {
+test('SSR Lux branch on / routes to RareExclusiveTenantPresentation', () => {
   const src = readFile('pages/index.js');
   assert.ok(/site\.feed_properties\s*=\s*\[\]/.test(src));
   assert.ok(!src.includes('import { LUXE_MAURICE_FEED_PROPERTIES }'));
-  assert.ok(
-    src.includes('RareExclusiveTenantPresentation'),
-    'index must route lux_acquisition to RareExclusiveTenantPresentation',
-  );
+  assert.ok(src.includes('RareExclusiveTenantPresentation'));
 });
 
 test('demo property route remains blocked in property slug SSR', () => {
