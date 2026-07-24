@@ -245,7 +245,7 @@ export default function ConciergePage({ seoHost = '' } = {}) {
         eyebrow="Private Advisory"
         title="Request a private consultation."
         body="Tell us what you are seeking in Mauritius. Your note is read by a single private advisor, held in complete discretion, and answered within one business day — by appointment only."
-        visual="sea"
+        visual="advisory"
       />
 
       <main style={{ padding: '40px clamp(20px, 4vw, 48px) 96px' }}>
