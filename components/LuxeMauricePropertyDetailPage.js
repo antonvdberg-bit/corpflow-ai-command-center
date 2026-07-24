@@ -3,26 +3,25 @@ import Head from 'next/head';
 import Link from 'next/link';
 
 import { LUXE_MAURICE_BRAND_TOKENS as T } from '../lib/client/luxe-maurice-brand-theme.js';
+import { LuxEyebrow, LuxHairline } from './LuxeMauriceBrandPrimitives.js';
 import {
   LuxeMauriceFontStylesheet,
-  LuxeMauriceWordmark,
-  LuxEyebrow,
-  LuxHairline,
-} from './LuxeMauriceBrandPrimitives.js';
+  RareExclusiveIvoryFooter,
+  RareExclusiveIvoryHeader,
+  rareExclusiveCtaGoldStyle,
+  rareExclusivePageShellStyle,
+} from './RareExclusiveIvoryShell.js';
 
 function safeStr(v) {
   return v != null ? String(v).trim() : '';
 }
 
 /**
- * LuxeMaurice property detail page — *Private Opportunity Memorandum*.
+ * Rare & Exclusive Collection property detail — Ivory Editorial memorandum.
  *
- * Brand-fidelity rebuild (2026-06-11). Editorial memorandum layout:
- * eyebrow / region / serif title / italic price line / cinematic hero /
+ * Shared design system with homepage / properties / concierge (Issue #633).
  * Overview / Lifestyle context / Advisory notes / Gallery / At a glance /
- * single private-advisory CTA. No hard borders, hairline dividers,
- * generous negative space. Reference: Aman residence pages, Sotheby's
- * Private Office exclusive offering memoranda.
+ * single private-advisory CTA. Demo inventory blocked upstream.
  *
  * Props are still server-built — client-supplied listing fields are
  * **not** trusted. Published-only visibility is preserved upstream in
@@ -52,8 +51,8 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
   const ref = safeStr(p.ref);
   const conciergeHref = `/concierge?intent=property&property=${encodeURIComponent(ref)}`;
   const pageTitle = ref
-    ? `${safeStr(p.title)} · Private Opportunity · LuxeMaurice`
-    : 'Private Opportunity · LuxeMaurice';
+    ? `${safeStr(p.title)} · Private Opportunity · Rare & Exclusive Collection`
+    : 'Private Opportunity · Rare & Exclusive Collection';
 
   const summaryRaw = safeStr(p.summary_text);
   const propertyType = safeStr(p.property_type);
@@ -70,7 +69,7 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
   const seoDescriptionRaw =
     summaryRaw ||
     synthesizedSummary ||
-    'LuxeMaurice — a private opportunity overview. Request a private consultation to discuss availability, terms, and next steps.';
+    'Rare & Exclusive Collection — a private opportunity overview. Request a private consultation to discuss availability, terms, and next steps.';
   const seoDescription =
     seoDescriptionRaw.length > 320
       ? `${seoDescriptionRaw.slice(0, 317)}…`
@@ -126,16 +125,13 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
    *  least one of `location` or `property_type` to frame. */
   const lifestyleContext =
     location || propertyType
-      ? `Set ${location ? `in ${location}` : 'within the Mauritian context'}, ${propertyType ? `this ${propertyType.toLowerCase()} ` : 'this private opportunity '}sits within the LuxeMaurice radius — climate, security, schools, sport, nature, and a long-term family quality of life. A private advisor frames the local detail — schools, neighbours, access, timing — once a private conversation is under way.`
+      ? `Set ${location ? `in ${location}` : 'within the Mauritian context'}, ${propertyType ? `this ${propertyType.toLowerCase()} ` : 'this private opportunity '}sits within the Rare & Exclusive Collection radius — climate, security, schools, sport, nature, and a long-term family quality of life. A private advisor frames the local detail — schools, neighbours, access, timing — once a private conversation is under way.`
       : '';
 
   return (
     <div
       style={{
-        fontFamily: T.fontBody,
-        minHeight: '100vh',
-        background: T.charcoal,
-        color: T.ivory,
+        ...rareExclusivePageShellStyle(),
       }}
     >
       <Head>
@@ -157,38 +153,8 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
         <LuxeMauriceFontStylesheet />
       </Head>
 
-      {/* ─── Header ───────────────────────────────────────────────────── */}
-      <header
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 16,
-          flexWrap: 'wrap',
-          padding: '28px clamp(20px, 4vw, 56px)',
-        }}
-      >
-        <LuxeMauriceWordmark
-          variant="compact"
-          tone="ivory"
-          showSignature={false}
-          href="/"
-        />
-        <Link
-          href="/properties"
-          style={{
-            fontFamily: T.fontBody,
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: '0.32em',
-            textTransform: 'uppercase',
-            color: T.gold,
-            textDecoration: 'none',
-          }}
-        >
-          ← Private Opportunities
-        </Link>
-      </header>
+      {/* ─── Ivory Editorial header ─────────────────────────────────── */}
+      <RareExclusiveIvoryHeader activeHref="/properties" />
 
       {editor_preview ? (
         <div
@@ -203,7 +169,7 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
               padding: '14px 18px',
               border: `1px solid ${T.gold}`,
               background: 'rgba(168, 132, 44, 0.06)',
-              color: T.ivory,
+              color: T.charcoal,
               fontFamily: T.fontBody,
               fontSize: 13,
               lineHeight: 1.6,
@@ -244,7 +210,7 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
               fontSize: 'clamp(2.2rem, 5vw, 3.6rem)',
               lineHeight: 1.1,
               letterSpacing: -0.4,
-              color: T.ivory,
+              color: T.charcoal,
             }}
           >
             {safeStr(p.title)}
@@ -258,7 +224,7 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
                   fontWeight: 700,
                   letterSpacing: '0.22em',
                   textTransform: 'uppercase',
-                  color: T.ivoryMuted,
+                  color: T.stone,
                 }}
               >
                 {safeStr(p.status)}
@@ -290,7 +256,7 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
             <div
               style={{
                 aspectRatio: '16 / 9',
-                background: T.charcoalSoft,
+                background: '#E7DED0',
                 overflow: 'hidden',
               }}
             >
@@ -318,7 +284,7 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
                   fontStyle: 'italic',
                   fontWeight: 400,
                   fontSize: 14,
-                  color: T.ivoryMuted,
+                  color: T.stone,
                   textAlign: 'center',
                   letterSpacing: 0.1,
                 }}
@@ -329,7 +295,7 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
           </figure>
         ) : null}
 
-        <LuxHairline tone="ivory" />
+        <LuxHairline tone="stone" />
 
         {/* ─── Overview ──────────────────────────────────────────────── */}
         <section
@@ -338,7 +304,7 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
             gridTemplateColumns: 'minmax(180px, 240px) 1fr',
             gap: 'clamp(28px, 6vw, 80px)',
             padding: '64px 0',
-            borderBottom: `1px solid ${T.hairlineSoft}`,
+            borderBottom: `1px solid ${T.hairlineStone}`,
           }}
         >
           <LuxEyebrow>Overview</LuxEyebrow>
@@ -350,11 +316,11 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
               fontWeight: 400,
               fontSize: 'clamp(1.15rem, 1.7vw, 1.4rem)',
               lineHeight: 1.75,
-              color: T.ivory,
+              color: T.charcoal,
               letterSpacing: 0.05,
             }}
           >
-            {summaryRaw || 'Discuss this private opportunity with a LuxeMaurice advisor for full context.'}
+            {summaryRaw || 'Discuss this private opportunity with a Rare & Exclusive Collection advisor for full context.'}
           </p>
         </section>
 
@@ -366,7 +332,7 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
               gridTemplateColumns: 'minmax(180px, 240px) 1fr',
               gap: 'clamp(28px, 6vw, 80px)',
               padding: '64px 0',
-              borderBottom: `1px solid ${T.hairlineSoft}`,
+              borderBottom: `1px solid ${T.hairlineStone}`,
             }}
           >
             <LuxEyebrow>Lifestyle context</LuxEyebrow>
@@ -377,7 +343,7 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
                 fontFamily: T.fontBody,
                 fontSize: 16,
                 lineHeight: 1.85,
-                color: T.ivoryMuted,
+                color: T.stone,
               }}
             >
               {lifestyleContext}
@@ -393,7 +359,7 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
               gridTemplateColumns: 'minmax(180px, 240px) 1fr',
               gap: 'clamp(28px, 6vw, 80px)',
               padding: '64px 0',
-              borderBottom: `1px solid ${T.hairlineSoft}`,
+              borderBottom: `1px solid ${T.hairlineStone}`,
             }}
           >
             <LuxEyebrow>Advisory notes</LuxEyebrow>
@@ -417,7 +383,7 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
                     fontFamily: T.fontBody,
                     fontSize: 15.5,
                     lineHeight: 1.8,
-                    color: T.ivory,
+                    color: T.charcoal,
                   }}
                 >
                   <span
@@ -444,7 +410,7 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
           <section
             style={{
               padding: '64px 0',
-              borderBottom: `1px solid ${T.hairlineSoft}`,
+              borderBottom: `1px solid ${T.hairlineStone}`,
             }}
           >
             <LuxEyebrow>Gallery</LuxEyebrow>
@@ -463,7 +429,7 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
                     <div
                       style={{
                         aspectRatio: '4 / 3',
-                        background: T.charcoalSoft,
+                        background: '#E7DED0',
                         overflow: 'hidden',
                       }}
                     >
@@ -489,7 +455,7 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
                           fontFamily: T.fontDisplay,
                           fontStyle: 'italic',
                           fontSize: 12,
-                          color: T.ivoryMuted,
+                          color: T.stone,
                           lineHeight: 1.5,
                         }}
                       >
@@ -521,7 +487,7 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
               gap: 0,
               fontFamily: T.fontBody,
               fontSize: 14,
-              color: T.ivoryMuted,
+              color: T.stone,
               maxWidth: 620,
             }}
           >
@@ -541,7 +507,7 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
                     letterSpacing: '0.28em',
                     textTransform: 'uppercase',
                     color: T.gold,
-                    borderTop: `1px solid ${T.hairlineSoft}`,
+                    borderTop: `1px solid ${T.hairlineStone}`,
                     borderBottom:
                       i === arr.length - 1
                         ? `1px solid ${T.hairlineSoft}`
@@ -556,8 +522,8 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
                     padding: '18px 0',
                     fontFamily: T.fontDisplay,
                     fontSize: 17,
-                    color: T.ivory,
-                    borderTop: `1px solid ${T.hairlineSoft}`,
+                    color: T.charcoal,
+                    borderTop: `1px solid ${T.hairlineStone}`,
                     borderBottom:
                       i === arr.length - 1
                         ? `1px solid ${T.hairlineSoft}`
@@ -577,8 +543,8 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
             marginTop: 96,
             padding: 'clamp(64px, 9vw, 120px) clamp(24px, 6vw, 80px)',
             textAlign: 'center',
-            borderTop: `1px solid ${T.hairlineSoft}`,
-            borderBottom: `1px solid ${T.hairlineSoft}`,
+            borderTop: `1px solid ${T.hairlineStone}`,
+            borderBottom: `1px solid ${T.hairlineStone}`,
           }}
         >
           <LuxEyebrow center>Private Advisory</LuxEyebrow>
@@ -593,7 +559,7 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
               fontWeight: 400,
               fontSize: 'clamp(1.8rem, 4vw, 2.8rem)',
               lineHeight: 1.2,
-              color: T.ivory,
+              color: T.charcoal,
               letterSpacing: -0.2,
             }}
           >
@@ -606,59 +572,20 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
               fontFamily: T.fontBody,
               fontSize: 15,
               lineHeight: 1.85,
-              color: T.ivoryMuted,
+              color: T.stone,
             }}
           >
             Your enquiry reaches the same private advisory channel as the rest of
-            LuxeMaurice. Your advisor sees this opportunity reference and responds
+            Rare & Exclusive Collection. Your advisor sees this opportunity reference and responds
             within one business day.
           </p>
-          <a
-            href={conciergeHref}
-            style={{
-              display: 'inline-block',
-              padding: '16px 30px',
-              borderRadius: T.radiusEditorial,
-              background: T.gold,
-              color: T.charcoal,
-              fontFamily: T.fontBody,
-              fontWeight: 700,
-              fontSize: 12.5,
-              letterSpacing: '0.2em',
-              textTransform: 'uppercase',
-              textDecoration: 'none',
-            }}
-          >
+          <a href={conciergeHref} style={rareExclusiveCtaGoldStyle()}>
             Request a Private Consultation
           </a>
         </section>
       </main>
 
-      {/* ─── Footer ───────────────────────────────────────────────────── */}
-      <footer
-        style={{
-          padding: '56px 32px 64px',
-          background: T.charcoalDeep,
-          borderTop: `1px solid ${T.hairlineSoft}`,
-          textAlign: 'center',
-        }}
-      >
-        <LuxeMauriceWordmark variant="stacked" tone="ivory" showSignature />
-        <p
-          style={{
-            margin: '36px auto 0',
-            maxWidth: 640,
-            fontFamily: T.fontBody,
-            fontSize: 11.5,
-            lineHeight: 1.8,
-            color: T.ivoryMuted,
-          }}
-        >
-          Information on this page is indicative and not legal, tax, or immigration
-          advice. Nothing here is an offer or solicitation; terms are agreed in writing
-          through a private advisor.
-        </p>
-      </footer>
+      <RareExclusiveIvoryFooter />
     </div>
   );
 }

@@ -7,12 +7,14 @@ import { LUXE_MAURICE_BRAND_TOKENS as T } from '../lib/client/luxe-maurice-brand
 import { resolveLuxPropertyRef } from '../lib/client/luxe-maurice-property-resolve.js';
 import { isLuxStagedDemoSlug } from '../lib/client/luxe-maurice-staged-properties.js';
 import { buildConciergeSeo } from '../lib/client/concierge-seo.js';
+import { LuxEyebrow, LuxHairline } from '../components/LuxeMauriceBrandPrimitives.js';
 import {
   LuxeMauriceFontStylesheet,
-  LuxeMauriceWordmark,
-  LuxEyebrow,
-  LuxHairline,
-} from '../components/LuxeMauriceBrandPrimitives.js';
+  RareExclusiveIvoryFooter,
+  RareExclusiveIvoryHeader,
+  rareExclusiveCtaGoldStyle,
+  rareExclusivePageShellStyle,
+} from '../components/RareExclusiveIvoryShell.js';
 
 function str(v) {
   return v != null ? String(v) : '';
@@ -27,14 +29,8 @@ const INTENT_OPTIONS = [
 ];
 
 /**
- * `/concierge` — *Private Advisory* surface for `lux.corpflowai.com` (also
- * rendered with the same Lux content on apex `/concierge` until the
- * host-aware split lands).
- *
- * Brand-fidelity rebuild (2026-06-11). Editorial form: serif heading,
- * underline-only inputs (no card chrome), single private-consultation CTA.
- * Reference benchmarks: Aman concierge enquiry, Sotheby's Private Office
- * enquiry page.
+ * `/concierge` — Rare & Exclusive Collection Private Advisory (Ivory Editorial).
+ * Shared design system with homepage / properties / property detail (Issue #633).
  *
  * The lead-creation API and the persisted `property_slug` / `property_title`
  * payload are deliberately unchanged so existing operator workflows on
@@ -205,9 +201,9 @@ export default function ConciergePage({ seoHost = '' } = {}) {
         marginTop: 12,
         padding: '14px 0',
         border: 'none',
-        borderBottom: `1px solid ${T.hairlineSoft}`,
+        borderBottom: `1px solid ${T.hairlineStone}`,
         background: 'transparent',
-        color: T.ivory,
+        color: T.charcoal,
         fontFamily: T.fontBody,
         fontSize: 16,
         outline: 'none',
@@ -221,10 +217,7 @@ export default function ConciergePage({ seoHost = '' } = {}) {
   return (
     <div
       style={{
-        fontFamily: T.fontBody,
-        minHeight: '100vh',
-        background: T.charcoal,
-        color: T.ivory,
+        ...rareExclusivePageShellStyle(),
       }}
     >
       <Head>
@@ -243,38 +236,7 @@ export default function ConciergePage({ seoHost = '' } = {}) {
         <LuxeMauriceFontStylesheet />
       </Head>
 
-      {/* ─── Header ───────────────────────────────────────────────────── */}
-      <header
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 16,
-          flexWrap: 'wrap',
-          padding: '28px clamp(20px, 4vw, 56px)',
-        }}
-      >
-        <LuxeMauriceWordmark
-          variant="compact"
-          tone="ivory"
-          showSignature={false}
-          href="/"
-        />
-        <Link
-          href="/properties"
-          style={{
-            fontFamily: T.fontBody,
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: '0.32em',
-            textTransform: 'uppercase',
-            color: T.gold,
-            textDecoration: 'none',
-          }}
-        >
-          Private Opportunities →
-        </Link>
-      </header>
+      <RareExclusiveIvoryHeader activeHref="/concierge" />
 
       <main
         style={{
@@ -294,7 +256,7 @@ export default function ConciergePage({ seoHost = '' } = {}) {
               fontSize: 'clamp(2.4rem, 5vw, 3.8rem)',
               lineHeight: 1.1,
               letterSpacing: -0.4,
-              color: T.ivory,
+              color: T.charcoal,
             }}
           >
             Request a private consultation.
@@ -311,7 +273,7 @@ export default function ConciergePage({ seoHost = '' } = {}) {
               fontWeight: 400,
               fontSize: 'clamp(1.15rem, 1.7vw, 1.35rem)',
               lineHeight: 1.65,
-              color: T.ivoryMuted,
+              color: T.stone,
             }}
           >
             Tell us briefly what you are seeking in Mauritius.
@@ -323,7 +285,7 @@ export default function ConciergePage({ seoHost = '' } = {}) {
               fontFamily: T.fontBody,
               fontSize: 15,
               lineHeight: 1.85,
-              color: T.ivoryMuted,
+              color: T.stone,
             }}
           >
             Your note is read by a single private advisor and held in complete
@@ -361,14 +323,14 @@ export default function ConciergePage({ seoHost = '' } = {}) {
                 fontFamily: T.fontDisplay,
                 fontSize: 22,
                 fontWeight: 500,
-                color: T.ivory,
+                color: T.charcoal,
               }}
             >
               {propertyInterest.title}
               {propertyInterest.status ? (
                 <span
                   style={{
-                    color: T.ivoryMuted,
+                    color: T.stone,
                     fontFamily: T.fontBody,
                     fontStyle: 'italic',
                     fontSize: 14,
@@ -384,7 +346,7 @@ export default function ConciergePage({ seoHost = '' } = {}) {
                 marginTop: 8,
                 fontFamily: T.fontBody,
                 fontSize: 13,
-                color: T.ivoryMuted,
+                color: T.stone,
               }}
             >
               {propertyInterest.location} · {propertyInterest.property_type}
@@ -411,12 +373,12 @@ export default function ConciergePage({ seoHost = '' } = {}) {
             style={{
               marginBottom: 40,
               padding: '18px 0',
-              borderTop: `1px solid ${T.hairlineSoft}`,
-              borderBottom: `1px solid ${T.hairlineSoft}`,
+              borderTop: `1px solid ${T.hairlineStone}`,
+              borderBottom: `1px solid ${T.hairlineStone}`,
               fontFamily: T.fontDisplay,
               fontStyle: 'italic',
               fontSize: 15,
-              color: T.ivoryMuted,
+              color: T.stone,
               maxWidth: 560,
             }}
           >
@@ -505,9 +467,9 @@ export default function ConciergePage({ seoHost = '' } = {}) {
                     style={{
                       padding: '11px 18px',
                       borderRadius: T.radiusEditorial,
-                      border: `1px solid ${active ? T.gold : T.hairlineSoft}`,
+                      border: `1px solid ${active ? T.gold : T.hairlineStone}`,
                       background: active ? T.gold : 'transparent',
-                      color: active ? T.charcoal : T.ivoryMuted,
+                      color: active ? T.charcoal : T.stone,
                       fontFamily: T.fontBody,
                       fontSize: 11,
                       fontWeight: 700,
@@ -545,9 +507,9 @@ export default function ConciergePage({ seoHost = '' } = {}) {
                 marginTop: 12,
                 padding: '14px 0',
                 border: 'none',
-                borderBottom: `1px solid ${T.hairlineSoft}`,
+                borderBottom: `1px solid ${T.hairlineStone}`,
                 background: 'transparent',
-                color: T.ivory,
+                color: T.charcoal,
                 fontFamily: T.fontBody,
                 fontSize: 16,
                 lineHeight: 1.7,
@@ -595,7 +557,7 @@ export default function ConciergePage({ seoHost = '' } = {}) {
               fontStyle: 'italic',
               fontSize: 17,
               lineHeight: 1.6,
-              color: T.ivory,
+              color: T.charcoal,
             }}
           >
             {success}
@@ -624,9 +586,9 @@ export default function ConciergePage({ seoHost = '' } = {}) {
             style={{
               marginTop: 32,
               padding: 16,
-              border: `1px solid ${T.hairlineSoft}`,
-              background: T.charcoalSoft,
-              color: T.ivoryMuted,
+              border: `1px solid ${T.hairlineStone}`,
+              background: '#FBF8F2',
+              color: T.stone,
               overflowX: 'auto',
               fontSize: 11,
               fontFamily: 'monospace',
@@ -643,7 +605,7 @@ export default function ConciergePage({ seoHost = '' } = {}) {
             fontFamily: T.fontBody,
             fontSize: 11.5,
             lineHeight: 1.8,
-            color: T.ivoryMuted,
+            color: T.stone,
             letterSpacing: 0.04,
           }}
         >
@@ -652,17 +614,7 @@ export default function ConciergePage({ seoHost = '' } = {}) {
         </p>
       </main>
 
-      {/* ─── Footer ───────────────────────────────────────────────────── */}
-      <footer
-        style={{
-          padding: '56px 32px 64px',
-          background: T.charcoalDeep,
-          borderTop: `1px solid ${T.hairlineSoft}`,
-          textAlign: 'center',
-        }}
-      >
-        <LuxeMauriceWordmark variant="stacked" tone="ivory" showSignature />
-      </footer>
+      <RareExclusiveIvoryFooter />
     </div>
   );
 }
