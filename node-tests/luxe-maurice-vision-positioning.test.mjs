@@ -32,6 +32,7 @@ const PUBLIC_LUX_SURFACES = [
   'components/RareExclusiveTenantPresentation.js',
   'components/LuxeMauricePropertiesDirectory.js',
   'components/LuxeMauricePropertyDetailPage.js',
+  'components/RareExclusiveContentPage.js',
   'pages/concierge.js',
   'components/RareExclusiveIvoryShell.js',
 ];
@@ -93,7 +94,12 @@ test('Concept A homepage renders approved Ivory Editorial anchors', () => {
     'Private Opportunities',
     'Owner Experience',
     'This is not a property website.',
-    'Private Advisory',
+    'About the collection',
+    '/lifestyle',
+    '/destination-mauritius',
+    '/private-services',
+    '/about',
+    '/contact',
   ]) {
     assert.ok(src.includes(anchor), `homepage missing: ${anchor}`);
   }
@@ -125,6 +131,11 @@ test('Ivory shell implements Concept A crest, nav, feature pillars, privilege qu
     'Destination Mauritius',
     'Private Services',
     'Invitation Only',
+    "href: '/lifestyle'",
+    "href: '/destination-mauritius'",
+    "href: '/private-services'",
+    "href: '/about'",
+    "href: '/contact'",
     'Curated Properties',
     'Discretion & Privacy',
     'Owner Concierge',

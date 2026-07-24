@@ -3,6 +3,7 @@ import Link from 'next/link';
 import CorpFlowPublicPhotoShell from '../components/public/CorpFlowPublicPhotoShell.js';
 import { policyStyles as ps, trustStyles as ts } from '../components/PublicPolicyLayout.js';
 import CustomerServiceContact from '../components/CustomerServiceContact.js';
+import RareExclusiveContentPage from '../components/RareExclusiveContentPage.js';
 import {
   MERCHANT_BRN,
   MERCHANT_LEGAL_NAME,
@@ -11,10 +12,12 @@ import {
   formatCurrencyDisclosure,
 } from '../lib/public/merchant-identity.js';
 import { buildPublicPageMeta } from '../lib/public/corpflow-public-market.js';
+import { luxOrApexPageProps } from '../lib/client/lux-host-page-props.js';
 
 /**
- * /about - Institutional principles + founder's note.
- * Photo background is decorative only; all claims stay in HTML.
+ * /about — host-aware.
+ * - lux.corpflowai.com → Rare & Exclusive Collection Ivory Editorial about
+ * - apex / other → CorpFlowAI institutional about
  */
 
 const PRINCIPLES = [
@@ -48,7 +51,11 @@ const PRINCIPLES = [
   },
 ];
 
-export default function AboutPage() {
+export default function AboutPage({ luxMode = false, seoHost = '' } = {}) {
+  if (luxMode) {
+    return <RareExclusiveContentPage pageId="about" seoHost={seoHost} />;
+  }
+
   const meta = buildPublicPageMeta({
     title: 'About CorpFlowAI',
     description:
@@ -185,4 +192,8 @@ export default function AboutPage() {
       </section>
     </CorpFlowPublicPhotoShell>
   );
+}
+
+export async function getServerSideProps({ req }) {
+  return luxOrApexPageProps(req);
 }

@@ -4,7 +4,8 @@ import assert from 'node:assert/strict';
 import sitemapPage, { __testing__ } from '../pages/sitemap.xml.js';
 import { listInsightsForStaticPaths } from '../lib/public/insights-content.js';
 
-const { isLuxHost, buildEntries, renderSitemap, APEX_PATHS, LUX_PROPERTY_REFS } = __testing__;
+const { isLuxHost, buildEntries, renderSitemap, APEX_PATHS, LUX_STATIC_PATHS, LUX_PROPERTY_REFS } =
+  __testing__;
 
 function expectedApexPathCount() {
   return APEX_PATHS.length + listInsightsForStaticPaths().length;
@@ -52,19 +53,28 @@ describe('sitemap.xml / buildEntries', () => {
 
   it('returns lux entries for the lux host', () => {
     const { paths } = buildEntries('lux.corpflowai.com');
-    // 2 static lux paths + N property refs
-    assert.equal(paths.length, 2 + LUX_PROPERTY_REFS.length);
+    assert.equal(paths.length, LUX_STATIC_PATHS.length + LUX_PROPERTY_REFS.length);
     for (const e of paths) {
       assert.match(e.loc, /^https:\/\/lux\.corpflowai\.com/);
+    }
+    for (const p of [
+      '/about',
+      '/contact',
+      '/lifestyle',
+      '/destination-mauritius',
+      '/private-services',
+      '/properties',
+    ]) {
+      assert.ok(
+        paths.some((e) => e.loc === `https://lux.corpflowai.com${p}`),
+        `missing Lux sitemap path ${p}`,
+      );
     }
   });
 
   it('returns lux entries for the luxe.* alias too', () => {
     const { paths } = buildEntries('luxe.corpflowai.com');
-    // Lux sitemap shape: 2 static lux paths + N property refs (currently 0 per
-    // the C3 placeholder cleanup; grows back to 1+ when Jan's first real C2
-    // opportunity slug is appended to LUX_PROPERTY_REFS).
-    assert.equal(paths.length, 2 + LUX_PROPERTY_REFS.length);
+    assert.equal(paths.length, LUX_STATIC_PATHS.length + LUX_PROPERTY_REFS.length);
     assert.match(paths[0].loc, /^https:\/\/lux\.corpflowai\.com/);
   });
 
