@@ -1,17 +1,21 @@
 import { useEffect, useMemo, useState } from 'react';
 import Head from 'next/head';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
 
 import { LUXE_MAURICE_BRAND_TOKENS as T } from '../lib/client/luxe-maurice-brand-theme.js';
 import { resolveLuxPropertyRef } from '../lib/client/luxe-maurice-property-resolve.js';
 import { isLuxStagedDemoSlug } from '../lib/client/luxe-maurice-staged-properties.js';
 import { buildConciergeSeo } from '../lib/client/concierge-seo.js';
-import { LuxEyebrow, LuxHairline } from '../components/LuxeMauriceBrandPrimitives.js';
+import { LuxEyebrow } from '../components/LuxeMauriceBrandPrimitives.js';
 import {
   LuxeMauriceFontStylesheet,
+  RareExclusiveEditorialSpine,
+  RareExclusiveEnquirySteps,
+  RareExclusiveInteriorHero,
   RareExclusiveIvoryFooter,
   RareExclusiveIvoryHeader,
+  RareExclusiveOpaquePanel,
+  RareExclusivePromiseGrid,
   rareExclusiveCtaGoldStyle,
   rareExclusivePageShellStyle,
 } from '../components/RareExclusiveIvoryShell.js';
@@ -30,12 +34,10 @@ const INTENT_OPTIONS = [
 
 /**
  * `/concierge` — Rare & Exclusive Collection Private Advisory (Ivory Editorial).
- * Shared design system with homepage / properties / property detail (Issue #633).
+ * Issue #636: editorial spine, enquiry journey, discretion / owner concierge /
+ * Mauritius expertise modules, opaque form panel for readability.
  *
- * The lead-creation API and the persisted `property_slug` / `property_title`
- * payload are deliberately unchanged so existing operator workflows on
- * `/change` continue to receive the same lead context. No DB schema change.
- * No new env vars.
+ * Lead-creation API and property_slug / property_title payload unchanged.
  */
 export default function ConciergePage({ seoHost = '' } = {}) {
   const router = useRouter();
@@ -238,71 +240,23 @@ export default function ConciergePage({ seoHost = '' } = {}) {
 
       <RareExclusiveIvoryHeader activeHref="/concierge" />
 
-      <main
-        style={{
-          maxWidth: 760,
-          margin: '0 auto',
-          padding: '56px clamp(20px, 4vw, 56px) 120px',
-        }}
-      >
-        {/* ─── Title block ──────────────────────────────────────────── */}
-        <section style={{ marginBottom: 64, textAlign: 'left' }}>
-          <LuxEyebrow>Private Advisory</LuxEyebrow>
-          <h1
-            style={{
-              margin: '28px 0 28px',
-              fontFamily: T.fontDisplay,
-              fontWeight: 400,
-              fontSize: 'clamp(2.4rem, 5vw, 3.8rem)',
-              lineHeight: 1.1,
-              letterSpacing: -0.4,
-              color: T.charcoal,
-            }}
-          >
-            Request a private consultation.
-          </h1>
-          <div style={{ width: 40, marginBottom: 28 }}>
-            <LuxHairline tone="gold" />
-          </div>
-          <p
-            style={{
-              margin: '0 0 16px',
-              maxWidth: 560,
-              fontFamily: T.fontDisplay,
-              fontStyle: 'italic',
-              fontWeight: 400,
-              fontSize: 'clamp(1.15rem, 1.7vw, 1.35rem)',
-              lineHeight: 1.65,
-              color: T.stone,
-            }}
-          >
-            Tell us briefly what you are seeking in Mauritius.
-          </p>
-          <p
-            style={{
-              margin: 0,
-              maxWidth: 560,
-              fontFamily: T.fontBody,
-              fontSize: 15,
-              lineHeight: 1.85,
-              color: T.stone,
-            }}
-          >
-            Your note is read by a single private advisor and held in complete
-            discretion. A response follows within one business day. Nothing here is
-            an offer; terms are agreed in writing once a private advisory
-            conversation is under way.
-          </p>
-        </section>
+      <RareExclusiveEditorialSpine>
+      <RareExclusiveInteriorHero
+        eyebrow="Private Advisory"
+        title="Request a private consultation."
+        body="Tell us what you are seeking in Mauritius. Your note is read by a single private advisor, held in complete discretion, and answered within one business day — by appointment only."
+        visual="sea"
+      />
+
+      <main style={{ padding: '40px clamp(20px, 4vw, 48px) 96px' }}>
+        <RareExclusiveEnquirySteps />
+        <RareExclusivePromiseGrid />
 
         {/* ─── Referenced opportunity (when arrived from /property) ─── */}
         {propertyInterest ? (
-          <section
+          <RareExclusiveOpaquePanel
             style={{
-              marginBottom: 56,
-              padding: '24px 0',
-              borderTop: `1px solid ${T.hairline}`,
-              borderBottom: `1px solid ${T.hairline}`,
+              marginBottom: 40,
             }}
           >
             <div
@@ -364,29 +318,41 @@ export default function ConciergePage({ seoHost = '' } = {}) {
                 {propertyInterest.price_range}
               </div>
             ) : null}
-          </section>
+          </RareExclusiveOpaquePanel>
         ) : router.isReady &&
           String(router.query?.property || '').trim() &&
           propertyRefState.ready &&
           !propertyRefState.matched ? (
-          <p
-            style={{
-              marginBottom: 40,
-              padding: '18px 0',
-              borderTop: `1px solid ${T.hairlineStone}`,
-              borderBottom: `1px solid ${T.hairlineStone}`,
-              fontFamily: T.fontDisplay,
-              fontStyle: 'italic',
-              fontSize: 15,
-              color: T.stone,
-              maxWidth: 560,
-            }}
-          >
-            We could not match that private opportunity reference. You can still send
-            a general enquiry below.
-          </p>
+          <RareExclusiveOpaquePanel style={{ marginBottom: 40 }}>
+            <p
+              style={{
+                margin: 0,
+                fontFamily: T.fontDisplay,
+                fontStyle: 'italic',
+                fontSize: 15,
+                color: '#4A433A',
+                maxWidth: 560,
+              }}
+            >
+              We could not match that private opportunity reference. You can still send
+              a general enquiry below.
+            </p>
+          </RareExclusiveOpaquePanel>
         ) : null}
 
+        <RareExclusiveOpaquePanel style={{ marginTop: 8 }}>
+        <LuxEyebrow tone="charcoal">Enquiry</LuxEyebrow>
+        <p
+          style={{
+            margin: '14px 0 28px',
+            fontFamily: T.fontDisplay,
+            fontStyle: 'italic',
+            fontSize: 18,
+            color: '#4A433A',
+          }}
+        >
+          Appointment-only. Invited, not advertised.
+        </p>
         {/* ─── Editorial form — hairline underline inputs ─────────── */}
         <form
           onSubmit={onSubmit}
@@ -598,21 +564,24 @@ export default function ConciergePage({ seoHost = '' } = {}) {
           </pre>
         ) : null}
 
+        </RareExclusiveOpaquePanel>
+
         <p
           style={{
-            marginTop: 64,
+            marginTop: 40,
             textAlign: 'center',
             fontFamily: T.fontBody,
-            fontSize: 11.5,
+            fontSize: 12.5,
             lineHeight: 1.8,
-            color: T.stone,
+            color: '#4A433A',
             letterSpacing: 0.04,
           }}
         >
           Information is used solely to respond to your enquiry. Not legal, tax, or
-          immigration advice.
+          immigration advice. Availability is confirmed privately.
         </p>
       </main>
+      </RareExclusiveEditorialSpine>
 
       <RareExclusiveIvoryFooter />
     </div>
