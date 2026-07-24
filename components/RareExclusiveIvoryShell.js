@@ -202,6 +202,8 @@ export function RareExclusiveHeroVisual({
   src = RARE_EXCLUSIVE_HERO_IMAGE,
   alt = 'Mauritius coastal residence — private lifestyle setting',
   showCaption = false,
+  /** Soft left-edge fade into ivory (Concept A hero / card treatment). */
+  fadeLeft = false,
 }) {
   return (
     <div
@@ -214,19 +216,6 @@ export function RareExclusiveHeroVisual({
         background: 'linear-gradient(145deg, #E8DFD0 0%, #C9B896 45%, #A8946E 100%)',
       }}
     >
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: `
-            radial-gradient(ellipse at 72% 28%, rgba(255,248,230,0.35) 0%, transparent 50%),
-            linear-gradient(180deg, rgba(17,17,17,0.05) 0%, transparent 35%, rgba(17,17,17,0.35) 100%)
-          `,
-          zIndex: 1,
-          pointerEvents: 'none',
-        }}
-      />
       <img
         src={src}
         alt={alt}
@@ -239,6 +228,24 @@ export function RareExclusiveHeroVisual({
           height: '100%',
           objectFit: 'cover',
           objectPosition: 'center',
+        }}
+      />
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: `
+            radial-gradient(ellipse at 72% 28%, rgba(255,248,230,0.28) 0%, transparent 50%),
+            linear-gradient(180deg, rgba(17,17,17,0.04) 0%, transparent 40%, rgba(17,17,17,0.22) 100%)
+            ${
+              fadeLeft
+                ? ', linear-gradient(90deg, #F4EFE8 0%, rgba(244,239,232,0.85) 8%, rgba(244,239,232,0.35) 22%, transparent 42%)'
+                : ''
+            }
+          `,
+          zIndex: 1,
+          pointerEvents: 'none',
         }}
       />
       {showCaption ? (
@@ -583,34 +590,53 @@ export function RareExclusiveIvoryHeader({ activeHref = '' }) {
 }
 
 /**
- * Concept A footer: privilege quote + crest + quiet legal note.
+ * Concept A footer: privilege quote flanked by gold hairlines + crest.
  */
 export function RareExclusiveIvoryFooter({ note }) {
   return (
     <footer
       style={{
-        padding: '72px 32px 56px',
+        padding: '80px 32px 56px',
         background: T.ivory,
         color: T.stone,
         textAlign: 'center',
         borderTop: `1px solid ${T.hairlineStone}`,
       }}
     >
-      <p
+      <div
         style={{
-          margin: 0,
-          fontFamily: T.fontDisplay,
-          fontStyle: 'italic',
-          fontWeight: 400,
-          fontSize: 'clamp(1.35rem, 2.4vw, 1.85rem)',
-          lineHeight: 1.45,
-          color: T.charcoal,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 'clamp(16px, 3vw, 28px)',
+          maxWidth: 720,
+          margin: '0 auto',
         }}
       >
-        “{RARE_EXCLUSIVE_PRIVILEGE_QUOTE}”
-      </p>
+        <span
+          aria-hidden="true"
+          style={{ flex: '0 0 48px', height: 1, background: T.gold, opacity: 0.65 }}
+        />
+        <p
+          style={{
+            margin: 0,
+            fontFamily: T.fontDisplay,
+            fontStyle: 'italic',
+            fontWeight: 400,
+            fontSize: 'clamp(1.35rem, 2.4vw, 1.85rem)',
+            lineHeight: 1.45,
+            color: T.charcoal,
+          }}
+        >
+          “{RARE_EXCLUSIVE_PRIVILEGE_QUOTE}”
+        </p>
+        <span
+          aria-hidden="true"
+          style={{ flex: '0 0 48px', height: 1, background: T.gold, opacity: 0.65 }}
+        />
+      </div>
       <div style={{ margin: '36px auto 0', display: 'flex', justifyContent: 'center' }}>
-        <RareExclusiveCrest size={40} />
+        <RareExclusiveCrest size={36} />
       </div>
       <p
         style={{
@@ -638,14 +664,14 @@ export function rareExclusivePageShellStyle() {
   };
 }
 
-/** Concept A primary CTA — solid gold rectangle. */
+/** Concept A primary CTA — solid gold rectangle with white label. */
 export function rareExclusiveCtaGoldStyle() {
   return {
     display: 'inline-block',
     padding: '15px 28px',
     borderRadius: 2,
     background: T.gold,
-    color: T.charcoal,
+    color: '#FFFFFF',
     fontFamily: T.fontBody,
     fontWeight: 700,
     fontSize: 11.5,
@@ -662,7 +688,7 @@ export function rareExclusiveCtaPrimaryStyle() {
   return rareExclusiveCtaGoldStyle();
 }
 
-/** Secondary text link with chevron. */
+/** Secondary gold text link with chevron (Concept A). */
 export function rareExclusiveCtaQuietStyle() {
   return {
     display: 'inline-flex',
@@ -670,7 +696,7 @@ export function rareExclusiveCtaQuietStyle() {
     gap: 8,
     padding: '14px 4px',
     background: 'transparent',
-    color: T.charcoal,
+    color: T.gold,
     fontFamily: T.fontBody,
     fontWeight: 700,
     fontSize: 11.5,
@@ -686,9 +712,7 @@ export function RareExclusiveTextLink({ href, children }) {
   return (
     <a href={href} style={rareExclusiveCtaQuietStyle()}>
       {children}
-      <span aria-hidden="true" style={{ color: T.gold }}>
-        ›
-      </span>
+      <span aria-hidden="true">›</span>
     </a>
   );
 }

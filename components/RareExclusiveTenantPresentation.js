@@ -77,8 +77,8 @@ export default function RareExclusiveTenantPresentation({ site }) {
           @media (max-width: 900px) {
             .re-hero-grid { grid-template-columns: 1fr !important; min-height: auto !important; }
             .re-hero-visual { min-height: 300px !important; max-height: 440px; }
-            .re-alt-grid { grid-template-columns: 1fr !important; }
-            .re-alt-grid-reverse { direction: ltr !important; }
+            .re-card-grid { grid-template-columns: 1fr !important; }
+            .re-card-inner { grid-template-columns: 1fr !important; }
           }
         `}</style>
       </Head>
@@ -130,10 +130,10 @@ export default function RareExclusiveTenantPresentation({ site }) {
             <p
               style={{
                 margin: '28px 0 0',
-                fontFamily: T.fontBody,
-                fontSize: 12,
-                fontWeight: 700,
-                letterSpacing: '0.28em',
+                fontFamily: T.fontDisplay,
+                fontSize: 13,
+                fontWeight: 500,
+                letterSpacing: '0.22em',
                 textTransform: 'uppercase',
                 color: T.gold,
               }}
@@ -142,7 +142,7 @@ export default function RareExclusiveTenantPresentation({ site }) {
             </p>
             <p
               style={{
-                margin: '18px 0 0',
+                margin: '16px 0 0',
                 maxWidth: 420,
                 fontFamily: T.fontDisplay,
                 fontSize: 'clamp(1.2rem, 2vw, 1.55rem)',
@@ -174,257 +174,202 @@ export default function RareExclusiveTenantPresentation({ site }) {
             </div>
           </div>
           <div className="re-hero-visual" style={{ minHeight: '100%', position: 'relative' }}>
-            <RareExclusiveHeroVisual />
+            <RareExclusiveHeroVisual fadeLeft />
           </div>
         </section>
 
         {/* ─── Four-pillar feature bar ─────────────────────────────── */}
         <RareExclusiveFeatureBar />
 
-        {/* ─── Private Opportunities (text left / visual right) ───── */}
+        {/* ─── Side-by-side content cards (Concept A) ──────────────── */}
         <section
           id="upcoming"
-          style={{ padding: 'clamp(72px, 10vw, 120px) clamp(24px, 5vw, 64px)', background: T.ivory }}
+          style={{
+            padding: 'clamp(64px, 9vw, 110px) clamp(20px, 4vw, 56px)',
+            background: T.ivory,
+          }}
         >
           <div
-            className="re-alt-grid"
+            className="re-card-grid"
             style={{
               maxWidth: 1180,
               margin: '0 auto',
               display: 'grid',
-              gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.1fr)',
-              gap: 'clamp(36px, 6vw, 80px)',
-              alignItems: 'center',
+              gridTemplateColumns: '1fr 1fr',
+              gap: 'clamp(28px, 4vw, 48px)',
             }}
           >
-            <div>
-              <LuxEyebrow tone="charcoal">Private Opportunities</LuxEyebrow>
-              <h2
-                style={{
-                  margin: '22px 0 20px',
-                  fontFamily: T.fontDisplay,
-                  fontWeight: 400,
-                  fontSize: 'clamp(2.2rem, 4vw, 3.4rem)',
-                  lineHeight: 1.1,
-                  color: T.charcoal,
-                }}
-              >
-                Access Beyond the Market
-              </h2>
-              <div style={{ width: 48, marginBottom: 22 }}>
-                <LuxHairline tone="gold" />
-              </div>
-              <p
-                style={{
-                  margin: 0,
-                  maxWidth: 440,
-                  fontFamily: T.fontBody,
-                  fontSize: 15.5,
-                  lineHeight: 1.85,
-                  color: T.stone,
-                }}
-              >
-                Opportunities are prepared for private review before they appear. No open-market
-                noise — only introductions arranged with discretion for clients who value legacy,
-                privacy, and long-term Mauritius ownership.
-              </p>
-              <div style={{ marginTop: 28 }}>
-                <RareExclusiveTextLink href="/properties">Explore Properties</RareExclusiveTextLink>
-              </div>
-            </div>
-            <div style={{ minHeight: 320, border: `1px solid ${T.hairlineStone}` }}>
-              <RareExclusiveHeroVisual showCaption={false} />
-            </div>
-          </div>
-        </section>
-
-        {/* ─── Owner Experience (visual left / text right) ─────────── */}
-        <section
-          id="services"
-          style={{
-            padding: 'clamp(72px, 10vw, 120px) clamp(24px, 5vw, 64px)',
-            background: '#FBF8F2',
-          }}
-        >
-          <div
-            className="re-alt-grid re-alt-grid-reverse"
-            style={{
-              maxWidth: 1180,
-              margin: '0 auto',
-              display: 'grid',
-              gridTemplateColumns: 'minmax(0, 1.1fr) minmax(0, 1fr)',
-              gap: 'clamp(36px, 6vw, 80px)',
-              alignItems: 'center',
-            }}
-          >
-            <div style={{ minHeight: 320, border: `1px solid ${T.hairlineStone}` }}>
-              <RareExclusiveLifestylePanel variant="sea" />
-            </div>
-            <div>
-              <LuxEyebrow tone="charcoal">Owner Experience</LuxEyebrow>
-              <h2
-                style={{
-                  margin: '22px 0 20px',
-                  fontFamily: T.fontDisplay,
-                  fontWeight: 400,
-                  fontSize: 'clamp(2.2rem, 4vw, 3.4rem)',
-                  lineHeight: 1.1,
-                  color: T.charcoal,
-                }}
-              >
-                Life. Elevated. Always.
-              </h2>
-              <div style={{ width: 48, marginBottom: 22 }}>
-                <LuxHairline tone="gold" />
-              </div>
-              <p
-                style={{
-                  margin: 0,
-                  maxWidth: 440,
-                  fontFamily: T.fontBody,
-                  fontSize: 15.5,
-                  lineHeight: 1.85,
-                  color: T.stone,
-                }}
-              >
-                From first introduction to ongoing ownership support, a single private advisory
-                thread holds design decisions, progress updates, and concierge access — calm,
-                precise, and personal.
-              </p>
-              <div style={{ marginTop: 28 }}>
-                <RareExclusiveTextLink href="/concierge">
-                  Discover Owner Services
-                </RareExclusiveTextLink>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ─── Destination Mauritius ───────────────────────────────── */}
-        <section
-          id="destination"
-          style={{ padding: 'clamp(72px, 10vw, 120px) clamp(24px, 5vw, 64px)', background: T.ivory }}
-        >
-          <div style={{ maxWidth: 820, margin: '0 auto', textAlign: 'center' }}>
-            <LuxEyebrow tone="charcoal" center>
-              Destination Mauritius
-            </LuxEyebrow>
-            <h2
+            {/* Private Opportunities */}
+            <article
+              id="destination"
               style={{
-                margin: '24px 0 20px',
-                fontFamily: T.fontDisplay,
-                fontWeight: 400,
-                fontSize: 'clamp(2.2rem, 4.5vw, 3.6rem)',
-                lineHeight: 1.12,
-                color: T.charcoal,
+                display: 'grid',
+                gridTemplateColumns: 'minmax(0, 1.05fr) minmax(0, 0.95fr)',
+                gap: 0,
+                minHeight: 360,
+                background: T.ivory,
               }}
+              className="re-card-inner"
             >
-              A quieter life with serious long-term value.
-            </h2>
-            <div style={{ margin: '0 auto 28px', width: 48 }}>
-              <LuxHairline tone="gold" />
-            </div>
-            <p
-              style={{
-                margin: 0,
-                fontFamily: T.fontBody,
-                fontSize: 16,
-                lineHeight: 1.9,
-                color: T.stone,
-              }}
-            >
-              Lifestyle, security, connectivity, and legacy — framed for private wealth clients
-              considering Mauritius as a place to invest, live, and build. This is not a property website.
-            </p>
-          </div>
-        </section>
-
-        {/* ─── Lifestyle / About ───────────────────────────────────── */}
-        <section
-          id="lifestyle"
-          style={{
-            padding: 'clamp(72px, 10vw, 110px) clamp(24px, 5vw, 64px)',
-            background: '#FBF8F2',
-          }}
-        >
-          <div
-            style={{
-              maxWidth: 1120,
-              margin: '0 auto',
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-              gap: 0,
-              borderTop: `1px solid ${T.hairlineStone}`,
-              borderBottom: `1px solid ${T.hairlineStone}`,
-            }}
-          >
-            {[
-              ['Lifestyle', 'Climate, privacy, schooling, sport, and family quality of life.'],
-              ['Discretion', 'Conversations begin by introduction and continue with care.'],
-              ['Legacy', 'Ownership framed for permanence — not brochure pressure.'],
-            ].map(([title, body], i, arr) => (
-              <article
-                key={title}
+              <div
                 style={{
-                  padding: '40px 28px',
-                  borderRight: i < arr.length - 1 ? `1px solid ${T.hairlineStone}` : 'none',
+                  padding: 'clamp(28px, 3vw, 40px) clamp(22px, 2.5vw, 36px)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
                 }}
               >
-                <h3
+                <LuxEyebrow tone="charcoal">Private Opportunities</LuxEyebrow>
+                <h2
                   style={{
-                    margin: 0,
+                    margin: '18px 0 16px',
                     fontFamily: T.fontDisplay,
-                    fontSize: 26,
-                    fontWeight: 500,
+                    fontWeight: 400,
+                    fontSize: 'clamp(1.7rem, 2.6vw, 2.35rem)',
+                    lineHeight: 1.15,
                     color: T.charcoal,
                   }}
                 >
-                  {title}
-                </h3>
-                <p style={{ margin: '14px 0 0', fontSize: 14.5, lineHeight: 1.75, color: T.stone }}>
-                  {body}
+                  Access Beyond the Market
+                </h2>
+                <div style={{ width: 40, marginBottom: 16 }}>
+                  <LuxHairline tone="gold" />
+                </div>
+                <p
+                  style={{
+                    margin: 0,
+                    fontFamily: T.fontBody,
+                    fontSize: 14.5,
+                    lineHeight: 1.75,
+                    color: T.stone,
+                  }}
+                >
+                  Opportunities prepared for private review — introduced with discretion, not
+                  advertised. This is not a property website.
                 </p>
-              </article>
-            ))}
+                <div style={{ marginTop: 22 }}>
+                  <RareExclusiveTextLink href="/properties">Explore Properties</RareExclusiveTextLink>
+                </div>
+              </div>
+              <div style={{ minHeight: 280, position: 'relative' }}>
+                <RareExclusiveHeroVisual showCaption={false} />
+              </div>
+            </article>
+
+            {/* Owner Experience */}
+            <article
+              id="services"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'minmax(0, 1.05fr) minmax(0, 0.95fr)',
+                gap: 0,
+                minHeight: 360,
+                background: T.ivory,
+              }}
+              className="re-card-inner"
+            >
+              <div
+                style={{
+                  padding: 'clamp(28px, 3vw, 40px) clamp(22px, 2.5vw, 36px)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                }}
+              >
+                <LuxEyebrow tone="charcoal">Owner Experience</LuxEyebrow>
+                <h2
+                  style={{
+                    margin: '18px 0 16px',
+                    fontFamily: T.fontDisplay,
+                    fontWeight: 400,
+                    fontSize: 'clamp(1.7rem, 2.6vw, 2.35rem)',
+                    lineHeight: 1.15,
+                    color: T.charcoal,
+                  }}
+                >
+                  Life. Elevated. Always.
+                </h2>
+                <div style={{ width: 40, marginBottom: 16 }}>
+                  <LuxHairline tone="gold" />
+                </div>
+                <p
+                  style={{
+                    margin: 0,
+                    fontFamily: T.fontBody,
+                    fontSize: 14.5,
+                    lineHeight: 1.75,
+                    color: T.stone,
+                  }}
+                >
+                  From first introduction to ongoing ownership support — one calm, personal
+                  advisory thread.
+                </p>
+                <div style={{ marginTop: 22 }}>
+                  <RareExclusiveTextLink href="/concierge">
+                    Discover Owner Services
+                  </RareExclusiveTextLink>
+                </div>
+              </div>
+              <div style={{ minHeight: 280, position: 'relative' }}>
+                <RareExclusiveLifestylePanel variant="sea" />
+              </div>
+            </article>
+          </div>
+        </section>
+
+        {/* Anchor targets for Lifestyle / About nav */}
+        <section
+          id="lifestyle"
+          style={{
+            padding: 'clamp(48px, 7vw, 80px) 32px 0',
+            background: T.ivory,
+            textAlign: 'center',
+          }}
+        >
+          <div style={{ maxWidth: 640, margin: '0 auto' }}>
+            <LuxEyebrow tone="charcoal" center>
+              Lifestyle
+            </LuxEyebrow>
+            <p
+              style={{
+                margin: '20px 0 0',
+                fontFamily: T.fontDisplay,
+                fontStyle: 'italic',
+                fontSize: 'clamp(1.25rem, 2.2vw, 1.6rem)',
+                lineHeight: 1.5,
+                color: T.stone,
+              }}
+            >
+              Climate, privacy, schooling, sport, and family quality of life — framed for
+              long-term Mauritius living.
+            </p>
           </div>
         </section>
 
         <section
           id="about"
           style={{
-            padding: 'clamp(80px, 11vw, 130px) 32px',
+            padding: 'clamp(56px, 8vw, 96px) 32px',
             background: T.ivory,
             textAlign: 'center',
           }}
         >
-          <div style={{ maxWidth: 720, margin: '0 auto' }}>
+          <div style={{ maxWidth: 640, margin: '0 auto' }}>
             <LuxEyebrow tone="charcoal" center>
               Private Advisory
             </LuxEyebrow>
             <h2
               style={{
-                margin: '26px auto 22px',
+                margin: '22px auto 20px',
                 fontFamily: T.fontDisplay,
                 fontWeight: 400,
-                fontSize: 'clamp(2.2rem, 4.5vw, 3.6rem)',
-                lineHeight: 1.12,
+                fontSize: 'clamp(2rem, 4vw, 3rem)',
+                lineHeight: 1.15,
                 color: T.charcoal,
               }}
             >
               Invitation only.
             </h2>
-            <p
-              style={{
-                margin: '0 auto 36px',
-                maxWidth: 560,
-                fontSize: 16,
-                lineHeight: 1.85,
-                color: T.stone,
-              }}
-            >
-              Tell us what you are seeking in Mauritius. A private advisor responds with the next
-              suitable step — curated, discreet, and considered.
-            </p>
             <a href="/concierge" style={rareExclusiveCtaGoldStyle()}>
               Request an Invitation
             </a>
