@@ -5,6 +5,12 @@
       "UV_LINK_MODE": "copy"
     }
   },
+  "git": {
+    "deploymentEnabled": {
+      "main": true
+    }
+  },
+  "ignoreCommand": "node scripts/vercel-ignore-preview-deploys.mjs",
   "functions": {
     "api/factory_router.js": {
       "includeFiles": "node_modules/.prisma/client/**"
