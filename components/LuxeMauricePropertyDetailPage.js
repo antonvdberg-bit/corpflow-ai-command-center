@@ -6,8 +6,12 @@ import { LUXE_MAURICE_BRAND_TOKENS as T } from '../lib/client/luxe-maurice-brand
 import { LuxEyebrow, LuxHairline } from './LuxeMauriceBrandPrimitives.js';
 import {
   LuxeMauriceFontStylesheet,
+  RARE_EXCLUSIVE_AVAILABILITY_DISCLAIMER,
+  RareExclusiveEditorialSpine,
   RareExclusiveIvoryFooter,
   RareExclusiveIvoryHeader,
+  RareExclusiveOpaquePanel,
+  RareExclusivePromiseGrid,
   rareExclusiveCtaGoldStyle,
   rareExclusivePageShellStyle,
 } from './RareExclusiveIvoryShell.js';
@@ -18,10 +22,8 @@ function safeStr(v) {
 
 /**
  * Rare & Exclusive Collection property detail — Ivory Editorial memorandum.
- *
- * Shared design system with homepage / properties / concierge (Issue #633).
- * Overview / Lifestyle context / Advisory notes / Gallery / At a glance /
- * single private-advisory CTA. Demo inventory blocked upstream.
+ * Issue #636: editorial spine, opaque panels, availability disclaimer,
+ * private access CTA, highlights / region / status memorandum feel.
  *
  * Props are still server-built — client-supplied listing fields are
  * **not** trusted. Published-only visibility is preserved upstream in
@@ -153,24 +155,14 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
         <LuxeMauriceFontStylesheet />
       </Head>
 
-      {/* ─── Ivory Editorial header ─────────────────────────────────── */}
       <RareExclusiveIvoryHeader activeHref="/properties" />
 
+      <RareExclusiveEditorialSpine>
       {editor_preview ? (
-        <div
-          style={{
-            margin: '0 auto',
-            maxWidth: 980,
-            padding: '12px clamp(20px, 4vw, 56px) 0',
-          }}
-        >
-          <div
+        <div style={{ padding: '12px clamp(20px, 4vw, 40px) 0' }}>
+          <RareExclusiveOpaquePanel
             style={{
-              padding: '14px 18px',
-              border: `1px solid ${T.gold}`,
-              background: 'rgba(168, 132, 44, 0.06)',
-              color: T.charcoal,
-              fontFamily: T.fontBody,
+              borderColor: T.gold,
               fontSize: 13,
               lineHeight: 1.6,
             }}
@@ -179,11 +171,11 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
             opportunity memorandum. Remove{' '}
             <code style={{ fontSize: 12 }}>?preview=1</code> to open the visitor-facing
             page when the opportunity is published.
-          </div>
+          </RareExclusiveOpaquePanel>
         </div>
       ) : null}
 
-      <main style={{ maxWidth: 980, margin: '0 auto', padding: '32px clamp(20px, 4vw, 56px) 120px' }}>
+      <main style={{ padding: '32px clamp(20px, 4vw, 48px) 96px' }}>
         {/* ─── Title block ───────────────────────────────────────────── */}
         <section style={{ maxWidth: 760, marginBottom: 56 }}>
           <LuxEyebrow>Private Opportunity Memorandum</LuxEyebrow>
@@ -224,7 +216,7 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
                   fontWeight: 700,
                   letterSpacing: '0.22em',
                   textTransform: 'uppercase',
-                  color: T.stone,
+                  color: '#4A433A',
                 }}
               >
                 {safeStr(p.status)}
@@ -284,7 +276,7 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
                   fontStyle: 'italic',
                   fontWeight: 400,
                   fontSize: 14,
-                  color: T.stone,
+                  color: '#4A433A',
                   textAlign: 'center',
                   letterSpacing: 0.1,
                 }}
@@ -343,7 +335,7 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
                 fontFamily: T.fontBody,
                 fontSize: 16,
                 lineHeight: 1.85,
-                color: T.stone,
+                color: '#4A433A',
               }}
             >
               {lifestyleContext}
@@ -455,7 +447,7 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
                           fontFamily: T.fontDisplay,
                           fontStyle: 'italic',
                           fontSize: 12,
-                          color: T.stone,
+                          color: '#4A433A',
                           lineHeight: 1.5,
                         }}
                       >
@@ -487,7 +479,7 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
               gap: 0,
               fontFamily: T.fontBody,
               fontSize: 14,
-              color: T.stone,
+              color: '#4A433A',
               maxWidth: 620,
             }}
           >
@@ -537,17 +529,25 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
           </dl>
         </section>
 
-        {/* ─── Private Consultation CTA — single, generous ───────────── */}
+        <RareExclusivePromiseGrid />
+
+        <RareExclusiveOpaquePanel style={{ marginTop: 24, marginBottom: 8 }}>
+          <p style={{ margin: 0, fontSize: 14, lineHeight: 1.75, color: '#4A433A' }}>
+            {RARE_EXCLUSIVE_AVAILABILITY_DISCLAIMER}
+          </p>
+        </RareExclusiveOpaquePanel>
+
+        {/* ─── Private Access CTA ─────────────────────────────────────── */}
         <section
           style={{
-            marginTop: 96,
-            padding: 'clamp(64px, 9vw, 120px) clamp(24px, 6vw, 80px)',
+            marginTop: 48,
+            padding: 'clamp(48px, 7vw, 88px) clamp(20px, 4vw, 48px)',
             textAlign: 'center',
             borderTop: `1px solid ${T.hairlineStone}`,
-            borderBottom: `1px solid ${T.hairlineStone}`,
+            background: '#F8F4EE',
           }}
         >
-          <LuxEyebrow center>Private Advisory</LuxEyebrow>
+          <LuxEyebrow tone="charcoal" center>Private Access</LuxEyebrow>
           <div style={{ margin: '32px auto', width: 40 }}>
             <LuxHairline tone="gold" />
           </div>
@@ -572,7 +572,7 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
               fontFamily: T.fontBody,
               fontSize: 15,
               lineHeight: 1.85,
-              color: T.stone,
+              color: '#4A433A',
             }}
           >
             Your enquiry reaches the same private advisory channel as the rest of
@@ -580,10 +580,11 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
             within one business day.
           </p>
           <a href={conciergeHref} style={rareExclusiveCtaGoldStyle()}>
-            Request a Private Consultation
+            Request private access
           </a>
         </section>
       </main>
+      </RareExclusiveEditorialSpine>
 
       <RareExclusiveIvoryFooter />
     </div>

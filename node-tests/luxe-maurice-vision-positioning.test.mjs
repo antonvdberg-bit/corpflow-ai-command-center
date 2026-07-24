@@ -72,6 +72,8 @@ test('LUX_PROPERTIES_PUBLIC_COPY: Rare & Exclusive Private Opportunities framing
   );
   assert.equal(LUX_PROPERTIES_PUBLIC_COPY.emptyCta, 'Request a private consultation');
   assert.equal(LUX_PROPERTIES_PUBLIC_COPY.headerTagline, 'Invited. Not advertised.');
+  assert.equal(LUX_PROPERTIES_PUBLIC_COPY.listKicker, 'Curated opportunities');
+  assert.ok(LUX_PROPERTIES_PUBLIC_COPY.listSubtitle.toLowerCase().includes('invitation'));
   assert.ok(!Object.values(LUX_PROPERTIES_PUBLIC_COPY).join(' ').includes('LuxeMaurice'));
 });
 
@@ -82,6 +84,7 @@ test('Concept A homepage renders approved Ivory Editorial anchors', () => {
     'RareExclusiveHeroVisual',
     'RareExclusiveIvoryHeader',
     'RareExclusiveFeatureBar',
+    'RareExclusiveEditorialSpine',
     'RARE_EXCLUSIVE_STRAPLINE',
     'Discover Our Collection',
     'Request an Invitation',
@@ -112,6 +115,11 @@ test('Ivory shell implements Concept A crest, nav, feature pillars, privilege qu
     'RareExclusiveHeroVisual',
     'RareExclusiveFeatureBar',
     'RareExclusiveLifestylePanel',
+    'RareExclusiveEditorialSpine',
+    'RareExclusiveOpaquePanel',
+    'RareExclusiveEnquirySteps',
+    'RareExclusivePromiseGrid',
+    'RARE_EXCLUSIVE_EDITORIAL_MAX',
     'Properties',
     'Lifestyle',
     'Destination Mauritius',
@@ -128,13 +136,17 @@ test('Ivory shell implements Concept A crest, nav, feature pillars, privilege qu
   }
 });
 
-test('/properties surface uses Ivory Editorial shell + Private Opportunities framing', () => {
+test('/properties surface uses Ivory Editorial shell + curated opportunities framing', () => {
   const src = readFile('components/LuxeMauricePropertiesDirectory.js');
   assert.ok(src.includes('RareExclusiveIvoryHeader'));
+  assert.ok(src.includes('RareExclusiveEditorialSpine'));
+  assert.ok(src.includes('RareExclusiveInteriorHero'));
   assert.ok(src.includes('rareExclusivePageShellStyle'));
   assert.ok(src.includes('LUX_PROPERTIES_PUBLIC_COPY.emptyKicker'));
   assert.ok(src.includes('LUX_PROPERTIES_PUBLIC_COPY.emptyBody'));
   assert.ok(src.includes('LUX_PROPERTIES_PUBLIC_COPY.emptyCta'));
+  assert.ok(src.includes('MetaChip') || src.includes('region_label'));
+  assert.ok(src.includes('Invited. Not advertised.') || src.includes('headerTagline'));
 });
 
 test('/property/[slug] shell reads as Ivory Editorial private opportunity memorandum', () => {
@@ -145,9 +157,11 @@ test('/property/[slug] shell reads as Ivory Editorial private opportunity memora
     'Lifestyle context',
     'Advisory notes',
     'At a glance',
-    'Request a Private Consultation',
-    'Private Advisory',
+    'Request private access',
+    'Private Access',
     'RareExclusiveIvoryHeader',
+    'RareExclusiveEditorialSpine',
+    'RARE_EXCLUSIVE_AVAILABILITY_DISCLAIMER',
     'Rare & Exclusive Collection',
   ]) {
     assert.ok(src.includes(anchor), `property detail missing: ${anchor}`);
@@ -155,13 +169,16 @@ test('/property/[slug] shell reads as Ivory Editorial private opportunity memora
   assert.ok(!src.includes('· LuxeMaurice'));
 });
 
-test('/concierge surface uses Ivory Editorial + Private Advisory framing', () => {
+test('/concierge surface uses Ivory Editorial + private advisory journey', () => {
   const src = readFile('pages/concierge.js');
   for (const anchor of [
     'Private Advisory',
     'Request a private consultation',
     'Request a Private Consultation',
-    'Tell us what you are seeking in Mauritius',
+    'RareExclusiveEnquirySteps',
+    'RareExclusivePromiseGrid',
+    'RareExclusiveInteriorHero',
+    'RareExclusiveEditorialSpine',
     'Completed residence',
     'Development partnership',
     'Relocation to Mauritius',

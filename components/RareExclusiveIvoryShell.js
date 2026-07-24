@@ -26,6 +26,12 @@ export const RARE_EXCLUSIVE_STRAPLINE =
 
 export const RARE_EXCLUSIVE_PRIVILEGE_QUOTE = 'Not just properties. A privilege.';
 
+/** Contained magazine spine — Issue #636 editorial width (not full-bleed stretch). */
+export const RARE_EXCLUSIVE_EDITORIAL_MAX = 1080;
+
+export const RARE_EXCLUSIVE_AVAILABILITY_DISCLAIMER =
+  'Availability, pricing, and terms are confirmed privately through a private advisor. Nothing on this page is an offer or solicitation.';
+
 /** Main nav (Invitation Only is rendered separately with a divider). */
 export const RARE_EXCLUSIVE_NAV_MAIN = Object.freeze([
   Object.freeze({ label: 'Properties', href: '/properties' }),
@@ -500,16 +506,22 @@ export function RareExclusiveIvoryHeader({ activeHref = '' }) {
       style={{
         position: 'relative',
         zIndex: 20,
-        display: 'grid',
-        gridTemplateColumns: '56px 1fr',
-        alignItems: 'center',
-        gap: 16,
-        padding: '18px clamp(16px, 3.5vw, 48px)',
         borderBottom: `1px solid ${T.hairlineStone}`,
-        background: 'rgba(244, 239, 232, 0.97)',
+        background: '#F7F2EA',
       }}
       className="re-ivory-header"
     >
+      <div
+        style={{
+          maxWidth: RARE_EXCLUSIVE_EDITORIAL_MAX,
+          margin: '0 auto',
+          display: 'grid',
+          gridTemplateColumns: '56px 1fr',
+          alignItems: 'center',
+          gap: 16,
+          padding: '18px clamp(20px, 4vw, 40px)',
+        }}
+      >
       <Link
         href="/"
         style={{ textDecoration: 'none', justifySelf: 'start' }}
@@ -576,10 +588,13 @@ export function RareExclusiveIvoryHeader({ activeHref = '' }) {
           Invitation Only
         </a>
       </nav>
+      </div>
       <style>{`
         @media (max-width: 720px) {
-          .re-ivory-header { grid-template-columns: 1fr !important; }
+          .re-ivory-header > div { grid-template-columns: 1fr !important; }
           .re-feature-bar { grid-template-columns: 1fr 1fr !important; }
+          .re-journey-grid { grid-template-columns: 1fr !important; }
+          .re-promise-grid { grid-template-columns: 1fr !important; }
         }
         @media (max-width: 480px) {
           .re-feature-bar { grid-template-columns: 1fr !important; }
@@ -596,13 +611,14 @@ export function RareExclusiveIvoryFooter({ note }) {
   return (
     <footer
       style={{
-        padding: '80px 32px 56px',
-        background: T.ivory,
+        padding: '64px 20px 48px',
+        background: '#EFE8DC',
         color: T.stone,
         textAlign: 'center',
         borderTop: `1px solid ${T.hairlineStone}`,
       }}
     >
+      <div style={{ maxWidth: RARE_EXCLUSIVE_EDITORIAL_MAX, margin: '0 auto', padding: '16px 20px 0' }}>
       <div
         style={{
           display: 'flex',
@@ -651,17 +667,276 @@ export function RareExclusiveIvoryFooter({ note }) {
         {note ||
           'Information on this site is indicative and not legal, tax, or immigration advice. Nothing here is an offer or solicitation; terms are agreed in writing through a private advisor.'}
       </p>
+      </div>
     </footer>
   );
 }
 
+/**
+ * Outer page shell: warm parchment field + charcoal text for high contrast.
+ * Content should sit inside RareExclusiveEditorialSpine.
+ */
 export function rareExclusivePageShellStyle() {
   return {
     fontFamily: T.fontBody,
     minHeight: '100vh',
-    background: T.ivoryPage || T.ivory,
+    background: '#EDE6DA',
     color: T.charcoal,
   };
+}
+
+/** Centered magazine spine — restores controlled editorial width (Issue #636). */
+export function RareExclusiveEditorialSpine({ children, style = {} }) {
+  return (
+    <div
+      style={{
+        maxWidth: RARE_EXCLUSIVE_EDITORIAL_MAX,
+        margin: '0 auto',
+        background: T.ivory,
+        boxShadow: '0 0 0 1px rgba(107, 98, 86, 0.12), 0 24px 64px rgba(17, 17, 17, 0.06)',
+        ...style,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+/** Opaque ivory panel — text never sits on busy/transparent imagery. */
+export function RareExclusiveOpaquePanel({ children, style = {} }) {
+  return (
+    <div
+      style={{
+        background: '#F8F4EE',
+        border: `1px solid ${T.hairlineStone}`,
+        padding: 'clamp(24px, 3vw, 36px)',
+        color: T.charcoal,
+        ...style,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+/** Interior page hero band with crest + optional lifestyle graphic. */
+export function RareExclusiveInteriorHero({
+  eyebrow,
+  title,
+  body,
+  visual = 'terrace',
+}) {
+  return (
+    <section
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'minmax(0, 1.15fr) minmax(0, 0.85fr)',
+        borderBottom: `1px solid ${T.hairlineStone}`,
+        background: T.ivory,
+      }}
+      className="re-interior-hero"
+    >
+      <div style={{ padding: 'clamp(40px, 6vw, 72px) clamp(24px, 4vw, 48px)' }}>
+        <div style={{ marginBottom: 20 }}>
+          <RareExclusiveCrest size={40} />
+        </div>
+        {eyebrow ? (
+          <div
+            style={{
+              fontFamily: T.fontBody,
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.28em',
+              textTransform: 'uppercase',
+              color: T.gold,
+            }}
+          >
+            {eyebrow}
+          </div>
+        ) : null}
+        <h1
+          style={{
+            margin: '18px 0 18px',
+            fontFamily: T.fontDisplay,
+            fontWeight: 400,
+            fontSize: 'clamp(2.1rem, 4vw, 3.2rem)',
+            lineHeight: 1.12,
+            color: T.charcoal,
+          }}
+        >
+          {title}
+        </h1>
+        {body ? (
+          <p
+            style={{
+              margin: 0,
+              maxWidth: 480,
+              fontFamily: T.fontBody,
+              fontSize: 15.5,
+              lineHeight: 1.8,
+              color: '#4A433A',
+            }}
+          >
+            {body}
+          </p>
+        ) : null}
+      </div>
+      <div style={{ minHeight: 260, borderLeft: `1px solid ${T.hairlineStone}` }}>
+        {visual === 'photo' ? (
+          <RareExclusiveHeroVisual showCaption={false} />
+        ) : (
+          <RareExclusiveLifestylePanel variant={visual === 'sea' ? 'sea' : 'terrace'} />
+        )}
+      </div>
+      <style>{`
+        @media (max-width: 800px) {
+          .re-interior-hero { grid-template-columns: 1fr !important; }
+          .re-interior-hero > div:last-child { min-height: 220px !important; border-left: none !important; border-top: 1px solid rgba(107,98,86,0.22); }
+        }
+      `}</style>
+    </section>
+  );
+}
+
+export const RARE_EXCLUSIVE_ENQUIRY_STEPS = Object.freeze([
+  Object.freeze({
+    n: '01',
+    title: 'Share your intent',
+    body: 'Tell us what you are seeking — residence, partnership, relocation, or ownership support.',
+  }),
+  Object.freeze({
+    n: '02',
+    title: 'Private advisor review',
+    body: 'A single advisor reads your note in confidence and prepares a discreet next step.',
+  }),
+  Object.freeze({
+    n: '03',
+    title: 'Invitation to converse',
+    body: 'Suitable introductions follow by appointment — never as an open-market listing response.',
+  }),
+]);
+
+export function RareExclusiveEnquirySteps() {
+  return (
+    <section aria-label="Private advisory journey" style={{ padding: '48px 0 8px' }}>
+      <div
+        style={{
+          fontFamily: T.fontBody,
+          fontSize: 11,
+          fontWeight: 700,
+          letterSpacing: '0.28em',
+          textTransform: 'uppercase',
+          color: T.gold,
+          marginBottom: 28,
+        }}
+      >
+        Private advisory journey
+      </div>
+      <div
+        className="re-journey-grid"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+          borderTop: `1px solid ${T.hairlineStone}`,
+          borderBottom: `1px solid ${T.hairlineStone}`,
+        }}
+      >
+        {RARE_EXCLUSIVE_ENQUIRY_STEPS.map((step, i) => (
+          <article
+            key={step.n}
+            style={{
+              padding: '28px 22px',
+              borderRight:
+                i < RARE_EXCLUSIVE_ENQUIRY_STEPS.length - 1
+                  ? `1px solid ${T.hairlineStone}`
+                  : 'none',
+              background: '#F8F4EE',
+            }}
+          >
+            <div
+              style={{
+                fontFamily: T.fontDisplay,
+                fontStyle: 'italic',
+                fontSize: 22,
+                color: T.gold,
+              }}
+            >
+              {step.n}
+            </div>
+            <h3
+              style={{
+                margin: '12px 0 10px',
+                fontFamily: T.fontDisplay,
+                fontSize: 22,
+                fontWeight: 500,
+                color: T.charcoal,
+              }}
+            >
+              {step.title}
+            </h3>
+            <p style={{ margin: 0, fontSize: 14.5, lineHeight: 1.7, color: '#4A433A' }}>
+              {step.body}
+            </p>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export const RARE_EXCLUSIVE_PROMISE_CARDS = Object.freeze([
+  Object.freeze({
+    icon: 'shield',
+    title: 'Discretion & privacy',
+    body: 'Your enquiry is held in confidence. Conversations begin by introduction and continue by appointment only.',
+  }),
+  Object.freeze({
+    icon: 'cloche',
+    title: 'Owner concierge',
+    body: 'Design decisions, progress updates, and ownership support stay in one calm advisory thread.',
+  }),
+  Object.freeze({
+    icon: 'compass',
+    title: 'Mauritius expertise',
+    body: 'Local insight on lifestyle, access, and long-term ownership — framed for private wealth clients.',
+  }),
+]);
+
+export function RareExclusivePromiseGrid() {
+  return (
+    <section aria-label="Discretion, concierge, and Mauritius expertise" style={{ padding: '40px 0' }}>
+      <div
+        className="re-promise-grid"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+          gap: 18,
+        }}
+      >
+        {RARE_EXCLUSIVE_PROMISE_CARDS.map((card) => (
+          <RareExclusiveOpaquePanel key={card.title} style={{ padding: '28px 22px' }}>
+            <div style={{ marginBottom: 14 }}>
+              <FeatureIcon name={card.icon} />
+            </div>
+            <h3
+              style={{
+                margin: 0,
+                fontFamily: T.fontDisplay,
+                fontSize: 22,
+                fontWeight: 500,
+                color: T.charcoal,
+              }}
+            >
+              {card.title}
+            </h3>
+            <p style={{ margin: '12px 0 0', fontSize: 14.5, lineHeight: 1.7, color: '#4A433A' }}>
+              {card.body}
+            </p>
+          </RareExclusiveOpaquePanel>
+        ))}
+      </div>
+    </section>
+  );
 }
 
 /** Concept A primary CTA — solid gold rectangle with white label. */

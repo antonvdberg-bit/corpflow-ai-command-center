@@ -7,11 +7,13 @@ import {
   LuxeMauriceFontStylesheet,
   RARE_EXCLUSIVE_PUBLIC_BRAND,
   RARE_EXCLUSIVE_STRAPLINE,
+  RareExclusiveEditorialSpine,
   RareExclusiveFeatureBar,
   RareExclusiveHeroVisual,
   RareExclusiveIvoryFooter,
   RareExclusiveIvoryHeader,
   RareExclusiveLifestylePanel,
+  RareExclusiveOpaquePanel,
   RareExclusiveStackedWordmark,
   RareExclusiveTextLink,
   rareExclusiveCtaGoldStyle,
@@ -85,13 +87,14 @@ export default function RareExclusiveTenantPresentation({ site }) {
 
       <RareExclusiveIvoryHeader activeHref="/" />
 
+      <RareExclusiveEditorialSpine>
       {operatorDebug ? (
         <div
           style={{
             padding: '10px 32px',
             fontSize: 11,
-            color: T.stone,
-            background: 'rgba(168, 132, 44, 0.10)',
+            color: T.charcoal,
+            background: 'rgba(168, 132, 44, 0.14)',
             borderBottom: `1px solid ${T.hairlineStone}`,
             letterSpacing: '0.16em',
             textTransform: 'uppercase',
@@ -103,13 +106,13 @@ export default function RareExclusiveTenantPresentation({ site }) {
       ) : null}
 
       <main>
-        {/* ─── Concept A split hero ────────────────────────────────── */}
+        {/* ─── Concept A split hero (contained spine) ─────────────── */}
         <section
           className="re-hero-grid"
           style={{
             display: 'grid',
             gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.05fr)',
-            minHeight: 'calc(100vh - 86px)',
+            minHeight: 560,
             background: T.ivory,
           }}
         >
@@ -148,7 +151,7 @@ export default function RareExclusiveTenantPresentation({ site }) {
                 fontSize: 'clamp(1.2rem, 2vw, 1.55rem)',
                 fontStyle: 'italic',
                 lineHeight: 1.45,
-                color: T.stone,
+                color: '#4A433A',
               }}
             >
               {RARE_EXCLUSIVE_STRAPLINE}
@@ -185,35 +188,32 @@ export default function RareExclusiveTenantPresentation({ site }) {
         <section
           id="upcoming"
           style={{
-            padding: 'clamp(64px, 9vw, 110px) clamp(20px, 4vw, 56px)',
+            padding: 'clamp(48px, 7vw, 80px) clamp(20px, 3vw, 40px)',
             background: T.ivory,
           }}
         >
           <div
             className="re-card-grid"
             style={{
-              maxWidth: 1180,
-              margin: '0 auto',
               display: 'grid',
               gridTemplateColumns: '1fr 1fr',
-              gap: 'clamp(28px, 4vw, 48px)',
+              gap: 24,
             }}
           >
-            {/* Private Opportunities */}
             <article
               id="destination"
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'minmax(0, 1.05fr) minmax(0, 0.95fr)',
-                gap: 0,
-                minHeight: 360,
-                background: T.ivory,
+                minHeight: 340,
+                border: `1px solid ${T.hairlineStone}`,
+                background: '#F8F4EE',
               }}
               className="re-card-inner"
             >
-              <div
+              <RareExclusiveOpaquePanel
                 style={{
-                  padding: 'clamp(28px, 3vw, 40px) clamp(22px, 2.5vw, 36px)',
+                  border: 'none',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'center',
@@ -225,7 +225,7 @@ export default function RareExclusiveTenantPresentation({ site }) {
                     margin: '18px 0 16px',
                     fontFamily: T.fontDisplay,
                     fontWeight: 400,
-                    fontSize: 'clamp(1.7rem, 2.6vw, 2.35rem)',
+                    fontSize: 'clamp(1.55rem, 2.4vw, 2.1rem)',
                     lineHeight: 1.15,
                     color: T.charcoal,
                   }}
@@ -241,7 +241,7 @@ export default function RareExclusiveTenantPresentation({ site }) {
                     fontFamily: T.fontBody,
                     fontSize: 14.5,
                     lineHeight: 1.75,
-                    color: T.stone,
+                    color: '#4A433A',
                   }}
                 >
                   Opportunities prepared for private review — introduced with discretion, not
@@ -250,27 +250,26 @@ export default function RareExclusiveTenantPresentation({ site }) {
                 <div style={{ marginTop: 22 }}>
                   <RareExclusiveTextLink href="/properties">Explore Properties</RareExclusiveTextLink>
                 </div>
-              </div>
-              <div style={{ minHeight: 280, position: 'relative' }}>
+              </RareExclusiveOpaquePanel>
+              <div style={{ minHeight: 260, position: 'relative' }}>
                 <RareExclusiveHeroVisual showCaption={false} />
               </div>
             </article>
 
-            {/* Owner Experience */}
             <article
               id="services"
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'minmax(0, 1.05fr) minmax(0, 0.95fr)',
-                gap: 0,
-                minHeight: 360,
-                background: T.ivory,
+                minHeight: 340,
+                border: `1px solid ${T.hairlineStone}`,
+                background: '#F8F4EE',
               }}
               className="re-card-inner"
             >
-              <div
+              <RareExclusiveOpaquePanel
                 style={{
-                  padding: 'clamp(28px, 3vw, 40px) clamp(22px, 2.5vw, 36px)',
+                  border: 'none',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'center',
@@ -282,7 +281,7 @@ export default function RareExclusiveTenantPresentation({ site }) {
                     margin: '18px 0 16px',
                     fontFamily: T.fontDisplay,
                     fontWeight: 400,
-                    fontSize: 'clamp(1.7rem, 2.6vw, 2.35rem)',
+                    fontSize: 'clamp(1.55rem, 2.4vw, 2.1rem)',
                     lineHeight: 1.15,
                     color: T.charcoal,
                   }}
@@ -298,7 +297,7 @@ export default function RareExclusiveTenantPresentation({ site }) {
                     fontFamily: T.fontBody,
                     fontSize: 14.5,
                     lineHeight: 1.75,
-                    color: T.stone,
+                    color: '#4A433A',
                   }}
                 >
                   From first introduction to ongoing ownership support — one calm, personal
@@ -309,8 +308,8 @@ export default function RareExclusiveTenantPresentation({ site }) {
                     Discover Owner Services
                   </RareExclusiveTextLink>
                 </div>
-              </div>
-              <div style={{ minHeight: 280, position: 'relative' }}>
+              </RareExclusiveOpaquePanel>
+              <div style={{ minHeight: 260, position: 'relative' }}>
                 <RareExclusiveLifestylePanel variant="sea" />
               </div>
             </article>
@@ -337,7 +336,7 @@ export default function RareExclusiveTenantPresentation({ site }) {
                 fontStyle: 'italic',
                 fontSize: 'clamp(1.25rem, 2.2vw, 1.6rem)',
                 lineHeight: 1.5,
-                color: T.stone,
+                color: '#4A433A',
               }}
             >
               Climate, privacy, schooling, sport, and family quality of life — framed for
@@ -349,12 +348,12 @@ export default function RareExclusiveTenantPresentation({ site }) {
         <section
           id="about"
           style={{
-            padding: 'clamp(56px, 8vw, 96px) 32px',
+            padding: 'clamp(48px, 7vw, 80px) 32px',
             background: T.ivory,
             textAlign: 'center',
           }}
         >
-          <div style={{ maxWidth: 640, margin: '0 auto' }}>
+          <RareExclusiveOpaquePanel style={{ maxWidth: 640, margin: '0 auto', textAlign: 'center' }}>
             <LuxEyebrow tone="charcoal" center>
               Private Advisory
             </LuxEyebrow>
@@ -363,7 +362,7 @@ export default function RareExclusiveTenantPresentation({ site }) {
                 margin: '22px auto 20px',
                 fontFamily: T.fontDisplay,
                 fontWeight: 400,
-                fontSize: 'clamp(2rem, 4vw, 3rem)',
+                fontSize: 'clamp(2rem, 4vw, 2.8rem)',
                 lineHeight: 1.15,
                 color: T.charcoal,
               }}
@@ -373,9 +372,10 @@ export default function RareExclusiveTenantPresentation({ site }) {
             <a href="/concierge" style={rareExclusiveCtaGoldStyle()}>
               Request an Invitation
             </a>
-          </div>
+          </RareExclusiveOpaquePanel>
         </section>
       </main>
+      </RareExclusiveEditorialSpine>
 
       <RareExclusiveIvoryFooter
         note={

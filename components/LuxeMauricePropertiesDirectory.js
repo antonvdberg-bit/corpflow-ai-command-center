@@ -10,8 +10,14 @@ import {
 import { LuxEyebrow, LuxHairline } from './LuxeMauriceBrandPrimitives.js';
 import {
   LuxeMauriceFontStylesheet,
+  RARE_EXCLUSIVE_AVAILABILITY_DISCLAIMER,
+  RareExclusiveEditorialSpine,
+  RareExclusiveInteriorHero,
   RareExclusiveIvoryFooter,
   RareExclusiveIvoryHeader,
+  RareExclusiveOpaquePanel,
+  RareExclusivePromiseGrid,
+  RareExclusiveTextLink,
   rareExclusiveCtaGoldStyle,
   rareExclusivePageShellStyle,
 } from './RareExclusiveIvoryShell.js';
@@ -26,12 +32,32 @@ function safeStr(v) {
   return v != null ? String(v).trim() : '';
 }
 
+function MetaChip({ label }) {
+  if (!label) return null;
+  return (
+    <span
+      style={{
+        display: 'inline-block',
+        padding: '6px 10px',
+        border: `1px solid ${T.hairlineStone}`,
+        background: '#F8F4EE',
+        fontFamily: T.fontBody,
+        fontSize: 10,
+        fontWeight: 700,
+        letterSpacing: '0.16em',
+        textTransform: 'uppercase',
+        color: T.charcoal,
+      }}
+    >
+      {label}
+    </span>
+  );
+}
+
 /**
  * Rare & Exclusive Collection `/properties` — Ivory Editorial Private Opportunities.
- *
- * Shared design system with homepage / concierge / property detail (Issue #633).
- * Renders published rows only; premium empty state when empty. Demo inventory
- * is excluded upstream. No fake feed inventory.
+ * Issue #636: editorial spine, curated intro, status/region/type chips,
+ * invitation-only language, graphic modules, opaque readable panels.
  */
 export default function LuxeMauricePropertiesDirectory({ listings, cardMediaBySlug }) {
   const list = Array.isArray(listings) ? listings : [];
@@ -47,45 +73,30 @@ export default function LuxeMauricePropertiesDirectory({ listings, cardMediaBySl
 
       <RareExclusiveIvoryHeader activeHref="/properties" />
 
-      <main style={{ maxWidth: 1180, margin: '0 auto', padding: '64px clamp(20px, 4vw, 56px) 120px' }}>
-        <div style={{ maxWidth: 760, marginBottom: 80 }}>
-          <LuxEyebrow tone="charcoal">
-            {empty
+      <RareExclusiveEditorialSpine>
+        <RareExclusiveInteriorHero
+          eyebrow={
+            empty
               ? LUX_PROPERTIES_PUBLIC_COPY.emptyKicker
-              : LUX_PROPERTIES_PUBLIC_COPY.listKicker}
-          </LuxEyebrow>
-          <h1
-            style={{
-              margin: '28px 0 24px',
-              fontFamily: T.fontDisplay,
-              fontWeight: 400,
-              fontSize: 'clamp(2.4rem, 5vw, 3.8rem)',
-              lineHeight: 1.1,
-              letterSpacing: -0.4,
-              color: T.charcoal,
-            }}
-          >
-            {empty
+              : LUX_PROPERTIES_PUBLIC_COPY.listKicker
+          }
+          title={
+            empty
               ? LUX_PROPERTIES_PUBLIC_COPY.emptyTitle
-              : LUX_PROPERTIES_PUBLIC_COPY.listTitle}
-          </h1>
-          <p
-            style={{
-              margin: 0,
-              maxWidth: 600,
-              fontFamily: T.fontBody,
-              fontSize: 16,
-              lineHeight: 1.85,
-              color: T.stone,
-            }}
-          >
-            {empty
+              : LUX_PROPERTIES_PUBLIC_COPY.listTitle
+          }
+          body={
+            empty
               ? LUX_PROPERTIES_PUBLIC_COPY.emptyBody
-              : LUX_PROPERTIES_PUBLIC_COPY.listSubtitle}
-          </p>
+              : LUX_PROPERTIES_PUBLIC_COPY.listSubtitle
+          }
+          visual="photo"
+        />
+
+        <main style={{ padding: '36px clamp(20px, 4vw, 48px) 96px' }}>
           <p
             style={{
-              margin: '20px 0 0',
+              margin: '0 0 28px',
               fontFamily: T.fontBody,
               fontSize: 11,
               fontWeight: 700,
@@ -96,256 +107,232 @@ export default function LuxeMauricePropertiesDirectory({ listings, cardMediaBySl
           >
             {LUX_PROPERTIES_PUBLIC_COPY.headerTagline}
           </p>
-        </div>
 
-        {empty ? (
-          <section
-            style={{
-              padding: 'clamp(72px, 12vw, 140px) clamp(24px, 6vw, 80px)',
-              borderTop: `1px solid ${T.hairlineStone}`,
-              borderBottom: `1px solid ${T.hairlineStone}`,
-              textAlign: 'center',
-              background: '#FBF8F2',
-            }}
-          >
-            <div style={{ margin: '0 auto 32px', width: 40 }}>
-              <LuxHairline tone="gold" />
-            </div>
+          <RareExclusiveOpaquePanel style={{ marginBottom: 36 }}>
+            <LuxEyebrow tone="charcoal">{LUX_PROPERTIES_PUBLIC_COPY.guidanceTitle}</LuxEyebrow>
             <p
               style={{
-                margin: '0 auto 36px',
-                maxWidth: 560,
-                fontFamily: T.fontDisplay,
-                fontStyle: 'italic',
-                fontWeight: 400,
-                fontSize: 'clamp(1.3rem, 2.2vw, 1.6rem)',
-                lineHeight: 1.55,
-                color: T.stone,
+                margin: '14px 0 0',
+                maxWidth: 640,
+                fontSize: 15,
+                lineHeight: 1.8,
+                color: '#4A433A',
               }}
             >
-              Each opportunity is prepared for review before it appears here. Speak with
-              a private advisor for availability, terms, and next steps.
+              {LUX_PROPERTIES_PUBLIC_COPY.guidanceBody}
             </p>
-            <Link href={buildLuxPropertyConciergeHref(null)} style={rareExclusiveCtaGoldStyle()}>
-              {LUX_PROPERTIES_PUBLIC_COPY.emptyCta}
-            </Link>
-          </section>
-        ) : (
-          <>
-            <LuxHairline tone="stone" />
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-                gap: 'clamp(48px, 6vw, 80px) clamp(32px, 4vw, 56px)',
-                paddingTop: 64,
-              }}
-            >
-              {list.map((row) => {
-                const slug = safeStr(row.slug);
-                const key = slug.toLowerCase();
-                const cardImg = media[key];
-                const teaser = safeStr(row.short_teaser);
-                const price = row.price_range != null ? safeStr(row.price_range) : '';
-                return (
-                  <article
-                    key={slug || row.title}
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 24,
-                    }}
-                  >
-                    <Link
-                      href={`/property/${encodeURIComponent(slug)}`}
-                      style={{
-                        display: 'block',
-                        aspectRatio: '4 / 3',
-                        background: '#E7DED0',
-                        overflow: 'hidden',
-                        textDecoration: 'none',
-                        border: `1px solid ${T.hairlineStone}`,
-                      }}
-                    >
-                      {cardImg && cardImg.src ? (
-                        <img
-                          src={cardImg.src}
-                          srcSet={cardImg.src_set || undefined}
-                          sizes={cardImg.src_set ? '(max-width: 640px) 100vw, 360px' : undefined}
-                          alt={safeStr(cardImg.alt) || `${slug} · private opportunity`}
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                            display: 'block',
-                          }}
-                          decoding="async"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: T.stone,
-                            fontFamily: T.fontDisplay,
-                            fontStyle: 'italic',
-                            fontSize: 14,
-                          }}
-                        >
-                          Private — image pending advisor review
-                        </div>
-                      )}
-                    </Link>
+          </RareExclusiveOpaquePanel>
 
-                    <div>
-                      <div
-                        style={{
-                          fontFamily: T.fontBody,
-                          fontSize: 10,
-                          fontWeight: 700,
-                          letterSpacing: '0.32em',
-                          textTransform: 'uppercase',
-                          color: T.gold,
-                        }}
-                      >
-                        {safeStr(row.region_label)} · {safeStr(row.property_type)}
-                      </div>
-                      <h2
-                        style={{
-                          margin: '16px 0 14px',
-                          fontFamily: T.fontDisplay,
-                          fontWeight: 500,
-                          fontSize: 26,
-                          lineHeight: 1.25,
-                          color: T.charcoal,
-                          letterSpacing: 0.2,
-                        }}
-                      >
-                        <Link
-                          href={`/property/${encodeURIComponent(slug)}`}
-                          style={{ color: T.charcoal, textDecoration: 'none' }}
-                        >
-                          {safeStr(row.title)}
-                        </Link>
-                      </h2>
-                      {row.listing_status ? (
-                        <div
-                          style={{
-                            margin: '0 0 12px',
-                            fontFamily: T.fontBody,
-                            fontSize: 11,
-                            fontWeight: 700,
-                            letterSpacing: '0.22em',
-                            textTransform: 'uppercase',
-                            color: T.stone,
-                          }}
-                        >
-                          {safeStr(row.listing_status)}
-                        </div>
-                      ) : null}
-                      {price ? (
-                        <div
-                          style={{
-                            margin: '0 0 14px',
-                            fontFamily: T.fontDisplay,
-                            fontStyle: 'italic',
-                            fontWeight: 500,
-                            fontSize: 17,
-                            color: T.gold,
-                          }}
-                        >
-                          {price}
-                        </div>
-                      ) : null}
-                      {teaser ? (
-                        <p
-                          style={{
-                            margin: '0 0 22px',
-                            fontFamily: T.fontBody,
-                            fontSize: 14.5,
-                            lineHeight: 1.85,
-                            color: T.stone,
-                          }}
-                        >
-                          {teaser}
-                        </p>
-                      ) : null}
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, alignItems: 'center' }}>
-                        <Link
-                          href={`/property/${encodeURIComponent(slug)}`}
-                          style={{
-                            fontFamily: T.fontBody,
-                            fontSize: 11,
-                            fontWeight: 700,
-                            letterSpacing: '0.28em',
-                            textTransform: 'uppercase',
-                            color: T.gold,
-                            textDecoration: 'none',
-                            borderBottom: `1px solid ${T.hairline}`,
-                            paddingBottom: 4,
-                          }}
-                        >
-                          {LUX_PROPERTIES_PUBLIC_COPY.cardCtaDetails} →
-                        </Link>
-                        <Link
-                          href={buildLuxPropertyConciergeHref(slug)}
-                          style={{
-                            fontFamily: T.fontBody,
-                            fontSize: 11,
-                            fontWeight: 700,
-                            letterSpacing: '0.28em',
-                            textTransform: 'uppercase',
-                            color: T.stone,
-                            textDecoration: 'none',
-                          }}
-                        >
-                          {LUX_PROPERTIES_PUBLIC_COPY.cardCtaConcierge}
-                        </Link>
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
+          <RareExclusivePromiseGrid />
 
-            <div
+          {empty ? (
+            <section
               style={{
-                marginTop: 120,
-                padding: '64px 32px',
+                marginTop: 24,
+                padding: 'clamp(56px, 8vw, 96px) clamp(24px, 4vw, 48px)',
                 borderTop: `1px solid ${T.hairlineStone}`,
                 borderBottom: `1px solid ${T.hairlineStone}`,
                 textAlign: 'center',
-                background: '#FBF8F2',
+                background: '#F8F4EE',
               }}
             >
-              <LuxEyebrow tone="charcoal" center>
-                Private Advisory
-              </LuxEyebrow>
+              <div style={{ margin: '0 auto 28px', width: 40 }}>
+                <LuxHairline tone="gold" />
+              </div>
               <p
                 style={{
-                  margin: '24px auto 32px',
+                  margin: '0 auto 32px',
                   maxWidth: 520,
                   fontFamily: T.fontDisplay,
                   fontStyle: 'italic',
-                  fontWeight: 400,
-                  fontSize: 'clamp(1.3rem, 2.2vw, 1.6rem)',
-                  lineHeight: 1.5,
-                  color: T.charcoal,
+                  fontSize: 'clamp(1.25rem, 2vw, 1.55rem)',
+                  lineHeight: 1.55,
+                  color: '#4A433A',
                 }}
               >
-                A private advisor responds within one business day.
+                Each opportunity is prepared for review before it appears here. Speak with
+                a private advisor for availability, terms, and next steps.
               </p>
               <Link href={buildLuxPropertyConciergeHref(null)} style={rareExclusiveCtaGoldStyle()}>
                 {LUX_PROPERTIES_PUBLIC_COPY.emptyCta}
               </Link>
-            </div>
-          </>
-        )}
-      </main>
+            </section>
+          ) : (
+            <>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                  gap: 28,
+                  marginTop: 16,
+                }}
+              >
+                {list.map((row) => {
+                  const slug = safeStr(row.slug);
+                  const key = slug.toLowerCase();
+                  const cardImg = media[key];
+                  const teaser = safeStr(row.short_teaser);
+                  const price = row.price_range != null ? safeStr(row.price_range) : '';
+                  const region = safeStr(row.region_label);
+                  const type = safeStr(row.property_type);
+                  const status = row.listing_status != null ? safeStr(row.listing_status) : '';
+                  return (
+                    <article
+                      key={slug || row.title}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        border: `1px solid ${T.hairlineStone}`,
+                        background: '#F8F4EE',
+                      }}
+                    >
+                      <Link
+                        href={`/property/${encodeURIComponent(slug)}`}
+                        style={{
+                          display: 'block',
+                          aspectRatio: '4 / 3',
+                          background: '#E7DED0',
+                          overflow: 'hidden',
+                          textDecoration: 'none',
+                        }}
+                      >
+                        {cardImg && cardImg.src ? (
+                          <img
+                            src={cardImg.src}
+                            srcSet={cardImg.src_set || undefined}
+                            sizes={cardImg.src_set ? '(max-width: 640px) 100vw, 360px' : undefined}
+                            alt={safeStr(cardImg.alt) || `${slug} · private opportunity`}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                              display: 'block',
+                            }}
+                            decoding="async"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: '#4A433A',
+                              fontFamily: T.fontDisplay,
+                              fontStyle: 'italic',
+                              fontSize: 14,
+                              background:
+                                'linear-gradient(145deg, #E8DFD0 0%, #D4C4A8 50%, #C4B090 100%)',
+                            }}
+                          >
+                            Private — image pending advisor review
+                          </div>
+                        )}
+                      </Link>
+
+                      <div style={{ padding: 22, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
+                          <MetaChip label={region || 'Mauritius'} />
+                          <MetaChip label={type || 'Residence'} />
+                          {status ? <MetaChip label={status} /> : null}
+                        </div>
+                        <h2
+                          style={{
+                            margin: '0 0 12px',
+                            fontFamily: T.fontDisplay,
+                            fontWeight: 500,
+                            fontSize: 24,
+                            lineHeight: 1.25,
+                            color: T.charcoal,
+                          }}
+                        >
+                          <Link
+                            href={`/property/${encodeURIComponent(slug)}`}
+                            style={{ color: T.charcoal, textDecoration: 'none' }}
+                          >
+                            {safeStr(row.title)}
+                          </Link>
+                        </h2>
+                        {price ? (
+                          <div
+                            style={{
+                              margin: '0 0 12px',
+                              fontFamily: T.fontDisplay,
+                              fontStyle: 'italic',
+                              fontSize: 17,
+                              color: T.gold,
+                            }}
+                          >
+                            {price}
+                          </div>
+                        ) : null}
+                        {teaser ? (
+                          <p
+                            style={{
+                              margin: '0 0 20px',
+                              fontSize: 14.5,
+                              lineHeight: 1.75,
+                              color: '#4A433A',
+                              flex: 1,
+                            }}
+                          >
+                            {teaser}
+                          </p>
+                        ) : (
+                          <div style={{ flex: 1 }} />
+                        )}
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 18, alignItems: 'center' }}>
+                          <RareExclusiveTextLink href={`/property/${encodeURIComponent(slug)}`}>
+                            {LUX_PROPERTIES_PUBLIC_COPY.cardCtaDetails}
+                          </RareExclusiveTextLink>
+                          <RareExclusiveTextLink href={buildLuxPropertyConciergeHref(slug)}>
+                            {LUX_PROPERTIES_PUBLIC_COPY.cardCtaConcierge}
+                          </RareExclusiveTextLink>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+
+              <RareExclusiveOpaquePanel style={{ marginTop: 48, textAlign: 'center' }}>
+                <LuxEyebrow tone="charcoal" center>
+                  Private Advisory
+                </LuxEyebrow>
+                <p
+                  style={{
+                    margin: '18px auto 24px',
+                    maxWidth: 480,
+                    fontFamily: T.fontDisplay,
+                    fontStyle: 'italic',
+                    fontSize: 'clamp(1.2rem, 2vw, 1.45rem)',
+                    lineHeight: 1.5,
+                    color: T.charcoal,
+                  }}
+                >
+                  A private advisor responds within one business day.
+                </p>
+                <p
+                  style={{
+                    margin: '0 auto 28px',
+                    maxWidth: 520,
+                    fontSize: 13.5,
+                    lineHeight: 1.7,
+                    color: '#4A433A',
+                  }}
+                >
+                  {RARE_EXCLUSIVE_AVAILABILITY_DISCLAIMER}
+                </p>
+                <Link href={buildLuxPropertyConciergeHref(null)} style={rareExclusiveCtaGoldStyle()}>
+                  {LUX_PROPERTIES_PUBLIC_COPY.emptyCta}
+                </Link>
+              </RareExclusiveOpaquePanel>
+            </>
+          )}
+        </main>
+      </RareExclusiveEditorialSpine>
 
       <RareExclusiveIvoryFooter />
     </div>
