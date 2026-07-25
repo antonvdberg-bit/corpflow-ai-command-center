@@ -42,11 +42,11 @@ export const RARE_EXCLUSIVE_AVAILABILITY_DISCLAIMER =
 /** Main nav (Invitation Only is rendered separately with a divider). */
 export const RARE_EXCLUSIVE_NAV_MAIN = Object.freeze([
   Object.freeze({ label: 'Properties', href: '/properties' }),
-  Object.freeze({ label: 'Lifestyle', href: '/#lifestyle' }),
-  Object.freeze({ label: 'Destination Mauritius', href: '/#destination' }),
-  Object.freeze({ label: 'Private Services', href: '/#services' }),
-  Object.freeze({ label: 'About', href: '/#about' }),
-  Object.freeze({ label: 'Contact', href: '/concierge' }),
+  Object.freeze({ label: 'Lifestyle', href: '/lifestyle' }),
+  Object.freeze({ label: 'Destination Mauritius', href: '/destination-mauritius' }),
+  Object.freeze({ label: 'Private Services', href: '/private-services' }),
+  Object.freeze({ label: 'About', href: '/about' }),
+  Object.freeze({ label: 'Contact', href: '/contact' }),
 ]);
 
 /** Kept for tests / callers that expect the full list including Invitation Only. */

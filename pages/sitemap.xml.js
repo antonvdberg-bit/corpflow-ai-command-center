@@ -51,7 +51,16 @@ const APEX_PATHS = [
   '/videos',
 ];
 
-const LUX_STATIC_PATHS = ['/', '/concierge'];
+const LUX_STATIC_PATHS = [
+  '/',
+  '/properties',
+  '/concierge',
+  '/about',
+  '/contact',
+  '/lifestyle',
+  '/destination-mauritius',
+  '/private-services',
+];
 
 // Placeholder property slugs are intentionally absent from the public sitemap.
 //

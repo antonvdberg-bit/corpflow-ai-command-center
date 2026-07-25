@@ -252,6 +252,11 @@ export default function RareExclusiveTenantPresentation({ site }) {
                 <div style={{ marginTop: 22 }}>
                   <RareExclusiveTextLink href="/properties">Explore Properties</RareExclusiveTextLink>
                 </div>
+                <div style={{ marginTop: 12 }}>
+                  <RareExclusiveTextLink href="/destination-mauritius">
+                    Destination Mauritius
+                  </RareExclusiveTextLink>
+                </div>
               </RareExclusiveOpaquePanel>
               <div style={{ minHeight: 260, position: 'relative' }}>
                 <RareExclusiveHeroVisual showCaption={false} />
@@ -306,7 +311,7 @@ export default function RareExclusiveTenantPresentation({ site }) {
                   advisory thread.
                 </p>
                 <div style={{ marginTop: 22 }}>
-                  <RareExclusiveTextLink href="/concierge">
+                  <RareExclusiveTextLink href="/private-services">
                     Discover Owner Services
                   </RareExclusiveTextLink>
                 </div>
@@ -323,7 +328,7 @@ export default function RareExclusiveTenantPresentation({ site }) {
           </div>
         </section>
 
-        {/* Anchor targets for Lifestyle / About nav */}
+        {/* Teaser bands → full editorial pages */}
         <section
           id="lifestyle"
           style={{
@@ -349,6 +354,9 @@ export default function RareExclusiveTenantPresentation({ site }) {
               Climate, privacy, schooling, sport, and family quality of life — framed for
               long-term Mauritius living.
             </p>
+            <div style={{ marginTop: 22 }}>
+              <RareExclusiveTextLink href="/lifestyle">Read lifestyle</RareExclusiveTextLink>
+            </div>
           </div>
         </section>
 
@@ -362,11 +370,11 @@ export default function RareExclusiveTenantPresentation({ site }) {
         >
           <RareExclusiveOpaquePanel style={{ maxWidth: 640, margin: '0 auto', textAlign: 'center' }}>
             <LuxEyebrow tone="charcoal" center>
-              Private Advisory
+              About
             </LuxEyebrow>
             <h2
               style={{
-                margin: '22px auto 20px',
+                margin: '22px auto 16px',
                 fontFamily: T.fontDisplay,
                 fontWeight: 400,
                 fontSize: 'clamp(2rem, 4vw, 2.8rem)',
@@ -376,9 +384,33 @@ export default function RareExclusiveTenantPresentation({ site }) {
             >
               Invitation only.
             </h2>
-            <a href="/concierge" style={rareExclusiveCtaGoldStyle()}>
-              Request an Invitation
-            </a>
+            <p
+              style={{
+                margin: '0 auto 24px',
+                maxWidth: 480,
+                fontFamily: T.fontBody,
+                fontSize: 15,
+                lineHeight: 1.7,
+                color: '#4A433A',
+              }}
+            >
+              A private Mauritius platform for residence, lifestyle, and long-horizon decisions —
+              curated introductions, not an open portal.
+            </p>
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 18,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <a href="/about" style={rareExclusiveCtaGoldStyle()}>
+                About the collection
+              </a>
+              <RareExclusiveTextLink href="/contact">Contact</RareExclusiveTextLink>
+            </div>
           </RareExclusiveOpaquePanel>
         </section>
       </main>

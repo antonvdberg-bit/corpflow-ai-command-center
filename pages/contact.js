@@ -3,9 +3,11 @@ import Link from 'next/link';
 import CorpFlowPublicPhotoShell from '../components/public/CorpFlowPublicPhotoShell.js';
 import CustomerServiceContact from '../components/CustomerServiceContact.js';
 import DiscoveryIntakeForm from '../components/public/DiscoveryIntakeForm.js';
+import RareExclusiveContentPage from '../components/RareExclusiveContentPage.js';
 import { policyStyles as ps } from '../components/PublicPolicyLayout.js';
 import { buildGeneralDiscoveryMailto, buildPublicPageMeta, listPublicOffers } from '../lib/public/corpflow-public-market.js';
 import { cfBtnSecondary } from '../components/public/corpflow-public-styles.js';
+import { luxOrApexPageProps } from '../lib/client/lux-host-page-props.js';
 
 const h1 = {
   margin: '16px 0 8px',
@@ -16,7 +18,16 @@ const h1 = {
 };
 const updated = { color: '#9fb2c8', fontSize: 13, marginBottom: 24 };
 
-export default function ContactPage() {
+/**
+ * /contact — host-aware.
+ * - lux.corpflowai.com → Rare & Exclusive Collection contact / advisory path
+ * - apex / other → CorpFlowAI discovery contact
+ */
+export default function ContactPage({ luxMode = false, seoHost = '' } = {}) {
+  if (luxMode) {
+    return <RareExclusiveContentPage pageId="contact" seoHost={seoHost} />;
+  }
+
   const offers = listPublicOffers();
   const discoveryMailto = buildGeneralDiscoveryMailto();
   const meta = buildPublicPageMeta({
@@ -122,4 +133,8 @@ export default function ContactPage() {
       </section>
     </CorpFlowPublicPhotoShell>
   );
+}
+
+export async function getServerSideProps({ req }) {
+  return luxOrApexPageProps(req);
 }
