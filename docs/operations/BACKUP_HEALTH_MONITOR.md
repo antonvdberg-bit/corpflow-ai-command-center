@@ -1,9 +1,11 @@
 # Backup health monitor (Monitor #14)
 
-**Status:** Repo-authored **2026-07-27**. **Runtime deployment on `corpflow-exec-01-u69678` is NOT done by this PR** — Anton must approve and install the user-systemd timer (L3). Until that install lands, classification remains: backup jobs exist, independent health monitor is **not yet running in production**.
+**Status:** Repo-authored **2026-07-27**; merged as PR #641; installed on `corpflow-exec-01-u69678`. **Parser stdin bug fixed in-repo 2026-07-27** (temp-file JSON path). Reinstall the script on the box from this repo version and re-verify the timer so git and L3 stay aligned.
 **Owner:** Anton (server install, secrets, timer enable); Cursor (script + this doc).
 **Packet id:** `Server-Backup-Health-Check-And-Alert-1` (named in `docs/operations/SERVER_SAFETY_BASELINE_AND_CHATWOOT_DECISION_V1.md` §8).
 **Scope:** Independent **read-only** health check of the existing restic → Cloudflare R2 ops backup. Telegram **failure-only**. No production DB, no `POSTGRES_URL`, no new paid service, no Chatwoot/Langfuse/n8n/containers.
+
+> **Monitor is not production-active until the user timer is enabled and verified on corpflow-exec-01-u69678.** After a script fix, reinstall `~/.local/bin/corpflowai-ops-backup-health-check.sh` from the merged repo and re-verify dry-run + timer.
 
 ---
 
@@ -198,4 +200,5 @@ Heartbeat + retention timers are **untouched** by rollback.
 
 ## 10. Change log
 
+- **2026-07-27 (parser fix)** — L3 install on `corpflow-exec-01-u69678` discovered a stdin parser bug: `parse_snapshots_json` / `parse_stats_json` used heredoc + here-string patterns where Python consumed stdin for the code body, so restic JSON never reached `json.loads` (`PARSE_ERROR|Expecting value: line 1 column 1` despite `snapshot_count=34`). Repo script patched to write restic JSON to `mktemp` files and pass the path to Python. **Production monitor stays correct only after the server script is updated/reinstalled from this repo version and the timer is re-verified** (local L3 hotfix may already be in place — reinstall keeps box and git aligned).
 - **2026-07-27** — Initial monitor authored in-repo. Runtime install on `corpflow-exec-01` deferred to Anton (commands in §7). No production deploy performed by Cursor Web.

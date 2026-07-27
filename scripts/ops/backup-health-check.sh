@@ -108,16 +108,25 @@ require_cmd() {
 
 # Parse restic snapshots --json for count + newest time.
 # Uses python3 if available (preferred); else a minimal awk/date fallback for count only.
+# Important: JSON is written to a temp file and passed by path. Do NOT pipe/here-string JSON
+# into a python <<'PY' heredoc — the heredoc owns stdin, so json.loads gets empty input
+# (L3 install regression 2026-07-27: PARSE_ERROR|Expecting value: line 1 column 1).
 parse_snapshots_json() {
   local json="$1"
   if command -v python3 >/dev/null 2>&1; then
-    python3 - "$EXPECTED_TAG" <<'PY' <<<"${json}"
+    local tmp rc=0
+    tmp="$(mktemp "${TMPDIR:-/tmp}/corpflowai-backup-health-snaps.XXXXXX")" || return 2
+    printf '%s' "${json}" > "${tmp}"
+    # Do not use stdin for JSON: the <<'PY' heredoc owns stdin. Pass path via argv.
+    python3 - "$EXPECTED_TAG" "${tmp}" <<'PY' || rc=$?
 import json, sys
 from datetime import datetime, timezone
 
 tag = sys.argv[1]
-raw = sys.stdin.read()
+path = sys.argv[2]
 try:
+    with open(path, "r", encoding="utf-8") as fh:
+        raw = fh.read()
     data = json.loads(raw)
 except Exception as e:
     print(f"PARSE_ERROR|{e}", file=sys.stderr)
@@ -162,7 +171,8 @@ newest = max(use, key=parse_ts)
 print(f"LATEST|{newest.get('time','')}")
 print(f"ID|{newest.get('short_id') or newest.get('id','')[:8]}")
 PY
-    return $?
+    rm -f "${tmp}"
+    return "${rc}"
   fi
   # Minimal fallback: count array elements roughly; cannot age-check without python3.
   local count
@@ -181,10 +191,16 @@ PY
 parse_stats_json() {
   local json="$1"
   if command -v python3 >/dev/null 2>&1; then
-    python3 - <<'PY' <<<"${json}"
+    local tmp rc=0
+    tmp="$(mktemp "${TMPDIR:-/tmp}/corpflowai-backup-health-stats.XXXXXX")" || return 2
+    printf '%s' "${json}" > "${tmp}"
+    # Do not use stdin for JSON: the <<'PY' heredoc owns stdin. Pass path via argv.
+    python3 - "${tmp}" <<'PY' || rc=$?
 import json, sys
-raw = sys.stdin.read()
+path = sys.argv[1]
 try:
+    with open(path, "r", encoding="utf-8") as fh:
+        raw = fh.read()
     data = json.loads(raw)
 except Exception as e:
     print(f"PARSE_ERROR|{e}", file=sys.stderr)
@@ -195,7 +211,8 @@ if size is None:
     size = data.get("total_size", 0)
 print(f"SIZE|{int(size or 0)}")
 PY
-    return $?
+    rm -f "${tmp}"
+    return "${rc}"
   fi
   add_note "python3 missing — size check skipped with fail-closed"
   add_failure "cannot determine backup size without python3"
