@@ -95,7 +95,7 @@ Requires `Linger=yes` for user `anton` (already true for restic timers per `SELF
 
 ---
 
-## 7. Operator install packet (Anton-gated — approve before L3)
+## 7. L3 operator install checklist (Anton-gated — approve before L3)
 
 Cursor Web **cannot** SSH to `corpflow-exec-01` or place secrets. Copy/adapt from the merged repo on the box:
 
@@ -110,7 +110,9 @@ git fetch origin && git checkout refs/heads/main && git pull --ff-only origin ma
 install -d -m 755 ~/.local/bin
 install -m 750 scripts/ops/backup-health-check.sh ~/.local/bin/corpflowai-ops-backup-health-check.sh
 
-# 3) Ensure Telegram names exist in env (values from Infisical — never echo).
+# 3) Confirm env file exists and contains the required NAMES only (values from Infisical — never echo).
+#    Inspect with name-only checks such as:
+#      rg -n '^(RESTIC_REPOSITORY|RESTIC_PASSWORD|AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY|AWS_DEFAULT_REGION|TELEGRAM_BOT_TOKEN|TELEGRAM_ALERT_CHAT_ID)=' ~/.config/restic/env ~/.config/restic/telegram.env 2>/dev/null
 #    Either append to ~/.config/restic/env OR create ~/.config/restic/telegram.env mode 600:
 #      TELEGRAM_BOT_TOKEN=...
 #      TELEGRAM_ALERT_CHAT_ID=...
@@ -123,17 +125,32 @@ cp scripts/ops/systemd/corpflowai-ops-backup-health.service ~/.config/systemd/us
 cp scripts/ops/systemd/corpflowai-ops-backup-health.timer ~/.config/systemd/user/
 systemctl --user daemon-reload
 
-# 5) Dry-run (no Telegram).
+# 5) Run dry-run (no Telegram).
 BACKUP_HEALTH_DRY_RUN=1 ~/.local/bin/corpflowai-ops-backup-health-check.sh
 echo "dry-run exit=$?"
 
-# 6) Optional: force-fail once to prove Telegram path, then disable force.
-# BACKUP_HEALTH_FORCE_FAIL=1 ~/.local/bin/corpflowai-ops-backup-health-check.sh
+# 6) Run forced-failure test ONCE to prove Telegram path.
+BACKUP_HEALTH_FORCE_FAIL=1 ~/.local/bin/corpflowai-ops-backup-health-check.sh || true
 
-# 7) Enable timer (THIS is when production monitoring starts).
+# 7) Confirm the Telegram failure alert arrives, then check logs.
+journalctl --user -u corpflowai-ops-backup-health.service -n 40 --no-pager
+
+# 8) Enable and start user timer (THIS is when production monitoring starts).
 systemctl --user enable --now corpflowai-ops-backup-health.timer
 systemctl --user list-timers --all | grep backup-health || true
 ```
+
+### Short operator checklist
+
+1. Copy/install `scripts/ops/backup-health-check.sh` to `~/.local/bin/corpflowai-ops-backup-health-check.sh`.
+2. Copy/install `scripts/ops/systemd/corpflowai-ops-backup-health.service` and `.timer` to `~/.config/systemd/user/`.
+3. Confirm `~/.config/restic/env` exists and that the required names are present: `RESTIC_REPOSITORY`, `RESTIC_PASSWORD`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_DEFAULT_REGION`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_ALERT_CHAT_ID`. Check names only; do **not** print values.
+4. Run `BACKUP_HEALTH_DRY_RUN=1 ~/.local/bin/corpflowai-ops-backup-health-check.sh`.
+5. Run `BACKUP_HEALTH_FORCE_FAIL=1 ~/.local/bin/corpflowai-ops-backup-health-check.sh` once.
+6. Confirm the Telegram failure alert arrives.
+7. Enable and start the user timer: `systemctl --user enable --now corpflowai-ops-backup-health.timer`.
+8. Confirm timer presence: `systemctl --user list-timers --all | grep backup-health`.
+9. Confirm logs: `journalctl --user -u corpflowai-ops-backup-health.service -n 40 --no-pager`.
 
 ### How to check last successful run
 
@@ -145,6 +162,8 @@ tail -n 20 ~/.local/state/corpflowai-ops/backup-health.log
 ```
 
 Expected on healthy days: service exit 0, log line containing `ok snapshots=…`, **no** Telegram message.
+
+**Monitor is not production-active until the user timer is enabled and verified on corpflow-exec-01-u69678.**
 
 ### Rollback / disable
 
