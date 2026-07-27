@@ -49,6 +49,7 @@ Use one or more of:
 | [MARKETING_AUTOMATION_CONTENT_ENGINE_CANDIDATES.md](./MARKETING_AUTOMATION_CONTENT_ENGINE_CANDIDATES.md) | Google Vids `EVALUATE-FIRST`; GPT Image `DEPLOY-FIRST-PILOT` | 2026-06-18 |
 | [../execution/DEV_TOOLING_CANDIDATES.md](../execution/DEV_TOOLING_CANDIDATES.md) | GitHits `SERIOUS-CANDIDATE / DEV-CAPABILITY ACCELERATOR` | 2026-06-18 |
 | [PRODUCT_RADAR_CANDIDATES.md](./PRODUCT_RADAR_CANDIDATES.md) | Weekly radar + Product A sync 2026-06-22: Langfuse, Chatwoot (inbox standard), Twenty/EspoCRM bake-off, Postiz/Mixpost discovery, AgentSpan verified watch — **NO INSTALLATION AUTHORIZED** | 2026-06-22 |
+| [WEBSITE_AI_CHAT_AGENT_TOOL_DECISION_NOTE_V1.md](./WEBSITE_AI_CHAT_AGENT_TOOL_DECISION_NOTE_V1.md) | Website AI chat-agent re-evaluation: Flowise first pilot; Chatwoot CE ≠ free AI (Captain gated); Dify multi-tenant license risk — **NO IMPLEMENTATION AUTHORIZED** | 2026-07-27 |
 
 ### Product A — US clinics revenue machine
 
