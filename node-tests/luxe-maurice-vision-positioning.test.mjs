@@ -35,6 +35,7 @@ const PUBLIC_LUX_SURFACES = [
   'components/RareExclusiveContentPage.js',
   'pages/concierge.js',
   'components/RareExclusiveIvoryShell.js',
+  'components/RareExclusiveBrandMarks.js',
 ];
 
 const FORBIDDEN_PUBLIC_PATTERNS = [
