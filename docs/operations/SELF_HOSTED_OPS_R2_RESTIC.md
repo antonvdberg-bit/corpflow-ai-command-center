@@ -118,6 +118,7 @@ Expected: `Linger=yes`; both timers `active (waiting)` / loaded and enabled; `li
 ## 8. Cross-links
 
 - `docs/operations/SELF_HOSTED_OPS_STACK_V1.md` — § 5 R2 destination decision + restic verification shape; § 1 service inventory (what gets backed up); § 4 Step 3 restic gating.
+- `docs/operations/BACKUP_HEALTH_MONITOR.md` — **Monitor #14** independent daily backup-health check (Telegram failure-only). Repo-authored 2026-07-27; L3 timer enable is Anton-gated.
 - `docs/operations/POSTGRES_PROVIDER.md` — Neon-managed production Postgres; production DB backup is out of scope here.
 - `docs/operations/SERVER_AGENT_ACCESS_AND_EXECUTION_BOUNDARY_V1.md` — `corpflow-exec-01-u69678` posture and L3 operator-driven execution model.
 - `docs/CORPFLOW_SHARED_TODO.md` — P1 Cloudflare R2 backup-destination item this workstream closes.
@@ -126,4 +127,5 @@ Expected: `Linger=yes`; both timers `active (waiting)` / loaded and enabled; `li
 
 ## 9. Change log
 
+- **2026-07-27** — Cross-link to `BACKUP_HEALTH_MONITOR.md` (independent health monitor; does not change heartbeat/retention).
 - **2026-06-26** — Initial operational record. R2 bucket `corpflowai-ops-backups` + restic repository prefix `self-hosted-ops/restic` configured on `corpflow-exec-01-u69678`; heartbeat + retention user-systemd timers active with `Linger=yes`; harmless write/read/restore and retention/prune verified. Secrets in Infisical, loaded from mode-`600` `/home/anton/.config/restic/env` (dir mode `700`). Production DB backup remains out of scope; `POSTGRES_URL`, production app, Vercel, and `.env.template` unchanged.

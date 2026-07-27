@@ -1,0 +1,13 @@
+[Unit]
+Description=CorpFlowAI ops restic backup-health daily timer (Monitor #14)
+Documentation=file:///home/anton/corpflow-ai-command-center/docs/operations/BACKUP_HEALTH_MONITOR.md
+
+[Timer]
+# Daily at 07:15 UTC — after typical overnight heartbeat, away from 06:00 factory monitors.
+OnCalendar=*-*-* 07:15:00
+Persistent=true
+RandomizedDelaySec=120
+Unit=corpflowai-ops-backup-health.service
+
+[Install]
+WantedBy=timers.target
