@@ -207,6 +207,27 @@ test('/concierge surface uses Ivory Editorial + private advisory journey', () =>
   }
 });
 
+test('/concierge post-submit confirmation replaces the form', () => {
+  const src = readFile('pages/concierge.js');
+  for (const anchor of [
+    'CONCIERGE_SUCCESS_MESSAGE',
+    'CONCIERGE_SUCCESS_NEXT_STEP',
+    'Private access request confirmed.',
+    'Your request is now queued for private advisory review.',
+    'Submit another request',
+    'data-concierge-confirmation',
+    'resetForAnotherRequest',
+    'submitted || !canSubmit || busy',
+  ]) {
+    assert.ok(src.includes(anchor), `concierge confirmation missing: ${anchor}`);
+  }
+  assert.ok(
+    src.includes(
+      'Thank you. Your request has been received for private advisory review. A qualified advisor will select suitable next information and follow up within one business day.',
+    ),
+  );
+});
+
 test('Ivory enquiry steps encode Jan-approved controlled review path', () => {
   const src = readFile('components/RareExclusiveIvoryShell.js');
   for (const anchor of [
