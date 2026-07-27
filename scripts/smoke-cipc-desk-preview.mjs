@@ -69,7 +69,12 @@ function withCfPreview(url, cfPreviewToken) {
 
 function redactUrl(u) {
   try {
-    const x = new URL(u);
+    let s = String(u || '');
+    // Scrub bypass secret even when nested inside redirect `next=` / SSO URLs.
+    s = s.replace(/x-vercel-protection-bypass(=|%3D|%253D)[^&%"'\s]*/gi, 'x-vercel-protection-bypass=$1[redacted]');
+    s = s.replace(/cf_preview(=|%3D|%253D)[^&%"'\s]*/gi, 'cf_preview=$1[redacted]');
+    s = s.replace(/(?:^|[?&]|%26)token(=|%3D|%253D)[^&%"'\s]*/gi, 'token=$1[redacted]');
+    const x = new URL(s);
     if (x.searchParams.has('cf_preview')) x.searchParams.set('cf_preview', '[redacted]');
     if (x.searchParams.has('token')) x.searchParams.set('token', '[redacted]');
     if (x.searchParams.has('x-vercel-protection-bypass')) {
@@ -270,7 +275,16 @@ async function main() {
         evidence.operator_blocker = {
           code: 'VERCEL_PROTECTION_BYPASS_INEFFECTIVE',
           detail:
-            'GitHub secret VERCEL_AUTOMATION_BYPASS_SECRET is present but Preview still returns Vercel Authentication / SSO. Confirm Project → Deployment Protection → Protection Bypass for Automation is enabled and the GitHub Actions secret matches the current Vercel bypass value (no paste into chat — rotate/sync in dashboards only).',
+            'GitHub Actions secret VERCEL_AUTOMATION_BYPASS_SECRET is present but Preview still 302s to vercel.com/sso-api (Vercel Authentication). Observed secret length is too short for a Vercel Protection Bypass for Automation value. Operator action (dashboards only — do not paste the secret into chat): Vercel project → Settings → Deployment Protection → enable Protection Bypass for Automation → copy the generated value into GitHub Actions secret VERCEL_AUTOMATION_BYPASS_SECRET (and optionally CORPFLOW_VERCEL_PROTECTION_BYPASS_SECRET). Then re-run “CIPC Desk preview verify”.',
+          bypass_secret_length: bypass.secretLen,
+          warmup_http: warm.http,
+          warmup_location_host: (() => {
+            try {
+              return warm.location ? new URL(String(warm.location)).host : null;
+            } catch {
+              return null;
+            }
+          })(),
         };
       }
       fail('Homepage verification failed.', evidence);

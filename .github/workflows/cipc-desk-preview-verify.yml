@@ -237,6 +237,10 @@ jobs:
             lines.append(f"- `{k}`: {'PASS' if ok else 'FAIL'}")
           lines.append("")
           lines.append("Artifacts: `cipc-desk-preview-evidence` on this workflow run.")
+          blocker = e.get("operator_blocker")
+          if isinstance(blocker, dict) and blocker.get("code"):
+              lines.append("")
+              lines.append(f"**Operator blocker:** `{blocker.get('code')}` — {blocker.get('detail')}")
           print("\n".join(lines))
           PY
           )"
