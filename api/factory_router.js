@@ -70,6 +70,7 @@ import { getTenantHostSessionConflict } from '../lib/server/tenant-host-session-
 import { cfg, runtimeConfigDiagnostics } from '../lib/server/runtime-config.js';
 import { ensureCipcDeskPreviewTenantSeeded } from '../lib/server/cipc-desk-preview-seed.js';
 import cipcDeskEmailIntakeHandler from '../lib/server/cipc-desk-email-intake.js';
+import cipcDeskPreviewLinkHandler from '../lib/server/cipc-desk-preview-link.js';
 import { getGroqApiKey, groqChatCompletionsFetch, resolveGroqModel } from '../lib/server/groq-client.js';
 import { passwordResetDeliveryDiagnostics } from '../lib/server/password-reset-delivery.js';
 import { getSessionFromRequest } from '../lib/server/session.js';
@@ -1106,6 +1107,9 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'cipc-desk/email-intake') {
     return cipcDeskEmailIntakeHandler(req, res);
+  }
+  if (pathSeg === 'cipc-desk/preview-link') {
+    return cipcDeskPreviewLinkHandler(req, res);
   }
   if (pathSeg === 'product-a/intake') {
     return productAIntakeHandler(req, res);
