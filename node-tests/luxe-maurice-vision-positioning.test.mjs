@@ -81,7 +81,7 @@ test('LUX_PROPERTIES_PUBLIC_COPY: Rare & Exclusive Private Opportunities framing
 test('Concept A homepage renders approved Ivory Editorial anchors', () => {
   const src = readFile('components/RareExclusiveTenantPresentation.js');
   for (const anchor of [
-    'RareExclusiveStackedWordmark',
+    'RareExclusiveFullLockup',
     'RareExclusiveHeroVisual',
     'RareExclusiveIvoryHeader',
     'RareExclusiveFeatureBar',
@@ -117,9 +117,12 @@ test('brand signature + strapline constants remain stable', () => {
   );
 });
 
-test('Ivory shell implements Concept A crest, nav, feature pillars, privilege quote', () => {
+test('Ivory shell implements Jan-approved brand marks, nav, feature pillars, privilege quote', () => {
   const src = readFile('components/RareExclusiveIvoryShell.js');
   for (const name of [
+    'RareExclusiveMonogram',
+    'RareExclusiveHorizontalWordmark',
+    'RareExclusiveFullLockup',
     'RareExclusiveCrest',
     'RareExclusiveStackedWordmark',
     'RareExclusiveHeroVisual',
@@ -145,9 +148,27 @@ test('Ivory shell implements Concept A crest, nav, feature pillars, privilege qu
     'Owner Concierge',
     'Mauritius Expertise',
     'Not just properties. A privilege.',
-    'R&E',
   ]) {
     assert.ok(src.includes(name), `Ivory shell missing: ${name}`);
+  }
+  // Incorrect prior crown/shield crest geometry must not return.
+  assert.ok(!src.includes('M18 16 L24 22 L32 12 L40 22 L46 16'));
+  assert.ok(!src.includes("{'R&E'}"));
+});
+
+test('Jan-approved logo primitives expose fullLockup, horizontalWordmark, monogram', () => {
+  const src = readFile('components/RareExclusiveBrandMarks.js');
+  for (const name of [
+    'export function RareExclusiveFullLockup',
+    'export function RareExclusiveHorizontalWordmark',
+    'export function RareExclusiveMonogram',
+    'fullLockup',
+    'horizontalWordmark',
+    'monogram',
+    'Rare by nature. Exclusive by design.',
+    'Collection',
+  ]) {
+    assert.ok(src.includes(name), `brand marks missing: ${name}`);
   }
 });
 
@@ -312,6 +333,10 @@ test('brand primitives module still exports monogram + wordmark + font styleshee
   ]) {
     assert.ok(src.includes(`export function ${name}`), `must export ${name}`);
   }
+  assert.ok(src.includes('RareExclusiveFullLockup'));
+  assert.ok(src.includes('RareExclusiveHorizontalWordmark'));
+  assert.ok(src.includes('RareExclusiveMonogram'));
+  assert.ok(src.includes('/assets/logos/rare-exclusive-monogram.svg'));
 });
 
 test('SSR Lux branch on / routes to RareExclusiveTenantPresentation', () => {
