@@ -6,34 +6,27 @@ import {
 } from '../lib/client/luxe-maurice-brand-theme.js';
 
 /**
- * LuxeMaurice brand primitives — monogram, wordmark, font stylesheet hint.
+ * LuxeMaurice brand primitives - monogram, wordmark, font stylesheet hint.
  *
- * Authoritative against the **LuxeMaurice brand guideline** approved by the
- * client on 2026-06-11 (see `docs/LUX/LUXEMAURICE_STRATEGIC_VISION_2030.md`
- * and the matching brand presentation deck). Used exclusively by the Lux
- * public surfaces (`pages/index.js` Lux branch, `pages/concierge.js`,
- * `components/LuxeMauricePropertiesDirectory.js`,
+ * Used exclusively by the Lux public surfaces (`pages/index.js` Lux branch,
+ * `pages/concierge.js`, `components/LuxeMauricePropertiesDirectory.js`,
  * `components/LuxeMauricePropertyDetailPage.js`). Other tenants render
  * `TenantSite` and never reach these primitives.
  *
- * Client-facing rename stage 1 (#619): visible wordmark text is presented as
- * Rare & Exclusive while technical identifiers remain unchanged.
+ * Jan supplied a new Rare & Exclusive Collection logo by email on 2026-07-27
+ * (subject: "new logo to be incorporated"). Until a production vector pack is
+ * supplied, this file reproduces the supplied mark as a scalable in-repo SVG
+ * using the approved brand tokens, avoiding binary email assets and keeping the
+ * tenant presentation deterministic.
  */
 
 /**
  * Cormorant Garamond is loaded from Google Fonts only when a Lux public
  * surface mounts. Inter is already self-hosted globally via
  * `pages/_document.js` so no additional load is required here. The
- * stylesheet is **scoped to the Lux tenant only** by placing the
+ * stylesheet is scoped to the Lux tenant only by placing the
  * `<link>` element inside each Lux page's `<Head>`, which means no
  * apex / core / other tenant ever fetches the additional file.
- *
- * `preconnect` is emitted alongside the stylesheet to overlap the
- * TLS / DNS handshake with the CSS download.
- *
- * Visual fallbacks (`Georgia`, `serif`) are explicitly listed in
- * `LUXE_MAURICE_BRAND_TOKENS.fontDisplay` so first paint always shows
- * a serif (FOIT-free) and Cormorant swaps in once it lands.
  */
 export function LuxeMauriceFontStylesheet() {
   return (
@@ -52,53 +45,148 @@ export function LuxeMauriceFontStylesheet() {
   );
 }
 
-/**
- * Existing geometric monogram retained temporarily during rename stage 1.
- * Permanent logo / monogram replacement remains a separate client approval gate.
- *
- * @param {{ size?: number, color?: string, title?: string }} props
- */
-export function LuxeMauriceMonogram({
-  size = 44,
-  color = T.gold,
-  title = 'Rare & Exclusive temporary monogram',
+function ReLogoSvg({
+  width = 360,
+  color = T.charcoal,
+  gold = T.gold,
+  showWordmark = true,
+  showStrapline = false,
+  title = 'Rare & Exclusive Collection logo',
 }) {
+  const height = showWordmark ? (showStrapline ? 250 : 205) : 120;
+  const viewBox = `0 0 360 ${height}`;
+
   return (
     <svg
-      width={size}
-      height={size}
-      viewBox="0 0 64 64"
+      width={width}
+      height="auto"
+      viewBox={viewBox}
       role="img"
       aria-label={title}
-      style={{ color, display: 'block' }}
+      style={{ display: 'block', maxWidth: '100%', height: 'auto' }}
     >
       <title>{title}</title>
-      <g
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="square"
-        strokeLinejoin="miter"
-      >
-        <path d="M 8 54 L 8 12 L 32 42 L 56 12 L 56 54" />
-        <path d="M 16 54 L 32 34 L 48 54" />
-        <path d="M 32 42 L 32 22" strokeOpacity="0.7" />
+
+      <g fontFamily={T.fontDisplay} fontWeight="500" textAnchor="middle">
+        <text
+          x="158"
+          y="82"
+          fontSize="96"
+          fill={color}
+          letterSpacing="-0.035em"
+        >
+          R
+        </text>
+        <text
+          x="196"
+          y="102"
+          fontSize="68"
+          fill={gold}
+          letterSpacing="-0.045em"
+        >
+          &amp;
+        </text>
+        <text
+          x="224"
+          y="92"
+          fontSize="82"
+          fill={gold}
+          letterSpacing="-0.05em"
+        >
+          E
+        </text>
       </g>
+
+      {showWordmark ? (
+        <g textAnchor="middle">
+          <text
+            x="180"
+            y="145"
+            fontFamily={T.fontDisplay}
+            fontSize="34"
+            fontWeight="500"
+            fill={color}
+            letterSpacing="0.32em"
+          >
+            RARE <tspan fill={gold} letterSpacing="0.18em">&amp;</tspan> EXCLUSIVE
+          </text>
+          <line x1="36" y1="174" x2="112" y2="174" stroke={gold} strokeWidth="1" />
+          <text
+            x="180"
+            y="181"
+            fontFamily={T.fontDisplay}
+            fontSize="22"
+            fontWeight="500"
+            fill={gold}
+            letterSpacing="0.42em"
+          >
+            COLLECTION
+          </text>
+          <line x1="248" y1="174" x2="324" y2="174" stroke={gold} strokeWidth="1" />
+          {showStrapline ? (
+            <>
+              <line x1="136" y1="212" x2="164" y2="212" stroke={gold} strokeWidth="1" />
+              <text
+                x="180"
+                y="218"
+                fontFamily={T.fontDisplay}
+                fontSize="20"
+                fill={gold}
+              >
+                ◆
+              </text>
+              <line x1="196" y1="212" x2="224" y2="212" stroke={gold} strokeWidth="1" />
+              <text
+                x="180"
+                y="242"
+                fontFamily={T.fontBody}
+                fontSize="9"
+                fontWeight="500"
+                fill={color}
+                letterSpacing="0.34em"
+              >
+                RARE BY NATURE. EXCLUSIVE BY DESIGN.
+              </text>
+            </>
+          ) : null}
+        </g>
+      ) : null}
     </svg>
   );
 }
 
 /**
- * Full Lux wordmark plate — monogram + wordmark + signature.
+ * Rare & Exclusive monogram based on Jan's supplied R&E logo.
+ *
+ * @param {{ size?: number, color?: string, title?: string }} props
+ */
+export function LuxeMauriceMonogram({
+  size = 44,
+  color = T.charcoal,
+  title = 'Rare & Exclusive Collection monogram',
+}) {
+  return (
+    <ReLogoSvg
+      width={size}
+      color={color}
+      gold={T.gold}
+      showWordmark={false}
+      title={title}
+    />
+  );
+}
+
+/**
+ * Full Rare & Exclusive Collection wordmark plate.
  *
  * `variant`:
- *   - `'compact'`  Header / navigation use.
- *   - `'stacked'`  Hero / footer use.
- *   - `'small'`    Inline trust marks, footer credit.
+ *   - 'compact'  Header / navigation use.
+ *   - 'stacked'  Hero / footer use.
+ *   - 'small'    Inline trust marks, footer credit.
  *
  * `tone`:
- *   - `'ivory'`    Light wordmark on dark plates.
- *   - `'charcoal'` Dark wordmark on ivory plates.
+ *   - 'ivory'    Light wordmark on dark plates.
+ *   - 'charcoal' Dark wordmark on ivory plates.
  */
 export function LuxeMauriceWordmark({
   variant = 'compact',
@@ -108,68 +196,43 @@ export function LuxeMauriceWordmark({
 }) {
   const isDarkPlate = tone === 'ivory';
   const wordmarkColor = isDarkPlate ? T.ivory : T.charcoal;
-  const signatureColor = T.gold;
-  const monogramColor = T.gold;
-
-  const wordmarkSize =
-    variant === 'stacked' ? 26 : variant === 'small' ? 13 : 16;
-  const monogramSize =
-    variant === 'stacked' ? 58 : variant === 'small' ? 22 : 36;
-  const wordmarkTrack =
-    variant === 'stacked' ? '0.22em' : '0.18em';
+  const logoGold = isDarkPlate ? T.gold : T.goldDeep;
+  const logoWidth = variant === 'stacked' ? 330 : variant === 'small' ? 145 : 230;
+  const showStrapline = variant === 'stacked' && showSignature;
 
   const inner = (
     <span
       style={{
         display: 'inline-flex',
-        flexDirection: variant === 'stacked' ? 'column' : 'row',
         alignItems: 'center',
-        gap: variant === 'stacked' ? 18 : 12,
+        justifyContent: variant === 'stacked' ? 'center' : 'flex-start',
         textDecoration: 'none',
         color: wordmarkColor,
+        lineHeight: 1,
       }}
     >
-      <LuxeMauriceMonogram size={monogramSize} color={monogramColor} />
-      <span
-        style={{
-          display: 'inline-flex',
-          flexDirection: 'column',
-          alignItems: variant === 'stacked' ? 'center' : 'flex-start',
-          gap: variant === 'stacked' ? 12 : 2,
-        }}
-      >
+      <ReLogoSvg
+        width={logoWidth}
+        color={wordmarkColor}
+        gold={logoGold}
+        showWordmark
+        showStrapline={showStrapline}
+        title="Rare & Exclusive Collection logo"
+      />
+      {variant !== 'stacked' && showSignature ? (
         <span
           style={{
-            fontFamily: T.fontDisplay,
-            fontSize: wordmarkSize,
-            fontWeight: 500,
-            color: wordmarkColor,
-            letterSpacing: wordmarkTrack,
-            textTransform: 'uppercase',
-            lineHeight: 1,
-            paddingLeft: wordmarkTrack,
-            paddingRight: 0,
+            position: 'absolute',
+            width: 1,
+            height: 1,
+            overflow: 'hidden',
+            clip: 'rect(0 0 0 0)',
+            whiteSpace: 'nowrap',
           }}
         >
-          Rare &amp; Exclusive
+          {LUXE_MAURICE_BRAND_SIGNATURE}
         </span>
-        {showSignature ? (
-          <span
-            style={{
-              fontFamily: T.fontBody,
-              fontSize: variant === 'stacked' ? 11 : 9.5,
-              fontWeight: 600,
-              color: signatureColor,
-              letterSpacing: '0.24em',
-              textTransform: 'uppercase',
-              lineHeight: 1.4,
-              paddingLeft: variant === 'stacked' ? '0.24em' : '0.24em',
-            }}
-          >
-            {LUXE_MAURICE_BRAND_SIGNATURE}
-          </span>
-        ) : null}
-      </span>
+      ) : null}
     </span>
   );
 
@@ -178,7 +241,7 @@ export function LuxeMauriceWordmark({
     <a
       href={href}
       style={{ display: 'inline-flex', textDecoration: 'none' }}
-      aria-label="Rare & Exclusive Collection — Private Wealth & Lifestyle Platform for Mauritius"
+      aria-label="Rare & Exclusive Collection - Private Wealth & Lifestyle Platform for Mauritius"
     >
       {inner}
     </a>
@@ -186,7 +249,7 @@ export function LuxeMauriceWordmark({
 }
 
 /**
- * Small editorial eyebrow — gold letterspaced uppercase label. Used
+ * Small editorial eyebrow - gold letterspaced uppercase label. Used
  * throughout the public surfaces as the kicker above serif headings.
  */
 export function LuxEyebrow({ children, tone = 'ivory', center = false }) {
@@ -210,7 +273,7 @@ export function LuxEyebrow({ children, tone = 'ivory', center = false }) {
 }
 
 /**
- * Gold hairline divider — replaces hard borders in the editorial layout.
+ * Gold hairline divider - replaces hard borders in the editorial layout.
  */
 export function LuxHairline({ tone = 'gold', vertical = false, length = '100%' }) {
   const bg =
