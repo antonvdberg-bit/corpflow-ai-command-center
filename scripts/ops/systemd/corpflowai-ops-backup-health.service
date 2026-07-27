@@ -1,0 +1,17 @@
+[Unit]
+Description=CorpFlowAI ops restic backup-health check (Monitor #14)
+Documentation=file:///home/anton/corpflow-ai-command-center/docs/operations/BACKUP_HEALTH_MONITOR.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# Load restic + optional Telegram credentials (mode 600). Never commit this file.
+EnvironmentFile=-%h/.config/restic/env
+# Optional second file if Telegram is kept separate from restic secrets:
+EnvironmentFile=-%h/.config/restic/telegram.env
+ExecStart=%h/.local/bin/corpflowai-ops-backup-health-check.sh
+Nice=10
+
+# Do not put secrets in this unit file.
+# Success is silent; failure exits non-zero (journal + Telegram from the script).
