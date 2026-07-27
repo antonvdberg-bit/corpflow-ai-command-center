@@ -181,7 +181,9 @@ export default function ConciergePage({ seoHost = '' } = {}) {
       const j = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(j.error || j.detail || `http_${r.status}`);
       setPayload(j);
-      setSuccess('Thank you. A private advisor will be in touch within one business day.');
+      setSuccess(
+        'Thank you. Your request has been received for private advisory review. A qualified advisor will select suitable next information and follow up within one business day.',
+      );
       setName('');
       setContact('');
       setIntentTags([]);
@@ -244,7 +246,7 @@ export default function ConciergePage({ seoHost = '' } = {}) {
       <RareExclusiveInteriorHero
         eyebrow="Private Advisory"
         title="Request a private consultation."
-        body="Tell us what you are seeking in Mauritius. Your note is read by a single private advisor, held in complete discretion, and answered within one business day — by appointment only."
+        body="Tell us what you are seeking in Mauritius. Your note enters a controlled operator-review path: received, qualified, matched to suitable information, then followed up by appointment — with discretion throughout."
         visual="advisory"
       />
 
@@ -507,7 +509,7 @@ export default function ConciergePage({ seoHost = '' } = {}) {
                 cursor: !canSubmit || busy ? 'not-allowed' : 'pointer',
               }}
             >
-              {busy ? 'Submitting…' : 'Request a Private Consultation'}
+              {busy ? 'Submitting…' : 'Request Private Access'}
             </button>
           </div>
         </form>
