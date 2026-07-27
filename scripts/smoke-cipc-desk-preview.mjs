@@ -50,13 +50,14 @@ function fail(msg, evidence) {
 function bypassHeaders() {
   const bypass =
     env('VERCEL_AUTOMATION_BYPASS_SECRET') || env('CORPFLOW_VERCEL_PROTECTION_BYPASS_SECRET');
-  if (!bypass) return { configured: false, headers: {} };
+  if (!bypass) return { configured: false, headers: {}, secretLen: 0 };
   return {
     configured: true,
     headers: {
       'x-vercel-protection-bypass': bypass,
       'x-vercel-set-bypass-cookie': 'true',
     },
+    secretLen: bypass.length,
   };
 }
 
@@ -80,6 +81,19 @@ function redactUrl(u) {
   }
 }
 
+function htmlFingerprint(html) {
+  const t = String(html || '');
+  return {
+    length: t.length,
+    has_login_to_vercel: /Log in to Vercel/i.test(t),
+    has_deployment_protection: /Deployment Protection/i.test(t),
+    has_sso_api: /sso-api|vercel\.com\/sso/i.test(t),
+    has_cipc_desk: /CIPC Desk/i.test(t),
+    title_match: (t.match(/<title[^>]*>([^<]*)<\/title>/i) || [])[1] || null,
+    snippet: t.replace(/\s+/g, ' ').slice(0, 280),
+  };
+}
+
 async function main() {
   const baseRaw = env('CIPC_DESK_PREVIEW_BASE_URL') || env('PREVIEW_URL') || '';
   if (!baseRaw) fail('Set CIPC_DESK_PREVIEW_BASE_URL to the Ready Vercel preview origin.');
@@ -98,6 +112,7 @@ async function main() {
     fictional_data_only: true,
     preview_base_url: base,
     bypass_configured: bypass.configured,
+    bypass_secret_length: bypass.secretLen,
     checks: {},
     outDir,
   };
@@ -116,17 +131,57 @@ async function main() {
   });
 
   try {
-    // 1) Mint signed cf_preview URL (prefer deployment API; fallback local sign).
-    let previewUrl = '';
-    let mintSource = '';
+    // Warm-up: establish bypass cookie via API before any document navigation.
     {
+      const warm = await context.request.get(`${base}/api/cipc-desk/preview-link`, {
+        headers: bypass.headers,
+        maxRedirects: 0,
+      });
+      const status = warm.status();
+      const headers = warm.headers();
+      const ct = String(headers['content-type'] || '');
+      let bodyText = '';
+      try {
+        bodyText = await warm.text();
+      } catch {
+        bodyText = '';
+      }
+      let bodyJson = null;
+      try {
+        bodyJson = JSON.parse(bodyText);
+      } catch {
+        bodyJson = null;
+      }
+      const fp = htmlFingerprint(bodyText);
+      evidence.checks.bypass_warmup = {
+        http: status,
+        content_type: ct,
+        location: headers.location || null,
+        json_ok: Boolean(bodyJson && bodyJson.ok === true),
+        json_error: bodyJson && typeof bodyJson.error === 'string' ? bodyJson.error : null,
+        set_cookie_present: Boolean(headers['set-cookie']),
+        html: fp,
+      };
+      if (bodyJson && bodyJson.ok === true && typeof bodyJson.preview_url === 'string') {
+        evidence._mint_from_warmup = String(bodyJson.preview_url);
+      }
+    }
+
+    // 1) Mint signed cf_preview URL (prefer deployment API; fallback local sign).
+    let previewUrl = evidence._mint_from_warmup ? String(evidence._mint_from_warmup) : '';
+    let mintSource = previewUrl ? 'deployment_preview_link_api' : '';
+    delete evidence._mint_from_warmup;
+
+    if (!previewUrl) {
       const r = await context.request.get(`${base}/api/cipc-desk/preview-link`, {
         headers: bypass.headers,
       });
       const status = r.status();
       let body = null;
+      let raw = '';
       try {
-        body = await r.json();
+        raw = await r.text();
+        body = JSON.parse(raw);
       } catch {
         body = null;
       }
@@ -134,12 +189,16 @@ async function main() {
         http: status,
         ok: Boolean(body?.ok),
         error: body?.error || null,
+        html: body ? null : htmlFingerprint(raw),
       };
       if (r.ok() && body?.ok && typeof body.preview_url === 'string' && body.preview_url) {
         previewUrl = String(body.preview_url);
         mintSource = 'deployment_preview_link_api';
       }
+    } else {
+      evidence.checks.preview_link_api = { http: 200, ok: true, error: null, via: 'warmup' };
     }
+
     if (!previewUrl) {
       const local = buildClientSitePreviewUrl(base, TENANT_ID);
       if (local) {
@@ -166,33 +225,56 @@ async function main() {
     })();
     if (!cfToken) fail('Minted URL missing cf_preview token.', evidence);
 
-    // Ensure homepage uses app root (not lux-landing-static).
+    // Ensure homepage uses app root (not lux-landing-static) and carries bypass query.
     const homeUrl = (() => {
       const u = new URL(previewUrl);
       u.pathname = '/';
+      const bypassSecret =
+        env('VERCEL_AUTOMATION_BYPASS_SECRET') || env('CORPFLOW_VERCEL_PROTECTION_BYPASS_SECRET');
+      if (bypassSecret) {
+        u.searchParams.set('x-vercel-protection-bypass', bypassSecret);
+        u.searchParams.set('x-vercel-set-bypass-cookie', 'true');
+      }
       return u.toString();
     })();
 
     // 2) Homepage
     const homePage = await context.newPage();
     const homeRes = await homePage.goto(homeUrl, { waitUntil: 'domcontentloaded', timeout: 90_000 });
+    await homePage.waitForTimeout(800);
     const homeStatus = homeRes?.status() || 0;
     const homeHtml = await homePage.content();
     const homeText = await homePage.locator('body').innerText().catch(() => '');
+    const fp = htmlFingerprint(homeHtml);
+    const finalUrl = homePage.url();
     const homeOk =
       homeStatus >= 200 &&
       homeStatus < 400 &&
       /CIPC Desk/i.test(homeText || homeHtml) &&
-      !/Log in to Vercel/i.test(homeHtml) &&
-      !/Deployment Protection/i.test(homeHtml);
+      !fp.has_login_to_vercel &&
+      !fp.has_deployment_protection &&
+      !fp.has_sso_api &&
+      !/vercel\.com\/sso/i.test(finalUrl);
     await homePage.screenshot({ path: path.join(outDir, '01-homepage.png'), fullPage: true });
     evidence.checks.homepage = {
       ok: homeOk,
       http: homeStatus,
+      final_url_redacted: redactUrl(finalUrl),
       has_cipc_desk: /CIPC Desk/i.test(homeText || homeHtml),
-      sso_gated: /Log in to Vercel|Deployment Protection/i.test(homeHtml),
+      sso_gated: fp.has_login_to_vercel || fp.has_deployment_protection || fp.has_sso_api,
+      html: fp,
     };
-    if (!homeOk) fail('Homepage verification failed.', evidence);
+    if (!homeOk) {
+      const warm = evidence.checks.bypass_warmup;
+      if (warm && !warm.json_ok && (warm.html?.has_login_to_vercel || warm.http === 401 || warm.http === 403 || warm.location)) {
+        evidence.operator_blocker = {
+          code: 'VERCEL_PROTECTION_BYPASS_INEFFECTIVE',
+          detail:
+            'GitHub secret VERCEL_AUTOMATION_BYPASS_SECRET is present but Preview still returns Vercel Authentication / SSO. Confirm Project → Deployment Protection → Protection Bypass for Automation is enabled and the GitHub Actions secret matches the current Vercel bypass value (no paste into chat — rotate/sync in dashboards only).',
+        };
+      }
+      fail('Homepage verification failed.', evidence);
+    }
 
     // 3) Tenant PIN login (preview seed)
     const loginRes = await context.request.post(withCfPreview(`${base}/api/auth/login`, cfToken), {
@@ -221,7 +303,16 @@ async function main() {
 
     // 4) /change operator panel
     const changePage = await context.newPage();
-    const changeUrl = withCfPreview(`${base}/change`, cfToken);
+    const changeUrl = (() => {
+      const u = new URL(withCfPreview(`${base}/change`, cfToken));
+      const bypassSecret =
+        env('VERCEL_AUTOMATION_BYPASS_SECRET') || env('CORPFLOW_VERCEL_PROTECTION_BYPASS_SECRET');
+      if (bypassSecret) {
+        u.searchParams.set('x-vercel-protection-bypass', bypassSecret);
+        u.searchParams.set('x-vercel-set-bypass-cookie', 'true');
+      }
+      return u.toString();
+    })();
     const changeRes = await changePage.goto(changeUrl, { waitUntil: 'domcontentloaded', timeout: 90_000 });
     const changeStatus = changeRes?.status() || 0;
     await changePage.waitForTimeout(1500);
@@ -395,9 +486,17 @@ async function main() {
     };
 
     const thankPage = await context.newPage();
-    const thankNav = magicLink.includes('?')
-      ? `${magicLink}&cf_preview=${encodeURIComponent(cfToken)}`
-      : withCfPreview(magicLink, cfToken);
+    const thankNav = (() => {
+      const u = new URL(magicLink);
+      u.searchParams.set('cf_preview', cfToken);
+      const bypassSecret =
+        env('VERCEL_AUTOMATION_BYPASS_SECRET') || env('CORPFLOW_VERCEL_PROTECTION_BYPASS_SECRET');
+      if (bypassSecret) {
+        u.searchParams.set('x-vercel-protection-bypass', bypassSecret);
+        u.searchParams.set('x-vercel-set-bypass-cookie', 'true');
+      }
+      return u.toString();
+    })();
     await thankPage.goto(thankNav, { waitUntil: 'domcontentloaded', timeout: 90_000 }).catch(() => null);
     await thankPage.waitForTimeout(1200);
     await thankPage.screenshot({ path: path.join(outDir, '03-client-decisions-thank-you.png'), fullPage: true });
@@ -421,7 +520,7 @@ async function main() {
           cf_preview_url_redacted: evidence.cf_preview_url_redacted,
           ticket_id: ticketId,
           checks: Object.fromEntries(
-            Object.entries(evidence.checks).map(([k, v]) => [k, Boolean(v && v.ok)]),
+            Object.entries(evidence.checks).map(([k, v]) => [k, Boolean(v && v.ok !== false && (v.ok === true || v.http || v.source))]),
           ),
           out_dir: outDir,
         },
