@@ -831,18 +831,23 @@ export function RareExclusiveInteriorHero({
 export const RARE_EXCLUSIVE_ENQUIRY_STEPS = Object.freeze([
   Object.freeze({
     n: '01',
-    title: 'Share your intent',
-    body: 'Tell us what you are seeking — residence, partnership, relocation, or ownership support.',
+    title: 'Request received',
+    body: 'Your private-access note reaches the advisory desk and is logged for confidential review — not an open inbox broadcast.',
   }),
   Object.freeze({
     n: '02',
-    title: 'Private advisor review',
-    body: 'A single advisor reads your note in confidence and prepares a discreet next step.',
+    title: 'Request qualified',
+    body: 'A private advisor reviews intent, timing, and fit so only suitable conversations continue.',
   }),
   Object.freeze({
     n: '03',
-    title: 'Invitation to converse',
-    body: 'Suitable introductions follow by appointment — never as an open-market listing response.',
+    title: 'Suitable information selected',
+    body: 'Materials and opportunity detail are chosen for your enquiry — never a mass listing dump.',
+  }),
+  Object.freeze({
+    n: '04',
+    title: 'Controlled follow-up',
+    body: 'Next steps arrive by appointment-oriented introduction. Discretion and privacy remain the operating standard.',
   }),
 ]);
 
@@ -857,16 +862,29 @@ export function RareExclusiveEnquirySteps() {
           letterSpacing: '0.28em',
           textTransform: 'uppercase',
           color: T.gold,
-          marginBottom: 28,
+          marginBottom: 12,
         }}
       >
         Private advisory journey
       </div>
+      <p
+        style={{
+          margin: '0 0 28px',
+          maxWidth: 640,
+          fontFamily: T.fontDisplay,
+          fontStyle: 'italic',
+          fontSize: 17,
+          lineHeight: 1.55,
+          color: '#4A433A',
+        }}
+      >
+        A controlled operator-review path — not an automated reply into a public marketplace.
+      </p>
       <div
         className="re-journey-grid"
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+          gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
           borderTop: `1px solid ${T.hairlineStone}`,
           borderBottom: `1px solid ${T.hairlineStone}`,
         }}
@@ -875,7 +893,7 @@ export function RareExclusiveEnquirySteps() {
           <article
             key={step.n}
             style={{
-              padding: '28px 22px',
+              padding: '28px 18px',
               borderRight:
                 i < RARE_EXCLUSIVE_ENQUIRY_STEPS.length - 1
                   ? `1px solid ${T.hairlineStone}`
@@ -897,19 +915,28 @@ export function RareExclusiveEnquirySteps() {
               style={{
                 margin: '12px 0 10px',
                 fontFamily: T.fontDisplay,
-                fontSize: 22,
+                fontSize: 20,
                 fontWeight: 500,
                 color: T.charcoal,
               }}
             >
               {step.title}
             </h3>
-            <p style={{ margin: 0, fontSize: 14.5, lineHeight: 1.7, color: '#4A433A' }}>
+            <p style={{ margin: 0, fontSize: 14, lineHeight: 1.7, color: '#4A433A' }}>
               {step.body}
             </p>
           </article>
         ))}
       </div>
+      <style>{`
+        @media (max-width: 900px) {
+          .re-journey-grid { grid-template-columns: 1fr 1fr !important; }
+          .re-journey-grid > article { border-right: none !important; border-bottom: 1px solid rgba(107,98,86,0.22); }
+        }
+        @media (max-width: 560px) {
+          .re-journey-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </section>
   );
 }

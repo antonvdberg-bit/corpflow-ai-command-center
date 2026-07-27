@@ -86,6 +86,7 @@ test('Concept A homepage renders approved Ivory Editorial anchors', () => {
     'RareExclusiveIvoryHeader',
     'RareExclusiveFeatureBar',
     'RareExclusiveEditorialSpine',
+    'RareExclusiveEnquirySteps',
     'RARE_EXCLUSIVE_STRAPLINE',
     'Discover Our Collection',
     'Request an Invitation',
@@ -95,6 +96,9 @@ test('Concept A homepage renders approved Ivory Editorial anchors', () => {
     'Owner Experience',
     'This is not a property website.',
     'About the collection',
+    'Private-access buyer journey',
+    'Curated opportunities',
+    'Request private access',
     '/lifestyle',
     '/destination-mauritius',
     '/private-services',
@@ -169,6 +173,7 @@ test('/property/[slug] shell reads as Ivory Editorial private opportunity memora
     'Advisory notes',
     'At a glance',
     'Request private access',
+    'controlled advisory review',
     'Private Access',
     'RareExclusiveIvoryHeader',
     'RareExclusiveEditorialSpine',
@@ -185,7 +190,7 @@ test('/concierge surface uses Ivory Editorial + private advisory journey', () =>
   for (const anchor of [
     'Private Advisory',
     'Request a private consultation',
-    'Request a Private Consultation',
+    'Request Private Access',
     'RareExclusiveEnquirySteps',
     'RareExclusivePromiseGrid',
     'RareExclusiveInteriorHero',
@@ -196,9 +201,23 @@ test('/concierge surface uses Ivory Editorial + private advisory journey', () =>
     'Investment / diversification',
     'Ongoing ownership support',
     'RareExclusiveIvoryHeader',
+    'controlled operator-review',
   ]) {
     assert.ok(src.includes(anchor), `/concierge missing: ${anchor}`);
   }
+});
+
+test('Ivory enquiry steps encode Jan-approved controlled review path', () => {
+  const src = readFile('components/RareExclusiveIvoryShell.js');
+  for (const anchor of [
+    'Request received',
+    'Request qualified',
+    'Suitable information selected',
+    'Controlled follow-up',
+  ]) {
+    assert.ok(src.includes(anchor), `enquiry steps missing: ${anchor}`);
+  }
+  assert.ok(src.includes("gridTemplateColumns: 'repeat(4, minmax(0, 1fr))'"));
 });
 
 test('LuxeMaurice brand theme uses the exact four-colour brand system', () => {

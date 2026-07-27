@@ -2,7 +2,7 @@ import React from 'react';
 
 import LuxeMauricePropertiesDirectory from '../components/LuxeMauricePropertiesDirectory.js';
 import {
-  fetchPublishedLuxListingsPublic,
+  fetchLuxMarketingOpportunityListings,
   isLuxListingPublicTenantId,
 } from '../lib/server/lux-listing-published-query.js';
 import { collectPublishedLuxCardMediaByPropertyRefs } from '../lib/server/lux-published-property-media.js';
@@ -80,7 +80,8 @@ export async function getServerSideProps({ req }) {
       return { notFound: true };
     }
 
-    const listings = await fetchPublishedLuxListingsPublic(prisma);
+    // Published DB rows first; staged curated catalog when empty (Issue #645 PR A).
+    const listings = await fetchLuxMarketingOpportunityListings(prisma);
     const refs = listings.map((l) => l.slug).filter(Boolean);
     /** @type {Map<string, { src: string, src_set?: string, alt: string, caption?: string | null }>} */
     let cardMap = new Map();

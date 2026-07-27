@@ -577,8 +577,8 @@ export async function getServerSideProps({ req }) {
       site.hero.title = 'LuxeMaurice';
       site.hero.headline = 'Private. Curated. Considered.';
       site.hero.tagline = 'Private Wealth & Lifestyle Platform for Mauritius';
-      site.hero.cta_label = 'Request a private consultation';
-      site.hero.cta_href = '/concierge';
+      site.hero.cta_label = 'Discover Our Collection';
+      site.hero.cta_href = '/properties';
 
       site.sections = site.sections && typeof site.sections === 'object' ? site.sections : {};
       site.sections.about =

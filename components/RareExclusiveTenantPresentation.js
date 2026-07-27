@@ -9,6 +9,7 @@ import {
   RARE_EXCLUSIVE_PUBLIC_BRAND,
   RARE_EXCLUSIVE_STRAPLINE,
   RareExclusiveEditorialSpine,
+  RareExclusiveEnquirySteps,
   RareExclusiveFeatureBar,
   RareExclusiveHeroVisual,
   RareExclusiveIvoryFooter,
@@ -19,6 +20,7 @@ import {
   rareExclusiveCtaGoldStyle,
   rareExclusivePageShellStyle,
 } from './RareExclusiveIvoryShell.js';
+import { buildLuxPropertyConciergeHref } from '../lib/client/luxe-maurice-properties-public.js';
 
 function safeStr(v) {
   return v != null ? String(v).trim() : '';
@@ -40,6 +42,11 @@ export default function RareExclusiveTenantPresentation({ site }) {
   const operatorDebug = s.client_ui?.operator_debug === true;
   const hero = s.hero || {};
   const media = s.media || {};
+  const staged = Array.isArray(s.staged_properties) ? s.staged_properties : [];
+  const cardMedia =
+    s.lux_published_card_media && typeof s.lux_published_card_media === 'object'
+      ? s.lux_published_card_media
+      : {};
 
   const meta = s.meta && typeof s.meta === 'object' ? s.meta : {};
   const pageTitle =
@@ -47,7 +54,7 @@ export default function RareExclusiveTenantPresentation({ site }) {
     `${RARE_EXCLUSIVE_PUBLIC_BRAND} · ${RARE_EXCLUSIVE_STRAPLINE}`;
   const seoDescriptionRaw =
     safeStr(meta.description)?.replace(/LuxeMaurice/gi, RARE_EXCLUSIVE_PUBLIC_BRAND) ||
-    `${RARE_EXCLUSIVE_PUBLIC_BRAND} — curated private opportunities, private advisory, and concierge-led access for discerning clients considering Mauritius.`;
+    `${RARE_EXCLUSIVE_PUBLIC_BRAND} — a private-access platform for curated Mauritius opportunities, supported by a simple concierge enquiry and operator review process.`;
   const seoDescription =
     seoDescriptionRaw.length > 320
       ? `${seoDescriptionRaw.slice(0, 317)}…`
@@ -81,6 +88,7 @@ export default function RareExclusiveTenantPresentation({ site }) {
             .re-hero-visual { min-height: 300px !important; max-height: 440px; }
             .re-card-grid { grid-template-columns: 1fr !important; }
             .re-card-inner { grid-template-columns: 1fr !important; }
+            .re-curated-grid { grid-template-columns: 1fr !important; }
           }
         `}</style>
       </Head>
@@ -158,6 +166,19 @@ export default function RareExclusiveTenantPresentation({ site }) {
             >
               {RARE_EXCLUSIVE_STRAPLINE}
             </p>
+            <p
+              style={{
+                margin: '18px 0 0',
+                maxWidth: 440,
+                fontFamily: T.fontBody,
+                fontSize: 14.5,
+                lineHeight: 1.7,
+                color: '#4A433A',
+              }}
+            >
+              A private-access platform for curated Mauritius opportunities — not a public
+              property portal. Introductions continue through concierge enquiry and operator review.
+            </p>
             <div
               style={{
                 marginTop: 40,
@@ -185,6 +206,195 @@ export default function RareExclusiveTenantPresentation({ site }) {
 
         {/* ─── Four-pillar feature bar ─────────────────────────────── */}
         <RareExclusiveFeatureBar />
+
+        {/* ─── Private-access journey ──────────────────────────────── */}
+        <section
+          id="private-access"
+          style={{
+            padding: 'clamp(40px, 6vw, 64px) clamp(24px, 3.5vw, 48px) 8px',
+            background: T.ivory,
+          }}
+        >
+          <RareExclusiveOpaquePanel>
+            <LuxEyebrow tone="charcoal">Private-access buyer journey</LuxEyebrow>
+            <h2
+              style={{
+                margin: '16px 0 12px',
+                fontFamily: T.fontDisplay,
+                fontWeight: 400,
+                fontSize: 'clamp(1.55rem, 2.4vw, 2.1rem)',
+                lineHeight: 1.2,
+                color: T.charcoal,
+              }}
+            >
+              From curated opportunity to controlled introduction.
+            </h2>
+            <p
+              style={{
+                margin: 0,
+                maxWidth: 680,
+                fontFamily: T.fontBody,
+                fontSize: 15,
+                lineHeight: 1.75,
+                color: '#4A433A',
+              }}
+            >
+              Explore a small set of private opportunities, open an opportunity memorandum, then
+              request private access. Advisory receives your note, qualifies it, selects suitable
+              information, and follows up under controlled introduction.
+            </p>
+            <div
+              style={{
+                marginTop: 22,
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 18,
+                alignItems: 'center',
+              }}
+            >
+              <a href="/properties" style={rareExclusiveCtaGoldStyle()}>
+                Explore private opportunities
+              </a>
+              <RareExclusiveTextLink href="/concierge">
+                Request private access
+              </RareExclusiveTextLink>
+            </div>
+          </RareExclusiveOpaquePanel>
+          <RareExclusiveEnquirySteps />
+        </section>
+
+        {/* ─── Curated opportunity strip ───────────────────────────── */}
+        {staged.length > 0 ? (
+          <section
+            id="curated-opportunities"
+            style={{
+              padding: 'clamp(32px, 5vw, 56px) clamp(24px, 3.5vw, 48px)',
+              background: T.ivory,
+            }}
+          >
+            <div style={{ marginBottom: 28, maxWidth: 640 }}>
+              <LuxEyebrow tone="charcoal">Curated opportunities</LuxEyebrow>
+              <h2
+                style={{
+                  margin: '14px 0 10px',
+                  fontFamily: T.fontDisplay,
+                  fontWeight: 400,
+                  fontSize: 'clamp(1.55rem, 2.4vw, 2.05rem)',
+                  color: T.charcoal,
+                }}
+              >
+                A small set — prepared for private review.
+              </h2>
+              <p style={{ margin: 0, fontSize: 14.5, lineHeight: 1.75, color: '#4A433A' }}>
+                Region, type, and status for orientation only. Full packs remain advisory-gated.
+              </p>
+            </div>
+            <div
+              className="re-curated-grid"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                gap: 22,
+              }}
+            >
+              {staged.slice(0, 4).map((row) => {
+                const slug = safeStr(row.slug);
+                const key = slug.toLowerCase();
+                const img = cardMedia[key];
+                return (
+                  <article
+                    key={slug || row.title}
+                    style={{
+                      border: `1px solid ${T.hairlineStone}`,
+                      background: '#F8F4EE',
+                      padding: 22,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 12,
+                    }}
+                  >
+                    {img && img.src ? (
+                      <a
+                        href={`/property/${encodeURIComponent(slug)}`}
+                        style={{
+                          display: 'block',
+                          aspectRatio: '16 / 9',
+                          overflow: 'hidden',
+                          background: '#E7DED0',
+                        }}
+                      >
+                        <img
+                          src={img.src}
+                          alt={safeStr(img.alt) || `${slug} · private opportunity`}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      </a>
+                    ) : null}
+                    <div
+                      style={{
+                        fontFamily: T.fontBody,
+                        fontSize: 10,
+                        fontWeight: 700,
+                        letterSpacing: '0.18em',
+                        textTransform: 'uppercase',
+                        color: T.gold,
+                      }}
+                    >
+                      {[safeStr(row.region), safeStr(row.property_type), safeStr(row.status)]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    </div>
+                    <h3
+                      style={{
+                        margin: 0,
+                        fontFamily: T.fontDisplay,
+                        fontWeight: 500,
+                        fontSize: 22,
+                        color: T.charcoal,
+                      }}
+                    >
+                      <a
+                        href={`/property/${encodeURIComponent(slug)}`}
+                        style={{ color: T.charcoal, textDecoration: 'none' }}
+                      >
+                        {safeStr(row.title)}
+                      </a>
+                    </h3>
+                    {safeStr(row.teaser) ? (
+                      <p style={{ margin: 0, fontSize: 14, lineHeight: 1.7, color: '#4A433A' }}>
+                        {safeStr(row.teaser)}
+                      </p>
+                    ) : null}
+                    <div
+                      style={{
+                        marginTop: 'auto',
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: 16,
+                        alignItems: 'center',
+                        paddingTop: 8,
+                      }}
+                    >
+                      <RareExclusiveTextLink href={`/property/${encodeURIComponent(slug)}`}>
+                        Opportunity memorandum
+                      </RareExclusiveTextLink>
+                      <RareExclusiveTextLink href={buildLuxPropertyConciergeHref(slug)}>
+                        Request private access
+                      </RareExclusiveTextLink>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+            <div style={{ marginTop: 28 }}>
+              <a href="/properties" style={rareExclusiveCtaGoldStyle()}>
+                View all private opportunities
+              </a>
+            </div>
+          </section>
+        ) : null}
 
         {/* ─── Side-by-side content cards (Concept A) ──────────────── */}
         <section

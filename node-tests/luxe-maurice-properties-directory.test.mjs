@@ -59,9 +59,56 @@ test('resolveLuxPropertyRefWithPublishedDb: published Postgres row', async () =>
   assert.equal(r.listing_provider, 'lux_postgres_published');
 });
 
+test('fetchLuxMarketingOpportunityListings: empty published falls back to staged curated', async () => {
+  const { fetchLuxMarketingOpportunityListings } = await import(
+    '../lib/server/lux-listing-published-query.js'
+  );
+  const prisma = {
+    luxListing: {
+      findMany: async () => [],
+    },
+  };
+  const rows = await fetchLuxMarketingOpportunityListings(prisma);
+  assert.ok(rows.length >= 4);
+  assert.equal(rows.some((r) => r.slug === 'lm-phase2d-manual-demo'), false);
+  assert.ok(rows.some((r) => r.slug === 'lm-nc-ridge'));
+});
+
+test('fetchLuxMarketingOpportunityListings: published rows win over staged', async () => {
+  const { fetchLuxMarketingOpportunityListings } = await import(
+    '../lib/server/lux-listing-published-query.js'
+  );
+  const prisma = {
+    luxListing: {
+      findMany: async () => [
+        {
+          slug: 'lm-db-live',
+          title: 'Live DB villa',
+          regionLabel: 'West',
+          propertyType: 'Villa',
+          listingStatus: 'Private preview',
+          priceRange: 'On request',
+          shortTeaser: 'DB teaser',
+          highlightsJson: ['A'],
+          bedrooms: null,
+          bathrooms: null,
+          areaSqm: null,
+          publishedAt: new Date('2026-07-01T00:00:00.000Z'),
+        },
+      ],
+    },
+  };
+  const rows = await fetchLuxMarketingOpportunityListings(prisma);
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].slug, 'lm-db-live');
+});
+
 test('LUX_PROPERTIES_PUBLIC_COPY keys are stable', () => {
   assert.ok(LUX_PROPERTIES_PUBLIC_COPY.emptyKicker.length > 4);
   assert.ok(LUX_PROPERTIES_PUBLIC_COPY.emptyCta.toLowerCase().includes('consultation'));
+  assert.ok(LUX_PROPERTIES_PUBLIC_COPY.journeyTitle.toLowerCase().includes('request'));
+  assert.equal(LUX_PROPERTIES_PUBLIC_COPY.cardCtaConcierge, 'Request private access');
+  assert.equal(LUX_PROPERTIES_PUBLIC_COPY.cardCtaDetails, 'Opportunity memorandum');
 });
 
 test('empty state copy matches LuxeMaurice Vision-Aligned Public Experience (Slice 1)', () => {
