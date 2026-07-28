@@ -1,6 +1,9 @@
 # Lead Rescue — Product Pack v1 (sellable vertical slice)
 
 **Status:** Consolidated product + commercial + delivery pack for GitHub **#653**. Docs/operator artefacts only in this PR — no production deploy, no DB/schema, no secrets, no payment/messaging runtime, no outreach send.
+
+**Quote-ready companion (copy-paste):** `docs/marketing/LEAD_RESCUE_QUOTE_READY_PACKET_V1.md` — problem, scope, exclusions, delivery, acceptance, duration, price recommendation, live URLs, quotation blocks, smallest sales action.
+
 **Workstream:** `lead-rescue` (must not be combined with Website Rescue **#654**).
 **System boundary:** CorpFlowAI business system (not a client tenant).
 **Environment:** preview / local docs; live surfaces already exist for demonstration.
@@ -15,9 +18,9 @@
 
 | | |
 |--|--|
-| **What moved** | Consolidated product definition, commercial packaging recommendation, dual-offer routing, demonstration path evidence, delivery/quotation checklists, and remaining Anton approvals into one pack. |
-| **What is blocked** | Final pricing approval; production launch changes; live outreach; payment runtime. Issue comments from Cloud Agent blocked (`issues:read` only) — paste drafts or wait for dispatcher GHA. |
-| **What is next** | Operator/ChatGPT review of this pack; Anton pricing sign-off; optional preview-only UI polish as a follow-up PR if dual-offer cross-links need on-page copy. |
+| **What moved** | Product definition, commercial packaging, dual-offer routing, demo path, delivery index, **quote-ready commercial packet** (`LEAD_RESCUE_QUOTE_READY_PACKET_V1.md`), Anton approval list. |
+| **What is blocked** | Final pricing approval (A1); production launch changes; live outreach send; payment runtime. Issue comments from Cloud Agent blocked (`issues:read` only). |
+| **What is next** | Anton pricing sign-off (A1); operator uses quote-ready packet for first warm intro; optional preview UI polish as follow-up PR. |
 | **Who owns it** | Cursor (this pack + PR); ChatGPT/operator (review); Anton (pricing + protected gates). |
 | **Anton required** | **Yes** — final pricing confirmation; any production/public-launch change; outreach; payment config. **Not** required for merge of this docs pack. |
 
@@ -87,16 +90,17 @@ Canonical commercial playbook: `docs/marketing/AI_LEAD_RESCUE_FIRST_PAID_PILOTS.
 
 ## 4. Demonstration path (runtime evidence)
 
-Verified **2026-07-28** from this agent environment (GET only):
+Verified **2026-07-28 UTC** (GET only — see also `LEAD_RESCUE_DEMONSTRATION_PATH_V1.md`):
 
 | Step | Surface | Result |
 |------|---------|--------|
 | 1. Prospect opens product page | `GET https://corpflowai.com/lead-rescue` | **200** HTML |
 | 2. Alias host | `GET https://aileadrescue.corpflowai.com/` | **200** |
-| 3. MUR sprint (separate) | `GET https://corpflowai.com/offers/ai-lead-rescue` | **200** |
-| 4. Enquiry | Public form → `POST /api/tenant/intake` (tag `ai-lead-rescue`) | Existing runtime — do not exercise write in this packet |
-| 5. Operator review | `/admin/lead-rescue` on factory host | Auth-gated (**307** without session — expected) |
-| 6. Follow-up | Status pipeline + checklist in cockpit + runbook | Documented in operator runbook |
+| 3. Property vertical | `GET https://corpflowai.com/lead-rescue/property-mauritius` | **200** |
+| 4. MUR sprint (separate) | `GET https://corpflowai.com/offers/ai-lead-rescue` | **200** |
+| 5. Enquiry | Public form → `POST /api/tenant/intake` (tag `ai-lead-rescue`) | Existing runtime — do not exercise write in this packet |
+| 6. Operator review | `GET https://core.corpflowai.com/admin/lead-rescue` | **200** (session required for pipeline) |
+| 7. Follow-up | Status pipeline + checklist in cockpit + runbook | Documented in operator runbook |
 
 **Demo script for sales call (no private data):**
 
@@ -135,10 +139,13 @@ Use existing artefacts; this table is the index:
 
 ## 6. Quotation content (reuse)
 
+**Primary copy source:** `docs/marketing/LEAD_RESCUE_QUOTE_READY_PACKET_V1.md` (§11 quotation blocks).
+
 | Element | Source |
 |---------|--------|
+| Copy-paste offer + scope + exclusions | `LEAD_RESCUE_QUOTE_READY_PACKET_V1.md` §11 |
 | Reusable quotation / pro-forma | `docs/finance/AI_LEAD_RESCUE_MANUAL_PRO_FORMA_TEMPLATE_V1.md` |
-| Required verbatim W1–W5 | Same template §1 |
+| Required verbatim W1–W5 | Pro-forma template §1 (also quote-ready §11c) |
 | Scope / exclusions / deposit trigger | Pricing guide + pro-forma |
 | Project-start conditions | Payment confirmation + required client information |
 

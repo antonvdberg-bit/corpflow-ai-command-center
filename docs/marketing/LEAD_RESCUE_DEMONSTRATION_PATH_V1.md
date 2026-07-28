@@ -8,14 +8,15 @@
 **Parent pack:** `docs/marketing/LEAD_RESCUE_PRODUCT_PACK_V1.md`  
 **Issue:** [#653](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/653)
 
-## Live GET checks (2026-07-28)
+## Live GET checks (2026-07-28 UTC — Agent 2 refresh)
 
 | URL | HTTP | Notes |
 |-----|------|-------|
-| `https://corpflowai.com/lead-rescue` | 200 | Primary sellable surface |
-| `https://aileadrescue.corpflowai.com/` | 200 | Alias host |
-| `https://corpflowai.com/offers/ai-lead-rescue` | 200 | MUR sprint — separate offer path |
-| Factory `/admin/lead-rescue` (unauthenticated) | 307 | Auth gate expected |
+| `https://corpflowai.com/lead-rescue` | **200** | Primary sellable surface + intake |
+| `https://aileadrescue.corpflowai.com/` | **200** | Alias host |
+| `https://corpflowai.com/lead-rescue/property-mauritius` | **200** | Mauritius property vertical |
+| `https://corpflowai.com/offers/ai-lead-rescue` | **200** | MUR sprint — separate offer path |
+| `https://core.corpflowai.com/admin/lead-rescue` | **200** | Operator cockpit (auth required for pipeline) |
 
 ## Buyer → operator path (logical)
 
