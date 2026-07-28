@@ -5,10 +5,18 @@
 # Factory dispatcher activate job (issues:write) posts equivalent comments once.
 # Operator may also paste these into the issues for immediate visibility.
 
+## Linked PRs (this run)
+
+| Workstream | Branch | PR |
+|------------|--------|-----|
+| Dispatcher lifecycle | `cursor/ops-segregated-dispatch-lifecycle-1e9e` | https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/655 |
+| #653 Lead Rescue | `cursor/lead-rescue-productise-653-1e9e` | https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/656 |
+| #654 Website Rescue | `cursor/website-rescue-productise-654-1e9e` | https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/657 |
+
 ## Agent / run
 
-- Agent/run: https://cursor.com/agents/bc-a4c5a692-3f2f-42ea-9c44-fea955071e9e
 - Started: 2026-07-28T07:42:00Z (approx)
+- Cloud Agent GitHub token: `issues:read` only — cannot post issue comments or create labels from this session.
 
 ## Concurrency decision
 
