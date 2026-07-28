@@ -156,10 +156,9 @@ jobs:
           CURSOR_ISSUE_DISPATCH_SCAN_PATH: cursor-issue-dispatch-scan.json
         run: |
           set -euo pipefail
-          # GHA token has issues:write — durable discovery/claim comments + labels.
-          # Priority order: explicit --prefer (none here) → priority:P0 → revenue → issue number.
-          # Sibling products (e.g. Lead Rescue vs Website Rescue) remain sequential by default.
-          node scripts/cursor-issue-dispatch-scan.mjs --apply-comments --apply-labels
+          # GHA token has issues:write — durable discovery/classification comments only.
+          # Claim labels are applied after Cursor API returns a real run ID (finalize step).
+          node scripts/cursor-issue-dispatch-scan.mjs --apply-comments
           if [ -f cursor-issue-dispatch-scan.json ]; then
             target="$(node -e "const j=require('./cursor-issue-dispatch-scan.json'); process.stdout.write(j.activationTargetIssue!=null?String(j.activationTargetIssue):'')")"
             echo "activation_target_issue=${target}" >> "$GITHUB_OUTPUT"
@@ -209,6 +208,26 @@ jobs:
           GITHUB_SHA: ${{ github.sha }}
           DISPATCHER_ACTIVATION_POST_COMMENT: "1"
         run: node scripts/dispatcher-agent-activation.mjs --fetch --activate --persist-dedupe
+
+      - name: Finalize dispatch claim (labels after Cursor run ID)
+        if: ${{ always() }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REPO: ${{ github.repository }}
+          CURSOR_ISSUE_DISPATCH_SCAN_PATH: cursor-issue-dispatch-scan.json
+          DISPATCHER_ACTIVATION_PLAN_PATH: activation-plan.json
+          CURSOR_OPS_STATUS_PATH: cursor-ops-status.json
+        run: |
+          set -euo pipefail
+          if [ -f cursor-issue-dispatch-scan.json ]; then
+            node scripts/cursor-issue-dispatch-finalize.mjs \
+              --scan-file cursor-issue-dispatch-scan.json \
+              --activation-file activation-plan.json \
+              --ops-status-file cursor-ops-status.json || true
+          else
+            echo "No scan artifact — skip finalize"
+          fi
 
       - name: Upload activation result artifact (always)
         if: ${{ always() }}

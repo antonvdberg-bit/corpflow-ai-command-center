@@ -29,7 +29,8 @@ Consolidation is allowed only when explicitly justified and safe.
 | `scripts/dispatcher-agent-activation.mjs` | Cursor Cloud activation (existing) |
 | `lib/server/cursor-ops-status.js` | Issue comment posting + Control Tower status (existing) |
 | **`lib/server/cursor-issue-dispatch-lifecycle.js`** | Classification, WIP, segregation, comment templates (**this packet**) |
-| **`scripts/cursor-issue-dispatch-scan.mjs`** | Label scan → discover/classify/claim plan (**this packet**) |
+| **`scripts/cursor-issue-dispatch-scan.mjs`** | Label scan → discover/classify/eligibility plan (**this packet**) |
+| **`scripts/cursor-issue-dispatch-finalize.mjs`** | Post-activation claim labels + run ID comment (**this packet**) |
 
 Do **not** add a parallel workflow that also activates Cursor. The scan runs as a **prep step** inside the existing workflow and may hand **at most one** `activationTargetIssue` to the existing activator path.
 
@@ -59,14 +60,18 @@ Research/documentation-only tasks may run separately only when they cannot confl
 
 ## 5. Scan behaviour
 
-1. Search open issues with `dispatch:cursor-ready`.
+1. Discover open issues with `dispatch:cursor-ready` via **GitHub GraphQL** (fallback: paginated Issues API + **client-side label filter**). Do **not** use the Search API — colon labels (`dispatch:cursor-ready`) return zero results.
 2. Infer `WORK CLASSIFICATION` (system boundary, tenant, environment, work type, protected gate).
 3. Reject `dispatch:blocked` and protected-gate issues for claim (still post discovery + classification).
-4. Enforce WIP + concurrency (sibling products sequential by default).
+4. Enforce WIP + concurrency. Sibling product holds (e.g. #654 vs #653) do **not** suppress unrelated eligible ops work (e.g. #658 Slack retirement).
 5. Post acknowledgement comments when `GITHUB_TOKEN` has `issues: write` (GHA path).
-6. On claim: post `CURSOR WORK CLAIMED`, add `dispatch:cursor-claimed` + `status:in-progress`, remove `dispatch:cursor-ready`.
-7. Emit `cursor-issue-dispatch-scan.json` with `activationTargetIssue` for the existing activator.
+6. **Do not** apply `dispatch:cursor-claimed` or `status:in-progress` during scan. Claim labels are applied only after Cursor API returns a **real run ID** (`scripts/cursor-issue-dispatch-finalize.mjs`).
+7. Emit `cursor-issue-dispatch-scan.json` with `eligibleIssueNumbers`, `claimIssueNumbers`, and `activationTargetIssue` (max **one** live Cursor activation per GHA cycle).
 8. Stale claimed issues (no meaningful update beyond threshold): exception-only status request — no heartbeat spam.
+
+### Source issues vs open PRs
+
+**GitHub issues labelled `dispatch:cursor-ready` are activation inputs.** Open PRs from prior work are **not** automatically resumed or merged by the dispatcher. Each issue gets its own branch/PR cycle; operators merge manually after review.
 
 ### Preferred schedule
 
@@ -75,7 +80,7 @@ Research/documentation-only tasks may run separately only when they cannot confl
 | Preferred | every **30 minutes** (`*/30 * * * *`) |
 | Previous | every 2 hours |
 
-Cost remains negligible (Node script + GitHub API search). Scheduled `cursor_live` still requires `CURSOR_LIVE_ENABLED=true` and the throughput packet gate for dispatcher-sourced activations. Issue-label claims remain **comment/label** operations even when live activation is disabled.
+Cost remains negligible (Node script + GitHub API). Scheduled `cursor_live` still requires `CURSOR_LIVE_ENABLED=true` and the throughput packet gate for dispatcher-sourced activations.
 
 ## 6. Acknowledgement stages
 
@@ -84,7 +89,7 @@ Durable GitHub comments (templates in code):
 | Stage | Marker |
 |-------|--------|
 | A | `CURSOR DISPATCH DISCOVERED` |
-| B | `CURSOR WORK CLAIMED` (+ classification block) |
+| B | `CURSOR DISPATCH ACTIVATED` (run ID + claim labels after Cursor API success) |
 | C | `CURSOR PROGRESS UPDATE` (milestones only) |
 | D | `CURSOR PR OPENED` |
 | Ready | `CURSOR IMPLEMENTATION COMPLETE — READY FOR MERGE REVIEW` |
@@ -111,10 +116,11 @@ Codex must **not** claim implementation issues. Codex may only take bounded supp
 
 ```bash
 node --test node-tests/cursor-issue-dispatch-lifecycle.test.mjs
-node scripts/cursor-issue-dispatch-scan.mjs --dry-run --prefer 653,654
+node scripts/cursor-issue-dispatch-scan.mjs --dry-run --prefer 653,654,658
+node scripts/cursor-issue-dispatch-finalize.mjs --dry-run --scan-file cursor-issue-dispatch-scan.json
 ```
 
-`--apply-comments` / `--apply-labels` require a token with `issues: write` (GitHub Actions `github.token`). Cloud Agent integration tokens that are `issues: read` only cannot post lifecycle comments — the scheduled GHA job is the durable writer.
+`--apply-comments` requires a token with `issues: write` (GitHub Actions `github.token`). Claim labels require a successful Cursor run ID via the finalize step.
 
 ## 10. Related
 
@@ -124,3 +130,4 @@ node scripts/cursor-issue-dispatch-scan.mjs --dry-run --prefer 653,654
 - `docs/operations/OPERATOR_BRIDGE_V1.md`
 - Issues #249, #493, #511, #548 (throughput / activation context)
 - Revenue issues #653 (Lead Rescue), #654 (Website Rescue) — separate workstreams
+- Ops issue #658 (Slack retirement) — parallel ops lane when eligible

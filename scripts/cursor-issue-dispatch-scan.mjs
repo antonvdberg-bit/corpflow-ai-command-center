@@ -2,6 +2,12 @@
  * Scan GitHub issues labelled dispatch:cursor-ready and enforce segregated
  * Cursor claim lifecycle (extends factory dispatcher; does not replace it).
  *
+ * Discovery uses GraphQL (or paginated Issues API + client-side label filter).
+ * Search API is not used — colon labels return zero results.
+ *
+ * Claim labels are NOT applied here — only after Cursor API returns a real run ID
+ * (see scripts/cursor-issue-dispatch-finalize.mjs).
+ *
  * Usage:
  *   node scripts/cursor-issue-dispatch-scan.mjs --dry-run
  *   node scripts/cursor-issue-dispatch-scan.mjs --apply-comments
@@ -14,9 +20,8 @@ import path from 'node:path';
 
 import {
   DISPATCH_LABEL_CLAIMED,
-  DISPATCH_LABEL_IN_PROGRESS,
   DISPATCH_LABEL_READY,
-  formatDispatchClaimedComment,
+  discoverOpenIssuesByLabel,
   formatDispatchDiscoveredComment,
   formatWorkClassificationComment,
   isClaimStale,
@@ -45,46 +50,12 @@ function parseArgs(argv) {
   return {
     dryRun: argv.includes('--dry-run') || !argv.includes('--apply-comments'),
     applyComments: argv.includes('--apply-comments'),
-    applyLabels: argv.includes('--apply-labels'),
     preferIssueNumbers: preferRaw
       .split(/[,\s]+/)
       .map((s) => Number(s.trim()))
       .filter((n) => Number.isInteger(n) && n > 0),
     outPath: process.env.CURSOR_ISSUE_DISPATCH_SCAN_PATH || RESULT_PATH,
   };
-}
-
-/**
- * @param {string} token
- * @param {string} repo
- * @param {string} label
- * @param {typeof fetch} [fetchFn]
- */
-async function listOpenIssuesByLabel(token, repo, label, fetchFn = globalThis.fetch) {
-  const q = encodeURIComponent(`repo:${repo} is:issue is:open label:"${label}"`);
-  const url = `https://api.github.com/search/issues?q=${q}&per_page=50`;
-  const res = await fetchFn(url, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/vnd.github+json',
-      'X-GitHub-Api-Version': '2022-11-28',
-    },
-    signal: AbortSignal.timeout(30000),
-  });
-  const text = await res.text();
-  if (!res.ok) {
-    throw new Error(`GitHub search HTTP ${res.status}: ${text.slice(0, 300)}`);
-  }
-  const json = JSON.parse(text);
-  const items = Array.isArray(json.items) ? json.items : [];
-  return items.map((item) => ({
-    number: Number(item.number),
-    title: String(item.title || ''),
-    body: String(item.body || ''),
-    labels: Array.isArray(item.labels) ? item.labels : [],
-    htmlUrl: item.html_url ? String(item.html_url) : null,
-    updatedAt: item.updated_at ? String(item.updated_at) : null,
-  }));
 }
 
 /**
@@ -119,79 +90,35 @@ function hasCommentMarker(bodies, marker) {
   return bodies.some((body) => body.includes(marker));
 }
 
-/**
- * @param {string} token
- * @param {string} repo
- * @param {number} issueNumber
- * @param {string[]} labels
- * @param {typeof fetch} [fetchFn]
- */
-async function addIssueLabels(token, repo, issueNumber, labels, fetchFn = globalThis.fetch) {
-  const url = `https://api.github.com/repos/${repo}/issues/${issueNumber}/labels`;
-  const res = await fetchFn(url, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/vnd.github+json',
-      'X-GitHub-Api-Version': '2022-11-28',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ labels }),
-    signal: AbortSignal.timeout(30000),
-  });
-  const text = await res.text();
-  if (!res.ok) {
-    throw new Error(`GitHub add labels HTTP ${res.status}: ${text.slice(0, 300)}`);
-  }
-  return JSON.parse(text);
-}
-
-/**
- * @param {string} token
- * @param {string} repo
- * @param {number} issueNumber
- * @param {string} label
- * @param {typeof fetch} [fetchFn]
- */
-async function removeIssueLabel(token, repo, issueNumber, label, fetchFn = globalThis.fetch) {
-  const url = `https://api.github.com/repos/${repo}/issues/${issueNumber}/labels/${encodeURIComponent(label)}`;
-  const res = await fetchFn(url, {
-    method: 'DELETE',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/vnd.github+json',
-      'X-GitHub-Api-Version': '2022-11-28',
-    },
-    signal: AbortSignal.timeout(30000),
-  });
-  if (res.status === 404) return { ok: true, missing: true };
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`GitHub remove label HTTP ${res.status}: ${text.slice(0, 300)}`);
-  }
-  return { ok: true };
-}
-
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const token = String(process.env.GITHUB_TOKEN || process.env.GH_TOKEN || '').trim();
   const repo = String(process.env.GITHUB_REPOSITORY || process.env.GITHUB_REPO || DEFAULT_REPO).trim();
-  const agentRunId =
-    process.env.CURSOR_AGENT_RUN_ID ||
-    process.env.GITHUB_RUN_ID ||
-    process.env.CURSOR_CONVERSATION_ID ||
-    null;
 
   /** @type {import('../lib/server/cursor-issue-dispatch-lifecycle.js').DispatchIssue[]} */
   let readyIssues = [];
   /** @type {import('../lib/server/cursor-issue-dispatch-lifecycle.js').DispatchIssue[]} */
   let claimedIssues = [];
+  /** @type {Record<string, unknown>} */
+  const discovery = {
+    method: token ? 'graphql_or_rest' : 'none',
+    readyLabel: DISPATCH_LABEL_READY,
+    claimedLabel: DISPATCH_LABEL_CLAIMED,
+    readyCount: 0,
+    claimedCount: 0,
+    readyIssueNumbers: [],
+    claimedIssueNumbers: [],
+  };
 
   if (!token) {
     console.log('GITHUB_TOKEN missing — emitting empty dry-run plan (fail soft for forks)');
   } else {
-    readyIssues = await listOpenIssuesByLabel(token, repo, DISPATCH_LABEL_READY);
-    claimedIssues = await listOpenIssuesByLabel(token, repo, DISPATCH_LABEL_CLAIMED);
+    readyIssues = await discoverOpenIssuesByLabel(token, repo, DISPATCH_LABEL_READY);
+    claimedIssues = await discoverOpenIssuesByLabel(token, repo, DISPATCH_LABEL_CLAIMED);
+    discovery.readyCount = readyIssues.length;
+    discovery.claimedCount = claimedIssues.length;
+    discovery.readyIssueNumbers = readyIssues.map((i) => Number(i.number));
+    discovery.claimedIssueNumbers = claimedIssues.map((i) => Number(i.number));
   }
 
   const plan = planCursorIssueClaims({
@@ -216,14 +143,16 @@ async function main() {
       issueNumber,
       priority: String(priority),
       classificationComplete: true,
-      eligibleToClaim: decision.decision === 'claim',
+      eligibleToClaim: decision.eligibleToClaim,
       reason: decision.reason,
       nextAction:
         decision.decision === 'claim'
-          ? `Claim on branch ${branch}; open separate PR; do not combine with sibling workstreams.`
+          ? `Eligible — await Cursor activation run ID before claim labels; branch ${branch}.`
           : decision.decision === 'reject'
             ? 'Leave blocked until label cleared.'
-            : 'Hold claim; re-scan after WIP/gate clears.',
+            : decision.eligibleToClaim
+              ? 'Eligible but held this cycle (WIP/sequencing); re-scan after capacity clears.'
+              : 'Hold claim; re-scan after WIP/gate clears.',
     });
 
     const classificationComment = formatWorkClassificationComment(
@@ -235,34 +164,21 @@ async function main() {
     const action = {
       issue: issueNumber,
       decision: decision.decision,
+      eligibleToClaim: decision.eligibleToClaim,
       reason: decision.reason,
       branch,
       classification: decision.classification,
       comments: {
         discovered,
         classification: classificationComment,
-        claimed: null,
       },
       posted: [],
       skippedPosts: [],
-      labelsApplied: [],
     };
-
-    if (decision.decision === 'claim') {
-      action.comments.claimed = formatDispatchClaimedComment({
-        issueNumber,
-        agentRunId,
-        branch,
-        workstream: decision.classification.productWorkstream || decision.classification.workTypes[0],
-        tenantOrClient: decision.classification.tenantOrClient,
-        environment: decision.classification.environment,
-        protectedGate: decision.classification.protectedGate,
-      });
-    }
 
     /** @type {string[]} */
     let existingBodies = [];
-    if ((args.applyComments || args.applyLabels) && token) {
+    if (args.applyComments && token) {
       try {
         existingBodies = await listIssueCommentBodies(token, repo, issueNumber);
       } catch (err) {
@@ -290,43 +206,14 @@ async function main() {
         } else {
           action.skippedPosts.push('classification');
         }
-        if (
-          decision.decision === 'claim' &&
-          action.comments.claimed &&
-          !hasCommentMarker(existingBodies, 'CURSOR WORK CLAIMED')
-        ) {
-          const claimedBody = String(action.comments.claimed);
-          const cl = await postGitHubIssueComment(issueNumber, claimedBody, {
-            token,
-            repoFullName: repo,
-          });
-          action.posted.push({ kind: 'claimed', ...cl });
-        } else if (decision.decision === 'claim') {
-          action.skippedPosts.push('claimed');
-        }
       } catch (err) {
         action.commentError = err instanceof Error ? err.message : String(err);
-      }
-    }
-
-    if (args.applyLabels && token && decision.decision === 'claim') {
-      try {
-        await addIssueLabels(token, repo, issueNumber, [
-          DISPATCH_LABEL_CLAIMED,
-          DISPATCH_LABEL_IN_PROGRESS,
-        ]);
-        await removeIssueLabel(token, repo, issueNumber, DISPATCH_LABEL_READY);
-        action.labelsApplied = [DISPATCH_LABEL_CLAIMED, DISPATCH_LABEL_IN_PROGRESS];
-        action.labelsRemoved = [DISPATCH_LABEL_READY];
-      } catch (err) {
-        action.labelError = err instanceof Error ? err.message : String(err);
       }
     }
 
     actions.push(action);
   }
 
-  /** Stale claimed recovery (exception-only). */
   for (const issue of claimedIssues) {
     if (!isClaimStale(issue)) continue;
     const body = formatStaleWorkStatusRequest(issue.number);
@@ -344,7 +231,6 @@ async function main() {
         const recentStale = existing
           .filter((b) => b.includes('CURSOR STALE WORK STATUS REQUEST'))
           .slice(-1)[0];
-        // Avoid repetitive heartbeat: skip if a stale request already exists.
         if (recentStale) {
           staleAction.skippedPosts.push('stale');
         } else {
@@ -367,31 +253,37 @@ async function main() {
     repo,
     dryRun: args.dryRun && !args.applyComments,
     applyComments: args.applyComments,
-    applyLabels: args.applyLabels,
     preferIssueNumbers: args.preferIssueNumbers,
+    discovery,
     wipLimits: plan.wipLimits,
     claimedCount: plan.claimedCount,
     availableSlots: plan.availableSlots,
+    eligibleIssueNumbers: plan.eligibleIssueNumbers,
     claimIssueNumbers: plan.claimIssueNumbers,
-    /** First claim only — preserves max-1 Cursor activation handoff to existing activator. */
-    activationTargetIssue: plan.claimIssueNumbers[0] || null,
+    activationTargetIssue: plan.activationTargetIssue,
     actions,
   };
 
   fs.writeFileSync(path.resolve(args.outPath), `${JSON.stringify(result, null, 2)}\n`);
-  console.log(JSON.stringify({
-    schema: result.schema,
-    claimIssueNumbers: result.claimIssueNumbers,
-    activationTargetIssue: result.activationTargetIssue,
-    actionCount: actions.length,
-    outPath: args.outPath,
-    dryRun: result.dryRun,
-  }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        schema: result.schema,
+        discovery: result.discovery,
+        eligibleIssueNumbers: result.eligibleIssueNumbers,
+        claimIssueNumbers: result.claimIssueNumbers,
+        activationTargetIssue: result.activationTargetIssue,
+        actionCount: actions.length,
+        outPath: args.outPath,
+        dryRun: result.dryRun,
+      },
+      null,
+      2,
+    ),
+  );
 
-  // Comment/label mutation failures are recorded but do not fail the scheduled
-  // activator (labels may be missing until created). Exit 0 so activation can proceed.
-  if (actions.some((a) => a.commentError || a.labelError)) {
-    console.error('One or more comment/label mutations failed — see scan JSON (non-fatal)');
+  if (actions.some((a) => a.commentError)) {
+    console.error('One or more comment mutations failed — see scan JSON (non-fatal)');
   }
 }
 
