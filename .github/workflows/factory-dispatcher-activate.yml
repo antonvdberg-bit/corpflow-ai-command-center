@@ -3,6 +3,9 @@
 # Optional target_issue bypasses dispatcher cursor routings for one direct GitHub issue.
 # Scheduled runs become cursor_live only when repository variable/secret CURSOR_LIVE_ENABLED=true.
 #
+# Also scans open issues labelled dispatch:cursor-ready (segregated claim lifecycle) before
+# activation. Does not create a second dispatcher — see CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1.
+#
 # Repo secrets (Settings → Secrets and variables → Actions):
 # - CORPFLOW_CORE_BASE_URL   e.g. https://core.corpflowai.com
 # - CORPFLOW_CRON_SECRET     same value as Vercel CORPFLOW_CRON_SECRET / CRON_SECRET
@@ -14,13 +17,16 @@
 #
 # References:
 #   docs/execution/DISPATCHER_AGENT_ACTIVATION_V1.md
+#   docs/operations/CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1.md
 #   scripts/dispatcher-agent-activation.mjs
+#   scripts/cursor-issue-dispatch-scan.mjs
 
 name: Factory dispatcher activate
 
 on:
   schedule:
-    - cron: "0 */2 * * *" # Every 2 hours at :00 UTC — dry_run unless CURSOR_LIVE_ENABLED=true
+    # Every 30 minutes — issue-label scan + dry_run unless CURSOR_LIVE_ENABLED=true
+    - cron: "*/30 * * * *"
   workflow_dispatch:
     inputs:
       activation_mode:
@@ -140,13 +146,53 @@ jobs:
           CURSOR_KEY_PRESENT: ${{ secrets.CURSOR_API_KEY != '' && '1' || '' }}
           CURSOR_LIVE_ENABLED_PRESENT: ${{ (vars.CURSOR_LIVE_ENABLED != '' || secrets.CURSOR_LIVE_ENABLED != '') && '1' || '' }}
 
+      - name: Scan dispatch:cursor-ready issues (segregated lifecycle)
+        id: issue_scan
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REPO: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          CURSOR_ISSUE_DISPATCH_SCAN_PATH: cursor-issue-dispatch-scan.json
+        run: |
+          set -euo pipefail
+          # GHA token has issues:write — durable discovery/claim comments + labels.
+          # Priority order: explicit --prefer (none here) → priority:P0 → revenue → issue number.
+          # Sibling products (e.g. Lead Rescue vs Website Rescue) remain sequential by default.
+          node scripts/cursor-issue-dispatch-scan.mjs --apply-comments --apply-labels
+          if [ -f cursor-issue-dispatch-scan.json ]; then
+            target="$(node -e "const j=require('./cursor-issue-dispatch-scan.json'); process.stdout.write(j.activationTargetIssue!=null?String(j.activationTargetIssue):'')")"
+            echo "activation_target_issue=${target}" >> "$GITHUB_OUTPUT"
+            echo "Issue scan activationTargetIssue=${target:-none}"
+          else
+            echo "activation_target_issue=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Resolve effective target issue
+        id: target
+        run: |
+          set -euo pipefail
+          # Manual workflow_dispatch target_issue wins; else use scan claim handoff.
+          manual="${{ steps.mode.outputs.target_issue }}"
+          scanned="${{ steps.issue_scan.outputs.activation_target_issue }}"
+          if [ -n "${manual}" ]; then
+            echo "target_issue=${manual}" >> "$GITHUB_OUTPUT"
+            echo "Effective target_issue=${manual} (manual)"
+          elif [ -n "${scanned}" ]; then
+            echo "target_issue=${scanned}" >> "$GITHUB_OUTPUT"
+            echo "Effective target_issue=${scanned} (issue-label scan claim)"
+          else
+            echo "target_issue=" >> "$GITHUB_OUTPUT"
+            echo "Effective target_issue=(blank — dispatcher fetch)"
+          fi
+
       - name: Run dispatcher activation
         env:
           DISPATCHER_ACTIVATION_MODE: ${{ steps.mode.outputs.mode }}
           ACTIVATION_MODE: ${{ steps.mode.outputs.mode }}
           DISPATCHER_ACTIVATION_SMOKE_INTERNAL: ${{ steps.mode.outputs.smoke_internal }}
-          DISPATCHER_ACTIVATION_TARGET_ISSUE: ${{ steps.mode.outputs.target_issue }}
-          TARGET_ISSUE: ${{ steps.mode.outputs.target_issue }}
+          DISPATCHER_ACTIVATION_TARGET_ISSUE: ${{ steps.target.outputs.target_issue }}
+          TARGET_ISSUE: ${{ steps.target.outputs.target_issue }}
           DISPATCHER_ACTIVATION_EVENT_NAME: ${{ github.event_name }}
           DISPATCHER_ACTIVATION_STATE_PATH: .dispatcher-activation-state/dedupe.json
           CURSOR_LIVE_ENABLED: ${{ vars.CURSOR_LIVE_ENABLED || secrets.CURSOR_LIVE_ENABLED || '' }}
@@ -174,6 +220,7 @@ jobs:
             activation-plan.json
             activation-audit.json
             cursor-ops-status.json
+            cursor-issue-dispatch-scan.json
             .dispatcher-activation-state/dedupe.json
           if-no-files-found: ignore
           retention-days: 7
