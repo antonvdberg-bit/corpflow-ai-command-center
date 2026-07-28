@@ -5,6 +5,11 @@ import {
   LUXE_MAURICE_BRAND_TOKENS as T,
 } from '../lib/client/luxe-maurice-brand-theme.js';
 import { LuxeMauriceFontStylesheet } from './LuxeMauriceBrandPrimitives.js';
+import {
+  RareExclusiveFullLockup,
+  RareExclusiveHorizontalWordmark,
+  RareExclusiveMonogram,
+} from './RareExclusiveBrandMarks.js';
 
 /**
  * Rare & Exclusive Collection — Ivory Editorial shell (Concept A reference).
@@ -56,160 +61,49 @@ export const RARE_EXCLUSIVE_NAV = Object.freeze([
 ]);
 
 /**
- * Gold R&E crest with crown — Concept A monogram treatment (SVG, repo-native).
+ * @deprecated Prefer RareExclusiveMonogram — kept as a thin alias so older
+ * call sites resolve to the Jan-approved compact mark (no crown/shield).
  */
 export function RareExclusiveCrest({ size = 52, title = RARE_EXCLUSIVE_PUBLIC_BRAND }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 64 64"
-      role="img"
-      aria-label={title}
-      style={{ display: 'block', color: T.gold }}
-    >
-      <title>{title}</title>
-      {/* Crown */}
-      <path
-        d="M18 16 L24 22 L32 12 L40 22 L46 16 L44 26 L20 26 Z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinejoin="miter"
-      />
-      <circle cx="32" cy="10" r="1.6" fill="currentColor" />
-      {/* Shield oval */}
-      <ellipse
-        cx="32"
-        cy="40"
-        rx="18"
-        ry="16"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-      />
-      <text
-        x="32"
-        y="45"
-        textAnchor="middle"
-        fill="currentColor"
-        fontFamily='"Cormorant Garamond", Georgia, serif'
-        fontSize="14"
-        fontWeight="600"
-        letterSpacing="0.08em"
-      >
-        {'R&E'}
-      </text>
-    </svg>
-  );
+  return <RareExclusiveMonogram size={size} title={title} />;
 }
 
 /**
- * Stacked Rare / & / Exclusive wordmark with gold ampersand.
- *
- * @param {{ tone?: 'charcoal' | 'ivory', size?: 'hero' | 'medium' | 'small' | 'nav', showSignature?: boolean, align?: 'center' | 'start' }} props
+ * @deprecated Prefer RareExclusiveFullLockup / RareExclusiveHorizontalWordmark.
+ * Hero-sized call sites map to the full lockup; nav-sized to the horizontal mark.
  */
 export function RareExclusiveStackedWordmark({
   tone = 'charcoal',
   size = 'hero',
-  showSignature = false,
+  showSignature = true,
   align = 'center',
 }) {
-  const isIvory = tone === 'ivory';
-  const color = isIvory ? T.ivory : T.charcoal;
-  const wordSize =
-    size === 'hero'
-      ? 'clamp(2.35rem, 4.2vw, 4.35rem)'
-      : size === 'medium'
-        ? 28
-        : size === 'nav'
-          ? 15
-          : 18;
-  const ampSize =
-    size === 'hero'
-      ? 'clamp(1.35rem, 2.4vw, 2.15rem)'
-      : size === 'medium'
-        ? 20
-        : size === 'nav'
-          ? 12
-          : 14;
-  const track = size === 'hero' ? '0.1em' : size === 'nav' ? '0.14em' : '0.12em';
-  const alignItems = align === 'start' ? 'flex-start' : 'center';
-  const textAlign = align === 'start' ? 'left' : 'center';
-
+  if (size === 'nav' || size === 'small') {
+    return (
+      <div style={{ display: 'flex', justifyContent: align === 'start' ? 'flex-start' : 'center' }}>
+        <RareExclusiveHorizontalWordmark
+          height={size === 'nav' ? 16 : 18}
+          tone={tone}
+        />
+      </div>
+    );
+  }
   return (
-    <span
-      style={{
-        display: 'inline-flex',
-        flexDirection: 'column',
-        alignItems,
-        textAlign,
-        color,
-        maxWidth: '100%',
-        minWidth: 0,
-      }}
-    >
-      <span
-        style={{
-          fontFamily: T.fontDisplay,
-          fontWeight: 400,
-          fontSize: wordSize,
-          lineHeight: 0.9,
-          letterSpacing: track,
-          textTransform: 'uppercase',
-          paddingLeft: track,
-          whiteSpace: 'nowrap',
-        }}
-      >
-        Rare
-      </span>
-      <span
-        aria-hidden="true"
-        style={{
-          margin: size === 'hero' ? '0.18em 0 0.12em' : '0.12em 0 0.08em',
-          fontFamily: T.fontDisplay,
-          fontWeight: 400,
-          fontStyle: 'italic',
-          fontSize: ampSize,
-          lineHeight: 1,
-          color: T.gold,
-        }}
-      >
-        &amp;
-      </span>
-      <span
-        style={{
-          fontFamily: T.fontDisplay,
-          fontWeight: 400,
-          fontSize: wordSize,
-          lineHeight: 0.9,
-          letterSpacing: track,
-          textTransform: 'uppercase',
-          paddingLeft: track,
-          whiteSpace: 'nowrap',
-        }}
-      >
-        Exclusive
-      </span>
-      {showSignature ? (
-        <span
-          style={{
-            marginTop: size === 'hero' ? 22 : 10,
-            fontFamily: T.fontBody,
-            fontSize: size === 'hero' ? 11 : 9.5,
-            fontWeight: 700,
-            letterSpacing: '0.28em',
-            lineHeight: 1.4,
-            color: T.gold,
-            textTransform: 'uppercase',
-          }}
-        >
-          {RARE_EXCLUSIVE_PUBLIC_BRAND}
-        </span>
-      ) : null}
-    </span>
+    <div style={{ display: 'flex', justifyContent: align === 'start' ? 'flex-start' : 'center' }}>
+      <RareExclusiveFullLockup
+        showMonogram={showSignature !== false}
+        tone={tone}
+        width={size === 'medium' ? 300 : 380}
+      />
+    </div>
   );
 }
+
+export {
+  RareExclusiveFullLockup,
+  RareExclusiveHorizontalWordmark,
+  RareExclusiveMonogram,
+};
 
 /**
  * Mauritius villa / lifestyle visual panel.
@@ -510,7 +404,8 @@ export function RareExclusiveFeatureBar() {
 }
 
 /**
- * Concept A header: centered gold crest + right fine-line nav + Invitation Only.
+ * Ivory header: Jan-approved horizontal wordmark + fine-line nav + Invitation Only.
+ * Compact monogram shown on narrow viewports where the wordmark would crowd the nav.
  */
 export function RareExclusiveIvoryHeader({ activeHref = '' }) {
   return (
@@ -528,18 +423,29 @@ export function RareExclusiveIvoryHeader({ activeHref = '' }) {
           maxWidth: RARE_EXCLUSIVE_EDITORIAL_MAX,
           margin: '0 auto',
           display: 'grid',
-          gridTemplateColumns: '56px 1fr',
+          gridTemplateColumns: 'minmax(140px, 280px) 1fr',
           alignItems: 'center',
           gap: 16,
-          padding: '18px clamp(20px, 4vw, 40px)',
+          padding: '16px clamp(20px, 4vw, 40px)',
         }}
       >
       <Link
         href="/"
-        style={{ textDecoration: 'none', justifySelf: 'start' }}
+        style={{
+          textDecoration: 'none',
+          justifySelf: 'start',
+          display: 'inline-flex',
+          alignItems: 'center',
+          minWidth: 0,
+        }}
         aria-label={`${RARE_EXCLUSIVE_PUBLIC_BRAND} home`}
       >
-        <RareExclusiveCrest size={48} />
+        <span className="re-header-wordmark">
+          <RareExclusiveHorizontalWordmark height={18} maxWidth="100%" />
+        </span>
+        <span className="re-header-monogram" style={{ display: 'none' }}>
+          <RareExclusiveMonogram size={40} withPlate />
+        </span>
       </Link>
       <nav
         aria-label={RARE_EXCLUSIVE_PUBLIC_BRAND}
@@ -602,8 +508,12 @@ export function RareExclusiveIvoryHeader({ activeHref = '' }) {
       </nav>
       </div>
       <style>{`
+        @media (max-width: 900px) {
+          .re-ivory-header > div { grid-template-columns: auto 1fr !important; }
+          .re-header-wordmark { display: none !important; }
+          .re-header-monogram { display: inline-flex !important; }
+        }
         @media (max-width: 720px) {
-          .re-ivory-header > div { grid-template-columns: 1fr !important; }
           .re-feature-bar { grid-template-columns: 1fr 1fr !important; }
           .re-journey-grid { grid-template-columns: 1fr !important; }
           .re-promise-grid { grid-template-columns: 1fr !important; }
@@ -617,7 +527,7 @@ export function RareExclusiveIvoryHeader({ activeHref = '' }) {
 }
 
 /**
- * Concept A footer: privilege quote flanked by gold hairlines + crest.
+ * Ivory footer: privilege quote + Jan-approved full lockup.
  */
 export function RareExclusiveIvoryFooter({ note }) {
   return (
@@ -663,8 +573,8 @@ export function RareExclusiveIvoryFooter({ note }) {
           style={{ flex: '0 0 48px', height: 1, background: T.gold, opacity: 0.65 }}
         />
       </div>
-      <div style={{ margin: '36px auto 0', display: 'flex', justifyContent: 'center' }}>
-        <RareExclusiveCrest size={36} />
+      <div style={{ margin: '40px auto 0', display: 'flex', justifyContent: 'center' }}>
+        <RareExclusiveFullLockup showMonogram width={300} maxWidth="min(100%, 340px)" />
       </div>
       <p
         style={{
@@ -767,7 +677,7 @@ export function RareExclusiveInteriorHero({
     >
       <div style={{ padding: 'clamp(44px, 6vw, 80px) clamp(28px, 4vw, 56px)', minWidth: 0 }}>
         <div style={{ marginBottom: 20 }}>
-          <RareExclusiveCrest size={40} />
+          <RareExclusiveMonogram size={44} />
         </div>
         {eyebrow ? (
           <div

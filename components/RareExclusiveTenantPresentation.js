@@ -11,11 +11,11 @@ import {
   RareExclusiveEditorialSpine,
   RareExclusiveEnquirySteps,
   RareExclusiveFeatureBar,
+  RareExclusiveFullLockup,
   RareExclusiveHeroVisual,
   RareExclusiveIvoryFooter,
   RareExclusiveIvoryHeader,
   RareExclusiveOpaquePanel,
-  RareExclusiveStackedWordmark,
   RareExclusiveTextLink,
   rareExclusiveCtaGoldStyle,
   rareExclusivePageShellStyle,
@@ -32,10 +32,10 @@ function safeStr(v) {
  * Visual target: approved Concept A reference for Issue #633.
  * Client test URL: lux.corpflowai.com (Vercel previews are internal only).
  *
- * Layout: centered R&E crest header · split hero (stacked wordmark + lifestyle
- * visual) · four-pillar feature bar · alternating Private Opportunities /
- * Owner Experience bands · privilege footer. Public copy uses Rare & Exclusive
- * Collection. Apex / core surfaces untouched.
+ * Layout: Jan-approved horizontal wordmark header · split hero (full lockup +
+ * lifestyle visual) · four-pillar feature bar · curated opportunities ·
+ * Private Opportunities / Owner Experience bands · full-lockup footer.
+ * Apex / core surfaces untouched.
  */
 export default function RareExclusiveTenantPresentation({ site }) {
   const s = site || {};
@@ -134,31 +134,15 @@ export default function RareExclusiveTenantPresentation({ site }) {
               overflow: 'visible',
             }}
           >
-            <RareExclusiveStackedWordmark
-              tone="charcoal"
-              size="hero"
-              showSignature={false}
-              align="start"
-            />
+            <div style={{ maxWidth: 420 }}>
+              <RareExclusiveFullLockup showMonogram width={380} maxWidth="100%" />
+            </div>
             <p
               style={{
-                margin: '28px 0 0',
+                margin: '22px 0 0',
+                maxWidth: 440,
                 fontFamily: T.fontDisplay,
-                fontSize: 13,
-                fontWeight: 500,
-                letterSpacing: '0.22em',
-                textTransform: 'uppercase',
-                color: T.gold,
-              }}
-            >
-              {RARE_EXCLUSIVE_PUBLIC_BRAND}
-            </p>
-            <p
-              style={{
-                margin: '16px 0 0',
-                maxWidth: 420,
-                fontFamily: T.fontDisplay,
-                fontSize: 'clamp(1.2rem, 2vw, 1.55rem)',
+                fontSize: 'clamp(1.15rem, 2vw, 1.45rem)',
                 fontStyle: 'italic',
                 lineHeight: 1.45,
                 color: '#4A433A',
@@ -168,7 +152,7 @@ export default function RareExclusiveTenantPresentation({ site }) {
             </p>
             <p
               style={{
-                margin: '18px 0 0',
+                margin: '16px 0 0',
                 maxWidth: 440,
                 fontFamily: T.fontBody,
                 fontSize: 14.5,
