@@ -547,6 +547,17 @@ export default function ChangeConsolePage() {
   const [clientDecisionLink, setClientDecisionLink] = useState('');
   const [clientDecisionExpiresAt, setClientDecisionExpiresAt] = useState('');
   const [clientDecisionStatus, setClientDecisionStatus] = useState('');
+
+  // CIPC Desk: first-slice operator controls (preview-only / fictional data).
+  const [cipcDeskEmailPaste, setCipcDeskEmailPaste] = useState('');
+  const [cipcDeskInterpretBusy, setCipcDeskInterpretBusy] = useState(false);
+  const [cipcDeskInterpretStatus, setCipcDeskInterpretStatus] = useState('');
+  const [cipcDeskInterpretMagicLink, setCipcDeskInterpretMagicLink] = useState('');
+  const [cipcDeskInterpretMagicExpiresAt, setCipcDeskInterpretMagicExpiresAt] = useState('');
+  const [cipcDeskChecklistItemsDraft, setCipcDeskChecklistItemsDraft] = useState([]);
+  const [cipcDeskClientReplyDraft, setCipcDeskClientReplyDraft] = useState('');
+  const [cipcDeskUpdateBusy, setCipcDeskUpdateBusy] = useState(false);
+  const [cipcDeskUpdateStatus, setCipcDeskUpdateStatus] = useState('');
   const [leads, setLeads] = useState([]);
   const [selectedLeadId, setSelectedLeadId] = useState('');
   const [leadPatchBusy, setLeadPatchBusy] = useState(false);
@@ -696,7 +707,14 @@ export default function ChangeConsolePage() {
   const stageTabs = useMemo(() => ['Intake', 'Clarify', 'Draft', 'Review', 'Build'], []);
 
   async function refreshUiContext() {
-    const r = await fetch('/api/ui/context', { credentials: 'include' });
+    let cfPreview = '';
+    try {
+      cfPreview = new URLSearchParams(window.location.search).get('cf_preview') || '';
+    } catch {
+      cfPreview = '';
+    }
+    const uiContextUrl = cfPreview ? `/api/ui/context?cf_preview=${encodeURIComponent(String(cfPreview))}` : '/api/ui/context';
+    const r = await fetch(uiContextUrl, { credentials: 'include' });
     const j = await r.json().catch(() => ({}));
     if (!r.ok || !j || j.ok !== true) throw new Error(j?.error || 'ui/context failed');
     setUiContext(j);
@@ -726,6 +744,22 @@ export default function ChangeConsolePage() {
     setTicket(j);
     const wf = j?.ticket_progress?.client_view?.workflow_state || '';
     setStage(stageForWorkflowState(wf));
+
+    // CIPC Desk: sync editable preview drafts.
+    const cipc = j?.ticket_progress?.client_view && typeof j.ticket_progress.client_view === 'object' ? j.ticket_progress.client_view.cipc_desk : null;
+    const cipcObj = cipc && typeof cipc === 'object' ? cipc : null;
+    if (cipcObj) {
+      const nextDraft = typeof cipcObj.client_reply_draft === 'string' ? cipcObj.client_reply_draft : '';
+      setCipcDeskClientReplyDraft(nextDraft);
+      const items = cipcObj?.checklist && typeof cipcObj.checklist === 'object' ? cipcObj.checklist.items : null;
+      const list = Array.isArray(items) ? items.map((it) => (it && typeof it === 'object' ? { ...it } : {})) : [];
+      setCipcDeskChecklistItemsDraft(list);
+    } else {
+      setCipcDeskClientReplyDraft('');
+      setCipcDeskChecklistItemsDraft([]);
+      setCipcDeskInterpretMagicLink('');
+      setCipcDeskInterpretMagicExpiresAt('');
+    }
     return j;
   }
 
@@ -2251,6 +2285,89 @@ export default function ChangeConsolePage() {
     }
   }
 
+  async function interpretCipcDeskEmailFromPaste() {
+    setCipcDeskInterpretBusy(true);
+    setCipcDeskInterpretStatus('');
+    try {
+      const emailText = String(cipcDeskEmailPaste || '').trim();
+      if (!emailText) throw new Error('Paste a fictional client email first.');
+
+      let cfPreview = '';
+      try {
+        cfPreview = new URLSearchParams(window.location.search).get('cf_preview') || '';
+      } catch {
+        cfPreview = '';
+      }
+      const q = cfPreview ? `?cf_preview=${encodeURIComponent(String(cfPreview))}` : '';
+
+      const r = await fetch(`/api/cipc-desk/email-intake${q}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email_text: emailText, attachments: [] }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(String(j?.error || j?.detail || j?.hint || `http_${r.status}`));
+
+      const nextTicketId = String(j?.ticket_id || j?.ticketId || '').trim();
+      if (!nextTicketId) throw new Error('email-intake did not return ticket_id');
+
+      setSelectedTicketId(nextTicketId);
+      setCipcDeskInterpretMagicLink(String(j?.magic_link_url || '').trim());
+      setCipcDeskInterpretMagicExpiresAt(String(j?.expires_at || '').trim());
+      setCipcDeskInterpretStatus('Ticket created. Operator review can now update the checklist + draft.');
+
+      await loadQueue();
+      await loadTicketById(nextTicketId);
+      setCipcDeskEmailPaste('');
+    } catch (e) {
+      setCipcDeskInterpretStatus(String(e?.message || e));
+    } finally {
+      setCipcDeskInterpretBusy(false);
+    }
+  }
+
+  async function saveCipcDeskOperatorUpdates() {
+    setCipcDeskUpdateBusy(true);
+    setCipcDeskUpdateStatus('');
+    try {
+      const tid = String(selectedTicketId || '').trim();
+      if (!tid) throw new Error('Select a CIPC ticket first.');
+
+      const checklistItems = Array.isArray(cipcDeskChecklistItemsDraft) ? cipcDeskChecklistItemsDraft : [];
+      const checklist_updates = checklistItems
+        .map((it) => {
+          if (!it || typeof it !== 'object') return null;
+          const key = typeof it.key === 'string' ? it.key.trim() : '';
+          const status = typeof it.status === 'string' ? it.status.trim().toLowerCase() : '';
+          if (!key) return null;
+          if (!status) return { key, status: 'pending' };
+          return { key, status };
+        })
+        .filter(Boolean);
+
+      const r = await fetch('/api/cmp/router?action=cipc-desk-ticket-update', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ticket_id: tid,
+          checklist_items: checklist_updates,
+          client_reply_draft: String(cipcDeskClientReplyDraft || ''),
+        }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(String(j?.error || j?.detail || j?.hint || `http_${r.status}`));
+
+      setCipcDeskUpdateStatus('Saved. Reloaded latest ticket state.');
+      await loadTicketById(tid);
+    } catch (e) {
+      setCipcDeskUpdateStatus(String(e?.message || e));
+    } finally {
+      setCipcDeskUpdateBusy(false);
+    }
+  }
+
   const wf = ticket?.ticket_progress?.client_view?.workflow_state || '';
   const needClientDecision = String(wf || '').trim() === 'awaiting_client_programme_decisions';
   const wfLabel = ticket ? workflowLabel(String(wf || '')) : '—';
@@ -2274,6 +2391,9 @@ export default function ChangeConsolePage() {
     String(ticket?.stage || '').trim().toLowerCase() === 'build';
   const luxPhase1ReviewDone = ticket?.client_decisions_summary?.sufficient_to_proceed === true;
   const luxRecoveryRoadmapDone = ticket?.client_decisions_summary?.sufficient_to_proceed === true;
+  const cipcDesk =
+    cv && typeof cv === 'object' && cv.cipc_desk && typeof cv.cipc_desk === 'object' ? cv.cipc_desk : null;
+  const showCipcDeskOperatorPanel = Boolean(cipcDesk && approvedBuild);
   const recoveryOperatorSignal =
     ticket?.operator_signal && typeof ticket.operator_signal === 'object' ? ticket.operator_signal : null;
   const recoveryDecisionAnswers = Array.isArray(ticket?.client_decisions_answers)
@@ -2291,6 +2411,7 @@ export default function ChangeConsolePage() {
     (recoveryOperatorSignal?.type === 'client_product_direction_confirmation' ||
       recoveryOperatorSignal?.type === 'client_answers_received');
   const showGenericClientDecisionPanel =
+    !showCipcDeskOperatorPanel &&
     needClientDecision &&
     String(selectedTicketId || '').trim() !== LUX_PHASE1_REVIEW_TICKET_ID &&
     String(selectedTicketId || '').trim() !== LUX_RECOVERY_ROADMAP_TICKET_ID &&
@@ -3713,6 +3834,264 @@ export default function ChangeConsolePage() {
                   ) : null}
                   {clientDecisionStatus ? (
                     <div style={{ marginTop: 8, fontSize: 11, color: '#94a3b8' }}>{clientDecisionStatus}</div>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {showCipcDeskOperatorPanel ? (
+                <div
+                  style={{
+                    marginTop: 14,
+                    border: '1px solid rgba(56,189,248,0.35)',
+                    borderRadius: 14,
+                    padding: 14,
+                    background: 'rgba(56,189,248,0.08)',
+                  }}
+                >
+                  <div style={{ fontSize: 12, fontWeight: 950, color: '#e0f2fe' }}>CIPC Desk operator review (preview)</div>
+                  <div style={{ marginTop: 6, fontSize: 12, color: '#cbd5e1', lineHeight: 1.45 }}>
+                    This is a private preview slice. Service requirements, documents, turnaround, and pricing are provisional until Serah validates.
+                  </div>
+
+                  <details style={{ marginTop: 12 }}>
+                    <summary style={{ cursor: 'pointer', fontSize: 12, fontWeight: 900, color: '#93c5fd' }}>
+                      Paste a fictional client email (simulate inbound)
+                    </summary>
+                    <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
+                      <textarea
+                        value={cipcDeskEmailPaste}
+                        onChange={(e) => setCipcDeskEmailPaste(e.target.value)}
+                        placeholder="Paste a fictional client email: requested matter + any identifiers you want Serah to validate."
+                        style={{
+                          width: '100%',
+                          minHeight: 120,
+                          maxHeight: 240,
+                          resize: 'vertical',
+                          padding: 10,
+                          borderRadius: 12,
+                          border: '1px solid rgba(148,163,184,0.25)',
+                          background: 'rgba(2,6,23,0.35)',
+                          color: '#e2e8f0',
+                          fontSize: 13,
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => void interpretCipcDeskEmailFromPaste()}
+                        disabled={cipcDeskInterpretBusy}
+                        style={{
+                          padding: '10px 12px',
+                          borderRadius: 12,
+                          border: 'none',
+                          background: cipcDeskInterpretBusy ? '#94a3b8' : '#38bdf8',
+                          color: '#020617',
+                          fontWeight: 950,
+                          cursor: cipcDeskInterpretBusy ? 'not-allowed' : 'pointer',
+                          alignSelf: 'start',
+                        }}
+                      >
+                        {cipcDeskInterpretBusy ? 'Interpreting…' : 'Create/update ticket from email'}
+                      </button>
+                      {cipcDeskInterpretStatus ? (
+                        <div style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.45 }}>{cipcDeskInterpretStatus}</div>
+                      ) : null}
+                      {cipcDeskInterpretMagicLink ? (
+                        <div style={{ marginTop: 8 }}>
+                          <div style={{ fontSize: 11, color: '#94a3b8' }}>Magic link returned from preview email intake:</div>
+                          <input
+                            readOnly
+                            value={cipcDeskInterpretMagicLink}
+                            style={{
+                              width: '100%',
+                              maxWidth: '100%',
+                              minWidth: 0,
+                              boxSizing: 'border-box',
+                              padding: 10,
+                              borderRadius: 12,
+                              border: '1px solid rgba(148,163,184,0.25)',
+                              background: 'rgba(2,6,23,0.45)',
+                              color: '#e2e8f0',
+                              fontSize: 12,
+                              ...changeTextContainStyle(),
+                            }}
+                          />
+                          {cipcDeskInterpretMagicExpiresAt ? (
+                            <div style={{ marginTop: 6, fontSize: 11, color: '#94a3b8' }}>
+                              Expires: {cipcDeskInterpretMagicExpiresAt}
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : null}
+                    </div>
+                  </details>
+
+                  <div style={{ marginTop: 12, fontSize: 12, fontWeight: 900, color: '#e0f2fe' }}>Information checklist (Serah validation)</div>
+                  <div style={{ marginTop: 8, display: 'grid', gap: 10 }}>
+                    {Array.isArray(cipcDeskChecklistItemsDraft) && cipcDeskChecklistItemsDraft.length ? (
+                      cipcDeskChecklistItemsDraft.map((it) => {
+                        const key = it?.key != null ? String(it.key).trim() : '';
+                        const label = it?.label != null ? String(it.label).trim() : key || '—';
+                        const status = it?.status != null ? String(it.status).trim().toLowerCase() : 'pending';
+                        const nextStatus = status === 'reviewed' || status === 'done' || status === 'complete' ? 'pending' : 'reviewed';
+                        return (
+                          <div
+                            key={key || label}
+                            style={{
+                              border: '1px solid rgba(148,163,184,0.22)',
+                              borderRadius: 12,
+                              padding: 10,
+                              background: 'rgba(2,6,23,0.25)',
+                            }}
+                          >
+                            <div style={{ fontSize: 12, color: '#e2e8f0', fontWeight: 850, lineHeight: 1.35 }}>{label}</div>
+                            <div style={{ marginTop: 4, fontSize: 11, color: '#94a3b8' }}>Status: {status}</div>
+                            <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (!key) return;
+                                  setCipcDeskChecklistItemsDraft((prev) =>
+                                    Array.isArray(prev)
+                                      ? prev.map((row) => {
+                                          const rk = row?.key != null ? String(row.key).trim() : '';
+                                          if (rk !== key) return row;
+                                          return { ...(row || {}), status: nextStatus };
+                                        })
+                                      : prev,
+                                  );
+                                }}
+                                style={{
+                                  padding: '8px 10px',
+                                  borderRadius: 10,
+                                  border: '1px solid rgba(148,163,184,0.25)',
+                                  background: 'rgba(15,23,42,0.35)',
+                                  color: '#e2e8f0',
+                                  fontWeight: 850,
+                                  cursor: 'pointer',
+                                  fontSize: 12,
+                                }}
+                              >
+                                Mark {nextStatus}
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div style={{ fontSize: 12, color: '#94a3b8' }}>No checklist seeded for this ticket.</div>
+                    )}
+                  </div>
+
+                  {Array.isArray(cipcDesk?.attachments) && cipcDesk.attachments.length ? (
+                    <details style={{ marginTop: 12 }}>
+                      <summary style={{ cursor: 'pointer', fontSize: 12, fontWeight: 900, color: '#93c5fd' }}>
+                        Attachments captured from preview email (metadata only)
+                      </summary>
+                      <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
+                        {cipcDesk.attachments.map((a, idx) => {
+                          const fileName = a?.file_name != null ? String(a.file_name).trim() : '';
+                          const note = a?.note != null ? String(a.note).trim() : '';
+                          return (
+                            <div
+                              key={`${idx}:${fileName}`}
+                              style={{
+                                border: '1px solid rgba(148,163,184,0.22)',
+                                borderRadius: 12,
+                                padding: 10,
+                                background: 'rgba(2,6,23,0.25)',
+                              }}
+                            >
+                              <div style={{ fontSize: 12, color: '#e2e8f0', fontWeight: 850 }}>{fileName || 'attachment'}</div>
+                              {note ? <div style={{ marginTop: 6, fontSize: 11, color: '#94a3b8', whiteSpace: 'pre-wrap' }}>{note}</div> : null}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </details>
+                  ) : null}
+
+                  <div style={{ marginTop: 12, fontSize: 12, fontWeight: 900, color: '#e0f2fe' }}>Client reply draft (preview)</div>
+                  <div style={{ marginTop: 8 }}>
+                    <textarea
+                      value={cipcDeskClientReplyDraft}
+                      onChange={(e) => setCipcDeskClientReplyDraft(e.target.value)}
+                      style={{
+                        width: '100%',
+                        minHeight: 120,
+                        resize: 'vertical',
+                        padding: 10,
+                        borderRadius: 12,
+                        border: '1px solid rgba(148,163,184,0.25)',
+                        background: 'rgba(2,6,23,0.35)',
+                        color: '#e2e8f0',
+                        fontSize: 13,
+                      }}
+                    />
+                  </div>
+
+                  <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      onClick={() => void saveCipcDeskOperatorUpdates()}
+                      disabled={cipcDeskUpdateBusy}
+                      style={{
+                        padding: '10px 12px',
+                        borderRadius: 12,
+                        border: 'none',
+                        background: cipcDeskUpdateBusy ? '#94a3b8' : '#22c55e',
+                        color: '#020617',
+                        fontWeight: 950,
+                        cursor: cipcDeskUpdateBusy ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      {cipcDeskUpdateBusy ? 'Saving…' : 'Save operator updates'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={mintClientDecisionLink}
+                      disabled={clientDecisionBusy || !selectedTicketId}
+                      style={{
+                        padding: '10px 12px',
+                        borderRadius: 12,
+                        border: 'none',
+                        background: clientDecisionBusy ? '#94a3b8' : '#38bdf8',
+                        color: '#020617',
+                        fontWeight: 950,
+                        cursor: clientDecisionBusy ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      {clientDecisionBusy ? 'Minting…' : 'Mint client decisions magic link'}
+                    </button>
+                  </div>
+                  {cipcDeskUpdateStatus ? (
+                    <div style={{ marginTop: 8, fontSize: 11, color: '#94a3b8' }}>{cipcDeskUpdateStatus}</div>
+                  ) : null}
+
+                  {clientDecisionLink ? (
+                    <div style={{ marginTop: 10 }}>
+                      <input
+                        readOnly
+                        value={clientDecisionLink}
+                        style={{
+                          width: '100%',
+                          maxWidth: '100%',
+                          minWidth: 0,
+                          boxSizing: 'border-box',
+                          padding: 10,
+                          borderRadius: 12,
+                          border: '1px solid rgba(148,163,184,0.25)',
+                          background: 'rgba(2,6,23,0.45)',
+                          color: '#e2e8f0',
+                          fontSize: 12,
+                          ...changeTextContainStyle(),
+                        }}
+                      />
+                      {clientDecisionExpiresAt ? (
+                        <div style={{ marginTop: 6, fontSize: 11, color: '#94a3b8' }}>
+                          Expires: {clientDecisionExpiresAt}
+                        </div>
+                      ) : null}
+                    </div>
                   ) : null}
                 </div>
               ) : null}

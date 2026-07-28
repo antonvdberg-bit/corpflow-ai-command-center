@@ -4,6 +4,25 @@
 
 **After a Production deploy succeeds:** verify **live** customer URLs and record **deployment id** + **commit** per **`.cursor/rules/delivery-reality.mdc`** — merge and green CI alone are not operational completion.
 
+## Branch preview deployments (default off)
+
+After **PR #635**, Vercel does **not** automatically build every non-`main` branch. Control lives in:
+
+- `vercel.json` → `ignoreCommand`: `node scripts/vercel-ignore-preview-deploys.mjs`
+- Policy: `lib/server/vercel-preview-deploy-policy.js`
+
+**Builds when:**
+
+- `VERCEL_ENV=production` or Git ref is `main`
+- Git ref matches `cursor/cipc-desk-*` (CIPC Desk private preview workstream)
+- Commit message contains `[allow-vercel-preview]` (one-off opt-in)
+
+**Otherwise** the Git integration records an **Ignored** deployment and skips the build. This is intentional: tenant hosts on Production remain the client test environment; `*.vercel.app` previews are for internal / private verification only.
+
+The GitHub check **CMP PR delivery gate** (`cmp-delivery-files`) is unrelated: it only runs for non-draft `cmp/*` branches and does not create Vercel previews.
+
+**CIPC Desk private preview verification:** `.github/workflows/cipc-desk-preview-verify.yml` runs on `cursor/cipc-desk-*` PRs. It resolves the Ready `*.vercel.app` deployment, mints a signed `cf_preview` URL for tenant `cipc-desk` (via `/api/cipc-desk/preview-link` or `buildClientSitePreviewUrl`), bypasses Vercel Deployment Protection with the existing **Protection bypass for automation** GitHub secret, and uploads smoke evidence (homepage, `/change`, fictional email intake, checklist + reply draft, client-decisions thank-you). It does **not** deploy Production.
+
 ## Quick sanity: ensure Vercel is treating this as a Next.js app
 
 There is a failure mode where the hostname hits the right project and serverless rewrites work, but the Next router never serves `/`.

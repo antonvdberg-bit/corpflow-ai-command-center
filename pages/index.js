@@ -14,6 +14,7 @@ import {
 import { collectPublishedLuxCardMediaByPropertyRefs } from '../lib/server/lux-published-property-media.js';
 import { defaultPublicSite, mergeSiteDraft } from '../lib/server/tenant-site-public.js';
 import { verifyTenantPreviewToken } from '../lib/server/tenant-preview-token.js';
+import { ensureCipcDeskPreviewTenantSeeded } from '../lib/server/cipc-desk-preview-seed.js';
 import { isGhostHost } from '../lib/server/ghost-host.js';
 import { listVisualAssetManifests } from '../lib/visualAssets/loadManifest.js';
 import { selectHomepageAssets } from '../lib/visualAssets/selectHomepageAssets.js';
@@ -528,7 +529,16 @@ export async function getServerSideProps({ req }) {
             where: { tenantId: verified.tenantId },
             select: { tenantId: true },
           });
-          if (tExists?.tenantId) tenantId = safeStr(tExists.tenantId);
+          if (tExists?.tenantId) {
+            tenantId = safeStr(tExists.tenantId);
+          } else if (String(verified.tenantId).trim() === 'cipc-desk') {
+            await ensureCipcDeskPreviewTenantSeeded({ tenantId: verified.tenantId, prisma });
+            const seeded = await prisma.tenant.findUnique({
+              where: { tenantId: verified.tenantId },
+              select: { tenantId: true },
+            });
+            if (seeded?.tenantId) tenantId = safeStr(seeded.tenantId);
+          }
         }
       }
     }

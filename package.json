@@ -22,6 +22,7 @@
     "smoke:change-technical-lead": "node scripts/smoke-change-console-technical-lead.mjs",
     "smoke:change-overflow": "node scripts/smoke-change-overflow.mjs",
     "smoke:lux-phase4c1": "node scripts/smoke-lux-phase4c1-attachment-review.mjs",
+    "smoke:cipc-desk-preview": "node scripts/smoke-cipc-desk-preview.mjs",
     "vercel:env:allowlist": "node scripts/vercel-env.mjs allowlist",
     "vercel:env:check": "node scripts/vercel-env.mjs check --backend=auto",
     "vercel:env:check:comprehensive": "node scripts/vercel-env.mjs check --backend=auto --comprehensive",
