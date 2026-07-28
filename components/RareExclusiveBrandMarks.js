@@ -176,6 +176,7 @@ export function RareExclusiveHorizontalWordmark({
  *   title?: string,
  *   showMonogram?: boolean,
  *   tone?: 'charcoal' | 'ivory',
+ *   monogramSize?: number,
  * }} props
  */
 export function RareExclusiveFullLockup({
@@ -184,8 +185,14 @@ export function RareExclusiveFullLockup({
   title = RARE_EXCLUSIVE_BRAND_NAME,
   showMonogram = true,
   tone = 'charcoal',
+  monogramSize,
 }) {
   const ink = tone === 'ivory' ? T.ivory : T.charcoal;
+  // Issue #651 — monogram must read as a primary brand signal on opening surfaces.
+  const resolvedMonogramSize =
+    typeof monogramSize === 'number' && monogramSize > 0
+      ? Math.round(monogramSize)
+      : Math.round(Math.min(128, Math.max(96, width * 0.34)));
 
   return (
     <div
@@ -202,8 +209,8 @@ export function RareExclusiveFullLockup({
       }}
     >
       {showMonogram ? (
-        <div style={{ marginBottom: 18 }}>
-          <RareExclusiveMonogram size={Math.round(Math.min(88, width * 0.22))} />
+        <div style={{ marginBottom: 22 }}>
+          <RareExclusiveMonogram size={resolvedMonogramSize} />
         </div>
       ) : null}
 
