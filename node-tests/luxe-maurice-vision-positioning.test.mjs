@@ -89,8 +89,9 @@ test('Concept A homepage renders approved Ivory Editorial anchors', () => {
     'RareExclusiveEditorialSpine',
     'RareExclusiveEnquirySteps',
     'RARE_EXCLUSIVE_STRAPLINE',
-    'Discover Our Collection',
-    'Request an Invitation',
+    'RARE_EXCLUSIVE_SUPPORTING_LINE',
+    'Private Access',
+    'View the collection',
     'Access Beyond the Market',
     'Life. Elevated. Always.',
     'Private Opportunities',
@@ -100,6 +101,7 @@ test('Concept A homepage renders approved Ivory Editorial anchors', () => {
     'Private-access buyer journey',
     'Curated opportunities',
     'Request private access',
+    'monogramSize={132}',
     '/lifestyle',
     '/destination-mauritius',
     '/private-services',
@@ -108,6 +110,14 @@ test('Concept A homepage renders approved Ivory Editorial anchors', () => {
   ]) {
     assert.ok(src.includes(anchor), `homepage missing: ${anchor}`);
   }
+  assert.ok(
+    src.includes('Private curator of the world’s rarest residences') ||
+      src.includes('RARE_EXCLUSIVE_STRAPLINE'),
+  );
+  assert.ok(!src.includes('Discover Our Collection'));
+  assert.ok(!src.includes('Request an Invitation'));
+  assert.ok(!src.includes('property portal'));
+  assert.ok(!src.includes('Explore Properties'));
 });
 
 test('brand signature + strapline constants remain stable', () => {
@@ -134,11 +144,11 @@ test('Ivory shell implements Jan-approved brand marks, nav, feature pillars, pri
     'RareExclusiveEnquirySteps',
     'RareExclusivePromiseGrid',
     'RARE_EXCLUSIVE_EDITORIAL_MAX',
-    'Properties',
-    'Lifestyle',
-    'Destination Mauritius',
-    'Private Services',
-    'Invitation Only',
+    'Collection',
+    'Private Client',
+    'Developments',
+    'Journal',
+    'Private Access',
     "href: '/lifestyle'",
     "href: '/destination-mauritius'",
     "href: '/private-services'",
@@ -149,6 +159,7 @@ test('Ivory shell implements Jan-approved brand marks, nav, feature pillars, pri
     'Owner Concierge',
     'Mauritius Expertise',
     'Not just properties. A privilege.',
+    'Private curator of the world’s rarest residences.',
   ]) {
     assert.ok(src.includes(name), `Ivory shell missing: ${name}`);
   }
@@ -224,9 +235,18 @@ test('/concierge surface uses Ivory Editorial + private advisory journey', () =>
     'Ongoing ownership support',
     'RareExclusiveIvoryHeader',
     'controlled operator-review',
+    'Email',
+    'Telephone',
+    'type: \'email\'',
+    'type: \'tel\'',
+    'emailLooksValid',
+    'phoneLooksValid',
+    'aria-required',
   ]) {
     assert.ok(src.includes(anchor), `/concierge missing: ${anchor}`);
   }
+  assert.ok(!src.includes('Email or telephone'));
+  assert.ok(!src.includes('Preferred contact'));
 });
 
 test('/concierge post-submit confirmation replaces the form', () => {
