@@ -350,7 +350,7 @@ async function main() {
     // 5) Fictional inbound-email intake
     const fictionalEmail = [
       'From: preview.client@example.test',
-      'Subject: CIPC Desk · fictional private company registration enquiry',
+      `Subject: CIPC Desk · fictional private company registration enquiry (${Date.now()})`,
       '',
       'Hello — this is fictional preview data only.',
       'Please register a private company (Pty Ltd) in South Africa.',
@@ -494,7 +494,10 @@ async function main() {
     evidence.checks.client_decisions_thank_you = {
       ok: thankYouOk,
       http: submitRes.status(),
+      thank_you_present: thankYou.length > 0,
+      thank_you_len: thankYou.length,
       thank_you_uses_reply_draft: thankYou.includes('FICTIONAL PREVIEW REPLY DRAFT'),
+      magic_link_completed: submitBody?.magic_link_completed === true,
       sufficient_to_proceed: submitBody?.client_decisions?.sufficient_to_proceed === true,
       error: submitBody?.error || null,
     };
