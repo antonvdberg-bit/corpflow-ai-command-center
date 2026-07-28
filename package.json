@@ -16,6 +16,7 @@
     "factory:set-luxe-billing-exempt": "node scripts/set-luxe-maurice-billing-exempt.mjs",
     "factory:clear-luxe-billing-exempt": "node scripts/clear-luxe-maurice-billing-exempt.mjs",
     "factory:upsert-luxe-hosts": "node scripts/upsert-luxe-maurice-hostnames.mjs",
+    "factory:upsert-cipc-desk-hosts": "node scripts/upsert-cipc-desk-hostnames.mjs",
     "cmp:repair-sandbox": "node scripts/cmp-repair-stuck-sandbox.mjs",
     "cmp:repair-sandbox:execute": "node scripts/cmp-repair-stuck-sandbox.mjs --execute",
     "technical-lead:run": "node scripts/technical-lead-run.mjs",

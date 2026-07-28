@@ -804,11 +804,12 @@ async function handleUiContext(req, res) {
       tenant_registered = false;
     } else {
       try {
-        if (
-          String(process.env.VERCEL_ENV || '').trim().toLowerCase() === 'preview' &&
-          tid === 'cipc-desk'
-        ) {
-          await ensureCipcDeskPreviewTenantSeeded({ tenantId: tid, prisma });
+        if (tid === 'cipc-desk') {
+          await ensureCipcDeskPreviewTenantSeeded({
+            tenantId: tid,
+            host: ctx.host,
+            prisma,
+          });
         }
         const trow = await prisma.tenant.findUnique({
           where: { tenantId: tid },

@@ -15,6 +15,7 @@ import { collectPublishedLuxCardMediaByPropertyRefs } from '../lib/server/lux-pu
 import { defaultPublicSite, mergeSiteDraft } from '../lib/server/tenant-site-public.js';
 import { verifyTenantPreviewToken } from '../lib/server/tenant-preview-token.js';
 import { ensureCipcDeskPreviewTenantSeeded } from '../lib/server/cipc-desk-preview-seed.js';
+import { resolveCipcDeskTenantIdFromHost } from '../lib/server/cipc-desk-runtime.js';
 import { isGhostHost } from '../lib/server/ghost-host.js';
 import { listVisualAssetManifests } from '../lib/visualAssets/loadManifest.js';
 import { selectHomepageAssets } from '../lib/visualAssets/selectHomepageAssets.js';
@@ -521,6 +522,10 @@ export async function getServerSideProps({ req }) {
     });
     let tenantId = row && row.enabled === true ? safeStr(row.tenantId) : '';
     if (!tenantId) {
+      const standing = resolveCipcDeskTenantIdFromHost(host);
+      if (standing) tenantId = standing;
+    }
+    if (!tenantId) {
       const cfPreview = parseSearchParam(req, 'cf_preview');
       if (cfPreview) {
         const verified = verifyTenantPreviewToken(cfPreview);
@@ -532,7 +537,11 @@ export async function getServerSideProps({ req }) {
           if (tExists?.tenantId) {
             tenantId = safeStr(tExists.tenantId);
           } else if (String(verified.tenantId).trim() === 'cipc-desk') {
-            await ensureCipcDeskPreviewTenantSeeded({ tenantId: verified.tenantId, prisma });
+            await ensureCipcDeskPreviewTenantSeeded({
+              tenantId: verified.tenantId,
+              host,
+              prisma,
+            });
             const seeded = await prisma.tenant.findUnique({
               where: { tenantId: verified.tenantId },
               select: { tenantId: true },
@@ -541,6 +550,10 @@ export async function getServerSideProps({ req }) {
           }
         }
       }
+    }
+    // Standing CIPC Desk host may resolve via tenant_hostnames before the tenant row exists.
+    if (tenantId === 'cipc-desk') {
+      await ensureCipcDeskPreviewTenantSeeded({ tenantId, host, prisma });
     }
     if (!tenantId) {
       return { props: withHost({ mode: 'corpflow_marketing', site: null, homepageAssets: buildHomepageAssetsSafe() }) };

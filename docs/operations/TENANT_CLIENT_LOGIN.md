@@ -53,6 +53,21 @@ When `**CORPFLOW_TENANT_PREVIEW_SECRET**` is set to the **same value on Producti
 - **Production** review for Luxe remains **`https://lux.corpflowai.com/`** (official) after merge; optional alias **`https://luxe.corpflowai.com/`** when both domains are wired. Signed `*.vercel.app` links are for **branch / preview** hosts only.
 - On `**/change`**, logged-in **tenant** clients can use **Refresh preview link** (same server action as operator “Refresh promotion”) to pull `**promotion`** + `**preview_url**` from GitHub/Vercel into the ticket when automation has already run.
 
+## CIPC Desk standing internal test tenant
+
+
+| Step | Action |
+| ---- | ------ |
+| 1 | Keep single app + single Postgres. Tenant id remains `**cipc-desk**`. |
+| 2 | Add hostnames on the **existing** Vercel project (no second app): prefer `**cipc.corpflowai.com**`; also map policy-aligned `**cipc-desk.corpflowai.com**`. |
+| 3 | Point DNS for those hosts at the same Vercel project (Anton / DNS owner). |
+| 4 | Upsert Postgres `tenant_hostnames`: `**npm run factory:upsert-cipc-desk-hosts**` (or `--dry-run` first). |
+| 5 | After Production deploy of the standing-tenant code: open `**https://cipc.corpflowai.com/**` (homepage) and `**/login**` / `**/change**`. Fictional PIN seed is for test only. |
+| 6 | Evidence must be the **CIPC Desk URL**, never Lux / Core health / generic `/change` on another host. |
+
+
+Fictional-data only. Live email, WhatsApp, SMS, payments, and external outreach stay off. Seed + email-intake run on standing hosts (Production spine) or legacy Preview env — not a permanent preview release gate.
+
 ## LuxeMaurice checklist
 
 
