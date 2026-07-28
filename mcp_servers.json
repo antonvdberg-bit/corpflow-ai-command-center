@@ -64,7 +64,7 @@
     },
     {
       "name": "slack",
-      "description": "Slack workspace integration",
+      "description": "RETIRED — Slack removed from CorpFlow ops (issue #658). Entry kept for MCP template compatibility only.",
       "transport": "stdio",
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-slack"],

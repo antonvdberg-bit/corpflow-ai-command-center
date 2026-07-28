@@ -56,6 +56,6 @@
   "active": false,
   "settings": { "executionOrder": "v1" },
   "meta": {
-    "description": "Skeleton: set CORPFLOW_PRODUCTION_PULSE_RUNTIME_URL in n8n to https://YOUR_CORE_ORIGIN/api/factory/production-pulse/runtime. Extend with Slack/email on false branch."
+    "description": "Skeleton: set CORPFLOW_PRODUCTION_PULSE_RUNTIME_URL in n8n to https://YOUR_CORE_ORIGIN/api/factory/production-pulse/runtime. Extend with Telegram (exception-only) on false branch — not Slack (retired #658)."
   }
 }

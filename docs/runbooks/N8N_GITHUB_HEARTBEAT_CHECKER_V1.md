@@ -78,7 +78,7 @@ severity ladder (`TELEGRAM_ALERT_WIRING_PACKET_V1.md` §4): only **error/fatal**
 | Open-PR count over WIP cap | error | yes |
 | No dispatcher digest > 12h (active day) | error | yes |
 | No movement on `Active` lane > 48h | warning→error at 72h | yes at 72h |
-| PR open, CI not surfaced > 6h | warning→error at 12h | yes at 12h |
+| PR open but CI/build result not surfaced | **Retired (#658)** — use GitHub PR checks + #249 digest; no routine Telegram | no |
 | Codex task `REQUESTED` > 48h | warning | no (logged) |
 | Everything healthy | info | no (silent success) |
 
