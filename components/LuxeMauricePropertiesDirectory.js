@@ -121,6 +121,19 @@ export default function LuxeMauricePropertiesDirectory({ listings, cardMediaBySl
             >
               {LUX_PROPERTIES_PUBLIC_COPY.guidanceBody}
             </p>
+            <p
+              style={{
+                margin: '16px 0 0',
+                maxWidth: 640,
+                fontFamily: T.fontDisplay,
+                fontStyle: 'italic',
+                fontSize: 16,
+                lineHeight: 1.6,
+                color: T.charcoal,
+              }}
+            >
+              {LUX_PROPERTIES_PUBLIC_COPY.journeyTitle}. {LUX_PROPERTIES_PUBLIC_COPY.journeyBody}
+            </p>
           </RareExclusiveOpaquePanel>
 
           <RareExclusivePromiseGrid />
@@ -176,6 +189,9 @@ export default function LuxeMauricePropertiesDirectory({ listings, cardMediaBySl
                   const region = safeStr(row.region_label);
                   const type = safeStr(row.property_type);
                   const status = row.listing_status != null ? safeStr(row.listing_status) : '';
+                  const highlights = Array.isArray(row.highlights)
+                    ? row.highlights.map((h) => safeStr(h)).filter(Boolean).slice(0, 3)
+                    : [];
                   return (
                     <article
                       key={slug || row.title}
@@ -271,7 +287,7 @@ export default function LuxeMauricePropertiesDirectory({ listings, cardMediaBySl
                         {teaser ? (
                           <p
                             style={{
-                              margin: '0 0 20px',
+                              margin: '0 0 16px',
                               fontSize: 14.5,
                               lineHeight: 1.75,
                               color: '#4A433A',
@@ -283,6 +299,30 @@ export default function LuxeMauricePropertiesDirectory({ listings, cardMediaBySl
                         ) : (
                           <div style={{ flex: 1 }} />
                         )}
+                        {highlights.length ? (
+                          <ul
+                            style={{
+                              listStyle: 'none',
+                              margin: '0 0 18px',
+                              padding: 0,
+                            }}
+                          >
+                            {highlights.map((h) => (
+                              <li
+                                key={h}
+                                style={{
+                                  padding: '6px 0',
+                                  borderTop: `1px solid ${T.hairlineSoft}`,
+                                  fontSize: 13,
+                                  lineHeight: 1.55,
+                                  color: '#4A433A',
+                                }}
+                              >
+                                {h}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 18, alignItems: 'center' }}>
                           <RareExclusiveTextLink href={`/property/${encodeURIComponent(slug)}`}>
                             {LUX_PROPERTIES_PUBLIC_COPY.cardCtaDetails}

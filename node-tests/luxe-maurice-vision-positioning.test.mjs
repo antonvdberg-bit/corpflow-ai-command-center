@@ -35,6 +35,7 @@ const PUBLIC_LUX_SURFACES = [
   'components/RareExclusiveContentPage.js',
   'pages/concierge.js',
   'components/RareExclusiveIvoryShell.js',
+  'components/RareExclusiveBrandMarks.js',
 ];
 
 const FORBIDDEN_PUBLIC_PATTERNS = [
@@ -81,11 +82,12 @@ test('LUX_PROPERTIES_PUBLIC_COPY: Rare & Exclusive Private Opportunities framing
 test('Concept A homepage renders approved Ivory Editorial anchors', () => {
   const src = readFile('components/RareExclusiveTenantPresentation.js');
   for (const anchor of [
-    'RareExclusiveStackedWordmark',
+    'RareExclusiveFullLockup',
     'RareExclusiveHeroVisual',
     'RareExclusiveIvoryHeader',
     'RareExclusiveFeatureBar',
     'RareExclusiveEditorialSpine',
+    'RareExclusiveEnquirySteps',
     'RARE_EXCLUSIVE_STRAPLINE',
     'Discover Our Collection',
     'Request an Invitation',
@@ -95,6 +97,9 @@ test('Concept A homepage renders approved Ivory Editorial anchors', () => {
     'Owner Experience',
     'This is not a property website.',
     'About the collection',
+    'Private-access buyer journey',
+    'Curated opportunities',
+    'Request private access',
     '/lifestyle',
     '/destination-mauritius',
     '/private-services',
@@ -113,9 +118,12 @@ test('brand signature + strapline constants remain stable', () => {
   );
 });
 
-test('Ivory shell implements Concept A crest, nav, feature pillars, privilege quote', () => {
+test('Ivory shell implements Jan-approved brand marks, nav, feature pillars, privilege quote', () => {
   const src = readFile('components/RareExclusiveIvoryShell.js');
   for (const name of [
+    'RareExclusiveMonogram',
+    'RareExclusiveHorizontalWordmark',
+    'RareExclusiveFullLockup',
     'RareExclusiveCrest',
     'RareExclusiveStackedWordmark',
     'RareExclusiveHeroVisual',
@@ -141,9 +149,27 @@ test('Ivory shell implements Concept A crest, nav, feature pillars, privilege qu
     'Owner Concierge',
     'Mauritius Expertise',
     'Not just properties. A privilege.',
-    'R&E',
   ]) {
     assert.ok(src.includes(name), `Ivory shell missing: ${name}`);
+  }
+  // Incorrect prior crown/shield crest geometry must not return.
+  assert.ok(!src.includes('M18 16 L24 22 L32 12 L40 22 L46 16'));
+  assert.ok(!src.includes("{'R&E'}"));
+});
+
+test('Jan-approved logo primitives expose fullLockup, horizontalWordmark, monogram', () => {
+  const src = readFile('components/RareExclusiveBrandMarks.js');
+  for (const name of [
+    'export function RareExclusiveFullLockup',
+    'export function RareExclusiveHorizontalWordmark',
+    'export function RareExclusiveMonogram',
+    'fullLockup',
+    'horizontalWordmark',
+    'monogram',
+    'Rare by nature. Exclusive by design.',
+    'Collection',
+  ]) {
+    assert.ok(src.includes(name), `brand marks missing: ${name}`);
   }
 });
 
@@ -169,6 +195,7 @@ test('/property/[slug] shell reads as Ivory Editorial private opportunity memora
     'Advisory notes',
     'At a glance',
     'Request private access',
+    'controlled advisory review',
     'Private Access',
     'RareExclusiveIvoryHeader',
     'RareExclusiveEditorialSpine',
@@ -185,7 +212,7 @@ test('/concierge surface uses Ivory Editorial + private advisory journey', () =>
   for (const anchor of [
     'Private Advisory',
     'Request a private consultation',
-    'Request a Private Consultation',
+    'Request Private Access',
     'RareExclusiveEnquirySteps',
     'RareExclusivePromiseGrid',
     'RareExclusiveInteriorHero',
@@ -196,9 +223,44 @@ test('/concierge surface uses Ivory Editorial + private advisory journey', () =>
     'Investment / diversification',
     'Ongoing ownership support',
     'RareExclusiveIvoryHeader',
+    'controlled operator-review',
   ]) {
     assert.ok(src.includes(anchor), `/concierge missing: ${anchor}`);
   }
+});
+
+test('/concierge post-submit confirmation replaces the form', () => {
+  const src = readFile('pages/concierge.js');
+  for (const anchor of [
+    'CONCIERGE_SUCCESS_MESSAGE',
+    'CONCIERGE_SUCCESS_NEXT_STEP',
+    'Private access request confirmed.',
+    'Your request is now queued for private advisory review.',
+    'Submit another request',
+    'data-concierge-confirmation',
+    'resetForAnotherRequest',
+    'submitted || !canSubmit || busy',
+  ]) {
+    assert.ok(src.includes(anchor), `concierge confirmation missing: ${anchor}`);
+  }
+  assert.ok(
+    src.includes(
+      'Thank you. Your request has been received for private advisory review. A qualified advisor will select suitable next information and follow up within one business day.',
+    ),
+  );
+});
+
+test('Ivory enquiry steps encode Jan-approved controlled review path', () => {
+  const src = readFile('components/RareExclusiveIvoryShell.js');
+  for (const anchor of [
+    'Request received',
+    'Request qualified',
+    'Suitable information selected',
+    'Controlled follow-up',
+  ]) {
+    assert.ok(src.includes(anchor), `enquiry steps missing: ${anchor}`);
+  }
+  assert.ok(src.includes("gridTemplateColumns: 'repeat(4, minmax(0, 1fr))'"));
 });
 
 test('LuxeMaurice brand theme uses the exact four-colour brand system', () => {
@@ -272,6 +334,10 @@ test('brand primitives module still exports monogram + wordmark + font styleshee
   ]) {
     assert.ok(src.includes(`export function ${name}`), `must export ${name}`);
   }
+  assert.ok(src.includes('RareExclusiveFullLockup'));
+  assert.ok(src.includes('RareExclusiveHorizontalWordmark'));
+  assert.ok(src.includes('RareExclusiveMonogram'));
+  assert.ok(src.includes('/assets/logos/rare-exclusive-monogram.svg'));
 });
 
 test('SSR Lux branch on / routes to RareExclusiveTenantPresentation', () => {

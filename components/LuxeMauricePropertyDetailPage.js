@@ -575,13 +575,27 @@ export default function LuxeMauricePropertyDetailPage({ property, editor_preview
               color: '#4A433A',
             }}
           >
-            Your enquiry reaches the same private advisory channel as the rest of
-            Rare & Exclusive Collection. Your advisor sees this opportunity reference and responds
-            within one business day.
+            Your enquiry enters a controlled advisory review: request received, request
+            qualified, suitable information selected, then controlled follow-up. Your advisor
+            sees this opportunity reference and responds within one business day.
           </p>
           <a href={conciergeHref} style={rareExclusiveCtaGoldStyle()}>
             Request private access
           </a>
+          <p
+            style={{
+              margin: '28px auto 0',
+              maxWidth: 480,
+              fontFamily: T.fontDisplay,
+              fontStyle: 'italic',
+              fontSize: 15,
+              lineHeight: 1.6,
+              color: '#4A433A',
+            }}
+          >
+            Discretion and privacy are the operating standard. This memorandum is orientation —
+            not an open offer.
+          </p>
         </section>
       </main>
       </RareExclusiveEditorialSpine>

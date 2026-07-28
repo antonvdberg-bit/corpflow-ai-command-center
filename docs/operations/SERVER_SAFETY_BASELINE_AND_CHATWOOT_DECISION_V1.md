@@ -40,7 +40,9 @@ Canonical: `docs/operations/SELF_HOSTED_OPS_R2_RESTIC.md` (operational record), 
 
 **No redesign needed.** The mechanism is sound; the only gap is **proactive failure visibility**.
 
-## 3. Task 2 — daily backup health check (design, implement later)
+## 3. Task 2 — daily backup health check
+
+**Repo status (2026-07-27):** Implemented in-repo as Monitor #14 — see **`docs/operations/BACKUP_HEALTH_MONITOR.md`** and `scripts/ops/backup-health-check.sh`. **Runtime on `corpflow-exec-01` is still Anton-gated** (install packet in that doc §7). Until the timer is enabled, failures remain journal-only.
 
 A small, **read-only** health check (server-side on the box, operator/L3-owned) that runs daily and **alerts on failure only** (silent on success), reusing the existing Telegram path (`TELEGRAM_BOT_TOKEN` + `TELEGRAM_ALERT_CHAT_ID`, `TELEGRAM_ALERT_WIRING_PACKET_V1.md`).
 
@@ -55,7 +57,7 @@ Checks (all from `restic snapshots` / `restic stats`, no production data touched
 | Repo reachable | `restic snapshots` exits 0 (credentials + endpoint OK) | non-zero exit |
 
 - **Silent success** (no daily "ok" noise); **error-only** Telegram. Dedupe `kind × hour` per the wiring packet.
-- Implemented as a **separate Anton-gated server packet** (it runs on `corpflow-exec-01`, reads the restic repo, uses a Telegram credential) — outside this docs packet's authority.
+- **L3 install remains Anton-gated** (reads the restic repo, uses a Telegram credential).
 
 ## 4. Task 3 — restore confidence (design, implement later)
 
@@ -103,8 +105,7 @@ Options restated for the record: **A** (Chatwoot pilot on CorpFlowAI/CoreFlow fi
 
 ## 8. Recommended next implementation packet
 
-**`Server-Backup-Health-Check-And-Alert-1`** (Anton-gated, server-side on `corpflow-exec-01`):
-- Implements §3 (daily backup-health check, Telegram-on-failure, silent success) + §4 (recurring lightweight restore drill).
+**`Server-Backup-Health-Check-And-Alert-1`** — **repo layer landed 2026-07-27** (`docs/operations/BACKUP_HEALTH_MONITOR.md`, `scripts/ops/backup-health-check.sh`, Monitor #14 in `MONITORING_ARCHITECTURE.md`). Remaining operator action: run the L3 install packet (§7 of the backup-health doc) on `corpflow-exec-01` (script install + Telegram env presence + enable timer). Recurring restore drill (§4) remains a follow-up after the daily check is live.
 - Reuses the existing restic repo + Telegram path; **no** production DB backup, **no** `POSTGRES_URL`, **no** new analytics product, **no** new container.
 - Gated because it runs on L3, reads the restic repo, and uses a Telegram credential.
 
@@ -120,7 +121,8 @@ Options restated for the record: **A** (Chatwoot pilot on CorpFlowAI/CoreFlow fi
 ## 10. Cross-references
 
 - `docs/operations/SELF_HOSTED_OPS_R2_RESTIC.md`, `docs/operations/SELF_HOSTED_OPS_STACK_V1.md` — backup mechanism.
-- `docs/operations/MONITORING_ARCHITECTURE.md` — monitoring component map; where a backup-health monitor would register.
+- `docs/operations/BACKUP_HEALTH_MONITOR.md` — Monitor #14 implementation + Anton L3 install packet.
+- `docs/operations/MONITORING_ARCHITECTURE.md` — monitoring component map; Monitor #14 row.
 - `docs/operations/TELEGRAM_ALERT_WIRING_PACKET_V1.md` — alert payload contract + severity ladder + anti-spam.
 - `docs/operations/SERVER_AGENT_ACCESS_AND_EXECUTION_BOUNDARY_V1.md` §5.5 — self-hosted-tool carve-out rule (Kuma only).
 - `docs/operations/SUPPORT_SYSTEM_FEASIBILITY_V1.md` — support v1 (Freshdesk; live chat + AI chatbot deferred).

@@ -2,11 +2,13 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
   findLuxStagedPropertyBySlug,
+  getPublicLuxStagedListingRows,
   getPublicLuxStagedProperties,
   isLuxStagedDemoEntry,
   isLuxStagedDemoSlug,
   isLuxStagedPropertySlug,
   LUXE_MAURICE_STAGED_PROPERTIES,
+  stagedPropertyToPublicListingRow,
 } from '../lib/client/luxe-maurice-staged-properties.js';
 
 test('staged slugs are stable and discoverable', () => {
@@ -16,6 +18,36 @@ test('staged slugs are stable and discoverable', () => {
   const hit = findLuxStagedPropertyBySlug('lm-villa-belombre');
   assert.ok(hit);
   assert.equal(hit?.title.includes('Bel Ombre'), true);
+});
+
+test('public curated opportunities expose memorandum fields for MVP', () => {
+  for (const slug of ['lm-nc-ridge', 'lm-villa-belombre', 'lm-pent-plateau', 'lm-pipeline-q4']) {
+    const p = findLuxStagedPropertyBySlug(slug);
+    assert.ok(p, `${slug} must remain a staged entry`);
+    assert.ok(String(p.region || '').length > 2, `${slug} needs region`);
+    assert.ok(String(p.property_type || '').length > 2, `${slug} needs type`);
+    assert.ok(String(p.status || '').length > 2, `${slug} needs status`);
+    assert.ok(String(p.teaser || '').length > 20, `${slug} needs positioning teaser`);
+    assert.ok(String(p.summary || '').length > 40, `${slug} needs summary`);
+    assert.ok(Array.isArray(p.highlights) && p.highlights.length >= 3, `${slug} needs highlights`);
+  }
+});
+
+test('getPublicLuxStagedListingRows maps curated cards and strips demos', () => {
+  const rows = getPublicLuxStagedListingRows();
+  assert.ok(rows.length >= 4);
+  assert.equal(rows.some((r) => r.slug === 'lm-phase2d-manual-demo'), false);
+  const ridge = rows.find((r) => r.slug === 'lm-nc-ridge');
+  assert.ok(ridge);
+  assert.equal(ridge.region_label, 'North Mauritius');
+  assert.equal(ridge.property_type, 'Residences');
+  assert.ok(Array.isArray(ridge.highlights) && ridge.highlights.length >= 3);
+  assert.equal(ridge.source, 'staged_curated');
+
+  const mapped = stagedPropertyToPublicListingRow(findLuxStagedPropertyBySlug('lm-pipeline-q4'));
+  assert.ok(mapped);
+  assert.equal(mapped.slug, 'lm-pipeline-q4');
+  assert.ok(String(mapped.short_teaser || '').length > 10);
 });
 
 test('lm-phase2d-manual-demo is flagged demo:true in the canonical catalog', () => {
