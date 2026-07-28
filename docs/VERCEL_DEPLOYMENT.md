@@ -21,7 +21,10 @@ After **PR #635**, Vercel does **not** automatically build every non-`main` bran
 
 The GitHub check **CMP PR delivery gate** (`cmp-delivery-files`) is unrelated: it only runs for non-draft `cmp/*` branches and does not create Vercel previews.
 
-**CIPC Desk private preview verification:** `.github/workflows/cipc-desk-preview-verify.yml` runs on `cursor/cipc-desk-*` PRs. It resolves the Ready `*.vercel.app` deployment, mints a signed `cf_preview` URL for tenant `cipc-desk` (via `/api/cipc-desk/preview-link` or `buildClientSitePreviewUrl`), bypasses Vercel Deployment Protection with the existing **Protection bypass for automation** GitHub secret, and uploads smoke evidence (homepage, `/change`, fictional email intake, checklist + reply draft, client-decisions thank-you). It does **not** deploy Production.
+**CIPC Desk standing internal test tenant:** Production-spine hosts `cipc.corpflowai.com` (short) and `cipc-desk.corpflowai.com` (policy-aligned). Seed + email-intake are allowed on those hosts (and legacy Preview env). Do **not** treat Preview smoke as the standing delivery path — verify `https://cipc.corpflowai.com/` after DNS + host map + deploy. See `docs/operations/TENANT_CLIENT_LOGIN.md` § CIPC Desk.
+
+**Branch preview allowlist (historical):** `.github/workflows/cipc-desk-preview-verify.yml` may still exist for older branch deploys; standing-tenant work must not depend on it.
+
 
 ## Quick sanity: ensure Vercel is treating this as a Next.js app
 
