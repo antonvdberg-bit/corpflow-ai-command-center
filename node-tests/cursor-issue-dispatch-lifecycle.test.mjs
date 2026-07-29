@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import {
-  assertDispatchLifecycleLabelsExist,
   canRunConcurrently,
   discoverOpenIssuesByLabel,
+  ensureDispatchLifecycleLabels,
   filterIssuesByLabel,
   finalizeIssueClaimAfterActivation,
   formatDispatchActivatedComment,
@@ -260,17 +260,28 @@ describe('cursor-issue-dispatch-lifecycle', () => {
     assert.deepEqual(filterIssuesByLabel(issues, 'dispatch:cursor-ready').map((i) => i.number), [1]);
   });
 
-  it('assertDispatchLifecycleLabelsExist fails closed with actionable error', async () => {
-    const fetchFn = async () => ({
-      ok: true,
-      async text() {
-        return JSON.stringify([{ name: 'dispatch:cursor-ready' }]);
-      },
-    });
-    await assert.rejects(
-      () => assertDispatchLifecycleLabelsExist('token', 'o/r', fetchFn),
-      /Missing GitHub labels required for dispatch lifecycle/,
-    );
+  it('ensureDispatchLifecycleLabels auto-creates missing labels', async () => {
+    const existing = new Set(['dispatch:cursor-ready']);
+    const fetchFn = async (url, init = {}) => {
+      const u = String(url);
+      if (u.includes('/labels') && (!init.method || init.method === 'GET')) {
+        return {
+          ok: true,
+          async text() {
+            return JSON.stringify([...existing].map((name) => ({ name })));
+          },
+        };
+      }
+      if (init.method === 'POST') {
+        const body = JSON.parse(String(init.body));
+        existing.add(body.name);
+        return { ok: true, status: 201, async text() { return JSON.stringify(body); } };
+      }
+      throw new Error(`unexpected ${init.method} ${u}`);
+    };
+    const result = await ensureDispatchLifecycleLabels('token', 'o/r', fetchFn);
+    assert.equal(result.ok, true);
+    assert.ok(existing.has('dispatch:cursor-claimed'));
   });
 
   it('finalizeIssueClaimAfterActivation requires real run ID', async () => {

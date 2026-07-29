@@ -20,6 +20,10 @@ import {
   rollbackPrematureIssueClaim,
 } from '../lib/server/cursor-issue-dispatch-lifecycle.js';
 import { postGitHubIssueComment } from '../lib/server/cursor-ops-status.js';
+import {
+  buildCursorOriginMetadata,
+  formatCursorOriginMetadataComment,
+} from '../lib/server/cursor-origin-metadata.js';
 
 const DEFAULT_REPO = 'antonvdberg-bit/corpflow-ai-command-center';
 
@@ -149,19 +153,37 @@ async function main() {
   }
 
   if (!args.dryRun) {
+    const agentUrl = opsStatus?.cursor_agent_url || activation?.live?.cursor?.agentUrl || null;
+    const branch = opsStatus?.branch || activation?.live?.cursor?.branch || null;
     const finalized = await finalizeIssueClaimAfterActivation({
       token,
       repo,
       issueNumber: targetIssue,
       agentRunId: runId,
-      agentUrl: opsStatus?.cursor_agent_url || activation?.live?.cursor?.agentUrl || null,
-      branch: opsStatus?.branch || activation?.live?.cursor?.branch || null,
+      agentUrl,
+      branch,
       classification,
       postComment: (issueNumber, body) =>
         postGitHubIssueComment(issueNumber, body, { token, repoFullName: repo }),
     });
     result.finalized = true;
     result.finalize = finalized;
+
+    const agentIdMatch = String(agentUrl || '').match(/\/agents\/([^/?#]+)/i);
+    const originBody = formatCursorOriginMetadataComment(
+      buildCursorOriginMetadata({
+        sourceIssue: targetIssue,
+        activationWorkflowRunId: opsStatus?.workflow_run_id || process.env.GITHUB_RUN_ID || null,
+        cursorRunId: runId,
+        cursorAgentId: agentIdMatch ? agentIdMatch[1] : null,
+        cursorAgentUrl: agentUrl,
+        branch,
+        prNumber: opsStatus?.pr_number || null,
+        headSha: process.env.GITHUB_SHA || null,
+        followUpAttemptCount: 0,
+      }),
+    );
+    await postGitHubIssueComment(targetIssue, originBody, { token, repoFullName: repo });
   } else {
     result.finalized = true;
     result.dryRunWouldApply = {
