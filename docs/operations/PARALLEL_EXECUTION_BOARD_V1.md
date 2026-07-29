@@ -30,8 +30,10 @@ This board is that concurrency layer. It:
 
 This is a **thin coordination surface**, not a new platform, not a second backlog,
 and not an authorization mechanism. A lane row is a *pointer*; the authorization for
-any runtime/secret/DB/DNS/billing action still comes from Anton through #249 under the
-existing gates.
+any runtime/secret/DB/DNS/billing action still comes from Anton through the **Anton Decision Inbox**
+(`needs:anton` + durable approval — `docs/operations/ANTON_DECISION_INBOX_V1.md`) and #249 under the
+existing gates. Lux and CIPC Desk lanes must not ask Anton to monitor every workstream — only
+genuine protected decisions go to the inbox; unrelated safe work continues while approvals pend.
 
 ## 2. Where this board sits (source-of-truth order)
 

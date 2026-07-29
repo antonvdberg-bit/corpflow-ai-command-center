@@ -84,8 +84,9 @@ Telegram **may** fire for:
 4. Stale work — dispatcher digest stale > 12h (heartbeat, when activated).
 5. Production incident — urgent business-ops monitor findings.
 6. PR ready for Anton — WIP cap > 2; merge/approval checkpoints.
+7. **Decision Inbox exceptions (#676, design until activated)** — new/changed `needs:anton` items, deadline escalation, or failed previously-approved action needing a new decision. Deduped, nonblank, GitHub link required. See `docs/n8n/anton-decision-inbox-exception-notify.md`.
 
-**Must stay silent:** green crons, unchanged blocked state, open PR merely existing, unknown automation-forward events.
+**Must stay silent:** green crons, unchanged blocked state, open PR merely existing, unknown automation-forward events, unchanged Decision Inbox fingerprints.
 
 Canonical: `lib/server/ops-notification-policy.js`.
 

@@ -4,6 +4,8 @@
 
 **Coordination issue:** **GitHub issue #249** — `Operator Bridge — Active Work Queue`.
 
+**Anton Decision Inbox (protected decisions):** open GitHub items labelled `needs:anton` (+ one or more `approval:*` reason labels) with an `### ANTON DECISION PACKET`. #249 is the narrative ledger; the label query is the active inbox. Canonical: `docs/operations/ANTON_DECISION_INBOX_V1.md`. Do not ask Anton to monitor every Lux/CIPC/workstream chat — route only genuine protected decisions there.
+
 ## 1. Quick map
 
 | You are | You post | Schema |

@@ -24,6 +24,10 @@ Treat this as part of **definition of done** whenever work is **committed and pu
 
 For routine packet handoffs between ChatGPT (planning author), Anton (operator), and Cursor (in-repo executor), see **`docs/operations/OPERATOR_BRIDGE_V1.md`**. The bridge is a **coordination layer only**: Anton still owns merges, secrets, DNS, billing, and external accounts; Cursor still **HOLDS** at every forbidden surface; ChatGPT still instructs through Anton. `main` remains the source of truth over any issue comment. <!-- OPERATOR_BRIDGE_V1_TODO_LINK -->
 
+### Anton Decision Inbox + protected-action gates (#676)
+
+Canonical operator view for genuine Anton decisions: **`docs/operations/ANTON_DECISION_INBOX_V1.md`** (labels `needs:anton` + `approval:*`). Enforceable gates: **`docs/operations/PROTECTED_ACTION_GATES_V1.md`**. Repository UI settings Anton must apply: **`docs/operations/ANTON_DECISION_INBOX_OPERATOR_SETTINGS_PACKET.md`**. Exception-only Telegram design: **`docs/n8n/anton-decision-inbox-exception-notify.md`**. <!-- ANTON_DECISION_INBOX_V1_TODO_LINK -->
+
 ---
 
 ## Partner charter — breathtaking client experience (technical)

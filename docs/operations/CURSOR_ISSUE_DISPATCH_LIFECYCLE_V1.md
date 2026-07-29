@@ -44,9 +44,13 @@ Do **not** add a parallel workflow that also activates Cursor. The scan runs as 
 | `dispatch:cursor-claimed` | Cursor owns execution (remove ready when claimed) |
 | `status:in-progress` | Active work |
 | `dispatch:blocked` | Do not claim |
-| `needs:anton` | Protected gate — unlock required |
+| `needs:anton` | Protected gate — unlock required (Decision Inbox routing; **not** durable approval) |
 
-**Label provisioning (workflow-owned, not manual):** The existing `factory-dispatcher-activate.yml` scan/finalize path idempotently **ensures** the approved lifecycle labels exist before any claim mutation (`dispatch:cursor-claimed`, `status:in-progress`, `dispatch:blocked`, `needs:anton`). Anton must **not** create these labels manually in the GitHub UI.
+**Decision Inbox reason labels** (ensure with lifecycle labels; see `docs/operations/ANTON_DECISION_INBOX_V1.md`): `approval:merge`, `approval:deploy`, `approval:production`, `approval:db-schema`, `approval:env-secrets`, `approval:external-send`, `approval:payment`, `approval:paid-tool`, `approval:public-launch`.
+
+**Label provisioning (workflow-owned, not manual):** The existing `factory-dispatcher-activate.yml` scan/finalize path idempotently **ensures** the approved lifecycle labels **and** Decision Inbox `approval:*` labels exist before any claim mutation. Anton must **not** create these labels manually in the GitHub UI unless ensure fails.
+
+**Labels never unlock protected actions.** Only `### ANTON DURABLE APPROVAL` (scoped) counts — see `docs/operations/PROTECTED_ACTION_GATES_V1.md`.
 
 If label creation or verification fails (missing labels after ensure, GitHub API error, or insufficient token scope), the workflow **fails closed**: the run stops, no claim labels are applied, and operators see **one actionable blocker** naming the missing label(s) or API failure — fix repo label state or workflow permissions, then re-run the scan on `main` (dry-run is fine).
 
@@ -111,6 +115,7 @@ Durable GitHub comments (templates in code):
 3. **ChatGPT / operator** — objective met? evidence? scope drift? gate?
 4. **Stakeholder** (Jan / Sarah / client) — business outcome only, not code.
 5. **Anton** — only protected gates (**client_production**, DB, secrets, payment, messaging, outreach, spend, public launch, high-risk tenancy). Merge onto the CorpFlowAI test spine after CI is operator/human merge approval — not client_production approval.
+5. **Anton** — only protected gates (production, DB, secrets, payment, messaging, outreach, spend, public launch, high-risk tenancy), routed via the **Anton Decision Inbox** (`needs:anton` + `approval:*`), not via ad-hoc chat alone.
 
 Routine code review must not default to Anton.
 

@@ -24,7 +24,7 @@ Every interaction and control-loop review must optimise simultaneously for:
 2. **Maximum safe throughput** — keep multiple independent work packets available and agents productively activated whenever capacity exists.
 3. **Minimum management overhead** — Anton must remain the decision-maker, not the technical courier, queue watcher or routine follow-up mechanism.
 4. **Cost discipline** — avoid wasteful polling, duplicate agents, notification noise, unnecessary paid tools and unbounded model/runtime consumption.
-5. **Protected-gate safety** — never bypass explicit approval for production deploys, env/secrets, database/schema, payments, external sends, outreach, paid vendors or public launches.
+5. **Protected-gate safety** — never bypass explicit approval for production deploys, env/secrets, database/schema, payments, external sends, outreach, paid vendors or public launches. Route those decisions to the **central Anton Decision Inbox** (`needs:anton` + `approval:*` + structured packet per `docs/operations/ANTON_DECISION_INBOX_V1.md`). Labels route; only durable GitHub approval unlocks. Continue safe autonomous work while unrelated approvals are pending.
 
 A throughput improvement is valid only when it preserves quality, safety, system boundaries and cost visibility.
 
@@ -124,6 +124,8 @@ Every Anton request must use one explicit form:
 - `ANTON ACTION — EXTERNAL SEND/LAUNCH APPROVAL: ...`
 
 If none applies, state `ANTON ACTION: NONE`.
+
+When `ANTON ACTION — APPROVAL REQUIRED` (or external send/launch) applies, also open/update the Decision Inbox item: label `needs:anton` + the matching `approval:*` reason, post `### ANTON DECISION PACKET`, and keep unrelated work moving. Never treat CI-complete or a mergeable PR as protected approval.
 
 ## 8. Throughput measures
 
