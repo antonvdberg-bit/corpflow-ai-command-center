@@ -4,6 +4,7 @@ import { describe, it } from 'node:test';
 import {
   DISPATCHER_DIGEST_STALE_HOURS,
   evaluateGithubHeartbeatSignals,
+  filterHeartbeatAlertsByHourDedupe,
   shouldEmitDeliveryCheckpointAlert,
   shouldPageBusinessOpsFinding,
 } from '../lib/server/ops-notification-policy.js';
@@ -140,5 +141,39 @@ describe('ops-notification-policy / shouldPageBusinessOpsFinding', () => {
       false,
     );
     assert.equal(shouldPageBusinessOpsFinding({ severity: 'urgent', safeToIgnore: true }), false);
+  });
+});
+
+describe('ops-notification-policy / filterHeartbeatAlertsByHourDedupe', () => {
+  const now = Date.parse('2026-07-28T12:30:00.000Z');
+  const alert = {
+    kind: 'digest_stale',
+    target: '#493',
+    severity: 'error',
+    why: 'stale',
+    next: 'post digest',
+    anton: false,
+  };
+
+  it('allows the first page in an hour bucket', () => {
+    const first = filterHeartbeatAlertsByHourDedupe([alert], {}, now);
+    assert.equal(first.alerts.length, 1);
+    assert.equal(first.alerts[0].kind, 'digest_stale');
+  });
+
+  it('suppresses the same kind×target within the same hour (exactly-once)', () => {
+    const first = filterHeartbeatAlertsByHourDedupe([alert], {}, now);
+    const second = filterHeartbeatAlertsByHourDedupe([alert], first.seenKeys, now + 5 * 60 * 1000);
+    assert.equal(second.alerts.length, 0);
+  });
+
+  it('allows a new page after the hour bucket rolls', () => {
+    const first = filterHeartbeatAlertsByHourDedupe([alert], {}, now);
+    const nextHour = filterHeartbeatAlertsByHourDedupe(
+      [alert],
+      first.seenKeys,
+      now + 60 * 60 * 1000,
+    );
+    assert.equal(nextHour.alerts.length, 1);
   });
 });
