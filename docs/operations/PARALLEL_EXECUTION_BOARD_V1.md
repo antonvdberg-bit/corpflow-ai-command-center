@@ -104,8 +104,13 @@ WIP limits keep throughput honest: more open work is not more delivery.
 | Scope | WIP limit | Rule |
 |---|---|---|
 | **Open PRs per executor** | **2** | Cursor may have at most 2 open PRs awaiting merge at once. A 3rd waits until one merges or is closed. |
+| **Active Cursor implementation issues** (`dispatch:cursor-claimed`) | **2** | Label-scan claims respect this cap (`CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1`). |
+| **Active issues per tenant** | **1** | Lux, CIPC Desk, Living Word, etc. — never two concurrent implementation issues for the same tenant. |
+| **Active database/schema issues (repo-wide)** | **1** | Schema work is serialized across the repository. |
+| **Active production-deployment candidates** | **1** | Only one production deploy candidate at a time. |
+| **Sibling product workstreams** | **sequential by default** | e.g. Lead Rescue (#653) vs Website Rescue (#654) — separate branches/PRs; start one first unless a shared-system issue explicitly authorises safe parallel file areas. |
 | **In-progress packets per lane** | **1** | Each lane has at most one packet in `IN_PROGRESS`. A lane's next packet does not start until the current one is `READY_TO_MERGE` or parked. |
-| **Codex research packets in flight** | **2** | At most 2 outstanding Codex research requests at a time (avoids unreviewable import backlog). |
+| **Codex research packets in flight** | **2** | At most 2 outstanding Codex research requests at a time (avoids unreviewable import backlog). Codex must **not** claim implementation issues. |
 | **Lanes simultaneously `Active`/`Active but gated`** | **6** (all) | All six lanes may be active, but only within the per-executor PR cap above — concurrency of *themes*, not unbounded concurrency of *open diffs*. |
 | **Anton approval queue depth** | **soft 5** | If more than 5 items are waiting on Anton, the dispatcher digest must lead with the approval queue and stop opening new gated work until the queue drains. |
 
