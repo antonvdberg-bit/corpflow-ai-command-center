@@ -52,7 +52,7 @@ Anton still carries too much **manual communication** between three surfaces:
 | **Cursor** | Executes named packets; posts STATUS to #249 | No |
 | **Codex Cloud** | Same as Cursor on `codex/*` branches; posts STATUS to #249 | No |
 | **Anton** | Merge, secrets, DNS, billing, production authority, final verdicts | **Yes — for operator gates** |
-| **Slack / Telegram** | Optional notification mirrors (future) | **No — must not become source of truth** |
+| **Telegram** | Optional exception-only notification mirror (future); Slack retired (#658) | **No — must not become source of truth** |
 
 **Rule:** If a digest comment disagrees with `main` or a later executor STATUS on #249, **`main` and the latest authoritative STATUS win**. The digest is a summary, not a new authority.
 
@@ -132,7 +132,7 @@ Executor schema uses `AWAITING_OPERATOR` and `HOLDING`; digest maps these to **A
 | **0** | This document (docs-only protocol) | None |
 | **1** | Manual digest comment on #249 using §3 template | None |
 | **2** | GitHub Actions read-only digest job | Scheduled GHA (separate approved PR) |
-| **3** | Optional Telegram/Slack notification mirror | Link + first line only; not source of truth |
+| **3** | Optional Telegram exception-only notification mirror (not Slack — #658) | Link + first line only; not source of truth |
 | **4** | Optional labels: `bridge:needs-anton`, `bridge:blocked`, `bridge:ready-to-merge` | Advisory labels in GitHub UI |
 
 **Phase 0 does not** create workflows, secrets, Slack bots, or runtime changes.
@@ -164,7 +164,7 @@ Executor schema uses `AWAITING_OPERATOR` and `HOLDING`; digest maps these to **A
 - No app code, runtime behavior change, env vars, or secrets.
 - No OpenAI key handling, GitHub settings changes, or server/L3 commands.
 - No n8n, restic, containers, or workflow changes in this PR.
-- No Slack implementation yet.
+- Slack retired from CorpFlow ops (#658); do not implement Slack mirrors.
 - No autonomous AI-to-AI execution.
 - No direct ChatGPT-to-Cursor pipe.
 - No autonomous merge.
@@ -176,7 +176,7 @@ Executor schema uses `AWAITING_OPERATOR` and `HOLDING`; digest maps these to **A
 
 1. **Live coordination truth:** GitHub Issue **#249**.
 2. **Durable truth:** **`main`** and canonical docs.
-3. **Slack/Telegram:** notification mirrors only (Phase 3+).
+3. **Telegram:** optional exception-only notification mirror only (Phase 3+). Slack retired (#658).
 4. **First implementation after approval:** Phase 2 read-only GitHub Actions digest (separate PR).
 
 ---

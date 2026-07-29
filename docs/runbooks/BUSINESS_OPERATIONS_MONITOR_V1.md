@@ -20,7 +20,7 @@ It is **not**:
 - a payment processor,
 - a 24/7 “AI manager.”
 
-**24/7 responsibility** stays with **hosted automation**: CorpFlowAI app + Postgres + ERPNext (finance spine) + n8n + Telegram/Slack alerts. Anton’s laptop and Cursor are **not** the manager.
+**24/7 responsibility** stays with **hosted automation**: CorpFlowAI app + Postgres + ERPNext (finance spine) + n8n + **exception-only Telegram** alerts (Slack retired — issue #658). Anton’s laptop and Cursor are **not** the manager.
 
 | Stage | What | Authorization |
 |---|---|---|
@@ -96,7 +96,7 @@ Template: `docs/n8n/templates/business-operations-monitor-v1.template.json`
 3. Set `TELEGRAM_BOT_TOKEN` + `TELEGRAM_ALERT_CHAT_ID` (reuse existing ops alert path)
 4. Optional: `ERPNEXT_MONITOR_URL` + `ERPNEXT_API_KEY` for sandbox read-only ping (disabled by default)
 
-Schedule default: **every 2 hours**. Silent on success; Telegram only when `summary.urgent > 0` or `summary.actionRequired` crosses operator threshold.
+Schedule default: **every 2 hours**. Silent on success; Telegram **urgent-only** (`severity === 'urgent' && !safeToIgnore` — see `shouldPageBusinessOpsFinding` in `lib/server/ops-notification-policy.js`). Warnings do not page.
 
 See also: `docs/n8n/automation-forward-recipe.md`, `docs/operations/TELEGRAM_ALERT_WIRING_PACKET_V1.md`.
 
