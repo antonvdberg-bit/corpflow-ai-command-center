@@ -5,11 +5,14 @@ import {
   buildCiFailurePacket,
   buildFailureFingerprint,
   evaluateCiRepairGate,
+  evaluateObsoleteFailureSuppression,
   evaluateRepairAttemptLimits,
   extractFailingTestNames,
+  extractMeaningfulFailureContext,
   formatCiFailureFollowUpPrompt,
   recordRepairAttempt,
   redactSecrets,
+  stripGenericRunnerNoise,
 } from '../lib/server/ci-failure-cursor-supervisor.js';
 import {
   buildCursorOriginMetadata,
@@ -33,7 +36,29 @@ import {
   buildOperatorDecisionPacket,
 } from '../lib/server/operator-review-handoff.js';
 
-describe('ci-failure-cursor-supervisor', () => {
+const FAILED_SHA = 'aa13a902652d956d78dfaa64c22ff4639a06d4d9';
+const REPAIRED_SHA = 'b7f6e006aa1aea81fe119b0524430d54c7f14981';
+
+const SAMPLE_NODE_TEST_LOG = `
+(node:123) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file is not specified
+# Subtest: AI Lead Rescue intro video
+    # Subtest: places a native metadata-only player on the AI Lead Rescue landing after the hero
+    not ok 2 - places a native metadata-only player on the AI Lead Rescue landing after the hero
+      ---
+      duration_ms: 1.2
+      location: '/workspace/node-tests/lead-rescue-intro-video.test.mjs:37:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        AssertionError [ERR_ASSERTION]: Expected values to be strictly equal
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      stack: |-
+        TestContext.<anonymous> (file:///workspace/node-tests/lead-rescue-intro-video.test.mjs:40:12)
+      ...
+not ok 1 - AI Lead Rescue intro video
+`;
+
+describe('ci-failure-cursor-supervisor hardening (#667)', () => {
   it('builds a sanitised failure packet for the #665 incident shape', () => {
     const packet = buildCiFailurePacket({
       repo: 'antonvdberg-bit/corpflow-ai-command-center',
@@ -41,24 +66,111 @@ describe('ci-failure-cursor-supervisor', () => {
       prNumber: 665,
       prUrl: 'https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/665',
       branch: 'cursor/dispatcher-issue-653-aa11',
-      headSha: 'aa13a902652d956d78dfaa64c22ff4639a06d4d9',
+      headSha: FAILED_SHA,
+      currentPrHeadSha: REPAIRED_SHA,
       workflowName: 'Agent CI',
       workflowRunId: '30417364180',
       workflowRunUrl:
         'https://github.com/antonvdberg-bit/corpflow-ai-command-center/actions/runs/30417364180',
       failedJob: 'test',
       failedStep: 'Node dependencies + automation unit tests',
-      failingTests: ['node-tests/lead-rescue-intro-video.test.mjs'],
-      logExcerpt:
-        'AssertionError at line 40 CURSOR_API_KEY=super-secret-value Authorization: Bearer abc.def',
+      logExcerpt: SAMPLE_NODE_TEST_LOG + ' CURSOR_API_KEY=super-secret-value Authorization: Bearer abc.def',
       cursorAgentId: 'bc-31b05fb8-f550-4115-a6e7-41d2be508ca7',
       cursorRunId: 'run-264d8d44-392c-4372-a529-434cdfca5740',
     });
+    assert.equal(packet.headSha, FAILED_SHA);
+    assert.equal(packet.currentPrHeadSha, REPAIRED_SHA);
+    assert.equal(packet.failingTestFile, 'node-tests/lead-rescue-intro-video.test.mjs');
+    assert.match(packet.assertionExcerpt || '', /AssertionError/);
     assert.equal(packet.errorCategory, 'assertion_mismatch');
     assert.doesNotMatch(packet.logExcerpt, /super-secret-value/);
     assert.doesNotMatch(packet.logExcerpt, /Bearer abc/);
-    assert.match(formatCiFailureFollowUpPrompt(packet), /SAME PR/);
-    assert.match(formatCiFailureFollowUpPrompt(packet), /Do not merge/);
+    assert.doesNotMatch(packet.logExcerpt, /MODULE_TYPELESS_PACKAGE_JSON/);
+    assert.match(formatCiFailureFollowUpPrompt(packet), /Failed head SHA: aa13a902/);
+    assert.match(formatCiFailureFollowUpPrompt(packet), /lead-rescue-intro-video/);
+  });
+
+  it('suppresses obsolete failure when PR head advanced (repaired-head mismatch)', () => {
+    const result = evaluateObsoleteFailureSuppression({
+      failedHeadSha: FAILED_SHA,
+      currentPrHeadSha: REPAIRED_SHA,
+      prState: 'open',
+      workflowRunId: '30417364180',
+    });
+    assert.equal(result.suppress, true);
+    assert.equal(result.reason, 'obsolete_head_advanced');
+  });
+
+  it('suppresses when a later Agent CI run is green', () => {
+    const result = evaluateObsoleteFailureSuppression({
+      failedHeadSha: FAILED_SHA,
+      currentPrHeadSha: FAILED_SHA,
+      prState: 'open',
+      workflowRunId: '30417364180',
+      laterAgentCiRuns: [
+        {
+          id: '30419947823',
+          conclusion: 'success',
+          headSha: REPAIRED_SHA,
+          createdAt: '2026-07-29T03:34:44Z',
+        },
+      ],
+    });
+    assert.equal(result.suppress, true);
+    assert.equal(result.reason, 'later_ci_green');
+  });
+
+  it('suppresses when PR is closed/merged or source issue is closed', () => {
+    assert.equal(
+      evaluateObsoleteFailureSuppression({ prState: 'closed', failedHeadSha: FAILED_SHA }).reason,
+      'pr_closed_or_merged',
+    );
+    assert.equal(
+      evaluateObsoleteFailureSuppression({
+        prState: 'open',
+        prMerged: true,
+        failedHeadSha: FAILED_SHA,
+      }).reason,
+      'pr_closed_or_merged',
+    );
+    assert.equal(
+      evaluateObsoleteFailureSuppression({
+        prState: 'open',
+        failedHeadSha: FAILED_SHA,
+        currentPrHeadSha: FAILED_SHA,
+        sourceIssueState: 'closed',
+      }).reason,
+      'source_issue_closed',
+    );
+  });
+
+  it('does not suppress a current failure on the same head with no later green', () => {
+    const result = evaluateObsoleteFailureSuppression({
+      failedHeadSha: FAILED_SHA,
+      currentPrHeadSha: FAILED_SHA,
+      prState: 'open',
+      sourceIssueState: 'open',
+      workflowRunId: '30417364180',
+      laterAgentCiRuns: [],
+    });
+    assert.equal(result.suppress, false);
+    assert.equal(result.reason, 'current');
+  });
+
+  it('extracts meaningful failing test file, suite/subtest, and assertion — not runner warnings only', () => {
+    const ctx = extractMeaningfulFailureContext(SAMPLE_NODE_TEST_LOG);
+    assert.equal(ctx.failingTestFile, 'node-tests/lead-rescue-intro-video.test.mjs');
+    assert.match(ctx.suite || '', /AI Lead Rescue intro video|places a native/);
+    assert.match(ctx.assertionExcerpt || '', /AssertionError|ERR_ASSERTION/);
+    assert.ok(ctx.failingTests.some((t) => /lead-rescue-intro-video|places a native/.test(t)));
+    assert.doesNotMatch(ctx.logExcerpt, /MODULE_TYPELESS_PACKAGE_JSON/);
+
+    const noiseOnly = extractMeaningfulFailureContext(
+      '(node:1) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file\n',
+    );
+    assert.equal(noiseOnly.failingTestFile, null);
+    assert.equal(noiseOnly.logExcerpt, '');
+    assert.equal(stripGenericRunnerNoise('warn MODULE_TYPELESS_PACKAGE_JSON\nok').includes('ok'), true);
   });
 
   it('dedupes identical fingerprints and escalates after max attempts', () => {
@@ -70,13 +182,14 @@ describe('ci-failure-cursor-supervisor', () => {
     });
     const packet = buildCiFailurePacket({
       prNumber: 665,
-      headSha: 'aa13a902',
+      headSha: FAILED_SHA,
       workflowRunId: '30417364180',
       workflowName: 'Agent CI',
       failedStep: 'Node dependencies + automation unit tests',
       failingTests: ['node-tests/lead-rescue-intro-video.test.mjs'],
       errorCategory: 'assertion_mismatch',
       cursorAgentId: origin.cursorAgentId,
+      cursorRunId: origin.cursorRunId,
     });
     const gate = evaluateCiRepairGate({
       workflowConclusion: 'failure',
@@ -121,13 +234,9 @@ describe('ci-failure-cursor-supervisor', () => {
     assert.equal(exhausted.escalate, true);
   });
 
-  it('extracts failing test names from node test output', () => {
-    const names = extractFailingTestNames(`
-not ok 1 - AI Lead Rescue intro video
-# Subtest: node-tests/lead-rescue-intro-video.test.mjs
-Error: AssertionError: expected true
-`);
-    assert.ok(names.some((n) => /lead-rescue-intro-video/.test(n) || /AI Lead Rescue/.test(n)));
+  it('extractFailingTestNames remains compatible', () => {
+    const names = extractFailingTestNames(SAMPLE_NODE_TEST_LOG);
+    assert.ok(names.some((n) => /lead-rescue-intro-video|AI Lead Rescue/.test(n)));
   });
 
   it('redacts secret-like strings', () => {
@@ -136,7 +245,7 @@ Error: AssertionError: expected true
 });
 
 describe('cursor-origin-metadata', () => {
-  it('round-trips marker comments and resolves from PR body agent link', () => {
+  it('round-trips marker comments and recovers Cursor run ID as well as agent ID', () => {
     const meta = buildCursorOriginMetadata({
       sourceIssue: 653,
       cursorAgentId: 'bc-31b05fb8-f550-4115-a6e7-41d2be508ca7',
@@ -148,12 +257,17 @@ describe('cursor-origin-metadata', () => {
     const comment = formatCursorOriginMetadataComment(meta);
     const parsed = parseCursorOriginMetadataFromText(comment);
     assert.equal(parsed?.cursorAgentId, meta.cursorAgentId);
+    assert.equal(parsed?.cursorRunId, meta.cursorRunId);
     assert.equal(parsed?.sourceIssue, 653);
 
     const resolved = resolveCursorOriginMetadata({
       prBody:
         'Tracks #653 <a href="https://cursor.com/agents/bc-31b05fb8-f550-4115-a6e7-41d2be508ca7">open</a>',
-      comments: [{ body: 'Cursor run identifier: run-264d8d44-392c-4372-a529-434cdfca5740' }],
+      comments: [
+        {
+          body: 'CURSOR DISPATCH ACTIVATED\n\nCursor run identifier: run-264d8d44-392c-4372-a529-434cdfca5740\n',
+        },
+      ],
       prNumber: 665,
     });
     assert.equal(resolved.cursorAgentId, 'bc-31b05fb8-f550-4115-a6e7-41d2be508ca7');
@@ -229,12 +343,11 @@ describe('lifecycle label ensure', () => {
   });
 });
 
-describe('operator review + cost controls (from #663 reuse)', () => {
+describe('operator review + cost controls', () => {
   it('routes tests_failed to cursor and builds green review packet', () => {
     const failed = detectCompletionSignals({
       pr: { number: 665, checksPassing: false, linkedIssue: 653 },
     });
-    // Force kind via checksPassing false path inside detect — if unknown, set:
     failed.testsPassing = false;
     failed.kind = 'tests_failed';
     failed.issueNumber = 653;
