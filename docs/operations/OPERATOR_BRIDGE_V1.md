@@ -44,6 +44,7 @@ If any of those rules conflict with this doc, **those rules win**.
 - **Multi-executor protocol (Cursor + Codex Cloud + future internal agent):** `docs/execution/DELIVERY_ACCELERATION_V1.md`
 - **Closure record path:** `artifacts/chat_history.md`
 - **Suggested labels (not created until v1.1):** `bridge:holding`, `bridge:ready-to-merge`, `bridge:needs-operator`, `bridge:blocked`, `bridge:complete`. v1 of this protocol does **not** create labels.
+- **Anton Decision Inbox (canonical, #676):** open issues/PRs labelled `needs:anton` (+ `approval:*` reason labels) with structured `### ANTON DECISION PACKET` / `### ANTON DURABLE APPROVAL` comments. #249 remains the human-readable STATUS ledger — **not** a second control plane. See `docs/operations/ANTON_DECISION_INBOX_V1.md`.
 
 ## 4. Actor responsibilities (frozen)
 
@@ -91,6 +92,23 @@ All status updates and decisions in the coordination issue use a **machine-check
 **Definition of done:** <one paragraph>
 **Verification required:** <what Cursor must report back>
 ```
+
+For **protected consequential actions** (deploy, secrets, DB/schema, payment, external send, paid tool, public launch, agent merge authority), also record a durable approval on the issue/PR using the Decision Inbox marker (labels alone never unlock):
+
+```
+### ANTON DURABLE APPROVAL
+
+- approver: Anton
+- approval_type: approval:<merge|deploy|production|db-schema|env-secrets|external-send|payment|paid-tool|public-launch>
+- issue_or_pr: #<n> | PR #<n>
+- target_sha: <sha or n/a>
+- target_environment: Production | Preview | n/a
+- valid_until: <ISO-8601 or session>
+- decision: approve
+- recorded_at: <ISO-8601>
+```
+
+See `docs/operations/ANTON_DECISION_INBOX_V1.md`.
 
 ### 5.3 Closure note (mirrored to `artifacts/chat_history.md`)
 
