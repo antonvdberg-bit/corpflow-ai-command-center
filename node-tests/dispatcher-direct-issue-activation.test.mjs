@@ -48,6 +48,16 @@ describe('dispatcher direct-issue activation', () => {
     assert.equal(result.issueNumber, 553);
   });
 
+  it('validateDirectIssueActivationContext allows issue-scan handoff on scheduled runs', () => {
+    const result = validateDirectIssueActivationContext({
+      targetIssue: '653',
+      eventName: 'schedule',
+      issueScanHandoff: true,
+    });
+    assert.equal(result.allowed, true);
+    assert.equal(result.issueNumber, 653);
+  });
+
   it('validateDirectIssueActivationContext allows manual workflow_dispatch', () => {
     const result = validateDirectIssueActivationContext({
       targetIssue: '553',

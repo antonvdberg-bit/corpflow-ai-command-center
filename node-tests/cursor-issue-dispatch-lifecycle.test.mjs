@@ -47,6 +47,21 @@ const ISSUE_658 = {
   labels: ['cost-control', 'priority:P0', 'dispatch:cursor-ready', 'approved'],
 };
 
+const ISSUE_661_BODY = `## Protected gates
+
+No production deploy, env/secret change, DB/schema change, payment, messaging runtime, external outreach or public launch without Anton approval.
+
+## Definition of done
+
+Continuous execution is proven for one full cycle: eligible issue -> agent run ID -> commit/PR -> tests -> operator disposition.`;
+
+const ISSUE_661 = {
+  number: 661,
+  title: 'P0: Active agent delivery control loop — Cursor, Codex, GitHub and n8n',
+  body: ISSUE_661_BODY,
+  labels: ['priority:P0', 'dispatch:cursor-ready'],
+};
+
 describe('cursor-issue-dispatch-lifecycle', () => {
   it('classifies Lead Rescue #653 as CorpFlowAI business system product stream', () => {
     const c = inferIssueClassification(ISSUE_653);
@@ -67,6 +82,24 @@ describe('cursor-issue-dispatch-lifecycle', () => {
     assert.equal(c.productWorkstream, null);
     assert.equal(c.protectedGate, 'none');
     assert.equal(c.systemBoundary, 'corpflowai_business_system');
+  });
+
+  it('classifies control-loop #661 without secrets gate when env/secret is a prohibition', () => {
+    const c = inferIssueClassification(ISSUE_661);
+    assert.equal(c.protectedGate, 'none');
+    assert.equal(c.mayRunConcurrently, true);
+  });
+
+  it('#661 is eligible when classified alone (no protected-gate false positive)', () => {
+    const plan = planCursorIssueClaims({
+      readyIssues: [ISSUE_661],
+      claimedIssues: [],
+    });
+    const d661 = plan.decisions.find((d) => d.issue.number === 661);
+    assert.equal(d661?.eligibleToClaim, true);
+    assert.equal(d661?.decision, 'claim');
+    assert.doesNotMatch(String(d661?.reason || ''), /protected gate/);
+    assert.equal(plan.activationTargetIssue, 661);
   });
 
   it('eligibility table for #653 #654 #658 — sibling hold does not block ops #658', () => {
