@@ -90,6 +90,65 @@ describe('cursor-issue-dispatch-lifecycle', () => {
     assert.equal(c.mayRunConcurrently, true);
   });
 
+  it('#679 environment doctrine → corpflow_test, no production gate, not Lux-tenant locked', () => {
+    const issue679 = {
+      number: 679,
+      title:
+        'P0: Treat all CorpFlowAI-hosted tenant surfaces as test environments; separate future client production deployments',
+      body: `All tenant/client surfaces currently hosted under CorpFlowAI-controlled domains are test environments.
+Examples: core.corpflowai.com, Lux / CIPC Desk.
+Publish directly to CorpFlowAI-hosted test environment after merge.
+Do not block normal tenant test publishing behind approval:production.
+No deployment into any client-owned or actual client production environment is authorised.
+No env/secrets or DB/schema changes. client_production remains separately gated.
+Environment classification / operating rule / doctrine.`,
+      labels: ['priority:P0', 'dispatch:cursor-ready'],
+    };
+    const c = inferIssueClassification(issue679);
+    assert.equal(c.systemBoundary, 'corpflowai_business_system');
+    assert.equal(c.tenantOrClient, 'N/A');
+    assert.equal(c.environment, 'corpflow_test');
+    assert.equal(c.protectedGate, 'none');
+  });
+
+  it('Lux UI publish to lux.corpflowai.com is corpflow_test without production gate', () => {
+    const c = inferIssueClassification({
+      number: 680,
+      title: 'Lux homepage CTA copy update',
+      body: 'Update CTA on lux.corpflowai.com. Publish after merge. Live validate the test URL. No secrets, no DB/schema.',
+      labels: ['lux', 'dispatch:cursor-ready'],
+    });
+    assert.equal(c.systemBoundary, 'tenant');
+    assert.equal(c.tenantOrClient, 'lux / Rare & Exclusive');
+    assert.equal(c.environment, 'corpflow_test');
+    assert.equal(c.protectedGate, 'none');
+    assert.ok(c.workTypes.includes('ui'));
+  });
+
+  it('CIPC Desk standing surface classifies as corpflow_test', () => {
+    const c = inferIssueClassification({
+      number: 681,
+      title: 'CIPC Desk first visible slice',
+      body: 'Ship CIPC Desk UI to cipc.corpflowai.com test tenant. Merge then publish. Validate live test URL.',
+      labels: ['cipc', 'dispatch:cursor-ready'],
+    });
+    assert.equal(c.tenantOrClient, 'CIPC Desk');
+    assert.equal(c.environment, 'corpflow_test');
+    assert.equal(c.protectedGate, 'none');
+  });
+
+  it('explicit client_production deploy keeps production protected gate', () => {
+    const c = inferIssueClassification({
+      number: 682,
+      title: 'Deploy Lux to client production luxemaurice.com',
+      body: 'Deploy approved build into the client-owned production environment at luxemaurice.com. Requires production approval and client_production controls.',
+      labels: ['lux', 'production', 'dispatch:cursor-ready'],
+    });
+    assert.equal(c.environment, 'client_production');
+    assert.equal(c.protectedGate, 'production');
+    assert.equal(c.tenantOrClient, 'lux / Rare & Exclusive');
+  });
+
   it('#661 is eligible when classified alone (no protected-gate false positive)', () => {
     const plan = planCursorIssueClaims({
       readyIssues: [ISSUE_661],
