@@ -5,16 +5,22 @@ import {
   computeLuxLeadCrmSignals,
   defaultLuxOperatorWorkflow,
   luxLeadCrmStageLabel,
+  luxLeadCrmSuggestedNextStage,
+  luxLeadCrmNextActionHint,
   luxOperatorActorLabelFromPayload,
   mergeLuxOperatorWorkflowPatch,
   normalizeLuxLeadCrmStage,
+  parseConciergeContactFields,
   parseLuxOperatorWorkflow,
   luxOperatorWorkflowForApiList,
 } from '../lib/cmp/_lib/lux-lead-operator-workflow.js';
 
-test('normalizeLuxLeadCrmStage accepts aliases', () => {
-  assert.equal(normalizeLuxLeadCrmStage('Follow-up'), 'follow_up');
-  assert.equal(normalizeLuxLeadCrmStage('Viewing Requested'), 'viewing_requested');
+test('normalizeLuxLeadCrmStage accepts current + legacy aliases', () => {
+  assert.equal(normalizeLuxLeadCrmStage('Contacted'), 'contacted');
+  assert.equal(normalizeLuxLeadCrmStage('Invited'), 'invited');
+  assert.equal(normalizeLuxLeadCrmStage('Follow-up'), 'contacted');
+  assert.equal(normalizeLuxLeadCrmStage('Viewing Requested'), 'invited');
+  assert.equal(normalizeLuxLeadCrmStage('lost'), 'closed');
   assert.equal(normalizeLuxLeadCrmStage('NEW'), 'new');
 });
 
@@ -83,16 +89,20 @@ test('assign_owner persists and logs activity', () => {
   assert.ok(o.activity.some((e) => e.kind === 'owner_assigned'));
 });
 
-test('LUX_LEAD_CRM_STAGES has six stages', () => {
-  assert.equal(LUX_LEAD_CRM_STAGES.length, 6);
-  assert.equal(luxLeadCrmStageLabel('lost'), 'Lost');
+test('LUX_LEAD_CRM_STAGES is enquiry lifecycle new→closed (#673)', () => {
+  assert.deepEqual([...LUX_LEAD_CRM_STAGES], ['new', 'contacted', 'qualified', 'invited', 'closed']);
+  assert.equal(luxLeadCrmStageLabel('invited'), 'Invited');
+  assert.equal(luxLeadCrmSuggestedNextStage('new'), 'contacted');
+  assert.equal(luxLeadCrmSuggestedNextStage('invited'), 'closed');
+  assert.equal(luxLeadCrmSuggestedNextStage('closed'), null);
+  assert.match(luxLeadCrmNextActionHint('new'), /Contact/i);
 });
 
 test('computeLuxLeadCrmSignals overdue stale untouched', () => {
   const now = new Date('2026-05-10T12:00:00.000Z');
   const owPastDue = parseLuxOperatorWorkflow({
     lux_operator_workflow: {
-      stage: 'follow_up',
+      stage: 'contacted',
       internal_notes: [{ at: '2026-05-01T12:00:00.000Z', text: 'x' }],
       next_action_at: '2026-05-09T12:00:00.000Z',
       activity: [],
@@ -140,7 +150,7 @@ test('mergeLuxOperatorWorkflowPatch next_action scheduling activity', () => {
   assert.ok(o.activity.some((e) => e.kind === 'next_action_updated'));
 });
 
-test('luxOperatorWorkflowForApiList exposes CRM signals', () => {
+test('luxOperatorWorkflowForApiList exposes CRM signals + next-action hint', () => {
   const ow = parseLuxOperatorWorkflow({
     lux_operator_workflow: {
       stage: 'new',
@@ -154,4 +164,34 @@ test('luxOperatorWorkflowForApiList exposes CRM signals', () => {
     lead_updated_at: '2026-05-01T08:00:00.000Z',
   });
   assert.equal(api.overdue_follow_up, true);
+  assert.equal(api.suggested_next_stage, 'contacted');
+  assert.equal(api.suggested_next_stage_label, 'Contacted');
+  assert.match(String(api.next_action_hint || ''), /Contact/i);
+});
+
+test('parseConciergeContactFields splits email | phone', () => {
+  const a = parseConciergeContactFields('ops@example.test | +23051234567', null);
+  assert.equal(a.email, 'ops@example.test');
+  assert.equal(a.phone, '+23051234567');
+  assert.equal(a.contact_display, 'ops@example.test');
+
+  const b = parseConciergeContactFields('ops@example.test', '+23059998877');
+  assert.equal(b.email, 'ops@example.test');
+  assert.equal(b.phone, '+23059998877');
+
+  const c = parseConciergeContactFields('ops@example.test | +23051112222', '+23053334444');
+  assert.equal(c.phone, '+23053334444');
+});
+
+test('enquiry lifecycle progression new→contacted→qualified→invited→closed', () => {
+  let qj = {};
+  const t = '2026-07-29T08:00:00.000Z';
+  for (const stage of ['contacted', 'qualified', 'invited', 'closed']) {
+    qj = mergeLuxOperatorWorkflowPatch(qj, { stage }, 'synthetic_operator', t);
+  }
+  const o = parseLuxOperatorWorkflow(qj);
+  assert.equal(o.stage, 'closed');
+  assert.equal(o.stage_audit.length, 4);
+  assert.equal(o.stage_audit[0].new_stage, 'contacted');
+  assert.equal(o.stage_audit[3].new_stage, 'closed');
 });

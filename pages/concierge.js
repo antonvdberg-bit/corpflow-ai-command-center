@@ -197,11 +197,13 @@ export default function ConciergePage({ seoHost = '' } = {}) {
       const intentPrefix = intentLabels.length
         ? `Seeking: ${intentLabels.join(', ')}.\n\n`
         : '';
-      // Keep existing concierge-lead-create contract (single `contact` field, no schema change).
-      // Email remains the primary contact so email_hint resolves; phone is carried for operators.
+      // Email remains the primary contact so email_hint resolves; phone is sent
+      // both in `contact` (legacy `email | phone`) and as dedicated `phone`
+      // so operators see telephone without parsing (Issue #673 — existing column).
       const body = {
         name: name.trim(),
         contact: `${emailTrim} | ${phoneTrim}`,
+        phone: phoneTrim,
         message: `${intentPrefix}Phone: ${phoneTrim}\n\n${message.trim()}`,
       };
       if (propertyInterest) {

@@ -6380,6 +6380,18 @@ export default function ChangeConsolePage() {
                 </span>
               ) : null}
             </div>
+            {luxLeadCrmEnabled ? (
+              <div
+                data-testid="lux-crm-enquiry-lifecycle"
+                style={{ marginTop: 8, fontSize: 11, color: '#94a3b8', lineHeight: 1.45 }}
+              >
+                Enquiry path:{' '}
+                <span style={{ color: '#e2e8f0', fontWeight: 700 }}>
+                  new → contacted → qualified → invited → closed
+                </span>
+                . Select a row to progress status and set the next action.
+              </div>
+            ) : null}
             {luxLeadCrmEnabled && systemGeneratedLeadCount > 0 ? (
               <div
                 data-testid="lux-crm-system-generated-toggle"
@@ -6699,7 +6711,17 @@ export default function ChangeConsolePage() {
                           </span>
                         ) : null}
                       </div>
-                      <div style={{ marginTop: 4, fontSize: 12, color: '#94a3b8', ...changeTextContainStyle() }}>{String(lead.contact || '—')}</div>
+                      <div style={{ marginTop: 4, fontSize: 12, color: '#94a3b8', ...changeTextContainStyle() }}>
+                        {String(lead.email || lead.contact || '—')}
+                      </div>
+                      {lead.phone ? (
+                        <div
+                          data-testid="lux-crm-lead-phone"
+                          style={{ marginTop: 2, fontSize: 12, color: '#cbd5e1', ...changeTextContainStyle() }}
+                        >
+                          Tel: {String(lead.phone)}
+                        </div>
+                      ) : null}
                       <div style={{ marginTop: 6, fontSize: 10, color: '#64748b', ...changeTextContainStyle() }}>
                         Intent: <span style={{ color: '#94a3b8' }}>{intentLabel(lead.intent)}</span>
                         {lead.created_at ? (
@@ -6716,7 +6738,7 @@ export default function ChangeConsolePage() {
                       {luxLeadCrmEnabled && ow ? (
                         <div style={{ marginTop: 8, fontSize: 11, color: '#a5f3fc', fontWeight: 750, ...changeTextContainStyle() }}>
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center', minWidth: 0, maxWidth: '100%' }}>
-                            <span>Stage: {String(ow.stage_label || luxLeadCrmStageLabel(ow.stage))}</span>
+                            <span>Status: {String(ow.stage_label || luxLeadCrmStageLabel(ow.stage))}</span>
                             {ow.owner?.username ? (
                               <span
                                 style={{
@@ -6778,9 +6800,20 @@ export default function ChangeConsolePage() {
                               </span>
                             ) : null}
                           </div>
+                          {ow.next_action_hint ? (
+                            <span
+                              data-testid="lux-crm-next-action-hint"
+                              style={{ display: 'block', marginTop: 6, fontWeight: 650, color: '#e2e8f0', ...changeTextContainStyle() }}
+                            >
+                              Next: {String(ow.next_action_hint)}
+                              {ow.suggested_next_stage_label
+                                ? ` → advance to ${String(ow.suggested_next_stage_label)}`
+                                : ''}
+                            </span>
+                          ) : null}
                           {ow.next_action_at ? (
                             <span style={{ display: 'block', marginTop: 6, fontWeight: 600, color: '#94a3b8', ...changeTextContainStyle() }}>
-                              Next action: {new Date(ow.next_action_at).toLocaleString()}
+                              Scheduled: {new Date(ow.next_action_at).toLocaleString()}
                             </span>
                           ) : null}
                           {ow.follow_up_status ? (
@@ -6839,8 +6872,57 @@ export default function ChangeConsolePage() {
                 <div style={{ fontSize: 11, fontWeight: 900, color: '#67e8f9', letterSpacing: '0.06em' }}>
                   OPERATOR ACTIONS — internal only (not visible on concierge)
                 </div>
+                {selectedLead.email || selectedLead.phone || selectedLead.contact ? (
+                  <div
+                    data-testid="lux-crm-selected-contact"
+                    style={{ fontSize: 12, color: '#cbd5e1', lineHeight: 1.45 }}
+                  >
+                    <div>
+                      <span style={{ color: '#94a3b8' }}>Email / contact: </span>
+                      {String(selectedLead.email || selectedLead.contact || '—')}
+                    </div>
+                    {selectedLead.phone ? (
+                      <div>
+                        <span style={{ color: '#94a3b8' }}>Telephone: </span>
+                        {String(selectedLead.phone)}
+                      </div>
+                    ) : null}
+                    {selectedLead.created_at ? (
+                      <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
+                        Submitted: {new Date(selectedLead.created_at).toLocaleString()}
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+                {selectedLead.operator_workflow?.next_action_hint ? (
+                  <div
+                    data-testid="lux-crm-selected-next-action"
+                    style={{
+                      fontSize: 12,
+                      color: '#e2e8f0',
+                      padding: '8px 10px',
+                      borderRadius: 10,
+                      border: '1px solid rgba(103,232,249,0.25)',
+                      background: 'rgba(103,232,249,0.08)',
+                      lineHeight: 1.45,
+                    }}
+                  >
+                    <div style={{ fontSize: 10, fontWeight: 800, color: '#67e8f9', letterSpacing: '0.06em' }}>
+                      NEXT ACTION
+                    </div>
+                    <div style={{ marginTop: 4 }}>{String(selectedLead.operator_workflow.next_action_hint)}</div>
+                    {selectedLead.operator_workflow.suggested_next_stage_label ? (
+                      <div style={{ marginTop: 4, fontSize: 11, color: '#94a3b8' }}>
+                        Suggested status:{' '}
+                        <span style={{ color: '#a5f3fc', fontWeight: 700 }}>
+                          {String(selectedLead.operator_workflow.suggested_next_stage_label)}
+                        </span>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
                 <label style={{ fontSize: 11, color: '#94a3b8', display: 'grid', gap: 6 }}>
-                  Stage
+                  Status
                   <select
                     value={leadStageDraft}
                     onChange={(e) => setLeadStageDraft(e.target.value)}

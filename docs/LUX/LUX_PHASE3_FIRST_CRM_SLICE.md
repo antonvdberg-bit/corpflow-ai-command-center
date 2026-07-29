@@ -8,6 +8,19 @@
 - **`qualification_json.lux_operator_workflow`:** stages, internal notes, follow-up, CRM PATCH action `concierge-lead-operator-patch`.
 - **`/change`:** Lux tenant session — lead cards, stage, notes, follow-up, save.
 
+## Enquiry lifecycle (Issue #673)
+
+Operator status path (no schema change — stored in `qualification_json.lux_operator_workflow.stage`):
+
+`new` → `contacted` → `qualified` → `invited` → `closed`
+
+| Capability | Behaviour |
+|------------|-----------|
+| **Status progression** | Operator advances status via `concierge-lead-operator-patch` / `/change` OPERATOR ACTIONS. |
+| **Next-action hint** | API + UI expose computed `next_action_hint` and `suggested_next_stage` for the current status. |
+| **Telephone** | `/concierge` still requires Email + Telephone. Create persists `phone` on the existing `leads.phone` column; list returns `email` + `phone` for the operator queue. |
+| **Legacy stages** | Pre-#673 values (`viewing_requested`, `follow_up`, `lost`) normalize into the path above (`invited` / `contacted` / `closed`). |
+
 ## Phase 3A.5 — operational hardening (this repo slice)
 
 | Area | Behaviour |
