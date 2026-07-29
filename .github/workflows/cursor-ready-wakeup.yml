@@ -1,0 +1,55 @@
+name: Cursor ready wake-up
+
+# Event-driven bridge into the existing Factory dispatcher.
+# This does not implement a second dispatcher. It only starts the canonical
+# factory-dispatcher-activate workflow for the issue that became ready.
+on:
+  issues:
+    types: [opened, reopened, labeled]
+
+permissions:
+  actions: write
+  issues: read
+  contents: read
+
+concurrency:
+  group: cursor-ready-wakeup-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  wake:
+    if: >-
+      github.event.issue.state == 'open' &&
+      contains(github.event.issue.labels.*.name, 'dispatch:cursor-ready')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch canonical factory activator
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          payload="$(jq -nc \
+            --arg ref main \
+            --arg issue "$ISSUE_NUMBER" \
+            '{ref:$ref,inputs:{activation_mode:"cursor_live",smoke_internal:"false",target_issue:$issue}}')"
+
+          response_file="$(mktemp)"
+          status="$(curl --silent --show-error \
+            --output "$response_file" \
+            --write-out '%{http_code}' \
+            --request POST \
+            --header 'Accept: application/vnd.github+json' \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header 'X-GitHub-Api-Version: 2022-11-28' \
+            "https://api.github.com/repos/$REPOSITORY/actions/workflows/factory-dispatcher-activate.yml/dispatches" \
+            --data "$payload")"
+
+          if [ "$status" != "204" ]; then
+            echo "Factory dispatcher wake-up failed with HTTP $status"
+            cat "$response_file"
+            exit 1
+          fi
+
+          echo "Factory dispatcher wake-up accepted for issue #$ISSUE_NUMBER"
