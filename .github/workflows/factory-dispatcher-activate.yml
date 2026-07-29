@@ -176,12 +176,15 @@ jobs:
           scanned="${{ steps.issue_scan.outputs.activation_target_issue }}"
           if [ -n "${manual}" ]; then
             echo "target_issue=${manual}" >> "$GITHUB_OUTPUT"
+            echo "target_source=manual" >> "$GITHUB_OUTPUT"
             echo "Effective target_issue=${manual} (manual)"
           elif [ -n "${scanned}" ]; then
             echo "target_issue=${scanned}" >> "$GITHUB_OUTPUT"
+            echo "target_source=issue_scan" >> "$GITHUB_OUTPUT"
             echo "Effective target_issue=${scanned} (issue-label scan claim)"
           else
             echo "target_issue=" >> "$GITHUB_OUTPUT"
+            echo "target_source=dispatcher" >> "$GITHUB_OUTPUT"
             echo "Effective target_issue=(blank — dispatcher fetch)"
           fi
 
@@ -191,6 +194,7 @@ jobs:
           ACTIVATION_MODE: ${{ steps.mode.outputs.mode }}
           DISPATCHER_ACTIVATION_SMOKE_INTERNAL: ${{ steps.mode.outputs.smoke_internal }}
           DISPATCHER_ACTIVATION_TARGET_ISSUE: ${{ steps.target.outputs.target_issue }}
+          DISPATCHER_ACTIVATION_TARGET_SOURCE: ${{ steps.target.outputs.target_source }}
           TARGET_ISSUE: ${{ steps.target.outputs.target_issue }}
           DISPATCHER_ACTIVATION_EVENT_NAME: ${{ github.event_name }}
           DISPATCHER_ACTIVATION_STATE_PATH: .dispatcher-activation-state/dedupe.json

@@ -447,9 +447,17 @@ function resolveCliOptions() {
  * @param {{ targetIssue: string, eventName: string, githubToken: string, repoFullName: string }} opts
  */
 async function resolveDirectIssueReport(opts) {
+  const issueScanHandoff =
+    opts.issueScanHandoff ||
+    ['issue_scan', 'scan'].includes(
+      String(process.env.DISPATCHER_ACTIVATION_TARGET_SOURCE || '')
+        .trim()
+        .toLowerCase(),
+    );
   const validation = validateDirectIssueActivationContext({
     targetIssue: opts.targetIssue,
     eventName: opts.eventName,
+    issueScanHandoff,
   });
 
   if (!validation.allowed) {
