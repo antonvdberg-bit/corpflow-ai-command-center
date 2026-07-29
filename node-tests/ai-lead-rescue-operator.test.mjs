@@ -303,8 +303,17 @@ describe('ai-lead-rescue-operator', () => {
     assert.match(out.notification_text, /Business: \(not provided\)/);
     assert.match(out.notification_text, /Contact: \(not provided\)/);
     assert.match(out.notification_text, /Phone \/ WhatsApp: \(not provided\)/);
-    assert.match(out.notification_text, /Preferred payment path: \(not selected\)/);
-    assert.match(out.notification_text, /Region: Not selected/);
+    // Public landing no longer collects region/payment — omit empty noise from alert text.
+    assert.ok(
+      !/Preferred payment path:/i.test(out.notification_text),
+      'must not show empty preferred payment path in notification text',
+    );
+    assert.ok(
+      !/^Region:/m.test(out.notification_text),
+      'must not show empty Region line in notification text',
+    );
+    assert.equal(out.prospect.preferred_payment_path, '(not selected)');
+    assert.equal(out.prospect.region_label, 'Not selected');
   });
 });
 

@@ -63,7 +63,7 @@ Agent → MCP 客户端管理器 → 多个 MCP 服务器；本地工具与远�
 
 ## 📋 预置模板
 
-`mcp_servers.json` 已包含文件系统、GitHub、PostgreSQL、Brave Search、Memory、Puppeteer、Slack 等模板，按需启用并填好密钥即可。
+`mcp_servers.json` 已包含文件系统、GitHub、PostgreSQL、Brave Search、Memory、Puppeteer 等模板，按需启用并填好密钥即可。Slack MCP 模板已按 issue #658 **退役**（`enabled: false`），勿再作为 CorpFlow 运维通道启用。
 
 ## 🔧 自定义 MCP 服务器
 

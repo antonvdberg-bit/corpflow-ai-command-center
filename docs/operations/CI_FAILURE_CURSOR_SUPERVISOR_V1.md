@@ -17,12 +17,20 @@ When **Agent CI** completes on a pull_request:
 ## Guards
 
 - Open PR only
-- Known Cursor origin (agent id and/or run id from PR body / origin metadata comment)
+- Known Cursor origin (agent id **and** run id recovered from PR/issue comments when available)
+- **Obsolete failure suppression** before live dispatch:
+  - failed head SHA ≠ current PR head (`obsolete_head_advanced`)
+  - later Agent CI success on an advanced head (`later_ci_green`)
+  - PR merged/closed
+  - source issue closed/completed
+- Failed head SHA comes from the **target workflow run**, not the current PR head
+- Meaningful failure extraction (test file / suite / subtest / AssertionError) — not runner-warning-only
 - Max **2** automatic repair attempts per PR
 - Fingerprint dedupe (same failure not re-sent)
 - Cooldown between attempts
 - File-backed cost/dedupe state (`.ci-repair-state/`, Actions cache) — **no second DB**
 - Escalation comment when exhausted
+- Dry-run mode preserved
 
 ## Origin metadata
 

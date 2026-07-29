@@ -74,6 +74,27 @@ describe('AI Lead Rescue main page — intake contract is preserved', () => {
     assert.ok(!/\/month|per month|monthly fee/i.test(COMPONENT), 'must not publish a monthly figure');
   });
 
+  it('ships a concise FAQ for the USD 150 pilot (not MUR sprint)', () => {
+    assert.ok(COMPONENT.includes("id=\"faq\""), 'FAQ section id missing');
+    assert.ok(COMPONENT.includes('LEAD_RESCUE_FAQ'), 'FAQ constant missing');
+    assert.ok(COMPONENT.includes('Is this a CRM or chatbot?'), 'FAQ CRM question missing');
+    assert.ok(COMPONENT.includes('Do you guarantee more sales or more leads?'), 'FAQ guarantee question missing');
+    assert.ok(!/AI Lead Rescue Sprint/i.test(COMPONENT), 'must not brand the primary page as Sprint');
+  });
+
+  it('shows inline intake confirmation with lead_id (no window.alert)', () => {
+    assert.ok(COMPONENT.includes('data-testid="lead-rescue-intake-success"'), 'success panel missing');
+    assert.ok(COMPONENT.includes('data-testid="lead-rescue-intake-lead-id"'), 'lead_id surface missing');
+    assert.ok(COMPONENT.includes('setIntakeDone'), 'intakeDone state missing');
+    assert.ok(!/\balert\s*\(/.test(COMPONENT), 'must not use window.alert for intake feedback');
+    assert.ok(
+      COMPONENT.includes(
+        'Payment is handled after intake review. You do not enter card or banking details on this page. We send a USD invoice through the agreed route after we confirm scope.',
+      ),
+      'missing doctrine payment trust copy',
+    );
+  });
+
   it('does not introduce forbidden integrations', () => {
     const lower = COMPONENT.toLowerCase();
     for (const bad of ['twilio', 'sendgrid', 'gohighlevel', 'openai', 'anthropic', 'localstorage', 'stripe']) {

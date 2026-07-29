@@ -2,12 +2,14 @@
 
 **Audience:** operators and technical leads. **End users** should only need stable URLs (e.g. `https://lux.corpflowai.com/`); they must not depend on knowing which Vercel deployment or Git branch is “current.”
 
+**Environment doctrine (#679):** CorpFlowAI custom domains on this spine are **`corpflow_test`** (business meaning), not client production. Platform label “Vercel Production” means the stable deployment serving those hosts. See `docs/operations/CORPFLOW_ENVIRONMENT_CLASSIFICATION_V1.md`.
+
 ## Luxe Mauritius — official URL vs optional alias
 
 | Role | Hostname |
 |------|----------|
-| **Official production site (canonical)** | **`https://lux.corpflowai.com/`** — use this in contracts, email footers, and all operator docs. Maps to tenant `luxe-maurice` via Postgres `tenant_hostnames`. |
-| **Optional alias** | **`https://luxe.corpflowai.com/`** — same tenant when both are in `tenant_hostnames` **and** both domains are attached to **this** Vercel project (Production). Run `node scripts/upsert-luxe-maurice-hostnames.mjs` after `POSTGRES_URL` is set. |
+| **Canonical corpflow_test site (Lux working surface)** | **`https://lux.corpflowai.com/`** — use this in operator docs, review links, and contracts that describe the CorpFlowAI-hosted test/review surface. Maps to tenant `luxe-maurice` via Postgres `tenant_hostnames`. **Not** the client's own live production operation unless a separate client_production transition is approved. |
+| **Optional alias** | **`https://luxe.corpflowai.com/`** — same tenant when both are in `tenant_hostnames` **and** both domains are attached to **this** Vercel project (Production spine). Run `node scripts/upsert-luxe-maurice-hostnames.mjs` after `POSTGRES_URL` is set. |
 
 ## The contract (one spine)
 

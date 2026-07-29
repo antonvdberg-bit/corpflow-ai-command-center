@@ -101,7 +101,9 @@ test('Concept A homepage renders approved Ivory Editorial anchors', () => {
     'Private-access buyer journey',
     'Curated opportunities',
     'Request private access',
-    'monogramSize={132}',
+    'monogramSize={150}',
+    'monogramBreathingPx={12}',
+    'minmax(0, 0.87fr) minmax(0, 1.13fr)',
     '/lifestyle',
     '/destination-mauritius',
     '/private-services',
@@ -118,6 +120,10 @@ test('Concept A homepage renders approved Ivory Editorial anchors', () => {
   assert.ok(!src.includes('Request an Invitation'));
   assert.ok(!src.includes('property portal'));
   assert.ok(!src.includes('Explore Properties'));
+  // Issue #651 Jan refine — language options deferred; no selector in this slice
+  assert.ok(!src.includes('EN | FR'));
+  assert.ok(!src.includes('language selector'));
+  assert.ok(!src.includes('multilingual'));
 });
 
 test('brand signature + strapline constants remain stable', () => {

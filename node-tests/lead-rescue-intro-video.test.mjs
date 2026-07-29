@@ -37,11 +37,13 @@ describe('AI Lead Rescue intro video', () => {
     const player = landing.match(/<video[\s\S]*?<\/video>/)?.[0] || '';
 
     assert.ok(landing.includes('See AI Lead Rescue in action'));
+    // Landing copy uses the product name (AI Lead Rescue), not the older "Sprint" brand.
     assert.ok(
       landing.includes(
-        'A short introduction to how the AI Lead Rescue Sprint supports faster, clearer enquiry',
+        'A short introduction to how AI Lead Rescue supports faster, clearer enquiry follow-up.',
       ),
     );
+    assert.ok(!/AI Lead Rescue Sprint/i.test(landing));
     assert.ok(landing.includes(CANONICAL_URL));
     assert.ok(landing.includes('<AiLeadRescueIntroVideoSection />'));
     assert.ok(

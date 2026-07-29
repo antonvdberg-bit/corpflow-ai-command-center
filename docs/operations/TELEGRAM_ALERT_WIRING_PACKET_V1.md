@@ -26,7 +26,7 @@
 3. Sequences a **phased rollout** that respects the §3 Anton-only secret gate (no monitor switches from silent to noisy until the two secrets are present).
 4. Names a **test plan** and **rollback** so the rollout itself does not generate noise that erodes trust in the channel.
 
-This is the v1 of the *wiring contract* — future revisions can add additional channels (email via n8n, Slack, SMS) by extending the contract, not by re-shipping each workflow.
+This is the v1 of the *wiring contract* — future revisions can add additional channels (email via n8n, SMS) by extending the contract, not by re-shipping each workflow. **Slack is retired from CorpFlow ops** (issue #658) and must not be re-added as an alert channel.
 
 ---
 
@@ -46,7 +46,7 @@ This is the v1 of the *wiring contract* — future revisions can add additional 
   - [ ] Test plan exercised and recorded; rollback verified for each phase.
 - **Scope:**
   - **In:** Wiring existing silent monitors to existing Telegram helpers. Documenting the payload contract, severity ladder, anti-spam rule, test plan, rollback plan.
-  - **Out:** Adding new monitors (those follow `MONITORING_ARCHITECTURE.md` § 9). Adding new alert channels (email, Slack, SMS) — future v2. Adding monitoring of `corpflow-exec-01` itself — separate future packet `exec01-cron-pulse`. Changing the bot, the chat id, or the API token rotation policy — operator-owned.
+  - **Out:** Adding new monitors (those follow `MONITORING_ARCHITECTURE.md` § 9). Adding new alert channels (email, SMS) — future v2; **not Slack** (retired #658). Adding monitoring of `corpflow-exec-01` itself — separate future packet `exec01-cron-pulse`. Changing the bot, the chat id, or the API token rotation policy — operator-owned.
 - **Constraints:**
   - Secret values are operator-only; Cursor never sees `TELEGRAM_BOT_TOKEN` or `TELEGRAM_ALERT_CHAT_ID`. Workflows boot-step presence-only.
   - All new alert calls degrade to a no-op when the two secrets are unset (mirror `sendTelegramOpsAlert()` and `post-control-loop-telegram-alert.mjs` behavior — both silently skip when unset).
