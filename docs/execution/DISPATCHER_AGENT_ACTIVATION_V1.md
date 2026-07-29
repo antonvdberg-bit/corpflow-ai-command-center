@@ -57,8 +57,10 @@ Companion policy docs (unchanged):
 
 | Trigger | Schedule |
 |---------|----------|
-| `schedule` | Every 2 hours (`0 */2 * * *` UTC) |
+| `schedule` | Every **30 minutes** (`*/30 * * * *` UTC) — issue-label scan + activation plan; live Cursor only when `CURSOR_LIVE_ENABLED=true` |
 | `workflow_dispatch` | Manual run |
+
+**Segregated issue lifecycle (2026-07-28):** each scheduled/manual run first executes `scripts/cursor-issue-dispatch-scan.mjs` against open `dispatch:cursor-ready` issues (classification, WIP, discover/claim comments, labels). See `docs/operations/CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1.md`. At most one claimed issue is handed to the existing activator as `target_issue` when manual input is blank. This extends the current route — it does **not** add a second dispatcher.
 
 **Manual inputs (`workflow_dispatch`):**
 
