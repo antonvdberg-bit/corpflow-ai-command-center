@@ -14,6 +14,8 @@ import {
 import { collectPublishedLuxCardMediaByPropertyRefs } from '../lib/server/lux-published-property-media.js';
 import { defaultPublicSite, mergeSiteDraft } from '../lib/server/tenant-site-public.js';
 import { verifyTenantPreviewToken } from '../lib/server/tenant-preview-token.js';
+import { ensureCipcDeskPreviewTenantSeeded } from '../lib/server/cipc-desk-preview-seed.js';
+import { resolveCipcDeskTenantIdFromHost } from '../lib/server/cipc-desk-runtime.js';
 import { isGhostHost } from '../lib/server/ghost-host.js';
 import { listVisualAssetManifests } from '../lib/visualAssets/loadManifest.js';
 import { selectHomepageAssets } from '../lib/visualAssets/selectHomepageAssets.js';
@@ -520,6 +522,10 @@ export async function getServerSideProps({ req }) {
     });
     let tenantId = row && row.enabled === true ? safeStr(row.tenantId) : '';
     if (!tenantId) {
+      const standing = resolveCipcDeskTenantIdFromHost(host);
+      if (standing) tenantId = standing;
+    }
+    if (!tenantId) {
       const cfPreview = parseSearchParam(req, 'cf_preview');
       if (cfPreview) {
         const verified = verifyTenantPreviewToken(cfPreview);
@@ -528,9 +534,26 @@ export async function getServerSideProps({ req }) {
             where: { tenantId: verified.tenantId },
             select: { tenantId: true },
           });
-          if (tExists?.tenantId) tenantId = safeStr(tExists.tenantId);
+          if (tExists?.tenantId) {
+            tenantId = safeStr(tExists.tenantId);
+          } else if (String(verified.tenantId).trim() === 'cipc-desk') {
+            await ensureCipcDeskPreviewTenantSeeded({
+              tenantId: verified.tenantId,
+              host,
+              prisma,
+            });
+            const seeded = await prisma.tenant.findUnique({
+              where: { tenantId: verified.tenantId },
+              select: { tenantId: true },
+            });
+            if (seeded?.tenantId) tenantId = safeStr(seeded.tenantId);
+          }
         }
       }
+    }
+    // Standing CIPC Desk host may resolve via tenant_hostnames before the tenant row exists.
+    if (tenantId === 'cipc-desk') {
+      await ensureCipcDeskPreviewTenantSeeded({ tenantId, host, prisma });
     }
     if (!tenantId) {
       return { props: withHost({ mode: 'corpflow_marketing', site: null, homepageAssets: buildHomepageAssetsSafe() }) };
@@ -574,10 +597,10 @@ export async function getServerSideProps({ req }) {
       site.meta.page_title = 'LuxeMaurice · Private Wealth & Lifestyle Platform for Mauritius';
 
       site.hero = site.hero && typeof site.hero === 'object' ? site.hero : {};
-      site.hero.title = 'LuxeMaurice';
-      site.hero.headline = 'Private. Curated. Considered.';
-      site.hero.tagline = 'Private Wealth & Lifestyle Platform for Mauritius';
-      site.hero.cta_label = 'Request a private consultation';
+      site.hero.title = 'Rare & Exclusive Collection';
+      site.hero.headline = 'Private curator of the world’s rarest residences.';
+      site.hero.tagline = 'Curating exceptional residences for a select international clientele.';
+      site.hero.cta_label = 'Private Access';
       site.hero.cta_href = '/concierge';
 
       site.sections = site.sections && typeof site.sections === 'object' ? site.sections : {};

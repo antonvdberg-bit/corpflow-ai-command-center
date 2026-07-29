@@ -6,7 +6,7 @@ import { LUXE_MAURICE_BRAND_TOKENS as T } from '../lib/client/luxe-maurice-brand
 import { resolveLuxPropertyRef } from '../lib/client/luxe-maurice-property-resolve.js';
 import { isLuxStagedDemoSlug } from '../lib/client/luxe-maurice-staged-properties.js';
 import { buildConciergeSeo } from '../lib/client/concierge-seo.js';
-import { LuxEyebrow } from '../components/LuxeMauriceBrandPrimitives.js';
+import { LuxEyebrow, LuxHairline } from '../components/LuxeMauriceBrandPrimitives.js';
 import {
   LuxeMauriceFontStylesheet,
   RareExclusiveEditorialSpine,
@@ -32,6 +32,13 @@ const INTENT_OPTIONS = [
   { id: 'ownership_support', label: 'Ongoing ownership support' },
 ];
 
+/** Post-submit confirmation copy — Issue #645 follow-up UX. */
+const CONCIERGE_SUCCESS_MESSAGE =
+  'Thank you. Your request has been received for private advisory review. A qualified advisor will select suitable next information and follow up within one business day.';
+
+const CONCIERGE_SUCCESS_NEXT_STEP =
+  'Your request is now queued for private advisory review.';
+
 /**
  * `/concierge` — Rare & Exclusive Collection Private Advisory (Ivory Editorial).
  * Issue #636: editorial spine, enquiry journey, discretion / owner concierge /
@@ -44,7 +51,8 @@ export default function ConciergePage({ seoHost = '' } = {}) {
   const showDebugPayload = router.query?.debug === '1';
 
   const [name, setName] = useState('');
-  const [contact, setContact] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [intentTags, setIntentTags] = useState([]);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
@@ -140,21 +148,46 @@ export default function ConciergePage({ seoHost = '' } = {}) {
     [seoHost, propertyInterest],
   );
 
+  const emailTrim = email.trim();
+  const phoneTrim = phone.trim();
+  const emailLooksValid = emailTrim.includes('@') && emailTrim.includes('.') && emailTrim.length > 5;
+  const phoneLooksValid = phoneTrim.replace(/[^\d+]/g, '').length >= 7;
+
   const canSubmit = useMemo(
-    () => name.trim().length > 1 && contact.trim().length > 2 && message.trim().length > 2,
-    [name, contact, message],
+    () =>
+      name.trim().length > 1 &&
+      emailLooksValid &&
+      phoneLooksValid &&
+      message.trim().length > 2,
+    [name, emailLooksValid, phoneLooksValid, message],
   );
 
   function toggleIntent(id) {
     setIntentTags((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   }
 
+  const submitted = Boolean(success);
+
+  function resetForAnotherRequest() {
+    setSuccess('');
+    setError('');
+    setPayload(null);
+    setName('');
+    setEmail('');
+    setPhone('');
+    setIntentTags([]);
+    setMessage('');
+  }
+
   async function onSubmit(e) {
     e.preventDefault();
-    if (!canSubmit || busy) return;
+    if (submitted || !canSubmit || busy) return;
+    if (!emailLooksValid || !phoneLooksValid) {
+      setError('Please provide both a valid email address and a telephone number.');
+      return;
+    }
     setBusy(true);
     setError('');
-    setSuccess('');
     setPayload(null);
     try {
       const intentLabels = intentTags
@@ -164,10 +197,12 @@ export default function ConciergePage({ seoHost = '' } = {}) {
       const intentPrefix = intentLabels.length
         ? `Seeking: ${intentLabels.join(', ')}.\n\n`
         : '';
+      // Keep existing concierge-lead-create contract (single `contact` field, no schema change).
+      // Email remains the primary contact so email_hint resolves; phone is carried for operators.
       const body = {
         name: name.trim(),
-        contact: contact.trim(),
-        message: `${intentPrefix}${message.trim()}`,
+        contact: `${emailTrim} | ${phoneTrim}`,
+        message: `${intentPrefix}Phone: ${phoneTrim}\n\n${message.trim()}`,
       };
       if (propertyInterest) {
         body.property_slug = propertyInterest.ref;
@@ -181,11 +216,12 @@ export default function ConciergePage({ seoHost = '' } = {}) {
       const j = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(j.error || j.detail || `http_${r.status}`);
       setPayload(j);
-      setSuccess('Thank you. A private advisor will be in touch within one business day.');
       setName('');
-      setContact('');
+      setEmail('');
+      setPhone('');
       setIntentTags([]);
       setMessage('');
+      setSuccess(CONCIERGE_SUCCESS_MESSAGE);
     } catch (err) {
       setError(str(err?.message || err));
     } finally {
@@ -244,7 +280,7 @@ export default function ConciergePage({ seoHost = '' } = {}) {
       <RareExclusiveInteriorHero
         eyebrow="Private Advisory"
         title="Request a private consultation."
-        body="Tell us what you are seeking in Mauritius. Your note is read by a single private advisor, held in complete discretion, and answered within one business day — by appointment only."
+        body="Tell us what you are seeking in Mauritius. Your note enters a controlled operator-review path: received, qualified, matched to suitable information, then followed up by appointment — with discretion throughout."
         visual="advisory"
       />
 
@@ -340,212 +376,312 @@ export default function ConciergePage({ seoHost = '' } = {}) {
           </RareExclusiveOpaquePanel>
         ) : null}
 
-        <RareExclusiveOpaquePanel style={{ marginTop: 8 }}>
-        <LuxEyebrow tone="charcoal">Enquiry</LuxEyebrow>
-        <p
+        <RareExclusiveOpaquePanel
           style={{
-            margin: '14px 0 28px',
-            fontFamily: T.fontDisplay,
-            fontStyle: 'italic',
-            fontSize: 18,
-            color: '#4A433A',
+            marginTop: 8,
+            ...(submitted
+              ? {
+                  borderColor: T.gold,
+                  background: '#FBF8F2',
+                  boxShadow: 'inset 0 0 0 1px rgba(168, 132, 44, 0.18)',
+                }
+              : null),
           }}
         >
-          Appointment-only. Invited, not advertised.
-        </p>
-        {/* ─── Editorial form — hairline underline inputs ─────────── */}
-        <form
-          onSubmit={onSubmit}
-          style={{
-            display: 'grid',
-            gap: 40,
-          }}
-        >
-          <label
-            style={{
-              fontFamily: T.fontBody,
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: '0.32em',
-              textTransform: 'uppercase',
-              color: T.gold,
-            }}
+        {submitted ? (
+          <div
+            role="status"
+            aria-live="polite"
+            data-concierge-confirmation="1"
+            style={{ textAlign: 'center', padding: '12px 0 8px' }}
           >
-            Name
-            {editorialInput({
-              value: name,
-              onChange: (e) => setName(e.target.value),
-              placeholder: 'Full name',
-              type: 'text',
-              autoComplete: 'name',
-            })}
-          </label>
-
-          <label
-            style={{
-              fontFamily: T.fontBody,
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: '0.32em',
-              textTransform: 'uppercase',
-              color: T.gold,
-            }}
-          >
-            Preferred contact
-            {editorialInput({
-              value: contact,
-              onChange: (e) => setContact(e.target.value),
-              placeholder: 'Email or telephone',
-              type: 'text',
-              autoComplete: 'email',
-            })}
-          </label>
-
-          <div>
-            <div
-              style={{
-                fontFamily: T.fontBody,
-                fontSize: 10,
-                fontWeight: 700,
-                letterSpacing: '0.32em',
-                textTransform: 'uppercase',
-                color: T.gold,
-              }}
-            >
-              Tell us what you are seeking in Mauritius
+            <LuxEyebrow tone="charcoal" center>
+              Request received
+            </LuxEyebrow>
+            <div style={{ margin: '28px auto 24px', width: 40 }}>
+              <LuxHairline tone="gold" />
             </div>
-            <div
+            <h2
               style={{
-                marginTop: 18,
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: 10,
-              }}
-            >
-              {INTENT_OPTIONS.map((opt) => {
-                const active = intentTags.includes(opt.id);
-                return (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => toggleIntent(opt.id)}
-                    aria-pressed={active}
-                    style={{
-                      padding: '11px 18px',
-                      borderRadius: T.radiusEditorial,
-                      border: `1px solid ${active ? T.gold : T.hairlineStone}`,
-                      background: active ? T.gold : 'transparent',
-                      color: active ? T.charcoal : T.stone,
-                      fontFamily: T.fontBody,
-                      fontSize: 11,
-                      fontWeight: 700,
-                      letterSpacing: '0.22em',
-                      textTransform: 'uppercase',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {opt.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <label
-            style={{
-              fontFamily: T.fontBody,
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: '0.32em',
-              textTransform: 'uppercase',
-              color: T.gold,
-            }}
-          >
-            Your message
-            <textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="A few words about timing, location, family context, or anything you would like the advisor to know in advance."
-              style={{
-                display: 'block',
-                width: '100%',
-                minHeight: 180,
-                marginTop: 12,
-                padding: '14px 0',
-                border: 'none',
-                borderBottom: `1px solid ${T.hairlineStone}`,
-                background: 'transparent',
-                color: T.charcoal,
-                fontFamily: T.fontBody,
-                fontSize: 16,
-                lineHeight: 1.7,
-                outline: 'none',
-                letterSpacing: 'normal',
-                textTransform: 'none',
+                margin: '0 auto 18px',
+                maxWidth: 560,
+                fontFamily: T.fontDisplay,
                 fontWeight: 400,
-                resize: 'vertical',
-              }}
-            />
-          </label>
-
-          <div style={{ marginTop: 12 }}>
-            <button
-              type="submit"
-              disabled={!canSubmit || busy}
-              style={{
-                border: 'none',
-                borderRadius: T.radiusEditorial,
-                padding: '18px 32px',
-                background:
-                  !canSubmit || busy ? 'rgba(168, 132, 44, 0.32)' : T.gold,
+                fontSize: 'clamp(1.65rem, 3.2vw, 2.25rem)',
+                lineHeight: 1.25,
                 color: T.charcoal,
-                fontFamily: T.fontBody,
-                fontWeight: 700,
-                fontSize: 12.5,
-                letterSpacing: '0.22em',
-                textTransform: 'uppercase',
-                cursor: !canSubmit || busy ? 'not-allowed' : 'pointer',
               }}
             >
-              {busy ? 'Submitting…' : 'Request a Private Consultation'}
+              Private access request confirmed.
+            </h2>
+            <p
+              style={{
+                margin: '0 auto 20px',
+                maxWidth: 560,
+                fontFamily: T.fontDisplay,
+                fontStyle: 'italic',
+                fontSize: 'clamp(1.1rem, 1.8vw, 1.35rem)',
+                lineHeight: 1.6,
+                color: T.charcoal,
+              }}
+            >
+              {success}
+            </p>
+            <p
+              style={{
+                margin: '0 auto 36px',
+                maxWidth: 520,
+                fontFamily: T.fontBody,
+                fontSize: 15,
+                lineHeight: 1.75,
+                color: '#4A433A',
+              }}
+            >
+              {CONCIERGE_SUCCESS_NEXT_STEP}
+            </p>
+            <button
+              type="button"
+              onClick={resetForAnotherRequest}
+              style={{
+                ...rareExclusiveCtaGoldStyle(),
+                border: 'none',
+                cursor: 'pointer',
+                color: '#FFFFFF',
+              }}
+            >
+              Submit another request
             </button>
+            <p
+              style={{
+                margin: '28px auto 0',
+                maxWidth: 480,
+                fontFamily: T.fontBody,
+                fontSize: 12.5,
+                lineHeight: 1.7,
+                color: '#4A433A',
+              }}
+            >
+              No further action is required. A private advisor will continue the controlled
+              review path.
+            </p>
           </div>
-        </form>
+        ) : (
+          <>
+            <LuxEyebrow tone="charcoal">Enquiry</LuxEyebrow>
+            <p
+              style={{
+                margin: '14px 0 28px',
+                fontFamily: T.fontDisplay,
+                fontStyle: 'italic',
+                fontSize: 18,
+                color: '#4A433A',
+              }}
+            >
+              Appointment-only. Invited, not advertised.
+            </p>
+            {/* ─── Editorial form — hairline underline inputs ─────────── */}
+            <form
+              onSubmit={onSubmit}
+              style={{
+                display: 'grid',
+                gap: 40,
+              }}
+            >
+              <label
+                style={{
+                  fontFamily: T.fontBody,
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: '0.32em',
+                  textTransform: 'uppercase',
+                  color: T.gold,
+                }}
+              >
+                Name
+                {editorialInput({
+                  value: name,
+                  onChange: (e) => setName(e.target.value),
+                  placeholder: 'Full name',
+                  type: 'text',
+                  autoComplete: 'name',
+                })}
+              </label>
 
-        {success ? (
-          <p
-            style={{
-              marginTop: 40,
-              padding: '20px 0',
-              borderTop: `1px solid ${T.hairline}`,
-              borderBottom: `1px solid ${T.hairline}`,
-              fontFamily: T.fontDisplay,
-              fontStyle: 'italic',
-              fontSize: 17,
-              lineHeight: 1.6,
-              color: T.charcoal,
-            }}
-          >
-            {success}
-          </p>
-        ) : null}
+              <label
+                style={{
+                  fontFamily: T.fontBody,
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: '0.32em',
+                  textTransform: 'uppercase',
+                  color: T.gold,
+                }}
+              >
+                Email
+                {editorialInput({
+                  value: email,
+                  onChange: (e) => setEmail(e.target.value),
+                  placeholder: 'name@example.com',
+                  type: 'email',
+                  autoComplete: 'email',
+                  required: true,
+                  inputMode: 'email',
+                  'aria-required': 'true',
+                })}
+              </label>
 
-        {error ? (
-          <p
-            style={{
-              marginTop: 28,
-              padding: '16px 0',
-              borderTop: '1px solid rgba(220,38,38,0.45)',
-              borderBottom: '1px solid rgba(220,38,38,0.45)',
-              color: '#f1c4c4',
-              fontFamily: T.fontBody,
-              fontSize: 14,
-              lineHeight: 1.6,
-            }}
-          >
-            {error}
-          </p>
-        ) : null}
+              <label
+                style={{
+                  fontFamily: T.fontBody,
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: '0.32em',
+                  textTransform: 'uppercase',
+                  color: T.gold,
+                }}
+              >
+                Telephone
+                {editorialInput({
+                  value: phone,
+                  onChange: (e) => setPhone(e.target.value),
+                  placeholder: '+230 … or international mobile',
+                  type: 'tel',
+                  autoComplete: 'tel',
+                  required: true,
+                  inputMode: 'tel',
+                  'aria-required': 'true',
+                })}
+              </label>
+
+              <div>
+                <div
+                  style={{
+                    fontFamily: T.fontBody,
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: '0.32em',
+                    textTransform: 'uppercase',
+                    color: T.gold,
+                  }}
+                >
+                  Tell us what you are seeking in Mauritius
+                </div>
+                <div
+                  style={{
+                    marginTop: 18,
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: 10,
+                  }}
+                >
+                  {INTENT_OPTIONS.map((opt) => {
+                    const active = intentTags.includes(opt.id);
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => toggleIntent(opt.id)}
+                        aria-pressed={active}
+                        style={{
+                          padding: '11px 18px',
+                          borderRadius: T.radiusEditorial,
+                          border: `1px solid ${active ? T.gold : T.hairlineStone}`,
+                          background: active ? T.gold : 'transparent',
+                          color: active ? T.charcoal : T.stone,
+                          fontFamily: T.fontBody,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          letterSpacing: '0.22em',
+                          textTransform: 'uppercase',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <label
+                style={{
+                  fontFamily: T.fontBody,
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: '0.32em',
+                  textTransform: 'uppercase',
+                  color: T.gold,
+                }}
+              >
+                Your message
+                <textarea
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="A few words about timing, location, family context, or anything you would like the advisor to know in advance."
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    minHeight: 180,
+                    marginTop: 12,
+                    padding: '14px 0',
+                    border: 'none',
+                    borderBottom: `1px solid ${T.hairlineStone}`,
+                    background: 'transparent',
+                    color: T.charcoal,
+                    fontFamily: T.fontBody,
+                    fontSize: 16,
+                    lineHeight: 1.7,
+                    outline: 'none',
+                    letterSpacing: 'normal',
+                    textTransform: 'none',
+                    fontWeight: 400,
+                    resize: 'vertical',
+                  }}
+                />
+              </label>
+
+              <div style={{ marginTop: 12 }}>
+                <button
+                  type="submit"
+                  disabled={!canSubmit || busy}
+                  style={{
+                    border: 'none',
+                    borderRadius: T.radiusEditorial,
+                    padding: '18px 32px',
+                    background:
+                      !canSubmit || busy ? 'rgba(168, 132, 44, 0.32)' : T.gold,
+                    color: T.charcoal,
+                    fontFamily: T.fontBody,
+                    fontWeight: 700,
+                    fontSize: 12.5,
+                    letterSpacing: '0.22em',
+                    textTransform: 'uppercase',
+                    cursor: !canSubmit || busy ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {busy ? 'Submitting…' : 'Request Private Access'}
+                </button>
+              </div>
+            </form>
+
+            {error ? (
+              <p
+                style={{
+                  marginTop: 28,
+                  padding: '16px 0',
+                  borderTop: '1px solid rgba(220,38,38,0.45)',
+                  borderBottom: '1px solid rgba(220,38,38,0.45)',
+                  color: '#b91c1c',
+                  fontFamily: T.fontBody,
+                  fontSize: 14,
+                  lineHeight: 1.6,
+                }}
+              >
+                {error}
+              </p>
+            ) : null}
+          </>
+        )}
 
         {showDebugPayload && payload ? (
           <pre

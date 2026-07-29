@@ -507,7 +507,7 @@
         let ctxJson = null;
         if (!forcedFactoryAdmin) {
           try {
-            const r = await fetch('/api/ui/context', { credentials: 'same-origin' });
+            const r = await fetch('/api/ui/context' + (() => { try { const cfPreview = new URLSearchParams(window.location.search).get('cf_preview') || ''; return cfPreview ? `?cf_preview=${encodeURIComponent(String(cfPreview))}` : ''; } catch { return ''; } })(), { credentials: 'same-origin' });
             const j = await r.json();
             ctxJson = j;
             const tid = j && j.tenant_id != null ? String(j.tenant_id).trim() : '';

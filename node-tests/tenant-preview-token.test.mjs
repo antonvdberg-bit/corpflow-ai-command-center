@@ -122,3 +122,14 @@ test('vercel.app root becomes /lux-landing-static; explicit path preserved', () 
     delete process.env.CORPFLOW_TENANT_PREVIEW_SECRET;
   }
 });
+
+test('cipc-desk vercel.app preview keeps app root (not lux-landing-static)', () => {
+  process.env.CORPFLOW_TENANT_PREVIEW_SECRET = 'unit-test-secret-at-least-16-chars';
+  try {
+    const root = new URL(buildClientSitePreviewUrl('https://x.vercel.app/', 'cipc-desk') || '');
+    assert.equal(root.pathname, '/');
+    assert.ok(root.searchParams.get('cf_preview'));
+  } finally {
+    delete process.env.CORPFLOW_TENANT_PREVIEW_SECRET;
+  }
+});

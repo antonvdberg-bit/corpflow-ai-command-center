@@ -68,6 +68,9 @@ import {
 import { buildCorpflowHostContext, isApexHostname } from '../lib/server/host-tenant-context.js';
 import { getTenantHostSessionConflict } from '../lib/server/tenant-host-session-gate.js';
 import { cfg, runtimeConfigDiagnostics } from '../lib/server/runtime-config.js';
+import { ensureCipcDeskPreviewTenantSeeded } from '../lib/server/cipc-desk-preview-seed.js';
+import cipcDeskEmailIntakeHandler from '../lib/server/cipc-desk-email-intake.js';
+import cipcDeskPreviewLinkHandler from '../lib/server/cipc-desk-preview-link.js';
 import { getGroqApiKey, groqChatCompletionsFetch, resolveGroqModel } from '../lib/server/groq-client.js';
 import { passwordResetDeliveryDiagnostics } from '../lib/server/password-reset-delivery.js';
 import { getSessionFromRequest } from '../lib/server/session.js';
@@ -801,6 +804,13 @@ async function handleUiContext(req, res) {
       tenant_registered = false;
     } else {
       try {
+        if (tid === 'cipc-desk') {
+          await ensureCipcDeskPreviewTenantSeeded({
+            tenantId: tid,
+            host: ctx.host,
+            prisma,
+          });
+        }
         const trow = await prisma.tenant.findUnique({
           where: { tenantId: tid },
           select: { tenantId: true, name: true },
@@ -1095,6 +1105,12 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'tenant/intake') {
     return tenantIntakeHandler(req, res);
+  }
+  if (pathSeg === 'cipc-desk/email-intake') {
+    return cipcDeskEmailIntakeHandler(req, res);
+  }
+  if (pathSeg === 'cipc-desk/preview-link') {
+    return cipcDeskPreviewLinkHandler(req, res);
   }
   if (pathSeg === 'product-a/intake') {
     return productAIntakeHandler(req, res);
