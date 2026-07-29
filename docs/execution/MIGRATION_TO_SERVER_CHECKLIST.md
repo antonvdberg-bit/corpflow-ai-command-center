@@ -94,7 +94,7 @@ For migrating a job that already has a route in `pages/api` or `api/`:
 
 ## 5. Pattern: n8n workflow (recommended for outbound communications and side-effects)
 
-For migrating a job that emits an outbound side-effect (email, webhook, Slack/Telegram outside the existing helper):
+For migrating a job that emits an outbound side-effect (email, webhook, or Telegram outside the existing helper — Slack is retired from CorpFlow ops, issue #658):
 
 1. Read `docs/automation-framework.md`, `docs/n8n/automation-forward-recipe.md`, and (for email) `docs/communications/CORPFLOW_COMMUNICATIONS_V1.md` first.
 2. n8n workflow validates the shared secret on the **first** node before any side effect (per password-reset recipe §1).

@@ -47,7 +47,7 @@ Operator-facing checklists in `docs/CORPFLOW_SHARED_TODO.md` and `.env.template`
 
 5. **Respond to Webhook** — return HTTP `200` `{ "ok": true }`. Do **not** echo the reset code back; CorpFlowAI server already considers the call best-effort.
 
-> Optional second branch on the IF node: if your Gmail node fails, write to a small Slack/Telegram/Sheets node so a human can follow up. **Do not** include the reset code in that alert beyond the operator-only channel.
+> Optional second branch on the IF node: if your Gmail node fails, write to a small Telegram/Sheets node so a human can follow up (Slack retired — issue #658). **Do not** include the reset code in that alert beyond the operator-only channel.
 
 ## 2) Vercel env — preferred names
 
