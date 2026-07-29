@@ -282,6 +282,10 @@ describe('cursor-issue-dispatch-lifecycle', () => {
     const result = await ensureDispatchLifecycleLabels('token', 'o/r', fetchFn);
     assert.equal(result.ok, true);
     assert.ok(existing.has('dispatch:cursor-claimed'));
+    assert.ok(existing.has('needs:anton'));
+    assert.ok(existing.has('approval:merge'));
+    assert.ok(existing.has('approval:deploy'));
+    assert.ok(existing.has('approval:public-launch'));
   });
 
   it('finalizeIssueClaimAfterActivation requires real run ID', async () => {
