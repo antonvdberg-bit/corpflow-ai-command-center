@@ -14,11 +14,22 @@
 
 | | |
 |--|--|
-| **What moved** | Productised “Website Rescue” around the existing **Premium Landing Page Rescue** public offer; three differentiated tiers with deliverables, exclusions, delivery windows, client inputs, acceptance criteria, pricing bands, and quotation-ready wording. |
-| **What is blocked** | Final pricing approval from Anton; production/domain changes; live client builds. Issue comments from Cloud Agent blocked (`issues:read`). |
-| **What is next** | Operator review; Anton confirms T2/T3 bands; optional follow-up PR for on-page tier copy if approved. |
-| **Who owns it** | Cursor (this pack); ChatGPT/operator (review); Anton (pricing + protected gates). |
-| **Anton required** | **Yes** for final pricing, production release of client sites, DNS/domain, payment. **Not** required to merge this docs pack. |
+| **What moved** | Productised “Website Rescue” around **Premium Landing Page Rescue**; T1/T2/T3 tiers; quote-ready packet; pricing guide; delivery/onboarding checklists; public before/after + FAQ depth; fictional demo at `/demo/website-rescue`; operator-pack rail on `/admin/rapid-delivery` for landing-rescue leads. |
+| **What is blocked** | Final pricing approval from Anton (W1); T2/T3 prices on public page (W6); production/domain (W3); outreach (W5); payment runtime beyond manual MUR deposit (W4). |
+| **What is next** | Review/merge this runnable slice → Preview verify demo + offer page → Anton W1 for confident T2/T3 quoting. |
+| **Who owns it** | Cursor (implementation PR); ChatGPT/operator (review); Anton (pricing + protected gates). |
+| **Anton required** | **Yes** for W1–W6. **Not** required to merge the PR itself. |
+
+### Companion artefacts (sellable slice)
+
+| Artefact | Path |
+|----------|------|
+| Quote-ready packet | `docs/marketing/WEBSITE_RESCUE_QUOTE_READY_PACKET_V1.md` |
+| Pricing guide | `docs/sales/WEBSITE_RESCUE_PRICING_GUIDE.md` |
+| Delivery checklists | `docs/operations/WEBSITE_RESCUE_DELIVERY_CHECKLISTS_V1.md` |
+| Demonstration path | `docs/marketing/WEBSITE_RESCUE_DEMONSTRATION_PATH_V1.md` |
+| Public offer | `/offers/premium-landing-page-rescue` |
+| Public demo (noindex) | `/demo/website-rescue` |
 
 ### Segregation note
 
@@ -328,13 +339,15 @@ Copy into `docs/revenue/templates/quote-email.md` placeholders. Replace `{braces
 
 | Surface | URL | Role |
 |---------|-----|------|
-| Public offer | `https://corpflowai.com/offers/premium-landing-page-rescue` | Sellable page — Hook/Proof/Depth, discovery CTA (T1) |
-| Offer registry | `lib/public/rapid-delivery-offers.js` | Price, deposit, outputs |
+| Public offer | `https://corpflowai.com/offers/premium-landing-page-rescue` | Sellable page — Hook/Proof/Depth, before/after, FAQ, discovery CTA (T1) |
+| Public demo | `https://corpflowai.com/demo/website-rescue` | Fictional before/after + enquiry practice (noindex) |
+| Offer registry | `lib/public/rapid-delivery-offers.js` | Price, deposit, outputs, `demoPath`, `beforeAfter` |
+| Operator desk | `/admin/rapid-delivery` | Discovery pipeline + Website Rescue operator-pack links |
 | Revenue templates | `docs/revenue/templates/` | Quote, deposit, onboarding, release approval |
 | ERPNext item | `CF-RD-LANDING-RESCUE` | T1 quotation line |
 | Demonstration record | `docs/marketing/WEBSITE_RESCUE_DEMONSTRATION_PATH_V1.md` | Live GET verification |
 
-**CTA:** Discovery / enquiry intent (existing mailto / discovery path) — not payment-path language.
+**CTA:** Discovery / enquiry intent (discovery form + mailto fallback) — not payment-path language.
 
 **FAQ discipline:** No unsupported SEO, revenue, or Core Web Vitals guarantees.
 
@@ -346,27 +359,29 @@ See **`docs/marketing/WEBSITE_RESCUE_DEMONSTRATION_PATH_V1.md`** for live GET ev
 
 **Demo script (5 minutes)**
 
-1. Open `https://corpflowai.com/offers/premium-landing-page-rescue` — show headline, audience, delivered outputs, from MUR 45,000.
-2. Explain **Website Rescue** internal name vs **Premium Landing Page Rescue** public SKU (§1).
-3. Walk tiers: T1 = public offer; T2/T3 = operator-quoted extensions with more pages or rebuild bounds.
-4. Show discovery CTA → quote email (§5) → 50% deposit → assets → 24–72 h preview.
-5. Close with acceptance criteria: written production approval + balance before go-live.
-6. Optional: mention Lead Rescue add-on without opening #653 files.
+1. Open `https://corpflowai.com/offers/premium-landing-page-rescue` — show headline, before/after, from MUR 45,000.
+2. Open `https://corpflowai.com/demo/website-rescue` — toggle before/after; show product strip + enquiry form.
+3. Explain **Website Rescue** internal name vs **Premium Landing Page Rescue** public SKU (§1).
+4. Walk tiers: T1 = public offer; T2/T3 = operator-quoted extensions (pricing guide).
+5. Show discovery CTA → quote-ready packet §11 → 50% deposit → assets → 24–72 h preview.
+6. Close with acceptance criteria: written production approval + balance before go-live.
+7. Optional: mention Lead Rescue add-on without editing #653 files.
 
 ---
 
 ## 8. Delivery system
 
+Canonical checklist pack: **`docs/operations/WEBSITE_RESCUE_DELIVERY_CHECKLISTS_V1.md`**.
+
 | Checklist | Source / content |
 |-----------|------------------|
-| Website audit | `docs/quality/CORPFLOW_WEBSITE_QUALITY_SYSTEM_V1.md` (operator pre/post; not a buyer revenue claim) |
-| Client content/assets | `docs/revenue/templates/client-onboarding-document-checklist.md` |
-| Domain/access | Collect only when production release approved; DNS = Anton gate |
-| Design choices for novices | 2–3 guided options + recommended path; operator writes the brief |
-| Implementation | Landing structure, CTA, enquiry capture, preview URL |
-| Review/revision | Preview feedback template; rounds per tier (§3) |
-| Acceptance | Tier acceptance criteria (§3) + `production-release-approval.md` |
-| Handover | Balance payment + maintenance boundary statement |
+| Website audit | Checklists §A + `docs/quality/CORPFLOW_WEBSITE_QUALITY_SYSTEM_V1.md` |
+| Client content/assets | Checklists §B + `docs/revenue/templates/client-onboarding-document-checklist.md` |
+| Domain/access | Checklists §C; DNS = Anton W3 |
+| Design choices for novices | Checklists §D — 2–3 guided options + recommended path |
+| Implementation | Checklists §E |
+| Review/revision | Checklists §F; rounds per tier (§3) |
+| Acceptance / handover | Checklists §G–H + `production-release-approval.md` |
 
 ---
 
@@ -391,7 +406,9 @@ Hook/Proof/Depth via existing offer page + this pack as validation depth. Dual-a
 
 ## 11. Explicit non-actions
 
-- No Lead Rescue (#653) file changes
+- No Lead Rescue (#653) product-file changes beyond a demo cross-link to `/lead-rescue`
 - No Lux / CIPC / Living Word tenant coupling
-- No schema, env, secrets, deploy, DNS, messaging, payment runtime
-- No rebuild of the offer page in this PR
+- No schema, env, secrets, production deploy, DNS, messaging, payment runtime
+- No public rename to “Website Rescue” without W2
+- No T2/T3 prices on the public offer page without W6
+- No private client data (including Carol opportunity details) in repo artefacts
