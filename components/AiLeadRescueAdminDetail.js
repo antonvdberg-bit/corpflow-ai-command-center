@@ -16,6 +16,47 @@ import { fmtDateStableUtc } from '../lib/format/utc-date.js';
 
 const DETAIL_FETCH_TIMEOUT_MS = 25_000;
 
+/** GitHub blob links for the #653 sellable pack (docs on main). */
+const GH_BLOB_MAIN =
+  'https://github.com/antonvdberg-bit/corpflow-ai-command-center/blob/main';
+const OPERATOR_PACK_LINKS = [
+  {
+    label: 'Quote-ready commercial packet',
+    hint: 'Copy-paste scope, exclusions, quotation blocks',
+    href: `${GH_BLOB_MAIN}/docs/marketing/LEAD_RESCUE_QUOTE_READY_PACKET_V1.md`,
+  },
+  {
+    label: 'Product pack index',
+    hint: 'Definition, pricing recommendation, Anton gates',
+    href: `${GH_BLOB_MAIN}/docs/marketing/LEAD_RESCUE_PRODUCT_PACK_V1.md`,
+  },
+  {
+    label: 'Manual pro-forma template',
+    hint: 'W1–W5 invoice wording',
+    href: `${GH_BLOB_MAIN}/docs/finance/AI_LEAD_RESCUE_MANUAL_PRO_FORMA_TEMPLATE_V1.md`,
+  },
+  {
+    label: 'Paid-pilot onboarding (48h)',
+    hint: 'Client inputs + setup checklist',
+    href: `${GH_BLOB_MAIN}/docs/operations/AI_LEAD_RESCUE_PAID_PILOT_ONBOARDING.md`,
+  },
+  {
+    label: 'Sales → delivery handoff',
+    hint: 'Handover boundary',
+    href: `${GH_BLOB_MAIN}/docs/operations/AI_LEAD_RESCUE_SALES_TO_DELIVERY_HANDOFF.md`,
+  },
+  {
+    label: 'Prospect Q&A',
+    hint: 'CRM / guarantee / WhatsApp objections',
+    href: `${GH_BLOB_MAIN}/docs/sales/AI_LEAD_RESCUE_PROSPECT_QA.md`,
+  },
+  {
+    label: 'Demonstration path',
+    hint: 'Buyer → operator demo script',
+    href: `${GH_BLOB_MAIN}/docs/marketing/LEAD_RESCUE_DEMONSTRATION_PATH_V1.md`,
+  },
+];
+
 const pageStyle = {
   minHeight: '100vh',
   background: '#050505',
@@ -727,6 +768,35 @@ export default function AiLeadRescueAdminDetail(props = {}) {
                 />
               </section>
 
+              <section
+                style={{ ...card, marginTop: 24 }}
+                data-testid="ai-lead-rescue-operator-pack"
+              >
+                <h2 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 800 }}>
+                  Operator pack (#653)
+                </h2>
+                <p style={{ color: '#8899aa', fontSize: 12, margin: '0 0 14px', lineHeight: 1.5 }}>
+                  Read-only links into the sellable pack — quote wording, onboarding, and delivery
+                  checklists. Opens GitHub on <code>main</code>. No secrets; do not paste private
+                  client data into issues or PRs.
+                </p>
+                <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.85, fontSize: 14 }}>
+                  {OPERATOR_PACK_LINKS.map((item) => (
+                    <li key={item.href}>
+                      <a
+                        href={item.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: '#7dd3fc' }}
+                      >
+                        {item.label}
+                      </a>
+                      <span style={{ color: '#8899aa', fontSize: 12 }}> — {item.hint}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+
               {/*
                 Form's onSubmit is a deterministic no-op preventDefault so
                 an Enter keypress inside an input (or any unexpected submit
@@ -742,7 +812,14 @@ export default function AiLeadRescueAdminDetail(props = {}) {
                 }}
               >
                 <section style={card}>
-                  <h2 style={{ margin: '0 0 16px', fontSize: 16, fontWeight: 800 }}>Commercial</h2>
+                  <h2 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 800 }}>Commercial</h2>
+                  <p style={{ color: '#8899aa', fontSize: 12, margin: '0 0 14px', lineHeight: 1.5 }}>
+                    Launch-pilot recommendation (Anton sign-off still required): setup{' '}
+                    <strong style={{ color: '#cdd9e6' }}>USD 150</strong>
+                    {' '}one-off; optional post-pilot monitoring{' '}
+                    <strong style={{ color: '#cdd9e6' }}>USD 99 / month</strong>
+                    {' '}— fill only after quote; no auto-debit in this phase.
+                  </p>
                   <div
                     style={{
                       display: 'grid',
@@ -756,6 +833,7 @@ export default function AiLeadRescueAdminDetail(props = {}) {
                         style={input}
                         value={setupPrice}
                         onChange={(e) => setSetupPrice(e.target.value)}
+                        placeholder="150"
                       />
                     </label>
                     <label style={{ display: 'grid', gap: 4 }}>
@@ -764,6 +842,7 @@ export default function AiLeadRescueAdminDetail(props = {}) {
                         style={input}
                         value={monthlyPrice}
                         onChange={(e) => setMonthlyPrice(e.target.value)}
+                        placeholder="99 (after day-7 only)"
                       />
                     </label>
                     <label style={{ display: 'grid', gap: 4 }}>
@@ -772,7 +851,7 @@ export default function AiLeadRescueAdminDetail(props = {}) {
                         style={input}
                         value={currency}
                         onChange={(e) => setCurrency(e.target.value)}
-                        placeholder="MUR / USD"
+                        placeholder="USD"
                       />
                     </label>
                     <label style={{ display: 'grid', gap: 4 }}>
