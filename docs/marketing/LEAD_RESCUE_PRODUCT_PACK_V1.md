@@ -1,6 +1,6 @@
 # Lead Rescue — Product Pack v1 (sellable vertical slice)
 
-**Status:** Consolidated product + commercial + delivery pack for GitHub **#653**. Docs/operator artefacts only in this PR — no production deploy, no DB/schema, no secrets, no payment/messaging runtime, no outreach send.
+**Status:** Consolidated product + commercial + delivery pack for GitHub **#653**, plus runnable sellable-slice UI (FAQ, intake confirmation, operator-pack links). No production deploy, no DB/schema, no secrets, no payment/messaging runtime, no outreach send in this PR.
 
 **Quote-ready companion (copy-paste):** `docs/marketing/LEAD_RESCUE_QUOTE_READY_PACKET_V1.md` — problem, scope, exclusions, delivery, acceptance, duration, price recommendation, live URLs, quotation blocks, smallest sales action.
 
@@ -18,11 +18,11 @@
 
 | | |
 |--|--|
-| **What moved** | Product definition, commercial packaging, dual-offer routing, demo path, delivery index, **quote-ready commercial packet** (`LEAD_RESCUE_QUOTE_READY_PACKET_V1.md`), Anton approval list. |
-| **What is blocked** | Final pricing approval (A1); production launch changes; live outreach send; payment runtime. Issue comments from Cloud Agent blocked (`issues:read` only). |
-| **What is next** | Anton pricing sign-off (A1); operator uses quote-ready packet for first warm intro; optional preview UI polish as follow-up PR. |
-| **Who owns it** | Cursor (this pack + PR); ChatGPT/operator (review); Anton (pricing + protected gates). |
-| **Anton required** | **Yes** — final pricing confirmation; any production/public-launch change; outreach; payment config. **Not** required for merge of this docs pack. |
+| **What moved** | Runnable sellable slice on top of PR #656 docs: FAQ + inline intake confirmation (`lead_id`) on `/lead-rescue`; operator-pack deep-links + pricing helper on `/admin/lead-rescue/[id]`; quieter intake notifications (omit empty region/payment); onboarding status-name fix (`QUOTE_SENT` / `PAYMENT_PENDING`); demo-path refresh. |
+| **What is blocked** | Final pricing approval (A1); production launch of any runtime change (A5); live outreach send (A3); payment runtime (A4). Issue comments from Cloud Agent may be blocked (`issues:read` only). |
+| **What is next** | Anton pricing sign-off (A1); merge this PR; Preview verify FAQ + intake success UI; Production deploy only after Anton A5; operator uses quote-ready packet for first warm intro. |
+| **Who owns it** | Cursor (this PR); ChatGPT/operator (review); Anton (pricing + protected gates). |
+| **Anton required** | **Yes** — A1 pricing confirmation; A3 outreach; A4 payment runtime; A5 production deploy of runtime UI. **Not** required to review the docs/UI PR itself before merge. |
 
 ---
 
@@ -76,7 +76,7 @@ Canonical commercial playbook: `docs/marketing/AI_LEAD_RESCUE_FIRST_PAID_PILOTS.
 
 **CTA doctrine:** buyer intent (`Start my 48-hour setup`), not “Choose payment path”. Payment complexity only after intake review (manual pro-forma).
 
-**Proof / FAQ:** Pre-proof phase — no fake testimonials. Use process proof (48h setup, daily summary, human operator) already on the landing. Full doctrine: `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md`.
+**Proof / FAQ:** Pre-proof phase — no fake testimonials. Process proof (48h setup, daily summary, human operator) on the landing. Concise FAQ (`#faq`) covers CRM, no-guarantee, post-intake path, client inputs, and scope exclusions. Full doctrine: `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md`.
 
 ### Dual-offer routing (operator rule)
 
@@ -98,9 +98,9 @@ Verified **2026-07-28 UTC** (GET only — see also `LEAD_RESCUE_DEMONSTRATION_PA
 | 2. Alias host | `GET https://aileadrescue.corpflowai.com/` | **200** |
 | 3. Property vertical | `GET https://corpflowai.com/lead-rescue/property-mauritius` | **200** |
 | 4. MUR sprint (separate) | `GET https://corpflowai.com/offers/ai-lead-rescue` | **200** |
-| 5. Enquiry | Public form → `POST /api/tenant/intake` (tag `ai-lead-rescue`) | Existing runtime — do not exercise write in this packet |
-| 6. Operator review | `GET https://core.corpflowai.com/admin/lead-rescue` | **200** (session required for pipeline) |
-| 7. Follow-up | Status pipeline + checklist in cockpit + runbook | Documented in operator runbook |
+| 5. Enquiry | Public form → `POST /api/tenant/intake` (tag `ai-lead-rescue`) → **on-screen `lead_id` confirmation** | Existing runtime — exercise write only on Preview / with TEST- prefix + #548 cleanup |
+| 6. Operator review | `GET https://core.corpflowai.com/admin/lead-rescue` + detail **Operator pack** panel | **200** (session required for pipeline) |
+| 7. Follow-up | Status pipeline + checklist in cockpit + pack links + runbook | Documented in operator runbook |
 
 **Demo script for sales call (no private data):**
 
@@ -132,8 +132,12 @@ Use existing artefacts; this table is the index:
 - [x] Sellable surface identified and live-checked  
 - [x] Demonstration path documented with GET evidence  
 - [x] Delivery + quotation pointers complete  
+- [x] Public FAQ on `/lead-rescue`  
+- [x] Inline intake confirmation with `lead_id` (demonstrable enquiry path)  
+- [x] Operator cockpit links into quote / onboarding / handoff pack  
 - [ ] Anton pricing approval recorded (protected)  
-- [ ] Issue lifecycle comments on #653 (blocked from agent; GHA after dispatcher merge / operator paste)
+- [ ] Production deploy of runtime UI after Anton A5  
+- [ ] Issue lifecycle comments on #653 (may need GHA / operator paste)
 
 ---
 
