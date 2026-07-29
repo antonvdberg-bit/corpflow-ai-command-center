@@ -339,6 +339,24 @@ describe('cursor-issue-dispatch-lifecycle', () => {
     // Second scan would skip both — verified by scan script marker checks (integration contract).
   });
 
+  it('#676 gate-design issue does not self-block as payment/production (merge regression)', () => {
+    const c = inferIssueClassification({
+      number: 676,
+      title: 'P0: Central Anton Decision Inbox and enforceable protected-action gates',
+      body: `## Governance
+- No production deployment during implementation/testing.
+- No env or secret changes without explicit approval.
+- No DB/schema changes.
+- No live messaging, payments, outreach, or public launch.
+- No paid tools.
+- Open a PR only. Do not merge. Do not deploy.
+approval:payment labels and payment actions must be gated.`,
+      labels: ['priority:P0', 'dispatch:cursor-ready'],
+    });
+    assert.equal(c.protectedGate, 'none');
+    assert.notEqual(c.environment, 'production');
+  });
+
   it('#679 environment doctrine classifies as corpflow_test without production gate', () => {
     const issue679 = {
       number: 679,
