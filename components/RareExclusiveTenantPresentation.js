@@ -86,7 +86,7 @@ export default function RareExclusiveTenantPresentation({ site }) {
         <style>{`
           @media (max-width: 900px) {
             .re-hero-grid { grid-template-columns: 1fr !important; min-height: auto !important; }
-            .re-hero-visual { min-height: 300px !important; max-height: 440px; }
+            .re-hero-visual { min-height: 320px !important; max-height: 462px; }
             .re-card-grid { grid-template-columns: 1fr !important; }
             .re-card-inner { grid-template-columns: 1fr !important; }
             .re-curated-grid { grid-template-columns: 1fr !important; }
@@ -115,13 +115,14 @@ export default function RareExclusiveTenantPresentation({ site }) {
       ) : null}
 
       <main>
-        {/* ─── Quieter cinematic hero — private curator positioning ─ */}
+        {/* ─── Quieter cinematic hero — Jan monogram/hierarchy refine (#651) ─ */}
         <section
           className="re-hero-grid"
           style={{
             display: 'grid',
-            gridTemplateColumns: 'minmax(0, 0.92fr) minmax(0, 1.08fr)',
-            minHeight: 620,
+            // ~5% more photo dominance vs prior 0.92 / 1.08 split
+            gridTemplateColumns: 'minmax(0, 0.87fr) minmax(0, 1.13fr)',
+            minHeight: 651,
             background: T.ivory,
           }}
         >
@@ -135,11 +136,12 @@ export default function RareExclusiveTenantPresentation({ site }) {
               overflow: 'visible',
             }}
           >
-            <div style={{ maxWidth: 460 }}>
+            <div style={{ maxWidth: 480 }}>
               <RareExclusiveFullLockup
                 showMonogram
                 width={440}
-                monogramSize={132}
+                monogramSize={150}
+                monogramBreathingPx={12}
                 maxWidth="100%"
               />
             </div>
@@ -150,7 +152,9 @@ export default function RareExclusiveTenantPresentation({ site }) {
                 fontFamily: T.fontDisplay,
                 fontSize: 'clamp(1.35rem, 2.2vw, 1.75rem)',
                 fontStyle: 'italic',
-                lineHeight: 1.4,
+                fontWeight: 400,
+                letterSpacing: '0.02em',
+                lineHeight: 1.52,
                 color: T.charcoal,
               }}
             >
@@ -162,7 +166,9 @@ export default function RareExclusiveTenantPresentation({ site }) {
                 maxWidth: 400,
                 fontFamily: T.fontBody,
                 fontSize: 15,
-                lineHeight: 1.75,
+                fontWeight: 400,
+                letterSpacing: '0.015em',
+                lineHeight: 1.88,
                 color: '#4A433A',
               }}
             >
