@@ -68,6 +68,8 @@ When `**CORPFLOW_TENANT_PREVIEW_SECRET**` is set to the **same value on Producti
 
 Fictional-data only. Live email, WhatsApp, SMS, payments, and external outreach stay off. Seed + email-intake run on standing hosts (Production spine) or legacy Preview env — not a permanent preview release gate.
 
+**Decision Inbox (Lux + CIPC Desk):** Any genuine CEO/operator decision (merge to protected branch, production deploy, env/secrets, DB/schema, live send, payment, paid tool, public launch) must be routed to the central **Anton Decision Inbox** — labels `needs:anton` + the matching `approval:*`, structured decision packet, durable approval marker. Do **not** ask Anton to watch every Lux or CIPC Desk workstream chat. Do **not** perform protected actions merely because implementation and CI are complete. Canonical: `docs/operations/ANTON_DECISION_INBOX_V1.md` (reuses Operator Bridge #249 — no second control plane).
+
 ## LuxeMaurice checklist
 
 

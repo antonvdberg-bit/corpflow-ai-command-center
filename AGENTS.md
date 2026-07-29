@@ -127,6 +127,7 @@ If Git says **`ambiguous argument 'main'`**, a tracked path named **`main`** may
 | **Operator Control Board v1 — priority model (P0/P1/P2/Blocked/Deferred) + active workstream table** — top-level "what matters now / who owns it"; sits above the execution queue, beside #249 | **`docs/operations/CORPFLOW_OPERATOR_CONTROL_BOARD_V1.md`** |
 | **Operator Bridge v1 — coordination protocol (ChatGPT ↔ Anton ↔ Cursor + Codex Cloud)** — coordination issue **#249** | **`docs/operations/OPERATOR_BRIDGE_V1.md`** |
 | **Operator Bridge — day-to-day runbook (how Cursor / Codex Cloud post STATUS to #249)** | **`docs/runbooks/OPERATOR_BRIDGE.md`** |
+| **Anton Decision Inbox v1 — central `needs:anton` inbox + durable protected-action approvals (#676)** | **`docs/operations/ANTON_DECISION_INBOX_V1.md`** |
 | **Delivery Acceleration v1 — multi-executor protocol (Cursor + Codex Cloud + future internal agent)** | **`docs/execution/DELIVERY_ACCELERATION_V1.md`** |
 | **Codex Cloud install — operator playbook (Packet 7.2: pre-flight, GitHub App least-privilege, bot username, first-packet smoke, rollback)** | **`docs/runbooks/CODEX_CLOUD_INSTALL.md`** |
 | **Codex Cloud activation packet v1 — activation state, operator checklist, first packet 7.3 assignment** | **`docs/execution/CODEX_CLOUD_ACTIVATION_PACKET_V1.md`** |

@@ -12,6 +12,8 @@
 | Anton (operator) | Decision: approve / hold / reject / escalate | `OPERATOR_BRIDGE_V1.md` §5.2 |
 | Cursor or Codex Cloud (after merge) | Closure note + mirror to `artifacts/chat_history.md` | `OPERATOR_BRIDGE_V1.md` §5.3 |
 
+**Central Anton Decision Inbox (issue #676):** Protected decisions also use GitHub labels `needs:anton` + `approval:*` and durable `corpflow.protected_approval.v1` markers. #249 remains the human-readable coordination surface — **not** a second control plane. Canonical: `docs/operations/ANTON_DECISION_INBOX_V1.md`.
+
 ## 2. When an executor must post
 
 Post a STATUS comment to #249 at every one of these moments:

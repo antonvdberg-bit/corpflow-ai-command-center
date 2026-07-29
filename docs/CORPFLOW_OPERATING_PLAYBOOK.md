@@ -77,6 +77,9 @@ Cursor **must not**:
 - Bypass `/change` workflows for “speed”
 - Require manual DB edits for standard operator tasks
 - Treat CI green as customer-ready without verifying the **live URL + interaction path**
+- Perform protected consequential actions (production deploy, env/secrets, DB/schema, payments, live messaging/outreach, paid tools, public launch) without a durable Anton approval in the **Anton Decision Inbox** — see `docs/operations/ANTON_DECISION_INBOX_V1.md`
+- Ask Anton to monitor every project workstream — route only genuine decisions with `needs:anton` + `approval:*` + a decision packet; continue safe autonomous work while unrelated approvals are pending
+- Treat labels, green CI, or mergeable PRs as protected approval (labels route; durable `corpflow.protected_approval.v1` authorizes)
 
 ---
 

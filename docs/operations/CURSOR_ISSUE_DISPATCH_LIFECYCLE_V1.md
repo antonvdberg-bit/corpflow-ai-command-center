@@ -42,7 +42,8 @@ Do **not** add a parallel workflow that also activates Cursor. The scan runs as 
 | `dispatch:cursor-claimed` | Cursor owns execution (remove ready when claimed) |
 | `status:in-progress` | Active work |
 | `dispatch:blocked` | Do not claim |
-| `needs:anton` | Protected gate — unlock required |
+| `needs:anton` | Protected gate — unlock required / Decision Inbox membership |
+| `approval:merge` … `approval:public-launch` | Decision Inbox reason labels (see `ANTON_DECISION_INBOX_V1.md`) |
 
 **Label provisioning (workflow-owned, not manual):** The existing `factory-dispatcher-activate.yml` scan/finalize path idempotently **ensures** the approved lifecycle labels exist before any claim mutation (`dispatch:cursor-claimed`, `status:in-progress`, `dispatch:blocked`, `needs:anton`). Anton must **not** create these labels manually in the GitHub UI.
 

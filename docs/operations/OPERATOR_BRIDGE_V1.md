@@ -44,6 +44,7 @@ If any of those rules conflict with this doc, **those rules win**.
 - **Multi-executor protocol (Cursor + Codex Cloud + future internal agent):** `docs/execution/DELIVERY_ACCELERATION_V1.md`
 - **Closure record path:** `artifacts/chat_history.md`
 - **Suggested labels (not created until v1.1):** `bridge:holding`, `bridge:ready-to-merge`, `bridge:needs-operator`, `bridge:blocked`, `bridge:complete`. v1 of this protocol does **not** create labels.
+- **Decision Inbox labels (issue #676, created by workflow ensure):** `needs:anton` plus `approval:*` reason labels. These route protected decisions; they do **not** replace Operator decision comments on #249. See `docs/operations/ANTON_DECISION_INBOX_V1.md`.
 
 ## 4. Actor responsibilities (frozen)
 

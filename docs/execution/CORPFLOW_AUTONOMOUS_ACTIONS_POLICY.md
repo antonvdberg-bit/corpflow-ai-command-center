@@ -179,9 +179,11 @@ When Cursor reaches a gate in §3 (or any gate the packet defines), it **must**:
    - Why it stopped (which §3 clause or which packet gate).
    - Current evidence (branch, PR, test results, deployment IDs if any).
    - The smallest, clearest question for Anton.
-4. Wait. Do **not** explore alternative paths that bypass the gate.
+4. **Route the decision into the Anton Decision Inbox** (`docs/operations/ANTON_DECISION_INBOX_V1.md`): apply `needs:anton` + the matching `approval:*` reason label(s), post the structured decision packet, and wait for a durable `corpflow.protected_approval.v1` marker (or an Operator decision on #249 that is mirrored into that marker). Labels alone, green CI, client approval, or agent recommendations are **not** protected approval.
+5. Wait. Do **not** explore alternative paths that bypass the gate.
+6. Continue **unrelated** safe autonomous work on other packets while this approval is pending — do not ask Anton to monitor every workstream.
 
-If Anton answers "go", record the approval (chat link or commit message reference) and resume.
+If Anton answers "go", record the approval as a durable GitHub marker scoped to action / issue-or-PR / SHA / environment, then resume.
 If Anton answers "no" or does not answer within the packet's stated horizon, mark the packet `BLOCKED` and stop.
 
 ---
@@ -213,6 +215,7 @@ Agents may **propose** amendments by drafting such a PR, but may not enable any 
 
 - `docs/execution/CORPFLOW_EXECUTION_PACKET_STANDARD.md` — the unit Anton approves.
 - `docs/execution/WEEKEND_EXECUTION_QUEUE.md` — current approved packets.
+- `docs/operations/ANTON_DECISION_INBOX_V1.md` — central Decision Inbox + durable protected approvals.
 - `.cursor/rules/delivery-reality.mdc` — live verification = done.
 - `.cursor/rules/predeploy-decision-checks.mdc` — pre/post-deploy + DNS reminders.
 - `.cursor/rules/security-sensitive-changes.mdc` — auth, sessions, secrets, webhooks.
