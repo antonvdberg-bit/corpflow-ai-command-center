@@ -41,6 +41,8 @@
     "business-ops:dispatcher:fixtures": "node scripts/business-operations-dispatcher.mjs --fixtures",
     "dispatcher:activate:fixtures": "node scripts/dispatcher-agent-activation.mjs --fixtures",
     "dispatcher:activate:fetch": "node scripts/dispatcher-agent-activation.mjs --fetch",
+    "dispatcher:issue-scan": "node scripts/cursor-issue-dispatch-scan.mjs --dry-run",
+    "dispatcher:issue-scan:apply": "node scripts/cursor-issue-dispatch-scan.mjs --apply-comments --apply-labels",
     "check:marketing-quality-gate": "node scripts/check-marketing-quality-gate.mjs",
     "video:optimise": "bash scripts/optimise-video.sh",
     "video:validate": "node scripts/video/validate.mjs",

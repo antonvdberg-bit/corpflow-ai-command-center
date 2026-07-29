@@ -31,7 +31,10 @@ export const RARE_EXCLUSIVE_ADVISORY_IMAGE =
   '/luxe-maurice-ai/mauritius-private-advisory-lifestyle.jpg';
 
 export const RARE_EXCLUSIVE_STRAPLINE =
-  'Private Wealth & Lifestyle Platform for Mauritius';
+  'Private curator of the world’s rarest residences.';
+
+export const RARE_EXCLUSIVE_SUPPORTING_LINE =
+  'Curating exceptional residences for a select international clientele.';
 
 export const RARE_EXCLUSIVE_PRIVILEGE_QUOTE = 'Not just properties. A privilege.';
 
@@ -44,20 +47,20 @@ export const RARE_EXCLUSIVE_EDITORIAL_MAX = 1440;
 export const RARE_EXCLUSIVE_AVAILABILITY_DISCLAIMER =
   'Availability, pricing, and terms are confirmed privately through a private advisor. Nothing on this page is an offer or solicitation.';
 
-/** Main nav (Invitation Only is rendered separately with a divider). */
+/** Main nav — Jan positioning labels mapped to existing Lux routes (Issue #651). */
 export const RARE_EXCLUSIVE_NAV_MAIN = Object.freeze([
-  Object.freeze({ label: 'Properties', href: '/properties' }),
-  Object.freeze({ label: 'Lifestyle', href: '/lifestyle' }),
-  Object.freeze({ label: 'Destination Mauritius', href: '/destination-mauritius' }),
-  Object.freeze({ label: 'Private Services', href: '/private-services' }),
+  Object.freeze({ label: 'Collection', href: '/properties' }),
+  Object.freeze({ label: 'Private Client', href: '/private-services' }),
+  Object.freeze({ label: 'Developments', href: '/destination-mauritius' }),
+  Object.freeze({ label: 'Journal', href: '/lifestyle' }),
   Object.freeze({ label: 'About', href: '/about' }),
   Object.freeze({ label: 'Contact', href: '/contact' }),
 ]);
 
-/** Kept for tests / callers that expect the full list including Invitation Only. */
+/** Kept for tests / callers that expect the full list including Private Access CTA. */
 export const RARE_EXCLUSIVE_NAV = Object.freeze([
   ...RARE_EXCLUSIVE_NAV_MAIN,
-  Object.freeze({ label: 'Invitation Only', href: '/concierge', invite: true }),
+  Object.freeze({ label: 'Private Access', href: '/concierge', invite: true }),
 ]);
 
 /**
@@ -404,8 +407,8 @@ export function RareExclusiveFeatureBar() {
 }
 
 /**
- * Ivory header: Jan-approved horizontal wordmark + fine-line nav + Invitation Only.
- * Compact monogram shown on narrow viewports where the wordmark would crowd the nav.
+ * Ivory header: Jan-approved horizontal wordmark + fine-line nav + Private Access.
+ * Larger monogram shown on narrow viewports where the wordmark would crowd the nav.
  */
 export function RareExclusiveIvoryHeader({ activeHref = '' }) {
   return (
@@ -441,10 +444,10 @@ export function RareExclusiveIvoryHeader({ activeHref = '' }) {
         aria-label={`${RARE_EXCLUSIVE_PUBLIC_BRAND} home`}
       >
         <span className="re-header-wordmark">
-          <RareExclusiveHorizontalWordmark height={18} maxWidth="100%" />
+          <RareExclusiveHorizontalWordmark height={20} maxWidth="100%" />
         </span>
         <span className="re-header-monogram" style={{ display: 'none' }}>
-          <RareExclusiveMonogram size={40} withPlate />
+          <RareExclusiveMonogram size={56} withPlate />
         </span>
       </Link>
       <nav
@@ -503,7 +506,7 @@ export function RareExclusiveIvoryHeader({ activeHref = '' }) {
             whiteSpace: 'nowrap',
           }}
         >
-          Invitation Only
+          Private Access
         </a>
       </nav>
       </div>
@@ -574,7 +577,7 @@ export function RareExclusiveIvoryFooter({ note }) {
         />
       </div>
       <div style={{ margin: '40px auto 0', display: 'flex', justifyContent: 'center' }}>
-        <RareExclusiveFullLockup showMonogram width={300} maxWidth="min(100%, 340px)" />
+        <RareExclusiveFullLockup showMonogram width={340} monogramSize={112} maxWidth="min(100%, 380px)" />
       </div>
       <p
         style={{
@@ -677,7 +680,7 @@ export function RareExclusiveInteriorHero({
     >
       <div style={{ padding: 'clamp(44px, 6vw, 80px) clamp(28px, 4vw, 56px)', minWidth: 0 }}>
         <div style={{ marginBottom: 20 }}>
-          <RareExclusiveMonogram size={44} />
+          <RareExclusiveMonogram size={72} />
         </div>
         {eyebrow ? (
           <div

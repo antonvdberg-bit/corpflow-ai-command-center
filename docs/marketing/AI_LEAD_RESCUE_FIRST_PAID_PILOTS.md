@@ -264,6 +264,9 @@ The activity log is **append-only** and **server-stamps** the timestamp + operat
 
 ## 15. Cross-references
 
+- `docs/marketing/LEAD_RESCUE_PRODUCT_PACK_V1.md` — **#653 consolidated sellable vertical slice** (product definition, pricing recommendation, dual-offer routing, demo path, Anton approval list).
+- `docs/marketing/LEAD_RESCUE_QUOTE_READY_PACKET_V1.md` — **quote-ready commercial packet** (copy-paste offer, scope, exclusions, delivery, acceptance, live URLs, smallest sales action).
+- `docs/marketing/LEAD_RESCUE_DEMONSTRATION_PATH_V1.md` — live GET evidence for the demonstration path.
 - `docs/strategy/ABOVE_THE_LINE_STRATEGY_DOCTRINE.md` — strategic guardrail (AI Lead Rescue stays above the line as a managed lead-response operating workflow).
 - `docs/strategy/GOOGLE_ACCELERATION_LANE.md` — Google AI tools may draft collateral, never replace the operator system or fabricate evidence.
 - `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md` — single-offer rule, CTA rules, allowed claims, no-guarantee copy; § *Mauritius property commercial tier ladder*.

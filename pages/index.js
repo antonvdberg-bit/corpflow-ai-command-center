@@ -597,11 +597,11 @@ export async function getServerSideProps({ req }) {
       site.meta.page_title = 'LuxeMaurice · Private Wealth & Lifestyle Platform for Mauritius';
 
       site.hero = site.hero && typeof site.hero === 'object' ? site.hero : {};
-      site.hero.title = 'LuxeMaurice';
-      site.hero.headline = 'Private. Curated. Considered.';
-      site.hero.tagline = 'Private Wealth & Lifestyle Platform for Mauritius';
-      site.hero.cta_label = 'Discover Our Collection';
-      site.hero.cta_href = '/properties';
+      site.hero.title = 'Rare & Exclusive Collection';
+      site.hero.headline = 'Private curator of the world’s rarest residences.';
+      site.hero.tagline = 'Curating exceptional residences for a select international clientele.';
+      site.hero.cta_label = 'Private Access';
+      site.hero.cta_href = '/concierge';
 
       site.sections = site.sections && typeof site.sections === 'object' ? site.sections : {};
       site.sections.about =
