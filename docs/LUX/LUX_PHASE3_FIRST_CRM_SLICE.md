@@ -66,7 +66,11 @@ Computed in **`computeLuxLeadCrmSignals`** and exposed on list API / **`luxOpera
 ### `/change` operator UI
 
 - **Filters:** stage, owner (substring + datalist hints from loaded leads), property (slug / title / listing text), **health** (overdue / stale / untouched new).
-- **CRM summary strip:** counts for **New**, **Qualified**, **Viewing Requested**, **Follow-up**, **Closed**, **Lost** (from the same loaded lead set; list fetch may be capped — see programme doc if queues grow).
+- **CRM summary strip:** counts for **New**, **Contacted**, **Qualified**, **Invited**, **Closed** (from the same loaded lead set; list fetch may be capped — see programme doc if queues grow).
+- **Enquiry progression (issue #673):** operator status advances `new → contacted → qualified → invited → closed` in `qualification_json.lux_operator_workflow.stage` (no schema change). Legacy stages (`viewing_requested`, `follow_up`, `lost`) normalize on read.
+- **Contact fields:** list API exposes parsed **`email`** + **`phone`** from existing `contact` / `phone` / message lines; create stores `phone` when present in `email | telephone` contact.
+- **Next action:** each status has a computed **`next_action_hint`**; scheduled `next_action_at` / note override the default hint when set.
+- **Visibility:** Lux CRM panel remains available on intake tickets so operators can process concierge enquiries without leaving `/change` (`#lux-crm-leads-workspace`).
 - **Cards:** owner pill, next-action line, badges for overdue / stale / untouched where applicable; activity feed includes assignment and **`next_action_updated`**.
 
 ### Scope exclusions (Phase 3B explicitly out of scope)

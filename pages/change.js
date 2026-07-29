@@ -25,6 +25,7 @@ import {
 import {
   LUX_LEAD_CRM_STAGES,
   activityKindLabel,
+  luxLeadCrmNextActionHint,
   luxLeadCrmStageLabel,
 } from '../lib/cmp/_lib/lux-lead-operator-workflow.js';
 import {
@@ -1706,6 +1707,10 @@ export default function ChangeConsolePage() {
       setLuxMediaWorkspaceHashOpen(true);
       setLuxMediaLibOpen(true);
       const el = document.getElementById('lux-media-workspace');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    if (window.location.hash === '#lux-crm-leads-workspace') {
+      const el = document.getElementById('lux-crm-leads-workspace');
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [luxChangeChrome, router.isReady]);
@@ -6364,7 +6369,10 @@ export default function ChangeConsolePage() {
             </LuxChangeCollapsibleSection>
           ) : null}
 
-          {!showIntakeSurface && !isEstimateMode ? (
+          {/* Issue #673: Lux concierge CRM stays visible on intake tickets so
+              operators can process enquiries without leaving the desk. Non-Lux
+              hosts keep the prior intake/estimate gate. */}
+          {(luxLeadCrmEnabled || (!showIntakeSurface && !isEstimateMode)) ? (
           <ChangeCrmLeadsPanel
             luxChrome={luxChangeChrome}
             luxTicketContextProfile={luxTicketContextProfile}
@@ -6699,7 +6707,20 @@ export default function ChangeConsolePage() {
                           </span>
                         ) : null}
                       </div>
-                      <div style={{ marginTop: 4, fontSize: 12, color: '#94a3b8', ...changeTextContainStyle() }}>{String(lead.contact || '—')}</div>
+                      <div style={{ marginTop: 4, fontSize: 12, color: '#94a3b8', ...changeTextContainStyle() }}>
+                        {luxLeadCrmEnabled ? (
+                          <>
+                            <span style={{ display: 'block' }}>
+                              Email: {String(lead.email || (String(lead.contact || '').includes('@') ? String(lead.contact).split('|')[0].trim() : '') || '—')}
+                            </span>
+                            <span style={{ display: 'block', marginTop: 2 }}>
+                              Telephone: {String(lead.phone || '—')}
+                            </span>
+                          </>
+                        ) : (
+                          String(lead.contact || '—')
+                        )}
+                      </div>
                       <div style={{ marginTop: 6, fontSize: 10, color: '#64748b', ...changeTextContainStyle() }}>
                         Intent: <span style={{ color: '#94a3b8' }}>{intentLabel(lead.intent)}</span>
                         {lead.created_at ? (
@@ -6716,7 +6737,7 @@ export default function ChangeConsolePage() {
                       {luxLeadCrmEnabled && ow ? (
                         <div style={{ marginTop: 8, fontSize: 11, color: '#a5f3fc', fontWeight: 750, ...changeTextContainStyle() }}>
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center', minWidth: 0, maxWidth: '100%' }}>
-                            <span>Stage: {String(ow.stage_label || luxLeadCrmStageLabel(ow.stage))}</span>
+                            <span>Status: {String(ow.stage_label || luxLeadCrmStageLabel(ow.stage))}</span>
                             {ow.owner?.username ? (
                               <span
                                 style={{
@@ -6778,11 +6799,16 @@ export default function ChangeConsolePage() {
                               </span>
                             ) : null}
                           </div>
-                          {ow.next_action_at ? (
-                            <span style={{ display: 'block', marginTop: 6, fontWeight: 600, color: '#94a3b8', ...changeTextContainStyle() }}>
-                              Next action: {new Date(ow.next_action_at).toLocaleString()}
-                            </span>
-                          ) : null}
+                          <span
+                            data-testid="lux-crm-next-action-hint"
+                            style={{ display: 'block', marginTop: 6, fontWeight: 600, color: '#e2e8f0', ...changeTextContainStyle() }}
+                          >
+                            Next: {String(ow.next_action_hint || luxLeadCrmNextActionHint(ow.stage, {
+                              next_action_at: ow.next_action_at,
+                              next_action_note: ow.next_action_note,
+                              overdue_follow_up: ow.overdue_follow_up,
+                            }))}
+                          </span>
                           {ow.follow_up_status ? (
                             <span style={{ display: 'block', marginTop: 4, fontWeight: 600, color: '#94a3b8', ...changeTextContainStyle() }}>
                               Follow-up: {String(ow.follow_up_status)}
@@ -6839,8 +6865,30 @@ export default function ChangeConsolePage() {
                 <div style={{ fontSize: 11, fontWeight: 900, color: '#67e8f9', letterSpacing: '0.06em' }}>
                   OPERATOR ACTIONS — internal only (not visible on concierge)
                 </div>
+                <div
+                  data-testid="lux-crm-selected-next-action"
+                  style={{ fontSize: 12, color: '#e2e8f0', lineHeight: 1.4, ...changeTextContainStyle() }}
+                >
+                  Next action:{' '}
+                  {String(
+                    selectedLead.operator_workflow?.next_action_hint ||
+                      luxLeadCrmNextActionHint(selectedLead.operator_workflow?.stage || 'new', {
+                        next_action_at: selectedLead.operator_workflow?.next_action_at,
+                        next_action_note: selectedLead.operator_workflow?.next_action_note,
+                        overdue_follow_up: selectedLead.operator_workflow?.overdue_follow_up,
+                      }),
+                  )}
+                </div>
+                <div style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.4, ...changeTextContainStyle() }}>
+                  <span style={{ display: 'block' }}>
+                    Email: {String(selectedLead.email || '—')}
+                  </span>
+                  <span style={{ display: 'block', marginTop: 2 }}>
+                    Telephone: {String(selectedLead.phone || '—')}
+                  </span>
+                </div>
                 <label style={{ fontSize: 11, color: '#94a3b8', display: 'grid', gap: 6 }}>
-                  Stage
+                  Status
                   <select
                     value={leadStageDraft}
                     onChange={(e) => setLeadStageDraft(e.target.value)}
