@@ -1,0 +1,61 @@
+# Synthetic protected-action gate verification (#676).
+# No production deploy, no secrets required, no external sends.
+name: Protected action gates verify
+
+on:
+  pull_request:
+    paths:
+      - 'lib/server/anton-decision-inbox.js'
+      - 'lib/server/cursor-issue-dispatch-lifecycle.js'
+      - 'node-tests/anton-decision-inbox.test.mjs'
+      - 'node-tests/cursor-issue-dispatch-lifecycle.test.mjs'
+      - '.github/workflows/protected-action-gates-verify.yml'
+      - '.github/workflows/vercel-production-deploy-hook.yml'
+      - 'docs/operations/ANTON_DECISION_INBOX_V1.md'
+      - 'docs/operations/PROTECTED_ACTION_GATES_V1.md'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  synthetic-gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Run Decision Inbox + gate unit tests
+        run: node --test node-tests/anton-decision-inbox.test.mjs node-tests/cursor-issue-dispatch-lifecycle.test.mjs
+
+      - name: Synthetic block without durable approval
+        run: |
+          node --input-type=module <<'EOF'
+          import assert from 'node:assert/strict';
+          import {
+            evaluateProtectedActionGate,
+            syntheticProtectedActionResult,
+          } from './lib/server/anton-decision-inbox.js';
+
+          for (const action of [
+            'approval:deploy',
+            'approval:production',
+            'approval:db-schema',
+            'approval:external-send',
+            'approval:payment',
+          ]) {
+            const syn = syntheticProtectedActionResult(action, false);
+            assert.equal(syn.blocked, true, action);
+            const gate = evaluateProtectedActionGate({
+              action,
+              issueOrPr: '#synthetic',
+              comments: [{ body: 'labels only: needs:anton' }],
+            });
+            assert.equal(gate.allowed, false, action);
+            console.log(`OK blocked ${action}: ${gate.reason}`);
+          }
+          console.log('Synthetic protected-action gates: all blocked without durable approval.');
+          EOF

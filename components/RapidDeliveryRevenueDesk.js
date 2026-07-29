@@ -579,6 +579,43 @@ export default function RapidDeliveryRevenueDesk({ initialLeads = null, initialE
                   Open revenue cockpit
                 </Link>
               </div>
+              {String(selected.offer_slug || '') === 'premium-landing-page-rescue' ? (
+                <div
+                  data-website-rescue-operator-pack
+                  style={{
+                    marginTop: 18,
+                    padding: '14px 16px',
+                    borderRadius: 12,
+                    border: '1px solid rgba(45,212,191,0.28)',
+                    background: 'rgba(45,212,191,0.08)',
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 11,
+                      letterSpacing: '0.1em',
+                      textTransform: 'uppercase',
+                      color: c.accent,
+                      fontWeight: 700,
+                    }}
+                  >
+                    Website Rescue operator pack
+                  </div>
+                  <p style={{ margin: '8px 0 0', color: c.muted, fontSize: 13.5, lineHeight: 1.5 }}>
+                    T1 public floor MUR 45,000 · 50% deposit · quote from the Website Rescue packet. Demo (fictional):{' '}
+                    <Link href="/demo/website-rescue" style={{ color: c.link }}>
+                      /demo/website-rescue
+                    </Link>
+                    .
+                  </p>
+                  <ul style={{ margin: '10px 0 0', paddingLeft: 18, color: c.muted, fontSize: 13, lineHeight: 1.55 }}>
+                    <li>docs/marketing/WEBSITE_RESCUE_QUOTE_READY_PACKET_V1.md</li>
+                    <li>docs/sales/WEBSITE_RESCUE_PRICING_GUIDE.md</li>
+                    <li>docs/operations/WEBSITE_RESCUE_DELIVERY_CHECKLISTS_V1.md</li>
+                    <li>docs/marketing/WEBSITE_RESCUE_PRODUCT_PACK_V1.md</li>
+                  </ul>
+                </div>
+              ) : null}
             </section>
           ) : null}
 

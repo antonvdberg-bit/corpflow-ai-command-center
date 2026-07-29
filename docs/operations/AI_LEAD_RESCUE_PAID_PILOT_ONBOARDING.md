@@ -24,7 +24,7 @@ Use this runbook **after**:
 4. Pro-forma invoice (USD 150 — see § 5 of `docs/sales/AI_LEAD_RESCUE_PRICING_GUIDE.md`) has been sent.
 5. **Wire transfer has cleared** the operator-side bank account (SBM Mauritius for warm-network primary route, or international wire as appropriate).
 
-If wire has not cleared, **do not start the 48-hour window**. Set status to `INVOICE_SENT` (or appropriate intermediate state) and wait. Setup time is the operator's most expensive resource — no free pilots even temporarily.
+If wire has not cleared, **do not start the 48-hour window**. Set status to `QUOTE_SENT` or `PAYMENT_PENDING` (canonical statuses in `AI_LEAD_RESCUE_STATUSES` — there is no `INVOICE_SENT`) and wait. Setup time is the operator's most expensive resource — no free pilots even temporarily.
 
 ## 1. Paid pilot intake checklist (in order)
 

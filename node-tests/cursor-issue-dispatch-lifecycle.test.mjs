@@ -282,6 +282,10 @@ describe('cursor-issue-dispatch-lifecycle', () => {
     const result = await ensureDispatchLifecycleLabels('token', 'o/r', fetchFn);
     assert.equal(result.ok, true);
     assert.ok(existing.has('dispatch:cursor-claimed'));
+    assert.ok(existing.has('needs:anton'));
+    assert.ok(existing.has('approval:merge'));
+    assert.ok(existing.has('approval:deploy'));
+    assert.ok(existing.has('approval:public-launch'));
   });
 
   it('finalizeIssueClaimAfterActivation requires real run ID', async () => {
@@ -333,5 +337,136 @@ describe('cursor-issue-dispatch-lifecycle', () => {
     assert.equal(bodies.some((b) => b.includes('CURSOR DISPATCH DISCOVERED')), true);
     assert.equal(bodies.some((b) => b.includes('WORK CLASSIFICATION')), true);
     // Second scan would skip both — verified by scan script marker checks (integration contract).
+  });
+
+  it('#676 gate-design issue does not self-block as payment/production (merge regression)', () => {
+    const c = inferIssueClassification({
+      number: 676,
+      title: 'P0: Central Anton Decision Inbox and enforceable protected-action gates',
+      body: `## Governance
+- No production deployment during implementation/testing.
+- No env or secret changes without explicit approval.
+- No DB/schema changes.
+- No live messaging, payments, outreach, or public launch.
+- No paid tools.
+- Open a PR only. Do not merge. Do not deploy.
+approval:payment labels and payment actions must be gated.`,
+      labels: ['priority:P0', 'dispatch:cursor-ready'],
+    });
+    assert.equal(c.protectedGate, 'none');
+    assert.notEqual(c.environment, 'production');
+  });
+
+  it('#679 environment doctrine classifies as corpflow_test without production gate', () => {
+    const issue679 = {
+      number: 679,
+      title:
+        'P0: Treat all CorpFlowAI-hosted tenant surfaces as test environments; separate future client production deployments',
+      body: `All tenant/client surfaces currently hosted under CorpFlowAI-controlled domains are test environments.
+Examples include core.corpflowai.com, Lux / CIPC Desk.
+These are not client production environments.
+Introduce corpflow_test for CorpFlowAI-hosted tenant test surfaces;
+client_production only for an actual separately governed client production environment.
+A publicly reachable URL is not automatically a production environment.
+non-canonical for the client's own live production operation.
+No deployment into any client-owned or actual client production environment is authorised.
+No env/secrets or DB/schema changes are authorised by this issue.
+Test publishing does not trigger a false approval:production gate.`,
+      labels: ['priority:P0', 'dispatch:cursor-ready', 'lux'],
+    };
+    const c = inferIssueClassification(issue679);
+    assert.equal(c.systemBoundary, 'tenant');
+    assert.equal(c.environment, 'test');
+    assert.equal(c.protectedGate, 'none');
+    assert.match(formatWorkClassificationComment(679, c), /test \(corpflow_test\)/);
+    const plan = planCursorIssueClaims({ readyIssues: [issue679], claimedIssues: [] });
+    const d = plan.decisions.find((x) => x.issue.number === 679);
+    assert.equal(d?.eligibleToClaim, true);
+    assert.doesNotMatch(String(d?.reason || ''), /protected gate/);
+  });
+
+  it('Lux UI publishes to corpflow_test without approval:production gate', () => {
+    const c = inferIssueClassification({
+      number: 710,
+      title: 'Lux landing copy tweak',
+      body: 'Update lux.corpflowai.com hero copy. Publish to CorpFlowAI test environment after merge. Live verify lux URL.',
+      labels: ['lux', 'dispatch:cursor-ready'],
+    });
+    assert.equal(c.environment, 'test');
+    assert.equal(c.protectedGate, 'none');
+    assert.ok(c.workTypes.includes('ui'));
+  });
+
+  it('CIPC Desk workstream is corpflow_test', () => {
+    const c = inferIssueClassification({
+      number: 711,
+      title: 'CIPC Desk thank-you copy',
+      body: 'Standing internal test tenant UI on cipc.corpflowai.com',
+      labels: ['cipc', 'dispatch:cursor-ready'],
+    });
+    assert.equal(c.tenantOrClient, 'CIPC Desk');
+    assert.equal(c.environment, 'test');
+    assert.equal(c.protectedGate, 'none');
+  });
+
+  it('live production verification wording alone does not force client_production', () => {
+    const c = inferIssueClassification({
+      number: 712,
+      title: 'Docs ops note',
+      body: 'Live production verification on lux after merge. No production deploy. documentation only.',
+      labels: ['dispatch:cursor-ready'],
+    });
+    assert.notEqual(c.environment, 'production');
+    assert.equal(c.protectedGate, 'none');
+  });
+
+  it('explicit client_production deploy sets production gate', () => {
+    const c = inferIssueClassification({
+      number: 713,
+      title: 'Client production cutover for Acme',
+      body: 'Deploy to client_production on the client-owned production target after Anton/client production approval.',
+      labels: ['dispatch:cursor-ready'],
+    });
+    assert.equal(c.environment, 'production');
+    assert.equal(c.protectedGate, 'production');
+    assert.match(formatWorkClassificationComment(713, c), /client_production/);
+  });
+
+  it('client_production candidates conflict; corpflow_test does not use that slot', () => {
+    const prodA = inferIssueClassification({
+      number: 1,
+      title: 'Client production cutover A',
+      body: 'Deploy to client_production on the client-owned production target.',
+      labels: ['dispatch:cursor-ready'],
+    });
+    const prodB = inferIssueClassification({
+      number: 2,
+      title: 'Client production cutover B',
+      body: 'Deploy to client_production on another client-owned production target.',
+      labels: ['dispatch:cursor-ready'],
+    });
+    assert.equal(prodA.environment, 'production');
+    assert.equal(prodB.environment, 'production');
+    const prodCheck = canRunConcurrently(prodA, prodB);
+    assert.equal(prodCheck.ok, false);
+    assert.match(String(prodCheck.reason || ''), /client_production-deployment/);
+
+    const testA = inferIssueClassification({
+      number: 3,
+      title: 'Lux visual',
+      body: 'lux tenant UI on lux.corpflowai.com',
+      labels: ['lux'],
+    });
+    const testB = inferIssueClassification({
+      number: 4,
+      title: 'CIPC copy',
+      body: 'cipc desk UI',
+      labels: ['cipc'],
+    });
+    assert.equal(testA.environment, 'test');
+    assert.equal(testB.environment, 'test');
+    const testCheck = canRunConcurrently(testA, testB);
+    assert.equal(testCheck.ok, true);
+    assert.doesNotMatch(String(testCheck.reason || ''), /client_production-deployment/);
   });
 });

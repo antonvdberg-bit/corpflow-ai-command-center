@@ -88,7 +88,7 @@ Una vez que MCP está habilitado, estas herramientas auxiliares están automáti
 | 🔍 **Brave Search** | Búsqueda web | Listo |
 | 💾 **Memory** | Almacenamiento persistente | Listo |
 | 🌐 **Puppeteer** | Automatización de navegador | Listo |
-| 💬 **Slack** | Mensajería de Slack | Listo |
+| 💬 **Slack** | Mensajería de Slack | **RETIRADO** (issue #658) — deshabilitado en `mcp_servers.json` |
 
 Habilita lo que necesites y agrega tus claves de API.
 

@@ -191,6 +191,30 @@ describe('AiLeadRescueAdminDetail — never-blank contract', () => {
       'checklist block must gate on both eligibility and a non-empty items[]',
     );
   });
+
+  it('exposes the #653 operator pack deep-links panel', () => {
+    assert.match(
+      componentSrc,
+      /data-testid=["']ai-lead-rescue-operator-pack["']/,
+      'operator pack panel must be present for the sellable rail',
+    );
+    assert.match(componentSrc, /OPERATOR_PACK_LINKS/, 'OPERATOR_PACK_LINKS constant expected');
+    assert.match(
+      componentSrc,
+      /LEAD_RESCUE_QUOTE_READY_PACKET_V1\.md/,
+      'quote-ready packet link expected',
+    );
+    assert.match(
+      componentSrc,
+      /AI_LEAD_RESCUE_PAID_PILOT_ONBOARDING\.md/,
+      'onboarding link expected',
+    );
+    assert.match(
+      componentSrc,
+      /USD 150/,
+      'commercial helper must surface the launch-pilot recommendation',
+    );
+  });
 });
 
 describe('pages/admin/lead-rescue/[id] — SSR fallback contract', () => {

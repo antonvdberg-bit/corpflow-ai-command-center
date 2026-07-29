@@ -26,7 +26,9 @@ Run this checklist **at the start of each work session** and **before opening ea
 - [ ] Confirm the lane's **next action** is still accurate; if reality moved, update the
       board row first (docs-only edit).
 - [ ] Confirm the next step is **pre-approved** (`PARALLEL_EXECUTION_BOARD_V1.md` §6). If it
-      is **hard-gated** (§7), do **not** start — post `AWAITING_OPERATOR` instead.
+      is **hard-gated** (§7), do **not** start — post `AWAITING_OPERATOR` instead and route
+      the decision to the **Anton Decision Inbox** (`needs:anton` + `approval:*` + packet per
+      `docs/operations/ANTON_DECISION_INBOX_V1.md`). Keep unrelated safe lanes moving.
 
 ## 3. WIP + anti-conflict pre-check
 

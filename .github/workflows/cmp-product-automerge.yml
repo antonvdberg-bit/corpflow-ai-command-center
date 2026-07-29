@@ -1,8 +1,11 @@
-# Product automation: after Agent CI succeeds on a PR from cmp/<ticket_id>, merge into main.
-# Vercel (or your host) should deploy production on pushes to main — no manual Cursor push required.
+# CMP product auto-merge — ONLY for client-approved cmp/* PRs when explicitly enabled.
 #
 # Enable with GitHub repo variable: CMP_AUTO_MERGE = true
 # Disable (default): omit the variable or set to anything other than true.
+#
+# #676 / Decision Inbox: agent PRs (cursor/*, codex/*, docs/*, feat/*, …) must NEVER
+# auto-merge. This workflow already restricts head branches to cmp/* only — do not widen.
+# Labels (including needs:anton / approval:*) are not merge authority.
 
 name: CMP product auto-merge
 
@@ -30,8 +33,19 @@ jobs:
           script: |
             const run = context.payload.workflow_run;
             const headBranch = run.head_branch || '';
+            // Hard allowlist — never auto-merge agent executor branches.
             if (!headBranch.startsWith('cmp/')) {
               core.info(`Skip: head branch is not cmp/* (${headBranch})`);
+              return;
+            }
+            if (
+              headBranch.startsWith('cursor/') ||
+              headBranch.startsWith('codex/') ||
+              headBranch.startsWith('docs/') ||
+              headBranch.startsWith('feat/') ||
+              headBranch.startsWith('fix/')
+            ) {
+              core.info(`Skip: agent/executor branch namespace blocked from auto-merge (${headBranch})`);
               return;
             }
             const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
@@ -55,6 +69,11 @@ jobs:
             const labels = Array.isArray(pr.labels) ? pr.labels.map(l => (l && l.name ? String(l.name) : '')).filter(Boolean) : [];
             if (!labels.includes('client-approved')) {
               core.info(`Skip: PR #${pr.number} missing label client-approved (client signoff not recorded).`);
+              return;
+            }
+            // needs:anton / approval:* route Decision Inbox work — they do not unlock merge.
+            if (labels.includes('needs:anton')) {
+              core.info(`Skip: PR #${pr.number} still labelled needs:anton (Decision Inbox open).`);
               return;
             }
             core.info(`Merging PR #${pr.number} (${pr.html_url})`);
