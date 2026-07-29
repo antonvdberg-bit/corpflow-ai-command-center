@@ -38,6 +38,7 @@ Physical register of routes an unauthenticated prospect could reach on **`corpfl
 | `/product-a/mauritius` | Product A Mauritius property | Property ops | Specialist glass | ProductA landing | Intake | `POST /api/product-a/intake` | — | — | — | **REQUIRES_ANTON_DECISION** | Keep or NOINDEX |
 | `/france` | Legacy campaign | France prospects | Legacy inline | Form | Submit | `POST /api/tenant/leads` | Unknown | Weak | — | **NOINDEX** | Redirect or archive |
 | `/concierge` | Lux concierge (wrong host on apex) | Lux buyers | Lux tenant | Lux brand | — | — | — | — | — | **NOINDEX** on apex | Host routing only on lux.corpflowai.com |
+| `/demo/website-rescue` | Fictional Website Rescue before/after demo (#654) | Sales walkthrough / discovery prospects | Demo | Specialist glass + demo ribbon | Request discovery | `#demo-enquiry` → offer intake | Toggle + form | noindex banner | — | **NOINDEX** | Keep out of main nav; link from offer page only |
 | `/change/revenue` | Operator revenue cockpit | Anton/operators | Operator | Standalone dark UI | — | — | — | noindex | — | **NOINDEX** | Never in public nav |
 | `/change`, `/change/*` | Change console | Operators/clients | Private | CMP console | — | — | — | — | — | **NOINDEX** | Must not link from public pages |
 

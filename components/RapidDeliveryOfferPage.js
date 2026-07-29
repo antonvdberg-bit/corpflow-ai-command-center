@@ -196,6 +196,42 @@ export default function RapidDeliveryOfferPage({ offer }) {
           </GlassPanel>
         </div>
 
+        {offer.beforeAfter ? (
+          <GlassCardGrid minColWidth={280} gap={20} style={{ marginTop: 28 }}>
+            <GlassPanel variant={{ fill: GLASS_TOKENS.glassFill, padding: 22, elevation: 2 }}>
+              <div style={styles.label}>Before</div>
+              <h2 style={styles.h2}>Typical starting point</h2>
+              <ul style={styles.list}>
+                {offer.beforeAfter.before.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </GlassPanel>
+            <GlassPanel variant={{ fill: GLASS_TOKENS.glassFill, padding: 22, elevation: 2 }}>
+              <div style={styles.label}>After</div>
+              <h2 style={styles.h2}>What this rescue delivers</h2>
+              <ul style={styles.list}>
+                {offer.beforeAfter.after.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+              {offer.demoPath ? (
+                <p style={styles.note}>
+                  Prefer a walkthrough?{' '}
+                  <Link
+                    href={offer.demoPath}
+                    style={styles.link}
+                    onClick={() => handleCtaClick('demo_example')}
+                  >
+                    Open the fictional before/after demo
+                  </Link>
+                  .
+                </p>
+              ) : null}
+            </GlassPanel>
+          </GlassCardGrid>
+        ) : null}
+
         <GlassCardGrid minColWidth={280} gap={20} style={{ marginTop: 28 }}>
           <GlassPanel variant={{ fill: GLASS_TOKENS.glassFill, padding: 22, elevation: 2 }}>
             <div style={styles.label}>How the engagement works</div>
