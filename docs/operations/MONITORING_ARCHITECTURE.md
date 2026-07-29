@@ -103,9 +103,9 @@ Two physical paths, one shared envelope.
 Two senders, byte-compatible contracts (intentional — same chat, same bot, same body shape):
 
 - **GitHub Actions side:** `scripts/post-control-loop-telegram-alert.mjs` (used by #1).
-- **Server side:** `lib/server/ops-alerts.js` `sendTelegramOpsAlert()` (used by #4 and any future server-emitted alert).
+- **Server side:** `lib/server/ops-alerts.js` — `sendTelegramOpsAlert()` (direct helper; available for future emitters) and `forwardOpsAlert()` (n8n `corpflow.ops_alert.v1`). Monitor #4 pages via `notifyOperatorCheckpoint` → `forwardOpsAlert` (transition-only per `ops-notification-policy.js`); it does not call `sendTelegramOpsAlert` today.
 
-Both POST to `https://api.telegram.org/bot<TOKEN>/sendMessage` with JSON `{chat_id, text}`. Body is capped at 3500 chars (Telegram limit is 4096; we leave room for retries / suffixing). Both skip silently when `TELEGRAM_BOT_TOKEN` or `TELEGRAM_ALERT_CHAT_ID` is unset.
+Both direct helpers POST to `https://api.telegram.org/bot<TOKEN>/sendMessage` with JSON `{chat_id, text}`. Body is capped at 3500 chars (Telegram limit is 4096; we leave room for retries / suffixing). Both skip silently when `TELEGRAM_BOT_TOKEN` or `TELEGRAM_ALERT_CHAT_ID` is unset.
 
 > **Cross-ref:** Payload contract, severity ladder (P0/P1/P2), anti-spam dedup rule, and phased rollout for the silent monitors are documented in `docs/operations/TELEGRAM_ALERT_WIRING_PACKET_V1.md` (the bounded execution unit). New emitters added under § 9 *Add-a-new-monitor recipe* must conform to that packet's § 4 + § 8 governance.
 
@@ -113,13 +113,13 @@ Message body shape (for both): header line (repo + run #) → recommended action
 
 ### 4.2 n8n forward (`corpflow.ops_alert.v1`)
 
-For monitors that want to land in **email** (or Google Chat, Slack, etc.) without growing the in-repo sender surface, the path is:
+For monitors that want to land in **email** or **exception-only Telegram** without growing the in-repo sender surface, the path is:
 
 1. Server emits `corpflow.ops_alert.v1` envelope to `CORPFLOW_AUTOMATION_FORWARD_URL` with optional `x-corpflow-automation-forward-secret` header (when `CORPFLOW_AUTOMATION_FORWARD_SECRET` is set).
 2. n8n routes on `kind` (e.g. `cmp_delivery_blocked`) → email to the operator alias (`antonvdberg@corpflowai.com` today) and/or to Telegram via n8n if you want a single funnel.
 3. Comms classification: **`operator_escalation`** per `docs/communications/CORPFLOW_COMMUNICATIONS_V1.md` § 4 — internal-only audience; this routing must never reach a client mailbox. Sender: `support@corpflowai.com`.
 
-This contract is what `docs/automation-framework.md` § "Optional forward to n8n" calls out, and what `docs/operations/DELIVERY_VERDICT_AND_ALERTS.md` § "Email (and Telegram, Slack, etc.) via n8n" describes from the consumer side.
+**Slack is not an approved CorpFlow ops channel** (issue #658). See `docs/operations/SLACK_TELEGRAM_DEPENDENCY_AUDIT_658.md` and `docs/operations/DELIVERY_VERDICT_AND_ALERTS.md` § "Email and Telegram via n8n (Slack retired)".
 
 ### 4.3 Today's wiring (what is and isn't alerted)
 
@@ -128,7 +128,7 @@ This contract is what `docs/automation-framework.md` § "Optional forward to n8n
 | #1 Factory control loop | ✅ direct (workflow side) | — | only on workflow `failure()` |
 | #2 Factory health endpoint | — | — | passive surface |
 | #3 Production Pulse runtime | — | — | passive surface; future packet `exec01-cron-pulse` will add Telegram via #1's CLI |
-| #4 CMP delivery monitor | ✅ direct (server side) | ✅ `corpflow.ops_alert.v1` | best-effort; never blocks the monitor |
+| #4 CMP delivery monitor | via n8n when Telegram branch configured | ✅ `corpflow.ops_alert.v1` (transition-only) | `notifyOperatorCheckpoint` → `forwardOpsAlert`; never blocks the monitor |
 | #5 CMP overseer sweep | — | — | (gap — see § 6) |
 | #6 CMP stuck self-repair | — | — | (gap — see § 6) |
 | #7 Technical Lead observer | — | — | read-only; no alert by design |

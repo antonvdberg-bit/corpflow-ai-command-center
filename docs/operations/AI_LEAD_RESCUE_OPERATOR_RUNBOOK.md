@@ -122,7 +122,7 @@ If `CORPFLOW_AUTOMATION_FORWARD_URL` is configured, the row is also forwarded to
 See `docs/n8n/automation-forward-recipe.md` § 1. The recipe instructs:
 
 - IF node on `body.event_type === 'corpflow.lead_rescue.intake_received'`
-- Pipe `body.payload.notification_text` directly into Telegram / email / Slack (no further templating required)
+- Pipe `body.payload.notification_text` directly into Telegram / email (no further templating required; Slack retired — issue #658)
 - Use `body.payload.admin_detail_url` as the link target in the alert
 - Honour the idempotency key `lead-rescue:intake:<lead_id>` if your downstream supports it (so retried forwards do not double-alert)
 - Structured fields under `body.payload.prospect.*` are also available for a spreadsheet / CRM mirror row if you want one

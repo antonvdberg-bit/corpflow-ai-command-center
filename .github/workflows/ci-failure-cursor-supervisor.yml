@@ -1,0 +1,155 @@
+# CI failure → Cursor repair supervisor + CI-green operator review.
+# Triggered when approved PR validation workflows complete.
+# Does not merge, deploy, or change secrets.
+#
+# Secrets: CURSOR_API_KEY (follow-up / repair agent)
+# Permissions: issues:write, pull-requests:write, actions:read, contents:read
+
+name: CI Cursor repair supervisor
+
+on:
+  workflow_run:
+    workflows:
+      - Agent CI
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "failure | success | labels"
+        required: true
+        default: failure
+        type: choice
+        options:
+          - failure
+          - success
+          - labels
+      workflow_run_id:
+        description: "Target Agent CI run id (failure/success modes)"
+        required: false
+        default: ""
+        type: string
+      claim_issue:
+        description: "Issue number for labels mode claim repair"
+        required: false
+        default: "653"
+        type: string
+      cursor_run_id:
+        description: "Real Cursor run id for labels mode"
+        required: false
+        default: ""
+        type: string
+      cursor_agent_url:
+        description: "Cursor agent URL for labels mode"
+        required: false
+        default: ""
+        type: string
+      dry_run:
+        description: "Build packet / ensure labels without Cursor API follow-up"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+  actions: read
+  checks: read
+
+concurrency:
+  group: ci-cursor-repair-supervisor
+  cancel-in-progress: false
+
+jobs:
+  supervise:
+    runs-on: ubuntu-latest
+    # Skip non-PR or cancelled upstream runs on workflow_run; always allow manual.
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion != 'cancelled' &&
+       github.event.workflow_run.event == 'pull_request')
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
+        with:
+          node-version: "20"
+
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        continue-on-error: true
+        with:
+          path: .ci-repair-state
+          key: ci-repair-state-v1-${{ github.repository }}
+          restore-keys: |
+            ci-repair-state-v1-${{ github.repository }}
+
+      - name: Resolve supervisor mode
+        id: cfg
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "mode=${{ inputs.mode }}" >> "$GITHUB_OUTPUT"
+            echo "run_id=${{ inputs.workflow_run_id }}" >> "$GITHUB_OUTPUT"
+            echo "conclusion=" >> "$GITHUB_OUTPUT"
+            echo "workflow_name=Agent CI" >> "$GITHUB_OUTPUT"
+            if [ "${{ inputs.dry_run }}" = "true" ]; then
+              echo "dry_run=1" >> "$GITHUB_OUTPUT"
+            else
+              echo "dry_run=0" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            conclusion="${{ github.event.workflow_run.conclusion }}"
+            echo "run_id=${{ github.event.workflow_run.id }}" >> "$GITHUB_OUTPUT"
+            echo "conclusion=${conclusion}" >> "$GITHUB_OUTPUT"
+            echo "workflow_name=${{ github.event.workflow_run.name }}" >> "$GITHUB_OUTPUT"
+            echo "dry_run=0" >> "$GITHUB_OUTPUT"
+            if [ "${conclusion}" = "failure" ]; then
+              echo "mode=failure" >> "$GITHUB_OUTPUT"
+            elif [ "${conclusion}" = "success" ]; then
+              echo "mode=success" >> "$GITHUB_OUTPUT"
+            else
+              echo "mode=skip" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+      - name: Run CI Cursor supervisor
+        if: ${{ steps.cfg.outputs.mode != 'skip' }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          CI_SUPERVISOR_WORKFLOW_RUN_ID: ${{ steps.cfg.outputs.run_id }}
+          CI_SUPERVISOR_CONCLUSION: ${{ steps.cfg.outputs.conclusion }}
+          CI_SUPERVISOR_WORKFLOW_NAME: ${{ steps.cfg.outputs.workflow_name }}
+          CI_SUPERVISOR_DRY_RUN: ${{ steps.cfg.outputs.dry_run }}
+          CI_SUPERVISOR_CLAIM_ISSUE: ${{ inputs.claim_issue }}
+          CI_SUPERVISOR_CURSOR_RUN_ID: ${{ inputs.cursor_run_id }}
+          CI_SUPERVISOR_CURSOR_AGENT_URL: ${{ inputs.cursor_agent_url }}
+          CI_REPAIR_STATE_PATH: .ci-repair-state/state.json
+          CI_REPAIR_COST_PATH: .ci-repair-state/cost-usage.json
+          CI_SUPERVISOR_OUT_PATH: ci-supervisor-result.json
+        run: |
+          set -euo pipefail
+          MODE="${{ steps.cfg.outputs.mode }}"
+          # For manual failure/success without conclusion, derive from mode.
+          if [ -z "${CI_SUPERVISOR_CONCLUSION}" ]; then
+            if [ "$MODE" = "failure" ]; then export CI_SUPERVISOR_CONCLUSION=failure; fi
+            if [ "$MODE" = "success" ]; then export CI_SUPERVISOR_CONCLUSION=success; fi
+          fi
+          node scripts/ci-failure-cursor-supervisor.mjs --mode "$MODE"
+
+      - name: Upload supervisor result
+        if: ${{ always() && steps.cfg.outputs.mode != 'skip' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ci-cursor-supervisor-result
+          path: |
+            ci-supervisor-result.json
+            .ci-repair-state/state.json
+            .ci-repair-state/cost-usage.json
+          if-no-files-found: ignore
+          retention-days: 14

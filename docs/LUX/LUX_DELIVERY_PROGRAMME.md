@@ -34,6 +34,7 @@ The **active** scope is the *LuxeMaurice Private Wealth & Lifestyle Platform* (s
    - **production URL verification** (live URLs tested)
    - **operator next action** (what the operator does next in `/change`)
 3. **Delivery state discipline:** local code, CI green, or “merged” is not completion. Production must be **live verified** on real client URLs (see delivery reality rules).
+4. **Anton Decision Inbox:** Lux protected decisions (production deploy, secrets, schema, payments, external sends, public launch) route to `needs:anton` + `approval:*` per `docs/operations/ANTON_DECISION_INBOX_V1.md` — not via asking Anton to monitor every Lux chat. Unrelated safe work continues while those approvals are pending.
 
 ## Phases and gates (what “done” means per phase)
 

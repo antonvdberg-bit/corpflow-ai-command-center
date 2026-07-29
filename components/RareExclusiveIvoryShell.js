@@ -126,7 +126,7 @@ export function RareExclusiveHeroVisual({
         position: 'relative',
         width: '100%',
         height: '100%',
-        minHeight: 320,
+        minHeight: 336,
         overflow: 'hidden',
         background: 'linear-gradient(145deg, #E8DFD0 0%, #C9B896 45%, #A8946E 100%)',
       }}
@@ -456,7 +456,7 @@ export function RareExclusiveIvoryHeader({ activeHref = '' }) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'flex-end',
-          gap: 'clamp(12px, 1.8vw, 22px)',
+          gap: 'clamp(10px, 1.6vw, 18px)',
           flexWrap: 'wrap',
         }}
       >
@@ -471,13 +471,15 @@ export function RareExclusiveIvoryHeader({ activeHref = '' }) {
               href={item.href}
               style={{
                 fontFamily: T.fontBody,
-                fontSize: 10.5,
-                fontWeight: 600,
-                letterSpacing: '0.16em',
+                // ~12% quieter than prior 10.5 / 600 nav weight (Issue #651 Jan refine)
+                fontSize: 9.25,
+                fontWeight: 500,
+                letterSpacing: '0.14em',
                 textTransform: 'uppercase',
-                color: active ? T.charcoal : T.stone,
+                color: active ? T.charcoal : '#7A7166',
                 textDecoration: 'none',
                 whiteSpace: 'nowrap',
+                opacity: active ? 1 : 0.88,
               }}
             >
               {item.label}
@@ -488,22 +490,24 @@ export function RareExclusiveIvoryHeader({ activeHref = '' }) {
           aria-hidden="true"
           style={{
             width: 1,
-            height: 18,
+            height: 14,
             background: T.hairlineStone,
             flexShrink: 0,
+            opacity: 0.85,
           }}
         />
         <a
           href="/concierge"
           style={{
             fontFamily: T.fontBody,
-            fontSize: 10.5,
-            fontWeight: 700,
-            letterSpacing: '0.16em',
+            fontSize: 9.25,
+            fontWeight: 600,
+            letterSpacing: '0.14em',
             textTransform: 'uppercase',
             color: T.gold,
             textDecoration: 'none',
             whiteSpace: 'nowrap',
+            opacity: 0.92,
           }}
         >
           Private Access

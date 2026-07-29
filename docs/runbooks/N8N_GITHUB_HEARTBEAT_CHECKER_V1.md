@@ -39,7 +39,7 @@ All sources are read via the GitHub REST API (read-only scope) against
 | 1 | Issue **#493** | last comment time; lane table presence | dispatcher-digest freshness; lane activation |
 | 2 | Issue **#249** | last comment time; latest STATUS/decision | bridge coordination freshness |
 | 3 | **Open Action-Plan issues** (`#485, #486, #487, #492, #495`, label `automation`/`operations`) | last activity (`updated_at`), assignee, open/closed | per-lane movement, ownership |
-| 4 | **Recent PRs** (open + recently merged) | open count, age of oldest open PR, CI/check-run state, draft vs ready | WIP limit, open-PR age, CI surfacing |
+| 4 | **Recent PRs** (open) | open count only (WIP cap) | WIP limit exception; **not** routine open-PR age / CI surfacing (#658) |
 | 5 | **Dispatcher digests** on #249 / #493 | timestamp of most recent comment matching the digest header | digest-cadence freshness |
 | 6 | **Codex Task Register** (`docs/operations/CODEX_TASK_REGISTER_V1.md`) | rows in `REQUESTED` vs `IMPORTED` (once register is in use) | "Codex launched but no returned packet" |
 
@@ -47,23 +47,29 @@ Source 6 is **freshness-tolerant**: if the register has no rows yet, the heartbe
 treats Codex checks as N/A (not stale). This satisfies the issue's "once available" note
 and keeps the checker green while Codex repo access is still pending.
 
+**Environment note (#679):** Publishing or validating a change on a CorpFlowAI-hosted
+**corpflow_test** URL (`lux.*`, `cipc*`, `core.*`, etc.) is **not** an exception by itself
+and must not page Telegram / Anton Decision Inbox. Heartbeat stays exception-only
+(digest stale, WIP cap, blocked lanes, etc.). See
+`docs/operations/CORPFLOW_ENVIRONMENT_CLASSIFICATION_V1.md`.
+
 ## 2. Stale thresholds (v1 defaults — tune in Stage 3)
 
 Thresholds are deliberately conservative to avoid alert fatigue. All are **business-hours
 aware only by date**, not by hour, in v1 (operator timezone UTC+4).
 
-| Condition | Threshold (v1) | Rationale |
-|---|---|---|
-| No dispatcher digest on #249/#493 | **> 12h** during an active day | digest cadence is 2–3×/day (`OPERATOR_PROGRESS_DIGEST_V1.md` §2) |
-| No #493 PR opened after activation | **> 24h** after a lane goes `IN_PROGRESS` with no PR | activation should produce a PR within a day |
-| No movement on an `Active` lane | **> 48h** since last lane-linked activity | lanes may legitimately pause a day |
-| Codex task launched, no returned packet | **> 48h** in `REQUESTED` | research turnaround budget |
-| PR open but CI/build result not surfaced | **> 6h** open with no check-run conclusion reported | CI should resolve within hours |
-| Approval request not batched for Anton | **> 6h** an `AWAITING_OPERATOR` item not in a digest approval-queue roll-up | Anton must see what's waiting |
-| Blocked lane without explicit owner/next action | **immediate** | a blocked lane must always name owner + next action |
-| Open-PR count over WIP cap | **immediate** (cap = 2, `PARALLEL_EXECUTION_BOARD_V1.md` §4) | WIP discipline |
+| Condition | Threshold (v1) | Pages Telegram? | Rationale |
+|---|---|---|---|
+| No dispatcher digest on #249/#493 | **> 12h** during an active day | **Yes** | digest cadence is 2–3×/day |
+| Open-PR count over WIP cap | **immediate** (cap = 2) | **Yes** | WIP discipline — not “PR exists” noise |
+| No #493 PR opened after activation | **> 24h** after a lane goes `IN_PROGRESS` with no PR | **No** (#658) | GitHub issue/PR lifecycle is source of truth |
+| No movement on an `Active` lane | **> 48h** since last lane-linked activity | **No** (log only in v1 template) | lanes may legitimately pause |
+| Codex task launched, no returned packet | **> 48h** in `REQUESTED` | **No** | research turnaround; digest surfaces it |
+| PR open but CI/build result not surfaced | **> 6h** open with no check-run conclusion | **No** (#658) | use GitHub PR checks |
+| Approval request not batched for Anton | **> 6h** | **No** in inactive template | surface via #249 digest |
+| Blocked lane without explicit owner/next action | **immediate** | **No** in inactive template | surface via #249 digest |
 
-A condition only alerts once it crosses its threshold **and** passes the dedupe gate (§5).
+**Exception-only paging in the shipped template** (`github-heartbeat-checker.template.json`): `digest_stale` + `wip_cap` only. A condition only pages once it crosses its threshold **and** passes the hourly dedupe gate (§5).
 
 ## 3. Alert conditions → what the operator sees
 
@@ -73,16 +79,14 @@ severity ladder (`TELEGRAM_ALERT_WIRING_PACKET_V1.md` §4): only **error/fatal**
 
 | Condition | Severity | Alerts? |
 |---|---|---|
-| Blocked lane without owner/next action | error | yes |
-| Approval request not batched > 6h | error | yes |
-| Open-PR count over WIP cap | error | yes |
-| No dispatcher digest > 12h (active day) | error | yes |
-| No movement on `Active` lane > 48h | warning→error at 72h | yes at 72h |
-| PR open but CI/build result not surfaced | **Retired (#658)** — use GitHub PR checks + #249 digest; no routine Telegram | no |
+| Open-PR count over WIP cap | error | **yes** (exception) |
+| No dispatcher digest > 12h (active day) | error | **yes** (exception) |
+| Blocked lane / approval batching / lane stall | — | **no** in v1 template — GitHub #249/#493 digest |
+| PR open / PR age / CI not surfaced | — | **no** (#658) — GitHub PR checks |
 | Codex task `REQUESTED` > 48h | warning | no (logged) |
 | Everything healthy | info | no (silent success) |
 
-**Silent on normal success** is mandatory — a green run produces no Telegram message.
+**Silent on normal success** is mandatory — a green run produces no Telegram message. Do **not** page for “PR opened”, “PR still open”, or unchanged review status.
 
 ## 4. Telegram message format (operator-ready)
 

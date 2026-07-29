@@ -123,10 +123,12 @@ When `CORPFLOW_AUTOMATION_FORWARD_URL` is configured, the app emits **`corpflow.
 
 | `kind` | When emitted |
 |--------|----------------|
-| `production_validation_failure` | CMP delivery verdict blocked or Reality Gate failed after promote-merge |
+| `production_validation_failure` | CMP delivery verdict blocked or Reality Gate failed after promote-merge (**corpflow_test** live URL — not client_production) |
 | `client_approval_needed` | Preview URL first attached — client must review on `/change` |
-| `production_approval_needed` | Client approved preview — operator promote-merge gate |
+| `production_approval_needed` | Client approved preview — **operator merge/promote to CorpFlowAI test spine (`corpflow_test`)**. Enum name kept for compatibility; **not** client_production authorization (#679) |
 | `external_email_client_send_approval_needed` | Change Console AI reply withheld pending operator approval |
+
+Publishing or validating a change on a CorpFlowAI-hosted **corpflow_test** URL is not by itself a heartbeat / Anton Decision Inbox exception. True **client_production** remains a separate, explicitly approved process.
 
 **n8n branch (reuse existing automation-forward workflow + Telegram credential):**
 

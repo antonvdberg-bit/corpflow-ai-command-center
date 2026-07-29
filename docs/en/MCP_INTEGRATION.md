@@ -95,7 +95,7 @@ Once MCP is enabled, these helper tools are automatically available:
 | 🔍 **Brave Search** | Web search | Ready |
 | 💾 **Memory** | Persistent storage | Ready |
 | 🌐 **Puppeteer** | Browser automation | Ready |
-| 💬 **Slack** | Slack messaging | Ready |
+| 💬 **Slack** | Slack messaging | **RETIRED** (issue #658) — disabled in `mcp_servers.json` |
 
 Enable what you need and add your API keys.
 
