@@ -47,6 +47,12 @@ Source 6 is **freshness-tolerant**: if the register has no rows yet, the heartbe
 treats Codex checks as N/A (not stale). This satisfies the issue's "once available" note
 and keeps the checker green while Codex repo access is still pending.
 
+**Environment note (#679):** Publishing or validating a change on a CorpFlowAI-hosted
+**corpflow_test** URL (`lux.*`, `cipc*`, `core.*`, etc.) is **not** an exception by itself
+and must not page Telegram / Anton Decision Inbox. Heartbeat stays exception-only
+(digest stale, WIP cap, blocked lanes, etc.). See
+`docs/operations/CORPFLOW_ENVIRONMENT_CLASSIFICATION_V1.md`.
+
 ## 2. Stale thresholds (v1 defaults — tune in Stage 3)
 
 Thresholds are deliberately conservative to avoid alert fatigue. All are **business-hours

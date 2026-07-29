@@ -91,6 +91,10 @@ Telegram **may** fire for:
 6. PR ready for Anton — WIP cap > 2 only (not “PR opened” / “still open”).
 
 **Must stay silent:** green crons, unchanged blocked state, open PR merely existing, unchanged review status, routine progress, unknown automation-forward events.
+6. PR ready for Anton — WIP cap > 2; merge/approval checkpoints.
+7. **Decision Inbox exceptions (#676, design until activated)** — new/changed `needs:anton` items, deadline escalation, or failed previously-approved action needing a new decision. Deduped, nonblank, GitHub link required. See `docs/n8n/anton-decision-inbox-exception-notify.md`.
+
+**Must stay silent:** green crons, unchanged blocked state, open PR merely existing, unknown automation-forward events, unchanged Decision Inbox fingerprints.
 
 Canonical: `lib/server/ops-notification-policy.js`.
 

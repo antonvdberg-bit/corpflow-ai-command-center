@@ -23,6 +23,17 @@ The runbook was named in `docs/decisions/JOURNAL.md` row **JE-2026-04-10-5** as 
 
 Treat the per-surface sources above as authoritative. Do **not** treat this stub as an operational runbook.
 
+## Operator decisions (Lux)
+
+Do **not** ask Anton to monitor the Lux workstream continuously. Route only genuine protected decisions (production deploy, env/secrets, DB/schema, payments, external sends, paid tools, public launch, merge authority for agent PRs) to the **central Anton Decision Inbox**:
+
+- Labels: `needs:anton` + the matching `approval:*` reason
+- Packet: `### ANTON DECISION PACKET` on the issue/PR (optional pointer on Operator Bridge #249)
+- Continue safe Lux preview/docs/implementation while unrelated approvals are pending
+- Never deploy or mutate production merely because CI is green
+
+Canonical: `docs/operations/ANTON_DECISION_INBOX_V1.md` and `docs/operations/PROTECTED_ACTION_GATES_V1.md`.
+
 ## Cross-references
 
 - `docs/decisions/JOURNAL.md` — row JE-2026-04-10-5 and successor rows.
@@ -30,3 +41,4 @@ Treat the per-surface sources above as authoritative. Do **not** treat this stub
 - `docs/EXECUTION_BRAIN_VS_HANDS.md`
 - `docs/automation-framework.md`
 - `lib/cmp/README.md`
+- `docs/operations/ANTON_DECISION_INBOX_V1.md`

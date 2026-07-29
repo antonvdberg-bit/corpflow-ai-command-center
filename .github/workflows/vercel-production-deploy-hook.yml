@@ -6,18 +6,90 @@
 # 2) GitHub → this repo → Settings → Secrets and variables → Actions → New repository secret
 #    Name: VERCEL_DEPLOY_HOOK_URL   Value: the hook URL from step 1
 # 3) GitHub → Actions → "Trigger Vercel production (deploy hook)" → Run workflow
+# 4) Environment "Production" should require reviewer approval (Anton) — see
+#    docs/operations/ANTON_DECISION_INBOX_OPERATOR_SETTINGS_PACKET.md
 #
-# This does not run on every push (avoids double deploys if Git integration starts working again).
+# Protected-action gate (#676): merge alone / labels alone do NOT deploy.
+# This workflow requires a durable approval comment body (paste from the issue/PR)
+# matching ### ANTON DURABLE APPROVAL for approval:deploy (or approval:production).
+# It does not run on every push (avoids double deploys if Git integration works).
 
 name: Trigger Vercel production (deploy hook)
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      issue_or_pr:
+        description: 'Issue or PR reference for scoped approval (e.g. #676 or PR #123)'
+        required: true
+        type: string
+      target_sha:
+        description: 'Commit SHA being deployed (or n/a)'
+        required: true
+        type: string
+      durable_approval_comment:
+        description: 'Full ### ANTON DURABLE APPROVAL comment body (no secrets)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
 
 jobs:
   hook:
     runs-on: ubuntu-latest
+    environment: Production
     steps:
+      - name: Checkout (gate helpers only)
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            lib/server/anton-decision-inbox.js
+          sparse-checkout-cone-mode: false
+
+      - name: Verify durable deploy approval
+        env:
+          ISSUE_OR_PR: ${{ inputs.issue_or_pr }}
+          TARGET_SHA: ${{ inputs.target_sha }}
+          APPROVAL_BODY: ${{ inputs.durable_approval_comment }}
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'EOF'
+          import {
+            evaluateProtectedActionGate,
+            parseDurableApproval,
+          } from './lib/server/anton-decision-inbox.js';
+
+          const body = process.env.APPROVAL_BODY || '';
+          const issueOrPr = process.env.ISSUE_OR_PR || '';
+          const targetSha = process.env.TARGET_SHA || '';
+
+          const parsed = parseDurableApproval(body);
+          if (!parsed.ok) {
+            console.error('Blocked: durable approval parse failed:', parsed.errors.join('; '));
+            process.exit(1);
+          }
+
+          const action = parsed.approval?.approval_type;
+          if (action !== 'approval:deploy' && action !== 'approval:production') {
+            console.error(`Blocked: approval_type must be approval:deploy or approval:production (got ${action})`);
+            process.exit(1);
+          }
+
+          const gate = evaluateProtectedActionGate({
+            action,
+            issueOrPr,
+            targetSha: targetSha === 'n/a' ? null : targetSha,
+            targetEnvironment: 'Production',
+            comments: [{ body }],
+          });
+          if (!gate.allowed) {
+            console.error('Blocked:', gate.reason);
+            process.exit(1);
+          }
+          console.log('Durable approval matched — proceeding to deploy hook POST.');
+          EOF
+
       - name: POST Vercel deploy hook
         env:
           HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}

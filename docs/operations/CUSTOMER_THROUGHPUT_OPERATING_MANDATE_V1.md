@@ -24,7 +24,7 @@ Every interaction and control-loop review must optimise simultaneously for:
 2. **Maximum safe throughput** — keep multiple independent work packets available and agents productively activated whenever capacity exists.
 3. **Minimum management overhead** — Anton must remain the decision-maker, not the technical courier, queue watcher or routine follow-up mechanism.
 4. **Cost discipline** — avoid wasteful polling, duplicate agents, notification noise, unnecessary paid tools and unbounded model/runtime consumption.
-5. **Protected-gate safety** — never bypass explicit approval for production deploys, env/secrets, database/schema, payments, external sends, outreach, paid vendors or public launches.
+5. **Protected-gate safety** — never bypass explicit approval for production deploys, env/secrets, database/schema, payments, external sends, outreach, paid vendors or public launches. Route those decisions to the **central Anton Decision Inbox** (`needs:anton` + `approval:*` + structured packet per `docs/operations/ANTON_DECISION_INBOX_V1.md`). Labels route; only durable GitHub approval unlocks. Continue safe autonomous work while unrelated approvals are pending.
 
 A throughput improvement is valid only when it preserves quality, safety, system boundaries and cost visibility.
 
@@ -74,11 +74,26 @@ The dispatcher must keep eligible source issues discoverable, activate work when
 
 ## 6. Delivery lifecycle
 
-Production delivery follows:
+### 6.1 CorpFlowAI-hosted tenant / test surfaces (`corpflow_test`)
 
-`build -> preview -> verify -> callback/review -> approve -> deploy -> validate`
+Current Lux, CIPC Desk, Core factory, and other CorpFlowAI-hosted tenant work publishes to the **agreed CorpFlowAI test environment** (Vercel Production spine serving those hosts). Required chain:
 
-Work is not complete without the evidence appropriate to its stage. Client-facing or production completion requires a verified live URL or equivalent runtime evidence.
+```text
+issue → Cursor → branch → PR → CI → merge approval where required
+  → publish to CorpFlowAI test URL → live test validation → client/operator review
+```
+
+Do **not** force a redundant local → preview → staging → test chain when the CorpFlowAI-hosted surface itself is the test environment. Preview remains optional for internal checks.
+
+Work is not complete without **live corpflow_test URL** (or equivalent runtime) evidence. A public URL is still a **test** environment until a separate **client_production** transition is approved. See `docs/operations/CORPFLOW_ENVIRONMENT_CLASSIFICATION_V1.md`.
+
+### 6.2 Future client production (`client_production`)
+
+Only when CorpFlowAI deploys into a separately governed client-owned/approved production target:
+
+`build → (optional preview) → verify → callback/review → approve → client_production deploy → validate`
+
+That path requires explicit Anton/client production approval and the stronger release controls listed in the environment classification doctrine. No corpflow_test publish approval counts as client_production approval.
 
 For revenue products, the minimum delivery packet should include:
 
@@ -109,6 +124,8 @@ Every Anton request must use one explicit form:
 - `ANTON ACTION — EXTERNAL SEND/LAUNCH APPROVAL: ...`
 
 If none applies, state `ANTON ACTION: NONE`.
+
+When `ANTON ACTION — APPROVAL REQUIRED` (or external send/launch) applies, also open/update the Decision Inbox item: label `needs:anton` + the matching `approval:*` reason, post `### ANTON DECISION PACKET`, and keep unrelated work moving. Never treat CI-complete or a mergeable PR as protected approval.
 
 ## 8. Throughput measures
 
