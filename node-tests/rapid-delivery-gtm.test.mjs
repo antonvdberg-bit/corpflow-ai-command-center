@@ -182,6 +182,11 @@ describe('rapid-delivery revenue desk UX', () => {
     assert.ok(desk.includes('Copy plain text'));
   });
 
+  it('desk surfaces Website Rescue operator pack for landing-rescue leads', () => {
+    assert.ok(desk.includes('data-website-rescue-operator-pack'));
+    assert.ok(desk.includes('WEBSITE_RESCUE_QUOTE_READY_PACKET_V1.md'));
+  });
+
   it('desk has no outbound send action and shows manual approval warning', () => {
     assert.ok(desk.includes('External commercial contact remains a manual Anton-approved action.'));
     assert.ok(!desk.includes('>Send<'));
