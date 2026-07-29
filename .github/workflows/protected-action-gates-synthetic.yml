@@ -1,0 +1,102 @@
+# Synthetic protected-action gate verification (#676).
+# Non-production: never deploys, never sends messages, never mutates DB/secrets.
+# Demonstrates visible blocks for deploy / production / db-schema / external-send / payment
+# without durable approval, and agent auto-merge denial.
+
+name: Protected action gates (synthetic)
+
+on:
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: "Which synthetic block to demonstrate"
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - deploy
+          - production
+          - db-schema
+          - external-send
+          - payment
+          - agent-auto-merge
+  pull_request:
+    paths:
+      - 'lib/server/anton-decision-inbox.js'
+      - 'lib/server/protected-action-gates.js'
+      - 'lib/server/anton-decision-notify.js'
+      - 'scripts/check-protected-action-gate.mjs'
+      - '.github/workflows/protected-action-gates-synthetic.yml'
+      - 'node-tests/anton-decision-inbox.test.mjs'
+      - 'node-tests/protected-action-gates.test.mjs'
+      - 'node-tests/anton-decision-notify.test.mjs'
+
+permissions:
+  contents: read
+
+jobs:
+  synthetic:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      # Pinned SHAs (supply chain): tag v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      # Pinned SHAs (supply chain): tag v6
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
+        with:
+          node-version: "20"
+
+      - name: Run Decision Inbox + gate unit tests
+        run: |
+          node --test \
+            node-tests/anton-decision-inbox.test.mjs \
+            node-tests/protected-action-gates.test.mjs \
+            node-tests/anton-decision-notify.test.mjs
+
+      - name: Synthetic blocks (expect exit 2 / blocked)
+        env:
+          SCENARIO: ${{ github.event.inputs.scenario || 'all' }}
+        run: |
+          set -euo pipefail
+          expect_block() {
+            local name="$1"
+            shift
+            set +e
+            out="$(node scripts/check-protected-action-gate.mjs "$@" 2>&1)"
+            code=$?
+            set -e
+            echo "=== ${name} (exit=${code}) ==="
+            echo "${out}"
+            if [ "${code}" != "2" ]; then
+              echo "::error::Expected blocked exit 2 for ${name}, got ${code}"
+              exit 1
+            fi
+            echo "${out}" | grep -q '"blocked": true\|PROTECTED ACTION BLOCKED\|cannot auto-merge\|default-disabled\|No durable'
+          }
+
+          run_all=0
+          [ "${SCENARIO}" = "all" ] && run_all=1
+
+          if [ "${run_all}" = "1" ] || [ "${SCENARIO}" = "deploy" ]; then
+            expect_block deploy --action=deploy --issue=676 --sha=deadbeef --environment=production --labels=needs:anton,approval:deploy
+          fi
+          if [ "${run_all}" = "1" ] || [ "${SCENARIO}" = "production" ]; then
+            expect_block production --action=production --issue=676 --sha=deadbeef --environment=production
+          fi
+          if [ "${run_all}" = "1" ] || [ "${SCENARIO}" = "db-schema" ]; then
+            expect_block db-schema --action=db-schema --workflow-enabled=false
+          fi
+          if [ "${run_all}" = "1" ] || [ "${SCENARIO}" = "external-send" ]; then
+            expect_block external-send --action=external-send --workflow-enabled=true
+          fi
+          if [ "${run_all}" = "1" ] || [ "${SCENARIO}" = "payment" ]; then
+            expect_block payment --action=payment --workflow-enabled=true
+          fi
+          if [ "${run_all}" = "1" ] || [ "${SCENARIO}" = "agent-auto-merge" ]; then
+            expect_block agent-auto-merge --mode=auto-merge --branch=cursor/synthetic --labels=client-approved --cmp-auto-merge=true --conclusion=success
+          fi
+
+          echo "All requested synthetic blocks behaved as expected (visible fail-closed)."

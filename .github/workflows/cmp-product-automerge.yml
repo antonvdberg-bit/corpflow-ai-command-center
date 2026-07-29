@@ -3,6 +3,12 @@
 #
 # Enable with GitHub repo variable: CMP_AUTO_MERGE = true
 # Disable (default): omit the variable or set to anything other than true.
+#
+# Hardening (#676):
+# - Agent branches (cursor/*, codex/*, internal-agent/*) never auto-merge.
+# - needs:anton blocks auto-merge until the Decision Inbox item is cleared.
+# - client-approved + CI green is still required for cmp/* only.
+# - Labels alone are not a protected production/deploy approval.
 
 name: CMP product auto-merge
 
@@ -24,16 +30,21 @@ jobs:
       contents: write
       pull-requests: write
     steps:
+      # Pinned SHAs (supply chain): tag v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      # Pinned SHAs (supply chain): tag v6
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
+        with:
+          node-version: "20"
+
       - name: Merge open PR for cmp branch (after client approval)
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b
         with:
           script: |
+            const { execFileSync } = require('node:child_process');
             const run = context.payload.workflow_run;
             const headBranch = run.head_branch || '';
-            if (!headBranch.startsWith('cmp/')) {
-              core.info(`Skip: head branch is not cmp/* (${headBranch})`);
-              return;
-            }
             const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
             const head = `${owner}:${headBranch}`;
 
@@ -52,11 +63,46 @@ jobs:
             }
 
             const pr = prs[0];
-            const labels = Array.isArray(pr.labels) ? pr.labels.map(l => (l && l.name ? String(l.name) : '')).filter(Boolean) : [];
-            if (!labels.includes('client-approved')) {
-              core.info(`Skip: PR #${pr.number} missing label client-approved (client signoff not recorded).`);
+            const labels = Array.isArray(pr.labels)
+              ? pr.labels.map((l) => (l && l.name ? String(l.name) : '')).filter(Boolean)
+              : [];
+
+            let gateJson = '';
+            let gateCode = 0;
+            try {
+              gateJson = execFileSync(
+                process.execPath,
+                [
+                  'scripts/check-protected-action-gate.mjs',
+                  '--mode=auto-merge',
+                  `--branch=${headBranch}`,
+                  `--labels=${labels.join(',')}`,
+                  '--cmp-auto-merge=true',
+                  `--conclusion=${run.conclusion || ''}`,
+                ],
+                { encoding: 'utf8' },
+              );
+            } catch (err) {
+              gateCode = err && typeof err.status === 'number' ? err.status : 1;
+              gateJson = String((err && err.stdout) || '') || String((err && err.message) || '');
+            }
+
+            let gate = null;
+            try {
+              gate = JSON.parse(gateJson);
+            } catch {
+              if (gateCode === 2) {
+                core.info(`Skip: auto-merge gate blocked PR #${pr.number} (exit 2): ${gateJson.slice(0, 400)}`);
+                return;
+              }
+              core.setFailed(`Auto-merge gate returned invalid JSON: ${gateJson.slice(0, 400)}`);
               return;
             }
+            if (!gate.allowed) {
+              core.info(`Skip: auto-merge gate blocked PR #${pr.number}: ${gate.reason}`);
+              return;
+            }
+
             core.info(`Merging PR #${pr.number} (${pr.html_url})`);
 
             await github.rest.pulls.merge({
