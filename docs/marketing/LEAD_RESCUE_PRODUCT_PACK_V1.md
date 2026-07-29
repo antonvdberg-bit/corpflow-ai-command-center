@@ -12,7 +12,7 @@
 <!-- LEAD_RESCUE_PRODUCT_PACK_V1 -->
 
 **Source issue:** [#653](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/653)  
-**Agent/run:** https://cursor.com/agents/bc-a4c5a692-3f2f-42ea-9c44-fea955071e9e
+**Agent/run:** https://cursor.com/agents/bc-31b05fb8-f550-4115-a6e7-41d2be508ca7
 
 ## 0. What moved / blocked / next / owner / Anton?
 
