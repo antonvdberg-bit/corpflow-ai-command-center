@@ -44,7 +44,9 @@ Do **not** add a parallel workflow that also activates Cursor. The scan runs as 
 | `dispatch:blocked` | Do not claim |
 | `needs:anton` | Protected gate — unlock required |
 
-Create missing labels in the GitHub UI if absent (`dispatch:cursor-claimed`, `status:in-progress`, `dispatch:blocked`, `needs:anton`).
+**Label provisioning (workflow-owned, not manual):** The existing `factory-dispatcher-activate.yml` scan/finalize path idempotently **ensures** the approved lifecycle labels exist before any claim mutation (`dispatch:cursor-claimed`, `status:in-progress`, `dispatch:blocked`, `needs:anton`). Anton must **not** create these labels manually in the GitHub UI.
+
+If label creation or verification fails (missing labels after ensure, GitHub API error, or insufficient token scope), the workflow **fails closed**: the run stops, no claim labels are applied, and operators see **one actionable blocker** naming the missing label(s) or API failure — fix repo label state or workflow permissions, then re-run the scan on `main` (dry-run is fine).
 
 ## 4. WIP limits (default)
 
