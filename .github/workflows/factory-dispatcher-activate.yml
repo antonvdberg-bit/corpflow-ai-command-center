@@ -23,10 +23,12 @@
 
 name: Factory dispatcher activate
 
+# STARTED/FINISHED evidence comments post to control issue #661 so a silent UI click cannot hide the run ID.
 on:
   schedule:
-    # Every 30 minutes — issue-label scan + dry_run unless CURSOR_LIVE_ENABLED=true
-    - cron: "*/30 * * * *"
+    # Every 30 minutes — issue-label scan + dry_run unless CURSOR_LIVE_ENABLED=true.
+    # Expression rewritten (equivalent to */30) so merging this file re-registers a stalled schedule.
+    - cron: "0,30 * * * *"
   workflow_dispatch:
     inputs:
       activation_mode:
@@ -78,9 +80,22 @@ jobs:
           CURSOR_LIVE_ENABLED: ${{ vars.CURSOR_LIVE_ENABLED || secrets.CURSOR_LIVE_ENABLED || '' }}
         run: |
           set -euo pipefail
+          live_raw="$(printf '%s' "${CURSOR_LIVE_ENABLED:-}" | tr -d '[:space:]')"
+          live_norm="$(printf '%s' "${live_raw}" | tr '[:upper:]' '[:lower:]')"
+          if [ -n "${live_raw}" ]; then
+            echo "cursor_live_enabled_configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "cursor_live_enabled_configured=false" >> "$GITHUB_OUTPUT"
+          fi
+          if [ "$live_norm" = "true" ] || [ "$live_norm" = "1" ] || [ "$live_norm" = "yes" ] || [ "$live_norm" = "enabled" ]; then
+            echo "cursor_live_enabled_truthy=true" >> "$GITHUB_OUTPUT"
+            live_truthy=1
+          else
+            echo "cursor_live_enabled_truthy=false" >> "$GITHUB_OUTPUT"
+            live_truthy=0
+          fi
           if [ "${{ github.event_name }}" = "schedule" ]; then
-            live_enabled="$(printf '%s' "${CURSOR_LIVE_ENABLED:-}" | tr '[:upper:]' '[:lower:]')"
-            if [ "$live_enabled" = "true" ] || [ "$live_enabled" = "1" ] || [ "$live_enabled" = "enabled" ]; then
+            if [ "${live_truthy}" = "1" ]; then
               echo "mode=cursor_live" >> "$GITHUB_OUTPUT"
               echo "Scheduled run — CURSOR_LIVE_ENABLED is enabled; cursor_live requires throughput packet gate"
             else
@@ -99,6 +114,25 @@ jobs:
             echo "target_issue=${{ inputs.target_issue }}" >> "$GITHUB_OUTPUT"
             echo "Manual run — activation_mode=${{ inputs.activation_mode }} smoke_internal=${{ inputs.smoke_internal }} target_issue=${{ inputs.target_issue }}"
           fi
+
+      - name: Post STARTED evidence to control issue
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          DISPATCHER_ACTIVATION_MODE: ${{ steps.mode.outputs.mode }}
+          DISPATCHER_ACTIVATION_TARGET_ISSUE: ${{ steps.mode.outputs.target_issue }}
+          CURSOR_LIVE_ENABLED_CONFIGURED: ${{ steps.mode.outputs.cursor_live_enabled_configured }}
+          CURSOR_LIVE_ENABLED_TRUTHY: ${{ steps.mode.outputs.cursor_live_enabled_truthy }}
+          DISPATCHER_CONTROL_ISSUE: "661"
+          DISPATCHER_RUN_EVIDENCE_PATH: dispatcher-run-evidence-started.json
+        run: |
+          set -euo pipefail
+          node scripts/dispatcher-run-evidence.mjs --phase started
 
       # Pinned SHAs (supply chain): tag v4
       - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
@@ -233,6 +267,29 @@ jobs:
             echo "No scan artifact — skip finalize"
           fi
 
+      - name: Post FINISHED evidence to control issue
+        if: ${{ always() }}
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          DISPATCHER_ACTIVATION_MODE: ${{ steps.mode.outputs.mode }}
+          DISPATCHER_ACTIVATION_TARGET_ISSUE: ${{ steps.target.outputs.target_issue }}
+          CURSOR_LIVE_ENABLED_CONFIGURED: ${{ steps.mode.outputs.cursor_live_enabled_configured }}
+          CURSOR_LIVE_ENABLED_TRUTHY: ${{ steps.mode.outputs.cursor_live_enabled_truthy }}
+          CURSOR_ISSUE_DISPATCH_SCAN_PATH: cursor-issue-dispatch-scan.json
+          DISPATCHER_ACTIVATION_PLAN_PATH: activation-plan.json
+          CURSOR_OPS_STATUS_PATH: cursor-ops-status.json
+          DISPATCHER_CONTROL_ISSUE: "661"
+          DISPATCHER_RUN_EVIDENCE_PATH: dispatcher-run-evidence-finished.json
+        run: |
+          set -euo pipefail
+          node scripts/dispatcher-run-evidence.mjs --phase finished
+
       - name: Upload activation result artifact (always)
         if: ${{ always() }}
         # Pinned SHAs (supply chain): tag v4
@@ -244,6 +301,8 @@ jobs:
             activation-audit.json
             cursor-ops-status.json
             cursor-issue-dispatch-scan.json
+            dispatcher-run-evidence-started.json
+            dispatcher-run-evidence-finished.json
             .dispatcher-activation-state/dedupe.json
           if-no-files-found: ignore
           retention-days: 7
