@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "corpflow://artifacts/active-agent-control-loop/throughput-measurements-schema-v1.json",
+  "title": "corpflow.active_agent_throughput_measurements.v1",
+  "description": "Outcome-oriented throughput evidence for active-agent control loop (#661). Append rows to artifacts or Operator Bridge STATUS — no second analytics app.",
+  "type": "object",
+  "required": ["schema", "period", "measurements"],
+  "properties": {
+    "schema": {
+      "const": "corpflow.active_agent_throughput_measurements.v1"
+    },
+    "period": {
+      "type": "object",
+      "required": ["start", "end"],
+      "properties": {
+        "start": { "type": "string", "format": "date-time" },
+        "end": { "type": "string", "format": "date-time" }
+      }
+    },
+    "measurements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["cycle_id", "recorded_at"],
+        "properties": {
+          "cycle_id": {
+            "type": "string",
+            "description": "GHA workflow run id or local cycle identifier"
+          },
+          "recorded_at": { "type": "string", "format": "date-time" },
+          "issue_number": { "type": ["integer", "null"] },
+          "provider": { "enum": ["cursor", "codex", "anton", "none"] },
+          "ready_to_run_id_minutes": {
+            "type": ["number", "null"],
+            "description": "Minutes from dispatch:cursor-ready to Cursor run ID / Codex trigger"
+          },
+          "completion_to_disposition_minutes": {
+            "type": ["number", "null"],
+            "description": "Minutes from IMPLEMENTATION COMPLETE to merge/close/requeue decision"
+          },
+          "quote_ready_count": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Commercial quote-ready packets dispositioned in cycle"
+          },
+          "prs_dispositioned": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "PRs merged, closed, or explicitly requeued"
+          },
+          "merges": { "type": "integer", "minimum": 0 },
+          "live_validations": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Delivery Reality Audit COMPLETE verifications"
+          },
+          "stale_work_count": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Actionable stale findings in control-loop report"
+          },
+          "anton_interventions": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Operator actions that should have been executor-routed"
+          },
+          "avoidable_cost_usd_estimate": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Duplicate activations × marginal cloud run cost (estimate only)"
+          },
+          "duplicate_activations_prevented": { "type": "integer", "minimum": 0 },
+          "false_claims_detected": { "type": "integer", "minimum": 0 },
+          "ready_never_activated": { "type": "integer", "minimum": 0 },
+          "notes": { "type": "string" }
+        }
+      }
+    }
+  }
+}

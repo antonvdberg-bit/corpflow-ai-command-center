@@ -43,6 +43,8 @@
     "dispatcher:activate:fetch": "node scripts/dispatcher-agent-activation.mjs --fetch",
     "dispatcher:issue-scan": "node scripts/cursor-issue-dispatch-scan.mjs --dry-run",
     "dispatcher:issue-scan:apply": "node scripts/cursor-issue-dispatch-scan.mjs --apply-comments --apply-labels",
+    "control:active-agent": "node scripts/active-agent-control-loop.mjs",
+    "control:active-agent:fixtures": "node scripts/active-agent-control-loop.mjs --fixtures",
     "check:marketing-quality-gate": "node scripts/check-marketing-quality-gate.mjs",
     "video:optimise": "bash scripts/optimise-video.sh",
     "video:validate": "node scripts/video/validate.mjs",
