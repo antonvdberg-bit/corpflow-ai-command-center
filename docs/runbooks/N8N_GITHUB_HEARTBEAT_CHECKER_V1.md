@@ -65,6 +65,8 @@ aware only by date**, not by hour, in v1 (operator timezone UTC+4).
 
 A condition only alerts once it crosses its threshold **and** passes the dedupe gate (§5).
 
+**Environment doctrine (#679):** Heartbeat must **not** alert Anton merely because a change was published to a CorpFlowAI-hosted **`corpflow_test`** surface (`lux.corpflowai.com`, `cipc.corpflowai.com`, `core.corpflowai.com`, other `*.corpflowai.com` tenant hosts) after approved merge + CI. Those hosts are test environments. Alert only for genuine protected gates (`client_production`, secrets, DB/schema, payments, messaging runtime, outreach, paid tools, public launch as production) or the stale/blocked conditions in this table. Canonical: `docs/operations/CORPFLOW_ENVIRONMENT_CLASSIFICATION_V1.md`.
+
 ## 3. Alert conditions → what the operator sees
 
 The heartbeat evaluates each condition every run and classifies it on the canonical

@@ -85,14 +85,18 @@ Cursor **does not** merge PRs. Even when CI is green and the packet looks done, 
 
 A Cursor agent **must stop and ask** before taking any of the following actions, **even if the packet says "go"**. These are **hard gates**: the agent posts current evidence, sets state to `AWAITING_APPROVAL`, and waits.
 
-### 3.1 Production deploy
+### 3.1 Client production deploy (`client_production`)
 
-- Merging any PR that lands on `main` and would build a Vercel Production deployment.
-- Triggering a Vercel deploy via API/CLI to **Production**.
-- Promoting a Preview to Production.
-- Triggering production-bound GitHub Actions / `repository_dispatch` events.
+- Merging any PR that would deploy into a **client-owned or client-approved production** target (`client_production`).
+- Triggering a Vercel (or other) deploy that cuts over a **client production** hostname that is not a CorpFlowAI-hosted test surface.
+- Promoting a Preview directly into `client_production`.
+- Triggering production-bound GitHub Actions / `repository_dispatch` events that are explicitly scoped to `client_production`.
 
-> Why: `delivery-reality.mdc` makes "live verified" the bar; production deploys cross the irreversible boundary between **merged** and **deployed**.
+**Not this gate (CorpFlowAI test publish):** After **human merge approval** where required, publishing to a CorpFlowAI-hosted **`corpflow_test`** surface (e.g. `lux.corpflowai.com`, `cipc.corpflowai.com`, `core.corpflowai.com` on the Vercel Production channel that serves those hosts) is the normal tenant test path. It still requires live test URL validation. It must **not** be blocked behind a false `approval:production` / `needs:anton` production unlock. See `docs/operations/CORPFLOW_ENVIRONMENT_CLASSIFICATION_V1.md`.
+
+> Why: `delivery-reality.mdc` still requires live verification; merge approval and `client_production` approval are different decisions. Vercel’s technical “Production” channel ≠ business `client_production`.
+
+Agents still **do not** merge their own PRs (§2.6). Merge remains a human/operator action.
 
 ### 3.2 Secret changes
 

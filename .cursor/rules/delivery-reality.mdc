@@ -3,9 +3,11 @@ description: Delivery completes only when verified in live production (observabl
 alwaysApply: true
 ---
 
-# Delivery reality — observable production
+# Delivery reality — observable live surfaces
 
-**Principle:** If it did not happen in the **observable world** (live production, customer-visible behavior), it did not happen.
+**Principle:** If it did not happen in the **observable world** (live URL / runtime behaviour on the intended host), it did not happen.
+
+**Environment doctrine (#679):** CorpFlowAI-hosted tenant surfaces (`lux.corpflowai.com`, `cipc.corpflowai.com`, `core.corpflowai.com`, other `*.corpflowai.com` hosts under CorpFlowAI control) are business environment **`corpflow_test`**, not **`client_production`**. Vercel’s technical “Production” channel that serves those hosts is still the live **test** publish target. See `docs/operations/CORPFLOW_ENVIRONMENT_CLASSIFICATION_V1.md`. A public URL is not automatically client production.
 
 No ticket, change, incident closure, or “done” claim may stand on **internal signals alone**. Repository state and CI are necessary checks; they are **not sufficient** proof of delivery.
 
@@ -15,8 +17,8 @@ For every change, distinguish:
 
 1. **Local only** — code exists in a workspace/branch; not necessarily on `main`.
 2. **Merged** — intended commit is on `main` (or agreed release branch).
-3. **Deployed** — Vercel **Production** is serving a deployment whose **source commit** includes the change (identify **deployment ID** + **commit SHA**).
-4. **Live verified** — real **production URL(s)** and **client-facing flow(s)** behave as expected (not Preview-only, not health-only).
+3. **Deployed** — Vercel **Production** channel is serving a deployment whose **source commit** includes the change (identify **deployment ID** + **commit SHA**). For CorpFlowAI-hosted tenants this is a **`corpflow_test`** publish, not client production cutover.
+4. **Live verified** — real **live URL(s)** on the intended host(s) and client-facing flow(s) behave as expected (not Preview-only, not health-only). For current tenant work, that means the CorpFlowAI **test** host.
 
 **Operational completion** = state **4**. States 1–3 are progress, not completion.
 
@@ -29,11 +31,11 @@ For every change, distinguish:
 - Internal or operator-only endpoints healthy (e.g. `/api/factory/health` alone)
 - Database row says `Closed` or ticket status is terminal in CMP **without** live URL verification
 
-Agents and humans must **not** treat the above as “shipped” or “fixed” until **live production** confirms the customer-visible outcome.
+Agents and humans must **not** treat the above as “shipped” or “fixed” until the **live intended host** (CorpFlowAI `corpflow_test` URL today; `client_production` only when that transition is separately approved) confirms the customer-visible outcome.
 
 ## Client-facing routes
 
-Any route or flow that **clients or marketing** use (e.g. tenant hosts, `/`, `/change`, login) requires an explicit **live GET or flow check** against the **real production hostname** — not only a generic health URL on another host.
+Any route or flow that **clients or marketing** use (e.g. tenant hosts, `/`, `/change`, login) requires an explicit **live GET or flow check** against the **real hostname for that environment** — not only a generic health URL on another host. For Lux / CIPC Desk / other CorpFlowAI-hosted tenants, that hostname is the **`corpflow_test`** surface.
 
 Minimum reference checks for this repo are listed in **`.cursor/rules/predeploy-decision-checks.mdc`** (extend the list when the change touches other hosts or flows).
 

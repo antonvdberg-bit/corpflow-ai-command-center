@@ -24,7 +24,7 @@ Every interaction and control-loop review must optimise simultaneously for:
 2. **Maximum safe throughput** — keep multiple independent work packets available and agents productively activated whenever capacity exists.
 3. **Minimum management overhead** — Anton must remain the decision-maker, not the technical courier, queue watcher or routine follow-up mechanism.
 4. **Cost discipline** — avoid wasteful polling, duplicate agents, notification noise, unnecessary paid tools and unbounded model/runtime consumption.
-5. **Protected-gate safety** — never bypass explicit approval for production deploys, env/secrets, database/schema, payments, external sends, outreach, paid vendors or public launches.
+5. **Protected-gate safety** — never bypass explicit approval for **client production** (`client_production`), env/secrets, database/schema, payments, external sends, outreach, paid vendors or public launches. Publishing to a CorpFlowAI-hosted **`corpflow_test`** surface after approved merge is **not** a `client_production` gate (see `docs/operations/CORPFLOW_ENVIRONMENT_CLASSIFICATION_V1.md`).
 
 A throughput improvement is valid only when it preserves quality, safety, system boundaries and cost visibility.
 
@@ -74,11 +74,30 @@ The dispatcher must keep eligible source issues discoverable, activate work when
 
 ## 6. Delivery lifecycle
 
-Production delivery follows:
+### 6.1 CorpFlowAI-hosted tenant test (`corpflow_test`) — default for current tenant work
+
+```text
+issue → Cursor → branch → PR → CI → merge approval (where required)
+  → publish to CorpFlowAI test environment
+  → live test URL / runtime validation
+  → client/operator review
+```
+
+Do **not** force a redundant local → preview → staging chain when the CorpFlowAI-hosted surface itself is the agreed test environment. Preview remains optional when useful. Live test URL validation is still mandatory before calling the work complete. Heartbeat / Anton Decision Inbox must **not** alert merely because a change published to `corpflow_test`.
+
+Canonical: `docs/operations/CORPFLOW_ENVIRONMENT_CLASSIFICATION_V1.md`.
+
+### 6.2 Client production (`client_production`) — separate, stronger process
+
+Future deploy into a client-owned or client-approved production target uses a separate release process with explicit Anton + client production approval and the controls listed in the environment doctrine. No `corpflow_test` publish approval counts as `client_production` approval.
+
+Legacy shorthand still seen in older packets:
 
 `build -> preview -> verify -> callback/review -> approve -> deploy -> validate`
 
-Work is not complete without the evidence appropriate to its stage. Client-facing or production completion requires a verified live URL or equivalent runtime evidence.
+Use that chain for `client_production` (or when an issue explicitly requires Preview). For ordinary Lux / CIPC Desk / other `*.corpflowai.com` tenant work, prefer §6.1.
+
+Work is not complete without the evidence appropriate to its stage. Client-facing **test** completion requires a verified **live CorpFlowAI test URL** or equivalent runtime evidence.
 
 For revenue products, the minimum delivery packet should include:
 

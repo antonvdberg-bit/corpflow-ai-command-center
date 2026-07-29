@@ -14,12 +14,14 @@ Remove Anton as the manual courier between ChatGPT, GitHub, and Cursor for issue
 
 - Core vs CorpFlowAI business systems vs each client tenant
 - Lead Rescue vs Website Rescue (and any sibling products)
-- production vs preview/test
+- `client_production` vs `corpflow_test` / preview / local (see `docs/operations/CORPFLOW_ENVIRONMENT_CLASSIFICATION_V1.md`)
 - research/docs vs runtime
 - database/schema vs UI (unless the issue explicitly requires both)
 - one client’s work vs another’s
 
 Consolidation is allowed only when explicitly justified and safe.
+
+**Environment note:** CorpFlowAI-hosted tenant surfaces (`lux.corpflowai.com`, `cipc.corpflowai.com`, `core.corpflowai.com`, other `*.corpflowai.com` tenant hosts) classify as **`corpflow_test`**. They are not `client_production`. The protected gate `production` means **client production only** — ordinary publish to a CorpFlowAI test host after merge must not set `needs:anton` / Decision Inbox merely for that publish.
 
 ## 2. Reuse the current route
 
@@ -55,7 +57,7 @@ If label creation or verification fails (missing labels after ensure, GitHub API
 | Active Cursor implementation issues (`dispatch:cursor-claimed`) | **2** |
 | Active issues per tenant | **1** |
 | Active database/schema issues (repo-wide) | **1** |
-| Active production-deployment candidates | **1** |
+| Active **client_production** deployment candidates | **1** (legacy wording: “production-deployment candidates”) |
 | Live Cursor activations per GHA run | **1** (unchanged) |
 
 Research/documentation-only tasks may run separately only when they cannot conflict with implementation file areas.
@@ -106,7 +108,7 @@ Durable GitHub comments (templates in code):
 2. **Automated** tests/build/lint/tenant checks.
 3. **ChatGPT / operator** — objective met? evidence? scope drift? gate?
 4. **Stakeholder** (Jan / Sarah / client) — business outcome only, not code.
-5. **Anton** — only protected gates (production, DB, secrets, payment, messaging, outreach, spend, public launch, high-risk tenancy).
+5. **Anton** — only protected gates (**client_production**, DB, secrets, payment, messaging, outreach, spend, public launch as production, high-risk tenancy). Publishing to `corpflow_test` after merge is not, by itself, an Anton production gate.
 
 Routine code review must not default to Anton.
 

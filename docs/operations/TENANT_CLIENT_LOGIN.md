@@ -51,9 +51,12 @@ When `**CORPFLOW_TENANT_PREVIEW_SECRET**` is set to the **same value on Producti
 - **Vercel Deployment Protection:** if **Vercel Authentication** is enabled for **Preview**, visitors see **“Log in to Vercel”** before CorpFlow runs. **Mitigation in app:** add **Protection bypass for automation** in Vercel (project settings); deployments receive `**VERCEL_AUTOMATION_BYPASS_SECRET`**, and `**client_site_preview_url**` for `***.vercel.app**` automatically includes `**x-vercel-protection-bypass**` + `**x-vercel-set-bypass-cookie=true**`. Re-sync the ticket preview URL after creating or rotating the bypass. Alternatively, relax **Deployment Protection** or use Vercel **shareable links**. See `**docs/VERCEL_DEPLOYMENT.md`** § *Client-facing preview URLs vs Vercel Deployment Protection*.
 - Clients open **that** link in a normal browser — no **CorpFlow** login for the public marketing preview page; they must also **not** be blocked by **Vercel** login. The token is short-lived (default **14 days**); refresh via **promote-status** (admin “refresh promotion” on `/change`) or wait for cmp-monitor to backfill if the field was missing.
 - **Production** review for Luxe remains **`https://lux.corpflowai.com/`** (official) after merge; optional alias **`https://luxe.corpflowai.com/`** when both domains are wired. Signed `*.vercel.app` links are for **branch / preview** hosts only.
+- **Business environment:** `lux.corpflowai.com` (and the optional alias) are CorpFlowAI-hosted **`corpflow_test`** surfaces — review, demonstration, and sign-off — **not** client production. See `docs/operations/CORPFLOW_ENVIRONMENT_CLASSIFICATION_V1.md`. Client-owned production (e.g. a future apex cutover) is a separate `client_production` process.
 - On `**/change`**, logged-in **tenant** clients can use **Refresh preview link** (same server action as operator “Refresh promotion”) to pull `**promotion`** + `**preview_url**` from GitHub/Vercel into the ticket when automation has already run.
 
 ## CIPC Desk standing internal test tenant
+
+**Business environment:** `corpflow_test` (CorpFlowAI-hosted). Not client production. Canonical doctrine: `docs/operations/CORPFLOW_ENVIRONMENT_CLASSIFICATION_V1.md`.
 
 
 | Step | Action |
@@ -62,13 +65,15 @@ When `**CORPFLOW_TENANT_PREVIEW_SECRET**` is set to the **same value on Producti
 | 2 | Add hostnames on the **existing** Vercel project (no second app): prefer `**cipc.corpflowai.com**`; also map policy-aligned `**cipc-desk.corpflowai.com**`. |
 | 3 | Point DNS for those hosts at the same Vercel project (Anton / DNS owner). |
 | 4 | Upsert Postgres `tenant_hostnames`: `**npm run factory:upsert-cipc-desk-hosts**` (or `--dry-run` first). |
-| 5 | After Production deploy of the standing-tenant code: open `**https://cipc.corpflowai.com/**` (homepage) and `**/login**` / `**/change**`. Fictional PIN seed is for test only. |
+| 5 | After the CorpFlowAI test-environment publish (Vercel Production channel serving these hosts): open `**https://cipc.corpflowai.com/**` (homepage) and `**/login**` / `**/change**`. Fictional PIN seed is for test only. |
 | 6 | Evidence must be the **CIPC Desk URL**, never Lux / Core health / generic `/change` on another host. |
 
 
-Fictional-data only. Live email, WhatsApp, SMS, payments, and external outreach stay off. Seed + email-intake run on standing hosts (Production spine) or legacy Preview env — not a permanent preview release gate.
+Fictional-data only. Live email, WhatsApp, SMS, payments, and external outreach stay off. Seed + email-intake run on standing hosts (CorpFlowAI test spine) or legacy Preview env — not a permanent preview release gate. Publishing here after approved merge + CI does **not** require a `client_production` / `approval:production` gate.
 
 ## LuxeMaurice checklist
+
+**Business environment:** `lux.corpflowai.com` is **`corpflow_test`** (CorpFlowAI-hosted review / sign-off). Not client production.
 
 
 | Step | Action                                                                                                                                                               |
