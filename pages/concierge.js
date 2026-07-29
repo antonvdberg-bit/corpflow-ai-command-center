@@ -51,7 +51,8 @@ export default function ConciergePage({ seoHost = '' } = {}) {
   const showDebugPayload = router.query?.debug === '1';
 
   const [name, setName] = useState('');
-  const [contact, setContact] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [intentTags, setIntentTags] = useState([]);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
@@ -147,9 +148,18 @@ export default function ConciergePage({ seoHost = '' } = {}) {
     [seoHost, propertyInterest],
   );
 
+  const emailTrim = email.trim();
+  const phoneTrim = phone.trim();
+  const emailLooksValid = emailTrim.includes('@') && emailTrim.includes('.') && emailTrim.length > 5;
+  const phoneLooksValid = phoneTrim.replace(/[^\d+]/g, '').length >= 7;
+
   const canSubmit = useMemo(
-    () => name.trim().length > 1 && contact.trim().length > 2 && message.trim().length > 2,
-    [name, contact, message],
+    () =>
+      name.trim().length > 1 &&
+      emailLooksValid &&
+      phoneLooksValid &&
+      message.trim().length > 2,
+    [name, emailLooksValid, phoneLooksValid, message],
   );
 
   function toggleIntent(id) {
@@ -163,7 +173,8 @@ export default function ConciergePage({ seoHost = '' } = {}) {
     setError('');
     setPayload(null);
     setName('');
-    setContact('');
+    setEmail('');
+    setPhone('');
     setIntentTags([]);
     setMessage('');
   }
@@ -171,6 +182,10 @@ export default function ConciergePage({ seoHost = '' } = {}) {
   async function onSubmit(e) {
     e.preventDefault();
     if (submitted || !canSubmit || busy) return;
+    if (!emailLooksValid || !phoneLooksValid) {
+      setError('Please provide both a valid email address and a telephone number.');
+      return;
+    }
     setBusy(true);
     setError('');
     setPayload(null);
@@ -182,10 +197,12 @@ export default function ConciergePage({ seoHost = '' } = {}) {
       const intentPrefix = intentLabels.length
         ? `Seeking: ${intentLabels.join(', ')}.\n\n`
         : '';
+      // Keep existing concierge-lead-create contract (single `contact` field, no schema change).
+      // Email remains the primary contact so email_hint resolves; phone is carried for operators.
       const body = {
         name: name.trim(),
-        contact: contact.trim(),
-        message: `${intentPrefix}${message.trim()}`,
+        contact: `${emailTrim} | ${phoneTrim}`,
+        message: `${intentPrefix}Phone: ${phoneTrim}\n\n${message.trim()}`,
       };
       if (propertyInterest) {
         body.property_slug = propertyInterest.ref;
@@ -200,7 +217,8 @@ export default function ConciergePage({ seoHost = '' } = {}) {
       if (!r.ok) throw new Error(j.error || j.detail || `http_${r.status}`);
       setPayload(j);
       setName('');
-      setContact('');
+      setEmail('');
+      setPhone('');
       setIntentTags([]);
       setMessage('');
       setSuccess(CONCIERGE_SUCCESS_MESSAGE);
@@ -499,13 +517,39 @@ export default function ConciergePage({ seoHost = '' } = {}) {
                   color: T.gold,
                 }}
               >
-                Preferred contact
+                Email
                 {editorialInput({
-                  value: contact,
-                  onChange: (e) => setContact(e.target.value),
-                  placeholder: 'Email or telephone',
-                  type: 'text',
+                  value: email,
+                  onChange: (e) => setEmail(e.target.value),
+                  placeholder: 'name@example.com',
+                  type: 'email',
                   autoComplete: 'email',
+                  required: true,
+                  inputMode: 'email',
+                  'aria-required': 'true',
+                })}
+              </label>
+
+              <label
+                style={{
+                  fontFamily: T.fontBody,
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: '0.32em',
+                  textTransform: 'uppercase',
+                  color: T.gold,
+                }}
+              >
+                Telephone
+                {editorialInput({
+                  value: phone,
+                  onChange: (e) => setPhone(e.target.value),
+                  placeholder: '+230 … or international mobile',
+                  type: 'tel',
+                  autoComplete: 'tel',
+                  required: true,
+                  inputMode: 'tel',
+                  'aria-required': 'true',
                 })}
               </label>
 
