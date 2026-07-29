@@ -91,11 +91,12 @@ If an action category is **not listed**, it is **not allowed** for this packet, 
 
 The points at which **Cursor must stop and ask Anton** before continuing. Always include at least:
 
-1. **Pre-merge gate** — PR opened, CI green, awaiting Anton's review.
-2. **Pre-production gate** — any merge to `main` that would trigger Vercel Production. Cursor never merges its own PRs without an explicit "merge it" from Anton.
-3. **Pre-secret-change gate** — any change to env vars, Infisical, Vercel env, GitHub secrets.
-4. **Pre-DNS gate** — any hostname/route change.
-5. **Pre-billing gate** — any payment/Stripe/wallet change.
+1. **Pre-merge gate** — PR opened, CI green, awaiting human merge review (Anton/operator per throughput mandate).
+2. **Pre-corpflow_test publish gate** — any merge to `main` that would trigger the Vercel Production spine serving CorpFlowAI-hosted **corpflow_test** hosts. Cursor never merges its own PRs without explicit merge approval. This is **not** client_production approval (`docs/operations/CORPFLOW_ENVIRONMENT_CLASSIFICATION_V1.md`).
+3. **Pre-client_production gate** — only when the packet targets a separately governed client-owned/approved production environment. Requires explicit Anton/client production approval; stronger controls apply.
+4. **Pre-secret-change gate** — any change to env vars, Infisical, Vercel env, GitHub secrets.
+5. **Pre-DNS gate** — any hostname/route change.
+6. **Pre-billing gate** — any payment/Stripe/wallet change.
 
 Additional gates may be added per packet. **Default rule:** when uncertain whether to stop, stop.
 

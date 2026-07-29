@@ -14,12 +14,14 @@ Remove Anton as the manual courier between ChatGPT, GitHub, and Cursor for issue
 
 - Core vs CorpFlowAI business systems vs each client tenant
 - Lead Rescue vs Website Rescue (and any sibling products)
-- production vs preview/test
+- production (`client_production`) vs preview vs corpflow_test (`test`)
 - research/docs vs runtime
 - database/schema vs UI (unless the issue explicitly requires both)
 - one client’s work vs another’s
 
 Consolidation is allowed only when explicitly justified and safe.
+
+**Environment doctrine:** CorpFlowAI-hosted tenant/factory surfaces (`lux.*`, `cipc*`, `core.*`, etc.) are **`corpflow_test`**, not client production. See `docs/operations/CORPFLOW_ENVIRONMENT_CLASSIFICATION_V1.md` (#679).
 
 ## 2. Reuse the current route
 
@@ -55,8 +57,10 @@ If label creation or verification fails (missing labels after ensure, GitHub API
 | Active Cursor implementation issues (`dispatch:cursor-claimed`) | **2** |
 | Active issues per tenant | **1** |
 | Active database/schema issues (repo-wide) | **1** |
-| Active production-deployment candidates | **1** |
+| Active **client_production**-deployment candidates | **1** |
 | Live Cursor activations per GHA run | **1** (unchanged) |
+
+Publishing to CorpFlowAI-hosted **corpflow_test** surfaces does **not** consume the client_production WIP slot and does **not** set `protectedGate: production`.
 
 Research/documentation-only tasks may run separately only when they cannot conflict with implementation file areas.
 
@@ -106,7 +110,7 @@ Durable GitHub comments (templates in code):
 2. **Automated** tests/build/lint/tenant checks.
 3. **ChatGPT / operator** — objective met? evidence? scope drift? gate?
 4. **Stakeholder** (Jan / Sarah / client) — business outcome only, not code.
-5. **Anton** — only protected gates (production, DB, secrets, payment, messaging, outreach, spend, public launch, high-risk tenancy).
+5. **Anton** — only protected gates (**client_production**, DB, secrets, payment, messaging, outreach, spend, public launch, high-risk tenancy). Merge onto the CorpFlowAI test spine after CI is operator/human merge approval — not client_production approval.
 
 Routine code review must not default to Anton.
 
@@ -126,6 +130,7 @@ node scripts/cursor-issue-dispatch-finalize.mjs --dry-run --scan-file cursor-iss
 
 ## 10. Related
 
+- `docs/operations/CORPFLOW_ENVIRONMENT_CLASSIFICATION_V1.md` — corpflow_test vs client_production (#679)
 - `docs/execution/DISPATCHER_AGENT_ACTIVATION_V1.md`
 - `docs/operations/PARALLEL_EXECUTION_BOARD_V1.md`
 - `docs/operations/CURSOR_DISPATCHER_CHECKLIST_V1.md`
@@ -133,3 +138,4 @@ node scripts/cursor-issue-dispatch-finalize.mjs --dry-run --scan-file cursor-iss
 - Issues #249, #493, #511, #548 (throughput / activation context)
 - Revenue issues #653 (Lead Rescue), #654 (Website Rescue) — separate workstreams
 - Ops issue #658 (Slack retirement) — parallel ops lane when eligible
+- Issue #679 — environment classification doctrine

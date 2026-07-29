@@ -1,11 +1,13 @@
 ---
-description: Delivery completes only when verified in live production (observable world)
+description: Delivery completes only when verified on the live target URL (corpflow_test or client_production)
 alwaysApply: true
 ---
 
-# Delivery reality — observable production
+# Delivery reality — observable live verification
 
-**Principle:** If it did not happen in the **observable world** (live production, customer-visible behavior), it did not happen.
+**Principle:** If it did not happen in the **observable world** (live URL / runtime evidence for the intended environment), it did not happen.
+
+**Environment doctrine (#679):** CorpFlowAI-hosted tenant/factory surfaces (`lux.*`, `cipc*`, `core.*`, etc.) are **`corpflow_test`**. Live verification against those hosts is still mandatory before calling work complete. That does **not** make them `client_production`. See `docs/operations/CORPFLOW_ENVIRONMENT_CLASSIFICATION_V1.md`.
 
 No ticket, change, incident closure, or “done” claim may stand on **internal signals alone**. Repository state and CI are necessary checks; they are **not sufficient** proof of delivery.
 
@@ -15,8 +17,8 @@ For every change, distinguish:
 
 1. **Local only** — code exists in a workspace/branch; not necessarily on `main`.
 2. **Merged** — intended commit is on `main` (or agreed release branch).
-3. **Deployed** — Vercel **Production** is serving a deployment whose **source commit** includes the change (identify **deployment ID** + **commit SHA**).
-4. **Live verified** — real **production URL(s)** and **client-facing flow(s)** behave as expected (not Preview-only, not health-only).
+3. **Deployed** — Vercel **Production spine** is serving a deployment whose **source commit** includes the change (identify **deployment ID** + **commit SHA**). For current tenant work this publishes to **corpflow_test** hosts.
+4. **Live verified** — real **target URL(s)** (corpflow_test or, when separately approved, client_production) and **client-facing flow(s)** behave as expected (not Preview-only, not health-only).
 
 **Operational completion** = state **4**. States 1–3 are progress, not completion.
 

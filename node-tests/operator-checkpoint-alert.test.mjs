@@ -49,12 +49,13 @@ describe('operator-checkpoint-alert', () => {
     }
   });
 
-  it('rejects unknown checkpoint kinds', async () => {
-    const sent = await notifyOperatorCheckpoint({
-      kind: 'random_monitor_noise',
-      whatNeedsApproval: 'Should not send',
-      link: 'https://example.com',
+  it('default risk for production_approval_needed clarifies corpflow_test not client_production', () => {
+    const text = formatOperatorCheckpointMessage({
+      kind: OPERATOR_CHECKPOINT_KINDS.PRODUCTION_APPROVAL_NEEDED,
+      whatNeedsApproval: 'Operator merge to CorpFlowAI test spine',
+      link: 'https://lux.corpflowai.com/change?ticket=t1',
     });
-    assert.equal(sent, false);
+    assert.match(text, /corpflow_test/);
+    assert.match(text, /not client_production/i);
   });
 });
