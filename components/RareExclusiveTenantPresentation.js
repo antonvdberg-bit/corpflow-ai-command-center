@@ -8,6 +8,7 @@ import {
   RARE_EXCLUSIVE_ADVISORY_IMAGE,
   RARE_EXCLUSIVE_PUBLIC_BRAND,
   RARE_EXCLUSIVE_STRAPLINE,
+  RARE_EXCLUSIVE_SUPPORTING_LINE,
   RareExclusiveEditorialSpine,
   RareExclusiveEnquirySteps,
   RareExclusiveFeatureBar,
@@ -54,7 +55,7 @@ export default function RareExclusiveTenantPresentation({ site }) {
     `${RARE_EXCLUSIVE_PUBLIC_BRAND} · ${RARE_EXCLUSIVE_STRAPLINE}`;
   const seoDescriptionRaw =
     safeStr(meta.description)?.replace(/LuxeMaurice/gi, RARE_EXCLUSIVE_PUBLIC_BRAND) ||
-    `${RARE_EXCLUSIVE_PUBLIC_BRAND} — a private-access platform for curated Mauritius opportunities, supported by a simple concierge enquiry and operator review process.`;
+    `${RARE_EXCLUSIVE_PUBLIC_BRAND} — private curator of the world’s rarest residences. Curating exceptional residences for a select international clientele.`;
   const seoDescription =
     seoDescriptionRaw.length > 320
       ? `${seoDescriptionRaw.slice(0, 317)}…`
@@ -114,13 +115,13 @@ export default function RareExclusiveTenantPresentation({ site }) {
       ) : null}
 
       <main>
-        {/* ─── Concept A split hero (contained spine) ─────────────── */}
+        {/* ─── Quieter cinematic hero — private curator positioning ─ */}
         <section
           className="re-hero-grid"
           style={{
             display: 'grid',
-            gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.05fr)',
-            minHeight: 560,
+            gridTemplateColumns: 'minmax(0, 0.92fr) minmax(0, 1.08fr)',
+            minHeight: 620,
             background: T.ivory,
           }}
         >
@@ -129,43 +130,47 @@ export default function RareExclusiveTenantPresentation({ site }) {
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
-              padding: 'clamp(48px, 6vw, 88px) clamp(32px, 4.5vw, 64px)',
+              padding: 'clamp(56px, 7vw, 104px) clamp(36px, 5vw, 72px)',
               minWidth: 0,
               overflow: 'visible',
             }}
           >
-            <div style={{ maxWidth: 420 }}>
-              <RareExclusiveFullLockup showMonogram width={380} maxWidth="100%" />
+            <div style={{ maxWidth: 460 }}>
+              <RareExclusiveFullLockup
+                showMonogram
+                width={440}
+                monogramSize={132}
+                maxWidth="100%"
+              />
             </div>
             <p
               style={{
-                margin: '22px 0 0',
-                maxWidth: 440,
+                margin: '28px 0 0',
+                maxWidth: 420,
                 fontFamily: T.fontDisplay,
-                fontSize: 'clamp(1.15rem, 2vw, 1.45rem)',
+                fontSize: 'clamp(1.35rem, 2.2vw, 1.75rem)',
                 fontStyle: 'italic',
-                lineHeight: 1.45,
-                color: '#4A433A',
+                lineHeight: 1.4,
+                color: T.charcoal,
               }}
             >
               {RARE_EXCLUSIVE_STRAPLINE}
             </p>
             <p
               style={{
-                margin: '16px 0 0',
-                maxWidth: 440,
+                margin: '18px 0 0',
+                maxWidth: 400,
                 fontFamily: T.fontBody,
-                fontSize: 14.5,
-                lineHeight: 1.7,
+                fontSize: 15,
+                lineHeight: 1.75,
                 color: '#4A433A',
               }}
             >
-              A private-access platform for curated Mauritius opportunities — not a public
-              property portal. Introductions continue through concierge enquiry and operator review.
+              {RARE_EXCLUSIVE_SUPPORTING_LINE}
             </p>
             <div
               style={{
-                marginTop: 40,
+                marginTop: 44,
                 display: 'flex',
                 flexWrap: 'wrap',
                 alignItems: 'center',
@@ -173,13 +178,13 @@ export default function RareExclusiveTenantPresentation({ site }) {
               }}
             >
               <a
-                href={safeStr(hero.cta_href) || '/properties'}
+                href={safeStr(hero.cta_href) || '/concierge'}
                 style={rareExclusiveCtaGoldStyle()}
               >
-                {safeStr(hero.cta_label) || 'Discover Our Collection'}
+                {safeStr(hero.cta_label) || 'Private Access'}
               </a>
-              <RareExclusiveTextLink href="/concierge">
-                Request an Invitation
+              <RareExclusiveTextLink href="/properties">
+                View the collection
               </RareExclusiveTextLink>
             </div>
           </div>
@@ -444,7 +449,7 @@ export default function RareExclusiveTenantPresentation({ site }) {
                   advertised. This is not a property website.
                 </p>
                 <div style={{ marginTop: 22 }}>
-                  <RareExclusiveTextLink href="/properties">Explore Properties</RareExclusiveTextLink>
+                  <RareExclusiveTextLink href="/properties">View the collection</RareExclusiveTextLink>
                 </div>
                 <div style={{ marginTop: 12 }}>
                   <RareExclusiveTextLink href="/destination-mauritius">
@@ -588,8 +593,8 @@ export default function RareExclusiveTenantPresentation({ site }) {
                 color: '#4A433A',
               }}
             >
-              A private Mauritius platform for residence, lifestyle, and long-horizon decisions —
-              curated introductions, not an open portal.
+              A private Mauritius collection for residence, lifestyle, and long-horizon decisions —
+              curated introductions for a select international clientele.
             </p>
             <div
               style={{

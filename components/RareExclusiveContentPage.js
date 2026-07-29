@@ -124,7 +124,7 @@ export default function RareExclusiveContentPage({ pageId, seoHost = '' }) {
                 color: '#4A433A',
               }}
             >
-              Invitation only. A privilege, not a portal.
+              Invitation only. A privilege, not a catalogue.
             </p>
             <div
               style={{
