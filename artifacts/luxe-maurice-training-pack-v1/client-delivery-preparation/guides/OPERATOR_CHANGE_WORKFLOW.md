@@ -80,9 +80,10 @@ With the lead focused, the **OPERATOR ACTIONS** panel shows workflow fields:
 
 | Field | Meaning |
 |-------|---------|
-| **Stage** | CRM stage (e.g. new, contacted, qualified) |
+| **Status** | Enquiry path: `new` → `contacted` → `qualified` → `invited` → `closed` |
 | **Follow-up status** | Current follow-up posture |
 | **Owner** | Assigned operator username |
+| **Next action hint** | Computed next step for the current status (shown above OPERATOR ACTIONS) |
 | **Next action at** | Scheduled follow-up datetime |
 | **Next action note** | Operator note for the next step |
 | **Activity** | Chronological workflow history |
