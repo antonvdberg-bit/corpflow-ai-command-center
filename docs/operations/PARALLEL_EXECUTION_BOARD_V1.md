@@ -109,7 +109,7 @@ WIP limits keep throughput honest: more open work is not more delivery.
 | **Active Cursor implementation issues** (`dispatch:cursor-claimed`) | **2** | Label-scan claims respect this cap (`CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1`). |
 | **Active issues per tenant** | **1** | Lux, CIPC Desk, Living Word, etc. — never two concurrent implementation issues for the same tenant. |
 | **Active database/schema issues (repo-wide)** | **1** | Schema work is serialized across the repository. |
-| **Active production-deployment candidates** | **1** | Only one production deploy candidate at a time. |
+| **Active client_production-deployment candidates** | **1** | Only one **client_production** deploy candidate at a time. CorpFlowAI **corpflow_test** publish (lux/cipc/core) does not consume this slot. |
 | **Sibling product workstreams** | **sequential by default** | e.g. Lead Rescue (#653) vs Website Rescue (#654) — separate branches/PRs; start one first unless a shared-system issue explicitly authorises safe parallel file areas. |
 | **In-progress packets per lane** | **1** | Each lane has at most one packet in `IN_PROGRESS`. A lane's next packet does not start until the current one is `READY_TO_MERGE` or parked. |
 | **Codex research packets in flight** | **2** | At most 2 outstanding Codex research requests at a time (avoids unreviewable import backlog). Codex must **not** claim implementation issues. |

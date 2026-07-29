@@ -11,7 +11,9 @@
 
 This policy defines what a Cursor agent (or trusted contractor operating under the same rules) **may** and **may not** do **without further approval** from Anton, once a work packet has been approved per `CORPFLOW_EXECUTION_PACKET_STANDARD.md`.
 
-The split is deliberately conservative for v1: anything that touches **production**, **real client data**, **secrets**, **DNS**, **billing**, **auth/security logic**, or **destructive database state** stops at an approval gate, even when the packet says "go".
+The split is deliberately conservative for v1: anything that touches **client_production**, **real client data**, **secrets**, **DNS**, **billing**, **auth/security logic**, or **destructive database state** stops at an approval gate, even when the packet says "go".
+
+**Environment note (#679):** CorpFlowAI-hosted tenant/factory hosts (`lux.*`, `cipc*`, `core.*`, etc.) are **`corpflow_test`**. Merging to `main` publishes to that test spine (platform “Vercel Production”). That is **not** `client_production`. See `docs/operations/CORPFLOW_ENVIRONMENT_CLASSIFICATION_V1.md`.
 
 If a particular packet wants tighter restrictions than this policy, the **packet wins**.
 If a particular packet wants looser restrictions than this policy, the **policy wins**, until the policy is amended in a separate, explicit PR Anton approves.
@@ -85,14 +87,22 @@ Cursor **does not** merge PRs. Even when CI is green and the packet looks done, 
 
 A Cursor agent **must stop and ask** before taking any of the following actions, **even if the packet says "go"**. These are **hard gates**: the agent posts current evidence, sets state to `AWAITING_APPROVAL`, and waits.
 
-### 3.1 Production deploy
+### 3.1 Client production deploy (`client_production`)
 
-- Merging any PR that lands on `main` and would build a Vercel Production deployment.
-- Triggering a Vercel deploy via API/CLI to **Production**.
-- Promoting a Preview to Production.
-- Triggering production-bound GitHub Actions / `repository_dispatch` events.
+- Deploying into a **client-owned or client-approved production** target (separate from CorpFlowAI-hosted test hosts).
+- Triggering a release process that the packet explicitly labels **client_production**.
+- Treating any corpflow_test publish approval as permission for client_production.
 
-> Why: `delivery-reality.mdc` makes "live verified" the bar; production deploys cross the irreversible boundary between **merged** and **deployed**.
+> Why: client_production is a separately governed environment with stronger controls (`docs/operations/CORPFLOW_ENVIRONMENT_CLASSIFICATION_V1.md`).
+
+### 3.1a Merge onto CorpFlowAI test spine (`corpflow_test`) — human merge, not client_production
+
+- Merging a PR to `main` that builds the Vercel Production spine serving CorpFlowAI-hosted **corpflow_test** hosts (`lux.*`, `cipc*`, `core.*`, etc.).
+- Cursor still **does not** merge its own PRs; human merge approval remains required where policy says so.
+- After merge, validate the **live corpflow_test URL** per Delivery Reality.
+- This path must **not** be classified as `protectedGate: production` / `approval:production` / client_production.
+
+> Why: the CorpFlowAI-hosted surface is the agreed test environment; redundant preview/staging chains are not required (#679). Preview remains optional.
 
 ### 3.2 Secret changes
 

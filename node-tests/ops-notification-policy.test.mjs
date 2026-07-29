@@ -58,6 +58,22 @@ describe('ops-notification-policy / shouldEmitDeliveryCheckpointAlert', () => {
       false,
     );
   });
+
+  it('does not invent alerts merely because corpflow_test publish succeeded (#679)', () => {
+    // Heartbeat evaluator has no "published to lux/core" signal — only digest/WIP exceptions.
+    const now = Date.parse('2026-07-29T12:00:00.000Z');
+    const result = evaluateGithubHeartbeatSignals({
+      now,
+      comments: [
+        {
+          body: '### Dispatcher Digest — corpflow_test publish validated on lux.corpflowai.com',
+          created_at: new Date(now - 1 * 60 * 60 * 1000).toISOString(),
+        },
+      ],
+      prs: [{ number: 1, created_at: new Date(now - 2 * 60 * 60 * 1000).toISOString() }],
+    });
+    assert.equal(result.alert_count, 0);
+  });
 });
 
 describe('ops-notification-policy / evaluateGithubHeartbeatSignals', () => {

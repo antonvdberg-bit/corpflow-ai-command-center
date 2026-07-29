@@ -74,11 +74,26 @@ The dispatcher must keep eligible source issues discoverable, activate work when
 
 ## 6. Delivery lifecycle
 
-Production delivery follows:
+### 6.1 CorpFlowAI-hosted tenant / test surfaces (`corpflow_test`)
 
-`build -> preview -> verify -> callback/review -> approve -> deploy -> validate`
+Current Lux, CIPC Desk, Core factory, and other CorpFlowAI-hosted tenant work publishes to the **agreed CorpFlowAI test environment** (Vercel Production spine serving those hosts). Required chain:
 
-Work is not complete without the evidence appropriate to its stage. Client-facing or production completion requires a verified live URL or equivalent runtime evidence.
+```text
+issue → Cursor → branch → PR → CI → merge approval where required
+  → publish to CorpFlowAI test URL → live test validation → client/operator review
+```
+
+Do **not** force a redundant local → preview → staging → test chain when the CorpFlowAI-hosted surface itself is the test environment. Preview remains optional for internal checks.
+
+Work is not complete without **live corpflow_test URL** (or equivalent runtime) evidence. A public URL is still a **test** environment until a separate **client_production** transition is approved. See `docs/operations/CORPFLOW_ENVIRONMENT_CLASSIFICATION_V1.md`.
+
+### 6.2 Future client production (`client_production`)
+
+Only when CorpFlowAI deploys into a separately governed client-owned/approved production target:
+
+`build → (optional preview) → verify → callback/review → approve → client_production deploy → validate`
+
+That path requires explicit Anton/client production approval and the stronger release controls listed in the environment classification doctrine. No corpflow_test publish approval counts as client_production approval.
 
 For revenue products, the minimum delivery packet should include:
 

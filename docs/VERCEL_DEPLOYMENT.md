@@ -1,8 +1,8 @@
 # Vercel deployment loop (CorpFlow)
 
-**Customer-facing URLs vs deployments:** Read **`docs/operations/PRODUCTION_AUTODEPLOY_AND_DOMAINS.md`** — one Production spine (`main` → Vercel Production → custom domains). **Luxe Mauritius:** canonical URL is **`https://lux.corpflowai.com/`**; **`luxe.corpflowai.com`** is an optional alias when mapped in Vercel + Postgres (`npm run factory:upsert-luxe-hosts`). Vercel **`404 NOT_FOUND`** on a hostname is almost always **domain / DNS / failed Production deploy** or hostname not on this project — not application routing.
+**Customer-facing URLs vs deployments:** Read **`docs/operations/PRODUCTION_AUTODEPLOY_AND_DOMAINS.md`** — one Production spine (`main` → Vercel Production → custom domains). **Luxe Mauritius:** canonical **corpflow_test** URL is **`https://lux.corpflowai.com/`**; **`luxe.corpflowai.com`** is an optional alias when mapped in Vercel + Postgres (`npm run factory:upsert-luxe-hosts`). Environment meaning: see **`docs/operations/CORPFLOW_ENVIRONMENT_CLASSIFICATION_V1.md`** (#679) — CorpFlowAI-hosted tenant surfaces are test, not client_production. Vercel **`404 NOT_FOUND`** on a hostname is almost always **domain / DNS / failed Production deploy** or hostname not on this project — not application routing.
 
-**After a Production deploy succeeds:** verify **live** customer URLs and record **deployment id** + **commit** per **`.cursor/rules/delivery-reality.mdc`** — merge and green CI alone are not operational completion.
+**After a Production-spine deploy succeeds:** verify **live corpflow_test** customer URLs and record **deployment id** + **commit** per **`.cursor/rules/delivery-reality.mdc`** — merge and green CI alone are not operational completion.
 
 ## Branch preview deployments (default off)
 
