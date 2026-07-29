@@ -14,6 +14,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { gunzipSync } from 'node:zlib';
 
 import {
   DISPATCH_LABEL_CI_REPAIR,
@@ -30,8 +31,9 @@ import {
   buildCiFailurePacket,
   dispatchCiRepairToCursor,
   evaluateCiRepairGate,
+  evaluateObsoleteFailureSuppression,
   evaluateRepairAttemptLimits,
-  extractFailingTestNames,
+  extractMeaningfulFailureContext,
   formatCiFailureFollowUpPrompt,
   formatCiRepairEscalationComment,
   recordRepairAttempt,
@@ -56,7 +58,6 @@ function parseArgs(argv) {
   let mode = 'failure';
   for (const arg of argv) {
     if (arg.startsWith('--mode=')) mode = arg.slice('--mode='.length);
-    if (arg === '--mode' ) {/* next */}
   }
   const modeIdx = argv.indexOf('--mode');
   if (modeIdx >= 0 && argv[modeIdx + 1] && !argv[modeIdx + 1].startsWith('--')) {
@@ -96,18 +97,21 @@ async function ghJson(token, url, init = {}) {
   return json;
 }
 
-async function resolvePrFromWorkflowRun(token, repo, runId) {
+async function resolveWorkflowRun(token, repo, runId) {
+  return ghJson(token, `https://api.github.com/repos/${repo}/actions/runs/${runId}`);
+}
+
+async function resolvePrFromWorkflowRun(token, repo, runId, workflowRun = null) {
   const pullRequests = await ghJson(
     token,
     `https://api.github.com/repos/${repo}/actions/runs/${runId}/pulls`,
   ).catch(() => []);
   if (Array.isArray(pullRequests) && pullRequests[0]) return pullRequests[0];
 
-  const run = await ghJson(token, `https://api.github.com/repos/${repo}/actions/runs/${runId}`);
+  const run = workflowRun || (await resolveWorkflowRun(token, repo, runId));
   if (run.pull_requests?.[0]?.number) {
     return ghJson(token, `https://api.github.com/repos/${repo}/pulls/${run.pull_requests[0].number}`);
   }
-  // Fallback: find open PR by head sha
   const sha = run.head_sha;
   const prs = await ghJson(
     token,
@@ -117,34 +121,75 @@ async function resolvePrFromWorkflowRun(token, repo, runId) {
   return null;
 }
 
+/**
+ * Download failed job logs (best-effort). Falls back to annotations.
+ * @param {string} token
+ * @param {string} repo
+ * @param {string|number} runId
+ */
 async function loadFailedJobSummary(token, repo, runId) {
   const jobs = await ghJson(token, `https://api.github.com/repos/${repo}/actions/runs/${runId}/jobs`);
   const failed = (jobs.jobs || []).find((j) => j.conclusion === 'failure') || null;
   if (!failed) {
-    return { failedJob: null, failedStep: null, logExcerpt: '' };
+    return { failedJob: null, failedStep: null, logExcerpt: '', rawLog: '' };
   }
   const failedStep =
     (failed.steps || []).find((s) => s.conclusion === 'failure')?.name || null;
-  // Prefer job annotations over full logs (cheaper / less secret risk).
-  let logExcerpt = '';
+
+  let rawLog = '';
   try {
-    const annotations = await ghJson(
-      token,
-      `https://api.github.com/repos/${repo}/check-runs/${failed.id}/annotations`,
-    ).catch(() => []);
-    if (Array.isArray(annotations) && annotations.length) {
-      logExcerpt = annotations
-        .map((a) => `${a.path || ''}:${a.start_line || ''} ${a.message || ''}`)
-        .join('\n')
-        .slice(0, 2500);
+    const logRes = await fetch(
+      `https://api.github.com/repos/${repo}/actions/jobs/${failed.id}/logs`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
+        },
+        redirect: 'follow',
+        signal: AbortSignal.timeout(60000),
+      },
+    );
+    if (logRes.ok) {
+      const buf = Buffer.from(await logRes.arrayBuffer());
+      try {
+        rawLog = gunzipSync(buf).toString('utf8');
+      } catch {
+        rawLog = buf.toString('utf8');
+      }
     }
   } catch {
-    // ignore
+    // ignore — annotations fallback
   }
-  if (!logExcerpt) {
-    logExcerpt = `Failed job ${failed.name}; step ${failedStep || 'unknown'}. Open workflow run logs for details.`;
+
+  if (!rawLog) {
+    try {
+      const annotations = await ghJson(
+        token,
+        `https://api.github.com/repos/${repo}/check-runs/${failed.id}/annotations`,
+      ).catch(() => []);
+      if (Array.isArray(annotations) && annotations.length) {
+        rawLog = annotations
+          .map((a) => `${a.path || ''}:${a.start_line || ''} ${a.message || ''}`)
+          .join('\n');
+      }
+    } catch {
+      // ignore
+    }
   }
-  return { failedJob: failed.name, failedStep, logExcerpt: redactSecrets(logExcerpt) };
+
+  if (!rawLog) {
+    rawLog = `Failed job ${failed.name}; step ${failedStep || 'unknown'}.`;
+  }
+
+  const extracted = extractMeaningfulFailureContext(rawLog);
+  return {
+    failedJob: failed.name,
+    failedStep,
+    logExcerpt: extracted.logExcerpt || redactSecrets(rawLog).slice(0, 2500),
+    rawLog,
+    extracted,
+  };
 }
 
 async function loadIssueComments(token, repo, issueNumber) {
@@ -154,6 +199,76 @@ async function loadIssueComments(token, repo, issueNumber) {
     `https://api.github.com/repos/${repo}/issues/${issueNumber}/comments?per_page=100`,
   ).catch(() => []);
   return Array.isArray(comments) ? comments : [];
+}
+
+async function loadIssueState(token, repo, issueNumber) {
+  if (!issueNumber) return null;
+  try {
+    const issue = await ghJson(token, `https://api.github.com/repos/${repo}/issues/${issueNumber}`);
+    return String(issue.state || 'open');
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Later Agent CI runs on the same PR (for later-green suppression).
+ */
+async function listLaterAgentCiRuns(token, repo, prNumber, failedRunId, failedCreatedAt) {
+  const runs = await ghJson(
+    token,
+    `https://api.github.com/repos/${repo}/actions/runs?event=pull_request&per_page=30`,
+  ).catch(() => ({ workflow_runs: [] }));
+  const failedTs = failedCreatedAt ? Date.parse(failedCreatedAt) : NaN;
+  const out = [];
+  for (const run of runs.workflow_runs || []) {
+    if (!/agent\s*ci/i.test(String(run.name || ''))) continue;
+    const id = String(run.id);
+    if (id === String(failedRunId)) continue;
+    const prs = run.pull_requests || [];
+    const touchesPr =
+      prs.some((p) => Number(p.number) === Number(prNumber)) ||
+      // When pull_requests empty (common), rely on head branch matching via commit pulls below.
+      false;
+    if (!touchesPr && prs.length) continue;
+    const created = Date.parse(run.created_at || '');
+    if (Number.isFinite(failedTs) && Number.isFinite(created) && created <= failedTs) continue;
+    out.push({
+      id: run.id,
+      conclusion: run.conclusion,
+      headSha: run.head_sha,
+      createdAt: run.created_at,
+      name: run.name,
+    });
+  }
+
+  // Also resolve via PR check runs / commit list if empty.
+  if (!out.length) {
+    try {
+      const prCommits = await ghJson(
+        token,
+        `https://api.github.com/repos/${repo}/pulls/${prNumber}/commits?per_page=20`,
+      );
+      const shas = (Array.isArray(prCommits) ? prCommits : []).map((c) => c.sha);
+      for (const run of runs.workflow_runs || []) {
+        if (!/agent\s*ci/i.test(String(run.name || ''))) continue;
+        if (String(run.id) === String(failedRunId)) continue;
+        if (!shas.includes(run.head_sha)) continue;
+        const created = Date.parse(run.created_at || '');
+        if (Number.isFinite(failedTs) && Number.isFinite(created) && created <= failedTs) continue;
+        out.push({
+          id: run.id,
+          conclusion: run.conclusion,
+          headSha: run.head_sha,
+          createdAt: run.created_at,
+          name: run.name,
+        });
+      }
+    } catch {
+      // ignore
+    }
+  }
+  return out;
 }
 
 function readJsonState(filePath, fallback) {
@@ -180,61 +295,142 @@ async function postPrComment(token, repo, prNumber, body) {
 
 async function runFailureMode(args, ctx) {
   const { token, repo, runId, conclusion, workflowName } = ctx;
+  if (!runId) {
+    return { ok: false, error: 'CI_SUPERVISOR_WORKFLOW_RUN_ID required' };
+  }
+
+  const workflowRun = await resolveWorkflowRun(token, repo, runId);
+  const failedHeadSha = String(workflowRun.head_sha || process.env.CI_SUPERVISOR_FAILED_HEAD_SHA || '').trim();
+
   const prOverride = Number(process.env.CI_SUPERVISOR_PR_NUMBER || 0);
   const pr = prOverride
     ? await ghJson(token, `https://api.github.com/repos/${repo}/pulls/${prOverride}`)
-    : await resolvePrFromWorkflowRun(token, repo, runId);
+    : await resolvePrFromWorkflowRun(token, repo, runId, workflowRun);
   if (!pr) {
-    return { ok: true, skipped: true, reason: 'no_pr_for_workflow_run' };
+    return { ok: true, skipped: true, reason: 'no_pr_for_workflow_run', failedHeadSha };
   }
 
+  const currentPrHeadSha = String(pr.head?.sha || '').trim();
   const issueComments = await loadIssueComments(token, repo, pr.number);
-  // Also try linked issue from body
-  const bodyIssueMatch = String(pr.body || '').match(/#(\d+)/);
+  const bodyIssueMatch =
+    String(pr.body || '').match(/Tracks?\s+#(\d+)/i) ||
+    String(pr.body || '').match(/Closes\s+#(\d+)/i) ||
+    String(pr.body || '').match(/#(\d+)/);
   const guessedIssue = bodyIssueMatch ? Number(bodyIssueMatch[1]) : null;
   const sourceComments =
     guessedIssue && guessedIssue !== pr.number
       ? [...issueComments, ...(await loadIssueComments(token, repo, guessedIssue))]
       : issueComments;
+  // Control-loop issue #661 often holds DISPATCHER RUN FINISHED with Cursor run ID.
+  const controlComments = await loadIssueComments(token, repo, 661);
+  const allOriginComments = [...sourceComments, ...controlComments];
 
+  // Origin metadata must NOT use current PR head as the failed SHA.
   const origin = resolveCursorOriginMetadata({
     prBody: pr.body,
-    comments: sourceComments,
+    comments: allOriginComments,
     prNumber: pr.number,
     branch: pr.head?.ref,
-    headSha: pr.head?.sha,
+    headSha: failedHeadSha || null,
   });
-
-  const gate = evaluateCiRepairGate({
-    workflowConclusion: conclusion,
-    workflowName,
-    prState: pr.state,
-    origin,
-  });
-  if (!gate.allow) {
-    return { ok: true, skipped: true, reason: gate.reason, pr: pr.number, origin };
+  // Prefer the source issue that matches this PR when control comments mention multiple.
+  if (guessedIssue && (!origin.sourceIssue || origin.sourceIssue === 661)) {
+    origin.sourceIssue = guessedIssue;
   }
+  // If run ID still missing, scan control comments for the matching selected source issue.
+  if (!origin.cursorRunId && (origin.sourceIssue || guessedIssue)) {
+    const want = Number(origin.sourceIssue || guessedIssue);
+    for (const c of [...controlComments].reverse()) {
+      const body = String(c.body || '');
+      if (!body.includes(`Selected source issue: ${want}`) && !body.includes(`Issue: #${want}`)) {
+        continue;
+      }
+      const m = body.match(/Cursor run ID:\s*(run-[0-9a-f-]{20,})/i);
+      if (m) {
+        origin.cursorRunId = m[1];
+        break;
+      }
+    }
+  }
+  const sourceIssueNumber = origin.sourceIssue || guessedIssue;
+  const sourceIssueState = await loadIssueState(token, repo, sourceIssueNumber);
 
+  const laterRuns = await listLaterAgentCiRuns(
+    token,
+    repo,
+    pr.number,
+    runId,
+    workflowRun.created_at,
+  );
+
+  const obsolete = evaluateObsoleteFailureSuppression({
+    failedHeadSha,
+    currentPrHeadSha,
+    prState: pr.state,
+    prMerged: Boolean(pr.merged),
+    sourceIssueState,
+    laterAgentCiRuns: laterRuns,
+    workflowRunId: String(runId),
+  });
+
+  // Always load failure context for observability (even when obsolete/skipped).
   const jobSummary = await loadFailedJobSummary(token, repo, runId);
-  const failingTests = extractFailingTestNames(jobSummary.logExcerpt);
+  const extracted = jobSummary.extracted || extractMeaningfulFailureContext(jobSummary.rawLog || '');
   const packet = buildCiFailurePacket({
     repo,
-    sourceIssue: origin.sourceIssue || guessedIssue,
+    sourceIssue: sourceIssueNumber,
     prNumber: pr.number,
     prUrl: pr.html_url,
     branch: pr.head?.ref,
-    headSha: pr.head?.sha || process.env.CI_SUPERVISOR_HEAD_SHA || '',
-    workflowName,
+    headSha: failedHeadSha,
+    currentPrHeadSha,
+    workflowName: workflowName || workflowRun.name || 'Agent CI',
     workflowRunId: String(runId),
     workflowRunUrl: `https://github.com/${repo}/actions/runs/${runId}`,
     failedJob: jobSummary.failedJob,
     failedStep: jobSummary.failedStep,
-    failingTests,
-    logExcerpt: jobSummary.logExcerpt,
+    failingTests: extracted.failingTests,
+    failingTestFile: extracted.failingTestFile,
+    suite: extracted.suite,
+    subtest: extracted.subtest,
+    assertionExcerpt: extracted.assertionExcerpt,
+    logExcerpt: jobSummary.logExcerpt || extracted.logExcerpt,
     cursorAgentId: origin.cursorAgentId,
     cursorRunId: origin.cursorRunId,
   });
 
+  if (obsolete.suppress) {
+    return {
+      ok: true,
+      skipped: true,
+      reason: obsolete.reason,
+      pr: pr.number,
+      failedHeadSha,
+      currentPrHeadSha,
+      obsolete,
+      origin,
+      packet,
+    };
+  }
+
+  const gate = evaluateCiRepairGate({
+    workflowConclusion: conclusion || workflowRun.conclusion || 'failure',
+    workflowName: workflowName || workflowRun.name || 'Agent CI',
+    prState: pr.state,
+    origin,
+  });
+  if (!gate.allow) {
+    return {
+      ok: true,
+      skipped: true,
+      reason: gate.reason,
+      pr: pr.number,
+      failedHeadSha,
+      currentPrHeadSha,
+      origin,
+      packet,
+    };
+  }
   const repairState = readJsonState(args.statePath, {
     schema: 'corpflow.ci_failure_cursor_supervisor.v1',
     attemptsByPr: {},
@@ -267,7 +463,16 @@ async function runFailureMode(args, ctx) {
         }
       }
     }
-    return { ok: true, skipped: true, reason: limits.reason, attempts: limits.attempts, packet, escalate: !!limits.escalate };
+    return {
+      ok: true,
+      skipped: true,
+      reason: limits.reason,
+      attempts: limits.attempts,
+      packet,
+      escalate: !!limits.escalate,
+      failedHeadSha,
+      currentPrHeadSha,
+    };
   }
 
   const prompt = formatCiFailureFollowUpPrompt(packet);
@@ -313,6 +518,10 @@ async function runFailureMode(args, ctx) {
         lastFollowUpAt: new Date().toISOString(),
         lastFollowUpRunId: dispatchResult.runId || null,
         cursorAgentId: dispatchResult.agentId || packet.cursorAgentId,
+        cursorRunId: packet.cursorRunId || origin.cursorRunId,
+        cursorAgentUrl:
+          origin.cursorAgentUrl ||
+          (packet.cursorAgentId ? `https://cursor.com/agents/${packet.cursorAgentId}` : null),
       });
       await postGitHubIssueComment(packet.sourceIssue, formatCursorOriginMetadataComment(meta), {
         token,
@@ -323,7 +532,7 @@ async function runFailureMode(args, ctx) {
       token,
       repo,
       pr.number,
-      `CI REPAIR FOLLOW-UP SENT\n\nMode: ${dispatchResult.mode}\nCursor agent: ${dispatchResult.agentId || packet.cursorAgentId}\nFollow-up run: ${dispatchResult.runId || 'n/a'}\nFingerprint: ${packet.failureFingerprint}\nAttempt: ${limits.attempts + 1}\n\nSame-branch repair required. No replacement PR.`,
+      `CI REPAIR FOLLOW-UP SENT\n\nMode: ${dispatchResult.mode}\nCursor agent: ${dispatchResult.agentId || packet.cursorAgentId}\nCursor run (origin): ${packet.cursorRunId || 'n/a'}\nFollow-up run: ${dispatchResult.runId || 'n/a'}\nFailed head SHA: ${packet.headSha}\nFingerprint: ${packet.failureFingerprint}\nAttempt: ${limits.attempts + 1}\n\nSame-branch repair required. No replacement PR.`,
     );
   }
 
@@ -332,12 +541,14 @@ async function runFailureMode(args, ctx) {
     skipped: false,
     dryRun: args.dryRun,
     packet,
+    failedHeadSha,
+    currentPrHeadSha,
     dispatch: {
       mode: dispatchResult.mode,
       agentId: dispatchResult.agentId || null,
       runId: dispatchResult.runId || null,
     },
-    promptPreview: prompt.slice(0, 500),
+    promptPreview: prompt.slice(0, 800),
   };
 }
 
@@ -346,14 +557,21 @@ async function runSuccessMode(args, ctx) {
   if (String(conclusion).toLowerCase() !== 'success') {
     return { ok: true, skipped: true, reason: 'workflow_not_success' };
   }
-  const pr = await resolvePrFromWorkflowRun(token, repo, runId);
+  const workflowRun = runId ? await resolveWorkflowRun(token, repo, runId).catch(() => null) : null;
+  const pr = await resolvePrFromWorkflowRun(token, repo, runId, workflowRun);
   if (!pr || pr.state !== 'open') {
     return { ok: true, skipped: true, reason: 'no_open_pr' };
   }
   const comments = await loadIssueComments(token, repo, pr.number);
+  const bodyIssueMatch = String(pr.body || '').match(/#(\d+)/);
+  const guessedIssue = bodyIssueMatch ? Number(bodyIssueMatch[1]) : null;
+  const sourceComments =
+    guessedIssue && guessedIssue !== pr.number
+      ? [...comments, ...(await loadIssueComments(token, repo, guessedIssue))]
+      : comments;
   const origin = resolveCursorOriginMetadata({
     prBody: pr.body,
-    comments,
+    comments: sourceComments,
     prNumber: pr.number,
     branch: pr.head?.ref,
     headSha: pr.head?.sha,
@@ -364,7 +582,7 @@ async function runSuccessMode(args, ctx) {
 
   const signals = detectCompletionSignals({
     run: {
-      issueNumber: origin.sourceIssue,
+      issueNumber: origin.sourceIssue || guessedIssue,
       prNumber: pr.number,
       prUrl: pr.html_url,
       branch: pr.head?.ref,
@@ -374,7 +592,7 @@ async function runSuccessMode(args, ctx) {
       number: pr.number,
       url: pr.html_url,
       checksPassing: true,
-      linkedIssue: origin.sourceIssue,
+      linkedIssue: origin.sourceIssue || guessedIssue,
     },
   });
   signals.testsPassing = true;
@@ -389,7 +607,7 @@ async function runSuccessMode(args, ctx) {
   const markdown = [
     'OPERATOR REVIEW REQUIRED — CI GREEN',
     '',
-    `Source issue: ${origin.sourceIssue != null ? `#${origin.sourceIssue}` : 'n/a'}`,
+    `Source issue: ${origin.sourceIssue != null ? `#${origin.sourceIssue}` : guessedIssue ? `#${guessedIssue}` : 'n/a'}`,
     `PR: #${pr.number} ${pr.html_url}`,
     `Cursor agent: ${origin.cursorAgentId || 'n/a'}`,
     `Cursor run: ${origin.cursorRunId || 'n/a'}`,
@@ -408,12 +626,11 @@ async function runSuccessMode(args, ctx) {
   if (!args.dryRun) {
     await ensureDispatchLifecycleLabels(token, repo);
     await postPrComment(token, repo, pr.number, markdown);
-    if (origin.sourceIssue) {
-      await addIssueLabelsApi(token, repo, origin.sourceIssue, [DISPATCH_LABEL_OPERATOR_REVIEW]);
-      await removeIssueLabelApi(token, repo, origin.sourceIssue, DISPATCH_LABEL_CI_REPAIR).catch(
-        () => {},
-      );
-      await postGitHubIssueComment(origin.sourceIssue, markdown, { token, repoFullName: repo });
+    if (origin.sourceIssue || guessedIssue) {
+      const issueNum = origin.sourceIssue || guessedIssue;
+      await addIssueLabelsApi(token, repo, issueNum, [DISPATCH_LABEL_OPERATOR_REVIEW]);
+      await removeIssueLabelApi(token, repo, issueNum, DISPATCH_LABEL_CI_REPAIR).catch(() => {});
+      await postGitHubIssueComment(issueNum, markdown, { token, repoFullName: repo });
     }
   }
 
@@ -444,6 +661,21 @@ async function runLabelsMode(args, ctx) {
   });
   await addIssueLabelsApi(token, repo, issueNumber, [DISPATCH_LABEL_CLAIMED, DISPATCH_LABEL_IN_PROGRESS]);
   await removeIssueLabelApi(token, repo, issueNumber, DISPATCH_LABEL_READY).catch(() => {});
+  const agentIdMatch = agentUrl.match(/\/agents\/([^/?#]+)/i);
+  await postGitHubIssueComment(
+    issueNumber,
+    formatCursorOriginMetadataComment(
+      buildCursorOriginMetadata({
+        sourceIssue: issueNumber,
+        cursorRunId: runId,
+        cursorAgentId: agentIdMatch ? agentIdMatch[1] : null,
+        cursorAgentUrl: agentUrl || null,
+        branch: process.env.CI_SUPERVISOR_BRANCH || null,
+        followUpAttemptCount: 0,
+      }),
+    ),
+    { token, repoFullName: repo },
+  );
   return { ok: true, claim: result, labels: ensured };
 }
 
@@ -477,6 +709,10 @@ function summarize(result) {
     skipped: result.skipped || false,
     reason: result.reason || null,
     pr: result.pr || result.packet?.prNumber || null,
+    failedHeadSha: result.failedHeadSha || result.packet?.headSha || null,
+    currentPrHeadSha: result.currentPrHeadSha || result.packet?.currentPrHeadSha || null,
+    cursorRunId: result.packet?.cursorRunId || result.origin?.cursorRunId || null,
+    failingTestFile: result.packet?.failingTestFile || null,
     dispatchMode: result.dispatch?.mode || null,
     followUpRunId: result.dispatch?.runId || null,
   };
