@@ -29,6 +29,11 @@ import {
   luxLeadCrmStageLabel,
 } from '../lib/cmp/_lib/lux-lead-operator-workflow.js';
 import {
+  LUX_PRIVATE_CLIENT_QUAL_FIELDS,
+  luxPrivateClientQualFieldLabel,
+} from '../lib/cmp/_lib/lux-lead-qualification.js';
+import { listLuxShortlistCatalogue } from '../lib/cmp/_lib/lux-lead-shortlist.js';
+import {
   LUX_ATTACHMENT_ARCHIVE_REASON_SMOKE_DEFAULT,
   LUX_ATTACHMENT_OPERATOR_FILTER_IDS,
   LUX_AI_SUGGESTION_STATUSES,
@@ -568,6 +573,14 @@ export default function ChangeConsolePage() {
   const [leadOwnerDraft, setLeadOwnerDraft] = useState('');
   const [leadNextActionDraft, setLeadNextActionDraft] = useState('');
   const [leadNextActionNoteDraft, setLeadNextActionNoteDraft] = useState('');
+  /** Issue #685 Slice B — private-client qualification drafts (qualification_json only). */
+  const [qualDraft, setQualDraft] = useState(() =>
+    Object.fromEntries(LUX_PRIVATE_CLIENT_QUAL_FIELDS.map((k) => [k, ''])),
+  );
+  /** Issue #685 Slice C — curated shortlist slugs + invitation note (no live send). */
+  const [shortlistDraftSlugs, setShortlistDraftSlugs] = useState([]);
+  const [invitationNoteDraft, setInvitationNoteDraft] = useState('');
+  const [invitationCopyStatus, setInvitationCopyStatus] = useState('');
   const [crmFilterStage, setCrmFilterStage] = useState('all');
   const [crmFilterOwner, setCrmFilterOwner] = useState('');
   const [crmFilterProperty, setCrmFilterProperty] = useState('');
@@ -1872,10 +1885,36 @@ export default function ChangeConsolePage() {
     selectedLead?.operator_workflow?.next_action_note,
   ]);
 
+  useEffect(() => {
+    if (!luxLeadCrmEnabled || !selectedLead) return;
+    const q = selectedLead.private_client_qualification;
+    const fields = q?.fields && typeof q.fields === 'object' ? q.fields : {};
+    setQualDraft(
+      Object.fromEntries(
+        LUX_PRIVATE_CLIENT_QUAL_FIELDS.map((k) => [k, fields[k] != null ? String(fields[k]) : '']),
+      ),
+    );
+    const short = selectedLead.private_client_shortlist;
+    const res = Array.isArray(short?.residences) ? short.residences : [];
+    setShortlistDraftSlugs(res.map((r) => String(r.slug || '').trim()).filter(Boolean));
+    setInvitationNoteDraft(
+      short?.invitation_operator_note != null ? String(short.invitation_operator_note) : '',
+    );
+    setInvitationCopyStatus('');
+  }, [
+    luxLeadCrmEnabled,
+    selectedLeadId,
+    selectedLead?.private_client_qualification?.updated_at,
+    selectedLead?.private_client_shortlist?.updated_at,
+    selectedLead?.private_client_qualification?.filled_count,
+    selectedLead?.private_client_shortlist?.residences?.length,
+  ]);
+
   function intentLabel(intentVal) {
     const i = String(intentVal || '').trim();
     if (i === 'lux_property_enquiry') return 'Property enquiry';
     if (i === 'ai_concierge_lite') return 'Concierge (general)';
+    if (i === 'lux_private_access_request') return 'Private access request';
     return i || '—';
   }
 
@@ -1905,6 +1944,33 @@ export default function ChangeConsolePage() {
       const nextActionChanged = String(leadNextActionDraft || '').trim() !== String(prevDtLocal || '').trim();
       const curNextNote = ow?.next_action_note != null ? String(ow.next_action_note) : '';
       const nextNoteChanged = String(leadNextActionNoteDraft || '').trim() !== curNextNote.trim();
+
+      const curQualFields = selectedLead?.private_client_qualification?.fields || {};
+      /** @type {Record<string, string>} */
+      const qualPatch = {};
+      let qualChanged = false;
+      for (const k of LUX_PRIVATE_CLIENT_QUAL_FIELDS) {
+        const nextV = String(qualDraft[k] || '').trim();
+        const prevV = curQualFields[k] != null ? String(curQualFields[k]).trim() : '';
+        if (nextV !== prevV) {
+          qualPatch[k] = nextV;
+          qualChanged = true;
+        }
+      }
+
+      const prevSlugs = (selectedLead?.private_client_shortlist?.residences || [])
+        .map((r) => String(r.slug || '').trim())
+        .filter(Boolean)
+        .join('|');
+      const nextSlugsArr = shortlistDraftSlugs.map((s) => String(s || '').trim()).filter(Boolean);
+      const nextSlugs = nextSlugsArr.join('|');
+      const shortlistChanged = prevSlugs !== nextSlugs;
+      const prevInvNote =
+        selectedLead?.private_client_shortlist?.invitation_operator_note != null
+          ? String(selectedLead.private_client_shortlist.invitation_operator_note)
+          : '';
+      const invitationNoteChanged = String(invitationNoteDraft || '').trim() !== prevInvNote.trim();
+
       const body = { lead_id: id };
       if (stageChanged) body.stage = leadStageDraft;
       if (followChanged) body.follow_up_status = leadFollowDraft;
@@ -1923,13 +1989,19 @@ export default function ChangeConsolePage() {
         }
       }
       if (nextNoteChanged) body.next_action_note = String(leadNextActionNoteDraft || '').trim();
+      if (qualChanged) body.private_client_qualification = qualPatch;
+      if (shortlistChanged) body.shortlist_slugs = nextSlugsArr;
+      if (invitationNoteChanged) body.invitation_operator_note = String(invitationNoteDraft || '').trim();
       if (
         !body.stage &&
         body.follow_up_status === undefined &&
         !body.note &&
         body.assign_owner === undefined &&
         body.next_action_at === undefined &&
-        body.next_action_note === undefined
+        body.next_action_note === undefined &&
+        !body.private_client_qualification &&
+        body.shortlist_slugs === undefined &&
+        body.invitation_operator_note === undefined
       ) {
         setLeadPatchStatus('Nothing to save.');
         return;
@@ -6722,15 +6794,23 @@ export default function ChangeConsolePage() {
                         )}
                       </div>
                       <div style={{ marginTop: 6, fontSize: 10, color: '#64748b', ...changeTextContainStyle() }}>
-                        Intent: <span style={{ color: '#94a3b8' }}>{intentLabel(lead.intent)}</span>
+                        Source:{' '}
+                        <span style={{ color: '#94a3b8' }} data-testid="lux-crm-lead-source">
+                          {intentLabel(lead.source || lead.intent)}
+                        </span>
                         {lead.created_at ? (
-                          <span style={{ display: 'block', marginTop: 2 }}>
+                          <span style={{ display: 'block', marginTop: 2 }} data-testid="lux-crm-lead-created">
                             Created: {new Date(lead.created_at).toLocaleString()}
                           </span>
                         ) : null}
                         {lead.updated_at ? (
                           <span style={{ display: 'block', marginTop: 2 }}>
                             Updated: {new Date(lead.updated_at).toLocaleString()}
+                          </span>
+                        ) : null}
+                        {luxLeadCrmEnabled && lead.operator_workflow ? (
+                          <span style={{ display: 'block', marginTop: 2 }} data-testid="lux-crm-lead-stage">
+                            Stage: {String(lead.operator_workflow.stage_label || luxLeadCrmStageLabel(lead.operator_workflow.stage))}
                           </span>
                         ) : null}
                       </div>
@@ -7056,6 +7136,16 @@ export default function ChangeConsolePage() {
                               ) : null}
                             </div>
                           ) : null}
+                          {ev.kind === 'qualification_updated' ? (
+                            <div style={{ marginTop: 2, fontSize: 11, color: '#fde68a' }}>
+                              Fields updated
+                            </div>
+                          ) : null}
+                          {ev.kind === 'shortlist_updated' ? (
+                            <div style={{ marginTop: 2, fontSize: 11, color: '#6ee7b7' }}>
+                              Shortlist / invitation draft updated
+                            </div>
+                          ) : null}
                         </div>
                       ))}
                     </div>
@@ -7098,6 +7188,220 @@ export default function ChangeConsolePage() {
                     </div>
                   </div>
                 ) : null}
+
+                {/* Issue #685 Slice B — private-client qualification (existing JSON storage only). */}
+                <div
+                  data-testid="lux-crm-qualification-panel"
+                  style={{
+                    marginTop: 4,
+                    padding: 12,
+                    borderRadius: 12,
+                    border: '1px solid rgba(251,191,36,0.35)',
+                    background: 'rgba(120,53,15,0.18)',
+                    display: 'grid',
+                    gap: 8,
+                  }}
+                >
+                  <div style={{ fontSize: 11, fontWeight: 900, color: '#fde68a', letterSpacing: '0.06em' }}>
+                    PRIVATE-CLIENT QUALIFICATION
+                  </div>
+                  <div style={{ fontSize: 11, color: '#fcd34d', lineHeight: 1.4 }} data-testid="lux-crm-qualification-next">
+                    Recommended next:{' '}
+                    {String(
+                      selectedLead.private_client_qualification?.recommended_next_action ||
+                        'Capture missing private-client qualification fields.',
+                    )}
+                  </div>
+                  {selectedLead.private_client_qualification?.missing_count > 0 ? (
+                    <div
+                      data-testid="lux-crm-qualification-missing"
+                      style={{ fontSize: 11, color: '#fdba74', lineHeight: 1.4 }}
+                    >
+                      Missing:{' '}
+                      {(selectedLead.private_client_qualification.missing || [])
+                        .map((m) => m.label || m.key)
+                        .join(', ')}
+                    </div>
+                  ) : (
+                    <div data-testid="lux-crm-qualification-complete" style={{ fontSize: 11, color: '#86efac' }}>
+                      All qualification fields present (captured or derived).
+                    </div>
+                  )}
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+                      gap: 8,
+                    }}
+                  >
+                    {LUX_PRIVATE_CLIENT_QUAL_FIELDS.map((k) => (
+                      <label key={k} style={{ fontSize: 10, color: '#fde68a', display: 'grid', gap: 4, minWidth: 0 }}>
+                        {luxPrivateClientQualFieldLabel(k)}
+                        <input
+                          data-testid={`lux-crm-qual-${k}`}
+                          value={qualDraft[k] || ''}
+                          onChange={(e) => setQualDraft((prev) => ({ ...prev, [k]: e.target.value }))}
+                          placeholder="Capture if known"
+                          style={{
+                            ...changeSelectContainStyle(),
+                            padding: '6px 8px',
+                            borderRadius: 10,
+                            border: '1px solid rgba(251,191,36,0.3)',
+                            background: 'rgba(2,6,23,0.65)',
+                            color: '#e2e8f0',
+                            fontSize: 12,
+                          }}
+                        />
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Issue #685 Slice C — curated shortlist + copy-ready invitation (no live send). */}
+                <div
+                  data-testid="lux-crm-shortlist-panel"
+                  style={{
+                    marginTop: 4,
+                    padding: 12,
+                    borderRadius: 12,
+                    border: '1px solid rgba(52,211,153,0.35)',
+                    background: 'rgba(6,78,59,0.18)',
+                    display: 'grid',
+                    gap: 8,
+                  }}
+                >
+                  <div style={{ fontSize: 11, fontWeight: 900, color: '#a7f3d0', letterSpacing: '0.06em' }}>
+                    CURATED SHORTLIST / INVITATION PACKET
+                  </div>
+                  <div style={{ fontSize: 11, color: '#6ee7b7', lineHeight: 1.4 }}>
+                    Associate staged residences with this enquiry. Draft is copy-ready only — no email or WhatsApp send.
+                  </div>
+                  <div style={{ display: 'grid', gap: 6 }} data-testid="lux-crm-shortlist-catalogue">
+                    {(selectedLead.private_client_shortlist?.catalogue || listLuxShortlistCatalogue()).map((p) => {
+                      const slug = String(p.slug || '');
+                      const checked = shortlistDraftSlugs.includes(slug);
+                      return (
+                        <label
+                          key={slug}
+                          style={{
+                            display: 'flex',
+                            gap: 8,
+                            alignItems: 'flex-start',
+                            fontSize: 12,
+                            color: '#e2e8f0',
+                            lineHeight: 1.35,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            data-testid={`lux-crm-shortlist-${slug}`}
+                            onChange={() => {
+                              setShortlistDraftSlugs((prev) =>
+                                checked ? prev.filter((s) => s !== slug) : [...prev, slug].slice(0, 8),
+                              );
+                            }}
+                            style={{ marginTop: 3 }}
+                          />
+                          <span style={{ ...changeTextContainStyle() }}>
+                            <strong>{String(p.title || slug)}</strong>
+                            <span style={{ display: 'block', fontSize: 10, color: '#94a3b8' }}>
+                              {String(p.region || '')} · {String(p.property_type || '')}
+                              {p.price_range ? ` · ${String(p.price_range)}` : ''}
+                            </span>
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                  <label style={{ fontSize: 11, color: '#94a3b8', display: 'grid', gap: 6 }}>
+                    Invitation note (optional — included in draft)
+                    <textarea
+                      data-testid="lux-crm-invitation-note"
+                      value={invitationNoteDraft}
+                      onChange={(e) => setInvitationNoteDraft(e.target.value)}
+                      rows={2}
+                      placeholder="Optional personalised line for the draft invitation"
+                      style={{
+                        padding: '8px 10px',
+                        borderRadius: 10,
+                        border: '1px solid rgba(52,211,153,0.3)',
+                        background: 'rgba(2,6,23,0.65)',
+                        color: '#e2e8f0',
+                        fontSize: 13,
+                        resize: 'vertical',
+                      }}
+                    />
+                  </label>
+                  <div style={{ fontSize: 10, color: '#64748b' }}>
+                    Save updates to refresh the on-screen draft from persisted shortlist + qualification.
+                  </div>
+                  <pre
+                    data-testid="lux-crm-invitation-draft"
+                    style={{
+                      ...changePreBlockStyle(),
+                      margin: 0,
+                      maxHeight: 220,
+                      overflow: 'auto',
+                      fontSize: 11,
+                      lineHeight: 1.45,
+                      color: '#d1fae5',
+                      background: 'rgba(2,6,23,0.55)',
+                      border: '1px solid rgba(52,211,153,0.25)',
+                      borderRadius: 10,
+                      padding: 10,
+                      whiteSpace: 'pre-wrap',
+                    }}
+                  >
+                    {String(selectedLead.private_client_shortlist?.draft_text || 'Save shortlist to generate draft…')}
+                  </pre>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+                    <button
+                      type="button"
+                      data-testid="lux-crm-invitation-copy"
+                      onClick={async () => {
+                        const text = String(selectedLead.private_client_shortlist?.draft_text || '');
+                        if (!text) {
+                          setInvitationCopyStatus('Nothing to copy yet — save a shortlist first.');
+                          return;
+                        }
+                        try {
+                          if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+                            await navigator.clipboard.writeText(text);
+                            setInvitationCopyStatus('Draft copied — paste for client/operator review. Not sent.');
+                          } else {
+                            setInvitationCopyStatus('Clipboard unavailable — select the draft text manually.');
+                          }
+                        } catch {
+                          setInvitationCopyStatus('Copy failed — select the draft text manually.');
+                        }
+                      }}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: 10,
+                        border: '1px solid rgba(52,211,153,0.4)',
+                        background: 'rgba(16,185,129,0.15)',
+                        color: '#ecfdf5',
+                        fontWeight: 750,
+                        fontSize: 12,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Copy draft text
+                    </button>
+                    <span
+                      data-testid="lux-crm-invitation-no-send"
+                      style={{ fontSize: 11, color: '#fcd34d', fontWeight: 700 }}
+                    >
+                      Send disabled — operator copy only
+                    </span>
+                  </div>
+                  {invitationCopyStatus ? (
+                    <div style={{ fontSize: 11, color: '#94a3b8' }}>{invitationCopyStatus}</div>
+                  ) : null}
+                </div>
+
                 <button
                   type="button"
                   disabled={leadPatchBusy}
