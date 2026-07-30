@@ -156,7 +156,7 @@ mean blind waiting.
 ## 9. Cross-references
 
 - `docs/runbooks/N8N_GITHUB_HEARTBEAT_CHECKER_V1.md` — design runbook (thresholds, alert format, dedupe, fallback, stages).
-- `docs/n8n/templates/github-heartbeat-checker.template.json` — the inactive Stage 1 template this packet activates.
+- `docs/n8n/templates/github-heartbeat-checker.template.json` — exception-only template (#684); live apply: `docs/runbooks/N8N_EXCEPTION_ONLY_ALERT_LIVE_APPLY_684.md`.
 - `docs/operations/TELEGRAM_ALERT_WIRING_PACKET_V1.md` — the existing Telegram alert path reused here (no new secret).
 - `docs/operations/MONITORING_ARCHITECTURE.md` — where Stage 2 registers the active monitor (§2 + §9 recipe).
 - `docs/operations/OPERATOR_PROGRESS_DIGEST_V1.md` — digest cadence the heartbeat watches for.
