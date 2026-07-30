@@ -1,0 +1,80 @@
+{
+  "schema": "corpflow.lux_live_verification.v1",
+  "issue": 693,
+  "verified_at_utc": "2026-07-30T03:04:00Z",
+  "environment": "corpflow_test",
+  "merged_prs": [
+    {
+      "number": 682,
+      "merge_commit": "d0f6d94e265724f3212d9e600e59ce598fce07f0",
+      "on_production": true
+    },
+    {
+      "number": 692,
+      "merge_commit": "be5fa95ea0e4245f18c0493fd26b3118844498f0",
+      "on_production": true
+    }
+  ],
+  "production": {
+    "github_deployment_id": 5668253349,
+    "commit": "be5fa95ea0e4245f18c0493fd26b3118844498f0",
+    "state": "success",
+    "created_at": "2026-07-30T02:48:30Z",
+    "environment_url": "https://corpflow-ai-command-center-5nfrzeluw-corpflowai.vercel.app",
+    "next_build_id": "Z8qWgEzWaS2HY7bcyUdmd"
+  },
+  "titles": {
+    "/": "Rare & Exclusive Collection · Private Wealth & Lifestyle Platform for Mauritius",
+    "/concierge": "Private advisory · Rare & Exclusive Collection",
+    "/properties": "Private Opportunities · Rare & Exclusive Collection",
+    "/about": "About · Rare & Exclusive Collection",
+    "/contact": "Contact · Rare & Exclusive Collection"
+  },
+  "synthetic_leads": {
+    "valid": {
+      "id": "cms6xh28y0000l204xahcu9o8",
+      "created_at": "2026-07-30T03:02:15.970Z",
+      "status": "new",
+      "http": 200,
+      "host": "lux.corpflowai.com"
+    },
+    "invalid_missing_telephone": {
+      "http": 400,
+      "error": "EMAIL_AND_TELEPHONE_REQUIRED",
+      "hint": "Provide both a valid email address and a telephone number (contact as \"email | telephone\")."
+    },
+    "invalid_empty_contact": {
+      "http": 400,
+      "error": "contact is required"
+    }
+  },
+  "ui_validation": {
+    "submit_disabled_without_telephone": true,
+    "submit_enabled_with_email_and_telephone": true
+  },
+  "auth_gates": {
+    "lux_auth_me": { "logged_in": false },
+    "concierge_leads_list_unauth": { "http": 403, "error": "Dormant Gate: session token required." },
+    "concierge_lead_operator_patch_unauth": { "http": 403, "error": "Dormant Gate: session token required." }
+  },
+  "isolation": {
+    "lux_tenant_site": "luxe-maurice",
+    "cipc_tenant_site": "cipc-desk",
+    "core_factory_health_ok": true,
+    "core_concierge_leads_list": { "http": 404, "error": "TENANT_NOT_FOUND" }
+  },
+  "unit_tests": {
+    "files": [
+      "node-tests/lux-lead-qualification-shortlist-685.test.mjs",
+      "node-tests/lux-concierge-operator-workflow-673.test.mjs"
+    ],
+    "passed": 14,
+    "failed": 0
+  },
+  "final_verdict": "READY FOR JAN",
+  "auth_blocker": {
+    "present": true,
+    "owner": "Anton",
+    "smallest_action": "Complete authenticated /change CRM walkthrough while logged into Lux, or provide short-lived Lux tenant session for agent re-run."
+  }
+}

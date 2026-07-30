@@ -1,0 +1,52 @@
+[
+  {
+    "name": "01-home.png",
+    "url": "https://lux.corpflowai.com/",
+    "status": 200,
+    "title": "Rare & Exclusive Collection · Private Wealth & Lifestyle Platform for Mauritius",
+    "file": "/workspace/artifacts/lux-693-live-verification/screenshots/01-home.png"
+  },
+  {
+    "name": "02-concierge.png",
+    "url": "https://lux.corpflowai.com/concierge",
+    "status": 200,
+    "title": "Private advisory · Rare & Exclusive Collection",
+    "file": "/workspace/artifacts/lux-693-live-verification/screenshots/02-concierge.png"
+  },
+  {
+    "name": "03-properties.png",
+    "url": "https://lux.corpflowai.com/properties",
+    "status": 200,
+    "title": "Private Opportunities · Rare & Exclusive Collection",
+    "file": "/workspace/artifacts/lux-693-live-verification/screenshots/03-properties.png"
+  },
+  {
+    "name": "04-about.png",
+    "url": "https://lux.corpflowai.com/about",
+    "status": 200,
+    "title": "About · Rare & Exclusive Collection",
+    "file": "/workspace/artifacts/lux-693-live-verification/screenshots/04-about.png"
+  },
+  {
+    "name": "05-contact.png",
+    "url": "https://lux.corpflowai.com/contact",
+    "status": 200,
+    "title": "Contact · Rare & Exclusive Collection",
+    "file": "/workspace/artifacts/lux-693-live-verification/screenshots/05-contact.png"
+  },
+  {
+    "name": "06-change-unauth.png",
+    "url": "https://lux.corpflowai.com/change",
+    "status": 200,
+    "title": "",
+    "file": "/workspace/artifacts/lux-693-live-verification/screenshots/06-change-unauth.png"
+  },
+  {
+    "name": "07-concierge-missing-phone.png",
+    "submit_disabled": true
+  },
+  {
+    "name": "08-concierge-valid-ready.png",
+    "submit_disabled": false
+  }
+]
