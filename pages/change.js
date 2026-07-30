@@ -29,6 +29,10 @@ import {
   luxLeadCrmStageLabel,
 } from '../lib/cmp/_lib/lux-lead-operator-workflow.js';
 import {
+  LUX_QUALIFICATION_FIELDS,
+  buildLuxInvitationPacketDraft,
+} from '../lib/cmp/_lib/lux-lead-qualification-shortlist.js';
+import {
   LUX_ATTACHMENT_ARCHIVE_REASON_SMOKE_DEFAULT,
   LUX_ATTACHMENT_OPERATOR_FILTER_IDS,
   LUX_AI_SUGGESTION_STATUSES,
@@ -568,6 +572,19 @@ export default function ChangeConsolePage() {
   const [leadOwnerDraft, setLeadOwnerDraft] = useState('');
   const [leadNextActionDraft, setLeadNextActionDraft] = useState('');
   const [leadNextActionNoteDraft, setLeadNextActionNoteDraft] = useState('');
+  /** @type {[Record<string, string>, Function]} */
+  const [leadQualDraft, setLeadQualDraft] = useState({
+    buyer_objective: '',
+    preferred_area: '',
+    property_type: '',
+    budget_band: '',
+    timing: '',
+    residency_investment_interest: '',
+    confidentiality_preference: '',
+  });
+  /** @type {[string[], Function]} */
+  const [leadShortlistSlugsDraft, setLeadShortlistSlugsDraft] = useState([]);
+  const [leadInvitationCopyStatus, setLeadInvitationCopyStatus] = useState('');
   const [crmFilterStage, setCrmFilterStage] = useState('all');
   const [crmFilterOwner, setCrmFilterOwner] = useState('');
   const [crmFilterProperty, setCrmFilterProperty] = useState('');
@@ -1853,6 +1870,38 @@ export default function ChangeConsolePage() {
     [leads, selectedLeadId],
   );
 
+  const liveInvitationDraft = useMemo(() => {
+    if (!selectedLead) return '';
+    const catalog = selectedLead.curated_shortlist?.catalog_options || [];
+    const savedItems = Array.isArray(selectedLead.curated_shortlist?.items)
+      ? selectedLead.curated_shortlist.items
+      : [];
+    const notesBySlug = Object.fromEntries(savedItems.map((it) => [String(it.slug), it.note || '']));
+    const items = leadShortlistSlugsDraft
+      .map((slug) => {
+        const opt = catalog.find((o) => String(o.slug) === String(slug));
+        if (!opt) return null;
+        return {
+          slug: String(opt.slug),
+          title: String(opt.title || opt.slug),
+          region: String(opt.region || ''),
+          property_type: String(opt.property_type || ''),
+          price_range: String(opt.price_range || ''),
+          status: String(opt.status || ''),
+          note: notesBySlug[String(opt.slug)] || '',
+          added_at: null,
+        };
+      })
+      .filter(Boolean);
+    return buildLuxInvitationPacketDraft({
+      lead_name: selectedLead.name,
+      email: selectedLead.email,
+      phone: selectedLead.phone,
+      qualification: leadQualDraft,
+      shortlist: { items },
+    });
+  }, [selectedLead, leadQualDraft, leadShortlistSlugsDraft]);
+
   useEffect(() => {
     if (!luxLeadCrmEnabled || !selectedLead?.operator_workflow) return;
     const ow = selectedLead.operator_workflow;
@@ -1862,6 +1911,23 @@ export default function ChangeConsolePage() {
     setLeadNextActionDraft(isoToDatetimeLocalValue(ow.next_action_at));
     setLeadNextActionNoteDraft(ow.next_action_note != null ? String(ow.next_action_note) : '');
     setLeadNoteDraft('');
+    const q = selectedLead.private_client_qualification || {};
+    setLeadQualDraft({
+      buyer_objective: q.buyer_objective != null ? String(q.buyer_objective) : '',
+      preferred_area: q.preferred_area != null ? String(q.preferred_area) : '',
+      property_type: q.property_type != null ? String(q.property_type) : '',
+      budget_band: q.budget_band != null ? String(q.budget_band) : '',
+      timing: q.timing != null ? String(q.timing) : '',
+      residency_investment_interest:
+        q.residency_investment_interest != null ? String(q.residency_investment_interest) : '',
+      confidentiality_preference:
+        q.confidentiality_preference != null ? String(q.confidentiality_preference) : '',
+    });
+    const items = Array.isArray(selectedLead.curated_shortlist?.items)
+      ? selectedLead.curated_shortlist.items
+      : [];
+    setLeadShortlistSlugsDraft(items.map((it) => String(it.slug || '')).filter(Boolean));
+    setLeadInvitationCopyStatus('');
   }, [
     luxLeadCrmEnabled,
     selectedLeadId,
@@ -1870,13 +1936,20 @@ export default function ChangeConsolePage() {
     selectedLead?.operator_workflow?.owner?.username,
     selectedLead?.operator_workflow?.next_action_at,
     selectedLead?.operator_workflow?.next_action_note,
+    selectedLead?.private_client_qualification?.updated_at,
+    selectedLead?.curated_shortlist?.updated_at,
   ]);
 
   function intentLabel(intentVal) {
     const i = String(intentVal || '').trim();
     if (i === 'lux_property_enquiry') return 'Property enquiry';
     if (i === 'ai_concierge_lite') return 'Concierge (general)';
+    if (i === 'lux_private_access_request') return 'Private access request';
     return i || '—';
+  }
+
+  function sourceLabel(lead) {
+    return intentLabel(lead?.source || lead?.intent);
   }
 
   function discoveryLabel(ds) {
@@ -1905,6 +1978,26 @@ export default function ChangeConsolePage() {
       const nextActionChanged = String(leadNextActionDraft || '').trim() !== String(prevDtLocal || '').trim();
       const curNextNote = ow?.next_action_note != null ? String(ow.next_action_note) : '';
       const nextNoteChanged = String(leadNextActionNoteDraft || '').trim() !== curNextNote.trim();
+      const curQual = selectedLead?.private_client_qualification || {};
+      let qualificationChanged = false;
+      for (const key of LUX_QUALIFICATION_FIELDS) {
+        const a = String(leadQualDraft?.[key] || '').trim();
+        const b = String(curQual?.[key] || '').trim();
+        if (a !== b) {
+          qualificationChanged = true;
+          break;
+        }
+      }
+      const curSlugs = (Array.isArray(selectedLead?.curated_shortlist?.items)
+        ? selectedLead.curated_shortlist.items
+        : []
+      )
+        .map((it) => String(it.slug || ''))
+        .filter(Boolean)
+        .sort()
+        .join('|');
+      const draftSlugs = [...leadShortlistSlugsDraft].map(String).filter(Boolean).sort().join('|');
+      const shortlistChanged = curSlugs !== draftSlugs;
       const body = { lead_id: id };
       if (stageChanged) body.stage = leadStageDraft;
       if (followChanged) body.follow_up_status = leadFollowDraft;
@@ -1923,13 +2016,21 @@ export default function ChangeConsolePage() {
         }
       }
       if (nextNoteChanged) body.next_action_note = String(leadNextActionNoteDraft || '').trim();
+      if (qualificationChanged) {
+        body.private_client_qualification = { ...leadQualDraft };
+      }
+      if (shortlistChanged) {
+        body.shortlist_slugs = [...leadShortlistSlugsDraft];
+      }
       if (
         !body.stage &&
         body.follow_up_status === undefined &&
         !body.note &&
         body.assign_owner === undefined &&
         body.next_action_at === undefined &&
-        body.next_action_note === undefined
+        body.next_action_note === undefined &&
+        !body.private_client_qualification &&
+        !body.shortlist_slugs
       ) {
         setLeadPatchStatus('Nothing to save.');
         return;
@@ -1949,6 +2050,31 @@ export default function ChangeConsolePage() {
       setLeadPatchStatus(String(e?.message || e));
     } finally {
       setLeadPatchBusy(false);
+    }
+  }
+
+  function toggleLeadShortlistSlug(slug) {
+    const s = String(slug || '').trim();
+    if (!s) return;
+    setLeadShortlistSlugsDraft((prev) => {
+      const set = new Set((prev || []).map(String));
+      if (set.has(s)) set.delete(s);
+      else set.add(s);
+      return [...set];
+    });
+  }
+
+  async function copyInvitationDraft() {
+    const text = liveInvitationDraft || selectedLead?.invitation_draft || '';
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        setLeadInvitationCopyStatus('Copied draft to clipboard.');
+      } else {
+        setLeadInvitationCopyStatus('Clipboard unavailable — select the draft text manually.');
+      }
+    } catch {
+      setLeadInvitationCopyStatus('Copy failed — select the draft text manually.');
     }
   }
 
@@ -6722,7 +6848,10 @@ export default function ChangeConsolePage() {
                         )}
                       </div>
                       <div style={{ marginTop: 6, fontSize: 10, color: '#64748b', ...changeTextContainStyle() }}>
-                        Intent: <span style={{ color: '#94a3b8' }}>{intentLabel(lead.intent)}</span>
+                        {luxLeadCrmEnabled ? 'Source' : 'Intent'}:{' '}
+                        <span style={{ color: '#94a3b8' }}>
+                          {luxLeadCrmEnabled ? sourceLabel(lead) : intentLabel(lead.intent)}
+                        </span>
                         {lead.created_at ? (
                           <span style={{ display: 'block', marginTop: 2 }}>
                             Created: {new Date(lead.created_at).toLocaleString()}
@@ -6992,6 +7121,185 @@ export default function ChangeConsolePage() {
                     }}
                   />
                 </label>
+
+                <div
+                  data-testid="lux-crm-qualification-panel"
+                  style={{
+                    marginTop: 4,
+                    padding: 12,
+                    borderRadius: 12,
+                    border: '1px solid rgba(103,232,249,0.22)',
+                    background: 'rgba(8,47,73,0.28)',
+                    display: 'grid',
+                    gap: 8,
+                  }}
+                >
+                  <div style={{ fontSize: 11, fontWeight: 900, color: '#67e8f9', letterSpacing: '0.06em' }}>
+                    PRIVATE-CLIENT QUALIFICATION
+                  </div>
+                  <div style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.4, ...changeTextContainStyle() }}>
+                    Recommended:{' '}
+                    {String(
+                      selectedLead.private_client_qualification?.recommended_next_action ||
+                        'Capture missing qualification fields.',
+                    )}
+                  </div>
+                  {Array.isArray(selectedLead.private_client_qualification?.missing_field_labels) &&
+                  selectedLead.private_client_qualification.missing_field_labels.length ? (
+                    <div
+                      data-testid="lux-crm-qualification-missing"
+                      style={{ fontSize: 11, color: '#fde68a', lineHeight: 1.4 }}
+                    >
+                      Missing:{' '}
+                      {selectedLead.private_client_qualification.missing_field_labels.join(', ')}
+                    </div>
+                  ) : (
+                    <div data-testid="lux-crm-qualification-complete" style={{ fontSize: 11, color: '#86efac' }}>
+                      Qualification fields complete (synthetic/operator-entered).
+                    </div>
+                  )}
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+                      gap: 8,
+                    }}
+                  >
+                    {LUX_QUALIFICATION_FIELDS.map((key) => {
+                      const labels = selectedLead.private_client_qualification?.field_labels || {
+                        buyer_objective: 'Buyer objective',
+                        preferred_area: 'Preferred area',
+                        property_type: 'Property type',
+                        budget_band: 'Budget band',
+                        timing: 'Timing',
+                        residency_investment_interest: 'Residency / investment interest',
+                        confidentiality_preference: 'Confidentiality preference',
+                      };
+                      return (
+                        <label key={key} style={{ fontSize: 11, color: '#94a3b8', display: 'grid', gap: 4 }}>
+                          {labels[key] || key}
+                          <input
+                            data-testid={`lux-crm-qual-${key}`}
+                            value={leadQualDraft[key] || ''}
+                            onChange={(e) =>
+                              setLeadQualDraft((prev) => ({ ...prev, [key]: e.target.value }))
+                            }
+                            placeholder="—"
+                            style={{
+                              padding: '8px 10px',
+                              borderRadius: 10,
+                              border: '1px solid rgba(148,163,184,0.25)',
+                              background: 'rgba(2,6,23,0.65)',
+                              color: '#e2e8f0',
+                              fontSize: 12,
+                            }}
+                          />
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div
+                  data-testid="lux-crm-shortlist-panel"
+                  style={{
+                    padding: 12,
+                    borderRadius: 12,
+                    border: '1px solid rgba(190,242,100,0.22)',
+                    background: 'rgba(20,40,10,0.28)',
+                    display: 'grid',
+                    gap: 8,
+                  }}
+                >
+                  <div style={{ fontSize: 11, fontWeight: 900, color: '#bef264', letterSpacing: '0.06em' }}>
+                    CURATED SHORTLIST / INVITATION PACKET
+                  </div>
+                  <div style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.4 }}>
+                    Associate staged residences with this enquiry. Draft is on-screen only — no live send.
+                  </div>
+                  <div style={{ display: 'grid', gap: 6 }}>
+                    {(selectedLead.curated_shortlist?.catalog_options || []).map((opt) => {
+                      const slug = String(opt.slug || '');
+                      const checked = leadShortlistSlugsDraft.includes(slug);
+                      return (
+                        <label
+                          key={slug}
+                          style={{
+                            display: 'flex',
+                            gap: 8,
+                            alignItems: 'flex-start',
+                            fontSize: 12,
+                            color: '#e2e8f0',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            data-testid={`lux-crm-shortlist-${slug}`}
+                            checked={checked}
+                            onChange={() => toggleLeadShortlistSlug(slug)}
+                            style={{ marginTop: 3 }}
+                          />
+                          <span style={{ ...changeTextContainStyle(), minWidth: 0 }}>
+                            <span style={{ fontWeight: 700 }}>{String(opt.title || slug)}</span>
+                            <span style={{ display: 'block', fontSize: 11, color: '#94a3b8' }}>
+                              {String(opt.region || '—')} · {String(opt.property_type || '—')} ·{' '}
+                              {String(opt.status || '—')}
+                            </span>
+                          </span>
+                        </label>
+                      );
+                    })}
+                    {!selectedLead.curated_shortlist?.catalog_options?.length ? (
+                      <div style={{ fontSize: 11, color: '#94a3b8' }}>No staged residences available.</div>
+                    ) : null}
+                  </div>
+                  <div style={{ fontSize: 11, color: '#bef264' }}>
+                    Selected: {leadShortlistSlugsDraft.length}
+                  </div>
+                  <label style={{ fontSize: 11, color: '#94a3b8', display: 'grid', gap: 6 }}>
+                    Invitation / shortlist draft (copy-ready)
+                    <textarea
+                      data-testid="lux-crm-invitation-draft"
+                      readOnly
+                      rows={10}
+                      value={liveInvitationDraft || selectedLead.invitation_draft || ''}
+                      style={{
+                        padding: '8px 10px',
+                        borderRadius: 10,
+                        border: '1px solid rgba(148,163,184,0.25)',
+                        background: 'rgba(2,6,23,0.65)',
+                        color: '#e2e8f0',
+                        fontSize: 12,
+                        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+                        resize: 'vertical',
+                        whiteSpace: 'pre-wrap',
+                      }}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    data-testid="lux-crm-copy-invitation-draft"
+                    onClick={() => copyInvitationDraft()}
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: 10,
+                      border: '1px solid rgba(190,242,100,0.35)',
+                      background: 'rgba(190,242,100,0.1)',
+                      color: '#ecfccb',
+                      fontWeight: 750,
+                      fontSize: 12,
+                      cursor: 'pointer',
+                      width: 'fit-content',
+                    }}
+                  >
+                    Copy draft text
+                  </button>
+                  {leadInvitationCopyStatus ? (
+                    <div style={{ fontSize: 11, color: '#94a3b8' }}>{leadInvitationCopyStatus}</div>
+                  ) : null}
+                </div>
+
                 {Array.isArray(selectedLead.operator_workflow?.activity) && selectedLead.operator_workflow.activity.length ? (
                   <div style={{ fontSize: 11, color: '#94a3b8' }}>
                     <div style={{ fontWeight: 800, color: '#cbd5e1', marginBottom: 6 }}>Activity</div>
