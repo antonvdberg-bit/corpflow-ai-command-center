@@ -3853,9 +3853,10 @@ export default function ChangeConsolePage() {
                     background: 'rgba(56,189,248,0.08)',
                   }}
                 >
-                  <div style={{ fontSize: 12, fontWeight: 950, color: '#e0f2fe' }}>CIPC Desk operator review (preview)</div>
+                  <div style={{ fontSize: 12, fontWeight: 950, color: '#e0f2fe' }}>CIPC Desk operator queue (corpflow_test)</div>
                   <div style={{ marginTop: 6, fontSize: 12, color: '#cbd5e1', lineHeight: 1.45 }}>
-                    This is a private preview slice. Service requirements, documents, turnaround, and pricing are provisional until Serah validates.
+                    Email-first test desk for Serah. Service requirements, documents, turnaround, and pricing are provisional until Serah validates.
+                    Live client email / WhatsApp / SMS sends stay off — drafts only.
                   </div>
 
                   <details style={{ marginTop: 12 }}>
@@ -3902,7 +3903,7 @@ export default function ChangeConsolePage() {
                       ) : null}
                       {cipcDeskInterpretMagicLink ? (
                         <div style={{ marginTop: 8 }}>
-                          <div style={{ fontSize: 11, color: '#94a3b8' }}>Magic link returned from preview email intake:</div>
+                          <div style={{ fontSize: 11, color: '#94a3b8' }}>Client decisions link from email intake (tenant host preferred):</div>
                           <input
                             readOnly
                             value={cipcDeskInterpretMagicLink}
@@ -3990,7 +3991,7 @@ export default function ChangeConsolePage() {
                   {Array.isArray(cipcDesk?.attachments) && cipcDesk.attachments.length ? (
                     <details style={{ marginTop: 12 }}>
                       <summary style={{ cursor: 'pointer', fontSize: 12, fontWeight: 900, color: '#93c5fd' }}>
-                        Attachments captured from preview email (metadata only)
+                        Attachments captured from email intake (metadata only)
                       </summary>
                       <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
                         {cipcDesk.attachments.map((a, idx) => {
@@ -4015,7 +4016,7 @@ export default function ChangeConsolePage() {
                     </details>
                   ) : null}
 
-                  <div style={{ marginTop: 12, fontSize: 12, fontWeight: 900, color: '#e0f2fe' }}>Client reply draft (preview)</div>
+                  <div style={{ marginTop: 12, fontSize: 12, fontWeight: 900, color: '#e0f2fe' }}>Client reply draft (not sent)</div>
                   <div style={{ marginTop: 8 }}>
                     <textarea
                       value={cipcDeskClientReplyDraft}

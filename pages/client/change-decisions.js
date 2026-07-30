@@ -47,6 +47,8 @@ export default function ClientChangeDecisionsPage() {
   const [magicClosed, setMagicClosed] = useState(false);
   /** Server-provided thank-you (Phase 1 vs default programme copy). */
   const [thankYouBanner, setThankYouBanner] = useState('');
+  /** Optional CIPC Desk client-safe status (checklist + route). */
+  const [cipcDeskStatus, setCipcDeskStatus] = useState(/** @type {Record<string, unknown> | null} */ (null));
 
   const idFromUrl = router.isReady ? ticketIdFromQuery(router.query) : '';
   const magicToken = router.isReady ? magicTokenFromQuery(router.query) : '';
@@ -151,6 +153,8 @@ export default function ClientChangeDecisionsPage() {
       if (typeof j.thank_you_message === 'string' && j.thank_you_message.trim()) {
         setThankYouBanner(j.thank_you_message.trim());
       }
+      const cipcStatus = safeObj(j.cipc_desk_status);
+      setCipcDeskStatus(cipcStatus && cipcStatus.present === true ? cipcStatus : null);
 
       if (j.already_submitted === true && hasMagicLink) {
         setMagicClosed(true);
@@ -276,10 +280,62 @@ export default function ClientChangeDecisionsPage() {
   const showDecisionForm =
     !showMagicThankOnly && !showLegacyThankOnly && hasTicket && (!hasMagicLink || !magicClosed);
 
+  const cipcChecklist = Array.isArray(cipcDeskStatus?.checklist_items) ? cipcDeskStatus.checklist_items : [];
+
   return (
     <div style={{ fontFamily: 'system-ui, Segoe UI, Roboto, sans-serif', padding: 24, maxWidth: 720, margin: '0 auto' }}>
       <h1 style={{ margin: '0 0 12px', color: '#0f172a', fontSize: '1.35rem', fontWeight: 700, lineHeight: 1.3 }}>{heading}</h1>
       <p style={{ margin: '0 0 16px', color: '#475569', fontSize: 15, lineHeight: 1.55 }}>{explanation}</p>
+
+      {cipcDeskStatus ? (
+        <section
+          style={{
+            marginBottom: 16,
+            borderRadius: 14,
+            border: '1px solid #c7ddd9',
+            background: '#f4faf8',
+            padding: 14,
+          }}
+        >
+          <div style={{ fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#1f5c56', fontWeight: 800 }}>
+            CIPC Desk · matter progress
+          </div>
+          {typeof cipcDeskStatus.service_summary === 'string' && cipcDeskStatus.service_summary ? (
+            <div style={{ marginTop: 8, fontSize: 14, fontWeight: 650, color: '#0f172a', lineHeight: 1.4 }}>
+              {cipcDeskStatus.service_summary}
+            </div>
+          ) : null}
+          {typeof cipcDeskStatus.client_route === 'string' && cipcDeskStatus.client_route ? (
+            <div style={{ marginTop: 6, fontSize: 13, color: '#475569' }}>
+              Route:{' '}
+              {cipcDeskStatus.client_route === 'professional_partner'
+                ? 'Professional partner'
+                : cipcDeskStatus.client_route === 'direct_sme'
+                  ? 'Direct SME'
+                  : String(cipcDeskStatus.client_route)}
+            </div>
+          ) : null}
+          {cipcChecklist.length ? (
+            <ul style={{ margin: '12px 0 0', paddingLeft: 18, color: '#334155', fontSize: 13, lineHeight: 1.55 }}>
+              {cipcChecklist.map((it, idx) => {
+                const row = safeObj(it) || {};
+                const label = typeof row.label === 'string' ? row.label : 'Item';
+                const st = typeof row.status === 'string' ? row.status : 'pending';
+                return (
+                  <li key={`${idx}:${label}`}>
+                    {label} — <span style={{ fontWeight: 650 }}>{st}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : null}
+          <div style={{ marginTop: 10, fontSize: 13, color: '#475569', lineHeight: 1.45 }}>
+            {cipcDeskStatus.reply_draft_prepared === true
+              ? 'A client reply draft has been prepared for operator approval — not auto-sent.'
+              : 'Operator reply draft not prepared yet.'}
+          </div>
+        </section>
+      ) : null}
 
       {loadBusy && hasTicket && !showMagicThankOnly ? (
         <p style={{ margin: '0 0 16px', fontSize: 14, color: '#64748b' }}>Loading questions…</p>
