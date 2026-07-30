@@ -3853,9 +3853,9 @@ export default function ChangeConsolePage() {
                     background: 'rgba(56,189,248,0.08)',
                   }}
                 >
-                  <div style={{ fontSize: 12, fontWeight: 950, color: '#e0f2fe' }}>CIPC Desk operator review (preview)</div>
+                  <div style={{ fontSize: 12, fontWeight: 950, color: '#e0f2fe' }}>CIPC Desk operator work queue</div>
                   <div style={{ marginTop: 6, fontSize: 12, color: '#cbd5e1', lineHeight: 1.45 }}>
-                    This is a private preview slice. Service requirements, documents, turnaround, and pricing are provisional until Serah validates.
+                    Standing corpflow_test surface. Service requirements, documents, turnaround, and pricing are provisional until Serah validates. Email is the client layer; this panel is the durable operator record. Do not send live client email from here.
                   </div>
 
                   <details style={{ marginTop: 12 }}>
@@ -3902,7 +3902,7 @@ export default function ChangeConsolePage() {
                       ) : null}
                       {cipcDeskInterpretMagicLink ? (
                         <div style={{ marginTop: 8 }}>
-                          <div style={{ fontSize: 11, color: '#94a3b8' }}>Magic link returned from preview email intake:</div>
+                          <div style={{ fontSize: 11, color: '#94a3b8' }}>Magic link returned from email intake (client decisions — not a live send):</div>
                           <input
                             readOnly
                             value={cipcDeskInterpretMagicLink}

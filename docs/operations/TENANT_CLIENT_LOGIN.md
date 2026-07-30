@@ -57,6 +57,8 @@ When `**CORPFLOW_TENANT_PREVIEW_SECRET**` is set to the **same value on Producti
 
 ## CIPC Desk standing internal test tenant
 
+**Commercial first-slice pack (research, reuse inventory, Serah validation email):** `docs/operations/CIPC_DESK_FIRST_SLICE_PACK_V1.md` (issue #640). Evidence must be the CIPC Desk URL — never Lux / Core health.
+
 **Environment:** `corpflow_test` (CorpFlowAI-hosted standing internal test tenant — not client_production).
 
 

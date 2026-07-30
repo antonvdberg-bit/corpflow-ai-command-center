@@ -63,8 +63,10 @@ function TenantSite({ site }) {
   const operatorDebug = ui.operator_debug === true;
   const t = s.theme || {};
   const hero = s.hero || {};
+  const meta = s.meta && typeof s.meta === 'object' ? s.meta : {};
   const about = s.sections?.about || {};
   const services = s.sections?.services || {};
+  const routes = s.sections?.routes && typeof s.sections.routes === 'object' ? s.sections.routes : {};
   const media = s.media || {};
   const contact = s.sections?.contact || {};
   const languages = Array.isArray(s.languages) ? s.languages : ['en', 'fr', 'ru'];
@@ -79,6 +81,9 @@ function TenantSite({ site }) {
   const tHero = i18nBlock?.hero && typeof i18nBlock.hero === 'object' ? i18nBlock.hero : null;
   const tAbout = i18nBlock?.about && typeof i18nBlock.about === 'object' ? i18nBlock.about : null;
   const tServices = i18nBlock?.services && typeof i18nBlock.services === 'object' ? i18nBlock.services : null;
+  const surfaceLabel = safeStr(meta.surface_label) || safeStr(hero.title) || '';
+  const isCipcDeskSurface =
+    safeStr(s.tenant_id) === 'cipc-desk' || /cipc desk/i.test(surfaceLabel || safeStr(hero.title));
 
   const css = {
     '--cf-bg': t.background || '#020617',
@@ -89,8 +94,9 @@ function TenantSite({ site }) {
     '--cf-accent': t.accent || '#22c55e',
   };
 
-  const meta = s.meta && typeof s.meta === 'object' ? s.meta : {};
   const pageTitle = safeStr(meta.page_title) || safeStr(hero.title) || 'Tenant site';
+  const secondaryCtaLabel = safeStr(hero.cta_secondary_label);
+  const secondaryCtaHref = safeStr(hero.cta_secondary_href);
 
   return (
     <div style={css}>
@@ -99,7 +105,7 @@ function TenantSite({ site }) {
       </Head>
       <div style={{ minHeight: '100vh', background: 'var(--cf-bg)', color: 'var(--cf-text)' }}>
         <main style={{ maxWidth: 1120, margin: '0 auto', padding: '40px 20px' }}>
-          <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24 }}>
+          <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24, flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             {media.logo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -109,7 +115,13 @@ function TenantSite({ site }) {
             )}
             <div>
               <div style={{ fontSize: 12, letterSpacing: 0.6, color: 'var(--cf-muted)' }}>
-                {operatorDebug ? 'Preview' : luxAcquisition ? 'Lux Mauritius' : 'Preview'}
+                {operatorDebug
+                  ? 'Preview'
+                  : luxAcquisition
+                    ? 'Lux Mauritius'
+                    : isCipcDeskSurface
+                      ? 'Internal test'
+                      : safeStr(meta.surface_label) || 'Preview'}
               </div>
               <div style={{ fontSize: 20, fontWeight: 650, letterSpacing: luxAcquisition ? 0.02 : undefined }}>
                 {safeStr(tHero?.title) || safeStr(hero.title) || 'Tenant site'}
@@ -145,21 +157,41 @@ function TenantSite({ site }) {
             </select>
           </div>
 
-          <a
-            href={safeStr(hero.cta_href) || (luxAcquisition ? '/concierge' : '/change')}
-            style={{
-              display: 'inline-block',
-              padding: '10px 14px',
-              borderRadius: 14,
-              background: 'var(--cf-primary)',
-              color: '#020617',
-              fontWeight: 650,
-              fontSize: 13,
-              textDecoration: 'none',
-            }}
-          >
-            {safeStr(hero.cta_label) || 'Request changes'}
-          </a>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <a
+              href={safeStr(hero.cta_href) || (luxAcquisition ? '/concierge' : '/change')}
+              style={{
+                display: 'inline-block',
+                padding: '10px 14px',
+                borderRadius: 14,
+                background: 'var(--cf-primary)',
+                color: '#020617',
+                fontWeight: 650,
+                fontSize: 13,
+                textDecoration: 'none',
+              }}
+            >
+              {safeStr(hero.cta_label) || 'Request changes'}
+            </a>
+            {secondaryCtaLabel && secondaryCtaHref ? (
+              <a
+                href={secondaryCtaHref}
+                style={{
+                  display: 'inline-block',
+                  padding: '10px 14px',
+                  borderRadius: 14,
+                  background: 'transparent',
+                  color: 'var(--cf-text)',
+                  fontWeight: 650,
+                  fontSize: 13,
+                  textDecoration: 'none',
+                  border: '1px solid rgba(255,255,255,0.18)',
+                }}
+              >
+                {secondaryCtaLabel}
+              </a>
+            ) : null}
+          </div>
         </header>
 
         {luxAcquisition ? (
@@ -221,11 +253,51 @@ function TenantSite({ site }) {
             <div style={{ fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase', color: 'var(--cf-muted)' }}>
               {safeStr(tAbout?.title) || safeStr(about.title) || 'About'}
             </div>
-            <p style={{ marginTop: 10, fontSize: 14, lineHeight: 1.6, color: 'rgba(226,232,240,0.92)' }}>
+            <p style={{ marginTop: 10, fontSize: 14, lineHeight: 1.6, color: 'rgba(226,232,240,0.92)', whiteSpace: 'pre-line' }}>
               {safeStr(tAbout?.body) || safeStr(about.body) || ''}
             </p>
           </div>
         </section>
+
+        {Array.isArray(routes.items) && routes.items.length ? (
+          <section style={{ marginTop: 18, borderRadius: 18, border: '1px solid rgba(255,255,255,0.10)', background: 'var(--cf-surface)', padding: 18 }}>
+            <div style={{ fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase', color: 'var(--cf-muted)' }}>
+              {safeStr(routes.title) || 'Entry routes'}
+            </div>
+            {safeStr(routes.intro) ? (
+              <div style={{ marginTop: 6, fontSize: 13, lineHeight: 1.55, color: 'var(--cf-muted)' }}>{safeStr(routes.intro)}</div>
+            ) : null}
+            <div style={{ marginTop: 14, display: 'grid', gridTemplateColumns: '1fr', gap: 10 }}>
+              {routes.items.map((it, idx) => (
+                <div
+                  key={idx}
+                  style={{ borderRadius: 14, border: '1px solid rgba(255,255,255,0.10)', background: 'rgba(0,0,0,0.18)', padding: 14 }}
+                >
+                  <div style={{ fontWeight: 650 }}>{safeStr(it?.name) || `Route ${idx + 1}`}</div>
+                  {it?.detail ? <div style={{ marginTop: 6, fontSize: 13, color: 'var(--cf-muted)' }}>{safeStr(it.detail)}</div> : null}
+                  {safeStr(it?.cta_label) && safeStr(it?.cta_href) ? (
+                    <a
+                      href={safeStr(it.cta_href)}
+                      style={{
+                        display: 'inline-block',
+                        marginTop: 12,
+                        padding: '8px 12px',
+                        borderRadius: 12,
+                        background: 'var(--cf-primary)',
+                        color: '#020617',
+                        fontWeight: 650,
+                        fontSize: 12,
+                        textDecoration: 'none',
+                      }}
+                    >
+                      {safeStr(it.cta_label)}
+                    </a>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         <section style={{ marginTop: 18, borderRadius: 18, border: '1px solid rgba(255,255,255,0.10)', background: 'var(--cf-surface)', padding: 18 }}>
           <div>
