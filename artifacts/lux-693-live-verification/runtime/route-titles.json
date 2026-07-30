@@ -1,0 +1,49 @@
+{
+  "/": {
+    "http": 200,
+    "titles": [
+      "Rare &amp; Exclusive Collection \u00b7 Private Wealth &amp; Lifestyle Platform for Mauritius"
+    ],
+    "monogram_hijack": false
+  },
+  "/concierge": {
+    "http": 200,
+    "titles": [
+      "Private advisory \u00b7 Rare &amp; Exclusive Collection"
+    ],
+    "monogram_hijack": false
+  },
+  "/properties": {
+    "http": 200,
+    "titles": [
+      "Private Opportunities \u00b7 Rare &amp; Exclusive Collection"
+    ],
+    "monogram_hijack": false
+  },
+  "/about": {
+    "http": 200,
+    "titles": [
+      "About \u00b7 Rare &amp; Exclusive Collection"
+    ],
+    "monogram_hijack": false
+  },
+  "/contact": {
+    "http": 200,
+    "titles": [
+      "Contact \u00b7 Rare &amp; Exclusive Collection"
+    ],
+    "monogram_hijack": false
+  },
+  "/change": {
+    "http": 200,
+    "titles": [],
+    "monogram_hijack": false
+  },
+  "/property/lm-nc-ridge": {
+    "http": 200,
+    "titles": [
+      "North Coast Ridge Residences \u00b7 Private Opportunity \u00b7 Rare &amp; Exclusive Collection"
+    ],
+    "monogram_hijack": false
+  }
+}
