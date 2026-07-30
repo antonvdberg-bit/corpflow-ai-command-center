@@ -15,7 +15,7 @@
 | Channel | Repo runtime dependency? | Operational role after #658 |
 |--------|---------------------------|-----------------------------|
 | **Slack** | **No** — no app code, workflows, or n8n templates post to Slack from this repo | **Retired** — GitHub is durable source of truth; disable live n8n/GitHub→Slack via Anton packets |
-| **Telegram** | **Yes** — exception-only helpers + n8n forward path | **Retained** — Anton approval, failed CI (factory control loop), checkpoints, urgent monitor findings, stale digest / WIP cap |
+| **Telegram** | **Yes** — exception-only helpers + n8n forward path | **Retained** — Anton approval (`needs:anton`), failed CI (factory control loop), checkpoints, urgent monitor findings, failed recovery requiring Anton. **Not** WIP cap / open-PR heartbeats (#684) |
 
 **Noise retired in repo:**
 
@@ -72,7 +72,7 @@
 
 | Template | Telegram behavior |
 |----------|-------------------|
-| `github-heartbeat-checker.template.json` | `digest_stale` + `wip_cap` only + hourly dedupe |
+| `github-heartbeat-checker.template.json` | Anton-required only (`needs:anton` / failed recovery); WIP + digest log-only; fingerprint dedupe (#684) |
 | `business-operations-monitor-v1.template.json` | Urgent only |
 | `business-operations-dispatcher-v1.template.json` | `should_telegram: false` |
 | `automation-forward-issue-611-safe-test.template.json` | Allowlist + 24h event-id dedupe |
@@ -86,17 +86,12 @@ Telegram **may** fire for:
 1. Anton approval — four `corpflow.ops_alert.v1` checkpoint kinds.
 2. Failed CI — factory control loop workflow failure.
 3. Meaningful blocker — CMP delivery **newly** blocked or **new** `needs_attention`.
-4. Stale work — dispatcher digest stale > 12h (heartbeat, when activated).
-5. Production incident — urgent business-ops monitor findings.
-6. PR ready for Anton — WIP cap > 2 only (not “PR opened” / “still open”).
+4. Production incident — urgent business-ops monitor findings.
+5. **Decision Inbox exceptions (#676 / #684)** — new/changed `needs:anton` items, deadline escalation, failed previously-approved action, or failed recovery requiring Anton. Fingerprint-deduped, nonblank, GitHub link + #684 message contract. See `docs/n8n/anton-decision-inbox-exception-notify.md`.
 
-**Must stay silent:** green crons, unchanged blocked state, open PR merely existing, unchanged review status, routine progress, unknown automation-forward events.
-6. PR ready for Anton — WIP cap > 2; merge/approval checkpoints.
-7. **Decision Inbox exceptions (#676, design until activated)** — new/changed `needs:anton` items, deadline escalation, or failed previously-approved action needing a new decision. Deduped, nonblank, GitHub link required. See `docs/n8n/anton-decision-inbox-exception-notify.md`.
+**Must stay silent:** green crons, unchanged blocked state, open PR merely existing, WIP cap alone, stale digest alone, unchanged review status, routine progress, corpflow_test publish, unknown automation-forward events, unchanged Decision Inbox fingerprints (including after hour roll — no hourly repeat).
 
-**Must stay silent:** green crons, unchanged blocked state, open PR merely existing, unknown automation-forward events, unchanged Decision Inbox fingerprints.
-
-Canonical: `lib/server/ops-notification-policy.js`.
+Canonical: `lib/server/ops-notification-policy.js`. Live apply: `docs/runbooks/N8N_EXCEPTION_ONLY_ALERT_LIVE_APPLY_684.md`.
 
 ---
 
@@ -104,11 +99,12 @@ Canonical: `lib/server/ops-notification-policy.js`.
 
 ### 5.1 Done in repo (#659 + this follow-up)
 
-- Exception-only policy + tests (incl. hour-bucket dedupe)
+- Exception-only policy + tests (fingerprint dedupe; WIP/digest no longer page — #684)
 - CMP monitor transition-only alerts
-- n8n template noise cuts + heartbeat staticData dedupe
+- n8n template noise cuts + heartbeat staticData fingerprint store
 - Slack retirement across active ops docs / MCP catalog
 - Audit + **Anton click-by-click packets**
+- Live-apply runbook for in-place n8n correction (#684)
 
 ### 5.2 Anton-only (live cutover)
 
@@ -132,8 +128,8 @@ node --test node-tests/n8n-automation-forward-issue-611.test.mjs
 node --test node-tests/post-control-loop-telegram-alert.test.mjs
 ```
 
-**Exception path:** newly blocked, newly `needs_attention`, `digest_stale`, `wip_cap`, valid lead/alert (#611), first page in hour bucket.  
-**Silence:** unchanged blocked/`needs_attention`, healthy digest + open PR within WIP, unknown/duplicate/blank (#611), **same kind×target within same hour**.
+**Exception path:** newly blocked, newly `needs_attention`, `needs:anton` packet, recovery-failed-needs-Anton, valid lead/alert (#611), first page per fingerprint.  
+**Silence:** unchanged blocked/`needs_attention`, open PR / WIP cap alone, digest stale alone, unknown/duplicate/blank (#611), **same fingerprint after hour roll**.
 
 ---
 

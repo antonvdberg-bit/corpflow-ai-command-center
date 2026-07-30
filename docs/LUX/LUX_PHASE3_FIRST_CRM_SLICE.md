@@ -87,4 +87,18 @@ Computed in **`computeLuxLeadCrmSignals`** and exposed on list API / **`luxOpera
 
 ---
 
+## Issue #685 — qualification + shortlist (JSON only)
+
+| Area | Behaviour |
+|------|-----------|
+| **Source on cards** | Lead list exposes `source` (= enquiry `intent`) and UI labels it **Source**. |
+| **Create gate** | Lux `concierge-lead-create` requires parseable **email and telephone**. |
+| **Qualification** | `qualification_json.private_client_qualification` + derived view from `property_interest` / `access_request` / message. Missing flags + recommended next action on `/change`. |
+| **Shortlist** | `qualification_json.private_client_shortlist` associates staged residence slugs; on-screen copy-ready invitation draft; **no live send**. |
+| **PATCH** | `private_client_qualification`, `shortlist_slugs`, `invitation_operator_note` on `concierge-lead-operator-patch`. |
+
+Jan test checklist + draft email (Anton send approval): `docs/LUX/JAN_TEST_PACKAGE_685.md`.
+
+---
+
 **Phase 3 demo safe:** Yes — ticket stays open; no marketing automation or external CRM in this slice.

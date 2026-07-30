@@ -6,7 +6,8 @@
   },
   "meta": {
     "templateSource": "docs/runbooks/N8N_GITHUB_HEARTBEAT_CHECKER_V1.md",
-    "note": "Stage 1 template for issue #495. NO CREDENTIALS, NO TOKENS, NO CHAT IDS, NO WEBHOOK SECRETS, NO ENV VALUES. Attach a read-only GitHub credential and set Telegram references inside n8n's own credential/env store before activating (Stage 2, Anton-gated)."
+    "liveApply": "docs/runbooks/N8N_EXCEPTION_ONLY_ALERT_LIVE_APPLY_684.md",
+    "note": "Issue #684: exception-only, Anton-required paging. NO CREDENTIALS, NO TOKENS, NO CHAT IDS. Update the EXISTING live heartbeat/notifier workflow in place — do not create a second workflow. Attach read-only GitHub credential + Telegram env refs in n8n only."
   },
   "nodes": [
     {
@@ -14,87 +15,76 @@
       "name": "SETUP — read before activating",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
-      "position": [-460, -120],
+      "position": [-520, -160],
       "parameters": {
-        "width": 460,
-        "height": 360,
-        "content": "## Heartbeat Checker (Stage 1 template)\n\n**Inactive by design.** Activation is Anton-gated (issue #495 Stage 2).\n\nBefore activating, IN n8n ONLY (never in the repo):\n1. Attach a **read-only GitHub credential** (least scope: issues + PRs read) to the three GitHub HTTP nodes.\n2. Set **TELEGRAM_BOT_TOKEN** and **TELEGRAM_ALERT_CHAT_ID** in n8n's env/credential store (reuse the existing alert path or a dedicated heartbeat bot — Anton's call).\n3. Confirm internal-monitoring only: no customer-facing sends.\n\nThresholds + alert format: see the runbook.\n**Exception-only (#658):** stale digest + WIP cap exceedance only. No routine open-PR age pings. Silent on success; dedupe key = kind × target × hour."
+        "width": 520,
+        "height": 420,
+        "content": "## Heartbeat → exception-only notifier (#684)\n\n**Same workflow, updated in place.** Do not create a second notifier.\n\nBefore activating / after import, IN n8n ONLY:\n1. Attach **read-only GitHub credential** to the GitHub HTTP nodes.\n2. Reuse **TELEGRAM_BOT_TOKEN** + **TELEGRAM_ALERT_CHAT_ID** in n8n env store.\n3. Internal-ops only — no customer-facing sends.\n\n**Pages Telegram only when Anton required: yes**\n(`needs:anton` protected approval, failed recovery requiring Anton).\n\n**Silent for:** open PRs, WIP cap alone, green/running CI, active work, corpflow_test publish, unchanged fingerprints.\n\nDedupe: issue/PR + decision type + SHA/evidence + blocker state (no hourly repeat).\nCanonical mirror: `lib/server/ops-notification-policy.js`."
       }
     },
     {
       "id": "schedule",
-      "name": "Every 3 hours",
+      "name": "Every 15 minutes",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [40, 40],
       "parameters": {
         "rule": {
           "interval": [
-            { "field": "hours", "hoursInterval": 3 }
+            { "field": "minutes", "minutesInterval": 15 }
           ]
         }
       }
     },
     {
-      "id": "gh-493-comments",
-      "name": "GitHub: #493 comments",
+      "id": "gh-needs-anton",
+      "name": "GitHub: open needs:anton issues",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [320, -120],
+      "position": [320, -80],
       "parameters": {
-        "url": "https://api.github.com/repos/antonvdberg-bit/corpflow-ai-command-center/issues/493/comments?per_page=10&sort=created&direction=desc",
+        "url": "https://api.github.com/repos/antonvdberg-bit/corpflow-ai-command-center/issues?state=open&per_page=50",
         "options": {}
       }
     },
     {
       "id": "gh-open-prs",
-      "name": "GitHub: open PRs",
+      "name": "GitHub: open PRs (log only)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [320, 40],
+      "position": [320, 120],
       "parameters": {
         "url": "https://api.github.com/repos/antonvdberg-bit/corpflow-ai-command-center/pulls?state=open&per_page=50",
         "options": {}
       }
     },
     {
-      "id": "gh-open-issues",
-      "name": "GitHub: open Action-Plan issues",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [320, 200],
-      "parameters": {
-        "url": "https://api.github.com/repos/antonvdberg-bit/corpflow-ai-command-center/issues?state=open&labels=automation&per_page=50",
-        "options": {}
-      }
-    },
-    {
       "id": "evaluate",
-      "name": "Evaluate staleness",
+      "name": "Evaluate Anton-required exceptions",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [620, 40],
+      "position": [640, 40],
       "parameters": {
         "jsType": "javaScript",
         "mode": "runOnceForAllItems",
-        "jsCode": "// CorpFlowAI heartbeat evaluation (read-only). Exception-only paging per issue #658.\n// Routine open-PR age / CI-surfacing alerts removed — GitHub is source of truth.\n// Canonical mirror: lib/server/ops-notification-policy.js evaluateGithubHeartbeatSignals() + filterHeartbeatAlertsByHourDedupe()\nconst now = Date.now();\nconst H = 3600 * 1000;\nconst DIGEST_STALE_H = 12;\nconst WIP_CAP = 2;\nconst hourBucket = Math.floor(now / H);\nconst staticData = $getWorkflowStaticData('global');\nif (!staticData.heartbeatSeen || typeof staticData.heartbeatSeen !== 'object') staticData.heartbeatSeen = {};\nconst seen = staticData.heartbeatSeen;\nconst comments = $('GitHub: #493 comments').all().map(i => i.json).flat();\nconst prs = $('GitHub: open PRs').all().map(i => i.json).flat();\nconst alerts = [];\nconst digest = comments.find(c => c && typeof c.body === 'string' && c.body.includes('Dispatcher Digest'));\nconst lastDigestMs = digest ? new Date(digest.created_at).getTime() : 0;\nif (!digest || (now - lastDigestMs) > DIGEST_STALE_H * H) {\n  const staleH = digest ? Math.round((now - lastDigestMs) / H) : null;\n  alerts.push({ kind: 'digest_stale', target: '#493', severity: 'error', stale: staleH ? staleH + 'h' : 'none found', why: 'no dispatcher digest within the 12h active-day window', next: 'Cursor posts a dispatcher digest', anton: false });\n}\nif (Array.isArray(prs) && prs.length > WIP_CAP) {\n  alerts.push({ kind: 'wip_cap', target: 'open PRs', severity: 'error', stale: 'n/a', why: prs.length + ' open PRs exceeds WIP cap of ' + WIP_CAP, next: 'merge or close PRs to drain WIP', anton: true });\n}\nconst candidates = alerts.filter(a => a.severity === 'error' || a.severity === 'fatal');\nconst paging = [];\nfor (const a of candidates) {\n  const key = a.kind + '|' + a.target + '|' + hourBucket;\n  if (seen[key]) continue;\n  seen[key] = true;\n  paging.push(a);\n}\nfor (const key of Object.keys(seen)) {\n  const parts = key.split('|');\n  const bucket = Number(parts[parts.length - 1]);\n  if (Number.isFinite(bucket) && bucket < hourBucket) delete seen[key];\n}\nreturn [{ json: { checked: ['#493 comments', 'open PRs', 'open Action-Plan issues'], alert_count: paging.length, alerts: paging, all_signals: alerts, evaluated_at_utc: new Date(now).toISOString(), dedupe_hour_bucket: hourBucket } }];"
+        "jsCode": "// CorpFlowAI exception-only notifier (#684). Same workflow — open-PR/WIP branch disabled.\n// Canonical mirror: lib/server/ops-notification-policy.js evaluateGithubHeartbeatSignals()\n// + filterHeartbeatAlertsByFingerprintDedupe() + anton-decision-inbox formatExceptionNotifyMessage()\nconst now = Date.now();\nconst staticData = $getWorkflowStaticData('global');\nif (!staticData.exceptionFingerprints || typeof staticData.exceptionFingerprints !== 'object') {\n  staticData.exceptionFingerprints = {};\n}\nconst seen = staticData.exceptionFingerprints;\n\nconst issuesRaw = $('GitHub: open needs:anton issues').all().map(i => i.json).flat();\nconst prs = $('GitHub: open PRs (log only)').all().map(i => i.json).flat();\nconst issues = (Array.isArray(issuesRaw) ? issuesRaw : []).filter(i => i && !i.pull_request);\n\nfunction labelNames(item) {\n  if (!item || !Array.isArray(item.labels)) return [];\n  return item.labels.map(l => (typeof l === 'string' ? l : (l && l.name) || '')).filter(Boolean);\n}\nfunction parsePacket(body) {\n  const text = String(body || '');\n  const marker = '### ANTON DECISION PACKET';\n  const idx = text.indexOf(marker);\n  if (idx < 0) return null;\n  const after = text.slice(idx + marker.length);\n  const nextHeading = after.search(/\\n#{1,3}\\s/);\n  const block = nextHeading >= 0 ? after.slice(0, nextHeading) : after;\n  const out = {};\n  for (const line of block.split('\\n')) {\n    const m = line.match(/^\\s*[-*]?\\s*([A-Za-z0-9_ /-]+)\\s*:\\s*(.+?)\\s*$/);\n    if (!m) continue;\n    const key = m[1].trim().toLowerCase().replace(/[ /]+/g, '_').replace(/_+/g, '_');\n    out[key] = m[2].trim();\n  }\n  return out;\n}\nfunction hasResolved(body, approvalType) {\n  const text = String(body || '');\n  if (!text.includes('### ANTON DECISION RESOLVED')) return false;\n  if (!approvalType) return true;\n  return text.toLowerCase().includes(String(approvalType).toLowerCase());\n}\nfunction fingerprint(parts) {\n  return [parts.kind, parts.target, parts.decisionType, parts.evidence, parts.blockerState].join('|');\n}\n\nconst alerts = [];\nconst allSignals = [];\n\n// Log-only: open PR count / WIP — never page (#684)\nconst openPrCount = Array.isArray(prs) ? prs.length : 0;\nallSignals.push({ kind: 'open_pr_observed', target: 'open PRs', anton: false, why: openPrCount + ' open PR(s) — routine silence' });\nif (openPrCount > 2) {\n  allSignals.push({ kind: 'wip_cap', target: 'open PRs', anton: false, why: 'WIP cap exceeded — log only, no Telegram' });\n}\n\nfor (const issue of issues) {\n  const labels = labelNames(issue);\n  if (!labels.includes('needs:anton')) continue;\n  const packet = parsePacket(issue.body);\n  if (!packet) {\n    allSignals.push({ kind: 'needs_anton_incomplete', target: '#' + issue.number, anton: false, why: 'needs:anton without decision packet — silent' });\n    continue;\n  }\n  const approvalType = labels.find(l => l.startsWith('approval:')) || packet.approval_type || 'approval:merge';\n  if (hasResolved(issue.body, approvalType)) continue;\n  const evidence = packet.target_sha && packet.target_sha !== 'n/a' ? ('sha:' + packet.target_sha) : ('packet:' + (packet.urgency_or_expiry || 'present'));\n  const blockerState = 'needs_anton';\n  const target = '#' + issue.number;\n  const fp = fingerprint({ kind: 'needs_anton', target, decisionType: approvalType, evidence, blockerState });\n  const alert = {\n    kind: 'needs_anton',\n    target,\n    anton: true,\n    decisionType: approvalType,\n    evidence,\n    blockerState,\n    fingerprint: fp,\n    workstream: packet.project_workstream || 'ops',\n    why: packet.exact_decision_required || 'protected-action approval required (needs:anton)',\n    next: packet.exact_decision_required || ('record durable approval for ' + approvalType),\n    recommendation: packet.recommended_decision || 'approve or reject with durable packet',\n    consequence: packet.consequence_of_reject_or_defer || 'protected action remains blocked',\n    link: issue.html_url || ('https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/' + issue.number),\n    urgency: packet.urgency_or_expiry || 'normal',\n  };\n  allSignals.push(alert);\n  if (seen[fp]) continue;\n  seen[fp] = true;\n  alerts.push(alert);\n}\n\nfunction formatMsg(a) {\n  return [\n    'ANTON DECISION INBOX',\n    'Anton required: yes',\n    'Workstream: ' + a.workstream,\n    'Issue/PR: ' + a.target,\n    'Link: ' + a.link,\n    'Why needed now: ' + a.why,\n    'Exact action: ' + a.next,\n    'Recommendation: ' + a.recommendation,\n    'Consequence of delay: ' + a.consequence,\n    'Urgency: ' + (a.urgency || 'normal'),\n  ].join('\\n');\n}\n\nconst alertText = alerts.map(formatMsg).join('\\n\\n---\\n\\n');\nreturn [{ json: {\n  checked: ['needs:anton issues', 'open PRs (log only)'],\n  alert_count: alerts.length,\n  alerts,\n  all_signals: allSignals,\n  should_alert: alerts.length > 0,\n  alert_text: alertText,\n  open_pr_count: openPrCount,\n  evaluated_at_utc: new Date(now).toISOString(),\n  dedupe: 'fingerprint',\n} }];"
       }
     },
     {
       "id": "if-alert",
-      "name": "Any error-level alert?",
+      "name": "Anton required?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [900, 40],
+      "position": [920, 40],
       "parameters": {
         "conditions": {
           "options": { "caseSensitive": true, "typeValidation": "strict" },
           "combinator": "and",
           "conditions": [
             {
-              "leftValue": "={{ $json.alert_count }}",
-              "rightValue": 0,
-              "operator": { "type": "number", "operation": "gt" }
+              "leftValue": "={{ $json.should_alert }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "true" }
             }
           ]
         }
@@ -105,13 +95,13 @@
       "name": "Telegram alert (attach token/chat id in n8n)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1200, -60],
+      "position": [1220, -60],
       "parameters": {
         "method": "POST",
         "url": "=https://api.telegram.org/bot{{ $env.TELEGRAM_BOT_TOKEN }}/sendMessage",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"chat_id\": \"{{ $env.TELEGRAM_ALERT_CHAT_ID }}\",\n  \"text\": {{ JSON.stringify('CorpFlowAI Heartbeat — error — ' + $now.toFormat('dd LLL HH:mm') + ' UTC+4\\n' + $json.alerts.map(a => 'Item: ' + a.target + '\\nWhy: ' + a.why + '\\nNext: ' + a.next + '\\nAnton required: ' + (a.anton ? 'yes' : 'no')).join('\\n---\\n')) }}\n}",
+        "jsonBody": "={\n  \"chat_id\": \"{{ $env.TELEGRAM_ALERT_CHAT_ID }}\",\n  \"text\": {{ JSON.stringify($json.alert_text) }}\n}",
         "options": {}
       }
     },
@@ -120,7 +110,7 @@
       "name": "Silent success (no alert)",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
-      "position": [1200, 160],
+      "position": [1220, 160],
       "parameters": {}
     },
     {
@@ -128,37 +118,33 @@
       "name": "Telegram secret note",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
-      "position": [1160, -300],
+      "position": [1180, -300],
       "parameters": {
         "width": 360,
         "height": 200,
-        "content": "## Telegram = references only\n\n`{{ $env.TELEGRAM_BOT_TOKEN }}` and `{{ $env.TELEGRAM_ALERT_CHAT_ID }}` are **references**, resolved from n8n's own env/credential store at runtime.\n\nNever paste the actual token or chat id into this template, the repo, or chat. Reuse the existing alert path or a dedicated heartbeat bot."
+        "content": "## Telegram = references only\n\n`{{ $env.TELEGRAM_BOT_TOKEN }}` and `{{ $env.TELEGRAM_ALERT_CHAT_ID }}` are **references**, resolved from n8n's own env/credential store at runtime.\n\nNever paste the actual token or chat id into this template, the repo, or chat."
       }
     }
   ],
   "connections": {
-    "Every 3 hours": {
+    "Every 15 minutes": {
       "main": [
         [
-          { "node": "GitHub: #493 comments", "type": "main", "index": 0 },
-          { "node": "GitHub: open PRs", "type": "main", "index": 0 },
-          { "node": "GitHub: open Action-Plan issues", "type": "main", "index": 0 }
+          { "node": "GitHub: open needs:anton issues", "type": "main", "index": 0 },
+          { "node": "GitHub: open PRs (log only)", "type": "main", "index": 0 }
         ]
       ]
     },
-    "GitHub: #493 comments": {
-      "main": [[{ "node": "Evaluate staleness", "type": "main", "index": 0 }]]
+    "GitHub: open needs:anton issues": {
+      "main": [[{ "node": "Evaluate Anton-required exceptions", "type": "main", "index": 0 }]]
     },
-    "GitHub: open PRs": {
-      "main": [[{ "node": "Evaluate staleness", "type": "main", "index": 0 }]]
+    "GitHub: open PRs (log only)": {
+      "main": [[{ "node": "Evaluate Anton-required exceptions", "type": "main", "index": 0 }]]
     },
-    "GitHub: open Action-Plan issues": {
-      "main": [[{ "node": "Evaluate staleness", "type": "main", "index": 0 }]]
+    "Evaluate Anton-required exceptions": {
+      "main": [[{ "node": "Anton required?", "type": "main", "index": 0 }]]
     },
-    "Evaluate staleness": {
-      "main": [[{ "node": "Any error-level alert?", "type": "main", "index": 0 }]]
-    },
-    "Any error-level alert?": {
+    "Anton required?": {
       "main": [
         [{ "node": "Telegram alert (attach token/chat id in n8n)", "type": "main", "index": 0 }],
         [{ "node": "Silent success (no alert)", "type": "main", "index": 0 }]

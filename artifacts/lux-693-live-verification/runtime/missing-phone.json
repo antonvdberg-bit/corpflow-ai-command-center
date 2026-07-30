@@ -1,0 +1,2 @@
+{"error":"EMAIL_AND_TELEPHONE_REQUIRED","hint":"Provide both a valid email address and a telephone number (contact as \"email | telephone\")."}
+HTTP:400

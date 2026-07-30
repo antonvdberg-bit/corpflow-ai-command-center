@@ -190,6 +190,17 @@ test('Jan-approved logo primitives expose fullLockup, horizontalWordmark, monogr
   }
 });
 
+test('RareExclusiveMonogram must not emit SVG <title> (Next.js Head hijack #651)', () => {
+  const src = readFile('components/RareExclusiveBrandMarks.js');
+  // aria-label remains the accessible name; an SVG <title> child was overwriting
+  // document <title> on every Lux public route (live tab text became "… monogram").
+  assert.ok(src.includes('aria-label={title}'));
+  assert.ok(
+    !src.includes('<title>{title}</title>'),
+    'SVG <title> inside RareExclusiveMonogram hijacks Next.js document titles',
+  );
+});
+
 test('/properties surface uses Ivory Editorial shell + curated opportunities framing', () => {
   const src = readFile('components/LuxeMauricePropertiesDirectory.js');
   assert.ok(src.includes('RareExclusiveIvoryHeader'));

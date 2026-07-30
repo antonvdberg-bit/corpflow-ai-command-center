@@ -26,7 +26,7 @@ For routine packet handoffs between ChatGPT (planning author), Anton (operator),
 
 ### Anton Decision Inbox + protected-action gates (#676)
 
-Canonical operator view for genuine Anton decisions: **`docs/operations/ANTON_DECISION_INBOX_V1.md`** (labels `needs:anton` + `approval:*`). Enforceable gates: **`docs/operations/PROTECTED_ACTION_GATES_V1.md`**. Repository UI settings Anton must apply: **`docs/operations/ANTON_DECISION_INBOX_OPERATOR_SETTINGS_PACKET.md`**. Exception-only Telegram design: **`docs/n8n/anton-decision-inbox-exception-notify.md`**. <!-- ANTON_DECISION_INBOX_V1_TODO_LINK -->
+Canonical operator view for genuine Anton decisions: **`docs/operations/ANTON_DECISION_INBOX_V1.md`** (labels `needs:anton` + `approval:*`). Enforceable gates: **`docs/operations/PROTECTED_ACTION_GATES_V1.md`**. Repository UI settings Anton must apply: **`docs/operations/ANTON_DECISION_INBOX_OPERATOR_SETTINGS_PACKET.md`**. Exception-only Telegram design: **`docs/n8n/anton-decision-inbox-exception-notify.md`**. **#684 live n8n correction (disable hourly open-PR heartbeat):** **`docs/runbooks/N8N_EXCEPTION_ONLY_ALERT_LIVE_APPLY_684.md`** — update the existing heartbeat/notifier **in place**; no second workflow. <!-- ANTON_DECISION_INBOX_V1_TODO_LINK -->
 
 ---
 
