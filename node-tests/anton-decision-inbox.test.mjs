@@ -164,10 +164,17 @@ describe('anton-decision-inbox', () => {
       project_workstream: 'ops',
       issue_or_pr: '#676',
       exact_action_required: 'Approve merge',
+      why_needed_now: 'protected merge cannot proceed autonomously',
+      recommendation: 'approve after CI green',
+      consequence_of_delay: 'Decision Inbox item stays blocked',
       urgency: 'P0',
       github_link: 'https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/676',
     });
     assert.equal(msg.ok, true);
+    assert.match(msg.text, /Anton required: yes/);
+    assert.match(msg.text, /Why needed now:/);
+    assert.match(msg.text, /Recommendation:/);
+    assert.match(msg.text, /Consequence of delay:/);
     assert.match(msg.text, /Link: https:\/\//);
     const first = shouldSendExceptionNotification({
       fingerprint: fp,
