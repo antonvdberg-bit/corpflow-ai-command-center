@@ -184,6 +184,17 @@ test('#685 router wires qualification/shortlist into list + patch; email+phone g
   assert.match(router, /shortlist_updated/);
 });
 
+test('#693 concierge-lead-create must not default unknown/core hosts to luxe-maurice', () => {
+  const router = readRepo('lib/cmp/router.js');
+  // Regression: `getClientIdFromHostContext(req) || 'luxe-maurice'` leaked Core creates into Lux.
+  assert.doesNotMatch(
+    router,
+    /getClientIdFromHostContext\(req\)\s*\|\|\s*['"]luxe-maurice['"]/,
+  );
+  assert.match(router, /Concierge lead create requires a mapped tenant host/);
+  assert.match(router, /resolveTenantFromHost\(req\)/);
+});
+
 test('#685 public /concierge still requires email + telephone', () => {
   const concierge = readRepo('pages/concierge.js');
   assert.match(concierge, /emailLooksValid/);
