@@ -47,6 +47,9 @@ export function RareExclusiveMonogram({
 }) {
   const goldId = useGoldGradientId('re-mono-gold');
 
+  // Accessible name via aria-label only — do not render an SVG <title>.
+  // Next.js Head collects every React <title> into document.head, which was
+  // overwriting page meta titles with "… monogram" on live Lux routes (#651).
   return (
     <svg
       width={size}
@@ -56,7 +59,6 @@ export function RareExclusiveMonogram({
       aria-label={title}
       style={{ display: 'block', flexShrink: 0 }}
     >
-      <title>{title}</title>
       <GoldDefs id={goldId} />
       {withPlate ? (
         <rect
