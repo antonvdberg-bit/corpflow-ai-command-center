@@ -36,3 +36,5 @@ activation-audit.json
 # HTML/screenshots from PR #343 verification, queue audits, ticket inspects,
 # sprint-formalization dry-run/execute snapshots. Re-generated locally; never committed.
 .lux-verify/
+# #696 Cursor test-access verify output (non-secret JSON, still local/runtime only).
+artifacts/cursor-test-access/verify-result.json
