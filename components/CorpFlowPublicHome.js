@@ -198,11 +198,7 @@ export default function CorpFlowPublicHome({ host = null, search = null }) {
         </p>
       </PublicTrustBand>
 
-      <OutcomeSection
-        id="offers"
-        label="Optional bounded sprints"
-        title="Also available: focused delivery sprints with starting prices in MUR"
-      >
+      <OutcomeSection id="offers" label="Optional bounded sprints" title="Also available: focused delivery sprints with starting prices in MUR">
         <p style={cfBody}>
           If you already know you need a short, priced sprint (lead response, landing-page rescue or reputation
           recovery), these remain available. Final sprint scope is confirmed after discovery. No guaranteed revenue
