@@ -61,6 +61,7 @@ import {
   normalizeLuxContentSprintCode,
 } from '../lib/client/lux-content-sprint-guidance.js';
 import LuxContentSprintPanel from '../components/LuxContentSprintPanel.js';
+import LuxOperatorControlOrientation from '../components/LuxOperatorControlOrientation.js';
 import {
   SWITCH_WORKSPACE_DATA_ATTR,
   SWITCH_WORKSPACE_LINK_TEXT,
@@ -2900,23 +2901,26 @@ export default function ChangeConsolePage() {
       <div style={{ marginBottom: 14 }}>
         {luxChangeChrome ? (
           <>
+            {/* Issue #704: Lux-only orientation — distinct from public ivory/sand client site. */}
+            <LuxOperatorControlOrientation />
             <div
               style={{
                 fontFamily: luxChangeChrome.fontDisplay,
-                fontSize: 'clamp(1.75rem, 3vw, 2.25rem)',
+                fontSize: 'clamp(1.5rem, 2.6vw, 1.85rem)',
                 fontWeight: 400,
                 color: luxChangeChrome.heroDeep,
                 letterSpacing: -0.3,
               }}
             >
-              LuxeMaurice · Change Console
+              Rare & Exclusive · operator desk
             </div>
             <div style={{ marginTop: 10, color: luxChangeChrome.textMuted, fontSize: 14, lineHeight: 1.65, maxWidth: 720 }}>
-              Private operator workspace — same editorial programme as{' '}
+              Private control space for enquiry review and ticket actions — not the public buyer site.
+              Open{' '}
               <a href="/concierge" style={{ color: luxChangeChrome.gold, textDecoration: 'none' }}>
-                concierge
-              </a>
-              , properties, and the property desk. Pick a ticket, then take one governed action at a time.
+                /concierge
+              </a>{' '}
+              only to submit a test enquiry, then return here to process it.
             </div>
             <div style={{ marginTop: 16, display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'stretch' }}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', flex: '1 1 360px' }}>
