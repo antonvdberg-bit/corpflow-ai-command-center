@@ -24,8 +24,9 @@ export default function CorpFlowPublicFooter({ extra }) {
       >
         <p style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: CF.text }}>CorpFlowAI</p>
         <p style={{ margin: '0 0 16px', fontSize: 14, lineHeight: 1.65, color: CF.textMuted, maxWidth: 640 }}>
-          Bounded delivery sprints for Mauritius operators — lead response, premium web conversion, and customer
-          recovery. ERPNext holds commercial records; CorpFlowAI is the public selling and delivery wrapper.
+          CorpFlowAI designs and operates practical AI-assisted business workflows for owner-led businesses. Optional
+          bounded delivery sprints remain available. ERPNext holds commercial records; CorpFlowAI is the public selling
+          and delivery wrapper.
         </p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, fontSize: 13 }}>
           {offers.map((o) => (
