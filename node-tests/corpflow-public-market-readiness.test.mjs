@@ -91,7 +91,7 @@ describe('CorpFlow public market readiness — shared shell on priority pages', 
   it('homepage uses public photo shell and commercial hero', () => {
     const home = read('components/CorpFlowPublicHome.js');
     assert.ok(home.includes('CorpFlowPublicPhotoShell') || home.includes('CorpFlowPublicShell'));
-    assert.ok(home.includes('OfferCard'));
+    assert.ok(home.includes('MARKET_SERVICE_PATHS') || home.includes('service-paths'));
     assert.ok(home.includes('CORPflow_HOMEPAGE_HERO'));
     assert.ok(home.includes('PublicHero'));
   });
@@ -174,7 +174,11 @@ describe('CorpFlow public market readiness — metadata', () => {
   it('homepage meta description is outcome-led', () => {
     const home = read('components/CorpFlowPublicHome.js');
     assert.ok(home.includes('buildPublicPageMeta'));
-    assert.ok(home.includes('Recover missed revenue') || home.includes('bounded delivery'));
+    assert.ok(
+      home.includes('managed AI-assisted') ||
+        home.includes('workflow systems') ||
+        home.includes('qualified conversation'),
+    );
   });
 });
 

@@ -33,7 +33,7 @@ export default function ContactPage({ luxMode = false, seoHost = '' } = {}) {
   const meta = buildPublicPageMeta({
     title: 'Contact',
     description:
-      'Book a discovery conversation about CorpFlowAI delivery sprints — lead response, premium landing pages, and customer recovery. Mauritius operators welcome.',
+      'Request a qualified conversation with CorpFlowAI about workflow improvement, lead and client systems, or website operating upgrades. No automatic outreach from this form.',
     path: '/contact',
     ogImage: '/assets/visuals/corpflow-contact-hero.jpg',
   });
@@ -43,16 +43,16 @@ export default function ContactPage({ luxMode = false, seoHost = '' } = {}) {
       meta={meta}
       visualKey="contact"
       maxWidth={800}
-      headerCta={{ label: 'View sprints', href: '/offers/ai-lead-rescue' }}
+      headerCta={{ label: 'How we help', href: '/#service-paths' }}
     >
       <h1 style={h1}>Contact</h1>
       <p style={updated}>
-        Submit a structured discovery request. You receive an on-screen reference immediately. Official commercial
-        details are confirmed on invoice.
+        Submit a qualified enquiry. You receive an on-screen reference immediately. Scope and commercial details are
+        confirmed in writing before any invoice. Nothing is sent automatically to email, WhatsApp or SMS.
       </p>
 
       <section style={ps.section} id="discovery">
-        <DiscoveryIntakeForm heading="Book a discovery conversation" />
+        <DiscoveryIntakeForm heading="Request a qualified conversation" />
         <p style={{ ...ps.p, marginTop: 16 }}>
           Prefer email?{' '}
           <a href={discoveryMailto} style={{ color: '#7dd3fc' }}>
@@ -61,12 +61,15 @@ export default function ContactPage({ luxMode = false, seoHost = '' } = {}) {
           (no automatic reference id).
         </p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, margin: '16px 0 8px' }}>
-          <Link href="/offers/ai-lead-rescue" style={cfBtnSecondary}>
-            View delivery sprints
+          <Link href="/lead-rescue" style={cfBtnSecondary}>
+            AI Lead Rescue
+          </Link>
+          <Link href="/offers/premium-landing-page-rescue" style={cfBtnSecondary}>
+            Website Rescue
           </Link>
         </div>
         <p style={ps.p}>
-          Active sprints:{' '}
+          Related product pages:{' '}
           {offers.map((o, i) => (
             <span key={o.slug}>
               {i > 0 ? ' · ' : ''}
@@ -79,10 +82,10 @@ export default function ContactPage({ luxMode = false, seoHost = '' } = {}) {
       </section>
 
       <section style={ps.section}>
-        <h2 style={ps.h2}>Legacy AI Lead Rescue intake (USD pilot)</h2>
+        <h2 style={ps.h2}>AI Lead Rescue intake (USD pilot)</h2>
         <p style={ps.p}>
-          The USD 150 launch pilot uses a separate intake form with persistence to our operator queue — not this MUR
-          discovery form.
+          The USD 150 launch pilot uses a dedicated intake on the Lead Rescue page with persistence to the Lead Rescue
+          operator queue — separate from this market gateway form.
         </p>
         <p style={ps.p}>
           <Link href="/lead-rescue" style={{ color: '#2dd4bf', fontWeight: 700 }}>
