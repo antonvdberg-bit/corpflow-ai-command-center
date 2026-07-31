@@ -143,6 +143,43 @@ describe('rapid-delivery operator helpers', () => {
     assert.equal(item.reference, 'CF-YZ7890');
     assert.equal(item.discovery_notes, 'Wants mobile rewrite');
   });
+
+  it('maps market enquiry service path, source, timing and response draft', () => {
+    const item = leadRowToRapidDeliveryListItem({
+      id: 'mktXYZ7890',
+      name: 'Sam Synthetic',
+      email: 'sam.synthetic@example.com',
+      phone: '+23050000000',
+      message: 'Hotel supplies site needs enquiry path',
+      status: 'NEW_INTAKE',
+      createdAt: new Date('2026-07-31T00:00:00.000Z'),
+      tenantId: 'root',
+      qualificationJson: {
+        intake_meta: {
+          product: RAPID_DELIVERY_PRODUCT,
+          market_enquiry: true,
+          service_path: 'website-digital-operating',
+          business_name: 'Synthetic Hotel Supplies Co',
+          primary_pain: 'Website does not capture supplier enquiries',
+          enquiry_channels: 'Telephone / WhatsApp (stated on form)',
+          website: 'https://example-hotel-supplies.test',
+          urgency: 'this_month',
+          consent_to_contact: true,
+          host: 'corpflowai.com',
+          message: 'Synthetic verification enquiry',
+        },
+        rapid_delivery_operator: { status: 'new_intake', notes: '' },
+      },
+    });
+    assert.equal(item.service_path, 'website-digital-operating');
+    assert.match(item.service_path_title || '', /Website/);
+    assert.equal(item.source_host, 'corpflowai.com');
+    assert.equal(item.urgency, 'this_month');
+    assert.equal(item.consent_to_contact, true);
+    assert.ok(item.recommended_next_action);
+    assert.match(item.response_draft, /Sam Synthetic/);
+    assert.match(item.response_draft, /CF-/);
+  });
 });
 
 describe('rapid-delivery revenue desk UX', () => {
@@ -172,8 +209,13 @@ describe('rapid-delivery revenue desk UX', () => {
 
   it('desk includes lead detail fields and proposal sections', () => {
     assert.ok(desk.includes('data-lead-detail'));
-    assert.ok(desk.includes('Discovery notes'));
+    assert.ok(desk.includes('Problem summary / discovery notes') || desk.includes('Discovery notes'));
     assert.ok(desk.includes('Enquiry channels'));
+    assert.ok(desk.includes('data-recommended-next-action'));
+    assert.ok(desk.includes('data-operator-notes'));
+    assert.ok(desk.includes('data-response-draft'));
+    assert.ok(desk.includes('Copy response draft'));
+    assert.ok(desk.includes('Service path'));
     assert.ok(desk.includes('data-proposal-preview'));
     assert.ok(desk.includes('Recommended sprint'));
     assert.ok(desk.includes('Delivery proof'));

@@ -21,7 +21,7 @@ const updated = { color: '#9fb2c8', fontSize: 13, marginBottom: 24 };
 /**
  * /contact — host-aware.
  * - lux.corpflowai.com → Rare & Exclusive Collection contact / advisory path
- * - apex / other → CorpFlowAI discovery contact
+ * - apex / other → CorpFlowAI qualified enquiry
  */
 export default function ContactPage({ luxMode = false, seoHost = '' } = {}) {
   if (luxMode) {
@@ -33,7 +33,7 @@ export default function ContactPage({ luxMode = false, seoHost = '' } = {}) {
   const meta = buildPublicPageMeta({
     title: 'Contact',
     description:
-      'Book a discovery conversation about CorpFlowAI delivery sprints — lead response, premium landing pages, and customer recovery. Mauritius operators welcome.',
+      'Start a qualified CorpFlowAI enquiry for managed workflow delivery — administration, lead and client systems, or website operating upgrades. Human operator follow-up; no automatic outreach.',
     path: '/contact',
     ogImage: '/assets/visuals/corpflow-contact-hero.jpg',
   });
@@ -43,16 +43,16 @@ export default function ContactPage({ luxMode = false, seoHost = '' } = {}) {
       meta={meta}
       visualKey="contact"
       maxWidth={800}
-      headerCta={{ label: 'View sprints', href: '/offers/ai-lead-rescue' }}
+      headerCta={{ label: 'View service paths', href: '/#service-paths' }}
     >
       <h1 style={h1}>Contact</h1>
       <p style={updated}>
-        Submit a structured discovery request. You receive an on-screen reference immediately. Official commercial
-        details are confirmed on invoice.
+        Submit a structured enquiry. You receive an on-screen reference immediately. A CorpFlowAI operator reviews fit
+        before any commercial next step — no automatic email or messaging from this page.
       </p>
 
       <section style={ps.section} id="discovery">
-        <DiscoveryIntakeForm heading="Book a discovery conversation" />
+        <DiscoveryIntakeForm heading="Start a qualified enquiry" />
         <p style={{ ...ps.p, marginTop: 16 }}>
           Prefer email?{' '}
           <a href={discoveryMailto} style={{ color: '#7dd3fc' }}>
@@ -61,12 +61,15 @@ export default function ContactPage({ luxMode = false, seoHost = '' } = {}) {
           (no automatic reference id).
         </p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, margin: '16px 0 8px' }}>
+          <Link href="/#service-paths" style={cfBtnSecondary}>
+            View service paths
+          </Link>
           <Link href="/offers/ai-lead-rescue" style={cfBtnSecondary}>
             View delivery sprints
           </Link>
         </div>
         <p style={ps.p}>
-          Active sprints:{' '}
+          Optional priced sprints:{' '}
           {offers.map((o, i) => (
             <span key={o.slug}>
               {i > 0 ? ' · ' : ''}
@@ -81,8 +84,8 @@ export default function ContactPage({ luxMode = false, seoHost = '' } = {}) {
       <section style={ps.section}>
         <h2 style={ps.h2}>Legacy AI Lead Rescue intake (USD pilot)</h2>
         <p style={ps.p}>
-          The USD 150 launch pilot uses a separate intake form with persistence to our operator queue — not this MUR
-          discovery form.
+          The USD 150 launch pilot uses a separate intake form with persistence to our operator queue — not this
+          qualified enquiry form.
         </p>
         <p style={ps.p}>
           <Link href="/lead-rescue" style={{ color: '#2dd4bf', fontWeight: 700 }}>

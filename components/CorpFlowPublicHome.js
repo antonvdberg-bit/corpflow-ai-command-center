@@ -12,8 +12,10 @@ import {
   buildPublicPageMeta,
   CORPflow_DELIVERY_STEPS,
   CORPflow_HOMEPAGE_HERO,
-  CORPflow_PROOF_EXAMPLE,
+  CORPflow_PROOF_ITEMS,
+  CORPflow_TRUST_POINTS,
   listPublicOffers,
+  listPublicServicePaths,
 } from '../lib/public/corpflow-public-market.js';
 import { shouldEmitCorpFlowBrandAssets } from '../lib/public/corpflow-brand-assets.js';
 import { cfBody, cfCard, cfGrid, CF } from './public/corpflow-public-styles.js';
@@ -21,9 +23,9 @@ import { cfBody, cfCard, cfGrid, CF } from './public/corpflow-public-styles.js';
 const FLAGSHIP_VIDEO_PATH = '/media/corpflowai/corpflowai-flagship-homepage-final-1080p.mp4';
 
 const meta = buildPublicPageMeta({
-  title: 'CorpFlowAI — bounded delivery sprints',
+  title: 'CorpFlowAI — practical AI-assisted business workflows',
   description:
-    'Recover missed revenue, repair weak digital journeys, and launch working client experiences quickly. Lead response, premium landing pages, and customer recovery sprints from Mauritius.',
+    'CorpFlowAI designs and operates practical AI-assisted workflow systems for owner-led businesses. Managed delivery for administration, lead handling and digital operating upgrades — not generic AI advice.',
   path: '/',
   ogImage: '/assets/visuals/corpflow-home-hero.jpg',
 });
@@ -88,6 +90,7 @@ function FlagshipVideoSection() {
  * @param {{ homepageAssets?: unknown, host?: string | null, search?: string | null }} props
  */
 export default function CorpFlowPublicHome({ host = null, search = null }) {
+  const servicePaths = listPublicServicePaths();
   const offers = listPublicOffers();
   const showFlagshipVideo = shouldEmitCorpFlowBrandAssets(host, { search });
 
@@ -103,10 +106,107 @@ export default function CorpFlowPublicHome({ host = null, search = null }) {
 
       {showFlagshipVideo ? <FlagshipVideoSection /> : null}
 
-      <OutcomeSection id="offers" label="What you can buy now" title="Three delivery sprints — starting prices in MUR">
+      <OutcomeSection
+        id="service-paths"
+        label="Who this is for"
+        title="Three practical service paths for owner-led businesses"
+      >
         <p style={cfBody}>
-          Final scope is confirmed after discovery. Third-party fees are quoted separately where applicable. No
-          guaranteed revenue outcomes.
+          Choose the route that matches the work you need improved. Scope is confirmed after a qualified enquiry —
+          no fixed public prices, revenue guarantees or fabricated outcomes on this page.
+        </p>
+        <div style={cfGrid}>
+          {servicePaths.map((path) => (
+            <div key={path.id} style={cfCard} data-service-path={path.id}>
+              <h3 style={{ margin: '0 0 10px', fontSize: 18, color: CF.text }}>{path.title}</h3>
+              <p style={{ ...cfBody, margin: '0 0 12px', fontSize: 14.5 }}>{path.summary}</p>
+              <ul style={{ ...cfBody, margin: 0, paddingLeft: 18, fontSize: 14 }}>
+                {path.bullets.map((b) => (
+                  <li key={b} style={{ marginBottom: 6 }}>
+                    {b}
+                  </li>
+                ))}
+              </ul>
+              <p style={{ margin: '14px 0 0' }}>
+                <Link
+                  href={`/contact?path=${encodeURIComponent(path.id)}#discovery`}
+                  style={{ color: CF.link, fontWeight: 650, fontSize: 14 }}
+                >
+                  Enquire about this path →
+                </Link>
+              </p>
+            </div>
+          ))}
+        </div>
+      </OutcomeSection>
+
+      <div id="how-we-deliver">
+        <DeliverySteps
+          label="Delivery method"
+          title="Understand → design → build → verify → review → improve"
+          steps={CORPflow_DELIVERY_STEPS}
+        />
+      </div>
+
+      <OutcomeSection label="Proof" title="What CorpFlowAI has already demonstrated in controlled delivery">
+        <p style={cfBody}>
+          Evidence below is factual CorpFlowAI test-delivery capability. It does not claim named public client
+          endorsements, confidential results or guaranteed outcomes.
+        </p>
+        <div style={cfGrid}>
+          {CORPflow_PROOF_ITEMS.map((item) => (
+            <div key={item.id} style={cfCard} data-proof-item={item.id}>
+              <h3 style={{ margin: '0 0 10px', fontSize: 17, color: CF.text }}>{item.title}</h3>
+              <p style={cfBody}>
+                <strong style={{ color: CF.text }}>Problem:</strong> {item.problem}
+              </p>
+              <p style={cfBody}>
+                <strong style={{ color: CF.text }}>Delivered:</strong> {item.delivered}
+              </p>
+              <p style={cfBody}>
+                <strong style={{ color: CF.text }}>Approach:</strong> {item.approach}
+              </p>
+              <p style={{ ...cfBody, fontSize: 13, color: CF.textFaint, marginBottom: item.publicLink ? 10 : 0 }}>
+                {item.note}
+              </p>
+              {item.publicLink ? (
+                <Link href={item.publicLink.href} style={{ color: CF.link, fontWeight: 600 }}>
+                  {item.publicLink.label} →
+                </Link>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      </OutcomeSection>
+
+      <OutcomeSection label="Trust and safety" title="How delivery stays controlled">
+        <div style={cfGrid}>
+          {CORPflow_TRUST_POINTS.map((t) => (
+            <div key={t.title} style={cfCard}>
+              <h3 style={{ margin: '0 0 8px', fontSize: 16, color: CF.text }}>{t.title}</h3>
+              <p style={{ ...cfBody, margin: 0, fontSize: 14.5 }}>{t.body}</p>
+            </div>
+          ))}
+        </div>
+      </OutcomeSection>
+
+      <PublicTrustBand>
+        <p style={{ ...cfBody, margin: 0, color: '#eef6ff' }}>
+          CorpFlowAI provides managed delivery of practical workflow systems — not software licences alone and not
+          generic AI consulting. Enquiries create an operator-visible record for human follow-up. No automatic email,
+          WhatsApp or SMS is sent from this site.
+        </p>
+      </PublicTrustBand>
+
+      <OutcomeSection
+        id="offers"
+        label="Optional bounded sprints"
+        title="Also available: focused delivery sprints with starting prices in MUR"
+      >
+        <p style={cfBody}>
+          If you already know you need a short, priced sprint (lead response, landing-page rescue or reputation
+          recovery), these remain available. Final sprint scope is confirmed after discovery. No guaranteed revenue
+          outcomes.
         </p>
         <div style={cfGrid}>
           {offers.map((offer) => (
@@ -115,65 +215,11 @@ export default function CorpFlowPublicHome({ host = null, search = null }) {
         </div>
       </OutcomeSection>
 
-      <OutcomeSection label="Why revenue leaks" title="Slow follow-up, weak pages, and silent complaints cost real money">
-        <ul style={{ ...cfBody, paddingLeft: 20, margin: 0 }}>
-          <li>Enquiries arrive across WhatsApp, email, forms, and social — but no one owns the follow-up path.</li>
-          <li>Landing pages hide the offer or fail on mobile, so buyers bounce before they reach you.</li>
-          <li>Complaints and reviews stack up in DMs while the team responds ad hoc or not at all.</li>
-        </ul>
-      </OutcomeSection>
-
-      <DeliverySteps steps={CORPflow_DELIVERY_STEPS} />
-
-      <OutcomeSection label="Proof" title={CORPflow_PROOF_EXAMPLE.title}>
-        <div style={cfCard}>
-          <p style={cfBody}>
-            <strong style={{ color: CF.text }}>Problem:</strong> {CORPflow_PROOF_EXAMPLE.problem}
-          </p>
-          <p style={cfBody}>
-            <strong style={{ color: CF.text }}>Delivered:</strong> {CORPflow_PROOF_EXAMPLE.delivered}
-          </p>
-          <p style={cfBody}>
-            <strong style={{ color: CF.text }}>Approach:</strong> {CORPflow_PROOF_EXAMPLE.approach}
-          </p>
-          <p style={{ ...cfBody, fontSize: 13, color: CF.textFaint }}>
-            Named case study publication: {CORPflow_PROOF_EXAMPLE.namedPublication} (internal register — not a public
-            legal claim).
-          </p>
-          <Link href={CORPflow_PROOF_EXAMPLE.publicLink.href} style={{ color: CF.link, fontWeight: 600 }}>
-            {CORPflow_PROOF_EXAMPLE.publicLink.label} →
-          </Link>
-        </div>
-      </OutcomeSection>
-
-      <PublicTrustBand>
-        <p style={{ ...cfBody, margin: 0, color: '#eef6ff' }}>
-          ERPNext remains the system of record for prospects, quotes, and deposits. CorpFlowAI is the public selling and
-          delivery wrapper — visible output within 24–72 hours after deposit clearance, without revenue guarantees.
-        </p>
-      </PublicTrustBand>
-
-      <OutcomeSection label="Engagement model" title="Starting prices — final scope after discovery">
-        <ul style={{ ...cfBody, paddingLeft: 20, margin: 0 }}>
-          <li>AI Lead Rescue Sprint — from MUR 35,000</li>
-          <li>Premium Landing Page Rescue — from MUR 45,000</li>
-          <li>Customer Recovery &amp; Reputation Management Sprint — from MUR 45,000</li>
-          <li>50% deposit before work commences; balance per quote</li>
-          <li>
-            Legacy USD 150 launch pilot remains at{' '}
-            <Link href="/lead-rescue" style={{ color: CF.link }}>
-              /lead-rescue
-            </Link>{' '}
-            — separate funnel
-          </li>
-        </ul>
-      </OutcomeSection>
-
       <PublicCtaBand
-        title="Ready to start a discovery conversation?"
-        body="Tell us your business name, how customers reach you, and which problem hurts most. We confirm fit, scope, deposit, and timeline before any invoice."
+        title="Ready to start a qualified enquiry?"
+        body="Tell us your business, the problem to improve, your preferred service path and timing. You receive an on-screen reference immediately. A CorpFlowAI operator reviews fit before any commercial next step."
         primaryCta={CORPflow_HOMEPAGE_HERO.primaryCta}
-        secondaryCta={{ label: 'View all sprints', href: '/offers/ai-lead-rescue' }}
+        secondaryCta={{ label: 'View delivery sprints', href: '/offers/ai-lead-rescue' }}
       />
     </CorpFlowPublicPhotoShell>
   );

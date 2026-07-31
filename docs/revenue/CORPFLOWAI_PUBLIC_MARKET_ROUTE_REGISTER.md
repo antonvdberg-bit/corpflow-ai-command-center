@@ -1,6 +1,6 @@
 # CorpFlowAI public market route register
 
-**Status:** Operator inventory · **Updated:** 2026-07-13  
+**Status:** Operator inventory · **Updated:** 2026-07-31 (#699)  
 **Anchor:** `<!-- CORPFLOWAI_PUBLIC_MARKET_ROUTE_REGISTER_V1 -->`
 
 <!-- CORPFLOWAI_PUBLIC_MARKET_ROUTE_REGISTER_V1 -->
@@ -13,11 +13,11 @@ Physical register of routes an unauthenticated prospect could reach on **`corpfl
 
 | Route | Purpose | Target buyer | Status | Visual family | Primary CTA | CTA destination | Mobile | Trust | Analytics | Launch decision | Required action |
 | ----- | ------- | ------------ | ------ | ------------- | ----------- | --------------- | ------ | ----- | --------- | --------------- | --------------- |
-| `/` | Market entrance — three sprints + discovery | Mauritius SMB owner/ops lead | **Aligned** | CorpFlow public shell (editorial) | Book a discovery conversation | `/contact` | Header menu + responsive grid | Footer privacy/terms + merchant identity | Plausible when configured | **KEEP_AND_ALIGN** | Live verify after merge |
+| `/` | Market entrance — managed workflow proposition + three service paths + proof/trust + optional sprints | Owner/management-led SMB | **Aligned (#699)** | CorpFlow public photo shell | Start a qualified enquiry | `/contact#discovery` | Header menu + responsive grid | Trust/safety section + footer privacy/terms | Plausible when configured | **KEEP_AND_ALIGN** | Live verify after merge |
 | `/offers/ai-lead-rescue` | Lead rescue sprint offer | Multi-channel enquiry pain | **Aligned** | Photo + glass + shared header | Request Discovery Call | `mailto:support@corpflowai.com` | Glass stack + shared nav | FAQ + not-included + footer | Event `revenue_offer_cta_click` | **KEEP_AND_ALIGN** | Live verify |
 | `/offers/premium-landing-page-rescue` | Landing page rescue | Weak conversion page | **Aligned** | Photo + glass + shared header | Request Discovery Call | mailto | Same | Same | Same | **KEEP_AND_ALIGN** | Live verify |
 | `/offers/customer-reputation-recovery` | Recovery sprint | Reviews/complaints spike | **Aligned** | Photo + glass + shared header | Request Discovery Call | mailto | Same | Same | Same | **KEEP_AND_ALIGN** | Live verify |
-| `/contact` | Discovery + service contact | Pre-sale enquiries | **Aligned** | PublicPolicyLayout + shared header | Email to book discovery | mailto | Menu + buttons | Customer service + complaints | — | **KEEP_AND_ALIGN** | Live verify |
+| `/contact` | Qualified enquiry intake | Pre-sale enquiries | **Aligned (#699)** | Photo shell + discovery form | Submit enquiry | `POST /api/tenant/intake` | Menu + form | Consent + no auto-send copy | — | **KEEP_AND_ALIGN** | Live verify |
 | `/privacy` | Privacy policy | All visitors | Existing | PublicPolicyLayout + shared header | — | — | Menu | Linked from footer | — | **KEEP_AND_ALIGN** | Periodic legal review |
 | `/terms` | Terms | All visitors | Existing | PublicPolicyLayout + shared header | — | — | Menu | Linked from footer | — | **KEEP_AND_ALIGN** | Periodic legal review |
 

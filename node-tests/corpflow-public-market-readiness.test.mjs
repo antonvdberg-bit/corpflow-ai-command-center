@@ -139,6 +139,24 @@ describe('CorpFlow public market readiness — three offer prices', () => {
 describe('CorpFlow public market readiness — CTA destinations', () => {
   it('homepage primary CTA targets discovery form', () => {
     assert.equal(CORPflow_HOMEPAGE_HERO.primaryCta.href, '/contact#discovery');
+    assert.match(CORPflow_HOMEPAGE_HERO.primaryCta.label, /enquiry|discovery/i);
+  });
+
+  it('homepage presents three market service paths and delivery method', () => {
+    const home = read('components/CorpFlowPublicHome.js');
+    const market = read('lib/public/corpflow-public-market.js');
+    const paths = read('lib/public/corpflow-service-paths.js');
+    assert.ok(home.includes('service-paths'));
+    assert.ok(home.includes('listPublicServicePaths'));
+    assert.ok(home.includes('CORPflow_PROOF_ITEMS'));
+    assert.ok(home.includes('CORPflow_TRUST_POINTS'));
+    assert.ok(home.includes('how-we-deliver'));
+    assert.ok(market.includes('Understand'));
+    assert.ok(market.includes('Improve'));
+    assert.ok(market.includes('corpflow-service-paths'));
+    assert.ok(paths.includes('workflow-administration'));
+    assert.ok(paths.includes('client-lead-service-delivery'));
+    assert.ok(paths.includes('website-digital-operating'));
   });
 
   it('public surfaces do not link primary flows to /change', () => {
@@ -174,7 +192,23 @@ describe('CorpFlow public market readiness — metadata', () => {
   it('homepage meta description is outcome-led', () => {
     const home = read('components/CorpFlowPublicHome.js');
     assert.ok(home.includes('buildPublicPageMeta'));
-    assert.ok(home.includes('Recover missed revenue') || home.includes('bounded delivery'));
+    assert.ok(
+      home.includes('practical AI-assisted') ||
+        home.includes('managed workflow') ||
+        home.includes('bounded delivery') ||
+        home.includes('delivery sprints'),
+    );
+  });
+
+  it('discovery form captures market enquiry fields without live send', () => {
+    const form = read('components/public/DiscoveryIntakeForm.js');
+    assert.ok(form.includes('service_path') || form.includes('servicePath'));
+    assert.ok(form.includes('consent'));
+    assert.ok(form.includes('urgency'));
+    assert.ok(form.includes('website'));
+    assert.ok(form.includes("fetch('/api/tenant/intake'"));
+    assert.ok(!form.includes('mailto:send'));
+    assert.ok(!/fetch\(['\"]https?:\/\/api\.whatsapp/i.test(form));
   });
 });
 

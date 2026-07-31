@@ -105,12 +105,17 @@ export default function RapidDeliveryRevenueDesk({ initialLeads = null, initialE
   const [proposal, setProposal] = useState(null);
   const [proposalOpen, setProposalOpen] = useState(false);
   const [copyFlash, setCopyFlash] = useState('');
+  const [notesDraft, setNotesDraft] = useState('');
   const [refreshedAt, setRefreshedAt] = useState(() => (hasInitial ? new Date().toISOString() : null));
 
   const selected = useMemo(
     () => (leads || []).find((l) => l.id === selectedId) || null,
     [leads, selectedId],
   );
+
+  useEffect(() => {
+    setNotesDraft(selected?.operator_notes != null ? String(selected.operator_notes) : '');
+  }, [selected?.id, selected?.operator_notes]);
 
   const cardCounts = useMemo(() => countRapidDeliverySummaryCards(leads || []), [leads]);
 
@@ -138,7 +143,7 @@ export default function RapidDeliveryRevenueDesk({ initialLeads = null, initialE
     if (!hasInitial && !initialError) refresh();
   }, [hasInitial, initialError, refresh]);
 
-  async function patchStatus(id, status) {
+  async function patchLead(id, patch) {
     setBusyId(id);
     setSaveState((s) => ({ ...s, [id]: 'Saving…' }));
     try {
@@ -146,11 +151,11 @@ export default function RapidDeliveryRevenueDesk({ initialLeads = null, initialE
         method: 'PATCH',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, status }),
+        body: JSON.stringify({ id, ...patch }),
       });
       const data = await r.json().catch(() => ({}));
       if (!r.ok || !data.ok) {
-        throw new Error(data.message || data.error || 'Status update failed');
+        throw new Error(data.message || data.error || 'Update failed');
       }
       const lead = data.lead;
       if (lead?.id) {
@@ -162,6 +167,7 @@ export default function RapidDeliveryRevenueDesk({ initialLeads = null, initialE
                   ...lead,
                   operator_status: lead.operator_status,
                   operator_status_label: rapidDeliveryStatusLabel(lead.operator_status),
+                  operator_notes: lead.operator_notes ?? lead.rapid_delivery_operator?.notes ?? row.operator_notes,
                 }
               : row,
           ),
@@ -180,11 +186,19 @@ export default function RapidDeliveryRevenueDesk({ initialLeads = null, initialE
     } catch (e) {
       setSaveState((s) => ({ ...s, [id]: 'Error' }));
       setError({
-        message: e instanceof Error ? e.message : 'Status update failed',
+        message: e instanceof Error ? e.message : 'Update failed',
       });
     } finally {
       setBusyId(null);
     }
+  }
+
+  async function patchStatus(id, status) {
+    return patchLead(id, { status });
+  }
+
+  async function saveNotes(id) {
+    return patchLead(id, { notes: notesDraft });
   }
 
   async function prepareProposal(id) {
@@ -267,8 +281,9 @@ export default function RapidDeliveryRevenueDesk({ initialLeads = null, initialE
               Rapid-delivery discovery desk
             </h1>
             <p style={{ margin: 0, maxWidth: 720, color: c.muted, lineHeight: 1.55, fontSize: 14.5 }}>
-              Review discovery requests from CorpFlowAI contact and offer pages. Qualify prospects, prepare a
-              proposal summary, then record commercial state in ERPNext. Mauritius sprint clients pay in MUR
+              Review CorpFlowAI market enquiries and sprint discovery requests from contact and offer pages. See
+              source, service path, timing, status, recommended next action and a copy-ready response draft.
+              Qualify prospects, then record commercial state in ERPNext. Mauritius sprint clients pay in MUR
               (bank transfer) — do not request USD for that path. {MANUAL_APPROVAL}
             </p>
             <div
@@ -380,7 +395,7 @@ export default function RapidDeliveryRevenueDesk({ initialLeads = null, initialE
               <table className="rd-desk-table" style={{ background: c.panel, borderRadius: 14, overflow: 'hidden' }}>
                 <thead>
                   <tr>
-                    {['Reference', 'Business / contact', 'Offer', 'Received', 'Status', 'Actions'].map((h) => (
+                    {['Reference', 'Business / contact', 'Path / offer', 'Received', 'Status', 'Actions'].map((h) => (
                       <th
                         key={h}
                         style={{
@@ -422,7 +437,12 @@ export default function RapidDeliveryRevenueDesk({ initialLeads = null, initialE
                             {truncate(row.primary_pain, 80)}
                           </div>
                         </td>
-                        <td style={tdCell}>{row.offer_title || row.offer_slug || '—'}</td>
+                        <td style={tdCell}>
+                          {row.service_path_title || row.offer_title || row.offer_slug || '—'}
+                          {row.source_host ? (
+                            <div style={{ color: c.faint, fontSize: 12, marginTop: 4 }}>Source: {row.source_host}</div>
+                          ) : null}
+                        </td>
                         <td style={{ ...tdCell, whiteSpace: 'nowrap', color: c.muted, fontSize: 12.5 }}>
                           {formatReceived(row.created_at)}
                         </td>
@@ -478,7 +498,7 @@ export default function RapidDeliveryRevenueDesk({ initialLeads = null, initialE
                       </div>
                       <h2 style={{ margin: '10px 0 4px', fontSize: 17 }}>{row.business_name || row.name || '—'}</h2>
                       <p style={{ margin: 0, color: c.muted, fontSize: 13.5 }}>
-                        {row.name || '—'} · {row.offer_title || row.offer_slug || '—'}
+                        {row.name || '—'} · {row.service_path_title || row.offer_title || row.offer_slug || '—'}
                       </p>
                       <p style={{ margin: '8px 0 0', color: c.faint, fontSize: 12.5 }}>
                         Received {formatReceived(row.created_at)}
@@ -539,12 +559,17 @@ export default function RapidDeliveryRevenueDesk({ initialLeads = null, initialE
                 }}
               >
                 {[
+                  ['Source', selected.source_host || '—'],
                   ['Business', selected.business_name || '—'],
                   ['Contact', selected.name || '—'],
                   ['Email', selected.email || '—'],
-                  ['Phone', selected.phone || '—'],
+                  ['Telephone', selected.phone || '—'],
+                  ['Website', selected.website || '—'],
                   ['Enquiry channels', selected.enquiry_channels || '—'],
+                  ['Service path', selected.service_path_title || selected.service_path || '—'],
                   ['Selected offer', selected.offer_title || selected.offer_slug || '—'],
+                  ['Timing', selected.urgency_label || selected.urgency || '—'],
+                  ['Consent to contact', selected.consent_to_contact ? 'Yes' : '—'],
                   ['Primary pain', selected.primary_pain || '—'],
                   ['Status', rapidDeliveryStatusLabel(selected.operator_status)],
                   ['Reference', selected.reference],
@@ -558,13 +583,92 @@ export default function RapidDeliveryRevenueDesk({ initialLeads = null, initialE
                   </div>
                 ))}
               </dl>
+              <div style={{ marginTop: 14 }} data-recommended-next-action>
+                <div style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: c.faint }}>
+                  Recommended next action
+                </div>
+                <p style={{ margin: '6px 0 0', color: c.text, lineHeight: 1.55, fontWeight: 600 }}>
+                  {selected.recommended_next_action || '—'}
+                </p>
+              </div>
               <div style={{ marginTop: 14 }}>
                 <div style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: c.faint }}>
-                  Discovery notes
+                  Problem summary / discovery notes
                 </div>
                 <p style={{ margin: '6px 0 0', color: c.muted, lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>
-                  {selected.discovery_notes || '—'}
+                  {selected.primary_pain || '—'}
+                  {selected.discovery_notes && selected.discovery_notes !== selected.primary_pain
+                    ? `\n\n${selected.discovery_notes}`
+                    : ''}
                 </p>
+              </div>
+              <div style={{ marginTop: 16 }} data-operator-notes>
+                <label style={{ display: 'block' }}>
+                  <span
+                    style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: c.faint }}
+                  >
+                    Operator notes
+                  </span>
+                  <textarea
+                    value={notesDraft}
+                    onChange={(ev) => setNotesDraft(ev.target.value)}
+                    rows={4}
+                    style={{
+                      display: 'block',
+                      width: '100%',
+                      marginTop: 6,
+                      boxSizing: 'border-box',
+                      padding: '10px 12px',
+                      borderRadius: 10,
+                      border: `1px solid ${c.panelBorder}`,
+                      background: 'rgba(0,0,0,0.22)',
+                      color: c.text,
+                      fontFamily: 'inherit',
+                      fontSize: 14,
+                      lineHeight: 1.5,
+                      resize: 'vertical',
+                    }}
+                  />
+                </label>
+                <button
+                  type="button"
+                  style={{ ...btnPrimary, marginTop: 10 }}
+                  disabled={busyId === selected.id}
+                  onClick={() => saveNotes(selected.id)}
+                >
+                  Save notes
+                </button>
+                {saveState[selected.id] ? (
+                  <span style={{ marginLeft: 10, color: c.faint, fontSize: 13 }}>{saveState[selected.id]}</span>
+                ) : null}
+              </div>
+              <div style={{ marginTop: 16 }} data-response-draft>
+                <div style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: c.faint }}>
+                  Copy-ready response draft (no live send)
+                </div>
+                <pre
+                  style={{
+                    margin: '8px 0 0',
+                    padding: 12,
+                    borderRadius: 10,
+                    border: `1px solid ${c.panelBorder}`,
+                    background: 'rgba(0,0,0,0.22)',
+                    color: c.muted,
+                    whiteSpace: 'pre-wrap',
+                    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+                    fontSize: 12.5,
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {selected.response_draft || '—'}
+                </pre>
+                <button
+                  type="button"
+                  style={{ ...btnGhost, marginTop: 10 }}
+                  onClick={() => copyText('Response draft copied', selected.response_draft || '')}
+                >
+                  Copy response draft
+                </button>
               </div>
               <div style={{ marginTop: 16, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 <button type="button" style={btnPrimary} onClick={() => prepareProposal(selected.id)}>
