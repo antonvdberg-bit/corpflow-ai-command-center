@@ -228,15 +228,32 @@ export default function AiLeadRescueLanding({ host = '', search = '', leadRescue
     trackEvent('lr_intake_submit_attempt');
     const form = e.currentTarget;
     const fd = new FormData(form);
+    const consent = fd.get('consent_contact') === 'on' || fd.get('consent_contact') === 'true';
+    if (!consent) {
+      setIntakeError('Please confirm we may contact you about this enquiry.');
+      setIntakeBusy(false);
+      return;
+    }
+    const phone = String(fd.get('phone') || '').trim();
+    if (!phone) {
+      setIntakeError('Telephone or WhatsApp number is required.');
+      setIntakeBusy(false);
+      return;
+    }
     const payload = {
       name: String(fd.get('name') || '').trim(),
       email: String(fd.get('email') || '').trim(),
-      phone: String(fd.get('phone') || '').trim(),
+      phone,
       intent: String(fd.get('message') || '').trim(),
       meta: {
         product: 'ai-lead-rescue',
         business_name: String(fd.get('business_name') || '').trim(),
         lead_sources: String(fd.get('lead_sources') || '').trim(),
+        website: String(fd.get('website') || '').trim(),
+        urgency: String(fd.get('urgency') || '').trim() || 'this-month',
+        consent_contact: true,
+        service_path: 'client-lead-service',
+        source: 'ai-lead-rescue',
         host,
         page: '/lead-rescue',
       },
@@ -617,9 +634,20 @@ export default function AiLeadRescueLanding({ host = '', search = '', leadRescue
                   <input required name="business_name" placeholder="Business name" style={styles.input} />
                   <input required name="name" placeholder="Your name" style={styles.input} />
                   <input required type="email" name="email" placeholder="Email" style={styles.input} />
-                  <input name="phone" placeholder="Phone / WhatsApp" style={styles.input} />
+                  <input required name="phone" placeholder="Phone / WhatsApp" style={styles.input} />
+                  <input name="website" type="url" placeholder="Website (if any) — https://" style={styles.input} />
                   <input name="lead_sources" placeholder="Where do leads arrive now? Website, email, WhatsApp, Facebook..." style={styles.input} />
+                  <select required name="urgency" defaultValue="this-month" style={styles.input} aria-label="Urgency / timing">
+                    <option value="asap">Timing: as soon as practical</option>
+                    <option value="this-month">Timing: within this month</option>
+                    <option value="next-quarter">Timing: next quarter</option>
+                    <option value="exploring">Timing: exploring options</option>
+                  </select>
                   <textarea required name="message" rows="4" placeholder="What lead follow-up problem should we fix first?" style={styles.input} />
+                  <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', color: muted, fontSize: 13 }}>
+                    <input required type="checkbox" name="consent_contact" style={{ marginTop: 3, width: 18, height: 18 }} />
+                    <span>I consent to be contacted by CorpFlowAI about this enquiry. No automatic email, WhatsApp or SMS is sent from this form.</span>
+                  </label>
                   {intakeError ? (
                     <p role="alert" data-testid="lead-rescue-intake-error" style={{ margin: 0, color: '#fca5a5', fontSize: 14 }}>
                       {intakeError}

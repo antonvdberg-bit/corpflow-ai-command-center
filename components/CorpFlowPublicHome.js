@@ -3,27 +3,28 @@ import Link from 'next/link';
 
 import CorpFlowPublicPhotoShell from './public/CorpFlowPublicPhotoShell.js';
 import PublicHero from './public/PublicHero.js';
-import OfferCard from './public/OfferCard.js';
 import OutcomeSection from './public/OutcomeSection.js';
 import DeliverySteps from './public/DeliverySteps.js';
 import PublicCtaBand from './public/PublicCtaBand.js';
 import PublicTrustBand from './public/PublicTrustBand.js';
 import {
   buildPublicPageMeta,
+  CORPflow_BUYER_FIT,
   CORPflow_DELIVERY_STEPS,
   CORPflow_HOMEPAGE_HERO,
-  CORPflow_PROOF_EXAMPLE,
-  listPublicOffers,
+  CORPflow_PROOF_ITEMS,
+  CORPflow_TRUST_POINTS,
+  MARKET_SERVICE_PATHS,
 } from '../lib/public/corpflow-public-market.js';
 import { shouldEmitCorpFlowBrandAssets } from '../lib/public/corpflow-brand-assets.js';
-import { cfBody, cfCard, cfGrid, CF } from './public/corpflow-public-styles.js';
+import { cfBody, cfCard, cfGrid, cfLink, CF } from './public/corpflow-public-styles.js';
 
 const FLAGSHIP_VIDEO_PATH = '/media/corpflowai/corpflowai-flagship-homepage-final-1080p.mp4';
 
 const meta = buildPublicPageMeta({
-  title: 'CorpFlowAI — bounded delivery sprints',
+  title: 'CorpFlowAI — managed AI-assisted business workflows',
   description:
-    'Recover missed revenue, repair weak digital journeys, and launch working client experiences quickly. Lead response, premium landing pages, and customer recovery sprints from Mauritius.',
+    'CorpFlowAI designs and operates practical AI-assisted workflow systems for SMEs — managed delivery for administration, lead handling, and website operating upgrades. Request a qualified conversation.',
   path: '/',
   ogImage: '/assets/visuals/corpflow-home-hero.jpg',
 });
@@ -84,11 +85,35 @@ function FlagshipVideoSection() {
   );
 }
 
+function ServicePathCard({ path }) {
+  return (
+    <article style={cfCard} data-service-path={path.id}>
+      <h3 style={{ margin: '0 0 10px', fontSize: 18, color: CF.text, letterSpacing: '-0.02em' }}>{path.title}</h3>
+      <p style={{ ...cfBody, margin: '0 0 12px', fontSize: 14 }}>{path.summary}</p>
+      <ul style={{ ...cfBody, margin: '0 0 14px', paddingLeft: 18, fontSize: 14 }}>
+        {path.bullets.map((b) => (
+          <li key={b} style={{ marginBottom: 4 }}>
+            {b}
+          </li>
+        ))}
+      </ul>
+      {path.productHref && path.productLabel ? (
+        <Link href={path.productHref} style={cfLink}>
+          {path.productLabel} →
+        </Link>
+      ) : (
+        <Link href="/contact#discovery" style={cfLink}>
+          Request a conversation →
+        </Link>
+      )}
+    </article>
+  );
+}
+
 /**
  * @param {{ homepageAssets?: unknown, host?: string | null, search?: string | null }} props
  */
 export default function CorpFlowPublicHome({ host = null, search = null }) {
-  const offers = listPublicOffers();
   const showFlagshipVideo = shouldEmitCorpFlowBrandAssets(host, { search });
 
   return (
@@ -103,77 +128,104 @@ export default function CorpFlowPublicHome({ host = null, search = null }) {
 
       {showFlagshipVideo ? <FlagshipVideoSection /> : null}
 
-      <OutcomeSection id="offers" label="What you can buy now" title="Three delivery sprints — starting prices in MUR">
+      <OutcomeSection
+        id="service-paths"
+        label="How CorpFlowAI helps"
+        title="Three practical service paths — managed delivery, not generic AI advice"
+      >
         <p style={cfBody}>
-          Final scope is confirmed after discovery. Third-party fees are quoted separately where applicable. No
-          guaranteed revenue outcomes.
+          Choose the path that matches the problem. Product funnels such as AI Lead Rescue and Website Rescue are
+          available where they already fit; broader workflow work starts with a qualified conversation.
         </p>
         <div style={cfGrid}>
-          {offers.map((offer) => (
-            <OfferCard key={offer.slug} offer={offer} />
+          {MARKET_SERVICE_PATHS.map((path) => (
+            <ServicePathCard key={path.id} path={path} />
           ))}
         </div>
       </OutcomeSection>
 
-      <OutcomeSection label="Why revenue leaks" title="Slow follow-up, weak pages, and silent complaints cost real money">
-        <ul style={{ ...cfBody, paddingLeft: 20, margin: 0 }}>
-          <li>Enquiries arrive across WhatsApp, email, forms, and social — but no one owns the follow-up path.</li>
-          <li>Landing pages hide the offer or fail on mobile, so buyers bounce before they reach you.</li>
-          <li>Complaints and reviews stack up in DMs while the team responds ad hoc or not at all.</li>
-        </ul>
+      <OutcomeSection label={CORPflow_BUYER_FIT.label} title={CORPflow_BUYER_FIT.title}>
+        <p style={{ ...cfBody, margin: 0 }}>{CORPflow_BUYER_FIT.body}</p>
       </OutcomeSection>
 
-      <DeliverySteps steps={CORPflow_DELIVERY_STEPS} />
+      <DeliverySteps
+        label="Delivery method"
+        title="Understand → design → build → verify → review → improve"
+        steps={CORPflow_DELIVERY_STEPS}
+      />
 
-      <OutcomeSection label="Proof" title={CORPflow_PROOF_EXAMPLE.title}>
-        <div style={cfCard}>
-          <p style={cfBody}>
-            <strong style={{ color: CF.text }}>Problem:</strong> {CORPflow_PROOF_EXAMPLE.problem}
-          </p>
-          <p style={cfBody}>
-            <strong style={{ color: CF.text }}>Delivered:</strong> {CORPflow_PROOF_EXAMPLE.delivered}
-          </p>
-          <p style={cfBody}>
-            <strong style={{ color: CF.text }}>Approach:</strong> {CORPflow_PROOF_EXAMPLE.approach}
-          </p>
-          <p style={{ ...cfBody, fontSize: 13, color: CF.textFaint }}>
-            Named case study publication: {CORPflow_PROOF_EXAMPLE.namedPublication} (internal register — not a public
-            legal claim).
-          </p>
-          <Link href={CORPflow_PROOF_EXAMPLE.publicLink.href} style={{ color: CF.link, fontWeight: 600 }}>
-            {CORPflow_PROOF_EXAMPLE.publicLink.label} →
-          </Link>
+      <OutcomeSection
+        label="Proof of capability"
+        title="What CorpFlowAI has already demonstrated on controlled test delivery"
+      >
+        <p style={{ ...cfBody, marginBottom: 14 }}>
+          Evidence below describes CorpFlowAI internal and test-tenant capabilities. It is not a public client
+          endorsement and does not disclose private client information.
+        </p>
+        <div style={cfGrid}>
+          {CORPflow_PROOF_ITEMS.map((item) => (
+            <div key={item.title} style={cfCard} data-proof-item>
+              <h3 style={{ margin: '0 0 8px', fontSize: 17, color: CF.text }}>{item.title}</h3>
+              <p style={{ ...cfBody, margin: '0 0 10px', fontSize: 14 }}>{item.capability}</p>
+              <p style={{ ...cfBody, margin: '0 0 12px', fontSize: 13, color: CF.textFaint }}>
+                Demonstrated by: {item.demonstratedBy}
+              </p>
+              <Link href={item.link.href} style={cfLink}>
+                {item.link.label} →
+              </Link>
+            </div>
+          ))}
+        </div>
+      </OutcomeSection>
+
+      <OutcomeSection label="Trust and safety" title="Controlled delivery with clear boundaries">
+        <div style={cfGrid}>
+          {CORPflow_TRUST_POINTS.map((point) => (
+            <div key={point.title} style={cfCard} data-trust-point>
+              <h3 style={{ margin: '0 0 8px', fontSize: 16, color: CF.text }}>{point.title}</h3>
+              <p style={{ ...cfBody, margin: 0, fontSize: 14 }}>{point.body}</p>
+            </div>
+          ))}
         </div>
       </OutcomeSection>
 
       <PublicTrustBand>
         <p style={{ ...cfBody, margin: 0, color: '#eef6ff' }}>
-          ERPNext remains the system of record for prospects, quotes, and deposits. CorpFlowAI is the public selling and
-          delivery wrapper — visible output within 24–72 hours after deposit clearance, without revenue guarantees.
+          CorpFlowAI provides managed delivery — design, build, verify and improve with an accountable operator path.
+          We do not promise guaranteed revenue, and we do not replace your stack unless that work is scoped in writing.
         </p>
       </PublicTrustBand>
 
-      <OutcomeSection label="Engagement model" title="Starting prices — final scope after discovery">
+      <OutcomeSection label="Product entry points" title="Start with a focused product when it already fits">
         <ul style={{ ...cfBody, paddingLeft: 20, margin: 0 }}>
-          <li>AI Lead Rescue Sprint — from MUR 35,000</li>
-          <li>Premium Landing Page Rescue — from MUR 45,000</li>
-          <li>Customer Recovery &amp; Reputation Management Sprint — from MUR 45,000</li>
-          <li>50% deposit before work commences; balance per quote</li>
           <li>
-            Legacy USD 150 launch pilot remains at{' '}
             <Link href="/lead-rescue" style={{ color: CF.link }}>
-              /lead-rescue
+              AI Lead Rescue
             </Link>{' '}
-            — separate funnel
+            — capture, alert, log and follow up missed enquiries (USD 150 launch pilot path; separate intake).
+          </li>
+          <li>
+            <Link href="/offers/premium-landing-page-rescue" style={{ color: CF.link }}>
+              Website Rescue
+            </Link>{' '}
+            — bounded landing-page rescue with a clearer enquiry path; see the{' '}
+            <Link href="/demo/website-rescue" style={{ color: CF.link }}>
+              fictional demo
+            </Link>
+            .
+          </li>
+          <li>
+            Broader workflow and administration work starts from the qualified conversation form — scope confirmed
+            before any invoice.
           </li>
         </ul>
       </OutcomeSection>
 
       <PublicCtaBand
-        title="Ready to start a discovery conversation?"
-        body="Tell us your business name, how customers reach you, and which problem hurts most. We confirm fit, scope, deposit, and timeline before any invoice."
+        title="Ready for a qualified conversation?"
+        body="Tell us your business, the problem or outcome you want, your preferred service path, and timing. You get an on-screen reference immediately. No payment and no automatic outreach from this form."
         primaryCta={CORPflow_HOMEPAGE_HERO.primaryCta}
-        secondaryCta={{ label: 'View all sprints', href: '/offers/ai-lead-rescue' }}
+        secondaryCta={{ label: 'Open AI Lead Rescue', href: '/lead-rescue' }}
       />
     </CorpFlowPublicPhotoShell>
   );

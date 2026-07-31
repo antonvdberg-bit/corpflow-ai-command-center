@@ -342,13 +342,23 @@ export default function RevenueOperatorCockpit() {
           <span style={styles.targetValue}>{MONTH_END_TARGET}</span>
         </div>
 
-        <div style={{ ...styles.boundary, borderColor: 'rgba(45,212,191,0.35)' }}>
-          <strong>Live MUR discovery intakes</strong> (from public structured forms) are stored on the existing{' '}
-          <code style={styles.code}>leads</code> table — not in the local checklist below. Open the factory desk:{' '}
+        <div
+          style={{ ...styles.boundary, borderColor: 'rgba(45,212,191,0.35)' }}
+          data-market-enquiry-handoff
+        >
+          <strong>CorpFlowAI market enquiries (#699)</strong> from the public gateway and Website Rescue forms persist
+          on the existing <code style={styles.code}>leads</code> table (product{' '}
+          <code style={styles.code}>corpflow-rapid-delivery</code>). Authoritative operator queue:{' '}
           <Link href="/admin/rapid-delivery" style={{ color: c.good, fontWeight: 700 }}>
             /admin/rapid-delivery
-          </Link>{' '}
-          to review, qualify, and copy a proposal-ready summary. Outreach still requires explicit Anton approval.
+          </Link>
+          . Each lead shows source, contact, service path, problem summary, timing, status, recommended next action,
+          operator notes, and a <strong>copy-ready response draft</strong> — no live email/WhatsApp/SMS send.
+          AI Lead Rescue USD-pilot intakes use{' '}
+          <Link href="/admin/lead-rescue" style={{ color: c.good, fontWeight: 700 }}>
+            /admin/lead-rescue
+          </Link>
+          . Outreach still requires explicit Anton approval.
         </div>
 
         <div style={styles.boundary}>
