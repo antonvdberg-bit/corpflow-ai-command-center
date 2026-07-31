@@ -12,6 +12,8 @@
     "test": "node scripts/run-node-tests.mjs",
     "verify:cmp-env": "node scripts/verify-cmp-env-read.mjs",
     "provision:tenant-test": "node scripts/provision-tenant-test-access.mjs",
+    "provision:cursor-test-users": "node scripts/provision-cursor-test-users.mjs",
+    "verify:cursor-test-users": "node scripts/verify-cursor-test-users.mjs",
     "topup:tenant-tokens": "node scripts/top-up-tenant-token-balance.mjs",
     "factory:set-luxe-billing-exempt": "node scripts/set-luxe-maurice-billing-exempt.mjs",
     "factory:clear-luxe-billing-exempt": "node scripts/clear-luxe-maurice-billing-exempt.mjs",

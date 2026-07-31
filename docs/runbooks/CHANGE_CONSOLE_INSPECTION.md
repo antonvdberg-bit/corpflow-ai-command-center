@@ -31,6 +31,16 @@ These steps require Postgres access (same DB as Vercel production) and are done 
 
 A separate `auth_users` row, never reused for real client work or factory ops.
 
+**Preferred (#696 Cursor test identity):** provision both admin + Lux users via the dedicated script (see `docs/runbooks/CURSOR_TEST_USERS_PROVISIONING.md`):
+
+```powershell
+$env:POSTGRES_URL = "postgresql://..."   # paste from Vercel → Project → Settings → Environment Variables
+npm run provision:cursor-test-users -- --only=lux --gen-password
+# Then set LUX_SMOKE_USERNAME=cursor-test-lux@corpflowai.com and LUX_SMOKE_PASSWORD=<wallet card>
+```
+
+**Legacy / alternate** (still valid if already issued):
+
 ```powershell
 # PowerShell, repo root, with POSTGRES_URL pointing at the same DB Vercel uses.
 $env:POSTGRES_URL = "postgresql://..."   # paste from Vercel → Project → Settings → Environment Variables
@@ -40,10 +50,10 @@ node scripts/provision-tenant-test-access.mjs `
   --gen-password
 ```
 
-The script prints a one-time "wallet card" with the generated password. **Save it once in 1Password / Bitwarden under a distinct entry (e.g. "Lux smoke operator").** It is never readable from the database again.
+The script prints a one-time "wallet card" with the generated password. **Save it once in 1Password / Bitwarden under a distinct entry (e.g. "Lux smoke operator" or "Cursor test lux").** It is never readable from the database again.
 
 The resulting row has:
-- `auth_users.username = lux-smoke@corpflowai.com` (lowercased)
+- `auth_users.username = cursor-test-lux@corpflowai.com` (#696) or `lux-smoke@corpflowai.com` (legacy) — lowercased
 - `auth_users.level = tenant`  (not `admin`)
 - `auth_users.tenant_id = luxe-maurice`
 - `auth_users.enabled = true`
@@ -81,7 +91,7 @@ Create / update `.env.local` (gitignored — verified by `.gitignore` `.env*.loc
 ```ini
 LUX_SMOKE_BASE_URL=https://lux.corpflowai.com
 LUX_SMOKE_TENANT_ID=luxe-maurice
-LUX_SMOKE_USERNAME=lux-smoke@corpflowai.com
+LUX_SMOKE_USERNAME=cursor-test-lux@corpflowai.com
 LUX_SMOKE_PASSWORD=<the value printed by the wallet card in step 2.1>
 LUX_SMOKE_TICKET_MASTER=cmo8mjijk0000jl04l1jz0v6d
 # Optional:
@@ -193,7 +203,7 @@ If step 2 or 5 fails, do **not** merge / do **not** declare COMPLETE — fix the
 
 ## 8. Rotation / decommission
 
-- **Rotate password:** rerun `node scripts/provision-tenant-test-access.mjs --tenant=luxe-maurice --username=lux-smoke@corpflowai.com --gen-password`. Update `.env.local` and any GitHub Actions secret. Old password stops working immediately because `password_hash` / `password_salt` are overwritten.
-- **Disable account:** `UPDATE auth_users SET enabled=false WHERE username='lux-smoke@corpflowai.com';` (or do it via factory tooling). Login then fails with `INVALID_CREDENTIALS` and the smoke exits non-zero.
-- **Delete account:** `DELETE FROM auth_users WHERE username='lux-smoke@corpflowai.com';` once the inspection workflow is no longer needed.
+- **Rotate password:** preferred — `npm run provision:cursor-test-users -- --only=lux --gen-password` (or legacy `provision-tenant-test-access.mjs` with the same `--username`). Update `.env.local` and any GitHub Actions secret. Old password stops working immediately because `password_hash` / `password_salt` are overwritten.
+- **Disable account:** `npm run provision:cursor-test-users -- --only=lux --disable` (or `UPDATE auth_users SET enabled=false WHERE username='cursor-test-lux@corpflowai.com';`). Login then fails and the smoke exits non-zero.
+- **Delete account:** `DELETE FROM auth_users WHERE username='cursor-test-lux@corpflowai.com';` (or the legacy `lux-smoke@…` row) once the inspection workflow is no longer needed.
 - **Rotate Vercel bypass:** Vercel UI → Deployment Protection → Protection Bypass → rotate. Update `.env.local` / GH secret to match if used outside deployments.
