@@ -544,7 +544,7 @@ export default function RapidDeliveryRevenueDesk({ initialLeads = null, initialE
                   ['Business', selected.business_name || '—'],
                   ['Contact', selected.name || '—'],
                   ['Email', selected.email || '—'],
-                  ['Phone / WhatsApp', selected.phone || '—'],
+                  ['Phone', selected.phone || '—'],
                   ['Website', selected.website || '—'],
                   ['Service path', selected.service_path_label || selected.service_path || '—'],
                   ['Selected offer', selected.offer_title || selected.offer_slug || '—'],
