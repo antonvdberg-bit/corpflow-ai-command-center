@@ -4,6 +4,7 @@ import Head from 'next/head';
 import { PrismaClient } from '@prisma/client';
 
 import AiLeadRescueLanding from '../components/AiLeadRescueLanding.js';
+import CipcDeskLanding from '../components/CipcDeskLanding.js';
 import CorpFlowPublicHome from '../components/CorpFlowPublicHome.js';
 import LuxeMauriceTenantPresentation from '../components/LuxeMauriceTenantPresentation.js';
 import RareExclusiveTenantPresentation from '../components/RareExclusiveTenantPresentation.js';
@@ -395,6 +396,10 @@ export default function Home({ mode, site, host, homepageAssets, leadRescueAsset
       return <RareExclusiveTenantPresentation site={site} />;
     }
     return <LuxeMauriceTenantPresentation site={site} />;
+  }
+  // CIPC Desk: CorpFlowAI photo+glass presentation (issue #687). Isolation: tenant_id only.
+  if (mode === 'tenant_site' && safeStr(site?.tenant_id) === 'cipc-desk') {
+    return <CipcDeskLanding site={site} />;
   }
   if (mode === 'tenant_site') {
     return <TenantSite site={site} />;
