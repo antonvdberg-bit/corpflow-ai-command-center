@@ -64,6 +64,9 @@ export default function ContactPage({ luxMode = false, seoHost = '' } = {}) {
           <Link href="/lead-rescue" style={cfBtnSecondary}>
             AI Lead Rescue
           </Link>
+          <Link href="/offers/ai-lead-rescue" style={cfBtnSecondary}>
+            Lead Rescue sprint
+          </Link>
           <Link href="/offers/premium-landing-page-rescue" style={cfBtnSecondary}>
             Website Rescue
           </Link>
