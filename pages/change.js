@@ -61,6 +61,7 @@ import {
   normalizeLuxContentSprintCode,
 } from '../lib/client/lux-content-sprint-guidance.js';
 import LuxContentSprintPanel from '../components/LuxContentSprintPanel.js';
+import LuxOperatorControlOrientationPanel from '../components/LuxOperatorControlOrientationPanel.js';
 import {
   SWITCH_WORKSPACE_DATA_ATTR,
   SWITCH_WORKSPACE_LINK_TEXT,
@@ -2909,15 +2910,13 @@ export default function ChangeConsolePage() {
                 letterSpacing: -0.3,
               }}
             >
-              LuxeMaurice · Change Console
+              Rare & Exclusive · operator control space
             </div>
             <div style={{ marginTop: 10, color: luxChangeChrome.textMuted, fontSize: 14, lineHeight: 1.65, maxWidth: 720 }}>
-              Private operator workspace — same editorial programme as{' '}
-              <a href="/concierge" style={{ color: luxChangeChrome.gold, textDecoration: 'none' }}>
-                concierge
-              </a>
-              , properties, and the property desk. Pick a ticket, then take one governed action at a time.
+              Private desk for reviewing enquiries and tickets — not the public ivory/sand client site.
+              Open a lead or ticket, then take one governed action at a time.
             </div>
+            <LuxOperatorControlOrientationPanel chrome={luxChangeChrome} style={{ marginTop: 16 }} />
             <div style={{ marginTop: 16, display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'stretch' }}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', flex: '1 1 360px' }}>
                 <a href="/properties" target="_blank" rel="noopener noreferrer" style={luxChangeChrome.navPill('gold')}>

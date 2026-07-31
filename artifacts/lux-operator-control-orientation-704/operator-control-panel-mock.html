@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>#704 Lux operator control space — visual evidence (mock)</title>
+  <style>
+    body { margin: 0; font-family: system-ui, sans-serif; background: #111111; color: #F4EFE8; }
+    .wrap { max-width: 880px; margin: 0 auto; padding: 28px 24px; }
+    h1 { font-weight: 400; font-size: 2rem; margin: 0 0 8px; }
+    .sub { color: rgba(244,239,232,0.72); font-size: 14px; margin-bottom: 16px; max-width: 720px; line-height: 1.65; }
+    aside {
+      border: 1px solid rgba(94,234,212,0.45);
+      border-left: 4px solid #5eead4;
+      background: linear-gradient(135deg, rgba(94,234,212,0.12) 0%, #1A1817 42%);
+      border-radius: 6px; padding: 16px 18px;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25);
+    }
+    .eyebrow { font-size: 10px; font-weight: 900; letter-spacing: 0.14em; text-transform: uppercase; color: #5eead4; }
+    .title { margin-top: 6px; font-size: 18px; font-weight: 800; }
+    .warn {
+      margin-top: 10px; display: inline-block; padding: 6px 10px; border-radius: 4px;
+      border: 1px solid rgba(251,191,36,0.55); background: rgba(251,191,36,0.12);
+      color: #fde68a; font-size: 13px; font-weight: 800;
+    }
+    .body { margin-top: 10px; font-size: 13px; line-height: 1.55; color: rgba(244,239,232,0.72); max-width: 720px; }
+    .label { margin-top: 14px; font-size: 11px; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; color: #A8842C; }
+    ol { margin: 8px 0 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+    li { padding: 8px 10px; border-radius: 4px; border: 1px solid rgba(148,163,184,0.22); background: rgba(0,0,0,0.18); font-size: 13px; }
+    .n { font-weight: 800; color: #5eead4; margin-right: 6px; }
+    a { color: #A8842C; font-weight: 650; }
+    .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 28px; }
+    .card { border-radius: 6px; padding: 16px; min-height: 140px; }
+    .public { background: #F4EFE8; color: #111111; border: 1px solid rgba(107,98,86,0.22); }
+    .ops { background: #1A1817; border: 1px solid rgba(94,234,212,0.45); }
+    .compare h2 { margin: 0 0 8px; font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; }
+    .public h2 { color: #7A5F1C; }
+    .ops h2 { color: #5eead4; }
+    .note { margin-top: 20px; font-size: 12px; color: rgba(244,239,232,0.55); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Rare &amp; Exclusive · operator control space</h1>
+    <p class="sub">Private desk for reviewing enquiries and tickets — not the public ivory/sand client site.</p>
+    <aside data-testid="lux-operator-control-orientation">
+      <div class="eyebrow">Operator control space · Lux only</div>
+      <div class="title">Rare &amp; Exclusive operator control space</div>
+      <div class="warn" data-testid="lux-operator-control-not-public">This is not the public client site.</div>
+      <p class="body">Use this space to review enquiries and move them through the private-client workflow. Public buyers use the ivory/sand site.</p>
+      <div class="label">Jan functional test sequence</div>
+      <ol data-testid="lux-operator-functional-test-checklist">
+        <li><span class="n">1.</span> Submit a test enquiry on <a href="/concierge">/concierge</a>.</li>
+        <li><span class="n">2.</span> Return to <a href="/change">/change</a>.</li>
+        <li><span class="n">3.</span> Find the enquiry in the operator queue.</li>
+        <li><span class="n">4.</span> Check email and telephone are visible.</li>
+        <li><span class="n">5.</span> Move status new → contacted → qualified → invited → closed.</li>
+        <li><span class="n">6.</span> Record what did not match expectation.</li>
+      </ol>
+    </aside>
+    <div class="compare">
+      <div class="card public">
+        <h2>Public client site</h2>
+        <p>Ivory / sand editorial marketing for buyers. Unchanged by #704.</p>
+      </div>
+      <div class="card ops">
+        <h2>Operator control space</h2>
+        <p>Charcoal + teal steel control banner for Jan. Functional test path, not visual polish.</p>
+      </div>
+    </div>
+    <p class="note">Static mock for PR evidence — mirrors Lux-conditional panel on /change (luxe-maurice). Issue #704.</p>
+  </div>
+</body>
+</html>
