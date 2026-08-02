@@ -1,6 +1,6 @@
 # CorpFlowAI public market route register
 
-**Status:** Operator inventory · **Updated:** 2026-07-31 (#699)  
+**Status:** Operator inventory · **Updated:** 2026-07-31 (#699)
 **Anchor:** `<!-- CORPFLOWAI_PUBLIC_MARKET_ROUTE_REGISTER_V1 -->`
 
 <!-- CORPFLOWAI_PUBLIC_MARKET_ROUTE_REGISTER_V1 -->
