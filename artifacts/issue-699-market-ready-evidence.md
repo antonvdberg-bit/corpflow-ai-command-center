@@ -34,17 +34,16 @@
 
 ## Verification
 
-- Focused #699 + related suites: pass
-- `npm test`: 1818 pass / 0 fail
+- Focused #699 + related suites: 74 pass / 0 fail
+- `npm test`: 1805 pass / 0 fail
 - `npm run build`: pass
 - `git diff --check`: clean
-- Screenshots (local Next on `:3010`): `/opt/cursor/artifacts/issue-699/`
+- Screenshots (local Next on `:3010`, Host `corpflowai.com`): `/opt/cursor/artifacts/issue-699/`
   - `homepage-desktop.png`, `homepage-mobile.png`
   - `contact-enquiry-desktop.png`, `contact-enquiry-mobile.png`
   - `lead-rescue-desktop.png`, `website-rescue-demo-desktop.png`
 - Synthetic operator mapping: `/opt/cursor/artifacts/issue-699/synthetic-enquiry-evidence.json`
   - Website Rescue synthetic id `synth699websiterescue` → reference `CF-RESCUE`
-  - Lead Rescue synthetic id `synth699leadrescue01`
   - No live Postgres write in this environment (`POSTGRES_URL` unset)
 
 ## Tenant / Core boundary

@@ -65,10 +65,14 @@ export default function DiscoveryIntakeForm({
   const initialOffer = RAPID_DELIVERY_OFFER_SLUGS.includes(/** @type {any} */ (defaultOfferSlug))
     ? defaultOfferSlug
     : 'ai-lead-rescue';
-  const [servicePath, setServicePath] = useState(
-    defaultServicePath || defaultServicePathForOffer(initialOffer),
-  );
-  const [offerSlug, setOfferSlug] = useState(initialOffer);
+  const initialServicePath = defaultServicePath || defaultServicePathForOffer(initialOffer);
+  const mappedFromPath = resolveOfferSlugForMarketEnquiry(initialServicePath, '');
+  const initialOfferResolved =
+    !lockedOffer && mappedFromPath && RAPID_DELIVERY_OFFER_SLUGS.includes(/** @type {any} */ (mappedFromPath))
+      ? mappedFromPath
+      : initialOffer;
+  const [servicePath, setServicePath] = useState(initialServicePath);
+  const [offerSlug, setOfferSlug] = useState(initialOfferResolved);
   const [businessName, setBusinessName] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
