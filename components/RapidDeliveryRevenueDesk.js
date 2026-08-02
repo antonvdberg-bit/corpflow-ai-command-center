@@ -537,15 +537,21 @@ export default function RapidDeliveryRevenueDesk({ initialLeads = null, initialE
                   gap: '12px 18px',
                   margin: '16px 0 0',
                 }}
+                data-market-enquiry-fields
               >
                 {[
+                  ['Source', selected.source || selected.source_host || '—'],
                   ['Business', selected.business_name || '—'],
                   ['Contact', selected.name || '—'],
                   ['Email', selected.email || '—'],
                   ['Phone', selected.phone || '—'],
-                  ['Enquiry channels', selected.enquiry_channels || '—'],
+                  ['Website', selected.website || '—'],
+                  ['Service path', selected.service_path_label || selected.service_path || '—'],
                   ['Selected offer', selected.offer_title || selected.offer_slug || '—'],
-                  ['Primary pain', selected.primary_pain || '—'],
+                  ['Enquiry channels', selected.enquiry_channels || '—'],
+                  ['Problem / outcome', selected.primary_pain || '—'],
+                  ['Timing', selected.urgency_label || selected.urgency || '—'],
+                  ['Consent', selected.consent_contact ? 'Yes — may contact' : '—'],
                   ['Status', rapidDeliveryStatusLabel(selected.operator_status)],
                   ['Reference', selected.reference],
                   ['Received', formatReceived(selected.created_at)],
@@ -558,13 +564,77 @@ export default function RapidDeliveryRevenueDesk({ initialLeads = null, initialE
                   </div>
                 ))}
               </dl>
+              <div style={{ marginTop: 14 }} data-recommended-next-action>
+                <div style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: c.faint }}>
+                  Recommended next action
+                </div>
+                <p style={{ margin: '6px 0 0', color: c.text, lineHeight: 1.55 }}>
+                  {selected.recommended_next_action || 'Review enquiry and reply with the copy-ready draft.'}
+                </p>
+              </div>
               <div style={{ marginTop: 14 }}>
                 <div style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: c.faint }}>
-                  Discovery notes
+                  Problem summary / discovery notes
                 </div>
                 <p style={{ margin: '6px 0 0', color: c.muted, lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>
-                  {selected.discovery_notes || '—'}
+                  {selected.discovery_notes || selected.primary_pain || '—'}
                 </p>
+              </div>
+              <div style={{ marginTop: 14 }} data-operator-notes>
+                <div style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: c.faint }}>
+                  Operator notes
+                </div>
+                <p style={{ margin: '6px 0 0', color: c.muted, lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>
+                  {selected.operator_notes || selected.rapid_delivery_operator?.notes || '—'}
+                </p>
+              </div>
+              <div
+                style={{
+                  marginTop: 16,
+                  padding: '14px 16px',
+                  borderRadius: 12,
+                  border: '1px solid rgba(125,211,252,0.28)',
+                  background: 'rgba(125,211,252,0.08)',
+                }}
+                data-response-draft
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    gap: 10,
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                  }}
+                >
+                  <div style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: c.accent, fontWeight: 700 }}>
+                    Copy-ready response draft — no live send
+                  </div>
+                  <button
+                    type="button"
+                    style={btnGhost}
+                    onClick={() =>
+                      copyText(
+                        'Response draft copied',
+                        String(selected.response_draft || ''),
+                      )
+                    }
+                  >
+                    Copy response draft
+                  </button>
+                </div>
+                <pre
+                  style={{
+                    margin: '10px 0 0',
+                    whiteSpace: 'pre-wrap',
+                    color: c.muted,
+                    fontSize: 13.5,
+                    lineHeight: 1.55,
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  {selected.response_draft || '—'}
+                </pre>
               </div>
               <div style={{ marginTop: 16, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 <button type="button" style={btnPrimary} onClick={() => prepareProposal(selected.id)}>

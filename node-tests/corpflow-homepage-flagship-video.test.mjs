@@ -46,7 +46,10 @@ describe('CorpFlowAI homepage flagship video', () => {
     assert.ok(player.includes('Open the approved CorpFlowAI flagship video'));
     assert.ok(!player.includes('autoPlay'));
     assert.ok(!player.includes('loop'));
-    assert.ok(home.indexOf('<FlagshipVideoSection />') < home.indexOf('<OutcomeSection id="offers"'));
+    assert.ok(
+      home.indexOf('<FlagshipVideoSection />') < home.indexOf('id="service-paths"'),
+      'flagship video must appear before the service-paths section',
+    );
   });
 
   it('allows only the CorpFlowAI apex, local, and unscoped preview hosts', () => {
