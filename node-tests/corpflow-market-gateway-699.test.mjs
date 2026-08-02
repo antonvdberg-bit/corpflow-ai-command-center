@@ -83,7 +83,16 @@ describe('#699 market gateway — public offer', () => {
     assert.ok(home.includes('/lead-rescue'));
     assert.ok(home.includes('/offers/premium-landing-page-rescue'));
     assert.ok(home.includes('/demo/website-rescue'));
+    assert.ok(home.includes('/contact?path='));
+    assert.ok(home.includes('Enquire about this path'));
     assert.ok(!home.includes('NEEDS_ANTON'));
+  });
+
+  it('contact page accepts ?path= and passes defaultServicePath into the form', () => {
+    const contact = read('pages/contact.js');
+    assert.ok(contact.includes('defaultServicePath'));
+    assert.ok(contact.includes('isMarketServicePathId'));
+    assert.ok(contact.includes('query?.path') || contact.includes('query.path'));
   });
 });
 

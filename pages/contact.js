@@ -6,6 +6,7 @@ import DiscoveryIntakeForm from '../components/public/DiscoveryIntakeForm.js';
 import RareExclusiveContentPage from '../components/RareExclusiveContentPage.js';
 import { policyStyles as ps } from '../components/PublicPolicyLayout.js';
 import { buildGeneralDiscoveryMailto, buildPublicPageMeta, listPublicOffers } from '../lib/public/corpflow-public-market.js';
+import { isMarketServicePathId } from '../lib/public/corpflow-market-service-paths.js';
 import { cfBtnSecondary } from '../components/public/corpflow-public-styles.js';
 import { luxOrApexPageProps } from '../lib/client/lux-host-page-props.js';
 
@@ -23,7 +24,11 @@ const updated = { color: '#9fb2c8', fontSize: 13, marginBottom: 24 };
  * - lux.corpflowai.com → Rare & Exclusive Collection contact / advisory path
  * - apex / other → CorpFlowAI discovery contact
  */
-export default function ContactPage({ luxMode = false, seoHost = '' } = {}) {
+export default function ContactPage({
+  luxMode = false,
+  seoHost = '',
+  defaultServicePath = '',
+} = {}) {
   if (luxMode) {
     return <RareExclusiveContentPage pageId="contact" seoHost={seoHost} />;
   }
@@ -37,6 +42,9 @@ export default function ContactPage({ luxMode = false, seoHost = '' } = {}) {
     path: '/contact',
     ogImage: '/assets/visuals/corpflow-contact-hero.jpg',
   });
+  const servicePathProp = isMarketServicePathId(defaultServicePath)
+    ? defaultServicePath
+    : undefined;
 
   return (
     <CorpFlowPublicPhotoShell
@@ -52,7 +60,10 @@ export default function ContactPage({ luxMode = false, seoHost = '' } = {}) {
       </p>
 
       <section style={ps.section} id="discovery">
-        <DiscoveryIntakeForm heading="Request a qualified conversation" />
+        <DiscoveryIntakeForm
+          heading="Request a qualified conversation"
+          defaultServicePath={servicePathProp}
+        />
         <p style={{ ...ps.p, marginTop: 16 }}>
           Prefer email?{' '}
           <a href={discoveryMailto} style={{ color: '#7dd3fc' }}>
@@ -141,6 +152,14 @@ export default function ContactPage({ luxMode = false, seoHost = '' } = {}) {
   );
 }
 
-export async function getServerSideProps({ req }) {
-  return luxOrApexPageProps(req);
+export async function getServerSideProps({ req, query }) {
+  const base = luxOrApexPageProps(req);
+  const rawPath = typeof query?.path === 'string' ? query.path.trim() : '';
+  return {
+    ...base,
+    props: {
+      ...base.props,
+      defaultServicePath: isMarketServicePathId(rawPath) ? rawPath : '',
+    },
+  };
 }

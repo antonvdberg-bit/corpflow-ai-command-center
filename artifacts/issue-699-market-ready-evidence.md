@@ -1,7 +1,8 @@
 # #699 Market-ready CorpFlowAI — evidence packet
 
-**Branch:** `cursor/dispatcher-issue-699-ccf8`  
-**Cursor run:** https://cursor.com/agents/bc-59db8acd-68c5-4e42-aee1-bdeb65e216c9  
+**Branch:** `cursor/dispatcher-issue-699-8afc`  
+**Cursor run:** https://cursor.com/agents/bc-d093f345-31e5-4e0b-bea1-8df7876a0c3d  
+**Supersedes open PRs:** #707, #708 (same #699 slice, rebased onto current `main` with path-prefill + docs sync)  
 **Verdict (this PR):** MARKET-READY TEST SLICE pending merge/publish — local/preview evidence complete; live `corpflow_test` URL verification blocked until Anton merge/publish.
 
 ## Current-surface audit and reuse
