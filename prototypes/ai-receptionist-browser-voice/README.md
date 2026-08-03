@@ -1,8 +1,8 @@
 # Synthetic browser-voice AI receptionist (prototype)
 
-**Issue:** [#726](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/726)  
-**Status:** Local / operator demo only — **not** production, **not** telephony  
-**Pipecat:** Deferred (architecture note included) — this scaffold is Pipecat-ready in shape only  
+**Issue:** [#726](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/726)
+**Status:** Local / operator demo only — **not** production, **not** telephony
+**Pipecat:** Deferred (architecture note included) — this scaffold is Pipecat-ready in shape only
 **Verdict for sellable phone receptionist:** **pilot experience only** — do not adopt telephony yet
 
 ## What this is

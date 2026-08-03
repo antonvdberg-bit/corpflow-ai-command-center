@@ -1,8 +1,8 @@
 # AI receptionist — synthetic browser-voice pilot (v1)
 
-**Issue:** [#726](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/726)  
-**Date (UTC):** 2026-08-03  
-**Owner:** Anton (decision); Cursor (scaffold)  
+**Issue:** [#726](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/726)
+**Date (UTC):** 2026-08-03
+**Owner:** Anton (decision); Cursor (scaffold)
 **Recommendation:** **pilot** the browser experience — **do not adopt** telephony, paid realtime providers, or production deployment from this packet alone.
 
 ---

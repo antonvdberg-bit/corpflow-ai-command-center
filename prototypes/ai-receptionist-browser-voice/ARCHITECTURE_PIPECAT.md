@@ -1,6 +1,6 @@
 # Pipecat readiness note (local copy)
 
-Canonical product capture: `docs/product/AI_RECEPTIONIST_PIPECAT_BROWSER_PILOT_V1.md`  
+Canonical product capture: `docs/product/AI_RECEPTIONIST_PIPECAT_BROWSER_PILOT_V1.md`
 Operator runbook: `docs/runbooks/AI_RECEPTIONIST_BROWSER_VOICE_PILOT_V1.md`
 
 ## Decision in #726

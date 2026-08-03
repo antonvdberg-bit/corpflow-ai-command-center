@@ -94,7 +94,7 @@ Browser mic/speakers
 
 ## Recommendation for Anton
 
-1. Try the localhost demo.  
-2. Confirm the draft handoff fields match how operators want Lead Rescue / onboarding intake to look.  
-3. Decide later whether to fund a **Pipecat browser runtime** packet — still separate from telephony.  
+1. Try the localhost demo.
+2. Confirm the draft handoff fields match how operators want Lead Rescue / onboarding intake to look.
+3. Decide later whether to fund a **Pipecat browser runtime** packet — still separate from telephony.
 4. Keep recommendation at **pilot**, not **adopt**, until a real provider + consent + tenancy design is approved.
