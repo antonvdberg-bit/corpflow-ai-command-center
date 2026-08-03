@@ -1,196 +1,124 @@
-# Cursor test users — admin + Lux tenant (#696)
+# Cursor test users — admin + generic tenant smoke (#696)
 
-**Goal:** dedicated non-human test identities so Cursor can exercise authenticated CorpFlowAI and Lux (`luxe-maurice`) workflows without using Anton’s personal account.
+**Goal:** prepare the existing Cursor provision/verify tooling for two dedicated non-human test identities without creating credentials, writing secrets, or mutating a database.
 
-**Environment:** `corpflow_test` (CorpFlowAI-hosted). Not `client_production`.
+**Environment:** `corpflow_test` only. Not `client_production`.
 
-**Canonical tooling:**
+## Approved identities
 
-| Script | npm | Purpose |
-|--------|-----|---------|
-| `scripts/provision-cursor-test-users.mjs` | `npm run provision:cursor-test-users` | Upsert both identities into existing `auth_users` (+ Lux membership notes) |
-| `scripts/verify-cursor-test-users.mjs` | `npm run verify:cursor-test-users` | DB shape + live login/boundary evidence (no secrets in output) |
-| `scripts/lib/cursor-test-users-spec.mjs` | — | Stable usernames, metadata labels, runtime env names |
+| Purpose | Username | Level | Membership |
+|---|---|---|---|
+| Admin/operator smoke | `cursor-test-admin@corpflowai.com` | `admin`, `factory_master=false` | none |
+| Generic tenant smoke | `cursor-test-tenant@corpflowai.com` | `tenant` | only explicitly approved `corpflow_test` tenants |
 
-Related: Lux `/change` smoke — `docs/runbooks/CHANGE_CONSOLE_INSPECTION.md`. Tenancy — `docs/operations/TENANT_CLIENT_LOGIN.md`.
+The former live target `cursor-test-lux@corpflowai.com` must not be created. The generic tenant smoke identity may initially receive membership to `luxe-maurice` for Lux verification. Additional memberships, including a future CIPC Desk test tenant, require explicit approval. It must never receive automatic access to every tenant.
 
----
+The current scripts retain the internal key `lux` temporarily to avoid a broad refactor of already-merged tooling. That key is an implementation compatibility detail only; the canonical username is `cursor-test-tenant@corpflowai.com`.
 
-## 1. Identities (non-secret)
+## Runtime variable names
 
-| Key | Username (`auth_users.username`) | Level | Tenant | `factory_master` | Membership |
-|-----|----------------------------------|-------|--------|------------------|------------|
-| admin | `cursor-test-admin@corpflowai.com` | `admin` | `null` | **`false`** | none (by design) |
-| lux | `cursor-test-lux@corpflowai.com` | `tenant` | `luxe-maurice` | `false` | `role=member`, notes mark `TEST_ONLY \| NON_HUMAN \| CURSOR_AUTOMATION` |
+Preferred variables:
 
-Labels `TEST_ONLY`, `NON_HUMAN`, `CURSOR_AUTOMATION` are stored on the Lux `user_tenant_memberships.notes` row. `auth_users` has no metadata column (schema change not authorized for #696); the admin identity is identified by its stable username + operator docs.
+```text
+CURSOR_TEST_ADMIN_USERNAME
+CURSOR_TEST_ADMIN_PASSWORD
+TENANT_SMOKE_USERNAME
+TENANT_SMOKE_PASSWORD
+TENANT_SMOKE_TENANT_ID
+TENANT_SMOKE_BASE_URL
+CURSOR_TEST_ADMIN_LOGIN_BASE_URL
+```
 
----
+Temporary deprecated aliases, only where an older caller still requires them:
 
-## 2. Security rules (non-negotiable)
+```text
+LUX_SMOKE_USERNAME -> TENANT_SMOKE_USERNAME
+LUX_SMOKE_PASSWORD -> TENANT_SMOKE_PASSWORD
+LUX_SMOKE_TENANT_ID -> TENANT_SMOKE_TENANT_ID
+LUX_SMOKE_BASE_URL -> TENANT_SMOKE_BASE_URL
+```
 
-- Never put passwords, reset links, tokens, cookies, or session material in GitHub, chat, PRs, screenshots, or `artifacts/`.
-- Generate passwords only via `--gen-password` (wallet card printed once to the operator terminal).
-- Store values only in the approved secret store and/or Cursor **protected agent runtime**.
-- Reuse existing `auth_users` / membership tables — no second auth system.
-- Rotate: re-run provision with `--gen-password` (overwrites hash/salt).
-- Disable when idle: `npm run provision:cursor-test-users -- --disable`.
-- No live email / WhatsApp / SMS / payment / production deploy from these identities without a separate Anton protected-action gate.
+A deprecated `LUX_SMOKE_*` alias must point to `cursor-test-tenant@corpflowai.com`; it must never imply or provision a Lux-only user. New configuration must use `TENANT_SMOKE_*`.
 
----
+Do not place these values in GitHub, chat, screenshots, artifacts, or the web application's Vercel environment. Password values belong only in an approved secret store or protected test runtime after Anton authorises the protected handoff.
 
-## 3. Privilege model (honest least privilege)
+## Tooling
 
-### Lux (`cursor-test-lux`)
+| Script | Purpose |
+|---|---|
+| `scripts/provision-cursor-test-users.mjs` | Dry-run or protected upsert through the existing `auth_users` and tenant-membership model |
+| `scripts/verify-cursor-test-users.mjs` | Verify DB shape, login and authorization boundaries without printing secrets |
+| `scripts/lib/cursor-test-users-spec.mjs` | Canonical usernames, runtime names, labels and packet formatting |
 
-- Session `typ=tenant`, `tenant_id=luxe-maurice`.
-- Allowed: Lux `/change` dormant-gate CMP actions (queue, ticket get/update paths used by Change Console, concierge lead CRM on Lux host).
-- Denied: `requireFactoryMasterOnly` / factory APIs; other tenants’ tickets (`404` / `403`).
-- Live outbound send is not exercised by the verify script; product gates still apply.
+The provisioning plan now resolves to:
 
-### Admin (`cursor-test-admin`)
+```text
+cursor-test-admin@corpflowai.com
+cursor-test-tenant@corpflowai.com
+```
 
-- Session `typ=admin`, `factory_master=false`.
-- **Intended:** authenticated admin/operator smoke on Core (`corpflow_test`) without promoting a second factory master.
-- **DB-gated APIs** that require `auth_users.factory_master=true` (e.g. `GET /api/factory/operator-activity`, `GET /api/membership/list`) **deny** this user — verify script asserts that.
-- **Inseparable today:** `verifyFactoryMasterAuth()` accepts any `typ=admin` session. Payment / some factory routes that only check that helper remain reachable in-code. Cursor and operators **must not** use this identity for billing, payment, secret/env management, user deletion, production deploy, or external send without a separate Anton approval. Tightening `verifyFactoryMasterAuth` to require `factory_master` is a **future** security change (out of scope for #696; do not broaden privileges here).
+For the initial Lux test, the generic tenant identity may be granted only the approved `luxe-maurice` membership. Membership notes remain marked `TEST_ONLY | NON_HUMAN | CURSOR_AUTOMATION`.
 
----
+## Safety rules
 
-## 4. Secure runtime variable names
+- No live provisioning from a PR or agent path.
+- No password generation during implementation or review.
+- No secret, Vercel environment, Production Neon, schema, deployment, messaging, payment, or external-send mutation.
+- Reuse only `auth_users` and the existing tenant membership model.
+- Keep admin `factory_master=false`.
+- Never broaden the tenant identity beyond explicitly approved test tenants.
+- Protected actions stop with `ANTON UNLOCK REQUIRED`.
 
-Documented in `.env.template` (placeholders only):
-
-| Variable | Identity |
-|----------|----------|
-| `CURSOR_TEST_ADMIN_USERNAME` | admin username |
-| `CURSOR_TEST_ADMIN_PASSWORD` | admin password |
-| `CURSOR_TEST_ADMIN_LOGIN_BASE_URL` | optional; default `https://core.corpflowai.com` |
-| `LUX_SMOKE_USERNAME` | lux username (`cursor-test-lux@corpflowai.com`) |
-| `LUX_SMOKE_PASSWORD` | lux password |
-| `LUX_SMOKE_TENANT_ID` | default `luxe-maurice` |
-| `LUX_SMOKE_BASE_URL` | default `https://lux.corpflowai.com` |
-
-**Do not** put these on Vercel project env for the web app. They belong on the operator machine / CI runner / Cursor protected runtime that executes smoke scripts.
-
-Legacy smoke username `lux-smoke@corpflowai.com` remains valid if already provisioned; new #696 canonical Lux test user is `cursor-test-lux@corpflowai.com`. Point `LUX_SMOKE_USERNAME` at the identity you provisioned.
-
----
-
-## 5. Operator provision steps (protected — Anton / factory master machine)
-
-These steps **write Postgres** and **handle secrets**. They are **not** performed by the Cloud Agent PR path when the dispatch gate is `secrets` / “no DB / no env”.
+## Safe pre-handoff checks
 
 ```powershell
-# 1) On a secure operator machine (not in chat), set Production POSTGRES_URL once in the shell.
-$env:POSTGRES_URL = "<from Vercel Production — never commit>"
-
-# 2) Preview (optional):
 npm run provision:cursor-test-users -- --dry-run
-
-# 3) Create / rotate both users; copy wallet cards into 1Password / Bitwarden / Cursor protected runtime:
-npm run provision:cursor-test-users -- --gen-password
-
-# 4) Set local/runtime env (gitignored .env.local) — values from wallet cards only:
-# CURSOR_TEST_ADMIN_USERNAME=cursor-test-admin@corpflowai.com
-# CURSOR_TEST_ADMIN_PASSWORD=...
-# LUX_SMOKE_USERNAME=cursor-test-lux@corpflowai.com
-# LUX_SMOKE_PASSWORD=...
-
-# 5) Verify (prints CURSOR TEST ACCESS READY packet; never prints passwords):
-npm run verify:cursor-test-users -- --db-shape --live --packet
+node --test node-tests/cursor-test-users-spec.test.mjs
+npm run verify:cursor-test-users -- --packet
 ```
 
-Disable when not testing:
-
-```powershell
-npm run provision:cursor-test-users -- --disable
-# later:
-npm run provision:cursor-test-users -- --enable
-```
-
----
-
-## 6. Verification expectations
-
-### Admin
-
-| Check | Expected |
-|-------|----------|
-| Login at Core `/login` (admin level) | `200`, `level=admin` |
-| Reach admin/operator surfaces that need `typ=admin` | yes |
-| `operator-activity` / `membership/list` without `factory_master` | `401`/`403` |
-| Payment / deploy / secret / external-send | **not** exercised; require separate Anton gate |
-| Audit | actions attributed to this `auth_users.id` where IM-7 actor fields are populated |
-
-### Lux
-
-| Check | Expected |
-|-------|----------|
-| Login at `https://lux.corpflowai.com/change` path via `/login` | `level=tenant`, `tenant_id=luxe-maurice` |
-| View Lux synthetic / concierge leads | `concierge-leads-list` succeeds on Lux host |
-| Stage / notes / qualification / shortlist | allowed via existing Lux tenant CMP actions (manual or follow-on smoke) |
-| Other tenant / Core admin | denied |
-| Live sends | not triggered by verify script |
-
----
-
-## 7. `CURSOR TEST ACCESS READY` packet template
-
-Paste after `npm run verify:cursor-test-users -- --db-shape --live --packet` succeeds. **Never** include passwords.
+Expected dry-run identities:
 
 ```text
-CURSOR TEST ACCESS READY
-
-Identities (non-secret):
-  admin.username=cursor-test-admin@corpflowai.com
-  admin.id=<cuid>
-  admin.level=admin
-  admin.factory_master=false
-  lux.username=cursor-test-lux@corpflowai.com
-  lux.id=<cuid>
-  lux.level=tenant
-  lux.tenant_id=luxe-maurice
-  lux.membership.notes_marked=true
-  metadata_labels=TEST_ONLY,NON_HUMAN,CURSOR_AUTOMATION
-
-Assigned roles / memberships:
-  admin: level=admin, factory_master=false
-  lux: level=tenant, tenant_id=luxe-maurice, membership.role=member
-
-Proof of successful login:
-  - [PASS] live.admin.login
-  - [PASS] live.lux.login
-
-Authorization boundary test results:
-  - [PASS] live.admin.operator_activity_denied_without_factory_master
-  - [PASS] live.lux.core_admin_denied
-  - [PASS] live.lux.cross_tenant_ticket_denied
-
-Audit-log evidence:
-  - actor_user_id on subsequent CMP writes; operator-activity inspection under factory_master session
-
-Secure handoff still required:
-  - none  (or list remaining secret-store placement if CI/Cursor runtime not yet seeded)
-
-Final verdict: READY FOR CURSOR AUTHENTICATED TESTING
+admin.username=cursor-test-admin@corpflowai.com
+tenant.username=cursor-test-tenant@corpflowai.com
+tenant.membership_policy=approved_corpflow_test_tenants_only
 ```
 
-If provision or secret placement is still pending:
+The unit test deliberately rejects `cursor-test-lux@corpflowai.com` as the canonical live target.
+
+## Protected handoff — not authorised by this implementation slice
+
+Only after explicit Anton approval, an operator on a secure machine may:
+
+1. Provide `POSTGRES_URL` through the approved secure channel.
+2. Run `npm run provision:cursor-test-users -- --gen-password`.
+3. Store the two generated credentials only in the approved secret store/protected runtime using `CURSOR_TEST_ADMIN_*` and `TENANT_SMOKE_*`.
+4. Run `npm run verify:cursor-test-users -- --db-shape --live --packet`.
+5. Post only the non-secret result packet on #696.
+
+Until that approval is given:
 
 ```text
-Final verdict: NOT READY
+ANTON UNLOCK REQUIRED
+Final verdict: READY FOR PROTECTED HANDOFF
 ```
 
----
+## Required non-secret status packet
 
-## 8. What the #696 PR ships vs what remains protected
+```text
+CURSOR TEST ACCESS ALIGNMENT
 
-| In PR (safe) | Protected follow-up (Anton / operator) |
-|--------------|----------------------------------------|
-| Spec module, provision + verify scripts | Run provision against Production Postgres |
-| Runbook + `.env.template` **names** | Store passwords in secret store / Cursor runtime |
-| Dry-run + unit tests | Live `--db-shape --live` evidence on corpflow_test |
-| Honest privilege documentation | Optional later: tighten `verifyFactoryMasterAuth` to require `factory_master` |
+admin.username=cursor-test-admin@corpflowai.com
+tenant.username=cursor-test-tenant@corpflowai.com
+tenant.initial_approved_membership=luxe-maurice
+tenant.membership_policy=approved_corpflow_test_tenants_only
+former_lux_only_target_live=false
+preferred_runtime_vars=CURSOR_TEST_ADMIN_*,TENANT_SMOKE_*
+legacy_aliases=LUX_SMOKE_* deprecated compatibility only
+live_provisioning=not_performed
+secrets_written=false
+database_mutation=false
 
-Until the protected follow-up is done, the packet verdict remains **NOT READY**.
+Final verdict: READY FOR PROTECTED HANDOFF
+```
