@@ -37,12 +37,14 @@ test('#704 orientation content is Lux-tenant scoped and plainly labelled', () =>
 });
 
 test('#704 functional checklist steers workflow testing (not visual polish)', () => {
-  assert.equal(LUX_OPERATOR_FUNCTIONAL_TEST_CHECKLIST.length, 6);
+  assert.equal(LUX_OPERATOR_FUNCTIONAL_TEST_CHECKLIST.length, 7);
   const labels = LUX_OPERATOR_FUNCTIONAL_TEST_CHECKLIST.map((s) => s.label).join('\n');
   assert.match(labels, /\/concierge/);
   assert.match(labels, /\/change/);
   assert.match(labels, /email and telephone/i);
   assert.match(labels, /new → contacted → qualified → invited → closed/);
+  assert.match(labels, /Confidential Presentation/i);
+  assert.match(labels, /Viewing by Invitation/i);
   assert.match(labels, /did not match expectation/i);
   assert.match(labels, /not visual polish/i);
   // Stages match existing #673 workflow (do not invent a parallel status model).
