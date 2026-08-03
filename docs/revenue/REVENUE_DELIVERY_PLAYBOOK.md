@@ -2,6 +2,8 @@
 
 **Status:** Operator-ready. **Public offer pages + manual sales templates.** No CRM build. No payment runtime. No automated outreach.
 
+**Prospect Operations package (#721):** Slice 1 audit + shared view-model contract — `docs/operations/PROSPECT_OPERATIONS_PACKAGE_V1.md` (three coordinated views over `leads`; Kanban must not remain localStorage-only SoR).
+
 **Anchor sentinel:** `<!-- REVENUE_DELIVERY_PLAYBOOK_V1 -->`
 
 <!-- REVENUE_DELIVERY_PLAYBOOK_V1 -->
