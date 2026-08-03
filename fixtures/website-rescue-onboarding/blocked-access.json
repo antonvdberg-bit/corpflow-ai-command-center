@@ -1,0 +1,56 @@
+{
+  "id": "synthetic-wr-blocked-access",
+  "product": "website-rescue",
+  "financially_approved": true,
+  "content_assets_ready": true,
+  "approved_access_confirmed": false,
+  "dns_cutover_in_scope": true,
+  "deploy_approval_simulated": false,
+  "dns_cutover_authorized_simulated": false,
+  "real_dns_cutover_executed": false,
+  "real_client_production_deploy": false,
+  "delivery_state": "onboarding_blocked",
+  "blocked_inputs": ["approved_access_pending"],
+  "shared_checklist": {
+    "shared.business_identity": true,
+    "shared.primary_contact": true,
+    "shared.financial_approval": true,
+    "shared.named_approver": true,
+    "shared.client_responsibilities_ack": true,
+    "shared.exclusions_ack": true,
+    "shared.acceptance_measures": true,
+    "shared.review_cadence": true
+  },
+  "intake": {
+    "business_display_name": "Synthetic Isle Clinic Desk",
+    "primary_contact_name": "Riley Approver",
+    "working_email": "riley@synthetic-isle-clinic.example",
+    "working_phone": "+230-555-0202",
+    "case_type": "rebuild",
+    "tier": "T3",
+    "current_site_url": "https://old.synthetic-isle-clinic.example/",
+    "domain_hostname": "synthetic-isle-clinic.example",
+    "hosting_facts_summary": "Legacy site; access path not yet confirmed via approved secret channel.",
+    "brand_assets_status": "provided",
+    "pages_in_scope": ["home", "about", "services", "contact"],
+    "services_or_products_summary": "General practice services overview; appointment enquiry only.",
+    "content_ownership": "Client owns clinical wording; operator owns layout.",
+    "enquiry_destination": "riley@synthetic-isle-clinic.example",
+    "design_preferences": "Guided direction C — premium restrained.",
+    "revision_authority": "Riley Approver",
+    "named_approver": "Riley Approver",
+    "client_responsibilities": [
+      "Never send passwords, OTPs, or registrar credentials in chat, tickets, or screenshots — use approved secret channels only"
+    ],
+    "exclusions": [
+      "No credentials stored in issues, docs, fixtures, or screenshots",
+      "No real DNS or client_production cutover without separate Anton authorization"
+    ],
+    "acceptance_measures": [
+      "Deploy and DNS/cutover remain simulated-only unless Anton opens protected gates"
+    ],
+    "review_cadence": "Preview feedback within 2 business days; three structured rounds for T3.",
+    "maintenance_boundary": "Included: quoted pages as accepted at handover. Not included unless quoted: DNS changes."
+  },
+  "evidence": {}
+}
