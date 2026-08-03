@@ -1,0 +1,393 @@
+{
+  "schema": "corpflow.website_rescue_onboarding_delivery.v1",
+  "version": "v1",
+  "issue": 716,
+  "parent": 711,
+  "controller": 710,
+  "source": 654,
+  "product": "website-rescue",
+  "public_sku": "Premium Landing Page Rescue",
+  "description": "Machine-readable contract for Website Rescue onboarding completeness, delivery states, build/cutover gates, evidence packets, and simulated deploy/DNS approval. Pure process contract — no DB schema, no DNS action, no credential storage.",
+  "financial_approval_contract": {
+    "field": "financially_approved",
+    "type": "boolean",
+    "source_lane": 714,
+    "note": "Synthetic boolean until #714 publishes the financial-approval contract; reconcile without changing build-gate semantics."
+  },
+  "case_types": [
+    "upgrade",
+    "rebuild",
+    "one_page",
+    "small_catalogue"
+  ],
+  "tiers": ["T1", "T2", "T3"],
+  "shared_onboarding_checklist": [
+    {
+      "id": "shared.business_identity",
+      "label": "Business identity confirmed",
+      "required": true
+    },
+    {
+      "id": "shared.primary_contact",
+      "label": "Primary contact and working channels confirmed",
+      "required": true
+    },
+    {
+      "id": "shared.financial_approval",
+      "label": "Financial approval recorded (financially_approved=true)",
+      "required": true
+    },
+    {
+      "id": "shared.named_approver",
+      "label": "Named client approver for acceptance",
+      "required": true
+    },
+    {
+      "id": "shared.client_responsibilities_ack",
+      "label": "Client responsibilities acknowledged",
+      "required": true
+    },
+    {
+      "id": "shared.exclusions_ack",
+      "label": "Exclusions acknowledged",
+      "required": true
+    },
+    {
+      "id": "shared.acceptance_measures",
+      "label": "Acceptance measures agreed",
+      "required": true
+    },
+    {
+      "id": "shared.review_cadence",
+      "label": "Review cadence agreed",
+      "required": true
+    }
+  ],
+  "website_rescue_intake_fields": [
+    {
+      "id": "business_display_name",
+      "label": "Business display name",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "id": "primary_contact_name",
+      "label": "Primary contact name",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "id": "working_email",
+      "label": "Working email for preview and approval notices",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "id": "working_phone",
+      "label": "Working phone / WhatsApp for operator chase",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "id": "case_type",
+      "label": "Rescue case type (upgrade | rebuild | one_page | small_catalogue)",
+      "required": true,
+      "type": "enum",
+      "enum_values": ["upgrade", "rebuild", "one_page", "small_catalogue"]
+    },
+    {
+      "id": "tier",
+      "label": "Quoted tier (T1 | T2 | T3)",
+      "required": true,
+      "type": "enum",
+      "enum_values": ["T1", "T2", "T3"]
+    },
+    {
+      "id": "current_site_url",
+      "label": "Current site URL (or none / greenfield note)",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "id": "domain_hostname",
+      "label": "Production hostname agreed in writing",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "id": "hosting_facts_summary",
+      "label": "Domain/hosting facts (registrar path, host type — no passwords)",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "id": "brand_assets_status",
+      "label": "Brand/assets status (provided | wordmark_ok | stock_direction | pending)",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "id": "pages_in_scope",
+      "label": "Pages in scope (ordered)",
+      "required": true,
+      "type": "string_array",
+      "min_items": 1
+    },
+    {
+      "id": "services_or_products_summary",
+      "label": "Services / products / catalogue items in scope",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "id": "content_ownership",
+      "label": "Who owns final copy and proof claims",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "id": "enquiry_destination",
+      "label": "Enquiry destination (email / form recipient / handoff — no secrets)",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "id": "design_preferences",
+      "label": "Design preferences / guided direction lock (A/B/C or note)",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "id": "revision_authority",
+      "label": "Revision authority (who consolidates feedback)",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "id": "named_approver",
+      "label": "Named production/acceptance approver",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "id": "client_responsibilities",
+      "label": "Client responsibilities (accepted list)",
+      "required": true,
+      "type": "string_array",
+      "min_items": 1
+    },
+    {
+      "id": "exclusions",
+      "label": "Exclusions (accepted list)",
+      "required": true,
+      "type": "string_array",
+      "min_items": 1
+    },
+    {
+      "id": "acceptance_measures",
+      "label": "Acceptance measures",
+      "required": true,
+      "type": "string_array",
+      "min_items": 1
+    },
+    {
+      "id": "review_cadence",
+      "label": "Review cadence",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "id": "maintenance_boundary",
+      "label": "Maintenance boundary acknowledged",
+      "required": true,
+      "type": "string"
+    }
+  ],
+  "forbidden_intake_fields": [
+    "passwords",
+    "password",
+    "otps",
+    "otp",
+    "dns_password",
+    "hosting_password",
+    "registrar_password",
+    "ftp_password",
+    "ssh_key",
+    "private_key",
+    "api_keys",
+    "api_key",
+    "card_numbers",
+    "cvv",
+    "bank_account_numbers",
+    "government_id",
+    "full_crm_exports",
+    "health_data"
+  ],
+  "build_gate_flags": {
+    "content_assets_ready": {
+      "field": "content_assets_ready",
+      "type": "boolean",
+      "required_true_for_build": true,
+      "block_reason": "MISSING_CONTENT_OR_ASSETS"
+    },
+    "approved_access_confirmed": {
+      "field": "approved_access_confirmed",
+      "type": "boolean",
+      "required_true_for_build": true,
+      "block_reason": "MISSING_APPROVED_ACCESS",
+      "note": "Confirms access path exists via approved secret channel only — never store credentials in intake, issues, docs, or screenshots."
+    }
+  },
+  "cutover_gates": {
+    "deploy_approval_simulated": {
+      "field": "deploy_approval_simulated",
+      "default": false,
+      "required_to_leave_state": "deploy_approval_pending",
+      "target_state": "deploy_approved_simulated",
+      "block_reason": "DEPLOY_APPROVAL_NOT_SIMULATED",
+      "note": "Simulation only in this lane. Real production deploy remains Anton-protected."
+    },
+    "dns_cutover_authorized_simulated": {
+      "field": "dns_cutover_authorized_simulated",
+      "default": false,
+      "required_when_field": "dns_cutover_in_scope",
+      "required_when_value": true,
+      "required_to_leave_state": "dns_cutover_gated",
+      "target_state": "live_validation_simulated",
+      "block_reason": "DNS_CUTOVER_NOT_AUTHORIZED",
+      "note": "Simulation only. Real DNS/client_production cutover is Anton-protected and out of this PR."
+    }
+  },
+  "delivery_states": [
+    "approved_to_onboard",
+    "onboarding_in_progress",
+    "onboarding_blocked",
+    "onboarding_complete",
+    "build_blocked",
+    "build_started",
+    "preview_evidence",
+    "revision_cycle",
+    "deploy_approval_pending",
+    "deploy_approved_simulated",
+    "dns_cutover_gated",
+    "live_validation_simulated",
+    "accepted",
+    "handover_complete",
+    "acceptance_ready"
+  ],
+  "delivery_transitions": [
+    { "from": "approved_to_onboard", "to": "onboarding_in_progress" },
+    { "from": "onboarding_in_progress", "to": "onboarding_blocked" },
+    { "from": "onboarding_in_progress", "to": "onboarding_complete" },
+    { "from": "onboarding_blocked", "to": "onboarding_in_progress" },
+    { "from": "onboarding_blocked", "to": "onboarding_complete" },
+    { "from": "onboarding_complete", "to": "build_blocked" },
+    { "from": "onboarding_complete", "to": "build_started" },
+    { "from": "build_blocked", "to": "onboarding_in_progress" },
+    { "from": "build_blocked", "to": "build_started" },
+    { "from": "build_started", "to": "preview_evidence" },
+    { "from": "preview_evidence", "to": "revision_cycle" },
+    { "from": "revision_cycle", "to": "preview_evidence" },
+    { "from": "revision_cycle", "to": "deploy_approval_pending" },
+    { "from": "preview_evidence", "to": "deploy_approval_pending" },
+    { "from": "deploy_approval_pending", "to": "deploy_approved_simulated" },
+    { "from": "deploy_approved_simulated", "to": "dns_cutover_gated" },
+    { "from": "dns_cutover_gated", "to": "live_validation_simulated" },
+    { "from": "live_validation_simulated", "to": "accepted" },
+    { "from": "accepted", "to": "handover_complete" },
+    { "from": "handover_complete", "to": "acceptance_ready" }
+  ],
+  "evidence_packets": [
+    {
+      "id": "preview",
+      "required_for_states_from": "preview_evidence",
+      "fields": ["preview_url_or_artefact", "captured_at", "operator_note"]
+    },
+    {
+      "id": "revision",
+      "required_for_states_from": "revision_cycle",
+      "fields": ["round", "reviewer", "decision", "feedback_summary", "captured_at"]
+    },
+    {
+      "id": "deploy_approval",
+      "required_for_states_from": "deploy_approved_simulated",
+      "fields": ["approver", "approved_at", "simulation_only", "operator_note"]
+    },
+    {
+      "id": "dns_cutover",
+      "required_for_states_from": "dns_cutover_gated",
+      "fields": ["in_scope", "authorization_status", "simulation_only", "operator_note"]
+    },
+    {
+      "id": "live_validation",
+      "required_for_states_from": "live_validation_simulated",
+      "fields": ["checks", "pass_fail", "captured_at", "operator_note"]
+    },
+    {
+      "id": "acceptance",
+      "required_for_states_from": "accepted",
+      "fields": ["accepted_by", "accepted_at", "acceptance_measures_met"]
+    },
+    {
+      "id": "handover",
+      "required_for_states_from": "handover_complete",
+      "fields": ["handover_sent_at", "channels", "support_boundary_summary", "what_was_built"]
+    },
+    {
+      "id": "maintenance_boundary",
+      "required_for_states_from": "acceptance_ready",
+      "fields": ["in_scope", "out_of_scope", "escalation_contact", "optional_maintenance_offer"]
+    }
+  ],
+  "build_start_blockers": [
+    "MISSING_FINANCIAL_APPROVAL",
+    "MISSING_REQUIRED_CLIENT_INPUTS",
+    "MISSING_CONTENT_OR_ASSETS",
+    "MISSING_APPROVED_ACCESS",
+    "BLOCKED_CLIENT_INPUTS"
+  ],
+  "cutover_blockers": [
+    "DEPLOY_APPROVAL_NOT_SIMULATED",
+    "DNS_CUTOVER_NOT_AUTHORIZED"
+  ],
+  "default_pages_by_case_type": {
+    "one_page": ["home"],
+    "upgrade": ["home"],
+    "small_catalogue": ["home", "services", "contact"],
+    "rebuild": ["home", "about", "services", "contact"]
+  },
+  "default_client_responsibilities": [
+    "Provide brand assets or written wordmark/stock direction before the build clock starts",
+    "Name one production approver who consolidates revision feedback",
+    "Confirm enquiry destination that the owner monitors",
+    "Provide preview feedback within the agreed review cadence",
+    "Escalate access or content blockers within one business day",
+    "Never send passwords, OTPs, or registrar credentials in chat, tickets, or screenshots — use approved secret channels only"
+  ],
+  "default_exclusions": [
+    "No CMS platform build or unbounded redesign",
+    "No SEO ranking, traffic, or revenue guarantees",
+    "No paid design tooling subscription as a delivery dependency",
+    "No credentials stored in issues, docs, fixtures, or screenshots",
+    "No real DNS or client_production cutover without separate Anton authorization",
+    "No Lead Rescue messaging runtime (separate workstream; quotable add-on only)",
+    "No e-commerce, booking engines, or member portals in this rescue lane"
+  ],
+  "default_acceptance_measures": [
+    "Quoted pages delivered on managed preview path with one primary buyer-action CTA",
+    "Mobile layout pass on agreed width with no horizontal scroll",
+    "Enquiry path tested to the agreed destination (operator test submission)",
+    "Named approver accepted preview (or documented revision closure)",
+    "Deploy and DNS/cutover remain simulated-only unless Anton opens protected gates",
+    "Handover note delivered with maintenance boundary"
+  ],
+  "default_maintenance_boundary": "Included: quoted pages as accepted at handover. Not included unless quoted: ongoing copy edits, new pages, SEO campaigns, hosting outside agreed arrangement, DNS changes, Lead Rescue monitoring, content retainers, or emergency after-hours support.",
+  "docs": {
+    "canonical": "docs/operations/WEBSITE_RESCUE_ONBOARDING_AND_DELIVERY_V1.md",
+    "intake_template": "docs/operations/templates/website-rescue-onboarding-intake.md",
+    "delivery_issue_template": "docs/operations/templates/website-rescue-delivery-issue.md",
+    "operator_checklists": "docs/operations/WEBSITE_RESCUE_DELIVERY_CHECKLISTS_V1.md",
+    "product_pack": "docs/marketing/WEBSITE_RESCUE_PRODUCT_PACK_V1.md",
+    "shared_mauritius_checklist": "docs/operations/MAURITIUS_CLIENT_ONBOARDING_CHECKLIST_V1.md"
+  }
+}

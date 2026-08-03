@@ -3,7 +3,8 @@
 **Status:** Operator checklists for **#654** Website Rescue (public SKU: Premium Landing Page Rescue).
 **Parent pack:** `docs/marketing/WEBSITE_RESCUE_PRODUCT_PACK_V1.md`
 **Quote packet:** `docs/marketing/WEBSITE_RESCUE_QUOTE_READY_PACKET_V1.md`
-**Templates:** `docs/revenue/templates/`
+**Onboarding/delivery readiness contract (#716):** `docs/operations/WEBSITE_RESCUE_ONBOARDING_AND_DELIVERY_V1.md`
+**Templates:** `docs/revenue/templates/` · intake/delivery issue templates under `docs/operations/templates/website-rescue-*.md`
 **Anchor sentinel:** `<!-- WEBSITE_RESCUE_DELIVERY_CHECKLISTS_V1 -->`
 
 <!-- WEBSITE_RESCUE_DELIVERY_CHECKLISTS_V1 -->
@@ -142,6 +143,10 @@ Point clients to `docs/revenue/templates/maintenance-offer.md` when they want on
 | Quote-ready packet | `docs/marketing/WEBSITE_RESCUE_QUOTE_READY_PACKET_V1.md` |
 | Pricing guide | `docs/sales/WEBSITE_RESCUE_PRICING_GUIDE.md` |
 | Demo path record | `docs/marketing/WEBSITE_RESCUE_DEMONSTRATION_PATH_V1.md` |
+| Onboarding/delivery readiness (#716) | `docs/operations/WEBSITE_RESCUE_ONBOARDING_AND_DELIVERY_V1.md` |
+| Intake template | `docs/operations/templates/website-rescue-onboarding-intake.md` |
+| Delivery issue template | `docs/operations/templates/website-rescue-delivery-issue.md` |
+| Machine contract | `config/website-rescue-onboarding-delivery.v1.json` |
 | Public offer | `/offers/premium-landing-page-rescue` |
 | Public demo | `/demo/website-rescue` |
 | Operator desk | `/admin/rapid-delivery` |
