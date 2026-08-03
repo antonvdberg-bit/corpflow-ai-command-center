@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>CorpFlowAI — AI receptionist prototype (synthetic)</title>
+    <style>
+      :root {
+        --bg0: #0f1c24;
+        --bg1: #1a3340;
+        --ink: #f4efe6;
+        --muted: #b7c4cc;
+        --accent: #d4a24c;
+        --panel: rgba(15, 28, 36, 0.72);
+        --danger: #e8b4b4;
+        --ok: #b8d4c0;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+        color: var(--ink);
+        background:
+          radial-gradient(1200px 600px at 10% 0%, #2a4a57 0%, transparent 55%),
+          radial-gradient(900px 500px at 90% 20%, #3d2e1a 0%, transparent 50%),
+          linear-gradient(160deg, var(--bg0), var(--bg1));
+      }
+      main {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 40px 20px 64px;
+      }
+      .brand {
+        font-size: clamp(2rem, 5vw, 2.8rem);
+        letter-spacing: 0.02em;
+        margin: 0 0 8px;
+      }
+      .lede {
+        color: var(--muted);
+        font-size: 1.05rem;
+        margin: 0 0 28px;
+        max-width: 40rem;
+      }
+      .banner {
+        border: 1px solid rgba(212, 162, 76, 0.45);
+        background: rgba(212, 162, 76, 0.12);
+        color: var(--ink);
+        padding: 12px 14px;
+        margin-bottom: 20px;
+        font-family: ui-sans-serif, system-ui, sans-serif;
+        font-size: 0.92rem;
+      }
+      .panel {
+        background: var(--panel);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(244, 239, 230, 0.12);
+        padding: 18px;
+      }
+      #log {
+        min-height: 280px;
+        max-height: 48vh;
+        overflow: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 16px;
+        font-family: ui-sans-serif, system-ui, sans-serif;
+        font-size: 0.95rem;
+      }
+      .msg {
+        padding: 10px 12px;
+        max-width: 92%;
+        white-space: pre-wrap;
+      }
+      .msg.assistant {
+        align-self: flex-start;
+        background: rgba(244, 239, 230, 0.08);
+        border-left: 3px solid var(--accent);
+      }
+      .msg.user {
+        align-self: flex-end;
+        background: rgba(212, 162, 76, 0.18);
+      }
+      .msg.system {
+        align-self: stretch;
+        color: var(--danger);
+        border: 1px dashed rgba(232, 180, 180, 0.5);
+        font-size: 0.85rem;
+      }
+      .controls {
+        display: grid;
+        gap: 10px;
+        font-family: ui-sans-serif, system-ui, sans-serif;
+      }
+      textarea {
+        width: 100%;
+        min-height: 72px;
+        resize: vertical;
+        background: rgba(0, 0, 0, 0.25);
+        color: var(--ink);
+        border: 1px solid rgba(244, 239, 230, 0.2);
+        padding: 10px 12px;
+        font: inherit;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      button {
+        appearance: none;
+        border: 1px solid rgba(212, 162, 76, 0.55);
+        background: rgba(212, 162, 76, 0.2);
+        color: var(--ink);
+        padding: 10px 14px;
+        font: inherit;
+        cursor: pointer;
+      }
+      button.secondary {
+        border-color: rgba(244, 239, 230, 0.25);
+        background: transparent;
+      }
+      button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      #handoff {
+        margin-top: 16px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.8rem;
+        color: var(--ok);
+        white-space: pre-wrap;
+      }
+      .hint {
+        color: var(--muted);
+        font-size: 0.85rem;
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1 class="brand">CorpFlowAI</h1>
+      <p class="lede">
+        Synthetic browser-voice AI receptionist prototype — draft enquiry capture only.
+        Not a phone line. Not production.
+      </p>
+      <div class="banner" role="status">
+        Prototype bounds: synthetic data · browser/text voice shape · no telephony · no CRM/DB
+        write · no email/WhatsApp/SMS · assistant may draft/recommend only ·
+        <strong>requires_human_review: true</strong>
+      </div>
+      <div class="panel">
+        <div id="log" aria-live="polite"></div>
+        <div class="controls">
+          <label for="input">Your reply (text fallback — also used as mocked STT transcript)</label>
+          <textarea id="input" placeholder="Type your reply…"></textarea>
+          <div class="row">
+            <button type="button" id="send">Send</button>
+            <button type="button" id="ptt" class="secondary" title="Optional browser SpeechRecognition">
+              Hold to talk (optional)
+            </button>
+            <button type="button" id="reset" class="secondary">Reset session</button>
+          </div>
+          <p class="hint" id="voiceHint">
+            Voice: optional Web Speech API when the browser supports it. Default path is text + mock
+            STT/TTS (no paid APIs).
+          </p>
+          <pre id="handoff" hidden></pre>
+        </div>
+      </div>
+    </main>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

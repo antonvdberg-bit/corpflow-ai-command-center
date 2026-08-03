@@ -1,0 +1,13 @@
+{
+  "id": "normal-enquiry",
+  "description": "Happy-path synthetic enquiry with all fields supplied.",
+  "user_turns": [
+    "Alex Rivera",
+    "Acme Clinics",
+    "email",
+    "alex.rivera@example.com",
+    "We want help recovering missed website leads",
+    "normal",
+    "Weekday mornings"
+  ]
+}
