@@ -1,0 +1,83 @@
+# EXAMPLE ONLY — Beszel utilisation pilot scaffold
+#
+# Source issue: #727
+# Canonical runbook: docs/operations/BESZEL_SERVER_UTILISATION_PILOT.md
+#
+# This file is NOT production compose and must NOT be auto-deployed.
+# Copy to the server as ~/corpflowai-beszel/compose.yaml only after Anton
+# approves a separate L3 install + Beszel carve-out authorization.
+#
+# Recommended pin at authorship: henrygd/beszel:0.18.7 + henrygd/beszel-agent:0.18.7
+# (upstream release v0.18.7). Patch bumps within 0.18.x may be reviewed at L3;
+# minor/major bumps need a fresh review of the runbook.
+#
+# Hard rules encoded here:
+# - Hub publishes 127.0.0.1:8090 only (never 0.0.0.0)
+# - Named project-specific containers / volumes
+# - No CorpFlow secrets, no Postgres, no shared ERPNext networks
+# - Agent Docker socket is read-only and documented as a risk in the runbook
+# - Agent uses host networking because Beszel's same-host model requires it
+#   for accurate host metrics; hub remains loopback-bound
+
+name: corpflowai-beszel
+
+services:
+  corpflowai-beszel-hub:
+    image: henrygd/beszel:0.18.7
+    container_name: corpflowai-beszel-hub
+    restart: unless-stopped
+    environment:
+      # URL as seen through the SSH tunnel on Anton's laptop
+      APP_URL: http://127.0.0.1:8090
+    ports:
+      # REQUIRED: loopback-only. Removing 127.0.0.1: would expose the dashboard.
+      - "127.0.0.1:8090:8090"
+    volumes:
+      - corpflowai-beszel-data:/beszel_data
+      - corpflowai-beszel-socket:/beszel_socket
+    mem_limit: 256m
+    cpus: "0.50"
+    healthcheck:
+      test: ["CMD", "/beszel", "health", "--url", "http://127.0.0.1:8090"]
+      interval: 120s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  corpflowai-beszel-agent:
+    image: henrygd/beszel-agent:0.18.7
+    container_name: corpflowai-beszel-agent
+    restart: unless-stopped
+    # Strongly justified: Beszel same-host agent docs use host networking for
+    # host metrics. This does NOT publish the hub. Do not add ports: here.
+    network_mode: host
+    volumes:
+      - corpflowai-beszel-agent-data:/var/lib/beszel-agent
+      - corpflowai-beszel-socket:/beszel_socket
+      # RISK: Docker engine API. Read-only only. Never expose hub/agent publicly
+      # while this mount exists. Prefer unix-socket hub↔agent (LISTEN below).
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      LISTEN: /beszel_socket/beszel.sock
+      HUB_URL: http://127.0.0.1:8090
+      # Placeholders — filled on the server after hub "Add System"; never commit real values.
+      TOKEN: ${BESZEL_AGENT_TOKEN:-REPLACE_ME_BESZEL_AGENT_TOKEN}
+      KEY: ${BESZEL_AGENT_KEY:-REPLACE_ME_BESZEL_AGENT_KEY}
+    mem_limit: 128m
+    cpus: "0.25"
+    healthcheck:
+      test: ["CMD", "/agent", "health"]
+      interval: 120s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    depends_on:
+      - corpflowai-beszel-hub
+
+volumes:
+  corpflowai-beszel-data:
+    name: corpflowai-beszel-data
+  corpflowai-beszel-socket:
+    name: corpflowai-beszel-socket
+  corpflowai-beszel-agent-data:
+    name: corpflowai-beszel-agent-data
