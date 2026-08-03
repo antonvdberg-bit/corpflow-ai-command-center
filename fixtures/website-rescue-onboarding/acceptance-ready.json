@@ -1,0 +1,123 @@
+{
+  "id": "synthetic-wr-acceptance-ready",
+  "product": "website-rescue",
+  "financially_approved": true,
+  "content_assets_ready": true,
+  "approved_access_confirmed": true,
+  "dns_cutover_in_scope": true,
+  "deploy_approval_simulated": true,
+  "dns_cutover_authorized_simulated": true,
+  "real_dns_cutover_executed": false,
+  "real_client_production_deploy": false,
+  "delivery_state": "acceptance_ready",
+  "blocked_inputs": [],
+  "shared_checklist": {
+    "shared.business_identity": true,
+    "shared.primary_contact": true,
+    "shared.financial_approval": true,
+    "shared.named_approver": true,
+    "shared.client_responsibilities_ack": true,
+    "shared.exclusions_ack": true,
+    "shared.acceptance_measures": true,
+    "shared.review_cadence": true
+  },
+  "intake": {
+    "business_display_name": "Synthetic Isle Clinic Desk",
+    "primary_contact_name": "Riley Approver",
+    "working_email": "riley@synthetic-isle-clinic.example",
+    "working_phone": "+230-555-0202",
+    "case_type": "rebuild",
+    "tier": "T3",
+    "current_site_url": "https://old.synthetic-isle-clinic.example/",
+    "domain_hostname": "synthetic-isle-clinic.example",
+    "hosting_facts_summary": "Legacy multi-section site; bounded rebuild complete on managed preview. Real DNS not executed.",
+    "brand_assets_status": "provided",
+    "pages_in_scope": ["home", "about", "services", "contact"],
+    "services_or_products_summary": "General practice services overview; appointment enquiry only.",
+    "content_ownership": "Client medical director owns clinical wording; operator owns layout and CTA structure.",
+    "enquiry_destination": "riley@synthetic-isle-clinic.example",
+    "design_preferences": "Guided direction C — premium restrained.",
+    "revision_authority": "Riley Approver",
+    "named_approver": "Riley Approver",
+    "client_responsibilities": [
+      "Provide brand assets or written wordmark/stock direction before the build clock starts",
+      "Name one production approver who consolidates revision feedback",
+      "Confirm enquiry destination that the owner monitors",
+      "Provide preview feedback within the agreed review cadence",
+      "Escalate access or content blockers within one business day",
+      "Never send passwords, OTPs, or registrar credentials in chat, tickets, or screenshots — use approved secret channels only"
+    ],
+    "exclusions": [
+      "No CMS platform build or unbounded redesign",
+      "No SEO ranking, traffic, or revenue guarantees",
+      "No paid design tooling subscription as a delivery dependency",
+      "No credentials stored in issues, docs, fixtures, or screenshots",
+      "No real DNS or client_production cutover without separate Anton authorization",
+      "No Lead Rescue messaging runtime (separate workstream; quotable add-on only)",
+      "No e-commerce, booking engines, or member portals in this rescue lane"
+    ],
+    "acceptance_measures": [
+      "Quoted pages delivered on managed preview path with one primary buyer-action CTA",
+      "Mobile layout pass on agreed width with no horizontal scroll",
+      "Enquiry path tested to the agreed destination (operator test submission)",
+      "Named approver accepted preview (or documented revision closure)",
+      "Deploy and DNS/cutover remain simulated-only unless Anton opens protected gates",
+      "Handover note delivered with maintenance boundary"
+    ],
+    "review_cadence": "Preview feedback within 2 business days; three structured rounds for T3 rebuild.",
+    "maintenance_boundary": "Included: quoted pages as accepted at handover. Not included unless quoted: ongoing copy edits, new pages, SEO campaigns, hosting outside agreed arrangement, DNS changes, Lead Rescue monitoring, content retainers, or emergency after-hours support."
+  },
+  "evidence": {
+    "preview": {
+      "preview_url_or_artefact": "fixtures/website-rescue-onboarding/acceptance-ready.json#preview",
+      "captured_at": "2026-08-03T10:00:00Z",
+      "operator_note": "Synthetic preview: landing + three brochure pages ready for named approver."
+    },
+    "revision": {
+      "round": 1,
+      "reviewer": "Riley Approver",
+      "decision": "approve",
+      "feedback_summary": "CTA and services wording accepted; no further revision.",
+      "captured_at": "2026-08-03T11:00:00Z"
+    },
+    "deploy_approval": {
+      "approver": "Riley Approver",
+      "approved_at": "2026-08-03T12:00:00Z",
+      "simulation_only": true,
+      "operator_note": "Deploy approval simulated for Scenario B; no production deploy executed."
+    },
+    "dns_cutover": {
+      "in_scope": true,
+      "authorization_status": "simulated_authorized",
+      "simulation_only": true,
+      "operator_note": "DNS cutover authorization simulated only; real client_production cutover not performed."
+    },
+    "live_validation": {
+      "checks": [
+        "preview_primary_url_reachable_simulated",
+        "enquiry_path_test_submission_simulated",
+        "mobile_layout_pass_simulated"
+      ],
+      "pass_fail": "pass",
+      "captured_at": "2026-08-03T13:00:00Z",
+      "operator_note": "Live-validation simulated against synthetic checks; no client hostname changed."
+    },
+    "acceptance": {
+      "accepted_by": "Riley Approver",
+      "accepted_at": "2026-08-03T14:00:00Z",
+      "acceptance_measures_met": true
+    },
+    "handover": {
+      "handover_sent_at": "2026-08-03T15:00:00Z",
+      "channels": ["synthetic_draft_email"],
+      "support_boundary_summary": "Quoted pages as accepted; change requests via named approver; no ongoing edits included.",
+      "what_was_built": "T3 bounded rebuild: home, about, services, contact on managed preview path."
+    },
+    "maintenance_boundary": {
+      "in_scope": "Quoted pages as accepted at handover",
+      "out_of_scope": "Ongoing copy edits, new pages, SEO campaigns, DNS changes, Lead Rescue monitoring",
+      "escalation_contact": "Riley Approver",
+      "optional_maintenance_offer": "deferred"
+    }
+  }
+}

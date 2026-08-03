@@ -1,0 +1,71 @@
+{
+  "id": "synthetic-wr-one-page-complete",
+  "product": "website-rescue",
+  "financially_approved": true,
+  "content_assets_ready": true,
+  "approved_access_confirmed": true,
+  "dns_cutover_in_scope": false,
+  "deploy_approval_simulated": false,
+  "dns_cutover_authorized_simulated": false,
+  "real_dns_cutover_executed": false,
+  "real_client_production_deploy": false,
+  "delivery_state": "onboarding_complete",
+  "blocked_inputs": [],
+  "shared_checklist": {
+    "shared.business_identity": true,
+    "shared.primary_contact": true,
+    "shared.financial_approval": true,
+    "shared.named_approver": true,
+    "shared.client_responsibilities_ack": true,
+    "shared.exclusions_ack": true,
+    "shared.acceptance_measures": true,
+    "shared.review_cadence": true
+  },
+  "intake": {
+    "business_display_name": "Synthetic Coral Cafe",
+    "primary_contact_name": "Sam Approver",
+    "working_email": "sam@synthetic-coral.example",
+    "working_phone": "+230-555-0200",
+    "case_type": "one_page",
+    "tier": "T1",
+    "current_site_url": "https://synthetic-coral.example/",
+    "domain_hostname": "synthetic-coral.example",
+    "hosting_facts_summary": "Shared hosting; registrar contact on file via secret channel (no password recorded).",
+    "brand_assets_status": "wordmark_ok",
+    "pages_in_scope": ["home"],
+    "services_or_products_summary": "Cafe brunch menu and table booking enquiry.",
+    "content_ownership": "Client owns final menu claims; operator structures Hook/Proof/Depth copy.",
+    "enquiry_destination": "sam@synthetic-coral.example (form handoff)",
+    "design_preferences": "Guided direction A — calm professional; navy + warm accent.",
+    "revision_authority": "Sam Approver",
+    "named_approver": "Sam Approver",
+    "client_responsibilities": [
+      "Provide brand assets or written wordmark/stock direction before the build clock starts",
+      "Name one production approver who consolidates revision feedback",
+      "Confirm enquiry destination that the owner monitors",
+      "Provide preview feedback within the agreed review cadence",
+      "Escalate access or content blockers within one business day",
+      "Never send passwords, OTPs, or registrar credentials in chat, tickets, or screenshots — use approved secret channels only"
+    ],
+    "exclusions": [
+      "No CMS platform build or unbounded redesign",
+      "No SEO ranking, traffic, or revenue guarantees",
+      "No paid design tooling subscription as a delivery dependency",
+      "No credentials stored in issues, docs, fixtures, or screenshots",
+      "No real DNS or client_production cutover without separate Anton authorization",
+      "No Lead Rescue messaging runtime (separate workstream; quotable add-on only)",
+      "No e-commerce, booking engines, or member portals in this rescue lane"
+    ],
+    "acceptance_measures": [
+      "Quoted pages delivered on managed preview path with one primary buyer-action CTA",
+      "Mobile layout pass on agreed width with no horizontal scroll",
+      "Enquiry path tested to the agreed destination (operator test submission)",
+      "Named approver accepted preview (or documented revision closure)",
+      "Deploy and DNS/cutover remain simulated-only unless Anton opens protected gates",
+      "Handover note delivered with maintenance boundary"
+    ],
+    "review_cadence": "Preview feedback within 2 business days; two structured rounds for T1.",
+    "maintenance_boundary": "Included: quoted pages as accepted at handover. Not included unless quoted: ongoing copy edits, new pages, SEO campaigns, hosting outside agreed arrangement, DNS changes, Lead Rescue monitoring, content retainers, or emergency after-hours support."
+  },
+  "evidence": {}
+}

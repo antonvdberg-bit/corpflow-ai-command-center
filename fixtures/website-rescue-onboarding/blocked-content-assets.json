@@ -1,0 +1,55 @@
+{
+  "id": "synthetic-wr-blocked-content-assets",
+  "product": "website-rescue",
+  "financially_approved": true,
+  "content_assets_ready": false,
+  "approved_access_confirmed": true,
+  "dns_cutover_in_scope": false,
+  "deploy_approval_simulated": false,
+  "dns_cutover_authorized_simulated": false,
+  "real_dns_cutover_executed": false,
+  "real_client_production_deploy": false,
+  "delivery_state": "onboarding_blocked",
+  "blocked_inputs": ["content_assets_pending"],
+  "shared_checklist": {
+    "shared.business_identity": true,
+    "shared.primary_contact": true,
+    "shared.financial_approval": true,
+    "shared.named_approver": true,
+    "shared.client_responsibilities_ack": true,
+    "shared.exclusions_ack": true,
+    "shared.acceptance_measures": true,
+    "shared.review_cadence": true
+  },
+  "intake": {
+    "business_display_name": "Synthetic Coral Cafe",
+    "primary_contact_name": "Sam Approver",
+    "working_email": "sam@synthetic-coral.example",
+    "working_phone": "+230-555-0200",
+    "case_type": "one_page",
+    "tier": "T1",
+    "current_site_url": "https://synthetic-coral.example/",
+    "domain_hostname": "synthetic-coral.example",
+    "hosting_facts_summary": "Shared hosting; registrar contact pending via secret channel.",
+    "brand_assets_status": "provided",
+    "pages_in_scope": ["home"],
+    "services_or_products_summary": "Cafe brunch menu and table booking enquiry.",
+    "content_ownership": "Client owns final menu claims; operator structures copy.",
+    "enquiry_destination": "sam@synthetic-coral.example",
+    "design_preferences": "Guided direction A — calm professional.",
+    "revision_authority": "Sam Approver",
+    "named_approver": "Sam Approver",
+    "client_responsibilities": [
+      "Provide brand assets or written wordmark/stock direction before the build clock starts"
+    ],
+    "exclusions": [
+      "No CMS platform build or unbounded redesign"
+    ],
+    "acceptance_measures": [
+      "Quoted pages delivered on managed preview path with one primary buyer-action CTA"
+    ],
+    "review_cadence": "Preview feedback within 2 business days.",
+    "maintenance_boundary": "Included: quoted pages as accepted at handover. Not included unless quoted: ongoing copy edits."
+  },
+  "evidence": {}
+}
