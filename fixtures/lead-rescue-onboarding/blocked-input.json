@@ -1,0 +1,47 @@
+{
+  "id": "synthetic-lr-onboard-blocked",
+  "product": "ai-lead-rescue",
+  "financially_approved": true,
+  "messaging_runtime_authorized": false,
+  "allow_real_client_sends": false,
+  "delivery_state": "onboarding_blocked",
+  "blocked_inputs": ["primary_leaky_source_access_pending"],
+  "shared_checklist": {
+    "shared.business_identity": true,
+    "shared.primary_contact": true,
+    "shared.financial_approval": true,
+    "shared.named_approver": true,
+    "shared.client_responsibilities_ack": true,
+    "shared.exclusions_ack": true,
+    "shared.acceptance_measures": true,
+    "shared.review_cadence": true
+  },
+  "intake": {
+    "business_display_name": "Synthetic Harbour Stays",
+    "primary_contact_name": "Alex Operator",
+    "working_whatsapp": "+230-555-0100",
+    "working_email": "alex@synthetic-harbour.example",
+    "timezone": "Indian/Mauritius",
+    "enquiry_sources": ["website_form", "whatsapp"],
+    "primary_leaky_source": "website_form",
+    "current_process_summary": "Owner checks WhatsApp ad hoc; form emails unread overnight.",
+    "users_operators": ["Alex Operator"],
+    "lead_stages": ["new", "replied", "followed-up", "won", "lost"],
+    "escalation_rules": "Ping named approver if no reply in 4 business hours.",
+    "approved_response_rules": "Acknowledge and offer viewing window. No guarantees.",
+    "test_scenarios": ["marked_test_enquiry_end_to_end"],
+    "reporting_requirements": "Daily summary at 17:00 local.",
+    "named_approver": "Alex Operator",
+    "client_responsibilities": [
+      "Provide one named leaky enquiry source and keep it available during the pilot window"
+    ],
+    "exclusions": [
+      "No WhatsApp/email/SMS automated runtime without separate messaging-runtime authorisation"
+    ],
+    "acceptance_measures": [
+      "One lead source connected and a marked test enquiry visible in the lead log"
+    ],
+    "review_cadence": "Preview feedback within 2 business days."
+  },
+  "evidence": {}
+}

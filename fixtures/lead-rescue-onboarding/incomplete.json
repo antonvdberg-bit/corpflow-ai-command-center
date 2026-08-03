@@ -1,0 +1,41 @@
+{
+  "id": "synthetic-lr-onboard-incomplete",
+  "product": "ai-lead-rescue",
+  "financially_approved": true,
+  "messaging_runtime_authorized": false,
+  "allow_real_client_sends": false,
+  "delivery_state": "onboarding_in_progress",
+  "blocked_inputs": [],
+  "shared_checklist": {
+    "shared.business_identity": true,
+    "shared.primary_contact": true,
+    "shared.financial_approval": true,
+    "shared.named_approver": false,
+    "shared.client_responsibilities_ack": false,
+    "shared.exclusions_ack": false,
+    "shared.acceptance_measures": false,
+    "shared.review_cadence": false
+  },
+  "intake": {
+    "business_display_name": "Synthetic Harbour Stays",
+    "primary_contact_name": "Alex Operator",
+    "working_whatsapp": "+230-555-0100",
+    "working_email": "",
+    "timezone": "",
+    "enquiry_sources": ["website_form"],
+    "primary_leaky_source": "website_form",
+    "current_process_summary": "Owner checks WhatsApp ad hoc.",
+    "users_operators": [],
+    "lead_stages": ["new", "replied"],
+    "escalation_rules": "",
+    "approved_response_rules": "",
+    "test_scenarios": [],
+    "reporting_requirements": "",
+    "named_approver": "",
+    "client_responsibilities": [],
+    "exclusions": [],
+    "acceptance_measures": [],
+    "review_cadence": ""
+  },
+  "evidence": {}
+}

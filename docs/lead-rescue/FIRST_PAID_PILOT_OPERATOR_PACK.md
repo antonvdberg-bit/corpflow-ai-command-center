@@ -32,6 +32,7 @@
 | Evidence gap (§15) | This doc — minimum before "delivered" |
 | Outreach candidate worksheet (C4) | `docs/lead-rescue/FIRST_OUTREACH_CANDIDATE_WORKSHEET.md` |
 | Fulfilment evidence checklist (C5) | `docs/lead-rescue/FIRST_PAID_PILOT_FULFILMENT_EVIDENCE_CHECKLIST.md` |
+| Onboarding + delivery readiness (WS4 / #715) | `docs/operations/LEAD_RESCUE_ONBOARDING_AND_DELIVERY_V1.md` |
 | ERPNext sandbox rehearsal (money path) | `docs/operations/ERPNEXT_LEAD_RESCUE_PAID_PILOT_REHEARSAL_V1.md` |
 | Backbone decision (ERPNext retained; Odoo rejected for July) | `docs/operations/ERP_BACKBONE_DECISION_AUDIT_V1.md` |
 
