@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+#
+# CorpFlowAI Promptfoo quality-gate pilot (GitHub #725)
+#
+# Licence posture: Community / open-source ONLY.
+# - Do not enable Promptfoo Cloud, Enterprise, paid red-team, or hosted dashboards.
+# - Default provider is deterministic (no paid/live model calls).
+#
+# Node engines for Promptfoo CLI (upstream docs, 2026):
+#   npm/npx require Node ^20.20.0 or >=22.22.0 (Node 24 recommended for CI).
+# Repo/CI often still on Node 22.x below 22.22.0 — prefer:
+#   npm run eval:ai
+# which uses the local deterministic runner and does not require Promptfoo CLI.
+#
+# Optional Promptfoo CLI (when Node engines are satisfied):
+#   npx promptfoo@latest eval -c evals/corpflowai/promptfooconfig.yaml
+
+description: "CorpFlowAI AI quality-gate pilot — deterministic, Community licence, no Cloud"
+
+prompts:
+  - file://prompts/system_user.txt
+
+providers:
+  - id: file://providers/deterministic-corpflow.cjs
+    label: deterministic-corpflow-policy-stub
+
+tests: file://cases/cases.json
+
+defaultTest:
+  assert:
+    - type: javascript
+      value: file://assertions/mandatory-safety.js
+
+commandLineOptions:
+  cache: false
+  table: true
+  maxConcurrency: 4

@@ -1,0 +1,13 @@
+{
+  "active_tenant": {
+    "tenant_id": "fixture-tenant-alpha",
+    "display_name": "Fixture Tenant Alpha (synthetic)",
+    "host": "alpha.example.test"
+  },
+  "other_tenant": {
+    "tenant_id": "fixture-tenant-beta",
+    "display_name": "Fixture Tenant Beta (synthetic)",
+    "host": "beta.example.test"
+  },
+  "notes": "Synthetic tenants only. Never use real client ids, hosts, or private records in fixtures."
+}

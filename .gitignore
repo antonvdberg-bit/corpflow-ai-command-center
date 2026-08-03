@@ -30,6 +30,9 @@ cursor-issue-dispatch-scan.json
 cursor-ops-status.json
 activation-plan.json
 activation-audit.json
+# Promptfoo / AI eval local evidence (deterministic + optional live). Re-generated; never commit.
+evals/corpflowai/.artifacts/
+
 # Local preview screenshots from beauty-layer page checks. Re-generated locally; never committed.
 .preview-shots/
 # Local verification snapshots used by Lux operator scripts: production-audit
