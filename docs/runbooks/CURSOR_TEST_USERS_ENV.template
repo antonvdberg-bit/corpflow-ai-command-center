@@ -1,0 +1,19 @@
+# Cursor authenticated smoke-test runtime placeholders only.
+# Never commit values. Do not use this file as a live secret store.
+
+CURSOR_TEST_ADMIN_USERNAME=cursor-test-admin@corpflowai.com
+CURSOR_TEST_ADMIN_PASSWORD=
+CURSOR_TEST_ADMIN_LOGIN_BASE_URL=https://core.corpflowai.com
+
+TENANT_SMOKE_USERNAME=cursor-test-tenant@corpflowai.com
+TENANT_SMOKE_PASSWORD=
+TENANT_SMOKE_TENANT_ID=luxe-maurice
+TENANT_SMOKE_BASE_URL=https://lux.corpflowai.com
+
+# Deprecated compatibility aliases only. New callers must use TENANT_SMOKE_*.
+# If an older caller still requires these names, map them to the same generic
+# tenant identity above. They must never target cursor-test-lux@corpflowai.com.
+# LUX_SMOKE_USERNAME=cursor-test-tenant@corpflowai.com
+# LUX_SMOKE_PASSWORD=<same protected value as TENANT_SMOKE_PASSWORD>
+# LUX_SMOKE_TENANT_ID=luxe-maurice
+# LUX_SMOKE_BASE_URL=https://lux.corpflowai.com
