@@ -46,12 +46,17 @@
     "dispatcher:issue-scan": "node scripts/cursor-issue-dispatch-scan.mjs --dry-run",
     "dispatcher:issue-scan:apply": "node scripts/cursor-issue-dispatch-scan.mjs --apply-comments --apply-labels",
     "check:marketing-quality-gate": "node scripts/check-marketing-quality-gate.mjs",
+    "eval:ai": "node evals/corpflowai/run-deterministic-eval.mjs",
+    "eval:ai:ci": "node evals/corpflowai/run-deterministic-eval.mjs",
+    "eval:ai:live": "node evals/corpflowai/run-live-eval.mjs",
     "video:optimise": "bash scripts/optimise-video.sh",
     "video:validate": "node scripts/video/validate.mjs",
     "video:serve-mock": "node scripts/video/serve-mock.mjs",
     "video:run": "node scripts/video/run-walkthrough.mjs",
     "video:encode": "node scripts/video/encode-mp4.mjs",
-    "video:provenance": "node scripts/video/write-provenance.mjs"
+    "video:provenance": "node scripts/video/write-provenance.mjs",
+    "prototype:ai-receptionist": "node prototypes/ai-receptionist-browser-voice/cli/run-demo.mjs",
+    "prototype:ai-receptionist:serve": "node prototypes/ai-receptionist-browser-voice/cli/serve-demo.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.0.0",

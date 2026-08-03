@@ -34,6 +34,11 @@ import {
 } from '../lib/cmp/_lib/lux-lead-qualification.js';
 import { listLuxShortlistCatalogue } from '../lib/cmp/_lib/lux-lead-shortlist.js';
 import {
+  LUX_CONFIDENTIAL_PRESENTATION_JAN_TEST_CHECKLIST,
+  LUX_PRESENTATION_JOURNEY_LABEL,
+  LUX_PRESENTATION_VIEWING_NEXT_STEP,
+} from '../lib/cmp/_lib/lux-lead-confidential-presentation.js';
+import {
   LUX_ATTACHMENT_ARCHIVE_REASON_SMOKE_DEFAULT,
   LUX_ATTACHMENT_OPERATOR_FILTER_IDS,
   LUX_AI_SUGGESTION_STATUSES,
@@ -582,6 +587,11 @@ export default function ChangeConsolePage() {
   const [shortlistDraftSlugs, setShortlistDraftSlugs] = useState([]);
   const [invitationNoteDraft, setInvitationNoteDraft] = useState('');
   const [invitationCopyStatus, setInvitationCopyStatus] = useState('');
+  /** Issue #717 — confidential presentation notes + viewing next step (no live send). */
+  const [presentationNotesDraft, setPresentationNotesDraft] = useState('');
+  const [viewingNextStepDraft, setViewingNextStepDraft] = useState(false);
+  const [presentationCopyStatus, setPresentationCopyStatus] = useState('');
+  const [presentationJanChecks, setPresentationJanChecks] = useState(() => /** @type {Record<string, boolean>} */ ({}));
   const [crmFilterStage, setCrmFilterStage] = useState('all');
   const [crmFilterOwner, setCrmFilterOwner] = useState('');
   const [crmFilterProperty, setCrmFilterProperty] = useState('');
@@ -1902,11 +1912,18 @@ export default function ChangeConsolePage() {
       short?.invitation_operator_note != null ? String(short.invitation_operator_note) : '',
     );
     setInvitationCopyStatus('');
+    const presentation = selectedLead.private_client_presentation;
+    setPresentationNotesDraft(
+      presentation?.presentation_notes != null ? String(presentation.presentation_notes) : '',
+    );
+    setViewingNextStepDraft(presentation?.viewing_next_step_selected === true);
+    setPresentationCopyStatus('');
   }, [
     luxLeadCrmEnabled,
     selectedLeadId,
     selectedLead?.private_client_qualification?.updated_at,
     selectedLead?.private_client_shortlist?.updated_at,
+    selectedLead?.private_client_presentation?.updated_at,
     selectedLead?.private_client_qualification?.filled_count,
     selectedLead?.private_client_shortlist?.residences?.length,
   ]);
@@ -1972,6 +1989,16 @@ export default function ChangeConsolePage() {
           : '';
       const invitationNoteChanged = String(invitationNoteDraft || '').trim() !== prevInvNote.trim();
 
+      const prevPresentationNotes =
+        selectedLead?.private_client_presentation?.presentation_notes != null
+          ? String(selectedLead.private_client_presentation.presentation_notes)
+          : '';
+      const presentationNotesChanged =
+        String(presentationNotesDraft || '').trim() !== prevPresentationNotes.trim();
+      const prevViewingSelected =
+        selectedLead?.private_client_presentation?.viewing_next_step_selected === true;
+      const viewingNextChanged = Boolean(viewingNextStepDraft) !== prevViewingSelected;
+
       const body = { lead_id: id };
       if (stageChanged) body.stage = leadStageDraft;
       if (followChanged) body.follow_up_status = leadFollowDraft;
@@ -1993,6 +2020,12 @@ export default function ChangeConsolePage() {
       if (qualChanged) body.private_client_qualification = qualPatch;
       if (shortlistChanged) body.shortlist_slugs = nextSlugsArr;
       if (invitationNoteChanged) body.invitation_operator_note = String(invitationNoteDraft || '').trim();
+      if (presentationNotesChanged) body.presentation_notes = String(presentationNotesDraft || '').trim();
+      if (viewingNextChanged) {
+        body.viewing_next_step = viewingNextStepDraft
+          ? LUX_PRESENTATION_VIEWING_NEXT_STEP
+          : null;
+      }
       if (
         !body.stage &&
         body.follow_up_status === undefined &&
@@ -2002,7 +2035,9 @@ export default function ChangeConsolePage() {
         body.next_action_note === undefined &&
         !body.private_client_qualification &&
         body.shortlist_slugs === undefined &&
-        body.invitation_operator_note === undefined
+        body.invitation_operator_note === undefined &&
+        body.presentation_notes === undefined &&
+        body.viewing_next_step === undefined
       ) {
         setLeadPatchStatus('Nothing to save.');
         return;
@@ -7145,6 +7180,11 @@ export default function ChangeConsolePage() {
                               Shortlist / invitation draft updated
                             </div>
                           ) : null}
+                          {ev.kind === 'presentation_updated' ? (
+                            <div style={{ marginTop: 2, fontSize: 11, color: '#c4b5fd' }}>
+                              Confidential presentation packet updated
+                            </div>
+                          ) : null}
                         </div>
                       ))}
                     </div>
@@ -7399,6 +7439,246 @@ export default function ChangeConsolePage() {
                   {invitationCopyStatus ? (
                     <div style={{ fontSize: 11, color: '#94a3b8' }}>{invitationCopyStatus}</div>
                   ) : null}
+                </div>
+
+                {/* Issue #717 — Confidential Presentation packet (no live send; existing JSON only). */}
+                <div
+                  id="lux-crm-presentation-panel"
+                  data-testid="lux-crm-presentation-panel"
+                  style={{
+                    marginTop: 4,
+                    padding: 12,
+                    borderRadius: 12,
+                    border: '1px solid rgba(167,139,250,0.4)',
+                    background: 'rgba(76,29,149,0.18)',
+                    display: 'grid',
+                    gap: 8,
+                  }}
+                >
+                  <div style={{ fontSize: 11, fontWeight: 900, color: '#ddd6fe', letterSpacing: '0.06em' }}>
+                    CONFIDENTIAL PRESENTATION
+                  </div>
+                  <div
+                    data-testid="lux-crm-presentation-journey"
+                    style={{ fontSize: 11, color: '#c4b5fd', lineHeight: 1.45 }}
+                  >
+                    Buyer journey step:{' '}
+                    <strong style={{ color: '#ede9fe' }}>
+                      {String(
+                        selectedLead.private_client_presentation?.journey_label ||
+                          LUX_PRESENTATION_JOURNEY_LABEL,
+                      )}
+                    </strong>
+                  </div>
+                  <div style={{ fontSize: 11, color: '#c4b5fd', lineHeight: 1.4 }}>
+                    Uses this lead’s qualification + curated shortlist. Draft is copy-ready only —
+                    no email, WhatsApp, or SMS send.
+                  </div>
+
+                  <div data-testid="lux-crm-presentation-checklist" style={{ display: 'grid', gap: 6 }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: '#e9d5ff' }}>
+                      Presentation readiness (
+                      {Number(selectedLead.private_client_presentation?.ready_count || 0)}/
+                      {Number(selectedLead.private_client_presentation?.total_count || 6)})
+                    </div>
+                    {(selectedLead.private_client_presentation?.checklist || []).map((item) => (
+                      <div
+                        key={String(item.id)}
+                        data-testid={`lux-crm-presentation-check-${item.id}`}
+                        style={{
+                          display: 'flex',
+                          gap: 8,
+                          alignItems: 'flex-start',
+                          fontSize: 12,
+                          color: item.ready ? '#bbf7d0' : '#fde68a',
+                          lineHeight: 1.35,
+                        }}
+                      >
+                        <span style={{ fontWeight: 900, minWidth: 16 }}>{item.ready ? '✓' : '○'}</span>
+                        <span style={{ ...changeTextContainStyle() }}>
+                          <strong>{String(item.label || item.id)}</strong>
+                          {item.detail ? (
+                            <span style={{ display: 'block', fontSize: 10, color: '#94a3b8' }}>
+                              {String(item.detail)}
+                            </span>
+                          ) : null}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <label style={{ fontSize: 11, color: '#c4b5fd', display: 'grid', gap: 6 }}>
+                    Presentation notes (required for readiness)
+                    <textarea
+                      data-testid="lux-crm-presentation-notes"
+                      value={presentationNotesDraft}
+                      onChange={(e) => setPresentationNotesDraft(e.target.value)}
+                      rows={3}
+                      placeholder="Private advisory notes for this confidential presentation"
+                      style={{
+                        padding: '8px 10px',
+                        borderRadius: 10,
+                        border: '1px solid rgba(167,139,250,0.35)',
+                        background: 'rgba(2,6,23,0.65)',
+                        color: '#e2e8f0',
+                        fontSize: 13,
+                        resize: 'vertical',
+                      }}
+                    />
+                  </label>
+
+                  <label
+                    data-testid="lux-crm-presentation-viewing-next"
+                    style={{
+                      display: 'flex',
+                      gap: 8,
+                      alignItems: 'flex-start',
+                      fontSize: 12,
+                      color: '#e2e8f0',
+                      lineHeight: 1.35,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={viewingNextStepDraft}
+                      onChange={(e) => setViewingNextStepDraft(e.target.checked)}
+                      style={{ marginTop: 3 }}
+                    />
+                    <span style={{ ...changeTextContainStyle() }}>
+                      <strong>Next step: Viewing by Invitation</strong>
+                      <span style={{ display: 'block', fontSize: 10, color: '#94a3b8' }}>
+                        Select when the client is ready for a private, invitation-only viewing.
+                      </span>
+                    </span>
+                  </label>
+
+                  <div style={{ fontSize: 10, color: '#64748b' }}>
+                    Save updates to refresh the on-screen confidential presentation from persisted
+                    notes + shortlist + qualification.
+                  </div>
+
+                  <pre
+                    data-testid="lux-crm-presentation-draft"
+                    style={{
+                      ...changePreBlockStyle(),
+                      margin: 0,
+                      maxHeight: 260,
+                      overflow: 'auto',
+                      fontSize: 11,
+                      lineHeight: 1.45,
+                      color: '#ede9fe',
+                      background: 'rgba(2,6,23,0.55)',
+                      border: '1px solid rgba(167,139,250,0.28)',
+                      borderRadius: 10,
+                      padding: 10,
+                      whiteSpace: 'pre-wrap',
+                    }}
+                  >
+                    {String(
+                      selectedLead.private_client_presentation?.draft_text ||
+                        'Save presentation notes to generate draft…',
+                    )}
+                  </pre>
+
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+                    <button
+                      type="button"
+                      data-testid="lux-crm-presentation-copy"
+                      onClick={async () => {
+                        const text = String(selectedLead.private_client_presentation?.draft_text || '');
+                        if (!text) {
+                          setPresentationCopyStatus('Nothing to copy yet — save presentation notes first.');
+                          return;
+                        }
+                        try {
+                          if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+                            await navigator.clipboard.writeText(text);
+                            setPresentationCopyStatus(
+                              'Draft copied — paste for client/operator review. Not sent.',
+                            );
+                          } else {
+                            setPresentationCopyStatus('Clipboard unavailable — select the draft text manually.');
+                          }
+                        } catch {
+                          setPresentationCopyStatus('Copy failed — select the draft text manually.');
+                        }
+                      }}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: 10,
+                        border: '1px solid rgba(167,139,250,0.45)',
+                        background: 'rgba(139,92,246,0.18)',
+                        color: '#f5f3ff',
+                        fontWeight: 750,
+                        fontSize: 12,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Copy presentation draft
+                    </button>
+                    <span
+                      data-testid="lux-crm-presentation-no-send"
+                      style={{ fontSize: 11, color: '#fcd34d', fontWeight: 700 }}
+                    >
+                      Send disabled — manual only
+                    </span>
+                  </div>
+                  {presentationCopyStatus ? (
+                    <div style={{ fontSize: 11, color: '#94a3b8' }}>{presentationCopyStatus}</div>
+                  ) : null}
+
+                  <div
+                    data-testid="lux-crm-presentation-jan-checklist"
+                    style={{
+                      marginTop: 4,
+                      padding: 10,
+                      borderRadius: 10,
+                      border: '1px solid rgba(167,139,250,0.28)',
+                      background: 'rgba(2,6,23,0.35)',
+                      display: 'grid',
+                      gap: 6,
+                    }}
+                  >
+                    <div style={{ fontSize: 11, fontWeight: 800, color: '#e9d5ff' }}>
+                      Jan test prompt (local ticks — not saved)
+                    </div>
+                    {(
+                      selectedLead.private_client_presentation?.jan_test_checklist ||
+                      LUX_CONFIDENTIAL_PRESENTATION_JAN_TEST_CHECKLIST
+                    ).map((step, index) => {
+                      const id = String(step.id || index);
+                      const on = !!presentationJanChecks[id];
+                      return (
+                        <label
+                          key={id}
+                          data-testid={`lux-crm-presentation-jan-${id}`}
+                          style={{
+                            display: 'flex',
+                            gap: 8,
+                            alignItems: 'flex-start',
+                            fontSize: 12,
+                            color: '#e2e8f0',
+                            lineHeight: 1.35,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={on}
+                            onChange={() =>
+                              setPresentationJanChecks((prev) => ({ ...prev, [id]: !prev[id] }))
+                            }
+                            style={{ marginTop: 3 }}
+                          />
+                          <span style={{ ...changeTextContainStyle() }}>
+                            <strong style={{ color: '#c4b5fd' }}>{index + 1}. </strong>
+                            {String(step.label || id)}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 <button

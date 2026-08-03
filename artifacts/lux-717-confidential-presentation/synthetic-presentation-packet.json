@@ -1,0 +1,61 @@
+{
+  "send_disabled": true,
+  "send_notice": "No live send — copy the confidential presentation for operator/client review only.",
+  "all_ready": true,
+  "ready_count": 6,
+  "total_count": 6,
+  "journey_label": "Private Conversation → Confidential Presentation → Viewing by Invitation",
+  "next_action_label": "Viewing by Invitation",
+  "viewing_next_step": "viewing_by_invitation",
+  "checklist": [
+    {
+      "id": "client_contact",
+      "label": "Client name / contact present",
+      "ready": true,
+      "detail": "Synthetic Visitor · synthetic.visitor@example.test · +230 5000 9999"
+    },
+    {
+      "id": "stage_qualified",
+      "label": "Lead status is at least qualified / invited",
+      "ready": true,
+      "detail": "Stage: qualified"
+    },
+    {
+      "id": "qualification_summary",
+      "label": "Qualification summary captured",
+      "ready": true,
+      "detail": "7/7 fields present"
+    },
+    {
+      "id": "shortlist_residences",
+      "label": "Shortlisted residence(s) selected",
+      "ready": true,
+      "detail": "2 residence(s) on shortlist"
+    },
+    {
+      "id": "presentation_notes",
+      "label": "Presentation notes completed",
+      "ready": true,
+      "detail": "Operator presentation notes saved"
+    },
+    {
+      "id": "viewing_next_step",
+      "label": "Viewing by Invitation next step selected",
+      "ready": true,
+      "detail": "Next step: Viewing by Invitation"
+    }
+  ],
+  "residences": [
+    {
+      "slug": "lm-nc-ridge",
+      "title": "North Coast Ridge Residences",
+      "region": "North Mauritius"
+    },
+    {
+      "slug": "lm-villa-belombre",
+      "title": "Bel Ombre villa enclave",
+      "region": "South & heritage coast"
+    }
+  ],
+  "note": "Synthetic fixture only — not real client data. No live send."
+}
