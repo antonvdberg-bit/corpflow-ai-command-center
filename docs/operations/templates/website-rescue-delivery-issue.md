@@ -1,7 +1,7 @@
 # Website Rescue delivery — bounded issue template
 
-**Copy into a GitHub issue (or CMP ticket summary) when onboarding is complete and build may start.**  
-**Canonical:** `docs/operations/WEBSITE_RESCUE_ONBOARDING_AND_DELIVERY_V1.md`  
+**Copy into a GitHub issue (or CMP ticket summary) when onboarding is complete and build may start.**
+**Canonical:** `docs/operations/WEBSITE_RESCUE_ONBOARDING_AND_DELIVERY_V1.md`
 **Issue programme:** #716 / #711
 
 ---

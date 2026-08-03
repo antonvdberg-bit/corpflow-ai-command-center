@@ -10,8 +10,8 @@
 
 **Audience:** Operator delivering a financially approved Website Rescue client (public SKU: **Premium Landing Page Rescue**) from onboarding through acceptance-ready evidence.
 
-**Machine contract:** `config/website-rescue-onboarding-delivery.v1.json`  
-**Validators:** `lib/website-rescue/onboarding-delivery.js`  
+**Machine contract:** `config/website-rescue-onboarding-delivery.v1.json`
+**Validators:** `lib/website-rescue/onboarding-delivery.js`
 **Unit tests:** `node-tests/website-rescue-onboarding-delivery.test.mjs`
 
 **Outcome:** Prove a financially approved Website Rescue client can be onboarded and delivered **without redesigning the service**.
@@ -65,7 +65,7 @@ Shared across CorpFlow commercial products (same spine as Lead Rescue where appl
 
 Template tick-list: `docs/operations/templates/website-rescue-onboarding-intake.md` § Shared.
 
-Companion operator checklists: `docs/operations/WEBSITE_RESCUE_DELIVERY_CHECKLISTS_V1.md`.  
+Companion operator checklists: `docs/operations/WEBSITE_RESCUE_DELIVERY_CHECKLISTS_V1.md`.
 Mauritius all-tiers intake: `docs/operations/MAURITIUS_CLIENT_ONBOARDING_CHECKLIST_V1.md` § 1.
 
 ---
@@ -137,7 +137,7 @@ Operator captures **all** of the following before `onboarding_complete` / build 
 
 ### Maintenance boundary (default)
 
-**Included:** quoted pages as accepted at handover.  
+**Included:** quoted pages as accepted at handover.
 **Not included unless quoted:** ongoing copy edits, new pages, SEO campaigns, hosting outside agreed arrangement, DNS changes, Lead Rescue monitoring, content retainers, emergency after-hours support.
 
 ### Review cadence (default)

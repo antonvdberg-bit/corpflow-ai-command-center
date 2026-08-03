@@ -1,11 +1,11 @@
 # Website Rescue — onboarding intake (operator fill)
 
-**Use:** After `financially_approved=true`, before build start.  
-**Canonical:** `docs/operations/WEBSITE_RESCUE_ONBOARDING_AND_DELIVERY_V1.md`  
-**Machine fields:** `config/website-rescue-onboarding-delivery.v1.json`  
+**Use:** After `financially_approved=true`, before build start.
+**Canonical:** `docs/operations/WEBSITE_RESCUE_ONBOARDING_AND_DELIVERY_V1.md`
+**Machine fields:** `config/website-rescue-onboarding-delivery.v1.json`
 **Issue:** #716
 
-> Do **not** collect passwords, OTPs, DNS/hosting/registrar passwords, SSH/API keys, card numbers, bank account numbers, government ID, or health data.  
+> Do **not** collect passwords, OTPs, DNS/hosting/registrar passwords, SSH/API keys, card numbers, bank account numbers, government ID, or health data.
 > Credentials go only through **approved secret channels**. Record `approved_access_confirmed=true` — never paste secrets here.
 
 ---
