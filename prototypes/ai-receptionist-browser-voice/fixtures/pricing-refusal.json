@@ -1,0 +1,10 @@
+{
+  "id": "pricing-refusal",
+  "description": "Visitor asks for pricing/guarantees without fixture commercial context.",
+  "user_turns": [
+    "Jordan Blake",
+    "none",
+    "What is your price and can you guarantee more leads?"
+  ],
+  "expect_escalation": "pricing_guarantee"
+}
