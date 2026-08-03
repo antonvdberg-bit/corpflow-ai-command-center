@@ -1,0 +1,95 @@
+{
+  "id": "synthetic-lr-acceptance-ready",
+  "product": "ai-lead-rescue",
+  "financially_approved": true,
+  "messaging_runtime_authorized": false,
+  "allow_real_client_sends": false,
+  "delivery_state": "acceptance_ready",
+  "blocked_inputs": [],
+  "shared_checklist": {
+    "shared.business_identity": true,
+    "shared.primary_contact": true,
+    "shared.financial_approval": true,
+    "shared.named_approver": true,
+    "shared.client_responsibilities_ack": true,
+    "shared.exclusions_ack": true,
+    "shared.acceptance_measures": true,
+    "shared.review_cadence": true
+  },
+  "intake": {
+    "business_display_name": "Synthetic Harbour Stays",
+    "primary_contact_name": "Alex Operator",
+    "working_whatsapp": "+230-555-0100",
+    "working_email": "alex@synthetic-harbour.example",
+    "timezone": "Indian/Mauritius",
+    "enquiry_sources": ["website_form", "whatsapp", "facebook"],
+    "primary_leaky_source": "website_form",
+    "current_process_summary": "Owner checks WhatsApp ad hoc; website form emails often sit unread overnight.",
+    "users_operators": ["Alex Operator"],
+    "lead_stages": ["new", "replied", "followed-up", "won", "lost", "no-response"],
+    "escalation_rules": "If no owner reply within 4 business hours, operator pings named approver once.",
+    "approved_response_rules": "Acknowledge enquiry, confirm interest area, offer viewing window. No pricing guarantees.",
+    "test_scenarios": ["marked_test_enquiry_end_to_end"],
+    "reporting_requirements": "Daily summary at 17:00 local; pilot metric = every new enquiry on board within 15 minutes.",
+    "named_approver": "Alex Operator",
+    "client_responsibilities": [
+      "Provide one named leaky enquiry source and keep it available during the pilot window",
+      "Name one working WhatsApp and one working email that the owner monitors",
+      "Reply to customers — CorpFlow surfaces and follows the agreed process; it does not auto-reply as the business",
+      "Provide feedback on preview/verification within the agreed review cadence",
+      "Escalate blockers (access, forwarding, owner availability) within one business day"
+    ],
+    "exclusions": [
+      "No WhatsApp/email/SMS automated runtime without separate messaging-runtime authorisation",
+      "No second lead source during the 48-hour setup window",
+      "No revenue or lead-volume guarantees",
+      "No full CRM migration or historical database import",
+      "No passwords, OTPs, card data, or government ID collected in chat or tickets",
+      "No client_production deploy or DNS change as part of Lead Rescue wedge pilot"
+    ],
+    "acceptance_measures": [
+      "One lead source connected and a marked test enquiry visible in the lead log",
+      "Operator alert path verified on the test enquiry (operator-side)",
+      "Buyer can receive the agreed daily summary channel(s)",
+      "Lead stages and escalation rules documented and usable on the pilot board",
+      "Handover note delivered with support boundary and monitoring window dates"
+    ],
+    "review_cadence": "Preview feedback within 2 business days; day-1 / day-3 / day-7 during monitoring."
+  },
+  "evidence": {
+    "preview": {
+      "preview_url_or_artefact": "fixtures/lead-rescue-onboarding/acceptance-ready.json#preview",
+      "captured_at": "2026-08-03T10:00:00Z",
+      "operator_note": "Synthetic preview: lead log tab + stages board ready for client review."
+    },
+    "verification": {
+      "test_scenario_ids": ["marked_test_enquiry_end_to_end"],
+      "pass_fail": "pass",
+      "captured_at": "2026-08-03T11:00:00Z",
+      "operator_note": "Marked test enquiry appeared in lead log; operator alert path simulated (no real send)."
+    },
+    "client_review": {
+      "reviewer": "Alex Operator",
+      "reviewed_at": "2026-08-03T12:00:00Z",
+      "decision": "approve",
+      "feedback_summary": "Stages and daily summary timing accepted; no revision requested."
+    },
+    "acceptance": {
+      "accepted_by": "Alex Operator",
+      "accepted_at": "2026-08-03T13:00:00Z",
+      "acceptance_measures_met": true
+    },
+    "handover": {
+      "handover_sent_at": "2026-08-03T14:00:00Z",
+      "channels": ["synthetic_draft_whatsapp", "synthetic_draft_email"],
+      "support_boundary_summary": "7-day monitoring; owner replies to customers; CorpFlow surfaces and daily summary.",
+      "monitoring_window": "2026-08-03/2026-08-10"
+    },
+    "support_boundary": {
+      "in_scope": "One source, lead log, daily summary drafts, 7-day monitoring, escalation as onboarded",
+      "out_of_scope": "Automated messaging runtime, second source, CRM migration, client_production deploy",
+      "escalation_contact": "Alex Operator",
+      "review_cadence": "day-1 / day-3 / day-7"
+    }
+  }
+}

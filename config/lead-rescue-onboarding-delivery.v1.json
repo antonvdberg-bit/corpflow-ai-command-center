@@ -1,0 +1,304 @@
+{
+  "schema": "corpflow.lead_rescue_onboarding_delivery.v1",
+  "version": "v1",
+  "issue": 715,
+  "parent": 711,
+  "controller": 710,
+  "product": "ai-lead-rescue",
+  "description": "Machine-readable contract for Lead Rescue onboarding completeness, delivery states, build gates, evidence packets, and the separate messaging-runtime gate. Pure process contract — no DB schema, no send runtime.",
+  "financial_approval_contract": {
+    "field": "financially_approved",
+    "type": "boolean",
+    "source_lane": 714,
+    "note": "Synthetic boolean until #714 publishes the financial-approval contract; reconcile without changing build-gate semantics."
+  },
+  "shared_onboarding_checklist": [
+    {
+      "id": "shared.business_identity",
+      "label": "Business identity confirmed",
+      "required": true
+    },
+    {
+      "id": "shared.primary_contact",
+      "label": "Primary contact and working channels confirmed",
+      "required": true
+    },
+    {
+      "id": "shared.financial_approval",
+      "label": "Financial approval recorded (financially_approved=true)",
+      "required": true
+    },
+    {
+      "id": "shared.named_approver",
+      "label": "Named client approver for acceptance",
+      "required": true
+    },
+    {
+      "id": "shared.client_responsibilities_ack",
+      "label": "Client responsibilities acknowledged",
+      "required": true
+    },
+    {
+      "id": "shared.exclusions_ack",
+      "label": "Exclusions acknowledged",
+      "required": true
+    },
+    {
+      "id": "shared.acceptance_measures",
+      "label": "Acceptance measures agreed",
+      "required": true
+    },
+    {
+      "id": "shared.review_cadence",
+      "label": "Review cadence agreed",
+      "required": true
+    }
+  ],
+  "lead_rescue_intake_fields": [
+    {
+      "id": "business_display_name",
+      "label": "Business display name",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "id": "primary_contact_name",
+      "label": "Primary contact name",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "id": "working_whatsapp",
+      "label": "Working WhatsApp for alerts/summaries",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "id": "working_email",
+      "label": "Working email for alerts/summaries",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "id": "timezone",
+      "label": "Preferred timezone for daily summary",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "id": "enquiry_sources",
+      "label": "Enquiry sources in use",
+      "required": true,
+      "type": "string_array",
+      "min_items": 1
+    },
+    {
+      "id": "primary_leaky_source",
+      "label": "One primary leaky source for the pilot",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "id": "current_process_summary",
+      "label": "Current enquiry follow-up process",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "id": "users_operators",
+      "label": "Users/operators who handle leads day-to-day",
+      "required": true,
+      "type": "string_array",
+      "min_items": 1
+    },
+    {
+      "id": "lead_stages",
+      "label": "Agreed lead stages for the pilot board",
+      "required": true,
+      "type": "string_array",
+      "min_items": 3
+    },
+    {
+      "id": "escalation_rules",
+      "label": "Escalation rules (when / to whom)",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "id": "approved_response_rules",
+      "label": "Approved response rules / tone boundaries",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "id": "test_scenarios",
+      "label": "Test scenarios for verification",
+      "required": true,
+      "type": "string_array",
+      "min_items": 1
+    },
+    {
+      "id": "reporting_requirements",
+      "label": "Reporting requirements (daily summary + pilot metric)",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "id": "named_approver",
+      "label": "Named production/acceptance approver",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "id": "client_responsibilities",
+      "label": "Client responsibilities (accepted list)",
+      "required": true,
+      "type": "string_array",
+      "min_items": 1
+    },
+    {
+      "id": "exclusions",
+      "label": "Exclusions (accepted list)",
+      "required": true,
+      "type": "string_array",
+      "min_items": 1
+    },
+    {
+      "id": "acceptance_measures",
+      "label": "Acceptance measures",
+      "required": true,
+      "type": "string_array",
+      "min_items": 1
+    },
+    {
+      "id": "review_cadence",
+      "label": "Review cadence",
+      "required": true,
+      "type": "string"
+    }
+  ],
+  "forbidden_intake_fields": [
+    "passwords",
+    "otps",
+    "card_numbers",
+    "cvv",
+    "bank_account_numbers",
+    "government_id",
+    "full_crm_exports",
+    "health_data"
+  ],
+  "delivery_states": [
+    "approved_to_onboard",
+    "onboarding_in_progress",
+    "onboarding_blocked",
+    "onboarding_complete",
+    "build_blocked",
+    "build_started",
+    "preview_evidence",
+    "verification_evidence",
+    "client_review",
+    "accepted",
+    "handover_complete",
+    "acceptance_ready"
+  ],
+  "delivery_transitions": [
+    { "from": "approved_to_onboard", "to": "onboarding_in_progress" },
+    { "from": "onboarding_in_progress", "to": "onboarding_blocked" },
+    { "from": "onboarding_in_progress", "to": "onboarding_complete" },
+    { "from": "onboarding_blocked", "to": "onboarding_in_progress" },
+    { "from": "onboarding_blocked", "to": "onboarding_complete" },
+    { "from": "onboarding_complete", "to": "build_blocked" },
+    { "from": "onboarding_complete", "to": "build_started" },
+    { "from": "build_blocked", "to": "onboarding_in_progress" },
+    { "from": "build_blocked", "to": "build_started" },
+    { "from": "build_started", "to": "preview_evidence" },
+    { "from": "preview_evidence", "to": "verification_evidence" },
+    { "from": "verification_evidence", "to": "client_review" },
+    { "from": "client_review", "to": "accepted" },
+    { "from": "client_review", "to": "preview_evidence" },
+    { "from": "accepted", "to": "handover_complete" },
+    { "from": "handover_complete", "to": "acceptance_ready" }
+  ],
+  "evidence_packets": [
+    {
+      "id": "preview",
+      "required_for_states_from": "preview_evidence",
+      "fields": ["preview_url_or_artefact", "captured_at", "operator_note"]
+    },
+    {
+      "id": "verification",
+      "required_for_states_from": "verification_evidence",
+      "fields": ["test_scenario_ids", "pass_fail", "captured_at", "operator_note"]
+    },
+    {
+      "id": "client_review",
+      "required_for_states_from": "client_review",
+      "fields": ["reviewer", "reviewed_at", "decision", "feedback_summary"]
+    },
+    {
+      "id": "acceptance",
+      "required_for_states_from": "accepted",
+      "fields": ["accepted_by", "accepted_at", "acceptance_measures_met"]
+    },
+    {
+      "id": "handover",
+      "required_for_states_from": "handover_complete",
+      "fields": ["handover_sent_at", "channels", "support_boundary_summary", "monitoring_window"]
+    },
+    {
+      "id": "support_boundary",
+      "required_for_states_from": "acceptance_ready",
+      "fields": ["in_scope", "out_of_scope", "escalation_contact", "review_cadence"]
+    }
+  ],
+  "messaging_runtime_gate": {
+    "field": "messaging_runtime_authorized",
+    "default": false,
+    "required_for_real_client_sends": true,
+    "note": "Separate Anton-protected gate. Onboarding/delivery readiness and synthetic system tests must complete without real WhatsApp/email/SMS runtime."
+  },
+  "build_start_blockers": [
+    "MISSING_FINANCIAL_APPROVAL",
+    "MISSING_REQUIRED_CLIENT_INPUTS",
+    "BLOCKED_CLIENT_INPUTS"
+  ],
+  "default_lead_stages": [
+    "new",
+    "replied",
+    "followed-up",
+    "qualified",
+    "quote-sent",
+    "won",
+    "lost",
+    "no-response"
+  ],
+  "default_client_responsibilities": [
+    "Provide one named leaky enquiry source and keep it available during the pilot window",
+    "Name one working WhatsApp and one working email that the owner monitors",
+    "Reply to customers — CorpFlow surfaces and follows the agreed process; it does not auto-reply as the business",
+    "Provide feedback on preview/verification within the agreed review cadence",
+    "Escalate blockers (access, forwarding, owner availability) within one business day"
+  ],
+  "default_exclusions": [
+    "No WhatsApp/email/SMS automated runtime without separate messaging-runtime authorisation",
+    "No second lead source during the 48-hour setup window",
+    "No revenue or lead-volume guarantees",
+    "No full CRM migration or historical database import",
+    "No passwords, OTPs, card data, or government ID collected in chat or tickets",
+    "No client_production deploy or DNS change as part of Lead Rescue wedge pilot"
+  ],
+  "default_acceptance_measures": [
+    "One lead source connected and a marked test enquiry visible in the lead log",
+    "Operator alert path verified on the test enquiry (operator-side)",
+    "Buyer can receive the agreed daily summary channel(s)",
+    "Lead stages and escalation rules documented and usable on the pilot board",
+    "Handover note delivered with support boundary and monitoring window dates"
+  ],
+  "docs": {
+    "canonical": "docs/operations/LEAD_RESCUE_ONBOARDING_AND_DELIVERY_V1.md",
+    "intake_template": "docs/operations/templates/lead-rescue-onboarding-intake.md",
+    "delivery_issue_template": "docs/operations/templates/lead-rescue-delivery-issue.md",
+    "paid_pilot_onboarding": "docs/operations/AI_LEAD_RESCUE_PAID_PILOT_ONBOARDING.md",
+    "shared_mauritius_checklist": "docs/operations/MAURITIUS_CLIENT_ONBOARDING_CHECKLIST_V1.md"
+  }
+}
