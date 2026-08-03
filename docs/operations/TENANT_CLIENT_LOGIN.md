@@ -82,7 +82,7 @@ Fictional-data only. Live email, WhatsApp, SMS, payments, and external outreach 
 | 1    | `**POSTGRES_URL**` set on Vercel (same DB you use locally).                                                                                                          |
 | 2    | Run `**POST /api/factory/postgres/ensure-schema**` once if tables are missing (`docs/operations/ENSURE_POSTGRES_SCHEMA.md`).                                         |
 | 3    | Ensure `**tenant_hostnames**` maps **`lux.corpflowai.com`** (canonical corpflow_test) and optionally **`luxe.corpflowai.com`** (alias) → `**luxe-maurice**`, `enabled = true`. Script: `**node scripts/upsert-luxe-maurice-hostnames.mjs**` (or factory `**tenant-hostname-upsert**` / `admin_onboarding.html`). |
-| 4    | Provision access: `node scripts/provision-tenant-test-access.mjs --tenant=luxe-maurice --pin` and/or `--username=... --gen-password` (requires `POSTGRES_URL`). For dedicated Cursor test users (admin + Lux, #696): `docs/runbooks/CURSOR_TEST_USERS_PROVISIONING.md` / `npm run provision:cursor-test-users -- --gen-password`. |
+| 4    | Provision access: `node scripts/provision-tenant-test-access.mjs --tenant=luxe-maurice --pin` and/or `--username=... --gen-password` (requires `POSTGRES_URL`). For dedicated Cursor test users (admin + generic tenant smoke, #696): `docs/runbooks/CURSOR_TEST_USERS_PROVISIONING.md` / `npm run provision:cursor-test-users -- --gen-password` (canonical tenant user: `cursor-test-tenant@corpflowai.com`). |
 | 5    | Open `**https://lux.corpflowai.com/login**` (or your resolved tenant URL), **Client / Tenant**, PIN or email/password.                                               |
 
 

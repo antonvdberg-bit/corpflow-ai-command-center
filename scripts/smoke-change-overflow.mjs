@@ -24,12 +24,12 @@
  *     `tenant_id=<LUX_SMOKE_TENANT_ID>` and is denied by `requireFactoryMasterOnly` gates.
  *
  * Required env (place in `.env.local`, GitHub Actions repo secrets, or shell exports — never commit):
- *   LUX_SMOKE_USERNAME       Tenant test operator email (auth_users.username, level=tenant)
- *   LUX_SMOKE_PASSWORD       Tenant test operator password (matches auth_users hash for that user)
+ *   TENANT_SMOKE_USERNAME / TENANT_SMOKE_PASSWORD  Preferred (#696 generic tenant smoke)
+ *   LUX_SMOKE_USERNAME / LUX_SMOKE_PASSWORD        Temporary aliases (same values; map to cursor-test-tenant@corpflowai.com)
  *
  * Optional env:
- *   LUX_SMOKE_BASE_URL       Default https://lux.corpflowai.com
- *   LUX_SMOKE_TENANT_ID      Default luxe-maurice (must match auth_users.tenant_id of the test op)
+ *   TENANT_SMOKE_BASE_URL / LUX_SMOKE_BASE_URL       Default https://lux.corpflowai.com
+ *   TENANT_SMOKE_TENANT_ID / LUX_SMOKE_TENANT_ID      Default luxe-maurice (must match auth_users.tenant_id of the test op)
  *   LUX_SMOKE_TICKET_MASTER  Default cmo8mjijk0000jl04l1jz0v6d
  *   LUX_SMOKE_TICKET_SHORT   Default cmov9fs050000kz04070wi23k
  *   LUX_SMOKE_OUT_DIR        Output directory for screenshots / JSON (default `.smoke-screenshots/`)
@@ -62,6 +62,24 @@ function requireEnv(name) {
     process.exit(1);
   }
   return v;
+}
+
+/** Prefer TENANT_SMOKE_*; fall back to temporary LUX_SMOKE_* alias (#696). */
+function requireTenantSmokeCred(preferredName, aliasName) {
+  const preferred = getEnv(preferredName, '');
+  if (preferred) return preferred;
+  const alias = getEnv(aliasName, '');
+  if (alias) return alias;
+  console.error(
+    `ERROR: Missing ${preferredName} (preferred) or ${aliasName} (temporary alias). Set in .env.local (gitignored) or the shell.`,
+  );
+  process.exit(1);
+}
+
+function getTenantSmokeEnv(preferredName, aliasName, fallback) {
+  const preferred = getEnv(preferredName, '');
+  if (preferred) return preferred;
+  return getEnv(aliasName, fallback);
 }
 
 function isoStamp() {
@@ -287,10 +305,14 @@ async function inspectTicket(page, ticketId, label, outDir, stamp, tag) {
 }
 
 async function main() {
-  const baseUrl = getEnv('LUX_SMOKE_BASE_URL', 'https://lux.corpflowai.com').replace(/\/+$/, '');
-  const tenantId = getEnv('LUX_SMOKE_TENANT_ID', 'luxe-maurice');
-  const username = requireEnv('LUX_SMOKE_USERNAME');
-  const password = requireEnv('LUX_SMOKE_PASSWORD');
+  const baseUrl = getTenantSmokeEnv(
+    'TENANT_SMOKE_BASE_URL',
+    'LUX_SMOKE_BASE_URL',
+    'https://lux.corpflowai.com',
+  ).replace(/\/+$/, '');
+  const tenantId = getTenantSmokeEnv('TENANT_SMOKE_TENANT_ID', 'LUX_SMOKE_TENANT_ID', 'luxe-maurice');
+  const username = requireTenantSmokeCred('TENANT_SMOKE_USERNAME', 'LUX_SMOKE_USERNAME');
+  const password = requireTenantSmokeCred('TENANT_SMOKE_PASSWORD', 'LUX_SMOKE_PASSWORD');
   const masterTicket = getEnv('LUX_SMOKE_TICKET_MASTER', 'cmo8mjijk0000jl04l1jz0v6d');
   const shortTicket = getEnv('LUX_SMOKE_TICKET_SHORT', 'cmov9fs050000kz04070wi23k');
   const outDir = path.resolve(process.cwd(), getEnv('LUX_SMOKE_OUT_DIR', '.smoke-screenshots'));

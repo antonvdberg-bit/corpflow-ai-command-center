@@ -1,7 +1,11 @@
 #!/usr/bin/env node
 /**
  * Provision dedicated Cursor test identities (#696) into existing auth_users
- * (+ optional user_tenant_memberships for the Lux tenant user).
+ * (+ user_tenant_memberships for the generic tenant smoke user).
+ *
+ * Approved identities:
+ *   - cursor-test-admin@corpflowai.com
+ *   - cursor-test-tenant@corpflowai.com  (generic tenant smoke; NOT Lux-only)
  *
  * Does NOT:
  *   - change schema
@@ -9,6 +13,8 @@
  *   - promote factory_master
  *   - send email / WhatsApp / SMS
  *   - deploy
+ *   - provision cursor-test-lux@corpflowai.com
+ *   - auto-grant every tenant membership
  *
  * Passwords are printed once as a wallet card when --gen-password is used.
  * Anton (or an approved operator) stores them in the secret vault / Cursor
@@ -21,8 +27,8 @@
  *   # Create/rotate both identities (requires POSTGRES_URL = Vercel Production DB):
  *   node scripts/provision-cursor-test-users.mjs --gen-password
  *
- *   # One identity:
- *   node scripts/provision-cursor-test-users.mjs --only=lux --gen-password
+ *   # One identity + optional extra approved memberships:
+ *   node scripts/provision-cursor-test-users.mjs --only=tenant --tenants=luxe-maurice --gen-password
  *   node scripts/provision-cursor-test-users.mjs --only=admin --gen-password
  *
  *   # Disable both (enabled=false; sessions stop working after cookie TTL / next login):
@@ -36,11 +42,15 @@ import './bootstrap-repo-env.mjs';
 import crypto from 'crypto';
 import { PrismaClient } from '@prisma/client';
 import {
+  APPROVED_CORPFLOW_TEST_TENANTS,
   CURSOR_TEST_IDENTITIES,
   CURSOR_TEST_MEMBERSHIP_NOTES,
   CURSOR_TEST_METADATA_LABELS,
   CURSOR_TEST_RUNTIME_ENV,
+  FORBIDDEN_CURSOR_TEST_USERNAMES,
+  buildCursorTestProvisionPlan,
   formatCursorTestAccessIdentityLines,
+  isForbiddenCursorTestUsername,
 } from './lib/cursor-test-users-spec.mjs';
 
 function computePasswordHash(password, salt) {
@@ -92,9 +102,11 @@ function parseArgs(argv) {
    *   genPassword: boolean,
    *   disable: boolean,
    *   enable: boolean,
-   *   only: 'all' | 'admin' | 'lux',
+   *   only: 'all' | 'admin' | 'tenant',
+   *   tenants: string,
+   *   primaryTenant: string,
    *   adminPassword: string,
-   *   luxPassword: string,
+   *   tenantPassword: string,
    * }} */
   const out = {
     help: false,
@@ -103,8 +115,10 @@ function parseArgs(argv) {
     disable: false,
     enable: false,
     only: 'all',
+    tenants: '',
+    primaryTenant: '',
     adminPassword: '',
-    luxPassword: '',
+    tenantPassword: '',
   };
   for (const a of argv) {
     if (a === '-h' || a === '--help') out.help = true;
@@ -114,48 +128,67 @@ function parseArgs(argv) {
     else if (a === '--enable') out.enable = true;
     else if (a.startsWith('--only=')) {
       const v = a.slice('--only='.length).trim().toLowerCase();
-      if (v === 'admin' || v === 'lux' || v === 'all') out.only = v;
-      else {
-        console.error(`ERROR: --only must be admin|lux|all (got ${v})`);
+      if (v === 'lux') {
+        console.error(
+          'ERROR: --only=lux is rejected. Use --only=tenant for cursor-test-tenant@corpflowai.com. Do not provision cursor-test-lux@corpflowai.com.',
+        );
         process.exit(1);
       }
+      if (v === 'admin' || v === 'tenant' || v === 'all') out.only = v;
+      else {
+        console.error(`ERROR: --only must be admin|tenant|all (got ${v})`);
+        process.exit(1);
+      }
+    } else if (a.startsWith('--tenants=')) {
+      out.tenants = a.slice('--tenants='.length);
+    } else if (a.startsWith('--primary-tenant=')) {
+      out.primaryTenant = a.slice('--primary-tenant='.length);
     } else if (a.startsWith('--admin-password=')) {
       out.adminPassword = a.slice('--admin-password='.length);
+    } else if (a.startsWith('--tenant-password=')) {
+      out.tenantPassword = a.slice('--tenant-password='.length);
     } else if (a.startsWith('--lux-password=')) {
-      out.luxPassword = a.slice('--lux-password='.length);
+      console.error(
+        'ERROR: --lux-password is rejected. Use --tenant-password=... (generic tenant smoke).',
+      );
+      process.exit(1);
     }
   }
   return out;
 }
 
 /**
- * @param {'admin' | 'lux'} key
+ * @param {'admin' | 'tenant'} key
  * @returns {string}
  */
 function runtimeUsernameEnv(key) {
   return key === 'admin'
     ? CURSOR_TEST_RUNTIME_ENV.adminUsername
-    : CURSOR_TEST_RUNTIME_ENV.luxUsername;
+    : CURSOR_TEST_RUNTIME_ENV.tenantUsername;
 }
 
 /**
- * @param {'admin' | 'lux'} key
+ * @param {'admin' | 'tenant'} key
  * @returns {string}
  */
 function runtimePasswordEnv(key) {
   return key === 'admin'
     ? CURSOR_TEST_RUNTIME_ENV.adminPassword
-    : CURSOR_TEST_RUNTIME_ENV.luxPassword;
+    : CURSOR_TEST_RUNTIME_ENV.tenantPassword;
 }
 
 /**
  * @param {import('@prisma/client').PrismaClient} prisma
- * @param {typeof CURSOR_TEST_IDENTITIES.admin | typeof CURSOR_TEST_IDENTITIES.lux} spec
+ * @param {{ username: string, level: string, primaryTenantId: string | null, factoryMaster: boolean }} identity
  * @param {string} password
  * @param {boolean} dryRun
  */
-async function upsertAuthUser(prisma, spec, password, dryRun) {
-  const username = spec.username;
+async function upsertAuthUser(prisma, identity, password, dryRun) {
+  const username = identity.username;
+  if (isForbiddenCursorTestUsername(username)) {
+    console.error(`ERROR: refusing to provision forbidden username: ${username}`);
+    process.exit(1);
+  }
   const existing = await prisma.authUser.findUnique({
     where: { username },
     select: {
@@ -170,9 +203,9 @@ async function upsertAuthUser(prisma, spec, password, dryRun) {
 
   if (dryRun) {
     console.log(
-      `[dry-run] WOULD-UPSERT auth_users username=${username} level=${spec.level} tenant_id=${
-        spec.tenantId ?? 'null'
-      } factory_master=${spec.factoryMaster} existing=${existing ? existing.id : 'no'}`,
+      `[dry-run] WOULD-UPSERT auth_users username=${username} level=${identity.level} tenant_id=${
+        identity.primaryTenantId ?? 'null'
+      } factory_master=false existing=${existing ? existing.id : 'no'}`,
     );
     return existing;
   }
@@ -190,16 +223,16 @@ async function upsertAuthUser(prisma, spec, password, dryRun) {
       username,
       passwordHash: hash,
       passwordSalt: salt,
-      level: spec.level,
-      tenantId: spec.tenantId,
+      level: identity.level,
+      tenantId: identity.primaryTenantId,
       enabled: true,
       factoryMaster: false,
     },
     update: {
       passwordHash: hash,
       passwordSalt: salt,
-      level: spec.level,
-      tenantId: spec.tenantId,
+      level: identity.level,
+      tenantId: identity.primaryTenantId,
       enabled: true,
       // Never promote. Explicitly keep false on every provision rotate.
       factoryMaster: false,
@@ -222,7 +255,7 @@ async function upsertAuthUser(prisma, spec, password, dryRun) {
  * @param {string} tenantId
  * @param {boolean} dryRun
  */
-async function ensureLuxMembership(prisma, userId, tenantId, dryRun) {
+async function ensureTenantMembership(prisma, userId, tenantId, dryRun) {
   const existing = await prisma.userTenantMembership.findFirst({
     where: { userId, tenantId, revokedAt: null },
     select: { id: true, notes: true, role: true, enabled: true },
@@ -291,7 +324,7 @@ async function setEnabled(prisma, username, enabled, dryRun) {
 }
 
 /**
- * @param {'admin' | 'lux'} key
+ * @param {'admin' | 'tenant'} key
  * @param {string} password
  * @param {{ id?: string }} row
  */
@@ -308,23 +341,41 @@ function printWalletCard(key, password, row) {
   console.log(`Username: ${spec.username}`);
   console.log(`Env user: ${runtimeUsernameEnv(key)}`);
   console.log(`Env pass: ${runtimePasswordEnv(key)}`);
+  if (key === 'tenant') {
+    console.log(
+      `Alias:    ${CURSOR_TEST_RUNTIME_ENV.luxAliasUsername} / ${CURSOR_TEST_RUNTIME_ENV.luxAliasPassword} (temporary; map to this generic tenant user)`,
+    );
+  }
   console.log(`Password: ${password}`);
   console.log('══════════════════════════════════════════════════════════');
   console.log('Do not paste this block into GitHub, chat, PR, or artifacts.');
   console.log('');
 }
 
+/**
+ * Friendly display names for known corpflow_test tenants (create stub if missing).
+ * @param {string} tenantId
+ */
+function tenantDisplayName(tenantId) {
+  if (tenantId === 'luxe-maurice') return 'Luxe Maurice';
+  if (tenantId === 'cipc-desk') return 'CIPC Desk';
+  return tenantId;
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
     console.log(`
-provision-cursor-test-users.mjs  (#696)
+provision-cursor-test-users.mjs  (#696 — generic tenant smoke model)
 
   --dry-run                 Print intended writes; no DB mutation
   --gen-password            Generate strong unique passwords; print wallet cards once
-  --only=admin|lux|all      Default all
+  --only=admin|tenant|all   Default all  (lux is REJECTED)
+  --tenants=id,id           Approved memberships for tenant smoke (default: luxe-maurice)
+                            Allowlist: ${APPROVED_CORPFLOW_TEST_TENANTS.join(', ')}
+  --primary-tenant=id       auth_users.tenant_id for tenant smoke (must be in --tenants)
   --admin-password=...      Explicit admin password (avoid; prefer --gen-password)
-  --lux-password=...        Explicit lux password (avoid; prefer --gen-password)
+  --tenant-password=...     Explicit tenant password (avoid; prefer --gen-password)
   --disable                 Set enabled=false on selected identities
   --enable                  Set enabled=true on selected identities
 
@@ -332,11 +383,15 @@ Env: POSTGRES_URL required for non-dry-run (same Neon DB as Vercel Production).
 
 Canonical usernames:
   ${CURSOR_TEST_IDENTITIES.admin.username}
-  ${CURSOR_TEST_IDENTITIES.lux.username}
+  ${CURSOR_TEST_IDENTITIES.tenant.username}
+
+Forbidden (will not provision):
+  ${FORBIDDEN_CURSOR_TEST_USERNAMES.join(', ')}
 
 Runtime env names (values never committed):
   ${CURSOR_TEST_RUNTIME_ENV.adminUsername} / ${CURSOR_TEST_RUNTIME_ENV.adminPassword}
-  ${CURSOR_TEST_RUNTIME_ENV.luxUsername} / ${CURSOR_TEST_RUNTIME_ENV.luxPassword}
+  ${CURSOR_TEST_RUNTIME_ENV.tenantUsername} / ${CURSOR_TEST_RUNTIME_ENV.tenantPassword}
+  Temporary Lux aliases (map to generic tenant smoke): ${CURSOR_TEST_RUNTIME_ENV.luxAliasUsername} / ${CURSOR_TEST_RUNTIME_ENV.luxAliasPassword}
 `);
     process.exit(0);
   }
@@ -346,21 +401,38 @@ Runtime env names (values never committed):
     process.exit(1);
   }
 
-  const mutatingPassword = !args.disable && !args.enable;
-  if (mutatingPassword && !args.dryRun && !args.genPassword && !args.adminPassword && !args.luxPassword) {
-    console.error('ERROR: use --gen-password (recommended) or explicit --*-password=...; or --dry-run');
+  const plan = buildCursorTestProvisionPlan({
+    only: args.only,
+    membershipTenants: args.tenants || undefined,
+    primaryTenantId: args.primaryTenant || undefined,
+  });
+  if (!plan.ok) {
+    console.error('ERROR: invalid provision plan:');
+    for (const e of plan.errors) console.error(`  - ${e}`);
     process.exit(1);
   }
 
-  if (args.genPassword && (args.adminPassword || args.luxPassword)) {
+  const mutatingPassword = !args.disable && !args.enable;
+  if (
+    mutatingPassword &&
+    !args.dryRun &&
+    !args.genPassword &&
+    !args.adminPassword &&
+    !args.tenantPassword
+  ) {
+    console.error(
+      'ERROR: use --gen-password (recommended) or explicit --*-password=...; or --dry-run',
+    );
+    process.exit(1);
+  }
+
+  if (args.genPassword && (args.adminPassword || args.tenantPassword)) {
     console.error('ERROR: use either --gen-password or explicit --*-password, not both');
     process.exit(1);
   }
 
-  const keys =
-    args.only === 'all'
-      ? /** @type {Array<'admin' | 'lux'>} */ (['admin', 'lux'])
-      : /** @type {Array<'admin' | 'lux'>} */ ([args.only]);
+  const keys = /** @type {Array<'admin' | 'tenant'>} */ (plan.identities.map((i) => i.key));
+  const tenantIdentity = plan.identities.find((i) => i.key === 'tenant') || null;
 
   const pgUrl = normalizePostgresUrlForPrisma(process.env.POSTGRES_URL);
   const pgOk = Boolean(pgUrl && (pgUrl.startsWith('postgresql://') || pgUrl.startsWith('postgres://')));
@@ -378,22 +450,26 @@ Runtime env names (values never committed):
   /** Offline dry-run: no POSTGRES_URL — print the plan only. */
   if (args.dryRun && !pgOk) {
     console.log('[dry-run] offline (POSTGRES_URL not set) — printing plan only; no DB contact.');
-    for (const key of keys) {
-      const spec = CURSOR_TEST_IDENTITIES[key];
+    for (const identity of plan.identities) {
       console.log(
-        `[dry-run] WOULD-UPSERT auth_users username=${spec.username} level=${spec.level} tenant_id=${
-          spec.tenantId ?? 'null'
-        } factory_master=${spec.factoryMaster}`,
+        `[dry-run] WOULD-UPSERT auth_users username=${identity.username} level=${identity.level} tenant_id=${
+          identity.primaryTenantId ?? 'null'
+        } factory_master=false`,
       );
-      if (key === 'lux') {
-        console.log(
-          `[dry-run] WOULD-UPSERT tenants.tenant_id=${spec.tenantId} + membership notes=${CURSOR_TEST_MEMBERSHIP_NOTES}`,
-        );
+      if (identity.key === 'tenant') {
+        for (const tid of identity.membershipTenantIds) {
+          console.log(
+            `[dry-run] WOULD-UPSERT tenants.tenant_id=${tid} + membership notes=${CURSOR_TEST_MEMBERSHIP_NOTES}`,
+          );
+        }
       }
     }
     console.log('');
     console.log('--- non-secret identity summary ---');
-    for (const line of formatCursorTestAccessIdentityLines({})) {
+    for (const line of formatCursorTestAccessIdentityLines({
+      tenantMembershipTenantIds: tenantIdentity?.membershipTenantIds || null,
+      tenantMembershipNotes: tenantIdentity ? CURSOR_TEST_MEMBERSHIP_NOTES : null,
+    })) {
       console.log(line);
     }
     console.log('--- end summary ---');
@@ -402,83 +478,95 @@ Runtime env names (values never committed):
   }
 
   const prisma = new PrismaClient();
-  /** @type {{ admin: any, lux: any, luxMembershipNotes: string | null }} */
-  const evidence = { admin: null, lux: null, luxMembershipNotes: null };
+  /** @type {{
+   *   admin: any,
+   *   tenant: any,
+   *   tenantMembershipNotes: string | null,
+   *   tenantMembershipTenantIds: string[] | null,
+   * }} */
+  const evidence = {
+    admin: null,
+    tenant: null,
+    tenantMembershipNotes: null,
+    tenantMembershipTenantIds: null,
+  };
 
   try {
     if (args.disable || args.enable) {
       const enabled = Boolean(args.enable);
-      for (const key of keys) {
-        const spec = CURSOR_TEST_IDENTITIES[key];
-        const row = await setEnabled(prisma, spec.username, enabled, args.dryRun);
-        evidence[key] = row;
+      for (const identity of plan.identities) {
+        const row = await setEnabled(prisma, identity.username, enabled, args.dryRun);
+        evidence[identity.key] = row;
         console.log(
-          `[provision] ${enabled ? 'enable' : 'disable'} username=${spec.username} id=${row.id} dry_run=${args.dryRun}`,
+          `[provision] ${enabled ? 'enable' : 'disable'} username=${identity.username} id=${row.id} dry_run=${args.dryRun}`,
         );
       }
     } else {
-      // Ensure Lux tenant row exists before membership (tenant path only).
-      if (keys.includes('lux') && !args.dryRun) {
-        const tid = CURSOR_TEST_IDENTITIES.lux.tenantId;
-        await prisma.tenant.upsert({
-          where: { tenantId: tid },
-          update: {},
-          create: {
-            tenantId: tid,
-            slug: tid,
-            name: 'Luxe Maurice',
-          },
-        });
-      } else if (keys.includes('lux') && args.dryRun) {
-        console.log(
-          `[dry-run] WOULD-UPSERT tenants.tenant_id=${CURSOR_TEST_IDENTITIES.lux.tenantId} (no-op if exists)`,
-        );
+      if (tenantIdentity && !args.dryRun) {
+        for (const tid of tenantIdentity.membershipTenantIds) {
+          await prisma.tenant.upsert({
+            where: { tenantId: tid },
+            update: {},
+            create: {
+              tenantId: tid,
+              slug: tid,
+              name: tenantDisplayName(tid),
+            },
+          });
+        }
+      } else if (tenantIdentity && args.dryRun) {
+        for (const tid of tenantIdentity.membershipTenantIds) {
+          console.log(`[dry-run] WOULD-UPSERT tenants.tenant_id=${tid} (no-op if exists)`);
+        }
       }
 
-      for (const key of keys) {
-        const spec = CURSOR_TEST_IDENTITIES[key];
-        let password = key === 'admin' ? args.adminPassword : args.luxPassword;
+      for (const identity of plan.identities) {
+        let password = identity.key === 'admin' ? args.adminPassword : args.tenantPassword;
         if (args.genPassword || args.dryRun) {
           password = password || generateRandomLoginPassword();
         }
         if (!password) {
-          console.error(`ERROR: missing password for ${key}; use --gen-password`);
+          console.error(`ERROR: missing password for ${identity.key}; use --gen-password`);
           process.exit(1);
         }
 
-        const row = await upsertAuthUser(prisma, spec, password, args.dryRun);
-        evidence[key] = row || {
+        const row = await upsertAuthUser(prisma, identity, password, args.dryRun);
+        evidence[identity.key] = row || {
           id: '(dry-run)',
-          username: spec.username,
-          level: spec.level,
-          tenantId: spec.tenantId,
+          username: identity.username,
+          level: identity.level,
+          tenantId: identity.primaryTenantId,
           factoryMaster: false,
           enabled: true,
         };
 
-        if (key === 'lux') {
-          const userId = evidence.lux?.id;
-          if (userId && userId !== '(dry-run)') {
-            const mem = await ensureLuxMembership(
-              prisma,
-              userId,
-              /** @type {string} */ (spec.tenantId),
-              args.dryRun,
-            );
-            evidence.luxMembershipNotes = mem?.notes || CURSOR_TEST_MEMBERSHIP_NOTES;
-          } else {
-            console.log(
-              `[dry-run] WOULD-INSERT/UPDATE user_tenant_memberships tenant_id=${spec.tenantId} notes=${CURSOR_TEST_MEMBERSHIP_NOTES}`,
-            );
-            evidence.luxMembershipNotes = CURSOR_TEST_MEMBERSHIP_NOTES;
+        if (identity.key === 'tenant') {
+          const userId = evidence.tenant?.id;
+          /** @type {string[]} */
+          const granted = [];
+          let lastNotes = null;
+          for (const tid of identity.membershipTenantIds) {
+            if (userId && userId !== '(dry-run)') {
+              const mem = await ensureTenantMembership(prisma, userId, tid, args.dryRun);
+              lastNotes = mem?.notes || CURSOR_TEST_MEMBERSHIP_NOTES;
+              granted.push(tid);
+            } else {
+              console.log(
+                `[dry-run] WOULD-INSERT/UPDATE user_tenant_memberships tenant_id=${tid} notes=${CURSOR_TEST_MEMBERSHIP_NOTES}`,
+              );
+              lastNotes = CURSOR_TEST_MEMBERSHIP_NOTES;
+              granted.push(tid);
+            }
           }
+          evidence.tenantMembershipNotes = lastNotes;
+          evidence.tenantMembershipTenantIds = granted;
         }
 
         if (!args.dryRun && args.genPassword) {
-          printWalletCard(key, password, evidence[key]);
+          printWalletCard(identity.key, password, evidence[identity.key]);
         } else if (!args.dryRun && password) {
           console.log(
-            `[provision] password set for ${spec.username} (not printed — you supplied --${key}-password)`,
+            `[provision] password set for ${identity.username} (not printed — you supplied --${identity.key}-password)`,
           );
         }
       }

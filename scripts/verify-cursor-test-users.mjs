@@ -11,18 +11,23 @@
  *
  * Env (live mode):
  *   CURSOR_TEST_ADMIN_USERNAME / CURSOR_TEST_ADMIN_PASSWORD
- *   LUX_SMOKE_USERNAME / LUX_SMOKE_PASSWORD
+ *   TENANT_SMOKE_USERNAME / TENANT_SMOKE_PASSWORD  (preferred)
+ *   LUX_SMOKE_USERNAME / LUX_SMOKE_PASSWORD        (temporary alias → generic tenant smoke)
  *   Optional: CURSOR_TEST_ADMIN_LOGIN_BASE_URL (default https://core.corpflowai.com)
- *             LUX_SMOKE_BASE_URL (default https://lux.corpflowai.com)
+ *             TENANT_SMOKE_BASE_URL / LUX_SMOKE_BASE_URL (default https://lux.corpflowai.com)
  */
 
 import './bootstrap-repo-env.mjs';
 import { PrismaClient } from '@prisma/client';
 import {
+  APPROVED_CORPFLOW_TEST_TENANTS,
   CURSOR_TEST_IDENTITIES,
   CURSOR_TEST_RUNTIME_ENV,
+  FORBIDDEN_CURSOR_TEST_USERNAMES,
   formatCursorTestAccessIdentityLines,
+  isForbiddenCursorTestUsername,
   membershipNotesMarkCursorTest,
+  resolveTenantSmokeRuntimeEnv,
   validateCursorTestUserRow,
 } from './lib/cursor-test-users-spec.mjs';
 
@@ -136,8 +141,9 @@ async function verifyDbShape() {
     return {
       skipped: true,
       admin: null,
-      lux: null,
-      luxMembershipNotes: null,
+      tenant: null,
+      tenantMembershipNotes: null,
+      tenantMembershipTenantIds: null,
       results: /** @type {Array<{ label: string, pass: boolean, detail: string }>} */ ([]),
     };
   }
@@ -157,8 +163,8 @@ async function verifyDbShape() {
         enabled: true,
       },
     });
-    const lux = await prisma.authUser.findUnique({
-      where: { username: CURSOR_TEST_IDENTITIES.lux.username },
+    const tenant = await prisma.authUser.findUnique({
+      where: { username: CURSOR_TEST_IDENTITIES.tenant.username },
       select: {
         id: true,
         username: true,
@@ -169,6 +175,34 @@ async function verifyDbShape() {
       },
     });
 
+    // Fail loudly if the superseded Lux-only row is the only tenant smoke present.
+    const forbiddenLux = await prisma.authUser.findUnique({
+      where: { username: FORBIDDEN_CURSOR_TEST_USERNAMES[0] },
+      select: { id: true, username: true, enabled: true },
+    });
+    if (forbiddenLux && forbiddenLux.enabled !== false && !tenant) {
+      record(
+        'db.forbidden_lux_only_not_canonical',
+        false,
+        `enabled forbidden row ${forbiddenLux.username} exists but canonical ${CURSOR_TEST_IDENTITIES.tenant.username} is missing — re-provision generic tenant smoke`,
+        results,
+      );
+    } else if (forbiddenLux && forbiddenLux.enabled !== false) {
+      record(
+        'db.forbidden_lux_only_present_legacy',
+        true,
+        `legacy ${forbiddenLux.username} still exists (disable/delete separately); canonical target is ${CURSOR_TEST_IDENTITIES.tenant.username}`,
+        results,
+      );
+    } else {
+      record(
+        'db.forbidden_lux_only_absent_or_disabled',
+        true,
+        'cursor-test-lux is not an active canonical target',
+        results,
+      );
+    }
+
     if (!admin) {
       record('db.admin.exists', false, 'auth_users row missing', results);
     } else {
@@ -176,28 +210,46 @@ async function verifyDbShape() {
       record('db.admin.shape', v.ok, v.ok ? `id=${admin.id}` : v.errors.join(';'), results);
     }
 
-    let luxMembershipNotes = null;
-    if (!lux) {
-      record('db.lux.exists', false, 'auth_users row missing', results);
+    let tenantMembershipNotes = null;
+    /** @type {string[] | null} */
+    let tenantMembershipTenantIds = null;
+    if (!tenant) {
+      record('db.tenant.exists', false, 'auth_users row missing', results);
     } else {
-      const v = validateCursorTestUserRow(lux, 'lux');
-      record('db.lux.shape', v.ok, v.ok ? `id=${lux.id}` : v.errors.join(';'), results);
-      const mem = await prisma.userTenantMembership.findFirst({
-        where: { userId: lux.id, tenantId: 'luxe-maurice', revokedAt: null },
-        select: { notes: true, role: true, enabled: true },
+      const v = validateCursorTestUserRow(tenant, 'tenant');
+      record('db.tenant.shape', v.ok, v.ok ? `id=${tenant.id}` : v.errors.join(';'), results);
+      const mems = await prisma.userTenantMembership.findMany({
+        where: { userId: tenant.id, revokedAt: null, enabled: true },
+        select: { tenantId: true, notes: true, role: true, enabled: true },
       });
-      luxMembershipNotes = mem?.notes || null;
+      tenantMembershipTenantIds = mems.map((m) => String(m.tenantId));
+      const primaryMem =
+        mems.find((m) => String(m.tenantId) === String(tenant.tenantId)) || mems[0] || null;
+      tenantMembershipNotes = primaryMem?.notes || null;
+      const allApproved = tenantMembershipTenantIds.every((tid) =>
+        APPROVED_CORPFLOW_TEST_TENANTS.includes(tid),
+      );
+      const notesOk = Boolean(
+        primaryMem && membershipNotesMarkCursorTest(primaryMem.notes || ''),
+      );
       record(
-        'db.lux.membership',
-        Boolean(mem && mem.enabled !== false && membershipNotesMarkCursorTest(mem.notes || '')),
-        mem
-          ? `role=${mem.role} notes_marked=${membershipNotesMarkCursorTest(mem.notes || '')}`
+        'db.tenant.membership',
+        Boolean(mems.length && allApproved && notesOk),
+        mems.length
+          ? `tenants=${tenantMembershipTenantIds.join(',')} notes_marked=${notesOk} all_approved=${allApproved}`
           : 'membership row missing',
         results,
       );
     }
 
-    return { skipped: false, admin, lux, luxMembershipNotes, results };
+    return {
+      skipped: false,
+      admin,
+      tenant,
+      tenantMembershipNotes,
+      tenantMembershipTenantIds,
+      results,
+    };
   } finally {
     await prisma.$disconnect().catch(() => {});
   }
@@ -224,19 +276,28 @@ async function verifyLive() {
   const adminUser =
     envTrim(CURSOR_TEST_RUNTIME_ENV.adminUsername) || CURSOR_TEST_IDENTITIES.admin.username;
   const adminPass = envTrim(CURSOR_TEST_RUNTIME_ENV.adminPassword);
-  const luxUser = envTrim(CURSOR_TEST_RUNTIME_ENV.luxUsername) || CURSOR_TEST_IDENTITIES.lux.username;
-  const luxPass = envTrim(CURSOR_TEST_RUNTIME_ENV.luxPassword);
+  const tenantRuntime = resolveTenantSmokeRuntimeEnv(process.env);
+  const tenantUser = tenantRuntime.username;
+  const tenantPass = tenantRuntime.password;
   const adminBase = (
     envTrim(CURSOR_TEST_RUNTIME_ENV.adminLoginBaseUrl) || 'https://core.corpflowai.com'
   ).replace(/\/+$/, '');
-  const luxBase = (envTrim(CURSOR_TEST_RUNTIME_ENV.luxBaseUrl) || 'https://lux.corpflowai.com').replace(
-    /\/+$/,
-    '',
-  );
+  const tenantBase = tenantRuntime.baseUrl;
+  const tenantId = tenantRuntime.tenantId;
 
-  if (!adminPass && !luxPass) {
+  if (isForbiddenCursorTestUsername(tenantUser)) {
+    record(
+      'live.tenant.username_not_lux_only',
+      false,
+      `refusing live verify with forbidden username ${tenantUser}; set TENANT_SMOKE_USERNAME=${CURSOR_TEST_IDENTITIES.tenant.username}`,
+      results,
+    );
+    return { skipped: false, results };
+  }
+
+  if (!adminPass && !tenantPass) {
     console.log(
-      '[live] SKIP — set CURSOR_TEST_ADMIN_PASSWORD and/or LUX_SMOKE_PASSWORD in protected runtime (never commit).',
+      '[live] SKIP — set CURSOR_TEST_ADMIN_PASSWORD and/or TENANT_SMOKE_PASSWORD (or temporary LUX_SMOKE_PASSWORD alias) in protected runtime (never commit).',
     );
     return { skipped: true, results };
   }
@@ -288,73 +349,87 @@ async function verifyLive() {
     record('live.admin.login', false, 'CURSOR_TEST_ADMIN_PASSWORD not set', results);
   }
 
-  if (luxPass) {
-    const loginRes = await login(luxBase, 'tenant', luxUser, luxPass, 'luxe-maurice');
+  if (tenantPass) {
     record(
-      'live.lux.login',
+      'live.tenant.cred_source',
+      true,
+      `source=${tenantRuntime.source} username=${tenantUser}`,
+      results,
+    );
+    const loginRes = await login(tenantBase, 'tenant', tenantUser, tenantPass, tenantId);
+    record(
+      'live.tenant.login',
       loginRes.status === 200 && loginRes.json?.ok === true && loginRes.json?.level === 'tenant',
       `status=${loginRes.status} level=${loginRes.json?.level || 'n/a'} has_cookie=${loginRes.hasSessionCookie}`,
       results,
     );
     if (loginRes.hasSessionCookie && loginRes._cookie) {
-      const me = await httpJson(luxBase, '/api/auth/me', { cookie: loginRes._cookie });
+      const me = await httpJson(tenantBase, '/api/auth/me', { cookie: loginRes._cookie });
       const meTenant =
         me.json?.tenant_id || me.json?.tenantId || me.json?.payload?.tenant_id || 'n/a';
       record(
-        'live.lux.me_tenant_scoped',
-        me.status === 200 && String(meTenant) === 'luxe-maurice',
+        'live.tenant.me_tenant_scoped',
+        me.status === 200 && APPROVED_CORPFLOW_TEST_TENANTS.includes(String(meTenant)),
         `status=${me.status} tenant_id=${meTenant}`,
         results,
       );
 
-      const leads = await httpJson(luxBase, '/api/cmp/router?action=concierge-leads-list&limit=5', {
+      const leads = await httpJson(tenantBase, '/api/cmp/router?action=concierge-leads-list&limit=5', {
         cookie: loginRes._cookie,
       });
       record(
-        'live.lux.leads_list',
-        leads.status === 200 && (leads.json?.ok === true || Array.isArray(leads.json?.leads) || Array.isArray(leads.json?.items)),
+        'live.tenant.leads_list',
+        leads.status === 200 &&
+          (leads.json?.ok === true ||
+            Array.isArray(leads.json?.leads) ||
+            Array.isArray(leads.json?.items)),
         `status=${leads.status} error=${leads.json?.error || 'n/a'}`,
         results,
       );
 
-      const factoryProbe = await httpJson(luxBase, '/api/factory/operator-activity?limit=1', {
+      const factoryProbe = await httpJson(tenantBase, '/api/factory/operator-activity?limit=1', {
         cookie: loginRes._cookie,
       });
       record(
-        'live.lux.core_admin_denied',
+        'live.tenant.core_admin_denied',
         factoryProbe.status === 401 || factoryProbe.status === 403,
         `status=${factoryProbe.status}`,
         results,
       );
 
-      // Cross-tenant ticket probe: a non-Lux id should 404 (not leak).
+      // Cross-tenant ticket probe: a non-existent id should 404 (not leak).
       const cross = await httpJson(
-        luxBase,
+        tenantBase,
         '/api/cmp/router?action=ticket-get&ticket_id=cross-tenant-probe-does-not-exist',
         { cookie: loginRes._cookie },
       );
       record(
-        'live.lux.cross_tenant_ticket_denied',
+        'live.tenant.cross_tenant_ticket_denied',
         cross.status === 404 || cross.status === 403 || cross.status === 400,
         `status=${cross.status} error=${cross.json?.error || 'n/a'}`,
         results,
       );
 
       record(
-        'live.lux.no_live_send_exercised',
+        'live.tenant.no_live_send_exercised',
         true,
         'verify script does not call outbound email/WhatsApp/SMS/payment endpoints',
         results,
       );
 
-      await httpJson(luxBase, '/api/auth/logout', {
+      await httpJson(tenantBase, '/api/auth/logout', {
         method: 'POST',
         cookie: loginRes._cookie,
         body: {},
       }).catch(() => {});
     }
   } else {
-    record('live.lux.login', false, 'LUX_SMOKE_PASSWORD not set', results);
+    record(
+      'live.tenant.login',
+      false,
+      'TENANT_SMOKE_PASSWORD (or temporary LUX_SMOKE_PASSWORD alias) not set',
+      results,
+    );
   }
 
   return { skipped: false, results };
@@ -374,14 +449,14 @@ function printPacket(parts) {
     pendingHandoff.push(
       'Operator: set POSTGRES_URL (Production Neon) and run `npm run provision:cursor-test-users -- --gen-password` on a secure machine; store wallet cards in the approved secret store / Cursor protected runtime.',
     );
-  } else if (!parts.db.admin || !parts.db.lux) {
+  } else if (!parts.db.admin || !parts.db.tenant) {
     pendingHandoff.push(
       'Rows missing — run `npm run provision:cursor-test-users -- --gen-password` then re-verify with `--db-shape`.',
     );
   }
   if (!parts.live || parts.live.skipped) {
     pendingHandoff.push(
-      'Secure handoff: place passwords into CURSOR_TEST_ADMIN_PASSWORD and LUX_SMOKE_PASSWORD (and matching USERNAME vars) in Cursor protected runtime / operator .env.local — never in git — then run `npm run verify:cursor-test-users -- --live`.',
+      'Secure handoff: place passwords into CURSOR_TEST_ADMIN_PASSWORD and TENANT_SMOKE_PASSWORD (preferred; or temporary LUX_SMOKE_* alias mapped to cursor-test-tenant) in Cursor protected runtime / operator .env.local — never in git — then run `npm run verify:cursor-test-users -- --live`.',
     );
   }
 
@@ -389,7 +464,7 @@ function printPacket(parts) {
     pendingHandoff.length === 0 &&
     failed.length === 0 &&
     parts.db.admin &&
-    parts.db.lux &&
+    parts.db.tenant &&
     parts.live &&
     !parts.live.skipped;
 
@@ -399,15 +474,18 @@ function printPacket(parts) {
   console.log('Identities (non-secret):');
   for (const line of formatCursorTestAccessIdentityLines({
     admin: parts.db.admin,
-    lux: parts.db.lux,
-    luxMembershipNotes: parts.db.luxMembershipNotes,
+    tenant: parts.db.tenant,
+    tenantMembershipNotes: parts.db.tenantMembershipNotes,
+    tenantMembershipTenantIds: parts.db.tenantMembershipTenantIds,
   })) {
     console.log(`  ${line}`);
   }
   console.log('');
   console.log('Assigned roles / memberships:');
   console.log(`  admin: level=admin, factory_master=false (no membership matrix grant)`);
-  console.log(`  lux: level=tenant, tenant_id=luxe-maurice, membership.role=member`);
+  console.log(
+    `  tenant: level=tenant, primary=${parts.db.tenant?.tenantId || CURSOR_TEST_IDENTITIES.tenant.tenantId}, membership.role=member, approved_allowlist=${APPROVED_CORPFLOW_TEST_TENANTS.join(',')}`,
+  );
   console.log('');
   console.log('Checks:');
   for (const r of all) {
@@ -422,7 +500,7 @@ function printPacket(parts) {
     '  - Login/logout are not yet dedicated automation_events; CMP actions under these users carry actor_user_id when IM-7 paths fire.',
   );
   console.log(
-    '  - After live Lux CRM / ticket writes, inspect factory operator-activity (factory_master session) filtered by actor_user_id of cursor-test-lux.',
+    '  - After live tenant CRM / ticket writes, inspect factory operator-activity (factory_master session) filtered by actor_user_id of cursor-test-tenant.',
   );
   console.log('');
   console.log('Secure handoff still required:');
@@ -445,11 +523,17 @@ async function main() {
     console.log(`
 verify-cursor-test-users.mjs  (#696)
 
-  --db-shape   Check auth_users + lux membership (needs POSTGRES_URL)
+  --db-shape   Check auth_users + tenant memberships (needs POSTGRES_URL)
   --live       Login + authorization boundary probes (needs password env vars)
   --packet     Print CURSOR TEST ACCESS READY packet (default with --db-shape)
 
 Default: --db-shape --packet
+
+Canonical usernames:
+  ${CURSOR_TEST_IDENTITIES.admin.username}
+  ${CURSOR_TEST_IDENTITIES.tenant.username}
+Forbidden live target:
+  ${FORBIDDEN_CURSOR_TEST_USERNAMES.join(', ')}
 `);
     process.exit(0);
   }
@@ -458,8 +542,9 @@ Default: --db-shape --packet
   let db = {
     skipped: true,
     admin: null,
-    lux: null,
-    luxMembershipNotes: null,
+    tenant: null,
+    tenantMembershipNotes: null,
+    tenantMembershipTenantIds: null,
     results: [],
   };
   /** @type {Awaited<ReturnType<typeof verifyLive>> | null} */

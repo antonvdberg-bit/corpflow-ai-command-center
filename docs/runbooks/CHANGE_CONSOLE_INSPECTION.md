@@ -31,12 +31,17 @@ These steps require Postgres access (same DB as Vercel production) and are done 
 
 A separate `auth_users` row, never reused for real client work or factory ops.
 
-**Preferred (#696 Cursor test identity):** provision both admin + Lux users via the dedicated script (see `docs/runbooks/CURSOR_TEST_USERS_PROVISIONING.md`):
+**Preferred (#696 Cursor test identity):** provision admin + generic tenant smoke via the dedicated script (see `docs/runbooks/CURSOR_TEST_USERS_PROVISIONING.md`):
 
 ```powershell
 $env:POSTGRES_URL = "postgresql://..."   # paste from Vercel → Project → Settings → Environment Variables
-npm run provision:cursor-test-users -- --only=lux --gen-password
-# Then set LUX_SMOKE_USERNAME=cursor-test-lux@corpflowai.com and LUX_SMOKE_PASSWORD=<wallet card>
+npm run provision:cursor-test-users -- --only=tenant --gen-password
+# Preferred:
+#   TENANT_SMOKE_USERNAME=cursor-test-tenant@corpflowai.com
+#   TENANT_SMOKE_PASSWORD=<wallet card>
+# Temporary alias for this smoke script (same values):
+#   LUX_SMOKE_USERNAME=cursor-test-tenant@corpflowai.com
+#   LUX_SMOKE_PASSWORD=<wallet card>
 ```
 
 **Legacy / alternate** (still valid if already issued):
@@ -50,10 +55,10 @@ node scripts/provision-tenant-test-access.mjs `
   --gen-password
 ```
 
-The script prints a one-time "wallet card" with the generated password. **Save it once in 1Password / Bitwarden under a distinct entry (e.g. "Lux smoke operator" or "Cursor test lux").** It is never readable from the database again.
+The script prints a one-time "wallet card" with the generated password. **Save it once in 1Password / Bitwarden under a distinct entry (e.g. "Cursor test tenant smoke").** It is never readable from the database again.
 
 The resulting row has:
-- `auth_users.username = cursor-test-lux@corpflowai.com` (#696) or `lux-smoke@corpflowai.com` (legacy) — lowercased
+- `auth_users.username = cursor-test-tenant@corpflowai.com` (#696 generic tenant smoke) or `lux-smoke@corpflowai.com` (legacy) — lowercased. Do **not** use `cursor-test-lux@corpflowai.com`.
 - `auth_users.level = tenant`  (not `admin`)
 - `auth_users.tenant_id = luxe-maurice`
 - `auth_users.enabled = true`
@@ -91,8 +96,12 @@ Create / update `.env.local` (gitignored — verified by `.gitignore` `.env*.loc
 ```ini
 LUX_SMOKE_BASE_URL=https://lux.corpflowai.com
 LUX_SMOKE_TENANT_ID=luxe-maurice
-LUX_SMOKE_USERNAME=cursor-test-lux@corpflowai.com
+# Temporary alias — map to generic tenant smoke (#696):
+LUX_SMOKE_USERNAME=cursor-test-tenant@corpflowai.com
 LUX_SMOKE_PASSWORD=<the value printed by the wallet card in step 2.1>
+# Preferred equivalents (smoke script accepts these first):
+# TENANT_SMOKE_USERNAME=cursor-test-tenant@corpflowai.com
+# TENANT_SMOKE_PASSWORD=<same wallet card>
 LUX_SMOKE_TICKET_MASTER=cmo8mjijk0000jl04l1jz0v6d
 # Optional:
 # LUX_SMOKE_TICKET_SHORT=<a known short Lux ticket id>
@@ -138,10 +147,12 @@ Cursor / agents can drive the same flow via the script and read the screenshots 
 
 | Variable | Required | Used for | Source |
 |---|---|---|---|
-| `LUX_SMOKE_USERNAME` | ✅ | tenant login (auth_users.username) | `.env.local` / GH secret |
-| `LUX_SMOKE_PASSWORD` | ✅ | tenant login | `.env.local` / GH secret |
-| `LUX_SMOKE_TENANT_ID` | optional (default `luxe-maurice`) | tenant scope | `.env.local` |
-| `LUX_SMOKE_BASE_URL` | optional (default `https://lux.corpflowai.com`) | target host | `.env.local` |
+| `TENANT_SMOKE_USERNAME` | ✅ preferred | tenant login (`cursor-test-tenant@…`) | `.env.local` / GH secret |
+| `TENANT_SMOKE_PASSWORD` | ✅ preferred | tenant login | `.env.local` / GH secret |
+| `LUX_SMOKE_USERNAME` | ✅ temporary alias | same as `TENANT_SMOKE_USERNAME` | `.env.local` / GH secret |
+| `LUX_SMOKE_PASSWORD` | ✅ temporary alias | same as `TENANT_SMOKE_PASSWORD` | `.env.local` / GH secret |
+| `TENANT_SMOKE_TENANT_ID` / `LUX_SMOKE_TENANT_ID` | optional (default `luxe-maurice`) | tenant scope | `.env.local` |
+| `TENANT_SMOKE_BASE_URL` / `LUX_SMOKE_BASE_URL` | optional (default `https://lux.corpflowai.com`) | target host | `.env.local` |
 | `LUX_SMOKE_TICKET_MASTER` | optional (default `cmo8mjijk0000jl04l1jz0v6d`) | master ticket id under inspection | `.env.local` |
 | `LUX_SMOKE_TICKET_SHORT` | optional | pin a specific short ticket | `.env.local` |
 | `VERCEL_AUTOMATION_BYPASS_SECRET` (or `CORPFLOW_VERCEL_PROTECTION_BYPASS_SECRET`) | only if URL is Vercel-protected | adds `x-vercel-protection-bypass` header | `.env.local` / GH secret |
@@ -203,7 +214,7 @@ If step 2 or 5 fails, do **not** merge / do **not** declare COMPLETE — fix the
 
 ## 8. Rotation / decommission
 
-- **Rotate password:** preferred — `npm run provision:cursor-test-users -- --only=lux --gen-password` (or legacy `provision-tenant-test-access.mjs` with the same `--username`). Update `.env.local` and any GitHub Actions secret. Old password stops working immediately because `password_hash` / `password_salt` are overwritten.
-- **Disable account:** `npm run provision:cursor-test-users -- --only=lux --disable` (or `UPDATE auth_users SET enabled=false WHERE username='cursor-test-lux@corpflowai.com';`). Login then fails and the smoke exits non-zero.
-- **Delete account:** `DELETE FROM auth_users WHERE username='cursor-test-lux@corpflowai.com';` (or the legacy `lux-smoke@…` row) once the inspection workflow is no longer needed.
+- **Rotate password:** preferred — `npm run provision:cursor-test-users -- --only=tenant --gen-password` (or legacy `provision-tenant-test-access.mjs` with the same `--username`). Update `.env.local` and any GitHub Actions secret. Old password stops working immediately because `password_hash` / `password_salt` are overwritten.
+- **Disable account:** `npm run provision:cursor-test-users -- --only=tenant --disable` (or `UPDATE auth_users SET enabled=false WHERE username='cursor-test-tenant@corpflowai.com';`). Login then fails and the smoke exits non-zero.
+- **Delete account:** `DELETE FROM auth_users WHERE username='cursor-test-tenant@corpflowai.com';` (or the legacy `lux-smoke@…` / forbidden `cursor-test-lux@…` rows) once the inspection workflow is no longer needed.
 - **Rotate Vercel bypass:** Vercel UI → Deployment Protection → Protection Bypass → rotate. Update `.env.local` / GH secret to match if used outside deployments.
