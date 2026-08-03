@@ -266,6 +266,7 @@ The 7-day monitoring window does **not** auto-convert to monthly monitoring. At 
 
 ## Cross-references
 
+- `docs/operations/LEAD_RESCUE_ONBOARDING_AND_DELIVERY_V1.md` — WS4 (#715) onboarding completeness, delivery states, build gate, evidence packets, messaging-runtime gate.
 - `docs/operations/AI_LEAD_RESCUE_OPERATOR_RUNBOOK.md` — operator cockpit runbook (root operator doc).
 - `docs/marketing/AI_LEAD_RESCUE_FIRST_PAID_PILOTS.md` — first-paid-pilots playbook (commercial side).
 - `docs/sales/AI_LEAD_RESCUE_DISCOVERY_CALL_SCRIPT.md` — qualification script (this PR).
