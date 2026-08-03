@@ -53,17 +53,6 @@ function getEnv(name, fallback) {
   return String(v).trim();
 }
 
-function requireEnv(name) {
-  const v = getEnv(name, '');
-  if (!v) {
-    console.error(
-      `ERROR: Missing required env ${name}. Set it in .env.local (gitignored) or the shell.`,
-    );
-    process.exit(1);
-  }
-  return v;
-}
-
 /** Prefer TENANT_SMOKE_*; fall back to temporary LUX_SMOKE_* alias (#696). */
 function requireTenantSmokeCred(preferredName, aliasName) {
   const preferred = getEnv(preferredName, '');
