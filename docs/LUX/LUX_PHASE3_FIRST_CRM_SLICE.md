@@ -101,4 +101,19 @@ Jan test checklist + draft email (Anton send approval): `docs/LUX/JAN_TEST_PACKA
 
 ---
 
+## Issue #717 — confidential presentation packet (JSON only)
+
+| Area | Behaviour |
+|------|-----------|
+| **Panel** | Lux `/change` **Confidential Presentation** after qualification + curated shortlist (`luxe-maurice` only). |
+| **Journey** | Labelled `Private Conversation → Confidential Presentation → Viewing by Invitation`. |
+| **Storage** | `qualification_json.private_client_presentation` (notes + `viewing_by_invitation` next step). No schema migration. |
+| **Checklist** | Readiness from existing contact, stage ≥ qualified, qualification summary, shortlist residences, presentation notes, viewing next step. |
+| **Draft** | On-screen copy-ready confidential presentation; **send disabled / manual only** (no email / WhatsApp / SMS). |
+| **PATCH** | `presentation_notes`, `viewing_next_step` on `concierge-lead-operator-patch`. |
+
+Jan test package: `docs/LUX/JAN_TEST_PACKAGE_717.md`. Synthetic runtime evidence: `artifacts/lux-717-confidential-presentation/`.
+
+---
+
 **Phase 3 demo safe:** Yes — ticket stays open; no marketing automation or external CRM in this slice.
