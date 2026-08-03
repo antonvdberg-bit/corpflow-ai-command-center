@@ -10,8 +10,8 @@
 
 **Audience:** Operator delivering a financially approved Lead Rescue client from onboarding through acceptance-ready evidence.
 
-**Machine contract:** `config/lead-rescue-onboarding-delivery.v1.json`  
-**Validators:** `lib/lead-rescue/onboarding-delivery.js`  
+**Machine contract:** `config/lead-rescue-onboarding-delivery.v1.json`
+**Validators:** `lib/lead-rescue/onboarding-delivery.js`
 **Unit tests:** `node-tests/lead-rescue-onboarding-delivery.test.mjs`
 
 **Outcome:** Prove a financially approved Lead Rescue client can be onboarded and delivered **without redesigning the service**.

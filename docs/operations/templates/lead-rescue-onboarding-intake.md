@@ -1,8 +1,8 @@
 # Lead Rescue — onboarding intake (operator fill)
 
-**Use:** After `financially_approved=true`, before build start.  
-**Canonical:** `docs/operations/LEAD_RESCUE_ONBOARDING_AND_DELIVERY_V1.md`  
-**Machine fields:** `config/lead-rescue-onboarding-delivery.v1.json`  
+**Use:** After `financially_approved=true`, before build start.
+**Canonical:** `docs/operations/LEAD_RESCUE_ONBOARDING_AND_DELIVERY_V1.md`
+**Machine fields:** `config/lead-rescue-onboarding-delivery.v1.json`
 **Issue:** #715
 
 > Do **not** collect passwords, OTPs, card numbers, bank account numbers, government ID, full CRM exports, or health data.
