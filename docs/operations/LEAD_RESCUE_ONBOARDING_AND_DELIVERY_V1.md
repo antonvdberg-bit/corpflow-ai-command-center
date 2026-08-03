@@ -23,7 +23,7 @@
 | In lane | Out of lane |
 | ------- | ----------- |
 | Shared onboarding checklist + Lead Rescue intake | WhatsApp / email / SMS **runtime** |
-| Required-input completeness + build gate | Prospect workbench / Kanban UI (#721) |
+| Required-input completeness + build gate | Prospect workbench / Kanban UI (#721 — see `docs/operations/PROSPECT_OPERATIONS_V1.md`) |
 | Bounded delivery issue + state model | Proposal / payment / financial-approval rail (#714 owns; we consume `financially_approved`) |
 | Preview → verification → review → acceptance → handover evidence | Analytics infrastructure |
 | Support-boundary documentation | Product redesign / feature expansion |
@@ -254,7 +254,7 @@ Deep 48-hour setup actions remain in `docs/operations/AI_LEAD_RESCUE_PAID_PILOT_
 | Operator pack | `docs/lead-rescue/FIRST_PAID_PILOT_OPERATOR_PACK.md` |
 | Commercial playbook | `docs/marketing/AI_LEAD_RESCUE_FIRST_PAID_PILOTS.md` |
 | Financial approval lane | GitHub #714 |
-| Prospect UI lane | GitHub #721 |
+| Prospect UI lane | GitHub #721 · `docs/operations/PROSPECT_OPERATIONS_V1.md` |
 
 ---
 
