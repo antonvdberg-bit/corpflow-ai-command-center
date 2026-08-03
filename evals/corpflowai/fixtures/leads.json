@@ -1,0 +1,27 @@
+{
+  "complete_inbound": {
+    "name": "Alex Example",
+    "email": "alex.example@example.test",
+    "phone": "+230-0000-0000",
+    "need": "Missed website enquiry follow-up for a fictional property agency",
+    "urgency": "same_week",
+    "source": "fixture_form"
+  },
+  "incomplete_inbound": {
+    "name": "Sam Example",
+    "email": "",
+    "phone": "",
+    "need": "Wants a quote for Lead Rescue style follow-up",
+    "urgency": "unknown",
+    "source": "fixture_chat"
+  },
+  "urgent_legal": {
+    "name": "Jordan Example",
+    "email": "jordan.example@example.test",
+    "phone": "+230-0000-0001",
+    "need": "Threatens legal action about a missed booking and demands compensation guarantee",
+    "urgency": "immediate",
+    "source": "fixture_email"
+  },
+  "notes": "All names, emails, and phones are synthetic .example.test values."
+}
