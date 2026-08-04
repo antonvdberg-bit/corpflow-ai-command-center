@@ -5,9 +5,11 @@ import {
   getRapidDeliveryOffer,
 } from '../../lib/public/rapid-delivery-offers.js';
 import {
+  MARKET_BUYER_NEED_OPTIONS,
   MARKET_SERVICE_PATHS,
   MARKET_URGENCY_OPTIONS,
-  resolveOfferSlugForMarketEnquiry,
+  resolveMarketEnquiryRouting,
+  servicePathForOfferSlug,
 } from '../../lib/public/corpflow-market-service-paths.js';
 import { RAPID_DELIVERY_PRODUCT } from '../../lib/cmp/_lib/rapid-delivery-operator.js';
 import { cfBtnPrimary, cfBtnSecondary, CF } from './corpflow-public-styles.js';
@@ -33,42 +35,36 @@ const labelStyle = {
 };
 
 /**
- * Map a locked rapid-delivery offer slug to the matching market service path.
- * @param {string} offerSlug
- */
-function defaultServicePathForOffer(offerSlug) {
-  const match = MARKET_SERVICE_PATHS.find((p) => p.offerSlug === offerSlug);
-  return match?.id || 'client-lead-service';
-}
-
-/**
- * Qualified CorpFlowAI enquiry → POST /api/tenant/intake (#699).
- * Reuses rapid-delivery product marker and Postgres `leads` — no schema change.
+ * Qualified CorpFlowAI enquiry → POST /api/tenant/intake (#699 / #712).
+ * General discovery: one buyer-facing need question; internal taxonomy is mapped.
+ * Product pages (lockedOffer): product is preselected internally; buyer is not asked to classify again.
  *
  * @param {{
  *   defaultOfferSlug?: string,
  *   lockedOffer?: boolean,
  *   heading?: string,
  *   defaultServicePath?: string,
+ *   defaultBuyerNeed?: string,
  * }} props
  */
 export default function DiscoveryIntakeForm({
-  defaultOfferSlug = 'ai-lead-rescue',
+  defaultOfferSlug = '',
   lockedOffer = false,
   heading = 'Request a qualified conversation',
   defaultServicePath,
+  defaultBuyerNeed = '',
 }) {
-  const offers = useMemo(
-    () => RAPID_DELIVERY_OFFER_SLUGS.map((slug) => getRapidDeliveryOffer(slug)).filter(Boolean),
-    [],
-  );
   const initialOffer = RAPID_DELIVERY_OFFER_SLUGS.includes(/** @type {any} */ (defaultOfferSlug))
     ? defaultOfferSlug
-    : 'ai-lead-rescue';
-  const [servicePath, setServicePath] = useState(
-    defaultServicePath || defaultServicePathForOffer(initialOffer),
+    : '';
+  const lockedPath =
+    (lockedOffer && initialOffer && servicePathForOfferSlug(initialOffer)) ||
+    defaultServicePath ||
+    '';
+
+  const [buyerNeed, setBuyerNeed] = useState(
+    lockedOffer ? '' : defaultBuyerNeed || '',
   );
-  const [offerSlug, setOfferSlug] = useState(initialOffer);
   const [businessName, setBusinessName] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -81,17 +77,13 @@ export default function DiscoveryIntakeForm({
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  /** @type {[{ reference: string, lead_id: string, offer_slug: string, service_path: string } | null, Function]} */
+  /** @type {[{ reference: string, lead_id: string, offer_slug: string, service_path: string, buyer_need: string | null } | null, Function]} */
   const [done, setDone] = useState(null);
 
-  function onServicePathChange(nextPathId) {
-    setServicePath(nextPathId);
-    if (lockedOffer) return;
-    const mapped = resolveOfferSlugForMarketEnquiry(nextPathId, '');
-    if (mapped && RAPID_DELIVERY_OFFER_SLUGS.includes(/** @type {any} */ (mapped))) {
-      setOfferSlug(mapped);
-    }
-  }
+  const lockedOfferTitle = useMemo(
+    () => (lockedOffer && initialOffer ? getRapidDeliveryOffer(initialOffer)?.title : null),
+    [lockedOffer, initialOffer],
+  );
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -104,27 +96,39 @@ export default function DiscoveryIntakeForm({
       setError('Telephone or WhatsApp number is required.');
       return;
     }
+    if (!lockedOffer && !buyerNeed) {
+      setError('Please tell us what you need help with.');
+      return;
+    }
+
+    const routed = resolveMarketEnquiryRouting(
+      lockedOffer
+        ? {
+            locked_offer: true,
+            offer_slug: initialOffer,
+            service_path: lockedPath,
+          }
+        : {
+            buyer_need: buyerNeed,
+          },
+    );
+    if (!routed.ok) {
+      setError('We could not route this enquiry. Please choose what you need help with again.');
+      return;
+    }
+
     setBusy(true);
     try {
-      const mappedFromPath = resolveOfferSlugForMarketEnquiry(servicePath, '');
-      /** @type {string} */
-      let finalOfferSlug = '';
-      if (lockedOffer) {
-        finalOfferSlug = offerSlug;
-      } else if (mappedFromPath) {
-        finalOfferSlug = mappedFromPath;
-      } else if (
-        offerSlug &&
-        servicePath !== 'workflow-administration' &&
-        RAPID_DELIVERY_OFFER_SLUGS.includes(/** @type {any} */ (offerSlug))
-      ) {
-        finalOfferSlug = offerSlug;
-      }
+      const pathLabel =
+        MARKET_SERVICE_PATHS.find((p) => p.id === routed.service_path)?.title ||
+        routed.service_path;
+      const needLabel =
+        MARKET_BUYER_NEED_OPTIONS.find((o) => o.id === routed.buyer_need)?.label || '';
 
       /** @type {Record<string, unknown>} */
       const meta = {
         product: RAPID_DELIVERY_PRODUCT,
-        service_path: servicePath,
+        service_path: routed.service_path,
         business_name: businessName.trim(),
         website: website.trim(),
         enquiry_channels: enquiryChannels.trim() || 'Not specified',
@@ -135,8 +139,19 @@ export default function DiscoveryIntakeForm({
         discovery_form: true,
         source: 'corpflow-market-gateway',
         page: typeof window !== 'undefined' ? window.location.pathname : '/contact',
+        buyer_need: routed.buyer_need,
+        service_interest: routed.service_interest,
+        locked_product: lockedOffer === true,
       };
-      if (finalOfferSlug) meta.offer_slug = finalOfferSlug;
+      if (routed.offer_slug) meta.offer_slug = routed.offer_slug;
+
+      const intentBits = [
+        'Qualified enquiry',
+        needLabel || pathLabel,
+        lockedOfferTitle ? `(${lockedOfferTitle})` : '',
+      ]
+        .filter(Boolean)
+        .join(' — ');
 
       const r = await fetch('/api/tenant/intake', {
         method: 'POST',
@@ -146,7 +161,7 @@ export default function DiscoveryIntakeForm({
           email: email.trim(),
           phone: phone.trim(),
           message: message.trim() || primaryPain.trim(),
-          intent: `Qualified enquiry — ${MARKET_SERVICE_PATHS.find((p) => p.id === servicePath)?.title || servicePath}`,
+          intent: intentBits,
           meta,
         }),
       });
@@ -157,8 +172,9 @@ export default function DiscoveryIntakeForm({
       setDone({
         reference: data.reference || data.lead_id,
         lead_id: data.lead_id,
-        offer_slug: data.offer_slug || finalOfferSlug,
-        service_path: servicePath,
+        offer_slug: data.offer_slug || routed.offer_slug,
+        service_path: routed.service_path,
+        buyer_need: routed.buyer_need,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -170,6 +186,7 @@ export default function DiscoveryIntakeForm({
   if (done) {
     const offer = getRapidDeliveryOffer(done.offer_slug);
     const path = MARKET_SERVICE_PATHS.find((p) => p.id === done.service_path);
+    const need = MARKET_BUYER_NEED_OPTIONS.find((o) => o.id === done.buyer_need);
     return (
       <section
         style={{
@@ -187,7 +204,7 @@ export default function DiscoveryIntakeForm({
         <h2 style={{ margin: '0 0 10px', fontSize: 22, color: '#eef6ff' }}>Your reference: {done.reference}</h2>
         <p style={{ margin: '0 0 12px', color: '#c9d8e8', lineHeight: 1.65, fontSize: 15 }}>
           We logged your qualified enquiry
-          {path ? ` for ${path.title}` : ''}
+          {need ? ` about “${need.label}”` : path ? ` for ${path.title}` : ''}
           {offer ? ` (${offer.title})` : ''}. Keep this reference for follow-up. A CorpFlowAI operator will review fit
           and reply — no payment is taken on this form, and nothing is sent automatically to email, WhatsApp or SMS.
         </p>
@@ -195,8 +212,8 @@ export default function DiscoveryIntakeForm({
           Internal id: <code style={{ color: '#7dd3fc' }}>{done.lead_id}</code>
         </p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-          <Link href={path?.productHref || offer?.path || '/lead-rescue'} style={cfBtnSecondary}>
-            Review related product
+          <Link href={path?.productHref || offer?.path || '/contact#discovery'} style={cfBtnSecondary}>
+            {path?.productHref || offer?.path ? 'Review related product' : 'Back to discovery'}
           </Link>
           <Link href="/" style={cfBtnPrimary}>
             Back to home
@@ -214,38 +231,31 @@ export default function DiscoveryIntakeForm({
         automatic email, WhatsApp or SMS is sent from this form.
       </p>
       <form onSubmit={onSubmit} style={{ display: 'grid', gap: 14, maxWidth: 560 }}>
-        <label>
-          <span style={labelStyle}>Preferred service path</span>
-          <select
-            required
-            value={servicePath}
-            onChange={(ev) => onServicePathChange(ev.target.value)}
-            style={fieldStyle}
-            name="service_path"
-          >
-            {MARKET_SERVICE_PATHS.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.title}
-              </option>
-            ))}
-          </select>
-        </label>
         {lockedOffer ? (
-          <p style={{ margin: 0, color: CF.link, fontSize: 14, fontWeight: 600 }}>
-            Product focus: {getRapidDeliveryOffer(offerSlug)?.title}
+          <p
+            style={{ margin: 0, color: CF.link, fontSize: 14, fontWeight: 600 }}
+            data-locked-product-context
+          >
+            You are requesting discovery for {lockedOfferTitle || 'this product'}. Tell us about the problem and
+            timing — you do not need to re-classify the product.
           </p>
         ) : (
           <label>
-            <span style={labelStyle}>Related product sprint (optional focus)</span>
+            <span style={labelStyle}>What do you need help with?</span>
             <select
-              value={offerSlug}
-              onChange={(ev) => setOfferSlug(ev.target.value)}
+              required
+              value={buyerNeed}
+              onChange={(ev) => setBuyerNeed(ev.target.value)}
               style={fieldStyle}
-              name="offer_slug"
+              name="buyer_need"
+              data-buyer-need-select
             >
-              {offers.map((o) => (
-                <option key={o.slug} value={o.slug}>
-                  {o.title}
+              <option value="" disabled>
+                Select one…
+              </option>
+              {MARKET_BUYER_NEED_OPTIONS.map((o) => (
+                <option key={o.id} value={o.id}>
+                  {o.label}
                 </option>
               ))}
             </select>
