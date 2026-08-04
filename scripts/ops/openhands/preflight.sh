@@ -234,6 +234,7 @@ check_isolation_design_files_present() {
   local required=(
     "${REPO_ROOT}/ops/openhands/daemon/README.md"
     "${REPO_ROOT}/ops/openhands/daemon/daemon.json.example"
+    "${REPO_ROOT}/ops/openhands/daemon/daemon.env.example"
     "${REPO_ROOT}/ops/openhands/daemon/dockerd-rootless.service.example"
     "${REPO_ROOT}/scripts/ops/systemd/corpflowai-openhands.slice"
     "${REPO_ROOT}/scripts/ops/systemd/corpflowai-openhands-dockerd.service"
@@ -250,6 +251,134 @@ check_isolation_design_files_present() {
   done
   if [[ "${missing}" -eq 0 ]]; then
     pass "all dedicated-daemon isolation design files are present"
+  fi
+}
+
+# Soft fail helper: FAIL in --install mode, WARN in --check (inactive package
+# may be evaluated on a laptop without rootless packages installed).
+rootless_req() {
+  local msg="$1"
+  if [[ "${MODE}" == "install" ]]; then
+    fail "${msg}"
+  else
+    warn "${msg} (warn-only in --check; becomes a hard failure under --install)"
+  fi
+}
+
+check_rootless_prerequisites() {
+  # Never print secret values. Only tool presence + mapping-range shape.
+  local bin
+  for bin in dockerd-rootless.sh rootlesskit newuidmap newgidmap; do
+    if command -v "${bin}" >/dev/null 2>&1; then
+      pass "rootless prerequisite binary present: ${bin}"
+    else
+      rootless_req "rootless prerequisite binary missing: ${bin}"
+    fi
+  done
+
+  # Networking helper: slirp4netns is the common default; pasta is an
+  # alternate on newer stacks. At least one should exist before install.
+  if command -v slirp4netns >/dev/null 2>&1; then
+    pass "rootless networking helper present: slirp4netns"
+  elif command -v pasta >/dev/null 2>&1; then
+    pass "rootless networking helper present: pasta"
+  else
+    rootless_req "neither slirp4netns nor pasta found (rootless container networking)"
+  fi
+
+  local user_name
+  user_name="$(id -un 2>/dev/null || true)"
+  if [[ -z "${user_name}" ]]; then
+    rootless_req "could not resolve invoking username for /etc/subuid|/etc/subgid checks"
+  else
+    if [[ -r /etc/subuid ]] && grep -E "^${user_name}:" /etc/subuid >/dev/null 2>&1; then
+      # Range size not printed (avoid leaking host mapping layout into logs
+      # beyond presence). Require count >= 65536 when parseable.
+      local subuid_line count
+      subuid_line="$(grep -E "^${user_name}:" /etc/subuid | head -n1)"
+      count="$(printf '%s' "${subuid_line}" | awk -F: '{print $3}')"
+      if [[ "${count}" =~ ^[0-9]+$ ]] && [[ "${count}" -ge 65536 ]]; then
+        pass "/etc/subuid has a valid >=65536 range for invoking user"
+      else
+        rootless_req "/etc/subuid entry for invoking user missing or range < 65536"
+      fi
+    else
+      rootless_req "/etc/subuid has no readable entry for invoking user"
+    fi
+    if [[ -r /etc/subgid ]] && grep -E "^${user_name}:" /etc/subgid >/dev/null 2>&1; then
+      local subgid_line gcount
+      subgid_line="$(grep -E "^${user_name}:" /etc/subgid | head -n1)"
+      gcount="$(printf '%s' "${subgid_line}" | awk -F: '{print $3}')"
+      if [[ "${gcount}" =~ ^[0-9]+$ ]] && [[ "${gcount}" -ge 65536 ]]; then
+        pass "/etc/subgid has a valid >=65536 range for invoking user"
+      else
+        rootless_req "/etc/subgid entry for invoking user missing or range < 65536"
+      fi
+    else
+      rootless_req "/etc/subgid has no readable entry for invoking user"
+    fi
+  fi
+
+  if [[ -f /sys/fs/cgroup/cgroup.controllers ]] || [[ -f /sys/fs/cgroup/cgroup.subtree_control ]]; then
+    pass "cgroup v2 appears available"
+  else
+    rootless_req "cgroup v2 not detected (needed for reliable slice/Delegate resource control)"
+  fi
+
+  if command -v systemctl >/dev/null 2>&1 && systemctl --user show-environment >/dev/null 2>&1; then
+    pass "systemd user manager appears available"
+  else
+    rootless_req "systemd user manager not available (systemctl --user)"
+  fi
+
+  # Linger is required for user services to survive logout — presence-only.
+  if command -v loginctl >/dev/null 2>&1; then
+    local linger_state
+    linger_state="$(loginctl show-user "${user_name}" -p Linger --value 2>/dev/null || echo unknown)"
+    if [[ "${linger_state}" == "yes" ]]; then
+      pass "loginctl Linger=yes for invoking user"
+    else
+      rootless_req "loginctl Linger is not yes for invoking user (needed for user dockerd after logout); state=${linger_state}"
+    fi
+  else
+    warn "loginctl unavailable — cannot verify Linger (warn-only)"
+  fi
+
+  # Path ownership / forbidden primary paths (no secret values).
+  if is_primary_docker_socket_path "${OPENHANDS_DOCKER_SOCK}"; then
+    fail "dedicated socket path equals primary /var/run/docker.sock — forbidden"
+  else
+    pass "dedicated socket path is not the primary Docker socket"
+  fi
+  if [[ "${OPENHANDS_DOCKER_DATA_ROOT}" == "/var/lib/docker" ]] || [[ "${OPENHANDS_DOCKER_DATA_ROOT}" == /var/lib/docker/* ]]; then
+    fail "dedicated data-root must not be /var/lib/docker (primary daemon)"
+  else
+    pass "dedicated data-root is not /var/lib/docker"
+  fi
+
+  if [[ -d "${OPENHANDS_HOME}" ]]; then
+    if [[ -O "${OPENHANDS_HOME}" ]]; then
+      pass "OPENHANDS_HOME exists and is owned by invoking user"
+    else
+      rootless_req "OPENHANDS_HOME exists but is not owned by invoking user"
+    fi
+  else
+    warn "OPENHANDS_HOME directory does not exist yet (expected pre-install); create with invoking-user ownership at install gate"
+  fi
+
+  # Dockerd unit must not reference application .env (secret separation).
+  local dockerd_unit="${REPO_ROOT}/scripts/ops/systemd/corpflowai-openhands-dockerd.service"
+  if [[ -f "${dockerd_unit}" ]]; then
+    if grep -E '^[[:space:]]*EnvironmentFile=.*ops/openhands/\.env' "${dockerd_unit}" >/dev/null 2>&1; then
+      fail "dockerd unit must not EnvironmentFile= ops/openhands/.env (application secrets)"
+    else
+      pass "dockerd unit does not EnvironmentFile= ops/openhands/.env"
+    fi
+    if grep -E '^[[:space:]]*NoNewPrivileges=yes' "${dockerd_unit}" >/dev/null 2>&1; then
+      fail "dockerd unit must not set NoNewPrivileges=yes (incompatible with stock rootless newuidmap/newgidmap)"
+    else
+      pass "dockerd unit does not set NoNewPrivileges=yes"
+    fi
   fi
 }
 
@@ -379,6 +508,7 @@ main() {
   check_dedicated_docker_host_env
   check_dedicated_socket_present
   check_isolation_design_files_present
+  check_rootless_prerequisites
   check_env_example_placeholders
   check_port_free
   check_disk_headroom

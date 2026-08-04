@@ -46,7 +46,7 @@ it was chosen over the alternatives, and states plainly what it does and does **
 | Socket | `$HOME/corpflowai-openhands/docker/docker.sock`. **Never** `/var/run/docker.sock`. The primary host socket is never mounted into, or reachable from, the OpenHands control-plane container in this design. |
 | Data root | `$HOME/corpflowai-openhands/docker-data` — the dedicated daemon's own image/container/volume storage, isolated from the primary daemon's `/var/lib/docker`. Images pulled for the control plane and for spawned sandboxes live here, not in the primary daemon's storage. |
 | Access | The OpenHands control-plane container's compose file mounts the dedicated daemon's host-side socket at a **container-internal path that is deliberately NOT `/var/run/docker.sock`** — `ops/openhands/compose.yaml` uses `/run/openhands-docker/docker.sock` inside the container (configurable via `OPENHANDS_DOCKER_SOCK_IN_CONTAINER`), specifically so no log line or tooling output inside the container can be misread as "this is the primary daemon." Every operator/script command against this daemon (compose up/down, `docker ps`, `docker system df`, evidence scripts) resolves `DOCKER_HOST` to the dedicated socket — either via `scripts/ops/openhands/lib/common.sh`'s `openhands_docker()` wrapper (the required pattern for every script in this package) or an explicit manual `DOCKER_HOST=unix://$HOME/corpflowai-openhands/docker/docker.sock` export for ad-hoc operator commands. There is no ambient/default-daemon fallback anywhere in this package — `openhands_assert_isolation_context()` fails closed if one is attempted. |
-| Resource ceiling | A systemd **user** slice, `corpflowai-openhands.slice`, wraps the dedicated daemon (and, transitively, everything it runs): `MemoryMax=8G`, `CPUQuota=300%`. This is the **total** ceiling for the control plane plus every sandbox container the dedicated daemon is asked to spawn — not a per-container limit (see § 4 residual risk). |
+| Resource ceiling | A systemd **user** slice, `corpflowai-openhands.slice`, is **intended** to wrap the dedicated daemon (and, if cgroup placement works as designed with `Delegate=yes`, its sandboxes): `MemoryMax=8G`, `CPUQuota=300%`. **Claim status: PENDING RUNTIME VERIFICATION** at the install gate (§ 2.3). Do not treat sandbox containment under the slice as proven until that evidence exists. |
 | Scope | The dedicated daemon has **no other tenants**. It is not shared with Kuma, ERPNext, Beszel, or any other box workload — those continue to use the box's primary Docker daemon (or their own tooling) unaffected. A compromise that reaches the dedicated daemon's API surface can, at most, control containers/images/volumes **within that daemon** — it has no path to the primary daemon's containers, images, or volumes, because it is a structurally separate process with its own Unix socket and its own on-disk state. |
 
 ### 2.1 What this design fixes, stated plainly
@@ -116,8 +116,57 @@ and this doc is the isolation-design record — update both together if either c
 | Concurrent sandbox tasks | `MAX_CONCURRENT_CONVERSATIONS=1` (app env) | Application-level | App bug could exceed 1; the slice below is the backstop |
 | Per-task wall-clock timeout | `SANDBOX_TIMEOUT=600` (app env) | Application-level | Same as above |
 | Per-task iteration ceiling | `MAX_ITERATIONS=40` (app env) | Application-level | Same as above |
-| Combined RAM / CPU / task-count ceiling (dedicated daemon + control plane + every sandbox) | `scripts/ops/systemd/corpflowai-openhands.slice` (`MemoryMax=8G`, `CPUQuota=300%`, `TasksMax=2048`) | **Kernel cgroup** — real hard limit | None known — this is the actual backstop |
+| Combined RAM / CPU / task-count ceiling (dedicated daemon + expected sandboxes) | `scripts/ops/systemd/corpflowai-openhands.slice` (`MemoryMax=8G`, `CPUQuota=300%`, `TasksMax=2048`) + dockerd `Delegate=yes` | **Kernel cgroup** for the dockerd service tree **when** placement is verified | **Pending runtime verification** that spawned sandboxes remain under the slice (§ 2.5) |
 | Per-sandbox native RAM/CPU limit (e.g. a 4 GiB `HostConfig` cap per spawned container) | **Not available** in the OSS `1.8` Docker deployment path | N/A | **Residual** — see § 2.2; bounded by the slice total, not a per-container cap |
+
+### 2.5 Systemd slice claim — pending runtime verification (install gate only)
+
+**Do not claim sandboxes are certified under `corpflowai-openhands.slice` until the following passes on the real host.** This packet prepares commands only; it does **not** run them on `corpflow-exec-01`.
+
+Expected design assumption: with cgroup v2, `Delegate=yes` on `corpflowai-openhands-dockerd.service`, and `Slice=corpflowai-openhands.slice`, container processes created by that dockerd remain in the service's delegated cgroup subtree and therefore under the slice's `MemoryMax` / `CPUQuota` / `TasksMax`.
+
+Install-gate proof (operator paste after dedicated daemon is authorized and running — disposable only):
+
+```bash
+# 1) Confirm dockerd unit is in the slice
+systemctl --user show corpflowai-openhands-dockerd.service -p Slice -p Delegate
+# expect Slice=corpflowai-openhands.slice and Delegate=yes
+
+# 2) Confirm slice limits
+systemctl --user show corpflowai-openhands.slice -p MemoryMax -p CPUQuota -p TasksMax
+
+# 3) Launch a disposable synthetic container on the DEDICATED daemon only
+export DOCKER_HOST=unix://$HOME/corpflowai-openhands/docker/docker.sock
+docker run -d --name corpflowai-openhands-cgroup-probe busybox:1.36 sleep 120
+
+# 4) Inspect the container's main PID cgroup; it must contain corpflowai-openhands.slice
+PID=$(docker inspect -f '{{.State.Pid}}' corpflowai-openhands-cgroup-probe)
+tr '\0' '\n' < /proc/$PID/cgroup
+# expect a path segment containing corpflowai-openhands.slice
+
+# 5) Remove the disposable container
+docker rm -f corpflowai-openhands-cgroup-probe
+```
+
+**Pass criteria:** probe cgroup path includes `corpflowai-openhands.slice`; slice MemoryMax/CPUQuota/TasksMax are as packaged. **Fail / unknown:** keep installation gated; do not assert kernel containment for sandboxes.
+
+### 2.6 NoNewPrivileges on the rootless dockerd unit — verdict
+
+**Verdict: INCOMPATIBLE** with stock Docker rootless (`newuidmap` / `newgidmap` as documented by Docker Engine rootless mode).
+
+- Official Docker rootless docs: rootless mode **requires** `newuidmap` and `newgidmap` to map subordinate UIDs/GIDs (the only SETUID/filecap helpers rootless mode uses).
+- systemd `NoNewPrivileges=yes` sets `PR_SET_NO_NEW_PRIVS`, which blocks those helpers from gaining needed privileges (`rootless-containers/rootlesskit#551` — failure writing `uid_map`: Operation not permitted).
+- Therefore `scripts/ops/systemd/corpflowai-openhands-dockerd.service` **must not** set `NoNewPrivileges=yes`. The unit documents this explicitly. The OpenHands **app** container may still use compose `security_opt: no-new-privileges:true` (separate from the dockerd unit).
+
+### 2.7 Daemon vs application secret separation
+
+| Surface | May load | Must never load |
+|---|---|---|
+| `corpflowai-openhands-dockerd.service` | `%h` path `Environment=` lines; optional `%h/corpflowai-openhands/docker/daemon.env` (paths only) | `ops/openhands/.env`, `LLM_*`, `GITHUB_TOKEN`, OAuth, `POSTGRES_*`, client secrets |
+| `corpflowai-openhands.service` (app) | `ops/openhands/.env` (app + model + GitHub placeholders filled from secret store) | Must not be shared into dockerd |
+| `ops/openhands/daemon/daemon.env.example` | Non-secret path overrides only | Any application/model secret |
+
+Deterministic tests fail if the dockerd unit references `ops/openhands/.env` or application secret variable names.
 
 ## 3. `host.docker.internal` removed
 

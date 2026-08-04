@@ -1,73 +1,70 @@
 [Unit]
 # CorpFlowAI — OpenHands DEDICATED rootless Docker daemon (user service)
 #
-# STATUS: INACTIVE. DO NOT ENABLE. This file describes what the dedicated
-# rootless dockerd unit WOULD look like if OpenHands install is ever
-# authorized (see ops/openhands/README.md "Path to authorization" and
-# ops/openhands/daemon/README.md). It is not installed to
-# ~/.config/systemd/user/ by any script in this repo, and no script in this
-# repo runs `systemctl --user enable` on it. Controlling issue: #743.
+# STATUS: INACTIVE. DO NOT ENABLE. Controlling issue: #743 / draft PR #747.
 #
-# This unit runs a SEPARATE Docker daemon that exists solely for OpenHands —
-# it is NOT the host's primary Docker daemon (docker.service), and this unit
-# must never be aliased, symlinked, or otherwise made to control the primary
-# daemon. See ops/openhands/compose.yaml "DOCKER ISOLATION DESIGN" header and
-# docs/operations/OPENHANDS_DOCKER_ISOLATION.md for the full rationale.
+# This unit runs a SEPARATE Docker daemon solely for OpenHands — never the
+# host primary docker.service. See docs/operations/OPENHANDS_DOCKER_ISOLATION.md.
 Description=CorpFlowAI OpenHands dedicated rootless Docker daemon (INACTIVE — do not enable without separate authorization, see issue #743)
-Documentation=file:///home/anton/corpflow-ai-command-center/ops/openhands/daemon/README.md file:///home/anton/corpflow-ai-command-center/docs/operations/OPENHANDS_DOCKER_ISOLATION.md
-# Deliberately NOT `After=docker.service` / `Requires=docker.service` — this
-# unit must have NO dependency relationship on the host's primary Docker
-# daemon. It only needs the network to be up for image pulls.
+Documentation=file:%h/corpflow-ai-command-center/ops/openhands/daemon/README.md
+# NO dependency on primary docker.service / docker.socket.
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=notify
 NotifyAccess=all
-# %h expands to the invoking user's home directory under a systemd --user
-# service, matching OPENHANDS_HOME's default of $HOME/corpflowai-openhands
-# (see scripts/ops/openhands/lib/common.sh). If OPENHANDS_HOME is overridden
-# away from that default at install time, this ExecStart line and the
-# EnvironmentFile below must be updated together — they are not
-# auto-derived from each other by this unit file alone.
+
+# ---------------------------------------------------------------------------
+# Daemon-only environment — NEVER load ops/openhands/.env here.
+# Application/model/GitHub secrets belong to corpflowai-openhands.service
+# (the app unit) only. The dockerd process must not inherit LLM keys,
+# GitHub tokens, OAuth material, Postgres URLs, or client credentials.
+# ---------------------------------------------------------------------------
 Environment=OPENHANDS_HOME=%h/corpflowai-openhands
 Environment=DOCKER_HOST=unix://%h/corpflowai-openhands/docker/docker.sock
-EnvironmentFile=-%h/corpflow-ai-command-center/ops/openhands/.env
+# Optional daemon-only env file (paths only). Copy from
+# ops/openhands/daemon/daemon.env.example → %h/corpflowai-openhands/docker/daemon.env
+# Never place LLM_API_KEY / GITHUB_TOKEN / POSTGRES_* here.
+EnvironmentFile=-%h/corpflowai-openhands/docker/daemon.env
 
-# dockerd-rootless.sh is Docker's own upstream launcher script (installed by
-# the `docker-ce-rootless-extras` package, or distro equivalent) — never
-# vendored or modified by this repo. --config-file points at a REAL
-# daemon.json copied from ops/openhands/daemon/daemon.json.example and filled
-# with the real OPENHANDS_HOME path at install time (never committed here
-# with real paths beyond what the example already documents).
-#
-# Explicit --host / --data-root flags are passed IN ADDITION to daemon.json
-# so the dedicated socket and dedicated data-root are never left to
-# dockerd-rootless.sh's own defaults ($XDG_RUNTIME_DIR/docker.sock,
-# ~/.local/share/docker) — both must land under $OPENHANDS_HOME.
+# Upstream launcher from docker-ce-rootless-extras (not vendored by this repo).
 ExecStart=/usr/bin/dockerd-rootless.sh \
   --config-file=%h/corpflowai-openhands/docker/daemon.json \
   --host=unix://%h/corpflowai-openhands/docker/docker.sock \
   --data-root=%h/corpflowai-openhands/docker-data
 
-# Placed under the combined resource slice — see
-# scripts/ops/systemd/corpflowai-openhands.slice. This is the enforcement
-# point for "the dedicated daemon itself, plus every container it runs, is
-# capped at ~8 GiB / 300% CPU / 2048 tasks in aggregate."
+# Combined resource ceiling — see corpflowai-openhands.slice.
+# Runtime proof that sandboxes land under this slice is REQUIRED at the
+# install gate (see docs/operations/OPENHANDS_DOCKER_ISOLATION.md § slice).
 Slice=corpflowai-openhands.slice
+
+# Required for rootless dockerd to manage child cgroups under this service
+# (cgroup v2 delegation). Without Delegate=yes, container cgroup placement
+# under the service/slice tree is unreliable.
+Delegate=yes
 
 Restart=on-failure
 RestartSec=5
-# Rootless dockerd should never need new privileges beyond what rootlesskit's
-# own newuidmap/newgidmap setuid helpers already provide at process start —
-# this does not grant them, it just documents that this unit does not ask
-# systemd for anything beyond a normal user-session process.
-NoNewPrivileges=yes
 
-# Do not put secrets in this unit file. Do not add ExecStartPre steps that
-# echo environment contents. The EnvironmentFile line above is the same
-# `-` (optional-file) pattern used by scripts/ops/systemd/corpflowai-openhands.service
-# — a missing ops/openhands/.env is not a unit-start failure.
+# ---------------------------------------------------------------------------
+# NoNewPrivileges deliberately ABSENT (incompatible with stock rootless).
+#
+# Verdict: INCOMPATIBLE with Docker's documented rootless design on standard
+# uidmap newuidmap/newgidmap (setuid / filecaps). Official Docker rootless
+# docs state rootless mode requires newuidmap/newgidmap to map subordinate
+# UIDs/GIDs. systemd NoNewPrivileges=yes sets PR_SET_NO_NEW_PRIVS, which
+# blocks those helpers from gaining the privileges they need
+# (rootless-containers/rootlesskit#551 — "newuidmap obviously needs new
+# privs"; Operation not permitted writing uid_map).
+#
+# Do NOT re-add NoNewPrivileges=yes to this unit unless a verified alternate
+# newuidmap that works under no_new_privs is separately approved.
+# The OpenHands *app* container may still use security_opt no-new-privileges;
+# that does not apply to this dockerd unit.
+# ---------------------------------------------------------------------------
+
+# Do not put secrets in this unit file. Do not echo environment contents.
 
 [Install]
 WantedBy=default.target

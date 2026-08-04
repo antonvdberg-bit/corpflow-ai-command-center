@@ -29,13 +29,15 @@ Short version:
   `/var/lib/docker`. This is what actually makes isolation real — images, containers, networks, and volumes
   created against this daemon are physically stored under a path the primary daemon never reads.
 - **Own systemd user service** (`scripts/ops/systemd/corpflowai-openhands-dockerd.service`, INACTIVE, not enabled
-  by default) running `dockerd-rootless.sh` (upstream rootless-Docker installer script, not vendored here) with
-  `--config-file` pointed at `daemon.json` (see `daemon.json.example` below) and explicit `--host` /
-  `--data-root` flags.
-- **Own systemd slice** (`scripts/ops/systemd/corpflowai-openhands.slice`, INACTIVE) wrapping both the dedicated
-  dockerd unit AND the control-plane container's own systemd unit, capping the combined total at
-  `MemoryMax=8G`, `CPUQuota=300%`, `TasksMax=2048`. This is the kernel-cgroup-enforced backstop for "total
-  ceiling ~8 GiB" — a real limit, not only a documented policy number.
+  by default) running `dockerd-rootless.sh` with `--config-file` / `--host` / `--data-root` under `$OPENHANDS_HOME`.
+  **Does not** `EnvironmentFile=` `ops/openhands/.env` (application/model secrets). Optional daemon-only env:
+  `ops/openhands/daemon/daemon.env.example` → `$OPENHANDS_HOME/docker/daemon.env` (paths only).
+  **Does not** set `NoNewPrivileges=yes` — **incompatible** with stock `newuidmap`/`newgidmap` (see
+  `OPENHANDS_DOCKER_ISOLATION.md` § 2.6). Sets `Delegate=yes` for cgroup v2 child management.
+- **Own systemd slice** (`scripts/ops/systemd/corpflowai-openhands.slice`, INACTIVE) with
+  `MemoryMax=8G`, `CPUQuota=300%`, `TasksMax=2048`. Sandbox placement under this slice is
+  **PENDING RUNTIME VERIFICATION** at the install gate (disposable cgroup probe in
+  `OPENHANDS_DOCKER_ISOLATION.md` § 2.5) — do not treat it as proven until that evidence exists.
 - **Everything OpenHands touches — control plane AND every spawned sandbox — goes through this one dedicated
   daemon.** There is no split where sandboxes use one daemon and the control plane another; that would
   reintroduce a cross-daemon coordination risk for no isolation benefit.

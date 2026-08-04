@@ -33,13 +33,10 @@ WorkingDirectory=%h/corpflow-ai-command-center
 # scripts/ops/openhands/verify-dedicated-daemon.sh, not by this unit file.
 Environment=OPENHANDS_HOME=%h/corpflowai-openhands
 Environment=DOCKER_HOST=unix://%h/corpflowai-openhands/docker/docker.sock
-# EnvironmentFile intentionally points at a real .env that must be created
-# manually from ops/openhands/.env.example and filled from an approved
-# secret store — never committed, never printed by any script. Any
-# OPENHANDS_DOCKER_HOST value set in that file takes precedence over the
-# Environment= line above (later EnvironmentFile wins over earlier
-# Environment= for the same key, per systemd's own documented precedence) —
-# so a real .env override is still possible without editing this unit.
+# Application EnvironmentFile — LLM / GitHub / OpenHands app secrets live HERE
+# only (copied from ops/openhands/.env.example into a host-local .env).
+# The dedicated dockerd unit (corpflowai-openhands-dockerd.service) must NEVER
+# load this file — daemon vs application secret separation is mandatory.
 EnvironmentFile=-%h/corpflow-ai-command-center/ops/openhands/.env
 ExecStart=/usr/bin/docker compose -p corpflowai-openhands -f %h/corpflow-ai-command-center/ops/openhands/compose.yaml up -d
 ExecStop=/usr/bin/docker compose -p corpflowai-openhands -f %h/corpflow-ai-command-center/ops/openhands/compose.yaml down
@@ -47,6 +44,8 @@ Nice=10
 
 # Placed under the same combined resource slice as the dedicated daemon —
 # see scripts/ops/systemd/corpflowai-openhands.slice.
+# Sandbox cgroup placement under the slice is PENDING RUNTIME VERIFICATION
+# at the install gate (see OPENHANDS_DOCKER_ISOLATION.md).
 Slice=corpflowai-openhands.slice
 
 # Do not put secrets in this unit file. Do not add ExecStartPre steps that
