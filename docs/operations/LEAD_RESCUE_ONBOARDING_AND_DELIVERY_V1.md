@@ -37,7 +37,7 @@
 
 Onboarding opens only when:
 
-1. **`financially_approved === true`** (synthetic contract until #714 publishes; same boolean semantics thereafter).
+1. **`financially_approved === true`** (published by #714 `docs/revenue/COMMERCIAL_APPROVAL_RAIL_V1.md` / `canMarkFinanciallyApproved` → `toOnboardingHandoff`; same boolean semantics for build gate).
 2. Product is Lead Rescue (`ai-lead-rescue`).
 3. Operator has capacity for the 48-hour setup window (see `docs/operations/AI_LEAD_RESCUE_PAID_PILOT_ONBOARDING.md`).
 

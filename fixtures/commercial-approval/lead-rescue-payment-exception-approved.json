@@ -1,0 +1,59 @@
+{
+  "id": "synthetic-ca-lr-payment-exception",
+  "opportunity_ref": "OPP-SYN-LR-004",
+  "product": "lead-rescue",
+  "proposal_status": "accepted",
+  "proposal_version": "v1.0",
+  "quoted_currency": "USD",
+  "setup_price": 150,
+  "recurring_price": 99,
+  "offer_kind": "pilot",
+  "payment_terms": "deferred_payment_exception",
+  "scope_summary": "Lead Rescue pilot with approved deferred payment exception.",
+  "acceptance_status": "accepted",
+  "accepted_by": "Alex Operator (client)",
+  "acceptance_timestamp": "2026-08-01T10:00:00Z",
+  "payment_evidence_status": "exception_approved",
+  "payment_evidence_ref": "PAY-EX-SYN-LR-004",
+  "financial_review_status": "approved",
+  "financially_approved": false,
+  "approved_by": "Anton (operator financial approver)",
+  "approval_timestamp": "2026-08-01T14:00:00Z",
+  "won_lost_status": "won",
+  "won_lost_reason": "approved_deferred_payment",
+  "commercial_notes": "Deferred payment explicitly approved in writing.",
+  "commercial_blockers": [],
+  "financial_approval_ref": "FA-SYN-LR-004",
+  "proposal": {
+    "status": "accepted",
+    "version": "v1.0",
+    "currency": "USD",
+    "setup_price": 150,
+    "recurring_price": 99,
+    "payment_terms": "deferred_payment_exception",
+    "scope_summary": "Lead Rescue pilot with approved deferred payment exception.",
+    "offer_kind": "pilot"
+  },
+  "acceptance": {
+    "status": "accepted",
+    "accepted_by": "Alex Operator (client)",
+    "acceptance_timestamp": "2026-08-01T10:00:00Z",
+    "acceptance_method": "whatsapp_confirmation",
+    "proposal_version": "v1.0"
+  },
+  "payment_evidence": {
+    "status": "exception_approved",
+    "evidence_type": "deferred_payment_exception",
+    "evidence_ref": "PAY-EX-SYN-LR-004",
+    "expected_amount": 150,
+    "amount_evidenced": 0,
+    "currency": "USD",
+    "payment_term": "deferred_payment_exception",
+    "notes": "No funds received yet — exception path."
+  },
+  "payment_exception": {
+    "authorised_by": "Anton (operator financial approver)",
+    "reason": "Returning warm-network prospect; pay within 7 days of pilot start; written exception recorded.",
+    "approved_at": "2026-08-01T13:30:00Z"
+  }
+}

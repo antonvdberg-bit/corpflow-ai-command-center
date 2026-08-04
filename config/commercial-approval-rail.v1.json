@@ -1,0 +1,176 @@
+{
+  "schema": "corpflow.commercial_approval_rail.v1",
+  "issue": 714,
+  "parent": 711,
+  "controller": 710,
+  "consumers": [715, 716],
+  "status": "v1",
+  "description": "Manual-first proposal, acceptance, payment-evidence and financial-approval rail for Lead Rescue and Website Rescue. Publishes financially_approved for onboarding consumers. No payment execution, no client sends, no DB schema.",
+  "products": ["lead-rescue", "website-rescue"],
+  "product_aliases": {
+    "ai-lead-rescue": "lead-rescue",
+    "lead_rescue": "lead-rescue",
+    "website_rescue": "website-rescue"
+  },
+  "onboarding_product_map": {
+    "lead-rescue": "ai-lead-rescue",
+    "website-rescue": "website-rescue"
+  },
+  "proposal_statuses": [
+    "draft",
+    "operator_reviewed",
+    "provided_to_client",
+    "accepted",
+    "rejected",
+    "expired",
+    "superseded"
+  ],
+  "acceptance_statuses": ["pending", "accepted", "rejected", "withdrawn"],
+  "payment_evidence_statuses": [
+    "not_required_yet",
+    "pending",
+    "recorded",
+    "verified",
+    "exception_approved",
+    "rejected"
+  ],
+  "financial_review_statuses": [
+    "not_started",
+    "in_review",
+    "blocked",
+    "approved",
+    "rejected"
+  ],
+  "won_lost_statuses": ["open", "won", "lost"],
+  "commercial_offer_kinds": ["pilot", "standard"],
+  "website_rescue_case_types": ["upgrade", "rebuild", "one-page", "small-catalogue"],
+  "payment_term_options": [
+    "full_upfront",
+    "deposit_50_balance_before_production",
+    "pilot_full_upfront",
+    "deferred_payment_exception",
+    "net_7",
+    "net_14"
+  ],
+  "payment_evidence_types": [
+    "bank_transfer_reference",
+    "proforma_marked_paid_operator",
+    "manual_receipt_reference",
+    "deferred_payment_exception",
+    "other_operator_verified"
+  ],
+  "acceptance_methods": [
+    "signed_pdf",
+    "email_confirmation",
+    "whatsapp_confirmation",
+    "in_person_recorded",
+    "other_written"
+  ],
+  "won_reasons": [
+    "accepted_standard_offer",
+    "accepted_pilot",
+    "approved_deferred_payment",
+    "returning_client",
+    "scope_reduced_and_accepted"
+  ],
+  "lost_reasons": [
+    "price",
+    "timing",
+    "no_decision",
+    "no_response",
+    "competitor",
+    "unsuitable_scope",
+    "insufficient_evidence",
+    "client_cancelled",
+    "internal_capacity",
+    "compliance_or_risk"
+  ],
+  "blocker_codes": [
+    "MISSING_PROPOSAL",
+    "MISSING_SCOPE",
+    "MISSING_PRICE",
+    "MISSING_PAYMENT_TERMS",
+    "MISSING_ACCEPTANCE",
+    "MISSING_PAYMENT_EVIDENCE",
+    "MISSING_FINANCIAL_APPROVER",
+    "UNRESOLVED_COMMERCIAL_BLOCKER",
+    "PROPOSAL_REJECTED",
+    "OPPORTUNITY_LOST",
+    "INVALID_PRODUCT",
+    "MISSING_APPROVAL_TIMESTAMP",
+    "PAYMENT_EXCEPTION_INCOMPLETE"
+  ],
+  "financial_approval_gate": {
+    "field": "financially_approved",
+    "type": "boolean",
+    "requires": [
+      "valid_proposal",
+      "confirmed_product_and_scope",
+      "price_and_currency",
+      "payment_terms",
+      "client_acceptance",
+      "payment_evidence_or_approved_exception",
+      "named_financial_approver",
+      "approval_timestamp",
+      "no_unresolved_commercial_blocker",
+      "not_rejected_or_lost"
+    ],
+    "does_not_execute": [
+      "payment_collection",
+      "bank_transfer",
+      "invoice_send",
+      "client_email",
+      "whatsapp",
+      "sms",
+      "production_deploy",
+      "dns_change"
+    ]
+  },
+  "record_fields": [
+    "opportunity_ref",
+    "product",
+    "proposal_status",
+    "proposal_version",
+    "quoted_currency",
+    "setup_price",
+    "recurring_price",
+    "offer_kind",
+    "payment_terms",
+    "acceptance_status",
+    "accepted_by",
+    "acceptance_timestamp",
+    "payment_evidence_status",
+    "payment_evidence_ref",
+    "financial_review_status",
+    "financially_approved",
+    "approved_by",
+    "approval_timestamp",
+    "won_lost_status",
+    "won_lost_reason",
+    "commercial_notes",
+    "prospect_ref",
+    "onboarding_ref",
+    "delivery_ref",
+    "scope_summary",
+    "commercial_blockers",
+    "payment_exception"
+  ],
+  "docs": {
+    "canonical": "docs/revenue/COMMERCIAL_APPROVAL_RAIL_V1.md",
+    "pricing": "docs/revenue/PRICING_RECOMMENDATION_PACKET.md",
+    "templates": [
+      "docs/revenue/templates/LEAD_RESCUE_PROPOSAL_TEMPLATE.md",
+      "docs/revenue/templates/WEBSITE_RESCUE_PROPOSAL_TEMPLATE.md",
+      "docs/revenue/templates/COMMERCIAL_ACCEPTANCE_RECORD.md",
+      "docs/revenue/templates/PAYMENT_EVIDENCE_RECORD.md"
+    ],
+    "consumers": [
+      "docs/operations/LEAD_RESCUE_ONBOARDING_AND_DELIVERY_V1.md",
+      "docs/operations/WEBSITE_RESCUE_ONBOARDING_AND_DELIVERY_V1.md"
+    ],
+    "existing_pricing_guides": [
+      "docs/sales/AI_LEAD_RESCUE_PRICING_GUIDE.md",
+      "docs/sales/WEBSITE_RESCUE_PRICING_GUIDE.md"
+    ]
+  }
+}

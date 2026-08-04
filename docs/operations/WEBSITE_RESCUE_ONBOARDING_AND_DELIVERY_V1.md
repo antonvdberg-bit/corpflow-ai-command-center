@@ -39,7 +39,7 @@
 
 Onboarding opens only when:
 
-1. **`financially_approved === true`** (synthetic until #714 publishes; same boolean semantics thereafter).
+1. **`financially_approved === true`** (published by #714 `docs/revenue/COMMERCIAL_APPROVAL_RAIL_V1.md` / `canMarkFinanciallyApproved` → `toOnboardingHandoff`; same boolean semantics for build gate).
 2. Product is Website Rescue (`website-rescue` / Premium Landing Page Rescue).
 3. Case type is one of: `upgrade` | `rebuild` | `one_page` | `small_catalogue`.
 4. Operator has capacity for the quoted preview window (see product pack tiers).
