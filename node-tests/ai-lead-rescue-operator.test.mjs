@@ -45,6 +45,25 @@ describe('ai-lead-rescue-operator', () => {
     assert.equal(parseIntakeMeta(qj).product, AI_LEAD_RESCUE_PRODUCT);
   });
 
+  it('parseIntakeMeta surfaces urgency, consent, website, and source for operator desks (#712)', () => {
+    const meta = parseIntakeMeta({
+      intake_meta: {
+        product: AI_LEAD_RESCUE_PRODUCT,
+        website: 'https://example.com',
+        urgency: 'asap',
+        consent_contact: true,
+        source: 'ai-lead-rescue',
+        page: '/lead-rescue',
+        host: 'corpflowai.com',
+      },
+    });
+    assert.equal(meta.website, 'https://example.com');
+    assert.equal(meta.urgency, 'asap');
+    assert.equal(meta.consent_contact, true);
+    assert.equal(meta.source, 'ai-lead-rescue');
+    assert.equal(meta.page, '/lead-rescue');
+  });
+
   it('does not classify other products as AI Lead Rescue (no notification trigger)', () => {
     /* tenant-intake.js emits corpflow.lead_rescue.intake_received only when isAiLeadRescueLead === true */
     assert.equal(isAiLeadRescueLead({ intake_meta: { product: 'concierge' } }), false);
