@@ -39,6 +39,12 @@ import {
   LUX_PRESENTATION_VIEWING_NEXT_STEP,
 } from '../lib/cmp/_lib/lux-lead-confidential-presentation.js';
 import {
+  LUX_VIEWING_BY_INVITATION_JAN_TEST_CHECKLIST,
+  LUX_VIEWING_FORMATS,
+  LUX_VIEWING_JOURNEY_LABEL,
+  LUX_VIEWING_BUYER_JOURNEY_LABEL,
+} from '../lib/cmp/_lib/lux-lead-viewing-by-invitation.js';
+import {
   LUX_ATTACHMENT_ARCHIVE_REASON_SMOKE_DEFAULT,
   LUX_ATTACHMENT_OPERATOR_FILTER_IDS,
   LUX_AI_SUGGESTION_STATUSES,
@@ -592,6 +598,12 @@ export default function ChangeConsolePage() {
   const [viewingNextStepDraft, setViewingNextStepDraft] = useState(false);
   const [presentationCopyStatus, setPresentationCopyStatus] = useState('');
   const [presentationJanChecks, setPresentationJanChecks] = useState(() => /** @type {Record<string, boolean>} */ ({}));
+  /** Issue #752 — Viewing by Invitation notes (no live send; qualification_json only). */
+  const [viewingFormatDraft, setViewingFormatDraft] = useState('');
+  const [viewingProposedDatetimeDraft, setViewingProposedDatetimeDraft] = useState('');
+  const [viewingAccessNotesDraft, setViewingAccessNotesDraft] = useState('');
+  const [viewingCopyStatus, setViewingCopyStatus] = useState('');
+  const [viewingJanChecks, setViewingJanChecks] = useState(() => /** @type {Record<string, boolean>} */ ({}));
   const [crmFilterStage, setCrmFilterStage] = useState('all');
   const [crmFilterOwner, setCrmFilterOwner] = useState('');
   const [crmFilterProperty, setCrmFilterProperty] = useState('');
@@ -1918,12 +1930,22 @@ export default function ChangeConsolePage() {
     );
     setViewingNextStepDraft(presentation?.viewing_next_step_selected === true);
     setPresentationCopyStatus('');
+    const viewing = selectedLead.private_client_viewing;
+    setViewingFormatDraft(viewing?.viewing_format != null ? String(viewing.viewing_format) : '');
+    setViewingProposedDatetimeDraft(
+      viewing?.proposed_datetime != null ? String(viewing.proposed_datetime) : '',
+    );
+    setViewingAccessNotesDraft(
+      viewing?.access_concierge_notes != null ? String(viewing.access_concierge_notes) : '',
+    );
+    setViewingCopyStatus('');
   }, [
     luxLeadCrmEnabled,
     selectedLeadId,
     selectedLead?.private_client_qualification?.updated_at,
     selectedLead?.private_client_shortlist?.updated_at,
     selectedLead?.private_client_presentation?.updated_at,
+    selectedLead?.private_client_viewing?.updated_at,
     selectedLead?.private_client_qualification?.filled_count,
     selectedLead?.private_client_shortlist?.residences?.length,
   ]);
@@ -1999,6 +2021,25 @@ export default function ChangeConsolePage() {
         selectedLead?.private_client_presentation?.viewing_next_step_selected === true;
       const viewingNextChanged = Boolean(viewingNextStepDraft) !== prevViewingSelected;
 
+      const prevViewingFormat =
+        selectedLead?.private_client_viewing?.viewing_format != null
+          ? String(selectedLead.private_client_viewing.viewing_format)
+          : '';
+      const viewingFormatChanged =
+        String(viewingFormatDraft || '').trim() !== prevViewingFormat.trim();
+      const prevViewingDatetime =
+        selectedLead?.private_client_viewing?.proposed_datetime != null
+          ? String(selectedLead.private_client_viewing.proposed_datetime)
+          : '';
+      const viewingDatetimeChanged =
+        String(viewingProposedDatetimeDraft || '').trim() !== prevViewingDatetime.trim();
+      const prevViewingAccess =
+        selectedLead?.private_client_viewing?.access_concierge_notes != null
+          ? String(selectedLead.private_client_viewing.access_concierge_notes)
+          : '';
+      const viewingAccessChanged =
+        String(viewingAccessNotesDraft || '').trim() !== prevViewingAccess.trim();
+
       const body = { lead_id: id };
       if (stageChanged) body.stage = leadStageDraft;
       if (followChanged) body.follow_up_status = leadFollowDraft;
@@ -2026,6 +2067,13 @@ export default function ChangeConsolePage() {
           ? LUX_PRESENTATION_VIEWING_NEXT_STEP
           : null;
       }
+      if (viewingFormatChanged) body.viewing_format = String(viewingFormatDraft || '').trim() || null;
+      if (viewingDatetimeChanged) {
+        body.viewing_proposed_datetime = String(viewingProposedDatetimeDraft || '').trim() || null;
+      }
+      if (viewingAccessChanged) {
+        body.viewing_access_notes = String(viewingAccessNotesDraft || '').trim() || null;
+      }
       if (
         !body.stage &&
         body.follow_up_status === undefined &&
@@ -2037,7 +2085,10 @@ export default function ChangeConsolePage() {
         body.shortlist_slugs === undefined &&
         body.invitation_operator_note === undefined &&
         body.presentation_notes === undefined &&
-        body.viewing_next_step === undefined
+        body.viewing_next_step === undefined &&
+        body.viewing_format === undefined &&
+        body.viewing_proposed_datetime === undefined &&
+        body.viewing_access_notes === undefined
       ) {
         setLeadPatchStatus('Nothing to save.');
         return;
@@ -7673,6 +7724,272 @@ export default function ChangeConsolePage() {
                           />
                           <span style={{ ...changeTextContainStyle() }}>
                             <strong style={{ color: '#c4b5fd' }}>{index + 1}. </strong>
+                            {String(step.label || id)}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Issue #752 — Viewing by Invitation (no live send; existing JSON only). */}
+                <div
+                  id="lux-crm-viewing-panel"
+                  data-testid="lux-crm-viewing-panel"
+                  style={{
+                    marginTop: 4,
+                    padding: 12,
+                    borderRadius: 12,
+                    border: '1px solid rgba(251,191,36,0.4)',
+                    background: 'rgba(120,53,15,0.22)',
+                    display: 'grid',
+                    gap: 8,
+                  }}
+                >
+                  <div style={{ fontSize: 11, fontWeight: 900, color: '#fde68a', letterSpacing: '0.06em' }}>
+                    VIEWING BY INVITATION
+                  </div>
+                  <div
+                    data-testid="lux-crm-viewing-journey"
+                    style={{ fontSize: 11, color: '#fcd34d', lineHeight: 1.45 }}
+                  >
+                    Buyer journey:{' '}
+                    <strong style={{ color: '#fef3c7' }}>
+                      {String(
+                        selectedLead.private_client_viewing?.buyer_journey_label ||
+                          LUX_VIEWING_BUYER_JOURNEY_LABEL,
+                      )}
+                    </strong>
+                  </div>
+                  <div style={{ fontSize: 11, color: '#fcd34d', lineHeight: 1.4 }}>
+                    Current step:{' '}
+                    <strong style={{ color: '#fef3c7' }}>
+                      {String(
+                        selectedLead.private_client_viewing?.journey_label || LUX_VIEWING_JOURNEY_LABEL,
+                      )}
+                    </strong>
+                    . Uses this lead’s qualification, shortlist, and Confidential Presentation.
+                    Draft is copy-ready only — no email, WhatsApp, or SMS send. No calendar booking.
+                  </div>
+
+                  <div data-testid="lux-crm-viewing-checklist" style={{ display: 'grid', gap: 6 }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: '#fde68a' }}>
+                      Invitation readiness (
+                      {Number(selectedLead.private_client_viewing?.ready_count || 0)}/
+                      {Number(selectedLead.private_client_viewing?.total_count || 9)})
+                    </div>
+                    {(selectedLead.private_client_viewing?.checklist || []).map((item) => (
+                      <div
+                        key={String(item.id)}
+                        data-testid={`lux-crm-viewing-check-${item.id}`}
+                        style={{
+                          display: 'flex',
+                          gap: 8,
+                          alignItems: 'flex-start',
+                          fontSize: 12,
+                          color: item.ready ? '#bbf7d0' : '#fde68a',
+                          lineHeight: 1.35,
+                        }}
+                      >
+                        <span style={{ fontWeight: 900, minWidth: 16 }}>{item.ready ? '✓' : '○'}</span>
+                        <span style={{ ...changeTextContainStyle() }}>
+                          <strong>{String(item.label || item.id)}</strong>
+                          {item.detail ? (
+                            <span style={{ display: 'block', fontSize: 10, color: '#94a3b8' }}>
+                              {String(item.detail)}
+                            </span>
+                          ) : null}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <label style={{ fontSize: 11, color: '#fcd34d', display: 'grid', gap: 6 }}>
+                    Viewing format
+                    <select
+                      data-testid="lux-crm-viewing-format"
+                      value={viewingFormatDraft}
+                      onChange={(e) => setViewingFormatDraft(e.target.value)}
+                      style={{
+                        ...changeSelectContainStyle(),
+                        padding: '8px 10px',
+                        borderRadius: 10,
+                        border: '1px solid rgba(251,191,36,0.35)',
+                        background: 'rgba(2,6,23,0.65)',
+                        color: '#e2e8f0',
+                        fontSize: 13,
+                      }}
+                    >
+                      <option value="">Select format…</option>
+                      {(selectedLead.private_client_viewing?.viewing_formats || LUX_VIEWING_FORMATS).map(
+                        (fmt) => (
+                          <option key={String(fmt.id)} value={String(fmt.id)}>
+                            {String(fmt.label || fmt.id)}
+                          </option>
+                        ),
+                      )}
+                    </select>
+                  </label>
+
+                  <label style={{ fontSize: 11, color: '#fcd34d', display: 'grid', gap: 6 }}>
+                    Proposed viewing date/time (manual note — no calendar booking)
+                    <input
+                      type="text"
+                      data-testid="lux-crm-viewing-proposed-datetime"
+                      value={viewingProposedDatetimeDraft}
+                      onChange={(e) => setViewingProposedDatetimeDraft(e.target.value)}
+                      placeholder="e.g. Thursday 14 Aug · 10:30 · by confirmation"
+                      style={{
+                        padding: '8px 10px',
+                        borderRadius: 10,
+                        border: '1px solid rgba(251,191,36,0.35)',
+                        background: 'rgba(2,6,23,0.65)',
+                        color: '#e2e8f0',
+                        fontSize: 13,
+                      }}
+                    />
+                  </label>
+
+                  <label style={{ fontSize: 11, color: '#fcd34d', display: 'grid', gap: 6 }}>
+                    Access / concierge notes
+                    <textarea
+                      data-testid="lux-crm-viewing-access-notes"
+                      value={viewingAccessNotesDraft}
+                      onChange={(e) => setViewingAccessNotesDraft(e.target.value)}
+                      rows={3}
+                      placeholder="Arrival, escort, discretion, gate/access notes for this invitation"
+                      style={{
+                        padding: '8px 10px',
+                        borderRadius: 10,
+                        border: '1px solid rgba(251,191,36,0.35)',
+                        background: 'rgba(2,6,23,0.65)',
+                        color: '#e2e8f0',
+                        fontSize: 13,
+                        resize: 'vertical',
+                      }}
+                    />
+                  </label>
+
+                  <div style={{ fontSize: 10, color: '#64748b' }}>
+                    Save updates to refresh the on-screen viewing invitation from persisted format,
+                    notes, shortlist, qualification, and Confidential Presentation.
+                  </div>
+
+                  <pre
+                    data-testid="lux-crm-viewing-draft"
+                    style={{
+                      ...changePreBlockStyle(),
+                      margin: 0,
+                      maxHeight: 280,
+                      overflow: 'auto',
+                      fontSize: 11,
+                      lineHeight: 1.45,
+                      color: '#fef3c7',
+                      background: 'rgba(2,6,23,0.55)',
+                      border: '1px solid rgba(251,191,36,0.28)',
+                      borderRadius: 10,
+                      padding: 10,
+                      whiteSpace: 'pre-wrap',
+                    }}
+                  >
+                    {String(
+                      selectedLead.private_client_viewing?.draft_text ||
+                        'Save viewing format and notes to generate invitation draft…',
+                    )}
+                  </pre>
+
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+                    <button
+                      type="button"
+                      data-testid="lux-crm-viewing-copy"
+                      onClick={async () => {
+                        const text = String(selectedLead.private_client_viewing?.draft_text || '');
+                        if (!text) {
+                          setViewingCopyStatus('Nothing to copy yet — save viewing notes first.');
+                          return;
+                        }
+                        try {
+                          if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+                            await navigator.clipboard.writeText(text);
+                            setViewingCopyStatus(
+                              'Draft copied — paste for client/operator review. Not sent.',
+                            );
+                          } else {
+                            setViewingCopyStatus('Clipboard unavailable — select the draft text manually.');
+                          }
+                        } catch {
+                          setViewingCopyStatus('Copy failed — select the draft text manually.');
+                        }
+                      }}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: 10,
+                        border: '1px solid rgba(251,191,36,0.45)',
+                        background: 'rgba(245,158,11,0.18)',
+                        color: '#fef3c7',
+                        fontWeight: 750,
+                        fontSize: 12,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Copy viewing invitation draft
+                    </button>
+                    <span
+                      data-testid="lux-crm-viewing-no-send"
+                      style={{ fontSize: 11, color: '#fcd34d', fontWeight: 700 }}
+                    >
+                      Send disabled — manual only
+                    </span>
+                  </div>
+                  {viewingCopyStatus ? (
+                    <div style={{ fontSize: 11, color: '#94a3b8' }}>{viewingCopyStatus}</div>
+                  ) : null}
+
+                  <div
+                    data-testid="lux-crm-viewing-jan-checklist"
+                    style={{
+                      marginTop: 4,
+                      padding: 10,
+                      borderRadius: 10,
+                      border: '1px solid rgba(251,191,36,0.28)',
+                      background: 'rgba(2,6,23,0.35)',
+                      display: 'grid',
+                      gap: 6,
+                    }}
+                  >
+                    <div style={{ fontSize: 11, fontWeight: 800, color: '#fde68a' }}>
+                      Jan test prompt (local ticks — not saved)
+                    </div>
+                    {(
+                      selectedLead.private_client_viewing?.jan_test_checklist ||
+                      LUX_VIEWING_BY_INVITATION_JAN_TEST_CHECKLIST
+                    ).map((step, index) => {
+                      const id = String(step.id || index);
+                      const on = !!viewingJanChecks[id];
+                      return (
+                        <label
+                          key={id}
+                          data-testid={`lux-crm-viewing-jan-${id}`}
+                          style={{
+                            display: 'flex',
+                            gap: 8,
+                            alignItems: 'flex-start',
+                            fontSize: 12,
+                            color: '#e2e8f0',
+                            lineHeight: 1.35,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={on}
+                            onChange={() =>
+                              setViewingJanChecks((prev) => ({ ...prev, [id]: !prev[id] }))
+                            }
+                            style={{ marginTop: 3 }}
+                          />
+                          <span style={{ ...changeTextContainStyle() }}>
+                            <strong style={{ color: '#fcd34d' }}>{index + 1}. </strong>
                             {String(step.label || id)}
                           </span>
                         </label>

@@ -1,0 +1,78 @@
+{
+  "send_disabled": true,
+  "send_notice": "No live send — copy the viewing invitation for operator/client review only.",
+  "all_ready": true,
+  "ready_count": 9,
+  "total_count": 9,
+  "checklist": [
+    {
+      "id": "client_contact",
+      "label": "Client contact details present",
+      "ready": true,
+      "detail": "Synthetic Visitor · synthetic.visitor@example.test · +230 5000 9999"
+    },
+    {
+      "id": "stage_invited",
+      "label": "Lead status is invited or ready to invite",
+      "ready": true,
+      "detail": "Stage: invited"
+    },
+    {
+      "id": "qualification_summary",
+      "label": "Qualification summary exists",
+      "ready": true,
+      "detail": "7/7 fields present"
+    },
+    {
+      "id": "shortlist_residences",
+      "label": "Shortlist / residence selected",
+      "ready": true,
+      "detail": "2 residence(s) on shortlist"
+    },
+    {
+      "id": "presentation_ready",
+      "label": "Confidential Presentation draft exists or was reviewed",
+      "ready": true,
+      "detail": "Presentation notes saved"
+    },
+    {
+      "id": "viewing_format",
+      "label": "Viewing format selected",
+      "ready": true,
+      "detail": "Private on-site viewing"
+    },
+    {
+      "id": "proposed_datetime",
+      "label": "Proposed viewing date/time noted",
+      "ready": true,
+      "detail": "Thursday 14 Aug · 10:30 · by confirmation"
+    },
+    {
+      "id": "access_notes",
+      "label": "Access / concierge notes captured",
+      "ready": true,
+      "detail": "Access / concierge notes saved"
+    },
+    {
+      "id": "manual_invite_next",
+      "label": "Next action: manual invitation / arrange viewing",
+      "ready": true,
+      "detail": "Ready for operator to invite manually (send disabled)"
+    }
+  ],
+  "viewing_format": "private_on_site",
+  "proposed_datetime": "Thursday 14 Aug · 10:30 · by confirmation",
+  "journey_label": "Confidential Presentation → Viewing by Invitation → Purchase",
+  "buyer_journey_label": "Discover → Express Interest → Private Conversation → Confidential Presentation → Viewing by Invitation → Purchase",
+  "next_action_label": "Manual invitation / arrange viewing",
+  "residences": [
+    {
+      "slug": "lm-nc-ridge",
+      "title": "North Coast Ridge Residences"
+    },
+    {
+      "slug": "lm-villa-belombre",
+      "title": "Bel Ombre villa enclave"
+    }
+  ]
+}
