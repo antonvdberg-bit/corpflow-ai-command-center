@@ -1,0 +1,61 @@
+# CorpFlowAI — OpenHands example config.toml (INACTIVE package, issue #743)
+#
+# STATUS: INACTIVE. This is an EXAMPLE file with placeholders only. It is
+# not read by any running service, because no OpenHands service is running.
+# Copy to a real config.toml on the target host ONLY after install is
+# separately authorized (see ops/openhands/README.md), and fill LLM
+# credentials from an approved secret store — never here, never in git.
+#
+# Official docs reference: docs.openhands.dev (checked 2026-08-04). See
+# ops/openhands/VERSIONS.md for the exact app/agent-server version pins this
+# config is written against (app 1.8, agent-server 1.26.0-python).
+
+[core]
+# Working directory for OpenHands' own state — matches the /.openhands volume
+# mount in ops/openhands/compose.yaml. Do not point this at a bind mount of a
+# real home directory.
+workspace_base = "/workspace"
+
+# Maximum agent loop iterations per task. Bounded low during any evaluation
+# phase to control cost and blast radius — see config/openhands/cost-policy.example.yaml.
+max_iterations = 30
+
+[llm]
+# Placeholder only. Real credentials come from an approved secret store via
+# the LLM_API_KEY / LLM_BASE_URL / LLM_MODEL env vars documented in
+# ops/openhands/.env.example — never hardcoded in this file.
+model = "<SET_VIA_LLM_MODEL_ENV_VAR>"
+api_key = "<SET_VIA_LLM_API_KEY_ENV_VAR>"
+base_url = "<SET_VIA_LLM_BASE_URL_ENV_VAR>"
+
+# Per-request and per-task cost/latency guardrails. Tune conservatively during
+# any evaluation phase; see config/openhands/model-routing.example.yaml for the
+# low-cost/high-cost routing split this config assumes.
+# request_timeout_seconds = 120
+# max_output_tokens = 4096
+
+[sandbox]
+# Sandbox resource GUIDANCE only (upstream 1.8 does not enforce sandbox
+# container resource limits natively as of the VERSIONS.md pin date — see
+# ops/openhands/VERSIONS.md "Known limitations"). Any future install runbook
+# must translate this guidance into actual Docker resource flags on spawned
+# sandbox containers, e.g. via an OpenHands-native setting if/when one exists,
+# or via a wrapper that applies --cpus / --memory to the spawned container.
+#
+# Guidance (operator policy, not enforced by this file alone):
+#   cpu_guidance = "2.0"
+#   memory_guidance = "4g"
+#   memory_hard_max = "6g"
+#   max_concurrent_sandboxes = 1
+#
+# sandbox_runtime_image is set via env vars in compose.yaml
+# (AGENT_SERVER_IMAGE_REPOSITORY / AGENT_SERVER_IMAGE_TAG), not here, to keep
+# the version pin in one reviewed place (ops/openhands/VERSIONS.md).
+
+[security]
+# No production access of any kind. This config must never reference
+# POSTGRES_URL, MASTER_ADMIN_KEY, or any CorpFlowAI production secret name —
+# checked by scripts/ops/openhands/verify-no-production-access.sh.
+# confirmation_mode intentionally left at whatever upstream's safest default
+# is; do not disable any built-in confirmation/guardrail step without a
+# separate documented review.

@@ -1,0 +1,23 @@
+[Unit]
+# CorpFlowAI — OpenHands private worker health-check timer
+#
+# STATUS: INACTIVE. DO NOT ENABLE until Phase 2+ AND until OpenHands install
+# is separately authorized (see ops/openhands/README.md, issue #743). This
+# file exists only so the eventual cadence decision (hourly vs daily) is
+# documented and reviewable now, not so it runs today.
+Description=CorpFlowAI OpenHands health check timer (INACTIVE — do not enable, see issue #743)
+Documentation=file:///home/anton/corpflow-ai-command-center/ops/openhands/README.md
+
+[Timer]
+# Hourly cadence during any future evaluation phase, matching the "single
+# concurrent task" resource envelope where a stuck/unhealthy worker should be
+# noticed well within a working day. Revisit to daily once the tool has a
+# longer track record (mirrors the daily cadence used for Monitor #14 /
+# corpflowai-ops-backup-health.timer once mature).
+OnCalendar=hourly
+Persistent=true
+RandomizedDelaySec=180
+Unit=corpflowai-openhands-health.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,160 @@
+# OpenHands private worker — Docker Compose definition
+#
+# STATUS: INACTIVE. INSTALLATION NOT AUTHORIZED BY THIS FILE.
+#
+# This file describes what an OpenHands control-plane deployment on
+# corpflow-exec-01-u69678 would look like IF a future, separate authorization
+# packet approves it. Writing or reviewing this file does not start anything.
+# `docker compose up` against this file requires:
+#   1. Anton's explicit written approval, AND
+#   2. A new named § 5.5 carve-out ADR (see docs/operations/
+#      SERVER_AGENT_ACCESS_AND_EXECUTION_BOUNDARY_V1.md), which does not exist
+#      yet for OpenHands (only Uptime Kuma is authorized today), AND
+#   3. scripts/ops/openhands/install.sh --install run with
+#      OPENHANDS_INSTALL_APPROVED=YES and --i-understand-protected-action.
+#
+# Controlling issue: #743
+# Version record + sources: ops/openhands/VERSIONS.md
+# Read-only checks: scripts/ops/openhands/preflight.sh,
+#   scripts/ops/openhands/verify-private-bind.sh,
+#   scripts/ops/openhands/verify-sandbox-boundary.sh,
+#   scripts/ops/openhands/verify-no-production-access.sh
+#
+# Hard rules encoded in this file:
+# - Loopback-only publish: "127.0.0.1:3000:3000". Never "0.0.0.0" or a bare port.
+# - No privileged: true. No host networking on the control-plane service.
+# - No POSTGRES_* env vars, no CorpFlowAI production secrets, ever.
+# - Named project (`corpflowai-openhands`) and named resources only — never
+#   default/anonymous compose names — so rollback/uninstall scripts can target
+#   precisely and never touch unrelated containers.
+# - Resource envelope (operator policy, not upstream-enforced): control plane
+#   ~1 CPU / 2 GiB here; separate sandbox guidance (2 CPU / 4 GiB, hard max
+#   6 GiB, concurrency 1) documented in VERSIONS.md and
+#   config/openhands/config.example.toml — total ceiling ~8 GiB across control
+#   + one concurrent sandbox.
+#
+# RISK — Docker socket mount (required by upstream, not optional):
+#   OpenHands' control plane spawns sandbox containers per task using the host
+#   Docker daemon, which requires access to /var/run/docker.sock. Any process
+#   with access to the Docker socket can, in practice, achieve host-level
+#   control (spin up privileged containers, mount host paths, etc.), REGARDLESS
+#   of cap_drop / security_opt applied to *this* container. This is a real,
+#   accepted-risk-pending-review item, not a false positive:
+#     - Do not treat cap_drop/no-new-privileges on this service as a full
+#       mitigation for the socket mount — they reduce this container's own
+#       blast radius but do not sandbox what it can ask the Docker daemon to do.
+#     - Any install runbook must explicitly re-affirm this risk was reviewed
+#       and accepted by Anton before the socket mount is uncommented and used.
+#     - Prefer a rootless Docker daemon or a socket-proxy (e.g. a permissions-
+#       limited docker-socket-proxy) as a follow-up hardening step BEFORE
+#       install, not after. Not implemented in this package; flagged as a
+#       recommended enhancement in README.md / VERSIONS.md.
+
+name: corpflowai-openhands
+
+services:
+  corpflowai-openhands-app:
+    image: docker.openhands.dev/openhands/openhands:1.8
+    container_name: corpflowai-openhands-app
+    restart: unless-stopped
+
+    # Loopback-only. Do not remove the "127.0.0.1:" prefix.
+    ports:
+      - "127.0.0.1:3000:3000"
+
+    volumes:
+      # RISK (see header): required by upstream for sandbox container spawn.
+      # Read-write is required because OpenHands creates/manages sibling
+      # containers via the Docker API, not just inspects them.
+      - /var/run/docker.sock:/var/run/docker.sock
+
+      # Persistent OpenHands state (conversation history, config cache, etc.)
+      # mapped from the upstream-documented ~/.openhands path into a named,
+      # project-scoped volume — never a bind mount of the operator's real home
+      # directory.
+      - corpflowai-openhands-state:/.openhands
+
+      # Task workspace ONLY. Scoped to a single named volume dedicated to
+      # OpenHands task files — never "/" and never "/home". If a bind mount is
+      # substituted at install time, it must point at a dedicated, empty
+      # directory created for this purpose (e.g. ~/corpflowai-openhands/workspace),
+      # never at an existing project checkout or home directory root.
+      - corpflowai-openhands-workspace:/workspace
+
+    environment:
+      # Sandbox runtime image the control plane pulls when spawning a task
+      # sandbox. Pinned — see ops/openhands/VERSIONS.md. Never "latest".
+      AGENT_SERVER_IMAGE_REPOSITORY: ghcr.io/openhands/agent-server
+      AGENT_SERVER_IMAGE_TAG: "1.26.0-python"
+
+      # Verbose event logging for review/audit during any future evaluation
+      # phase. Flip to "false" once evidence collection needs are lower.
+      LOG_ALL_EVENTS: "true"
+
+      # LLM provider credentials are intentionally NOT set here. They must
+      # come from an approved secret store at install time via a real .env
+      # (never committed) — see ops/openhands/.env.example. This compose file
+      # must never gain POSTGRES_*, MASTER_ADMIN_KEY, or any CorpFlowAI
+      # production secret name.
+
+    # Control-plane resource envelope. Sandbox containers spawned by this
+    # service are NOT bound by these limits automatically (upstream 1.8 does
+    # not enforce sandbox limits natively as of the VERSIONS.md pin date) —
+    # sandbox guidance is documented, not enforced, until a future install
+    # runbook adds explicit Docker resource flags to spawned containers.
+    mem_limit: 2g
+    cpus: "1.0"
+    pids_limit: 512
+
+    security_opt:
+      - no-new-privileges:true
+
+    # cap_drop: [ALL] is NOT applied here. The Docker-socket mount means this
+    # container's effective privilege is bounded by what the Docker daemon
+    # will do on its behalf, not by Linux capabilities inside this container —
+    # dropping all capabilities here would not meaningfully reduce the
+    # socket-mount risk and could break the app's own process management.
+    # Documented trade-off, not an oversight: privileged: true is still never
+    # used, and no-new-privileges is still applied above.
+    # cap_drop:
+    #   - ALL
+
+    extra_hosts:
+      # Lets the container reach services bound to the host (e.g. a locally
+      # hosted LLM gateway, or other loopback-bound CorpFlow tooling) without
+      # host networking.
+      - "host.docker.internal:host-gateway"
+
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3000/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+    networks:
+      - corpflowai-openhands-net
+
+networks:
+  corpflowai-openhands-net:
+    name: corpflowai-openhands-net
+    driver: bridge
+    # internal: false is REQUIRED (not a mistake) — the app must reach the
+    # operator's chosen external LLM API provider over the internet. This is
+    # a real egress path from the box and must be reviewed as part of any
+    # install authorization, not assumed benign. It does not, on its own,
+    # expose anything inbound — inbound exposure is controlled solely by the
+    # loopback-only `ports:` mapping above.
+    internal: false
+
+volumes:
+  corpflowai-openhands-state:
+    name: corpflowai-openhands-state
+  corpflowai-openhands-workspace:
+    name: corpflowai-openhands-workspace

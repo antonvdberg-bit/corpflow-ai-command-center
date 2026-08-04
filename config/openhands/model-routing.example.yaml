@@ -1,0 +1,69 @@
+# CorpFlowAI — OpenHands example model routing policy (INACTIVE package, issue #743)
+#
+# STATUS: INACTIVE / EXAMPLE ONLY. Not read by any running service. Copy and
+# adapt only after OpenHands install is separately authorized (see
+# ops/openhands/README.md). Values below are placeholders / illustrative
+# defaults, not commitments to a specific vendor or price — pricing changes
+# over time and must be re-checked against the provider's current published
+# rates before this file is ever used for real routing decisions.
+#
+# Pairs with config/openhands/cost-policy.example.yaml (monthly ceiling and
+# stop thresholds) and config/openhands/work-packet.schema.json's
+# `model_class` field, which a packet uses to select a tier below.
+
+version: 1
+
+# Monthly ceiling this routing policy assumes — must match
+# cost-policy.example.yaml. Kept here too so a reviewer can see both numbers
+# in one file without cross-referencing.
+monthly_ceiling_usd: 25
+
+tiers:
+  low_cost:
+    description: >
+      Documentation-only edits, README updates, comment tidying, simple
+      config/example file changes, and any packet whose acceptance_tests are
+      purely mechanical (lint, format, JSON/YAML validity). No production or
+      security-sensitive files.
+    # Placeholder model identifier — fill from the operator's chosen LLM
+    # provider at install time; never a real API key here.
+    model: "<LOW_COST_MODEL_PLACEHOLDER>"
+    max_cost_risk_cap_usd: 1.00
+
+  standard:
+    description: >
+      Ordinary code changes: new scripts, tests, small feature work, bug
+      fixes that do not touch auth/session/tenancy/payment logic.
+    model: "<STANDARD_MODEL_PLACEHOLDER>"
+    max_cost_risk_cap_usd: 3.00
+
+  high_capability:
+    description: >
+      Reserved for packets that genuinely need stronger reasoning (complex
+      refactors, ambiguous multi-file changes). Still never authorizes a
+      protected_gates action — model capability does not expand packet scope.
+    model: "<HIGH_CAPABILITY_MODEL_PLACEHOLDER>"
+    max_cost_risk_cap_usd: 8.00
+
+routing_rules:
+  # Evaluated top-to-bottom; first match wins. `model_class` in a work packet
+  # (config/openhands/work-packet.schema.json) should already reflect this,
+  # but these rules exist as an independent sanity check a wrapper script
+  # could apply before dispatch.
+  - match: "allowed_files all under docs/** or config/**/*.example.*"
+    tier: low_cost
+  - match: "acceptance_tests are lint/format/validate only"
+    tier: low_cost
+  - match: "allowed_files touch api/**, lib/server/**, lib/cmp/**, or prisma/**"
+    tier: standard
+    note: "Security-sensitive paths still require standard-or-above review; never auto-escalate to bypass review."
+  - match: "default"
+    tier: standard
+
+stop_conditions:
+  # Mirrors cost-policy.example.yaml — repeated here so a routing-only reader
+  # sees the behavior without opening a second file.
+  soft_at_pct: 80
+  fail_closed_at_pct: 100
+  on_soft_stop: "finish current packet only; do not start a new one until reset"
+  on_fail_closed: "stop immediately, even mid-packet; escalate"

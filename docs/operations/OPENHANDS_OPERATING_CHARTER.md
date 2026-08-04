@@ -2,6 +2,16 @@
 
 Status: Adopted strategic direction, pending implementation and operational validation.
 
+**Phase 1 package (2026-08-04):** a reviewed-but-inactive OpenHands package now exists at `ops/openhands/`,
+`config/openhands/`, and `scripts/ops/openhands/` on branch `ops/openhands-private-worker-package`, controlling
+issue [#743](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/743). It is **not installed**.
+Recommended branch prefix for future OpenHands-authored work (once OpenHands itself is running and opening its
+own PRs) is `openhands/*`, distinct from this human/Cursor-authored packaging branch. See
+`docs/operations/OPENHANDS_ARCHITECTURE.md` (target design and resource envelope) and
+`docs/operations/OPENHANDS_MODEL_AND_COST_POLICY.md` (provider choice and USD 25/month cost ceiling) for the
+detail this charter assumes. Installation requires the separate ADR + authorization packet at
+`docs/decisions/20260804-openhands-on-exec01.md` and `docs/execution/OPENHANDS_ON_EXEC01_AUTHORIZATION_PACKET.md`.
+
 ## Purpose
 
 OpenHands is being introduced as a permanent internal delivery capability for CorpFlowAI. It is intended to reduce operator dependency, lower routine agent cost, use the underutilised CorpFlowAI server productively, and create a continuously active AI-only delivery environment.

@@ -1,0 +1,150 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://corpflowai.internal/schemas/openhands/work-packet.schema.json",
+  "title": "CorpFlowAI OpenHands work packet (INACTIVE package — issue #743)",
+  "description": "Schema for a work packet dispatched to an OpenHands worker. STATUS: INACTIVE — no worker currently consumes this schema. See ops/openhands/README.md and config/openhands/corpflowai-agent-instructions.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "packet_id",
+    "parent_issue",
+    "objective",
+    "business_value",
+    "allowed_files",
+    "excluded_files",
+    "acceptance_tests",
+    "expected_evidence",
+    "protected_gates",
+    "maximum_attempts",
+    "escalation_condition",
+    "branch_name",
+    "intended_agent_owner",
+    "collision_sensitive_paths",
+    "model_class",
+    "cost_risk_cap",
+    "timeout_seconds",
+    "real_client_data_permitted",
+    "production_mutation_permitted",
+    "external_action_permitted"
+  ],
+  "properties": {
+    "packet_id": {
+      "type": "string",
+      "description": "Stable, unique identifier for this packet, e.g. 'openhands-2026-08-04-001'.",
+      "pattern": "^[a-z0-9][a-z0-9-]{2,63}$"
+    },
+    "parent_issue": {
+      "type": "integer",
+      "description": "GitHub issue number this packet is dispatched from (the controlling ticket).",
+      "minimum": 1
+    },
+    "objective": {
+      "type": "string",
+      "description": "One or two sentences stating exactly what a successful outcome looks like.",
+      "minLength": 1
+    },
+    "business_value": {
+      "type": "string",
+      "description": "Why this work matters, in plain language a project manager can evaluate — not internal engineering jargon.",
+      "minLength": 1
+    },
+    "allowed_files": {
+      "type": "array",
+      "description": "Glob patterns for the ONLY files/paths this packet may create or modify.",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1
+    },
+    "excluded_files": {
+      "type": "array",
+      "description": "Glob patterns the worker must never touch even if matched by allowed_files (explicit deny takes precedence).",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "acceptance_tests": {
+      "type": "array",
+      "description": "Concrete, runnable commands or checks that must pass before the packet is considered done.",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1
+    },
+    "expected_evidence": {
+      "type": "array",
+      "description": "What must be captured/attached to the PR as proof of the acceptance tests actually running (e.g. command output, screenshot path, log excerpt).",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1
+    },
+    "protected_gates": {
+      "type": "array",
+      "description": "Protected actions this packet does NOT authorize; the worker must escalate rather than attempt any of these.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "production_deploy",
+          "secret_creation_or_rotation",
+          "dns_change",
+          "payment_or_billing",
+          "database_migration",
+          "external_communication",
+          "tenant_data_migration",
+          "auth_or_session_logic_change",
+          "scope_widening"
+        ]
+      },
+      "minItems": 1
+    },
+    "maximum_attempts": {
+      "type": "integer",
+      "description": "How many self-correction attempts the worker may make before it must stop and escalate.",
+      "minimum": 1,
+      "maximum": 10
+    },
+    "escalation_condition": {
+      "type": "string",
+      "description": "Plain-language statement of exactly when the worker must stop and hand off to Cursor / a human (e.g. 'if any acceptance test still fails after maximum_attempts, or if a protected_gates action seems required').",
+      "minLength": 1
+    },
+    "branch_name": {
+      "type": "string",
+      "description": "Git branch the worker must create and push to. Must start with 'openhands/'.",
+      "pattern": "^openhands/[a-z0-9][a-z0-9._/-]*$"
+    },
+    "intended_agent_owner": {
+      "type": "string",
+      "description": "Which agent this packet is assigned to. Fixed to 'openhands' in this schema; a future shared schema may broaden this to an enum of known agent owners.",
+      "const": "openhands"
+    },
+    "collision_sensitive_paths": {
+      "type": "array",
+      "description": "Paths another executor (Cursor, Codex Cloud, a human) may also be touching concurrently — the worker must check for conflicts before editing these and prefer to escalate rather than force a merge.",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "model_class": {
+      "type": "string",
+      "description": "Which model routing tier (config/openhands/model-routing.example.yaml) this packet should use.",
+      "enum": ["low_cost", "standard", "high_capability"]
+    },
+    "cost_risk_cap": {
+      "type": "number",
+      "description": "Maximum USD this single packet may consume before the worker must stop and escalate, independent of the monthly ceiling in config/openhands/cost-policy.example.yaml.",
+      "exclusiveMinimum": 0
+    },
+    "timeout_seconds": {
+      "type": "integer",
+      "description": "Wall-clock seconds after which the worker must stop attempting this packet and escalate, regardless of maximum_attempts.",
+      "minimum": 1
+    },
+    "real_client_data_permitted": {
+      "type": "boolean",
+      "description": "Whether this packet may reference real (non-synthetic) CorpFlowAI client data. Defaults to false; almost no packet should set this true.",
+      "default": false
+    },
+    "production_mutation_permitted": {
+      "type": "boolean",
+      "description": "Whether this packet may mutate any production system or data. Defaults to false.",
+      "default": false
+    },
+    "external_action_permitted": {
+      "type": "boolean",
+      "description": "Whether this packet may perform an action externally visible to a third party (e.g. sending an email, posting publicly). Defaults to false.",
+      "default": false
+    }
+  }
+}

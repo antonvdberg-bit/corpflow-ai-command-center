@@ -1,5 +1,15 @@
 # CorpFlowAI OpenHands Implementation and Operations Runbook
 
+**Phase 1 status (2026-08-04):** the Phase 1 installation package described below now exists as a
+reviewed-but-inactive artifact at `ops/openhands/` (compose file, `.env.example`, `VERSIONS.md`),
+`config/openhands/` (work-packet schema), and `scripts/ops/openhands/` (capacity inspection, install/rollback
+scripts), on branch `ops/openhands-private-worker-package`. Controlling issue:
+[#743](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/743). **Nothing below is installed.**
+The full Phase 1 documentation set — architecture, install runbook, security model, operating runbook,
+model/cost policy, rollback/uninstall, work-packet template, synthetic validation plan, authorization packet,
+and ADR — lives under `docs/operations/OPENHANDS_*.md` and `docs/execution/OPENHANDS_*.md`; this document
+remains the phase-by-phase narrative, those documents are the operational detail for Phase 1 specifically.
+
 ## Objective
 
 Install and operationalise OpenHands as a private, server-hosted internal AI worker for CorpFlowAI without exposing production secrets, client data, Core, tenant surfaces, or Postgres production access.

@@ -2,6 +2,18 @@
 
 Use this document when a new ChatGPT, Cursor, OpenHands, Codex, or other approved agent resumes the OpenHands workstream.
 
+**Current state (2026-08-04):** Phase 1 (installation package PR) is in progress on branch
+`ops/openhands-private-worker-package`, controlling issue
+[#743](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/743). The reviewed package
+(`ops/openhands/`, `config/openhands/`, `scripts/ops/openhands/`) and the full supporting documentation set
+(`docs/operations/OPENHANDS_ARCHITECTURE.md`, `OPENHANDS_INSTALL_RUNBOOK.md`, `OPENHANDS_SECURITY_MODEL.md`,
+`OPENHANDS_OPERATING_RUNBOOK.md`, `OPENHANDS_MODEL_AND_COST_POLICY.md`, `OPENHANDS_ROLLBACK_AND_UNINSTALL.md`,
+`docs/execution/OPENHANDS_WORK_PACKET_TEMPLATE.md`, `OPENHANDS_SYNTHETIC_VALIDATION_PLAN.md`,
+`OPENHANDS_ON_EXEC01_AUTHORIZATION_PACKET.md`, and `docs/decisions/20260804-openhands-on-exec01.md`) exist as
+uncommitted/PR-pending artifacts. **No server installation has occurred.** Gate 1 (design approval) is not yet
+closed — this documentation set is what Anton reviews to close it. A new agent resuming this workstream should
+read those documents (not re-derive the design) before proposing next steps.
+
 ## Executive decision
 
 Anton has decided that CorpFlowAI will implement OpenHands as a permanent internal delivery engine.

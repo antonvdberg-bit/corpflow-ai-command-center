@@ -1,0 +1,54 @@
+# CorpFlowAI — OpenHands example cost policy (INACTIVE package, issue #743)
+#
+# STATUS: INACTIVE / EXAMPLE ONLY. Not read by any running service. Copy and
+# adapt only after OpenHands install is separately authorized (see
+# ops/openhands/README.md). No auto top-up mechanism exists or is described
+# here — reaching the ceiling requires a human to explicitly raise it for the
+# next period, never an automatic renewal or silent increase.
+
+version: 1
+
+monthly_ceiling_usd: 25
+
+# Percentage of monthly_ceiling_usd at which the worker must switch to a
+# conservative posture: finish the current packet, then pause for any new
+# packet until a human resets or explicitly raises the ceiling for the
+# period. This is a soft stop, not a hard stop.
+soft_at_pct: 80
+
+# Percentage of monthly_ceiling_usd at which the worker must fail closed:
+# stop immediately, even mid-packet, and escalate. No further LLM calls are
+# permitted for this period past this threshold.
+fail_closed_at_pct: 100
+
+# No automatic top-up, no automatic period rollover of unused budget into a
+# higher ceiling, and no automatic ceiling increase of any kind. Any change
+# to monthly_ceiling_usd requires a human to edit this file (or the real,
+# non-example config derived from it) explicitly.
+auto_top_up: false
+
+# Tracking granularity — informational only in this example; the real
+# accounting mechanism (however implemented) must be reviewed separately
+# before install.
+tracking:
+  period: "calendar_month"
+  currency: "USD"
+  includes:
+    - "LLM API token cost for the OpenHands control plane"
+    - "LLM API token cost for any sandbox/agent-server task execution"
+  excludes:
+    - "Docker/compute cost of the host itself (tracked separately, if at all, under host capacity monitoring)"
+
+# What happens at each threshold — restated in plain language for a
+# non-engineering reviewer.
+on_soft_stop_pct_80: >
+  The worker finishes whatever single packet it is currently working on,
+  then stops accepting new packets until a human either resets the monthly
+  counter (new period) or explicitly raises monthly_ceiling_usd for the
+  current period.
+
+on_fail_closed_pct_100: >
+  The worker stops immediately, even in the middle of a packet, makes no
+  further LLM calls, and posts an escalation comment on the controlling issue
+  describing what was in progress. A human must intervene before any further
+  work resumes.

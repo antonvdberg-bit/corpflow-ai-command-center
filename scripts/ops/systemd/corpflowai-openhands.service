@@ -1,0 +1,31 @@
+[Unit]
+# CorpFlowAI — OpenHands private worker control-plane unit
+#
+# STATUS: INACTIVE. DO NOT ENABLE. This file describes what a user systemd
+# unit WOULD look like if OpenHands install is ever authorized (see
+# ops/openhands/README.md "Path to authorization"). It is not installed to
+# ~/.config/systemd/user/ by any script in this repo, and no script in this
+# repo runs `systemctl --user enable` on it. Controlling issue: #743.
+Description=CorpFlowAI OpenHands private worker (INACTIVE — do not enable without separate authorization, see issue #743)
+Documentation=file:///home/anton/corpflow-ai-command-center/ops/openhands/README.md
+After=docker.service network-online.target
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=%h/corpflow-ai-command-center
+# EnvironmentFile intentionally points at a real .env that must be created
+# manually from ops/openhands/.env.example and filled from an approved
+# secret store — never committed, never printed by any script.
+EnvironmentFile=-%h/corpflow-ai-command-center/ops/openhands/.env
+ExecStart=/usr/bin/docker compose -p corpflowai-openhands -f %h/corpflow-ai-command-center/ops/openhands/compose.yaml up -d
+ExecStop=/usr/bin/docker compose -p corpflowai-openhands -f %h/corpflow-ai-command-center/ops/openhands/compose.yaml down
+Nice=10
+
+# Do not put secrets in this unit file. Do not add ExecStartPre steps that
+# echo environment contents.
+
+[Install]
+WantedBy=default.target
