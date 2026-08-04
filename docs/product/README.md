@@ -50,7 +50,8 @@ Use one or more of:
 | [../execution/DEV_TOOLING_CANDIDATES.md](../execution/DEV_TOOLING_CANDIDATES.md) | GitHits `SERIOUS-CANDIDATE / DEV-CAPABILITY ACCELERATOR` | 2026-06-18 |
 | [PRODUCT_RADAR_CANDIDATES.md](./PRODUCT_RADAR_CANDIDATES.md) | Weekly radar + Product A sync 2026-06-22: Langfuse, Chatwoot (inbox standard), Twenty/EspoCRM bake-off, Postiz/Mixpost discovery, AgentSpan verified watch — **NO INSTALLATION AUTHORIZED** | 2026-06-22 |
 | [WEBSITE_AI_CHAT_AGENT_TOOL_DECISION_NOTE_V1.md](./WEBSITE_AI_CHAT_AGENT_TOOL_DECISION_NOTE_V1.md) | Website AI chat-agent re-evaluation: Flowise first pilot; Chatwoot CE ≠ free AI (Captain gated); Dify multi-tenant license risk — **NO IMPLEMENTATION AUTHORIZED** | 2026-07-27 |
-| [AI_RECEPTIONIST_PIPECAT_BROWSER_PILOT_V1.md](./AI_RECEPTIONIST_PIPECAT_BROWSER_PILOT_V1.md) | Synthetic browser-voice AI receptionist pilot (#726): scaffold under `prototypes/`; Pipecat runtime deferred — telephony/production/paid realtime still **NO IMPLEMENTATION AUTHORIZED** | 2026-08-03 |
+| [AI_RECEPTIONIST_PIPECAT_BROWSER_PILOT_V1.md](./AI_RECEPTIONIST_PIPECAT_BROWSER_PILOT_V1.md) | Build-pilot **closed** for voice-engine R&D; scaffold kept as handoff reference — telephony/production still **NO IMPLEMENTATION AUTHORIZED** | 2026-08-03 (updated 2026-08-04) |
+| [AI_RECEPTIONIST_VOICE_PLATFORM_BUY_EVALUATION_V1.md](./AI_RECEPTIONIST_VOICE_PLATFORM_BUY_EVALUATION_V1.md) | Buy-path bake-off: Synthflow / Retell / ElevenLabs Agents; Vapi/Bland/DIY removed from round — **NO IMPLEMENTATION AUTHORIZED** | 2026-08-04 |
 
 ### Product A — US clinics revenue machine
 

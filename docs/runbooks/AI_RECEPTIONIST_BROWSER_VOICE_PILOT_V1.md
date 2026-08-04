@@ -228,12 +228,14 @@ When real microphone or call audio is introduced:
 
 ## 10. Recommended next step for Anton
 
-1. Run the localhost browser demo: confirm transcript preview, field edits, voice dropdown, and CorpFlowAI service paths.
-2. Prefer **text input** when judging enquiry capture quality; use voice as optional colour.
-3. Decide whether the **draft handoff JSON** (including `service_interest`) is good enough to wire later into intake (still human-gated).
-4. Separately approve (or reject) a **Pipecat runtime evaluation packet** — still browser-only, still no telephony — and/or paid STT/TTS only if needed.
-5. Keep August revenue/test gates unblocked; treat this PR as experience proof only.
+**Direction change (2026-08-04):** stop investing in browser Web Speech / DIY voice-engine polish. Acceptance showed handoff UX is useful; listening/TTS quality is not client-facing at low volume. Prefer **buy-platform evaluation**.
 
-**Library posture:** prove the experience and handoff first; telephony / paid realtime / client-facing use need separate approval.
+1. Use this localhost demo only as a **handoff / guardrail reference** (optional).
+2. Run the bake-off in **`docs/product/AI_RECEPTIONIST_VOICE_PLATFORM_BUY_EVALUATION_V1.md`** — shortlist: **Synthflow**, **Retell**, **ElevenLabs Agents**.
+3. **Do not** prioritize Vapi, Bland, Pipecat-first, or custom STT+LLM+TTS glue for this path at low volume.
+4. After a vendor wins: separate Anton **pilot authorization** before any paid production or telephony wire-up.
+5. Preserve handoff contract: `requires_human_review: true`, no silent external actions.
 
-**Still not:** production, telephony, Pipecat runtime, or a live client service.
+**Library posture:** build-pilot closed for voice R&D; buy-eval active; telephony / production still blocked.
+
+**Still not:** production, telephony, Pipecat runtime, vendor production integration, or a live client service.
