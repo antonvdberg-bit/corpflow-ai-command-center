@@ -1,4 +1,5 @@
 import AiLeadRescueLanding from '../components/AiLeadRescueLanding.js';
+import ElevenLabsWebsiteVoiceChat from '../components/ElevenLabsWebsiteVoiceChat.js';
 import { listVisualAssetManifests } from '../lib/visualAssets/loadManifest.js';
 import { selectLeadRescueAssets } from '../lib/visualAssets/selectLeadRescueAssets.js';
 
@@ -14,10 +15,19 @@ import { selectLeadRescueAssets } from '../lib/visualAssets/selectLeadRescueAsse
  * breaking the customer-facing route — per
  * `.cursor/rules/delivery-reality.mdc` a content-only failure must
  * never take down the conversion-critical surface.
+ *
+ * ElevenLabsWebsiteVoiceChat is mounted but DISABLED BY DEFAULT
+ * (renders null). Do not enable in production without Anton approval —
+ * docs/product/ELEVENLABS_WEBSITE_VOICE_CHAT_PILOT_V1.md
  */
 
 export default function LeadRescuePage({ leadRescueAssets }) {
-  return <AiLeadRescueLanding host="corpflowai.com" leadRescueAssets={leadRescueAssets || null} />;
+  return (
+    <>
+      <AiLeadRescueLanding host="corpflowai.com" leadRescueAssets={leadRescueAssets || null} />
+      <ElevenLabsWebsiteVoiceChat surface="lead_rescue" />
+    </>
+  );
 }
 
 function buildLeadRescueAssetsSafe() {
