@@ -154,7 +154,10 @@ test('#752 viewing patch + Rare & Exclusive invitation draft (send disabled)', (
   assert.match(packet.draft_text, /North Coast Ridge|Bel Ombre/i);
   assert.match(packet.draft_text, /synthetic\.visitor@example\.test/);
   assert.doesNotMatch(packet.draft_text, /WhatsApp message was sent/i);
-  assert.doesNotMatch(packet.draft_text, /Hot deal|Act now|Limited time only|Open house/i);
+  assert.doesNotMatch(packet.draft_text, /Hot deal|Act now|Limited time only/i);
+  // Negating “open house” is intentional Rare & Exclusive voice; do not pitch one.
+  assert.match(packet.draft_text, /not an open house/i);
+  assert.doesNotMatch(packet.draft_text, /join our open house|book an open house/i);
 });
 
 test('#752 stage not invited and presentation next-step unset fails readiness', () => {
