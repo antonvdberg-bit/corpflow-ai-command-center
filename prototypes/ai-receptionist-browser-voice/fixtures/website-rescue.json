@@ -1,0 +1,16 @@
+{
+  "id": "website-rescue",
+  "description": "Website Rescue service-interest path.",
+  "user_turns": [
+    "Riley Quinn",
+    "Harbor Law",
+    "email",
+    "riley.quinn@example.com",
+    "Website Rescue",
+    "Our site looks outdated and forms drop mobile visitors",
+    "normal",
+    "Next week",
+    "confirm"
+  ],
+  "expect_service_interest": "website_rescue"
+}

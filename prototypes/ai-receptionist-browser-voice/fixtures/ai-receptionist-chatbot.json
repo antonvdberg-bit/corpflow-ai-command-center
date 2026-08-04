@@ -1,0 +1,17 @@
+{
+  "id": "ai-receptionist-chatbot",
+  "description": "AI receptionist/chatbot enquiry with prototype caveat.",
+  "user_turns": [
+    "Jamie Cole",
+    "none",
+    "email",
+    "jamie.cole@example.com",
+    "AI receptionist chatbot",
+    "Exploring a voice receptionist for general enquiries",
+    "normal",
+    "Anytime",
+    "confirm"
+  ],
+  "expect_service_interest": "ai_receptionist_chatbot",
+  "expect_caveat": true
+}
