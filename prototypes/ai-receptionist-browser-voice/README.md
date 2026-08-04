@@ -1,19 +1,20 @@
 # Synthetic browser-voice AI receptionist (prototype)
 
 **Issues:** [#726](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/726), [#731](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/731)
-**Status:** Local / operator demo only — **not** production, **not** telephony
+**Status:** Local / operator **handoff reference** only — **not** production, **not** telephony, **not** the preferred voice-engine path
 **Default profile:** CorpFlowAI general enquiry
-**Pipecat:** Deferred (architecture note included) — this scaffold is Pipecat-ready in shape only
-**Verdict for sellable phone receptionist:** **pilot experience only** — do not adopt telephony yet
+**Voice-engine direction (2026-08-04):** **buy-platform evaluation** — see `docs/product/AI_RECEPTIONIST_VOICE_PLATFORM_BUY_EVALUATION_V1.md`. Browser Web Speech / DIY STT+TTS polish is **stopped** for client-facing value.
+**Pipecat:** Deferred — not the preferred next spend at low volume
+**Verdict for sellable phone receptionist:** **do not build the voice stack here** — evaluate Synthflow / Retell / ElevenLabs Agents; telephony still separately gated
 
 ## What this is
 
-A bounded prototype that demonstrates greeting → CorpFlowAI service-interest discovery → draft intake handoff → escalation rules, using **synthetic data** and **mocked STT/TTS**.
+A bounded prototype that demonstrated greeting → CorpFlowAI service-interest discovery → draft intake handoff → escalation rules, using **synthetic data** and **mocked STT/TTS**. Keep it as the **handoff/guardrail contract** reference when testing bought platforms.
 
 - **Text input** is the recommended reliable demo path.
-- Optional browser Web Speech recognition shows an **“I heard” preview** (edit / confirm / retry / cancel) — never auto-submits.
-- Browser TTS voice/rate/pitch are selectable when the OS exposes voices.
-- Captured fields are editable before final confirm.
+- Optional browser Web Speech is **not** considered client-facing quality (acceptance 2026-08-04).
+- Browser TTS may sound robotic; do not treat voice dropdowns as a product path.
+- Captured fields / final review remain the useful UX patterns to require from a vendor.
 
 ## Quick start
 
@@ -41,8 +42,9 @@ node --test node-tests/ai-receptionist-browser-voice.test.mjs
 
 ## Canonical docs
 
+- **Active:** buy-platform bake-off — `docs/product/AI_RECEPTIONIST_VOICE_PLATFORM_BUY_EVALUATION_V1.md`
 - Runbook: `docs/runbooks/AI_RECEPTIONIST_BROWSER_VOICE_PILOT_V1.md`
-- Pipecat architecture: `docs/product/AI_RECEPTIONIST_PIPECAT_BROWSER_PILOT_V1.md`
+- Build-pilot capture (closed for voice R&D): `docs/product/AI_RECEPTIONIST_PIPECAT_BROWSER_PILOT_V1.md`
 
 ## Hard non-actions
 

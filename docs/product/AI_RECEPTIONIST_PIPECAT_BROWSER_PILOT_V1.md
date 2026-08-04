@@ -2,18 +2,19 @@
 
 **Library:** CorpFlow Candidate & Reference Library (`docs/product/README.md`)
 
-**Status:** `CANDIDATE-CAPTURED` / `SERIOUS-CANDIDATE / EVALUATE-FIRST` (browser synthetic pilot scaffold exists; Pipecat runtime not selected)
+**Status:** `REFERENCE-ONLY` / **build-pilot closed for voice-engine R&D** — scaffold retained as handoff/guardrail reference; next path is **buy-platform evaluation**
 
-**Telephony / production / paid realtime:** **`NO IMPLEMENTATION AUTHORIZED`**
+**Telephony / production / paid realtime / vendor production wire-up:** **`NO IMPLEMENTATION AUTHORIZED`**
 
-**Owner:** Anton (operator); Cursor (prototype scaffold for #726)
+**Owner:** Anton (operator); Cursor (prototype scaffold for #726; buy-eval docs 2026-08-04)
 
-**Date (UTC):** 2026-08-03
+**Date (UTC):** 2026-08-03 (updated 2026-08-04)
 
-**Linked issue:** [#726](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/726)
+**Linked issue:** [#726](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/726) (follow-up UX: #731 / PR #738)
 
 **Related:**
 
+- **Active next step:** `docs/product/AI_RECEPTIONIST_VOICE_PLATFORM_BUY_EVALUATION_V1.md` (Synthflow / Retell / ElevenLabs Agents bake-off)
 - Runbook: `docs/runbooks/AI_RECEPTIONIST_BROWSER_VOICE_PILOT_V1.md`
 - Prototype code: `prototypes/ai-receptionist-browser-voice/`
 - Prior research: `docs/strategy/AI_LEAD_RESCUE_CHATBOT_VOICEBOT_OPTIONS_AUDIT_V1.md`
@@ -24,9 +25,11 @@
 
 ## Verdict
 
-**Pilot the synthetic browser experience. Do not adopt Pipecat, telephony, or production voice yet.**
+**Build-pilot complete as experience proof. Do not invest further in browser Web Speech, DIY STT+TTS glue, or Pipecat-first runtime for low-volume client-facing voice.**
 
-Issue #726 authorized a **bounded prototype**. Runtime Pipecat was investigated and **deferred** because safe introduction requires Python media stack, provider secrets, and (for anything beyond laptop localhost) a server authorization path that would risk August gates and standing self-hosted holds.
+Issue #726/#731 authorized a **bounded prototype**. Anton’s acceptance (2026-08-04) confirmed the **enquiry workflow / editable handoff** is useful, but **listening quality and robotic browser TTS** are not client-facing. At **low expected volume**, buy/evaluate a complete voice platform (see buy-evaluation doc). Runtime Pipecat remains **deferred** and is **not** the preferred next spend.
+
+**Keep from this pilot:** draft handoff schema, human-review requirement, protected-action refusals, CorpFlowAI service-interest paths.
 
 ---
 
@@ -94,7 +97,7 @@ Browser mic/speakers
 
 ## Recommendation for Anton
 
-1. Try the localhost demo.
-2. Confirm the draft handoff fields match how operators want Lead Rescue / onboarding intake to look.
-3. Decide later whether to fund a **Pipecat browser runtime** packet — still separate from telephony.
-4. Keep recommendation at **pilot**, not **adopt**, until a real provider + consent + tenancy design is approved.
+1. Treat this prototype as **closed for voice-engine R&D**; optional localhost demo remains for handoff UX reference only.
+2. Run the **buy-platform bake-off** in `docs/product/AI_RECEPTIONIST_VOICE_PLATFORM_BUY_EVALUATION_V1.md` (Synthflow → Retell → ElevenLabs Agents).
+3. Do **not** prioritize Vapi, Bland, or custom Deepgram+ElevenLabs DIY at low volume.
+4. Only after a vendor wins the bake-off: open a separate **pilot authorization** packet (spend, consent, telephony if any). Still **no** production marketing claim until that packet is approved.
