@@ -298,7 +298,21 @@ Delivery Reality Audit:
 
 ---
 
-## 14. Explicit non-goals (all slices)
+## 14. System-proof layer (independent of Slice 1 merge)
+
+Synthetic end-to-end maturation walks (Lead Rescue + Website Rescue), gate-block proofs, and evidence artifact live in:
+
+- `docs/operations/PROSPECT_MATURATION_SYSTEM_PROOF_V1.md`
+- `lib/prospects/system-proof.js`
+- `scripts/prospect-maturation-system-proof.mjs`
+- `node-tests/prospect-maturation-system-proof.test.mjs`
+- `artifacts/prospect-maturation-system-proof/latest-run.json`
+
+That layer consumes this unit package. It does not change buyer-facing UI, schema, or messaging runtime.
+
+---
+
+## 15. Explicit non-goals (all slices)
 
 - No second CRM / new DB tables without Anton approval
 - No Prisma schema additions in this PR
