@@ -1,0 +1,50 @@
+[Unit]
+# CorpFlowAI — OpenHands combined resource ceiling (systemd slice)
+#
+# STATUS: INACTIVE. DO NOT ENABLE without separate authorization. See
+# ops/openhands/README.md, ops/openhands/daemon/README.md, and issue #743
+# (security follow-up for PR #747 — dedicated Docker isolation design; full
+# record in docs/operations/OPENHANDS_DOCKER_ISOLATION.md).
+#
+# Purpose: this slice is the REAL, kernel-cgroup-enforced backstop for the
+# "~8 GiB total" resource envelope documented across ops/openhands/VERSIONS.md,
+# ops/openhands/compose.yaml, and docs/operations/OPENHANDS_ARCHITECTURE.md
+# § 5 — as opposed to those documents' numbers being policy-only. Every unit
+# that is part of the OpenHands stack is expected to set `Slice=corpflowai-openhands.slice`
+# (see scripts/ops/systemd/corpflowai-openhands-dockerd.service and
+# scripts/ops/systemd/corpflowai-openhands.service):
+#   - the dedicated rootless dockerd process itself
+#   - the corpflowai-openhands-app container (via the openhands.service unit
+#     that runs `docker compose up -d` against the DEDICATED daemon)
+#   - every sandbox container the dedicated daemon spawns, because rootless
+#     Docker's containers run as descendants of the invoking user session's
+#     cgroup tree, which this slice wraps
+#
+# Combined effect: even if MAX_CONCURRENT_CONVERSATIONS were misconfigured
+# above 1, or a single sandbox task leaked memory, the KERNEL enforces the
+# ceiling below for the whole OpenHands stack — it does not depend on the
+# application behaving correctly.
+Description=CorpFlowAI OpenHands combined resource ceiling (INACTIVE — do not enable without separate authorization, see issue #743)
+Documentation=file:///home/anton/corpflow-ai-command-center/ops/openhands/README.md file:///home/anton/corpflow-ai-command-center/docs/operations/OPENHANDS_DOCKER_ISOLATION.md
+
+[Slice]
+# ~8 GiB total ceiling: matches the "control ~2 GiB + one concurrent sandbox
+# ~4-6 GiB" envelope in ops/openhands/VERSIONS.md, rounded up slightly for
+# dockerd's own overhead. This is a HARD kernel-enforced cap (OOM inside the
+# slice, not a host-wide OOM) — a stuck/leaking sandbox is killed within the
+# slice rather than starving Uptime Kuma, n8n, or the box's SSH session.
+MemoryMax=8G
+MemoryHigh=7G
+
+# 300% == 3 full CPUs on a multi-core host, matching "control ~1 CPU + sandbox
+# guidance ~2 CPU" in ops/openhands/VERSIONS.md § "Resource envelope".
+CPUQuota=300%
+
+# Bounds total process/thread count across the whole stack (dockerd + app +
+# sandbox containers) — defends against a fork-bomb-style failure mode inside
+# any one component from exhausting the host's PID table.
+TasksMax=2048
+
+# Do not add IOWeight/IOReadBandwidthMax/etc. here without a separate review
+# — this slice's job is memory/CPU/task containment for the isolation design,
+# not a general I/O QoS policy for the box.

@@ -13,42 +13,103 @@
 #   3. scripts/ops/openhands/install.sh --install run with
 #      OPENHANDS_INSTALL_APPROVED=YES and --i-understand-protected-action.
 #
-# Controlling issue: #743
+# Controlling issue: #743. Security follow-up for PR #747: dedicated Docker
+# isolation design — see docs/operations/OPENHANDS_DOCKER_ISOLATION.md (full
+# investigation record: options evaluated, selected design, residual risk).
 # Version record + sources: ops/openhands/VERSIONS.md
 # Read-only checks: scripts/ops/openhands/preflight.sh,
 #   scripts/ops/openhands/verify-private-bind.sh,
 #   scripts/ops/openhands/verify-sandbox-boundary.sh,
-#   scripts/ops/openhands/verify-no-production-access.sh
+#   scripts/ops/openhands/verify-no-production-access.sh,
+#   scripts/ops/openhands/verify-dedicated-daemon.sh
+#
+# ============================================================================
+# DOCKER ISOLATION DESIGN — dedicated rootless daemon (selected design, #1 of
+# 4 evaluated in docs/operations/OPENHANDS_DOCKER_ISOLATION.md). Read this
+# section before touching any docker.sock / DOCKER_HOST line below.
+# ============================================================================
+#
+# - The PRIMARY host Docker socket (/var/run/docker.sock, and the primary
+#   Docker context/daemon it represents) is FORBIDDEN in this package,
+#   unconditionally, at every phase. It is never mounted, never referenced by
+#   DOCKER_HOST, and never the target of any script under
+#   scripts/ops/openhands/. This is a hard rule, not a default that a future
+#   edit can quietly relax — scripts/ops/openhands/lib/common.sh's
+#   openhands_assert_isolation_context() fails closed if it is.
+# - Instead, OpenHands (this control-plane container AND every sandbox
+#   container it spawns) talks ONLY to a SEPARATE, DEDICATED, rootless Docker
+#   daemon that exists solely for OpenHands. That dedicated daemon:
+#     - listens on its own Unix socket at
+#       $OPENHANDS_HOME/docker/docker.sock (never /var/run/docker.sock),
+#       where OPENHANDS_HOME defaults to $HOME/corpflowai-openhands
+#       (see ops/openhands/.env.example, scripts/ops/openhands/lib/common.sh);
+#     - stores all image/container/volume state under its own
+#       --data-root at $OPENHANDS_HOME/docker-data — never
+#       /var/lib/docker, so it can never collide with, read, or corrupt the
+#       primary daemon's images/containers/volumes (Uptime Kuma, n8n, Beszel,
+#       ERPNext-sandbox, etc. are invisible to this daemon and vice versa);
+#     - runs as an unprivileged systemd --user service
+#       (scripts/ops/systemd/corpflowai-openhands-dockerd.service, INACTIVE,
+#       not enabled by default) wrapped by a systemd slice
+#       (scripts/ops/systemd/corpflowai-openhands.slice) that caps the
+#       COMBINED control-plane + dockerd + every spawned sandbox container at
+#       ~8 GiB RAM / 300% CPU / 2048 tasks — a real, kernel-cgroup-enforced
+#       ceiling, not just a documented policy number.
+# - Practical effect: even a full compromise of this container (e.g. via a
+#   supply-chain issue in the pinned image, or the control plane's own
+#   tool-calling being abused) grants control over the DEDICATED daemon's own
+#   containers/images/volumes/data-root only. It does NOT grant host-root, and
+#   it does NOT reach any other container on this box, because rootless
+#   dockerd maps its "root" to an unprivileged host UID and has no visibility
+#   into the primary daemon's socket, data-root, or resources at all. This is
+#   a materially smaller blast radius than the primary-socket design reviewed
+#   in the original PR #747 threat model (see
+#   docs/operations/OPENHANDS_SECURITY_MODEL.md § 3, which this design
+#   supersedes — that section is being kept as a historical record of the
+#   rejected default, not re-authored here).
+# - Residual risk (not eliminated, disclosed honestly): the dedicated daemon
+#   is still a real Docker API surface. A compromised control plane can still
+#   create/start/stop containers, pull images, and create networks/volumes
+#   WITHIN that dedicated daemon — including, in principle, a container that
+#   bind-mounts a host path the daemon process itself can read (rootless
+#   dockerd's own filesystem view, scoped to the operator's UID). This is why
+#   $OPENHANDS_HOME is a fresh, dedicated, empty-at-install directory — never
+#   the operator's real home directory root, never a path containing other
+#   tool state. See docs/operations/OPENHANDS_DOCKER_ISOLATION.md "Residual
+#   risks" for the full list, including why a socket-proxy was rejected as an
+#   initial carve-out (ContainerCreate can still specify host binds; there is
+#   no safe default ACL for Create in the tools evaluated).
+# - `host.docker.internal` / extra_hosts is REMOVED entirely (not merely
+#   unused) as of this revision. OpenHands does not need host-loopback
+#   service access — its only required egress is outbound to the operator's
+#   chosen external LLM API provider over normal network egress. Any future
+#   need to reach a host-bound service must be re-justified from scratch, not
+#   quietly re-added.
 #
 # Hard rules encoded in this file:
-# - Loopback-only publish: "127.0.0.1:3000:3000". Never "0.0.0.0" or a bare port.
+# - Loopback-only publish: "127.0.0.1:3000:3000". Never "0.0.0.0" or a bare
+#   port.
 # - No privileged: true. No host networking on the control-plane service.
 # - No POSTGRES_* env vars, no CorpFlowAI production secrets, ever.
 # - Named project (`corpflowai-openhands`) and named resources only — never
 #   default/anonymous compose names — so rollback/uninstall scripts can target
 #   precisely and never touch unrelated containers.
-# - Resource envelope (operator policy, not upstream-enforced): control plane
-#   ~1 CPU / 2 GiB here; separate sandbox guidance (2 CPU / 4 GiB, hard max
-#   6 GiB, concurrency 1) documented in VERSIONS.md and
+# - Resource envelope (operator policy AND, for the total ceiling, a real
+#   systemd-slice enforcement — see scripts/ops/systemd/corpflowai-openhands.slice):
+#   control plane ~1 CPU / 2 GiB here; separate sandbox guidance (2 CPU / 4 GiB,
+#   hard max 6 GiB, concurrency 1) documented in VERSIONS.md and
 #   config/openhands/config.example.toml — total ceiling ~8 GiB across control
-#   + one concurrent sandbox.
-#
-# RISK — Docker socket mount (required by upstream, not optional):
-#   OpenHands' control plane spawns sandbox containers per task using the host
-#   Docker daemon, which requires access to /var/run/docker.sock. Any process
-#   with access to the Docker socket can, in practice, achieve host-level
-#   control (spin up privileged containers, mount host paths, etc.), REGARDLESS
-#   of cap_drop / security_opt applied to *this* container. This is a real,
-#   accepted-risk-pending-review item, not a false positive:
-#     - Do not treat cap_drop/no-new-privileges on this service as a full
-#       mitigation for the socket mount — they reduce this container's own
-#       blast radius but do not sandbox what it can ask the Docker daemon to do.
-#     - Any install runbook must explicitly re-affirm this risk was reviewed
-#       and accepted by Anton before the socket mount is uncommented and used.
-#     - Prefer a rootless Docker daemon or a socket-proxy (e.g. a permissions-
-#       limited docker-socket-proxy) as a follow-up hardening step BEFORE
-#       install, not after. Not implemented in this package; flagged as a
-#       recommended enhancement in README.md / VERSIONS.md.
+#   + one concurrent sandbox, backstopped by the slice's MemoryMax=8G.
+# - This compose file MUST be run with DOCKER_HOST pointed at the dedicated
+#   socket (see .env / OPENHANDS_DOCKER_HOST below). `docker compose` (and
+#   every script in this package) resolves the effective Docker endpoint from
+#   the ambient DOCKER_HOST env var / active `docker context` — there is no
+#   compose-file syntax that pins this itself, so the isolation guarantee
+#   lives in the *scripts* (openhands_docker() wrapper in
+#   scripts/ops/openhands/lib/common.sh), not in this YAML alone. Never run
+#   `docker compose -f ops/openhands/compose.yaml ...` directly without first
+#   sourcing/exporting the dedicated DOCKER_HOST — use install.sh /
+#   preflight.sh / the other scripts, which enforce this via the wrapper.
 
 name: corpflowai-openhands
 
@@ -63,10 +124,20 @@ services:
       - "127.0.0.1:3000:3000"
 
     volumes:
-      # RISK (see header): required by upstream for sandbox container spawn.
+      # DEDICATED daemon socket ONLY — never /var/run/docker.sock. Host-side
+      # path comes from OPENHANDS_DOCKER_SOCK (default
+      # $OPENHANDS_HOME/docker/docker.sock; see ops/openhands/.env.example).
+      # The container-internal path is fixed at /run/openhands-docker/docker.sock
+      # (override with OPENHANDS_DOCKER_SOCK_IN_CONTAINER only if the app
+      # image requires a different in-container path — do not change this to
+      # /var/run/docker.sock inside the container either, to avoid confusing
+      # log/tooling output that assumes the conventional path means "the
+      # primary daemon").
+      #
       # Read-write is required because OpenHands creates/manages sibling
-      # containers via the Docker API, not just inspects them.
-      - /var/run/docker.sock:/var/run/docker.sock
+      # sandbox containers via the Docker API against this DEDICATED daemon —
+      # never against the host's primary daemon.
+      - ${OPENHANDS_DOCKER_SOCK}:${OPENHANDS_DOCKER_SOCK_IN_CONTAINER:-/run/openhands-docker/docker.sock}
 
       # Persistent OpenHands state (conversation history, config cache, etc.)
       # mapped from the upstream-documented ~/.openhands path into a named,
@@ -76,12 +147,20 @@ services:
 
       # Task workspace ONLY. Scoped to a single named volume dedicated to
       # OpenHands task files — never "/" and never "/home". If a bind mount is
-      # substituted at install time, it must point at a dedicated, empty
-      # directory created for this purpose (e.g. ~/corpflowai-openhands/workspace),
-      # never at an existing project checkout or home directory root.
+      # substituted at install time, it must point at the dedicated
+      # $OPENHANDS_WORKSPACE_DIR (default $OPENHANDS_HOME/workspace) created
+      # for this purpose, never at an existing project checkout or home
+      # directory root.
       - corpflowai-openhands-workspace:/workspace
 
     environment:
+      # Forces this container's own Docker client (if it invokes one
+      # internally, in addition to the upstream SDK talking to the mounted
+      # socket) at the DEDICATED daemon socket path inside the container.
+      # Must always match the container-internal side of the volume mount
+      # above — never point this at /var/run/docker.sock.
+      DOCKER_HOST: unix://${OPENHANDS_DOCKER_SOCK_IN_CONTAINER:-/run/openhands-docker/docker.sock}
+
       # Sandbox runtime image the control plane pulls when spawning a task
       # sandbox. Pinned — see ops/openhands/VERSIONS.md. Never "latest".
       AGENT_SERVER_IMAGE_REPOSITORY: ghcr.io/openhands/agent-server
@@ -91,6 +170,34 @@ services:
       # phase. Flip to "false" once evidence collection needs are lower.
       LOG_ALL_EVENTS: "true"
 
+      # Concurrency ceiling — one sandbox task at a time (see
+      # docs/operations/OPENHANDS_OPERATING_RUNBOOK.md § 3 and
+      # lib/openhands/package-policy.js MAX_CONCURRENT_TASKS). Combined with
+      # the systemd slice's MemoryMax=8G, this is the primary lever bounding
+      # total sandbox resource use, since upstream 1.8 does not natively
+      # enforce a per-sandbox hard memory/CPU limit on the OSS Docker path
+      # (see ops/openhands/VERSIONS.md "Sandbox limit enforcement").
+      MAX_CONCURRENT_CONVERSATIONS: "1"
+
+      # Per-task wall-clock ceiling (seconds) and agent-loop iteration ceiling
+      # — bound cost and blast radius per task, independent of the daemon
+      # isolation change. See config/openhands/cost-policy.example.yaml.
+      SANDBOX_TIMEOUT: "600"
+      MAX_ITERATIONS: "40"
+
+      # Sandbox containers must never use host networking — matches the
+      # no-host-network rule already enforced on this control-plane service
+      # (network_mode: host is never set below) and checked by
+      # scripts/ops/openhands/verify-sandbox-boundary.sh.
+      SANDBOX_USE_HOST_NETWORK: "false"
+
+      # SANDBOX_VOLUMES is intentionally left UNSET by default. If a future,
+      # separately reviewed install needs the spawned sandbox to see a host
+      # path, it must point ONLY at the dedicated workspace directory below —
+      # never at the operator's home directory, never at another tool's
+      # state, and never as a way to reach the primary Docker socket.
+      # SANDBOX_VOLUMES: "${OPENHANDS_WORKSPACE_DIR:?set OPENHANDS_WORKSPACE_DIR in .env}:/workspace:rw"
+
       # LLM provider credentials are intentionally NOT set here. They must
       # come from an approved secret store at install time via a real .env
       # (never committed) — see ops/openhands/.env.example. This compose file
@@ -98,10 +205,14 @@ services:
       # production secret name.
 
     # Control-plane resource envelope. Sandbox containers spawned by this
-    # service are NOT bound by these limits automatically (upstream 1.8 does
-    # not enforce sandbox limits natively as of the VERSIONS.md pin date) —
-    # sandbox guidance is documented, not enforced, until a future install
-    # runbook adds explicit Docker resource flags to spawned containers.
+    # service are bounded in aggregate by the systemd slice
+    # (scripts/ops/systemd/corpflowai-openhands.slice, MemoryMax=8G) that
+    # wraps BOTH the dedicated dockerd unit and every container it runs — see
+    # the DOCKER ISOLATION DESIGN header above. Per-sandbox native HostConfig
+    # limits are still not available on the OSS Docker path in app 1.8 (see
+    # ops/openhands/VERSIONS.md); the slice is the real backstop for the
+    # *total*, MAX_CONCURRENT_CONVERSATIONS=1 is the backstop for
+    # concurrency, and SANDBOX_TIMEOUT bounds any single stuck task.
     mem_limit: 2g
     cpus: "1.0"
     pids_limit: 512
@@ -109,24 +220,30 @@ services:
     security_opt:
       - no-new-privileges:true
 
-    # cap_drop: [ALL] is NOT applied here. The Docker-socket mount means this
-    # container's effective privilege is bounded by what the Docker daemon
-    # will do on its behalf, not by Linux capabilities inside this container —
-    # dropping all capabilities here would not meaningfully reduce the
-    # socket-mount risk and could break the app's own process management.
-    # Documented trade-off, not an oversight: privileged: true is still never
-    # used, and no-new-privileges is still applied above.
+    # cap_drop: [ALL] is NOT applied here. Even against the DEDICATED daemon
+    # (not the primary socket — see header), this container's effective
+    # privilege inside that daemon's namespace is bounded by what the
+    # dedicated dockerd will do on its behalf, not by Linux capabilities
+    # inside this container — dropping all capabilities here would not
+    # meaningfully change that and could break the app's own process
+    # management. Documented trade-off, not an oversight: privileged: true is
+    # still never used, and no-new-privileges is still applied above.
     # cap_drop:
     #   - ALL
 
-    extra_hosts:
-      # Lets the container reach services bound to the host (e.g. a locally
-      # hosted LLM gateway, or other loopback-bound CorpFlow tooling) without
-      # host networking.
-      - "host.docker.internal:host-gateway"
+    # host.docker.internal / extra_hosts REMOVED as of this revision — see
+    # "DOCKER ISOLATION DESIGN" header. External LLM API access is normal
+    # outbound egress via the network below; no host-loopback service is
+    # required.
 
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3000/"]
+      # Official OpenHands health endpoint (docs.openhands.dev, checked
+      # 2026-08-04) — NOT the bare "/", which does not reliably reflect
+      # control-plane readiness. See ops/openhands/VERSIONS.md and
+      # docs/operations/OPENHANDS_DOCKER_ISOLATION.md "Health" for the
+      # residual caveat that /health is process liveness, not full sandbox
+      # readiness.
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3000/health"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -150,7 +267,9 @@ networks:
     # a real egress path from the box and must be reviewed as part of any
     # install authorization, not assumed benign. It does not, on its own,
     # expose anything inbound — inbound exposure is controlled solely by the
-    # loopback-only `ports:` mapping above.
+    # loopback-only `ports:` mapping above. This network is created on the
+    # DEDICATED daemon (see DOCKER_HOST above), not on the primary daemon, so
+    # it is invisible to `docker network ls` against the primary socket.
     internal: false
 
 volumes:

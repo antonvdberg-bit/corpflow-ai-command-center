@@ -14,6 +14,9 @@ different threat model, different (larger) blast radius** because of the Docker-
 
 **Companion docs (canonical — read these to understand why every clause is what it is):**
 
+- `docs/operations/OPENHANDS_DOCKER_ISOLATION.md` (2026-08-04, PR #747 Docker-isolation security follow-up —
+  the **dedicated rootless Docker daemon** design that § 1.1a below makes a hard carve-out condition; read this
+  before § 5's risk table).
 - `docs/decisions/20260804-openhands-on-exec01.md` (the ADR this packet satisfies; status: PROPOSED).
 - `docs/operations/OPENHANDS_ARCHITECTURE.md` (target flow), `docs/operations/OPENHANDS_SECURITY_MODEL.md` (threat model — read § 3 before approving), `docs/operations/OPENHANDS_INSTALL_RUNBOOK.md` (the follow-up procedure this packet gates).
 - `docs/execution/CORPFLOW_EXECUTION_PACKET_STANDARD.md` (packet shape) and `docs/execution/MIGRATION_TO_SERVER_CHECKLIST.md` (every § 2 checkbox addressed inline in § 6 below).
@@ -52,10 +55,36 @@ wording in `SERVER_AGENT_ACCESS_AND_EXECUTION_BOUNDARY_V1.md` § 5.5. It must be
 referenced. Any future packet that relaxes any clause above requires its own ADR + authorization packet + § 10
 gate.
 
+### 1.1a Dedicated Docker daemon — hard carve-out condition (2026-08-04, #747 Docker-isolation follow-up)
+
+**This carve-out is conditioned on the dedicated-rootless-Docker-daemon design in
+`docs/operations/OPENHANDS_DOCKER_ISOLATION.md`, not merely improved by it.**
+
+- **Hard block:** if, at install time, the reviewed package still mounts the box's **primary**
+  `/var/run/docker.sock` into the OpenHands control-plane container (rather than a dedicated daemon's own
+  socket at `$HOME/corpflowai-openhands/docker/docker.sock`), the carve-out this packet would grant **does not
+  apply** to that install. Installing against the primary socket is **out of scope for this authorization**,
+  full stop — it would require its own, separately-reviewed ADR naming that materially larger blast radius,
+  not a footnote here.
+- **Residual per-sandbox resource-limit gap — Anton must accept explicitly, or the carve-out stays blocked.**
+  `docs/operations/OPENHANDS_DOCKER_ISOLATION.md` § 2.2 discloses that the OSS OpenHands `1.8` Docker self-host
+  path has **no native per-sandbox 4 GiB `HostConfig` limit** (unlike OpenHands Enterprise's Kubernetes
+  `MEMORY_LIMIT`). The `corpflowai-openhands.slice` systemd ceiling (`MemoryMax=8G`, `CPUQuota=300%`) bounds the
+  **total** of control plane + one concurrent sandbox, not any individual sandbox. This packet does **not**
+  treat that gap as pre-accepted by the rest of this document — Anton's approval of this packet must include an
+  **explicit, recorded acknowledgment** of this specific gap (e.g. a sentence in the merge/approval comment, or
+  a dedicated line in the JOURNAL row that closes this packet). Absent that explicit acknowledgment, the
+  carve-out remains **AWAITING_APPROVAL** even if every other clause in this packet is otherwise satisfied.
+- **Non-negotiation of § 1.1's scope.** This condition narrows what may be installed under this carve-out; it
+  does not widen § 1.1's authorization boundary in any other respect (still one named container, still no
+  general Docker usage, still no widening of the Kuma carve-out).
+
 ## 2. Definition of Done
 
 - [ ] `docs/decisions/20260804-openhands-on-exec01.md` exists with status PROPOSED at PR-open and flips to
   ACCEPTED on Anton's merge.
+- [x] `docs/operations/OPENHANDS_DOCKER_ISOLATION.md` exists, naming the dedicated-rootless-Docker-daemon design
+  as the § 1.1a hard carve-out condition (2026-08-04, #747).
 - [ ] This packet exists with all §§ 1–11 filled in.
 - [ ] `docs/operations/MONITORING_ARCHITECTURE.md` § 11.2 has a **pending future packet** row for OpenHands,
   explicitly marked not-live, with the capacity contradiction recorded (see § 6.10 below). § 2 is **not**
@@ -106,6 +135,8 @@ not run); any change to the Uptime Kuma carve-out itself.
 | A future reader mistakes this second carve-out as evidence that "Docker is now generally OK" on the box. | High (governance drift — the exact failure mode `SERVER_AGENT_ACCESS_AND_EXECUTION_BOUNDARY_V1.md` § 5.5 warns about) | § 1.1's explicit "does not widen, replace, or reinterpret the existing Uptime Kuma carve-out" sentence; § 9 below restates the non-generalization rule a second time. |
 | OpenHands' GitHub credential, once live, is scoped more broadly than intended because a GitHub App was not actually configured with the least-privilege permissions in `docs/operations/OPENHANDS_SECURITY_MODEL.md` § 7.1. | Medium (excess GitHub access) | Install runbook § 12 requires confirming the actual configured scopes before any real dispatch; this is a Gate 3 item in `docs/operations/OPENHANDS_IMPLEMENTATION_AND_OPERATIONS_RUNBOOK.md`, independent of this carve-out. |
 | Cost runs past the USD 25/month ceiling before the fail-closed gate is proven to actually work. | Low–Medium (unexpected spend) | `docs/operations/OPENHANDS_MODEL_AND_COST_POLICY.md` § 4's fail-closed behavior is a required install-time check, not an assumption; synthetic validation packets are run under the ceiling before any production dispatch. |
+| A reader approves this packet without registering that § 1.1a's dedicated-daemon condition is a **hard block**, not a nice-to-have, and installs against the primary socket anyway. | High (the exact larger blast radius this follow-up exists to prevent) | § 1.1a states the hard block in plain language; `docs/operations/OPENHANDS_INSTALL_RUNBOOK.md` § 6 additionally requires confirming the copied compose file has no primary-socket mount **before** proceeding to Start; `scripts/ops/openhands/verify-sandbox-boundary.sh`'s target behavior (per `OPENHANDS_DOCKER_ISOLATION.md` § 7) is to fail closed on a primary-socket mount. |
+| The per-sandbox resource-limit gap (§ 1.1a, `OPENHANDS_DOCKER_ISOLATION.md` § 2.2) is silently treated as accepted just because this packet exists, without Anton's explicit acknowledgment. | Medium (uninformed acceptance of a real resource-exhaustion risk) | § 1.1a requires an explicit, recorded acknowledgment as a condition of APPROVED status — a merged packet with no such record is not a satisfied condition, and the carve-out stays blocked per § 1.1a's own wording. |
 
 ## 6. Migration-to-server checklist (`docs/execution/MIGRATION_TO_SERVER_CHECKLIST.md` § 2, addressed as a plan)
 
@@ -188,7 +219,9 @@ change), Delivery Reality Audit not applicable (zero customer-visible behavior c
 
 The install runbook (`docs/operations/OPENHANDS_INSTALL_RUNBOOK.md` § 2) requires
 `scripts/ops/openhands/inspect-host-capacity.sh` to be run live **before** any install proceeds — this packet
-does not pre-judge which of the three numbers is correct.
+does not pre-judge which of the three numbers is correct. **The live script output, and only the live script
+output, is the install-time capacity source of truth** — none of the three rows above is a substitute, even the
+"authoritative post-resize" one, which is itself a documented event, not a live reading at install time.
 
 ## 7. Allowed actions (this packet)
 
@@ -254,14 +287,19 @@ Packet status:
 - Started: 2026-08-04 (UTC+4)
 - Last update: 2026-08-04 (UTC+4)
 - Branch: ops/openhands-private-worker-package
-- PR: <to be opened against main>
+- PR: #747 (Docker isolation security follow-up)
 - Local checks: npm test = pending; npm run build = pending
 - Live URLs tested: n/a (docs-only)
 - Deployment ID: n/a
-- Verdict: PENDING ANTON APPROVAL
+- Verdict: AWAITING_APPROVAL — § 1.1a (dedicated Docker daemon hard block + explicit per-sandbox gap
+  acknowledgment) is a NEW condition as of this round and is not yet satisfied by anything short of Anton's own
+  explicit acknowledgment at merge time.
 - Notes: This packet does NOT install OpenHands. Anton's merge of this packet + the companion ADR is the § 5.5
   carve-out; a further, separate, explicit go-ahead is required before any command in
-  docs/operations/OPENHANDS_INSTALL_RUNBOOK.md is run.
+  docs/operations/OPENHANDS_INSTALL_RUNBOOK.md is run. As of this round, the carve-out ALSO requires (§ 1.1a)
+  that the reviewed package implement the dedicated-rootless-Docker-daemon design in
+  docs/operations/OPENHANDS_DOCKER_ISOLATION.md — a primary-socket mount is an automatic hard block, not a
+  finding to note and proceed past.
 ```
 
 ## Change log
@@ -269,3 +307,9 @@ Packet status:
 - **2026-08-04** — Packet authored (DRAFT → PENDING ANTON APPROVAL) alongside the companion ADR
   `docs/decisions/20260804-openhands-on-exec01.md` and the full Phase 1 documentation set for #743. No runtime,
   no L3, no secrets, no `.env.template`, no `vercel.json`, no CI workflow changes.
+- **2026-08-04 (PR #747, Docker isolation follow-up)** — Added § 1.1a: the dedicated-rootless-Docker-daemon
+  design (`docs/operations/OPENHANDS_DOCKER_ISOLATION.md`) is now a **hard carve-out condition** — a
+  primary-socket mount at install time is out of scope for this authorization, and the disclosed per-sandbox
+  resource-limit gap requires Anton's explicit, recorded acceptance before APPROVED status is meaningful. Added
+  two new risk rows (§ 5) and a DoD checkbox confirming the isolation doc exists. No installation. No carve-out
+  granted by this round of edits — status remains AWAITING_APPROVAL / PENDING ANTON APPROVAL.

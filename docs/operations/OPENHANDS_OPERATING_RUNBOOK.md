@@ -6,6 +6,9 @@
 
 **Companion docs:**
 
+- `docs/operations/OPENHANDS_DOCKER_ISOLATION.md` — the dedicated-rootless-Docker-daemon design (2026-08-04, #747
+  follow-up to #743) that every `docker`/`docker compose` command below runs against — never the box's primary
+  daemon.
 - `docs/operations/OPENHANDS_OPERATING_CHARTER.md` — the permanent operating model (work routing, protected actions).
 - `docs/operations/OPENHANDS_INSTALL_RUNBOOK.md` — how the system got to a running state.
 - `docs/operations/OPENHANDS_SECURITY_MODEL.md` — the boundary this runbook must not weaken during routine use.
@@ -31,6 +34,7 @@ UI (review a running task, check conversation history, or triage before escalati
 **Stopping (routine, e.g. before a maintenance window):**
 
 ```bash
+export DOCKER_HOST="unix://$HOME/corpflowai-openhands/docker/docker.sock"
 cd "$HOME/corpflowai-openhands"
 docker compose -p corpflowai-openhands stop
 ```
@@ -38,11 +42,14 @@ docker compose -p corpflowai-openhands stop
 **Restarting:**
 
 ```bash
+export DOCKER_HOST="unix://$HOME/corpflowai-openhands/docker/docker.sock"
 docker compose -p corpflowai-openhands up -d
 ```
 
 Both actions touch **only** `corpflowai-openhands*` resources (enforced by the allowlist in
-`scripts/ops/openhands/lib/common.sh`) — Uptime Kuma, ERPNext, restic, and any other box workload are unaffected.
+`scripts/ops/openhands/lib/common.sh`) on the **dedicated** Docker daemon — Uptime Kuma, ERPNext, restic, and
+any other box workload live on the box's separate primary daemon and are unaffected, per
+`docs/operations/OPENHANDS_DOCKER_ISOLATION.md`.
 
 ## 2. Packet intake
 
@@ -68,7 +75,12 @@ Both actions touch **only** `corpflowai-openhands*` resources (enforced by the a
   live sandbox instead of an unbounded pool.
 - It keeps cost and evidence review tractable while the pattern is unproven (fewer than 3 successful synthetic
   packets — see `docs/execution/OPENHANDS_SYNTHETIC_VALIDATION_PLAN.md`).
-- It matches the resource envelope in `docs/operations/OPENHANDS_ARCHITECTURE.md` § 5 (~8 GiB total ceiling).
+- It matches the resource envelope in `docs/operations/OPENHANDS_ARCHITECTURE.md` § 5 (~8 GiB total ceiling),
+  now systemd-enforced as a **total** ceiling by `corpflowai-openhands.slice` (`MemoryMax=8G`, `CPUQuota=300%`)
+  per `docs/operations/OPENHANDS_DOCKER_ISOLATION.md` § 2, and app-enforced via `MAX_CONCURRENT_CONVERSATIONS=1`.
+- It bounds the impact of the **disclosed, unsolved** per-sandbox resource-limit gap (no native 4 GiB
+  `HostConfig` cap in the OSS `1.8` Docker path — `OPENHANDS_DOCKER_ISOLATION.md` § 2.2): with concurrency at 1,
+  at most one sandbox can consume up to the whole slice ceiling at a time, not several simultaneously.
 
 Do not raise this ceiling without a fresh review of § 6 (sandbox resource limits are operator policy, not
 upstream-enforced) and an explicit Anton approval — this is a Phase 4/5 "controlled expansion" decision per
@@ -138,3 +150,6 @@ packet from its last committed branch state, not to attempt manual recovery of u
 
 - **2026-08-04** — Initial operating runbook authored alongside the Phase 1 documentation set for #743. No
   installation exists yet; this doc describes the target day-to-day procedure only.
+- **2026-08-04 (PR #747, Docker isolation follow-up)** — § 1 commands now export `DOCKER_HOST` at the dedicated
+  socket path; § 3 notes the systemd-slice ceiling and app-enforced `MAX_CONCURRENT_CONVERSATIONS=1`. See
+  `docs/operations/OPENHANDS_DOCKER_ISOLATION.md`. No installation exists yet.

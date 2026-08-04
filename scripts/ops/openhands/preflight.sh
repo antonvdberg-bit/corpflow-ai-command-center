@@ -5,19 +5,40 @@
 # or modifies anything. Intended to be run before any future authorized
 # install to confirm the host and repo are in a sane state.
 #
-# Checks:
+# Security follow-up for PR #747 (dedicated Docker isolation design — see
+# docs/operations/OPENHANDS_DOCKER_ISOLATION.md): this script now ALSO
+# enforces the dedicated-daemon design at the package level, independent of
+# whether a daemon is actually running yet:
+#   - FAILS if ops/openhands/compose.yaml references the primary socket
+#     (/var/run/docker.sock) outside of documentation comments.
+#   - FAILS if ops/openhands/compose.yaml references host.docker.internal
+#     outside of documentation comments (extra_hosts must be REMOVED, not
+#     merely unused).
+#   - FAILS if OPENHANDS_DOCKER_HOST / OPENHANDS_DOCKER_SOCK (from
+#     scripts/ops/openhands/lib/common.sh, env-overridable) resolve to the
+#     primary socket.
+#   - FAILS (--install mode only) if the dedicated socket file does not
+#     exist yet — the dedicated daemon must be running before --install.
+#     WARNS only (--check mode, the default) since "daemon not installed
+#     yet" is the expected, safe state for this INACTIVE package.
+#   - FAILS if MAX_CONCURRENT_CONVERSATIONS: "1" is missing from
+#     ops/openhands/compose.yaml (the concurrency ceiling is a hard rule).
+#
+# Other checks (unchanged from the original package):
 #   - docker + docker compose plugin present and responsive
 #   - ops/openhands/compose.yaml exists and parses
 #   - ops/openhands/.env.example placeholders are NOT filled with what looks
 #     like a real secret, and the file is not accidentally tracked with real
 #     values in git
 #   - loopback port 127.0.0.1:3000 (from OPENHANDS_PORT, default 3000) is free
-#   - disk headroom on the filesystem backing Docker's data root
+#   - disk headroom on the filesystem backing the DEDICATED daemon's data-root
 #
 # Never prints secret values. Only reports pass/fail + short reasons.
 #
 # Usage:
 #   bash scripts/ops/openhands/preflight.sh
+#   bash scripts/ops/openhands/preflight.sh --check     (default, same as no flag)
+#   bash scripts/ops/openhands/preflight.sh --install   (stricter: dedicated socket MUST exist)
 #
 # Exit codes:
 #   0 — all checks passed
@@ -35,26 +56,45 @@ COMPOSE_FILE="${REPO_ROOT}/ops/openhands/compose.yaml"
 ENV_EXAMPLE_FILE="${REPO_ROOT}/ops/openhands/.env.example"
 OPENHANDS_PORT="${OPENHANDS_PORT:-3000}"
 MIN_FREE_DISK_GIB="${OPENHANDS_PREFLIGHT_MIN_FREE_DISK_GIB:-10}"
+MODE="check"
 
 usage() {
   cat <<'USAGE'
-Usage: preflight.sh [--help]
+Usage: preflight.sh [--check|--install] [--help]
 
 Read-only preflight checks for an eventual, separately authorized OpenHands
 install. Never installs or starts anything. Exits non-zero if any check
 fails.
+
+  --check    (default) Dedicated-daemon-socket-missing is a WARNING, not a
+             failure — the expected state before any install.
+  --install  Stricter: dedicated-daemon-socket-missing is a FAILURE — the
+             dedicated rootless daemon must already be running before an
+             actual --install proceeds.
 USAGE
 }
 
-if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
-  usage
-  exit 0
-fi
-if [[ "$#" -gt 0 ]]; then
-  warn "unexpected argument(s): $*"
-  usage
-  exit 2
-fi
+while [[ "$#" -gt 0 ]]; do
+  case "$1" in
+    --check)
+      MODE="check"
+      shift
+      ;;
+    --install)
+      MODE="install"
+      shift
+      ;;
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    *)
+      warn "unexpected argument(s): $*"
+      usage
+      exit 2
+      ;;
+  esac
+done
 
 FAILURES=()
 
@@ -67,16 +107,32 @@ pass() {
   say "PASS: $1"
 }
 
+# Strips full-line comments (leading '#' after optional whitespace) so
+# "forbidden string" checks below only ever flag an ACTIVE line, never a
+# documentation comment that deliberately explains why something is
+# forbidden (e.g. this file's own header, or compose.yaml's "DOCKER
+# ISOLATION DESIGN" block).
+noncomment_lines() {
+  grep -Ev '^[[:space:]]*#' "$1" 2>/dev/null || true
+}
+
 check_docker() {
+  # Deliberately client-side only (no daemon contact): `docker --version` and
+  # `docker compose version` do not require ANY daemon (primary or
+  # dedicated) to be reachable. This avoids conflating "is the docker CLI +
+  # compose plugin installed" with "is a specific daemon up" — the latter is
+  # checked separately by check_dedicated_socket_present() /
+  # scripts/ops/openhands/verify-dedicated-daemon.sh, never against the
+  # ambient/primary daemon here.
   if ! command -v docker >/dev/null 2>&1; then
     fail "docker binary not found on PATH"
     return
   fi
-  if ! docker version >/dev/null 2>&1; then
-    fail "docker daemon not responding (docker version failed)"
+  if ! docker --version >/dev/null 2>&1; then
+    fail "docker binary present but 'docker --version' failed"
     return
   fi
-  pass "docker present and responsive"
+  pass "docker CLI present"
 
   if ! docker compose version >/dev/null 2>&1; then
     fail "docker compose plugin not available (docker compose version failed)"
@@ -93,13 +149,107 @@ check_compose_file() {
   pass "compose file present: ${COMPOSE_FILE}"
 
   if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
+    # `compose config` renders/validates the file and resolves ${VAR}
+    # substitutions from the ALREADY-EXPORTED OPENHANDS_DOCKER_SOCK (set by
+    # lib/common.sh) — it does not open a daemon connection at all, so this
+    # deliberately does NOT go through openhands_docker() (which fails
+    # closed/exits on a bad isolation context; preflight.sh instead
+    # aggregates failures via check_dedicated_docker_host_env() below and
+    # must keep running the remaining checks either way).
     if docker compose -f "${COMPOSE_FILE}" config >/dev/null 2>/tmp/corpflowai-openhands-preflight-compose.err; then
       pass "compose file parses cleanly"
     else
-      fail "compose file failed to parse (see /tmp/corpflowai-openhands-preflight-compose.err)"
+      fail "compose file failed to parse (see /tmp/corpflowai-openhands-preflight-compose.err) — note: parsing does not require the dedicated daemon to be running, but WILL require OPENHANDS_DOCKER_SOCK / OPENHANDS_DOCKER_SOCK_IN_CONTAINER to be set for variable substitution to resolve cleanly"
     fi
   else
     warn "skipping compose parse check — docker compose unavailable"
+  fi
+}
+
+check_compose_forbids_primary_socket() {
+  local matches
+  matches="$(noncomment_lines "${COMPOSE_FILE}" | grep -F '/var/run/docker.sock' || true)"
+  if [[ -n "${matches}" ]]; then
+    fail "compose file references the FORBIDDEN primary socket /var/run/docker.sock outside of a documentation comment — see docs/operations/OPENHANDS_DOCKER_ISOLATION.md"
+  else
+    pass "compose file does not reference /var/run/docker.sock outside of documentation comments"
+  fi
+}
+
+check_compose_forbids_host_docker_internal() {
+  local matches
+  matches="$(noncomment_lines "${COMPOSE_FILE}" | grep -F 'host.docker.internal' || true)"
+  if [[ -n "${matches}" ]]; then
+    fail "compose file references host.docker.internal outside of a documentation comment — extra_hosts must be REMOVED, not merely unused"
+  else
+    pass "compose file does not reference host.docker.internal outside of documentation comments"
+  fi
+}
+
+check_max_concurrent_conversations() {
+  if grep -Eq '^[[:space:]]*MAX_CONCURRENT_CONVERSATIONS:[[:space:]]*"?1"?[[:space:]]*$' "${COMPOSE_FILE}" 2>/dev/null; then
+    pass "compose file sets MAX_CONCURRENT_CONVERSATIONS: \"1\""
+  else
+    fail "compose file does not set MAX_CONCURRENT_CONVERSATIONS: \"1\" — the one-concurrent-task ceiling is a hard rule (docs/operations/OPENHANDS_DOCKER_ISOLATION.md, ops/openhands/VERSIONS.md)"
+  fi
+
+  if [[ -f "${ENV_EXAMPLE_FILE}" ]] && grep -Eq '^[[:space:]]*MAX_CONCURRENT_CONVERSATIONS=' "${ENV_EXAMPLE_FILE}" 2>/dev/null; then
+    if grep -Eq '^[[:space:]]*MAX_CONCURRENT_CONVERSATIONS=1[[:space:]]*$' "${ENV_EXAMPLE_FILE}" 2>/dev/null; then
+      pass ".env.example documents MAX_CONCURRENT_CONVERSATIONS=1"
+    else
+      fail ".env.example sets MAX_CONCURRENT_CONVERSATIONS to something other than 1"
+    fi
+  fi
+}
+
+check_dedicated_docker_host_env() {
+  if [[ -z "${OPENHANDS_DOCKER_SOCK:-}" || -z "${OPENHANDS_DOCKER_HOST:-}" ]]; then
+    fail "OPENHANDS_DOCKER_SOCK / OPENHANDS_DOCKER_HOST are unexpectedly unset after sourcing lib/common.sh"
+    return
+  fi
+  if is_primary_docker_socket_path "${OPENHANDS_DOCKER_SOCK}"; then
+    fail "OPENHANDS_DOCKER_SOCK resolves to the PRIMARY host socket — forbidden. See docs/operations/OPENHANDS_DOCKER_ISOLATION.md."
+    return
+  fi
+  if docker_host_targets_primary_socket "${OPENHANDS_DOCKER_HOST}"; then
+    fail "OPENHANDS_DOCKER_HOST resolves to the PRIMARY host socket — forbidden. See docs/operations/OPENHANDS_DOCKER_ISOLATION.md."
+    return
+  fi
+  pass "OPENHANDS_DOCKER_HOST / OPENHANDS_DOCKER_SOCK resolve to a dedicated (non-primary) path"
+}
+
+check_dedicated_socket_present() {
+  if [[ -S "${OPENHANDS_DOCKER_SOCK}" ]]; then
+    pass "dedicated Docker socket exists and is a socket file"
+    return
+  fi
+  if [[ "${MODE}" == "install" ]]; then
+    fail "dedicated Docker socket not found at OPENHANDS_DOCKER_SOCK — the dedicated rootless daemon (scripts/ops/systemd/corpflowai-openhands-dockerd.service) must be running before --install"
+  else
+    warn "dedicated Docker socket not found — expected until the dedicated rootless daemon is installed and started (ops/openhands/daemon/README.md); not a --check failure"
+  fi
+}
+
+check_isolation_design_files_present() {
+  local required=(
+    "${REPO_ROOT}/ops/openhands/daemon/README.md"
+    "${REPO_ROOT}/ops/openhands/daemon/daemon.json.example"
+    "${REPO_ROOT}/ops/openhands/daemon/dockerd-rootless.service.example"
+    "${REPO_ROOT}/scripts/ops/systemd/corpflowai-openhands.slice"
+    "${REPO_ROOT}/scripts/ops/systemd/corpflowai-openhands-dockerd.service"
+    "${REPO_ROOT}/scripts/ops/openhands/verify-dedicated-daemon.sh"
+    "${REPO_ROOT}/docs/operations/OPENHANDS_DOCKER_ISOLATION.md"
+  )
+  local missing=0
+  local f
+  for f in "${required[@]}"; do
+    if [[ ! -f "${f}" ]]; then
+      fail "isolation design file missing: ${f#"${REPO_ROOT}/"}"
+      missing=1
+    fi
+  done
+  if [[ "${missing}" -eq 0 ]]; then
+    pass "all dedicated-daemon isolation design files are present"
   fi
 }
 
@@ -111,17 +261,48 @@ check_env_example_placeholders() {
 
   # Look for lines that assign a value that does NOT look like one of our
   # documented placeholder patterns and does NOT look like a safe default
-  # (digits, 0/1, empty). This is a heuristic, not a secret scanner —
-  # it exists to catch an accidental paste of a real key into the example
-  # file, not to replace a real secret-scanning tool.
-  local suspicious
-  suspicious="$(grep -E '^[A-Z_][A-Z0-9_]*=' "${ENV_EXAMPLE_FILE}" \
-    | grep -vE '=(<ENTER_DIRECTLY_IN_APPROVED_SECRET_STORE>|[0-9]+|)$' \
-    || true)"
+  # (empty, digits, true/false, a <REPLACE_ME_...> / <ENTER_...> placeholder,
+  # or a dedicated corpflowai-openhands path/socket URL). Uses bash glob
+  # matching (not a fragile regex) so each case is explicit and readable.
+  # This is a heuristic, not a secret scanner — it exists to catch an
+  # accidental paste of a real key into the example file, not to replace a
+  # real secret-scanning tool.
+  local candidates line name value
+  local suspicious=""
+  candidates="$(grep -E '^[A-Z_][A-Z0-9_]*=' "${ENV_EXAMPLE_FILE}" || true)"
+  while IFS= read -r line; do
+    [[ -z "${line}" ]] && continue
+    name="${line%%=*}"
+    value="${line#*=}"
+    case "${value}" in
+      '')
+        continue
+        ;;
+      '<ENTER_DIRECTLY_IN_APPROVED_SECRET_STORE>')
+        continue
+        ;;
+      '<REPLACE_ME_'*'>')
+        continue
+        ;;
+      [0-9]*)
+        continue
+        ;;
+      true|false)
+        continue
+        ;;
+      *corpflowai-openhands*)
+        continue
+        ;;
+      *)
+        suspicious+="  suspicious var name: ${name}"$'\n'
+        ;;
+    esac
+  done <<< "${candidates}"
+
   if [[ -n "${suspicious}" ]]; then
     fail ".env.example contains non-placeholder-looking value(s) — review manually (values not printed here)"
     # Print only the variable NAMES, never the values.
-    printf '%s\n' "${suspicious}" | awk -F= '{print "  suspicious var name: " $1}'
+    printf '%s' "${suspicious}"
   else
     pass ".env.example placeholders look clean (no unexpected literal values)"
   fi
@@ -157,10 +338,17 @@ check_port_free() {
 }
 
 check_disk_headroom() {
-  local docker_root="/var/lib/docker"
-  local target="${docker_root}"
+  # Checks headroom on the filesystem backing the DEDICATED daemon's
+  # data-root, not /var/lib/docker (the primary daemon) — the dedicated
+  # daemon's images/containers/volumes live entirely under OPENHANDS_HOME.
+  local target="${OPENHANDS_DOCKER_DATA_ROOT}"
   if [[ ! -d "${target}" ]]; then
-    target="/"
+    # Data-root directory does not exist yet (expected pre-install) — check
+    # the parent (OPENHANDS_HOME, or its own parent) so the report is still
+    # meaningful before the dedicated daemon has ever started.
+    target="${OPENHANDS_HOME}"
+    [[ -d "${target}" ]] || target="$(dirname "${target}")"
+    [[ -d "${target}" ]] || target="/"
   fi
   if ! command -v df >/dev/null 2>&1; then
     warn "df unavailable — cannot verify disk headroom"
@@ -174,17 +362,23 @@ check_disk_headroom() {
   fi
   local avail_gib=$((avail_kib / 1024 / 1024))
   if [[ "${avail_gib}" -lt "${MIN_FREE_DISK_GIB}" ]]; then
-    fail "only ${avail_gib} GiB free on $(df -P "${target}" | awk 'NR==2{print $NF}') — below minimum ${MIN_FREE_DISK_GIB} GiB"
+    fail "only ${avail_gib} GiB free on $(df -P "${target}" | awk 'NR==2{print $NF}') (backing OPENHANDS_DOCKER_DATA_ROOT) — below minimum ${MIN_FREE_DISK_GIB} GiB"
   else
-    pass "${avail_gib} GiB free on $(df -P "${target}" | awk 'NR==2{print $NF}') (minimum ${MIN_FREE_DISK_GIB} GiB)"
+    pass "${avail_gib} GiB free on $(df -P "${target}" | awk 'NR==2{print $NF}') (backing OPENHANDS_DOCKER_DATA_ROOT; minimum ${MIN_FREE_DISK_GIB} GiB)"
   fi
 }
 
 main() {
-  say "start (read-only preflight — nothing will be installed or started)"
+  say "start (read-only preflight, mode=${MODE} — nothing will be installed or started)"
 
   check_docker
   check_compose_file
+  check_compose_forbids_primary_socket
+  check_compose_forbids_host_docker_internal
+  check_max_concurrent_conversations
+  check_dedicated_docker_host_env
+  check_dedicated_socket_present
+  check_isolation_design_files_present
   check_env_example_placeholders
   check_port_free
   check_disk_headroom
@@ -198,4 +392,4 @@ main() {
   exit 1
 }
 
-main "$@"
+main

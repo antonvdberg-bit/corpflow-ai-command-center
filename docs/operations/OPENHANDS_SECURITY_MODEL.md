@@ -3,9 +3,15 @@
 **Status:** DRAFT threat model for a **not-yet-installed** package. Describes the accepted risks, mitigations,
 and least-privilege design this package uses **if** it is ever authorized and installed. No installation has
 occurred. **Controlling issue:** [#743](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/743)
+· **Docker isolation follow-up:** [#747](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/747)
+— § 3 below reflects the **dedicated rootless Docker daemon** design that supersedes this doc's original
+"mount the primary host socket, accept the risk" posture. Read § 3 together with
+`docs/operations/OPENHANDS_DOCKER_ISOLATION.md`, the authoritative design doc for that change.
 
 **Companion docs:**
 
+- `docs/operations/OPENHANDS_DOCKER_ISOLATION.md` — the authoritative Docker-isolation design (dedicated
+  rootless daemon, socket path, systemd slice, residual risks) that § 3 below summarizes.
 - `docs/operations/OPENHANDS_ARCHITECTURE.md` — the flow this model protects.
 - `docs/operations/OPENHANDS_INSTALL_RUNBOOK.md` — where each control below is verified at install time.
 - `docs/operations/SERVER_AGENT_ACCESS_AND_EXECUTION_BOUNDARY_V1.md` — the box's general L3 boundary; § 5.5 is
@@ -31,49 +37,86 @@ mitigated.
 | Verification | `scripts/ops/openhands/verify-private-bind.sh` (fails closed if the app would be reachable on a non-loopback address); off-box `curl` timeout check at install runbook § 9. |
 | DNS / reverse proxy | Forbidden in v1. No hostname is ever mapped to this service. |
 
-## 3. Docker-socket risk — honest blast radius
+## 3. Docker-socket risk — honest blast radius (dedicated rootless daemon design)
 
-`ops/openhands/compose.yaml` mounts `/var/run/docker.sock:/var/run/docker.sock` **read-write**, because
-OpenHands' control plane spawns one sandbox container per task via the host Docker daemon — this is an upstream
-architectural requirement of OpenHands `1.8`, not a misconfiguration in this package, and it is **not
-optional** if sandboxed task execution is wanted at all.
+**Superseded posture (2026-08-04, PR #747):** the original Phase 1 package mounted the box's **primary**
+`/var/run/docker.sock` read-write into the control-plane container and named that as an accepted risk. That
+design is **no longer the authoritative design** — see
+`docs/operations/OPENHANDS_DOCKER_ISOLATION.md` for the full rationale. This section states the current design
+and its honest residual risk; it does not restate the superseded design as a live option.
+
+**Current design:** OpenHands' control plane spawns one sandbox container per task via a Docker daemon — this is
+an upstream architectural requirement of OpenHands `1.8`, not a misconfiguration in this package, and it is
+**not optional** if sandboxed task execution is wanted at all. What changed is **which** daemon:
+
+- The control plane talks to a **dedicated, rootless Docker daemon** — socket
+  `$HOME/corpflowai-openhands/docker/docker.sock`, data root `$HOME/corpflowai-openhands/docker-data` — that
+  exists **only** for OpenHands. It is not the box's primary daemon, and no other box workload (Uptime Kuma,
+  ERPNext, Beszel, etc.) shares it.
+- **The primary host Docker socket (`/var/run/docker.sock`) is FORBIDDEN in active config.** No compose file,
+  script, or runbook step in this package may mount, reference, or fall back to the primary socket. Every
+  command sets `DOCKER_HOST=unix://$HOME/corpflowai-openhands/docker/docker.sock` explicitly — there is no
+  ambient-default-daemon path.
+- A systemd **user** slice, `corpflowai-openhands.slice` (`MemoryMax=8G`, `CPUQuota=300%`), bounds the dedicated
+  daemon and everything it runs — the **total** ceiling for the control plane plus one concurrent sandbox.
 
 **What this actually means, stated without euphemism:**
 
-- Any process with access to the Docker socket can ask the Docker daemon to do essentially anything the daemon
-  itself can do — including starting a new, unrelated **privileged** container, bind-mounting the host
-  filesystem into a new container, or reading/writing any volume the daemon can see. This is a well-known
-  equivalence: **Docker-socket access is host-root-equivalent access**, regardless of what capabilities or
-  `security_opt` flags are applied to the container that holds the socket.
-- `cap_drop: [ALL]` and similar Linux-capability hardening **inside** the OpenHands control-plane container do
-  **not** meaningfully reduce this risk, because the attack path is "ask the daemon to do it," not "do it
-  directly from inside this container's own namespace." `ops/openhands/compose.yaml` documents this explicitly
-  and deliberately does not apply `cap_drop` as a false sense of mitigation.
-- **What is NOT mitigated today:** a compromised OpenHands control-plane process (e.g. via a supply-chain issue
-  in the pinned image, or a prompt-injection-driven abuse of its own tool-calling that reaches the Docker API)
-  could, in principle, escalate to control of the whole box — the same box that (per § 4) does **not** hold
-  production secrets, but **does** hold the ERPNext sandbox/production-shell state, Uptime Kuma, restic backup
-  jobs, and the repo clone.
-- **What IS mitigated:**
+- Any process with access to a Docker socket can ask *that* daemon to do essentially anything the daemon itself
+  can do — including starting a new, unrelated **privileged** container, bind-mounting host paths the daemon
+  process can see, or reading/writing any volume the daemon can see. This equivalence (**Docker-socket access is
+  daemon-root-equivalent access**) is unchanged by moving to a dedicated daemon — what changes is *which*
+  daemon, and therefore *which* other containers, is reachable.
+- **What IS newly mitigated by the dedicated-daemon design:** a compromised OpenHands control-plane process (via
+  a supply-chain issue in the pinned image, or a prompt-injection-driven abuse of its own tool-calling that
+  reaches the Docker API) can, at most, reach the **dedicated** daemon's own containers/images/volumes. It has
+  **no** path to Uptime Kuma's container, ERPNext's sandbox/production-shell containers, or any other box
+  workload, because those live on the box's separate primary daemon, which the dedicated daemon has no
+  connection to. Rootless mode further means the dedicated daemon itself is not running as Linux `root`,
+  narrowing what even a fully successful daemon-API abuse can reach on the host filesystem outside the daemon's
+  own rootless user-namespace mapping.
+- **What is NOT mitigated — residual risk, disclosed, not solved:**
+  - Within the dedicated daemon's own scope, Docker-socket access remains daemon-root-equivalent. This design
+    narrows the blast radius to "OpenHands' own dedicated daemon," not to zero.
+  - **No per-sandbox 4 GiB `HostConfig` limit is natively available in the OSS OpenHands `1.8` Docker self-host
+    path** (OpenHands Enterprise's Kubernetes runtime has a `MEMORY_LIMIT` equivalent; the Docker path in `1.8`
+    does not). With concurrency capped at 1 (`MAX_CONCURRENT_CONVERSATIONS=1`), a single misbehaving sandbox can
+    in the worst case consume up to the **entire** 8 GiB / 300% slice ceiling before the slice itself intervenes
+    — there is no smaller per-task cap inside that ceiling. This gap must be **explicitly accepted by Anton** as
+    a named carve-out condition (`OPENHANDS_ON_EXEC01_AUTHORIZATION_PACKET.md` § 1.1a); the carve-out stays
+    blocked otherwise. See `OPENHANDS_DOCKER_ISOLATION.md` § 2.2 for the full statement.
+  - `cap_drop: [ALL]` and similar Linux-capability hardening **inside** the OpenHands control-plane container
+    still do not meaningfully reduce the residual within-daemon risk, for the same reason as before: the attack
+    path is "ask the daemon to do it," not "do it directly from inside this container's own namespace."
+  - The box's ERPNext sandbox/production-shell state, restic backup jobs, and the repo clone remain reachable
+    **only** via the primary daemon, which this design keeps entirely out of OpenHands' reach — but a full
+    compromise of the dedicated daemon's host-side process still runs on the same physical/VM host as those
+    workloads, so host-level (not daemon-level) compromise scenarios are not addressed by this design alone.
+- **What IS mitigated (unchanged from before, still true):**
   - `no-new-privileges:true` is applied (prevents this specific container from gaining new privileges via
     `setuid`/`setgid` binaries even though it doesn't fully close the socket-mount path).
   - The container never runs `privileged: true` itself.
-  - The box holds **zero** CorpFlowAI production secrets (§ 4) — so even full box compromise does not, on its
-    own, hand over `POSTGRES_URL`, `MASTER_ADMIN_KEY`, or any Vercel/GitHub-Actions-level credential (those live
-    only in Vercel/GitHub's own encrypted stores, per `SERVER_AGENT_ACCESS_AND_EXECUTION_BOUNDARY_V1.md` § 4).
-  - The GitHub credential OpenHands holds is itself least-privilege (§ 5) — full box compromise yields, at
-    worst, that scoped credential, not an organization-wide token.
-- **Recommended follow-up hardening (not implemented in this package, flagged for a future packet):** a rootless
-  Docker daemon, or a permission-limited docker-socket-proxy (e.g. `linuxserver/socket-proxy` or similar) placed
-  between the control plane and the real socket, narrowing the API surface to only the calls needed to spawn/stop
-  sandbox containers. `ops/openhands/VERSIONS.md` and `ops/openhands/compose.yaml` both flag this as a
-  recommended enhancement, not yet built.
+  - The box holds **zero** CorpFlowAI production secrets (§ 4) — so even full compromise of the dedicated
+    daemon does not, on its own, hand over `POSTGRES_URL`, `MASTER_ADMIN_KEY`, or any Vercel/GitHub-Actions-level
+    credential (those live only in Vercel/GitHub's own encrypted stores, per
+    `SERVER_AGENT_ACCESS_AND_EXECUTION_BOUNDARY_V1.md` § 4).
+  - The GitHub credential OpenHands holds is itself least-privilege (§ 5) — full compromise yields, at worst,
+    that scoped credential, not an organization-wide token.
+- **Socket proxy — evaluated and rejected as the primary control for this round:** a docker-socket-proxy (e.g.
+  `linuxserver/socket-proxy`) narrows the *API surface* a caller can use, but still fronts a single daemon; if
+  that daemon is the primary one, a proxy misconfiguration or compromise still exposes every other box workload.
+  A socket proxy remains a reasonable **defense-in-depth addition on top of** the dedicated daemon in a future
+  round, narrowing the dedicated daemon's own API surface further — but it is not, by itself, a substitute for
+  daemon-level isolation, and is not the Phase 1 boundary. See `OPENHANDS_DOCKER_ISOLATION.md` § 6 for the full
+  comparison.
 
 **Bottom line for Anton's approval decision:** approving this package means accepting that the OpenHands control
-plane is, in practice, as trusted as root on `corpflow-exec-01-u69678`. The mitigations above bound the
-*consequences* of that trust (no production secrets on the box, least-privilege GitHub credential, loopback-only
-network exposure) — they do not eliminate the *fact* of that trust. If this risk is unacceptable, the only real
-fix is a socket-proxy or rootless-Docker follow-up before install, not a compose-file tweak.
+plane is, in practice, as trusted as root **within its own dedicated Docker daemon** on `corpflow-exec-01-u69678`
+— not, as in the original design, as trusted as root on the whole box's primary daemon. The mitigations above
+bound the *consequences* of that trust further than before (no production secrets on the box, least-privilege
+GitHub credential, loopback-only network exposure, structural separation from every other box workload) — they
+do not eliminate the *fact* of daemon-scoped trust, and they do not close the per-sandbox resource-limit gap
+above. Both residual items require Anton's explicit, informed acceptance, not a rubber stamp.
 
 ## 4. No production Postgres, no privileged mode, no host networking for the app
 
@@ -89,7 +132,8 @@ fix is a socket-proxy or rootless-Docker follow-up before install, not a compose
 
 | Mount | Rule |
 |---|---|
-| `/var/run/docker.sock` | Documented risk (§ 3) — required by upstream, not reduced by scope in v1. |
+| `$HOME/corpflowai-openhands/docker/docker.sock` (dedicated daemon's host-side socket, bind-mounted at the container-internal path `/run/openhands-docker/docker.sock` — deliberately **not** `/var/run/docker.sock`, so no log line or tool output inside the container can be misread as "this is the primary daemon"; configurable via `OPENHANDS_DOCKER_SOCK_IN_CONTAINER`) | Documented residual risk (§ 3) — required by upstream, narrowed to a dedicated daemon (§ 3, `OPENHANDS_DOCKER_ISOLATION.md`), not eliminated. |
+| Primary host `/var/run/docker.sock` | **Forbidden.** Never mounted, never referenced, never a fallback for any script or compose file in this package. |
 | `corpflowai-openhands-state` (named volume) | Persistent app state only (conversation history, config cache). Never a bind mount of the operator's real home directory. |
 | `corpflowai-openhands-workspace` (named volume) | Task working tree only. Never `/` or `/home`. If a bind mount is substituted at install time, it must point at a dedicated, empty directory created for this purpose — never at an existing project checkout. |
 | Everything else | No other host path is mounted into the control plane. Sandbox containers spawned by the control plane inherit their own scoped workspace, not the control plane's mounts. |
@@ -153,3 +197,10 @@ gets its own ADR, its own threat model, its own packet.
 
 - **2026-08-04** — Initial security model authored alongside the Phase 1 documentation set for #743. No
   installation. No carve-out granted by this doc.
+- **2026-08-04 (PR #747, Docker isolation follow-up)** — § 3 rewritten around the **dedicated rootless Docker
+  daemon** design (supersedes "mount the primary host socket, accept the risk"); § 5 updated to name the
+  dedicated socket path and explicitly forbid the primary socket. New residual risk disclosed and not solved:
+  no native per-sandbox 4 GiB `HostConfig` limit in the OSS `1.8` Docker path — total ceiling enforced only by
+  the `corpflowai-openhands.slice` systemd slice (`MemoryMax=8G`, `CPUQuota=300%`). Socket-proxy alternative
+  evaluated and rejected as insufficient on its own. See `docs/operations/OPENHANDS_DOCKER_ISOLATION.md` for the
+  full design. No installation. No carve-out granted by this doc.

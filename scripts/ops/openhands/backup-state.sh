@@ -8,6 +8,13 @@
 # clones / synthetic data and are excluded on purpose to keep the archive
 # small and free of anything resembling client data).
 #
+# Security follow-up for PR #747 (dedicated Docker isolation design — see
+# docs/operations/OPENHANDS_DOCKER_ISOLATION.md): every docker call in this
+# script goes through openhands_docker() (lib/common.sh), reading the named
+# corpflowai-openhands-state / corpflowai-openhands-workspace volumes on the
+# DEDICATED daemon only. The throwaway helper container it spawns to read
+# those volumes ALSO runs on the dedicated daemon, never the primary one.
+#
 # What is archived by default:
 #   - the corpflowai-openhands-state named volume contents, with any file
 #     that looks like it contains a credential (heuristic filename match:
@@ -80,8 +87,13 @@ main() {
     exit 0
   fi
 
-  if ! docker volume inspect corpflowai-openhands-state >/dev/null 2>&1; then
-    say "no-op: corpflowai-openhands-state volume does not exist — OpenHands is not installed"
+  if [[ ! -S "${OPENHANDS_DOCKER_SOCK}" ]]; then
+    say "no-op: dedicated Docker socket not present — OpenHands is not installed (dedicated daemon not running)"
+    exit 0
+  fi
+
+  if ! openhands_docker volume inspect corpflowai-openhands-state >/dev/null 2>&1; then
+    say "no-op: corpflowai-openhands-state volume does not exist on the dedicated daemon — OpenHands is not installed"
     exit 0
   fi
 
@@ -92,11 +104,12 @@ main() {
 
   say "archiving corpflowai-openhands-state volume (secret-looking filenames excluded) -> ${archive}"
 
-  # Use a throwaway helper container to read the named volume without
-  # requiring the OpenHands container itself to be running, and without a
-  # bind mount of anything outside the named volume.
+  # Use a throwaway helper container, spawned on the DEDICATED daemon, to
+  # read the named volume without requiring the OpenHands container itself
+  # to be running, and without a bind mount of anything outside the named
+  # volume.
   local tmp_container="corpflowai-openhands-backup-helper-${stamp}"
-  docker run --rm \
+  openhands_docker run --rm \
     --name "${tmp_container}" \
     -v corpflowai-openhands-state:/src:ro \
     -v "${OUT_DIR}:/dst" \
@@ -126,7 +139,7 @@ main() {
   if [[ "${INCLUDE_WORKSPACE}" -eq 1 ]]; then
     warn "--include-workspace requested — workspace contents may include arbitrary agent-fetched files; review before sharing this archive"
     local ws_archive="${OUT_DIR}/corpflowai-openhands-workspace-${stamp}.tar.gz"
-    docker run --rm \
+    openhands_docker run --rm \
       --name "${tmp_container}-ws" \
       -v corpflowai-openhands-workspace:/src:ro \
       -v "${OUT_DIR}:/dst" \

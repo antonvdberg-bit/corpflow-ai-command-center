@@ -8,6 +8,8 @@ doc is live. OpenHands is **not installed** on `corpflow-exec-01-u69678` or anyw
 
 **Companion docs:**
 
+- `docs/operations/OPENHANDS_DOCKER_ISOLATION.md` — the dedicated-rootless-daemon design that § 2 below's flow
+  diagram now assumes (2026-08-04, PR #747 Docker-isolation follow-up to #743).
 - `docs/operations/OPENHANDS_OPERATING_CHARTER.md` — permanent operating model, work routing, protected actions.
 - `docs/operations/OPENHANDS_IMPLEMENTATION_AND_OPERATIONS_RUNBOOK.md` — phased rollout (Phase 0–5) and Anton gates.
 - `docs/operations/OPENHANDS_INSTALL_RUNBOOK.md` — the operator install steps this architecture describes.
@@ -41,10 +43,18 @@ Dispatcher / control loop (#661 — GitHub Actions + existing Cursor/Codex activ
 OpenHands control plane (corpflowai-openhands-app container,
         loopback-bound 127.0.0.1:3000, private SSH-tunnel access only)
         │
-        ▼  (control plane spawns one task sandbox via the host Docker socket)
+        ▼  (control plane spawns one task sandbox via a DEDICATED, ROOTLESS Docker
+        │   daemon — socket $HOME/corpflowai-openhands/docker/docker.sock, data root
+        │   $HOME/corpflowai-openhands/docker-data — NEVER the box's primary
+        │   /var/run/docker.sock. See docs/operations/OPENHANDS_DOCKER_ISOLATION.md.
+        │   A systemd user slice, corpflowai-openhands.slice (MemoryMax=8G,
+        │   CPUQuota=300%), bounds this daemon and everything it spawns — the
+        │   total ceiling for control plane + one concurrent sandbox.)
         ▼
 Task sandbox (ghcr.io/openhands/agent-server:1.26.0-python,
-        ephemeral per task, disposable, holds the working tree for one packet only)
+        ephemeral per task, disposable, holds the working tree for one packet only,
+        spawned on the dedicated daemon — isolated from Uptime Kuma / ERPNext /
+        any other box workload, which stay on the box's separate primary daemon)
         │
         ▼
 Branch (openhands/<packet-id>-<short-slug>) + commits, scoped to the packet's allowed files
@@ -64,6 +74,15 @@ Review — Anton (or Cursor, for a specialist escalation) reviews the draft PR l
 **Every box in this flow already exists except the two OpenHands-specific boxes** (control plane + task
 sandbox). The dispatcher, GitHub, CI, and review steps are the same infrastructure #661 already uses for Cursor
 and Codex. OpenHands is designed to be a **third worker adapter**, not a parallel system.
+
+**Isolation summary (2026-08-04, #747):** the control plane and its sandboxes run entirely inside a **dedicated
+Docker daemon** that exists only for OpenHands — structurally separate from the box's primary Docker daemon that
+Uptime Kuma and (if installed) ERPNext use. A compromise anywhere in the control-plane-to-sandbox path can reach
+only the dedicated daemon's own containers/images/volumes; it has no daemon-level path to any other box
+workload. This narrows, but does not eliminate, the Docker-socket risk inherent to spawning sandbox containers
+at all — see `docs/operations/OPENHANDS_DOCKER_ISOLATION.md` for the full design and its disclosed residual
+risk (no native per-sandbox memory/CPU cap in the OSS `1.8` Docker path; the systemd slice's 8 GiB / 300% ceiling
+is a **total**, not per-sandbox, limit).
 
 ## 3. What we deliberately do NOT create
 
@@ -105,7 +124,10 @@ Phase 1** and require a fresh, separately-approved packet — the same "sameness
   evaluated path, a ChatGPT subscription-based Codex login — see
   `docs/operations/OPENHANDS_MODEL_AND_COST_POLICY.md`). Nothing inbound reaches the box because of this egress;
   `ops/openhands/compose.yaml`'s network is `internal: false` specifically to allow this one outbound path, not
-  to open any inbound listener.
+  to open any inbound listener. **(2026-08-04, #747)** the compose file's `host.docker.internal` mapping is
+  removed — there is no approved need for the control plane to reach a host-loopback-bound service; the
+  external LLM API call is a normal internet-egress path, not a host-loopback path. See
+  `docs/operations/OPENHANDS_DOCKER_ISOLATION.md` § 3 for the removal rationale.
 
 ## 5. Resource envelope (as documented in the reviewed package)
 
@@ -115,9 +137,10 @@ pinned app version `1.8`):
 | Component | CPU | RAM | Notes |
 |---|---|---|---|
 | Control plane (`corpflowai-openhands-app`) | `1.0` (compose `cpus:` limit) | `2 GiB` (compose `mem_limit:`) | Enforced by the compose file today. |
-| One task sandbox (guidance) | `2 CPU` | `4 GiB` typical, **6 GiB hard max** | **Not enforced by upstream `1.8`** — documented as operator policy; a future install runbook must translate this into explicit Docker resource flags on spawned sandbox containers if the app does not expose a native setting. |
-| Concurrency | **1 task sandbox at a time** | — | Deliberate v1 ceiling — see `docs/operations/OPENHANDS_OPERATING_RUNBOOK.md` § 3. |
-| **Total ceiling (v1)** | ~3 CPU | **~8 GiB** | Control plane + one concurrent sandbox. |
+| One task sandbox (guidance) | `2 CPU` | `4 GiB` typical, **6 GiB hard max** | **Not enforced by upstream `1.8`'s Docker self-host path** (Enterprise's Kubernetes runtime has a `MEMORY_LIMIT` equivalent; the Docker path does not) — documented as operator policy, not upstream-enforced. Disclosed residual gap, not solved in this round — see `docs/operations/OPENHANDS_DOCKER_ISOLATION.md` § 2.2; requires Anton's explicit acceptance per `OPENHANDS_ON_EXEC01_AUTHORIZATION_PACKET.md` § 1.1a. |
+| Concurrency | **1 task sandbox at a time** (`MAX_CONCURRENT_CONVERSATIONS=1`, app-enforced env var) | — | Deliberate v1 ceiling — see `docs/operations/OPENHANDS_OPERATING_RUNBOOK.md` § 3. |
+| Systemd ceiling (2026-08-04, #747) | `CPUQuota=300%` | `MemoryMax=8G` | Enforced by the `corpflowai-openhands.slice` systemd **user** slice wrapping the dedicated Docker daemon — a **total** ceiling for control plane + every concurrently-running sandbox, not a per-sandbox cap (see the row above). |
+| **Total ceiling (v1)** | ~3 CPU | **~8 GiB** | Control plane + one concurrent sandbox. Because there is no per-sandbox cap, a single misbehaving sandbox can in the worst case consume up to this entire total before the slice intervenes. |
 
 ### 5.1 Capacity contradiction — record, do not resolve here
 
@@ -162,3 +185,8 @@ above, that is itself evidence worth a JOURNAL row before proceeding.
 
 - **2026-08-04** — Initial architecture doc authored alongside the Phase 1 documentation set for #743. No
   installation. No carve-out. No live verification possible (nothing is live).
+- **2026-08-04 (PR #747, Docker isolation follow-up)** — § 2's flow diagram and prose updated to describe the
+  **dedicated rootless Docker daemon** (supersedes an implicit primary-socket assumption); § 4 notes
+  `host.docker.internal` removal; § 5's resource table adds the systemd-slice ceiling and the disclosed
+  per-sandbox resource-limit gap. See `docs/operations/OPENHANDS_DOCKER_ISOLATION.md` for the authoritative
+  design. No installation. No carve-out. No live verification possible (nothing is live).

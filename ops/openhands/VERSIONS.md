@@ -49,21 +49,73 @@ No third-party mirrors, blog posts, or unofficial registries were used to select
   function; this package does not select a provider (see `.env.example` and `config/openhands/config.example.toml`
   placeholders).
 
+## Docker isolation design (security follow-up for PR #747 — issue #743)
+
+**Full investigation record:** `docs/operations/OPENHANDS_DOCKER_ISOLATION.md`. Summary below.
+
+PR #747's original design mounted the **primary host** Docker socket (`/var/run/docker.sock`) directly into the
+control-plane container so it could spawn sandbox containers. That is a host-root-equivalent blast radius on
+compromise and is now **forbidden** in this package. Four options were evaluated for the replacement:
+
+| # | Option | Verdict |
+|---|---|---|
+| 1 | **Dedicated rootless Docker daemon** (own socket, own `--data-root`, own systemd slice) | **SELECTED** |
+| 2 | Docker socket-proxy in front of the primary socket | **REJECTED** for an initial carve-out — no evaluated proxy ACL can allow `ContainerCreate` (required to spawn sandboxes) while disallowing arbitrary `HostConfig.Binds` in the same request |
+| 3 | Primary host socket, direct mount (PR #747's original design) | **FORBIDDEN** going forward |
+| 4 | Kubernetes / gVisor / Firecracker-style per-task VM isolation | **NOT AVAILABLE** — that depth of native per-sandbox isolation is an OpenHands **Enterprise** (k8s-backed) capability, not available on the OSS `1.8` Docker path this package targets |
+
+**What changed as a result:**
+
+- `compose.yaml` mounts **only** a dedicated socket (`$OPENHANDS_HOME/docker/docker.sock` by default, never
+  `/var/run/docker.sock`) and sets `DOCKER_HOST` accordingly. See `ops/openhands/daemon/README.md`.
+- `extra_hosts: [host.docker.internal:host-gateway]` was **removed entirely**. Outbound calls to the operator's
+  chosen LLM API provider use normal container egress; no host-loopback service is required for that path.
+- `scripts/ops/openhands/lib/common.sh`'s `openhands_docker()` wrapper forces every OpenHands-owned Docker/Compose
+  command onto the dedicated daemon and fails closed if `DOCKER_HOST` (or the configured socket path) resolves to
+  the primary socket.
+- A new `scripts/ops/systemd/corpflowai-openhands.slice` + `corpflowai-openhands-dockerd.service` pair (both
+  INACTIVE) define the dedicated daemon's own systemd unit and the combined resource ceiling.
+- `scripts/ops/openhands/verify-dedicated-daemon.sh` (new) is a **live** check — it inspects a running dedicated
+  daemon (if any) to confirm its `DockerRootDir` is under `OPENHANDS_HOME` and that it cannot see any other
+  CorpFlowAI-managed container (Uptime Kuma, Beszel, n8n, ERPNext).
+
+**Docker Engine API operations OpenHands needs** (all against the dedicated daemon only): `Container` create /
+start / stop / remove / inspect / logs / wait (to spawn and manage each sandbox); `Image` pull (to fetch the
+agent-server image); `Network` create (per-sandbox network, if the app creates one); `Volume` create (per-task
+workspace, if the app uses a named volume rather than the fixed `corpflowai-openhands-workspace`). None of these
+require, or are granted, access to the primary host daemon.
+
+**Health endpoint:** `http://127.0.0.1:3000/health` (official liveness endpoint, not the bare `/` root) — see
+`ops/openhands/compose.yaml` healthcheck and `scripts/ops/openhands/health-check.sh`.
+
+**Capacity source of truth:** `scripts/ops/openhands/inspect-host-capacity.sh` only (read-only; reports PRIMARY
+host daemon inventory and DEDICATED daemon inventory in clearly separated sections). No other script or doc in
+this package is a capacity source of truth.
+
+**Sandbox resource-limit enforcement matrix:**
+
+| Limit | Mechanism | Enforced by | Residual risk |
+|---|---|---|---|
+| Concurrent sandbox tasks | `MAX_CONCURRENT_CONVERSATIONS=1` (app env) | Application-level, not kernel-enforced | App bug could exceed 1; total-ceiling slice below is the backstop |
+| Per-task wall-clock timeout | `SANDBOX_TIMEOUT=600` (app env) | Application-level | Same as above |
+| Per-task iteration ceiling | `MAX_ITERATIONS=40` (app env) | Application-level | Same as above |
+| Combined RAM / CPU / task-count ceiling for dedicated daemon + control plane + every sandbox | `scripts/ops/systemd/corpflowai-openhands.slice` (`MemoryMax=8G`, `CPUQuota=300%`, `TasksMax=2048`) | **Kernel cgroup**, real hard limit | None known — this is the actual backstop |
+| Per-sandbox native RAM/CPU limit (e.g. 4 GiB per spawned container via `HostConfig`) | **Not available** in the OSS `1.8` Docker deployment path | N/A | **Residual risk**: a single misbehaving sandbox could theoretically consume up to the full slice ceiling before the kernel OOMs it; this is bounded by the slice total, not by a per-container cap. Native per-sandbox `HostConfig` resource limits are an OpenHands **Enterprise** (k8s-backed runtime) feature per the docs pass above, not present in the OSS Docker path. |
+
 ## Known limitations (as of this pin, 2026-08-04)
 
-- The control plane requires a Docker-socket mount (`/var/run/docker.sock`) to spawn sandbox containers. This is
-  an upstream architectural requirement, not a misconfiguration in this package. See the `RISK` comments in
-  `compose.yaml` and the boundary checks in `scripts/ops/openhands/verify-sandbox-boundary.sh`.
-- Resource use of spawned sandbox containers is **not** enforced by the app itself in this pinned version; this
-  package documents a resource envelope (control ~1 CPU / 2 GiB; sandbox guidance 2 CPU / 4 GiB, hard max 6 GiB;
-  concurrency 1; total ceiling ~8 GiB) as **operator policy**, not as an upstream-enforced hard limit. Any future
-  install runbook must translate this into actual Docker resource flags on spawned sandbox containers if the
-  app does not expose a native setting for it in `1.8`.
+- Resource use of spawned sandbox containers is **not** enforced per-container by the app itself in this pinned
+  version — see the enforcement matrix above. The kernel-enforced combined ceiling
+  (`scripts/ops/systemd/corpflowai-openhands.slice`) is the real backstop; concurrency=1 + per-task timeout are
+  application-level policy, not kernel-enforced.
 - No production-grade auth/session hardening is assumed out of the box; loopback-only binding is this package's
   substitute control until (and unless) a proper auth layer is reviewed separately.
 - This package has not been run end-to-end (no install has happened); version compatibility is based on reading
   official docs only, not on a live smoke test. Any install runbook must re-verify against a real pull + boot
-  before being marked reviewed.
+  before being marked reviewed. In particular, whether rootless Docker's `daemon.json` honors a `cgroup-parent`
+  key the same way a rootful daemon would is **unverified** — see `ops/openhands/daemon/daemon.json.example`'s
+  `_cgroup_parent_note`; the systemd slice wrapping the dockerd unit itself is the mechanism this package actually
+  relies on, independent of that unresolved question.
 
 ## Pin policy
 

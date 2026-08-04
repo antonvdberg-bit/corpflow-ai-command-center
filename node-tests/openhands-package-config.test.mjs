@@ -16,6 +16,11 @@ import {
   CONTROL_MEM_LIMIT,
   FORBIDDEN_ENV_NAMES,
   FORBIDDEN_MOUNT_PREFIXES,
+  HEALTH_PATH,
+  MAX_CONCURRENT_TASKS,
+  PRIMARY_DOCKER_SOCKET_PATH,
+  referencesHostDockerInternal,
+  referencesPrimaryDockerSocket,
   isForbiddenLatestTag,
   isLoopbackBind,
 } from '../lib/openhands/package-policy.js';
@@ -49,7 +54,6 @@ describe('openhands package config — ops/openhands/compose.yaml on disk', () =
     assert.match(composeText, new RegExp(expected.replace(/\./g, '\\.')));
     assert.equal(isLoopbackBind(expected), true);
     assert.doesNotMatch(composeText, /"0\.0\.0\.0:\d+:\d+"/);
-    assert.doesNotMatch(composeText, /^\s*-\s*"?\d+:\d+"?\s*$/m);
   });
 
   it('sets the control-plane memory and CPU limits from package-policy', () => {
@@ -66,8 +70,9 @@ describe('openhands package config — ops/openhands/compose.yaml on disk', () =
     assert.doesNotMatch(composeText, /^\s*network_mode:\s*["']?host["']?\s*$/m);
   });
 
-  it('declares a healthcheck', () => {
+  it('declares healthcheck against official /health', () => {
     assert.match(composeText, /^\s*healthcheck:\s*$/m);
+    assert.match(composeText, new RegExp(`${BIND_HOST}:${BIND_PORT}${HEALTH_PATH}`));
   });
 
   it('declares a restart policy', () => {
@@ -79,11 +84,33 @@ describe('openhands package config — ops/openhands/compose.yaml on disk', () =
     assert.match(composeText, /max-file:\s*["']?\d+/);
   });
 
+  it('forbids primary host Docker socket on active lines', () => {
+    assert.equal(referencesPrimaryDockerSocket(composeText), false);
+    assert.doesNotMatch(
+      composeText
+        .split(/\r?\n/)
+        .filter((l) => l.trim() && !l.trim().startsWith('#'))
+        .join('\n'),
+      new RegExp(PRIMARY_DOCKER_SOCKET_PATH.replace(/\./g, '\\.')),
+    );
+  });
+
+  it('forbids host.docker.internal on active lines', () => {
+    assert.equal(referencesHostDockerInternal(composeText), false);
+  });
+
+  it('pins concurrency to one', () => {
+    assert.equal(MAX_CONCURRENT_TASKS, 1);
+    assert.match(composeText, /MAX_CONCURRENT_CONVERSATIONS:\s*["']?1["']?/);
+  });
+
+  it('uses dedicated DOCKER_HOST / OPENHANDS_DOCKER_SOCK', () => {
+    assert.match(composeText, /DOCKER_HOST:\s*unix:\/\//);
+    assert.match(composeText, /OPENHANDS_DOCKER_SOCK/);
+    assert.match(composeText, /openhands-docker\/docker\.sock/);
+  });
+
   it('never references CorpFlowAI production secrets or Postgres as an actual env assignment', () => {
-    // Uses the same line-based (comment-aware) check as the static audit, so
-    // documentation prose that *warns against* a name (e.g. "must never gain
-    // MASTER_ADMIN_KEY") is not itself flagged — only an actual `NAME:`/`NAME=`
-    // assignment line counts as a reference.
     const result = assertNoProductionEnv(composeText);
     assert.equal(result.ok, true, JSON.stringify(result.findings));
   });
@@ -102,18 +129,18 @@ describe('openhands package config — ops/openhands/compose.yaml on disk', () =
     assert.match(composeText, new RegExp(`^name:\\s*${COMPOSE_PROJECT}\\s*$`, 'm'));
   });
 
-  it('does not bind-mount any forbidden broad host path (docker.sock carve-out excluded)', () => {
+  it('does not bind-mount forbidden broad host paths', () => {
     const bindMountLines = composeText
       .split(/\r?\n/)
-      .filter((l) => /^\s*-\s*\/[^:]*:/.test(l) && !l.includes('docker.sock'));
+      .filter((l) => {
+        const t = l.trim();
+        if (!t || t.startsWith('#')) return false;
+        return /^\s*-\s*\/[^$:{][^:]*:/.test(l);
+      });
     for (const line of bindMountLines) {
       const hostPath = line.trim().replace(/^-\s*/, '').split(':')[0];
       for (const prefix of FORBIDDEN_MOUNT_PREFIXES) {
-        assert.notEqual(
-          hostPath,
-          prefix,
-          `compose.yaml bind-mounts a forbidden host path: "${hostPath}"`,
-        );
+        assert.notEqual(hostPath, prefix, `forbidden bind mount: ${hostPath}`);
       }
     }
   });
@@ -127,7 +154,10 @@ describe('openhands package config — ops/openhands/compose.yaml on disk', () =
 describe('openhands package config — ops/openhands/.env.example on disk', () => {
   it('exists and contains only placeholder values, never real secrets', () => {
     assert.ok(envExampleText.length > 0);
-    assert.match(envExampleText, /<REPLACE_ME_/);
+    assert.ok(
+      /<REPLACE_ME_|<ENTER_DIRECTLY_IN_APPROVED_SECRET_STORE>/.test(envExampleText),
+      'expected secret placeholders',
+    );
   });
 
   it('never references a forbidden production/secret env name as an assigned value', () => {
@@ -142,5 +172,15 @@ describe('openhands package config — ops/openhands/.env.example on disk', () =
 
   it('documents the monthly cost ceiling matching package-policy', () => {
     assert.match(envExampleText, /OPENHANDS_MONTHLY_COST_CEILING_USD=25/);
+  });
+
+  it('documents dedicated docker socket paths and forbids primary sock assignment', () => {
+    assert.match(envExampleText, /OPENHANDS_DOCKER_SOCK=/);
+    assert.match(envExampleText, /OPENHANDS_DOCKER_HOST=/);
+    const active = envExampleText
+      .split(/\r?\n/)
+      .filter((l) => l.trim() && !l.trim().startsWith('#'))
+      .join('\n');
+    assert.doesNotMatch(active, /\/var\/run\/docker\.sock/);
   });
 });

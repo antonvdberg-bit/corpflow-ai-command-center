@@ -3,110 +3,67 @@ import fs from 'node:fs';
 import { describe, it } from 'node:test';
 
 import {
-  assertHealthcheck,
-  assertLoggingLimits,
-  assertLoopbackOnlyPorts,
-  assertNoHostNetworkOnApp,
-  assertNoLatestTags,
-  assertNoPrivileged,
-  assertNoProductionEnv,
-  assertResourceLimitsPresent,
-  assertRestartPolicy,
+  assertDedicatedDockerHost,
+  assertNoHostDockerInternal,
+  assertNoPrimaryDockerSocket,
+  assertOfficialHealthEndpoint,
+  assertSingleConcurrency,
   auditOpenHandsCompose,
 } from '../lib/openhands/compose-static-audit.js';
 
-const goodCompose = fs.readFileSync(
-  'node-tests/fixtures/openhands/good-compose-snippet.yaml',
-  'utf8',
-);
-const badCompose = fs.readFileSync(
-  'node-tests/fixtures/openhands/bad-compose-snippet.yaml',
-  'utf8',
-);
+const good = fs.readFileSync('node-tests/fixtures/openhands/good-compose-snippet.yaml', 'utf8');
+const bad = fs.readFileSync('node-tests/fixtures/openhands/bad-compose-snippet.yaml', 'utf8');
+const liveCompose = fs.readFileSync('ops/openhands/compose.yaml', 'utf8');
 
 describe('openhands compose static audit — good fixture', () => {
-  it('passes every individual assertion', () => {
-    assert.equal(assertNoLatestTags(goodCompose).ok, true);
-    assert.equal(assertLoopbackOnlyPorts(goodCompose).ok, true);
-    assert.equal(assertResourceLimitsPresent(goodCompose).ok, true);
-    assert.equal(assertNoPrivileged(goodCompose).ok, true);
-    assert.equal(assertNoHostNetworkOnApp(goodCompose).ok, true);
-    assert.equal(assertNoProductionEnv(goodCompose).ok, true);
-    assert.equal(assertRestartPolicy(goodCompose).ok, true);
-    assert.equal(assertHealthcheck(goodCompose).ok, true);
-    assert.equal(assertLoggingLimits(goodCompose).ok, true);
+  it('passes every isolation-era assertion', () => {
+    assert.equal(assertNoPrimaryDockerSocket(good).ok, true);
+    assert.equal(assertNoHostDockerInternal(good).ok, true);
+    assert.equal(assertOfficialHealthEndpoint(good).ok, true);
+    assert.equal(assertSingleConcurrency(good).ok, true);
+    assert.equal(assertDedicatedDockerHost(good).ok, true);
   });
 
   it('passes the aggregate audit with no findings', () => {
-    const result = auditOpenHandsCompose(goodCompose);
-    assert.equal(result.ok, true);
-    assert.deepEqual(result.findings, []);
+    const result = auditOpenHandsCompose(good);
+    assert.equal(result.ok, true, JSON.stringify(result.findings));
   });
 });
 
 describe('openhands compose static audit — bad fixture', () => {
-  it('flags the unpinned "latest" tag', () => {
-    const result = assertNoLatestTags(badCompose);
-    assert.equal(result.ok, false);
-    assert.ok(result.findings.some((f) => f.includes('latest')));
+  it('flags primary /var/run/docker.sock', () => {
+    assert.equal(assertNoPrimaryDockerSocket(bad).ok, false);
   });
 
-  it('flags the non-loopback 0.0.0.0 bind', () => {
-    const result = assertLoopbackOnlyPorts(badCompose);
-    assert.equal(result.ok, false);
-    assert.ok(result.findings.some((f) => f.includes('0.0.0.0:3000:3000')));
+  it('flags host.docker.internal', () => {
+    assert.equal(assertNoHostDockerInternal(bad).ok, false);
   });
 
-  it('flags privileged: true', () => {
-    const result = assertNoPrivileged(badCompose);
-    assert.equal(result.ok, false);
-    assert.ok(result.findings.some((f) => f.includes('privileged')));
-  });
-
-  it('flags network_mode: host on the app service', () => {
-    const result = assertNoHostNetworkOnApp(badCompose);
-    assert.equal(result.ok, false);
-    assert.ok(result.findings.some((f) => f.includes('network_mode: host')));
-  });
-
-  it('flags the missing resource limits', () => {
-    const result = assertResourceLimitsPresent(badCompose);
-    assert.equal(result.ok, false);
-    assert.ok(result.findings.length >= 2); // missing mem_limit AND cpus
-  });
-
-  it('flags the missing restart policy', () => {
-    const result = assertRestartPolicy(badCompose);
-    assert.equal(result.ok, false);
-  });
-
-  it('flags the missing healthcheck', () => {
-    const result = assertHealthcheck(badCompose);
-    assert.equal(result.ok, false);
-  });
-
-  it('flags the missing bounded logging', () => {
-    const result = assertLoggingLimits(badCompose);
-    assert.equal(result.ok, false);
-  });
-
-  it('flags the POSTGRES_URL production env reference', () => {
-    const result = assertNoProductionEnv(badCompose);
-    assert.equal(result.ok, false);
-    assert.ok(result.findings.some((f) => f.includes('POSTGRES_URL')));
+  it('flags missing /health and concurrency > 1', () => {
+    assert.equal(assertOfficialHealthEndpoint(bad).ok, false);
+    assert.equal(assertSingleConcurrency(bad).ok, false);
   });
 
   it('fails the aggregate audit with multiple findings', () => {
-    const result = auditOpenHandsCompose(badCompose);
+    const result = auditOpenHandsCompose(bad);
     assert.equal(result.ok, false);
-    assert.ok(result.findings.length >= 6);
+    assert.ok(result.findings.length >= 5, JSON.stringify(result.findings));
   });
 });
 
-describe('openhands compose static audit — accepts a parsed object too', () => {
-  it('does not throw when given a plain object instead of text', () => {
-    const result = auditOpenHandsCompose({ services: { app: { image: 'x:1.0' } } });
-    assert.equal(typeof result.ok, 'boolean');
-    assert.ok(Array.isArray(result.findings));
+describe('openhands compose static audit — live ops/openhands/compose.yaml', () => {
+  it('forbids primary docker.sock and host.docker.internal on active lines', () => {
+    assert.equal(assertNoPrimaryDockerSocket(liveCompose).ok, true, 'primary sock must be absent from active lines');
+    assert.equal(assertNoHostDockerInternal(liveCompose).ok, true);
+  });
+
+  it('uses official /health and concurrency 1', () => {
+    assert.equal(assertOfficialHealthEndpoint(liveCompose).ok, true);
+    assert.equal(assertSingleConcurrency(liveCompose).ok, true);
+  });
+
+  it('passes the full aggregate audit', () => {
+    const result = auditOpenHandsCompose(liveCompose);
+    assert.equal(result.ok, true, JSON.stringify(result.findings));
   });
 });

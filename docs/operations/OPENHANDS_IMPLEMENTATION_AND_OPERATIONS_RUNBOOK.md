@@ -10,6 +10,12 @@ model/cost policy, rollback/uninstall, work-packet template, synthetic validatio
 and ADR — lives under `docs/operations/OPENHANDS_*.md` and `docs/execution/OPENHANDS_*.md`; this document
 remains the phase-by-phase narrative, those documents are the operational detail for Phase 1 specifically.
 
+**Docker isolation follow-up (2026-08-04, PR [#747](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/747)):**
+the Phase 2 "private installation" steps below (§ Gate 2 onward) now depend on the **dedicated rootless Docker
+daemon** design in **`docs/operations/OPENHANDS_DOCKER_ISOLATION.md`** — the authoritative Docker-isolation
+doc for this package. That doc supersedes the original "mount the primary host socket" assumption implicit in
+earlier drafts of this narrative; read it before treating any Phase 2 Docker step as settled.
+
 ## Objective
 
 Install and operationalise OpenHands as a private, server-hosted internal AI worker for CorpFlowAI without exposing production secrets, client data, Core, tenant surfaces, or Postgres production access.
@@ -70,6 +76,11 @@ The PR must not contain secrets, production credentials, client data, or authori
 ### Phase 2 — private installation
 
 Requires explicit Anton approval.
+
+**Docker isolation is a precondition of this phase, not a step within it:** per
+`docs/operations/OPENHANDS_DOCKER_ISOLATION.md`, step 1 below installs the reviewed package **against a
+dedicated, rootless Docker daemon** (never the box's primary daemon) — see
+`docs/operations/OPENHANDS_INSTALL_RUNBOOK.md` § 3 for the daemon-setup sub-steps that precede the app install.
 
 After approval:
 

@@ -7,6 +7,14 @@
 # issue comment (e.g. issue #743) as review evidence. Never modifies
 # anything and never prints secret values.
 #
+# Security follow-up for PR #747 (dedicated Docker isolation design — see
+# docs/operations/OPENHANDS_DOCKER_ISOLATION.md): the "effective compose
+# config" section below resolves ${OPENHANDS_DOCKER_SOCK}-shaped variables
+# from the ALREADY-EXPORTED environment (lib/common.sh) — it does not
+# contact any daemon (primary or dedicated) to do so. The health/preflight/
+# boundary sections it shells out to (health-check.sh, preflight.sh,
+# verify-*.sh) already enforce dedicated-daemon-only access themselves.
+#
 # Redaction approach for `docker compose config`: the rendered config can
 # include resolved environment variable VALUES if a real .env is present on
 # the host. This script strips any line matching a KEY=VALUE pattern for a
@@ -110,6 +118,11 @@ main() {
     bash "${SCRIPT_DIR}/verify-private-bind.sh" 2>&1 || true
     bash "${SCRIPT_DIR}/verify-sandbox-boundary.sh" 2>&1 || true
     bash "${SCRIPT_DIR}/verify-no-production-access.sh" 2>&1 || true
+    printf '```\n'
+
+    printf '\n## Dedicated Docker daemon verification\n\n'
+    printf '```\n'
+    bash "${SCRIPT_DIR}/verify-dedicated-daemon.sh" 2>&1 || true
     printf '```\n'
   } > "${OUT_FILE}"
 

@@ -1,9 +1,9 @@
 # ADR — OpenHands on `corpflow-exec-01-u69678` (private delivery worker, Phase 1)
 
 **Date:** 2026-08-04
-**Status:** PROPOSED — pending Anton's merge of the authorization packet `docs/execution/OPENHANDS_ON_EXEC01_AUTHORIZATION_PACKET.md`. Becomes ACCEPTED on merge. **Not yet authorized.**
+**Status:** PROPOSED — pending Anton's merge of the authorization packet `docs/execution/OPENHANDS_ON_EXEC01_AUTHORIZATION_PACKET.md`. Becomes ACCEPTED on merge. **Not yet authorized.** As of the #747 Docker-isolation follow-up (same date), this status remains PROPOSED — the isolation design in § 1.1 / § 2 below is a **hard condition** of any future ACCEPTED status, not a reason to accept early.
 **Supersedes:** none.
-**Related:** `JE-2026-08-04-N` (companion journal row); [#743](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/743) (controlling issue); [#661](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/661) (parent — active agent delivery control loop); [#249](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/249) (Operator Bridge coordination); `docs/operations/OPENHANDS_OPERATING_CHARTER.md` (doctrine that named OpenHands as a candidate third worker); `docs/decisions/20260615-uptime-kuma-on-exec01.md` (the only prior ADR to carry a § 5.5 carve-out — structural model for this one, **not** a precedent that widens to cover OpenHands).
+**Related:** `JE-2026-08-04-N` (companion journal row); [#743](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/743) (controlling issue); [#747](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/747) (Docker-isolation security follow-up); [#661](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/661) (parent — active agent delivery control loop); [#249](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/249) (Operator Bridge coordination); `docs/operations/OPENHANDS_DOCKER_ISOLATION.md` (the dedicated-rootless-Docker-daemon design this ADR's § 1.1/§ 2/§ 4 now require); `docs/operations/OPENHANDS_OPERATING_CHARTER.md` (doctrine that named OpenHands as a candidate third worker); `docs/decisions/20260615-uptime-kuma-on-exec01.md` (the only prior ADR to carry a § 5.5 carve-out — structural model for this one, **not** a precedent that widens to cover OpenHands).
 **Authors:** Anton (operator) + Assistant (Cursor at L1).
 
 ---
@@ -37,12 +37,21 @@ as **pending/proposed** artifacts — none of them claim OpenHands is live.
 ### 1.1 Why this is not "just another Kuma"
 
 Uptime Kuma has no host-level access beyond its own container and a loopback port. **OpenHands, by contract
-with `docker.openhands.dev/openhands/openhands:1.8`, requires a bind-mount of `/var/run/docker.sock` on the
-control-plane container so it can spawn per-task sandbox containers.** A process with access to the Docker
-socket has **host-root-equivalent** capability — it can create privileged containers, mount arbitrary host
-paths, and escape the container boundary. This is not a hypothetical; it is documented plainly in
+with `docker.openhands.dev/openhands/openhands:1.8`, requires a Docker-socket mount on the control-plane
+container so it can spawn per-task sandbox containers.** A process with access to a Docker socket has
+**daemon-root-equivalent** capability — it can create privileged containers, mount arbitrary host paths the
+daemon can see, and escape the container boundary. This is not a hypothetical; it is documented plainly in
 `docs/operations/OPENHANDS_SECURITY_MODEL.md` § 3, and it is the single largest difference between this ADR and
 the Kuma precedent. Anton must read and accept that section — not just this ADR — before approving.
+
+**(2026-08-04, #747 Docker-isolation follow-up):** this ADR's authorization is now **conditioned** on that
+socket being a **dedicated, rootless Docker daemon** (`$HOME/corpflowai-openhands/docker/docker.sock`,
+never the box's primary `/var/run/docker.sock`) per `docs/operations/OPENHANDS_DOCKER_ISOLATION.md`. Mounting
+the primary socket is out of scope for this ADR entirely — it would be a materially larger blast radius
+requiring its own, separate ADR, not a variant of this one. The dedicated-daemon design narrows, but does not
+eliminate, the daemon-root-equivalent risk above; § 4 below states the residual risk plainly, including a
+disclosed gap (no native per-sandbox memory/CPU cap in the OSS `1.8` Docker path) that Anton must explicitly
+accept, not merely notice, as a condition of any future ACCEPTED status.
 
 ## 2. Decision
 
@@ -63,8 +72,11 @@ Specifically:
   loopback only, no public port. Operator UI access is via SSH local-port-forward (mirroring the pattern
   already proven for Kuma and ERPNext), e.g. `ssh -L 3000:localhost:3000 anton@<box-ip>`. Persistent state in a
   named volume/bind-mount under the operator's home directory. Per-task sandbox containers are spawned
-  on-demand via the mounted Docker socket, are ephemeral, and are torn down after each task per
-  `docs/operations/OPENHANDS_SECURITY_MODEL.md` § 6.
+  on-demand via a **dedicated, rootless Docker daemon** — socket `$HOME/corpflowai-openhands/docker/docker.sock`,
+  data root `$HOME/corpflowai-openhands/docker-data`, **never** the box's primary `/var/run/docker.sock` — are
+  ephemeral, and are torn down after each task per `docs/operations/OPENHANDS_SECURITY_MODEL.md` § 6 and
+  `docs/operations/OPENHANDS_DOCKER_ISOLATION.md`. A systemd user slice, `corpflowai-openhands.slice`
+  (`MemoryMax=8G`, `CPUQuota=300%`), bounds the dedicated daemon's total resource use.
 - **Concurrency:** exactly **one** task sandbox at a time (v1 hard ceiling, not an upstream default) — see
   `docs/operations/OPENHANDS_OPERATING_RUNBOOK.md` § 3.
 - **Model/cost path:** API-key-based LLM access via LiteLLM (recommended fail-safe default), USD 25/month
@@ -136,7 +148,7 @@ Docker exception):
 
 | Threat | Likelihood | Impact | Mitigation |
 |---|---|---|---|
-| Docker-socket mount lets a compromised or misbehaving OpenHands process escalate to host-root-equivalent access. | Medium | **Critical** (full box compromise) | This is the accepted, documented, honest risk of running this tool at all — see `docs/operations/OPENHANDS_SECURITY_MODEL.md` § 3. Mitigations: no privileged flag on spawned sandboxes, no host-network mode for the app container, explicit mount exclusions (no `.ssh`, no CorpFlow secret paths, no other Docker volumes), least-privilege GitHub credential so even a full compromise cannot reach `main` directly. Residual risk is not zero and is disclosed as such — this is not a "solved" risk, it is an **accepted** one. |
+| Docker-socket mount lets a compromised or misbehaving OpenHands process escalate to daemon-root-equivalent access. | Medium | **High** (full compromise of the dedicated Docker daemon's own scope — no longer full box compromise, see mitigation) | **(2026-08-04, #747)** Narrowed from the original "critical / full box compromise" rating by the dedicated-rootless-Docker-daemon design — see `docs/operations/OPENHANDS_DOCKER_ISOLATION.md`. A compromise can reach the dedicated daemon's own containers/images/volumes only; it has no daemon-level path to Kuma, ERPNext, or any other box workload, because they run on the box's separate primary daemon. Mitigations: no privileged flag on spawned sandboxes, no host-network mode for the app container, explicit mount exclusions (no `.ssh`, no CorpFlow secret paths, no other Docker volumes), least-privilege GitHub credential so even a full compromise cannot reach `main` directly, rootless mode so the dedicated daemon itself is not Linux `root`. **Residual, disclosed, not solved:** no native per-sandbox 4 GiB `HostConfig` cap in the OSS `1.8` Docker path — the systemd slice's 8 GiB / 300% ceiling is a total, not per-sandbox, limit; Anton must explicitly accept this specific gap per `docs/execution/OPENHANDS_ON_EXEC01_AUTHORIZATION_PACKET.md` § 1.1a. |
 | Public-internet exposure of the OpenHands UI or agent-server port. | Low | High (unauthenticated task submission / code exfiltration) | Bind to `127.0.0.1:3000` only; UI access via SSH local-port-forward; no public DNS, no reverse proxy. Verified at install time per `docs/operations/OPENHANDS_INSTALL_RUNBOOK.md` § 6. |
 | GitHub credential over-scoped beyond the documented least-privilege set. | Medium | High (unintended repo access, e.g. ability to touch other repos or merge to `main`) | Recommend a repo-scoped GitHub App with exactly `contents: write`, `issues: read`, `pull_requests: write`, no admin, no merge on `main`; install runbook requires confirming actual configured scopes before real dispatch. |
 | LLM spend runs past the USD 25/month ceiling before the fail-closed gate is proven. | Low–Medium | Low–Medium (unexpected spend, not a security breach) | `docs/operations/OPENHANDS_MODEL_AND_COST_POLICY.md` § 4 fail-closed behavior is a required install-time check; synthetic validation runs under the ceiling before production dispatch. |
@@ -201,14 +213,18 @@ a new one? does it depend on n8n?) rather than assumed here.
 
 | Alternative | Why it was considered | Why rejected for this round |
 |---|---|---|
-| Run OpenHands without Docker-socket access (a "no sandbox" mode, if one exists upstream). | Would eliminate the single largest risk in this ADR. | Not confirmed as a supported, maintained mode in the pinned `1.8` app version per the official docs reviewed 2026-08-04; would need separate upstream research before being proposed as the actual install shape. Noted as a follow-up question for the install runbook, not resolved here. |
-| A dedicated, separate VM for OpenHands (isolate the Docker-socket blast radius away from Kuma/ERPNext). | Cleanest isolation; a compromise of the OpenHands host would not threaten Kuma's monitoring visibility. | Costs another paid host; Phase 1 budget assumption is "use the server we already provisioned." Reconsider if/when the Docker-socket risk is judged unacceptable to share a host with other named exceptions. |
+| Run OpenHands without Docker-socket access (a "no sandbox" mode, if one exists upstream). | Would eliminate the single largest risk in this ADR. | Not confirmed as a supported, maintained mode in the pinned `1.8` app version per the official docs reviewed 2026-08-04; would need separate upstream research before being proposed as the actual install shape. Noted as a follow-up question for the install runbook, not resolved here. Unchanged by the #747 follow-up. |
+| Docker socket proxy in front of the primary daemon (e.g. `linuxserver/socket-proxy`), instead of a dedicated daemon. | Narrows the API surface without needing a second daemon. | **Evaluated and rejected in the #747 follow-up** — see `docs/operations/OPENHANDS_DOCKER_ISOLATION.md` § 6. Still fronts the primary daemon; a proxy compromise or misconfiguration still exposes every other box workload sharing that daemon. Remains a possible defense-in-depth addition **on top of** the dedicated daemon in a future round, not a substitute for it. |
+| **Dedicated, rootless Docker daemon used only by OpenHands (selected, 2026-08-04 / #747).** | Structurally separates OpenHands' Docker blast radius from Kuma/ERPNext/every other box workload without provisioning a new host; rootless mode additionally removes host-root execution for the daemon process. | **Selected as the Phase 1 Docker-isolation shape.** Narrows but does not eliminate daemon-root-equivalent risk (§ 4); discloses a real, unsolved per-sandbox resource-limit gap requiring Anton's explicit acceptance (`docs/execution/OPENHANDS_ON_EXEC01_AUTHORIZATION_PACKET.md` § 1.1a). See `docs/operations/OPENHANDS_DOCKER_ISOLATION.md` for the full design and comparison against the alternatives in this table. |
+| A dedicated, separate VM for OpenHands (isolate the Docker-socket blast radius away from Kuma/ERPNext). | Cleanest isolation; a compromise of the OpenHands host would not threaten Kuma's monitoring visibility. | Costs another paid host; Phase 1 budget assumption is "use the server we already provisioned." The dedicated-daemon design (row above) is judged sufficient narrowing for Phase 1; reconsider a dedicated VM if the dedicated-daemon boundary is later judged inadequate in practice. |
 | ChatGPT Plus/Pro `subscription_login` path instead of API-key billing. | Simpler billing, potentially cheaper for light usage. | Business/Team plan support is **not documented** by upstream as of the 2026-08-04 research pass — verdict UNCLEAR; the API-key route is the fail-safe default per `docs/operations/OPENHANDS_MODEL_AND_COST_POLICY.md` § 2. Plus/Pro subscription-login remains an optional, separately-validated path, not the default. |
 | Do nothing in Phase 1; revisit after Uptime Kuma's carve-out has run longer and proven the § 10 gate is durable. | Lowest-risk option; lets one exception "bed in" before adding a second, riskier one. | Leaves the #661 third-worker doctrine as docs-only indefinitely; Anton has already asked for Phase 1 documentation to be produced now so the decision can be made deliberately, not by default. This ADR does not force approval — it only makes the decision reviewable. |
 | Fine-grained PAT instead of a GitHub App. | Simpler to set up; no app registration flow. | `docs/operations/OPENHANDS_SECURITY_MODEL.md` § 7 compares both and recommends the GitHub App for cleaner permission boundaries and easier revocation (uninstall the app vs. hunt down and revoke a PAT); PAT remains an acceptable fallback if the App path proves impractical at install time. |
 
 ## 9. References
 
+- `docs/operations/OPENHANDS_DOCKER_ISOLATION.md` (2026-08-04, #747 Docker-isolation follow-up — the dedicated
+  rootless Docker daemon design that § 1.1 / § 2 / § 4 / § 8 above now require as a hard ADR condition).
 - `docs/operations/OPENHANDS_OPERATING_CHARTER.md` (doctrine naming OpenHands as a candidate third worker).
 - `docs/operations/OPENHANDS_ARCHITECTURE.md` (target flow, resource envelope, capacity contradiction detail).
 - `docs/operations/OPENHANDS_SECURITY_MODEL.md` § 3 (Docker-socket risk — read before approving), § 7 (GitHub
@@ -233,15 +249,19 @@ a new one? does it depend on n8n?) rather than assumed here.
 - `docs/execution/CORPFLOW_AUTONOMOUS_ACTIONS_POLICY.md` § 3 (Anton's merge of this PR is the AAP § 3 gate — a
   further, separate go-ahead is still required before any install command runs).
 - [#743](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/743),
+  [#747](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/747) (Docker-isolation follow-up),
   [#661](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/661),
   [#249](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/249).
-- `docs/decisions/JOURNAL.md` row `JE-2026-08-04-N` (companion journal row added by this round).
+- `docs/decisions/JOURNAL.md` row `JE-2026-08-04-N` (companion journal row added by this round); row
+  `JE-2026-08-04-2` (or next available) for the #747 Docker-isolation follow-up specifically.
 
 ## 10. Decision record
 
-- **Status changes:** PROPOSED (2026-08-04, this commit) → ACCEPTED (on Anton's merge of the authorization
-  packet + this ADR) → SUPERSEDED (by a future ADR if OpenHands is ever replaced or this carve-out is
-  widened/narrowed).
+- **Status changes:** PROPOSED (2026-08-04, this commit) → **still PROPOSED** as of the #747 Docker-isolation
+  follow-up (same date) — the dedicated-daemon condition in § 1.1/§ 2/§ 4/§ 8 is a hard requirement layered onto
+  this still-pending decision, not itself an acceptance event → ACCEPTED (on Anton's merge of the authorization
+  packet + this ADR, **with** the § 1.1a condition satisfied) → SUPERSEDED (by a future ADR if OpenHands is ever
+  replaced or this carve-out is widened/narrowed).
 - **Approver:** Anton (sole approver per `docs/execution/CORPFLOW_AUTONOMOUS_ACTIONS_POLICY.md` § 3 for any L3
   surface change).
 - **Reviewer:** Anton (operator).

@@ -9,6 +9,14 @@
 # This script exists so any future install can be continuously re-verified
 # against the loopback-only rule, not just checked once at install time.
 #
+# Note on the dedicated-daemon isolation design (docs/operations/
+# OPENHANDS_DOCKER_ISOLATION.md): this check is host-port-based (ss/netstat
+# against 127.0.0.1:${OPENHANDS_PORT}), not a Docker API call, so it does NOT
+# go through the openhands_docker() wrapper in lib/common.sh — there is no
+# daemon (primary or dedicated) to target. It is unaffected by which daemon
+# spawned the listening process; the loopback-only rule applies identically
+# either way. lib/common.sh is still sourced for say/warn/die logging only.
+#
 # Usage:
 #   bash scripts/ops/openhands/verify-private-bind.sh
 #   OPENHANDS_PORT=3000 bash scripts/ops/openhands/verify-private-bind.sh

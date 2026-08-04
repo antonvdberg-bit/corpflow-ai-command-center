@@ -6,8 +6,9 @@ describe how an install *would* be shaped **if** a future, separate authorizatio
 
 **Controlling issue:** [#743](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/743)
 
-**Do not treat any file in this directory, or under `scripts/ops/openhands/`, `scripts/ops/systemd/corpflowai-openhands*`,
-or `config/openhands/`, as evidence that OpenHands is installed, configured with real credentials, or reachable.**
+**Do not treat any file in this directory (including `ops/openhands/daemon/`), or under `scripts/ops/openhands/`,
+`scripts/ops/systemd/corpflowai-openhands*`, or `config/openhands/`, as evidence that OpenHands is installed,
+configured with real credentials, or reachable.**
 
 ## Why this is INACTIVE
 
@@ -25,22 +26,28 @@ neither exists yet.**
 |---|---|
 | `ops/openhands/README.md` | This file — status, scope, do-not list |
 | `ops/openhands/VERSIONS.md` | Pinned image versions, sources, compatibility notes, pin policy |
-| `ops/openhands/compose.yaml` | Reviewed Docker Compose definition (loopback-only, not deployed) |
+| `ops/openhands/compose.yaml` | Reviewed Docker Compose definition (loopback-only, DEDICATED Docker daemon only, not deployed) |
 | `ops/openhands/compose.override.example.yaml` | Optional local-debug override example (still loopback) |
 | `ops/openhands/.env.example` | Placeholder-only env file — copy, fill from an approved secret store, never commit |
-| `scripts/ops/openhands/lib/common.sh` | Shared shell helpers (logging, confirm, resource-name allowlist) |
-| `scripts/ops/openhands/inspect-host-capacity.sh` | Read-only host capacity capture (CPU/RAM/disk/docker) |
-| `scripts/ops/openhands/preflight.sh` | Pre-install sanity checks (docker present, port free, disk headroom) |
+| `ops/openhands/daemon/README.md` | Dedicated rootless Docker daemon design — why it was selected over the alternatives |
+| `ops/openhands/daemon/daemon.json.example` | Example rootless-`dockerd` config (dedicated `data-root`, Unix-socket-only) |
+| `ops/openhands/daemon/dockerd-rootless.service.example` | Pointer to the real systemd unit under `scripts/ops/systemd/` |
+| `scripts/ops/openhands/lib/common.sh` | Shared shell helpers (logging, confirm, resource-name allowlist, `openhands_docker()` dedicated-daemon wrapper) |
+| `scripts/ops/openhands/inspect-host-capacity.sh` | Read-only host capacity capture (CPU/RAM/disk; PRIMARY daemon inventory + DEDICATED daemon inventory, clearly labeled) |
+| `scripts/ops/openhands/preflight.sh` | Pre-install sanity checks (docker present, port free, disk headroom, dedicated-daemon isolation rules) |
+| `scripts/ops/openhands/verify-dedicated-daemon.sh` | Live check that the dedicated Docker daemon is isolated (not the primary socket, no foreign resources visible) |
 | `scripts/ops/openhands/verify-private-bind.sh` | Fails if OpenHands would be reachable on a non-loopback address |
-| `scripts/ops/openhands/verify-sandbox-boundary.sh` | Fails on privileged mode, host networking, or overly broad mounts |
-| `scripts/ops/openhands/verify-no-production-access.sh` | Fails if compose/env reference production secrets or Postgres |
-| `scripts/ops/openhands/health-check.sh` | Container + loopback HTTP health check (silent success, noisy fail) |
+| `scripts/ops/openhands/verify-sandbox-boundary.sh` | Fails on privileged mode, host networking, primary-socket mounts, or overly broad mounts |
+| `scripts/ops/openhands/verify-no-production-access.sh` | Fails if compose/env reference production secrets, Postgres, the primary socket, or `host.docker.internal` |
+| `scripts/ops/openhands/health-check.sh` | Container + loopback `/health` HTTP check (silent success, noisy fail) |
 | `scripts/ops/openhands/backup-state.sh` | Archives sanitised OpenHands state (config, not task workspaces) |
-| `scripts/ops/openhands/rollback.sh` | Stops/disables only named `corpflowai-openhands*` resources |
-| `scripts/ops/openhands/uninstall.sh` | Removes only named `corpflowai-openhands*` containers/networks/volumes |
+| `scripts/ops/openhands/rollback.sh` | Stops/disables only named `corpflowai-openhands*` resources on the dedicated daemon |
+| `scripts/ops/openhands/uninstall.sh` | Removes only named `corpflowai-openhands*` containers/networks/volumes on the dedicated daemon |
 | `scripts/ops/openhands/collect-sanitized-evidence.sh` | Gathers redacted evidence for a PR/issue comment |
-| `scripts/ops/openhands/install.sh` | Entry point — `--check` (default), `--install` (gated), `--verify`, `--rollback` |
-| `scripts/ops/systemd/corpflowai-openhands.service` | User systemd unit wrapping `docker compose up -d` (not enabled) |
+| `scripts/ops/openhands/install.sh` | Entry point — `--check` (default), `--install` (gated, dedicated-daemon preflight required), `--verify`, `--rollback` |
+| `scripts/ops/systemd/corpflowai-openhands.slice` | Combined resource ceiling (`MemoryMax=8G`, `CPUQuota=300%`, `TasksMax=2048`) — not enabled |
+| `scripts/ops/systemd/corpflowai-openhands-dockerd.service` | User systemd unit for the DEDICATED rootless Docker daemon (not enabled) |
+| `scripts/ops/systemd/corpflowai-openhands.service` | User systemd unit wrapping `docker compose up -d` against the dedicated daemon (not enabled) |
 | `scripts/ops/systemd/corpflowai-openhands-health.service` | Oneshot health-check unit (not enabled) |
 | `scripts/ops/systemd/corpflowai-openhands-health.timer` | Timer for the health unit (not enabled — Phase 2+) |
 | `config/openhands/config.example.toml` | Example OpenHands `config.toml` (placeholders only) |
@@ -48,6 +55,7 @@ neither exists yet.**
 | `config/openhands/work-packet.schema.json` | JSON Schema for work packets dispatched to an OpenHands worker |
 | `config/openhands/model-routing.example.yaml` | Example low-cost/high-cost model routing policy |
 | `config/openhands/cost-policy.example.yaml` | Example monthly cost ceiling + soft/fail-closed thresholds |
+| `docs/operations/OPENHANDS_DOCKER_ISOLATION.md` | Full investigation record for the dedicated-daemon decision (options evaluated, API surface, residual risks) |
 
 ## Do not
 
@@ -57,8 +65,13 @@ neither exists yet.**
 - Do **not** copy `.env.example` to a real `.env` with live credentials outside an approved secret store.
 - Do **not** bind any port other than `127.0.0.1:3000`.
 - Do **not** enable the systemd units under `scripts/ops/systemd/` on any host.
-- Do **not** treat the Docker-socket mount in `compose.yaml` as low-risk — it is a documented RISK (see
-  `VERSIONS.md` and inline compose comments), required by OpenHands to spawn sandbox containers.
+- Do **not** mount the **primary host** Docker socket (`/var/run/docker.sock`) anywhere in this package. Per the
+  security follow-up for PR #747 (issue #743), OpenHands must use a **dedicated, rootless** Docker daemon — see
+  `ops/openhands/daemon/README.md` and `docs/operations/OPENHANDS_DOCKER_ISOLATION.md`. `compose.yaml` mounts only
+  the dedicated socket; `scripts/ops/openhands/preflight.sh`, `verify-sandbox-boundary.sh`, and
+  `verify-no-production-access.sh` all FAIL if the primary socket path appears anywhere active.
+- Do **not** reintroduce `host.docker.internal` / `extra_hosts` — removed by the same security follow-up (outbound
+  LLM calls use normal egress; no host-loopback service is required).
 - Do **not** point this package at `POSTGRES_URL`, `MASTER_ADMIN_KEY`, or any CorpFlowAI production secret.
 - Do **not** generalize the existing Uptime Kuma carve-out to authorize this package — see
   `docs/operations/SERVER_AGENT_ACCESS_AND_EXECUTION_BOUNDARY_V1.md` § 5.5 "Explicit non-generalization".
@@ -85,10 +98,15 @@ bash scripts/ops/openhands/inspect-host-capacity.sh
 
 # Preflight checks (safe — read-only; will report docker/compose absent on a laptop, that's expected)
 bash scripts/ops/openhands/preflight.sh
+
+# Live dedicated-daemon isolation check (safe — passes cleanly if the dedicated
+# daemon simply is not running yet, which is the expected pre-install state)
+bash scripts/ops/openhands/verify-dedicated-daemon.sh
 ```
 
-Expect `preflight.sh` to report missing prerequisites on a machine that never had OpenHands set up — that is
-the correct, safe outcome. A clean `--check` run is not, by itself, authorization to `--install`.
+Expect `preflight.sh` and `verify-dedicated-daemon.sh` to report missing prerequisites / a not-yet-running
+dedicated daemon on a machine that never had OpenHands set up — that is the correct, safe outcome. A clean
+`--check` run is not, by itself, authorization to `--install`.
 
 ## Path to authorization (not started by this package)
 

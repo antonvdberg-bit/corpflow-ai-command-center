@@ -122,31 +122,58 @@ main() {
     printf '(/proc/pressure not available on this kernel)\n'
   fi
 
-  section "Docker version"
+  section "Docker version — PRIMARY host daemon (read-only host-wide inventory, NOT OpenHands' own daemon)"
   run_or_note "docker" docker version 2>&1 | code_block
 
-  section "Docker system df"
+  section "Docker system df — PRIMARY host daemon"
   run_or_note "docker" docker system df -v 2>&1 | code_block
 
-  section "Running containers (all projects — read-only listing)"
+  section "Running containers — PRIMARY host daemon (all projects — read-only listing)"
   run_or_note "docker" docker ps --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}' 2>&1 | code_block
 
-  section "Docker networks"
+  section "Docker networks — PRIMARY host daemon"
   run_or_note "docker" docker network ls 2>&1 | code_block
 
-  section "Docker volumes"
+  section "Docker volumes — PRIMARY host daemon"
   run_or_note "docker" docker volume ls 2>&1 | code_block
 
-  section "Existing corpflowai-openhands resources (should be none if never installed)"
+  section "Existing corpflowai-openhands resources on the PRIMARY daemon (should ALWAYS be none — see the dedicated-daemon section below for the real inventory; a hit here would itself be a Docker-isolation-design violation per docs/operations/OPENHANDS_DOCKER_ISOLATION.md)"
   if command -v docker >/dev/null 2>&1; then
     printf 'Containers matching name=corpflowai-openhands:\n'
-    docker ps -a --filter "name=${OPENHANDS_PROJECT}" --format '{{.Names}}\t{{.Image}}\t{{.Status}}' 2>&1
+    docker ps -a --filter "name=${OPENHANDS_PROJECT}" --format '{{.Names}}\t{{.Image}}\t{{.Status}}' 2>&1 || true
     printf 'Networks matching name=corpflowai-openhands:\n'
-    docker network ls --filter "name=${OPENHANDS_PROJECT}" --format '{{.Name}}' 2>&1
+    docker network ls --filter "name=${OPENHANDS_PROJECT}" --format '{{.Name}}' 2>&1 || true
     printf 'Volumes matching name=corpflowai-openhands:\n'
-    docker volume ls --filter "name=${OPENHANDS_PROJECT}" --format '{{.Name}}' 2>&1
+    docker volume ls --filter "name=${OPENHANDS_PROJECT}" --format '{{.Name}}' 2>&1 || true
   else
     printf '(docker unavailable — cannot check)\n'
+  fi | code_block
+
+  section "OpenHands DEDICATED daemon inventory (read-only — the actual OpenHands resource usage; see docs/operations/OPENHANDS_DOCKER_ISOLATION.md)"
+  # Deliberately uses a plain DOCKER_HOST-prefixed `docker` call here rather
+  # than the fail-closed openhands_docker() wrapper: this section is a
+  # best-effort, never-crashes report generator, and openhands_docker()'s
+  # die()-on-misconfiguration behavior is appropriate for scripts that
+  # MUTATE state (install/rollback/uninstall), not for a read-only inventory
+  # dump. The dedicated-vs-primary distinction is still fully honored — this
+  # section only ever targets OPENHANDS_DOCKER_HOST, never the ambient/primary
+  # daemon — it just does not abort the whole report if that target happens
+  # to be unreachable or misconfigured.
+  if [[ ! -S "${OPENHANDS_DOCKER_SOCK}" ]]; then
+    printf '(dedicated Docker socket not present at %s — dedicated daemon not installed/running; this is the expected state for this INACTIVE package)\n' "${OPENHANDS_DOCKER_SOCK}"
+  elif ! command -v docker >/dev/null 2>&1; then
+    printf '(docker unavailable — cannot check)\n'
+  else
+    printf 'Dedicated daemon info (DockerRootDir, should be under OPENHANDS_HOME):\n'
+    DOCKER_HOST="${OPENHANDS_DOCKER_HOST}" docker info -f '{{.DockerRootDir}}' 2>&1 || printf '(dedicated daemon info failed — may not be running)\n'
+    printf 'Containers on the dedicated daemon:\n'
+    DOCKER_HOST="${OPENHANDS_DOCKER_HOST}" docker ps -a --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}' 2>&1 || printf '(dedicated daemon ps failed)\n'
+    printf 'Networks on the dedicated daemon:\n'
+    DOCKER_HOST="${OPENHANDS_DOCKER_HOST}" docker network ls 2>&1 || printf '(dedicated daemon network ls failed)\n'
+    printf 'Volumes on the dedicated daemon:\n'
+    DOCKER_HOST="${OPENHANDS_DOCKER_HOST}" docker volume ls 2>&1 || printf '(dedicated daemon volume ls failed)\n'
+    printf 'System df on the dedicated daemon:\n'
+    DOCKER_HOST="${OPENHANDS_DOCKER_HOST}" docker system df -v 2>&1 || printf '(dedicated daemon system df failed)\n'
   fi | code_block
 
   section "Listening ports (loopback vs. non-loopback)"

@@ -1,0 +1,50 @@
+# OpenHands dedicated rootless Docker daemon — pointer file (INACTIVE)
+#
+# STATUS: INACTIVE / POINTER ONLY. This is NOT a systemd unit file (it has no
+# [Unit]/[Service]/[Install] sections and systemd will not accept it as one).
+# It exists so anyone landing in ops/openhands/daemon/ first sees exactly
+# where the real, reviewed systemd unit lives, instead of duplicating it here
+# and risking the two copies drifting apart.
+#
+# The real unit: scripts/ops/systemd/corpflowai-openhands-dockerd.service
+# (INACTIVE, not enabled by default, not installed to ~/.config/systemd/user/
+# by any script in this repo).
+#
+# Why the real unit lives under scripts/ops/systemd/ and not here: every
+# other OpenHands-related systemd file already lives there
+# (corpflowai-openhands.service, corpflowai-openhands-health.service,
+# corpflowai-openhands-health.timer, and the new
+# corpflowai-openhands.slice) — keeping all systemd files in one directory
+# avoids two update points for the "did you also update the systemd copy?"
+# review question. See scripts/ops/systemd/corpflowai-openhands-dockerd.service
+# for the actual reviewed unit content and comments.
+#
+# What that unit does, in one paragraph: runs the upstream
+# `dockerd-rootless.sh` (Docker's own rootless-mode launcher script — this
+# package does not vendor or modify it) as a systemd --user service, pinned
+# under the corpflowai-openhands.slice (scripts/ops/systemd/corpflowai-openhands.slice),
+# with explicit --config-file pointed at a real daemon.json derived from
+# ops/openhands/daemon/daemon.json.example, and explicit --host / --data-root
+# flags so the dedicated socket and dedicated data-root are never left to
+# rootlesskit's own defaults (which would otherwise live under
+# $XDG_RUNTIME_DIR and ~/.local/share/docker — functional, but outside the
+# single $OPENHANDS_HOME tree this package reviews as a unit).
+#
+# Prerequisites for that unit to actually start (documented in
+# ops/openhands/daemon/README.md "Rootless Docker prerequisites"):
+#   - Docker Engine + the `docker-ce-rootless-extras` package (or equivalent
+#     for the host's distro) providing dockerd-rootless.sh, installed via the
+#     host's normal package manager — never by a script in this repo.
+#   - newuidmap / newgidmap present and setuid-root.
+#   - /etc/subuid and /etc/subgid entries for the operator's user.
+#   - $OPENHANDS_HOME created with correct ownership BEFORE the unit is
+#     enabled (preflight.sh checks this read-only; it does not create the
+#     directory itself in --check mode).
+#
+# Controlling issue: #743. Do not enable this unit without both:
+#   1. Anton's explicit approval, AND
+#   2. scripts/ops/openhands/verify-dedicated-daemon.sh passing against the
+#      already-started daemon (chicken-and-egg note: the FIRST start of the
+#      daemon unit itself is a manual, documented, install-runbook step —
+#      verify-dedicated-daemon.sh verifies an already-running daemon, it does
+#      not start one).

@@ -9,6 +9,24 @@
 # secret scanner) — it exists so this package cannot silently grow a
 # reference to production credentials over time without a check flagging it.
 #
+# Security follow-up for PR #747 (dedicated Docker isolation design — see
+# docs/operations/OPENHANDS_DOCKER_ISOLATION.md): this script now ALSO fails
+# if any checked file references the primary host Docker socket
+# (/var/run/docker.sock) or host.docker.internal OUTSIDE of a documentation
+# comment. These are not "production secrets" in the credential sense, but
+# they are the two forbidden-by-design strings for this package's Docker
+# isolation model, and belong in the same "package cannot silently regress"
+# check as the secret-name checks below — see also
+# scripts/ops/openhands/verify-sandbox-boundary.sh, which performs the same
+# two checks specifically against ops/openhands/compose.yaml with fuller
+# context; this script's version is the broader, multi-file sweep.
+#
+# Both the FORBIDDEN_TOKENS check and the FORBIDDEN_ISOLATION_STRINGS check
+# below are comment-aware (grep only non-comment lines): every file this
+# script inspects deliberately documents WHY these names/strings are
+# forbidden in its own header, and a naive whole-file grep would otherwise
+# flag that documentation as if it were a live reference.
+#
 # Usage:
 #   bash scripts/ops/openhands/verify-no-production-access.sh
 #
@@ -74,8 +92,21 @@ fi
 
 VIOLATIONS=()
 
+noncomment_lines() {
+  grep -Ev '^[[:space:]]*#' "$1" 2>/dev/null || true
+}
+
+# Forbidden-by-design strings for the Docker isolation model (security
+# follow-up for PR #747). See the comment-aware note above the usage()
+# function for why both this array and FORBIDDEN_TOKENS are checked only
+# against non-comment lines.
+FORBIDDEN_ISOLATION_STRINGS=(
+  "/var/run/docker.sock"
+  "host.docker.internal"
+)
+
 main() {
-  say "checking ${#FILES_TO_CHECK[@]} file(s) for forbidden production-secret references"
+  say "checking ${#FILES_TO_CHECK[@]} file(s) for forbidden production-secret references and isolation-design violations"
 
   local f token
   for f in "${FILES_TO_CHECK[@]}"; do
@@ -83,15 +114,23 @@ main() {
       warn "file not found, skipping: ${f}"
       continue
     fi
+    local active
+    active="$(noncomment_lines "${f}")"
+
     for token in "${FORBIDDEN_TOKENS[@]}"; do
-      if grep -Fq "${token}" "${f}"; then
-        VIOLATIONS+=("${f} references forbidden token: ${token}")
+      if printf '%s\n' "${active}" | grep -Fq "${token}"; then
+        VIOLATIONS+=("${f} references forbidden token outside a documentation comment: ${token}")
+      fi
+    done
+    for token in "${FORBIDDEN_ISOLATION_STRINGS[@]}"; do
+      if printf '%s\n' "${active}" | grep -Fq "${token}"; then
+        VIOLATIONS+=("${f} references forbidden isolation-design string outside a documentation comment: ${token}")
       fi
     done
   done
 
   if [[ "${#VIOLATIONS[@]}" -eq 0 ]]; then
-    say "PASS — no forbidden production-secret reference found in $(printf '%s ' "${FILES_TO_CHECK[@]}" | wc -w) checked file(s)"
+    say "PASS — no forbidden production-secret or isolation-design violation found in $(printf '%s ' "${FILES_TO_CHECK[@]}" | wc -w) checked file(s)"
     exit 0
   fi
 

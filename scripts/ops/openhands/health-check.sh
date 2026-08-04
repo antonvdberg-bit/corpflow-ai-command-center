@@ -1,11 +1,23 @@
 #!/usr/bin/env bash
 # CorpFlowAI — OpenHands private worker — health check
 #
-# STATUS: INACTIVE package (issue #743). Checks container health status plus
-# a loopback HTTP probe against the OpenHands UI. Passes cleanly (and stays
-# silent beyond a single log line) when OpenHands is not installed at all —
-# absence is not treated as unhealthy by this script (that decision belongs
-# to whatever schedules it, e.g. a not-yet-enabled systemd timer).
+# STATUS: INACTIVE package (issue #743). Checks container health status (on
+# the DEDICATED daemon) plus a loopback HTTP probe against the OpenHands
+# official health endpoint. Passes cleanly (and stays silent beyond a single
+# log line) when OpenHands is not installed at all — absence is not treated
+# as unhealthy by this script (that decision belongs to whatever schedules
+# it, e.g. a not-yet-enabled systemd timer).
+#
+# Security follow-up for PR #747 (dedicated Docker isolation design — see
+# docs/operations/OPENHANDS_DOCKER_ISOLATION.md):
+#   - Container status is checked via openhands_docker() (lib/common.sh)
+#     against the DEDICATED daemon only — never the primary daemon.
+#   - The HTTP probe now hits the official `/health` endpoint, not the bare
+#     `/`. Residual caveat (documented, not fixed by this script): `/health`
+#     reflects PROCESS liveness of the control plane, not full sandbox
+#     readiness (e.g. whether the dedicated daemon itself, or a specific
+#     sandbox spawn, is healthy) — see
+#     docs/operations/OPENHANDS_DOCKER_ISOLATION.md "Health".
 #
 # Success is silent (single log line). Failure is noisy (multiple log lines)
 # and, ONLY if OPENHANDS_ALERTS_ENABLED=1 (default 0/off), attempts a
@@ -36,9 +48,10 @@ usage() {
   cat <<'USAGE'
 Usage: health-check.sh [--help]
 
-Checks the corpflowai-openhands-app container health plus a loopback HTTP
-probe. Not-installed is treated as a safe pass, not a failure. Alerts via
-Telegram only when OPENHANDS_ALERTS_ENABLED=1 (default off).
+Checks the corpflowai-openhands-app container health (via the DEDICATED
+daemon only) plus a loopback HTTP probe against /health. Not-installed is
+treated as a safe pass, not a failure. Alerts via Telegram only when
+OPENHANDS_ALERTS_ENABLED=1 (default off).
 USAGE
 }
 
@@ -94,14 +107,19 @@ main() {
     exit 0
   fi
 
-  if ! docker inspect "${CONTAINER_NAME}" >/dev/null 2>&1; then
-    say "ok (not-applicable): container ${CONTAINER_NAME} does not exist — OpenHands is not installed"
+  if [[ ! -S "${OPENHANDS_DOCKER_SOCK}" ]]; then
+    say "ok (not-applicable): dedicated Docker socket not present — OpenHands is not installed (dedicated daemon not running)"
+    exit 0
+  fi
+
+  if ! openhands_docker inspect "${CONTAINER_NAME}" >/dev/null 2>&1; then
+    say "ok (not-applicable): container ${CONTAINER_NAME} does not exist on the dedicated daemon — OpenHands is not installed"
     exit 0
   fi
 
   local state health
-  state="$(docker inspect -f '{{.State.Status}}' "${CONTAINER_NAME}" 2>/dev/null || echo "unknown")"
-  health="$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "${CONTAINER_NAME}" 2>/dev/null || echo "unknown")"
+  state="$(openhands_docker inspect -f '{{.State.Status}}' "${CONTAINER_NAME}" 2>/dev/null || echo "unknown")"
+  health="$(openhands_docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "${CONTAINER_NAME}" 2>/dev/null || echo "unknown")"
 
   if [[ "${state}" != "running" ]]; then
     FAILURES+=("container state is '${state}', expected 'running'")
@@ -111,8 +129,12 @@ main() {
   fi
 
   if command -v curl >/dev/null 2>&1; then
-    if ! curl -fsS --max-time 5 "http://127.0.0.1:${OPENHANDS_PORT}/" >/dev/null 2>&1; then
-      FAILURES+=("loopback HTTP probe to 127.0.0.1:${OPENHANDS_PORT}/ failed")
+    # Official OpenHands health endpoint (docs.openhands.dev, checked
+    # 2026-08-04) — NOT the bare "/". See docs/operations/
+    # OPENHANDS_DOCKER_ISOLATION.md "Health" for the residual caveat that
+    # this reflects process liveness, not full sandbox readiness.
+    if ! curl -fsS --max-time 5 "http://127.0.0.1:${OPENHANDS_PORT}/health" >/dev/null 2>&1; then
+      FAILURES+=("loopback HTTP probe to 127.0.0.1:${OPENHANDS_PORT}/health failed")
     fi
   else
     FAILURES+=("curl not available — cannot run loopback HTTP probe (fail-closed)")
@@ -137,4 +159,4 @@ main() {
   exit 1
 }
 
-main "$@"
+main
