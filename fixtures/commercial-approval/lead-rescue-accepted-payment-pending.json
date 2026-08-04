@@ -1,0 +1,52 @@
+{
+  "id": "synthetic-ca-lr-payment-pending",
+  "opportunity_ref": "OPP-SYN-LR-002",
+  "product": "lead-rescue",
+  "proposal_status": "accepted",
+  "proposal_version": "v1.0",
+  "quoted_currency": "USD",
+  "setup_price": 150,
+  "recurring_price": 99,
+  "offer_kind": "pilot",
+  "payment_terms": "pilot_full_upfront",
+  "scope_summary": "Lead Rescue pilot — one source, 7-day monitoring.",
+  "acceptance_status": "accepted",
+  "accepted_by": "Alex Operator (client)",
+  "acceptance_timestamp": "2026-08-01T10:00:00Z",
+  "payment_evidence_status": "pending",
+  "payment_evidence_ref": "",
+  "financial_review_status": "blocked",
+  "financially_approved": false,
+  "approved_by": "Anton (operator financial approver)",
+  "approval_timestamp": "2026-08-01T12:00:00Z",
+  "won_lost_status": "open",
+  "won_lost_reason": "",
+  "commercial_notes": "Accepted but payment not yet evidenced.",
+  "commercial_blockers": [],
+  "proposal": {
+    "status": "accepted",
+    "version": "v1.0",
+    "currency": "USD",
+    "setup_price": 150,
+    "recurring_price": 99,
+    "payment_terms": "pilot_full_upfront",
+    "scope_summary": "Lead Rescue pilot — one source, 7-day monitoring.",
+    "offer_kind": "pilot"
+  },
+  "acceptance": {
+    "status": "accepted",
+    "accepted_by": "Alex Operator (client)",
+    "acceptance_timestamp": "2026-08-01T10:00:00Z",
+    "acceptance_method": "email_confirmation",
+    "proposal_version": "v1.0"
+  },
+  "payment_evidence": {
+    "status": "pending",
+    "evidence_type": "",
+    "evidence_ref": "",
+    "expected_amount": 150,
+    "amount_evidenced": null,
+    "currency": "USD"
+  },
+  "payment_exception": null
+}

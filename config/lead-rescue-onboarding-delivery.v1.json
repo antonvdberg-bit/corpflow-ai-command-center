@@ -10,7 +10,11 @@
     "field": "financially_approved",
     "type": "boolean",
     "source_lane": 714,
-    "note": "Synthetic boolean until #714 publishes the financial-approval contract; reconcile without changing build-gate semantics."
+    "publisher": "config/commercial-approval-rail.v1.json",
+    "validator": "lib/revenue/commercial-approval.js#canMarkFinanciallyApproved",
+    "handoff": "lib/revenue/commercial-approval.js#toOnboardingHandoff",
+    "canonical_doc": "docs/revenue/COMMERCIAL_APPROVAL_RAIL_V1.md",
+    "note": "Strict boolean financially_approved===true required for build start. Published by #714 commercial approval rail; reconcile via toOnboardingHandoff without changing build-gate semantics."
   },
   "shared_onboarding_checklist": [
     {
