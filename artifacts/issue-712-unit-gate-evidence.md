@@ -105,8 +105,8 @@ Full mapping JSON: `artifacts/issue-712-synthetic-enquiry-evidence.json`
 | Five-second offer / one primary CTA | #712 tests + screenshot review |
 | Safe claims | #712 tests + live HTML review |
 | No auto-send | Desk source contract + intake success without outbound |
-| Focused unit tests | `node-tests/corpflow-market-path-712.test.mjs` (+ LR operator test update) |
-| Relevant suite + build | Recorded in PR verification section |
+| Focused unit tests | `node-tests/corpflow-market-path-712.test.mjs` (+ LR operator test update) — **149/149 pass** (focused set) |
+| Relevant suite + build | `npm test` **1912 pass / 0 fail**; `npm run build` **pass**; `git diff --check` **clean** |
 
 ## Recording-ready script / shot list
 
