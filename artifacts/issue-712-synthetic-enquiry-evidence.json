@@ -1,0 +1,74 @@
+{
+  "captured_at": "2026-08-04T06:30:29.502Z",
+  "issue": 712,
+  "agent_url": "https://cursor.com/agents/bc-79b2f699-7d5d-4439-b8a2-2f7b72174a17",
+  "branch": "cursor/dispatcher-issue-712-caf8",
+  "live_intake_results": {
+    "website_rescue": {
+      "ok": true,
+      "lead_id": "cmse9k7qf0000ji042lvyxpj8",
+      "reference": "CF-VYXPJ8",
+      "product": "corpflow-rapid-delivery",
+      "offer_slug": "premium-landing-page-rescue",
+      "service_path": "website-digital",
+      "http": 200
+    },
+    "lead_rescue": {
+      "ok": true,
+      "lead_id": "cmse9k7yl0005ji04fgzqyv8e",
+      "product": "ai-lead-rescue",
+      "http": 200
+    },
+    "contact_gateway": {
+      "ok": true,
+      "lead_id": "cmse9xbdh000aji04eiytdgkt",
+      "reference": "CF-YTDGKT",
+      "product": "corpflow-rapid-delivery",
+      "offer_slug": "ai-lead-rescue",
+      "service_path": "client-lead-service",
+      "http": 200
+    }
+  },
+  "operator_queue_mapping": {
+    "website_rescue_desk": "/admin/rapid-delivery",
+    "website_rescue": {
+      "source": "corpflow-market-gateway",
+      "product": "Premium Landing Page Rescue",
+      "offer_slug": "premium-landing-page-rescue",
+      "service_path": "website-digital",
+      "consent_contact": true,
+      "urgency": "asap",
+      "urgency_label": "As soon as practical",
+      "recommended_next_action": "Review Website Rescue fit; share /demo/website-rescue if useful; book discovery before quoting.",
+      "reference": "CF-VYXPJ8",
+      "no_auto_send": true
+    },
+    "lead_rescue_desk": "/admin/lead-rescue",
+    "lead_rescue": {
+      "source": "ai-lead-rescue",
+      "source_page": "/lead-rescue",
+      "source_host": "corpflowai.com",
+      "product": "ai-lead-rescue",
+      "business_name": "TEST-LeadRescue-712",
+      "lead_sources": "WhatsApp, website form",
+      "consent_contact": true,
+      "urgency": "this-month",
+      "urgency_label": "Within this month",
+      "status": "NEW_INTAKE",
+      "recommended_next_action": "Review and reply within 2 business hours.",
+      "default_next_action_constant": "Review and reply within 2 business hours.",
+      "lead_id": "cmse9k7yl0005ji04fgzqyv8e",
+      "no_auto_send": true
+    }
+  },
+  "validation_negatives": {
+    "missing_consent": {
+      "error": "CONSENT_REQUIRED",
+      "http": 400
+    },
+    "lr_missing_phone": {
+      "error": "phone is required",
+      "http": 400
+    }
+  }
+}
