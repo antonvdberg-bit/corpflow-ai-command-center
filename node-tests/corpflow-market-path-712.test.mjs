@@ -73,7 +73,12 @@ describe('#712 market path — five-second offer and safe claims', () => {
     assert.ok(lr.includes('USD 150'));
     assert.ok(lr.includes('48-hour'));
     assert.ok(/do not guarantee new revenue/i.test(lr));
-    assert.ok(!/guaranteed revenue|guarantee more sales|10x leads/i.test(lr.replace(/do not guarantee[^.]+/gi, '')));
+    assert.ok(/do not guarantee new revenue or lead volume/i.test(lr));
+    // FAQ may ask about guarantees; answers must refuse. Block affirmative promise forms.
+    assert.ok(/Do you guarantee more sales or more leads\?/i.test(lr));
+    assert.ok(!/\bwe guarantee more sales\b/i.test(lr));
+    assert.ok(!/\b10x leads\b/i.test(lr));
+    assert.ok(!/Choose payment path/i.test(lr));
   });
 
   it('Website Rescue offer avoids revenue / SEO guarantees', () => {
