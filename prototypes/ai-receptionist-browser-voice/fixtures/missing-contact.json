@@ -7,9 +7,11 @@
     "email",
     "not-an-email",
     "sam.lee@example.org",
-    "Need a demo of the receptionist",
+    "Lead Rescue",
+    "Need a demo of lead capture handoff",
     "low",
-    "Friday afternoon"
+    "Friday afternoon",
+    "confirm"
   ],
   "expect_reask_substring": "does not look like an email"
 }
