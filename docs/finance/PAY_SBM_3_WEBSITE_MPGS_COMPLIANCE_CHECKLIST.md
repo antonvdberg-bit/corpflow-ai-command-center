@@ -15,7 +15,7 @@
 | 1 | Complete description of services offered | `/services` (primary); `/terms` § Service description; `/about`; `/lead-rescue` offer copy | Digital services only; no physical goods |
 | 2 | Customer service contact: email, telephone, response expectation | `/contact` § Customer service; `/services` § Customer service; `components/CustomerServiceContact.js`; `components/PublicSiteFooter.js` | `+230 5901 4284` (Anton confirmed, PR #439) |
 | 3 | Permanent establishment / company address | `lib/public/merchant-identity.js`; footer; `/about` § CorpFlowAI Ltd; `/terms` § Governing law | Dextra Lane address + BRN C25228280 |
-| 4 | Transaction currency display (USD and MUR) | `formatCurrencyDisclosure()` in footer, `/terms`, `/refund-policy`, `/lead-rescue`, `/services` | USD primary; MUR for Mauritius pro-forma |
+| 4 | Transaction currency display (USD and MUR) | `formatCurrencyDisclosure()` in footer, `/terms`, `/refund-policy`, `/lead-rescue`, `/services`; invoice states currency before payment | Public wording follows `docs/marketing/CORPFLOW_PUBLIC_FOOTER_STANDARD_V1.md` — no footer prices, path URLs, or account-status commentary. Offer pages may still show intentional product prices. |
 | 5 | Refund, return, and cancellation policy (digital) | `/refund-policy`; links from `/delivery-policy` | Digital returns section + chargeback note |
 | 6 | Delivery policy (digital; no physical shipping) | `/delivery-policy`; `/terms` § Service fulfilment | Explicit no-shipment language |
 | 7 | Privacy / consumer data privacy policy | `/privacy`; privacy contact via `CustomerServiceContact` | Subprocessor summary includes SBM/MPGS when live |
@@ -32,6 +32,10 @@ Public merchant facts are centralized in:
 
 `lib/public/merchant-identity.js`
 
+Public footer / shared disclosure wording is governed by:
+
+`docs/marketing/CORPFLOW_PUBLIC_FOOTER_STANDARD_V1.md`
+
 Update that file when Anton confirms the support telephone or any legal identity change. Pages and footer import from it.
 
 ---
@@ -41,7 +45,7 @@ Update that file when Anton confirms the support telephone or any legal identity
 | Item | Status | Action |
 |------|--------|--------|
 | **Customer service telephone** | **Confirmed** | `+230 5901 4284` in `lib/public/merchant-identity.js` (Anton, PR #439) |
-| **Support inbox monitored** | Confirm | Send test email to `support@corpflowai.com`; confirm two-working-day SLA is achievable. |
+| **Support inbox monitored** | Confirm | Send test email to `support@corpflowai.com`; confirm one-business-day acknowledgement aim is achievable. |
 | **Registered office / BRN** | Likely OK | Values match PAY-SBM-2 and accountant pack — re-confirm against certificate of incorporation if SBM asks. |
 | **Visa / Mastercard logo usage** | Hold | Do **not** add logos until SBM confirms guidelines and live acceptance begins (per PAY-SBM-1 Q23). |
 | **MPGS test credentials** | Off-repo | Store only in Vercel secrets / operator vault when integration packet is authorised — **not in this PR**. |

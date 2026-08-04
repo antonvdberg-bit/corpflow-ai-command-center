@@ -94,7 +94,7 @@ export default function RapidDeliveryOfferPage({ offer }) {
 
   const footer = (
     <CorpFlowPublicFooter
-      extra={`${offer.title} — ${MERCHANT_LEGAL_NAME}. Discovery call only on this page; no card or banking details collected here. Mauritius sprint deposits are quoted in MUR (manual bank transfer). Deposit and quote follow manual review.`}
+      extra={`${offer.title} — ${MERCHANT_LEGAL_NAME}. Discovery call only on this page; no card or banking details collected here. Deposit and quote follow manual review.`}
     />
   );
 
@@ -237,8 +237,8 @@ export default function RapidDeliveryOfferPage({ offer }) {
             <div style={styles.label}>How the engagement works</div>
             <p style={styles.muted}>
               Discovery call → written quote → 50% MUR deposit (manual bank transfer) → manual bank verification →
-              approval to proceed → visible delivery → preview feedback → release approval. Mauritius sprint clients
-              pay in MUR; USD banking for this path is still being obtained.
+              approval to proceed → visible delivery → preview feedback → release approval. Currency and payment
+              instructions are confirmed in writing on the invoice before you pay.
             </p>
           </GlassPanel>
           <GlassPanel variant={{ fill: GLASS_TOKENS.glassFill, padding: 22, elevation: 2 }}>

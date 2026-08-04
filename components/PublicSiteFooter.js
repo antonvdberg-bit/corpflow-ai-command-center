@@ -91,9 +91,8 @@ export default function PublicSiteFooter({ extra, flush = false }) {
           {CUSTOMER_SERVICE_EMAIL}
         </a>
         {phoneSegment}
-        {' '}
-        ({formatSupportSlaText().charAt(0).toLowerCase() + formatSupportSlaText().slice(1)}).
       </div>
+      <div style={{ marginTop: 8 }}>{formatSupportSlaText()}</div>
       <div style={{ marginTop: 12 }}>{formatCurrencyDisclosure()}</div>
       <div style={{ marginTop: 12 }}>
         This website provides general service information. Final terms may be confirmed in the applicable invoice or
