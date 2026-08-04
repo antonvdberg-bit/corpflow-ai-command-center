@@ -1,0 +1,16 @@
+{
+  "id": "workflow-admin-path",
+  "description": "Workflow / admin improvement service-interest path.",
+  "user_turns": [
+    "Taylor Brooks",
+    "Brooks Admin Co",
+    "phone",
+    "+15550123456",
+    "workflow and admin improvement",
+    "Too much manual follow-up tracking in spreadsheets",
+    "normal",
+    "Afternoons",
+    "confirm"
+  ],
+  "expect_service_interest": "workflow_admin_improvement"
+}

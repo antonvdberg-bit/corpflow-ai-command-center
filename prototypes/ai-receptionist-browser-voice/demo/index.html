@@ -30,7 +30,7 @@
           linear-gradient(160deg, var(--bg0), var(--bg1));
       }
       main {
-        max-width: 760px;
+        max-width: 980px;
         margin: 0 auto;
         padding: 40px 20px 64px;
       }
@@ -43,7 +43,7 @@
         color: var(--muted);
         font-size: 1.05rem;
         margin: 0 0 28px;
-        max-width: 40rem;
+        max-width: 42rem;
       }
       .banner {
         border: 1px solid rgba(212, 162, 76, 0.45);
@@ -54,15 +54,32 @@
         font-family: ui-sans-serif, system-ui, sans-serif;
         font-size: 0.92rem;
       }
+      .layout {
+        display: grid;
+        gap: 16px;
+      }
+      @media (min-width: 900px) {
+        .layout {
+          grid-template-columns: minmax(0, 1.4fr) minmax(280px, 1fr);
+          align-items: start;
+        }
+      }
       .panel {
         background: var(--panel);
         backdrop-filter: blur(10px);
         border: 1px solid rgba(244, 239, 230, 0.12);
         padding: 18px;
+        min-width: 0;
+      }
+      .panel h2 {
+        margin: 0 0 12px;
+        font-size: 1.05rem;
+        font-family: ui-sans-serif, system-ui, sans-serif;
+        font-weight: 600;
       }
       #log {
         min-height: 280px;
-        max-height: 48vh;
+        max-height: 42vh;
         overflow: auto;
         display: flex;
         flex-direction: column;
@@ -96,15 +113,20 @@
         gap: 10px;
         font-family: ui-sans-serif, system-ui, sans-serif;
       }
-      textarea {
+      textarea,
+      input[type="text"],
+      select,
+      input[type="range"] {
         width: 100%;
-        min-height: 72px;
-        resize: vertical;
         background: rgba(0, 0, 0, 0.25);
         color: var(--ink);
         border: 1px solid rgba(244, 239, 230, 0.2);
         padding: 10px 12px;
         font: inherit;
+      }
+      textarea {
+        min-height: 72px;
+        resize: vertical;
       }
       .row {
         display: flex;
@@ -131,7 +153,7 @@
       #handoff {
         margin-top: 16px;
         font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-        font-size: 0.8rem;
+        font-size: 0.78rem;
         color: var(--ok);
         white-space: pre-wrap;
       }
@@ -140,38 +162,148 @@
         font-size: 0.85rem;
         margin: 0;
       }
+      .preview-box {
+        border: 1px solid rgba(212, 162, 76, 0.4);
+        background: rgba(212, 162, 76, 0.08);
+        padding: 12px;
+        display: grid;
+        gap: 8px;
+      }
+      .preview-box[hidden],
+      .review-box[hidden] {
+        display: none !important;
+      }
+      .review-box {
+        border: 1px solid rgba(184, 212, 192, 0.45);
+        background: rgba(184, 212, 192, 0.08);
+        padding: 12px;
+        display: grid;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .fields {
+        display: grid;
+        gap: 8px;
+        font-family: ui-sans-serif, system-ui, sans-serif;
+        font-size: 0.88rem;
+      }
+      .field-row {
+        display: grid;
+        gap: 4px;
+      }
+      .field-row label {
+        color: var(--muted);
+        font-size: 0.78rem;
+      }
+      .voice-controls {
+        display: grid;
+        gap: 8px;
+        margin-top: 8px;
+        font-family: ui-sans-serif, system-ui, sans-serif;
+        font-size: 0.88rem;
+      }
+      .voice-controls .pair {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        align-items: center;
+      }
+      .profile-meta {
+        font-family: ui-sans-serif, system-ui, sans-serif;
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin: 0 0 12px;
+      }
     </style>
   </head>
   <body>
     <main>
       <h1 class="brand">CorpFlowAI</h1>
       <p class="lede">
-        Synthetic browser-voice AI receptionist prototype — draft enquiry capture only.
-        Not a phone line. Not production.
+        Synthetic browser-voice AI receptionist — CorpFlowAI general enquiry demo (Lead Rescue,
+        Website Rescue, workflow/admin, related paths). Draft capture only. Not a phone line. Not
+        production.
       </p>
       <div class="banner" role="status">
         Prototype bounds: synthetic data · browser/text voice shape · no telephony · no CRM/DB
         write · no email/WhatsApp/SMS · assistant may draft/recommend only ·
         <strong>requires_human_review: true</strong>
       </div>
-      <div class="panel">
-        <div id="log" aria-live="polite"></div>
-        <div class="controls">
-          <label for="input">Your reply (text fallback — also used as mocked STT transcript)</label>
-          <textarea id="input" placeholder="Type your reply…"></textarea>
-          <div class="row">
-            <button type="button" id="send">Send</button>
-            <button type="button" id="ptt" class="secondary" title="Optional browser SpeechRecognition">
-              Hold to talk (optional)
-            </button>
-            <button type="button" id="reset" class="secondary">Reset session</button>
+      <div class="layout">
+        <div class="panel">
+          <p class="profile-meta" id="profileMeta">Loading profile…</p>
+          <div id="log" aria-live="polite"></div>
+
+          <div class="preview-box" id="transcriptPreview" hidden>
+            <strong>I heard:</strong>
+            <label class="hint" for="heardText">Edit before sending (speech is not auto-submitted)</label>
+            <textarea id="heardText" rows="3"></textarea>
+            <div class="row">
+              <button type="button" id="confirmHeard">Confirm</button>
+              <button type="button" id="retryHeard" class="secondary">Retry</button>
+              <button type="button" id="cancelHeard" class="secondary">Cancel</button>
+            </div>
           </div>
-          <p class="hint" id="voiceHint">
-            Voice: optional Web Speech API when the browser supports it. Default path is text + mock
-            STT/TTS (no paid APIs).
-          </p>
-          <pre id="handoff" hidden></pre>
+
+          <div class="review-box" id="finalReview" hidden>
+            <strong>Final review before handoff</strong>
+            <p class="hint" id="reviewSummary"></p>
+            <div class="row">
+              <button type="button" id="confirmHandoffBtn">Confirm draft handoff</button>
+              <button type="button" id="keepEditingBtn" class="secondary">Keep editing fields</button>
+            </div>
+          </div>
+
+          <div class="controls">
+            <label for="input">Your reply (text — recommended reliable demo path)</label>
+            <textarea id="input" placeholder="Type your reply…"></textarea>
+            <div class="row">
+              <button type="button" id="send">Send</button>
+              <button
+                type="button"
+                id="ptt"
+                class="secondary"
+                title="Optional browser SpeechRecognition — opens preview, does not auto-submit"
+              >
+                Hold to talk (optional)
+              </button>
+              <button type="button" id="reset" class="secondary">Reset session</button>
+            </div>
+            <div class="voice-controls">
+              <label for="voiceSelect">Spoken reply voice (browser/OS dependent — may sound robotic)</label>
+              <select id="voiceSelect">
+                <option value="">Loading voices…</option>
+              </select>
+              <div class="pair">
+                <label for="rateRange">Rate</label>
+                <span id="rateValue">1.0</span>
+              </div>
+              <input id="rateRange" type="range" min="0.5" max="2" step="0.1" value="1" />
+              <div class="pair">
+                <label for="pitchRange">Pitch</label>
+                <span id="pitchValue">1.0</span>
+              </div>
+              <input id="pitchRange" type="range" min="0" max="2" step="0.1" value="1" />
+              <div class="row">
+                <button type="button" id="testVoice" class="secondary">Test voice</button>
+              </div>
+              <p class="hint" id="voiceHint">
+                Voice uses local speechSynthesis only (no paid TTS). Recognition accuracy varies by
+                browser; transcript preview/edit is the safe flow. Text remains recommended.
+              </p>
+            </div>
+            <pre id="handoff" hidden></pre>
+          </div>
         </div>
+
+        <aside class="panel">
+          <h2>Captured details (editable)</h2>
+          <p class="hint">Correct fields before final handoff. Changes are reflected in the draft JSON.</p>
+          <div class="fields" id="capturedFields"></div>
+          <div class="row" style="margin-top: 12px">
+            <button type="button" id="applyFieldEdits">Apply field edits</button>
+          </div>
+        </aside>
       </div>
     </main>
     <script type="module" src="./app.js"></script>

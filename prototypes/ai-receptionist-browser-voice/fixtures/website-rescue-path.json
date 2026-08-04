@@ -1,0 +1,16 @@
+{
+  "id": "website-rescue-path",
+  "description": "CorpFlowAI Website Rescue service-interest path.",
+  "user_turns": [
+    "Jamie Ortiz",
+    "Ortiz Properties",
+    "email",
+    "jamie.ortiz@example.com",
+    "Website Rescue",
+    "Our site looks outdated and we may need a migration",
+    "normal",
+    "Next week",
+    "confirm"
+  ],
+  "expect_service_interest": "website_rescue"
+}

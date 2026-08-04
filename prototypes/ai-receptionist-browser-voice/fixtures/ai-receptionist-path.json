@@ -1,0 +1,17 @@
+{
+  "id": "ai-receptionist-path",
+  "description": "AI receptionist/chatbot enquiry with prototype caveat.",
+  "user_turns": [
+    "Quinn Avery",
+    "none",
+    "email",
+    "quinn.avery@example.com",
+    "AI receptionist chatbot",
+    "Curious whether a voice receptionist could take enquiries",
+    "low",
+    "skip",
+    "confirm"
+  ],
+  "expect_service_interest": "ai_receptionist_chatbot",
+  "expect_caveat_substring": "prototype/pilot"
+}

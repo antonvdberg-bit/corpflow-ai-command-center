@@ -1,0 +1,16 @@
+{
+  "id": "lead-rescue-path",
+  "description": "CorpFlowAI Lead Rescue service-interest path.",
+  "user_turns": [
+    "Morgan Ellis",
+    "Ellis Dental",
+    "email",
+    "morgan.ellis@example.com",
+    "Lead Rescue",
+    "Inbound web forms go unanswered after hours",
+    "high",
+    "Tomorrow morning",
+    "confirm"
+  ],
+  "expect_service_interest": "lead_rescue"
+}

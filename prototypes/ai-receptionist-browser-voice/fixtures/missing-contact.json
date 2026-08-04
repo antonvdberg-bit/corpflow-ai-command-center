@@ -7,9 +7,11 @@
     "email",
     "not-an-email",
     "sam.lee@example.org",
+    "AI receptionist",
     "Need a demo of the receptionist",
     "low",
-    "Friday afternoon"
+    "Friday afternoon",
+    "confirm"
   ],
   "expect_reask_substring": "does not look like an email"
 }

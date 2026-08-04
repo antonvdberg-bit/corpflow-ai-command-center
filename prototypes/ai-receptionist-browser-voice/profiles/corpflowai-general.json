@@ -1,0 +1,88 @@
+{
+  "id": "corpflowai-general",
+  "name": "CorpFlowAI general enquiry",
+  "version": 1,
+  "description": "Default local demo profile for CorpFlowAI product/service enquiry capture. Draft/recommend only — no external actions.",
+  "greeting": "Hello — I am CorpFlowAI’s synthetic receptionist prototype for general enquiries. I can capture interest in Lead Rescue, Website Rescue, workflow or admin improvement, or related CorpFlowAI services, then prepare a draft handoff for a human operator. I will not send email, WhatsApp, SMS, place phone calls, update a CRM, or write to a database. This is not a live phone receptionist.",
+  "safe_disclaimers": [
+    "Draft handoff only — requires human review.",
+    "No email, WhatsApp, SMS, phone call, CRM update, database write, or external action will be executed.",
+    "This prototype is not a live telephony service and does not use a real Pipecat runtime.",
+    "No pricing, revenue guarantees, live availability claims, or client testimonials are provided by this assistant."
+  ],
+  "escalation_language": {
+    "pricing_guarantee": "I cannot give pricing or performance guarantees from this prototype. A human operator will follow up with accurate commercial information. No external message has been sent.",
+    "default": "I am escalating this to a human operator for review. No external action has been executed."
+  },
+  "supported_service_areas": [
+    {
+      "id": "lead_rescue",
+      "label": "Lead Rescue",
+      "summary": "Capture, qualify, and hand off inbound leads — draft/recommend only; a human decides follow-up."
+    },
+    {
+      "id": "website_rescue",
+      "label": "Website Rescue",
+      "summary": "Assess website or digital-presence problems, capture migration or improvement needs, and prepare a safe next action for human review."
+    },
+    {
+      "id": "workflow_admin_improvement",
+      "label": "Workflow / admin improvement",
+      "summary": "Capture repetitive admin, process, or follow-up problems for operator review."
+    },
+    {
+      "id": "ai_receptionist_chatbot",
+      "label": "AI receptionist / chatbot interest",
+      "summary": "Capture interest in receptionist or chatbot capabilities. Clarify this demo is a prototype/pilot, not a live phone service."
+    },
+    {
+      "id": "other_unsure",
+      "label": "Other / unsure",
+      "summary": "Capture the problem and escalate to human review when the path is unclear."
+    }
+  ],
+  "service_interest_values": [
+    "lead_rescue",
+    "website_rescue",
+    "workflow_admin_improvement",
+    "ai_receptionist_chatbot",
+    "other_unsure"
+  ],
+  "service_caveats": {
+    "ai_receptionist_chatbot": "Noted. This browser demo is a synthetic prototype/pilot only — not a live phone receptionist, not telephony, and not a production Pipecat deployment. A human will review your enquiry."
+  },
+  "field_order": [
+    "lead_name",
+    "company",
+    "contact_method",
+    "contact_value",
+    "service_interest",
+    "need",
+    "urgency",
+    "preferred_follow_up"
+  ],
+  "required_fields": [
+    "lead_name",
+    "contact_method",
+    "contact_value",
+    "service_interest",
+    "need"
+  ],
+  "optional_fields": [
+    "company",
+    "urgency",
+    "preferred_follow_up"
+  ],
+  "field_prompts": {
+    "lead_name": "May I have your name?",
+    "company": "What company are you with, if any? You can say “none” or “skip”.",
+    "contact_method": "How should we reach you — email, phone, or WhatsApp?",
+    "contact_value": "Please share that contact detail (email address or phone number).",
+    "service_interest": "Which CorpFlowAI area is this about — Lead Rescue, Website Rescue, workflow or admin improvement, AI receptionist or chatbot interest, or other/unsure?",
+    "need": "What problem or outcome should a human understand from this enquiry?",
+    "urgency": "How urgent is this — low, normal, or high?",
+    "preferred_follow_up": "When is a good time for a human to follow up?"
+  },
+  "final_review_prompt": "Please review the captured details below. Say “confirm” to finalise the draft handoff for human review, or tell me which field to change (for example: “edit name to Pat Example”). No external action will run when you confirm.",
+  "text_input_recommended": true
+}
