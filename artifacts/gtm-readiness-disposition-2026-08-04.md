@@ -33,12 +33,27 @@ Protected boundaries checked on #742 / #745 / #746: no second CRM, no schema, no
 | Field | Value |
 | ----- | ----- |
 | Branch | `cursor/gtm-713-prospect-maturation-system-ffd0` |
+| PR | https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/755 |
+| Commit | `2aa240d6` |
 | Synthetic IDs | `PM-SYS-LR-001`, `PM-SYS-WR-001` |
 | Runner | `node scripts/prospect-maturation-system-proof.mjs` → `ok: true` |
 | Artifact | `artifacts/prospect-maturation-system-proof/latest-run.json` |
 | Tests | 88 pass (unit + system-proof) |
 | External sends | `[]` |
 
+## Independent system-proof re-runs (branch tips)
+
+| Packet | PR | CLI | Result |
+| ------ | -- | --- | ------ |
+| #715 Lead Rescue | #745 | `node scripts/lead-rescue-system-proof.mjs` | `ok: true` → `acceptance_ready` · `OPP-SYN-LR-SYS-715-001` |
+| #716 Website Rescue | #742 | `node scripts/website-rescue-system-proof.mjs` | `ok: true` → `acceptance_ready` · `OPP-SYN-WR-SYS-716-001` |
+
+## #711 integrated prep
+
+Doc: `docs/execution/GTM_INTEGRATED_SCENARIOS_711_PREP_V1.md` — PREPARE only until #746/#745/#742/#755 land on main.
+
 ## Next executable packet
 
-After #746/#745/#742 merge (or while waiting): re-run Lead Rescue system-proof CLI from #745 tip against merged main, then Website Rescue (#742), then market-path re-check (#712), then prepare #711 Scenario A/B packets — evidence execution preferred over new build.
+1. ChatGPT/Anton: consolidated merge of #746 (or #755), #745, #742.
+2. Cursor: re-run all three system-proof CLIs + market-path tests on merged main.
+3. Then execute #711 Scenario A/B using the prep packet (compose existing runners; no new CRM/send).
