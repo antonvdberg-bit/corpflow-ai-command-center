@@ -2,7 +2,6 @@ import React from 'react';
 import Link from 'next/link';
 import PublicPolicyLayout, { policyStyles as ps } from '../components/PublicPolicyLayout.js';
 import CustomerServiceContact from '../components/CustomerServiceContact.js';
-import { formatCurrencyDisclosure } from '../lib/public/merchant-identity.js';
 
 export default function PrivacyPage() {
   return (

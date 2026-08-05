@@ -157,13 +157,10 @@ export default function ProcessPage() {
         <p style={ts.sectionLabel}>Money</p>
         <h2 style={ps.h2}>Payment after review</h2>
         <p style={ps.p}>
-          We do not take payment before intake review. Mauritius delivery sprints (from MUR
-          35,000 / MUR 45,000) are invoiced in MUR by manual bank transfer — we are still
-          obtaining a USD account for that path, so those clients are not asked to pay in USD.
-          The separate AI Lead Rescue launch pilot receives a USD invoice after operator
-          confirmation. Payment is processed off-site; this site does not collect card or
-          banking details. The refund window for cancellation before setup begins is published
-          separately on{' '}
+          We do not take payment before intake review. Commercial terms, currency and payment
+          instructions are confirmed in writing before payment. Payment is processed off-site;
+          this site does not collect card or banking details. The refund window for cancellation
+          before setup begins is published separately on{' '}
           <Link href="/refund-policy" style={{ color: '#7dd3fc' }}>
             the refund policy page
           </Link>

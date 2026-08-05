@@ -1,0 +1,71 @@
+{
+  "schema": "corpflow.gtm_final_main_combined_evidence.v1",
+  "run_id": "GTM-711-FINAL-MAIN-20260805",
+  "agent_run_id": "bc-3632b03b-f16a-4103-ae41-f18b36afffd0",
+  "final_main_sha": "ce496c0a983341b25f2022a21bef5989360abf3a",
+  "merge_commits_verified": {
+    "755": "dee46d35250ccfa34c6c083e598b699d4dbca0a1",
+    "745": "b9a766cf9669d7b52e615257dfe5271f2a8db3e0",
+    "742": "ce496c0a983341b25f2022a21bef5989360abf3a"
+  },
+  "tests": {
+    "focused_gtm_suites": { "tests": 294, "pass": 294, "fail": 0 },
+    "npm_test": { "tests": 2069, "pass": 2069, "fail": 0 },
+    "npm_run_build": { "exit_code": 0 },
+    "git_diff_check": { "exit_code": 0 }
+  },
+  "system_proof_clis": {
+    "prospect_maturation": {
+      "ok": true,
+      "lead_rescue_final_stage": "proposal_sent",
+      "website_rescue_final_stage": "proposal_ready",
+      "external_sends_executed": []
+    },
+    "lead_rescue": {
+      "ok": true,
+      "opportunity_ref_fixture": "OPP-SYN-LR-SYS-715-001",
+      "final_state": "acceptance_ready",
+      "messaging_runtime_authorized": false,
+      "external_sends_executed": []
+    },
+    "website_rescue": {
+      "ok": true,
+      "opportunity_ref_fixture": "OPP-SYN-WR-SYS-716-001",
+      "final_state": "acceptance_ready",
+      "real_dns_note": "simulated only in package proof",
+      "external_sends_executed": []
+    }
+  },
+  "market_path_live": {
+    "contact": "200 + single buyer_need question; dual fields absent",
+    "lead_rescue": 200,
+    "website_rescue_offer": 200
+  },
+  "scenario_a": {
+    "ok": true,
+    "enquiry_ref": "INT-SYN-711A-20260805-001",
+    "prospect_ref": "PM-INT-711A-LR-20260805-001",
+    "opportunity_ref": "OPP-SYN-711A-LR-20260805-001",
+    "final_delivery_state": "acceptance_ready",
+    "external_sends_executed": []
+  },
+  "scenario_b": {
+    "ok": true,
+    "enquiry_ref": "INT-SYN-711B-20260805-001",
+    "prospect_ref": "PM-INT-711B-WR-20260805-001",
+    "opportunity_ref": "OPP-SYN-711B-WR-20260805-001",
+    "final_delivery_state": "acceptance_ready",
+    "real_dns_cutover_executed": false,
+    "real_client_production_deploy": false,
+    "external_sends_executed": []
+  },
+  "defects": [],
+  "final_verdict": "READY FOR CONTROLLED CLIENT PILOT",
+  "artifact_paths": [
+    "artifacts/gtm-integrated-711/latest-run.json",
+    "artifacts/gtm-integrated-711/scenario-a-ledger.json",
+    "artifacts/gtm-integrated-711/scenario-b-ledger.json",
+    "artifacts/gtm-integrated-711/FINAL_MAIN_COMBINED_SUMMARY.json",
+    "docs/execution/GTM_INTEGRATED_SCENARIOS_711_RESULT_V1.md"
+  ]
+}

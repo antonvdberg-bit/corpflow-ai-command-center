@@ -283,6 +283,14 @@ P0 applies the **smallest shared semantic tokens** (status/priority labels, sign
 
 ---
 
+## 9b. Maturation and nurture layer (#713)
+
+See **`docs/operations/PROSPECT_MATURATION_AND_NURTURE_V1.md`** for the complete maturation/nurture unit gate: lifecycle entry/exit criteria, required-field validation, qualification gates (Lead Rescue + Website Rescue), draft-only message templates, overdue/stale/reactivation detection, daily operator procedure, weekly pipeline procedure, and 8 synthetic test scenarios.
+
+Machine contract: `lib/prospects/maturation.js` · Config: `config/prospect-maturation.v1.json` · Draft assets: `config/prospect-draft-assets.v1.json`
+
+---
+
 ## 10. Verification commands (Slice 1)
 
 ```bash

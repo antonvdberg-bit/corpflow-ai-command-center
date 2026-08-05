@@ -1,0 +1,57 @@
+CorpFlowAI Buyer-Need UX Screenshots Summary
+=============================================
+
+All screenshots saved to:
+1. /opt/cursor/artifacts/screenshots/
+2. /workspace/artifacts/issue-712-buyer-need-form/
+
+Screenshots Captured:
+---------------------
+
+GENERAL DISCOVERY FORM (general-discovery.html):
+1. general-discovery-desktop.png (261K)
+   - Viewport: 1440x900
+   - Shows "What do you need help with?" dropdown with selected value
+   - NO "Preferred service path" or "Related product sprint" labels visible
+   - Header: "GENERAL DISCOVERY /contact#discovery"
+
+2. general-discovery-desktop-options-open.png (274K)
+   - Viewport: 1440x900
+   - Shows dropdown OPEN with all 5 plain-language options:
+     * Select one...
+     * I am losing or mishandling enquiries
+     * My website needs improvement or replacement
+     * I need help reducing repetitive admin or workflow problems
+     * I am interested in an AI receptionist/chatbot
+     * I am not sure — help me work it out
+
+3. general-discovery-mobile.png (312K)
+   - Viewport: 390x844
+   - Mobile-responsive layout
+   - Same form with "What do you need help with?" dropdown
+
+LOCKED LEAD RESCUE FORM (locked-lead-rescue.html):
+4. locked-lead-rescue-desktop.png (251K)
+   - Viewport: 1440x900
+   - Header: "LOCKED PRODUCT - /offers/ai-lead-rescue#discovery"
+   - Title: "Request discovery — AI Lead Rescue"
+   - Message: "You are requesting discovery for AI Lead Rescue. Tell us about 
+     the problem and timing — you do not need to re-classify the product."
+   - NO "What do you need help with?" dropdown (buyer-need question NOT present)
+   - Footer: "Locked product context — no buyer-need classification question."
+
+5. locked-lead-rescue-mobile.png (320K)
+   - Viewport: 390x844
+   - Mobile-responsive layout of locked form
+   - Same as desktop: NO buyer-need classification question
+
+Visual Verification Confirmed:
+-------------------------------
+✓ General form has exactly ONE routing question: "What do you need help with?"
+✓ Locked form does NOT ask the buyer-need classification question
+✓ No labels "Preferred service path" or "Related product sprint" visible
+✓ General form shows 5 plain-language options in dropdown
+✓ Locked form shows context message explaining product is already selected
+✓ Both forms display correctly in desktop (1440x900) and mobile (390x844) viewports
+
+Generated: $(date)

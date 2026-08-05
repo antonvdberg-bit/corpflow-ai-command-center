@@ -1,0 +1,42 @@
+{
+  "schema": "corpflow.discovery_buyer_need_mapping.v1",
+  "issue": 712,
+  "pr": 744,
+  "options": [
+    {
+      "id": "losing-enquiries",
+      "label": "I am losing or mishandling enquiries",
+      "service_path": "client-lead-service",
+      "offer_slug": "ai-lead-rescue",
+      "service_interest": "lead_rescue"
+    },
+    {
+      "id": "website-improvement",
+      "label": "My website needs improvement or replacement",
+      "service_path": "website-digital",
+      "offer_slug": "premium-landing-page-rescue",
+      "service_interest": "website_rescue"
+    },
+    {
+      "id": "admin-workflow",
+      "label": "I need help reducing repetitive admin or workflow problems",
+      "service_path": "workflow-administration",
+      "offer_slug": null,
+      "service_interest": "workflow_admin_improvement"
+    },
+    {
+      "id": "ai-receptionist",
+      "label": "I am interested in an AI receptionist/chatbot",
+      "service_path": "client-lead-service",
+      "offer_slug": null,
+      "service_interest": "ai_receptionist_chatbot"
+    },
+    {
+      "id": "unsure",
+      "label": "I am not sure — help me work it out",
+      "service_path": "workflow-administration",
+      "offer_slug": null,
+      "service_interest": "other_unsure"
+    }
+  ]
+}

@@ -217,7 +217,8 @@ describe('rapid-delivery revenue desk UX', () => {
         'CorpFlowAI has delivered working lead-capture, operator-review and follow-up workflows',
       ),
     );
-    assert.ok(offers.includes('Mauritius sprint clients pay in MUR'));
+    assert.ok(offers.includes('Currency and payment instructions are confirmed on the invoice before you pay'));
+    assert.ok(!offers.includes('USD banking for this path is not yet available'));
   });
 
   it('public surfaces do not link to admin rapid-delivery', () => {

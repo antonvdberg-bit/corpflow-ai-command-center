@@ -388,10 +388,19 @@
   "default_maintenance_boundary": "Included: quoted pages as accepted at handover. Not included unless quoted: ongoing copy edits, new pages, SEO campaigns, hosting outside agreed arrangement, DNS changes, Lead Rescue monitoring, content retainers, or emergency after-hours support.",
   "docs": {
     "canonical": "docs/operations/WEBSITE_RESCUE_ONBOARDING_AND_DELIVERY_V1.md",
+    "system_proof": "docs/operations/WEBSITE_RESCUE_SYSTEM_PROOF_V1.md",
     "intake_template": "docs/operations/templates/website-rescue-onboarding-intake.md",
     "delivery_issue_template": "docs/operations/templates/website-rescue-delivery-issue.md",
     "operator_checklists": "docs/operations/WEBSITE_RESCUE_DELIVERY_CHECKLISTS_V1.md",
     "product_pack": "docs/marketing/WEBSITE_RESCUE_PRODUCT_PACK_V1.md",
     "shared_mauritius_checklist": "docs/operations/MAURITIUS_CLIENT_ONBOARDING_CHECKLIST_V1.md"
+  },
+  "system_proof": {
+    "runner": "lib/website-rescue/system-proof.js",
+    "cli": "scripts/website-rescue-system-proof.mjs",
+    "tests": "node-tests/website-rescue-system-proof.test.mjs",
+    "commercial_fixture": "fixtures/website-rescue-onboarding/system-proof-commercial-opportunity.json",
+    "evidence_artifact": "artifacts/website-rescue-system-proof/latest-run.json",
+    "consumes_commercial_handoff": "lib/revenue/commercial-approval.js#toOnboardingHandoff"
   }
 }

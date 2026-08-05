@@ -117,10 +117,8 @@ export default function AboutPage({ luxMode = false, seoHost = '' } = {}) {
           </p>
           <p style={{ margin: '0 0 14px' }}>
             We are based in Mauritius and work with clients in Mauritius and internationally.
-            Mauritius delivery sprints (the offers on this site priced from MUR 35,000 / MUR 45,000) are
-            paid in MUR by manual bank transfer — we are still obtaining a USD account for that path, so
-            those clients are not asked to settle in USD. The separate AI Lead Rescue launch pilot remains
-            a USD-quoted wedge. The currency on each invoice is confirmed before you pay.
+            Commercial terms, currency and payment instructions are confirmed in writing on each invoice
+            before you pay. This site does not collect card details on public marketing pages.
           </p>
           <p style={{ margin: 0 }}>
             CorpFlowAI is not a growth platform. It is an operations company. The number we

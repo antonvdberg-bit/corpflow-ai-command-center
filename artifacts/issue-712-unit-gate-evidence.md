@@ -131,3 +131,28 @@ Delivery Reality Audit:
 - No merge, no Vercel deploy, no env/secrets, no schema/DB migrations beyond existing lead rows created via public API
 - No client outreach / email / WhatsApp / SMS send
 - No campaign infrastructure, paid ads, or public-shell refactor
+
+---
+
+## Buyer-need conversion fix (Anton hands-on blocker — PR #744 follow-up)
+
+**Date:** 2026-08-04  
+**Status:** Corrected on branch `cursor/dispatcher-issue-712-caf8` — do not merge until Anton retests.
+
+### UX change
+- Removed simultaneous buyer-facing **Preferred service path** and **Related product sprint** controls.
+- General `/contact#discovery` now asks one question: **What do you need help with?** (five plain-language options).
+- Product pages with `lockedOffer` preselect service/product internally and do not ask the buyer to classify again.
+
+### Mapping
+See `artifacts/issue-712-buyer-need-form/mapping-table.json` and `node-tests/corpflow-discovery-buyer-need-712.test.mjs`.
+
+### Visual evidence
+- `artifacts/issue-712-buyer-need-form/general-discovery-desktop.png`
+- `artifacts/issue-712-buyer-need-form/general-discovery-desktop-options-open.png`
+- `artifacts/issue-712-buyer-need-form/general-discovery-mobile.png`
+- `artifacts/issue-712-buyer-need-form/locked-lead-rescue-desktop.png`
+- `artifacts/issue-712-buyer-need-form/locked-lead-rescue-mobile.png`
+
+### Tests
+`node --test node-tests/corpflow-discovery-buyer-need-712.test.mjs` (+ #699 / #712 suites) — pass.

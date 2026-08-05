@@ -4,6 +4,7 @@ import Head from 'next/head';
 import { PrismaClient } from '@prisma/client';
 
 import AiLeadRescueLanding from '../components/AiLeadRescueLanding.js';
+import ElevenLabsWebsiteVoiceChat from '../components/ElevenLabsWebsiteVoiceChat.js';
 import CipcDeskLanding from '../components/CipcDeskLanding.js';
 import CorpFlowPublicHome from '../components/CorpFlowPublicHome.js';
 import LuxeMauriceTenantPresentation from '../components/LuxeMauriceTenantPresentation.js';
@@ -382,11 +383,15 @@ const AI_LEAD_RESCUE_HOST = 'aileadrescue.corpflowai.com';
 export default function Home({ mode, site, host, homepageAssets, leadRescueAssets, search }) {
   if (mode === 'ai_lead_rescue') {
     return (
-      <AiLeadRescueLanding
-        host={host || AI_LEAD_RESCUE_HOST}
-        search={search || ''}
-        leadRescueAssets={leadRescueAssets || null}
-      />
+      <>
+        <AiLeadRescueLanding
+          host={host || AI_LEAD_RESCUE_HOST}
+          search={search || ''}
+          leadRescueAssets={leadRescueAssets || null}
+        />
+        {/* Disabled by default — docs/product/ELEVENLABS_WEBSITE_VOICE_CHAT_PILOT_V1.md */}
+        <ElevenLabsWebsiteVoiceChat surface="lead_rescue_host" />
+      </>
     );
   }
   if (mode === 'tenant_site' && site?.client_ui?.lux_acquisition === true) {

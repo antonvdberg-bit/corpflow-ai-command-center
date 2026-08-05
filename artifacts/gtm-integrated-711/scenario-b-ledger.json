@@ -1,0 +1,333 @@
+{
+  "ok": true,
+  "scenario": "B",
+  "product": "website-rescue",
+  "ran_at": "2026-08-05T00:30:00.000Z",
+  "simulation_only": true,
+  "ids": {
+    "run_id": "GTM-711-FINAL-MAIN-20260805",
+    "enquiry_ref": "INT-SYN-711B-20260805-001",
+    "prospect_id": "synthetic-pm-int-711b-wr-001",
+    "prospect_ref": "PM-INT-711B-WR-20260805-001",
+    "commercial_id": "synthetic-ca-711b-wr-001",
+    "opportunity_ref": "OPP-SYN-711B-WR-20260805-001",
+    "financial_approval_ref": "FA-SYN-711B-WR-20260805-001",
+    "payment_evidence_ref": "PAY-EV-SYN-711B-WR-20260805-001",
+    "onboarding_id": "synthetic-onb-711b-wr-001",
+    "onboarding_ref": "ONB-SYN-711B-WR-20260805-001",
+    "delivery_ref": "DEL-SYN-711B-WR-20260805-001"
+  },
+  "id_mapping": {
+    "enquiry_ref": "INT-SYN-711B-20260805-001",
+    "prospect_ref": "PM-INT-711B-WR-20260805-001",
+    "opportunity_ref": "OPP-SYN-711B-WR-20260805-001",
+    "financial_approval_ref": "FA-SYN-711B-WR-20260805-001",
+    "onboarding_id": "synthetic-onb-711b-wr-001",
+    "delivery_ref": "DEL-SYN-711B-WR-20260805-001"
+  },
+  "ledger": [
+    {
+      "step": "market_enquiry_classification_locked_offer",
+      "ok": true,
+      "detail": {
+        "enquiry_ref": "INT-SYN-711B-20260805-001",
+        "locked_offer": true,
+        "offer_slug": "premium-landing-page-rescue",
+        "routing": {
+          "ok": true,
+          "service_path": "website-digital",
+          "offer_slug": "premium-landing-page-rescue",
+          "buyer_need": null,
+          "service_interest": "website_rescue"
+        },
+        "source": "/offers/premium-landing-page-rescue#discovery",
+        "consent_contact": true,
+        "urgency": "this-month",
+        "buyer_not_asked_to_reclassify": true
+      }
+    },
+    {
+      "step": "acknowledgement_draft_only",
+      "ok": true,
+      "detail": {
+        "asset_id": "acknowledgement",
+        "send": false
+      }
+    },
+    {
+      "step": "prospect_maturation_walk",
+      "ok": true,
+      "detail": {
+        "transitions": [
+          {
+            "from": "new",
+            "to": "qualifying",
+            "allowed": true
+          },
+          {
+            "from": "qualifying",
+            "to": "discovery_booked",
+            "allowed": true
+          },
+          {
+            "from": "discovery_booked",
+            "to": "proposal_ready",
+            "allowed": true
+          }
+        ],
+        "final_stage": "proposal_ready",
+        "qualification": {
+          "qualified": true
+        },
+        "prospect_ref": "PM-INT-711B-WR-20260805-001"
+      }
+    },
+    {
+      "step": "gate_financial_approval_missing",
+      "ok": true,
+      "detail": {
+        "blockers": [
+          "MISSING_FINANCIAL_APPROVER",
+          "MISSING_APPROVAL_TIMESTAMP"
+        ]
+      }
+    },
+    {
+      "step": "commercial_handoff_financially_approved",
+      "ok": true,
+      "detail": {
+        "opportunity_ref": "OPP-SYN-711B-WR-20260805-001",
+        "financial_approval_ref": "FA-SYN-711B-WR-20260805-001",
+        "product": "website-rescue",
+        "blockers": []
+      }
+    },
+    {
+      "step": "gate_content_assets_access_blocks",
+      "ok": true,
+      "detail": {
+        "missing_financial_approval": {
+          "can_start_build": {
+            "ok": false,
+            "reason": "MISSING_FINANCIAL_APPROVAL"
+          },
+          "transition": {
+            "ok": false,
+            "reason": "BUILD_GATE_BLOCKED",
+            "gate_reason": "MISSING_FINANCIAL_APPROVAL"
+          }
+        },
+        "missing_content_or_assets": {
+          "can_start_build": {
+            "ok": false,
+            "reason": "MISSING_CONTENT_OR_ASSETS"
+          },
+          "transition": {
+            "ok": false,
+            "reason": "BUILD_GATE_BLOCKED",
+            "gate_reason": "MISSING_CONTENT_OR_ASSETS"
+          }
+        },
+        "missing_approved_access": {
+          "can_start_build": {
+            "ok": false,
+            "reason": "MISSING_APPROVED_ACCESS"
+          },
+          "transition": {
+            "ok": false,
+            "reason": "BUILD_GATE_BLOCKED",
+            "gate_reason": "MISSING_APPROVED_ACCESS"
+          }
+        }
+      }
+    },
+    {
+      "step": "delivery_path_to_acceptance_ready",
+      "ok": true,
+      "detail": {
+        "transitions": [
+          {
+            "from": "approved_to_onboard",
+            "to": "onboarding_in_progress",
+            "ok": true
+          },
+          {
+            "from": "onboarding_in_progress",
+            "to": "onboarding_complete",
+            "ok": true
+          },
+          {
+            "from": "onboarding_complete",
+            "to": "build_started",
+            "ok": true
+          },
+          {
+            "from": "build_started",
+            "to": "preview_evidence",
+            "ok": true
+          },
+          {
+            "from": "preview_evidence",
+            "to": "revision_cycle",
+            "ok": true
+          },
+          {
+            "from": "revision_cycle",
+            "to": "deploy_approval_pending",
+            "ok": true
+          },
+          {
+            "from": "deploy_approval_pending",
+            "to": "deploy_approved_simulated",
+            "ok": true
+          },
+          {
+            "from": "deploy_approved_simulated",
+            "to": "dns_cutover_gated",
+            "ok": true
+          },
+          {
+            "from": "dns_cutover_gated",
+            "to": "live_validation_simulated",
+            "ok": true
+          },
+          {
+            "from": "live_validation_simulated",
+            "to": "accepted",
+            "ok": true
+          },
+          {
+            "from": "accepted",
+            "to": "handover_complete",
+            "ok": true
+          },
+          {
+            "from": "handover_complete",
+            "to": "acceptance_ready",
+            "ok": true
+          }
+        ],
+        "final_state": "acceptance_ready",
+        "acceptance": {
+          "ok": true,
+          "reason": null,
+          "incomplete": [],
+          "packets": {
+            "preview": {
+              "ok": true,
+              "packet_id": "preview",
+              "missing": [],
+              "required_fields": [
+                "preview_url_or_artefact",
+                "captured_at",
+                "operator_note"
+              ]
+            },
+            "revision": {
+              "ok": true,
+              "packet_id": "revision",
+              "missing": [],
+              "required_fields": [
+                "round",
+                "reviewer",
+                "decision",
+                "feedback_summary",
+                "captured_at"
+              ]
+            },
+            "deploy_approval": {
+              "ok": true,
+              "packet_id": "deploy_approval",
+              "missing": [],
+              "required_fields": [
+                "approver",
+                "approved_at",
+                "simulation_only",
+                "operator_note"
+              ]
+            },
+            "dns_cutover": {
+              "ok": true,
+              "packet_id": "dns_cutover",
+              "missing": [],
+              "required_fields": [
+                "in_scope",
+                "authorization_status",
+                "simulation_only",
+                "operator_note"
+              ]
+            },
+            "live_validation": {
+              "ok": true,
+              "packet_id": "live_validation",
+              "missing": [],
+              "required_fields": [
+                "checks",
+                "pass_fail",
+                "captured_at",
+                "operator_note"
+              ]
+            },
+            "acceptance": {
+              "ok": true,
+              "packet_id": "acceptance",
+              "missing": [],
+              "required_fields": [
+                "accepted_by",
+                "accepted_at",
+                "acceptance_measures_met"
+              ]
+            },
+            "handover": {
+              "ok": true,
+              "packet_id": "handover",
+              "missing": [],
+              "required_fields": [
+                "handover_sent_at",
+                "channels",
+                "support_boundary_summary",
+                "what_was_built"
+              ]
+            },
+            "maintenance_boundary": {
+              "ok": true,
+              "packet_id": "maintenance_boundary",
+              "missing": [],
+              "required_fields": [
+                "in_scope",
+                "out_of_scope",
+                "escalation_contact",
+                "optional_maintenance_offer"
+              ]
+            }
+          }
+        },
+        "deploy_approval_simulated": true,
+        "dns_cutover_authorized_simulated": true,
+        "real_dns_cutover_executed": false,
+        "real_client_production_deploy": false,
+        "evidence_packet_ids": [
+          "preview",
+          "revision",
+          "deploy_approval",
+          "dns_cutover",
+          "live_validation",
+          "acceptance",
+          "handover",
+          "maintenance_boundary"
+        ],
+        "gate_blocks_when_ready_sample": {
+          "missing_fa_still_blocks_on_clone": true
+        }
+      }
+    }
+  ],
+  "external_sends_executed": [],
+  "real_dns_cutover_executed": false,
+  "real_client_production_deploy": false,
+  "final_prospect_stage": "proposal_ready",
+  "final_delivery_state": "acceptance_ready",
+  "expected": "locked-offer market→maturation→FA→onboarding→acceptance_ready; DNS/deploy simulated only; no send",
+  "actual": "all ledger steps passed; acceptance_ready; no real DNS/deploy; external_sends_executed=[]",
+  "verdict": "PASS"
+}
