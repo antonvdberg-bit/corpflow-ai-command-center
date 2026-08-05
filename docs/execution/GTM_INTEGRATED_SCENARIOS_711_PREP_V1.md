@@ -23,7 +23,9 @@ Integrated scenarios must run against **final merged `main`**, not isolated bran
 | Website Rescue system-proof | #742 | Approved → acceptance_ready |
 | Commercial approval rail | #714 (merged) | Financially approved handoff |
 
-Until #746 / #745 / #742 / #755 are on `main`, treat this packet as **PREPARE**, not COMPLETE.
+Until #745 / #742 / #755 are on `main`, treat this packet as **PREPARE**, not COMPLETE.
+
+**Update 2026-08-05:** Merges confirmed on `main` (`ce496c0a`). Execution evidence: `docs/execution/GTM_INTEGRATED_SCENARIOS_711_RESULT_V1.md` · `artifacts/gtm-integrated-711/`.
 
 ---
 
