@@ -1,0 +1,132 @@
+{
+  "$schema_version": "1",
+  "$doc": "Draft-only prospect message templates. ALL assets are marked send=false. Operators must manually review, personalise, and send via their own authenticated channel. This module NEVER triggers external send, WhatsApp, SMS, or email dispatch.",
+  "$issue": "#713",
+  "$canonical_doc": "docs/operations/PROSPECT_MATURATION_AND_NURTURE_V1.md",
+  "$send": false,
+  "$protected": true,
+  "$warning": "NO SEND — draft templates only. Do not add runtime send capability to this file or the module that reads it.",
+
+  "draft_assets": {
+    "acknowledgement": {
+      "id": "acknowledgement",
+      "label": "Acknowledgement",
+      "stage_trigger": "new",
+      "send": false,
+      "protected": true,
+      "channel_hint": "whatsapp or email — operator chooses",
+      "subject_template": "Your enquiry — {{business_name}} × CorpFlowAI",
+      "body_template": "Hi {{first_name}},\n\nThank you for reaching out about {{product_label}}.\n\nI've received your enquiry and will review your details today. I'll follow up with next steps within {{sla_hours}} hours.\n\nBest,\n{{operator_name}}\nCorpFlowAI",
+      "variables": ["first_name", "business_name", "product_label", "sla_hours", "operator_name"],
+      "notes": "Send within 24 h of intake. Personalise with business name and specific service interest."
+    },
+    "qualification_outreach": {
+      "id": "qualification_outreach",
+      "label": "Qualification Outreach",
+      "stage_trigger": "qualifying",
+      "send": false,
+      "protected": true,
+      "channel_hint": "whatsapp preferred; email fallback",
+      "subject_template": "Quick questions — {{business_name}}",
+      "body_template": "Hi {{first_name}},\n\nI'd love to understand your situation a bit better before we go further.\n\nA few quick questions:\n1. How are you currently generating leads / managing your website? (whatever is relevant to {{product_label}})\n2. What's your primary goal in the next 3 months?\n3. Are you the right person to discuss this, or should I copy someone else?\n\nHappy to jump on a quick call if easier — just reply here.\n\n{{operator_name}}",
+      "variables": ["first_name", "business_name", "product_label", "operator_name"],
+      "notes": "Use when prospect has not responded to acknowledgement or when qualification fields are incomplete."
+    },
+    "discovery_invite": {
+      "id": "discovery_invite",
+      "label": "Discovery Call Invite",
+      "stage_trigger": "qualifying",
+      "send": false,
+      "protected": true,
+      "channel_hint": "whatsapp or email",
+      "subject_template": "Discovery call — {{business_name}} × CorpFlowAI",
+      "body_template": "Hi {{first_name}},\n\nBased on what you've shared, I think there's a strong fit for {{product_label}}.\n\nI'd like to set up a quick 15-minute call to walk through your situation and confirm scope before sending a proposal.\n\nAre you available this week? A few times that work for me:\n- {{slot_1}}\n- {{slot_2}}\n- {{slot_3}}\n\nOr if easier, book directly: {{booking_link}}\n\n{{operator_name}}",
+      "variables": ["first_name", "business_name", "product_label", "slot_1", "slot_2", "slot_3", "booking_link", "operator_name"],
+      "notes": "Use after qualification criteria met. Confirm the booking in the system after prospect responds."
+    },
+    "follow_up_no_response": {
+      "id": "follow_up_no_response",
+      "label": "Follow-up (No Response)",
+      "stage_trigger": "qualifying",
+      "send": false,
+      "protected": true,
+      "channel_hint": "same channel as previous outreach",
+      "subject_template": "Following up — {{business_name}}",
+      "body_template": "Hi {{first_name}},\n\nJust following up on my message from {{days_ago}} days ago about {{product_label}}.\n\nI know things get busy — if now isn't the right time, no problem at all. Just let me know.\n\nIf you'd still like to explore, I'd be happy to find 15 minutes this week.\n\n{{operator_name}}",
+      "variables": ["first_name", "business_name", "product_label", "days_ago", "operator_name"],
+      "notes": "Use at day 3, 7, 14 after no response. After follow_up #4 with no response, move to stalled or lost."
+    },
+    "nurture_value_share": {
+      "id": "nurture_value_share",
+      "label": "Nurture — Value Share",
+      "stage_trigger": "stalled",
+      "send": false,
+      "protected": true,
+      "channel_hint": "whatsapp or email",
+      "subject_template": "Something that might help — {{business_name}}",
+      "body_template": "Hi {{first_name}},\n\nI've been thinking about {{business_name}} since we last spoke.\n\n{{value_content}}\n\nNo pressure — just thought this was relevant to what you mentioned. Happy to reconnect when the timing's right.\n\n{{operator_name}}",
+      "variables": ["first_name", "business_name", "value_content", "operator_name"],
+      "notes": "Use for stalled prospects during the 90-day reactivation window. Personalise value_content with a specific insight, case result, or relevant article. Not a sales pitch."
+    },
+    "objection_response": {
+      "id": "objection_response",
+      "label": "Objection Response",
+      "stage_trigger": "proposal_sent",
+      "send": false,
+      "protected": true,
+      "channel_hint": "match the channel where the objection was raised",
+      "subject_template": "Re: {{objection_topic}} — {{business_name}}",
+      "body_template": "Hi {{first_name}},\n\nThank you for sharing that — I hear you on {{objection_summary}}.\n\n{{objection_response_content}}\n\nThe way I see it: {{reframe}}.\n\nWould it help to adjust the proposal? I can {{adjustment_offer}}.\n\nLet me know what makes sense.\n\n{{operator_name}}",
+      "variables": ["first_name", "business_name", "objection_topic", "objection_summary", "objection_response_content", "reframe", "adjustment_offer", "operator_name"],
+      "notes": "Operators must personalise every field. Common objections: price, timing, uncertainty about ROI. Never over-promise or guarantee revenue outcomes."
+    },
+    "proposal_handoff": {
+      "id": "proposal_handoff",
+      "label": "Proposal Handoff",
+      "stage_trigger": "proposal_ready",
+      "send": false,
+      "protected": true,
+      "channel_hint": "email preferred for formal proposals; whatsapp summary acceptable",
+      "subject_template": "Your {{product_label}} proposal — {{business_name}}",
+      "body_template": "Hi {{first_name}},\n\nFollowing our conversation on {{discovery_date}}, I've prepared a proposal for {{business_name}}.\n\n{{proposal_summary}}\n\nKey details:\n- Service: {{service_description}}\n- Investment: {{pricing_summary}}\n- Timeline: {{timeline_estimate}}\n- Next step: {{next_step}}\n\nI'll follow up in {{follow_up_days}} days if I haven't heard back.\n\n{{operator_name}}",
+      "variables": ["first_name", "business_name", "product_label", "discovery_date", "proposal_summary", "service_description", "pricing_summary", "timeline_estimate", "next_step", "follow_up_days", "operator_name"],
+      "notes": "Review full proposal against pricing guide before sending. Do not include revenue guarantees. Operator must approve before sending."
+    },
+    "lost_close": {
+      "id": "lost_close",
+      "label": "Lost — Graceful Close",
+      "stage_trigger": "lost",
+      "send": false,
+      "protected": true,
+      "channel_hint": "same channel as last interaction",
+      "subject_template": "Closing the loop — {{business_name}}",
+      "body_template": "Hi {{first_name}},\n\nI wanted to close the loop on our conversation about {{product_label}} for {{business_name}}.\n\nNo hard feelings — I understand the timing or fit wasn't right.\n\nIf circumstances change down the line, feel free to reach out. I'll keep {{business_name}} in mind if something relevant comes up on our end.\n\nWishing you well,\n{{operator_name}}",
+      "variables": ["first_name", "business_name", "product_label", "operator_name"],
+      "notes": "Send only when prospect has explicitly declined or when follow-up cadence is exhausted. Keeps the relationship positive."
+    },
+    "stalled_check_in": {
+      "id": "stalled_check_in",
+      "label": "Stalled — Check-In",
+      "stage_trigger": "stalled",
+      "send": false,
+      "protected": true,
+      "channel_hint": "whatsapp preferred",
+      "subject_template": "Checking in — {{business_name}}",
+      "body_template": "Hi {{first_name}},\n\nIt's been a while since we spoke — hope things are going well at {{business_name}}.\n\nI wanted to check in and see if {{blocker_reason}} has resolved or if there's a better time to pick up our conversation.\n\nNo obligation — just didn't want to lose touch.\n\n{{operator_name}}",
+      "variables": ["first_name", "business_name", "blocker_reason", "operator_name"],
+      "notes": "Use at 30-day intervals during stalled period. If no response after 90 days from last activity, move to lost."
+    },
+    "reactivation": {
+      "id": "reactivation",
+      "label": "Reactivation",
+      "stage_trigger": "stalled",
+      "send": false,
+      "protected": true,
+      "channel_hint": "whatsapp or email",
+      "subject_template": "Re: {{business_name}} — ready to pick this up?",
+      "body_template": "Hi {{first_name}},\n\nI hope things have moved forward at {{business_name}} since we last spoke.\n\nWe've {{since_last_contact_update}} — I think the timing might be better now for what you were looking at.\n\nWould you like to revisit? Happy to start fresh with a 15-minute call.\n\n{{operator_name}}",
+      "variables": ["first_name", "business_name", "since_last_contact_update", "operator_name"],
+      "notes": "Use when reactivation_due signal fires or prospect re-engages. Update 'since_last_contact_update' with a specific recent improvement or result."
+    }
+  }
+}

@@ -1,0 +1,297 @@
+{
+  "schema": "corpflow.lead_rescue_system_proof.v1",
+  "issue": 715,
+  "product": "ai-lead-rescue",
+  "ran_at": "2026-08-04T06:00:00Z",
+  "simulation_only": true,
+  "messaging_runtime_authorized": false,
+  "allow_real_client_sends": false,
+  "external_sends_executed": [],
+  "commercial": {
+    "opportunity_ref": "OPP-SYN-LR-SYS-715-001",
+    "financial_approval_ref": "FA-SYN-LR-SYS-715-001",
+    "proposal_version": "v1.0",
+    "offer_kind": "pilot"
+  },
+  "handoff": {
+    "financially_approved": true,
+    "financial_approval_ref": "FA-SYN-LR-SYS-715-001",
+    "product": "ai-lead-rescue",
+    "commercial_product": "lead-rescue",
+    "opportunity_ref": "OPP-SYN-LR-SYS-715-001",
+    "blockers": [],
+    "protected_actions_executed": false
+  },
+  "onboarding": {
+    "id": "synthetic-lr-sys-715-onboarding",
+    "intake_complete_before_flags": true,
+    "shared_complete_before_flags": false,
+    "build_ok_before_inputs": true,
+    "build_reason_before_inputs": null,
+    "intake_complete_after_inputs": true,
+    "shared_complete_after_inputs": true,
+    "build_ok_after_inputs": true,
+    "missing_intake": [],
+    "enquiry_sources": [
+      "website_form",
+      "whatsapp",
+      "facebook"
+    ],
+    "primary_leaky_source": "website_form",
+    "users_operators": [
+      "Sam Approver",
+      "Casey Desk"
+    ],
+    "lead_stages": [
+      "new",
+      "replied",
+      "followed-up",
+      "qualified",
+      "quote-sent",
+      "won",
+      "lost",
+      "no-response"
+    ],
+    "escalation_rules_present": true,
+    "approved_response_rules_present": true,
+    "test_scenarios": [
+      "marked_test_enquiry_end_to_end",
+      "after_hours_alert_path_simulated",
+      "daily_summary_draft_only"
+    ],
+    "reporting_requirements_present": true,
+    "client_responsibilities_count": 5,
+    "exclusions_count": 6,
+    "acceptance_measures_count": 5,
+    "review_cadence": "Preview feedback within 2 business days; day-1 / day-3 / day-7 during monitoring window."
+  },
+  "gate_block_proof": {
+    "missing_financial_approval": {
+      "can_start_build": {
+        "ok": false,
+        "reason": "MISSING_FINANCIAL_APPROVAL"
+      },
+      "transition": {
+        "ok": false,
+        "reason": "BUILD_GATE_BLOCKED",
+        "gate_reason": "MISSING_FINANCIAL_APPROVAL"
+      }
+    },
+    "missing_required_client_inputs": {
+      "can_start_build": {
+        "ok": false,
+        "reason": "MISSING_REQUIRED_CLIENT_INPUTS",
+        "missing": [
+          "enquiry_sources",
+          "primary_leaky_source"
+        ]
+      },
+      "transition": {
+        "ok": false,
+        "reason": "BUILD_GATE_BLOCKED",
+        "gate_reason": "MISSING_REQUIRED_CLIENT_INPUTS"
+      }
+    },
+    "blocked_client_inputs": {
+      "can_start_build": {
+        "ok": false,
+        "reason": "BLOCKED_CLIENT_INPUTS",
+        "blocked": [
+          "client_waiting_on_form_forwarding"
+        ]
+      }
+    },
+    "messaging_runtime_gate": {
+      "unauthorized": {
+        "ok": false,
+        "reason": "MESSAGING_RUNTIME_NOT_AUTHORIZED"
+      },
+      "authorized_flag_only": {
+        "ok": true
+      },
+      "note": "System-proof path keeps messaging_runtime_authorized=false; authorization flag alone does not send."
+    }
+  },
+  "delivery": {
+    "ok": true,
+    "final_state": "acceptance_ready",
+    "transitions": [
+      {
+        "from": "approved_to_onboard",
+        "to": "onboarding_in_progress",
+        "ok": true
+      },
+      {
+        "from": "onboarding_in_progress",
+        "to": "onboarding_complete",
+        "ok": true
+      },
+      {
+        "from": "onboarding_complete",
+        "to": "build_started",
+        "ok": true
+      },
+      {
+        "from": "build_started",
+        "to": "preview_evidence",
+        "ok": true
+      },
+      {
+        "from": "preview_evidence",
+        "to": "verification_evidence",
+        "ok": true
+      },
+      {
+        "from": "verification_evidence",
+        "to": "client_review",
+        "ok": true
+      },
+      {
+        "from": "client_review",
+        "to": "preview_evidence",
+        "ok": true
+      },
+      {
+        "from": "preview_evidence",
+        "to": "verification_evidence",
+        "ok": true
+      },
+      {
+        "from": "verification_evidence",
+        "to": "client_review",
+        "ok": true
+      },
+      {
+        "from": "client_review",
+        "to": "accepted",
+        "ok": true
+      },
+      {
+        "from": "accepted",
+        "to": "handover_complete",
+        "ok": true
+      },
+      {
+        "from": "handover_complete",
+        "to": "acceptance_ready",
+        "ok": true
+      }
+    ],
+    "failed_at": null,
+    "reason": null,
+    "acceptance_ready": {
+      "ok": true,
+      "reason": null,
+      "incomplete": [],
+      "packets": {
+        "preview": {
+          "ok": true,
+          "packet_id": "preview",
+          "missing": [],
+          "required_fields": [
+            "preview_url_or_artefact",
+            "captured_at",
+            "operator_note"
+          ]
+        },
+        "verification": {
+          "ok": true,
+          "packet_id": "verification",
+          "missing": [],
+          "required_fields": [
+            "test_scenario_ids",
+            "pass_fail",
+            "captured_at",
+            "operator_note"
+          ]
+        },
+        "client_review": {
+          "ok": true,
+          "packet_id": "client_review",
+          "missing": [],
+          "required_fields": [
+            "reviewer",
+            "reviewed_at",
+            "decision",
+            "feedback_summary"
+          ]
+        },
+        "acceptance": {
+          "ok": true,
+          "packet_id": "acceptance",
+          "missing": [],
+          "required_fields": [
+            "accepted_by",
+            "accepted_at",
+            "acceptance_measures_met"
+          ]
+        },
+        "handover": {
+          "ok": true,
+          "packet_id": "handover",
+          "missing": [],
+          "required_fields": [
+            "handover_sent_at",
+            "channels",
+            "support_boundary_summary",
+            "monitoring_window"
+          ]
+        },
+        "support_boundary": {
+          "ok": true,
+          "packet_id": "support_boundary",
+          "missing": [],
+          "required_fields": [
+            "in_scope",
+            "out_of_scope",
+            "escalation_contact",
+            "review_cadence"
+          ]
+        }
+      }
+    },
+    "messaging": {
+      "ok": false,
+      "reason": "MESSAGING_RUNTIME_NOT_AUTHORIZED"
+    }
+  },
+  "final_record": {
+    "id": "synthetic-lr-sys-715-onboarding",
+    "opportunity_ref": "OPP-SYN-LR-SYS-715-001",
+    "financial_approval_ref": "FA-SYN-LR-SYS-715-001",
+    "delivery_state": "acceptance_ready",
+    "messaging_runtime_authorized": false,
+    "allow_real_client_sends": false,
+    "evidence_packet_ids": [
+      "preview",
+      "verification",
+      "client_review",
+      "acceptance",
+      "handover",
+      "support_boundary"
+    ],
+    "delivery_issue": {
+      "template": "docs/operations/templates/lead-rescue-delivery-issue.md",
+      "title": "Lead Rescue delivery — Synthetic Lagoon Rentals (system-proof)",
+      "status": "opened",
+      "simulation_only": true,
+      "opened_at": "2026-08-04T06:00:00Z",
+      "note": "Bounded delivery issue opened after onboarding inputs complete; messaging runtime remains off."
+    },
+    "support_boundary": {
+      "in_scope": "One connected enquiry source, operator alert path, pilot board stages, daily summary draft channel",
+      "out_of_scope": "WhatsApp/email/SMS automated runtime, second lead source, CRM migration, revenue guarantees, client_production deploy/DNS",
+      "escalation_contact": "Sam Approver",
+      "review_cadence": "day-1 / day-3 / day-7 during monitoring; then optional monthly check-in (deferred offer)"
+    },
+    "handover": {
+      "handover_sent_at": "2026-08-04T07:00:00Z",
+      "channels": [
+        "synthetic_draft_email"
+      ],
+      "support_boundary_summary": "Pilot board + one source + operator alerts as accepted; no auto-reply; change requests via Sam Approver.",
+      "monitoring_window": "2026-08-05 to 2026-08-12 (7-day synthetic monitoring window)"
+    }
+  },
+  "ok": true
+}
