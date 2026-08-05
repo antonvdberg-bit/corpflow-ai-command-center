@@ -116,4 +116,19 @@ Jan test package: `docs/LUX/JAN_TEST_PACKAGE_717.md`. Synthetic runtime evidence
 
 ---
 
+## Issue #752 — Viewing by Invitation (JSON only)
+
+| Area | Behaviour |
+|------|-----------|
+| **Panel** | Lux `/change` **Viewing by Invitation** after Confidential Presentation (`luxe-maurice` only). |
+| **Journey** | Full path labelled; current step `Confidential Presentation → Viewing by Invitation → Purchase`. |
+| **Storage** | `qualification_json.private_client_viewing` (format + proposed date/time + access/concierge notes). No schema migration. |
+| **Checklist** | Invitation readiness from contact, invited/ready stage, qualification, shortlist, presentation, format, datetime, access notes, manual next action. |
+| **Draft** | On-screen copy-ready viewing invitation; **send disabled / manual only** (no email / WhatsApp / SMS). No calendar booking. |
+| **PATCH** | `viewing_format`, `viewing_proposed_datetime`, `viewing_access_notes` on `concierge-lead-operator-patch`. |
+
+Jan test package: `docs/LUX/JAN_TEST_PACKAGE_752.md`. Synthetic runtime evidence: `artifacts/lux-752-viewing-by-invitation/`.
+
+---
+
 **Phase 3 demo safe:** Yes — ticket stays open; no marketing automation or external CRM in this slice.
