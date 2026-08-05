@@ -1,0 +1,41 @@
+PR #749 Production Validation - Screenshot Absolute Paths
+==========================================================
+
+All screenshots are saved in BOTH locations:
+
+Location 1: /opt/cursor/artifacts/screenshots/
+Location 2: /workspace/artifacts/issue-749-production-validation/
+
+Screenshot Files:
+-----------------
+
+1. contact-discovery-desktop.png
+   - Contact form at 1440x900, showing single routing question
+   - URL: https://corpflowai.com/contact#discovery
+   
+2. contact-discovery-desktop-options.png
+   - Contact form with dropdown options visible
+   - Shows all 5 buyer-need options
+   
+3. contact-discovery-mobile.png
+   - Contact form at 390x844 mobile view
+   - Same URL, mobile responsive
+   
+4. website-rescue-discovery-desktop.png
+   - Locked product form showing context message
+   - URL: https://corpflowai.com/offers/premium-landing-page-rescue#discovery
+   
+5. lead-rescue-desktop.png
+   - Lead Rescue landing page with primary CTA
+   - URL: https://corpflowai.com/lead-rescue
+   
+6. contact-discovery-submit-success.png
+   - Successful form submission confirmation
+   - Reference: CF-L2NYCT
+   - Internal ID: cas:f939838080|y043cL2nyct
+
+Validation Report:
+------------------
+/workspace/artifacts/issue-749-production-validation/VALIDATION-REPORT.md
+
+All validations PASSED ✅
