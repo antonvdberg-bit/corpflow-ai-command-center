@@ -241,12 +241,24 @@ export default function CipcDeskLanding({ site }) {
               {serviceItems.map((item, idx) => {
                 const name = safeStr(item?.name) || `Service ${idx + 1}`;
                 const detail = safeStr(item?.detail);
+                const href = safeStr(item?.href);
                 return (
                   <GlassPanel key={`svc-${idx}`} as="article" variant={{ padding: 20, elevation: 1 }}>
                     <h3 style={{ margin: '0 0 8px', fontSize: 16.5, color: CF.text, letterSpacing: '-0.01em' }}>
-                      {name}
+                      {href ? (
+                        <a href={href} style={{ color: 'inherit', textDecoration: 'none' }}>
+                          {name}
+                        </a>
+                      ) : (
+                        name
+                      )}
                     </h3>
-                    {detail ? <p style={{ ...cfBody, margin: 0, fontSize: 14 }}>{detail}</p> : null}
+                    {detail ? <p style={{ ...cfBody, margin: href ? 10 : 0, fontSize: 14 }}>{detail}</p> : null}
+                    {href ? (
+                      <a href={href} style={{ ...cfBtnSecondary, fontSize: 12.5, minHeight: 36, padding: '8px 12px' }}>
+                        Open review page
+                      </a>
+                    ) : null}
                   </GlassPanel>
                 );
               })}
