@@ -8,10 +8,11 @@ import {
 const WIDGET_SCRIPT_SRC = 'https://unpkg.com/@elevenlabs/convai-widget-embed';
 
 /**
- * Gated ElevenLabs Agents website voice-chat placeholder.
+ * Gated ElevenLabs Agents website enquiry placeholder (voice + text, same agent).
  *
  * - Renders nothing unless NEXT_PUBLIC_ENABLE_ELEVENLABS_VOICE_CHAT=true
  *   AND NEXT_PUBLIC_ELEVENLABS_AGENT_ID is a real non-placeholder id.
+ * - Text fallback is the ElevenLabs widget chat/typing mode — not a second stack.
  * - CorpFlowAI-owned surfaces only (call sites must stay on CorpFlowAI pages).
  * - Do NOT enable in production without Anton approval.
  * - NO ACTIVATION AUTHORIZED by merging this component.
@@ -55,10 +56,12 @@ export default function ElevenLabsWebsiteVoiceChat({ surface = 'unspecified' }) 
       }}
     >
       <p style={{ margin: '0 0 8px', fontSize: 14, lineHeight: 1.45 }}>
-        Talk to our AI enquiry assistant. It captures your enquiry for human review. No commitments
-        are made by the assistant. A CorpFlowAI human will review before any next action.
+        Talk or type to our AI enquiry assistant. It captures your enquiry for human review. No
+        commitments are made by the assistant. A CorpFlowAI human will review before any next
+        action. Please do not submit passwords, secrets, financial records, medical details, or
+        confidential client data.
       </p>
-      {/* Custom element provided by ElevenLabs widget script when enabled. */}
+      {/* Custom element provided by ElevenLabs widget script when enabled (voice + text). */}
       <elevenlabs-convai agent-id={agentId}></elevenlabs-convai>
     </aside>
   );
