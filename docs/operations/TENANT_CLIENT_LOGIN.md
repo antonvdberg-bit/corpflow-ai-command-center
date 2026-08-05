@@ -66,11 +66,13 @@ When `**CORPFLOW_TENANT_PREVIEW_SECRET**` is set to the **same value on Producti
 | 2 | Add hostnames on the **existing** Vercel project (no second app): prefer `**cipc.corpflowai.com**`; also map policy-aligned `**cipc-desk.corpflowai.com**`. |
 | 3 | Point DNS for those hosts at the same Vercel project (Anton / DNS owner). |
 | 4 | Upsert Postgres `tenant_hostnames`: `**npm run factory:upsert-cipc-desk-hosts**` (or `--dry-run` first). |
-| 5 | After Production-spine deploy of the standing-tenant code: open `**https://cipc.corpflowai.com/**` (homepage) and `**/login**` / `**/change**`. Fictional PIN seed is for test only. |
+| 5 | After Production-spine deploy of the standing-tenant code: open `**https://cipc.corpflowai.com/**` (homepage), `**/login**` / `**/change**`, and (when #761 is deployed) `**/annual-returns**` for Sarah’s Annual Returns specialist-review surface. Fictional PIN seed is for test only. |
 | 6 | Evidence must be the **CIPC Desk URL**, never Lux / Core health / generic `/change` on another host. |
 
 
 Fictional-data only. Live email, WhatsApp, SMS, payments, and external outreach stay off. Seed + email-intake run on standing hosts (Production spine) or legacy Preview env — not a permanent preview release gate.
+
+**Annual Returns review (#761):** `https://cipc.corpflowai.com/annual-returns` is a host-gated specialist-review page (`corpflow_test` only; `noindex`). Structured feedback reuses existing `POST /api/tenant/intake` → Postgres `leads` for tenant `cipc-desk`. Not a public launch; no CIPC affiliation claims; turnaround/outcomes not guaranteed.
 
 **Operator decisions (CIPC Desk):** Do not ask Anton to watch the CIPC Desk workstream for routine progress. Route only genuine protected decisions to the **Anton Decision Inbox** (`needs:anton` + `approval:*` + `### ANTON DECISION PACKET` per `docs/operations/ANTON_DECISION_INBOX_V1.md`). Continue safe autonomous preview/docs work while unrelated approvals are pending. Never treat CI-complete as authority for production deploy, secrets, DB/schema, live messaging, payments, or public launch.
 
