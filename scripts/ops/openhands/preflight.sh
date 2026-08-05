@@ -17,10 +17,10 @@
 #   - FAILS if OPENHANDS_DOCKER_HOST / OPENHANDS_DOCKER_SOCK (from
 #     scripts/ops/openhands/lib/common.sh, env-overridable) resolve to the
 #     primary socket.
-#   - FAILS (--install mode only) if the dedicated socket file does not
-#     exist yet — the dedicated daemon must be running before --install.
+#   - FAILS (--install / --post-install) if the dedicated socket file does not
+#     exist yet — the dedicated daemon must be running for those modes.
 #     WARNS only (--check mode, the default) since "daemon not installed
-#     yet" is the expected, safe state for this INACTIVE package.
+#     yet" is the expected, safe state for this INACTIVE package before install.
 #   - FAILS if MAX_CONCURRENT_CONVERSATIONS: "1" is missing from
 #     ops/openhands/compose.yaml (the concurrency ceiling is a hard rule).
 #
@@ -30,15 +30,19 @@
 #   - ops/openhands/.env.example placeholders are NOT filled with what looks
 #     like a real secret, and the file is not accidentally tracked with real
 #     values in git
-#   - loopback port 127.0.0.1:3000 (from OPENHANDS_PORT, default 3000) is free
+#   - Port OPENHANDS_PORT (default 3000):
+#       --check / --install  → must be FREE (anything listening fails)
+#       --post-install       → must listen only on 127.0.0.1 and be owned by
+#                              corpflowai-openhands-app on the dedicated daemon
 #   - disk headroom on the filesystem backing the DEDICATED daemon's data-root
 #
 # Never prints secret values. Only reports pass/fail + short reasons.
 #
 # Usage:
 #   bash scripts/ops/openhands/preflight.sh
-#   bash scripts/ops/openhands/preflight.sh --check     (default, same as no flag)
-#   bash scripts/ops/openhands/preflight.sh --install   (stricter: dedicated socket MUST exist)
+#   bash scripts/ops/openhands/preflight.sh --check         (default, same as no flag)
+#   bash scripts/ops/openhands/preflight.sh --install       (stricter: dedicated socket MUST exist; port free)
+#   bash scripts/ops/openhands/preflight.sh --post-install  (installed pilot: loopback ownership)
 #
 # Exit codes:
 #   0 — all checks passed
@@ -60,17 +64,18 @@ MODE="check"
 
 usage() {
   cat <<'USAGE'
-Usage: preflight.sh [--check|--install] [--help]
+Usage: preflight.sh [--check|--install|--post-install] [--help]
 
-Read-only preflight checks for an eventual, separately authorized OpenHands
-install. Never installs or starts anything. Exits non-zero if any check
-fails.
+Read-only preflight checks for OpenHands. Never installs or starts anything.
+Exits non-zero if any check fails.
 
-  --check    (default) Dedicated-daemon-socket-missing is a WARNING, not a
-             failure — the expected state before any install.
-  --install  Stricter: dedicated-daemon-socket-missing is a FAILURE — the
-             dedicated rootless daemon must already be running before an
-             actual --install proceeds.
+  --check         (default) Pre-install oriented. Dedicated-daemon-socket-missing
+                  is a WARNING. Port OPENHANDS_PORT (default 3000) must be FREE.
+  --install       Stricter pre-install: dedicated daemon socket MUST exist.
+                  Port must still be FREE (nothing listening yet).
+  --post-install  Post-install verification: port MUST be listening only on
+                  127.0.0.1 and owned by corpflowai-openhands-app on the
+                  dedicated daemon. Fails on public/unknown binds.
 USAGE
 }
 
@@ -84,12 +89,16 @@ while [[ "$#" -gt 0 ]]; do
       MODE="install"
       shift
       ;;
+    --post-install)
+      MODE="post-install"
+      shift
+      ;;
     --help|-h)
       usage
       exit 0
       ;;
     *)
-      warn "unexpected argument(s): $*"
+      warn "unexpected argument: $1"
       usage
       exit 2
       ;;
@@ -223,8 +232,8 @@ check_dedicated_socket_present() {
     pass "dedicated Docker socket exists and is a socket file"
     return
   fi
-  if [[ "${MODE}" == "install" ]]; then
-    fail "dedicated Docker socket not found at OPENHANDS_DOCKER_SOCK — the dedicated rootless daemon (scripts/ops/systemd/corpflowai-openhands-dockerd.service) must be running before --install"
+  if [[ "${MODE}" == "install" || "${MODE}" == "post-install" ]]; then
+    fail "dedicated Docker socket not found at OPENHANDS_DOCKER_SOCK — the dedicated rootless daemon (scripts/ops/systemd/corpflowai-openhands-dockerd.service) must be running before --install/--post-install"
   else
     warn "dedicated Docker socket not found — expected until the dedicated rootless daemon is installed and started (ops/openhands/daemon/README.md); not a --check failure"
   fi
@@ -493,9 +502,74 @@ check_port_free() {
   fi
 
   if [[ "${in_use}" -eq 1 ]]; then
-    fail "loopback port ${port} appears to be in use already"
+    fail "loopback port ${port} appears to be in use already (pre-install modes require the port free)"
   else
     pass "loopback port ${port} appears free"
+  fi
+}
+
+# Post-install: port must be occupied by the expected OpenHands control plane
+# on 127.0.0.1 only — never treat "in use" alone as failure.
+check_port_post_install() {
+  local port="${OPENHANDS_PORT}"
+  local listeners=""
+  if command -v ss >/dev/null 2>&1; then
+    listeners="$(ss -Hltn 2>/dev/null | awk -v p=":${port}" '$4 ~ p"$" {print $4}' || true)"
+  elif command -v netstat >/dev/null 2>&1; then
+    listeners="$(netstat -ltn 2>/dev/null | awk -v p=":${port}" '$4 ~ p"$" {print $4}' || true)"
+  else
+    fail "neither ss nor netstat available — cannot verify post-install bind"
+    return
+  fi
+
+  if [[ -z "${listeners}" ]]; then
+    fail "post-install: nothing listening on port ${port} — OpenHands control plane expected on 127.0.0.1:${port}"
+    return
+  fi
+
+  local line addr bad=0
+  while IFS= read -r line; do
+    [[ -z "${line}" ]] && continue
+    addr="${line%:*}"
+    # ss may show 127.0.0.1:3000 or [::1]:3000
+    case "${addr}" in
+      127.*|\[::1\]|::1|localhost)
+        ;;
+      *)
+        fail "post-install: port ${port} listener is not loopback-only (${line})"
+        bad=1
+        ;;
+    esac
+  done <<< "${listeners}"
+  if [[ "${bad}" -ne 0 ]]; then
+    return
+  fi
+  pass "post-install: all port ${port} listeners are loopback-only"
+
+  # Prove ownership: dedicated-daemon container corpflowai-openhands-app publishes 127.0.0.1:port
+  if [[ ! -S "${OPENHANDS_DOCKER_SOCK}" ]]; then
+    fail "post-install: dedicated Docker socket missing — cannot prove OpenHands owns port ${port}"
+    return
+  fi
+  local ports_fmt status
+  ports_fmt="$(openhands_docker inspect -f '{{json .NetworkSettings.Ports}}' corpflowai-openhands-app 2>/dev/null || true)"
+  status="$(openhands_docker inspect -f '{{.State.Status}}' corpflowai-openhands-app 2>/dev/null || true)"
+  if [[ "${status}" != "running" ]]; then
+    fail "post-install: corpflowai-openhands-app is not running on the dedicated daemon (status='${status:-missing}')"
+    return
+  fi
+  if ! printf '%s' "${ports_fmt}" | grep -Fq "\"127.0.0.1\"" || ! printf '%s' "${ports_fmt}" | grep -Fq "\"${port}\""; then
+    fail "post-install: corpflowai-openhands-app does not publish 127.0.0.1:${port} on the dedicated daemon"
+    return
+  fi
+  pass "post-install: corpflowai-openhands-app owns 127.0.0.1:${port} on the dedicated daemon"
+}
+
+check_port_for_mode() {
+  if [[ "${MODE}" == "post-install" ]]; then
+    check_port_post_install
+  else
+    check_port_free
   fi
 }
 
@@ -543,11 +617,15 @@ main() {
   check_isolation_design_files_present
   check_rootless_prerequisites
   check_env_example_placeholders
-  check_port_free
+  check_port_for_mode
   check_disk_headroom
 
   if [[ "${#FAILURES[@]}" -eq 0 ]]; then
-    say "OK — all preflight checks passed. This is NOT authorization to install."
+    if [[ "${MODE}" == "post-install" ]]; then
+      say "OK — all post-install preflight checks passed."
+    else
+      say "OK — all preflight checks passed. This is NOT authorization to install."
+    fi
     exit 0
   fi
 

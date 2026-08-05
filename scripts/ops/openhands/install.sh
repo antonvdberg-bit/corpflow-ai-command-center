@@ -211,13 +211,13 @@ do_install() {
   say "running: docker compose -p ${OPENHANDS_PROJECT} -f ${COMPOSE_FILE} up -d (DOCKER_HOST=dedicated daemon)"
   openhands_docker compose -p "${OPENHANDS_PROJECT}" -f "${COMPOSE_FILE}" up -d
 
-  say "install command issued — re-running checks to confirm boundary compliance"
-  run_checks --check
+  say "install command issued — re-running post-install checks to confirm boundary compliance"
+  run_checks --post-install
 }
 
 do_verify() {
-  say "mode=verify (read-only)"
-  run_checks --check
+  say "mode=verify (read-only; post-install port ownership expected)"
+  run_checks --post-install
 }
 
 do_rollback() {

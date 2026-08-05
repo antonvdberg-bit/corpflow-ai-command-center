@@ -180,7 +180,22 @@ check_running_container() {
     fi
   done
 
-  say "live container check complete (privileged=${privileged} network_mode=${host_net})"
+  # Prove host-gateway was never added (ExtraHosts must stay empty) and that
+  # the image default SANDBOX_LOCAL_RUNTIME_URL=http://host.docker.internal
+  # was overridden to the dedicated-network control-plane DNS name.
+  local extra_hosts runtime_url
+  extra_hosts="$(openhands_docker inspect -f '{{json .HostConfig.ExtraHosts}}' "${OPENHANDS_PROJECT}-app" 2>/dev/null || echo "unknown")"
+  if [[ "${extra_hosts}" != "null" && "${extra_hosts}" != "[]" && "${extra_hosts}" != "unknown" ]]; then
+    VIOLATIONS+=("running container ExtraHosts is not empty (${extra_hosts}) — host-gateway / host.docker.internal must not be added")
+  fi
+  runtime_url="$(openhands_docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' "${OPENHANDS_PROJECT}-app" 2>/dev/null | grep -E '^SANDBOX_LOCAL_RUNTIME_URL=' || true)"
+  if printf '%s' "${runtime_url}" | grep -Fq 'host.docker.internal'; then
+    VIOLATIONS+=("running container still has SANDBOX_LOCAL_RUNTIME_URL pointing at host.docker.internal — compose must override to http://corpflowai-openhands-app:3000")
+  elif [[ -n "${runtime_url}" ]] && ! printf '%s' "${runtime_url}" | grep -Fq 'http://corpflowai-openhands-app:3000'; then
+    VIOLATIONS+=("running container SANDBOX_LOCAL_RUNTIME_URL is unexpected: ${runtime_url}" )
+  fi
+
+  say "live container check complete (privileged=${privileged} network_mode=${host_net} ExtraHosts=${extra_hosts})"
 }
 
 main() {

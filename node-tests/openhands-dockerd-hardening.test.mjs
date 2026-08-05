@@ -192,3 +192,51 @@ describe('openhands rootless preflight coverage', () => {
     assert.match(commonSh, /"none"/);
   });
 });
+
+describe('openhands preflight port modes', () => {
+  it('preflight declares --check, --install, and --post-install modes', () => {
+    assert.match(preflight, /--check\|--install\|--post-install/);
+    assert.match(preflight, /MODE="post-install"/);
+    assert.match(preflight, /MODE="check"/);
+    assert.match(preflight, /MODE="install"/);
+  });
+
+  it('--check/--install keep port-must-be-free via check_port_free', () => {
+    assert.match(preflight, /check_port_free\(\)/);
+    assert.match(preflight, /pre-install modes require the port free/);
+    assert.match(preflight, /check_port_for_mode/);
+    assert.match(preflight, /MODE\}" == "post-install"/);
+    assert.match(preflight, /check_port_post_install/);
+    assert.match(preflight, /check_port_free/);
+  });
+
+  it('--post-install requires loopback-only OpenHands ownership of port 3000', () => {
+    assert.match(preflight, /check_port_post_install\(\)/);
+    assert.match(preflight, /not loopback-only/);
+    assert.match(preflight, /corpflowai-openhands-app/);
+    assert.match(preflight, /127\.0\.0\.1/);
+    assert.match(preflight, /does not publish 127\.0\.0\.1/);
+  });
+
+  it('install.sh uses --post-install after compose up and for verify mode', () => {
+    assert.match(installSh, /run_checks --post-install/);
+    assert.match(installSh, /mode=verify \(read-only; post-install port ownership expected\)/);
+    // Pre-install path must remain strict free-port / --install.
+    assert.match(installSh, /preflight\.sh" --install/);
+    assert.match(installSh, /run_checks --check/);
+  });
+});
+
+describe('openhands SANDBOX_LOCAL_RUNTIME_URL dedicated-daemon override', () => {
+  it('compose overrides image host.docker.internal default without extra_hosts', () => {
+    assert.match(compose, /SANDBOX_LOCAL_RUNTIME_URL:\s*"http:\/\/corpflowai-openhands-app:3000"/);
+    assert.match(compose, /SANDBOX_ADDITIONAL_NETWORKS:\s*'\[\"corpflowai-openhands-net\"\]'/);
+    assert.doesNotMatch(compose, /^\s*extra_hosts:/m);
+    // Active (non-comment) lines must not reintroduce host.docker.internal.
+    const active = compose
+      .split(/\r?\n/)
+      .filter((l) => l.trim() && !l.trim().startsWith('#'))
+      .join('\n');
+    assert.doesNotMatch(active, /host\.docker\.internal/);
+  });
+});

@@ -189,6 +189,28 @@ no approved use case for the control plane to reach a service bound to the host'
   a small but real narrowing of the attack surface, consistent with the rest of this doc's "narrow, don't
   assume" posture.
 
+### 3.1 `SANDBOX_LOCAL_RUNTIME_URL` (image default vs dedicated-daemon override)
+
+The pinned app image `1.8` ships an image-default env of
+`SANDBOX_LOCAL_RUNTIME_URL=http://host.docker.internal` (Docker Desktop / host-gateway oriented). With
+`ExtraHosts=[]` that hostname does **not** resolve on this package's dedicated daemon.
+
+| State | Behaviour |
+|---|---|
+| Inactive pilot (no sandbox spawn) | The variable is unused for control-plane liveness (`GET /health` on loopback). |
+| Future sandbox spawn | Upstream uses this URL so sandboxes / runtime callbacks can reach the control plane. Leaving the image default would make a synthetic sandbox fail for a known-wrong hostname. |
+
+**Package override (compose.yaml):**
+
+- `SANDBOX_LOCAL_RUNTIME_URL=http://corpflowai-openhands-app:3000` — Docker DNS name of the control-plane
+  container on `corpflowai-openhands-net` (container port 3000).
+- `SANDBOX_ADDITIONAL_NETWORKS=["corpflowai-openhands-net"]` — so a future sandbox joins that network and
+  can resolve the DNS name above.
+
+This does **not** add `host.docker.internal`, `host-gateway`, host networking, or a route to host-bound
+CorpFlowAI services. Live verify (`verify-sandbox-boundary.sh`) fails if `ExtraHosts` is non-empty or if the
+running env still points at `host.docker.internal`.
+
 ## 4. Healthcheck: official `/health`, not bare `/`
 
 The original compose file's healthcheck (`curl -fsS http://127.0.0.1:3000/`) is replaced with the OpenHands app's

@@ -19,6 +19,8 @@ import {
   HEALTH_PATH,
   MAX_CONCURRENT_TASKS,
   PRIMARY_DOCKER_SOCKET_PATH,
+  SANDBOX_ADDITIONAL_NETWORK,
+  SANDBOX_LOCAL_RUNTIME_URL,
   referencesHostDockerInternal,
   referencesPrimaryDockerSocket,
   isForbiddenLatestTag,
@@ -97,6 +99,21 @@ describe('openhands package config — ops/openhands/compose.yaml on disk', () =
 
   it('forbids host.docker.internal on active lines', () => {
     assert.equal(referencesHostDockerInternal(composeText), false);
+  });
+
+  it('overrides SANDBOX_LOCAL_RUNTIME_URL to dedicated-network DNS (no host-gateway)', () => {
+    assert.equal(SANDBOX_LOCAL_RUNTIME_URL, 'http://corpflowai-openhands-app:3000');
+    assert.equal(SANDBOX_ADDITIONAL_NETWORK, 'corpflowai-openhands-net');
+    assert.match(
+      composeText,
+      new RegExp(
+        `SANDBOX_LOCAL_RUNTIME_URL:\\s*"${SANDBOX_LOCAL_RUNTIME_URL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`,
+      ),
+    );
+    assert.match(
+      composeText,
+      new RegExp(`SANDBOX_ADDITIONAL_NETWORKS:\\s*'\\["${SANDBOX_ADDITIONAL_NETWORK}"\\]'`),
+    );
   });
 
   it('pins concurrency to one', () => {

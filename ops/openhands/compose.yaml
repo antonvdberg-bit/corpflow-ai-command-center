@@ -191,6 +191,17 @@ services:
       # scripts/ops/openhands/verify-sandbox-boundary.sh.
       SANDBOX_USE_HOST_NETWORK: "false"
 
+      # Upstream image default is http://host.docker.internal (Docker Desktop /
+      # host-gateway pattern). That hostname is intentionally NOT provided here
+      # (no extra_hosts / host-gateway — see DOCKER ISOLATION DESIGN header).
+      # Dedicated-daemon-safe override: future sandboxes join
+      # corpflowai-openhands-net and reach this control plane by Docker DNS
+      # on container port 3000 — no host-loopback pivot to CorpFlow services.
+      # Inert while the pilot remains inactive (no sandbox spawn); required so
+      # a future synthetic sandbox does not inherit a knowingly broken URL.
+      SANDBOX_LOCAL_RUNTIME_URL: "http://corpflowai-openhands-app:3000"
+      SANDBOX_ADDITIONAL_NETWORKS: '["corpflowai-openhands-net"]'
+
       # SANDBOX_VOLUMES is intentionally left UNSET by default. If a future,
       # separately reviewed install needs the spawned sandbox to see a host
       # path, it must point ONLY at the dedicated workspace directory below —
