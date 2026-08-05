@@ -1,4 +1,4 @@
-# ElevenLabs website voice-chat pilot (v1)
+# ElevenLabs website voice + text enquiry pilot (v1)
 
 **Library:** CorpFlow Candidate & Reference Library (`docs/product/README.md`)
 
@@ -12,29 +12,53 @@
 
 **Related:**
 
-- Activation runbook: `docs/runbooks/ELEVENLABS_WEBSITE_VOICE_CHAT_ACTIVATION_V1.md`
+- Activation runbook + private test checklists: `docs/runbooks/ELEVENLABS_WEBSITE_VOICE_CHAT_ACTIVATION_V1.md`
 - Gated placeholder: `components/ElevenLabsWebsiteVoiceChat.js` + `lib/public/elevenlabs-voice-chat.js`
 - Private demo mount (disabled by default): `pages/demo/voice-enquiry.js`
 - Superseded browser-voice build pilot: `docs/product/AI_RECEPTIONIST_PIPECAT_BROWSER_PILOT_V1.md`
 - Superseded browser-voice runbook: `docs/runbooks/AI_RECEPTIONIST_BROWSER_VOICE_PILOT_V1.md`
 - Brand / conversion: `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md`
 - Above the line: `docs/strategy/ABOVE_THE_LINE_STRATEGY_DOCTRINE.md`
+- Issue: [#767](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/767) (voice + text preparation); prior structure [#756](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/756)
 
 ---
 
 ## 1. Purpose
 
-Bounded **website voice-chat** pilot for **CorpFlowAI-owned pages** only:
+Bounded **website enquiry** pilot for **CorpFlowAI-owned pages** only:
 
-- Uses **ElevenLabs Agents** as the bought voice layer (listening + speaking).
-- Framed as an **AI voice enquiry assistant** that captures Lead Rescue / Website Rescue (and related) enquiries for **human review**.
+- Uses **one ElevenLabs website agent** as the bought interaction layer for **both voice and text**.
+- Framed as an **AI enquiry assistant** that captures Lead Rescue / Website Rescue (and related) enquiries for **human review**.
 - CorpFlowAI owns offer framing, trust, follow-up, and any next commercial action.
 
-This is **not** a generic chatbot product, not a phone receptionist, and not a white-label multi-client platform.
+This is **not** a generic chatbot product, not a phone receptionist, not a second chatbot stack, and not a white-label multi-client platform.
 
 ---
 
-## 2. Why the previous implementation was removed
+## 2. Decision — one agent for voice + text (v1)
+
+**v1 requires voice + text mode on the same ElevenLabs website agent.**
+
+| Mode | Role |
+| ---- | ---- |
+| Voice | Premium interaction (talk) |
+| Text / typing | Accessible fallback (type without microphone) |
+
+**Do not** create a separate chatbot stack for v1. No Chatwoot, Flowise, LangChain, GHL, CRM widget, or custom text-chat service in this pilot packet.
+
+Rationale:
+
+- Not everyone is comfortable with voice chat.
+- Text is needed in offices, public places, slow connections, mobile contexts, non-native speech contexts, or when the visitor declines microphone access.
+- One agent policy is safer than two independent bots.
+- Voice remains the premium path; text is the accessible fallback.
+- Human review remains the trust layer.
+
+ElevenLabs UI settings for voice + text **must be verified by Anton** before enabling anything (see §4). This document does not assume vendor UI labels stay identical over time — Anton confirms what the console shows at activation time.
+
+---
+
+## 3. Why the previous implementation was removed
 
 | Previous path | Why removed from the repo |
 | ------------- | ------------------------- |
@@ -46,47 +70,51 @@ Useful **decision history** is retained in superseded docs (marked clearly). The
 
 ---
 
-## 3. Recommended first surface
+## 4. Required ElevenLabs UI checks (Anton — before any activation)
+
+Verify in the ElevenLabs console before enabling env flags. Do not treat blog/docs numbers as billing truth. Cursor must not change Vercel production env.
+
+1. **Voice + text / chat mode** is available on the selected agent/widget.
+2. **Text mode** can be used **without microphone access**.
+3. The widget does **not autoplay** or **force voice**.
+4. **Domain allowlist** is configured for the CorpFlowAI-owned **test** domain/page only (start with private `/demo/voice-enquiry`).
+5. Current **plan** and **included** minutes.
+6. Whether **text chat** consumes the same web minutes/credits as voice.
+7. **Overage** rate.
+8. Selected **LLM** and LLM cost estimate.
+9. **Usage / spend caps** (set a hard early envelope).
+10. **Transcript / log retention** and data-handling settings.
+11. Fast **disable / kill switch** path in the ElevenLabs UI.
+12. Whether the widget requires a **public agent / auth-disabled** configuration and what risks that creates.
+
+Suggested early envelope (verify live): target **under ~USD 25–50/month**; hard early cap **USD 100/month** including LLM. No Scale/Business plan without evidence. Do **not** hardcode vendor prices as fact in runtime.
+
+Also confirm widget branding / customization supports the safe public copy in §8.
+
+---
+
+## 5. Recommended first surface
 
 | Include (CorpFlowAI-owned) | Exclude for v1 |
 | -------------------------- | -------------- |
-| `/lead-rescue` (when activation approved) | Client / tenant sites (`lux.*`, etc.) |
-| Website Rescue demo / offer pages (when activation approved) | Site-wide default on every CorpFlowAI page |
-| Private/non-indexed `/demo/voice-enquiry` **first** | Phone / DID / telephony |
+| Private/non-indexed `/demo/voice-enquiry` **first** | Client / tenant sites (`lux.*`, etc.) |
+| `/lead-rescue` (only when activation approved) | Site-wide default on every CorpFlowAI page |
+| Website Rescue demo / offer pages (only when activation approved) | Phone / DID / telephony |
 | Optional contact-style page later | Retell / Synthflow / Vapi / Bland / DIY stacks |
+| | Second chatbot platforms (Chatwoot / Flowise / LangChain / GHL widget / custom text service) |
 
 **First live test shape:** private/noindex demo page → then limited public Lead Rescue / Website Rescue embeds only after Anton approval.
 
 ---
 
-## 4. Required ElevenLabs UI checks (Anton — before any activation)
+## 6. Required agent behaviour / policy (voice and text)
 
-Verify in the ElevenLabs console (do not treat blog/docs numbers as billing truth):
-
-1. Selected **plan**
-2. **Included** call minutes
-3. **Overage** rate for extra minutes
-4. Whether **web/widget** minutes are billed the same as phone (if phone is ever considered later)
-5. Selected **LLM** and estimated LLM cost
-6. **Usage / spend caps** (set a hard early envelope)
-7. Widget mode: **voice only** vs voice + text
-8. Widget **branding** / customization
-9. **Domain allowlist** (CorpFlowAI hosts only)
-10. Whether **public agent / auth-disabled** is required for the widget embed
-11. **Transcript / log retention** and data-handling settings
-12. Ability to **disable quickly** (kill switch)
-
-Suggested early envelope (verify live): target **under ~USD 25–50/month**; hard early cap **USD 100/month** including LLM. No Scale/Business plan without evidence. Do **not** hardcode vendor prices as fact in runtime.
-
----
-
-## 5. Required agent behaviour / policy
-
-Paste-equivalent instructions into ElevenLabs (operator UI — not committed as a live agent ID):
+The **same policy** must apply to both modes. Paste-equivalent instructions into ElevenLabs (operator UI — not committed as a live agent ID):
 
 1. Disclose it is **AI**.
 2. State it **captures enquiries for human review** (not a live production phone receptionist).
-3. Collect minimal fields:
+3. Invite the visitor to either **talk or type**.
+4. Collect minimal fields:
    - name
    - company
    - contact method
@@ -95,95 +123,127 @@ Paste-equivalent instructions into ElevenLabs (operator UI — not committed as 
    - need / problem
    - urgency
    - preferred follow-up
-4. Classify `service_interest` as one of:
+5. Classify `service_interest` as one of:
    - `lead_rescue`
    - `website_rescue`
    - `workflow_admin_improvement`
    - `ai_receptionist_chatbot`
    - `other_unsure`
-5. End with a **draft-only** summary for human review (`requires_human_review: true` language).
-6. Refuse protected actions (section 6).
+6. End with **draft-only** handoff language for human review (`requires_human_review: true` language).
+7. Explicitly say **no commitments** are made by the assistant.
+8. Refuse protected actions (section 7) in **both** voice and text.
 
 ---
 
-## 6. Required refusals
+## 7. Required refusals (voice and text)
 
 Refuse or defer (human must handle):
 
 - Pricing commitments / quotes as fact
 - Revenue or lead-volume **guarantees**
+- Live availability promises (e.g. “24/7 AI receptionist”)
 - “Send email / WhatsApp / SMS / call **now**”
 - CRM / DB updates
 - Contracts / payments
 - Legal / tax / medical / financial advice
-- Secrets or credential requests
+- Secrets, passwords, or API keys
 - Tenant / client private data lookups
 - Deployment / production promises
-- Unsupported claims about 24/7 availability or outcomes
+- Unsupported claims about client results or outcomes
 
 ---
 
-## 7. Public copy guidance
+## 8. Public / test copy guidance
 
-**Safe**
+**Preferred**
 
-- “Talk to our AI enquiry assistant”
-- “Captures your enquiry for human review”
-- “No commitments are made by the assistant”
-- “A CorpFlowAI human will review before any next action”
+```text
+Talk or type to our AI enquiry assistant.
+It captures your enquiry for human review.
+No commitments are made by the assistant.
+A CorpFlowAI human will review before any next action.
+Please do not submit passwords, secrets, financial records, medical details, or confidential client data.
+```
 
 **Avoid**
 
-- “24/7 receptionist”
-- “Guaranteed lead recovery”
-- “Fully automated sales”
-- “We will call / send / quote immediately”
+```text
+24/7 AI receptionist
+Guaranteed lead recovery
+Fully automated sales agent
+Instant quote
+We will call/send/CRM-update immediately
+Human agent
+```
 
 ---
 
-## 8. Success metrics
+## 9. Text-mode acceptance criteria
+
+Text mode is acceptable for the private pilot only if **all** of the following hold:
+
+| # | Criterion |
+| - | --------- |
+| T1 | Visitor can start and complete an enquiry by typing without granting microphone access |
+| T2 | Widget does not force voice or autoplay audio on open |
+| T3 | Same AI disclosure + human-review language appears (or is spoken/shown) as for voice |
+| T4 | Same enquiry fields can be collected via text |
+| T5 | Same `service_interest` taxonomy works via text |
+| T6 | Same refusals fire for pricing guarantees and “send WhatsApp/email now” |
+| T7 | Draft handoff / transcript is good enough for Anton to act manually |
+| T8 | No CRM / email / WhatsApp / DB / Neon writes occur |
+
+If text path is unavailable or unusable, **do not activate** — see kill criteria (§11).
+
+---
+
+## 10. Success metrics (later live testing)
 
 Pilot succeeds only if:
 
-- 10–20 warm/manual conversations are tested
+- Voice path and text path both work on the same agent policy
+- 10–20 warm/manual conversations are tested (mix of talk and type)
 - Handoff summaries are accurate enough for Anton
 - No false claims or protected-action failures
 - At least 2 warm prospects say it improves credibility/interest
 - Cost stays within the pilot envelope
 - Anton is comfortable demoing it live
 
+**Preparation success** (this issue / PR) is narrower: docs require voice + text; private test checklist ready; gates explicit; disabled-by-default tested; no activation happened.
+
 ---
 
-## 9. Kill criteria
+## 11. Kill criteria
 
-Pause/kill if:
+Pause/kill the pilot if:
 
+- Text path is unavailable or unusable
+- Agent forces microphone access
 - Agent makes false claims
 - Contact details are not captured cleanly
 - Visitors find it creepy/confusing
-- Cost runs away
-- No useful enquiries result
+- Costs are unclear or uncontrolled
 - Domain allowlist / public-agent settings cannot be made safe
 - It distracts from selling Lead Rescue / Website Rescue
 
 ---
 
-## 10. Cost posture
+## 12. Cost posture
 
 - Low-volume assumptions only
-- Verify plan + minutes + LLM in ElevenLabs UI before paying
+- Verify plan + minutes + LLM + **text vs voice billing** in ElevenLabs UI before paying
 - No client resale pricing until real minutes per qualified lead are known
 
 ---
 
-## 11. White-label honesty
+## 13. White-label honesty
 
 v1 = **CorpFlowAI-owned website widget** only.  
 Not a true multi-client white-label platform. Client pilots need a **separate** issue/packet.
 
 ---
 
-## 12. Repo safety (this PR)
+## 14. Repo safety (this PR)
 
 | Control | Behaviour |
 | ------- | ---------- |
@@ -191,5 +251,6 @@ Not a true multi-client white-label platform. Client pilots need a **separate** 
 | `NEXT_PUBLIC_ELEVENLABS_AGENT_ID` | Placeholder `REPLACE_ME` only in template; real ID **not** committed |
 | Component | Renders `null` unless flag on **and** agent id is a non-placeholder string |
 | Telephony / CRM / email / WhatsApp / DB writes | **None** in this packet |
+| Second chatbot stack | **None** — text is ElevenLabs widget text mode on the same agent |
 
 **This document does not authorize activation.**
