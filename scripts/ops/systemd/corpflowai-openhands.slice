@@ -1,28 +1,25 @@
 [Unit]
-# CorpFlowAI — OpenHands combined resource ceiling (systemd slice)
+# CorpFlowAI — OpenHands aggregate resource ceiling (systemd user slice)
 #
-# STATUS: INACTIVE. DO NOT ENABLE without separate authorization. Issue #743.
+# STATUS: INACTIVE until an Anton-approved install. Issue #743 / PR #747.
 #
-# Intent: MemoryMax=8G / CPUQuota=300% / TasksMax=2048 as a HARD backstop for
-# the dedicated rootless dockerd unit (Slice=corpflowai-openhands.slice) and,
-# *if* cgroup v2 delegation places container processes under that service's
-# cgroup tree, for sandboxes spawned by that daemon.
+# Hierarchy (systemd naming): this slice is the common ancestor for
+#   - corpflowai-openhands-dockerd.service (Slice= this unit)
+#   - corpflowai-openhands-containers.slice (daemon.json cgroup-parent)
+# so both dockerd and every container it creates inherit these hard limits.
 #
-# CLAIM STATUS (honest): PENDING RUNTIME VERIFICATION.
-# We EXPECT descendant container processes to remain under this slice when:
-#   - cgroup v2 is in use;
-#   - corpflowai-openhands-dockerd.service has Delegate=yes;
-#   - the dockerd unit sets Slice=corpflowai-openhands.slice;
-# but this package does NOT treat that as proven until the install-gate
-# disposable-container cgroup inspection in
-# docs/operations/OPENHANDS_DOCKER_ISOLATION.md passes on the real host.
-# Until then, treat MemoryMax here as "dockerd service ceiling + expected
-# sandbox containment," not as a fully certified guarantee.
-Description=CorpFlowAI OpenHands combined resource ceiling (INACTIVE — pending runtime verification of sandbox cgroup placement, see issue #743)
+# Host-safe pilot ceilings for corpflow-exec-01-u69678 (~7.6 GiB RAM total,
+# ~4.9 GiB available at preflight): MemoryMax MUST NOT exceed 4G. An 8G
+# ceiling exceeded physical RAM and was rejected after live capacity inspect.
+#
+# Runtime proof that containers land under corpflowai-openhands-containers.slice
+# (beneath this ancestor) is REQUIRED via
+# scripts/ops/openhands/verify-cgroup-placement.sh — fail closed on install.
+Description=CorpFlowAI OpenHands aggregate resource ceiling (INACTIVE — enable only with authorized dedicated-daemon install, see issue #743)
 Documentation=file:%h/corpflow-ai-command-center/docs/operations/OPENHANDS_DOCKER_ISOLATION.md
 
 [Slice]
-MemoryMax=8G
-MemoryHigh=7G
-CPUQuota=300%
-TasksMax=2048
+MemoryMax=4G
+MemoryHigh=3584M
+CPUQuota=200%
+TasksMax=1024

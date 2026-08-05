@@ -1,30 +1,23 @@
 {
-  "_status": "INACTIVE — EXAMPLE ONLY. Not read by any running daemon. Copy to a real daemon.json under $OPENHANDS_HOME (e.g. $OPENHANDS_HOME/docker/daemon.json) ONLY at an Anton-approved install step. Controlling issue: #743. See ops/openhands/daemon/README.md and docs/operations/OPENHANDS_DOCKER_ISOLATION.md.",
+  "_status": "INACTIVE — EXAMPLE ONLY. Not read by any running daemon. Copy to a real daemon.json under $OPENHANDS_HOME/docker/daemon.json ONLY at an Anton-approved install step. Controlling issue: #743. See ops/openhands/daemon/README.md and docs/operations/OPENHANDS_DOCKER_ISOLATION.md.",
 
-  "_data_root_note": "REPLACE <OPENHANDS_HOME> with the real, absolute, dedicated path (default $HOME/corpflowai-openhands). Must NEVER equal or be a parent/child of /var/lib/docker (the primary daemon's data-root). Verified at install time by scripts/ops/openhands/verify-dedicated-daemon.sh, which fails closed if `docker info`'s DockerRootDir against this daemon is not under OPENHANDS_HOME.",
-  "data-root": "<OPENHANDS_HOME>/docker-data",
+  "_cli_vs_file_note": "When using scripts/ops/systemd/corpflowai-openhands-dockerd.service, --host and --data-root are already set as CLI flags. Do NOT also set data-root or hosts in the live daemon.json — Docker refuses duplicate flag+file directives. The reviewed live daemon.json therefore contains ONLY the keys below (no data-root, no hosts).",
 
-  "_hosts_note": "Unix-socket-only. NEVER add a tcp:// entry here — that would create a network-reachable Docker API, which this package's loopback-only / no-inbound-exposure rule forbids outright, independent of the isolation-design rationale above. NEVER set this to unix:///var/run/docker.sock (the primary socket path) — that would defeat the entire point of this daemon being dedicated.",
-  "hosts": ["unix://<OPENHANDS_HOME>/docker/docker.sock"],
+  "_cgroup_driver_note": "REQUIRED. Rootless dedicated daemon must use the systemd cgroup driver so cgroup-parent resolves to a real user slice.",
+  "exec-opts": ["native.cgroupdriver=systemd"],
 
-  "_cgroup_parent_note": "cgroup-parent is normally used to place every container this daemon runs under a named cgroup. In ROOTLESS mode, Docker/containerd runs inside the user's own cgroup namespace (delegated via systemd --user + 'user@<uid>.service' cgroup delegation on cgroup v2 hosts) and generally does NOT apply a daemon-level cgroup-parent the same way a rootful daemon would — rootless dockerd's containers already live under the invoking systemd user session's cgroup tree, not an arbitrary named slice you can set from daemon.json. DO NOT treat 'corpflowai-openhands.slice' as a valid cgroup-parent value here without re-verifying against the actual installed Docker/containerd/systemd versions at install time — if rootless mode ignores or errors on this key, LEAVE IT UNSET and rely entirely on scripts/ops/systemd/corpflowai-openhands.slice wrapping the dockerd unit itself (Slice= in the .service file) plus the control-plane container's own mem_limit/cpus/pids_limit in ops/openhands/compose.yaml for the total ceiling. This key is included here ONLY as a documented placeholder to prevent a future installer from assuming it is safe to set blindly; verification is REQUIRED, not assumed.",
-  "_cgroup_parent_example_if_verified_supported": "corpflowai-openhands.slice",
+  "_cgroup_parent_note": "REQUIRED. Default parent for EVERY container this daemon creates. Must be the reviewed user sub-slice corpflowai-openhands-containers.slice (child of corpflowai-openhands.slice by systemd naming). Verified live on corpflow-exec-01-u69678: without this key, containers land under unrestricted user.slice/.../docker-<id>.scope and escape the aggregate MemoryMax/CPUQuota.",
+  "cgroup-parent": "corpflowai-openhands-containers.slice",
 
-  "_log_opts_note": "Daemon-level default log driver/size cap, separate from (and in addition to) the per-service logging: block in ops/openhands/compose.yaml. Bounds dockerd's own log growth for containers that don't set their own logging options (e.g. any sandbox container spawned without an explicit logging: block).",
+  "_log_opts_note": "Daemon-level default log driver/size cap, separate from (and in addition to) the per-service logging: block in ops/openhands/compose.yaml.",
   "log-driver": "json-file",
   "log-opts": {
     "max-size": "10m",
     "max-file": "5"
   },
 
-  "_iptables_note": "Rootless dockerd typically cannot manage host iptables rules directly (no root) and instead relies on rootlesskit's userland networking (slirp4netns/VPNKit) or, on some setups, a rootlesskit port-forwarder for published ports. If the install runbook finds iptables-based port publishing unavailable in rootless mode on this host, published ports (127.0.0.1:3000:3000 in ops/openhands/compose.yaml) must still be verified loopback-only via scripts/ops/openhands/verify-private-bind.sh — do not assume rootless networking preserves the same guarantees as rootful without that live check.",
+  "_iptables_note": "Rootless dockerd typically cannot manage host iptables; published ports must still be verified loopback-only via scripts/ops/openhands/verify-private-bind.sh.",
   "iptables": false,
 
-  "_no_default_bridge_note": "Explicitly documented rather than left implicit: this dedicated daemon should NOT be relied upon to share any network with the primary daemon. corpflowai-openhands-net (ops/openhands/compose.yaml) is created on THIS daemon and is invisible to `docker network ls` run against the primary socket, and vice versa.",
-
-  "_experimental_note": "Do not enable experimental features without a separate review. Left unset (defaults to false) intentionally.",
-
-  "userns-remap": "",
-
-  "_userns_remap_note": "Left EMPTY intentionally. In rootless mode, user-namespace remapping is handled by rootlesskit itself (via /etc/subuid, /etc/subgid) at daemon-launch time, not via this daemon.json key, which is the ROOTFUL daemon's user-namespace-remap mechanism. Setting a value here on a rootless daemon is either ignored or an error depending on version — verify before ever setting this to a non-empty value."
+  "_primary_forbidden_note": "Never set hosts to unix:///var/run/docker.sock. Never set data-root to /var/lib/docker. Path pins for the dedicated socket and data-root belong on the systemd unit ExecStart flags (see corpflowai-openhands-dockerd.service)."
 }

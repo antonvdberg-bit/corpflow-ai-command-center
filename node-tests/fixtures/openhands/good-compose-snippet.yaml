@@ -23,7 +23,7 @@ services:
       SANDBOX_TIMEOUT: "600"
       SANDBOX_USE_HOST_NETWORK: "false"
 
-    mem_limit: 2g
+    mem_limit: 1536m
     cpus: "1.0"
     pids_limit: 512
 

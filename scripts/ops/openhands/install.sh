@@ -144,6 +144,15 @@ run_checks() {
   bash "${SCRIPT_DIR}/verify-no-production-access.sh" || rc=1
   say "=== verify-dedicated-daemon.sh ==="
   bash "${SCRIPT_DIR}/verify-dedicated-daemon.sh" || rc=1
+  say "=== verify-cgroup-placement.sh ==="
+  # Fail closed: missing dedicated socket → this script exits non-zero.
+  # In --check mode before daemon start, treat "socket missing" as skip via
+  # a soft wrapper only when socket absent; once daemon is up, hard-require.
+  if [[ -S "${OPENHANDS_DOCKER_SOCK}" ]]; then
+    bash "${SCRIPT_DIR}/verify-cgroup-placement.sh" || rc=1
+  else
+    say "SKIP verify-cgroup-placement.sh — dedicated socket not present (expected pre-daemon)"
+  fi
   return "${rc}"
 }
 
@@ -182,6 +191,9 @@ do_install() {
   fi
   if ! bash "${SCRIPT_DIR}/verify-dedicated-daemon.sh"; then
     die "refusing to install: verify-dedicated-daemon.sh failed. See output above and docs/operations/OPENHANDS_DOCKER_ISOLATION.md."
+  fi
+  if ! bash "${SCRIPT_DIR}/verify-cgroup-placement.sh"; then
+    die "refusing to install: verify-cgroup-placement.sh failed — containers are not under the approved OpenHands cgroup parent, or ancestor limits are unproven. Do not weaken to dockerd-only. See docs/operations/OPENHANDS_DOCKER_ISOLATION.md."
   fi
 
   if ! confirm "Proceed with docker compose up -d (against the DEDICATED daemon) for project '${OPENHANDS_PROJECT}'?"; then

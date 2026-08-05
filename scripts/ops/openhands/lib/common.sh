@@ -120,6 +120,18 @@ readonly OPENHANDS_ALLOWED_RESOURCES=(
   "none"
 )
 
+# Cgroup placement (security follow-up — cgroup remediation after
+# STOPPED — CGROUP VERIFICATION FAILED on corpflow-exec-01-u69678).
+# Aggregate ancestor slice (dockerd Slice= + container parent nest under it).
+readonly OPENHANDS_AGGREGATE_SLICE="${OPENHANDS_AGGREGATE_SLICE:-corpflowai-openhands.slice}"
+# Daemon-level default cgroup-parent for every container (daemon.json).
+readonly OPENHANDS_CGROUP_PARENT_SLICE="${OPENHANDS_CGROUP_PARENT_SLICE:-corpflowai-openhands-containers.slice}"
+# Host-safe pilot MemoryMax ceiling (bytes). Must match
+# scripts/ops/systemd/corpflowai-openhands.slice MemoryMax=4G. Fail closed if
+# the live ancestor reports a higher Max (e.g. stale 8G unit still installed).
+readonly OPENHANDS_MEMORY_MAX_BYTES_CEILING="${OPENHANDS_MEMORY_MAX_BYTES_CEILING:-4294967296}"
+readonly OPENHANDS_CGROUP_PROBE_NAME="${OPENHANDS_CGROUP_PROBE_NAME:-corpflowai-openhands-cgroup-probe}"
+
 say() {
   printf '%s %s\n' "${OPENHANDS_LOG_PREFIX}" "$*"
 }

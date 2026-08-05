@@ -53,7 +53,7 @@
 #       not enabled by default) wrapped by a systemd slice
 #       (scripts/ops/systemd/corpflowai-openhands.slice) that caps the
 #       COMBINED control-plane + dockerd + every spawned sandbox container at
-#       ~8 GiB RAM / 300% CPU / 2048 tasks — a real, kernel-cgroup-enforced
+#       ~4 GiB RAM / 200% CPU / 1024 tasks — a real, kernel-cgroup-enforced
 #       ceiling, not just a documented policy number.
 # - Practical effect: even a full compromise of this container (e.g. via a
 #   supply-chain issue in the pinned image, or the control plane's own
@@ -96,10 +96,10 @@
 #   precisely and never touch unrelated containers.
 # - Resource envelope (operator policy AND, for the total ceiling, a real
 #   systemd-slice enforcement — see scripts/ops/systemd/corpflowai-openhands.slice):
-#   control plane ~1 CPU / 2 GiB here; separate sandbox guidance (2 CPU / 4 GiB,
-#   hard max 6 GiB, concurrency 1) documented in VERSIONS.md and
-#   config/openhands/config.example.toml — total ceiling ~8 GiB across control
-#   + one concurrent sandbox, backstopped by the slice's MemoryMax=8G.
+#   control plane ~1 CPU / 1536 MiB here; separate sandbox guidance bounded by
+#   the 4 GiB aggregate ceiling (concurrency 1) documented in VERSIONS.md and
+#   config/openhands/config.example.toml — total ceiling ~4 GiB across control
+#   + one concurrent sandbox, backstopped by the slice's MemoryMax=4G.
 # - This compose file MUST be run with DOCKER_HOST pointed at the dedicated
 #   socket (see .env / OPENHANDS_DOCKER_HOST below). `docker compose` (and
 #   every script in this package) resolves the effective Docker endpoint from
@@ -173,7 +173,7 @@ services:
       # Concurrency ceiling — one sandbox task at a time (see
       # docs/operations/OPENHANDS_OPERATING_RUNBOOK.md § 3 and
       # lib/openhands/package-policy.js MAX_CONCURRENT_TASKS). Combined with
-      # the systemd slice's MemoryMax=8G, this is the primary lever bounding
+      # the systemd slice's MemoryMax=4G, this is the primary lever bounding
       # total sandbox resource use, since upstream 1.8 does not natively
       # enforce a per-sandbox hard memory/CPU limit on the OSS Docker path
       # (see ops/openhands/VERSIONS.md "Sandbox limit enforcement").
@@ -206,14 +206,14 @@ services:
 
     # Control-plane resource envelope. Sandbox containers spawned by this
     # service are bounded in aggregate by the systemd slice
-    # (scripts/ops/systemd/corpflowai-openhands.slice, MemoryMax=8G) that
+    # (scripts/ops/systemd/corpflowai-openhands.slice, MemoryMax=4G) that
     # wraps BOTH the dedicated dockerd unit and every container it runs — see
     # the DOCKER ISOLATION DESIGN header above. Per-sandbox native HostConfig
     # limits are still not available on the OSS Docker path in app 1.8 (see
     # ops/openhands/VERSIONS.md); the slice is the real backstop for the
     # *total*, MAX_CONCURRENT_CONVERSATIONS=1 is the backstop for
     # concurrency, and SANDBOX_TIMEOUT bounds any single stuck task.
-    mem_limit: 2g
+    mem_limit: 1536m
     cpus: "1.0"
     pids_limit: 512
 

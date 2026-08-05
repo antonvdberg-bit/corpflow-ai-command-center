@@ -99,7 +99,7 @@ authoritative on its own — they are prior context to compare against, not a nu
   captured by an authorized tool).
 
 **Decision rule:** proceed only if the **script's live output** has **at least** the v1 ceiling headroom from
-`OPENHANDS_ARCHITECTURE.md` § 5 (~3 CPU / ~8 GiB, unchanged by the Docker-isolation follow-up — the
+`OPENHANDS_ARCHITECTURE.md` § 5 (~3 CPU / ~4 GiB, unchanged by the Docker-isolation follow-up — the
 `corpflowai-openhands.slice` ceiling in `OPENHANDS_DOCKER_ISOLATION.md` § 2 is this same figure, now
 systemd-enforced) available **above** every other workload already running on the box (Uptime Kuma, ERPNext
 sandbox/production-shell if present, restic jobs, the repo clone's own `npm ci` / `npm test` runs). If the live
@@ -139,15 +139,23 @@ cp "$REPO/ops/openhands/daemon/daemon.json.example" "$(dirname "$OPENHANDS_DOCKE
 # 3.4 — systemd units: copy the reviewed units into the user's systemd tree (do NOT author new ones by hand)
 mkdir -p "$HOME/.config/systemd/user"
 cp "$REPO/scripts/ops/systemd/corpflowai-openhands.slice" "$HOME/.config/systemd/user/"
+cp "$REPO/scripts/ops/systemd/corpflowai-openhands-containers.slice" "$HOME/.config/systemd/user/"
 cp "$REPO/scripts/ops/systemd/corpflowai-openhands-dockerd.service" "$HOME/.config/systemd/user/"
 systemctl --user daemon-reload
 systemctl --user enable --now corpflowai-openhands-dockerd.service
 # The unit's own [Service] section already sets DOCKER_HOST / OPENHANDS_HOME and Slice=corpflowai-openhands.slice
 # — do not duplicate those via a separate manual `dockerd-rootless-setuptool.sh install` step.
+# Live daemon.json MUST set native.cgroupdriver=systemd + cgroup-parent=corpflowai-openhands-containers.slice
+# and must NOT duplicate data-root/hosts (already on the unit CLI flags).
 
 # 3.5 — verify the dedicated daemon answers ONLY on its own socket, and the primary daemon is untouched
 bash "$REPO/scripts/ops/openhands/verify-dedicated-daemon.sh"
 # Expected: PASS — live `docker info` DockerRootDir check confirms $OPENHANDS_DOCKER_DATA_ROOT, not /var/lib/docker.
+
+# 3.6 — REQUIRED: prove container PID cgroup placement (not dockerd alone)
+bash "$REPO/scripts/ops/openhands/verify-cgroup-placement.sh"
+# Expected: PASS — probe under corpflowai-openhands-containers.slice beneath corpflowai-openhands.slice;
+# aggregate MemoryMax <= 4G. FAIL closed if unrestricted user.slice docker scope.
 
 unset DOCKER_HOST OPENHANDS_DOCKER_HOST
 docker ps --filter 'name=uptime-kuma' --format '{{.Names}} {{.Status}}'
@@ -155,10 +163,9 @@ docker ps --filter 'name=uptime-kuma' --format '{{.Names}} {{.Status}}'
 # proves the dedicated daemon is additive, not a replacement of the primary daemon Kuma/ERPNext use.
 ```
 
-**Do not proceed to § 4 until § 3.5's `verify-dedicated-daemon.sh` run PASSes.** If it fails for any reason
-(including `DockerRootDir` showing `/var/lib/docker` or any path other than `$OPENHANDS_DOCKER_DATA_ROOT`), the
-dedicated-daemon setup did not take effect — stop, do not install the app against what would silently be the
-primary daemon.
+**Do not proceed to § 4 until § 3.5 and § 3.6 both PASS.** If either fails for any reason
+(including `DockerRootDir` showing `/var/lib/docker`, or a probe cgroup outside
+`corpflowai-openhands-containers.slice`), the dedicated-daemon / cgroup setup did not take effect — stop, do not install the app.
 
 ## 4. Directories and permissions (app-level)
 

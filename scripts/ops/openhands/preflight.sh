@@ -237,8 +237,10 @@ check_isolation_design_files_present() {
     "${REPO_ROOT}/ops/openhands/daemon/daemon.env.example"
     "${REPO_ROOT}/ops/openhands/daemon/dockerd-rootless.service.example"
     "${REPO_ROOT}/scripts/ops/systemd/corpflowai-openhands.slice"
+    "${REPO_ROOT}/scripts/ops/systemd/corpflowai-openhands-containers.slice"
     "${REPO_ROOT}/scripts/ops/systemd/corpflowai-openhands-dockerd.service"
     "${REPO_ROOT}/scripts/ops/openhands/verify-dedicated-daemon.sh"
+    "${REPO_ROOT}/scripts/ops/openhands/verify-cgroup-placement.sh"
     "${REPO_ROOT}/docs/operations/OPENHANDS_DOCKER_ISOLATION.md"
   )
   local missing=0
@@ -378,6 +380,37 @@ check_rootless_prerequisites() {
       fail "dockerd unit must not set NoNewPrivileges=yes (incompatible with stock rootless newuidmap/newgidmap)"
     else
       pass "dockerd unit does not set NoNewPrivileges=yes"
+    fi
+  fi
+
+  # Package-side cgroup-parent + host-safe MemoryMax (static — does not start a probe).
+  local example_json="${REPO_ROOT}/ops/openhands/daemon/daemon.json.example"
+  local agg_slice="${REPO_ROOT}/scripts/ops/systemd/corpflowai-openhands.slice"
+  if [[ -f "${example_json}" ]]; then
+    if grep -Fq 'native.cgroupdriver=systemd' "${example_json}"; then
+      pass "daemon.json.example requires native.cgroupdriver=systemd"
+    else
+      fail "daemon.json.example missing native.cgroupdriver=systemd"
+    fi
+    if grep -Fq "\"cgroup-parent\": \"${OPENHANDS_CGROUP_PARENT_SLICE}\"" "${example_json}"; then
+      pass "daemon.json.example sets cgroup-parent=${OPENHANDS_CGROUP_PARENT_SLICE}"
+    else
+      fail "daemon.json.example missing cgroup-parent ${OPENHANDS_CGROUP_PARENT_SLICE}"
+    fi
+  fi
+  if [[ -f "${agg_slice}" ]]; then
+    if grep -Eq '^MemoryMax=4G$' "${agg_slice}"; then
+      pass "aggregate slice MemoryMax=4G (host-safe pilot ceiling)"
+    else
+      fail "aggregate slice must set MemoryMax=4G (8G exceeds corpflow-exec-01 physical RAM headroom)"
+    fi
+    if grep -Eq '^MemoryMax=8G$' "${agg_slice}"; then
+      fail "aggregate slice must not use MemoryMax=8G on this host"
+    fi
+    if grep -Eq '^CPUQuota=200%$' "${agg_slice}"; then
+      pass "aggregate slice CPUQuota=200%"
+    else
+      fail "aggregate slice must set CPUQuota=200%"
     fi
   fi
 }

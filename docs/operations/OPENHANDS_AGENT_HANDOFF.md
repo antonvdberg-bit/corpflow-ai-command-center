@@ -21,7 +21,7 @@ radius than this workstream's own bar for a Phase 1 carve-out. That is the block
 incomplete, not merely pending. PR #747 is the remediation: it introduces a **dedicated, rootless Docker
 daemon** used only by OpenHands (socket `$HOME/corpflowai-openhands/docker/docker.sock`, data root
 `$HOME/corpflowai-openhands/docker-data`, never the primary socket), a systemd resource-ceiling slice
-(`corpflowai-openhands.slice`, `MemoryMax=8G`, `CPUQuota=300%`), removal of the unused `host.docker.internal`
+(`corpflowai-openhands.slice`, `MemoryMax=4G`, `CPUQuota=200%`), removal of the unused `host.docker.internal`
 mapping, a corrected healthcheck target (`/health`, not bare `/`), and an explicit
 `MAX_CONCURRENT_CONVERSATIONS=1` setting. The authoritative design doc is
 `docs/operations/OPENHANDS_DOCKER_ISOLATION.md`. **A real, disclosed, unsolved gap remains:** the OSS OpenHands

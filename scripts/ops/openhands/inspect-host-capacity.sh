@@ -10,7 +10,7 @@
 # pressure stats — as markdown-friendly output for a PR/issue evidence
 # comment or for sizing review against the resource envelope documented in
 # ops/openhands/VERSIONS.md (control ~1 CPU / 2 GiB; sandbox guidance 2 CPU /
-# 4 GiB, hard max 6 GiB; concurrency 1; total ceiling ~8 GiB).
+# 4 GiB, hard max 6 GiB; concurrency 1; total ceiling ~4 GiB).
 #
 # NEVER prints secrets or env var VALUES. Only presence-style facts about the
 # host and Docker are printed.
@@ -188,7 +188,7 @@ main() {
   section "Notes"
   printf -- '- This report is read-only and never mutates host state.\n'
   printf -- '- No environment variable values are printed by this script.\n'
-  printf -- '- Sizing reference: ops/openhands/VERSIONS.md (control ~1 CPU / 2 GiB; sandbox guidance 2 CPU / 4 GiB, hard max 6 GiB; concurrency 1; total ceiling ~8 GiB).\n'
+  printf -- '- Sizing reference: ops/openhands/VERSIONS.md (control ~1 CPU / 2 GiB; sandbox guidance 2 CPU / 4 GiB, hard max 6 GiB; concurrency 1; total ceiling ~4 GiB).\n'
 }
 
 main "$@"

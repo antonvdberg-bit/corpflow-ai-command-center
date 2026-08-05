@@ -46,7 +46,7 @@ it was chosen over the alternatives, and states plainly what it does and does **
 | Socket | `$HOME/corpflowai-openhands/docker/docker.sock`. **Never** `/var/run/docker.sock`. The primary host socket is never mounted into, or reachable from, the OpenHands control-plane container in this design. |
 | Data root | `$HOME/corpflowai-openhands/docker-data` — the dedicated daemon's own image/container/volume storage, isolated from the primary daemon's `/var/lib/docker`. Images pulled for the control plane and for spawned sandboxes live here, not in the primary daemon's storage. |
 | Access | The OpenHands control-plane container's compose file mounts the dedicated daemon's host-side socket at a **container-internal path that is deliberately NOT `/var/run/docker.sock`** — `ops/openhands/compose.yaml` uses `/run/openhands-docker/docker.sock` inside the container (configurable via `OPENHANDS_DOCKER_SOCK_IN_CONTAINER`), specifically so no log line or tooling output inside the container can be misread as "this is the primary daemon." Every operator/script command against this daemon (compose up/down, `docker ps`, `docker system df`, evidence scripts) resolves `DOCKER_HOST` to the dedicated socket — either via `scripts/ops/openhands/lib/common.sh`'s `openhands_docker()` wrapper (the required pattern for every script in this package) or an explicit manual `DOCKER_HOST=unix://$HOME/corpflowai-openhands/docker/docker.sock` export for ad-hoc operator commands. There is no ambient/default-daemon fallback anywhere in this package — `openhands_assert_isolation_context()` fails closed if one is attempted. |
-| Resource ceiling | A systemd **user** slice, `corpflowai-openhands.slice`, is **intended** to wrap the dedicated daemon (and, if cgroup placement works as designed with `Delegate=yes`, its sandboxes): `MemoryMax=8G`, `CPUQuota=300%`. **Claim status: PENDING RUNTIME VERIFICATION** at the install gate (§ 2.3). Do not treat sandbox containment under the slice as proven until that evidence exists. |
+| Resource ceiling | A systemd **user** slice hierarchy: `corpflowai-openhands.slice` (aggregate `MemoryMax=4G`, `MemoryHigh=3584M`, `CPUQuota=200%`, `TasksMax=1024`) wraps the dockerd unit; `corpflowai-openhands-containers.slice` is the daemon-level `cgroup-parent` for every container (`native.cgroupdriver=systemd`). Host-safe for ~7.6 GiB boxes — **not** 8G. Install gate: `scripts/ops/openhands/verify-cgroup-placement.sh` must prove the probe PID cgroup is beneath the container slice. |
 | Scope | The dedicated daemon has **no other tenants**. It is not shared with Kuma, ERPNext, Beszel, or any other box workload — those continue to use the box's primary Docker daemon (or their own tooling) unaffected. A compromise that reaches the dedicated daemon's API surface can, at most, control containers/images/volumes **within that daemon** — it has no path to the primary daemon's containers, images, or volumes, because it is a structurally separate process with its own Unix socket and its own on-disk state. |
 
 ### 2.1 What this design fixes, stated plainly
@@ -73,10 +73,10 @@ it was chosen over the alternatives, and states plainly what it does and does **
   self-host path.** OpenHands Enterprise's Kubernetes runtime exposes a `MEMORY_LIMIT` setting for spawned
   sandboxes; the **Docker** control-plane path in the pinned OSS `1.8` release does not expose an equivalent
   native per-sandbox memory/CPU flag as of the 2026-08-04 review. In practice this means:
-  - The systemd slice's `MemoryMax=8G` / `CPUQuota=300%` is a **total** ceiling across the control plane and
+  - The systemd slice's `MemoryMax=4G` / `CPUQuota=200%` is a **total** ceiling across the control plane and
     every concurrently-running sandbox, not a per-sandbox cap.
   - With concurrency capped at **1** (`MAX_CONCURRENT_CONVERSATIONS=1`, § 5 below), a single misbehaving sandbox
-    can, in the worst case, consume up to the **entire** 8 GiB / 300% ceiling before the slice's own limit kills
+    can, in the worst case, consume up to the **entire** 4 GiB / 200% ceiling before the slice's own limit kills
     it — there is no smaller per-task blast radius inside that ceiling.
   - This is an **accepted, disclosed gap**, not a silent omission. The authorization packet
     (`OPENHANDS_ON_EXEC01_AUTHORIZATION_PACKET.md` § 1.1a) requires Anton to **explicitly accept this specific
@@ -116,39 +116,43 @@ and this doc is the isolation-design record — update both together if either c
 | Concurrent sandbox tasks | `MAX_CONCURRENT_CONVERSATIONS=1` (app env) | Application-level | App bug could exceed 1; the slice below is the backstop |
 | Per-task wall-clock timeout | `SANDBOX_TIMEOUT=600` (app env) | Application-level | Same as above |
 | Per-task iteration ceiling | `MAX_ITERATIONS=40` (app env) | Application-level | Same as above |
-| Combined RAM / CPU / task-count ceiling (dedicated daemon + expected sandboxes) | `scripts/ops/systemd/corpflowai-openhands.slice` (`MemoryMax=8G`, `CPUQuota=300%`, `TasksMax=2048`) + dockerd `Delegate=yes` | **Kernel cgroup** for the dockerd service tree **when** placement is verified | **Pending runtime verification** that spawned sandboxes remain under the slice (§ 2.5) |
+| Combined RAM / CPU / task-count ceiling (dedicated daemon + expected sandboxes) | `corpflowai-openhands.slice` (`MemoryMax=4G`, `MemoryHigh=3584M`, `CPUQuota=200%`, `TasksMax=1024`) + daemon.json `cgroup-parent=corpflowai-openhands-containers.slice` + `native.cgroupdriver=systemd` + dockerd `Delegate=yes` | **Kernel cgroup** for dockerd **and** every container when `verify-cgroup-placement.sh` passes | Residual: no per-sandbox HostConfig cap in OSS 1.8 (§ 2.2) |
 | Per-sandbox native RAM/CPU limit (e.g. a 4 GiB `HostConfig` cap per spawned container) | **Not available** in the OSS `1.8` Docker deployment path | N/A | **Residual** — see § 2.2; bounded by the slice total, not a per-container cap |
 
-### 2.5 Systemd slice claim — pending runtime verification (install gate only)
+### 2.5 Systemd slice + daemon cgroup-parent (install gate)
 
-**Do not claim sandboxes are certified under `corpflowai-openhands.slice` until the following passes on the real host.** This packet prepares commands only; it does **not** run them on `corpflow-exec-01`.
+**Do not claim sandboxes are contained under the OpenHands resource ceiling until `scripts/ops/openhands/verify-cgroup-placement.sh` passes on the real host.** Checking only the dockerd process cgroup is insufficient — the 2026-08-05 install attempt on `corpflow-exec-01-u69678` showed dockerd under `corpflowai-openhands.slice` while the probe container landed in unrestricted `user.slice/.../docker-<id>.scope`.
 
-Expected design assumption: with cgroup v2, `Delegate=yes` on `corpflowai-openhands-dockerd.service`, and `Slice=corpflowai-openhands.slice`, container processes created by that dockerd remain in the service's delegated cgroup subtree and therefore under the slice's `MemoryMax` / `CPUQuota` / `TasksMax`.
+**Selected design (Option A — live-verified 2026-08-05):**
 
-Install-gate proof (operator paste after dedicated daemon is authorized and running — disposable only):
+1. Aggregate user slice `corpflowai-openhands.slice` with host-safe `MemoryMax=4G` / `MemoryHigh=3584M` / `CPUQuota=200%` / `TasksMax=1024` (8G rejected: exceeds ~7.6 GiB physical RAM).
+2. Child user slice `corpflowai-openhands-containers.slice` (systemd dash-nesting under the aggregate).
+3. Dedicated rootless `daemon.json`: `"exec-opts": ["native.cgroupdriver=systemd"]` and `"cgroup-parent": "corpflowai-openhands-containers.slice"`.
+4. Dockerd unit: `Slice=corpflowai-openhands.slice`, `Delegate=yes`. Do **not** duplicate `data-root`/`hosts` in daemon.json when the unit already passes them as CLI flags.
+
+**Options evaluated:**
+
+| Option | Result |
+|---|---|
+| **A. Daemon-level `cgroup-parent` + systemd cgroup driver + containers sub-slice** | **SELECTED.** Live probe PID cgroup: `.../corpflowai-openhands.slice/corpflowai-openhands-containers.slice/docker-<id>.scope`. Ancestor MemoryMax=4G visible. |
+| **B. Relative parent under the dockerd service cgroup only** | Not required once A placed containers under the aggregate ancestor with hard limits. |
+| **C. Per-container `--cgroup-parent` HostConfig** | Also works on this host, but OpenHands OSS sandbox spawn does not reliably expose HostConfig injection for every sandbox — not acceptable as the sole control. Kept as optional defense-in-depth, not the primary design. |
+
+Install-gate proof (also automated by `verify-cgroup-placement.sh`):
 
 ```bash
-# 1) Confirm dockerd unit is in the slice
 systemctl --user show corpflowai-openhands-dockerd.service -p Slice -p Delegate
-# expect Slice=corpflowai-openhands.slice and Delegate=yes
-
-# 2) Confirm slice limits
-systemctl --user show corpflowai-openhands.slice -p MemoryMax -p CPUQuota -p TasksMax
-
-# 3) Launch a disposable synthetic container on the DEDICATED daemon only
+systemctl --user show corpflowai-openhands.slice -p MemoryMax -p MemoryHigh -p CPUQuotaPerSecUSec -p TasksMax
 export DOCKER_HOST=unix://$HOME/corpflowai-openhands/docker/docker.sock
 docker run -d --name corpflowai-openhands-cgroup-probe busybox:1.36 sleep 120
-
-# 4) Inspect the container's main PID cgroup; it must contain corpflowai-openhands.slice
 PID=$(docker inspect -f '{{.State.Pid}}' corpflowai-openhands-cgroup-probe)
 tr '\0' '\n' < /proc/$PID/cgroup
-# expect a path segment containing corpflowai-openhands.slice
-
-# 5) Remove the disposable container
+# MUST contain corpflowai-openhands-containers.slice AND corpflowai-openhands.slice
 docker rm -f corpflowai-openhands-cgroup-probe
+bash scripts/ops/openhands/verify-cgroup-placement.sh
 ```
 
-**Pass criteria:** probe cgroup path includes `corpflowai-openhands.slice`; slice MemoryMax/CPUQuota/TasksMax are as packaged. **Fail / unknown:** keep installation gated; do not assert kernel containment for sandboxes.
+**Pass criteria:** probe PID cgroup contains `corpflowai-openhands-containers.slice` beneath `corpflowai-openhands.slice`; aggregate MemoryMax is set and ≤ 4G; primary daemon untouched. **Fail:** generic unrestricted `user.slice` docker scope; ignored cgroup-parent; infinity/missing MemoryMax; dockerd-only evidence.
 
 ### 2.6 NoNewPrivileges on the rootless dockerd unit — verdict
 
@@ -267,6 +271,11 @@ narrative/decision record for Anton's review; those files are the literal implem
 
 ## 9. Change log
 
+- **2026-08-05** — Cgroup placement remediation (#743 / #747): daemon-level
+  `cgroup-parent=corpflowai-openhands-containers.slice` + `native.cgroupdriver=systemd`;
+  aggregate ceiling reduced to host-safe `MemoryMax=4G` / `CPUQuota=200%` after live
+  capacity inspect on `corpflow-exec-01-u69678`; `verify-cgroup-placement.sh` added
+  (fails closed on unrestricted `user.slice` docker scopes). OpenHands app still not installed.
 - **2026-08-04** — Initial isolation design doc authored for the #747 Docker-isolation security follow-up to
   #743. Supersedes the "mount the primary socket, accept the risk" posture in the original Phase 1 package.
   No installation. No carve-out granted by this doc. Residual per-sandbox resource-limit gap disclosed, not

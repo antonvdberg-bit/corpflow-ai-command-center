@@ -47,8 +47,8 @@ OpenHands control plane (corpflowai-openhands-app container,
         │   daemon — socket $HOME/corpflowai-openhands/docker/docker.sock, data root
         │   $HOME/corpflowai-openhands/docker-data — NEVER the box's primary
         │   /var/run/docker.sock. See docs/operations/OPENHANDS_DOCKER_ISOLATION.md.
-        │   A systemd user slice, corpflowai-openhands.slice (MemoryMax=8G,
-        │   CPUQuota=300%), bounds this daemon and everything it spawns — the
+        │   A systemd user slice, corpflowai-openhands.slice (MemoryMax=4G,
+        │   CPUQuota=200%), bounds this daemon and everything it spawns — the
         │   total ceiling for control plane + one concurrent sandbox.)
         ▼
 Task sandbox (ghcr.io/openhands/agent-server:1.26.0-python,
@@ -81,7 +81,7 @@ Uptime Kuma and (if installed) ERPNext use. A compromise anywhere in the control
 only the dedicated daemon's own containers/images/volumes; it has no daemon-level path to any other box
 workload. This narrows, but does not eliminate, the Docker-socket risk inherent to spawning sandbox containers
 at all — see `docs/operations/OPENHANDS_DOCKER_ISOLATION.md` for the full design and its disclosed residual
-risk (no native per-sandbox memory/CPU cap in the OSS `1.8` Docker path; the systemd slice's 8 GiB / 300% ceiling
+risk (no native per-sandbox memory/CPU cap in the OSS `1.8` Docker path; the systemd slice's 4 GiB / 200% ceiling
 is a **total**, not per-sandbox, limit).
 
 ## 3. What we deliberately do NOT create
@@ -139,8 +139,8 @@ pinned app version `1.8`):
 | Control plane (`corpflowai-openhands-app`) | `1.0` (compose `cpus:` limit) | `2 GiB` (compose `mem_limit:`) | Enforced by the compose file today. |
 | One task sandbox (guidance) | `2 CPU` | `4 GiB` typical, **6 GiB hard max** | **Not enforced by upstream `1.8`'s Docker self-host path** (Enterprise's Kubernetes runtime has a `MEMORY_LIMIT` equivalent; the Docker path does not) — documented as operator policy, not upstream-enforced. Disclosed residual gap, not solved in this round — see `docs/operations/OPENHANDS_DOCKER_ISOLATION.md` § 2.2; requires Anton's explicit acceptance per `OPENHANDS_ON_EXEC01_AUTHORIZATION_PACKET.md` § 1.1a. |
 | Concurrency | **1 task sandbox at a time** (`MAX_CONCURRENT_CONVERSATIONS=1`, app-enforced env var) | — | Deliberate v1 ceiling — see `docs/operations/OPENHANDS_OPERATING_RUNBOOK.md` § 3. |
-| Systemd ceiling (2026-08-04, #747) | `CPUQuota=300%` | `MemoryMax=8G` | Enforced by the `corpflowai-openhands.slice` systemd **user** slice wrapping the dedicated Docker daemon — a **total** ceiling for control plane + every concurrently-running sandbox, not a per-sandbox cap (see the row above). |
-| **Total ceiling (v1)** | ~3 CPU | **~8 GiB** | Control plane + one concurrent sandbox. Because there is no per-sandbox cap, a single misbehaving sandbox can in the worst case consume up to this entire total before the slice intervenes. |
+| Systemd ceiling (2026-08-04, #747) | `CPUQuota=200%` | `MemoryMax=4G` | Enforced by the `corpflowai-openhands.slice` systemd **user** slice wrapping the dedicated Docker daemon — a **total** ceiling for control plane + every concurrently-running sandbox, not a per-sandbox cap (see the row above). |
+| **Total ceiling (v1)** | ~3 CPU | **~4 GiB** | Control plane + one concurrent sandbox. Because there is no per-sandbox cap, a single misbehaving sandbox can in the worst case consume up to this entire total before the slice intervenes. |
 
 ### 5.1 Capacity contradiction — record, do not resolve here
 
@@ -150,7 +150,7 @@ Three different capacity claims exist for `corpflow-exec-01-u69678` and **must n
 |---|---|---|
 | `docs/operations/MONITORING_ARCHITECTURE.md` § 11.3 (authored 2026-05-27) | `2 vCPU / 2 GB RAM / 38 GB disk / 2 GB swap` | **Historical / stale.** Predates the 2026-05-31 resize (`JE-2026-05-31-2`). Left unedited by this packet — see `docs/operations/SERVER_AGENT_ACCESS_AND_EXECUTION_BOUNDARY_V1.md` § 5.1 note acknowledging the same drift as a separate known follow-up. |
 | `docs/operations/SERVER_AGENT_ACCESS_AND_EXECUTION_BOUNDARY_V1.md` § 5.1 (post-resize) | `4 vCPU / 7,751 MiB RAM / 150 GB disk / 2 GB swap` | **Authoritative post-resize** — tied to `JE-2026-05-31-2`, an actual recorded resize event. |
-| Anton's Beszel-style observation (informal, 2026-08 — not from an installed/authorized monitoring tool; Beszel itself is docs/scaffold-only per `docs/operations/BESZEL_SERVER_UTILISATION_PILOT.md`) | ~6 CPU, ~25.7 GiB RAM, ~17–18 GiB headroom | **Observational, NOT live-verified by this packet.** Higher than even the authoritative post-resize figure — either a further undocumented resize happened, or the observation source/method needs clarification. |
+| Anton's Beszel-style observation (informal, 2026-08 — not from an installed/authorized monitoring tool; Beszel itself is docs/scaffold-only per `docs/operations/BESZEL_SERVER_UTILISATION_PILOT.md`) | ~6 CPU, ~25.7 GiB RAM, ~17–14 GiB headroom | **Observational, NOT live-verified by this packet.** Higher than even the authoritative post-resize figure — either a further undocumented resize happened, or the observation source/method needs clarification. |
 
 **This packet does not overwrite the historical row and does not treat the Beszel observation as ground truth.**
 Per the install runbook (`docs/operations/OPENHANDS_INSTALL_RUNBOOK.md` § 2), `scripts/ops/openhands/inspect-host-capacity.sh`

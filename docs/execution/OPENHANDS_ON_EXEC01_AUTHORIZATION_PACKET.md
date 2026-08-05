@@ -69,7 +69,7 @@ gate.
 - **Residual per-sandbox resource-limit gap — Anton must accept explicitly, or the carve-out stays blocked.**
   `docs/operations/OPENHANDS_DOCKER_ISOLATION.md` § 2.2 discloses that the OSS OpenHands `1.8` Docker self-host
   path has **no native per-sandbox 4 GiB `HostConfig` limit** (unlike OpenHands Enterprise's Kubernetes
-  `MEMORY_LIMIT`). The `corpflowai-openhands.slice` systemd ceiling (`MemoryMax=8G`, `CPUQuota=300%`) bounds the
+  `MEMORY_LIMIT`). The `corpflowai-openhands.slice` systemd ceiling (`MemoryMax=4G`, `CPUQuota=200%`) bounds the
   **total** of control plane + one concurrent sandbox, not any individual sandbox. This packet does **not**
   treat that gap as pre-accepted by the rest of this document — Anton's approval of this packet must include an
   **explicit, recorded acknowledgment** of this specific gap (e.g. a sentence in the merge/approval comment, or
@@ -215,7 +215,7 @@ change), Delivery Reality Audit not applicable (zero customer-visible behavior c
 |---|---|
 | `MONITORING_ARCHITECTURE.md` § 11.3 (2026-05-27, stale) | `2 vCPU / 2 GB RAM / 38 GB disk` |
 | `SERVER_AGENT_ACCESS_AND_EXECUTION_BOUNDARY_V1.md` § 5.1 (post-resize, authoritative) | `4 vCPU / 7,751 MiB RAM / 150 GB disk` |
-| Anton's Beszel-style observation (informal, not live-verified) | ~6 CPU / ~25.7 GiB RAM / ~17–18 GiB headroom |
+| Anton's Beszel-style observation (informal, not live-verified) | ~6 CPU / ~25.7 GiB RAM / ~17–14 GiB headroom |
 
 The install runbook (`docs/operations/OPENHANDS_INSTALL_RUNBOOK.md` § 2) requires
 `scripts/ops/openhands/inspect-host-capacity.sh` to be run live **before** any install proceeds — this packet

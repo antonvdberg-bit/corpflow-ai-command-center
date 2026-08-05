@@ -9,9 +9,17 @@ const dockerdUnit = fs.readFileSync(
 const appUnit = fs.readFileSync('scripts/ops/systemd/corpflowai-openhands.service', 'utf8');
 const daemonEnvExample = fs.readFileSync('ops/openhands/daemon/daemon.env.example', 'utf8');
 const sliceUnit = fs.readFileSync('scripts/ops/systemd/corpflowai-openhands.slice', 'utf8');
+const containersSlice = fs.readFileSync(
+  'scripts/ops/systemd/corpflowai-openhands-containers.slice',
+  'utf8',
+);
+const daemonJsonExample = fs.readFileSync('ops/openhands/daemon/daemon.json.example', 'utf8');
 const isolationDoc = fs.readFileSync('docs/operations/OPENHANDS_DOCKER_ISOLATION.md', 'utf8');
 const preflight = fs.readFileSync('scripts/ops/openhands/preflight.sh', 'utf8');
+const installSh = fs.readFileSync('scripts/ops/openhands/install.sh', 'utf8');
+const verifyCgroup = fs.readFileSync('scripts/ops/openhands/verify-cgroup-placement.sh', 'utf8');
 const commonSh = fs.readFileSync('scripts/ops/openhands/lib/common.sh', 'utf8');
+const compose = fs.readFileSync('ops/openhands/compose.yaml', 'utf8');
 
 /** Application/model secret names that must never appear as Environment= assignments in dockerd. */
 const FORBIDDEN_DAEMON_SECRET_NAMES = [
@@ -89,10 +97,7 @@ describe('openhands dockerd NoNewPrivileges policy', () => {
 
   it('dockerd unit documents the incompatibility and sets Delegate=yes', () => {
     assert.match(dockerdUnit, /NoNewPrivileges deliberately ABSENT|INCOMPATIBLE/i);
-    assert.match(
-      activeLines(dockerdUnit).join('\n'),
-      /^Delegate=yes$/m,
-    );
+    assert.match(activeLines(dockerdUnit).join('\n'), /^Delegate=yes$/m);
   });
 
   it('isolation doc records NoNewPrivileges verdict as INCOMPATIBLE', () => {
@@ -101,14 +106,66 @@ describe('openhands dockerd NoNewPrivileges policy', () => {
   });
 });
 
-describe('openhands systemd slice claim honesty', () => {
-  it('slice unit states pending runtime verification', () => {
-    assert.match(sliceUnit, /PENDING RUNTIME VERIFICATION/i);
+describe('openhands cgroup-parent remediation', () => {
+  it('daemon.json.example requires systemd cgroup driver and containers slice parent', () => {
+    assert.match(daemonJsonExample, /native\.cgroupdriver=systemd/);
+    assert.match(daemonJsonExample, /"cgroup-parent":\s*"corpflowai-openhands-containers\.slice"/);
   });
 
-  it('isolation doc includes install-gate cgroup probe commands', () => {
-    assert.match(isolationDoc, /corpflowai-openhands-cgroup-probe/);
-    assert.match(isolationDoc, /\/proc\/\$PID\/cgroup|\/proc\/\$\{?PID\}?\/cgroup/);
+  it('daemon.json.example documents CLI vs file conflict for data-root/hosts', () => {
+    assert.match(daemonJsonExample, /Do NOT also set data-root or hosts/i);
+  });
+
+  it('aggregate slice uses host-safe MemoryMax=4G and CPUQuota=200%', () => {
+    assert.match(activeLines(sliceUnit).join('\n'), /^MemoryMax=4G$/m);
+    assert.match(activeLines(sliceUnit).join('\n'), /^MemoryHigh=3584M$/m);
+    assert.match(activeLines(sliceUnit).join('\n'), /^CPUQuota=200%$/m);
+    assert.match(activeLines(sliceUnit).join('\n'), /^TasksMax=1024$/m);
+    assert.doesNotMatch(activeLines(sliceUnit).join('\n'), /^MemoryMax=8G$/m);
+  });
+
+  it('containers sub-slice unit exists and documents nesting under aggregate', () => {
+    assert.match(containersSlice, /corpflowai-openhands\.slice/);
+    assert.match(containersSlice, /cgroup-parent/i);
+  });
+
+  it('verify-cgroup-placement.sh inspects container PID cgroup and fails outside boundary', () => {
+    assert.match(verifyCgroup, /\/proc\/\$\{PID\}\/cgroup/);
+    assert.match(verifyCgroup, /OPENHANDS_CGROUP_PARENT_SLICE|corpflowai-openhands-containers\.slice/);
+    assert.match(verifyCgroup, /OPENHANDS_MEMORY_MAX_BYTES_CEILING|4294967296/);
+    assert.match(verifyCgroup, /user\.slice/);
+    assert.match(verifyCgroup, /not only the dockerd process/);
+    assert.doesNotMatch(verifyCgroup, /dockerd alone is sufficient/i);
+  });
+
+  it('install.sh fails closed if cgroup placement verify fails', () => {
+    assert.match(installSh, /verify-cgroup-placement\.sh/);
+    assert.match(installSh, /refusing to install: verify-cgroup-placement\.sh failed/);
+  });
+
+  it('preflight requires cgroup-parent and rejects MemoryMax=8G', () => {
+    assert.match(preflight, /native\.cgroupdriver=systemd/);
+    assert.match(preflight, /cgroup-parent/);
+    assert.match(preflight, /MemoryMax=4G/);
+    assert.match(preflight, /must not use MemoryMax=8G/);
+  });
+
+  it('common.sh exports cgroup constants with 4G ceiling', () => {
+    assert.match(commonSh, /OPENHANDS_CGROUP_PARENT_SLICE/);
+    assert.match(commonSh, /OPENHANDS_AGGREGATE_SLICE/);
+    assert.match(commonSh, /OPENHANDS_MEMORY_MAX_BYTES_CEILING.*4294967296/);
+  });
+
+  it('compose control-plane mem_limit stays within aggregate ceiling', () => {
+    assert.match(compose, /mem_limit:\s*1536m/);
+    assert.doesNotMatch(compose, /mem_limit:\s*2g/);
+  });
+
+  it('isolation doc records Option A selected and rejects dockerd-only weaken', () => {
+    assert.match(isolationDoc, /Selected design \(Option A/);
+    assert.match(isolationDoc, /corpflowai-openhands-containers\.slice/);
+    assert.match(isolationDoc, /verify-cgroup-placement\.sh/);
+    assert.match(isolationDoc, /Fail:.*dockerd-only|dockerd-only evidence/i);
   });
 });
 
@@ -133,6 +190,5 @@ describe('openhands rootless preflight coverage', () => {
     assert.match(commonSh, /"bridge"/);
     assert.match(commonSh, /"host"/);
     assert.match(commonSh, /"none"/);
-    assert.match(commonSh, /Docker Engine always creates these three default networks/);
   });
 });

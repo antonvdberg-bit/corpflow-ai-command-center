@@ -99,7 +99,7 @@ this package is a capacity source of truth.
 | Concurrent sandbox tasks | `MAX_CONCURRENT_CONVERSATIONS=1` (app env) | Application-level, not kernel-enforced | App bug could exceed 1; total-ceiling slice below is the backstop |
 | Per-task wall-clock timeout | `SANDBOX_TIMEOUT=600` (app env) | Application-level | Same as above |
 | Per-task iteration ceiling | `MAX_ITERATIONS=40` (app env) | Application-level | Same as above |
-| Combined RAM / CPU / task-count ceiling for dedicated daemon + control plane + every sandbox | `scripts/ops/systemd/corpflowai-openhands.slice` (`MemoryMax=8G`, `CPUQuota=300%`, `TasksMax=2048`) | **Kernel cgroup**, real hard limit | None known — this is the actual backstop |
+| Combined RAM / CPU / task-count ceiling for dedicated daemon + control plane + every sandbox | `corpflowai-openhands.slice` (`MemoryMax=4G`, `MemoryHigh=3584M`, `CPUQuota=200%`, `TasksMax=1024`) + daemon `cgroup-parent=corpflowai-openhands-containers.slice` | **Kernel cgroup**, real hard limit when `verify-cgroup-placement.sh` passes | Residual: no per-sandbox HostConfig cap in OSS 1.8 |
 | Per-sandbox native RAM/CPU limit (e.g. 4 GiB per spawned container via `HostConfig`) | **Not available** in the OSS `1.8` Docker deployment path | N/A | **Residual risk**: a single misbehaving sandbox could theoretically consume up to the full slice ceiling before the kernel OOMs it; this is bounded by the slice total, not by a per-container cap. Native per-sandbox `HostConfig` resource limits are an OpenHands **Enterprise** (k8s-backed runtime) feature per the docs pass above, not present in the OSS Docker path. |
 
 ## Known limitations (as of this pin, 2026-08-04)

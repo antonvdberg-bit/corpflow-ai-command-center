@@ -57,7 +57,7 @@ an upstream architectural requirement of OpenHands `1.8`, not a misconfiguration
   script, or runbook step in this package may mount, reference, or fall back to the primary socket. Every
   command sets `DOCKER_HOST=unix://$HOME/corpflowai-openhands/docker/docker.sock` explicitly — there is no
   ambient-default-daemon path.
-- A systemd **user** slice, `corpflowai-openhands.slice` (`MemoryMax=8G`, `CPUQuota=300%`), bounds the dedicated
+- A systemd **user** slice, `corpflowai-openhands.slice` (`MemoryMax=4G`, `CPUQuota=200%`), bounds the dedicated
   daemon and everything it runs — the **total** ceiling for the control plane plus one concurrent sandbox.
 
 **What this actually means, stated without euphemism:**
@@ -81,7 +81,7 @@ an upstream architectural requirement of OpenHands `1.8`, not a misconfiguration
   - **No per-sandbox 4 GiB `HostConfig` limit is natively available in the OSS OpenHands `1.8` Docker self-host
     path** (OpenHands Enterprise's Kubernetes runtime has a `MEMORY_LIMIT` equivalent; the Docker path in `1.8`
     does not). With concurrency capped at 1 (`MAX_CONCURRENT_CONVERSATIONS=1`), a single misbehaving sandbox can
-    in the worst case consume up to the **entire** 8 GiB / 300% slice ceiling before the slice itself intervenes
+    in the worst case consume up to the **entire** 4 GiB / 200% slice ceiling before the slice itself intervenes
     — there is no smaller per-task cap inside that ceiling. This gap must be **explicitly accepted by Anton** as
     a named carve-out condition (`OPENHANDS_ON_EXEC01_AUTHORIZATION_PACKET.md` § 1.1a); the carve-out stays
     blocked otherwise. See `OPENHANDS_DOCKER_ISOLATION.md` § 2.2 for the full statement.
@@ -201,6 +201,6 @@ gets its own ADR, its own threat model, its own packet.
   daemon** design (supersedes "mount the primary host socket, accept the risk"); § 5 updated to name the
   dedicated socket path and explicitly forbid the primary socket. New residual risk disclosed and not solved:
   no native per-sandbox 4 GiB `HostConfig` limit in the OSS `1.8` Docker path — total ceiling enforced only by
-  the `corpflowai-openhands.slice` systemd slice (`MemoryMax=8G`, `CPUQuota=300%`). Socket-proxy alternative
+  the `corpflowai-openhands.slice` systemd slice (`MemoryMax=4G`, `CPUQuota=200%`). Socket-proxy alternative
   evaluated and rejected as insufficient on its own. See `docs/operations/OPENHANDS_DOCKER_ISOLATION.md` for the
   full design. No installation. No carve-out granted by this doc.

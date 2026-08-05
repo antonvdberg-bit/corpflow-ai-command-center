@@ -34,10 +34,14 @@ Short version:
   `ops/openhands/daemon/daemon.env.example` → `$OPENHANDS_HOME/docker/daemon.env` (paths only).
   **Does not** set `NoNewPrivileges=yes` — **incompatible** with stock `newuidmap`/`newgidmap` (see
   `OPENHANDS_DOCKER_ISOLATION.md` § 2.6). Sets `Delegate=yes` for cgroup v2 child management.
-- **Own systemd slice** (`scripts/ops/systemd/corpflowai-openhands.slice`, INACTIVE) with
-  `MemoryMax=8G`, `CPUQuota=300%`, `TasksMax=2048`. Sandbox placement under this slice is
-  **PENDING RUNTIME VERIFICATION** at the install gate (disposable cgroup probe in
-  `OPENHANDS_DOCKER_ISOLATION.md` § 2.5) — do not treat it as proven until that evidence exists.
+  Live `daemon.json` must set `native.cgroupdriver=systemd` and
+  `cgroup-parent=corpflowai-openhands-containers.slice` (and must **not** duplicate `data-root`/`hosts` when
+  those are already CLI flags on the unit).
+- **Own systemd slice hierarchy** (`corpflowai-openhands.slice` aggregate +
+  `corpflowai-openhands-containers.slice` container parent, INACTIVE) with host-safe
+  `MemoryMax=4G`, `MemoryHigh=3584M`, `CPUQuota=200%`, `TasksMax=1024`. Container placement under the
+  container parent is **REQUIRED** at the install gate via
+  `scripts/ops/openhands/verify-cgroup-placement.sh` (inspects the real container PID cgroup — not dockerd alone).
 - **Everything OpenHands touches — control plane AND every spawned sandbox — goes through this one dedicated
   daemon.** There is no split where sandboxes use one daemon and the control plane another; that would
   reintroduce a cross-daemon coordination risk for no isolation benefit.

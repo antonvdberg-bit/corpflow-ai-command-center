@@ -45,7 +45,8 @@ neither exists yet.**
 | `scripts/ops/openhands/uninstall.sh` | Removes only named `corpflowai-openhands*` containers/networks/volumes on the dedicated daemon |
 | `scripts/ops/openhands/collect-sanitized-evidence.sh` | Gathers redacted evidence for a PR/issue comment |
 | `scripts/ops/openhands/install.sh` | Entry point — `--check` (default), `--install` (gated, dedicated-daemon preflight required), `--verify`, `--rollback` |
-| `scripts/ops/systemd/corpflowai-openhands.slice` | Combined resource ceiling (`MemoryMax=8G`, `CPUQuota=300%`, `TasksMax=2048`) — not enabled |
+| `scripts/ops/systemd/corpflowai-openhands.slice` | Aggregate resource ceiling (`MemoryMax=4G`, `CPUQuota=200%`, `TasksMax=1024`) — not enabled |
+| `scripts/ops/systemd/corpflowai-openhands-containers.slice` | Daemon `cgroup-parent` for every container — not enabled |
 | `scripts/ops/systemd/corpflowai-openhands-dockerd.service` | User systemd unit for the DEDICATED rootless Docker daemon (not enabled) |
 | `scripts/ops/systemd/corpflowai-openhands.service` | User systemd unit wrapping `docker compose up -d` against the dedicated daemon (not enabled) |
 | `scripts/ops/systemd/corpflowai-openhands-health.service` | Oneshot health-check unit (not enabled) |

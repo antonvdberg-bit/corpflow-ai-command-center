@@ -34,9 +34,10 @@ ExecStart=/usr/bin/dockerd-rootless.sh \
   --host=unix://%h/corpflowai-openhands/docker/docker.sock \
   --data-root=%h/corpflowai-openhands/docker-data
 
-# Combined resource ceiling — see corpflowai-openhands.slice.
-# Runtime proof that sandboxes land under this slice is REQUIRED at the
-# install gate (see docs/operations/OPENHANDS_DOCKER_ISOLATION.md § slice).
+# Combined resource ceiling — see corpflowai-openhands.slice (aggregate) and
+# corpflowai-openhands-containers.slice (daemon.json cgroup-parent for every
+# container). Runtime proof via scripts/ops/openhands/verify-cgroup-placement.sh
+# is REQUIRED at the install gate.
 Slice=corpflowai-openhands.slice
 
 # Required for rootless dockerd to manage child cgroups under this service

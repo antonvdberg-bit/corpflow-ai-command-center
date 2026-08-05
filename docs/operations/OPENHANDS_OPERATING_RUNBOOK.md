@@ -75,8 +75,8 @@ any other box workload live on the box's separate primary daemon and are unaffec
   live sandbox instead of an unbounded pool.
 - It keeps cost and evidence review tractable while the pattern is unproven (fewer than 3 successful synthetic
   packets — see `docs/execution/OPENHANDS_SYNTHETIC_VALIDATION_PLAN.md`).
-- It matches the resource envelope in `docs/operations/OPENHANDS_ARCHITECTURE.md` § 5 (~8 GiB total ceiling),
-  now systemd-enforced as a **total** ceiling by `corpflowai-openhands.slice` (`MemoryMax=8G`, `CPUQuota=300%`)
+- It matches the resource envelope in `docs/operations/OPENHANDS_ARCHITECTURE.md` § 5 (~4 GiB total ceiling),
+  now systemd-enforced as a **total** ceiling by `corpflowai-openhands.slice` (`MemoryMax=4G`, `CPUQuota=200%`)
   per `docs/operations/OPENHANDS_DOCKER_ISOLATION.md` § 2, and app-enforced via `MAX_CONCURRENT_CONVERSATIONS=1`.
 - It bounds the impact of the **disclosed, unsolved** per-sandbox resource-limit gap (no native 4 GiB
   `HostConfig` cap in the OSS `1.8` Docker path — `OPENHANDS_DOCKER_ISOLATION.md` § 2.2): with concurrency at 1,
