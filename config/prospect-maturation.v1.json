@@ -1,0 +1,269 @@
+{
+  "$schema_version": "1",
+  "$doc": "Prospect maturation lifecycle config — entry/exit criteria, qualification gates, and operator guidance. Maps to PROSPECT_CANONICAL_STAGES in lib/cmp/_lib/prospect-operations-view-model.js. No schema changes. No external send.",
+  "$issue": "#713",
+  "$canonical_doc": "docs/operations/PROSPECT_MATURATION_AND_NURTURE_V1.md",
+
+  "lifecycle_stages": {
+    "new": {
+      "label": "New",
+      "description": "Prospect has submitted an intake form but has not yet been reviewed by an operator.",
+      "entry_criteria": [
+        "Intake form submitted",
+        "Lead record created in system"
+      ],
+      "exit_criteria": [
+        "Operator has reviewed and assigned an owner",
+        "Initial qualification started (move to qualifying)"
+      ],
+      "required_fields": ["email", "product_service_path"],
+      "operator_sla_hours": 24,
+      "active": true,
+      "terminal": false
+    },
+    "qualifying": {
+      "label": "Qualifying",
+      "description": "Operator is actively assessing fit: business size, urgency, budget signals, decision-making authority.",
+      "entry_criteria": [
+        "Owner assigned",
+        "Initial review complete",
+        "Acknowledgement sent (draft prepared and reviewed by operator)"
+      ],
+      "exit_criteria": [
+        "Qualification criteria met (see qualification_gates below)",
+        "Discovery/demo booked (move to discovery_booked)",
+        "Insufficient fit identified (move to not_fit or lost)"
+      ],
+      "required_fields": ["owner", "next_action", "next_action_due"],
+      "operator_sla_hours": 48,
+      "active": true,
+      "terminal": false
+    },
+    "discovery_booked": {
+      "label": "Discovery Booked",
+      "description": "Discovery call or demo is scheduled. Operator preparing discovery assets.",
+      "entry_criteria": [
+        "Qualification criteria met",
+        "Discovery/demo date confirmed with prospect"
+      ],
+      "exit_criteria": [
+        "Discovery call completed",
+        "Proposal ready to assemble (move to proposal_ready)",
+        "Not a fit confirmed (move to not_fit or lost)"
+      ],
+      "required_fields": ["owner", "next_action", "next_action_due"],
+      "operator_sla_hours": 72,
+      "active": true,
+      "terminal": false
+    },
+    "proposal_ready": {
+      "label": "Proposal Ready",
+      "description": "Operator has assembled the proposal internally. Pending commercial review before sending.",
+      "entry_criteria": [
+        "Discovery call completed",
+        "Service scope confirmed",
+        "Pricing determined per pricing guide"
+      ],
+      "exit_criteria": [
+        "Proposal reviewed and approved for send",
+        "Proposal sent to prospect (move to proposal_sent)"
+      ],
+      "required_fields": ["owner", "next_action", "next_action_due", "estimated_value"],
+      "operator_sla_hours": 24,
+      "active": true,
+      "terminal": false
+    },
+    "proposal_sent": {
+      "label": "Proposal Sent",
+      "description": "Proposal has been sent to prospect. Awaiting response.",
+      "entry_criteria": [
+        "Proposal approved for send",
+        "Proposal draft reviewed by operator (not auto-sent)"
+      ],
+      "exit_criteria": [
+        "Prospect accepts — awaiting payment (move to awaiting_payment)",
+        "Prospect declines — lost (move to lost)",
+        "No response after follow-up cadence — stalled (move to stalled)"
+      ],
+      "required_fields": ["owner", "next_action", "next_action_due", "estimated_value"],
+      "operator_sla_hours": 48,
+      "active": true,
+      "terminal": false
+    },
+    "awaiting_payment": {
+      "label": "Awaiting Payment",
+      "description": "Prospect has verbally or formally accepted. Payment link sent or invoice issued.",
+      "entry_criteria": [
+        "Verbal or written acceptance from prospect",
+        "Payment details confirmed"
+      ],
+      "exit_criteria": [
+        "Payment confirmed by operator (protected action — not auto-marked)",
+        "Move to won"
+      ],
+      "required_fields": ["owner", "next_action", "next_action_due", "estimated_value"],
+      "operator_sla_hours": 24,
+      "active": true,
+      "terminal": false
+    },
+    "won": {
+      "label": "Won",
+      "description": "Payment received and confirmed. Onboarding initiated.",
+      "entry_criteria": [
+        "Payment confirmed (operator-marked; protected action)",
+        "Onboarding checklist started"
+      ],
+      "exit_criteria": [
+        "Onboarding complete — move to delivery"
+      ],
+      "required_fields": ["owner", "closure_reason"],
+      "operator_sla_hours": null,
+      "active": false,
+      "terminal": false
+    },
+    "delivery": {
+      "label": "In Delivery",
+      "description": "Active client in the delivery/pilot phase.",
+      "entry_criteria": [
+        "Won and onboarding complete"
+      ],
+      "exit_criteria": [
+        "Delivery complete — close in CMP",
+        "Stalled during delivery — move to stalled"
+      ],
+      "required_fields": ["owner"],
+      "operator_sla_hours": null,
+      "active": false,
+      "terminal": false
+    },
+    "stalled": {
+      "label": "Stalled",
+      "description": "Progress has stopped. Operator must log reason and set a reactivation target.",
+      "entry_criteria": [
+        "No meaningful activity for stale_days_threshold days",
+        "Explicitly moved by operator with a reason"
+      ],
+      "exit_criteria": [
+        "Reactivation confirmed — move back to appropriate active stage",
+        "No reactivation possible — move to lost or not_fit"
+      ],
+      "required_fields": ["owner", "closure_reason", "next_action", "next_action_due"],
+      "operator_sla_hours": null,
+      "active": false,
+      "terminal": false
+    },
+    "lost": {
+      "label": "Lost",
+      "description": "Prospect declined or is unresponsive after full follow-up cadence.",
+      "entry_criteria": [
+        "Explicit decline from prospect",
+        "Follow-up cadence exhausted with no response",
+        "Operator marks lost with reason"
+      ],
+      "exit_criteria": [
+        "Reactivation signal received (move to new or qualifying)"
+      ],
+      "required_fields": ["closure_reason"],
+      "operator_sla_hours": null,
+      "active": false,
+      "terminal": true
+    },
+    "not_fit": {
+      "label": "Not a Fit",
+      "description": "Prospect does not meet qualification criteria and will not be pursued.",
+      "entry_criteria": [
+        "Qualification criteria clearly not met",
+        "Operator documents reason"
+      ],
+      "exit_criteria": [
+        "Re-qualification if business circumstances change (move to new or qualifying)"
+      ],
+      "required_fields": ["closure_reason"],
+      "operator_sla_hours": null,
+      "active": false,
+      "terminal": true
+    }
+  },
+
+  "qualification_gates": {
+    "ai_lead_rescue": {
+      "label": "AI Lead Rescue — Qualification Gate",
+      "description": "Minimum criteria to advance from qualifying to discovery_booked for AI Lead Rescue.",
+      "required": [
+        {
+          "field": "business_name",
+          "label": "Business name confirmed",
+          "rationale": "Cannot build a personalised lead rescue system without knowing the business"
+        },
+        {
+          "field": "email",
+          "label": "Contact email verified",
+          "rationale": "Required for proposal delivery and onboarding"
+        },
+        {
+          "field": "region_or_lead_sources",
+          "label": "Region or lead source context provided",
+          "rationale": "Needed to assess rescue feasibility and scope"
+        },
+        {
+          "field": "urgency_or_timeline",
+          "label": "Urgency or timeline signal present",
+          "rationale": "Affects discovery call prioritisation and proposal timing"
+        }
+      ],
+      "disqualifiers": [
+        "No identifiable business (individual only, no commercial operation)",
+        "Explicitly no budget or unwilling to discuss commercial terms",
+        "Already engaged with a conflicting full-service provider in the same scope"
+      ],
+      "minimum_estimated_value_usd": 150,
+      "pilot_pricing_reference": "docs/sales/AI_LEAD_RESCUE_PRICING_GUIDE.md"
+    },
+    "website_rescue": {
+      "label": "Website Rescue — Qualification Gate",
+      "description": "Minimum criteria to advance from qualifying to discovery_booked for Website Rescue / Rapid Delivery.",
+      "required": [
+        {
+          "field": "business_name",
+          "label": "Business name confirmed",
+          "rationale": "Required to scope the rescue work"
+        },
+        {
+          "field": "email",
+          "label": "Contact email verified",
+          "rationale": "Required for proposal and onboarding"
+        },
+        {
+          "field": "website_url_or_description",
+          "label": "Current website URL or description provided",
+          "rationale": "Cannot assess rescue scope without seeing current state"
+        },
+        {
+          "field": "service_path_confirmed",
+          "label": "Service path / offer slug confirmed",
+          "rationale": "Determines which rescue package applies and MUR pricing"
+        }
+      ],
+      "disqualifiers": [
+        "No website and no intent to create one",
+        "Scope exceeds rapid delivery (multi-site, complex integrations) — escalate to full project",
+        "Competitor research or free advice only"
+      ],
+      "minimum_estimated_value_mur": null,
+      "service_path_reference": "lib/cmp/_lib/rapid-delivery-operator.js"
+    }
+  },
+
+  "nurture_config": {
+    "stale_days_threshold": 7,
+    "follow_up_cadence_days": [1, 3, 7, 14],
+    "max_follow_ups_before_lost": 4,
+    "reactivation_window_days": 90,
+    "daily_operator_review_hour_utc": 8,
+    "weekly_pipeline_review_day": "monday"
+  },
+
+  "active_stage_keys": ["new", "qualifying", "discovery_booked", "proposal_ready", "proposal_sent", "awaiting_payment"],
+  "terminal_stage_keys": ["lost", "not_fit"],
+  "closure_stage_keys": ["won", "delivery", "stalled", "lost", "not_fit"]
+}
