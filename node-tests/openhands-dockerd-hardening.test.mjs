@@ -11,6 +11,7 @@ const daemonEnvExample = fs.readFileSync('ops/openhands/daemon/daemon.env.exampl
 const sliceUnit = fs.readFileSync('scripts/ops/systemd/corpflowai-openhands.slice', 'utf8');
 const isolationDoc = fs.readFileSync('docs/operations/OPENHANDS_DOCKER_ISOLATION.md', 'utf8');
 const preflight = fs.readFileSync('scripts/ops/openhands/preflight.sh', 'utf8');
+const commonSh = fs.readFileSync('scripts/ops/openhands/lib/common.sh', 'utf8');
 
 /** Application/model secret names that must never appear as Environment= assignments in dockerd. */
 const FORBIDDEN_DAEMON_SECRET_NAMES = [
@@ -126,5 +127,12 @@ describe('openhands rootless preflight coverage', () => {
   it('preflight fails closed if dockerd unit gains ops/openhands/.env again', () => {
     assert.match(preflight, /ops\/openhands\/\.env/);
     assert.match(preflight, /NoNewPrivileges=yes/);
+  });
+
+  it('common.sh allowlists Docker built-in default networks (bridge/host/none)', () => {
+    assert.match(commonSh, /"bridge"/);
+    assert.match(commonSh, /"host"/);
+    assert.match(commonSh, /"none"/);
+    assert.match(commonSh, /Docker Engine always creates these three default networks/);
   });
 });

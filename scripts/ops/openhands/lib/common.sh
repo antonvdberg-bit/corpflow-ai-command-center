@@ -111,6 +111,13 @@ readonly OPENHANDS_ALLOWED_RESOURCES=(
   "corpflowai-openhands-net"
   "corpflowai-openhands-state"
   "corpflowai-openhands-workspace"
+  # Docker Engine always creates these three default networks on every daemon
+  # (primary or dedicated). They are not CorpFlow foreign resources — treating
+  # them as allowlist violations was a false-positive that blocked an otherwise
+  # isolated dedicated-daemon verify (issue #743 install gate).
+  "bridge"
+  "host"
+  "none"
 )
 
 say() {
