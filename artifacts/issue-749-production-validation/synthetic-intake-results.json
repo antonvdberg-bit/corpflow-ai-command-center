@@ -1,0 +1,77 @@
+{
+  "ran_at": "2026-08-04T22:56:59.176Z",
+  "results": [
+    {
+      "label": "losing-enquiries",
+      "status": 200,
+      "ok": true,
+      "tenant_id": "corpflowai",
+      "lead_id": "cmsf9cq1o0005jo04fo2s5bw9",
+      "reference": "CF-2S5BW9",
+      "product": "corpflow-rapid-delivery",
+      "offer_slug": "ai-lead-rescue",
+      "service_path": "client-lead-service"
+    },
+    {
+      "label": "website-improvement",
+      "status": 200,
+      "ok": true,
+      "tenant_id": "corpflowai",
+      "lead_id": "cmsf9cq6s000ajo041l5stvp4",
+      "reference": "CF-5STVP4",
+      "product": "corpflow-rapid-delivery",
+      "offer_slug": "premium-landing-page-rescue",
+      "service_path": "website-digital"
+    },
+    {
+      "label": "admin-workflow",
+      "status": 200,
+      "ok": true,
+      "tenant_id": "corpflowai",
+      "lead_id": "cmsf9cqan000fjo04hx09zgb5",
+      "reference": "CF-09ZGB5",
+      "product": "corpflow-rapid-delivery",
+      "offer_slug": null,
+      "service_path": "workflow-administration"
+    },
+    {
+      "label": "ai-receptionist",
+      "status": 200,
+      "ok": true,
+      "tenant_id": "corpflowai",
+      "lead_id": "cmsf9cqee000kjo046vctw1ct",
+      "reference": "CF-CTW1CT",
+      "product": "corpflow-rapid-delivery",
+      "offer_slug": null,
+      "service_path": "client-lead-service"
+    },
+    {
+      "label": "unsure",
+      "status": 200,
+      "ok": true,
+      "tenant_id": "corpflowai",
+      "lead_id": "cmsf9cqic000pjo041eug3q74",
+      "reference": "CF-UG3Q74",
+      "product": "corpflow-rapid-delivery",
+      "offer_slug": null,
+      "service_path": "workflow-administration"
+    },
+    {
+      "label": "locked-wr",
+      "status": 200,
+      "ok": true,
+      "tenant_id": "corpflowai",
+      "lead_id": "cmsf9cqmd000ujo04cy25hubn",
+      "reference": "CF-25HUBN",
+      "product": "corpflow-rapid-delivery",
+      "offer_slug": "premium-landing-page-rescue",
+      "service_path": "website-digital"
+    },
+    {
+      "label": "contradiction",
+      "status": 400,
+      "error": "CONTRADICTORY_SERVICE_PRODUCT",
+      "hint": "Provide a valid buyer_need, or a consistent service_path / offer_slug pair."
+    }
+  ]
+}

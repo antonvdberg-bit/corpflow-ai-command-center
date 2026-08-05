@@ -1,0 +1,223 @@
+{
+  "schema": "corpflow.prospect_maturation_system_proof.v1",
+  "issue": 713,
+  "ran_at": "2026-08-04T12:00:00.000Z",
+  "simulation_only": true,
+  "external_sends_executed": [],
+  "messaging_runtime_authorized": false,
+  "no_send_config": {
+    "safe": true
+  },
+  "walk_lead_rescue": {
+    "ok": true,
+    "final_stage": "proposal_sent",
+    "transitions": [
+      {
+        "from": "new",
+        "to": "qualifying",
+        "allowed": true
+      },
+      {
+        "from": "qualifying",
+        "to": "discovery_booked",
+        "allowed": true
+      },
+      {
+        "from": "discovery_booked",
+        "to": "proposal_ready",
+        "allowed": true
+      },
+      {
+        "from": "proposal_ready",
+        "to": "proposal_sent",
+        "allowed": true
+      }
+    ],
+    "missing_required_at_start": {
+      "valid": false,
+      "missing": [
+        "owner",
+        "next_action",
+        "next_action_due"
+      ]
+    },
+    "qualification": {
+      "qualified": true
+    },
+    "drafts": {
+      "acknowledgement_send": true,
+      "proposal_handoff_send": true
+    },
+    "failed_at": null,
+    "reason": null,
+    "prospect_ref": "PM-SYS-LR-001",
+    "prospect_id": "synthetic-pm-sys-713-lr-001",
+    "buyer_need": "losing-enquiries",
+    "service_interest": "lead_rescue"
+  },
+  "walk_website_rescue": {
+    "ok": true,
+    "final_stage": "proposal_ready",
+    "transitions": [
+      {
+        "from": "new",
+        "to": "qualifying",
+        "allowed": true
+      },
+      {
+        "from": "qualifying",
+        "to": "discovery_booked",
+        "allowed": true
+      },
+      {
+        "from": "discovery_booked",
+        "to": "proposal_ready",
+        "allowed": true
+      }
+    ],
+    "missing_required_at_start": {
+      "valid": false,
+      "missing": [
+        "owner",
+        "next_action",
+        "next_action_due"
+      ]
+    },
+    "qualification": {
+      "qualified": true
+    },
+    "drafts": {
+      "acknowledgement_send": true,
+      "proposal_handoff_send": true
+    },
+    "failed_at": null,
+    "reason": null,
+    "prospect_ref": "PM-SYS-WR-001",
+    "prospect_id": "synthetic-pm-sys-713-wr-001",
+    "buyer_need": "website-improvement",
+    "service_interest": "website_rescue"
+  },
+  "gate_block_proof": {
+    "missing_owner": {
+      "validation": {
+        "valid": false,
+        "missing": [
+          "owner",
+          "next_action",
+          "next_action_due"
+        ]
+      },
+      "combined": {
+        "valid": false,
+        "errors": [
+          {
+            "check": "active_fields",
+            "missing": [
+              "owner",
+              "next_action",
+              "next_action_due"
+            ]
+          }
+        ]
+      }
+    },
+    "missing_next_action_or_due": {
+      "validation": {
+        "valid": false,
+        "missing": [
+          "next_action",
+          "next_action_due"
+        ]
+      },
+      "combined": {
+        "valid": false,
+        "errors": [
+          {
+            "check": "active_fields",
+            "missing": [
+              "next_action",
+              "next_action_due"
+            ]
+          }
+        ]
+      }
+    },
+    "overdue": {
+      "overdue": true
+    },
+    "stalled": {
+      "stale": true,
+      "stage": "stalled",
+      "closure_reason": "Prospect requested to pause — on holiday until September"
+    },
+    "lost_with_reason": {
+      "validation": {
+        "valid": true,
+        "errors": []
+      },
+      "stage": "lost",
+      "closure_reason": "Prospect went with a local competitor who offered a lower price. Follow-up in Q4 if they re-engage."
+    },
+    "reactivation_due": {
+      "due": true
+    },
+    "qualified_website_rescue": {
+      "qualification": {
+        "qualified": true
+      },
+      "validation": {
+        "valid": true
+      }
+    },
+    "invalid_jump_new_to_proposal_sent": {
+      "allowed": false,
+      "reason": "Transition new → proposal_sent not allowed"
+    },
+    "owner_required_before_qualifying": {
+      "allowed": false,
+      "reason": "Owner must be assigned before moving to qualifying"
+    },
+    "closure_reason_required_for_lost": {
+      "allowed": false,
+      "reason": "closure_reason required to move to lost"
+    }
+  },
+  "operator_summaries": {
+    "daily": {
+      "total": 8,
+      "active": 5,
+      "overdue": 1,
+      "due_today": 0,
+      "stalled": 2,
+      "missing_owner": 2,
+      "missing_next_action": 3,
+      "new_unreviewed": 1,
+      "action_required_ids": [
+        "fixture-lr-new-001",
+        "fixture-lr-overdue-003",
+        "fixture-lr-noowner-007",
+        "fixture-lr-noaction-008"
+      ]
+    },
+    "weekly": {
+      "total": 8,
+      "terminal": 1,
+      "stale_active": 2,
+      "health": "attention",
+      "by_stage": {
+        "new": 1,
+        "qualifying": 2,
+        "discovery_booked": 1,
+        "proposal_ready": 0,
+        "proposal_sent": 1,
+        "awaiting_payment": 0,
+        "won": 0,
+        "delivery": 0,
+        "stalled": 2,
+        "lost": 1,
+        "not_fit": 0
+      }
+    }
+  },
+  "ok": true
+}
