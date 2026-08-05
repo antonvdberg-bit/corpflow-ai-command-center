@@ -1,0 +1,91 @@
+{
+  "send_disabled": true,
+  "send_notice": "No live send — copy the private purchase discussion note for operator/client review only. No payment or contract action.",
+  "all_ready": true,
+  "ready_count": 11,
+  "total_count": 11,
+  "checklist": [
+    {
+      "id": "client_contact",
+      "label": "Client contact details present",
+      "ready": true,
+      "detail": "Synthetic Visitor · synthetic.visitor@example.test · +230 5000 9999"
+    },
+    {
+      "id": "stage_invited",
+      "label": "Lead has reached invited / viewing stage",
+      "ready": true,
+      "detail": "Stage: invited"
+    },
+    {
+      "id": "shortlist_residences",
+      "label": "Shortlisted residence selected",
+      "ready": true,
+      "detail": "2 residence(s) on shortlist"
+    },
+    {
+      "id": "presentation_ready",
+      "label": "Confidential Presentation exists or was reviewed",
+      "ready": true,
+      "detail": "Presentation notes saved"
+    },
+    {
+      "id": "viewing_details",
+      "label": "Viewing by Invitation details exist",
+      "ready": true,
+      "detail": "private_on_site · Thursday 14 Aug · 10:30 · by confirmation · access notes"
+    },
+    {
+      "id": "viewing_outcome",
+      "label": "Viewing outcome captured",
+      "ready": true,
+      "detail": "Viewing outcome notes saved"
+    },
+    {
+      "id": "buyer_intent",
+      "label": "Buyer intent captured",
+      "ready": true,
+      "detail": "Buyer response / intent saved"
+    },
+    {
+      "id": "preferred_residence",
+      "label": "Preferred residence or purchase target captured",
+      "ready": true,
+      "detail": "lm-nc-ridge"
+    },
+    {
+      "id": "purchase_readiness",
+      "label": "Purchase readiness level selected",
+      "ready": true,
+      "detail": "Ready for private purchase discussion"
+    },
+    {
+      "id": "documents_checklist",
+      "label": "Required next documents / information listed (manual checklist)",
+      "ready": true,
+      "detail": "2 checklist item(s) selected"
+    },
+    {
+      "id": "manual_purchase_next",
+      "label": "Next action is manual private purchase conversation",
+      "ready": true,
+      "detail": "Next: Prepare purchase discussion (send disabled)"
+    }
+  ],
+  "purchase_readiness": "ready_for_private_purchase_discussion",
+  "next_private_action": "prepare_purchase_discussion",
+  "preferred_residence": "lm-nc-ridge",
+  "journey_label": "Viewing by Invitation → Purchase",
+  "buyer_journey_label": "Discover → Express Interest → Private Conversation → Confidential Presentation → Viewing by Invitation → Purchase",
+  "next_action_label": "Prepare purchase discussion",
+  "residences": [
+    {
+      "slug": "lm-nc-ridge",
+      "title": "North Coast Ridge Residences"
+    },
+    {
+      "slug": "lm-villa-belombre",
+      "title": "Bel Ombre villa enclave"
+    }
+  ]
+}

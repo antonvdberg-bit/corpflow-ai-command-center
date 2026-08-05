@@ -45,6 +45,14 @@ import {
   LUX_VIEWING_BUYER_JOURNEY_LABEL,
 } from '../lib/cmp/_lib/lux-lead-viewing-by-invitation.js';
 import {
+  LUX_PURCHASE_BUYER_JOURNEY_LABEL,
+  LUX_PURCHASE_DOCUMENTS_CHECKLIST,
+  LUX_PURCHASE_JOURNEY_LABEL,
+  LUX_PURCHASE_NEXT_ACTIONS,
+  LUX_PURCHASE_READINESS_JAN_TEST_CHECKLIST,
+  LUX_PURCHASE_READINESS_LEVELS,
+} from '../lib/cmp/_lib/lux-lead-purchase-readiness.js';
+import {
   LUX_ATTACHMENT_ARCHIVE_REASON_SMOKE_DEFAULT,
   LUX_ATTACHMENT_OPERATOR_FILTER_IDS,
   LUX_AI_SUGGESTION_STATUSES,
@@ -604,6 +612,20 @@ export default function ChangeConsolePage() {
   const [viewingAccessNotesDraft, setViewingAccessNotesDraft] = useState('');
   const [viewingCopyStatus, setViewingCopyStatus] = useState('');
   const [viewingJanChecks, setViewingJanChecks] = useState(() => /** @type {Record<string, boolean>} */ ({}));
+  /** Purchase Readiness after Viewing by Invitation (no live send/payment/contract). */
+  const [purchaseViewingOutcomeDraft, setPurchaseViewingOutcomeDraft] = useState('');
+  const [purchaseBuyerIntentDraft, setPurchaseBuyerIntentDraft] = useState('');
+  const [purchasePreferredResidenceDraft, setPurchasePreferredResidenceDraft] = useState('');
+  const [purchaseReadinessDraft, setPurchaseReadinessDraft] = useState('');
+  const [purchaseNextActionDraft, setPurchaseNextActionDraft] = useState('');
+  const [purchaseDocumentsSelectedDraft, setPurchaseDocumentsSelectedDraft] = useState(
+    () => /** @type {string[]} */ ([]),
+  );
+  const [purchaseDocumentsNotesDraft, setPurchaseDocumentsNotesDraft] = useState('');
+  const [purchaseTransactionNotesDraft, setPurchaseTransactionNotesDraft] = useState('');
+  const [purchaseOperatorNotesDraft, setPurchaseOperatorNotesDraft] = useState('');
+  const [purchaseCopyStatus, setPurchaseCopyStatus] = useState('');
+  const [purchaseJanChecks, setPurchaseJanChecks] = useState(() => /** @type {Record<string, boolean>} */ ({}));
   const [crmFilterStage, setCrmFilterStage] = useState('all');
   const [crmFilterOwner, setCrmFilterOwner] = useState('');
   const [crmFilterProperty, setCrmFilterProperty] = useState('');
@@ -1939,6 +1961,35 @@ export default function ChangeConsolePage() {
       viewing?.access_concierge_notes != null ? String(viewing.access_concierge_notes) : '',
     );
     setViewingCopyStatus('');
+    const purchase = selectedLead.private_client_purchase_readiness;
+    setPurchaseViewingOutcomeDraft(
+      purchase?.viewing_outcome_notes != null ? String(purchase.viewing_outcome_notes) : '',
+    );
+    setPurchaseBuyerIntentDraft(purchase?.buyer_intent != null ? String(purchase.buyer_intent) : '');
+    setPurchasePreferredResidenceDraft(
+      purchase?.preferred_residence != null ? String(purchase.preferred_residence) : '',
+    );
+    setPurchaseReadinessDraft(
+      purchase?.purchase_readiness != null ? String(purchase.purchase_readiness) : '',
+    );
+    setPurchaseNextActionDraft(
+      purchase?.next_private_action != null ? String(purchase.next_private_action) : '',
+    );
+    setPurchaseDocumentsSelectedDraft(
+      Array.isArray(purchase?.documents_selected)
+        ? purchase.documents_selected.map((id) => String(id || '').trim()).filter(Boolean)
+        : [],
+    );
+    setPurchaseDocumentsNotesDraft(
+      purchase?.documents_notes != null ? String(purchase.documents_notes) : '',
+    );
+    setPurchaseTransactionNotesDraft(
+      purchase?.manual_transaction_notes != null ? String(purchase.manual_transaction_notes) : '',
+    );
+    setPurchaseOperatorNotesDraft(
+      purchase?.operator_notes != null ? String(purchase.operator_notes) : '',
+    );
+    setPurchaseCopyStatus('');
   }, [
     luxLeadCrmEnabled,
     selectedLeadId,
@@ -1946,6 +1997,7 @@ export default function ChangeConsolePage() {
     selectedLead?.private_client_shortlist?.updated_at,
     selectedLead?.private_client_presentation?.updated_at,
     selectedLead?.private_client_viewing?.updated_at,
+    selectedLead?.private_client_purchase_readiness?.updated_at,
     selectedLead?.private_client_qualification?.filled_count,
     selectedLead?.private_client_shortlist?.residences?.length,
   ]);
@@ -2040,6 +2092,68 @@ export default function ChangeConsolePage() {
       const viewingAccessChanged =
         String(viewingAccessNotesDraft || '').trim() !== prevViewingAccess.trim();
 
+      const prevPurchaseOutcome =
+        selectedLead?.private_client_purchase_readiness?.viewing_outcome_notes != null
+          ? String(selectedLead.private_client_purchase_readiness.viewing_outcome_notes)
+          : '';
+      const purchaseOutcomeChanged =
+        String(purchaseViewingOutcomeDraft || '').trim() !== prevPurchaseOutcome.trim();
+      const prevPurchaseIntent =
+        selectedLead?.private_client_purchase_readiness?.buyer_intent != null
+          ? String(selectedLead.private_client_purchase_readiness.buyer_intent)
+          : '';
+      const purchaseIntentChanged =
+        String(purchaseBuyerIntentDraft || '').trim() !== prevPurchaseIntent.trim();
+      const prevPurchasePreferred =
+        selectedLead?.private_client_purchase_readiness?.preferred_residence != null
+          ? String(selectedLead.private_client_purchase_readiness.preferred_residence)
+          : '';
+      const purchasePreferredChanged =
+        String(purchasePreferredResidenceDraft || '').trim() !== prevPurchasePreferred.trim();
+      const prevPurchaseReadiness =
+        selectedLead?.private_client_purchase_readiness?.purchase_readiness != null
+          ? String(selectedLead.private_client_purchase_readiness.purchase_readiness)
+          : '';
+      const purchaseReadinessChanged =
+        String(purchaseReadinessDraft || '').trim() !== prevPurchaseReadiness.trim();
+      const prevPurchaseNext =
+        selectedLead?.private_client_purchase_readiness?.next_private_action != null
+          ? String(selectedLead.private_client_purchase_readiness.next_private_action)
+          : '';
+      const purchaseNextChanged =
+        String(purchaseNextActionDraft || '').trim() !== prevPurchaseNext.trim();
+      const prevPurchaseDocs = (
+        Array.isArray(selectedLead?.private_client_purchase_readiness?.documents_selected)
+          ? selectedLead.private_client_purchase_readiness.documents_selected
+          : []
+      )
+        .map((id) => String(id || '').trim())
+        .filter(Boolean)
+        .join('|');
+      const nextPurchaseDocs = purchaseDocumentsSelectedDraft
+        .map((id) => String(id || '').trim())
+        .filter(Boolean)
+        .join('|');
+      const purchaseDocsChanged = prevPurchaseDocs !== nextPurchaseDocs;
+      const prevPurchaseDocsNotes =
+        selectedLead?.private_client_purchase_readiness?.documents_notes != null
+          ? String(selectedLead.private_client_purchase_readiness.documents_notes)
+          : '';
+      const purchaseDocsNotesChanged =
+        String(purchaseDocumentsNotesDraft || '').trim() !== prevPurchaseDocsNotes.trim();
+      const prevPurchaseTxn =
+        selectedLead?.private_client_purchase_readiness?.manual_transaction_notes != null
+          ? String(selectedLead.private_client_purchase_readiness.manual_transaction_notes)
+          : '';
+      const purchaseTxnChanged =
+        String(purchaseTransactionNotesDraft || '').trim() !== prevPurchaseTxn.trim();
+      const prevPurchaseOpNotes =
+        selectedLead?.private_client_purchase_readiness?.operator_notes != null
+          ? String(selectedLead.private_client_purchase_readiness.operator_notes)
+          : '';
+      const purchaseOpNotesChanged =
+        String(purchaseOperatorNotesDraft || '').trim() !== prevPurchaseOpNotes.trim();
+
       const body = { lead_id: id };
       if (stageChanged) body.stage = leadStageDraft;
       if (followChanged) body.follow_up_status = leadFollowDraft;
@@ -2074,6 +2188,36 @@ export default function ChangeConsolePage() {
       if (viewingAccessChanged) {
         body.viewing_access_notes = String(viewingAccessNotesDraft || '').trim() || null;
       }
+      if (purchaseOutcomeChanged) {
+        body.purchase_viewing_outcome = String(purchaseViewingOutcomeDraft || '').trim() || null;
+      }
+      if (purchaseIntentChanged) {
+        body.purchase_buyer_intent = String(purchaseBuyerIntentDraft || '').trim() || null;
+      }
+      if (purchasePreferredChanged) {
+        body.purchase_preferred_residence =
+          String(purchasePreferredResidenceDraft || '').trim() || null;
+      }
+      if (purchaseReadinessChanged) {
+        body.purchase_readiness = String(purchaseReadinessDraft || '').trim() || null;
+      }
+      if (purchaseNextChanged) {
+        body.purchase_next_action = String(purchaseNextActionDraft || '').trim() || null;
+      }
+      if (purchaseDocsChanged) {
+        body.purchase_documents_selected = purchaseDocumentsSelectedDraft
+          .map((id) => String(id || '').trim())
+          .filter(Boolean);
+      }
+      if (purchaseDocsNotesChanged) {
+        body.purchase_documents_notes = String(purchaseDocumentsNotesDraft || '').trim() || null;
+      }
+      if (purchaseTxnChanged) {
+        body.purchase_transaction_notes = String(purchaseTransactionNotesDraft || '').trim() || null;
+      }
+      if (purchaseOpNotesChanged) {
+        body.purchase_operator_notes = String(purchaseOperatorNotesDraft || '').trim() || null;
+      }
       if (
         !body.stage &&
         body.follow_up_status === undefined &&
@@ -2088,7 +2232,16 @@ export default function ChangeConsolePage() {
         body.viewing_next_step === undefined &&
         body.viewing_format === undefined &&
         body.viewing_proposed_datetime === undefined &&
-        body.viewing_access_notes === undefined
+        body.viewing_access_notes === undefined &&
+        body.purchase_viewing_outcome === undefined &&
+        body.purchase_buyer_intent === undefined &&
+        body.purchase_preferred_residence === undefined &&
+        body.purchase_readiness === undefined &&
+        body.purchase_next_action === undefined &&
+        body.purchase_documents_selected === undefined &&
+        body.purchase_documents_notes === undefined &&
+        body.purchase_transaction_notes === undefined &&
+        body.purchase_operator_notes === undefined
       ) {
         setLeadPatchStatus('Nothing to save.');
         return;
@@ -7990,6 +8143,446 @@ export default function ChangeConsolePage() {
                           />
                           <span style={{ ...changeTextContainStyle() }}>
                             <strong style={{ color: '#fcd34d' }}>{index + 1}. </strong>
+                            {String(step.label || id)}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Purchase Readiness after Viewing by Invitation (no live send/payment/contract). */}
+                <div
+                  id="lux-crm-purchase-panel"
+                  data-testid="lux-crm-purchase-panel"
+                  style={{
+                    marginTop: 4,
+                    padding: 12,
+                    borderRadius: 12,
+                    border: '1px solid rgba(167,139,250,0.4)',
+                    background: 'rgba(76,29,149,0.22)',
+                    display: 'grid',
+                    gap: 8,
+                  }}
+                >
+                  <div style={{ fontSize: 11, fontWeight: 900, color: '#ddd6fe', letterSpacing: '0.06em' }}>
+                    PURCHASE READINESS
+                  </div>
+                  <div
+                    data-testid="lux-crm-purchase-journey"
+                    style={{ fontSize: 11, color: '#c4b5fd', lineHeight: 1.45 }}
+                  >
+                    Buyer journey:{' '}
+                    <strong style={{ color: '#f5f3ff' }}>
+                      {String(
+                        selectedLead.private_client_purchase_readiness?.buyer_journey_label ||
+                          LUX_PURCHASE_BUYER_JOURNEY_LABEL,
+                      )}
+                    </strong>
+                  </div>
+                  <div style={{ fontSize: 11, color: '#c4b5fd', lineHeight: 1.4 }}>
+                    Current step:{' '}
+                    <strong style={{ color: '#f5f3ff' }}>
+                      {String(
+                        selectedLead.private_client_purchase_readiness?.journey_label ||
+                          LUX_PURCHASE_JOURNEY_LABEL,
+                      )}
+                    </strong>
+                    . Uses this lead’s qualification, shortlist, Confidential Presentation, and
+                    Viewing by Invitation. Draft is copy-ready only — no email, WhatsApp, SMS,
+                    payment, or contract action.
+                  </div>
+
+                  <div data-testid="lux-crm-purchase-checklist" style={{ display: 'grid', gap: 6 }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: '#ddd6fe' }}>
+                      Purchase readiness (
+                      {Number(selectedLead.private_client_purchase_readiness?.ready_count || 0)}/
+                      {Number(selectedLead.private_client_purchase_readiness?.total_count || 11)})
+                    </div>
+                    {(selectedLead.private_client_purchase_readiness?.checklist || []).map((item) => (
+                      <div
+                        key={String(item.id || item.label)}
+                        data-testid={`lux-crm-purchase-check-${item.id}`}
+                        style={{
+                          display: 'flex',
+                          gap: 8,
+                          alignItems: 'flex-start',
+                          fontSize: 12,
+                          color: item.ready ? '#bbf7d0' : '#e9d5ff',
+                          lineHeight: 1.35,
+                        }}
+                      >
+                        <span style={{ fontWeight: 800 }}>{item.ready ? '✓' : '○'}</span>
+                        <div style={{ ...changeTextContainStyle(), minWidth: 0 }}>
+                          <div style={{ fontWeight: 700 }}>{String(item.label || item.id)}</div>
+                          {item.detail ? (
+                            <div style={{ fontSize: 11, color: '#a78bfa', marginTop: 2 }}>
+                              {String(item.detail)}
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <label style={{ fontSize: 11, color: '#c4b5fd', display: 'grid', gap: 6 }}>
+                    Viewing outcome notes
+                    <textarea
+                      data-testid="lux-crm-purchase-viewing-outcome"
+                      value={purchaseViewingOutcomeDraft}
+                      onChange={(e) => setPurchaseViewingOutcomeDraft(e.target.value)}
+                      rows={3}
+                      placeholder="How did the invited viewing go? Private notes only."
+                      style={{
+                        padding: '8px 10px',
+                        borderRadius: 10,
+                        border: '1px solid rgba(167,139,250,0.35)',
+                        background: 'rgba(2,6,23,0.65)',
+                        color: '#e2e8f0',
+                        fontSize: 13,
+                        resize: 'vertical',
+                      }}
+                    />
+                  </label>
+
+                  <label style={{ fontSize: 11, color: '#c4b5fd', display: 'grid', gap: 6 }}>
+                    Buyer response / intent
+                    <textarea
+                      data-testid="lux-crm-purchase-buyer-intent"
+                      value={purchaseBuyerIntentDraft}
+                      onChange={(e) => setPurchaseBuyerIntentDraft(e.target.value)}
+                      rows={3}
+                      placeholder="What did the private client indicate after the viewing?"
+                      style={{
+                        padding: '8px 10px',
+                        borderRadius: 10,
+                        border: '1px solid rgba(167,139,250,0.35)',
+                        background: 'rgba(2,6,23,0.65)',
+                        color: '#e2e8f0',
+                        fontSize: 13,
+                        resize: 'vertical',
+                      }}
+                    />
+                  </label>
+
+                  <label style={{ fontSize: 11, color: '#c4b5fd', display: 'grid', gap: 6 }}>
+                    Preferred residence / purchase target
+                    <select
+                      data-testid="lux-crm-purchase-preferred-residence"
+                      value={purchasePreferredResidenceDraft}
+                      onChange={(e) => setPurchasePreferredResidenceDraft(e.target.value)}
+                      style={{
+                        ...changeSelectContainStyle(),
+                        padding: '8px 10px',
+                        borderRadius: 10,
+                        border: '1px solid rgba(167,139,250,0.35)',
+                        background: 'rgba(2,6,23,0.65)',
+                        color: '#e2e8f0',
+                        fontSize: 13,
+                      }}
+                    >
+                      <option value="">— Select from shortlist —</option>
+                      {(
+                        selectedLead.private_client_purchase_readiness?.residences ||
+                        selectedLead.private_client_shortlist?.residences ||
+                        []
+                      ).map((r) => {
+                        const slug = String(r.slug || '').trim();
+                        if (!slug) return null;
+                        return (
+                          <option key={slug} value={slug}>
+                            {String(r.title || slug)} ({slug})
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </label>
+
+                  <label style={{ fontSize: 11, color: '#c4b5fd', display: 'grid', gap: 6 }}>
+                    Purchase readiness
+                    <select
+                      data-testid="lux-crm-purchase-readiness"
+                      value={purchaseReadinessDraft}
+                      onChange={(e) => setPurchaseReadinessDraft(e.target.value)}
+                      style={{
+                        ...changeSelectContainStyle(),
+                        padding: '8px 10px',
+                        borderRadius: 10,
+                        border: '1px solid rgba(167,139,250,0.35)',
+                        background: 'rgba(2,6,23,0.65)',
+                        color: '#e2e8f0',
+                        fontSize: 13,
+                      }}
+                    >
+                      <option value="">— Select —</option>
+                      {(
+                        selectedLead.private_client_purchase_readiness?.purchase_readiness_levels ||
+                        LUX_PURCHASE_READINESS_LEVELS
+                      ).map((opt) => (
+                        <option key={opt.id} value={opt.id}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label style={{ fontSize: 11, color: '#c4b5fd', display: 'grid', gap: 6 }}>
+                    Next private action (manual only)
+                    <select
+                      data-testid="lux-crm-purchase-next-action"
+                      value={purchaseNextActionDraft}
+                      onChange={(e) => setPurchaseNextActionDraft(e.target.value)}
+                      style={{
+                        ...changeSelectContainStyle(),
+                        padding: '8px 10px',
+                        borderRadius: 10,
+                        border: '1px solid rgba(167,139,250,0.35)',
+                        background: 'rgba(2,6,23,0.65)',
+                        color: '#e2e8f0',
+                        fontSize: 13,
+                      }}
+                    >
+                      <option value="">— Select —</option>
+                      {(
+                        selectedLead.private_client_purchase_readiness?.purchase_next_actions ||
+                        LUX_PURCHASE_NEXT_ACTIONS
+                      ).map((opt) => (
+                        <option key={opt.id} value={opt.id}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <div
+                    data-testid="lux-crm-purchase-documents-checklist"
+                    style={{ display: 'grid', gap: 6 }}
+                  >
+                    <div style={{ fontSize: 11, fontWeight: 800, color: '#ddd6fe' }}>
+                      Required next documents / information (manual checklist — not KYC/AML/legal)
+                    </div>
+                    {(
+                      selectedLead.private_client_purchase_readiness?.documents_checklist ||
+                      LUX_PURCHASE_DOCUMENTS_CHECKLIST
+                    ).map((doc) => {
+                      const id = String(doc.id || '');
+                      const on = purchaseDocumentsSelectedDraft.includes(id);
+                      return (
+                        <label
+                          key={id}
+                          data-testid={`lux-crm-purchase-doc-${id}`}
+                          style={{
+                            display: 'flex',
+                            gap: 8,
+                            alignItems: 'flex-start',
+                            fontSize: 12,
+                            color: '#e2e8f0',
+                            lineHeight: 1.35,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={on}
+                            onChange={() =>
+                              setPurchaseDocumentsSelectedDraft((prev) =>
+                                on ? prev.filter((x) => x !== id) : [...prev, id],
+                              )
+                            }
+                            style={{ marginTop: 3 }}
+                          />
+                          <span style={{ ...changeTextContainStyle() }}>{String(doc.label || id)}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+
+                  <label style={{ fontSize: 11, color: '#c4b5fd', display: 'grid', gap: 6 }}>
+                    Documents / information notes
+                    <textarea
+                      data-testid="lux-crm-purchase-documents-notes"
+                      value={purchaseDocumentsNotesDraft}
+                      onChange={(e) => setPurchaseDocumentsNotesDraft(e.target.value)}
+                      rows={2}
+                      placeholder="Neutral list of information still needed before a private purchase conversation"
+                      style={{
+                        padding: '8px 10px',
+                        borderRadius: 10,
+                        border: '1px solid rgba(167,139,250,0.35)',
+                        background: 'rgba(2,6,23,0.65)',
+                        color: '#e2e8f0',
+                        fontSize: 13,
+                        resize: 'vertical',
+                      }}
+                    />
+                  </label>
+
+                  <label style={{ fontSize: 11, color: '#c4b5fd', display: 'grid', gap: 6 }}>
+                    Manual transaction notes
+                    <textarea
+                      data-testid="lux-crm-purchase-transaction-notes"
+                      value={purchaseTransactionNotesDraft}
+                      onChange={(e) => setPurchaseTransactionNotesDraft(e.target.value)}
+                      rows={2}
+                      placeholder="Operator notes only — not a live payment or contract action"
+                      style={{
+                        padding: '8px 10px',
+                        borderRadius: 10,
+                        border: '1px solid rgba(167,139,250,0.35)',
+                        background: 'rgba(2,6,23,0.65)',
+                        color: '#e2e8f0',
+                        fontSize: 13,
+                        resize: 'vertical',
+                      }}
+                    />
+                  </label>
+
+                  <label style={{ fontSize: 11, color: '#c4b5fd', display: 'grid', gap: 6 }}>
+                    Internal operator notes
+                    <textarea
+                      data-testid="lux-crm-purchase-operator-notes"
+                      value={purchaseOperatorNotesDraft}
+                      onChange={(e) => setPurchaseOperatorNotesDraft(e.target.value)}
+                      rows={2}
+                      placeholder="Internal notes for Rare & Exclusive operators"
+                      style={{
+                        padding: '8px 10px',
+                        borderRadius: 10,
+                        border: '1px solid rgba(167,139,250,0.35)',
+                        background: 'rgba(2,6,23,0.65)',
+                        color: '#e2e8f0',
+                        fontSize: 13,
+                        resize: 'vertical',
+                      }}
+                    />
+                  </label>
+
+                  <div style={{ fontSize: 10, color: '#64748b' }}>
+                    Save updates to refresh the on-screen Private Purchase Discussion draft from
+                    persisted purchase readiness, viewing, shortlist, and qualification data.
+                  </div>
+
+                  <pre
+                    data-testid="lux-crm-purchase-draft"
+                    style={{
+                      ...changePreBlockStyle(),
+                      margin: 0,
+                      maxHeight: 280,
+                      overflow: 'auto',
+                      fontSize: 11,
+                      lineHeight: 1.45,
+                      color: '#f5f3ff',
+                      background: 'rgba(2,6,23,0.55)',
+                      border: '1px solid rgba(167,139,250,0.28)',
+                      borderRadius: 10,
+                      padding: 10,
+                      whiteSpace: 'pre-wrap',
+                    }}
+                  >
+                    {String(
+                      selectedLead.private_client_purchase_readiness?.draft_text ||
+                        'Save purchase readiness fields to generate Private Purchase Discussion draft…',
+                    )}
+                  </pre>
+
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+                    <button
+                      type="button"
+                      data-testid="lux-crm-purchase-copy"
+                      onClick={async () => {
+                        const text = String(
+                          selectedLead.private_client_purchase_readiness?.draft_text || '',
+                        );
+                        if (!text) {
+                          setPurchaseCopyStatus(
+                            'Nothing to copy yet — save purchase readiness fields first.',
+                          );
+                          return;
+                        }
+                        try {
+                          if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+                            await navigator.clipboard.writeText(text);
+                            setPurchaseCopyStatus(
+                              'Draft copied — paste for client/operator review. Not sent.',
+                            );
+                          } else {
+                            setPurchaseCopyStatus(
+                              'Clipboard unavailable — select the draft text manually.',
+                            );
+                          }
+                        } catch {
+                          setPurchaseCopyStatus('Copy failed — select the draft text manually.');
+                        }
+                      }}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: 10,
+                        border: '1px solid rgba(167,139,250,0.45)',
+                        background: 'rgba(139,92,246,0.18)',
+                        color: '#f5f3ff',
+                        fontWeight: 750,
+                        fontSize: 12,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Copy Private Purchase Discussion draft
+                    </button>
+                    <span
+                      data-testid="lux-crm-purchase-no-send"
+                      style={{ fontSize: 11, color: '#c4b5fd', fontWeight: 700 }}
+                    >
+                      Send disabled — manual only
+                    </span>
+                  </div>
+                  {purchaseCopyStatus ? (
+                    <div style={{ fontSize: 11, color: '#94a3b8' }}>{purchaseCopyStatus}</div>
+                  ) : null}
+
+                  <div
+                    data-testid="lux-crm-purchase-jan-checklist"
+                    style={{
+                      marginTop: 4,
+                      padding: 10,
+                      borderRadius: 10,
+                      border: '1px solid rgba(167,139,250,0.28)',
+                      background: 'rgba(2,6,23,0.35)',
+                      display: 'grid',
+                      gap: 6,
+                    }}
+                  >
+                    <div style={{ fontSize: 11, fontWeight: 800, color: '#ddd6fe' }}>
+                      Jan test prompt (local ticks — not saved)
+                    </div>
+                    {(
+                      selectedLead.private_client_purchase_readiness?.jan_test_checklist ||
+                      LUX_PURCHASE_READINESS_JAN_TEST_CHECKLIST
+                    ).map((step, index) => {
+                      const id = String(step.id || index);
+                      const on = !!purchaseJanChecks[id];
+                      return (
+                        <label
+                          key={id}
+                          data-testid={`lux-crm-purchase-jan-${id}`}
+                          style={{
+                            display: 'flex',
+                            gap: 8,
+                            alignItems: 'flex-start',
+                            fontSize: 12,
+                            color: '#e2e8f0',
+                            lineHeight: 1.35,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={on}
+                            onChange={() =>
+                              setPurchaseJanChecks((prev) => ({ ...prev, [id]: !prev[id] }))
+                            }
+                            style={{ marginTop: 3 }}
+                          />
+                          <span style={{ ...changeTextContainStyle() }}>
+                            <strong style={{ color: '#c4b5fd' }}>{index + 1}. </strong>
                             {String(step.label || id)}
                           </span>
                         </label>
