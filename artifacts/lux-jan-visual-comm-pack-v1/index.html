@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rare &amp; Exclusive — Visual Communication Pack</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --charcoal: #111111;
+      --charcoal-soft: #1A1817;
+      --charcoal-deep: #0A0A0A;
+      --ivory: #F4EFE8;
+      --ivory-muted: rgba(244, 239, 232, 0.72);
+      --gold: #A8842C;
+      --gold-deep: #7A5F1C;
+      --stone: #6B6256;
+      --stone-soft: #8A8278;
+      --hairline: rgba(168, 132, 44, 0.32);
+      --font-display: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+      --font-body: "Inter", system-ui, -apple-system, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--charcoal-deep);
+      color: var(--ivory);
+      font-family: var(--font-body);
+      line-height: 1.5;
+    }
+    a { color: var(--gold); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .nav {
+      position: sticky; top: 0; z-index: 20;
+      display: flex; flex-wrap: wrap; gap: 0.75rem 1.25rem;
+      align-items: center; justify-content: space-between;
+      padding: 0.85rem 1.5rem;
+      background: rgba(10, 10, 10, 0.92);
+      border-bottom: 1px solid var(--hairline);
+      backdrop-filter: blur(8px);
+    }
+    .nav .brand {
+      font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--gold); font-weight: 600;
+    }
+    .nav-links { display: flex; flex-wrap: wrap; gap: 0.85rem; font-size: 0.78rem; }
+    .nav-links a { color: var(--ivory-muted); text-decoration: none; }
+    .nav-links a:hover { color: var(--gold); }
+
+    .hero {
+      padding: 4.5rem 1.5rem 3.5rem;
+      background:
+        radial-gradient(ellipse 80% 60% at 70% 20%, rgba(168,132,44,0.12), transparent 60%),
+        linear-gradient(180deg, #18150f 0%, var(--charcoal-deep) 100%);
+      border-bottom: 1px solid var(--hairline);
+    }
+    .hero-inner { max-width: 920px; margin: 0 auto; }
+    .eyebrow {
+      font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 1rem;
+    }
+    h1 {
+      font-family: var(--font-display);
+      font-weight: 500; font-size: clamp(2rem, 4.5vw, 3rem);
+      line-height: 1.15; margin: 0 0 1rem; max-width: 16ch;
+    }
+    .lede {
+      color: var(--ivory-muted); max-width: 38rem; font-size: 1.05rem;
+      margin: 0 0 1.5rem;
+    }
+    .meta-row {
+      display: flex; flex-wrap: wrap; gap: 0.75rem 1.5rem;
+      font-size: 0.8rem; color: var(--stone-soft);
+    }
+    .pill {
+      border: 1px solid var(--hairline); color: var(--gold);
+      padding: 0.35rem 0.7rem; font-size: 0.72rem; letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    section.block {
+      max-width: 1080px; margin: 0 auto;
+      padding: 3.5rem 1.5rem;
+      border-bottom: 1px solid rgba(168,132,44,0.18);
+    }
+    .section-label {
+      font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 0.6rem;
+    }
+    h2 {
+      font-family: var(--font-display);
+      font-weight: 500; font-size: clamp(1.6rem, 3vw, 2.1rem);
+      margin: 0 0 0.6rem; color: var(--ivory);
+    }
+    .caption {
+      color: var(--stone-soft); max-width: 40rem;
+      margin: 0 0 1.75rem; font-size: 0.95rem;
+    }
+
+    /* Process layers */
+    .layers { display: flex; flex-direction: column; gap: 0.85rem; }
+    .layer {
+      display: grid; grid-template-columns: 4.5rem 1fr;
+      gap: 1rem; align-items: start;
+      padding: 1.25rem 1.35rem;
+      background: var(--charcoal-soft);
+      border: 1px solid var(--hairline);
+    }
+    .layer.highlight { border-color: rgba(168,132,44,0.65); box-shadow: inset 0 0 0 1px rgba(168,132,44,0.2); }
+    .layer-num {
+      font-family: var(--font-display); font-size: 1.6rem; color: var(--gold);
+      line-height: 1;
+    }
+    .layer h3 {
+      font-family: var(--font-display); font-weight: 500;
+      font-size: 1.25rem; margin: 0 0 0.35rem;
+    }
+    .layer p { margin: 0; color: var(--ivory-muted); font-size: 0.9rem; }
+    .layer .maps {
+      margin-top: 0.55rem; font-size: 0.75rem; color: var(--stone-soft);
+    }
+
+    /* Business flow */
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.65rem;
+    }
+    @media (max-width: 860px) {
+      .flow { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 480px) {
+      .flow { grid-template-columns: 1fr; }
+    }
+    .flow-step {
+      background: var(--charcoal);
+      border: 1px solid var(--hairline);
+      padding: 1.1rem 1rem 1.2rem;
+      min-height: 9.5rem;
+    }
+    .flow-step.final {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: var(--charcoal);
+    }
+    .flow-step .n {
+      font-size: 0.72rem; letter-spacing: 0.12em; color: var(--gold);
+      margin-bottom: 0.55rem;
+    }
+    .flow-step.final .n { color: var(--charcoal); opacity: 0.7; }
+    .flow-step h3 {
+      font-family: var(--font-display); font-weight: 500;
+      font-size: 1.15rem; margin: 0 0 0.4rem; line-height: 1.25;
+    }
+    .flow-step p { margin: 0; font-size: 0.8rem; color: var(--ivory-muted); }
+    .flow-step.final p { color: rgba(17,17,17,0.75); }
+
+    /* Mockup frame */
+    .mock-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+    }
+    .mock-card { }
+    .mock-card h3 {
+      font-family: var(--font-display); font-weight: 500;
+      font-size: 1.35rem; margin: 0 0 0.35rem;
+    }
+    .mock-why {
+      color: var(--stone-soft); font-size: 0.88rem;
+      margin: 0 0 1rem; max-width: 42rem;
+    }
+    .device {
+      background: #0d0c0b;
+      border: 1px solid var(--hairline);
+      overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.45);
+    }
+    .device-bar {
+      display: flex; align-items: center; gap: 0.4rem;
+      padding: 0.55rem 0.85rem;
+      background: #161412;
+      border-bottom: 1px solid rgba(168,132,44,0.2);
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #3a3530; }
+    .device-url {
+      margin-left: 0.75rem; font-size: 0.68rem;
+      color: var(--stone-soft); letter-spacing: 0.02em;
+    }
+    .screen { padding: 1.25rem 1.35rem 1.5rem; min-height: 280px; }
+    .screen.light {
+      background:
+        linear-gradient(180deg, rgba(244,239,232,0.97), #EDE6DB);
+      color: var(--charcoal);
+    }
+    .screen.dark {
+      background:
+        radial-gradient(ellipse 70% 50% at 80% 0%, rgba(168,132,44,0.1), transparent 55%),
+        var(--charcoal);
+      color: var(--ivory);
+    }
+
+    .m-eyebrow {
+      font-size: 0.65rem; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 0.5rem;
+    }
+    .m-title {
+      font-family: var(--font-display); font-weight: 500;
+      font-size: 1.55rem; line-height: 1.2; margin: 0 0 0.4rem;
+    }
+    .m-sub { font-size: 0.85rem; color: var(--stone); margin: 0 0 1.1rem; max-width: 28rem; }
+    .screen.dark .m-sub { color: var(--ivory-muted); }
+
+    .form-grid { display: grid; gap: 0.55rem; max-width: 320px; }
+    .field {
+      border: 1px solid rgba(107,98,86,0.35);
+      background: rgba(255,255,255,0.45);
+      padding: 0.55rem 0.7rem;
+      font-size: 0.78rem; color: var(--stone);
+    }
+    .btn {
+      display: inline-block; margin-top: 0.35rem;
+      background: var(--charcoal); color: var(--ivory);
+      padding: 0.65rem 1rem; font-size: 0.78rem;
+      letter-spacing: 0.04em; border: none;
+    }
+    .btn.gold { background: var(--gold); color: var(--charcoal); }
+
+    .desk-layout {
+      display: grid; grid-template-columns: 180px 1fr;
+      gap: 1rem; min-height: 240px;
+    }
+    @media (max-width: 640px) {
+      .desk-layout { grid-template-columns: 1fr; }
+    }
+    .desk-nav {
+      border-right: 1px solid rgba(168,132,44,0.22);
+      padding-right: 0.75rem;
+    }
+    @media (max-width: 640px) {
+      .desk-nav { border-right: none; border-bottom: 1px solid rgba(168,132,44,0.22); padding: 0 0 0.75rem; }
+    }
+    .desk-nav .item {
+      font-size: 0.78rem; color: var(--ivory-muted);
+      padding: 0.4rem 0; border-bottom: 1px solid rgba(244,239,232,0.06);
+    }
+    .desk-nav .item.active { color: var(--gold); }
+    .status-chip {
+      display: inline-block; font-size: 0.65rem; letter-spacing: 0.08em;
+      text-transform: uppercase; border: 1px solid var(--hairline);
+      color: var(--gold); padding: 0.2rem 0.45rem; margin-bottom: 0.6rem;
+    }
+    .progress-row {
+      display: flex; gap: 0.35rem; flex-wrap: wrap; margin: 0.85rem 0 1rem;
+    }
+    .progress-row span {
+      font-size: 0.65rem; padding: 0.25rem 0.45rem;
+      border: 1px solid rgba(168,132,44,0.25); color: var(--ivory-muted);
+    }
+    .progress-row span.done { border-color: var(--gold); color: var(--gold); }
+    .progress-row span.now { background: var(--gold); color: var(--charcoal); border-color: var(--gold); }
+
+    .list-row {
+      display: grid; grid-template-columns: 1fr auto;
+      gap: 0.5rem; align-items: center;
+      padding: 0.7rem 0;
+      border-bottom: 1px solid rgba(107,98,86,0.2);
+      font-size: 0.82rem;
+    }
+    .list-row strong { font-weight: 500; }
+    .list-row .when { font-size: 0.72rem; color: var(--stone); }
+    .screen.dark .list-row { border-color: rgba(244,239,232,0.08); }
+    .screen.dark .list-row .when { color: var(--ivory-muted); }
+
+    .draft-box {
+      margin-top: 0.75rem; padding: 0.9rem 1rem;
+      border: 1px solid var(--hairline);
+      background: rgba(168,132,44,0.06);
+      font-size: 0.8rem; color: var(--ivory-muted);
+      font-family: var(--font-display); line-height: 1.45;
+    }
+    .send-note {
+      margin-top: 0.65rem; font-size: 0.7rem;
+      color: var(--stone-soft); letter-spacing: 0.04em;
+    }
+
+    .align-box {
+      background: var(--charcoal-soft);
+      border: 1px solid var(--hairline);
+      padding: 1.35rem 1.4rem;
+      max-width: 46rem;
+    }
+    .align-box h3 {
+      font-family: var(--font-display); font-weight: 500;
+      margin: 0 0 0.6rem; font-size: 1.2rem;
+    }
+    .align-box ul { margin: 0; padding-left: 1.1rem; color: var(--ivory-muted); font-size: 0.9rem; }
+    .align-box li { margin: 0.35rem 0; }
+
+    .review {
+      background: var(--ivory); color: var(--charcoal);
+      padding: 3.5rem 1.5rem;
+    }
+    .review-inner { max-width: 720px; margin: 0 auto; }
+    .review h2 { color: var(--charcoal); }
+    .review .caption { color: var(--stone); }
+    .checklist { list-style: none; padding: 0; margin: 1.25rem 0 0; }
+    .checklist li {
+      display: grid; grid-template-columns: 1.4rem 1fr;
+      gap: 0.55rem; padding: 0.75rem 0;
+      border-bottom: 1px solid rgba(107,98,86,0.2);
+      font-size: 0.95rem;
+    }
+    .checklist .box {
+      width: 1.1rem; height: 1.1rem; border: 1px solid var(--gold);
+      margin-top: 0.15rem;
+    }
+
+    footer {
+      padding: 2rem 1.5rem 3rem;
+      text-align: center; font-size: 0.75rem; color: var(--stone-soft);
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav" aria-label="Pack sections">
+    <div class="brand">Rare &amp; Exclusive · Visual Pack</div>
+    <div class="nav-links">
+      <a href="#layers">Layers</a>
+      <a href="#flow">Business flow</a>
+      <a href="#mockups">Screens</a>
+      <a href="#align">Platform fit</a>
+      <a href="#review">Jan review</a>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="eyebrow">Temporary Lux Stream · Communication pack</div>
+      <h1>See the operating model — not another long brief.</h1>
+      <p class="lede">
+        For Jan: three simple visuals that show how Rare &amp; Exclusive works —
+        public presence, private client desk, and the application layer behind them —
+        plus the screens that matter day to day.
+      </p>
+      <div class="meta-row">
+        <span class="pill">Aligned to CorpFlowAI #773</span>
+        <span>One platform · Lux as tenant expression</span>
+        <span>Concepts only · no production deploy</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- A. Process layers -->
+  <section class="block" id="layers">
+    <div class="section-label">A · Process</div>
+    <h2>Three layers. One platform.</h2>
+    <p class="caption">
+      This is the Rare &amp; Exclusive operating model. Not three products —
+      three layers of the same CorpFlowAI application, branded for Lux.
+    </p>
+    <div class="layers">
+      <article class="layer">
+        <div class="layer-num">01</div>
+        <div>
+          <h3>Public Website</h3>
+          <p>First impression. Curated opportunities. Quiet invitation to request private access — not a listings portal.</p>
+          <div class="maps">Maps to: Tenant public surface · lux.corpflowai.com</div>
+        </div>
+      </article>
+      <article class="layer highlight">
+        <div class="layer-num">02</div>
+        <div>
+          <h3>Private Client Desk</h3>
+          <p>Invitation-only client space: where they stand, what happens next, private drafts — client-safe language only.</p>
+          <div class="maps">Maps to: Tenant operating environment · client-progress direction in #773</div>
+        </div>
+      </article>
+      <article class="layer">
+        <div class="layer-num">03</div>
+        <div>
+          <h3>Admin / Application Layer</h3>
+          <p>Where Jan’s team (and CorpFlow operators) qualify, follow up, prepare invitations, and move deals — without building a second CRM or second database.</p>
+          <div class="maps">Maps to: Tenant operator tools + CorpFlowAI Core · same auth, same Postgres</div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- B. Business flow -->
+  <section class="block" id="flow">
+    <div class="section-label">B · Business flow</div>
+    <h2>From first enquiry to viewing.</h2>
+    <p class="caption">
+      One path. Each step has a clear owner and a next action —
+      the same journey already proven in pieces on the Lux test desk.
+    </p>
+    <div class="flow" role="list">
+      <article class="flow-step" role="listitem">
+        <div class="n">01</div>
+        <h3>New Enquiry</h3>
+        <p>Website or concierge form. Email + telephone. Captured once.</p>
+      </article>
+      <article class="flow-step" role="listitem">
+        <div class="n">02</div>
+        <h3>Client Review / Active</h3>
+        <p>Qualify. Shortlist. Move from new → contacted → qualified.</p>
+      </article>
+      <article class="flow-step" role="listitem">
+        <div class="n">03</div>
+        <h3>Next Action</h3>
+        <p>Who calls, what is due, when — so nothing sits still.</p>
+      </article>
+      <article class="flow-step" role="listitem">
+        <div class="n">04</div>
+        <h3>Private Draft / Invitation</h3>
+        <p>Confidential presentation or viewing invitation — prepared, manual send.</p>
+      </article>
+      <article class="flow-step final" role="listitem">
+        <div class="n">05</div>
+        <h3>Viewing / Deal Progress</h3>
+        <p>Invitation-only viewing, then clear deal progress forward.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- C. Mockups -->
+  <section class="block" id="mockups">
+    <div class="section-label">C · Screen concepts</div>
+    <h2>Intended experience — five screens.</h2>
+    <p class="caption">
+      Concept mockups for conversation — not final UI chrome.
+      Tone: Rare &amp; Exclusive. Purpose: show what Jan’s team and clients will feel.
+    </p>
+
+    <div class="mock-grid">
+
+      <!-- 1 Enquiry -->
+      <article class="mock-card" id="mock-enquiry">
+        <h3>1 · Enquiry intake</h3>
+        <p class="mock-why">Public website / concierge: capture interest with email and telephone — then hand into the desk.</p>
+        <div class="device">
+          <div class="device-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="device-url">lux · /concierge · Private Access</span></div>
+          <div class="screen light">
+            <div class="m-eyebrow">Private Access</div>
+            <div class="m-title">Begin a private conversation</div>
+            <p class="m-sub">Share how we may reach you. We respond personally — never as a mass listing blast.</p>
+            <div class="form-grid">
+              <div class="field">Full name</div>
+              <div class="field">Email</div>
+              <div class="field">Telephone</div>
+              <div class="field">What are you considering?</div>
+              <button class="btn" type="button">Request private access</button>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- 2 Private Client Desk -->
+      <article class="mock-card" id="mock-desk">
+        <h3>2 · Private Client Desk</h3>
+        <p class="mock-why">Invitation-only: status in plain language, next step, no engineering noise. Aligns with #773 tenant client-progress.</p>
+        <div class="device">
+          <div class="device-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="device-url">Private Client Desk · Active client</span></div>
+          <div class="screen dark">
+            <div class="desk-layout">
+              <aside class="desk-nav">
+                <div class="item active">Overview</div>
+                <div class="item">Opportunities</div>
+                <div class="item">Requests</div>
+                <div class="item">Documents</div>
+                <div class="item">Messages</div>
+              </aside>
+              <div>
+                <span class="status-chip">Active · Private review</span>
+                <div class="m-title" style="font-size:1.35rem;">Good morning</div>
+                <p class="m-sub">Your curated shortlist is ready. Next: confidential presentation when you are.</p>
+                <div class="progress-row">
+                  <span class="done">Enquiry</span>
+                  <span class="done">Conversation</span>
+                  <span class="now">Presentation</span>
+                  <span>Viewing</span>
+                  <span>Decision</span>
+                </div>
+                <div class="list-row">
+                  <div><strong>Next for you</strong><br /><span style="color:var(--ivory-muted);font-size:0.78rem;">Review three residences privately</span></div>
+                  <span class="when">This week</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- 3 Client detail -->
+      <article class="mock-card" id="mock-detail">
+        <h3>3 · Client detail / status</h3>
+        <p class="mock-why">Operator view of one client: stage, qualification, shortlist — at a glance.</p>
+        <div class="device">
+          <div class="device-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="device-url">Admin · Client · A. Moreau (synthetic)</span></div>
+          <div class="screen light">
+            <div class="m-eyebrow">Active client</div>
+            <div class="m-title">A. Moreau</div>
+            <p class="m-sub">Stage: Qualified · Source: Concierge · Owner: Jan</p>
+            <div class="list-row"><div><strong>Interest</strong><br />Completed residence · West coast</div><span class="when">Qualified</span></div>
+            <div class="list-row"><div><strong>Shortlist</strong><br />3 curated residences</div><span class="when">Ready</span></div>
+            <div class="list-row"><div><strong>Presentation</strong><br />Notes prepared · Viewing next</div><span class="when">In draft</span></div>
+            <div class="list-row"><div><strong>Last update</strong><br />Confidential pack ready for review</div><span class="when">Today</span></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- 4 Next action -->
+      <article class="mock-card" id="mock-next">
+        <h3>4 · Next action / operator follow-up</h3>
+        <p class="mock-why">What must happen today — so the desk never becomes a static list.</p>
+        <div class="device">
+          <div class="device-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="device-url">Admin · Next actions</span></div>
+          <div class="screen dark">
+            <div class="m-eyebrow">Today</div>
+            <div class="m-title" style="font-size:1.4rem;">Next actions</div>
+            <div class="list-row">
+              <div><strong>Call A. Moreau</strong><br /><span style="font-size:0.78rem;color:var(--ivory-muted);">Confirm presentation window</span></div>
+              <span class="when" style="color:var(--gold);">Due now</span>
+            </div>
+            <div class="list-row">
+              <div><strong>Send invitation draft</strong><br /><span style="font-size:0.78rem;color:var(--ivory-muted);">Viewing · Saturday 10:00 (manual)</span></div>
+              <span class="when">Today</span>
+            </div>
+            <div class="list-row">
+              <div><strong>New enquiry · B. Khan</strong><br /><span style="font-size:0.78rem;color:var(--ivory-muted);">First contact — email + phone on file</span></div>
+              <span class="when">New</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- 5 Invitation draft -->
+      <article class="mock-card" id="mock-invite">
+        <h3>5 · Private invitation / draft</h3>
+        <p class="mock-why">Prepared on the desk. Selective voice. Send stays manual until Anton approves live messaging.</p>
+        <div class="device">
+          <div class="device-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="device-url">Admin · Viewing by Invitation · Draft</span></div>
+          <div class="screen dark">
+            <div class="m-eyebrow">Viewing by Invitation</div>
+            <div class="m-title" style="font-size:1.35rem;">Private draft</div>
+            <div class="draft-box">
+              Dear A.,<br /><br />
+              We would be pleased to arrange a private viewing of the residence we discussed —
+              by invitation only, at a time that suits you.<br /><br />
+              With discretion,<br />Rare &amp; Exclusive
+            </div>
+            <div class="send-note">Send disabled — manual only · no email / WhatsApp / SMS from the platform yet</div>
+            <button class="btn gold" type="button" style="margin-top:0.85rem;opacity:0.55;cursor:not-allowed;">Send (not enabled)</button>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- Alignment -->
+  <section class="block" id="align">
+    <div class="section-label">Platform direction</div>
+    <h2>How Lux fits CorpFlowAI (#773)</h2>
+    <p class="caption">
+      This pack does not invent a one-off Lux architecture. Lux is the first
+      branded expression of the shared Core / Tenant application.
+    </p>
+    <div class="align-box">
+      <h3>One sentence for Jan</h3>
+      <ul>
+        <li><strong>Public website</strong> attracts the right enquiry.</li>
+        <li><strong>Private Client Desk</strong> is how serious clients stay informed — safely.</li>
+        <li><strong>Admin layer</strong> is how your team runs follow-up and invitations — on the same CorpFlowAI platform every other tenant will use.</li>
+        <li>No second app. No second database. Brand and tone stay Rare &amp; Exclusive.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Jan review -->
+  <section class="review" id="review">
+    <div class="review-inner">
+      <div class="eyebrow" style="color:var(--gold-deep);">What Jan should review first</div>
+      <h2>Look, then react.</h2>
+      <p class="caption">Please mark what feels right. Prefer short notes over long replies.</p>
+      <ul class="checklist">
+        <li><span class="box" aria-hidden="true"></span><span><strong>Layers</strong> — Does Public → Private Desk → Admin match how you want the business to run?</span></li>
+        <li><span class="box" aria-hidden="true"></span><span><strong>Business flow</strong> — Is Enquiry → Review → Next Action → Invitation → Viewing the path you recognise?</span></li>
+        <li><span class="box" aria-hidden="true"></span><span><strong>Private Client Desk</strong> — Is this the right client experience (quiet, private, next-step clear)?</span></li>
+        <li><span class="box" aria-hidden="true"></span><span><strong>Next Action screen</strong> — Would this help you and the team day to day?</span></li>
+        <li><span class="box" aria-hidden="true"></span><span><strong>Invitation draft</strong> — Does the tone feel Rare &amp; Exclusive (not open-house / portal)?</span></li>
+      </ul>
+      <p class="caption" style="margin-top:1.5rem;">
+        Reply with: Approve / Amend / Reject for each — and one priority for the next build slice.
+      </p>
+    </div>
+  </section>
+
+  <footer>
+    CorpFlowAI Temporary Lux Stream · Visual Communication Pack v1 · Concepts only · Linked to issue #773<br />
+    Supporting copy: docs/LUX/JAN_VISUAL_COMMUNICATION_PACK_V1.md · NO IMPLEMENTATION AUTHORIZED from this pack alone
+  </footer>
+</body>
+</html>
