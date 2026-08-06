@@ -3,7 +3,8 @@
 # Builds the real agent-server completion request and intercepts it on a
 # control-plane capture proxy (corpflowai-openhands-app:3901).
 #
-# Gate: total_tokens_est must be < 7500 (prefer <= 6000) before any Groq call.
+# Gate: combined_requested (input_est + reserved_output) < 7000 (prefer <= 5000);
+# reserved_output must be <= 1024 (LiteLLM otherwise defaults to 32768).
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/../../.."
 # shellcheck source=scripts/ops/openhands/lib/common.sh
@@ -22,8 +23,9 @@ RUN_ID="wire-dry-$(date -u +%Y%m%dT%H%M%SZ)"
 EVIDENCE="/tmp/openhands-wire-dry-${RUN_ID}.txt"
 CAPTURE_HOST="/tmp/corpflowai-wire-capture-${RUN_ID}.json"
 CAPTURE_IN_APP="/tmp/corpflowai-wire-capture.json"
-HARD_STOP=7500
-SOFT_TARGET=6000
+HARD_STOP=7000
+SOFT_TARGET=5000
+OUTPUT_CAP=1024
 COMPOSE_DIR="$(cd ops/openhands && pwd)"
 PROXY_STARTED=0
 CLEANED=0
@@ -41,9 +43,10 @@ cleanup() {
     openhands_docker rm -f "${n}" >/dev/null 2>&1 || true
     log "removed_sandbox=${n}"
   done
+  # OpenHands rejects model="" — scrub key with a non-empty placeholder.
   curl -fsS -m 30 -X POST http://127.0.0.1:3000/api/v1/settings \
     -H 'Content-Type: application/json' \
-    -d '{"agent_settings_diff":{"llm":{"api_key":null,"model":"","base_url":null}}}' >/dev/null 2>&1 || true
+    -d '{"agent_settings_diff":{"llm":{"api_key":null,"model":"gpt-5.5","base_url":null}}}' >/dev/null 2>&1 || true
   curl -fsS http://127.0.0.1:3000/health >/dev/null && log "control_plane=healthy" || log "control_plane=UNHEALTHY"
   log "=== CLEANUP end ==="
   exit "${rc}"
@@ -67,10 +70,11 @@ curl -fsS http://127.0.0.1:3000/health
 echo
 
 ENV_DUMP="$(openhands_docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' corpflowai-openhands-app)"
-echo "${ENV_DUMP}" | grep -E '^CORPFLOWAI_(SHORT_SYSTEM_PROMPT|DISABLE_DEFAULT_BUILTIN_TOOLS|MINIMAL_TOOLS|SKIP_WEB_HOST_SUFFIX)=' || true
+echo "${ENV_DUMP}" | grep -E '^CORPFLOWAI_(SHORT_SYSTEM_PROMPT|DISABLE_DEFAULT_BUILTIN_TOOLS|MINIMAL_TOOLS|SKIP_WEB_HOST_SUFFIX|MAX_OUTPUT_TOKENS)=' || true
 echo "${ENV_DUMP}" | grep -q '^CORPFLOWAI_SHORT_SYSTEM_PROMPT=1$' || die "SHORT_SYSTEM_PROMPT!=1"
 echo "${ENV_DUMP}" | grep -q '^CORPFLOWAI_MINIMAL_TOOLS=1$' || die "MINIMAL_TOOLS!=1"
 echo "${ENV_DUMP}" | grep -q '^CORPFLOWAI_DISABLE_DEFAULT_BUILTIN_TOOLS=1$' || die "DISABLE_DEFAULT_BUILTIN_TOOLS!=1"
+echo "${ENV_DUMP}" | grep -q '^CORPFLOWAI_MAX_OUTPUT_TOKENS=1024$' || die "MAX_OUTPUT_TOKENS!=1024"
 
 bash scripts/ops/openhands/verify-private-bind.sh
 bash scripts/ops/openhands/verify-sandbox-boundary.sh
@@ -104,6 +108,8 @@ payload = {
       "model": "groq/openai/gpt-oss-20b",
       "api_key": "corpflowai-wire-capture-dry-key",
       "base_url": "http://corpflowai-openhands-app:3901/v1",
+      # Belt-and-suspenders with live_status commissioning override.
+      "max_output_tokens": 1024,
       "reasoning_effort": "low",
       "extended_thinking_budget": 0,
       "enable_encrypted_reasoning": False,
@@ -167,33 +173,72 @@ if [[ ! -s "${CAPTURE_HOST}" ]]; then
   die "wire capture file missing — agent never reached completion proxy"
 fi
 
-python3 - "${CAPTURE_HOST}" "${HARD_STOP}" "${SOFT_TARGET}" <<'PY'
+python3 - "${CAPTURE_HOST}" "${HARD_STOP}" "${SOFT_TARGET}" "${OUTPUT_CAP}" <<'PY'
 import json, sys
-path, hard, soft = sys.argv[1], int(sys.argv[2]), int(sys.argv[3])
+path, hard, soft, out_cap = sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4])
 d = json.load(open(path, encoding="utf-8"))
-tok = int(d.get("total_tokens_est") or 0)
+tok = int(d.get("total_tokens_est") or d.get("input_tokens_est") or 0)
+reserved = d.get("reserved_output_tokens")
+try:
+    reserved_i = int(reserved) if reserved is not None else None
+except (TypeError, ValueError):
+    reserved_i = None
+combined = int(d.get("combined_requested_tokens_est") or (tok + (reserved_i or 0)))
 print("CAPTURE_SUMMARY")
-print("total_tokens_est", tok)
+print("model", d.get("model"))
+print("input_tokens_est", tok)
 print("total_serialized_chars", d.get("total_serialized_chars"))
 print("message_count", d.get("message_count"))
 print("tool_count", d.get("tool_count"))
 print("tool_names", d.get("tool_names"))
 print("tool_schema_tokens_est", d.get("tool_schema_tokens_est"))
+print("max_completion_tokens", d.get("max_completion_tokens"))
+print("max_tokens", d.get("max_tokens"))
+print("max_output_tokens", d.get("max_output_tokens"))
+print("reasoning_effort", d.get("reasoning_effort"))
+print("reserved_output_tokens", reserved_i)
+print("combined_requested_tokens_est", combined)
+print("output_cap_ok", d.get("output_cap_ok"))
 print("duplicated_system_block", d.get("duplicated_system_block"))
 print("duplicate_blocks", d.get("duplicate_blocks"))
-print("under_hard_stop", d.get("under_hard_stop"), "hard", hard)
-print("under_soft_target", tok <= soft, "soft", soft)
+print("under_hard_stop", combined < hard, "hard", hard)
+print("under_soft_target", combined <= soft, "soft", soft)
 largest = d.get("largest_message") or {}
 print("largest_message_role", largest.get("role"), "tokens", largest.get("tokens_est"), "component", largest.get("component_guess"))
 for m in d.get("messages") or []:
     print(f"msg[{m.get('index')}] role={m.get('role')} tok={m.get('tokens_est')} component={m.get('component_guess')} sha={m.get('sha16')}")
-if tok >= hard:
-    print("GATE=FAIL")
+# Provider-bound completion cap must be present and <= 1024
+if reserved_i is None:
+    print("GATE=FAIL missing reserved_output_tokens (LiteLLM may still use 32768)")
+    sys.exit(47)
+if reserved_i > out_cap:
+    print("GATE=FAIL output reservation overridden", reserved_i, ">", out_cap)
+    sys.exit(48)
+# Detect a second larger field overriding the intended cap
+fields = {
+    "max_completion_tokens": d.get("max_completion_tokens"),
+    "max_tokens": d.get("max_tokens"),
+    "max_output_tokens": d.get("max_output_tokens"),
+}
+oversized = []
+for name, val in fields.items():
+    if val is None:
+        continue
+    try:
+        iv = int(val)
+    except (TypeError, ValueError):
+        continue
+    if iv > out_cap:
+        oversized.append((name, iv))
+if oversized:
+    print("GATE=FAIL second field overrides cap", oversized)
+    sys.exit(48)
+if combined >= hard:
+    print("GATE=FAIL combined_requested >= hard stop")
     sys.exit(42)
 # Extra gates from packet
 tools = d.get("tool_names") or []
 if len(tools) > 4:
-    # terminal + file_editor + finish (+ maybe one more) — fail if browser/mcp appear
     print("GATE=FAIL too many tools", tools)
     sys.exit(43)
 banned = [t for t in tools if any(x in t.lower() for x in ("browser", "navigate", "create_pr", "task_tracker"))]
@@ -211,8 +256,12 @@ PY
 GATE_RC=$?
 log "evidence=${EVIDENCE} capture=${CAPTURE_HOST}"
 if [[ "${GATE_RC}" -eq 42 ]]; then
-  log "STOPPED — SYSTEM PROMPT STILL EXCEEDS GROQ LIMIT"
+  log "STOPPED — COMPLETION CAP NOT SUFFICIENT"
   exit 42
+fi
+if [[ "${GATE_RC}" -eq 47 || "${GATE_RC}" -eq 48 ]]; then
+  log "STOPPED — OUTPUT CAP OVERRIDDEN"
+  exit "${GATE_RC}"
 fi
 [[ "${GATE_RC}" -eq 0 ]] || die "wire-size gate failed rc=${GATE_RC}"
 log "WIRE_SIZE_GATE=PASS"

@@ -42,10 +42,14 @@ WIRE_CAPTURE_DRY = str(os.environ.get("CORPFLOWAI_WIRE_CAPTURE_DRY", "0")).strip
     "on",
 )
 
-# Absolute stop before calling Groq free-tier gpt-oss-20b (8k TPM).
-WIRE_TOKEN_SOFT_TARGET = 6000
-WIRE_TOKEN_HARD_STOP = 7500
+# Absolute stop for combined_requested (input + reserved output) before Groq.
+WIRE_TOKEN_SOFT_TARGET = 5000
+WIRE_TOKEN_HARD_STOP = 7000
 GROQ_TPM_LIMIT = 8000
+# Commissioning completion reservation (must override LiteLLM model default 32768).
+COMMISSIONING_MAX_OUTPUT_TOKENS = 1024
+# Prior Groq-observed reservation when max_output_tokens was unset.
+LITELLM_GPT_OSS_20B_DEFAULT_MAX_OUTPUT = 32768
 
 
 def estimate_tokens(text: str) -> int:
@@ -75,6 +79,22 @@ def analyze_completion_kwargs(kwargs: dict[str, Any]) -> dict[str, Any]:
     messages = kwargs.get("messages") or []
     tools = kwargs.get("tools") or []
     model = str(kwargs.get("model") or "")
+
+    # Provider-bound completion caps (Groq TPM counts input + reservation).
+    max_completion_tokens = kwargs.get("max_completion_tokens")
+    max_tokens = kwargs.get("max_tokens")
+    max_output_tokens = kwargs.get("max_output_tokens")
+    reasoning_effort = kwargs.get("reasoning_effort")
+    # Prefer explicit max_completion_tokens, else max_tokens, else max_output_tokens
+    reserved_output = None
+    for candidate in (max_completion_tokens, max_tokens, max_output_tokens):
+        if candidate is None:
+            continue
+        try:
+            reserved_output = int(candidate)
+            break
+        except (TypeError, ValueError):
+            continue
 
     msg_rows: list[dict[str, Any]] = []
     hashes: dict[str, list[int]] = {}
@@ -136,7 +156,8 @@ def analyze_completion_kwargs(kwargs: dict[str, Any]) -> dict[str, Any]:
     )
     framing = _redact(framing)
     total_chars = total_msg_chars + len(tools_raw) + len(framing)
-    total_tokens = estimate_tokens("x" * total_chars)
+    input_tokens = estimate_tokens("x" * total_chars)
+    combined = input_tokens + (reserved_output or 0)
 
     duplicates = [
         {"sha16": h, "message_indexes": idxs}
@@ -170,7 +191,14 @@ def analyze_completion_kwargs(kwargs: dict[str, Any]) -> dict[str, Any]:
         "framing_chars": len(framing),
         "framing_tokens_est": estimate_tokens(framing),
         "total_serialized_chars": total_chars,
-        "total_tokens_est": total_tokens,
+        "total_tokens_est": input_tokens,
+        "input_tokens_est": input_tokens,
+        "max_completion_tokens": max_completion_tokens,
+        "max_tokens": max_tokens,
+        "max_output_tokens": max_output_tokens,
+        "reasoning_effort": reasoning_effort,
+        "reserved_output_tokens": reserved_output,
+        "combined_requested_tokens_est": combined,
         "duplicate_blocks": duplicates,
         "duplicated_system_block": system_dup,
         "tool_descriptions_also_in_messages": tool_in_messages,
@@ -186,8 +214,10 @@ def analyze_completion_kwargs(kwargs: dict[str, Any]) -> dict[str, Any]:
         "soft_target": WIRE_TOKEN_SOFT_TARGET,
         "hard_stop": WIRE_TOKEN_HARD_STOP,
         "groq_tpm_limit": GROQ_TPM_LIMIT,
-        "under_hard_stop": total_tokens < WIRE_TOKEN_HARD_STOP,
-        "under_soft_target": total_tokens <= WIRE_TOKEN_SOFT_TARGET,
+        "commissioning_max_output_tokens": COMMISSIONING_MAX_OUTPUT_TOKENS,
+        "under_hard_stop": combined < WIRE_TOKEN_HARD_STOP if reserved_output is not None else input_tokens < WIRE_TOKEN_HARD_STOP,
+        "under_soft_target": combined <= WIRE_TOKEN_SOFT_TARGET if reserved_output is not None else input_tokens <= WIRE_TOKEN_SOFT_TARGET,
+        "output_cap_ok": reserved_output is not None and reserved_output <= COMMISSIONING_MAX_OUTPUT_TOKENS,
     }
 
 

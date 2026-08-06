@@ -6,11 +6,13 @@ import {
   COMMISSIONING_APPROVED_MODEL,
   COMMISSIONING_ENV_DEFAULTS,
   COMMISSIONING_GROQ_TPM_LIMIT,
+  COMMISSIONING_MAX_OUTPUT_TOKENS,
   COMMISSIONING_WIRE_HARD_STOP,
   COMMISSIONING_WIRE_SOFT_TARGET,
   FIRST_REQUEST_BREAKDOWN,
   GROQ_MINIMAL_TOOLS_OBSERVED_TOKENS,
   GROQ_OBSERVED_REQUEST_TOKENS,
+  LITELLM_GPT_OSS_20B_DEFAULT_MAX_OUTPUT,
   auditComposeCommissioningMounts,
   auditLiveStatusCommissioningOverride,
   auditSkillsBaseCommissioningOverride,
@@ -91,20 +93,43 @@ describe('openhands commissioning context reduction', () => {
       'utf8',
     );
     assert.match(harness, /"run": True/);
+    assert.match(harness, /max_output_tokens["']?\s*:\s*1024/);
     assert.ok(fs.existsSync(wireDryPath));
     assert.ok(fs.existsSync(wireProxyPath));
     assert.ok(fs.existsSync(commissionPromptPath));
     const dry = fs.readFileSync(wireDryPath, 'utf8');
-    assert.match(dry, /HARD_STOP=7500/);
-    assert.match(dry, /SOFT_TARGET=6000/);
+    assert.match(dry, /HARD_STOP=7000/);
+    assert.match(dry, /SOFT_TARGET=5000/);
+    assert.match(dry, /OUTPUT_CAP=1024/);
+    assert.match(dry, /combined_requested_tokens_est/);
     assert.match(dry, /wire_capture_proxy/);
     assert.doesNotMatch(dry, /LLM_API_KEY=\$\(/);
   });
 
   it('wire hard/soft stop constants match package gate', () => {
-    assert.equal(COMMISSIONING_WIRE_HARD_STOP, 7500);
-    assert.equal(COMMISSIONING_WIRE_SOFT_TARGET, 6000);
+    assert.equal(COMMISSIONING_WIRE_HARD_STOP, 7000);
+    assert.equal(COMMISSIONING_WIRE_SOFT_TARGET, 5000);
     assert.ok(COMMISSIONING_WIRE_HARD_STOP < COMMISSIONING_GROQ_TPM_LIMIT);
+  });
+
+  it('commissioning completion cap is 1024 and overrides LiteLLM 32768 default', () => {
+    assert.equal(COMMISSIONING_MAX_OUTPUT_TOKENS, 1024);
+    assert.equal(LITELLM_GPT_OSS_20B_DEFAULT_MAX_OUTPUT, 32768);
+    assert.match(composeText, /CORPFLOWAI_MAX_OUTPUT_TOKENS:\s*"1024"/);
+    assert.match(liveStatus, /max_output_tokens/);
+    assert.match(liveStatus, /_corpflowai_completion_cap_tokens/);
+    assert.match(liveStatus, /reasoning_effort.*=.*'low'/);
+    // Cap only when short/commissioning profile is on
+    assert.match(liveStatus, /if _corpflowai_short_system_prompt\(\):/);
+    // Normal path still present
+    assert.match(
+      liveStatus,
+      /overrides\['system_prompt_kwargs'\] = \{'cli_mode': False\}/,
+    );
+    const est = estimateMinimalFirstRequestTokens();
+    assert.ok(est.combined_with_cap_high < COMMISSIONING_WIRE_HARD_STOP);
+    // Synthetic: prior dry input ~2749 + 1024 < 7000
+    assert.ok(2749 + COMMISSIONING_MAX_OUTPUT_TOKENS < 7000);
   });
 
   it('sandbox security knobs remain unchanged in compose', () => {

@@ -40,8 +40,10 @@ EVIDENCE="/tmp/openhands-commission-evidence-${RUN_ID}.txt"
 APPROVED_MODEL='groq/openai/gpt-oss-20b'
 TPM_LIMIT=8000
 TPM_BUDGET=$((TPM_LIMIT * 70 / 100))
-# Absolute stop from wire-condensation packet (prefer live wire dry < 7500 first).
-WIRE_HARD_STOP=7500
+# Absolute stop from completion-cap packet (combined input + reserved output).
+WIRE_HARD_STOP=7000
+WIRE_SOFT_TARGET=5000
+OUTPUT_CAP=1024
 OPENHANDS_HOME_DIR="${OPENHANDS_HOME:-$HOME/corpflowai-openhands}"
 LLM_HOST_FILE="${OPENHANDS_HOME_DIR}/.env.openhands-llm"
 COMPOSE_DIR="$(cd ops/openhands && pwd)"
@@ -148,6 +150,7 @@ echo "${ENV_DUMP}" | grep -q '^CORPFLOWAI_INJECT_DEFAULT_MCP=0$' || die "CORPFLO
 echo "${ENV_DUMP}" | grep -q '^CORPFLOWAI_MINIMAL_TOOLS=1$' || die "CORPFLOWAI_MINIMAL_TOOLS!=1"
 echo "${ENV_DUMP}" | grep -q '^CORPFLOWAI_SHORT_SYSTEM_PROMPT=1$' || die "CORPFLOWAI_SHORT_SYSTEM_PROMPT!=1"
 echo "${ENV_DUMP}" | grep -q '^CORPFLOWAI_DISABLE_DEFAULT_BUILTIN_TOOLS=1$' || die "CORPFLOWAI_DISABLE_DEFAULT_BUILTIN_TOOLS!=1"
+echo "${ENV_DUMP}" | grep -q '^CORPFLOWAI_MAX_OUTPUT_TOKENS=1024$' || die "CORPFLOWAI_MAX_OUTPUT_TOKENS!=1024"
 echo "${ENV_DUMP}" | grep -q '^CORPFLOWAI_LOAD_PUBLIC_SKILLS=0$' || die "CORPFLOWAI_LOAD_PUBLIC_SKILLS!=0"
 echo "${ENV_DUMP}" | grep -q '^OH_WEB_URL=http://corpflowai-openhands-app:3000$' || die "OH_WEB_URL wrong"
 
@@ -183,6 +186,7 @@ if p.exists():
         llm['reasoning_effort'] = 'low'
         llm['extended_thinking_budget'] = 0
         llm['enable_encrypted_reasoning'] = False
+        llm['max_output_tokens'] = 1024
     agent['enable_switch_llm_tool'] = False
     if isinstance(agent.get('condenser'), dict):
         agent['condenser']['enabled'] = False
@@ -226,6 +230,7 @@ payload = {
       "api_key": key,
       "base_url": "https://api.groq.com/openai/v1",
       # gpt-oss defaults otherwise inject huge reasoning budgets into TPM.
+      "max_output_tokens": 1024,
       "reasoning_effort": "low",
       "extended_thinking_budget": 0,
       "enable_encrypted_reasoning": False,
@@ -273,11 +278,14 @@ print("model", llm.get("model"))
 print("base_url", llm.get("base_url"))
 print("reasoning_effort", llm.get("reasoning_effort"))
 print("extended_thinking_budget", llm.get("extended_thinking_budget"))
+print("max_output_tokens", llm.get("max_output_tokens"))
 base=str(llm.get("base_url") or "")
 assert "3901" not in base, base
 # Groq models may keep base_url null and rely on litellm provider routing.
 assert (not base) or ("groq.com" in base), base
 assert str(llm.get("model") or "").startswith("groq/"), llm.get("model")
+mot = llm.get("max_output_tokens")
+assert mot is None or int(mot) == 1024, mot
 '
 
 INSTRUCTION='Create arithmetic.py containing:

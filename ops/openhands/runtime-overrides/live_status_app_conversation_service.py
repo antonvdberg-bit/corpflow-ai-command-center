@@ -24,6 +24,7 @@ Env gates (default = minimal commissioning profile):
   CORPFLOWAI_DISABLE_DEFAULT_BUILTIN_TOOLS=0|1 (default 1; drop ThinkTool; keep FinishTool)
   CORPFLOWAI_SKIP_WEB_HOST_SUFFIX=0|1    (default 1; omit <HOST> web_url suffix)
   CORPFLOWAI_WIRE_CAPTURE=0|1            (default 0; enable LLM.log_completions)
+  CORPFLOWAI_MAX_OUTPUT_TOKENS=<int>     (default 1024 when short prompt on)
 
 Isolation / OH_WEB_URL / named-network rules are unchanged.
 Controlling issue: #743 / PR #747.
@@ -213,6 +214,21 @@ def _corpflowai_skip_web_host_suffix() -> bool:
 def _corpflowai_wire_capture() -> bool:
     """When true, enable LLM.log_completions for sanitised post-hoc inspection."""
     return _corpflowai_env_flag('CORPFLOWAI_WIRE_CAPTURE', '0')
+
+
+def _corpflowai_completion_cap_tokens() -> int:
+    """Commissioning-only max_output_tokens (default 1024).
+
+    LiteLLM model metadata for groq/openai/gpt-oss-20b defaults
+    max_output_tokens/max_tokens to 32768 when OpenHands leaves the field
+    unset — Groq then counts input+reservation against free-tier TPM.
+    """
+    raw = str(os.environ.get('CORPFLOWAI_MAX_OUTPUT_TOKENS', '1024')).strip()
+    try:
+        value = int(raw)
+    except ValueError:
+        value = 1024
+    return max(1, min(value, 8192))
 
 
 # Commissioning-only system prompt (fail-closed via CORPFLOWAI_SHORT_SYSTEM_PROMPT).
@@ -1283,6 +1299,7 @@ class LiveStatusAppConversationService(AppConversationServiceBase):
             )
 
         # LLM tracing metadata for openhands/ models + optional wire capture
+        # + commissioning completion-cap (prevents LiteLLM 32k default reservation).
         llm_updates: dict[str, Any] = {}
         if should_set_litellm_extra_body(agent.llm.model):
             llm_metadata = get_llm_metadata(
@@ -1295,6 +1312,20 @@ class LiveStatusAppConversationService(AppConversationServiceBase):
         if _corpflowai_wire_capture():
             llm_updates['log_completions'] = True
             _logger.info('CORPFLOWAI: LLM.log_completions=True (wire capture)')
+        if _corpflowai_short_system_prompt():
+            cap = _corpflowai_completion_cap_tokens()
+            # OpenHands field maps to LiteLLM max_tokens / max_completion_tokens.
+            # Do not also set a second conflicting field here.
+            llm_updates['max_output_tokens'] = cap
+            llm_updates['reasoning_effort'] = 'low'
+            llm_updates['extended_thinking_budget'] = 0
+            llm_updates['enable_encrypted_reasoning'] = False
+            _logger.info(
+                'CORPFLOWAI: commissioning completion cap '
+                'max_output_tokens=%s reasoning_effort=low '
+                '(LiteLLM model default otherwise max_tokens=32768)',
+                cap,
+            )
         if llm_updates:
             overrides['llm'] = agent.llm.model_copy(update=llm_updates)
 

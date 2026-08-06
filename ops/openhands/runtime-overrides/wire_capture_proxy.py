@@ -28,7 +28,7 @@ except Exception:
     import hashlib
     import re
 
-    WIRE_TOKEN_HARD_STOP = 7500
+    WIRE_TOKEN_HARD_STOP = 7000
 
     def _est(t: str) -> int:
         return max(1, (len(t) + 3) // 4) if t else 0
@@ -66,6 +66,17 @@ except Exception:
                 if isinstance(fn, dict) and fn.get("name"):
                     tool_names.append(str(fn["name"]))
         total_chars = total + len(tools_raw)
+        input_tok = _est("x" * total_chars)
+        reserved = None
+        for key in ("max_completion_tokens", "max_tokens", "max_output_tokens"):
+            if kwargs.get(key) is None:
+                continue
+            try:
+                reserved = int(kwargs[key])
+                break
+            except (TypeError, ValueError):
+                continue
+        combined = input_tok + (reserved or 0)
         return {
             "tokenizer": "chars/4",
             "model": str(kwargs.get("model") or ""),
@@ -76,9 +87,18 @@ except Exception:
             "tool_schema_chars": len(tools_raw),
             "tool_schema_tokens_est": _est(tools_raw),
             "total_serialized_chars": total_chars,
-            "total_tokens_est": _est("x" * total_chars),
+            "total_tokens_est": input_tok,
+            "input_tokens_est": input_tok,
+            "max_completion_tokens": kwargs.get("max_completion_tokens"),
+            "max_tokens": kwargs.get("max_tokens"),
+            "max_output_tokens": kwargs.get("max_output_tokens"),
+            "reasoning_effort": kwargs.get("reasoning_effort"),
+            "reserved_output_tokens": reserved,
+            "combined_requested_tokens_est": combined,
+            "commissioning_max_output_tokens": 1024,
+            "output_cap_ok": reserved is not None and reserved <= 1024,
             "hard_stop": WIRE_TOKEN_HARD_STOP,
-            "under_hard_stop": _est("x" * total_chars) < WIRE_TOKEN_HARD_STOP,
+            "under_hard_stop": combined < WIRE_TOKEN_HARD_STOP,
         }
 
     def write_wire_capture(analysis, path=None):  # type: ignore

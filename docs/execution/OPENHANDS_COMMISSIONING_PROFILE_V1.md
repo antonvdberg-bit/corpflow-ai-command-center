@@ -1,10 +1,9 @@
 # OpenHands commissioning profile v1 — minimal first-request context
 
-**Status:** WIRE DRY PASS / GROQ-NATIVE PATH STILL OVERSIZE — further packet required.  
+**Status:** COMPLETION-CAP FIX IN PROGRESS — LiteLLM default `max_output_tokens=32768` identified as TPM reservation root cause; commissioning cap `1024` + combined-token gate.  
 **Controlling issue:** [#743](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/743)  
 **Draft PR:** [#747](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/747) (do not merge)  
 **Dataclass hotfix:** `dd65b9ea8105daf358528c4b58fb8963d01c7fc5`  
-**Condensation + dry harness head (example):** `d4d87adb…` on `ops/openhands-private-worker-package`  
 **OpenHands state on box (last verified):** INSTALLED — INACTIVE  
 
 This document is the durable **known-good commissioning profile** target and the
@@ -19,6 +18,26 @@ reduction vs **8 000 TPM** on `groq/openai/gpt-oss-20b`).
 The first LLM completion failed because the **request payload was too large for
 Groq free-tier TPM**, not because of sandbox RAM, Docker isolation, networking,
 the `run` flag, or MCP reachability (those were already fixed).
+
+### 1a. Completion reservation (confirmed 2026-08-06)
+
+Wire dry OpenAI-format **input** was only **~2 749** tokens, yet Groq reported
+**~33 166–35 210** requested tokens. The gap matches LiteLLM model metadata for
+`groq/openai/gpt-oss-20b`:
+
+| Field | Value when OpenHands leaves unset | Source |
+|-------|-----------------------------------|--------|
+| `max_output_tokens` / `max_tokens` | **32 768** | LiteLLM `get_model_info(...)` |
+| `reasoning_effort` | **high** (model path default) | OpenHands / LiteLLM |
+
+Groq TPM ≈ **input + reserved completion**. Commissioning fix:
+
+- When `CORPFLOWAI_SHORT_SYSTEM_PROMPT=1`, set OpenHands `max_output_tokens=1024`
+  (`CORPFLOWAI_MAX_OUTPUT_TOKENS`, default 1024) and `reasoning_effort=low`.
+- Combined gate: `input_est + reserved_output` **&lt; 7 000** (prefer **≤ 5 000**).
+- Expected: ~2 749 + 1 024 ≈ **3 773**.
+
+Normal (non-commissioning) profile must leave `max_output_tokens` unset.
 
 OpenHands app **1.8** hardcodes on the conversation-start path
 (`live_status_app_conversation_service.py` / `app_conversation_service_base.py`):
@@ -93,6 +112,8 @@ Method:
 | 12 | Short conversation history | Single `initial_message` with `run=true` |
 | 13 | Wire dry capture before Groq | `scripts/ops/openhands/wire-capture-dry.sh` + capture proxy (no credential) |
 | 14 | Bounded runtime override | Bind-mounts (Option D), not a fork |
+| 15 | **Completion cap 1024** | `CORPFLOWAI_MAX_OUTPUT_TOKENS=1024` → OpenHands `max_output_tokens` only when short prompt on (overrides LiteLLM 32768) |
+| 16 | **reasoning_effort=low** | Commissioning profile only |
 
 **Isolation is not weakened** to save tokens.
 
@@ -100,17 +121,19 @@ Method:
 
 | Gate | Tokens |
 |------|--------|
-| Soft target | **≤ 6 000** |
-| Absolute stop (no Groq) | **≥ 7 500** |
+| Soft target (combined) | **≤ 5 000** |
+| Absolute stop (combined, no Groq) | **≥ 7 000** |
+| Output reservation cap | **1 024** |
+| LiteLLM default if uncapped | **32 768** |
 | Groq free `gpt-oss-20b` TPM | **8 000** |
 
 ### Live wire dry vs Groq-native (2026-08-06)
 
 | Path | Tokens | Notes |
 |------|--------|-------|
-| Capture proxy (OpenAI-format body to `:3901`) | **2 749** est (chars÷4) | system≈371; tools terminal+file_editor+finish≈2270; GATE=PASS |
-| Groq free API rejection (same short-prompt profile) | **33 166–35 210** | HTTP 413 / `rate_limit_exceeded` — no files created |
-| Gap | **~30 k** | LiteLLM/Groq-native serialization still inflates vs OpenAI-format dry capture; do not treat dry GATE alone as Groq-ready until a **forwarding** capture of the Groq-bound body exists |
+| Capture proxy (OpenAI-format body to `:3901`) | **2 749** est input (chars÷4) | system≈371; tools terminal+file_editor+finish≈2270 |
+| Prior Groq free API rejection (uncapped completion) | **33 166–35 210** | ≈ input + LiteLLM **32768** reservation — HTTP 413 |
+| After completion cap (target) | **~3 773** combined | 2749 + 1024; gate combined &lt; 7000 |
 
 Also observed: agent-server still logs `Loaded 1 skills` even with all `CORPFLOWAI_LOAD_*_SKILLS=0`.
 
@@ -123,7 +146,7 @@ Also observed: agent-server still logs `Loaded 1 skills` even with all `CORPFLOW
 | Model | `groq/openai/gpt-oss-20b` (do not silent-switch) | |
 | Enabled tools | terminal, file_editor (+ FinishTool) | |
 | System prompt | commissioning short inline | |
-| Approx first-request tokens | wire dry capture `< 7500` (prefer ≤6000) | |
+| Approx first-request tokens | combined (input+cap) `< 7000` (prefer ≤5000); output cap **1024** | |
 | Initial payload | `initial_message.run=true` | |
 | Sandbox limits | 512 MiB / 0.5 CPU / 256 PIDs | |
 | Network | `corpflowai-openhands-net`; ExtraHosts empty | |
@@ -134,7 +157,7 @@ Also observed: agent-server still logs `Loaded 1 skills` even with all `CORPFLOW
 
 Anton has **not** approved Llama 4 Scout / Compound / paid upgrades for this
 packet. Prefer wire condensation on `gpt-oss-20b`. If live wire capture still
-cannot fit **7 500** estimated tokens, stop and ask — do not silent-switch.
+cannot fit **7 000** combined tokens (input + reserved output ≤1024), stop and ask — do not silent-switch.
 
 ---
 
@@ -145,7 +168,7 @@ cd ~/corpflow-ai-command-center
 git fetch origin ops/openhands-private-worker-package
 git checkout ops/openhands-private-worker-package
 ./scripts/ops/openhands/wire-capture-dry.sh
-# Only if GATE=PASS (tokens_est < 7500):
+# Only if GATE=PASS (combined < 7000 and reserved_output <= 1024):
 ./scripts/ops/openhands/commission-arithmetic-minimal.sh
 ```
 
