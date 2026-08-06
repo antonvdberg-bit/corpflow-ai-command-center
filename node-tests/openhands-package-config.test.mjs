@@ -109,6 +109,10 @@ describe('openhands package config — ops/openhands/compose.yaml on disk', () =
       composeText,
       /CORPFLOWAI_SANDBOX_WEBHOOK_BASE:\s*"http:\/\/corpflowai-openhands-app:3000"/,
     );
+    assert.match(
+      composeText,
+      /OH_WEB_URL:\s*"http:\/\/corpflowai-openhands-app:3000"/,
+    );
     assert.match(composeText, /runtime-overrides\/docker_sandbox_service\.py/);
     const active = composeText
       .split(/\r?\n/)

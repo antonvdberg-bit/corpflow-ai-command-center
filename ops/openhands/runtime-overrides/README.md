@@ -28,4 +28,9 @@
 #   - mem_limit=512m, nano_cpus=5e8 (0.5 CPU), pids_limit=256
 #   - refuse docker.sock mounts and KVM passthrough
 #
+# Compose also sets OH_WEB_URL=http://corpflowai-openhands-app:3000 so the
+# control plane does not fall back to host.docker.internal for MCP
+# ({web_url}/mcp/mcp) during conversation start. See compose.yaml comment on
+# OH_WEB_URL and issue #743 conversation-500 diagnosis.
+#
 # Controlling issue: #743. Remediation on PR #747.

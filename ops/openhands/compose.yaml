@@ -195,6 +195,18 @@ services:
       CORPFLOWAI_SANDBOX_MEM_LIMIT: "512m"
       CORPFLOWAI_SANDBOX_NANO_CPUS: "500000000"
       CORPFLOWAI_SANDBOX_PIDS_LIMIT: "256"
+
+      # REQUIRED for conversation setup under named-network isolation.
+      # OpenHands loads AppServerConfig via from_env(..., 'OH'), so this sets
+      # config.web_url. When web_url is unset, LiveStatusAppConversationService
+      # falls back to http://host.docker.internal:{port} and injects that as the
+      # default MCP server URL ({web_url}/mcp/mcp). With ExtraHosts emptied and
+      # no host-gateway, host.docker.internal does not resolve inside sandboxes
+      # → agent-server POST /api/conversations raises MCPError (HTTP 500) during
+      # SETTING_UP_SKILLS. Point web_url at the control-plane Docker DNS name on
+      # corpflowai-openhands-net (same origin as CORPFLOWAI_SANDBOX_WEBHOOK_BASE).
+      # Never host.docker.internal. Never a public bind.
+      OH_WEB_URL: "http://corpflowai-openhands-app:3000"
       # Agent-server cold start on this host exceeds upstream's 15s default;
       # without this the control plane marks a healthy-but-slow sandbox ERROR.
       SANDBOX_STARTUP_GRACE_SECONDS: "120"

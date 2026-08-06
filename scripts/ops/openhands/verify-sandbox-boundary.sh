@@ -192,6 +192,18 @@ check_running_container() {
   if [[ -z "${runtime_net}" ]] || ! printf '%s' "${runtime_net}" | grep -Fq 'corpflowai-openhands-net'; then
     VIOLATIONS+=("running container missing CORPFLOWAI_SANDBOX_NETWORK=corpflowai-openhands-net")
   fi
+  # OH_WEB_URL must be the control-plane Docker DNS name so agent-server MCP
+  # ({web_url}/mcp/mcp) resolves on corpflowai-openhands-net. Upstream falls
+  # back to host.docker.internal when unset — forbidden under our ExtraHosts=[].
+  local oh_web_url
+  oh_web_url="$(openhands_docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' "${OPENHANDS_PROJECT}-app" 2>/dev/null | grep -E '^OH_WEB_URL=' || true)"
+  if [[ -z "${oh_web_url}" ]]; then
+    VIOLATIONS+=("running container missing OH_WEB_URL — required so conversation MCP does not fall back to host.docker.internal")
+  elif printf '%s' "${oh_web_url}" | grep -Eqi 'host\.docker\.internal|host-gateway'; then
+    VIOLATIONS+=("running container OH_WEB_URL contains host.docker.internal / host-gateway — forbidden")
+  elif ! printf '%s' "${oh_web_url}" | grep -Fq 'corpflowai-openhands-app'; then
+    VIOLATIONS+=("running container OH_WEB_URL must target corpflowai-openhands-app Docker DNS (${oh_web_url})")
+  fi
   override_mount="$(openhands_docker inspect -f '{{range .Mounts}}{{println .Destination}}{{end}}' "${OPENHANDS_PROJECT}-app" 2>/dev/null | grep -F '/app/openhands/app_server/sandbox/docker_sandbox_service.py' || true)"
   if [[ -z "${override_mount}" ]]; then
     VIOLATIONS+=("running container does not mount CorpFlowAI docker_sandbox_service.py spawn override")

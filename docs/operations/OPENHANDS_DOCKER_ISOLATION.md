@@ -216,6 +216,19 @@ Prefer deleting the override if a future upstream release gains first-class name
 `scripts/ops/openhands/probe-sandbox-spawn-isolation.sh` (`POST /api/v1/sandboxes`, no model);
 `verify-sandbox-boundary.sh` inspects live `oh-agent-server-*` when present.
 
+### 3.1 Conversation MCP / `OH_WEB_URL` (required with ExtraHosts=[])
+
+Emptying ExtraHosts is not enough for conversation start. When
+`AppServerConfig.web_url` is unset, `LiveStatusAppConversationService` falls back to
+`http://host.docker.internal:{host_port}` and injects that as the default MCP server
+(`{web_url}/mcp/mcp`). Agent-server then fails `POST /api/conversations` with
+`MCPError: MCP Connection Failure` (DNS: name or service not known) during
+`SETTING_UP_SKILLS` — reproducible **without** any LLM API key.
+
+**Config fix:** set `OH_WEB_URL=http://corpflowai-openhands-app:3000` in compose (same
+Docker-DNS origin as `CORPFLOWAI_SANDBOX_WEBHOOK_BASE`). Verify with
+`scripts/ops/openhands/probe-nonmodel-conversation-setup.sh`.
+
 This does **not** add `host.docker.internal`, `host-gateway`, host networking, or a route to
 host-bound CorpFlowAI services.
 

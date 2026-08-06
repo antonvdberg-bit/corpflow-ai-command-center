@@ -231,6 +231,7 @@ describe('openhands CORPFLOWAI sandbox spawn boundary env', () => {
   it('compose uses Option D override env (not unread V0 SANDBOX_* knobs)', () => {
     assert.match(compose, /CORPFLOWAI_SANDBOX_NETWORK:\s*"corpflowai-openhands-net"/);
     assert.match(compose, /CORPFLOWAI_SANDBOX_WEBHOOK_BASE:\s*"http:\/\/corpflowai-openhands-app:3000"/);
+    assert.match(compose, /OH_WEB_URL:\s*"http:\/\/corpflowai-openhands-app:3000"/);
     assert.match(compose, /runtime-overrides\/docker_sandbox_service\.py/);
     assert.doesNotMatch(compose, /^\s*extra_hosts:/m);
     const active = compose
