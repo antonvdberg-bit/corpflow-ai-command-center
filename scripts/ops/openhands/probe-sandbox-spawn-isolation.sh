@@ -92,7 +92,7 @@ say "SANDBOX_ID=${SANDBOX_ID}"
 
 # Wait briefly for agent-server health
 STATUS="STARTING"
-for i in $(seq 1 30); do
+for i in $(seq 1 60); do
   curl -fsS -m 5 "http://127.0.0.1:3000/api/v1/sandboxes?id=${SANDBOX_ID}" \
     -o "${EVIDENCE_DIR}/status.json" || true
   STATUS="$(python3 -c 'import json; d=json.load(open("'"${EVIDENCE_DIR}"'/status.json")); x=d[0] if isinstance(d,list) else d; print((x or {}).get("status") or "missing")' 2>/dev/null || echo missing)"
@@ -106,23 +106,44 @@ done
 openhands_docker inspect "${SANDBOX_ID}" > "${EVIDENCE_DIR}/inspect.json" 2>/dev/null \
   || fail "cannot inspect sandbox ${SANDBOX_ID}"
 
-NETWORK_MODE="$(python3 -c 'import json; print(json.load(open("'"${EVIDENCE_DIR}"'/inspect.json"))["HostConfig"]["NetworkMode"])')"
-EXTRA_HOSTS="$(python3 -c 'import json; print(json.dumps(json.load(open("'"${EVIDENCE_DIR}"'/inspect.json"))["HostConfig"].get("ExtraHosts")))')"
-PORT_BINDINGS="$(python3 -c 'import json; print(json.dumps(json.load(open("'"${EVIDENCE_DIR}"'/inspect.json"))["HostConfig"].get("PortBindings")))')"
-MEMORY="$(python3 -c 'import json; print(json.load(open("'"${EVIDENCE_DIR}"'/inspect.json"))["HostConfig"].get("Memory"))')"
-NANO="$(python3 -c 'import json; print(json.load(open("'"${EVIDENCE_DIR}"'/inspect.json"))["HostConfig"].get("NanoCpus"))')"
-PIDS="$(python3 -c 'import json; print(json.load(open("'"${EVIDENCE_DIR}"'/inspect.json"))["HostConfig"].get("PidsLimit"))')"
-NETWORKS="$(python3 -c 'import json; print(" ".join(json.load(open("'"${EVIDENCE_DIR}"'/inspect.json"))["NetworkSettings"]["Networks"].keys()))')"
-CGROUP="$(openhands_docker inspect -f '{{.HostConfig.CgroupParent}} {{index .Config.Labels "com.docker.compose.project"}}' "${SANDBOX_ID}" 2>/dev/null || true)"
-CGROUP_PATH="$(openhands_docker inspect -f '{{.HostConfig.Cgroup}}' "${SANDBOX_ID}" 2>/dev/null || true)"
-# Prefer runtime cgroup from within container if available
-CGROUP_PROC="$(openhands_docker exec "${SANDBOX_ID}" cat /proc/1/cgroup 2>/dev/null | tr '\n' ' ' || true)"
+# docker inspect returns a JSON array
+py_inspect() {
+  local expr="$1"
+  python3 -c "import json; d=json.load(open('${EVIDENCE_DIR}/inspect.json')); x=d[0] if isinstance(d,list) else d; ${expr}"
+}
+
+NETWORK_MODE="$(py_inspect 'print(x["HostConfig"]["NetworkMode"])')"
+EXTRA_HOSTS="$(py_inspect 'print(json.dumps(x["HostConfig"].get("ExtraHosts")))')"
+PORT_BINDINGS="$(py_inspect 'print(json.dumps(x["HostConfig"].get("PortBindings")))')"
+MEMORY="$(py_inspect 'print(x["HostConfig"].get("Memory"))')"
+NANO="$(py_inspect 'print(x["HostConfig"].get("NanoCpus"))')"
+PIDS="$(py_inspect 'print(x["HostConfig"].get("PidsLimit"))')"
+NETWORKS="$(py_inspect 'print(" ".join(x["NetworkSettings"]["Networks"].keys()))')"
+CID="$(py_inspect 'print(x["Id"])')"
+
+# Host-side cgroup path (in-container /proc/1/cgroup is often just 0::/ with private cgroupns)
+CGROUP_HOST="$(
+  # rootless: look under user slice for docker-<cid>.scope
+  find "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}" /sys/fs/cgroup -path "*corpflowai-openhands*" -name "docker-${CID}*.scope" 2>/dev/null | head -1 || true
+)"
+if [[ -z "${CGROUP_HOST}" ]]; then
+  CGROUP_HOST="$(
+    grep -l "${CID}" /sys/fs/cgroup/user.slice/user-$(id -u).slice/user@$(id -u).service/corpflowai.slice/corpflowai-openhands.slice/corpflowai-openhands-containers.slice/*/cgroup.procs 2>/dev/null | head -1 || true
+  )"
+fi
+# Fallback: read host cgroup from container PID
+CPID="$(openhands_docker inspect -f '{{.State.Pid}}' "${SANDBOX_ID}" 2>/dev/null || echo 0)"
+if [[ "${CPID}" != "0" && -r "/proc/${CPID}/cgroup" ]]; then
+  CGROUP_PROC="$(tr '\n' ' ' < "/proc/${CPID}/cgroup")"
+else
+  CGROUP_PROC=""
+fi
 
 say "Probe network: NetworkMode=${NETWORK_MODE} Networks=${NETWORKS}"
 say "Probe ExtraHosts: ${EXTRA_HOSTS}"
 say "Probe PortBindings: ${PORT_BINDINGS}"
 say "Probe limits: Memory=${MEMORY} NanoCpus=${NANO} PidsLimit=${PIDS}"
-say "Probe cgroup: proc=${CGROUP_PROC}"
+say "Probe cgroup: host_path=${CGROUP_HOST:-none} proc=${CGROUP_PROC}"
 
 VIOLATIONS=0
 [[ "${NETWORK_MODE}" == "corpflowai-openhands-net" ]] || { say "bad NetworkMode"; VIOLATIONS=$((VIOLATIONS+1)); }
@@ -133,7 +154,10 @@ printf '%s' "${EXTRA_HOSTS}" | grep -Eqi 'host\.docker\.internal|host-gateway' &
 [[ "${MEMORY}" == "536870912" ]] || { say "bad Memory"; VIOLATIONS=$((VIOLATIONS+1)); }
 [[ "${NANO}" == "500000000" ]] || { say "bad NanoCpus"; VIOLATIONS=$((VIOLATIONS+1)); }
 [[ "${PIDS}" == "256" ]] || { say "bad PidsLimit"; VIOLATIONS=$((VIOLATIONS+1)); }
-printf '%s' "${CGROUP_PROC}" | grep -Fq 'corpflowai-openhands' || { say "cgroup missing corpflowai-openhands slice marker"; VIOLATIONS=$((VIOLATIONS+1)); }
+if ! printf '%s%s' "${CGROUP_HOST}" "${CGROUP_PROC}" | grep -Fq 'corpflowai-openhands'; then
+  say "cgroup missing corpflowai-openhands slice marker (host_path/proc)"
+  VIOLATIONS=$((VIOLATIONS+1))
+fi
 
 # Callback: control plane → sandbox /health via Docker DNS (same path as override)
 CB_APP_TO_SB="$(openhands_docker exec "${OPENHANDS_PROJECT}-app" \

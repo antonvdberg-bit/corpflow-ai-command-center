@@ -195,6 +195,9 @@ services:
       CORPFLOWAI_SANDBOX_MEM_LIMIT: "512m"
       CORPFLOWAI_SANDBOX_NANO_CPUS: "500000000"
       CORPFLOWAI_SANDBOX_PIDS_LIMIT: "256"
+      # Agent-server cold start on this host exceeds upstream's 15s default;
+      # without this the control plane marks a healthy-but-slow sandbox ERROR.
+      SANDBOX_STARTUP_GRACE_SECONDS: "120"
 
       # Documented but NOT enforced by upstream 1.8 Docker path (silent no-ops
       # for concurrency / timeout / iterations). Kept as operator intent +

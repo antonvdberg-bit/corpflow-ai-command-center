@@ -53,6 +53,7 @@ describe('openhands dynamic sandbox spawn override', () => {
       composeText,
       new RegExp(`CORPFLOWAI_SANDBOX_PIDS_LIMIT:\\s*"${SANDBOX_PIDS_LIMIT}"`),
     );
+    assert.match(composeText, /SANDBOX_STARTUP_GRACE_SECONDS:\s*"120"/);
     // Dead V0 knobs must not be presented as if they work
     const active = composeText
       .split(/\r?\n/)

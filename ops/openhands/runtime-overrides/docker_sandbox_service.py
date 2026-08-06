@@ -39,7 +39,10 @@ from openhands.app_server.services.injector import InjectorState
 # it rewrites health URLs to host.docker.internal (forbidden).
 
 _logger = logging.getLogger(__name__)
-STARTUP_GRACE_SECONDS = 15
+# CORPFLOWAI: upstream default 15s is too short for agent-server cold start on
+# corpflow-exec-01 (observed ~30s). Prefer SANDBOX_STARTUP_GRACE_SECONDS env
+# (read by config.py into injector kwargs); this constant is the dataclass fallback.
+STARTUP_GRACE_SECONDS = int(os.getenv('SANDBOX_STARTUP_GRACE_SECONDS', '120'))
 
 # ---------------------------------------------------------------------------
 # CORPFLOWAI BOUNDARY OVERRIDE (OpenHands app 1.8 / SDK Docker path)
