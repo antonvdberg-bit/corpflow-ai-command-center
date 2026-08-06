@@ -414,13 +414,13 @@ Company Master v1 foundation is ready when:
 
 ## 10. Immediate execution order
 
-1. Complete repository/current-system and storage audit.
-2. Confirm stable identity, asset alias and source-of-truth contracts.
-3. Create company, governed-field, asset/document and evidence schemas.
-4. Create controlled vocabularies.
-5. Create synthetic CorpFlowAI and client fixtures.
-6. Add logo replacement and restricted-document synthetic proof.
-7. Add validation, security and propagation tests.
+1. Complete repository/current-system and storage audit. **Done in-repo:** `company-master/operations/REPOSITORY_STORAGE_REUSE_AUDIT.md`
+2. Confirm stable identity, asset alias and source-of-truth contracts. **Done** in schema + resolver (`brand.logo.primary`, `company_id` / nullable `tenant_id`).
+3. Create company, governed-field, asset/document and evidence schemas. **Done**
+4. Create controlled vocabularies. **Done**
+5. Create synthetic CorpFlowAI and client fixtures. **Done** (`corpflowai.synthetic.json`, `client-onboarding.synthetic.json`)
+6. Add logo replacement and restricted-document synthetic proof. **Done** (v1 SUPERSEDED, v2 ACTIVE, v3 UPLOADED; restricted registration reference)
+7. Add validation, security and propagation tests. **Done** (`company-master/lib/*`, `node-tests/company-master.test.mjs`)
 8. Document manual operating workflow.
 9. Define storage, website, document-generation, ERPNext and `/change` mappings.
 10. Produce protected production decision packet.
