@@ -1,0 +1,25 @@
+[Unit]
+# CorpFlowAI — OpenHands aggregate resource ceiling (systemd user slice)
+#
+# STATUS: INACTIVE until an Anton-approved install. Issue #743 / PR #747.
+#
+# Hierarchy (systemd naming): this slice is the common ancestor for
+#   - corpflowai-openhands-dockerd.service (Slice= this unit)
+#   - corpflowai-openhands-containers.slice (daemon.json cgroup-parent)
+# so both dockerd and every container it creates inherit these hard limits.
+#
+# Host-safe pilot ceilings for corpflow-exec-01-u69678 (~7.6 GiB RAM total,
+# ~4.9 GiB available at preflight): MemoryMax MUST NOT exceed 4G. An 8G
+# ceiling exceeded physical RAM and was rejected after live capacity inspect.
+#
+# Runtime proof that containers land under corpflowai-openhands-containers.slice
+# (beneath this ancestor) is REQUIRED via
+# scripts/ops/openhands/verify-cgroup-placement.sh — fail closed on install.
+Description=CorpFlowAI OpenHands aggregate resource ceiling (INACTIVE — enable only with authorized dedicated-daemon install, see issue #743)
+Documentation=file:%h/corpflow-ai-command-center/docs/operations/OPENHANDS_DOCKER_ISOLATION.md
+
+[Slice]
+MemoryMax=4G
+MemoryHigh=3584M
+CPUQuota=200%
+TasksMax=1024

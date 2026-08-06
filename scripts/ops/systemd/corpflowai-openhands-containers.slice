@@ -1,0 +1,22 @@
+[Unit]
+# CorpFlowAI — OpenHands container cgroup parent (systemd user sub-slice)
+#
+# STATUS: INACTIVE until an Anton-approved install. Issue #743 / PR #747.
+#
+# Nesting: systemd treats corpflowai-openhands-containers.slice as a child of
+# corpflowai-openhands.slice (dash-separated slice hierarchy). Aggregate
+# MemoryMax/CPUQuota/TasksMax on the parent therefore govern every container
+# scope created under this parent.
+#
+# Wired as the dedicated rootless daemon's default cgroup parent via
+# daemon.json "cgroup-parent" + "exec-opts": ["native.cgroupdriver=systemd"].
+# Live-verified on corpflow-exec-01-u69678 (2026-08-05): probe containers land
+# under .../corpflowai-openhands.slice/corpflowai-openhands-containers.slice/docker-<id>.scope
+# — not under an unrestricted user.slice/.../docker-<id>.scope.
+Description=CorpFlowAI OpenHands container cgroup parent (INACTIVE — enable only with authorized dedicated-daemon install, see issue #743)
+Documentation=file:%h/corpflow-ai-command-center/docs/operations/OPENHANDS_DOCKER_ISOLATION.md
+
+[Slice]
+# Hard aggregate limits live on the parent corpflowai-openhands.slice.
+# Keep an explicit TasksMax here as a defense-in-depth cap for container scopes.
+TasksMax=1024

@@ -1,0 +1,44 @@
+name: fixture-good
+
+services:
+  fixture-good-app:
+    image: docker.openhands.dev/openhands/openhands:1.8
+    container_name: fixture-good-app
+    restart: unless-stopped
+
+    ports:
+      - "127.0.0.1:3000:3000"
+
+    volumes:
+      - ${OPENHANDS_DOCKER_SOCK}:/run/openhands-docker/docker.sock
+      - corpflowai-openhands-state:/.openhands
+      - corpflowai-openhands-workspace:/workspace
+
+    environment:
+      DOCKER_HOST: unix:///run/openhands-docker/docker.sock
+      AGENT_SERVER_IMAGE_REPOSITORY: ghcr.io/openhands/agent-server
+      AGENT_SERVER_IMAGE_TAG: "1.26.0-python"
+      LOG_ALL_EVENTS: "true"
+      MAX_CONCURRENT_CONVERSATIONS: "1"
+      SANDBOX_TIMEOUT: "600"
+      SANDBOX_USE_HOST_NETWORK: "false"
+
+    mem_limit: 1536m
+    cpus: "1.0"
+    pids_limit: 512
+
+    security_opt:
+      - no-new-privileges:true
+
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"

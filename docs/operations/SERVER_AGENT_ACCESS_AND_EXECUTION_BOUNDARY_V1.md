@@ -199,6 +199,37 @@ Any future row added below must come with its own ADR-anchored canonical paragra
 
 **How to read this table when proposing new work:** if you are about to write *"this is similar to the Kuma exception, so we can also …"*, **stop**. Each named exception is the result of its own ADR + its own threat model + its own packet. Sameness is not authorization. Open a new ADR.
 
+### 5.5.1 Pending proposed carve-out — OpenHands (NOT authorized)
+
+**Status (2026-08-04): PROPOSED, not authorized. Uptime Kuma remains the only *authorized* exception in the
+table above.** A second named exception has been **proposed** — not accepted — for a single OpenHands
+control-plane container (`corpflowai-openhands-app`, image `docker.openhands.dev/openhands/openhands:1.8`) to
+run as a private delivery worker on `corpflow-exec-01-u69678`, per:
+
+- ADR: `docs/decisions/20260804-openhands-on-exec01.md` (status: PROPOSED).
+- Authorization packet: `docs/execution/OPENHANDS_ON_EXEC01_AUTHORIZATION_PACKET.md` (status: PENDING ANTON APPROVAL).
+- Controlling issue: [#743](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/743) · Parent: [#661](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/661).
+
+**This proposal is NOT authorized until Anton merges the authorization packet and the ADR.** Until that merge:
+
+- The table above in § 5.5 has **exactly one** row (Uptime Kuma). This note does not add a second row.
+- The § 5.3 "No Docker / Ollama / Postgres" hard rule is **not** lifted for OpenHands. No OpenHands container
+  may run on the box under this note.
+- The § 6 absence list below is **not** amended to carve out OpenHands. It remains accurate that, besides Kuma,
+  no Docker workload is authorized.
+- If Anton merges the ADR + packet, the follow-up PR that lands the merge must (a) add a second row to the §
+  5.5 table above naming OpenHands with the same narrowness as the Kuma row, (b) add OpenHands to the § 6
+  absence-list clarifier, and (c) flip the ADR and packet status fields — this note should then be removed or
+  marked historical, mirroring how § 5.5's Kuma row itself was added.
+- This proposal, if accepted, would be materially riskier than Kuma's: OpenHands requires a Docker-socket mount
+  on the control plane to spawn task sandboxes, which is host-root-equivalent capability if compromised — see
+  `docs/operations/OPENHANDS_SECURITY_MODEL.md` § 3 and the ADR § 1.1. This is flagged here so the risk is
+  visible at the same place Kuma's carve-out lives, not buried only in the OpenHands-specific docs.
+
+**Non-generalization applies equally here:** this note does not authorize Chatwoot, Open WebUI, Coolify,
+Langfuse, AgentSpan, OpenJarvis, generic chatbot, generic agent framework, or any tool other than the one named
+OpenHands container described in the ADR — and it does not widen the existing Kuma carve-out in any way.
+
 ---
 
 ## 6. What does NOT exist as an execution layer (canonical absence list)
@@ -349,3 +380,4 @@ If a future packet proposes lifting any § 5.3 hard rule (e.g. installing Cursor
 
 - **v1, 2026-06-04** — initial canonical version. Triggered by bridge [#249 issuecomment-4617928519](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/249#issuecomment-4617928519). Synthesises rules already in `EXECUTION_BRAIN_VS_HANDS.md`, `MONITORING_ARCHITECTURE.md` § 11.3, `DELIVERY_ACCELERATION_V1.md` § 4.3, `MIGRATION_TO_SERVER_CHECKLIST.md`, `ERPNEXT_SANDBOX_INSTALL.md` § 10. Recorded as `JE-2026-06-04-2`.
 - **v1.1, 2026-06-15** — added § 5.5 *Authorized exceptions to § 5.3 hard rules (named, narrow, packet-gated)* and listed **Uptime Kuma** on `corpflow-exec-01-u69678` as the **first and only** named carve-out, authorized by `docs/decisions/20260615-uptime-kuma-on-exec01.md` + `docs/execution/UPTIME_KUMA_ON_EXEC01_AUTHORIZATION_PACKET.md` (`JE-2026-06-15-1`). § 5.3's two affected rules ("No Docker / Ollama / Postgres beyond ERPNext sandbox + production-shell" and "No scheduled jobs") gained parenthetical pointers at § 5.5; rule wording itself unchanged. § 6 absence-list "Persistent daemon / systemd / cron / `at`" row gained an in-line clarifier; a new "Exception clarifier" paragraph was added under § 6 explaining that the only authorized lifting of any row is the Uptime Kuma carve-out, narrow and named. The carve-out is **not** a category-level lift: any further exception requires its own ADR + authorization packet + § 10 gate. No § 5.3 hard rule is removed by this version.
+- **v1.2, 2026-08-04** — added § 5.5.1 *Pending proposed carve-out — OpenHands (NOT authorized)*, a **note only**, not a new table row. Records that a second named exception (OpenHands control-plane container on `corpflow-exec-01-u69678`) has been **proposed** via `docs/decisions/20260804-openhands-on-exec01.md` (ADR, status PROPOSED) + `docs/execution/OPENHANDS_ON_EXEC01_AUTHORIZATION_PACKET.md` (packet, status PENDING ANTON APPROVAL), controlling issue [#743](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/743). **Uptime Kuma remains the only authorized exception** — the § 5.5 table is unchanged, and the § 6 absence list is unchanged. No § 5.3 hard rule is lifted for OpenHands by this version; that would require a future PR that lands the ADR + packet merge and explicitly amends § 5.5's table and § 6's clarifier in the same change.

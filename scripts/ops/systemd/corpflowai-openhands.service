@@ -1,0 +1,55 @@
+[Unit]
+# CorpFlowAI — OpenHands private worker control-plane unit
+#
+# STATUS: INACTIVE. DO NOT ENABLE. This file describes what a user systemd
+# unit WOULD look like if OpenHands install is ever authorized (see
+# ops/openhands/README.md "Path to authorization"). It is not installed to
+# ~/.config/systemd/user/ by any script in this repo, and no script in this
+# repo runs `systemctl --user enable` on it. Controlling issue: #743.
+#
+# Security follow-up for PR #747 (dedicated Docker isolation design, see
+# docs/operations/OPENHANDS_DOCKER_ISOLATION.md): this unit now depends on
+# corpflowai-openhands-dockerd.service — the DEDICATED daemon — instead of
+# the host's primary docker.service. `docker compose` below resolves its
+# target daemon from the DOCKER_HOST env var set here, which MUST point at
+# the dedicated socket. It must NEVER be changed back to depend on
+# docker.service or to omit the DOCKER_HOST override — doing so would
+# silently route `up -d` at the primary host daemon.
+Description=CorpFlowAI OpenHands private worker (INACTIVE — do not enable without separate authorization, see issue #743)
+Documentation=file:///home/anton/corpflow-ai-command-center/ops/openhands/README.md file:///home/anton/corpflow-ai-command-center/docs/operations/OPENHANDS_DOCKER_ISOLATION.md
+After=corpflowai-openhands-dockerd.service network-online.target
+Wants=network-online.target
+Requires=corpflowai-openhands-dockerd.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=%h/corpflow-ai-command-center
+# DOCKER_HOST here is the enforcement point that keeps this unit off the
+# primary host daemon. Must always match OPENHANDS_DOCKER_SOCK's default in
+# scripts/ops/openhands/lib/common.sh ($OPENHANDS_HOME/docker/docker.sock).
+# If OPENHANDS_HOME is overridden in ops/openhands/.env, this line and that
+# override must agree — verified at runtime by
+# scripts/ops/openhands/verify-dedicated-daemon.sh, not by this unit file.
+Environment=OPENHANDS_HOME=%h/corpflowai-openhands
+Environment=DOCKER_HOST=unix://%h/corpflowai-openhands/docker/docker.sock
+# Application EnvironmentFile — LLM / GitHub / OpenHands app secrets live HERE
+# only (copied from ops/openhands/.env.example into a host-local .env).
+# The dedicated dockerd unit (corpflowai-openhands-dockerd.service) must NEVER
+# load this file — daemon vs application secret separation is mandatory.
+EnvironmentFile=-%h/corpflow-ai-command-center/ops/openhands/.env
+ExecStart=/usr/bin/docker compose -p corpflowai-openhands -f %h/corpflow-ai-command-center/ops/openhands/compose.yaml up -d
+ExecStop=/usr/bin/docker compose -p corpflowai-openhands -f %h/corpflow-ai-command-center/ops/openhands/compose.yaml down
+Nice=10
+
+# Placed under the same combined resource slice as the dedicated daemon —
+# see scripts/ops/systemd/corpflowai-openhands.slice.
+# Sandbox cgroup placement under the slice is PENDING RUNTIME VERIFICATION
+# at the install gate (see OPENHANDS_DOCKER_ISOLATION.md).
+Slice=corpflowai-openhands.slice
+
+# Do not put secrets in this unit file. Do not add ExecStartPre steps that
+# echo environment contents.
+
+[Install]
+WantedBy=default.target

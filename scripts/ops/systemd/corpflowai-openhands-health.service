@@ -1,0 +1,32 @@
+[Unit]
+# CorpFlowAI — OpenHands private worker health-check unit (oneshot)
+#
+# STATUS: INACTIVE. DO NOT ENABLE without separate authorization. See
+# ops/openhands/README.md and issue #743. Pairs with
+# corpflowai-openhands-health.timer, which is ALSO not enabled (Phase 2+).
+#
+# Security follow-up for PR #747: health-check.sh's container-status probe
+# now queries the DEDICATED daemon (via DOCKER_HOST below and
+# scripts/ops/openhands/lib/common.sh's openhands_docker() wrapper), not the
+# primary docker.service. The loopback curl probe against 127.0.0.1:3000/health
+# is unaffected either way (it's a plain HTTP check, not a Docker API call).
+Description=CorpFlowAI OpenHands health check (oneshot; INACTIVE — do not enable, see issue #743)
+Documentation=file:///home/anton/corpflow-ai-command-center/ops/openhands/README.md file:///home/anton/corpflow-ai-command-center/docs/operations/OPENHANDS_DOCKER_ISOLATION.md
+After=corpflowai-openhands-dockerd.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/corpflow-ai-command-center
+Environment=OPENHANDS_HOME=%h/corpflowai-openhands
+Environment=DOCKER_HOST=unix://%h/corpflowai-openhands/docker/docker.sock
+# Optional Telegram alert env (same convention as
+# scripts/ops/systemd/corpflowai-ops-backup-health.service). Alerts remain
+# OFF by default even if this file is later enabled, unless
+# OPENHANDS_ALERTS_ENABLED=1 is set in this env file.
+EnvironmentFile=-%h/corpflow-ai-command-center/ops/openhands/.env
+ExecStart=/usr/bin/bash %h/corpflow-ai-command-center/scripts/ops/openhands/health-check.sh
+Nice=10
+Slice=corpflowai-openhands.slice
+
+# Do not put secrets in this unit file. Success is silent; failure exits
+# non-zero (journal + optional Telegram from the script itself).

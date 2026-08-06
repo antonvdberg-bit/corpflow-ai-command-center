@@ -1,0 +1,45 @@
+# OpenHands private worker — EXAMPLE debug override
+#
+# STATUS: INACTIVE / EXAMPLE ONLY. Not applied automatically. INSTALLATION NOT
+# AUTHORIZED BY THIS FILE. See ops/openhands/README.md and ops/openhands/compose.yaml.
+#
+# Purpose: shows how an operator would layer temporary, debug-only settings on
+# top of compose.yaml during an eventual authorized local evaluation, WITHOUT
+# weakening the loopback-only / no-production-secret rules.
+#
+# Usage (only after authorization — not run by this package):
+#   docker compose -f ops/openhands/compose.yaml -f ops/openhands/compose.override.example.yaml config
+#   docker compose -f ops/openhands/compose.yaml -f ops/openhands/compose.override.example.yaml up -d
+#
+# Rules that still apply with this override in place:
+# - Ports remain loopback-only. This file must never add a 0.0.0.0 or bare
+#   port publish, even "for debugging".
+# - No POSTGRES_* env vars, no production secrets, ever.
+# - No privileged: true, no host networking.
+
+services:
+  corpflowai-openhands-app:
+    # Example: more verbose logging during a debug session. Still bounded by
+    # the same json-file driver + rotation as the base file (not overridden
+    # here on purpose, to avoid unbounded log growth during debugging).
+    environment:
+      LOG_ALL_EVENTS: "true"
+      # Example placeholder for a debug-only log level, if the app image
+      # supports it. Never set to a value that prints secrets.
+      OPENHANDS_LOG_LEVEL: "debug"
+
+    # Example: expose an additional loopback-only port for a local debugger
+    # or metrics endpoint, IF the app image supports one. Still loopback-only.
+    # Uncomment and adjust the container-side port only if actually needed;
+    # never remove the "127.0.0.1:" prefix.
+    # ports:
+    #   - "127.0.0.1:3001:3001"
+
+    # Example: shorter healthcheck interval while actively debugging startup
+    # issues. Revert to the base file's interval for anything beyond a single
+    # debug session.
+    healthcheck:
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s

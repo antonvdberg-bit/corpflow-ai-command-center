@@ -1,0 +1,20 @@
+name: fixture-bad
+
+services:
+  fixture-bad-app:
+    image: docker.openhands.dev/openhands/openhands:latest
+    privileged: true
+    network_mode: host
+    ports:
+      - "0.0.0.0:3000:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /:/host_root
+      - /home:/home
+    environment:
+      POSTGRES_URL: "postgres://example"
+      DOCKER_HOST: unix:///var/run/docker.sock
+      MAX_CONCURRENT_CONVERSATIONS: "3"
+    # missing mem_limit, cpus, restart, healthcheck, logging

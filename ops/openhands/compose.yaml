@@ -1,0 +1,332 @@
+# OpenHands private worker — Docker Compose definition
+#
+# STATUS: INACTIVE. INSTALLATION NOT AUTHORIZED BY THIS FILE.
+#
+# This file describes what an OpenHands control-plane deployment on
+# corpflow-exec-01-u69678 would look like IF a future, separate authorization
+# packet approves it. Writing or reviewing this file does not start anything.
+# `docker compose up` against this file requires:
+#   1. Anton's explicit written approval, AND
+#   2. A new named § 5.5 carve-out ADR (see docs/operations/
+#      SERVER_AGENT_ACCESS_AND_EXECUTION_BOUNDARY_V1.md), which does not exist
+#      yet for OpenHands (only Uptime Kuma is authorized today), AND
+#   3. scripts/ops/openhands/install.sh --install run with
+#      OPENHANDS_INSTALL_APPROVED=YES and --i-understand-protected-action.
+#
+# Controlling issue: #743. Security follow-up for PR #747: dedicated Docker
+# isolation design — see docs/operations/OPENHANDS_DOCKER_ISOLATION.md (full
+# investigation record: options evaluated, selected design, residual risk).
+# Version record + sources: ops/openhands/VERSIONS.md
+# Read-only checks: scripts/ops/openhands/preflight.sh,
+#   scripts/ops/openhands/verify-private-bind.sh,
+#   scripts/ops/openhands/verify-sandbox-boundary.sh,
+#   scripts/ops/openhands/verify-no-production-access.sh,
+#   scripts/ops/openhands/verify-dedicated-daemon.sh
+#
+# ============================================================================
+# DOCKER ISOLATION DESIGN — dedicated rootless daemon (selected design, #1 of
+# 4 evaluated in docs/operations/OPENHANDS_DOCKER_ISOLATION.md). Read this
+# section before touching any docker.sock / DOCKER_HOST line below.
+# ============================================================================
+#
+# - The PRIMARY host Docker socket (/var/run/docker.sock, and the primary
+#   Docker context/daemon it represents) is FORBIDDEN in this package,
+#   unconditionally, at every phase. It is never mounted, never referenced by
+#   DOCKER_HOST, and never the target of any script under
+#   scripts/ops/openhands/. This is a hard rule, not a default that a future
+#   edit can quietly relax — scripts/ops/openhands/lib/common.sh's
+#   openhands_assert_isolation_context() fails closed if it is.
+# - Instead, OpenHands (this control-plane container AND every sandbox
+#   container it spawns) talks ONLY to a SEPARATE, DEDICATED, rootless Docker
+#   daemon that exists solely for OpenHands. That dedicated daemon:
+#     - listens on its own Unix socket at
+#       $OPENHANDS_HOME/docker/docker.sock (never /var/run/docker.sock),
+#       where OPENHANDS_HOME defaults to $HOME/corpflowai-openhands
+#       (see ops/openhands/.env.example, scripts/ops/openhands/lib/common.sh);
+#     - stores all image/container/volume state under its own
+#       --data-root at $OPENHANDS_HOME/docker-data — never
+#       /var/lib/docker, so it can never collide with, read, or corrupt the
+#       primary daemon's images/containers/volumes (Uptime Kuma, n8n, Beszel,
+#       ERPNext-sandbox, etc. are invisible to this daemon and vice versa);
+#     - runs as an unprivileged systemd --user service
+#       (scripts/ops/systemd/corpflowai-openhands-dockerd.service, INACTIVE,
+#       not enabled by default) wrapped by a systemd slice
+#       (scripts/ops/systemd/corpflowai-openhands.slice) that caps the
+#       COMBINED control-plane + dockerd + every spawned sandbox container at
+#       ~4 GiB RAM / 200% CPU / 1024 tasks — a real, kernel-cgroup-enforced
+#       ceiling, not just a documented policy number.
+# - Practical effect: even a full compromise of this container (e.g. via a
+#   supply-chain issue in the pinned image, or the control plane's own
+#   tool-calling being abused) grants control over the DEDICATED daemon's own
+#   containers/images/volumes/data-root only. It does NOT grant host-root, and
+#   it does NOT reach any other container on this box, because rootless
+#   dockerd maps its "root" to an unprivileged host UID and has no visibility
+#   into the primary daemon's socket, data-root, or resources at all. This is
+#   a materially smaller blast radius than the primary-socket design reviewed
+#   in the original PR #747 threat model (see
+#   docs/operations/OPENHANDS_SECURITY_MODEL.md § 3, which this design
+#   supersedes — that section is being kept as a historical record of the
+#   rejected default, not re-authored here).
+# - Residual risk (not eliminated, disclosed honestly): the dedicated daemon
+#   is still a real Docker API surface. A compromised control plane can still
+#   create/start/stop containers, pull images, and create networks/volumes
+#   WITHIN that dedicated daemon — including, in principle, a container that
+#   bind-mounts a host path the daemon process itself can read (rootless
+#   dockerd's own filesystem view, scoped to the operator's UID). This is why
+#   $OPENHANDS_HOME is a fresh, dedicated, empty-at-install directory — never
+#   the operator's real home directory root, never a path containing other
+#   tool state. See docs/operations/OPENHANDS_DOCKER_ISOLATION.md "Residual
+#   risks" for the full list, including why a socket-proxy was rejected as an
+#   initial carve-out (ContainerCreate can still specify host binds; there is
+#   no safe default ACL for Create in the tools evaluated).
+# - `host.docker.internal` / extra_hosts is REMOVED entirely (not merely
+#   unused) as of this revision. OpenHands does not need host-loopback
+#   service access — its only required egress is outbound to the operator's
+#   chosen external LLM API provider over normal network egress. Any future
+#   need to reach a host-bound service must be re-justified from scratch, not
+#   quietly re-added.
+#
+# Hard rules encoded in this file:
+# - Loopback-only publish: "127.0.0.1:3000:3000". Never "0.0.0.0" or a bare
+#   port.
+# - No privileged: true. No host networking on the control-plane service.
+# - No POSTGRES_* env vars, no CorpFlowAI production secrets, ever.
+# - Named project (`corpflowai-openhands`) and named resources only — never
+#   default/anonymous compose names — so rollback/uninstall scripts can target
+#   precisely and never touch unrelated containers.
+# - Resource envelope (operator policy AND, for the total ceiling, a real
+#   systemd-slice enforcement — see scripts/ops/systemd/corpflowai-openhands.slice):
+#   control plane ~1 CPU / 1536 MiB here; separate sandbox guidance bounded by
+#   the 4 GiB aggregate ceiling (concurrency 1) documented in VERSIONS.md and
+#   config/openhands/config.example.toml — total ceiling ~4 GiB across control
+#   + one concurrent sandbox, backstopped by the slice's MemoryMax=4G.
+# - This compose file MUST be run with DOCKER_HOST pointed at the dedicated
+#   socket (see .env / OPENHANDS_DOCKER_HOST below). `docker compose` (and
+#   every script in this package) resolves the effective Docker endpoint from
+#   the ambient DOCKER_HOST env var / active `docker context` — there is no
+#   compose-file syntax that pins this itself, so the isolation guarantee
+#   lives in the *scripts* (openhands_docker() wrapper in
+#   scripts/ops/openhands/lib/common.sh), not in this YAML alone. Never run
+#   `docker compose -f ops/openhands/compose.yaml ...` directly without first
+#   sourcing/exporting the dedicated DOCKER_HOST — use install.sh /
+#   preflight.sh / the other scripts, which enforce this via the wrapper.
+
+name: corpflowai-openhands
+
+services:
+  corpflowai-openhands-app:
+    image: docker.openhands.dev/openhands/openhands:1.8
+    container_name: corpflowai-openhands-app
+    restart: unless-stopped
+
+    # Loopback-only. Do not remove the "127.0.0.1:" prefix.
+    ports:
+      - "127.0.0.1:3000:3000"
+
+    volumes:
+      # DEDICATED daemon socket ONLY — never /var/run/docker.sock. Host-side
+      # path comes from OPENHANDS_DOCKER_SOCK (default
+      # $OPENHANDS_HOME/docker/docker.sock; see ops/openhands/.env.example).
+      # The container-internal path is fixed at /run/openhands-docker/docker.sock
+      # (override with OPENHANDS_DOCKER_SOCK_IN_CONTAINER only if the app
+      # image requires a different in-container path — do not change this to
+      # /var/run/docker.sock inside the container either, to avoid confusing
+      # log/tooling output that assumes the conventional path means "the
+      # primary daemon").
+      #
+      # Read-write is required because OpenHands creates/manages sibling
+      # sandbox containers via the Docker API against this DEDICATED daemon —
+      # never against the host's primary daemon.
+      - ${OPENHANDS_DOCKER_SOCK}:${OPENHANDS_DOCKER_SOCK_IN_CONTAINER:-/run/openhands-docker/docker.sock}
+
+      # Persistent OpenHands state (conversation history, config cache, etc.)
+      # mapped from the upstream-documented ~/.openhands path into a named,
+      # project-scoped volume — never a bind mount of the operator's real home
+      # directory.
+      - corpflowai-openhands-state:/.openhands
+
+      # Task workspace ONLY. Scoped to a single named volume dedicated to
+      # OpenHands task files — never "/" and never "/home". If a bind mount is
+      # substituted at install time, it must point at the dedicated
+      # $OPENHANDS_WORKSPACE_DIR (default $OPENHANDS_HOME/workspace) created
+      # for this purpose, never at an existing project checkout or home
+      # directory root.
+      - corpflowai-openhands-workspace:/workspace
+
+      # CORPFLOWAI Option D spawn override — bind-mount over upstream
+      # docker_sandbox_service.py so dynamically created agent-server sandboxes
+      # join corpflowai-openhands-net with ExtraHosts=[], no host-gateway, no
+      # published host ports, and approved per-sandbox HostConfig limits.
+      # See ops/openhands/runtime-overrides/README.md.
+      - ./runtime-overrides/docker_sandbox_service.py:/app/openhands/app_server/sandbox/docker_sandbox_service.py:ro
+
+      # CORPFLOWAI commissioning context-reduction overrides (issue #743).
+      # Disable browser tool schemas, default MCP create_* tools, and public
+      # skill discovery so the first Groq request can fit free-tier TPM.
+      # See docs/execution/OPENHANDS_COMMISSIONING_PROFILE_V1.md.
+      - ./runtime-overrides/live_status_app_conversation_service.py:/app/openhands/app_server/app_conversation/live_status_app_conversation_service.py:ro
+      - ./runtime-overrides/app_conversation_service_base.py:/app/openhands/app_server/app_conversation/app_conversation_service_base.py:ro
+
+    environment:
+      # Forces this container's own Docker client (if it invokes one
+      # internally, in addition to the upstream SDK talking to the mounted
+      # socket) at the DEDICATED daemon socket path inside the container.
+      # Must always match the container-internal side of the volume mount
+      # above — never point this at /var/run/docker.sock.
+      DOCKER_HOST: unix://${OPENHANDS_DOCKER_SOCK_IN_CONTAINER:-/run/openhands-docker/docker.sock}
+
+      # Sandbox runtime image the control plane pulls when spawning a task
+      # sandbox. Pinned — see ops/openhands/VERSIONS.md. Never "latest".
+      AGENT_SERVER_IMAGE_REPOSITORY: ghcr.io/openhands/agent-server
+      AGENT_SERVER_IMAGE_TAG: "1.26.0-python"
+
+      # Verbose event logging for review/audit during any future evaluation
+      # phase. Flip to "false" once evidence collection needs are lower.
+      LOG_ALL_EVENTS: "true"
+
+      # Sandbox containers must never use host networking — matches the
+      # no-host-network rule already enforced on this control-plane service
+      # (network_mode: host is never set below) and checked by
+      # scripts/ops/openhands/verify-sandbox-boundary.sh.
+      # Real knob read by OpenHands 1.8 Docker path: AGENT_SERVER_USE_HOST_NETWORK.
+      # (SANDBOX_USE_HOST_NETWORK is a silent no-op in this SDK version.)
+      AGENT_SERVER_USE_HOST_NETWORK: "false"
+
+      # CORPFLOWAI spawn-boundary knobs consumed by the bind-mounted override
+      # (ops/openhands/runtime-overrides/docker_sandbox_service.py). Upstream
+      # OpenHands 1.8 does NOT honor SANDBOX_ADDITIONAL_NETWORKS /
+      # SANDBOX_LOCAL_RUNTIME_URL on the app_server Docker path (those are V0
+      # runtime docs leftovers). Do not re-add them as if they worked.
+      CORPFLOWAI_SANDBOX_NETWORK: "corpflowai-openhands-net"
+      CORPFLOWAI_SANDBOX_WEBHOOK_BASE: "http://corpflowai-openhands-app:3000"
+      CORPFLOWAI_SANDBOX_MEM_LIMIT: "512m"
+      CORPFLOWAI_SANDBOX_NANO_CPUS: "500000000"
+      CORPFLOWAI_SANDBOX_PIDS_LIMIT: "256"
+
+      # REQUIRED for conversation setup under named-network isolation.
+      # OpenHands loads AppServerConfig via from_env(..., 'OH'), so this sets
+      # config.web_url. When web_url is unset, LiveStatusAppConversationService
+      # falls back to http://host.docker.internal:{port} and injects that as the
+      # default MCP server URL ({web_url}/mcp/mcp). With ExtraHosts emptied and
+      # no host-gateway, host.docker.internal does not resolve inside sandboxes
+      # → agent-server POST /api/conversations raises MCPError (HTTP 500) during
+      # SETTING_UP_SKILLS. Point web_url at the control-plane Docker DNS name on
+      # corpflowai-openhands-net (same origin as CORPFLOWAI_SANDBOX_WEBHOOK_BASE).
+      # Never host.docker.internal. Never a public bind.
+      OH_WEB_URL: "http://corpflowai-openhands-app:3000"
+      # Agent-server cold start on this host exceeds upstream's 15s default;
+      # without this the control plane marks a healthy-but-slow sandbox ERROR.
+      SANDBOX_STARTUP_GRACE_SECONDS: "120"
+
+      # CORPFLOWAI commissioning profile (minimal first-request context).
+      # Defaults keep browser / default MCP / public skills OFF so Groq
+      # free-tier gpt-oss-20b (8k TPM) can receive a usable first completion.
+      # Flip individual flags only after a known-good arithmetic baseline.
+      CORPFLOWAI_ENABLE_BROWSER: "0"
+      CORPFLOWAI_INJECT_DEFAULT_MCP: "0"
+      CORPFLOWAI_ENABLE_BUILTIN_AGENTS: "0"
+      CORPFLOWAI_MINIMAL_TOOLS: "1"
+      CORPFLOWAI_SHORT_SYSTEM_PROMPT: "1"
+      CORPFLOWAI_DISABLE_DEFAULT_BUILTIN_TOOLS: "1"
+      CORPFLOWAI_SKIP_WEB_HOST_SUFFIX: "1"
+      CORPFLOWAI_WIRE_CAPTURE: "0"
+      CORPFLOWAI_MAX_OUTPUT_TOKENS: "1024"
+      CORPFLOWAI_LOAD_PUBLIC_SKILLS: "0"
+      CORPFLOWAI_LOAD_USER_SKILLS: "0"
+      CORPFLOWAI_LOAD_PROJECT_SKILLS: "0"
+      CORPFLOWAI_LOAD_ORG_SKILLS: "0"
+
+      # Documented but NOT enforced by upstream 1.8 Docker path (silent no-ops
+      # for concurrency / timeout / iterations). Kept as operator intent +
+      # Settings-API / slice backstops — see VERSIONS.md. max_num_sandboxes=1
+      # is enforced by the runtime override injector default.
+      MAX_CONCURRENT_CONVERSATIONS: "1"
+      SANDBOX_TIMEOUT: "600"
+      MAX_ITERATIONS: "40"
+
+      # SANDBOX_VOLUMES is intentionally left UNSET by default. If a future,
+      # separately reviewed install needs the spawned sandbox to see a host
+      # path, it must point ONLY at the dedicated workspace directory below —
+      # never at the operator's home directory, never at another tool's
+      # state, and never as a way to reach the primary Docker socket.
+      # SANDBOX_VOLUMES: "${OPENHANDS_WORKSPACE_DIR:?set OPENHANDS_WORKSPACE_DIR in .env}:/workspace:rw"
+
+      # LLM provider credentials are intentionally NOT set here. They must
+      # come from an approved secret store at install time via a real .env
+      # (never committed) — see ops/openhands/.env.example. This compose file
+      # must never gain POSTGRES_*, MASTER_ADMIN_KEY, or any CorpFlowAI
+      # production secret name.
+
+    # Control-plane resource envelope. Sandbox containers spawned by this
+    # service are bounded in aggregate by the systemd slice
+    # (scripts/ops/systemd/corpflowai-openhands.slice, MemoryMax=4G) that
+    # wraps BOTH the dedicated dockerd unit and every container it runs — see
+    # the DOCKER ISOLATION DESIGN header above. Per-sandbox native HostConfig
+    # limits are still not available on the OSS Docker path in app 1.8 (see
+    # ops/openhands/VERSIONS.md); the slice is the real backstop for the
+    # *total*, MAX_CONCURRENT_CONVERSATIONS=1 is the backstop for
+    # concurrency, and SANDBOX_TIMEOUT bounds any single stuck task.
+    mem_limit: 1536m
+    cpus: "1.0"
+    pids_limit: 512
+
+    security_opt:
+      - no-new-privileges:true
+
+    # cap_drop: [ALL] is NOT applied here. Even against the DEDICATED daemon
+    # (not the primary socket — see header), this container's effective
+    # privilege inside that daemon's namespace is bounded by what the
+    # dedicated dockerd will do on its behalf, not by Linux capabilities
+    # inside this container — dropping all capabilities here would not
+    # meaningfully change that and could break the app's own process
+    # management. Documented trade-off, not an oversight: privileged: true is
+    # still never used, and no-new-privileges is still applied above.
+    # cap_drop:
+    #   - ALL
+
+    # host.docker.internal / extra_hosts REMOVED as of this revision — see
+    # "DOCKER ISOLATION DESIGN" header. External LLM API access is normal
+    # outbound egress via the network below; no host-loopback service is
+    # required.
+
+    healthcheck:
+      # Official OpenHands health endpoint (docs.openhands.dev, checked
+      # 2026-08-04) — NOT the bare "/", which does not reliably reflect
+      # control-plane readiness. See ops/openhands/VERSIONS.md and
+      # docs/operations/OPENHANDS_DOCKER_ISOLATION.md "Health" for the
+      # residual caveat that /health is process liveness, not full sandbox
+      # readiness.
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+    networks:
+      - corpflowai-openhands-net
+
+networks:
+  corpflowai-openhands-net:
+    name: corpflowai-openhands-net
+    driver: bridge
+    # internal: false is REQUIRED (not a mistake) — the app must reach the
+    # operator's chosen external LLM API provider over the internet. This is
+    # a real egress path from the box and must be reviewed as part of any
+    # install authorization, not assumed benign. It does not, on its own,
+    # expose anything inbound — inbound exposure is controlled solely by the
+    # loopback-only `ports:` mapping above. This network is created on the
+    # DEDICATED daemon (see DOCKER_HOST above), not on the primary daemon, so
+    # it is invisible to `docker network ls` against the primary socket.
+    internal: false
+
+volumes:
+  corpflowai-openhands-state:
+    name: corpflowai-openhands-state
+  corpflowai-openhands-workspace:
+    name: corpflowai-openhands-workspace

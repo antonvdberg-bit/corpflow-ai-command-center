@@ -1,0 +1,23 @@
+{
+  "_status": "INACTIVE — EXAMPLE ONLY. Not read by any running daemon. Copy to a real daemon.json under $OPENHANDS_HOME/docker/daemon.json ONLY at an Anton-approved install step. Controlling issue: #743. See ops/openhands/daemon/README.md and docs/operations/OPENHANDS_DOCKER_ISOLATION.md.",
+
+  "_cli_vs_file_note": "When using scripts/ops/systemd/corpflowai-openhands-dockerd.service, --host and --data-root are already set as CLI flags. Do NOT also set data-root or hosts in the live daemon.json — Docker refuses duplicate flag+file directives. The reviewed live daemon.json therefore contains ONLY the keys below (no data-root, no hosts).",
+
+  "_cgroup_driver_note": "REQUIRED. Rootless dedicated daemon must use the systemd cgroup driver so cgroup-parent resolves to a real user slice.",
+  "exec-opts": ["native.cgroupdriver=systemd"],
+
+  "_cgroup_parent_note": "REQUIRED. Default parent for EVERY container this daemon creates. Must be the reviewed user sub-slice corpflowai-openhands-containers.slice (child of corpflowai-openhands.slice by systemd naming). Verified live on corpflow-exec-01-u69678: without this key, containers land under unrestricted user.slice/.../docker-<id>.scope and escape the aggregate MemoryMax/CPUQuota.",
+  "cgroup-parent": "corpflowai-openhands-containers.slice",
+
+  "_log_opts_note": "Daemon-level default log driver/size cap, separate from (and in addition to) the per-service logging: block in ops/openhands/compose.yaml.",
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "5"
+  },
+
+  "_iptables_note": "Rootless dockerd typically cannot manage host iptables; published ports must still be verified loopback-only via scripts/ops/openhands/verify-private-bind.sh.",
+  "iptables": false,
+
+  "_primary_forbidden_note": "Never set hosts to unix:///var/run/docker.sock. Never set data-root to /var/lib/docker. Path pins for the dedicated socket and data-root belong on the systemd unit ExecStart flags (see corpflowai-openhands-dockerd.service)."
+}
