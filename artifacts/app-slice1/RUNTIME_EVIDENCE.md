@@ -3,7 +3,8 @@
 **Date:** 2026-08-06  
 **Branch:** `cursor/dispatcher-issue-778-7cf4`  
 **Agent / run:** `bc-454508b6-2860-497c-b9c2-db796d038587`  
-**Draft PR:** https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/779
+**Draft PR:** https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/779  
+**Head SHA:** `c324e752872b9d39a019cac7f2bd85ce85cbd27c`
 
 ## Local runtime
 
@@ -12,6 +13,8 @@
 | `node --test node-tests/app-slice1-*.test.mjs` | **14/14 PASS** |
 | `npm test` | **PASS** (exit 0) |
 | `npm run build` | **PASS** — routes `/app`, `/app/requests`, `/app/core/requests/[id]` present |
+| GitHub `test` / `vercel-env` on PR #779 | **PASS** |
+| Vercel Preview deploy | Ignored build step (no preview URL); local runtime used instead |
 | Local server | `npx next start -p 3010` |
 | `GET /app?demo=slice1` | **200** |
 | `GET /app/requests?demo=slice1` | **200** |
