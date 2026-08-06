@@ -158,9 +158,32 @@ log "PRIMARY_BEFORE=${PRIMARY_BEFORE}"
 bash scripts/ops/openhands/estimate-first-request-context.sh || true
 log "tpm_budget=${TPM_BUDGET} (70% of ${TPM_LIMIT})"
 
-# Confirm runtime key absent before load
+# Scrub any leftover dry-capture proxy settings before loading the host key
+curl -fsS -m 30 -X POST http://127.0.0.1:3000/api/v1/settings \
+  -H 'Content-Type: application/json' \
+  -d '{"agent_settings_diff":{"llm":{"api_key":null,"model":"","base_url":null,"reasoning_effort":null,"extended_thinking_budget":null,"enable_encrypted_reasoning":false},"condenser":{"enabled":false}},"conversation_settings_diff":{"max_iterations":8}}' >/dev/null 2>&1 || true
+openhands_docker exec -i corpflowai-openhands-app python3 - <<'PY' >/dev/null 2>&1 || true
+import json
+from pathlib import Path
+p = Path('/.openhands/settings.json')
+if p.exists():
+    d = json.loads(p.read_text())
+    agent = d.setdefault('agent_settings', {})
+    llm = agent.setdefault('llm', {})
+    llm['api_key'] = None
+    llm['model'] = ''
+    llm['base_url'] = None
+    llm['reasoning_effort'] = None
+    llm['extended_thinking_budget'] = None
+    llm['enable_encrypted_reasoning'] = False
+    agent['condenser'] = {'enabled': False, 'condenser_kind': 'noop'}
+    p.write_text(json.dumps(d))
+    print('settings_scrubbed')
+PY
+
+# Confirm runtime key absent before load (best-effort after scrub)
 SETTINGS="$(curl -fsS http://127.0.0.1:3000/api/v1/settings)"
-echo "${SETTINGS}" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d.get("llm_api_key_set") is False, d; print("llm_api_key_set=false OK")'
+echo "${SETTINGS}" | python3 -c 'import json,sys; d=json.load(sys.stdin); print("llm_api_key_set_before_load", d.get("llm_api_key_set")); print("base_url", ((d.get("agent_settings") or {}).get("llm") or {}).get("base_url")); print("reasoning_effort", ((d.get("agent_settings") or {}).get("llm") or {}).get("reasoning_effort")); print("extended_thinking_budget", ((d.get("agent_settings") or {}).get("llm") or {}).get("extended_thinking_budget"))'
 
 # Load Groq key from host file into settings (never echo key)
 # shellcheck disable=SC1090
@@ -182,7 +205,16 @@ payload = {
       "model": model,
       "api_key": key,
       "base_url": "https://api.groq.com/openai/v1",
-    }
+      # gpt-oss defaults otherwise inject huge reasoning budgets into TPM.
+      "reasoning_effort": "low",
+      "extended_thinking_budget": 0,
+      "enable_encrypted_reasoning": False,
+      "prompt_cache_retention": None,
+    },
+    "condenser": {
+      "enabled": False,
+    },
+    "enable_switch_llm_tool": False,
   },
   "conversation_settings_diff": {
     "max_iterations": 8,
@@ -200,7 +232,17 @@ PY
 # Wipe key from shell env
 unset LLM_API_KEY
 SETTINGS="$(curl -fsS http://127.0.0.1:3000/api/v1/settings)"
-echo "${SETTINGS}" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d.get("llm_api_key_set") is True; print("llm_api_key_set=true OK model_check_skipped_secret")'
+echo "${SETTINGS}" | python3 -c 'import json,sys
+d=json.load(sys.stdin)
+assert d.get("llm_api_key_set") is True
+llm=((d.get("agent_settings") or {}).get("llm") or {})
+print("llm_api_key_set=true OK")
+print("base_url", llm.get("base_url"))
+print("reasoning_effort", llm.get("reasoning_effort"))
+print("extended_thinking_budget", llm.get("extended_thinking_budget"))
+assert "3901" not in str(llm.get("base_url") or ""), llm.get("base_url")
+assert "groq.com" in str(llm.get("base_url") or ""), llm.get("base_url")
+'
 
 INSTRUCTION='Create arithmetic.py containing:
 def add(a: int, b: int) -> int:

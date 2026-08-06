@@ -95,6 +95,7 @@ openhands_docker exec corpflowai-openhands-app curl -fsS http://127.0.0.1:3901/h
 echo
 
 # Point settings at capture proxy with a non-secret placeholder key (never Groq)
+# Mirror production commissioning LLM knobs (no huge reasoning budget / condenser).
 python3 - <<'PY'
 import json, urllib.request
 payload = {
@@ -103,7 +104,12 @@ payload = {
       "model": "groq/openai/gpt-oss-20b",
       "api_key": "corpflowai-wire-capture-dry-key",
       "base_url": "http://corpflowai-openhands-app:3901/v1",
-    }
+      "reasoning_effort": "low",
+      "extended_thinking_budget": 0,
+      "enable_encrypted_reasoning": False,
+    },
+    "condenser": {"enabled": False},
+    "enable_switch_llm_tool": False,
   },
   "conversation_settings_diff": {"max_iterations": 2},
 }
