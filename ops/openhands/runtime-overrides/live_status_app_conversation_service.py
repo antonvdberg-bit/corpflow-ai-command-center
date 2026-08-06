@@ -20,6 +20,10 @@ Env gates (default = minimal commissioning profile):
   CORPFLOWAI_INJECT_DEFAULT_MCP=0|1      (default 0)
   CORPFLOWAI_ENABLE_BUILTIN_AGENTS=0|1   (default 0)
   CORPFLOWAI_MINIMAL_TOOLS=0|1          (default 1; terminal+file_editor only)
+  CORPFLOWAI_SHORT_SYSTEM_PROMPT=0|1     (default 1; inline commissioning prompt)
+  CORPFLOWAI_DISABLE_DEFAULT_BUILTIN_TOOLS=0|1 (default 1; drop ThinkTool; keep FinishTool)
+  CORPFLOWAI_SKIP_WEB_HOST_SUFFIX=0|1    (default 1; omit <HOST> web_url suffix)
+  CORPFLOWAI_WIRE_CAPTURE=0|1            (default 0; enable LLM.log_completions)
 
 Isolation / OH_WEB_URL / named-network rules are unchanged.
 Controlling issue: #743 / PR #747.
@@ -189,6 +193,43 @@ def _corpflowai_enable_builtin_agents() -> bool:
 def _corpflowai_minimal_tools_only() -> bool:
     """When true (default), expose only terminal + file_editor (no task_tracker)."""
     return _corpflowai_env_flag('CORPFLOWAI_MINIMAL_TOOLS', '1')
+
+
+def _corpflowai_short_system_prompt() -> bool:
+    """When true (default), replace default system_prompt.j2 with a short inline prompt."""
+    return _corpflowai_env_flag('CORPFLOWAI_SHORT_SYSTEM_PROMPT', '1')
+
+
+def _corpflowai_disable_default_builtin_tools() -> bool:
+    """When true (default), do not auto-include ThinkTool; keep FinishTool only."""
+    return _corpflowai_env_flag('CORPFLOWAI_DISABLE_DEFAULT_BUILTIN_TOOLS', '1')
+
+
+def _corpflowai_skip_web_host_suffix() -> bool:
+    """When true (default), omit <HOST>{web_url}</HOST> from system_message_suffix."""
+    return _corpflowai_env_flag('CORPFLOWAI_SKIP_WEB_HOST_SUFFIX', '1')
+
+
+def _corpflowai_wire_capture() -> bool:
+    """When true, enable LLM.log_completions for sanitised post-hoc inspection."""
+    return _corpflowai_env_flag('CORPFLOWAI_WIRE_CAPTURE', '0')
+
+
+# Commissioning-only system prompt (fail-closed via CORPFLOWAI_SHORT_SYSTEM_PROMPT).
+# Kept inline so the bind-mounted override does not need an extra import path.
+CORPFLOWAI_COMMISSIONING_SYSTEM_PROMPT = (
+    'You are CorpFlowAI OpenHands commissioning agent (synthetic only).\n\n'
+    'Rules:\n'
+    '- Work only inside the supplied disposable workspace.\n'
+    '- Use only terminal and file_editor.\n'
+    '- Complete the user task directly; do not plan at length.\n'
+    '- Do not access GitHub, production systems, host files outside the '
+    'workspace, or client data.\n'
+    '- Do not install packages. Do not browse the web.\n'
+    '- Create required files, run tests with local Python, report the result, '
+    'then stop.\n\n'
+    'Retain sandbox boundaries. Prefer minimal tool calls.\n'
+)
 
 
 @dataclass
@@ -1221,10 +1262,28 @@ class LiveStatusAppConversationService(AppConversationServiceBase):
             overrides['system_prompt_kwargs'] = {
                 'plan_structure': format_plan_structure()
             }
+        elif _corpflowai_short_system_prompt():
+            # Inline short prompt rides in StartConversationRequest to agent-server.
+            # Mutually exclusive with a custom system_prompt_filename.
+            overrides['system_prompt'] = CORPFLOWAI_COMMISSIONING_SYSTEM_PROMPT
+            _logger.info(
+                'CORPFLOWAI: short commissioning system_prompt enabled '
+                '(CORPFLOWAI_SHORT_SYSTEM_PROMPT=1) chars=%s',
+                len(CORPFLOWAI_COMMISSIONING_SYSTEM_PROMPT),
+            )
         else:
             overrides['system_prompt_kwargs'] = {'cli_mode': False}
 
-        # LLM tracing metadata for openhands/ models
+        if _corpflowai_disable_default_builtin_tools():
+            # Drop ThinkTool schema/prompt cost; keep FinishTool for clean stop.
+            overrides['include_default_tools'] = ['FinishTool']
+            _logger.info(
+                'CORPFLOWAI: include_default_tools=[FinishTool] '
+                '(CORPFLOWAI_DISABLE_DEFAULT_BUILTIN_TOOLS=1)'
+            )
+
+        # LLM tracing metadata for openhands/ models + optional wire capture
+        llm_updates: dict[str, Any] = {}
         if should_set_litellm_extra_body(agent.llm.model):
             llm_metadata = get_llm_metadata(
                 model_name=agent.llm.model,
@@ -1232,9 +1291,12 @@ class LiveStatusAppConversationService(AppConversationServiceBase):
                 conversation_id=conversation_id,
                 user_id=user_id,
             )
-            overrides['llm'] = agent.llm.model_copy(
-                update={'litellm_extra_body': {'metadata': llm_metadata}}
-            )
+            llm_updates['litellm_extra_body'] = {'metadata': llm_metadata}
+        if _corpflowai_wire_capture():
+            llm_updates['log_completions'] = True
+            _logger.info('CORPFLOWAI: LLM.log_completions=True (wire capture)')
+        if llm_updates:
+            overrides['llm'] = agent.llm.model_copy(update=llm_updates)
 
         # Condenser LLM tracing
         if agent.condenser is not None and hasattr(agent.condenser, 'llm'):
@@ -1480,13 +1542,19 @@ class LiveStatusAppConversationService(AppConversationServiceBase):
                 effective_suffix = PLANNING_AGENT_INSTRUCTION
 
         # --- web host context -----------------------------------------------
-        # Add WEB_HOST to agent context if available
-        if self.web_url:
+        # Add WEB_HOST to agent context if available (skipped in commissioning
+        # to avoid injecting control-plane URL prose into the first request).
+        if self.web_url and not _corpflowai_skip_web_host_suffix():
             web_host_context = f'<HOST>\n{self.web_url}\n</HOST>'
             if effective_suffix:
                 effective_suffix = f'{effective_suffix}\n\n{web_host_context}'
             else:
                 effective_suffix = web_host_context
+        elif self.web_url and _corpflowai_skip_web_host_suffix():
+            _logger.info(
+                'CORPFLOWAI: skipping <HOST> web_url suffix '
+                '(CORPFLOWAI_SKIP_WEB_HOST_SUFFIX=1)'
+            )
 
         # --- tools ----------------------------------------------------------
         agent_definitions: list[Any] = []
@@ -1543,14 +1611,15 @@ class LiveStatusAppConversationService(AppConversationServiceBase):
         # filesystem, so we attach the agent's built-in switch_llm tool
         # ourselves rather than relying on create_agent()'s gating. Enabled
         # whenever there are at least two valid saved profiles (a switch needs
-        # a target).
+        # a target). Skip during commissioning — SwitchLLMTool schema bloat.
         valid_profile_names = [
             name
             for name in user.llm_profiles.profiles
             if PROFILE_NAME_REGEX.match(name)
         ]
         if (
-            len(valid_profile_names) >= 2
+            not _corpflowai_disable_default_builtin_tools()
+            and len(valid_profile_names) >= 2
             and SwitchLLMTool.__name__ not in agent.include_default_tools
         ):
             agent = agent.model_copy(

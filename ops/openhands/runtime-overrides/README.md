@@ -37,14 +37,19 @@
 #   - live_status_app_conversation_service.py
 #       Gates enable_browser / default MCP injection / builtin agents via
 #       CORPFLOWAI_ENABLE_BROWSER, CORPFLOWAI_INJECT_DEFAULT_MCP,
-#       CORPFLOWAI_ENABLE_BUILTIN_AGENTS (default 0), CORPFLOWAI_MINIMAL_TOOLS (default 1).
+#       CORPFLOWAI_ENABLE_BUILTIN_AGENTS (default 0), CORPFLOWAI_MINIMAL_TOOLS (default 1),
+#       CORPFLOWAI_SHORT_SYSTEM_PROMPT (default 1), CORPFLOWAI_DISABLE_DEFAULT_BUILTIN_TOOLS (default 1),
+#       CORPFLOWAI_SKIP_WEB_HOST_SUFFIX (default 1), CORPFLOWAI_WIRE_CAPTURE (default 0).
 #   - app_conversation_service_base.py
 #       Gates skill sources via CORPFLOWAI_LOAD_{PUBLIC,USER,PROJECT,ORG}_SKILLS
 #       (all default 0).
+#   - commissioning_prompt.py / wire_capture_proxy.py
+#       Sanitised wire analyzer + OpenAI-compatible dry-capture proxy (no Groq).
 #
 # Why: OpenHands 1.8 hardcodes browser tools + default MCP + public skills on
 # the conversation start path. First Groq free-tier completion was rejected
-# at ~33k–47k tokens vs 8k TPM (gpt-oss-20b). No Settings API field turns
-# those off. See docs/execution/OPENHANDS_COMMISSIONING_PROFILE_V1.md.
+# at ~33k–47k tokens vs 8k TPM (gpt-oss-20b). Tool-only reduction still hit
+# ~33k–38k. No Settings API field turns those off. See
+# docs/execution/OPENHANDS_COMMISSIONING_PROFILE_V1.md.
 #
 # Controlling issue: #743. Remediation on PR #747.
