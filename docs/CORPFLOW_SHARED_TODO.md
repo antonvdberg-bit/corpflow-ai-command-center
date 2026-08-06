@@ -131,6 +131,7 @@ The self-hosted ops server runs **supporting services** alongside the existing C
 
 **Extended narrative / rubric:** `artifacts/firm_request_db-driven-staged-path.md` (factory vs brain, Luxe login ops) — supplementary to the operations doc above.
 
+- [x] **#773 central app audit (docs-only)** — route/capability matrix + first-slice recommendation: `docs/architecture/CORPFLOW_CENTRAL_APP_ROUTE_CAPABILITY_AUDIT_V1.md` (`JE-2026-08-06-1`). **NO IMPLEMENTATION AUTHORIZED** in the audit packet; shell + synthetic Requests & Progress is the next bounded packet after acceptance.
 - **Unify tenant site read** — one server helper for merged `{ tenant, site }` used by Next `getServerSideProps` and `GET /api/tenant/site`.
 - **Cache public reads** — `Cache-Control` (and optional `ETag`) on `GET /api/tenant/site` for anonymous traffic.
 - **Prisma / Postgres pooling** — align serverless client usage with Neon guidance (pooled vs non-pooled endpoints already enumerated in `docs/operations/POSTGRES_PROVIDER.md`; document any chosen pooling pattern there or in `CONTEXT.md`).
