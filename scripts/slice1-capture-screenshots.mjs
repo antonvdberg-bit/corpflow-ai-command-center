@@ -1,5 +1,5 @@
 /**
- * Capture desktop + mobile screenshots for Slice 1 proof UI.
+ * Capture desktop + mobile screenshots for separate Core / Tenant proof UIs.
  * Expects proof server on SLICE1_PROOF_PORT (default 4788).
  */
 import fs from 'node:fs';
@@ -24,19 +24,19 @@ async function shot(browser, name, url, viewport) {
 
 const browser = await chromium.launch({ headless: true });
 try {
-  await shot(browser, 'tenant-desktop.png', `${base}/app?proof=1&scope=tenant`, {
+  await shot(browser, 'tenant-desktop.png', `${base}/app/tenant?proof=1`, {
     width: 1440,
     height: 900,
   });
-  await shot(browser, 'tenant-mobile.png', `${base}/app?proof=1&scope=tenant`, {
+  await shot(browser, 'tenant-mobile.png', `${base}/app/tenant?proof=1`, {
     width: 390,
     height: 844,
   });
-  await shot(browser, 'core-desktop.png', `${base}/app?proof=1&scope=core`, {
+  await shot(browser, 'core-desktop.png', `${base}/app/core?proof=1`, {
     width: 1440,
     height: 900,
   });
-  await shot(browser, 'core-mobile.png', `${base}/app?proof=1&scope=core`, {
+  await shot(browser, 'core-mobile.png', `${base}/app/core?proof=1`, {
     width: 390,
     height: 844,
   });

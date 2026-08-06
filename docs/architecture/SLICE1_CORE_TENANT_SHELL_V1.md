@@ -1,26 +1,35 @@
-# Slice 1 — Core/Tenant shell + Requests & Progress (runtime)
+# Slice 1 — Separate Core / Tenant auth + Requests & Progress (runtime)
 
 **Issue:** [#778](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/778) (implements first runtime slice of [#773](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/773))  
 **Audit parent:** PR [#774](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/774) route/capability matrix  
-**Status:** Runtime slice implemented (draft PR) — synthetic data only  
+**Status:** Runtime slice reworked — **separately authenticated** Core and Tenant entry paths  
 **Date:** 2026-08-06
+
+## Authoritative correction
+
+- Core and Tenant use **different** credentials and session protocols (`typ=admin` vs `typ=tenant`).
+- A Core session **must never** enter Tenant.
+- A Tenant session **must never** enter Core.
+- CorpFlowAI Tenant uses **normal tenant authentication** (not admin privilege).
+- One production app, one Postgres — no second identity system.
+- **Removed:** shared-auth `ScopeSwitcher` architecture.
 
 ## What shipped
 
-| Surface | Path | Notes |
-| ------- | ---- | ----- |
-| App shell entry | `/app` | Persistent Scope · Tenant · Role chrome |
-| Scope entry | Core / Tenant — CorpFlowAI | Visually distinct themes |
-| Tenant Requests & Progress | `/app?scope=tenant` | Client-safe projection |
-| Core request/work view | `/app?scope=core` | Same request id + internal refs + exposure |
-| APIs | `/api/app/shell`, `/requests`, `/request`, `/component-review`, `/component-expose` | Synthetic store; no external send |
+| Surface | Path | Auth |
+| ------- | ---- | ---- |
+| Entry chooser | `/app` | Links only — no shared session switch |
+| Core app | `/app/core` | Existing Core/admin session (`typ=admin`) |
+| Tenant app | `/app/tenant` | Existing tenant session (`typ=tenant`, CorpFlowAI) |
+| Core menu | All requests / Tenant · CorpFlowAI / Request · work | Within Core only |
+| Tenant menu | Requests & Progress | Within Tenant only |
+| APIs | `/api/app/shell`, `/requests`, `/request`, `/component-review`, `/component-expose` | Environment-gated |
 
 ## Reuse
 
-- Auth/session (`/api/auth/me`, cookie session)
-- Membership/scope ideas from Core picker (not expanded)
-- Workflow/progress mindset from `client_view` + deterministic milestone roll-up
-- Preview/client decision patterns (approve / amend / reject) at **component** grain for Slice 1
+- Auth/session (`/api/auth/login` levels `admin` \| `tenant`, cookie `corpflow_session`)
+- Deterministic progress roll-up, tenant-safe projection, expose/review gates
+- Visual Core vs Tenant themes
 
 ## Explicit non-actions
 
@@ -30,11 +39,11 @@
 
 ## Proof mode
 
-`?proof=1` (or `x-corpflow-app-proof: 1`) enables a dual-scope synthetic actor on **local / Vercel Preview only**. Denied when `VERCEL_ENV=production`.
+`?proof=1` on `/app/core` or `/app/tenant` mints a **single-environment** proof actor (Preview / local only). Denied when `VERCEL_ENV=production`. Proof Core cannot call Tenant APIs and vice versa.
 
 ## Remaining limitations
 
 - Synthetic in-memory store only (resets on cold start)
 - Not wired to live `cmp_tickets` rows
-- Scope switch is in-shell (not full membership host switch)
 - `/change` remains the operational hub until later slices
+- Preview URLs may be SSO-gated for the team
