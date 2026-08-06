@@ -11,13 +11,16 @@
 
 ## Screenshots
 
-Captured after local `next start` (or preview) against demo URLs:
+Captured after local `npx next start -p 3010` against demo URLs (see `RUNTIME_EVIDENCE.md`):
 
 - `desktop-scope.png`
 - `desktop-tenant-requests.png`
 - `desktop-core-request.png`
+- `mobile-scope.png`
 - `mobile-tenant-requests.png`
 - `mobile-core-request.png`
+
+Reproduce: `node scripts/app-slice1-screenshots.mjs` (server must be up).
 
 ## Limitations (honest)
 
