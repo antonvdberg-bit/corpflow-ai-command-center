@@ -1,10 +1,11 @@
 # OpenHands commissioning profile v1 — minimal first-request context
 
-**Status:** COMPLETION-CAP FIX IN PROGRESS — LiteLLM default `max_output_tokens=32768` identified as TPM reservation root cause; commissioning cap `1024` + combined-token gate.  
+**Status:** FUNCTIONAL COMMISSIONING VERIFIED — merge-readiness prep only; **DO NOT MERGE OR ACTIVATE WITHOUT ANTON APPROVAL.**  
 **Controlling issue:** [#743](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/743)  
 **Draft PR:** [#747](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/747) (do not merge)  
-**Dataclass hotfix:** `dd65b9ea8105daf358528c4b58fb8963d01c7fc5`  
+**Verified head (commissioning):** `16cc5c0f7b1d22e7f3f513e640b85ab664a4e68e`  
 **OpenHands state on box (last verified):** INSTALLED — INACTIVE  
+**Live proof:** input ≈2748; `max_tokens=1024`; combined 3772; `reasoning_effort=low`; arithmetic 3/3 unittest OK; cleanup + credential scrub OK.  
 
 This document is the durable **known-good commissioning profile** target and the
 **measured root cause** of the Groq free-tier HTTP 413 / `rate_limit_exceeded`
