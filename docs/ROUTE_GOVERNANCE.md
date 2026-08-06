@@ -6,6 +6,12 @@ This document defines canonical route ownership and production expectations with
 
 - `/change` is the canonical operator UI route in production.
 - `/change` is implemented by the Next.js page **`pages/change.js`** on all hosts (Core and tenant). No Vercel rewrite is required.
+- `/change` remains temporarily operational and must **not** be expanded into the long-term Core/Tenant application shell (#773 / #778).
+
+## Central app shell (Slice 1 — synthetic)
+
+- `/app` is the thin authenticated Core/Tenant shell entry for Slice 1 (synthetic Requests & Progress).
+- See `docs/architecture/SLICE1_CORE_TENANT_SHELL_V1.md`. Not a second deployment; same Next app + Postgres.
 
 ## Experimental routes
 
