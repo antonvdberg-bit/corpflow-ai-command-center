@@ -710,3 +710,86 @@ model PaymentAttempt {
   @@index([status])
   @@map("payment_attempts")
 }
+
+/// Company Master v1 — governed company identity hub (#776 / #765).
+/// Binary artifacts use the existing Postgres BYTEA pattern (same store class as
+/// cmp_ticket_attachments), in a dedicated table — not ticket attachments.
+model CompanyMasterCompany {
+  id                 String   @id @default(cuid())
+  companyId          String   @unique @map("company_id")
+  tenantId           String?  @map("tenant_id")
+  companyType        String   @default("PRIVATE_COMPANY") @map("company_type")
+  jurisdiction       String   @default("MU")
+  lifecycleStatus    String   @default("DRAFT") @map("lifecycle_status")
+  verificationStatus String   @default("UNVERIFIED") @map("verification_status")
+  approvalStatus     String   @default("NOT_REQUESTED") @map("approval_status")
+  legalName          String   @map("legal_name")
+  tradingName        String?  @map("trading_name")
+  registrationNumber String?  @map("registration_number")
+  taxNumber          String?  @map("tax_number")
+  publicEmail        String?  @map("public_email")
+  publicPhone        String?  @map("public_phone")
+  website            String?
+  physicalAddress    String?  @map("physical_address")
+  registeredAddress  String?  @map("registered_address")
+  recordOwner        String   @default("role:company-master-operator") @map("record_owner")
+  isSynthetic        Boolean  @default(false) @map("is_synthetic")
+  nextReviewDate     DateTime? @map("next_review_date") @db.Date
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+  createdBy          String?  @map("created_by")
+  updatedBy          String?  @map("updated_by")
+
+  artifacts CompanyMasterArtifact[]
+
+  @@index([tenantId])
+  @@index([lifecycleStatus])
+  @@index([isSynthetic])
+  @@map("company_master_companies")
+}
+
+/// Company Master artifact metadata + binary bytes (Postgres BYTEA store).
+model CompanyMasterArtifact {
+  id                        String    @id @default(cuid())
+  companyId                 String    @map("company_id")
+  tenantId                  String?   @map("tenant_id")
+  logicalAlias              String    @map("logical_alias")
+  artifactType              String    @map("artifact_type")
+  title                     String
+  originalFilename          String    @map("original_filename")
+  mimeType                  String    @map("mime_type")
+  byteSize                  Int       @map("byte_size")
+  contentHash               String    @map("content_hash")
+  storageProvider           String    @default("MANAGED_OBJECT_STORAGE") @map("storage_provider")
+  storageObjectId           String    @map("storage_object_id")
+  retrievalReference        String    @map("retrieval_reference")
+  sensitivityClassification String    @map("sensitivity_classification")
+  publicationStatus         String    @map("publication_status")
+  verificationStatus        String    @map("verification_status")
+  approvalStatus            String    @map("approval_status")
+  lifecycleStatus           String    @map("lifecycle_status")
+  versionNumber             Int       @map("version_number")
+  supersedesArtifactId      String?   @map("supersedes_artifact_id")
+  isCurrent                 Boolean   @default(false) @map("is_current")
+  effectiveFrom             DateTime  @default(now()) @map("effective_from")
+  effectiveTo               DateTime? @map("effective_to")
+  expiryDate                DateTime? @map("expiry_date") @db.Date
+  uploadedBy                String?   @map("uploaded_by")
+  uploadedAt                DateTime  @default(now()) @map("uploaded_at")
+  verifiedBy                String?   @map("verified_by")
+  verifiedAt                DateTime? @map("verified_at")
+  approvedBy                String?   @map("approved_by")
+  approvedAt                DateTime? @map("approved_at")
+  recordOwner               String    @default("role:company-master-operator") @map("record_owner")
+  data                      Bytes
+  createdAt                 DateTime  @default(now()) @map("created_at")
+  updatedAt                 DateTime  @updatedAt @map("updated_at")
+
+  company CompanyMasterCompany @relation(fields: [companyId], references: [companyId], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([companyId, logicalAlias])
+  @@index([companyId, logicalAlias, isCurrent])
+  @@index([tenantId])
+  @@map("company_master_artifacts")
+}

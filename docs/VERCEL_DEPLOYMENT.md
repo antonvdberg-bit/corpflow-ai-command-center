@@ -15,6 +15,7 @@ After **PR #635**, Vercel does **not** automatically build every non-`main` bran
 
 - `VERCEL_ENV=production` or Git ref is `main`
 - Git ref matches `cursor/cipc-desk-*` (CIPC Desk private preview workstream)
+- Git ref matches `cursor/company-master-*` (Company Master runtime workstream, #776)
 - Commit message contains `[allow-vercel-preview]` (one-off opt-in)
 
 **Otherwise** the Git integration records an **Ignored** deployment and skips the build. This is intentional: tenant hosts on Production remain the client test environment; `*.vercel.app` previews are for internal / private verification only.

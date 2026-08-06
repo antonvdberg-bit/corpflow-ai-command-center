@@ -102,6 +102,7 @@ import { tryHandleLuxListingsPublicRead } from '../lib/server/lux-listings-publi
 import { handleLuxeMauriceAiPrivateAccessRequest, handleLuxeMauriceAiPrivateAccessRequestsList } from '../lib/server/luxe-maurice-ai-private-access-request.js';
 import { getChangeConsoleReadinessForTenant } from '../lib/server/change-console-readiness.js';
 import { growthPipelineHandler } from '../lib/server/growth-pipeline.js';
+import { companyMasterHandler } from '../lib/server/company-master-api.js';
 import { adminLeadRescueHandler } from '../lib/server/admin-lead-rescue-api.js';
 import { adminRapidDeliveryHandler } from '../lib/server/admin-rapid-delivery-api.js';
 import { recordTrustedAutomationEvent } from '../lib/automation/internal.js';
@@ -984,6 +985,10 @@ export default async function handler(req, res) {
 
   if (pathSeg === 'growth' || pathSeg.startsWith('growth/')) {
     return growthPipelineHandler(req, res, pathSeg);
+  }
+
+  if (pathSeg === 'company-master' || pathSeg.startsWith('company-master/')) {
+    return companyMasterHandler(req, res, pathSeg);
   }
 
   if (pathSeg === 'factory/lead-rescue' || pathSeg.startsWith('factory/lead-rescue/')) {
