@@ -1,9 +1,10 @@
 # OpenHands commissioning profile v1 — minimal first-request context
 
-**Status:** WIRE-PAYLOAD CONDENSATION IN PROGRESS — live wire dry-capture required before Groq.  
+**Status:** WIRE DRY PASS / GROQ-NATIVE PATH STILL OVERSIZE — further packet required.  
 **Controlling issue:** [#743](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/743)  
 **Draft PR:** [#747](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/747) (do not merge)  
 **Dataclass hotfix:** `dd65b9ea8105daf358528c4b58fb8963d01c7fc5`  
+**Condensation + dry harness head (example):** `d4d87adb…` on `ops/openhands-private-worker-package`  
 **OpenHands state on box (last verified):** INSTALLED — INACTIVE  
 
 This document is the durable **known-good commissioning profile** target and the
@@ -102,6 +103,16 @@ Method:
 | Soft target | **≤ 6 000** |
 | Absolute stop (no Groq) | **≥ 7 500** |
 | Groq free `gpt-oss-20b` TPM | **8 000** |
+
+### Live wire dry vs Groq-native (2026-08-06)
+
+| Path | Tokens | Notes |
+|------|--------|-------|
+| Capture proxy (OpenAI-format body to `:3901`) | **2 749** est (chars÷4) | system≈371; tools terminal+file_editor+finish≈2270; GATE=PASS |
+| Groq free API rejection (same short-prompt profile) | **33 166–35 210** | HTTP 413 / `rate_limit_exceeded` — no files created |
+| Gap | **~30 k** | LiteLLM/Groq-native serialization still inflates vs OpenAI-format dry capture; do not treat dry GATE alone as Groq-ready until a **forwarding** capture of the Groq-bound body exists |
+
+Also observed: agent-server still logs `Loaded 1 skills` even with all `CORPFLOWAI_LOAD_*_SKILLS=0`.
 
 ---
 
