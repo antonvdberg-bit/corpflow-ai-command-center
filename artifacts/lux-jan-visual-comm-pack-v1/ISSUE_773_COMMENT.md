@@ -8,7 +8,7 @@ Paste onto [#773](https://github.com/antonvdberg-bit/corpflow-ai-command-center/
 
 **Purpose:** Visual-first pack for Jan du Plessis (Rare & Exclusive / LuxeMaurice) aligned to this issue’s Core / Tenant application direction.
 
-**PR:** _(fill after open)_  
+**PR:** https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/777  
 **Branch:** `cursor/lux-jan-visual-comm-pack-727b`  
 **Agent:** `bc-4499f6de-5491-4c94-8ad3-1e0c53cb727b`
 
