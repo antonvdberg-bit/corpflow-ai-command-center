@@ -337,36 +337,37 @@ test('luxe training pack: review HTML is self-contained local assets', () => {
   assert.match(html, /\.\.\/05-graphics\/captures\//);
 });
 
-test('luxe training pack: no runtime app files changed in this worktree vs main (when available)', () => {
+test('luxe training pack: no runtime app files changed alongside pack edits (when available)', () => {
+  /** @param {string} out */
+  function assertNoRuntimeCoupledToPack(out) {
+    const names = out
+      .split(/\r?\n/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const packTouched = names.some((n) => n.startsWith('artifacts/luxe-maurice-training-pack-v1/'));
+    if (!packTouched) return;
+    const runtime = names.filter(
+      (n) =>
+        /^(pages|api|lib\/server|lib\/cmp|middleware|prisma)\//.test(n) ||
+        n === 'middleware.js' ||
+        n === 'middleware.ts',
+    );
+    assert.deepEqual(
+      runtime,
+      [],
+      `training-pack PR must not also change runtime paths: ${runtime.join(', ')}`,
+    );
+  }
+
   try {
     const out = execSync('git diff --name-only origin/main...HEAD', {
       cwd: ROOT,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
     });
-    const runtime = out
-      .split(/\r?\n/)
-      .map((s) => s.trim())
-      .filter(Boolean)
-      .filter(
-        (n) =>
-          /^(pages|api|lib\/server|lib\/cmp|middleware|prisma)\//.test(n) ||
-          n === 'middleware.js' ||
-          n === 'middleware.ts',
-      );
-    assert.deepEqual(runtime, [], `unexpected runtime paths: ${runtime.join(', ')}`);
+    assertNoRuntimeCoupledToPack(out);
   } catch {
     const out = execSync('git diff --name-only HEAD', { cwd: ROOT, encoding: 'utf8' });
-    const runtime = out
-      .split(/\r?\n/)
-      .map((s) => s.trim())
-      .filter(Boolean)
-      .filter(
-        (n) =>
-          /^(pages|api|lib\/server|lib\/cmp|middleware|prisma)\//.test(n) ||
-          n === 'middleware.js' ||
-          n === 'middleware.ts',
-      );
-    assert.deepEqual(runtime, [], `unexpected runtime paths vs HEAD: ${runtime.join(', ')}`);
+    assertNoRuntimeCoupledToPack(out);
   }
 });

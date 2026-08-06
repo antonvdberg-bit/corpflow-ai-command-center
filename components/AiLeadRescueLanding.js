@@ -559,8 +559,8 @@ export default function AiLeadRescueLanding({ host = '', search = '', leadRescue
             </ul>
             <p style={{ ...styles.muted, fontSize: 13 }}>
               {formatCurrencyDisclosure()} Service questions:{' '}
-              <a href="mailto:support@corpflowai.com" style={styles.link}>support@corpflowai.com</a>{' '}
-              (acknowledged within two working days). Payment security:{' '}
+              <a href="mailto:support@corpflowai.com" style={styles.link}>support@corpflowai.com</a>
+              . Payment security:{' '}
               <a href="/payment-security" style={styles.link}>/payment-security</a>.
             </p>
           </GlassPanel>

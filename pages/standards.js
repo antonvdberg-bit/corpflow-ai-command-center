@@ -148,10 +148,9 @@ export default function StandardsPage() {
           </li>
           <li>
             <strong style={{ color: '#dbe7f5' }}>Intake first, payment second.</strong> The
-            public website does not capture card or banking details. Mauritius delivery
-            sprints are invoiced in MUR by manual bank transfer. The separate AI Lead Rescue
-            launch pilot is invoiced in USD after intake review, off-site. CorpFlowAI is still
-            obtaining a USD account for the MUR sprint path.
+            public website does not capture card or banking details. Commercial terms, currency
+            and payment instructions are confirmed in writing before payment; payment is handled
+            off-site after intake review.
           </li>
           <li>
             <strong style={{ color: '#dbe7f5' }}>Least-access pilots.</strong> A pilot

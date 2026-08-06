@@ -180,7 +180,17 @@ function normalizeLead(input) {
       region_path: typeof p.region_path === 'string' ? p.region_path : '',
       business_type: typeof p.business_type === 'string' ? p.business_type : '',
       lead_sources: typeof p.lead_sources === 'string' ? p.lead_sources : '',
+      website: typeof p.website === 'string' ? p.website : '',
+      urgency: typeof p.urgency === 'string' ? p.urgency : '',
+      urgency_label: typeof p.urgency_label === 'string' ? p.urgency_label : '',
+      consent_contact:
+        p.consent_contact === true || p.consent_contact === 'true'
+          ? true
+          : p.consent_contact === false || p.consent_contact === 'false'
+            ? false
+            : null,
       intake_message: typeof p.intake_message === 'string' ? p.intake_message : '',
+      source: typeof p.source === 'string' ? p.source : '',
       source_page: typeof p.source_page === 'string' ? p.source_page : '',
       source_host: typeof p.source_host === 'string' ? p.source_host : '',
     },
@@ -759,10 +769,25 @@ export default function AiLeadRescueAdminDetail(props = {}) {
                 <ReadField title="Region" value={regionLabel(lead.prospect.region_path)} />
                 <ReadField title="Business type / niche" value={lead.prospect.business_type} />
                 <ReadField title="Lead sources" value={lead.prospect.lead_sources} />
+                <ReadField title="Website" value={lead.prospect.website} />
+                <ReadField
+                  title="Urgency / timing"
+                  value={lead.prospect.urgency_label || lead.prospect.urgency}
+                />
+                <ReadField
+                  title="Contact consent"
+                  value={
+                    lead.prospect.consent_contact === true
+                      ? 'Yes — prospect consented to contact about this enquiry'
+                      : lead.prospect.consent_contact === false
+                        ? 'No'
+                        : '—'
+                  }
+                />
                 <ReadField title="Intake message" value={lead.prospect.intake_message} />
                 <ReadField
                   title="Source"
-                  value={[lead.prospect.source_page, lead.prospect.source_host]
+                  value={[lead.prospect.source || lead.prospect.source_page, lead.prospect.source_host]
                     .filter(Boolean)
                     .join(' · ')}
                 />

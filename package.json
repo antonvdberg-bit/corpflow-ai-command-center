@@ -54,9 +54,7 @@
     "video:serve-mock": "node scripts/video/serve-mock.mjs",
     "video:run": "node scripts/video/run-walkthrough.mjs",
     "video:encode": "node scripts/video/encode-mp4.mjs",
-    "video:provenance": "node scripts/video/write-provenance.mjs",
-    "prototype:ai-receptionist": "node prototypes/ai-receptionist-browser-voice/cli/run-demo.mjs",
-    "prototype:ai-receptionist:serve": "node prototypes/ai-receptionist-browser-voice/cli/serve-demo.mjs"
+    "video:provenance": "node scripts/video/write-provenance.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.0.0",

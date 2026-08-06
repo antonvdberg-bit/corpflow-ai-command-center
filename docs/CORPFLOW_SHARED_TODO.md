@@ -155,6 +155,7 @@ The self-hosted ops server runs **supporting services** alongside the existing C
 - Single **marketing** source of truth: which pages are static on Vercel vs CMS later.
 - Analytics: Plausible self-host later **or** GA4 on Workspace/GCP — pick one; add env + privacy note.
 - Contact / lead form → existing `N8N_WEBHOOK_URL` path documented in one place.
+- **Lux / Rare & Exclusive — Jan visual communication pack (linked to #773):** open `artifacts/lux-jan-visual-comm-pack-v1/index.html`; supporting copy `docs/LUX/JAN_VISUAL_COMMUNICATION_PACK_V1.md`. Concepts only — no implementation authorized from the pack alone.
 
 ## P2 — Sales & payments (when you’re ready)
 

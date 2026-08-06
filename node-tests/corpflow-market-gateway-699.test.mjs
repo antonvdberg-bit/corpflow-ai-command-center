@@ -91,6 +91,7 @@ describe('#699 market gateway — qualified enquiry form', () => {
   it('discovery form captures required #699 fields and posts to tenant intake', () => {
     const form = read('components/public/DiscoveryIntakeForm.js');
     for (const token of [
+      'buyer_need',
       'service_path',
       'business_name',
       'name',
@@ -105,6 +106,9 @@ describe('#699 market gateway — qualified enquiry form', () => {
     ]) {
       assert.ok(form.includes(token), `missing ${token}`);
     }
+    assert.ok(form.includes('What do you need help with?'));
+    assert.ok(!/Preferred service path/i.test(form));
+    assert.ok(!/Related product sprint/i.test(form));
     assert.ok(!/sendWhatsApp|twilio|resend|nodemailer|sendgrid/i.test(form));
   });
 

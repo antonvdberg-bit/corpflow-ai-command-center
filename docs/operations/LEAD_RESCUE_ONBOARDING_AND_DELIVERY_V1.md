@@ -13,6 +13,7 @@
 **Machine contract:** `config/lead-rescue-onboarding-delivery.v1.json`
 **Validators:** `lib/lead-rescue/onboarding-delivery.js`
 **Unit tests:** `node-tests/lead-rescue-onboarding-delivery.test.mjs`
+**System-proof (12 Aug gate):** `docs/operations/LEAD_RESCUE_SYSTEM_PROOF_V1.md` · `lib/lead-rescue/system-proof.js`
 
 **Outcome:** Prove a financially approved Lead Rescue client can be onboarded and delivered **without redesigning the service**.
 

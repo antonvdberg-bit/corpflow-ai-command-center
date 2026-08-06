@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 420" role="img" aria-labelledby="title desc">
+  <title id="title">Rare &amp; Exclusive  three operating layers</title>
+  <desc id="desc">Public Website, Private Client Desk, and Admin Application Layer on one shared platform.</desc>
+  <rect width="960" height="420" fill="#111111"/>
+  <text x="48" y="48" fill="#A8842C" font-family="Georgia, serif" font-size="14" letter-spacing="3">RARE &amp; EXCLUSIVE</text>
+  <text x="48" y="82" fill="#F4EFE8" font-family="Georgia, serif" font-size="28">Three layers. One platform.</text>
+  <text x="48" y="112" fill="#8A8278" font-family="system-ui, sans-serif" font-size="14">How the operating model works  not three separate systems.</text>
+
+  <!-- Layer 1 -->
+  <rect x="48" y="150" width="864" height="70" rx="4" fill="#1A1817" stroke="rgba(168,132,44,0.35)" stroke-width="1"/>
+  <text x="72" y="180" fill="#A8842C" font-family="Georgia, serif" font-size="18">1 · Public Website</text>
+  <text x="72" y="204" fill="#F4EFE8" font-family="system-ui, sans-serif" font-size="13" opacity="0.85">First impression · curated opportunities · enquiry / private access request</text>
+
+  <!-- Layer 2 -->
+  <rect x="48" y="236" width="864" height="70" rx="4" fill="#1A1817" stroke="rgba(168,132,44,0.55)" stroke-width="1.5"/>
+  <text x="72" y="266" fill="#A8842C" font-family="Georgia, serif" font-size="18">2 · Private Client Desk</text>
+  <text x="72" y="290" fill="#F4EFE8" font-family="system-ui, sans-serif" font-size="13" opacity="0.85">Invitation-only space · status · next step · private drafts  client-safe, not engineering</text>
+
+  <!-- Layer 3 -->
+  <rect x="48" y="322" width="864" height="70" rx="4" fill="#0A0A0A" stroke="rgba(168,132,44,0.35)" stroke-width="1"/>
+  <text x="72" y="352" fill="#A8842C" font-family="Georgia, serif" font-size="18">3 · Admin / Application Layer</text>
+  <text x="72" y="376" fill="#F4EFE8" font-family="system-ui, sans-serif" font-size="13" opacity="0.85">Operator follow-up · qualification · invitations · deal progress · CorpFlowAI Core + Tenant tools</text>
+</svg>

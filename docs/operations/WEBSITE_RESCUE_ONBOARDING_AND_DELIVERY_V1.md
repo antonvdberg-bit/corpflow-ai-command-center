@@ -239,7 +239,7 @@ Cutover progression fails when:
 | Gate | Date | What this lane provides |
 | ---- | ---- | ----------------------- |
 | Unit | 7 Aug 2026 | Completeness tests; upgrade / rebuild / one-page / small-catalogue fixtures; transition + build/cutover gate tests |
-| System | 12 Aug 2026 | Independent path `approved_to_onboard` → `acceptance_ready` on synthetic data |
+| System | 12 Aug 2026 | Independent path `approved_to_onboard` → `acceptance_ready` on synthetic data — see **`docs/operations/WEBSITE_RESCUE_SYSTEM_PROOF_V1.md`** + `lib/website-rescue/system-proof.js` |
 | Integrated | 14 Aug 2026 | Scenario B (#711) through handover evidence — **deploy/DNS simulated only**, **no** client_production cutover |
 
 Fixtures:
@@ -252,6 +252,7 @@ Fixtures:
 - `fixtures/website-rescue-onboarding/blocked-content-assets.json`
 - `fixtures/website-rescue-onboarding/blocked-access.json`
 - `fixtures/website-rescue-onboarding/acceptance-ready.json`
+- `fixtures/website-rescue-onboarding/system-proof-commercial-opportunity.json` (fresh #714-consumable opportunity for system gate)
 
 ---
 
@@ -274,11 +275,12 @@ Deep day-to-day operator ticks remain in `docs/operations/WEBSITE_RESCUE_DELIVER
 | Topic | Doc |
 | ----- | --- |
 | Operator checklists | `docs/operations/WEBSITE_RESCUE_DELIVERY_CHECKLISTS_V1.md` |
+| **System proof (12 Aug gate)** | **`docs/operations/WEBSITE_RESCUE_SYSTEM_PROOF_V1.md`** |
 | Product pack | `docs/marketing/WEBSITE_RESCUE_PRODUCT_PACK_V1.md` |
 | Quote-ready packet | `docs/marketing/WEBSITE_RESCUE_QUOTE_READY_PACKET_V1.md` |
 | Pricing guide | `docs/sales/WEBSITE_RESCUE_PRICING_GUIDE.md` |
 | Mauritius shared intake | `docs/operations/MAURITIUS_CLIENT_ONBOARDING_CHECKLIST_V1.md` |
-| Financial approval lane | GitHub #714 |
+| Financial approval lane | GitHub #714 · `docs/revenue/COMMERCIAL_APPROVAL_RAIL_V1.md` |
 | Lead Rescue sibling (do not merge streams) | GitHub #715 |
 | Integrated Scenario B | GitHub #711 |
 
