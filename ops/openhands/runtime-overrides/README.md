@@ -33,4 +33,18 @@
 # ({web_url}/mcp/mcp) during conversation start. See compose.yaml comment on
 # OH_WEB_URL and issue #743 conversation-500 diagnosis.
 #
+# Additional overrides (commissioning context reduction — same Option D pattern):
+#   - live_status_app_conversation_service.py
+#       Gates enable_browser / default MCP injection / builtin agents via
+#       CORPFLOWAI_ENABLE_BROWSER, CORPFLOWAI_INJECT_DEFAULT_MCP,
+#       CORPFLOWAI_ENABLE_BUILTIN_AGENTS (default 0), CORPFLOWAI_MINIMAL_TOOLS (default 1).
+#   - app_conversation_service_base.py
+#       Gates skill sources via CORPFLOWAI_LOAD_{PUBLIC,USER,PROJECT,ORG}_SKILLS
+#       (all default 0).
+#
+# Why: OpenHands 1.8 hardcodes browser tools + default MCP + public skills on
+# the conversation start path. First Groq free-tier completion was rejected
+# at ~33k–47k tokens vs 8k TPM (gpt-oss-20b). No Settings API field turns
+# those off. See docs/execution/OPENHANDS_COMMISSIONING_PROFILE_V1.md.
+#
 # Controlling issue: #743. Remediation on PR #747.

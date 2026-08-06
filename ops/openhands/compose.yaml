@@ -160,6 +160,13 @@ services:
       # See ops/openhands/runtime-overrides/README.md.
       - ./runtime-overrides/docker_sandbox_service.py:/app/openhands/app_server/sandbox/docker_sandbox_service.py:ro
 
+      # CORPFLOWAI commissioning context-reduction overrides (issue #743).
+      # Disable browser tool schemas, default MCP create_* tools, and public
+      # skill discovery so the first Groq request can fit free-tier TPM.
+      # See docs/execution/OPENHANDS_COMMISSIONING_PROFILE_V1.md.
+      - ./runtime-overrides/live_status_app_conversation_service.py:/app/openhands/app_server/app_conversation/live_status_app_conversation_service.py:ro
+      - ./runtime-overrides/app_conversation_service_base.py:/app/openhands/app_server/app_conversation/app_conversation_service_base.py:ro
+
     environment:
       # Forces this container's own Docker client (if it invokes one
       # internally, in addition to the upstream SDK talking to the mounted
@@ -210,6 +217,19 @@ services:
       # Agent-server cold start on this host exceeds upstream's 15s default;
       # without this the control plane marks a healthy-but-slow sandbox ERROR.
       SANDBOX_STARTUP_GRACE_SECONDS: "120"
+
+      # CORPFLOWAI commissioning profile (minimal first-request context).
+      # Defaults keep browser / default MCP / public skills OFF so Groq
+      # free-tier gpt-oss-20b (8k TPM) can receive a usable first completion.
+      # Flip individual flags only after a known-good arithmetic baseline.
+      CORPFLOWAI_ENABLE_BROWSER: "0"
+      CORPFLOWAI_INJECT_DEFAULT_MCP: "0"
+      CORPFLOWAI_ENABLE_BUILTIN_AGENTS: "0"
+      CORPFLOWAI_MINIMAL_TOOLS: "1"
+      CORPFLOWAI_LOAD_PUBLIC_SKILLS: "0"
+      CORPFLOWAI_LOAD_USER_SKILLS: "0"
+      CORPFLOWAI_LOAD_PROJECT_SKILLS: "0"
+      CORPFLOWAI_LOAD_ORG_SKILLS: "0"
 
       # Documented but NOT enforced by upstream 1.8 Docker path (silent no-ops
       # for concurrency / timeout / iterations). Kept as operator intent +
