@@ -27,6 +27,15 @@ test('cipc-desk workstream branches are allowlisted', () => {
   assert.equal(d.reason, 'cipc_desk_preview_allowlist');
 });
 
+test('company-master workstream branches are allowlisted (#776)', () => {
+  const d = resolveVercelPreviewDeployDecision({
+    vercelEnv: 'preview',
+    gitRef: 'cursor/company-master-runtime-776-d672',
+  });
+  assert.equal(d.build, true);
+  assert.equal(d.reason, 'company_master_preview_allowlist');
+});
+
 test('commit message [allow-vercel-preview] opts in without widening default allowlist', () => {
   const d = resolveVercelPreviewDeployDecision({
     vercelEnv: 'preview',
