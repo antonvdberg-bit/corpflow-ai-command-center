@@ -10,7 +10,7 @@ This document defines canonical route ownership and production expectations with
 
 ## Central app shell (Slice 1 — synthetic)
 
-- `/app` is the thin authenticated Core/Tenant shell entry for Slice 1 (synthetic Requests & Progress).
+- `/app` is the Slice 1 entry chooser; `/app/core` and `/app/tenant` are separately authenticated environments (synthetic Requests & Progress). No shared ScopeSwitcher — Core session cannot enter Tenant and vice versa.
 - See `docs/architecture/SLICE1_CORE_TENANT_SHELL_V1.md`. Not a second deployment; same Next app + Postgres.
 
 ## Experimental routes

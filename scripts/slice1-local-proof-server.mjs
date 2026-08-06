@@ -1,7 +1,8 @@
 /**
- * Local Slice 1 proof server — serves /api/app/* + /app HTML without Vercel.
+ * Local Slice 1 proof server — separate Core and Tenant environments.
  * Usage: node scripts/slice1-local-proof-server.mjs
- * Then open http://127.0.0.1:4788/app?proof=1&scope=tenant
+ *   http://127.0.0.1:4788/app/tenant?proof=1
+ *   http://127.0.0.1:4788/app/core?proof=1
  */
 import http from 'node:http';
 import { URL } from 'node:url';
@@ -52,7 +53,9 @@ async function readJson(req) {
   }
 }
 
-const APP_BOOTSTRAP = `<!DOCTYPE html>
+function buildBootstrap(forcedEnv) {
+  const envLiteral = forcedEnv === 'core' ? 'core' : forcedEnv === 'tenant' ? 'tenant' : '';
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -70,10 +73,14 @@ const APP_BOOTSTRAP = `<!DOCTYPE html>
 <body>
   <div id="root">Loading Slice 1 proof…</div>
   <script type="module">
+    const FORCED = ${JSON.stringify(envLiteral)};
     const params = new URLSearchParams(location.search);
     if (!params.get('proof')) params.set('proof', '1');
-    if (!params.get('scope')) params.set('scope', 'tenant');
-    const scope = params.get('scope') === 'core' ? 'core' : 'tenant';
+    let environment = FORCED || (params.get('env') || params.get('scope') || 'tenant');
+    if (environment !== 'core' && environment !== 'tenant') environment = 'tenant';
+    params.set('env', environment);
+    params.set('scope', environment);
+    if (environment === 'tenant') params.set('tenant_id', 'corpflowai');
     const qs = params.toString();
 
     const CORE = {
@@ -101,7 +108,7 @@ const APP_BOOTSTRAP = `<!DOCTYPE html>
       .cf-app-chip[data-tone=accent]{border-color:var(--app-accent);background:var(--app-accent-soft);color:var(--app-text)}
       .cf-app-main{max-width:1080px;margin:0 auto;padding:28px 18px 64px}
       .cf-app-scope-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:22px}
-      .cf-app-scope-btn{border:1px solid var(--app-panel-border);background:var(--app-panel);color:var(--app-text);border-radius:10px;padding:12px 16px;font:inherit;font-weight:600;cursor:pointer;text-decoration:none}
+      .cf-app-scope-btn{border:1px solid var(--app-panel-border);background:var(--app-panel);color:var(--app-text);border-radius:10px;padding:12px 16px;font:inherit;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block}
       .cf-app-scope-btn[data-active=true]{border-color:var(--app-accent);background:var(--app-accent-soft);box-shadow:0 0 0 1px var(--app-accent)}
       .cf-app-panel{border:1px solid var(--app-panel-border);background:var(--app-panel);border-radius:14px;padding:20px 18px;margin-bottom:16px}
       .cf-app-h1{font-family:"IBM Plex Serif",Georgia,serif;font-size:clamp(1.35rem,2.4vw,1.75rem);margin:0 0 8px}
@@ -121,22 +128,37 @@ const APP_BOOTSTRAP = `<!DOCTYPE html>
       .cf-app-kv dt{color:var(--app-muted);margin:0}
       .cf-app-kv dd{margin:0;word-break:break-word}
       .cf-app-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-      .cf-app-btn{border:1px solid var(--app-panel-border);background:transparent;color:var(--app-text);border-radius:8px;padding:8px 12px;font:inherit;font-weight:600;cursor:pointer}
+      .cf-app-btn{border:1px solid var(--app-panel-border);background:transparent;color:var(--app-text);border-radius:8px;padding:8px 12px;font:inherit;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block}
       .cf-app-btn[data-primary=true]{background:var(--app-accent);border-color:transparent;color:#04201c}
       @media (max-width:640px){.cf-app-kv{grid-template-columns:1fr}}
     \`;
 
-    const theme = scope === 'core' ? CORE : TENANT;
+    const theme = environment === 'core' ? CORE : TENANT;
     const shell = await fetch('/api/app/shell?' + qs).then(r => r.json());
     const detail = await fetch('/api/app/request?' + qs + '&id=' + encodeURIComponent(shell.synthetic_request_id)).then(r => r.json());
     const req = detail.request || {};
     const pct = (req.progress && req.progress.percent) || 0;
     const comps = Array.isArray(req.components) ? req.components : [];
-    const scopeLabel = scope === 'core' ? 'Core' : 'Tenant — CorpFlowAI';
+    const envLabel = environment === 'core' ? 'Core' : 'Tenant — CorpFlowAI';
     const styleVars = Object.entries(theme).map(([k,v]) => k + ':' + v).join(';');
 
+    let menu = '';
+    if (environment === 'core') {
+      menu = \`
+        <nav class="cf-app-scope-row" data-testid="core-menu">
+          <span class="cf-app-scope-btn">All requests</span>
+          <span class="cf-app-scope-btn">Tenant · CorpFlowAI</span>
+          <span class="cf-app-scope-btn" data-active="true">Request / work</span>
+        </nav>\`;
+    } else {
+      menu = \`
+        <nav class="cf-app-scope-row" data-testid="tenant-menu">
+          <span class="cf-app-scope-btn" data-active="true">Requests &amp; Progress</span>
+        </nav>\`;
+    }
+
     let body = '';
-    if (scope === 'tenant') {
+    if (environment === 'tenant') {
       body = \`
         <section class="cf-app-panel" data-testid="tenant-requests-progress">
           <h1 class="cf-app-h1">\${escapeHtml(req.title||'')}</h1>
@@ -166,7 +188,7 @@ const APP_BOOTSTRAP = `<!DOCTYPE html>
           <h1 class="cf-app-h1">\${escapeHtml(req.title||'')}</h1>
           <p class="cf-app-lead">\${escapeHtml(req.outcome||'')}</p>
           <dl class="cf-app-kv">
-            <dt>Request id</dt><dd>\${escapeHtml(req.request_id||'')}</dd>
+            <dt>Request id</dt><dd data-testid="core-request-id">\${escapeHtml(req.request_id||'')}</dd>
             <dt>Internal blocker</dt><dd>\${escapeHtml(req.internal_blocker||'None')}</dd>
             <dt>Progress</dt><dd>\${pct}%</dd>
           </dl>
@@ -193,22 +215,20 @@ const APP_BOOTSTRAP = `<!DOCTYPE html>
 
     document.getElementById('root').innerHTML = \`
       <style>\${css}</style>
-      <div class="cf-app-root" data-scope="\${scope}" style="\${styleVars}" data-testid="slice1-proof-root">
+      <div class="cf-app-root" data-scope="\${environment}" data-environment="\${environment}" style="\${styleVars}" data-testid="slice1-proof-root">
         <header class="cf-app-chrome" data-testid="app-chrome">
           <div class="cf-app-brand">CorpFlowAI</div>
           <div class="cf-app-meta">
-            <span class="cf-app-chip" data-tone="accent">Scope · <strong>\${scopeLabel}</strong></span>
-            <span class="cf-app-chip">Tenant · <strong>\${scope==='tenant'?'CorpFlowAI':'—'}</strong></span>
+            <span class="cf-app-chip" data-tone="accent">Environment · <strong>\${envLabel}</strong></span>
+            <span class="cf-app-chip">Tenant · <strong>\${environment==='tenant'?'CorpFlowAI':'—'}</strong></span>
             <span class="cf-app-chip">Role · <strong>\${escapeHtml(shell.actor?.role||'')}</strong></span>
             <span class="cf-app-chip">Proof mode</span>
           </div>
         </header>
         <main class="cf-app-main">
-          <div class="cf-app-scope-row">
-            <a class="cf-app-scope-btn" data-active="\${scope==='core'}" href="/app?proof=1&scope=core">Core</a>
-            <a class="cf-app-scope-btn" data-active="\${scope==='tenant'}" href="/app?proof=1&scope=tenant">Tenant — CorpFlowAI</a>
-          </div>
-          <p class="cf-app-muted">Slice 1 local proof runtime · synthetic only · no external send</p>
+          \${menu}
+          <p class="cf-app-muted">Separate auth proof · no ScopeSwitcher · synthetic only · no external send</p>
+          <p class="cf-app-muted"><a class="cf-app-btn" href="/app/core?proof=1">Core proof</a> <a class="cf-app-btn" href="/app/tenant?proof=1">Tenant proof</a> <a class="cf-app-btn" href="/app">Chooser</a></p>
           \${body}
         </main>
       </div>\`;
@@ -219,6 +239,28 @@ const APP_BOOTSTRAP = `<!DOCTYPE html>
   </script>
 </body>
 </html>`;
+}
+
+const CHOOSER = `<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>CorpFlowAI app · choose environment</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600&family=IBM+Plex+Serif:wght@600&display=swap" rel="stylesheet"/>
+<style>
+body{margin:0;font-family:"DM Sans",system-ui,sans-serif;background:linear-gradient(165deg,#0b1220,#152238);color:#e8eef7;min-height:100vh}
+main{max-width:720px;margin:0 auto;padding:48px 18px}
+h1{font-family:"IBM Plex Serif",Georgia,serif}
+a{display:inline-block;margin:8px 8px 0 0;padding:12px 16px;border-radius:10px;background:#38bdf8;color:#04201c;font-weight:600;text-decoration:none}
+a.secondary{background:transparent;border:1px solid rgba(148,163,184,.4);color:#e8eef7}
+p{color:#94a3b8;line-height:1.45}
+</style></head>
+<body>
+<main data-testid="app-entry-chooser">
+  <h1>Choose environment</h1>
+  <p>Core and Tenant are separately authenticated. No shared ScopeSwitcher.</p>
+  <a href="/app/core?proof=1" data-testid="enter-core">Open Core proof</a>
+  <a class="secondary" href="/app/tenant?proof=1" data-testid="enter-tenant">Open Tenant — CorpFlowAI proof</a>
+</main>
+</body></html>`;
 
 resetSyntheticStore();
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
@@ -228,7 +270,13 @@ const server = http.createServer(async (req, nodeRes) => {
   const path = u.pathname.replace(/\/$/, '') || '/';
 
   if (path === '/app' || path === '/') {
-    return sendHtml(nodeRes, APP_BOOTSTRAP);
+    return sendHtml(nodeRes, CHOOSER);
+  }
+  if (path === '/app/core') {
+    return sendHtml(nodeRes, buildBootstrap('core'));
+  }
+  if (path === '/app/tenant') {
+    return sendHtml(nodeRes, buildBootstrap('tenant'));
   }
 
   /** @type {any} */
@@ -257,5 +305,6 @@ const server = http.createServer(async (req, nodeRes) => {
 });
 
 server.listen(PORT, '127.0.0.1', () => {
-  console.log(`Slice 1 proof server http://127.0.0.1:${PORT}/app?proof=1&scope=tenant`);
+  console.log(`Slice 1 proof server http://127.0.0.1:${PORT}/app/tenant?proof=1`);
+  console.log(`                     http://127.0.0.1:${PORT}/app/core?proof=1`);
 });

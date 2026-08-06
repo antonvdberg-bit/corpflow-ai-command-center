@@ -2,9 +2,10 @@ import Head from 'next/head';
 import { APP_FONT_HREF, APP_SHELL_CSS, CORE_THEME, TENANT_THEME, themeStyleVars } from './app-theme.js';
 
 /**
- * Persistent Scope · Tenant · Role chrome for Slice 1.
+ * Persistent Environment · Tenant · Role chrome for Slice 1.
+ * Environment is fixed by entry path / session — not switchable.
  * @param {{
- *   scope: 'core'|'tenant',
+ *   environment: 'core'|'tenant',
  *   tenantLabel?: string | null,
  *   role?: string | null,
  *   username?: string | null,
@@ -13,20 +14,20 @@ import { APP_FONT_HREF, APP_SHELL_CSS, CORE_THEME, TENANT_THEME, themeStyleVars 
  * }} props
  */
 export default function AppShell({
-  scope,
+  environment,
   tenantLabel,
   role,
   username,
   proofMode,
   children,
 }) {
-  const theme = scope === 'tenant' ? TENANT_THEME : CORE_THEME;
-  const scopeLabel = scope === 'tenant' ? 'Tenant — CorpFlowAI' : 'Core';
+  const theme = environment === 'tenant' ? TENANT_THEME : CORE_THEME;
+  const envLabel = environment === 'tenant' ? 'Tenant — CorpFlowAI' : 'Core';
 
   return (
-    <div className="cf-app-root" data-scope={scope} style={themeStyleVars(theme)}>
+    <div className="cf-app-root" data-scope={environment} data-environment={environment} style={themeStyleVars(theme)}>
       <Head>
-        <title>{`${scopeLabel} · CorpFlowAI app`}</title>
+        <title>{`${envLabel} · CorpFlowAI app`}</title>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link href={APP_FONT_HREF} rel="stylesheet" />
@@ -36,10 +37,10 @@ export default function AppShell({
         <div className="cf-app-brand">CorpFlowAI</div>
         <div className="cf-app-meta" data-testid="app-chrome-meta">
           <span className="cf-app-chip" data-tone="accent" data-testid="chip-scope">
-            Scope · <strong>{scopeLabel}</strong>
+            Environment · <strong>{envLabel}</strong>
           </span>
           <span className="cf-app-chip" data-testid="chip-tenant">
-            Tenant · <strong>{scope === 'tenant' ? tenantLabel || 'CorpFlowAI' : '—'}</strong>
+            Tenant · <strong>{environment === 'tenant' ? tenantLabel || 'CorpFlowAI' : '—'}</strong>
           </span>
           <span className="cf-app-chip" data-testid="chip-role">
             Role · <strong>{role || '—'}</strong>
