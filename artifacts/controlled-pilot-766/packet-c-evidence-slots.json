@@ -1,0 +1,114 @@
+{
+  "schema": "corpflow.controlled_pilot_766.packet_c_evidence_slots.v1",
+  "issue": 766,
+  "status": "AWAITING_OPERATOR",
+  "instance": "erpnext_sandbox_only",
+  "forbidden": [
+    "real_payment",
+    "client_send",
+    "erpnext_production_customization",
+    "real_bank_evidence",
+    "cursor_l3_writes"
+  ],
+  "reuse_docs": [
+    "docs/operations/ERPNEXT_LEAD_RESCUE_PAID_PILOT_REHEARSAL_V1.md",
+    "docs/erpnext/ERPNEXT_RECORD_MAPPING.md",
+    "docs/erpnext/CORPFLOWAI_QUOTE_TO_CASH_RUNBOOK.md",
+    "docs/revenue/templates/COMMERCIAL_ACCEPTANCE_RECORD.md",
+    "docs/revenue/templates/PAYMENT_EVIDENCE_RECORD.md",
+    "docs/revenue/templates/production-release-approval.md",
+    "artifacts/corpflowai-commercial-ops/DELIVERY_RELEASE_CHECKLIST.md"
+  ],
+  "chain": [
+    {
+      "step": "lead",
+      "suggested_id": "REH-LEAD-766-001",
+      "record_id": null,
+      "evidence_private_ref": null,
+      "ok": null
+    },
+    {
+      "step": "opportunity",
+      "suggested_id": "REH-OPP-766-001",
+      "notes": "May set record_id to SKIPPED-QUOTATION-PRIMARY if standard Quotation-primary path is used",
+      "record_id": null,
+      "evidence_private_ref": null,
+      "ok": null
+    },
+    {
+      "step": "quotation",
+      "suggested_id": "REH-QUO-766-001",
+      "item_hint": "SBX-LR-SETUP-USD-150 for USD Lead Rescue pilot",
+      "record_id": null,
+      "evidence_private_ref": null,
+      "ok": null
+    },
+    {
+      "step": "acceptance_record",
+      "template": "docs/revenue/templates/COMMERCIAL_ACCEPTANCE_RECORD.md",
+      "record_id": null,
+      "evidence_private_ref": null,
+      "ok": null
+    },
+    {
+      "step": "invoice_or_pro_forma_handoff",
+      "record_id": null,
+      "evidence_private_ref": null,
+      "ok": null,
+      "print_format_notes": null
+    },
+    {
+      "step": "mock_payment_evidence",
+      "suggested_id": "REH-WIRE-766-001",
+      "record_id": null,
+      "evidence_private_ref": null,
+      "ok": null
+    },
+    {
+      "step": "manual_payment_verification",
+      "owner": "Anton",
+      "verified_at": null,
+      "ok": null
+    },
+    {
+      "step": "proceed_approved",
+      "app_meaning": "financially_approved via #714 commercial approval rail / FA handoff",
+      "financial_approval_ref": null,
+      "ok": null
+    },
+    {
+      "step": "project_tasks",
+      "suggested_id": "PROJ-REH-766-001",
+      "record_id": null,
+      "task_ids": [],
+      "ok": null
+    },
+    {
+      "step": "feedback_issue",
+      "record_id": null,
+      "alternate_app_template": "docs/operations/templates/lead-rescue-delivery-issue.md or website-rescue-delivery-issue.md",
+      "ok": null
+    },
+    {
+      "step": "release_approval_simulation",
+      "template": "docs/revenue/templates/production-release-approval.md",
+      "real_dns_cutover": false,
+      "real_client_production_deploy": false,
+      "ok": null
+    },
+    {
+      "step": "handover",
+      "record_id": null,
+      "ok": null
+    }
+  ],
+  "missing_configuration": [],
+  "standard_doctype_limitations": [],
+  "standard_erpnext_sufficient_for_first_controlled_pilot": null,
+  "exact_customization_request": "NONE until proven necessary",
+  "operator_signoff": {
+    "name": null,
+    "utc": null,
+    "sandbox_only_confirmed": null
+  }
+}
