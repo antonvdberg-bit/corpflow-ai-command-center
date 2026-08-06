@@ -269,11 +269,15 @@ d=json.load(sys.stdin)
 assert d.get("llm_api_key_set") is True
 llm=((d.get("agent_settings") or {}).get("llm") or {})
 print("llm_api_key_set=true OK")
+print("model", llm.get("model"))
 print("base_url", llm.get("base_url"))
 print("reasoning_effort", llm.get("reasoning_effort"))
 print("extended_thinking_budget", llm.get("extended_thinking_budget"))
-assert "3901" not in str(llm.get("base_url") or ""), llm.get("base_url")
-assert "groq.com" in str(llm.get("base_url") or ""), llm.get("base_url")
+base=str(llm.get("base_url") or "")
+assert "3901" not in base, base
+# Groq models may keep base_url null and rely on litellm provider routing.
+assert (not base) or ("groq.com" in base), base
+assert str(llm.get("model") or "").startswith("groq/"), llm.get("model")
 '
 
 INSTRUCTION='Create arithmetic.py containing:
