@@ -40,12 +40,26 @@ EVIDENCE="/tmp/openhands-commission-evidence-${RUN_ID}.txt"
 APPROVED_MODEL='groq/openai/gpt-oss-20b'
 TPM_LIMIT=8000
 TPM_BUDGET=$((TPM_LIMIT * 70 / 100))
+# Absolute stop from wire-condensation packet (prefer live wire dry < 7500 first).
+WIRE_HARD_STOP=7500
 OPENHANDS_HOME_DIR="${OPENHANDS_HOME:-$HOME/corpflowai-openhands}"
 LLM_HOST_FILE="${OPENHANDS_HOME_DIR}/.env.openhands-llm"
 COMPOSE_DIR="$(cd ops/openhands && pwd)"
 CLEANED=0
 
 log() { say "$*"; }
+
+find_workspace_files() {
+  local sb="$1"
+  for root in /workspace/project /workspace; do
+    if openhands_docker exec "${sb}" test -f "${root}/arithmetic.py" 2>/dev/null \
+      && openhands_docker exec "${sb}" test -f "${root}/test_arithmetic.py" 2>/dev/null; then
+      echo "${root}"
+      return 0
+    fi
+  done
+  return 1
+}
 
 cleanup() {
   local rc=$?
@@ -92,11 +106,13 @@ HEAD="$(git rev-parse HEAD)"
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 log "branch=${BRANCH} head=${HEAD}"
 
-if command -v gh >/dev/null 2>&1; then
+if command -v gh >/dev/null 2>&1 && [[ "${OPENHANDS_PR747_DRAFT_VERIFIED:-}" != "YES" ]]; then
   PR_JSON="$(gh pr view 747 --json isDraft,state 2>/dev/null || true)"
   log "pr747=${PR_JSON}"
   echo "${PR_JSON}" | grep -q '"isDraft":true' || die "PR #747 must remain draft"
   echo "${PR_JSON}" | grep -q '"state":"OPEN"' || die "PR #747 must be OPEN/unmerged"
+elif [[ "${OPENHANDS_PR747_DRAFT_VERIFIED:-}" == "YES" ]]; then
+  log "pr747=OPENHANDS_PR747_DRAFT_VERIFIED=YES (Desktop verified)"
 fi
 
 [[ -f "${LLM_HOST_FILE}" ]] || die "missing ${LLM_HOST_FILE}"
@@ -130,6 +146,8 @@ echo "${ENV_DUMP}" | grep -E '^CORPFLOWAI_(ENABLE_BROWSER|INJECT_DEFAULT_MCP|LOA
 echo "${ENV_DUMP}" | grep -q '^CORPFLOWAI_ENABLE_BROWSER=0$' || die "CORPFLOWAI_ENABLE_BROWSER!=0"
 echo "${ENV_DUMP}" | grep -q '^CORPFLOWAI_INJECT_DEFAULT_MCP=0$' || die "CORPFLOWAI_INJECT_DEFAULT_MCP!=0"
 echo "${ENV_DUMP}" | grep -q '^CORPFLOWAI_MINIMAL_TOOLS=1$' || die "CORPFLOWAI_MINIMAL_TOOLS!=1"
+echo "${ENV_DUMP}" | grep -q '^CORPFLOWAI_SHORT_SYSTEM_PROMPT=1$' || die "CORPFLOWAI_SHORT_SYSTEM_PROMPT!=1"
+echo "${ENV_DUMP}" | grep -q '^CORPFLOWAI_DISABLE_DEFAULT_BUILTIN_TOOLS=1$' || die "CORPFLOWAI_DISABLE_DEFAULT_BUILTIN_TOOLS!=1"
 echo "${ENV_DUMP}" | grep -q '^CORPFLOWAI_LOAD_PUBLIC_SKILLS=0$' || die "CORPFLOWAI_LOAD_PUBLIC_SKILLS!=0"
 echo "${ENV_DUMP}" | grep -q '^OH_WEB_URL=http://corpflowai-openhands-app:3000$' || die "OH_WEB_URL wrong"
 
@@ -230,9 +248,10 @@ print((x.get("status") or ""), (x.get("sandbox_id") or "-"), (x.get("detail") or
   esac
   # After READY, look for arithmetic files via docker exec if sandbox still up
   if [[ "${READY_SEEN}" -eq 1 && -n "${SB}" && "${SB}" != "-" ]]; then
-    if openhands_docker exec "${SB}" test -f /workspace/arithmetic.py 2>/dev/null; then
-      log "FOUND arithmetic.py"
-      openhands_docker exec "${SB}" sh -c 'ls -la /workspace/arithmetic.py /workspace/test_arithmetic.py; python -m unittest test_arithmetic.py' || true
+    WS_ROOT="$(find_workspace_files "${SB}" || true)"
+    if [[ -n "${WS_ROOT}" ]]; then
+      log "FOUND arithmetic files under ${WS_ROOT}"
+      openhands_docker exec "${SB}" sh -c "ls -la '${WS_ROOT}/arithmetic.py' '${WS_ROOT}/test_arithmetic.py'; cd '${WS_ROOT}' && python -m unittest test_arithmetic.py" || true
       break
     fi
   fi
@@ -248,10 +267,10 @@ if [[ "${ERROR_SEEN}" -eq 1 ]]; then
   die "STOPPED — GROQ MODEL RESPONSE FAILED OR AGENT ERROR status=${STATUS} detail=${DETAIL}"
 fi
 
-if openhands_docker exec "${SB}" test -f /workspace/arithmetic.py 2>/dev/null \
-  && openhands_docker exec "${SB}" test -f /workspace/test_arithmetic.py 2>/dev/null; then
-  log "FILES_OK"
-  if openhands_docker exec "${SB}" python -m unittest test_arithmetic.py; then
+WS_ROOT="$(find_workspace_files "${SB}" || true)"
+if [[ -n "${WS_ROOT}" ]]; then
+  log "FILES_OK root=${WS_ROOT}"
+  if openhands_docker exec "${SB}" sh -c "cd '${WS_ROOT}' && python -m unittest test_arithmetic.py"; then
     log "TESTS_OK"
     log "FUNCTIONAL COMMISSIONING VERIFIED (pending cleanup confirmation)"
   else
