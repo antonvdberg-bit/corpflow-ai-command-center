@@ -153,6 +153,13 @@ services:
       # directory root.
       - corpflowai-openhands-workspace:/workspace
 
+      # CORPFLOWAI Option D spawn override — bind-mount over upstream
+      # docker_sandbox_service.py so dynamically created agent-server sandboxes
+      # join corpflowai-openhands-net with ExtraHosts=[], no host-gateway, no
+      # published host ports, and approved per-sandbox HostConfig limits.
+      # See ops/openhands/runtime-overrides/README.md.
+      - ./runtime-overrides/docker_sandbox_service.py:/app/openhands/app_server/sandbox/docker_sandbox_service.py:ro
+
     environment:
       # Forces this container's own Docker client (if it invokes one
       # internally, in addition to the upstream SDK talking to the mounted
@@ -170,37 +177,32 @@ services:
       # phase. Flip to "false" once evidence collection needs are lower.
       LOG_ALL_EVENTS: "true"
 
-      # Concurrency ceiling — one sandbox task at a time (see
-      # docs/operations/OPENHANDS_OPERATING_RUNBOOK.md § 3 and
-      # lib/openhands/package-policy.js MAX_CONCURRENT_TASKS). Combined with
-      # the systemd slice's MemoryMax=4G, this is the primary lever bounding
-      # total sandbox resource use, since upstream 1.8 does not natively
-      # enforce a per-sandbox hard memory/CPU limit on the OSS Docker path
-      # (see ops/openhands/VERSIONS.md "Sandbox limit enforcement").
-      MAX_CONCURRENT_CONVERSATIONS: "1"
-
-      # Per-task wall-clock ceiling (seconds) and agent-loop iteration ceiling
-      # — bound cost and blast radius per task, independent of the daemon
-      # isolation change. See config/openhands/cost-policy.example.yaml.
-      SANDBOX_TIMEOUT: "600"
-      MAX_ITERATIONS: "40"
-
       # Sandbox containers must never use host networking — matches the
       # no-host-network rule already enforced on this control-plane service
       # (network_mode: host is never set below) and checked by
       # scripts/ops/openhands/verify-sandbox-boundary.sh.
-      SANDBOX_USE_HOST_NETWORK: "false"
+      # Real knob read by OpenHands 1.8 Docker path: AGENT_SERVER_USE_HOST_NETWORK.
+      # (SANDBOX_USE_HOST_NETWORK is a silent no-op in this SDK version.)
+      AGENT_SERVER_USE_HOST_NETWORK: "false"
 
-      # Upstream image default is http://host.docker.internal (Docker Desktop /
-      # host-gateway pattern). That hostname is intentionally NOT provided here
-      # (no extra_hosts / host-gateway — see DOCKER ISOLATION DESIGN header).
-      # Dedicated-daemon-safe override: future sandboxes join
-      # corpflowai-openhands-net and reach this control plane by Docker DNS
-      # on container port 3000 — no host-loopback pivot to CorpFlow services.
-      # Inert while the pilot remains inactive (no sandbox spawn); required so
-      # a future synthetic sandbox does not inherit a knowingly broken URL.
-      SANDBOX_LOCAL_RUNTIME_URL: "http://corpflowai-openhands-app:3000"
-      SANDBOX_ADDITIONAL_NETWORKS: '["corpflowai-openhands-net"]'
+      # CORPFLOWAI spawn-boundary knobs consumed by the bind-mounted override
+      # (ops/openhands/runtime-overrides/docker_sandbox_service.py). Upstream
+      # OpenHands 1.8 does NOT honor SANDBOX_ADDITIONAL_NETWORKS /
+      # SANDBOX_LOCAL_RUNTIME_URL on the app_server Docker path (those are V0
+      # runtime docs leftovers). Do not re-add them as if they worked.
+      CORPFLOWAI_SANDBOX_NETWORK: "corpflowai-openhands-net"
+      CORPFLOWAI_SANDBOX_WEBHOOK_BASE: "http://corpflowai-openhands-app:3000"
+      CORPFLOWAI_SANDBOX_MEM_LIMIT: "512m"
+      CORPFLOWAI_SANDBOX_NANO_CPUS: "500000000"
+      CORPFLOWAI_SANDBOX_PIDS_LIMIT: "256"
+
+      # Documented but NOT enforced by upstream 1.8 Docker path (silent no-ops
+      # for concurrency / timeout / iterations). Kept as operator intent +
+      # Settings-API / slice backstops — see VERSIONS.md. max_num_sandboxes=1
+      # is enforced by the runtime override injector default.
+      MAX_CONCURRENT_CONVERSATIONS: "1"
+      SANDBOX_TIMEOUT: "600"
+      MAX_ITERATIONS: "40"
 
       # SANDBOX_VOLUMES is intentionally left UNSET by default. If a future,
       # separately reviewed install needs the spawned sandbox to see a host

@@ -189,27 +189,35 @@ no approved use case for the control plane to reach a service bound to the host'
   a small but real narrowing of the attack surface, consistent with the rest of this doc's "narrow, don't
   assume" posture.
 
-### 3.1 `SANDBOX_LOCAL_RUNTIME_URL` (image default vs dedicated-daemon override)
+### 3.1 Dynamic sandbox spawn (OpenHands 1.8 app_server) — Option D override
 
-The pinned app image `1.8` ships an image-default env of
-`SANDBOX_LOCAL_RUNTIME_URL=http://host.docker.internal` (Docker Desktop / host-gateway oriented). With
-`ExtraHosts=[]` that hostname does **not** resolve on this package's dedicated daemon.
+**Finding (live pilot + in-container source):** dynamically spawned `oh-agent-server-*`
+containers are created by `DockerSandboxService.start_sandbox()` in
+`/app/openhands/app_server/sandbox/docker_sandbox_service.py`. Upstream 1.8:
 
-| State | Behaviour |
-|---|---|
-| Inactive pilot (no sandbox spawn) | The variable is unused for control-plane liveness (`GET /health` on loopback). |
-| Future sandbox spawn | Upstream uses this URL so sandboxes / runtime callbacks can reach the control plane. Leaving the image default would make a synthetic sandbox fail for a known-wrong hostname. |
+| Field | Upstream default | CorpFlowAI required |
+|---|---|---|
+| Network | `network_mode=None` → daemon **default bridge** | `corpflowai-openhands-net` only |
+| ExtraHosts | `host.docker.internal:host-gateway` | `[]` |
+| Webhook callback | `http://host.docker.internal:{port}/api/v1/webhooks` | `http://corpflowai-openhands-app:3000/api/v1/webhooks` |
+| Health URL | rewrites to `host.docker.internal` | `http://{sandbox-name}:8000` (Docker DNS) |
+| Published ports | random host ports | **none** |
+| Per-sandbox limits | none on OSS Docker path | mem 512m / 0.5 CPU / PIDs 256 |
 
-**Package override (compose.yaml):**
+`SANDBOX_ADDITIONAL_NETWORKS` / `SANDBOX_LOCAL_RUNTIME_URL` are **not read** on this
+app_server path (V0 runtime docs leftovers). Compose env alone cannot meet the boundary.
 
-- `SANDBOX_LOCAL_RUNTIME_URL=http://corpflowai-openhands-app:3000` — Docker DNS name of the control-plane
-  container on `corpflowai-openhands-net` (container port 3000).
-- `SANDBOX_ADDITIONAL_NETWORKS=["corpflowai-openhands-net"]` — so a future sandbox joins that network and
-  can resolve the DNS name above.
+**Selected remediation (Option D):** bind-mount
+`ops/openhands/runtime-overrides/docker_sandbox_service.py` over the upstream module.
+Prefer deleting the override if a future upstream release gains first-class named-network
++ empty-ExtraHosts support.
 
-This does **not** add `host.docker.internal`, `host-gateway`, host networking, or a route to host-bound
-CorpFlowAI services. Live verify (`verify-sandbox-boundary.sh`) fails if `ExtraHosts` is non-empty or if the
-running env still points at `host.docker.internal`.
+**Verification:** `node-tests/openhands-sandbox-spawn-override.test.mjs`;
+`scripts/ops/openhands/probe-sandbox-spawn-isolation.sh` (`POST /api/v1/sandboxes`, no model);
+`verify-sandbox-boundary.sh` inspects live `oh-agent-server-*` when present.
+
+This does **not** add `host.docker.internal`, `host-gateway`, host networking, or a route to
+host-bound CorpFlowAI services.
 
 ## 4. Healthcheck: official `/health`, not bare `/`
 

@@ -96,26 +96,23 @@ this package is a capacity source of truth.
 
 | Limit | Mechanism | Enforced by | Residual risk |
 |---|---|---|---|
-| Concurrent sandbox tasks | `MAX_CONCURRENT_CONVERSATIONS=1` (app env) | Application-level, not kernel-enforced | App bug could exceed 1; total-ceiling slice below is the backstop |
-| Per-task wall-clock timeout | `SANDBOX_TIMEOUT=600` (app env) | Application-level | Same as above |
-| Per-task iteration ceiling | `MAX_ITERATIONS=40` (app env) | Application-level | Same as above |
-| Combined RAM / CPU / task-count ceiling for dedicated daemon + control plane + every sandbox | `corpflowai-openhands.slice` (`MemoryMax=4G`, `MemoryHigh=3584M`, `CPUQuota=200%`, `TasksMax=1024`) + daemon `cgroup-parent=corpflowai-openhands-containers.slice` | **Kernel cgroup**, real hard limit when `verify-cgroup-placement.sh` passes | Residual: no per-sandbox HostConfig cap in OSS 1.8 |
-| Per-sandbox native RAM/CPU limit (e.g. 4 GiB per spawned container via `HostConfig`) | **Not available** in the OSS `1.8` Docker deployment path | N/A | **Residual risk**: a single misbehaving sandbox could theoretically consume up to the full slice ceiling before the kernel OOMs it; this is bounded by the slice total, not by a per-container cap. Native per-sandbox `HostConfig` resource limits are an OpenHands **Enterprise** (k8s-backed runtime) feature per the docs pass above, not present in the OSS Docker path. |
+| Concurrent sandbox tasks | Override injector `max_num_sandboxes=1` (+ documented `MAX_CONCURRENT_CONVERSATIONS=1`, unread by 1.8 Docker path) | Override default | Upstream env alone is a silent no-op; override is the real app-level cap |
+| Per-task wall-clock timeout | `SANDBOX_TIMEOUT=600` (documented; unread on Docker path) | Settings / operator | Prefer Settings API + slice backstop |
+| Per-task iteration ceiling | `MAX_ITERATIONS` via Settings API (env unread on Docker path) | Settings API | Same |
+| Combined RAM / CPU / task-count ceiling | `corpflowai-openhands.slice` + `cgroup-parent` | **Kernel cgroup** | Residual: slice is aggregate |
+| Per-sandbox mem/CPU/PIDs | Option D override: `mem_limit=512m`, `nano_cpus=5e8`, `pids_limit=256` | **HostConfig** via bind-mounted `docker_sandbox_service.py` | Re-verify on every OpenHands app bump |
 
-## Known limitations (as of this pin, 2026-08-04)
+## Known limitations (as of this pin, 2026-08-06)
 
-- Resource use of spawned sandbox containers is **not** enforced per-container by the app itself in this pinned
-  version — see the enforcement matrix above. The kernel-enforced combined ceiling
-  (`scripts/ops/systemd/corpflowai-openhands.slice`) is the real backstop; concurrency=1 + per-task timeout are
-  application-level policy, not kernel-enforced.
+- Upstream OpenHands 1.8 app_server Docker path still hardcodes host-gateway /
+  default-bridge spawn behaviour. CorpFlowAI meets the isolation boundary via the
+  **Option D bind-mounted override** (`ops/openhands/runtime-overrides/`). Re-diff
+  that file on every app image bump.
+- Several compose env vars (`MAX_CONCURRENT_CONVERSATIONS`, `SANDBOX_TIMEOUT`,
+  `MAX_ITERATIONS`) remain **unread** by this SDK version's Docker path; the
+  override's `max_num_sandboxes=1` plus the systemd slice are the real caps.
 - No production-grade auth/session hardening is assumed out of the box; loopback-only binding is this package's
   substitute control until (and unless) a proper auth layer is reviewed separately.
-- This package has not been run end-to-end (no install has happened); version compatibility is based on reading
-  official docs only, not on a live smoke test. Any install runbook must re-verify against a real pull + boot
-  before being marked reviewed. In particular, whether rootless Docker's `daemon.json` honors a `cgroup-parent`
-  key the same way a rootful daemon would is **unverified** — see `ops/openhands/daemon/daemon.json.example`'s
-  `_cgroup_parent_note`; the systemd slice wrapping the dockerd unit itself is the mechanism this package actually
-  relies on, independent of that unresolved question.
 
 ## Pin policy
 

@@ -181,21 +181,81 @@ check_running_container() {
   done
 
   # Prove host-gateway was never added (ExtraHosts must stay empty) and that
-  # the image default SANDBOX_LOCAL_RUNTIME_URL=http://host.docker.internal
-  # was overridden to the dedicated-network control-plane DNS name.
-  local extra_hosts runtime_url
+  # the CorpFlowAI spawn override + CORPFLOWAI_* env are present on the
+  # control plane (upstream SANDBOX_LOCAL_RUNTIME_URL is unread in 1.8).
+  local extra_hosts runtime_net override_mount
   extra_hosts="$(openhands_docker inspect -f '{{json .HostConfig.ExtraHosts}}' "${OPENHANDS_PROJECT}-app" 2>/dev/null || echo "unknown")"
   if [[ "${extra_hosts}" != "null" && "${extra_hosts}" != "[]" && "${extra_hosts}" != "unknown" ]]; then
     VIOLATIONS+=("running container ExtraHosts is not empty (${extra_hosts}) — host-gateway / host.docker.internal must not be added")
   fi
-  runtime_url="$(openhands_docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' "${OPENHANDS_PROJECT}-app" 2>/dev/null | grep -E '^SANDBOX_LOCAL_RUNTIME_URL=' || true)"
-  if printf '%s' "${runtime_url}" | grep -Fq 'host.docker.internal'; then
-    VIOLATIONS+=("running container still has SANDBOX_LOCAL_RUNTIME_URL pointing at host.docker.internal — compose must override to http://corpflowai-openhands-app:3000")
-  elif [[ -n "${runtime_url}" ]] && ! printf '%s' "${runtime_url}" | grep -Fq 'http://corpflowai-openhands-app:3000'; then
-    VIOLATIONS+=("running container SANDBOX_LOCAL_RUNTIME_URL is unexpected: ${runtime_url}" )
+  runtime_net="$(openhands_docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' "${OPENHANDS_PROJECT}-app" 2>/dev/null | grep -E '^CORPFLOWAI_SANDBOX_NETWORK=' || true)"
+  if [[ -z "${runtime_net}" ]] || ! printf '%s' "${runtime_net}" | grep -Fq 'corpflowai-openhands-net'; then
+    VIOLATIONS+=("running container missing CORPFLOWAI_SANDBOX_NETWORK=corpflowai-openhands-net")
+  fi
+  override_mount="$(openhands_docker inspect -f '{{range .Mounts}}{{println .Destination}}{{end}}' "${OPENHANDS_PROJECT}-app" 2>/dev/null | grep -F '/app/openhands/app_server/sandbox/docker_sandbox_service.py' || true)"
+  if [[ -z "${override_mount}" ]]; then
+    VIOLATIONS+=("running container does not mount CorpFlowAI docker_sandbox_service.py spawn override")
   fi
 
   say "live container check complete (privileged=${privileged} network_mode=${host_net} ExtraHosts=${extra_hosts})"
+
+  check_dynamic_sandboxes
+}
+
+# Inspect any dynamically spawned oh-agent-server-* containers on the dedicated
+# daemon. Fail closed on bridge / host-gateway / published ports / missing limits.
+check_dynamic_sandboxes() {
+  if [[ ! -S "${OPENHANDS_DOCKER_SOCK}" ]]; then
+    return
+  fi
+  local names
+  names="$(openhands_docker ps -a --format '{{.Names}}' 2>/dev/null | grep -E '^oh-agent-server-' || true)"
+  if [[ -z "${names}" ]]; then
+    say "no dynamic oh-agent-server-* sandboxes present — skip dynamic spawn check"
+    return
+  fi
+  local name
+  for name in ${names}; do
+    local nm extra ports mem nano pids nets
+    nm="$(openhands_docker inspect -f '{{.HostConfig.NetworkMode}}' "${name}" 2>/dev/null || echo unknown)"
+    extra="$(openhands_docker inspect -f '{{json .HostConfig.ExtraHosts}}' "${name}" 2>/dev/null || echo unknown)"
+    ports="$(openhands_docker inspect -f '{{json .HostConfig.PortBindings}}' "${name}" 2>/dev/null || echo unknown)"
+    mem="$(openhands_docker inspect -f '{{.HostConfig.Memory}}' "${name}" 2>/dev/null || echo 0)"
+    nano="$(openhands_docker inspect -f '{{.HostConfig.NanoCpus}}' "${name}" 2>/dev/null || echo 0)"
+    pids="$(openhands_docker inspect -f '{{.HostConfig.PidsLimit}}' "${name}" 2>/dev/null || echo 0)"
+    nets="$(openhands_docker inspect -f '{{range $k, $v := .NetworkSettings.Networks}}{{$k}} {{end}}' "${name}" 2>/dev/null || true)"
+
+    if [[ "${nm}" == "bridge" || "${nm}" == "default" || "${nm}" == "host" ]]; then
+      VIOLATIONS+=("dynamic sandbox ${name} NetworkMode=${nm} — must be corpflowai-openhands-net")
+    fi
+    if [[ "${nm}" != "corpflowai-openhands-net" ]]; then
+      VIOLATIONS+=("dynamic sandbox ${name} NetworkMode=${nm} — expected corpflowai-openhands-net")
+    fi
+    for n in ${nets}; do
+      if [[ "${n}" != "corpflowai-openhands-net" ]]; then
+        VIOLATIONS+=("dynamic sandbox ${name} attached to unexpected network ${n}")
+      fi
+    done
+    if [[ "${extra}" != "null" && "${extra}" != "[]" && "${extra}" != "unknown" ]]; then
+      VIOLATIONS+=("dynamic sandbox ${name} ExtraHosts=${extra} — must be empty")
+    fi
+    if printf '%s' "${extra}" | grep -Eqi 'host\.docker\.internal|host-gateway'; then
+      VIOLATIONS+=("dynamic sandbox ${name} ExtraHosts contains host-gateway / host.docker.internal")
+    fi
+    if [[ "${ports}" != "null" && "${ports}" != "{}" && "${ports}" != "unknown" && "${ports}" != "map[]" ]]; then
+      VIOLATIONS+=("dynamic sandbox ${name} has published PortBindings=${ports}")
+    fi
+    if [[ "${mem}" != "536870912" ]]; then
+      VIOLATIONS+=("dynamic sandbox ${name} Memory=${mem} — expected 536870912 (512m)")
+    fi
+    if [[ "${nano}" != "500000000" ]]; then
+      VIOLATIONS+=("dynamic sandbox ${name} NanoCpus=${nano} — expected 500000000")
+    fi
+    if [[ "${pids}" != "256" ]]; then
+      VIOLATIONS+=("dynamic sandbox ${name} PidsLimit=${pids} — expected 256")
+    fi
+    say "dynamic sandbox ${name}: NetworkMode=${nm} ExtraHosts=${extra} Memory=${mem} NanoCpus=${nano} PidsLimit=${pids}"
+  done
 }
 
 main() {

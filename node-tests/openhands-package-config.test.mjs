@@ -101,19 +101,21 @@ describe('openhands package config — ops/openhands/compose.yaml on disk', () =
     assert.equal(referencesHostDockerInternal(composeText), false);
   });
 
-  it('overrides SANDBOX_LOCAL_RUNTIME_URL to dedicated-network DNS (no host-gateway)', () => {
+  it('wires CORPFLOWAI sandbox boundary env + spawn override (no unread V0 knobs)', () => {
     assert.equal(SANDBOX_LOCAL_RUNTIME_URL, 'http://corpflowai-openhands-app:3000');
     assert.equal(SANDBOX_ADDITIONAL_NETWORK, 'corpflowai-openhands-net');
+    assert.match(composeText, /CORPFLOWAI_SANDBOX_NETWORK:\s*"corpflowai-openhands-net"/);
     assert.match(
       composeText,
-      new RegExp(
-        `SANDBOX_LOCAL_RUNTIME_URL:\\s*"${SANDBOX_LOCAL_RUNTIME_URL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`,
-      ),
+      /CORPFLOWAI_SANDBOX_WEBHOOK_BASE:\s*"http:\/\/corpflowai-openhands-app:3000"/,
     );
-    assert.match(
-      composeText,
-      new RegExp(`SANDBOX_ADDITIONAL_NETWORKS:\\s*'\\["${SANDBOX_ADDITIONAL_NETWORK}"\\]'`),
-    );
+    assert.match(composeText, /runtime-overrides\/docker_sandbox_service\.py/);
+    const active = composeText
+      .split(/\r?\n/)
+      .filter((l) => l.trim() && !l.trim().startsWith('#'))
+      .join('\n');
+    assert.doesNotMatch(active, /SANDBOX_ADDITIONAL_NETWORKS\s*:/);
+    assert.doesNotMatch(active, /SANDBOX_LOCAL_RUNTIME_URL\s*:/);
   });
 
   it('pins concurrency to one', () => {

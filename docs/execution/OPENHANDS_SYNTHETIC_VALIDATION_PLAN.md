@@ -106,6 +106,11 @@ Phase 4 (routine automation) or Phase 5 (controlled expansion).**
 
 ## 4. Change log
 
+- **2026-08-06** — Added **non-model dynamic sandbox spawn isolation probe**
+  (`scripts/ops/openhands/probe-sandbox-spawn-isolation.sh`) and Option D spawn
+  override (`ops/openhands/runtime-overrides/`). Gate for any future model-backed
+  retry: probe must PASS and Anton must separately approve the Groq re-run.
+  Packets 1–5 below remain the Phase 3 usefulness gate; they are unchanged.
 - **2026-08-04** — Initial five-packet plan authored alongside the Phase 1 documentation set for #743, extending
   the original 3-packet list in `OPENHANDS_IMPLEMENTATION_AND_OPERATIONS_RUNBOOK.md` with packets 4 and 5 (both
   already named there as "optional later validation") and formalizing the explicit 3-of-5 gate. No packet has

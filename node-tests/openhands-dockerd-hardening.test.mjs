@@ -227,16 +227,18 @@ describe('openhands preflight port modes', () => {
   });
 });
 
-describe('openhands SANDBOX_LOCAL_RUNTIME_URL dedicated-daemon override', () => {
-  it('compose overrides image host.docker.internal default without extra_hosts', () => {
-    assert.match(compose, /SANDBOX_LOCAL_RUNTIME_URL:\s*"http:\/\/corpflowai-openhands-app:3000"/);
-    assert.match(compose, /SANDBOX_ADDITIONAL_NETWORKS:\s*'\[\"corpflowai-openhands-net\"\]'/);
+describe('openhands CORPFLOWAI sandbox spawn boundary env', () => {
+  it('compose uses Option D override env (not unread V0 SANDBOX_* knobs)', () => {
+    assert.match(compose, /CORPFLOWAI_SANDBOX_NETWORK:\s*"corpflowai-openhands-net"/);
+    assert.match(compose, /CORPFLOWAI_SANDBOX_WEBHOOK_BASE:\s*"http:\/\/corpflowai-openhands-app:3000"/);
+    assert.match(compose, /runtime-overrides\/docker_sandbox_service\.py/);
     assert.doesNotMatch(compose, /^\s*extra_hosts:/m);
-    // Active (non-comment) lines must not reintroduce host.docker.internal.
     const active = compose
       .split(/\r?\n/)
       .filter((l) => l.trim() && !l.trim().startsWith('#'))
       .join('\n');
     assert.doesNotMatch(active, /host\.docker\.internal/);
+    assert.doesNotMatch(active, /SANDBOX_ADDITIONAL_NETWORKS\s*:/);
+    assert.doesNotMatch(active, /SANDBOX_LOCAL_RUNTIME_URL\s*:/);
   });
 });
