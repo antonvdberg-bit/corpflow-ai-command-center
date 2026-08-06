@@ -36,9 +36,9 @@ node --test company-master/tests/company-master.test.mjs
 
 `npm test` includes the `node-tests` entry.
 
-## Non-actions
+## Runtime application surface (#776)
 
-- No production Postgres / schema / data mutation
-- No ERPNext write, Drive permission change, deploy, or secrets
-- No binary files or real restricted document contents in GitHub
-- No second app or second database
+- Operator UI: `/admin/company-master`
+- API: `/api/company-master/*`
+- Production approval packet: `docs/company-master/COMPANY_MASTER_PRODUCTION_APPROVAL_PACKET.md`
+- Storage: Postgres BYTEA via `company_master_artifacts` (`postgres_company_master_bytes` adapter)
