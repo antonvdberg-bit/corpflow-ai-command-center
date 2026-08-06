@@ -1,0 +1,85 @@
+{
+  "schema_version": "1.0.0",
+  "sensitivity_classifications": [
+    "PUBLIC",
+    "INTERNAL",
+    "CONFIDENTIAL",
+    "HIGHLY_RESTRICTED"
+  ],
+  "publication_statuses": [
+    "NOT_ASSESSED",
+    "INTERNAL_ONLY",
+    "APPROVED_PUBLIC",
+    "RESTRICTED",
+    "WITHDRAWN"
+  ],
+  "verification_statuses": [
+    "UNVERIFIED",
+    "RECEIVED_NOT_VERIFIED",
+    "VERIFIED",
+    "CONFLICTING",
+    "EXPIRED",
+    "REJECTED"
+  ],
+  "approval_statuses": [
+    "NOT_REQUESTED",
+    "PENDING",
+    "APPROVED",
+    "REJECTED",
+    "WITHDRAWN"
+  ],
+  "company_lifecycle_statuses": [
+    "DRAFT",
+    "ONBOARDING",
+    "EVIDENCE_INCOMPLETE",
+    "UNDER_VERIFICATION",
+    "READY_FOR_APPROVAL",
+    "ACTIVE",
+    "REVIEW_REQUIRED",
+    "SUSPENDED",
+    "OFFBOARDED",
+    "ARCHIVED"
+  ],
+  "asset_lifecycle_statuses": [
+    "DRAFT",
+    "UPLOADED",
+    "UNDER_REVIEW",
+    "APPROVED",
+    "ACTIVE",
+    "SUPERSEDED",
+    "EXPIRED",
+    "WITHDRAWN",
+    "ARCHIVED"
+  ],
+  "asset_types": [
+    "LOGO",
+    "BRAND_IMAGE",
+    "LETTERHEAD",
+    "SIGNATURE",
+    "REGISTRATION_CERTIFICATE",
+    "TAX_CERTIFICATE",
+    "BANK_CONFIRMATION",
+    "COMPLIANCE_DOCUMENT",
+    "ADDRESS_EVIDENCE",
+    "IDENTITY_EVIDENCE",
+    "CONTRACT_TEMPLATE",
+    "OTHER_COMPANY_DOCUMENT"
+  ],
+  "evidence_statuses": [
+    "NOT_REQUIRED",
+    "REQUESTED",
+    "AWAITING_CLIENT",
+    "RECEIVED",
+    "UNDER_REVIEW",
+    "VERIFIED",
+    "REJECTED",
+    "EXPIRED",
+    "SUPERSEDED",
+    "WAIVED_WITH_APPROVAL"
+  ],
+  "storage_providers": [
+    "GOOGLE_DRIVE",
+    "MANAGED_OBJECT_STORAGE",
+    "EXTERNAL_REFERENCE_ONLY"
+  ]
+}
