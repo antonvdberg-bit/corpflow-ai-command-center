@@ -161,29 +161,47 @@ log "tpm_budget=${TPM_BUDGET} (70% of ${TPM_LIMIT})"
 # Scrub any leftover dry-capture proxy settings before loading the host key
 curl -fsS -m 30 -X POST http://127.0.0.1:3000/api/v1/settings \
   -H 'Content-Type: application/json' \
-  -d '{"agent_settings_diff":{"llm":{"api_key":null,"model":"","base_url":null,"reasoning_effort":null,"extended_thinking_budget":null,"enable_encrypted_reasoning":false},"condenser":{"enabled":false}},"conversation_settings_diff":{"max_iterations":8}}' >/dev/null 2>&1 || true
+  -d '{"agent_settings_diff":{"llm":{"api_key":null,"model":"","base_url":null},"enable_switch_llm_tool":false},"conversation_settings_diff":{"max_iterations":8}}' >/dev/null 2>&1 || true
 openhands_docker exec -i corpflowai-openhands-app python3 - <<'PY' >/dev/null 2>&1 || true
 import json
 from pathlib import Path
 p = Path('/.openhands/settings.json')
 if p.exists():
-    d = json.loads(p.read_text())
+    try:
+        d = json.loads(p.read_text())
+    except Exception:
+        d = {}
     agent = d.setdefault('agent_settings', {})
     llm = agent.setdefault('llm', {})
-    llm['api_key'] = None
-    llm['model'] = ''
-    llm['base_url'] = None
-    llm['reasoning_effort'] = None
-    llm['extended_thinking_budget'] = None
-    llm['enable_encrypted_reasoning'] = False
-    agent['condenser'] = {'enabled': False, 'condenser_kind': 'noop'}
+    if isinstance(llm, dict):
+        llm['api_key'] = None
+        llm['model'] = ''
+        llm['base_url'] = None
+        llm['reasoning_effort'] = 'low'
+        llm['extended_thinking_budget'] = 0
+        llm['enable_encrypted_reasoning'] = False
+    agent['enable_switch_llm_tool'] = False
+    # Disable condenser if present without inventing unknown kinds
+    if isinstance(agent.get('condenser'), dict):
+        agent['condenser']['enabled'] = False
     p.write_text(json.dumps(d))
     print('settings_scrubbed')
 PY
 
-# Confirm runtime key absent before load (best-effort after scrub)
-SETTINGS="$(curl -fsS http://127.0.0.1:3000/api/v1/settings)"
-echo "${SETTINGS}" | python3 -c 'import json,sys; d=json.load(sys.stdin); print("llm_api_key_set_before_load", d.get("llm_api_key_set")); print("base_url", ((d.get("agent_settings") or {}).get("llm") or {}).get("base_url")); print("reasoning_effort", ((d.get("agent_settings") or {}).get("llm") or {}).get("reasoning_effort")); print("extended_thinking_budget", ((d.get("agent_settings") or {}).get("llm") or {}).get("extended_thinking_budget"))'
+# Confirm settings readable after scrub
+SETTINGS="$(curl -fsS http://127.0.0.1:3000/api/v1/settings || echo '{}')"
+echo "${SETTINGS}" | python3 -c 'import json,sys
+raw=sys.stdin.read()
+try:
+ d=json.loads(raw)
+except Exception as e:
+ print("settings_parse_error", e); raise SystemExit(0)
+print("llm_api_key_set_before_load", d.get("llm_api_key_set"))
+llm=((d.get("agent_settings") or {}).get("llm") or {})
+print("base_url", llm.get("base_url"))
+print("reasoning_effort", llm.get("reasoning_effort"))
+print("extended_thinking_budget", llm.get("extended_thinking_budget"))
+' || true
 
 # Load Groq key from host file into settings (never echo key)
 # shellcheck disable=SC1090
@@ -197,7 +215,7 @@ set +a
 [[ "${LLM_MODEL}" == "${APPROVED_MODEL}" ]] || die "model mismatch"
 
 python3 - "${LLM_MODEL}" "${LLM_API_KEY}" <<'PY'
-import json, sys, urllib.request
+import json, sys, urllib.error, urllib.request
 model, key = sys.argv[1], sys.argv[2]
 payload = {
   "agent_settings_diff": {
@@ -209,10 +227,6 @@ payload = {
       "reasoning_effort": "low",
       "extended_thinking_budget": 0,
       "enable_encrypted_reasoning": False,
-      "prompt_cache_retention": None,
-    },
-    "condenser": {
-      "enabled": False,
     },
     "enable_switch_llm_tool": False,
   },
@@ -220,14 +234,30 @@ payload = {
     "max_iterations": 8,
   },
 }
+# Condenser disable is best-effort (schema may reject unknown shapes)
+payload["agent_settings_diff"]["condenser"] = {"enabled": False}
 req = urllib.request.Request(
   "http://127.0.0.1:3000/api/v1/settings",
   data=json.dumps(payload).encode(),
   headers={"Content-Type": "application/json"},
   method="POST",
 )
-with urllib.request.urlopen(req, timeout=60) as resp:
-  print("settings_store_status", resp.status)
+try:
+  with urllib.request.urlopen(req, timeout=60) as resp:
+    print("settings_store_status", resp.status)
+except urllib.error.HTTPError as e:
+  body = e.read().decode("utf-8", "replace")[:500]
+  print("settings_store_http_error", e.code, body)
+  # Retry without condenser field
+  payload["agent_settings_diff"].pop("condenser", None)
+  req = urllib.request.Request(
+    "http://127.0.0.1:3000/api/v1/settings",
+    data=json.dumps(payload).encode(),
+    headers={"Content-Type": "application/json"},
+    method="POST",
+  )
+  with urllib.request.urlopen(req, timeout=60) as resp:
+    print("settings_store_status_retry", resp.status)
 PY
 # Wipe key from shell env
 unset LLM_API_KEY
