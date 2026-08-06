@@ -158,10 +158,11 @@ log "PRIMARY_BEFORE=${PRIMARY_BEFORE}"
 bash scripts/ops/openhands/estimate-first-request-context.sh || true
 log "tpm_budget=${TPM_BUDGET} (70% of ${TPM_LIMIT})"
 
-# Scrub any leftover dry-capture proxy settings before loading the host key
+# Scrub any leftover dry-capture proxy settings before loading the host key.
+# OpenHands rejects model="" — keep a non-empty placeholder without a key.
 curl -fsS -m 30 -X POST http://127.0.0.1:3000/api/v1/settings \
   -H 'Content-Type: application/json' \
-  -d '{"agent_settings_diff":{"llm":{"api_key":null,"model":"","base_url":null},"enable_switch_llm_tool":false},"conversation_settings_diff":{"max_iterations":8}}' >/dev/null 2>&1 || true
+  -d '{"agent_settings_diff":{"llm":{"api_key":null,"model":"gpt-5.5","base_url":null},"enable_switch_llm_tool":false},"conversation_settings_diff":{"max_iterations":8}}' >/dev/null 2>&1 || true
 openhands_docker exec -i corpflowai-openhands-app python3 - <<'PY' >/dev/null 2>&1 || true
 import json
 from pathlib import Path
@@ -175,13 +176,14 @@ if p.exists():
     llm = agent.setdefault('llm', {})
     if isinstance(llm, dict):
         llm['api_key'] = None
-        llm['model'] = ''
+        # Empty model crashes Settings validation on next GET.
+        if not llm.get('model'):
+            llm['model'] = 'gpt-5.5'
         llm['base_url'] = None
         llm['reasoning_effort'] = 'low'
         llm['extended_thinking_budget'] = 0
         llm['enable_encrypted_reasoning'] = False
     agent['enable_switch_llm_tool'] = False
-    # Disable condenser if present without inventing unknown kinds
     if isinstance(agent.get('condenser'), dict):
         agent['condenser']['enabled'] = False
     p.write_text(json.dumps(d))
