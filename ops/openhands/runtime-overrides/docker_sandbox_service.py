@@ -450,8 +450,17 @@ class DockerSandboxService(SandboxService):
                 'max_num_sandboxes=1 when using host network mode.'
             )
 
-        # Enforce sandbox limits by cleaning up old sandboxes
-        await self.pause_old_sandboxes(self.max_num_sandboxes - 1)
+        # CORPFLOWAI concurrency=1: pause every currently RUNNING sandbox before
+        # starting a new one. Upstream `pause_old_sandboxes(max_num_sandboxes - 1)`
+        # raises ValueError when max_num_sandboxes == 1 (keep=0 is rejected).
+        page = await self.search_sandboxes(limit=100)
+        for existing in page.items:
+            if existing.status == SandboxStatus.RUNNING:
+                _logger.info(
+                    'CORPFLOWAI pausing prior sandbox %s before start (concurrency=1)',
+                    existing.id,
+                )
+                await self.pause_sandbox(existing.id)
 
         if sandbox_spec_id is None:
             sandbox_spec = await self.sandbox_spec_service.get_default_sandbox_spec()
@@ -579,8 +588,11 @@ class DockerSandboxService(SandboxService):
 
     async def resume_sandbox(self, sandbox_id: str) -> bool:
         """Resume a paused sandbox."""
-        # Enforce sandbox limits by cleaning up old sandboxes
-        await self.pause_old_sandboxes(self.max_num_sandboxes - 1)
+        # CORPFLOWAI concurrency=1 — pause others before resume.
+        page = await self.search_sandboxes(limit=100)
+        for existing in page.items:
+            if existing.status == SandboxStatus.RUNNING and existing.id != sandbox_id:
+                await self.pause_sandbox(existing.id)
 
         try:
             if not sandbox_id.startswith(self.container_name_prefix):
