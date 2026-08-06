@@ -103,13 +103,13 @@ def get_project_dir(
     return working_dir
 
 
-@dataclass
-
 def _corpflowai_env_flag(name: str, default: str = '0') -> bool:
     return str(os.environ.get(name, default)).strip().lower() in (
         '1', 'true', 'yes', 'on',
     )
 
+
+@dataclass
 class AppConversationServiceBase(AppConversationService, ABC):
     """App Conversation service which adds git specific functionality.
 

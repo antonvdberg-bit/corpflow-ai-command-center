@@ -165,9 +165,6 @@ Your role ends when the plan is finalized. Implementation is handled by the code
 </IMPORTANT_PLANNING_BOUNDARIES>"""
 
 
-@dataclass
-
-
 # ---------------------------------------------------------------------------
 # CORPFLOWAI: commissioning context gates (env-driven; defaults minimize tokens)
 # ---------------------------------------------------------------------------
@@ -193,6 +190,8 @@ def _corpflowai_minimal_tools_only() -> bool:
     """When true (default), expose only terminal + file_editor (no task_tracker)."""
     return _corpflowai_env_flag('CORPFLOWAI_MINIMAL_TOOLS', '1')
 
+
+@dataclass
 class LiveStatusAppConversationService(AppConversationServiceBase):
     """AppConversationService which combines live status info from the sandbox with stored data."""
 
