@@ -9,24 +9,38 @@ import { describe, it, beforeEach } from 'node:test';
 
 import {
   approveArtifact,
+  archiveArtifact,
   artifactRowToResolverAsset,
   cleanupSyntheticCompanies,
   createCompany,
   generateCompanyId,
   getCompany,
+  hardDeleteArtifact,
+  removePendingArtifact,
   resolveCurrentArtifact,
   updateCompany,
   uploadArtifact,
+  withdrawArtifact,
   assertCompanyAccess,
 } from '../lib/server/company-master-service.js';
 import { isAssetCurrentlyResolvable } from '../company-master/lib/resolve.js';
-import { CM_ALLOWED_MIME_TYPES, COMPANY_ID_RE } from '../lib/server/company-master-constants.js';
+import {
+  CM_ALLOWED_MIME_TYPES,
+  CM_STORAGE_ADAPTER_ID,
+  CM_STORAGE_PROVIDER,
+  COMPANY_ID_RE,
+  humanArtifactState,
+  normalizeJurisdiction,
+} from '../lib/server/company-master-constants.js';
 import { hashContentSha256 } from '../lib/server/company-master-storage.js';
 import { validateCompanyMasterRecord } from '../company-master/lib/validate.js';
 import {
   loadClientOnboardingSyntheticRecord,
   loadCorpflowaiSyntheticRecord,
 } from '../company-master/lib/load.js';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 
 function tinyPngBase64() {
   // 1x1 PNG
@@ -169,6 +183,12 @@ function makeMemoryPrisma() {
         artifacts.set(row.id, row);
         return row;
       },
+      async delete({ where }) {
+        const row = artifacts.get(where.id);
+        if (!row) throw new Error('Record to delete does not exist.');
+        artifacts.delete(where.id);
+        return row;
+      },
     },
     async $transaction(fn) {
       return fn(api);
@@ -206,19 +226,30 @@ describe('Company Master runtime — CRUD, upload, resolve, isolation, cleanup',
     prisma = makeMemoryPrisma();
   });
 
-  it('creates, reads and updates a company', async () => {
+  it('creates, reads and updates a company; ignores client tenant_id and governance', async () => {
     const created = await createCompany(
       {
         legal_name: 'Synthetic CM Co Ltd',
         trading_name: 'Synthetic CM',
         public_email: 'cm@example.invalid',
         is_synthetic: true,
-        tenant_id: 'tenant-a',
+        tenant_id: 'tenant-should-be-ignored',
+        lifecycle_status: 'ACTIVE',
+        verification_status: 'VERIFIED',
+        approval_status: 'APPROVED',
+        company_type: 'PUBLIC_COMPANY',
       },
       { prisma },
+      admin,
     );
     assert.equal(created.ok, true);
     assert.match(created.company.company_id, /^cmp_synthetic_/);
+    assert.equal(created.company.tenant_id, null);
+    assert.equal(created.company.lifecycle_status, 'DRAFT');
+    assert.equal(created.company.verification_status, 'UNVERIFIED');
+    assert.equal(created.company.approval_status, 'NOT_REQUESTED');
+    assert.equal(created.company.company_type, 'PRIVATE_COMPANY');
+    assert.ok(created.ignored_client_fields.includes('tenant_id'));
 
     const got = await getCompany(created.company.company_id, { prisma }, admin);
     assert.equal(got.ok, true);
@@ -227,19 +258,77 @@ describe('Company Master runtime — CRUD, upload, resolve, isolation, cleanup',
 
     const updated = await updateCompany(
       created.company.company_id,
-      { legal_name: 'Synthetic CM Co Limited', public_phone: '+2300000000', actor: 'test-admin' },
+      {
+        legal_name: 'Synthetic CM Co Limited',
+        public_phone: '+2300000000',
+        tenant_id: 'evil-tenant',
+        lifecycle_status: 'ACTIVE',
+        verification_status: 'VERIFIED',
+        approval_status: 'APPROVED',
+        company_type: 'PUBLIC_COMPANY',
+        actor: 'test-admin',
+      },
       { prisma },
       admin,
     );
     assert.equal(updated.ok, true);
     assert.equal(updated.company.legal_name, 'Synthetic CM Co Limited');
     assert.equal(updated.company.public_phone, '+2300000000');
+    assert.equal(updated.company.tenant_id, null);
+    assert.equal(updated.company.lifecycle_status, 'DRAFT');
+    assert.equal(updated.company.company_type, 'PRIVATE_COMPANY');
+    assert.ok(updated.ignored_client_fields.includes('tenant_id'));
+    assert.ok(updated.ignored_client_fields.includes('lifecycle_status'));
+  });
+
+  it('rejects non-admin attempts to change tenant_id', async () => {
+    const created = await createCompany(
+      { legal_name: 'Tenant Bound Synthetic', is_synthetic: true },
+      { prisma },
+      { admin: false, tenantId: 'tenant-a', username: 'op-a' },
+    );
+    assert.equal(created.ok, true);
+    assert.equal(created.company.tenant_id, 'tenant-a');
+
+    const move = await updateCompany(
+      created.company.company_id,
+      { tenant_id: 'tenant-b', legal_name: 'Tenant Bound Synthetic' },
+      { prisma },
+      { admin: false, tenantId: 'tenant-a' },
+    );
+    assert.equal(move.ok, false);
+    assert.equal(move.code, 'TENANT_ID_NOT_EDITABLE');
+    assert.equal(move.status, 403);
+
+    const still = await getCompany(created.company.company_id, { prisma }, {
+      admin: false,
+      tenantId: 'tenant-a',
+    });
+    assert.equal(still.ok, true);
+    assert.equal(still.company.tenant_id, 'tenant-a');
+  });
+
+  it('normalizes jurisdiction codes and labels', async () => {
+    assert.equal(normalizeJurisdiction('za').code, 'ZA');
+    assert.equal(normalizeJurisdiction('South Africa').code, 'ZA');
+    assert.equal(normalizeJurisdiction('OTHER:Isle of Man').code, 'OTHER:Isle of Man');
+    assert.equal(normalizeJurisdiction('').ok, false);
+
+    const created = await createCompany(
+      { legal_name: 'Juris Synthetic', is_synthetic: true, jurisdiction: 'Mauritius' },
+      { prisma },
+      admin,
+    );
+    assert.equal(created.ok, true);
+    assert.equal(created.company.jurisdiction, 'MU');
+    assert.equal(created.company.jurisdiction_label, 'Mauritius');
   });
 
   it('uploads logo v1, rejects bad MIME, approves, resolves; v2 pending excluded; v2 approved becomes current; v1 historical', async () => {
     const created = await createCompany(
       { legal_name: 'Logo Flow Synthetic', is_synthetic: true },
       { prisma },
+      admin,
     );
     const companyId = created.company.company_id;
 
@@ -252,7 +341,7 @@ describe('Company Master runtime — CRUD, upload, resolve, isolation, cleanup',
         content_type: 'application/x-msdownload',
         data_base64: tinyPngBase64(),
         sensitivity_classification: 'PUBLIC',
-        publication_status: 'NOT_ASSESSED',
+        publication_status: 'APPROVED_PUBLIC',
       },
       { prisma },
       admin,
@@ -279,6 +368,12 @@ describe('Company Master runtime — CRUD, upload, resolve, isolation, cleanup',
     assert.equal(v1.artifact.version_number, 1);
     assert.equal(v1.artifact.lifecycle_status, 'UPLOADED');
     assert.equal(v1.artifact.is_current, false);
+    assert.notEqual(v1.artifact.publication_status, 'APPROVED_PUBLIC');
+    assert.equal(v1.artifact.publication_status, 'NOT_ASSESSED');
+    assert.equal(v1.artifact.storage_provider, CM_STORAGE_PROVIDER);
+    assert.equal(v1.artifact.storage_adapter, CM_STORAGE_ADAPTER_ID);
+    assert.equal(v1.storage_adapter, CM_STORAGE_ADAPTER_ID);
+    assert.equal(humanArtifactState(v1.artifact), 'Pending approval');
 
     const pendingResolve = await resolveCurrentArtifact(
       companyId,
@@ -293,13 +388,17 @@ describe('Company Master runtime — CRUD, upload, resolve, isolation, cleanup',
     assert.equal(approved1.ok, true);
     assert.equal(approved1.artifact.lifecycle_status, 'ACTIVE');
     assert.equal(approved1.artifact.is_current, true);
+    assert.equal(humanArtifactState(approved1.artifact), 'Current');
 
     const r1 = await resolveCurrentArtifact(companyId, 'brand.logo.primary', { prisma }, admin);
     assert.equal(r1.ok, true);
     assert.equal(r1.asset.asset_id, v1.artifact.id);
     assert.equal(r1.asset.durable_contract_is_provider_url, false);
+    assert.equal(r1.asset.storage_provider, CM_STORAGE_PROVIDER);
+    assert.equal(r1.asset.storage_adapter, CM_STORAGE_ADAPTER_ID);
+    assert.equal(r1.asset.title, 'Logo v1');
+    assert.ok(r1.asset.retrieval_reference);
 
-    // Different bytes for v2
     const v2b64 = Buffer.from('v2-logo-bytes-not-png-but-ok-for-hash').toString('base64');
     const v2 = await uploadArtifact(
       {
@@ -335,6 +434,7 @@ describe('Company Master runtime — CRUD, upload, resolve, isolation, cleanup',
     assert.ok(hist);
     assert.equal(hist.lifecycle_status, 'SUPERSEDED');
     assert.equal(hist.is_current, false);
+    assert.equal(humanArtifactState(hist), 'Superseded');
     assert.ok(isAssetCurrentlyResolvable(artifactRowToResolverAsset({
       ...hist,
       id: hist.id,
@@ -359,10 +459,80 @@ describe('Company Master runtime — CRUD, upload, resolve, isolation, cleanup',
     })) === false);
   });
 
+  it('removes pending artifacts; forbids ordinary hard-delete of approved; withdraw and archive retain history', async () => {
+    const created = await createCompany(
+      { legal_name: 'Lifecycle Synthetic', is_synthetic: true },
+      { prisma },
+      admin,
+    );
+    const companyId = created.company.company_id;
+
+    const pending = await uploadArtifact(
+      {
+        company_id: companyId,
+        artifact_type: 'LOGO',
+        logical_alias: 'brand.logo.primary',
+        title: 'Pending logo',
+        file_name: 'pending.png',
+        content_type: 'image/png',
+        data_base64: tinyPngBase64(),
+        sensitivity_classification: 'PUBLIC',
+      },
+      { prisma },
+      admin,
+    );
+    assert.equal(pending.ok, true);
+
+    const removed = await removePendingArtifact(pending.artifact.id, { prisma }, admin);
+    assert.equal(removed.ok, true);
+    const gone = await getCompany(companyId, { prisma }, admin);
+    assert.equal(gone.artifacts.length, 0);
+
+    const v1 = await uploadArtifact(
+      {
+        company_id: companyId,
+        artifact_type: 'LOGO',
+        logical_alias: 'brand.logo.primary',
+        title: 'Keep me',
+        file_name: 'keep.png',
+        content_type: 'image/png',
+        data_base64: Buffer.from('keep-logo-bytes-unique').toString('base64'),
+        sensitivity_classification: 'PUBLIC',
+      },
+      { prisma },
+      admin,
+    );
+    await approveArtifact(v1.artifact.id, { prisma }, admin, 'test-admin');
+
+    const hard = await hardDeleteArtifact(v1.artifact.id, { prisma }, admin);
+    assert.equal(hard.ok, false);
+    assert.equal(hard.code, 'HARD_DELETE_FORBIDDEN');
+
+    const notPendingRemove = await removePendingArtifact(v1.artifact.id, { prisma }, admin);
+    assert.equal(notPendingRemove.ok, false);
+    assert.equal(notPendingRemove.code, 'ARTIFACT_NOT_PENDING');
+
+    const withdrawn = await withdrawArtifact(v1.artifact.id, { prisma }, admin, 'test-admin');
+    assert.equal(withdrawn.ok, true);
+    assert.equal(withdrawn.artifact.lifecycle_status, 'WITHDRAWN');
+    assert.equal(withdrawn.artifact.is_current, false);
+    assert.equal(humanArtifactState(withdrawn.artifact), 'Withdrawn');
+
+    const archived = await archiveArtifact(v1.artifact.id, { prisma }, admin, 'test-admin');
+    assert.equal(archived.ok, true);
+    assert.equal(archived.artifact.lifecycle_status, 'ARCHIVED');
+    assert.equal(humanArtifactState(archived.artifact), 'Archived');
+
+    const still = await getCompany(companyId, { prisma }, admin);
+    assert.equal(still.artifacts.length, 1);
+    assert.equal(still.artifacts[0].id, v1.artifact.id);
+  });
+
   it('stores registration certificate as restricted and denies unauthorised resolve', async () => {
     const created = await createCompany(
       { legal_name: 'Restricted Doc Synthetic', is_synthetic: true },
       { prisma },
+      admin,
     );
     const companyId = created.company.company_id;
     const up = await uploadArtifact(
@@ -374,12 +544,13 @@ describe('Company Master runtime — CRUD, upload, resolve, isolation, cleanup',
         content_type: 'application/pdf',
         data_base64: Buffer.from('%PDF-1.4 synthetic').toString('base64'),
         sensitivity_classification: 'CONFIDENTIAL',
-        publication_status: 'RESTRICTED',
+        publication_status: 'APPROVED_PUBLIC',
       },
       { prisma },
       admin,
     );
     assert.equal(up.ok, true);
+    assert.equal(up.artifact.publication_status, 'RESTRICTED');
     await approveArtifact(up.artifact.id, { prisma }, admin, 'test-admin');
 
     const denied = await resolveCurrentArtifact(
@@ -404,13 +575,18 @@ describe('Company Master runtime — CRUD, upload, resolve, isolation, cleanup',
 
   it('enforces company isolation across tenants/companies', async () => {
     const a = await createCompany(
-      { legal_name: 'Company A Synthetic', is_synthetic: true, tenant_id: 'tenant-a' },
+      { legal_name: 'Company A Synthetic', is_synthetic: true },
       { prisma },
+      { admin: false, tenantId: 'tenant-a' },
     );
     const b = await createCompany(
-      { legal_name: 'Company B Synthetic', is_synthetic: true, tenant_id: 'tenant-b' },
+      { legal_name: 'Company B Synthetic', is_synthetic: true },
       { prisma },
+      { admin: false, tenantId: 'tenant-b' },
     );
+    assert.equal(a.company.tenant_id, 'tenant-a');
+    assert.equal(b.company.tenant_id, 'tenant-b');
+
     const up = await uploadArtifact(
       {
         company_id: a.company.company_id,
@@ -420,12 +596,11 @@ describe('Company Master runtime — CRUD, upload, resolve, isolation, cleanup',
         content_type: 'image/png',
         data_base64: tinyPngBase64(),
         sensitivity_classification: 'PUBLIC',
-        publication_status: 'APPROVED_PUBLIC',
       },
       { prisma },
-      admin,
+      { admin: false, tenantId: 'tenant-a' },
     );
-    await approveArtifact(up.artifact.id, { prisma }, admin);
+    await approveArtifact(up.artifact.id, { prisma }, { admin: false, tenantId: 'tenant-a' });
 
     const cross = await getCompany(a.company.company_id, { prisma }, {
       admin: false,
@@ -453,6 +628,7 @@ describe('Company Master runtime — CRUD, upload, resolve, isolation, cleanup',
     const created = await createCompany(
       { legal_name: 'Cleanup Synthetic', is_synthetic: true, company_id: 'cmp_synthetic_cleanup_demo' },
       { prisma },
+      admin,
     );
     assert.equal(created.ok, true);
 
@@ -503,13 +679,32 @@ describe('Company Master runtime — CRUD, upload, resolve, isolation, cleanup',
     const created = await createCompany(
       { legal_name: 'No Tenant Synthetic', is_synthetic: true },
       { prisma },
+      admin,
     );
     const access = assertCompanyAccess(created.company, { admin: false, tenantId: 'tenant-x' });
-    // company public shape uses tenant_id; assertCompanyAccess expects row.tenantId
     assert.equal(
       assertCompanyAccess({ tenantId: null }, { admin: false, tenantId: 'tenant-x' }).ok,
       false,
     );
     assert.equal(access.ok, false);
+  });
+
+  it('ordinary UI source does not render raw resolver JSON or Resolve brand.logo.primary button', () => {
+    const here = dirname(fileURLToPath(import.meta.url));
+    const src = readFileSync(join(here, '../components/CompanyMasterApp.js'), 'utf8');
+    assert.equal(src.includes('Resolve brand.logo.primary'), false);
+    assert.equal(src.includes('Current primary logo'), true);
+    assert.equal(src.includes('Tenant ID'), false);
+    assert.equal(src.includes('tenant_id'), false);
+    assert.equal(/<label[^>]*>\s*Publication\s*<\/label>/i.test(src), false);
+    assert.equal(src.includes('publication_status:'), false);
+    assert.equal(src.includes('APPROVED_PUBLIC'), false);
+    assert.equal(src.includes('Lifecycle status'), false);
+    assert.equal(src.includes('Verification status'), false);
+    assert.equal(src.includes('Approval status'), false);
+    assert.equal(src.includes('Company type'), false);
+    assert.equal(src.includes('Admin debug'), true);
+    // Raw resolver JSON is not shown until admin expands debug disclosure
+    assert.equal(src.includes('JSON.stringify(resolveResult'), false);
   });
 });
