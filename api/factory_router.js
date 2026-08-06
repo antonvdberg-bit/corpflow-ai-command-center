@@ -117,6 +117,7 @@ import {
   handleMpgsVerifyOrder,
   handlePaymentRecordCreate,
 } from '../lib/server/payments/mpgs-payment-api.js';
+import { handleAppApi } from '../lib/app/handlers.js';
 
 const prisma = new PrismaClient();
 
@@ -938,6 +939,11 @@ export default async function handler(req, res) {
     }
     if (pathSeg === 'ui/context') {
       return handleUiContext(req, res);
+    }
+
+    // #778 Slice 1 — thin Core/Tenant app APIs (synthetic Requests & Progress).
+    if (pathSeg === 'app' || pathSeg.startsWith('app/')) {
+      return handleAppApi(req, res, pathSeg);
     }
 
     if (pathSeg === 'membership/effective') {
