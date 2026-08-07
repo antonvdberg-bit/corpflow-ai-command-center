@@ -67,7 +67,7 @@ test('process pack documents the eight Sarah-approved v1 decisions', () => {
   assert.match(pack, /signed engagement\/mandate/);
   assert.match(pack, /Do not prepare FAS/);
   assert.match(pack, /private companies.*close corporations|Private companies.*close corporations/i);
-  assert.match(pack, CIPC_DESK_ANNUAL_RETURNS_DORMANT_WORDING);
+  assert.ok(pack.includes(CIPC_DESK_ANNUAL_RETURNS_DORMANT_WORDING));
   assert.match(pack, /Keep \*\*all\*\* service-fee|Keep all service-fee|no Desk service-fee/i);
   assert.match(pack, /client completes and takes ownership/i);
   assert.doesNotMatch(pack, /SARAH CONFIRM/);
