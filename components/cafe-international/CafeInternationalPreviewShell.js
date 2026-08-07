@@ -2,9 +2,12 @@ import React, { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 
+import { CAFE_INTERNATIONAL_VISUALS } from '../../lib/website-rescue/cafe-international-assets.js';
+
 /**
- * Shared shell for Café International Website Rescue preview (#797).
+ * Shared shell for Café International Website Rescue preview.
  * Path-based under /demo/cafe-international — noindex, no chatbot activation.
+ * Visual-first: client-owned photography from Anton Drive folder.
  */
 
 const T = {
@@ -17,6 +20,8 @@ const T = {
   ember: '#8b3a1a',
   ink: '#140e0c',
   line: 'rgba(246,239,230,0.16)',
+  glass: 'rgba(20,14,12,0.62)',
+  glassBorder: 'rgba(246,239,230,0.22)',
   fontDisplay: '"Fraunces", "Iowan Old Style", Georgia, serif',
   fontBody: '"Source Sans 3", "Segoe UI", ui-sans-serif, system-ui, sans-serif',
 };
@@ -40,9 +45,10 @@ function ActionButton({ href, children, primary = false, external = false }) {
     border: primary ? 'none' : `1px solid ${T.creamMuted}`,
     background: primary
       ? `linear-gradient(135deg, ${T.flameSoft} 0%, ${T.flame} 55%, ${T.ember} 100%)`
-      : 'transparent',
+      : 'rgba(20,14,12,0.45)',
     color: primary ? T.ink : T.cream,
     boxShadow: primary ? '0 10px 28px rgba(196,92,38,0.35)' : 'none',
+    backdropFilter: primary ? undefined : 'blur(8px)',
   };
   if (external) {
     return (
@@ -65,60 +71,93 @@ function ActionButton({ href, children, primary = false, external = false }) {
   );
 }
 
-export function CafeActionPanel({ title, subtitle, actions, tone = 'booking' }) {
+export function CafeGlassPanel({ children, style = {}, as: Tag = 'section', ...rest }) {
+  return (
+    <Tag
+      style={{
+        border: `1px solid ${T.glassBorder}`,
+        borderRadius: 18,
+        padding: '20px 18px',
+        background: T.glass,
+        backdropFilter: 'blur(14px)',
+        WebkitBackdropFilter: 'blur(14px)',
+        boxShadow: '0 18px 40px rgba(0,0,0,0.35)',
+        ...style,
+      }}
+      {...rest}
+    >
+      {children}
+    </Tag>
+  );
+}
+
+export function CafeActionPanel({ title, subtitle, actions, tone = 'booking', image }) {
   const border =
     tone === 'takeaway' ? 'rgba(232,160,106,0.55)' : 'rgba(246,239,230,0.28)';
   return (
-    <section
+    <CafeGlassPanel
       data-cafe-action-panel={tone}
       style={{
         border: `1px solid ${border}`,
-        borderRadius: 16,
-        padding: '18px 16px',
+        padding: 0,
+        overflow: 'hidden',
         background:
           tone === 'takeaway'
-            ? 'linear-gradient(180deg, rgba(196,92,38,0.18), rgba(26,18,16,0.72))'
-            : 'linear-gradient(180deg, rgba(246,239,230,0.08), rgba(26,18,16,0.65))',
+            ? 'linear-gradient(180deg, rgba(196,92,38,0.22), rgba(26,18,16,0.78))'
+            : 'linear-gradient(180deg, rgba(246,239,230,0.10), rgba(26,18,16,0.78))',
       }}
     >
-      <div
-        style={{
-          fontSize: 12,
-          letterSpacing: '0.14em',
-          textTransform: 'uppercase',
-          color: T.flameSoft,
-          fontWeight: 800,
-        }}
-      >
-        {tone === 'takeaway' ? 'Takeaway' : 'Table booking'}
+      {image ? (
+        <div
+          style={{
+            height: 140,
+            backgroundImage: `linear-gradient(180deg, rgba(20,14,12,0.15), rgba(20,14,12,0.72)), url(${image})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+          aria-hidden
+        />
+      ) : null}
+      <div style={{ padding: '18px 16px 20px' }}>
+        <div
+          style={{
+            fontSize: 12,
+            letterSpacing: '0.14em',
+            textTransform: 'uppercase',
+            color: T.flameSoft,
+            fontWeight: 800,
+          }}
+        >
+          {tone === 'takeaway' ? 'Takeaway' : 'Table booking'}
+        </div>
+        <h2
+          style={{
+            margin: '8px 0 0',
+            fontFamily: T.fontDisplay,
+            fontSize: 'clamp(22px, 3vw, 28px)',
+            color: T.cream,
+            lineHeight: 1.15,
+          }}
+        >
+          {title}
+        </h2>
+        <p style={{ margin: '10px 0 0', color: T.creamMuted, lineHeight: 1.5, fontSize: 15 }}>
+          {subtitle}
+        </p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 16 }}>
+          {(actions || []).map((a) => (
+            <ActionButton
+              key={a.id}
+              href={a.href}
+              primary={a.kind === 'whatsapp' || a.kind === 'phone'}
+              external={a.kind === 'chat_bridge'}
+            >
+              {a.label}
+            </ActionButton>
+          ))}
+        </div>
       </div>
-      <h2
-        style={{
-          margin: '8px 0 0',
-          fontFamily: T.fontDisplay,
-          fontSize: 'clamp(22px, 3vw, 28px)',
-          color: T.cream,
-          lineHeight: 1.15,
-        }}
-      >
-        {title}
-      </h2>
-      <p style={{ margin: '10px 0 0', color: T.creamMuted, lineHeight: 1.5, fontSize: 15 }}>
-        {subtitle}
-      </p>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 16 }}>
-        {(actions || []).map((a) => (
-          <ActionButton
-            key={a.id}
-            href={a.href}
-            primary={a.kind === 'whatsapp' || a.kind === 'phone'}
-            external={a.kind === 'chat_bridge'}
-          >
-            {a.label}
-          </ActionButton>
-        ))}
-      </div>
-    </section>
+    </CafeGlassPanel>
   );
 }
 
@@ -131,9 +170,11 @@ export default function CafeInternationalPreviewShell({
   activeHref,
   children,
   truth,
+  fullBleedHero = false,
 }) {
   const [open, setOpen] = useState(false);
   const canonical = `https://corpflowai.com${canonicalPath}`;
+  const pageBg = CAFE_INTERNATIONAL_VISUALS.venueEvening;
 
   return (
     <>
@@ -161,11 +202,16 @@ export default function CafeInternationalPreviewShell({
           minHeight: '100vh',
           color: T.cream,
           fontFamily: T.fontBody,
-          background: `
-            radial-gradient(ellipse 90% 60% at 50% -10%, rgba(196,92,38,0.38), transparent 55%),
-            radial-gradient(ellipse 70% 50% at 100% 30%, rgba(139,58,26,0.25), transparent 50%),
-            linear-gradient(180deg, ${T.charcoal} 0%, ${T.ink} 100%)
+          backgroundColor: T.ink,
+          backgroundImage: fullBleedHero
+            ? undefined
+            : `
+            linear-gradient(180deg, rgba(20,14,12,0.88) 0%, rgba(20,14,12,0.94) 40%, rgba(20,14,12,0.98) 100%),
+            url(${pageBg})
           `,
+          backgroundSize: 'cover',
+          backgroundAttachment: 'fixed',
+          backgroundPosition: 'center',
         }}
       >
         <div
@@ -282,7 +328,6 @@ export default function CafeInternationalPreviewShell({
           })}
         </nav>
 
-        {/* Desktop nav */}
         <style>{`
           @media (min-width: 900px) {
             [data-cafe-desktop-nav] { display: flex !important; }
@@ -290,6 +335,13 @@ export default function CafeInternationalPreviewShell({
             #cafe-preview-nav { display: none !important; }
             [data-cafe-mobile-dock] { display: none !important; }
           }
+          @keyframes cafeFadeUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          [data-cafe-hero] { animation: cafeFadeUp 0.7s ease-out both; }
+          [data-cafe-appetite-grid] a { transition: transform 0.25s ease, box-shadow 0.25s ease; }
+          [data-cafe-appetite-grid] a:hover { transform: translateY(-4px); box-shadow: 0 16px 36px rgba(0,0,0,0.45); }
         `}</style>
         <div
           data-cafe-desktop-nav
@@ -313,7 +365,7 @@ export default function CafeInternationalPreviewShell({
                   borderRadius: 999,
                   textDecoration: 'none',
                   color: active ? T.ink : T.creamMuted,
-                  background: active ? T.flameSoft : 'transparent',
+                  background: active ? T.flameSoft : 'rgba(20,14,12,0.45)',
                   border: active ? 'none' : `1px solid ${T.line}`,
                   fontWeight: 700,
                   fontSize: 14,
@@ -325,7 +377,13 @@ export default function CafeInternationalPreviewShell({
           })}
         </div>
 
-        <main style={{ maxWidth: 1100, margin: '0 auto', padding: '8px 16px 88px' }}>
+        <main
+          style={{
+            maxWidth: fullBleedHero ? 'none' : 1100,
+            margin: '0 auto',
+            padding: fullBleedHero ? '0 0 88px' : '8px 16px 88px',
+          }}
+        >
           {children}
         </main>
 
@@ -335,6 +393,7 @@ export default function CafeInternationalPreviewShell({
             padding: '28px 16px 100px',
             color: T.creamMuted,
             fontSize: 14,
+            background: 'rgba(20,14,12,0.85)',
           }}
         >
           <div style={{ maxWidth: 1100, margin: '0 auto' }}>
@@ -348,12 +407,13 @@ export default function CafeInternationalPreviewShell({
             </p>
             <p style={{ margin: '12px 0 0', fontSize: 12, opacity: 0.85 }}>
               Preview built by CorpFlowAI for owner review. Current live site remains{' '}
-              {String(truth?.production_domain || '')}.
+              {String(truth?.production_domain || '')}. Photography from owner Drive
+              assets. Menu prices from the live Menu-page Google Sheet (not the outdated
+              Drive CSV).
             </p>
           </div>
         </footer>
 
-        {/* Persistent mobile actions */}
         <div
           data-cafe-mobile-dock
           style={{
