@@ -51,8 +51,9 @@ const labelStyle = {
 };
 
 /**
- * Standing CIPC Desk Annual Returns review page for Sarah (#761).
- * Feedback posts to existing POST /api/cipc-desk/email-intake.
+ * Standing CIPC Desk Annual Returns review page (#761 / #791).
+ * Reflects Sarah-approved v1 boundaries. Feedback posts to existing
+ * POST /api/cipc-desk/email-intake.
  *
  * @param {{ content?: Record<string, unknown> | null }} props
  */
@@ -62,12 +63,15 @@ export default function CipcDeskAnnualReturnsReview({ content }) {
   const meta = c.meta && typeof c.meta === 'object' ? c.meta : {};
   const banners = c.banners && typeof c.banners === 'object' ? c.banners : {};
   const explanation = c.explanation && typeof c.explanation === 'object' ? c.explanation : {};
+  const entityScope = c.entity_scope && typeof c.entity_scope === 'object' ? c.entity_scope : {};
+  const dormant = c.dormant && typeof c.dormant === 'object' ? c.dormant : {};
   const covers = c.covers && typeof c.covers === 'object' ? c.covers : {};
   const doesNot = c.does_not_cover && typeof c.does_not_cover === 'object' ? c.does_not_cover : {};
   const checklist = c.client_checklist && typeof c.client_checklist === 'object' ? c.client_checklist : {};
   const statusFlow = c.status_flow && typeof c.status_flow === 'object' ? c.status_flow : {};
   const exceptions = c.exceptions && typeof c.exceptions === 'object' ? c.exceptions : {};
-  const openQuestions = c.open_questions && typeof c.open_questions === 'object' ? c.open_questions : {};
+  const approvedDecisions =
+    c.approved_decisions && typeof c.approved_decisions === 'object' ? c.approved_decisions : {};
   const feedbackPrompt =
     c.feedback_prompt && typeof c.feedback_prompt === 'object' ? c.feedback_prompt : {};
 
@@ -145,7 +149,7 @@ export default function CipcDeskAnnualReturnsReview({ content }) {
   const statusSteps = Array.isArray(statusFlow.steps) ? statusFlow.steps : [];
   const statusNotes = Array.isArray(statusFlow.notes) ? statusFlow.notes : [];
   const exceptionItems = Array.isArray(exceptions.items) ? exceptions.items : [];
-  const questionItems = Array.isArray(openQuestions.items) ? openQuestions.items : [];
+  const decisionItems = Array.isArray(approvedDecisions.items) ? approvedDecisions.items : [];
 
   return (
     <>
@@ -238,8 +242,8 @@ export default function CipcDeskAnnualReturnsReview({ content }) {
           lead={
             <>
               <p style={{ ...cfLead, marginBottom: 12 }}>
-                Plain-English process review for Sarah — grounded in the six-layer pack from #750 / PR #758
-                and guidance from #740. Not a public launch.
+                Plain-English Annual Returns v1 review — Sarah-approved boundaries from #791 applied to the
+                six-layer pack (#750 / PR #758) and standing test surface (#761). Not a public launch.
               </p>
               <p style={{ ...cfBody, marginBottom: 0, fontSize: 14 }}>{safeStr(banners.environment)}</p>
             </>
@@ -275,7 +279,8 @@ export default function CipcDeskAnnualReturnsReview({ content }) {
               <strong style={{ color: CF.accent }}>No guarantees:</strong> {safeStr(banners.no_guarantee)}
             </p>
             <p style={{ ...cfBody, margin: 0, color: CF.text }}>
-              <strong style={{ color: CF.accent }}>Provisional:</strong> {safeStr(banners.provisional)}
+              <strong style={{ color: CF.accent }}>Sarah-approved v1:</strong>{' '}
+              {safeStr(banners.sarah_approved)}
             </p>
           </GlassPanel>
         </section>
@@ -289,6 +294,30 @@ export default function CipcDeskAnnualReturnsReview({ content }) {
             <p style={{ ...cfBody, margin: 0, color: CF.text }}>{safeStr(explanation.body)}</p>
           </GlassPanel>
         </section>
+
+        {safeStr(entityScope.body) ? (
+          <section style={cfSection} aria-labelledby="ar-scope-title">
+            <p style={cfKicker}>{safeStr(entityScope.tag) || 'Entity scope'}</p>
+            <h2 id="ar-scope-title" style={cfH2}>
+              {safeStr(entityScope.title) || 'Who the v1 service is for'}
+            </h2>
+            <GlassPanel variant={{ padding: 22, elevation: 1 }}>
+              <p style={{ ...cfBody, margin: 0, color: CF.text }}>{safeStr(entityScope.body)}</p>
+            </GlassPanel>
+          </section>
+        ) : null}
+
+        {safeStr(dormant.body) ? (
+          <section style={cfSection} aria-labelledby="ar-dormant-title">
+            <p style={cfKicker}>{safeStr(dormant.tag) || 'Dormant entities'}</p>
+            <h2 id="ar-dormant-title" style={cfH2}>
+              {safeStr(dormant.title) || 'Dormant or not trading'}
+            </h2>
+            <GlassPanel variant={{ padding: 22, elevation: 1 }}>
+              <p style={{ ...cfBody, margin: 0, color: CF.text }}>{safeStr(dormant.body)}</p>
+            </GlassPanel>
+          </section>
+        ) : null}
 
         <section style={cfSection} aria-labelledby="ar-covers-title">
           <p style={cfKicker}>{safeStr(covers.tag) || 'Service scope'}</p>
@@ -405,16 +434,18 @@ export default function CipcDeskAnnualReturnsReview({ content }) {
           </div>
         </section>
 
-        <section style={cfSection} aria-labelledby="ar-questions-title">
-          <p style={cfKicker}>Still open</p>
-          <h2 id="ar-questions-title" style={cfH2}>
-            {safeStr(openQuestions.title) || 'Focused questions still open for Sarah'}
+        <section style={cfSection} aria-labelledby="ar-decisions-title">
+          <p style={cfKicker}>Closed for v1</p>
+          <h2 id="ar-decisions-title" style={cfH2}>
+            {safeStr(approvedDecisions.title) || 'Sarah-approved v1 decisions (2026-08-07)'}
           </h2>
-          {safeStr(openQuestions.intro) ? <p style={cfBody}>{safeStr(openQuestions.intro)}</p> : null}
+          {safeStr(approvedDecisions.intro) ? (
+            <p style={cfBody}>{safeStr(approvedDecisions.intro)}</p>
+          ) : null}
           <GlassPanel variant={{ padding: 22, elevation: 1 }}>
             <ol style={{ margin: 0, paddingLeft: 20, color: CF.textMuted, lineHeight: 1.7 }}>
-              {questionItems.map((q, idx) => (
-                <li key={`q-${idx}`} style={{ marginBottom: 8 }}>
+              {decisionItems.map((q, idx) => (
+                <li key={`d-${idx}`} style={{ marginBottom: 8 }}>
                   {safeStr(q)}
                 </li>
               ))}

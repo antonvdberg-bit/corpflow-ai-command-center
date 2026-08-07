@@ -34,7 +34,7 @@ function parseSearchParam(req, name) {
 }
 
 /**
- * CIPC Desk Annual Returns specialist-review surface (#761).
+ * CIPC Desk Annual Returns specialist-review surface (#761 / #791).
  * Standing URL: https://cipc.corpflowai.com/annual-returns (corpflow_test only).
  */
 export default function AnnualReturnsPage({ content }) {
