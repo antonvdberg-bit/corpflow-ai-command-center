@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import AppShell from '../../components/app/AppShell.js';
 import TenantMenu from '../../components/app/TenantMenu.js';
 import TenantRequestsProgress from '../../components/app/TenantRequestsProgress.js';
-import { REFERENCE_TENANT_ID, SYNTHETIC_REQUEST_ID } from '../../lib/app/constants.js';
+import { CANONICAL_REQUEST_ID, REFERENCE_TENANT_ID } from '../../lib/app/constants.js';
 
 /**
  * @param {import('next/router').NextRouter['query']} query
@@ -15,13 +15,15 @@ function proofFromQuery(query) {
 }
 
 /**
- * Tenant — CorpFlowAI environment entry.
- * Requires normal tenant session (or Tenant proof actor). No Core exposure.
+ * Tenant — CorpFlowAI. Normal tenant session only. No Core exposure.
  */
 export default function AppTenantPage() {
   const router = useRouter();
+  const [menu, setMenu] = useState('requests_progress');
   const [shell, setShell] = useState(/** @type {Record<string, unknown> | null} */ (null));
+  const [list, setList] = useState(/** @type {Array<Record<string, unknown>>} */ ([]));
   const [request, setRequest] = useState(/** @type {Record<string, unknown> | null} */ (null));
+  const [requestId, setRequestId] = useState(CANONICAL_REQUEST_ID);
   const [error, setError] = useState('');
   const [authRequired, setAuthRequired] = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);
@@ -39,7 +41,7 @@ export default function AppTenantPage() {
     return params.toString();
   }, [proofWanted]);
 
-  const loadAll = useCallback(async () => {
+  const loadShellAndList = useCallback(async () => {
     setBusy(true);
     setError('');
     setNotice('');
@@ -69,8 +71,36 @@ export default function AppTenantPage() {
       }
       setShell(shellJson);
 
+      const listRes = await fetch(`/api/app/requests?${apiBase}`, { credentials: 'same-origin' });
+      const listJson = await listRes.json().catch(() => ({}));
+      if (!listRes.ok || !listJson.ok) {
+        setError(String(listJson.error || `requests_${listRes.status}`));
+        setList([]);
+        return;
+      }
+      const rows = Array.isArray(listJson.requests) ? listJson.requests : [];
+      setList(rows);
+      setRequestId((prev) => {
+        if (rows.some((r) => String(r.request_id) === prev)) return prev;
+        return String(rows[0]?.request_id || CANONICAL_REQUEST_ID);
+      });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'load_failed');
+    } finally {
+      setBusy(false);
+    }
+  }, [apiBase]);
+
+  const loadDetail = useCallback(async () => {
+    if (!(menu === 'requests_progress' || menu === 'my_work' || menu === 'home')) {
+      setRequest(null);
+      return;
+    }
+    setBusy(true);
+    setError('');
+    try {
       const detailQs = new URLSearchParams(apiBase);
-      detailQs.set('id', SYNTHETIC_REQUEST_ID);
+      detailQs.set('id', requestId);
       const detailRes = await fetch(`/api/app/request?${detailQs.toString()}`, {
         credentials: 'same-origin',
       });
@@ -86,12 +116,17 @@ export default function AppTenantPage() {
     } finally {
       setBusy(false);
     }
-  }, [apiBase]);
+  }, [apiBase, menu, requestId]);
 
   useEffect(() => {
     if (!router.isReady) return;
-    loadAll();
-  }, [router.isReady, loadAll]);
+    loadShellAndList();
+  }, [router.isReady, loadShellAndList]);
+
+  useEffect(() => {
+    if (!router.isReady || !shell) return;
+    loadDetail();
+  }, [router.isReady, shell, loadDetail]);
 
   async function onReview(args) {
     setBusy(true);
@@ -106,7 +141,7 @@ export default function AppTenantPage() {
         credentials: 'same-origin',
         headers,
         body: JSON.stringify({
-          request_id: SYNTHETIC_REQUEST_ID,
+          request_id: requestId,
           component_key: args.component_key,
           decision: args.decision,
           comment: args.comment,
@@ -139,8 +174,8 @@ export default function AppTenantPage() {
         <section className="cf-app-panel" data-testid="app-auth-required">
           <h1 className="cf-app-h1">Sign in to Tenant — CorpFlowAI</h1>
           <p className="cf-app-lead">
-            CorpFlowAI is a normal reference tenant. Use the existing tenant authentication protocol
-            (email/password or PIN) — not Core / admin credentials.
+            CorpFlowAI is a normal reference tenant. Use existing tenant authentication — not Core /
+            admin credentials.
           </p>
           <div className="cf-app-actions">
             <a
@@ -168,8 +203,8 @@ export default function AppTenantPage() {
         <section className="cf-app-panel" data-testid="app-tenant-denied">
           <h1 className="cf-app-h1">Tenant access denied</h1>
           <p className="cf-app-lead">
-            A Core session cannot enter Tenant. Sign out and sign in with CorpFlowAI tenant credentials,
-            or open Core instead.
+            A Core session cannot enter Tenant. Sign out and sign in with CorpFlowAI tenant
+            credentials.
           </p>
           <p className="cf-app-error">{error}</p>
           <div className="cf-app-actions">
@@ -193,7 +228,7 @@ export default function AppTenantPage() {
       username={actor.username != null ? String(actor.username) : null}
       proofMode={proofMode}
     >
-      <TenantMenu active="requests_progress" disabled={busy} />
+      <TenantMenu active={menu} disabled={busy} onSelect={(id) => setMenu(id)} />
 
       <p className="cf-app-muted" style={{ marginTop: -8, marginBottom: 16 }}>
         Tenant environment · normal tenant auth · no Core menu · no internal evidence
@@ -202,7 +237,29 @@ export default function AppTenantPage() {
       {error ? <p className="cf-app-error" data-testid="app-error">{error}</p> : null}
       {notice ? <p className="cf-app-ok" data-testid="app-notice">{notice}</p> : null}
 
-      <TenantRequestsProgress request={request} busy={busy} onReview={onReview} />
+      {menu === 'documents' || menu === 'reports' || menu === 'support' ? (
+        <section className="cf-app-panel" data-testid={`tenant-placeholder-${menu}`}>
+          <h1 className="cf-app-h1">
+            {menu === 'documents' ? 'Documents' : menu === 'reports' ? 'Reports' : 'Support'}
+          </h1>
+          <p className="cf-app-lead">
+            Linked capability placeholder — existing enabled routes may be connected here without
+            rebuilding mature surfaces. Compatibility route:{' '}
+            <a href="/change">/change</a>.
+          </p>
+        </section>
+      ) : (
+        <TenantRequestsProgress
+          requests={list}
+          request={request}
+          busy={busy}
+          onSelectRequest={(id) => {
+            setRequestId(id);
+            setMenu('requests_progress');
+          }}
+          onReview={onReview}
+        />
+      )}
     </AppShell>
   );
 }

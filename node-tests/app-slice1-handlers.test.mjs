@@ -10,18 +10,21 @@ import {
   handleAppComponentExpose,
   handleAppComponentReview,
   handleAppRequestDetail,
+  handleAppRequestsList,
   handleAppShell,
 } from '../lib/app/handlers.js';
 import {
+  CANONICAL_REQUEST_ID,
   OTHER_TENANT_ID,
   OTHER_TENANT_REQUEST_ID,
   REFERENCE_TENANT_ID,
+  SECOND_REQUEST_ID,
   SYNTHETIC_REQUEST_ID,
 } from '../lib/app/constants.js';
-import { resetSyntheticStore } from '../lib/app/synthetic-store.js';
+import { resetRequestStore } from '../lib/app/request-store.js';
 
 beforeEach(() => {
-  resetSyntheticStore();
+  resetRequestStore();
 });
 
 function mockRes() {
@@ -40,7 +43,7 @@ function mockRes() {
   };
 }
 
-test('handler: Core proof shell is Core-only (no Tenant switcher)', async () => {
+test('handler: Core proof shell is Core-only with full Core nav', async () => {
   const prevNode = process.env.NODE_ENV;
   const prevVercel = process.env.VERCEL_ENV;
   process.env.NODE_ENV = 'development';
@@ -58,7 +61,15 @@ test('handler: Core proof shell is Core-only (no Tenant switcher)', async () => 
     assert.deepEqual(res.state.body.actor.can_tenant_ids, []);
     assert.equal(res.state.body.available_scopes.length, 1);
     assert.equal(res.state.body.available_scopes[0].scope, 'core');
-    assert.ok(res.state.body.menus.some((m) => m.id === 'global_requests'));
+    const menuIds = res.state.body.menus.map((m) => m.id);
+    assert.ok(menuIds.includes('requests'));
+    assert.ok(menuIds.includes('my_work'));
+    assert.ok(menuIds.includes('tenants'));
+    assert.ok(menuIds.includes('delivery'));
+    assert.ok(menuIds.includes('approvals'));
+    assert.ok(menuIds.includes('releases'));
+    assert.ok(menuIds.includes('operations'));
+    assert.equal(res.state.body.canonical_request_id, CANONICAL_REQUEST_ID);
   } finally {
     process.env.NODE_ENV = prevNode;
     if (prevVercel == null) delete process.env.VERCEL_ENV;
@@ -66,7 +77,7 @@ test('handler: Core proof shell is Core-only (no Tenant switcher)', async () => 
   }
 });
 
-test('handler: Tenant proof shell is Tenant-only', async () => {
+test('handler: Tenant proof shell is Tenant-only with Tenant nav', async () => {
   const prevNode = process.env.NODE_ENV;
   process.env.NODE_ENV = 'development';
   try {
@@ -83,13 +94,16 @@ test('handler: Tenant proof shell is Tenant-only', async () => {
     assert.equal(res.state.body.environment, 'tenant');
     assert.equal(res.state.body.actor.can_core, false);
     assert.deepEqual(res.state.body.actor.can_tenant_ids, [REFERENCE_TENANT_ID]);
-    assert.equal(res.state.body.menus[0].id, 'requests_progress');
+    const menuIds = res.state.body.menus.map((m) => m.id);
+    assert.ok(menuIds.includes('requests_progress'));
+    assert.ok(menuIds.includes('home'));
+    assert.ok(menuIds.includes('documents'));
   } finally {
     process.env.NODE_ENV = prevNode;
   }
 });
 
-test('handler: Core session credentials cannot enter Tenant shell', async () => {
+test('handler: Core session cannot access /app/tenant (shell)', async () => {
   const prevNode = process.env.NODE_ENV;
   process.env.NODE_ENV = 'test';
   try {
@@ -115,7 +129,7 @@ test('handler: Core session credentials cannot enter Tenant shell', async () => 
   }
 });
 
-test('handler: Tenant session credentials cannot enter Core shell', async () => {
+test('handler: Tenant session cannot access /app/core (shell)', async () => {
   const prevNode = process.env.NODE_ENV;
   process.env.NODE_ENV = 'test';
   try {
@@ -214,7 +228,7 @@ test('handler: tenant proof cannot load other-tenant request', async () => {
   }
 });
 
-test('handler: non-exposed review rejected; exposed approve succeeds; external_send false', async () => {
+test('handler: non-exposed review rejected; exposed approve succeeds; no external send', async () => {
   const prevNode = process.env.NODE_ENV;
   process.env.NODE_ENV = 'development';
   try {
@@ -257,14 +271,59 @@ test('handler: non-exposed review rejected; exposed approve succeeds; external_s
     assert.equal(ok.state.statusCode, 200);
     assert.equal(ok.state.body.ok, true);
     assert.equal(ok.state.body.external_send, false);
+    assert.equal(ok.state.body.email_sent, false);
+    assert.equal(ok.state.body.whatsapp_sent, false);
+    assert.equal(ok.state.body.sms_sent, false);
+    assert.equal(ok.state.body.payment_processed, false);
     assert.equal(
       ok.state.body.request.components.find((c) => c.key === 'landing_copy').milestone,
       'approved',
     );
-    // No internal evidence leak in tenant projection
     const blob = JSON.stringify(ok.state.body.request);
     assert.equal(blob.includes('internal_note'), false);
     assert.equal(blob.includes('github'), false);
+  } finally {
+    process.env.NODE_ENV = prevNode;
+  }
+});
+
+test('handler: Core list tenant filter + global queue', async () => {
+  const prevNode = process.env.NODE_ENV;
+  process.env.NODE_ENV = 'development';
+  try {
+    const global = mockRes();
+    await handleAppRequestsList(
+      { method: 'GET', url: '/api/app/requests?proof=1&env=core&view=global', headers: {} },
+      global,
+    );
+    assert.equal(global.state.statusCode, 200);
+    assert.equal(global.state.body.requests.length, 3);
+    assert.equal(global.state.body.data_source, 'production_shaped_fixture');
+
+    const filtered = mockRes();
+    await handleAppRequestsList(
+      {
+        method: 'GET',
+        url: `/api/app/requests?proof=1&env=core&tenant_id=${REFERENCE_TENANT_ID}&status=Draft`,
+        headers: {},
+      },
+      filtered,
+    );
+    assert.equal(filtered.state.statusCode, 200);
+    assert.equal(filtered.state.body.requests.length, 1);
+    assert.equal(filtered.state.body.requests[0].request_id, SECOND_REQUEST_ID);
+
+    const other = mockRes();
+    await handleAppRequestsList(
+      {
+        method: 'GET',
+        url: `/api/app/requests?proof=1&env=core&tenant_id=${OTHER_TENANT_ID}`,
+        headers: {},
+      },
+      other,
+    );
+    assert.equal(other.state.body.requests.length, 1);
+    assert.equal(other.state.body.requests[0].request_id, OTHER_TENANT_REQUEST_ID);
   } finally {
     process.env.NODE_ENV = prevNode;
   }

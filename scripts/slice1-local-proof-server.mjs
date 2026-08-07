@@ -14,7 +14,7 @@ import {
   handleAppRequestsList,
   handleAppShell,
 } from '../lib/app/handlers.js';
-import { resetSyntheticStore } from '../lib/app/synthetic-store.js';
+import { resetRequestStore } from '../lib/app/request-store.js';
 
 const PORT = Number(process.env.SLICE1_PROOF_PORT || 4788);
 
@@ -135,7 +135,10 @@ function buildBootstrap(forcedEnv) {
 
     const theme = environment === 'core' ? CORE : TENANT;
     const shell = await fetch('/api/app/shell?' + qs).then(r => r.json());
-    const detail = await fetch('/api/app/request?' + qs + '&id=' + encodeURIComponent(shell.synthetic_request_id)).then(r => r.json());
+    const listQs = qs + (environment === 'core' ? '&view=global' : '');
+    const listJson = await fetch('/api/app/requests?' + listQs).then(r => r.json());
+    const listRows = Array.isArray(listJson.requests) ? listJson.requests : [];
+    const detail = await fetch('/api/app/request?' + qs + '&id=' + encodeURIComponent((shell.canonical_request_id||shell.synthetic_request_id))).then(r => r.json());
     const req = detail.request || {};
     const pct = (req.progress && req.progress.percent) || 0;
     const comps = Array.isArray(req.components) ? req.components : [];
@@ -146,24 +149,47 @@ function buildBootstrap(forcedEnv) {
     if (environment === 'core') {
       menu = \`
         <nav class="cf-app-scope-row" data-testid="core-menu">
-          <span class="cf-app-scope-btn">All requests</span>
-          <span class="cf-app-scope-btn">Tenant · CorpFlowAI</span>
-          <span class="cf-app-scope-btn" data-active="true">Request / work</span>
+          <span class="cf-app-scope-btn">My Work</span>
+          <span class="cf-app-scope-btn">Tenants</span>
+          <span class="cf-app-scope-btn" data-active="true">Requests</span>
+          <a class="cf-app-scope-btn" href="/change">Delivery</a>
+          <span class="cf-app-scope-btn">Approvals</span>
+          <span class="cf-app-scope-btn">Releases</span>
+          <a class="cf-app-scope-btn" href="/change">Operations</a>
         </nav>\`;
     } else {
       menu = \`
         <nav class="cf-app-scope-row" data-testid="tenant-menu">
+          <span class="cf-app-scope-btn">Home / Overview</span>
+          <span class="cf-app-scope-btn">My Work</span>
           <span class="cf-app-scope-btn" data-active="true">Requests &amp; Progress</span>
+          <span class="cf-app-scope-btn">Documents</span>
+          <span class="cf-app-scope-btn">Reports</span>
+          <span class="cf-app-scope-btn">Support</span>
         </nav>\`;
     }
+
+    const listHtml = listRows.map(r => \`
+      <article class="cf-app-comp" data-testid="list-\${escapeHtml(r.request_id||'')}">
+        <div class="cf-app-comp-head">
+          <h2 class="cf-app-comp-title">\${escapeHtml(r.title||r.request_id||'')}</h2>
+          <span class="cf-app-badge">\${escapeHtml(String(r.status||r.progress_percent||'—'))}</span>
+        </div>
+        <p class="cf-app-muted" style="margin:0">Tenant · \${escapeHtml(r.tenant_id||'—')} · Next · \${escapeHtml(r.next_action||'—')}</p>
+      </article>\`).join('');
 
     let body = '';
     if (environment === 'tenant') {
       body = \`
+        <section class="cf-app-panel" data-testid="tenant-request-list">
+          <h1 class="cf-app-h1">Requests &amp; Progress</h1>
+          <p class="cf-app-lead">Tenant-scoped queue · client-safe only</p>
+          <div class="cf-app-grid">\${listHtml}</div>
+        </section>
         <section class="cf-app-panel" data-testid="tenant-requests-progress">
           <h1 class="cf-app-h1">\${escapeHtml(req.title||'')}</h1>
           <p class="cf-app-lead">\${escapeHtml(req.outcome||'')}</p>
-          <div class="cf-app-progress">
+          <div class="cf-app-progress" data-testid="tenant-progress">
             <div class="cf-app-muted">Overall progress · <strong style="color:var(--app-text)">\${pct}%</strong></div>
             <div class="cf-app-progress-bar"><div class="cf-app-progress-fill" style="width:\${pct}%"></div></div>
             <div class="cf-app-muted">Next action · \${escapeHtml(req.next_action||'—')}</div>
@@ -171,30 +197,40 @@ function buildBootstrap(forcedEnv) {
           </div>
           <div class="cf-app-grid">
             \${comps.map(c => \`
-              <article class="cf-app-comp" data-attention="\${c.attention_required?'true':'false'}" data-testid="tenant-comp-\${escapeHtml(c.key)}">
+              <article class="cf-app-comp" data-attention="\${c.attention_required?'true':'false'}" data-testid="tenant-comp-\${escapeHtml(c.key)}" data-exposed="\${c.exposed_for_client_review?'true':'false'}">
                 <div class="cf-app-comp-head">
                   <h2 class="cf-app-comp-title">\${escapeHtml(c.title||'')}</h2>
                   <span class="cf-app-badge" data-kind="\${c.exposed_for_client_review?'review':'viewonly'}">\${c.exposed_for_client_review?'Review open':'View only'}</span>
                 </div>
                 <p class="cf-app-muted" style="margin:0">\${escapeHtml(c.client_safe_summary||'')}</p>
-                <p class="cf-app-muted">Status · \${escapeHtml(c.client_safe_status||'')}</p>
-                \${c.exposed_for_client_review ? '<div class="cf-app-actions"><button class="cf-app-btn" data-primary="true">Approve</button><button class="cf-app-btn">Amend</button><button class="cf-app-btn">Reject</button></div>' : '<p class="cf-app-muted">This component is not open for client review.</p>'}
+                <p class="cf-app-muted">Component state · \${escapeHtml(c.client_safe_status||'')}</p>
+                \${c.exposed_for_client_review ? '<div class="cf-app-actions" data-testid="tenant-review-controls-'+escapeHtml(c.key)+'"><button class="cf-app-btn" data-primary="true">Approve</button><button class="cf-app-btn">Amend</button><button class="cf-app-btn">Reject</button></div>' : '<p class="cf-app-muted" data-testid="tenant-viewonly-'+escapeHtml(c.key)+'">This component is not open for client review.</p>'}
               </article>\`).join('')}
           </div>
         </section>\`;
     } else {
       body = \`
+        <section class="cf-app-panel" data-testid="core-request-list">
+          <h1 class="cf-app-h1">Requests</h1>
+          <p class="cf-app-lead">Global queue · tenant filter ready · production-shaped adapters</p>
+          <div class="cf-app-actions" data-testid="core-request-filters">
+            <span class="cf-app-muted">Tenant filter · All / corpflowai / cursor-test</span>
+            <span class="cf-app-muted">Status · Waiting party</span>
+          </div>
+          <div class="cf-app-grid">\${listHtml}</div>
+        </section>
         <section class="cf-app-panel" data-testid="core-request-work">
           <h1 class="cf-app-h1">\${escapeHtml(req.title||'')}</h1>
           <p class="cf-app-lead">\${escapeHtml(req.outcome||'')}</p>
           <dl class="cf-app-kv">
-            <dt>Request id</dt><dd data-testid="core-request-id">\${escapeHtml(req.request_id||'')}</dd>
+            <dt>Canonical request id</dt><dd data-testid="core-request-id">\${escapeHtml(req.request_id||'')}</dd>
+            <dt>Tenant</dt><dd>\${escapeHtml(req.tenant_id||'')}</dd>
             <dt>Internal blocker</dt><dd>\${escapeHtml(req.internal_blocker||'None')}</dd>
             <dt>Progress</dt><dd>\${pct}%</dd>
           </dl>
-          <div class="cf-app-grid">
+          <div class="cf-app-grid" data-testid="core-components">
             \${comps.map(c => \`
-              <article class="cf-app-comp">
+              <article class="cf-app-comp" data-testid="core-comp-\${escapeHtml(c.key)}">
                 <div class="cf-app-comp-head">
                   <h3 class="cf-app-comp-title">\${escapeHtml(c.title||'')}</h3>
                   <span class="cf-app-badge">\${c.exposed_for_client_review?'Exposed':'Internal'}</span>
@@ -204,11 +240,19 @@ function buildBootstrap(forcedEnv) {
                   <dt>Evidence</dt><dd>\${escapeHtml((c.internal_evidence_refs||[]).join(', ')||'—')}</dd>
                   <dt>GitHub (Core)</dt><dd>\${c.github ? ('PR #'+c.github.pr_number+' · '+String(c.github.commit_sha||'').slice(0,12)) : '—'}</dd>
                 </dl>
-                <div class="cf-app-actions">
+                <div class="cf-app-actions" data-testid="core-expose-controls-\${escapeHtml(c.key)}">
                   <button class="cf-app-btn" data-primary="true">Expose for client review</button>
                   <button class="cf-app-btn">Hide from client review</button>
                 </div>
               </article>\`).join('')}
+          </div>
+          <div class="cf-app-preview" data-testid="core-client-preview">
+            <h2 style="font-size:1.05rem;margin:0 0 8px">Client projection preview</h2>
+            <p class="cf-app-muted" style="margin:0">Same canonical id · \${escapeHtml(req.request_id||'')} · progress \${pct}%</p>
+          </div>
+          <div class="cf-app-preview" data-testid="core-internal-refs">
+            <h2 style="font-size:1.05rem;margin:0 0 8px">Internal work / evidence references</h2>
+            <p class="cf-app-muted" style="margin:0">Promotion / technical lead visible in Core only</p>
           </div>
         </section>\`;
     }
@@ -227,7 +271,7 @@ function buildBootstrap(forcedEnv) {
         </header>
         <main class="cf-app-main">
           \${menu}
-          <p class="cf-app-muted">Separate auth proof · no ScopeSwitcher · synthetic only · no external send</p>
+          <p class="cf-app-muted">Separate auth · production-shaped fixtures · no ScopeSwitcher · no external send</p>
           <p class="cf-app-muted"><a class="cf-app-btn" href="/app/core?proof=1">Core proof</a> <a class="cf-app-btn" href="/app/tenant?proof=1">Tenant proof</a> <a class="cf-app-btn" href="/app">Chooser</a></p>
           \${body}
         </main>
@@ -262,7 +306,7 @@ p{color:#94a3b8;line-height:1.45}
 </main>
 </body></html>`;
 
-resetSyntheticStore();
+resetRequestStore();
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
 const server = http.createServer(async (req, nodeRes) => {
