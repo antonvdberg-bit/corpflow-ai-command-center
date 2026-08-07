@@ -16,6 +16,7 @@ import {
 } from '../lib/public/corpflow-public-market.js';
 import {
   buildMarketEnquiryResponseDraft,
+  buyerNeedForServicePath,
   isMarketServicePathId,
   recommendedMarketEnquiryNextAction,
   resolveOfferSlugForMarketEnquiry,
@@ -83,7 +84,17 @@ describe('#699 market gateway — public offer', () => {
     assert.ok(home.includes('/lead-rescue'));
     assert.ok(home.includes('/offers/premium-landing-page-rescue'));
     assert.ok(home.includes('/demo/website-rescue'));
+    assert.ok(home.includes('/contact?path='));
+    assert.ok(home.includes('Enquire about this path'));
     assert.ok(!home.includes('NEEDS_ANTON'));
+  });
+
+  it('contact page accepts ?path= and maps to buyer-need prefill', () => {
+    const contact = read('pages/contact.js');
+    assert.ok(contact.includes('defaultBuyerNeed'));
+    assert.ok(contact.includes('buyerNeedForServicePath'));
+    assert.ok(contact.includes('isMarketServicePathId'));
+    assert.ok(contact.includes('query?.path') || contact.includes('query.path'));
   });
 });
 
@@ -127,6 +138,9 @@ describe('#699 market gateway — qualified enquiry form', () => {
     assert.equal(resolveOfferSlugForMarketEnquiry('website-digital', ''), 'premium-landing-page-rescue');
     assert.equal(resolveOfferSlugForMarketEnquiry('workflow-administration', ''), '');
     assert.equal(isMarketServicePathId('workflow-administration'), true);
+    assert.equal(buyerNeedForServicePath('website-digital'), 'website-improvement');
+    assert.equal(buyerNeedForServicePath('client-lead-service'), 'losing-enquiries');
+    assert.equal(buyerNeedForServicePath('workflow-administration'), 'admin-workflow');
   });
 });
 

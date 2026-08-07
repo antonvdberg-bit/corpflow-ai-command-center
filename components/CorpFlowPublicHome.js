@@ -86,6 +86,7 @@ function FlagshipVideoSection() {
 }
 
 function ServicePathCard({ path }) {
+  const enquireHref = `/contact?path=${encodeURIComponent(path.id)}#discovery`;
   return (
     <article style={cfCard} data-service-path={path.id}>
       <h3 style={{ margin: '0 0 10px', fontSize: 18, color: CF.text, letterSpacing: '-0.02em' }}>{path.title}</h3>
@@ -97,15 +98,16 @@ function ServicePathCard({ path }) {
           </li>
         ))}
       </ul>
-      {path.productHref && path.productLabel ? (
-        <Link href={path.productHref} style={cfLink}>
-          {path.productLabel} →
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <Link href={enquireHref} style={cfLink}>
+          Enquire about this path →
         </Link>
-      ) : (
-        <Link href="/contact#discovery" style={cfLink}>
-          Request a conversation →
-        </Link>
-      )}
+        {path.productHref && path.productLabel ? (
+          <Link href={path.productHref} style={{ ...cfLink, fontSize: 13, color: CF.textFaint }}>
+            {path.productLabel} →
+          </Link>
+        ) : null}
+      </div>
     </article>
   );
 }
