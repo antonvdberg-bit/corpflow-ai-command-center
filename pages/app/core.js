@@ -4,7 +4,7 @@ import AppShell from '../../components/app/AppShell.js';
 import CoreMenu from '../../components/app/CoreMenu.js';
 import CoreRequestList from '../../components/app/CoreRequestList.js';
 import CoreRequestWorkView from '../../components/app/CoreRequestWorkView.js';
-import { REFERENCE_TENANT_ID, SYNTHETIC_REQUEST_ID } from '../../lib/app/constants.js';
+import { CANONICAL_REQUEST_ID } from '../../lib/app/constants.js';
 
 /**
  * @param {import('next/router').NextRouter['query']} query
@@ -16,18 +16,21 @@ function proofFromQuery(query) {
 }
 
 /**
- * Core environment entry — requires Core/admin session (or Core proof actor).
- * No path into Tenant from this session.
+ * Core environment — Core/admin session only. No Tenant switch.
  */
 export default function AppCorePage() {
   const router = useRouter();
-  const [menu, setMenu] = useState(
-    /** @type {'global_requests'|'tenant_requests'|'request_work'} */ ('request_work'),
-  );
+  const [menu, setMenu] = useState('requests');
   const [shell, setShell] = useState(/** @type {Record<string, unknown> | null} */ (null));
   const [request, setRequest] = useState(/** @type {Record<string, unknown> | null} */ (null));
   const [list, setList] = useState(/** @type {Array<Record<string, unknown>>} */ ([]));
-  const [requestId, setRequestId] = useState(SYNTHETIC_REQUEST_ID);
+  const [tenantOptions, setTenantOptions] = useState(/** @type {string[]} */ ([]));
+  const [filters, setFilters] = useState({
+    tenant_id: 'all',
+    status: '',
+    waiting_party: '',
+  });
+  const [requestId, setRequestId] = useState(CANONICAL_REQUEST_ID);
   const [error, setError] = useState('');
   const [authRequired, setAuthRequired] = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);
@@ -71,10 +74,16 @@ export default function AppCorePage() {
       }
       setShell(shellJson);
 
-      if (menu === 'global_requests' || menu === 'tenant_requests') {
+      const listMenus = new Set(['requests', 'my_work', 'tenants', 'approvals', 'releases']);
+      if (listMenus.has(menu)) {
         const listQs = new URLSearchParams(apiBase);
-        if (menu === 'global_requests') listQs.set('view', 'global');
-        else listQs.set('tenant_id', REFERENCE_TENANT_ID);
+        listQs.set('view', 'global');
+        if (filters.tenant_id && filters.tenant_id !== 'all') {
+          listQs.set('tenant_id', filters.tenant_id);
+          listQs.delete('view');
+        }
+        if (filters.status) listQs.set('status', filters.status);
+        if (filters.waiting_party) listQs.set('waiting_party', filters.waiting_party);
         const listRes = await fetch(`/api/app/requests?${listQs.toString()}`, {
           credentials: 'same-origin',
         });
@@ -85,29 +94,32 @@ export default function AppCorePage() {
           return;
         }
         setList(Array.isArray(listJson.requests) ? listJson.requests : []);
+        setTenantOptions(Array.isArray(listJson.tenant_options) ? listJson.tenant_options : []);
         setRequest(null);
         return;
       }
 
-      const detailQs = new URLSearchParams(apiBase);
-      detailQs.set('id', requestId);
-      const detailRes = await fetch(`/api/app/request?${detailQs.toString()}`, {
-        credentials: 'same-origin',
-      });
-      const detailJson = await detailRes.json().catch(() => ({}));
-      if (!detailRes.ok || !detailJson.ok) {
-        setError(String(detailJson.error || `request_${detailRes.status}`));
-        setRequest(null);
-        return;
+      if (menu === 'request_detail') {
+        const detailQs = new URLSearchParams(apiBase);
+        detailQs.set('id', requestId);
+        const detailRes = await fetch(`/api/app/request?${detailQs.toString()}`, {
+          credentials: 'same-origin',
+        });
+        const detailJson = await detailRes.json().catch(() => ({}));
+        if (!detailRes.ok || !detailJson.ok) {
+          setError(String(detailJson.error || `request_${detailRes.status}`));
+          setRequest(null);
+          return;
+        }
+        setRequest(detailJson.request || null);
+        setList([]);
       }
-      setRequest(detailJson.request || null);
-      setList([]);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'load_failed');
     } finally {
       setBusy(false);
     }
-  }, [apiBase, menu, requestId]);
+  }, [apiBase, menu, requestId, filters]);
 
   useEffect(() => {
     if (!router.isReady) return;
@@ -156,8 +168,7 @@ export default function AppCorePage() {
         <section className="cf-app-panel" data-testid="app-auth-required">
           <h1 className="cf-app-h1">Sign in to Core</h1>
           <p className="cf-app-lead">
-            Core uses the existing Core / admin authentication protocol (separate from Tenant). Sign in
-            with Core credentials, then return here.
+            Core uses the existing Core / admin authentication protocol (separate from Tenant).
           </p>
           <div className="cf-app-actions">
             <a
@@ -185,8 +196,7 @@ export default function AppCorePage() {
         <section className="cf-app-panel" data-testid="app-core-denied">
           <h1 className="cf-app-h1">Core access denied</h1>
           <p className="cf-app-lead">
-            A Tenant session cannot enter Core. Sign out and sign in with Core credentials, or open the
-            Tenant environment instead.
+            A Tenant session cannot enter Core. Sign out and sign in with Core credentials.
           </p>
           <p className="cf-app-error">{error}</p>
           <div className="cf-app-actions">
@@ -202,6 +212,17 @@ export default function AppCorePage() {
     );
   }
 
+  const listTitle =
+    menu === 'my_work'
+      ? 'My Work'
+      : menu === 'tenants'
+        ? 'Tenants'
+        : menu === 'approvals'
+          ? 'Approvals'
+          : menu === 'releases'
+            ? 'Releases'
+            : 'Requests';
+
   return (
     <AppShell
       environment="core"
@@ -211,48 +232,37 @@ export default function AppCorePage() {
       proofMode={proofMode}
     >
       <CoreMenu
-        active={menu}
+        active={menu === 'request_detail' ? 'requests' : menu}
         disabled={busy}
         onSelect={(id) => {
           setMenu(id);
-          if (id === 'request_work' && !requestId) setRequestId(SYNTHETIC_REQUEST_ID);
         }}
       />
 
       <p className="cf-app-muted" style={{ marginTop: -8, marginBottom: 16 }}>
-        Core environment · separate auth · no Tenant switch · <code>/change</code> unchanged
+        Core environment · separate auth · production-shaped request adapters ·{' '}
+        <code>/change</code> remains compatibility route
       </p>
 
       {error ? <p className="cf-app-error" data-testid="app-error">{error}</p> : null}
       {notice ? <p className="cf-app-ok" data-testid="app-notice">{notice}</p> : null}
 
-      {menu === 'global_requests' ? (
+      {menu !== 'request_detail' ? (
         <CoreRequestList
-          title="All requests"
+          title={listTitle}
           requests={list}
           busy={busy}
+          tenantOptions={tenantOptions}
+          filters={filters}
+          onFilterChange={(next) => setFilters(next)}
           onOpen={(id) => {
             setRequestId(id);
-            setMenu('request_work');
+            setMenu('request_detail');
           }}
         />
-      ) : null}
-
-      {menu === 'tenant_requests' ? (
-        <CoreRequestList
-          title="Tenant · CorpFlowAI requests"
-          requests={list}
-          busy={busy}
-          onOpen={(id) => {
-            setRequestId(id);
-            setMenu('request_work');
-          }}
-        />
-      ) : null}
-
-      {menu === 'request_work' ? (
+      ) : (
         <CoreRequestWorkView request={request} busy={busy} onExpose={onExpose} />
-      ) : null}
+      )}
     </AppShell>
   );
 }

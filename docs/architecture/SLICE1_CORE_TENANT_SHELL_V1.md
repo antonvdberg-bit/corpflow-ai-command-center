@@ -1,11 +1,11 @@
-# Slice 1 — Separate Core / Tenant auth + Requests & Progress (runtime)
+# Slice 1 — Separate Core / Tenant auth + production-shaped Requests foundation
 
 **Issue:** [#778](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/778) (implements first runtime slice of [#773](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/773))  
 **Audit parent:** PR [#774](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/774) route/capability matrix  
-**Status:** Runtime slice reworked — **separately authenticated** Core and Tenant entry paths  
-**Date:** 2026-08-06
+**Status:** Runtime foundation — separately authenticated Core/Tenant + production-shaped request adapters  
+**Date:** 2026-08-07
 
-## Authoritative correction
+## Authoritative correction (accepted)
 
 - Core and Tenant use **different** credentials and session protocols (`typ=admin` vs `typ=tenant`).
 - A Core session **must never** enter Tenant.
@@ -21,29 +21,39 @@
 | Entry chooser | `/app` | Links only — no shared session switch |
 | Core app | `/app/core` | Existing Core/admin session (`typ=admin`) |
 | Tenant app | `/app/tenant` | Existing tenant session (`typ=tenant`, CorpFlowAI) |
-| Core menu | All requests / Tenant · CorpFlowAI / Request · work | Within Core only |
-| Tenant menu | Requests & Progress | Within Tenant only |
+| Core nav | My Work · Tenants · Requests · Delivery · Approvals · Releases · Operations | Within Core; Delivery/Operations link to `/change` |
+| Tenant nav | Home · My Work · Requests & Progress · Documents · Reports · Support | Within Tenant only |
 | APIs | `/api/app/shell`, `/requests`, `/request`, `/component-review`, `/component-expose` | Environment-gated |
 
-## Reuse
+## Request data contract
 
-- Auth/session (`/api/auth/login` levels `admin` \| `tenant`, cookie `corpflow_session`)
-- Deterministic progress roll-up, tenant-safe projection, expose/review gates
-- Visual Core vs Tenant themes
+- Adapters normalize **cmp_tickets-shaped** rows (`id`, `tenant_id`/`tenantId`, `status`, `stage`, `description`, `updated_at`, `console_json`/`consoleJson`).
+- Preview / local / tests use **production-shaped fixtures** through the same `normalizeCmpTicketRow` adapter.
+- Optional `console_json.client_view.components[]` (JSON only — **no schema change**).
+- When components are absent, delivery components are **derived** from existing workflow / preview_review / promotion fields.
+- Progress is **deterministic** from milestone weights (`not_started` … `live_verified`).
+
+## Compatibility routes (not deleted)
+
+| Path | Role |
+| ---- | ---- |
+| `/change` | Operational Change Console — remains; not expanded into `/app` shell |
+| `/change-v2` | Experimental |
+
+Safe navigation: Core Delivery/Operations → `/change`; Tenant placeholders may link to existing capabilities; `/change` may link back to `/app/core` or `/app/tenant` where appropriate.
 
 ## Explicit non-actions
 
-- No schema/DB, env/secrets, production deploy, merge, client sends
-- `/change` not expanded
+- No schema/DB mutation, env/secrets, production deploy, merge, client sends
+- `/change` not expanded into everything-dashboard
 - No #721 Prospect Ops, no Lux product work
 
 ## Proof mode
 
-`?proof=1` on `/app/core` or `/app/tenant` mints a **single-environment** proof actor (Preview / local only). Denied when `VERCEL_ENV=production`. Proof Core cannot call Tenant APIs and vice versa.
+`?proof=1` on `/app/core` or `/app/tenant` mints a **single-environment** proof actor (Preview / local only). Denied when `VERCEL_ENV=production`.
 
 ## Remaining limitations
 
-- Synthetic in-memory store only (resets on cold start)
-- Not wired to live `cmp_tickets` rows
-- `/change` remains the operational hub until later slices
+- Fixture-backed repository for Preview/tests (same contracts as live `cmp_tickets`); live Prisma wiring can reuse `normalizeCmpTicketRow` without schema change
+- `/change` remains the mature operational hub for many flows
 - Preview URLs may be SSO-gated for the team

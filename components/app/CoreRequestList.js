@@ -1,23 +1,107 @@
 /**
- * Compact Core request list for global / per-tenant management.
+ * Core global request queue with tenant / status / waiting-party filters.
  * @param {{
  *   requests: Array<Record<string, unknown>>,
- *   title: string,
- *   onOpen: (requestId: string) => void,
+ *   title?: string,
  *   busy?: boolean,
+ *   tenantOptions?: string[],
+ *   filters?: { tenant_id?: string | null, status?: string | null, waiting_party?: string | null },
+ *   onFilterChange?: (filters: Record<string, string>) => void,
+ *   onOpen: (requestId: string) => void,
  * }} props
  */
-export default function CoreRequestList({ requests, title, onOpen, busy }) {
+export default function CoreRequestList({
+  requests,
+  title = 'Requests',
+  busy,
+  tenantOptions = [],
+  filters = {},
+  onFilterChange,
+  onOpen,
+}) {
   const rows = Array.isArray(requests) ? requests : [];
+  const tenantVal = filters.tenant_id != null ? String(filters.tenant_id) : 'all';
+  const statusVal = filters.status != null ? String(filters.status) : '';
+  const waitingVal = filters.waiting_party != null ? String(filters.waiting_party) : '';
+
   return (
     <section className="cf-app-panel" data-testid="core-request-list">
       <h1 className="cf-app-h1">{title}</h1>
       <p className="cf-app-lead">
-        Core request management · same synthetic ids · internal fields visible only here
+        Global request queue · production-shaped adapters · same canonical ids as Tenant
       </p>
+
+      <div className="cf-app-actions" data-testid="core-request-filters" style={{ marginTop: 12 }}>
+        <label className="cf-app-muted" style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+          Tenant
+          <select
+            data-testid="core-filter-tenant"
+            value={tenantVal}
+            disabled={busy}
+            onChange={(e) =>
+              onFilterChange &&
+              onFilterChange({
+                tenant_id: e.target.value,
+                status: statusVal,
+                waiting_party: waitingVal,
+              })
+            }
+          >
+            <option value="all">All tenants</option>
+            {tenantOptions.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="cf-app-muted" style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+          Status
+          <select
+            data-testid="core-filter-status"
+            value={statusVal}
+            disabled={busy}
+            onChange={(e) =>
+              onFilterChange &&
+              onFilterChange({
+                tenant_id: tenantVal,
+                status: e.target.value,
+                waiting_party: waitingVal,
+              })
+            }
+          >
+            <option value="">All statuses</option>
+            <option value="Approved">Approved</option>
+            <option value="Draft">Draft</option>
+            <option value="Closed">Closed</option>
+          </select>
+        </label>
+        <label className="cf-app-muted" style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+          Waiting
+          <select
+            data-testid="core-filter-waiting"
+            value={waitingVal}
+            disabled={busy}
+            onChange={(e) =>
+              onFilterChange &&
+              onFilterChange({
+                tenant_id: tenantVal,
+                status: statusVal,
+                waiting_party: e.target.value,
+              })
+            }
+          >
+            <option value="">Any</option>
+            <option value="client">Client</option>
+            <option value="corpflow">CorpFlow</option>
+            <option value="none">None</option>
+          </select>
+        </label>
+      </div>
+
       {!rows.length ? (
         <p className="cf-app-muted" data-testid="core-request-list-empty">
-          No requests in this view.
+          No requests match these filters.
         </p>
       ) : (
         <div className="cf-app-grid" style={{ marginTop: 16 }}>
@@ -34,6 +118,18 @@ export default function CoreRequestList({ requests, title, onOpen, busy }) {
                   <dd>{id}</dd>
                   <dt>Tenant</dt>
                   <dd>{String(r.tenant_id || '—')}</dd>
+                  <dt>Status / milestone</dt>
+                  <dd>
+                    {String(r.status || '—')} / {String(r.milestone || r.stage || '—')}
+                  </dd>
+                  <dt>Owner</dt>
+                  <dd>{String(r.owner || '—')}</dd>
+                  <dt>Waiting party</dt>
+                  <dd>{String(r.waiting_party || '—')}</dd>
+                  <dt>Next action</dt>
+                  <dd>{String(r.next_action || '—')}</dd>
+                  <dt>Last update</dt>
+                  <dd>{String(r.updated_at || '—')}</dd>
                   <dt>Progress</dt>
                   <dd>{Number(r.progress_percent) || 0}%</dd>
                   <dt>Internal blocker</dt>
@@ -50,7 +146,7 @@ export default function CoreRequestList({ requests, title, onOpen, busy }) {
                     disabled={busy}
                     onClick={() => onOpen(id)}
                   >
-                    Open request / work
+                    Open request detail
                   </button>
                 </div>
               </article>
