@@ -40,7 +40,7 @@ Canonical operator view for genuine Anton decisions: **`docs/operations/ANTON_DE
 
 - **Curate and wire agents:** use `docs/automation-framework.md`, `docs/n8n/automation-forward-recipe.md`, CMP mirror events, and playbooks so client-visible milestones trigger **notifications, handoffs, and follow-up** without you on the laptop (`docs/EXECUTION_BRAIN_VS_HANDS.md`).
 - **Productize one golden path:** one script + one hostname + one demo tenant that always works (`scripts/onboard-demo-tenants.ps1`, `scripts/ensure-postgres-schema.ps1`, `docs/operations/TENANT_CLIENT_LOGIN.md`).
-- **CX over chrome:** Change Console (`/change`) is the **hero surface** for clients — brief, estimate, approve, progress; tenant marketing skin is **tier-2** unless sold as a SKU.
+- **CX over chrome:** Change Console (`/change`) is the **hero surface** for clients **today** — brief, estimate, approve, progress; tenant marketing skin is **tier-2** unless sold as a SKU. **#773** targets a centralized Core/Tenant app with a client-safe Requests & Progress view; `/change` remains the live hub until that shell is accepted. Audit: `docs/architecture/CORPFLOW_CENTRAL_APP_ROUTE_CAPABILITY_MATRIX_V1.md`.
 - **Evaluate external levers:** new models, agent frameworks, hosted workflow tools — when they shorten **time-to-first-artifact** or **time-to-merge**, capture the decision in this file or `artifacts/` and implement the smallest integration.
 
 ---
