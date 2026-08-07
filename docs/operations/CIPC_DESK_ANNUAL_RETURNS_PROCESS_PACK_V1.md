@@ -1,29 +1,49 @@
 # CIPC Desk — Annual Returns Process Pack v1
 
-**Status:** Research / specialist-validation draft for **#750** (parent coordination **#640**; research parent **#740**).  
-**Tenant / working name:** `cipc-desk` / **CIPC Desk** (internal working name only — not final public brand).  
+**Status:** Sarah-approved Annual Returns **v1 boundaries** recorded 2026-08-07 (**#791**). Research base **#750** / PR **#758**; standing corpflow_test review surface **#761** / PR **#763**. Parent coordination **#640**.  
+**Tenant / working name:** `cipc-desk` / **CIPC Desk** (internal working name only — not final public brand; brand work tracked separately, e.g. **#751**).  
 **Subject-matter owner:** Sarah Fourie.  
 **Evidence date of official-source review:** 2026-08-05.  
-**Verdict:** `NO IMPLEMENTATION AUTHORIZED` — documentation and specialist validation only. No runtime, schema, CRM, auth, customer-facing publication, CIPC filing, or paid tooling from this pack.
+**Sarah v1 decision date:** 2026-08-07.  
+**Verdict:** Specialist-approved **v1 operating boundaries** for this process pack and the standing corpflow_test Annual Returns review page. **Not a public launch.** No schema, CRM, auth, payment, email-send runtime, or live CIPC submission authorised by this pack alone.
 
 <!-- CIPC_DESK_ANNUAL_RETURNS_PROCESS_PACK_V1 -->
 
 ---
 
+## Sarah-approved v1 decisions (2026-08-07)
+
+These eight decisions are **closed** for Annual Returns v1. Provisional / `SARAH CONFIRM` tags are removed for these points only.
+
+1. **Customer code:** Support both models; **default to the client’s own CIPC customer code** unless the client authorises an **authorised practitioner code**.
+2. **Standard service scope:** Standard Annual Returns service includes **Annual Return filing only**. BO and AFS/FAS prerequisites are **identified** and **referred to the client for completion** or **quoted separately**.
+3. **Authority:** Require a **signed engagement/mandate** confirming authority to act **before filing**.
+4. **FAS / AFS posture:** **Check** whether FAS/AFS requirements are met only. **Do not prepare FAS.** Refer accounting matters to an **accountant**.
+5. **Entity scope:** v1 covers **private companies** and **close corporations** only. **NPCs and other entities** are **later-phase**.
+6. **Dormant / non-trading wording (exact):** `Even if your company is dormant or not trading, Annual Return filing and other statutory obligations may still apply.`
+7. **Pricing:** Keep **all service-fee / pricing wording out** until the commercial pricing model is approved.
+8. **Annual Compliance Checklist:** The **client completes and takes ownership** of Annual Compliance Checklists.
+
+No further Sarah clarification is required on these eight points unless implementation reveals a genuinely new ambiguity.
+
+---
+
 ## How to read this pack
 
-Every substantive statement is tagged so Sarah can review without needing technical knowledge:
+Every substantive statement is tagged so operators and reviewers can see evidence strength:
 
 | Tag | Meaning |
 |-----|---------|
 | **OFFICIAL** | Stated on current CIPC public material cited below. |
-| **PRACTICAL** | Operating recommendation grounded in Sarah’s confirmed direction (#740 business decision) and ordinary CIPC Desk handling — not a substitute for statute. |
-| **PROVISIONAL** | Reasonable working assumption until Sarah confirms or a newer CIPC notice supersedes it. |
-| **SARAH CONFIRM** | Explicitly open; do not publish or hard-code until Sarah answers. |
+| **PRACTICAL** | Operating recommendation grounded in Sarah’s confirmed direction (#740 / #791) and ordinary CIPC Desk handling — not a substitute for statute. |
+| **PROVISIONAL** | Reasonable working assumption until a newer CIPC notice or a genuinely new Sarah decision supersedes it. |
+| **SARAH CONFIRM** | Explicitly still open; do not publish or hard-code until Sarah answers. (Not used for the eight closed v1 decisions above.) |
 
 **Non-affiliation (PRACTICAL / Sarah-confirmed brand posture):** CIPC Desk is an independent support service. It is **not** CIPC, is **not** endorsed by CIPC, and must never imply official affiliation.
 
 **Guarantee ban (Sarah-confirmed):** Never guarantee CIPC turnaround times, approval dates, processing periods, or successful filing outcomes. Any estimate must stay subject to CIPC processing times, system availability, submission quality, additional-information requests, and manual review.
+
+**Pricing ban (Sarah-approved 2026-08-07):** Do not invent or publish Desk service-fee / pricing wording until the commercial pricing model is approved. CIPC’s own statutory fees on CIPC systems are separate from Desk commercial pricing and must not be presented as Desk prices.
 
 **Data rule:** This pack uses **no real client or company data**, no identity-document images, and no private filings.
 
@@ -48,7 +68,7 @@ Reviewed for this draft (public CIPC / CIPC-hosted material only):
 7. **CIPC Step-by-Step Guides hub** — https://www.cipc.co.za/?page_id=4447  
    BO filing variants, XBRL / AFS manuals, mandate / securities-register materials, Annual Returns guides.
 8. **CIPC notice: Non-Compliance with submission of the annual compliance checklist** — https://www.cipc.co.za/?p=24055  
-   Compliance Checklist is a **related but separate** annual obligation for listed company categories — not the same as the Annual Return itself.
+   Compliance Checklist is a **related but separate** annual obligation for listed company categories — not the same as the Annual Return itself. **Sarah-approved:** client completes and owns checklists; not part of standard AR service.
 9. **CIPC FAQs hub** — https://www.cipc.co.za/?page_id=4160  
    Includes Annual Returns FAQ entry point (accordion content may load dynamically; operators should open the live FAQ when answering client questions).
 10. **CIPC eServices catalogue** (login surface) — https://eservices.cipc.co.za/  
@@ -64,6 +84,8 @@ Reviewed for this draft (public CIPC / CIPC-hosted material only):
 
 **OFFICIAL — who must file.** CIPC’s Annual Return Filing System states that **all companies and close corporations** must file Annual Returns with CIPC within a certain period each year. CIPC uses the filing to keep registry information current and to assess whether the entity is conducting business activities.
 
+**PRACTICAL — Desk v1 scope (Sarah-approved 2026-08-07):** Standard CIPC Desk Annual Returns service is limited to **private companies** and **close corporations**. NPCs and other entities are **later-phase**, even where CIPC’s official rules also apply to them.
+
 **OFFICIAL — public filing sequence** (Annual Returns portal home + step-by-step guide):
 
 1. Customer login / registration (valid CIPC customer code).
@@ -75,13 +97,19 @@ Reviewed for this draft (public CIPC / CIPC-hosted material only):
 
 **OFFICIAL — BO dependency.** CIPC BO page: from **1 July 2024**, a hard-stop requires companies and close corporations to submit Beneficial Ownership Declarations alongside Annual Returns. Entities that are BO non-compliant cannot finalise Annual Return submission. BO Register applies to corporate entities registered with CIPC **except co-operatives**. Newly incorporated entities must file BO within **10 business days** of incorporation; amendments within **10 business days** of BO changes.
 
+**PRACTICAL — Desk packaging (Sarah-approved):** Standard AR service does **not** include performing BO filing. Operators **identify** BO gaps and **refer** them to the client for completion or **quote separately**.
+
 **OFFICIAL — AFS / FAS dependency.** From **4 March 2019**, customers must file FAS or AFS together with Annual Returns (CIPC hard-stop notice; Section 30). The step-by-step guide states continuation is available only when BO and AFS/FAS are up to date for that Annual Return filing year. Where AFS were submitted, turnover on the Annual Return is validated against revenue in the AFS (ignore decimals; mismatch requires AFS review).
+
+**PRACTICAL — Desk FAS/AFS posture (Sarah-approved):** **Check only** whether FAS/AFS requirements appear met. **Do not prepare FAS.** Do not prepare AFS. Refer accounting matters to an **accountant**. Incomplete prerequisites are referred to the client or quoted separately.
 
 **OFFICIAL — timing language to handle carefully.** The BO information page states entities must file Annual Returns, BO declarations, and a securities register and/or beneficial interest register each year within **30 business days following the anniversary date of incorporation**. CIPC Service Standards list the Annual Returns **service** turnaround as **Immediate**, while BO / FAS / AFS enquiries are administered by other CIPC units. **CIPC Desk must not convert those into client guarantees.**
 
 **OFFICIAL — proof of filing.** After filing, save/print the confirmation and certificate. Certificates are emailed to the customer-code profile email; re-print is available under e-Services.
 
-**OFFICIAL — related but separate:** Annual Compliance Checklist obligations (CIPC notice for Inc., (Pty) Ltd, Ltd, SOC, NPC categories) are **not** identical to Annual Return filing. Treat checklist support as a separate routing decision (**SARAH CONFIRM** whether it is in or out of the paid Annual Returns service).
+**OFFICIAL — related but separate:** Annual Compliance Checklist obligations (CIPC notice for Inc., (Pty) Ltd, Ltd, SOC, NPC categories) are **not** identical to Annual Return filing.
+
+**PRACTICAL — Compliance Checklist (Sarah-approved 2026-08-07):** The **client completes and takes ownership** of Annual Compliance Checklists. Checklist work is **out of** the standard Annual Returns filing service.
 
 ---
 
@@ -95,35 +123,46 @@ Reviewed for this draft (public CIPC / CIPC-hosted material only):
 
 ### What the CIPC Desk Annual Returns service covers
 
-**PRACTICAL (service framing — pending public copy approval):**
+**PRACTICAL (Sarah-approved v1 — Annual Return filing only):**
 
-- Helping the client understand what CIPC requires for the Annual Return cycle for their entity type.
-- Collecting the facts and supporting items needed for a complete filing attempt.
-- Checking whether Beneficial Ownership and AFS/FAS prerequisites appear complete before submission.
-- Preparing and submitting the Annual Return through CIPC e-Services / the Annual Returns system **when authority and information are complete**.
+- Helping the client understand what CIPC requires for the Annual Return cycle for a **private company** or **close corporation**.
+- Collecting the facts and supporting items needed for a complete Annual Return filing attempt.
+- **Identifying** whether Beneficial Ownership and AFS/FAS prerequisites appear complete before submission, and **referring** incomplete items to the client for completion or **quoting them separately**.
+- Preparing and submitting the **Annual Return** through CIPC e-Services / the Annual Returns system **when a signed engagement/mandate and information are complete**.
 - Capturing proof of filing (confirmation / certificate) and telling the client what was filed.
 - Escalating to specialist review when the matter is outside a standard filing.
 
-**What the service does *not* automatically include (PROVISIONAL until Sarah confirms packaging):**
+**What the service does *not* include (Sarah-approved v1 exclusions):**
 
-- Preparing full Annual Financial Statements or performing an audit / independent review.
+- Performing Beneficial Ownership filing as part of the standard Annual Returns service (identify + refer / quote separately).
+- Preparing FAS, preparing Annual Financial Statements, or performing an audit / independent review.
+- Completing or owning the Annual Compliance Checklist (client-owned).
+- NPC or other non-(Pty) Ltd / non-CC entities as v1 standard service (later-phase).
 - Fixing historical registry errors, restorations, deregistrations, or MOI/share restructures.
 - Guaranteeing that CIPC will accept, process, or complete any filing by a stated date.
 - Acting as CIPC or giving formal legal opinions.
+- Any Desk service-fee or pricing figures until the commercial pricing model is approved.
 
 ### What the client must provide
 
 **PRACTICAL — typical inputs (conditional; not every item for every company):**
 
 - Company / CC registration number and registered name.
-- Confirmation of entity type (e.g. (Pty) Ltd, CC, NPC, external company — as applicable).
+- Confirmation of entity type — **v1 standard:** private company ((Pty) Ltd) or close corporation. Other types → later-phase / specialist routing.
 - Financial year information and the anniversary / incorporation date if known.
-- Latest annual turnover figure for the filing year(s) being lodged.
+- Latest annual turnover figure for the filing year(s) being lodged (for CIPC’s fee calculator — not a Desk price).
 - Current contact details for the instructing person and, where needed, directors/members for OTP or verification.
-- Confirmation whether Beneficial Ownership is already filed and current; if not, BO information and supporting registers/evidence as required for that structure.
-- Confirmation whether FAS or AFS (iXBRL) applies, and the ready FAS answers or AFS package.
-- Written authority / mandate for CIPC Desk (or the named filer) to act.
-- Payment arrangement for CIPC fees and Desk service fees (**SARAH CONFIRM** commercial packaging).
+- Confirmation whether Beneficial Ownership is already filed and current; if not, BO remains a referred / separately quoted dependency.
+- Confirmation whether FAS or AFS requirements appear met (check-only); accounting gaps referred to an accountant.
+- **Signed engagement/mandate** confirming authority to act (**required before filing** — Sarah-approved).
+- Customer-code path: **client’s own CIPC customer code by default**, unless the client authorises an authorised practitioner code.
+- Billing contact for **CIPC filing-fee funding** only — no Desk service-fee wording until commercial pricing is approved.
+
+### Dormant / non-trading (approved client wording)
+
+**PRACTICAL / Sarah-approved exact wording:**
+
+> Even if your company is dormant or not trading, Annual Return filing and other statutory obligations may still apply.
 
 ### What CIPC Desk cannot guarantee
 
@@ -133,7 +172,7 @@ Reviewed for this draft (public CIPC / CIPC-hosted material only):
 - Approval dates, acceptance dates, or registry status change dates.
 - That a filing will succeed on first attempt.
 - That penalties, deregistration risk, or enforcement will not arise from past non-compliance.
-- That BO, AFS/FAS, or Compliance Checklist issues outside the Annual Return itself will be resolved as part of a standard AR fee.
+- That BO, AFS/FAS, or Compliance Checklist issues outside the Annual Return itself will be resolved as part of a standard Annual Returns engagement.
 
 Any timing estimate must be qualified as subject to:
 
@@ -147,6 +186,7 @@ Any timing estimate must be qualified as subject to:
 
 **PRACTICAL / Sarah-confirmed specialist triggers (adapted to Annual Returns):**
 
+- Entity type outside v1 (NPC / other) presented as if it were standard service.
 - Unclear company type or conflicting CIPC records.
 - Multi-year arrears, penalty disputes, or deregistration / reinstatement overlap.
 - Outstanding or complex Beneficial Ownership (trusts, juristic persons, foreign owners, deceased estates).
@@ -158,7 +198,7 @@ Any timing estimate must be qualified as subject to:
 
 # Layer 2 — Client intake checklist
 
-*Use as a guided intake. Mark each row N/A when it does not apply. Do not assume every item applies to every company type.*
+*Use as a guided intake. Mark each row N/A when it does not apply. Do not assume every item applies to every company type. Standard v1 scope = private companies and close corporations only.*
 
 ### A. Instructing party and authority
 
@@ -166,9 +206,9 @@ Any timing estimate must be qualified as subject to:
 |---|------|---------------|-------|
 | A1 | Instructing person full name, email, phone | Always | PRACTICAL |
 | A2 | Relationship to entity (director / member / accountant / authorised agent) | Always | PRACTICAL |
-| A3 | Signed mandate / power of attorney / board or members’ resolution authorising filing | When CIPC Desk (or non-director filer) will lodge | OFFICIAL materials repeatedly require mandates for agent filing; exact form **SARAH CONFIRM** |
-| A4 | Confirmation Desk may use / access the relevant CIPC customer code | When filing electronically | PRACTICAL / **SARAH CONFIRM** whether Desk uses client code vs Desk code |
-| A5 | Billing contact and fee acceptance | Always before paid work | PRACTICAL |
+| A3 | Signed engagement / mandate confirming authority to act | **Before filing** | Sarah-approved — required before lodging |
+| A4 | CIPC customer-code path agreed | When filing electronically | Sarah-approved: default **client’s own code**; authorised practitioner code only if client authorises |
+| A5 | Billing contact for CIPC filing-fee funding | Before CIPC payment step | PRACTICAL — **no Desk service-fee / pricing wording** until commercial model approved |
 
 ### B. Company registration details
 
@@ -176,7 +216,7 @@ Any timing estimate must be qualified as subject to:
 |---|------|---------------|-------|
 | B1 | Enterprise / registration number | Always | OFFICIAL — validated in AR system |
 | B2 | Registered name as on CIPC record | Always | PRACTICAL cross-check |
-| B3 | Entity type (Pty Ltd, Inc, Ltd, SOC, NPC, CC, external company, other) | Always | Determines BO/AFS/checklist routing; **conditional** |
+| B3 | Entity type | Always | v1 standard: **(Pty) Ltd** or **CC** only; NPC / other → later-phase |
 | B4 | Incorporation / registration anniversary date | Always if known | OFFICIAL window language uses anniversary of incorporation |
 | B5 | Current CIPC status (in business, AR deregistration process, final deregistered, etc.) | Always | PRACTICAL — status may block AR filing (guide: validation message → enquiry) |
 | B6 | Registered office and postal address on record | If client reports changes or mismatch | Address change is a **separate** service if updates needed |
@@ -188,8 +228,8 @@ Any timing estimate must be qualified as subject to:
 |---|------|---------------|-------|
 | C1 | Financial year-end | Always | PRACTICAL; links to AFS preparation timing (OFFICIAL six-month AFS preparation rule) |
 | C2 | Filing year(s) to be lodged (current and any arrears) | Always | PRACTICAL |
-| C3 | Annual turnover for each outstanding year | Always for fee calculation | OFFICIAL — turnover entered in AR calculator |
-| C4 | Whether entity is dormant / not trading | Conditional disclosure | PRACTICAL — dormancy does not automatically remove AR duty (**SARAH CONFIRM** client wording) |
+| C3 | Annual turnover for each outstanding year | Always for CIPC fee calculation | OFFICIAL — turnover entered in AR calculator; not a Desk price |
+| C4 | Whether entity is dormant / not trading | Conditional disclosure | Use approved wording: *Even if your company is dormant or not trading, Annual Return filing and other statutory obligations may still apply.* |
 | C5 | Whether AFS revenue figure already filed (for turnover match) | When AFS already submitted | OFFICIAL — turnover validated against AFS revenue |
 
 ### D. Contact and director / member details
@@ -206,31 +246,31 @@ Any timing estimate must be qualified as subject to:
 | # | Item | When required | Notes |
 |---|------|---------------|-------|
 | E1 | Is entity a co-operative? | Always filter | OFFICIAL — co-operatives excepted from BO Register |
-| E2 | Has latest BO declaration been filed for the relevant calendar/filing year? | Companies, external companies, CCs | OFFICIAL hard-stop |
+| E2 | Has latest BO declaration been filed for the relevant calendar/filing year? | Companies and CCs in v1 | OFFICIAL hard-stop; if incomplete → refer / quote separately (not standard AR) |
 | E3 | Securities register and/or beneficial interest register available | When BO filing required | OFFICIAL anniversary package language |
 | E4 | Ownership structure summary (natural persons only vs trusts / companies / foreign) | When BO not already complete | Complex structures → specialist review |
-| E5 | Affected vs non-affected company classification (as used in CIPC BO guides) | When filing BO | OFFICIAL guide variants exist on Step-by-Step hub — **SARAH CONFIRM** intake questions |
+| E5 | Affected vs non-affected company classification (as used in CIPC BO guides) | When filing BO (separate quote / client completion) | OFFICIAL guide variants exist on Step-by-Step hub — intake detail **PROVISIONAL** |
 
 ### F. AFS / FAS / XBRL dependencies
 
 | # | Item | When required | Notes |
 |---|------|---------------|-------|
-| F1 | Does client / accountant say AFS (audit or independent review) is required this year? | Always ask | OFFICIAL hard-stop requires AFS **or** FAS |
-| F2 | If FAS route: client ready to answer FAS prompts | When FAS applies | OFFICIAL guide path |
-| F3 | If AFS route: iXBRL package ready / accountant appointed | When AFS must be filed to CIPC | OFFICIAL XBRL manuals on guides hub |
+| F1 | Do FAS or AFS requirements appear met this year? | Always check | Sarah-approved **check-only**; OFFICIAL hard-stop requires AFS **or** FAS |
+| F2 | If incomplete: refer client / accountant | When FAS/AFS not met | **Do not prepare FAS**; do not prepare AFS |
+| F3 | If AFS route and client-supplied iXBRL exists | When client/accountant provides package | Upload only if separately in scope; never invent financials |
 | F4 | Public Interest Score / MOI audit clause known? | When AFS vs FAS uncertain | PROVISIONAL intake flag → specialist or accountant |
-| F5 | External company exception awareness | External companies | OFFICIAL comprehensive guides note external-company differences for AFS/FAS — **SARAH CONFIRM** Desk handling |
+| F5 | Entity outside v1 (NPC / external / other) | If presented | Later-phase — not v1 standard service |
 
 ### G. Proof-of-authority and missing-information checks
 
 | # | Item | When required | Notes |
 |---|------|---------------|-------|
-| G1 | Mandate / resolution on file and signed by authorised person(s) | Agent filing | PRACTICAL |
+| G1 | Signed engagement / mandate on file | Before filing | Sarah-approved — hard gate |
 | G2 | Missing-information list issued to client in plain English | When any A–F gap exists | PRACTICAL |
-| G3 | Client acknowledges AR ≠ tax return and AR ≠ Compliance Checklist | Always | PRACTICAL education |
+| G3 | Client acknowledges AR ≠ tax return and AR ≠ Compliance Checklist (client-owned) | Always | PRACTICAL education |
 | G4 | Client acknowledges no timing/outcome guarantee | Always before submission | Sarah-confirmed |
 
-**Missing-information rule (PRACTICAL):** If B1–B3, C2–C3, A3 (when agent filing), E2, or F1 are unanswered, status stays **information incomplete** — do not mark ready for submission.
+**Missing-information rule (PRACTICAL):** If B1–B3, C2–C3, A3, or F1 check is unanswered, status stays **information incomplete** — do not mark ready for submission. If E2/F1 show unmet prerequisites, keep AR incomplete or route the dependency separately; do not treat standard AR as submission-ready while an OFFICIAL hard-stop remains.
 
 ---
 
@@ -241,66 +281,74 @@ Any timing estimate must be qualified as subject to:
 ### 1) Authority / mandate confirmation
 
 - [ ] Instructing party identified.
-- [ ] Mandate / resolution / POA present when filer is not the sole authorised director/member (**conditional**).
+- [ ] **Signed engagement/mandate** confirming authority to act is on file (**required before filing**).
 - [ ] Scope of authority covers Annual Return year(s) requested.
-- [ ] Customer-code access path agreed (**SARAH CONFIRM** operating rule).
+- [ ] Customer-code access path agreed: **client’s own CIPC customer code by default**, or authorised practitioner code if the client authorises it.
 - [ ] If authority unclear → **specialist review** / do not submit.
 
 ### 2) Company-record verification
 
 - [ ] Enterprise number validated in CIPC Annual Returns / e-Services.
 - [ ] Name and entity type match client instruction.
+- [ ] Entity is **(Pty) Ltd** or **CC** for v1 standard path; otherwise later-phase / specialist — do not treat as standard AR.
 - [ ] Entity status allows AR filing; if validation blocks filing, log CIPC message and route to exception path.
 - [ ] Outstanding AR years listed (paid vs outstanding).
 - [ ] Obvious registry mismatches flagged (directors, addresses, FYE) without attempting out-of-scope fixes.
 
 ### 3) Completeness review
 
-- [ ] Turnover captured per outstanding year.
+- [ ] Turnover captured per outstanding year (for CIPC systems).
 - [ ] Contact details usable for CIPC notices / OTP.
-- [ ] Client fee and CIPC fee funding path confirmed before cart payment.
+- [ ] CIPC fee funding path confirmed before cart payment (**no Desk price quoted** until commercial model approved).
 - [ ] Client has received plain-English “what we still need” if incomplete.
+- [ ] Dormant / non-trading disclosure uses the approved sentence when relevant.
 
 ### 4) BO dependency check
 
 - [ ] Confirm whether BO applies (not a co-operative).
 - [ ] Confirm latest BO declaration status for the filing year (OFFICIAL: latest filing associated with same calendar year logic in step-by-step guide).
-- [ ] If BO outstanding or rejected → do not treat AR as submission-ready; open BO path or escalate.
-- [ ] Complex ownership → specialist review before BO filing.
+- [ ] If BO outstanding or rejected → **identify and refer** to client for completion or **quote separately**; do not treat standard AR as submission-ready while the hard-stop blocks.
+- [ ] Complex ownership → specialist review before any BO path.
 
 ### 5) AFS / FAS / XBRL dependency check
 
-- [ ] Determine FAS vs AFS route for each filing year (**conditional**).
-- [ ] FAS: complete prompts only with client-confirmed answers.
-- [ ] AFS: confirm iXBRL / disclosure path readiness; do not invent financials.
+- [ ] **Check only** whether FAS vs AFS requirements appear met for each filing year.
+- [ ] **Do not prepare FAS.** Do not prepare AFS. Refer accounting matters to an accountant.
+- [ ] If incomplete → refer to client for completion or quote separately.
 - [ ] If AFS already filed: check turnover/revenue consistency note from official guide.
 - [ ] Uncertain audit / review / exemption position → specialist or client’s accountant; do not guess.
 
-### 6) Exception detection
+### 6) Compliance Checklist
+
+- [ ] Remind client that Annual Compliance Checklist is **client-owned** and separate from Annual Return filing.
+- [ ] Do not include checklist completion in standard AR service.
+
+### 7) Exception detection
 
 - [ ] Scan Layer 6 triggers (below).
 - [ ] If any red trigger present → set status **specialist review** or **further action required**; notify client in plain language without promising CIPC outcomes.
 
-### 7) Submission-readiness decision
+### 8) Submission-readiness decision
 
 Mark **ready for submission** only when all are true:
 
-- Authority complete for the filing method.
-- Entity validates and status allows filing.
+- Signed engagement/mandate complete for the filing method.
+- Entity is in v1 scope ((Pty) Ltd or CC) and validates; status allows filing.
 - Turnover present for years being filed.
-- BO dependency satisfied or concurrently completable under Desk authority.
-- AFS/FAS dependency satisfied or concurrently completable under Desk authority.
+- BO dependency satisfied **or** separately completed / separately engaged (not silently bundled into standard AR).
+- AFS/FAS dependency satisfied **or** separately completed / separately engaged (check-only; no FAS preparation by Desk).
 - No unresolved specialist red flag.
 - Client informed that CIPC outcome/timing is not guaranteed.
+- No Desk service-fee / pricing figures used in client materials.
 
-### 8) Completion evidence and proof-of-filing capture
+### 9) Completion evidence and proof-of-filing capture
 
 After external submission:
 
 - [ ] Payment/filing confirmation retained.
 - [ ] Annual Return filing certificate / confirmation saved to the matter record.
 - [ ] Note customer-code email destination for CIPC’s copy.
-- [ ] Record years filed, fees paid (CIPC), and any BO/FAS/AFS reference numbers available.
+- [ ] Record years filed, CIPC fees paid, and any BO/FAS/AFS reference numbers available if separately handled.
 - [ ] Client update sent: what was submitted, what proof is attached, and that CIPC remains responsible for registry processing.
 - [ ] If CIPC later requests more information → reopen as **further action required**.
 
@@ -308,31 +356,37 @@ After external submission:
 
 # Layer 4 — Specialist validation note
 
-*For Sarah Fourie. This section lists what the draft treats as open or sensitive.*
+*For Sarah Fourie. The eight Annual Returns v1 decisions of 2026-08-07 are closed. This section records them and lists only remaining later-phase / operational items.*
 
-### Rules requiring Sarah’s confirmation
+### Sarah-approved v1 decisions (closed)
 
-1. **Customer-code model:** Does Desk file under the client’s customer code, a Desk-controlled code, or either depending on mandate?
-2. **Mandate instrument:** Preferred template (CIPC-style mandate vs firm letter of engagement + resolution) for Annual Returns only.
-3. **Commercial packaging:** What is included in a standard AR fee vs billed as BO-only, AFS coordination, arrears, or Compliance Checklist?
-4. **FAS answers:** May operators capture FAS from client email answers, or must Sarah / an accountant approve FAS content?
-5. **AFS / XBRL:** Is Desk in-scope to upload client-supplied iXBRL only, or also to coordinate accountants? Never prepare AFS in-house unless Sarah says otherwise.
-6. **Compliance Checklist:** In-scope add-on during AR season, separate service, or out of scope for v1?
-7. **Dormant entities:** Exact client wording Sarah wants (still usually must file until properly deregistered — confirm).
-8. **Multi-year arrears threshold:** When does Desk decline and send to specialist/restoration path immediately?
-9. **External companies and NPCs:** Practical differences Sarah sees vs published guides.
-10. **Fee figures in client materials:** Confirm whether any rand amounts may appear in customer explanation; this pack intentionally **omits fee tables** pending Sarah + current CIPC Forms & Fees check at time of filing.
+1. **Customer-code model:** Both supported; default client’s own CIPC customer code unless client authorises authorised practitioner code.
+2. **Standard AR package:** Annual Return filing only; BO and AFS/FAS identified and referred / quoted separately.
+3. **Mandate:** Signed engagement/mandate required before filing.
+4. **FAS / AFS:** Check whether requirements are met only; do not prepare FAS; refer accounting to an accountant.
+5. **Entity types in v1:** Private companies and close corporations only; NPCs and others later-phase.
+6. **Dormant wording:** Exact approved sentence recorded in Layer 1.
+7. **Fees in client materials:** None — keep all service-fee/pricing wording out until commercial pricing model approved.
+8. **Compliance Checklist:** Client completes and takes ownership; not part of standard AR service.
 
-### Practical variations by company type (PROVISIONAL map)
+### Remaining open / later-phase (not blocking v1 AR wording)
 
-| Entity | AR generally applies? | BO hard-stop relevant? | AFS/FAS note | Desk caution |
-|--------|----------------------|------------------------|--------------|--------------|
-| Private company (Pty) Ltd | Yes (OFFICIAL: companies) | Yes | FAS or AFS by obligation | Most common Desk path |
-| Close corporation | Yes | Yes | FAS or AFS by obligation | Member vs director language |
-| NPC | Yes | Yes (not a co-op) | Often special AFS/audit analysis | Specialist sooner |
-| Public company / SOC | Yes | Yes | AFS / audit route more likely | Specialist |
-| External company | Yes (guide references) | Yes (guide: companies, external companies, CCs) | Official guides note differences | **SARAH CONFIRM** |
-| Co-operative | Different AR regime | BO Register exception (OFFICIAL) | Separate co-op guides exist | Out of this pack unless Sarah expands scope |
+1. **Exact engagement/mandate template file** (which document template to attach) — requirement to have a signed engagement/mandate is decided; template asset selection is operational follow-up.
+2. **Multi-year arrears threshold:** When does Desk decline and send to specialist/restoration path immediately?
+3. **BO affected vs non-affected intake detail** when BO is handled as a separate quote / client completion path.
+4. **Later-phase entity packs:** NPC / external / public company operating differences when those phases are authorised.
+5. **Commercial pricing model:** Required before any Desk service-fee wording appears.
+
+### Practical variations by company type (v1 vs later-phase)
+
+| Entity | AR generally applies (OFFICIAL)? | Desk v1 standard service? | BO hard-stop relevant? | AFS/FAS note | Desk caution |
+|--------|----------------------------------|---------------------------|------------------------|--------------|--------------|
+| Private company (Pty) Ltd | Yes | **Yes — v1** | Yes | Check-only; refer accountant | Most common Desk path |
+| Close corporation | Yes | **Yes — v1** | Yes | Check-only; refer accountant | Member vs director language |
+| NPC | Yes | **Later-phase** | Yes (not a co-op) | Often special AFS/audit analysis | Do not sell as v1 standard |
+| Public company / SOC | Yes | **Later-phase** | Yes | AFS / audit route more likely | Specialist / later-phase |
+| External company | Yes (guide references) | **Later-phase** | Yes (guide) | Official guides note differences | Later-phase |
+| Co-operative | Different AR regime | Out of this pack | BO Register exception (OFFICIAL) | Separate co-op guides | Out unless scope expands |
 
 ### Historical-record discrepancies
 
@@ -346,21 +400,24 @@ After external submission:
 
 ### Cases where CIPC practice may differ from published guidance
 
-**PROVISIONAL — flag for Sarah; do not publish as fact:**
+**PROVISIONAL — operational caution; do not publish as Desk promises:**
 
 - Intermittent e-Services / Annual Returns portal behaviour vs step-by-step screenshots.
 - Enquiry unit split: Service Standards note AR enquiries exclude BO/FAS/AFS (other units).
 - Hard-stop messaging that cites BO and AFS/FAS together, while operational fixes may need separate tickets.
 - Compliance Checklist enforcement communications that clients confuse with Annual Returns.
 
-### Wording that should remain provisional
+### Wording that must not appear
 
-- Any numeric fee.
+- Any Desk service-fee / pricing figure (until commercial model approved).
 - Any promised Desk turnaround (internal targets may exist later; not client guarantees).
 - “We will get you reinstated” / “CIPC will approve within X days”.
-- Statements that dormant companies need not file.
+- Statements that dormant companies need not file (use the approved dormant wording instead).
 - Brand name “CIPC Desk” as final public brand.
 - Any claim of CIPC accreditation or partnership.
+- FAS preparation or AFS preparation as a Desk offering.
+- NPC / other entities as v1 standard Annual Returns service.
+- Desk ownership of Annual Compliance Checklists.
 
 ---
 
@@ -373,7 +430,7 @@ After external submission:
 | **received** | Instruction accepted; intake not yet complete | Run intake checklist |
 | **information incomplete** | Missing facts/docs/authority | Send plain-English missing-info list |
 | **specialist review** | Outside standard path or legal/registry ambiguity | Sarah (or designated specialist) decides |
-| **ready for submission** | Operator checklist green | Submit via CIPC when payment/authority final |
+| **ready for submission** | Signed mandate + operator checklist green; prerequisites met or separately handled | Submit via CIPC when CIPC fee funding/authority final |
 | **submitted externally** | Lodged/paid on CIPC systems | Capture proof; monitor for CIPC notices |
 | **awaiting CIPC** | Dependent on CIPC processing, review, or system | No false urgency promises; periodic check |
 | **completed** | Filing confirmation/certificate on matter record and client informed | Close AR year(s) in scope |
@@ -384,6 +441,7 @@ After external submission:
 - Do not jump to **completed** on payment alone — need filing confirmation/certificate (OFFICIAL proof step).
 - **awaiting CIPC** is honest when BO/AFS units or back-office must act; still not a timing promise.
 - If reinstatement/deregistration discovered, keep AR matter as **further action required** or split a new matter — do not hide the dependency.
+- Do not mark **ready for submission** without a signed engagement/mandate.
 
 ---
 
@@ -393,13 +451,14 @@ After external submission:
 
 | Exception | Why it matters | Immediate operator action |
 |-----------|----------------|---------------------------|
+| Entity outside v1 scope (NPC / other) | Not v1 standard service | Later-phase / specialist routing; do not sell as standard Pty Ltd / CC AR |
 | Unclear company type | Wrong BO/AFS/checklist route | Specialist review; pause submission |
 | Historical filing discrepancies | Prior years, missing certificates, conflicting paid/outstanding flags | Specialist review; gather CIPC screenshots/export notes |
-| Outstanding BO compliance | OFFICIAL hard-stop blocks AR finalisation | BO path or specialist; status not ready for submission |
-| Unresolved AFS/FAS/XBRL dependency | OFFICIAL financials hard-stop | Accountant/specialist; do not invent figures |
+| Outstanding BO compliance | OFFICIAL hard-stop blocks AR finalisation | Identify; refer client or quote separately; status not ready for standard AR |
+| Unresolved AFS/FAS/XBRL dependency | OFFICIAL financials hard-stop | Check-only; refer accountant; do not prepare FAS/AFS |
 | Manual CIPC intervention required | Validation blocks, system errors, back-office only fixes | Log enquiry path; awaiting CIPC / further action required |
 | Conflicting company records | Directors, addresses, FYE, name mismatches | Separate corrective service; do not “force” AR |
-| Statutory interpretation required | Audit vs review vs exemption; MOI clauses; external company nuances | Specialist review — Sarah-confirmed mandatory class |
+| Statutory interpretation required | Audit vs review vs exemption; MOI clauses; later-phase entity nuances | Specialist review — Sarah-confirmed mandatory class |
 | Entity in deregistration / final deregistered | May need reinstatement workflow (separate CIPC process) | Stop standard AR; escalate |
 | Trust / deceased estate / foreign complex ownership | Sarah specialist-mandatory class | Specialist review before BO/AR |
 | Suspected false or unverifiable information | OFFICIAL: false BO info is an offence | Refuse filing; escalate to Sarah |
@@ -408,20 +467,11 @@ After external submission:
 
 ---
 
-## Focused questions for Sarah (send only these)
+## Focused questions for Sarah — closed for v1
 
-Please confirm or correct:
+The eight focused questions from the #750 draft were answered on **2026-08-07** (see top of this pack). **No further Annual Returns v1 clarification is required from Sarah** unless implementation reveals a genuinely new ambiguity.
 
-1. **Customer code:** Client code, Desk code, or case-by-case?
-2. **Standard AR package:** What is included vs excluded (BO filing, FAS capture, AFS upload only, Compliance Checklist, arrears years)?
-3. **Mandate form:** Which template must clients sign before Desk lodges?
-4. **FAS content approval:** Operator-from-client answers OK, or specialist/accountant approval required every time?
-5. **Entity types in v1:** Confirm Pty Ltd + CC as standard; NPC / external / public as specialist-only?
-6. **Dormant-company client wording:** Approve a single plain-English sentence?
-7. **Any published fee or turnaround numbers:** Confirm **none** in customer materials for now?
-8. **Compliance Checklist:** in AR pack, separate pack, or later?
-
-No other decisions are required from Sarah to keep this draft in review. Anton is **not** needed for routine validation of this research pack.
+Anton is **not** needed for routine application of these decisions to docs and the standing test page (**#791** — open PR only; no merge/deploy from the agent unless separately approved).
 
 ---
 
@@ -429,14 +479,14 @@ No other decisions are required from Sarah to keep this draft in review. Anton i
 
 This pack does **not** authorise:
 
-- customer-facing publication of these checklists or explanations;
-- runtime `/change`, CRM, auth, schema, or infrastructure work;
-- real CIPC submissions;
+- public launch of Annual Returns as a marketed live service beyond the standing corpflow_test review URL;
+- runtime `/change`, CRM, auth, schema, or infrastructure work beyond existing review-surface content updates;
+- real CIPC submissions from documentation alone;
 - collection or storage of identity documents in the repository;
-- starting #751 (Director Changes) until #750 is review-ready;
-- merge/deploy claims of operational completion.
-
-Later implementation requires a **separate** focused issue, branch, and PR.
+- inventing Desk service fees or turnaround guarantees;
+- presenting NPC / other entities as v1 standard service;
+- FAS preparation or Desk ownership of Annual Compliance Checklists;
+- merge/deploy claims of operational completion without live verification on `https://cipc.corpflowai.com/annual-returns`.
 
 ---
 
@@ -444,8 +494,11 @@ Later implementation requires a **separate** focused issue, branch, and PR.
 
 | Field | Value |
 |-------|-------|
-| Controlling issue | #750 |
+| Controlling issue (decisions apply) | #791 |
+| Research / pack origin | #750 / PR #758 |
+| Test-site origin | #761 / PR #763 |
 | Parents | #640 (coordination), #740 (research) |
-| Pack version | v1 draft for specialist validation |
-| Next step | Sarah answers focused questions → revise pack → only then consider implementation issue |
-| Implementation | **NO IMPLEMENTATION AUTHORIZED** |
+| Pack version | v1 — Sarah-approved boundaries 2026-08-07 |
+| Standing test URL | https://cipc.corpflowai.com/annual-returns |
+| Next step | Merge #791 PR → verify standing test URL reflects decisions |
+| Public launch | **Not authorised by this pack** |
