@@ -28,9 +28,10 @@
 ## Request data contract
 
 - Adapters normalize **cmp_tickets-shaped** rows (`id`, `tenant_id`/`tenantId`, `status`, `stage`, `description`, `updated_at`, `console_json`/`consoleJson`).
-- Preview / local / tests use **production-shaped fixtures** through the same `normalizeCmpTicketRow` adapter.
+- **Repository selector:** `getRequestRepository()` → `fixture` (proof / `NODE_ENV=test` / no `POSTGRES_URL`) or `cmp_tickets_read` (existing Prisma `cmpTicket` reads).
+- Both paths use **`normalizeCmpTicketRow`** then Core/Tenant projectors. Missing/invalid tenant ID **fail-closed** (never becomes CorpFlowAI).
+- DB path is **read-only** in this slice; review/expose mutations remain fixture-proof only.
 - Optional `console_json.client_view.components[]` (JSON only — **no schema change**).
-- When components are absent, delivery components are **derived** from existing workflow / preview_review / promotion fields.
 - Progress is **deterministic** from milestone weights (`not_started` … `live_verified`).
 
 ## Compatibility routes (not deleted)
