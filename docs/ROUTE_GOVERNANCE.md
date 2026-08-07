@@ -12,6 +12,13 @@ This document defines canonical route ownership and production expectations with
 - `/change-v2` is experimental.
 - Do not rely on `/change-v2` as the production control surface until explicitly promoted.
 
+## Central application shell (Slice 1 — #778)
+
+- `/app` is the thin authenticated Core / Tenant scope shell (synthetic Requests & Progress first).
+- Tenant progress: `/app/requests`. Core twin: `/app/core/requests/[id]`.
+- `/change` remains temporarily operational; do **not** expand `/change` into the everything-dashboard.
+- Canonical matrix: `docs/architecture/CORPFLOW_CENTRAL_APP_ROUTE_CAPABILITY_MATRIX_V1.md`.
+
 ## Legacy/non-canonical files
 
 - **`public/change.html`** is a legacy static variant of the Change Console. Prefer **`pages/change.js`** for routing and UX evolution so `/change` stays a single implementation.
