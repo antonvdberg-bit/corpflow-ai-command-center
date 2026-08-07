@@ -1,0 +1,40 @@
+{
+  "schema": "corpflow.cafe_international_menu_preview.v1",
+  "source": "category_structure_from_public_current_site_copy_and_build_packet; item_names_and_MUR_prices_await_owner_menu_sheet_snapshot",
+  "invented_item_prices": false,
+  "categories": [
+    {
+      "id": "steaks",
+      "name": "Steaks",
+      "summary": "Flame-grilled steaks from the grill — the house focus.",
+      "items_status": "pending_owner_sheet",
+      "items": []
+    },
+    {
+      "id": "ribs",
+      "name": "Ribs",
+      "summary": "Tender ribs prepared on the flame grill.",
+      "items_status": "pending_owner_sheet",
+      "items": []
+    },
+    {
+      "id": "burgers",
+      "name": "Burgers",
+      "summary": "Hearty burgers from the grill.",
+      "items_status": "pending_owner_sheet",
+      "items": []
+    },
+    {
+      "id": "grill-favourites",
+      "name": "Grill favourites",
+      "summary": "Other flame-grill plates guests come for.",
+      "items_status": "pending_owner_sheet",
+      "items": []
+    }
+  ],
+  "notes": [
+    "This preview proves crawlable category HTML and journey paths.",
+    "Do not invent dish names or MUR prices. Owner-approved menu sheet snapshot is the next content fill.",
+    "Halal/certification wording: preserve current approved wording; do not reopen in this packet."
+  ]
+}

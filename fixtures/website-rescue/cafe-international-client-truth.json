@@ -1,0 +1,29 @@
+{
+  "tenant_id": "cafe-international",
+  "public_name": "Café International — The Flame Grill Café",
+  "address": "Royal Road, Trou aux Biches, Mauritius",
+  "opening_hours_source": "current_website",
+  "opening_hours": {
+    "monday": "16:30-22:00",
+    "tuesday": "16:30-22:00",
+    "wednesday": "16:30-22:00",
+    "thursday": "16:30-22:00",
+    "friday": "16:30-22:00",
+    "saturday": "16:30-22:00",
+    "sunday": "12:30-22:00"
+  },
+  "public_phone": "+230 5765 8735",
+  "booking_channels": ["phone", "website_chat"],
+  "takeaway_channels": ["whatsapp", "phone"],
+  "takeaway_delivery": false,
+  "takeaway_chat_allowed": false,
+  "since_year": 2009,
+  "owner_story_prominent_use_allowed": true,
+  "external_directory_conflicts": "cleanup_task_not_build_blocker",
+  "halal_certification_wording": "preserve_current_wording_do_not_reopen_in_this_packet",
+  "production_domain": "cafeinternational.net",
+  "preview_hostname": "cafe-international.corpflowai.com",
+  "current_platform": "GoHighLevel",
+  "chatbot_policy": "preserve_and_bridge_only_no_logic_change",
+  "source_of_truth_note": "Anton confirmed these working facts for the rebuild on 2026-08-07; owners may supersede later with explicit corrections."
+}
