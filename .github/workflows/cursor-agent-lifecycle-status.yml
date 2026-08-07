@@ -1,0 +1,135 @@
+# Cursor agent lifecycle status runner (#661).
+# Polls Cursor Cloud Agents API after activation; emits completion packet once.
+# Runs off Anton's laptop (GitHub Actions). Does not merge. Does not notify on RUNNING.
+#
+# Secrets: CURSOR_API_KEY, GITHUB_TOKEN (built-in)
+# Optional inputs: issue number and/or agent id
+
+name: Cursor agent lifecycle status
+
+on:
+  schedule:
+    # Every 10 minutes — silent when nothing terminal changed
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+    inputs:
+      issue:
+        description: "Source GitHub issue number (reads agent id from origin metadata)"
+        required: false
+        default: ""
+        type: string
+      agent_id:
+        description: "Cursor agent id (bc-…) — optional if issue has origin metadata"
+        required: false
+        default: ""
+        type: string
+      poll_twice:
+        description: "Run two polls in one job (dedupe proof)"
+        required: false
+        default: false
+        type: boolean
+      dry_run:
+        description: "Resolve agent id only; no Cursor API poll"
+        required: false
+        default: false
+        type: boolean
+      stale_minutes:
+        description: "Minutes without PR before STALE"
+        required: false
+        default: "10"
+        type: string
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+  checks: read
+  statuses: read
+
+concurrency:
+  group: cursor-agent-lifecycle-status
+  cancel-in-progress: false
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
+        with:
+          node-version: "20"
+
+      - name: Resolve target issue list
+        id: targets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_ISSUE: ${{ github.event.inputs.issue || '' }}
+          INPUT_AGENT: ${{ github.event.inputs.agent_id || '' }}
+        run: |
+          set -euo pipefail
+          if [ -n "${INPUT_ISSUE:-}" ]; then
+            echo "issues=${INPUT_ISSUE}" >> "$GITHUB_OUTPUT"
+            echo "Using workflow_dispatch issue=${INPUT_ISSUE}"
+            exit 0
+          fi
+          if [ -n "${INPUT_AGENT:-}" ]; then
+            echo "Manual agent_id without issue is unsupported for scheduled durable state." >&2
+            echo "issues=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Scheduled: find open issues that already have Cursor origin metadata (active agents).
+          # Prefer issues labeled dispatch:cursor-claimed or dispatch:operator-review.
+          ids="$(gh issue list --repo "${{ github.repository }}" --state open \
+            --label 'dispatch:cursor-claimed' --limit 20 --json number \
+            --jq '.[].number' 2>/dev/null || true)"
+          # Also include issues with recent CURSOR ORIGIN METADATA via search (best-effort).
+          echo "issues=$(echo "$ids" | tr '\n' ' ' | xargs)" >> "$GITHUB_OUTPUT"
+          echo "Discovered claimed issues: ${ids:-none}"
+
+      - name: Poll Cursor lifecycle
+        if: steps.targets.outputs.issues != '' || github.event.inputs.agent_id != ''
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          INPUT_ISSUE: ${{ github.event.inputs.issue || '' }}
+          INPUT_AGENT: ${{ github.event.inputs.agent_id || '' }}
+          INPUT_ISSUES: ${{ steps.targets.outputs.issues }}
+          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+          POLL_TWICE: ${{ github.event.inputs.poll_twice || 'false' }}
+          STALE_MINUTES: ${{ github.event.inputs.stale_minutes || '10' }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CURSOR_API_KEY:-}" ] && [ "${DRY_RUN}" != "true" ]; then
+            echo "CURSOR_API_KEY missing — fail closed (exit 0 skip on schedule, fail on manual)"
+            if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+              exit 2
+            fi
+            exit 0
+          fi
+
+          EXTRA=()
+          if [ "${DRY_RUN}" = "true" ]; then EXTRA+=(--dry-run); fi
+          if [ "${POLL_TWICE}" = "true" ]; then EXTRA+=(--poll-twice); fi
+          if [ -n "${STALE_MINUTES:-}" ]; then EXTRA+=(--stale-minutes="${STALE_MINUTES}"); fi
+          if [ -n "${INPUT_AGENT:-}" ]; then EXTRA+=(--agent-id="${INPUT_AGENT}"); fi
+
+          if [ -n "${INPUT_ISSUE:-}" ]; then
+            node scripts/cursor-agent-lifecycle-status.mjs --issue="${INPUT_ISSUE}" "${EXTRA[@]}"
+            exit 0
+          fi
+
+          for issue in ${INPUT_ISSUES}; do
+            echo "=== lifecycle poll issue #${issue} ==="
+            node scripts/cursor-agent-lifecycle-status.mjs --issue="${issue}" "${EXTRA[@]}" || {
+              echo "poll failed for #${issue} (continuing)"
+              continue
+            }
+          done
+
+      - name: Nothing to poll
+        if: steps.targets.outputs.issues == '' && (github.event.inputs.issue == '' || github.event.inputs.issue == null) && (github.event.inputs.agent_id == '' || github.event.inputs.agent_id == null)
+        run: echo "No claimed Cursor issues to poll — silent success"
