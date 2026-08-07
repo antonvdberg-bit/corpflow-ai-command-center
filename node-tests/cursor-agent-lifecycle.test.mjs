@@ -108,6 +108,47 @@ describe('cursor-agent-lifecycle', () => {
     assert.match(text, /Do not merge/);
   });
 
+  it('tick completes via GitHub PR presence while Cursor status is ACTIVE', async () => {
+    const fetchFn = async () => ({
+      ok: true,
+      status: 200,
+      async text() {
+        return JSON.stringify({ status: 'ACTIVE', agent: { id: 'bc-2', status: 'ACTIVE' } });
+      },
+    });
+    /** @type {string[]} */
+    const comments = [];
+    const github = {
+      async createIssueComment(_i, body) {
+        comments.push(body);
+      },
+      async findPrForIssue() {
+        return {
+          number: 9002,
+          url: 'https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/9002',
+          headSha: 'deadbeef',
+          branch: 'cursor/test',
+        };
+      },
+      async getPrChecks() {
+        return { conclusion: 'success', summary: 'ok' };
+      },
+      async addIssueLabels() {},
+    };
+    const done = await runCursorAgentLifecycleTick({
+      apiKey: 'test-key',
+      agentId: 'bc-2',
+      sourceIssue: 77,
+      fetch: fetchFn,
+      github,
+      startedAt: new Date().toISOString(),
+    });
+    assert.equal(done.phase, 'COMPLETED');
+    assert.equal(done.emittedCompletion, true);
+    assert.ok(done.actions.includes('completed_via_pr_presence'));
+    assert.ok(comments.some((c) => c.includes('CURSOR COMPLETION EVENT')));
+  });
+
   it('tick stays silent on RUNNING and emits once on COMPLETED then dedupes', async () => {
     let calls = 0;
     const fetchFn = async () => {

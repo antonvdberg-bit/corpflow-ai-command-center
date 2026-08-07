@@ -162,11 +162,29 @@ async function getPrChecks(prNumber) {
   };
 }
 
+async function findPrForIssue(issue) {
+  const q = encodeURIComponent(`repo:${OWNER}/${REPO_NAME} is:pr is:open ${issue} in:title,body`);
+  const data = await gh('GET', `/search/issues?q=${q}&per_page=5`);
+  const items = Array.isArray(data?.items) ? data.items : [];
+  const item =
+    items.find((i) => String(i.title || '').includes(`#${issue}`) || String(i.body || '').includes(`#${issue}`)) ||
+    items[0];
+  if (!item?.number) return null;
+  const pr = await gh('GET', `/repos/${OWNER}/${REPO_NAME}/pulls/${item.number}`);
+  return {
+    number: item.number,
+    url: pr.html_url || item.html_url,
+    headSha: pr.head?.sha || null,
+    branch: pr.head?.ref || null,
+  };
+}
+
 function buildGithubAdapter() {
   return {
     listIssueComments,
     createIssueComment,
     findPrForBranch,
+    findPrForIssue,
     getPrChecks,
     addIssueLabels,
   };
