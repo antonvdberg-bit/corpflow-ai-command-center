@@ -5,7 +5,6 @@ Cloud-first operator packet. **No merge / deploy / secrets / DB / messaging** pe
 | File | Purpose |
 |------|---------|
 | `OUTSTANDING_WORK_BOARD.md` | Prioritized board (all open PR classes + lanes) |
-| `JAN_V15_3_1_RC_EVIDENCE_PACKET.md` | Jan RC verification — **FAIL/BLOCKED** + Lux live floor PASS |
 | `UNIT_GATE_LR_WR_2026-08-07.md` | Lead Rescue / Website Rescue unit-gate — **PASS** |
 | `ANTON_DECISION_PACK.md` | Merge/deploy/close/pause recommendations |
 | `READY_TO_PASTE_COMMENTS.md` | Issue/PR comments (gh issue write blocked) |

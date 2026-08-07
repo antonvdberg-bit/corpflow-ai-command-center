@@ -79,13 +79,11 @@ See lanes below. Full open set ≈ 60 issues; many claimed/`in-progress` with no
 | 673 | Operator concierge workflow | OPEN (#675 merged) | Operator usable on `/change`; **close or verify Jan** |
 | 717 | Confidential presentation | OPEN (#718 merged; Jan happy 2026-08-04) | **Close** after recording acceptance |
 | 759 | Purchase readiness PR | DRAFT open | Not client-handable until merge+deploy |
-| — | Jan v15.3.1 RC verification | **BLOCKED** — RC archive not in repo/cloud | See evidence packet |
 
 ### 7. Promised but not client-handable
 
 | Item | Why not handable |
 |------|------------------|
-| Jan v15.3.1 RC evidence | RC archive / Upstash / Supabase not cloud-accessible |
 | #780 Core/Tenant shell | Draft-free but not merged/deployed; Anton gate |
 | #759 purchase readiness | Draft; not on Production |
 | #794 market-ready deep-links | Draft |
@@ -104,7 +102,6 @@ See lanes below. Full open set ≈ 60 issues; many claimed/`in-progress` with no
 | #780 Production impact unknown until merge | Anton review + explicit deploy approval |
 | Path B verification for #717 called outstanding historically | Confirm or waive |
 | Cursor live dispatcher gated (`SKIP_GATED`) | Anton unlock or accept blocked automation |
-| Jan RC Upstash/Supabase | Provide RC archive hash + non-secret verification harness |
 
 ### 9. Docs/artifacts creating process drag (no client output)
 
@@ -121,13 +118,13 @@ See lanes below. Full open set ≈ 60 issues; many claimed/`in-progress` with no
 
 | Action | Items |
 |--------|-------|
-| **Finish tonight (no Anton)** | This board + Jan RC evidence packet (gap-honest); ready-to-paste issue comments; duplicate-PR kill list |
+| **Finish tonight (no Anton)** | This board; ready-to-paste issue comments; duplicate-PR kill list |
 | **Merge (Anton)** | #780 (if scope accepted); then mark-ready #759/#792/#794 as chosen |
 | **Deploy (Anton)** | Only after merge; verify Lux + Core live floor |
 | **Send (Anton)** | Jan: purchase-readiness test package after #759 live; Sarah: Annual Returns page after #792 |
 | **Pause** | #677 Decision Inbox until conflict resolved; voice pilot until one PR remains |
 | **Kill/close** | #719, #779, one of #774/#775, one of #788/#789, one of #768/#769; close delivered Lux issues |
-| **Escalate** | Jan RC archive missing; dispatcher SKIP_GATED; laptop-only secrets for Upstash/Supabase |
+| **Escalate** | Dispatcher SKIP_GATED |
 
 ---
 
@@ -137,7 +134,6 @@ See lanes below. Full open set ≈ 60 issues; many claimed/`in-progress` with no
 
 | ID | Title | Client/internal | Trust | Revenue | State | Blocker | Next action | Owner | Anton? | Client-handable output |
 |----|-------|-----------------|-------|---------|-------|---------|-------------|-------|--------|------------------------|
-| RC | Jan v15.3.1 RC evidence | Client | **High** | High (trust) | **BLOCKED** | RC archive not in GitHub/cloud; no Upstash/Supabase creds (correct) | Anton places RC zip + SHA256 in agreed non-secret channel or attaches path | Anton → Cursor verifies | YES (archive) | Pass/fail evidence packet Jan can read |
 | 651 | Concierge + visual | Client | High | Medium | Live OK; issue open | Issue hygiene / Jan formal close | Close issue with live URL acceptance or list remaining deltas | Anton | YES to close | Live `lux.corpflowai.com` review links |
 | 759 | Purchase readiness | Client | High | Medium | Draft PR | Merge+deploy | Anton mark ready + merge OR request changes | Anton | YES | Operator panel + Jan test package on live `/change` |
 | 717/673/619/645 | Delivered Lux slices still OPEN | Client | Medium | Low | Shipped | Open-issue noise implies unfinished | Close with Delivery Reality note | Anton | YES | Clean client narrative: what’s live vs next |
@@ -166,7 +162,7 @@ See lanes below. Full open set ≈ 60 issues; many claimed/`in-progress` with no
 | Gate | Status |
 |------|--------|
 | No prod deploy without Anton | **HOLD** — respected this run |
-| No DB/schema/env/secrets | **HOLD** — no Upstash/Supabase/Postgres creds used |
+| No DB/schema/env/secrets | **HOLD** — respected this run |
 | No messaging/email runtime | **HOLD** |
 | Shared Core/Tenant (#780) | Needs Anton explicit merge |
 
@@ -185,22 +181,20 @@ See lanes below. Full open set ≈ 60 issues; many claimed/`in-progress` with no
 
 ---
 
-## Top 10 actions for tonight (execution order)
+## Top actions for tonight (execution order)
 
-1. **Anton:** Supply Jan v15.3.1 RC archive + SHA256 *or* accept RC verification **FAIL/BLOCKED** (packet complete).
-2. **Anton:** Mark **#792** ready → **merge** → deploy → clear `SARAH CONFIRM` on `cipc.corpflowai.com/annual-returns`.
-3. **Anton:** Delete/ignore duplicate branch `cursor/dispatcher-issue-791-d259`.
-4. **Anton:** Mark **#794** ready → merge → verify `/contact?path=…#discovery`.
-5. **Recorded:** LR/WR unit-gate **PASS** (175/175 + system-proof) — no release-blocker code fix tonight.
-6. **Anton:** Close superseded **#719**, **#779**; pick/close duplicates **#775**, **#788/#789**, **#768/#769**.
-7. **Anton:** Close delivered Lux issues **#619/#645/#673/#717** (and trim #651) to stop false unfinished signal.
-8. **Pause:** Architecture **#780/#773*** — do not displace Sarah/revenue merges.
-9. **Anton:** Unlock or silence dispatcher **SKIP_GATED** on #249.
-10. **Optional:** Mark **#759** ready when Jan next purchase-readiness slice is authorized.
+1. **Anton:** Mark **#792** ready → **merge** → deploy → clear `SARAH CONFIRM` on `cipc.corpflowai.com/annual-returns`.
+2. **Anton:** Delete/ignore duplicate branch `cursor/dispatcher-issue-791-d259`.
+3. **Anton:** Mark **#794** ready → merge → verify `/contact?path=…#discovery`.
+4. **Recorded:** LR/WR unit-gate **PASS** (175/175 + system-proof) — no release-blocker code fix tonight.
+5. **Anton:** Close superseded **#719**, **#779**; pick/close duplicates **#775**, **#788/#789**, **#768/#769**.
+6. **Anton:** Close delivered Lux issues **#619/#645/#673/#717** (and trim #651) to stop false unfinished signal.
+7. **Pause:** Architecture **#780/#773*** — do not displace Sarah/revenue merges.
+8. **Anton:** Unlock or silence dispatcher **SKIP_GATED** on #249.
+9. **Optional:** Mark **#759** ready when Jan next purchase-readiness slice is authorized.
 
 ## Companion files
 
-- `JAN_V15_3_1_RC_EVIDENCE_PACKET.md` — Jan RC **FAIL/BLOCKED** + Lux live floor PASS
 - `UNIT_GATE_LR_WR_2026-08-07.md` — LR/WR unit-gate **PASS**
 - `ANTON_DECISION_PACK.md` — merge/deploy/close/pause checklist
 - `READY_TO_PASTE_COMMENTS.md` — issue/PR comments (gh issue write blocked)

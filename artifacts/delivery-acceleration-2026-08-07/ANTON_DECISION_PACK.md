@@ -73,21 +73,12 @@ Delivered / Jan-accepted slices still OPEN create false “unfinished” signal:
 
 ---
 
-## F. Jan v15.3.1 RC
-
-See `JAN_V15_3_1_RC_EVIDENCE_PACKET.md`.  
-**One action:** supply RC archive + SHA256 to cloud-readable location.  
-Until then: **do not** claim RC green to Jan.
-
----
-
-## G. Work without Anton vs must wait
+## F. Work without Anton vs must wait
 
 | Without Anton (done / doable in cloud) | Must wait for Anton |
 |----------------------------------------|---------------------|
 | Unit-gate PASS/FAIL packet (this folder) | Merge #792 / #794 / #759 / #780 |
 | Duplicate map + close recommendations | Deploy Production |
 | Live HTTP probes | Close GitHub issues |
-| Jan RC gap-honest evidence | Provide Jan RC archive |
 | Ready-to-paste comments | Client send to Sarah / Jan |
 | Mark PRs ready? (needs write) | Unlock dispatcher gate |

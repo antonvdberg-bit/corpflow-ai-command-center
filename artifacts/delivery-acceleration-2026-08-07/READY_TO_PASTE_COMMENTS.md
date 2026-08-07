@@ -29,20 +29,18 @@ Anton required: YES (merge/deploy). No secrets/DB/schema in #792.
 
 Moved:
 - Outstanding-work board + Anton decision pack: `artifacts/delivery-acceleration-2026-08-07/`
-- Jan v15.3.1 RC evidence: FAIL/BLOCKED — RC archive not in repo/cloud (see packet)
 - LR/WR unit-gate 7 Aug: PASS (175/175 focused tests; system-proof ok; live market URLs 200)
 - CIPC/Sarah: #792 ready to mark-ready+merge (live still pre-Sarah content)
 
 Paused: Core/Tenant architecture PRs (#780/#779/#773*), lifecycle synthetic PRs (#788/#789), voice duplicates (#768/#769)
 
 Anton actions (priority):
-1) Supply Jan v15.3.1 RC archive + SHA256 OR accept RC verification blocked
-2) Merge #792 (Sarah) then verify cipc annual-returns
-3) Merge #794 (revenue deep-link) when ready
-4) Close duplicate/superseded PRs per decision pack
-5) Dispatcher SKIP_GATED — unlock or stop activation noise
+1) Merge #792 (Sarah) then verify cipc annual-returns
+2) Merge #794 (revenue deep-link) when ready
+3) Close duplicate/superseded PRs per decision pack
+4) Dispatcher SKIP_GATED — unlock or stop activation noise
 
-Need Anton: YES for merges/deploys/archive. Evidence PR opened on delivery-acceleration branch.
+Need Anton: YES for merges/deploys. Evidence PR opened on delivery-acceleration branch.
 ```
 
 ---
@@ -63,24 +61,6 @@ Evidence: `artifacts/delivery-acceleration-2026-08-07/UNIT_GATE_LR_WR_2026-08-07
 
 Release blockers on this lane: none. No code fix required tonight.
 Anton required: NO for this verification packet.
-```
-
----
-
-## Issue #651 (Lux / Jan)
-
-```text
-## JAN v15.3.1 RC — verification result 2026-08-07
-
-Requested RC offline/Upstash/Supabase/SHA256 packet: FAIL/BLOCKED.
-RC archive not present in GitHub/cloud workspace; Upstash/Supabase env correctly unset.
-
-Known defect recorded (not fixed): migrate:test checks `escalations` while migration creates `lead_escalations` — release blocker for RC green claim only.
-
-CorpFlow Lux corpflow_test live floor still PASS (home/concierge Email+Telephone/Private curator).
-
-Packet: `artifacts/delivery-acceleration-2026-08-07/JAN_V15_3_1_RC_EVIDENCE_PACKET.md`
-One Anton action: provide RC archive + SHA256 for cloud re-run. No merge/tag/release/prod integration performed.
 ```
 
 ---
@@ -116,7 +96,7 @@ Does not require schema/secrets/send. Live verify `/contact?path=…#discovery` 
 ```text
 ## Pause recommendation (tonight)
 
-Non-draft and mergeable, but shared Core/Tenant risk. Does not unblock Sarah (#792), LR/WR unit gate (already PASS), or Jan RC.
+Non-draft and mergeable, but shared Core/Tenant risk. Does not unblock Sarah (#792) or LR/WR unit gate (already PASS).
 Recommend Anton review on a dedicated pass — do not let this displace client/revenue merges tonight.
 Duplicate draft #779 should be closed as superseded by this PR.
 ```

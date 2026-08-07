@@ -9,7 +9,6 @@ Explicit list of items that consume operator/agent time without client-handable 
 | Redundant documents | Parallel #773 audit PRs; visual packs without send | Pause |
 | Unnecessary evidence boilerplate | Re-deriving unit gates without wall-clock re-run | Tonight’s LR/WR packet is a **fresh** re-run — keep; older narrative-only copies are not blockers |
 | Synthetic proofs with no continuing value | #787 after lifecycle fix merged | Archive / close |
-| Laptop-only dependency | Jan v15.3.1 RC archive (Drive/local); Upstash/Supabase credentials | Isolate: cloud completed everything else; Anton supplies archive |
 | Dispatcher SKIP_GATED spam on #249 | Repeated activation blocked comments | Anton unlock or disable — not fixed by more lifecycle markers |
 | Architecture ahead of client | #780/#773 while Sarah page still shows SARAH CONFIRM | Pause architecture until #792 live |
 
