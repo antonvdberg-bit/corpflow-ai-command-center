@@ -1,0 +1,1196 @@
+=== FOCUSED UNIT TESTS @ 2026-08-07T11:00:51Z ===
+TAP version 13
+# (node:5046) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/lib/cmp/_lib/ai-lead-rescue-operator.js is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /workspace/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: ai-lead-rescue-operator
+    # Subtest: normalizes status values
+    ok 1 - normalizes status values
+      ---
+      duration_ms: 0.669233
+      ...
+    # Subtest: detects product from intake_meta
+    ok 2 - detects product from intake_meta
+      ---
+      duration_ms: 0.162697
+      ...
+    # Subtest: parseIntakeMeta surfaces urgency, consent, website, and source for operator desks (\#712)
+    ok 3 - parseIntakeMeta surfaces urgency, consent, website, and source for operator desks (\#712)
+      ---
+      duration_ms: 0.096457
+      ...
+    # Subtest: does not classify other products as AI Lead Rescue (no notification trigger)
+    ok 4 - does not classify other products as AI Lead Rescue (no notification trigger)
+      ---
+      duration_ms: 0.214279
+      ...
+    # Subtest: merges operator patch and list projection
+    ok 5 - merges operator patch and list projection
+      ---
+      duration_ms: 0.583157
+      ...
+    # Subtest: uses notification event name corpflow.lead_rescue.intake_received
+    ok 6 - uses notification event name corpflow.lead_rescue.intake_received
+      ---
+      duration_ms: 0.066321
+      ...
+    # Subtest: labels region path for operator notification
+    ok 7 - labels region path for operator notification
+      ---
+      duration_ms: 0.071432
+      ...
+    # Subtest: builds operator notification payload with required fields and formatted text
+    ok 8 - builds operator notification payload with required fields and formatted text
+      ---
+      duration_ms: 0.575144
+      ...
+    # Subtest: isAiLeadRescueSetupStatus matches the 5 eligible statuses only
+    ok 9 - isAiLeadRescueSetupStatus matches the 5 eligible statuses only
+      ---
+      duration_ms: 0.649171
+      ...
+    # Subtest: parseAiLeadRescueSetupChecklist returns v1 items with default pending state
+    ok 10 - parseAiLeadRescueSetupChecklist returns v1 items with default pending state
+      ---
+      duration_ms: 0.571525
+      ...
+    # Subtest: v1 setup checklist matches the canonical 13-item Cursor requirement in order
+    ok 11 - v1 setup checklist matches the canonical 13-item Cursor requirement in order
+      ---
+      duration_ms: 0.104127
+      ...
+    # Subtest: mergeAiLeadRescueChecklistItemPatch sets completed_at on done and clears on pending
+    ok 12 - mergeAiLeadRescueChecklistItemPatch sets completed_at on done and clears on pending
+      ---
+      duration_ms: 0.276184
+      ...
+    # Subtest: mergeAiLeadRescueChecklistItemPatch rejects unknown key and unknown state
+    ok 13 - mergeAiLeadRescueChecklistItemPatch rejects unknown key and unknown state
+      ---
+      duration_ms: 0.079419
+      ...
+    # Subtest: checklist item states cover pending/in_progress/done/skipped
+    ok 14 - checklist item states cover pending/in_progress/done/skipped
+      ---
+      duration_ms: 0.045367
+      ...
+    # Subtest: leadRowToAiLeadRescueDetail flags setup_checklist_eligible from status
+    ok 15 - leadRowToAiLeadRescueDetail flags setup_checklist_eligible from status
+      ---
+      duration_ms: 0.206296
+      ...
+    # Subtest: falls back to relative admin path and "not provided" when fields missing
+    ok 16 - falls back to relative admin path and "not provided" when fields missing
+      ---
+      duration_ms: 0.157788
+      ...
+    1..16
+ok 1 - ai-lead-rescue-operator
+  ---
+  duration_ms: 6.314479
+  type: 'suite'
+  ...
+# Subtest: getAiLeadRescueForwardStatuses — forward-only dropdown filter (PR \#326)
+    # Subtest: returns the current status plus every later status in canonical order
+    ok 1 - returns the current status plus every later status in canonical order
+      ---
+      duration_ms: 0.115934
+      ...
+    # Subtest: returns the full canonical list for the first status (NEW_INTAKE)
+    ok 2 - returns the full canonical list for the first status (NEW_INTAKE)
+      ---
+      duration_ms: 0.049108
+      ...
+    # Subtest: returns only the last status when currentStatus is the final entry (PAUSED)
+    ok 3 - returns only the last status when currentStatus is the final entry (PAUSED)
+      ---
+      duration_ms: 0.040937
+      ...
+    # Subtest: returns [LOST, PAUSED] from LOST (canonical-order tail)
+    ok 4 - returns [LOST, PAUSED] from LOST (canonical-order tail)
+      ---
+      duration_ms: 0.037774
+      ...
+    # Subtest: normalizes input case / whitespace before slicing (operator-safe)
+    ok 5 - normalizes input case / whitespace before slicing (operator-safe)
+      ---
+      duration_ms: 0.03914
+      ...
+    # Subtest: falls back to the full list for null / unknown / empty input (defensive)
+    ok 6 - falls back to the full list for null / unknown / empty input (defensive)
+      ---
+      duration_ms: 0.140367
+      ...
+    # Subtest: returned slice never mutates the canonical array
+    ok 7 - returned slice never mutates the canonical array
+      ---
+      duration_ms: 0.049726
+      ...
+    1..7
+ok 2 - getAiLeadRescueForwardStatuses — forward-only dropdown filter (PR \#326)
+  ---
+  duration_ms: 0.574889
+  type: 'suite'
+  ...
+# Subtest: ai-lead-rescue-operator activity log
+    # Subtest: exposes a stable v1 channel set and type set
+    ok 1 - exposes a stable v1 channel set and type set
+      ---
+      duration_ms: 0.09335
+      ...
+    # Subtest: normalises and labels channels/types case-insensitively
+    ok 2 - normalises and labels channels/types case-insensitively
+      ---
+      duration_ms: 0.085752
+      ...
+    # Subtest: appendAiLeadRescueActivity stamps server time + actor and ignores client-supplied at/actor_label
+    ok 3 - appendAiLeadRescueActivity stamps server time + actor and ignores client-supplied at/actor_label
+      ---
+      duration_ms: 0.186566
+      ...
+    # Subtest: rejects unknown channel and unknown type
+    ok 4 - rejects unknown channel and unknown type
+      ---
+      duration_ms: 0.122213
+      ...
+    # Subtest: treats empty/whitespace note + next_action as null and ignores invalid next_action_date
+    ok 5 - treats empty/whitespace note + next_action as null and ignores invalid next_action_date
+      ---
+      duration_ms: 0.068006
+      ...
+    # Subtest: truncates long note + next_action to documented limits
+    ok 6 - truncates long note + next_action to documented limits
+      ---
+      duration_ms: 0.11201
+      ...
+    # Subtest: only accepts status_after values from the canonical AI_LEAD_RESCUE_STATUSES list
+    ok 7 - only accepts status_after values from the canonical AI_LEAD_RESCUE_STATUSES list
+      ---
+      duration_ms: 0.113995
+      ...
+    # Subtest: caps activity at AI_LEAD_RESCUE_ACTIVITY_MAX_ENTRIES (oldest dropped first)
+    ok 8 - caps activity at AI_LEAD_RESCUE_ACTIVITY_MAX_ENTRIES (oldest dropped first)
+      ---
+      duration_ms: 1.27631
+      ...
+    # Subtest: parseAiLeadRescueActivity drops invalid persisted entries silently
+    ok 9 - parseAiLeadRescueActivity drops invalid persisted entries silently
+      ---
+      duration_ms: 0.110393
+      ...
+    # Subtest: detail projection exposes activity[] alongside operations and setup_checklist
+    ok 10 - detail projection exposes activity[] alongside operations and setup_checklist
+      ---
+      duration_ms: 0.129222
+      ...
+    # Subtest: REGRESSION: mergeAiLeadRescueOperatorPatch preserves persisted setup_checklist AND activity
+    ok 11 - REGRESSION: mergeAiLeadRescueOperatorPatch preserves persisted setup_checklist AND activity
+      ---
+      duration_ms: 0.141765
+      ...
+    # Subtest: checklist merge preserves activity[]
+    ok 12 - checklist merge preserves activity[]
+      ---
+      duration_ms: 0.067482
+      ...
+    # Subtest: activity append preserves existing operator fields
+    ok 13 - activity append preserves existing operator fields
+      ---
+      duration_ms: 0.112469
+      ...
+    1..13
+ok 3 - ai-lead-rescue-operator activity log
+  ---
+  duration_ms: 2.806222
+  type: 'suite'
+  ...
+# (node:5047) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/lib/public/corpflow-market-service-paths.js is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /workspace/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: \#712 buyer-need routing — every selection maps internally
+    # Subtest: exposes exactly five plain-language buyer need options
+    ok 1 - exposes exactly five plain-language buyer need options
+      ---
+      duration_ms: 1.000051
+      ...
+    # Subtest: maps buyer need "losing-enquiries" to service_path=client-lead-service offer=ai-lead-rescue
+    ok 2 - maps buyer need "losing-enquiries" to service_path=client-lead-service offer=ai-lead-rescue
+      ---
+      duration_ms: 1.83257
+      ...
+    # Subtest: maps buyer need "website-improvement" to service_path=website-digital offer=premium-landing-page-rescue
+    ok 3 - maps buyer need "website-improvement" to service_path=website-digital offer=premium-landing-page-rescue
+      ---
+      duration_ms: 0.159687
+      ...
+    # Subtest: maps buyer need "admin-workflow" to service_path=workflow-administration offer=(none)
+    ok 4 - maps buyer need "admin-workflow" to service_path=workflow-administration offer=(none)
+      ---
+      duration_ms: 0.10492
+      ...
+    # Subtest: maps buyer need "ai-receptionist" to service_path=client-lead-service offer=(none)
+    ok 5 - maps buyer need "ai-receptionist" to service_path=client-lead-service offer=(none)
+      ---
+      duration_ms: 0.084595
+      ...
+    # Subtest: maps buyer need "unsure" to service_path=workflow-administration offer=(none)
+    ok 6 - maps buyer need "unsure" to service_path=workflow-administration offer=(none)
+      ---
+      duration_ms: 0.076182
+      ...
+    # Subtest: rejects unknown buyer need
+    ok 7 - rejects unknown buyer need
+      ---
+      duration_ms: 0.159474
+      ...
+    1..7
+ok 4 - \#712 buyer-need routing — every selection maps internally
+  ---
+  duration_ms: 4.424191
+  type: 'suite'
+  ...
+# Subtest: \#712 buyer-need routing — locked product pages
+    # Subtest: Lead Rescue locked offer derives client-lead-service without asking buyer to classify
+    ok 1 - Lead Rescue locked offer derives client-lead-service without asking buyer to classify
+      ---
+      duration_ms: 0.244296
+      ...
+    # Subtest: Website Rescue locked offer derives website-digital
+    ok 2 - Website Rescue locked offer derives website-digital
+      ---
+      duration_ms: 0.168954
+      ...
+    1..2
+ok 5 - \#712 buyer-need routing — locked product pages
+  ---
+  duration_ms: 0.702688
+  type: 'suite'
+  ...
+# Subtest: \#712 buyer-need routing — prevent contradictory combinations
+    # Subtest: rejects Lead Rescue path + Website Rescue offer
+    ok 1 - rejects Lead Rescue path + Website Rescue offer
+      ---
+      duration_ms: 0.184747
+      ...
+    # Subtest: rejects Website path + Lead Rescue offer
+    ok 2 - rejects Website path + Lead Rescue offer
+      ---
+      duration_ms: 0.049573
+      ...
+    # Subtest: rejects workflow path with a priced offer slug
+    ok 3 - rejects workflow path with a priced offer slug
+      ---
+      duration_ms: 0.037765
+      ...
+    # Subtest: resolveOfferSlugForMarketEnquiry no longer prefers contradictory explicit offers
+    ok 4 - resolveOfferSlugForMarketEnquiry no longer prefers contradictory explicit offers
+      ---
+      duration_ms: 0.11715
+      ...
+    # Subtest: resolveMarketEnquiryRouting fails closed on contradictory pairs without buyer_need
+    ok 5 - resolveMarketEnquiryRouting fails closed on contradictory pairs without buyer_need
+      ---
+      duration_ms: 0.060171
+      ...
+    1..5
+ok 6 - \#712 buyer-need routing — prevent contradictory combinations
+  ---
+  duration_ms: 0.577666
+  type: 'suite'
+  ...
+# Subtest: \#712 discovery form UX contract
+    # Subtest: removes simultaneous Preferred service path and Related product sprint controls
+    ok 1 - removes simultaneous Preferred service path and Related product sprint controls
+      ---
+      duration_ms: 0.411039
+      ...
+    # Subtest: product pages keep lockedOffer so buyers are not asked to re-classify
+    ok 2 - product pages keep lockedOffer so buyers are not asked to re-classify
+      ---
+      duration_ms: 0.179539
+      ...
+    # Subtest: tenant intake rejects contradictory service/product pairs
+    ok 3 - tenant intake rejects contradictory service/product pairs
+      ---
+      duration_ms: 0.087358
+      ...
+    1..3
+ok 7 - \#712 discovery form UX contract
+  ---
+  duration_ms: 0.754903
+  type: 'suite'
+  ...
+# Subtest: \#712 downstream operator mapping preserved
+    # Subtest: synthetic buyer-need enquiry still exposes source, path, offer, consent, urgency, next action
+    ok 1 - synthetic buyer-need enquiry still exposes source, path, offer, consent, urgency, next action
+      ---
+      duration_ms: 0.882685
+      ...
+    1..1
+ok 8 - \#712 downstream operator mapping preserved
+  ---
+  duration_ms: 1.028922
+  type: 'suite'
+  ...
+# (node:5053) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/lib/public/corpflow-public-market.js is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /workspace/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: \#699 market gateway — public offer
+    # Subtest: hero states managed delivery and one primary CTA to discovery
+    ok 1 - hero states managed delivery and one primary CTA to discovery
+      ---
+      duration_ms: 0.693399
+      ...
+    # Subtest: exposes three \#699 service paths without invented prices or endorsements
+    ok 2 - exposes three \#699 service paths without invented prices or endorsements
+      ---
+      duration_ms: 0.244615
+      ...
+    # Subtest: delivery method is understand → design → build → verify → review → improve
+    ok 3 - delivery method is understand → design → build → verify → review → improve
+      ---
+      duration_ms: 0.458268
+      ...
+    # Subtest: proof items are factual test-delivery evidence without NEEDS_ANTON or fake testimonials
+    ok 4 - proof items are factual test-delivery evidence without NEEDS_ANTON or fake testimonials
+      ---
+      duration_ms: 0.160103
+      ...
+    # Subtest: trust points cover approvals, test-before-launch, data boundaries, no forced replacement
+    ok 5 - trust points cover approvals, test-before-launch, data boundaries, no forced replacement
+      ---
+      duration_ms: 0.077706
+      ...
+    # Subtest: homepage wires service paths, proof, trust, and product entry points
+    ok 6 - homepage wires service paths, proof, trust, and product entry points
+      ---
+      duration_ms: 0.159933
+      ...
+    1..6
+ok 9 - \#699 market gateway — public offer
+  ---
+  duration_ms: 2.498472
+  type: 'suite'
+  ...
+# Subtest: \#699 market gateway — qualified enquiry form
+    # Subtest: discovery form captures required \#699 fields and posts to tenant intake
+    ok 1 - discovery form captures required \#699 fields and posts to tenant intake
+      ---
+      duration_ms: 0.364493
+      ...
+    # Subtest: tenant intake validates consent, phone, service path for rapid delivery
+    ok 2 - tenant intake validates consent, phone, service path for rapid delivery
+      ---
+      duration_ms: 0.214076
+      ...
+    # Subtest: maps service paths to product offers where appropriate
+    ok 3 - maps service paths to product offers where appropriate
+      ---
+      duration_ms: 0.287502
+      ...
+    1..3
+ok 10 - \#699 market gateway — qualified enquiry form
+  ---
+  duration_ms: 1.09114
+  type: 'suite'
+  ...
+# Subtest: \#699 market gateway — operator handoff
+    # Subtest: list/detail expose source, path, timing, next action, notes, response draft
+    ok 1 - list/detail expose source, path, timing, next action, notes, response draft
+      ---
+      duration_ms: 0.715189
+      ...
+    # Subtest: response draft helper is copy-ready and non-sending
+    ok 2 - response draft helper is copy-ready and non-sending
+      ---
+      duration_ms: 0.133312
+      ...
+    # Subtest: recommended next action adapts to status and path
+    ok 3 - recommended next action adapts to status and path
+      ---
+      duration_ms: 0.104364
+      ...
+    # Subtest: operator desk UI surfaces \#699 handoff fields
+    ok 4 - operator desk UI surfaces \#699 handoff fields
+      ---
+      duration_ms: 0.249586
+      ...
+    # Subtest: change/revenue points operators to the live enquiry desk
+    ok 5 - change/revenue points operators to the live enquiry desk
+      ---
+      duration_ms: 0.119012
+      ...
+    1..5
+ok 11 - \#699 market gateway — operator handoff
+  ---
+  duration_ms: 2.46877
+  type: 'suite'
+  ...
+# Subtest: \#699 market gateway — product funnel links retained
+    # Subtest: Lead Rescue form keeps product marker and adds consent/timing/website
+    ok 1 - Lead Rescue form keeps product marker and adds consent/timing/website
+      ---
+      duration_ms: 0.278101
+      ...
+    # Subtest: Website Rescue demo still embeds DiscoveryIntakeForm
+    ok 2 - Website Rescue demo still embeds DiscoveryIntakeForm
+      ---
+      duration_ms: 0.10037
+      ...
+    1..2
+ok 12 - \#699 market gateway — product funnel links retained
+  ---
+  duration_ms: 0.442474
+  type: 'suite'
+  ...
+# (node:5079) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/lib/public/corpflow-public-market.js is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /workspace/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: \#712 market path — public pages and primary CTAs
+    # Subtest: homepage has one primary CTA to discovery and product nav entries
+    ok 1 - homepage has one primary CTA to discovery and product nav entries
+      ---
+      duration_ms: 0.698619
+      ...
+    # Subtest: Lead Rescue page has one primary setup CTA into intake
+    ok 2 - Lead Rescue page has one primary setup CTA into intake
+      ---
+      duration_ms: 0.272937
+      ...
+    # Subtest: Website Rescue offer has one primary discovery CTA
+    ok 3 - Website Rescue offer has one primary discovery CTA
+      ---
+      duration_ms: 0.825296
+      ...
+    # Subtest: contact page anchors discovery intake
+    ok 4 - contact page anchors discovery intake
+      ---
+      duration_ms: 0.154717
+      ...
+    1..4
+ok 13 - \#712 market path — public pages and primary CTAs
+  ---
+  duration_ms: 2.548325
+  type: 'suite'
+  ...
+# Subtest: \#712 market path — five-second offer and safe claims
+    # Subtest: Lead Rescue states price, timeline, and no revenue guarantee
+    ok 1 - Lead Rescue states price, timeline, and no revenue guarantee
+      ---
+      duration_ms: 0.443658
+      ...
+    # Subtest: Website Rescue offer avoids revenue / SEO guarantees
+    ok 2 - Website Rescue offer avoids revenue / SEO guarantees
+      ---
+      duration_ms: 0.215398
+      ...
+    # Subtest: homepage trust copy rejects guaranteed-revenue promises
+    ok 3 - homepage trust copy rejects guaranteed-revenue promises
+      ---
+      duration_ms: 0.186128
+      ...
+    1..3
+ok 14 - \#712 market path — five-second offer and safe claims
+  ---
+  duration_ms: 1.14347
+  type: 'suite'
+  ...
+# Subtest: \#712 market path — intake validation contracts
+    # Subtest: rapid-delivery and Lead Rescue intakes require consent and phone
+    ok 1 - rapid-delivery and Lead Rescue intakes require consent and phone
+      ---
+      duration_ms: 0.187777
+      ...
+    # Subtest: Lead Rescue form posts product, urgency, consent, website, source page
+    ok 2 - Lead Rescue form posts product, urgency, consent, website, source page
+      ---
+      duration_ms: 0.254079
+      ...
+    1..2
+ok 15 - \#712 market path — intake validation contracts
+  ---
+  duration_ms: 0.604995
+  type: 'suite'
+  ...
+# Subtest: \#712 market path — operator queue mapping
+    # Subtest: Website Rescue rapid-delivery mapping exposes source, product, consent, urgency, next action
+    ok 1 - Website Rescue rapid-delivery mapping exposes source, product, consent, urgency, next action
+      ---
+      duration_ms: 0.877073
+      ...
+    # Subtest: Lead Rescue mapping exposes source, product, consent, urgency, and default next action
+    ok 2 - Lead Rescue mapping exposes source, product, consent, urgency, and default next action
+      ---
+      duration_ms: 0.737499
+      ...
+    # Subtest: Lead Rescue admin detail surfaces consent, urgency, and source for operators
+    ok 3 - Lead Rescue admin detail surfaces consent, urgency, and source for operators
+      ---
+      duration_ms: 0.279225
+      ...
+    # Subtest: rapid-delivery desk remains copy-only (no auto-send)
+    ok 4 - rapid-delivery desk remains copy-only (no auto-send)
+      ---
+      duration_ms: 0.295226
+      ...
+    1..4
+ok 16 - \#712 market path — operator queue mapping
+  ---
+  duration_ms: 2.294169
+  type: 'suite'
+  ...
+# (node:5080) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/lib/public/rapid-delivery-offers.js is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /workspace/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: CorpFlow public market readiness — route files exist
+    # Subtest: has pages/index.js
+    ok 1 - has pages/index.js
+      ---
+      duration_ms: 0.517433
+      ...
+    # Subtest: has pages/contact.js
+    ok 2 - has pages/contact.js
+      ---
+      duration_ms: 0.081894
+      ...
+    # Subtest: has pages/offers/ai-lead-rescue.js
+    ok 3 - has pages/offers/ai-lead-rescue.js
+      ---
+      duration_ms: 0.062918
+      ...
+    # Subtest: has pages/offers/premium-landing-page-rescue.js
+    ok 4 - has pages/offers/premium-landing-page-rescue.js
+      ---
+      duration_ms: 0.707149
+      ...
+    # Subtest: has pages/offers/customer-reputation-recovery.js
+    ok 5 - has pages/offers/customer-reputation-recovery.js
+      ---
+      duration_ms: 0.075103
+      ...
+    # Subtest: has components/CorpFlowPublicHome.js
+    ok 6 - has components/CorpFlowPublicHome.js
+      ---
+      duration_ms: 0.051692
+      ...
+    # Subtest: has components/RapidDeliveryOfferPage.js
+    ok 7 - has components/RapidDeliveryOfferPage.js
+      ---
+      duration_ms: 0.105391
+      ...
+    # Subtest: has components/public/CorpFlowPublicShell.js
+    ok 8 - has components/public/CorpFlowPublicShell.js
+      ---
+      duration_ms: 0.105812
+      ...
+    # Subtest: has components/public/CorpFlowPublicHeader.js
+    ok 9 - has components/public/CorpFlowPublicHeader.js
+      ---
+      duration_ms: 0.149595
+      ...
+    # Subtest: has components/public/CorpFlowPublicFooter.js
+    ok 10 - has components/public/CorpFlowPublicFooter.js
+      ---
+      duration_ms: 0.238799
+      ...
+    # Subtest: has register doc docs/revenue/CORPFLOWAI_PUBLIC_MARKET_ROUTE_REGISTER.md
+    ok 11 - has register doc docs/revenue/CORPFLOWAI_PUBLIC_MARKET_ROUTE_REGISTER.md
+      ---
+      duration_ms: 0.190554
+      ...
+    # Subtest: has register doc docs/revenue/CORPFLOWAI_PUBLIC_CTA_AND_INTAKE_MAP.md
+    ok 12 - has register doc docs/revenue/CORPFLOWAI_PUBLIC_CTA_AND_INTAKE_MAP.md
+      ---
+      duration_ms: 0.069384
+      ...
+    # Subtest: has register doc docs/revenue/CORPFLOWAI_MARKET_LAUNCH_READINESS.md
+    ok 13 - has register doc docs/revenue/CORPFLOWAI_MARKET_LAUNCH_READINESS.md
+      ---
+      duration_ms: 0.049105
+      ...
+    1..13
+ok 17 - CorpFlow public market readiness — route files exist
+  ---
+  duration_ms: 3.232033
+  type: 'suite'
+  ...
+# Subtest: CorpFlow public market readiness — shared shell on priority pages
+    # Subtest: homepage uses public photo shell and commercial hero
+    ok 1 - homepage uses public photo shell and commercial hero
+      ---
+      duration_ms: 0.152574
+      ...
+    # Subtest: offer page uses shared public header and footer
+    ok 2 - offer page uses shared public header and footer
+      ---
+      duration_ms: 0.09008
+      ...
+    # Subtest: contact page has discovery form and offer links
+    ok 3 - contact page has discovery form and offer links
+      ---
+      duration_ms: 0.060131
+      ...
+    # Subtest: policy layout uses shared header and footer
+    ok 4 - policy layout uses shared header and footer
+      ---
+      duration_ms: 0.061024
+      ...
+    1..4
+ok 18 - CorpFlow public market readiness — shared shell on priority pages
+  ---
+  duration_ms: 0.440609
+  type: 'suite'
+  ...
+# Subtest: CorpFlow public market readiness — three offer prices
+    # Subtest: lists three offers with expected MUR starting prices
+    ok 1 - lists three offers with expected MUR starting prices
+      ---
+      duration_ms: 0.086047
+      ...
+    # Subtest: ai-lead-rescue page renders RapidDeliveryOfferPage
+    ok 2 - ai-lead-rescue page renders RapidDeliveryOfferPage
+      ---
+      duration_ms: 0.056894
+      ...
+    # Subtest: premium-landing-page-rescue page renders RapidDeliveryOfferPage
+    ok 3 - premium-landing-page-rescue page renders RapidDeliveryOfferPage
+      ---
+      duration_ms: 0.041887
+      ...
+    # Subtest: customer-reputation-recovery page renders RapidDeliveryOfferPage
+    ok 4 - customer-reputation-recovery page renders RapidDeliveryOfferPage
+      ---
+      duration_ms: 0.03202
+      ...
+    1..4
+ok 19 - CorpFlow public market readiness — three offer prices
+  ---
+  duration_ms: 0.274157
+  type: 'suite'
+  ...
+# Subtest: CorpFlow public market readiness — CTA destinations
+    # Subtest: homepage primary CTA targets discovery form
+    ok 1 - homepage primary CTA targets discovery form
+      ---
+      duration_ms: 0.060614
+      ...
+    # Subtest: public surfaces do not link primary flows to /change
+    ok 2 - public surfaces do not link primary flows to /change
+      ---
+      duration_ms: 0.086993
+      ...
+    # Subtest: offer pages use structured discovery form, not payment APIs
+    ok 3 - offer pages use structured discovery form, not payment APIs
+      ---
+      duration_ms: 0.827232
+      ...
+    1..3
+ok 20 - CorpFlow public market readiness — CTA destinations
+  ---
+  duration_ms: 1.053172
+  type: 'suite'
+  ...
+# Subtest: CorpFlow public market readiness — metadata
+    # Subtest: buildPublicPageMeta includes canonical and og fields
+    ok 1 - buildPublicPageMeta includes canonical and og fields
+      ---
+      duration_ms: 0.148603
+      ...
+    # Subtest: homepage meta description is outcome-led
+    ok 2 - homepage meta description is outcome-led
+      ---
+      duration_ms: 0.09482
+      ...
+    1..2
+ok 21 - CorpFlow public market readiness — metadata
+  ---
+  duration_ms: 0.313535
+  type: 'suite'
+  ...
+# Subtest: CorpFlow public market readiness — trust links and mobile nav
+    # Subtest: public footer links privacy and terms
+    ok 1 - public footer links privacy and terms
+      ---
+      duration_ms: 2.39935
+      ...
+    # Subtest: header has mobile menu control
+    ok 2 - header has mobile menu control
+      ---
+      duration_ms: 0.112448
+      ...
+    1..2
+ok 22 - CorpFlow public market readiness — trust links and mobile nav
+  ---
+  duration_ms: 2.584772
+  type: 'suite'
+  ...
+# Subtest: CorpFlow public market readiness — no Lux tenant branding on public shell
+    # Subtest: public shell components do not import LuxeMaurice presentation
+    ok 1 - public shell components do not import LuxeMaurice presentation
+      ---
+      duration_ms: 0.155329
+      ...
+    1..1
+ok 23 - CorpFlow public market readiness — no Lux tenant branding on public shell
+  ---
+  duration_ms: 0.208015
+  type: 'suite'
+  ...
+# Subtest: CorpFlow public market readiness — sitemap includes offers
+    # Subtest: APEX_PATHS lists three offer routes
+    ok 1 - APEX_PATHS lists three offer routes
+      ---
+      duration_ms: 0.185213
+      ...
+    1..1
+ok 24 - CorpFlow public market readiness — sitemap includes offers
+  ---
+  duration_ms: 0.229655
+  type: 'suite'
+  ...
+# Subtest: CorpFlow public market readiness — forbidden terms
+    # Subtest: does not expose "service_role" on priority public surfaces
+    ok 1 - does not expose "service_role" on priority public surfaces
+      ---
+      duration_ms: 0.115952
+      ...
+    # Subtest: does not expose "CORPFLOW_CRON_SECRET" on priority public surfaces
+    ok 2 - does not expose "CORPFLOW_CRON_SECRET" on priority public surfaces
+      ---
+      duration_ms: 0.065354
+      ...
+    # Subtest: does not expose "POSTGRES_URL" on priority public surfaces
+    ok 3 - does not expose "POSTGRES_URL" on priority public surfaces
+      ---
+      duration_ms: 0.046596
+      ...
+    # Subtest: does not expose "github.com/antonvdberg" on priority public surfaces
+    ok 4 - does not expose "github.com/antonvdberg" on priority public surfaces
+      ---
+      duration_ms: 0.041568
+      ...
+    # Subtest: does not expose "luxe-maurice gold" on priority public surfaces
+    ok 5 - does not expose "luxe-maurice gold" on priority public surfaces
+      ---
+      duration_ms: 0.041386
+      ...
+    # Subtest: does not expose "LuxeMauriceTenantPresentation" on priority public surfaces
+    ok 6 - does not expose "LuxeMauriceTenantPresentation" on priority public surfaces
+      ---
+      duration_ms: 0.069913
+      ...
+    1..6
+ok 25 - CorpFlow public market readiness — forbidden terms
+  ---
+  duration_ms: 0.48078
+  type: 'suite'
+  ...
+# (node:5086) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/lib/lead-rescue/onboarding-delivery.js is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /workspace/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: Lead Rescue onboarding/delivery — checklist/template completeness (\#715)
+    # Subtest: config and docs exist with sentinels and required sections
+    ok 1 - config and docs exist with sentinels and required sections
+      ---
+      duration_ms: 1.013563
+      ...
+    # Subtest: intake template captures required Lead Rescue fields
+    ok 2 - intake template captures required Lead Rescue fields
+      ---
+      duration_ms: 0.325683
+      ...
+    # Subtest: delivery issue template covers state model and evidence packets
+    ok 3 - delivery issue template covers state model and evidence packets
+      ---
+      duration_ms: 0.263126
+      ...
+    # Subtest: config contract lists shared checklist, intake fields, transitions, messaging gate
+    ok 4 - config contract lists shared checklist, intake fields, transitions, messaging gate
+      ---
+      duration_ms: 0.18655
+      ...
+    1..4
+ok 26 - Lead Rescue onboarding/delivery — checklist/template completeness (\#715)
+  ---
+  duration_ms: 2.379929
+  type: 'suite'
+  ...
+# Subtest: Lead Rescue onboarding/delivery — synthetic records (\#715)
+    # Subtest: complete fixture is intake-complete and can start build
+    ok 1 - complete fixture is intake-complete and can start build
+      ---
+      duration_ms: 1.452083
+      ...
+    # Subtest: incomplete fixture fails completeness and blocks build
+    ok 2 - incomplete fixture fails completeness and blocks build
+      ---
+      duration_ms: 0.206147
+      ...
+    # Subtest: blocked-input fixture blocks build even when intake fields are filled
+    ok 3 - blocked-input fixture blocks build even when intake fields are filled
+      ---
+      duration_ms: 0.223046
+      ...
+    # Subtest: missing financial approval prevents build start
+    ok 4 - missing financial approval prevents build start
+      ---
+      duration_ms: 0.233639
+      ...
+    # Subtest: acceptance-ready fixture has all evidence packets without messaging runtime
+    ok 5 - acceptance-ready fixture has all evidence packets without messaging runtime
+      ---
+      duration_ms: 0.498217
+      ...
+    1..5
+ok 27 - Lead Rescue onboarding/delivery — synthetic records (\#715)
+  ---
+  duration_ms: 2.949833
+  type: 'suite'
+  ...
+# Subtest: Lead Rescue onboarding/delivery — state transitions (\#715)
+    # Subtest: lists a connected state graph from approved_to_onboard to acceptance_ready
+    ok 1 - lists a connected state graph from approved_to_onboard to acceptance_ready
+      ---
+      duration_ms: 0.263851
+      ...
+    # Subtest: walks synthetic complete record through build to acceptance_ready
+    ok 2 - walks synthetic complete record through build to acceptance_ready
+      ---
+      duration_ms: 0.477351
+      ...
+    # Subtest: refuses build_started when financial approval missing
+    ok 3 - refuses build_started when financial approval missing
+      ---
+      duration_ms: 0.137637
+      ...
+    # Subtest: refuses build_started when required inputs incomplete
+    ok 4 - refuses build_started when required inputs incomplete
+      ---
+      duration_ms: 0.144821
+      ...
+    # Subtest: refuses onboarding_complete while blocked inputs remain
+    ok 5 - refuses onboarding_complete while blocked inputs remain
+      ---
+      duration_ms: 0.094395
+      ...
+    # Subtest: empty intake helper seeds defaults but is not build-ready
+    ok 6 - empty intake helper seeds defaults but is not build-ready
+      ---
+      duration_ms: 0.150895
+      ...
+    1..6
+ok 28 - Lead Rescue onboarding/delivery — state transitions (\#715)
+  ---
+  duration_ms: 1.405405
+  type: 'suite'
+  ...
+# (node:5112) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/lib/lead-rescue/onboarding-delivery.js is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /workspace/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: Lead Rescue system-proof — commercial handoff (\#715 / \#714)
+    # Subtest: fresh synthetic commercial opportunity is financially approvable via \#714 handoff
+    ok 1 - fresh synthetic commercial opportunity is financially approvable via \#714 handoff
+      ---
+      duration_ms: 1.344151
+      ...
+    # Subtest: system-proof intake covers required Lead Rescue capture fields
+    ok 2 - system-proof intake covers required Lead Rescue capture fields
+      ---
+      duration_ms: 0.700629
+      ...
+    1..2
+ok 29 - Lead Rescue system-proof — commercial handoff (\#715 / \#714)
+  ---
+  duration_ms: 3.605749
+  type: 'suite'
+  ...
+# Subtest: Lead Rescue system-proof — path approved_to_onboard → acceptance_ready
+    # Subtest: runs full synthetic path with client-review loop, handover, support boundary
+    ok 1 - runs full synthetic path with client-review loop, handover, support boundary
+      ---
+      duration_ms: 1.909209
+      ...
+    # Subtest: seeded handoff without shared checklist cannot start build; complete inputs unlock it
+    ok 2 - seeded handoff without shared checklist cannot start build; complete inputs unlock it
+      ---
+      duration_ms: 0.41337
+      ...
+    1..2
+ok 30 - Lead Rescue system-proof — path approved_to_onboard → acceptance_ready
+  ---
+  duration_ms: 2.431525
+  type: 'suite'
+  ...
+# Subtest: Lead Rescue system-proof — gate block proofs
+    # Subtest: missing financial approval or required inputs blocks build; messaging stays gated
+    ok 1 - missing financial approval or required inputs blocks build; messaging stays gated
+      ---
+      duration_ms: 0.450931
+      ...
+    # Subtest: acceptance ready rejects when real client sends would be allowed on synthetic path
+    ok 2 - acceptance ready rejects when real client sends would be allowed on synthetic path
+      ---
+      duration_ms: 0.39095
+      ...
+    1..2
+ok 31 - Lead Rescue system-proof — gate block proofs
+  ---
+  duration_ms: 1.060495
+  type: 'suite'
+  ...
+# Subtest: Lead Rescue system-proof — docs and secrets hygiene
+    # Subtest: system-proof doc exists with sentinels and anti-sidetrack boundaries
+    ok 1 - system-proof doc exists with sentinels and anti-sidetrack boundaries
+      ---
+      duration_ms: 0.315375
+      ...
+    # Subtest: system-proof module does not import messaging senders
+    ok 2 - system-proof module does not import messaging senders
+      ---
+      duration_ms: 0.831225
+      ...
+    1..2
+ok 32 - Lead Rescue system-proof — docs and secrets hygiene
+  ---
+  duration_ms: 1.289559
+  type: 'suite'
+  ...
+# (node:5113) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/lib/website-rescue/onboarding-delivery.js is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /workspace/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: Website Rescue onboarding/delivery — checklist/template completeness (\#716)
+    # Subtest: config and docs exist with sentinels and required sections
+    ok 1 - config and docs exist with sentinels and required sections
+      ---
+      duration_ms: 1.05067
+      ...
+    # Subtest: intake template captures required Website Rescue fields
+    ok 2 - intake template captures required Website Rescue fields
+      ---
+      duration_ms: 1.127939
+      ...
+    # Subtest: delivery issue template covers state model and evidence packets
+    ok 3 - delivery issue template covers state model and evidence packets
+      ---
+      duration_ms: 0.32566
+      ...
+    # Subtest: config contract lists shared checklist, intake fields, transitions, cutover gates
+    ok 4 - config contract lists shared checklist, intake fields, transitions, cutover gates
+      ---
+      duration_ms: 0.698085
+      ...
+    1..4
+ok 33 - Website Rescue onboarding/delivery — checklist/template completeness (\#716)
+  ---
+  duration_ms: 3.808859
+  type: 'suite'
+  ...
+# Subtest: Website Rescue onboarding/delivery — synthetic case records (\#716)
+    # Subtest: one_page fixture is intake-complete and can start build
+    ok 1 - one_page fixture is intake-complete and can start build
+      ---
+      duration_ms: 0.578258
+      ...
+    # Subtest: upgrade fixture is intake-complete and can start build
+    ok 2 - upgrade fixture is intake-complete and can start build
+      ---
+      duration_ms: 0.138215
+      ...
+    # Subtest: rebuild fixture is intake-complete and can start build
+    ok 3 - rebuild fixture is intake-complete and can start build
+      ---
+      duration_ms: 0.219585
+      ...
+    # Subtest: small_catalogue fixture is intake-complete and can start build
+    ok 4 - small_catalogue fixture is intake-complete and can start build
+      ---
+      duration_ms: 0.234304
+      ...
+    # Subtest: incomplete fixture fails completeness and blocks build
+    ok 5 - incomplete fixture fails completeness and blocks build
+      ---
+      duration_ms: 0.263504
+      ...
+    # Subtest: blocked content/assets fixture blocks build
+    ok 6 - blocked content/assets fixture blocks build
+      ---
+      duration_ms: 0.226886
+      ...
+    # Subtest: blocked access fixture blocks build even when content ready
+    ok 7 - blocked access fixture blocks build even when content ready
+      ---
+      duration_ms: 0.120767
+      ...
+    # Subtest: missing financial approval prevents build start
+    ok 8 - missing financial approval prevents build start
+      ---
+      duration_ms: 0.162575
+      ...
+    # Subtest: missing content/assets alone prevents build start
+    ok 9 - missing content/assets alone prevents build start
+      ---
+      duration_ms: 0.159171
+      ...
+    # Subtest: missing approved access alone prevents build start
+    ok 10 - missing approved access alone prevents build start
+      ---
+      duration_ms: 0.101363
+      ...
+    # Subtest: forbidden credential fields in intake block build
+    ok 11 - forbidden credential fields in intake block build
+      ---
+      duration_ms: 0.093698
+      ...
+    # Subtest: acceptance-ready fixture has all evidence packets without real cutover
+    ok 12 - acceptance-ready fixture has all evidence packets without real cutover
+      ---
+      duration_ms: 0.94633
+      ...
+    1..12
+ok 34 - Website Rescue onboarding/delivery — synthetic case records (\#716)
+  ---
+  duration_ms: 3.597416
+  type: 'suite'
+  ...
+# Subtest: Website Rescue onboarding/delivery — state transitions (\#716)
+    # Subtest: lists a connected state graph from approved_to_onboard to acceptance_ready
+    ok 1 - lists a connected state graph from approved_to_onboard to acceptance_ready
+      ---
+      duration_ms: 0.210779
+      ...
+    # Subtest: walks synthetic rebuild record through build/cutover simulation to acceptance_ready
+    ok 2 - walks synthetic rebuild record through build/cutover simulation to acceptance_ready
+      ---
+      duration_ms: 0.439691
+      ...
+    # Subtest: walks one-page path without DNS-in-scope still reaches acceptance_ready
+    ok 3 - walks one-page path without DNS-in-scope still reaches acceptance_ready
+      ---
+      duration_ms: 1.045465
+      ...
+    # Subtest: refuses build_started when financial approval missing
+    ok 4 - refuses build_started when financial approval missing
+      ---
+      duration_ms: 0.144331
+      ...
+    # Subtest: refuses build_started when content/assets missing
+    ok 5 - refuses build_started when content/assets missing
+      ---
+      duration_ms: 0.106967
+      ...
+    # Subtest: refuses build_started when approved access missing
+    ok 6 - refuses build_started when approved access missing
+      ---
+      duration_ms: 0.453296
+      ...
+    # Subtest: refuses deploy_approved_simulated without deploy_approval_simulated
+    ok 7 - refuses deploy_approved_simulated without deploy_approval_simulated
+      ---
+      duration_ms: 0.123314
+      ...
+    # Subtest: refuses live_validation_simulated when DNS cutover in scope but not authorized
+    ok 8 - refuses live_validation_simulated when DNS cutover in scope but not authorized
+      ---
+      duration_ms: 0.085511
+      ...
+    # Subtest: refuses onboarding_complete while blocked inputs remain
+    ok 9 - refuses onboarding_complete while blocked inputs remain
+      ---
+      duration_ms: 0.100195
+      ...
+    # Subtest: empty intake helper seeds defaults but is not build-ready
+    ok 10 - empty intake helper seeds defaults but is not build-ready
+      ---
+      duration_ms: 0.195121
+      ...
+    # Subtest: acceptance path rejects real cutover flags
+    ok 11 - acceptance path rejects real cutover flags
+      ---
+      duration_ms: 0.123014
+      ...
+    1..11
+ok 35 - Website Rescue onboarding/delivery — state transitions (\#716)
+  ---
+  duration_ms: 3.237077
+  type: 'suite'
+  ...
+# (node:5125) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/lib/revenue/commercial-approval.js is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /workspace/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: Website Rescue system-proof — commercial handoff (\#716 / \#714)
+    # Subtest: fresh synthetic commercial opportunity is financially approvable via \#714 handoff
+    ok 1 - fresh synthetic commercial opportunity is financially approvable via \#714 handoff
+      ---
+      duration_ms: 1.518889
+      ...
+    # Subtest: system-proof intake covers required Website Rescue capture fields
+    ok 2 - system-proof intake covers required Website Rescue capture fields
+      ---
+      duration_ms: 1.532238
+      ...
+    1..2
+ok 36 - Website Rescue system-proof — commercial handoff (\#716 / \#714)
+  ---
+  duration_ms: 3.701591
+  type: 'suite'
+  ...
+# Subtest: Website Rescue system-proof — path approved_to_onboard → acceptance_ready
+    # Subtest: runs full synthetic path with revision, deploy/DNS simulation, handover
+    ok 1 - runs full synthetic path with revision, deploy/DNS simulation, handover
+      ---
+      duration_ms: 1.989033
+      ...
+    # Subtest: seeded handoff without content/access cannot start build; complete inputs unlock it
+    ok 2 - seeded handoff without content/access cannot start build; complete inputs unlock it
+      ---
+      duration_ms: 0.661616
+      ...
+    1..2
+ok 37 - Website Rescue system-proof — path approved_to_onboard → acceptance_ready
+  ---
+  duration_ms: 2.775003
+  type: 'suite'
+  ...
+# Subtest: Website Rescue system-proof — gate block proofs
+    # Subtest: missing financial approval, content/assets, or approved access blocks build/cutover progression
+    ok 1 - missing financial approval, content/assets, or approved access blocks build/cutover progression
+      ---
+      duration_ms: 0.357435
+      ...
+    1..1
+ok 38 - Website Rescue system-proof — gate block proofs
+  ---
+  duration_ms: 0.438175
+  type: 'suite'
+  ...
+# Subtest: Website Rescue system-proof — docs and secrets hygiene
+    # Subtest: system-proof doc exists with sentinels and anti-sidetrack boundaries
+    ok 1 - system-proof doc exists with sentinels and anti-sidetrack boundaries
+      ---
+      duration_ms: 0.324259
+      ...
+    1..1
+ok 39 - Website Rescue system-proof — docs and secrets hygiene
+  ---
+  duration_ms: 0.512297
+  type: 'suite'
+  ...
+1..39
+# tests 175
+# suites 39
+# pass 175
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 199.495729
+FOCUSED_EXIT=0

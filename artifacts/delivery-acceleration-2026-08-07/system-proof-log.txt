@@ -1,0 +1,26 @@
+=== LR SYSTEM PROOF ===
+(node:5149) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/lib/lead-rescue/system-proof.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+{
+  "ok": true,
+  "artifact_path": "artifacts/lead-rescue-system-proof/latest-run.json",
+  "opportunity_ref": "OPP-SYN-LR-SYS-715-001",
+  "final_state": "acceptance_ready",
+  "messaging_runtime_authorized": false,
+  "external_sends_executed": [],
+  "simulation_only": true
+}
+=== WR SYSTEM PROOF ===
+(node:5163) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/lib/website-rescue/system-proof.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+{
+  "ok": true,
+  "artifact_path": "artifacts/website-rescue-system-proof/latest-run.json",
+  "opportunity_ref": "OPP-SYN-WR-SYS-716-001",
+  "final_state": "acceptance_ready",
+  "simulation_only": true
+}

@@ -1,0 +1,79 @@
+{
+  "ran_at_utc": "2026-08-07",
+  "probes": [
+    {
+      "url": "https://corpflowai.com/",
+      "http": 200,
+      "len": 36063,
+      "checks": {
+        "private_or_managed": true
+      }
+    },
+    {
+      "url": "https://corpflowai.com/contact",
+      "http": 200,
+      "len": 26038,
+      "checks": {}
+    },
+    {
+      "url": "https://corpflowai.com/lead-rescue",
+      "http": 200,
+      "len": 59527,
+      "checks": {
+        "has_usd_150": true,
+        "has_start_cta": true,
+        "no_choose_payment_path": true,
+        "no_guaranteed_revenue_claim_absent": true
+      }
+    },
+    {
+      "url": "https://corpflowai.com/offers/premium-landing-page-rescue",
+      "http": 200,
+      "len": 45023,
+      "checks": {
+        "no_choose_payment_path": true,
+        "has_discovery": true
+      }
+    },
+    {
+      "url": "https://corpflowai.com/demo/website-rescue",
+      "http": 200,
+      "len": 22495,
+      "checks": {}
+    },
+    {
+      "url": "https://corpflowai.com/offers/ai-lead-rescue",
+      "http": 200,
+      "len": 40675,
+      "checks": {}
+    },
+    {
+      "url": "https://cipc.corpflowai.com/annual-returns",
+      "http": 200,
+      "len": 59283,
+      "checks": {
+        "SARAH_CONFIRM_still_present": true,
+        "v1_1_sarah_present": false,
+        "dormant_wording": false
+      }
+    },
+    {
+      "url": "https://lux.corpflowai.com/",
+      "http": 200,
+      "len": 65492,
+      "checks": {
+        "private_curator": true,
+        "no_luxury_portal": true
+      }
+    },
+    {
+      "url": "https://lux.corpflowai.com/concierge",
+      "http": 200,
+      "len": 31171,
+      "checks": {
+        "email": true,
+        "telephone": true
+      }
+    }
+  ]
+}
