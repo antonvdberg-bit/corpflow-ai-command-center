@@ -37,7 +37,7 @@ test('#704 orientation content is Lux-tenant scoped and plainly labelled', () =>
 });
 
 test('#704 functional checklist steers workflow testing (not visual polish)', () => {
-  assert.equal(LUX_OPERATOR_FUNCTIONAL_TEST_CHECKLIST.length, 8);
+  assert.equal(LUX_OPERATOR_FUNCTIONAL_TEST_CHECKLIST.length, 9);
   const labels = LUX_OPERATOR_FUNCTIONAL_TEST_CHECKLIST.map((s) => s.label).join('\n');
   assert.match(labels, /\/concierge/);
   assert.match(labels, /\/change/);
@@ -45,11 +45,14 @@ test('#704 functional checklist steers workflow testing (not visual polish)', ()
   assert.match(labels, /new → contacted → qualified → invited → closed/);
   assert.match(labels, /Confidential Presentation/i);
   assert.match(labels, /Viewing by Invitation/i);
+  assert.match(labels, /Purchase Readiness/i);
   assert.match(labels, /proposed date-time|access notes/i);
   assert.match(labels, /did not match expectation/i);
   assert.match(labels, /not visual polish/i);
   const viewingStep = LUX_OPERATOR_FUNCTIONAL_TEST_CHECKLIST.find((s) => s.id === 'viewing_by_invitation');
   assert.equal(viewingStep?.href, '#lux-crm-viewing-panel');
+  const purchaseStep = LUX_OPERATOR_FUNCTIONAL_TEST_CHECKLIST.find((s) => s.id === 'purchase_readiness');
+  assert.equal(purchaseStep?.href, '#lux-crm-purchase-panel');
 
   // Stages match existing #673 workflow (do not invent a parallel status model).
   assert.deepEqual([...LUX_LEAD_CRM_STAGES], [

@@ -1,0 +1,74 @@
+PURCHASE READINESS / PRIVATE PURCHASE DISCUSSION (DRAFT — NOT SENT)
+Rare & Exclusive Collection · Private client advisory
+
+Buyer journey: Discover → Express Interest → Private Conversation → Confidential Presentation → Viewing by Invitation → Purchase
+Current step: Viewing by Invitation → Purchase
+
+Prepared for: Synthetic Visitor
+Email: synthetic.visitor@example.test
+Telephone: +230 5000 9999
+
+This note prepares a private purchase conversation after a Viewing by Invitation.
+It is not a contract, offer, payment request, legal advice, tax advice, finance advice, or immigration guidance.
+
+Private-client brief (from qualification)
+- Objective: Discreet primary residence
+- Preferred area: North Mauritius
+- Property type: Villa
+- Budget band: On application
+- Timing: Within 6 months
+- Confidentiality: Strictly private introduction
+
+Shortlisted residences
+1. North Coast Ridge Residences — North Mauritius · On application · Ref: lm-nc-ridge
+2. Bel Ombre villa enclave — South & heritage coast · On application · Ref: lm-villa-belombre
+
+Viewing by Invitation (context)
+- Format: private_on_site
+- Proposed date/time: Thursday 14 Aug · 10:30 · by confirmation
+- Access / concierge: Arrive via private concierge gate; no broker signage.
+
+Viewing outcome
+Private on-site viewing completed calmly; client appreciated discretion and north-coast setting.
+
+Buyer response / intent
+Client expressed serious interest in the ridge residence and asked about a private follow-up conversation.
+
+Preferred residence / purchase target: North Coast Ridge Residences (lm-nc-ridge)
+Purchase readiness: Ready for private purchase discussion
+Next private action: Prepare purchase discussion
+
+Manual documents / information checklist
+- Confirm preferred residence / purchase target
+- Prepare private purchase discussion talking points
+- Notes: Confirm timing window before discussion.
+
+Manual transaction notes (operator)
+No offer or payment discussed — conversation prep only.
+
+Internal operator notes
+Synthetic operator note — keep voice Rare & Exclusive.
+
+Suggested private purchase discussion note (copy-ready)
+---
+Dear Synthetic Visitor,
+
+Thank you for joining the Viewing by Invitation. We appreciated the opportunity to introduce the residence in a private setting, consistent with the Rare & Exclusive Collection approach.
+
+Preferred residence under discussion: North Coast Ridge Residences (lm-nc-ridge).
+
+From our conversation after the viewing:
+Client expressed serious interest in the ridge residence and asked about a private follow-up conversation.
+
+If you are ready, we would be pleased to arrange a private purchase discussion — a confidential conversation about next steps, without any obligation and without any automated transaction.
+
+Proposed next private step: Prepare purchase discussion.
+
+This message does not constitute an offer, contract, payment request, or legal, tax, finance, or immigration advice. Any formal process would be arranged separately, by mutual agreement, with the appropriate independent advisors.
+
+Kind regards,
+Rare & Exclusive Collection advisory
+---
+
+Operator note: This draft is for review/copy only. No email, WhatsApp, SMS, payment, or contract action was taken by the system.
+Next action: Manual private purchase conversation (checklist complete).

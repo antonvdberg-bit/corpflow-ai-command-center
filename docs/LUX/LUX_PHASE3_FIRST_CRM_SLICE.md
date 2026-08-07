@@ -131,4 +131,19 @@ Jan test package: `docs/LUX/JAN_TEST_PACKAGE_752.md`. Synthetic runtime evidence
 
 ---
 
+## Purchase Readiness after Viewing by Invitation (JSON only)
+
+| Area | Behaviour |
+|------|-----------|
+| **Panel** | Lux `/change` **Purchase Readiness** after Viewing by Invitation (`luxe-maurice` only). |
+| **Journey** | Full path labelled; current step `Viewing by Invitation → Purchase`. |
+| **Storage** | `qualification_json.private_client_purchase_readiness` (outcome, intent, preferred residence, readiness level, next action, documents checklist/notes, transaction + operator notes). No schema migration. |
+| **Checklist** | Purchase readiness from contact, invited/viewing stage, shortlist, presentation, viewing details, outcome, intent, preferred residence, readiness level, documents checklist, manual next action. |
+| **Draft** | On-screen copy-ready Private Purchase Discussion note; **send disabled / manual only** (no email / WhatsApp / SMS / payment / contract). |
+| **PATCH** | `purchase_viewing_outcome`, `purchase_buyer_intent`, `purchase_preferred_residence`, `purchase_readiness`, `purchase_next_action`, `purchase_documents_selected`, `purchase_documents_notes`, `purchase_transaction_notes`, `purchase_operator_notes` on `concierge-lead-operator-patch`. |
+
+Jan test package: `docs/LUX/JAN_TEST_PACKAGE_PURCHASE_READINESS.md`. Synthetic runtime evidence: `artifacts/lux-purchase-readiness/`.
+
+---
+
 **Phase 3 demo safe:** Yes — ticket stays open; no marketing automation or external CRM in this slice.
