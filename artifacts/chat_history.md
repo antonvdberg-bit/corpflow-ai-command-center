@@ -30,6 +30,10 @@
 
 ---
 
+## 2026-08-08 — **Current Delivery Reality published:** Canonical operating posture is now `MOVE WORK, DO NOT WAIT FOR PICKUP`; Cursor is automatic primary executor, Codex is specialist via one human `@codex` trigger, OpenHands is optional/inactive, n8n is exception-only supervision, GitHub remains durable source of truth, and protected actions remain Anton-gated. Canonical doc: `docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md` (PR #816).
+
+<!-- CURRENT_DELIVERY_REALITY_2026_08_08_HIST -->
+
 ## 2026-08-06 — **OpenHands agent-server conversation 500 diagnosed + remediated (non-model READY).** Controlling issue [#743](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/743), draft PR [#747](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/747) head `1f09743aa0b11895627075638ef1a4ab32dae8d2`. **Exception:** `MCPError: MCP Connection Failure` (`httpx.ConnectError` DNS name not known) on agent-server `POST /api/conversations` during `SETTING_UP_SKILLS`. **Cause:** unset `web_url` → control plane fell back to `http://host.docker.internal:{port}/mcp/mcp`; ExtraHosts=[] correctly blocks that host. **Reproduced without Groq/model key.** **Remediation:** compose `OH_WEB_URL=http://corpflowai-openhands-app:3000`. Live non-model conversation probe → **READY**; isolation held; primary Docker unchanged; Groq file mode 600 unused; dispatcher still disabled. PR #747 still draft and **CONFLICTING** vs `main` only on `artifacts/chat_history.md`. **Verdict: CONVERSATION SETUP VERIFIED — READY FOR SEPARATE MODEL RETRY APPROVAL.**
 
 <!-- OPENHANDS_CONV500_2026_08_06_HIST -->
