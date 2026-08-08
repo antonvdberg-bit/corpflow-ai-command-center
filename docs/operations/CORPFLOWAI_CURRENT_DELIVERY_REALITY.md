@@ -1,6 +1,7 @@
 # CorpFlowAI — current delivery reality
 
 **Status:** Canonical operating-model snapshot (docs/control-plane only).  
+**Operating model version:** `2026-08-09-v1`.  
 **Owner:** Anton (operator).  
 **Controller:** [#661](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/661)  
 **As of:** current `main` (Cursor + Codex lifecycle packets merged).  
@@ -19,6 +20,22 @@
 If any older orchestration doc, chat memory, or handoff packet conflicts with this file on
 **who executes, how work starts, and when Anton is needed**, **this file wins**.
 Implementation detail stays in the linked runbooks — do not duplicate it here.
+
+### Governance protection
+
+This file is part of the protected operating-doctrine class defined in
+`config/protected-operating-doctrine.v1.json`.
+
+Lower-level workstreams may discover evidence that the operating model should change, but they
+must **propose** that change explicitly rather than silently rewriting global doctrine.
+The governing rule is:
+
+> **Discover locally -> propose globally -> approve centrally.**
+
+A pull request that changes a protected doctrine path must be classified as a
+`governance-change`, carry the required governance-impact packet, and still receive explicit
+Anton approval before merge. The label and packet are classification/evidence only; they do not
+constitute approval.
 
 ---
 
@@ -125,6 +142,9 @@ Do **not** rely on remembered/manual-pickup assumptions from prior turns.
 > check `docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md` and current GitHub
 > issue/PR state. Do not rely on remembered/manual-pickup assumptions.
 
+If a packet records an older operating-model version than the version at the top of this file,
+refresh the packet against current `main` before continuing.
+
 ---
 
 ## 4. Sources (reference only — do not duplicate)
@@ -136,6 +156,7 @@ Do **not** rely on remembered/manual-pickup assumptions from prior turns.
 | Codex specialist | `docs/operations/CODEX_SPECIALIST_LIFECYCLE_V1.md` |
 | Cursor issue dispatch | `docs/operations/CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1.md` |
 | n8n heartbeat (exception-only) | `docs/runbooks/N8N_GITHUB_HEARTBEAT_CHECKER_V1.md` |
+| Protected doctrine manifest | `config/protected-operating-doctrine.v1.json` |
 | Merged lifecycle PRs (examples) | #815 (Codex), #802 / #790 / #786 (Cursor), #688 (#684 exception-only), #655 (issue dispatch) |
 
 Protected-action gates and Decision Inbox remain unchanged:

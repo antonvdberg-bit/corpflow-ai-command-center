@@ -1,0 +1,25 @@
+{
+  "schema": "corpflow.protected_operating_doctrine.v1",
+  "operating_model_version": "2026-08-09-v1",
+  "required_label": "governance-change",
+  "required_pr_body_markers": [
+    "Governance change: YES",
+    "Doctrine change:",
+    "Rationale:",
+    "Cross-workstream impact:",
+    "Protected-gate impact:",
+    "Executor ownership impact:",
+    "Migration/compatibility impact:",
+    "Anton approval: PENDING"
+  ],
+  "protected_paths": [
+    "docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md",
+    "docs/execution/DELIVERY_ACCELERATION_V1.md",
+    "docs/operations/PROTECTED_ACTION_GATES_V1.md",
+    "docs/operations/ANTON_DECISION_INBOX_V1.md",
+    ".cursor/rules/delivery-reality.mdc",
+    ".github/workflows/protected-doctrine-guard.yml",
+    "config/protected-operating-doctrine.v1.json",
+    "scripts/check-protected-doctrine-change.mjs"
+  ]
+}
