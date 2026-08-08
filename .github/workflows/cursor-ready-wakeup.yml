@@ -2,10 +2,14 @@ name: Cursor ready wake-up
 
 # Event-driven bridge into the existing Factory dispatcher.
 # This does not implement a second dispatcher. It only starts the canonical
-# factory-dispatcher-activate workflow for the issue that became ready.
+# factory-dispatcher-activate workflow when dispatch:cursor-ready is applied.
+#
+# Important: listen only to label-add for that specific label. Creating an issue
+# already labelled ready used to emit opened + labeled and could dispatch twice
+# (root amplifier for #787 / #803 / #805 double activation on main).
 on:
   issues:
-    types: [opened, reopened, labeled]
+    types: [labeled]
 
 permissions:
   actions: write
@@ -14,13 +18,13 @@ permissions:
 
 concurrency:
   group: cursor-ready-wakeup-${{ github.event.issue.number }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   wake:
     if: >-
       github.event.issue.state == 'open' &&
-      contains(github.event.issue.labels.*.name, 'dispatch:cursor-ready')
+      github.event.label.name == 'dispatch:cursor-ready'
     runs-on: ubuntu-latest
     steps:
       - name: Dispatch canonical factory activator

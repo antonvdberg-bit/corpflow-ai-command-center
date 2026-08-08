@@ -9,16 +9,26 @@ import { pathToFileURL } from 'node:url';
 
 import {
   buildDirectIssueActivationReport,
+  buildDispatcherActivationPlan,
   DISPATCHER_ACTIVATION_AUDIT_FILENAME,
+  DISPATCHER_ACTIVATION_SCHEMA,
   fetchGitHubIssue,
   formatActivationResultText,
   normalizeActivationMode,
   normalizeDedupeState,
   parseDispatcherFetchResponse,
+  parseTargetIssueNumber,
   resolveDispatcherActivationUrl,
   runDispatcherActivation,
   validateDirectIssueActivationContext,
 } from '../lib/server/dispatcher-agent-activation.js';
+import {
+  acquireCursorIssueActivationClaim,
+  CLAIM_ACQUIRED,
+  listGitHubIssueComments,
+  releaseCursorIssueActivationClaim,
+  SKIP_ALREADY_CLAIMED,
+} from '../lib/server/cursor-activation-claim.js';
 import {
   assertStrictTargetIssueObservabilityPrerequisites,
   buildCursorOpsStatus,
@@ -30,6 +40,7 @@ import {
   postCursorActivationFinishedComment,
   postCursorActivationStartedComment,
   postCursorOpsStatusComment,
+  postGitHubIssueComment,
   requiresStrictTargetIssueObservability,
   resolveGithubWorkflowContextFromEnv,
 } from '../lib/server/cursor-ops-status.js';
@@ -319,6 +330,131 @@ async function finalizeOpsStatus(ctx) {
  *   requireThroughputPacket?: boolean,
  * }} opts
  */
+/**
+ * Durable pre-API claim for cursor_live activations keyed by source issue.
+ * @param {{
+ *   mode: string,
+ *   targetIssue: string,
+ *   githubToken: string,
+ *   repoFullName: string,
+ *   report: Record<string, unknown>,
+ * }} ctx
+ */
+async function maybeAcquireLiveActivationClaim(ctx) {
+  if (ctx.mode !== 'cursor_live') {
+    return { skipped: true, reason: 'not_cursor_live' };
+  }
+  const parsed = parseTargetIssueNumber(ctx.targetIssue);
+  if (!parsed.ok) {
+    return { skipped: true, reason: 'no_target_issue' };
+  }
+  if (!ctx.githubToken || !ctx.repoFullName) {
+    throw new Error(
+      'cursor_live activation requires GITHUB_TOKEN and GITHUB_REPOSITORY for durable claim-before-API',
+    );
+  }
+
+  const issueNumber = parsed.issueNumber;
+  const issue =
+    ctx.report &&
+    typeof ctx.report === 'object' &&
+    ctx.report.summary &&
+    typeof ctx.report.summary === 'object' &&
+    Number(ctx.report.summary.target_issue) === issueNumber
+      ? {
+          number: issueNumber,
+          title: ctx.report.summary.title,
+          body: ctx.report.summary.body,
+          labels: ctx.report.summary.labels,
+        }
+      : await fetchGitHubIssue(issueNumber, {
+          token: ctx.githubToken,
+          repoFullName: ctx.repoFullName,
+        });
+
+  const allowExplicitRequeue = parseBooleanFlag(process.env.CURSOR_ACTIVATION_ALLOW_REQUEUE);
+  const postComment = (n, body) =>
+    postGitHubIssueComment(n, body, {
+      token: ctx.githubToken,
+      repoFullName: ctx.repoFullName,
+    });
+
+  const acquired = await acquireCursorIssueActivationClaim({
+    token: ctx.githubToken,
+    repo: ctx.repoFullName,
+    issueNumber,
+    labels: issue.labels,
+    issueBody: issue.body,
+    allowExplicitRequeue,
+    workflowRunId: process.env.GITHUB_RUN_ID || null,
+    postComment,
+    listComments: (n) =>
+      listGitHubIssueComments({
+        token: ctx.githubToken,
+        repo: ctx.repoFullName,
+        issueNumber: n,
+      }),
+  });
+
+  return { skipped: false, issueNumber, acquired, issue };
+}
+
+/**
+ * @param {number} issueNumber
+ * @param {string} reason
+ * @param {string} mode
+ * @param {ReturnType<typeof normalizeDedupeState>} dedupeState
+ */
+function buildSkipAlreadyClaimedActivationResult(issueNumber, reason, mode, dedupeState) {
+  const plan = buildDispatcherActivationPlan(
+    {
+      schema: 'corpflow.business_operations_dispatcher.v1',
+      ok: true,
+      evaluated_at: new Date().toISOString(),
+      routings: [],
+      summary: { source: 'target_issue', target_issue: issueNumber },
+    },
+    { mode },
+  );
+  return {
+    schema: DISPATCHER_ACTIVATION_SCHEMA,
+    version: 2,
+    mode,
+    evaluated_at: plan.evaluated_at,
+    dispatcher_ok: true,
+    plan,
+    decisions: [
+      {
+        owner: 'cursor',
+        objectRef: `issue:#${issueNumber}`,
+        objectType: 'issue',
+        severity: 'P0',
+        gated: false,
+        action: SKIP_ALREADY_CLAIMED,
+        reason,
+        dedupeKey: null,
+        category: null,
+        business_outcome: null,
+        evidence_required: null,
+        linked_issue_or_ticket: `#${issueNumber}`,
+        delivery_surface: null,
+        spend_risk_note: null,
+        throughput_packet: null,
+        throughput_packet_eligible: null,
+        throughput_packet_missing_fields: [],
+        throughput_packet_invalid_fields: [],
+      },
+    ],
+    live: { cursor: null },
+    dedupeState,
+    claim: {
+      decision: SKIP_ALREADY_CLAIMED,
+      reason,
+      issueNumber,
+    },
+  };
+}
+
 async function emitActivation(report, opts) {
   const mode = normalizeActivationMode(opts.mode);
   const dedupeState = loadDedupeStateFile(opts.dedupePath);
@@ -343,16 +479,105 @@ async function emitActivation(report, opts) {
 
   let result = null;
   let error = null;
+  /** @type {Awaited<ReturnType<typeof maybeAcquireLiveActivationClaim>> | null} */
+  let claimCtx = null;
 
   try {
-    result = await runDispatcherActivation(report, {
+    claimCtx = await maybeAcquireLiveActivationClaim({
       mode,
-      dedupeState,
-      cursorApiKey,
-      smokeInternal: opts.smokeInternal,
-      directIssue: Boolean(opts.directIssue),
-      requireThroughputPacket: Boolean(opts.requireThroughputPacket),
+      targetIssue,
+      githubToken,
+      repoFullName,
+      report,
     });
+
+    if (
+      claimCtx &&
+      !claimCtx.skipped &&
+      claimCtx.acquired &&
+      claimCtx.acquired.decision === SKIP_ALREADY_CLAIMED
+    ) {
+      result = buildSkipAlreadyClaimedActivationResult(
+        claimCtx.issueNumber,
+        String(claimCtx.acquired.reason || 'already_claimed'),
+        mode,
+        dedupeState,
+      );
+      console.log(
+        `SKIP_ALREADY_CLAIMED issue #${claimCtx.issueNumber}: ${claimCtx.acquired.reason}`,
+      );
+    } else {
+      try {
+        result = await runDispatcherActivation(report, {
+          mode,
+          dedupeState,
+          cursorApiKey,
+          smokeInternal: opts.smokeInternal,
+          directIssue: Boolean(opts.directIssue),
+          requireThroughputPacket: Boolean(opts.requireThroughputPacket),
+        });
+      } catch (activationErr) {
+        if (
+          claimCtx &&
+          !claimCtx.skipped &&
+          claimCtx.acquired &&
+          claimCtx.acquired.decision === CLAIM_ACQUIRED
+        ) {
+          await releaseCursorIssueActivationClaim({
+            token: githubToken,
+            repo: repoFullName,
+            issueNumber: claimCtx.issueNumber,
+            claim: claimCtx.acquired.claim,
+            postComment: (n, body) =>
+              postGitHubIssueComment(n, body, {
+                token: githubToken,
+                repoFullName,
+              }),
+          });
+          console.log(
+            `activation failed — released claim for issue #${claimCtx.issueNumber}`,
+          );
+        }
+        throw activationErr;
+      }
+
+      if (
+        mode === 'cursor_live' &&
+        claimCtx &&
+        !claimCtx.skipped &&
+        claimCtx.acquired &&
+        claimCtx.acquired.decision === CLAIM_ACQUIRED &&
+        !result?.live?.cursor
+      ) {
+        await releaseCursorIssueActivationClaim({
+          token: githubToken,
+          repo: repoFullName,
+          issueNumber: claimCtx.issueNumber,
+          claim: claimCtx.acquired.claim,
+          postComment: (n, body) =>
+            postGitHubIssueComment(n, body, {
+              token: githubToken,
+              repoFullName,
+            }),
+        });
+        console.log(
+          `no Cursor agent created — released claim for issue #${claimCtx.issueNumber}`,
+        );
+      }
+
+      if (claimCtx && !claimCtx.skipped && claimCtx.acquired?.claim) {
+        result = {
+          ...result,
+          claim: {
+            decision: claimCtx.acquired.decision,
+            reason: claimCtx.acquired.reason,
+            generation: claimCtx.acquired.generation,
+            claimToken: claimCtx.acquired.claim?.claimToken || null,
+            issueNumber: claimCtx.issueNumber,
+          },
+        };
+      }
+    }
 
     console.log(formatActivationResultText(result));
     const json = JSON.stringify(result, null, 2);

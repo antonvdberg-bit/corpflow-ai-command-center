@@ -55,8 +55,10 @@ permissions:
   issues: write
   actions: read
 
+# Issue-keyed when target_issue is set — serializes dual activator races on the same source issue.
+# Blank target (scan/dispatcher) shares one scan group so only one scan activation runs at a time.
 concurrency:
-  group: factory-dispatcher-activate
+  group: factory-dispatcher-activate-${{ inputs.target_issue || 'scan' }}
   cancel-in-progress: false
 
 jobs:
@@ -191,7 +193,8 @@ jobs:
         run: |
           set -euo pipefail
           # GHA token has issues:write — durable discovery/classification comments only.
-          # Claim labels are applied after Cursor API returns a real run ID (finalize step).
+          # Pre-API claim is acquired in dispatcher-agent-activation (claim-before-API);
+          # finalize still records the real Cursor run ID / origin metadata after success.
           node scripts/cursor-issue-dispatch-scan.mjs --apply-comments
           if [ -f cursor-issue-dispatch-scan.json ]; then
             target="$(node -e "const j=require('./cursor-issue-dispatch-scan.json'); process.stdout.write(j.activationTargetIssue!=null?String(j.activationTargetIssue):'')")"
@@ -247,7 +250,7 @@ jobs:
           DISPATCHER_ACTIVATION_POST_COMMENT: "1"
         run: node scripts/dispatcher-agent-activation.mjs --fetch --activate --persist-dedupe
 
-      - name: Finalize dispatch claim (labels after Cursor run ID)
+      - name: Finalize dispatch claim (run ID + origin metadata)
         if: ${{ always() }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -256,15 +259,19 @@ jobs:
           CURSOR_ISSUE_DISPATCH_SCAN_PATH: cursor-issue-dispatch-scan.json
           DISPATCHER_ACTIVATION_PLAN_PATH: activation-plan.json
           CURSOR_OPS_STATUS_PATH: cursor-ops-status.json
+          TARGET_ISSUE: ${{ steps.target.outputs.target_issue }}
         run: |
           set -euo pipefail
-          if [ -f cursor-issue-dispatch-scan.json ]; then
+          # Always attempt finalize when we have a target issue (manual or scan).
+          # Pre-API claim may already hold dispatch:cursor-claimed; finalize records run ID
+          # or releases the claim on failure.
+          if [ -f activation-plan.json ] || [ -n "${TARGET_ISSUE:-}" ]; then
             node scripts/cursor-issue-dispatch-finalize.mjs \
               --scan-file cursor-issue-dispatch-scan.json \
               --activation-file activation-plan.json \
               --ops-status-file cursor-ops-status.json || true
           else
-            echo "No scan artifact — skip finalize"
+            echo "No activation target — skip finalize"
           fi
 
       - name: Post FINISHED evidence to control issue

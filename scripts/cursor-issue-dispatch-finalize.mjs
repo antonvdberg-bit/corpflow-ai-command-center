@@ -103,9 +103,14 @@ async function main() {
 
   const activationStatus = String(opsStatus?.activation_status || '');
   const runId = resolveCursorRunId(activation, opsStatus);
+  const skipAlreadyClaimed =
+    Array.isArray(activation?.decisions) &&
+    activation.decisions.some(
+      (d) => d && (d.action === 'SKIP_ALREADY_CLAIMED' || d.reason === 'lost_claim_race'),
+    );
   const activationFailed =
     args.forceRollback ||
-    activation?.ok === false ||
+    (!skipAlreadyClaimed && activation?.ok === false) ||
     activationStatus === 'failed' ||
     activationStatus === 'blocked' ||
     activationStatus === 'observability_failed';
@@ -129,6 +134,7 @@ async function main() {
     activationStatus,
     runId,
     activationFailed,
+    skipAlreadyClaimed,
     finalized: false,
     rolledBack: false,
   };
@@ -136,6 +142,13 @@ async function main() {
   if (!token) {
     result.skipped = true;
     result.reason = 'GITHUB_TOKEN missing';
+    console.log(JSON.stringify(result, null, 2));
+    return;
+  }
+
+  if (skipAlreadyClaimed) {
+    result.skipped = true;
+    result.reason = 'SKIP_ALREADY_CLAIMED — leave existing claim intact';
     console.log(JSON.stringify(result, null, 2));
     return;
   }

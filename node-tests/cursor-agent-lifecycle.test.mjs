@@ -12,6 +12,7 @@ import {
   parseCursorLifecycleStateFromText,
   runCursorAgentLifecycleTick,
   shouldEmitCompletionEvent,
+  shouldNotifyCursorCompletionEvent,
 } from '../lib/server/cursor-agent-lifecycle.js';
 
 describe('cursor-agent-lifecycle', () => {
@@ -100,6 +101,59 @@ describe('cursor-agent-lifecycle', () => {
     assert.equal(e.anton_required, false);
     assert.equal(e.notify, false);
     assert.match(formatCursorCompletionEventComment(e), /CURSOR COMPLETION EVENT/);
+  });
+
+  it('n8n notify gate: RUNNING silent; COMPLETED+anton yes; FAILED/STALE; dedupe unchanged', () => {
+    const running = buildCursorCompletionEvent({
+      sourceIssue: 1,
+      cursorAgentId: 'bc-r',
+      status: 'RUNNING',
+      antonRequired: false,
+    });
+    assert.equal(shouldNotifyCursorCompletionEvent(running), false);
+
+    const completedQuiet = buildCursorCompletionEvent({
+      sourceIssue: 1,
+      cursorAgentId: 'bc-c',
+      status: 'COMPLETED',
+      prNumber: 10,
+      antonRequired: false,
+    });
+    assert.equal(shouldNotifyCursorCompletionEvent(completedQuiet), false);
+
+    const completedAnton = buildCursorCompletionEvent({
+      sourceIssue: 1,
+      cursorAgentId: 'bc-c',
+      status: 'COMPLETED',
+      prNumber: 10,
+      antonRequired: true,
+    });
+    assert.equal(shouldNotifyCursorCompletionEvent(completedAnton), true);
+    assert.equal(
+      shouldNotifyCursorCompletionEvent(completedAnton, {
+        alreadyNotified: true,
+        previousFingerprint: completedAnton.fingerprint,
+      }),
+      false,
+    );
+
+    const failed = buildCursorCompletionEvent({
+      sourceIssue: 1,
+      cursorAgentId: 'bc-f',
+      status: 'FAILED',
+      antonRequired: true,
+      blocker: 'recovery exhausted',
+    });
+    assert.equal(failed.notify, true);
+    assert.equal(shouldNotifyCursorCompletionEvent(failed), true);
+
+    const stale = buildCursorCompletionEvent({
+      sourceIssue: 1,
+      cursorAgentId: 'bc-s',
+      status: 'STALE',
+      antonRequired: true,
+    });
+    assert.equal(shouldNotifyCursorCompletionEvent(stale), true);
   });
 
   it('stale follow-up prompt is deterministic and issue-linked', () => {
