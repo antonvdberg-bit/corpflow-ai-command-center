@@ -7,11 +7,13 @@
 
 <!-- OPERATOR_BRIDGE_V1_ANCHOR -->
 
+> **Current delivery reality (mandatory):** Before giving CorpFlowAI progress, dispatch, next-action or blocker advice, check **`docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md`** and current GitHub issue/PR state. Do not rely on remembered/manual-pickup assumptions. **DEFAULT DELIVERY POSTURE: MOVE WORK, DO NOT WAIT FOR PICKUP.**
+
 ## 1. Purpose
 
 Reduce Anton's copy/paste burden between ChatGPT (planning / instruction author) and Cursor (in-repo executor) **without** weakening delivery-reality discipline, operator-owned merges, or scope control.
 
-The bridge is a **coordination layer**, not an autonomous AI-to-AI execution loop. It standardizes **where status is posted**, **where decisions are recorded**, and **what is on hold**, so the operator always knows the next click and the agents always know whether they are authorized to proceed.
+The bridge is a **coordination layer** for STATUS and decisions. Eligible Cursor work is activated and lifecycle-monitored via the GitHub control loop (see current delivery reality) — Anton is **not** the courier between Cursor stages. Protected gates (merge, deploy, secrets, schema, payment, outreach, public launch) still require Anton.
 
 This doc supplements (and does **not** replace) the canonical execution rules:
 
@@ -55,7 +57,7 @@ If any of those rules conflict with this doc, **those rules win**.
 | **Codex Cloud (in-repo executor, added 2026-05-28)** | Same as Cursor, with mandatory branch prefix `codex/*` (see `docs/execution/DELIVERY_ACCELERATION_V1.md` §5). Identical AAP §2 latitude. Posts STATUS with `**Executor:** Codex Cloud` header. | Identical to Cursor: never merges its own PRs, never edits secrets / DNS / env / deployment settings, never touches forbidden surfaces. Additionally cannot touch `lib/server/`, `lib/cmp/`, `api/`, `middleware.*`, `prisma/`, `.env*`, `.github/workflows/`, `vercel.json` in v1 of `DELIVERY_ACCELERATION_V1.md`. |
 | **ChatGPT (planning author)** | Authoring instructions, packet definitions, decision text, policy framing — delivered **through Anton**. | Direct repository writes. Direct CI access. Direct merges. Any autonomous loop with Cursor or Codex Cloud that bypasses Anton. |
 
-**Rule of thumb:** ChatGPT proposes, Anton approves, the named Executor (Cursor or Codex Cloud) executes, Anton merges, the same Executor verifies. The bridge makes each handoff one-click instead of multi-paragraph.
+**Rule of thumb:** ChatGPT proposes packets; GitHub holds durable work/evidence; Cursor auto-activates eligible claimed work; Codex runs only after one human `@codex` trigger when that path is prepared; Anton acts on protected gates and merges; executors verify. Do **not** wait for manual “pickup” when dispatch evidence shows eligibility.
 
 **Executor identity in STATUS comments (added 2026-05-28):** every status / closure comment posted to issue #249 must include a `**Executor:** Cursor | Codex Cloud | Internal agent` header so packet-collisions are visible and the audit trail is unambiguous across executors. See `docs/execution/DELIVERY_ACCELERATION_V1.md` §7 and `docs/runbooks/OPERATOR_BRIDGE.md` §3 for examples.
 
@@ -178,7 +180,7 @@ Each completed packet's closure note (§5.3) is mirrored to `artifacts/chat_hist
 - **Scope is sacred.** A packet's approved file list is the entire allowed diff surface unless Anton explicitly expands it.
 - **Forbidden surfaces stay forbidden.** See §6.1 — these require an operator approval that names the surface.
 - **Delivery reality applies.** Even docs-only PRs follow §5.3's closure schema; runtime PRs additionally follow `.cursor/rules/delivery-reality.mdc`.
-- **No autonomous AI-to-AI execution.** ChatGPT instructs through Anton; Cursor executes under Anton's approval. There is no direct ChatGPT → Cursor pipe.
+- **No unmanaged ChatGPT → Cursor pipe.** ChatGPT does not write the repo. Durable work lives on GitHub; the approved dispatcher/lifecycle activates Cursor from issue evidence. That is not “wait for Anton to paste prompts,” and it does not bypass protected-action gates.
 
 ## 10. Minimal first implementation (this PR)
 
@@ -196,6 +198,7 @@ After this PR merges and is live-verified per `delivery-reality.mdc`, Anton can 
 
 ## 11. Cross-references
 
+- **Current delivery reality (orchestration snapshot):** `docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md` — wins on executor posture / auto-dispatch vs older bridge wording.
 - **Business Survival Operating Doctrine (mandatory):** `docs/operations/CORPFLOWAI_BUSINESS_SURVIVAL_OPERATING_DOCTRINE.md` — the business-level layer above this protocol: four required systems, founder 10/80/10 split (Anton must not become prompt courier / status stitcher), Delivery Queue v1, and the survival test. Bridge coordination exists to serve that doctrine, not replace it.
 - Parallel Execution Board v1 (concurrency/lanes + dispatcher cadence): `docs/operations/PARALLEL_EXECUTION_BOARD_V1.md` — the lane layer that sits beside #249; digests are posted here per `docs/operations/OPERATOR_PROGRESS_DIGEST_V1.md`.
 - Cursor Dispatcher Checklist v1 (per-dispatch routine): `docs/operations/CURSOR_DISPATCHER_CHECKLIST_V1.md`

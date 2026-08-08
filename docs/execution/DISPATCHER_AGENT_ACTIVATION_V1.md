@@ -1,17 +1,19 @@
 # Dispatcher agent activation v1
 
-**Status:** Phase 0–1 — decision captured; **dry-run activator only** (no live Cursor/Codex calls).  
+**Status:** Cursor live activation + claim-before-API + issue-scan handoff are on `main` (see #661). Codex remains human-triggered specialist (not Phase-4 auto-activate).  
 **Owner:** Anton (operator / approver); Cursor (repo implementation).  
 **Created:** 2026-07-06.  
 **Anchor sentinel:** `<!-- DISPATCHER_AGENT_ACTIVATION_V1 -->`
 
 <!-- DISPATCHER_AGENT_ACTIVATION_V1 -->
 
-## 1. Problem
+> **Operating posture:** `docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md` — Cursor is the automatic primary worker; Anton is **not** the courier between Cursor stages. This doc retains activator mechanics; do not treat §1's historical "notification-only / Anton courier" framing as current truth.
 
-The business-operations **dispatcher** classifies monitor findings into executors (`owner=cursor|codex|anton|n8n|no_action`) and emits `executorPrompt` text. Today, **nothing automatically starts** Cursor or Codex when those routings appear.
+## 1. Problem (historical — why the activator exists)
 
-Posting to Operator Bridge **#249**, Telegram, or n8n **comments** is **notification-only**. Anton remains the manual courier: he must open Cursor or Codex and paste context.
+The business-operations **dispatcher** classifies monitor findings into executors (`owner=cursor|codex|anton|n8n|no_action`) and emits `executorPrompt` text. Before the activator, **nothing automatically started** Cursor or Codex when those routings appeared.
+
+Posting to Operator Bridge **#249**, Telegram, or n8n **comments** alone was **notification-only**, which forced Anton into a courier role. That posture is **rejected** as the final solution — eligible Cursor work now activates via the GitHub control loop.
 
 **Constraint (Anton, 2026-07-06):** Notification-only workflows are rejected as the final solution. The activator must eventually **directly start** cloud executors — not merely queue comments.
 

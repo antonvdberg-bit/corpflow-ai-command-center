@@ -7,6 +7,8 @@
 
 <!-- OPERATOR_CONTROL_BOARD_V1 -->
 
+> **Orchestration posture:** `docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md` wins over older executor rows below when they conflict (Cursor auto-primary, Codex human `@codex` once, OpenHands optional, n8n exception-only).
+
 ## 1. Purpose
 
 Anton runs several CorpFlowAI workstreams in parallel. This board gives a single,
@@ -37,9 +39,9 @@ of the following is changed by this document.
 | Operator chat | Anton uses one command/operator chat to make decisions and receive action lists. | `docs/operations/OPERATOR_BRIDGE_V1.md` |
 | Command ledger | GitHub issue **#249** is the command ledger / source of truth for operator decisions and dispatch packets. | #249, `docs/operations/OPERATOR_DISPATCH_ROUTER.md` §2 |
 | Doctrine | Repo docs remain canonical doctrine. | `AGENTS.md`, `.cursor/rules/*` |
-| Cursor | Owns repo/docs/code **PR execution**. | `docs/operations/OPERATOR_DISPATCH_ROUTER.md` §3 |
-| Codex | Research/data/script worker only; **never owns PRs**. Handoffs must be transfer-safe (no local-only branch/SHA). | `docs/operations/OPERATOR_DISPATCH_ROUTER.md` §7.1, `docs/operations/CODEX_INTEGRATION_CONTRACT_V1.md` |
-| n8n | Future **notify-only** workflow spine first; no automated cold outreach. | `docs/marketing-automation-arm.md` §9, `docs/operations/OPERATOR_DISPATCH_ROUTER.md` §5 |
+| Cursor | Automatic **primary** execution worker for eligible claimed GitHub work (claim-before-API + lifecycle). | `docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md`, `docs/operations/CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1.md` |
+| Codex | Specialist worker; one human `@codex` PR comment to start; lifecycle monitored after acknowledgement. | `docs/operations/CODEX_SPECIALIST_LIFECYCLE_V1.md` |
+| n8n | Existing GitHub Heartbeat Checker = **exception-only** supervisor (no hourly open-PR noise). | `docs/runbooks/N8N_GITHUB_HEARTBEAT_CHECKER_V1.md` |
 | Google Drive Brand Hub | Working collateral library (human-facing copies). | `docs/marketing/MARKETING_COLLATERAL_INVENTORY.md` |
 | NotebookLM | Briefing/summarization only; not an execution layer. | `docs/operations/OPERATOR_DISPATCH_ROUTER.md` §7.2 |
 | Workspace Studio | Workspace-side **candidate/prototype only**; n8n stays the governed spine. | `docs/strategy/GOOGLE_ACCELERATION_LANE.md`, `docs/operations/OPERATOR_DISPATCH_ROUTER.md` §7.3 |

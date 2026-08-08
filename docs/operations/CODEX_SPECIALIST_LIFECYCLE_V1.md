@@ -3,6 +3,8 @@
 **Status:** Implemented (GitHub-native evidence watcher).  
 **Controller:** [#661](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/661)
 
+> **Canonical posture snapshot:** `docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md`.
+
 ## Decision (locked)
 
 - Codex **does not** start from `github-actions[bot]` / `GITHUB_TOKEN` `@codex` comments.

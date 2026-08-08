@@ -1,15 +1,13 @@
 # CorpFlowAI OpenHands Operating Charter
 
-Status: Adopted strategic direction, pending implementation and operational validation.
+Status: Adopted strategic direction; package/install progress tracked under [#743](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/743).
 
-**Phase 1 package (2026-08-04):** a reviewed-but-inactive OpenHands package now exists at `ops/openhands/`,
-`config/openhands/`, and `scripts/ops/openhands/` on branch `ops/openhands-private-worker-package`, controlling
-issue [#743](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/743). It is **not installed**.
-Recommended branch prefix for future OpenHands-authored work (once OpenHands itself is running and opening its
-own PRs) is `openhands/*`, distinct from this human/Cursor-authored packaging branch. See
-`docs/operations/OPENHANDS_ARCHITECTURE.md` (target design and resource envelope) and
-`docs/operations/OPENHANDS_MODEL_AND_COST_POLICY.md` (provider choice and USD 25/month cost ceiling) for the
-detail this charter assumes. Installation requires the separate ADR + authorization packet at
+> **Executor posture override:** `docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md` is current proven reality. **Cursor** is the automatic primary execution worker; **OpenHands** is an **optional** operational worker and must not sit on the critical path or overlap another executor claim merely because it exists. Sections below that still describe OpenHands as the "default routine worker" are destination-shape / charter intent — they do **not** override current delivery reality until Anton explicitly re-authorizes that routing.
+
+**Phase 1 package (2026-08-04):** a reviewed OpenHands package exists at `ops/openhands/`,
+`config/openhands/`, and `scripts/ops/openhands/` (controlling issue [#743](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/743)). Treat OpenHands as **available when separately assigned**, not as automatic dispatch. Recommended branch prefix for future OpenHands-authored work (once opening its own PRs) is `openhands/*`. See
+`docs/operations/OPENHANDS_ARCHITECTURE.md` and
+`docs/operations/OPENHANDS_MODEL_AND_COST_POLICY.md`. Installation/ops bounds remain in
 `docs/decisions/20260804-openhands-on-exec01.md` and `docs/execution/OPENHANDS_ON_EXEC01_AUTHORIZATION_PACKET.md`.
 
 ## Purpose

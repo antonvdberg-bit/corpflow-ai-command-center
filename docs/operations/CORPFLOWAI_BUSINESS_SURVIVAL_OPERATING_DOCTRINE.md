@@ -9,6 +9,8 @@
 
 This doctrine is **mandatory reading** for every agent (Cursor, Codex Cloud, ChatGPT-authored packets, n8n-triggered work) and every operator workflow that creates, prioritises, executes, reviews, or closes CorpFlowAI work. It sits alongside — and does not replace — `.cursor/rules/delivery-reality.mdc`, `docs/execution/CORPFLOW_AUTONOMOUS_ACTIONS_POLICY.md`, and `docs/execution/CORPFLOW_EXECUTION_PACKET_STANDARD.md`. If those rules conflict with this doc on safety or approval gates, those rules win; on **what counts as business progress**, this doc wins.
 
+**Orchestration snapshot:** Before progress / dispatch / next-action / blocker advice, also check **`docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md`** and current GitHub issue/PR state (no remembered/manual-pickup assumptions).
+
 ---
 
 ## 1. Purpose
