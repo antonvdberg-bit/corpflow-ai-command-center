@@ -4,10 +4,12 @@
  * Docs: docs/runbooks/N8N_CURSOR_COMPLETION_EVENT_LIVE_APPLY_661.md
  *
  * Preserves #684 needs:anton exception path + open-PR silence.
- * Adds corpflow.cursor_completion_event.v1 consumption.
+ * Adds corpflow.cursor_completion_event.v1 + corpflow.codex_completion_event.v1 consumption.
  *
- * This file is the apply-ready source. Mirror: lib/server/cursor-agent-lifecycle.js
- * shouldNotifyCursorCompletionEvent() + ops-notification-policy exception fingerprinting.
+ * This file is the apply-ready source. Mirror:
+ *   lib/server/cursor-agent-lifecycle.js (shouldNotifyCursorCompletionEvent)
+ *   lib/server/codex-github-lifecycle.js (shouldNotifyCodexCompletionEvent)
+ * + ops-notification-policy exception fingerprinting.
  */
 
 // --- BEGIN n8n jsCode ---
@@ -76,6 +78,23 @@ function parseCursorCompletionEvent(body) {
   }
 }
 
+function parseCodexCompletionEvent(body) {
+  const text = String(body || '');
+  const m = text.match(/<!--\s*corpflow\.codex_completion_event\.v1\s+(\{[\s\S]*?\})\s*-->/i);
+  if (!m) return null;
+  try {
+    const e = JSON.parse(m[1]);
+    if (!e || e.schema !== 'corpflow.codex_completion_event.v1') return null;
+    return e;
+  } catch {
+    return null;
+  }
+}
+
+function parseExecutorCompletionEvent(body) {
+  return parseCursorCompletionEvent(body) || parseCodexCompletionEvent(body);
+}
+
 function shouldNotifyCursorCompletionEvent(event) {
   if (!event || typeof event !== 'object') return false;
   const status = String(event.status || '').toUpperCase();
@@ -92,16 +111,24 @@ function shouldNotifyCursorCompletionEvent(event) {
 
 function cursorFingerprint(event) {
   if (event.fingerprint && String(event.fingerprint).trim()) return String(event.fingerprint).trim();
+  const prefix =
+    event.schema === 'corpflow.codex_completion_event.v1' || event.executor === 'codex'
+      ? 'codex_github_lifecycle'
+      : 'cursor_lifecycle';
   return [
-    'cursor_lifecycle',
-    event.executor || 'cursor',
-    event.cursor_agent_id || event.agent_run_id || event.cursor_run_id || 'no-agent',
+    prefix,
+    event.executor || (prefix.startsWith('codex') ? 'codex' : 'cursor'),
+    event.lifecycle_identity ||
+      event.cursor_agent_id ||
+      event.agent_run_id ||
+      event.cursor_run_id ||
+      'no-agent',
     event.source_issue || 'no-issue',
     event.status || 'no-phase',
     event.pr || 'no-pr',
     event.sha || 'no-sha',
     event.ci_check_result || 'no-ci',
-    event.branch || 'no-branch',
+    event.branch || event.codex_task_id || 'no-branch',
   ].join('|');
 }
 
@@ -199,16 +226,15 @@ for (const issue of issues) {
   alerts.push(alert);
 }
 
-// Cursor completion events from issue bodies (and optional synthetic pins)
+// Cursor + Codex completion events from issue bodies (and optional synthetic pins)
 const eventCandidates = [];
 for (const issue of issues) {
-  const labels = labelNames(issue);
   const body = String(issue.body || '');
-  const fromBody = parseCursorCompletionEvent(body);
+  const fromBody = parseExecutorCompletionEvent(body);
   if (fromBody) eventCandidates.push({ event: fromBody, issue });
-  // Also scan bodies that mention CURSOR COMPLETION EVENT even without needs:anton
-  // (completion comments are on claimed issues; schedule fetch may only load needs:anton —
-  // operators can pin syntheticEvents for matrix tests, or extend GitHub fetch to claimed issues.)
+  // Completion comments usually live on the issue thread (not only issue.body).
+  // Operators can pin syntheticEvents for matrix tests, or extend GitHub fetch
+  // to claimed-issue comments for live comment scanning.
 }
 
 for (const se of syntheticEvents) {

@@ -43,17 +43,19 @@ Rules: RUNNING silent; COMPLETED+`anton_required=no` silent by default; COMPLETE
 
 Claim-before-API + issue-keyed GHA concurrency (`factory-dispatcher-activate-<issue|scan>`). Duplicate activators return `SKIP_ALREADY_CLAIMED`. See `lib/server/cursor-activation-claim.js`.
 
-## Codex adapter (next — not blocking)
+## Codex adapter (Option A — GitHub-native)
 
-| Item | Supported path today |
-|------|----------------------|
-| Launch | Codex Cloud GitHub App / Action after Packet 7.2 install — **not** an unattended API client in this repo yet |
-| Run id | Codex Cloud task / Actions run id (when installed) |
-| Status | GitHub Actions `workflow_run` / check runs — same normalized phases when adapter lands |
-| Result/PR | Branch + PR via GitHub (same completion event schema) |
-| Smallest trigger | Documented in `docs/execution/CODEX_CLOUD_ACTIVATION_PACKET_V1.md` — install Packet 7.2 first |
+| Item | Path |
+|------|------|
+| Launch | PR comment `@codex review` / `@codex <task>` via `scripts/codex-github-activate.mjs` (GITHUB_TOKEN / `github-actions[bot]`) |
+| Claim | `lib/server/codex-activation-claim.js` — `executor=codex`; cross-executor `SKIP_ALREADY_CLAIMED` vs Cursor |
+| Lifecycle identity | `sourceIssue + pr + attempt + triggerCommentId` (Codex task URL captured when GitHub exposes it) |
+| Status | `lib/server/codex-github-lifecycle.js` + `scripts/codex-github-lifecycle-status.mjs` |
+| Workflow | `.github/workflows/codex-github-control-loop.yml` |
+| Completion event | Issue comment `corpflow.codex_completion_event.v1` — same n8n silence rules |
+| Official docs | https://developers.openai.com/codex/integrations/github — `@codex` is **PR-comment** native |
 
-Do **not** invent an unsupported Codex HTTP bridge.
+Do **not** invent an unsupported Codex HTTP bridge / Platform API path.
 
 ## OpenHands role
 

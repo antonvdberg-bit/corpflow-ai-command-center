@@ -1,0 +1,125 @@
+# Codex GitHub-native control loop (#661 Option A).
+# Claim → @codex on bounded PR → poll GitHub evidence → completion event once.
+# Uses GITHUB_TOKEN only. No OpenAI API keys. No auto-merge.
+
+name: Codex GitHub control loop
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue:
+        description: "Source GitHub issue number"
+        required: true
+        type: string
+      pr:
+        description: "Bounded pull request number (required — @codex is PR-comment native)"
+        required: true
+        type: string
+      mode:
+        description: "review | task"
+        required: false
+        default: "review"
+        type: string
+      task:
+        description: "Task text when mode=task"
+        required: false
+        default: ""
+        type: string
+      skip_claim:
+        description: "Skip claim (proof / status-only)"
+        required: false
+        default: false
+        type: boolean
+      activate_only:
+        description: "Post @codex only; skip status poll"
+        required: false
+        default: false
+        type: boolean
+      status_only:
+        description: "Poll status only (no new @codex)"
+        required: false
+        default: false
+        type: boolean
+      trigger_comment:
+        description: "Existing trigger comment id (status_only)"
+        required: false
+        default: ""
+        type: string
+      poll_twice:
+        description: "Two polls for dedupe proof"
+        required: false
+        default: true
+        type: boolean
+      dry_run:
+        description: "Dry run"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+  checks: read
+  statuses: read
+
+concurrency:
+  group: codex-github-control-loop-${{ github.event.inputs.issue || 'manual' }}
+  cancel-in-progress: false
+
+jobs:
+  loop:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
+        with:
+          node-version: "20"
+
+      - name: Activate (claim + @codex)
+        if: ${{ github.event.inputs.status_only != 'true' }}
+        id: activate
+        env:
+          ISSUE: ${{ github.event.inputs.issue }}
+          PR: ${{ github.event.inputs.pr }}
+          MODE: ${{ github.event.inputs.mode || 'review' }}
+          TASK: ${{ github.event.inputs.task || '' }}
+          SKIP_CLAIM: ${{ github.event.inputs.skip_claim }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          ARGS=(--issue="$ISSUE" --pr="$PR" --mode="$MODE")
+          if [ -n "${TASK:-}" ]; then ARGS+=(--task="$TASK"); fi
+          if [ "$SKIP_CLAIM" = "true" ]; then ARGS+=(--skip-claim); fi
+          if [ "$DRY_RUN" = "true" ]; then ARGS+=(--dry-run); fi
+          node scripts/codex-github-activate.mjs "${ARGS[@]}" | tee activate.json
+          TRIGGER_ID=$(node -e "const fs=require('fs'); const j=JSON.parse(fs.readFileSync('activate.json','utf8').trim().split(/\n(?=\{)/).pop()); process.stdout.write(String(j.triggerCommentId||''))")
+          echo "trigger_comment_id=$TRIGGER_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Status poll
+        if: ${{ github.event.inputs.activate_only != 'true' }}
+        env:
+          ISSUE: ${{ github.event.inputs.issue }}
+          PR: ${{ github.event.inputs.pr }}
+          TRIGGER_INPUT: ${{ github.event.inputs.trigger_comment }}
+          TRIGGER_FROM_ACTIVATE: ${{ steps.activate.outputs.trigger_comment_id || '' }}
+          POLL_TWICE: ${{ github.event.inputs.poll_twice }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          TRIGGER="${TRIGGER_INPUT:-}"
+          if [ -z "$TRIGGER" ]; then TRIGGER="${TRIGGER_FROM_ACTIVATE:-}"; fi
+          ARGS=(--issue="$ISSUE" --pr="$PR")
+          if [ -n "$TRIGGER" ]; then ARGS+=(--trigger-comment="$TRIGGER"); fi
+          if [ "$POLL_TWICE" = "true" ]; then ARGS+=(--poll-twice); fi
+          if [ "$DRY_RUN" = "true" ]; then ARGS+=(--dry-run); fi
+          # Give Codex a short window when we just triggered
+          if [ -n "${TRIGGER_FROM_ACTIVATE:-}" ] && [ "$DRY_RUN" != "true" ]; then
+            sleep 45
+          fi
+          node scripts/codex-github-lifecycle-status.mjs "${ARGS[@]}"
