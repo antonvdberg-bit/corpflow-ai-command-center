@@ -1,6 +1,6 @@
 # Café International — client visual review packet
 
-**Gate:** READY FOR OWNER REVIEW (visual) — pending Anton merge / anonymous preview URL for Dion & Anna-Marie.
+**Gate:** READY FOR OWNER REVIEW (visual) — pending Anton merge / anonymous preview URL for Deon and Annemarie.
 
 ## Preview URL
 
@@ -45,6 +45,7 @@ Under `artifacts/cafe-international-visual-review/screenshots/`:
 3. Journey split preserved and made visual.
 4. Menu source corrected to live Sheet (193 items incl. Drinks) — Drive `CafeInternational_Menu - Sheet1.csv` marked outdated.
 5. Facts kept: Trou aux Biches, hours, +230 5765 8735, since 2009. No invented prices.
+6. Brand authenticity: owners named exactly **Deon and Annemarie**; official Flame Grill logo in header + hero; Restaurant Guru **Best Steaks 2025** badge linked to their listing.
 
 ## Why better
 

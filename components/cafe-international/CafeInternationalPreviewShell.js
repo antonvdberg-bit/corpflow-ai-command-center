@@ -249,28 +249,54 @@ export default function CafeInternationalPreviewShell({
         >
           <Link
             href={nav?.[0]?.href || '/demo/cafe-international'}
+            data-cafe-brand-lockup
             style={{
               textDecoration: 'none',
               color: T.cream,
-              fontFamily: T.fontDisplay,
-              fontSize: 20,
-              fontWeight: 700,
-              letterSpacing: '-0.02em',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              minWidth: 0,
             }}
           >
-            Café International
-            <span
+            <img
+              src={CAFE_INTERNATIONAL_VISUALS.brandLogoMark}
+              alt="Café International — The Flame Grill logo"
+              width={48}
+              height={48}
               style={{
-                display: 'block',
-                fontFamily: T.fontBody,
-                fontSize: 11,
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
-                color: T.flameSoft,
-                marginTop: 2,
+                width: 48,
+                height: 48,
+                objectFit: 'contain',
+                flexShrink: 0,
+                filter: 'drop-shadow(0 6px 14px rgba(0,0,0,0.4))',
               }}
-            >
-              The Flame Grill Café
+            />
+            <span style={{ minWidth: 0 }}>
+              <span
+                style={{
+                  display: 'block',
+                  fontFamily: T.fontDisplay,
+                  fontSize: 20,
+                  fontWeight: 700,
+                  letterSpacing: '-0.02em',
+                }}
+              >
+                Café International
+              </span>
+              <span
+                style={{
+                  display: 'block',
+                  fontFamily: T.fontBody,
+                  fontSize: 11,
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                  color: T.flameSoft,
+                  marginTop: 2,
+                }}
+              >
+                The Flame Grill Café
+              </span>
             </span>
           </Link>
           <button
