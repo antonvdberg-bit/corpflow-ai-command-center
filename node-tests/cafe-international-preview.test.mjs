@@ -103,6 +103,20 @@ describe('Café International preview — routes and hygiene', () => {
     assert.ok(!actions.some((a) => String(a.label).toLowerCase().includes('chat')));
   });
 
+  it('menu page uses one WhatsApp CTA per category, not per item', () => {
+    const src = read('pages/demo/cafe-international/menu.js');
+    assert.match(src, /data-cafe-category-whatsapp/);
+    assert.match(src, /Order Burgers on WhatsApp|Order Grill Specials on WhatsApp/);
+    assert.match(src, /categoryWhatsAppLabel/);
+    // Per-item WhatsApp buttons must not be generated inside the items map
+    assert.doesNotMatch(
+      src,
+      /cat\.items[\s\S]{0,800}ActionButton[\s\S]{0,120}WhatsApp/,
+    );
+    assert.match(src, /data-cafe-menu-item/);
+    assert.match(src, /data-cafe-menu-price/);
+  });
+
   it('preview is noindex and does not activate chatbot components', () => {
     const shell = read('components/cafe-international/CafeInternationalPreviewShell.js');
     assert.match(shell, /noindex,nofollow/);
