@@ -1,0 +1,122 @@
+# Codex human-triggered specialist lifecycle (#661).
+# After Anton posts @codex on a PR, watches GitHub evidence only.
+# Does NOT auto-post @codex (bot triggers are rejected by Codex).
+# Does not merge. RUNNING is silent.
+
+name: Codex specialist lifecycle
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "prepare | watch"
+        required: true
+        default: "watch"
+        type: choice
+        options:
+          - watch
+          - prepare
+      issue:
+        description: "Source GitHub issue number"
+        required: true
+        type: string
+      pr:
+        description: "PR number (required for prepare)"
+        required: false
+        default: ""
+        type: string
+      instruction:
+        description: "Codex instruction (prepare) — e.g. review"
+        required: false
+        default: "review"
+        type: string
+      purpose:
+        description: "Short purpose for CODEX TRIGGER REQUIRED"
+        required: false
+        default: "Codex specialist packet"
+        type: string
+      poll_twice:
+        description: "Run two watch polls (dedupe proof)"
+        required: false
+        default: false
+        type: boolean
+      dry_run:
+        description: "Do not write issue comments"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+  checks: read
+
+concurrency:
+  group: codex-specialist-lifecycle
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
+        with:
+          node-version: "20"
+
+      - name: Prepare or watch Codex specialist lifecycle
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          INPUT_MODE: ${{ github.event.inputs.mode || 'watch' }}
+          INPUT_ISSUE: ${{ github.event.inputs.issue }}
+          INPUT_PR: ${{ github.event.inputs.pr || '' }}
+          INPUT_INSTRUCTION: ${{ github.event.inputs.instruction || 'review' }}
+          INPUT_PURPOSE: ${{ github.event.inputs.purpose || 'Codex specialist packet' }}
+          INPUT_POLL_TWICE: ${{ github.event.inputs.poll_twice || false }}
+          INPUT_DRY_RUN: ${{ github.event.inputs.dry_run || false }}
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            # Scheduled: watch open AWAITING/RUNNING claims on issues mentioning marker
+            mapfile -t ISSUES < <(gh api "search/issues?q=repo:${GITHUB_REPOSITORY}+is:issue+is:open+%22corpflow.codex_lifecycle_state.v1%22&per_page=10" --jq '.items[].number' || true)
+            if [ "${#ISSUES[@]}" -eq 0 ]; then
+              echo "No open Codex lifecycle issues"
+              exit 0
+            fi
+            for issue in "${ISSUES[@]}"; do
+              echo "Watching issue #${issue}"
+              node scripts/codex-specialist-lifecycle.mjs --watch --issue="${issue}" || true
+            done
+            exit 0
+          fi
+
+          EXTRA=()
+          if [ "${INPUT_DRY_RUN}" = "true" ]; then EXTRA+=(--dry-run); fi
+          if [ "${INPUT_POLL_TWICE}" = "true" ]; then EXTRA+=(--poll-twice); fi
+
+          if [ "${INPUT_MODE}" = "prepare" ]; then
+            if [ -z "${INPUT_PR}" ]; then
+              echo "prepare requires pr input" >&2
+              exit 1
+            fi
+            node scripts/codex-specialist-lifecycle.mjs \
+              --prepare \
+              --issue="${INPUT_ISSUE}" \
+              --pr="${INPUT_PR}" \
+              --instruction="${INPUT_INSTRUCTION}" \
+              --purpose="${INPUT_PURPOSE}" \
+              "${EXTRA[@]}"
+          else
+            node scripts/codex-specialist-lifecycle.mjs \
+              --watch \
+              --issue="${INPUT_ISSUE}" \
+              "${EXTRA[@]}"
+          fi

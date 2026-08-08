@@ -43,17 +43,16 @@ Rules: RUNNING silent; COMPLETED+`anton_required=no` silent by default; COMPLETE
 
 Claim-before-API + issue-keyed GHA concurrency (`factory-dispatcher-activate-<issue|scan>`). Duplicate activators return `SKIP_ALREADY_CLAIMED`. See `lib/server/cursor-activation-claim.js`.
 
-## Codex adapter (next — not blocking)
+## Codex specialist (human-triggered)
 
-| Item | Supported path today |
-|------|----------------------|
-| Launch | Codex Cloud GitHub App / Action after Packet 7.2 install — **not** an unattended API client in this repo yet |
-| Run id | Codex Cloud task / Actions run id (when installed) |
-| Status | GitHub Actions `workflow_run` / check runs — same normalized phases when adapter lands |
-| Result/PR | Branch + PR via GitHub (same completion event schema) |
-| Smallest trigger | Documented in `docs/execution/CODEX_CLOUD_ACTIVATION_PACKET_V1.md` — install Packet 7.2 first |
+| Item | Path |
+|------|------|
+| Canonical | `docs/operations/CODEX_SPECIALIST_LIFECYCLE_V1.md` |
+| Core | `lib/server/codex-specialist-lifecycle.js` |
+| Event | `corpflow.codex_completion_event.v1` |
+| Trigger | Human PR comment `@codex …` only (bot `@codex` rejected) |
 
-Do **not** invent an unsupported Codex HTTP bridge.
+Do **not** invent an unsupported Codex HTTP bridge or auto-post `@codex` via `GITHUB_TOKEN`.
 
 ## OpenHands role
 

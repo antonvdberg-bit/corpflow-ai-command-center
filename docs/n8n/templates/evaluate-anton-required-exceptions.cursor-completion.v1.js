@@ -2,12 +2,14 @@
  * Paste into live n8n Code node: "Evaluate Anton-required exceptions"
  * Workflow: CorpFlowAI — GitHub Heartbeat Checker (in place — do not create a second workflow)
  * Docs: docs/runbooks/N8N_CURSOR_COMPLETION_EVENT_LIVE_APPLY_661.md
+ *       docs/operations/CODEX_SPECIALIST_LIFECYCLE_V1.md
  *
  * Preserves #684 needs:anton exception path + open-PR silence.
- * Adds corpflow.cursor_completion_event.v1 consumption.
+ * Adds corpflow.cursor_completion_event.v1 + corpflow.codex_completion_event.v1 consumption.
  *
- * This file is the apply-ready source. Mirror: lib/server/cursor-agent-lifecycle.js
- * shouldNotifyCursorCompletionEvent() + ops-notification-policy exception fingerprinting.
+ * This file is the apply-ready source. Mirror:
+ *   lib/server/cursor-agent-lifecycle.js shouldNotifyCursorCompletionEvent()
+ *   lib/server/codex-specialist-lifecycle.js shouldNotifyCodexCompletionEvent()
  */
 
 // --- BEGIN n8n jsCode ---
@@ -76,6 +78,19 @@ function parseCursorCompletionEvent(body) {
   }
 }
 
+function parseCodexCompletionEvent(body) {
+  const text = String(body || '');
+  const m = text.match(/<!--\s*corpflow\.codex_completion_event\.v1\s+(\{[\s\S]*?\})\s*-->/i);
+  if (!m) return null;
+  try {
+    const e = JSON.parse(m[1]);
+    if (!e || e.schema !== 'corpflow.codex_completion_event.v1') return null;
+    return e;
+  } catch {
+    return null;
+  }
+}
+
 function shouldNotifyCursorCompletionEvent(event) {
   if (!event || typeof event !== 'object') return false;
   const status = String(event.status || '').toUpperCase();
@@ -87,6 +102,20 @@ function shouldNotifyCursorCompletionEvent(event) {
   if (status === 'COMPLETED' && antonRequired) return true;
   if (status === 'FAILED' && (antonRequired || notifyHint || recoveryExhausted)) return true;
   if (status === 'STALE' && (antonRequired || notifyHint || recoveryExhausted)) return true;
+  return false;
+}
+
+function shouldNotifyCodexCompletionEvent(event) {
+  if (!event || typeof event !== 'object') return false;
+  const status = String(event.status || '').toUpperCase();
+  if (status === 'RUNNING') return false;
+  const antonRequired = Boolean(event.anton_required);
+  const notifyHint = Boolean(event.notify);
+  if (status === 'AWAITING_HUMAN_TRIGGER' && antonRequired) return true;
+  if (status === 'COMPLETED' && !antonRequired) return false;
+  if (status === 'COMPLETED' && antonRequired) return true;
+  if (status === 'FAILED' && (antonRequired || notifyHint)) return true;
+  if (status === 'STALE' && (antonRequired || notifyHint)) return true;
   return false;
 }
 
@@ -105,6 +134,21 @@ function cursorFingerprint(event) {
   ].join('|');
 }
 
+function codexFingerprint(event) {
+  if (event.fingerprint && String(event.fingerprint).trim()) return String(event.fingerprint).trim();
+  return [
+    'codex_lifecycle',
+    event.executor || 'codex',
+    event.source_issue || 'no-issue',
+    event.pr || 'no-pr',
+    event.attempt || 'no-attempt',
+    event.human_trigger_comment_id || 'no-trigger',
+    event.status || 'no-status',
+    event.sha || 'no-sha',
+    event.ci_check_result || 'no-checks',
+  ].join('|');
+}
+
 function formatCursorMsg(a, event) {
   return [
     'ANTON DECISION INBOX',
@@ -114,6 +158,27 @@ function formatCursorMsg(a, event) {
     'Executor: ' + (event.executor || 'cursor'),
     'Agent/run ID: ' + (event.agent_run_id || event.cursor_agent_id || event.cursor_run_id || 'n/a'),
     'PR: ' + (event.pr != null ? '#' + event.pr : 'n/a'),
+    'Status/checks: ' + (event.status || 'n/a') + ' / ' + (event.ci_check_result || 'unknown'),
+    'What finished or failed: ' + (event.what_moved || event.blocker || event.status || 'n/a'),
+    'Link: ' + a.link,
+    'Why needed now: ' + a.why,
+    'Exact action: ' + a.next,
+    'Recommendation: ' + a.recommendation,
+    'Consequence of delay: ' + a.consequence,
+    'Urgency: ' + (a.urgency || 'P0'),
+  ].join('\n');
+}
+
+function formatCodexMsg(a, event) {
+  return [
+    'ANTON DECISION INBOX',
+    'Anton required: yes',
+    'Workstream: ' + a.workstream,
+    'Issue/PR: ' + a.target,
+    'Executor: codex',
+    'PR: ' + (event.pr != null ? '#' + event.pr : 'n/a'),
+    'Attempt: ' + (event.attempt || 'n/a'),
+    'Human trigger comment: ' + (event.human_trigger_comment_id || 'n/a'),
     'Status/checks: ' + (event.status || 'n/a') + ' / ' + (event.ci_check_result || 'unknown'),
     'What finished or failed: ' + (event.what_moved || event.blocker || event.status || 'n/a'),
     'Link: ' + a.link,
@@ -199,34 +264,40 @@ for (const issue of issues) {
   alerts.push(alert);
 }
 
-// Cursor completion events from issue bodies (and optional synthetic pins)
+// Cursor + Codex completion events from issue bodies (and optional synthetic pins)
 const eventCandidates = [];
 for (const issue of issues) {
-  const labels = labelNames(issue);
   const body = String(issue.body || '');
-  const fromBody = parseCursorCompletionEvent(body);
-  if (fromBody) eventCandidates.push({ event: fromBody, issue });
-  // Also scan bodies that mention CURSOR COMPLETION EVENT even without needs:anton
-  // (completion comments are on claimed issues; schedule fetch may only load needs:anton —
-  // operators can pin syntheticEvents for matrix tests, or extend GitHub fetch to claimed issues.)
+  const fromCursor = parseCursorCompletionEvent(body);
+  if (fromCursor) eventCandidates.push({ event: fromCursor, issue, kind: 'cursor' });
+  const fromCodex = parseCodexCompletionEvent(body);
+  if (fromCodex) eventCandidates.push({ event: fromCodex, issue, kind: 'codex' });
 }
 
 for (const se of syntheticEvents) {
-  if (se && typeof se === 'object') eventCandidates.push({ event: se, issue: null });
+  if (se && typeof se === 'object') {
+    const kind = se.schema === 'corpflow.codex_completion_event.v1' ? 'codex' : 'cursor';
+    eventCandidates.push({ event: se, issue: null, kind });
+  }
 }
 
-for (const { event, issue } of eventCandidates) {
+for (const { event, issue, kind } of eventCandidates) {
   const status = String(event.status || '').toUpperCase();
-  const fp = cursorFingerprint(event);
-  const notify = shouldNotifyCursorCompletionEvent(event);
+  const isCodex = kind === 'codex' || event.schema === 'corpflow.codex_completion_event.v1';
+  const fp = isCodex ? codexFingerprint(event) : cursorFingerprint(event);
+  const notify = isCodex
+    ? shouldNotifyCodexCompletionEvent(event)
+    : shouldNotifyCursorCompletionEvent(event);
   const target =
     event.source_issue != null
       ? '#' + event.source_issue + (event.pr != null ? ' / PR #' + event.pr : '')
       : issue
         ? '#' + issue.number
-        : 'cursor-event';
+        : isCodex
+          ? 'codex-event'
+          : 'cursor-event';
   const signal = {
-    kind: 'cursor_completion',
+    kind: isCodex ? 'codex_completion' : 'cursor_completion',
     target,
     anton: notify,
     status,
@@ -240,19 +311,21 @@ for (const { event, issue } of eventCandidates) {
   if (seen[fp]) continue;
   seen[fp] = true;
   const alert = {
-    kind: 'cursor_completion',
+    kind: isCodex ? 'codex_completion' : 'cursor_completion',
     target,
     anton: true,
-    decisionType: 'cursor:' + status.toLowerCase(),
+    decisionType: (isCodex ? 'codex:' : 'cursor:') + status.toLowerCase(),
     evidence: fp,
     blockerState: event.blocker || status,
     fingerprint: fp,
-    workstream: 'cursor-control-loop',
+    workstream: isCodex ? 'codex-specialist-loop' : 'cursor-control-loop',
     why:
       event.blocker ||
-      (status === 'COMPLETED'
-        ? 'Cursor completion requires Anton disposition'
-        : 'Cursor ' + status + ' requires Anton'),
+      (status === 'AWAITING_HUMAN_TRIGGER'
+        ? 'Post the exact @codex comment on the PR'
+        : status === 'COMPLETED'
+          ? (isCodex ? 'Codex' : 'Cursor') + ' completion requires Anton disposition'
+          : (isCodex ? 'Codex' : 'Cursor') + ' ' + status + ' requires Anton'),
     next: event.next_action || 'Review issue/PR and record disposition',
     recommendation:
       event.next_action || 'Review PR evidence; do not auto-merge; decide next action',
@@ -266,11 +339,13 @@ for (const { event, issue } of eventCandidates) {
         : 'https://github.com/antonvdberg-bit/corpflow-ai-command-center'),
     urgency: 'P0',
     _event: event,
+    _isCodex: isCodex,
   };
   alerts.push(alert);
 }
 
 function formatMsg(a) {
+  if (a.kind === 'codex_completion' && a._event) return formatCodexMsg(a, a._event);
   if (a.kind === 'cursor_completion' && a._event) return formatCursorMsg(a, a._event);
   return [
     'ANTON DECISION INBOX',
@@ -294,10 +369,11 @@ return [
         'needs:anton issues',
         'open PRs (log only)',
         'cursor completion events (body + synthetic)',
+        'codex completion events (body + synthetic)',
       ],
       alert_count: alerts.length,
       alerts: alerts.map((a) => {
-        const { _event, ...rest } = a;
+        const { _event, _isCodex, ...rest } = a;
         return rest;
       }),
       all_signals: allSignals,
