@@ -21,8 +21,16 @@ Under `artifacts/cafe-international-visual-review/screenshots/`:
 | `home-desktop-viewport.png` | First viewport — flame-grill hero + glass CTAs |
 | `home-mobile-viewport.png` | Mobile first viewport + Book / Takeaway dock |
 | `home-desktop.png` / `home-mobile.png` | Full-page scroll |
-| `menu-desktop.png` | Live Menu-page Sheet prices + WhatsApp order |
+| `menu-desktop.png` | Clean category rows + one WhatsApp CTA per section |
+| `menu-mobile.png` | Mobile menu scan + category WhatsApp CTA |
 | `takeaway-desktop.png` | Takeaway path visual |
+
+### Menu UX update (2026-08-08)
+
+- Per-item WhatsApp buttons **removed**
+- One WhatsApp CTA per category (e.g. Order Starters / Grill Specials / Burgers on WhatsApp)
+- Cleaner name / description / price hierarchy
+- Book vs Takeaway journeys unchanged
 
 ## Before → After
 
