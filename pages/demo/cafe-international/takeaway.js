@@ -4,6 +4,7 @@ import CafeInternationalPreviewShell, {
   CafeActionPanel,
   CafeInternationalTheme as T,
 } from '../../../components/cafe-international/CafeInternationalPreviewShell.js';
+import { CAFE_INTERNATIONAL_VISUALS } from '../../../lib/website-rescue/cafe-international-assets.js';
 import { CAFE_INTERNATIONAL_PREVIEW_BASE } from '../../../lib/website-rescue/cafe-international-preview.js';
 import { getCafeInternationalPreviewProps } from '../../../lib/website-rescue/cafe-international-preview-server.js';
 
@@ -17,24 +18,41 @@ export default function CafeInternationalTakeawayPage({ truth, takeawayActions, 
       activeHref={`${CAFE_INTERNATIONAL_PREVIEW_BASE}/takeaway`}
       truth={truth}
     >
-      <h1
+      <div
         style={{
-          margin: '24px 0 0',
-          fontFamily: T.fontDisplay,
-          fontSize: 'clamp(32px, 5vw, 48px)',
-          color: T.cream,
+          borderRadius: 18,
+          overflow: 'hidden',
+          minHeight: 220,
+          marginTop: 8,
+          backgroundImage: `
+            linear-gradient(180deg, rgba(20,14,12,0.3), rgba(20,14,12,0.88)),
+            url(${CAFE_INTERNATIONAL_VISUALS.takeawayVisual})
+          `,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          padding: '36px 18px 28px',
         }}
       >
-        Takeaway
-      </h1>
-      <p style={{ marginTop: 12, color: T.creamMuted, maxWidth: 560, lineHeight: 1.55 }}>
-        Collection only — no delivery. Use WhatsApp or phone. Website chat is for
-        table booking, not takeaway orders.
-      </p>
+        <h1
+          style={{
+            margin: 0,
+            fontFamily: T.fontDisplay,
+            fontSize: 'clamp(32px, 5vw, 48px)',
+            color: T.cream,
+          }}
+        >
+          Takeaway
+        </h1>
+        <p style={{ marginTop: 12, color: T.creamMuted, maxWidth: 560, lineHeight: 1.55 }}>
+          Collection only — no delivery. Use WhatsApp or phone. Website chat is for
+          table booking, not takeaway orders.
+        </p>
+      </div>
 
       <div style={{ marginTop: 24 }}>
         <CafeActionPanel
           tone="takeaway"
+          image={CAFE_INTERNATIONAL_VISUALS.plateBurger}
           title="Order for collection"
           subtitle={`Message or call ${truth.public_phone}. Do not use the website chat for takeaway.`}
           actions={takeawayActions}

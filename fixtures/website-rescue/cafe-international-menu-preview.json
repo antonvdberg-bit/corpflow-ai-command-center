@@ -1,40 +1,1207 @@
 {
   "schema": "corpflow.cafe_international_menu_preview.v1",
-  "source": "category_structure_from_public_current_site_copy_and_build_packet; item_names_and_MUR_prices_await_owner_menu_sheet_snapshot",
+  "source": "live_menu_page_google_sheet_csv",
+  "source_url": "https://docs.google.com/spreadsheets/d/e/2PACX-1vTB9dndns4LTTfWMfKJfIMebDrwq02J15PLNbQ4JDVysSuiQcXQjl43QDb2GpHPZ9jMsF_thjrSOyZi/pub?output=csv",
+  "source_page": "https://cafeinternational.net/menu-page",
+  "source_path": "fixtures/website-rescue/cafe-international-menu-sheet.csv",
+  "captured_at": "2026-08-07",
   "invented_item_prices": false,
+  "prices_owner_confirmation_required": false,
+  "note_on_drive_csv": "Drive CafeInternational_Menu Sheet1.csv is OUTDATED; do not use. Canonical = Menu-page published Sheet.",
   "categories": [
     {
-      "id": "steaks",
-      "name": "Steaks",
-      "summary": "Flame-grilled steaks from the grill — the house focus.",
-      "items_status": "pending_owner_sheet",
-      "items": []
+      "id": "starters",
+      "name": "Starters",
+      "summary": "Shareable starters from the grill and fryer.",
+      "items_status": "from_live_menu_page_sheet",
+      "items": [
+        {
+          "name": "Beef Meatballs",
+          "price_mur": 250,
+          "price_display": "Rs 250"
+        },
+        {
+          "name": "Beef Sausage",
+          "price_mur": 250,
+          "price_display": "Rs 250"
+        },
+        {
+          "name": "Biltong",
+          "description": "Beef Jerky",
+          "price_mur": 250,
+          "price_display": "Rs 250"
+        },
+        {
+          "name": "Buffalo Wings",
+          "price_mur": 250,
+          "price_display": "Rs 250"
+        },
+        {
+          "name": "Corn On The Cob",
+          "description": "Veg",
+          "price_mur": 200,
+          "price_display": "Rs 200"
+        },
+        {
+          "name": "Crispy Chicken Strips",
+          "price_mur": 250,
+          "price_display": "Rs 250"
+        },
+        {
+          "name": "Crispy Egg Plant",
+          "description": "Veg",
+          "price_mur": 200,
+          "price_display": "Rs 200"
+        },
+        {
+          "name": "Onion Rings",
+          "description": "Veg",
+          "price_mur": 200,
+          "price_display": "Rs 200"
+        },
+        {
+          "name": "Samosas",
+          "description": "Veg Only",
+          "price_mur": 200,
+          "price_display": "Rs 200"
+        },
+        {
+          "name": "Greek Salad",
+          "description": "Small",
+          "price_mur": 260,
+          "price_display": "Rs 260"
+        },
+        {
+          "name": "Greek Salad",
+          "description": "Large",
+          "price_mur": 400,
+          "price_display": "Rs 400"
+        }
+      ]
     },
     {
-      "id": "ribs",
-      "name": "Ribs",
-      "summary": "Tender ribs prepared on the flame grill.",
-      "items_status": "pending_owner_sheet",
-      "items": []
+      "id": "out-of-the-sea",
+      "name": "Out Of The Sea",
+      "summary": "Seafood plates with salad and chips or mash.",
+      "items_status": "from_live_menu_page_sheet",
+      "items": [
+        {
+          "name": "Battered Fish",
+          "description": "With Salad And Chips Or Mashed Potato",
+          "price_mur": 850,
+          "price_display": "Rs 850"
+        },
+        {
+          "name": "Crispy Calamari",
+          "description": "With Salad And Chips Or Mashed Potato",
+          "price_mur": 850,
+          "price_display": "Rs 850"
+        },
+        {
+          "name": "Crispy Prawns",
+          "description": "With Salad And Chips Or Mashed Potato",
+          "price_mur": 850,
+          "price_display": "Rs 850"
+        },
+        {
+          "name": "Grilled Fish",
+          "description": "With Salad And Chips Or Mashed Potato",
+          "price_mur": 900,
+          "price_display": "Rs 900"
+        },
+        {
+          "name": "Garlic Butter",
+          "description": "Add a Sauce",
+          "price_mur": 50,
+          "price_display": "Rs 50"
+        },
+        {
+          "name": "Mayo",
+          "description": "Add a Sauce",
+          "price_mur": 50,
+          "price_display": "Rs 50"
+        },
+        {
+          "name": "Mustard",
+          "description": "Add a Sauce",
+          "price_mur": 50,
+          "price_display": "Rs 50"
+        },
+        {
+          "name": "Sweet Chilli",
+          "description": "Add a Sauce",
+          "price_mur": 50,
+          "price_display": "Rs 50"
+        },
+        {
+          "name": "Tartar",
+          "description": "Add a Sauce",
+          "price_mur": 50,
+          "price_display": "Rs 50"
+        }
+      ]
     },
     {
-      "id": "burgers",
-      "name": "Burgers",
-      "summary": "Hearty burgers from the grill.",
-      "items_status": "pending_owner_sheet",
-      "items": []
+      "id": "for-the-kids-under-10",
+      "name": "For The Kids Under 10",
+      "summary": "Kids meals and small sides.",
+      "items_status": "from_live_menu_page_sheet",
+      "items": [
+        {
+          "name": "Chicken Nuggets and Chips",
+          "price_mur": 200,
+          "price_display": "Rs 200"
+        },
+        {
+          "name": "Fish and Chips",
+          "price_mur": 250,
+          "price_display": "Rs 250"
+        },
+        {
+          "name": "Meatballs and Chips",
+          "price_mur": 250,
+          "price_display": "Rs 250"
+        },
+        {
+          "name": "Simple Burger and Chips",
+          "price_mur": 220,
+          "price_display": "Rs 220"
+        }
+      ]
     },
     {
-      "id": "grill-favourites",
-      "name": "Grill favourites",
-      "summary": "Other flame-grill plates guests come for.",
-      "items_status": "pending_owner_sheet",
-      "items": []
+      "id": "from-our-grill",
+      "name": "From our Grill",
+      "summary": "Steaks, ribs, chops and grill favourites \u2014 the house focus.",
+      "items_status": "from_live_menu_page_sheet",
+      "items": [
+        {
+          "name": "Beef Steak Fillet 200g",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": 1250,
+          "price_display": "Rs 1250"
+        },
+        {
+          "name": "Beef Steak Fillet 300g",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": 1725,
+          "price_display": "Rs 1725"
+        },
+        {
+          "name": "Beef Steak Fillet 400g",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": 2200,
+          "price_display": "Rs 2200"
+        },
+        {
+          "name": "Beef Steak Ribeye 250g",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": 1250,
+          "price_display": "Rs 1250"
+        },
+        {
+          "name": "Beef Steak Ribeye 400g",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": 1800,
+          "price_display": "Rs 1800"
+        },
+        {
+          "name": "Beef Steak Sirloin 250g",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": 1050,
+          "price_display": "Rs 1050"
+        },
+        {
+          "name": "Beef Steak Sirloin 400g",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": 1500,
+          "price_display": "Rs 1500"
+        },
+        {
+          "name": "Bigger Sizes are Available",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": "SQ",
+          "price_display": "Rs SQ"
+        },
+        {
+          "name": "Lamb Ribs 300g",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": 1050,
+          "price_display": "Rs 1050"
+        },
+        {
+          "name": "Lamb Ribs 500g",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": 1650,
+          "price_display": "Rs 1650"
+        },
+        {
+          "name": "Lamb Kebabs X 2",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": 1100,
+          "price_display": "Rs 1100"
+        },
+        {
+          "name": "Pork Ribs 500g",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": 1150,
+          "price_display": "Rs 1150"
+        },
+        {
+          "name": "Pork Ribs 750g",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": 1725,
+          "price_display": "Rs 1725"
+        },
+        {
+          "name": "Pork Ribs 1 kg",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": 2050,
+          "price_display": "Rs 2050"
+        },
+        {
+          "name": "Pork Chops 300g",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": 950,
+          "price_display": "Rs 950"
+        },
+        {
+          "name": "Pork Fillet 300g",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": 950,
+          "price_display": "Rs 950"
+        },
+        {
+          "name": "Chicken Fillet",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": 650,
+          "price_display": "Rs 650"
+        },
+        {
+          "name": "Buffalo Wings",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": 650,
+          "price_display": "Rs 650"
+        },
+        {
+          "name": "Tender Chicken Strips",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": 650,
+          "price_display": "Rs 650"
+        },
+        {
+          "name": "Chicken Kebabs X 2",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": 600,
+          "price_display": "Rs 600"
+        },
+        {
+          "name": "Beef Sausages X 3",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": 650,
+          "price_display": "Rs 650"
+        },
+        {
+          "name": "Beef Kebabs X2",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": 1100,
+          "price_display": "Rs 1100"
+        }
+      ]
+    },
+    {
+      "id": "platters",
+      "name": "Platters",
+      "summary": "Share platters for one or two.",
+      "items_status": "from_live_menu_page_sheet",
+      "items": [
+        {
+          "name": "Seafood Platter For One",
+          "description": "Calamari Prawns Fish",
+          "price_mur": 1100,
+          "price_display": "Rs 1100"
+        },
+        {
+          "name": "Seafood Platter For Two",
+          "description": "Calamari Prawns Fish",
+          "price_mur": 1700,
+          "price_display": "Rs 1700"
+        },
+        {
+          "name": "Pork Ribs and Beef Fillet",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": 1750,
+          "price_display": "Rs 1750"
+        },
+        {
+          "name": "Pork Ribs and Beef Sirloin",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": 1450,
+          "price_display": "Rs 1450"
+        },
+        {
+          "name": "Pork Ribs and Beef Ribeye",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": 1650,
+          "price_display": "Rs 1650"
+        },
+        {
+          "name": "Mix Ribs Pork And Lamb 750g",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": 1700,
+          "price_display": "Rs 1700"
+        },
+        {
+          "name": "Sirloin and Crispy Calamari",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": 1450,
+          "price_display": "Rs 1450"
+        },
+        {
+          "name": "Sirloin and Crispy Prawns",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": 1450,
+          "price_display": "Rs 1450"
+        },
+        {
+          "name": "Sirloin and Grilled Fish",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": 1550,
+          "price_display": "Rs 1550"
+        },
+        {
+          "name": "Steak Platter (Fillet Sirloin And Ribeye)",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": 2450,
+          "price_display": "Rs 2450"
+        },
+        {
+          "name": "Meat Platter (Pork Ribs Meatballs Chicken Wings and Sausage)",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": 1650,
+          "price_display": "Rs 1650"
+        },
+        {
+          "name": "Vegetarian Platter (Corn on the Cob Crispy Eggplant Samosas and Onion Rings)",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": 1050,
+          "price_display": "Rs 1050"
+        },
+        {
+          "name": "Mix Platter (Steak Strips Chicken Strips Pork Ribs Samosas and Onion Rings)",
+          "description": "Served with Mashed Potato or Chips with Salad",
+          "price_mur": 1550,
+          "price_display": "Rs 1550"
+        }
+      ]
+    },
+    {
+      "id": "build-a-burger",
+      "name": "Build a Burger",
+      "summary": "Build your own burger \u2014 patty, steak, chicken, fish, lamb, veg.",
+      "items_status": "from_live_menu_page_sheet",
+      "items": [
+        {
+          "name": "Beef Patty 100g",
+          "description": "Served With Lettuce And Our Home Made Sauce",
+          "price_mur": 240,
+          "price_display": "Rs 240"
+        },
+        {
+          "name": "Beef Patty 200g",
+          "description": "Served With Lettuce And Our Home Made Sauce",
+          "price_mur": 340,
+          "price_display": "Rs 340"
+        },
+        {
+          "name": "Beef Patty 300g",
+          "description": "Served With Lettuce And Our Home Made Sauce",
+          "price_mur": 450,
+          "price_display": "Rs 450"
+        },
+        {
+          "name": "Beef Patty 400g",
+          "description": "Served With Lettuce And Our Home Made Sauce",
+          "price_mur": 540,
+          "price_display": "Rs 540"
+        },
+        {
+          "name": "Beef Steak 100g",
+          "description": "Served With Lettuce And Our Home Made Sauce",
+          "price_mur": 600,
+          "price_display": "Rs 600"
+        },
+        {
+          "name": "Beef Steak 200g",
+          "description": "Served With Lettuce And Our Home Made Sauce",
+          "price_mur": 800,
+          "price_display": "Rs 800"
+        },
+        {
+          "name": "Beef Steak 300g",
+          "description": "Served With Lettuce And Our Home Made Sauce",
+          "price_mur": 1000,
+          "price_display": "Rs 1000"
+        },
+        {
+          "name": "Beef Steak 400g",
+          "description": "Served With Lettuce And Our Home Made Sauce",
+          "price_mur": 1200,
+          "price_display": "Rs 1200"
+        },
+        {
+          "name": "Lamb Patty 100g",
+          "description": "Served With Lettuce And Our Home Made Sauce",
+          "price_mur": 290,
+          "price_display": "Rs 290"
+        },
+        {
+          "name": "Lamb Patty 200g",
+          "description": "Served With Lettuce And Our Home Made Sauce",
+          "price_mur": 390,
+          "price_display": "Rs 390"
+        },
+        {
+          "name": "Lamb Patty 300g",
+          "description": "Served With Lettuce And Our Home Made Sauce",
+          "price_mur": 490,
+          "price_display": "Rs 490"
+        },
+        {
+          "name": "Lamb Patty 400g",
+          "description": "Served With Lettuce And Our Home Made Sauce",
+          "price_mur": 570,
+          "price_display": "Rs 570"
+        },
+        {
+          "name": "Chicken Patty 100g",
+          "description": "Served With Lettuce And Our Home Made Sauce",
+          "price_mur": 180,
+          "price_display": "Rs 180"
+        },
+        {
+          "name": "Chicken Patty 200g",
+          "description": "Served With Lettuce And Our Home Made Sauce",
+          "price_mur": 280,
+          "price_display": "Rs 280"
+        },
+        {
+          "name": "Chicken Patty 300g",
+          "description": "Served With Lettuce And Our Home Made Sauce",
+          "price_mur": 380,
+          "price_display": "Rs 380"
+        },
+        {
+          "name": "Chicken Patty 400g",
+          "description": "Served With Lettuce And Our Home Made Sauce",
+          "price_mur": 480,
+          "price_display": "Rs 480"
+        },
+        {
+          "name": "Chicken Fillet 100g",
+          "description": "Served With Lettuce And Our Home Made Sauce",
+          "price_mur": 200,
+          "price_display": "Rs 200"
+        },
+        {
+          "name": "Chicken Fillet 200g",
+          "description": "Served With Lettuce And Our Home Made Sauce",
+          "price_mur": 300,
+          "price_display": "Rs 300"
+        },
+        {
+          "name": "Chicken Fillet 300g",
+          "description": "Served With Lettuce And Our Home Made Sauce",
+          "price_mur": 400,
+          "price_display": "Rs 400"
+        },
+        {
+          "name": "Chicken Fillet 400g",
+          "description": "Served With Lettuce And Our Home Made Sauce",
+          "price_mur": 480,
+          "price_display": "Rs 480"
+        },
+        {
+          "name": "Fish Fillet 100g",
+          "description": "Served With Lettuce And Our Home Made Sauce",
+          "price_mur": 280,
+          "price_display": "Rs 280"
+        },
+        {
+          "name": "Fish Fillet 200g",
+          "description": "Served With Lettuce And Our Home Made Sauce",
+          "price_mur": 380,
+          "price_display": "Rs 380"
+        },
+        {
+          "name": "Fish Fillet 300g",
+          "description": "Served With Lettuce And Our Home Made Sauce",
+          "price_mur": 480,
+          "price_display": "Rs 480"
+        },
+        {
+          "name": "Fish Fillet 400g",
+          "description": "Served With Lettuce And Our Home Made Sauce",
+          "price_mur": 600,
+          "price_display": "Rs 600"
+        },
+        {
+          "name": "Veg Patty 100g",
+          "description": "Served With Lettuce And Our Home Made Sauce",
+          "price_mur": 180,
+          "price_display": "Rs 180"
+        },
+        {
+          "name": "Veg Patty 200g",
+          "description": "Served With Lettuce And Our Home Made Sauce",
+          "price_mur": 280,
+          "price_display": "Rs 280"
+        },
+        {
+          "name": "Veg Patty 300g",
+          "description": "Served With Lettuce And Our Home Made Sauce",
+          "price_mur": 380,
+          "price_display": "Rs 380"
+        },
+        {
+          "name": "Veg Patty 400g",
+          "description": "Served With Lettuce And Our Home Made Sauce",
+          "price_mur": 480,
+          "price_display": "Rs 480"
+        }
+      ]
+    },
+    {
+      "id": "topping-chips-and-sauce",
+      "name": "Topping, Chips and Sauce",
+      "summary": "Burger toppings, sauces and chips sizes.",
+      "items_status": "from_live_menu_page_sheet",
+      "items": [
+        {
+          "name": "Tomato",
+          "description": "Toppings",
+          "price_mur": 40,
+          "price_display": "Rs 40"
+        },
+        {
+          "name": "Onion",
+          "description": "Toppings",
+          "price_mur": 25,
+          "price_display": "Rs 25"
+        },
+        {
+          "name": "Cheese",
+          "description": "Toppings",
+          "price_mur": 25,
+          "price_display": "Rs 25"
+        },
+        {
+          "name": "Pickles",
+          "description": "Toppings",
+          "price_mur": 25,
+          "price_display": "Rs 25"
+        },
+        {
+          "name": "Egg",
+          "description": "Toppings",
+          "price_mur": 40,
+          "price_display": "Rs 40"
+        },
+        {
+          "name": "Pineapple",
+          "description": "Toppings",
+          "price_mur": 25,
+          "price_display": "Rs 25"
+        },
+        {
+          "name": "Bacon",
+          "description": "Toppings",
+          "price_mur": 50,
+          "price_display": "Rs 50"
+        },
+        {
+          "name": "Jalape\u00f1os",
+          "description": "Toppings",
+          "price_mur": 50,
+          "price_display": "Rs 50"
+        },
+        {
+          "name": "Pepper",
+          "description": "Sauce",
+          "price_mur": 100,
+          "price_display": "Rs 100"
+        },
+        {
+          "name": "Garlic",
+          "description": "Sauce",
+          "price_mur": 100,
+          "price_display": "Rs 100"
+        },
+        {
+          "name": "Blue Cheese",
+          "description": "Sauce",
+          "price_mur": 150,
+          "price_display": "Rs 150"
+        },
+        {
+          "name": "Small 150g",
+          "description": "Chips",
+          "price_mur": 100,
+          "price_display": "Rs 100"
+        },
+        {
+          "name": "Medium 300g",
+          "description": "Chips",
+          "price_mur": 200,
+          "price_display": "Rs 200"
+        },
+        {
+          "name": "Large 400g",
+          "description": "Chips",
+          "price_mur": 300,
+          "price_display": "Rs 300"
+        },
+        {
+          "name": "XLarge 500g",
+          "description": "Chips",
+          "price_mur": 400,
+          "price_display": "Rs 400"
+        },
+        {
+          "name": "XXLarge 750g",
+          "description": "Chips",
+          "price_mur": 550,
+          "price_display": "Rs 550"
+        }
+      ]
+    },
+    {
+      "id": "sweet-endings-playground",
+      "name": "Sweet Endings Playground",
+      "summary": "Desserts and sweet drinks.",
+      "items_status": "from_live_menu_page_sheet",
+      "items": [
+        {
+          "name": "Malva Pudding",
+          "description": "Cake Soaked in a Buttery Caramel Sauce Served with Whipped Cream",
+          "price_mur": 280,
+          "price_display": "Rs 280"
+        },
+        {
+          "name": "Brownie",
+          "description": "With Ice Cream and Chocolate Sauce",
+          "price_mur": 280,
+          "price_display": "Rs 280"
+        },
+        {
+          "name": "Vanilla Ice Cream",
+          "description": "One Scoop",
+          "price_mur": 90,
+          "price_display": "Rs 90"
+        },
+        {
+          "name": "Milkshake",
+          "description": "Vanilla",
+          "price_mur": 240,
+          "price_display": "Rs 240"
+        },
+        {
+          "name": "Hot Chocolate",
+          "price_mur": 180,
+          "price_display": "Rs 180"
+        },
+        {
+          "name": "Don Pedro Whiskey",
+          "description": "Milkshake with Whiskey and Chocolate",
+          "price_mur": 350,
+          "price_display": "Rs 350"
+        },
+        {
+          "name": "Don Pedro Kahlua",
+          "description": "Milkshake with Kahlua and Chocolate",
+          "price_mur": 350,
+          "price_display": "Rs 350"
+        },
+        {
+          "name": "Irish Coffee",
+          "description": "Espresso with Whiskey and Cream",
+          "price_mur": 350,
+          "price_display": "Rs 350"
+        }
+      ]
+    },
+    {
+      "id": "drinks",
+      "name": "Drinks",
+      "summary": "Cocktails, mocktails, juices, beers, wines and spirits.",
+      "items_status": "from_live_menu_page_sheet",
+      "items": [
+        {
+          "name": "Beer - Blue Marlin Large",
+          "description": "600 ml",
+          "price_mur": 250,
+          "price_display": "Rs 250"
+        },
+        {
+          "name": "Beer - Blue Marlin Small",
+          "description": "330 ml",
+          "price_mur": 140,
+          "price_display": "Rs 140"
+        },
+        {
+          "name": "Beer - Heineken Large",
+          "description": "600 ml",
+          "price_mur": 400,
+          "price_display": "Rs 400"
+        },
+        {
+          "name": "Beer - Heineken Small",
+          "description": "330 ml",
+          "price_mur": 210,
+          "price_display": "Rs 210"
+        },
+        {
+          "name": "Beer - Non Alcoholic Large",
+          "description": "600 ml",
+          "price_mur": 280,
+          "price_display": "Rs 280"
+        },
+        {
+          "name": "Beer - Non Alcoholic Small",
+          "description": "330 ml",
+          "price_mur": 140,
+          "price_display": "Rs 140"
+        },
+        {
+          "name": "Beer - Phoenix Large",
+          "description": "600 ml",
+          "price_mur": 250,
+          "price_display": "Rs 250"
+        },
+        {
+          "name": "Beer - Phoenix Small",
+          "description": "330 ml",
+          "price_mur": 140,
+          "price_display": "Rs 140"
+        },
+        {
+          "name": "Beer - Shandy",
+          "description": "Beer Sprite",
+          "price_mur": 140,
+          "price_display": "Rs 140"
+        },
+        {
+          "name": "Cocktails - Expresso Tequila",
+          "description": "Tequila Kahlua Triple Sec",
+          "price_mur": 320,
+          "price_display": "Rs 320"
+        },
+        {
+          "name": "Cocktails - Fresh Surprise",
+          "description": "Rum Mint Tamarin Lime Lemon",
+          "price_mur": 290,
+          "price_display": "Rs 290"
+        },
+        {
+          "name": "Cocktails - Margarita Lemon",
+          "description": "Gin Tequila Triple Sec Lime Lemon",
+          "price_mur": 320,
+          "price_display": "Rs 320"
+        },
+        {
+          "name": "Cocktails - Mauritian Punch",
+          "description": "Rum Mango Passion Coco Pine",
+          "price_mur": 290,
+          "price_display": "Rs 290"
+        },
+        {
+          "name": "Cocktails - Mauritius Colada",
+          "description": "Rum Mango Passion Pineapple Coco",
+          "price_mur": 300,
+          "price_display": "Rs 300"
+        },
+        {
+          "name": "Cocktails - Mojito",
+          "description": "White Rum Mint Lime Sugar Syrup",
+          "price_mur": 320,
+          "price_display": "Rs 320"
+        },
+        {
+          "name": "Cocktails - Pina Colada",
+          "description": "Rum Coco Pineapple",
+          "price_mur": 300,
+          "price_display": "Rs 300"
+        },
+        {
+          "name": "Cocktails - Sex On The Beach",
+          "description": "Rum Orange Peach Cranberry Grenadine",
+          "price_mur": 290,
+          "price_display": "Rs 290"
+        },
+        {
+          "name": "Cocktails -Jalape\u00f1o Punch",
+          "description": "Chili Rum Dark Rum Lime Grenadine",
+          "price_mur": 320,
+          "price_display": "Rs 320"
+        },
+        {
+          "name": "Coffee - Americano",
+          "price_mur": 120,
+          "price_display": "Rs 120"
+        },
+        {
+          "name": "Coffee - Cappuccino",
+          "price_mur": 150,
+          "price_display": "Rs 150"
+        },
+        {
+          "name": "Coffee - Espresso",
+          "price_mur": 120,
+          "price_display": "Rs 120"
+        },
+        {
+          "name": "Coffee - Hot Chocolate",
+          "price_mur": 151,
+          "price_display": "Rs 151"
+        },
+        {
+          "name": "Coffee - Latte",
+          "price_mur": 150,
+          "price_display": "Rs 150"
+        },
+        {
+          "name": "Coffee - Macchiato",
+          "price_mur": 150,
+          "price_display": "Rs 150"
+        },
+        {
+          "name": "Juice - Apple",
+          "price_mur": 150,
+          "price_display": "Rs 150"
+        },
+        {
+          "name": "Juice - Cranberry",
+          "price_mur": 150,
+          "price_display": "Rs 150"
+        },
+        {
+          "name": "Juice - Mango",
+          "price_mur": 150,
+          "price_display": "Rs 150"
+        },
+        {
+          "name": "Juice - Orange",
+          "price_mur": 150,
+          "price_display": "Rs 150"
+        },
+        {
+          "name": "Juice - Tropical",
+          "price_mur": 150,
+          "price_display": "Rs 150"
+        },
+        {
+          "name": "Mocktails - Citrous Sour",
+          "description": "Orange Lemon Lime",
+          "price_mur": 200,
+          "price_display": "Rs 200"
+        },
+        {
+          "name": "Mocktails - Mojito Mocktail",
+          "description": "Mint Lime Tamarin",
+          "price_mur": 200,
+          "price_display": "Rs 200"
+        },
+        {
+          "name": "Mocktails - Sex on the Beach Mocktail",
+          "description": "Orange Peach Cranberry Grenadine",
+          "price_mur": 200,
+          "price_display": "Rs 200"
+        },
+        {
+          "name": "Mocktails - Shirly Ginger",
+          "description": "Ginger Ale Lime Grenadine",
+          "price_mur": 200,
+          "price_display": "Rs 200"
+        },
+        {
+          "name": "Mocktails - Tropical Punch",
+          "description": "Tropical Soda Grenadine",
+          "price_mur": 200,
+          "price_display": "Rs 200"
+        },
+        {
+          "name": "Soft Drinks - Coke",
+          "price_mur": 140,
+          "price_display": "Rs 140"
+        },
+        {
+          "name": "Soft Drinks - Coke Zero",
+          "price_mur": 140,
+          "price_display": "Rs 140"
+        },
+        {
+          "name": "Soft Drinks - Fanta",
+          "price_mur": 140,
+          "price_display": "Rs 140"
+        },
+        {
+          "name": "Soft Drinks - Grapetiser",
+          "price_mur": 140,
+          "price_display": "Rs 140"
+        },
+        {
+          "name": "Soft Drinks - Perona",
+          "price_mur": 140,
+          "price_display": "Rs 140"
+        },
+        {
+          "name": "Soft Drinks - Sprite",
+          "price_mur": 140,
+          "price_display": "Rs 140"
+        },
+        {
+          "name": "Soft Drinks - Sprite Zero",
+          "price_mur": 140,
+          "price_display": "Rs 140"
+        },
+        {
+          "name": "Spirits - Aged Rum Local Double",
+          "price_mur": 200,
+          "price_display": "Rs 200"
+        },
+        {
+          "name": "Spirits - Aged Rum Local Single",
+          "price_mur": 120,
+          "price_display": "Rs 120"
+        },
+        {
+          "name": "Spirits - Dark Rum Local Double",
+          "price_mur": 200,
+          "price_display": "Rs 200"
+        },
+        {
+          "name": "Spirits - Dark Rum Local Single",
+          "price_mur": 120,
+          "price_display": "Rs 120"
+        },
+        {
+          "name": "Spirits - Gin Local Double",
+          "price_mur": 200,
+          "price_display": "Rs 200"
+        },
+        {
+          "name": "Spirits - Gin Local Single",
+          "price_mur": 120,
+          "price_display": "Rs 120"
+        },
+        {
+          "name": "Spirits - Grants Whiskey Double",
+          "price_mur": 300,
+          "price_display": "Rs 300"
+        },
+        {
+          "name": "Spirits - Grants Whiskey Single",
+          "price_mur": 180,
+          "price_display": "Rs 180"
+        },
+        {
+          "name": "Spirits - Mauritius Cane Rum Local Double",
+          "price_mur": 200,
+          "price_display": "Rs 200"
+        },
+        {
+          "name": "Spirits - Mauritius Cane Rum Local Single",
+          "price_mur": 120,
+          "price_display": "Rs 120"
+        },
+        {
+          "name": "Spirits - Red Label Whiskey Double",
+          "price_mur": 300,
+          "price_display": "Rs 300"
+        },
+        {
+          "name": "Spirits - Red Label Whiskey Single",
+          "price_mur": 180,
+          "price_display": "Rs 180"
+        },
+        {
+          "name": "Spirits - Seven Seas Local Double",
+          "price_mur": 200,
+          "price_display": "Rs 200"
+        },
+        {
+          "name": "Spirits - Seven Seas Local Single",
+          "price_mur": 120,
+          "price_display": "Rs 120"
+        },
+        {
+          "name": "Spirits - Spice Rum Local Double",
+          "price_mur": 200,
+          "price_display": "Rs 200"
+        },
+        {
+          "name": "Spirits - Spice Rum Local Single",
+          "price_mur": 120,
+          "price_display": "Rs 120"
+        },
+        {
+          "name": "Spirits - Tequila Double",
+          "price_mur": 300,
+          "price_display": "Rs 300"
+        },
+        {
+          "name": "Spirits - Tequila Single",
+          "price_mur": 180,
+          "price_display": "Rs 180"
+        },
+        {
+          "name": "Spirits - Vodka Local Double",
+          "price_mur": 200,
+          "price_display": "Rs 200"
+        },
+        {
+          "name": "Spirits - Vodka Local Single",
+          "price_mur": 120,
+          "price_display": "Rs 120"
+        },
+        {
+          "name": "Spirits - White Rum Local Double",
+          "price_mur": 200,
+          "price_display": "Rs 200"
+        },
+        {
+          "name": "Spirits - White Rum Local Single",
+          "price_mur": 120,
+          "price_display": "Rs 120"
+        },
+        {
+          "name": "Water",
+          "description": "1l  Natural Sparkling Tonic",
+          "price_mur": 120,
+          "price_display": "Rs 120"
+        },
+        {
+          "name": "Wine - Blanc Du Noir",
+          "description": "Glass 200 ml Rose",
+          "price_mur": 380,
+          "price_display": "Rs 380"
+        },
+        {
+          "name": "Wine - Blanc Du Noir",
+          "description": "Per Bottle Rose",
+          "price_mur": 1080,
+          "price_display": "Rs 1080"
+        },
+        {
+          "name": "Wine - Cabernet Sauvignon",
+          "description": "Glass 200 ml Red",
+          "price_mur": 375,
+          "price_display": "Rs 375"
+        },
+        {
+          "name": "Wine - Cabernet Sauvignon",
+          "description": "Per Bottle Red",
+          "price_mur": 1100,
+          "price_display": "Rs 1100"
+        },
+        {
+          "name": "Wine - Chardonnay",
+          "description": "Glass 200 ml",
+          "price_mur": 340,
+          "price_display": "Rs 340"
+        },
+        {
+          "name": "Wine - Chardonnay",
+          "description": "Per Bottle",
+          "price_mur": 1050,
+          "price_display": "Rs 1050"
+        },
+        {
+          "name": "Wine - House Red",
+          "description": "Glass 200 ml",
+          "price_mur": 140,
+          "price_display": "Rs 140"
+        },
+        {
+          "name": "Wine - House Rose",
+          "description": "Glass 200 ml",
+          "price_mur": 140,
+          "price_display": "Rs 140"
+        },
+        {
+          "name": "Wine - House White",
+          "description": "Glass 200 ml",
+          "price_mur": 140,
+          "price_display": "Rs 140"
+        },
+        {
+          "name": "Wine - Merlot",
+          "description": "Glass 200 ml Red",
+          "price_mur": 375,
+          "price_display": "Rs 375"
+        },
+        {
+          "name": "Wine - Merlot",
+          "description": "Per Bottle Red",
+          "price_mur": 1100,
+          "price_display": "Rs 1100"
+        },
+        {
+          "name": "Wine - Sauvignon Blanc",
+          "description": "Glass 200 ml White",
+          "price_mur": 340,
+          "price_display": "Rs 340"
+        },
+        {
+          "name": "Wine - Sauvignon Blanc",
+          "description": "Per Bottle White",
+          "price_mur": 1050,
+          "price_display": "Rs 1050"
+        },
+        {
+          "name": "Wine - Shiraz",
+          "description": "Glass 200 ml Red",
+          "price_mur": 375,
+          "price_display": "Rs 375"
+        },
+        {
+          "name": "Wine - Shiraz",
+          "description": "Per Bottle Red",
+          "price_mur": 1100,
+          "price_display": "Rs 1100"
+        },
+        {
+          "name": "Wine - Spritzer",
+          "description": "House wine with Sodan and Ice",
+          "price_mur": 300,
+          "price_display": "Rs 300"
+        }
+      ]
+    },
+    {
+      "id": "extras",
+      "name": "Extras",
+      "summary": "Extra sides.",
+      "items_status": "from_live_menu_page_sheet",
+      "items": [
+        {
+          "name": "Mashed Potato",
+          "description": "Extras",
+          "price_mur": 120,
+          "price_display": "Rs 120"
+        },
+        {
+          "name": "Small Mixed Salad",
+          "description": "Extras",
+          "price_mur": 125,
+          "price_display": "Rs 125"
+        }
+      ]
     }
   ],
   "notes": [
-    "This preview proves crawlable category HTML and journey paths.",
-    "Do not invent dish names or MUR prices. Owner-approved menu sheet snapshot is the next content fill.",
+    "Item names and Rs prices loaded from the live Menu-page Google Sheet CSV (same source as cafeinternational.net/menu-page).",
+    "Not invented. Drive folder CSV snapshot is outdated and must not be used.",
     "Halal/certification wording: preserve current approved wording; do not reopen in this packet."
   ]
 }

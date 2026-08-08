@@ -49,14 +49,21 @@ describe('Café International preview — fixture truth (#797)', () => {
     assert.match(wa.href, /^https:\/\/wa\.me\/23057658735/);
   });
 
-  it('menu preview does not invent MUR prices', () => {
+  it('menu preview loads live Menu-page sheet prices (not Drive CSV, not invented)', () => {
     const props = getCafeInternationalPreviewProps();
     assert.equal(props.menu.invented_item_prices, false);
-    for (const cat of props.menu.categories) {
-      assert.equal(Array.isArray(cat.items) && cat.items.length === 0, true);
-    }
-    const blob = JSON.stringify(props.menu);
-    assert.doesNotMatch(blob, /"price"\s*:/);
+    assert.equal(props.menu.source, 'live_menu_page_google_sheet_csv');
+    assert.match(String(props.menu.source_page || ''), /menu-page/);
+    assert.ok(props.menu.categories.some((c) => c.name === 'Drinks'));
+    assert.ok(props.menu.categories.some((c) => c.name === 'From our Grill'));
+    const starters = props.menu.categories.find((c) => c.name === 'Starters');
+    assert.ok(starters && starters.items.length > 0);
+    const greekSmall = starters.items.find(
+      (i) => i.name === 'Greek Salad' && i.description === 'Small',
+    );
+    assert.equal(greekSmall.price_mur, 260);
+    // Drive snapshot had 220 — prove we are on the live sheet
+    assert.notEqual(greekSmall.price_mur, 220);
   });
 
   it('JSON-LD uses Trou aux Biches facts only', () => {
