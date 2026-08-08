@@ -28,7 +28,7 @@ Under `artifacts/cafe-international-visual-review/screenshots/`:
 ### Menu UX update (2026-08-08)
 
 - Per-item WhatsApp buttons **removed**
-- One WhatsApp CTA per category (e.g. Order Starters / Grill Specials / Burgers on WhatsApp)
+- One WhatsApp CTA per category, visible label exactly **Order on WhatsApp** (category still in WhatsApp prefill)
 - Cleaner name / description / price hierarchy
 - Book vs Takeaway journeys unchanged
 

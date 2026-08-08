@@ -106,8 +106,9 @@ describe('Café International preview — routes and hygiene', () => {
   it('menu page uses one WhatsApp CTA per category, not per item', () => {
     const src = read('pages/demo/cafe-international/menu.js');
     assert.match(src, /data-cafe-category-whatsapp/);
-    assert.match(src, /Order Burgers on WhatsApp|Order Grill Specials on WhatsApp/);
-    assert.match(src, /categoryWhatsAppLabel/);
+    assert.match(src, /CATEGORY_WHATSAPP_CTA_LABEL\s*=\s*'Order on WhatsApp'/);
+    assert.match(src, /\{CATEGORY_WHATSAPP_CTA_LABEL\}/);
+    assert.doesNotMatch(src, /Order Starters on WhatsApp|Order Grill Specials on WhatsApp|Order Burgers on WhatsApp|Ask about toppings on WhatsApp/);
     // Per-item WhatsApp buttons must not be generated inside the items map
     assert.doesNotMatch(
       src,
@@ -115,6 +116,7 @@ describe('Café International preview — routes and hygiene', () => {
     );
     assert.match(src, /data-cafe-menu-item/);
     assert.match(src, /data-cafe-menu-price/);
+    assert.match(src, /categoryWhatsAppPrefill/);
   });
 
   it('preview is noindex and does not activate chatbot components', () => {
