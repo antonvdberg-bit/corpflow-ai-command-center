@@ -1,0 +1,38 @@
+# One-shot synthetic proof for #661 Option A:
+# Does Codex Cloud accept @codex when posted by github-actions[bot]?
+# Safe: draft PR only; docs/artifact marker; no merge; no secrets.
+name: codex-github-trigger-proof
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+    paths:
+      - 'artifacts/codex-github-trigger-proof/**'
+      - '.github/workflows/codex-github-trigger-proof.yml'
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  post-bot-codex-mention:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post @codex review as github-actions[bot]
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          BODY='@codex review
+
+          Synthetic #661 automation-limit proof (Option A).
+          Identity: github-actions[bot] via GITHUB_TOKEN.
+          Task: review only this tiny marker PR; no code changes required.
+          Do not merge. Do not touch production.
+
+          <!-- corpflow.codex_github_trigger_proof.v1 {"source_issue":661,"identity":"github-actions[bot]"} -->'
+          gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body "$BODY"
+          echo "Posted bot @codex review on PR #$PR_NUMBER"
