@@ -67,23 +67,25 @@ Repo gate helper (mirror in n8n Code node):
 ## 4. Exact in-place change (when Anton approves)
 
 1. Open live n8n → workflow in §1. Record **name + id**.
-2. In **`Evaluate Anton-required exceptions`**, after existing `needs:anton` packet scan:
-   - Fetch recent comments on claimed / operator-review issues (or parse comments already loaded if the workflow already lists issue comments).
-   - Detect `<!-- corpflow.cursor_completion_event.v1 {...} -->`.
-   - Parse JSON; apply `shouldNotifyCursorCompletionEvent` rules above.
-   - Build fingerprint = event.`fingerprint` (or rebuild identically).
-   - If seen in `staticData.exceptionFingerprints` → skip.
-   - If should notify → append one alert with `anton: true`, workstream `cursor-control-loop`, link to issue/PR, why = status + blocker, exact action = `next_action`.
+2. In **`Evaluate Anton-required exceptions`**, replace the Code with the apply-ready script:
+   - **`docs/n8n/templates/evaluate-anton-required-exceptions.cursor-completion.v1.js`**
+   - Paste only the section between `BEGIN n8n jsCode` / `END n8n jsCode`.
 3. Keep Telegram node gated on `should_alert === true` / `alert_count > 0`.
 4. **No new secrets.** Reuse existing Telegram env refs.
 5. Save. Keep workflow **active**.
-6. Run synthetic matrix (§5). Fill evidence (§6).
+6. Synthetic matrix: set workflow static data `syntheticCursorCompletionEvents` to one event at a time (or pin test JSON), Execute workflow, confirm Telegram outcomes in §5. Clear static data after tests.
+7. Fill evidence (§7).
+
+### Production comment intake (same workflow)
+
+Completion events are posted as **issue comments**. After the Code paste works for syntheticEvents, add (still in this workflow) a GitHub HTTP Request for open issues labelled `dispatch:operator-review` / `dispatch:cursor-claimed` and pass recent comment bodies into the evaluate input — or extend the Code to call GitHub with the existing credential helper. Do **not** create a second notifier workflow.
 
 ## 5. Synthetic test plan (before/after live apply)
 
-Repo unit tests (authorised now):
+Repo contract tests (always):
 
 ```bash
+node --test node-tests/n8n-cursor-completion-notifier-contract.test.mjs
 node --test node-tests/cursor-agent-lifecycle.test.mjs
 node --test node-tests/ops-notification-policy.test.mjs
 ```
@@ -93,9 +95,9 @@ node --test node-tests/ops-notification-policy.test.mjs
 | 1 | RUNNING event | None |
 | 2 | COMPLETED + anton_required=no | None |
 | 3 | COMPLETED + anton_required=yes | One |
-| 4 | FAILED (recovery exhausted) | One |
-| 5 | STALE (follow-up failed) | One |
-| 6 | Same fingerprint again | None |
+| 4 | Same fingerprint again | None |
+| 5 | FAILED (recovery exhausted) | One |
+| 6 | STALE (follow-up failed) | One |
 | 7 | Changed SHA / PR / check state | One new |
 
 ## 6. Rollback
