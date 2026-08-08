@@ -1,0 +1,42 @@
+{
+  "schema": "corpflow.controlled_pilot_766.defect_register.v1",
+  "issue": 766,
+  "updated_at": "2026-08-06T00:00:00.000Z",
+  "classes": [
+    "release_blocker",
+    "important_non_blocker",
+    "enhancement"
+  ],
+  "defects": [
+    {
+      "id": "D766-001",
+      "class": "release_blocker",
+      "owner": "Anton / ERPNext operator",
+      "summary": "Packet C ERPNext sandbox synthetic commercial-control proof not executed; evidence slots empty",
+      "blocks_controlled_client_pilot": true,
+      "status": "open",
+      "resolution_path": "Execute docs/operations/ERPNEXT_LEAD_RESCUE_PAID_PILOT_REHEARSAL_V1.md (and Packet C chain) on sandbox only; fill artifacts/controlled-pilot-766/packet-c-evidence-slots.json with synthetic/redacted IDs only"
+    },
+    {
+      "id": "D766-002",
+      "class": "important_non_blocker",
+      "owner": "Anton",
+      "summary": "Packet B live access/boundary ticks pending Anton-held test credentials (not available in agent/PR environment)",
+      "blocks_controlled_client_pilot": false,
+      "blocks_first_client_login_rehearsal": true,
+      "status": "open",
+      "resolution_path": "Complete Packet B checklist in docs/execution/CONTROLLED_PILOT_TEST_READINESS_766_V1.md using cursor-test-admin@corpflowai.com and cursor-test-tenant@corpflowai.com; keep passwords out of GitHub"
+    },
+    {
+      "id": "D766-003",
+      "class": "enhancement",
+      "owner": "ChatGPT / backlog",
+      "summary": "ERPNext Opportunity DocType may be optional if Quotation-primary path is accepted in Packet C notes",
+      "blocks_controlled_client_pilot": false,
+      "status": "open",
+      "resolution_path": "Operator records SKIPPED-QUOTATION-PRIMARY or Opportunity ID in packet-c-evidence-slots.json"
+    }
+  ],
+  "final_verdict": "NOT READY",
+  "exact_blocker_id": "D766-001"
+}
