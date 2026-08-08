@@ -12,22 +12,8 @@ import {
 } from '../../../lib/website-rescue/cafe-international-preview.js';
 import { getCafeInternationalPreviewProps } from '../../../lib/website-rescue/cafe-international-preview-server.js';
 
-/** Short owner-facing WhatsApp CTA label per menu section. */
-function categoryWhatsAppLabel(categoryName) {
-  const name = String(categoryName || '').trim();
-  const map = {
-    Starters: 'Order Starters on WhatsApp',
-    'Out Of The Sea': 'Order Seafood on WhatsApp',
-    'For The Kids Under 10': 'Order Kids Meals on WhatsApp',
-    'From our Grill': 'Order Grill Specials on WhatsApp',
-    Platters: 'Order Platters on WhatsApp',
-    'Build a Burger': 'Order Burgers on WhatsApp',
-    'Topping, Chips and Sauce': 'Ask about toppings on WhatsApp',
-    'Sweet Endings Playground': 'Order Desserts on WhatsApp',
-    Drinks: 'Order Drinks on WhatsApp',
-  };
-  return map[name] || `Ask about ${name || 'this menu'} on WhatsApp`;
-}
+/** Visible label for every category WhatsApp CTA — fixed wording. */
+const CATEGORY_WHATSAPP_CTA_LABEL = 'Order on WhatsApp';
 
 function categoryWhatsAppPrefill(categoryName) {
   const label = String(categoryName || 'the menu').trim();
@@ -110,7 +96,6 @@ export default function CafeInternationalMenuPage({ truth, menu, nav }) {
             truth.public_phone,
             categoryWhatsAppPrefill(cat.name),
           );
-          const waLabel = categoryWhatsAppLabel(cat.name);
 
           return (
             <CafeGlassPanel
@@ -227,7 +212,7 @@ export default function CafeInternationalMenuPage({ truth, menu, nav }) {
                 }}
               >
                 <ActionButton href={waHref} primary>
-                  {waLabel}
+                  {CATEGORY_WHATSAPP_CTA_LABEL}
                 </ActionButton>
               </div>
             </CafeGlassPanel>
