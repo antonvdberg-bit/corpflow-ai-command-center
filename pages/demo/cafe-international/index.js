@@ -9,6 +9,8 @@ import CafeInternationalPreviewShell, {
 } from '../../../components/cafe-international/CafeInternationalPreviewShell.js';
 import {
   CAFE_INTERNATIONAL_APPETITE_TILES,
+  CAFE_INTERNATIONAL_OWNERS,
+  CAFE_INTERNATIONAL_RESTAURANT_GURU_URL,
   CAFE_INTERNATIONAL_VISUALS,
 } from '../../../lib/website-rescue/cafe-international-assets.js';
 import {
@@ -78,13 +80,56 @@ export default function CafeInternationalPreviewHome({
             [data-cafe-hero-cta] { margin-top: 12px !important; }
             [data-cafe-hero-cta-secondary] { display: none !important; }
             [data-cafe-hero-cta] a { min-height: 44px !important; padding: 10px 14px !important; font-size: 14px !important; }
+            [data-cafe-hero-brand-logo] { max-width: 210px !important; margin-bottom: 10px !important; }
+            [data-cafe-rg-badge] { width: 96px !important; top: 12px !important; right: 12px !important; }
           }
         `}</style>
+
+        <a
+          data-cafe-rg-badge
+          href={CAFE_INTERNATIONAL_RESTAURANT_GURU_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Best Steaks 2025 — Restaurant Guru listing for Café International"
+          style={{
+            position: 'absolute',
+            top: 18,
+            right: 18,
+            zIndex: 5,
+            width: 118,
+            display: 'block',
+            filter: 'drop-shadow(0 10px 22px rgba(0,0,0,0.45))',
+            transition: 'transform 0.2s ease',
+          }}
+        >
+          <img
+            src={CAFE_INTERNATIONAL_VISUALS.bestSteaks2025Badge}
+            alt="Best Steaks 2025 — Restaurant Guru"
+            width={174}
+            height={136}
+            style={{ width: '100%', height: 'auto', display: 'block' }}
+          />
+        </a>
+
         <div style={{ maxWidth: 1100, width: '100%', margin: '0 auto' }}>
           <CafeGlassPanel
             data-cafe-hero-glass
             style={{ maxWidth: 640, padding: '18px 16px 18px' }}
           >
+            <img
+              data-cafe-hero-brand-logo
+              src={CAFE_INTERNATIONAL_VISUALS.brandLogoWide}
+              alt="Café International — The Flame Grill, Famous Steak House"
+              width={900}
+              height={323}
+              style={{
+                display: 'block',
+                width: '100%',
+                maxWidth: 320,
+                height: 'auto',
+                marginBottom: 14,
+              }}
+            />
             <p
               style={{
                 margin: 0,
@@ -343,7 +388,9 @@ export default function CafeInternationalPreviewHome({
             lineHeight: 1.5,
           }}
         >
-          <strong style={{ color: T.cream }}>For Dion / Anna-Marie — what changed vs live site:</strong>{' '}
+          <strong style={{ color: T.cream }}>
+            For {CAFE_INTERNATIONAL_OWNERS} — what changed vs live site:
+          </strong>{' '}
           takeaway is WhatsApp or phone only (no website chat); booking stays phone or chat
           bridge; menu is crawlable HTML with prices from your live Menu-page Google Sheet;
           photography from your Drive folder.

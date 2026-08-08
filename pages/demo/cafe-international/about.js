@@ -4,6 +4,7 @@ import Link from 'next/link';
 import CafeInternationalPreviewShell, {
   CafeInternationalTheme as T,
 } from '../../../components/cafe-international/CafeInternationalPreviewShell.js';
+import { CAFE_INTERNATIONAL_OWNERS } from '../../../lib/website-rescue/cafe-international-assets.js';
 import { CAFE_INTERNATIONAL_PREVIEW_BASE } from '../../../lib/website-rescue/cafe-international-preview.js';
 import { getCafeInternationalPreviewProps } from '../../../lib/website-rescue/cafe-international-preview-server.js';
 
@@ -36,7 +37,7 @@ export default function CafeInternationalAboutPage({ truth, nav }) {
           color: T.creamMuted,
         }}
       >
-        Café International — The Flame Grill Café is an owner-operated restaurant
+        Café International — The Flame Grill Café is run by {CAFE_INTERNATIONAL_OWNERS}
         in Trou aux Biches. Guests know it for flame-grilled steaks, ribs, burgers
         and a warm local welcome. This preview keeps that story prominent without
         inventing private biography.

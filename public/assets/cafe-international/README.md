@@ -9,6 +9,9 @@
 | File | Role |
 |------|------|
 | `client/hero-grill.jpg` | Homepage hero (from *Cafe International Real food.png*) |
+| `client/brand-logo-mark.png` | Flame Grill mark for header lockup |
+| `client/brand-logo-wide.png` | Official Café International / The Flame Grill wide logo |
+| `client/best-steaks-2025-badge.png` | Restaurant Guru Best Steaks 2025 badge (links to listing) |
 | `client/plate-steak.jpg` | Appetite tile — steak |
 | `client/plate-burger.jpg` | Appetite tile — burger (*Best Burger.jpg*) |
 | `client/plate-chicken.jpg` | Appetite tile — grill |

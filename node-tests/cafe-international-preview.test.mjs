@@ -129,4 +129,39 @@ describe('Café International preview — routes and hygiene', () => {
     const home = read('pages/demo/cafe-international/index.js');
     assert.doesNotMatch(home, /ElevenLabsWebsiteVoiceChat/);
   });
+
+  it('brand authenticity: owners, logo, and Best Steaks 2025 badge', () => {
+    const home = read('pages/demo/cafe-international/index.js');
+    const shell = read('components/cafe-international/CafeInternationalPreviewShell.js');
+    const assets = read('lib/website-rescue/cafe-international-assets.js');
+    assert.match(assets, /CAFE_INTERNATIONAL_OWNERS\s*=\s*'Deon and Annemarie'/);
+    assert.match(home, /CAFE_INTERNATIONAL_OWNERS/);
+    assert.match(home, /Deon and Annemarie|CAFE_INTERNATIONAL_OWNERS/);
+    assert.doesNotMatch(home, /Dion|Anna-Marie|Anne Marie/);
+    assert.match(shell, /brandLogoMark|brand-logo-mark/);
+    assert.match(home, /brandLogoWide|brand-logo-wide/);
+    assert.match(home, /bestSteaks2025Badge|best-steaks-2025-badge/);
+    assert.match(home, /data-cafe-rg-badge/);
+    assert.match(home, /CAFE_INTERNATIONAL_RESTAURANT_GURU_URL/);
+    assert.match(
+      assets,
+      /restaurantguru\.com\/Cafe-International-The-Flame-Grill-Cafe-Trou-aux-Biches/,
+    );
+    assert.match(home, /target="_blank"/);
+    assert.match(home, /rel="noopener noreferrer"/);
+    assert.equal(
+      existsSync(path.join(ROOT, 'public/assets/cafe-international/client/brand-logo-mark.png')),
+      true,
+    );
+    assert.equal(
+      existsSync(path.join(ROOT, 'public/assets/cafe-international/client/brand-logo-wide.png')),
+      true,
+    );
+    assert.equal(
+      existsSync(
+        path.join(ROOT, 'public/assets/cafe-international/client/best-steaks-2025-badge.png'),
+      ),
+      true,
+    );
+  });
 });
