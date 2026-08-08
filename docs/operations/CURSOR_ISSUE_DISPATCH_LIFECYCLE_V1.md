@@ -75,9 +75,10 @@ Research/documentation-only tasks may run separately only when they cannot confl
 3. Reject `dispatch:blocked` and protected-gate issues for claim (still post discovery + classification).
 4. Enforce WIP + concurrency. Sibling product holds (e.g. #654 vs #653) do **not** suppress unrelated eligible ops work (e.g. #658 Slack retirement).
 5. Post acknowledgement comments when `GITHUB_TOKEN` has `issues: write` (GHA path).
-6. **Do not** apply `dispatch:cursor-claimed` or `status:in-progress` during scan. Claim labels are applied only after Cursor API returns a **real run ID** (`scripts/cursor-issue-dispatch-finalize.mjs`).
+6. **Do not** apply claim labels during **scan**. Acquire `dispatch:cursor-claimed` + durable claim marker **before** the Cursor API call (`scripts/dispatcher-agent-activation.mjs` claim-before-API). Finalize records the real run ID / origin metadata after success, or releases the claim on failure (`scripts/cursor-issue-dispatch-finalize.mjs`).
 7. Emit `cursor-issue-dispatch-scan.json` with `eligibleIssueNumbers`, `claimIssueNumbers`, and `activationTargetIssue` (max **one** live Cursor activation per GHA cycle).
 8. Stale claimed issues (no meaningful update beyond threshold): exception-only status request — no heartbeat spam.
+9. **Double-activation guard:** issue-keyed GHA concurrency (`factory-dispatcher-activate-<issue|scan>`) + durable claim-before-API. Duplicate/racing activators return `SKIP_ALREADY_CLAIMED`. Explicit requeue requires `CURSOR REQUEUE` generation marker + restored `dispatch:cursor-ready`.
 
 ### Source issues vs open PRs
 
@@ -99,7 +100,7 @@ Durable GitHub comments (templates in code):
 | Stage | Marker |
 |-------|--------|
 | A | `CURSOR DISPATCH DISCOVERED` |
-| B | `CURSOR DISPATCH ACTIVATED` (run ID + claim labels after Cursor API success) |
+| B | `CURSOR ACTIVATION CLAIM` (pending, **before** Cursor API) then `CURSOR DISPATCH ACTIVATED` (run ID after success) |
 | C | `CURSOR PROGRESS UPDATE` (milestones only) |
 | D | `CURSOR PR OPENED` |
 | Ready | `CURSOR IMPLEMENTATION COMPLETE — READY FOR MERGE REVIEW` |

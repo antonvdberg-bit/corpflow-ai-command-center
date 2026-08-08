@@ -28,10 +28,20 @@ This packet adds **status supervision after activation**:
 
 ## n8n
 
-**Do not change the live workflow in this packet.**  
-Repo emits a durable GitHub comment matching the completion event contract. Reuse the existing exception-only notifier: only when `anton_required=true` or FAILED/STALE with `notify=true`.
+**Do not change the live workflow without Anton approval.**  
+Repo emits a durable GitHub comment matching the completion event contract. Reuse the existing exception-only notifier.
 
-Required n8n change (Anton approval before live edit): watch for comments containing `CURSOR COMPLETION EVENT` / marker `corpflow.cursor_completion_event.v1` where `anton_required` is true (or `notify` true), then Telegram once using existing Decision Inbox / exception fingerprint patterns.
+| Item | Path |
+|------|------|
+| Live-apply packet (stop for approval) | `docs/runbooks/N8N_CURSOR_COMPLETION_EVENT_LIVE_APPLY_661.md` |
+| Same workflow as #684 | `docs/runbooks/N8N_EXCEPTION_ONLY_ALERT_LIVE_APPLY_684.md` |
+| Gate helper | `shouldNotifyCursorCompletionEvent()` in `lib/server/cursor-agent-lifecycle.js` |
+
+Rules: RUNNING silent; COMPLETED+`anton_required=no` silent by default; COMPLETED+Anton / FAILED / STALE → one Telegram; unchanged fingerprint → no repeat.
+
+## Double-activation guard
+
+Claim-before-API + issue-keyed GHA concurrency (`factory-dispatcher-activate-<issue|scan>`). Duplicate activators return `SKIP_ALREADY_CLAIMED`. See `lib/server/cursor-activation-claim.js`.
 
 ## Codex adapter (next — not blocking)
 
