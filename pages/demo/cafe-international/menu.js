@@ -12,6 +12,28 @@ import {
 } from '../../../lib/website-rescue/cafe-international-preview.js';
 import { getCafeInternationalPreviewProps } from '../../../lib/website-rescue/cafe-international-preview-server.js';
 
+/** Short owner-facing WhatsApp CTA label per menu section. */
+function categoryWhatsAppLabel(categoryName) {
+  const name = String(categoryName || '').trim();
+  const map = {
+    Starters: 'Order Starters on WhatsApp',
+    'Out Of The Sea': 'Order Seafood on WhatsApp',
+    'For The Kids Under 10': 'Order Kids Meals on WhatsApp',
+    'From our Grill': 'Order Grill Specials on WhatsApp',
+    Platters: 'Order Platters on WhatsApp',
+    'Build a Burger': 'Order Burgers on WhatsApp',
+    'Topping, Chips and Sauce': 'Ask about toppings on WhatsApp',
+    'Sweet Endings Playground': 'Order Desserts on WhatsApp',
+    Drinks: 'Order Drinks on WhatsApp',
+  };
+  return map[name] || `Ask about ${name || 'this menu'} on WhatsApp`;
+}
+
+function categoryWhatsAppPrefill(categoryName) {
+  const label = String(categoryName || 'the menu').trim();
+  return `Hi Flame! I'd like to order from ${label}.\n\nPlease confirm availability and pickup time.`;
+}
+
 export default function CafeInternationalMenuPage({ truth, menu, nav }) {
   const categories = (menu.categories || []).filter((c) => c.id !== 'extras');
 
@@ -24,6 +46,28 @@ export default function CafeInternationalMenuPage({ truth, menu, nav }) {
       activeHref={`${CAFE_INTERNATIONAL_PREVIEW_BASE}/menu`}
       truth={truth}
     >
+      <style>{`
+        [data-cafe-menu-item] {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          gap: 8px 16px;
+          align-items: start;
+          padding: 14px 0;
+          border-top: 1px solid rgba(246,239,230,0.1);
+        }
+        [data-cafe-menu-item]:first-of-type { border-top: none; padding-top: 4px; }
+        @media (max-width: 560px) {
+          [data-cafe-menu-item] {
+            grid-template-columns: 1fr;
+            gap: 4px;
+          }
+          [data-cafe-menu-price] {
+            justify-self: start !important;
+            font-size: 16px !important;
+          }
+        }
+      `}</style>
+
       <div
         style={{
           borderRadius: 18,
@@ -50,73 +94,145 @@ export default function CafeInternationalMenuPage({ truth, menu, nav }) {
           Menu
         </h1>
         <p style={{ marginTop: 10, color: T.creamMuted, maxWidth: 560, lineHeight: 1.5 }}>
-          Same prices as your live Menu-page Google Sheet. Order takeaway on WhatsApp —
-          not through website chat.
+          Browse by section, then order the whole category on WhatsApp — not through
+          website chat.
         </p>
+        <div style={{ marginTop: 16 }}>
+          <ActionButton href={`${CAFE_INTERNATIONAL_PREVIEW_BASE}/takeaway`} primary>
+            Takeaway options
+          </ActionButton>
+        </div>
       </div>
 
-      <div style={{ display: 'grid', gap: 16, marginTop: 22 }}>
-        {categories.map((cat) => (
-          <CafeGlassPanel key={cat.id} id={cat.id} as="section" style={{ padding: '18px 16px' }}>
-            <h2
-              style={{
-                margin: 0,
-                fontFamily: T.fontDisplay,
-                fontSize: 26,
-                color: T.flameSoft,
-              }}
+      <div style={{ display: 'grid', gap: 22, marginTop: 26 }}>
+        {categories.map((cat) => {
+          const waHref = cafeInternationalWhatsAppHref(
+            truth.public_phone,
+            categoryWhatsAppPrefill(cat.name),
+          );
+          const waLabel = categoryWhatsAppLabel(cat.name);
+
+          return (
+            <CafeGlassPanel
+              key={cat.id}
+              id={cat.id}
+              as="section"
+              data-cafe-menu-category={cat.id}
+              style={{ padding: '22px 18px 20px' }}
             >
-              {cat.name}
-            </h2>
-            {cat.summary ? (
-              <p style={{ margin: '8px 0 0', color: T.creamMuted, lineHeight: 1.45 }}>
-                {cat.summary}
-              </p>
-            ) : null}
-            <div style={{ display: 'grid', gap: 10, marginTop: 16 }}>
-              {(cat.items || []).map((item, idx) => {
-                const price =
-                  item.price_display ||
-                  (item.price_mur != null ? `Rs ${item.price_mur}` : '');
-                const wa = cafeInternationalWhatsAppHref(
-                  truth.public_phone,
-                  `Hi Flame! I'd like to order:\n\n${item.name}${price ? ` - ${price}` : ''}\n\nPlease confirm availability and pickup time.`,
-                );
-                return (
-                  <div
-                    key={`${item.name}-${item.description || ''}-${idx}`}
+              <header style={{ marginBottom: 6 }}>
+                <div
+                  style={{
+                    fontSize: 11,
+                    letterSpacing: '0.14em',
+                    textTransform: 'uppercase',
+                    color: T.flameSoft,
+                    fontWeight: 800,
+                  }}
+                >
+                  Section
+                </div>
+                <h2
+                  style={{
+                    margin: '6px 0 0',
+                    fontFamily: T.fontDisplay,
+                    fontSize: 'clamp(24px, 3.5vw, 30px)',
+                    color: T.cream,
+                    lineHeight: 1.15,
+                  }}
+                >
+                  {cat.name}
+                </h2>
+                {cat.summary ? (
+                  <p
                     style={{
-                      display: 'flex',
-                      flexWrap: 'wrap',
-                      gap: 10,
-                      justifyContent: 'space-between',
-                      alignItems: 'flex-start',
-                      padding: '12px 0',
-                      borderTop: '1px solid rgba(246,239,230,0.1)',
+                      margin: '8px 0 0',
+                      color: T.creamMuted,
+                      lineHeight: 1.5,
+                      fontSize: 15,
+                      maxWidth: 520,
                     }}
                   >
-                    <div style={{ flex: '1 1 200px' }}>
-                      <div style={{ color: T.cream, fontWeight: 700, fontSize: 16 }}>
-                        {item.name}
-                        {price ? (
-                          <span style={{ color: T.flameSoft, marginLeft: 10 }}>{price}</span>
+                    {cat.summary}
+                  </p>
+                ) : null}
+              </header>
+
+              <div style={{ marginTop: 14 }} data-cafe-menu-items>
+                {(cat.items || []).map((item, idx) => {
+                  const price =
+                    item.price_display ||
+                    (item.price_mur != null ? `Rs ${item.price_mur}` : '');
+                  return (
+                    <div
+                      key={`${item.name}-${item.description || ''}-${idx}`}
+                      data-cafe-menu-item
+                    >
+                      <div style={{ minWidth: 0 }}>
+                        <div
+                          style={{
+                            color: T.cream,
+                            fontWeight: 700,
+                            fontSize: 16,
+                            lineHeight: 1.35,
+                            letterSpacing: '0.01em',
+                          }}
+                        >
+                          {item.name}
+                        </div>
+                        {item.description ? (
+                          <div
+                            style={{
+                              marginTop: 4,
+                              color: T.creamMuted,
+                              fontSize: 14,
+                              lineHeight: 1.45,
+                            }}
+                          >
+                            {item.description}
+                          </div>
                         ) : null}
                       </div>
-                      {item.description ? (
-                        <div style={{ marginTop: 4, color: T.creamMuted, fontSize: 14 }}>
-                          {item.description}
+                      {price ? (
+                        <div
+                          data-cafe-menu-price
+                          style={{
+                            color: T.flameSoft,
+                            fontWeight: 700,
+                            fontSize: 17,
+                            fontVariantNumeric: 'tabular-nums',
+                            whiteSpace: 'nowrap',
+                            justifySelf: 'end',
+                            paddingTop: 1,
+                          }}
+                        >
+                          {price}
                         </div>
                       ) : null}
                     </div>
-                    <ActionButton href={wa} primary>
-                      WhatsApp
-                    </ActionButton>
-                  </div>
-                );
-              })}
-            </div>
-          </CafeGlassPanel>
-        ))}
+                  );
+                })}
+              </div>
+
+              <div
+                data-cafe-category-whatsapp
+                style={{
+                  marginTop: 18,
+                  paddingTop: 16,
+                  borderTop: '1px solid rgba(246,239,230,0.14)',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 10,
+                  alignItems: 'center',
+                }}
+              >
+                <ActionButton href={waHref} primary>
+                  {waLabel}
+                </ActionButton>
+              </div>
+            </CafeGlassPanel>
+          );
+        })}
       </div>
 
       {(menu.notes || []).length ? (
