@@ -72,6 +72,10 @@ This repository is the **CorpFlow AI Command Center**: **Next.js** (pages router
 4. Security-sensitive edits: **`docs/operations/SECURITY_REVIEW_CHECKLIST.md`**.
 5. Buyer-facing marketing, landing, intake, pricing, CTA, productized service, AI Lead Rescue, or visual-design work: **`docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md`** is mandatory and canonical. Review the change against that doctrine before merge.
 
+### Current delivery reality (orchestration — mandatory)
+
+Before giving CorpFlowAI progress, dispatch, next-action or blocker advice, check **`docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md`** and current GitHub issue/PR state. Do not rely on remembered/manual-pickup assumptions. **DEFAULT DELIVERY POSTURE: MOVE WORK, DO NOT WAIT FOR PICKUP** (does not authorize merge, deploy, secrets, payment, schema, or external sends).
+
 **Do not treat as proof of delivery:** local tests only, CI success alone, merge to `main` alone, or `/api/factory/health` (or other internal endpoints) alone when the work affects **client-visible** URLs or flows. Record **deployment ID**, **deployed commit**, **live URLs tested**, and **Delivery Reality Audit** verdict (**COMPLETE / PARTIAL / FAILED**) per the rules above.
 
 ## Marketing / conversion doctrine
@@ -124,6 +128,7 @@ If Git says **`ambiguous argument 'main'`**, a tracked path named **`main`** may
 | **Website quality scoring (per-tenant audit)** | **`docs/execution/WEBSITE_QUALITY_MEASUREMENT_FRAMEWORK.md`** |
 | **Analytics / Search Console / indexing per surface** | **`docs/execution/ANALYTICS_SEARCH_CONSOLE_INDEXING_CHECKLIST.md`** |
 | **Per-client migration audit (identity, login, marketing, off-laptop)** | **`docs/execution/CURRENT_CLIENT_MIGRATION_AUDIT_TEMPLATE.md`** |
+| **Current delivery reality (orchestration snapshot)** — Cursor automatic primary; Codex human `@codex` once; OpenHands optional; n8n exception-only; no wait-for-pickup | **`docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md`** |
 | **Operator Control Board v1 — priority model (P0/P1/P2/Blocked/Deferred) + active workstream table** — top-level "what matters now / who owns it"; sits above the execution queue, beside #249 | **`docs/operations/CORPFLOW_OPERATOR_CONTROL_BOARD_V1.md`** |
 | **Operator Bridge v1 — coordination protocol (ChatGPT ↔ Anton ↔ Cursor + Codex Cloud)** — coordination issue **#249** | **`docs/operations/OPERATOR_BRIDGE_V1.md`** |
 | **Operator Bridge — day-to-day runbook (how Cursor / Codex Cloud post STATUS to #249)** | **`docs/runbooks/OPERATOR_BRIDGE.md`** |

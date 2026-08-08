@@ -8,6 +8,8 @@
 
 <!-- OPERATOR_DISPATCH_ROUTER_ANCHOR -->
 
+> **Superseded for current executor posture:** `docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md` (and #661 lifecycle). Cursor activates from GitHub claim/lifecycle evidence; this older “notify Anton → Anton clicks” / proposal-only framing is **not** current delivery reality. Keep this doc for historical routing taxonomy only.
+
 ## 1. Purpose
 
 Anton currently copies instructions by hand between ChatGPT, Cursor, Codex, NotebookLM, Workspace tools, and GitHub. That friction causes approved packets to stall **even after they are posted to #249**.

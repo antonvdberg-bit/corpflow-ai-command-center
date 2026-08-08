@@ -1,6 +1,6 @@
 # Delivery Acceleration v1 — multi-executor protocol (Cursor + Codex Cloud + internal agent)
 
-**Status:** Protocol documentation only. No automation, no installs, no runtime change.
+**Status:** Protocol documentation (schemas / hold rules). Executor **activation** and lifecycle are governed by `docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md` + #661 — not by “wait for pickup.”
 **Owner:** Anton (operator / approver / merger).
 **Drafted:** 2026-05-28. **Updated:** 2026-06-18 — utilization posture refined in `docs/execution/CODEX_UTILIZATION_PLAN_V1.md`.
 **Companion:** `docs/operations/OPERATOR_BRIDGE_V1.md` (bridge architecture, message schemas, hold rules).
