@@ -3091,6 +3091,16 @@ export default function ChangeConsolePage() {
             <div style={{ fontSize: 24, fontWeight: 950, color: '#f8fafc' }}>Change Console</div>
             <div style={{ marginTop: 6, color: '#94a3b8', fontSize: 13, lineHeight: 1.45 }}>
               Operator workspace: open, select a ticket, take one governed action.
+              {' · '}
+              <a href="/app/core" style={{ color: '#7dd3fc', fontWeight: 700 }}>
+                Core app
+              </a>
+              {' · '}
+              <a href="/app/tenant" style={{ color: '#7dd3fc', fontWeight: 700 }}>
+                Tenant app
+              </a>
+              {' '}
+              (compatibility — /change remains operational)
             </div>
           </>
         )}

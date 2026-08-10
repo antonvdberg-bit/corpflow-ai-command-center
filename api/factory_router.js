@@ -118,6 +118,7 @@ import {
   handleMpgsVerifyOrder,
   handlePaymentRecordCreate,
 } from '../lib/server/payments/mpgs-payment-api.js';
+import { tryHandleAppApi } from '../lib/app/handlers.js';
 
 const prisma = new PrismaClient();
 
@@ -939,6 +940,11 @@ export default async function handler(req, res) {
     }
     if (pathSeg === 'ui/context') {
       return handleUiContext(req, res);
+    }
+
+    if (pathSeg === 'app' || pathSeg.startsWith('app/')) {
+      const handled = await tryHandleAppApi(req, res, pathSeg);
+      if (handled) return;
     }
 
     if (pathSeg === 'membership/effective') {
