@@ -4,8 +4,6 @@ import path from 'node:path';
 import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-import { execFileSync } from 'node:child_process';
-
 import {
   assertCafeInternationalJourneyRules,
   buildCafeInternationalMenuJsonLd,
@@ -32,6 +30,29 @@ const ROOT = path.resolve(__dirname, '..');
 
 function read(rel) {
   return readFileSync(path.join(ROOT, rel), 'utf8');
+}
+
+/**
+ * Detect MP4 handler types without ffprobe (CI runners may not ship ffmpeg).
+ * ISO-BMFF `hdlr` layout after the type marker: version/flags (4) +
+ * pre_defined (4) + handler_type (4) → handler_type starts 12 bytes after `hdlr`.
+ */
+function mp4HandlerTypes(absPath) {
+  const buf = readFileSync(absPath);
+  const types = new Set();
+  const needle = Buffer.from('hdlr');
+  let from = 0;
+  while (from < buf.length) {
+    const idx = buf.indexOf(needle, from);
+    if (idx === -1) break;
+    const typeOffset = idx + 12;
+    if (typeOffset + 4 <= buf.length) {
+      const handler = buf.toString('ascii', typeOffset, typeOffset + 4);
+      if (handler === 'vide' || handler === 'soun') types.add(handler);
+    }
+    from = idx + 4;
+  }
+  return types;
 }
 
 describe('Café International preview — fixture truth (#797)', () => {
@@ -398,20 +419,12 @@ describe('Café International corrective pass (#871 / #872)', () => {
     for (const rel of files) {
       const abs = path.join(ROOT, rel);
       assert.equal(existsSync(abs), true, rel);
-      const probe = execFileSync(
-        'ffprobe',
-        ['-v', 'error', '-show_entries', 'stream=codec_type', '-of', 'csv=p=0', abs],
-        { encoding: 'utf8' },
-      ).trim();
-      const types = probe
-        .split(/\r?\n/)
-        .map((line) => line.trim())
-        .filter(Boolean);
-      assert.ok(types.includes('video'), `${rel} must include a video stream`);
+      const handlers = mp4HandlerTypes(abs);
+      assert.ok(handlers.has('vide'), `${rel} must include a video handler`);
       assert.equal(
-        types.includes('audio'),
+        handlers.has('soun'),
         false,
-        `${rel} must not include an audio stream (unmute control not warranted)`,
+        `${rel} must not include an audio handler (unmute control not warranted)`,
       );
     }
     const shell = read('components/cafe-international/CafeInternationalPreviewShell.js');
