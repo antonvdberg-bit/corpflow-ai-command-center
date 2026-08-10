@@ -49,21 +49,29 @@ export default function CafeInternationalTakeawayPage({ truth, takeawayActions, 
         </p>
       </div>
 
-      <div style={{ marginTop: 24 }}>
+      <div style={{ marginTop: 24 }} data-cafe-takeaway-cta>
         <CafeActionPanel
           tone="takeaway"
           image={CAFE_INTERNATIONAL_VISUALS.plateBurger}
           title="Order for collection"
-          subtitle={`Message or call ${truth.public_phone}. Do not use the website chat for takeaway.`}
+          subtitle={`Message or call ${truth.public_phone}. WhatsApp or phone only — website chat is for table bookings, not takeaway.`}
           actions={takeawayActions}
         />
       </div>
 
-      <p style={{ marginTop: 20, color: T.creamMuted, fontSize: 14, lineHeight: 1.5 }}>
-        This separation corrects the live-site pattern that routed takeaway into
-        chat. Chatbot prompts and WhatsApp automation are not changed in this
+      <p style={{ marginTop: 20, color: T.creamMuted, fontSize: 15, lineHeight: 1.5 }}>
+        Browse the menu first, then send the items you want. Collection only — no
+        delivery. Chatbot prompts and WhatsApp automation are not changed in this
         preview.
       </p>
+      <div style={{ marginTop: 14 }}>
+        <a
+          href={`${CAFE_INTERNATIONAL_PREVIEW_BASE}/menu`}
+          style={{ color: T.flameSoft, fontWeight: 700 }}
+        >
+          Browse the full menu →
+        </a>
+      </div>
     </CafeInternationalPreviewShell>
   );
 }

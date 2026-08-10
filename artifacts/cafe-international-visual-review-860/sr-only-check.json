@@ -1,0 +1,30 @@
+[
+  {
+    "text": "Flame-grilled steak, medium-rare cut",
+    "clip": "rect(0px, 0px, 0px, 0px)",
+    "position": "absolute",
+    "width": 1,
+    "height": 1
+  },
+  {
+    "text": "Signature burger with chips at Café International",
+    "clip": "rect(0px, 0px, 0px, 0px)",
+    "position": "absolute",
+    "width": 1,
+    "height": 1
+  },
+  {
+    "text": "Grilled chicken from the flame grill",
+    "clip": "rect(0px, 0px, 0px, 0px)",
+    "position": "absolute",
+    "width": 1,
+    "height": 1
+  },
+  {
+    "text": "Cold platter prepared at Café International",
+    "clip": "rect(0px, 0px, 0px, 0px)",
+    "position": "absolute",
+    "width": 1,
+    "height": 1
+  }
+]

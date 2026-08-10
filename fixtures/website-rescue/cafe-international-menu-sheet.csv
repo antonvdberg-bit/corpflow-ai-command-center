@@ -112,30 +112,30 @@ Sweet Endings Playground,Hot Chocolate,,180,"hot chocolate Mauritius, warm drink
 Sweet Endings Playground,Don Pedro Whiskey,Milkshake with Whiskey and Chocolate,350,"don pedro Mauritius, adult desserts, boozy milkshake"
 Sweet Endings Playground,Don Pedro Kahlua,Milkshake with Kahlua and Chocolate,350,"don pedro Mauritius, adult desserts, boozy milkshake"
 Sweet Endings Playground,Irish Coffee,Espresso with Whiskey and Cream,350,"irish coffee Mauritius, coffee with whiskey, warm dessert drink"
-Drinks,Beer - Blue Marlin Large,600 ml,250,Blue Marlin beer Mauritius
-Drinks,Beer - Blue Marlin Small,330 ml,140,Blue Marlin beer Mauritius
+Drinks,Beer - Blue Marlin Large,500 ml,250,Blue Marlin beer Mauritius
+Drinks,Beer - Blue Marlin Small,330 ml,150,Blue Marlin beer Mauritius
 Drinks,Beer - Heineken Large,600 ml,400,Heineken beer Mauritius
 Drinks,Beer - Heineken Small,330 ml,210,Heineken beer Mauritius
-Drinks,Beer - Non Alcoholic Large,600 ml,280,non-alcoholic beer Mauritius
-Drinks,Beer - Non Alcoholic Small,330 ml,140,non-alcoholic beer Mauritius
-Drinks,Beer - Phoenix Large,600 ml,250,"Phoenix beer Mauritius, local beer"
-Drinks,Beer - Phoenix Small,330 ml,140,"Phoenix beer Mauritius, local beer"
-Drinks,Beer - Shandy,Beer Sprite,140,"shandy Mauritius, beer lemonade mix"
-Drinks,Cocktails - Expresso Tequila,Tequila Kahlua Triple Sec,320,"espresso martini Mauritius, coffee cocktail, tequila"
-Drinks,Cocktails - Fresh Surprise,Rum Mint Tamarin Lime Lemon,290,"fresh surprise Mauritius, tamarin, mint, lime, lemon cocktail"
-Drinks,Cocktails - Margarita Lemon,Gin Tequila Triple Sec Lime Lemon,320,"margarita Mauritius, tequila cocktail"
-Drinks,Cocktails - Mauritian Punch,Rum Mango Passion Coco Pine,290,"Mauritian punch, rum cocktail"
+Drinks,Beer - Non Alcoholic Large,500 ml,300,non-alcoholic beer Mauritius
+Drinks,Beer - Non Alcoholic Small,330 ml,170,non-alcoholic beer Mauritius
+Drinks,Beer - Phoenix Large,500 ml,250,"Phoenix beer Mauritius, local beer"
+Drinks,Beer - Phoenix Small,330 ml,150,"Phoenix beer Mauritius, local beer"
+Drinks,Beer - Shandy,500 ml | Beer + Sprite,200,"shandy Mauritius, beer lemonade mix"
+Drinks,Cocktails - Expresso Tequila,Tequila Kahlua Triple Sec,340,"espresso martini Mauritius, coffee cocktail, tequila"
+Drinks,Cocktails - Fresh Surprise,Rum Mint Tamarin Lime Lemon,300,"fresh surprise Mauritius, tamarin, mint, lime, lemon cocktail"
+Drinks,Cocktails - Margarita Lemon,Gin Tequila Triple Sec Lime Lemon,340,"margarita Mauritius, tequila cocktail"
+Drinks,Cocktails - Mauritian Punch,Rum Mango Passion Coco Pine,300,"Mauritian punch, rum cocktail"
 Drinks,Cocktails - Mauritius Colada,Rum Mango Passion Pineapple Coco,300,"Mauritius colada cocktail, mango, passion, pineapple, coco"
 Drinks,Cocktails - Mojito,White Rum Mint Lime Sugar Syrup,320,"mojito Mauritius, mint rum cocktail"
 Drinks,Cocktails - Pina Colada,Rum Coco Pineapple,300,"pina colada Mauritius, coconut pineapple cocktail"
-Drinks,Cocktails - Sex On The Beach,Rum Orange Peach Cranberry Grenadine,290,"sex on the beach cocktail, tropical drink"
-Drinks,Cocktails -Jalapeño Punch,Chili Rum Dark Rum Lime Grenadine,320,jalapeño punch cocktail Mauritius
-Drinks,Coffee - Americano,,120,americano coffee Mauritius
-Drinks,Coffee - Cappuccino,,150,cappuccino Mauritius
-Drinks,Coffee - Espresso,,120,espresso Mauritius
-Drinks,Coffee - Hot Chocolate,,151,hot chocolate Mauritius
-Drinks,Coffee - Latte,,150,latte Mauritius
-Drinks,Coffee - Macchiato,,150,macchiato Mauritius
+Drinks,Cocktails - Sex On The Beach,Rum Orange Peach Cranberry Grenadine,300,"sex on the beach cocktail, tropical drink"
+Drinks,Cocktails -Jalapeño Punch,Chili Rum Dark Rum Lime Grenadine,340,jalapeño punch cocktail Mauritius
+Drinks,Coffee - Americano,,150,americano coffee Mauritius
+Drinks,Coffee - Cappuccino,,180,cappuccino Mauritius
+Drinks,Coffee - Espresso,,150,espresso Mauritius
+Drinks,Coffee - Hot Chocolate,,200,hot chocolate Mauritius
+Drinks,Coffee - Latte,,180,latte Mauritius
+Drinks,Coffee - Macchiato,,180,macchiato Mauritius
 Drinks,Juice - Apple,,150,apple juice Mauritius
 Drinks,Juice - Cranberry,,150,pineapple juice fresh
 Drinks,Juice - Mango,,150,mango juice Mauritius
@@ -153,42 +153,49 @@ Drinks,Soft Drinks - Grapetiser,,140,tonic water Mauritius
 Drinks,Soft Drinks - Perona,,140,Perona sparkling water Mauritius
 Drinks,Soft Drinks - Sprite,,140,Sprite Mauritius
 Drinks,Soft Drinks - Sprite Zero,,140,Sprite Zero Mauritius
-Drinks,Spirits - Aged Rum Local Double,,200,"aged rum double, local rum Mauritius"
-Drinks,Spirits - Aged Rum Local Single,,120,"aged rum Mauritius, local rum single, spirits Mauritius"
-Drinks,Spirits - Dark Rum Local Double,,200,dark rum double Mauritius
-Drinks,Spirits - Dark Rum Local Single,,120,"dark rum Mauritius, local dark rum"
-Drinks,Spirits - Gin Local Double,,200,local gin double
-Drinks,Spirits - Gin Local Single,,120,"local gin Mauritius, single gin"
-Drinks,Spirits - Grants Whiskey Double,,300,grants double Mauritius
+Drinks,Spirits - Aged Rum Local Double,,250,"aged rum double, local rum Mauritius"
+Drinks,Spirits - Aged Rum Local Single,,140,"aged rum Mauritius, local rum single, spirits Mauritius"
+Drinks,Spirits - Dark Rum Local Double,,250,dark rum double Mauritius
+Drinks,Spirits - Dark Rum Local Single,,140,"dark rum Mauritius, local dark rum"
+Drinks,Spirits - Gin Local Double,,250,local gin double
+Drinks,Spirits - Gin Local Single,,140,"local gin Mauritius, single gin"
+Drinks,Spirits - Grants Whiskey Double,,330,grants double Mauritius
 Drinks,Spirits - Grants Whiskey Single,,180,"grants whiskey Mauritius, single pour"
 Drinks,Spirits - Mauritius Cane Rum Local Double,,200,Mauritius cane rum double
 Drinks,Spirits - Mauritius Cane Rum Local Single,,120,"Mauritius cane rum, local rum single"
-Drinks,Spirits - Red Label Whiskey Double,,300,red label double Mauritius
+Drinks,Spirits - Red Label Whiskey Double,,330,red label double Mauritius
 Drinks,Spirits - Red Label Whiskey Single,,180,"red label whiskey, Johnnie Walker red single"
 Drinks,Spirits - Seven Seas Local Double,,200,seven seas double
 Drinks,Spirits - Seven Seas Local Single,,120,"seven seas rum Mauritius, local rum"
-Drinks,Spirits - Spice Rum Local Double,,200,spice rum double Mauritius
-Drinks,Spirits - Spice Rum Local Single,,120,"spice rum Mauritius, spiced rum single"
-Drinks,Spirits - Tequila Double,,300,tequila double pour
+Drinks,Spirits - Spice Rum Local Double,,250,spice rum double Mauritius
+Drinks,Spirits - Spice Rum Local Single,,140,"spice rum Mauritius, spiced rum single"
+Drinks,Spirits - Tequila Double,,330,tequila double pour
 Drinks,Spirits - Tequila Single,,180,"tequila Mauritius, single shot tequila"
-Drinks,Spirits - Vodka Local Double,,200,local vodka double
-Drinks,Spirits - Vodka Local Single,,120,"local vodka Mauritius, single vodka"
-Drinks,Spirits - White Rum Local Double,,200,white rum double
-Drinks,Spirits - White Rum Local Single,,120,"white rum Mauritius, local white rum"
+Drinks,Spirits - Vodka Local Double,,250,local vodka double
+Drinks,Spirits - Vodka Local Single,,140,"local vodka Mauritius, single vodka"
+Drinks,Spirits - White Rum Local Double,,250,white rum double
+Drinks,Spirits - White Rum Local Single,,140,"white rum Mauritius, local white rum"
 Drinks,Water,1l  Natural Sparkling Tonic,120,"natural, sparkling, tonic water Mauritius"
 Drinks,Wine - Blanc Du Noir,Glass 200 ml Rose,380,blanc du noir wine Mauritius
-Drinks,Wine - Blanc Du Noir,Per Bottle Rose,1080,blanc du noir wine Mauritius
-Drinks,Wine - Cabernet Sauvignon,Glass 200 ml Red,375,"cabernet sauvignon Mauritius, per bottle"
-Drinks,Wine - Cabernet Sauvignon,Per Bottle Red,1100,"cabernet sauvignon Mauritius, per bottle"
-Drinks,Wine - Chardonnay,Glass 200 ml,340,chardonnay wine Mauritius
-Drinks,Wine - Chardonnay,Per Bottle,1050,chardonnay wine Mauritius
-Drinks,Wine - House Red,Glass 200 ml,140,"house red wine Mauritius, per glass"
-Drinks,Wine - House Rose,Glass 200 ml,140,house rosé wine Mauritius
-Drinks,Wine - House White,Glass 200 ml,140,house white wine Mauritius
-Drinks,Wine - Merlot,Glass 200 ml Red,375,merlot wine Mauritius
-Drinks,Wine - Merlot,Per Bottle Red,1100,merlot wine Mauritius
-Drinks,Wine - Sauvignon Blanc,Glass 200 ml White,340,sauvignon blanc wine Mauritius
-Drinks,Wine - Sauvignon Blanc,Per Bottle White,1050,sauvignon blanc wine Mauritius
-Drinks,Wine - Shiraz,Glass 200 ml Red,375,shiraz wine Mauritius
-Drinks,Wine - Shiraz,Per Bottle Red,1100,shiraz wine Mauritius
-Drinks,Wine - Spritzer,House wine with Sodan and Ice,300,spritzerwine Mauritius
+Drinks,Wine - Blanc Du Noir,Per Bottle Rose,1200,blanc du noir wine Mauritius
+Drinks,Wine - Cabernet Sauvignon,Glass 200 ml Red,395,"cabernet sauvignon Mauritius, per bottle"
+Drinks,Wine - Cabernet Sauvignon,Per Bottle Red,1250,"cabernet sauvignon Mauritius, per bottle"
+Drinks,Wine - Chardonnay,Glass 200 ml,350,chardonnay wine Mauritius
+Drinks,Wine - Chardonnay,Per Bottle,1150,chardonnay wine Mauritius
+Drinks,Wine - House Red,Glass 200 ml,280,"house red wine Mauritius, per glass"
+Drinks,Wine - House Rose,Glass 200 ml,280,house rosé wine Mauritius
+Drinks,Wine - House White,Glass 200 ml,280,house white wine Mauritius
+Drinks,Wine - Merlot,Glass 200 ml Red,395,merlot wine Mauritius
+Drinks,Wine - Merlot,Per Bottle Red,1250,merlot wine Mauritius
+Drinks,Wine - Sauvignon Blanc,Glass 200 ml White,350,sauvignon blanc wine Mauritius
+Drinks,Wine - Sauvignon Blanc,Per Bottle White,1150,sauvignon blanc wine Mauritius
+Drinks,Wine - Shiraz,Glass 200 ml Red,395,shiraz wine Mauritius
+Drinks,Wine - Shiraz,Per Bottle Red,1250,shiraz wine Mauritius
+Drinks,Wine - Spritzer,House wine with soda and ice,320,spritzerwine Mauritius
+Drinks,Beer - Monaco Small,330 ml | Beer + Grenadine + Sprite,190,Monaco beer cocktail Mauritius
+Drinks,Beer - Queen Mary Small,330 ml | Beer + Grenadine,190,Queen Mary beer cocktail Mauritius
+Drinks,Coffee - Double Espresso,,180,double espresso coffee Mauritius
+Drinks,Coffee - Ice Coffee,,150,iced coffee Mauritius
+Drinks,Cocktails - Long Island Ice Tea,Vodka + Gin + Rum + Tequila + Lemon + Coke,400,Long Island iced tea cocktail Mauritius
+Drinks,Cocktails - Ti Punch,Sugar + Lemon + Rum + Lime,300,Ti Punch rum cocktail Mauritius
+Drinks,Spirits - Brandy Double,,330,brandy double Mauritius
