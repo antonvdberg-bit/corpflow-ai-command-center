@@ -15,6 +15,10 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import {
+  buildCursorActivationClaim,
+  formatCursorActivationClaimComment,
+} from '../lib/server/cursor-activation-claim.js';
+import {
   finalizeIssueClaimAfterActivation,
   inferIssueClassification,
   rollbackPrematureIssueClaim,
@@ -197,6 +201,22 @@ async function main() {
       }),
     );
     await postGitHubIssueComment(targetIssue, originBody, { token, repoFullName: repo });
+
+    // Durable activated claim with verified run ID (preserves prior pending claim history).
+    const activatedClaim = buildCursorActivationClaim({
+      sourceIssue: targetIssue,
+      generation: 1,
+      claimToken: `activated-${runId}`,
+      status: 'activated',
+      agentRunId: runId,
+      claimedAt: new Date().toISOString(),
+      workflowRunId: opsStatus?.workflow_run_id || process.env.GITHUB_RUN_ID || null,
+    });
+    await postGitHubIssueComment(
+      targetIssue,
+      formatCursorActivationClaimComment(activatedClaim),
+      { token, repoFullName: repo },
+    );
   } else {
     result.finalized = true;
     result.dryRunWouldApply = {
