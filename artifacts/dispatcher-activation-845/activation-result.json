@@ -1,0 +1,33 @@
+{
+  "schema": "corpflow.dispatcher_activation_result.v1",
+  "issue": 845,
+  "verdict": "BUSINESS OPS DISPATCHER ACTIVATION PASS — LIVE",
+  "workflowId": "V3E4m5KiC1SseaCk",
+  "workflowName": "CorpFlowAI — Business Operations Dispatcher v1",
+  "publishedVersionId": "974a26cb-6dc7-4ec3-8fed-fd1132fe5fa3",
+  "active": true,
+  "activeVersionId": "974a26cb-6dc7-4ec3-8fed-fd1132fe5fa3",
+  "activationAttemptAt": "2026-08-10T05:48:47Z",
+  "telegramDisabledDisconnected": true,
+  "hardenedV2": {
+    "workflowId": "cPgzIQIm4ztU8sQQ",
+    "active": true,
+    "activeVersionId": "f9be8893-4a2d-4fc3-983f-2296c50ac74e",
+    "unchanged": true
+  },
+  "competingBusinessOpsDispatcher": false,
+  "postActivationExecutions": [
+    {
+      "id": "6607",
+      "mode": "manual",
+      "status": "success",
+      "startedAt": "2026-08-10T05:48:59.158Z",
+      "purpose": "synthetic_page_anton_0_empty_queues",
+      "telegramExecuted": false,
+      "githubCommentExecuted": false,
+      "lastNodeExecuted": "Any Cursor or Codex routing?"
+    }
+  ],
+  "productionScheduleExecutionsSinceActivation": 0,
+  "evidenceArtifact": "artifacts/n8n-capability-recovery-814/BUSINESS_OPS_DISPATCHER_ACTIVATION_LIVE_2026-08-10.md"
+}

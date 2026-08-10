@@ -1,0 +1,6 @@
+activation_attempt_at=2026-08-10T05:48:47Z
+workflow=V3E4m5KiC1SseaCk
+approved_version=974a26cb-6dc7-4ec3-8fed-fd1132fe5fa3
+hardened_v2_pre=cPgzIQIm4ztU8sQQ:f9be8893-4a2d-4fc3-983f-2296c50ac74e:active=true
+
+published_at=2026-08-10T05:49:21Z
