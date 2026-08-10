@@ -27,14 +27,15 @@ Consolidation is allowed only when explicitly justified and safe.
 
 | Existing piece | Role |
 |----------------|------|
-| `.github/workflows/factory-dispatcher-activate.yml` | Scheduled + manual activator (existing) |
+| `.github/workflows/factory-dispatcher-activate.yml` | Scheduled + manual + **Phase A `issues:labeled`** activator (canonical) |
 | `scripts/dispatcher-agent-activation.mjs` | Cursor Cloud activation (existing) |
 | `lib/server/cursor-ops-status.js` | Issue comment posting + Control Tower status (existing) |
 | **`lib/server/cursor-issue-dispatch-lifecycle.js`** | Classification, WIP, segregation, comment templates (**this packet**) |
+| **`lib/server/cursor-ready-event-dispatch.js`** | Exact-label event predicates + effective target resolution (Phase A) |
 | **`scripts/cursor-issue-dispatch-scan.mjs`** | Label scan → discover/classify/eligibility plan (**this packet**) |
 | **`scripts/cursor-issue-dispatch-finalize.mjs`** | Post-activation claim labels + run ID comment (**this packet**) |
 
-Do **not** add a parallel workflow that also activates Cursor. The scan runs as a **prep step** inside the existing workflow and may hand **at most one** `activationTargetIssue` to the existing activator path.
+Do **not** add a parallel workflow that also activates Cursor. The thin `cursor-ready-wakeup.yml` wrapper was removed in Phase A — the canonical workflow owns the `issues:labeled` trigger. The scan runs as a **prep step** inside the existing workflow and may hand **at most one** `activationTargetIssue` to the existing activator path. Event-driven runs activate only the labeled issue when that issue is scan-eligible.
 
 ## 3. Labels
 
@@ -84,14 +85,15 @@ Research/documentation-only tasks may run separately only when they cannot confl
 
 **GitHub issues labelled `dispatch:cursor-ready` are activation inputs.** Open PRs from prior work are **not** automatically resumed or merged by the dispatcher. Each issue gets its own branch/PR cycle; operators merge manually after review.
 
-### Preferred schedule
+### Preferred cadence
 
-| Mode | Cron |
-|------|------|
-| Preferred | every **30 minutes** (`*/30 * * * *`) |
+| Mode | Trigger |
+|------|---------|
+| **Primary (Phase A)** | `issues:labeled` with exact label `dispatch:cursor-ready` |
+| Fallback | every **30 minutes** (`*/30 * * * *`) for missed events / absence-of-event recovery |
 | Previous | every 2 hours |
 
-Cost remains negligible (Node script + GitHub API). Scheduled `cursor_live` still requires `CURSOR_LIVE_ENABLED=true` and the throughput packet gate for dispatcher-sourced activations.
+Cost remains negligible (Node script + GitHub API). Scheduled `cursor_live` still requires `CURSOR_LIVE_ENABLED=true` and the throughput packet gate for dispatcher-sourced activations. Event-driven `cursor_live` uses the same `CURSOR_API_KEY` + claim-before-API path; WIP and protected gates still block activation.
 
 ## 6. Acknowledgement stages
 
