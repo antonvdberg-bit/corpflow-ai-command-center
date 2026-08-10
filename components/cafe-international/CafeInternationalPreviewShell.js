@@ -91,11 +91,20 @@ export function CafeGlassPanel({ children, style = {}, as: Tag = 'section', ...r
   );
 }
 
-export function CafeActionPanel({ title, subtitle, actions, tone = 'booking', image }) {
+export function CafeActionPanel({
+  title,
+  subtitle,
+  actions,
+  tone = 'booking',
+  image,
+  children,
+  id,
+}) {
   const border =
     tone === 'takeaway' ? 'rgba(232,160,106,0.55)' : 'rgba(246,239,230,0.28)';
   return (
     <CafeGlassPanel
+      id={id}
       data-cafe-action-panel={tone}
       style={{
         border: `1px solid ${border}`,
@@ -128,7 +137,7 @@ export function CafeActionPanel({ title, subtitle, actions, tone = 'booking', im
             fontWeight: 800,
           }}
         >
-          {tone === 'takeaway' ? 'Takeaway' : 'Table booking'}
+          {tone === 'takeaway' ? 'Takeaway' : 'Visit / dine in'}
         </div>
         <h2
           style={{
@@ -144,6 +153,7 @@ export function CafeActionPanel({ title, subtitle, actions, tone = 'booking', im
         <p style={{ margin: '10px 0 0', color: T.creamMuted, lineHeight: 1.5, fontSize: 15 }}>
           {subtitle}
         </p>
+        {children}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 16 }}>
           {(actions || []).map((a) => (
             <ActionButton
@@ -158,6 +168,82 @@ export function CafeActionPanel({ title, subtitle, actions, tone = 'booking', im
         </div>
       </div>
     </CafeGlassPanel>
+  );
+}
+
+/**
+ * Client food-motion with muted autoplay, poster fallback, and reduced-motion safety.
+ */
+export function CafeFoodMotion({
+  src,
+  poster,
+  caption = 'From the flame grill',
+}) {
+  return (
+    <figure
+      data-cafe-food-motion="true"
+      style={{
+        margin: 0,
+        borderRadius: 18,
+        overflow: 'hidden',
+        border: `1px solid ${T.line}`,
+        background: T.ink,
+        position: 'relative',
+        boxShadow: '0 22px 48px rgba(0,0,0,0.4)',
+      }}
+    >
+      <video
+        data-cafe-food-motion-video
+        src={src}
+        poster={poster}
+        muted
+        playsInline
+        autoPlay
+        loop
+        preload="metadata"
+        controls={false}
+        disablePictureInPicture
+        aria-label={caption}
+        style={{
+          display: 'block',
+          width: '100%',
+          height: 'auto',
+          aspectRatio: '16 / 9',
+          objectFit: 'cover',
+          background: `center / cover no-repeat url(${poster})`,
+        }}
+      />
+      <img
+        data-cafe-food-motion-fallback
+        src={poster}
+        alt={caption}
+        style={{
+          display: 'none',
+          width: '100%',
+          height: 'auto',
+          aspectRatio: '16 / 9',
+          objectFit: 'cover',
+        }}
+      />
+      <figcaption
+        style={{
+          position: 'absolute',
+          left: 14,
+          bottom: 12,
+          padding: '6px 10px',
+          borderRadius: 8,
+          background: 'rgba(20,14,12,0.72)',
+          color: T.cream,
+          fontSize: 13,
+          fontWeight: 700,
+          letterSpacing: '0.04em',
+          textTransform: 'uppercase',
+          pointerEvents: 'none',
+        }}
+      >
+        {caption}
+      </figcaption>
+    </figure>
   );
 }
 
@@ -355,6 +441,20 @@ export default function CafeInternationalPreviewShell({
         </nav>
 
         <style>{`
+          /* Visually hide screen-reader helpers — food-tile alts must not paint as blue link text */
+          .sr-only,
+          [data-cafe-international-preview] .sr-only {
+            position: absolute !important;
+            width: 1px !important;
+            height: 1px !important;
+            padding: 0 !important;
+            margin: -1px !important;
+            overflow: hidden !important;
+            clip: rect(0, 0, 0, 0) !important;
+            clip-path: inset(50%) !important;
+            white-space: nowrap !important;
+            border: 0 !important;
+          }
           @media (min-width: 900px) {
             [data-cafe-desktop-nav] { display: flex !important; }
             [data-cafe-mobile-menu-btn] { display: none !important; }
@@ -365,9 +465,26 @@ export default function CafeInternationalPreviewShell({
             from { opacity: 0; transform: translateY(14px); }
             to { opacity: 1; transform: translateY(0); }
           }
+          @keyframes cafeEmberGlow {
+            0%, 100% { box-shadow: 0 18px 40px rgba(0,0,0,0.35), 0 0 0 0 rgba(232,160,106,0.0); }
+            50% { box-shadow: 0 18px 40px rgba(0,0,0,0.35), 0 0 28px 0 rgba(232,160,106,0.18); }
+          }
           [data-cafe-hero] { animation: cafeFadeUp 0.7s ease-out both; }
+          [data-cafe-food-motion] { animation: cafeFadeUp 0.85s ease-out 0.12s both; }
+          [data-cafe-journey] { animation: cafeFadeUp 0.8s ease-out 0.08s both; }
+          [data-cafe-hero-glass] { animation: cafeEmberGlow 4.5s ease-in-out infinite; }
           [data-cafe-appetite-grid] a { transition: transform 0.25s ease, box-shadow 0.25s ease; }
           [data-cafe-appetite-grid] a:hover { transform: translateY(-4px); box-shadow: 0 16px 36px rgba(0,0,0,0.45); }
+          @media (prefers-reduced-motion: reduce) {
+            [data-cafe-hero],
+            [data-cafe-food-motion],
+            [data-cafe-journey],
+            [data-cafe-hero-glass] { animation: none !important; }
+            [data-cafe-appetite-grid] a { transition: none !important; }
+            [data-cafe-appetite-grid] a:hover { transform: none !important; }
+            [data-cafe-food-motion-video] { display: none !important; }
+            [data-cafe-food-motion-fallback] { display: block !important; }
+          }
         `}</style>
         <div
           data-cafe-desktop-nav
@@ -431,10 +548,23 @@ export default function CafeInternationalPreviewShell({
               <br />
               {String(truth?.public_phone || '')}
             </p>
+            <p style={{ margin: '12px 0 0', lineHeight: 1.5 }}>
+              <Link href="/demo/cafe-international/visit" style={{ color: T.flameSoft }}>
+                Visit · hours & directions
+              </Link>
+              {' · '}
+              <Link href="/demo/cafe-international/takeaway" style={{ color: T.flameSoft }}>
+                Takeaway
+              </Link>
+              {' · '}
+              <Link href="/demo/cafe-international/contact" style={{ color: T.creamMuted }}>
+                Contact
+              </Link>
+            </p>
             <p style={{ margin: '12px 0 0', fontSize: 12, opacity: 0.85 }}>
               Preview built by CorpFlowAI for owner review. Current live site remains{' '}
-              {String(truth?.production_domain || '')}. Photography from owner Drive
-              assets. Menu prices from the live Menu-page Google Sheet (not the outdated
+              {String(truth?.production_domain || '')}. Photography and food-motion from owner
+              Drive assets. Menu prices from the live Menu-page Google Sheet (not the outdated
               Drive CSV).
             </p>
           </div>
@@ -458,7 +588,7 @@ export default function CafeInternationalPreviewShell({
           }}
         >
           <ActionButton href="/demo/cafe-international/menu">Menu</ActionButton>
-          <ActionButton href="/demo/cafe-international/contact#book" primary>
+          <ActionButton href="/demo/cafe-international/visit#book" primary>
             Book
           </ActionButton>
           <ActionButton href="/demo/cafe-international/takeaway" primary>

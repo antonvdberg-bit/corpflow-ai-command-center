@@ -8,7 +8,7 @@
 https://docs.google.com/spreadsheets/d/e/2PACX-1vTB9dndns4LTTfWMfKJfIMebDrwq02J15PLNbQ4JDVysSuiQcXQjl43QDb2GpHPZ9jMsF_thjrSOyZi/pub?output=csv
 ```
 
-**Repo snapshot:** `fixtures/website-rescue/cafe-international-menu-sheet.csv` (captured 2026-08-07).
+**Repo snapshot:** `fixtures/website-rescue/cafe-international-menu-sheet.csv` (captured 2026-08-10).
 
 **Do not use:** Drive folder file `CafeInternational_Menu - Sheet1.csv` — outdated (118 rows, missing Drinks, older prices).
 
