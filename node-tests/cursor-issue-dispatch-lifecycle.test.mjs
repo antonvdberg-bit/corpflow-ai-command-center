@@ -137,7 +137,7 @@ describe('cursor-issue-dispatch-lifecycle', () => {
     assert.match(String(d654?.reason || ''), /concurrency hold|sibling products/i);
   });
 
-  it('respects WIP max of 2 active claimed issues', () => {
+  it('stale claimed labels alone do not consume verified WIP slots (#862)', () => {
     const plan = planCursorIssueClaims({
       readyIssues: [
         {
@@ -148,12 +148,18 @@ describe('cursor-issue-dispatch-lifecycle', () => {
         },
       ],
       claimedIssues: [
-        { number: 1, title: 'A', body: 'docs', labels: ['dispatch:cursor-claimed'] },
-        { number: 2, title: 'B', body: 'docs', labels: ['dispatch:cursor-claimed'] },
+        { number: 1, title: 'A', body: 'docs', labels: ['dispatch:cursor-claimed'], comments: [] },
+        { number: 2, title: 'B', body: 'docs', labels: ['dispatch:cursor-claimed'], comments: [] },
+      ],
+      trackedIssues: [
+        { number: 1, title: 'A', body: 'docs', labels: ['dispatch:cursor-claimed'], comments: [] },
+        { number: 2, title: 'B', body: 'docs', labels: ['dispatch:cursor-claimed'], comments: [] },
       ],
     });
-    assert.equal(plan.availableSlots, 0);
-    assert.equal(plan.decisions[0].decision, 'discover_only');
+    assert.equal(plan.verifiedActiveCount, 0);
+    assert.equal(plan.availableSlots, 2);
+    assert.equal(plan.decisions[0].decision, 'claim');
+    assert.ok((plan.reconcileActions || []).length >= 2);
   });
 
   it('blocks same-tenant concurrency', () => {

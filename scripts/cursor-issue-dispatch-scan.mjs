@@ -26,7 +26,9 @@ import {
   formatWorkClassificationComment,
   isClaimStale,
   formatStaleWorkStatusRequest,
+  listClosedIssuesByLabelGraphql,
   planCursorIssueClaims,
+  releaseCursorExecutionSlotLabels,
   suggestIssueBranchName,
 } from '../lib/server/cursor-issue-dispatch-lifecycle.js';
 import { postGitHubIssueComment } from '../lib/server/cursor-ops-status.js';
@@ -99,6 +101,8 @@ async function main() {
   let readyIssues = [];
   /** @type {import('../lib/server/cursor-issue-dispatch-lifecycle.js').DispatchIssue[]} */
   let claimedIssues = [];
+  /** @type {import('../lib/server/cursor-issue-dispatch-lifecycle.js').DispatchIssue[]} */
+  let closedClaimedIssues = [];
   /** @type {Record<string, unknown>} */
   const discovery = {
     method: token ? 'graphql_or_rest' : 'none',
@@ -106,8 +110,10 @@ async function main() {
     claimedLabel: DISPATCH_LABEL_CLAIMED,
     readyCount: 0,
     claimedCount: 0,
+    closedClaimedCount: 0,
     readyIssueNumbers: [],
     claimedIssueNumbers: [],
+    closedClaimedIssueNumbers: [],
   };
 
   if (!token) {
@@ -115,17 +121,71 @@ async function main() {
   } else {
     readyIssues = await discoverOpenIssuesByLabel(token, repo, DISPATCH_LABEL_READY);
     claimedIssues = await discoverOpenIssuesByLabel(token, repo, DISPATCH_LABEL_CLAIMED);
+    try {
+      closedClaimedIssues = await listClosedIssuesByLabelGraphql(
+        token,
+        repo,
+        DISPATCH_LABEL_CLAIMED,
+      );
+    } catch (err) {
+      discovery.closedClaimedError = err instanceof Error ? err.message : String(err);
+      closedClaimedIssues = [];
+    }
     discovery.readyCount = readyIssues.length;
     discovery.claimedCount = claimedIssues.length;
+    discovery.closedClaimedCount = closedClaimedIssues.length;
     discovery.readyIssueNumbers = readyIssues.map((i) => Number(i.number));
     discovery.claimedIssueNumbers = claimedIssues.map((i) => Number(i.number));
+    discovery.closedClaimedIssueNumbers = closedClaimedIssues.map((i) => Number(i.number));
+
+    // Attach activation comments so WIP counts verified runs, not labels alone.
+    const needsComments = new Map();
+    for (const issue of [...claimedIssues, ...closedClaimedIssues, ...readyIssues]) {
+      needsComments.set(Number(issue.number), issue);
+    }
+    for (const issue of needsComments.values()) {
+      try {
+        const bodies = await listIssueCommentBodies(token, repo, Number(issue.number));
+        issue.comments = bodies.map((body) => ({ body }));
+      } catch (err) {
+        issue.commentLoadError = err instanceof Error ? err.message : String(err);
+        issue.comments = [];
+      }
+    }
   }
 
+  const trackedIssues = [...claimedIssues, ...closedClaimedIssues, ...readyIssues];
   const plan = planCursorIssueClaims({
     readyIssues,
     claimedIssues,
+    trackedIssues,
     preferIssueNumbers: args.preferIssueNumbers,
   });
+
+  /** @type {Array<Record<string, unknown>>} */
+  const reconcileApplied = [];
+  for (const action of plan.reconcileActions || []) {
+    const entry = {
+      issue: action.issueNumber,
+      reason: action.reason,
+      removeLabels: action.removeLabels,
+      applied: false,
+    };
+    if (args.applyComments && token) {
+      try {
+        await releaseCursorExecutionSlotLabels({
+          token,
+          repo,
+          issueNumber: action.issueNumber,
+          labels: action.removeLabels,
+        });
+        entry.applied = true;
+      } catch (err) {
+        entry.error = err instanceof Error ? err.message : String(err);
+      }
+    }
+    reconcileApplied.push(entry);
+  }
 
   /** @type {Array<Record<string, unknown>>} */
   const actions = [];
@@ -257,22 +317,33 @@ async function main() {
     discovery,
     wipLimits: plan.wipLimits,
     claimedCount: plan.claimedCount,
+    verifiedActiveCount: plan.verifiedActiveCount,
     availableSlots: plan.availableSlots,
     eligibleIssueNumbers: plan.eligibleIssueNumbers,
     claimIssueNumbers: plan.claimIssueNumbers,
     activationTargetIssue: plan.activationTargetIssue,
+    capacityPacket: plan.capacityPacket,
+    wipCapacity: plan.wipCapacity,
+    reconcileActions: plan.reconcileActions,
+    reconcileApplied,
     actions,
   };
 
   fs.writeFileSync(path.resolve(args.outPath), `${JSON.stringify(result, null, 2)}\n`);
+  if (plan.capacityPacket) {
+    console.log(String(plan.capacityPacket).trimEnd());
+  }
   console.log(
     JSON.stringify(
       {
         schema: result.schema,
         discovery: result.discovery,
+        verifiedActiveCount: result.verifiedActiveCount,
+        availableSlots: result.availableSlots,
         eligibleIssueNumbers: result.eligibleIssueNumbers,
         claimIssueNumbers: result.claimIssueNumbers,
         activationTargetIssue: result.activationTargetIssue,
+        reconciledStaleStates: (plan.reconcileActions || []).length,
         actionCount: actions.length,
         outPath: args.outPath,
         dryRun: result.dryRun,

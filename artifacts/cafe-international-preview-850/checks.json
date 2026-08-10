@@ -1,0 +1,72 @@
+{
+  "captured_at": "2026-08-10T06:14:42.300Z",
+  "base": "http://127.0.0.1:3010",
+  "screenshots": [
+    {
+      "name": "home-desktop-viewport.png",
+      "status": 200,
+      "url": "http://127.0.0.1:3010/demo/cafe-international",
+      "bytes": 792010
+    },
+    {
+      "name": "home-desktop.png",
+      "status": 200,
+      "url": "http://127.0.0.1:3010/demo/cafe-international",
+      "bytes": 2403801
+    },
+    {
+      "name": "home-mobile-viewport.png",
+      "status": 200,
+      "url": "http://127.0.0.1:3010/demo/cafe-international",
+      "bytes": 838271
+    },
+    {
+      "name": "home-mobile.png",
+      "status": 200,
+      "url": "http://127.0.0.1:3010/demo/cafe-international",
+      "bytes": 5938431
+    },
+    {
+      "name": "menu-desktop.png",
+      "status": 200,
+      "url": "http://127.0.0.1:3010/demo/cafe-international/menu",
+      "bytes": 1955138
+    },
+    {
+      "name": "menu-mobile.png",
+      "status": 200,
+      "url": "http://127.0.0.1:3010/demo/cafe-international/menu",
+      "bytes": 4925871
+    },
+    {
+      "name": "takeaway-desktop.png",
+      "status": 200,
+      "url": "http://127.0.0.1:3010/demo/cafe-international/takeaway",
+      "bytes": 916957
+    },
+    {
+      "name": "contact-desktop.png",
+      "status": 200,
+      "url": "http://127.0.0.1:3010/demo/cafe-international/contact",
+      "bytes": 585510
+    }
+  ],
+  "checks": {
+    "home_owner_story": true,
+    "home_menu_preview": true,
+    "home_menu_items": 6,
+    "home_jsonld_restaurant": true,
+    "home_hasMenu": true,
+    "menu_items": 203,
+    "menu_prices": 192,
+    "menu_jsonld": true,
+    "menu_greek_salad": true,
+    "takeaway_wa": true,
+    "takeaway_not_chat_channel": true,
+    "takeaway_no_booking_chat_cta": true,
+    "contact_booking_chat": true,
+    "contact_takeaway_wa": true,
+    "phone": true,
+    "noindex": true
+  }
+}

@@ -7,7 +7,9 @@ import CafeInternationalPreviewShell, {
 } from '../../../components/cafe-international/CafeInternationalPreviewShell.js';
 import { CAFE_INTERNATIONAL_VISUALS } from '../../../lib/website-rescue/cafe-international-assets.js';
 import {
+  CAFE_INTERNATIONAL_MENU_INTRO,
   CAFE_INTERNATIONAL_PREVIEW_BASE,
+  buildCafeInternationalMenuJsonLd,
   cafeInternationalWhatsAppHref,
 } from '../../../lib/website-rescue/cafe-international-preview.js';
 import { getCafeInternationalPreviewProps } from '../../../lib/website-rescue/cafe-international-preview-server.js';
@@ -17,17 +19,23 @@ const CATEGORY_WHATSAPP_CTA_LABEL = 'Order on WhatsApp';
 
 function categoryWhatsAppPrefill(categoryName) {
   const label = String(categoryName || 'the menu').trim();
-  return `Hi Flame! I'd like to order from ${label}.\n\nPlease confirm availability and pickup time.`;
+  return `Hi Flame! I'd like to order items from ${label}.\n\nPlease confirm availability and pickup time.`;
 }
 
 export default function CafeInternationalMenuPage({ truth, menu, nav }) {
   const categories = (menu.categories || []).filter((c) => c.id !== 'extras');
+  const menuJsonLd = buildCafeInternationalMenuJsonLd(
+    truth,
+    menu,
+    `https://corpflowai.com${CAFE_INTERNATIONAL_PREVIEW_BASE}/menu`,
+  );
 
   return (
     <CafeInternationalPreviewShell
       title={`Menu — ${truth.public_name}`}
       description="Takeaway menu for Café International — prices from the live Menu-page Google Sheet."
       canonicalPath={`${CAFE_INTERNATIONAL_PREVIEW_BASE}/menu`}
+      jsonLd={menuJsonLd}
       nav={nav}
       activeHref={`${CAFE_INTERNATIONAL_PREVIEW_BASE}/menu`}
       truth={truth}
@@ -79,9 +87,11 @@ export default function CafeInternationalMenuPage({ truth, menu, nav }) {
         >
           Menu
         </h1>
-        <p style={{ marginTop: 10, color: T.creamMuted, maxWidth: 560, lineHeight: 1.5 }}>
-          Browse by section, then order the whole category on WhatsApp — not through
-          website chat.
+        <p
+          data-cafe-menu-intro
+          style={{ marginTop: 10, color: T.creamMuted, maxWidth: 560, lineHeight: 1.5 }}
+        >
+          {CAFE_INTERNATIONAL_MENU_INTRO}
         </p>
         <div style={{ marginTop: 16 }}>
           <ActionButton href={`${CAFE_INTERNATIONAL_PREVIEW_BASE}/takeaway`} primary>

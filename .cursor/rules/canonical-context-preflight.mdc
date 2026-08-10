@@ -1,0 +1,53 @@
+---
+description: Mandatory canonical-context refresh before CorpFlowAI routing, delivery, environment or deployment work
+alwaysApply: true
+---
+
+# Canonical Context Preflight v1
+
+Before giving progress, routing, next-action, client-delivery, merge, deployment, environment-classification, or blocker advice — and before starting implementation — refresh the current canonical context from GitHub/repo state.
+
+## Mandatory reads
+
+1. `docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md`
+2. `docs/operations/CORPFLOW_ENVIRONMENT_CLASSIFICATION_V1.md`
+3. The current source issue / PR being acted on.
+
+Read additional topic-specific doctrine only when the packet touches that topic.
+
+## Mandatory internal resolution
+
+Resolve all four before proceeding:
+
+- `operating_model_version`: current version from `CORPFLOWAI_CURRENT_DELIVERY_REALITY.md`
+- `environment`: one of `corpflow_test`, `client_production`, `local`, `n/a`
+- `github_state_refreshed`: `YES`
+- `source_item`: current issue/PR number or `n/a`
+
+Do not answer or implement from remembered orchestration assumptions when current GitHub/repo state can be checked.
+
+## Environment rule
+
+CorpFlowAI-controlled tenant/factory hosts under CorpFlowAI infrastructure are `corpflow_test` unless a separate client-production transition is explicitly approved.
+
+A Vercel Preview is optional internal verification only. Do not require a preview environment before publishing a normal tenant change to `corpflow_test`.
+
+`client_production` means a separately governed client-owned/client-approved external production target. It is never inferred merely because Vercel calls the serving spine “Production”.
+
+## PR acknowledgement
+
+New agent-authored PRs created after Canonical Context Preflight v1 activation must include this block in the PR body:
+
+```text
+Canonical Context Preflight: PASS
+Operating model version: <current version>
+Environment: corpflow_test | client_production | local | n/a
+GitHub state refreshed: YES
+Source item: #<issue> | PR #<number> | n/a
+```
+
+The repository CI gate validates this acknowledgement for new PRs. This acknowledgement is evidence of refresh, not authorization for any protected action.
+
+## Protected actions unchanged
+
+This rule does not authorize merge, client-production deploy, env/secrets changes, DB/schema changes, payments, external sends/outreach, paid tools, or public client launch. Existing durable-approval gates remain authoritative.

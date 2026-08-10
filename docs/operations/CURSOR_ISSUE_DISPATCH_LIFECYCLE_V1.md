@@ -27,22 +27,24 @@ Consolidation is allowed only when explicitly justified and safe.
 
 | Existing piece | Role |
 |----------------|------|
-| `.github/workflows/factory-dispatcher-activate.yml` | Scheduled + manual activator (existing) |
+| `.github/workflows/factory-dispatcher-activate.yml` | Scheduled + manual + **Phase A `issues:labeled`** activator (canonical) |
 | `scripts/dispatcher-agent-activation.mjs` | Cursor Cloud activation (existing) |
 | `lib/server/cursor-ops-status.js` | Issue comment posting + Control Tower status (existing) |
 | **`lib/server/cursor-issue-dispatch-lifecycle.js`** | Classification, WIP, segregation, comment templates (**this packet**) |
+| **`lib/server/cursor-ready-event-dispatch.js`** | Exact-label event predicates + effective target resolution (Phase A) |
 | **`scripts/cursor-issue-dispatch-scan.mjs`** | Label scan → discover/classify/eligibility plan (**this packet**) |
 | **`scripts/cursor-issue-dispatch-finalize.mjs`** | Post-activation claim labels + run ID comment (**this packet**) |
 
-Do **not** add a parallel workflow that also activates Cursor. The scan runs as a **prep step** inside the existing workflow and may hand **at most one** `activationTargetIssue` to the existing activator path.
+Do **not** add a parallel workflow that also activates Cursor. The thin `cursor-ready-wakeup.yml` wrapper was removed in Phase A — the canonical workflow owns the `issues:labeled` trigger. The scan runs as a **prep step** inside the existing workflow and may hand **at most one** `activationTargetIssue` to the existing activator path. Event-driven runs activate only the labeled issue when that issue is scan-eligible.
 
 ## 3. Labels
 
 | Label | Meaning |
 |-------|---------|
 | `dispatch:cursor-ready` | Eligible for Cursor discovery/claim |
-| `dispatch:cursor-claimed` | Cursor owns execution (remove ready when claimed) |
-| `status:in-progress` | Active work |
+| `dispatch:cursor-claimed` | Cursor owns execution (remove ready when claimed) — **display state only** for WIP |
+| `status:in-progress` | Active work — **display state only** for WIP |
+| `execution:paused` | Excluded from new activation; preserves the issue (#862) |
 | `dispatch:blocked` | Do not claim |
 | `needs:anton` | Protected gate — unlock required (Decision Inbox routing; **not** durable approval) |
 
@@ -54,15 +56,25 @@ Do **not** add a parallel workflow that also activates Cursor. The scan runs as 
 
 If label creation or verification fails (missing labels after ensure, GitHub API error, or insufficient token scope), the workflow **fails closed**: the run stops, no claim labels are applied, and operators see **one actionable blocker** naming the missing label(s) or API failure — fix repo label state or workflow permissions, then re-run the scan on `main` (dry-run is fine).
 
-## 4. WIP limits (default)
+## 4. WIP limits (default) — verified Cursor runs (#862)
 
 | Scope | Limit |
 |-------|-------|
-| Active Cursor implementation issues (`dispatch:cursor-claimed`) | **2** |
+| Verified active Cursor runs (activation metadata with run ID) | **2** |
 | Active issues per tenant | **1** |
 | Active database/schema issues (repo-wide) | **1** |
 | Active **client_production**-deployment candidates | **1** |
 | Live Cursor activations per GHA run | **1** (unchanged) |
+
+**WIP Control v1 rules:**
+
+- A slot counts only when current activation metadata proves an active Cursor run/generation.
+- Lifecycle labels alone never consume capacity; stale/orphaned labels are reconciled before dispatch.
+- Priority order for ready work: `priority:P0` > `priority:P1` > `priority:P2` > unprioritized (stable oldest-ready tie-break).
+- `execution:paused` ready work is skipped; removing the label restores eligibility. Pausing a live run does not invent an external kill — the verified slot remains until terminal.
+- Open PR count does **not** affect Cursor WIP capacity.
+- Operator-review / closed / terminal-failed transitions release the slot and strip active execution labels in the same lifecycle step.
+- Every scan emits a capacity packet naming exact run IDs for occupied slots.
 
 Publishing to CorpFlowAI-hosted **corpflow_test** surfaces does **not** consume the client_production WIP slot and does **not** set `protectedGate: production`.
 
@@ -84,14 +96,15 @@ Research/documentation-only tasks may run separately only when they cannot confl
 
 **GitHub issues labelled `dispatch:cursor-ready` are activation inputs.** Open PRs from prior work are **not** automatically resumed or merged by the dispatcher. Each issue gets its own branch/PR cycle; operators merge manually after review.
 
-### Preferred schedule
+### Preferred cadence
 
-| Mode | Cron |
-|------|------|
-| Preferred | every **30 minutes** (`*/30 * * * *`) |
+| Mode | Trigger |
+|------|---------|
+| **Primary (Phase A)** | `issues:labeled` with exact label `dispatch:cursor-ready` |
+| Fallback | every **30 minutes** (`*/30 * * * *`) for missed events / absence-of-event recovery |
 | Previous | every 2 hours |
 
-Cost remains negligible (Node script + GitHub API). Scheduled `cursor_live` still requires `CURSOR_LIVE_ENABLED=true` and the throughput packet gate for dispatcher-sourced activations.
+Cost remains negligible (Node script + GitHub API). Scheduled `cursor_live` still requires `CURSOR_LIVE_ENABLED=true` and the throughput packet gate for dispatcher-sourced activations. Event-driven `cursor_live` uses the same `CURSOR_API_KEY` + claim-before-API path; WIP and protected gates still block activation.
 
 ## 6. Acknowledgement stages
 

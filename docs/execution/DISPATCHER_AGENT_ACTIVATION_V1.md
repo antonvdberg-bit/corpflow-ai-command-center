@@ -59,10 +59,11 @@ Companion policy docs (unchanged):
 
 | Trigger | Schedule |
 |---------|----------|
-| `schedule` | Every **30 minutes** (`*/30 * * * *` UTC) — issue-label scan + activation plan; live Cursor only when `CURSOR_LIVE_ENABLED=true` |
+| `issues:labeled` | **Phase A event-first** — only when the added label is exactly `dispatch:cursor-ready` on an open issue; prefers that issue, runs existing classification/WIP/protected gates, then `cursor_live` when eligible |
+| `schedule` | Every **30 minutes** (`*/30 * * * *` UTC) — **fallback** scan when no label event fires; live Cursor only when `CURSOR_LIVE_ENABLED=true` |
 | `workflow_dispatch` | Manual run |
 
-**Segregated issue lifecycle (2026-07-28):** each scheduled/manual run first executes `scripts/cursor-issue-dispatch-scan.mjs` against open `dispatch:cursor-ready` issues (classification, WIP, discover/claim comments, labels). See `docs/operations/CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1.md`. At most one claimed issue is handed to the existing activator as `target_issue` when manual input is blank. This extends the current route — it does **not** add a second dispatcher.
+**Segregated issue lifecycle (2026-07-28):** each scheduled/manual/event run first executes `scripts/cursor-issue-dispatch-scan.mjs` against open `dispatch:cursor-ready` issues (classification, WIP, discover/claim comments, labels). See `docs/operations/CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1.md`. Event-driven runs prefer the labeled issue and activate it only when the scan selects that exact issue (gates remain authoritative). Manual `target_issue` still wins when set. This extends the current route — it does **not** add a second dispatcher. Helpers: `lib/server/cursor-ready-event-dispatch.js`.
 
 **Manual inputs (`workflow_dispatch`):**
 
