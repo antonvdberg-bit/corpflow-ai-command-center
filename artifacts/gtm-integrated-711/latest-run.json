@@ -3,7 +3,7 @@
   "issue": 711,
   "run_id": "GTM-711-FINAL-MAIN-20260805",
   "ran_at": "2026-08-05T00:30:00.000Z",
-  "final_main_sha": "d8614884d048ca078cdea1035b92198b2f478edb",
+  "final_main_sha": "90d77defed23f10c33d6d5111ff918f5aab40f86",
   "simulation_only": true,
   "market_path_regression": {
     "ok": true,

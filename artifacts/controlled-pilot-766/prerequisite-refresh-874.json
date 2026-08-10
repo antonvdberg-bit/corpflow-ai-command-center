@@ -88,9 +88,9 @@
     "recommendation": "Close as superseded after this #874 current-main package lands (operator action; no agent merge)"
   },
   "controlled_client_pilot_verdict": "NOT READY",
-  "exact_blocker": "D766-001 — Packet C ERPNext sandbox synthetic commercial-control proof not executed and evidenced by the operator",
+  "exact_blocker": "D766-001 \u2014 Packet C ERPNext sandbox synthetic commercial-control proof not executed and evidenced by the operator",
   "operator_remaining_steps": [
-    "Packet B: complete B1–B7 live ticks with cursor-test-admin@corpflowai.com / cursor-test-tenant@corpflowai.com using Anton-held passwords; keep passwords out of GitHub",
+    "Packet B: complete B1\u2013B7 live ticks with cursor-test-admin@corpflowai.com / cursor-test-tenant@corpflowai.com using Anton-held passwords; keep passwords out of GitHub",
     "Packet B optional: npm run verify:cursor-test-users -- --live on operator machine only",
     "Packet C: execute ERPNext sandbox synthetic commercial chain per docs/operations/ERPNEXT_LEAD_RESCUE_PAID_PILOT_REHEARSAL_V1.md",
     "Packet C: fill artifacts/controlled-pilot-766/packet-c-evidence-slots.json with synthetic/redacted IDs only",
@@ -106,5 +106,6 @@
     "No client sends",
     "No ERPNext writes from Cursor",
     "No revival of PR #870"
-  ]
+  ],
+  "package_head_sha": "90d77defed23f10c33d6d5111ff918f5aab40f86"
 }
