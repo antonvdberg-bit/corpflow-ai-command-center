@@ -427,6 +427,16 @@ describe('Café International corrective pass (#871 / #872)', () => {
         `${rel} must not include an audio handler (unmute control not warranted)`,
       );
     }
+    // Regression: detector must still report soun when audio is present (known A/V asset).
+    const withAudio = mp4HandlerTypes(
+      path.join(ROOT, 'public/media/corpflowai/ai-lead-rescue-sprint-intro-1080p.mp4'),
+    );
+    assert.ok(withAudio.has('vide'));
+    assert.ok(
+      withAudio.has('soun'),
+      'control fixture must expose an audio handler so the no-audio check cannot silently no-op',
+    );
+
     const shell = read('components/cafe-international/CafeInternationalPreviewShell.js');
     assert.match(shell, /\bmuted\b/);
     assert.doesNotMatch(shell, /unmute|Sound on|Enable sound/i);
