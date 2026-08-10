@@ -1,6 +1,6 @@
 # Product pack completeness checklists (Lead Rescue + Website Rescue)
 
-**Rail:** #714 · Machine keys in `config/commercial-approval-rail.v1.json` → `product_pack_completeness`  
+**Rail:** #714 · Machine keys in `config/commercial-approval-rail.v1.json` → `product_pack_completeness`
 **Evaluator:** `evaluateProductPackCompleteness(product)` in `lib/revenue/commercial-approval.js`
 
 <!-- PRODUCT_PACK_COMPLETENESS_CHECKLISTS_V1 -->

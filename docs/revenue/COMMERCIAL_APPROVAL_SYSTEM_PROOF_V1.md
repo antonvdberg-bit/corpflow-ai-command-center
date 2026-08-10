@@ -10,12 +10,12 @@
 
 **Audience:** Operator / ChatGPT commercial reviewer verifying that one Lead Rescue and one Website Rescue synthetic opportunity can progress independently from qualification through financially approved handoff.
 
-**Machine runner:** `lib/revenue/commercial-approval-system-proof.js` → `runCommercialApprovalSystemProof()`  
-**Unit contract:** `config/commercial-approval-rail.v1.json` / `lib/revenue/commercial-approval.js`  
-**Tests:** `node-tests/commercial-approval-system-proof.test.mjs`  
-**Fixtures:**  
-- `fixtures/commercial-approval/system-proof-lead-rescue.json`  
-- `fixtures/commercial-approval/system-proof-website-rescue.json`  
+**Machine runner:** `lib/revenue/commercial-approval-system-proof.js` → `runCommercialApprovalSystemProof()`
+**Unit contract:** `config/commercial-approval-rail.v1.json` / `lib/revenue/commercial-approval.js`
+**Tests:** `node-tests/commercial-approval-system-proof.test.mjs`
+**Fixtures:**
+- `fixtures/commercial-approval/system-proof-lead-rescue.json`
+- `fixtures/commercial-approval/system-proof-website-rescue.json`
 **Evidence artifact:** `artifacts/commercial-approval-system-proof/latest-run.json`
 
 ---
@@ -88,5 +88,5 @@ node scripts/commercial-approval-system-proof.mjs
 
 ## 7. Anton action
 
-`ANTON ACTION: NONE for this system proof.`  
+`ANTON ACTION: NONE for this system proof.`
 Pricing recommendation packet remains available for separate Anton review of non-floor bands.

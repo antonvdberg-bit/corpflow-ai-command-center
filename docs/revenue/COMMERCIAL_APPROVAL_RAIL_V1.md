@@ -1,10 +1,10 @@
 # Commercial approval rail v1 (WS3 / #714)
 
-**Status:** v1 — manual-first commercial control package  
-**Issue:** [#714](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/714)  
-**Parent:** #711 · **Controller:** #710  
-**Consumers:** Lead Rescue onboarding (#715), Website Rescue onboarding (#716)  
-**Machine contract:** `config/commercial-approval-rail.v1.json`  
+**Status:** v1 — manual-first commercial control package
+**Issue:** [#714](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/714)
+**Parent:** #711 · **Controller:** #710
+**Consumers:** Lead Rescue onboarding (#715), Website Rescue onboarding (#716)
+**Machine contract:** `config/commercial-approval-rail.v1.json`
 **Validator:** `lib/revenue/commercial-approval.js`
 
 <!-- COMMERCIAL_APPROVAL_RAIL_V1 -->
@@ -62,7 +62,7 @@ Sibling onboarding `canStartBuild` continues to require `record.financially_appr
 4. Prepare proposal from the product template (draft in repo/docs or operator files).
 5. Confirm product pack completeness (`PRODUCT_PACK_COMPLETENESS_CHECKLISTS.md` / `evaluateProductPackCompleteness`).
 6. Operator review (completeness, exclusions, no unsupported guarantees).
-7. **Provide or copy** the proposal to the client manually (email/WhatsApp/PDF).  
+7. **Provide or copy** the proposal to the client manually (email/WhatsApp/PDF).
    **Preparing or copying a draft is not the same as “sent” in an automated system.** Record status `provided_to_client` only when the operator actually delivered it.
 8. Record proposal version (`proposal_version`).
 9. Record acceptance (`COMMERCIAL_ACCEPTANCE_RECORD.md`).
@@ -75,9 +75,9 @@ Sibling onboarding `canStartBuild` continues to require `record.financially_appr
 
 ## 5. Won / lost vocabulary
 
-**Won:** `accepted_standard_offer`, `accepted_pilot`, `approved_deferred_payment`, `returning_client`, `scope_reduced_and_accepted`  
+**Won:** `accepted_standard_offer`, `accepted_pilot`, `approved_deferred_payment`, `returning_client`, `scope_reduced_and_accepted`
 
-**Lost:** `price`, `timing`, `no_decision`, `no_response`, `competitor`, `unsuitable_scope`, `insufficient_evidence`, `client_cancelled`, `internal_capacity`, `compliance_or_risk`  
+**Lost:** `price`, `timing`, `no_decision`, `no_response`, `competitor`, `unsuitable_scope`, `insufficient_evidence`, `client_cancelled`, `internal_capacity`, `compliance_or_risk`
 
 Operator notes are allowed; free-form text is **not** a substitute for the vocabulary code.
 
@@ -105,7 +105,7 @@ Operator notes are allowed; free-form text is **not** a substitute for the vocab
 | `PRICING_RECOMMENDATION_PACKET.md` | Operator price bands (recommendation ≠ Anton-approved final) |
 | `COMMERCIAL_APPROVAL_SYSTEM_PROOF_V1.md` | Synthetic system-gate evidence |
 
-Existing guides remain canonical for detailed inclusions:  
+Existing guides remain canonical for detailed inclusions:
 `docs/sales/AI_LEAD_RESCUE_PRICING_GUIDE.md`, `docs/sales/WEBSITE_RESCUE_PRICING_GUIDE.md`.
 
 ## 8. Fixtures

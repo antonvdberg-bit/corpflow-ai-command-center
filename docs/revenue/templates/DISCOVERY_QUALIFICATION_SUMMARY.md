@@ -1,7 +1,7 @@
 # Discovery / qualification summary
 
-**Rail:** #714 · `docs/revenue/COMMERCIAL_APPROVAL_RAIL_V1.md`  
-**Use:** Capture the outcome of discovery/qualification **before** assembling a proposal. One summary per opportunity. Synthetic placeholders only.  
+**Rail:** #714 · `docs/revenue/COMMERCIAL_APPROVAL_RAIL_V1.md`
+**Use:** Capture the outcome of discovery/qualification **before** assembling a proposal. One summary per opportunity. Synthetic placeholders only.
 **Does not:** send email/WhatsApp, create ERPNext records, or redesign Prospect Ops UI (#721).
 
 <!-- DISCOVERY_QUALIFICATION_SUMMARY_V1 -->
@@ -32,9 +32,9 @@
 
 ## 2. Problem and desired outcome
 
-**Problem today:** `<ONE_OR_TWO_SENTENCES>`  
+**Problem today:** `<ONE_OR_TWO_SENTENCES>`
 
-**Desired outcome:** `<WHAT SUCCESS LOOKS LIKE FOR THE BUYER>`  
+**Desired outcome:** `<WHAT SUCCESS LOOKS LIKE FOR THE BUYER>`
 
 **Urgency / timeline:** `<e.g. this month / after peak season / unknown>`
 

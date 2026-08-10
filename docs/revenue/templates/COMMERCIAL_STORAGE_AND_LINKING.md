@@ -1,6 +1,6 @@
 # Commercial storage and linking (existing systems)
 
-**Rail:** #714 · `docs/revenue/COMMERCIAL_APPROVAL_RAIL_V1.md`  
+**Rail:** #714 · `docs/revenue/COMMERCIAL_APPROVAL_RAIL_V1.md`
 **Use:** Operator procedure for where commercial evidence lives and how records link — **without** a new CRM, payment runtime, or Prospect Ops UI redesign (#721).
 
 <!-- COMMERCIAL_STORAGE_AND_LINKING_V1 -->
@@ -43,22 +43,22 @@ Commit **templates and synthetic fixtures only** to this repository. Do not comm
 
 ## 4. Linking checklist (per opportunity)
 
-- [ ] `opportunity_ref` stable across all artifacts  
-- [ ] `prospect_ref` set when a Prospect Ops record exists  
-- [ ] `proposal_version` matches the accepted document  
-- [ ] Acceptance evidence ref points to the same version  
-- [ ] Payment evidence ref (or complete exception) recorded  
-- [ ] `financial_approval_ref` issued only after gate `ok`  
-- [ ] `onboarding_ref` / delivery issue created only after financially approved  
-- [ ] Won/lost reason set from vocabulary when terminal  
+- [ ] `opportunity_ref` stable across all artifacts
+- [ ] `prospect_ref` set when a Prospect Ops record exists
+- [ ] `proposal_version` matches the accepted document
+- [ ] Acceptance evidence ref points to the same version
+- [ ] Payment evidence ref (or complete exception) recorded
+- [ ] `financial_approval_ref` issued only after gate `ok`
+- [ ] `onboarding_ref` / delivery issue created only after financially approved
+- [ ] Won/lost reason set from vocabulary when terminal
 
 ## 5. Systems intentionally not added
 
-- No new payment collection UI  
-- No bank polling / webhook automation  
-- No automated client send  
-- No ERPNext customization in this rail  
-- No second prospect database  
+- No new payment collection UI
+- No bank polling / webhook automation
+- No automated client send
+- No ERPNext customization in this rail
+- No second prospect database
 
 ## 6. Handoff sentence (copy for ticket)
 
