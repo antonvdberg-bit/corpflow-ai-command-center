@@ -1,0 +1,66 @@
+{
+  "captured_at": "2026-08-10T11:59:14Z",
+  "issue": 868,
+  "source_issue": 778,
+  "supersedes_pr": 780,
+  "superseding_pr": 875,
+  "branch": "cursor/dispatcher-issue-868-7e48",
+  "proof_base": "http://127.0.0.1:4788",
+  "http": {
+    "/app?proof=1": 200,
+    "/app/core?proof=1": 200,
+    "/app/tenant?proof=1": 200
+  },
+  "core_actor": {
+    "typ": "proof_core",
+    "username": "slice1-proof-core",
+    "role": "core_operator",
+    "can_core": true,
+    "can_tenant_ids": [],
+    "environment": "core",
+    "source": "proof"
+  },
+  "tenant_actor": {
+    "typ": "proof_tenant",
+    "username": "slice1-proof-tenant",
+    "role": "tenant_member",
+    "can_core": false,
+    "can_tenant_ids": ["corpflowai"],
+    "environment": "tenant",
+    "source": "proof"
+  },
+  "core_available_scopes": [
+    { "scope": "core", "label": "Core", "tenant_id": null }
+  ],
+  "tenant_available_scopes": [
+    { "scope": "tenant", "label": "Tenant — CorpFlowAI", "tenant_id": "corpflowai" }
+  ],
+  "core_request_count": 3,
+  "tenant_request_count": 2,
+  "tenant_list_keys": [
+    "attention_required",
+    "client_safe_blocker",
+    "latest_client_safe_update",
+    "next_action",
+    "outcome",
+    "progress_percent",
+    "request_id",
+    "tenant_id",
+    "title",
+    "workflow_state"
+  ],
+  "tenant_forbidden_fields_absent": [
+    "github",
+    "pull_request",
+    "commit_sha",
+    "agent_run",
+    "internal_note",
+    "ci_"
+  ],
+  "separate_auth_preserved": true,
+  "notes": [
+    "components/app/ScopeSwitcher.js absent",
+    "Core actor cannot_tenant; Tenant actor can_core=false",
+    "Screenshots refreshed on this head; binary content unchanged from #780"
+  ]
+}
