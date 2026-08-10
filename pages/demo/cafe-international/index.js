@@ -16,6 +16,7 @@ import {
 import {
   buildCafeInternationalRestaurantJsonLd,
   CAFE_INTERNATIONAL_PREVIEW_BASE,
+  selectCafeInternationalHomeMenuPreview,
 } from '../../../lib/website-rescue/cafe-international-preview.js';
 import { getCafeInternationalPreviewProps } from '../../../lib/website-rescue/cafe-international-preview-server.js';
 
@@ -29,6 +30,7 @@ export default function CafeInternationalPreviewHome({
   takeawayActions,
   hoursRows,
   nav,
+  menuPreview = [],
 }) {
   const jsonLd = buildCafeInternationalRestaurantJsonLd(
     truth,
@@ -251,6 +253,152 @@ export default function CafeInternationalPreviewHome({
           </div>
         </section>
 
+        {/* Since 2009 — owner-operated story (no invented biography) */}
+        <section
+          data-cafe-owner-story
+          style={{ marginTop: 36 }}
+          aria-labelledby="cafe-owner-story-heading"
+        >
+          <CafeGlassPanel style={{ padding: '22px 18px' }}>
+            <p
+              style={{
+                margin: 0,
+                fontSize: 12,
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                color: T.flameSoft,
+                fontWeight: 800,
+              }}
+            >
+              Since {truth.since_year}
+            </p>
+            <h2
+              id="cafe-owner-story-heading"
+              style={{
+                margin: '8px 0 0',
+                fontFamily: T.fontDisplay,
+                fontSize: 'clamp(26px, 4vw, 34px)',
+                color: T.cream,
+              }}
+            >
+              Owner-operated in Trou aux Biches
+            </h2>
+            <p
+              style={{
+                marginTop: 12,
+                color: T.creamMuted,
+                maxWidth: 560,
+                lineHeight: 1.55,
+                fontSize: 17,
+              }}
+            >
+              Run by {CAFE_INTERNATIONAL_OWNERS}. Guests know Café International for
+              flame-grilled steaks, ribs, burgers and a warm local welcome — the same
+              grill story since {truth.since_year}.
+            </p>
+            <div style={{ marginTop: 16 }}>
+              <ActionButton href={`${CAFE_INTERNATIONAL_PREVIEW_BASE}/about`}>
+                Our story
+              </ActionButton>
+            </div>
+          </CafeGlassPanel>
+        </section>
+
+        {/* Menu preview — real fixture items, crawlable path to full menu */}
+        <section
+          data-cafe-home-menu-preview
+          style={{ marginTop: 36 }}
+          aria-labelledby="cafe-menu-preview-heading"
+        >
+          <h2
+            id="cafe-menu-preview-heading"
+            style={{
+              margin: 0,
+              fontFamily: T.fontDisplay,
+              fontSize: 'clamp(26px, 4vw, 36px)',
+              color: T.cream,
+            }}
+          >
+            Menu preview
+          </h2>
+          <p style={{ marginTop: 8, color: T.creamMuted, maxWidth: 560, lineHeight: 1.5 }}>
+            Sample dishes with live Menu-page prices — full categories stay readable
+            without chat.
+          </p>
+          <CafeGlassPanel style={{ marginTop: 16, padding: '8px 18px 18px' }}>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+              {menuPreview.map((row) => (
+                <li
+                  key={`${row.categoryId}-${row.name}-${row.description}`}
+                  data-cafe-home-menu-item
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'minmax(0, 1fr) auto',
+                    gap: 12,
+                    padding: '14px 0',
+                    borderBottom: '1px solid rgba(246,239,230,0.1)',
+                  }}
+                >
+                  <div style={{ minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: 12,
+                        letterSpacing: '0.08em',
+                        textTransform: 'uppercase',
+                        color: T.flameSoft,
+                        fontWeight: 700,
+                      }}
+                    >
+                      {row.category}
+                    </div>
+                    <div
+                      style={{
+                        marginTop: 4,
+                        color: T.cream,
+                        fontWeight: 700,
+                        fontSize: 16,
+                        lineHeight: 1.35,
+                      }}
+                    >
+                      {row.name}
+                    </div>
+                    {row.description ? (
+                      <div
+                        style={{
+                          marginTop: 4,
+                          color: T.creamMuted,
+                          fontSize: 14,
+                          lineHeight: 1.45,
+                        }}
+                      >
+                        {row.description}
+                      </div>
+                    ) : null}
+                  </div>
+                  <div
+                    data-cafe-menu-price
+                    style={{
+                      color: T.flameSoft,
+                      fontWeight: 700,
+                      fontSize: 17,
+                      fontVariantNumeric: 'tabular-nums',
+                      whiteSpace: 'nowrap',
+                      paddingTop: 18,
+                    }}
+                  >
+                    {row.price_display}
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <div style={{ marginTop: 16 }}>
+              <ActionButton href={`${CAFE_INTERNATIONAL_PREVIEW_BASE}/menu`} primary>
+                View full menu
+              </ActionButton>
+            </div>
+          </CafeGlassPanel>
+        </section>
+
         {/* Journey split — visually distinct */}
         <section style={{ marginTop: 36 }} aria-labelledby="cafe-journey-heading">
           <h2
@@ -409,6 +557,7 @@ export async function getStaticProps() {
       takeawayActions: props.takeawayActions,
       hoursRows: props.hoursRows,
       nav: props.nav,
+      menuPreview: selectCafeInternationalHomeMenuPreview(props.menu, 6),
     },
   };
 }
