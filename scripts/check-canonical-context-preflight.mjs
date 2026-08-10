@@ -21,7 +21,7 @@ if (!fs.existsSync(realityPath)) {
 }
 
 const reality = fs.readFileSync(realityPath, 'utf8');
-const versionMatch = reality.match(/Operating model version:[^\n]*`([^`]+)`/i);
+const versionMatch = reality.match(/Operating model version:\*\*\s*`([^`]+)`/i);
 if (!versionMatch) {
   console.error('Canonical Context Preflight FAIL: unable to resolve current operating model version');
   process.exit(1);
