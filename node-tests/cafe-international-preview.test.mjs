@@ -263,6 +263,18 @@ describe('Café International corrective pass (#855 / #860)', () => {
     assert.match(shell, /poster=\{poster\}/);
     assert.match(shell, /prefers-reduced-motion/);
     assert.match(shell, /data-cafe-food-motion-fallback/);
+    // Regression: webpack fails on duplicate named exports of CafeFoodMotion.
+    assert.match(shell, /export\s+function\s+CafeFoodMotion\b/);
+    assert.equal(
+      (shell.match(/\bexport\s+function\s+CafeFoodMotion\b/g) || []).length,
+      1,
+      'CafeFoodMotion must be declared as a named export exactly once',
+    );
+    assert.doesNotMatch(
+      shell,
+      /export\s*\{[^}]*\bCafeFoodMotion\b[^}]*\}/,
+      'CafeFoodMotion must not also appear in a barrel re-export (duplicate export)',
+    );
     assert.equal(
       existsSync(path.join(ROOT, 'public/assets/cafe-international/client/food-motion.mp4')),
       true,
