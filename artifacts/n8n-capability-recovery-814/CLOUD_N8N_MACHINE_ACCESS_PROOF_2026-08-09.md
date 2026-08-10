@@ -1,10 +1,18 @@
 # #814 Cloud n8n machine-access capability proof
 
+> **SUPERSEDED (2026-08-10):** This 2026-08-09 note recorded a blocked-auth state.  
+> **Current verdict:** **FULL CLOUD N8N DEVELOPMENT CONTROL PROVEN**  
+> **Canonical live proof artifacts:**  
+> - `CLOUD_N8N_MCP_CAPABILITY_PROOF_2026-08-10.md` (run `bc-a21411bc-b621-42ba-ae1e-3d27c0239287`)  
+> - `CLOUD_N8N_MACHINE_ACCESS_PROOF_2026-08-10.md` (run `bc-4c4fb252-2ea9-41d4-b053-38525e35ae53`)  
+> - Summary matrix: `CAPABILITY_MATRIX_CURRENT.md`  
+> Keep this file only as historical blocked-auth evidence.
+
 **Date:** 2026-08-09  
 **Operating-model version checked:** `2026-08-09-v1` (current; packet aligned)  
 **Cloud run / executor ID:** `bc-d519a7b1-bbe4-4c14-b2b6-8e952de2ca0e`  
 **Run URL:** https://cursor.com/agents/bc-d519a7b1-bbe4-4c14-b2b6-8e952de2ca0e  
-**Active #814 machine-access proof executor:** YES (this cloud run)  
+**Active #814 machine-access proof executor:** superseded by 2026-08-10 live MCP proof runs  
 **Hostname policy:** live origin is referenced only as `<N8N_ORIGIN>` in this artifact (same public host already used by Kuma `/healthz` and Vercel automation-forward). No credentials, tokens, or secret values are recorded here.
 
 ---
