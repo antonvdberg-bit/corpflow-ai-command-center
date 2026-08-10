@@ -8,6 +8,7 @@ import CafeInternationalPreviewShell, {
 import { CAFE_INTERNATIONAL_VISUALS } from '../../../lib/website-rescue/cafe-international-assets.js';
 import {
   CAFE_INTERNATIONAL_PREVIEW_BASE,
+  buildCafeInternationalMenuJsonLd,
   cafeInternationalWhatsAppHref,
 } from '../../../lib/website-rescue/cafe-international-preview.js';
 import { getCafeInternationalPreviewProps } from '../../../lib/website-rescue/cafe-international-preview-server.js';
@@ -22,12 +23,18 @@ function categoryWhatsAppPrefill(categoryName) {
 
 export default function CafeInternationalMenuPage({ truth, menu, nav }) {
   const categories = (menu.categories || []).filter((c) => c.id !== 'extras');
+  const menuJsonLd = buildCafeInternationalMenuJsonLd(
+    truth,
+    menu,
+    `https://corpflowai.com${CAFE_INTERNATIONAL_PREVIEW_BASE}/menu`,
+  );
 
   return (
     <CafeInternationalPreviewShell
       title={`Menu — ${truth.public_name}`}
       description="Takeaway menu for Café International — prices from the live Menu-page Google Sheet."
       canonicalPath={`${CAFE_INTERNATIONAL_PREVIEW_BASE}/menu`}
+      jsonLd={menuJsonLd}
       nav={nav}
       activeHref={`${CAFE_INTERNATIONAL_PREVIEW_BASE}/menu`}
       truth={truth}
