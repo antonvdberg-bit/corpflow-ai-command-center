@@ -81,6 +81,7 @@ describe('cursor-ready event-driven dispatch (Phase A)', () => {
       'dispatch:blocked',
       'dispatch:operator-review',
       'dispatch:ci-repair',
+      'execution:paused',
       'needs:anton',
     ]) {
       assert.equal(isNonWakeLifecycleLabel(labelName), true);
@@ -200,20 +201,48 @@ describe('cursor-ready event-driven dispatch (Phase A)', () => {
         title: 'Active A',
         body: 'implementation',
         labels: ['dispatch:cursor-claimed', 'status:in-progress'],
+        comments: [
+          {
+            body: formatCursorActivationClaimComment(
+              buildCursorActivationClaim({
+                sourceIssue: 801,
+                generation: 1,
+                claimToken: 'live-a',
+                status: 'activated',
+                agentRunId: 'run-aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaa1',
+              }),
+            ),
+          },
+        ],
       },
       {
         number: 802,
         title: 'Active B',
         body: 'implementation',
         labels: ['dispatch:cursor-claimed', 'status:in-progress'],
+        comments: [
+          {
+            body: formatCursorActivationClaimComment(
+              buildCursorActivationClaim({
+                sourceIssue: 802,
+                generation: 1,
+                claimToken: 'live-b',
+                status: 'activated',
+                agentRunId: 'run-bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbb2',
+              }),
+            ),
+          },
+        ],
       },
     ];
     const scan = planCursorIssueClaims({
       readyIssues: [ready],
       claimedIssues: claimed,
+      trackedIssues: claimed,
       preferIssueNumbers: [9003],
     });
     assert.equal(scan.activationTargetIssue, null);
+    assert.equal(scan.verifiedActiveCount, 2);
     const held = scan.decisions.find((d) => d.issue.number === 9003);
     assert.equal(held?.eligibleToClaim, true);
     assert.match(String(held?.reason || ''), /WIP cap/i);

@@ -42,8 +42,9 @@ Do **not** add a parallel workflow that also activates Cursor. The thin `cursor-
 | Label | Meaning |
 |-------|---------|
 | `dispatch:cursor-ready` | Eligible for Cursor discovery/claim |
-| `dispatch:cursor-claimed` | Cursor owns execution (remove ready when claimed) |
-| `status:in-progress` | Active work |
+| `dispatch:cursor-claimed` | Cursor owns execution (remove ready when claimed) — **display state only** for WIP |
+| `status:in-progress` | Active work — **display state only** for WIP |
+| `execution:paused` | Excluded from new activation; preserves the issue (#862) |
 | `dispatch:blocked` | Do not claim |
 | `needs:anton` | Protected gate — unlock required (Decision Inbox routing; **not** durable approval) |
 
@@ -55,15 +56,25 @@ Do **not** add a parallel workflow that also activates Cursor. The thin `cursor-
 
 If label creation or verification fails (missing labels after ensure, GitHub API error, or insufficient token scope), the workflow **fails closed**: the run stops, no claim labels are applied, and operators see **one actionable blocker** naming the missing label(s) or API failure — fix repo label state or workflow permissions, then re-run the scan on `main` (dry-run is fine).
 
-## 4. WIP limits (default)
+## 4. WIP limits (default) — verified Cursor runs (#862)
 
 | Scope | Limit |
 |-------|-------|
-| Active Cursor implementation issues (`dispatch:cursor-claimed`) | **2** |
+| Verified active Cursor runs (activation metadata with run ID) | **2** |
 | Active issues per tenant | **1** |
 | Active database/schema issues (repo-wide) | **1** |
 | Active **client_production**-deployment candidates | **1** |
 | Live Cursor activations per GHA run | **1** (unchanged) |
+
+**WIP Control v1 rules:**
+
+- A slot counts only when current activation metadata proves an active Cursor run/generation.
+- Lifecycle labels alone never consume capacity; stale/orphaned labels are reconciled before dispatch.
+- Priority order for ready work: `priority:P0` > `priority:P1` > `priority:P2` > unprioritized (stable oldest-ready tie-break).
+- `execution:paused` ready work is skipped; removing the label restores eligibility. Pausing a live run does not invent an external kill — the verified slot remains until terminal.
+- Open PR count does **not** affect Cursor WIP capacity.
+- Operator-review / closed / terminal-failed transitions release the slot and strip active execution labels in the same lifecycle step.
+- Every scan emits a capacity packet naming exact run IDs for occupied slots.
 
 Publishing to CorpFlowAI-hosted **corpflow_test** surfaces does **not** consume the client_production WIP slot and does **not** set `protectedGate: production`.
 
