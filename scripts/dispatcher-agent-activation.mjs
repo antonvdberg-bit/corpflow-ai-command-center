@@ -674,7 +674,7 @@ function resolveCliOptions() {
 async function resolveDirectIssueReport(opts) {
   const issueScanHandoff =
     opts.issueScanHandoff ||
-    ['issue_scan', 'scan'].includes(
+    ['issue_scan', 'scan', 'event_label'].includes(
       String(process.env.DISPATCHER_ACTIVATION_TARGET_SOURCE || '')
         .trim()
         .toLowerCase(),
