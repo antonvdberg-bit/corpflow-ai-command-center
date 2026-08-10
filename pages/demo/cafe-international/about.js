@@ -82,7 +82,7 @@ export default function CafeInternationalAboutPage({ truth, nav }) {
             color: T.creamMuted,
           }}
         >
-          Café International — The Flame Grill Café is run by {CAFE_INTERNATIONAL_OWNERS}
+          Café International — The Flame Grill Café is run by {CAFE_INTERNATIONAL_OWNERS}{' '}
           in Trou aux Biches. Guests know it for flame-grilled steaks, ribs, burgers
           and a warm local welcome. This preview keeps that story prominent without
           inventing private biography.
