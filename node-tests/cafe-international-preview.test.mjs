@@ -6,13 +6,16 @@ import { fileURLToPath } from 'node:url';
 
 import {
   assertCafeInternationalJourneyRules,
+  buildCafeInternationalMenuJsonLd,
   buildCafeInternationalRestaurantJsonLd,
   buildCafeInternationalTakeawayActions,
   CAFE_INTERNATIONAL_PREVIEW_BASE,
+  selectCafeInternationalHomeMenuPreview,
 } from '../lib/website-rescue/cafe-international-preview.js';
 import {
   getCafeInternationalPreviewProps,
   loadCafeInternationalClientTruth,
+  loadCafeInternationalMenuPreview,
 } from '../lib/website-rescue/cafe-international-preview-server.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -66,7 +69,7 @@ describe('Café International preview — fixture truth (#797)', () => {
     assert.notEqual(greekSmall.price_mur, 220);
   });
 
-  it('JSON-LD uses Trou aux Biches facts only', () => {
+  it('JSON-LD uses Trou aux Biches facts only and points at crawlable menu', () => {
     const truth = loadCafeInternationalClientTruth();
     const ld = buildCafeInternationalRestaurantJsonLd(
       truth,
@@ -75,6 +78,36 @@ describe('Café International preview — fixture truth (#797)', () => {
     assert.equal(ld['@type'], 'Restaurant');
     assert.equal(ld.address.addressLocality, 'Trou aux Biches');
     assert.doesNotMatch(JSON.stringify(ld), /Grand Baie/i);
+    assert.match(String(ld.hasMenu), /\/demo\/cafe-international\/menu$/);
+    assert.equal(ld.menu, ld.hasMenu);
+  });
+
+  it('Menu JSON-LD exposes crawlable sections and MUR offers', () => {
+    const truth = loadCafeInternationalClientTruth();
+    const menu = loadCafeInternationalMenuPreview();
+    const ld = buildCafeInternationalMenuJsonLd(
+      truth,
+      menu,
+      'https://corpflowai.com/demo/cafe-international/menu',
+    );
+    assert.equal(ld['@type'], 'Menu');
+    assert.ok(Array.isArray(ld.hasMenuSection));
+    assert.ok(ld.hasMenuSection.some((s) => s.name === 'From our Grill'));
+    const starters = ld.hasMenuSection.find((s) => s.name === 'Starters');
+    assert.ok(starters);
+    const greek = starters.hasMenuItem.find(
+      (i) => i.name === 'Greek Salad' && i.description === 'Small',
+    );
+    assert.equal(greek.offers.price, 260);
+    assert.equal(greek.offers.priceCurrency, 'MUR');
+  });
+
+  it('homepage menu preview selects real priced fixture items', () => {
+    const menu = loadCafeInternationalMenuPreview();
+    const rows = selectCafeInternationalHomeMenuPreview(menu, 6);
+    assert.equal(rows.length, 6);
+    assert.ok(rows.every((r) => r.price_mur != null && r.name));
+    assert.ok(rows.some((r) => /grill|steak|burger|starter/i.test(r.category)));
   });
 });
 
@@ -163,5 +196,16 @@ describe('Café International preview — routes and hygiene', () => {
       ),
       true,
     );
+  });
+
+  it('homepage includes owner story + menu preview; menu page emits Menu JSON-LD', () => {
+    const home = read('pages/demo/cafe-international/index.js');
+    const menuPage = read('pages/demo/cafe-international/menu.js');
+    assert.match(home, /data-cafe-owner-story/);
+    assert.match(home, /data-cafe-home-menu-preview/);
+    assert.match(home, /selectCafeInternationalHomeMenuPreview/);
+    assert.match(home, /View full menu/);
+    assert.match(menuPage, /buildCafeInternationalMenuJsonLd/);
+    assert.match(menuPage, /jsonLd=\{menuJsonLd\}/);
   });
 });
