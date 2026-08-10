@@ -21,9 +21,10 @@ BLOCKED — Anton: open GitHub → Settings → Integrations → GitHub Apps →
 | Cursor Cloud issue-dispatch activation | Working | #840 + #842 activated (`factory-dispatcher-activate` runs 31358220840 / 31358538111) |
 | Cursor Cloud `gh` issues **read** | Working | `gh issue view 760` → title/state/body fetched |
 | Cursor Cloud **git push** (contents) | Working | `git push --dry-run` + branch push to `cursor/dispatcher-issue-842-8eb4` |
-| Cursor platform PR open (`ManagePullRequest`) | Working (observed on peers) | #840 → PR #841 authored via platform path |
+| Cursor platform PR open (`ManagePullRequest`) | Working | This incident → PR #844 |
+| Cursor platform PR comment (`ManagePullRequest`) | Working | Comment posted on PR #844 |
 | Cursor Cloud `gh` issues **comment / edit / close / label** | **FAIL 403** | `Resource not accessible by integration`; header `X-Accepted-Github-Permissions: issues=write; pull_requests=write` |
-| Cursor Cloud `gh` pulls **create** | **FAIL 403** | Same fingerprint; header `X-Accepted-Github-Permissions: pull_requests=write` |
+| Cursor Cloud `gh` pulls **create** / issue-thread comment via `gh` | **FAIL 403** | Same fingerprint on PR #844 issue comments via `gh api` |
 | Cursor Cloud `gh` workflow_dispatch | **FAIL 403** | Same fingerprint (known since `artifacts/track-a-live-dispatch-661-evidence.md`) |
 
 Fingerprint (safe, no secrets):
@@ -41,7 +42,7 @@ actor: cursor[bot]
 |-------|--------|
 | Fetch issue #760 | **PASS** — `Client Migration — Café International \| Website Rescue Pilot 01` (OPEN, body length 4708) |
 | Related open packets visible | **PASS** — #764, #784, #785 (unlabelled); #797 (`dispatch:operator-review`); draft PR #798 |
-| Create durable evidence from this agent | **PASS** — this artifact + PR on branch `cursor/dispatcher-issue-842-8eb4` |
+| Create durable evidence from this agent | **PASS** — this artifact + PR [#844](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/844) on branch `cursor/dispatcher-issue-842-8eb4` |
 | Enter automatic Cursor dispatch from this agent | **BLOCKED** — cannot apply `dispatch:cursor-ready` / claim labels via `gh` (403); programme issues #760/#764/#784/#785 currently have **zero** dispatch labels |
 
 ## Working paths to use until App permissions are fixed
