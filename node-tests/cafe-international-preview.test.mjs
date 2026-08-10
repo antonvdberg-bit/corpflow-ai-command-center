@@ -4,6 +4,8 @@ import path from 'node:path';
 import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
+import { execFileSync } from 'node:child_process';
+
 import {
   assertCafeInternationalJourneyRules,
   buildCafeInternationalMenuJsonLd,
@@ -13,6 +15,7 @@ import {
   CAFE_INTERNATIONAL_PREVIEW_BASE,
   CAFE_INTERNATIONAL_PREVIEW_NAV,
   selectCafeInternationalHomeMenuPreview,
+  selectCafeInternationalTakeawayFeatured,
 } from '../lib/website-rescue/cafe-international-preview.js';
 import {
   CAFE_INTERNATIONAL_FOOD_MOTION_PROVENANCE,
@@ -344,5 +347,128 @@ describe('Café International corrective pass (#855 / #860)', () => {
     assert.equal(spritzer.price_mur, 320);
     assert.match(String(spritzer.description || ''), /soda/i);
     assert.doesNotMatch(String(spritzer.description || ''), /Sodan/);
+  });
+});
+
+describe('Café International corrective pass (#871 / #872)', () => {
+  it('hero brand card uses full container width with badge on the far right', () => {
+    const home = read('pages/demo/cafe-international/index.js');
+    assert.match(home, /data-cafe-hero-brand-row/);
+    assert.match(home, /data-cafe-hero-brand-copy/);
+    assert.match(home, /data-cafe-hero-brand-trust/);
+    assert.match(home, /maxWidth:\s*['"]100%['"]|maxWidth:\s*'100%'/);
+    assert.doesNotMatch(home, /maxWidth:\s*640/);
+    const glassOpen = home.indexOf('<CafeGlassPanel');
+    const glassClose = home.indexOf('</CafeGlassPanel>', glassOpen);
+    const badge = home.indexOf('data-cafe-rg-badge', glassOpen);
+    const trust = home.indexOf('data-cafe-hero-brand-trust', glassOpen);
+    assert.ok(glassOpen > -1 && glassClose > glassOpen, 'hero glass panel present');
+    assert.ok(home.includes('data-cafe-hero-glass'), 'hero glass marker present');
+    assert.ok(badge > glassOpen && badge < glassClose, 'badge stays inside hero glass');
+    assert.ok(trust > glassOpen && trust < glassClose, 'trust column inside hero glass');
+    assert.ok(trust < badge, 'trust column wraps the badge on the right');
+    assert.match(home, /CAFE_INTERNATIONAL_RESTAURANT_GURU_URL/);
+    assert.match(home, /not Café-owned IP|not Cafe-owned IP|external recognition/i);
+  });
+
+  it('homepage featured favourites avoid unsupported best-seller claims', () => {
+    const home = read('pages/demo/cafe-international/index.js');
+    assert.match(home, /Featured favourites/);
+    assert.match(home, /Popular picks from the grill/);
+    assert.doesNotMatch(home, />\s*Menu preview\s*</);
+    const headingIdx = home.indexOf('>\n            Featured favourites\n');
+    assert.ok(headingIdx > -1, 'visible Featured favourites heading present');
+    const sectionSrc = home.slice(headingIdx, headingIdx + 400);
+    assert.doesNotMatch(
+      sectionSrc,
+      /best[- ]seller|most[- ]requested|most[- ]ordered|top[- ]seller/i,
+    );
+    assert.match(home, /data-cafe-home-menu-preview/);
+    assert.match(home, /View full menu/);
+    const rows = selectCafeInternationalHomeMenuPreview(loadCafeInternationalMenuPreview(), 6);
+    assert.equal(rows.length, 6);
+    assert.ok(rows.every((r) => r.price_mur != null));
+  });
+
+  it('source foodMotion and venueBuzzMotion files contain no audio track', () => {
+    const files = [
+      'public/assets/cafe-international/client/food-motion.mp4',
+      'public/assets/cafe-international/client/venue-buzz-motion.mp4',
+    ];
+    for (const rel of files) {
+      const abs = path.join(ROOT, rel);
+      assert.equal(existsSync(abs), true, rel);
+      const probe = execFileSync(
+        'ffprobe',
+        ['-v', 'error', '-show_entries', 'stream=codec_type', '-of', 'csv=p=0', abs],
+        { encoding: 'utf8' },
+      ).trim();
+      const types = probe
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean);
+      assert.ok(types.includes('video'), `${rel} must include a video stream`);
+      assert.equal(
+        types.includes('audio'),
+        false,
+        `${rel} must not include an audio stream (unmute control not warranted)`,
+      );
+    }
+    const shell = read('components/cafe-international/CafeInternationalPreviewShell.js');
+    assert.match(shell, /\bmuted\b/);
+    assert.doesNotMatch(shell, /unmute|Sound on|Enable sound/i);
+  });
+
+  it('takeaway is one browse → WhatsApp/phone → collect journey with platter prominence', () => {
+    const src = read('pages/demo/cafe-international/takeaway.js');
+    assert.match(src, /data-cafe-takeaway-journey/);
+    assert.match(src, /data-cafe-takeaway-steps/);
+    assert.match(src, /data-cafe-takeaway-featured/);
+    assert.match(src, /data-cafe-takeaway-tile=\{tile\.id\}/);
+    assert.match(src, /\[['"]platters['"],\s*['"]steaks['"],\s*['"]burgers['"]\]/);
+    assert.match(src, /Great for takeaway|Platters & grill|Popular takeaway picks/i);
+    assert.match(src, /WhatsApp or phone/i);
+    assert.match(src, /not a takeaway channel|for table bookings/i);
+    assert.doesNotMatch(src, /best[- ]seller|most[- ]ordered|most[- ]requested/i);
+    assert.doesNotMatch(src, /CafeActionPanel/);
+    const actions = buildCafeInternationalTakeawayActions(loadCafeInternationalClientTruth());
+    assert.ok(actions.every((a) => a.kind === 'whatsapp' || a.kind === 'phone'));
+    assert.ok(!actions.some((a) => String(a.label).toLowerCase().includes('chat')));
+    const featured = selectCafeInternationalTakeawayFeatured(
+      loadCafeInternationalMenuPreview(),
+      6,
+    );
+    assert.equal(featured.length, 6);
+    assert.equal(featured[0].categoryId, 'platters');
+    assert.ok(featured.some((r) => r.categoryId === 'platters'));
+  });
+
+  it('about page includes genuine restaurant-front exterior imagery', () => {
+    const about = read('pages/demo/cafe-international/about.js');
+    assert.match(about, /data-cafe-about-exterior/);
+    assert.match(about, /venuePatio|venue-patio/);
+    assert.match(about, /CAFE_INTERNATIONAL_OWNERS/);
+    assert.match(about, /Since \{truth\.since_year\}|Since \$\{truth\.since_year\}/);
+    assert.match(about, /Halal and certification wording/);
+    assert.equal(
+      existsSync(path.join(ROOT, 'public/assets/cafe-international/client/venue-patio.jpg')),
+      true,
+    );
+  });
+
+  it('menu and visit remain regression-safe after corrective pass', () => {
+    const menuPage = read('pages/demo/cafe-international/menu.js');
+    const visit = read('pages/demo/cafe-international/visit.js');
+    assert.match(menuPage, /CAFE_INTERNATIONAL_MENU_INTRO/);
+    assert.match(menuPage, /data-cafe-menu-intro/);
+    assert.match(menuPage, /data-cafe-category-whatsapp/);
+    assert.match(visit, /bookingActions/);
+    assert.match(visit, /id="book"/);
+    assert.match(visit, /CafeFoodMotion/);
+    assert.match(visit, /venueBuzzMotion/);
+    assert.deepEqual(
+      CAFE_INTERNATIONAL_PREVIEW_NAV.map((item) => item.label),
+      ['Home', 'Menu', 'Visit', 'Takeaway', 'About'],
+    );
   });
 });

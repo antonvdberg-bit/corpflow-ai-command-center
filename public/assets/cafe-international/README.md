@@ -19,7 +19,10 @@
 | `client/plate-burger.jpg` | Appetite tile — burger (*Best Burger.jpg*) |
 | `client/plate-chicken.jpg` | Appetite tile — grill |
 | `client/plate-platter.jpg` | Appetite tile — platters |
-| `client/venue-patio.jpg` | Venue / visit (2023 patio with Café International sign) |
+| `client/venue-patio.jpg` | Venue / visit / About exterior (2023 patio with Café International sign) |
+| `client/venue-evening.jpg` | Evening venue atmosphere |
+| `client/venue-interior.jpg` | Interior dining atmosphere |
+| `client/venue-steakhouse.jpg` | Steakhouse atmosphere still |
 | `client/venue-buzz.jpg` | Social proof / atmosphere |
 | `client/takeaway-visual.jpg` | Takeaway path visual |
 
