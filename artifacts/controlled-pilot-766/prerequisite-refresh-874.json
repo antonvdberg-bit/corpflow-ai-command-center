@@ -1,0 +1,110 @@
+{
+  "schema": "corpflow.controlled_pilot_766.prerequisite_refresh_874.v1",
+  "issue": 874,
+  "controller_issue": 766,
+  "target_pr_refreshed": 771,
+  "commercial_dependency": 714,
+  "operating_model_version": "2026-08-09-v1",
+  "environment": "local",
+  "github_state_refreshed": true,
+  "refreshed_at": "2026-08-10T12:05:00.000Z",
+  "base_main_sha_at_refresh": "d8614884d048ca078cdea1035b92198b2f478edb",
+  "branch": "cursor/dispatcher-issue-874-8041",
+  "repo_checks": [
+    {
+      "id": "gtm_integrated_711_cli",
+      "command": "node scripts/gtm-integrated-scenarios-711.mjs",
+      "result": "PASS",
+      "notes": "Scenarios A/B acceptance_ready; external_sends_executed=[]"
+    },
+    {
+      "id": "gtm_integrated_711_tests",
+      "command": "node --test node-tests/gtm-integrated-scenarios-711.test.mjs",
+      "result": "PASS"
+    },
+    {
+      "id": "commercial_approval_rail_unit",
+      "command": "node --test node-tests/commercial-approval-rail.test.mjs",
+      "result": "PASS",
+      "notes": "Existing #714/#737 unit gate on main; #870 closed and not revived"
+    },
+    {
+      "id": "controlled_pilot_rehearsal_766",
+      "command": "node scripts/controlled-pilot-rehearsal-766.mjs",
+      "result": "PASS_PACKAGING_FRESHNESS",
+      "controlled_client_pilot_verdict": "NOT READY",
+      "exact_blocker": "D766-001"
+    },
+    {
+      "id": "controlled_pilot_package_tests",
+      "command": "node --test node-tests/controlled-pilot-rehearsal-766.test.mjs",
+      "result": "PASS"
+    },
+    {
+      "id": "provision_cursor_test_users_dry_run",
+      "command": "npm run provision:cursor-test-users -- --dry-run",
+      "result": "PASS_OFFLINE_PLAN",
+      "notes": "POSTGRES_URL absent; identities printed only"
+    },
+    {
+      "id": "verify_cursor_test_users_packet",
+      "command": "npm run verify:cursor-test-users -- --packet",
+      "result": "NOT_READY_LIVE",
+      "notes": "Identity packet printed; db-shape skipped without POSTGRES_URL; live ticks remain Anton-held"
+    },
+    {
+      "id": "public_get_smoke",
+      "urls": [
+        "https://corpflowai.com/contact",
+        "https://corpflowai.com/lead-rescue",
+        "https://corpflowai.com/offers/premium-landing-page-rescue"
+      ],
+      "result": "PASS_200"
+    }
+  ],
+  "d766_reconciliation": {
+    "D766-001": {
+      "still_accurate": true,
+      "class": "release_blocker",
+      "reason": "packet-c-evidence-slots.json status remains AWAITING_OPERATOR; all chain ok fields null"
+    },
+    "D766-002": {
+      "still_accurate": true,
+      "class": "important_non_blocker",
+      "reason": "Packet B live access ticks still pending Anton-held test credentials; not available in agent environment"
+    },
+    "D766-003": {
+      "still_accurate": true,
+      "class": "enhancement"
+    }
+  },
+  "commercial_rail": {
+    "preserve_controller": 714,
+    "do_not_revive_pr": 870,
+    "note": "Closed PR #870 must not be recreated. Further commercial-rail completion stays under #714. This does not replace D766-001 as the controlled-pilot exact blocker."
+  },
+  "stale_pr_771": {
+    "state": "OPEN_STALE_VS_MAIN",
+    "recommendation": "Close as superseded after this #874 current-main package lands (operator action; no agent merge)"
+  },
+  "controlled_client_pilot_verdict": "NOT READY",
+  "exact_blocker": "D766-001 — Packet C ERPNext sandbox synthetic commercial-control proof not executed and evidenced by the operator",
+  "operator_remaining_steps": [
+    "Packet B: complete B1–B7 live ticks with cursor-test-admin@corpflowai.com / cursor-test-tenant@corpflowai.com using Anton-held passwords; keep passwords out of GitHub",
+    "Packet B optional: npm run verify:cursor-test-users -- --live on operator machine only",
+    "Packet C: execute ERPNext sandbox synthetic commercial chain per docs/operations/ERPNEXT_LEAD_RESCUE_PAID_PILOT_REHEARSAL_V1.md",
+    "Packet C: fill artifacts/controlled-pilot-766/packet-c-evidence-slots.json with synthetic/redacted IDs only",
+    "Re-run node scripts/controlled-pilot-rehearsal-766.mjs after Packet C evidence is filled; update defect register if D766-001 clears",
+    "Keep #714 as commercial-rail controller; do not revive #870",
+    "Operator may close stale PR #771 as superseded after this refresh merges"
+  ],
+  "explicit_non_actions": [
+    "No agent merge",
+    "No deploy",
+    "No env/secrets changes",
+    "No DB/schema changes",
+    "No client sends",
+    "No ERPNext writes from Cursor",
+    "No revival of PR #870"
+  ]
+}

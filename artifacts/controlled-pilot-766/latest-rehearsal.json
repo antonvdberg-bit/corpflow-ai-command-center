@@ -1,0 +1,51 @@
+{
+  "schema": "corpflow.controlled_pilot_766.rehearsal.v1",
+  "issue": 766,
+  "ran_at": "2026-08-10T11:59:55.380Z",
+  "head_sha": "d8614884d048ca078cdea1035b92198b2f478edb",
+  "package_doc": "docs/execution/CONTROLLED_PILOT_TEST_READINESS_766_V1.md",
+  "reused_composer": "lib/gtm/integrated-scenarios-711.js",
+  "integrated": {
+    "ok": true,
+    "run_id": "GTM-711-FINAL-MAIN-20260805",
+    "final_verdict_synthetic": "READY FOR CONTROLLED CLIENT PILOT",
+    "market_ok": true,
+    "scenario_a": {
+      "ok": true,
+      "enquiry_ref": "INT-SYN-711A-20260805-001",
+      "opportunity_ref": "OPP-SYN-711A-LR-20260805-001",
+      "final_delivery_state": "acceptance_ready",
+      "messaging_runtime_authorized": false
+    },
+    "scenario_b": {
+      "ok": true,
+      "enquiry_ref": "INT-SYN-711B-20260805-001",
+      "opportunity_ref": "OPP-SYN-711B-WR-20260805-001",
+      "final_delivery_state": "acceptance_ready",
+      "real_dns_cutover_executed": false,
+      "real_client_production_deploy": false
+    },
+    "external_sends_executed": [],
+    "artifact_paths": {
+      "latest": "artifacts/gtm-integrated-711/latest-run.json",
+      "scenario_a": "artifacts/gtm-integrated-711/scenario-a-ledger.json",
+      "scenario_b": "artifacts/gtm-integrated-711/scenario-b-ledger.json"
+    }
+  },
+  "no_send_checks": {
+    "external_sends_empty": true,
+    "scenario_a_messaging_unauthorized": true,
+    "scenario_b_dns_simulated_only": true
+  },
+  "packet_c_status": "AWAITING_OPERATOR",
+  "defect_register_exact_blocker": "D766-001",
+  "controlled_client_pilot_verdict": "NOT READY",
+  "exact_blocker": "D766-001 — Packet C ERPNext sandbox synthetic commercial-control proof not executed and evidenced by the operator",
+  "explicit_non_claims": [
+    "Not a live client delivery",
+    "Messaging is not active",
+    "No real Website Rescue DNS or production cutover",
+    "No production acceptance for a real client",
+    "No ERPNext writes performed by this script"
+  ]
+}

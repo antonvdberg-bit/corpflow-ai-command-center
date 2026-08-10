@@ -1,0 +1,58 @@
+{
+  "schema": "corpflow.controlled_pilot_766.packet_b_access_checklist.v1",
+  "issue": 766,
+  "status": "CHECKLIST_READY_LIVE_TICKS_PENDING",
+  "identities_username_only": [
+    "cursor-test-admin@corpflowai.com",
+    "cursor-test-tenant@corpflowai.com"
+  ],
+  "credentials_in_github": false,
+  "checks": [
+    {
+      "id": "B1",
+      "summary": "Operator can access required queue/workspace",
+      "pass": null,
+      "notes": null
+    },
+    {
+      "id": "B2",
+      "summary": "Tenant role cannot see another tenant or Core records",
+      "pass": null,
+      "notes": null
+    },
+    {
+      "id": "B3",
+      "summary": "Password reset route present where tenant access required",
+      "pass": null,
+      "notes": "UI /login; POST /api/auth/password-reset/request and /confirm"
+    },
+    {
+      "id": "B4",
+      "summary": "Client roles cannot approve protected actions",
+      "pass": null,
+      "notes": null
+    },
+    {
+      "id": "B5",
+      "summary": "Restricted/internal information not shown on public/client surfaces",
+      "pass": null,
+      "notes": null
+    },
+    {
+      "id": "B6",
+      "summary": "Operator can view enquiry, owner, stage, next action, due date and evidence",
+      "pass": null,
+      "notes": null
+    },
+    {
+      "id": "B7",
+      "summary": "No credentials, secrets or private data in screenshots/logs",
+      "pass": null,
+      "notes": null
+    }
+  ],
+  "repo_safe_commands": [
+    "npm run provision:cursor-test-users -- --dry-run",
+    "npm run verify:cursor-test-users -- --packet"
+  ]
+}
