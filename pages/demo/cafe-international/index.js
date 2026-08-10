@@ -3,6 +3,7 @@ import Link from 'next/link';
 
 import CafeInternationalPreviewShell, {
   CafeActionPanel,
+  CafeFoodMotion,
   CafeGlassPanel,
   ActionButton,
   CafeInternationalTheme as T,
@@ -22,7 +23,7 @@ import { getCafeInternationalPreviewProps } from '../../../lib/website-rescue/ca
 
 /**
  * Café International — visual-first Website Rescue preview home.
- * Client photography from Anton Drive; menu prices from live Menu-page Sheet.
+ * Corrective sizzle + navigation pass (#855 / #860).
  */
 export default function CafeInternationalPreviewHome({
   truth,
@@ -53,16 +54,16 @@ export default function CafeInternationalPreviewHome({
         data-cafe-hero
         style={{
           position: 'relative',
-          minHeight: 'min(92vh, 820px)',
+          minHeight: 'min(88vh, 780px)',
           display: 'flex',
           alignItems: 'flex-end',
           backgroundImage: `
-            linear-gradient(180deg, rgba(20,14,12,0.25) 0%, rgba(20,14,12,0.55) 45%, rgba(20,14,12,0.92) 100%),
+            linear-gradient(180deg, rgba(20,14,12,0.2) 0%, rgba(20,14,12,0.45) 42%, rgba(20,14,12,0.94) 100%),
             url(${CAFE_INTERNATIONAL_VISUALS.heroGrill})
           `,
           backgroundSize: 'cover',
           backgroundPosition: 'center 35%',
-          padding: '40px 16px 96px',
+          padding: '40px 16px 72px',
         }}
       >
         <style>{`
@@ -78,40 +79,14 @@ export default function CafeInternationalPreviewHome({
             }
             [data-cafe-hero-glass] { padding: 14px 14px 14px !important; max-width: 100% !important; }
             [data-cafe-hero-glass] h1 { font-size: 26px !important; line-height: 1.08 !important; }
-            [data-cafe-hero-glass] p[data-cafe-hero-lede] { display: none !important; }
+            [data-cafe-hero-lede] { display: none !important; }
             [data-cafe-hero-cta] { margin-top: 12px !important; }
             [data-cafe-hero-cta-secondary] { display: none !important; }
             [data-cafe-hero-cta] a { min-height: 44px !important; padding: 10px 14px !important; font-size: 14px !important; }
             [data-cafe-hero-brand-logo] { max-width: 210px !important; margin-bottom: 10px !important; }
-            [data-cafe-rg-badge] { width: 96px !important; top: 12px !important; right: 12px !important; }
+            [data-cafe-rg-badge] { width: 88px !important; margin-top: 10px !important; }
           }
         `}</style>
-
-        <a
-          data-cafe-rg-badge
-          href={CAFE_INTERNATIONAL_RESTAURANT_GURU_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Best Steaks 2025 — Restaurant Guru listing for Café International"
-          style={{
-            position: 'absolute',
-            top: 18,
-            right: 18,
-            zIndex: 5,
-            width: 118,
-            display: 'block',
-            filter: 'drop-shadow(0 10px 22px rgba(0,0,0,0.45))',
-            transition: 'transform 0.2s ease',
-          }}
-        >
-          <img
-            src={CAFE_INTERNATIONAL_VISUALS.bestSteaks2025Badge}
-            alt="Best Steaks 2025 — Restaurant Guru"
-            width={174}
-            height={136}
-            style={{ width: '100%', height: 'auto', display: 'block' }}
-          />
-        </a>
 
         <div style={{ maxWidth: 1100, width: '100%', margin: '0 auto' }}>
           <CafeGlassPanel
@@ -148,13 +123,13 @@ export default function CafeInternationalPreviewHome({
               style={{
                 margin: '10px 0 0',
                 fontFamily: T.fontDisplay,
-                fontSize: 'clamp(28px, 6vw, 54px)',
+                fontSize: 'clamp(28px, 6vw, 52px)',
                 lineHeight: 1.05,
                 letterSpacing: '-0.03em',
                 color: T.cream,
               }}
             >
-              Flame-grilled favourites. Big flavour. Generous portions.
+              Flame-grilled steaks with real sizzle.
             </h1>
             <p
               data-cafe-hero-lede
@@ -165,7 +140,8 @@ export default function CafeInternationalPreviewHome({
                 color: T.creamMuted,
               }}
             >
-              Steaks, ribs, burgers and platters — Royal Road, Trou aux Biches.
+              Owner-operated by {CAFE_INTERNATIONAL_OWNERS} — flame-grilled steaks, ribs,
+              burgers and platters on Royal Road.
             </p>
             <div
               data-cafe-hero-cta
@@ -175,7 +151,7 @@ export default function CafeInternationalPreviewHome({
                 View Menu
               </ActionButton>
               <span data-cafe-hero-cta-secondary style={{ display: 'contents' }}>
-                <ActionButton href={`${CAFE_INTERNATIONAL_PREVIEW_BASE}/contact#book`}>
+                <ActionButton href={`${CAFE_INTERNATIONAL_PREVIEW_BASE}/visit#book`}>
                   Book a Table
                 </ActionButton>
                 <ActionButton href={`${CAFE_INTERNATIONAL_PREVIEW_BASE}/takeaway`}>
@@ -183,13 +159,90 @@ export default function CafeInternationalPreviewHome({
                 </ActionButton>
               </span>
             </div>
+            <a
+              data-cafe-rg-badge
+              href={CAFE_INTERNATIONAL_RESTAURANT_GURU_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Best Steaks 2025 — Restaurant Guru listing for Café International"
+              style={{
+                display: 'block',
+                width: 108,
+                marginTop: 14,
+                filter: 'drop-shadow(0 8px 18px rgba(0,0,0,0.4))',
+              }}
+            >
+              <img
+                src={CAFE_INTERNATIONAL_VISUALS.bestSteaks2025Badge}
+                alt="Best Steaks 2025 — Restaurant Guru"
+                width={174}
+                height={136}
+                style={{ width: '100%', height: 'auto', display: 'block' }}
+              />
+            </a>
+            <p
+              style={{
+                margin: '8px 0 0',
+                fontSize: 11,
+                color: T.creamMuted,
+                lineHeight: 1.4,
+                maxWidth: 280,
+              }}
+            >
+              Restaurant Guru Best Steaks 2025 — external recognition, not Café-owned IP.
+            </p>
           </CafeGlassPanel>
         </div>
       </section>
 
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 16px' }}>
+      <div
+        style={{
+          maxWidth: 1100,
+          margin: '0 auto',
+          padding: '0 16px',
+          position: 'relative',
+          zIndex: 1,
+          background:
+            'linear-gradient(180deg, rgba(20,14,12,0.98) 0%, rgba(20,14,12,0.96) 100%)',
+          borderTop: '1px solid rgba(246,239,230,0.08)',
+          marginTop: -1,
+          paddingTop: 8,
+        }}
+      >
+        {/* Real food-motion — client Drive footage near the fold */}
+        <section
+          style={{ marginTop: 28, paddingTop: 8 }}
+          aria-labelledby="cafe-motion-heading"
+        >
+          <h2
+            id="cafe-motion-heading"
+            style={{
+              margin: 0,
+              fontFamily: T.fontDisplay,
+              fontSize: 'clamp(26px, 4vw, 36px)',
+              color: T.cream,
+            }}
+          >
+            Hot off the grill
+          </h2>
+          <p style={{ marginTop: 8, color: T.creamMuted, maxWidth: 540, lineHeight: 1.5 }}>
+            Real Café International food-motion — appetising, alive, and unmistakably the
+            Flame Grill Café.
+          </p>
+          <div style={{ marginTop: 16 }}>
+            <CafeFoodMotion
+              src={CAFE_INTERNATIONAL_VISUALS.foodMotion}
+              poster={CAFE_INTERNATIONAL_VISUALS.foodMotionPoster}
+              caption="Real food · Café International"
+            />
+          </div>
+        </section>
+
         {/* Appetite mosaic — food first */}
-        <section style={{ marginTop: 28 }} aria-labelledby="cafe-appetite-heading">
+        <section
+          style={{ marginTop: 48, paddingTop: 8 }}
+          aria-labelledby="cafe-appetite-heading"
+        >
           <h2
             id="cafe-appetite-heading"
             style={{
@@ -202,7 +255,7 @@ export default function CafeInternationalPreviewHome({
             From the grill
           </h2>
           <p style={{ marginTop: 8, color: T.creamMuted, maxWidth: 520, lineHeight: 1.5 }}>
-            Real plates from Café International — the appetite path guests expect.
+            Steaks, burgers, grill plates and platters — the appetite path guests expect.
           </p>
           <div
             data-cafe-appetite-grid
@@ -217,11 +270,13 @@ export default function CafeInternationalPreviewHome({
               <Link
                 key={tile.id}
                 href={tile.href}
+                aria-label={tile.alt}
                 style={{
                   display: 'block',
                   borderRadius: 16,
                   overflow: 'hidden',
                   textDecoration: 'none',
+                  color: 'inherit',
                   border: `1px solid ${T.line}`,
                   minHeight: 200,
                   backgroundImage: `
@@ -253,10 +308,10 @@ export default function CafeInternationalPreviewHome({
           </div>
         </section>
 
-        {/* Since 2009 — owner-operated story (no invented biography) */}
+        {/* Since 2009 — owner-operated story */}
         <section
           data-cafe-owner-story
-          style={{ marginTop: 36 }}
+          style={{ marginTop: 48, paddingTop: 8 }}
           aria-labelledby="cafe-owner-story-heading"
         >
           <CafeGlassPanel style={{ padding: '22px 18px' }}>
@@ -281,7 +336,7 @@ export default function CafeInternationalPreviewHome({
                 color: T.cream,
               }}
             >
-              Owner-operated in Trou aux Biches
+              Friendly. Warm. Owner-operated.
             </h2>
             <p
               style={{
@@ -293,8 +348,8 @@ export default function CafeInternationalPreviewHome({
               }}
             >
               Run by {CAFE_INTERNATIONAL_OWNERS}. Guests know Café International for
-              flame-grilled steaks, ribs, burgers and a warm local welcome — the same
-              grill story since {truth.since_year}.
+              flame-grilled steaks, ribs, burgers and a local welcome — the same grill
+              story since {truth.since_year}.
             </p>
             <div style={{ marginTop: 16 }}>
               <ActionButton href={`${CAFE_INTERNATIONAL_PREVIEW_BASE}/about`}>
@@ -304,10 +359,10 @@ export default function CafeInternationalPreviewHome({
           </CafeGlassPanel>
         </section>
 
-        {/* Menu preview — real fixture items, crawlable path to full menu */}
+        {/* Menu preview — real fixture items */}
         <section
           data-cafe-home-menu-preview
-          style={{ marginTop: 36 }}
+          style={{ marginTop: 48, paddingTop: 8 }}
           aria-labelledby="cafe-menu-preview-heading"
         >
           <h2
@@ -399,8 +454,12 @@ export default function CafeInternationalPreviewHome({
           </CafeGlassPanel>
         </section>
 
-        {/* Journey split — visually distinct */}
-        <section style={{ marginTop: 36 }} aria-labelledby="cafe-journey-heading">
+        {/* One strong two-path section — Visit/Book + Takeaway (no duplicate Visit band) */}
+        <section
+          data-cafe-journey
+          style={{ marginTop: 52, paddingTop: 12, paddingBottom: 8 }}
+          aria-labelledby="cafe-journey-heading"
+        >
           <h2
             id="cafe-journey-heading"
             style={{
@@ -410,10 +469,11 @@ export default function CafeInternationalPreviewHome({
               color: T.cream,
             }}
           >
-            Book or takeaway
+            Visit or takeaway
           </h2>
           <p style={{ marginTop: 8, color: T.creamMuted, maxWidth: 560, lineHeight: 1.5 }}>
-            Two clear paths — clearer than the current site mix of chat for everything.
+            Two clear commercial paths — dine in with the grill atmosphere, or collect
+            takeaway by WhatsApp or phone.
           </p>
           <div
             style={{
@@ -424,109 +484,93 @@ export default function CafeInternationalPreviewHome({
             }}
           >
             <CafeActionPanel
+              id="book"
               tone="booking"
               image={CAFE_INTERNATIONAL_VISUALS.venuePatio}
-              title="Book a table"
-              subtitle="Phone or the current website chat. Chat behaviour is unchanged — this preview only bridges to it."
+              title="Visit / Book a Table"
+              subtitle="Atmosphere, dining experience and the grill story. Book by phone or the current website chat — chat behaviour is unchanged."
               actions={bookingActions}
-            />
+            >
+              <div
+                data-cafe-journey-visit-facts
+                style={{
+                  marginTop: 14,
+                  padding: '12px 12px 4px',
+                  borderRadius: 12,
+                  background: 'rgba(0,0,0,0.28)',
+                  border: '1px solid rgba(246,239,230,0.1)',
+                }}
+              >
+                <p style={{ margin: 0, color: T.cream, fontSize: 14, lineHeight: 1.45 }}>
+                  {truth.address}
+                </p>
+                <p style={{ margin: '6px 0 0', color: T.flameSoft, fontSize: 14, fontWeight: 700 }}>
+                  {truth.public_phone}
+                </p>
+                <ul
+                  style={{
+                    listStyle: 'none',
+                    padding: 0,
+                    margin: '10px 0 8px',
+                    color: T.creamMuted,
+                    fontSize: 13,
+                    lineHeight: 1.45,
+                  }}
+                >
+                  {hoursRows.map((row) => (
+                    <li
+                      key={row.label}
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        gap: 10,
+                        padding: '4px 0',
+                      }}
+                    >
+                      <span>{row.label}</span>
+                      <span style={{ color: T.cream }}>{row.hours}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div style={{ marginBottom: 8 }}>
+                  <ActionButton href={`${CAFE_INTERNATIONAL_PREVIEW_BASE}/visit`}>
+                    Hours & directions
+                  </ActionButton>
+                </div>
+              </div>
+            </CafeActionPanel>
             <CafeActionPanel
               tone="takeaway"
               image={CAFE_INTERNATIONAL_VISUALS.takeawayVisual}
-              title="Order takeaway"
-              subtitle="WhatsApp or phone only. Collection — no delivery. Not through website chat."
+              title="Takeaway / Order"
+              subtitle="Browse the menu, then order for collection on WhatsApp or by phone. Website chat is not a takeaway channel."
               actions={takeawayActions}
-            />
-          </div>
-        </section>
-
-        {/* Venue atmosphere */}
-        <section
-          style={{
-            marginTop: 40,
-            borderRadius: 20,
-            overflow: 'hidden',
-            border: `1px solid ${T.line}`,
-            minHeight: 280,
-            backgroundImage: `
-              linear-gradient(90deg, rgba(20,14,12,0.88) 0%, rgba(20,14,12,0.45) 55%, rgba(20,14,12,0.2) 100%),
-              url(${CAFE_INTERNATIONAL_VISUALS.venuePatio})
-            `,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            padding: '28px 20px',
-            display: 'flex',
-            alignItems: 'flex-end',
-          }}
-        >
-          <div style={{ maxWidth: 480 }}>
-            <h2
-              style={{
-                margin: 0,
-                fontFamily: T.fontDisplay,
-                fontSize: 'clamp(26px, 4vw, 34px)',
-                color: T.cream,
-              }}
             >
-              Visit us
-            </h2>
-            <p style={{ marginTop: 10, color: T.cream, fontSize: 17, lineHeight: 1.45 }}>
-              {truth.address}
-            </p>
-            <p style={{ marginTop: 6, color: T.creamMuted }}>
-              <a
-                href={`tel:${String(truth.public_phone || '').replace(/[^\d+]/g, '')}`}
-                style={{ color: T.flameSoft }}
-              >
-                {truth.public_phone}
-              </a>
-            </p>
-            <div style={{ marginTop: 14 }}>
-              <ActionButton href={`${CAFE_INTERNATIONAL_PREVIEW_BASE}/visit`} primary>
-                Hours & directions
-              </ActionButton>
-            </div>
-          </div>
-        </section>
-
-        <CafeGlassPanel style={{ marginTop: 24, padding: '16px 16px 8px' }}>
-          <div
-            style={{
-              fontSize: 12,
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              color: T.flameSoft,
-              fontWeight: 800,
-            }}
-          >
-            Opening hours
-          </div>
-          <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0 8px' }}>
-            {hoursRows.map((row) => (
-              <li
-                key={row.label}
+              <p
                 style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  gap: 12,
-                  padding: '8px 0',
-                  borderBottom: '1px solid rgba(246,239,230,0.1)',
+                  marginTop: 12,
                   color: T.creamMuted,
-                  fontSize: 15,
+                  fontSize: 14,
+                  lineHeight: 1.45,
                 }}
               >
-                <span>{row.label}</span>
-                <span style={{ color: T.cream }}>{row.hours}</span>
-              </li>
-            ))}
-          </ul>
-        </CafeGlassPanel>
+                Collection only — no delivery. Strong final step: message or call with the
+                items you want.
+              </p>
+              <div style={{ marginTop: 10 }}>
+                <ActionButton href={`${CAFE_INTERNATIONAL_PREVIEW_BASE}/menu`}>
+                  Browse menu
+                </ActionButton>
+              </div>
+            </CafeActionPanel>
+          </div>
+        </section>
 
-        {/* Owner note — below the fold, not competing with appetite */}
         <aside
           data-before-after
           style={{
-            marginTop: 28,
+            marginTop: 36,
+            marginBottom: 12,
             padding: 14,
             borderRadius: 12,
             border: '1px dashed rgba(232,160,106,0.35)',
@@ -541,7 +585,7 @@ export default function CafeInternationalPreviewHome({
           </strong>{' '}
           takeaway is WhatsApp or phone only (no website chat); booking stays phone or chat
           bridge; menu is crawlable HTML with prices from your live Menu-page Google Sheet;
-          photography from your Drive folder.
+          photography and food-motion from your Drive folder.
         </aside>
       </div>
     </CafeInternationalPreviewShell>

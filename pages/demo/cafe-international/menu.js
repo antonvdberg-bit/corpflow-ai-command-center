@@ -7,6 +7,7 @@ import CafeInternationalPreviewShell, {
 } from '../../../components/cafe-international/CafeInternationalPreviewShell.js';
 import { CAFE_INTERNATIONAL_VISUALS } from '../../../lib/website-rescue/cafe-international-assets.js';
 import {
+  CAFE_INTERNATIONAL_MENU_INTRO,
   CAFE_INTERNATIONAL_PREVIEW_BASE,
   buildCafeInternationalMenuJsonLd,
   cafeInternationalWhatsAppHref,
@@ -18,7 +19,7 @@ const CATEGORY_WHATSAPP_CTA_LABEL = 'Order on WhatsApp';
 
 function categoryWhatsAppPrefill(categoryName) {
   const label = String(categoryName || 'the menu').trim();
-  return `Hi Flame! I'd like to order from ${label}.\n\nPlease confirm availability and pickup time.`;
+  return `Hi Flame! I'd like to order items from ${label}.\n\nPlease confirm availability and pickup time.`;
 }
 
 export default function CafeInternationalMenuPage({ truth, menu, nav }) {
@@ -86,9 +87,11 @@ export default function CafeInternationalMenuPage({ truth, menu, nav }) {
         >
           Menu
         </h1>
-        <p style={{ marginTop: 10, color: T.creamMuted, maxWidth: 560, lineHeight: 1.5 }}>
-          Browse by section, then order the whole category on WhatsApp — not through
-          website chat.
+        <p
+          data-cafe-menu-intro
+          style={{ marginTop: 10, color: T.creamMuted, maxWidth: 560, lineHeight: 1.5 }}
+        >
+          {CAFE_INTERNATIONAL_MENU_INTRO}
         </p>
         <div style={{ marginTop: 16 }}>
           <ActionButton href={`${CAFE_INTERNATIONAL_PREVIEW_BASE}/takeaway`} primary>

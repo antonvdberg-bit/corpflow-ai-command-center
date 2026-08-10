@@ -4,7 +4,7 @@
   "source_url": "https://docs.google.com/spreadsheets/d/e/2PACX-1vTB9dndns4LTTfWMfKJfIMebDrwq02J15PLNbQ4JDVysSuiQcXQjl43QDb2GpHPZ9jMsF_thjrSOyZi/pub?output=csv",
   "source_page": "https://cafeinternational.net/menu-page",
   "source_path": "fixtures/website-rescue/cafe-international-menu-sheet.csv",
-  "captured_at": "2026-08-07",
+  "captured_at": "2026-08-10",
   "invented_item_prices": false,
   "prices_owner_confirmation_required": false,
   "note_on_drive_csv": "Drive CafeInternational_Menu Sheet1.csv is OUTDATED; do not use. Canonical = Menu-page published Sheet.",
@@ -172,7 +172,7 @@
     {
       "id": "from-our-grill",
       "name": "From our Grill",
-      "summary": "Steaks, ribs, chops and grill favourites \u2014 the house focus.",
+      "summary": "Steaks, ribs, chops and grill favourites — the house focus.",
       "items_status": "from_live_menu_page_sheet",
       "items": [
         {
@@ -219,9 +219,7 @@
         },
         {
           "name": "Bigger Sizes are Available",
-          "description": "Served with Mashed Potato or Chips with Salad",
-          "price_mur": "SQ",
-          "price_display": "Rs SQ"
+          "description": "Served with Mashed Potato or Chips with Salad"
         },
         {
           "name": "Lamb Ribs 300g",
@@ -398,7 +396,7 @@
     {
       "id": "build-a-burger",
       "name": "Build a Burger",
-      "summary": "Build your own burger \u2014 patty, steak, chicken, fish, lamb, veg.",
+      "summary": "Build your own burger — patty, steak, chicken, fish, lamb, veg.",
       "items_status": "from_live_menu_page_sheet",
       "items": [
         {
@@ -573,7 +571,7 @@
     },
     {
       "id": "topping-chips-and-sauce",
-      "name": "Topping, Chips and Sauce",
+      "name": "Topping Chips and Sauce",
       "summary": "Burger toppings, sauces and chips sizes.",
       "items_status": "from_live_menu_page_sheet",
       "items": [
@@ -620,7 +618,7 @@
           "price_display": "Rs 50"
         },
         {
-          "name": "Jalape\u00f1os",
+          "name": "Jalapeños",
           "description": "Toppings",
           "price_mur": 50,
           "price_display": "Rs 50"
@@ -738,15 +736,15 @@
       "items": [
         {
           "name": "Beer - Blue Marlin Large",
-          "description": "600 ml",
+          "description": "500 ml",
           "price_mur": 250,
           "price_display": "Rs 250"
         },
         {
           "name": "Beer - Blue Marlin Small",
           "description": "330 ml",
-          "price_mur": 140,
-          "price_display": "Rs 140"
+          "price_mur": 150,
+          "price_display": "Rs 150"
         },
         {
           "name": "Beer - Heineken Large",
@@ -762,57 +760,57 @@
         },
         {
           "name": "Beer - Non Alcoholic Large",
-          "description": "600 ml",
-          "price_mur": 280,
-          "price_display": "Rs 280"
+          "description": "500 ml",
+          "price_mur": 300,
+          "price_display": "Rs 300"
         },
         {
           "name": "Beer - Non Alcoholic Small",
           "description": "330 ml",
-          "price_mur": 140,
-          "price_display": "Rs 140"
+          "price_mur": 170,
+          "price_display": "Rs 170"
         },
         {
           "name": "Beer - Phoenix Large",
-          "description": "600 ml",
+          "description": "500 ml",
           "price_mur": 250,
           "price_display": "Rs 250"
         },
         {
           "name": "Beer - Phoenix Small",
           "description": "330 ml",
-          "price_mur": 140,
-          "price_display": "Rs 140"
+          "price_mur": 150,
+          "price_display": "Rs 150"
         },
         {
           "name": "Beer - Shandy",
-          "description": "Beer Sprite",
-          "price_mur": 140,
-          "price_display": "Rs 140"
+          "description": "500 ml | Beer + Sprite",
+          "price_mur": 200,
+          "price_display": "Rs 200"
         },
         {
           "name": "Cocktails - Expresso Tequila",
           "description": "Tequila Kahlua Triple Sec",
-          "price_mur": 320,
-          "price_display": "Rs 320"
+          "price_mur": 340,
+          "price_display": "Rs 340"
         },
         {
           "name": "Cocktails - Fresh Surprise",
           "description": "Rum Mint Tamarin Lime Lemon",
-          "price_mur": 290,
-          "price_display": "Rs 290"
+          "price_mur": 300,
+          "price_display": "Rs 300"
         },
         {
           "name": "Cocktails - Margarita Lemon",
           "description": "Gin Tequila Triple Sec Lime Lemon",
-          "price_mur": 320,
-          "price_display": "Rs 320"
+          "price_mur": 340,
+          "price_display": "Rs 340"
         },
         {
           "name": "Cocktails - Mauritian Punch",
           "description": "Rum Mango Passion Coco Pine",
-          "price_mur": 290,
-          "price_display": "Rs 290"
+          "price_mur": 300,
+          "price_display": "Rs 300"
         },
         {
           "name": "Cocktails - Mauritius Colada",
@@ -835,44 +833,44 @@
         {
           "name": "Cocktails - Sex On The Beach",
           "description": "Rum Orange Peach Cranberry Grenadine",
-          "price_mur": 290,
-          "price_display": "Rs 290"
+          "price_mur": 300,
+          "price_display": "Rs 300"
         },
         {
-          "name": "Cocktails -Jalape\u00f1o Punch",
+          "name": "Cocktails -Jalapeño Punch",
           "description": "Chili Rum Dark Rum Lime Grenadine",
-          "price_mur": 320,
-          "price_display": "Rs 320"
+          "price_mur": 340,
+          "price_display": "Rs 340"
         },
         {
           "name": "Coffee - Americano",
-          "price_mur": 120,
-          "price_display": "Rs 120"
+          "price_mur": 150,
+          "price_display": "Rs 150"
         },
         {
           "name": "Coffee - Cappuccino",
-          "price_mur": 150,
-          "price_display": "Rs 150"
+          "price_mur": 180,
+          "price_display": "Rs 180"
         },
         {
           "name": "Coffee - Espresso",
-          "price_mur": 120,
-          "price_display": "Rs 120"
+          "price_mur": 150,
+          "price_display": "Rs 150"
         },
         {
           "name": "Coffee - Hot Chocolate",
-          "price_mur": 151,
-          "price_display": "Rs 151"
+          "price_mur": 200,
+          "price_display": "Rs 200"
         },
         {
           "name": "Coffee - Latte",
-          "price_mur": 150,
-          "price_display": "Rs 150"
+          "price_mur": 180,
+          "price_display": "Rs 180"
         },
         {
           "name": "Coffee - Macchiato",
-          "price_mur": 150,
-          "price_display": "Rs 150"
+          "price_mur": 180,
+          "price_display": "Rs 180"
         },
         {
           "name": "Juice - Apple",
@@ -966,38 +964,38 @@
         },
         {
           "name": "Spirits - Aged Rum Local Double",
-          "price_mur": 200,
-          "price_display": "Rs 200"
+          "price_mur": 250,
+          "price_display": "Rs 250"
         },
         {
           "name": "Spirits - Aged Rum Local Single",
-          "price_mur": 120,
-          "price_display": "Rs 120"
+          "price_mur": 140,
+          "price_display": "Rs 140"
         },
         {
           "name": "Spirits - Dark Rum Local Double",
-          "price_mur": 200,
-          "price_display": "Rs 200"
+          "price_mur": 250,
+          "price_display": "Rs 250"
         },
         {
           "name": "Spirits - Dark Rum Local Single",
-          "price_mur": 120,
-          "price_display": "Rs 120"
+          "price_mur": 140,
+          "price_display": "Rs 140"
         },
         {
           "name": "Spirits - Gin Local Double",
-          "price_mur": 200,
-          "price_display": "Rs 200"
+          "price_mur": 250,
+          "price_display": "Rs 250"
         },
         {
           "name": "Spirits - Gin Local Single",
-          "price_mur": 120,
-          "price_display": "Rs 120"
+          "price_mur": 140,
+          "price_display": "Rs 140"
         },
         {
           "name": "Spirits - Grants Whiskey Double",
-          "price_mur": 300,
-          "price_display": "Rs 300"
+          "price_mur": 330,
+          "price_display": "Rs 330"
         },
         {
           "name": "Spirits - Grants Whiskey Single",
@@ -1016,8 +1014,8 @@
         },
         {
           "name": "Spirits - Red Label Whiskey Double",
-          "price_mur": 300,
-          "price_display": "Rs 300"
+          "price_mur": 330,
+          "price_display": "Rs 330"
         },
         {
           "name": "Spirits - Red Label Whiskey Single",
@@ -1036,18 +1034,18 @@
         },
         {
           "name": "Spirits - Spice Rum Local Double",
-          "price_mur": 200,
-          "price_display": "Rs 200"
+          "price_mur": 250,
+          "price_display": "Rs 250"
         },
         {
           "name": "Spirits - Spice Rum Local Single",
-          "price_mur": 120,
-          "price_display": "Rs 120"
+          "price_mur": 140,
+          "price_display": "Rs 140"
         },
         {
           "name": "Spirits - Tequila Double",
-          "price_mur": 300,
-          "price_display": "Rs 300"
+          "price_mur": 330,
+          "price_display": "Rs 330"
         },
         {
           "name": "Spirits - Tequila Single",
@@ -1056,23 +1054,23 @@
         },
         {
           "name": "Spirits - Vodka Local Double",
-          "price_mur": 200,
-          "price_display": "Rs 200"
+          "price_mur": 250,
+          "price_display": "Rs 250"
         },
         {
           "name": "Spirits - Vodka Local Single",
-          "price_mur": 120,
-          "price_display": "Rs 120"
+          "price_mur": 140,
+          "price_display": "Rs 140"
         },
         {
           "name": "Spirits - White Rum Local Double",
-          "price_mur": 200,
-          "price_display": "Rs 200"
+          "price_mur": 250,
+          "price_display": "Rs 250"
         },
         {
           "name": "Spirits - White Rum Local Single",
-          "price_mur": 120,
-          "price_display": "Rs 120"
+          "price_mur": 140,
+          "price_display": "Rs 140"
         },
         {
           "name": "Water",
@@ -1089,92 +1087,131 @@
         {
           "name": "Wine - Blanc Du Noir",
           "description": "Per Bottle Rose",
-          "price_mur": 1080,
-          "price_display": "Rs 1080"
+          "price_mur": 1200,
+          "price_display": "Rs 1200"
         },
         {
           "name": "Wine - Cabernet Sauvignon",
           "description": "Glass 200 ml Red",
-          "price_mur": 375,
-          "price_display": "Rs 375"
+          "price_mur": 395,
+          "price_display": "Rs 395"
         },
         {
           "name": "Wine - Cabernet Sauvignon",
           "description": "Per Bottle Red",
-          "price_mur": 1100,
-          "price_display": "Rs 1100"
+          "price_mur": 1250,
+          "price_display": "Rs 1250"
         },
         {
           "name": "Wine - Chardonnay",
           "description": "Glass 200 ml",
-          "price_mur": 340,
-          "price_display": "Rs 340"
+          "price_mur": 350,
+          "price_display": "Rs 350"
         },
         {
           "name": "Wine - Chardonnay",
           "description": "Per Bottle",
-          "price_mur": 1050,
-          "price_display": "Rs 1050"
+          "price_mur": 1150,
+          "price_display": "Rs 1150"
         },
         {
           "name": "Wine - House Red",
           "description": "Glass 200 ml",
-          "price_mur": 140,
-          "price_display": "Rs 140"
+          "price_mur": 280,
+          "price_display": "Rs 280"
         },
         {
           "name": "Wine - House Rose",
           "description": "Glass 200 ml",
-          "price_mur": 140,
-          "price_display": "Rs 140"
+          "price_mur": 280,
+          "price_display": "Rs 280"
         },
         {
           "name": "Wine - House White",
           "description": "Glass 200 ml",
-          "price_mur": 140,
-          "price_display": "Rs 140"
+          "price_mur": 280,
+          "price_display": "Rs 280"
         },
         {
           "name": "Wine - Merlot",
           "description": "Glass 200 ml Red",
-          "price_mur": 375,
-          "price_display": "Rs 375"
+          "price_mur": 395,
+          "price_display": "Rs 395"
         },
         {
           "name": "Wine - Merlot",
           "description": "Per Bottle Red",
-          "price_mur": 1100,
-          "price_display": "Rs 1100"
+          "price_mur": 1250,
+          "price_display": "Rs 1250"
         },
         {
           "name": "Wine - Sauvignon Blanc",
           "description": "Glass 200 ml White",
-          "price_mur": 340,
-          "price_display": "Rs 340"
+          "price_mur": 350,
+          "price_display": "Rs 350"
         },
         {
           "name": "Wine - Sauvignon Blanc",
           "description": "Per Bottle White",
-          "price_mur": 1050,
-          "price_display": "Rs 1050"
+          "price_mur": 1150,
+          "price_display": "Rs 1150"
         },
         {
           "name": "Wine - Shiraz",
           "description": "Glass 200 ml Red",
-          "price_mur": 375,
-          "price_display": "Rs 375"
+          "price_mur": 395,
+          "price_display": "Rs 395"
         },
         {
           "name": "Wine - Shiraz",
           "description": "Per Bottle Red",
-          "price_mur": 1100,
-          "price_display": "Rs 1100"
+          "price_mur": 1250,
+          "price_display": "Rs 1250"
         },
         {
           "name": "Wine - Spritzer",
-          "description": "House wine with Sodan and Ice",
+          "description": "House wine with soda and ice",
+          "price_mur": 320,
+          "price_display": "Rs 320"
+        },
+        {
+          "name": "Beer - Monaco Small",
+          "description": "330 ml | Beer + Grenadine + Sprite",
+          "price_mur": 190,
+          "price_display": "Rs 190"
+        },
+        {
+          "name": "Beer - Queen Mary Small",
+          "description": "330 ml | Beer + Grenadine",
+          "price_mur": 190,
+          "price_display": "Rs 190"
+        },
+        {
+          "name": "Coffee - Double Espresso",
+          "price_mur": 180,
+          "price_display": "Rs 180"
+        },
+        {
+          "name": "Coffee - Ice Coffee",
+          "price_mur": 150,
+          "price_display": "Rs 150"
+        },
+        {
+          "name": "Cocktails - Long Island Ice Tea",
+          "description": "Vodka + Gin + Rum + Tequila + Lemon + Coke",
+          "price_mur": 400,
+          "price_display": "Rs 400"
+        },
+        {
+          "name": "Cocktails - Ti Punch",
+          "description": "Sugar + Lemon + Rum + Lime",
           "price_mur": 300,
           "price_display": "Rs 300"
+        },
+        {
+          "name": "Spirits - Brandy Double",
+          "price_mur": 330,
+          "price_display": "Rs 330"
         }
       ]
     },
