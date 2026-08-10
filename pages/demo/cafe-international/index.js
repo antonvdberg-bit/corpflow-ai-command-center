@@ -23,7 +23,8 @@ import { getCafeInternationalPreviewProps } from '../../../lib/website-rescue/ca
 
 /**
  * Café International — visual-first Website Rescue preview home.
- * Corrective sizzle + navigation pass (#855 / #860).
+ * Corrective pass (#871 / #872): wider hero brand card, featured favourites,
+ * verified muted media (no audio track in current source files).
  */
 export default function CafeInternationalPreviewHome({
   truth,
@@ -67,6 +68,22 @@ export default function CafeInternationalPreviewHome({
         }}
       >
         <style>{`
+          [data-cafe-hero-brand-row] {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 28px;
+          }
+          [data-cafe-hero-brand-copy] {
+            flex: 1 1 0;
+            min-width: 0;
+          }
+          [data-cafe-hero-brand-trust] {
+            flex: 0 0 auto;
+            width: 132px;
+            margin-top: 4px;
+            text-align: right;
+          }
           @media (max-width: 899px) {
             [data-cafe-hero] {
               min-height: 0 !important;
@@ -84,113 +101,136 @@ export default function CafeInternationalPreviewHome({
             [data-cafe-hero-cta-secondary] { display: none !important; }
             [data-cafe-hero-cta] a { min-height: 44px !important; padding: 10px 14px !important; font-size: 14px !important; }
             [data-cafe-hero-brand-logo] { max-width: 210px !important; margin-bottom: 10px !important; }
-            [data-cafe-rg-badge] { width: 88px !important; margin-top: 10px !important; }
+            [data-cafe-hero-brand-row] {
+              flex-direction: column !important;
+              align-items: stretch !important;
+              gap: 12px !important;
+            }
+            [data-cafe-hero-brand-trust] {
+              width: auto !important;
+              display: flex !important;
+              align-items: center !important;
+              gap: 12px !important;
+              text-align: left !important;
+              margin-top: 4px !important;
+            }
+            [data-cafe-rg-badge] { width: 88px !important; margin: 0 !important; }
+            [data-cafe-rg-attribution] { max-width: none !important; margin: 0 !important; }
           }
         `}</style>
 
         <div style={{ maxWidth: 1100, width: '100%', margin: '0 auto' }}>
           <CafeGlassPanel
             data-cafe-hero-glass
-            style={{ maxWidth: 640, padding: '18px 16px 18px' }}
+            style={{ maxWidth: '100%', width: '100%', padding: '22px 22px 20px' }}
           >
-            <img
-              data-cafe-hero-brand-logo
-              src={CAFE_INTERNATIONAL_VISUALS.brandLogoWide}
-              alt="Café International — The Flame Grill, Famous Steak House"
-              width={900}
-              height={323}
-              style={{
-                display: 'block',
-                width: '100%',
-                maxWidth: 320,
-                height: 'auto',
-                marginBottom: 14,
-              }}
-            />
-            <p
-              style={{
-                margin: 0,
-                fontSize: 12,
-                letterSpacing: '0.16em',
-                textTransform: 'uppercase',
-                color: T.flameSoft,
-                fontWeight: 800,
-              }}
-            >
-              Since {truth.since_year} · Trou aux Biches
-            </p>
-            <h1
-              style={{
-                margin: '10px 0 0',
-                fontFamily: T.fontDisplay,
-                fontSize: 'clamp(28px, 6vw, 52px)',
-                lineHeight: 1.05,
-                letterSpacing: '-0.03em',
-                color: T.cream,
-              }}
-            >
-              Flame-grilled steaks with real sizzle.
-            </h1>
-            <p
-              data-cafe-hero-lede
-              style={{
-                marginTop: 10,
-                fontSize: 'clamp(14px, 2vw, 17px)',
-                lineHeight: 1.45,
-                color: T.creamMuted,
-              }}
-            >
-              Owner-operated by {CAFE_INTERNATIONAL_OWNERS} — flame-grilled steaks, ribs,
-              burgers and platters on Royal Road.
-            </p>
-            <div
-              data-cafe-hero-cta
-              style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 16 }}
-            >
-              <ActionButton href={`${CAFE_INTERNATIONAL_PREVIEW_BASE}/menu`} primary>
-                View Menu
-              </ActionButton>
-              <span data-cafe-hero-cta-secondary style={{ display: 'contents' }}>
-                <ActionButton href={`${CAFE_INTERNATIONAL_PREVIEW_BASE}/visit#book`}>
-                  Book a Table
-                </ActionButton>
-                <ActionButton href={`${CAFE_INTERNATIONAL_PREVIEW_BASE}/takeaway`}>
-                  Order Takeaway
-                </ActionButton>
-              </span>
+            <div data-cafe-hero-brand-row>
+              <div data-cafe-hero-brand-copy>
+                <img
+                  data-cafe-hero-brand-logo
+                  src={CAFE_INTERNATIONAL_VISUALS.brandLogoWide}
+                  alt="Café International — The Flame Grill, Famous Steak House"
+                  width={900}
+                  height={323}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    maxWidth: 320,
+                    height: 'auto',
+                    marginBottom: 14,
+                  }}
+                />
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: 12,
+                    letterSpacing: '0.16em',
+                    textTransform: 'uppercase',
+                    color: T.flameSoft,
+                    fontWeight: 800,
+                  }}
+                >
+                  Since {truth.since_year} · Trou aux Biches
+                </p>
+                <h1
+                  style={{
+                    margin: '10px 0 0',
+                    fontFamily: T.fontDisplay,
+                    fontSize: 'clamp(28px, 6vw, 52px)',
+                    lineHeight: 1.05,
+                    letterSpacing: '-0.03em',
+                    color: T.cream,
+                  }}
+                >
+                  Flame-grilled steaks with real sizzle.
+                </h1>
+                <p
+                  data-cafe-hero-lede
+                  style={{
+                    marginTop: 10,
+                    fontSize: 'clamp(14px, 2vw, 17px)',
+                    lineHeight: 1.45,
+                    color: T.creamMuted,
+                    maxWidth: 560,
+                  }}
+                >
+                  Owner-operated by {CAFE_INTERNATIONAL_OWNERS} — flame-grilled steaks, ribs,
+                  burgers and platters on Royal Road.
+                </p>
+                <div
+                  data-cafe-hero-cta
+                  style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 16 }}
+                >
+                  <ActionButton href={`${CAFE_INTERNATIONAL_PREVIEW_BASE}/menu`} primary>
+                    View Menu
+                  </ActionButton>
+                  <span data-cafe-hero-cta-secondary style={{ display: 'contents' }}>
+                    <ActionButton href={`${CAFE_INTERNATIONAL_PREVIEW_BASE}/visit#book`}>
+                      Book a Table
+                    </ActionButton>
+                    <ActionButton href={`${CAFE_INTERNATIONAL_PREVIEW_BASE}/takeaway`}>
+                      Order Takeaway
+                    </ActionButton>
+                  </span>
+                </div>
+              </div>
+              <div data-cafe-hero-brand-trust>
+                <a
+                  data-cafe-rg-badge
+                  href={CAFE_INTERNATIONAL_RESTAURANT_GURU_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Best Steaks 2025 — Restaurant Guru listing for Café International"
+                  style={{
+                    display: 'block',
+                    width: 118,
+                    marginLeft: 'auto',
+                    filter: 'drop-shadow(0 8px 18px rgba(0,0,0,0.4))',
+                  }}
+                >
+                  <img
+                    src={CAFE_INTERNATIONAL_VISUALS.bestSteaks2025Badge}
+                    alt="Best Steaks 2025 — Restaurant Guru"
+                    width={174}
+                    height={136}
+                    style={{ width: '100%', height: 'auto', display: 'block' }}
+                  />
+                </a>
+                <p
+                  data-cafe-rg-attribution
+                  style={{
+                    margin: '8px 0 0',
+                    fontSize: 11,
+                    color: T.creamMuted,
+                    lineHeight: 1.4,
+                    maxWidth: 132,
+                    marginLeft: 'auto',
+                  }}
+                >
+                  Restaurant Guru Best Steaks 2025 — external recognition, not Café-owned IP.
+                </p>
+              </div>
             </div>
-            <a
-              data-cafe-rg-badge
-              href={CAFE_INTERNATIONAL_RESTAURANT_GURU_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Best Steaks 2025 — Restaurant Guru listing for Café International"
-              style={{
-                display: 'block',
-                width: 108,
-                marginTop: 14,
-                filter: 'drop-shadow(0 8px 18px rgba(0,0,0,0.4))',
-              }}
-            >
-              <img
-                src={CAFE_INTERNATIONAL_VISUALS.bestSteaks2025Badge}
-                alt="Best Steaks 2025 — Restaurant Guru"
-                width={174}
-                height={136}
-                style={{ width: '100%', height: 'auto', display: 'block' }}
-              />
-            </a>
-            <p
-              style={{
-                margin: '8px 0 0',
-                fontSize: 11,
-                color: T.creamMuted,
-                lineHeight: 1.4,
-                maxWidth: 280,
-              }}
-            >
-              Restaurant Guru Best Steaks 2025 — external recognition, not Café-owned IP.
-            </p>
           </CafeGlassPanel>
         </div>
       </section>
@@ -359,7 +399,7 @@ export default function CafeInternationalPreviewHome({
           </CafeGlassPanel>
         </section>
 
-        {/* Menu preview — real fixture items */}
+        {/* Featured favourites — fixture items only; demand ranking deferred to owners */}
         <section
           data-cafe-home-menu-preview
           style={{ marginTop: 48, paddingTop: 8 }}
@@ -374,11 +414,11 @@ export default function CafeInternationalPreviewHome({
               color: T.cream,
             }}
           >
-            Menu preview
+            Featured favourites
           </h2>
           <p style={{ marginTop: 8, color: T.creamMuted, maxWidth: 560, lineHeight: 1.5 }}>
-            Sample dishes with live Menu-page prices — full categories stay readable
-            without chat.
+            Popular picks from the grill and menu — live Menu-page prices. Browse the full
+            menu for every section.
           </p>
           <CafeGlassPanel style={{ marginTop: 16, padding: '8px 18px 18px' }}>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>

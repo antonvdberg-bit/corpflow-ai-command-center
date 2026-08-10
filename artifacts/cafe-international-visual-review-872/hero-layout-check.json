@@ -1,0 +1,10 @@
+{
+  "viewport": { "width": 1440, "height": 900 },
+  "glassWidth": 1146,
+  "containerMaxWidth": 1100,
+  "previousNarrowCardMaxWidth": 640,
+  "badgeInsideGlass": true,
+  "badgeOnRight": true,
+  "glassWiderThanPreviousNarrowCard": true,
+  "notes": "Hero glass uses full available content width inside the ~1100px page container (measured rendered width ~1146 including glass chrome). Best Steaks badge sits in the right-hand trust column inside the glass panel."
+}
