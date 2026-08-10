@@ -3,6 +3,10 @@
 # Optional target_issue bypasses dispatcher cursor routings for one direct GitHub issue.
 # Scheduled runs become cursor_live only when repository variable/secret CURSOR_LIVE_ENABLED=true.
 #
+# Phase A event-driven path: issues:labeled with exact label dispatch:cursor-ready
+# resolves that issue as the preferred scan target and selects cursor_live when eligible.
+# Uses existing CURSOR_API_KEY, claim-before-API, WIP and protected gates — not a second dispatcher.
+#
 # Also scans open issues labelled dispatch:cursor-ready (segregated claim lifecycle) before
 # activation. Does not create a second dispatcher — see CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1.
 #
@@ -20,13 +24,14 @@
 #   docs/operations/CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1.md
 #   scripts/dispatcher-agent-activation.mjs
 #   scripts/cursor-issue-dispatch-scan.mjs
+#   lib/server/cursor-ready-event-dispatch.js
 
 name: Factory dispatcher activate
 
 # STARTED/FINISHED evidence comments post to control issue #661 so a silent UI click cannot hide the run ID.
 on:
   schedule:
-    # Every 30 minutes — issue-label scan + dry_run unless CURSOR_LIVE_ENABLED=true.
+    # Every 30 minutes — fallback scan when no label event fires.
     # Expression rewritten (equivalent to */30) so merging this file re-registers a stalled schedule.
     - cron: "0,30 * * * *"
   workflow_dispatch:
@@ -49,20 +54,27 @@ on:
         required: false
         default: ""
         type: string
+  issues:
+    types: [labeled]
 
 permissions:
   contents: read
   issues: write
   actions: read
 
-# Issue-keyed when target_issue is set — serializes dual activator races on the same source issue.
+# Issue-keyed when an event/manual target issue is known — serializes dual activator races.
 # Blank target (scan/dispatcher) shares one scan group so only one scan activation runs at a time.
 concurrency:
-  group: factory-dispatcher-activate-${{ inputs.target_issue || 'scan' }}
+  group: factory-dispatcher-activate-${{ github.event_name == 'issues' && github.event.issue.number || inputs.target_issue || 'scan' }}
   cancel-in-progress: false
 
 jobs:
   activate:
+    # Exact label only — other lifecycle labels (claimed/in-progress/blocked) must not wake.
+    if: >-
+      github.event_name != 'issues' ||
+      (github.event.issue.state == 'open' &&
+       github.event.label.name == 'dispatch:cursor-ready')
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -80,42 +92,17 @@ jobs:
         id: mode
         env:
           CURSOR_LIVE_ENABLED: ${{ vars.CURSOR_LIVE_ENABLED || secrets.CURSOR_LIVE_ENABLED || '' }}
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_ACTION: ${{ github.event.action || '' }}
+          EVENT_LABEL: ${{ github.event.label.name || '' }}
+          EVENT_ISSUE_STATE: ${{ github.event.issue.state || '' }}
+          EVENT_ISSUE_NUMBER: ${{ github.event.issue.number || '' }}
+          ACTIVATION_MODE_INPUT: ${{ inputs.activation_mode || '' }}
+          SMOKE_INTERNAL_INPUT: ${{ inputs.smoke_internal || '' }}
+          TARGET_ISSUE_INPUT: ${{ inputs.target_issue || '' }}
         run: |
           set -euo pipefail
-          live_raw="$(printf '%s' "${CURSOR_LIVE_ENABLED:-}" | tr -d '[:space:]')"
-          live_norm="$(printf '%s' "${live_raw}" | tr '[:upper:]' '[:lower:]')"
-          if [ -n "${live_raw}" ]; then
-            echo "cursor_live_enabled_configured=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "cursor_live_enabled_configured=false" >> "$GITHUB_OUTPUT"
-          fi
-          if [ "$live_norm" = "true" ] || [ "$live_norm" = "1" ] || [ "$live_norm" = "yes" ] || [ "$live_norm" = "enabled" ]; then
-            echo "cursor_live_enabled_truthy=true" >> "$GITHUB_OUTPUT"
-            live_truthy=1
-          else
-            echo "cursor_live_enabled_truthy=false" >> "$GITHUB_OUTPUT"
-            live_truthy=0
-          fi
-          if [ "${{ github.event_name }}" = "schedule" ]; then
-            if [ "${live_truthy}" = "1" ]; then
-              echo "mode=cursor_live" >> "$GITHUB_OUTPUT"
-              echo "Scheduled run — CURSOR_LIVE_ENABLED is enabled; cursor_live requires throughput packet gate"
-            else
-              echo "mode=dry_run" >> "$GITHUB_OUTPUT"
-              echo "Scheduled run — forcing dry_run because CURSOR_LIVE_ENABLED is not true"
-            fi
-            echo "smoke_internal=0" >> "$GITHUB_OUTPUT"
-            echo "target_issue=" >> "$GITHUB_OUTPUT"
-          else
-            echo "mode=${{ inputs.activation_mode }}" >> "$GITHUB_OUTPUT"
-            if [ "${{ inputs.smoke_internal }}" = "true" ]; then
-              echo "smoke_internal=1" >> "$GITHUB_OUTPUT"
-            else
-              echo "smoke_internal=0" >> "$GITHUB_OUTPUT"
-            fi
-            echo "target_issue=${{ inputs.target_issue }}" >> "$GITHUB_OUTPUT"
-            echo "Manual run — activation_mode=${{ inputs.activation_mode }} smoke_internal=${{ inputs.smoke_internal }} target_issue=${{ inputs.target_issue }}"
-          fi
+          node scripts/factory-dispatcher-resolve-mode.mjs --phase mode
 
       - name: Post STARTED evidence to control issue
         continue-on-error: true
@@ -127,7 +114,7 @@ jobs:
           GITHUB_SERVER_URL: ${{ github.server_url }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           DISPATCHER_ACTIVATION_MODE: ${{ steps.mode.outputs.mode }}
-          DISPATCHER_ACTIVATION_TARGET_ISSUE: ${{ steps.mode.outputs.target_issue }}
+          DISPATCHER_ACTIVATION_TARGET_ISSUE: ${{ steps.mode.outputs.evidence_target_issue }}
           CURSOR_LIVE_ENABLED_CONFIGURED: ${{ steps.mode.outputs.cursor_live_enabled_configured }}
           CURSOR_LIVE_ENABLED_TRUTHY: ${{ steps.mode.outputs.cursor_live_enabled_truthy }}
           DISPATCHER_CONTROL_ISSUE: "661"
@@ -150,10 +137,14 @@ jobs:
         run: |
           set -euo pipefail
           echo "Dispatcher activator mode: ${{ steps.mode.outputs.mode }}"
+          echo "  path                       : ${{ steps.mode.outputs.path }}"
+          if [ -n "${{ steps.mode.outputs.event_issue }}" ]; then
+            echo "  event_issue                : ${{ steps.mode.outputs.event_issue }} (label event)"
+          fi
           if [ -n "${{ steps.mode.outputs.target_issue }}" ]; then
-            echo "  target_issue               : ${{ steps.mode.outputs.target_issue }} (direct-issue path)"
+            echo "  target_issue               : ${{ steps.mode.outputs.target_issue }} (manual direct-issue path)"
           else
-            echo "  target_issue               : (blank — dispatcher fetch)"
+            echo "  target_issue               : (blank — scan/dispatcher; gates authoritative)"
           fi
           if [ -n "${CORE_BASE_PRESENT:-}" ] || [ -n "${HEALTH_URL_PRESENT:-}" ]; then
             echo "  dispatcher URL source       : configured"
@@ -190,12 +181,18 @@ jobs:
           GITHUB_REPO: ${{ github.repository }}
           GITHUB_RUN_ID: ${{ github.run_id }}
           CURSOR_ISSUE_DISPATCH_SCAN_PATH: cursor-issue-dispatch-scan.json
+          DISPATCH_PREFER_ISSUES: ${{ steps.mode.outputs.prefer_issues }}
         run: |
           set -euo pipefail
           # GHA token has issues:write — durable discovery/classification comments only.
           # Pre-API claim is acquired in dispatcher-agent-activation (claim-before-API);
           # finalize still records the real Cursor run ID / origin metadata after success.
-          node scripts/cursor-issue-dispatch-scan.mjs --apply-comments
+          # Event path prefers the exact labeled issue; WIP/protected gates still decide claim.
+          if [ -n "${DISPATCH_PREFER_ISSUES:-}" ]; then
+            node scripts/cursor-issue-dispatch-scan.mjs --apply-comments --prefer "${DISPATCH_PREFER_ISSUES}"
+          else
+            node scripts/cursor-issue-dispatch-scan.mjs --apply-comments
+          fi
           if [ -f cursor-issue-dispatch-scan.json ]; then
             target="$(node -e "const j=require('./cursor-issue-dispatch-scan.json'); process.stdout.write(j.activationTargetIssue!=null?String(j.activationTargetIssue):'')")"
             echo "activation_target_issue=${target}" >> "$GITHUB_OUTPUT"
@@ -206,26 +203,17 @@ jobs:
 
       - name: Resolve effective target issue
         id: target
+        env:
+          MANUAL_TARGET: ${{ steps.mode.outputs.target_issue }}
+          EVENT_ISSUE: ${{ steps.mode.outputs.event_issue }}
+          SCANNED_TARGET: ${{ steps.issue_scan.outputs.activation_target_issue }}
         run: |
           set -euo pipefail
-          # Manual workflow_dispatch target_issue wins; else use scan claim handoff.
-          manual="${{ steps.mode.outputs.target_issue }}"
-          scanned="${{ steps.issue_scan.outputs.activation_target_issue }}"
-          if [ -n "${manual}" ]; then
-            echo "target_issue=${manual}" >> "$GITHUB_OUTPUT"
-            echo "target_source=manual" >> "$GITHUB_OUTPUT"
-            echo "Effective target_issue=${manual} (manual)"
-          elif [ -n "${scanned}" ]; then
-            echo "target_issue=${scanned}" >> "$GITHUB_OUTPUT"
-            echo "target_source=issue_scan" >> "$GITHUB_OUTPUT"
-            echo "Effective target_issue=${scanned} (issue-label scan claim)"
-          else
-            echo "target_issue=" >> "$GITHUB_OUTPUT"
-            echo "target_source=dispatcher" >> "$GITHUB_OUTPUT"
-            echo "Effective target_issue=(blank — dispatcher fetch)"
-          fi
+          node scripts/factory-dispatcher-resolve-mode.mjs --phase target
 
       - name: Run dispatcher activation
+        # event_label_held = labeled issue failed WIP/protected/claimed gates — do not call Cursor API.
+        if: ${{ steps.target.outputs.target_source != 'event_label_held' }}
         env:
           DISPATCHER_ACTIVATION_MODE: ${{ steps.mode.outputs.mode }}
           ACTIVATION_MODE: ${{ steps.mode.outputs.mode }}
@@ -262,7 +250,7 @@ jobs:
           TARGET_ISSUE: ${{ steps.target.outputs.target_issue }}
         run: |
           set -euo pipefail
-          # Always attempt finalize when we have a target issue (manual or scan).
+          # Always attempt finalize when we have a target issue (manual, event, or scan).
           # Pre-API claim may already hold dispatch:cursor-claimed; finalize records run ID
           # or releases the claim on failure.
           if [ -f activation-plan.json ] || [ -n "${TARGET_ISSUE:-}" ]; then
