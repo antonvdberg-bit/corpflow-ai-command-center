@@ -3,7 +3,7 @@
 **Verdict:** READY FOR OWNER REVIEW  
 **Owner-handable URL:** https://corpflowai.com/demo/cafe-international  
 **Draft PR:** https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/851  
-**Commit SHA:** `3d9dbbd06c8f93452c8cf09c2553faa90d326ca1` (+ evidence commit)
+**Commit SHA:** `a0f4c7abe00e23addfe75269694d4acbb39ba8df`
 
 ## Surfaces (all 200)
 
