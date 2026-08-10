@@ -1,0 +1,26 @@
+name: Canonical context preflight
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  canonical-context-preflight:
+    name: canonical-context-preflight
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
+        with:
+          node-version: '20'
+
+      - name: Verify canonical context acknowledgement
+        env:
+          PR_BODY: ${{ github.event.pull_request.body || '' }}
+          PR_CREATED_AT: ${{ github.event.pull_request.created_at || '' }}
+        run: node scripts/check-canonical-context-preflight.mjs
