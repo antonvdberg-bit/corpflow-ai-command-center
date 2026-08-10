@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import AppShell from '../../components/app/AppShell.js';
+import AppLoadState from '../../components/app/AppLoadState.js';
 import CoreMenu from '../../components/app/CoreMenu.js';
 import CoreRequestList from '../../components/app/CoreRequestList.js';
 import CoreRequestWorkView from '../../components/app/CoreRequestWorkView.js';
@@ -17,6 +18,7 @@ function proofFromQuery(query) {
 
 /**
  * Core environment — Core/admin session only. No Tenant switch.
+ * Slice 2: normal authenticated path is default; ?proof=1 remains harness-only.
  */
 export default function AppCorePage() {
   const router = useRouter();
@@ -25,6 +27,7 @@ export default function AppCorePage() {
   const [request, setRequest] = useState(/** @type {Record<string, unknown> | null} */ (null));
   const [list, setList] = useState(/** @type {Array<Record<string, unknown>>} */ ([]));
   const [tenantOptions, setTenantOptions] = useState(/** @type {string[]} */ ([]));
+  const [dataSource, setDataSource] = useState('');
   const [filters, setFilters] = useState({
     tenant_id: 'all',
     status: '',
@@ -34,7 +37,8 @@ export default function AppCorePage() {
   const [error, setError] = useState('');
   const [authRequired, setAuthRequired] = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
   const [notice, setNotice] = useState('');
 
   const proofWanted = router.isReady && proofFromQuery(router.query);
@@ -73,6 +77,7 @@ export default function AppCorePage() {
         return;
       }
       setShell(shellJson);
+      if (shellJson.data_source) setDataSource(String(shellJson.data_source));
 
       const listMenus = new Set(['requests', 'my_work', 'tenants', 'approvals', 'releases']);
       if (listMenus.has(menu)) {
@@ -95,6 +100,7 @@ export default function AppCorePage() {
         }
         setList(Array.isArray(listJson.requests) ? listJson.requests : []);
         setTenantOptions(Array.isArray(listJson.tenant_options) ? listJson.tenant_options : []);
+        if (listJson.data_source) setDataSource(String(listJson.data_source));
         setRequest(null);
         return;
       }
@@ -112,12 +118,14 @@ export default function AppCorePage() {
           return;
         }
         setRequest(detailJson.request || null);
+        if (detailJson.data_source) setDataSource(String(detailJson.data_source));
         setList([]);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'load_failed');
     } finally {
       setBusy(false);
+      setInitialLoad(false);
     }
   }, [apiBase, menu, requestId, filters]);
 
@@ -162,6 +170,14 @@ export default function AppCorePage() {
   const selected = /** @type {Record<string, unknown>} */ (shell?.selected || {});
   const proofMode = shell?.proof_mode === true;
 
+  if (!router.isReady || (initialLoad && busy && !authRequired && !accessDenied && !shell)) {
+    return (
+      <AppShell environment="core" role="—">
+        <AppLoadState kind="loading" title="Loading Core…" />
+      </AppShell>
+    );
+  }
+
   if (authRequired) {
     return (
       <AppShell environment="core" role="—">
@@ -178,13 +194,14 @@ export default function AppCorePage() {
             >
               Core sign in
             </a>
-            <a className="cf-app-btn" href="/app/core?proof=1">
-              Open Core proof
-            </a>
             <a className="cf-app-btn" href="/app">
               Back to chooser
             </a>
           </div>
+          <p className="cf-app-muted" style={{ marginTop: 16 }} data-testid="proof-harness-hint">
+            Deterministic test harness only:{' '}
+            <a href="/app/core?proof=1">Open Core proof</a>
+          </p>
         </section>
       </AppShell>
     );
@@ -208,6 +225,24 @@ export default function AppCorePage() {
             </a>
           </div>
         </section>
+      </AppShell>
+    );
+  }
+
+  if (error && !shell) {
+    return (
+      <AppShell environment="core" role="—">
+        <AppLoadState
+          kind="error"
+          title="Core workspace unavailable"
+          message={error}
+          testId="app-core-error"
+        />
+        <div className="cf-app-actions" style={{ marginTop: 12 }}>
+          <button type="button" className="cf-app-btn" data-primary="true" onClick={() => loadShellAndWork()}>
+            Retry
+          </button>
+        </div>
       </AppShell>
     );
   }
@@ -239,15 +274,27 @@ export default function AppCorePage() {
         }}
       />
 
-      <p className="cf-app-muted" style={{ marginTop: -8, marginBottom: 16 }}>
-        Core environment · separate auth · production-shaped request adapters ·{' '}
+      <p className="cf-app-muted" style={{ marginTop: -8, marginBottom: 16 }} data-testid="core-workspace-meta">
+        Core environment · separate auth ·{' '}
+        {dataSource ? (
+          <>
+            data source <code data-testid="core-data-source">{dataSource}</code>
+          </>
+        ) : (
+          'request repository'
+        )}
+        {' · '}
         <code>/change</code> remains compatibility route
       </p>
 
       {error ? <p className="cf-app-error" data-testid="app-error">{error}</p> : null}
       {notice ? <p className="cf-app-ok" data-testid="app-notice">{notice}</p> : null}
 
-      {menu !== 'request_detail' ? (
+      {busy && menu !== 'request_detail' ? (
+        <AppLoadState kind="loading" title="Loading requests…" />
+      ) : null}
+
+      {!busy && menu !== 'request_detail' ? (
         <CoreRequestList
           title={listTitle}
           requests={list}
@@ -260,9 +307,15 @@ export default function AppCorePage() {
             setMenu('request_detail');
           }}
         />
-      ) : (
-        <CoreRequestWorkView request={request} busy={busy} onExpose={onExpose} />
-      )}
+      ) : null}
+
+      {menu === 'request_detail' ? (
+        busy && !request ? (
+          <AppLoadState kind="loading" title="Loading request…" />
+        ) : (
+          <CoreRequestWorkView request={request} busy={busy} onExpose={onExpose} />
+        )
+      ) : null}
     </AppShell>
   );
 }

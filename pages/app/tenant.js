@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import AppShell from '../../components/app/AppShell.js';
+import AppLoadState from '../../components/app/AppLoadState.js';
 import TenantMenu from '../../components/app/TenantMenu.js';
 import TenantRequestsProgress from '../../components/app/TenantRequestsProgress.js';
 import { CANONICAL_REQUEST_ID, REFERENCE_TENANT_ID } from '../../lib/app/constants.js';
@@ -16,6 +17,7 @@ function proofFromQuery(query) {
 
 /**
  * Tenant — CorpFlowAI. Normal tenant session only. No Core exposure.
+ * Slice 2: normal authenticated path is default; ?proof=1 remains harness-only.
  */
 export default function AppTenantPage() {
   const router = useRouter();
@@ -24,10 +26,14 @@ export default function AppTenantPage() {
   const [list, setList] = useState(/** @type {Array<Record<string, unknown>>} */ ([]));
   const [request, setRequest] = useState(/** @type {Record<string, unknown> | null} */ (null));
   const [requestId, setRequestId] = useState(CANONICAL_REQUEST_ID);
+  const [boundTenantId, setBoundTenantId] = useState(REFERENCE_TENANT_ID);
+  const [dataSource, setDataSource] = useState('');
   const [error, setError] = useState('');
   const [authRequired, setAuthRequired] = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
+  const [listReady, setListReady] = useState(false);
   const [notice, setNotice] = useState('');
 
   const proofWanted = router.isReady && proofFromQuery(router.query);
@@ -36,10 +42,10 @@ export default function AppTenantPage() {
     const params = new URLSearchParams();
     params.set('env', 'tenant');
     params.set('scope', 'tenant');
-    params.set('tenant_id', REFERENCE_TENANT_ID);
+    params.set('tenant_id', boundTenantId || REFERENCE_TENANT_ID);
     if (proofWanted) params.set('proof', '1');
     return params.toString();
-  }, [proofWanted]);
+  }, [proofWanted, boundTenantId]);
 
   const loadShellAndList = useCallback(async () => {
     setBusy(true);
@@ -47,8 +53,17 @@ export default function AppTenantPage() {
     setNotice('');
     setAuthRequired(false);
     setAccessDenied(false);
+    setListReady(false);
     try {
-      const shellRes = await fetch(`/api/app/shell?${apiBase}`, { credentials: 'same-origin' });
+      const shellQs = new URLSearchParams();
+      shellQs.set('env', 'tenant');
+      shellQs.set('scope', 'tenant');
+      shellQs.set('tenant_id', REFERENCE_TENANT_ID);
+      if (proofWanted) shellQs.set('proof', '1');
+
+      const shellRes = await fetch(`/api/app/shell?${shellQs.toString()}`, {
+        credentials: 'same-origin',
+      });
       const shellJson = await shellRes.json().catch(() => ({}));
       if (shellRes.status === 401) {
         setAuthRequired(true);
@@ -70,29 +85,53 @@ export default function AppTenantPage() {
         return;
       }
       setShell(shellJson);
+      const selected = /** @type {Record<string, unknown>} */ (shellJson.selected || {});
+      const tid =
+        selected.tenant_id != null && String(selected.tenant_id).trim()
+          ? String(selected.tenant_id).trim()
+          : REFERENCE_TENANT_ID;
+      setBoundTenantId(tid);
+      if (shellJson.data_source) setDataSource(String(shellJson.data_source));
 
-      const listRes = await fetch(`/api/app/requests?${apiBase}`, { credentials: 'same-origin' });
+      const listQs = new URLSearchParams();
+      listQs.set('env', 'tenant');
+      listQs.set('scope', 'tenant');
+      listQs.set('tenant_id', tid);
+      if (proofWanted) listQs.set('proof', '1');
+
+      const listRes = await fetch(`/api/app/requests?${listQs.toString()}`, {
+        credentials: 'same-origin',
+      });
       const listJson = await listRes.json().catch(() => ({}));
       if (!listRes.ok || !listJson.ok) {
         setError(String(listJson.error || `requests_${listRes.status}`));
         setList([]);
+        setListReady(true);
         return;
       }
       const rows = Array.isArray(listJson.requests) ? listJson.requests : [];
       setList(rows);
+      if (listJson.data_source) setDataSource(String(listJson.data_source));
       setRequestId((prev) => {
         if (rows.some((r) => String(r.request_id) === prev)) return prev;
         return String(rows[0]?.request_id || CANONICAL_REQUEST_ID);
       });
+      setListReady(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'load_failed');
+      setListReady(true);
     } finally {
       setBusy(false);
+      setInitialLoad(false);
     }
-  }, [apiBase]);
+  }, [proofWanted]);
 
   const loadDetail = useCallback(async () => {
     if (!(menu === 'requests_progress' || menu === 'my_work' || menu === 'home')) {
+      setRequest(null);
+      return;
+    }
+    if (!listReady || !list.length) {
       setRequest(null);
       return;
     }
@@ -111,12 +150,13 @@ export default function AppTenantPage() {
         return;
       }
       setRequest(detailJson.request || null);
+      if (detailJson.data_source) setDataSource(String(detailJson.data_source));
     } catch (e) {
       setError(e instanceof Error ? e.message : 'load_failed');
     } finally {
       setBusy(false);
     }
-  }, [apiBase, menu, requestId]);
+  }, [apiBase, menu, requestId, listReady, list.length]);
 
   useEffect(() => {
     if (!router.isReady) return;
@@ -147,7 +187,7 @@ export default function AppTenantPage() {
           comment: args.comment,
           env: 'tenant',
           scope: 'tenant',
-          tenant_id: REFERENCE_TENANT_ID,
+          tenant_id: boundTenantId || REFERENCE_TENANT_ID,
         }),
       });
       const json = await res.json().catch(() => ({}));
@@ -167,6 +207,16 @@ export default function AppTenantPage() {
   const actor = /** @type {Record<string, unknown>} */ (shell?.actor || {});
   const selected = /** @type {Record<string, unknown>} */ (shell?.selected || {});
   const proofMode = shell?.proof_mode === true;
+  const tenantLabel =
+    selected.tenant_label != null ? String(selected.tenant_label) : 'CorpFlowAI';
+
+  if (!router.isReady || (initialLoad && busy && !authRequired && !accessDenied && !shell)) {
+    return (
+      <AppShell environment="tenant" tenantLabel="CorpFlowAI" role="—">
+        <AppLoadState kind="loading" title="Loading Tenant — CorpFlowAI…" />
+      </AppShell>
+    );
+  }
 
   if (authRequired) {
     return (
@@ -185,13 +235,14 @@ export default function AppTenantPage() {
             >
               Tenant sign in
             </a>
-            <a className="cf-app-btn" href="/app/tenant?proof=1">
-              Open Tenant proof
-            </a>
             <a className="cf-app-btn" href="/app">
               Back to chooser
             </a>
           </div>
+          <p className="cf-app-muted" style={{ marginTop: 16 }} data-testid="proof-harness-hint">
+            Deterministic test harness only:{' '}
+            <a href="/app/tenant?proof=1">Open Tenant proof</a>
+          </p>
         </section>
       </AppShell>
     );
@@ -220,18 +271,41 @@ export default function AppTenantPage() {
     );
   }
 
+  if (error && !shell) {
+    return (
+      <AppShell environment="tenant" tenantLabel="CorpFlowAI" role="—">
+        <AppLoadState
+          kind="error"
+          title="Tenant workspace unavailable"
+          message={error}
+          testId="app-tenant-error"
+        />
+        <div className="cf-app-actions" style={{ marginTop: 12 }}>
+          <button type="button" className="cf-app-btn" data-primary="true" onClick={() => loadShellAndList()}>
+            Retry
+          </button>
+        </div>
+      </AppShell>
+    );
+  }
+
   return (
     <AppShell
       environment="tenant"
-      tenantLabel="CorpFlowAI"
+      tenantLabel={tenantLabel}
       role={String(selected.role || actor.role || '—')}
       username={actor.username != null ? String(actor.username) : null}
       proofMode={proofMode}
     >
       <TenantMenu active={menu} disabled={busy} onSelect={(id) => setMenu(id)} />
 
-      <p className="cf-app-muted" style={{ marginTop: -8, marginBottom: 16 }}>
+      <p className="cf-app-muted" style={{ marginTop: -8, marginBottom: 16 }} data-testid="tenant-workspace-meta">
         Tenant environment · normal tenant auth · no Core menu · no internal evidence
+        {dataSource ? (
+          <>
+            {' · '}data source <code data-testid="tenant-data-source">{dataSource}</code>
+          </>
+        ) : null}
       </p>
 
       {error ? <p className="cf-app-error" data-testid="app-error">{error}</p> : null}
@@ -244,15 +318,17 @@ export default function AppTenantPage() {
           </h1>
           <p className="cf-app-lead">
             Linked capability placeholder — existing enabled routes may be connected here without
-            rebuilding mature surfaces. Compatibility route:{' '}
-            <a href="/change">/change</a>.
+            rebuilding mature surfaces. Compatibility route: <a href="/change">/change</a>.
           </p>
         </section>
+      ) : busy && !listReady ? (
+        <AppLoadState kind="loading" title="Loading Requests & Progress…" />
       ) : (
         <TenantRequestsProgress
           requests={list}
           request={request}
           busy={busy}
+          empty={listReady && list.length === 0}
           onSelectRequest={(id) => {
             setRequestId(id);
             setMenu('requests_progress');

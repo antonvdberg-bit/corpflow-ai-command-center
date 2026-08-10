@@ -6,6 +6,7 @@ import { useState } from 'react';
  *   requests?: Array<Record<string, unknown>>,
  *   request: Record<string, unknown> | null,
  *   busy?: boolean,
+ *   empty?: boolean,
  *   onSelectRequest?: (id: string) => void,
  *   onReview: (args: { component_key: string, decision: string, comment: string }) => Promise<void>,
  * }} props
@@ -14,6 +15,7 @@ export default function TenantRequestsProgress({
   requests,
   request,
   busy,
+  empty,
   onSelectRequest,
   onReview,
 }) {
@@ -34,6 +36,21 @@ export default function TenantRequestsProgress({
     } catch (e) {
       setLocalError(e instanceof Error ? e.message : 'Review failed');
     }
+  }
+
+  if (empty === true && list.length === 0) {
+    return (
+      <div data-testid="tenant-requests-progress-root">
+        <section className="cf-app-panel" data-testid="tenant-requests-empty">
+          <h1 className="cf-app-h1">Requests &amp; Progress</h1>
+          <p className="cf-app-lead">
+            No authorised requests for this tenant yet. When Core creates work packages for
+            CorpFlowAI, client-safe progress will appear here.
+          </p>
+          <p className="cf-app-muted">Client-safe projection only · no internal engineering fields.</p>
+        </section>
+      </div>
+    );
   }
 
   return (
@@ -83,7 +100,7 @@ export default function TenantRequestsProgress({
       ) : null}
 
       {!request ? (
-        <section className="cf-app-panel" data-testid="tenant-requests-empty">
+        <section className="cf-app-panel" data-testid="tenant-request-select-hint">
           <h1 className="cf-app-h1">Request progress</h1>
           <p className="cf-app-lead">Select a request to see graphical progress.</p>
         </section>
