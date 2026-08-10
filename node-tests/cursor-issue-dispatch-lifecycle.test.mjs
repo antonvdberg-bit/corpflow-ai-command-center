@@ -345,6 +345,64 @@ describe('cursor-issue-dispatch-lifecycle', () => {
     // Second scan would skip both — verified by scan script marker checks (integration contract).
   });
 
+  it('#835 read-only n8n validation with do-not-change-DB language is not database-gated', () => {
+    const issue = {
+      number: 8351,
+      title: 'Read-only n8n integration validation packet',
+      body: `Read-only n8n integration/validation packet.
+Inspect workflow state via n8n-mcp only.
+Do not change DB/schema.
+Open a PR only. Do not merge. Do not deploy.`,
+      labels: ['priority:P1', 'dispatch:cursor-ready'],
+    };
+    const c = inferIssueClassification(issue);
+    assert.notEqual(c.protectedGate, 'database');
+    assert.equal(c.protectedGate, 'none');
+    assert.equal(c.workTypes.includes('database'), false);
+    assert.ok(c.workTypes.includes('integration') || c.workTypes.includes('validation'));
+    const plan = planCursorIssueClaims({ readyIssues: [issue], claimedIssues: [] });
+    const d = plan.decisions.find((x) => x.issue.number === 8351);
+    assert.equal(d?.eligibleToClaim, true);
+    assert.doesNotMatch(String(d?.reason || ''), /protected gate database/);
+  });
+
+  it('#835 Do-NOT bullet safety list mentioning DB/schema is not database-gated', () => {
+    const c = inferIssueClassification({
+      number: 8352,
+      title: 'Post-activation validate hardened-v2 safely',
+      body: `Live read/validate only via n8n-mcp.
+
+## Hard boundaries
+Do NOT:
+- change Vercel env/secrets;
+- change DB/schema;
+- touch DB/schema;
+
+Do not send real email, touch DB/schema, or mutate data.`,
+      labels: ['dispatch:cursor-ready'],
+    });
+    assert.notEqual(c.protectedGate, 'database');
+    assert.equal(c.workTypes.includes('database'), false);
+  });
+
+  it('#835 affirmative schema migration remains database-protected', () => {
+    const issue = {
+      number: 9001,
+      title: 'Add Prisma migration for cmp_tickets column',
+      body: `Actual schema migration and data mutation required.
+Run prisma migrate to alter Postgres schema and backfill rows.
+This is a real DB/schema change packet.`,
+      labels: ['priority:P1', 'dispatch:cursor-ready'],
+    };
+    const c = inferIssueClassification(issue);
+    assert.equal(c.protectedGate, 'database');
+    assert.ok(c.workTypes.includes('database'));
+    const plan = planCursorIssueClaims({ readyIssues: [issue], claimedIssues: [] });
+    const d = plan.decisions.find((x) => x.issue.number === 9001);
+    assert.equal(d?.eligibleToClaim, false);
+    assert.match(String(d?.reason || ''), /protected gate database/);
+  });
+
   it('#676 gate-design issue does not self-block as payment/production (merge regression)', () => {
     const c = inferIssueClassification({
       number: 676,
