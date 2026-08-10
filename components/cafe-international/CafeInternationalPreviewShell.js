@@ -600,5 +600,4 @@ export default function CafeInternationalPreviewShell({
   );
 }
 
-// CafeFoodMotion is already a named export via `export function` above.
 export { ActionButton, T as CafeInternationalTheme };
