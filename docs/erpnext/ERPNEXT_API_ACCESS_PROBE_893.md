@@ -70,6 +70,23 @@ This script is GET-only. When the three secrets are injected, it authenticates v
 
 Automation cannot write secret values into the Cursor Secrets UI from this agent.
 
+## Re-run (same agent, 2026-08-11 later)
+
+Operator asked to re-execute `bash scripts/erpnext/cursor-cloud-api-probe.sh` on this same Cursor Cloud run after stating the three secrets should be available.
+
+```text
+Re-run result: FAIL (identical blocker)
+ERPNEXT_BASE_URL / ERPNEXT_API_KEY / ERPNEXT_API_SECRET: still ABSENT in process env
+CLOUD_AGENT_INJECTED_SECRET_NAMES: MASTER_ADMIN_KEY only
+linked Cursor environment: still none
+authentication: not attempted (no credentials in env)
+DocType HTTP results: none
+#880 / #881 can proceed: NO
+Anton required now: YES
+```
+
+**Interpretation:** Cursor Cloud Secrets added after an agent has already started are **not** injected into that running pod. A **new** Cursor Cloud run is required after the Secrets UI save.
+
 ## Non-actions honoured
 
 - No create / update / submit / cancel / delete in ERPNext
