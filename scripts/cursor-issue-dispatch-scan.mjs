@@ -66,7 +66,14 @@ function parseArgs(argv) {
  * @param {number} issueNumber
  * @param {typeof fetch} [fetchFn]
  */
-async function listIssueCommentBodies(token, repo, issueNumber, fetchFn = globalThis.fetch) {
+/**
+ * @param {string} token
+ * @param {string} repo
+ * @param {number} issueNumber
+ * @param {typeof fetch} [fetchFn]
+ * @returns {Promise<Array<{ body: string, author: string | null, created_at: string | null }>>}
+ */
+async function listIssueComments(token, repo, issueNumber, fetchFn = globalThis.fetch) {
   const url = `https://api.github.com/repos/${repo}/issues/${issueNumber}/comments?per_page=100`;
   const res = await fetchFn(url, {
     headers: {
@@ -81,7 +88,17 @@ async function listIssueCommentBodies(token, repo, issueNumber, fetchFn = global
     throw new Error(`GitHub list comments HTTP ${res.status}: ${text.slice(0, 300)}`);
   }
   const json = JSON.parse(text);
-  return (Array.isArray(json) ? json : []).map((c) => String(c.body || ''));
+  return (Array.isArray(json) ? json : []).map((c) => ({
+    body: String(c?.body || ''),
+    author: c?.user?.login ? String(c.user.login) : null,
+    created_at: c?.created_at ? String(c.created_at) : null,
+  }));
+}
+
+/** @deprecated prefer listIssueComments — kept for marker checks that only need bodies */
+async function listIssueCommentBodies(token, repo, issueNumber, fetchFn = globalThis.fetch) {
+  const comments = await listIssueComments(token, repo, issueNumber, fetchFn);
+  return comments.map((c) => c.body);
 }
 
 /**
@@ -145,8 +162,9 @@ async function main() {
     }
     for (const issue of needsComments.values()) {
       try {
-        const bodies = await listIssueCommentBodies(token, repo, Number(issue.number));
-        issue.comments = bodies.map((body) => ({ body }));
+        // Preserve author + created_at so operator gate authorization can be
+        // re-evaluated on every scan from durable GitHub evidence (#887).
+        issue.comments = await listIssueComments(token, repo, Number(issue.number));
       } catch (err) {
         issue.commentLoadError = err instanceof Error ? err.message : String(err);
         issue.comments = [];

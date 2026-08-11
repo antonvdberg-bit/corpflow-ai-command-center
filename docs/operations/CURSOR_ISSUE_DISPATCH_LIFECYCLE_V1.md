@@ -52,7 +52,7 @@ Do **not** add a parallel workflow that also activates Cursor. The thin `cursor-
 
 **Label provisioning (workflow-owned, not manual):** The existing `factory-dispatcher-activate.yml` scan/finalize path idempotently **ensures** the approved lifecycle labels **and** Decision Inbox `approval:*` labels exist before any claim mutation. Anton must **not** create these labels manually in the GitHub UI unless ensure fails.
 
-**Labels never unlock protected actions.** Only `### ANTON DURABLE APPROVAL` (scoped) counts — see `docs/operations/PROTECTED_ACTION_GATES_V1.md`.
+**Labels never unlock protected actions.** Only durable operator authorization for the **exact** protected gate counts — see `docs/operations/PROTECTED_ACTION_GATES_V1.md` and §5a below.
 
 If label creation or verification fails (missing labels after ensure, GitHub API error, or insufficient token scope), the workflow **fails closed**: the run stops, no claim labels are applied, and operators see **one actionable blocker** naming the missing label(s) or API failure — fix repo label state or workflow permissions, then re-run the scan on `main` (dry-run is fine).
 
@@ -84,13 +84,48 @@ Research/documentation-only tasks may run separately only when they cannot confl
 
 1. Discover open issues with `dispatch:cursor-ready` via **GitHub GraphQL** (fallback: paginated Issues API + **client-side label filter**). Do **not** use the Search API — colon labels (`dispatch:cursor-ready`) return zero results.
 2. Infer `WORK CLASSIFICATION` (system boundary, tenant, environment, work type, protected gate).
-3. Reject `dispatch:blocked` and protected-gate issues for claim (still post discovery + classification).
+3. Reject `dispatch:blocked`. For protected-gate issues, evaluate the **latest valid operator authorization for that exact gate** (see §5a). No matching approval → hold claim. Matching approval → continue normal WIP / isolation / priority checks. Still post discovery + classification either way.
 4. Enforce WIP + concurrency. Sibling product holds (e.g. #654 vs #653) do **not** suppress unrelated eligible ops work (e.g. #658 Slack retirement).
 5. Post acknowledgement comments when `GITHUB_TOKEN` has `issues: write` (GHA path).
 6. **Do not** apply claim labels during **scan**. Acquire `dispatch:cursor-claimed` + durable claim marker **before** the Cursor API call (`scripts/dispatcher-agent-activation.mjs` claim-before-API). Finalize records the real run ID / origin metadata after success, or releases the claim on failure (`scripts/cursor-issue-dispatch-finalize.mjs`).
 7. Emit `cursor-issue-dispatch-scan.json` with `eligibleIssueNumbers`, `claimIssueNumbers`, and `activationTargetIssue` (max **one** live Cursor activation per GHA cycle).
 8. Stale claimed issues (no meaningful update beyond threshold): exception-only status request — no heartbeat spam.
 9. **Double-activation guard:** issue-keyed GHA concurrency (`factory-dispatcher-activate-<issue|scan>`) + durable claim-before-API. Duplicate/racing activators return `SKIP_ALREADY_CLAIMED`. Explicit requeue requires `CURSOR REQUEUE` generation marker + restored `dispatch:cursor-ready`.
+
+### 5a. Operator gate authorization resume (#887)
+
+**Rule:** No valid operator authorization → Cursor does **not** claim the gated work item. Valid operator authorization for that **exact** gate → Cursor re-evaluates and claims automatically when WIP permits.
+
+Durable machine-readable record (preferred):
+
+```text
+### OPERATOR GATE AUTHORIZATION
+
+- issue: #886
+- gate: database
+- author: antonvdberg-bit
+- decision: approve
+- recorded_at: 2026-08-11T05:02:03.000Z
+- notes: unlock ERPNext application access
+
+<!-- corpflow.operator_gate_authorization.v1 {"schema":"corpflow.operator_gate_authorization.v1","issue":886,"gate":"database","author":"antonvdberg-bit","decision":"approve","recordedAt":"2026-08-11T05:02:03.000Z","notes":"unlock ERPNext application access"} -->
+```
+
+Also accepted as durable GitHub evidence:
+
+| Source | Notes |
+|--------|-------|
+| `### OPERATOR GATE AUTHORIZATION` (+ optional HTML JSON) | Exact gate + decision (`approve` / `reject` / `revoke`) |
+| `### ANTON DURABLE APPROVAL` | Mapped via Decision Inbox `approval:*` → protected gate |
+| Explicit Anton operator-authorization comment/body that names the gate unlock | e.g. #879 `ANTON EXPLICIT OPERATOR AUTHORIZATION` removing `protected gate: database` |
+
+Semantics:
+
+- Evaluated on **every** scan from issue body + comments (author + timestamp preserved).
+- Latest record for the **exact** gate wins; newer `reject` / `revoke` beats older `approve`.
+- Authorization for gate A never unlocks gate B.
+- No issue recreation, label toggling, or Anton courier step after a valid approval — capacity + isolation still apply.
+- Helpers: `lib/server/operator-gate-authorization.js` (`evaluateOperatorGateAuthorization`).
 
 ### Source issues vs open PRs
 
@@ -158,3 +193,5 @@ node scripts/cursor-issue-dispatch-finalize.mjs --dry-run --scan-file cursor-iss
 - Revenue issues #653 (Lead Rescue), #654 (Website Rescue) — separate workstreams
 - Ops issue #658 (Slack retirement) — parallel ops lane when eligible
 - Issue #679 — environment classification doctrine
+- Issue #887 — operator gate authorization must resume Cursor activation
+- `lib/server/operator-gate-authorization.js` — durable gate authorization evaluation
