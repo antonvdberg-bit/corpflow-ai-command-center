@@ -1,10 +1,12 @@
 # ERPNext current state audit — CorpFlowAI commercial launch
 
-**Status:** Docs-only audit · **Updated:** 2026-07-14  
+**Status:** Docs-only audit · **Updated:** 2026-08-11  
 **Owner:** Anton  
 **Anchor:** `<!-- ERPNEXT_CURRENT_STATE_AUDIT_V1 -->`
 
 <!-- ERPNEXT_CURRENT_STATE_AUDIT_V1 -->
+
+**Cursor cloud access note (2026-08-11):** Live application access probes [#886](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/886) and [#879](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/879) returned **FAIL** from Cursor cloud — policy unlock is present, but no SSH/tunnel/API session reaches loopback sandbox `:8080`. See `docs/erpnext/ERPNEXT_ACCESS_PROBE_886.md`. Do not treat Phase C historical object evidence as a current live PASS for Cursor cloud agents.
 
 Classification key:
 
