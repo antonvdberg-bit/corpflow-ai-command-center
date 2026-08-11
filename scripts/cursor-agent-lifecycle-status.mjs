@@ -21,12 +21,15 @@
  *   node scripts/cursor-agent-lifecycle-status.mjs --issue=123 --poll-twice   # dedupe proof
  */
 
+import fs from 'node:fs';
+
 import {
   buildCursorLifecycleState,
   findLatestLifecycleState,
   formatCursorLifecycleStateComment,
   runCursorAgentLifecycleTick,
 } from '../lib/server/cursor-agent-lifecycle.js';
+import { buildCapacityReleaseWakeRequest } from '../lib/server/cursor-ready-event-dispatch.js';
 import { resolveCursorOriginMetadata } from '../lib/server/cursor-origin-metadata.js';
 
 const REPO =
@@ -115,6 +118,24 @@ async function addIssueLabels(issue, labels) {
   return gh('POST', `/repos/${OWNER}/${REPO_NAME}/issues/${issue}/labels`, { labels });
 }
 
+/**
+ * Remove labels one-by-one (404 on missing label is ignored).
+ * @param {number} issue
+ * @param {string[]} labels
+ */
+async function removeIssueLabels(issue, labels) {
+  const list = Array.isArray(labels) ? labels : [];
+  for (const label of list) {
+    const encoded = encodeURIComponent(String(label));
+    try {
+      await gh('DELETE', `/repos/${OWNER}/${REPO_NAME}/issues/${issue}/labels/${encoded}`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (!/HTTP 404/.test(msg)) throw err;
+    }
+  }
+}
+
 async function findPrForBranch(branch) {
   const q = encodeURIComponent(`repo:${OWNER}/${REPO_NAME} is:pr head:${branch}`);
   const data = await gh('GET', `/search/issues?q=${q}&per_page=5`);
@@ -187,7 +208,25 @@ function buildGithubAdapter() {
     findPrForIssue,
     getPrChecks,
     addIssueLabels,
+    removeIssueLabels,
   };
+}
+
+/**
+ * Persist wake request for factory-dispatcher-activate (capacity backfill).
+ * @param {ReturnType<typeof buildCapacityReleaseWakeRequest>} wake
+ */
+function writeCapacityWakeArtifact(wake) {
+  const path =
+    process.env.DISPATCHER_ELIGIBILITY_WAKE_PATH || 'dispatcher-eligibility-wake.json';
+  fs.writeFileSync(path, `${JSON.stringify(wake, null, 2)}\n`, 'utf8');
+  const out = process.env.GITHUB_OUTPUT;
+  if (out) {
+    fs.appendFileSync(
+      out,
+      `wake_dispatcher=${wake.shouldWake ? 'true' : 'false'}\nwake_reason=${wake.wakeReason || ''}\nwake_issue=${wake.issueNumber || ''}\n`,
+    );
+  }
 }
 
 /**
@@ -321,6 +360,10 @@ async function main() {
     await createIssueComment(issue, formatCursorLifecycleStateComment(first.state));
   }
 
+  /** @type {string[]} */
+  let wakeActions = Array.isArray(first.actions) ? [...first.actions] : [];
+  let wakePhase = first.phase;
+
   if (args.pollTwice) {
     priorState = first.state;
     const second = await tickOnce();
@@ -346,7 +389,25 @@ async function main() {
     if (issue && second.state) {
       await createIssueComment(issue, formatCursorLifecycleStateComment(second.state));
     }
+    wakeActions = [...wakeActions, ...(Array.isArray(second.actions) ? second.actions : [])];
+    wakePhase = second.phase || wakePhase;
   }
+
+  const wake = buildCapacityReleaseWakeRequest({
+    issueNumber: issue,
+    actions: wakeActions,
+    phase: wakePhase,
+  });
+  writeCapacityWakeArtifact(wake);
+  console.log(
+    JSON.stringify(
+      {
+        dispatcher_eligibility_wake: wake,
+      },
+      null,
+      2,
+    ),
+  );
 }
 
 main().catch((err) => {

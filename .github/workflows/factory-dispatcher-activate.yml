@@ -7,6 +7,13 @@
 # resolves that issue as the preferred scan target and selects cursor_live when eligible.
 # Uses existing CURSOR_API_KEY, claim-before-API, WIP and protected gates — not a second dispatcher.
 #
+# Eligibility wake (#891): also wakes on
+# - issue_comment with durable operator gate authorization / ANTON DURABLE APPROVAL
+# - issues:unlabeled execution:paused
+# - issues:labeled priority:P0|P1|P2 when issue already has dispatch:cursor-ready
+# - workflow_call capacity_released from Cursor agent lifecycle status (WIP backfill)
+# Scheduled scan remains fallback/reconciliation (not the primary continuation path).
+#
 # Also scans open issues labelled dispatch:cursor-ready (segregated claim lifecycle) before
 # activation. Does not create a second dispatcher — see CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1.
 #
@@ -31,7 +38,7 @@ name: Factory dispatcher activate
 # STARTED/FINISHED evidence comments post to control issue #661 so a silent UI click cannot hide the run ID.
 on:
   schedule:
-    # Every 30 minutes — fallback scan when no label event fires.
+    # Every 30 minutes — fallback scan when no eligibility event fires.
     # Expression rewritten (equivalent to */30) so merging this file re-registers a stalled schedule.
     - cron: "0,30 * * * *"
   workflow_dispatch:
@@ -54,8 +61,32 @@ on:
         required: false
         default: ""
         type: string
+  workflow_call:
+    inputs:
+      activation_mode:
+        description: "dry_run or cursor_live"
+        required: false
+        default: cursor_live
+        type: string
+      wake_reason:
+        description: "capacity_released | claim_released_continuation"
+        required: false
+        default: capacity_released
+        type: string
+      target_issue:
+        description: "Optional preferred issue for capacity wake (blank = full priority scan)"
+        required: false
+        default: ""
+        type: string
+      capacity_wake_requested:
+        description: "Set true when lifecycle released verified WIP capacity"
+        required: false
+        default: "true"
+        type: string
   issues:
-    types: [labeled]
+    types: [labeled, unlabeled]
+  issue_comment:
+    types: [created]
 
 permissions:
   contents: read
@@ -63,18 +94,38 @@ permissions:
   actions: read
 
 # Issue-keyed when an event/manual target issue is known — serializes dual activator races.
-# Blank target (scan/dispatcher) shares one scan group so only one scan activation runs at a time.
+# Blank target (scan/dispatcher/capacity backfill) shares one scan group so only one scan activation runs at a time.
 concurrency:
-  group: factory-dispatcher-activate-${{ github.event_name == 'issues' && github.event.issue.number || inputs.target_issue || 'scan' }}
+  group: factory-dispatcher-activate-${{ github.event_name == 'issues' && github.event.issue.number || github.event_name == 'issue_comment' && github.event.issue.number || inputs.target_issue || 'scan' }}
   cancel-in-progress: false
 
 jobs:
   activate:
-    # Exact label only — other lifecycle labels (claimed/in-progress/blocked) must not wake.
+    # Ready label + eligibility wakes only. Bot lifecycle labels must not wake.
+    # issue_comment: structured authorization markers only; ignore [bot] actors.
+    # workflow_call: capacity backfill / claim-release continuation from lifecycle.
     if: >-
-      github.event_name != 'issues' ||
-      (github.event.issue.state == 'open' &&
-       github.event.label.name == 'dispatch:cursor-ready')
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'workflow_call' ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.state == 'open' &&
+       github.event.action == 'created' &&
+       !endsWith(github.event.comment.user.login, '[bot]') &&
+       (contains(github.event.comment.body, 'OPERATOR GATE AUTHORIZATION') ||
+        contains(github.event.comment.body, 'ANTON DURABLE APPROVAL') ||
+        contains(github.event.comment.body, 'ANTON EXPLICIT OPERATOR AUTHORIZATION'))) ||
+      (github.event_name == 'issues' &&
+       github.event.issue.state == 'open' &&
+       (
+         (github.event.action == 'labeled' && github.event.label.name == 'dispatch:cursor-ready') ||
+         (github.event.action == 'unlabeled' && github.event.label.name == 'execution:paused') ||
+         (github.event.action == 'labeled' &&
+          (github.event.label.name == 'priority:P0' ||
+           github.event.label.name == 'priority:P1' ||
+           github.event.label.name == 'priority:P2') &&
+          contains(join(github.event.issue.labels.*.name, ','), 'dispatch:cursor-ready'))
+       ))
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -97,14 +148,25 @@ jobs:
           EVENT_LABEL: ${{ github.event.label.name || '' }}
           EVENT_ISSUE_STATE: ${{ github.event.issue.state || '' }}
           EVENT_ISSUE_NUMBER: ${{ github.event.issue.number || '' }}
+          EVENT_ISSUE_LABELS: ${{ github.event_name == 'issues' && join(github.event.issue.labels.*.name, ',') || '' }}
+          EVENT_COMMENT_BODY: ${{ github.event_name == 'issue_comment' && github.event.comment.body || '' }}
+          EVENT_ACTOR_LOGIN: ${{ github.event_name == 'issue_comment' && github.event.comment.user.login || github.actor || '' }}
+          EVENT_COMMENT_AUTHOR_ASSOCIATION: ${{ github.event_name == 'issue_comment' && github.event.comment.author_association || '' }}
           ACTIVATION_MODE_INPUT: ${{ inputs.activation_mode || '' }}
           SMOKE_INTERNAL_INPUT: ${{ inputs.smoke_internal || '' }}
           TARGET_ISSUE_INPUT: ${{ inputs.target_issue || '' }}
+          WAKE_REASON_INPUT: ${{ inputs.wake_reason || '' }}
+          CAPACITY_WAKE_REQUESTED: ${{ inputs.capacity_wake_requested || '' }}
         run: |
           set -euo pipefail
           node scripts/factory-dispatcher-resolve-mode.mjs --phase mode
 
+      - name: Skip when wake predicate soft-rejects
+        if: ${{ steps.mode.outputs.should_run != '1' }}
+        run: echo "Wake predicate soft-rejected — no activation this run"
+
       - name: Post STARTED evidence to control issue
+        if: ${{ steps.mode.outputs.should_run == '1' }}
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -125,6 +187,7 @@ jobs:
 
       # Pinned SHAs (supply chain): tag v4
       - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        if: ${{ steps.mode.outputs.should_run == '1' }}
         continue-on-error: true
         id: dedupe-cache
         with:
@@ -134,12 +197,14 @@ jobs:
             dispatcher-activation-dedupe-v1-${{ github.repository }}
 
       - name: Show integration status (presence-only)
+        if: ${{ steps.mode.outputs.should_run == '1' }}
         run: |
           set -euo pipefail
           echo "Dispatcher activator mode: ${{ steps.mode.outputs.mode }}"
           echo "  path                       : ${{ steps.mode.outputs.path }}"
+          echo "  wake_reason                : ${{ steps.mode.outputs.wake_reason }}"
           if [ -n "${{ steps.mode.outputs.event_issue }}" ]; then
-            echo "  event_issue                : ${{ steps.mode.outputs.event_issue }} (label event)"
+            echo "  event_issue                : ${{ steps.mode.outputs.event_issue }} (eligibility/label event)"
           fi
           if [ -n "${{ steps.mode.outputs.target_issue }}" ]; then
             echo "  target_issue               : ${{ steps.mode.outputs.target_issue }} (manual direct-issue path)"
@@ -174,6 +239,7 @@ jobs:
           CURSOR_LIVE_ENABLED_PRESENT: ${{ (vars.CURSOR_LIVE_ENABLED != '' || secrets.CURSOR_LIVE_ENABLED != '') && '1' || '' }}
 
       - name: Scan dispatch:cursor-ready issues (segregated lifecycle)
+        if: ${{ steps.mode.outputs.should_run == '1' }}
         id: issue_scan
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -187,7 +253,7 @@ jobs:
           # GHA token has issues:write — durable discovery/classification comments only.
           # Pre-API claim is acquired in dispatcher-agent-activation (claim-before-API);
           # finalize still records the real Cursor run ID / origin metadata after success.
-          # Event path prefers the exact labeled issue; WIP/protected gates still decide claim.
+          # Event path prefers the exact labeled/authorized issue; WIP/protected gates still decide claim.
           if [ -n "${DISPATCH_PREFER_ISSUES:-}" ]; then
             node scripts/cursor-issue-dispatch-scan.mjs --apply-comments --prefer "${DISPATCH_PREFER_ISSUES}"
           else
@@ -202,18 +268,21 @@ jobs:
           fi
 
       - name: Resolve effective target issue
+        if: ${{ steps.mode.outputs.should_run == '1' }}
         id: target
         env:
           MANUAL_TARGET: ${{ steps.mode.outputs.target_issue }}
           EVENT_ISSUE: ${{ steps.mode.outputs.event_issue }}
           SCANNED_TARGET: ${{ steps.issue_scan.outputs.activation_target_issue }}
+          REQUIRE_EXACT_EVENT_ISSUE: ${{ steps.mode.outputs.require_exact_event_issue }}
+          WAKE_PATH: ${{ steps.mode.outputs.path }}
         run: |
           set -euo pipefail
           node scripts/factory-dispatcher-resolve-mode.mjs --phase target
 
       - name: Run dispatcher activation
-        # event_label_held = labeled issue failed WIP/protected/claimed gates — do not call Cursor API.
-        if: ${{ steps.target.outputs.target_source != 'event_label_held' }}
+        # Prefer-exact holds and soft-rejects must not call Cursor API.
+        if: ${{ steps.mode.outputs.should_run == '1' && steps.target.outputs.activate == '1' }}
         env:
           DISPATCHER_ACTIVATION_MODE: ${{ steps.mode.outputs.mode }}
           ACTIVATION_MODE: ${{ steps.mode.outputs.mode }}
@@ -239,7 +308,8 @@ jobs:
         run: node scripts/dispatcher-agent-activation.mjs --fetch --activate --persist-dedupe
 
       - name: Finalize dispatch claim (run ID + origin metadata)
-        if: ${{ always() }}
+        if: ${{ always() && steps.mode.outputs.should_run == '1' }}
+        id: finalize
         env:
           GITHUB_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
@@ -257,13 +327,62 @@ jobs:
             node scripts/cursor-issue-dispatch-finalize.mjs \
               --scan-file cursor-issue-dispatch-scan.json \
               --activation-file activation-plan.json \
-              --ops-status-file cursor-ops-status.json || true
+              --ops-status-file cursor-ops-status.json | tee dispatcher-finalize-result.json || true
+            rolled="$(node -e "try{const j=require('./dispatcher-finalize-result.json');process.stdout.write(j.rolledBack?'1':'0')}catch{process.stdout.write('0')}")"
+            echo "rolled_back=${rolled}" >> "$GITHUB_OUTPUT"
           else
             echo "No activation target — skip finalize"
+            echo "rolled_back=0" >> "$GITHUB_OUTPUT"
           fi
 
+      # Failed activation restores ready via GITHUB_TOKEN (no issues:labeled re-fire).
+      # One same-job continuation scan backfills the next highest eligible issue (#891).
+      - name: Continuation scan after claim release
+        if: ${{ always() && steps.mode.outputs.should_run == '1' && steps.finalize.outputs.rolled_back == '1' && steps.mode.outputs.path != 'claim_release_continuation' }}
+        id: continuation
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REPO: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          CURSOR_ISSUE_DISPATCH_SCAN_PATH: cursor-issue-dispatch-scan-continuation.json
+          DISPATCHER_ACTIVATION_MODE: ${{ steps.mode.outputs.mode }}
+          ACTIVATION_MODE: ${{ steps.mode.outputs.mode }}
+          DISPATCHER_ACTIVATION_SMOKE_INTERNAL: "0"
+          DISPATCHER_ACTIVATION_STATE_PATH: .dispatcher-activation-state/dedupe.json
+          CURSOR_LIVE_ENABLED: ${{ vars.CURSOR_LIVE_ENABLED || secrets.CURSOR_LIVE_ENABLED || '' }}
+          CORPFLOW_CORE_BASE_URL: ${{ secrets.CORPFLOW_CORE_BASE_URL }}
+          CORPFLOW_FACTORY_HEALTH_URL: ${{ secrets.CORPFLOW_FACTORY_HEALTH_URL }}
+          CORPFLOW_CRON_SECRET: ${{ secrets.CORPFLOW_CRON_SECRET }}
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_JOB: ${{ github.job }}
+          GITHUB_SHA: ${{ github.sha }}
+          DISPATCHER_ACTIVATION_POST_COMMENT: "1"
+          DISPATCHER_ACTIVATION_EVENT_NAME: workflow_call
+          DISPATCHER_ACTIVATION_PLAN_PATH: activation-plan-continuation.json
+          CURSOR_OPS_STATUS_PATH: cursor-ops-status-continuation.json
+        run: |
+          set -euo pipefail
+          echo "Claim released — running one continuation queue scan (no recursive workflow)"
+          node scripts/cursor-issue-dispatch-scan.mjs --apply-comments
+          target="$(node -e "const j=require('./cursor-issue-dispatch-scan-continuation.json'); process.stdout.write(j.activationTargetIssue!=null?String(j.activationTargetIssue):'')")"
+          echo "continuation_target=${target}" >> "$GITHUB_OUTPUT"
+          if [ -z "${target}" ]; then
+            echo "No eligible issue after claim release — done"
+            exit 0
+          fi
+          export DISPATCHER_ACTIVATION_TARGET_ISSUE="${target}"
+          export TARGET_ISSUE="${target}"
+          export DISPATCHER_ACTIVATION_TARGET_SOURCE="claim_release_continuation"
+          node scripts/dispatcher-agent-activation.mjs --fetch --activate --persist-dedupe || true
+          node scripts/cursor-issue-dispatch-finalize.mjs \
+            --scan-file cursor-issue-dispatch-scan-continuation.json \
+            --activation-file activation-plan-continuation.json \
+            --ops-status-file cursor-ops-status-continuation.json || true
+
       - name: Post FINISHED evidence to control issue
-        if: ${{ always() }}
+        if: ${{ always() && steps.mode.outputs.should_run == '1' }}
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -286,16 +405,20 @@ jobs:
           node scripts/dispatcher-run-evidence.mjs --phase finished
 
       - name: Upload activation result artifact (always)
-        if: ${{ always() }}
+        if: ${{ always() && steps.mode.outputs.should_run == '1' }}
         # Pinned SHAs (supply chain): tag v4
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: dispatcher-activation-result
           path: |
             activation-plan.json
+            activation-plan-continuation.json
             activation-audit.json
             cursor-ops-status.json
+            cursor-ops-status-continuation.json
             cursor-issue-dispatch-scan.json
+            cursor-issue-dispatch-scan-continuation.json
+            dispatcher-finalize-result.json
             dispatcher-run-evidence-started.json
             dispatcher-run-evidence-finished.json
             .dispatcher-activation-state/dedupe.json

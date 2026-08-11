@@ -27,15 +27,16 @@ Consolidation is allowed only when explicitly justified and safe.
 
 | Existing piece | Role |
 |----------------|------|
-| `.github/workflows/factory-dispatcher-activate.yml` | Scheduled + manual + **Phase A `issues:labeled`** activator (canonical) |
+| `.github/workflows/factory-dispatcher-activate.yml` | Scheduled + manual + **Phase A `issues:labeled`** + **eligibility wakes (#891)** activator (canonical) |
+| `.github/workflows/cursor-agent-lifecycle-status.yml` | Terminal/operator-review poller; **`workflow_call`s** the activator on capacity release (not a second dispatcher) |
 | `scripts/dispatcher-agent-activation.mjs` | Cursor Cloud activation (existing) |
 | `lib/server/cursor-ops-status.js` | Issue comment posting + Control Tower status (existing) |
 | **`lib/server/cursor-issue-dispatch-lifecycle.js`** | Classification, WIP, segregation, comment templates (**this packet**) |
-| **`lib/server/cursor-ready-event-dispatch.js`** | Exact-label event predicates + effective target resolution (Phase A) |
+| **`lib/server/cursor-ready-event-dispatch.js`** | Exact-label + eligibility-wake predicates + effective target resolution (Phase A / #891) |
 | **`scripts/cursor-issue-dispatch-scan.mjs`** | Label scan → discover/classify/eligibility plan (**this packet**) |
 | **`scripts/cursor-issue-dispatch-finalize.mjs`** | Post-activation claim labels + run ID comment (**this packet**) |
 
-Do **not** add a parallel workflow that also activates Cursor. The thin `cursor-ready-wakeup.yml` wrapper was removed in Phase A — the canonical workflow owns the `issues:labeled` trigger. The scan runs as a **prep step** inside the existing workflow and may hand **at most one** `activationTargetIssue` to the existing activator path. Event-driven runs activate only the labeled issue when that issue is scan-eligible.
+Do **not** add a parallel workflow that also activates Cursor. The thin `cursor-ready-wakeup.yml` wrapper was removed in Phase A — the canonical workflow owns ready-label and eligibility-wake triggers. The scan runs as a **prep step** inside the existing workflow and may hand **at most one** `activationTargetIssue` to the existing activator path. Issue-scoped event runs activate only the preferred issue when that issue is scan-eligible; capacity backfill runs a full priority scan.
 
 ## 3. Labels
 
@@ -131,15 +132,29 @@ Semantics:
 
 **GitHub issues labelled `dispatch:cursor-ready` are activation inputs.** Open PRs from prior work are **not** automatically resumed or merged by the dispatcher. Each issue gets its own branch/PR cycle; operators merge manually after review.
 
-### Preferred cadence
+### Preferred cadence / eligibility wakes (#891)
 
 | Mode | Trigger |
 |------|---------|
-| **Primary (Phase A)** | `issues:labeled` with exact label `dispatch:cursor-ready` |
+| **Primary — ready label** | `issues:labeled` with exact label `dispatch:cursor-ready` |
+| **Primary — operator authorization** | `issue_comment` created with durable `OPERATOR GATE AUTHORIZATION` / `ANTON DURABLE APPROVAL` / explicit Anton unlock (human actors only; bots ignored) |
+| **Primary — queue control** | `issues:unlabeled` `execution:paused`, or `issues:labeled` `priority:P0\|P1\|P2` while issue already has `dispatch:cursor-ready` |
+| **Primary — capacity backfill** | Lifecycle status reaches terminal/operator-review and releases verified WIP → calls activator via `workflow_call` (full priority scan) |
+| **Primary — claim release** | Failed activation restores ready in the same job → one continuation scan (GITHUB_TOKEN cannot re-fire `issues:labeled`) |
 | Fallback | every **30 minutes** (`*/30 * * * *`) for missed events / absence-of-event recovery |
-| Previous | every 2 hours |
 
-Cost remains negligible (Node script + GitHub API). Scheduled `cursor_live` still requires `CURSOR_LIVE_ENABLED=true` and the throughput packet gate for dispatcher-sourced activations. Event-driven `cursor_live` uses the same `CURSOR_API_KEY` + claim-before-API path; WIP and protected gates still block activation.
+**Internal SLA:** eligible queued work should normally begin within **5 minutes** of an eligibility-changing event (`ELIGIBILITY_WAKE_SLA_MINUTES`). Scheduled fallback may be slower but must self-heal without Anton.
+
+Cost remains negligible (Node script + GitHub API). Scheduled `cursor_live` still requires `CURSOR_LIVE_ENABLED=true` and the throughput packet gate for dispatcher-sourced activations. Event-driven `cursor_live` uses the same `CURSOR_API_KEY` + claim-before-API path; WIP and protected gates still block activation. Bot/`GITHUB_TOKEN` comments and lifecycle labels never wake (storm prevention). Duplicate Cursor runs are blocked by claim-before-API + `SKIP_ALREADY_CLAIMED`.
+
+### Operator procedure (no courier role)
+
+1. Create / queue the work once (`dispatch:cursor-ready`).
+2. If gated, Anton records **one** durable decision (`OPERATOR GATE AUTHORIZATION` or Decision Inbox durable approval).
+3. After approval, the system wakes itself and claims when WIP permits — **do not** toggle labels or re-create the issue.
+4. When an active run reaches terminal/operator-review, the system immediately backfills the freed slot from the highest eligible priority.
+5. Scheduled scan self-heals missed events.
+6. Alert Anton only for a genuine unresolved gate or repeated activation failure.
 
 ## 6. Acknowledgement stages
 
@@ -194,4 +209,5 @@ node scripts/cursor-issue-dispatch-finalize.mjs --dry-run --scan-file cursor-iss
 - Ops issue #658 (Slack retirement) — parallel ops lane when eligible
 - Issue #679 — environment classification doctrine
 - Issue #887 — operator gate authorization must resume Cursor activation
+- Issue #891 — approval and capacity changes must wake dispatcher automatically
 - `lib/server/operator-gate-authorization.js` — durable gate authorization evaluation
