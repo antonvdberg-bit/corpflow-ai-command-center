@@ -1,10 +1,12 @@
 # ERPNext current state audit — CorpFlowAI commercial launch
 
-**Status:** Docs-only audit · **Updated:** 2026-07-14  
+**Status:** Docs-only audit · **Updated:** 2026-08-11  
 **Owner:** Anton  
 **Anchor:** `<!-- ERPNEXT_CURRENT_STATE_AUDIT_V1 -->`
 
 <!-- ERPNEXT_CURRENT_STATE_AUDIT_V1 -->
+
+**Cursor Cloud access note (#893, 2026-08-11):** Anton authorized wiring the existing SSH→loopback sandbox path into Cursor Cloud Secrets (`CORPFLOW_EXEC01_SSH_PRIVATE_KEY`). Run `run-e17a62f5-94fb-4aa5-ae4b-0e12ca1c76b8` found the secret **not configured**; ERPNext reachability from Cursor Cloud remains **FAIL** until the one-time Secrets UI action in `docs/runbooks/ERPNEXT_CURSOR_CLOUD_SECURE_ACCESS_WIRING_V1.md` is completed. Evidence: `docs/erpnext/ERPNEXT_ACCESS_WIRING_893.md`. No public ERPNext exposure. **NO IMPLEMENTATION AUTHORIZED** beyond that transport wiring.
 
 Classification key:
 
