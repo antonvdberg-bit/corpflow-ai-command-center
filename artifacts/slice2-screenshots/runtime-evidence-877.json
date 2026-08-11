@@ -1,0 +1,86 @@
+{
+  "captured_at": "2026-08-10T23:24:35.046Z",
+  "issue": 877,
+  "parent_issue": 773,
+  "prerequisite_pr": 875,
+  "branch": "cursor/dispatcher-issue-877-3578",
+  "auth_base": "http://127.0.0.1:4790",
+  "http": {
+    "/app": 200,
+    "/app/core": 200,
+    "/app/tenant": 200,
+    "/app/core?proof=1": 200,
+    "/app/tenant?proof=1": 200
+  },
+  "core_shell": {
+    "status": 200,
+    "ok": true,
+    "auth_mode": "session",
+    "proof_mode": false,
+    "environment": "core",
+    "data_source": "fixture",
+    "actor": {
+      "typ": "admin",
+      "username": "slice2-core-operator",
+      "role": "core_operator",
+      "can_core": true,
+      "can_tenant_ids": [],
+      "environment": "core",
+      "source": "session"
+    }
+  },
+  "tenant_shell": {
+    "status": 200,
+    "ok": true,
+    "auth_mode": "session",
+    "proof_mode": false,
+    "environment": "tenant",
+    "data_source": "fixture",
+    "selected": {
+      "environment": "tenant",
+      "scope": "tenant",
+      "tenant_id": "corpflowai",
+      "tenant_label": "CorpFlowAI",
+      "role": "tenant_member"
+    },
+    "actor": {
+      "typ": "tenant",
+      "username": "slice2-tenant-member",
+      "role": "tenant_member",
+      "can_core": false,
+      "can_tenant_ids": [
+        "corpflowai"
+      ],
+      "environment": "tenant",
+      "source": "session"
+    }
+  },
+  "core_request_count": 3,
+  "tenant_request_count": 2,
+  "tenant_list_keys": [
+    "attention_required",
+    "client_safe_blocker",
+    "latest_client_safe_update",
+    "next_action",
+    "outcome",
+    "progress_percent",
+    "request_id",
+    "tenant_id",
+    "title",
+    "workflow_state"
+  ],
+  "tenant_forbidden_fields_absent": [
+    "github",
+    "commit_sha",
+    "internal_note",
+    "internal_blocker",
+    "technical_lead"
+  ],
+  "proof_still_works": true,
+  "separate_auth_preserved": true,
+  "notes": [
+    "Session paths probed without ?proof=1",
+    "Local server injects __testSessionPayload for evidence only",
+    "Production corpflow_test still requires real Core/Tenant login cookies after merge"
+  ]
+}

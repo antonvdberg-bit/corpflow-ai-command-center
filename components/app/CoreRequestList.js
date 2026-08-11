@@ -99,11 +99,25 @@ export default function CoreRequestList({
         </label>
       </div>
 
-      {!rows.length ? (
-        <p className="cf-app-muted" data-testid="core-request-list-empty">
-          No requests match these filters.
+      {busy ? (
+        <p className="cf-app-muted" data-testid="core-request-list-loading">
+          Loading authorised requests…
         </p>
-      ) : (
+      ) : null}
+
+      {!busy && !rows.length ? (
+        <div data-testid="core-request-list-empty">
+          <p className="cf-app-lead" style={{ marginTop: 16 }}>
+            No authorised request / work-package records match this view.
+          </p>
+          <p className="cf-app-muted">
+            Adjust filters, or confirm tickets exist in the read-only request repository for tenants
+            you can see.
+          </p>
+        </div>
+      ) : null}
+
+      {!busy && rows.length ? (
         <div className="cf-app-grid" style={{ marginTop: 16 }}>
           {rows.map((r) => {
             const id = String(r.request_id || '');
@@ -153,7 +167,7 @@ export default function CoreRequestList({
             );
           })}
         </div>
-      )}
+      ) : null}
     </section>
   );
 }

@@ -40,13 +40,14 @@ export default function AppEntryChooser() {
             </Link>
           </div>
           <p className="cf-app-muted" style={{ marginTop: 18 }}>
-            Sign-in links:{' '}
+            Normal operator path — sign in, then open the matching environment (no proof query
+            required):{' '}
             <a href={`/login?next=${encodeURIComponent('/app/core')}`}>Core login</a>
             {' · '}
             <a href={`/login?next=${encodeURIComponent('/app/tenant')}`}>Tenant login</a>
           </p>
-          <p className="cf-app-muted">
-            Preview / local proof (separate actors):{' '}
+          <p className="cf-app-muted" data-testid="proof-harness-hint">
+            Deterministic test harness only (Preview / local):{' '}
             <Link href="/app/core?proof=1">Core proof</Link>
             {' · '}
             <Link href="/app/tenant?proof=1">Tenant proof</Link>
