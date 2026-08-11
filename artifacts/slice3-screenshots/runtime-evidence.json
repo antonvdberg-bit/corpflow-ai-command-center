@@ -1,5 +1,5 @@
 {
-  "captured_at": "2026-08-11T05:18:09.529Z",
+  "captured_at": "2026-08-11T05:18:29.236Z",
   "issue": 883,
   "parent_issue": 773,
   "prerequisite_pr": 878,
@@ -68,7 +68,7 @@
     "latest_decision": {
       "decision": "amend",
       "comment": "Synthetic Slice 3 comment — please tighten the headline.",
-      "decided_at": "2026-08-11T05:18:09.572Z",
+      "decided_at": "2026-08-11T05:18:29.277Z",
       "by_role": "tenant_member"
     },
     "has_github_on_core": true
