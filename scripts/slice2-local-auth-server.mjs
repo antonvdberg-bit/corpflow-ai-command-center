@@ -1,6 +1,7 @@
 /**
- * Local Slice 2 evidence server — authenticated session simulation (no ?proof=1 required).
+ * Local Slice 2/3 evidence server — authenticated session simulation (no ?proof=1 required).
  * Also keeps proof harness available for regression.
+ * Slice 3: renders expose / review_state / tenant review controls from live API state.
  *
  * Usage:
  *   node scripts/slice2-local-auth-server.mjs
@@ -101,7 +102,7 @@ function buildBootstrap(forcedEnv) {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>CorpFlowAI Slice 2 auth workspace</title>
+  <title>CorpFlowAI Slice 2/3 auth workspace</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet" />
@@ -112,7 +113,7 @@ function buildBootstrap(forcedEnv) {
   </style>
 </head>
 <body>
-  <div id="root">Loading Slice 2 workspace…</div>
+  <div id="root">Loading Slice 2/3 workspace…</div>
   <script type="module">
     const FORCED = ${JSON.stringify(envLiteral)};
     const params = new URLSearchParams(location.search);
@@ -186,6 +187,8 @@ function buildBootstrap(forcedEnv) {
     const styleVars = Object.entries(theme).map(([k,v]) => k + ':' + v).join(';');
     const authMode = shell.auth_mode || (isProof ? 'proof_harness' : 'session');
     const dataSource = shell.data_source || listJson.data_source || '—';
+    const persistencePath = shell.persistence_path || '—';
+    const mutationsEnabled = shell.mutations_enabled === true;
 
     let menu = '';
     if (environment === 'core') {
@@ -239,15 +242,34 @@ function buildBootstrap(forcedEnv) {
             <div class="cf-app-muted">Next action · \${escapeHtml(req.next_action||'—')}</div>
             <div class="cf-app-muted">Blocker · \${escapeHtml(req.client_safe_blocker||'None')}</div>
           </div>
-          <div class="cf-app-grid">
-            \${comps.map(c => \`
-              <article class="cf-app-comp" data-testid="tenant-comp-\${escapeHtml(c.key)}">
+          <div class="cf-app-grid" data-testid="tenant-components">
+            \${comps.map(c => {
+              const exposed = c.exposed_for_client_review === true;
+              const latest = c.latest_review;
+              const reviewBlock = exposed ? \`
+                <div data-testid="tenant-review-controls-\${escapeHtml(c.key)}">
+                  <p class="cf-app-muted" style="margin:10px 0 6px">Review open · \${escapeHtml(c.review_state||'awaiting_client')}</p>
+                  <textarea class="cf-app-textarea" data-testid="tenant-comment-\${escapeHtml(c.key)}" placeholder="Optional comment (required for amend/reject)" style="width:100%;min-height:64px;margin-top:8px;border-radius:8px;border:1px solid var(--app-panel-border);background:rgba(0,0,0,.2);color:var(--app-text);padding:8px;font:inherit"></textarea>
+                  <div class="cf-app-actions">
+                    <button type="button" class="cf-app-btn" data-primary="true" data-testid="tenant-approve-\${escapeHtml(c.key)}">Approve</button>
+                    <button type="button" class="cf-app-btn" data-testid="tenant-amend-\${escapeHtml(c.key)}">Amend</button>
+                    <button type="button" class="cf-app-btn" data-testid="tenant-reject-\${escapeHtml(c.key)}">Reject</button>
+                  </div>
+                </div>\` : \`
+                <p class="cf-app-muted" style="margin-top:10px" data-testid="tenant-viewonly-\${escapeHtml(c.key)}">This component is not open for client review.</p>\`;
+              const latestHtml = latest ? \`<p class="cf-app-muted" data-testid="tenant-latest-review-\${escapeHtml(c.key)}" style="color:var(--app-ok)">Latest decision · \${escapeHtml(latest.decision||'')}\${latest.comment?' — '+escapeHtml(latest.comment):''}</p>\` : '';
+              return \`
+              <article class="cf-app-comp" data-testid="tenant-comp-\${escapeHtml(c.key)}" data-exposed="\${exposed?'true':'false'}">
                 <div class="cf-app-comp-head">
                   <h2 class="cf-app-comp-title">\${escapeHtml(c.title||'')}</h2>
-                  <span class="cf-app-badge">\${c.exposed_for_client_review?'Review open':'View only'}</span>
+                  <span class="cf-app-badge">\${exposed?'Review open':'View only'}</span>
                 </div>
                 <p class="cf-app-muted" style="margin:0">\${escapeHtml(c.client_safe_summary||'')}</p>
-              </article>\`).join('')}
+                <p class="cf-app-muted" style="margin:8px 0 0">Component state · \${escapeHtml(c.client_safe_status||c.milestone_label||c.milestone||'—')} · \${escapeHtml(c.review_state||'—')}</p>
+                \${latestHtml}
+                \${reviewBlock}
+              </article>\`;
+            }).join('')}
           </div>
         </section>\`;
     } else {
@@ -266,18 +288,32 @@ function buildBootstrap(forcedEnv) {
             <dt>Internal blocker</dt><dd>\${escapeHtml(req.internal_blocker||'None')}</dd>
             <dt>Progress</dt><dd>\${pct}%</dd>
           </dl>
+          <h2 style="font-size:1.05rem;margin:20px 0 10px">Delivery / work components · exposure</h2>
           <div class="cf-app-grid" data-testid="core-components">
-            \${comps.map(c => \`
+            \${comps.map(c => {
+              const exposed = c.exposed_for_client_review === true;
+              const latest = c.latest_client_decision;
+              const gh = c.github;
+              return \`
               <article class="cf-app-comp" data-testid="core-comp-\${escapeHtml(c.key)}">
                 <div class="cf-app-comp-head">
                   <h3 class="cf-app-comp-title">\${escapeHtml(c.title||'')}</h3>
-                  <span class="cf-app-badge">\${c.exposed_for_client_review?'Exposed':'Internal'}</span>
+                  <span class="cf-app-badge">\${exposed?'Exposed':'Internal'}</span>
                 </div>
                 <dl class="cf-app-kv">
+                  <dt>Milestone</dt><dd>\${escapeHtml(c.milestone_label||c.milestone||'—')}</dd>
+                  <dt>Review state</dt><dd data-testid="core-review-state-\${escapeHtml(c.key)}">\${escapeHtml(c.review_state||'—')}</dd>
                   <dt>Task ref</dt><dd>\${escapeHtml(c.internal_task_ref||'—')}</dd>
                   <dt>Evidence</dt><dd>\${escapeHtml((c.internal_evidence_refs||[]).join(', ')||'—')}</dd>
+                  <dt>GitHub (Core)</dt><dd>\${gh?('PR #'+escapeHtml(String(gh.pr_number||''))+' · '+escapeHtml(String(gh.commit_sha||'').slice(0,12))):'—'}</dd>
+                  <dt>Latest client decision</dt><dd data-testid="core-client-decision-\${escapeHtml(c.key)}">\${latest?escapeHtml(String(latest.decision||'')+(latest.by_role?' · '+latest.by_role:'')+(latest.comment?' — '+latest.comment:'')):'—'}</dd>
                 </dl>
-              </article>\`).join('')}
+                <div class="cf-app-actions" data-testid="core-expose-controls-\${escapeHtml(c.key)}">
+                  <button type="button" class="cf-app-btn" \${exposed?'':'data-primary="true"'} data-testid="core-expose-\${escapeHtml(c.key)}" \${exposed?'disabled':''}>Expose for client review</button>
+                  <button type="button" class="cf-app-btn" data-testid="core-unexpose-\${escapeHtml(c.key)}" \${!exposed?'disabled':''}>Hide from client review</button>
+                </div>
+              </article>\`;
+            }).join('')}
           </div>
         </section>\`;
     }
@@ -297,7 +333,7 @@ function buildBootstrap(forcedEnv) {
         </header>
         <main class="cf-app-main">
           \${menu}
-          <p class="cf-app-muted" data-testid="workspace-meta">auth_mode=\${escapeHtml(authMode)} · data_source=\${escapeHtml(dataSource)} · no ScopeSwitcher</p>
+          <p class="cf-app-muted" data-testid="workspace-meta">auth_mode=\${escapeHtml(authMode)} · data_source=\${escapeHtml(dataSource)} · mutations=\${mutationsEnabled?'on':'off'} · persistence=\${escapeHtml(persistencePath)} · no ScopeSwitcher</p>
           <p class="cf-app-muted">
             <a class="cf-app-btn" data-primary="true" href="/app/core">Core (session)</a>
             <a class="cf-app-btn" href="/app/tenant">Tenant (session)</a>
@@ -331,7 +367,7 @@ p{color:#94a3b8;line-height:1.45}
 <body>
 <main data-testid="app-entry-chooser">
   <h1>Choose environment</h1>
-  <p>Normal authenticated path (Slice 2). Core and Tenant remain separately authenticated.</p>
+  <p>Normal authenticated path (Slice 2/3). Core and Tenant remain separately authenticated. Slice 3 adds governed client review.</p>
   <a href="/app/core" data-testid="enter-core">Open Core</a>
   <a class="secondary" href="/app/tenant" data-testid="enter-tenant">Open Tenant — CorpFlowAI</a>
   <p data-testid="proof-harness-hint">Harness only: <a class="secondary" href="/app/core?proof=1">Core proof</a> <a class="secondary" href="/app/tenant?proof=1">Tenant proof</a></p>
@@ -367,11 +403,21 @@ const server = http.createServer(async (req, nodeRes) => {
     fakeReq.body = await readJson(req);
   }
 
-  const env =
-    String(u.searchParams.get('env') || u.searchParams.get('scope') || '').toLowerCase() ===
-    'tenant'
-      ? 'tenant'
-      : 'core';
+  // Prefer explicit path / body env so POST mutate routes attach the correct session.
+  const bodyEnv =
+    fakeReq.body && typeof fakeReq.body === 'object'
+      ? String(fakeReq.body.env || fakeReq.body.scope || '')
+          .trim()
+          .toLowerCase()
+      : '';
+  const queryEnv = String(u.searchParams.get('env') || u.searchParams.get('scope') || '')
+    .trim()
+    .toLowerCase();
+  let env = 'core';
+  if (path === '/api/app/component-review') env = 'tenant';
+  else if (path === '/api/app/component-expose') env = 'core';
+  else if (bodyEnv === 'tenant' || queryEnv === 'tenant') env = 'tenant';
+  else if (bodyEnv === 'core' || queryEnv === 'core') env = 'core';
   attachLocalAuth(fakeReq, env, u);
 
   const res = makeRes(nodeRes);
