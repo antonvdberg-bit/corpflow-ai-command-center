@@ -45,6 +45,10 @@ Rules: RUNNING silent; COMPLETED+`anton_required=no` silent by default; COMPLETE
 
 Claim-before-API + issue-keyed GHA concurrency (`factory-dispatcher-activate-<issue|scan>`). Duplicate activators return `SKIP_ALREADY_CLAIMED`. See `lib/server/cursor-activation-claim.js`.
 
+## Eligibility wake / capacity backfill (#891)
+
+When a poll reaches COMPLETED/FAILED/STALE and releases verified WIP capacity, this workflow sets `wake_dispatcher=true` and **`workflow_call`s** `Factory dispatcher activate` for a full priority queue scan. Operator authorization comments and `execution:paused` removal also wake that same activator directly. Do **not** ask Anton to toggle `dispatch:cursor-ready` or manually `workflow_dispatch` for ordinary continuation. Internal target: begin eligible work within **5 minutes** of the eligibility-changing event.
+
 ## Codex specialist (human-triggered)
 
 | Item | Path |

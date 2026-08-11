@@ -30,6 +30,18 @@ function normalizeTruthyFlag(value) {
   return ['1', 'true', 'yes', 'on', 'enabled'].includes(normalized);
 }
 
+/**
+ * @param {string | undefined} raw
+ * @returns {string[]}
+ */
+function parseLabelNames(raw) {
+  if (!raw) return [];
+  return String(raw)
+    .split(/[\n,]/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
 function runModePhase() {
   const plan = resolveFactoryDispatcherRunPlan({
     eventName: process.env.EVENT_NAME || process.env.GITHUB_EVENT_NAME,
@@ -37,25 +49,35 @@ function runModePhase() {
     labelName: process.env.EVENT_LABEL,
     issueState: process.env.EVENT_ISSUE_STATE,
     issueNumber: process.env.EVENT_ISSUE_NUMBER,
+    issueLabelNames: parseLabelNames(process.env.EVENT_ISSUE_LABELS),
+    commentBody: process.env.EVENT_COMMENT_BODY,
+    actorLogin: process.env.EVENT_ACTOR_LOGIN,
+    commentAuthorAssociation: process.env.EVENT_COMMENT_AUTHOR_ASSOCIATION,
     activationModeInput: process.env.ACTIVATION_MODE_INPUT || 'dry_run',
     smokeInternalInput: process.env.SMOKE_INTERNAL_INPUT,
     targetIssueInput: process.env.TARGET_ISSUE_INPUT,
     cursorLiveEnabled: process.env.CURSOR_LIVE_ENABLED,
+    wakeReasonInput: process.env.WAKE_REASON_INPUT,
+    capacityWakeRequested: process.env.CAPACITY_WAKE_REQUESTED,
   });
 
   if (!plan.shouldRun) {
     console.log(`Event path ignored (${plan.ignoreReason || 'predicate_failed'})`);
-    // Job-level `if` should already skip non-ready labels; exit 0 soft.
+    // Job-level `if` should already skip non-wake events; exit 0 soft.
     appendOutput([
       'mode=dry_run',
       'smoke_internal=0',
       'target_issue=',
       'event_issue=',
       'prefer_issues=',
-      'path=event_label_ignored',
+      'path=event_ignored',
+      'wake_reason=',
+      'require_exact_event_issue=0',
+      'should_run=0',
       'concurrency_key=scan',
       'cursor_live_enabled_configured=false',
       'cursor_live_enabled_truthy=false',
+      'dedupe_key=',
     ]);
     return;
   }
@@ -76,13 +98,17 @@ function runModePhase() {
     `evidence_target_issue=${evidenceTarget}`,
     `prefer_issues=${(plan.preferIssueNumbers || []).join(',')}`,
     `path=${plan.path}`,
+    `wake_reason=${plan.wakeReason || ''}`,
+    `require_exact_event_issue=${plan.requireExactEventIssue ? '1' : '0'}`,
+    `should_run=1`,
     `concurrency_key=${plan.concurrencyKey}`,
     `cursor_live_enabled_configured=${liveConfigured ? 'true' : 'false'}`,
     `cursor_live_enabled_truthy=${liveTruthy ? 'true' : 'false'}`,
+    `dedupe_key=${plan.dedupeKey || ''}`,
   ]);
 
   console.log(
-    `Resolved path=${plan.path} mode=${plan.mode} event_issue=${plan.eventIssueNumber || '(none)'} manual_target=${plan.manualTargetIssue || '(blank)'} prefer=${(plan.preferIssueNumbers || []).join(',') || '(none)'}`,
+    `Resolved path=${plan.path} mode=${plan.mode} wake=${plan.wakeReason || '(none)'} event_issue=${plan.eventIssueNumber || '(none)'} manual_target=${plan.manualTargetIssue || '(blank)'} prefer=${(plan.preferIssueNumbers || []).join(',') || '(none)'}`,
   );
 }
 
@@ -91,6 +117,8 @@ function runTargetPhase() {
     manualTargetIssue: process.env.MANUAL_TARGET,
     eventIssueNumber: process.env.EVENT_ISSUE,
     scannedActivationTargetIssue: process.env.SCANNED_TARGET,
+    requireExactEventIssue: process.env.REQUIRE_EXACT_EVENT_ISSUE,
+    wakePath: process.env.WAKE_PATH,
   });
 
   appendOutput([
