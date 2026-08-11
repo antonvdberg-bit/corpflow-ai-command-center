@@ -1,10 +1,12 @@
 # ERPNext current state audit — CorpFlowAI commercial launch
 
-**Status:** Docs-only audit · **Updated:** 2026-07-14  
+**Status:** Docs-only audit · **Updated:** 2026-08-11  
 **Owner:** Anton  
 **Anchor:** `<!-- ERPNEXT_CURRENT_STATE_AUDIT_V1 -->`
 
 <!-- ERPNEXT_CURRENT_STATE_AUDIT_V1 -->
+
+**2026-08-11 Cursor Cloud note (#893):** Infisical now holds `ERPNEXT_BASE_URL` / `ERPNEXT_API_KEY` / `ERPNEXT_API_SECRET` (CorpFlowAI Integration API identity). Fresh Cursor Cloud probe `bc-bf91d738-e441-4f12-807b-89a6a237521c` still **FAIL** — those secrets were **not injected** into the agent (`MASTER_ADMIN_KEY` only). See `docs/erpnext/ERPNEXT_API_ACCESS_PROBE_893.md`. #880/#881 remain blocked on a PASS re-probe.
 
 Classification key:
 
