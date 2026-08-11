@@ -1,8 +1,10 @@
 # ERPNext current state audit — CorpFlowAI commercial launch
 
-**Status:** Docs-only audit · **Updated:** 2026-07-14  
+**Status:** Docs-only audit · **Updated:** 2026-08-11  
 **Owner:** Anton  
 **Anchor:** `<!-- ERPNEXT_CURRENT_STATE_AUDIT_V1 -->`
+
+**Access probe (#879, 2026-08-11):** Cursor cloud run `run-3e048c79-4b3c-46ca-a2f0-97695fa1f57e` reported **FAIL** — no live SSH/tunnel/API session to loopback sandbox from that agent. Evidence: `docs/erpnext/ERPNEXT_ACCESS_PROBE_879.md`. Historical Phase C rows below remain prior evidence only until a PASS re-probe.
 
 <!-- ERPNEXT_CURRENT_STATE_AUDIT_V1 -->
 
