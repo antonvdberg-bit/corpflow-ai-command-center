@@ -84,8 +84,8 @@ Research/documentation-only tasks may run separately only when they cannot confl
 ## 5. Scan behaviour
 
 1. Discover open issues with `dispatch:cursor-ready` via **GitHub GraphQL** (fallback: paginated Issues API + **client-side label filter**). Do **not** use the Search API — colon labels (`dispatch:cursor-ready`) return zero results.
-2. Infer `WORK CLASSIFICATION` (system boundary, tenant, environment, work type, protected gate).
-3. Reject `dispatch:blocked`. For protected-gate issues, evaluate the **latest valid operator authorization for that exact gate** (see §5a). No matching approval → hold claim. Matching approval → continue normal WIP / isolation / priority checks. Still post discovery + classification either way.
+2. Infer `WORK CLASSIFICATION` (system boundary, tenant, environment, work type, **protected subjects mentioned**, **protected consequential gate**).
+3. Reject `dispatch:blocked`. For issues whose **consequential gate** is not `none`, evaluate the **latest valid operator authorization for that exact gate** (see §5a). No matching approval → hold claim at that boundary only. Matching approval (including Anton’s explicit active-task instruction) → continue normal WIP / isolation / priority checks. Still post discovery + classification either way.
 4. Enforce WIP + concurrency. Sibling product holds (e.g. #654 vs #653) do **not** suppress unrelated eligible ops work (e.g. #658 Slack retirement).
 5. Post acknowledgement comments when `GITHUB_TOKEN` has `issues: write` (GHA path).
 6. **Do not** apply claim labels during **scan**. Acquire `dispatch:cursor-claimed` + durable claim marker **before** the Cursor API call (`scripts/dispatcher-agent-activation.mjs` claim-before-API). Finalize records the real run ID / origin metadata after success, or releases the claim on failure (`scripts/cursor-issue-dispatch-finalize.mjs`).
@@ -93,10 +93,20 @@ Research/documentation-only tasks may run separately only when they cannot confl
 8. Stale claimed issues (no meaningful update beyond threshold): exception-only status request — no heartbeat spam.
 9. **Double-activation guard:** issue-keyed GHA concurrency (`factory-dispatcher-activate-<issue|scan>`) + durable claim-before-API. Duplicate/racing activators return `SKIP_ALREADY_CLAIMED`. Explicit requeue requires `CURSOR REQUEUE` generation marker + restored `dispatch:cursor-ready`.
 
-### 5a. Operator gate authorization resume (#887)
+### 5a. Operator gate authorization resume (#887 / #896)
 
-**Rule:** No valid operator authorization → Cursor does **not** claim the gated work item. Valid operator authorization for that **exact** gate → Cursor re-evaluates and claims automatically when WIP permits.
+**Ordinary work moves immediately.** Anton requesting the task is sufficient for discover / inspect / read / test / prepare / design / code / branch / PR / CI / evidence / corpflow_test / prepare-migration / prepare-message-without-send.
 
+**Gate only the consequential action.** Classification distinguishes:
+
+| Field | Meaning |
+|-------|---------|
+| Protected subjects mentioned | Informational — task discusses DB, secrets, messaging, payment, etc. **Does not block claim.** |
+| Protected consequential gate | Claim-blocking only when the active task asks to **execute** the exact protected consequence (e.g. run prisma migrate, change env/secrets, send live message, client_production deploy). |
+
+**Rule:** No valid operator authorization → Cursor does **not** claim work that is **currently attempting** an unauthorized consequential gate. Valid operator authorization for that **exact** gate → Cursor re-evaluates and claims automatically when WIP permits. Authorization for gate A never unlocks gate B.
+
+Anton’s **active-task instruction** that already explicitly authorizes the consequential action is sufficient — do **not** require a second durable comment, label toggle, issue recreation, or Anton courier step. The system may persist/normalize that instruction for machine consumption automatically.
 Durable machine-readable record (preferred):
 
 ```text
@@ -119,6 +129,7 @@ Also accepted as durable GitHub evidence:
 | `### OPERATOR GATE AUTHORIZATION` (+ optional HTML JSON) | Exact gate + decision (`approve` / `reject` / `revoke`) |
 | `### ANTON DURABLE APPROVAL` | Mapped via Decision Inbox `approval:*` → protected gate |
 | Explicit Anton operator-authorization comment/body that names the gate unlock | e.g. #879 `ANTON EXPLICIT OPERATOR AUTHORIZATION` removing `protected gate: database` |
+| Active-task Anton instruction that already authorizes the exact consequence | e.g. #893 secure Cursor environment/settings approval; #896 governance rollout approval — **no second ceremony** |
 
 Semantics:
 

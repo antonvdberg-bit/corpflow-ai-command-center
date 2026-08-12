@@ -13,7 +13,7 @@ import {
   planCursorIssueClaims,
 } from '../lib/server/cursor-issue-dispatch-lifecycle.js';
 
-/** Synthetic #879-style body (ERPNext access; classifier sets database gate). */
+/** Synthetic #879-style body — inspect/access only (subject mention, not consequential). */
 const ISSUE_879_BODY = `Source: Anton decision 2026-08-11
 ## Explicit Anton authorization
 Anton has authorized Cursor to use the full ERPNext access already granted.
@@ -21,6 +21,12 @@ Anton has authorized Cursor to use the full ERPNext access already granted.
 Inspect ERPNext Company, Customer, database-backed DocTypes for commercial work.
 Do not request credentials or secrets.
 `;
+
+/** Affirmative schema mutation — claim-blocking without exact-gate auth. */
+const ISSUE_SCHEMA_MUTATION_BODY = `Actual schema migration and data mutation required.
+Run prisma migrate to alter Postgres schema and backfill rows.
+This is a real DB/schema change packet.
+Requires protected gate: database.`;
 
 const ISSUE_879_AUTH_COMMENT = `ANTON EXPLICIT OPERATOR AUTHORIZATION — ERPNext ACCESS UNLOCK
 
@@ -45,6 +51,19 @@ Connect to ERPNext using already-authorized access.
 - Do not perform real payment, external send or public launch actions.
 
 This is an ERPNext application/integration task, not a CorpFlowAI database/schema task. No agent merge required.`;
+
+/** #893-style — secrets consequential already authorized in the active task. */
+const ISSUE_893_BODY = `Operator authorization: Anton 2026-08-12
+## Explicit operator approval
+Anton has explicitly approved wiring the already-authorized ERPNext access into Cursor Cloud using the secure Cursor environment/settings path.
+No credentials, tokens, keys, cookies, session material or private client data may be pasted into GitHub.
+Authorized by Anton for this workstream:
+- secure Cursor Cloud environment/settings configuration needed solely to connect to the approved ERPNext sandbox;
+Still not authorized:
+- changing CorpFlowAI production DB/schema;
+- real payments;
+- unrelated env/secrets changes;
+`;
 
 function gatedReadyIssue(number, body, comments = []) {
   return {
@@ -83,18 +102,29 @@ describe('operator-gate-authorization', () => {
     assert.equal(records[0].decision, 'approve');
   });
 
-  it('1) gated issue with no operator authorization -> eligible=false', () => {
+  it('#879 inspect/access subject mention is not claim-blocking (#896)', () => {
     const issue = gatedReadyIssue(879, ISSUE_879_BODY, []);
-    assert.equal(inferIssueClassification(issue).protectedGate, 'database');
+    const c = inferIssueClassification(issue);
+    assert.equal(c.protectedGate, 'none');
+    assert.ok((c.protectedSubjectsMentioned || []).includes('database'));
     const plan = planCursorIssueClaims({ readyIssues: [issue], claimedIssues: [] });
     const d = plan.decisions.find((x) => x.issue.number === 879);
+    assert.equal(d?.eligibleToClaim, true);
+    assert.equal(d?.decision, 'claim');
+  });
+
+  it('1) consequential database mutation with no operator authorization -> eligible=false', () => {
+    const issue = gatedReadyIssue(9001, ISSUE_SCHEMA_MUTATION_BODY, []);
+    assert.equal(inferIssueClassification(issue).protectedGate, 'database');
+    const plan = planCursorIssueClaims({ readyIssues: [issue], claimedIssues: [] });
+    const d = plan.decisions.find((x) => x.issue.number === 9001);
     assert.equal(d?.eligibleToClaim, false);
     assert.equal(d?.decision, 'discover_only');
     assert.match(String(d?.reason || ''), /no valid operator authorization|wait for Anton unlock/);
   });
 
   it('2) matching explicit authorization -> eligible=true when capacity exists', () => {
-    const issue = gatedReadyIssue(879, ISSUE_879_BODY, [
+    const issue = gatedReadyIssue(9001, ISSUE_SCHEMA_MUTATION_BODY, [
       {
         body: ISSUE_879_AUTH_COMMENT,
         author: 'antonvdberg-bit',
@@ -102,21 +132,21 @@ describe('operator-gate-authorization', () => {
       },
     ]);
     const plan = planCursorIssueClaims({ readyIssues: [issue], claimedIssues: [] });
-    const d = plan.decisions.find((x) => x.issue.number === 879);
+    const d = plan.decisions.find((x) => x.issue.number === 9001);
     assert.equal(d?.eligibleToClaim, true);
     assert.equal(d?.decision, 'claim');
-    assert.equal(plan.activationTargetIssue, 879);
+    assert.equal(plan.activationTargetIssue, 9001);
   });
 
   it('3) authorization for another gate -> still eligible=false', () => {
     const authSecrets = formatOperatorGateAuthorization({
-      issue: 879,
+      issue: 9001,
       gate: 'secrets',
       author: 'antonvdberg-bit',
       decision: 'approve',
       recorded_at: '2026-08-11T06:00:00.000Z',
     });
-    const issue = gatedReadyIssue(879, ISSUE_879_BODY, [
+    const issue = gatedReadyIssue(9001, ISSUE_SCHEMA_MUTATION_BODY, [
       {
         body: authSecrets,
         author: 'antonvdberg-bit',
@@ -124,32 +154,32 @@ describe('operator-gate-authorization', () => {
       },
     ]);
     const plan = planCursorIssueClaims({ readyIssues: [issue], claimedIssues: [] });
-    const d = plan.decisions.find((x) => x.issue.number === 879);
+    const d = plan.decisions.find((x) => x.issue.number === 9001);
     assert.equal(d?.eligibleToClaim, false);
     assert.match(String(d?.reason || ''), /no valid operator authorization|protected gate database/);
   });
 
   it('4) newer rejection/revocation -> eligible=false', () => {
     const approve = formatOperatorGateAuthorization({
-      issue: 879,
+      issue: 9001,
       gate: 'database',
       author: 'antonvdberg-bit',
       decision: 'approve',
       recorded_at: '2026-08-11T05:00:00.000Z',
     });
     const revoke = formatOperatorGateAuthorization({
-      issue: 879,
+      issue: 9001,
       gate: 'database',
       author: 'antonvdberg-bit',
       decision: 'revoke',
       recorded_at: '2026-08-11T07:00:00.000Z',
     });
-    const issue = gatedReadyIssue(879, ISSUE_879_BODY, [
+    const issue = gatedReadyIssue(9001, ISSUE_SCHEMA_MUTATION_BODY, [
       { body: approve, author: 'antonvdberg-bit', created_at: '2026-08-11T05:00:00.000Z' },
       { body: revoke, author: 'antonvdberg-bit', created_at: '2026-08-11T07:00:00.000Z' },
     ]);
     const plan = planCursorIssueClaims({ readyIssues: [issue], claimedIssues: [] });
-    const d = plan.decisions.find((x) => x.issue.number === 879);
+    const d = plan.decisions.find((x) => x.issue.number === 9001);
     assert.equal(d?.eligibleToClaim, false);
     assert.match(String(d?.reason || ''), /revoke/);
   });
@@ -214,7 +244,7 @@ describe('operator-gate-authorization', () => {
     });
 
     const mk = (n, auth) =>
-      gatedReadyIssue(n, `${ISSUE_879_BODY}\nissue ${n}`, [
+      gatedReadyIssue(n, `${ISSUE_SCHEMA_MUTATION_BODY}\nissue ${n}`, [
         { body: auth, author: 'antonvdberg-bit', created_at: '2026-08-11T05:00:00.000Z' },
       ]);
 
@@ -262,8 +292,7 @@ describe('operator-gate-authorization', () => {
     }
   });
 
-  it('7) #879/#886 stuck-after-approval clears after fix', () => {
-    // Before-fix shape: gated + later Anton authorization present, but old planner ignored it.
+  it('7) #879/#886 inspect packets claim without database gate (#896)', () => {
     const stuck879 = gatedReadyIssue(879, ISSUE_879_BODY, [
       {
         body: 'CURSOR DISPATCH DISCOVERED\nEligible to claim: No\nReason: protected gate database',
@@ -284,22 +313,8 @@ describe('operator-gate-authorization', () => {
       },
     ]);
 
-    assert.equal(inferIssueClassification(stuck879).protectedGate, 'database');
-    assert.equal(inferIssueClassification(stuck886).protectedGate, 'database');
-
-    const beforeFixSimulation = (issue) => {
-      const classification = inferIssueClassification(issue);
-      if (classification.protectedGate !== 'none') {
-        return {
-          eligibleToClaim: false,
-          reason: `protected gate ${classification.protectedGate} — classify and wait for Anton unlock before claim/activation`,
-        };
-      }
-      return { eligibleToClaim: true, reason: 'eligible' };
-    };
-
-    assert.equal(beforeFixSimulation(stuck879).eligibleToClaim, false);
-    assert.equal(beforeFixSimulation(stuck886).eligibleToClaim, false);
+    assert.equal(inferIssueClassification(stuck879).protectedGate, 'none');
+    assert.equal(inferIssueClassification(stuck886).protectedGate, 'none');
 
     const plan = planCursorIssueClaims({
       readyIssues: [stuck879, stuck886],
@@ -310,10 +325,7 @@ describe('operator-gate-authorization', () => {
     assert.equal(d879?.eligibleToClaim, true);
     assert.equal(d886?.eligibleToClaim, true);
     assert.equal(d879?.decision, 'claim');
-    // WIP allows 2 claims; both authorized database issues — concurrency may hold the second.
-    assert.ok(
-      d886?.decision === 'claim' || /concurrency hold|same protected gate/i.test(String(d886?.reason)),
-    );
+    assert.ok(d886?.decision === 'claim' || /WIP|concurrency/i.test(String(d886?.reason)));
     assert.ok(plan.eligibleIssueNumbers.includes(879));
     assert.ok(plan.eligibleIssueNumbers.includes(886));
   });
@@ -342,5 +354,20 @@ describe('operator-gate-authorization', () => {
       comments: [{ body: durable, author: 'antonvdberg-bit', created_at: '2026-08-11T09:00:00.000Z' }],
     });
     assert.equal(evalSecrets.allowed, false);
+  });
+
+  it('9) #893 active-task secrets authorization unlocks without second ceremony', () => {
+    const issue = gatedReadyIssue(893, ISSUE_893_BODY, []);
+    assert.equal(inferIssueClassification(issue).protectedGate, 'secrets');
+    const auth = evaluateOperatorGateAuthorization({
+      issueNumber: 893,
+      gate: 'secrets',
+      body: ISSUE_893_BODY,
+      comments: [],
+    });
+    assert.equal(auth.allowed, true);
+    const plan = planCursorIssueClaims({ readyIssues: [issue], claimedIssues: [] });
+    assert.equal(plan.decisions[0]?.eligibleToClaim, true);
+    assert.equal(plan.decisions[0]?.decision, 'claim');
   });
 });

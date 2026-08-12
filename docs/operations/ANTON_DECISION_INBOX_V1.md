@@ -96,7 +96,9 @@ Required fields: `approver`, `approval_type`, `issue_or_pr`, `target_sha`, `targ
 
 Approvals are scoped to: exact action, exact issue/PR, exact commit SHA / deployment candidate where relevant, exact environment, and limited validity where appropriate.
 
-Helpers: `formatDurableApproval()`, `parseDurableApproval()`, `evaluateProtectedActionGate()`, `buildApprovalAuditRecord()`.
+**Active-task instruction (#896):** When Anton’s controlling issue/PR body already explicitly authorizes the exact consequential action for that work package, that instruction is sufficient for dispatcher claim eligibility for that gate. Do **not** require a second durable ceremony or Anton courier step. Ordinary reversible delivery work never waits on Decision Inbox merely because the task mentions a protected subject.
+
+Helpers: `formatDurableApproval()`, `parseDurableApproval()`, `evaluateProtectedActionGate()`, `buildApprovalAuditRecord()`, `evaluateOperatorGateAuthorization()`.
 
 ### Resolution (clear inbox)
 
