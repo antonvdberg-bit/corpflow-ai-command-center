@@ -671,5 +671,31 @@ No secrets or private client data in repo evidence.`,
       assert.match(comment, /Protected consequential gate:/);
       assert.match(comment, /ordinary delivery work proceeds/);
     });
+
+    it('G — ready+operator-review does not consume free WIP / activation target', () => {
+      const reviewReady = {
+        number: 715,
+        title: 'WS4 already in operator review',
+        body: 'Ordinary delivery docs. No production deploy.',
+        labels: ['priority:P0', 'dispatch:cursor-ready', 'dispatch:operator-review'],
+      };
+      const freshReady = {
+        number: 9200,
+        title: 'Fresh ordinary P0 work',
+        body: 'Ordinary docs/UI work. No production deploy. No schema change.',
+        labels: ['priority:P0', 'dispatch:cursor-ready'],
+      };
+      const plan = planCursorIssueClaims({
+        readyIssues: [reviewReady, freshReady],
+        claimedIssues: [],
+      });
+      const d715 = plan.decisions.find((d) => d.issue.number === 715);
+      const d9200 = plan.decisions.find((d) => d.issue.number === 9200);
+      assert.equal(d715?.eligibleToClaim, false);
+      assert.match(String(d715?.reason || ''), /operator-review/);
+      assert.equal(d9200?.eligibleToClaim, true);
+      assert.equal(plan.activationTargetIssue, 9200);
+      assert.deepEqual(plan.claimIssueNumbers, [9200]);
+    });
   });
 });
