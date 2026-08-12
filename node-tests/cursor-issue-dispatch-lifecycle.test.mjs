@@ -533,4 +533,143 @@ Test publishing does not trigger a false approval:production gate.`,
     assert.equal(testCheck.ok, true);
     assert.doesNotMatch(String(testCheck.reason || ''), /client_production-deployment/);
   });
+
+  describe('#896 ordinary work vs consequential action', () => {
+    it('A — inspect/test that may later need a write is claimable; write stays gated', () => {
+      const inspect = {
+        number: 89601,
+        title: 'Inspect ERPNext and determine whether schema changes are needed',
+        body: `Anton asks Cursor to inspect ERPNext sandbox.
+Inspect existing schema and database-backed DocTypes.
+Determine whether schema changes are needed.
+Do not run prisma migrate or mutate schema in this packet.
+Do not expose secrets.`,
+        labels: ['priority:P0', 'dispatch:cursor-ready'],
+      };
+      const c = inferIssueClassification(inspect);
+      assert.equal(c.protectedGate, 'none');
+      assert.ok((c.protectedSubjectsMentioned || []).includes('database'));
+      const plan = planCursorIssueClaims({ readyIssues: [inspect], claimedIssues: [] });
+      assert.equal(plan.decisions[0]?.eligibleToClaim, true);
+
+      const write = {
+        number: 89602,
+        title: 'Apply ERPNext schema migration',
+        body: `Run prisma migrate to alter Postgres schema and backfill rows.
+This is a real DB/schema change packet.`,
+        labels: ['priority:P0', 'dispatch:cursor-ready'],
+      };
+      assert.equal(inferIssueClassification(write).protectedGate, 'database');
+      const planWrite = planCursorIssueClaims({ readyIssues: [write], claimedIssues: [] });
+      assert.equal(planWrite.decisions[0]?.eligibleToClaim, false);
+    });
+
+    it('B — deployment preparation proceeds; client_production alone remains gated', () => {
+      const prep = {
+        number: 89603,
+        title: 'Prepare deployment for Lux',
+        body: `Prepare a deployment for lux.corpflowai.com.
+Implement, test locally, create PR, run CI, validate corpflow_test.
+Do not deploy to client_production.`,
+        labels: ['priority:P0', 'dispatch:cursor-ready', 'lux'],
+      };
+      const c = inferIssueClassification(prep);
+      assert.equal(c.protectedGate, 'none');
+      assert.equal(c.environment, 'test');
+      const plan = planCursorIssueClaims({ readyIssues: [prep], claimedIssues: [] });
+      assert.equal(plan.decisions[0]?.eligibleToClaim, true);
+
+      const clientProd = {
+        number: 89604,
+        title: 'Client production cutover',
+        body: 'Deploy to client_production on the client-owned production target.',
+        labels: ['dispatch:cursor-ready'],
+      };
+      assert.equal(inferIssueClassification(clientProd).protectedGate, 'production');
+      const planProd = planCursorIssueClaims({ readyIssues: [clientProd], claimedIssues: [] });
+      assert.equal(planProd.decisions[0]?.eligibleToClaim, false);
+    });
+
+    it('C — direct Anton authorization for consequential action is sufficient', () => {
+      const issue = {
+        number: 89605,
+        title: 'Secure Cursor env wiring',
+        body: `Operator authorization: Anton 2026-08-12
+## Explicit operator approval
+Anton has explicitly approved wiring using the secure Cursor environment/settings path.
+secure Cursor Cloud environment/settings configuration needed solely for the sandbox.
+Still not authorized: unrelated env/secrets changes; real payments.`,
+        labels: ['priority:P0', 'dispatch:cursor-ready'],
+      };
+      assert.equal(inferIssueClassification(issue).protectedGate, 'secrets');
+      const plan = planCursorIssueClaims({ readyIssues: [issue], claimedIssues: [] });
+      assert.equal(plan.decisions[0]?.eligibleToClaim, true);
+    });
+
+    it('D — mentioning protected words does not gate ordinary work', () => {
+      const cases = [
+        {
+          number: 89606,
+          title: 'Safety wording',
+          body: 'Do not expose secrets. No schema changes. Test payment flow without making a payment. Prepare email but do not send.',
+        },
+        {
+          number: 89607,
+          title: 'Governance doctrine #896',
+          body: `Governance change: explicitly approved.
+Ordinary delivery work must never be misclassified merely because the task mentions DB, secrets, payments, messaging, production, or deployment.
+this issue carries Anton’s explicit approval to merge and deploy this governance change.
+No secrets or private client data in repo evidence.`,
+        },
+      ];
+      for (const issue of cases) {
+        const full = { ...issue, labels: ['priority:P0', 'dispatch:cursor-ready'] };
+        const c = inferIssueClassification(full);
+        assert.equal(c.protectedGate, 'none', `issue ${issue.number}`);
+        const plan = planCursorIssueClaims({ readyIssues: [full], claimedIssues: [] });
+        assert.equal(plan.decisions[0]?.eligibleToClaim, true, `issue ${issue.number}`);
+      }
+    });
+
+    it('E — wrong-scope approval remains blocked', () => {
+      const issue = {
+        number: 89608,
+        title: 'Real schema migration',
+        body: 'Run prisma migrate to alter Postgres schema. Requires protected gate: database.',
+        labels: ['dispatch:cursor-ready'],
+        comments: [
+          {
+            body: `### OPERATOR GATE AUTHORIZATION
+
+- issue: #89608
+- gate: payment
+- author: Anton
+- decision: approve
+- recorded_at: 2026-08-12T00:00:00.000Z
+- notes: wrong scope
+`,
+            author: 'antonvdberg-bit',
+            created_at: '2026-08-12T00:00:00.000Z',
+          },
+        ],
+      };
+      assert.equal(inferIssueClassification(issue).protectedGate, 'database');
+      const plan = planCursorIssueClaims({ readyIssues: [issue], claimedIssues: [] });
+      assert.equal(plan.decisions[0]?.eligibleToClaim, false);
+    });
+
+    it('F — WORK CLASSIFICATION distinguishes subjects from consequential gate', () => {
+      const c = inferIssueClassification({
+        number: 89609,
+        title: 'Inspect system mentioning secrets and messaging',
+        body: 'Inspect the system. Mentions secrets and messaging only as subjects not to touch. Do not send messages. Do not expose secrets.',
+        labels: ['dispatch:cursor-ready'],
+      });
+      assert.equal(c.protectedGate, 'none');
+      const comment = formatWorkClassificationComment(89609, c);
+      assert.match(comment, /Protected subjects mentioned:/);
+      assert.match(comment, /Protected consequential gate:/);
+      assert.match(comment, /ordinary delivery work proceeds/);
+    });
+  });
 });

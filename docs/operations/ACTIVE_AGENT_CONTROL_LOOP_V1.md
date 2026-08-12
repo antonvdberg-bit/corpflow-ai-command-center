@@ -5,7 +5,8 @@
 **OpenHands child:** [#743](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/743) — not on this hot path.
 
 > **Canonical posture snapshot:** `docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md` (MOVE WORK, DO NOT WAIT FOR PICKUP).
-
+>
+> **#896:** Ordinary delivery work proceeds from Anton’s active-task instruction. Protected gates stop only the exact consequential action — subject mentions alone must not freeze claim/activation.
 ## What this slice adds
 
 Activation already exists (`factory-dispatcher-activate.yml` + `dispatcher-agent-activation.js`).

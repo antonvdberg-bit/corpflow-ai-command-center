@@ -1,7 +1,7 @@
 # CorpFlowAI — current delivery reality
 
 **Status:** Canonical operating-model snapshot (docs/control-plane only).  
-**Operating model version:** `2026-08-09-v1`.  
+**Operating model version:** `2026-08-12-v1`.  
 **Owner:** Anton (operator).  
 **Controller:** [#661](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/661)  
 **As of:** current `main` (Cursor + Codex lifecycle packets merged).  
@@ -107,15 +107,16 @@ Instead:
 ### 1.8 Anton involvement (only)
 
 - Merge / release / protected approvals
-- Production deploy
-- Env / secrets
-- DB / schema
+- Production deploy (**client_production** consequential action)
+- Env / secrets (**exact consequential change**)
+- DB / schema (**exact consequential mutation**)
 - Payment
 - Live messaging / outreach
 - Public / client launch
 - **One** human Codex `@codex` trigger (when that specialist path is prepared)
 - Genuine unrecoverable blocker
 
+**Ordinary vs consequential (#896):** Anton’s direct instruction in the active task authorizes ordinary reversible delivery work immediately (discover, inspect, test, prepare, PR, CI, corpflow_test, evidence). Protected gates stop only the **exact consequential action**. Subject mentions (database, secrets, messaging, payment, deploy) alone must **not** freeze the whole work package. If Anton already explicitly authorized that exact consequence in the active task, no second operator-authorization ceremony is required.
 ---
 
 ## 2. Existing-chat staleness rule (mandatory)

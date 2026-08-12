@@ -61,6 +61,18 @@ See `ANTON_DECISION_INBOX_V1.md` §4. Runtime / workflow code must call `evaluat
 
 **Labels never unlock.** Green CI never unlocks. Merge alone must not silently deploy protected surfaces unless current operator policy explicitly says so **and** durable approval + environment approval are present.
 
+### 4.1 Ordinary work vs consequential action (#896)
+
+Dispatcher claim classification must **not** treat subject mentions as consequential activation:
+
+| Example | Claim behaviour |
+|---------|-----------------|
+| “Inspect schema / determine whether migration needed” | Ordinary — claim proceeds |
+| “Prepare deployment / PR / CI / corpflow_test” | Ordinary — claim proceeds |
+| “Do not expose secrets / no schema changes / prepare email but do not send” | Ordinary — claim proceeds |
+| “Run prisma migrate / change env secrets / send live WhatsApp / client_production deploy” | Consequential — claim waits for exact-gate auth unless Anton already authorized it in the active task |
+
+Fail-closed remains at the **exact** unapproved consequential boundary. Wrong-scope approval never unlocks an unrelated gate. WIP=2, isolation, priority, claim-before-API, and no agent auto-merge controls are unchanged.
 ## 5. Synthetic verification (non-production)
 
 Unit tests in `node-tests/anton-decision-inbox.test.mjs` prove:

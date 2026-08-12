@@ -7,12 +7,19 @@ on:
     paths:
       - 'lib/server/anton-decision-inbox.js'
       - 'lib/server/cursor-issue-dispatch-lifecycle.js'
+      - 'lib/server/operator-gate-authorization.js'
+      - 'lib/server/operator-review-handoff.js'
       - 'node-tests/anton-decision-inbox.test.mjs'
       - 'node-tests/cursor-issue-dispatch-lifecycle.test.mjs'
+      - 'node-tests/operator-gate-authorization.test.mjs'
+      - 'node-tests/operator-review-handoff.test.mjs'
       - '.github/workflows/protected-action-gates-verify.yml'
       - '.github/workflows/vercel-production-deploy-hook.yml'
       - 'docs/operations/ANTON_DECISION_INBOX_V1.md'
       - 'docs/operations/PROTECTED_ACTION_GATES_V1.md'
+      - 'docs/operations/CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1.md'
+      - 'docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md'
+      - 'config/protected-operating-doctrine.v1.json'
   workflow_dispatch: {}
 
 permissions:
@@ -29,7 +36,7 @@ jobs:
           node-version: '22'
 
       - name: Run Decision Inbox + gate unit tests
-        run: node --test node-tests/anton-decision-inbox.test.mjs node-tests/cursor-issue-dispatch-lifecycle.test.mjs
+        run: node --test node-tests/anton-decision-inbox.test.mjs node-tests/cursor-issue-dispatch-lifecycle.test.mjs node-tests/operator-gate-authorization.test.mjs node-tests/operator-review-handoff.test.mjs
 
       - name: Synthetic block without durable approval
         run: |
