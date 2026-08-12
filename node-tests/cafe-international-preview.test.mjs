@@ -132,12 +132,24 @@ describe('Café International preview — fixture truth (#797)', () => {
     assert.equal(greek.offers.priceCurrency, 'MUR');
   });
 
-  it('homepage menu preview selects real priced fixture items', () => {
+  it('homepage favourites are category-led with Sheet starting prices', () => {
     const menu = loadCafeInternationalMenuPreview();
     const rows = selectCafeInternationalHomeMenuPreview(menu, 6);
     assert.equal(rows.length, 6);
-    assert.ok(rows.every((r) => r.price_mur != null && r.name));
-    assert.ok(rows.some((r) => /grill|steak|burger|starter/i.test(r.category)));
+    assert.deepEqual(
+      rows.map((r) => [r.id, r.name, r.price_mur, r.price_display]),
+      [
+        ['beef-steaks', 'Beef Steaks', 1050, 'from Rs 1,050'],
+        ['steak-and-ribs', 'Steak & Ribs', 1450, 'from Rs 1,450'],
+        ['pork-ribs', 'Pork Ribs', 1150, 'from Rs 1,150'],
+        ['burgers', 'Burgers', 180, 'from Rs 180'],
+        ['wings-and-rings', 'Buffalo Wings & Onion Rings', 200, 'from Rs 200'],
+        ['chicken-fillet', 'Chicken Fillet', 650, 'from Rs 650'],
+      ],
+    );
+    assert.ok(rows.every((r) => r.merchandising === 'category'));
+    assert.ok(rows.every((r) => String(r.price_display).startsWith('from Rs')));
+    assert.doesNotMatch(rows.map((r) => r.name).join(' '), /\b\d{2,4}g\b/);
   });
 });
 
@@ -395,20 +407,49 @@ describe('Café International corrective pass (#871 / #872)', () => {
   it('homepage featured favourites avoid unsupported best-seller claims', () => {
     const home = read('pages/demo/cafe-international/index.js');
     assert.match(home, /Featured favourites/);
-    assert.match(home, /Popular picks from the grill/);
+    assert.match(home, /Owner favourites guests order most/);
     assert.doesNotMatch(home, />\s*Menu preview\s*</);
     const headingIdx = home.indexOf('>\n            Featured favourites\n');
     assert.ok(headingIdx > -1, 'visible Featured favourites heading present');
-    const sectionSrc = home.slice(headingIdx, headingIdx + 400);
+    const sectionSrc = home.slice(headingIdx, headingIdx + 500);
     assert.doesNotMatch(
       sectionSrc,
       /best[- ]seller|most[- ]requested|most[- ]ordered|top[- ]seller/i,
     );
     assert.match(home, /data-cafe-home-menu-preview/);
     assert.match(home, /View full menu/);
+    assert.match(home, /Sizes and options vary/);
     const rows = selectCafeInternationalHomeMenuPreview(loadCafeInternationalMenuPreview(), 6);
     assert.equal(rows.length, 6);
     assert.ok(rows.every((r) => r.price_mur != null));
+    assert.ok(rows.every((r) => String(r.price_display).startsWith('from Rs')));
+  });
+
+  it('homepage Restaurant Guru social proof uses official award ribbon + listing facts', () => {
+    const home = read('pages/demo/cafe-international/index.js');
+    const assets = read('lib/website-rescue/cafe-international-assets.js');
+    assert.match(home, /data-cafe-rg-social-proof/);
+    assert.match(home, /data-cafe-rg-official-embed/);
+    assert.match(home, /data-cafe-rg-listing-link/);
+    assert.match(home, /CAFE_INTERNATIONAL_RESTAURANT_GURU_PROOF/);
+    assert.match(home, /officialAwardCssHref/);
+    assert.match(home, /officialAwardWidgetHtml/);
+    assert.match(assets, /officialAwardCssHref/);
+    assert.match(assets, /awards\.infcdn\.net\/2024\/circle_v2\.css/);
+    assert.match(assets, /circle-r-ribbon/);
+    assert.match(assets, /Best steaks/);
+    assert.match(assets, /aggregateSources/);
+    assert.match(assets, /Google/);
+    assert.match(assets, /Trip/);
+    assert.match(assets, /Facebook/);
+    assert.match(assets, /Foursquare/);
+    // Official ribbon is static CSS/SVG HTML — no blocking script loader.
+    assert.doesNotMatch(assets, /widgets\.leadconnectorhq|document\.write/);
+    assert.match(home, /guest votes/);
+    assert.match(home, /See reviews on Restaurant Guru/);
+    // Hero Best Steaks badge preserved.
+    assert.match(home, /data-cafe-rg-badge/);
+    assert.match(home, /bestSteaks2025Badge|best-steaks-2025-badge/);
   });
 
   it('source foodMotion and venueBuzzMotion files contain no audio track', () => {
@@ -442,14 +483,15 @@ describe('Café International corrective pass (#871 / #872)', () => {
     assert.doesNotMatch(shell, /unmute|Sound on|Enable sound/i);
   });
 
-  it('takeaway is one browse → WhatsApp/phone → collect journey with platter prominence', () => {
+  it('takeaway is one browse → WhatsApp/phone → collect journey with owner favourites', () => {
     const src = read('pages/demo/cafe-international/takeaway.js');
     assert.match(src, /data-cafe-takeaway-journey/);
     assert.match(src, /data-cafe-takeaway-steps/);
     assert.match(src, /data-cafe-takeaway-featured/);
     assert.match(src, /data-cafe-takeaway-tile=\{tile\.id\}/);
     assert.match(src, /\[['"]platters['"],\s*['"]steaks['"],\s*['"]burgers['"]\]/);
-    assert.match(src, /Great for takeaway|Platters & grill|Popular takeaway picks/i);
+    assert.match(src, /Great for takeaway/i);
+    assert.match(src, /Owner favourites for collection/);
     assert.match(src, /WhatsApp or phone/i);
     assert.match(src, /not a takeaway channel|for table bookings/i);
     assert.doesNotMatch(src, /best[- ]seller|most[- ]ordered|most[- ]requested/i);
@@ -462,8 +504,18 @@ describe('Café International corrective pass (#871 / #872)', () => {
       6,
     );
     assert.equal(featured.length, 6);
-    assert.equal(featured[0].categoryId, 'platters');
-    assert.ok(featured.some((r) => r.categoryId === 'platters'));
+    assert.deepEqual(
+      featured.map((r) => [r.id, r.name, r.price_mur, r.price_display]),
+      [
+        ['burgers', 'Burgers', 180, 'from Rs 180'],
+        ['steaks', 'Steaks', 1050, 'from Rs 1,050'],
+        ['buffalo-wings', 'Buffalo Wings', 250, 'from Rs 250'],
+        ['onion-rings', 'Onion Rings', 200, 'from Rs 200'],
+        ['greek-salads', 'Greek Salads', 260, 'from Rs 260'],
+        ['pork-ribs', 'Pork Ribs', 1150, 'from Rs 1,150'],
+      ],
+    );
+    assert.ok(featured.every((r) => String(r.price_display).startsWith('from Rs')));
   });
 
   it('about page includes genuine restaurant-front exterior imagery', () => {

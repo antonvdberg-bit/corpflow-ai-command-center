@@ -1,4 +1,5 @@
 import React from 'react';
+import Head from 'next/head';
 import Link from 'next/link';
 
 import CafeInternationalPreviewShell, {
@@ -11,6 +12,7 @@ import CafeInternationalPreviewShell, {
 import {
   CAFE_INTERNATIONAL_APPETITE_TILES,
   CAFE_INTERNATIONAL_OWNERS,
+  CAFE_INTERNATIONAL_RESTAURANT_GURU_PROOF,
   CAFE_INTERNATIONAL_RESTAURANT_GURU_URL,
   CAFE_INTERNATIONAL_VISUALS,
 } from '../../../lib/website-rescue/cafe-international-assets.js';
@@ -23,8 +25,8 @@ import { getCafeInternationalPreviewProps } from '../../../lib/website-rescue/ca
 
 /**
  * Café International — visual-first Website Rescue preview home.
- * Corrective pass (#871 / #872): wider hero brand card, featured favourites,
- * verified muted media (no audio track in current source files).
+ * #885: owner category favourites + Restaurant Guru social proof near the
+ * favourites / booking decision. Hero Best Steaks badge preserved.
  */
 export default function CafeInternationalPreviewHome({
   truth,
@@ -39,6 +41,8 @@ export default function CafeInternationalPreviewHome({
     `https://corpflowai.com${CAFE_INTERNATIONAL_PREVIEW_BASE}`,
   );
 
+  const rgSources = CAFE_INTERNATIONAL_RESTAURANT_GURU_PROOF.aggregateSources.join(', ');
+
   return (
     <CafeInternationalPreviewShell
       title={`${truth.public_name} — Website Rescue preview`}
@@ -50,6 +54,12 @@ export default function CafeInternationalPreviewHome({
       truth={truth}
       fullBleedHero
     >
+      <Head>
+        <link
+          rel="stylesheet"
+          href={CAFE_INTERNATIONAL_RESTAURANT_GURU_PROOF.officialAwardCssHref}
+        />
+      </Head>
       {/* Full-bleed appetite hero — client Real food / grill asset */}
       <section
         data-cafe-hero
@@ -399,7 +409,7 @@ export default function CafeInternationalPreviewHome({
           </CafeGlassPanel>
         </section>
 
-        {/* Featured favourites — fixture items only; demand ranking deferred to owners */}
+        {/* Featured favourites — owner category merchandising; Sheet starting prices */}
         <section
           data-cafe-home-menu-preview
           style={{ marginTop: 48, paddingTop: 8 }}
@@ -417,15 +427,103 @@ export default function CafeInternationalPreviewHome({
             Featured favourites
           </h2>
           <p style={{ marginTop: 8, color: T.creamMuted, maxWidth: 560, lineHeight: 1.5 }}>
-            Popular picks from the grill and menu — live Menu-page prices. Browse the full
-            menu for every section.
+            Owner favourites guests order most — category starting prices from the live
+            Menu-page Sheet. Sizes and options vary; browse the full menu for every cut.
           </p>
+
+          <aside
+            data-cafe-rg-social-proof
+            style={{
+              marginTop: 18,
+              display: 'grid',
+              gap: 16,
+              gridTemplateColumns: 'auto minmax(0, 1fr)',
+              alignItems: 'center',
+              padding: '16px 16px 14px',
+              borderRadius: 18,
+              border: `1px solid ${T.line}`,
+              background: 'rgba(0,0,0,0.28)',
+            }}
+          >
+            <style>{`
+              @media (max-width: 699px) {
+                [data-cafe-rg-social-proof] {
+                  grid-template-columns: 1fr !important;
+                  justify-items: start !important;
+                }
+              }
+            `}</style>
+            <div
+              data-cafe-rg-official-embed
+              // Official Restaurant Guru award ribbon from cafeinternational.net
+              dangerouslySetInnerHTML={{
+                __html: CAFE_INTERNATIONAL_RESTAURANT_GURU_PROOF.officialAwardWidgetHtml,
+              }}
+            />
+            <div data-cafe-rg-proof-copy style={{ minWidth: 0 }}>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 12,
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                  color: T.flameSoft,
+                  fontWeight: 800,
+                }}
+              >
+                Restaurant Guru
+              </p>
+              <p
+                style={{
+                  margin: '8px 0 0',
+                  fontFamily: T.fontDisplay,
+                  fontSize: 'clamp(22px, 3vw, 28px)',
+                  color: T.cream,
+                  lineHeight: 1.15,
+                }}
+              >
+                {CAFE_INTERNATIONAL_RESTAURANT_GURU_PROOF.votes.toLocaleString('en-US')}{' '}
+                guest votes
+              </p>
+              <p style={{ margin: '8px 0 0', color: T.creamMuted, fontSize: 14, lineHeight: 1.5 }}>
+                {CAFE_INTERNATIONAL_RESTAURANT_GURU_PROOF.rankLine}. Ratings aggregated from{' '}
+                {rgSources}. {CAFE_INTERNATIONAL_RESTAURANT_GURU_PROOF.googleScoreNote}.
+              </p>
+              <p style={{ margin: '10px 0 0' }}>
+                <a
+                  data-cafe-rg-listing-link
+                  href={CAFE_INTERNATIONAL_RESTAURANT_GURU_PROOF.listingUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    color: T.flameSoft,
+                    fontWeight: 700,
+                    fontSize: 14,
+                    textDecoration: 'underline',
+                    textUnderlineOffset: 3,
+                  }}
+                >
+                  See reviews on Restaurant Guru
+                </a>
+              </p>
+              <p
+                data-cafe-rg-proof-attribution
+                style={{ margin: '8px 0 0', color: T.creamMuted, fontSize: 11, lineHeight: 1.4 }}
+              >
+                Official Best Steaks 2025 award ribbon reused from the live Café site · listing
+                snapshot {CAFE_INTERNATIONAL_RESTAURANT_GURU_PROOF.verifiedAt} · external
+                recognition, not Café-owned IP.
+              </p>
+            </div>
+          </aside>
+
           <CafeGlassPanel style={{ marginTop: 16, padding: '8px 18px 18px' }}>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
               {menuPreview.map((row) => (
                 <li
-                  key={`${row.categoryId}-${row.name}-${row.description}`}
+                  key={row.id || `${row.categoryId}-${row.name}-${row.description}`}
                   data-cafe-home-menu-item
+                  data-cafe-favourite-id={row.id || undefined}
                   style={{
                     display: 'grid',
                     gridTemplateColumns: 'minmax(0, 1fr) auto',
@@ -455,7 +553,16 @@ export default function CafeInternationalPreviewHome({
                         lineHeight: 1.35,
                       }}
                     >
-                      {row.name}
+                      {row.href ? (
+                        <Link
+                          href={row.href}
+                          style={{ color: 'inherit', textDecoration: 'none' }}
+                        >
+                          {row.name}
+                        </Link>
+                      ) : (
+                        row.name
+                      )}
                     </div>
                     {row.description ? (
                       <div
