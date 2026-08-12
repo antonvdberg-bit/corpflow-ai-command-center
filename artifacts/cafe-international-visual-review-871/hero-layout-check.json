@@ -1,0 +1,15 @@
+{
+  "source": "live corpflow_test https://corpflowai.com/demo/cafe-international",
+  "capturedAt": "2026-08-12T06:10:00Z",
+  "viewport": { "width": 1440, "height": 900 },
+  "containerWidth": 1100,
+  "glassWidth": 1146,
+  "previousNarrowCardMaxWidth": 640,
+  "rowDisplay": "flex",
+  "rowFlexDirection": "row",
+  "badgeInsideGlass": true,
+  "badgeOnRight": true,
+  "featuredHeading": "Featured favourites",
+  "glassWiderThanPreviousNarrowCard": true,
+  "notes": "Live rendered hero glass uses full available content width inside the ~1100px page container. Best Steaks badge sits in the right-hand trust column inside the glass panel. Implementation landed via #872 / PR #873 (merge d8614884)."
+}
