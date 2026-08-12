@@ -1,0 +1,29 @@
+{
+  "capturedAt": "2026-08-12T06:10:00Z",
+  "base": "https://corpflowai.com",
+  "implementation": {
+    "sourceIssue": 871,
+    "cleanDispatchIssue": 872,
+    "mergedPr": 873,
+    "mergeCommit": "d8614884d048ca078cdea1035b92198b2f478edb",
+    "note": "UI/content corrective pass already merged to main via #872/#873 before this #871 activation. This packet records live corpflow_test verification + fresh screenshots."
+  },
+  "http": {
+    "home": 200,
+    "takeaway": 200,
+    "about": 200
+  },
+  "audio": {
+    "foodMotion": "video-only (ffprobe: h264 video stream only; no audio stream)",
+    "venueBuzzMotion": "video-only (ffprobe: h264 video stream only; no audio stream)",
+    "unmuteControl": "not added — source files contain no audio track; muted autoplay left unchanged"
+  },
+  "screenshots": [
+    "screenshots/home-desktop-viewport.png",
+    "screenshots/home-mobile-viewport.png",
+    "screenshots/takeaway-desktop-viewport.png",
+    "screenshots/takeaway-mobile-viewport.png",
+    "screenshots/about-desktop-viewport.png",
+    "screenshots/about-mobile-viewport.png"
+  ]
+}
