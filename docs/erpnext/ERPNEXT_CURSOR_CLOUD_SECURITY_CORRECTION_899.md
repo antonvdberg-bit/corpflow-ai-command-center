@@ -77,6 +77,8 @@ bash scripts/erpnext/cursor-cloud-api-probe.sh
 | Address | PASS | 200 |
 | Lead | PASS | 200 |
 | Opportunity | PASS | 200 |
+| Customer Group | pending fresh re-probe (added to probe list for #880) | — |
+| Territory | pending fresh re-probe (added to probe list for #880) | — |
 | Item | PASS | 200 |
 | Item Group | PASS | 200 |
 | Item Price | FAIL (permission) | 403 |

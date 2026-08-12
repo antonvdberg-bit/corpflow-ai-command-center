@@ -58,6 +58,8 @@ DOCTYPES=(
   Address
   Lead
   Opportunity
+  "Customer Group"
+  Territory
   Item
   "Item Group"
   "Item Price"
@@ -165,11 +167,19 @@ missing=()
 [[ -z "${ERPNEXT_API_SECRET:-}" ]] && missing+=("ERPNEXT_API_SECRET")
 
 if ((${#missing[@]} > 0)); then
-  fail_closed "Cursor Cloud run missing injected secrets: ${missing[*]} (required names: ERPNEXT_BASE_URL, ERPNEXT_API_KEY, ERPNEXT_API_SECRET). Smallest operator action: Cursor Dashboard → Cloud Agents → Secrets → ensure those three names are present, then start a fresh Cursor Cloud run and re-probe. Do not paste values into chat/GitHub."
+  # Regression E (#899): missing ERPNext secrets must fail closed with no
+  # MASTER_ADMIN_KEY / ADMIN_PIN / SSH / Infisical fallback path.
+  log "auth_fallback_master_admin_key: forbidden"
+  log "auth_fallback_admin_pin: forbidden"
+  log "auth_fallback_ssh_or_infisical: forbidden"
+  fail_closed "Cursor Cloud run missing injected secrets: ${missing[*]} (required names: ERPNEXT_BASE_URL, ERPNEXT_API_KEY, ERPNEXT_API_SECRET). Smallest operator action: Cursor Dashboard → Cloud Agents → Secrets → ensure those three names are present, then start a fresh Cursor Cloud run and re-probe. Do not paste values into chat/GitHub. Do not use MASTER_ADMIN_KEY as a substitute."
 fi
 
 # Never print ERPNEXT_BASE_URL (or host/path fragments) — presence only.
 log "ERPNEXT_BASE_URL_value: not_printed"
+log "auth_uses_master_admin_key: no"
+log "runtime_bridge_ssh: no"
+log "runtime_bridge_infisical: no"
 
 TMP_BODY="$(mktemp)"
 TMP_ERR="$(mktemp)"
