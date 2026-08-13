@@ -5,7 +5,13 @@
   "parent": 711,
   "controller": 710,
   "product": "ai-lead-rescue",
-  "description": "Machine-readable contract for Lead Rescue onboarding completeness, delivery states, build gates, evidence packets, and the separate messaging-runtime gate. Pure process contract — no DB schema, no send runtime.",
+  "description": "Machine-readable contract for Lead Rescue onboarding completeness, delivery states, build gates, evidence packets, and the separate messaging-runtime gate. Pure process contract — no DB schema, no send runtime. Commercial identity (Customer/Contact/Address) is ERPNext per #880.",
+  "commercial_master": {
+    "system": "erpnext",
+    "issue": 880,
+    "canonical": "docs/erpnext/ERPNEXT_CLIENT_MASTER_V1.md",
+    "note": "Delivery intake in this contract. Billing name/email/address are authoritative on ERPNext Customer + Contact + Address."
+  },
   "financial_approval_contract": {
     "field": "financially_approved",
     "type": "boolean",
