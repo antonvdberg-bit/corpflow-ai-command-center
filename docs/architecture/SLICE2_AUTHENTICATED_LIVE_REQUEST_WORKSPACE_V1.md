@@ -38,7 +38,8 @@ session (or proof harness)
   → projectCoreRequest* | projectTenantRequest*
 ```
 
-DB path remains **read-only**. Review/expose mutations stay fixture-proof only (`persistence_unavailable` on DB).
+Slice 2 shipped the DB path as **read-only** for list/detail.  
+**Slice 3 (#883)** enables bounded review/expose writes into the existing `cmp_tickets.console_json` column (no schema). See `SLICE3_GOVERNED_CLIENT_REVIEW_V1.md`.
 
 ## Operator UX
 

@@ -82,6 +82,10 @@ export default function CoreRequestWorkView({ request, busy, onExpose }) {
               <dl className="cf-app-kv">
                 <dt>Milestone</dt>
                 <dd>{String(c.milestone_label || c.milestone || '—')}</dd>
+                <dt>Review state</dt>
+                <dd data-testid={`core-review-state-${key}`}>
+                  {String(c.review_state || '—')}
+                </dd>
                 <dt>Task ref</dt>
                 <dd data-testid={`core-task-${key}`}>{String(c.internal_task_ref || '—')}</dd>
                 <dt>Evidence</dt>
@@ -101,7 +105,11 @@ export default function CoreRequestWorkView({ request, busy, onExpose }) {
                 <dt>Latest client decision</dt>
                 <dd data-testid={`core-client-decision-${key}`}>
                   {latest
-                    ? `${String(latest.decision)}${latest.comment ? ` — ${String(latest.comment)}` : ''}`
+                    ? `${String(latest.decision)}${
+                        latest.by_role ? ` · ${String(latest.by_role)}` : ''
+                      }${latest.decided_at ? ` · ${String(latest.decided_at)}` : ''}${
+                        latest.comment ? ` — ${String(latest.comment)}` : ''
+                      }`
                     : '—'}
                 </dd>
               </dl>

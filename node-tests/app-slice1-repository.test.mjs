@@ -38,8 +38,9 @@ beforeEach(() => {
  * @param {Array<Record<string, unknown>>} rows
  */
 function createMockPrisma(rows) {
-  const store = rows.map((r) => ({ ...r }));
+  const store = rows.map((r) => structuredClone(r));
   return {
+    _store: store,
     cmpTicket: {
       async findMany({ where = {} } = {}) {
         let out = store.slice();
@@ -56,21 +57,31 @@ function createMockPrisma(rows) {
           const set = new Set(where.id.in);
           out = out.filter((r) => set.has(r.id));
         }
-        return out;
+        return out.map((r) => structuredClone(r));
       },
       async findUnique({ where = {} } = {}) {
-        return store.find((r) => r.id === where.id) || null;
+        const found = store.find((r) => r.id === where.id) || null;
+        return found ? structuredClone(found) : null;
       },
       async findFirst({ where = {} } = {}) {
-        return (
-          store.find((r) => r.id === where.id && r.tenantId === where.tenantId) || null
-        );
+        const found =
+          store.find((r) => r.id === where.id && r.tenantId === where.tenantId) || null;
+        return found ? structuredClone(found) : null;
       },
-      async update() {
-        throw new Error('write_not_allowed_in_mock');
+      async update({ where = {}, data = {} } = {}) {
+        const idx = store.findIndex((r) => r.id === where.id);
+        if (idx < 0) throw new Error('mock_not_found');
+        if (data.consoleJson !== undefined) {
+          store[idx].consoleJson = structuredClone(data.consoleJson);
+        }
+        if (data.description !== undefined) {
+          store[idx].description = data.description;
+        }
+        store[idx].updatedAt = new Date().toISOString();
+        return { id: store[idx].id };
       },
       async create() {
-        throw new Error('write_not_allowed_in_mock');
+        throw new Error('create_not_used_in_slice3');
       },
     },
   };
@@ -238,16 +249,34 @@ test('same canonical identity across fixture Core/Tenant paths', async () => {
   assert.notEqual(SECOND_REQUEST_ID, OTHER_TENANT_REQUEST_ID);
 });
 
-test('DB-backed read path performs NO writes', async () => {
-  const repo = createPrismaRequestRepository(createMockPrisma(MOCK_ROWS));
-  assert.equal(repo.supportsMutations, false);
+test('DB-backed path: list/get do not write; updateRequest persists console_json (#883)', async () => {
+  const mock = createMockPrisma(MOCK_ROWS);
+  const repo = createPrismaRequestRepository(mock);
+  assert.equal(repo.supportsMutations, true);
+  assert.equal(repo.persistencePath, 'cmp_tickets.console_json');
   await repo.listForCore({});
   await repo.listForTenant(REFERENCE_TENANT_ID);
   await repo.getForCore('db_req_corpflowai_a');
   await repo.getForTenant('db_req_corpflowai_a', REFERENCE_TENANT_ID);
-  const updated = await repo.updateRequest('db_req_corpflowai_a', () => {});
-  assert.equal(updated, null);
+  assert.equal(repo.getWriteAttemptCount(), 0);
+
+  const updated = await repo.updateRequest('db_req_corpflowai_a', (req) => {
+    const landing = req.console_json.client_view.components.find((c) => c.key === 'landing');
+    landing.exposed_for_client_review = false;
+    req.console_json.client_view.latest_client_safe_update = 'slice3 write proof';
+  });
+  assert.ok(updated);
   assert.equal(repo.getWriteAttemptCount(), 1);
+  const reread = await repo.getForCore('db_req_corpflowai_a');
+  assert.equal(
+    reread.request.console_json.client_view.components.find((c) => c.key === 'landing')
+      .exposed_for_client_review,
+    false,
+  );
+  assert.equal(
+    reread.request.console_json.client_view.latest_client_safe_update,
+    'slice3 write proof',
+  );
 });
 
 test('selector: proof/test/no-db → fixture; forceCmpTicketsRead with prisma mock', () => {
@@ -280,7 +309,7 @@ function mockRes() {
   };
 }
 
-test('handler: DB-backed review is unavailable (read-only); no external send', async () => {
+test('handler: DB-backed review persists into console_json; no external send (#883)', async () => {
   const prev = process.env.NODE_ENV;
   process.env.NODE_ENV = 'test';
   try {
@@ -297,15 +326,33 @@ test('handler: DB-backed review is unavailable (read-only); no external send', a
           request_id: 'db_req_corpflowai_a',
           component_key: 'landing',
           decision: 'approve',
+          comment: 'Synthetic approve for Slice 3 persistence',
           tenant_id: REFERENCE_TENANT_ID,
         },
       },
       res,
     );
-    assert.equal(res.state.statusCode, 409);
-    assert.equal(res.state.body.error, 'persistence_unavailable');
+    assert.equal(res.state.statusCode, 200);
+    assert.equal(res.state.body.ok, true);
+    assert.equal(res.state.body.decision, 'approve');
     assert.equal(res.state.body.external_send, false);
     assert.equal(res.state.body.data_source, 'cmp_tickets_read');
+    assert.equal(res.state.body.persistence_path, 'cmp_tickets.console_json');
+    assert.equal(
+      res.state.body.request.components.find((c) => c.key === 'landing').milestone,
+      'approved',
+    );
+    // Re-read via repository proves durable console_json write.
+    const again = await repo.getForTenant('db_req_corpflowai_a', REFERENCE_TENANT_ID);
+    const landing = again.request.console_json.client_view.components.find(
+      (c) => c.key === 'landing',
+    );
+    assert.equal(landing.milestone, 'approved');
+    assert.equal(landing.reviews.at(-1).decision, 'approve');
+    assert.equal(
+      again.request.console_json.client_view.preview_review.decision,
+      'approve',
+    );
   } finally {
     process.env.NODE_ENV = prev;
   }
