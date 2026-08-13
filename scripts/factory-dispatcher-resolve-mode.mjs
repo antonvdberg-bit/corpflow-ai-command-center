@@ -1,6 +1,9 @@
 /**
  * Resolve factory-dispatcher-activate mode/target outputs for GHA.
  *
+ * #930: this helper still serves the LEGACY diagnostic workflow
+ * (workflow_dispatch only). Production wakes use factory-cursor-handoff.mjs.
+ *
  * Usage (mode step):
  *   node scripts/factory-dispatcher-resolve-mode.mjs --phase mode
  *

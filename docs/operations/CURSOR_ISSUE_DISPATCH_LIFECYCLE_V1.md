@@ -1,8 +1,9 @@
 # Cursor issue dispatch lifecycle v1 — segregated GitHub → Cursor claims
 
-**Status:** Extends the existing factory dispatcher activator. **Does not** create a second dispatcher.
+**Status:** Production execution is **CorpFlowAI Cursor Factory Handoff** → Cursor Automation **CorpFlowAI Factory Wake Proof** / MODE B (#913 / merged PR #914 / #930). The Background Agents API workflow `factory-dispatcher-activate.yml` is **LEGACY / DIAGNOSTIC / NOT PRODUCTION EXECUTION** (`workflow_dispatch` only).
 **Owner:** Anton (policy); Cursor (implementation).
 **Created:** 2026-07-28.
+**Updated:** 2026-08-13 (#930 — Wake Proof is the sole production Cursor executor).
 **Implements:** Operator urgent change — Cursor must discover/claim `dispatch:cursor-ready` issues with strict segregation.
 **Anchor sentinel:** `<!-- CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1 -->`
 
@@ -27,18 +28,18 @@ Consolidation is allowed only when explicitly justified and safe.
 
 | Existing piece | Role |
 |----------------|------|
-| `.github/workflows/factory-dispatcher-activate.yml` | Scheduled + manual + **Phase A `issues:labeled`** + **eligibility wakes (#891)** activator (Cursor API path) |
-| `.github/workflows/factory-cursor-handoff.yml` | **`CorpFlowAI Cursor Factory Handoff` (#913)** — eligibility/capacity wake that **succeeds only** when exactly one eligible source issue is selected; successful completion wakes Cursor Automation MODE B (no Cursor API key) |
-| `.github/workflows/cursor-agent-lifecycle-status.yml` | Terminal/operator-review poller; **`workflow_call`s** the API activator **and** the Automation handoff workflow on capacity release (not a second dispatcher) |
-| `scripts/dispatcher-agent-activation.mjs` | Cursor Cloud activation (existing API path) |
+| `.github/workflows/factory-cursor-handoff.yml` | **`CorpFlowAI Cursor Factory Handoff` (#913 / #930)** — **sole production wake path**. Eligibility/capacity wake that **succeeds only** when exactly one eligible source issue is selected; successful completion wakes Cursor Automation MODE B (no Cursor API key) |
+| `.github/workflows/cursor-agent-lifecycle-status.yml` | Terminal/operator-review poller; **`workflow_call`s** the Automation handoff workflow on capacity release. Does **not** wake the legacy API dispatcher |
+| `.github/workflows/factory-dispatcher-activate.yml` | **LEGACY / DIAGNOSTIC / NOT PRODUCTION EXECUTION** — Background Agents API activator, **`workflow_dispatch` only**. Must not auto-launch from schedule, labels, comments, or capacity events |
+| `scripts/dispatcher-agent-activation.mjs` | Cursor Cloud activation (legacy API diagnostic path) |
 | `scripts/factory-cursor-handoff.mjs` / `lib/server/factory-cursor-handoff.js` | Select one eligible issue, encode handoff packet/comment, fail closed when no handoff (#913) |
 | `lib/server/cursor-ops-status.js` | Issue comment posting + Control Tower status (existing) |
 | **`lib/server/cursor-issue-dispatch-lifecycle.js`** | Classification, WIP, segregation, comment templates (**this packet**) |
-| **`lib/server/cursor-ready-event-dispatch.js`** | Exact-label + eligibility-wake predicates + effective target resolution (Phase A / #891) |
+| **`lib/server/cursor-ready-event-dispatch.js`** | Exact-label + eligibility-wake predicates + effective target resolution (consumed by Handoff in production) |
 | **`scripts/cursor-issue-dispatch-scan.mjs`** | Label scan → discover/classify/eligibility plan (**this packet**) |
-| **`scripts/cursor-issue-dispatch-finalize.mjs`** | Post-activation claim labels + run ID comment (**this packet**) |
+| **`scripts/cursor-issue-dispatch-finalize.mjs`** | Post-activation claim labels + run ID comment (legacy API diagnostic path) |
 
-Do **not** add another management-platform dispatcher. The Cursor **API** activator remains `factory-dispatcher-activate.yml`. The **Automation** wake path is the dedicated handoff workflow named exactly `CorpFlowAI Cursor Factory Handoff` — it does not call the Cursor API; MODE B starts from workflow success on `main` with one encoded source issue. Both paths reuse the same eligibility / verified WIP scan and may hand **at most one** source issue per run. Issue-scoped event runs prefer the event issue when scan-eligible; capacity backfill runs a full priority scan. Empty/suppressed handoff runs **fail closed** so Automation does not wake.
+Do **not** add another management-platform dispatcher. **Production Cursor execution** is the dedicated handoff workflow named exactly `CorpFlowAI Cursor Factory Handoff` — it does not call the Cursor API; MODE B starts from workflow success on `main` with one encoded source issue. The older `factory-dispatcher-activate.yml` Background Agents API path is **not** a production executor and must not compete with Wake Proof. Handoff reuses the same eligibility / verified WIP scan and may hand **at most one** source issue per run. Issue-scoped event runs prefer the event issue when scan-eligible; capacity backfill runs a full priority scan. Empty/suppressed handoff runs **fail closed** so Automation does not wake.
 
 ## 3. Labels
 
@@ -53,7 +54,7 @@ Do **not** add another management-platform dispatcher. The Cursor **API** activa
 
 **Decision Inbox reason labels** (ensure with lifecycle labels; see `docs/operations/ANTON_DECISION_INBOX_V1.md`): `approval:merge`, `approval:deploy`, `approval:production`, `approval:db-schema`, `approval:env-secrets`, `approval:external-send`, `approval:payment`, `approval:paid-tool`, `approval:public-launch`.
 
-**Label provisioning (workflow-owned, not manual):** The existing `factory-dispatcher-activate.yml` scan/finalize path idempotently **ensures** the approved lifecycle labels **and** Decision Inbox `approval:*` labels exist before any claim mutation. Anton must **not** create these labels manually in the GitHub UI unless ensure fails.
+**Label provisioning (workflow-owned, not manual):** The Handoff scan path (and the legacy diagnostic activator, when run manually) idempotently **ensures** the approved lifecycle labels **and** Decision Inbox `approval:*` labels exist before any claim mutation. Anton must **not** create these labels manually in the GitHub UI unless ensure fails.
 
 **Labels never unlock protected actions.** Only durable operator authorization for the **exact** protected gate counts — see `docs/operations/PROTECTED_ACTION_GATES_V1.md` and §5a below.
 
@@ -94,7 +95,7 @@ Research/documentation-only tasks may run separately only when they cannot confl
 6. **Do not** apply claim labels during **scan**. Acquire `dispatch:cursor-claimed` + durable claim marker **before** the Cursor API call (`scripts/dispatcher-agent-activation.mjs` claim-before-API). Finalize records the real run ID / origin metadata after success, or releases the claim on failure (`scripts/cursor-issue-dispatch-finalize.mjs`).
 7. Emit `cursor-issue-dispatch-scan.json` with `eligibleIssueNumbers`, `claimIssueNumbers`, and `activationTargetIssue` (max **one** live Cursor activation per GHA cycle).
 8. Stale claimed issues (no meaningful update beyond threshold): exception-only status request — no heartbeat spam.
-9. **Double-activation guard:** issue-keyed GHA concurrency (`factory-dispatcher-activate-<issue|scan>`) + durable claim-before-API. Duplicate/racing activators return `SKIP_ALREADY_CLAIMED`. Explicit requeue requires `CURSOR REQUEUE` generation marker + restored `dispatch:cursor-ready`. Claim comments are an **append-only state machine**: the latest status for the same `(sourceIssue, generation, claimToken)` is authoritative (`released` / `completed` supersede earlier `pending` / `activated`). Distinct claim tokens in the same generation still race (earliest token wins). `CURSOR REQUEUE` is a generation boundary — historical `CURSOR DISPATCH ACTIVATED` / origin evidence from an older generation cannot occupy current WIP or block a new attempt.
+9. **Double-activation guard:** issue-keyed GHA concurrency on `CorpFlowAI Cursor Factory Handoff` (`factory-cursor-handoff-<issue|scan>`) plus verified WIP. The legacy API activator, if run manually, still uses durable claim-before-API and `SKIP_ALREADY_CLAIMED`. Explicit requeue requires `CURSOR REQUEUE` generation marker + restored `dispatch:cursor-ready`. Claim comments are an **append-only state machine**: the latest status for the same `(sourceIssue, generation, claimToken)` is authoritative (`released` / `completed` supersede earlier `pending` / `activated`). Distinct claim tokens in the same generation still race (earliest token wins). `CURSOR REQUEUE` is a generation boundary — historical `CURSOR DISPATCH ACTIVATED` / origin evidence from an older generation cannot occupy current WIP or block a new attempt.
 
 ### 5a. Operator gate authorization resume (#887 / #896)
 
@@ -146,29 +147,29 @@ Semantics:
 
 **GitHub issues labelled `dispatch:cursor-ready` are activation inputs.** Open PRs from prior work are **not** automatically resumed or merged by the dispatcher. Each issue gets its own branch/PR cycle; operators merge manually after review.
 
-### Preferred cadence / eligibility wakes (#891)
+### Preferred cadence / eligibility wakes (#891 / #930)
 
 | Mode | Trigger |
 |------|---------|
-| **Primary — ready label** | `issues:labeled` with exact label `dispatch:cursor-ready` |
-| **Primary — operator authorization** | `issue_comment` created with durable `OPERATOR GATE AUTHORIZATION` / `ANTON DURABLE APPROVAL` / explicit Anton unlock (human actors only; bots ignored) |
-| **Primary — queue control** | `issues:unlabeled` `execution:paused`, or `issues:labeled` `priority:P0\|P1\|P2` while issue already has `dispatch:cursor-ready` |
-| **Primary — capacity backfill** | Lifecycle status reaches terminal/operator-review and releases verified WIP → calls activator via `workflow_call` (full priority scan) |
-| **Primary — claim release** | Failed activation restores ready in the same job → one continuation scan (GITHUB_TOKEN cannot re-fire `issues:labeled`) |
-| Fallback | every **30 minutes** (`*/30 * * * *`) for missed events / absence-of-event recovery |
+| **Primary — ready label** | `issues:labeled` with exact label `dispatch:cursor-ready` → **CorpFlowAI Cursor Factory Handoff** |
+| **Primary — operator authorization** | `issue_comment` created with durable `OPERATOR GATE AUTHORIZATION` / `ANTON DURABLE APPROVAL` / explicit Anton unlock (human actors only; bots ignored) → **Handoff** |
+| **Primary — queue control** | `issues:unlabeled` `execution:paused`, or `issues:labeled` `priority:P0\|P1\|P2` while issue already has `dispatch:cursor-ready` → **Handoff** |
+| **Primary — capacity backfill** | Lifecycle status reaches terminal/operator-review and releases verified WIP → **`workflow_call`s CorpFlowAI Cursor Factory Handoff** (full priority scan). Does **not** wake the legacy API dispatcher |
+| Diagnostic only | `factory-dispatcher-activate.yml` `workflow_dispatch` — Background Agents API smoke; **not** production execution |
 
-**Internal SLA:** eligible queued work should normally begin within **5 minutes** of an eligibility-changing event (`ELIGIBILITY_WAKE_SLA_MINUTES`). Scheduled fallback may be slower but must self-heal without Anton.
+**Internal SLA:** eligible queued work should normally begin within **5 minutes** of an eligibility-changing event (`ELIGIBILITY_WAKE_SLA_MINUTES`) via Handoff → Wake Proof. Handoff has **no** schedule trigger (empty scheduled successes must not wake Automation).
 
-Cost remains negligible (Node script + GitHub API). Scheduled `cursor_live` still requires `CURSOR_LIVE_ENABLED=true` and the throughput packet gate for dispatcher-sourced activations. Event-driven `cursor_live` uses the same `CURSOR_API_KEY` + claim-before-API path; WIP and protected gates still block activation. Bot/`GITHUB_TOKEN` comments and lifecycle labels never wake (storm prevention). Duplicate Cursor runs are blocked by claim-before-API + `SKIP_ALREADY_CLAIMED`.
+Cost remains negligible (Node script + GitHub API). Production execution does **not** call the Cursor Background Agents API. Bot/`GITHUB_TOKEN` comments and lifecycle labels never wake (storm prevention). Duplicate Cursor runs are blocked by verified WIP + Handoff duplicate suppression. The legacy API path, if invoked manually, still uses claim-before-API + `SKIP_ALREADY_CLAIMED`.
 
 ### Operator procedure (no courier role)
 
 1. Create / queue the work once (`dispatch:cursor-ready`).
 2. If gated, Anton records **one** durable decision (`OPERATOR GATE AUTHORIZATION` or Decision Inbox durable approval).
 3. After approval, the system wakes itself and claims when WIP permits — **do not** toggle labels or re-create the issue.
-4. When an active run reaches terminal/operator-review, the system immediately backfills the freed slot from the highest eligible priority.
-5. Scheduled scan self-heals missed events.
-6. Alert Anton only for a genuine unresolved gate or repeated activation failure.
+4. When an active run reaches terminal/operator-review, the system immediately backfills the freed slot from the highest eligible priority **through Handoff / Wake Proof**.
+5. Alert Anton only for a genuine unresolved gate or repeated activation failure.
+
+Do **not** rely on the legacy API dispatcher schedule or a second Background Agents API worker.
 
 ## 6. Acknowledgement stages
 
@@ -224,4 +225,6 @@ node scripts/cursor-issue-dispatch-finalize.mjs --dry-run --scan-file cursor-iss
 - Issue #679 — environment classification doctrine
 - Issue #887 — operator gate authorization must resume Cursor activation
 - Issue #891 — approval and capacity changes must wake dispatcher automatically
+- Issue #913 / PR #914 — CorpFlowAI Cursor Factory Handoff (MODE B)
+- Issue #930 — Wake Proof is the sole production Cursor executor; API dispatcher is diagnostic only
 - `lib/server/operator-gate-authorization.js` — durable gate authorization evaluation
