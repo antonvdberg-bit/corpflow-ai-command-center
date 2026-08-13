@@ -30,6 +30,8 @@
 
 ---
 
+## 2026-08-13 — **Prestige Procurement proposal packet (#919).** Docs-only commercial pack under `docs/sales/prestige-procurement/`: scope matrix, independent WordPress architecture, 12-phase WBS, MUR 285,000 recommendation with five milestone payments, ERPNext mapping, quotation draft, presentation. Not sent. Not ERPNext-posted. Hosting remains client-paid. Verdict: ready for Anton’s client review; send remains Anton-gated.
+
 ## 2026-08-06 — **OpenHands agent-server conversation 500 diagnosed + remediated (non-model READY).** Controlling issue [#743](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/743), draft PR [#747](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/747) head `1f09743aa0b11895627075638ef1a4ab32dae8d2`. **Exception:** `MCPError: MCP Connection Failure` (`httpx.ConnectError` DNS name not known) on agent-server `POST /api/conversations` during `SETTING_UP_SKILLS`. **Cause:** unset `web_url` → control plane fell back to `http://host.docker.internal:{port}/mcp/mcp`; ExtraHosts=[] correctly blocks that host. **Reproduced without Groq/model key.** **Remediation:** compose `OH_WEB_URL=http://corpflowai-openhands-app:3000`. Live non-model conversation probe → **READY**; isolation held; primary Docker unchanged; Groq file mode 600 unused; dispatcher still disabled. PR #747 still draft and **CONFLICTING** vs `main` only on `artifacts/chat_history.md`. **Verdict: CONVERSATION SETUP VERIFIED — READY FOR SEPARATE MODEL RETRY APPROVAL.**
 
 <!-- OPENHANDS_CONV500_2026_08_06_HIST -->
