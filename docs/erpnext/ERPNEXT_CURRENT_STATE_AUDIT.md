@@ -1,6 +1,6 @@
 # ERPNext current state audit — CorpFlowAI commercial launch
 
-**Status:** Docs-only audit · **Updated:** 2026-07-14  
+**Status:** Docs-only audit · **Updated:** 2026-08-13 (#880 Client Master)
 **Owner:** Anton  
 **Anchor:** `<!-- ERPNEXT_CURRENT_STATE_AUDIT_V1 -->`
 
@@ -39,9 +39,9 @@ Classification key:
 | ---------- | ----- | ---------------- |
 | Lead doctype | **CONFIGURED BUT NOT VERIFIED** | Mapped in evaluation; sandbox synthetic leads only |
 | Opportunity doctype | **DOCUMENTED ONLY** | Stage transitions documented; not rehearsed for MUR sprints |
-| Customer doctype | **LIVE AND VERIFIED** | Phase C: `Sandbox Client A/B - USD` created |
-| Customer custom fields (BRN, etc.) | **MISSING** | S-Customer-Fields in production readiness eval |
-| Lead → Customer conversion workflow | **DOCUMENTED ONLY** | Runbook written; MUR sprint path not sandbox-rehearsed |
+| Customer doctype | **LIVE AND VERIFIED** | Phase C plus #880 synthetic Client Master: `CF880 Synthetic Lead Rescue Ltd` (USD) and `CF880 Synthetic Website Rescue Ltd` (MUR), each with linked Contact + billing Address |
+| Customer custom fields (BRN, etc.) | **OUT OF SCOPE** | #880: standard `tax_id` is enough; no custom field authorized |
+| Lead → Customer conversion workflow | **DOCUMENTED ONLY** | Runbook written; MUR sprint path not sandbox-rehearsed. #880 uses Customer as commercial master; Lead is optional pre-sale only. |
 
 ### Quotation & sales order
 
@@ -166,6 +166,7 @@ Classification key:
 
 ## 6. Cross-references
 
+- `docs/erpnext/ERPNEXT_CLIENT_MASTER_V1.md`
 - `docs/erpnext/CORPFLOWAI_QUOTE_TO_CASH_RUNBOOK.md`
 - `docs/erpnext/ERPNEXT_RECORD_MAPPING.md`
 - `docs/erpnext/ERPNEXT_PRODUCT_CATALOGUE_V1.md`

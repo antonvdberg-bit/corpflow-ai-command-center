@@ -16,6 +16,8 @@
 
 **Outcome:** Prove a financially approved Website Rescue client can be onboarded and delivered **without redesigning the service**.
 
+**Commercial master (#880):** legal/trading name, billing contact and billing address live on ERPNext Customer + Contact + Address — `docs/erpnext/ERPNEXT_CLIENT_MASTER_V1.md`. This document remains the **delivery** contract (pages, hosting facts without passwords, brand status, simulated deploy/DNS). Store the ERPNext Customer name as a pointer; never paste credentials here.
+
 ---
 
 ## 0. Boundaries (anti-sidetrack)

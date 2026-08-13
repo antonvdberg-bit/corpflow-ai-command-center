@@ -7,7 +7,13 @@
   "source": 654,
   "product": "website-rescue",
   "public_sku": "Premium Landing Page Rescue",
-  "description": "Machine-readable contract for Website Rescue onboarding completeness, delivery states, build/cutover gates, evidence packets, and simulated deploy/DNS approval. Pure process contract — no DB schema, no DNS action, no credential storage.",
+  "description": "Machine-readable contract for Website Rescue onboarding completeness, delivery states, build/cutover gates, evidence packets, and simulated deploy/DNS approval. Pure process contract — no DB schema, no DNS action, no credential storage. Commercial identity (Customer/Contact/Address) is ERPNext per #880.",
+  "commercial_master": {
+    "system": "erpnext",
+    "issue": 880,
+    "canonical": "docs/erpnext/ERPNEXT_CLIENT_MASTER_V1.md",
+    "note": "Delivery intake in this contract. Billing name/email/address are authoritative on ERPNext Customer + Contact + Address."
+  },
   "financial_approval_contract": {
     "field": "financially_approved",
     "type": "boolean",

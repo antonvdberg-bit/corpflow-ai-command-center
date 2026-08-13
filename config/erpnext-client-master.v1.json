@@ -1,0 +1,159 @@
+{
+  "schema": "corpflow.erpnext_client_master.v1",
+  "version": "v1",
+  "issue": 880,
+  "parents": [710, 711, 714],
+  "sources": [550, 654, 715, 716, 879],
+  "environment": "erpnext_sandbox_test",
+  "verdict": "ERPNext Client Master READY",
+  "description": "ERPNext is the authoritative commercial master for CorpFlowAI client/company onboarding. Standard Customer + Contact + Address hold billing identity for quotation, invoice, payment evidence and delivery handoff. Delivery-only intake stays in CorpFlowAI records. Secrets never enter ERPNext notes, GitHub, or chat.",
+  "no_implementation_authorized": {
+    "custom_fields": true,
+    "custom_doctypes": true,
+    "schema_change": true,
+    "payments": true,
+    "client_sends": true,
+    "live_client_data": true
+  },
+  "stores": {
+    "erpnext_commercial": "Legal/trading customer identity, billing contact, billing address, customer group, territory, default currency, default selling price list, tax id, website, and links used by Quotation / Sales Invoice / Payment Entry.",
+    "corpflow_delivery": "Product onboarding and delivery intake from #715 / #716: process, stages, pages, brand status, evidence packets, build gates. May store a pointer to the ERPNext Customer name only.",
+    "company_master_evidence": "Governed logos, certificates, publication/approval of assets (#765). Not a second commercial customer record. May store a pointer to the ERPNext Customer name.",
+    "approved_secure_channel": "Passwords, API keys, hosting/DNS/registrar credentials, mailbox credentials, messaging tokens, production access secrets. Never GitHub, chat, tickets, ERPNext customer_details, or delivery intake."
+  },
+  "erpnext_objects": {
+    "Customer": {
+      "role": "commercial_master",
+      "required_to_create": ["customer_name", "customer_type"],
+      "operator_required": ["customer_group", "territory", "default_currency", "default_price_list"],
+      "naming": "Document name follows customer_name on first create; a second create with the same customer_name is NOT rejected — ERPNext may append ' - 1'. Search-before-create is mandatory."
+    },
+    "Contact": {
+      "role": "billing_and_working_contact",
+      "link": "Dynamic Link to Customer",
+      "email_unique": false,
+      "notes": "Customer.email_id and Customer.mobile_no are Read Only and fetch from the primary Contact."
+    },
+    "Address": {
+      "role": "billing_address",
+      "required_to_create": ["address_type", "address_line1", "city", "country"],
+      "link": "Dynamic Link to Customer"
+    },
+    "Lead": {
+      "role": "optional_pre_sale",
+      "notes": "Use before a Customer exists. Convert or link via Customer.lead_name. Do not keep Lead as a parallel commercial master after Customer exists. Source field is utm_source (not source) on frappe 16 / erpnext 16."
+    },
+    "Opportunity": {
+      "role": "optional_qualified_funnel",
+      "notes": "opportunity_from + party_name (Lead or Customer). Converted/won work must point at the Customer, not a second identity."
+    },
+    "Customer Group": {
+      "role": "standard_config",
+      "live_values": ["All Customer Groups", "Commercial", "Government", "Individual", "Non Profit"],
+      "default_for_rescue_clients": "Commercial"
+    },
+    "Territory": {
+      "role": "standard_config",
+      "live_values": ["All Territories", "Mauritius", "Rest Of The World"],
+      "default_for_mu_clients": "Mauritius"
+    },
+    "Price List": {
+      "role": "standard_config",
+      "live_values": ["Standard Buying (MUR)", "Standard Selling (MUR)"],
+      "gap": "No USD selling price list yet — catalogue/#882 follow-up, not a Client Master identity blocker."
+    }
+  },
+  "defaults": {
+    "company": "CorpFlowAI LTD",
+    "company_abbr": "CFAI",
+    "company_country": "Mauritius",
+    "company_default_currency": "MUR",
+    "customer_type_company": "Company",
+    "customer_group": "Commercial",
+    "territory_mu": "Mauritius",
+    "territory_other": "Rest Of The World",
+    "selling_price_list": "Standard Selling",
+    "address_type": "Billing",
+    "contact_status": "Open"
+  },
+  "duplicate_rules": {
+    "search_before_create": true,
+    "match_on": ["normalized_customer_name", "erpnext_name_suffix_stripped", "primary_email", "tax_id_if_present"],
+    "erpnext_native_unique_customer_name": false,
+    "erpnext_native_unique_contact_email": false,
+    "on_match_update": "Update Contact, Address, currency, group, territory, website, and customer_details on the existing enabled Customer. Do not silently rename.",
+    "on_conflict": "Stop. Same name with a different primary email, or same email with a different name, needs operator resolution.",
+    "on_accidental_suffix_duplicate": "Set disabled=1 on the extra Customer and write DUPLICATE_OF=<canonical name> in customer_details. Integration user cannot DELETE Customer (HTTP 403).",
+    "never_create_second_commercial_row": ["postgres.leads as commercial SoR", "company-master legal/trading name as commercial SoR", "GitHub issue body as billing identity"]
+  },
+  "lifecycle": [
+    "optional_lead",
+    "optional_opportunity",
+    "customer_contact_address_required_before_quotation",
+    "quotation",
+    "acceptance_and_payment_evidence",
+    "financially_approved",
+    "onboarding_handoff_pointer_only",
+    "delivery_in_corpflow_records"
+  ],
+  "standard_config_changes": [
+    {
+      "id": "usd_selling_price_list",
+      "needed_for": 882,
+      "blocks_client_master": false,
+      "change": "Add a standard selling Price List in USD when USD quotations must price without MUR conversion. Customer.default_currency=USD is already valid."
+    },
+    {
+      "id": "payment_terms_template",
+      "needed_for": 882,
+      "blocks_client_master": false,
+      "change": "Create a Payment Terms Template when invoice schedules are required. None exist today; Payment Terms DocType is HTTP 403 for the integration user."
+    },
+    {
+      "id": "tax_category",
+      "needed_for": "HB-3 VAT decision",
+      "blocks_client_master": false,
+      "change": "No Tax Category rows exist. Leave Customer.tax_category empty until Anton/accountant VAT decision."
+    }
+  ],
+  "custom_field_proposal": "none — standard Customer / Contact / Address hold required commercial identity. Product tag lives in customer_details. Timezone, enquiry process, pages, and brand status stay in CorpFlowAI delivery records.",
+  "live_synthetic_proof": {
+    "probed_at_utc": "2026-08-13",
+    "cursor_run": "https://cursor.com/agents/bc-951a08d6-ab32-440e-ae1b-44197d15cefe",
+    "identity": "integrations@corpflowai.com",
+    "versions": "frappe=16.25.0, erpnext=16.26.2",
+    "customers": [
+      {
+        "product": "ai-lead-rescue",
+        "customer": "CF880 Synthetic Lead Rescue Ltd",
+        "contact": "Priya Synthetic-CF880 Synthetic Lead Rescue Ltd",
+        "address": "CF880 Synthetic Lead Rescue Ltd-Billing",
+        "currency": "USD",
+        "customer_group": "Commercial",
+        "territory": "Mauritius",
+        "disabled": false
+      },
+      {
+        "product": "website-rescue",
+        "customer": "CF880 Synthetic Website Rescue Ltd",
+        "contact": "Jean Synthetic-CF880 Synthetic Website Rescue Ltd",
+        "address": "CF880 Synthetic Website Rescue Ltd-Billing",
+        "currency": "MUR",
+        "customer_group": "Commercial",
+        "territory": "Mauritius",
+        "disabled": false
+      }
+    ],
+    "duplicate_probe": {
+      "second_create_same_name": "ERPNext accepted and named CF880 Synthetic Lead Rescue Ltd - 1",
+      "remediation": "disabled=1 with DUPLICATE_OF pointer",
+      "delete_permission": "HTTP 403"
+    }
+  },
+  "docs": {
+    "canonical": "docs/erpnext/ERPNEXT_CLIENT_MASTER_V1.md",
+    "adr": "docs/decisions/20260813-erpnext-client-master.md",
+    "lead_rescue_onboarding": "docs/operations/LEAD_RESCUE_ONBOARDING_AND_DELIVERY_V1.md",
+    "website_rescue_onboarding": "docs/operations/WEBSITE_RESCUE_ONBOARDING_AND_DELIVERY_V1.md"
+  }
+}

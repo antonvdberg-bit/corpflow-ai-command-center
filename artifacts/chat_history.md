@@ -30,6 +30,9 @@
 
 ---
 
+## 2026-08-13 — **#880 ERPNext Client Master READY.** Standard Customer + Contact + Address is the commercial onboarding identity (no custom fields). Synthetic `CF880 Synthetic Lead Rescue Ltd` (USD) and `CF880 Synthetic Website Rescue Ltd` (MUR) created on sandbox/test with linked Contact + billing Address. Duplicate name is not natively unique — search-before-create; suffix duplicate disabled. Delivery stays in #715/#716; secrets stay off GitHub. Canonical: `docs/erpnext/ERPNEXT_CLIENT_MASTER_V1.md`. Follow-ups: #881 Items, #882 USD price list / Payment Terms. PR only; not merged.
+
+<!-- ERPNEXT_CLIENT_MASTER_880_HIST -->
 ## 2026-08-13 — **Prestige Procurement proposal packet (#919).** Docs-only commercial pack under `docs/sales/prestige-procurement/`: scope matrix, independent WordPress architecture, 12-phase WBS, MUR 285,000 recommendation with five milestone payments, ERPNext mapping, quotation draft, presentation. Not sent. Not ERPNext-posted. Hosting remains client-paid. Verdict: ready for Anton’s client review; send remains Anton-gated.
 ## 2026-08-13 — **#882 / PR #924 READY after Anton Currency Exchange USD→MUR 47.15.** MUR quote/invoice + USD quote `SAL-QTN-2026-00001` + USD draft invoice `ACC-SINV-2026-00002` (Debtors USD - CFAI, conversion_rate 47.15, base 11740). Synthetic drafts only. Evidence `docs/erpnext/ERPNEXT_COMMERCIAL_DOCUMENTS_V1.md`. **Verdict: ERPNext Commercial Documents READY — merge PR #924.** Branch `cursor/dispatcher-issue-882-7b0d` reconciled with current `main`. Live: Standard Selling USD + four Item Prices; MUR `SAL-QTN-2026-00003` + draft `ACC-SINV-2026-00001`; USD `SAL-QTN-2026-00001` on Standard Selling USD Item Prices (conversion_rate=1.0 unsafe); Currency Exchange empty; USD Sales Invoice HTTP 417 fail-closed. No invented FX, no submit/send. Evidence `docs/erpnext/ERPNEXT_COMMERCIAL_DOCUMENTS_V1.md`. **Verdict: BLOCKED — Anton must supply one USD→MUR selling rate.**
 
