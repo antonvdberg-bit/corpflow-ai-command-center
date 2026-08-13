@@ -67,8 +67,8 @@ Use Items from the canonical catalogue (`docs/erpnext/ERPNEXT_PRODUCT_CATALOGUE_
 
 | Offer (catalogue title) | Item code | Starting price | Status (#881) |
 | ----------------------- | --------- | -------------- | ------------- |
-| AI Lead Rescue Sprint | `CF-RD-LEAD-RESCUE` | MUR 35,000 | Item master live; Item Price pending role grant |
-| Premium Landing Page Rescue | `CF-RD-LANDING-RESCUE` | MUR 45,000 | Item master live; Item Price pending role grant |
+| AI Lead Rescue Sprint | `CF-RD-LEAD-RESCUE` | MUR 35,000 | Item master live; MUR `standard_rate` 35,000 applied; Item Price pending UI role grant |
+| Premium Landing Page Rescue | `CF-RD-LANDING-RESCUE` | MUR 45,000 | Item master live; MUR `standard_rate` 45,000 applied; Item Price pending UI role grant |
 | Customer Recovery & Reputation Management Sprint | `CF-RD-REPUTATION-RECOVERY` | MUR 45,000 | Reserved code — not inserted |
 
 USD 150 launch pilot uses `LR-SETUP-USD-150` (not a MUR clone of that SKU). Recurring: `LR-REC-USD-99` / `CF-WR-REC-MUR-MAINT`.

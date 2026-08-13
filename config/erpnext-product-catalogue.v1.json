@@ -1,7 +1,7 @@
 {
   "version": "v1",
   "issue": 881,
-  "status": "item_masters_live_prices_pending",
+  "status": "item_masters_live_mur_standard_rate_applied_item_price_ui_blocked",
   "company": "CorpFlowAI LTD",
   "environment": "erpnext_hosted_test",
   "anchor": "ERPNEXT_PRODUCT_CATALOGUE_V1",
@@ -74,7 +74,7 @@
       "currency": "USD",
       "selling": 1,
       "exists": false,
-      "blocked_reason": "integrations@corpflowai.com has no Price List write permission",
+      "blocked_reason": "Price List create still HTTP 403. Standard write roles are Sales Master Manager / Purchase Master Manager; integration user has Item Manager via Role Profile Accounts. Role / Custom DocPerm / permission_manager writes are UI-only (403).",
       "use_for": ["LR-SETUP-USD-150", "LR-REC-USD-99"]
     }
   ],
@@ -149,7 +149,9 @@
           "rate": 150,
           "uom": "Nos",
           "authority": "canonical",
-          "erpnext_item_price": "pending_role_grant"
+          "erpnext_item_price": "pending_ui_role_grant",
+          "item_standard_rate_applied": 0,
+          "item_standard_rate_note": "Company currency is MUR. Do not write USD 150 onto Item.standard_rate."
         }
       ],
       "do_not_duplicate_as": ["LR-SETUP-MUR-7000", "SBX-LR-SETUP-USD-150 on this hosted site"]
@@ -175,7 +177,9 @@
           "rate": 99,
           "uom": "Month",
           "authority": "canonical",
-          "erpnext_item_price": "pending_role_grant"
+          "erpnext_item_price": "pending_ui_role_grant",
+          "item_standard_rate_applied": 0,
+          "item_standard_rate_note": "Company currency is MUR. Do not write USD 99 onto Item.standard_rate."
         }
       ],
       "do_not_duplicate_as": ["LR-SETUP-USD-150"]
@@ -201,7 +205,8 @@
           "rate": 35000,
           "uom": "Nos",
           "authority": "canonical",
-          "erpnext_item_price": "pending_role_grant"
+          "erpnext_item_price": "pending_ui_role_grant",
+          "item_standard_rate_applied": 35000
         }
       ],
       "do_not_duplicate_as": ["LR-SETUP-USD-150"]
@@ -227,7 +232,8 @@
           "rate": 45000,
           "uom": "Nos",
           "authority": "canonical",
-          "erpnext_item_price": "pending_role_grant"
+          "erpnext_item_price": "pending_ui_role_grant",
+          "item_standard_rate_applied": 45000
         }
       ],
       "do_not_duplicate_as": ["CF-WR-SETUP-MUR-T1"]
@@ -346,5 +352,34 @@
     "do_not_submit": true,
     "do_not_send": true,
     "notes": "Draft quotations on a synthetic customer. USD document used a placeholder conversion_rate because Currency Exchange is empty (#882). Do not submit or send."
+  },
+  "price_master_probe_2026_08_13": {
+    "identity": "integrations@corpflowai.com",
+    "role_profile": "Accounts",
+    "roles": [
+      "Purchase User",
+      "Sales User",
+      "Item Manager",
+      "Stock Manager",
+      "Stock User",
+      "Accounts Manager",
+      "Sales Manager",
+      "Accounts User",
+      "Purchase Manager"
+    ],
+    "item_price_get": 403,
+    "price_list_create": 403,
+    "permission_manager_add": 403,
+    "custom_docperm_create": 403,
+    "role_read": 403,
+    "standard_item_price_roles": ["Sales Master Manager", "Purchase Master Manager"],
+    "mur_item_standard_rate": {
+      "CF-RD-LEAD-RESCUE": 35000,
+      "CF-RD-LANDING-RESCUE": 45000,
+      "CF-WR-REC-MUR-MAINT": 0,
+      "LR-SETUP-USD-150": 0,
+      "LR-REC-USD-99": 0
+    },
+    "smallest_ui_action": "Role Permissions Manager: grant Item Price Read/Create/Write and Price List Create/Write to Item Manager (already on this user). Do not edit the shared Accounts Role Profile."
   }
 }

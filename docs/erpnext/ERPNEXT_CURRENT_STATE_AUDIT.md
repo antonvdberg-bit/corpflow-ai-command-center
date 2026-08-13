@@ -149,7 +149,7 @@ Classification key:
 
 ## 4. Priority gaps for Wave 1 (manual path)
 
-1. **MUR Item master** for sprint offers — **PARTIAL** (#881): `CF-RD-LEAD-RESCUE` and `CF-RD-LANDING-RESCUE` exist on hosted ERPNext as non-stock services; Item Price rows still blocked (403). Canonical catalogue: `docs/erpnext/ERPNEXT_PRODUCT_CATALOGUE_V1.md`.
+1. **MUR Item master** for sprint offers — **PARTIAL** (#881): `CF-RD-LEAD-RESCUE` and `CF-RD-LANDING-RESCUE` exist on hosted ERPNext as non-stock services with MUR `standard_rate` 35,000 / 45,000; Item Price rows still UI-blocked (403). Canonical catalogue: `docs/erpnext/ERPNEXT_PRODUCT_CATALOGUE_V1.md`.
 2. **Quotation Print Format** — **MISSING**; use manual quote email until M-Print
 3. **Real bank CSV test** — **NEEDS_ANTON** (NA-008)
 4. **Record mapping discipline** — **DOCUMENTED ONLY** until first prospect logged
