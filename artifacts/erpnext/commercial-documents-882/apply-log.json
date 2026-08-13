@@ -1,84 +1,119 @@
 [
   {
-    "step": "company_identity_put",
+    "step": "currency_exchange_list",
     "http": 200,
     "extra": {
-      "email": "finance@corpflowai.com",
-      "website": "https://corpflowai.com",
-      "default_letter_head": "Company Letterhead - Grey",
-      "tax_id_unchanged": "28466939",
-      "default_currency_unchanged": "MUR",
-      "registration_details_unchanged": "Company No : C25228280"
+      "count": 0,
+      "rows": []
     }
   },
   {
-    "step": "company_address_email_put",
-    "http": 200,
+    "step": "probe_Currency Exchange Settings",
+    "http": 500,
     "extra": {
-      "email_id": "finance@corpflowai.com",
-      "address_line1": "Dextra Lane Lot No. 3 Phase 1"
+      "data": {
+        "exception": "MySQLdb.ProgrammingError: ('DocType', 'Currency Exchange Settings')",
+        "exc_type": "ProgrammingError",
+        "exc": "[\"Traceback (most recent call last):\\n  File \\\"apps/frappe/frappe/app.py\\\", line 121, in application\\n    response = frappe.api.handle(request)\\n  File \\\"apps/frappe/frappe/api/__init__.py\\\", line 63, in handle\\n    data = endpoint(**arguments)\\n  File \\\"apps/frappe/frappe/api/v1.py\\\", line 31, in document_list\\n    return frappe.call(frappe.client.get_list, doctype, **frappe.form_dict)\\n           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"apps/frappe/frappe/__init__.py\\\", line 1131, in call\\n    return fn(*args, **newargs)\\n  File \\\"apps/frappe/frappe/utils/typing_validations.py\\\", line 36, in wrapper\\n    return func(*args, **kwargs)\\n  File \\\"apps/frappe/frappe/client.py\\\", line 65, in get_list\\n    _list = frappe.get_list(**args)\\n  File \\\"apps/frappe/frappe/__init__.py\\\", line 1364, in get_list\\n    return frappe.model.qb_query.DatabaseQuery(doctype).execute(*args, **kwargs)\\n           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\\n  File \\\"apps/frappe/frappe/model/qb_query.py\\\", line 177, in execute\\n    get_table_columns(self.doctype)\\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^\\n  File \\\"apps/frappe/frappe/model/meta.py\\\", line 109, in get_table_columns\\n    return frappe.db.get_table_columns(doctype)\\n           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^\\n  File \\\"apps/frappe/frappe/database/database.py\\\", line 1369, in get_table_columns\\n    raise self.TableMissingError(\\\"DocType\\\", doctype)\\nMySQLdb.ProgrammingError: ('DocType', 'Currency Exchange Settings')\\n\"]"
+      }
     }
   },
   {
-    "step": "letterhead_legal_bind_put",
+    "step": "probe_Currency Exchange Settings Detail",
     "http": 403,
     "extra": {
-      "updated": false,
-      "blocker": "integrations@corpflowai.com has no Letter Head write permission"
+      "data": {
+        "exc_type": "PermissionError",
+        "_server_messages": "[\"{\\\"message\\\":\\\"User <strong>integrations@corpflowai.com</strong> does not have doctype access via role permission for document <strong>DocType</strong>\\\",\\\"as_table\\\":false,\\\"title\\\":\\\"Message\\\"}\"]",
+        "_error_message": "No permission for DocType"
+      }
     }
   },
   {
-    "step": "terms_create",
+    "step": "get_exchange_rate_usd_mur",
     "http": 200,
-    "extra": { "name": "CF882 CorpFlowAI Commercial Terms" }
+    "extra": {
+      "message": 0.0,
+      "server": "[\"{\\\"message\\\":\\\"Unable to find exchange rate for USD to MUR for key date 2026-08-13. Please create a Currency Exchange record manually\\\",\\\"as_table\\\":false,\\\"title\\\":\\\"Message\\\"}\"]"
+    }
   },
   {
-    "step": "website_rescue_quotation_create",
+    "step": "item_price_readback",
+    "http": 200,
+    "extra": {
+      "rows": [
+        {
+          "name": "10esgagbr0",
+          "item_code": "CF-RD-LANDING-RESCUE",
+          "price_list": "Standard Selling",
+          "price_list_rate": 45000.0,
+          "currency": "MUR",
+          "uom": "Nos",
+          "selling": 1
+        },
+        {
+          "name": "80e9c04627",
+          "item_code": "LR-SETUP-USD-150",
+          "price_list": "Standard Selling USD",
+          "price_list_rate": 150.0,
+          "currency": "USD",
+          "uom": "Nos",
+          "selling": 1
+        },
+        {
+          "name": "80empip48q",
+          "item_code": "CF-RD-LEAD-RESCUE",
+          "price_list": "Standard Selling",
+          "price_list_rate": 35000.0,
+          "currency": "MUR",
+          "uom": "Nos",
+          "selling": 1
+        },
+        {
+          "name": "90egvb653r",
+          "item_code": "LR-REC-USD-99",
+          "price_list": "Standard Selling USD",
+          "price_list_rate": 99.0,
+          "currency": "USD",
+          "uom": "Month",
+          "selling": 1
+        }
+      ]
+    }
+  },
+  {
+    "step": "mur_quotation_update_item_price",
     "http": 200,
     "extra": {
       "name": "SAL-QTN-2026-00003",
-      "customer": "CF880 Synthetic Website Rescue Ltd",
       "currency": "MUR",
       "grand_total": 45000.0,
-      "base_grand_total": 45000.0,
       "conversion_rate": 1.0,
-      "item": "CF-RD-LANDING-RESCUE",
-      "docstatus": 0
+      "docstatus": 0,
+      "selling_price_list": "Standard Selling",
+      "price_list_rate": 45000.0,
+      "rate": 45000.0
     }
   },
   {
-    "step": "annotate_SAL-QTN-2026-00001",
-    "http": 200,
-    "extra": {
-      "title": "CF882 SYNTHETIC Lead Rescue USD — TEST-ONLY DO NOT SEND. conversion_rate=1.0 is NOT accounting truth."
-    }
-  },
-  {
-    "step": "annotate_SAL-QTN-2026-00002",
-    "http": 200,
-    "extra": {
-      "title": "CF882 NOTE: #881 draft used Website Rescue Item on Lead Rescue Customer. Prefer SAL-QTN-2026-00003."
-    }
-  },
-  {
-    "step": "sales_invoice_draft_create",
+    "step": "mur_invoice_update_item_price",
     "http": 200,
     "extra": {
       "name": "ACC-SINV-2026-00001",
-      "docstatus": 0,
       "currency": "MUR",
       "grand_total": 45000.0,
-      "base_grand_total": 45000.0,
-      "status": "Draft"
+      "docstatus": 0,
+      "status": "Draft",
+      "price_list_rate": 45000.0
     }
   },
   {
-    "step": "sales_invoice_usd_draft_no_rate",
+    "step": "usd_invoice_without_fx",
     "http": 417,
     "extra": {
       "name": null,
       "exc_type": "ValidationError",
-      "message": "Exchange Rate is mandatory. Maybe Currency Exchange record is not created for USD to MUR."
+      "message": "Unable to find exchange rate for USD to MUR for key date 2026-08-13. Please create a Currency Exchange record manually"
     }
   },
   {
@@ -93,6 +128,162 @@
       "default_currency": "MUR",
       "company_logo": null,
       "phone_no": null
+    }
+  },
+  {
+    "step": "pdf_Quotation_SAL-QTN-2026-00003",
+    "http": 200,
+    "extra": {
+      "outfile": "artifacts/erpnext/commercial-documents-882/website-rescue-mur-SAL-QTN-2026-00003.pdf",
+      "bytes": 48354,
+      "is_pdf": true,
+      "content_type": "application/pdf",
+      "sha256": "da44352751cd97e3"
+    }
+  },
+  {
+    "step": "pdf_Sales Invoice_ACC-SINV-2026-00001",
+    "http": 200,
+    "extra": {
+      "outfile": "artifacts/erpnext/commercial-documents-882/website-rescue-invoice-draft-ACC-SINV-2026-00001.pdf",
+      "bytes": 48727,
+      "is_pdf": true,
+      "content_type": "application/pdf",
+      "sha256": "eff8180928adb27b"
+    }
+  },
+  {
+    "step": "pdf_Quotation_SAL-QTN-2026-00001",
+    "http": 200,
+    "extra": {
+      "outfile": "artifacts/erpnext/commercial-documents-882/lead-rescue-usd-SAL-QTN-2026-00001.pdf",
+      "bytes": 37667,
+      "is_pdf": true,
+      "content_type": "application/pdf",
+      "sha256": "edca1c2f30a98ecd"
+    }
+  },
+  {
+    "step": "readback_SAL-QTN-2026-00001",
+    "http": 200,
+    "extra": {
+      "currency": "USD",
+      "conversion_rate": 1.0,
+      "grand_total": 249.0,
+      "base_grand_total": 249.0,
+      "docstatus": 0,
+      "status": "Draft",
+      "selling_price_list": "Standard Selling",
+      "tc_name": "CF882 CorpFlowAI Commercial Terms",
+      "letter_head": "Company Letterhead - Grey",
+      "items": [
+        {
+          "item_code": "LR-SETUP-USD-150",
+          "rate": 150.0,
+          "price_list_rate": 0.0,
+          "uom": "Nos"
+        },
+        {
+          "item_code": "LR-REC-USD-99",
+          "rate": 99.0,
+          "price_list_rate": 0.0,
+          "uom": "Month"
+        }
+      ]
+    }
+  },
+  {
+    "step": "readback_SAL-QTN-2026-00003",
+    "http": 200,
+    "extra": {
+      "currency": "MUR",
+      "conversion_rate": 1.0,
+      "grand_total": 45000.0,
+      "base_grand_total": 45000.0,
+      "docstatus": 0,
+      "status": "Draft",
+      "selling_price_list": "Standard Selling",
+      "tc_name": "CF882 CorpFlowAI Commercial Terms",
+      "letter_head": "Company Letterhead - Grey",
+      "items": [
+        {
+          "item_code": "CF-RD-LANDING-RESCUE",
+          "rate": 45000.0,
+          "price_list_rate": 45000.0,
+          "uom": "Nos"
+        }
+      ]
+    }
+  },
+  {
+    "step": "readback_ACC-SINV-2026-00001",
+    "http": 200,
+    "extra": {
+      "currency": "MUR",
+      "conversion_rate": 1.0,
+      "grand_total": 45000.0,
+      "base_grand_total": 45000.0,
+      "docstatus": 0,
+      "status": "Draft",
+      "selling_price_list": "Standard Selling",
+      "tc_name": "CF882 CorpFlowAI Commercial Terms",
+      "letter_head": "Company Letterhead - Grey",
+      "items": [
+        {
+          "item_code": "CF-RD-LANDING-RESCUE",
+          "rate": 45000.0,
+          "price_list_rate": 45000.0,
+          "uom": "Nos"
+        }
+      ]
+    }
+  },
+  {
+    "step": "usd_quotation_attach_standard_selling_usd",
+    "http": 200,
+    "extra": {
+      "selling_price_list": "Standard Selling USD",
+      "currency": "USD",
+      "conversion_rate_still_unsafe": 1.0,
+      "server_message": "Unable to find exchange rate for USD to MUR for key date 2026-08-13. Please create a Currency Exchange record manually",
+      "note": "Price list bound; conversion_rate remains 1.0 until Currency Exchange exists"
+    }
+  },
+  {
+    "step": "final_usd_price_list_rate",
+    "http": 200,
+    "extra": {
+      "name": "SAL-QTN-2026-00001",
+      "selling_price_list": "Standard Selling USD",
+      "items": [
+        {
+          "item_code": "LR-SETUP-USD-150",
+          "rate": 150.0,
+          "price_list_rate": 150.0
+        },
+        {
+          "item_code": "LR-REC-USD-99",
+          "rate": 99.0,
+          "price_list_rate": 99.0
+        }
+      ],
+      "conversion_rate": 1.0,
+      "docstatus": 0
+    }
+  },
+  {
+    "step": "final_catalogue_consumed",
+    "http": 200,
+    "extra": {
+      "standard_selling_usd": true,
+      "item_prices": {
+        "LR-SETUP-USD-150": 150.0,
+        "LR-REC-USD-99": 99.0,
+        "CF-RD-LEAD-RESCUE": 35000.0,
+        "CF-RD-LANDING-RESCUE": 45000.0
+      },
+      "currency_exchange_usd_mur": null,
+      "get_exchange_rate": 0.0
     }
   }
 ]

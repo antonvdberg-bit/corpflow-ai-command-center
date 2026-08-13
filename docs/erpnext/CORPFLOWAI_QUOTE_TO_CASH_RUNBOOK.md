@@ -8,8 +8,8 @@
 
 Full lifecycle for **Mauritius rapid-delivery sprints** (MUR, 50% deposit, manual bank transfer). Parallel **USD 150 wedge** at `/lead-rescue` uses a separate operator path — do not merge without explicit scope change.
 
-**Canonical catalogue:** `lib/public/rapid-delivery-offers.js` + `docs/revenue/REVENUE_DELIVERY_PLAYBOOK.md`  
-**Commercial documents (#882):** `docs/erpnext/ERPNEXT_COMMERCIAL_DOCUMENTS_V1.md` — hosted ERPNext Quotation / Sales Invoice proof; USD path blocked on Currency Exchange.
+**Canonical catalogue:** ERPNext item masters in `docs/erpnext/ERPNEXT_PRODUCT_CATALOGUE_V1.md` / `config/erpnext-product-catalogue.v1.json`. Public offer copy remains `lib/public/rapid-delivery-offers.js` + `docs/revenue/REVENUE_DELIVERY_PLAYBOOK.md`.  
+**Commercial documents (#882):** `docs/erpnext/ERPNEXT_COMMERCIAL_DOCUMENTS_V1.md` — MUR Quotation / draft Sales Invoice proven from #881 Item Prices; USD quotation uses Standard Selling USD; READY blocked only on Anton-approved Currency Exchange USD→MUR.
 
 **NO IMPLEMENTATION AUTHORIZED** — operating procedure only. No production ERPNext posting without Phase D gates.
 

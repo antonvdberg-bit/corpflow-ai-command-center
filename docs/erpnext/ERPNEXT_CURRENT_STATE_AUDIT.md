@@ -149,7 +149,7 @@ Classification key:
 
 ## 4. Priority gaps for Wave 1 (manual path)
 
-1. **MUR Item master** for three sprint offers — **MISSING** in any ERPNext environment
+1. **MUR Item master** for sprint offers — **READY** (#881 / PR #915): `CF-RD-LEAD-RESCUE` and `CF-RD-LANDING-RESCUE` exist with Item Price rows on Standard Selling (35,000 / 45,000). Canonical catalogue: `docs/erpnext/ERPNEXT_PRODUCT_CATALOGUE_V1.md`. #882 commercial docs still blocked only on Currency Exchange USD→MUR.
 2. **Quotation Print Format** — **MISSING**; use manual quote email until M-Print
 3. **Real bank CSV test** — **NEEDS_ANTON** (NA-008)
 4. **Record mapping discipline** — **DOCUMENTED ONLY** until first prospect logged
@@ -168,6 +168,7 @@ Classification key:
 
 - `docs/erpnext/CORPFLOWAI_QUOTE_TO_CASH_RUNBOOK.md`
 - `docs/erpnext/ERPNEXT_RECORD_MAPPING.md`
+- `docs/erpnext/ERPNEXT_PRODUCT_CATALOGUE_V1.md`
 - `docs/erpnext/ERPNEXT_CURSOR_CLOUD_SECURITY_CORRECTION_899.md`
 - `docs/runbooks/ERPNEXT_CURSOR_CLOUD_SECRETS_LEAST_PRIVILEGE_V1.md`
 - `docs/finance/ERPNEXT_PRODUCTION_READINESS_EVALUATION.md`

@@ -71,7 +71,8 @@ If label creation or verification fails (missing labels after ensure, GitHub API
 
 **WIP Control v1 rules:**
 
-- A slot counts only when current activation metadata proves an active Cursor run/generation.
+- A slot counts only when **current-generation** activation metadata proves an active Cursor run. Historical `CURSOR DISPATCH ACTIVATED` / origin evidence before the latest `CURSOR REQUEUE` does not occupy WIP.
+- Claim comments are append-only: the latest status for a claim token is authoritative. Terminal (`released` / `completed`) claims consume zero slots and reconcile stale execution labels.
 - Lifecycle labels alone never consume capacity; stale/orphaned labels are reconciled before dispatch.
 - Priority order for ready work: `priority:P0` > `priority:P1` > `priority:P2` > unprioritized (stable oldest-ready tie-break).
 - `execution:paused` ready work is skipped; removing the label restores eligibility. Pausing a live run does not invent an external kill — the verified slot remains until terminal.
@@ -93,7 +94,7 @@ Research/documentation-only tasks may run separately only when they cannot confl
 6. **Do not** apply claim labels during **scan**. Acquire `dispatch:cursor-claimed` + durable claim marker **before** the Cursor API call (`scripts/dispatcher-agent-activation.mjs` claim-before-API). Finalize records the real run ID / origin metadata after success, or releases the claim on failure (`scripts/cursor-issue-dispatch-finalize.mjs`).
 7. Emit `cursor-issue-dispatch-scan.json` with `eligibleIssueNumbers`, `claimIssueNumbers`, and `activationTargetIssue` (max **one** live Cursor activation per GHA cycle).
 8. Stale claimed issues (no meaningful update beyond threshold): exception-only status request — no heartbeat spam.
-9. **Double-activation guard:** issue-keyed GHA concurrency (`factory-dispatcher-activate-<issue|scan>`) + durable claim-before-API. Duplicate/racing activators return `SKIP_ALREADY_CLAIMED`. Explicit requeue requires `CURSOR REQUEUE` generation marker + restored `dispatch:cursor-ready`.
+9. **Double-activation guard:** issue-keyed GHA concurrency (`factory-dispatcher-activate-<issue|scan>`) + durable claim-before-API. Duplicate/racing activators return `SKIP_ALREADY_CLAIMED`. Explicit requeue requires `CURSOR REQUEUE` generation marker + restored `dispatch:cursor-ready`. Claim comments are an **append-only state machine**: the latest status for the same `(sourceIssue, generation, claimToken)` is authoritative (`released` / `completed` supersede earlier `pending` / `activated`). Distinct claim tokens in the same generation still race (earliest token wins). `CURSOR REQUEUE` is a generation boundary — historical `CURSOR DISPATCH ACTIVATED` / origin evidence from an older generation cannot occupy current WIP or block a new attempt.
 
 ### 5a. Operator gate authorization resume (#887 / #896)
 
