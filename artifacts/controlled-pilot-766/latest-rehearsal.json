@@ -1,8 +1,8 @@
 {
   "schema": "corpflow.controlled_pilot_766.rehearsal.v1",
   "issue": 766,
-  "ran_at": "2026-08-13T10:20:58.582Z",
-  "head_sha": "01395ec29db2f201b41a5fbfc6fe03bcd11bc061",
+  "ran_at": "2026-08-10T12:00:33.340Z",
+  "head_sha": "90d77defed23f10c33d6d5111ff918f5aab40f86",
   "package_doc": "docs/execution/CONTROLLED_PILOT_TEST_READINESS_766_V1.md",
   "reused_composer": "lib/gtm/integrated-scenarios-711.js",
   "integrated": {
