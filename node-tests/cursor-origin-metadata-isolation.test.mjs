@@ -61,4 +61,50 @@ describe('Cursor origin metadata isolation (#862)', () => {
 
     assert.equal(meta.cursorRunId, runId);
   });
+
+  it('retires historical completed-agent origin after an explicit higher-generation requeue', () => {
+    const oldRun = 'run-eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee';
+    const oldAgent = 'bc-ffffffff-ffff-ffff-ffff-ffffffffffff';
+    const oldOrigin = formatCursorOriginMetadataComment(
+      buildCursorOriginMetadata({
+        sourceIssue: 881,
+        activationWorkflowRunId: '111111111',
+        cursorRunId: oldRun,
+        cursorAgentId: oldAgent,
+      }),
+    );
+    const requeue = `CURSOR REQUEUE\n\nIssue: #881\nGeneration: 2\nReason: continue existing work\n\n<!-- corpflow.cursor_requeue.v1 {"schema":"corpflow.cursor_requeue.v1","sourceIssue":881,"generation":2,"reason":"continue existing work","requeuedAt":"2026-08-13T06:49:30.000Z"} -->`;
+
+    const meta = resolveCursorOriginMetadata({
+      issueBody: 'P0 Product Catalogue #881',
+      comments: [{ body: oldOrigin }, { body: requeue }],
+    });
+
+    assert.equal(meta.cursorRunId, null);
+    assert.equal(meta.cursorAgentId, null);
+    assert.equal(meta.activationWorkflowRunId, null);
+  });
+
+  it('accepts fresh origin evidence created after the requeue boundary', () => {
+    const oldOrigin = formatCursorOriginMetadataComment(
+      buildCursorOriginMetadata({
+        sourceIssue: 881,
+        cursorRunId: 'run-11111111-1111-1111-1111-111111111111',
+        cursorAgentId: 'bc-22222222-2222-2222-2222-222222222222',
+      }),
+    );
+    const requeue = `<!-- corpflow.cursor_requeue.v1 {"schema":"corpflow.cursor_requeue.v1","sourceIssue":881,"generation":2,"reason":"continue","requeuedAt":"2026-08-13T06:49:30.000Z"} -->`;
+    const newRun = 'run-33333333-3333-3333-3333-333333333333';
+
+    const meta = resolveCursorOriginMetadata({
+      issueBody: 'P0 Product Catalogue #881',
+      comments: [
+        { body: oldOrigin },
+        { body: requeue },
+        { body: `CURSOR DISPATCH ACTIVATED\nIssue: #881\nCursor run identifier: ${newRun}` },
+      ],
+    });
+
+    assert.equal(meta.cursorRunId, newRun);
+  });
 });
