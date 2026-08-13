@@ -1,0 +1,98 @@
+[
+  {
+    "step": "company_identity_put",
+    "http": 200,
+    "extra": {
+      "email": "finance@corpflowai.com",
+      "website": "https://corpflowai.com",
+      "default_letter_head": "Company Letterhead - Grey",
+      "tax_id_unchanged": "28466939",
+      "default_currency_unchanged": "MUR",
+      "registration_details_unchanged": "Company No : C25228280"
+    }
+  },
+  {
+    "step": "company_address_email_put",
+    "http": 200,
+    "extra": {
+      "email_id": "finance@corpflowai.com",
+      "address_line1": "Dextra Lane Lot No. 3 Phase 1"
+    }
+  },
+  {
+    "step": "letterhead_legal_bind_put",
+    "http": 403,
+    "extra": {
+      "updated": false,
+      "blocker": "integrations@corpflowai.com has no Letter Head write permission"
+    }
+  },
+  {
+    "step": "terms_create",
+    "http": 200,
+    "extra": { "name": "CF882 CorpFlowAI Commercial Terms" }
+  },
+  {
+    "step": "website_rescue_quotation_create",
+    "http": 200,
+    "extra": {
+      "name": "SAL-QTN-2026-00003",
+      "customer": "CF880 Synthetic Website Rescue Ltd",
+      "currency": "MUR",
+      "grand_total": 45000.0,
+      "base_grand_total": 45000.0,
+      "conversion_rate": 1.0,
+      "item": "CF-RD-LANDING-RESCUE",
+      "docstatus": 0
+    }
+  },
+  {
+    "step": "annotate_SAL-QTN-2026-00001",
+    "http": 200,
+    "extra": {
+      "title": "CF882 SYNTHETIC Lead Rescue USD — TEST-ONLY DO NOT SEND. conversion_rate=1.0 is NOT accounting truth."
+    }
+  },
+  {
+    "step": "annotate_SAL-QTN-2026-00002",
+    "http": 200,
+    "extra": {
+      "title": "CF882 NOTE: #881 draft used Website Rescue Item on Lead Rescue Customer. Prefer SAL-QTN-2026-00003."
+    }
+  },
+  {
+    "step": "sales_invoice_draft_create",
+    "http": 200,
+    "extra": {
+      "name": "ACC-SINV-2026-00001",
+      "docstatus": 0,
+      "currency": "MUR",
+      "grand_total": 45000.0,
+      "base_grand_total": 45000.0,
+      "status": "Draft"
+    }
+  },
+  {
+    "step": "sales_invoice_usd_draft_no_rate",
+    "http": 417,
+    "extra": {
+      "name": null,
+      "exc_type": "ValidationError",
+      "message": "Exchange Rate is mandatory. Maybe Currency Exchange record is not created for USD to MUR."
+    }
+  },
+  {
+    "step": "company_readback",
+    "http": 200,
+    "extra": {
+      "email": "finance@corpflowai.com",
+      "website": "https://corpflowai.com",
+      "default_letter_head": "Company Letterhead - Grey",
+      "tax_id": "28466939",
+      "registration_details": "Company No : C25228280",
+      "default_currency": "MUR",
+      "company_logo": null,
+      "phone_no": null
+    }
+  }
+]

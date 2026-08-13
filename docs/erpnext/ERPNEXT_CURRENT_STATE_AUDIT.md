@@ -47,7 +47,7 @@ Classification key:
 
 | Capability | Class | Evidence / notes |
 | ---------- | ----- | ---------------- |
-| Quotation (pro-forma path) | **CONFIGURED BUT NOT VERIFIED** | Recommended Path A; no PDF rendered in Phase C |
+| Quotation (pro-forma path) | **LIVE AND VERIFIED** (hosted test, synthetic) | #882: `SAL-QTN-2026-00003` MUR PDF from Customer+Item masters; USD `SAL-QTN-2026-00001` draft unsafe at conversion_rate=1.0 |
 | Quotation Print Format ("Pro-forma invoice") | **MISSING** | M-Print not started |
 | Sales Order | **OUT OF SCOPE** | MUR sprints are service projects; SO optional |
 | Naming series `CFLR-QUO-*` | **MISSING** | M-Numbering not set |
@@ -59,7 +59,7 @@ Classification key:
 | ---------- | ----- | ---------------- |
 | Deposit Sales Invoice (50%) | **DOCUMENTED ONLY** | Playbook rule; no MUR sprint item in sandbox |
 | Balance Sales Invoice | **DOCUMENTED ONLY** | Closeout guide references |
-| Sales Invoice PDF / Print Format | **MISSING** | Phase C did not exercise wkhtmltopdf path |
+| Sales Invoice PDF / Print Format | **LIVE AND VERIFIED** (hosted test, draft) | #882: `ACC-SINV-2026-00001` standard PDF; not submitted |
 | Submitted SI → GL revenue posting | **LIVE AND VERIFIED** | Phase C cycles 1–2 (USD sandbox) |
 
 ### Payment & bank

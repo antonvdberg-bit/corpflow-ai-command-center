@@ -1,0 +1,65 @@
+{
+  "schema": "corpflow.erpnext.commercial_documents.v1",
+  "issue": 882,
+  "parents": [551, 714, 766],
+  "prerequisites": [879, 880, 881],
+  "environment": "corpflow_test",
+  "company": {
+    "name": "CorpFlowAI LTD",
+    "abbr": "CFAI",
+    "country": "Mauritius",
+    "default_currency": "MUR",
+    "tax_id": "28466939",
+    "registration_details": "Company No : C25228280",
+    "short_form_company_no_do_not_store_as_independent_id": "228280",
+    "commercial_email": "finance@corpflowai.com",
+    "website": "https://corpflowai.com",
+    "default_letter_head": "Company Letterhead - Grey",
+    "company_address": "Home Office-Office",
+    "do_not_change": [
+      "tax_id",
+      "registration_details",
+      "default_currency",
+      "chart_of_accounts",
+      "bank_accounts",
+      "tax_templates"
+    ]
+  },
+  "print": {
+    "quotation_format": "Quotation Standard",
+    "sales_invoice_format": "Sales Invoice Standard",
+    "letter_head": "Company Letterhead - Grey",
+    "terms_name": "CF882 CorpFlowAI Commercial Terms",
+    "custom_print_format_required": false
+  },
+  "synthetic_proof": {
+    "lead_rescue_customer": "CF880 Synthetic Lead Rescue Ltd",
+    "website_rescue_customer": "CF880 Synthetic Website Rescue Ltd",
+    "lead_rescue_quotation": "SAL-QTN-2026-00001",
+    "website_rescue_quotation": "SAL-QTN-2026-00003",
+    "website_rescue_invoice_draft": "ACC-SINV-2026-00001",
+    "misassigned_881_quotation_do_not_send": "SAL-QTN-2026-00002",
+    "lead_rescue_items": ["LR-SETUP-USD-150", "LR-REC-USD-99"],
+    "website_rescue_item": "CF-RD-LANDING-RESCUE",
+    "docstatus_must_remain": 0,
+    "sentinel": "TEST-ONLY DO NOT SEND"
+  },
+  "currency": {
+    "company_base": "MUR",
+    "selling_document_currencies_enabled": ["MUR", "USD", "GBP", "AUD", "AED", "EUR"],
+    "selling_price_lists": [
+      { "name": "Standard Selling", "currency": "MUR", "selling": true }
+    ],
+    "usd_selling_price_list": null,
+    "currency_exchange_rows": [],
+    "unsafe_conversion_rate_when_currencies_differ": 1,
+    "target_currencies_same_pattern": ["GBP", "AUD", "AED"]
+  },
+  "approval_rail": {
+    "issue": 714,
+    "controlled_pilot": 766,
+    "erpnext_never_sets_financially_approved": true,
+    "protected_actions_executed": false
+  },
+  "verdict": "NOT READY — Currency Exchange USD→MUR master missing (Anton-approved rate required); USD Sales Invoice correctly rejected; do not submit USD quotations at conversion_rate=1.0"
+}

@@ -30,6 +30,10 @@
 
 ---
 
+## 2026-08-13 — **#882 ERPNext commercial documents: MUR quote/invoice PDFs from masters; USD blocked on Currency Exchange.** Hosted ERPNext (`CorpFlowAI LTD`, MUR). Company email `finance@corpflowai.com`; tax_id `28466939` / Company No `C25228280` unchanged. Synthetic Website Rescue quotation `SAL-QTN-2026-00003` + draft invoice `ACC-SINV-2026-00001`; Lead Rescue USD quotation `SAL-QTN-2026-00001` must not be submitted at conversion_rate=1.0. USD invoice HTTP 417 without Currency Exchange (correct fail-closed). Evidence `docs/erpnext/ERPNEXT_COMMERCIAL_DOCUMENTS_V1.md` + `artifacts/erpnext/commercial-documents-882/`. No send, no submit, no FX row invented. **Verdict: NOT READY — Currency Exchange USD→MUR missing.**
+
+<!-- ERPNEXT_COMMERCIAL_DOCUMENTS_882_HIST -->
+
 ## 2026-08-06 — **OpenHands agent-server conversation 500 diagnosed + remediated (non-model READY).** Controlling issue [#743](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/743), draft PR [#747](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/747) head `1f09743aa0b11895627075638ef1a4ab32dae8d2`. **Exception:** `MCPError: MCP Connection Failure` (`httpx.ConnectError` DNS name not known) on agent-server `POST /api/conversations` during `SETTING_UP_SKILLS`. **Cause:** unset `web_url` → control plane fell back to `http://host.docker.internal:{port}/mcp/mcp`; ExtraHosts=[] correctly blocks that host. **Reproduced without Groq/model key.** **Remediation:** compose `OH_WEB_URL=http://corpflowai-openhands-app:3000`. Live non-model conversation probe → **READY**; isolation held; primary Docker unchanged; Groq file mode 600 unused; dispatcher still disabled. PR #747 still draft and **CONFLICTING** vs `main` only on `artifacts/chat_history.md`. **Verdict: CONVERSATION SETUP VERIFIED — READY FOR SEPARATE MODEL RETRY APPROVAL.**
 
 <!-- OPENHANDS_CONV500_2026_08_06_HIST -->

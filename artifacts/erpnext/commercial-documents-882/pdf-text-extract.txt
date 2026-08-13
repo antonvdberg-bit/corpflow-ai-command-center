@@ -1,0 +1,505 @@
+===== lead-rescue-usd-SAL-QTN-2026-00001.pdf pages=2 =====
+DRAFT
+Party Name:
+ CF880 Synthetic Lead Rescue Ltd
+Valid Till:
+ 27-08-2026
+Quotation:
+ SAL-QTN-2026-00001
+Posting Date:
+ 13-08-2026
+Bill From:
+CorpFlowAI LTD
+Dextra Lane Lot No. 3 Phase 1
+Trou Aux Biches, Pamplemousses District 22301,
+Mauritius
+Bill To:
+CF880 Synthetic Lead Rescue Ltd
+1 Synthetic Lane
+Port Louis 
+Mauritius
+No
+Item
+Quantity
+Rate
+Amount
+1
+AI Lead Rescue Setup (USD 150 launch pilot)
+1 Nos
+$ 150.00
+$ 150.00
+2
+AI Lead Rescue monthly monitoring
+1 Month
+$ 99.00
+$ 99.00
+Total in words
+USD TWO HUNDRED AND FORTY NINE ONLY.
+ 
+Terms and Conditions
+Seller identity (authoritative Company master — do not retype)
+CorpFlowAI Ltd · Dextra Lane Lot No. 3 Phase 1, Trou Aux Biches, Mauritius
+Tax ID: 28466939 · Company No: C25228280 · finance@corpflowai.com · https://corpflowai.com
+CorpFlowAI Ltd — commercial terms (standard ERPNext Terms and Conditions)
+These terms apply to quotations and invoices issued from ERPNext. They do not replace a signed contract where one
+exists.
+1
+. 
+Validity.
+ This quotation is valid for 14 days from the quotation date unless a different Valid Till date is shown on the
+document.
+2
+. 
+Scope.
+ Scope is limited to the Item names and descriptions on this document. Anything not listed is excluded.
+3
+. 
+Assumptions.
+ The client provides timely access, content, brand assets, and decision-makers. Delay in access
+pauses the delivery clock.
+4
+. 
+Exclusions.
+ No SEO ranking, lead-volume, conversion, or revenue guarantees. Third-party hosting, domain,
+advertising, and software-licence fees are excluded unless a line item says otherwise. Recurring CorpFlowAI fees
+apply only when a recurring Item is listed.
+5
+. 
+Payment — MUR project work.
+ 50% deposit by manual bank transfer before work starts; balance before production
+release or on delivery acceptance, as stated on the document. Proof-of-payment alone is not bank clearance.
+Sub Total:
+$ 249.00
+Discount (0.0%):
+$ 0.00
+Grand Total:
+$ 249.00
+CorpFlowAI LTD
+Dextra Lane Lot No. 3 Phase 1
+Trou Aux Biches, Pamplemousses District
+22301, Mauritius
+Quotation
+SAL-QTN-2026-00001
+Website:
+https://corpﬂowai.com
+Email:
+ﬁnance@corpﬂowai.com
+---PAGE---
+6
+. 
+Payment — USD Lead Rescue launch pilot.
+ Setup is payable before the 48-hour setup window starts. Monthly
+monitoring, if listed, is invoiced in advance, month-to-month, with no auto-debit in this phase.
+7
+. 
+Approval to build.
+ ERPNext documents are commercial records. The fail-closed financial approval-to-build gate
+remains the CorpFlowAI commercial rail (#714 / #766): quotation + written acceptance + payment evidence (or
+approved exception) + named financial approver. ERPNext does not auto-approve a build.
+8
+. 
+Contact.
+ Commercial documents: finance@corpflowai.com.
+Synthetic / test documents carry a TEST-ONLY remark and must not be sent to a paying client.
+CorpFlowAI LTD
+Dextra Lane Lot No. 3 Phase 1
+Trou Aux Biches, Pamplemousses District
+22301, Mauritius
+Quotation
+SAL-QTN-2026-00001
+Website:
+https://corpﬂowai.com
+Email:
+ﬁnance@corpﬂowai.com
+
+===== website-rescue-mur-SAL-QTN-2026-00003.pdf pages=2 =====
+DRAFT
+Party Name:
+ CF880 Synthetic Website Rescue Ltd
+Valid Till:
+ 27-08-2026
+Quotation:
+ SAL-QTN-2026-00003
+Posting Date:
+ 13-08-2026
+Bill From:
+CorpFlowAI LTD
+Dextra Lane Lot No. 3 Phase 1
+Trou Aux Biches, Pamplemousses District 22301,
+Mauritius
+Bill To:
+CF880 Synthetic Website Rescue Ltd
+2 Synthetic Avenue
+Curepipe 
+Mauritius
+No
+Item
+Quantity
+Rate
+Amount
+1
+Premium Landing Page Rescue
+1 Nos
+₨
+ 45,000
+₨
+ 45,000
+Total in words
+MUR FORTY FIVE THOUSAND ONLY.
+ 
+Terms and Conditions
+Seller identity (authoritative Company master — do not retype)
+CorpFlowAI Ltd · Dextra Lane Lot No. 3 Phase 1, Trou Aux Biches, Mauritius
+Tax ID: 28466939 · Company No: C25228280 · finance@corpflowai.com · https://corpflowai.com
+CorpFlowAI Ltd — commercial terms (standard ERPNext Terms and Conditions)
+These terms apply to quotations and invoices issued from ERPNext. They do not replace a signed contract where one
+exists.
+1
+. 
+Validity.
+ This quotation is valid for 14 days from the quotation date unless a different Valid Till date is shown on the
+document.
+2
+. 
+Scope.
+ Scope is limited to the Item names and descriptions on this document. Anything not listed is excluded.
+3
+. 
+Assumptions.
+ The client provides timely access, content, brand assets, and decision-makers. Delay in access
+pauses the delivery clock.
+4
+. 
+Exclusions.
+ No SEO ranking, lead-volume, conversion, or revenue guarantees. Third-party hosting, domain,
+advertising, and software-licence fees are excluded unless a line item says otherwise. Recurring CorpFlowAI fees
+apply only when a recurring Item is listed.
+5
+. 
+Payment — MUR project work.
+ 50% deposit by manual bank transfer before work starts; balance before production
+release or on delivery acceptance, as stated on the document. Proof-of-payment alone is not bank clearance.
+6
+. 
+Payment — USD Lead Rescue launch pilot.
+ Setup is payable before the 48-hour setup window starts. Monthly
+monitoring, if listed, is invoiced in advance, month-to-month, with no auto-debit in this phase.
+Sub Total:
+₨
+ 45,000
+Discount (0.0%):
+₨
+ 0
+Grand Total:
+₨
+ 45,000
+CorpFlowAI LTD
+Dextra Lane Lot No. 3 Phase 1
+Trou Aux Biches, Pamplemousses District
+22301, Mauritius
+Quotation
+SAL-QTN-2026-00003
+Website:
+https://corpﬂowai.com
+Email:
+ﬁnance@corpﬂowai.com
+---PAGE---
+7
+. 
+Approval to build.
+ ERPNext documents are commercial records. The fail-closed financial approval-to-build gate
+remains the CorpFlowAI commercial rail (#714 / #766): quotation + written acceptance + payment evidence (or
+approved exception) + named financial approver. ERPNext does not auto-approve a build.
+8
+. 
+Contact.
+ Commercial documents: finance@corpflowai.com.
+Synthetic / test documents carry a TEST-ONLY remark and must not be sent to a paying client.
+CorpFlowAI LTD
+Dextra Lane Lot No. 3 Phase 1
+Trou Aux Biches, Pamplemousses District
+22301, Mauritius
+Quotation
+SAL-QTN-2026-00003
+Website:
+https://corpﬂowai.com
+Email:
+ﬁnance@corpﬂowai.com
+
+===== website-rescue-invoice-draft-ACC-SINV-2026-00001.pdf pages=2 =====
+DRAFT
+Customer Name:
+ CF880 Synthetic Website Rescue Ltd
+Payment Due Date:
+ 27-08-2026
+Invoice Number:
+ ACC-SINV-2026-00001
+Invoice Date:
+ 13-08-2026
+Bill From:
+CorpFlowAI LTD
+Dextra Lane Lot No. 3 Phase 1
+Trou Aux Biches, Pamplemousses District 22301,
+Mauritius
+Bill To:
+CF880 Synthetic Website Rescue Ltd
+2 Synthetic Avenue
+Curepipe 
+Mauritius
+No
+Item
+Quantity
+Rate
+Amount
+1
+Premium Landing Page Rescue
+1 Nos
+₨
+ 45,000
+₨
+ 45,000
+Total in words
+MUR FORTY FIVE THOUSAND ONLY.
+ 
+Terms and Conditions
+Seller identity (authoritative Company master — do not retype)
+CorpFlowAI Ltd · Dextra Lane Lot No. 3 Phase 1, Trou Aux Biches, Mauritius
+Tax ID: 28466939 · Company No: C25228280 · finance@corpflowai.com · https://corpflowai.com
+CorpFlowAI Ltd — commercial terms (standard ERPNext Terms and Conditions)
+These terms apply to quotations and invoices issued from ERPNext. They do not replace a signed contract where one
+exists.
+1
+. 
+Validity.
+ This quotation is valid for 14 days from the quotation date unless a different Valid Till date is shown on the
+document.
+2
+. 
+Scope.
+ Scope is limited to the Item names and descriptions on this document. Anything not listed is excluded.
+3
+. 
+Assumptions.
+ The client provides timely access, content, brand assets, and decision-makers. Delay in access
+pauses the delivery clock.
+4
+. 
+Exclusions.
+ No SEO ranking, lead-volume, conversion, or revenue guarantees. Third-party hosting, domain,
+advertising, and software-licence fees are excluded unless a line item says otherwise. Recurring CorpFlowAI fees
+apply only when a recurring Item is listed.
+5
+. 
+Payment — MUR project work.
+ 50% deposit by manual bank transfer before work starts; balance before production
+release or on delivery acceptance, as stated on the document. Proof-of-payment alone is not bank clearance.
+6
+. 
+Payment — USD Lead Rescue launch pilot.
+ Setup is payable before the 48-hour setup window starts. Monthly
+monitoring, if listed, is invoiced in advance, month-to-month, with no auto-debit in this phase.
+Sub Total:
+₨
+ 45,000
+Discount (0.0%):
+₨
+ 0
+Grand Total:
+₨
+ 45,000
+CorpFlowAI LTD
+Dextra Lane Lot No. 3 Phase 1
+Trou Aux Biches, Pamplemousses District
+22301, Mauritius
+Sales Invoice
+ACC-SINV-2026-00001
+Website:
+https://corpﬂowai.com
+Email:
+ﬁnance@corpﬂowai.com
+---PAGE---
+7
+. 
+Approval to build.
+ ERPNext documents are commercial records. The fail-closed financial approval-to-build gate
+remains the CorpFlowAI commercial rail (#714 / #766): quotation + written acceptance + payment evidence (or
+approved exception) + named financial approver. ERPNext does not auto-approve a build.
+8
+. 
+Contact.
+ Commercial documents: finance@corpflowai.com.
+Synthetic / test documents carry a TEST-ONLY remark and must not be sent to a paying client.
+CorpFlowAI LTD
+Dextra Lane Lot No. 3 Phase 1
+Trou Aux Biches, Pamplemousses District
+22301, Mauritius
+Sales Invoice
+ACC-SINV-2026-00001
+Website:
+https://corpﬂowai.com
+Email:
+ﬁnance@corpﬂowai.com
+
+===== website-rescue-mur-itemimage-SAL-QTN-2026-00003.pdf pages=2 =====
+Sub Total:
+₨
+ 45,000
+Discount (0.0%):
+₨
+ 0
+DRAFT
+No
+Item
+Quantity
+Rate
+Amount
+1
+Premium Landing Page Rescue
+1 Nos
+₨
+ 45,000
+₨
+ 45,000
+In Words: 
+MUR Forty Five Thousand Only.
+Grand Total:
+₨
+ 45,000
+Terms and Conditions
+Seller identity (authoritative Company master — do not retype)
+CorpFlowAI Ltd · Dextra Lane Lot No. 3 Phase 1, Trou Aux Biches, Mauritius
+Tax ID: 28466939 · Company No: C25228280 · finance@corpflowai.com · https://corpflowai.com
+CorpFlowAI Ltd — commercial terms (standard ERPNext Terms and Conditions)
+These terms apply to quotations and invoices issued from ERPNext. They do not replace a signed contract where one
+exists.
+1
+. 
+Validity.
+ This quotation is valid for 14 days from the quotation date unless a different Valid Till date is shown on the
+document.
+2
+. 
+Scope.
+ Scope is limited to the Item names and descriptions on this document. Anything not listed is excluded.
+3
+. 
+Assumptions.
+ The client provides timely access, content, brand assets, and decision-makers. Delay in access
+pauses the delivery clock.
+4
+. 
+Exclusions.
+ No SEO ranking, lead-volume, conversion, or revenue guarantees. Third-party hosting, domain,
+advertising, and software-licence fees are excluded unless a line item says otherwise. Recurring CorpFlowAI fees
+apply only when a recurring Item is listed.
+5
+. 
+Payment — MUR project work.
+ 50% deposit by manual bank transfer before work starts; balance before production
+release or on delivery acceptance, as stated on the document. Proof-of-payment alone is not bank clearance.
+6
+. 
+Payment — USD Lead Rescue launch pilot.
+ Setup is payable before the 48-hour setup window starts. Monthly
+monitoring, if listed, is invoiced in advance, month-to-month, with no auto-debit in this phase.
+7
+. 
+Approval to build.
+ ERPNext documents are commercial records. The fail-closed financial approval-to-build gate
+remains the CorpFlowAI commercial rail (#714 / #766): quotation + written acceptance + payment evidence (or
+approved exception) + named financial approver. ERPNext does not auto-approve a build.
+8
+. 
+Contact.
+ Commercial documents: finance@corpflowai.com.
+Customer Name:
+Bill to:
+CF880 Synthetic Website
+Rescue Ltd
+2 Synthetic Avenue
+Curepipe 
+Mauritius
+Quotation:
+SAL-QTN-2026-00003
+Posting Date:
+13-08-2026
+Valid Till:
+27-08-2026
+CorpFlowAI LTD
+Dextra Lane Lot No. 3 Phase 1
+Trou Aux Biches, Pamplemousses District
+22301, Mauritius
+Quotation
+SAL-QTN-2026-00003
+Website:
+https://corpﬂowai.com
+Email:
+ﬁnance@corpﬂowai.com
+---PAGE---
+Synthetic / test documents carry a TEST-ONLY remark and must not be sent to a paying client.
+CorpFlowAI LTD
+Dextra Lane Lot No. 3 Phase 1
+Trou Aux Biches, Pamplemousses District
+22301, Mauritius
+Quotation
+SAL-QTN-2026-00003
+Website:
+https://corpﬂowai.com
+Email:
+ﬁnance@corpﬂowai.com
+
+===== misassigned-mur-SAL-QTN-2026-00002.pdf pages=1 =====
+DRAFT
+Party Name:
+ CF880 Synthetic Lead Rescue Ltd
+Valid Till:
+ 27-08-2026
+Quotation:
+ SAL-QTN-2026-00002
+Posting Date:
+ 13-08-2026
+Bill From:
+CorpFlowAI LTD
+Dextra Lane Lot No. 3 Phase 1
+Trou Aux Biches, Pamplemousses District 22301,
+Mauritius
+Bill To:
+CF880 Synthetic Lead Rescue Ltd
+1 Synthetic Lane
+Port Louis 
+Mauritius
+No
+Item
+Quantity
+Rate
+Amount
+1
+Premium Landing Page Rescue
+1 Nos
+₨
+ 45,000
+₨
+ 45,000
+Total in words
+MUR FORTY FIVE THOUSAND ONLY.
+ 
+Sub Total:
+₨
+ 45,000
+Discount (0.0%):
+₨
+ 0
+Grand Total:
+₨
+ 45,000
+CorpFlowAI LTD
+Dextra Lane Lot No. 3 Phase 1
+Trou Aux Biches, Pamplemousses District
+22301, Mauritius
+Quotation
+SAL-QTN-2026-00002
+Website:
+https://corpﬂowai.com
+Email:
+ﬁnance@corpﬂowai.com
+
