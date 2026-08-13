@@ -27,16 +27,18 @@ Consolidation is allowed only when explicitly justified and safe.
 
 | Existing piece | Role |
 |----------------|------|
-| `.github/workflows/factory-dispatcher-activate.yml` | Scheduled + manual + **Phase A `issues:labeled`** + **eligibility wakes (#891)** activator (canonical) |
-| `.github/workflows/cursor-agent-lifecycle-status.yml` | Terminal/operator-review poller; **`workflow_call`s** the activator on capacity release (not a second dispatcher) |
-| `scripts/dispatcher-agent-activation.mjs` | Cursor Cloud activation (existing) |
+| `.github/workflows/factory-dispatcher-activate.yml` | Scheduled + manual + **Phase A `issues:labeled`** + **eligibility wakes (#891)** activator (Cursor API path) |
+| `.github/workflows/factory-cursor-handoff.yml` | **`CorpFlowAI Cursor Factory Handoff` (#913)** — eligibility/capacity wake that **succeeds only** when exactly one eligible source issue is selected; successful completion wakes Cursor Automation MODE B (no Cursor API key) |
+| `.github/workflows/cursor-agent-lifecycle-status.yml` | Terminal/operator-review poller; **`workflow_call`s** the API activator **and** the Automation handoff workflow on capacity release (not a second dispatcher) |
+| `scripts/dispatcher-agent-activation.mjs` | Cursor Cloud activation (existing API path) |
+| `scripts/factory-cursor-handoff.mjs` / `lib/server/factory-cursor-handoff.js` | Select one eligible issue, encode handoff packet/comment, fail closed when no handoff (#913) |
 | `lib/server/cursor-ops-status.js` | Issue comment posting + Control Tower status (existing) |
 | **`lib/server/cursor-issue-dispatch-lifecycle.js`** | Classification, WIP, segregation, comment templates (**this packet**) |
 | **`lib/server/cursor-ready-event-dispatch.js`** | Exact-label + eligibility-wake predicates + effective target resolution (Phase A / #891) |
 | **`scripts/cursor-issue-dispatch-scan.mjs`** | Label scan → discover/classify/eligibility plan (**this packet**) |
 | **`scripts/cursor-issue-dispatch-finalize.mjs`** | Post-activation claim labels + run ID comment (**this packet**) |
 
-Do **not** add a parallel workflow that also activates Cursor. The thin `cursor-ready-wakeup.yml` wrapper was removed in Phase A — the canonical workflow owns ready-label and eligibility-wake triggers. The scan runs as a **prep step** inside the existing workflow and may hand **at most one** `activationTargetIssue` to the existing activator path. Issue-scoped event runs activate only the preferred issue when that issue is scan-eligible; capacity backfill runs a full priority scan.
+Do **not** add another management-platform dispatcher. The Cursor **API** activator remains `factory-dispatcher-activate.yml`. The **Automation** wake path is the dedicated handoff workflow named exactly `CorpFlowAI Cursor Factory Handoff` — it does not call the Cursor API; MODE B starts from workflow success on `main` with one encoded source issue. Both paths reuse the same eligibility / verified WIP scan and may hand **at most one** source issue per run. Issue-scoped event runs prefer the event issue when scan-eligible; capacity backfill runs a full priority scan. Empty/suppressed handoff runs **fail closed** so Automation does not wake.
 
 ## 3. Labels
 
@@ -85,7 +87,7 @@ Research/documentation-only tasks may run separately only when they cannot confl
 
 1. Discover open issues with `dispatch:cursor-ready` via **GitHub GraphQL** (fallback: paginated Issues API + **client-side label filter**). Do **not** use the Search API — colon labels (`dispatch:cursor-ready`) return zero results.
 2. Infer `WORK CLASSIFICATION` (system boundary, tenant, environment, work type, **protected subjects mentioned**, **protected consequential gate**).
-3. Reject `dispatch:blocked`. For issues whose **consequential gate** is not `none`, evaluate the **latest valid operator authorization for that exact gate** (see §5a). No matching approval → hold claim at that boundary only. Matching approval (including Anton’s explicit active-task instruction) → continue normal WIP / isolation / priority checks. Still post discovery + classification either way.
+3. Reject `dispatch:blocked`. Skip new claim for `execution:paused`, already claimed, and `dispatch:operator-review` (prior generation awaits review — activator would `SKIP_ALREADY_CLAIMED`; do not waste the free WIP slot). For issues whose **consequential gate** is not `none`, evaluate the **latest valid operator authorization for that exact gate** (see §5a). No matching approval → hold claim at that boundary only. Matching approval (including Anton’s explicit active-task instruction) → continue normal WIP / isolation / priority checks. Still post discovery + classification either way.
 4. Enforce WIP + concurrency. Sibling product holds (e.g. #654 vs #653) do **not** suppress unrelated eligible ops work (e.g. #658 Slack retirement).
 5. Post acknowledgement comments when `GITHUB_TOKEN` has `issues: write` (GHA path).
 6. **Do not** apply claim labels during **scan**. Acquire `dispatch:cursor-claimed` + durable claim marker **before** the Cursor API call (`scripts/dispatcher-agent-activation.mjs` claim-before-API). Finalize records the real run ID / origin metadata after success, or releases the claim on failure (`scripts/cursor-issue-dispatch-finalize.mjs`).
