@@ -276,13 +276,14 @@ Deep day-to-day operator ticks remain in `docs/operations/WEBSITE_RESCUE_DELIVER
 | ----- | --- |
 | Operator checklists | `docs/operations/WEBSITE_RESCUE_DELIVERY_CHECKLISTS_V1.md` |
 | **System proof (12 Aug gate)** | **`docs/operations/WEBSITE_RESCUE_SYSTEM_PROOF_V1.md`** |
+| **Integrated Scenario B (14 Aug / #926)** | **`docs/operations/WEBSITE_RESCUE_SCENARIO_B_INTEGRATED_V1.md`** |
 | Product pack | `docs/marketing/WEBSITE_RESCUE_PRODUCT_PACK_V1.md` |
 | Quote-ready packet | `docs/marketing/WEBSITE_RESCUE_QUOTE_READY_PACKET_V1.md` |
 | Pricing guide | `docs/sales/WEBSITE_RESCUE_PRICING_GUIDE.md` |
 | Mauritius shared intake | `docs/operations/MAURITIUS_CLIENT_ONBOARDING_CHECKLIST_V1.md` |
 | Financial approval lane | GitHub #714 · `docs/revenue/COMMERCIAL_APPROVAL_RAIL_V1.md` |
 | Lead Rescue sibling (do not merge streams) | GitHub #715 |
-| Integrated Scenario B | GitHub #711 |
+| Integrated Scenario B | GitHub #926 · #716 · #711 · `docs/operations/WEBSITE_RESCUE_SCENARIO_B_INTEGRATED_V1.md` |
 
 ---
 
