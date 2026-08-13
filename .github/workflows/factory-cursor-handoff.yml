@@ -9,7 +9,9 @@
 # Important:
 # - Displayed workflow name must remain exactly:
 #     CorpFlowAI Cursor Factory Handoff
-# - Successful completion is the Automation wake signal (no Cursor API key).
+# - A real handoff explicitly POSTs to the Cursor Automation webhook; the native
+#   workflow-completed subscription remains optional diagnostics only.
+# - Cursor webhook URL/auth stay in GitHub Actions secrets and are never logged.
 # - Fail closed when there is no real eligible handoff so MODE B does not wake.
 # - Reuses factory eligibility / verified WIP logic; does not build a second dispatcher.
 # - Schedule is intentionally omitted (not the primary wake path).
@@ -129,6 +131,36 @@ jobs:
         run: |
           set -euo pipefail
           node scripts/factory-cursor-handoff.mjs
+
+      - name: Wake Cursor Factory v2 webhook
+        if: steps.handoff.outputs.has_handoff == '1' && steps.handoff.outputs.source_issue != ''
+        env:
+          CURSOR_FACTORY_WAKE_WEBHOOK_URL: ${{ secrets.CURSOR_FACTORY_WAKE_WEBHOOK_URL }}
+          CURSOR_FACTORY_WAKE_AUTH_HEADER: ${{ secrets.CURSOR_FACTORY_WAKE_AUTH_HEADER }}
+          SOURCE_ISSUE: ${{ steps.handoff.outputs.source_issue }}
+          HANDOFF_REASON: ${{ steps.handoff.outputs.reason }}
+          HANDOFF_RUN_ID: ${{ github.run_id }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if [ -z "$CURSOR_FACTORY_WAKE_WEBHOOK_URL" ] || [ -z "$CURSOR_FACTORY_WAKE_AUTH_HEADER" ]; then
+            echo "Cursor Factory wake webhook secrets are not configured" >&2
+            exit 1
+          fi
+
+          payload="$(node -e 'console.log(JSON.stringify({schema:"corpflow.factory_cursor_webhook.v1",source_issue:Number(process.env.SOURCE_ISSUE),handoff_reason:process.env.HANDOFF_REASON,handoff_run_id:process.env.HANDOFF_RUN_ID,repository:process.env.REPOSITORY}))')"
+
+          curl --fail --silent --show-error \
+            --connect-timeout 5 \
+            --max-time 15 \
+            --retry 1 \
+            --request POST \
+            --header "Authorization: $CURSOR_FACTORY_WAKE_AUTH_HEADER" \
+            --header "Content-Type: application/json" \
+            --data "$payload" \
+            "$CURSOR_FACTORY_WAKE_WEBHOOK_URL" >/dev/null
+
+          echo "Cursor Factory v2 webhook accepted handoff for issue #$SOURCE_ISSUE"
 
       - name: Upload handoff artifact
         if: always()
