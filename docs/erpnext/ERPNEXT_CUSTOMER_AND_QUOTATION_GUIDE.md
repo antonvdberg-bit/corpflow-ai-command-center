@@ -8,6 +8,8 @@
 
 **NO IMPLEMENTATION AUTHORIZED** — procedure for when ERPNext is configured. Until Print Format is live, manual quote emails from `docs/revenue/templates/quote-email.md` remain canonical for external send.
 
+**#882 hosted-test status:** READY — standard Quotation / draft Sales Invoice PDFs for MUR and USD from Customer + Item Price masters (`docs/erpnext/ERPNEXT_COMMERCIAL_DOCUMENTS_V1.md`). Commercial contact is `finance@corpflowai.com`. Do not send or submit synthetic drafts.
+
 ---
 
 ## 1. When to create records
@@ -63,15 +65,15 @@ Do **not** create Customer for `/lead-rescue` USD 150 wedge in the MUR sprint It
 
 ## 3. Item selection (MUR sprints)
 
-Use Items mapped to catalogue offers (configure in ERPNext when authorised):
+Use Items from the canonical catalogue (`docs/erpnext/ERPNEXT_PRODUCT_CATALOGUE_V1.md`):
 
-| Offer (catalogue title) | Suggested Item code | Starting price MUR |
-| ----------------------- | ------------------- | ------------------ |
-| AI Lead Rescue Sprint | `CF-RD-LEAD-RESCUE` | 35,000 |
-| Premium Landing Page Rescue | `CF-RD-LANDING-RESCUE` | 45,000 |
-| Customer Recovery & Reputation Management Sprint | `CF-RD-REPUTATION-RECOVERY` | 45,000 |
+| Offer (catalogue title) | Item code | Starting price | Status (#881) |
+| ----------------------- | --------- | -------------- | ------------- |
+| AI Lead Rescue Sprint | `CF-RD-LEAD-RESCUE` | MUR 35,000 | Item master + Item Price live on Standard Selling (#881 READY) |
+| Premium Landing Page Rescue | `CF-RD-LANDING-RESCUE` | MUR 45,000 | Item master + Item Price live on Standard Selling (#881 READY) |
+| Customer Recovery & Reputation Management Sprint | `CF-RD-REPUTATION-RECOVERY` | MUR 45,000 | Reserved code — not inserted |
 
-**Note:** Item master for MUR sprints is **MISSING** in sandbox today — create during Wave 2 configuration. Until then, manual quote email carries price.
+USD 150 launch pilot uses `LR-SETUP-USD-150` (not a MUR clone of that SKU). Recurring: `LR-REC-USD-99` / `CF-WR-REC-MUR-MAINT`.
 
 ---
 

@@ -96,17 +96,18 @@ Template: `docs/n8n/templates/business-operations-dispatcher-v1.template.json`
 6. `owner=n8n` → internal digest/retry branch (no customer sends)
 7. `owner=no_action` → silent success
 
-**Important:** Steps 4–5 are **not sufficient** for laptop-independent execution — they notify Anton; they do not start Cursor or Codex. The **dispatcher agent activator** (GitHub Actions, dry-run Phase 1) is the path to direct executor activation. See **`docs/execution/DISPATCHER_AGENT_ACTIVATION_V1.md`**.
+**Important:** Steps 4–5 are **not sufficient** for laptop-independent execution — they notify Anton; they do not start Cursor or Codex. **Production Cursor execution** is `CorpFlowAI Cursor Factory Handoff` → Wake Proof / MODE B (`docs/operations/CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1.md`). The **dispatcher agent activator** (`.github/workflows/factory-dispatcher-activate.yml`) is **LEGACY / DIAGNOSTIC / `workflow_dispatch` only** — see **`docs/execution/DISPATCHER_AGENT_ACTIVATION_V1.md`**.
 
-## 5. Dispatcher agent activator (Phase 1 — dry-run)
+## 5. Dispatcher agent activator (LEGACY / DIAGNOSTIC — not production)
 
 | Item | Detail |
 |------|--------|
 | **Doc** | `docs/execution/DISPATCHER_AGENT_ACTIVATION_V1.md` |
 | **Workflow** | `.github/workflows/factory-dispatcher-activate.yml` |
-| **Schedule** | Every 2 hours + `workflow_dispatch` |
-| **Secrets** | `CORPFLOW_CORE_BASE_URL` + `CORPFLOW_CRON_SECRET` (same as `factory-cmp-drive.yml`) |
-| **Phase 1 behavior** | Poll dispatcher → print dry-run plan by owner — **no** Cursor/Codex/GitHub/DB calls |
+| **Trigger** | `workflow_dispatch` only (no schedule, labels, comments, or capacity `workflow_call`) |
+| **Secrets** | `CORPFLOW_CORE_BASE_URL` + `CORPFLOW_CRON_SECRET` (same as `factory-cmp-drive.yml`); `CURSOR_API_KEY` only for diagnostic `cursor_live` |
+| **Production executor** | `CorpFlowAI Cursor Factory Handoff` → Cursor Automation `CorpFlowAI Factory Wake Proof` |
+| **Phase 1 behavior** | Poll dispatcher → print dry-run plan by owner — **no** Cursor/Codex/GitHub/DB calls unless explicitly dispatched `cursor_live` |
 | **Local CLI** | `npm run dispatcher:activate:fixtures` · `npm run dispatcher:activate:fetch` |
 
 ## 6. Security boundaries

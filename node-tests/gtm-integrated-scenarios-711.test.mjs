@@ -41,6 +41,9 @@ describe('#711 integrated scenarios — market + A + B', () => {
     assert.deepEqual(a.external_sends_executed, []);
     assert.equal(a.messaging_runtime_authorized, false);
     assert.ok(a.ledger.every((row) => row.ok === true));
+    assert.ok(a.handover?.handover_sent_at);
+    assert.ok(a.support_boundary?.in_scope);
+    assert.ok(a.ledger.some((row) => row.step === 'handover_and_support_boundary_evidence' && row.ok));
   });
 
   it('Scenario B reaches acceptance_ready with simulated DNS/deploy only', () => {
