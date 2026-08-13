@@ -8,6 +8,8 @@
 
 **NO IMPLEMENTATION AUTHORIZED** — procedure for when ERPNext is configured. Until Print Format is live, manual quote emails from `docs/revenue/templates/quote-email.md` remain canonical for external send.
 
+**Client Master (#880):** Lead Rescue and Website Rescue commercial identity uses the same standard Customer + Contact + Address objects. Canonical mapping, duplicate rules, and synthetic proof: `docs/erpnext/ERPNEXT_CLIENT_MASTER_V1.md`. This guide remains the MUR sprint quotation click-path.
+
 ---
 
 ## 1. When to create records

@@ -8,9 +8,11 @@
 
 **Single source of truth rule:**
 
-- **ERPNext** = commercial system of record (Customer, Quotation, SI, PE, Project, recon)
-- **Postgres** = app/lead system of record (intake, CF-…, operator status)
+- **ERPNext** = commercial system of record (Customer, Contact, Address, Quotation, SI, PE, Project, recon)
+- **Postgres** = app/lead system of record (intake, CF-…, operator status) — **pointer only** for billing identity
 - **No second SoR** — cross-reference, do not duplicate authoritative state
+
+**Client Master (#880):** onboarding commercial identity (legal/trading name, billing contact, billing address, currency/group/territory) is created on standard ERPNext Customer + Contact + Address **before** quotation. Canonical mapping: `docs/erpnext/ERPNEXT_CLIENT_MASTER_V1.md`. Delivery intake stays in #715 / #716 records.
 
 **NO IMPLEMENTATION AUTHORIZED** for automated sync.
 
@@ -122,3 +124,4 @@ Stored in `leads.qualificationJson.rapid_delivery_operator`:
 - `lib/cmp/_lib/rapid-delivery-operator.js` — CF-… function
 - `docs/revenue/CORPFLOWAI_GTM_SELLABLE_PATH.md`
 - `docs/erpnext/CORPFLOWAI_QUOTE_TO_CASH_RUNBOOK.md`
+- `docs/erpnext/ERPNEXT_CLIENT_MASTER_V1.md` — #880 commercial onboarding master

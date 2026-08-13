@@ -8,6 +8,8 @@
 
 Full lifecycle for **Mauritius rapid-delivery sprints** (MUR, 50% deposit, manual bank transfer). Parallel **USD 150 wedge** at `/lead-rescue` uses a separate operator path — do not merge without explicit scope change.
 
+**Client Master (#880):** create standard ERPNext Customer + Contact + Address before the first Quotation — `docs/erpnext/ERPNEXT_CLIENT_MASTER_V1.md`.
+
 **Canonical catalogue:** `lib/public/rapid-delivery-offers.js` + `docs/revenue/REVENUE_DELIVERY_PLAYBOOK.md`
 
 **NO IMPLEMENTATION AUTHORIZED** — operating procedure only. No production ERPNext posting without Phase D gates.

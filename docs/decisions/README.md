@@ -40,6 +40,7 @@ What we chose (one paragraph).
 
 | Date | Topic | File |
 |------|--------|------|
+| 2026-08-13 | ERPNext Customer/Contact/Address = commercial client master (#880) | `20260813-erpnext-client-master.md` |
 | 2026-07-29 | CorpFlowAI-hosted surfaces = corpflow_test; client_production separate (#679) | `20260729-corpflow-test-vs-client-production.md` |
 | 2026-06-29 | WhatsApp Tier 1/2/3 capability decision (planning only) | `20260629-whatsapp-tier1-tier2-capability.md` |
 | — | *(add rows as you create files)* | — |

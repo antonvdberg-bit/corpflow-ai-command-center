@@ -30,6 +30,10 @@
 
 ---
 
+## 2026-08-13 — **#880 ERPNext Client Master READY.** Standard Customer + Contact + Address is the commercial onboarding identity (no custom fields). Synthetic `CF880 Synthetic Lead Rescue Ltd` (USD) and `CF880 Synthetic Website Rescue Ltd` (MUR) created on sandbox/test with linked Contact + billing Address. Duplicate name is not natively unique — search-before-create; suffix duplicate disabled. Delivery stays in #715/#716; secrets stay off GitHub. Canonical: `docs/erpnext/ERPNEXT_CLIENT_MASTER_V1.md`. Follow-ups: #881 Items, #882 USD price list / Payment Terms. PR only; not merged.
+
+<!-- ERPNEXT_CLIENT_MASTER_880_HIST -->
+
 ## 2026-08-06 — **OpenHands agent-server conversation 500 diagnosed + remediated (non-model READY).** Controlling issue [#743](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/743), draft PR [#747](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/747) head `1f09743aa0b11895627075638ef1a4ab32dae8d2`. **Exception:** `MCPError: MCP Connection Failure` (`httpx.ConnectError` DNS name not known) on agent-server `POST /api/conversations` during `SETTING_UP_SKILLS`. **Cause:** unset `web_url` → control plane fell back to `http://host.docker.internal:{port}/mcp/mcp`; ExtraHosts=[] correctly blocks that host. **Reproduced without Groq/model key.** **Remediation:** compose `OH_WEB_URL=http://corpflowai-openhands-app:3000`. Live non-model conversation probe → **READY**; isolation held; primary Docker unchanged; Groq file mode 600 unused; dispatcher still disabled. PR #747 still draft and **CONFLICTING** vs `main` only on `artifacts/chat_history.md`. **Verdict: CONVERSATION SETUP VERIFIED — READY FOR SEPARATE MODEL RETRY APPROVAL.**
 
 <!-- OPENHANDS_CONV500_2026_08_06_HIST -->
