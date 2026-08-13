@@ -133,7 +133,7 @@ jobs:
           node scripts/factory-cursor-handoff.mjs
 
       - name: Wake Cursor Factory v2 webhook
-        if: steps.handoff.outputs.has_handoff == 'true' && steps.handoff.outputs.source_issue != ''
+        if: steps.handoff.outputs.has_handoff == '1' && steps.handoff.outputs.source_issue != ''
         env:
           CURSOR_FACTORY_WAKE_WEBHOOK_URL: ${{ secrets.CURSOR_FACTORY_WAKE_WEBHOOK_URL }}
           CURSOR_FACTORY_WAKE_AUTH_HEADER: ${{ secrets.CURSOR_FACTORY_WAKE_AUTH_HEADER }}
