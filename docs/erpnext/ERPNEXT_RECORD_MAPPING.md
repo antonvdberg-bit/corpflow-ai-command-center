@@ -101,6 +101,8 @@ Stored in `leads.qualificationJson.rapid_delivery_operator`:
 | ERPNext Item | `LR-SETUP-USD-150` | `CF-RD-*` |
 | Currency | USD | MUR |
 
+Canonical item masters (codes, names, descriptions, UOM, setup vs recurring): `docs/erpnext/ERPNEXT_PRODUCT_CATALOGUE_V1.md` / `config/erpnext-product-catalogue.v1.json` (#881). Do not create a MUR clone of `LR-SETUP-USD-150`.
+
 **Do not merge rows** without explicit scope change.
 
 ---

@@ -1,0 +1,350 @@
+{
+  "version": "v1",
+  "issue": 881,
+  "status": "item_masters_live_prices_pending",
+  "company": "CorpFlowAI LTD",
+  "environment": "erpnext_hosted_test",
+  "anchor": "ERPNEXT_PRODUCT_CATALOGUE_V1",
+  "naming": {
+    "pattern": "CF-{FAMILY}-{ROLE}-{CURRENCY}-{QUALIFIER}",
+    "legacy_codes_retained": [
+      "LR-SETUP-USD-150",
+      "CF-RD-LEAD-RESCUE",
+      "CF-RD-LANDING-RESCUE",
+      "CF-RD-REPUTATION-RECOVERY"
+    ],
+    "rules": [
+      "Do not invent a second item_code for the same commercial SKU.",
+      "Do not create a MUR clone of LR-SETUP-USD-150; MUR on that pilot is invoice-time conversion, not a second master.",
+      "CF-RD-LEAD-RESCUE is the MUR sprint product, not a currency copy of the USD 150 launch pilot.",
+      "Setup and recurring are separate items (different UOM and billing cadence), not Item Variants.",
+      "USD vs MUR for the same SKU uses Price Lists on one item, not two items.",
+      "Website Rescue T2/T3 are reserved operator-quote codes; they must not replace or duplicate T1."
+    ]
+  },
+  "item_groups": [
+    {
+      "name": "CorpFlowAI Services",
+      "parent_item_group": "All Item Groups",
+      "is_group": 1,
+      "erpnext_insert": true
+    },
+    {
+      "name": "CF Lead Rescue",
+      "parent_item_group": "CorpFlowAI Services",
+      "is_group": 0,
+      "erpnext_insert": true
+    },
+    {
+      "name": "CF Website Rescue",
+      "parent_item_group": "CorpFlowAI Services",
+      "is_group": 0,
+      "erpnext_insert": true
+    },
+    {
+      "name": "CF Support",
+      "parent_item_group": "CorpFlowAI Services",
+      "is_group": 0,
+      "erpnext_insert": true
+    },
+    {
+      "name": "CF Future Services",
+      "parent_item_group": "CorpFlowAI Services",
+      "is_group": 0,
+      "erpnext_insert": true,
+      "purpose": "Empty leaf group for future CorpFlowAI services. Clone the template in this file; do not dump unrelated SKUs into Lead Rescue or Website Rescue groups."
+    }
+  ],
+  "uoms": {
+    "setup": "Nos",
+    "recurring": "Month",
+    "addon": "Nos",
+    "notes": "Month was created as a standard UOM on the hosted ERPNext site for #881. Do not use Hour as the selling UOM for productised retainers."
+  },
+  "price_lists": [
+    {
+      "name": "Standard Selling",
+      "currency": "MUR",
+      "selling": 1,
+      "exists": true,
+      "use_for": ["CF-RD-LEAD-RESCUE", "CF-RD-LANDING-RESCUE", "CF-WR-REC-MUR-MAINT"]
+    },
+    {
+      "name": "Standard Selling USD",
+      "currency": "USD",
+      "selling": 1,
+      "exists": false,
+      "blocked_reason": "integrations@corpflowai.com has no Price List write permission",
+      "use_for": ["LR-SETUP-USD-150", "LR-REC-USD-99"]
+    }
+  ],
+  "selling_settings": {
+    "selling_price_list": "Standard Selling",
+    "editable_price_list_rate": 1,
+    "note": "editable_price_list_rate was set to 1 so draft quotations can carry catalogue rates until Item Price rows can be written."
+  },
+  "commercial_vs_internal": {
+    "client_facing_fields": ["item_name", "description"],
+    "internal_fields_never_on_documents": ["internal_delivery_ref", "internal_notes"],
+    "forbidden_in_commercial_description": [
+      "Telegram",
+      "Google Sheet",
+      "n8n",
+      "Postgres",
+      "/admin/",
+      "CMP",
+      "Vercel",
+      "Infisical",
+      "cockpit"
+    ]
+  },
+  "future_service_template": {
+    "item_code": "CF-{FAMILY}-SETUP-{CURRENCY}-{QUALIFIER}",
+    "required_fields": [
+      "item_code",
+      "item_name",
+      "item_group",
+      "family",
+      "billing_role",
+      "stock_uom",
+      "commercial_description",
+      "internal_delivery_ref",
+      "prices"
+    ],
+    "defaults": {
+      "is_stock_item": 0,
+      "is_sales_item": 1,
+      "is_purchase_item": 0,
+      "include_item_in_manufacturing": 0,
+      "has_variants": 0,
+      "item_group": "CF Future Services"
+    },
+    "steps": [
+      "Add a row to this catalogue JSON first.",
+      "Reuse an existing item_group when the service is Lead Rescue, Website Rescue, or Support.",
+      "Create one Item (non-stock, sales). Do not enable Item Variants for setup vs recurring.",
+      "Add Item Price on the matching selling price list once Item Price write is granted.",
+      "Keep description client-facing; put delivery checklists only in internal_delivery_ref."
+    ]
+  },
+  "items": [
+    {
+      "item_code": "LR-SETUP-USD-150",
+      "item_name": "AI Lead Rescue Setup (USD 150 launch pilot)",
+      "item_group": "CF Lead Rescue",
+      "family": "lead_rescue",
+      "billing_role": "setup",
+      "public_offer": true,
+      "erpnext_insert": true,
+      "stock_uom": "Nos",
+      "is_stock_item": 0,
+      "is_sales_item": 1,
+      "commercial_description": "AI Lead Rescue Setup — launch pilot. CorpFlowAI connects one agreed lead source to operator alerts and a visible daily follow-up path, with a 48-hour setup window after payment clears and a 7-day monitoring window. No revenue, lead-volume, or conversion guarantees.",
+      "internal_delivery_ref": "docs/operations/AI_LEAD_RESCUE_PAID_PILOT_ONBOARDING.md",
+      "internal_notes": "Operator delivery uses Telegram alerts and a buyer-shared sheet. Those tools must not appear on the quotation/invoice line.",
+      "prices": [
+        {
+          "price_list": "Standard Selling USD",
+          "currency": "USD",
+          "rate": 150,
+          "uom": "Nos",
+          "authority": "canonical",
+          "erpnext_item_price": "pending_role_grant"
+        }
+      ],
+      "do_not_duplicate_as": ["LR-SETUP-MUR-7000", "SBX-LR-SETUP-USD-150 on this hosted site"]
+    },
+    {
+      "item_code": "LR-REC-USD-99",
+      "item_name": "AI Lead Rescue monthly monitoring",
+      "item_group": "CF Lead Rescue",
+      "family": "lead_rescue",
+      "billing_role": "recurring",
+      "public_offer": false,
+      "erpnext_insert": true,
+      "stock_uom": "Month",
+      "is_stock_item": 0,
+      "is_sales_item": 1,
+      "commercial_description": "AI Lead Rescue monthly monitoring. Continued daily lead summary, operator alerts on the connected lead source, one lead-source change per month, and a monthly recap. Month-to-month; invoiced in advance. No auto-debit in this phase. No revenue guarantees.",
+      "internal_delivery_ref": "docs/sales/AI_LEAD_RESCUE_PRICING_GUIDE.md",
+      "internal_notes": "Quoted after the 7-day pilot window. Not a public CTA.",
+      "prices": [
+        {
+          "price_list": "Standard Selling USD",
+          "currency": "USD",
+          "rate": 99,
+          "uom": "Month",
+          "authority": "canonical",
+          "erpnext_item_price": "pending_role_grant"
+        }
+      ],
+      "do_not_duplicate_as": ["LR-SETUP-USD-150"]
+    },
+    {
+      "item_code": "CF-RD-LEAD-RESCUE",
+      "item_name": "AI Lead Rescue Sprint",
+      "item_group": "CF Lead Rescue",
+      "family": "lead_rescue",
+      "billing_role": "setup",
+      "public_offer": false,
+      "erpnext_insert": true,
+      "stock_uom": "Nos",
+      "is_stock_item": 0,
+      "is_sales_item": 1,
+      "commercial_description": "AI Lead Rescue Sprint. CorpFlowAI connects one lead source, alerts the named owner instantly, and leaves a visible daily follow-up path. First visible working output within 24–72 hours after deposit clearance and access confirmation. 50% deposit before work; balance on delivery acceptance. No revenue guarantees.",
+      "internal_delivery_ref": "docs/operations/LEAD_RESCUE_ONBOARDING_AND_DELIVERY_V1.md",
+      "internal_notes": "MUR rapid-delivery sprint. Separate product from the USD 150 launch pilot.",
+      "prices": [
+        {
+          "price_list": "Standard Selling",
+          "currency": "MUR",
+          "rate": 35000,
+          "uom": "Nos",
+          "authority": "canonical",
+          "erpnext_item_price": "pending_role_grant"
+        }
+      ],
+      "do_not_duplicate_as": ["LR-SETUP-USD-150"]
+    },
+    {
+      "item_code": "CF-RD-LANDING-RESCUE",
+      "item_name": "Premium Landing Page Rescue",
+      "item_group": "CF Website Rescue",
+      "family": "website_rescue",
+      "billing_role": "setup",
+      "public_offer": true,
+      "erpnext_insert": true,
+      "stock_uom": "Nos",
+      "is_stock_item": 0,
+      "is_sales_item": 1,
+      "commercial_description": "Premium Landing Page Rescue (Website Rescue T1). A bounded landing-page rescue that states the offer clearly, is mobile-ready, and routes buyer intent into a working enquiry path. Two structured preview rounds included. 50% deposit before design/build; balance before production release. No SEO ranking or sales-volume guarantees.",
+      "internal_delivery_ref": "docs/operations/WEBSITE_RESCUE_ONBOARDING_AND_DELIVERY_V1.md",
+      "internal_notes": "Canonical Website Rescue invoicing master. T2/T3 are reserved codes, not copies of this item.",
+      "prices": [
+        {
+          "price_list": "Standard Selling",
+          "currency": "MUR",
+          "rate": 45000,
+          "uom": "Nos",
+          "authority": "canonical",
+          "erpnext_item_price": "pending_role_grant"
+        }
+      ],
+      "do_not_duplicate_as": ["CF-WR-SETUP-MUR-T1"]
+    },
+    {
+      "item_code": "CF-WR-REC-MUR-MAINT",
+      "item_name": "Website Rescue monthly maintenance",
+      "item_group": "CF Support",
+      "family": "website_rescue",
+      "billing_role": "recurring",
+      "public_offer": false,
+      "erpnext_insert": true,
+      "stock_uom": "Month",
+      "is_stock_item": 0,
+      "is_sales_item": 1,
+      "commercial_description": "Optional Website Rescue monthly maintenance after handover. Month-to-month health checks and bounded minor copy/CTA tweaks, invoiced monthly in advance. Rate is set on the quotation (not a public list price). New pages, redesigns, or extra channels are quoted separately. No revenue guarantees.",
+      "internal_delivery_ref": "docs/revenue/templates/maintenance-offer.md",
+      "internal_notes": "No canonical monthly MUR amount is approved. Operator enters the quoted rate on the document until Anton sets a list price.",
+      "prices": [
+        {
+          "price_list": "Standard Selling",
+          "currency": "MUR",
+          "rate": null,
+          "uom": "Month",
+          "authority": "operator_quote",
+          "erpnext_item_price": "not_applicable_until_anton_sets_rate"
+        }
+      ],
+      "do_not_duplicate_as": ["CF-RD-LANDING-RESCUE"]
+    },
+    {
+      "item_code": "CF-WR-SETUP-MUR-T2",
+      "item_name": "Website Rescue Brochure Rescue",
+      "item_group": "CF Website Rescue",
+      "family": "website_rescue",
+      "billing_role": "setup",
+      "public_offer": false,
+      "erpnext_insert": false,
+      "stock_uom": "Nos",
+      "is_stock_item": 0,
+      "is_sales_item": 1,
+      "commercial_description": "Website Rescue Brochure Rescue (T2). A bounded multi-page rescue (typically Home + Services + Contact) with two structured preview rounds. Quoted after discovery. No SEO ranking or sales-volume guarantees.",
+      "internal_delivery_ref": "docs/sales/WEBSITE_RESCUE_PRICING_GUIDE.md",
+      "internal_notes": "Reserved until Anton W1 affirms the T2 band. Do not create a second T1 master.",
+      "prices": [
+        {
+          "price_list": "Standard Selling",
+          "currency": "MUR",
+          "rate": null,
+          "band_mur": [55000, 75000],
+          "uom": "Nos",
+          "authority": "operator_quote_pending_anton_w1",
+          "erpnext_item_price": "not_inserted"
+        }
+      ],
+      "do_not_duplicate_as": ["CF-RD-LANDING-RESCUE"]
+    },
+    {
+      "item_code": "CF-WR-SETUP-MUR-T3",
+      "item_name": "Website Rescue Bounded Rebuild",
+      "item_group": "CF Website Rescue",
+      "family": "website_rescue",
+      "billing_role": "setup",
+      "public_offer": false,
+      "erpnext_insert": false,
+      "stock_uom": "Nos",
+      "is_stock_item": 0,
+      "is_sales_item": 1,
+      "commercial_description": "Website Rescue Bounded Rebuild (T3). A bounded rebuild after a short URL audit, with three structured preview rounds. Quoted after discovery. No SEO ranking or sales-volume guarantees.",
+      "internal_delivery_ref": "docs/sales/WEBSITE_RESCUE_PRICING_GUIDE.md",
+      "internal_notes": "Reserved until Anton W1 affirms the T3 band.",
+      "prices": [
+        {
+          "price_list": "Standard Selling",
+          "currency": "MUR",
+          "rate": null,
+          "band_mur": [75000, 120000],
+          "uom": "Nos",
+          "authority": "operator_quote_pending_anton_w1",
+          "erpnext_item_price": "not_inserted"
+        }
+      ],
+      "do_not_duplicate_as": ["CF-RD-LANDING-RESCUE"]
+    },
+    {
+      "item_code": "CF-RD-REPUTATION-RECOVERY",
+      "item_name": "Customer Recovery & Reputation Management Sprint",
+      "item_group": "CF Future Services",
+      "family": "reputation_recovery",
+      "billing_role": "setup",
+      "public_offer": false,
+      "erpnext_insert": false,
+      "stock_uom": "Nos",
+      "is_stock_item": 0,
+      "is_sales_item": 1,
+      "commercial_description": "Customer Recovery & Reputation Management Sprint. A bounded sprint to restore a credible public presence and enquiry path. 50% deposit before work; balance on delivery acceptance. No review-score or revenue guarantees.",
+      "internal_delivery_ref": "lib/public/rapid-delivery-offers.js",
+      "internal_notes": "Reserved code from the rapid-delivery catalogue. Not part of the #881 Lead Rescue / Website Rescue insert set.",
+      "prices": [
+        {
+          "price_list": "Standard Selling",
+          "currency": "MUR",
+          "rate": 45000,
+          "uom": "Nos",
+          "authority": "reserved",
+          "erpnext_item_price": "not_inserted"
+        }
+      ],
+      "do_not_duplicate_as": ["CF-RD-LANDING-RESCUE", "CF-RD-LEAD-RESCUE"]
+    }
+  ],
+  "synthetic_proof": {
+    "lead_rescue_quotation": "SAL-QTN-2026-00001",
+    "website_rescue_quotation": "SAL-QTN-2026-00002",
+    "docstatus": 0,
+    "do_not_submit": true,
+    "do_not_send": true,
+    "notes": "Draft quotations on a synthetic customer. USD document used a placeholder conversion_rate because Currency Exchange is empty (#882). Do not submit or send."
+  }
+}
