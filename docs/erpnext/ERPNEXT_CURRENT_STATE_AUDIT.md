@@ -156,10 +156,20 @@ Classification key:
 
 ---
 
-## 5. Cross-references
+## 5. Cursor Cloud API access (#899 / #893)
+
+| Item | Class | Notes |
+| ---- | ----- | ----- |
+| Direct ERPNext API from Cursor Cloud (`ERPNEXT_BASE_URL` / `ERPNEXT_API_KEY` / `ERPNEXT_API_SECRET`) | **LIVE AND VERIFIED** | Fresh probe 2026-08-12 on run `run-913060e0-9757-422e-b783-87f3b4f23798` — HTTP 200 as `integrations@corpflowai.com`; evidence `docs/erpnext/ERPNEXT_CURSOR_CLOUD_SECURITY_CORRECTION_899.md` |
+| `MASTER_ADMIN_KEY` absent from ordinary Cursor Cloud runs | **NEEDS_ANTON** | Still present on that run; one-time Cursor Dashboard Secrets delete — `docs/runbooks/ERPNEXT_CURSOR_CLOUD_SECRETS_LEAST_PRIVILEGE_V1.md` |
+| SSH / Infisical runtime bridge for ERPNext | **OUT OF SCOPE** | Not required when the three direct API secrets are injected |
+
+## 6. Cross-references
 
 - `docs/erpnext/CORPFLOWAI_QUOTE_TO_CASH_RUNBOOK.md`
 - `docs/erpnext/ERPNEXT_RECORD_MAPPING.md`
+- `docs/erpnext/ERPNEXT_CURSOR_CLOUD_SECURITY_CORRECTION_899.md`
+- `docs/runbooks/ERPNEXT_CURSOR_CLOUD_SECRETS_LEAST_PRIVILEGE_V1.md`
 - `docs/finance/ERPNEXT_PRODUCTION_READINESS_EVALUATION.md`
 - `docs/finance/ERPNEXT_SANDBOX_PHASE_C_FINDINGS.md`
 - `docs/revenue/CORPFLOWAI_LAUNCH_NEEDS_ANTON.md`
