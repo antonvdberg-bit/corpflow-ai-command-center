@@ -1,6 +1,6 @@
 # ERPNext Product & Service Catalogue v1 — invoicing master
 
-**Status:** Item masters live; MUR company-currency `standard_rate` applied for the two approved sprint SKUs; Item Price / USD Price List still UI-blocked.
+**Status:** Item masters live; MUR company-currency `standard_rate` applied for the two approved sprint SKUs; Item Price / USD Price List still UI-blocked after 2026-08-13 generation 3 re-probe.
 **Issue:** [#881](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/881)
 **Parents:** [#710](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/710), [#711](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/711), [#714](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/714)
 **Prerequisite:** [#879](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/879) / direct API path from [#899](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/899)
@@ -40,7 +40,25 @@ Anton required now: YES — Role Permissions Manager: Item Price Read/Create/Wri
 
 ---
 
-## 1. Current state (re-probed 2026-08-13, generation 2)
+## 1. Current state (re-probed 2026-08-13, generation 3)
+
+Access path: direct Cursor Cloud secrets → Frappe token auth (no SSH / Infisical). Identity: `integrations@corpflowai.com`. Anton’s recorded authorization for Item Price and Price List Read/Create/Write is **not re-requested**. This identity still **cannot apply that grant itself**, and the grant is **not yet visible** on the API.
+
+| Object | Generation 3 live result |
+| ------ | ------------------------ |
+| Auth | HTTP 200 as `integrations@corpflowai.com` |
+| Roles | Purchase User, Sales User, Item Manager, Stock Manager, Stock User, Accounts Manager, Sales Manager, Accounts User, Purchase Manager |
+| Item | 5 non-stock sales services still present; MUR `standard_rate` 35000 / 45000 on sprint SKUs; USD SKUs remain 0 |
+| Price List GET | HTTP 200 — `Standard Selling` (MUR) and `Standard Buying` (MUR) only |
+| `Standard Selling USD` | GET HTTP 404 (does not exist); POST create HTTP **403** |
+| Item Price GET | HTTP **403** |
+| Item Price POST (`LR-SETUP-USD-150` USD 150) | HTTP **403** — no row written |
+| Quotations | `SAL-QTN-2026-00001` / `00002` still Draft (`docstatus=0`) |
+| Custom fields / DocTypes | **None** |
+
+Generation 2 detail (why the grant is UI-only) remains in §1.2. Generation 3 did **not** add a workaround, custom DocType, Role Profile edit, or second permission system.
+
+### 1.0 Prior generation 2 snapshot (still accurate; generation 3 confirmed the same 403s)
 
 Access path: direct Cursor Cloud secrets → Frappe token auth (no SSH / Infisical). Identity: `integrations@corpflowai.com`. Anton recorded approval on #881 for Item Price and Price List Read/Create/Write. This identity **cannot apply that grant itself**.
 
@@ -228,16 +246,16 @@ Proofs:
 - Canonical Item Price plan is exactly four approved rates; maintenance / T2 / T3 excluded.
 - `apply-product-catalogue-prices.sh --dry-run` prints those four rows and forbids `MASTER_ADMIN_KEY`.
 
-### 4.2 Live ERPNext (generation 1 + 2)
+### 4.2 Live ERPNext (generation 3, 2026-08-13)
 
-Draft quotations pulled Item `item_name` and `description` unchanged:
+Draft quotations still present and still draft:
 
 | Quotation | Currency | Lines | Grand total | Status |
 | --------- | -------- | ----- | ----------- | ------ |
 | `SAL-QTN-2026-00001` | USD | `LR-SETUP-USD-150` + `LR-REC-USD-99` | 249.00 | Draft — do not submit |
 | `SAL-QTN-2026-00002` | MUR | `CF-RD-LANDING-RESCUE` | 45,000.00 | Draft — do not submit |
 
-MUR Item read-back this run: `CF-RD-LEAD-RESCUE.standard_rate=35000`, `CF-RD-LANDING-RESCUE.standard_rate=45000`. Item Price list still HTTP 403.
+MUR Item read-back generation 3: `CF-RD-LEAD-RESCUE.standard_rate=35000`, `CF-RD-LANDING-RESCUE.standard_rate=45000`. USD SKUs `standard_rate=0`. Item Price GET/POST HTTP 403. `Standard Selling USD` does not exist (GET 404; create 403). No unapproved rates written. Apply script `scripts/erpnext/apply-product-catalogue-prices.sh` exits 1 and prints the §3.2 click path.
 
 ---
 
@@ -267,7 +285,7 @@ Lead Rescue and Website Rescue **exist** as clean service Item masters and **can
 
 The catalogue is not READY as an **authoritative invoicing master** until Item Price rows can be written on the correct selling price lists.
 
-Anton required now: **YES** — Role Permissions Manager click in §3.2 only. No secrets, no schema, no payment, no send.
+Anton required now: **YES** — already-authorized Role Permissions Manager click in §3.2 only (do **not** re-approve). No secrets, no schema, no payment, no send. After the click, re-run `bash scripts/erpnext/apply-product-catalogue-prices.sh`.
 
 ---
 
