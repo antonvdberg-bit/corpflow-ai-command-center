@@ -3,7 +3,9 @@ import { describe, it } from 'node:test';
 
 import {
   buildCursorActivationClaim,
+  buildCursorRequeueMarker,
   formatCursorActivationClaimComment,
+  formatCursorRequeueComment,
 } from '../lib/server/cursor-activation-claim.js';
 import {
   buildCursorCompletionEvent,
@@ -20,6 +22,7 @@ import {
 import {
   DISPATCH_LABEL_PAUSED,
   evaluateCursorWipCapacity,
+  extractDispatchActivatedRunId,
   formatCursorCapacityPacket,
   inspectIssueWipState,
 } from '../lib/server/cursor-wip-control.js';
@@ -430,5 +433,286 @@ describe('cursor WIP control v1 (#862)', () => {
     });
     assert.equal(wip.used, 1);
     assert.equal(wip.slots[0].runId, 'run-66666666-6666-6666-6666-666666666666');
+  });
+});
+
+const GEN1_881_RUN = 'run-fe56d0ab-41b1-4e51-b71f-e8249043e441';
+const GEN2_882_RUN = 'run-73933f4a-b259-4f1c-84dc-3c86d6d3abb6';
+
+function issue881GenerationHistory({
+  includeGen2Pending = true,
+  includeGen2Released = true,
+  gen2RunId = null,
+} = {}) {
+  const gen2Token = 'gen2-881-claim';
+  /** @type {Array<{ body: string, created_at: string }>} */
+  const comments = [
+    {
+      created_at: '2026-08-12T10:00:00Z',
+      body: formatCursorActivationClaimComment(
+        buildCursorActivationClaim({
+          sourceIssue: 881,
+          generation: 1,
+          claimToken: 'gen1-token',
+          status: 'activated',
+          agentRunId: GEN1_881_RUN,
+        }),
+      ),
+    },
+    {
+      created_at: '2026-08-12T10:00:05Z',
+      body: formatDispatchActivatedComment({
+        issueNumber: 881,
+        agentRunId: GEN1_881_RUN,
+      }),
+    },
+    {
+      created_at: '2026-08-12T10:00:06Z',
+      body: formatCursorOriginMetadataComment(
+        buildCursorOriginMetadata({
+          sourceIssue: 881,
+          cursorRunId: GEN1_881_RUN,
+          cursorAgentId: 'bc-fe56d0ab-41b1-4e51-b71f-e8249043e441',
+        }),
+      ),
+    },
+    {
+      created_at: '2026-08-12T18:00:00Z',
+      body: formatCursorCompletionEventComment(
+        buildCursorCompletionEvent({
+          sourceIssue: 881,
+          cursorRunId: GEN1_881_RUN,
+          cursorAgentId: 'bc-fe56d0ab-41b1-4e51-b71f-e8249043e441',
+          status: 'COMPLETED',
+        }),
+      ),
+    },
+    {
+      created_at: '2026-08-13T06:49:30Z',
+      body: formatCursorRequeueComment(
+        buildCursorRequeueMarker({
+          sourceIssue: 881,
+          generation: 2,
+          reason: 'continue existing work',
+          requeuedAt: '2026-08-13T06:49:30.000Z',
+        }),
+      ),
+    },
+  ];
+  if (includeGen2Pending) {
+    comments.push({
+      created_at: '2026-08-13T07:00:00Z',
+      body: formatCursorActivationClaimComment(
+        buildCursorActivationClaim({
+          sourceIssue: 881,
+          generation: 2,
+          claimToken: gen2Token,
+          status: 'pending',
+        }),
+      ),
+    });
+  }
+  if (includeGen2Released) {
+    comments.push({
+      created_at: '2026-08-13T07:05:00Z',
+      body: formatCursorActivationClaimComment(
+        buildCursorActivationClaim({
+          sourceIssue: 881,
+          generation: 2,
+          claimToken: gen2Token,
+          status: 'released',
+        }),
+      ),
+    });
+  }
+  if (gen2RunId) {
+    comments.push(
+      {
+        created_at: '2026-08-13T07:10:00Z',
+        body: formatCursorActivationClaimComment(
+          buildCursorActivationClaim({
+            sourceIssue: 881,
+            generation: 2,
+            claimToken: 'gen2-activated',
+            status: 'activated',
+            agentRunId: gen2RunId,
+          }),
+        ),
+      },
+      {
+        created_at: '2026-08-13T07:10:01Z',
+        body: formatDispatchActivatedComment({
+          issueNumber: 881,
+          agentRunId: gen2RunId,
+        }),
+      },
+    );
+  }
+  return comments;
+}
+
+describe('cursor WIP claim status + generation boundary (#922)', () => {
+  it('#881 gen1 history + gen2 pending + gen2 released + ready => zero old WIP', () => {
+    const comments = issue881GenerationHistory();
+    const inspected = inspectIssueWipState({
+      number: 881,
+      state: 'open',
+      labels: ['dispatch:cursor-ready'],
+      comments,
+    });
+    assert.equal(inspected.verifiedLive, false);
+    assert.equal(inspected.slot, null);
+    assert.equal(extractDispatchActivatedRunId(comments), null);
+
+    const wip = evaluateCursorWipCapacity({
+      trackedIssues: [
+        {
+          number: 881,
+          state: 'open',
+          labels: ['dispatch:cursor-ready'],
+          comments,
+        },
+      ],
+      readyIssues: [
+        {
+          number: 881,
+          state: 'open',
+          labels: ['dispatch:cursor-ready'],
+          body: 'documentation only',
+          title: 'Product Catalogue',
+          comments,
+        },
+      ],
+    });
+    assert.equal(wip.used, 0);
+    assert.equal(wip.availableSlots, 2);
+    assert.equal(wip.nextEligible, 881);
+    assert.equal(wip.maxSlots, 2);
+  });
+
+  it('terminal gen2 claim with leftover execution labels consumes zero WIP and reconciles', () => {
+    const comments = issue881GenerationHistory();
+    const inspected = inspectIssueWipState({
+      number: 881,
+      state: 'open',
+      labels: ['dispatch:cursor-claimed', 'status:in-progress', 'dispatch:cursor-ready'],
+      comments,
+    });
+    assert.equal(inspected.verifiedLive, false);
+    assert.equal(inspected.reconcile.length, 1);
+    assert.equal(inspected.reconcile[0].reason, 'terminal_claim_with_active_execution_labels');
+
+    const wip = evaluateCursorWipCapacity({
+      trackedIssues: [
+        {
+          number: 881,
+          state: 'open',
+          labels: ['dispatch:cursor-claimed', 'status:in-progress'],
+          comments,
+        },
+      ],
+      readyIssues: [],
+    });
+    assert.equal(wip.used, 0);
+    assert.ok(wip.reconciledCount >= 1);
+  });
+
+  it('gen2 pending in flight after requeue must not occupy WIP with the gen1 run id', () => {
+    const comments = issue881GenerationHistory({
+      includeGen2Pending: true,
+      includeGen2Released: false,
+    });
+    const inspected = inspectIssueWipState({
+      number: 881,
+      state: 'open',
+      labels: ['dispatch:cursor-claimed', 'status:in-progress'],
+      comments,
+    });
+    assert.equal(extractDispatchActivatedRunId(comments), null);
+    assert.equal(inspected.verifiedLive, false);
+    assert.notEqual(inspected.runId, GEN1_881_RUN);
+
+    const wip = evaluateCursorWipCapacity({
+      trackedIssues: [
+        {
+          number: 881,
+          state: 'open',
+          labels: ['dispatch:cursor-claimed', 'status:in-progress'],
+          comments,
+        },
+      ],
+      readyIssues: [],
+    });
+    assert.equal(wip.used, 0);
+  });
+
+  it('current-generation activated run still consumes exactly one slot', () => {
+    const gen2Run = 'run-aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+    const comments = issue881GenerationHistory({
+      includeGen2Pending: false,
+      includeGen2Released: false,
+      gen2RunId: gen2Run,
+    });
+    const wip = evaluateCursorWipCapacity({
+      trackedIssues: [
+        {
+          number: 881,
+          state: 'open',
+          labels: ['dispatch:cursor-claimed', 'status:in-progress'],
+          comments,
+        },
+      ],
+      readyIssues: [],
+    });
+    assert.equal(wip.used, 1);
+    assert.equal(wip.slots[0].runId, gen2Run);
+    assert.equal(wip.slots[0].issueNumber, 881);
+    assert.equal(wip.slots[0].generation, 2);
+  });
+
+  it('one old run id cannot occupy two issues or survive a generation boundary', () => {
+    const quotedHandoff = `<!-- corpflow.factory_cursor_handoff.v1 -->
+# CORPFLOW FACTORY HANDOFF
+
+Selected source issue: #882
+Capacity packet:
+\`\`\`
+CURSOR CAPACITY: 1/2 active
+Slot 1: #881 — running — ${GEN1_881_RUN}
+Slot 2: FREE
+Next eligible: #882
+\`\`\``;
+
+    const wip = evaluateCursorWipCapacity({
+      trackedIssues: [
+        {
+          number: 881,
+          state: 'open',
+          labels: ['dispatch:cursor-ready'],
+          comments: issue881GenerationHistory(),
+        },
+        {
+          number: 882,
+          state: 'open',
+          labels: ['dispatch:cursor-claimed', 'status:in-progress'],
+          comments: [{ body: quotedHandoff }],
+        },
+      ],
+      readyIssues: [],
+    });
+    assert.equal(wip.used, 0);
+    assert.ok(!wip.slots.some((s) => s.runId === GEN1_881_RUN));
+
+    const livePair = evaluateCursorWipCapacity({
+      trackedIssues: [
+        liveIssue(881, GEN2_882_RUN.replace('73933f4a', 'aaaaaaaa')),
+        liveIssue(882, GEN2_882_RUN),
+      ],
+      readyIssues: [],
+    });
+    assert.equal(livePair.used, 2);
+    const ids = livePair.slots.map((s) => s.runId);
+    assert.equal(new Set(ids).size, 2);
+    assert.ok(!ids.includes(GEN1_881_RUN));
   });
 });

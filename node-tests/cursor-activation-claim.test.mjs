@@ -295,4 +295,209 @@ describe('cursor activation claim (double-activation guard)', () => {
     assert.equal(list.length, 1);
     assert.equal(list[0].claimToken, 'round-trip');
   });
+
+  it('collapses same-token pending then released to released (#922)', () => {
+    const token = 'gen2-same-token';
+    const list = parseCursorActivationClaimsFromComments([
+      {
+        created_at: '2026-08-13T07:00:00Z',
+        body: formatCursorActivationClaimComment(
+          buildCursorActivationClaim({
+            sourceIssue: 881,
+            generation: 2,
+            claimToken: token,
+            status: 'pending',
+            claimedAt: '2026-08-13T07:00:00Z',
+          }),
+        ),
+      },
+      {
+        created_at: '2026-08-13T07:05:00Z',
+        body: formatCursorActivationClaimComment(
+          buildCursorActivationClaim({
+            sourceIssue: 881,
+            generation: 2,
+            claimToken: token,
+            status: 'released',
+            claimedAt: '2026-08-13T07:00:00Z',
+          }),
+        ),
+      },
+    ]);
+    assert.equal(list.length, 1);
+    assert.equal(list[0].status, 'released');
+    assert.equal(list[0].claimToken, token);
+    assert.equal(list[0].generation, 2);
+  });
+
+  it('released supersedes pending for the same token even if pending is later in the array', () => {
+    const token = 'order-independent';
+    const list = parseCursorActivationClaimsFromComments([
+      {
+        body: formatCursorActivationClaimComment(
+          buildCursorActivationClaim({
+            sourceIssue: 881,
+            generation: 2,
+            claimToken: token,
+            status: 'released',
+          }),
+        ),
+      },
+      {
+        body: formatCursorActivationClaimComment(
+          buildCursorActivationClaim({
+            sourceIssue: 881,
+            generation: 2,
+            claimToken: token,
+            status: 'pending',
+          }),
+        ),
+      },
+    ]);
+    assert.equal(list.length, 1);
+    assert.equal(list[0].status, 'released');
+  });
+
+  it('preserves race detection between different claim tokens in the same generation', () => {
+    const list = parseCursorActivationClaimsFromComments([
+      {
+        body: formatCursorActivationClaimComment(
+          buildCursorActivationClaim({
+            sourceIssue: 901,
+            generation: 1,
+            claimToken: 'token-zzz',
+            status: 'pending',
+          }),
+        ),
+      },
+      {
+        body: formatCursorActivationClaimComment(
+          buildCursorActivationClaim({
+            sourceIssue: 901,
+            generation: 1,
+            claimToken: 'token-aaa',
+            status: 'pending',
+          }),
+        ),
+      },
+    ]);
+    assert.equal(list.length, 2);
+    assert.deepEqual(
+      list.map((c) => c.claimToken),
+      ['token-aaa', 'token-zzz'],
+    );
+  });
+
+  it('#881 gen1 activated + gen2 requeue + gen2 pending + gen2 released + ready => ACQUIRE', () => {
+    const gen1Run = 'run-fe56d0ab-41b1-4e51-b71f-e8249043e441';
+    const gen2Token = 'gen2-881-claim';
+    const comments = [
+      {
+        created_at: '2026-08-12T10:00:00Z',
+        body: formatCursorActivationClaimComment(
+          buildCursorActivationClaim({
+            sourceIssue: 881,
+            generation: 1,
+            claimToken: 'gen1-token',
+            status: 'activated',
+            agentRunId: gen1Run,
+          }),
+        ),
+      },
+      {
+        created_at: '2026-08-12T10:00:05Z',
+        body: formatCursorOriginMetadataComment(
+          buildCursorOriginMetadata({
+            sourceIssue: 881,
+            cursorAgentId: 'bc-fe56d0ab-41b1-4e51-b71f-e8249043e441',
+            cursorRunId: gen1Run,
+          }),
+        ),
+      },
+      {
+        created_at: '2026-08-13T06:49:30Z',
+        body: formatCursorRequeueComment(
+          buildCursorRequeueMarker({
+            sourceIssue: 881,
+            generation: 2,
+            reason: 'continue existing work',
+          }),
+        ),
+      },
+      {
+        created_at: '2026-08-13T07:00:00Z',
+        body: formatCursorActivationClaimComment(
+          buildCursorActivationClaim({
+            sourceIssue: 881,
+            generation: 2,
+            claimToken: gen2Token,
+            status: 'pending',
+          }),
+        ),
+      },
+      {
+        created_at: '2026-08-13T07:05:00Z',
+        body: formatCursorActivationClaimComment(
+          buildCursorActivationClaim({
+            sourceIssue: 881,
+            generation: 2,
+            claimToken: gen2Token,
+            status: 'released',
+          }),
+        ),
+      },
+    ];
+
+    const gate = evaluateCursorIssueActivationClaim({
+      issueNumber: 881,
+      labels: ['dispatch:cursor-ready'],
+      comments,
+    });
+    assert.equal(gate.decision, 'ACQUIRE');
+    assert.equal(gate.reason, 'explicit_requeue');
+    assert.equal(gate.generation, 2);
+    assert.equal(gate.activeClaim, null);
+  });
+
+  it('#881 gen2 pending in flight still skips as active_claim_marker', () => {
+    const comments = [
+      {
+        body: formatCursorActivationClaimComment(
+          buildCursorActivationClaim({
+            sourceIssue: 881,
+            generation: 1,
+            claimToken: 'gen1-token',
+            status: 'activated',
+            agentRunId: 'run-fe56d0ab-41b1-4e51-b71f-e8249043e441',
+          }),
+        ),
+      },
+      {
+        body: formatCursorRequeueComment(
+          buildCursorRequeueMarker({
+            sourceIssue: 881,
+            generation: 2,
+            reason: 'retry',
+          }),
+        ),
+      },
+      {
+        body: formatCursorActivationClaimComment(
+          buildCursorActivationClaim({
+            sourceIssue: 881,
+            generation: 2,
+            claimToken: 'gen2-in-flight',
+            status: 'pending',
+          }),
+        ),
+      },
+    ];
+    const gate = evaluateCursorIssueActivationClaim({
+      issueNumber: 881,
+      labels: ['dispatch:cursor-claimed', 'status:in-progress'],
+      comments,
+    });
+    assert.equal(gate.decision, SKIP_ALREADY_CLAIMED);
+    assert.ok(['claimed_label', 'active_claim_marker'].includes(gate.reason));
+  });
 });
