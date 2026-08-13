@@ -654,7 +654,6 @@ function resolveCliOptions() {
     process.env.GITHUB_REPOSITORY || process.env.GITHUB_REPO || '',
   ).trim();
   const postComment = process.env.DISPATCHER_ACTIVATION_POST_COMMENT === '1';
-  const cursorLiveEnabled = parseBooleanFlag(process.env.CURSOR_LIVE_ENABLED);
   return {
     mode,
     dedupePath,
@@ -664,7 +663,6 @@ function resolveCliOptions() {
     githubToken,
     repoFullName,
     postComment,
-    cursorLiveEnabled,
   };
 }
 
@@ -723,17 +721,9 @@ async function runCli() {
     githubToken,
     repoFullName,
     postComment,
-    cursorLiveEnabled,
   } = resolveCliOptions();
-  if (
-    eventName === 'schedule' &&
-    mode === 'cursor_live' &&
-    !cursorLiveEnabled
-  ) {
-    throw new Error(
-      'CURSOR_LIVE_ENABLED is not true — scheduled cursor_live disabled by kill switch (fail closed)',
-    );
-  }
+  // #929: scheduled cursor_live is authoritative. CURSOR_LIVE_ENABLED no longer
+  // gates schedule. Fail-closed remains CURSOR_API_KEY + WIP/protected gates.
 
   const persistDedupe = process.argv.includes('--persist-dedupe') || mode === 'cursor_live';
   const activationOpts = {

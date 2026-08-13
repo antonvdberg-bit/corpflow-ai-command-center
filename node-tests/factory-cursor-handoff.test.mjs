@@ -11,6 +11,7 @@ import { fileURLToPath } from 'node:url';
 import {
   FACTORY_CURSOR_HANDOFF_MARKER,
   FACTORY_CURSOR_HANDOFF_WORKFLOW_NAME,
+  FACTORY_CURSOR_HANDOFF_LEGACY_PRODUCTION_WORKFLOW_NAME,
   buildFactoryHandoffPacket,
   formatFactoryHandoffComment,
   hasRecentFactoryHandoff,
@@ -62,29 +63,41 @@ function activatedComments(issueNumber, runId) {
   ];
 }
 
-describe('factory cursor handoff workflow (#913)', () => {
+describe('factory cursor handoff workflow (#913 / #929 diagnostic)', () => {
   const yaml = readFileSync(WORKFLOW_PATH, 'utf8');
 
-  it('uses the exact displayed workflow name required by Cursor Automation MODE B', () => {
-    assert.match(yaml, /^name:\s*CorpFlowAI Cursor Factory Handoff\s*$/m);
-    assert.equal(FACTORY_CURSOR_HANDOFF_WORKFLOW_NAME, 'CorpFlowAI Cursor Factory Handoff');
+  it('is manual/diagnostic-only and does not keep the exact production Automation trigger name', () => {
+    assert.equal(
+      FACTORY_CURSOR_HANDOFF_LEGACY_PRODUCTION_WORKFLOW_NAME,
+      'CorpFlowAI Cursor Factory Handoff',
+    );
+    assert.equal(
+      FACTORY_CURSOR_HANDOFF_WORKFLOW_NAME,
+      'CorpFlowAI Cursor Factory Handoff (legacy diagnostic)',
+    );
+    assert.match(yaml, /^name:\s*CorpFlowAI Cursor Factory Handoff \(legacy diagnostic\)\s*$/m);
+    assert.doesNotMatch(yaml, /^name:\s*CorpFlowAI Cursor Factory Handoff\s*$/m);
+    assert.notEqual(
+      FACTORY_CURSOR_HANDOFF_WORKFLOW_NAME,
+      FACTORY_CURSOR_HANDOFF_LEGACY_PRODUCTION_WORKFLOW_NAME,
+    );
   });
 
-  it('wakes on eligibility/capacity events and does not use schedule as primary path', () => {
-    assert.match(yaml, /workflow_call:/);
+  it('does not auto-fire from issue, comment, capacity, or schedule events', () => {
     assert.match(yaml, /workflow_dispatch:/);
-    assert.match(yaml, /issues:\s*\n\s*types:\s*\[labeled,\s*unlabeled\]/);
-    assert.match(yaml, /issue_comment:/);
-    assert.match(yaml, /dispatch:cursor-ready/);
-    assert.match(yaml, /execution:paused/);
+    assert.doesNotMatch(yaml, /^\s*workflow_call:/m);
+    assert.doesNotMatch(yaml, /types:\s*\[labeled/);
+    assert.doesNotMatch(yaml, /^\s*issue_comment:/m);
     assert.doesNotMatch(yaml, /^\s*schedule:/m);
     assert.doesNotMatch(yaml, /cron:/);
+    assert.doesNotMatch(yaml, /dispatch:cursor-ready/);
+    assert.match(yaml, /FACTORY_HANDOFF_POST_COMMENT:\s*"0"/);
   });
 
   it('does not require Cursor API secrets and runs the handoff selector', () => {
     assert.doesNotMatch(yaml, /secrets\.CURSOR_API_KEY/);
     assert.match(yaml, /node scripts\/factory-cursor-handoff\.mjs/);
-    assert.match(yaml, /FACTORY_HANDOFF_POST_COMMENT:\s*"1"/);
+    assert.match(yaml, /FACTORY_HANDOFF_POST_COMMENT:\s*"0"/);
     assert.match(yaml, /permissions:\s*\n\s*contents:\s*read\s*\n\s*issues:\s*write/);
   });
 

@@ -135,15 +135,17 @@ describe('cursor-ready event-driven dispatch (Phase A)', () => {
     assert.equal(plan.path, 'event_label_ready');
   });
 
-  it('scheduled fallback remains available and backward compatible', () => {
-    const dry = resolveFactoryDispatcherRunPlan({
-      eventName: 'schedule',
-      cursorLiveEnabled: false,
-    });
-    assert.equal(dry.shouldRun, true);
-    assert.equal(dry.mode, 'dry_run');
-    assert.equal(dry.path, 'schedule_fallback');
-    assert.equal(dry.concurrencyKey, 'scan');
+  it('scheduled recovery is cursor_live even when CURSOR_LIVE_ENABLED is absent or false', () => {
+    for (const cursorLiveEnabled of [false, 'false', '', undefined, null]) {
+      const plan = resolveFactoryDispatcherRunPlan({
+        eventName: 'schedule',
+        cursorLiveEnabled,
+      });
+      assert.equal(plan.shouldRun, true, `enabled=${JSON.stringify(cursorLiveEnabled)}`);
+      assert.equal(plan.mode, 'cursor_live', `enabled=${JSON.stringify(cursorLiveEnabled)}`);
+      assert.equal(plan.path, 'schedule_fallback');
+      assert.equal(plan.concurrencyKey, 'scan');
+    }
 
     const live = resolveFactoryDispatcherRunPlan({
       eventName: 'schedule',
@@ -665,10 +667,10 @@ describe('eligibility wake (#891) — approval and capacity changes', () => {
     assert.equal(silentLifecycle.shouldWake, false);
   });
 
-  it('F: schedule fallback remains the reconciliation path', () => {
+  it('F: schedule recovery is cursor_live without requiring CURSOR_LIVE_ENABLED', () => {
     const plan = resolveFactoryDispatcherRunPlan({
       eventName: 'schedule',
-      cursorLiveEnabled: true,
+      cursorLiveEnabled: false,
     });
     assert.equal(plan.shouldRun, true);
     assert.equal(plan.path, 'schedule_fallback');

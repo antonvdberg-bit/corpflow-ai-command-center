@@ -1,13 +1,13 @@
 /**
- * CorpFlowAI Cursor Factory Handoff runner for GitHub Actions (#913).
+ * CorpFlowAI Cursor Factory Handoff runner for GitHub Actions (#913 / #929).
  *
- * Selects exactly one eligible source issue using existing scan/WIP logic,
- * writes a durable handoff packet, optionally posts a source-issue comment,
- * and exits 0 only when a real handoff should wake Cursor Automation MODE B.
+ * Selects exactly one eligible source issue using existing scan/WIP logic and
+ * writes a diagnostic packet. This is NOT an execution authority.
+ * Production Cursor work starts via Factory dispatcher activate → API.
  *
  * Exit codes:
- *   0 — handoff published (workflow success → Automation wake)
- *   1 — no handoff / suppressed / wake rejected (workflow failure → no wake)
+ *   0 — diagnostic packet published
+ *   1 — no packet / suppressed / wake rejected
  *
  * Usage:
  *   node scripts/factory-cursor-handoff.mjs
@@ -329,7 +329,7 @@ async function main() {
     console.error(
       `Factory handoff not published (${decision.reason}${
         decision.suppressReason ? `: ${decision.suppressReason}` : ''
-      }) — failing closed so Cursor Automation MODE B does not wake`,
+      }) — failing closed (diagnostic only; not an execution authority)`,
     );
     process.exit(1);
   }

@@ -48,7 +48,7 @@ Claim-before-API + issue-keyed GHA concurrency (`factory-dispatcher-activate-<is
 
 ## Eligibility wake / capacity backfill (#891)
 
-When a poll reaches COMPLETED/FAILED/STALE and releases verified WIP capacity, this workflow sets `wake_dispatcher=true` and **`workflow_call`s** `Factory dispatcher activate` for a full priority queue scan. Operator authorization comments and `execution:paused` removal also wake that same activator directly. Do **not** ask Anton to toggle `dispatch:cursor-ready` or manually `workflow_dispatch` for ordinary continuation. Internal target: begin eligible work within **5 minutes** of the eligibility-changing event.
+When a poll reaches COMPLETED/FAILED/STALE and releases verified WIP capacity, this workflow sets `wake_dispatcher=true` and **`workflow_call`s** `Factory dispatcher activate` for a full priority queue scan. Operator authorization comments and `execution:paused` removal also wake that same activator directly. Native MODE B / `factory-cursor-handoff` is **not** called. Do **not** ask Anton to toggle `dispatch:cursor-ready` or manually `workflow_dispatch` for ordinary continuation. Internal target: begin eligible work within **5 minutes** of the eligibility-changing event. Scheduled recovery (30 minutes) is the authoritative self-heal if an event is missed.
 
 ## Codex specialist (human-triggered)
 

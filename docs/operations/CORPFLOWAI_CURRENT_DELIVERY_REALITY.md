@@ -4,7 +4,7 @@
 **Operating model version:** `2026-08-13-v1`.  
 **Owner:** Anton (operator).  
 **Controller:** [#661](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/661)  
-**As of:** current `main` (Cursor Factory Automation + Codex lifecycle proven).  
+**As of:** current `main` (Cursor Background Agents API rail + Codex lifecycle proven).  
 **Anchor:** `<!-- CORPFLOWAI_CURRENT_DELIVERY_REALITY -->`
 
 <!-- CORPFLOWAI_CURRENT_DELIVERY_REALITY -->
@@ -46,19 +46,21 @@ constitute approval.
 **GitHub** is the durable work/evidence source of truth (issues, claims, PRs, checks,
 lifecycle comments, Decision Inbox labels).
 
-### 1.2 Cursor Factory Automation — canonical primary production executor
+### 1.2 Cursor Background Agents API — canonical primary production executor
 
-- `CorpFlowAI Cursor Factory Handoff` is the permanent GitHub Actions handoff workflow on `main` (merged PR #914).
+- `Factory dispatcher activate` is the **only** authoritative production Cursor execution path (#929; controller #903).
+- GitHub eligibility/capacity event **or** 30-minute scheduled recovery → existing claim / WIP / protected gates → Cursor Background Agents API (`CURSOR_API_KEY`) → concrete agent/run ID → branch → one PR → terminal release → next eligible work.
+- Scheduled recovery resolves to `cursor_live` by default. `CURSOR_LIVE_ENABLED` does **not** gate scheduled execution. Manual `workflow_dispatch` may still choose `dry_run`. Missing `CURSOR_API_KEY` fails closed.
 - Eligible work is selected from GitHub using current factory eligibility, priority, pause and verified-WIP rules.
-- A successful dedicated handoff on `main` wakes native Cursor Automation MODE B; the workflow does **not** call the Cursor API and does not require a Cursor API key on this path.
-- Exactly one eligible source issue is handed to one Cursor cloud run; WIP remains capped at **2 verified active Cursor runs**.
+- Exactly one eligible source issue is handed to one Cursor cloud run per activator cycle; WIP remains capped at **2 verified active Cursor runs**.
 - Paused, operator-review, completed/superseded, duplicate-active and otherwise ineligible work is skipped.
-- Completion / PR / checks are detected automatically and capacity can wake the next permitted item.
+- Completion / PR / checks are detected automatically and capacity can wake the next permitted item via the same API activator.
 - Unchanged lifecycle events are deduped.
-- **Anton must not** be used as courier between Cursor stages and Cursor Desktop is not required for normal cloud execution.
+- Native Cursor Automation MODE B (former workflow name `CorpFlowAI Cursor Factory Handoff`) is **legacy/diagnostic only**. It is **not** a production executor and **not** a failover. Cursor Desktop is not required for normal cloud execution.
+- **Anton must not** be used as courier between Cursor stages.
 
 Detail: `docs/operations/ACTIVE_AGENT_CONTROL_LOOP_V1.md`,
-`docs/operations/CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1.md`, controller #903, issue #913, merged PR #914.
+`docs/operations/CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1.md`, controller #903, issue #929.
 
 ### 1.3 Codex — specialist worker (human trigger once)
 
@@ -79,7 +81,7 @@ Current policy:
 
 - Keep the existing private OpenHands installation **installed but inactive** as cold standby only.
 - No dispatcher activation, no scheduled work, no GitHub credentials, no paid model, no public exposure and no automatic executor claim routing.
-- Do **not** build an OpenHands failover adapter, lifecycle bridge or duplicate orchestration path while Cursor Factory Automation is healthy.
+- Do **not** build an OpenHands failover adapter, lifecycle bridge or duplicate orchestration path while the Cursor Background Agents API rail is healthy.
 - OpenHands may be activated only for a specific justified case: a material Cursor outage/capacity incident, a proven low-risk workload where it is materially cheaper/better, or a bounded experimental benchmark of a new open/free model.
 - Any activation must still respect cross-executor ownership and protected-action gates.
 - Keep the merged deployment package/runbooks in GitHub even if the server runtime is later removed; the package is retained capability/IP, not active production infrastructure.
@@ -167,7 +169,8 @@ refresh the packet against current `main` before continuing.
 |-------|------|
 | Legacy controller / lifecycle foundation | [#661](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/661) |
 | Cursor Factory Automation controller | [#903](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/903) |
-| Permanent Factory handoff | [#913](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/913), merged PR #914 |
+| Permanent Factory handoff (legacy diagnostic after #929) | [#913](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/913), merged PR #914 |
+| Cursor API execution rail | [#929](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/929) |
 | Cursor lifecycle | `docs/operations/ACTIVE_AGENT_CONTROL_LOOP_V1.md` |
 | Codex specialist | `docs/operations/CODEX_SPECIALIST_LIFECYCLE_V1.md` |
 | Cursor issue dispatch | `docs/operations/CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1.md` |

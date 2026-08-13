@@ -1,7 +1,10 @@
-# Polls business-operations dispatcher and runs agent activation.
-# Default: dry-run plan only. Manual workflow_dispatch may set activation_mode=cursor_live.
-# Optional target_issue bypasses dispatcher cursor routings for one direct GitHub issue.
-# Scheduled runs become cursor_live only when repository variable/secret CURSOR_LIVE_ENABLED=true.
+# Authoritative production Cursor execution path (#929 / controller #903).
+# GitHub eligibility/capacity event OR scheduled recovery → claim/WIP/protected
+# gates → Cursor Background Agents API (existing CURSOR_API_KEY).
+#
+# Manual workflow_dispatch may still choose dry_run. Scheduled runs resolve to
+# cursor_live by default; CURSOR_LIVE_ENABLED does not gate schedule.
+# Fail-closed if CURSOR_API_KEY is absent. Native MODE B is not an executor.
 #
 # Phase A event-driven path: issues:labeled with exact label dispatch:cursor-ready
 # resolves that issue as the preferred scan target and selects cursor_live when eligible.
@@ -12,7 +15,7 @@
 # - issues:unlabeled execution:paused
 # - issues:labeled priority:P0|P1|P2 when issue already has dispatch:cursor-ready
 # - workflow_call capacity_released from Cursor agent lifecycle status (WIP backfill)
-# Scheduled scan remains fallback/reconciliation (not the primary continuation path).
+# Scheduled scan is authoritative recovery when an eligibility event is missed.
 #
 # Also scans open issues labelled dispatch:cursor-ready (segregated claim lifecycle) before
 # activation. Does not create a second dispatcher — see CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1.
@@ -22,7 +25,7 @@
 # - CORPFLOW_CRON_SECRET     same value as Vercel CORPFLOW_CRON_SECRET / CRON_SECRET
 # - CORPFLOW_FACTORY_HEALTH_URL  (optional) fallback to derive dispatcher URL
 # - CURSOR_API_KEY           required for activation_mode=cursor_live only (never logged)
-# - CURSOR_LIVE_ENABLED      optional repo variable/secret; true enables scheduled cursor_live
+# - CURSOR_LIVE_ENABLED      legacy presence-only; does not gate scheduled cursor_live (#929)
 #
 # If dispatcher secrets are missing, the job exits 0 (skipped) so forks stay green.
 #
@@ -38,7 +41,7 @@ name: Factory dispatcher activate
 # STARTED/FINISHED evidence comments post to control issue #661 so a silent UI click cannot hide the run ID.
 on:
   schedule:
-    # Every 30 minutes — fallback scan when no eligibility event fires.
+    # Every 30 minutes — authoritative recovery when no eligibility event fires.
     # Expression rewritten (equivalent to */30) so merging this file re-registers a stalled schedule.
     - cron: "0,30 * * * *"
   workflow_dispatch:
@@ -227,9 +230,9 @@ jobs:
             echo "  CURSOR_API_KEY              : not set (required for cursor_live)"
           fi
           if [ -n "${CURSOR_LIVE_ENABLED_PRESENT:-}" ]; then
-            echo "  CURSOR_LIVE_ENABLED         : configured (value not logged)"
+            echo "  CURSOR_LIVE_ENABLED         : present (legacy; does not gate scheduled cursor_live)"
           else
-            echo "  CURSOR_LIVE_ENABLED         : not set (scheduled cursor_live disabled)"
+            echo "  CURSOR_LIVE_ENABLED         : not set (scheduled cursor_live is still authoritative)"
           fi
         env:
           CORE_BASE_PRESENT: ${{ secrets.CORPFLOW_CORE_BASE_URL != '' && '1' || '' }}

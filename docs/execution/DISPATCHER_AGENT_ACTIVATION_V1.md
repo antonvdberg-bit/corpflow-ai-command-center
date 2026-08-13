@@ -62,7 +62,7 @@ Companion policy docs (unchanged):
 | `issues:labeled` / `unlabeled` | **Phase A + #891** — `dispatch:cursor-ready` labeled; `execution:paused` unlabeled; `priority:P0\|P1\|P2` labeled while already ready. Prefers that issue; gates remain authoritative |
 | `issue_comment` | **#891** — durable operator authorization / Decision Inbox approval / explicit Anton unlock from human actors (bots ignored). Prefers that issue |
 | `workflow_call` | **#891 capacity backfill** — invoked by `cursor-agent-lifecycle-status` when a verified run reaches terminal/operator-review and releases WIP; full priority scan |
-| `schedule` | Every **30 minutes** (`*/30 * * * *` UTC) — **fallback** reconciliation when no eligibility event fires; live Cursor only when `CURSOR_LIVE_ENABLED=true` |
+| `schedule` | Every **30 minutes** (`*/30 * * * *` UTC) — **authoritative recovery** when no eligibility event fires; resolves to `cursor_live` without `CURSOR_LIVE_ENABLED` |
 | `workflow_dispatch` | Manual run (not required for normal approval/capacity continuation) |
 
 **SLA:** eligibility-changing events should normally begin activation within **5 minutes**; schedule is self-heal only.
@@ -90,7 +90,7 @@ Companion policy docs (unchanged):
 
 | Name | Purpose |
 |------|---------|
-| `CURSOR_LIVE_ENABLED` | Emergency disable / scheduled-live kill switch. Scheduled runs remain `dry_run` unless this value is set to `true` (or `1` / `enabled`). Set it to `false`, unset it, or remove it to disable scheduled `cursor_live`. |
+| `CURSOR_LIVE_ENABLED` | **Legacy / unused for scheduled execution (#929).** Scheduled runs are `cursor_live` even when this value is absent or false. Do not introduce a replacement secret. Manual `workflow_dispatch` `activation_mode=dry_run` remains the operator dry-run path. Presence may still appear in run evidence (value never logged). |
 
 Built-in **`GITHUB_TOKEN`** (`issues: read`) fetches `target_issue` title/body when direct-issue activation is used.
 
@@ -150,8 +150,8 @@ GHA cache persists `.dispatcher-activation-state/dedupe.json`. Key: `owner:objec
 
 - 2026-07-06: First GitHub Actions `cursor_live` smoke completed (internal ops smoke only; no secrets recorded).
 - `workflow_dispatch` input `activation_mode: cursor_live` remains available for manual approved activations.
-- Scheduled runs may enter `cursor_live` only when `CURSOR_LIVE_ENABLED=true`; otherwise the workflow forces `dry_run`.
-- Scheduled `cursor_live` is fail-closed behind a throughput packet gate. Cursor is the executor, not the chooser.
+- Scheduled runs resolve to `cursor_live` by default (#929). `CURSOR_LIVE_ENABLED` does **not** gate scheduled execution.
+- Dispatcher-sourced scheduled `cursor_live` remains fail-closed behind a throughput packet gate. Cursor is the executor, not the chooser.
 - Optional `workflow_dispatch` input `target_issue` — **manual only**. When set to a numeric GitHub issue (e.g. `553`), the activator **skips dispatcher cursor routings** and builds **exactly one** Cursor candidate from that issue (title, URL, body in `executorPrompt`). Blank `target_issue` preserves the existing dispatcher fetch path.
 - Secret: `CURSOR_API_KEY` (GHA only; never logged).
 - `POST https://api.cursor.com/v1/agents` with `executorPrompt`, repo `antonvdberg-bit/corpflow-ai-command-center`, `startingRef: main`, `autoCreatePR: true`.
@@ -175,7 +175,7 @@ Block-by-default routing remains in force for docs-only work without delivery ev
 
 **Runtime packets cannot be satisfied by docs-only PRs.** Per `docs/operations/CORPFLOWAI_BUSINESS_SURVIVAL_OPERATING_DOCTRINE.md` §3–§4, an activated packet classified as runtime / client-visible is only satisfied by a PR with runtime evidence (preview URL, live URL, endpoint result, screenshot, or test output against the actual surface). A docs-only PR against such a packet is a failed packet, not a completed one.
 
-**Operational kill switch:** if Cursor produces 2 low-value PRs in a row, set repository variable/secret `CURSOR_LIVE_ENABLED=false` (or unset/remove it). Scheduled runs then force `dry_run` until routing rules are corrected.
+**Operational dry-run:** use `workflow_dispatch` with `activation_mode=dry_run`. Do not rely on unsetting `CURSOR_LIVE_ENABLED` — that flag no longer stops scheduled recovery (#929).
 
 #### Manual run — direct issue activation (Option B)
 
@@ -190,7 +190,7 @@ Use when the production dispatcher returns **zero** `owner=cursor` routings but 
 4. Workflow uses built-in **`GITHUB_TOKEN`** (`issues: read` for fetch, `issues: write` for status comment) to fetch the issue title/body — no extra secret.
 5. Expected: one Cursor Cloud agent created, PR opened by Cursor (Anton merges manually). Artifacts include `activation-plan.json` and **`cursor-ops-status.json`** (see § Cursor Control Tower v0).
 
-**Safety (unchanged):** no auto-merge, no production deploy, no env/DB changes, no client sends. Scheduled runs **ignore** `target_issue` and remain `dry_run` only.
+**Safety (unchanged):** no auto-merge, no production deploy, no env/DB changes, no client sends. Scheduled runs **ignore** `target_issue` (manual `workflow_dispatch` only) and still resolve to `cursor_live`.
 
 ```text
 activation_mode=cursor_live
@@ -295,7 +295,7 @@ If `activation_status` is **`started`** and **`pr_url` / `pr_number` are still e
 - Read/write GitHub issue comments only (no email/WhatsApp/SMS).
 - No database, no new env vars, no production deploy, no auto-merge.
 - Cursor may open a PR only; Anton merges.
-- **Scheduled `cursor_live` is disabled unless `CURSOR_LIVE_ENABLED=true` and the candidate passes the throughput packet gate**. This PR only permits Cursor to open PRs; it does not authorize autonomous merge, production deploy, client sends, WhatsApp/SMS/email, payment action, or DB/schema/env changes.
+- **Scheduled `cursor_live` is the default recovery path** (does not require `CURSOR_LIVE_ENABLED`). Dispatcher-sourced candidates still pass the throughput packet gate. This path only permits Cursor to open PRs; it does not authorize autonomous merge, production deploy, client sends, WhatsApp/SMS/email, payment action, or DB/schema/env changes.
 
 ### Phase 4 — Codex activation
 

@@ -3,9 +3,8 @@
 # Runs off Anton's laptop (GitHub Actions). Does not merge. Does not notify on RUNNING.
 #
 # When a run reaches terminal/operator-review and releases WIP capacity, calls:
-# - Factory dispatcher activate (Cursor API path, #891)
-# - CorpFlowAI Cursor Factory Handoff (native Automation MODE B wake, #913)
-# so queued ready work can backfill. Does not create a second dispatcher.
+# - Factory dispatcher activate (authoritative Cursor Background Agents API path, #929)
+# Native MODE B / factory-cursor-handoff is not an executor and must not be called.
 #
 # Secrets: CURSOR_API_KEY, GITHUB_TOKEN (built-in)
 # Optional inputs: issue number and/or agent id
@@ -212,14 +211,3 @@ jobs:
       capacity_wake_requested: "true"
       target_issue: ""
     secrets: inherit
-
-  # Native Cursor Automation wake (#913). Successful completion of the named
-  # handoff workflow is the MODE B trigger — no Cursor API key on this path.
-  wake_factory_handoff:
-    needs: poll
-    if: needs.poll.outputs.wake_dispatcher == 'true'
-    uses: ./.github/workflows/factory-cursor-handoff.yml
-    with:
-      wake_reason: capacity_released
-      capacity_wake_requested: "true"
-      target_issue: ""
