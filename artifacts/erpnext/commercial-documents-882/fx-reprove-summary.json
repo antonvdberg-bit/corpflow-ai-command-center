@@ -1,0 +1,20 @@
+{
+  "usd_mur_rate": 47.15,
+  "usd_quotation": {
+    "name": "SAL-QTN-2026-00001",
+    "conversion_rate": 47.15,
+    "grand_total": 249.0,
+    "base_grand_total": 11740.0,
+    "docstatus": 0
+  },
+  "usd_invoice": {
+    "name": "ACC-SINV-2026-00002",
+    "conversion_rate": 47.15,
+    "grand_total": 249.0,
+    "base_grand_total": 11740.0,
+    "debit_to": "Debtors USD - CFAI",
+    "docstatus": 0,
+    "status": "Draft"
+  },
+  "usd_debtors_account": "Debtors USD - CFAI"
+}

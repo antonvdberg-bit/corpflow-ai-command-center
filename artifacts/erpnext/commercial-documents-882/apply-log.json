@@ -285,5 +285,272 @@
       "currency_exchange_usd_mur": null,
       "get_exchange_rate": 0.0
     }
+  },
+  {
+    "step": "--- fx-reprove-after-anton-rate ---",
+    "http": 200,
+    "extra": {
+      "usd_mur_rate": 47.15,
+      "usd_invoice": null
+    }
+  },
+  {
+    "step": "auth",
+    "http": 200,
+    "extra": {
+      "user": "integrations@corpflowai.com"
+    }
+  },
+  {
+    "step": "currency_exchange_list",
+    "http": 200,
+    "extra": {
+      "count": 2,
+      "rows": [
+        {
+          "name": "2026-08-13-MUR-USD-Selling-Buying",
+          "date": "2026-08-12",
+          "from_currency": "MUR",
+          "to_currency": "USD",
+          "exchange_rate": 0.021,
+          "for_buying": 1,
+          "for_selling": 1
+        },
+        {
+          "name": "2026-08-13-USD-MUR-Selling-Buying",
+          "date": "2026-08-13",
+          "from_currency": "USD",
+          "to_currency": "MUR",
+          "exchange_rate": 47.15,
+          "for_buying": 1,
+          "for_selling": 1
+        }
+      ]
+    }
+  },
+  {
+    "step": "get_exchange_rate_usd_mur",
+    "http": 200,
+    "extra": {
+      "message": 47.15,
+      "server": null
+    }
+  },
+  {
+    "step": "usd_quotation_apply_fx",
+    "http": 200,
+    "extra": {
+      "name": "SAL-QTN-2026-00001",
+      "currency": "USD",
+      "selling_price_list": "Standard Selling USD",
+      "conversion_rate": 47.15,
+      "grand_total": 249.0,
+      "base_grand_total": 11740.0,
+      "docstatus": 0,
+      "items": [
+        {
+          "item_code": "LR-SETUP-USD-150",
+          "rate": 150.0,
+          "price_list_rate": 150.0
+        },
+        {
+          "item_code": "LR-REC-USD-99",
+          "rate": 99.0,
+          "price_list_rate": 99.0
+        }
+      ]
+    }
+  },
+  {
+    "step": "usd_invoice_draft_create",
+    "http": 417,
+    "extra": {
+      "name": null,
+      "currency": null,
+      "conversion_rate": null,
+      "grand_total": null,
+      "base_grand_total": null,
+      "docstatus": null,
+      "status": null,
+      "selling_price_list": null,
+      "exc_type": "ValidationError",
+      "message": "Party Account <strong>Debtors - CFAI</strong> currency (MUR) and document currency (USD) should be same",
+      "items": []
+    }
+  },
+  {
+    "step": "readback_SAL-QTN-2026-00003",
+    "http": 200,
+    "extra": {
+      "currency": "MUR",
+      "conversion_rate": 1.0,
+      "grand_total": 45000.0,
+      "base_grand_total": 45000.0,
+      "docstatus": 0,
+      "status": "Draft",
+      "selling_price_list": "Standard Selling"
+    }
+  },
+  {
+    "step": "readback_ACC-SINV-2026-00001",
+    "http": 200,
+    "extra": {
+      "currency": "MUR",
+      "conversion_rate": 1.0,
+      "grand_total": 45000.0,
+      "base_grand_total": 45000.0,
+      "docstatus": 0,
+      "status": "Draft",
+      "selling_price_list": "Standard Selling"
+    }
+  },
+  {
+    "step": "readback_SAL-QTN-2026-00001",
+    "http": 200,
+    "extra": {
+      "currency": "USD",
+      "conversion_rate": 47.15,
+      "grand_total": 249.0,
+      "base_grand_total": 11740.0,
+      "docstatus": 0,
+      "status": "Draft",
+      "selling_price_list": "Standard Selling USD"
+    }
+  },
+  {
+    "step": "company_readback",
+    "http": 200,
+    "extra": {
+      "email": "finance@corpflowai.com",
+      "website": "https://corpflowai.com",
+      "tax_id": "28466939",
+      "registration_details": "Company No : C25228280",
+      "default_currency": "MUR",
+      "default_letter_head": "Company Letterhead - Grey"
+    }
+  },
+  {
+    "step": "pdf_SAL-QTN-2026-00001",
+    "http": 200,
+    "extra": {
+      "bytes": 37667,
+      "is_pdf": true,
+      "sha256": "edca1c2f30a98ecd",
+      "file": "lead-rescue-usd-SAL-QTN-2026-00001.pdf"
+    }
+  },
+  {
+    "step": "pdf_SAL-QTN-2026-00003",
+    "http": 200,
+    "extra": {
+      "bytes": 48354,
+      "is_pdf": true,
+      "sha256": "da44352751cd97e3",
+      "file": "website-rescue-mur-SAL-QTN-2026-00003.pdf"
+    }
+  },
+  {
+    "step": "pdf_ACC-SINV-2026-00001",
+    "http": 200,
+    "extra": {
+      "bytes": 48727,
+      "is_pdf": true,
+      "sha256": "eff8180928adb27b",
+      "file": "website-rescue-invoice-draft-ACC-SINV-2026-00001.pdf"
+    }
+  },
+  {
+    "step": "--- after-anton-usd-mur-rate ---",
+    "http": 200,
+    "extra": {
+      "usd_mur_rate": 47.15,
+      "usd_invoice": "ACC-SINV-2026-00002",
+      "debit_to": "Debtors USD - CFAI"
+    }
+  },
+  {
+    "step": "usd_debtors_create",
+    "http": 200,
+    "extra": {
+      "name": "Debtors USD - CFAI",
+      "account_currency": "USD",
+      "account_type": "Receivable",
+      "parent_account": "Accounts Receivable - CFAI",
+      "exc_type": null,
+      "message": null
+    }
+  },
+  {
+    "step": "customer_usd_party_account",
+    "http": 200,
+    "extra": {
+      "accounts": [
+        {
+          "name": "c0j0n8ci23",
+          "owner": "integrations@corpflowai.com",
+          "creation": "2026-08-13 04:49:18.143438",
+          "modified": "2026-08-13 14:17:58.477364",
+          "modified_by": "integrations@corpflowai.com",
+          "docstatus": 0,
+          "idx": 1,
+          "company": "CorpFlowAI LTD",
+          "account": "Debtors USD - CFAI",
+          "parent": "CF880 Synthetic Lead Rescue Ltd",
+          "parentfield": "accounts",
+          "parenttype": "Customer",
+          "doctype": "Party Account",
+          "__unsaved": 1
+        }
+      ],
+      "exc_type": null,
+      "message": null
+    }
+  },
+  {
+    "step": "usd_invoice_draft_create",
+    "http": 200,
+    "extra": {
+      "name": "ACC-SINV-2026-00002",
+      "currency": "USD",
+      "conversion_rate": 47.15,
+      "grand_total": 249.0,
+      "base_grand_total": 11740.0,
+      "debit_to": "Debtors USD - CFAI",
+      "docstatus": 0,
+      "status": "Draft",
+      "selling_price_list": "Standard Selling USD",
+      "exc_type": null,
+      "message": null,
+      "items": [
+        {
+          "item_code": "LR-SETUP-USD-150",
+          "rate": 150.0,
+          "price_list_rate": 150.0
+        },
+        {
+          "item_code": "LR-REC-USD-99",
+          "rate": 99.0,
+          "price_list_rate": 99.0
+        }
+      ]
+    }
+  },
+  {
+    "step": "pdf_SAL-QTN-2026-00001",
+    "http": 200,
+    "extra": {
+      "bytes": 37667,
+      "is_pdf": true,
+      "sha256": "edca1c2f30a98ecd"
+    }
+  },
+  {
+    "step": "pdf_ACC-SINV-2026-00002",
+    "http": 200,
+    "extra": {
+      "bytes": 25245,
+      "is_pdf": true,
+      "sha256": "8fed1f0e47a8f9b4"
+    }
   }
 ]

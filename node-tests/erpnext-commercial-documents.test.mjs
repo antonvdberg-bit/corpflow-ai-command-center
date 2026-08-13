@@ -31,9 +31,11 @@ test('config names synthetic masters and the FX blocker', () => {
   assert.equal(cfg.synthetic_proof.lead_rescue_quotation, 'SAL-QTN-2026-00001');
   assert.equal(cfg.synthetic_proof.website_rescue_quotation, 'SAL-QTN-2026-00003');
   assert.equal(cfg.synthetic_proof.website_rescue_invoice_draft, 'ACC-SINV-2026-00001');
+  assert.equal(cfg.synthetic_proof.lead_rescue_usd_invoice_draft, 'ACC-SINV-2026-00002');
   assert.equal(cfg.approval_rail.erpnext_never_sets_financially_approved, true);
-  assert.match(cfg.verdict, /NOT READY/);
-  assert.match(cfg.verdict, /Currency Exchange/);
+  assert.match(cfg.verdict, /READY/);
+  assert.equal(cfg.currency.currency_exchange_rows[0].exchange_rate, 47.15);
+  assert.equal(cfg.currency.usd_receivable_account, 'Debtors USD - CFAI');
 });
 
 test('authoritative company identity rejects short-form 228280 as tax_id', () => {
@@ -121,6 +123,7 @@ test('evidence artifacts exist for the three primary documents', () => {
   const dir = path.join(REPO_ROOT, 'artifacts/erpnext/commercial-documents-882');
   for (const name of [
     'lead-rescue-usd-SAL-QTN-2026-00001.pdf',
+    'lead-rescue-usd-invoice-draft-ACC-SINV-2026-00002.pdf',
     'website-rescue-mur-SAL-QTN-2026-00003.pdf',
     'website-rescue-invoice-draft-ACC-SINV-2026-00001.pdf',
     'pdf-text-extract.txt',
@@ -136,5 +139,6 @@ test('evidence artifacts exist for the three primary documents', () => {
   assert.match(extract, /finance@corpflowai\.com/);
   assert.match(extract, /SAL-QTN-2026-00003/);
   assert.match(extract, /ACC-SINV-2026-00001/);
+  assert.match(extract, /ACC-SINV-2026-00002/);
   assert.doesNotMatch(extract, /Tax ID: 228280/);
 });

@@ -8,7 +8,7 @@
 
 **NO IMPLEMENTATION AUTHORIZED** — procedure for when ERPNext is configured. Until Print Format is live, manual quote emails from `docs/revenue/templates/quote-email.md` remain canonical for external send.
 
-**#882 hosted-test status:** standard `Quotation Standard` PDFs now render from Customer + Item masters (see `docs/erpnext/ERPNEXT_COMMERCIAL_DOCUMENTS_V1.md`). Commercial contact on documents is `finance@corpflowai.com`. Do not send synthetic drafts. USD quotations must not be submitted until an Anton-approved Currency Exchange USD→MUR exists. #881 Standard Selling USD Item Prices are live and consumed by #882.
+**#882 hosted-test status:** READY — standard Quotation / draft Sales Invoice PDFs for MUR and USD from Customer + Item Price masters (`docs/erpnext/ERPNEXT_COMMERCIAL_DOCUMENTS_V1.md`). Commercial contact is `finance@corpflowai.com`. Do not send or submit synthetic drafts.
 
 ---
 

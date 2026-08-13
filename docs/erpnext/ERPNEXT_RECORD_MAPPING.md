@@ -6,7 +6,7 @@
 
 <!-- ERPNEXT_RECORD_MAPPING_V1 -->
 
-**#882 synthetic proof (hosted test, do not send):** Lead Rescue quotation `SAL-QTN-2026-00001` (USD / Standard Selling USD Item Prices; `conversion_rate=1.0` unsafe until Currency Exchange); Website Rescue quotation `SAL-QTN-2026-00003` + MUR draft invoice `ACC-SINV-2026-00001` from Item Price 45,000. Write-up: `docs/erpnext/ERPNEXT_COMMERCIAL_DOCUMENTS_V1.md`.
+**#882 synthetic proof (hosted test, do not send):** Lead Rescue USD quotation `SAL-QTN-2026-00001` + USD draft invoice `ACC-SINV-2026-00002` (conversion_rate 47.15); Website Rescue MUR quotation `SAL-QTN-2026-00003` + MUR draft invoice `ACC-SINV-2026-00001`. Write-up: `docs/erpnext/ERPNEXT_COMMERCIAL_DOCUMENTS_V1.md`.
 
 **Single source of truth rule:**
 

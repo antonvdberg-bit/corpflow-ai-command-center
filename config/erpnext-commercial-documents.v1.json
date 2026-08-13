@@ -25,7 +25,6 @@
       "tax_id",
       "registration_details",
       "default_currency",
-      "chart_of_accounts",
       "bank_accounts",
       "tax_templates"
     ]
@@ -43,6 +42,7 @@
     "lead_rescue_quotation": "SAL-QTN-2026-00001",
     "website_rescue_quotation": "SAL-QTN-2026-00003",
     "website_rescue_invoice_draft": "ACC-SINV-2026-00001",
+    "lead_rescue_usd_invoice_draft": "ACC-SINV-2026-00002",
     "misassigned_881_quotation_do_not_send": "SAL-QTN-2026-00002",
     "lead_rescue_items": ["LR-SETUP-USD-150", "LR-REC-USD-99"],
     "website_rescue_item": "CF-RD-LANDING-RESCUE",
@@ -63,7 +63,27 @@
       { "item_code": "CF-RD-LEAD-RESCUE", "price_list": "Standard Selling", "rate": 35000, "uom": "Nos" },
       { "item_code": "CF-RD-LANDING-RESCUE", "price_list": "Standard Selling", "rate": 45000, "uom": "Nos" }
     ],
-    "currency_exchange_rows": [],
+    "currency_exchange_rows": [
+      {
+        "name": "2026-08-13-USD-MUR-Selling-Buying",
+        "from_currency": "USD",
+        "to_currency": "MUR",
+        "exchange_rate": 47.15,
+        "for_selling": true,
+        "for_buying": true,
+        "source": "Anton-supplied Currency Exchange row"
+      },
+      {
+        "name": "2026-08-13-MUR-USD-Selling-Buying",
+        "from_currency": "MUR",
+        "to_currency": "USD",
+        "exchange_rate": 0.021,
+        "for_selling": true,
+        "for_buying": true,
+        "source": "Anton-supplied reverse row (not required for USD docs)"
+      }
+    ],
+    "usd_receivable_account": "Debtors USD - CFAI",
     "unsafe_conversion_rate_when_currencies_differ": 1,
     "target_currencies_same_pattern": ["GBP", "AUD", "AED"]
   },
@@ -73,5 +93,5 @@
     "erpnext_never_sets_financially_approved": true,
     "protected_actions_executed": false
   },
-  "verdict": "NOT READY — Currency Exchange USD→MUR master missing (Anton-approved rate required); #881 catalogue consumed; MUR path proven; USD quotation uses Standard Selling USD Item Prices but conversion_rate=1.0 is unsafe; USD Sales Invoice correctly rejected"
+  "verdict": "READY — MUR and USD quotations + draft Sales Invoices proven from #880/#881 masters with Anton Currency Exchange USD→MUR 47.15; synthetic drafts only (docstatus=0); no client send"
 }
