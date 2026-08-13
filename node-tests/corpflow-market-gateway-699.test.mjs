@@ -89,12 +89,12 @@ describe('#699 market gateway — public offer', () => {
     assert.ok(!home.includes('NEEDS_ANTON'));
   });
 
-  it('contact page accepts ?path= and maps to buyer-need prefill', () => {
+  it('contact page accepts ?path= and ?offer= and maps to buyer-need or locked product', () => {
     const contact = read('pages/contact.js');
     assert.ok(contact.includes('defaultBuyerNeed'));
-    assert.ok(contact.includes('buyerNeedForServicePath'));
-    assert.ok(contact.includes('isMarketServicePathId'));
-    assert.ok(contact.includes('query?.path') || contact.includes('query.path'));
+    assert.ok(contact.includes('resolveCanonicalEnquiryQuery'));
+    assert.ok(contact.includes('lockedOffer'));
+    assert.ok(contact.includes('defaultOfferSlug'));
   });
 });
 
@@ -234,12 +234,15 @@ describe('#699 market gateway — operator handoff', () => {
 });
 
 describe('#699 market gateway — product funnel links retained', () => {
-  it('Lead Rescue form keeps product marker and adds consent/timing/website', () => {
+  it('Lead Rescue CTAs route to the canonical locked enquiry form', () => {
     const lr = read('components/AiLeadRescueLanding.js');
-    assert.ok(lr.includes("product: 'ai-lead-rescue'"));
-    assert.ok(lr.includes('name="website"'));
-    assert.ok(lr.includes('name="urgency"'));
-    assert.ok(lr.includes('name="consent_contact"'));
+    assert.ok(lr.includes('LEAD_RESCUE_ENQUIRY_HREF') || lr.includes('/contact?offer=ai-lead-rescue#discovery'));
+    assert.ok(!lr.includes("fetch('/api/tenant/intake'"));
+    const form = read('components/public/DiscoveryIntakeForm.js');
+    assert.ok(form.includes('lockedOffer'));
+    assert.ok(form.includes('name="website"'));
+    assert.ok(form.includes('name="urgency"'));
+    assert.ok(form.includes('name="consent_contact"'));
   });
 
   it('Website Rescue demo still embeds DiscoveryIntakeForm', () => {

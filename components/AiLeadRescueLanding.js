@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Head from 'next/head';
 
 import { trackEvent } from '../lib/analytics/index.js';
 import PublicSiteFooter from './PublicSiteFooter.js';
 import CorpFlowBrandMetadata from './public/CorpFlowBrandMetadata.js';
 import { formatCurrencyDisclosure } from '../lib/public/merchant-identity.js';
+import { LEAD_RESCUE_ENQUIRY_HREF } from '../lib/public/canonical-enquiry.js';
 import VisualAssetRenderer, { isAiGeneratedManifest } from './VisualAssetRenderer.js';
 import AssetProvenanceDisclosure from './AssetProvenanceDisclosure.js';
 import PublicMarketingPhotoGlassShell from './beauty/PublicMarketingPhotoGlassShell.js';
@@ -25,8 +26,8 @@ const LEAD_RESCUE_FAQ = [
     a: 'No. We do not guarantee new revenue or lead volume. The pilot helps make sure existing enquiries are captured, visible, and followed up. Results depend on your enquiry volume and how you act on what becomes visible.',
   },
   {
-    q: 'What happens after I submit this form?',
-    a: 'We review your intake within about 2 business hours, confirm the first lead source and alert destination, then email a USD 150 invoice through the agreed route. The 48-hour setup clock starts after payment confirmation and the required client info — not when you submit this form.',
+    q: 'What happens after I request the setup?',
+    a: 'You complete one qualified enquiry form — AI Lead Rescue is already selected, so you do not classify the product again. We review it within about 2 business hours, confirm the first lead source and alert destination, then email a USD 150 invoice through the agreed route. The 48-hour setup clock starts after payment confirmation and the required client info — not when you submit the form.',
   },
   {
     q: 'What do you need from me to start?',
@@ -85,7 +86,6 @@ const styles = {
   offerList: { margin: '14px 0 0', paddingLeft: 18, color: '#e0ecf7', lineHeight: 1.8 },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 16 },
   stepCard: { background: subFill, border: `1px solid ${hairline}`, borderRadius: 16, padding: 20 },
-  input: { width: '100%', boxSizing: 'border-box', padding: '11px 13px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.16)', background: 'rgba(0,0,0,0.28)', color: text, fontFamily: 'inherit', fontSize: 14 },
   visualFrame: { marginTop: 18, borderRadius: 16, overflow: 'hidden', border: `1px solid ${hairline}`, background: 'rgba(6,17,31,0.5)', position: 'relative' },
   visualBand: { marginTop: 16, borderRadius: 14, overflow: 'hidden', border: `1px solid ${hairline}`, background: 'rgba(6,17,31,0.5)' },
   provenanceFloating: { position: 'absolute', left: 14, bottom: 10, zIndex: 2 },
@@ -183,11 +183,9 @@ function AiLeadRescueIntroVideoSection() {
  * `AI Lead Rescue Setup — USD 150 launch pilot`, invoiced after intake review.
  * Currency, invoice route, and payment provider are operator decisions made
  * after intake review and communicated to the buyer on the invoice — never
- * a buyer decision on this landing page. The intake form posts to
- * `/api/tenant/intake`; the server-side handler in `lib/server/tenant-intake.js`
- * still accepts `meta.region_path` and `meta.preferred_payment_path` for
- * backward compatibility, but this page no longer asks the buyer to choose
- * a region or payment route.
+ * a buyer decision on this landing page. Primary CTAs route to the canonical
+ * enquiry form at `/contact?offer=ai-lead-rescue#discovery` (locked Lead Rescue
+ * context). There is no second embedded submit form on this page (#822).
  *
  * Visual: Human-First Beauty Layer (dark photo + glass) on the shared
  * `PublicMarketingPhotoGlassShell` — the same system as Product A and the
@@ -203,10 +201,6 @@ export default function AiLeadRescueLanding({ host = '', search = '', leadRescue
   const dashboardAsset = assets ? assets.lead_rescue_dashboard : null;
   const trustAsset = assets ? assets.lead_rescue_trust_band : null;
   const socialAsset = assets ? assets.lead_rescue_social_card : null;
-  const [intakeBusy, setIntakeBusy] = useState(false);
-  const [intakeError, setIntakeError] = useState('');
-  /** @type {[{ lead_id: string } | null, Function]} */
-  const [intakeDone, setIntakeDone] = useState(null);
 
   const socialImageUrl = (() => {
     if (!socialAsset) return null;
@@ -221,68 +215,10 @@ export default function AiLeadRescueLanding({ host = '', search = '', leadRescue
     return null;
   })();
 
-  async function submitLead(e) {
-    e.preventDefault();
-    setIntakeError('');
-    setIntakeBusy(true);
-    trackEvent('lr_intake_submit_attempt');
-    const form = e.currentTarget;
-    const fd = new FormData(form);
-    const consent = fd.get('consent_contact') === 'on' || fd.get('consent_contact') === 'true';
-    if (!consent) {
-      setIntakeError('Please confirm we may contact you about this enquiry.');
-      setIntakeBusy(false);
-      return;
-    }
-    const phone = String(fd.get('phone') || '').trim();
-    if (!phone) {
-      setIntakeError('Telephone or WhatsApp number is required.');
-      setIntakeBusy(false);
-      return;
-    }
-    const payload = {
-      name: String(fd.get('name') || '').trim(),
-      email: String(fd.get('email') || '').trim(),
-      phone,
-      intent: String(fd.get('message') || '').trim(),
-      meta: {
-        product: 'ai-lead-rescue',
-        business_name: String(fd.get('business_name') || '').trim(),
-        lead_sources: String(fd.get('lead_sources') || '').trim(),
-        website: String(fd.get('website') || '').trim(),
-        urgency: String(fd.get('urgency') || '').trim() || 'this-month',
-        consent_contact: true,
-        service_path: 'client-lead-service',
-        source: 'ai-lead-rescue',
-        host,
-        page: '/lead-rescue',
-      },
-    };
-    try {
-      const r = await fetch('/api/tenant/intake', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const data = await r.json().catch(() => ({}));
-      if (!r.ok || !data.ok) {
-        throw new Error(data.error || data.hint || 'intake_failed');
-      }
-      trackEvent('lr_intake_submit_success');
-      setIntakeDone({ lead_id: String(data.lead_id || '').trim() || 'received' });
-      form.reset();
-    } catch {
-      setIntakeError('Could not submit the intake. Please contact us directly or try again shortly.');
-      trackEvent('lr_intake_submit_error');
-    } finally {
-      setIntakeBusy(false);
-    }
-  }
-
   const footer = (
     <PublicSiteFooter
       flush
-      extra="AI Lead Rescue is powered by CorpFlowAI. The USD 150 launch pilot is invoiced after intake review; this page collects intake only and does not collect card or banking details."
+      extra="AI Lead Rescue is powered by CorpFlowAI. The USD 150 launch pilot is invoiced after enquiry review; this page does not collect card or banking details."
     />
   );
 
@@ -330,8 +266,10 @@ export default function AiLeadRescueLanding({ host = '', search = '', leadRescue
           </div>
           <a
             style={styles.navLink}
-            href="#intake"
+            href={LEAD_RESCUE_ENQUIRY_HREF}
             className="lr-cta-secondary"
+            data-testid="lead-rescue-canonical-cta"
+            data-cta-location="nav"
             onClick={() => trackEvent('lr_primary_cta_click', { props: { location: 'nav' } })}
           >Start my 48-hour setup</a>
         </nav>
@@ -349,8 +287,10 @@ export default function AiLeadRescueLanding({ host = '', search = '', leadRescue
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 24 }}>
               <a
                 style={{ ...styles.cta, ...styles.primary }}
-                href="#intake"
+                href={LEAD_RESCUE_ENQUIRY_HREF}
                 className="lr-cta-primary"
+                data-testid="lead-rescue-canonical-cta"
+                data-cta-location="hero"
                 onClick={() => trackEvent('lr_primary_cta_click', { props: { location: 'hero' } })}
               >Start my 48-hour setup</a>
               <a
@@ -552,7 +492,7 @@ export default function AiLeadRescueLanding({ host = '', search = '', leadRescue
               Payment is handled after intake review. You do not enter card or banking details on this page. We send a USD invoice through the agreed route after we confirm scope.
             </p>
             <ul style={styles.list}>
-              <li>Submit intake on this page — no card or banking details collected here.</li>
+              <li>Request setup through the qualified enquiry form — no card or banking details collected here.</li>
               <li>We review your intake and confirm scope.</li>
               <li>We email a USD invoice with the agreed payment route.</li>
               <li>You pay; the 48-hour setup clock starts.</li>
@@ -586,90 +526,30 @@ export default function AiLeadRescueLanding({ host = '', search = '', leadRescue
         <section id="intake" style={styles.section}>
           <CtaGlassBlock style={{ maxWidth: 760 }}>
             <div style={styles.label}>Final CTA</div>
-            <h2 style={styles.h2}>Start your AI Lead Rescue intake</h2>
-            {intakeDone ? (
-              <div
-                role="status"
-                data-testid="lead-rescue-intake-success"
-                style={{
-                  marginTop: 16,
-                  padding: '20px 18px',
-                  borderRadius: 16,
-                  border: '1px solid rgba(45,212,191,0.35)',
-                  background: 'rgba(15, 118, 110, 0.18)',
-                }}
+            <h2 style={styles.h2}>Start your 48-hour setup</h2>
+            <p style={styles.muted}>
+              Tell us your business, where leads arrive today, and the follow-up problem you want fixed first. The
+              qualified enquiry form is already set for AI Lead Rescue — you do not re-classify the product. We review
+              every enquiry within 2 business hours.
+            </p>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 20 }}>
+              <a
+                style={{ ...styles.cta, ...styles.primary }}
+                href={LEAD_RESCUE_ENQUIRY_HREF}
+                className="lr-cta-primary"
+                data-testid="lead-rescue-canonical-cta"
+                data-cta-location="final"
+                onClick={() => trackEvent('lr_primary_cta_click', { props: { location: 'final' } })}
               >
-                <p style={{ margin: '0 0 8px', fontSize: 12, letterSpacing: '0.14em', color: '#5eead4', fontWeight: 700 }}>
-                  INTAKE RECEIVED
-                </p>
-                <h3 style={{ margin: '0 0 10px', fontSize: 22, color: text }}>
-                  Thank you — we have your AI Lead Rescue request.
-                </h3>
-                <p style={{ margin: '0 0 12px', color: muted, lineHeight: 1.65, fontSize: 15 }}>
-                  Keep this reference for follow-up. A CorpFlowAI operator will review fit within about 2 business hours. No payment is taken on this form.
-                </p>
-                <p style={{ margin: '0 0 16px', color: faint, fontSize: 13 }}>
-                  Reference:{' '}
-                  <code data-testid="lead-rescue-intake-lead-id" style={{ color: '#7dd3fc' }}>
-                    {intakeDone.lead_id}
-                  </code>
-                </p>
-                <button
-                  type="button"
-                  style={{ ...styles.cta, ...styles.secondary }}
-                  onClick={() => {
-                    setIntakeDone(null);
-                    setIntakeError('');
-                  }}
-                >
-                  Submit another intake
-                </button>
-              </div>
-            ) : (
-              <>
-                <p style={styles.muted}>
-                  Tell us your business, where leads arrive today, and the follow-up problem you want fixed first. We review every intake within 2 business hours.
-                </p>
-                <form onSubmit={submitLead} style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10, marginTop: 16 }}>
-                  <input required name="business_name" placeholder="Business name" style={styles.input} />
-                  <input required name="name" placeholder="Your name" style={styles.input} />
-                  <input required type="email" name="email" placeholder="Email" style={styles.input} />
-                  <input required name="phone" placeholder="Phone / WhatsApp" style={styles.input} />
-                  <input name="website" type="url" placeholder="Website (if any) — https://" style={styles.input} />
-                  <input name="lead_sources" placeholder="Where do leads arrive now? Website, email, WhatsApp, Facebook..." style={styles.input} />
-                  <select required name="urgency" defaultValue="this-month" style={styles.input} aria-label="Urgency / timing">
-                    <option value="asap">Timing: as soon as practical</option>
-                    <option value="this-month">Timing: within this month</option>
-                    <option value="next-quarter">Timing: next quarter</option>
-                    <option value="exploring">Timing: exploring options</option>
-                  </select>
-                  <textarea required name="message" rows="4" placeholder="What lead follow-up problem should we fix first?" style={styles.input} />
-                  <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', color: muted, fontSize: 13 }}>
-                    <input required type="checkbox" name="consent_contact" style={{ marginTop: 3, width: 18, height: 18 }} />
-                    <span>I consent to be contacted by CorpFlowAI about this enquiry. No automatic email, WhatsApp or SMS is sent from this form.</span>
-                  </label>
-                  {intakeError ? (
-                    <p role="alert" data-testid="lead-rescue-intake-error" style={{ margin: 0, color: '#fca5a5', fontSize: 14 }}>
-                      {intakeError}
-                    </p>
-                  ) : null}
-                  <button
-                    type="submit"
-                    disabled={intakeBusy}
-                    style={{ ...styles.cta, ...styles.primary, opacity: intakeBusy ? 0.7 : 1 }}
-                    className="lr-cta-primary"
-                  >
-                    {intakeBusy ? 'Submitting…' : 'Request AI Lead Rescue setup'}
-                  </button>
-                </form>
-                <p style={{ ...styles.muted, fontSize: 12, marginTop: 12 }}>
-                  Payment is handled after intake review. You do not enter card or banking details on this page. We send a USD invoice through the agreed route after we confirm scope.
-                </p>
-                <p style={{ ...styles.muted, fontSize: 12 }}>
-                  We do not guarantee new revenue. We help make sure existing enquiries are captured, visible, and followed up.
-                </p>
-              </>
-            )}
+                Start my 48-hour setup
+              </a>
+            </div>
+            <p style={{ ...styles.muted, fontSize: 12, marginTop: 12 }}>
+              Payment is handled after intake review. You do not enter card or banking details on this page. We send a USD invoice through the agreed route after we confirm scope.
+            </p>
+            <p style={{ ...styles.muted, fontSize: 12 }}>
+              We do not guarantee new revenue. We help make sure existing enquiries are captured, visible, and followed up.
+            </p>
           </CtaGlassBlock>
         </section>
       </PublicMarketingPhotoGlassShell>
