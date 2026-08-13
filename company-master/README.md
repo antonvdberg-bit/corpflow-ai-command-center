@@ -2,7 +2,7 @@
 
 Controller: GitHub issue **#765** · Draft PR **#770**
 
-Governed company identity, facts, assets and document-reference hub for CorpFlowAI and client companies. This package is **schemas, vocabularies, synthetic fixtures, deterministic validate/resolve libraries and tests only**.
+Governed company **evidence and assets** hub for CorpFlowAI and client companies (logos, certificates, publication/approval). **Commercial billing identity** (legal/trading name, contact, address used on quotations and invoices) is authoritative in **ERPNext** per #880 — `docs/erpnext/ERPNEXT_CLIENT_MASTER_V1.md`. This package is **schemas, vocabularies, synthetic fixtures, deterministic validate/resolve libraries and tests only**.
 
 ## Layout
 

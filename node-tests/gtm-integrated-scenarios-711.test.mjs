@@ -54,6 +54,9 @@ describe('#711 integrated scenarios — market + A + B', () => {
     assert.equal(b.real_dns_cutover_executed, false);
     assert.equal(b.real_client_production_deploy, false);
     assert.deepEqual(b.external_sends_executed, []);
+    assert.ok(b.handover?.handover_sent_at);
+    assert.ok(b.maintenance_boundary?.in_scope);
+    assert.ok(b.ledger.some((row) => row.step === 'handover_and_maintenance_boundary_evidence' && row.ok));
   });
 
   it('combined runner writes artifacts and returns READY FOR CONTROLLED CLIENT PILOT', () => {

@@ -7,7 +7,13 @@
   "source": 654,
   "product": "website-rescue",
   "public_sku": "Premium Landing Page Rescue",
-  "description": "Machine-readable contract for Website Rescue onboarding completeness, delivery states, build/cutover gates, evidence packets, and simulated deploy/DNS approval. Pure process contract — no DB schema, no DNS action, no credential storage.",
+  "description": "Machine-readable contract for Website Rescue onboarding completeness, delivery states, build/cutover gates, evidence packets, and simulated deploy/DNS approval. Pure process contract — no DB schema, no DNS action, no credential storage. Commercial identity (Customer/Contact/Address) is ERPNext per #880.",
+  "commercial_master": {
+    "system": "erpnext",
+    "issue": 880,
+    "canonical": "docs/erpnext/ERPNEXT_CLIENT_MASTER_V1.md",
+    "note": "Delivery intake in this contract. Billing name/email/address are authoritative on ERPNext Customer + Contact + Address."
+  },
   "financial_approval_contract": {
     "field": "financially_approved",
     "type": "boolean",
@@ -389,6 +395,7 @@
   "docs": {
     "canonical": "docs/operations/WEBSITE_RESCUE_ONBOARDING_AND_DELIVERY_V1.md",
     "system_proof": "docs/operations/WEBSITE_RESCUE_SYSTEM_PROOF_V1.md",
+    "scenario_b_integrated": "docs/operations/WEBSITE_RESCUE_SCENARIO_B_INTEGRATED_V1.md",
     "intake_template": "docs/operations/templates/website-rescue-onboarding-intake.md",
     "delivery_issue_template": "docs/operations/templates/website-rescue-delivery-issue.md",
     "operator_checklists": "docs/operations/WEBSITE_RESCUE_DELIVERY_CHECKLISTS_V1.md",
@@ -402,5 +409,14 @@
     "commercial_fixture": "fixtures/website-rescue-onboarding/system-proof-commercial-opportunity.json",
     "evidence_artifact": "artifacts/website-rescue-system-proof/latest-run.json",
     "consumes_commercial_handoff": "lib/revenue/commercial-approval.js#toOnboardingHandoff"
+  },
+  "scenario_b_integrated": {
+    "runner": "lib/website-rescue/scenario-b-integrated.js",
+    "cli": "scripts/website-rescue-scenario-b-integrated.mjs",
+    "artifact": "artifacts/website-rescue-scenario-b-integrated/latest-run.json",
+    "tests": "node-tests/website-rescue-scenario-b-integrated.test.mjs",
+    "canonical_doc": "docs/operations/WEBSITE_RESCUE_SCENARIO_B_INTEGRATED_V1.md",
+    "reuses": "lib/gtm/integrated-scenarios-711.js#runScenarioBWebsiteRescue",
+    "note": "WS5 integrated gate (#926 / #716): compose merged Scenario B through handover. Do not rebuild unit/system slices."
   }
 }

@@ -118,7 +118,7 @@ The script writes `artifacts/website-rescue-system-proof/latest-run.json` with `
 - [x] Gate-block proofs for FA / content-assets / access
 - [x] No real DNS, deploy, secrets, schema, env, or client sends
 
-**Integrated Scenario B (#711 / 14 Aug)** remains a later programme step; this packet is the **independent** Website Rescue system proof.
+**Integrated Scenario B (#926 / #716 / 14 Aug)** is a separate compose-only packet: `docs/operations/WEBSITE_RESCUE_SCENARIO_B_INTEGRATED_V1.md`. This packet remains the **independent** Website Rescue system proof.
 
 ---
 

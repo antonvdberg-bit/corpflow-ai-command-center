@@ -49,13 +49,13 @@ This preserves one source of truth without forcing large or sensitive binary fil
 
 | Information class | Authoritative location |
 |---|---|
-| Governed structured company facts | Postgres Company Master model after schema approval |
+| Governed structured company facts | **Split (#880):** billing legal/trading name, contact and address are authoritative in **ERPNext Customer / Contact / Address**. Company Master keeps verification/approval metadata and pointers, not a second commercial customer. |
 | Asset/document catalogue, metadata, versions and canonical pointers | Postgres Company Master model |
 | Public and internal binary assets | Approved managed storage location, referenced by Company Master |
 | Restricted evidence contents | Approved restricted storage location with least-privilege access |
 | Tenant routing and runtime identity | Existing `tenants` / `tenant_hostnames` structures |
 | Evidence status, verification and expiry | Company Master |
-| Quotations, invoices and commercial records | ERPNext where approved, consuming Company Master identity/assets |
+| Quotations, invoices and commercial records | **ERPNext** (authoritative commercial identity per #880). Company Master may supply approved **assets** (logo, letterhead) and a pointer to the ERPNext Customer name — it does not replace Customer/Contact/Address. |
 | Schemas, vocabularies, synthetic fixtures, tests, mappings and runbooks | GitHub |
 | Operator task/approval projection | `/change`, referencing Company Master records |
 
