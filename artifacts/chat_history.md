@@ -30,7 +30,7 @@
 
 ---
 
-## 2026-08-13 — **#882 ERPNext commercial documents: MUR quote/invoice PDFs from masters; USD blocked on Currency Exchange.** Hosted ERPNext (`CorpFlowAI LTD`, MUR). Company email `finance@corpflowai.com`; tax_id `28466939` / Company No `C25228280` unchanged. Synthetic Website Rescue quotation `SAL-QTN-2026-00003` + draft invoice `ACC-SINV-2026-00001`; Lead Rescue USD quotation `SAL-QTN-2026-00001` must not be submitted at conversion_rate=1.0. USD invoice HTTP 417 without Currency Exchange (correct fail-closed). Evidence `docs/erpnext/ERPNEXT_COMMERCIAL_DOCUMENTS_V1.md` + `artifacts/erpnext/commercial-documents-882/`. No send, no submit, no FX row invented. **Verdict: NOT READY — Currency Exchange USD→MUR missing.**
+## 2026-08-13 — **#882 / PR #924 finalized after #881/#915: catalogue consumed; still blocked only on one USD→MUR Currency Exchange rate.** Branch `cursor/dispatcher-issue-882-7b0d` reconciled with current `main`. Live: Standard Selling USD + four Item Prices; MUR `SAL-QTN-2026-00003` + draft `ACC-SINV-2026-00001`; USD `SAL-QTN-2026-00001` on Standard Selling USD Item Prices (conversion_rate=1.0 unsafe); Currency Exchange empty; USD Sales Invoice HTTP 417 fail-closed. No invented FX, no submit/send. Evidence `docs/erpnext/ERPNEXT_COMMERCIAL_DOCUMENTS_V1.md`. **Verdict: BLOCKED — Anton must supply one USD→MUR selling rate.**
 
 <!-- ERPNEXT_COMMERCIAL_DOCUMENTS_882_HIST -->
 
