@@ -30,6 +30,10 @@
 
 ---
 
+## 2026-08-13 — **#882 / PR #924 READY after Anton Currency Exchange USD→MUR 47.15.** MUR quote/invoice + USD quote `SAL-QTN-2026-00001` + USD draft invoice `ACC-SINV-2026-00002` (Debtors USD - CFAI, conversion_rate 47.15, base 11740). Synthetic drafts only. Evidence `docs/erpnext/ERPNEXT_COMMERCIAL_DOCUMENTS_V1.md`. **Verdict: ERPNext Commercial Documents READY — merge PR #924.** Branch `cursor/dispatcher-issue-882-7b0d` reconciled with current `main`. Live: Standard Selling USD + four Item Prices; MUR `SAL-QTN-2026-00003` + draft `ACC-SINV-2026-00001`; USD `SAL-QTN-2026-00001` on Standard Selling USD Item Prices (conversion_rate=1.0 unsafe); Currency Exchange empty; USD Sales Invoice HTTP 417 fail-closed. No invented FX, no submit/send. Evidence `docs/erpnext/ERPNEXT_COMMERCIAL_DOCUMENTS_V1.md`. **Verdict: BLOCKED — Anton must supply one USD→MUR selling rate.**
+
+<!-- ERPNEXT_COMMERCIAL_DOCUMENTS_882_HIST -->
+
 ## 2026-08-06 — **OpenHands agent-server conversation 500 diagnosed + remediated (non-model READY).** Controlling issue [#743](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/743), draft PR [#747](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/747) head `1f09743aa0b11895627075638ef1a4ab32dae8d2`. **Exception:** `MCPError: MCP Connection Failure` (`httpx.ConnectError` DNS name not known) on agent-server `POST /api/conversations` during `SETTING_UP_SKILLS`. **Cause:** unset `web_url` → control plane fell back to `http://host.docker.internal:{port}/mcp/mcp`; ExtraHosts=[] correctly blocks that host. **Reproduced without Groq/model key.** **Remediation:** compose `OH_WEB_URL=http://corpflowai-openhands-app:3000`. Live non-model conversation probe → **READY**; isolation held; primary Docker unchanged; Groq file mode 600 unused; dispatcher still disabled. PR #747 still draft and **CONFLICTING** vs `main` only on `artifacts/chat_history.md`. **Verdict: CONVERSATION SETUP VERIFIED — READY FOR SEPARATE MODEL RETRY APPROVAL.**
 
 <!-- OPENHANDS_CONV500_2026_08_06_HIST -->
