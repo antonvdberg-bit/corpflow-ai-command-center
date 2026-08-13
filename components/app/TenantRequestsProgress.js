@@ -182,6 +182,7 @@ export default function TenantRequestsProgress({
                   <p className="cf-app-muted" style={{ margin: '8px 0 0' }}>
                     Component state ·{' '}
                     {String(c.client_safe_status || c.milestone_label || c.milestone || '—')}
+                    {c.review_state ? ` · ${String(c.review_state)}` : ''}
                   </p>
                   {c.latest_review ? (
                     <p className="cf-app-ok" data-testid={`tenant-latest-review-${key}`}>

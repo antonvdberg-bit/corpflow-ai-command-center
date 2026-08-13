@@ -1,10 +1,10 @@
 # CorpFlowAI — current delivery reality
 
 **Status:** Canonical operating-model snapshot (docs/control-plane only).  
-**Operating model version:** `2026-08-12-v1`.  
+**Operating model version:** `2026-08-13-v1`.  
 **Owner:** Anton (operator).  
 **Controller:** [#661](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/661)  
-**As of:** current `main` (Cursor + Codex lifecycle packets merged).  
+**As of:** current `main` (Cursor Factory Automation + Codex lifecycle proven).  
 **Anchor:** `<!-- CORPFLOWAI_CURRENT_DELIVERY_REALITY -->`
 
 <!-- CORPFLOWAI_CURRENT_DELIVERY_REALITY -->
@@ -46,17 +46,19 @@ constitute approval.
 **GitHub** is the durable work/evidence source of truth (issues, claims, PRs, checks,
 lifecycle comments, Decision Inbox labels).
 
-### 1.2 Cursor — automatic primary execution worker
+### 1.2 Cursor Factory Automation — canonical primary production executor
 
-- Eligible claimed work can be **activated automatically** (factory dispatcher + issue scan).
-- **Claim-before-API** prevents duplicate activation (`SKIP_ALREADY_CLAIMED`).
-- Run/agent lifecycle is **monitored off-laptop** (GHA status runner).
-- Completion / PR / checks are **detected automatically**.
-- Unchanged lifecycle events are **deduped** (no repeat noise).
-- **Anton must not** be used as courier between Cursor stages.
+- `CorpFlowAI Cursor Factory Handoff` is the permanent GitHub Actions handoff workflow on `main` (merged PR #914).
+- Eligible work is selected from GitHub using current factory eligibility, priority, pause and verified-WIP rules.
+- A successful dedicated handoff on `main` wakes native Cursor Automation MODE B; the workflow does **not** call the Cursor API and does not require a Cursor API key on this path.
+- Exactly one eligible source issue is handed to one Cursor cloud run; WIP remains capped at **2 verified active Cursor runs**.
+- Paused, operator-review, completed/superseded, duplicate-active and otherwise ineligible work is skipped.
+- Completion / PR / checks are detected automatically and capacity can wake the next permitted item.
+- Unchanged lifecycle events are deduped.
+- **Anton must not** be used as courier between Cursor stages and Cursor Desktop is not required for normal cloud execution.
 
 Detail: `docs/operations/ACTIVE_AGENT_CONTROL_LOOP_V1.md`,
-`docs/operations/CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1.md`.
+`docs/operations/CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1.md`, controller #903, issue #913, merged PR #914.
 
 ### 1.3 Codex — specialist worker (human trigger once)
 
@@ -69,15 +71,26 @@ Detail: `docs/operations/ACTIVE_AGENT_CONTROL_LOOP_V1.md`,
 
 Detail: `docs/operations/CODEX_SPECIALIST_LIFECYCLE_V1.md`.
 
-### 1.4 OpenHands — optional operational worker
+### 1.4 OpenHands — cold standby / experimental capability only
 
-- Installed/available as an **optional** worker when separately assigned.
-- Must **not** be placed on the critical path merely because it exists.
-- Must **not** overlap another executor claim on the same packet.
+**Decision approved by Anton on 2026-08-13:** OpenHands is **not** a production queue executor and is **not** an automatic fallback behind Cursor.
 
-### 1.5 n8n — exception-only supervisor
+Current policy:
 
-- Existing **GitHub Heartbeat Checker** is the exception-only supervisor.
+- Keep the existing private OpenHands installation **installed but inactive** as cold standby only.
+- No dispatcher activation, no scheduled work, no GitHub credentials, no paid model, no public exposure and no automatic executor claim routing.
+- Do **not** build an OpenHands failover adapter, lifecycle bridge or duplicate orchestration path while Cursor Factory Automation is healthy.
+- OpenHands may be activated only for a specific justified case: a material Cursor outage/capacity incident, a proven low-risk workload where it is materially cheaper/better, or a bounded experimental benchmark of a new open/free model.
+- Any activation must still respect cross-executor ownership and protected-action gates.
+- Keep the merged deployment package/runbooks in GitHub even if the server runtime is later removed; the package is retained capability/IP, not active production infrastructure.
+
+**Cold-standby review date: 2026-09-12 (30 days).**  
+At that review, if there has been **no justified OpenHands use** and no credible near-term need, remove the OpenHands runtime installation from `corpflow-exec-01` to avoid carrying unnecessary server weight. Retain the repository package and historical evidence for reinstall if circumstances change.
+
+### 1.5 n8n — exception-only supervisor / deterministic automation spine
+
+- Existing **GitHub Heartbeat Checker** remains the exception-only supervisor.
+- n8n may relay/watch/notify and run deterministic business automation, but it is **not** the AI work planner for the Factory execution path.
 - Normal running work stays **silent**.
 - Anton is alerted only for: genuine required action, exhausted failure/stale conditions,
   protected decisions, or the explicit Codex human-trigger page.
@@ -152,13 +165,16 @@ refresh the packet against current `main` before continuing.
 
 | Topic | Link |
 |-------|------|
-| Controller | [#661](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/661) |
+| Legacy controller / lifecycle foundation | [#661](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/661) |
+| Cursor Factory Automation controller | [#903](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/903) |
+| Permanent Factory handoff | [#913](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/913), merged PR #914 |
 | Cursor lifecycle | `docs/operations/ACTIVE_AGENT_CONTROL_LOOP_V1.md` |
 | Codex specialist | `docs/operations/CODEX_SPECIALIST_LIFECYCLE_V1.md` |
 | Cursor issue dispatch | `docs/operations/CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1.md` |
+| OpenHands historical package | closed #743, merged PR #747 |
 | n8n heartbeat (exception-only) | `docs/runbooks/N8N_GITHUB_HEARTBEAT_CHECKER_V1.md` |
 | Protected doctrine manifest | `config/protected-operating-doctrine.v1.json` |
-| Merged lifecycle PRs (examples) | #815 (Codex), #802 / #790 / #786 (Cursor), #688 (#684 exception-only), #655 (issue dispatch) |
+| Earlier merged lifecycle PRs | #815 (Codex), #802 / #790 / #786 (Cursor), #688 (#684 exception-only), #655 (issue dispatch) |
 
 Protected-action gates and Decision Inbox remain unchanged:
 `docs/operations/PROTECTED_ACTION_GATES_V1.md`,

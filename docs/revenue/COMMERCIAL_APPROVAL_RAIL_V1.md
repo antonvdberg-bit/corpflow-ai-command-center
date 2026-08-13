@@ -114,4 +114,5 @@ Under `fixtures/commercial-approval/`:
 
 ## 9. Change log
 
+- **2026-08-13** — #882: ERPNext Quotation/Sales Invoice names may fill `proposal_version`; they never set `financially_approved`. See `docs/erpnext/ERPNEXT_COMMERCIAL_DOCUMENTS_V1.md`.
 - **2026-08-04** — Initial rail for #714 (contract, validator, templates, tests).

@@ -15,6 +15,7 @@ import {
 } from '../lib/app/handlers.js';
 import {
   APP_SLICE2_VERSION,
+  APP_SLICE3_VERSION,
   CANONICAL_REQUEST_ID,
   OTHER_TENANT_ID,
   OTHER_TENANT_REQUEST_ID,
@@ -94,13 +95,16 @@ test('authenticated Core session shell works without proof', async () => {
     );
     assert.equal(res.state.statusCode, 200);
     assert.equal(res.state.body.ok, true);
-    assert.equal(res.state.body.slice, APP_SLICE2_VERSION);
+    assert.equal(res.state.body.slice, APP_SLICE3_VERSION);
+    assert.equal(res.state.body.slice_workspace, APP_SLICE2_VERSION);
     assert.equal(res.state.body.proof_mode, false);
     assert.equal(res.state.body.auth_mode, 'session');
     assert.equal(res.state.body.environment, 'core');
     assert.equal(res.state.body.actor.can_core, true);
     assert.equal(res.state.body.actor.source, 'session');
     assert.equal(res.state.body.data_source, 'fixture');
+    assert.equal(res.state.body.mutations_enabled, true);
+    assert.equal(res.state.body.persistence_path, 'fixture_store.console_json');
   } finally {
     process.env.NODE_ENV = prev;
   }

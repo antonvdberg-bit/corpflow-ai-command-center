@@ -1,13 +1,16 @@
 # Dispatcher agent activation v1
 
-**Status:** Cursor live activation + claim-before-API + issue-scan handoff are on `main` (see #661). Codex remains human-triggered specialist (not Phase-4 auto-activate).  
+**Status:** **LEGACY / DIAGNOSTIC / NOT PRODUCTION EXECUTION** as of #930 (2026-08-13). Cursor live API activation mechanics remain in-repo for manual smoke only. Production Cursor execution is `CorpFlowAI Cursor Factory Handoff` → Cursor Automation `CorpFlowAI Factory Wake Proof` / MODE B (controller #903, #913, merged PR #914). Codex remains human-triggered specialist (not Phase-4 auto-activate).  
 **Owner:** Anton (operator / approver); Cursor (repo implementation).  
-**Created:** 2026-07-06.  
+**Created:** 2026-07-06.
+**Updated:** 2026-08-13 (#930).
 **Anchor sentinel:** `<!-- DISPATCHER_AGENT_ACTIVATION_V1 -->`
 
 <!-- DISPATCHER_AGENT_ACTIVATION_V1 -->
 
-> **Operating posture:** `docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md` — Cursor is the automatic primary worker; Anton is **not** the courier between Cursor stages. This doc retains activator mechanics; do not treat §1's historical "notification-only / Anton courier" framing as current truth.
+> **Operating posture:** `docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md` — Cursor Factory Automation (Handoff / Wake Proof) is the automatic primary worker; Anton is **not** the courier between Cursor stages.
+>
+> **#930 production decision:** `.github/workflows/factory-dispatcher-activate.yml` is **not** the normal production executor. It must not auto-launch from schedule, issue labels/comments, or capacity events. Manual `workflow_dispatch` is retained for diagnostic smoke only.
 
 ## 1. Problem (historical — why the activator exists)
 
@@ -21,7 +24,7 @@ Posting to Operator Bridge **#249**, Telegram, or n8n **comments** alone was **n
 
 | Layer | Choice |
 |-------|--------|
-| **Orchestrator** | **L2 GitHub Actions** — scheduled + manual dispatch |
+| **Orchestrator** | **L2 GitHub Actions** — **production:** `CorpFlowAI Cursor Factory Handoff` (eligibility events + capacity `workflow_call`). **This API activator:** manual `workflow_dispatch` only (#930) |
 | **Input** | `GET /api/factory/business-operations-dispatcher` (Bearer `CORPFLOW_CRON_SECRET`) |
 | **`owner=cursor`** | **Cursor Cloud Agents API** (`POST /v1/agents`, `autoCreatePR`) — Phase 3+ |
 | **`owner=codex`** | **Codex Cloud** (GitHub App / task dispatch) — Phase 4+, blocked on Packet 7.2 install |
@@ -57,17 +60,19 @@ Companion policy docs (unchanged):
 
 **File:** `.github/workflows/factory-dispatcher-activate.yml`
 
-| Trigger | Schedule |
-|---------|----------|
-| `issues:labeled` / `unlabeled` | **Phase A + #891** — `dispatch:cursor-ready` labeled; `execution:paused` unlabeled; `priority:P0\|P1\|P2` labeled while already ready. Prefers that issue; gates remain authoritative |
-| `issue_comment` | **#891** — durable operator authorization / Decision Inbox approval / explicit Anton unlock from human actors (bots ignored). Prefers that issue |
-| `workflow_call` | **#891 capacity backfill** — invoked by `cursor-agent-lifecycle-status` when a verified run reaches terminal/operator-review and releases WIP; full priority scan |
-| `schedule` | Every **30 minutes** (`*/30 * * * *` UTC) — **fallback** reconciliation when no eligibility event fires; live Cursor only when `CURSOR_LIVE_ENABLED=true` |
-| `workflow_dispatch` | Manual run (not required for normal approval/capacity continuation) |
+**#930:** this workflow is **LEGACY / DIAGNOSTIC / NOT PRODUCTION EXECUTION**. Displayed name must remain clearly marked LEGACY. Automatic triggers are forbidden.
 
-**SLA:** eligibility-changing events should normally begin activation within **5 minutes**; schedule is self-heal only.
+| Trigger | Status |
+|---------|--------|
+| `workflow_dispatch` | **Only allowed trigger** — manual diagnostic / dry_run (default) or `cursor_live` smoke |
+| `issues:labeled` / `unlabeled` | **Removed** — production wake is CorpFlowAI Cursor Factory Handoff |
+| `issue_comment` | **Removed** — production wake is Handoff |
+| `workflow_call` | **Removed** — lifecycle capacity backfill wakes Handoff, not this workflow |
+| `schedule` | **Removed** — must not auto-launch Background Agents API workers |
 
-**Segregated issue lifecycle (2026-07-28):** each scheduled/manual/event run first executes `scripts/cursor-issue-dispatch-scan.mjs` against open `dispatch:cursor-ready` issues (classification, WIP, discover/claim comments, labels). See `docs/operations/CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1.md`. Issue-scoped event runs prefer the source issue and activate it only when the scan selects that exact issue (gates remain authoritative). Capacity backfill scans the full ready queue by priority. Failed activation restores ready and runs one same-job continuation scan (GITHUB_TOKEN cannot re-fire label events). Manual `target_issue` still wins when set. This extends the current route — it does **not** add a second dispatcher. Helpers: `lib/server/cursor-ready-event-dispatch.js`.
+**SLA:** eligibility-changing events should normally begin activation within **5 minutes** via **Handoff → Wake Proof**, not this workflow.
+
+**Segregated issue lifecycle:** the production Handoff run executes the same eligibility / verified WIP scan. This legacy workflow, when dispatched manually, still runs `scripts/cursor-issue-dispatch-scan.mjs` first. See `docs/operations/CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1.md`. Helpers: `lib/server/cursor-ready-event-dispatch.js`.
 
 **Manual inputs (`workflow_dispatch`):**
 
@@ -90,7 +95,7 @@ Companion policy docs (unchanged):
 
 | Name | Purpose |
 |------|---------|
-| `CURSOR_LIVE_ENABLED` | Emergency disable / scheduled-live kill switch. Scheduled runs remain `dry_run` unless this value is set to `true` (or `1` / `enabled`). Set it to `false`, unset it, or remove it to disable scheduled `cursor_live`. |
+| `CURSOR_LIVE_ENABLED` | Historical scheduled-live kill switch. **Scheduled `cursor_live` is removed (#930).** Manual diagnostic `cursor_live` still requires `CURSOR_API_KEY`. |
 
 Built-in **`GITHUB_TOKEN`** (`issues: read`) fetches `target_issue` title/body when direct-issue activation is used.
 
@@ -175,22 +180,22 @@ Block-by-default routing remains in force for docs-only work without delivery ev
 
 **Runtime packets cannot be satisfied by docs-only PRs.** Per `docs/operations/CORPFLOWAI_BUSINESS_SURVIVAL_OPERATING_DOCTRINE.md` §3–§4, an activated packet classified as runtime / client-visible is only satisfied by a PR with runtime evidence (preview URL, live URL, endpoint result, screenshot, or test output against the actual surface). A docs-only PR against such a packet is a failed packet, not a completed one.
 
-**Operational kill switch:** if Cursor produces 2 low-value PRs in a row, set repository variable/secret `CURSOR_LIVE_ENABLED=false` (or unset/remove it). Scheduled runs then force `dry_run` until routing rules are corrected.
+**Operational kill switch:** production Wake Proof does not use `CURSOR_LIVE_ENABLED`. For this legacy diagnostic workflow, leave it unused; do not restore scheduled `cursor_live`.
 
-#### Manual run — direct issue activation (Option B)
+#### Manual run — direct issue activation (LEGACY diagnostic only)
 
-Use when the production dispatcher returns **zero** `owner=cursor` routings but Anton wants to activate one approved GitHub issue directly.
+Use only for diagnostic smoke of the Background Agents API path. Ordinary factory work must go through **CorpFlowAI Cursor Factory Handoff** / Wake Proof (#930).
 
-1. GitHub → **Actions** → **Factory dispatcher activate** → **Run workflow**.
+1. GitHub → **Actions** → **LEGACY Factory dispatcher activate (diagnostic - not production execution)** → **Run workflow**.
 2. Set:
    - `activation_mode` = **`cursor_live`**
-   - `target_issue` = **`553`** (numeric issue only; first target: Cursor spend/value/burn-rate guardrails)
+   - `target_issue` = numeric issue
    - Leave `smoke_internal` **unchecked** unless you intend the internal smoke routing.
 3. Ensure repo secret **`CURSOR_API_KEY`** is set (required for `cursor_live`).
 4. Workflow uses built-in **`GITHUB_TOKEN`** (`issues: read` for fetch, `issues: write` for status comment) to fetch the issue title/body — no extra secret.
-5. Expected: one Cursor Cloud agent created, PR opened by Cursor (Anton merges manually). Artifacts include `activation-plan.json` and **`cursor-ops-status.json`** (see § Cursor Control Tower v0).
+5. Expected: one Cursor Cloud agent created. This must **not** run in parallel with a Wake Proof worker on the same issue.
 
-**Safety (unchanged):** no auto-merge, no production deploy, no env/DB changes, no client sends. Scheduled runs **ignore** `target_issue` and remain `dry_run` only.
+**Safety (unchanged):** no auto-merge, no production deploy, no env/DB changes, no client sends. This workflow has **no** schedule and **ignores** automatic eligibility events.
 
 ```text
 activation_mode=cursor_live
@@ -203,7 +208,7 @@ target_issue=553
 
 ### Run target issue #553
 
-GitHub → **Actions** → **Factory dispatcher activate** → **Run workflow**:
+GitHub → **Actions** → **LEGACY Factory dispatcher activate (diagnostic - not production execution)** → **Run workflow**:
 
 ```text
 activation_mode=cursor_live
