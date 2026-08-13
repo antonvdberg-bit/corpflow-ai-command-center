@@ -9,7 +9,7 @@
 > **#896:** Ordinary delivery work proceeds from Anton’s active-task instruction. Protected gates stop only the exact consequential action — subject mentions alone must not freeze claim/activation.
 ## What this slice adds
 
-Activation already exists (`factory-dispatcher-activate.yml` + `dispatcher-agent-activation.js`).
+Activation of new factory work is **CorpFlowAI Cursor Factory Handoff** → Cursor Automation **CorpFlowAI Factory Wake Proof** / MODE B (`factory-cursor-handoff.yml`, #913 / #930). The Background Agents API workflow `factory-dispatcher-activate.yml` is **LEGACY / DIAGNOSTIC only** (`workflow_dispatch`).
 This packet adds **status supervision after activation**:
 
 | Piece | Path |
@@ -44,11 +44,11 @@ Rules: RUNNING silent; COMPLETED+`anton_required=no` silent by default; COMPLETE
 
 ## Double-activation guard
 
-Claim-before-API + issue-keyed GHA concurrency (`factory-dispatcher-activate-<issue|scan>`). Duplicate activators return `SKIP_ALREADY_CLAIMED`. See `lib/server/cursor-activation-claim.js`.
+Claim-before-API applies only to the legacy diagnostic API activator. Production uniqueness is one Handoff success → one Wake Proof run, plus verified WIP (cap 2) and Handoff duplicate suppression. See `lib/server/factory-cursor-handoff.js`.
 
 ## Eligibility wake / capacity backfill (#891)
 
-When a poll reaches COMPLETED/FAILED/STALE and releases verified WIP capacity, this workflow sets `wake_dispatcher=true` and **`workflow_call`s** `Factory dispatcher activate` for a full priority queue scan. Operator authorization comments and `execution:paused` removal also wake that same activator directly. Do **not** ask Anton to toggle `dispatch:cursor-ready` or manually `workflow_dispatch` for ordinary continuation. Internal target: begin eligible work within **5 minutes** of the eligibility-changing event.
+When a poll reaches COMPLETED/FAILED/STALE and releases verified WIP capacity, this workflow sets `wake_dispatcher=true` and **`workflow_call`s** `CorpFlowAI Cursor Factory Handoff` for a full priority queue scan. Operator authorization comments and `execution:paused` removal also wake **Handoff** directly. Do **not** wake `factory-dispatcher-activate.yml` automatically — that API path is diagnostic `workflow_dispatch` only (#930). Do **not** ask Anton to toggle `dispatch:cursor-ready` or manually `workflow_dispatch` for ordinary continuation. Internal target: begin eligible work within **5 minutes** of the eligibility-changing event.
 
 ## Codex specialist (human-triggered)
 
@@ -67,8 +67,8 @@ Not used for ordinary Cursor API lifecycle. Reserve OpenHands for AI interpretat
 
 ## Manual proof
 
-1. Create a tiny synthetic internal issue (harmless docs/artifact change).
-2. Activate via `factory-dispatcher-activate` `workflow_dispatch` `cursor_live` + `target_issue`.
-3. Confirm origin metadata comment with `cursorAgentId`.
+1. Create a tiny synthetic internal issue (harmless docs/artifact change) labelled `dispatch:cursor-ready`.
+2. Confirm `CorpFlowAI Cursor Factory Handoff` succeeds and Wake Proof starts one Cursor Cloud run (production path).
+3. Confirm origin / handoff evidence on the issue. Do **not** use `factory-dispatcher-activate` `cursor_live` for ordinary production proof — that workflow is diagnostic only.
 4. Run `cursor-agent-lifecycle-status` workflow with that issue (`poll_twice=true`).
-5. Expect: WORKING silent → COMPLETED once → second poll deduped → PR not auto-merged.
+5. Expect: WORKING silent → COMPLETED once → second poll deduped → PR not auto-merged → capacity release wakes **Handoff**, not the legacy API dispatcher.

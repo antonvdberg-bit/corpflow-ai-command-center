@@ -1,7 +1,10 @@
-# Permanent Cursor Automation wake path (#913 / controller #903).
+# Permanent Cursor Automation wake path (#913 / controller #903 / #930).
 #
 # GitHub eligibility/capacity event → this workflow succeeds on main with exactly
 # one selected source issue encoded → Cursor Automation MODE B wakes.
+#
+# This is the sole production Cursor execution wake path. The Background Agents
+# API workflow factory-dispatcher-activate.yml is LEGACY / DIAGNOSTIC only.
 #
 # Important:
 # - Displayed workflow name must remain exactly:

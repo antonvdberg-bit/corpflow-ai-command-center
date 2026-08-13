@@ -213,7 +213,8 @@ function buildGithubAdapter() {
 }
 
 /**
- * Persist wake request for factory-dispatcher-activate (capacity backfill).
+ * Persist wake request for CorpFlowAI Cursor Factory Handoff (capacity backfill).
+ * The legacy API dispatcher is not woken automatically (#930).
  * @param {ReturnType<typeof buildCapacityReleaseWakeRequest>} wake
  */
 function writeCapacityWakeArtifact(wake) {

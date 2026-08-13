@@ -1,28 +1,23 @@
-# Polls business-operations dispatcher and runs agent activation.
-# Default: dry-run plan only. Manual workflow_dispatch may set activation_mode=cursor_live.
-# Optional target_issue bypasses dispatcher cursor routings for one direct GitHub issue.
-# Scheduled runs become cursor_live only when repository variable/secret CURSOR_LIVE_ENABLED=true.
+# LEGACY / DIAGNOSTIC / NOT PRODUCTION EXECUTION (#930).
 #
-# Phase A event-driven path: issues:labeled with exact label dispatch:cursor-ready
-# resolves that issue as the preferred scan target and selects cursor_live when eligible.
-# Uses existing CURSOR_API_KEY, claim-before-API, WIP and protected gates — not a second dispatcher.
+# This Background Agents API activator is NOT the production Cursor executor
+# and must not compete with Cursor Automation CorpFlowAI Factory Wake Proof.
 #
-# Eligibility wake (#891): also wakes on
-# - issue_comment with durable operator gate authorization / ANTON DURABLE APPROVAL
-# - issues:unlabeled execution:paused
-# - issues:labeled priority:P0|P1|P2 when issue already has dispatch:cursor-ready
-# - workflow_call capacity_released from Cursor agent lifecycle status (WIP backfill)
-# Scheduled scan remains fallback/reconciliation (not the primary continuation path).
+# Production path (sole executor):
+#   GitHub eligible work
+#   → CorpFlowAI Cursor Factory Handoff
+#   → Cursor Automation CorpFlowAI Factory Wake Proof / MODE B
+#   → Cursor Cloud agent → one branch → one PR.
 #
-# Also scans open issues labelled dispatch:cursor-ready (segregated claim lifecycle) before
-# activation. Does not create a second dispatcher — see CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1.
+# Manual workflow_dispatch only. Do not restore schedule, issues, issue_comment,
+# or workflow_call — those automatic triggers launch a second competing worker.
+# Default remains dry_run. cursor_live is diagnostic smoke only.
 #
 # Repo secrets (Settings → Secrets and variables → Actions):
 # - CORPFLOW_CORE_BASE_URL   e.g. https://core.corpflowai.com
 # - CORPFLOW_CRON_SECRET     same value as Vercel CORPFLOW_CRON_SECRET / CRON_SECRET
 # - CORPFLOW_FACTORY_HEALTH_URL  (optional) fallback to derive dispatcher URL
 # - CURSOR_API_KEY           required for activation_mode=cursor_live only (never logged)
-# - CURSOR_LIVE_ENABLED      optional repo variable/secret; true enables scheduled cursor_live
 #
 # If dispatcher secrets are missing, the job exits 0 (skipped) so forks stay green.
 #
@@ -33,18 +28,14 @@
 #   scripts/cursor-issue-dispatch-scan.mjs
 #   lib/server/cursor-ready-event-dispatch.js
 
-name: Factory dispatcher activate
+name: LEGACY Factory dispatcher activate (diagnostic - not production execution)
 
 # STARTED/FINISHED evidence comments post to control issue #661 so a silent UI click cannot hide the run ID.
 on:
-  schedule:
-    # Every 30 minutes — fallback scan when no eligibility event fires.
-    # Expression rewritten (equivalent to */30) so merging this file re-registers a stalled schedule.
-    - cron: "0,30 * * * *"
   workflow_dispatch:
     inputs:
       activation_mode:
-        description: "dry_run (default) or cursor_live (manual smoke only)"
+        description: "dry_run (default) or cursor_live (LEGACY diagnostic smoke only — not production)"
         required: true
         default: dry_run
         type: choice
@@ -57,75 +48,26 @@ on:
         default: false
         type: boolean
       target_issue:
-        description: "Optional GitHub issue number for direct Cursor activation (manual only; blank = dispatcher)"
+        description: "Optional GitHub issue number for direct Cursor activation (manual diagnostic only; blank = dispatcher)"
         required: false
         default: ""
         type: string
-  workflow_call:
-    inputs:
-      activation_mode:
-        description: "dry_run or cursor_live"
-        required: false
-        default: cursor_live
-        type: string
-      wake_reason:
-        description: "capacity_released | claim_released_continuation"
-        required: false
-        default: capacity_released
-        type: string
-      target_issue:
-        description: "Optional preferred issue for capacity wake (blank = full priority scan)"
-        required: false
-        default: ""
-        type: string
-      capacity_wake_requested:
-        description: "Set true when lifecycle released verified WIP capacity"
-        required: false
-        default: "true"
-        type: string
-  issues:
-    types: [labeled, unlabeled]
-  issue_comment:
-    types: [created]
 
 permissions:
   contents: read
   issues: write
   actions: read
 
-# Issue-keyed when an event/manual target issue is known — serializes dual activator races.
-# Blank target (scan/dispatcher/capacity backfill) shares one scan group so only one scan activation runs at a time.
+# Manual diagnostic only — serialize by target issue when provided.
 concurrency:
-  group: factory-dispatcher-activate-${{ github.event_name == 'issues' && github.event.issue.number || github.event_name == 'issue_comment' && github.event.issue.number || inputs.target_issue || 'scan' }}
+  group: factory-dispatcher-activate-legacy-${{ inputs.target_issue || 'scan' }}
   cancel-in-progress: false
 
 jobs:
   activate:
-    # Ready label + eligibility wakes only. Bot lifecycle labels must not wake.
-    # issue_comment: structured authorization markers only; ignore [bot] actors.
-    # workflow_call: capacity backfill / claim-release continuation from lifecycle.
-    if: >-
-      github.event_name == 'schedule' ||
-      github.event_name == 'workflow_dispatch' ||
-      github.event_name == 'workflow_call' ||
-      (github.event_name == 'issue_comment' &&
-       github.event.issue.state == 'open' &&
-       github.event.action == 'created' &&
-       !endsWith(github.event.comment.user.login, '[bot]') &&
-       (contains(github.event.comment.body, 'OPERATOR GATE AUTHORIZATION') ||
-        contains(github.event.comment.body, 'ANTON DURABLE APPROVAL') ||
-        contains(github.event.comment.body, 'ANTON EXPLICIT OPERATOR AUTHORIZATION'))) ||
-      (github.event_name == 'issues' &&
-       github.event.issue.state == 'open' &&
-       (
-         (github.event.action == 'labeled' && github.event.label.name == 'dispatch:cursor-ready') ||
-         (github.event.action == 'unlabeled' && github.event.label.name == 'execution:paused') ||
-         (github.event.action == 'labeled' &&
-          (github.event.label.name == 'priority:P0' ||
-           github.event.label.name == 'priority:P1' ||
-           github.event.label.name == 'priority:P2') &&
-          contains(join(github.event.issue.labels.*.name, ','), 'dispatch:cursor-ready'))
-       ))
+    # workflow_dispatch only. Automatic schedule / label / comment / capacity
+    # wakes belong to CorpFlowAI Cursor Factory Handoff (#930).
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
