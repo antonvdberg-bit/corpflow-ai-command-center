@@ -42,11 +42,12 @@ describe('#712 market path — public pages and primary CTAs', () => {
     assert.ok(!/Choose payment path/i.test(home));
   });
 
-  it('Lead Rescue page has one primary setup CTA into intake', () => {
+  it('Lead Rescue page has one primary setup CTA into the canonical enquiry form', () => {
     const lr = read('components/AiLeadRescueLanding.js');
     assert.ok(lr.includes('Start my 48-hour setup'));
-    assert.ok(lr.includes('#intake') || lr.includes('id="intake"'));
-    assert.ok(lr.includes('Request AI Lead Rescue setup'));
+    assert.ok(lr.includes('LEAD_RESCUE_ENQUIRY_HREF') || lr.includes('/contact?offer=ai-lead-rescue#discovery'));
+    assert.ok(lr.includes('id="intake"'));
+    assert.ok(!lr.includes("fetch('/api/tenant/intake'"));
     assert.ok(!/Choose payment path/i.test(lr));
   });
 
@@ -107,18 +108,19 @@ describe('#712 market path — intake validation contracts', () => {
     assert.ok(intake.includes('INVALID_URGENCY'));
   });
 
-  it('Lead Rescue form posts product, urgency, consent, website, source page', () => {
+  it('Lead Rescue CTAs route into the canonical enquiry form; product pages keep lockedOffer', () => {
     const lr = read('components/AiLeadRescueLanding.js');
+    assert.ok(lr.includes('LEAD_RESCUE_ENQUIRY_HREF') || lr.includes('/contact?offer=ai-lead-rescue#discovery'));
+    assert.ok(!lr.includes("fetch('/api/tenant/intake'"));
+    const form = read('components/public/DiscoveryIntakeForm.js');
     for (const token of [
-      "product: 'ai-lead-rescue'",
+      'locked_product: lockedOffer === true',
+      'enquiry_channels',
       'consent_contact: true',
-      'urgency:',
-      'name="website"',
-      'name="urgency"',
-      'name="consent_contact"',
+      'urgency',
       "fetch('/api/tenant/intake'",
     ]) {
-      assert.ok(lr.includes(token), `missing ${token}`);
+      assert.ok(form.includes(token), `missing ${token}`);
     }
   });
 });

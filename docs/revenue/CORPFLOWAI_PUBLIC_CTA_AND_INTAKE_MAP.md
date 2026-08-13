@@ -1,11 +1,11 @@
 # CorpFlowAI public CTA and intake map
 
-**Status:** Operator verification register · **Updated:** 2026-08-07 (#699 path-prefill)
+**Status:** Operator verification register · **Updated:** 2026-08-13 (#822 one canonical enquiry form)
 **Anchor:** `<!-- CORPFLOWAI_PUBLIC_CTA_INTAKE_MAP_V1 -->`
 
 <!-- CORPFLOWAI_PUBLIC_CTA_INTAKE_MAP_V1 -->
 
-Traces every primary public CTA on priority routes. Qualified market enquiries and MUR sprint discovery persist via `POST /api/tenant/intake` (`meta.product = corpflow-rapid-delivery`) into the existing `leads` table. Homepage service paths deep-link to `/contact?path={id}#discovery` (mapped to buyer-need). Operator desk: `/admin/rapid-delivery` (+ cockpit link on `/change/revenue`). **No automated outreach** without separate Anton approval.
+Traces every primary public CTA on priority routes. Qualified market enquiries persist via `POST /api/tenant/intake` (`meta.product = corpflow-rapid-delivery`) into the existing `leads` table. Homepage service paths deep-link to `/contact?path={id}#discovery` (mapped to buyer-need). AI Lead Rescue CTAs deep-link to `/contact?offer=ai-lead-rescue#discovery` (locked product). Operator desk: `/admin/rapid-delivery` (+ cockpit link on `/change/revenue`). **No automated outreach** without separate Anton approval.
 
 ---
 
@@ -31,15 +31,15 @@ Traces every primary public CTA on priority routes. Qualified market enquiries a
 
 | Source route | Button text | Destination | Form/API | Persistence | Success | Failure | Operator follow-up | Analytics | Current result |
 | ------------ | ----------- | ----------- | -------- | ----------- | ------- | ------- | ------------------ | --------- | -------------- |
-| `/contact` | Submit enquiry | `POST /api/tenant/intake` | form (`buyer_need` / `?path=` prefill) | `leads` | On-screen reference | Validation | `/admin/rapid-delivery` | — | **Working** |
+| `/contact` | Submit enquiry | `POST /api/tenant/intake` | form (`buyer_need` / `?path=` prefill / `?offer=` lock) | `leads` | On-screen reference | Validation | `/admin/rapid-delivery` | — | **Working** |
 | `/contact` | Email fallback | `mailto:support@corpflowai.com` | mail client | Inbox only | Compose opens | — | Manual | — | **Working** |
-| `/contact` | Go to AI Lead Rescue intake | `/lead-rescue` | — | — | Intake page | — | `/admin/lead-rescue` | — | **Working** |
+| `/contact?offer=ai-lead-rescue#discovery` | Submit qualified enquiry (locked Lead Rescue) | `POST /api/tenant/intake` | DiscoveryIntakeForm `lockedOffer` | `leads` (`corpflow-rapid-delivery`, `offer_slug=ai-lead-rescue`) | On-screen reference | Validation | `/admin/rapid-delivery` | — | **Canonical Lead Rescue intake** |
 
-### `/lead-rescue` (specialist — USD wedge; unchanged)
+### `/lead-rescue` (specialist — USD wedge; CTA only)
 
 | Source route | Button text | Destination | Form/API | Persistence | Success | Failure | Operator follow-up | Analytics | Current result |
 | ------------ | ----------- | ----------- | -------- | ----------- | ------- | ------- | ------------------ | --------- | -------------- |
-| `/lead-rescue` | Intake submit | `POST /api/tenant/intake` | `lib/server/tenant-intake.js` | `leads` table | JSON success | Validation error | `/admin/lead-rescue` | `tenant.lead.captured` | **Working** |
+| `/lead-rescue` | Start my 48-hour setup | `/contact?offer=ai-lead-rescue#discovery` | canonical form | `leads` (`corpflow-rapid-delivery`) | On-screen reference | Validation | `/admin/rapid-delivery` | `lr_primary_cta_click` | **Canonical enquiry — no embedded form** |
 
 ---
 

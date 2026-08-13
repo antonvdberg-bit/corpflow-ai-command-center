@@ -18,48 +18,29 @@ const SHELL = read('components/beauty/PublicMarketingPhotoGlassShell.js');
 
 /**
  * Static (source-text) guards for the dark photo+glass conversion of the main
- * AI Lead Rescue page. The intake is a live `/api/tenant/intake` contract and
- * the Human-First Beauty Layer change is presentation-only; this suite fails
- * loudly if the restyle ever drifts the intake contract, the single-offer copy,
+ * AI Lead Rescue page. Setup CTAs must route to the canonical enquiry form
+ * (#822). This suite fails loudly if the restyle drifts the single-offer copy,
  * the governed mid-page slots, or smuggles in a forbidden integration.
  */
-describe('AI Lead Rescue main page — intake contract is preserved', () => {
-  it('keeps the POST target, method, headers, and body unchanged', () => {
-    assert.ok(COMPONENT.includes("fetch('/api/tenant/intake'"), 'intake POST target changed');
-    assert.ok(COMPONENT.includes("method: 'POST'"), 'method changed');
-    assert.ok(COMPONENT.includes("'Content-Type': 'application/json'"), 'content-type changed');
-    assert.ok(COMPONENT.includes('body: JSON.stringify(payload)'), 'body changed');
-    const fetchCount = (COMPONENT.match(/fetch\(/g) || []).length;
-    assert.equal(fetchCount, 1, `expected exactly 1 fetch(), found ${fetchCount}`);
+describe('AI Lead Rescue main page — canonical enquiry CTA', () => {
+  it('routes setup CTAs to the locked Lead Rescue enquiry URL', () => {
+    assert.ok(COMPONENT.includes("from '../lib/public/canonical-enquiry.js'"), 'missing canonical enquiry import');
+    assert.ok(COMPONENT.includes('LEAD_RESCUE_ENQUIRY_HREF'), 'missing canonical href constant');
+    assert.ok(COMPONENT.includes('/contact?offer=ai-lead-rescue#discovery') || COMPONENT.includes('LEAD_RESCUE_ENQUIRY_HREF'), 'missing canonical CTA');
+    assert.ok(COMPONENT.includes('data-testid="lead-rescue-canonical-cta"'), 'canonical CTA testid missing');
+    assert.ok(COMPONENT.includes('Start my 48-hour setup'), 'missing primary buyer-action CTA');
+    assert.ok(!COMPONENT.includes("fetch('/api/tenant/intake'"), 'embedded intake POST must be removed');
+    assert.ok(!/async function submitLead\(e\) \{/.test(COMPONENT), 'submitLead must be removed');
+    assert.ok(!COMPONENT.includes('name="lead_sources"'), 'embedded lead_sources field must be removed');
+    assert.ok(!COMPONENT.includes('data-testid="lead-rescue-intake-success"'), 'inline intake success panel must be removed');
   });
 
-  it('keeps the AI Lead Rescue meta contract', () => {
-    assert.ok(COMPONENT.includes("product: 'ai-lead-rescue'"), 'meta.product must stay ai-lead-rescue');
-    assert.ok(COMPONENT.includes('business_name:'), 'meta.business_name dropped');
-    assert.ok(COMPONENT.includes('lead_sources:'), 'meta.lead_sources dropped');
-    assert.ok(COMPONENT.includes("page: '/lead-rescue'"), 'meta.page must stay /lead-rescue');
-  });
-
-  it('keeps every form field name unchanged', () => {
-    for (const name of ['business_name', 'name', 'email', 'phone', 'lead_sources', 'message']) {
-      assert.ok(COMPONENT.includes(`name="${name}"`), `missing field name="${name}"`);
-    }
-    assert.ok(COMPONENT.includes('type="email"'), 'email must stay type=email');
-  });
-
-  it('keeps submitLead intact', () => {
-    assert.match(COMPONENT, /async function submitLead\(e\) \{/);
-  });
-
-  it('keeps the intake event contract', () => {
-    for (const ev of [
-      'lr_intake_submit_attempt',
-      'lr_intake_submit_success',
-      'lr_primary_cta_click',
-      'lr_secondary_cta_click',
-    ]) {
+  it('keeps CTA click tracking without a second submit form', () => {
+    for (const ev of ['lr_primary_cta_click', 'lr_secondary_cta_click']) {
       assert.ok(COMPONENT.includes(`'${ev}'`), `missing event ${ev}`);
     }
+    assert.ok(!COMPONENT.includes("'lr_intake_submit_attempt'"), 'intake submit attempt should no longer fire from this page');
+    assert.ok(!COMPONENT.includes("'lr_intake_submit_success'"), 'intake submit success should no longer fire from this page');
   });
 
   it('keeps the single-offer + no-guarantee copy verbatim', () => {
@@ -82,10 +63,7 @@ describe('AI Lead Rescue main page — intake contract is preserved', () => {
     assert.ok(!/AI Lead Rescue Sprint/i.test(COMPONENT), 'must not brand the primary page as Sprint');
   });
 
-  it('shows inline intake confirmation with lead_id (no window.alert)', () => {
-    assert.ok(COMPONENT.includes('data-testid="lead-rescue-intake-success"'), 'success panel missing');
-    assert.ok(COMPONENT.includes('data-testid="lead-rescue-intake-lead-id"'), 'lead_id surface missing');
-    assert.ok(COMPONENT.includes('setIntakeDone'), 'intakeDone state missing');
+  it('keeps payment trust copy and does not use window.alert', () => {
     assert.ok(!/\balert\s*\(/.test(COMPONENT), 'must not use window.alert for intake feedback');
     assert.ok(
       COMPONENT.includes(

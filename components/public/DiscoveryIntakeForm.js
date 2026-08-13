@@ -42,6 +42,7 @@ const labelStyle = {
  * @param {{
  *   defaultOfferSlug?: string,
  *   lockedOffer?: boolean,
+ *   lockedOfferLabel?: string,
  *   heading?: string,
  *   defaultServicePath?: string,
  *   defaultBuyerNeed?: string,
@@ -50,6 +51,7 @@ const labelStyle = {
 export default function DiscoveryIntakeForm({
   defaultOfferSlug = '',
   lockedOffer = false,
+  lockedOfferLabel = '',
   heading = 'Request a qualified conversation',
   defaultServicePath,
   defaultBuyerNeed = '',
@@ -80,10 +82,13 @@ export default function DiscoveryIntakeForm({
   /** @type {[{ reference: string, lead_id: string, offer_slug: string, service_path: string, buyer_need: string | null } | null, Function]} */
   const [done, setDone] = useState(null);
 
-  const lockedOfferTitle = useMemo(
-    () => (lockedOffer && initialOffer ? getRapidDeliveryOffer(initialOffer)?.title : null),
-    [lockedOffer, initialOffer],
-  );
+  const lockedOfferTitle = useMemo(() => {
+    if (!lockedOffer) return null;
+    const custom = String(lockedOfferLabel || '').trim();
+    if (custom) return custom;
+    if (!initialOffer) return null;
+    return getRapidDeliveryOffer(initialOffer)?.title || null;
+  }, [lockedOffer, lockedOfferLabel, initialOffer]);
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -138,12 +143,19 @@ export default function DiscoveryIntakeForm({
         message: message.trim(),
         discovery_form: true,
         source: 'corpflow-market-gateway',
-        page: typeof window !== 'undefined' ? window.location.pathname : '/contact',
+        page:
+          typeof window !== 'undefined'
+            ? `${window.location.pathname}${window.location.search || ''}`
+            : '/contact',
         buyer_need: routed.buyer_need,
         service_interest: routed.service_interest,
         locked_product: lockedOffer === true,
       };
       if (routed.offer_slug) meta.offer_slug = routed.offer_slug;
+      if (lockedOffer && routed.offer_slug === 'ai-lead-rescue') {
+        meta.lead_rescue_context = true;
+        meta.lead_sources = enquiryChannels.trim() || 'Not specified';
+      }
 
       const intentBits = [
         'Qualified enquiry',
@@ -235,6 +247,7 @@ export default function DiscoveryIntakeForm({
           <p
             style={{ margin: 0, color: CF.link, fontSize: 14, fontWeight: 600 }}
             data-locked-product-context
+            data-locked-offer-slug={initialOffer || ''}
           >
             You are requesting discovery for {lockedOfferTitle || 'this product'}. Tell us about the problem and
             timing — you do not need to re-classify the product.

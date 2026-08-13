@@ -104,12 +104,13 @@ describe('CorpFlow public market readiness — shared shell on priority pages', 
     assert.ok(offer.includes('What is not included'));
   });
 
-  it('contact page has discovery form and offer links', () => {
+  it('contact page has discovery form and compact support, not a second product footer', () => {
     const contact = read('pages/contact.js');
     assert.ok(contact.includes('DiscoveryIntakeForm'));
     assert.ok(contact.includes('id="discovery"'));
     assert.ok(contact.includes('buildGeneralDiscoveryMailto'));
-    assert.ok(contact.includes('/offers/ai-lead-rescue'));
+    assert.ok(contact.includes('data-contact-support-block'));
+    assert.ok(!/Related product pages/.test(contact));
   });
 
   it('policy layout uses shared header and footer', () => {

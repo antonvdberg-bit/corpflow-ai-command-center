@@ -5,13 +5,8 @@ import CustomerServiceContact from '../components/CustomerServiceContact.js';
 import DiscoveryIntakeForm from '../components/public/DiscoveryIntakeForm.js';
 import RareExclusiveContentPage from '../components/RareExclusiveContentPage.js';
 import { policyStyles as ps } from '../components/PublicPolicyLayout.js';
-import { buildGeneralDiscoveryMailto, buildPublicPageMeta, listPublicOffers } from '../lib/public/corpflow-public-market.js';
-import {
-  buyerNeedForServicePath,
-  isMarketBuyerNeedId,
-  isMarketServicePathId,
-} from '../lib/public/corpflow-market-service-paths.js';
-import { cfBtnSecondary } from '../components/public/corpflow-public-styles.js';
+import { buildGeneralDiscoveryMailto, buildPublicPageMeta } from '../lib/public/corpflow-public-market.js';
+import { resolveCanonicalEnquiryQuery } from '../lib/public/canonical-enquiry.js';
 import { luxOrApexPageProps } from '../lib/client/lux-host-page-props.js';
 
 const h1 = {
@@ -33,12 +28,13 @@ export default function ContactPage({
   seoHost = '',
   defaultBuyerNeed = '',
   defaultServicePath = '',
+  defaultOfferSlug = '',
+  lockedOffer = false,
 } = {}) {
   if (luxMode) {
     return <RareExclusiveContentPage pageId="contact" seoHost={seoHost} />;
   }
 
-  const offers = listPublicOffers();
   const discoveryMailto = buildGeneralDiscoveryMailto();
   const meta = buildPublicPageMeta({
     title: 'Contact',
@@ -47,8 +43,7 @@ export default function ContactPage({
     path: '/contact',
     ogImage: '/assets/visuals/corpflow-contact-hero.jpg',
   });
-  const buyerNeedProp = isMarketBuyerNeedId(defaultBuyerNeed) ? defaultBuyerNeed : undefined;
-  const servicePathProp = isMarketServicePathId(defaultServicePath) ? defaultServicePath : undefined;
+  const lockedLeadRescue = lockedOffer && defaultOfferSlug === 'ai-lead-rescue';
 
   return (
     <CorpFlowPublicPhotoShell
@@ -63,11 +58,14 @@ export default function ContactPage({
         confirmed in writing before any invoice. Nothing is sent automatically to email, WhatsApp or SMS.
       </p>
 
-      <section style={ps.section} id="discovery">
+      <section style={ps.section} id="discovery" data-canonical-enquiry>
         <DiscoveryIntakeForm
-          heading="Request a qualified conversation"
-          defaultBuyerNeed={buyerNeedProp}
-          defaultServicePath={servicePathProp}
+          heading={lockedLeadRescue ? 'Request AI Lead Rescue' : 'Request a qualified conversation'}
+          defaultBuyerNeed={defaultBuyerNeed || undefined}
+          defaultServicePath={defaultServicePath || undefined}
+          defaultOfferSlug={defaultOfferSlug || undefined}
+          lockedOffer={lockedOffer}
+          lockedOfferLabel={lockedLeadRescue ? 'AI Lead Rescue' : undefined}
         />
         <p style={{ ...ps.p, marginTop: 16 }}>
           Prefer email?{' '}
@@ -76,81 +74,21 @@ export default function ContactPage({
           </a>{' '}
           (no automatic reference id).
         </p>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, margin: '16px 0 8px' }}>
-          <Link href="/lead-rescue" style={cfBtnSecondary}>
-            AI Lead Rescue
-          </Link>
-          <Link href="/offers/ai-lead-rescue" style={cfBtnSecondary}>
-            Lead Rescue sprint
-          </Link>
-          <Link href="/offers/premium-landing-page-rescue" style={cfBtnSecondary}>
-            Website Rescue
-          </Link>
-        </div>
-        <p style={ps.p}>
-          Related product pages:{' '}
-          {offers.map((o, i) => (
-            <span key={o.slug}>
-              {i > 0 ? ' · ' : ''}
-              <Link href={o.path} style={{ color: '#7dd3fc' }}>
-                {o.title}
-              </Link>
-            </span>
-          ))}
-        </p>
       </section>
 
-      <section style={ps.section}>
-        <h2 style={ps.h2}>AI Lead Rescue intake (USD pilot)</h2>
-        <p style={ps.p}>
-          The USD 150 launch pilot uses a dedicated intake on the Lead Rescue page with persistence to the Lead Rescue
-          operator queue — separate from this market gateway form.
-        </p>
-        <p style={ps.p}>
-          <Link href="/lead-rescue" style={{ color: '#2dd4bf', fontWeight: 700 }}>
-            Go to AI Lead Rescue intake →
-          </Link>
-        </p>
-      </section>
-
-      <section style={ps.section}>
-        <h2 style={ps.h2}>Customer service</h2>
+      <section style={ps.section} data-contact-support-block>
+        <h2 style={ps.h2}>Support</h2>
         <CustomerServiceContact />
-      </section>
-
-      <section style={ps.section}>
-        <h2 style={ps.h2}>General enquiries</h2>
         <p style={ps.p}>
-          For service questions before discovery, email{' '}
-          <a href={discoveryMailto} style={{ color: '#7dd3fc' }}>
-            support@corpflowai.com
-          </a>{' '}
-          so we can route your request correctly. The contracting entity is CorpFlowAI Ltd (Mauritius). Official business
-          details appear on each invoice or service agreement.
-        </p>
-        <p style={ps.p}>
-          Service catalogue:{' '}
-          <Link href="/services" style={{ color: '#7dd3fc' }}>
-            services we offer
+          Complaints are acknowledged in writing within two working days. See the{' '}
+          <Link href="/refund-policy" style={{ color: '#7dd3fc' }}>
+            refund and cancellation policy
           </Link>
-          . Existing clients with portal access may use{' '}
+          . Existing clients may use{' '}
           <Link href="/login" style={{ color: '#7dd3fc' }}>
             client login
           </Link>
           .
-        </p>
-      </section>
-
-      <section style={ps.section}>
-        <h2 style={ps.h2}>Customer support and complaints</h2>
-        <p style={ps.p}>
-          Complaints are acknowledged in writing within two working days and answered with either a resolution, a partial
-          refund where applicable under our{' '}
-          <Link href="/refund-policy" style={{ color: '#7dd3fc' }}>
-            refund and cancellation policy
-          </Link>
-          , or a written explanation. If a complaint is not resolved at the support level, you may request founder review
-          by replying to the same thread.
         </p>
       </section>
     </CorpFlowPublicPhotoShell>
@@ -159,21 +97,12 @@ export default function ContactPage({
 
 export async function getServerSideProps({ req, query }) {
   const base = luxOrApexPageProps(req);
-  const rawPath = typeof query?.path === 'string' ? query.path.trim() : '';
-  const rawNeed = typeof query?.need === 'string' ? query.need.trim() : '';
-  const defaultServicePath = isMarketServicePathId(rawPath) ? rawPath : '';
-  const fromPath = defaultServicePath ? buyerNeedForServicePath(defaultServicePath) : '';
-  const defaultBuyerNeed = isMarketBuyerNeedId(rawNeed)
-    ? rawNeed
-    : isMarketBuyerNeedId(fromPath)
-      ? fromPath
-      : '';
+  const enquiry = resolveCanonicalEnquiryQuery(query);
   return {
     ...base,
     props: {
       ...base.props,
-      defaultServicePath,
-      defaultBuyerNeed,
+      ...enquiry,
     },
   };
 }
