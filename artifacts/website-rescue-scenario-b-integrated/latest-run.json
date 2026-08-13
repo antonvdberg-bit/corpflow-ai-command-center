@@ -1,0 +1,316 @@
+{
+  "schema": "corpflow.website_rescue_scenario_b_integrated.v1",
+  "issue": 926,
+  "parent": 716,
+  "programme": 711,
+  "controller": 710,
+  "generation": 1,
+  "run_id": "WS5-926-SCENARIO-B-20260813",
+  "ran_at": "2026-08-13T07:45:00.000Z",
+  "simulation_only": true,
+  "reuses": {
+    "scenario_b": "lib/gtm/integrated-scenarios-711.js#runScenarioBWebsiteRescue",
+    "unit_contract": "lib/website-rescue/onboarding-delivery.js",
+    "system_proof": "lib/website-rescue/system-proof.js (not re-run; merged #742)",
+    "commercial_rail": "lib/revenue/commercial-approval.js (consumed via Scenario B)"
+  },
+  "scenario_b": {
+    "ok": true,
+    "verdict": "PASS",
+    "run_id": "GTM-711-FINAL-MAIN-20260805",
+    "enquiry_ref": "INT-SYN-711B-20260805-001",
+    "prospect_ref": "PM-INT-711B-WR-20260805-001",
+    "opportunity_ref": "OPP-SYN-711B-WR-20260805-001",
+    "financial_approval_ref": "FA-SYN-711B-WR-20260805-001",
+    "onboarding_id": "synthetic-onb-711b-wr-001",
+    "delivery_ref": "DEL-SYN-711B-WR-20260805-001",
+    "final_prospect_stage": "proposal_ready",
+    "final_delivery_state": "acceptance_ready",
+    "ledger_steps": [
+      {
+        "step": "market_enquiry_classification_locked_offer",
+        "ok": true
+      },
+      {
+        "step": "acknowledgement_draft_only",
+        "ok": true
+      },
+      {
+        "step": "prospect_maturation_walk",
+        "ok": true
+      },
+      {
+        "step": "gate_financial_approval_missing",
+        "ok": true
+      },
+      {
+        "step": "commercial_handoff_financially_approved",
+        "ok": true
+      },
+      {
+        "step": "gate_content_assets_access_blocks",
+        "ok": true
+      },
+      {
+        "step": "delivery_path_to_acceptance_ready",
+        "ok": true
+      },
+      {
+        "step": "handover_and_maintenance_boundary_evidence",
+        "ok": true
+      }
+    ],
+    "external_sends_executed": [],
+    "real_dns_cutover_executed": false,
+    "real_client_production_deploy": false
+  },
+  "fail_closed_gates": {
+    "missing_financial_approval_blocks": true,
+    "missing_content_assets_access_blocks": true,
+    "ok": true
+  },
+  "handover_evidence": {
+    "ok": true,
+    "record_state": "acceptance_ready",
+    "packets": {
+      "preview": {
+        "ok": true,
+        "packet_id": "preview",
+        "missing": [],
+        "required_fields": [
+          "preview_url_or_artefact",
+          "captured_at",
+          "operator_note"
+        ]
+      },
+      "revision": {
+        "ok": true,
+        "packet_id": "revision",
+        "missing": [],
+        "required_fields": [
+          "round",
+          "reviewer",
+          "decision",
+          "feedback_summary",
+          "captured_at"
+        ]
+      },
+      "deploy_approval": {
+        "ok": true,
+        "packet_id": "deploy_approval",
+        "missing": [],
+        "required_fields": [
+          "approver",
+          "approved_at",
+          "simulation_only",
+          "operator_note"
+        ]
+      },
+      "dns_cutover": {
+        "ok": true,
+        "packet_id": "dns_cutover",
+        "missing": [],
+        "required_fields": [
+          "in_scope",
+          "authorization_status",
+          "simulation_only",
+          "operator_note"
+        ]
+      },
+      "live_validation": {
+        "ok": true,
+        "packet_id": "live_validation",
+        "missing": [],
+        "required_fields": [
+          "checks",
+          "pass_fail",
+          "captured_at",
+          "operator_note"
+        ]
+      },
+      "acceptance": {
+        "ok": true,
+        "packet_id": "acceptance",
+        "missing": [],
+        "required_fields": [
+          "accepted_by",
+          "accepted_at",
+          "acceptance_measures_met"
+        ]
+      },
+      "handover": {
+        "ok": true,
+        "packet_id": "handover",
+        "missing": [],
+        "required_fields": [
+          "handover_sent_at",
+          "channels",
+          "support_boundary_summary",
+          "what_was_built"
+        ]
+      },
+      "maintenance_boundary": {
+        "ok": true,
+        "packet_id": "maintenance_boundary",
+        "missing": [],
+        "required_fields": [
+          "in_scope",
+          "out_of_scope",
+          "escalation_contact",
+          "optional_maintenance_offer"
+        ]
+      }
+    },
+    "incomplete": [],
+    "acceptance": {
+      "ok": true,
+      "reason": null,
+      "incomplete": [],
+      "packets": {
+        "preview": {
+          "ok": true,
+          "packet_id": "preview",
+          "missing": [],
+          "required_fields": [
+            "preview_url_or_artefact",
+            "captured_at",
+            "operator_note"
+          ]
+        },
+        "revision": {
+          "ok": true,
+          "packet_id": "revision",
+          "missing": [],
+          "required_fields": [
+            "round",
+            "reviewer",
+            "decision",
+            "feedback_summary",
+            "captured_at"
+          ]
+        },
+        "deploy_approval": {
+          "ok": true,
+          "packet_id": "deploy_approval",
+          "missing": [],
+          "required_fields": [
+            "approver",
+            "approved_at",
+            "simulation_only",
+            "operator_note"
+          ]
+        },
+        "dns_cutover": {
+          "ok": true,
+          "packet_id": "dns_cutover",
+          "missing": [],
+          "required_fields": [
+            "in_scope",
+            "authorization_status",
+            "simulation_only",
+            "operator_note"
+          ]
+        },
+        "live_validation": {
+          "ok": true,
+          "packet_id": "live_validation",
+          "missing": [],
+          "required_fields": [
+            "checks",
+            "pass_fail",
+            "captured_at",
+            "operator_note"
+          ]
+        },
+        "acceptance": {
+          "ok": true,
+          "packet_id": "acceptance",
+          "missing": [],
+          "required_fields": [
+            "accepted_by",
+            "accepted_at",
+            "acceptance_measures_met"
+          ]
+        },
+        "handover": {
+          "ok": true,
+          "packet_id": "handover",
+          "missing": [],
+          "required_fields": [
+            "handover_sent_at",
+            "channels",
+            "support_boundary_summary",
+            "what_was_built"
+          ]
+        },
+        "maintenance_boundary": {
+          "ok": true,
+          "packet_id": "maintenance_boundary",
+          "missing": [],
+          "required_fields": [
+            "in_scope",
+            "out_of_scope",
+            "escalation_contact",
+            "optional_maintenance_offer"
+          ]
+        }
+      }
+    },
+    "handover": {
+      "handover_sent_at": "2026-08-04T07:00:00Z",
+      "channels": [
+        "synthetic_draft_email"
+      ],
+      "support_boundary_summary": "Quoted pages as accepted; change requests via named approver; no ongoing edits included.",
+      "what_was_built": "T3 bounded rebuild: home, about, services, contact on managed preview path (simulated)."
+    },
+    "maintenance_boundary": {
+      "in_scope": "Quoted pages as accepted at handover",
+      "out_of_scope": "Ongoing copy edits, new pages, SEO campaigns, DNS changes, Lead Rescue monitoring",
+      "escalation_contact": "Jordan Approver",
+      "optional_maintenance_offer": "deferred"
+    },
+    "handover_channels": [
+      "synthetic_draft_email"
+    ],
+    "handover_synthetic_only": true,
+    "deploy_approval_simulation_only": true,
+    "dns_cutover_simulation_only": true,
+    "real_dns_cutover_executed": false,
+    "real_client_production_deploy": false
+  },
+  "remaining_in_lane_blockers": [],
+  "remaining_protected_gates_out_of_lane": [
+    {
+      "id": "real_dns_domain_action",
+      "owner": "Anton",
+      "required_to_close_926": false,
+      "required_to_close_716": false,
+      "status": "closed_for_this_lane",
+      "note": "DNS/cutover authorization is simulated only. Real DNS or domain changes remain Anton-protected."
+    },
+    {
+      "id": "client_production_deploy",
+      "owner": "Anton",
+      "required_to_close_926": false,
+      "required_to_close_716": false,
+      "status": "closed_for_this_lane",
+      "note": "Scenario B completes on synthetic preview/corpflow_test evidence only. client_production deploy is not in WS5 scope."
+    },
+    {
+      "id": "external_sends",
+      "owner": "Anton",
+      "required_to_close_926": false,
+      "required_to_close_716": false,
+      "status": "closed_for_this_lane",
+      "note": "external_sends_executed remains []. Real email/WhatsApp/SMS send requires a separate Anton-protected gate."
+    }
+  ],
+  "exact_remaining_protected_blocker_for_926": null,
+  "exact_remaining_protected_blocker_for_716": null,
+  "ok": true,
+  "expected": "Scenario B (#711) through handover/acceptance_ready on synthetic data; deploy/DNS simulated only; no client_production; no send",
+  "actual": "Scenario B PASS; all evidence packets complete; handover synthetic-only; remaining_in_lane_blockers=[]",
+  "verdict": "PASS",
+  "final_verdict": "WEBSITE RESCUE SCENARIO B INTEGRATED READY FOR REVIEW"
+}

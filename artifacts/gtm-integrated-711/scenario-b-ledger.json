@@ -320,6 +320,136 @@
           "missing_fa_still_blocks_on_clone": true
         }
       }
+    },
+    {
+      "step": "handover_and_maintenance_boundary_evidence",
+      "ok": true,
+      "detail": {
+        "handover": {
+          "handover_sent_at": "2026-08-04T07:00:00Z",
+          "channels": [
+            "synthetic_draft_email"
+          ],
+          "support_boundary_summary": "Quoted pages as accepted; change requests via named approver; no ongoing edits included.",
+          "what_was_built": "T3 bounded rebuild: home, about, services, contact on managed preview path (simulated)."
+        },
+        "maintenance_boundary": {
+          "in_scope": "Quoted pages as accepted at handover",
+          "out_of_scope": "Ongoing copy edits, new pages, SEO campaigns, DNS changes, Lead Rescue monitoring",
+          "escalation_contact": "Jordan Approver",
+          "optional_maintenance_offer": "deferred"
+        },
+        "handover_channels": [
+          "synthetic_draft_email"
+        ],
+        "handover_synthetic_only": true,
+        "deploy_approval_simulation_only": true,
+        "dns_cutover_simulation_only": true,
+        "live_validation": {
+          "checks": [
+            "preview_primary_url_reachable_simulated",
+            "enquiry_path_test_submission_simulated",
+            "mobile_layout_pass_simulated"
+          ],
+          "pass_fail": "pass",
+          "captured_at": "2026-08-04T06:40:00Z",
+          "operator_note": "Live-validation simulated against synthetic checks; no client hostname changed."
+        },
+        "acceptance": {
+          "ok": true,
+          "reason": null,
+          "incomplete": [],
+          "packets": {
+            "preview": {
+              "ok": true,
+              "packet_id": "preview",
+              "missing": [],
+              "required_fields": [
+                "preview_url_or_artefact",
+                "captured_at",
+                "operator_note"
+              ]
+            },
+            "revision": {
+              "ok": true,
+              "packet_id": "revision",
+              "missing": [],
+              "required_fields": [
+                "round",
+                "reviewer",
+                "decision",
+                "feedback_summary",
+                "captured_at"
+              ]
+            },
+            "deploy_approval": {
+              "ok": true,
+              "packet_id": "deploy_approval",
+              "missing": [],
+              "required_fields": [
+                "approver",
+                "approved_at",
+                "simulation_only",
+                "operator_note"
+              ]
+            },
+            "dns_cutover": {
+              "ok": true,
+              "packet_id": "dns_cutover",
+              "missing": [],
+              "required_fields": [
+                "in_scope",
+                "authorization_status",
+                "simulation_only",
+                "operator_note"
+              ]
+            },
+            "live_validation": {
+              "ok": true,
+              "packet_id": "live_validation",
+              "missing": [],
+              "required_fields": [
+                "checks",
+                "pass_fail",
+                "captured_at",
+                "operator_note"
+              ]
+            },
+            "acceptance": {
+              "ok": true,
+              "packet_id": "acceptance",
+              "missing": [],
+              "required_fields": [
+                "accepted_by",
+                "accepted_at",
+                "acceptance_measures_met"
+              ]
+            },
+            "handover": {
+              "ok": true,
+              "packet_id": "handover",
+              "missing": [],
+              "required_fields": [
+                "handover_sent_at",
+                "channels",
+                "support_boundary_summary",
+                "what_was_built"
+              ]
+            },
+            "maintenance_boundary": {
+              "ok": true,
+              "packet_id": "maintenance_boundary",
+              "missing": [],
+              "required_fields": [
+                "in_scope",
+                "out_of_scope",
+                "escalation_contact",
+                "optional_maintenance_offer"
+              ]
+            }
+          }
+        }
+      }
     }
   ],
   "external_sends_executed": [],
@@ -327,7 +457,170 @@
   "real_client_production_deploy": false,
   "final_prospect_stage": "proposal_ready",
   "final_delivery_state": "acceptance_ready",
-  "expected": "locked-offer market→maturation→FA→onboarding→acceptance_ready; DNS/deploy simulated only; no send",
-  "actual": "all ledger steps passed; acceptance_ready; no real DNS/deploy; external_sends_executed=[]",
+  "evidence": {
+    "preview": {
+      "preview_url_or_artefact": "artifacts/website-rescue-system-proof/latest-run.json#preview",
+      "captured_at": "2026-08-04T06:10:00Z",
+      "operator_note": "Synthetic managed preview for Harbour Studio rebuild (home/about/services/contact)."
+    },
+    "revision": {
+      "round": 1,
+      "reviewer": "Jordan Approver",
+      "decision": "approve",
+      "feedback_summary": "Services wording and primary CTA accepted; no further revision.",
+      "captured_at": "2026-08-04T06:20:00Z"
+    },
+    "deploy_approval": {
+      "approver": "Jordan Approver",
+      "approved_at": "2026-08-04T06:30:00Z",
+      "simulation_only": true,
+      "operator_note": "Deploy approval simulated for #716 system-proof; no production deploy executed."
+    },
+    "dns_cutover": {
+      "in_scope": true,
+      "authorization_status": "simulated_authorized",
+      "simulation_only": true,
+      "operator_note": "DNS cutover authorization simulated only; real client_production cutover not performed."
+    },
+    "live_validation": {
+      "checks": [
+        "preview_primary_url_reachable_simulated",
+        "enquiry_path_test_submission_simulated",
+        "mobile_layout_pass_simulated"
+      ],
+      "pass_fail": "pass",
+      "captured_at": "2026-08-04T06:40:00Z",
+      "operator_note": "Live-validation simulated against synthetic checks; no client hostname changed."
+    },
+    "acceptance": {
+      "accepted_by": "Jordan Approver",
+      "accepted_at": "2026-08-04T06:50:00Z",
+      "acceptance_measures_met": true
+    },
+    "handover": {
+      "handover_sent_at": "2026-08-04T07:00:00Z",
+      "channels": [
+        "synthetic_draft_email"
+      ],
+      "support_boundary_summary": "Quoted pages as accepted; change requests via named approver; no ongoing edits included.",
+      "what_was_built": "T3 bounded rebuild: home, about, services, contact on managed preview path (simulated)."
+    },
+    "maintenance_boundary": {
+      "in_scope": "Quoted pages as accepted at handover",
+      "out_of_scope": "Ongoing copy edits, new pages, SEO campaigns, DNS changes, Lead Rescue monitoring",
+      "escalation_contact": "Jordan Approver",
+      "optional_maintenance_offer": "deferred"
+    }
+  },
+  "handover": {
+    "handover_sent_at": "2026-08-04T07:00:00Z",
+    "channels": [
+      "synthetic_draft_email"
+    ],
+    "support_boundary_summary": "Quoted pages as accepted; change requests via named approver; no ongoing edits included.",
+    "what_was_built": "T3 bounded rebuild: home, about, services, contact on managed preview path (simulated)."
+  },
+  "maintenance_boundary": {
+    "in_scope": "Quoted pages as accepted at handover",
+    "out_of_scope": "Ongoing copy edits, new pages, SEO campaigns, DNS changes, Lead Rescue monitoring",
+    "escalation_contact": "Jordan Approver",
+    "optional_maintenance_offer": "deferred"
+  },
+  "acceptance": {
+    "ok": true,
+    "reason": null,
+    "incomplete": [],
+    "packets": {
+      "preview": {
+        "ok": true,
+        "packet_id": "preview",
+        "missing": [],
+        "required_fields": [
+          "preview_url_or_artefact",
+          "captured_at",
+          "operator_note"
+        ]
+      },
+      "revision": {
+        "ok": true,
+        "packet_id": "revision",
+        "missing": [],
+        "required_fields": [
+          "round",
+          "reviewer",
+          "decision",
+          "feedback_summary",
+          "captured_at"
+        ]
+      },
+      "deploy_approval": {
+        "ok": true,
+        "packet_id": "deploy_approval",
+        "missing": [],
+        "required_fields": [
+          "approver",
+          "approved_at",
+          "simulation_only",
+          "operator_note"
+        ]
+      },
+      "dns_cutover": {
+        "ok": true,
+        "packet_id": "dns_cutover",
+        "missing": [],
+        "required_fields": [
+          "in_scope",
+          "authorization_status",
+          "simulation_only",
+          "operator_note"
+        ]
+      },
+      "live_validation": {
+        "ok": true,
+        "packet_id": "live_validation",
+        "missing": [],
+        "required_fields": [
+          "checks",
+          "pass_fail",
+          "captured_at",
+          "operator_note"
+        ]
+      },
+      "acceptance": {
+        "ok": true,
+        "packet_id": "acceptance",
+        "missing": [],
+        "required_fields": [
+          "accepted_by",
+          "accepted_at",
+          "acceptance_measures_met"
+        ]
+      },
+      "handover": {
+        "ok": true,
+        "packet_id": "handover",
+        "missing": [],
+        "required_fields": [
+          "handover_sent_at",
+          "channels",
+          "support_boundary_summary",
+          "what_was_built"
+        ]
+      },
+      "maintenance_boundary": {
+        "ok": true,
+        "packet_id": "maintenance_boundary",
+        "missing": [],
+        "required_fields": [
+          "in_scope",
+          "out_of_scope",
+          "escalation_contact",
+          "optional_maintenance_offer"
+        ]
+      }
+    }
+  },
+  "expected": "locked-offer market→maturation→FA→onboarding→acceptance_ready; handover evidence; DNS/deploy simulated only; no send",
+  "actual": "all ledger steps passed; acceptance_ready; handover evidence present; no real DNS/deploy; external_sends_executed=[]",
   "verdict": "PASS"
 }
