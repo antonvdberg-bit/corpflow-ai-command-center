@@ -27,15 +27,18 @@ Consolidation is allowed only when explicitly justified and safe.
 
 | Existing piece | Role |
 |----------------|------|
-| `.github/workflows/factory-dispatcher-activate.yml` | Scheduled + manual + **Phase A `issues:labeled`** activator (canonical) |
-| `scripts/dispatcher-agent-activation.mjs` | Cursor Cloud activation (existing) |
+| `.github/workflows/factory-dispatcher-activate.yml` | Scheduled + manual + **Phase A `issues:labeled`** + **eligibility wakes (#891)** activator (Cursor API path) |
+| `.github/workflows/factory-cursor-handoff.yml` | **`CorpFlowAI Cursor Factory Handoff` (#913)** — eligibility/capacity wake that **succeeds only** when exactly one eligible source issue is selected; successful completion wakes Cursor Automation MODE B (no Cursor API key) |
+| `.github/workflows/cursor-agent-lifecycle-status.yml` | Terminal/operator-review poller; **`workflow_call`s** the API activator **and** the Automation handoff workflow on capacity release (not a second dispatcher) |
+| `scripts/dispatcher-agent-activation.mjs` | Cursor Cloud activation (existing API path) |
+| `scripts/factory-cursor-handoff.mjs` / `lib/server/factory-cursor-handoff.js` | Select one eligible issue, encode handoff packet/comment, fail closed when no handoff (#913) |
 | `lib/server/cursor-ops-status.js` | Issue comment posting + Control Tower status (existing) |
 | **`lib/server/cursor-issue-dispatch-lifecycle.js`** | Classification, WIP, segregation, comment templates (**this packet**) |
-| **`lib/server/cursor-ready-event-dispatch.js`** | Exact-label event predicates + effective target resolution (Phase A) |
+| **`lib/server/cursor-ready-event-dispatch.js`** | Exact-label + eligibility-wake predicates + effective target resolution (Phase A / #891) |
 | **`scripts/cursor-issue-dispatch-scan.mjs`** | Label scan → discover/classify/eligibility plan (**this packet**) |
 | **`scripts/cursor-issue-dispatch-finalize.mjs`** | Post-activation claim labels + run ID comment (**this packet**) |
 
-Do **not** add a parallel workflow that also activates Cursor. The thin `cursor-ready-wakeup.yml` wrapper was removed in Phase A — the canonical workflow owns the `issues:labeled` trigger. The scan runs as a **prep step** inside the existing workflow and may hand **at most one** `activationTargetIssue` to the existing activator path. Event-driven runs activate only the labeled issue when that issue is scan-eligible.
+Do **not** add another management-platform dispatcher. The Cursor **API** activator remains `factory-dispatcher-activate.yml`. The **Automation** wake path is the dedicated handoff workflow named exactly `CorpFlowAI Cursor Factory Handoff` — it does not call the Cursor API; MODE B starts from workflow success on `main` with one encoded source issue. Both paths reuse the same eligibility / verified WIP scan and may hand **at most one** source issue per run. Issue-scoped event runs prefer the event issue when scan-eligible; capacity backfill runs a full priority scan. Empty/suppressed handoff runs **fail closed** so Automation does not wake.
 
 ## 3. Labels
 
@@ -52,7 +55,7 @@ Do **not** add a parallel workflow that also activates Cursor. The thin `cursor-
 
 **Label provisioning (workflow-owned, not manual):** The existing `factory-dispatcher-activate.yml` scan/finalize path idempotently **ensures** the approved lifecycle labels **and** Decision Inbox `approval:*` labels exist before any claim mutation. Anton must **not** create these labels manually in the GitHub UI unless ensure fails.
 
-**Labels never unlock protected actions.** Only `### ANTON DURABLE APPROVAL` (scoped) counts — see `docs/operations/PROTECTED_ACTION_GATES_V1.md`.
+**Labels never unlock protected actions.** Only durable operator authorization for the **exact** protected gate counts — see `docs/operations/PROTECTED_ACTION_GATES_V1.md` and §5a below.
 
 If label creation or verification fails (missing labels after ensure, GitHub API error, or insufficient token scope), the workflow **fails closed**: the run stops, no claim labels are applied, and operators see **one actionable blocker** naming the missing label(s) or API failure — fix repo label state or workflow permissions, then re-run the scan on `main` (dry-run is fine).
 
@@ -83,8 +86,8 @@ Research/documentation-only tasks may run separately only when they cannot confl
 ## 5. Scan behaviour
 
 1. Discover open issues with `dispatch:cursor-ready` via **GitHub GraphQL** (fallback: paginated Issues API + **client-side label filter**). Do **not** use the Search API — colon labels (`dispatch:cursor-ready`) return zero results.
-2. Infer `WORK CLASSIFICATION` (system boundary, tenant, environment, work type, protected gate).
-3. Reject `dispatch:blocked` and protected-gate issues for claim (still post discovery + classification).
+2. Infer `WORK CLASSIFICATION` (system boundary, tenant, environment, work type, **protected subjects mentioned**, **protected consequential gate**).
+3. Reject `dispatch:blocked`. Skip new claim for `execution:paused`, already claimed, and `dispatch:operator-review` (prior generation awaits review — activator would `SKIP_ALREADY_CLAIMED`; do not waste the free WIP slot). For issues whose **consequential gate** is not `none`, evaluate the **latest valid operator authorization for that exact gate** (see §5a). No matching approval → hold claim at that boundary only. Matching approval (including Anton’s explicit active-task instruction) → continue normal WIP / isolation / priority checks. Still post discovery + classification either way.
 4. Enforce WIP + concurrency. Sibling product holds (e.g. #654 vs #653) do **not** suppress unrelated eligible ops work (e.g. #658 Slack retirement).
 5. Post acknowledgement comments when `GITHUB_TOKEN` has `issues: write` (GHA path).
 6. **Do not** apply claim labels during **scan**. Acquire `dispatch:cursor-claimed` + durable claim marker **before** the Cursor API call (`scripts/dispatcher-agent-activation.mjs` claim-before-API). Finalize records the real run ID / origin metadata after success, or releases the claim on failure (`scripts/cursor-issue-dispatch-finalize.mjs`).
@@ -92,19 +95,79 @@ Research/documentation-only tasks may run separately only when they cannot confl
 8. Stale claimed issues (no meaningful update beyond threshold): exception-only status request — no heartbeat spam.
 9. **Double-activation guard:** issue-keyed GHA concurrency (`factory-dispatcher-activate-<issue|scan>`) + durable claim-before-API. Duplicate/racing activators return `SKIP_ALREADY_CLAIMED`. Explicit requeue requires `CURSOR REQUEUE` generation marker + restored `dispatch:cursor-ready`.
 
+### 5a. Operator gate authorization resume (#887 / #896)
+
+**Ordinary work moves immediately.** Anton requesting the task is sufficient for discover / inspect / read / test / prepare / design / code / branch / PR / CI / evidence / corpflow_test / prepare-migration / prepare-message-without-send.
+
+**Gate only the consequential action.** Classification distinguishes:
+
+| Field | Meaning |
+|-------|---------|
+| Protected subjects mentioned | Informational — task discusses DB, secrets, messaging, payment, etc. **Does not block claim.** |
+| Protected consequential gate | Claim-blocking only when the active task asks to **execute** the exact protected consequence (e.g. run prisma migrate, change env/secrets, send live message, client_production deploy). |
+
+**Rule:** No valid operator authorization → Cursor does **not** claim work that is **currently attempting** an unauthorized consequential gate. Valid operator authorization for that **exact** gate → Cursor re-evaluates and claims automatically when WIP permits. Authorization for gate A never unlocks gate B.
+
+Anton’s **active-task instruction** that already explicitly authorizes the consequential action is sufficient — do **not** require a second durable comment, label toggle, issue recreation, or Anton courier step. The system may persist/normalize that instruction for machine consumption automatically.
+Durable machine-readable record (preferred):
+
+```text
+### OPERATOR GATE AUTHORIZATION
+
+- issue: #886
+- gate: database
+- author: antonvdberg-bit
+- decision: approve
+- recorded_at: 2026-08-11T05:02:03.000Z
+- notes: unlock ERPNext application access
+
+<!-- corpflow.operator_gate_authorization.v1 {"schema":"corpflow.operator_gate_authorization.v1","issue":886,"gate":"database","author":"antonvdberg-bit","decision":"approve","recordedAt":"2026-08-11T05:02:03.000Z","notes":"unlock ERPNext application access"} -->
+```
+
+Also accepted as durable GitHub evidence:
+
+| Source | Notes |
+|--------|-------|
+| `### OPERATOR GATE AUTHORIZATION` (+ optional HTML JSON) | Exact gate + decision (`approve` / `reject` / `revoke`) |
+| `### ANTON DURABLE APPROVAL` | Mapped via Decision Inbox `approval:*` → protected gate |
+| Explicit Anton operator-authorization comment/body that names the gate unlock | e.g. #879 `ANTON EXPLICIT OPERATOR AUTHORIZATION` removing `protected gate: database` |
+| Active-task Anton instruction that already authorizes the exact consequence | e.g. #893 secure Cursor environment/settings approval; #896 governance rollout approval — **no second ceremony** |
+
+Semantics:
+
+- Evaluated on **every** scan from issue body + comments (author + timestamp preserved).
+- Latest record for the **exact** gate wins; newer `reject` / `revoke` beats older `approve`.
+- Authorization for gate A never unlocks gate B.
+- No issue recreation, label toggling, or Anton courier step after a valid approval — capacity + isolation still apply.
+- Helpers: `lib/server/operator-gate-authorization.js` (`evaluateOperatorGateAuthorization`).
+
 ### Source issues vs open PRs
 
 **GitHub issues labelled `dispatch:cursor-ready` are activation inputs.** Open PRs from prior work are **not** automatically resumed or merged by the dispatcher. Each issue gets its own branch/PR cycle; operators merge manually after review.
 
-### Preferred cadence
+### Preferred cadence / eligibility wakes (#891)
 
 | Mode | Trigger |
 |------|---------|
-| **Primary (Phase A)** | `issues:labeled` with exact label `dispatch:cursor-ready` |
+| **Primary — ready label** | `issues:labeled` with exact label `dispatch:cursor-ready` |
+| **Primary — operator authorization** | `issue_comment` created with durable `OPERATOR GATE AUTHORIZATION` / `ANTON DURABLE APPROVAL` / explicit Anton unlock (human actors only; bots ignored) |
+| **Primary — queue control** | `issues:unlabeled` `execution:paused`, or `issues:labeled` `priority:P0\|P1\|P2` while issue already has `dispatch:cursor-ready` |
+| **Primary — capacity backfill** | Lifecycle status reaches terminal/operator-review and releases verified WIP → calls activator via `workflow_call` (full priority scan) |
+| **Primary — claim release** | Failed activation restores ready in the same job → one continuation scan (GITHUB_TOKEN cannot re-fire `issues:labeled`) |
 | Fallback | every **30 minutes** (`*/30 * * * *`) for missed events / absence-of-event recovery |
-| Previous | every 2 hours |
 
-Cost remains negligible (Node script + GitHub API). Scheduled `cursor_live` still requires `CURSOR_LIVE_ENABLED=true` and the throughput packet gate for dispatcher-sourced activations. Event-driven `cursor_live` uses the same `CURSOR_API_KEY` + claim-before-API path; WIP and protected gates still block activation.
+**Internal SLA:** eligible queued work should normally begin within **5 minutes** of an eligibility-changing event (`ELIGIBILITY_WAKE_SLA_MINUTES`). Scheduled fallback may be slower but must self-heal without Anton.
+
+Cost remains negligible (Node script + GitHub API). Scheduled `cursor_live` still requires `CURSOR_LIVE_ENABLED=true` and the throughput packet gate for dispatcher-sourced activations. Event-driven `cursor_live` uses the same `CURSOR_API_KEY` + claim-before-API path; WIP and protected gates still block activation. Bot/`GITHUB_TOKEN` comments and lifecycle labels never wake (storm prevention). Duplicate Cursor runs are blocked by claim-before-API + `SKIP_ALREADY_CLAIMED`.
+
+### Operator procedure (no courier role)
+
+1. Create / queue the work once (`dispatch:cursor-ready`).
+2. If gated, Anton records **one** durable decision (`OPERATOR GATE AUTHORIZATION` or Decision Inbox durable approval).
+3. After approval, the system wakes itself and claims when WIP permits — **do not** toggle labels or re-create the issue.
+4. When an active run reaches terminal/operator-review, the system immediately backfills the freed slot from the highest eligible priority.
+5. Scheduled scan self-heals missed events.
+6. Alert Anton only for a genuine unresolved gate or repeated activation failure.
 
 ## 6. Acknowledgement stages
 
@@ -158,3 +221,6 @@ node scripts/cursor-issue-dispatch-finalize.mjs --dry-run --scan-file cursor-iss
 - Revenue issues #653 (Lead Rescue), #654 (Website Rescue) — separate workstreams
 - Ops issue #658 (Slack retirement) — parallel ops lane when eligible
 - Issue #679 — environment classification doctrine
+- Issue #887 — operator gate authorization must resume Cursor activation
+- Issue #891 — approval and capacity changes must wake dispatcher automatically
+- `lib/server/operator-gate-authorization.js` — durable gate authorization evaluation

@@ -59,11 +59,15 @@ Companion policy docs (unchanged):
 
 | Trigger | Schedule |
 |---------|----------|
-| `issues:labeled` | **Phase A event-first** — only when the added label is exactly `dispatch:cursor-ready` on an open issue; prefers that issue, runs existing classification/WIP/protected gates, then `cursor_live` when eligible |
-| `schedule` | Every **30 minutes** (`*/30 * * * *` UTC) — **fallback** scan when no label event fires; live Cursor only when `CURSOR_LIVE_ENABLED=true` |
-| `workflow_dispatch` | Manual run |
+| `issues:labeled` / `unlabeled` | **Phase A + #891** — `dispatch:cursor-ready` labeled; `execution:paused` unlabeled; `priority:P0\|P1\|P2` labeled while already ready. Prefers that issue; gates remain authoritative |
+| `issue_comment` | **#891** — durable operator authorization / Decision Inbox approval / explicit Anton unlock from human actors (bots ignored). Prefers that issue |
+| `workflow_call` | **#891 capacity backfill** — invoked by `cursor-agent-lifecycle-status` when a verified run reaches terminal/operator-review and releases WIP; full priority scan |
+| `schedule` | Every **30 minutes** (`*/30 * * * *` UTC) — **fallback** reconciliation when no eligibility event fires; live Cursor only when `CURSOR_LIVE_ENABLED=true` |
+| `workflow_dispatch` | Manual run (not required for normal approval/capacity continuation) |
 
-**Segregated issue lifecycle (2026-07-28):** each scheduled/manual/event run first executes `scripts/cursor-issue-dispatch-scan.mjs` against open `dispatch:cursor-ready` issues (classification, WIP, discover/claim comments, labels). See `docs/operations/CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1.md`. Event-driven runs prefer the labeled issue and activate it only when the scan selects that exact issue (gates remain authoritative). Manual `target_issue` still wins when set. This extends the current route — it does **not** add a second dispatcher. Helpers: `lib/server/cursor-ready-event-dispatch.js`.
+**SLA:** eligibility-changing events should normally begin activation within **5 minutes**; schedule is self-heal only.
+
+**Segregated issue lifecycle (2026-07-28):** each scheduled/manual/event run first executes `scripts/cursor-issue-dispatch-scan.mjs` against open `dispatch:cursor-ready` issues (classification, WIP, discover/claim comments, labels). See `docs/operations/CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1.md`. Issue-scoped event runs prefer the source issue and activate it only when the scan selects that exact issue (gates remain authoritative). Capacity backfill scans the full ready queue by priority. Failed activation restores ready and runs one same-job continuation scan (GITHUB_TOKEN cannot re-fire label events). Manual `target_issue` still wins when set. This extends the current route — it does **not** add a second dispatcher. Helpers: `lib/server/cursor-ready-event-dispatch.js`.
 
 **Manual inputs (`workflow_dispatch`):**
 

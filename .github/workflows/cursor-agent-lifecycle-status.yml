@@ -2,6 +2,11 @@
 # Polls Cursor Cloud Agents API after activation; emits completion packet once.
 # Runs off Anton's laptop (GitHub Actions). Does not merge. Does not notify on RUNNING.
 #
+# When a run reaches terminal/operator-review and releases WIP capacity, calls:
+# - Factory dispatcher activate (Cursor API path, #891)
+# - CorpFlowAI Cursor Factory Handoff (native Automation MODE B wake, #913)
+# so queued ready work can backfill. Does not create a second dispatcher.
+#
 # Secrets: CURSOR_API_KEY, GITHUB_TOKEN (built-in)
 # Optional inputs: issue number and/or agent id
 
@@ -45,6 +50,7 @@ permissions:
   pull-requests: read
   checks: read
   statuses: read
+  actions: write
 
 concurrency:
   group: cursor-agent-lifecycle-status
@@ -55,6 +61,10 @@ jobs:
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    outputs:
+      wake_dispatcher: ${{ steps.wake_aggregate.outputs.wake_dispatcher }}
+      wake_issue: ${{ steps.wake_aggregate.outputs.wake_issue }}
+
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
@@ -91,6 +101,7 @@ jobs:
 
       - name: Poll Cursor lifecycle
         if: steps.targets.outputs.issues != '' || github.event.inputs.agent_id != ''
+        id: poll
         env:
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
           GITHUB_TOKEN: ${{ github.token }}
@@ -103,6 +114,10 @@ jobs:
           STALE_MINUTES: ${{ github.event.inputs.stale_minutes || '10' }}
         run: |
           set -euo pipefail
+          mkdir -p .lifecycle-wake
+          echo "false" > .lifecycle-wake/any.txt
+          echo "" > .lifecycle-wake/issue.txt
+
           if [ -z "${CURSOR_API_KEY:-}" ] && [ "${DRY_RUN}" != "true" ]; then
             echo "CURSOR_API_KEY missing — fail closed (exit 0 skip on schedule, fail on manual)"
             if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
@@ -117,19 +132,94 @@ jobs:
           if [ -n "${STALE_MINUTES:-}" ]; then EXTRA+=(--stale-minutes="${STALE_MINUTES}"); fi
           if [ -n "${INPUT_AGENT:-}" ]; then EXTRA+=(--agent-id="${INPUT_AGENT}"); fi
 
+          poll_one() {
+            local issue="$1"
+            local wake_path=".lifecycle-wake/wake-${issue:-none}.json"
+            local out_file
+            out_file="$(mktemp)"
+            (
+              export GITHUB_OUTPUT="$out_file"
+              export DISPATCHER_ELIGIBILITY_WAKE_PATH="$wake_path"
+              if [ -n "${issue}" ]; then
+                node scripts/cursor-agent-lifecycle-status.mjs --issue="${issue}" "${EXTRA[@]}"
+              else
+                node scripts/cursor-agent-lifecycle-status.mjs "${EXTRA[@]}"
+              fi
+            )
+            if [ -f "$wake_path" ]; then
+              wake="$(node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(j.shouldWake?'true':'false')" "$wake_path")"
+              if [ "$wake" = "true" ]; then
+                echo "true" > .lifecycle-wake/any.txt
+                node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));if(j.issueNumber)process.stdout.write(String(j.issueNumber))" "$wake_path" >> .lifecycle-wake/issue.txt || true
+                echo "" >> .lifecycle-wake/issue.txt
+              fi
+            fi
+          }
+
           if [ -n "${INPUT_ISSUE:-}" ]; then
-            node scripts/cursor-agent-lifecycle-status.mjs --issue="${INPUT_ISSUE}" "${EXTRA[@]}"
-            exit 0
+            echo "=== lifecycle poll issue #${INPUT_ISSUE} ==="
+            poll_one "${INPUT_ISSUE}" || true
+          else
+            for issue in ${INPUT_ISSUES}; do
+              echo "=== lifecycle poll issue #${issue} ==="
+              poll_one "${issue}" || {
+                echo "poll failed for #${issue} (continuing)"
+                continue
+              }
+            done
           fi
 
-          for issue in ${INPUT_ISSUES}; do
-            echo "=== lifecycle poll issue #${issue} ==="
-            node scripts/cursor-agent-lifecycle-status.mjs --issue="${issue}" "${EXTRA[@]}" || {
-              echo "poll failed for #${issue} (continuing)"
-              continue
-            }
-          done
+      - name: Aggregate capacity-release wake signal
+        id: wake_aggregate
+        if: always()
+        run: |
+          set -euo pipefail
+          wake="false"
+          issue=""
+          if [ -f .lifecycle-wake/any.txt ] && [ "$(cat .lifecycle-wake/any.txt)" = "true" ]; then
+            wake="true"
+            issue="$(tr '\n' ' ' < .lifecycle-wake/issue.txt | xargs | awk '{print $1}')"
+          fi
+          echo "wake_dispatcher=${wake}" >> "$GITHUB_OUTPUT"
+          echo "wake_issue=${issue}" >> "$GITHUB_OUTPUT"
+          echo "Capacity-release wake_dispatcher=${wake} wake_issue=${issue:-none}"
 
       - name: Nothing to poll
         if: steps.targets.outputs.issues == '' && (github.event.inputs.issue == '' || github.event.inputs.issue == null) && (github.event.inputs.agent_id == '' || github.event.inputs.agent_id == null)
         run: echo "No claimed Cursor issues to poll — silent success"
+
+      - name: Upload eligibility wake artifacts
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: dispatcher-eligibility-wake
+          path: |
+            .lifecycle-wake/
+            dispatcher-eligibility-wake.json
+          if-no-files-found: ignore
+          retention-days: 7
+
+  wake_dispatcher:
+    needs: poll
+    # Full queue scan — do not prefer the terminal issue (it is no longer ready).
+    # Highest eligible priority backfills the freed WIP slot (#891).
+    if: needs.poll.outputs.wake_dispatcher == 'true'
+    uses: ./.github/workflows/factory-dispatcher-activate.yml
+    with:
+      activation_mode: cursor_live
+      wake_reason: capacity_released
+      capacity_wake_requested: "true"
+      target_issue: ""
+    secrets: inherit
+
+  # Native Cursor Automation wake (#913). Successful completion of the named
+  # handoff workflow is the MODE B trigger — no Cursor API key on this path.
+  wake_factory_handoff:
+    needs: poll
+    if: needs.poll.outputs.wake_dispatcher == 'true'
+    uses: ./.github/workflows/factory-cursor-handoff.yml
+    with:
+      wake_reason: capacity_released
+      capacity_wake_requested: "true"
+      target_issue: ""

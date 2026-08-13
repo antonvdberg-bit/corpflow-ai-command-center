@@ -5,7 +5,8 @@
 **OpenHands child:** [#743](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/743) — not on this hot path.
 
 > **Canonical posture snapshot:** `docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md` (MOVE WORK, DO NOT WAIT FOR PICKUP).
-
+>
+> **#896:** Ordinary delivery work proceeds from Anton’s active-task instruction. Protected gates stop only the exact consequential action — subject mentions alone must not freeze claim/activation.
 ## What this slice adds
 
 Activation already exists (`factory-dispatcher-activate.yml` + `dispatcher-agent-activation.js`).
@@ -44,6 +45,10 @@ Rules: RUNNING silent; COMPLETED+`anton_required=no` silent by default; COMPLETE
 ## Double-activation guard
 
 Claim-before-API + issue-keyed GHA concurrency (`factory-dispatcher-activate-<issue|scan>`). Duplicate activators return `SKIP_ALREADY_CLAIMED`. See `lib/server/cursor-activation-claim.js`.
+
+## Eligibility wake / capacity backfill (#891)
+
+When a poll reaches COMPLETED/FAILED/STALE and releases verified WIP capacity, this workflow sets `wake_dispatcher=true` and **`workflow_call`s** `Factory dispatcher activate` for a full priority queue scan. Operator authorization comments and `execution:paused` removal also wake that same activator directly. Do **not** ask Anton to toggle `dispatch:cursor-ready` or manually `workflow_dispatch` for ordinary continuation. Internal target: begin eligible work within **5 minutes** of the eligibility-changing event.
 
 ## Codex specialist (human-triggered)
 

@@ -17,9 +17,10 @@ import {
 import { getCafeInternationalPreviewProps } from '../../../lib/website-rescue/cafe-international-preview-server.js';
 
 /**
- * Takeaway / collection journey (#871 / #872).
+ * Takeaway / collection journey (#871 / #872 / #885).
  * One coherent path: browse → WhatsApp or phone → collect.
  * Website chat is never a takeaway ordering channel.
+ * #885: owner category favourites with Sheet starting prices.
  */
 export default function CafeInternationalTakeawayPage({
   truth,
@@ -174,8 +175,8 @@ export default function CafeInternationalTakeawayPage({
           Great for takeaway
         </h2>
         <p style={{ marginTop: 8, color: T.creamMuted, maxWidth: 560, lineHeight: 1.5 }}>
-          Platters & grill favourites from the live menu — useful for collection. Not ranked
-          by sales; owners can confirm favourites later.
+          Owner favourites for collection — category starting prices from the live Menu-page
+          Sheet. Sizes and options vary. Order on WhatsApp or phone, then collect.
         </p>
 
         <div
@@ -257,9 +258,10 @@ export default function CafeInternationalTakeawayPage({
           <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
             {featuredPicks.map((row) => (
               <li
-                key={`${row.categoryId}-${row.name}-${row.description}`}
+                key={row.id || `${row.categoryId}-${row.name}-${row.description}`}
                 data-cafe-takeaway-featured-item
                 data-cafe-takeaway-category={row.categoryId}
+                data-cafe-favourite-id={row.id || undefined}
                 style={{
                   display: 'grid',
                   gridTemplateColumns: 'minmax(0, 1fr) auto',
@@ -289,7 +291,16 @@ export default function CafeInternationalTakeawayPage({
                       lineHeight: 1.35,
                     }}
                   >
-                    {row.name}
+                    {row.href ? (
+                      <Link
+                        href={row.href}
+                        style={{ color: 'inherit', textDecoration: 'none' }}
+                      >
+                        {row.name}
+                      </Link>
+                    ) : (
+                      row.name
+                    )}
                   </div>
                   {row.description ? (
                     <div

@@ -1,0 +1,139 @@
+# Permanent Cursor Automation wake path (#913 / controller #903).
+#
+# GitHub eligibility/capacity event → this workflow succeeds on main with exactly
+# one selected source issue encoded → Cursor Automation MODE B wakes.
+#
+# Important:
+# - Displayed workflow name must remain exactly:
+#     CorpFlowAI Cursor Factory Handoff
+# - Successful completion is the Automation wake signal (no Cursor API key).
+# - Fail closed when there is no real eligible handoff so MODE B does not wake.
+# - Reuses factory eligibility / verified WIP logic; does not build a second dispatcher.
+# - Schedule is intentionally omitted (not the primary wake path).
+
+name: CorpFlowAI Cursor Factory Handoff
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_issue:
+        description: "Optional preferred GitHub issue number (blank = highest eligible)"
+        required: false
+        default: ""
+        type: string
+      wake_reason:
+        description: "manual_dispatch | capacity_released"
+        required: false
+        default: manual_dispatch
+        type: string
+  workflow_call:
+    inputs:
+      target_issue:
+        description: "Optional preferred issue for capacity wake (blank = full priority scan)"
+        required: false
+        default: ""
+        type: string
+      wake_reason:
+        description: "capacity_released | claim_released_continuation"
+        required: false
+        default: capacity_released
+        type: string
+      capacity_wake_requested:
+        description: "Set true when lifecycle released verified WIP capacity"
+        required: false
+        default: "true"
+        type: string
+  issues:
+    types: [labeled, unlabeled]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+  actions: read
+
+concurrency:
+  group: factory-cursor-handoff-${{ github.event_name == 'issues' && github.event.issue.number || github.event_name == 'issue_comment' && github.event.issue.number || inputs.target_issue || 'scan' }}
+  cancel-in-progress: false
+
+jobs:
+  handoff:
+    # Eligibility / capacity wakes only. Bot lifecycle labels must not wake.
+    # issue_comment: structured authorization markers only; ignore [bot] actors.
+    # workflow_call: capacity backfill from Cursor agent lifecycle status.
+    # No schedule primary path — empty scheduled successes must not wake Automation.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'workflow_call' ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.state == 'open' &&
+       github.event.action == 'created' &&
+       !endsWith(github.event.comment.user.login, '[bot]') &&
+       (contains(github.event.comment.body, 'OPERATOR GATE AUTHORIZATION') ||
+        contains(github.event.comment.body, 'ANTON DURABLE APPROVAL') ||
+        contains(github.event.comment.body, 'ANTON EXPLICIT OPERATOR AUTHORIZATION'))) ||
+      (github.event_name == 'issues' &&
+       github.event.issue.state == 'open' &&
+       (
+         (github.event.action == 'labeled' && github.event.label.name == 'dispatch:cursor-ready') ||
+         (github.event.action == 'unlabeled' && github.event.label.name == 'execution:paused') ||
+         (github.event.action == 'labeled' &&
+          (github.event.label.name == 'priority:P0' ||
+           github.event.label.name == 'priority:P1' ||
+           github.event.label.name == 'priority:P2') &&
+          contains(join(github.event.issue.labels.*.name, ','), 'dispatch:cursor-ready'))
+       ))
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    outputs:
+      has_handoff: ${{ steps.handoff.outputs.has_handoff }}
+      source_issue: ${{ steps.handoff.outputs.source_issue }}
+      reason: ${{ steps.handoff.outputs.reason }}
+
+    steps:
+      # Pinned SHAs (supply chain): tag v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      # Pinned SHAs (supply chain): tag v6
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
+        with:
+          node-version: "20"
+
+      - name: Select one eligible source issue and publish handoff
+        id: handoff
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_ACTION: ${{ github.event.action || '' }}
+          EVENT_LABEL: ${{ github.event.label.name || '' }}
+          EVENT_ISSUE_STATE: ${{ github.event.issue.state || '' }}
+          EVENT_ISSUE_NUMBER: ${{ github.event.issue.number || '' }}
+          EVENT_ISSUE_LABELS: ${{ github.event_name == 'issues' && join(github.event.issue.labels.*.name, ',') || '' }}
+          EVENT_COMMENT_BODY: ${{ github.event_name == 'issue_comment' && github.event.comment.body || '' }}
+          EVENT_ACTOR_LOGIN: ${{ github.event_name == 'issue_comment' && github.event.comment.user.login || github.actor || '' }}
+          EVENT_COMMENT_AUTHOR_ASSOCIATION: ${{ github.event_name == 'issue_comment' && github.event.comment.author_association || '' }}
+          TARGET_ISSUE_INPUT: ${{ inputs.target_issue || '' }}
+          WAKE_REASON_INPUT: ${{ inputs.wake_reason || '' }}
+          CAPACITY_WAKE_REQUESTED: ${{ inputs.capacity_wake_requested || '' }}
+          FACTORY_HANDOFF_OUT_PATH: factory-cursor-handoff.json
+          FACTORY_HANDOFF_POST_COMMENT: "1"
+        run: |
+          set -euo pipefail
+          node scripts/factory-cursor-handoff.mjs
+
+      - name: Upload handoff artifact
+        if: always()
+        continue-on-error: true
+        # Pinned SHAs (supply chain): tag v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: factory-cursor-handoff
+          path: factory-cursor-handoff.json
+          if-no-files-found: ignore
+          retention-days: 7
