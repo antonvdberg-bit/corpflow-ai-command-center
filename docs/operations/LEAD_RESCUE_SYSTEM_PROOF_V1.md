@@ -116,7 +116,7 @@ The script writes `artifacts/lead-rescue-system-proof/latest-run.json` with `ok:
 - [x] Messaging-runtime gate remains closed; `external_sends_executed: []`
 - [x] No real client sends, deploy, secrets, schema, or env changes
 
-**Integrated Scenario A (#711 / 14 Aug)** remains a later programme step; this packet is the **independent** Lead Rescue system proof.
+**Integrated Scenario A (#711 / 14 Aug)** is owned by `docs/operations/LEAD_RESCUE_SCENARIO_A_INTEGRATED_V1.md` (composes merged #711 Scenario A; does not rebuild this system-proof slice).
 
 ---
 

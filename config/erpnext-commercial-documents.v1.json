@@ -1,0 +1,97 @@
+{
+  "schema": "corpflow.erpnext.commercial_documents.v1",
+  "issue": 882,
+  "parents": [551, 714, 766],
+  "prerequisites": [879, 880, 881],
+  "prerequisites_status": {
+    "879": "READY (access proven)",
+    "880": "READY (client master)",
+    "881": "READY (merged PR #915 — Standard Selling USD + four Item Price rows live)"
+  },
+  "environment": "corpflow_test",
+  "company": {
+    "name": "CorpFlowAI LTD",
+    "abbr": "CFAI",
+    "country": "Mauritius",
+    "default_currency": "MUR",
+    "tax_id": "28466939",
+    "registration_details": "Company No : C25228280",
+    "short_form_company_no_do_not_store_as_independent_id": "228280",
+    "commercial_email": "finance@corpflowai.com",
+    "website": "https://corpflowai.com",
+    "default_letter_head": "Company Letterhead - Grey",
+    "company_address": "Home Office-Office",
+    "do_not_change": [
+      "tax_id",
+      "registration_details",
+      "default_currency",
+      "bank_accounts",
+      "tax_templates"
+    ]
+  },
+  "print": {
+    "quotation_format": "Quotation Standard",
+    "sales_invoice_format": "Sales Invoice Standard",
+    "letter_head": "Company Letterhead - Grey",
+    "terms_name": "CF882 CorpFlowAI Commercial Terms",
+    "custom_print_format_required": false
+  },
+  "synthetic_proof": {
+    "lead_rescue_customer": "CF880 Synthetic Lead Rescue Ltd",
+    "website_rescue_customer": "CF880 Synthetic Website Rescue Ltd",
+    "lead_rescue_quotation": "SAL-QTN-2026-00001",
+    "website_rescue_quotation": "SAL-QTN-2026-00003",
+    "website_rescue_invoice_draft": "ACC-SINV-2026-00001",
+    "lead_rescue_usd_invoice_draft": "ACC-SINV-2026-00002",
+    "misassigned_881_quotation_do_not_send": "SAL-QTN-2026-00002",
+    "lead_rescue_items": ["LR-SETUP-USD-150", "LR-REC-USD-99"],
+    "website_rescue_item": "CF-RD-LANDING-RESCUE",
+    "docstatus_must_remain": 0,
+    "sentinel": "TEST-ONLY DO NOT SEND"
+  },
+  "currency": {
+    "company_base": "MUR",
+    "selling_document_currencies_enabled": ["MUR", "USD", "GBP", "AUD", "AED", "EUR"],
+    "selling_price_lists": [
+      { "name": "Standard Selling", "currency": "MUR", "selling": true },
+      { "name": "Standard Selling USD", "currency": "USD", "selling": true }
+    ],
+    "usd_selling_price_list": "Standard Selling USD",
+    "canonical_item_prices_live": [
+      { "item_code": "LR-SETUP-USD-150", "price_list": "Standard Selling USD", "rate": 150, "uom": "Nos" },
+      { "item_code": "LR-REC-USD-99", "price_list": "Standard Selling USD", "rate": 99, "uom": "Month" },
+      { "item_code": "CF-RD-LEAD-RESCUE", "price_list": "Standard Selling", "rate": 35000, "uom": "Nos" },
+      { "item_code": "CF-RD-LANDING-RESCUE", "price_list": "Standard Selling", "rate": 45000, "uom": "Nos" }
+    ],
+    "currency_exchange_rows": [
+      {
+        "name": "2026-08-13-USD-MUR-Selling-Buying",
+        "from_currency": "USD",
+        "to_currency": "MUR",
+        "exchange_rate": 47.15,
+        "for_selling": true,
+        "for_buying": true,
+        "source": "Anton-supplied Currency Exchange row"
+      },
+      {
+        "name": "2026-08-13-MUR-USD-Selling-Buying",
+        "from_currency": "MUR",
+        "to_currency": "USD",
+        "exchange_rate": 0.021,
+        "for_selling": true,
+        "for_buying": true,
+        "source": "Anton-supplied reverse row (not required for USD docs)"
+      }
+    ],
+    "usd_receivable_account": "Debtors USD - CFAI",
+    "unsafe_conversion_rate_when_currencies_differ": 1,
+    "target_currencies_same_pattern": ["GBP", "AUD", "AED"]
+  },
+  "approval_rail": {
+    "issue": 714,
+    "controlled_pilot": 766,
+    "erpnext_never_sets_financially_approved": true,
+    "protected_actions_executed": false
+  },
+  "verdict": "READY — MUR and USD quotations + draft Sales Invoices proven from #880/#881 masters with Anton Currency Exchange USD→MUR 47.15; synthetic drafts only (docstatus=0); no client send"
+}

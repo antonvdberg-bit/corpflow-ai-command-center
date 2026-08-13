@@ -14,8 +14,11 @@
 **Validators:** `lib/lead-rescue/onboarding-delivery.js`
 **Unit tests:** `node-tests/lead-rescue-onboarding-delivery.test.mjs`
 **System-proof (12 Aug gate):** `docs/operations/LEAD_RESCUE_SYSTEM_PROOF_V1.md` · `lib/lead-rescue/system-proof.js`
+**Scenario A integrated (14 Aug gate):** `docs/operations/LEAD_RESCUE_SCENARIO_A_INTEGRATED_V1.md` · `lib/lead-rescue/scenario-a-integrated.js`
 
 **Outcome:** Prove a financially approved Lead Rescue client can be onboarded and delivered **without redesigning the service**.
+
+**Commercial master (#880):** legal/trading name, billing contact and billing address live on ERPNext Customer + Contact + Address — `docs/erpnext/ERPNEXT_CLIENT_MASTER_V1.md`. This document remains the **delivery** contract. Do not keep a second billing identity in the delivery record; store the ERPNext Customer name only.
 
 ---
 
@@ -217,9 +220,9 @@ Only when the gate returns `{ ok: true }` may `delivery_state` move to `build_st
 
 | Gate | Date | What this lane provides |
 | ---- | ---- | ----------------------- |
-| Unit | 7 Aug 2026 | Completeness tests, synthetic complete/incomplete/blocked fixtures, transition + build-gate tests |
-| System | 12 Aug 2026 | Independent path `approved_to_onboard` → `acceptance_ready` on synthetic data (`fixtures/lead-rescue-onboarding/`) |
-| Integrated | 14 Aug 2026 | Scenario A (#711) through handover evidence — **no** real messaging runtime, **no** client_production deploy |
+| Unit | 7 Aug 2026 | Completeness tests, synthetic complete/incomplete/blocked fixtures, transition + build-gate tests (merged PR #724) |
+| System | 12 Aug 2026 | Independent path `approved_to_onboard` → `acceptance_ready` on synthetic data (`fixtures/lead-rescue-onboarding/`; merged PR #745) |
+| Integrated | 14 Aug 2026 | Scenario A (#711) through handover evidence — **no** real messaging runtime, **no** client_production deploy (`docs/operations/LEAD_RESCUE_SCENARIO_A_INTEGRATED_V1.md`) |
 
 Fixtures:
 
@@ -256,6 +259,7 @@ Deep 48-hour setup actions remain in `docs/operations/AI_LEAD_RESCUE_PAID_PILOT_
 | Commercial playbook | `docs/marketing/AI_LEAD_RESCUE_FIRST_PAID_PILOTS.md` |
 | Financial approval lane | GitHub #714 |
 | Prospect UI lane | GitHub #721 · `docs/operations/PROSPECT_OPERATIONS_V1.md` |
+| Scenario A integrated (14 Aug) | `docs/operations/LEAD_RESCUE_SCENARIO_A_INTEGRATED_V1.md` |
 
 ---
 

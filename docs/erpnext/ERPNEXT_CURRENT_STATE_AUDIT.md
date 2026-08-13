@@ -1,6 +1,6 @@
 # ERPNext current state audit — CorpFlowAI commercial launch
 
-**Status:** Docs-only audit · **Updated:** 2026-07-14  
+**Status:** Docs-only audit · **Updated:** 2026-08-13 (#880 Client Master)
 **Owner:** Anton  
 **Anchor:** `<!-- ERPNEXT_CURRENT_STATE_AUDIT_V1 -->`
 
@@ -39,15 +39,15 @@ Classification key:
 | ---------- | ----- | ---------------- |
 | Lead doctype | **CONFIGURED BUT NOT VERIFIED** | Mapped in evaluation; sandbox synthetic leads only |
 | Opportunity doctype | **DOCUMENTED ONLY** | Stage transitions documented; not rehearsed for MUR sprints |
-| Customer doctype | **LIVE AND VERIFIED** | Phase C: `Sandbox Client A/B - USD` created |
-| Customer custom fields (BRN, etc.) | **MISSING** | S-Customer-Fields in production readiness eval |
-| Lead → Customer conversion workflow | **DOCUMENTED ONLY** | Runbook written; MUR sprint path not sandbox-rehearsed |
+| Customer doctype | **LIVE AND VERIFIED** | Phase C plus #880 synthetic Client Master: `CF880 Synthetic Lead Rescue Ltd` (USD) and `CF880 Synthetic Website Rescue Ltd` (MUR), each with linked Contact + billing Address |
+| Customer custom fields (BRN, etc.) | **OUT OF SCOPE** | #880: standard `tax_id` is enough; no custom field authorized |
+| Lead → Customer conversion workflow | **DOCUMENTED ONLY** | Runbook written; MUR sprint path not sandbox-rehearsed. #880 uses Customer as commercial master; Lead is optional pre-sale only. |
 
 ### Quotation & sales order
 
 | Capability | Class | Evidence / notes |
 | ---------- | ----- | ---------------- |
-| Quotation (pro-forma path) | **CONFIGURED BUT NOT VERIFIED** | Recommended Path A; no PDF rendered in Phase C |
+| Quotation (pro-forma path) | **LIVE AND VERIFIED** (hosted test, synthetic) | #882: `SAL-QTN-2026-00003` MUR PDF from Customer+Item masters; USD `SAL-QTN-2026-00001` draft unsafe at conversion_rate=1.0 |
 | Quotation Print Format ("Pro-forma invoice") | **MISSING** | M-Print not started |
 | Sales Order | **OUT OF SCOPE** | MUR sprints are service projects; SO optional |
 | Naming series `CFLR-QUO-*` | **MISSING** | M-Numbering not set |
@@ -59,7 +59,7 @@ Classification key:
 | ---------- | ----- | ---------------- |
 | Deposit Sales Invoice (50%) | **DOCUMENTED ONLY** | Playbook rule; no MUR sprint item in sandbox |
 | Balance Sales Invoice | **DOCUMENTED ONLY** | Closeout guide references |
-| Sales Invoice PDF / Print Format | **MISSING** | Phase C did not exercise wkhtmltopdf path |
+| Sales Invoice PDF / Print Format | **LIVE AND VERIFIED** (hosted test, draft) | #882: `ACC-SINV-2026-00001` standard PDF; not submitted |
 | Submitted SI → GL revenue posting | **LIVE AND VERIFIED** | Phase C cycles 1–2 (USD sandbox) |
 
 ### Payment & bank
@@ -149,7 +149,7 @@ Classification key:
 
 ## 4. Priority gaps for Wave 1 (manual path)
 
-1. **MUR Item master** for three sprint offers — **MISSING** in any ERPNext environment
+1. **MUR Item master** for sprint offers — **READY** (#881 / PR #915): `CF-RD-LEAD-RESCUE` and `CF-RD-LANDING-RESCUE` exist with Item Price rows on Standard Selling (35,000 / 45,000). Canonical catalogue: `docs/erpnext/ERPNEXT_PRODUCT_CATALOGUE_V1.md`. #882 commercial docs still blocked only on Currency Exchange USD→MUR.
 2. **Quotation Print Format** — **MISSING**; use manual quote email until M-Print
 3. **Real bank CSV test** — **NEEDS_ANTON** (NA-008)
 4. **Record mapping discipline** — **DOCUMENTED ONLY** until first prospect logged
@@ -166,8 +166,10 @@ Classification key:
 
 ## 6. Cross-references
 
+- `docs/erpnext/ERPNEXT_CLIENT_MASTER_V1.md`
 - `docs/erpnext/CORPFLOWAI_QUOTE_TO_CASH_RUNBOOK.md`
 - `docs/erpnext/ERPNEXT_RECORD_MAPPING.md`
+- `docs/erpnext/ERPNEXT_PRODUCT_CATALOGUE_V1.md`
 - `docs/erpnext/ERPNEXT_CURSOR_CLOUD_SECURITY_CORRECTION_899.md`
 - `docs/runbooks/ERPNEXT_CURSOR_CLOUD_SECRETS_LEAST_PRIVILEGE_V1.md`
 - `docs/finance/ERPNEXT_PRODUCTION_READINESS_EVALUATION.md`

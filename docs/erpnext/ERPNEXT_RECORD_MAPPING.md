@@ -6,11 +6,15 @@
 
 <!-- ERPNEXT_RECORD_MAPPING_V1 -->
 
+**#882 synthetic proof (hosted test, do not send):** Lead Rescue USD quotation `SAL-QTN-2026-00001` + USD draft invoice `ACC-SINV-2026-00002` (conversion_rate 47.15); Website Rescue MUR quotation `SAL-QTN-2026-00003` + MUR draft invoice `ACC-SINV-2026-00001`. Write-up: `docs/erpnext/ERPNEXT_COMMERCIAL_DOCUMENTS_V1.md`.
+
 **Single source of truth rule:**
 
-- **ERPNext** = commercial system of record (Customer, Quotation, SI, PE, Project, recon)
-- **Postgres** = app/lead system of record (intake, CF-…, operator status)
+- **ERPNext** = commercial system of record (Customer, Contact, Address, Quotation, SI, PE, Project, recon)
+- **Postgres** = app/lead system of record (intake, CF-…, operator status) — **pointer only** for billing identity
 - **No second SoR** — cross-reference, do not duplicate authoritative state
+
+**Client Master (#880):** onboarding commercial identity (legal/trading name, billing contact, billing address, currency/group/territory) is created on standard ERPNext Customer + Contact + Address **before** quotation. Canonical mapping: `docs/erpnext/ERPNEXT_CLIENT_MASTER_V1.md`. Delivery intake stays in #715 / #716 records.
 
 **NO IMPLEMENTATION AUTHORIZED** for automated sync.
 
@@ -101,6 +105,8 @@ Stored in `leads.qualificationJson.rapid_delivery_operator`:
 | ERPNext Item | `LR-SETUP-USD-150` | `CF-RD-*` |
 | Currency | USD | MUR |
 
+Canonical item masters (codes, names, descriptions, UOM, setup vs recurring, Price List / Item Price): `docs/erpnext/ERPNEXT_PRODUCT_CATALOGUE_V1.md` / `config/erpnext-product-catalogue.v1.json` (#881). Do not create a MUR clone of `LR-SETUP-USD-150`. Generation 4 (2026-08-13): `Standard Selling USD` and four canonical Item Price rows are live; `CF-WR-REC-MUR-MAINT` has no list price.
+
 **Do not merge rows** without explicit scope change.
 
 ---
@@ -122,3 +128,4 @@ Stored in `leads.qualificationJson.rapid_delivery_operator`:
 - `lib/cmp/_lib/rapid-delivery-operator.js` — CF-… function
 - `docs/revenue/CORPFLOWAI_GTM_SELLABLE_PATH.md`
 - `docs/erpnext/CORPFLOWAI_QUOTE_TO_CASH_RUNBOOK.md`
+- `docs/erpnext/ERPNEXT_CLIENT_MASTER_V1.md` — #880 commercial onboarding master

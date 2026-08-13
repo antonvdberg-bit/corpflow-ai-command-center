@@ -1,0 +1,40 @@
+{
+  "id": "cf880-duplicate-conflict",
+  "synthetic": true,
+  "issue": 880,
+  "description": "Existing ERPNext rows used to prove search-before-create. Includes the disabled suffix duplicate created when ERPNext accepted a second Customer with the same customer_name.",
+  "existing": {
+    "customers": [
+      {
+        "name": "CF880 Synthetic Lead Rescue Ltd",
+        "customer_name": "CF880 Synthetic Lead Rescue Ltd",
+        "disabled": 0,
+        "tax_id": ""
+      },
+      {
+        "name": "CF880 Synthetic Lead Rescue Ltd - 1",
+        "customer_name": "CF880 Synthetic Lead Rescue Ltd",
+        "disabled": 1,
+        "tax_id": ""
+      },
+      {
+        "name": "CF880 Synthetic Website Rescue Ltd",
+        "customer_name": "CF880 Synthetic Website Rescue Ltd",
+        "disabled": 0,
+        "tax_id": ""
+      }
+    ],
+    "contacts": [
+      {
+        "name": "Priya Synthetic-CF880 Synthetic Lead Rescue Ltd",
+        "email_id": "priya.synthetic@example.invalid",
+        "company_name": "CF880 Synthetic Lead Rescue Ltd"
+      },
+      {
+        "name": "Jean Synthetic-CF880 Synthetic Website Rescue Ltd",
+        "email_id": "jean.synthetic@example.invalid",
+        "company_name": "CF880 Synthetic Website Rescue Ltd"
+      }
+    ]
+  }
+}

@@ -3,7 +3,7 @@
   "issue": 711,
   "run_id": "GTM-711-FINAL-MAIN-20260805",
   "ran_at": "2026-08-05T00:30:00.000Z",
-  "final_main_sha": "90d77defed23f10c33d6d5111ff918f5aab40f86",
+  "final_main_sha": "ce496c0a983341b25f2022a21bef5989360abf3a",
   "simulation_only": true,
   "market_path_regression": {
     "ok": true,
@@ -388,6 +388,101 @@
           "messaging_runtime_authorized": false,
           "allow_real_client_sends": false
         }
+      },
+      {
+        "step": "handover_and_support_boundary_evidence",
+        "ok": true,
+        "detail": {
+          "handover": {
+            "handover_sent_at": "2026-08-04T07:00:00Z",
+            "channels": [
+              "synthetic_draft_email"
+            ],
+            "support_boundary_summary": "Pilot board + one source + operator alerts as accepted; no auto-reply; change requests via Sam Approver.",
+            "monitoring_window": "2026-08-05 to 2026-08-12 (7-day synthetic monitoring window)"
+          },
+          "support_boundary": {
+            "in_scope": "One connected enquiry source, operator alert path, pilot board stages, daily summary draft channel",
+            "out_of_scope": "WhatsApp/email/SMS automated runtime, second lead source, CRM migration, revenue guarantees, client_production deploy/DNS",
+            "escalation_contact": "Sam Approver",
+            "review_cadence": "day-1 / day-3 / day-7 during monitoring; then optional monthly check-in (deferred offer)"
+          },
+          "handover_channels": [
+            "synthetic_draft_email"
+          ],
+          "handover_synthetic_only": true,
+          "acceptance": {
+            "ok": true,
+            "reason": null,
+            "incomplete": [],
+            "packets": {
+              "preview": {
+                "ok": true,
+                "packet_id": "preview",
+                "missing": [],
+                "required_fields": [
+                  "preview_url_or_artefact",
+                  "captured_at",
+                  "operator_note"
+                ]
+              },
+              "verification": {
+                "ok": true,
+                "packet_id": "verification",
+                "missing": [],
+                "required_fields": [
+                  "test_scenario_ids",
+                  "pass_fail",
+                  "captured_at",
+                  "operator_note"
+                ]
+              },
+              "client_review": {
+                "ok": true,
+                "packet_id": "client_review",
+                "missing": [],
+                "required_fields": [
+                  "reviewer",
+                  "reviewed_at",
+                  "decision",
+                  "feedback_summary"
+                ]
+              },
+              "acceptance": {
+                "ok": true,
+                "packet_id": "acceptance",
+                "missing": [],
+                "required_fields": [
+                  "accepted_by",
+                  "accepted_at",
+                  "acceptance_measures_met"
+                ]
+              },
+              "handover": {
+                "ok": true,
+                "packet_id": "handover",
+                "missing": [],
+                "required_fields": [
+                  "handover_sent_at",
+                  "channels",
+                  "support_boundary_summary",
+                  "monitoring_window"
+                ]
+              },
+              "support_boundary": {
+                "ok": true,
+                "packet_id": "support_boundary",
+                "missing": [],
+                "required_fields": [
+                  "in_scope",
+                  "out_of_scope",
+                  "escalation_contact",
+                  "review_cadence"
+                ]
+              }
+            }
+          }
+        }
       }
     ],
     "external_sends_executed": [],
@@ -395,8 +490,135 @@
     "production_client_deployment": false,
     "final_prospect_stage": "proposal_sent",
     "final_delivery_state": "acceptance_ready",
-    "expected": "market→maturation→FA→onboarding→acceptance_ready; no send; messaging unauthorized",
-    "actual": "all ledger steps passed; acceptance_ready; external_sends_executed=[]",
+    "evidence": {
+      "preview": {
+        "preview_url_or_artefact": "artifacts/lead-rescue-system-proof/latest-run.json#preview",
+        "captured_at": "2026-08-04T06:10:00Z",
+        "operator_note": "Synthetic operator board preview for Lagoon Rentals — lead stages + one connected source (simulated)."
+      },
+      "verification": {
+        "test_scenario_ids": [
+          "marked_test_enquiry_end_to_end",
+          "after_hours_alert_path_simulated",
+          "daily_summary_draft_only"
+        ],
+        "pass_fail": "pass",
+        "captured_at": "2026-08-04T06:20:00Z",
+        "operator_note": "Internal verification simulated: marked test enquiry visible; alert path operator-side only; no WhatsApp/email runtime."
+      },
+      "client_review": {
+        "reviewer": "Sam Approver",
+        "reviewed_at": "2026-08-04T06:40:00Z",
+        "decision": "approve",
+        "feedback_summary": "Agreed changes verified on second preview; accept."
+      },
+      "acceptance": {
+        "accepted_by": "Sam Approver",
+        "accepted_at": "2026-08-04T06:45:00Z",
+        "acceptance_measures_met": true
+      },
+      "handover": {
+        "handover_sent_at": "2026-08-04T07:00:00Z",
+        "channels": [
+          "synthetic_draft_email"
+        ],
+        "support_boundary_summary": "Pilot board + one source + operator alerts as accepted; no auto-reply; change requests via Sam Approver.",
+        "monitoring_window": "2026-08-05 to 2026-08-12 (7-day synthetic monitoring window)"
+      },
+      "support_boundary": {
+        "in_scope": "One connected enquiry source, operator alert path, pilot board stages, daily summary draft channel",
+        "out_of_scope": "WhatsApp/email/SMS automated runtime, second lead source, CRM migration, revenue guarantees, client_production deploy/DNS",
+        "escalation_contact": "Sam Approver",
+        "review_cadence": "day-1 / day-3 / day-7 during monitoring; then optional monthly check-in (deferred offer)"
+      }
+    },
+    "handover": {
+      "handover_sent_at": "2026-08-04T07:00:00Z",
+      "channels": [
+        "synthetic_draft_email"
+      ],
+      "support_boundary_summary": "Pilot board + one source + operator alerts as accepted; no auto-reply; change requests via Sam Approver.",
+      "monitoring_window": "2026-08-05 to 2026-08-12 (7-day synthetic monitoring window)"
+    },
+    "support_boundary": {
+      "in_scope": "One connected enquiry source, operator alert path, pilot board stages, daily summary draft channel",
+      "out_of_scope": "WhatsApp/email/SMS automated runtime, second lead source, CRM migration, revenue guarantees, client_production deploy/DNS",
+      "escalation_contact": "Sam Approver",
+      "review_cadence": "day-1 / day-3 / day-7 during monitoring; then optional monthly check-in (deferred offer)"
+    },
+    "acceptance": {
+      "ok": true,
+      "reason": null,
+      "incomplete": [],
+      "packets": {
+        "preview": {
+          "ok": true,
+          "packet_id": "preview",
+          "missing": [],
+          "required_fields": [
+            "preview_url_or_artefact",
+            "captured_at",
+            "operator_note"
+          ]
+        },
+        "verification": {
+          "ok": true,
+          "packet_id": "verification",
+          "missing": [],
+          "required_fields": [
+            "test_scenario_ids",
+            "pass_fail",
+            "captured_at",
+            "operator_note"
+          ]
+        },
+        "client_review": {
+          "ok": true,
+          "packet_id": "client_review",
+          "missing": [],
+          "required_fields": [
+            "reviewer",
+            "reviewed_at",
+            "decision",
+            "feedback_summary"
+          ]
+        },
+        "acceptance": {
+          "ok": true,
+          "packet_id": "acceptance",
+          "missing": [],
+          "required_fields": [
+            "accepted_by",
+            "accepted_at",
+            "acceptance_measures_met"
+          ]
+        },
+        "handover": {
+          "ok": true,
+          "packet_id": "handover",
+          "missing": [],
+          "required_fields": [
+            "handover_sent_at",
+            "channels",
+            "support_boundary_summary",
+            "monitoring_window"
+          ]
+        },
+        "support_boundary": {
+          "ok": true,
+          "packet_id": "support_boundary",
+          "missing": [],
+          "required_fields": [
+            "in_scope",
+            "out_of_scope",
+            "escalation_contact",
+            "review_cadence"
+          ]
+        }
+      }
+    },
+    "expected": "market→maturation→FA→onboarding→acceptance_ready; handover evidence; no send; messaging unauthorized",
+    "actual": "all ledger steps passed; acceptance_ready; handover evidence present; external_sends_executed=[]",
     "verdict": "PASS"
   },
   "scenario_b": {

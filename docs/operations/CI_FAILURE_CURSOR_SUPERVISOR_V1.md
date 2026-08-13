@@ -1,6 +1,6 @@
 # CI failure → Cursor repair supervisor (v1)
 
-**Status:** Implemented in-repo. Live follow-up requires `CURSOR_API_KEY` in Actions secrets (already used by Factory dispatcher activate).
+**Status:** Implemented in-repo. Live follow-up requires `CURSOR_API_KEY` in Actions secrets (also used by the lifecycle poller and the legacy diagnostic activator).
 
 **Control issue:** #661  
 **Related:** #653 lifecycle claim labels; PR #665 incident proof
