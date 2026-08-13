@@ -27,16 +27,18 @@ Consolidation is allowed only when explicitly justified and safe.
 
 | Existing piece | Role |
 |----------------|------|
-| `.github/workflows/factory-dispatcher-activate.yml` | Scheduled + manual + **Phase A `issues:labeled`** + **eligibility wakes (#891)** activator (canonical) |
-| `.github/workflows/cursor-agent-lifecycle-status.yml` | Terminal/operator-review poller; **`workflow_call`s** the activator on capacity release (not a second dispatcher) |
-| `scripts/dispatcher-agent-activation.mjs` | Cursor Cloud activation (existing) |
+| `.github/workflows/factory-dispatcher-activate.yml` | Scheduled + manual + **Phase A `issues:labeled`** + **eligibility wakes (#891)** activator (Cursor API path) |
+| `.github/workflows/factory-cursor-handoff.yml` | **`CorpFlowAI Cursor Factory Handoff` (#913)** — eligibility/capacity wake that **succeeds only** when exactly one eligible source issue is selected; successful completion wakes Cursor Automation MODE B (no Cursor API key) |
+| `.github/workflows/cursor-agent-lifecycle-status.yml` | Terminal/operator-review poller; **`workflow_call`s** the API activator **and** the Automation handoff workflow on capacity release (not a second dispatcher) |
+| `scripts/dispatcher-agent-activation.mjs` | Cursor Cloud activation (existing API path) |
+| `scripts/factory-cursor-handoff.mjs` / `lib/server/factory-cursor-handoff.js` | Select one eligible issue, encode handoff packet/comment, fail closed when no handoff (#913) |
 | `lib/server/cursor-ops-status.js` | Issue comment posting + Control Tower status (existing) |
 | **`lib/server/cursor-issue-dispatch-lifecycle.js`** | Classification, WIP, segregation, comment templates (**this packet**) |
 | **`lib/server/cursor-ready-event-dispatch.js`** | Exact-label + eligibility-wake predicates + effective target resolution (Phase A / #891) |
 | **`scripts/cursor-issue-dispatch-scan.mjs`** | Label scan → discover/classify/eligibility plan (**this packet**) |
 | **`scripts/cursor-issue-dispatch-finalize.mjs`** | Post-activation claim labels + run ID comment (**this packet**) |
 
-Do **not** add a parallel workflow that also activates Cursor. The thin `cursor-ready-wakeup.yml` wrapper was removed in Phase A — the canonical workflow owns ready-label and eligibility-wake triggers. The scan runs as a **prep step** inside the existing workflow and may hand **at most one** `activationTargetIssue` to the existing activator path. Issue-scoped event runs activate only the preferred issue when that issue is scan-eligible; capacity backfill runs a full priority scan.
+Do **not** add another management-platform dispatcher. The Cursor **API** activator remains `factory-dispatcher-activate.yml`. The **Automation** wake path is the dedicated handoff workflow named exactly `CorpFlowAI Cursor Factory Handoff` — it does not call the Cursor API; MODE B starts from workflow success on `main` with one encoded source issue. Both paths reuse the same eligibility / verified WIP scan and may hand **at most one** source issue per run. Issue-scoped event runs prefer the event issue when scan-eligible; capacity backfill runs a full priority scan. Empty/suppressed handoff runs **fail closed** so Automation does not wake.
 
 ## 3. Labels
 
