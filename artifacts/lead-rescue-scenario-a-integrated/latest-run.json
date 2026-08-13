@@ -1,0 +1,256 @@
+{
+  "schema": "corpflow.lead_rescue_scenario_a_integrated.v1",
+  "issue": 715,
+  "parent": 711,
+  "controller": 710,
+  "generation": 3,
+  "run_id": "WS4-715-SCENARIO-A-20260813",
+  "ran_at": "2026-08-13T07:30:00.000Z",
+  "simulation_only": true,
+  "reuses": {
+    "scenario_a": "lib/gtm/integrated-scenarios-711.js#runScenarioALeadRescue",
+    "unit_contract": "lib/lead-rescue/onboarding-delivery.js",
+    "system_proof": "lib/lead-rescue/system-proof.js (not re-run; merged #745)",
+    "commercial_rail": "lib/revenue/commercial-approval.js (consumed via Scenario A)"
+  },
+  "scenario_a": {
+    "ok": true,
+    "verdict": "PASS",
+    "run_id": "GTM-711-FINAL-MAIN-20260805",
+    "enquiry_ref": "INT-SYN-711A-20260805-001",
+    "prospect_ref": "PM-INT-711A-LR-20260805-001",
+    "opportunity_ref": "OPP-SYN-711A-LR-20260805-001",
+    "financial_approval_ref": "FA-SYN-711A-LR-20260805-001",
+    "onboarding_id": "synthetic-onb-711a-lr-001",
+    "delivery_ref": "DEL-SYN-711A-LR-20260805-001",
+    "final_prospect_stage": "proposal_sent",
+    "final_delivery_state": "acceptance_ready",
+    "ledger_steps": [
+      {
+        "step": "market_enquiry_classification",
+        "ok": true
+      },
+      {
+        "step": "acknowledgement_draft_only",
+        "ok": true
+      },
+      {
+        "step": "gate_owner_required_before_qualifying",
+        "ok": true
+      },
+      {
+        "step": "prospect_maturation_walk",
+        "ok": true
+      },
+      {
+        "step": "gate_financial_approval_missing",
+        "ok": true
+      },
+      {
+        "step": "commercial_handoff_financially_approved",
+        "ok": true
+      },
+      {
+        "step": "delivery_gate_blocks",
+        "ok": true
+      },
+      {
+        "step": "delivery_path_to_acceptance_ready",
+        "ok": true
+      },
+      {
+        "step": "handover_and_support_boundary_evidence",
+        "ok": true
+      }
+    ],
+    "external_sends_executed": [],
+    "messaging_runtime_authorized": false,
+    "production_client_deployment": false
+  },
+  "handover_evidence": {
+    "ok": true,
+    "record_state": "acceptance_ready",
+    "packets": {
+      "preview": {
+        "ok": true,
+        "packet_id": "preview",
+        "missing": [],
+        "required_fields": [
+          "preview_url_or_artefact",
+          "captured_at",
+          "operator_note"
+        ]
+      },
+      "verification": {
+        "ok": true,
+        "packet_id": "verification",
+        "missing": [],
+        "required_fields": [
+          "test_scenario_ids",
+          "pass_fail",
+          "captured_at",
+          "operator_note"
+        ]
+      },
+      "client_review": {
+        "ok": true,
+        "packet_id": "client_review",
+        "missing": [],
+        "required_fields": [
+          "reviewer",
+          "reviewed_at",
+          "decision",
+          "feedback_summary"
+        ]
+      },
+      "acceptance": {
+        "ok": true,
+        "packet_id": "acceptance",
+        "missing": [],
+        "required_fields": [
+          "accepted_by",
+          "accepted_at",
+          "acceptance_measures_met"
+        ]
+      },
+      "handover": {
+        "ok": true,
+        "packet_id": "handover",
+        "missing": [],
+        "required_fields": [
+          "handover_sent_at",
+          "channels",
+          "support_boundary_summary",
+          "monitoring_window"
+        ]
+      },
+      "support_boundary": {
+        "ok": true,
+        "packet_id": "support_boundary",
+        "missing": [],
+        "required_fields": [
+          "in_scope",
+          "out_of_scope",
+          "escalation_contact",
+          "review_cadence"
+        ]
+      }
+    },
+    "incomplete": [],
+    "acceptance": {
+      "ok": true,
+      "reason": null,
+      "incomplete": [],
+      "packets": {
+        "preview": {
+          "ok": true,
+          "packet_id": "preview",
+          "missing": [],
+          "required_fields": [
+            "preview_url_or_artefact",
+            "captured_at",
+            "operator_note"
+          ]
+        },
+        "verification": {
+          "ok": true,
+          "packet_id": "verification",
+          "missing": [],
+          "required_fields": [
+            "test_scenario_ids",
+            "pass_fail",
+            "captured_at",
+            "operator_note"
+          ]
+        },
+        "client_review": {
+          "ok": true,
+          "packet_id": "client_review",
+          "missing": [],
+          "required_fields": [
+            "reviewer",
+            "reviewed_at",
+            "decision",
+            "feedback_summary"
+          ]
+        },
+        "acceptance": {
+          "ok": true,
+          "packet_id": "acceptance",
+          "missing": [],
+          "required_fields": [
+            "accepted_by",
+            "accepted_at",
+            "acceptance_measures_met"
+          ]
+        },
+        "handover": {
+          "ok": true,
+          "packet_id": "handover",
+          "missing": [],
+          "required_fields": [
+            "handover_sent_at",
+            "channels",
+            "support_boundary_summary",
+            "monitoring_window"
+          ]
+        },
+        "support_boundary": {
+          "ok": true,
+          "packet_id": "support_boundary",
+          "missing": [],
+          "required_fields": [
+            "in_scope",
+            "out_of_scope",
+            "escalation_contact",
+            "review_cadence"
+          ]
+        }
+      }
+    },
+    "messaging": {
+      "ok": false,
+      "reason": "MESSAGING_RUNTIME_NOT_AUTHORIZED"
+    },
+    "handover": {
+      "handover_sent_at": "2026-08-04T07:00:00Z",
+      "channels": [
+        "synthetic_draft_email"
+      ],
+      "support_boundary_summary": "Pilot board + one source + operator alerts as accepted; no auto-reply; change requests via Sam Approver.",
+      "monitoring_window": "2026-08-05 to 2026-08-12 (7-day synthetic monitoring window)"
+    },
+    "support_boundary": {
+      "in_scope": "One connected enquiry source, operator alert path, pilot board stages, daily summary draft channel",
+      "out_of_scope": "WhatsApp/email/SMS automated runtime, second lead source, CRM migration, revenue guarantees, client_production deploy/DNS",
+      "escalation_contact": "Sam Approver",
+      "review_cadence": "day-1 / day-3 / day-7 during monitoring; then optional monthly check-in (deferred offer)"
+    },
+    "handover_channels": [
+      "synthetic_draft_email"
+    ],
+    "handover_synthetic_only": true
+  },
+  "remaining_in_lane_blockers": [],
+  "remaining_protected_gates_out_of_lane": [
+    {
+      "id": "messaging_runtime",
+      "owner": "Anton",
+      "required_to_close_715": false,
+      "status": "closed_for_this_lane",
+      "note": "messaging_runtime_authorized remains false. Real WhatsApp/email/SMS send requires a separate Anton-protected gate."
+    },
+    {
+      "id": "client_production_deploy",
+      "owner": "Anton",
+      "required_to_close_715": false,
+      "status": "closed_for_this_lane",
+      "note": "Scenario A completes on synthetic data only. client_production deploy/DNS is not in WS4 scope."
+    }
+  ],
+  "exact_remaining_protected_blocker_for_715": null,
+  "ok": true,
+  "expected": "Scenario A (#711) through handover/acceptance_ready on synthetic data; messaging unauthorized; no client_production deploy",
+  "actual": "Scenario A PASS; all evidence packets complete; handover synthetic-only; remaining_in_lane_blockers=[]",
+  "verdict": "PASS"
+}

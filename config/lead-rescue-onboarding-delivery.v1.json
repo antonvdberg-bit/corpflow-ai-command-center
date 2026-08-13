@@ -301,6 +301,7 @@
   "docs": {
     "canonical": "docs/operations/LEAD_RESCUE_ONBOARDING_AND_DELIVERY_V1.md",
     "system_proof": "docs/operations/LEAD_RESCUE_SYSTEM_PROOF_V1.md",
+    "scenario_a_integrated": "docs/operations/LEAD_RESCUE_SCENARIO_A_INTEGRATED_V1.md",
     "intake_template": "docs/operations/templates/lead-rescue-onboarding-intake.md",
     "delivery_issue_template": "docs/operations/templates/lead-rescue-delivery-issue.md",
     "paid_pilot_onboarding": "docs/operations/AI_LEAD_RESCUE_PAID_PILOT_ONBOARDING.md",
@@ -312,5 +313,14 @@
     "commercial_fixture": "fixtures/lead-rescue-onboarding/system-proof-commercial-opportunity.json",
     "artifact": "artifacts/lead-rescue-system-proof/latest-run.json",
     "tests": "node-tests/lead-rescue-system-proof.test.mjs"
+  },
+  "scenario_a_integrated": {
+    "runner": "lib/lead-rescue/scenario-a-integrated.js",
+    "cli": "scripts/lead-rescue-scenario-a-integrated.mjs",
+    "artifact": "artifacts/lead-rescue-scenario-a-integrated/latest-run.json",
+    "tests": "node-tests/lead-rescue-scenario-a-integrated.test.mjs",
+    "canonical_doc": "docs/operations/LEAD_RESCUE_SCENARIO_A_INTEGRATED_V1.md",
+    "reuses": "lib/gtm/integrated-scenarios-711.js#runScenarioALeadRescue",
+    "note": "WS4 integrated gate: compose merged Scenario A through handover. Do not rebuild unit/system slices."
   }
 }
