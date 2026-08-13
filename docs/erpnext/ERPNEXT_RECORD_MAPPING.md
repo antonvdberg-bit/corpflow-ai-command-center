@@ -101,7 +101,7 @@ Stored in `leads.qualificationJson.rapid_delivery_operator`:
 | ERPNext Item | `LR-SETUP-USD-150` | `CF-RD-*` |
 | Currency | USD | MUR |
 
-Canonical item masters (codes, names, descriptions, UOM, setup vs recurring): `docs/erpnext/ERPNEXT_PRODUCT_CATALOGUE_V1.md` / `config/erpnext-product-catalogue.v1.json` (#881). Do not create a MUR clone of `LR-SETUP-USD-150`. Item Price / `Standard Selling USD` remain UI-blocked for `integrations@corpflowai.com` until the already-authorized Role Permissions Manager grant is applied in Desk (generation 3 re-probe 2026-08-13: Item Price GET/POST 403; Price List create 403).
+Canonical item masters (codes, names, descriptions, UOM, setup vs recurring, Price List / Item Price): `docs/erpnext/ERPNEXT_PRODUCT_CATALOGUE_V1.md` / `config/erpnext-product-catalogue.v1.json` (#881). Do not create a MUR clone of `LR-SETUP-USD-150`. Generation 4 (2026-08-13): `Standard Selling USD` and four canonical Item Price rows are live; `CF-WR-REC-MUR-MAINT` has no list price.
 
 **Do not merge rows** without explicit scope change.
 

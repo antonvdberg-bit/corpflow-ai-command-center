@@ -1,7 +1,7 @@
 {
   "version": "v1",
   "issue": 881,
-  "status": "item_masters_live_mur_standard_rate_applied_item_price_ui_blocked_gen3_2026_08_13",
+  "status": "price_master_live_gen4_2026_08_13",
   "company": "CorpFlowAI LTD",
   "environment": "erpnext_hosted_test",
   "anchor": "ERPNEXT_PRODUCT_CATALOGUE_V1",
@@ -73,15 +73,14 @@
       "name": "Standard Selling USD",
       "currency": "USD",
       "selling": 1,
-      "exists": false,
-      "blocked_reason": "Re-probed 2026-08-13 generation 3 as integrations@corpflowai.com: Price List GET of Standard Selling USD is 404 (does not exist). POST create remains HTTP 403 (doctype access via role permission). Item Price GET/POST also HTTP 403. No workaround applied.",
+      "exists": true,
       "use_for": ["LR-SETUP-USD-150", "LR-REC-USD-99"]
     }
   ],
   "selling_settings": {
     "selling_price_list": "Standard Selling",
     "editable_price_list_rate": 1,
-    "note": "editable_price_list_rate was set to 1 so draft quotations can carry catalogue rates until Item Price rows can be written."
+    "note": "editable_price_list_rate remains 1 so operators can still override a quoted rate. Canonical selling rates now live on Item Price rows."
   },
   "commercial_vs_internal": {
     "client_facing_fields": ["item_name", "description"],
@@ -123,7 +122,7 @@
       "Add a row to this catalogue JSON first.",
       "Reuse an existing item_group when the service is Lead Rescue, Website Rescue, or Support.",
       "Create one Item (non-stock, sales). Do not enable Item Variants for setup vs recurring.",
-      "Add Item Price on the matching selling price list once Item Price write is granted.",
+      "Add Item Price on the matching selling price list.",
       "Keep description client-facing; put delivery checklists only in internal_delivery_ref."
     ]
   },
@@ -149,7 +148,8 @@
           "rate": 150,
           "uom": "Nos",
           "authority": "canonical",
-          "erpnext_item_price": "pending_ui_role_grant",
+          "erpnext_item_price": "live",
+          "erpnext_item_price_name": "80e9c04627",
           "item_standard_rate_applied": 0,
           "item_standard_rate_note": "Company currency is MUR. Do not write USD 150 onto Item.standard_rate."
         }
@@ -177,7 +177,8 @@
           "rate": 99,
           "uom": "Month",
           "authority": "canonical",
-          "erpnext_item_price": "pending_ui_role_grant",
+          "erpnext_item_price": "live",
+          "erpnext_item_price_name": "90egvb653r",
           "item_standard_rate_applied": 0,
           "item_standard_rate_note": "Company currency is MUR. Do not write USD 99 onto Item.standard_rate."
         }
@@ -205,7 +206,8 @@
           "rate": 35000,
           "uom": "Nos",
           "authority": "canonical",
-          "erpnext_item_price": "pending_ui_role_grant",
+          "erpnext_item_price": "live",
+          "erpnext_item_price_name": "80empip48q",
           "item_standard_rate_applied": 35000
         }
       ],
@@ -232,7 +234,8 @@
           "rate": 45000,
           "uom": "Nos",
           "authority": "canonical",
-          "erpnext_item_price": "pending_ui_role_grant",
+          "erpnext_item_price": "live",
+          "erpnext_item_price_name": "10esgagbr0",
           "item_standard_rate_applied": 45000
         }
       ],
@@ -411,5 +414,28 @@
     "unapproved_rates_created": "none",
     "protected_actions": "none",
     "smallest_ui_action": "ERPNext Desk as Administrator → Home → Users → Role Permissions Manager. DocType Item Price → role Item Manager: Read, Create, Write (permlevel 0). DocType Price List → role Item Manager: enable Create and Write. Save. Do not edit the shared Accounts Role Profile. Then re-run bash scripts/erpnext/apply-product-catalogue-prices.sh. This is the already-authorized grant; it has not yet taken effect for this API identity."
+  },
+  "price_master_apply_2026_08_13_gen4": {
+    "identity": "integrations@corpflowai.com",
+    "item_price_get": 200,
+    "price_list_create_standard_selling_usd": 200,
+    "standard_selling_usd": {
+      "name": "Standard Selling USD",
+      "currency": "USD",
+      "selling": 1,
+      "buying": 0,
+      "enabled": 1
+    },
+    "canonical_item_prices": [
+      {"item_code": "LR-SETUP-USD-150", "price_list": "Standard Selling USD", "currency": "USD", "rate": 150, "uom": "Nos", "name": "80e9c04627"},
+      {"item_code": "LR-REC-USD-99", "price_list": "Standard Selling USD", "currency": "USD", "rate": 99, "uom": "Month", "name": "90egvb653r"},
+      {"item_code": "CF-RD-LEAD-RESCUE", "price_list": "Standard Selling", "currency": "MUR", "rate": 35000, "uom": "Nos", "name": "80empip48q"},
+      {"item_code": "CF-RD-LANDING-RESCUE", "price_list": "Standard Selling", "currency": "MUR", "rate": 45000, "uom": "Nos", "name": "10esgagbr0"}
+    ],
+    "skipped_operator_quote": ["CF-WR-REC-MUR-MAINT"],
+    "unapproved_rates_created": "none",
+    "protected_actions": "none",
+    "synthetic_quotations_still_draft": ["SAL-QTN-2026-00001", "SAL-QTN-2026-00002"],
+    "verdict": "ERPNext Product Catalogue READY"
   }
 }
