@@ -1,0 +1,262 @@
+{
+  "schema": "corpflow.erpnext.prestige_foundation.v1",
+  "version": "v1",
+  "issue": 920,
+  "parents": [918, 919, 882, 881, 880],
+  "environment": "corpflow_test",
+  "verdict": "NOT READY — Project/Task/Issue Role Permission grant is UI-only",
+  "description": "Standard ERPNext operating foundation for the Prestige custom-website flow: CRM, MUR quotation path, reusable 12-phase project/task model, support Issue path, and the first CorpFlowAI↔ERPNext bridge contract. Synthetic/test records only. No custom DocTypes. No real Prestige client. No submit/send/payment.",
+  "company": {
+    "name": "CorpFlowAI LTD",
+    "abbr": "CFAI",
+    "country": "Mauritius",
+    "default_currency": "MUR",
+    "tax_id": "28466939",
+    "registration_details": "Company No : C25228280",
+    "commercial_email": "finance@corpflowai.com",
+    "default_letter_head": "Company Letterhead - Grey",
+    "do_not_change": ["tax_id", "registration_details", "default_currency", "bank_accounts", "tax_templates"]
+  },
+  "price_lists": {
+    "mur_selling": "Standard Selling",
+    "usd_selling": "Standard Selling USD"
+  },
+  "forbidden_item_codes_for_prestige": [
+    "CF-RD-LANDING-RESCUE",
+    "CF-RD-LEAD-RESCUE",
+    "LR-SETUP-USD-150",
+    "LR-REC-USD-99",
+    "CF-WR-REC-MUR-MAINT"
+  ],
+  "forbidden_customer_names": ["Prestige Procurement"],
+  "item": {
+    "item_code": "CF-WS-CUSTOM-PROJECT",
+    "item_name": "Custom independent website project",
+    "item_group": "CF Website Projects",
+    "parent_item_group": "CorpFlowAI Services",
+    "stock_uom": "Nos",
+    "is_stock_item": 0,
+    "is_sales_item": 1,
+    "list_price": null,
+    "rate_authority": "quotation_time_editable",
+    "notes": "Standard Item only. No Item Price row. Do not store MUR 285000 as a list price. Not Website Rescue T1."
+  },
+  "synthetic": {
+    "customer": "CF920 Synthetic Website Project Ltd",
+    "lead_company": "CF920 Synthetic Website Project Ltd",
+    "contact_name": "Alex Synthetic",
+    "contact_email": "alex.synthetic.cf920@example.invalid",
+    "address_line1": "Synthetic billing address — not a live client",
+    "city": "Port Louis",
+    "country": "Mauritius",
+    "territory": "Mauritius",
+    "customer_group": "Commercial",
+    "default_currency": "MUR",
+    "quotation_rate_mur": 1000,
+    "quotation_docstatus_must_remain": 0,
+    "sentinel": "TEST-ONLY DO NOT SEND",
+    "project_template": "CF920 Independent Website 12-phase",
+    "project_name": "CF920 Synthetic independent website",
+    "issue_subject": "CF920 synthetic support intake"
+  },
+  "project_template_tasks": [
+    {
+      "seq": 1,
+      "subject": "Discovery & requirements confirmation",
+      "milestone": false
+    },
+    {
+      "seq": 2,
+      "subject": "Information architecture / content plan",
+      "milestone": false
+    },
+    {
+      "seq": 3,
+      "subject": "UX/UI design",
+      "milestone": true,
+      "invoice_gate": "design approval"
+    },
+    {
+      "seq": 4,
+      "subject": "CMS / technical foundation",
+      "milestone": false
+    },
+    {
+      "seq": 5,
+      "subject": "Page / template implementation",
+      "milestone": false
+    },
+    {
+      "seq": 6,
+      "subject": "Self-management features",
+      "milestone": true,
+      "invoice_gate": "build"
+    },
+    {
+      "seq": 7,
+      "subject": "Content migration / population",
+      "milestone": false
+    },
+    {
+      "seq": 8,
+      "subject": "QA / security / performance / accessibility",
+      "milestone": false
+    },
+    {
+      "seq": 9,
+      "subject": "Client review & revisions",
+      "milestone": true,
+      "invoice_gate": "pre-launch"
+    },
+    {
+      "seq": 10,
+      "subject": "Hosting deployment / cutover",
+      "milestone": false
+    },
+    {
+      "seq": 11,
+      "subject": "Training / documentation / handover",
+      "milestone": false
+    },
+    {
+      "seq": 12,
+      "subject": "Acceptance / warranty closeout",
+      "milestone": true,
+      "invoice_gate": "handover"
+    }
+  ],
+  "payment_schedule_text": [
+    "20% mobilisation",
+    "20% design approval",
+    "25% build",
+    "20% pre-launch",
+    "15% handover"
+  ],
+  "permission_grant": {
+    "identity": "integrations@corpflowai.com",
+    "already_held_roles": [
+      "Item Manager",
+      "Sales Manager",
+      "Sales User",
+      "Accounts Manager",
+      "Accounts User"
+    ],
+    "blocked_doctypes": [
+      "Project",
+      "Project Template",
+      "Task",
+      "Issue",
+      "Issue Type",
+      "Employee",
+      "Activity Type",
+      "Workflow",
+      "Notification",
+      "Assignment Rule"
+    ],
+    "grant_onto_existing_role": "Sales Manager",
+    "click_path": [
+      "ERPNext Desk as Administrator.",
+      "Home → Users → Role Permissions Manager.",
+      "Role = Sales Manager (already held by integrations@corpflowai.com via Role Profile Accounts).",
+      "DocType = Project: Read, Create, Write (permlevel 0).",
+      "DocType = Project Template: Read, Create, Write.",
+      "DocType = Task: Read, Create, Write.",
+      "DocType = Issue: Read, Create, Write.",
+      "DocType = Issue Type: Read, Create, Write.",
+      "Save. Do not assign System Manager. Do not change the shared Accounts Role Profile.",
+      "Re-run: bash scripts/erpnext/apply-prestige-foundation.sh"
+    ]
+  },
+  "bridge": {
+    "no_postgres_migration": true,
+    "no_automated_sync_authorized": true,
+    "conflict_authority": "ERPNext for commercial identity, quotation, invoice, payment reference, project, and durable support Issue. CorpFlowAI Postgres for intake, CMP execution/evidence, and operator pipeline status.",
+    "rows": [
+      {
+        "id": "lead_intake",
+        "source": "Lead (Postgres leads.id)",
+        "erpnext": "Lead then Opportunity",
+        "direction": "CorpFlowAI → ERPNext (search-before-create)",
+        "source_key": "leads.id",
+        "erpnext_key": "Lead.name / Opportunity.name",
+        "idempotency": "Search Lead by email_id then company_name; create only if no enabled match.",
+        "conflict_authority": "ERPNext Lead/Opportunity after create; Postgres remains intake.",
+        "retry": "Safe to retry search-before-create. Never create a second Lead for the same email.",
+        "audit": "Store ERPNext Lead.name and Opportunity.name as pointers on the intake row later; this issue does not migrate Postgres."
+      },
+      {
+        "id": "growth_company",
+        "source": "GrowthCompany / GrowthContact",
+        "erpnext": "Lead (pre-sale) or Customer + Contact (when commercially qualified)",
+        "direction": "CorpFlowAI → ERPNext (search-before-create)",
+        "source_key": "growth_companies.id / growth_contacts.id",
+        "erpnext_key": "Customer.name / Contact.name",
+        "idempotency": "Search Customer by normalized customer_name and Contact by email. Disable suffix duplicates.",
+        "conflict_authority": "ERPNext Customer is commercial master (#880).",
+        "retry": "Same as Client Master duplicate rules.",
+        "audit": "Pointer only on GrowthCompany.notes; no second billing identity."
+      },
+      {
+        "id": "company_master",
+        "source": "Company Master evidence hub",
+        "erpnext": "Company identity fields and Letter Head on CorpFlowAI LTD; Customer pointers for clients",
+        "direction": "read Company; do not treat Company Master as a second customer",
+        "source_key": "company-master package / approved assets",
+        "erpnext_key": "Company.name / Customer.name pointer",
+        "idempotency": "Do not create a Customer named CorpFlowAI LTD.",
+        "conflict_authority": "ERPNext Company document for legal/tax/email; Company Master for logos/certificates.",
+        "retry": "n/a — no client row create from this store",
+        "audit": "tax_id 28466939 and Company No C25228280 already live."
+      },
+      {
+        "id": "cmp_ticket",
+        "source": "CmpTicket",
+        "erpnext": "Issue (durable client support/business ticket)",
+        "direction": "CorpFlowAI execution → ERPNext Issue after support/business ticket exists",
+        "source_key": "cmp_tickets.id",
+        "erpnext_key": "Issue.name",
+        "idempotency": "Search Issue by subject containing cmp_tickets.id; create once.",
+        "conflict_authority": "ERPNext Issue is the durable support ticket. CmpTicket /change remains the execution/evidence surface.",
+        "retry": "Do not duplicate Issues. Keep console_json and technical_lead_audits in CorpFlowAI.",
+        "audit": "Bridge is mapping-only until Issue write is granted."
+      },
+      {
+        "id": "payment_record",
+        "source": "PaymentRecord",
+        "erpnext": "Sales Invoice / Payment Entry references only",
+        "direction": "pointer after financial-rail approval — not in this issue",
+        "source_key": "payment_records.record_reference",
+        "erpnext_key": "Sales Invoice.name / Payment Entry.name",
+        "idempotency": "Do not create SI/PE from PaymentRecord in this issue.",
+        "conflict_authority": "ERPNext GL after submit; PaymentRecord stays app fulfilment status.",
+        "retry": "Blocked until financial rail approval.",
+        "audit": "No payment mutation in #920."
+      },
+      {
+        "id": "delivery_project",
+        "source": "client delivery / project state",
+        "erpnext": "Project + Task from the 12-phase Project Template",
+        "direction": "after accepted commercial handoff",
+        "source_key": "operator delivery records / CmpTicket project notes",
+        "erpnext_key": "Project.name / Task.name",
+        "idempotency": "One Project per accepted Customer engagement; search by project_name + customer.",
+        "conflict_authority": "ERPNext Project/Task for commercial delivery plan; CorpFlowAI for preview URLs and execution evidence.",
+        "retry": "Safe after Project write is granted.",
+        "audit": "Template tasks are standard Task subjects only — no custom fields."
+      }
+    ]
+  },
+  "non_actions": [
+    "custom_doctypes",
+    "custom_fields",
+    "schema_change",
+    "postgres_migration",
+    "payments",
+    "submit_documents",
+    "client_sends",
+    "email_sms_whatsapp",
+    "live_prestige_customer",
+    "env_secrets_change",
+    "client_production_deploy"
+  ]
+}
