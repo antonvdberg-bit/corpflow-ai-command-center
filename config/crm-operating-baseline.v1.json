@@ -1,0 +1,436 @@
+{
+  "$schema_version": "1",
+  "$doc": "CorpFlowAI business CRM operating baseline — maps #701 operator stages onto existing leads + qualification_json. No second CRM. No schema change. No env. No live send.",
+  "$issue": "#701",
+  "$canonical_doc": "docs/operations/CRM_OPERATING_BASELINE_V1.md",
+  "$controller": "#710",
+  "$reuse": [
+    "config/prospect-maturation.v1.json",
+    "config/prospect-draft-assets.v1.json",
+    "lib/cmp/_lib/prospect-operations-view-model.js",
+    "lib/prospects/maturation.js"
+  ],
+  "$send": false,
+  "$protected": true,
+  "$schema_change": false,
+  "$warning": "NO SECOND CRM. NO SCHEMA. NO ENV. NO LIVE EMAIL/WHATSAPP/SMS. Persistence stays on Postgres leads + qualification_json.",
+
+  "purpose": {
+    "system_of_record": "postgres_leads",
+    "operator_surface": "/change where applicable; product desks /admin/lead-rescue and /admin/rapid-delivery until Prospect Operations views are unified",
+    "business_crm": "CorpFlowAI own pipeline: market, qualify, quote, win/lose, hand off to delivery",
+    "not_this_pack": [
+      "client tenant workflows (Lux concierge CRM, CIPC Desk, other tenant /change tickets)",
+      "a second production app or database",
+      "paid CRM vendors",
+      "ERPNext as the daily prospect pipeline (ERPNext is invoicing/identity after commercial approval)"
+    ]
+  },
+
+  "business_stages": {
+    "new": {
+      "label": "New",
+      "canonical_stages": ["new"],
+      "entry_criteria": [
+        "Enquiry or intake received",
+        "Lead row exists in Postgres"
+      ],
+      "exit_criteria": [
+        "Owner assigned",
+        "First-response draft prepared (not auto-sent)",
+        "Move to contacted / qualifying"
+      ],
+      "required_next_action": "Review intake, assign owner, prepare acknowledgement draft within 24 hours",
+      "sla_hours": 24,
+      "terminal": false
+    },
+    "contacted": {
+      "label": "Contacted",
+      "canonical_stages": ["qualifying"],
+      "entry_criteria": [
+        "Owner assigned",
+        "Acknowledgement prepared and operator-sent on an approved channel"
+      ],
+      "exit_criteria": [
+        "Qualification complete enough to book discovery, or disqualified"
+      ],
+      "required_next_action": "Complete qualification questions; set next action + due date",
+      "sla_hours": 48,
+      "terminal": false
+    },
+    "qualified": {
+      "label": "Qualified",
+      "canonical_stages": ["discovery_booked"],
+      "entry_criteria": [
+        "Product qualification gate passed",
+        "Discovery/demo booked or equivalent confirmation of fit"
+      ],
+      "exit_criteria": [
+        "Discovery complete and scope/price known, or not a fit"
+      ],
+      "required_next_action": "Hold discovery; capture notes; decide proposal vs not-fit",
+      "sla_hours": 72,
+      "terminal": false
+    },
+    "proposal_prepared": {
+      "label": "Proposal / quotation prepared",
+      "canonical_stages": ["proposal_ready"],
+      "entry_criteria": [
+        "Discovery complete",
+        "Scope and price taken from the product pricing guide — not invented"
+      ],
+      "exit_criteria": [
+        "Proposal reviewed; copy-ready to send (operator sends manually)",
+        "Handoff packet started for #551"
+      ],
+      "required_next_action": "Assemble quotation using product pack; do not send until operator review",
+      "sla_hours": 24,
+      "terminal": false
+    },
+    "awaiting_decision": {
+      "label": "Awaiting decision",
+      "canonical_stages": ["proposal_sent", "awaiting_payment"],
+      "entry_criteria": [
+        "Proposal or payment instruction sent by the operator (not by automation)"
+      ],
+      "exit_criteria": [
+        "Won (payment confirmed — protected), lost, or nurture/stalled after cadence"
+      ],
+      "required_next_action": "Follow-up on cadence day 1/3/7/14; never invent a close date or value",
+      "sla_hours": 48,
+      "terminal": false
+    },
+    "won": {
+      "label": "Won",
+      "canonical_stages": ["won"],
+      "entry_criteria": [
+        "Payment or equivalent commercial acceptance confirmed by operator",
+        "Payment confirmation is a protected action — not auto-marked"
+      ],
+      "exit_criteria": [
+        "Delivery issue opened; handoff to #550 (Lead Rescue) or #654 (Website Rescue)"
+      ],
+      "required_next_action": "Open delivery issue from the won-client template; do not keep selling in the pipeline row",
+      "sla_hours": null,
+      "terminal": false
+    },
+    "lost": {
+      "label": "Lost",
+      "canonical_stages": ["lost"],
+      "entry_criteria": [
+        "Explicit decline, or follow-up cadence exhausted",
+        "closure_reason recorded"
+      ],
+      "exit_criteria": [
+        "Reactivation signal within 90 days may return the row to new or contacted"
+      ],
+      "required_next_action": "Record won/lost reason; stop chasing unless reactivation is due",
+      "sla_hours": null,
+      "terminal": true
+    },
+    "nurture": {
+      "label": "Nurture / follow-up",
+      "canonical_stages": ["stalled"],
+      "entry_criteria": [
+        "Timing is wrong but relationship is open",
+        "closure_reason or nurture_reason plus next_action_due (reactivation target)"
+      ],
+      "exit_criteria": [
+        "Reactivate to contacted/qualified, or close as lost/not_fit"
+      ],
+      "required_next_action": "Value-first check-in using draft assets only; no live send from the system",
+      "sla_hours": null,
+      "terminal": false
+    },
+    "closed": {
+      "label": "Closed",
+      "canonical_stages": ["lost", "not_fit"],
+      "entry_criteria": [
+        "Terminal outcome recorded (lost, not a fit, or delivery complete with CMP ticket Closed)"
+      ],
+      "exit_criteria": [
+        "Only reopen on a genuine reactivation signal"
+      ],
+      "required_next_action": "None — pipeline row is terminal",
+      "sla_hours": null,
+      "terminal": true
+    }
+  },
+
+  "minimum_lead_record": {
+    "contact_and_business_identity": {
+      "storage": "column_or_json",
+      "paths": ["leads.name", "leads.email", "leads.phone", "leads.contact", "qualificationJson.intake_meta.business_name"],
+      "schema_required": false
+    },
+    "source": {
+      "storage": "json",
+      "paths": ["qualificationJson.intake_meta.source", "qualificationJson.intake_meta.page", "qualificationJson.intake_meta.host", "leads.intent"],
+      "schema_required": false
+    },
+    "product_service_interest": {
+      "storage": "json",
+      "paths": ["qualificationJson.intake_meta.product", "qualificationJson.intake_meta.offer_slug", "qualificationJson.intake_meta.service_path"],
+      "schema_required": false
+    },
+    "problem_outcome_sought": {
+      "storage": "column_or_json",
+      "paths": ["leads.message", "qualificationJson.*.notes"],
+      "schema_required": false
+    },
+    "urgency_timing": {
+      "storage": "json",
+      "paths": ["qualificationJson.intake_meta.urgency", "qualificationJson.*.expected_close_date"],
+      "schema_required": false
+    },
+    "qualification_summary": {
+      "storage": "json",
+      "paths": ["qualificationJson.ai_lead_rescue_operator.notes", "qualificationJson.rapid_delivery_operator.notes"],
+      "schema_required": false
+    },
+    "current_stage": {
+      "storage": "mapped",
+      "paths": ["leads.status", "qualificationJson.rapid_delivery_operator.status", "canonical_stage via prospect-operations-view-model"],
+      "schema_required": false
+    },
+    "next_action_and_due": {
+      "storage": "json",
+      "paths": ["qualificationJson.ai_lead_rescue_operator.next_action", "qualificationJson.ai_lead_rescue_operator.activity[].next_action_date"],
+      "schema_required": false,
+      "gap": "Rapid Delivery desk still lacks a first-class owner and next_action_due key — adopt the same JSON keys; do not add Prisma columns"
+    },
+    "owner": {
+      "storage": "json",
+      "paths": ["qualificationJson.ai_lead_rescue_operator.owner"],
+      "schema_required": false,
+      "gap": "Rapid Delivery owner missing — configuration/JSON adoption, not schema"
+    },
+    "notes_history": {
+      "storage": "json",
+      "paths": ["qualificationJson.ai_lead_rescue_operator.activity[]", "qualificationJson.ai_lead_rescue_operator.notes", "qualificationJson.rapid_delivery_operator.notes"],
+      "schema_required": false
+    },
+    "consent_contact_preference": {
+      "storage": "json",
+      "paths": ["qualificationJson.intake_meta.consent_contact"],
+      "schema_required": false,
+      "gap": "Lead Rescue intake does not always persist consent_contact — record in notes until a later JSON key is adopted"
+    },
+    "related_quotation_delivery_refs": {
+      "storage": "json",
+      "paths": ["qualificationJson.*.related_refs", "cmp_tickets.id when a delivery ticket exists"],
+      "schema_required": false
+    }
+  },
+
+  "owner_next_action_rule": {
+    "active_stages_require": ["owner", "next_action", "next_action_due"],
+    "enforced_by": "lib/prospects/maturation.js validateActiveProspectRequiredFields",
+    "default_owner_if_unassigned": "Anton",
+    "due_date_required_on": "every active row after first review",
+    "stale_days_threshold": 7,
+    "follow_up_cadence_days": [1, 3, 7, 14],
+    "max_follow_ups_before_lost": 4,
+    "reactivation_window_days": 90,
+    "first_response_sla_hours": 24
+  },
+
+  "qualification_guides": {
+    "ai_lead_rescue": {
+      "label": "AI Lead Rescue",
+      "maturation_gate": "ai_lead_rescue",
+      "pricing_reference": "docs/sales/AI_LEAD_RESCUE_PRICING_GUIDE.md",
+      "discovery_reference": "docs/sales/AI_LEAD_RESCUE_DISCOVERY_CALL_SCRIPT.md",
+      "qualifying_questions": [
+        "What is the business name and who owns follow-up today?",
+        "Where do enquiries arrive (WhatsApp, web form, Instagram, phone)?",
+        "What happens after an enquiry arrives — and what gets missed?",
+        "Is the buyer the decision-maker for a USD 150 launch pilot?",
+        "What timing matters in the next 14 days?"
+      ],
+      "disqualifiers": [
+        "No identifiable commercial operation",
+        "Wants a guaranteed revenue or lead-volume outcome",
+        "Needs a full CRM migration or multi-source rebuild in week one",
+        "Unwilling to name one leaky enquiry source"
+      ],
+      "required_evidence": [
+        "business_name",
+        "email",
+        "region or lead-source context",
+        "urgency or timeline signal"
+      ],
+      "recommended_next_action": "If gate passes: book 15-minute discovery, then proposal via #551 path. If not: mark not_fit with reason."
+    },
+    "website_rescue": {
+      "label": "Website Rescue",
+      "maturation_gate": "website_rescue",
+      "pricing_reference": "docs/sales/WEBSITE_RESCUE_PRICING_GUIDE.md",
+      "product_pack_reference": "docs/marketing/WEBSITE_RESCUE_PRODUCT_PACK_V1.md",
+      "qualifying_questions": [
+        "What is the current website URL (or why is there none)?",
+        "What should a visitor be able to do in one tap (enquiry, call, WhatsApp)?",
+        "Is this a landing-page rescue or a larger rebuild?",
+        "Who approves copy and design, and how fast can they reply?",
+        "Is hosting/domain already owned by the client?"
+      ],
+      "disqualifiers": [
+        "No website intent",
+        "Multi-site / shop / complex integration in the first engagement",
+        "Competitor research or free advice only",
+        "Expects SEO ranking or sales guarantees"
+      ],
+      "required_evidence": [
+        "business_name",
+        "email",
+        "website URL or description",
+        "service path / offer slug"
+      ],
+      "recommended_next_action": "If gate passes: discovery then quotation from the Website Rescue pack. If scope is a custom project, do not force the SKU — use a project quotation path."
+    },
+    "managed_workflow": {
+      "label": "Managed workflow / administration improvement",
+      "maturation_gate": "managed_workflow",
+      "pricing_reference": null,
+      "qualifying_questions": [
+        "Which named workflow is broken (intake, follow-up, quoting, delivery updates)?",
+        "Who does the work today, and where does it live (inbox, sheet, WhatsApp)?",
+        "What does 'done' look like in 30 days?",
+        "Is this a CorpFlowAI-operated outcome or a client-owned tool install?",
+        "Are there regulated or client-private data constraints?"
+      ],
+      "disqualifiers": [
+        "Request is a generic chatbot / generic AI agent with no owned workflow",
+        "Requires a new self-hosted tool that is not already authorised",
+        "Client wants CorpFlow to store another organisation's customer database as a second CRM"
+      ],
+      "required_evidence": [
+        "business_name",
+        "email",
+        "named workflow",
+        "desired 30-day outcome"
+      ],
+      "recommended_next_action": "Qualify as a managed outcome, not a tool sale. Do not open a new CRM platform. Escalate to Anton before promising a new product SKU."
+    },
+    "future_product": {
+      "label": "Future product template",
+      "maturation_gate": "future_product",
+      "pricing_reference": null,
+      "qualifying_questions": [
+        "What buyer pain is named in one sentence?",
+        "What product or SKU is this closest to (Lead Rescue, Website Rescue, custom project)?",
+        "What evidence of fit exists today?",
+        "What must not be promised (revenue, rankings, volume)?"
+      ],
+      "disqualifiers": [
+        "No named buyer or pain",
+        "Duplicates an existing SKU under a new name",
+        "Requires protected runtime (send, payment, schema) to even qualify"
+      ],
+      "required_evidence": [
+        "business_name",
+        "email",
+        "product_service_path",
+        "named pain"
+      ],
+      "recommended_next_action": "Capture on the existing lead row with product path = future. Do not create a new table or vendor. Review in weekly pipeline."
+    }
+  },
+
+  "handoffs": {
+    "enquiry_to_qualification": {
+      "from_business_stage": "new",
+      "to_business_stage": "contacted",
+      "issue_refs": ["#701", "#713"]
+    },
+    "qualification_to_quotation": {
+      "from_business_stage": "qualified",
+      "to_business_stage": "proposal_prepared",
+      "issue_refs": ["#551"],
+      "note": "Manual quote → invoice → payment evidence. No payment runtime in this pack."
+    },
+    "accepted_quotation_to_delivery": {
+      "from_business_stage": "won",
+      "to_business_stage": "closed",
+      "issue_refs": ["#550", "#654", "#715", "#716"],
+      "note": "Lead Rescue delivery #550/#715; Website Rescue offer/delivery #654/#716. Open a delivery issue; do not reuse the prospect row as the project."
+    },
+    "delivery_to_support": {
+      "from": "delivery complete",
+      "to": "support / maintenance note on the delivery issue",
+      "issue_refs": ["#550", "#654"]
+    },
+    "lost_and_follow_up": {
+      "from_business_stage": "awaiting_decision",
+      "to_business_stage": "lost",
+      "nurture_alternative": "nurture",
+      "issue_refs": ["#713"]
+    }
+  },
+
+  "reporting_metrics": {
+    "new_enquiries": {
+      "source": "count of rows whose canonical_stage is new (or native NEW_INTAKE / new_intake)",
+      "fabricate": false
+    },
+    "qualified_opportunities": {
+      "source": "count of rows in discovery_booked or later active stages",
+      "fabricate": false
+    },
+    "quotations_issued": {
+      "source": "count of rows in proposal_ready or proposal_sent",
+      "fabricate": false
+    },
+    "wins": {
+      "source": "count of canonical_stage = won (only after operator-confirmed payment/acceptance)",
+      "fabricate": false
+    },
+    "losses": {
+      "source": "count of canonical_stage = lost or not_fit",
+      "fabricate": false
+    },
+    "value_by_stage": {
+      "source": "sum estimated_value only where a numeric value already exists on the row; omit the cell if unknown",
+      "fabricate": false
+    },
+    "overdue_next_actions": {
+      "source": "lib/prospects/maturation.js computeDailyOperatorSummary.overdue",
+      "fabricate": false
+    },
+    "source_product_conversion": {
+      "source": "counts grouped by intake_meta.product and intake_meta.source when present; never infer conversion % from empty data",
+      "fabricate": false
+    }
+  },
+
+  "configuration_only_opportunities": [
+    "Use this stage map instead of inventing a parallel status enum",
+    "Adopt Rapid Delivery JSON keys owner, next_action, next_action_due to match Lead Rescue (no Prisma column)",
+    "Record consent_contact on intake_meta when the form already collects it",
+    "Store related quotation/delivery GitHub issue numbers in qualification_json related_refs",
+    "Keep draft-only follow-up copy in config/prospect-draft-assets.v1.json"
+  ],
+
+  "code_without_schema": [
+    "Wire /change/revenue to the same Postgres leads instead of browser localStorage (#721 / #772)",
+    "Shared Prospect Workbench UI over the existing view-model",
+    "Duplicate-email warning on operator desks (read-only compare; no merge automation)"
+  ],
+
+  "schema_blockers": [
+    "New CRM tables or a second database",
+    "New leads columns for owner, stage, due date, or consent (JSON is sufficient)",
+    "Paid CRM vendor or additional production app",
+    "Messaging/payment runtime to 'complete' the CRM"
+  ],
+
+  "explicit_non_actions": [
+    "No second CRM platform",
+    "No paid CRM vendor",
+    "No schema or DB mutation",
+    "No env or secrets change",
+    "No automated external email, WhatsApp, or SMS",
+    "No client-private data in docs, tests, or screenshots",
+    "No broad analytics platform"
+  ]
+}
