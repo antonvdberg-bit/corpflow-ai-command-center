@@ -8,7 +8,7 @@ export const APP_FONT_HREF =
 
 export const CORE_THEME = Object.freeze({
   scope: 'core',
-  label: 'Core',
+  label: 'CorpFlowAI Operating Workspace',
   '--app-bg0': '#0b1220',
   '--app-bg1': '#152238',
   '--app-panel': 'rgba(18, 28, 48, 0.92)',
@@ -26,7 +26,7 @@ export const CORE_THEME = Object.freeze({
 
 export const TENANT_THEME = Object.freeze({
   scope: 'tenant',
-  label: 'Tenant — CorpFlowAI',
+  label: 'Tenant Workspace — CorpFlowAI',
   '--app-bg0': '#071a18',
   '--app-bg1': '#0f2f2a',
   '--app-panel': 'rgba(12, 36, 32, 0.94)',
@@ -106,6 +106,47 @@ export const APP_SHELL_CSS = `
     border-color: var(--app-accent);
     background: var(--app-accent-soft);
     color: var(--app-text);
+  }
+  a.cf-app-chip {
+    text-decoration: none;
+    color: inherit;
+  }
+  a.cf-app-chip:hover {
+    border-color: var(--app-accent);
+  }
+  .cf-app-table-wrap {
+    overflow-x: auto;
+    margin-top: 16px;
+    min-width: 0;
+  }
+  .cf-app-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+  .cf-app-table th,
+  .cf-app-table td {
+    text-align: left;
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--app-panel-border);
+    vertical-align: top;
+    word-break: break-word;
+  }
+  .cf-app-table th {
+    color: var(--app-muted);
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .cf-app-signal {
+    display: inline-block;
+    margin: 0 6px 6px 0;
+    padding: 2px 7px;
+    border-radius: 999px;
+    border: 1px solid var(--app-panel-border);
+    font-size: 0.72rem;
+    color: var(--app-muted);
   }
   .cf-app-main {
     max-width: 1080px;

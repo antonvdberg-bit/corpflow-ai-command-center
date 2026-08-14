@@ -275,7 +275,7 @@ export default function AppCorePage() {
       />
 
       <p className="cf-app-muted" style={{ marginTop: -8, marginBottom: 16 }} data-testid="core-workspace-meta">
-        Core environment · separate auth ·{' '}
+        Operating Workspace · separate auth ·{' '}
         {dataSource ? (
           <>
             data source <code data-testid="core-data-source">{dataSource}</code>

@@ -13,6 +13,7 @@ export default function CoreMenu({ active, onSelect, disabled }) {
     { id: 'my_work', label: 'My Work', kind: 'nav' },
     { id: 'tenants', label: 'Tenants', kind: 'nav' },
     { id: 'requests', label: 'Requests', kind: 'nav' },
+    { id: 'prospects', label: 'Prospects', kind: 'link', href: '/app/prospects' },
     { id: 'delivery', label: 'Delivery', kind: 'link', href: '/change' },
     { id: 'approvals', label: 'Approvals', kind: 'nav' },
     { id: 'releases', label: 'Releases', kind: 'nav' },
