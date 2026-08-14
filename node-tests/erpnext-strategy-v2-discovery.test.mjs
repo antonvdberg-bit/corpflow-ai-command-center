@@ -1,5 +1,6 @@
 /**
- * #955 ERP Strategy v2 — canonical draft exists and agent-context surfaces point to it.
+ * #960 ERP Strategy v2 — canonical doctrine is APPROVED — VERSION 2
+ * and agent-context surfaces point to it without draft/awaiting-approval wording.
  * Docs/governance only. Does not call ERPNext. Never prints secrets.
  */
 import assert from 'node:assert/strict';
@@ -24,12 +25,20 @@ const POINTER_SURFACES = [
   'docs/governance/erpnext/README.md',
 ];
 
-test('#955 canonical ERP Strategy v2 draft exists with required status and topics', () => {
+const AWAITING_APPROVAL = /DRAFT FOR ANTON APPROVAL|Anton approval pending|until Anton explicitly approves the synthesized|Do not mark APPROVED until|Do not treat the draft as approved|Do not treat the vision as approved/i;
+
+test('#960 canonical ERP Strategy v2 is APPROVED — VERSION 2 with approval evidence', () => {
   assert.equal(existsSync(path.join(REPO_ROOT, CANONICAL)), true, `missing ${CANONICAL}`);
   const doc = read(CANONICAL);
   assert.ok(doc.includes('<!-- CORPFLOWAI_ERP_VISION_AND_INTENDED_USE_V2 -->'));
-  assert.ok(doc.includes('DRAFT FOR ANTON APPROVAL'));
-  assert.ok(!/Status:\s*`?APPROVED/i.test(doc), 'draft must not be marked APPROVED');
+  assert.match(doc, /\*\*Status:\*\*\s*`APPROVED — VERSION 2`/);
+  assert.match(doc, /\*\*Current verdict:\*\*\s*`APPROVED — VERSION 2`/);
+  assert.ok(doc.includes('Anton van den Berg'));
+  assert.ok(doc.includes('2026-08-14 12:54 +04:00'));
+  assert.ok(doc.includes('issues/954#issuecomment-5291438473'));
+  assert.ok(doc.includes('#957'));
+  assert.ok(doc.includes('#960'));
+  assert.ok(!AWAITING_APPROVAL.test(doc), 'canonical file must not present Version 2 as awaiting approval');
   assert.match(doc, /minimum viable ERP, correctly founded/i);
   assert.match(doc, /authoritative for financial\/corporate/i);
   assert.match(doc, /reconcile rather than duplicate|reconcile into ERPNext rather than/i);
@@ -56,7 +65,7 @@ test('#955 canonical ERP Strategy v2 draft exists with required status and topic
   assert.ok(!/sk_live|POSTGRES_URL\s*[:=]\s*\S+|ERPNEXT_API_SECRET\s*[:=]\s*\S+/.test(doc));
 });
 
-test('#955 agent-context surfaces point to the canonical ERP strategy without duplicating it', () => {
+test('#960 agent-context surfaces point to approved ERP strategy without duplicating it', () => {
   for (const rel of POINTER_SURFACES) {
     assert.equal(existsSync(path.join(REPO_ROOT, rel)), true, `missing ${rel}`);
     const text = read(rel);
@@ -64,7 +73,8 @@ test('#955 agent-context surfaces point to the canonical ERP strategy without du
       text.includes('docs/governance/erpnext/VISION_AND_INTENDED_USE.md'),
       `${rel} must point to the canonical ERP strategy`
     );
-    assert.ok(text.includes('DRAFT FOR ANTON APPROVAL'), `${rel} must state draft status`);
+    assert.ok(text.includes('APPROVED — VERSION 2'), `${rel} must state APPROVED — VERSION 2`);
+    assert.ok(!AWAITING_APPROVAL.test(text), `${rel} must not present Version 2 as awaiting approval`);
     assert.ok(
       !text.includes('<!-- CORPFLOWAI_ERP_VISION_AND_INTENDED_USE_V2 -->'),
       `${rel} must not duplicate the canonical sentinel`

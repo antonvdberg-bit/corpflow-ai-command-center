@@ -3,11 +3,11 @@ description: Consult canonical ERP Strategy v2 before ERPNext, CRM, finance, Pro
 alwaysApply: true
 ---
 
-# ERP Strategy v2 — agent discovery (draft)
+# ERP Strategy v2 — agent discovery (approved)
 
-**Canonical document:** `docs/governance/erpnext/VISION_AND_INTENDED_USE.md`  
-**Status:** `DRAFT FOR ANTON APPROVAL` until Anton explicitly approves the synthesized version.  
-**Source:** issues #955 / #954 / #953. Do not treat chat memory as the strategy.
+**Canonical document:** `docs/governance/erpnext/VISION_AND_INTENDED_USE.md` 
+**Status:** `APPROVED — VERSION 2` (Anton van den Berg, 2026-08-14 12:54 +04:00). 
+**Source:** issues #960 / #955 / #954 / #953. Do not treat chat memory as the strategy.
 
 When a packet touches ERPNext, CRM/business records, finance, Projects, Support, proposals/quotations, automation authority, or source-of-truth boundaries, **read the canonical document before implementing**. Do not paste or fork the full doctrine into other files.
 
@@ -19,6 +19,6 @@ When a packet touches ERPNext, CRM/business records, finance, Projects, Support,
 4. **Outbound document lifecycle:** Draft → Review → Reject / Amend / Approve → Submit → Externally Share. Do not skip the approval gate.
 5. **Prestige fast lane must not be blocked** by the broader ERP programme. Value-based pricing is allowed; Anton’s time is a real delivery cost; internal cost sanity still required.
 6. **Accountant authority:** statutory/tax/payroll/Chart of Accounts and cutover/opening-balance decisions wait for the external accountant. Do not invent accounting policy.
-7. **This draft authorizes no protected consequence:** no production accounting/tax/bank mutation, no schema/custom DocTypes, no env/secrets change, no live send, no paid-tool purchase, no public/client_production launch.
+7. **This approved Version 2 strategy authorizes no protected consequence:** no production accounting/tax/bank mutation, no schema/custom DocTypes, no env/secrets change, no live send, no paid-tool purchase, no public/client_production launch.
 
 Unresolved questions stay recorded as open. Do not silently normalize them into configuration.

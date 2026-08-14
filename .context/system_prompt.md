@@ -6,7 +6,7 @@ Before any work that touches ERPNext, CRM/business records, finance, Projects, S
 
 **`docs/governance/erpnext/VISION_AND_INTENDED_USE.md`**
 
-Status: **`DRAFT FOR ANTON APPROVAL`**. Do not treat the draft as approved. Do not paste the full ERP doctrine into this file. Non-negotiables: ERPNext is authoritative for financial/corporate truth where standard fit exists; CorpFlowAI execution must reconcile rather than duplicate; AI has zero default spend authority and cannot approve suppliers; every external quotation needs Anton approval; the Prestige quotation fast lane must not be blocked by the broader ERP programme.
+Status: **`APPROVED — VERSION 2`**. Do not paste the full ERP doctrine into this file. Non-negotiables: ERPNext is authoritative for financial/corporate truth where standard fit exists; CorpFlowAI execution must reconcile rather than duplicate; AI has zero default spend authority and cannot approve suppliers; every external quotation needs Anton approval; the Prestige quotation fast lane must not be blocked by the broader ERP programme.
 
 Primary agent instructions: `AGENTS.md`. Cursor short rule: `.cursor/rules/erpnext-strategy.mdc`.
 
