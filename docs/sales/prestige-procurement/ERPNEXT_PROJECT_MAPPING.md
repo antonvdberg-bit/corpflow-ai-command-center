@@ -172,6 +172,8 @@ Send: forbidden until Anton authorises the exact send
 
 Sandbox/test inspection for this issue is **mapping + catalogue-gap evidence**, not a posted sandbox Customer using real client legal details. If Anton later wants a sandbox rehearsal, use a synthetic name such as `SYN-Prestige-Proposal-919` — never mix with production Customers.
 
+**#920 follow-up (2026-08-14):** a reusable synthetic path now exists as `CF920 Synthetic Website Project Ltd` + Item `CF-WS-CUSTOM-PROJECT` + draft quotation `SAL-QTN-2026-00004`. That is **not** the Prestige Procurement client record. Project Template / Task / Issue writes are still HTTP 403. Canonical: `docs/erpnext/ERPNEXT_PRESTIGE_FOUNDATION_V1.md`.
+
 ---
 
 ## 6. Blockers that are **not** this issue

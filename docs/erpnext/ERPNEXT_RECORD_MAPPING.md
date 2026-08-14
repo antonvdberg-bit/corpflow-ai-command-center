@@ -16,6 +16,8 @@
 
 **Client Master (#880):** onboarding commercial identity (legal/trading name, billing contact, billing address, currency/group/territory) is created on standard ERPNext Customer + Contact + Address **before** quotation. Canonical mapping: `docs/erpnext/ERPNEXT_CLIENT_MASTER_V1.md`. Delivery intake stays in #715 / #716 records.
 
+**#920 Prestige foundation (hosted test, synthetic, do not send):** Lead `CRM-LEAD-2026-00002` → Opportunity `CRM-OPP-2026-00001` → Customer `CF920 Synthetic Website Project Ltd` → draft MUR quotation `SAL-QTN-2026-00004` on Item `CF-WS-CUSTOM-PROJECT`. Project/Task/Issue still HTTP 403. Write-up: `docs/erpnext/ERPNEXT_PRESTIGE_FOUNDATION_V1.md`. Bridge: `docs/erpnext/ERPNEXT_CORPFLOW_BRIDGE_CONTRACT_V1.md`.
+
 **NO IMPLEMENTATION AUTHORIZED** for automated sync.
 
 ---

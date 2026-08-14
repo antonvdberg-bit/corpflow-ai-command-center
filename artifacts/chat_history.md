@@ -30,6 +30,8 @@
 
 ---
 
+## 2026-08-14 — **#920 ERPNext Prestige foundation NOT READY on Project/Issue write.** Live CRM + MUR quotation proven as `integrations@corpflowai.com`: Lead `CRM-LEAD-2026-00002` → Opportunity `CRM-OPP-2026-00001` → Customer `CF920 Synthetic Website Project Ltd` → Item `CF-WS-CUSTOM-PROJECT` → draft `SAL-QTN-2026-00004` (MUR 1,000). Timesheet `TS-2026-00001` draft. Project/Task/Issue HTTP 403. No Prestige Procurement customer. No send/submit/payment. Canonical: `docs/erpnext/ERPNEXT_PRESTIGE_FOUNDATION_V1.md`. Anton click: Role Permissions Manager on Sales Manager, then re-run apply script.
+
 ## 2026-08-13 — **#880 ERPNext Client Master READY.** Standard Customer + Contact + Address is the commercial onboarding identity (no custom fields). Synthetic `CF880 Synthetic Lead Rescue Ltd` (USD) and `CF880 Synthetic Website Rescue Ltd` (MUR) created on sandbox/test with linked Contact + billing Address. Duplicate name is not natively unique — search-before-create; suffix duplicate disabled. Delivery stays in #715/#716; secrets stay off GitHub. Canonical: `docs/erpnext/ERPNEXT_CLIENT_MASTER_V1.md`. Follow-ups: #881 Items, #882 USD price list / Payment Terms. PR only; not merged.
 
 <!-- ERPNEXT_CLIENT_MASTER_880_HIST -->

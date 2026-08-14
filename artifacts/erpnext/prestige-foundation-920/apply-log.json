@@ -1,0 +1,123 @@
+{
+  "schema": "corpflow.erpnext.prestige_foundation_apply.v1",
+  "issue": 920,
+  "generated_at_utc": "2026-08-14T00:27:56Z",
+  "identity": "integrations@corpflowai.com",
+  "http": {
+    "GET Price List": 200,
+    "GET Letter Head": 200,
+    "GET Item Group": 200,
+    "GET Item": 200,
+    "GET Item Price": 200,
+    "GET Lead": 200,
+    "GET Opportunity": 200,
+    "POST Opportunity": 200,
+    "GET Customer": 200,
+    "POST Customer": 200,
+    "GET Contact": 200,
+    "GET Address": 200,
+    "POST Address": 200,
+    "GET Quotation": 200,
+    "POST Quotation": 200,
+    "GET Project": 403,
+    "GET Project Template": 403,
+    "GET Task": 403,
+    "GET Issue": 403,
+    "GET Issue Type": 403,
+    "GET Employee": 403,
+    "GET Activity Type": 403,
+    "GET Workflow": 403,
+    "GET Notification": 403,
+    "POST Task": 403,
+    "POST Project Template": 403,
+    "POST Project": 403,
+    "POST Issue": 403,
+    "POST Timesheet": 200
+  },
+  "created": [
+    {
+      "doctype": "Opportunity",
+      "name": "CRM-OPP-2026-00001"
+    },
+    {
+      "doctype": "Customer",
+      "name": "CF920 Synthetic Website Project Ltd"
+    },
+    {
+      "doctype": "Address",
+      "name": "CF920 Synthetic Website Project Ltd-Billing"
+    },
+    {
+      "doctype": "Quotation",
+      "name": "SAL-QTN-2026-00004"
+    },
+    {
+      "doctype": "Timesheet",
+      "name": "TS-2026-00001"
+    }
+  ],
+  "reused": [
+    {
+      "doctype": "Item Group",
+      "name": "CF Website Projects"
+    },
+    {
+      "doctype": "Item",
+      "name": "CF-WS-CUSTOM-PROJECT"
+    },
+    {
+      "doctype": "Lead",
+      "name": "CRM-LEAD-2026-00002"
+    },
+    {
+      "doctype": "Contact",
+      "name": "Alex Synthetic"
+    }
+  ],
+  "denied": [
+    {
+      "doctype": "Task",
+      "http": 403,
+      "body": "{\"exc_type\": \"PermissionError\", \"_server_messages\": \"[\\\"{\\\\\\\"message\\\\\\\":\\\\\\\"User <strong>integrations@corpflowai.com</strong> does not have doctype access via role permission for document <strong>Task</strong>\\\\\\\",\\\\\\\"a"
+    },
+    {
+      "doctype": "Project Template",
+      "http": 403,
+      "body": "{\"exc_type\": \"PermissionError\", \"_server_messages\": \"[\\\"{\\\\\\\"message\\\\\\\":\\\\\\\"User <strong>integrations@corpflowai.com</strong> does not have doctype access via role permission for document <strong>Project Template</stron"
+    },
+    {
+      "doctype": "Project",
+      "http": 403,
+      "body": "{\"exc_type\": \"PermissionError\", \"_server_messages\": \"[\\\"{\\\\\\\"message\\\\\\\":\\\\\\\"User <strong>integrations@corpflowai.com</strong> does not have doctype access via role permission for document <strong>Project</strong>\\\\\\\",\\\\"
+    },
+    {
+      "doctype": "Issue",
+      "http": 403,
+      "body": "{\"exc_type\": \"PermissionError\", \"_server_messages\": \"[\\\"{\\\\\\\"message\\\\\\\":\\\\\\\"User <strong>integrations@corpflowai.com</strong> does not have doctype access via role permission for document <strong>Issue</strong>\\\\\\\",\\\\\\\""
+    }
+  ],
+  "readback": {
+    "company_currency_mur": true,
+    "mur_price_list_ok": true,
+    "usd_price_list_ok": true,
+    "letter_head": true,
+    "item_ok": true,
+    "crm_ok": true,
+    "quotation_draft": true,
+    "ids": {
+      "lead": "CRM-LEAD-2026-00002",
+      "opportunity": "CRM-OPP-2026-00001",
+      "customer": "CF920 Synthetic Website Project Ltd",
+      "contact": "Alex Synthetic",
+      "address": "CF920 Synthetic Website Project Ltd-Billing",
+      "quotation": "SAL-QTN-2026-00004",
+      "item": "CF-WS-CUSTOM-PROJECT"
+    },
+    "task_http": 403,
+    "project_template_http": 403,
+    "project_http": 403,
+    "issue_http": 403,
+    "timesheet_create_http": 200
+  },
+  "secrets_printed": false
+}

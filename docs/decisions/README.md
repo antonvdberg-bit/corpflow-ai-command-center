@@ -40,6 +40,7 @@ What we chose (one paragraph).
 
 | Date | Topic | File |
 |------|--------|------|
+| 2026-08-14 | ERPNext Prestige foundation: standard CRM/project/support; Project/Issue still UI-blocked (#920) | `20260814-erpnext-prestige-foundation.md` |
 | 2026-08-13 | ERPNext Customer/Contact/Address = commercial client master (#880) | `20260813-erpnext-client-master.md` |
 | 2026-08-13 | ERPNext commercial documents: standard Quotation/SI first; Currency Exchange is the USD gate (#882) | `20260813-erpnext-commercial-documents.md` |
 | 2026-07-29 | CorpFlowAI-hosted surfaces = corpflow_test; client_production separate (#679) | `20260729-corpflow-test-vs-client-production.md` |

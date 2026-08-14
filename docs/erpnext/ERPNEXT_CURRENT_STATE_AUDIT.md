@@ -1,6 +1,6 @@
 # ERPNext current state audit — CorpFlowAI commercial launch
 
-**Status:** Docs-only audit · **Updated:** 2026-08-13 (#880 Client Master)
+**Status:** Docs-only audit · **Updated:** 2026-08-14 (#920 Prestige foundation)
 **Owner:** Anton  
 **Anchor:** `<!-- ERPNEXT_CURRENT_STATE_AUDIT_V1 -->`
 
@@ -37,8 +37,8 @@ Classification key:
 
 | Capability | Class | Evidence / notes |
 | ---------- | ----- | ---------------- |
-| Lead doctype | **CONFIGURED BUT NOT VERIFIED** | Mapped in evaluation; sandbox synthetic leads only |
-| Opportunity doctype | **DOCUMENTED ONLY** | Stage transitions documented; not rehearsed for MUR sprints |
+| Lead doctype | **LIVE AND VERIFIED** (synthetic) | #920: `CRM-LEAD-2026-00002` created then Converted when Customer `lead_name` was set |
+| Opportunity doctype | **LIVE AND VERIFIED** (synthetic) | #920: `CRM-OPP-2026-00001` from Lead; MUR; Open |
 | Customer doctype | **LIVE AND VERIFIED** | Phase C plus #880 synthetic Client Master: `CF880 Synthetic Lead Rescue Ltd` (USD) and `CF880 Synthetic Website Rescue Ltd` (MUR), each with linked Contact + billing Address |
 | Customer custom fields (BRN, etc.) | **OUT OF SCOPE** | #880: standard `tax_id` is enough; no custom field authorized |
 | Lead → Customer conversion workflow | **DOCUMENTED ONLY** | Runbook written; MUR sprint path not sandbox-rehearsed. #880 uses Customer as commercial master; Lead is optional pre-sale only. |
@@ -89,7 +89,8 @@ Classification key:
 
 | Capability | Class | Evidence / notes |
 | ---------- | ----- | ---------------- |
-| Project + Task / WBS | **DOCUMENTED ONLY** | Playbook §8; not configured for MUR sprints |
+| Project + Task / WBS | **CONFIGURED BUT NOT VERIFIED** | #920: 12-phase template specified; Project / Project Template / Task HTTP 403 for `integrations@corpflowai.com` |
+| Issue / support ticket | **CONFIGURED BUT NOT VERIFIED** | #920: Issue + Issue Type HTTP 403; `/change` remains execution surface |
 | Production release milestone | **DOCUMENTED ONLY** | Template exists |
 | CorpFlow preview URL linkage | **LIVE AND VERIFIED** | Tenant/Vercel preview surfaces |
 
@@ -167,6 +168,8 @@ Classification key:
 ## 6. Cross-references
 
 - `docs/erpnext/ERPNEXT_CLIENT_MASTER_V1.md`
+- `docs/erpnext/ERPNEXT_PRESTIGE_FOUNDATION_V1.md`
+- `docs/erpnext/ERPNEXT_CORPFLOW_BRIDGE_CONTRACT_V1.md`
 - `docs/erpnext/CORPFLOWAI_QUOTE_TO_CASH_RUNBOOK.md`
 - `docs/erpnext/ERPNEXT_RECORD_MAPPING.md`
 - `docs/erpnext/ERPNEXT_PRODUCT_CATALOGUE_V1.md`

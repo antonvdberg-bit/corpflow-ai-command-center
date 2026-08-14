@@ -132,7 +132,7 @@ cfg = json.load(open(config_path, encoding="utf-8"))
 evidence = {
     "schema": "corpflow.erpnext.prestige_foundation_apply.v1",
     "issue": 920,
-    "generated_at_utc": datetime.datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
+    "generated_at_utc": datetime.datetime.now(datetime.UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
     "identity": None,
     "http": {},
     "created": [],
@@ -249,7 +249,7 @@ if not mur_ok or not usd_ok:
     log("ERPNext Prestige foundation NOT READY — selling Price Lists incomplete")
     raise SystemExit(1)
 
-lh_code, letter_heads = list_names("Letter Head", ["name", "is_disabled"])
+lh_code, letter_heads = list_names("Letter Head", ["name"])
 log(f"letter_heads: {[r.get('name') for r in letter_heads]}")
 evidence["readback"]["letter_head"] = "Company Letterhead - Grey" in [r.get("name") for r in letter_heads]
 
@@ -331,8 +331,6 @@ else:
         "status": "Open",
         "type": "Client",
         "territory": syn["territory"],
-        "utm_source": "Warm / direct",
-        "notes": "GitHub #920 synthetic CRM foundation. TEST-ONLY DO NOT SEND. Not Prestige Procurement.",
     })
     if lc not in (200, 201) or not isinstance(lrow, dict):
         log("ERPNext Prestige foundation NOT READY — Lead create failed")
@@ -356,14 +354,12 @@ else:
         "opportunity_from": "Lead",
         "party_name": lead_name,
         "opportunity_type": "Sales",
-        "source": "Warm / direct",
         "status": "Open",
         "company": "CorpFlowAI LTD",
         "transaction_date": datetime.date.today().isoformat(),
         "currency": "MUR",
         "conversion_rate": 1,
         "title": "CF920 synthetic custom website",
-        "notes": "GitHub #920 synthetic Opportunity. TEST-ONLY. Not a live Prestige deal.",
     })
     if oc not in (200, 201) or not isinstance(orow, dict):
         log("ERPNext Prestige foundation NOT READY — Opportunity create failed")
