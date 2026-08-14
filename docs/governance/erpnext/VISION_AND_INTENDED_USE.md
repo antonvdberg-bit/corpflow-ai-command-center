@@ -1,8 +1,10 @@
 # CorpFlowAI ERP Strategy and Intended Use — Version 2
 
-**Status:** `DRAFT FOR ANTON APPROVAL`  
-**Do not mark APPROVED** until Anton explicitly reviews and approves this synthesized document.  
-**Environment:** `local` (docs/governance only). Publishing this draft does **not** change ERPNext runtime, accounting, or any live host.  
+**Status:** `APPROVED — VERSION 2`  
+**Approver:** Anton van den Berg  
+**Approval time:** 2026-08-14 12:54 +04:00 (Mauritius)  
+**Approval evidence:** [#954 comment 5291438473](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/954#issuecomment-5291438473); synthesized text published by merged [PR #957](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/957). Repo status recorded by [#960](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/960).  
+**Environment:** `local` (docs/governance only). Approving this doctrine does **not** change ERPNext runtime, accounting, or any live host.  
 **Owner:** Anton (executive vision and approval).  
 **Synthesized by:** Cursor Factory worker from #954 Version 2 source comments.  
 **Date of synthesis:** 2026-08-14.  
@@ -26,7 +28,7 @@ Consult this document before any small repo decision that touches:
 - automation authority;
 - source-of-truth boundaries between CorpFlowAI and ERPNext.
 
-Until Anton approves this draft, treat the rules below as **intended executive direction**, not as a licence to mutate production accounting or to send client documents.
+Version 2 is **approved executive doctrine**. The rules below still do **not** licence production accounting mutation or sending client documents; those remain protected consequential actions.
 
 | Rule | Direction |
 |------|-----------|
@@ -508,7 +510,7 @@ Discovery pointers shipped with [#955](https://github.com/antonvdberg-bit/corpfl
 
 ## 20. Protected boundaries
 
-This draft does **not** authorize:
+This approved Version 2 strategy does **not** authorize:
 
 - production accounting / tax / bank / payment mutation;
 - bulk migration or opening-balance posting;
@@ -526,16 +528,18 @@ Ordinary reversible work that **is** in scope for follow-on packets: discovery, 
 
 ## 21. Approval state
 
-**Current verdict:** `DRAFT FOR ANTON APPROVAL`
+**Current verdict:** `APPROVED — VERSION 2`  
+**Approver:** Anton van den Berg  
+**Approval time:** 2026-08-14 12:54 +04:00 (Mauritius)  
+**Approval evidence:** Anton’s explicit approval on [#954](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/954#issuecomment-5291438473). The synthesized Version 2 text was published by merged [PR #957](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/957) from [#955](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/955). [#960](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/960) records that approval in the canonical repo doctrine.
 
-Anton considers the Version 2 source discussion sufficient to synthesize and research. That is **not** approval of this document.
+Historical meaning of Version 2 is unchanged. Future changes must be recorded as a new decision that explicitly supersedes the relevant Version 2 decision; do not silently rewrite historical #954 comments.
 
-Next actions after this draft exists:
+Follow-on work (not authorized by this approval-status packet):
 
-1. Anton reviews/corrects this synthesis.
-2. Independent market/product/security research against this AI-operated startup model ([#953](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/953)).
-3. Backup/security/DR/repository continuity as a dedicated control workstream.
-4. Prestige quotation/proposal fast lane in parallel.
-5. Remaining #954 governance artefacts (decision/risk/control registers; ERPNext programme Project) stay on #954.
+1. Independent market/product/security research against this AI-operated startup model ([#953](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/953)).
+2. Backup/security/DR/repository continuity as a dedicated control workstream.
+3. Prestige quotation/proposal fast lane in parallel.
+4. Remaining #954 governance artefacts (decision/risk/control registers; ERPNext programme Project) stay on #954.
 
-**Do not mark the final strategy APPROVED until Anton reviews this synthesized Version 2 document.**
+This approval does **not** authorize production accounting mutation, env/secrets change, schema/custom DocTypes, live send, paid tools, or client_production launch.

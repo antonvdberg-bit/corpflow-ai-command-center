@@ -23,7 +23,7 @@ This doc supplements (and does **not** replace) the canonical execution rules:
 - `docs/execution/CORPFLOW_AUTONOMOUS_ACTIONS_POLICY.md`
 - `docs/execution/CORPFLOW_EXECUTION_PACKET_STANDARD.md`
 - `docs/execution/WEEKEND_EXECUTION_QUEUE.md`
-- **ERP Strategy v2 (draft):** `docs/governance/erpnext/VISION_AND_INTENDED_USE.md` — ChatGPT/operator packets that touch ERPNext, CRM/business records, finance, Projects, Support, quotations, automation authority, or source-of-truth boundaries must consult that document. Status is `DRAFT FOR ANTON APPROVAL` until Anton explicitly approves it. Do not duplicate the full doctrine here.
+- **ERP Strategy v2 (`APPROVED — VERSION 2`):** `docs/governance/erpnext/VISION_AND_INTENDED_USE.md` — ChatGPT/operator packets that touch ERPNext, CRM/business records, finance, Projects, Support, quotations, automation authority, or source-of-truth boundaries must consult that document. Status is `APPROVED — VERSION 2`. Do not duplicate the full doctrine here.
 
 If any of those rules conflict with this doc, **those rules win**.
 
