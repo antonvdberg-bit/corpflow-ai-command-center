@@ -40,6 +40,7 @@ What we chose (one paragraph).
 
 | Date | Topic | File |
 |------|--------|------|
+| 2026-08-14 | ERPNext/server backup, DR, security, repo continuity audit — business-critical use NOT PROVEN (#956) | `docs/operations/ERPNEXT_SERVER_BACKUP_SECURITY_DR_AUDIT_V1.md` (audit; `JE-2026-08-14-3`) |
 | 2026-08-14 | ERPNext Prestige foundation: standard CRM/project/support READY on synthetic hosted-test records (#920) | `20260814-erpnext-prestige-foundation.md` |
 | 2026-08-13 | ERPNext Customer/Contact/Address = commercial client master (#880) | `20260813-erpnext-client-master.md` |
 | 2026-08-13 | ERPNext commercial documents: standard Quotation/SI first; Currency Exchange is the USD gate (#882) | `20260813-erpnext-commercial-documents.md` |

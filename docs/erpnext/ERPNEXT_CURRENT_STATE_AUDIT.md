@@ -161,8 +161,9 @@ Classification key:
 
 | Item | Class | Notes |
 | ---- | ----- | ----- |
-| Direct ERPNext API from Cursor Cloud (`ERPNEXT_BASE_URL` / `ERPNEXT_API_KEY` / `ERPNEXT_API_SECRET`) | **LIVE AND VERIFIED** | Fresh probe 2026-08-12 on run `run-913060e0-9757-422e-b783-87f3b4f23798` — HTTP 200 as `integrations@corpflowai.com`; evidence `docs/erpnext/ERPNEXT_CURSOR_CLOUD_SECURITY_CORRECTION_899.md` |
-| `MASTER_ADMIN_KEY` absent from ordinary Cursor Cloud runs | **NEEDS_ANTON** | Still present on that run; one-time Cursor Dashboard Secrets delete — `docs/runbooks/ERPNEXT_CURSOR_CLOUD_SECRETS_LEAST_PRIVILEGE_V1.md` |
+| Direct ERPNext API from Cursor Cloud (`ERPNEXT_BASE_URL` / `ERPNEXT_API_KEY` / `ERPNEXT_API_SECRET`) | **LIVE AND VERIFIED** | Fresh probe 2026-08-12 on run `run-913060e0-9757-422e-b783-87f3b4f23798` — HTTP 200 as `integrations@corpflowai.com`; evidence `docs/erpnext/ERPNEXT_CURSOR_CLOUD_SECURITY_CORRECTION_899.md`. Re-probed 2026-08-14 on #956 (`frappe=16.25.0` / `erpnext=16.26.2`, host class vendor-hosted). |
+| `MASTER_ADMIN_KEY` absent from ordinary Cursor Cloud runs | **NEEDS_ANTON** | Still present on the 2026-08-12 run **and** the 2026-08-14 #956 factory run; one-time Cursor Dashboard Secrets delete — `docs/runbooks/ERPNEXT_CURSOR_CLOUD_SECRETS_LEAST_PRIVILEGE_V1.md` |
+| Backup / DR / security gate before business-critical ERPNext | **MISSING** (audit) | #956 verdict **NOT PROVEN**. Canonical: `docs/operations/ERPNEXT_SERVER_BACKUP_SECURITY_DR_AUDIT_V1.md` (`JE-2026-08-14-3`). |
 | SSH / Infisical runtime bridge for ERPNext | **OUT OF SCOPE** | Not required when the three direct API secrets are injected |
 
 ## 6. Cross-references
@@ -174,6 +175,7 @@ Classification key:
 - `docs/erpnext/ERPNEXT_RECORD_MAPPING.md`
 - `docs/erpnext/ERPNEXT_PRODUCT_CATALOGUE_V1.md`
 - `docs/erpnext/ERPNEXT_CURSOR_CLOUD_SECURITY_CORRECTION_899.md`
+- `docs/operations/ERPNEXT_SERVER_BACKUP_SECURITY_DR_AUDIT_V1.md` (#956)
 - `docs/runbooks/ERPNEXT_CURSOR_CLOUD_SECRETS_LEAST_PRIVILEGE_V1.md`
 - `docs/finance/ERPNEXT_PRODUCTION_READINESS_EVALUATION.md`
 - `docs/finance/ERPNEXT_SANDBOX_PHASE_C_FINDINGS.md`
