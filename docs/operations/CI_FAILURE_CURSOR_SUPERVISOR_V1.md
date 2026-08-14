@@ -38,7 +38,9 @@ Marker comment on the source issue (written after follow-up / claim):
 
 `<!-- corpflow.cursor_origin_metadata.v1 {...} -->`
 
-Also heuristically parses `bc-…` / `run-…` from PR body (Cursor PR footer) and activation comments.
+Also heuristically parses `bc-…` / `run-…` from **this PR’s** body (Cursor PR footer) and activation comments.
+
+**Exact-PR lineage (#949):** the CI-green / repair packet must bind source issue and Cursor agent/run to evidence that belongs to **this PR / this head / this source**. Authoritative source fields are `Source issue: #N`, `Source item: #N`, factory handoff `Selected source issue: #N`, and GitHub closing keywords (`Tracks` / `Closes` / `Fixes` / `Resolves #N`). The first `#N` mention in prose is **not** a source (incident: PR #947 body named Prospect Operations `#721` first while the real source was `#701`). Origin markers and comments from a different issue, PR, or SHA are ignored. If those fields disagree, lineage is marked **unknown** — never silently substitute another issue or agent. Operator-review comments are not a source of truth. Control-loop issue `#661` may be scanned only for a Cursor run id that already names the exact source issue.
 
 ## Lifecycle labels
 

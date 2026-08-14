@@ -41,8 +41,9 @@ import {
 } from '../lib/server/ci-failure-cursor-supervisor.js';
 import {
   buildCursorOriginMetadata,
+  formatCiOperatorReviewLineage,
   formatCursorOriginMetadataComment,
-  resolveCursorOriginMetadata,
+  resolvePrBoundCursorOrigin,
 } from '../lib/server/cursor-origin-metadata.js';
 import {
   detectCompletionSignals,
@@ -212,6 +213,61 @@ async function loadIssueState(token, repo, issueNumber) {
 }
 
 /**
+ * Bind origin to this exact PR. Load the authoritative source issue only after
+ * the PR body/handoff identifies it — never the first `#N` mention in prose.
+ *
+ * @param {string} token
+ * @param {string} repo
+ * @param {Record<string, unknown>} pr
+ * @param {{ headSha?: string | null }} [opts]
+ */
+async function resolveOriginForPullRequest(token, repo, pr, opts = {}) {
+  const prComments = await loadIssueComments(token, repo, pr.number);
+  const headSha = opts.headSha || pr.head?.sha || null;
+  const first = resolvePrBoundCursorOrigin({
+    prBody: pr.body,
+    comments: prComments,
+    prNumber: pr.number,
+    branch: pr.head?.ref,
+    headSha,
+  });
+  if (!first.sourceIssue || first.sourceIssue === pr.number || first.lineageStatus === 'ambiguous') {
+    return first;
+  }
+  const sourceComments = await loadIssueComments(token, repo, first.sourceIssue);
+  return resolvePrBoundCursorOrigin({
+    prBody: pr.body,
+    comments: [...prComments, ...sourceComments],
+    prNumber: pr.number,
+    branch: pr.head?.ref,
+    headSha,
+    expectedSourceIssue: first.sourceIssue,
+  });
+}
+
+/**
+ * Scan control-loop issue comments only for a run id that names this exact source.
+ * Do not merge those comments into origin resolution (#949).
+ *
+ * @param {Array<{ body?: string | null }>} controlComments
+ * @param {number} sourceIssue
+ * @returns {string | null}
+ */
+function cursorRunIdFromExactSourceControlComments(controlComments, sourceIssue) {
+  const want = Number(sourceIssue);
+  if (!Number.isInteger(want) || want < 1) return null;
+  for (const c of [...(controlComments || [])].reverse()) {
+    const body = String(c.body || '');
+    if (!body.includes(`Selected source issue: ${want}`) && !body.includes(`Issue: #${want}`)) {
+      continue;
+    }
+    const m = body.match(/Cursor run ID:\s*(run-[0-9a-f-]{20,})/i);
+    if (m) return m[1];
+  }
+  return null;
+}
+
+/**
  * Later Agent CI runs on the same PR (for later-green suppression).
  */
 async function listLaterAgentCiRuns(token, repo, prNumber, failedRunId, failedCreatedAt) {
@@ -311,48 +367,15 @@ async function runFailureMode(args, ctx) {
   }
 
   const currentPrHeadSha = String(pr.head?.sha || '').trim();
-  const issueComments = await loadIssueComments(token, repo, pr.number);
-  const bodyIssueMatch =
-    String(pr.body || '').match(/Tracks?\s+#(\d+)/i) ||
-    String(pr.body || '').match(/Closes\s+#(\d+)/i) ||
-    String(pr.body || '').match(/#(\d+)/);
-  const guessedIssue = bodyIssueMatch ? Number(bodyIssueMatch[1]) : null;
-  const sourceComments =
-    guessedIssue && guessedIssue !== pr.number
-      ? [...issueComments, ...(await loadIssueComments(token, repo, guessedIssue))]
-      : issueComments;
-  // Control-loop issue #661 often holds DISPATCHER RUN FINISHED with Cursor run ID.
-  const controlComments = await loadIssueComments(token, repo, 661);
-  const allOriginComments = [...sourceComments, ...controlComments];
-
-  // Origin metadata must NOT use current PR head as the failed SHA.
-  const origin = resolveCursorOriginMetadata({
-    prBody: pr.body,
-    comments: allOriginComments,
-    prNumber: pr.number,
-    branch: pr.head?.ref,
+  const origin = await resolveOriginForPullRequest(token, repo, pr, {
     headSha: failedHeadSha || null,
   });
-  // Prefer the source issue that matches this PR when control comments mention multiple.
-  if (guessedIssue && (!origin.sourceIssue || origin.sourceIssue === 661)) {
-    origin.sourceIssue = guessedIssue;
+  if (!origin.cursorRunId && origin.sourceIssue) {
+    const controlComments = await loadIssueComments(token, repo, 661);
+    const exactRunId = cursorRunIdFromExactSourceControlComments(controlComments, origin.sourceIssue);
+    if (exactRunId) origin.cursorRunId = exactRunId;
   }
-  // If run ID still missing, scan control comments for the matching selected source issue.
-  if (!origin.cursorRunId && (origin.sourceIssue || guessedIssue)) {
-    const want = Number(origin.sourceIssue || guessedIssue);
-    for (const c of [...controlComments].reverse()) {
-      const body = String(c.body || '');
-      if (!body.includes(`Selected source issue: ${want}`) && !body.includes(`Issue: #${want}`)) {
-        continue;
-      }
-      const m = body.match(/Cursor run ID:\s*(run-[0-9a-f-]{20,})/i);
-      if (m) {
-        origin.cursorRunId = m[1];
-        break;
-      }
-    }
-  }
-  const sourceIssueNumber = origin.sourceIssue || guessedIssue;
+  const sourceIssueNumber = origin.sourceIssue;
   const sourceIssueState = await loadIssueState(token, repo, sourceIssueNumber);
 
   const laterRuns = await listLaterAgentCiRuns(
@@ -562,27 +585,19 @@ async function runSuccessMode(args, ctx) {
   if (!pr || pr.state !== 'open') {
     return { ok: true, skipped: true, reason: 'no_open_pr' };
   }
-  const comments = await loadIssueComments(token, repo, pr.number);
-  const bodyIssueMatch = String(pr.body || '').match(/#(\d+)/);
-  const guessedIssue = bodyIssueMatch ? Number(bodyIssueMatch[1]) : null;
-  const sourceComments =
-    guessedIssue && guessedIssue !== pr.number
-      ? [...comments, ...(await loadIssueComments(token, repo, guessedIssue))]
-      : comments;
-  const origin = resolveCursorOriginMetadata({
-    prBody: pr.body,
-    comments: sourceComments,
-    prNumber: pr.number,
-    branch: pr.head?.ref,
-    headSha: pr.head?.sha,
+  const origin = await resolveOriginForPullRequest(token, repo, pr, {
+    headSha: pr.head?.sha || null,
   });
   if (!origin.cursorAgentId && !origin.cursorRunId) {
     return { ok: true, skipped: true, reason: 'not_cursor_lifecycle_pr' };
   }
 
+  const lineageKnown = origin.lineageStatus === 'authoritative' || origin.lineageStatus === 'inferred';
+  const sourceIssueNumber = lineageKnown ? origin.sourceIssue : null;
+
   const signals = detectCompletionSignals({
     run: {
-      issueNumber: origin.sourceIssue || guessedIssue,
+      issueNumber: sourceIssueNumber,
       prNumber: pr.number,
       prUrl: pr.html_url,
       branch: pr.head?.ref,
@@ -592,7 +607,7 @@ async function runSuccessMode(args, ctx) {
       number: pr.number,
       url: pr.html_url,
       checksPassing: true,
-      linkedIssue: origin.sourceIssue || guessedIssue,
+      linkedIssue: sourceIssueNumber,
     },
   });
   signals.testsPassing = true;
@@ -607,10 +622,8 @@ async function runSuccessMode(args, ctx) {
   const markdown = [
     'OPERATOR REVIEW REQUIRED — CI GREEN',
     '',
-    `Source issue: ${origin.sourceIssue != null ? `#${origin.sourceIssue}` : guessedIssue ? `#${guessedIssue}` : 'n/a'}`,
+    formatCiOperatorReviewLineage(origin),
     `PR: #${pr.number} ${pr.html_url}`,
-    `Cursor agent: ${origin.cursorAgentId || 'n/a'}`,
-    `Cursor run: ${origin.cursorRunId || 'n/a'}`,
     `Commit SHA: ${pr.head?.sha || 'n/a'}`,
     `Workflow: ${workflowName} run ${runId} — success`,
     `Preview URL: check Vercel check on the PR`,
@@ -626,11 +639,12 @@ async function runSuccessMode(args, ctx) {
   if (!args.dryRun) {
     await ensureDispatchLifecycleLabels(token, repo);
     await postPrComment(token, repo, pr.number, markdown);
-    if (origin.sourceIssue || guessedIssue) {
-      const issueNum = origin.sourceIssue || guessedIssue;
-      await addIssueLabelsApi(token, repo, issueNum, [DISPATCH_LABEL_OPERATOR_REVIEW]);
-      await removeIssueLabelApi(token, repo, issueNum, DISPATCH_LABEL_CI_REPAIR).catch(() => {});
-      await postGitHubIssueComment(issueNum, markdown, { token, repoFullName: repo });
+    if (sourceIssueNumber) {
+      await addIssueLabelsApi(token, repo, sourceIssueNumber, [DISPATCH_LABEL_OPERATOR_REVIEW]);
+      await removeIssueLabelApi(token, repo, sourceIssueNumber, DISPATCH_LABEL_CI_REPAIR).catch(
+        () => {},
+      );
+      await postGitHubIssueComment(sourceIssueNumber, markdown, { token, repoFullName: repo });
     }
   }
 
