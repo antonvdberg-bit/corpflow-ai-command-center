@@ -141,6 +141,10 @@ test('synthetic quotations must remain draft; 403 evidence is NOT READY', () => 
       project_template_http: 200,
       task_http: 200,
       issue_http: 200,
+      issue_type_http: 200,
+      project_task_count: 12,
+      timesheet_project_linked: true,
+      ids: { project: 'PROJ-0001', project_template: 'CF920 Independent Website 12-phase', issue: 'ISS-2026-00001' },
     },
     REPO_ROOT,
   );
