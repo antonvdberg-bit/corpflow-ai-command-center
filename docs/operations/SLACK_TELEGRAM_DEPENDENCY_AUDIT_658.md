@@ -1,9 +1,9 @@
 # Slack + Telegram dependency audit — issue #658
 
-**Status:** Follow-up completion pass (2026-07-29) after merged PR #659.  
+**Status:** Repo follow-up complete (PRs #659 / #669). Live Slack retirement **not** complete as of 2026-08-14.  
 **Issue:** [#658](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/658) — retire Slack from CorpFlow operations; exception-only Telegram.  
-**Repo baseline:** PR [#659](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/659) → `5272c44d` on `main`.  
-**This follow-up branch:** `cursor/dispatcher-issue-658-f668` — remaining active-ops doc retirement, hourly heartbeat dedupe, Anton click-by-click packets.  
+**Repo baseline:** PR [#659](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/659) → `5272c44d` on `main`; PR [#669](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/669) follow-up.  
+**Live n8n interrogation (2026-08-14):** `docs/operations/N8N_SLACK_DEPENDENCY_INTERROGATION_658.md` — Factory worker had **no n8n MCP**; live n8n Slack state remains an evidence gap.  
 **Anton-only live cutover:** `docs/operations/SLACK_RETIREMENT_ANTON_ACTION_PACKETS_658.md`.
 
 **Anchor:** `<!-- SLACK_TELEGRAM_AUDIT_658 -->`
@@ -37,8 +37,8 @@
 | Active ops docs (Monitor / Lead Rescue / Monitoring arch / recipes / bridge digest) | Duplicate / obsolete wording | **Retired wording** in follow-up PR |
 | MCP integration docs (en/es/zh) | Dev catalog | Marked RETIRED / disabled |
 | Product / marketing / finance mentions of “Slack channel” | Non-ops / confidentiality | Left as historical / product benchmark |
-| **Live n8n workflows** (not in repo) | **Duplicate / noise** | **Anton Packet A–B** |
-| **GitHub→Slack app / webhooks** | Duplicate | **Anton Packet C** |
+| **Live n8n workflows** (not in repo) | **UNKNOWN** until n8n MCP/UI inventory; Slack-side traffic after 2026-07-03 looks historical/test-only | **Do not Packet A–B until live inventory** — see interrogation doc |
+| **GitHub→Slack app / webhooks** | **ACTIVE duplicate** (`#corpflow-dispatch` still mirrored 2026-08-14) | **Anton Packet C** |
 | **Slack tokens + email prefs** | External | **Anton Packet D** |
 | **Slack workspace** | External | **Anton Packet E** (last; after verify) |
 
@@ -112,9 +112,10 @@ Exact UI steps: **`docs/operations/SLACK_RETIREMENT_ANTON_ACTION_PACKETS_658.md`
 
 | Packet | Goal |
 |--------|------|
-| A | Deactivate n8n → Slack posting |
-| B | Remove Slack credentials from n8n |
-| C | Disable GitHub→Slack app / webhooks |
+| Live n8n inventory | Read-only (n8n MCP or UI) before A/B — `N8N_SLACK_DEPENDENCY_INTERROGATION_658.md` |
+| A | Deactivate n8n → Slack posting (**only if live Slack nodes exist**) |
+| B | Remove Slack credentials from n8n (after A) |
+| C | Disable GitHub→Slack app / webhooks (**proven active 2026-08-14**) |
 | D | Revoke tokens + stop Slack email noise |
 | E | Archive/delete workspace (last) |
 
@@ -126,6 +127,7 @@ Exact UI steps: **`docs/operations/SLACK_RETIREMENT_ANTON_ACTION_PACKETS_658.md`
 node --test node-tests/ops-notification-policy.test.mjs
 node --test node-tests/n8n-automation-forward-issue-611.test.mjs
 node --test node-tests/post-control-loop-telegram-alert.test.mjs
+node --test node-tests/n8n-slack-repo-inventory-658.test.mjs
 ```
 
 **Exception path:** newly blocked, newly `needs_attention`, `needs:anton` packet, recovery-failed-needs-Anton, valid lead/alert (#611), first page per fingerprint.  
@@ -147,12 +149,12 @@ node --test node-tests/post-control-loop-telegram-alert.test.mjs
 
 | Criterion | Status |
 |-----------|--------|
-| Inventory + classification | **Done** (this doc) |
+| Inventory + classification | **Repo done**; **live n8n UNKNOWN** without n8n MCP/UI |
 | Preserve GitHub lifecycle / approval gates | **Done** (no gate changes) |
 | Critical alerts on approved non-Slack route | **Done in repo** (Telegram exception-only); live validate after Packet A |
-| Disable n8n / GitHub→Slack posting | **Anton Packets A–C** |
+| Disable n8n / GitHub→Slack posting | **Not done live.** Packet C still required for GitHub app; A–B gated on live n8n inventory |
 | Remove Slack from active ops docs / runtime config | **Done in repo** |
 | Revoke Slack secrets | **Anton Packet D** (no values in repo) |
 | No client/tenant/revenue Slack dependency | **Verified in repo** |
-| Validate exception alerts after retirement | **Anton** after Packet A |
+| Validate exception alerts after retirement | **Anton** after live cutover |
 | Rollback evidence | **§7 + Anton packets** |

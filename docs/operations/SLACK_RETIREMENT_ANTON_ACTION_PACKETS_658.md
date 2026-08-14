@@ -10,7 +10,9 @@
 
 ## When to run
 
-Run **Packet A → B → C → D** in order. Run **Packet E** only after 48h with no Slack ops traffic and exception Telegram still working. **Do not delete the Slack workspace** until Packet E verification passes.
+**2026-08-14 evidence:** `#corpflow-dispatch` is still receiving **GitHub for Slack** traffic. Live n8n Slack nodes/credentials were **not** inspectable from the Cursor Factory worker (no n8n MCP). See `docs/operations/N8N_SLACK_DEPENDENCY_INTERROGATION_658.md`.
+
+Run **live n8n read-only inventory first** (n8n UI or n8n MCP). Then **Packet C** for the proven GitHub app mirror. Run **Packet A → B** only if that inventory finds live Slack nodes/credentials. Then **Packet D**. Run **Packet E** only after 48h with no Slack ops traffic and exception Telegram still working. **Do not delete the Slack workspace** until Packet E verification passes.
 
 **Do not paste tokens, webhook URLs, or secret values into GitHub issues, PRs, or chat.**
 
