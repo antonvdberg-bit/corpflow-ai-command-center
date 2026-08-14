@@ -1,0 +1,307 @@
+{
+  "schema": "corpflow.erpnext.prestige_foundation_apply.v1",
+  "issue": 920,
+  "generated_at_utc": "2026-08-14T04:17:02Z",
+  "identity": "integrations@corpflowai.com",
+  "http": {
+    "GET Price List": 200,
+    "GET Letter Head": 200,
+    "GET Item Group": 200,
+    "GET Item": 200,
+    "GET Item Price": 200,
+    "GET Lead": 200,
+    "GET Opportunity": 200,
+    "GET Customer": 200,
+    "GET Contact": 200,
+    "GET Address": 200,
+    "GET Quotation": 200,
+    "GET Project": 200,
+    "GET Project Template": 200,
+    "GET Task": 200,
+    "GET Issue": 200,
+    "GET Issue Type": 200,
+    "GET Employee": 403,
+    "GET Activity Type": 403,
+    "GET Workflow": 403,
+    "GET Notification": 403,
+    "POST Issue Type": 200,
+    "POST Task": 200,
+    "POST Project Template": 200,
+    "POST Project": 200,
+    "GET Project/PROJ-0001": 200,
+    "GET Timesheet": 200,
+    "GET Timesheet/TS-2026-00001": 200,
+    "PUT Timesheet": 200,
+    "POST Issue": 200,
+    "GET Issue/ISS-2026-00001": 200
+  },
+  "created": [
+    {
+      "doctype": "Issue Type",
+      "name": "CF920 Website Support"
+    },
+    {
+      "doctype": "Task",
+      "name": "TASK-2026-00001"
+    },
+    {
+      "doctype": "Task",
+      "name": "TASK-2026-00002"
+    },
+    {
+      "doctype": "Task",
+      "name": "TASK-2026-00003"
+    },
+    {
+      "doctype": "Task",
+      "name": "TASK-2026-00004"
+    },
+    {
+      "doctype": "Task",
+      "name": "TASK-2026-00005"
+    },
+    {
+      "doctype": "Task",
+      "name": "TASK-2026-00006"
+    },
+    {
+      "doctype": "Task",
+      "name": "TASK-2026-00007"
+    },
+    {
+      "doctype": "Task",
+      "name": "TASK-2026-00008"
+    },
+    {
+      "doctype": "Task",
+      "name": "TASK-2026-00009"
+    },
+    {
+      "doctype": "Task",
+      "name": "TASK-2026-00010"
+    },
+    {
+      "doctype": "Task",
+      "name": "TASK-2026-00011"
+    },
+    {
+      "doctype": "Task",
+      "name": "TASK-2026-00012"
+    },
+    {
+      "doctype": "Project Template",
+      "name": "CF920 Independent Website 12-phase"
+    },
+    {
+      "doctype": "Project",
+      "name": "PROJ-0001"
+    },
+    {
+      "doctype": "Issue",
+      "name": "ISS-2026-00001"
+    }
+  ],
+  "reused": [
+    {
+      "doctype": "Item Group",
+      "name": "CF Website Projects"
+    },
+    {
+      "doctype": "Item",
+      "name": "CF-WS-CUSTOM-PROJECT"
+    },
+    {
+      "doctype": "Lead",
+      "name": "CRM-LEAD-2026-00002"
+    },
+    {
+      "doctype": "Opportunity",
+      "name": "CRM-OPP-2026-00001"
+    },
+    {
+      "doctype": "Customer",
+      "name": "CF920 Synthetic Website Project Ltd"
+    },
+    {
+      "doctype": "Contact",
+      "name": "Alex Synthetic"
+    },
+    {
+      "doctype": "Address",
+      "name": "CF920 Synthetic Website Project Ltd-Billing"
+    },
+    {
+      "doctype": "Quotation",
+      "name": "SAL-QTN-2026-00004"
+    }
+  ],
+  "denied": [],
+  "readback": {
+    "company_currency_mur": true,
+    "mur_price_list_ok": true,
+    "usd_price_list_ok": true,
+    "letter_head": true,
+    "item_ok": true,
+    "crm_ok": true,
+    "quotation_draft": true,
+    "ids": {
+      "lead": "CRM-LEAD-2026-00002",
+      "opportunity": "CRM-OPP-2026-00001",
+      "customer": "CF920 Synthetic Website Project Ltd",
+      "contact": "Alex Synthetic",
+      "address": "CF920 Synthetic Website Project Ltd-Billing",
+      "quotation": "SAL-QTN-2026-00004",
+      "item": "CF-WS-CUSTOM-PROJECT",
+      "project": "PROJ-0001",
+      "project_template": "CF920 Independent Website 12-phase",
+      "issue": "ISS-2026-00001",
+      "issue_type": "CF920 Website Support",
+      "timesheet": "TS-2026-00001",
+      "template_tasks": [
+        "TASK-2026-00001",
+        "TASK-2026-00002",
+        "TASK-2026-00003",
+        "TASK-2026-00004",
+        "TASK-2026-00005",
+        "TASK-2026-00006",
+        "TASK-2026-00007",
+        "TASK-2026-00008",
+        "TASK-2026-00009",
+        "TASK-2026-00010",
+        "TASK-2026-00011",
+        "TASK-2026-00012"
+      ],
+      "project_tasks": [
+        "TASK-2026-00013",
+        "TASK-2026-00014",
+        "TASK-2026-00015",
+        "TASK-2026-00016",
+        "TASK-2026-00017",
+        "TASK-2026-00018",
+        "TASK-2026-00019",
+        "TASK-2026-00020",
+        "TASK-2026-00021",
+        "TASK-2026-00022",
+        "TASK-2026-00023",
+        "TASK-2026-00024"
+      ]
+    },
+    "project_customer": "CF920 Synthetic Website Project Ltd",
+    "project_template_on_project": "CF920 Independent Website 12-phase",
+    "project_tasks": [
+      {
+        "name": "TASK-2026-00013",
+        "subject": "CF920 Discovery & requirements confirmation",
+        "is_milestone": 0,
+        "exp_start_date": "2026-08-14 00:00:00",
+        "exp_end_date": "2026-08-19 00:00:00",
+        "depends_on_tasks": ""
+      },
+      {
+        "name": "TASK-2026-00014",
+        "subject": "CF920 Information architecture / content plan",
+        "is_milestone": 0,
+        "exp_start_date": "2026-08-19 00:00:00",
+        "exp_end_date": "2026-08-24 00:00:00",
+        "depends_on_tasks": "TASK-2026-00013,"
+      },
+      {
+        "name": "TASK-2026-00015",
+        "subject": "CF920 UX/UI design",
+        "is_milestone": 1,
+        "exp_start_date": "2026-08-24 00:00:00",
+        "exp_end_date": "2026-08-29 00:00:00",
+        "depends_on_tasks": "TASK-2026-00014,"
+      },
+      {
+        "name": "TASK-2026-00016",
+        "subject": "CF920 CMS / technical foundation",
+        "is_milestone": 0,
+        "exp_start_date": "2026-08-29 00:00:00",
+        "exp_end_date": "2026-09-03 00:00:00",
+        "depends_on_tasks": "TASK-2026-00015,"
+      },
+      {
+        "name": "TASK-2026-00017",
+        "subject": "CF920 Page / template implementation",
+        "is_milestone": 0,
+        "exp_start_date": "2026-09-03 00:00:00",
+        "exp_end_date": "2026-09-08 00:00:00",
+        "depends_on_tasks": "TASK-2026-00016,"
+      },
+      {
+        "name": "TASK-2026-00018",
+        "subject": "CF920 Self-management features",
+        "is_milestone": 1,
+        "exp_start_date": "2026-09-08 00:00:00",
+        "exp_end_date": "2026-09-13 00:00:00",
+        "depends_on_tasks": "TASK-2026-00017,"
+      },
+      {
+        "name": "TASK-2026-00019",
+        "subject": "CF920 Content migration / population",
+        "is_milestone": 0,
+        "exp_start_date": "2026-09-13 00:00:00",
+        "exp_end_date": "2026-09-18 00:00:00",
+        "depends_on_tasks": "TASK-2026-00018,"
+      },
+      {
+        "name": "TASK-2026-00020",
+        "subject": "CF920 QA / security / performance / accessibility",
+        "is_milestone": 0,
+        "exp_start_date": "2026-09-18 00:00:00",
+        "exp_end_date": "2026-09-23 00:00:00",
+        "depends_on_tasks": "TASK-2026-00019,"
+      },
+      {
+        "name": "TASK-2026-00021",
+        "subject": "CF920 Client review & revisions",
+        "is_milestone": 1,
+        "exp_start_date": "2026-09-23 00:00:00",
+        "exp_end_date": "2026-09-28 00:00:00",
+        "depends_on_tasks": "TASK-2026-00020,"
+      },
+      {
+        "name": "TASK-2026-00022",
+        "subject": "CF920 Hosting deployment / cutover",
+        "is_milestone": 0,
+        "exp_start_date": "2026-09-28 00:00:00",
+        "exp_end_date": "2026-10-03 00:00:00",
+        "depends_on_tasks": "TASK-2026-00021,"
+      },
+      {
+        "name": "TASK-2026-00023",
+        "subject": "CF920 Training / documentation / handover",
+        "is_milestone": 0,
+        "exp_start_date": "2026-10-03 00:00:00",
+        "exp_end_date": "2026-10-08 00:00:00",
+        "depends_on_tasks": "TASK-2026-00022,"
+      },
+      {
+        "name": "TASK-2026-00024",
+        "subject": "CF920 Acceptance / warranty closeout",
+        "is_milestone": 1,
+        "exp_start_date": "2026-10-08 00:00:00",
+        "exp_end_date": "2026-10-13 00:00:00",
+        "depends_on_tasks": "TASK-2026-00023,"
+      }
+    ],
+    "timesheet_parent_project": "PROJ-0001",
+    "timesheet_task": "TASK-2026-00013",
+    "timesheet_docstatus": 0,
+    "timesheet_create_http": 200,
+    "issue_status": "Open",
+    "issue_customer": "CF920 Synthetic Website Project Ltd",
+    "issue_project": "PROJ-0001",
+    "issue_type": "CF920 Website Support",
+    "issue_via_customer_portal": 0,
+    "project_http": 200,
+    "project_template_http": 200,
+    "task_http": 200,
+    "issue_http": 200,
+    "issue_type_http": 200,
+    "timesheet_project_linked": true,
+    "project_task_count": 12
+  },
+  "secrets_printed": false
+}

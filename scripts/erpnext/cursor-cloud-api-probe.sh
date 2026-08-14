@@ -72,6 +72,11 @@ DOCTYPES=(
   "Payment Terms"
   File
   "Print Format"
+  Project
+  "Project Template"
+  Task
+  Issue
+  "Issue Type"
 )
 
 REACHABLE=()
