@@ -9,6 +9,8 @@
 
 **Outcome:** One reusable CorpFlowAI Prospect Operations package with three coordinated views over the same `leads` records and one workflow model — without building a second CRM.
 
+**Operator CRM overlay (#701):** `docs/operations/CRM_OPERATING_BASELINE_V1.md` — everyday pipeline names, qualification templates, daily/weekly runbook, and gap matrix mapped onto this view-model. Does not replace this contract.
+
 **ANTON ACTION:** NONE for Slice 1. Schema/protected decisions only if a later slice proves a Prisma column or external-send gate is required (none proven yet).
 
 ---

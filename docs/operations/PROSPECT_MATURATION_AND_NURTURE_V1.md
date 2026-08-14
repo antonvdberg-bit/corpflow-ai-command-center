@@ -13,6 +13,8 @@
 
 **ANTON ACTION:** NONE for Slice 1. No schema, no env, no external send. Operator procedure below is manual-only.
 
+**Operator CRM overlay (#701):** `docs/operations/CRM_OPERATING_BASELINE_V1.md` uses this maturation cadence and these draft assets. It does not add a second SLA clock or a second template store.
+
 ---
 
 ## 0. Executive summary

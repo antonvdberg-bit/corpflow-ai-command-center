@@ -40,6 +40,8 @@ Canonical operator view for genuine Anton decisions: **`docs/operations/ANTON_DE
 
 **Canonical “production-grade” standard (to prevent rework):** `docs/strategy/PRODUCTION_GRADE_CLIENT_OUTCOMES.md`
 
+**CorpFlowAI business CRM (prospect pipeline, #701):** one Postgres `leads` table — no second CRM. Operator pack: **`docs/operations/CRM_OPERATING_BASELINE_V1.md`**. Reuses Prospect Operations (#721) and maturation (#713). Quotation evidence → #551; won delivery → #550 / #654. No schema, env, or live send in that pack.
+
 **This repo’s technical partner function (ongoing):**
 
 - **Curate and wire agents:** use `docs/automation-framework.md`, `docs/n8n/automation-forward-recipe.md`, CMP mirror events, and playbooks so client-visible milestones trigger **notifications, handoffs, and follow-up** without you on the laptop (`docs/EXECUTION_BRAIN_VS_HANDS.md`).
