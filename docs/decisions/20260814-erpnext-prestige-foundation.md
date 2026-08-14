@@ -20,12 +20,12 @@ Use **standard ERPNext** objects only:
 
 The real Prestige Procurement customer is **not** created here. MUR 285,000 is **not** stored as an Item Price.
 
-Live proof on 2026-08-14 as `integrations@corpflowai.com` completed the CRM + quotation path. Project / Task / Issue remain HTTP 403 until a UI Role Permissions Manager grant on role **Sales Manager**.
+Live proof on 2026-08-14 as `integrations@corpflowai.com` first completed the CRM + quotation path. After Anton’s Sales Manager Role Permissions grant the same day, the re-run created Project Template `CF920 Independent Website 12-phase`, Project `PROJ-0001`, Tasks `TASK-2026-00013`–`00024`, Timesheet `TS-2026-00001` linked to the Project, Issue Type `CF920 Website Support`, and Issue `ISS-2026-00001`. Verdict: **ERPNext PRESTIGE FOUNDATION READY.**
 
 ## Consequences
 
 - Positive: Prestige can reuse one synthetic flow; sprint SKUs stay distinct; `/change` stays the execution surface.
-- Negative / follow-ups: Anton must grant Project/Task/Issue on Sales Manager, then re-run `scripts/erpnext/apply-prestige-foundation.sh`. Payment Terms remain 403 (schedule lives in quotation terms text).
+- Negative / follow-ups: Payment Terms remain 403 (schedule lives in quotation terms text). Workflow/Notification remain inspect-denied. Real Prestige customer still requires a separate Anton approval. Merge of the evidence PR is a human decision.
 
 ## Links
 

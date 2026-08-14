@@ -25,6 +25,6 @@ Retry rule for every row: **search-before-create**. Never invent a second Custom
 | `PaymentRecord` | Sales Invoice / Payment Entry **references only** | blocked until financial-rail approval | `record_reference` | SI / PE name | Do not create SI/PE in #920 | No payment mutation |
 | Delivery / project state | Project + Task from 12-phase template | after accepted quotation | operator notes / ticket | `Project.name` / `Task.name` | One Project per accepted Customer engagement | Standard Task subjects only |
 
-`/change` remains the client-facing execution surface. ERPNext Issue, once writable, is the durable support/business ticket — not a replacement for factory evidence.
+`/change` remains the client-facing execution surface. ERPNext Issue is now writable (`ISS-2026-00001` synthetic proof) and is the durable support/business ticket — not a replacement for factory evidence.
 
 PaymentRecord must **not** be treated as GL truth. ERPNext Payment Entry after bank clearance remains the clearance gate.

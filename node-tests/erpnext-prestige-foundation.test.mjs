@@ -44,8 +44,11 @@ test('foundation config names synthetic masters and forbids live Prestige', () =
   assert.ok(cfg.forbidden_customer_names.includes('Prestige Procurement'));
   assert.ok(cfg.forbidden_item_codes_for_prestige.includes('CF-RD-LANDING-RESCUE'));
   assert.equal(cfg.bridge.no_postgres_migration, true);
-  assert.match(String(cfg.verdict), /NOT READY/);
+  assert.match(String(cfg.verdict), /READY/);
+  assert.doesNotMatch(String(cfg.verdict), /NOT READY/);
   assert.equal(cfg.live_proof.quotation, 'SAL-QTN-2026-00004');
+  assert.equal(cfg.live_proof.project, 'PROJ-0001');
+  assert.equal(cfg.live_proof.issue, 'ISS-2026-00001');
   const files = [
     'docs/erpnext/ERPNEXT_PRESTIGE_FOUNDATION_V1.md',
     'docs/erpnext/ERPNEXT_CORPFLOW_BRIDGE_CONTRACT_V1.md',
@@ -57,7 +60,9 @@ test('foundation config names synthetic masters and forbids live Prestige', () =
   const doc = read('docs/erpnext/ERPNEXT_PRESTIGE_FOUNDATION_V1.md');
   assert.ok(doc.includes('<!-- ERPNEXT_PRESTIGE_FOUNDATION_V1 -->'));
   assert.ok(doc.includes('SAL-QTN-2026-00004'));
-  assert.ok(doc.includes('Project/Task/Issue Role Permission grant is UI-only'));
+  assert.ok(doc.includes('PROJ-0001'));
+  assert.ok(doc.includes('ISS-2026-00001'));
+  assert.ok(doc.includes('ERPNext PRESTIGE FOUNDATION READY'));
   assert.ok(!/sk_live|ERPNEXT_API_SECRET\s*[:=]\s*\S+/.test(doc));
 });
 
@@ -161,8 +166,12 @@ test('live apply-log captures synthetic IDs and no secret values', () => {
   assert.equal(log.secrets_printed, false);
   assert.equal(log.readback.ids.quotation, cfg.live_proof.quotation);
   assert.equal(log.readback.ids.customer, cfg.live_proof.customer);
-  assert.equal(log.readback.project_http, 403);
-  assert.equal(log.readback.issue_http, 403);
+  assert.equal(log.readback.ids.project, 'PROJ-0001');
+  assert.equal(log.readback.ids.issue, 'ISS-2026-00001');
+  assert.equal(log.readback.project_http, 200);
+  assert.equal(log.readback.issue_http, 200);
+  assert.equal(log.readback.project_task_count, 12);
+  assert.equal(log.readback.timesheet_project_linked, true);
   const blob = JSON.stringify(log);
   assert.doesNotMatch(blob, /sk_live|eyJhbGci|postgres:\/\//i);
   assert.doesNotMatch(blob, /ERPNEXT_API_SECRET":\s*"[^"]+"/);

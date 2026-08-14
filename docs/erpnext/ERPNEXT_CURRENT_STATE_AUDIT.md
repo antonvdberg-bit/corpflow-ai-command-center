@@ -89,8 +89,8 @@ Classification key:
 
 | Capability | Class | Evidence / notes |
 | ---------- | ----- | ---------------- |
-| Project + Task / WBS | **CONFIGURED BUT NOT VERIFIED** | #920: 12-phase template specified; Project / Project Template / Task HTTP 403 for `integrations@corpflowai.com` |
-| Issue / support ticket | **CONFIGURED BUT NOT VERIFIED** | #920: Issue + Issue Type HTTP 403; `/change` remains execution surface |
+| Project + Task / WBS | **LIVE AND VERIFIED** (synthetic) | #920: Project Template `CF920 Independent Website 12-phase`; Project `PROJ-0001`; Tasks `TASK-2026-00013`–`00024` with dates/depends_on + four milestones |
+| Issue / support ticket | **LIVE AND VERIFIED** (synthetic) | #920: Issue Type `CF920 Website Support`; Issue `ISS-2026-00001` Open, customer+project linked; `/change` remains execution surface |
 | Production release milestone | **DOCUMENTED ONLY** | Template exists |
 | CorpFlow preview URL linkage | **LIVE AND VERIFIED** | Tenant/Vercel preview surfaces |
 

@@ -721,6 +721,21 @@ else:
                 limit=50,
             )
             project_task_ids = [t.get("name") for t in project_tasks if t.get("name")]
+        milestone_subjects = {
+            f"CF920 {spec['subject']}"
+            for spec in cfg["project_template_tasks"]
+            if spec.get("milestone")
+        }
+        for t in list(project_tasks):
+            if t.get("name") and t.get("subject") in milestone_subjects and not t.get("is_milestone"):
+                put_doc("Task", t.get("name"), {"is_milestone": 1})
+        tc, project_tasks = list_names(
+            "Task",
+            ["name", "subject", "is_milestone", "exp_start_date", "exp_end_date", "depends_on_tasks"],
+            filters=[["project", "=", project_id]],
+            limit=50,
+        )
+        project_task_ids = [t.get("name") for t in project_tasks if t.get("name")]
         evidence["readback"]["project_tasks"] = [
             {
                 "name": t.get("name"),

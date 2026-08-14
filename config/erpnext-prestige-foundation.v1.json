@@ -4,7 +4,7 @@
   "issue": 920,
   "parents": [918, 919, 882, 881, 880],
   "environment": "corpflow_test",
-  "verdict": "NOT READY — Project/Task/Issue Role Permission grant is UI-only",
+  "verdict": "ERPNext PRESTIGE FOUNDATION READY",
   "live_proof": {
     "identity": "integrations@corpflowai.com",
     "lead": "CRM-LEAD-2026-00002",
@@ -20,8 +20,13 @@
     "quotation_docstatus": 0,
     "timesheet": "TS-2026-00001",
     "timesheet_docstatus": 0,
-    "project": null,
-    "issue": null
+    "timesheet_parent_project": "PROJ-0001",
+    "timesheet_task": "TASK-2026-00013",
+    "project": "PROJ-0001",
+    "project_template": "CF920 Independent Website 12-phase",
+    "issue": "ISS-2026-00001",
+    "issue_type": "CF920 Website Support",
+    "issue_status": "Open"
   },
   "description": "Standard ERPNext operating foundation for the Prestige custom-website flow: CRM, MUR quotation path, reusable 12-phase project/task model, support Issue path, and the first CorpFlowAI↔ERPNext bridge contract. Synthetic/test records only. No custom DocTypes. No real Prestige client. No submit/send/payment.",
   "company": {
@@ -160,11 +165,6 @@
       "Accounts User"
     ],
     "blocked_doctypes": [
-      "Project",
-      "Project Template",
-      "Task",
-      "Issue",
-      "Issue Type",
       "Employee",
       "Activity Type",
       "Workflow",
@@ -236,7 +236,7 @@
         "idempotency": "Search Issue by subject containing cmp_tickets.id; create once.",
         "conflict_authority": "ERPNext Issue is the durable support ticket. CmpTicket /change remains the execution/evidence surface.",
         "retry": "Do not duplicate Issues. Keep console_json and technical_lead_audits in CorpFlowAI.",
-        "audit": "Bridge is mapping-only until Issue write is granted."
+        "audit": "Issue ISS-2026-00001 proved create/read as integrations@corpflowai.com. Bridge remains mapping-only; no cmp_tickets migration."
       },
       {
         "id": "payment_record",
@@ -259,8 +259,8 @@
         "erpnext_key": "Project.name / Task.name",
         "idempotency": "One Project per accepted Customer engagement; search by project_name + customer.",
         "conflict_authority": "ERPNext Project/Task for commercial delivery plan; CorpFlowAI for preview URLs and execution evidence.",
-        "retry": "Safe after Project write is granted.",
-        "audit": "Template tasks are standard Task subjects only — no custom fields."
+        "retry": "Search-before-create by project_name + customer. Template CF920 Independent Website 12-phase is reusable.",
+        "audit": "Live synthetic Project PROJ-0001 + 12 Tasks TASK-2026-00013..00024. No custom fields."
       }
     ]
   },
