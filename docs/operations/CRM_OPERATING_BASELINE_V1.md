@@ -1,9 +1,9 @@
 # CorpFlowAI CRM operating baseline v1
 
-**Status:** Operator pack for GitHub **#701**. Documentation + configuration mapping only.  
-**Controller:** [#710](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/710) (August revenue activation).  
-**Machine contract:** `config/crm-operating-baseline.v1.json` · `lib/prospects/crm-operating-baseline.js`  
-**Reuse (do not replace):** `docs/operations/PROSPECT_OPERATIONS_V1.md` (#721), `docs/operations/PROSPECT_MATURATION_AND_NURTURE_V1.md` (#713).  
+**Status:** Operator pack for GitHub **#701**. Documentation + configuration mapping only.
+**Controller:** [#710](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/710) (August revenue activation).
+**Machine contract:** `config/crm-operating-baseline.v1.json` · `lib/prospects/crm-operating-baseline.js`
+**Reuse (do not replace):** `docs/operations/PROSPECT_OPERATIONS_V1.md` (#721), `docs/operations/PROSPECT_MATURATION_AND_NURTURE_V1.md` (#713).
 **Templates:** `docs/operations/templates/crm-operating-templates.md`
 
 **ANTON ACTION: NONE.** No schema, env, secret, payment, or live-send change is required to use this baseline.
@@ -70,7 +70,7 @@ Issue #701 asked for everyday names. Those names **overlay** the canonical stage
 | **Nurture / follow-up** | `stalled` | Timing wrong; relationship still open | Reactivate or close | Value-first check-in from **draft** templates only |
 | **Closed** | `lost` / `not_fit` (and delivery-complete tickets) | Terminal outcome recorded | Genuine reactivation only | None |
 
-Full arrays: `config/crm-operating-baseline.v1.json` § `business_stages`.  
+Full arrays: `config/crm-operating-baseline.v1.json` § `business_stages`.
 Entry/exit for the canonical keys: `config/prospect-maturation.v1.json`.
 
 **Cadence (already in maturation — do not invent a second clock)**
@@ -190,14 +190,14 @@ Drafts are `send: false`. This pack does **not** authorise email, WhatsApp, or S
 
 Use `docs/operations/templates/crm-operating-templates.md` for:
 
-- Lead summary  
-- Qualification summary  
-- Discovery call notes  
-- Follow-up draft  
-- Quotation handoff (#551)  
-- Won / lost reason  
-- Delivery handoff (#550 / #654)  
-- Weekly pipeline summary  
+- Lead summary
+- Qualification summary
+- Discovery call notes
+- Follow-up draft
+- Quotation handoff (#551)
+- Won / lost reason
+- Delivery handoff (#550 / #654)
+- Weekly pipeline summary
 
 Message drafts that already exist (acknowledgement, nurture, objection, lost-close) stay in `config/prospect-draft-assets.v1.json` so we do not duplicate a second template store.
 

@@ -1,7 +1,7 @@
 # CRM operating templates
 
-**Use with:** `docs/operations/CRM_OPERATING_BASELINE_V1.md`  
-**Issue:** #701  
+**Use with:** `docs/operations/CRM_OPERATING_BASELINE_V1.md`
+**Issue:** #701
 **Rule:** Synthetic or redacted details only in GitHub. No live send from these drafts.
 
 Fill the blanks. Leave unknown fields as `unknown` — do not guess values.
@@ -109,7 +109,7 @@ Lead Rescue calls: also follow `docs/sales/AI_LEAD_RESCUE_DISCOVERY_CALL_SCRIPT.
 
 ## Follow-up draft (operator sends manually)
 
-Channel: WhatsApp / email / other (operator chooses)  
+Channel: WhatsApp / email / other (operator chooses)
 **System send: no**
 
 ```text
@@ -166,7 +166,7 @@ Delivery issue (won only):
 
 ## Delivery handoff
 
-**Lead Rescue → #550 / #715**  
+**Lead Rescue → #550 / #715**
 **Website Rescue → #654 / #716**
 
 ```text
@@ -189,8 +189,8 @@ Onboarding intake files:
 
 ## Weekly pipeline summary
 
-Week of (UTC):  
-Prepared by:  
+Week of (UTC):
+Prepared by:
 **No fabricated values.** Write `unknown` when the row has no number.
 
 ```text
