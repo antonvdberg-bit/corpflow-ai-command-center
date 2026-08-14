@@ -10,9 +10,9 @@ This directory is the independent GitHub/repo ledger for ERP strategy and (later
 
 | Record | Path | Status |
 |--------|------|--------|
-| ERP Strategy / Vision v2 | [`docs/governance/erpnext/VISION_AND_INTENDED_USE.md`](./VISION_AND_INTENDED_USE.md) | **DRAFT FOR ANTON APPROVAL** |
+| ERP Strategy / Vision v2 | [`docs/governance/erpnext/VISION_AND_INTENDED_USE.md`](./VISION_AND_INTENDED_USE.md) | **APPROVED — VERSION 2** |
 
-Do not treat the vision as approved until Anton explicitly approves the synthesized document.
+Anton approved Version 2 on 2026-08-14 12:54 +04:00. Evidence: [#954 comment 5291438473](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/954#issuecomment-5291438473) and merged [PR #957](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/957). Repo status recorded by [#960](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/960).
 
 ## Agent discovery
 
@@ -29,5 +29,6 @@ Do not copy the full doctrine into `AGENTS.md`, Cursor rules, or OpenAI/operator
 - Programme: [#953](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/953)
 - Governance record environment: [#954](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/954)
 - This publish packet: [#955](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/955)
+- Approval-status packet: [#960](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/960)
 
 Historical meaning in #954 comments must remain intact. Corrections belong in the synthesized vision as explicit interpretation.
