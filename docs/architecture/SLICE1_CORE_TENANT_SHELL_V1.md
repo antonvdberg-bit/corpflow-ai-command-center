@@ -19,8 +19,9 @@
 | Surface | Path | Auth |
 | ------- | ---- | ---- |
 | Entry chooser | `/app` | Links only — no shared session switch |
-| Core app | `/app/core` | Existing Core/admin session (`typ=admin`) |
-| Tenant app | `/app/tenant` | Existing tenant session (`typ=tenant`, CorpFlowAI) |
+| Core app | `/app/core` | Existing Core/admin session (`typ=admin`). Product name: Operating Workspace (#772). |
+| Tenant app | `/app/tenant` | Existing tenant session (`typ=tenant`, CorpFlowAI). Product name: Tenant Workspace (#772). |
+| Prospect Operations | `/app/prospects` | Operating Workspace / Core session only (#772 first slice) |
 | Core nav | My Work · Tenants · Requests · Delivery · Approvals · Releases · Operations | Within Core; Delivery/Operations link to `/change` |
 | Tenant nav | Home · My Work · Requests & Progress · Documents · Reports · Support | Within Tenant only |
 | APIs | `/api/app/shell`, `/requests`, `/request`, `/component-review`, `/component-expose` | Environment-gated |

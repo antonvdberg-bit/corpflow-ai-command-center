@@ -279,7 +279,9 @@ Protected (blocked in shared helper): external send, authoritative payment mark,
 
 ## 9. Design-system / shell note (#720)
 
-P0 applies the **smallest shared semantic tokens** (status/priority labels, signal names, action patterns) via the view-model + thin CSS variables in `components/prospect-ops/` in later slices. Full CorpFlowAI Operating Workspace shell is doctrine-owned by #720 and must not delay function.
+P0 applies the **smallest shared semantic tokens** (status/priority labels, signal names, action patterns) via the view-model + thin CSS variables in `components/prospect-ops/` in later slices. Full CorpFlowAI Operating Workspace shell is doctrine-owned by #720 / #772 and must not delay function.
+
+**#772 first visible route:** `/app/prospects` (Operating Workspace, staff-only) reuses this view-model. Product desks at `/admin/lead-rescue` and `/admin/rapid-delivery` remain temporary sources until later slices. See `docs/architecture/OPERATING_TENANT_WORKSPACE_CONSOLIDATION_V1.md`.
 
 ---
 
