@@ -57,7 +57,7 @@ An Administrator / System Manager can still alter ERPNext application records an
 | C-CH-02 | No custom DocType / schema from programme packets | Anton / Cursor | **PROVEN** | #966 / Version 2 boundary |
 | C-CH-03 | No production accounting / tax / bank / payment mutation without exact Anton approval | Anton | **PROVEN** (gate) | Stop at the exact consequential action |
 | C-CH-04 | No live email / WhatsApp / SMS / outreach from this environment | Cursor | **PROVEN** (non-action) | Do not enable Notification / Workflow for the programme Project |
-| C-CH-05 | Frappe Version / form timeline on the internal Project | Cursor | *filled after Workstream C probe* | One synthetic note append; record blocker if unread |
+| C-CH-05 | Frappe Version / form timeline on the internal Project | Cursor | **NOT PROVEN** | `VERSION_TRAIL_UNREADABLE`: Version + Comment HTTP 403; getdoc timeline empty. Note stamp on `PROJ-0002` is readable. Do not enable site-wide tracking. |
 | C-CH-06 | Protected operating-doctrine paths unchanged by this packet | Cursor | **PROVEN** | `docs/governance/erpnext/*` registers are not in `config/protected-operating-doctrine.v1.json` |
 
 ---
@@ -77,7 +77,7 @@ An Administrator / System Manager can still alter ERPNext application records an
 
 | ID | Control | Owner | Mark | Next action |
 |----|---------|-------|------|-------------|
-| C-PRG-01 | One internal Project; search-before-create | Cursor | **PARTIAL** until live apply | `scripts/erpnext/apply-governance-programme.sh` |
-| C-PRG-02 | Vision task marked complete with GitHub strategy reference | Cursor | **PARTIAL** until live apply | Link `VISION_AND_INTENDED_USE.md` + #954 approval comment |
+| C-PRG-01 | One internal Project; search-before-create | Cursor | **PROVEN** | `PROJ-0002` created 2026-08-16; re-run must reuse |
+| C-PRG-02 | Vision task marked complete with GitHub strategy reference | Cursor | **PROVEN** | `TASK-2026-00025` status Completed |
 | C-PRG-03 | No client portal / no Project Update emails | Cursor | **PROVEN** (design) | Confirm on read-back (`collect_progress` / portal fields off or absent) |
 | C-PRG-04 | Evidence artefacts contain no secrets | Cursor | **PROVEN** (test) | `node-tests/erpnext-governance-programme.test.mjs` |

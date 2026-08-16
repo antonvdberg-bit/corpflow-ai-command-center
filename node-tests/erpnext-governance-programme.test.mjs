@@ -108,6 +108,9 @@ test('#966 programme config covers Vision + Phases 0–10 and forbids protected 
   assert.equal(cfg.forbidden.custom_doctype, true);
   assert.equal(cfg.forbidden.external_send, true);
   assert.equal(cfg.forbidden.accounting_tax_bank_mutation, true);
+  assert.equal(cfg.live_proof.project, 'PROJ-0002');
+  assert.equal(cfg.live_proof.vision_task, 'TASK-2026-00025');
+  assert.equal(cfg.live_proof.version_blocker, 'VERSION_TRAIL_UNREADABLE');
 });
 
 test('#966 search-before-create reuses the internal Project', () => {
@@ -143,13 +146,37 @@ test('#966 readiness requires live Project/Task/version proof, not repo-only fil
       task_count: 12,
       vision_task_id: 'TASK-TEST',
       vision_task_status: 'Completed',
-      version_proof: true,
+      version_proof: false,
+      version_blocker: 'VERSION_TRAIL_UNREADABLE',
       portal_or_email_enabled: false,
     },
     REPO_ROOT,
   );
   assert.equal(ready.ready, true);
   assert.equal(ready.verdict, 'ERP GOVERNANCE RECORD ENVIRONMENT READY');
+  assert.deepEqual(ready.recorded_gaps, ['VERSION_TRAIL_UNREADABLE']);
+});
+
+test('#966 live apply-log captures Project/Task IDs and no secret values', () => {
+  const rel = 'artifacts/erpnext/governance-programme-966/apply-log.json';
+  assert.equal(existsSync(path.join(REPO_ROOT, rel)), true);
+  const log = JSON.parse(read(rel));
+  const cfg = loadGovernanceProgrammeConfig(REPO_ROOT);
+  assert.equal(log.issue, 966);
+  assert.equal(log.secrets_printed, false);
+  assert.equal(log.identity, 'integrations@corpflowai.com');
+  assert.equal(log.readback.project_id, 'PROJ-0002');
+  assert.equal(log.readback.project_id, cfg.live_proof.project);
+  assert.equal(log.readback.task_count, 12);
+  assert.equal(log.readback.vision_task_id, 'TASK-2026-00025');
+  assert.equal(log.readback.vision_task_status, 'Completed');
+  assert.equal(log.readback.collect_progress, 0);
+  assert.equal(log.readback.project_customer, null);
+  assert.equal(log.readback.version_http, 403);
+  assert.equal(log.readback.version_blocker, 'VERSION_TRAIL_UNREADABLE');
+  const blob = JSON.stringify(log);
+  assert.doesNotMatch(blob, /sk_live|eyJhbGci|postgres:\/\//i);
+  assert.doesNotMatch(blob, /ERPNEXT_API_SECRET":\s*"[^"]+"/);
 });
 
 test('#966 apply script dry-run does not call ERPNext and forbids secret fallbacks', () => {

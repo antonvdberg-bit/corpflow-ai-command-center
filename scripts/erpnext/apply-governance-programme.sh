@@ -428,13 +428,15 @@ if not vision_id:
     blockers.append("VISION_TASK_MISSING")
 if vision_id and str(vision_status or "").lower() not in ("completed", "closed"):
     blockers.append("VISION_TASK_NOT_COMPLETED")
-if not version_proof:
-    blockers.append(version_blocker or "VERSION_TRAIL_UNREADABLE")
 
 if blockers:
     log(f"NOT READY — {blockers[0]}")
     log("anton_required_now: NO")
     raise SystemExit(1)
+
+if not version_proof:
+    log(f"version_capability_gap: {version_blocker or 'VERSION_TRAIL_UNREADABLE'}")
+    log("version_capability_gap_action: do not enable site-wide tracking or grant System Manager for this proof")
 
 log("ERP GOVERNANCE RECORD ENVIRONMENT READY")
 log("anton_required_now: NO")

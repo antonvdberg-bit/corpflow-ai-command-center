@@ -27,7 +27,7 @@ Marks used on each row:
 | Field | Value |
 |-------|--------|
 | Project name | `CorpFlowAI ERPNext Business-Critical Adoption Programme` |
-| ERPNext Project ID | *filled after live apply — see `artifacts/erpnext/governance-programme-966/`* |
+| ERPNext Project ID | `PROJ-0002` |
 | Company | `CorpFlowAI LTD` (internal; no client Customer) |
 | Customer / portal | None. Do not enable customer portal or Project Update emails. |
 | Identity used | `integrations@corpflowai.com` |
@@ -53,7 +53,24 @@ Marks used on each row:
 | 10 | `Phase 9 — Go-live approval` | 9 | Not started | Separate Anton approval for any `client_production` or irreplaceable cutover. | **REQUIRES DECISION** |
 | 11 | `Phase 10 — Post-go-live control` | 10 | Not started | Patch cadence, restore drills, access reviews — after go-live approval. | **NOT PROVEN** |
 
-ERPNext Task names (`TASK-…`) are written into `artifacts/erpnext/governance-programme-966/apply-log.json` after a successful apply. Re-runs must reuse, not duplicate.
+Live Task IDs from the 2026-08-16 apply as `integrations@corpflowai.com` (re-runs must reuse):
+
+| Subject | Task ID | Status |
+|---------|---------|--------|
+| ERP Vision and Intended Use — Executive Statement | `TASK-2026-00025` | Completed |
+| Phase 0 — Programme charter and decision record | `TASK-2026-00026` | Open |
+| Phase 1 — Environment and platform baseline | `TASK-2026-00027` | Open |
+| Phase 2 — Company foundation | `TASK-2026-00028` | Open |
+| Phase 3 — Identity, access and segregation of duties | `TASK-2026-00029` | Open |
+| Phase 4 — Master data | `TASK-2026-00030` | Open |
+| Phase 5 — Business process configuration | `TASK-2026-00031` | Open |
+| Phase 6 — CorpFlowAI integration / reconciliation | `TASK-2026-00032` | Open |
+| Phase 7 — Data migration and cutover | `TASK-2026-00033` | Open |
+| Phase 8 — User acceptance / operational readiness | `TASK-2026-00034` | Open |
+| Phase 9 — Go-live approval | `TASK-2026-00035` | Open |
+| Phase 10 — Post-go-live control | `TASK-2026-00036` | Open |
+
+Read-back: no Customer, `collect_progress=0`, Notification/Workflow inspect HTTP 403 (not enabled). Artifact: `artifacts/erpnext/governance-programme-966/apply-log.json`.
 
 ---
 
@@ -75,10 +92,13 @@ ERPNext Task names (`TASK-…`) are written into `artifacts/erpnext/governance-p
 
 Standard Frappe `Version` / form timeline is used **only if already readable**. This packet does not enable site-wide tracking or paid compliance products.
 
-| Check | Expected |
-|-------|----------|
-| One internal Project or Task note append | Retrievable Version or form `docinfo` timeline row |
-| If Version / getdoc is HTTP 403 | Record `NOT READY — VERSION_TRAIL_UNREADABLE` as the exact standard-capability blocker |
+| Check | Result 2026-08-16 |
+|-------|-------------------|
+| One internal Project note append (`CF966 governance stamp`) | **PROVEN** on `PROJ-0002.notes` via GET Project / getdoc |
+| Frappe `Version` list | HTTP **403** to `integrations@corpflowai.com` |
+| getdoc `docinfo.versions` / `comments` | HTTP 200, both **empty** |
+| Comment create | HTTP **403** (doctype access denied) |
+| Exact standard-capability blocker | `VERSION_TRAIL_UNREADABLE` — do **not** enable site-wide tracking or grant System Manager for this proof |
 | Secrets in evidence | Forbidden |
 
 ---

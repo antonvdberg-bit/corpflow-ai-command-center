@@ -144,9 +144,25 @@
     }
   ],
   "live_proof": {
-    "identity": null,
-    "project": null,
-    "tasks": {},
-    "version_proof": null
+    "identity": "integrations@corpflowai.com",
+    "project": "PROJ-0002",
+    "vision_task": "TASK-2026-00025",
+    "vision_status": "Completed",
+    "tasks": {
+      "vision": "TASK-2026-00025",
+      "phase-0": "TASK-2026-00026",
+      "phase-1": "TASK-2026-00027",
+      "phase-2": "TASK-2026-00028",
+      "phase-3": "TASK-2026-00029",
+      "phase-4": "TASK-2026-00030",
+      "phase-5": "TASK-2026-00031",
+      "phase-6": "TASK-2026-00032",
+      "phase-7": "TASK-2026-00033",
+      "phase-8": "TASK-2026-00034",
+      "phase-9": "TASK-2026-00035",
+      "phase-10": "TASK-2026-00036"
+    },
+    "version_proof": false,
+    "version_blocker": "VERSION_TRAIL_UNREADABLE"
   }
 }

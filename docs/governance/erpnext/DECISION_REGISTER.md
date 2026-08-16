@@ -132,6 +132,6 @@ Retention: do not delete a decision or evidence row merely because it was supers
 | Risks / tradeoffs | Live Project create is a standard ERPNext write on the hosted test site. Not accounting/tax/bank. Duplicate Project risk mitigated by search-before-create. |
 | Approver | Pending Anton merge of the #966 PR |
 | GitHub implementation | This folder + `config/erpnext-governance-programme.v1.json` |
-| ERPNext Project / Task | See evidence index after live apply |
+| ERPNext Project / Task | `PROJ-0002` / Vision `TASK-2026-00025` |
 | Verification evidence | Focused `node --test` + apply-log (no secrets) |
 | Supersedes / superseded-by | Completes the “artefacts not created by #955” note. Does **not** supersede Version 2. |
