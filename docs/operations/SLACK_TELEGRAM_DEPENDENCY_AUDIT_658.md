@@ -156,3 +156,11 @@ node --test node-tests/post-control-loop-telegram-alert.test.mjs
 | No client/tenant/revenue Slack dependency | **Verified in repo** |
 | Validate exception alerts after retirement | **Anton** after Packet A |
 | Rollback evidence | **§7 + Anton packets** |
+
+---
+
+## 9. Server/runtime follow-up (2026-08-16)
+
+Live n8n Slack workflow archive + credential deletion are recorded on #658. Cursor Cloud cannot inventory `corpflow-exec-01-u69678` (`HOST_MISMATCH`).
+
+Evidence packet: `docs/operations/SLACK_SERVER_RETIREMENT_AUDIT_658.md`.
