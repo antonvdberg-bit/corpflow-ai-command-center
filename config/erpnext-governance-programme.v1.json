@@ -1,0 +1,152 @@
+{
+  "schema": "corpflow.erpnext.governance_programme.v1",
+  "version": "v1",
+  "issue": 966,
+  "parents": [953, 954, 955, 960, 956, 920],
+  "environment": "corpflow_test",
+  "verdict_ready": "ERP GOVERNANCE RECORD ENVIRONMENT READY",
+  "verdict_not_ready_prefix": "NOT READY — ",
+  "description": "Internal CorpFlowAI ERPNext implementation programme: one standard Project plus Vision and Phase 0–10 Tasks. GitHub remains the durable governance ledger. No custom DocTypes, no client portal, no external send, no accounting/tax/bank mutation.",
+  "company": {
+    "name": "CorpFlowAI LTD"
+  },
+  "project": {
+    "project_name": "CorpFlowAI ERPNext Business-Critical Adoption Programme",
+    "naming_series": "PROJ-.####",
+    "percent_complete_method": "Task Completion",
+    "customer": null,
+    "collect_progress": 0,
+    "notes_prefix": "corpflow.erpnext.governance_programme.v1 | issue=966 | INTERNAL | no client portal | no Project Update email | GitHub durable ledger"
+  },
+  "forbidden": {
+    "custom_doctype": true,
+    "client_portal": true,
+    "external_send": true,
+    "accounting_tax_bank_mutation": true,
+    "live_prestige_customer": true,
+    "secret_values_in_repo": true
+  },
+  "vision_task_subject": "ERP Vision and Intended Use — Executive Statement",
+  "vision_github_refs": [
+    "https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/954#issuecomment-5291438473",
+    "docs/governance/erpnext/VISION_AND_INTENDED_USE.md",
+    "https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/957",
+    "https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/960"
+  ],
+  "tasks": [
+    {
+      "seq": 0,
+      "id": "vision",
+      "subject": "ERP Vision and Intended Use — Executive Statement",
+      "phase": "charter",
+      "is_milestone": 1,
+      "target_status": "Completed",
+      "github": ["#954", "#955", "#960", "#957", "#961"]
+    },
+    {
+      "seq": 1,
+      "id": "phase-0",
+      "subject": "Phase 0 — Programme charter and decision record",
+      "phase": 0,
+      "is_milestone": 1,
+      "target_status": "Open",
+      "github": ["#953", "#954", "#966"]
+    },
+    {
+      "seq": 2,
+      "id": "phase-1",
+      "subject": "Phase 1 — Environment and platform baseline",
+      "phase": 1,
+      "is_milestone": 0,
+      "target_status": "Open",
+      "github": ["#956", "#958"]
+    },
+    {
+      "seq": 3,
+      "id": "phase-2",
+      "subject": "Phase 2 — Company foundation",
+      "phase": 2,
+      "is_milestone": 0,
+      "target_status": "Open",
+      "github": ["#880", "#882", "#920"]
+    },
+    {
+      "seq": 4,
+      "id": "phase-3",
+      "subject": "Phase 3 — Identity, access and segregation of duties",
+      "phase": 3,
+      "is_milestone": 0,
+      "target_status": "Open",
+      "github": ["#899", "#956"]
+    },
+    {
+      "seq": 5,
+      "id": "phase-4",
+      "subject": "Phase 4 — Master data",
+      "phase": 4,
+      "is_milestone": 0,
+      "target_status": "Open",
+      "github": ["#880", "#881", "#920"]
+    },
+    {
+      "seq": 6,
+      "id": "phase-5",
+      "subject": "Phase 5 — Business process configuration",
+      "phase": 5,
+      "is_milestone": 0,
+      "target_status": "Open",
+      "github": ["#920", "#919", "#882"]
+    },
+    {
+      "seq": 7,
+      "id": "phase-6",
+      "subject": "Phase 6 — CorpFlowAI integration / reconciliation",
+      "phase": 6,
+      "is_milestone": 0,
+      "target_status": "Open",
+      "github": ["#920", "#701", "#918"]
+    },
+    {
+      "seq": 8,
+      "id": "phase-7",
+      "subject": "Phase 7 — Data migration and cutover",
+      "phase": 7,
+      "is_milestone": 0,
+      "target_status": "Open",
+      "github": ["#953"]
+    },
+    {
+      "seq": 9,
+      "id": "phase-8",
+      "subject": "Phase 8 — User acceptance / operational readiness",
+      "phase": 8,
+      "is_milestone": 0,
+      "target_status": "Open",
+      "github": ["#953"]
+    },
+    {
+      "seq": 10,
+      "id": "phase-9",
+      "subject": "Phase 9 — Go-live approval",
+      "phase": 9,
+      "is_milestone": 1,
+      "target_status": "Open",
+      "github": ["#953"]
+    },
+    {
+      "seq": 11,
+      "id": "phase-10",
+      "subject": "Phase 10 — Post-go-live control",
+      "phase": 10,
+      "is_milestone": 1,
+      "target_status": "Open",
+      "github": ["#953", "#956"]
+    }
+  ],
+  "live_proof": {
+    "identity": null,
+    "project": null,
+    "tasks": {},
+    "version_proof": null
+  }
+}
