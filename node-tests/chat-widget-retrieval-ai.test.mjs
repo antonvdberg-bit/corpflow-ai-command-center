@@ -196,7 +196,16 @@ test('ai disabled returns ai_disabled mode', async () => {
   assert.equal(result.mode, AI_USAGE_MODES.AI_DISABLED);
 });
 
-test('retrieval preview or groq path returns answer for location question', async () => {
+test('retrieval preview or groq path returns answer for location question', async (t) => {
+  const previousFetch = globalThis.fetch;
+  t.after(() => {
+    globalThis.fetch = previousFetch;
+  });
+  // Agent CI injects GROQ_API_KEY via Infisical. Unit tests must not call live Groq.
+  globalThis.fetch = async () => {
+    throw new Error('unit_test_blocks_live_groq');
+  };
+
   const prisma = makeFakePrisma(
     [
       sampleAtom({
@@ -215,15 +224,46 @@ test('retrieval preview or groq path returns answer for location question', asyn
     question: 'Where is Living Word church located?',
     now: NOW,
   });
-  assert.ok(
-    result.mode === AI_USAGE_MODES.RETRIEVAL_PREVIEW || result.mode === AI_USAGE_MODES.GROQ_LLM,
-    `expected preview or groq, got ${result.mode}`,
-  );
+  assert.equal(result.mode, AI_USAGE_MODES.RETRIEVAL_PREVIEW);
   assert.ok(result.contextAtomIds.includes('atom_loc'));
-  if (!isGroqConfigured()) {
-    assert.equal(result.mode, AI_USAGE_MODES.RETRIEVAL_PREVIEW);
-    assert.match(result.answer, /Grand Baie|approved church records/i);
-  }
+  assert.match(result.answer, /Grand Baie|approved church records/i);
+});
+
+test('groq live failure with retrieved context falls back to retrieval preview', async (t) => {
+  const previousKey = process.env.GROQ_API_KEY;
+  const previousFetch = globalThis.fetch;
+  t.after(() => {
+    globalThis.fetch = previousFetch;
+    if (previousKey === undefined) delete process.env.GROQ_API_KEY;
+    else process.env.GROQ_API_KEY = previousKey;
+  });
+  process.env.GROQ_API_KEY = 'unit-test-placeholder-not-a-secret';
+  globalThis.fetch = async () => {
+    throw new Error('unit_test_simulates_groq_outage');
+  };
+
+  const prisma = makeFakePrisma(
+    [
+      sampleAtom({
+        id: 'atom_loc_fallback',
+        category: 'location',
+        title: 'Church location',
+        summary: 'Grand Baie',
+        body: 'Richmond Hill Building, Grand Baie.',
+      }),
+    ],
+    [],
+  );
+  const result = await answerChatWidgetQuestion(prisma, {
+    cfg: baseCfg(),
+    threadId: 'thread_loc_fallback',
+    question: 'Where is Living Word church located?',
+    now: NOW,
+  });
+  assert.equal(isGroqConfigured(), true);
+  assert.equal(result.mode, AI_USAGE_MODES.RETRIEVAL_PREVIEW);
+  assert.ok(result.contextAtomIds.includes('atom_loc_fallback'));
+  assert.match(result.answer, /Grand Baie|approved church records/i);
 });
 
 test('sanitiseVisitorQuestion caps length', () => {
