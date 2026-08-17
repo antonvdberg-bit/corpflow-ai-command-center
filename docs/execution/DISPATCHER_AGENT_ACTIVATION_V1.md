@@ -172,13 +172,13 @@ Dispatcher-sourced scheduled `cursor_live` candidates must include a structured 
 | `business_outcome` | Named commercial or delivery outcome. |
 | `linked_issue_or_ticket` | GitHub issue, PR, or `/change` ticket. |
 | `delivery_surface` | Exact app, admin, client, or operator surface affected. |
-| `evidence_required` | Preview URL, live URL, endpoint result, screenshot, test, or runtime proof. |
+| `evidence_required` | Live corpflow_test URL, endpoint result, screenshot, test, or runtime proof on the actual test surface. A Vercel Preview URL is optional internal sandboxing only — not required for CorpFlowAI test-only work (#973). |
 | `cost_risk_cap` | Why this is safe within the current Cursor spend cap. |
 | `allowed_category` | One of: `revenue`, `client-delivery`, `production-verification`, `lead-rescue`, `lux-recovery`, `paid-pilot`, `ops-unblocker`. |
 
 Block-by-default routing remains in force for docs-only work without delivery evidence, architecture essays, speculative refactors, experimental frameworks, new tools/vendors, new app/database surfaces, polish without client/revenue impact, and anything lacking evidence requirements.
 
-**Runtime packets cannot be satisfied by docs-only PRs.** Per `docs/operations/CORPFLOWAI_BUSINESS_SURVIVAL_OPERATING_DOCTRINE.md` §3–§4, an activated packet classified as runtime / client-visible is only satisfied by a PR with runtime evidence (preview URL, live URL, endpoint result, screenshot, or test output against the actual surface). A docs-only PR against such a packet is a failed packet, not a completed one.
+**Runtime packets cannot be satisfied by docs-only PRs.** Per `docs/operations/CORPFLOWAI_BUSINESS_SURVIVAL_OPERATING_DOCTRINE.md` §3–§4, an activated packet classified as runtime / client-visible is only satisfied by a PR with runtime evidence (live corpflow_test URL, endpoint result, screenshot, or test output against the actual surface). A Vercel Preview URL is optional and is not required to complete a corpflow_test packet. A docs-only PR against such a packet is a failed packet, not a completed one.
 
 **Operational kill switch:** production Wake Proof does not use `CURSOR_LIVE_ENABLED`. For this legacy diagnostic workflow, leave it unused; do not restore scheduled `cursor_live`.
 

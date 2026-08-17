@@ -61,6 +61,23 @@ Do **not** force an artificial multi-stage chain of local → preview → stagin
 
 Preview deploys remain **optional** for internal verification. They are not a required gate before publishing to `corpflow_test`.
 
+### 3.1 Evidence sequence (corpflow_test vs client_production)
+
+For CorpFlowAI-hosted test-surface changes the normal evidence sequence is:
+
+```text
+build -> test-runtime publish where required -> verify on corpflow_test -> operator review -> next action
+```
+
+| Packet class | Preview (`*.vercel.app`) | Required evidence |
+|--------------|--------------------------|-------------------|
+| Docs / config only | Not required | Deterministic tests / review. Do **not** invent a runtime URL requirement. |
+| Runtime on `corpflow_test` | Not required (optional sandbox) | Live CorpFlowAI test URL after publish (Delivery Reality). Packet may complete **without** preview evidence. |
+| Explicit preview-sandbox work | Required only when that sandbox is the intended verification surface | Preview URL **or** equivalent sandbox proof. |
+| `client_production` release | Must not substitute | Exact client-production authorization **and** live client production URL. Fail-closed. Preview / corpflow_test URLs do not satisfy this gate. |
+
+Canonical evaluator: `lib/server/corpflow-test-evidence-policy.js` (#973). Do not ask operators or agents for preview evidence on CorpFlowAI test-only work.
+
 Work is still incomplete until the **live corpflow_test URL** is validated (Delivery Reality). Live verification is required; calling the URL “production” is not.
 
 ## 4. Protected gates vs environment
@@ -119,6 +136,7 @@ Direct publish to CorpFlowAI test does **not** remove:
 ## 8. Related
 
 - Dispatcher classifier: `lib/server/cursor-issue-dispatch-lifecycle.js`
+- Test-surface evidence policy: `lib/server/corpflow-test-evidence-policy.js` (#973)
 - Lifecycle doc: `docs/operations/CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1.md`
 - Autonomous actions: `docs/execution/CORPFLOW_AUTONOMOUS_ACTIONS_POLICY.md`
 - Autodeploy / domains: `docs/operations/PRODUCTION_AUTODEPLOY_AND_DOMAINS.md`

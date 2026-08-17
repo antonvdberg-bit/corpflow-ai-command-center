@@ -74,6 +74,8 @@ Designated PROD site    = production publication target after approval
 
 A hostname may be treated as production only when Anton explicitly confirms that exact hostname is the production site.
 
+See also `docs/operations/CORPFLOW_ENVIRONMENT_CLASSIFICATION_V1.md` § 3.1 and `lib/server/corpflow-test-evidence-policy.js` (#973): CorpFlowAI test-surface packets complete on live `*.corpflowai.com` verification and must not wait on a Vercel Preview URL.
+
 ## Standard release sequence
 
 ```text

@@ -87,6 +87,54 @@ test('evaluateTechnicalLeadChecklistV1: Vercel ERROR is error gap', () => {
   assert.ok(gaps.some((g) => g.id === 'vercel_deploy_failed'));
 });
 
+test('evaluateTechnicalLeadChecklistV1: missing preview is not a gap for corpflow_test', () => {
+  const { gaps } = evaluateTechnicalLeadChecklistV1({
+    environment: 'corpflow_test',
+    dispatch_ok: true,
+    pr_number: 4,
+    github: {
+      configured: true,
+      pr_state: 'open',
+      pr_fetch: { ok: true, status: 200 },
+      compare: { ok: true, total_commits: 1, files_changed: 2, commit_messages: ['fix: layout'] },
+      check_runs: { ok: true, failed: 0, pending: 0, count: 1 },
+    },
+    vercel: {
+      skipped: false,
+      fetch_ok: true,
+      branch: 'cmp/t1',
+      deployments_for_branch: 0,
+      latest: null,
+    },
+    factory_health: { skipped: true },
+  });
+  assert.equal(gaps.some((g) => g.id === 'vercel_preview_missing'), false);
+});
+
+test('evaluateTechnicalLeadChecklistV1: missing preview remains a warning for preview-sandbox work', () => {
+  const { gaps } = evaluateTechnicalLeadChecklistV1({
+    environment: 'preview',
+    dispatch_ok: true,
+    pr_number: 5,
+    github: {
+      configured: true,
+      pr_state: 'open',
+      pr_fetch: { ok: true, status: 200 },
+      compare: { ok: true, total_commits: 1, files_changed: 2, commit_messages: ['fix: layout'] },
+      check_runs: { ok: true, failed: 0, pending: 0, count: 1 },
+    },
+    vercel: {
+      skipped: false,
+      fetch_ok: true,
+      branch: 'cmp/t1',
+      deployments_for_branch: 0,
+      latest: null,
+    },
+    factory_health: { skipped: true },
+  });
+  assert.ok(gaps.some((g) => g.id === 'vercel_preview_missing'));
+});
+
 test('buildTechnicalLeadSummaryFromGaps matches evaluate output shape', () => {
   const ev = {
     dispatch_ok: true,

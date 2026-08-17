@@ -282,7 +282,7 @@ await fetch('/api/change-attachment/upload', {
 - `pages/property/[slug].js` — optional published hero from recent Lux tickets.
 - `node-tests/lux-request-attachments.test.mjs` — pure helper tests.
 - `docs/LUX/LUX_DELIVERY_PROGRAMME.md` — programme phase placement.
-- `docs/runbooks/CHANGE_CONSOLE_INSPECTION.md` — Lux `/change` UI / layout fix workflow (preview-smoke loop).
+- `docs/runbooks/CHANGE_CONSOLE_INSPECTION.md` — Lux `/change` UI / layout fix workflow (live corpflow_test smoke; Vercel Preview optional).
 
 ## Delivery Reality Audit (Phase 4C.1)
 

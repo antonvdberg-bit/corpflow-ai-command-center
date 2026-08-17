@@ -114,7 +114,7 @@ Duplicate claims must be rejected or converted into review work.
 
 Normal delivery follows:
 
-build -> test -> preview or local evidence -> verify -> review -> approve where required -> deploy where approved -> validate.
+build -> test -> optional preview or local evidence -> verify on corpflow_test when runtime -> review -> approve where required -> deploy to client_production only where approved -> validate.
 
 Do not call work complete without concrete evidence such as a commit, PR, tests, runtime verification, logs, health evidence, or a verified artifact.
 
