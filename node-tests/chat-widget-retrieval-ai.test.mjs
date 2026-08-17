@@ -218,10 +218,6 @@ test('retrieval preview or groq path returns answer for location question', asyn
     ],
     [],
   );
-}
-
-test('retrieval preview or groq path returns answer for location question', async () => {
-  const prisma = locationAtomPrisma();
   const result = await answerChatWidgetQuestion(prisma, {
     cfg: baseCfg(),
     threadId: 'thread_loc',
@@ -267,34 +263,6 @@ test('groq live failure with retrieved context falls back to retrieval preview',
   assert.equal(isGroqConfigured(), true);
   assert.equal(result.mode, AI_USAGE_MODES.RETRIEVAL_PREVIEW);
   assert.ok(result.contextAtomIds.includes('atom_loc_fallback'));
-  assert.match(result.answer, /Grand Baie|approved church records/i);
-});
-
-test('groq failure falls back to retrieval preview when approved context exists', async (t) => {
-  const previousKey = process.env.GROQ_API_KEY;
-  const previousFetch = globalThis.fetch;
-  if (!isGroqConfigured()) {
-    process.env.GROQ_API_KEY = 'ci-test-invalid-not-a-secret';
-  }
-  globalThis.fetch = async () => {
-    throw new Error('groq_unreachable_for_test');
-  };
-  t.after(() => {
-    globalThis.fetch = previousFetch;
-    if (previousKey === undefined) delete process.env.GROQ_API_KEY;
-    else process.env.GROQ_API_KEY = previousKey;
-  });
-
-  const prisma = locationAtomPrisma();
-  const result = await answerChatWidgetQuestion(prisma, {
-    cfg: baseCfg(),
-    threadId: 'thread_loc_fallback',
-    question: 'Where is Living Word church located?',
-    now: NOW,
-  });
-  assert.equal(result.mode, AI_USAGE_MODES.RETRIEVAL_PREVIEW);
-  assert.ok(result.ok);
-  assert.ok(result.contextAtomIds.includes('atom_loc'));
   assert.match(result.answer, /Grand Baie|approved church records/i);
 });
 
