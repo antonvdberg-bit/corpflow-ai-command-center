@@ -23,7 +23,8 @@ Operator authorized exactly one live HTTP TEST ONLY event + one identical duplic
 
 **Did not** fall back to MCP `execute_workflow` (prior #658 finding: MCP harness staticData persistence UNPROVEN; not production-path equivalent).
 
-Classification: **D. ACCESS/EVIDENCE LIMITATION**
+Classification (original run framing): **D. ACCESS/EVIDENCE LIMITATION**  
+**Superseding reconciliation (2026-08-17):** see `AUTH_PATH_RECONCILIATION_2026-08-17.md` — reclassified to **E. CONTEXT RESOLUTION REQUIRED** then **RESOLVED**. Same-day MCP successes `6861`/`6862` did not use live Header Auth; n8n credential `Header Auth account 3` / `l36xGmKJCmjhIVSM` remains present. Do not treat this artifact as proof that the credential is absent from the system or that a new env var/credential must be created.
 
 ---
 
