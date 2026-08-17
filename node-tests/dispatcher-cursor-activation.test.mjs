@@ -30,7 +30,7 @@ const validThroughputPacket = {
   business_outcome: 'Unblock Lux client delivery visibility',
   linked_issue_or_ticket: 'ticket:fixture_ticket_in_review',
   delivery_surface: '/change client console',
-  evidence_required: 'preview smoke screenshot and npm test result',
+  evidence_required: 'live corpflow_test URL (lux.corpflowai.com/change) and npm test result',
   cost_risk_cap: 'One scoped PR only; max one Cursor activation per run',
   allowed_category: 'client-delivery',
 };

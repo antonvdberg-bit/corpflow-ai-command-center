@@ -185,19 +185,23 @@ Does not verify:
 
 ## 7. Required workflow for Lux `/change` UI / layout fixes
 
-**This loop is mandatory** for any change touching `pages/change.js`, the `/change` layout helpers in `lib/cmp/_lib/change-*`, or any Lux-only render block that ships to `lux.corpflowai.com/change`. Static code inspection and "looks right locally" are **not** sufficient evidence; the smoke against a live preview is.
+**Live test-host smoke is mandatory** for any change touching `pages/change.js`, the `/change` layout helpers in `lib/cmp/_lib/change-*`, or any Lux-only render block that ships to `lux.corpflowai.com/change`. Static code inspection and "looks right locally" are **not** sufficient evidence for COMPLETE.
+
+`lux.corpflowai.com` is **corpflow_test**. A Vercel Preview (`*.vercel.app`) stage is **optional internal sandboxing only** — not a merge gate and not a substitute for verification on the live test host (#973). Ordinary Cursor branches usually have no preview deployment (`lib/server/vercel-preview-deploy-policy.js`).
 
 | Step | Action | Pass criterion |
 |------|--------|----------------|
-| 1 | Push the branch and let Vercel build a preview deployment. If the preview build is `ERROR` (e.g. transient `database_connection_problem`), trigger a redeploy until it is `READY`. | Preview deployment ID recorded; state = `READY`. |
-| 2 | Run `npm run smoke:change-overflow` with `LUX_SMOKE_BASE_URL=<preview .vercel.app URL>` and `VERCEL_AUTOMATION_BYPASS_SECRET` set (preview deployments are SSO-gated). | Script exits 0; both master and short tickets show `overflow=0px`, `widerCount=0`. |
-| 3 | Inspect `.smoke-screenshots/<stamp>_<host>_master_*.png` and the matching `.json` report. Compare against the baseline screenshot from before the fix. | Visual: master ticket fully fits the 1440px viewport, no horizontal scroll, key panels render. JSON: `top_offenders` either empty or only `internalOverflow=true` items that do **not** push the viewport. |
-| 4 | **Only after steps 1–3 pass** on the preview do you merge the PR to `main`. | PR is merged with at least one passing preview-smoke run referenced in the PR description or commit body. |
-| 5 | After Vercel Production deploys the merge commit, re-run the smoke against `LUX_SMOKE_BASE_URL=https://lux.corpflowai.com` (no bypass needed — custom domain). Record deployment ID + commit + smoke result in the **Delivery Reality Audit** before flipping the verdict to `COMPLETE`. | Production smoke: same `overflow=0px`, `widerCount=0` across master + short. |
+| 1 | Optional: if a preview deployment exists and is useful for debugging, run `npm run smoke:change-overflow` with `LUX_SMOKE_BASE_URL=<preview .vercel.app URL>` and `VERCEL_AUTOMATION_BYPASS_SECRET`. Skip this step when no preview exists. | If run: script exits 0; both master and short tickets show `overflow=0px`, `widerCount=0`. Missing preview is **not** a blocker. |
+| 2 | After CI, human-merge the PR so the Vercel Production spine publishes the commit to `lux.corpflowai.com`. Cursor does not merge its own PR. | Merge commit on `main`; Production deployment Ready for that SHA. |
+| 3 | Run `npm run smoke:change-overflow` with `LUX_SMOKE_BASE_URL=https://lux.corpflowai.com` (no bypass needed — custom domain). | Script exits 0; both master and short tickets show `overflow=0px`, `widerCount=0`. |
+| 4 | Inspect `.smoke-screenshots/<stamp>_<host>_master_*.png` and the matching `.json` report. | Visual: master ticket fully fits the 1440px viewport, no horizontal scroll, key panels render. JSON: `top_offenders` either empty or only `internalOverflow=true` items that do **not** push the viewport. |
+| 5 | Record deployment ID + commit + smoke result in the **Delivery Reality Audit** before flipping the verdict to `COMPLETE`. | Live corpflow_test smoke passed. An optional preview smoke alone is **PARTIAL**. |
 
-If step 2 or 5 fails, do **not** merge / do **not** declare COMPLETE — fix the offending elements (apply `changeFlexMainChildStyle()`, `changeTextContainStyle()`, `minmax(0, …)` grid tracks, `minWidth: 0` on grid items) and re-run from step 1. Use `?layoutDebug=1` on the preview URL when offender paths are non-obvious; the in-page overlay highlights every element wider than its viewport.
+If step 3 fails, do **not** declare COMPLETE — fix the offending elements (apply `changeFlexMainChildStyle()`, `changeTextContainStyle()`, `minmax(0, …)` grid tracks, `minWidth: 0` on grid items) and re-run from step 3. Use `?layoutDebug=1` on `https://lux.corpflowai.com/change` when offender paths are non-obvious; the in-page overlay highlights every element wider than its viewport.
 
-> **Why this is mandatory:** prior layout regressions (PR #152, #153 history) shipped on the back of code-only review and re-broke production within hours. The preview→smoke→merge→prod-smoke loop catches the regression before it reaches `lux.corpflowai.com`.
+> **Why live test-host smoke is mandatory and preview is not:** prior layout regressions (PR #152, #153 history) shipped on the back of code-only review. The required catch is verification on `lux.corpflowai.com` after the test-runtime publish. Requiring a separate preview URL duplicated that check, conflicted with preview-skip policy, and delayed corpflow_test packets that already had a live test host.
+
+This workflow does **not** authorize `client_production` release.
 
 ---
 

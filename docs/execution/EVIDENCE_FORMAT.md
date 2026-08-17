@@ -14,6 +14,7 @@ CorpFlow execution depends on durable evidence per packet (deployment IDs, commi
 
 - **Delivery verdict shape:** `.cursor/rules/delivery-reality.mdc` § *Delivery Reality Audit*.
 - **Pre/post-deploy checks:** `.cursor/rules/predeploy-decision-checks.mdc`.
+- **corpflow_test vs preview vs client_production evidence:** `lib/server/corpflow-test-evidence-policy.js` and `docs/operations/CORPFLOW_ENVIRONMENT_CLASSIFICATION_V1.md` § 3.1 (#973). Preview is not required for CorpFlowAI test-only work.
 - **Packet structure:** `docs/execution/CORPFLOW_EXECUTION_PACKET_STANDARD.md`.
 - **Autonomous-actions gating:** `docs/execution/CORPFLOW_AUTONOMOUS_ACTIONS_POLICY.md`.
 - **Per-ticket evidence channel:** `docs/operations/DELIVERY_VERDICT_AND_ALERTS.md`.
