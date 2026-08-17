@@ -3,7 +3,7 @@
 **Status:** Production execution is **CorpFlowAI Cursor Factory Handoff** → Cursor Automation **CorpFlowAI Factory Wake Proof** / MODE B (#913 / merged PR #914 / #930). The Background Agents API workflow `factory-dispatcher-activate.yml` is **LEGACY / DIAGNOSTIC / NOT PRODUCTION EXECUTION** (`workflow_dispatch` only).
 **Owner:** Anton (policy); Cursor (implementation).
 **Created:** 2026-07-28.
-**Updated:** 2026-08-13 (#930 — Wake Proof is the sole production Cursor executor).
+**Updated:** 2026-08-17 (#962 — list-form constraint prohibitions are not production gates).
 **Implements:** Operator urgent change — Cursor must discover/claim `dispatch:cursor-ready` issues with strict segregation.
 **Anchor sentinel:** `<!-- CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1 -->`
 
@@ -107,6 +107,8 @@ Research/documentation-only tasks may run separately only when they cannot confl
 |-------|---------|
 | Protected subjects mentioned | Informational — task discusses DB, secrets, messaging, payment, etc. **Does not block claim.** |
 | Protected consequential gate | Claim-blocking only when the active task asks to **execute** the exact protected consequence (e.g. run prisma migrate, change env/secrets, send live message, client_production deploy). |
+
+**List-form prohibitions (#962 / #950):** A leading `No` / `Do not` applies to every comma-separated item in the **same sentence**. `No schema, env/secrets, …, production deploy` is a prohibition, not `protectedGate: production`. Adjacent `no production deploy` still matches. Sentence-ending punctuation stops the lead, so `No schema. Then production deploy to client_production` and affirmative `production deploy is required` / `deploy to client_production` remain fail-closed.
 
 **Rule:** No valid operator authorization → Cursor does **not** claim work that is **currently attempting** an unauthorized consequential gate. Valid operator authorization for that **exact** gate → Cursor re-evaluates and claims automatically when WIP permits. Authorization for gate A never unlocks gate B.
 
