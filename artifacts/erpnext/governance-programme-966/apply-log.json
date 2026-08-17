@@ -1,0 +1,178 @@
+{
+  "schema": "corpflow.erpnext.governance_programme_apply.v1",
+  "issue": 966,
+  "generated_at_utc": "2026-08-16T23:19:42Z",
+  "identity": "integrations@corpflowai.com",
+  "http": {
+    "GET Project": 200,
+    "GET Task": 200,
+    "GET Project Type": 403,
+    "GET Version": 403,
+    "GET Notification": 403,
+    "GET Workflow": 403,
+    "GET Project/PROJ-0002": 200,
+    "GET Task/TASK-2026-00025": 200,
+    "PUT Task": 200,
+    "PUT Project": 200,
+    "GET getdoc Project": 200
+  },
+  "created": [],
+  "reused": [
+    {
+      "doctype": "Project",
+      "name": "PROJ-0002"
+    },
+    {
+      "doctype": "Task",
+      "name": "TASK-2026-00025",
+      "subject": "ERP Vision and Intended Use \u2014 Executive Statement"
+    },
+    {
+      "doctype": "Task",
+      "name": "TASK-2026-00026",
+      "subject": "Phase 0 \u2014 Programme charter and decision record"
+    },
+    {
+      "doctype": "Task",
+      "name": "TASK-2026-00027",
+      "subject": "Phase 1 \u2014 Environment and platform baseline"
+    },
+    {
+      "doctype": "Task",
+      "name": "TASK-2026-00028",
+      "subject": "Phase 2 \u2014 Company foundation"
+    },
+    {
+      "doctype": "Task",
+      "name": "TASK-2026-00029",
+      "subject": "Phase 3 \u2014 Identity, access and segregation of duties"
+    },
+    {
+      "doctype": "Task",
+      "name": "TASK-2026-00030",
+      "subject": "Phase 4 \u2014 Master data"
+    },
+    {
+      "doctype": "Task",
+      "name": "TASK-2026-00031",
+      "subject": "Phase 5 \u2014 Business process configuration"
+    },
+    {
+      "doctype": "Task",
+      "name": "TASK-2026-00032",
+      "subject": "Phase 6 \u2014 CorpFlowAI integration / reconciliation"
+    },
+    {
+      "doctype": "Task",
+      "name": "TASK-2026-00033",
+      "subject": "Phase 7 \u2014 Data migration and cutover"
+    },
+    {
+      "doctype": "Task",
+      "name": "TASK-2026-00034",
+      "subject": "Phase 8 \u2014 User acceptance / operational readiness"
+    },
+    {
+      "doctype": "Task",
+      "name": "TASK-2026-00035",
+      "subject": "Phase 9 \u2014 Go-live approval"
+    },
+    {
+      "doctype": "Task",
+      "name": "TASK-2026-00036",
+      "subject": "Phase 10 \u2014 Post-go-live control"
+    }
+  ],
+  "denied": [],
+  "readback": {
+    "project_customer": null,
+    "collect_progress": 0,
+    "project_type": null,
+    "version_http": 403,
+    "version_count": 0,
+    "project_http": 200,
+    "task_http": 200,
+    "project_id": "PROJ-0002",
+    "task_count": 12,
+    "tasks": [
+      {
+        "name": "TASK-2026-00025",
+        "subject": "ERP Vision and Intended Use \u2014 Executive Statement",
+        "status": "Completed",
+        "is_milestone": 1
+      },
+      {
+        "name": "TASK-2026-00026",
+        "subject": "Phase 0 \u2014 Programme charter and decision record",
+        "status": "Open",
+        "is_milestone": 1
+      },
+      {
+        "name": "TASK-2026-00027",
+        "subject": "Phase 1 \u2014 Environment and platform baseline",
+        "status": "Open",
+        "is_milestone": 0
+      },
+      {
+        "name": "TASK-2026-00028",
+        "subject": "Phase 2 \u2014 Company foundation",
+        "status": "Open",
+        "is_milestone": 0
+      },
+      {
+        "name": "TASK-2026-00029",
+        "subject": "Phase 3 \u2014 Identity, access and segregation of duties",
+        "status": "Open",
+        "is_milestone": 0
+      },
+      {
+        "name": "TASK-2026-00030",
+        "subject": "Phase 4 \u2014 Master data",
+        "status": "Open",
+        "is_milestone": 0
+      },
+      {
+        "name": "TASK-2026-00031",
+        "subject": "Phase 5 \u2014 Business process configuration",
+        "status": "Open",
+        "is_milestone": 0
+      },
+      {
+        "name": "TASK-2026-00032",
+        "subject": "Phase 6 \u2014 CorpFlowAI integration / reconciliation",
+        "status": "Open",
+        "is_milestone": 0
+      },
+      {
+        "name": "TASK-2026-00033",
+        "subject": "Phase 7 \u2014 Data migration and cutover",
+        "status": "Open",
+        "is_milestone": 0
+      },
+      {
+        "name": "TASK-2026-00034",
+        "subject": "Phase 8 \u2014 User acceptance / operational readiness",
+        "status": "Open",
+        "is_milestone": 0
+      },
+      {
+        "name": "TASK-2026-00035",
+        "subject": "Phase 9 \u2014 Go-live approval",
+        "status": "Open",
+        "is_milestone": 1
+      },
+      {
+        "name": "TASK-2026-00036",
+        "subject": "Phase 10 \u2014 Post-go-live control",
+        "status": "Open",
+        "is_milestone": 1
+      }
+    ],
+    "vision_task_id": "TASK-2026-00025",
+    "vision_task_status": "Completed",
+    "version_proof": false,
+    "version_blocker": "VERSION_TRAIL_UNREADABLE",
+    "portal_or_email_enabled": false
+  },
+  "secrets_printed": false
+}

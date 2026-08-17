@@ -4,7 +4,7 @@
 **Environment:** `local` (docs/governance only).  
 **Protected actions:** none from this folder.
 
-This directory is the independent GitHub/repo ledger for ERP strategy and (later) material ERP decisions. ERPNext remains the operational programme record; GitHub remains the durable governance/evidence ledger ([#954](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/954)).
+This directory is the independent GitHub/repo ledger for ERP strategy and material ERP decisions. ERPNext remains the operational programme record; GitHub remains the durable governance/evidence ledger ([#954](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/954)).
 
 ## Canonical strategy (read this first)
 
@@ -21,17 +21,36 @@ Small repo decisions that touch ERPNext, CRM/business records, finance, Projects
 
 Do not copy the full doctrine into `AGENTS.md`, Cursor rules, or OpenAI/operator context files. Point here.
 
-## Not in this packet
+## Programme-control artefacts (#966)
 
-[#954](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/954) also asked for a decision register, evidence index, risk register, and control register. Those artefacts are **not** created by #955. Do not invent them here.
+[#954](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/954) also required a decision register, evidence index, risk register, and control register. Those artefacts are now opened by [#966](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/966). They do **not** rewrite Version 2.
+
+| Record | Path | Rule |
+|--------|------|------|
+| Decision register | [`DECISION_REGISTER.md`](./DECISION_REGISTER.md) | Append or supersede; never silent history rewrite |
+| Implementation evidence index | [`IMPLEMENTATION_EVIDENCE_INDEX.md`](./IMPLEMENTATION_EVIDENCE_INDEX.md) | Link GitHub / ERPNext names; no secrets |
+| Risk register | [`RISK_REGISTER.md`](./RISK_REGISTER.md) | Owners + next review; marks PROVEN / PARTIAL / NOT PROVEN / REQUIRES DECISION |
+| Control register | [`CONTROL_REGISTER.md`](./CONTROL_REGISTER.md) | Security, backup, access, change, audit |
+
+Operational programme record (ERPNext, not this Git ledger): Project `PROJ-0002` — `CorpFlowAI ERPNext Business-Critical Adoption Programme`. Vision task `TASK-2026-00025` is Completed; Phase 0–10 tasks are `TASK-2026-00026`–`TASK-2026-00036`. Apply with `bash scripts/erpnext/apply-governance-programme.sh`. Search-before-create. No custom DocTypes. No external send.
+
+## Access and retention
+
+- **Propose:** Cursor / ChatGPT / Anton may author rows.
+- **Approve material ERP decisions:** Anton only.
+- **Edit ERPNext Project/Tasks:** Cursor may, using standard fields, when the controlling issue authorizes it.
+- **Merge governance records to `main`:** Anton (PR review). Cursor does not self-merge unless the issue gives that exact authority.
+- **Retention:** do not delete superseded decisions or evidence.
+- **Correction:** append a new decision that points at the old ID.
 
 ## Source lineage
 
 - Programme: [#953](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/953)
 - Governance record environment: [#954](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/954)
-- This publish packet: [#955](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/955)
+- Strategy publish packet: [#955](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/955)
 - Approval-status packet: [#960](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/960)
 - Independent market/security/AI-fit due diligence: [#959](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/959)
 - Deployment backup/DR/security audit: [#956](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/956)
+- Governance artefacts + internal Project: [#966](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/966)
 
-Historical meaning in #954 comments must remain intact. Corrections belong in the synthesized vision as explicit interpretation.
+Historical meaning in #954 comments must remain intact. Corrections belong in the synthesized vision or a new superseding decision record, never by silently rewriting the source history.
