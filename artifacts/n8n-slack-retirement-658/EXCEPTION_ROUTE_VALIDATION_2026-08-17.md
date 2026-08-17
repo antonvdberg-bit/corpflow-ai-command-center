@@ -108,6 +108,16 @@ Observed in live workflow graphs during inspection (not used, not republished): 
 
 `EXCEPTION ROUTE VALIDATION NOT COMPLETE — identical duplicate still produced a second Telegram send (MCP staticData dedupe not demonstrated)`
 
+### Follow-up diagnosis (2026-08-17 — READ ONLY)
+
+See `MCP_STATICDATA_HARNESS_DIAGNOSIS_2026-08-17.md`.
+
+**Reclassification:** the `6861`/`6862` duplicate Telegram result is **TEST-HARNESS LIMITATION / PRODUCTION BEHAVIOUR UNPROVEN**, not a confirmed production dedupe defect. MCP `execute_workflow` staticData persistence across independent invocations was **not** proven; official n8n docs state static data is not saved when testing.
+
+Updated diagnosis verdict:
+
+`MCP HARNESS DIAGNOSIS COMPLETE — PRODUCTION DEDUPE REMAINS UNPROVEN`
+
 ### Exact next protected action (if Anton wants COMPLETE)
 
-Re-run only the **duplicate** proof against the **live authenticated production webhook HTTP path** for workflow `cPgzIQIm4ztU8sQQ` (same event id), or authorize a follow-up MCP investigation into whether `execute_workflow` isolates/non-persists workflow staticData. Do **not** archive/unpublish/edit the exception workflow for this proof alone.
+Authorize live authenticated **HTTP webhook** first+duplicate proof for workflow `cPgzIQIm4ztU8sQQ` (new TEST ONLY event id), **or** an alternate durable-state proof. Do **not** treat further MCP `execute_workflow` pairs as production dedupe authority until MCP↔live-webhook staticData equivalence is proven. Do **not** archive/unpublish/edit the exception workflow for this proof alone.
