@@ -140,7 +140,7 @@ After applying the proposed edits, the following must hold before the adoption P
 ## 7. Verification plan (when adoption is authorised in a future packet)
 
 1. **CI** — required GitHub checks pass (test, vercel-env, marketing quality gate). Mirrors the discipline used for PR #277 / #278 / #279.
-2. **Vercel Preview** — `READY` build for the head commit; visual smoke against `LUX_SMOKE_BASE_URL=<preview *.vercel.app URL>` per `.cursor/rules/predeploy-decision-checks.mdc` § *Lux `/change` UI / layout work — mandatory preview-smoke loop* (this surface is `/lead-rescue` on apex, not `/change` on lux, but the preview-smoke discipline is applicable when the change is customer-visible).
+2. **Optional Vercel Preview** — internal sandbox only. Visual smoke against `LUX_SMOKE_BASE_URL=<preview *.vercel.app URL>` is **not** required before publishing to a CorpFlowAI test host. For customer-visible `/lead-rescue` on apex after test-runtime publish, verify the live corpflow_test URL per `.cursor/rules/predeploy-decision-checks.mdc` § *Lux `/change` UI / layout work — direct corpflow_test smoke* (this surface is `/lead-rescue` on apex, not `/change` on lux; the same rule applies: live test-host evidence, preview optional).
 3. **Manual visual review on Preview** — load `<preview>/lead-rescue` and confirm:
    - Anton's verbatim wording is present at the *§ How payment works* moment.
    - Step-3 head + body adopted (E3).

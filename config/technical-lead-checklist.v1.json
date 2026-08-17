@@ -17,7 +17,7 @@
     "ci_pending",
     "ci_fetch",
     "vercel_api",
-    "vercel_preview_missing",
+    "vercel_preview_missing (preview-sandbox environment only; not a corpflow_test gap)",
     "vercel_deploy_failed",
     "vercel_deploy_pending",
     "factory_health",
