@@ -17,13 +17,13 @@ test('website draft uses CorpFlow palette and content_version refresh marker', (
   assert.equal(draft.content_version, CIPC_DESK_WEBSITE_DRAFT_VERSION);
   assert.match(
     String(CIPC_DESK_WEBSITE_DRAFT_VERSION),
-    /annual-returns-link|beneficial-ownership-link|corpflow-visual/,
+    /annual-returns-link|beneficial-ownership-link|corpflow-visual|partner-funnel/,
   );
   assert.equal(draft.theme?.primary, '#2dd4bf');
   assert.equal(draft.theme?.background, '#06111f');
   assert.equal(draft.hero?.title, 'CIPC Desk');
   assert.match(String(draft.hero?.cta_href || ''), /^mailto:/);
-  assert.match(String(draft.hero?.cta_secondary_href || ''), /^mailto:/);
+  assert.equal(draft.hero?.cta_secondary_href, '/partners');
   assert.ok(Array.isArray(draft.sections?.services?.items));
   assert.ok(draft.sections.services.items.length >= 6);
   assert.equal(draft.media?.visual_key, 'process');
