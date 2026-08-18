@@ -1,0 +1,171 @@
+{
+  "schema": "corpflow.commercial_approval_system_proof.v1",
+  "issue": 714,
+  "ran_at": "2026-08-10T09:30:00Z",
+  "simulation_only": true,
+  "payment_collection_executed": false,
+  "bank_action_executed": false,
+  "external_sends_executed": [],
+  "pack_completeness": {
+    "lead-rescue": {
+      "complete": true,
+      "product": "lead-rescue",
+      "missing": [],
+      "missing_markers": [],
+      "checked_docs": [
+        "docs/revenue/COMMERCIAL_APPROVAL_RAIL_V1.md",
+        "docs/revenue/PRICING_RECOMMENDATION_PACKET.md",
+        "docs/revenue/PRODUCT_PACK_COMPLETENESS_CHECKLISTS.md",
+        "docs/revenue/templates/DISCOVERY_QUALIFICATION_SUMMARY.md",
+        "docs/revenue/templates/COMMERCIAL_ACCEPTANCE_RECORD.md",
+        "docs/revenue/templates/PAYMENT_EVIDENCE_RECORD.md",
+        "docs/revenue/templates/COMMERCIAL_STORAGE_AND_LINKING.md",
+        "docs/revenue/templates/LEAD_RESCUE_PROPOSAL_TEMPLATE.md",
+        "docs/sales/AI_LEAD_RESCUE_PRICING_GUIDE.md",
+        "docs/marketing/LEAD_RESCUE_PRODUCT_PACK_V1.md",
+        "docs/finance/AI_LEAD_RESCUE_MANUAL_PRO_FORMA_TEMPLATE_V1.md"
+      ]
+    },
+    "website-rescue": {
+      "complete": true,
+      "product": "website-rescue",
+      "missing": [],
+      "missing_markers": [],
+      "checked_docs": [
+        "docs/revenue/COMMERCIAL_APPROVAL_RAIL_V1.md",
+        "docs/revenue/PRICING_RECOMMENDATION_PACKET.md",
+        "docs/revenue/PRODUCT_PACK_COMPLETENESS_CHECKLISTS.md",
+        "docs/revenue/templates/DISCOVERY_QUALIFICATION_SUMMARY.md",
+        "docs/revenue/templates/COMMERCIAL_ACCEPTANCE_RECORD.md",
+        "docs/revenue/templates/PAYMENT_EVIDENCE_RECORD.md",
+        "docs/revenue/templates/COMMERCIAL_STORAGE_AND_LINKING.md",
+        "docs/revenue/templates/WEBSITE_RESCUE_PROPOSAL_TEMPLATE.md",
+        "docs/sales/WEBSITE_RESCUE_PRICING_GUIDE.md",
+        "docs/marketing/WEBSITE_RESCUE_PRODUCT_PACK_V1.md"
+      ]
+    }
+  },
+  "paths": {
+    "lead-rescue": {
+      "label": "lead-rescue-system",
+      "product": "lead-rescue",
+      "opportunity_ref": "OPP-SYN-LR-SYS-714-001",
+      "stages": [
+        "qualification_complete",
+        "proposal_ready",
+        "proposal_pack_ready",
+        "accepted",
+        "payment_evidence_recorded",
+        "financially_approved",
+        "approved_to_onboard"
+      ],
+      "qualification": {
+        "complete": true,
+        "proposal_ready": true,
+        "missing": [],
+        "fit_assessment": "qualified"
+      },
+      "proposal_ready": {
+        "ready": true,
+        "blockers": []
+      },
+      "gate": {
+        "ok": true,
+        "blockers": [],
+        "financially_approved": true
+      },
+      "won_lost": {
+        "ok": true,
+        "status": "won",
+        "reason": "accepted_pilot",
+        "issues": [],
+        "notes_allowed": true
+      },
+      "handoff": {
+        "financially_approved": true,
+        "financial_approval_ref": "FA-SYN-LR-SYS-714-001",
+        "product": "ai-lead-rescue",
+        "commercial_product": "lead-rescue",
+        "opportunity_ref": "OPP-SYN-LR-SYS-714-001",
+        "protected_actions_executed": false,
+        "blockers": []
+      },
+      "ok": true
+    },
+    "website-rescue": {
+      "label": "website-rescue-system",
+      "product": "website-rescue",
+      "opportunity_ref": "OPP-SYN-WR-SYS-714-001",
+      "stages": [
+        "qualification_complete",
+        "proposal_ready",
+        "proposal_pack_ready",
+        "accepted",
+        "payment_evidence_recorded",
+        "financially_approved",
+        "approved_to_onboard"
+      ],
+      "qualification": {
+        "complete": true,
+        "proposal_ready": true,
+        "missing": [],
+        "fit_assessment": "qualified"
+      },
+      "proposal_ready": {
+        "ready": true,
+        "blockers": []
+      },
+      "gate": {
+        "ok": true,
+        "blockers": [],
+        "financially_approved": true
+      },
+      "won_lost": {
+        "ok": true,
+        "status": "won",
+        "reason": "accepted_standard_offer",
+        "issues": [],
+        "notes_allowed": true
+      },
+      "handoff": {
+        "financially_approved": true,
+        "financial_approval_ref": "FA-SYN-WR-SYS-714-001",
+        "product": "website-rescue",
+        "commercial_product": "website-rescue",
+        "opportunity_ref": "OPP-SYN-WR-SYS-714-001",
+        "protected_actions_executed": false,
+        "blockers": []
+      },
+      "ok": true
+    }
+  },
+  "fail_closed_proof": {
+    "payment_pending_denied": true,
+    "rejected_denied": true,
+    "incomplete_proposal_denied": true,
+    "acceptance_without_payment_denied": true,
+    "pending_blockers": [
+      "MISSING_PAYMENT_EVIDENCE"
+    ],
+    "rejected_blockers": [
+      "OPPORTUNITY_LOST",
+      "PROPOSAL_REJECTED"
+    ],
+    "incomplete_blockers": [
+      "MISSING_SCOPE",
+      "MISSING_PRICE",
+      "MISSING_PAYMENT_TERMS",
+      "MISSING_ACCEPTANCE",
+      "MISSING_PAYMENT_EVIDENCE",
+      "MISSING_FINANCIAL_APPROVER",
+      "MISSING_APPROVAL_TIMESTAMP"
+    ],
+    "acceptance_only_blockers": [
+      "MISSING_PAYMENT_EVIDENCE"
+    ]
+  },
+  "storage_linking_doc": "docs/revenue/templates/COMMERCIAL_STORAGE_AND_LINKING.md",
+  "pricing_packet": "docs/revenue/PRICING_RECOMMENDATION_PACKET.md",
+  "ok": true,
+  "reason": null
+}
