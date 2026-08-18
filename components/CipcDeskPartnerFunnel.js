@@ -63,7 +63,7 @@ const emptyForm = {
 };
 
 /**
- * Buyer-facing partner funnel for accounting / advisory firms (#986).
+ * Buyer-facing partner funnel for accounting / advisory firms.
  * Enquiry posts to existing POST /api/cipc-desk/email-intake.
  *
  * @param {{ content?: Record<string, unknown> | null }} props

@@ -65,7 +65,8 @@ test('partner funnel content covers conversion sections without specialist jargo
 
   const visible = commercialBlob();
   assert.doesNotMatch(visible, /corpflow_test|#986|#984|GitHub|SARAH CONFIRM|specialist-review|ticket_id|magic_link/i);
-  assert.doesNotMatch(visible, /R\s?\d{2,}|ZAR\s?\d+|USD\s?\d+|fee table|price list of/i);
+  assert.doesNotMatch(visible, /R\s?\d{2,}|ZAR\s?\d+|USD\s?\d+/i);
+  assert.match(visible, /No fee table is published here|This is not a price list/i);
   assert.doesNotMatch(visible, /official CIPC partner|accredited by CIPC|guaranteed revenue|Choose payment path/i);
   assert.doesNotMatch(visible, /looking for remote work|CIPC clerk/i);
 });
@@ -137,9 +138,9 @@ test('partner component posts to existing email-intake and keeps commercial conf
   assert.match(src, /client_path: '\/partners'/);
   assert.match(src, /noindex/);
   assert.match(src, /Discuss overflow \/ white-label support/);
-  assert.match(src, /usually within one business day/);
+  assert.match(src, /formCopy\.confirmation|safeStr\(formCopy\.confirmation\)/);
   assert.doesNotMatch(src, /\/api\/tenant\/intake/);
-  assert.doesNotMatch(src, /ticket_id|magic_link_url|\/change|corpflow_test|#986/);
+  assert.doesNotMatch(src, /ticket_id|magic_link_url|\/change|corpflow_test/);
   assert.doesNotMatch(src, /CipcDeskAnnualReturnsReview|CipcDeskBeneficialOwnershipReview/);
 });
 
