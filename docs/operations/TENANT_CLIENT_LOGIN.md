@@ -69,6 +69,7 @@ When `**CORPFLOW_TENANT_PREVIEW_SECRET**` is set to the **same value on Producti
 | 5 | After Production-spine deploy of the standing-tenant code: open `**https://cipc.corpflowai.com/**` (homepage) and `**/login**` / `**/change**`. Fictional PIN seed is for test only. |
 | 6 | Evidence must be the **CIPC Desk URL**, never Lux / Core health / generic `/change` on another host. |
 | 7 | Annual Returns specialist-review surface (#761): `**https://cipc.corpflowai.com/annual-returns**` (tenant-gated to `cipc-desk`; `noindex`). Structured feedback reuses `**POST /api/cipc-desk/email-intake**` — not a public launch. |
+| 8 | Beneficial Ownership specialist-review surface (#981): `**https://cipc.corpflowai.com/beneficial-ownership**` (tenant-gated to `cipc-desk`; `noindex`). Same existing email-intake feedback path. Complex ownership escalates. Not a public launch. |
 
 
 Fictional-data only. Live email, WhatsApp, SMS, payments, and external outreach stay off. Seed + email-intake run on standing hosts (Production spine) or legacy Preview env — not a permanent preview release gate.
