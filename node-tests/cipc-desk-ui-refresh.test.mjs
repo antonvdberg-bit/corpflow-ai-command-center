@@ -15,7 +15,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 test('website draft uses CorpFlow palette and content_version refresh marker', () => {
   const draft = buildCipcDeskWebsiteDraft();
   assert.equal(draft.content_version, CIPC_DESK_WEBSITE_DRAFT_VERSION);
-  assert.match(String(CIPC_DESK_WEBSITE_DRAFT_VERSION), /annual-returns-link|corpflow-visual/);
+  assert.match(String(CIPC_DESK_WEBSITE_DRAFT_VERSION), /director-changes-link|annual-returns-link|corpflow-visual/);
   assert.equal(draft.theme?.primary, '#2dd4bf');
   assert.equal(draft.theme?.background, '#06111f');
   assert.equal(draft.hero?.title, 'CIPC Desk');

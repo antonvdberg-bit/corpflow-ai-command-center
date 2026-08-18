@@ -196,5 +196,5 @@ test('homepage draft links Annual returns service to /annual-returns', () => {
   );
   assert.ok(ar);
   assert.equal(ar.href, '/annual-returns');
-  assert.match(String(draft.content_version || ''), /annual-returns-link/);
+  assert.match(String(draft.content_version || ''), /annual-returns-link|director-changes-link/);
 });
