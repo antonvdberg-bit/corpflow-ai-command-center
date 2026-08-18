@@ -1,0 +1,270 @@
+{
+  "$schema_version": "1",
+  "$doc": "CIPC Desk service-factory readiness overlay — maps #988 factory states onto existing cmp_tickets + console_json + email-intake. No second data model. No schema change. No CIPC submit. No payment. No live send.",
+  "$issue": "#988",
+  "$parents": ["#640", "#984"],
+  "$canonical_doc": "docs/operations/CIPC_SERVICE_FACTORY_READINESS_V1.md",
+  "$reuse": [
+    "cmp_tickets",
+    "cmp_tickets.console_json",
+    "cmp_ticket_attachments",
+    "leads",
+    "automation_events",
+    "telemetry_events",
+    "POST /api/cipc-desk/email-intake",
+    "docs/operations/CIPC_DESK_ANNUAL_RETURNS_PROCESS_PACK_V1.md",
+    "docs/operations/CIPC_DESK_BENEFICIAL_OWNERSHIP_PROCESS_PACK_V1.md"
+  ],
+  "$schema_change": false,
+  "$send": false,
+  "$protected": true,
+  "$warning": "NO SCHEMA. NO CIPC CREDENTIAL AUTOMATION. NO PRODUCTION SECRETS. NO PAYMENT ACTIVATION. NO EXTERNAL SUBMISSION. NO LIVE EMAIL/WHATSAPP/SMS. Overlay only.",
+
+  "tenant_id": "cipc-desk",
+  "environment": "corpflow_test",
+  "public_launch": false,
+
+  "factory_pipeline": [
+    "qualified_lead",
+    "scoped_service",
+    "mandate",
+    "structured_intake",
+    "document_completeness",
+    "prerequisite_checks",
+    "exception_classified",
+    "specialist_gate",
+    "ready_to_file",
+    "submitted_externally",
+    "proof_capture",
+    "client_status_update",
+    "completed",
+    "renewal_reminder"
+  ],
+
+  "layer5_statuses": [
+    "received",
+    "information_incomplete",
+    "specialist_review",
+    "ready_for_submission",
+    "awaiting_otp",
+    "submitted_externally",
+    "awaiting_cipc",
+    "completed",
+    "further_action_required"
+  ],
+
+  "services": {
+    "annual_returns": {
+      "service_id": "annual_returns",
+      "title": "Annual Returns",
+      "pack": "docs/operations/CIPC_DESK_ANNUAL_RETURNS_PROCESS_PACK_V1.md",
+      "pack_status": "sarah_approved_v1",
+      "standing_url": "https://cipc.corpflowai.com/annual-returns",
+      "email_intake_slugs": ["annual-returns"],
+      "subject_cues": ["annual return", "annual returns"],
+      "v1_entity_scope": ["pty_ltd", "cc"],
+      "standard_includes": ["annual_return_filing_only"],
+      "identify_and_refer": ["beneficial_ownership", "afs_fas"],
+      "do_not": ["prepare_fas", "prepare_afs", "own_compliance_checklist", "bundle_bo_into_standard_ar"],
+      "otp_step": false,
+      "renewal": true
+    },
+    "director_changes": {
+      "service_id": "director_changes",
+      "title": "Director Changes",
+      "pack": "docs/operations/CIPC_DESK_DIRECTOR_CHANGES_PROCESS_PACK_V1.md",
+      "pack_status": "review_ready_open_pr_982",
+      "standing_url": "https://cipc.corpflowai.com/director-changes",
+      "email_intake_slugs": ["director-appointments-resignations"],
+      "subject_cues": ["director appointment", "director resignation", "director change"],
+      "v1_entity_scope": ["pty_ltd", "cc"],
+      "standard_includes": ["standard_appointment", "standard_resignation"],
+      "identify_and_refer": [],
+      "do_not": ["treat_death_as_resignation", "treat_removal_as_resignation", "leave_zero_directors"],
+      "otp_step": true,
+      "renewal": false
+    },
+    "beneficial_ownership": {
+      "service_id": "beneficial_ownership",
+      "title": "Beneficial Ownership",
+      "pack": "docs/operations/CIPC_DESK_BENEFICIAL_OWNERSHIP_PROCESS_PACK_V1.md",
+      "pack_status": "review_ready_not_sarah_approved",
+      "standing_url": "https://cipc.corpflowai.com/beneficial-ownership",
+      "email_intake_slugs": ["beneficial-ownership-submissions"],
+      "subject_cues": ["beneficial ownership", "ubo", "beneficial owner"],
+      "v1_entity_scope": ["pty_ltd", "cc"],
+      "standard_includes": ["standard_natural_person_path"],
+      "identify_and_refer": [],
+      "do_not": ["determine_beneficial_owner", "file_complex_structures", "store_id_images_in_git"],
+      "otp_step": false,
+      "renewal": true
+    }
+  },
+
+  "primitive_map": {
+    "qualified_lead": {
+      "tables": ["leads"],
+      "fields": ["leads.status", "leads.qualification_json", "leads.intent"],
+      "note": "Optional commercial row. CIPC Desk matters today usually start from email-intake, not a second CRM."
+    },
+    "scoped_service": {
+      "tables": ["cmp_tickets"],
+      "fields": ["cmp_tickets.console_json.brief.service", "client_view.cipc_desk"],
+      "note": "Existing email-intake already infers a service slug and writes brief.service."
+    },
+    "mandate": {
+      "tables": ["cmp_tickets"],
+      "fields": [
+        "console_json.client_view.cipc_desk.mandate_signed",
+        "console_json.client_decisions.items",
+        "console_json.client_view.cipc_desk.checklist.items"
+      ]
+    },
+    "structured_intake": {
+      "tables": ["cmp_tickets"],
+      "fields": ["console_json.client_view.cipc_desk.checklist", "console_json.brief.missing_information"]
+    },
+    "document_completeness": {
+      "tables": ["cmp_tickets", "cmp_ticket_attachments"],
+      "fields": [
+        "console_json.client_view.cipc_desk.attachments",
+        "console_json.client_view.cipc_desk.evidence",
+        "cmp_ticket_attachments.file_name"
+      ],
+      "note": "Metadata and ticket-scoped binary attachments only. Never GitHub. Never identity-document bytes in repo artifacts."
+    },
+    "prerequisite_checks": {
+      "tables": ["cmp_tickets"],
+      "fields": ["console_json.client_view.cipc_desk.prerequisites"]
+    },
+    "exception_classified": {
+      "tables": ["cmp_tickets"],
+      "fields": ["console_json.client_view.cipc_desk.exceptions"]
+    },
+    "specialist_gate": {
+      "layer5": "specialist_review",
+      "owner": "Sarah Fourie"
+    },
+    "ready_to_file": {
+      "layer5": "ready_for_submission",
+      "does_not_authorize": "external_cipc_submission"
+    },
+    "submitted_externally": {
+      "protected": true,
+      "exact_action": "controlled external CIPC submission"
+    },
+    "proof_capture": {
+      "tables": ["cmp_tickets", "cmp_ticket_attachments"],
+      "fields": ["console_json.client_view.cipc_desk.proof"]
+    },
+    "client_status_update": {
+      "tables": ["cmp_tickets"],
+      "fields": ["console_json.client_view.cipc_desk.client_reply_draft"],
+      "note": "Draft only. Live send remains a protected action."
+    },
+    "completed": {
+      "layer5": "completed",
+      "requires": ["proof_of_filing", "client_informed"]
+    },
+    "renewal_reminder": {
+      "tables": ["automation_events"],
+      "note": "Calendar/reminder event type only. n8n may later emit; this pack does not activate send."
+    },
+    "cmp_lifecycle": {
+      "tables": ["cmp_tickets"],
+      "fields": ["status", "stage", "console_json.client_view.workflow_state"]
+    },
+    "audit_trail": {
+      "tables": ["telemetry_events", "automation_events"],
+      "fields": ["event_type", "cmp_ticket_id", "payload_json"]
+    }
+  },
+
+  "human_gates": [
+    "ambiguous_mandate_acceptance",
+    "statutory_legal_interpretation",
+    "complex_beneficial_ownership",
+    "historic_registry_discrepancy",
+    "restoration_deregistration_moi_share_restructure",
+    "financial_accounting_judgment",
+    "external_cipc_submission",
+    "payment_or_client_facing_commitment",
+    "director_death_or_removal",
+    "pilot_commercial_acceptance"
+  ],
+
+  "deterministic_moves": [
+    "infer_service_from_intake_cue",
+    "missing_required_facts_to_information_incomplete",
+    "exception_flag_to_specialist_review",
+    "complete_clean_case_to_ready_to_file",
+    "refuse_complete_without_proof",
+    "group_partner_portfolio",
+    "filter_exception_workbench",
+    "flag_stale_clerical_work",
+    "draft_missing_information_request",
+    "draft_client_status_update"
+  ],
+
+  "protected_transitions": [
+    {
+      "to": "submitted_externally",
+      "exact_action": "controlled external CIPC submission"
+    },
+    {
+      "to": "payment_captured",
+      "exact_action": "payment activation or live payment"
+    },
+    {
+      "intent": "live_client_send",
+      "exact_action": "live email / WhatsApp / SMS send"
+    }
+  ],
+
+  "evidence_kinds_allowed": [
+    "engagement_mandate_on_file",
+    "intake_checklist_complete",
+    "cipc_fee_funding_confirmed",
+    "filing_confirmation_reference",
+    "filing_certificate_reference",
+    "cor39_confirmation_reference",
+    "otp_finalised_note",
+    "client_informed_note"
+  ],
+
+  "evidence_forbidden_in_repo": [
+    "identity_document_image",
+    "passport_image",
+    "certified_id_bytes",
+    "live_customer_code_secret",
+    "real_client_personal_data"
+  ],
+
+  "workbench": {
+    "owner": "Sarah Fourie",
+    "visible_states": ["specialist_gate", "further_action_required", "exception_classified"],
+    "hidden_from_specialist": [
+      "qualified_lead",
+      "scoped_service",
+      "structured_intake",
+      "information_incomplete",
+      "ready_to_file",
+      "awaiting_cipc",
+      "completed"
+    ]
+  },
+
+  "sla": {
+    "information_incomplete_stale_hours": 48,
+    "specialist_review_visible_immediately": true,
+    "awaiting_cipc_no_client_promise": true
+  },
+
+  "partner_mode": {
+    "route_field": "console_json.client_view.cipc_desk.client_route",
+    "partner_value": "professional_partner",
+    "group_field": "console_json.client_view.cipc_desk.partner_key",
+    "entity_field": "console_json.client_view.cipc_desk.entity_key",
+    "note": "One accounting firm may refer many client entities. Group existing tickets; do not create a partner table."
+  }
+}
