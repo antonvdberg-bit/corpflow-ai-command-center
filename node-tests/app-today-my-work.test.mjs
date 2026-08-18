@@ -6,9 +6,9 @@ import {
   buildProofCoreActor,
   buildProofTenantActor,
 } from '../lib/app/access.js';
-import { handleAppProspects, handleAppShell, tryHandleAppApi } from '../lib/app/handlers.js';
+import { handleAppShell, handleAppToday, tryHandleAppApi } from '../lib/app/handlers.js';
 import { REFERENCE_TENANT_ID } from '../lib/app/constants.js';
-import { OPERATING_WORKSPACE_LABEL } from '../lib/app/workspace-context.js';
+import { OPERATING_WORKSPACE_LABEL, TODAY_MY_WORK_PATH } from '../lib/app/workspace-context.js';
 
 function mockRes() {
   /** @type {{ statusCode: number, body: any }} */
@@ -26,27 +26,29 @@ function mockRes() {
   };
 }
 
-test('handler: Core proof can load Prospect Operations list', async () => {
+test('handler: Core proof can load Today / My Work without the scheduled foil', async () => {
   const prevNode = process.env.NODE_ENV;
   const prevVercel = process.env.VERCEL_ENV;
   process.env.NODE_ENV = 'development';
   delete process.env.VERCEL_ENV;
   try {
     const res = mockRes();
-    await handleAppProspects(
-      { method: 'GET', url: '/api/app/prospects?proof=1&env=core', headers: {} },
+    await handleAppToday(
+      { method: 'GET', url: '/api/app/today?proof=1&env=core', headers: {} },
       res,
     );
     assert.equal(res.state.statusCode, 200);
     assert.equal(res.state.body.ok, true);
     assert.equal(res.state.body.workspace, 'operating');
+    assert.equal(res.state.body.path, TODAY_MY_WORK_PATH);
+    assert.equal(res.state.body.view, 'today');
+    assert.equal(res.state.body.filter, 'matchesMyWorkTodayFilter');
     assert.equal(res.state.body.data_source, 'fixture');
     assert.equal(res.state.body.external_send, false);
-    assert.ok(res.state.body.count >= 2);
     const ids = res.state.body.prospects.map((row) => row.id);
     assert.ok(ids.includes('syn-772-lr-ada'));
-    assert.ok(ids.includes('syn-772-rd-bea'));
-    assert.ok(ids.includes('syn-772-lr-cal'));
+    assert.equal(ids.includes('syn-772-lr-cal'), false);
+    assert.equal(res.state.body.count, ids.length);
     const blob = JSON.stringify(res.state.body);
     assert.equal(blob.includes('qualificationJson'), false);
   } finally {
@@ -56,15 +58,15 @@ test('handler: Core proof can load Prospect Operations list', async () => {
   }
 });
 
-test('handler: Tenant actor cannot load Prospect Operations', async () => {
+test('handler: Tenant actor cannot load Today / My Work', async () => {
   const prevNode = process.env.NODE_ENV;
   process.env.NODE_ENV = 'test';
   try {
     const res = mockRes();
-    await handleAppProspects(
+    await handleAppToday(
       {
         method: 'GET',
-        url: '/api/app/prospects?env=tenant',
+        url: '/api/app/today?env=tenant',
         headers: {},
         __testAppActor: buildProofTenantActor(),
       },
@@ -77,7 +79,7 @@ test('handler: Tenant actor cannot load Prospect Operations', async () => {
   }
 });
 
-test('handler: Tenant session actor is denied even if env=core is requested', async () => {
+test('handler: Tenant session actor is denied Today even if env=core is requested', async () => {
   const prevNode = process.env.NODE_ENV;
   process.env.NODE_ENV = 'test';
   try {
@@ -87,10 +89,10 @@ test('handler: Tenant session actor is denied even if env=core is requested', as
       username: 'tenant-user',
     });
     const res = mockRes();
-    await handleAppProspects(
+    await handleAppToday(
       {
         method: 'GET',
-        url: '/api/app/prospects?env=core',
+        url: '/api/app/today?env=core',
         headers: {},
         __testAppActor: tenantActor,
       },
@@ -103,7 +105,7 @@ test('handler: Tenant session actor is denied even if env=core is requested', as
   }
 });
 
-test('handler: Core shell advertises Operating Workspace + Prospects nav', async () => {
+test('handler: Core shell advertises My Work at /app/today', async () => {
   const prevNode = process.env.NODE_ENV;
   const prevVercel = process.env.VERCEL_ENV;
   process.env.NODE_ENV = 'development';
@@ -115,13 +117,7 @@ test('handler: Core shell advertises Operating Workspace + Prospects nav', async
       res,
     );
     assert.equal(res.state.statusCode, 200);
-    assert.equal(res.state.body.workspace.workspace_id, 'operating');
     assert.equal(res.state.body.workspace.workspace_label, OPERATING_WORKSPACE_LABEL);
-    assert.equal(res.state.body.selected.workspace_id, 'operating');
-    const menuIds = res.state.body.menus.map((m) => m.id);
-    assert.ok(menuIds.includes('prospects'));
-    const prospects = res.state.body.menus.find((m) => m.id === 'prospects');
-    assert.equal(prospects.href, '/app/prospects');
     const myWork = res.state.body.menus.find((m) => m.id === 'my_work');
     assert.equal(myWork.href, '/app/today');
   } finally {
@@ -131,7 +127,7 @@ test('handler: Core shell advertises Operating Workspace + Prospects nav', async
   }
 });
 
-test('handler: Tenant shell does not advertise Prospect Operations', async () => {
+test('handler: Tenant shell My Work is not the Operating Workspace Today route', async () => {
   const prevNode = process.env.NODE_ENV;
   process.env.NODE_ENV = 'development';
   try {
@@ -145,15 +141,15 @@ test('handler: Tenant shell does not advertise Prospect Operations', async () =>
       res,
     );
     assert.equal(res.state.statusCode, 200);
-    assert.equal(res.state.body.workspace.workspace_id, 'tenant');
-    const menuIds = res.state.body.menus.map((m) => m.id);
-    assert.equal(menuIds.includes('prospects'), false);
+    const myWork = res.state.body.menus.find((m) => m.id === 'my_work');
+    assert.ok(myWork);
+    assert.notEqual(myWork.href, '/app/today');
   } finally {
     process.env.NODE_ENV = prevNode;
   }
 });
 
-test('tryHandleAppApi routes app/prospects', async () => {
+test('tryHandleAppApi routes app/today', async () => {
   const prevNode = process.env.NODE_ENV;
   process.env.NODE_ENV = 'test';
   try {
@@ -161,16 +157,17 @@ test('tryHandleAppApi routes app/prospects', async () => {
     const handled = await tryHandleAppApi(
       {
         method: 'GET',
-        url: '/api/app/prospects',
+        url: '/api/app/today',
         headers: {},
         __testAppActor: buildProofCoreActor(),
       },
       res,
-      'app/prospects',
+      'app/today',
     );
     assert.equal(handled, true);
     assert.equal(res.state.statusCode, 200);
     assert.equal(res.state.body.ok, true);
+    assert.equal(res.state.body.path, '/app/today');
   } finally {
     process.env.NODE_ENV = prevNode;
   }

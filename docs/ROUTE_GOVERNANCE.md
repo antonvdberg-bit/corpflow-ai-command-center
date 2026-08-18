@@ -12,6 +12,7 @@ This document defines canonical route ownership and production expectations with
 
 - `/app` is the entry chooser; `/app/core` and `/app/tenant` are separately authenticated environments with production-shaped request adapters (`fixture` harness or read-only `cmp_tickets_read`). Product names: **Operating Workspace** (`/app/core`) and **Tenant Workspace** (`/app/tenant`). No shared ScopeSwitcher — Core session cannot enter Tenant and vice versa.
 - `/app/prospects` is the first staff-only Prospect Operations route inside the Operating Workspace (#772). Tenant sessions receive 403. See `docs/architecture/OPERATING_TENANT_WORKSPACE_CONSOLIDATION_V1.md`.
+- `/app/today` is the staff-only Today / My Work landing inside the Operating Workspace (#772). It reuses the shared prospect list and `#721` `matchesMyWorkTodayFilter`. Tenant sessions receive 403. Tenant **My Work** remains an in-shell placeholder.
 - Slice 2 (#877): normal authenticated session path is the operator default (no `?proof=1` required). Proof remains Preview/local harness only.
 - Core nav may link Delivery/Operations to `/change` (compatibility). Tenant nav may link existing enabled capabilities.
 - `/change` and `/change-v2` remain compatibility / experimental routes — **not** deleted and **not** production-redirected yet.

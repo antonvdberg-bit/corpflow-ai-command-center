@@ -6,6 +6,7 @@ import { RAPID_DELIVERY_PRODUCT } from '../lib/cmp/_lib/rapid-delivery-operator.
 import {
   assertProspectOperationsAccess,
   buildProspectOperationsPayload,
+  filterProspectsForMyWorkToday,
   fixtureProspectLeadRows,
   projectProspectLeadRows,
   publicProspectListItem,
@@ -17,8 +18,8 @@ const NOW = new Date('2026-08-03T12:00:00.000Z');
 describe('prospect-operations-workspace — projection', () => {
   it('projects fixture Lead Rescue and Rapid Delivery rows through the #721 view-model', () => {
     const list = projectProspectLeadRows(fixtureProspectLeadRows(), NOW);
-    assert.equal(list.length, 2);
-    const products = list.map((row) => row.product).sort();
+    assert.equal(list.length, 3);
+    const products = [...new Set(list.map((row) => row.product))].sort();
     assert.deepEqual(products, [AI_LEAD_RESCUE_PRODUCT, RAPID_DELIVERY_PRODUCT].sort());
     assert.ok(list.every((row) => Array.isArray(row.exception_signals)));
     assert.ok(list.every((row) => row.email == null));
@@ -79,6 +80,15 @@ describe('prospect-operations-workspace — access and payload', () => {
       }).ok,
       true,
     );
+  });
+
+  it('filters Today / My Work to overdue, due today, missing next action, or awaiting operator', () => {
+    const list = projectProspectLeadRows(fixtureProspectLeadRows(), NOW);
+    const today = filterProspectsForMyWorkToday(list, NOW);
+    const ids = today.map((row) => row.id);
+    assert.ok(ids.includes('syn-772-lr-ada'));
+    assert.equal(ids.includes('syn-772-lr-cal'), false);
+    assert.ok(today.length < list.length);
   });
 
   it('builds a staff-only payload without send flags', () => {

@@ -1,6 +1,9 @@
+import { CORE_NAV_ITEMS } from '../../lib/app/constants.js';
+
 /**
  * Core application navigation.
  * Links Delivery / Operations to existing /change (compatibility route).
+ * My Work and Prospects are dedicated Operating Workspace routes (#772).
  *
  * @param {{
  *   active: string,
@@ -9,20 +12,10 @@
  * }} props
  */
 export default function CoreMenu({ active, onSelect, disabled }) {
-  const items = [
-    { id: 'my_work', label: 'My Work', kind: 'nav' },
-    { id: 'tenants', label: 'Tenants', kind: 'nav' },
-    { id: 'requests', label: 'Requests', kind: 'nav' },
-    { id: 'prospects', label: 'Prospects', kind: 'link', href: '/app/prospects' },
-    { id: 'delivery', label: 'Delivery', kind: 'link', href: '/change' },
-    { id: 'approvals', label: 'Approvals', kind: 'nav' },
-    { id: 'releases', label: 'Releases', kind: 'nav' },
-    { id: 'operations', label: 'Operations', kind: 'link', href: '/change' },
-  ];
   return (
     <nav className="cf-app-scope-row" data-testid="core-menu" aria-label="Core menu">
-      {items.map((item) =>
-        item.kind === 'link' ? (
+      {CORE_NAV_ITEMS.map((item) =>
+        item.href ? (
           <a
             key={item.id}
             className="cf-app-scope-btn"
