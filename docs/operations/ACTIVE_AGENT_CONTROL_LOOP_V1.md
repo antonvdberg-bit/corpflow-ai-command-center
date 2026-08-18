@@ -24,7 +24,7 @@ This packet adds **status supervision after activation**:
 ## Behaviour
 
 - **RUNNING / PENDING:** silent (no Telegram / no duplicate noise).
-- **COMPLETED:** discover PR + checks; post completion event + operator decision packet once; label `dispatch:operator-review`; do not reactivate.
+- **COMPLETED:** discover PR + checks; post completion event + operator decision packet once; label `dispatch:operator-review`; do not reactivate. Merge-ready / operator-review is **review/decision inventory** and releases **execution WIP** immediately (#976).
 - **FAILED:** classify recoverable vs blocker; emit once; preserve evidence.
 - **STALE:** one bounded deterministic follow-up via `POST /v1/agents/{id}/runs`; else Anton flag.
 - **Second unchanged poll:** `completion_event_deduped` — no duplicate event.

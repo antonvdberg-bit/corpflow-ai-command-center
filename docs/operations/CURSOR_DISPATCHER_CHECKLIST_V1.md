@@ -32,7 +32,7 @@ Run this checklist **at the start of each work session** and **before opening ea
 
 ## 3. WIP + anti-conflict pre-check
 
-- [ ] Open Cursor PRs ≤ **2** (board §4). If at cap, finish/merge one before opening more.
+- [ ] Cursor **execution WIP** ≤ **2** genuine active implementation runs (board §4). Merge-ready / operator-review PRs are **review/decision inventory** and do **not** consume a factory channel. Do not wait to merge before starting the next eligible item.
 - [ ] Lane has ≤ **1** packet `IN_PROGRESS`.
 - [ ] Codex packets in flight ≤ **2** (if this dispatch issues a Codex task).
 - [ ] No other open PR/lane is editing the same files (board §5 rule 1). If overlap exists,

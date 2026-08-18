@@ -21,8 +21,10 @@ import {
 } from '../lib/server/cursor-issue-dispatch-lifecycle.js';
 import {
   DISPATCH_LABEL_PAUSED,
+  attachLinkedPullRequestsToIssues,
   evaluateCursorWipCapacity,
   extractDispatchActivatedRunId,
+  extractSourceIssueFromPullRequest,
   formatCursorCapacityPacket,
   inspectIssueWipState,
 } from '../lib/server/cursor-wip-control.js';
@@ -714,5 +716,220 @@ Next eligible: #882
     const ids = livePair.slots.map((s) => s.runId);
     assert.equal(new Set(ids).size, 2);
     assert.ok(!ids.includes(GEN1_881_RUN));
+  });
+});
+
+const MERGE_READY_974_RUN = 'run-aaaaaaaa-9740-9740-9740-974097409740';
+const MERGE_READY_975_RUN = 'run-bbbbbbbb-9750-9750-9750-975097509750';
+const CONTINUATION_801_OLD = 'run-cccccccc-8010-8010-8010-801080108010';
+const CONTINUATION_801_NEW = 'run-dddddddd-8011-8011-8011-801180118011';
+
+function mergeReadyIssue(number, runId, extra = {}) {
+  return {
+    number,
+    title: `Merge-ready #${number}`,
+    body: 'documentation only',
+    state: 'open',
+    labels: ['dispatch:cursor-claimed', 'status:in-progress'],
+    comments: activatedComments(number, runId),
+    linkedPrs: [
+      {
+        number: number + 1000,
+        state: 'open',
+        draft: false,
+        mergeReady: true,
+        title: `fix: #${number} merge-ready`,
+      },
+    ],
+    ...extra,
+  };
+}
+
+function eligibleReadyIssue(number) {
+  return {
+    number,
+    title: `Eligible #${number}`,
+    body: 'documentation only ordinary work',
+    state: 'open',
+    labels: ['dispatch:cursor-ready', 'priority:P0'],
+    createdAt: `2026-08-18T00:00:0${number % 10}Z`,
+  };
+}
+
+describe('cursor WIP release at merge-ready (#976)', () => {
+  it('two merge-ready PRs + two new eligible items => both new items may start', () => {
+    const mergeReadyA = mergeReadyIssue(1974, MERGE_READY_974_RUN);
+    const mergeReadyB = mergeReadyIssue(1975, MERGE_READY_975_RUN);
+    const readyA = eligibleReadyIssue(1976);
+    const readyB = eligibleReadyIssue(1977);
+
+    const inspectedA = inspectIssueWipState(mergeReadyA);
+    assert.equal(inspectedA.verifiedLive, false);
+    assert.equal(inspectedA.reviewInventory, true);
+    assert.equal(inspectedA.reconcile[0].reason, 'merge_ready_review_inventory');
+
+    const plan = planCursorIssueClaims({
+      trackedIssues: [mergeReadyA, mergeReadyB],
+      claimedIssues: [mergeReadyA, mergeReadyB],
+      readyIssues: [readyA, readyB],
+    });
+    assert.equal(plan.verifiedActiveCount, 0);
+    assert.equal(plan.availableSlots, 2);
+    assert.deepEqual(plan.claimIssueNumbers, [1976, 1977]);
+    assert.equal(plan.activationTargetIssue, 1976);
+    assert.deepEqual(plan.wipCapacity.reviewDecisionInventoryIssueNumbers, [1974, 1975]);
+    assert.match(plan.capacityPacket, /CURSOR CAPACITY: 0\/2 active/);
+    assert.match(plan.capacityPacket, /Review\/decision inventory: #1974, #1975/);
+  });
+
+  it('one review item needing rework => only the actual continuation run consumes execution capacity', () => {
+    const reviewOnly = {
+      number: 1801,
+      title: 'Review may later request rework',
+      body: 'documentation only',
+      state: 'open',
+      labels: ['dispatch:operator-review'],
+      comments: [
+        ...activatedComments(1801, CONTINUATION_801_OLD),
+        {
+          body: formatCursorCompletionEventComment(
+            buildCursorCompletionEvent({
+              sourceIssue: 1801,
+              cursorRunId: CONTINUATION_801_OLD,
+              cursorAgentId: 'bc-80108010-8010-8010-8010-801080108010',
+              status: 'COMPLETED',
+            }),
+          ),
+        },
+      ],
+      linkedPrs: [
+        {
+          number: 2801,
+          state: 'open',
+          draft: false,
+          mergeReady: true,
+          title: 'fix: #1801 merge-ready',
+        },
+      ],
+    };
+
+    const waitingForPossibleRework = planCursorIssueClaims({
+      trackedIssues: [reviewOnly],
+      claimedIssues: [],
+      readyIssues: [eligibleReadyIssue(1802), eligibleReadyIssue(1803)],
+    });
+    assert.equal(waitingForPossibleRework.verifiedActiveCount, 0);
+    assert.equal(waitingForPossibleRework.availableSlots, 2);
+    assert.deepEqual(waitingForPossibleRework.claimIssueNumbers, [1802, 1803]);
+    assert.ok(waitingForPossibleRework.wipCapacity.reviewDecisionInventoryIssueNumbers.includes(1801));
+
+    const continuation = {
+      number: 1801,
+      title: 'Bounded rework continuation',
+      body: 'documentation only',
+      state: 'open',
+      labels: ['dispatch:cursor-claimed', 'status:in-progress'],
+      comments: [
+        ...activatedComments(1801, CONTINUATION_801_OLD),
+        {
+          created_at: '2026-08-18T01:00:00Z',
+          body: formatCursorCompletionEventComment(
+            buildCursorCompletionEvent({
+              sourceIssue: 1801,
+              cursorRunId: CONTINUATION_801_OLD,
+              cursorAgentId: 'bc-80108010-8010-8010-8010-801080108010',
+              status: 'COMPLETED',
+            }),
+          ),
+        },
+        {
+          created_at: '2026-08-18T02:00:00Z',
+          body: formatCursorRequeueComment(
+            buildCursorRequeueMarker({
+              sourceIssue: 1801,
+              generation: 2,
+              reason: 'review requested bounded rework',
+              requeuedAt: '2026-08-18T02:00:00.000Z',
+            }),
+          ),
+        },
+        {
+          created_at: '2026-08-18T02:05:00Z',
+          body: formatCursorActivationClaimComment(
+            buildCursorActivationClaim({
+              sourceIssue: 1801,
+              generation: 2,
+              claimToken: 'tok-1801-gen2',
+              status: 'activated',
+              agentRunId: CONTINUATION_801_NEW,
+            }),
+          ),
+        },
+        {
+          created_at: '2026-08-18T02:05:01Z',
+          body: formatDispatchActivatedComment({
+            issueNumber: 1801,
+            agentRunId: CONTINUATION_801_NEW,
+          }),
+        },
+      ],
+      linkedPrs: [
+        {
+          number: 2801,
+          state: 'open',
+          draft: false,
+          mergeReady: true,
+          title: 'fix: #1801 still open during rework',
+        },
+      ],
+    };
+
+    const continuationWip = evaluateCursorWipCapacity({
+      trackedIssues: [continuation],
+      readyIssues: [eligibleReadyIssue(1804)],
+    });
+    assert.equal(continuationWip.used, 1);
+    assert.equal(continuationWip.availableSlots, 1);
+    assert.equal(continuationWip.slots[0].issueNumber, 1801);
+    assert.equal(continuationWip.slots[0].runId, CONTINUATION_801_NEW);
+    assert.equal(inspectIssueWipState(continuation).isContinuation, true);
+    assert.equal(inspectIssueWipState(continuation).reviewInventory, false);
+  });
+
+  it('binds open PRs to source issues without treating raw PR count as WIP', () => {
+    const issues = [
+      liveIssue(1962, 'run-eeeeeeee-1962-1962-1962-196219621962'),
+      liveIssue(1973, 'run-ffffffff-1973-1973-1973-197319731973'),
+    ];
+    attachLinkedPullRequestsToIssues(issues, [
+      {
+        number: 2974,
+        state: 'open',
+        draft: false,
+        title: 'fix(factory): #1962 list-form constraints',
+        body: 'Source issue: #1962\nCanonical Context Preflight: PASS',
+      },
+      {
+        number: 2975,
+        state: 'open',
+        draft: false,
+        title: 'fix(delivery): #1973 skip preview gating',
+        body: 'Source item: #1973',
+      },
+    ]);
+    assert.equal(extractSourceIssueFromPullRequest({ title: 'fix: #962', body: '' }), 962);
+    assert.equal(issues[0].linkedPrs[0].number, 2974);
+    assert.equal(issues[1].linkedPrs[0].number, 2975);
+
+    const wip = evaluateCursorWipCapacity({
+      trackedIssues: issues,
+      readyIssues: [eligibleReadyIssue(1976), eligibleReadyIssue(1977)],
+      openPrCount: 2,
+    });
+    assert.equal(wip.used, 0);
+    assert.equal(wip.availableSlots, 2);
+    assert.equal(wip.openPrCountIgnored, true);
+    assert.deepEqual(wip.reviewDecisionInventoryIssueNumbers, [1962, 1973]);
+    assert.equal(wip.nextEligible, 1976);
   });
 });
