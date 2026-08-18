@@ -1,0 +1,14 @@
+{
+  "id": "issue-950-list-form-constraints",
+  "repair_issue": 962,
+  "source_issue": 950,
+  "title": "P0 bounded continuation — refresh existing PR against current main",
+  "labels": ["priority:P0", "dispatch:cursor-ready"],
+  "body": "Parent: #701\nExisting implementation PR: #947\nContinuous-improvement ledger: #948\n\n## Definition of done\nThe existing PR is refreshed against current main and left mergeable for operator review. Ordinary reversible docs/config work only.\n\n## Constraints\nNo schema, env/secrets, external messaging, payment, production deploy, second CRM/database, or scope expansion.\n",
+  "expected": {
+    "protectedGate": "none",
+    "consequentialActionRequested": false,
+    "eligibleToClaim": true
+  },
+  "notes": "Reproduction for #962: list-form 'No …, production deploy' must not infer protectedGate production. Synthetic wording; no secrets or private client data."
+}

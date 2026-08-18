@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { describe, it } from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 import {
   canRunConcurrently,
@@ -14,10 +17,25 @@ import {
   inferIssueClassification,
   mapGitHubIssueToDispatchIssue,
   planCursorIssueClaims,
+  prohibitionAppliesToPhrase,
   rollbackPrematureIssueClaim,
   suggestIssueBranchName,
+  textForbidsProduction,
 } from '../lib/server/cursor-issue-dispatch-lifecycle.js';
 import { resolveCursorRunId } from '../scripts/cursor-issue-dispatch-finalize.mjs';
+
+const ISSUE_950_LIST_FORM = JSON.parse(
+  readFileSync(
+    join(
+      dirname(fileURLToPath(import.meta.url)),
+      '..',
+      'fixtures',
+      'factory-eligibility',
+      'issue-950-list-form-constraints.json',
+    ),
+    'utf8',
+  ),
+);
 
 const ISSUE_653 = {
   number: 653,
@@ -696,6 +714,121 @@ No secrets or private client data in repo evidence.`,
       assert.equal(d9200?.eligibleToClaim, true);
       assert.equal(plan.activationTargetIssue, 9200);
       assert.deepEqual(plan.claimIssueNumbers, [9200]);
+    });
+  });
+
+  describe('#962 list-form constraint prohibitions', () => {
+    it('recognizes #950-style comma list as a production-deploy prohibition', () => {
+      assert.equal(
+        prohibitionAppliesToPhrase(ISSUE_950_LIST_FORM.body, 'production deploy'),
+        true,
+      );
+      assert.equal(textForbidsProduction(ISSUE_950_LIST_FORM.body), true);
+    });
+
+    it('#950 list-form Constraints do not set protectedGate production', () => {
+      const issue = {
+        number: ISSUE_950_LIST_FORM.source_issue,
+        title: ISSUE_950_LIST_FORM.title,
+        body: ISSUE_950_LIST_FORM.body,
+        labels: ISSUE_950_LIST_FORM.labels,
+      };
+      const c = inferIssueClassification(issue);
+      assert.equal(c.protectedGate, ISSUE_950_LIST_FORM.expected.protectedGate);
+      assert.equal(
+        c.consequentialActionRequested,
+        ISSUE_950_LIST_FORM.expected.consequentialActionRequested,
+      );
+      assert.notEqual(c.environment, 'production');
+      const plan = planCursorIssueClaims({ readyIssues: [issue], claimedIssues: [] });
+      assert.equal(plan.decisions[0]?.eligibleToClaim, ISSUE_950_LIST_FORM.expected.eligibleToClaim);
+      assert.doesNotMatch(String(plan.decisions[0]?.reason || ''), /protected gate/);
+    });
+
+    it('does not treat "No waiting, production deploy is required" as a prohibition', () => {
+      const blob =
+        'No waiting, production deploy is required to the client-owned production target.';
+      assert.equal(prohibitionAppliesToPhrase(blob, 'production deploy'), false);
+      const c = inferIssueClassification({
+        number: 96202,
+        title: 'Client production cutover',
+        body: `${blob} Deploy to client_production.`,
+        labels: ['dispatch:cursor-ready'],
+      });
+      assert.equal(c.protectedGate, 'production');
+      const plan = planCursorIssueClaims({
+        readyIssues: [
+          {
+            number: 96202,
+            title: 'Client production cutover',
+            body: `${blob} Deploy to client_production.`,
+            labels: ['dispatch:cursor-ready'],
+          },
+        ],
+        claimedIssues: [],
+      });
+      assert.equal(plan.decisions[0]?.eligibleToClaim, false);
+    });
+
+    it('sentence break keeps a later production deploy fail-closed', () => {
+      const issue = {
+        number: 96203,
+        title: 'Client production cutover after unrelated prohibition',
+        body: 'No schema. Then production deploy to the client-owned production target. Deploy to client_production.',
+        labels: ['dispatch:cursor-ready'],
+      };
+      assert.equal(prohibitionAppliesToPhrase(issue.body, 'production deploy'), false);
+      assert.equal(inferIssueClassification(issue).protectedGate, 'production');
+    });
+
+    it('adjacent no production deploy still forbids', () => {
+      assert.equal(textForbidsProduction('Docs only. No production deploy.'), true);
+      const c = inferIssueClassification({
+        number: 96204,
+        title: 'Docs only',
+        body: 'Ordinary documentation. No production deploy.',
+        labels: ['dispatch:cursor-ready'],
+      });
+      assert.equal(c.protectedGate, 'none');
+    });
+
+    it('actual schema / secrets / payment / send requests remain fail-closed', () => {
+      assert.equal(
+        inferIssueClassification({
+          number: 96205,
+          title: 'Apply schema migration',
+          body: 'Run prisma migrate to alter Postgres schema and backfill rows. This is a real DB/schema change packet.',
+          labels: ['dispatch:cursor-ready'],
+        }).protectedGate,
+        'database',
+      );
+      assert.equal(
+        inferIssueClassification({
+          number: 96206,
+          title: 'Rotate production secrets',
+          body: 'Change Vercel env/secrets. Rotate the secrets and configure new production secrets.',
+          labels: ['dispatch:cursor-ready'],
+        }).protectedGate,
+        'secrets',
+      );
+      assert.equal(
+        inferIssueClassification({
+          number: 96207,
+          title: 'Charge a live card',
+          body: 'Execute a real payment and charge a credit card. Enable payment runtime.',
+          labels: ['dispatch:cursor-ready'],
+        }).protectedGate,
+        'payment',
+      );
+      assert.equal(
+        inferIssueClassification({
+          number: 96208,
+          title: 'Send live WhatsApp',
+          body: 'Send a live WhatsApp message to the customer. Enable live WhatsApp runtime.',
+          labels: ['dispatch:cursor-ready'],
+        }).protectedGate,
+        'messaging',
+      );
     });
   });
 });
