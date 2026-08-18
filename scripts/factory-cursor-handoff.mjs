@@ -33,6 +33,10 @@ import {
   resolveFactoryDispatcherRunPlan,
 } from '../lib/server/cursor-ready-event-dispatch.js';
 import {
+  attachLinkedPullRequestsToIssues,
+  fetchOpenPullRequestsForWip,
+} from '../lib/server/cursor-wip-control.js';
+import {
   FACTORY_CURSOR_HANDOFF_WORKFLOW_NAME,
   formatFactoryHandoffComment,
   hasRecentFactoryHandoff,
@@ -187,6 +191,16 @@ async function main() {
   }
 
   const trackedIssues = [...claimedIssues, ...closedClaimedIssues, ...readyIssues];
+  if (token) {
+    try {
+      attachLinkedPullRequestsToIssues(
+        trackedIssues,
+        await fetchOpenPullRequestsForWip(token, repo),
+      );
+    } catch {
+      // Fail soft — comments/labels still classify operator-review inventory.
+    }
+  }
   const plan = planCursorIssueClaims({
     readyIssues,
     claimedIssues,

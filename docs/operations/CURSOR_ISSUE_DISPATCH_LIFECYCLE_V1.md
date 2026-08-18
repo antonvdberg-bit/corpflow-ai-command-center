@@ -60,11 +60,19 @@ Do **not** add another management-platform dispatcher. **Production Cursor execu
 
 If label creation or verification fails (missing labels after ensure, GitHub API error, or insufficient token scope), the workflow **fails closed**: the run stops, no claim labels are applied, and operators see **one actionable blocker** naming the missing label(s) or API failure — fix repo label state or workflow permissions, then re-run the scan on `main` (dry-run is fine).
 
-## 4. WIP limits (default) — verified Cursor runs (#862)
+## 4. WIP limits (default) — verified Cursor runs (#862 / #976)
+
+The two factory channels are **active execution capacity**, not all unmerged work.
+
+| Class | Consumes a factory slot? |
+|-------|--------------------------|
+| **Execution WIP** — current-generation Cursor implementation still running | **Yes** (cap **2**) |
+| **Review/decision inventory** — merge-ready PRs, `dispatch:operator-review`, protected-approval waits, external/scheduled waits | **No** |
 
 | Scope | Limit |
 |-------|-------|
-| Verified active Cursor runs (activation metadata with run ID) | **2** |
+| Verified **active execution** Cursor runs (current-generation implementation still running) | **2** |
+| Review/decision inventory (merge-ready / operator-review / approval wait) | **uncapped by execution WIP** |
 | Active issues per tenant | **1** |
 | Active database/schema issues (repo-wide) | **1** |
 | Active **client_production**-deployment candidates | **1** |
@@ -72,14 +80,15 @@ If label creation or verification fails (missing labels after ensure, GitHub API
 
 **WIP Control v1 rules:**
 
-- A slot counts only when **current-generation** activation metadata proves an active Cursor run. Historical `CURSOR DISPATCH ACTIVATED` / origin evidence before the latest `CURSOR REQUEUE` does not occupy WIP.
+- A slot counts only when **current-generation** activation metadata proves an **active Cursor implementation run**. Historical `CURSOR DISPATCH ACTIVATED` / origin evidence before the latest `CURSOR REQUEUE` does not occupy WIP.
 - Claim comments are append-only: the latest status for a claim token is authoritative. Terminal (`released` / `completed`) claims consume zero slots and reconcile stale execution labels.
 - Lifecycle labels alone never consume capacity; stale/orphaned labels are reconciled before dispatch.
 - Priority order for ready work: `priority:P0` > `priority:P1` > `priority:P2` > unprioritized (stable oldest-ready tie-break).
 - `execution:paused` ready work is skipped; removing the label restores eligibility. Pausing a live run does not invent an external kill — the verified slot remains until terminal.
-- Open PR count does **not** affect Cursor WIP capacity.
-- Operator-review / closed / terminal-failed transitions release the slot and strip active execution labels in the same lifecycle step.
-- Every scan emits a capacity packet naming exact run IDs for occupied slots.
+- Open / merge-ready PR count is **review/decision inventory**, not execution WIP. Two merge-ready PRs must not fill both factory channels.
+- Operator-review, merge-ready / implementation-complete, closed, and terminal-failed transitions **release the execution slot immediately** and strip active execution labels in the same lifecycle step. Handoff then backfills the freed slot.
+- Waiting for operator review, merge, protected approval, or an external/scheduled decision does **not** reserve a channel because rework might later be requested. Bounded rework uses `CURSOR REQUEUE` plus a real continuation run; only that continuation consumes execution WIP.
+- Every scan emits a capacity packet naming exact run IDs for occupied **execution** slots and listing review/decision inventory separately.
 
 Publishing to CorpFlowAI-hosted **corpflow_test** surfaces does **not** consume the client_production WIP slot and does **not** set `protectedGate: production`.
 
@@ -168,7 +177,7 @@ Cost remains negligible (Node script + GitHub API). Production execution does **
 1. Create / queue the work once (`dispatch:cursor-ready`).
 2. If gated, Anton records **one** durable decision (`OPERATOR GATE AUTHORIZATION` or Decision Inbox durable approval).
 3. After approval, the system wakes itself and claims when WIP permits — **do not** toggle labels or re-create the issue.
-4. When an active run reaches terminal/operator-review, the system immediately backfills the freed slot from the highest eligible priority **through Handoff / Wake Proof**.
+4. When an active run reaches merge-ready / terminal / operator-review, the system immediately **releases execution WIP** and backfills the freed slot from the highest eligible priority **through Handoff / Wake Proof**. Review/decision inventory does not reserve the channel.
 5. Alert Anton only for a genuine unresolved gate or repeated activation failure.
 
 Do **not** rely on the legacy API dispatcher schedule or a second Background Agents API worker.

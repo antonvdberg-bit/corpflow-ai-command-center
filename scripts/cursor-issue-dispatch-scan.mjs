@@ -31,6 +31,10 @@ import {
   releaseCursorExecutionSlotLabels,
   suggestIssueBranchName,
 } from '../lib/server/cursor-issue-dispatch-lifecycle.js';
+import {
+  attachLinkedPullRequestsToIssues,
+  fetchOpenPullRequestsForWip,
+} from '../lib/server/cursor-wip-control.js';
 import { postGitHubIssueComment } from '../lib/server/cursor-ops-status.js';
 
 const DEFAULT_REPO = 'antonvdberg-bit/corpflow-ai-command-center';
@@ -173,6 +177,16 @@ async function main() {
   }
 
   const trackedIssues = [...claimedIssues, ...closedClaimedIssues, ...readyIssues];
+  if (token) {
+    try {
+      attachLinkedPullRequestsToIssues(
+        trackedIssues,
+        await fetchOpenPullRequestsForWip(token, repo),
+      );
+    } catch {
+      // Fail soft — comments/labels still classify operator-review inventory.
+    }
+  }
   const plan = planCursorIssueClaims({
     readyIssues,
     claimedIssues,
