@@ -153,16 +153,77 @@
     "delivery_ref",
     "scope_summary",
     "commercial_blockers",
-    "payment_exception"
+    "payment_exception",
+    "qualification_summary_ref",
+    "qualification_summary"
   ],
+  "qualification_summary_required_fields": [
+    "business_name",
+    "primary_contact",
+    "product",
+    "problem_summary",
+    "desired_outcome",
+    "fit_assessment",
+    "recommended_offer_kind",
+    "qualified_by",
+    "qualified_at",
+    "proposal_ready"
+  ],
+  "qualification_fit_values": ["qualified", "not_fit", "needs_more_info"],
+  "product_pack_completeness": {
+    "shared_docs": [
+      "docs/revenue/COMMERCIAL_APPROVAL_RAIL_V1.md",
+      "docs/revenue/PRICING_RECOMMENDATION_PACKET.md",
+      "docs/revenue/PRODUCT_PACK_COMPLETENESS_CHECKLISTS.md",
+      "docs/revenue/templates/DISCOVERY_QUALIFICATION_SUMMARY.md",
+      "docs/revenue/templates/COMMERCIAL_ACCEPTANCE_RECORD.md",
+      "docs/revenue/templates/PAYMENT_EVIDENCE_RECORD.md",
+      "docs/revenue/templates/COMMERCIAL_STORAGE_AND_LINKING.md"
+    ],
+    "lead-rescue": {
+      "required_docs": [
+        "docs/revenue/templates/LEAD_RESCUE_PROPOSAL_TEMPLATE.md",
+        "docs/sales/AI_LEAD_RESCUE_PRICING_GUIDE.md",
+        "docs/marketing/LEAD_RESCUE_PRODUCT_PACK_V1.md",
+        "docs/finance/AI_LEAD_RESCUE_MANUAL_PRO_FORMA_TEMPLATE_V1.md"
+      ],
+      "proposal_template_markers": [
+        "LEAD_RESCUE_PROPOSAL_TEMPLATE_V1",
+        "Included scope",
+        "Exclusions",
+        "Assumptions",
+        "Client responsibilities",
+        "Revision"
+      ]
+    },
+    "website-rescue": {
+      "required_docs": [
+        "docs/revenue/templates/WEBSITE_RESCUE_PROPOSAL_TEMPLATE.md",
+        "docs/sales/WEBSITE_RESCUE_PRICING_GUIDE.md",
+        "docs/marketing/WEBSITE_RESCUE_PRODUCT_PACK_V1.md"
+      ],
+      "proposal_template_markers": [
+        "WEBSITE_RESCUE_PROPOSAL_TEMPLATE_V1",
+        "Pages / catalogue scope",
+        "Explicit exclusions",
+        "Hosting / domain assumptions",
+        "Content and asset responsibilities",
+        "Revision limits"
+      ]
+    }
+  },
   "docs": {
     "canonical": "docs/revenue/COMMERCIAL_APPROVAL_RAIL_V1.md",
     "pricing": "docs/revenue/PRICING_RECOMMENDATION_PACKET.md",
+    "system_proof": "docs/revenue/COMMERCIAL_APPROVAL_SYSTEM_PROOF_V1.md",
+    "pack_checklists": "docs/revenue/PRODUCT_PACK_COMPLETENESS_CHECKLISTS.md",
     "templates": [
+      "docs/revenue/templates/DISCOVERY_QUALIFICATION_SUMMARY.md",
       "docs/revenue/templates/LEAD_RESCUE_PROPOSAL_TEMPLATE.md",
       "docs/revenue/templates/WEBSITE_RESCUE_PROPOSAL_TEMPLATE.md",
       "docs/revenue/templates/COMMERCIAL_ACCEPTANCE_RECORD.md",
-      "docs/revenue/templates/PAYMENT_EVIDENCE_RECORD.md"
+      "docs/revenue/templates/PAYMENT_EVIDENCE_RECORD.md",
+      "docs/revenue/templates/COMMERCIAL_STORAGE_AND_LINKING.md"
     ],
     "consumers": [
       "docs/operations/LEAD_RESCUE_ONBOARDING_AND_DELIVERY_V1.md",

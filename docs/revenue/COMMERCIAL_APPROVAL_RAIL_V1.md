@@ -57,18 +57,21 @@ Sibling onboarding `canStartBuild` continues to require `record.financially_appr
 ## 4. Operator procedure (manual)
 
 1. Qualified opportunity (Prospect Ops / intake — not this PR’s UI).
-2. Select product and commercial option (pilot vs standard; WR case type).
-3. Prepare proposal from the product template (draft in repo/docs or operator files).
-4. Operator review (completeness, exclusions, no unsupported guarantees).
-5. **Provide or copy** the proposal to the client manually (email/WhatsApp/PDF).  
+2. Complete **discovery / qualification summary** (`templates/DISCOVERY_QUALIFICATION_SUMMARY.md`) until `proposal_ready`.
+3. Select product and commercial option (pilot vs standard; WR case type).
+4. Prepare proposal from the product template (draft in repo/docs or operator files).
+5. Confirm product pack completeness (`PRODUCT_PACK_COMPLETENESS_CHECKLISTS.md` / `evaluateProductPackCompleteness`).
+6. Operator review (completeness, exclusions, no unsupported guarantees).
+7. **Provide or copy** the proposal to the client manually (email/WhatsApp/PDF).  
    **Preparing or copying a draft is not the same as “sent” in an automated system.** Record status `provided_to_client` only when the operator actually delivered it.
-6. Record proposal version (`proposal_version`).
-7. Record acceptance (`COMMERCIAL_ACCEPTANCE_RECORD.md`).
-8. Record payment evidence **or** approved payment exception (`PAYMENT_EVIDENCE_RECORD.md`).
-9. Run financial approval gate: `canMarkFinanciallyApproved(record)`.
-10. If `ok`, mark approved-to-onboard (`financially_approved` via handoff) and set won reason.
-11. Link to Lead Rescue (#715) or Website Rescue (#716) onboarding path.
-12. If not won, record lost reason from the bounded vocabulary.
+8. Record proposal version (`proposal_version`). ERPNext Quotation/Sales Invoice names may fill this field (#882); they never set `financially_approved`.
+9. Record acceptance (`COMMERCIAL_ACCEPTANCE_RECORD.md`).
+10. Record payment evidence **or** approved payment exception (`PAYMENT_EVIDENCE_RECORD.md`).
+11. Store/link refs per `templates/COMMERCIAL_STORAGE_AND_LINKING.md` (existing systems only).
+12. Run financial approval gate: `canMarkFinanciallyApproved(record)`.
+13. If `ok`, mark approved-to-onboard (`financially_approved` via handoff) and set won reason.
+14. Link to Lead Rescue (#715) or Website Rescue (#716) onboarding path.
+15. If not won, record lost reason from the bounded vocabulary.
 
 ## 5. Won / lost vocabulary
 
@@ -92,11 +95,15 @@ Operator notes are allowed; free-form text is **not** a substitute for the vocab
 
 | Doc | Role |
 |---|---|
+| `templates/DISCOVERY_QUALIFICATION_SUMMARY.md` | Discovery / qualification → proposal-ready |
 | `templates/LEAD_RESCUE_PROPOSAL_TEMPLATE.md` | LR quotation/proposal |
 | `templates/WEBSITE_RESCUE_PROPOSAL_TEMPLATE.md` | WR quotation/proposal |
 | `templates/COMMERCIAL_ACCEPTANCE_RECORD.md` | Acceptance |
 | `templates/PAYMENT_EVIDENCE_RECORD.md` | Payment / exception evidence |
+| `templates/COMMERCIAL_STORAGE_AND_LINKING.md` | Where evidence lives + how refs link |
+| `PRODUCT_PACK_COMPLETENESS_CHECKLISTS.md` | Shared + product pack checklists |
 | `PRICING_RECOMMENDATION_PACKET.md` | Operator price bands (recommendation ≠ Anton-approved final) |
+| `COMMERCIAL_APPROVAL_SYSTEM_PROOF_V1.md` | Synthetic system-gate evidence |
 
 Existing guides remain canonical for detailed inclusions:  
 `docs/sales/AI_LEAD_RESCUE_PRICING_GUIDE.md`, `docs/sales/WEBSITE_RESCUE_PRICING_GUIDE.md`.
@@ -111,8 +118,24 @@ Under `fixtures/commercial-approval/`:
 - `lead-rescue-rejected.json`
 - `website-rescue-incomplete-proposal.json`
 - `lead-rescue-payment-exception-approved.json`
+- `system-proof-lead-rescue.json`
+- `system-proof-website-rescue.json`
 
-## 9. Change log
+## 9. System proof
 
+Independent LR + WR commercial paths (qualification → approved-to-onboard) plus fail-closed proofs:
+
+```bash
+node --test node-tests/commercial-approval-system-proof.test.mjs
+node scripts/commercial-approval-system-proof.mjs
+```
+
+Artifact: `artifacts/commercial-approval-system-proof/latest-run.json`
+
+Integrated #711 Scenario A/B proofs (#925 / #927) consume this rail; they do not replace the independent system gate.
+
+## 10. Change log
+
+- **2026-08-18** — #714 closure gap: qualification summary, storage/linking, pack completeness checklists, independent system-proof runner + evidence. Reuses merged #737 rail; does not recreate closed PR #870.
 - **2026-08-13** — #882: ERPNext Quotation/Sales Invoice names may fill `proposal_version`; they never set `financially_approved`. See `docs/erpnext/ERPNEXT_COMMERCIAL_DOCUMENTS_V1.md`.
 - **2026-08-04** — Initial rail for #714 (contract, validator, templates, tests).

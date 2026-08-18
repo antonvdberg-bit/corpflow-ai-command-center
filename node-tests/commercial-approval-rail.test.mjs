@@ -12,7 +12,10 @@ import {
   canMarkFinanciallyApproved,
   evaluateFinancialApprovalGate,
   evaluatePaymentEvidence,
+  evaluateProductPackCompleteness,
   evaluateProposalCompleteness,
+  evaluateProposalReady,
+  evaluateQualificationSummary,
   evaluateWonLostRecord,
   loadCommercialApprovalConfig,
   mapProductForOnboarding,
@@ -209,14 +212,48 @@ describe('product linkage to #715 / #716 onboarding', () => {
   });
 });
 
+describe('qualification summary and proposal-ready', () => {
+  it('complete qualification summary can be proposal-ready', () => {
+    const record = loadFixture('system-proof-lead-rescue.json');
+    const q = evaluateQualificationSummary(record);
+    assert.equal(q.complete, true, q.missing.join(','));
+    assert.equal(q.proposal_ready, true);
+    const ready = evaluateProposalReady(record);
+    assert.equal(ready.ready, true, ready.blockers.join(','));
+  });
+
+  it('missing qualification blocks proposal-ready', () => {
+    const record = loadFixture('lead-rescue-accepted-approved.json');
+    const ready = evaluateProposalReady(record);
+    assert.equal(ready.ready, false);
+    assert.ok(ready.blockers.includes('MISSING_QUALIFICATION_SUMMARY'));
+  });
+});
+
+describe('product pack completeness', () => {
+  it('Lead Rescue pack is complete', () => {
+    const pack = evaluateProductPackCompleteness('lead-rescue');
+    assert.equal(pack.complete, true, JSON.stringify(pack));
+  });
+
+  it('Website Rescue pack is complete', () => {
+    const pack = evaluateProductPackCompleteness('website-rescue');
+    assert.equal(pack.complete, true, JSON.stringify(pack));
+  });
+});
+
 describe('docs and templates exist', () => {
   const docs = [
     'docs/revenue/COMMERCIAL_APPROVAL_RAIL_V1.md',
     'docs/revenue/PRICING_RECOMMENDATION_PACKET.md',
+    'docs/revenue/PRODUCT_PACK_COMPLETENESS_CHECKLISTS.md',
+    'docs/revenue/COMMERCIAL_APPROVAL_SYSTEM_PROOF_V1.md',
+    'docs/revenue/templates/DISCOVERY_QUALIFICATION_SUMMARY.md',
     'docs/revenue/templates/LEAD_RESCUE_PROPOSAL_TEMPLATE.md',
     'docs/revenue/templates/WEBSITE_RESCUE_PROPOSAL_TEMPLATE.md',
     'docs/revenue/templates/COMMERCIAL_ACCEPTANCE_RECORD.md',
     'docs/revenue/templates/PAYMENT_EVIDENCE_RECORD.md',
+    'docs/revenue/templates/COMMERCIAL_STORAGE_AND_LINKING.md',
   ];
 
   for (const rel of docs) {
