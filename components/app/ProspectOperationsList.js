@@ -1,5 +1,5 @@
 /**
- * Operating Workspace — shared Prospect Operations / Today list (#772 / #721 / #699).
+ * Operating Workspace — shared Prospect Operations / Today list (#772 / #721 / #699 / #994).
  * Read-only. Temporary product-desk links remain until later slices.
  * No live email / WhatsApp / SMS send.
  *
@@ -10,6 +10,7 @@
  *   title?: string,
  *   lead?: string,
  *   testId?: string,
+ *   proofWanted?: boolean,
  *   selectedId?: string,
  *   onSelect?: (id: string) => void,
  * }} props
@@ -21,6 +22,7 @@ export default function ProspectOperationsList({
   title = 'Prospect Operations',
   lead,
   testId = 'prospect-ops',
+  proofWanted,
   selectedId = '',
   onSelect,
 }) {
@@ -81,7 +83,10 @@ export default function ProspectOperationsList({
                 const id = String(row.id || '');
                 const name = String(row.organisation_name || row.person_name || id);
                 const signals = Array.isArray(row.exception_signals) ? row.exception_signals : [];
-                const detail = `/app/prospects?id=${encodeURIComponent(id)}`;
+                const shared = row.shared_detail_path ? String(row.shared_detail_path) : '';
+                const sharedHref =
+                  shared && proofWanted ? `${shared}${shared.includes('?') ? '&' : '?'}proof=1` : shared;
+                const productDesk = row.detail_path ? String(row.detail_path) : '';
                 const offer = String(row.offer_title || row.product_service_path || row.product || '—');
                 const isSelected = String(selectedId) === id;
                 return (
@@ -114,20 +119,31 @@ export default function ProspectOperationsList({
                           ))}
                     </td>
                     <td>
-                      {onSelect ? (
-                        <button
-                          type="button"
-                          className="cf-app-btn"
-                          data-testid={`prospect-ops-open-${id}`}
-                          onClick={() => onSelect(id)}
-                        >
-                          {isSelected ? 'Selected' : 'Open'}
-                        </button>
-                      ) : (
-                        <a href={detail} data-testid={`prospect-ops-detail-${id}`}>
-                          Open
+                      {sharedHref ? (
+                        <a href={sharedHref} data-testid={`prospect-ops-shared-detail-${id}`}>
+                          Shared detail
                         </a>
-                      )}
+                      ) : null}
+                      {onSelect ? (
+                        <div className="cf-app-muted">
+                          <button
+                            type="button"
+                            className="cf-app-btn"
+                            data-testid={`prospect-ops-open-${id}`}
+                            onClick={() => onSelect(id)}
+                          >
+                            {isSelected ? 'Selected' : 'Enquiry'}
+                          </button>
+                        </div>
+                      ) : null}
+                      {productDesk ? (
+                        <div className="cf-app-muted">
+                          <a href={productDesk} data-testid={`prospect-ops-detail-${id}`}>
+                            Product desk
+                          </a>
+                        </div>
+                      ) : null}
+                      {!sharedHref && !onSelect && !productDesk ? '—' : null}
                     </td>
                   </tr>
                 );
@@ -150,6 +166,7 @@ function ProspectEnquiryDetail({ prospect, testId = 'prospect-ops' }) {
     prospect.source_surfaces && typeof prospect.source_surfaces === 'object'
       ? String(/** @type {Record<string, unknown>} */ (prospect.source_surfaces).product_detail || '')
       : '';
+  const shared = prospect.shared_detail_path ? String(prospect.shared_detail_path) : '';
 
   async function copyDraft() {
     if (!draft || typeof navigator === 'undefined' || !navigator.clipboard) return;
@@ -211,6 +228,11 @@ function ProspectEnquiryDetail({ prospect, testId = 'prospect-ops' }) {
           <button type="button" className="cf-app-btn" data-primary="true" onClick={copyDraft}>
             Copy response draft
           </button>
+          {shared ? (
+            <a className="cf-app-btn" href={shared}>
+              Shared detail
+            </a>
+          ) : null}
           {productDesk ? (
             <a className="cf-app-btn" href={productDesk}>
               Temporary product desk

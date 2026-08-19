@@ -37,7 +37,7 @@ CorpFlowAI markets, qualifies, quotes, and follows up on **one Postgres `leads` 
 | **CorpFlowAI business CRM** (this pack) | Our own pipeline: enquiry → qualification → quotation → win/lose → delivery handoff | A client’s customer database |
 | **Core / factory** | Operator desks, `/change` factory oversight, CMP tickets for **our** delivery work | Tenant marketing sites |
 | **Tenant workflows** | Lux concierge CRM (`qualification_json.lux_operator_workflow`), CIPC Desk, other tenant `/change` tickets | CorpFlowAI’s sales pipeline |
-| **ERPNext** | Invoicing / customer identity **after** commercial approval (#551 / #880+) | Daily prospect kanban |
+| **ERPNext** | Invoicing / customer identity **after** commercial approval (#551 / #880+). Full ownership matrix: [`docs/governance/erpnext/SOURCE_OF_TRUTH_MATRIX_V1.md`](../governance/erpnext/SOURCE_OF_TRUTH_MATRIX_V1.md) (#918) | Daily prospect kanban |
 
 **Data ownership**
 

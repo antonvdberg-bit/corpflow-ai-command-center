@@ -14,6 +14,7 @@ import {
   detectProspectProduct,
   isCanonicalStageTransitionAllowed,
   leadRowToProspectViewModel,
+  mapCanonicalStageToNativeStatus,
   mapNativeStatusToCanonicalStage,
   matchesMyWorkTodayFilter,
   resolveNextActionDue,
@@ -52,6 +53,8 @@ describe('prospect-operations-view-model — status mapping', () => {
     assert.equal(mapNativeStatusToCanonicalStage(RAPID_DELIVERY_PRODUCT, 'quote_ready'), 'proposal_ready');
     assert.equal(mapNativeStatusToCanonicalStage(RAPID_DELIVERY_PRODUCT, 'closed'), 'won');
     assert.equal(mapNativeStatusToCanonicalStage(RAPID_DELIVERY_PRODUCT, 'not_fit'), 'not_fit');
+    assert.equal(mapCanonicalStageToNativeStatus(AI_LEAD_RESCUE_PRODUCT, 'discovery_booked'), 'DEMO_BOOKED');
+    assert.equal(mapCanonicalStageToNativeStatus(RAPID_DELIVERY_PRODUCT, 'qualifying'), 'reviewing');
   });
 
   it('enforces canonical transition guards', () => {

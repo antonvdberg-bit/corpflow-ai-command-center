@@ -232,6 +232,8 @@ describe('#699 market gateway — operator handoff', () => {
     assert.ok(list.includes('data-response-draft'));
     assert.ok(list.includes('Copy response draft'));
     assert.ok(list.includes('no live send') || list.includes('Nothing is sent automatically'));
+    assert.ok(list.includes('prospect-ops-shared-detail'));
+    assert.equal(list.includes(') : null}\n      <div className="cf-app-table-wrap">'), false);
     const revenue = read('pages/change/revenue.js');
     assert.ok(revenue.includes('data-market-enquiry-handoff'));
     assert.ok(revenue.includes('/app/prospects'));

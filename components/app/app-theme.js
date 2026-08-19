@@ -311,6 +311,28 @@ export const APP_SHELL_CSS = `
   }
   .cf-app-kv dt { color: var(--app-muted); margin: 0; }
   .cf-app-kv dd { margin: 0; word-break: break-word; }
+  .cf-app-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px 16px;
+    margin-top: 14px;
+  }
+  .cf-app-label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--app-muted);
+  }
+  .cf-app-history {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+  }
+  .cf-app-history li {
+    border-bottom: 1px solid var(--app-panel-border);
+    padding: 10px 0;
   .cf-app-dl {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
