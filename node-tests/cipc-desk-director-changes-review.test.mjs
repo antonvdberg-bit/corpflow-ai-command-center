@@ -178,5 +178,8 @@ test('homepage draft links Director changes service to /director-changes', () =>
   );
   assert.ok(dc);
   assert.equal(dc.href, '/director-changes');
-  assert.match(String(draft.content_version || ''), /director-changes-link/);
+  // Combined CIPC review-surface bumps may read
+  // `...-director-changes-beneficial-ownership-links` rather than the older
+  // exact suffix `director-changes-link`.
+  assert.match(String(draft.content_version || ''), /director-changes/);
 });
