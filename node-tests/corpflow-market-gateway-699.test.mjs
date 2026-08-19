@@ -223,13 +223,23 @@ describe('#699 market gateway — operator handoff', () => {
     assert.ok(desk.includes('data-recommended-next-action'));
     assert.ok(desk.includes('Copy response draft'));
     assert.ok(desk.includes('no live send'));
+    assert.ok(desk.includes('/app/prospects'));
   });
 
-  it('change/revenue points operators to the live enquiry desk', () => {
+  it('Operating Workspace is the canonical operator queue (not tenant /change)', () => {
+    const list = read('components/app/ProspectOperationsList.js');
+    assert.ok(list.includes('data-market-enquiry-fields'));
+    assert.ok(list.includes('data-response-draft'));
+    assert.ok(list.includes('Copy response draft'));
+    assert.ok(list.includes('no live send') || list.includes('Nothing is sent automatically'));
+    assert.ok(list.includes('prospect-ops-shared-detail'));
+    assert.equal(list.includes(') : null}\n      <div className="cf-app-table-wrap">'), false);
     const revenue = read('pages/change/revenue.js');
     assert.ok(revenue.includes('data-market-enquiry-handoff'));
-    assert.ok(revenue.includes('/admin/rapid-delivery'));
-    assert.ok(revenue.includes('response draft'));
+    assert.ok(revenue.includes('/app/prospects'));
+    assert.ok(revenue.includes('Operating Workspace'));
+    const intake = read('lib/server/tenant-intake.js');
+    assert.ok(intake.includes("operator_path: '/app/prospects'"));
   });
 });
 

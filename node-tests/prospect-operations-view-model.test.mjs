@@ -14,6 +14,7 @@ import {
   detectProspectProduct,
   isCanonicalStageTransitionAllowed,
   leadRowToProspectViewModel,
+  mapCanonicalStageToNativeStatus,
   mapNativeStatusToCanonicalStage,
   matchesMyWorkTodayFilter,
   resolveNextActionDue,
@@ -52,6 +53,8 @@ describe('prospect-operations-view-model — status mapping', () => {
     assert.equal(mapNativeStatusToCanonicalStage(RAPID_DELIVERY_PRODUCT, 'quote_ready'), 'proposal_ready');
     assert.equal(mapNativeStatusToCanonicalStage(RAPID_DELIVERY_PRODUCT, 'closed'), 'won');
     assert.equal(mapNativeStatusToCanonicalStage(RAPID_DELIVERY_PRODUCT, 'not_fit'), 'not_fit');
+    assert.equal(mapCanonicalStageToNativeStatus(AI_LEAD_RESCUE_PRODUCT, 'discovery_booked'), 'DEMO_BOOKED');
+    assert.equal(mapCanonicalStageToNativeStatus(RAPID_DELIVERY_PRODUCT, 'qualifying'), 'reviewing');
   });
 
   it('enforces canonical transition guards', () => {
@@ -224,7 +227,9 @@ describe('prospect-operations-view-model — lead adapters', () => {
     assert.equal(vm.next_action, 'Book discovery');
     assert.equal(vm.next_action_due, '2026-08-01T00:00:00.000Z');
     assert.ok(vm.exception_signals.includes('overdue_action'));
-    assert.equal(vm.detail_path, '/admin/lead-rescue/lr-abc123def');
+    assert.equal(vm.detail_path, '/app/prospects?id=lr-abc123def');
+    assert.equal(vm.source_surfaces.product_detail, '/admin/lead-rescue/lr-abc123def');
+    assert.equal(vm.source_surfaces.operating_workspace, '/app/prospects');
   });
 
   it('projects Rapid Delivery / Website Rescue path row into shared view model', () => {
@@ -300,6 +305,8 @@ describe('prospect-operations-view-model — lead adapters', () => {
     assert.equal(a.canonical_stage, b.canonical_stage);
     assert.equal(a.canonical_stage, 'discovery_booked');
     assert.equal(a.source_surfaces.workbench, '/admin/lead-rescue');
-    assert.equal(a.source_surfaces.kanban, '/change/revenue');
+    assert.equal(a.source_surfaces.kanban, '/app/prospects');
+    assert.equal(a.source_surfaces.operating_workspace, '/app/prospects');
+    assert.match(String(a.detail_path), /^\/app\/prospects\?id=/);
   });
 });

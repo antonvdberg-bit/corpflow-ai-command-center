@@ -22,8 +22,13 @@ describe('prospect-operations-workspace — projection', () => {
     const products = [...new Set(list.map((row) => row.product))].sort();
     assert.deepEqual(products, [AI_LEAD_RESCUE_PRODUCT, RAPID_DELIVERY_PRODUCT].sort());
     assert.ok(list.every((row) => Array.isArray(row.exception_signals)));
-    assert.ok(list.every((row) => row.email == null));
-    assert.ok(list.every((row) => row.phone == null));
+    assert.ok(list.some((row) => row.email));
+    assert.ok(list.some((row) => row.phone));
+    const bea = list.find((row) => row.id === 'syn-772-rd-bea');
+    assert.ok(bea);
+    assert.equal(bea.problem_summary, 'Weak enquiry path on the existing site');
+    assert.ok(bea.response_draft);
+    assert.equal(bea.source_surfaces.kanban, '/app/prospects');
     assert.ok(list.every((row) => !Object.prototype.hasOwnProperty.call(row, 'qualificationJson')));
   });
 
@@ -48,16 +53,20 @@ describe('prospect-operations-workspace — projection', () => {
     assert.equal(list.length, 0);
   });
 
-  it('omits contact fields from the public list item', () => {
+  it('includes staff contact and enquiry-handoff fields; omits raw qualificationJson', () => {
     const publicItem = publicProspectListItem({
       id: 'x',
-      email: 'hidden@example.com',
+      email: 'ada@example.com',
       phone: '+230',
       person_name: 'Ada',
+      problem_summary: 'Lost enquiries',
+      response_draft: 'Hi Ada',
       qualificationJson: { secret: true },
     });
-    assert.equal(publicItem.email, undefined);
-    assert.equal(publicItem.phone, undefined);
+    assert.equal(publicItem.email, 'ada@example.com');
+    assert.equal(publicItem.phone, '+230');
+    assert.equal(publicItem.problem_summary, 'Lost enquiries');
+    assert.equal(publicItem.response_draft, 'Hi Ada');
     assert.equal(publicItem.qualificationJson, undefined);
     assert.equal(publicItem.person_name, 'Ada');
   });
@@ -100,6 +109,8 @@ describe('prospect-operations-workspace — access and payload', () => {
     assert.equal(payload.ok, true);
     assert.equal(payload.workspace, 'operating');
     assert.equal(payload.path, '/app/prospects');
+    assert.equal(payload.canonical_operator_surface, '/app/prospects');
+    assert.equal(payload.temporary_source_surfaces.kanban, '/app/prospects');
     assert.equal(payload.external_send, false);
     assert.equal(payload.count, 1);
   });
