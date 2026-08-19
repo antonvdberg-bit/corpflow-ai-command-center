@@ -300,7 +300,11 @@ test('list payload advertises shared_detail_path for both products', async () =>
     const bea = res.state.body.prospects.find((row) => row.id === 'syn-772-rd-bea');
     assert.equal(ada.shared_detail_path, '/app/prospects/syn-772-lr-ada');
     assert.equal(bea.shared_detail_path, '/app/prospects/syn-772-rd-bea');
-    assert.equal(ada.email, undefined);
+    // Staff list includes contact for #699 enquiry handoff; still omits raw qualificationJson.
+    assert.equal(ada.email, 'ada@example.com');
+    assert.equal(bea.email, 'bea@example.com');
+    assert.equal(Object.prototype.hasOwnProperty.call(ada, 'qualificationJson'), false);
+    assert.equal(Object.prototype.hasOwnProperty.call(bea, 'qualificationJson'), false);
   } finally {
     process.env.NODE_ENV = prevNode;
     if (prevVercel == null) delete process.env.VERCEL_ENV;
