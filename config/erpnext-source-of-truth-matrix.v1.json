@@ -1,0 +1,329 @@
+{
+  "schema": "corpflow.erpnext.source_of_truth_matrix.v1",
+  "version": "v1",
+  "issue": 918,
+  "parents": [967, 953, 920, 882, 881, 880, 701],
+  "environment": "local",
+  "verdict": "ERPNext-FIRST RECONCILIATION READY FOR IMPLEMENTATION",
+  "description": "Decision-ready source-of-truth matrix and smallest bridge plan. Mapping/config only. No automated sync. No Postgres migration. No custom DocTypes.",
+  "no_automated_sync_authorized": true,
+  "no_postgres_migration": true,
+  "no_custom_doctypes": true,
+  "no_second_database": true,
+  "conflict_authority_default": "ERPNext for commercial identity, quotation, invoice, payment clearance, project plan, and durable support Issue. CorpFlowAI for intake, daily prospect kanban, /change execution, auth/tenancy, and telemetry.",
+  "first_bridge_candidate_id": "qualified_customer_identity",
+  "classifications": [
+    "erpnext_authoritative",
+    "corpflow_execution_erpnext_outcome",
+    "corpflow_authoritative",
+    "duplicate_retire",
+    "needs_bridge"
+  ],
+  "rows": [
+    {
+      "id": "lead_intake_pipeline",
+      "domain": "Lead / prospect intake and daily kanban",
+      "corpflow_store": "leads (Postgres) + qualification_json",
+      "erpnext_home": "Lead / Opportunity only after commercial qualification",
+      "classification": "corpflow_authoritative",
+      "evidence": "#701 CRM operating baseline; #713/#721 prospect stages",
+      "stop_expanding": "Do not add a second CRM table or paid CRM."
+    },
+    {
+      "id": "lead_opportunity_promotion",
+      "domain": "Lead / Opportunity once a real sales process has started",
+      "corpflow_store": "leads.id",
+      "erpnext_home": "Lead then Opportunity",
+      "classification": "needs_bridge",
+      "corpflow_key": "leads.id",
+      "erpnext_doctype": "Lead / Opportunity",
+      "erpnext_key": "Lead.name / Opportunity.name",
+      "direction": "CorpFlowAI → ERPNext after operator stage proposal_ready or later; search-before-create",
+      "idempotency": "Search Lead by email_id then company_name; create only if no enabled match. Opportunity searches by party / title containing leads.id.",
+      "conflict_rule": "ERPNext Lead/Opportunity is the durable sales-process record after create. Postgres remains the daily kanban.",
+      "retry_failure": "Safe to retry search-before-create. Never create a second Lead for the same email. On API 4xx/5xx, leave Postgres unchanged and record the failure in GitHub/CMP evidence — no silent dual create.",
+      "audit_evidence": "#920 CRM-LEAD-2026-00002 → CRM-OPP-2026-00001 synthetic path; pointer may be stored later in qualification_json.erpnext — this packet does not write it.",
+      "sync_mode": "queued_manual",
+      "evidence": "#920 Prestige foundation"
+    },
+    {
+      "id": "qualified_customer_identity",
+      "domain": "Customer / Contact / Address (commercial identity)",
+      "corpflow_store": "leads.id when won or quotation-ready; GrowthCompany must not become the billing identity",
+      "erpnext_home": "Customer + Contact + Address",
+      "classification": "needs_bridge",
+      "corpflow_key": "leads.id",
+      "erpnext_doctype": "Customer / Contact / Address",
+      "erpnext_key": "Customer.name / Contact.name / Address.name",
+      "direction": "CorpFlowAI → ERPNext when commercially qualified (proposal_ready / won). First bridge candidate.",
+      "idempotency": "Search Customer by normalized customer_name; Contact by email. Disable suffix duplicates (… - 1). One Customer per paying legal entity.",
+      "conflict_rule": "ERPNext Customer is the commercial master (#880). CorpFlowAI must not grow a second billing identity.",
+      "retry_failure": "Search-before-create. On conflict, reuse the existing Customer. Do not auto-merge legal names. Failure = no create; operator reviews.",
+      "audit_evidence": "#880 CF880 synthetic Customers; #920 CF920 Synthetic Website Project Ltd. Real Prestige Procurement Customer is still forbidden until Anton approves.",
+      "sync_mode": "queued_manual",
+      "evidence": "#880 Client Master READY; #920 foundation"
+    },
+    {
+      "id": "item_pricing",
+      "domain": "Item / Item Group / Price List / Item Price",
+      "corpflow_store": "none as catalogue master; marketing copy may mention SKUs",
+      "erpnext_home": "Item / Item Group / Price List / Item Price",
+      "classification": "erpnext_authoritative",
+      "evidence": "#881 catalogue READY — five service Items; MUR + USD selling lists; four Item Prices"
+    },
+    {
+      "id": "quotation_invoice",
+      "domain": "Quotation / Sales Order / Sales Invoice",
+      "corpflow_store": "docs/sales packs and #714 proposal rail are drafts only until ERPNext document exists",
+      "erpnext_home": "Quotation / Sales Invoice (Sales Order not required for services)",
+      "classification": "needs_bridge",
+      "corpflow_key": "operator proposal pack / related_refs.quote_issue",
+      "erpnext_doctype": "Quotation / Sales Invoice",
+      "erpnext_key": "Quotation.name / Sales Invoice.name",
+      "direction": "CorpFlowAI assembles commercial content; ERPNext holds the authoritative document after Anton commercial + presentation gates",
+      "idempotency": "Search open draft Quotation by customer + item + currency before create. One draft per engagement until submit.",
+      "conflict_rule": "ERPNext document wins on rate, tax, currency, and status. GitHub/docs packs are working papers, not the commercial record.",
+      "retry_failure": "Do not submit or send on retry. Keep docstatus=0 until Anton dual gate. API failure = leave as draft or do not create.",
+      "audit_evidence": "#882 SAL-QTN-2026-00001/00003/00004 and draft invoices ACC-SINV-2026-00001/00002; #919 Prestige pack not sent.",
+      "sync_mode": "queued_manual",
+      "evidence": "#882 READY (synthetic drafts); #919 operator review"
+    },
+    {
+      "id": "payment_evidence",
+      "domain": "Payment evidence / Payment Entry / GL clearance",
+      "corpflow_store": "payment_records.record_reference + payment_attempts",
+      "erpnext_home": "Sales Invoice / Payment Entry",
+      "classification": "needs_bridge",
+      "corpflow_key": "payment_records.record_reference",
+      "erpnext_doctype": "Sales Invoice / Payment Entry",
+      "erpnext_key": "Sales Invoice.name / Payment Entry.name",
+      "direction": "pointer after financial-rail approval and bank clearance — blocked until that exact approval",
+      "idempotency": "Do not create Sales Invoice or Payment Entry from PaymentRecord in this packet.",
+      "conflict_rule": "ERPNext GL after submit is cash/AR truth. PaymentRecord is app fulfilment status only. Never treat MPGS attempt rows as ledger.",
+      "retry_failure": "Blocked. Retry is not authorized. Record the blocker; do not invent a Payment Entry.",
+      "audit_evidence": "#920 bridge row payment_record; hosted-test payment not submitted. #714 remains the financial approval-to-build gate.",
+      "sync_mode": "blocked_until_financial_rail",
+      "evidence": "PaymentRecord schema; #882 drafts only"
+    },
+    {
+      "id": "project_task_timesheet",
+      "domain": "Project / Task / Timesheet",
+      "corpflow_store": "CmpTicket notes / operator delivery records",
+      "erpnext_home": "Project / Task / Timesheet from standard Project Template",
+      "classification": "needs_bridge",
+      "corpflow_key": "accepted Customer engagement / cmp_tickets.id notes",
+      "erpnext_doctype": "Project / Task / Timesheet",
+      "erpnext_key": "Project.name / Task.name / Timesheet.name",
+      "direction": "after accepted commercial handoff → ERPNext Project from reusable template; /change stays execution",
+      "idempotency": "One Project per accepted Customer engagement; search by project_name + customer.",
+      "conflict_rule": "ERPNext Project/Task is the commercial delivery plan. CorpFlowAI holds preview URLs, GitHub, and execution evidence.",
+      "retry_failure": "Search-before-create. Reuse CF920 Independent Website 12-phase template. Do not clone a second Project for the same customer+engagement.",
+      "audit_evidence": "#920 PROJ-0001, TASK-2026-00013..00024, TS-2026-00001 draft.",
+      "sync_mode": "queued_manual",
+      "evidence": "#920 Prestige foundation READY"
+    },
+    {
+      "id": "issue_support",
+      "domain": "Durable support / business Issue",
+      "corpflow_store": "cmp_tickets.id",
+      "erpnext_home": "Issue",
+      "classification": "needs_bridge",
+      "corpflow_key": "cmp_tickets.id",
+      "erpnext_doctype": "Issue",
+      "erpnext_key": "Issue.name",
+      "direction": "CorpFlowAI execution → ERPNext Issue when a durable client-support or business ticket is required",
+      "idempotency": "Search Issue by subject containing cmp_tickets.id; create once.",
+      "conflict_rule": "ERPNext Issue is the durable support ticket. CmpTicket /change remains the execution and factory-evidence surface.",
+      "retry_failure": "Do not duplicate Issues. Keep console_json and technical_lead_audits in CorpFlowAI. API failure = no second Issue.",
+      "audit_evidence": "#920 ISS-2026-00001 Open, customer+project linked. Workflow/Notification HTTP 403 — no email send.",
+      "sync_mode": "queued_manual",
+      "evidence": "#920 support foundation"
+    },
+    {
+      "id": "cmp_execution",
+      "domain": "CMP /change tickets, attachments, Technical Lead audits",
+      "corpflow_store": "cmp_tickets / cmp_ticket_attachments / technical_lead_audits",
+      "erpnext_home": "none as execution store; Issue is the optional durable outcome",
+      "classification": "corpflow_authoritative",
+      "evidence": "lib/cmp; /change is the client-facing execution surface"
+    },
+    {
+      "id": "change_execution_erpnext_issue_pattern",
+      "domain": "Client-facing delivery execution with durable ERPNext Issue",
+      "corpflow_store": "cmp_tickets (execution, factory evidence, Technical Lead)",
+      "erpnext_home": "Issue (durable support/business ticket)",
+      "classification": "corpflow_execution_erpnext_outcome",
+      "evidence": "Vision §3; #920 ISS-2026-00001. Write path is the issue_support bridge — not automated by this packet."
+    },
+    {
+      "id": "growth_company_ledger",
+      "domain": "GrowthCompany / GrowthContact as a customer or CRM ledger",
+      "corpflow_store": "growth_companies / growth_contacts",
+      "erpnext_home": "Customer / Contact if commercially promoted; otherwise none",
+      "classification": "duplicate_retire",
+      "evidence": "Stop expanding as a second customer/CRM. Outreach research may remain until a row is promoted via qualified_customer_identity.",
+      "stop_expanding": "Do not add billing, quotation, or pipeline-stage fields to GrowthCompany."
+    },
+    {
+      "id": "growth_touchpoint_outreach",
+      "domain": "GrowthTouchpoint / outreach execution",
+      "corpflow_store": "growth_touchpoints",
+      "erpnext_home": "none — prospect outreach is not an ERPNext-owned surface yet",
+      "classification": "corpflow_authoritative",
+      "evidence": "Vision §3; live send remains protected"
+    },
+    {
+      "id": "company_master_evidence",
+      "domain": "Company Master identity / logos / certificates",
+      "corpflow_store": "company_master_companies / company_master_artifacts",
+      "erpnext_home": "Company (CorpFlowAI LTD) for legal/tax/email; Letter Head for print",
+      "classification": "corpflow_authoritative",
+      "evidence": "#765/#776 Company Master; #882 letterhead read-back. Do not create a Customer named CorpFlowAI LTD."
+    },
+    {
+      "id": "tenant_auth_runtime",
+      "domain": "Tenant / AuthUser / TenantHostname / sessions",
+      "corpflow_store": "tenants / auth_users / tenant_hostnames / user_tenant_memberships",
+      "erpnext_home": "none",
+      "classification": "corpflow_authoritative",
+      "evidence": "docs/operations/TENANT_CLIENT_LOGIN.md"
+    },
+    {
+      "id": "lux_listings",
+      "domain": "Tenant catalogue / Lux listings / public content",
+      "corpflow_store": "lux_listings / tenant_knowledge_atoms",
+      "erpnext_home": "none",
+      "classification": "corpflow_authoritative",
+      "evidence": "Product-specific tenant runtime; not an ERPNext Item unless later sold as a SKU"
+    },
+    {
+      "id": "automation_telemetry",
+      "domain": "Automation events / playbooks / telemetry / AI logs",
+      "corpflow_store": "automation_events / automation_playbooks / telemetry_events / chat_widget_* / token_debits",
+      "erpnext_home": "none",
+      "classification": "corpflow_authoritative",
+      "evidence": "docs/automation-framework.md"
+    },
+    {
+      "id": "workflow_runtime",
+      "domain": "Tenant workflow definitions / runs / steps",
+      "corpflow_store": "workflow_definitions / workflow_runs / workflow_steps",
+      "erpnext_home": "none as factory runtime; ERPNext Workflow remains ungranted (HTTP 403)",
+      "classification": "corpflow_authoritative",
+      "evidence": "#920 Workflow GET 403; GitHub + Anton gates remain the approval path"
+    },
+    {
+      "id": "buying_ap_supplier",
+      "domain": "Buying / AP / Supplier",
+      "corpflow_store": "none",
+      "erpnext_home": "Supplier / Purchase Order / Purchase Invoice when started",
+      "classification": "erpnext_authoritative",
+      "evidence": "Strategy v2 Phase 1 order item 4. NOT STARTED. AI cannot approve suppliers."
+    },
+    {
+      "id": "change_revenue_localstorage",
+      "domain": "/change/revenue localStorage overlay",
+      "corpflow_store": "browser localStorage (not Postgres)",
+      "erpnext_home": "none",
+      "classification": "duplicate_retire",
+      "evidence": "#701: not canonical. Stop treating it as pipeline truth.",
+      "stop_expanding": "Do not add commercial masters there."
+    }
+  ],
+  "duplicate_stop_expanding": [
+    {
+      "id": "second_crm",
+      "item": "Any new CRM table, paid CRM, or GrowthCompany pipeline stages",
+      "reason": "Daily prospect CRM is Postgres leads (#701). ERPNext owns commercial Customer after qualification."
+    },
+    {
+      "id": "growth_as_billing",
+      "item": "GrowthCompany as billing/customer identity",
+      "reason": "Promote via qualified_customer_identity or leave as research. Do not quote from GrowthCompany."
+    },
+    {
+      "id": "paymentrecord_as_gl",
+      "item": "PaymentRecord / PaymentAttempt as general-ledger truth",
+      "reason": "ERPNext Payment Entry after bank clearance is the clearance gate."
+    },
+    {
+      "id": "custom_doctypes",
+      "item": "ERPNext custom DocTypes / custom fields for CorpFlowAI overlap",
+      "reason": "Standard ERPNext first. #880/#881/#882/#920 proved the standard path."
+    },
+    {
+      "id": "ssh_infisical_bridge",
+      "item": "Sandbox SSH / Infisical ERPNext bridges (#879 / #886 / #893)",
+      "reason": "Current commercial path is direct Cursor Cloud → Frappe API (#899). Do not rebuild."
+    },
+    {
+      "id": "second_company_customer",
+      "item": "Customer named CorpFlowAI LTD",
+      "reason": "Company document is the legal identity. Company Master holds logos/certificates."
+    },
+    {
+      "id": "change_revenue_ls",
+      "item": "/change/revenue localStorage as canonical pipeline",
+      "reason": "#701 already marked it non-canonical."
+    }
+  ],
+  "implementation_sequence": [
+    {
+      "step": 1,
+      "id": "this_matrix",
+      "action": "Land this docs/config matrix (#918). No sync.",
+      "owner": "Cursor",
+      "protected": false
+    },
+    {
+      "step": 2,
+      "id": "qualified_customer_identity",
+      "action": "First bridge: operator-manual search-before-create of ERPNext Customer/Contact/Address when a Postgres lead is commercially qualified. Pointer optional later. No real Prestige Customer until Anton says so.",
+      "owner": "Cursor then Anton for real clients",
+      "protected": "YES for a real paying client Customer (including Prestige Procurement)"
+    },
+    {
+      "step": 3,
+      "id": "prestige_quotation",
+      "action": "Prestige fast lane continues in parallel: Anton commercial + presentation gates on #919, then draft ERPNext Quotation. Do not wait for remaining matrix rows.",
+      "owner": "Anton",
+      "protected": "YES — live send / submit / real Prestige Customer"
+    },
+    {
+      "step": 4,
+      "id": "issue_support",
+      "action": "Manual CmpTicket → Issue create for durable client-support tickets only. /change stays execution.",
+      "owner": "Cursor",
+      "protected": false
+    },
+    {
+      "step": 5,
+      "id": "project_task_timesheet",
+      "action": "Project from accepted quotation using the existing 12-phase template.",
+      "owner": "Cursor",
+      "protected": "YES for a real client Project"
+    },
+    {
+      "step": 6,
+      "id": "payment_evidence",
+      "action": "Payment pointer only after financial-rail + bank-clearance approval. Not this packet.",
+      "owner": "Anton",
+      "protected": "YES — Payment Entry / GL / live payment"
+    }
+  ],
+  "non_actions": [
+    "custom_doctypes",
+    "custom_fields",
+    "schema_change",
+    "postgres_migration",
+    "automated_sync",
+    "payments",
+    "submit_documents",
+    "client_sends",
+    "email_sms_whatsapp",
+    "live_prestige_customer",
+    "env_secrets_change",
+    "client_production_deploy",
+    "bulk_migration"
+  ]
+}

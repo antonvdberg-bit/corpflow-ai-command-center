@@ -346,19 +346,24 @@ export default function RevenueOperatorCockpit() {
           style={{ ...styles.boundary, borderColor: 'rgba(45,212,191,0.35)' }}
           data-market-enquiry-handoff
         >
-          <strong>CorpFlowAI market enquiries (#699)</strong> from the public gateway and Website Rescue forms persist
-          on the existing <code style={styles.code}>leads</code> table (product{' '}
-          <code style={styles.code}>corpflow-rapid-delivery</code>). Authoritative operator queue:{' '}
+          <strong>CorpFlowAI market enquiries (#699)</strong> persist on the existing{' '}
+          <code style={styles.code}>leads</code> table. Canonical operator queue is the{' '}
+          <Link href="/app/prospects" style={{ color: c.good, fontWeight: 700 }}>
+            Operating Workspace · Prospect Operations
+          </Link>{' '}
+          (<code style={styles.code}>/app/prospects</code>) — staff/Core only, not Tenant{' '}
+          <code style={styles.code}>/change</code>. Temporary product desks:{' '}
           <Link href="/admin/rapid-delivery" style={{ color: c.good, fontWeight: 700 }}>
             /admin/rapid-delivery
-          </Link>
-          . Each lead shows source, contact, service path, problem summary, timing, status, recommended next action,
-          operator notes, and a <strong>copy-ready response draft</strong> — no live email/WhatsApp/SMS send.
-          AI Lead Rescue USD-pilot intakes use{' '}
+          </Link>{' '}
+          and{' '}
           <Link href="/admin/lead-rescue" style={{ color: c.good, fontWeight: 700 }}>
             /admin/lead-rescue
           </Link>
-          . Outreach still requires explicit Anton approval.
+          . Each enquiry shows source, contact, selected offer, problem/outcome, timing, status,
+          next action, notes, and a <strong>copy-ready response draft</strong> — no live
+          email/WhatsApp/SMS send. This <code style={styles.code}>/change/revenue</code> page is a
+          compatibility checklist, not the enquiry CRM.
         </div>
 
         <div style={styles.boundary}>

@@ -47,6 +47,12 @@ test('handler: Core proof can load Prospect Operations list', async () => {
     assert.ok(ids.includes('syn-772-lr-ada'));
     assert.ok(ids.includes('syn-772-rd-bea'));
     assert.ok(ids.includes('syn-772-lr-cal'));
+    const bea = res.state.body.prospects.find((row) => row.id === 'syn-772-rd-bea');
+    assert.ok(bea);
+    assert.equal(bea.email, 'bea@example.com');
+    assert.ok(bea.response_draft);
+    assert.equal(bea.source_surfaces.operating_workspace, '/app/prospects');
+    assert.equal(res.state.body.canonical_operator_surface, '/app/prospects');
     const blob = JSON.stringify(res.state.body);
     assert.equal(blob.includes('qualificationJson'), false);
   } finally {
