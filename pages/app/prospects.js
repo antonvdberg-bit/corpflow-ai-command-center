@@ -196,7 +196,12 @@ export default function AppProspectsPage() {
       </p>
       {error ? <p className="cf-app-error" data-testid="app-error">{error}</p> : null}
       {busy ? <AppLoadState kind="loading" title="Loading prospects…" /> : null}
-      <ProspectOperationsList prospects={prospects} dataSource={dataSource} busy={busy} />
+      <ProspectOperationsList
+        prospects={prospects}
+        dataSource={dataSource}
+        busy={busy}
+        proofWanted={proofWanted}
+      />
     </AppShell>
   );
 }

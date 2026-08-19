@@ -9,6 +9,7 @@
  *   title?: string,
  *   lead?: string,
  *   testId?: string,
+ *   proofWanted?: boolean,
  * }} props
  */
 export default function ProspectOperationsList({
@@ -18,6 +19,7 @@ export default function ProspectOperationsList({
   title = 'Prospect Operations',
   lead,
   testId = 'prospect-ops',
+  proofWanted,
 }) {
   const rows = Array.isArray(prospects) ? prospects : [];
   const leadText =
@@ -70,6 +72,9 @@ export default function ProspectOperationsList({
               const id = String(row.id || '');
               const name = String(row.organisation_name || row.person_name || id);
               const signals = Array.isArray(row.exception_signals) ? row.exception_signals : [];
+              const shared = row.shared_detail_path ? String(row.shared_detail_path) : '';
+              const sharedHref =
+                shared && proofWanted ? `${shared}${shared.includes('?') ? '&' : '?'}proof=1` : shared;
               const detail = row.detail_path ? String(row.detail_path) : '';
               return (
                 <tr key={id} data-testid={`prospect-ops-row-${id}`}>
@@ -96,13 +101,22 @@ export default function ProspectOperationsList({
                         ))}
                   </td>
                   <td>
-                    {detail ? (
-                      <a href={detail} data-testid={`prospect-ops-detail-${id}`}>
-                        Product desk
+                    {sharedHref ? (
+                      <a
+                        href={sharedHref}
+                        data-testid={`prospect-ops-shared-detail-${id}`}
+                      >
+                        Shared detail
                       </a>
-                    ) : (
-                      '—'
-                    )}
+                    ) : null}
+                    {detail ? (
+                      <div className="cf-app-muted">
+                        <a href={detail} data-testid={`prospect-ops-detail-${id}`}>
+                          Product desk
+                        </a>
+                      </div>
+                    ) : null}
+                    {!sharedHref && !detail ? '—' : null}
                   </td>
                 </tr>
               );

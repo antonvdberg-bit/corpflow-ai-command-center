@@ -2,8 +2,8 @@
 
 **Issue:** [#772](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/772)  
 **Related:** [#721](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/721) Prospect Operations · [#773](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/773) / [#778](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/778) Core/Tenant shell  
-**Status:** Phase 1 audit + first visible slice (workspace chrome + first Prospect Operations route) **shipped in merged PR #945**. This packet adds the next spare-capacity slice: **Today / My Work landing** at `/app/today`.  
-**Environment:** `corpflow_test` after merge/deploy; this packet does not authorize `client_production`  
+**Status:** Phase 1 audit + Prospect Operations list + Today / My Work **shipped**. This packet adds the next no-schema slice: **shared Prospect detail / actions / history** at `/app/prospects/[id]` (#994 / #721 Slice 2).
+**Environment:** `corpflow_test` after merge/deploy; this packet does not authorize `client_production`
 **No schema. No env/secrets. No deploy. No external send.**
 
 <!-- OPERATING_TENANT_WORKSPACE_CONSOLIDATION_V1 -->
@@ -16,7 +16,8 @@ An authorised staff user can:
 2. Always see workspace name, tenant/business context, and role in the chrome.
 3. Reach shared **Prospect Operations** at `/app/prospects` from the Operating Workspace.
 4. Open **Today / My Work** at `/app/today` and see only items that need attention now (overdue, due today, missing next action, or waiting on the operator).
-5. Not see Prospect Operations, Today / My Work, or other internal commercial desks inside the Tenant Workspace.
+5. Open one **shared Prospect detail** from Prospect Operations or Today / My Work, see identity / qualification / history, and save owner, stage, next action, due date, urgency, and an operator note.
+6. Not see Prospect Operations, Today / My Work, shared detail, or other internal commercial desks inside the Tenant Workspace.
 
 Existing Core/Tenant **authentication remains separate**. Choosing the other workspace returns to `/app` and uses the matching sign-in. A Core session still cannot enter Tenant; a Tenant session still cannot enter Core. That #778 rule is unchanged.
 
@@ -50,6 +51,8 @@ Machine copy: `WORKSPACE_SURFACE_MATRIX` in `lib/app/workspace-context.js`.
 | `/api/app/prospects` | `leads` | same | Core only | **CANONICAL** | Tenant → 403 |
 | `/app/today` | `leads` | same + `matchesMyWorkTodayFilter` | Core only | **CANONICAL** | Today / My Work landing |
 | `/api/app/today` | `leads` | same | Core only | **CANONICAL** | Tenant → 403 |
+| `/app/prospects/[id]` | `leads` | fixture / `leads_read` + JSON patch | Core only | **CANONICAL** | Shared detail / actions / history |
+| `/api/app/prospect` | `leads` | same | Core only | **CANONICAL** | GET + PATCH; Tenant → 403 |
 | `/admin/rapid-delivery` | `leads` (rapid-delivery) | `admin-rapid-delivery-api` | `requireAdminPageSession` | **MIGRATE** | REUSE desk + API; long-term Action Queue |
 | `/admin/lead-rescue` + `/[id]` | `leads` (lead-rescue) | `admin-lead-rescue-api` | admin session | **MIGRATE** | REUSE list/detail; extract Workbench from product brand |
 | `/change/revenue` | localStorage cards | `corpflow.revenue.cockpit.v1` | change session | **MIGRATE** | Not canonical. Must not stay the Kanban source of truth |
@@ -78,12 +81,13 @@ Machine copy: `WORKSPACE_SURFACE_MATRIX` in `lib/app/workspace-context.js`.
 | Action Queue | Yes as Rapid Delivery desk | Product-filtered | Cross-product queue |
 | Workbench | Yes as Lead Rescue | Product-branded | Extracted Prospect Workbench |
 | Pipeline Kanban | Partial (`/change/revenue`) | localStorage checklist | Postgres `canonical_stage` lanes |
-| Today / My Work landing | Yes (`/app/today`, staff-only) | Uses #721 `matchesMyWorkTodayFilter` | Shared detail/action layer |
+| Today / My Work landing | Yes (`/app/today`, staff-only) | Uses #721 `matchesMyWorkTodayFilter` | — |
+| Shared Prospect detail | Yes (`/app/prospects/[id]`) | JSON owner/stage/next-action/due/note | Connecting the three product views (#721 Slice 3) |
 | Clients / commercial / delivery summaries | No as workspace modules | Company Master + ERPNext + product desks exist | Later slices |
 
 ## 3. Smallest no-schema implementation plan
 
-### This slice (Today / My Work — spare-capacity follow-up)
+### Already shipped (Today / My Work)
 
 1. Dedicated Operating Workspace route `/app/today` + `GET /api/app/today`.
 2. Reuse existing Prospect Operations list + #721 `matchesMyWorkTodayFilter`.
@@ -93,11 +97,19 @@ Machine copy: `WORKSPACE_SURFACE_MATRIX` in `lib/app/workspace-context.js`.
 
 This slice replaces the fragmented “My Work is just another Requests list” behaviour on `/app/core`. It does **not** retire product desks or `/change/revenue`.
 
+### This slice (shared Prospect detail — #994)
+
+1. Dedicated Operating Workspace route `/app/prospects/[id]` + `GET`/`PATCH` `/api/app/prospect`.
+2. Reuse `#721` view-model plus existing Lead Rescue / Rapid Delivery JSON merge helpers.
+3. Reachable from Prospect Operations and Today / My Work. Product desks stay as temporary links.
+4. Staff-only; Tenant 403; no schema; no external send.
+
+This slice does **not** connect all three prospect views, rebuild CRM, or retire `/admin/lead-rescue` or `/admin/rapid-delivery`.
+
 ### Later spare-capacity slices (do not build in this PR)
 
-1. #721 shared detail/action layer (JSON fields only).
-2. Canonical Action Queue replacing `/admin/rapid-delivery` as the UX owner.
-3. Prospect Workbench extracted from Lead Rescue branding.
+1. Canonical Action Queue replacing `/admin/rapid-delivery` as the UX owner.
+2. Prospect Workbench extracted from Lead Rescue branding.
 4. Postgres-backed Pipeline replacing `/change/revenue` localStorage as canonical.
 5. Clients summary from Company Master.
 6. Commercial summary from ERPNext rails (read-only first).
@@ -123,6 +135,7 @@ node --test \
   node-tests/prospect-operations-workspace.test.mjs \
   node-tests/app-prospect-operations-handlers.test.mjs \
   node-tests/app-today-my-work.test.mjs \
+  node-tests/app-prospect-detail.test.mjs \
   node-tests/app-slice1-access.test.mjs \
   node-tests/app-slice1-handlers.test.mjs \
   node-tests/prospect-operations-view-model.test.mjs
@@ -139,7 +152,7 @@ Delivery Reality Audit:
 - Production deployment ID: n/a (awaiting review + merge + deploy)
 - Commit deployed: n/a
 - Live URLs tested: n/a this run — requires corpflow_test after Production deploy
-- Expected vs actual result: Today / My Work landing filters shared prospects; Tenant denied
-- Client-facing flow usable: n/a (operator workspace; Tenant Workspace unchanged except that My Work stays a placeholder)
+- Expected vs actual result: Shared Prospect detail opens Lead Rescue and Website Rescue records; safe JSON edits persist; Tenant denied
+- Client-facing flow usable: n/a (operator workspace; Tenant Workspace unchanged)
 - Final verdict: PARTIAL (implementation PR; not live-verified)
 ```

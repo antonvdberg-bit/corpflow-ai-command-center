@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
-import AppShell from '../../components/app/AppShell.js';
-import AppLoadState from '../../components/app/AppLoadState.js';
-import CoreMenu from '../../components/app/CoreMenu.js';
-import ProspectOperationsList from '../../components/app/ProspectOperationsList.js';
+import AppShell from '../../../components/app/AppShell.js';
+import AppLoadState from '../../../components/app/AppLoadState.js';
+import CoreMenu from '../../../components/app/CoreMenu.js';
+import ProspectDetailPanel from '../../../components/app/ProspectDetailPanel.js';
 
 /**
  * @param {import('next/router').NextRouter['query']} query
@@ -14,29 +14,39 @@ function proofFromQuery(query) {
   return s === '1';
 }
 
+function idFromQuery(query) {
+  const raw = query?.id;
+  const s = Array.isArray(raw) ? raw[0] : raw;
+  return String(s || '').trim();
+}
+
 /**
- * Operating Workspace — Today / My Work landing (#772).
+ * Operating Workspace — shared Prospect detail (#994).
  * Core / admin session only. Tenant sessions are denied.
- * Reuses the shared Prospect Operations list + #721 My Work / Today filter.
  */
-export default function AppTodayPage() {
+export default function AppProspectDetailPage() {
   const router = useRouter();
   const [shell, setShell] = useState(/** @type {Record<string, unknown> | null} */ (null));
-  const [prospects, setProspects] = useState(/** @type {Array<Record<string, unknown>>} */ ([]));
+  const [prospect, setProspect] = useState(/** @type {Record<string, unknown> | null} */ (null));
   const [dataSource, setDataSource] = useState('');
   const [error, setError] = useState('');
+  const [formError, setFormError] = useState('');
+  const [saved, setSaved] = useState(false);
   const [authRequired, setAuthRequired] = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);
   const [busy, setBusy] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   const proofWanted = router.isReady && proofFromQuery(router.query);
+  const prospectId = router.isReady ? idFromQuery(router.query) : '';
 
   const apiBase = useMemo(() => {
     const params = new URLSearchParams();
     params.set('env', 'core');
     if (proofWanted) params.set('proof', '1');
+    if (prospectId) params.set('id', prospectId);
     return params.toString();
-  }, [proofWanted]);
+  }, [proofWanted, prospectId]);
 
   const load = useCallback(async () => {
     setBusy(true);
@@ -64,25 +74,30 @@ export default function AppTodayPage() {
       }
       setShell(shellJson);
 
-      const listRes = await fetch(`/api/app/today?${apiBase}`, { credentials: 'same-origin' });
-      const listJson = await listRes.json().catch(() => ({}));
-      if (listRes.status === 403) {
+      const detailRes = await fetch(`/api/app/prospect?${apiBase}`, { credentials: 'same-origin' });
+      const detailJson = await detailRes.json().catch(() => ({}));
+      if (detailRes.status === 403) {
         setAccessDenied(true);
-        setError(String(listJson.error || 'core_access_denied'));
-        setProspects([]);
+        setError(String(detailJson.error || 'core_access_denied'));
+        setProspect(null);
         return;
       }
-      if (!listRes.ok || !listJson.ok) {
-        setError(String(listJson.error || `today_${listRes.status}`));
-        setProspects([]);
+      if (detailRes.status === 404) {
+        setProspect(null);
+        setError(String(detailJson.error || 'prospect_not_found'));
         return;
       }
-      setProspects(Array.isArray(listJson.prospects) ? listJson.prospects : []);
-      if (listJson.data_source) setDataSource(String(listJson.data_source));
+      if (!detailRes.ok || !detailJson.ok) {
+        setError(String(detailJson.error || `prospect_${detailRes.status}`));
+        setProspect(null);
+        return;
+      }
+      setProspect(detailJson.prospect && typeof detailJson.prospect === 'object' ? detailJson.prospect : null);
+      if (detailJson.data_source) setDataSource(String(detailJson.data_source));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'load_failed');
       setShell(null);
-      setProspects([]);
+      setProspect(null);
     } finally {
       setBusy(false);
     }
@@ -93,6 +108,34 @@ export default function AppTodayPage() {
     load();
   }, [router.isReady, load]);
 
+  const save = useCallback(
+    async (fields) => {
+      setSaving(true);
+      setFormError('');
+      setSaved(false);
+      try {
+        const res = await fetch(`/api/app/prospect?${apiBase}`, {
+          method: 'PATCH',
+          credentials: 'same-origin',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ ...fields, id: prospectId }),
+        });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok || !json.ok) {
+          setFormError(String(json.error || `save_${res.status}`));
+          return;
+        }
+        setProspect(json.prospect && typeof json.prospect === 'object' ? json.prospect : null);
+        setSaved(true);
+      } catch (err) {
+        setFormError(err instanceof Error ? err.message : 'save_failed');
+      } finally {
+        setSaving(false);
+      }
+    },
+    [apiBase, prospectId],
+  );
+
   const selected =
     shell && typeof shell.selected === 'object' && shell.selected
       ? /** @type {Record<string, unknown>} */ (shell.selected)
@@ -102,6 +145,9 @@ export default function AppTodayPage() {
       ? /** @type {Record<string, unknown>} */ (shell.actor)
       : {};
   const proofMode = shell?.proof_mode === true;
+  const loginNext = prospectId
+    ? `/app/prospects/${encodeURIComponent(prospectId)}`
+    : '/app/prospects';
 
   if (authRequired) {
     return (
@@ -109,13 +155,13 @@ export default function AppTodayPage() {
         <section className="cf-app-panel" data-testid="app-auth-required">
           <h1 className="cf-app-h1">Sign in to the Operating Workspace</h1>
           <p className="cf-app-lead">
-            Today / My Work is staff-only. Use the existing Core / admin session.
+            Shared Prospect detail is staff-only. Use the existing Core / admin session.
           </p>
           <div className="cf-app-actions">
             <a
               className="cf-app-btn"
               data-primary="true"
-              href={`/login?next=${encodeURIComponent('/app/today')}`}
+              href={`/login?next=${encodeURIComponent(loginNext)}`}
             >
               Operating Workspace sign in
             </a>
@@ -123,10 +169,6 @@ export default function AppTodayPage() {
               Choose workspace
             </a>
           </div>
-          <p className="cf-app-muted" style={{ marginTop: 16 }} data-testid="proof-harness-hint">
-            Deterministic test harness only:{' '}
-            <a href="/app/today?proof=1">Today / My Work proof</a>
-          </p>
         </section>
       </AppShell>
     );
@@ -138,14 +180,14 @@ export default function AppTodayPage() {
         <section className="cf-app-panel" data-testid="app-core-denied">
           <h1 className="cf-app-h1">Operating Workspace access denied</h1>
           <p className="cf-app-lead">
-            A Tenant session cannot open Today / My Work. Sign in with Core credentials.
+            A Tenant session cannot open shared Prospect detail. Sign in with Core credentials.
           </p>
           <p className="cf-app-error">{error}</p>
           <div className="cf-app-actions">
             <a className="cf-app-btn" data-primary="true" href="/app/tenant">
               Open Tenant Workspace
             </a>
-            <a className="cf-app-btn" href={`/login?next=${encodeURIComponent('/app/today')}`}>
+            <a className="cf-app-btn" href={`/login?next=${encodeURIComponent(loginNext)}`}>
               Operating Workspace sign in
             </a>
           </div>
@@ -159,9 +201,9 @@ export default function AppTodayPage() {
       <AppShell environment="core" role="—">
         <AppLoadState
           kind="error"
-          title="Today / My Work unavailable"
+          title="Prospect detail unavailable"
           message={error}
-          testId="app-today-error"
+          testId="app-prospect-detail-error"
         />
         <div className="cf-app-actions" style={{ marginTop: 12 }}>
           <button type="button" className="cf-app-btn" data-primary="true" onClick={() => load()}>
@@ -181,30 +223,26 @@ export default function AppTodayPage() {
       proofMode={proofMode}
     >
       <CoreMenu
-        active="my_work"
-        disabled={busy}
+        active="prospects"
+        disabled={busy || saving}
         onSelect={() => {
           router.push('/app/core');
         }}
       />
-      <p className="cf-app-muted" style={{ marginTop: -8, marginBottom: 16 }} data-testid="today-my-work-meta">
-        Operating Workspace · Today / My Work · staff only · no Tenant leakage
-        {dataSource ? (
-          <>
-            {' · '}data source <code>{dataSource}</code>
-          </>
-        ) : null}
+      <p className="cf-app-muted" style={{ marginTop: -8, marginBottom: 16 }} data-testid="prospect-detail-meta">
+        Operating Workspace · shared Prospect detail · staff only · no Tenant leakage
       </p>
-      {error ? <p className="cf-app-error" data-testid="app-error">{error}</p> : null}
-      {busy ? <AppLoadState kind="loading" title="Loading today…" /> : null}
-      <ProspectOperationsList
-        title="Today / My Work"
-        lead="Items that are overdue, due today, missing a next action, or waiting on the operator. Same shared prospect records as Prospect Operations — not a second queue."
-        testId="today-my-work"
-        prospects={prospects}
+      {error && !formError ? <p className="cf-app-error" data-testid="app-error">{error}</p> : null}
+      {busy ? <AppLoadState kind="loading" title="Loading prospect…" /> : null}
+      <ProspectDetailPanel
+        prospect={prospect || {}}
         dataSource={dataSource}
         busy={busy}
+        saving={saving}
+        error={formError}
+        saved={saved}
         proofWanted={proofWanted}
+        onSave={save}
       />
     </AppShell>
   );
