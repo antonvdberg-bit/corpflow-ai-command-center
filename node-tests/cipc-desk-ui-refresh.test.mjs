@@ -18,6 +18,7 @@ test('website draft uses CorpFlow palette and content_version refresh marker', (
   assert.match(
     String(CIPC_DESK_WEBSITE_DRAFT_VERSION),
     /annual-returns-link|beneficial-ownership-link|corpflow-visual|partner-funnel/,
+    /director-changes|beneficial-ownership-link|annual-returns-link|corpflow-visual/,
   );
   assert.equal(draft.theme?.primary, '#2dd4bf');
   assert.equal(draft.theme?.background, '#06111f');
