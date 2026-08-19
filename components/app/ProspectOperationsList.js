@@ -1,20 +1,33 @@
 /**
- * Operating Workspace — first shared Prospect Operations list (#772 / #721).
+ * Operating Workspace — shared Prospect Operations / Today list (#772 / #721).
  * Read-only. Temporary product-desk links remain until later slices.
  *
  * @param {{
  *   prospects: Array<Record<string, unknown>>,
  *   dataSource?: string,
  *   busy?: boolean,
+ *   title?: string,
+ *   lead?: string,
+ *   testId?: string,
  * }} props
  */
-export default function ProspectOperationsList({ prospects, dataSource, busy }) {
+export default function ProspectOperationsList({
+  prospects,
+  dataSource,
+  busy,
+  title = 'Prospect Operations',
+  lead,
+  testId = 'prospect-ops',
+}) {
   const rows = Array.isArray(prospects) ? prospects : [];
+  const leadText =
+    lead ||
+    'Shared Action Queue over existing Lead Rescue and Rapid Delivery records. Same Postgres leads rows — no second CRM.';
   if (busy) return null;
   if (rows.length === 0) {
     return (
-      <section className="cf-app-panel" data-testid="prospect-ops-empty">
-        <h1 className="cf-app-h1">Prospect Operations</h1>
+      <section className="cf-app-panel" data-testid={`${testId}-empty`}>
+        <h1 className="cf-app-h1">{title}</h1>
         <p className="cf-app-lead">
           No shared prospect records in this view yet. Temporary product desks remain at{' '}
           <a href="/admin/rapid-delivery">/admin/rapid-delivery</a> and{' '}
@@ -22,22 +35,19 @@ export default function ProspectOperationsList({ prospects, dataSource, busy }) 
         </p>
         {dataSource ? (
           <p className="cf-app-muted">
-            Data source <code data-testid="prospect-ops-data-source">{dataSource}</code>
+            Data source <code data-testid={`${testId}-data-source`}>{dataSource}</code>
           </p>
         ) : null}
       </section>
     );
   }
   return (
-    <section className="cf-app-panel" data-testid="prospect-ops-list">
-      <h1 className="cf-app-h1">Prospect Operations</h1>
-      <p className="cf-app-lead">
-        Shared Action Queue over existing Lead Rescue and Rapid Delivery records. Same
-        Postgres <code>leads</code> rows — no second CRM.
-      </p>
+    <section className="cf-app-panel" data-testid={`${testId}-list`}>
+      <h1 className="cf-app-h1">{title}</h1>
+      <p className="cf-app-lead">{leadText}</p>
       {dataSource ? (
         <p className="cf-app-muted">
-          Data source <code data-testid="prospect-ops-data-source">{dataSource}</code>
+          Data source <code data-testid={`${testId}-data-source`}>{dataSource}</code>
           {' · '}
           {rows.length} prospect{rows.length === 1 ? '' : 's'}
         </p>

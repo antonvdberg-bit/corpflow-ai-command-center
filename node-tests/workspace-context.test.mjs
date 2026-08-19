@@ -6,13 +6,18 @@ import {
   OPERATING_WORKSPACE_LABEL,
   PROSPECT_OPERATIONS_PATH,
   TENANT_WORKSPACE_LABEL,
+  TODAY_MY_WORK_PATH,
   WORKSPACE_SURFACE_MATRIX,
   canAccessOperatingWorkspace,
   classifyWorkspaceSurface,
   isProspectOperationsPath,
+  isTodayMyWorkPath,
   navIncludesProspectOperations,
+  navIncludesTodayMyWork,
   operatingNavIncludesProspectOperations,
+  operatingNavIncludesTodayMyWork,
   tenantNavOmitsProspectOperations,
+  tenantNavOmitsTodayMyWork,
   workspaceChromeForEnvironment,
   workspaceIdForEnvironment,
 } from '../lib/app/workspace-context.js';
@@ -68,11 +73,30 @@ describe('workspace-context — prospect ops boundary', () => {
   });
 });
 
+describe('workspace-context — Today / My Work boundary', () => {
+  it('recognises the Today / My Work landing', () => {
+    assert.equal(isTodayMyWorkPath('/app/today'), true);
+    assert.equal(isTodayMyWorkPath('/api/app/today'), true);
+    assert.equal(isTodayMyWorkPath('/app/prospects'), false);
+    assert.equal(TODAY_MY_WORK_PATH, '/app/today');
+  });
+
+  it('points Operating Workspace My Work at /app/today and keeps Tenant My Work as a placeholder', () => {
+    assert.equal(operatingNavIncludesTodayMyWork(), true);
+    assert.equal(tenantNavOmitsTodayMyWork(), true);
+    assert.equal(navIncludesTodayMyWork(CORE_NAV_ITEMS), true);
+    assert.equal(navIncludesTodayMyWork(TENANT_NAV_ITEMS), false);
+    const tenantMyWork = TENANT_NAV_ITEMS.find((item) => item.id === 'my_work');
+    assert.equal(tenantMyWork?.href, null);
+  });
+});
+
 describe('workspace-context — surface matrix', () => {
   it('classifies required #772 surfaces', () => {
     assert.equal(classifyWorkspaceSurface('/app/core')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/app/tenant')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/app/prospects')?.disposition, 'CANONICAL');
+    assert.equal(classifyWorkspaceSurface('/app/today')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/admin/rapid-delivery')?.disposition, 'MIGRATE');
     assert.equal(classifyWorkspaceSurface('/admin/lead-rescue')?.disposition, 'MIGRATE');
     assert.equal(classifyWorkspaceSurface('/admin/lead-rescue/abc')?.disposition, 'MIGRATE');
