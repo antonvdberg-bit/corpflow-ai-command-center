@@ -1,6 +1,6 @@
 # ERPNext / Cursor Cloud secrets — least privilege (v1)
 
-**Status:** Canonical operator runbook for [#899](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/899).  
+**Status:** Canonical operator runbook for [#899](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/899). Direct ERPNext API path is **PASS**. `MASTER_ADMIN_KEY` is **still PRESENT** on ordinary Factory Automation wakes as of the 2026-08-19 re-probe.  
 **Supersedes (runtime path):** Infisical/SSH detour recorded in closed-unmerged PR [#895](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/895).  
 **Anchor:** `<!-- ERPNEXT_CURSOR_CLOUD_SECRETS_LEAST_PRIVILEGE_V1 -->`
 
@@ -22,12 +22,13 @@ They must **not** receive `MASTER_ADMIN_KEY`.
 
 | Source | Injects `MASTER_ADMIN_KEY`? | Notes |
 | --- | --- | --- |
-| Cursor Dashboard → Cloud Agents → Secrets (team/general scope) | **YES (observed)** | Injected into ordinary repo-dispatched Cursor Cloud runs |
-| Repo `environment.json` / linked Cursor environment | No linked environment on run `bc-a36314af-5d61-421c-8be3-b9ecad349924` | `environment-info` → `environment: null` |
+| Cursor Dashboard → Cloud Agents → Secrets (team/general scope) | **Was YES on 2026-08-12.** Anton confirmed a UI delete on 2026-08-13. | That delete did **not** clear Factory Automation wakes. Re-check this scope. |
+| Cursor Automation secrets for `CorpFlowAI Factory Wake Proof v2` (`30c07c9d-96f7-11f1-ba66-0e7d0216e441`) | **Likely remaining store** | 2026-08-19 Factory Automation wake `bc-c67a9751-28cb-47e6-918a-29a13c213561` still has `MASTER_ADMIN_KEY` **PRESENT** with no linked `environment.json` |
+| Repo `environment.json` / linked Cursor environment | **No** | Fresh 2026-08-19 run: `environment-info` → `environment: null`, `build: null`; no repo `environment.json` |
 | Factory dispatcher / `scripts/dispatcher-agent-activation.mjs` | **No** | Activator uses cron-style secrets only; does not push `MASTER_ADMIN_KEY` into agents |
 | Infisical / SSH at Cursor runtime | **Not required** | Direct API secrets already inject when present in Cursor Secrets |
 
-Automation in this repository **cannot** delete Cursor Dashboard Secrets. Removal is a one-time UI action by Anton.
+Automation in this repository **cannot** delete Cursor Dashboard or Automation Secrets. Removal is a UI action by Anton. Running pods keep already-injected secrets — a **fresh** wake is required after delete.
 
 ## 3. Canonical ERPNext access path
 
@@ -50,15 +51,16 @@ bash scripts/erpnext/cursor-cloud-api-probe.sh
 
 Do not paste any secret **value** into chat, GitHub, PR comments, or screenshots.
 
-1. Open [Cursor Dashboard → Cloud Agents → Secrets](https://cursor.com/dashboard/cloud-agents).
-2. Locate **`MASTER_ADMIN_KEY`** in the **general / team** Cloud Agents Secrets scope used by ordinary repo-dispatched runs.
-3. **Delete / remove** `MASTER_ADMIN_KEY` from that broad scope.
-4. Confirm these three names remain present:
+Anton already confirmed a Cloud Agents Secrets delete on 2026-08-13. The 2026-08-19 Factory Automation wake still received `MASTER_ADMIN_KEY`. Remaining click path:
+
+1. Re-open [Cursor Dashboard → Cloud Agents → Secrets](https://cursor.com/dashboard/cloud-agents) and confirm **`MASTER_ADMIN_KEY`** is gone from the general/team Cloud Agents Secrets scope.
+2. Open [CorpFlowAI Factory Wake Proof v2](https://cursor.com/automations/30c07c9d-96f7-11f1-ba66-0e7d0216e441). If that Automation (or any team/user Cursor Cloud secret scope that still applies to Automations-sourced agents) still lists **`MASTER_ADMIN_KEY`**, **delete / remove** that name.
+3. Confirm these three names remain present for ERPNext work:
    - `ERPNEXT_BASE_URL`
    - `ERPNEXT_API_KEY`
    - `ERPNEXT_API_SECRET`
-5. Save. Start a **fresh** Cursor Cloud run (running pods keep already-injected secrets).
-6. On the fresh run, confirm `MASTER_ADMIN_KEY` is **ABSENT**, then re-run:
+4. Save. Start a **fresh** Factory Automation wake (running pods keep already-injected secrets).
+5. On the fresh run, confirm `MASTER_ADMIN_KEY` is **ABSENT**, then re-run:
 
 ```bash
 bash scripts/erpnext/cursor-cloud-api-probe.sh

@@ -67,7 +67,7 @@ Do **not** treat Vercel “Production” or a CorpFlowAI-hosted URL as `client_p
 | 0 | Programme charter and decision record | **PARTIAL** | Strategy and gates are approved. Decision/risk/control registers and the ERPNext programme Project are still missing (`#954` / `#966`). |
 | 1 | Environment and platform baseline | **PARTIAL** | Three ERPNext surfaces are documented. Versions are known. Security/backup/DR are **not** proven. Which surface is the future system of record is still a decision. |
 | 2 | Company foundation | **PARTIAL** | Legal identity, MUR company currency, and letterhead read-back exist on hosted test. Chart of Accounts, tax, fiscal year, and production naming series wait on the accountant / Anton. |
-| 3 | Identity, access, segregation of duties | **PARTIAL** | `integrations@corpflowai.com` works. Several Role Permission grants were UI-only. 2FA and admin governance are unread. `#899` `MASTER_ADMIN_KEY` is still present. |
+| 3 | Identity, access, segregation of duties | **PARTIAL** | `integrations@corpflowai.com` works. Several Role Permission grants were UI-only. 2FA and admin governance are unread. `#899` `MASTER_ADMIN_KEY` is still present on Factory Automation wakes (`JE-2026-08-19-1`). |
 | 4 | Master data | **PARTIAL** | Synthetic Customer/Contact/Address, Items/prices, and a website Project Template are proven. Suppliers, import rules, and real-client masters are not. |
 | 5 | Business process configuration | **PARTIAL** | Lead → Opportunity → Customer, draft Quotation/Invoice, Project/Task/Timesheet, and Issue are proven on hosted test. Nothing is submitted or sent. Buying/AP and workflows are not started. |
 | 6 | CorpFlowAI integration / reconciliation | **PARTIAL** | Policy and a mapping-only bridge exist. `#918` matrix is incomplete. No automated sync. CorpFlowAI CRM (`#701`) still owns the daily prospect pipeline. |
@@ -91,7 +91,7 @@ Ranked by business / revenue / control impact. Prestige is first so the programm
 | 2 | No formal ERPNext business-critical use verdict | Control | **NOT STARTED** | Execute `#959` docs research against Strategy v2 fit criteria | Cursor | **NO** for the research packet |
 | 3 | Backup / DR / security **NOT PROVEN** | Control — blocks treating ERPNext as irreplaceable | **PARTIAL** | Act on `#956` §6 P0 list; do not buy a DR server | Anton + provider | **YES** for restore, network, paid DR, secret changes |
 | 4 | Accountant has not signed CoA, VAT, or cutover | Control — blocks real invoices / books | **REQUIRES DECISION** | Send `docs/finance/ERPNEXT_ACCOUNTANT_REVIEW_PACK_V1.md`; record written answers | Accountant then Anton | **YES** — production accounting / tax |
-| 5 | `MASTER_ADMIN_KEY` still injected into ordinary Cursor Cloud runs | Security | **PARTIAL** — repo path corrected; Dashboard secret still present | Anton deletes the secret **name** in Cursor Dashboard; fresh run proves absence | Anton | **YES** — secret mutation (UI delete only) |
+| 5 | `MASTER_ADMIN_KEY` still injected into ordinary Cursor Cloud runs | Security | **PARTIAL** — repo path corrected; Anton confirmed a Cloud Agents Secrets delete on 2026-08-13; 2026-08-19 Factory Automation wake still **PRESENT** | Delete the secret **name** from the remaining Cursor store (Cloud Agents Secrets re-check and/or Factory Automation secrets); fresh wake proves **ABSENT** | Anton | **YES** — secret mutation (UI delete only) |
 | 6 | Client-facing quotation PDF is not yet the professional standard | Revenue / brand | **PARTIAL** — standard PDFs exist; branded Print Format missing | Design/test Print Format on hosted test; do not send | Cursor then Anton visual accept | **NO** until send |
 | 7 | `#918` source-of-truth matrix incomplete; no sync | Architecture | **PARTIAL** — bridge mapping only | Docs matrix for remaining CorpFlowAI stores; no automated write | Cursor | **NO** for the matrix |
 | 8 | Future system-of-record host is undecided (vendor-hosted v16 vs box sandbox/shell) | Control | **REQUIRES DECISION** | Anton names which ERPNext site will hold real books | Anton | **YES** if public DNS / exposure / paid hosting change |
@@ -103,7 +103,7 @@ Ranked by business / revenue / control impact. Prestige is first so the programm
 | Exact action | Why Anton | Do not wait to do |
 |--------------|-----------|-------------------|
 | Merge this PR | Human merge; factory must not self-merge | Reading and using the baseline |
-| Cursor Dashboard delete of secret **name** `MASTER_ADMIN_KEY` (`#899`) | UI-only secret change | Ordinary ERPNext API work |
+| Cursor Dashboard / Automation delete of secret **name** `MASTER_ADMIN_KEY` (`#899`) | UI-only secret change. 2026-08-13 Cloud Agents Secrets delete did not clear Factory Automation wakes | Ordinary ERPNext API work |
 | `#959` accept / reject / condition the due-diligence verdict once written | Formal business-critical decision | Writing the research packet |
 | `#956` P0 control choices (vendor backup proof, Neon PITR window, Monitor #14 timer, GitHub continuity) | Operator / billing / console access | Keeping the audit as the current truth |
 | Name the ERPNext site that will hold real books | Hosting / exposure / cost | Continue using hosted test as `corpflow_test` |
