@@ -280,8 +280,11 @@ export default function RapidDeliveryRevenueDesk({ initialLeads = null, initialE
                 marginTop: 16,
               }}
             >
-              <Link href="/change/revenue" style={btnPrimary}>
-                Open revenue cockpit
+              <Link href="/app/prospects" style={btnPrimary}>
+                Open Prospect Operations
+              </Link>
+              <Link href="/change/revenue" style={btnGhost}>
+                Compatibility checklist
               </Link>
               <button type="button" style={btnGhost} onClick={refresh} disabled={loading || busyId != null}>
                 Refresh

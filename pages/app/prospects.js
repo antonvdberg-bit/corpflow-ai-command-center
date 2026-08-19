@@ -29,6 +29,7 @@ export default function AppProspectsPage() {
   const [busy, setBusy] = useState(true);
 
   const proofWanted = router.isReady && proofFromQuery(router.query);
+  const selectedId = router.isReady ? String(Array.isArray(router.query.id) ? router.query.id[0] : router.query.id || '') : '';
 
   const apiBase = useMemo(() => {
     const params = new URLSearchParams();
@@ -201,6 +202,14 @@ export default function AppProspectsPage() {
         dataSource={dataSource}
         busy={busy}
         proofWanted={proofWanted}
+        selectedId={selectedId}
+        onSelect={(id) => {
+          const params = new URLSearchParams();
+          params.set('env', 'core');
+          if (proofWanted) params.set('proof', '1');
+          params.set('id', id);
+          router.replace(`/app/prospects?${params.toString()}`, undefined, { shallow: true });
+        }}
       />
     </AppShell>
   );
