@@ -1,0 +1,365 @@
+{
+  "$schema_version": "1",
+  "$doc": "CIPC campaign MVP — control flow and first 10 verified partner prospects (#985). Overlay on existing leads + /change. No second CRM. No schema. No live send.",
+  "$issue": "#985",
+  "$parent": "#984",
+  "$canonical_doc": "docs/operations/CIPC_CAMPAIGN_MVP_V1.md",
+  "$reuse": [
+    "postgres leads",
+    "qualification_json.cipc_campaign",
+    "/change",
+    "docs/operations/CRM_OPERATING_BASELINE_V1.md",
+    "docs/operations/CIPC_DESK_PARTNER_FUNNEL_V1.md"
+  ],
+  "$send": false,
+  "$protected": true,
+  "$schema_change": false,
+  "$public_launch": false,
+  "$warning": "NO SECOND CRM. NO SCHEMA. NO ENV. NO LIVE EMAIL/WHATSAPP/SMS. Human approval is mandatory before every initial send. Anton approves the first outbound batch. Unverified fields stay blank.",
+  "campaign_id": "cipc-fractional-secretarial-v1",
+  "tenant_id": "cipc-desk",
+  "environment": "corpflow_test",
+  "operator_surface": "/change",
+  "validation_asset_url": "https://cipc.corpflowai.com/partners",
+  "product": "cipc-campaign",
+  "intent": "cipc-campaign",
+  "owner_default": "Anton",
+  "offer": {
+    "headline": "Experienced Company Secretarial Operations Specialist available as fractional / white-label capacity behind accounting and advisory firms.",
+    "do_not_lead_with": [
+      "looking for remote work",
+      "CIPC clerk",
+      "commodity filing language",
+      "job hunt"
+    ]
+  },
+  "control_flow": [
+    "prospect_verified",
+    "segment_assigned",
+    "fit_scored",
+    "decision_maker_verified",
+    "message_drafted",
+    "operator_approved",
+    "ready_to_send",
+    "sent",
+    "replied",
+    "qualified",
+    "nurture",
+    "closed"
+  ],
+  "terminal_states": ["qualified", "nurture", "closed"],
+  "protected_states": ["sent"],
+  "scoring": {
+    "existing_secretarial_cipc_client_base": 25,
+    "accounting_advisory_serving_smes": 20,
+    "remote_cloud_delivery_normal": 15,
+    "boutique_specialist_headcount_inefficient": 15,
+    "explicit_secretarial_likely_capacity_need": 10,
+    "clear_owner_partner_decision_maker": 10,
+    "existing_outsourcing_extension_language": 5,
+    "max": 100
+  },
+  "segments": {
+    "A": {
+      "label": "Accounting / advisory firms — PRIMARY",
+      "message_version": "segment-a-v1",
+      "hypothesis": "Their clients already need the work; senior staff should not absorb routine statutory administration; outsourcing avoids permanent headcount; white-label can extend their catalogue."
+    },
+    "B": {
+      "label": "Company-secretarial / governance firms — SECONDARY",
+      "message_version": "segment-b-v1",
+      "hypothesis": "Do not sell the existence of the service. Sell additional remote overflow / subcontracting capacity when workload spikes."
+    },
+    "C": {
+      "label": "Current vacancies — MARKET INTELLIGENCE",
+      "message_version": "segment-c-v1",
+      "hypothesis": "Use vacancy language to improve offer design. Do not default to applying for jobs."
+    }
+  },
+  "message_frameworks": {
+    "A": {
+      "version": "segment-a-v1",
+      "subject": "Fractional company-secretarial capacity behind {company}",
+      "hook": "You already offer company-secretarial / CIPC support. This note is about specialist capacity behind that service — not a new product for your clients to buy from someone else.",
+      "problem": "Statutory administration still lands on the practice. Senior accounting time is the expensive way to cover it, and a permanent specialist is often the wrong headcount decision.",
+      "mechanism": "Experienced fractional / white-label company-secretarial operations sit behind your firm: CIPC administration, statutory registers, beneficial ownership, director and shareholder changes, resolutions, minutes, and compliance calendars.",
+      "proof": "More than 15 years of company-secretarial and governance operations, including work inside a publicly listed South African company. Exact public wording remains subject to confirmation.",
+      "cta": "If a short conversation would help you decide whether overflow / white-label support is useful, reply to this note or use the partner path.",
+      "validation_asset": "https://cipc.corpflowai.com/partners",
+      "follow_up": [
+        "Checking whether overflow / white-label company-secretarial capacity is useful behind your current client work.",
+        "Happy to stay in the background of the practice — your clients stay yours.",
+        "If timing is wrong, say so and I will close the loop rather than keep chasing."
+      ]
+    },
+    "B": {
+      "version": "segment-b-v1",
+      "subject": "Remote overflow capacity for {company}",
+      "hook": "You already run company-secretarial / governance work. This is additional specialist capacity for spikes — not a pitch to replace your service.",
+      "problem": "Workload clusters. Permanent extra headcount is slow. Overflow still has to be done to the same standard.",
+      "mechanism": "Experienced remote overflow / subcontracting capacity for statutory administration, registers, beneficial ownership, director/shareholder changes, resolutions and minutes.",
+      "proof": "More than 15 years of company-secretarial and governance operations, including work inside a publicly listed South African company. Exact public wording remains subject to confirmation.",
+      "cta": "If overflow cover would help on the next spike, reply and we can scope a quiet white-label arrangement.",
+      "validation_asset": "https://cipc.corpflowai.com/partners",
+      "follow_up": [
+        "Following up only on overflow / subcontracting capacity, not on selling you a new service line.",
+        "Delivery can stay behind your firm’s name.",
+        "If you are fully covered, I will mark do-not-contact and stop."
+      ]
+    },
+    "C": {
+      "version": "segment-c-v1",
+      "subject": null,
+      "hook": "Vacancy language is market intelligence only.",
+      "problem": "",
+      "mechanism": "",
+      "proof": "",
+      "cta": "Do not send. Capture terminology, skills, and role signals.",
+      "validation_asset": "https://cipc.corpflowai.com/partners",
+      "follow_up": []
+    }
+  },
+  "required_fields": [
+    "company",
+    "website",
+    "segment",
+    "source_evidence_url",
+    "decision_maker_name",
+    "decision_maker_title",
+    "email",
+    "phone",
+    "contact_route",
+    "fit_score",
+    "service_overlap_signals",
+    "positioning_angle",
+    "message_version",
+    "approval_state",
+    "send_state",
+    "response_state",
+    "next_action",
+    "next_action_due",
+    "do_not_contact"
+  ],
+  "prospects": [
+    {
+      "id": "apio-advisory",
+      "company": "Apio Advisory",
+      "website": "https://apioadvisory.co.za/",
+      "segment": "A",
+      "source_evidence_url": "https://apioadvisory.co.za/",
+      "decision_maker_name": "",
+      "decision_maker_title": "",
+      "email": "info@apioadvisory.co.za",
+      "phone": "+27 11 568 9095",
+      "contact_route": "email",
+      "positioning_angle": "additional specialist capacity behind existing service",
+      "signals": {
+        "existing_secretarial_cipc_client_base": true,
+        "accounting_advisory_serving_smes": true,
+        "remote_cloud_delivery_normal": false,
+        "boutique_specialist_headcount_inefficient": false,
+        "explicit_secretarial_likely_capacity_need": true,
+        "clear_owner_partner_decision_maker": false,
+        "existing_outsourcing_extension_language": false
+      }
+    },
+    {
+      "id": "refined-accountants",
+      "company": "Refined Accountants",
+      "website": "https://www.refinedaccountants.co.za/",
+      "segment": "A",
+      "source_evidence_url": "https://www.refinedaccountants.co.za/",
+      "decision_maker_name": "Damon Pronk",
+      "decision_maker_title": "CA(SA)",
+      "email": "damon@refinedaccountants.co.za",
+      "phone": "+27 31 765 6553",
+      "contact_route": "email",
+      "positioning_angle": "fractional specialist behind hand-selected team",
+      "signals": {
+        "existing_secretarial_cipc_client_base": true,
+        "accounting_advisory_serving_smes": true,
+        "remote_cloud_delivery_normal": false,
+        "boutique_specialist_headcount_inefficient": false,
+        "explicit_secretarial_likely_capacity_need": true,
+        "clear_owner_partner_decision_maker": true,
+        "existing_outsourcing_extension_language": false
+      }
+    },
+    {
+      "id": "njn-audit",
+      "company": "NJN Audit",
+      "website": "https://www.njnaudit.co.za/",
+      "segment": "A",
+      "source_evidence_url": "https://www.njnaudit.co.za/",
+      "decision_maker_name": "",
+      "decision_maker_title": "",
+      "email": "info@njnaudit.co.za",
+      "phone": "+27 21 974 6216",
+      "contact_route": "email",
+      "positioning_angle": "white-label capacity",
+      "signals": {
+        "existing_secretarial_cipc_client_base": true,
+        "accounting_advisory_serving_smes": true,
+        "remote_cloud_delivery_normal": false,
+        "boutique_specialist_headcount_inefficient": false,
+        "explicit_secretarial_likely_capacity_need": true,
+        "clear_owner_partner_decision_maker": false,
+        "existing_outsourcing_extension_language": false
+      }
+    },
+    {
+      "id": "sm-accounting-advisory",
+      "company": "SM Accounting & Advisory",
+      "website": "https://www.smaaa.co.za/",
+      "segment": "A",
+      "source_evidence_url": "https://www.smaaa.co.za/",
+      "decision_maker_name": "Sydney Mtshayise",
+      "decision_maker_title": "",
+      "email": "sydney@smaaa.co.za",
+      "phone": "071 584 7635",
+      "contact_route": "email",
+      "positioning_angle": "specialist capacity behind existing SME clients",
+      "signals": {
+        "existing_secretarial_cipc_client_base": true,
+        "accounting_advisory_serving_smes": true,
+        "remote_cloud_delivery_normal": true,
+        "boutique_specialist_headcount_inefficient": false,
+        "explicit_secretarial_likely_capacity_need": true,
+        "clear_owner_partner_decision_maker": true,
+        "existing_outsourcing_extension_language": false
+      }
+    },
+    {
+      "id": "besalca-accounting",
+      "company": "Besalca Accounting",
+      "website": "https://besalca.co.za/",
+      "segment": "A",
+      "source_evidence_url": "https://besalca.co.za/",
+      "decision_maker_name": "",
+      "decision_maker_title": "",
+      "email": "info@besalca.co.za",
+      "phone": "010 465 0076",
+      "contact_route": "email",
+      "positioning_angle": "extra capacity without permanent payroll",
+      "signals": {
+        "existing_secretarial_cipc_client_base": true,
+        "accounting_advisory_serving_smes": true,
+        "remote_cloud_delivery_normal": false,
+        "boutique_specialist_headcount_inefficient": false,
+        "explicit_secretarial_likely_capacity_need": true,
+        "clear_owner_partner_decision_maker": false,
+        "existing_outsourcing_extension_language": false
+      }
+    },
+    {
+      "id": "audax-accounting-solutions",
+      "company": "Audax Accounting Solutions",
+      "website": "https://www.audax.co.za/",
+      "segment": "A",
+      "source_evidence_url": "https://www.audax.co.za/",
+      "decision_maker_name": "",
+      "decision_maker_title": "",
+      "email": "info@audax.co.za",
+      "phone": "021 213 0047",
+      "contact_route": "email",
+      "positioning_angle": "remote specialist execution",
+      "signals": {
+        "existing_secretarial_cipc_client_base": true,
+        "accounting_advisory_serving_smes": true,
+        "remote_cloud_delivery_normal": true,
+        "boutique_specialist_headcount_inefficient": false,
+        "explicit_secretarial_likely_capacity_need": true,
+        "clear_owner_partner_decision_maker": false,
+        "existing_outsourcing_extension_language": false
+      }
+    },
+    {
+      "id": "louis-marais-partners",
+      "company": "Louis Marais & Partners",
+      "website": "https://auditpartners.co.za/",
+      "segment": "A",
+      "source_evidence_url": "https://auditpartners.co.za/",
+      "decision_maker_name": "Louis Marais",
+      "decision_maker_title": "Partner",
+      "email": "louis@auditpartners.co.za",
+      "phone": "012 348 6919",
+      "contact_route": "email",
+      "positioning_angle": "direct partner outreach",
+      "signals": {
+        "existing_secretarial_cipc_client_base": true,
+        "accounting_advisory_serving_smes": true,
+        "remote_cloud_delivery_normal": false,
+        "boutique_specialist_headcount_inefficient": true,
+        "explicit_secretarial_likely_capacity_need": true,
+        "clear_owner_partner_decision_maker": true,
+        "existing_outsourcing_extension_language": false
+      }
+    },
+    {
+      "id": "stellar-accounting-solutions",
+      "company": "Stellar Accounting Solutions",
+      "website": "https://stellaraccountants.co.za/",
+      "segment": "A",
+      "source_evidence_url": "https://stellaraccountants.co.za/",
+      "decision_maker_name": "",
+      "decision_maker_title": "",
+      "email": "info@stellaraccountants.co.za",
+      "phone": "+27 67 228 8488",
+      "contact_route": "email",
+      "positioning_angle": "capacity behind broad existing service",
+      "signals": {
+        "existing_secretarial_cipc_client_base": true,
+        "accounting_advisory_serving_smes": true,
+        "remote_cloud_delivery_normal": false,
+        "boutique_specialist_headcount_inefficient": false,
+        "explicit_secretarial_likely_capacity_need": true,
+        "clear_owner_partner_decision_maker": false,
+        "existing_outsourcing_extension_language": false
+      }
+    },
+    {
+      "id": "jbs-advisory-accounting",
+      "company": "JBS Advisory & Accounting",
+      "website": "https://jbsaa.co.za/",
+      "segment": "A",
+      "source_evidence_url": "https://jbsaa.co.za/",
+      "decision_maker_name": "",
+      "decision_maker_title": "",
+      "email": "",
+      "phone": "+27 87 701 5725",
+      "contact_route": "website_form",
+      "positioning_angle": "outsourced secretarial capacity",
+      "signals": {
+        "existing_secretarial_cipc_client_base": true,
+        "accounting_advisory_serving_smes": true,
+        "remote_cloud_delivery_normal": false,
+        "boutique_specialist_headcount_inefficient": false,
+        "explicit_secretarial_likely_capacity_need": true,
+        "clear_owner_partner_decision_maker": false,
+        "existing_outsourcing_extension_language": false
+      }
+    },
+    {
+      "id": "esterhuyse-associates",
+      "company": "Esterhuyse & Associates",
+      "website": "https://esterhuyseandassociates.co.za/",
+      "segment": "A",
+      "source_evidence_url": "https://esterhuyseandassociates.co.za/",
+      "decision_maker_name": "",
+      "decision_maker_title": "",
+      "email": "info@esterhuyseandassociates.co.za",
+      "phone": "+27 21 423 9110",
+      "contact_route": "email",
+      "positioning_angle": "very strong white-label/fractional fit",
+      "signals": {
+        "existing_secretarial_cipc_client_base": true,
+        "accounting_advisory_serving_smes": true,
+        "remote_cloud_delivery_normal": false,
+        "boutique_specialist_headcount_inefficient": true,
+        "explicit_secretarial_likely_capacity_need": true,
+        "clear_owner_partner_decision_maker": false,
+        "existing_outsourcing_extension_language": true
+      }
+    }
+  ]
+}

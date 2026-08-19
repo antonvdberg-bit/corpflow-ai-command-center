@@ -30,13 +30,24 @@ jobs:
        startsWith(github.event.pull_request.head.ref, 'cursor/'))
     runs-on: ubuntu-latest
     steps:
-      - name: Mark completed factory PR ready automatically
+      - name: Mark factory PR ready automatically
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NODE_ID: ${{ github.event.pull_request.node_id }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           set -euo pipefail
+
+          # The event payload may say draft=true even when another automation or
+          # operator transition has already made the PR non-draft. Treat that
+          # race as success so reruns and duplicate events are idempotent.
+          current_draft="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.draft')"
+          if [ "$current_draft" != "true" ]; then
+            echo "Factory PR #${PR_NUMBER} is already non-draft; nothing to do."
+            echo "No merge or approval was performed."
+            exit 0
+          fi
+
           gh api graphql \
             -f query='mutation($id:ID!){markPullRequestReadyForReview(input:{pullRequestId:$id}){pullRequest{number isDraft}}}' \
             -F id="$PR_NODE_ID" \

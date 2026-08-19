@@ -44,6 +44,8 @@ Routes are served as `/api/cmp/router?action=<name>` or legacy path segments; se
 
 Common actions include `ticket-create`, `ticket-get`, `technical-lead-latest`, `ticket-activity`, `ticket-list`, `costing-preview`, `approve-build`, `change-chat`, `overseer`, etc.
 
+**CIPC campaign MVP (#985):** tenant `cipc-desk` or factory operator. `GET cipc-campaign-list` returns the first 10 verified partner prospects (config seed, merged with existing `leads` when present). `POST cipc-campaign-hydrate` upserts those rows onto the existing `leads` table (`qualification_json.cipc_campaign`). `POST cipc-campaign-operator-patch` records approve / reject / do-not-contact. **Send is never performed** — `intent=send` returns `PROTECTED_SEND_BLOCKED`. Canonical: `docs/operations/CIPC_CAMPAIGN_MVP_V1.md`.
+
 **`ticket-list` scope:** Admin sessions receive only **unscoped** tickets (`tenant_id` null — factory/core queue). Tenant sessions receive only rows for **their** `tenant_id`. Factory master token (no session) returns **all** rows for break-glass support. Response includes `list_scope` (`core` | `tenant` | `factory_master`) and `scope_tenant_id` when applicable.
 
 ## Automation spine (agents / webhooks)
