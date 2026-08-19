@@ -81,6 +81,7 @@ import {
 } from '../lib/ui/tenant-host-switch-link.js';
 import { shouldRenderPicker as shouldRenderCoreTenantPicker } from '../lib/ui/core-tenant-picker-helpers.js';
 import CoreTenantPicker from '../components/CoreTenantPicker.js';
+import CipcCampaignOperatorPanel from '../components/CipcCampaignOperatorPanel.js';
 
 function normalizeLocale(raw) {
   const s = String(raw || '').trim().toLowerCase().replace(/_/g, '-');
@@ -3237,6 +3238,14 @@ export default function ChangeConsolePage() {
               </span>
             )}
           </div>
+
+          {sessionReady &&
+          session.logged_in &&
+          (String(session.tenant_id || '').trim() === 'cipc-desk' ||
+            String(uiContext?.acting_tenant_id || '').trim() === 'cipc-desk' ||
+            String(uiContext?.tenant_id || '').trim() === 'cipc-desk') ? (
+            <CipcCampaignOperatorPanel />
+          ) : null}
 
           {sessionReady && session.logged_in ? (
             <div

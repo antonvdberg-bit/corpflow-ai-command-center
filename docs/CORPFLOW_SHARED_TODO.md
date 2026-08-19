@@ -42,6 +42,8 @@ Canonical operator view for genuine Anton decisions: **`docs/operations/ANTON_DE
 
 **CorpFlowAI business CRM (prospect pipeline, #701):** one Postgres `leads` table — no second CRM. Operator pack: **`docs/operations/CRM_OPERATING_BASELINE_V1.md`**. Reuses Prospect Operations (#721) and maturation (#713). Quotation evidence → #551; won delivery → #550 / #654. No schema, env, or live send in that pack.
 
+**CIPC partner campaign MVP (#985):** first 10 verified accounting/advisory prospects on the existing `/change` board + `leads.qualification_json.cipc_campaign`. Canonical: **`docs/operations/CIPC_CAMPAIGN_MVP_V1.md`**. Drafts only — Anton approves the first outbound send. No second CRM, no schema, no live send.
+
 **This repo’s technical partner function (ongoing):**
 
 - **Curate and wire agents:** use `docs/automation-framework.md`, `docs/n8n/automation-forward-recipe.md`, CMP mirror events, and playbooks so client-visible milestones trigger **notifications, handoffs, and follow-up** without you on the laptop (`docs/EXECUTION_BRAIN_VS_HANDS.md`).
