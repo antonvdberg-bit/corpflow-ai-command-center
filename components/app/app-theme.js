@@ -311,6 +311,40 @@ export const APP_SHELL_CSS = `
   }
   .cf-app-kv dt { color: var(--app-muted); margin: 0; }
   .cf-app-kv dd { margin: 0; word-break: break-word; }
+  .cf-app-dl {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px 18px;
+    margin: 16px 0 0;
+  }
+  .cf-app-dl dt {
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--app-muted);
+    margin: 0;
+  }
+  .cf-app-dl dd {
+    margin: 4px 0 0;
+    font-size: 0.92rem;
+    line-height: 1.45;
+    word-break: break-word;
+    white-space: pre-wrap;
+  }
+  .cf-app-draft-block { margin-top: 16px; }
+  .cf-app-draft-block p { margin: 6px 0 0; line-height: 1.5; }
+  .cf-app-draft {
+    width: 100%;
+    margin-top: 8px;
+    min-height: 160px;
+    border-radius: 8px;
+    border: 1px solid var(--app-panel-border);
+    background: rgba(0,0,0,0.2);
+    color: var(--app-text);
+    padding: 10px 12px;
+    font: inherit;
+    resize: vertical;
+  }
   .cf-app-preview {
     margin-top: 14px;
     padding-top: 14px;
