@@ -149,6 +149,8 @@ test('homepage draft routes professional partners to /partners without changing 
   assert.match(String(draft.hero?.cta_href || ''), /^mailto:/);
   assert.equal(draft.hero?.cta_secondary_href, '/partners');
   assert.match(String(draft.hero?.cta_secondary_label || ''), /overflow \/ white-label/i);
+  assert.match(String(draft.content_version || ''), /partner-funnel/);
+  assert.match(String(draft.content_version || ''), /director-changes/);
 
   const partnerRoute = (draft.sections?.routes?.items || []).find((x) =>
     /accountant|professional partner/i.test(String(x?.name || '')),
