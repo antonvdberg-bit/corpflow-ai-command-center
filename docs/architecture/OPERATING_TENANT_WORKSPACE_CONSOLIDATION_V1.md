@@ -51,6 +51,8 @@ Machine copy: `WORKSPACE_SURFACE_MATRIX` in `lib/app/workspace-context.js`.
 | `/api/app/prospects` | `leads` | same | Core only | **CANONICAL** | Tenant → 403 |
 | `/app/today` | `leads` | same + `matchesMyWorkTodayFilter` | Core only | **CANONICAL** | Today / My Work landing |
 | `/api/app/today` | `leads` | same | Core only | **CANONICAL** | Tenant → 403 |
+| `/app/queue` | `leads` | same + `matchesActionQueueFilter` | Core only | **CANONICAL** | Prospect Action Queue |
+| `/api/app/queue` | `leads` | same | Core only | **CANONICAL** | Tenant → 403 |
 | `/app/prospects/[id]` | `leads` | fixture / `leads_read` + JSON patch | Core only | **CANONICAL** | Shared detail / actions / history |
 | `/api/app/prospect` | `leads` | same | Core only | **CANONICAL** | GET + PATCH; Tenant → 403 |
 | `/admin/rapid-delivery` | `leads` (rapid-delivery) | `admin-rapid-delivery-api` | `requireAdminPageSession` | **MIGRATE** | REUSE desk + API; long-term Action Queue |
@@ -78,7 +80,7 @@ Machine copy: `WORKSPACE_SURFACE_MATRIX` in `lib/app/workspace-context.js`.
 | ------- | -------------- | ------- | ------- |
 | Core/Tenant shells | Yes (`/app/core`, `/app/tenant`) | Chrome used technical “Core/Tenant” names | Product workspace names (this slice) |
 | Prospect Ops shared UI | No | View-model + docs only (#721 Slice 1) | Shared queue/workbench/Kanban |
-| Action Queue | Yes as Rapid Delivery desk | Product-filtered | Cross-product queue |
+| Action Queue | Yes (`/app/queue`, staff-only) | Cross-product; Rapid Delivery desk still live | Product-desk retirement |
 | Workbench | Yes as Lead Rescue | Product-branded | Extracted Prospect Workbench |
 | Pipeline Kanban | Partial (`/change/revenue`) | localStorage checklist | Postgres `canonical_stage` lanes |
 | Today / My Work landing | Yes (`/app/today`, staff-only) | Uses #721 `matchesMyWorkTodayFilter` | — |
@@ -106,16 +108,23 @@ This slice replaces the fragmented “My Work is just another Requests list” b
 
 This slice does **not** connect all three prospect views, rebuild CRM, or retire `/admin/lead-rescue` or `/admin/rapid-delivery`.
 
+### This slice (canonical Prospect Action Queue — #995)
+
+1. Dedicated Operating Workspace route `/app/queue` + `GET /api/app/queue`.
+2. Reuse the shared view-model, `sortProspectsForActionQueue`, and `matchesActionQueueFilter`.
+3. Filters: needs-action (default), new, overdue, due today, no next action, awaiting prospect/client, awaiting CorpFlowAI/operator, awaiting protected approval.
+4. Every row opens `#994` `/app/prospects/[id]`. Safe edits use existing `PATCH /api/app/prospect`.
+5. Staff-only; Tenant 403; no schema; no external send. `/admin/rapid-delivery` remains a temporary desk.
+
 ### Later spare-capacity slices (do not build in this PR)
 
-1. Canonical Action Queue replacing `/admin/rapid-delivery` as the UX owner.
-2. Prospect Workbench extracted from Lead Rescue branding.
-4. Postgres-backed Pipeline replacing `/change/revenue` localStorage as canonical.
-5. Clients summary from Company Master.
-6. Commercial summary from ERPNext rails (read-only first).
-7. Delivery summary from Lead Rescue / Website Rescue contracts.
-8. Tenant Workspace simplification (remove internal cognitive load).
-9. Redirects/retirement only after live verification of replacements.
+1. Prospect Workbench extracted from Lead Rescue branding.
+2. Postgres-backed Pipeline replacing `/change/revenue` localStorage as canonical.
+3. Clients summary from Company Master.
+4. Commercial summary from ERPNext rails (read-only first).
+5. Delivery summary from Lead Rescue / Website Rescue contracts.
+6. Tenant Workspace simplification (remove internal cognitive load).
+7. Redirects/retirement of product desks only after live verification of replacements.
 
 ## 4. Architecture boundaries (unchanged)
 
@@ -136,6 +145,7 @@ node --test \
   node-tests/app-prospect-operations-handlers.test.mjs \
   node-tests/app-today-my-work.test.mjs \
   node-tests/app-prospect-detail.test.mjs \
+  node-tests/app-action-queue.test.mjs \
   node-tests/app-slice1-access.test.mjs \
   node-tests/app-slice1-handlers.test.mjs \
   node-tests/prospect-operations-view-model.test.mjs

@@ -1,6 +1,6 @@
 /**
- * Operating Workspace — shared Prospect Operations / Today list (#772 / #721 / #699).
- * Read-only. Temporary product-desk links remain until later slices.
+ * Operating Workspace — shared Prospect Operations / Today list (#772 / #721 / #699 / #994).
+ * Opens the shared Prospect detail surface. Temporary product-desk links remain.
  * No live email / WhatsApp / SMS send.
  *
  * @param {{
@@ -13,6 +13,7 @@
  *   proofWanted?: boolean,
  *   selectedId?: string,
  *   onSelect?: (id: string) => void,
+ *   showEnquiryHandoff?: boolean,
  * }} props
  */
 export default function ProspectOperationsList({
@@ -25,6 +26,7 @@ export default function ProspectOperationsList({
   proofWanted,
   selectedId = '',
   onSelect,
+  showEnquiryHandoff = true,
 }) {
   const rows = Array.isArray(prospects) ? prospects : [];
   const leadText =
@@ -38,8 +40,8 @@ export default function ProspectOperationsList({
       <section className="cf-app-panel" data-testid={`${testId}-empty`}>
         <h1 className="cf-app-h1">{title}</h1>
         <p className="cf-app-lead">
-          No shared prospect records in this view yet. Canonical queue is this Operating Workspace
-          route. Temporary product desks remain at{' '}
+          No shared prospect records in this view yet. Canonical Action Queue is{' '}
+          <a href="/app/queue">/app/queue</a>. Temporary product desks remain at{' '}
           <a href="/admin/rapid-delivery">/admin/rapid-delivery</a> and{' '}
           <a href="/admin/lead-rescue">/admin/lead-rescue</a>. Tenant{' '}
           <a href="/change">/change</a> is not the enquiry desk.
@@ -70,11 +72,13 @@ export default function ProspectOperationsList({
             <thead>
               <tr>
                 <th>Prospect</th>
-                <th>Offer / path</th>
-                <th>Stage</th>
-                <th>Timing</th>
+                <th>Owner</th>
+                <th>Stage / status</th>
+                <th>Urgency</th>
                 <th>Next action</th>
-                <th>Signals</th>
+                <th>Due</th>
+                <th>Last activity</th>
+                <th>Recommended</th>
                 <th>Open</th>
               </tr>
             </thead>
@@ -83,8 +87,10 @@ export default function ProspectOperationsList({
                 const id = String(row.id || '');
                 const name = String(row.organisation_name || row.person_name || id);
                 const signals = Array.isArray(row.exception_signals) ? row.exception_signals : [];
-                const detail = `/app/prospects?id=${encodeURIComponent(id)}`;
-                const offer = String(row.offer_title || row.product_service_path || row.product || '—');
+                const shared = row.shared_detail_path ? String(row.shared_detail_path) : `/app/prospects/${encodeURIComponent(id)}`;
+                const sharedHref =
+                  shared && proofWanted ? `${shared}${shared.includes('?') ? '&' : '?'}proof=1` : shared;
+                const productDesk = row.detail_path ? String(row.detail_path) : '';
                 const isSelected = String(selectedId) === id;
                 return (
                   <tr
@@ -95,41 +101,50 @@ export default function ProspectOperationsList({
                     <td>
                       <strong>{name}</strong>
                       <div className="cf-app-muted">{String(row.reference || id)}</div>
-                      <div className="cf-app-muted">{String(row.person_name || '')}</div>
-                    </td>
-                    <td>{offer}</td>
-                    <td>{String(row.canonical_stage || row.native_status_label || '—')}</td>
-                    <td>{String(row.urgency || '—')}</td>
-                    <td>
-                      {String(row.next_action || row.recommended_next_action || '—')}
-                      {row.next_action_due ? (
-                        <div className="cf-app-muted">{String(row.next_action_due)}</div>
-                      ) : null}
-                    </td>
-                    <td>
-                      {signals.length === 0
-                        ? '—'
-                        : signals.map((signal) => (
+                      <div className="cf-app-muted">{String(row.product || row.person_name || '')}</div>
+                      {signals.length > 0 ? (
+                        <div>
+                          {signals.map((signal) => (
                             <span key={String(signal)} className="cf-app-signal">
                               {String(signal)}
                             </span>
                           ))}
+                        </div>
+                      ) : null}
                     </td>
+                    <td>{String(row.owner || '—')}</td>
                     <td>
+                      {String(row.canonical_stage || '—')}
+                      <div className="cf-app-muted">{String(row.native_status_label || row.native_status || '')}</div>
+                    </td>
+                    <td>{String(row.urgency || row.priority || '—')}</td>
+                    <td>{String(row.next_action || '—')}</td>
+                    <td>{row.next_action_due ? String(row.next_action_due) : '—'}</td>
+                    <td>{row.last_meaningful_activity_at ? String(row.last_meaningful_activity_at) : '—'}</td>
+                    <td>{String(row.recommended_next_action || '—')}</td>
+                    <td>
+                      <a href={sharedHref} data-testid={`prospect-ops-shared-detail-${id}`}>
+                        Shared detail
+                      </a>
                       {onSelect ? (
-                        <button
-                          type="button"
-                          className="cf-app-btn"
-                          data-testid={`prospect-ops-open-${id}`}
-                          onClick={() => onSelect(id)}
-                        >
-                          {isSelected ? 'Selected' : 'Open'}
-                        </button>
-                      ) : (
-                        <a href={detail} data-testid={`prospect-ops-detail-${id}`}>
-                          Open
-                        </a>
-                      )}
+                        <div>
+                          <button
+                            type="button"
+                            className="cf-app-btn"
+                            data-testid={`prospect-ops-open-${id}`}
+                            onClick={() => onSelect(id)}
+                          >
+                            {isSelected ? 'Selected' : 'Handoff'}
+                          </button>
+                        </div>
+                      ) : null}
+                      {productDesk ? (
+                        <div className="cf-app-muted">
+                          <a href={productDesk} data-testid={`prospect-ops-detail-${id}`}>
+                            Product desk
+                          </a>
+                        </div>
+                      ) : null}
                     </td>
                   </tr>
                 );
@@ -138,12 +153,15 @@ export default function ProspectOperationsList({
           </table>
         </div>
       </section>
-      {selected ? <ProspectEnquiryDetail prospect={selected} testId={testId} /> : null}
+      {showEnquiryHandoff && selected ? <ProspectEnquiryDetail prospect={selected} testId={testId} /> : null}
     </>
   );
 }
 
 /**
+ * #699 enquiry handoff fields. Not a second detail implementation — shared
+ * history/actions live on `/app/prospects/[id]`.
+ *
  * @param {{ prospect: Record<string, unknown>, testId?: string }} props
  */
 function ProspectEnquiryDetail({ prospect, testId = 'prospect-ops' }) {
@@ -152,6 +170,7 @@ function ProspectEnquiryDetail({ prospect, testId = 'prospect-ops' }) {
     prospect.source_surfaces && typeof prospect.source_surfaces === 'object'
       ? String(/** @type {Record<string, unknown>} */ (prospect.source_surfaces).product_detail || '')
       : '';
+  const shared = prospect.shared_detail_path ? String(prospect.shared_detail_path) : '';
 
   async function copyDraft() {
     if (!draft || typeof navigator === 'undefined' || !navigator.clipboard) return;
@@ -175,6 +194,7 @@ function ProspectEnquiryDetail({ prospect, testId = 'prospect-ops' }) {
     ['Enquiry channels', prospect.enquiry_channels || '—'],
     ['Timing', prospect.urgency || '—'],
     ['Consent', prospect.consent_contact ? 'Yes — may contact' : '—'],
+    ['Owner', prospect.owner || '—'],
     ['Status', prospect.native_status_label || prospect.canonical_stage || '—'],
     ['Next action', prospect.next_action || prospect.recommended_next_action || '—'],
     ['Notes', prospect.notes || '—'],
@@ -185,8 +205,9 @@ function ProspectEnquiryDetail({ prospect, testId = 'prospect-ops' }) {
     <section className="cf-app-panel" data-testid={`${testId}-detail`} data-market-enquiry-fields>
       <h2 className="cf-app-h1">Enquiry handoff</h2>
       <p className="cf-app-lead">
-        Operator-visible fields from the existing lead record. Copy the draft if needed. Nothing is
-        sent automatically.
+        Operator-visible fields from the existing lead record. Copy the draft if needed. Full
+        actions and history open on the shared Prospect detail surface. Nothing is sent
+        automatically.
       </p>
       <dl className="cf-app-dl">
         {fields.map(([label, value]) => (
@@ -205,76 +226,6 @@ function ProspectEnquiryDetail({ prospect, testId = 'prospect-ops' }) {
               'Review enquiry and reply with the copy-ready draft.',
           )}
         </p>
-      ) : null}
-      <div className="cf-app-table-wrap">
-        <table className="cf-app-table">
-          <thead>
-            <tr>
-              <th>Prospect</th>
-              <th>Product</th>
-              <th>Stage</th>
-              <th>Owner</th>
-              <th>Next action</th>
-              <th>Signals</th>
-              <th>Open</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => {
-              const id = String(row.id || '');
-              const name = String(row.organisation_name || row.person_name || id);
-              const signals = Array.isArray(row.exception_signals) ? row.exception_signals : [];
-              const shared = row.shared_detail_path ? String(row.shared_detail_path) : '';
-              const sharedHref =
-                shared && proofWanted ? `${shared}${shared.includes('?') ? '&' : '?'}proof=1` : shared;
-              const detail = row.detail_path ? String(row.detail_path) : '';
-              return (
-                <tr key={id} data-testid={`prospect-ops-row-${id}`}>
-                  <td>
-                    <strong>{name}</strong>
-                    <div className="cf-app-muted">{String(row.reference || id)}</div>
-                  </td>
-                  <td>{String(row.product || '—')}</td>
-                  <td>{String(row.canonical_stage || row.native_status_label || '—')}</td>
-                  <td>{String(row.owner || '—')}</td>
-                  <td>
-                    {String(row.next_action || '—')}
-                    {row.next_action_due ? (
-                      <div className="cf-app-muted">{String(row.next_action_due)}</div>
-                    ) : null}
-                  </td>
-                  <td>
-                    {signals.length === 0
-                      ? '—'
-                      : signals.map((signal) => (
-                          <span key={String(signal)} className="cf-app-signal">
-                            {String(signal)}
-                          </span>
-                        ))}
-                  </td>
-                  <td>
-                    {sharedHref ? (
-                      <a
-                        href={sharedHref}
-                        data-testid={`prospect-ops-shared-detail-${id}`}
-                      >
-                        Shared detail
-                      </a>
-                    ) : null}
-                    {detail ? (
-                      <div className="cf-app-muted">
-                        <a href={detail} data-testid={`prospect-ops-detail-${id}`}>
-                          Product desk
-                        </a>
-                      </div>
-                    ) : null}
-                    {!sharedHref && !detail ? '—' : null}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
       </div>
       <div data-response-draft className="cf-app-draft-block">
         <div className="cf-app-muted">Copy-ready response draft · no live send</div>
@@ -283,6 +234,11 @@ function ProspectEnquiryDetail({ prospect, testId = 'prospect-ops' }) {
           <button type="button" className="cf-app-btn" data-primary="true" onClick={copyDraft}>
             Copy response draft
           </button>
+          {shared ? (
+            <a className="cf-app-btn" href={shared}>
+              Shared detail
+            </a>
+          ) : null}
           {productDesk ? (
             <a className="cf-app-btn" href={productDesk}>
               Temporary product desk

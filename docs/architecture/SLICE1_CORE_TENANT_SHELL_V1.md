@@ -23,8 +23,9 @@
 | Tenant app | `/app/tenant` | Existing tenant session (`typ=tenant`, CorpFlowAI). Product name: Tenant Workspace (#772). |
 | Prospect Operations | `/app/prospects` | Operating Workspace / Core session only (#772 first slice) |
 | Today / My Work | `/app/today` | Operating Workspace / Core session only (#772 next slice) |
+| Prospect Action Queue | `/app/queue` | Operating Workspace / Core session only (#995) |
 | Shared Prospect detail | `/app/prospects/[id]` | Operating Workspace / Core session only (#994) |
-| Core nav | My Work (`/app/today`) · Tenants · Requests · Prospects · Delivery · Approvals · Releases · Operations | Within Core; Delivery/Operations link to `/change` |
+| Core nav | My Work (`/app/today`) · Action Queue (`/app/queue`) · Tenants · Requests · Prospects · Delivery · Approvals · Releases · Operations | Within Core; Delivery/Operations link to `/change` |
 | Tenant nav | Home · My Work · Requests & Progress · Documents · Reports · Support | Within Tenant only |
 | APIs | `/api/app/shell`, `/requests`, `/request`, `/component-review`, `/component-expose` | Environment-gated |
 

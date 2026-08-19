@@ -252,6 +252,9 @@ export default function ProspectDetailPanel({
           <a className="cf-app-btn" href={`/app/prospects${proofQuery}`}>
             Back to Prospect Operations
           </a>
+          <a className="cf-app-btn" href={`/app/queue${proofQuery}`}>
+            Action Queue
+          </a>
           <a className="cf-app-btn" href={`/app/today${proofQuery}`}>
             Today / My Work
           </a>

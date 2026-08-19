@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 
 import { CORE_NAV_ITEMS, TENANT_NAV_ITEMS } from '../lib/app/constants.js';
 import {
+  ACTION_QUEUE_PATH,
   OPERATING_WORKSPACE_LABEL,
   PROSPECT_OPERATIONS_PATH,
   TENANT_WORKSPACE_LABEL,
@@ -10,13 +11,17 @@ import {
   WORKSPACE_SURFACE_MATRIX,
   canAccessOperatingWorkspace,
   classifyWorkspaceSurface,
+  isActionQueuePath,
   isProspectOperationsPath,
   isProspectSharedDetailPath,
   isTodayMyWorkPath,
+  navIncludesActionQueue,
   navIncludesProspectOperations,
   navIncludesTodayMyWork,
+  operatingNavIncludesActionQueue,
   operatingNavIncludesProspectOperations,
   operatingNavIncludesTodayMyWork,
+  tenantNavOmitsActionQueue,
   tenantNavOmitsProspectOperations,
   tenantNavOmitsTodayMyWork,
   workspaceChromeForEnvironment,
@@ -96,12 +101,29 @@ describe('workspace-context — Today / My Work boundary', () => {
   });
 });
 
+describe('workspace-context — Action Queue boundary', () => {
+  it('recognises the Prospect Action Queue', () => {
+    assert.equal(isActionQueuePath('/app/queue'), true);
+    assert.equal(isActionQueuePath('/api/app/queue'), true);
+    assert.equal(isActionQueuePath('/app/today'), false);
+    assert.equal(ACTION_QUEUE_PATH, '/app/queue');
+  });
+
+  it('includes Action Queue on Operating Workspace nav and omits it from Tenant nav', () => {
+    assert.equal(operatingNavIncludesActionQueue(), true);
+    assert.equal(tenantNavOmitsActionQueue(), true);
+    assert.equal(navIncludesActionQueue(CORE_NAV_ITEMS), true);
+    assert.equal(navIncludesActionQueue(TENANT_NAV_ITEMS), false);
+  });
+});
+
 describe('workspace-context — surface matrix', () => {
   it('classifies required #772 surfaces', () => {
     assert.equal(classifyWorkspaceSurface('/app/core')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/app/tenant')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/app/prospects')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/app/today')?.disposition, 'CANONICAL');
+    assert.equal(classifyWorkspaceSurface('/app/queue')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/app/prospects/syn-772-lr-ada')?.path, '/app/prospects/[id]');
     assert.equal(classifyWorkspaceSurface('/admin/rapid-delivery')?.disposition, 'MIGRATE');
     assert.equal(classifyWorkspaceSurface('/admin/lead-rescue')?.disposition, 'MIGRATE');

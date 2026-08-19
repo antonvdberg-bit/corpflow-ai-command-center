@@ -333,6 +333,13 @@ export const APP_SHELL_CSS = `
   .cf-app-history li {
     border-bottom: 1px solid var(--app-panel-border);
     padding: 10px 0;
+  }
+  .cf-app-filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+  }
   .cf-app-dl {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));

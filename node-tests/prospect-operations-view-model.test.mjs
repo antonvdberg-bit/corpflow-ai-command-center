@@ -16,7 +16,9 @@ import {
   leadRowToProspectViewModel,
   mapCanonicalStageToNativeStatus,
   mapNativeStatusToCanonicalStage,
+  matchesActionQueueFilter,
   matchesMyWorkTodayFilter,
+  normalizeActionQueueFilter,
   resolveNextActionDue,
   sortProspectsForActionQueue,
 } from '../lib/cmp/_lib/prospect-operations-view-model.js';
@@ -166,6 +168,24 @@ describe('prospect-operations-view-model — due dates and exceptions', () => {
       false,
     );
   });
+
+  it('matches Action Queue filters including default needs-action', () => {
+    const overdue = {
+      next_action: 'Call',
+      next_action_due: '2026-08-01T00:00:00.000Z',
+    };
+    const future = {
+      next_action: 'Wait',
+      next_action_due: '2026-08-20T00:00:00.000Z',
+      last_meaningful_activity_at: NOW.toISOString(),
+      waiting_on: null,
+    };
+    assert.equal(normalizeActionQueueFilter('awaiting-client'), 'awaiting_prospect');
+    assert.equal(matchesActionQueueFilter(overdue, 'overdue', NOW), true);
+    assert.equal(matchesActionQueueFilter(overdue, 'needs_action', NOW), true);
+    assert.equal(matchesActionQueueFilter(future, 'needs_action', NOW), false);
+    assert.equal(matchesActionQueueFilter({ waiting_on: 'protected' }, 'awaiting_protected_approval', NOW), true);
+  });
 });
 
 describe('prospect-operations-view-model — lead adapters', () => {
@@ -305,6 +325,7 @@ describe('prospect-operations-view-model — lead adapters', () => {
     assert.equal(a.canonical_stage, b.canonical_stage);
     assert.equal(a.canonical_stage, 'discovery_booked');
     assert.equal(a.source_surfaces.workbench, '/admin/lead-rescue');
+    assert.equal(a.source_surfaces.action_queue, '/app/queue');
     assert.equal(a.source_surfaces.kanban, '/app/prospects');
     assert.equal(a.source_surfaces.operating_workspace, '/app/prospects');
     assert.match(String(a.detail_path), /^\/app\/prospects\?id=/);
