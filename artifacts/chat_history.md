@@ -30,6 +30,8 @@
 
 ---
 
+## 2026-08-19 — **#899 fresh Factory Automation re-probe: ERPNext API PASS; `MASTER_ADMIN_KEY` still PRESENT.** Wake `bc-c67a9751-28cb-47e6-918a-29a13c213561` (handoff `32233151156`). Direct Frappe token auth as `integrations@corpflowai.com` HTTP 200. Three ERPNext secret names present; factory-master name still injected into this Automation worker after the 2026-08-13 Cloud Agents Secrets delete confirmation. No values recorded. Canonical: `docs/erpnext/ERPNEXT_CURSOR_CLOUD_SECURITY_CORRECTION_899.md`. Remaining Anton action: UI-only delete of secret **name** `MASTER_ADMIN_KEY` from the remaining Cursor store, then a fresh wake.
+
 ## 2026-08-14 — **#920 ERPNext Prestige foundation READY.** After Anton’s Sales Manager grant, live re-run as `integrations@corpflowai.com`: Project Template `CF920 Independent Website 12-phase`; Project `PROJ-0001`; Tasks `TASK-2026-00013`–`00024`; Timesheet `TS-2026-00001` linked; Issue `ISS-2026-00001` Open. CRM + draft `SAL-QTN-2026-00004` reused. No Prestige Procurement customer. No send/submit/payment. Canonical: `docs/erpnext/ERPNEXT_PRESTIGE_FOUNDATION_V1.md`.
 
 ## 2026-08-14 — **#920 ERPNext Prestige foundation NOT READY on Project/Issue write.** Live CRM + MUR quotation proven as `integrations@corpflowai.com`: Lead `CRM-LEAD-2026-00002` → Opportunity `CRM-OPP-2026-00001` → Customer `CF920 Synthetic Website Project Ltd` → Item `CF-WS-CUSTOM-PROJECT` → draft `SAL-QTN-2026-00004` (MUR 1,000). Timesheet `TS-2026-00001` draft. Project/Task/Issue HTTP 403. No Prestige Procurement customer. No send/submit/payment. Canonical: `docs/erpnext/ERPNEXT_PRESTIGE_FOUNDATION_V1.md`. Anton click: Role Permissions Manager on Sales Manager, then re-run apply script.

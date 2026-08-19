@@ -12,6 +12,8 @@
 
 ERPNext is the commercial system of record. CorpFlowAI Postgres is the intake, CMP execution, and operator-pipeline store. Pointers may be stored later; this issue does **not** write them.
 
+Full #918 domain matrix (supersedes this file as the complete classification, not as a rewrite of these rows): [`docs/governance/erpnext/SOURCE_OF_TRUTH_MATRIX_V1.md`](../governance/erpnext/SOURCE_OF_TRUTH_MATRIX_V1.md). This contract remains the #920 mapping slice.
+
 Conflict authority: **ERPNext** for Customer / Quotation / Invoice / payment reference / Project / durable Issue. **CorpFlowAI** for `/change` execution evidence, Technical Lead audits, and fulfilment flags.
 
 Retry rule for every row: **search-before-create**. Never invent a second Customer, Lead, or Issue for the same source key.

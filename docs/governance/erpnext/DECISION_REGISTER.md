@@ -135,3 +135,25 @@ Retention: do not delete a decision or evidence row merely because it was supers
 | ERPNext Project / Task | `PROJ-0002` / Vision `TASK-2026-00025` |
 | Verification evidence | Focused `node --test` + apply-log (no secrets) |
 | Supersedes / superseded-by | Completes the “artefacts not created by #955” note. Does **not** supersede Version 2. |
+
+---
+
+## ERP-D-2026-08-19-1 — #918 source-of-truth matrix (proposed)
+
+| Field | Record |
+|-------|--------|
+| Decision ID | `ERP-D-2026-08-19-1` |
+| Date/time | 2026-08-19 |
+| Status | **Proposed** (this packet; Anton merge remains the Git approval). Does **not** approve automated sync or a real Prestige Customer. |
+| Question / requirement | For each material CorpFlowAI/ERPNext domain, which system is authoritative, and what is the smallest bridge plan? |
+| Executive intent / source | [#918](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/918) bounded reconciliation slice; Strategy v2 §3 |
+| Options considered | Leave #920 mapping slice as the whole answer; build automated sync now; publish a docs/config matrix with a first Customer-identity bridge |
+| Evidence reviewed | #967 baseline; #880/#881/#882/#920 live hosted-test proofs; #701 CRM baseline; Vision v2 |
+| Decision | Publish [`SOURCE_OF_TRUTH_MATRIX_V1.md`](./SOURCE_OF_TRUTH_MATRIX_V1.md). First bridge: `qualified_customer_identity`. Daily CRM stays on Postgres `leads`. No automated writer in this packet. |
+| Rationale | Dual customer identity is the highest-control failure; no paying quotation exists without a Customer. Prestige Track B must not wait for remaining rows. |
+| Risks / tradeoffs | Classification is decision-ready, not live reconciliation. Volume is still low. |
+| Approver | Pending Anton merge of the #918 PR |
+| GitHub implementation | This file + `config/erpnext-source-of-truth-matrix.v1.json` |
+| ERPNext Project / Task | Programme Project `PROJ-0002` / Phase 6 `TASK-2026-00032` (no live apply in this packet) |
+| Verification evidence | Focused `node --test node-tests/erpnext-source-of-truth-matrix.test.mjs` |
+| Supersedes / superseded-by | Completes the missing #918 matrix called out in the #967 baseline. Does **not** supersede Version 2 or #701. |
