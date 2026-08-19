@@ -11,6 +11,7 @@ import {
   canAccessOperatingWorkspace,
   classifyWorkspaceSurface,
   isProspectOperationsPath,
+  isProspectSharedDetailPath,
   isTodayMyWorkPath,
   navIncludesProspectOperations,
   navIncludesTodayMyWork,
@@ -60,6 +61,10 @@ describe('workspace-context — identity', () => {
 describe('workspace-context — prospect ops boundary', () => {
   it('recognises the first Prospect Operations route', () => {
     assert.equal(isProspectOperationsPath('/app/prospects'), true);
+    assert.equal(isProspectOperationsPath('/app/prospects/syn-772-lr-ada'), true);
+    assert.equal(isProspectSharedDetailPath('/app/prospects/syn-772-lr-ada'), true);
+    assert.equal(isProspectSharedDetailPath('/api/app/prospect'), true);
+    assert.equal(isProspectSharedDetailPath('/app/prospects'), false);
     assert.equal(isProspectOperationsPath('/api/app/prospects'), true);
     assert.equal(isProspectOperationsPath('/app/tenant'), false);
     assert.equal(PROSPECT_OPERATIONS_PATH, '/app/prospects');
@@ -97,6 +102,7 @@ describe('workspace-context — surface matrix', () => {
     assert.equal(classifyWorkspaceSurface('/app/tenant')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/app/prospects')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/app/today')?.disposition, 'CANONICAL');
+    assert.equal(classifyWorkspaceSurface('/app/prospects/syn-772-lr-ada')?.path, '/app/prospects/[id]');
     assert.equal(classifyWorkspaceSurface('/admin/rapid-delivery')?.disposition, 'MIGRATE');
     assert.equal(classifyWorkspaceSurface('/admin/lead-rescue')?.disposition, 'MIGRATE');
     assert.equal(classifyWorkspaceSurface('/admin/lead-rescue/abc')?.disposition, 'MIGRATE');

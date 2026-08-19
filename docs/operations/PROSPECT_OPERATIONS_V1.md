@@ -1,6 +1,6 @@
 # Prospect Operations v1 — shared package contract (#721)
 
-**Status:** Slice 1 — audit + canonical view-model contract. **No schema. No env. No deploy. No external send.**
+**Status:** Slice 1 shipped. Slice 2 shared detail/action layer shipped in Operating Workspace (`/app/prospects/[id]`, #994). **No schema. No env. No deploy. No external send.**
 
 **Issue:** #721 · Parent doctrine #720 · Revenue programme #710–#716 · Baseline PR #708
 
@@ -223,11 +223,14 @@ Protected (blocked in shared helper): external send, authoritative payment mark,
 
 ### Slice 2 — shared detail/action layer
 
-- New `components/prospect-ops/ProspectDetailDrawer.js` (or page) consuming the view model.
-- Extend Rapid Delivery operator JSON (still jsonb) with `owner`, `next_action`, `next_action_due`, `priority`, `waiting_on`, `closure_reason` via existing PATCH merge — **no Prisma migration**.
-- Optionally write top-level `next_action_due` on Lead Rescue operator JSON when activity sets a date.
-- Unified note/activity append adapter that delegates to product merge helpers.
-- Audit entries remain inside product `activity[]` (already stamped with actor + time on Lead Rescue).
+**Shipped in Operating Workspace (#994):** `/app/prospects/[id]` + `GET`/`PATCH` `/api/app/prospect`.
+
+- Shared detail page consumes the view model for Lead Rescue and Website Rescue / Rapid Delivery records.
+- Rapid Delivery operator JSON adopts `owner`, `next_action`, `next_action_due`, `priority`, `urgency`, `waiting_on` via existing PATCH merge — **no Prisma migration**.
+- Lead Rescue operator JSON writes top-level `next_action_due`, `priority`, `urgency`, `waiting_on` when set from the shared form.
+- Unified note/activity append adapter delegates to product merge helpers.
+- Audit entries remain inside product `activity[]` / notes, stamped with actor + time.
+- Does **not** connect Action Queue + Workbench + Kanban in this slice. Product desks remain temporary.
 
 ### Slice 3 — connect three views
 
@@ -283,7 +286,7 @@ Protected (blocked in shared helper): external send, authoritative payment mark,
 
 P0 applies the **smallest shared semantic tokens** (status/priority labels, signal names, action patterns) via the view-model + thin CSS variables in `components/prospect-ops/` in later slices. Full CorpFlowAI Operating Workspace shell is doctrine-owned by #720 / #772 and must not delay function.
 
-**#772 first visible route:** `/app/prospects` (Operating Workspace, staff-only) reuses this view-model. **#772 Today / My Work:** `/app/today` applies `matchesMyWorkTodayFilter` to the same list. Product desks at `/admin/lead-rescue` and `/admin/rapid-delivery` remain temporary sources until later slices. See `docs/architecture/OPERATING_TENANT_WORKSPACE_CONSOLIDATION_V1.md`.
+**#772 first visible route:** `/app/prospects` (Operating Workspace, staff-only) reuses this view-model. **#772 Today / My Work:** `/app/today` applies `matchesMyWorkTodayFilter` to the same list. **#994 shared detail:** `/app/prospects/[id]`. Product desks at `/admin/lead-rescue` and `/admin/rapid-delivery` remain temporary sources until later slices. See `docs/architecture/OPERATING_TENANT_WORKSPACE_CONSOLIDATION_V1.md`.
 
 ---
 

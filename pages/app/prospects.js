@@ -201,6 +201,7 @@ export default function AppProspectsPage() {
         prospects={prospects}
         dataSource={dataSource}
         busy={busy}
+        proofWanted={proofWanted}
         selectedId={selectedId}
         onSelect={(id) => {
           const params = new URLSearchParams();
