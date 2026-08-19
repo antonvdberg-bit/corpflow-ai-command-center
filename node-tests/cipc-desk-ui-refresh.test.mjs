@@ -17,13 +17,13 @@ test('website draft uses CorpFlow palette and content_version refresh marker', (
   assert.equal(draft.content_version, CIPC_DESK_WEBSITE_DRAFT_VERSION);
   assert.match(
     String(CIPC_DESK_WEBSITE_DRAFT_VERSION),
-    /director-changes|beneficial-ownership-link|annual-returns-link|corpflow-visual/,
+    /director-changes|beneficial-ownership-link|annual-returns-link|corpflow-visual|partner-funnel/,
   );
   assert.equal(draft.theme?.primary, '#2dd4bf');
   assert.equal(draft.theme?.background, '#06111f');
   assert.equal(draft.hero?.title, 'CIPC Desk');
   assert.match(String(draft.hero?.cta_href || ''), /^mailto:/);
-  assert.match(String(draft.hero?.cta_secondary_href || ''), /^mailto:/);
+  assert.equal(draft.hero?.cta_secondary_href, '/partners');
   assert.ok(Array.isArray(draft.sections?.services?.items));
   assert.ok(draft.sections.services.items.length >= 6);
   assert.equal(draft.media?.visual_key, 'process');
@@ -71,4 +71,14 @@ test('seed module re-exports draft builder and refreshes by content_version', ()
   assert.match(seed, /buildCipcDeskWebsiteDraft/);
   assert.match(seed, /website_draft_refreshed/);
   assert.match(seed, /draftOk/);
+});
+
+test('website draft declares CIPC_DESK_WEBSITE_DRAFT_VERSION exactly once', () => {
+  const src = readFileSync(join(root, 'lib/server/cipc-desk-website-draft.js'), 'utf8');
+  const declarations = src.match(/export const CIPC_DESK_WEBSITE_DRAFT_VERSION/g) || [];
+  assert.equal(declarations.length, 1);
+  assert.match(
+    src,
+    /director-changes.*beneficial-ownership-link.*partner-funnel|partner-funnel/,
+  );
 });
