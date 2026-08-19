@@ -120,5 +120,5 @@ test('#899 2026-08-19 evidence records Factory Automation re-probe as INCOMPLETE
   assert.match(artifact, /MASTER_ADMIN_KEY: present/);
   assert.match(artifact, /security_correction_#899: INCOMPLETE/);
   assert.match(runbook, /CorpFlowAI Factory Wake Proof v2/);
-  assert.match(runbook, /still PRESENT on ordinary Factory Automation wakes/);
+  assert.match(runbook, /still PRESENT\*\* on ordinary Factory Automation wakes/);
 });
