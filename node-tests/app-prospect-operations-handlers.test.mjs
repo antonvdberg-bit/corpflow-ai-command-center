@@ -128,8 +128,8 @@ test('handler: Core shell advertises Operating Workspace + Prospects nav', async
     assert.ok(menuIds.includes('prospects'));
     const prospects = res.state.body.menus.find((m) => m.id === 'prospects');
     assert.equal(prospects.href, '/app/prospects');
-    const myWork = res.state.body.menus.find((m) => m.id === 'my_work');
-    assert.equal(myWork.href, '/app/today');
+    const pipeline = res.state.body.menus.find((m) => m.id === 'pipeline');
+    assert.equal(pipeline.href, '/app/pipeline');
   } finally {
     process.env.NODE_ENV = prevNode;
     if (prevVercel == null) delete process.env.VERCEL_ENV;
@@ -154,6 +154,7 @@ test('handler: Tenant shell does not advertise Prospect Operations', async () =>
     assert.equal(res.state.body.workspace.workspace_id, 'tenant');
     const menuIds = res.state.body.menus.map((m) => m.id);
     assert.equal(menuIds.includes('prospects'), false);
+    assert.equal(menuIds.includes('pipeline'), false);
   } finally {
     process.env.NODE_ENV = prevNode;
   }

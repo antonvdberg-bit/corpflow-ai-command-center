@@ -333,6 +333,83 @@ export const APP_SHELL_CSS = `
   .cf-app-history li {
     border-bottom: 1px solid var(--app-panel-border);
     padding: 10px 0;
+  }
+  .cf-pipe-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 16px;
+    margin: 16px 0 8px;
+    min-width: 0;
+  }
+  .cf-pipe-filters .cf-app-label { min-width: 160px; flex: 1 1 180px; }
+  .cf-pipe-filters .cf-app-input { width: 100%; margin-top: 6px; }
+  .cf-pipe-board {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 8px 0 16px;
+    min-width: 0;
+  }
+  .cf-pipe-lane {
+    flex: 0 0 260px;
+    min-width: 0;
+    background: rgba(0,0,0,0.18);
+    border: 1px solid var(--app-panel-border);
+    border-radius: 14px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .cf-pipe-lane-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    align-items: baseline;
+  }
+  .cf-pipe-empty { margin: 0; font-size: 0.82rem; }
+  .cf-pipe-card {
+    background: var(--app-panel);
+    border: 1px solid var(--app-panel-border);
+    border-radius: 12px;
+    padding: 10px;
+    min-width: 0;
+  }
+  .cf-pipe-card[data-stale="true"] {
+    border-color: color-mix(in srgb, var(--app-warn) 55%, var(--app-panel-border));
+  }
+  .cf-pipe-card-title {
+    color: var(--app-text);
+    font-weight: 700;
+    text-decoration: none;
+    word-break: break-word;
+  }
+  .cf-pipe-card-title:hover { color: var(--app-accent); }
+  .cf-pipe-card-meta {
+    display: grid;
+    gap: 6px;
+    margin: 8px 0 0;
+  }
+  .cf-pipe-card-meta dt {
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--app-muted);
+  }
+  .cf-pipe-card-meta dd {
+    margin: 2px 0 0;
+    font-size: 0.82rem;
+    word-break: break-word;
+  }
+  .cf-pipe-signals { margin-top: 8px; }
+  .cf-pipe-move {
+    display: grid;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .cf-app-main:has(.cf-pipe-board) {
+    max-width: none;
+  }
   .cf-app-dl {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));

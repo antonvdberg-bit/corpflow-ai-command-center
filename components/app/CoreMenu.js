@@ -3,7 +3,7 @@ import { CORE_NAV_ITEMS } from '../../lib/app/constants.js';
 /**
  * Core application navigation.
  * Links Delivery / Operations to existing /change (compatibility route).
- * My Work and Prospects are dedicated Operating Workspace routes (#772).
+ * My Work, Prospects, and Pipeline are dedicated Operating Workspace routes (#772 / #997).
  *
  * @param {{
  *   active: string,

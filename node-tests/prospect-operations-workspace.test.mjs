@@ -28,7 +28,7 @@ describe('prospect-operations-workspace — projection', () => {
     assert.ok(bea);
     assert.equal(bea.problem_summary, 'Weak enquiry path on the existing site');
     assert.ok(bea.response_draft);
-    assert.equal(bea.source_surfaces.kanban, '/app/prospects');
+    assert.equal(bea.source_surfaces.kanban, '/app/pipeline');
     assert.ok(list.every((row) => !Object.prototype.hasOwnProperty.call(row, 'qualificationJson')));
   });
 
@@ -110,7 +110,7 @@ describe('prospect-operations-workspace — access and payload', () => {
     assert.equal(payload.workspace, 'operating');
     assert.equal(payload.path, '/app/prospects');
     assert.equal(payload.canonical_operator_surface, '/app/prospects');
-    assert.equal(payload.temporary_source_surfaces.kanban, '/app/prospects');
+    assert.equal(payload.temporary_source_surfaces.kanban, '/app/pipeline');
     assert.equal(payload.external_send, false);
     assert.equal(payload.count, 1);
   });

@@ -305,7 +305,7 @@ describe('prospect-operations-view-model — lead adapters', () => {
     assert.equal(a.canonical_stage, b.canonical_stage);
     assert.equal(a.canonical_stage, 'discovery_booked');
     assert.equal(a.source_surfaces.workbench, '/admin/lead-rescue');
-    assert.equal(a.source_surfaces.kanban, '/app/prospects');
+    assert.equal(a.source_surfaces.kanban, '/app/pipeline');
     assert.equal(a.source_surfaces.operating_workspace, '/app/prospects');
     assert.match(String(a.detail_path), /^\/app\/prospects\?id=/);
   });
