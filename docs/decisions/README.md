@@ -40,6 +40,7 @@ What we chose (one paragraph).
 
 | Date | Topic | File |
 |------|--------|------|
+| 2026-08-19 | ERPNext WP1 Customer bridge — synthetic search-before-create (#1009) | `20260819-erpnext-customer-bridge.md` |
 | 2026-08-16 | ERPNext business-critical due diligence — platform APPROVED WITH CONDITIONS; irreplaceable trust still gated on #956 (#959) | `docs/governance/erpnext/ERPNEXT_BUSINESS_CRITICAL_DUE_DILIGENCE_V1.md` (`JE-2026-08-16-1`) |
 | 2026-08-14 | ERPNext/server backup, DR, security, repo continuity audit — business-critical use NOT PROVEN (#956) | `docs/operations/ERPNEXT_SERVER_BACKUP_SECURITY_DR_AUDIT_V1.md` (audit; `JE-2026-08-14-3`) |
 | 2026-08-14 | ERPNext Prestige foundation: standard CRM/project/support READY on synthetic hosted-test records (#920) | `20260814-erpnext-prestige-foundation.md` |

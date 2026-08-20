@@ -157,3 +157,25 @@ Retention: do not delete a decision or evidence row merely because it was supers
 | ERPNext Project / Task | Programme Project `PROJ-0002` / Phase 6 `TASK-2026-00032` (no live apply in this packet) |
 | Verification evidence | Focused `node --test node-tests/erpnext-source-of-truth-matrix.test.mjs` |
 | Supersedes / superseded-by | Completes the missing #918 matrix called out in the #967 baseline. Does **not** supersede Version 2 or #701. |
+
+---
+
+## ERP-D-2026-08-19-2 — #1009 WP1 Customer bridge (proposed)
+
+| Field | Record |
+|-------|--------|
+| Decision ID | `ERP-D-2026-08-19-2` |
+| Date/time | 2026-08-19 |
+| Status | **Proposed** (this packet; Anton merge remains the Git approval). Does **not** approve a real Prestige Customer, cron, or live Postgres lead PATCH. |
+| Question / requirement | Implement the first `qualified_customer_identity` bridge with search-before-create and a replay proof. |
+| Executive intent / source | [#1009](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1009); matrix [#918](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/918) |
+| Options considered | Leave mapping-only; build a sync framework; implement one operator-invoked Customer bridge |
+| Evidence reviewed | #880 mapper; #993 matrix; hosted-test Frappe REST as `integrations@corpflowai.com` |
+| Decision | Land [`ERPNEXT_CUSTOMER_BRIDGE_V1.md`](../../erpnext/ERPNEXT_CUSTOMER_BRIDGE_V1.md). Synthetic only. Pointer on `qualification_json.erpnext` in the reference lead. |
+| Rationale | No quotation exists without a Customer. Dual identity is the highest-control failure. |
+| Risks / tradeoffs | Live Postgres persist of the pointer is still a later authorized write. |
+| Approver | Pending Anton merge of the #1009 PR |
+| GitHub implementation | `lib/erpnext/customer-bridge.js` + apply script |
+| ERPNext Project / Task | Programme Project `PROJ-0002` / Phase 6 `TASK-2026-00032` |
+| Verification evidence | `node --test node-tests/erpnext-customer-bridge.test.mjs` plus live apply replay |
+| Supersedes / superseded-by | Implements matrix step 2. Does **not** supersede Version 2, #701, or the #918 matrix. |

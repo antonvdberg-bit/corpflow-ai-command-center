@@ -1,0 +1,65 @@
+{
+  "schema": "corpflow.erpnext.customer_bridge.v1",
+  "version": "v1",
+  "issue": 1009,
+  "parents": [918, 993, 953, 880, 920, 701],
+  "environment": "corpflow_test",
+  "bridge_id": "qualified_customer_identity",
+  "verdict": "WP1 CUSTOMER BRIDGE READY FOR REVIEW",
+  "description": "First CorpFlowAI → ERPNext Customer bridge. Operator/factory-invoked search-before-create using the merged #993 / #880 mapping. Synthetic proof only. No cron. No schema. No real Prestige Customer.",
+  "sync_mode": "operator_invoked",
+  "no_automated_cron": true,
+  "no_postgres_schema": true,
+  "no_custom_doctypes": true,
+  "no_second_crm": true,
+  "persistence": {
+    "approved_pointer_location": "leads.qualification_json.erpnext",
+    "schema_change": "forbidden",
+    "production_postgres_write": "not_authorized_by_this_packet",
+    "reason": "qualification_json already exists. This packet records the pointer on the in-memory/reference lead used by the synthetic event. It does not PATCH live Postgres."
+  },
+  "qualified_stages": ["proposal_ready", "won"],
+  "idempotency_prefix": "corpflow.customer_bridge.v1",
+  "allowed_customer_update_fields": [
+    "customer_group",
+    "territory",
+    "default_currency",
+    "default_price_list",
+    "tax_id",
+    "website",
+    "customer_details"
+  ],
+  "forbidden_customer_names": [
+    "Prestige Procurement",
+    "CorpFlowAI LTD",
+    "CorpFlowAI Ltd"
+  ],
+  "conflict_rule": "ERPNext Customer is the commercial master. Reuse the enabled match. Do not auto-merge legal names. Same email on a different customer is CONFLICT.",
+  "retry_failure": "Search is safe to retry. On API failure leave the CorpFlowAI reference pointer unchanged and do not create a second Customer.",
+  "synthetic": {
+    "lead_id": "cf1009-synthetic-qualified-customer",
+    "stage": "proposal_ready",
+    "product": "website-rescue",
+    "legal_name": "CF1009 Synthetic Customer Bridge Ltd",
+    "contact_name": "Sam Synthetic",
+    "contact_email": "cf1009.synthetic@example.invalid",
+    "website": "https://cf1009-synthetic.example.invalid"
+  },
+  "non_actions": [
+    "schema_change",
+    "postgres_migration",
+    "production_postgres_lead_patch",
+    "custom_doctypes",
+    "custom_fields",
+    "automated_cron",
+    "payments",
+    "submit_documents",
+    "client_sends",
+    "email_sms_whatsapp",
+    "live_prestige_customer",
+    "env_secrets_change",
+    "client_production_deploy",
+    "bulk_migration",
+    "wp2_wp5"
+  ]
+}

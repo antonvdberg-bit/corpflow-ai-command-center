@@ -1,0 +1,28 @@
+{
+  "id": "cf1009-synthetic-qualified-customer",
+  "lead_id": "cf1009-synthetic-qualified-customer",
+  "synthetic": true,
+  "issue": 1009,
+  "stage": "proposal_ready",
+  "product": "website-rescue",
+  "legal_name": "CF1009 Synthetic Customer Bridge Ltd",
+  "trading_name": "CF1009 Synthetic Customer Bridge Ltd",
+  "business_display_name": "CF1009 Synthetic Customer Bridge Ltd",
+  "customer_type": "Company",
+  "default_currency": "MUR",
+  "service_area": "Mauritius",
+  "primary_contact_name": "Sam Synthetic",
+  "working_email": "cf1009.synthetic@example.invalid",
+  "working_whatsapp": "+230 5 000 1009",
+  "named_approver": "Sam Synthetic",
+  "website": "https://cf1009-synthetic.example.invalid",
+  "billing_address_line1": "1009 Synthetic Bridge Lane",
+  "billing_city": "Port Louis",
+  "billing_country": "Mauritius",
+  "qualification_json": {
+    "intake_meta": {
+      "product": "website-rescue",
+      "synthetic": true
+    }
+  }
+}
