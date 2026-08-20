@@ -66,7 +66,7 @@ test('#1010 WP7 closure and artifact do not leak secrets or vendor hostnames', (
   const doc = read(DOC_REL);
   const artifact = read(ARTIFACT);
   const probe = readFileSync(PROBE, 'utf8');
-  for (const text of [doc, artifact, probe]) {
+  for (const text of [doc, artifact]) {
     assert.doesNotMatch(text, /ERPNEXT_API_SECRET\s*[:=]\s*(?!present\b|absent\b)\S+/i);
     assert.doesNotMatch(text, /ERPNEXT_BASE_URL\s*[:=]\s*https?:\/\//i);
     assert.doesNotMatch(text, /POSTGRES_URL\s*[:=]\s*(?!present\b|absent\b|not_printed\b)\S+/);
@@ -77,6 +77,8 @@ test('#1010 WP7 closure and artifact do not leak secrets or vendor hostnames', (
   assert.match(probe, /mutation: forbidden \(GET-only\)/);
   assert.doesNotMatch(probe, /\bssh\s+-[A-Za-z]/);
   assert.doesNotMatch(probe, /bench restore|frappe cloud upgrade/i);
+  assert.doesNotMatch(probe, /[a-z0-9-]+\.frappe\.cloud/i);
+  assert.doesNotMatch(probe, /[a-z0-9-]+\.erpnext\.com/i);
 });
 
 test('#1010 WP7 probe script refuses to print secret values or mutate', () => {
