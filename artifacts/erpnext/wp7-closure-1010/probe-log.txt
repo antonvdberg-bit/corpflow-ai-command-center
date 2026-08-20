@@ -1,0 +1,39 @@
+ERPNext WP7 readiness probe (read-only) #1010
+mutation: forbidden (GET-only)
+ERPNEXT_BASE_URL: present
+ERPNEXT_API_KEY: present
+ERPNEXT_API_SECRET: present
+MASTER_ADMIN_KEY: absent (incidental presence only; #899 not reopened)
+NEON_API_KEY: absent
+postgres_url_present: present
+postgres_host_class: neon_tech
+erpnext_host_family: vendor_hosted_frappe_family
+ERPNEXT_BASE_URL_value: not_printed
+POSTGRES_URL_value: not_printed
+auth_uses_master_admin_key: no
+runtime_bridge_ssh: no
+runtime_bridge_infisical: no
+authenticated_user: integrations@corpflowai.com
+http_auth_status: 200
+versions_http: 200
+app frappe version=16.25.0 branch=HEAD
+app erpnext version=16.26.2 branch=HEAD
+app email_delivery_service version=0.0.1 branch=HEAD
+installed_apps: email_delivery_service,erpnext,frappe
+control_probe System_Settings_list: HTTP 500
+control_probe System_Settings_doc: HTTP 403
+control_probe Scheduled_Job_Type: HTTP 403
+control_probe File: HTTP 200
+control_probe Error_Log: HTTP 403
+floors: corpflow_test public monitors (no secrets)
+floor factory_health: HTTP 500
+floor production_pulse: HTTP 500
+floor lux_home: HTTP 200
+floor lux_change: HTTP 200
+floor apex_home: HTTP 200
+ERPNext access: PASS
+restore_attempted: no
+package_upgrade_attempted: no
+neon_mutation_attempted: no
+monitor_timer_enable_attempted: no
+secret_values_printed: no

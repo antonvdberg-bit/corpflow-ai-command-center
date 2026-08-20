@@ -277,3 +277,9 @@ Delivery Reality Audit:
 - Client-facing flow usable: n/a — no client-facing change
 - Final verdict: PARTIAL until Anton merges; automated reconciliation remains unauthorized by design
 ```
+
+---
+
+## 11. Implementation follow-up (#1009 / #1018)
+
+This matrix packet stays mapping/config only (`NO IMPLEMENTATION AUTHORIZED` here). The first bridge itself is implemented under [#1009](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1009): [`docs/erpnext/ERPNEXT_CUSTOMER_BRIDGE_V1.md`](../../erpnext/ERPNEXT_CUSTOMER_BRIDGE_V1.md). The sales-lifecycle bridge is implemented under [#1018](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1018): [`docs/erpnext/ERPNEXT_SALES_LIFECYCLE_BRIDGE_V1.md`](../../erpnext/ERPNEXT_SALES_LIFECYCLE_BRIDGE_V1.md). Both packets are operator/factory-invoked, synthetic-only, and are **not** a cron or automated writer.
