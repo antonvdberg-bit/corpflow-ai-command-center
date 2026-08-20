@@ -70,10 +70,12 @@ describe('#985 CIPC campaign MVP — safety', () => {
     assert.equal(src.includes('nodemailer'), false);
     assert.equal(/from ['"].*email/.test(src), false);
     assert.equal(src.includes('twilio'), false);
+    assert.equal(src.includes('createRequire'), false);
     assert.match(JSON.stringify(CAMPAIGN_CONFIG.$warning).toLowerCase(), /no second crm/);
     const router = readFileSync(join(root, 'lib', 'cmp', 'router.js'), 'utf8');
     assert.match(router, /cipc-campaign-list/);
     assert.match(router, /PROTECTED_SEND_BLOCKED/);
+    assert.match(router, /import\(\s*['"]\.\.\/cipc-desk\/campaign-mvp\.js['"]\s*\)/);
     const change = readFileSync(join(root, 'pages', 'change.js'), 'utf8');
     assert.match(change, /CipcCampaignOperatorPanel/);
   });
