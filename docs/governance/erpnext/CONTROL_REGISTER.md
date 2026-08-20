@@ -4,8 +4,9 @@
 **Owner:** Anton (acceptance and privileged UI). Cursor records evidence only.  
 **Review cadence:** with #953 Phase 1 / Phase 3 / Phase 9; sooner if #956 gaps close.  
 **Environment:** `local` (docs). Live probes are `corpflow_test` / vendor-hosted ERPNext.  
-**Source issues:** [#966](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/966), [#956](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/956), [#954](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/954)  
+**Source issues:** [#966](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/966), [#956](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/956), [#954](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/954), [#1010](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1010)  
 **Canonical audit (do not duplicate):** `docs/operations/ERPNEXT_SERVER_BACKUP_SECURITY_DR_AUDIT_V1.md`  
+**WP7 refresh (do not redo the audit):** `docs/operations/ERPNEXT_WP7_PATCH_BACKUP_RESTORE_MONITORING_CLOSURE_V1.md`  
 **Anchor:** `<!-- CORPFLOWAI_ERP_CONTROL_REGISTER_V1 -->`
 
 <!-- CORPFLOWAI_ERP_CONTROL_REGISTER_V1 -->
@@ -40,11 +41,11 @@ An Administrator / System Manager can still alter ERPNext application records an
 
 | ID | Control | Owner | Mark | Next action |
 |----|---------|-------|------|-------------|
-| C-BK-01 | Vendor-hosted ERPNext scheduled backup + tested restore | Anton / vendor | **NOT PROVEN** | Read provider console; do not buy a DR server from #956 |
+| C-BK-01 | Vendor-hosted ERPNext scheduled backup + tested restore | Anton / vendor | **NOT PROVEN** | #1010: integration user still HTTP 403 on backup jobs. Exact action: Frappe Cloud Backups tab (names only) + disposable-site restore. Do not buy a DR server. |
 | C-BK-02 | Off-host restic → R2 ops heartbeat | Anton | **PARTIAL** | Mechanism proven; ERPNext volumes **not** in inventory |
-| C-BK-03 | Self-hosted sandbox backup/restore | Anton | **PARTIAL** | One-shot 2026-06-01 on-host only |
-| C-BK-04 | Neon Postgres PITR window documented + restore drill | Anton | **NOT PROVEN** | Document plan/retention in `POSTGRES_PROVIDER.md` when Anton reads the console |
-| C-BK-05 | Recurring restore drill | Anton | **NOT PROVEN** | Phase 1 / Phase 8 |
+| C-BK-03 | Self-hosted sandbox backup/restore | Anton | **PARTIAL** | One-shot 2026-06-01 on-host only (wrong SoR for vendor v16) |
+| C-BK-04 | Neon Postgres PITR window documented + restore drill | Anton | **NOT PROVEN** | #1010: product model now in `POSTGRES_PROVIDER.md` §6; **this project’s** history window still unread. Exact action: Neon Settings → Instant restore (names only). |
+| C-BK-05 | Recurring restore drill | Anton | **NOT PROVEN** | Blocked on C-BK-01 disposable restore; then monthly harmless drill |
 | C-BK-06 | Independent GitHub mirror | Anton | **REQUIRES DECISION** | #956 repository continuity |
 
 ---
@@ -70,6 +71,7 @@ An Administrator / System Manager can still alter ERPNext application records an
 | C-ENV-02 | Vendor-hosted ERPNext is HTTPS on the public internet by host class | Anton | **PARTIAL** | VPN/IP restriction **REQUIRES DECISION** (#953 Workstream B) |
 | C-ENV-03 | Self-hosted ERPNext loopback-only on `corpflow-exec-01` | Anton | **PARTIAL** | Previously documented; not re-verified in #966 |
 | C-ENV-04 | No env/secret **value** change from this packet | Cursor | **PROVEN** | Names only |
+| C-PT-01 | Vendor ERPNext on patched v16 (≥ 16.31.0 / current 16.x) | Anton | **NOT PROVEN** | #1010 live read: erpnext **16.26.2** / frappe **16.25.0**. Update required; do not apply from a factory packet. Exact action: Frappe Cloud dashboard upgrade. |
 
 ---
 
