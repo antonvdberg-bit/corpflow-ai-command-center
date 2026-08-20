@@ -1,0 +1,112 @@
+{
+  "schema": "corpflow.erpnext.sales_lifecycle_bridge.v1",
+  "version": "v1",
+  "issue": 1018,
+  "parents": [1009, 1012, 918, 993, 953, 920, 701],
+  "environment": "corpflow_test",
+  "bridge_id": "lead_opportunity_promotion",
+  "verdict": "WP2 SALES LIFECYCLE BRIDGE READY FOR REVIEW",
+  "description": "CorpFlowAI synthetic prospect → ERPNext Lead → Opportunity → existing/reused Customer. Reuses the WP1 Frappe client and Customer bridge. Operator/factory invoked. No cron. No schema. No quotation.",
+  "sync_mode": "operator_invoked",
+  "no_automated_cron": true,
+  "no_postgres_schema": true,
+  "no_custom_doctypes": true,
+  "no_second_crm": true,
+  "no_quotation": true,
+  "persistence": {
+    "approved_pointer_location": "leads.qualification_json.erpnext",
+    "schema_change": "forbidden",
+    "production_postgres_write": "not_authorized_by_this_packet",
+    "reason": "qualification_json already exists. This packet records Lead, Opportunity, and Customer names on the in-memory/reference lead. It does not PATCH live Postgres."
+  },
+  "idempotency_prefix": "corpflow.sales_lifecycle.v1",
+  "stages": {
+    "not_qualified": ["new", "contacted", "working", "not_qualified", "intake"],
+    "qualified": ["qualified"],
+    "proposal_ready": ["proposal_ready"],
+    "won": ["won"],
+    "lost": ["lost", "closed_lost", "disqualified"]
+  },
+  "lead_status": {
+    "not_qualified": "Open",
+    "qualified": "Open",
+    "proposal_ready": "Open",
+    "won": "Converted",
+    "lost": "Do Not Contact"
+  },
+  "opportunity_status": {
+    "qualified": "Open",
+    "proposal_ready": "Open",
+    "won": "Converted",
+    "lost": "Lost"
+  },
+  "create_opportunity_classes": ["qualified", "proposal_ready", "won"],
+  "create_customer_classes": ["proposal_ready", "won"],
+  "allowed_lead_update_fields": [
+    "first_name",
+    "last_name",
+    "company_name",
+    "status",
+    "website",
+    "mobile_no",
+    "whatsapp_no",
+    "notes",
+    "utm_source",
+    "utm_medium",
+    "utm_campaign"
+  ],
+  "allowed_opportunity_update_fields": ["status", "title", "notes", "currency"],
+  "forbidden_customer_names": [
+    "Prestige Procurement",
+    "CorpFlowAI LTD",
+    "CorpFlowAI Ltd"
+  ],
+  "conflict_rule": "ERPNext Lead/Opportunity is the durable sales-process record after create. Matching email or company with a different CorpFlowAI reference is CONFLICT. Do not steal a pre-existing ERPNext Lead. Reuse the WP1 Customer when the matching Customer already exists.",
+  "retry_failure": "Search is safe to retry. On API failure leave the CorpFlowAI reference pointer unchanged and do not create a second Lead, Opportunity, or Customer.",
+  "synthetic": {
+    "lead_id": "cf1018-synthetic-sales-lifecycle",
+    "stage": "proposal_ready",
+    "product": "website-rescue",
+    "legal_name": "CF1018 Synthetic Sales Lifecycle Ltd",
+    "contact_name": "Lee Synthetic",
+    "contact_email": "cf1018.synthetic@example.invalid",
+    "website": "https://cf1018-synthetic.example.invalid"
+  },
+  "live_proof": {
+    "identity": "integrations@corpflowai.com",
+    "probed_at_utc": null,
+    "lead_id": "cf1018-synthetic-sales-lifecycle",
+    "erpnext_lead": null,
+    "erpnext_opportunity": null,
+    "customer": null,
+    "first_lead_action": null,
+    "second_lead_action": null,
+    "first_opportunity_action": null,
+    "second_opportunity_action": null,
+    "first_customer_action": null,
+    "second_customer_action": null,
+    "created_on_replay": false,
+    "duplicate_lead_count": 1,
+    "duplicate_opportunity_count": 1,
+    "duplicate_customer_count": 1,
+    "postgres_written": false
+  },
+  "non_actions": [
+    "schema_change",
+    "postgres_migration",
+    "production_postgres_lead_patch",
+    "custom_doctypes",
+    "custom_fields",
+    "automated_cron",
+    "payments",
+    "submit_documents",
+    "quotations",
+    "client_sends",
+    "email_sms_whatsapp",
+    "live_prestige_customer",
+    "env_secrets_change",
+    "client_production_deploy",
+    "bulk_migration",
+    "wp3_wp5"
+  ]
+}
