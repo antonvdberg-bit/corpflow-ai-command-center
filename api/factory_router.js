@@ -14,6 +14,9 @@ import technicalLeadCronHandler, {
 } from '../lib/server/technical-lead-cron.js';
 // Lazy-loaded inside `handleProductionPulseRuntime` via dynamic import() so this CJS-transpiled
 // API route never `require()`s the .mjs ESM file (Vercel may split the function bundle).
+// CIPC campaign-mvp.js is likewise lazy-loaded from lib/cmp/router.js (#1015): a static
+// import of an `import.meta.url` module crashed factory_router boot and turned every
+// `/api/*` into Vercel HTML 500 (`x-matched-path: /500`).
 import cmpMonitorCronHandler from '../lib/server/cmp-monitor-cron.js';
 import cmpHandler from '../lib/cmp/router.js';
 import feedbackHandler from '../lib/server/feedback.js';
@@ -344,6 +347,15 @@ function prepareCmpRequest(req, pathSeg) {
  */
 async function handleHealth(req, res) {
   return res.status(200).json({ status: 'operational', model: resolveGroqModel('primary') });
+  try {
+    return res.status(200).json({ status: 'operational', model: 'llama-3.3-70b-versatile' });
+  } catch (e) {
+    return res.status(500).json({
+      status: 'error',
+      error: 'HEALTH_FAILED',
+      message: String(e?.message || e),
+    });
+  }
 }
 
 /**
@@ -360,8 +372,9 @@ async function handleFactoryHealth(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const rcFull = runtimeConfigDiagnostics();
-  const runtime_config = {
+  try {
+    const rcFull = runtimeConfigDiagnostics();
+    const runtime_config = {
     present: rcFull.present,
     parse_ok: rcFull.parse_ok,
     key_count: Array.isArray(rcFull.keys) ? rcFull.keys.length : 0,
@@ -467,6 +480,14 @@ async function handleFactoryHealth(req, res) {
     hint,
     auth_hint,
   });
+  } catch (e) {
+    return res.status(500).json({
+      ok: false,
+      status: 'error',
+      error: 'FACTORY_HEALTH_FAILED',
+      message: String(e?.message || e),
+    });
+  }
 }
 
 /**

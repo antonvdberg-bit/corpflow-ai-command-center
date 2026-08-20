@@ -273,7 +273,27 @@ Steps that require explicit Anton approval (or another operator with prod DB acc
 
 ---
 
-## 6. Related
+## 6. Backup / point-in-time restore (this Neon project)
+
+**Status (2026-08-20, #1010):** Neon **as a product** provides Instant restore (point-in-time recovery) from a project **history window**. CorpFlowAI’s **this-project** plan name, history window, and restore-button proof are **NOT PROVEN**.
+
+Do **not** treat older sentences that say “PITR as documented in POSTGRES_PROVIDER” as proof. Until an operator records the numbers below, this file documents **capability**, not **our** coverage.
+
+| Fact class | What is true |
+|------------|----------------|
+| Provider | Neon is the sole approved CorpFlowAI Postgres (`#` this document). One production database. |
+| Product capability | Instant restore / Time Travel / branch-from-past-state use retained WAL. Console path: project → **Settings → Instant restore**. Docs: [History window](https://neon.com/docs/introduction/history-window), [Branch restore](https://neon.com/docs/introduction/branch-restore). |
+| Plan caps (public Neon docs, 2026-08-20) | Free: up to **6 hours** (1 GB cap). Launch: up to **7 days**. Scale: up to **30 days**. Setting the window to zero disables Instant restore. |
+| This project | History window **unread**. No restore drill. #1010 worker: `POSTGRES_URL` present, host class `neon.tech` (pooled); no Neon API credential; **no** mutation. |
+| Out of restic scope | Production Postgres dumps to R2 remain **forbidden** without a separate approved runbook. |
+
+**Exact operator action (names only):** Neon Console → CorpFlowAI project → Settings → Instant restore → record plan name + history window (hours or days). No connection strings in git, tickets, or chat. A restore click is a later exact approval.
+
+Canonical WP7 close-out: `docs/operations/ERPNEXT_WP7_PATCH_BACKUP_RESTORE_MONITORING_CLOSURE_V1.md`.
+
+---
+
+## 7. Related
 
 - `docs/operations/MONITORING_ARCHITECTURE.md` — canonical component map for every monitor in the stack. § 2 monitor #9 names `diagnose-postgres-env.yml` (this doc's § 4b/§ 5b playbook); § 6.1 (known blind spots) is built on top of this doc's § 3 wording; live-endpoint floor for DB connectivity proofs is § 5.
 - `docs/operations/PRODUCTION_PULSE_V1.md` — the `/api/factory/production-pulse/runtime` endpoint named throughout § 4b as the "real DB connectivity" probe.
