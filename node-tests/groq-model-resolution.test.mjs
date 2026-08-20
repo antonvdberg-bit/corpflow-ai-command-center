@@ -105,6 +105,14 @@ test('#1013 explicit env override is honoured and not silently remapped', () => 
   );
 });
 
+test('#1013 /api/health uses resolveGroqModel and does not hardcode the retired Llama id', () => {
+  const src = readFileSync(path.join(REPO_ROOT, 'api/factory_router.js'), 'utf8');
+  assert.match(src, /async function handleHealth\(/);
+  assert.match(src, /model:\s*resolveGroqModel\('primary'\)/);
+  assert.equal(src.includes(`model: '${RETIRED_LLAMA}'`), false);
+  assert.equal(src.includes(`model: "${RETIRED_LLAMA}"`), false);
+});
+
 test('#1013 no executable Groq default still points at llama-3.3-70b-versatile', () => {
   const offenders = [];
   for (const root of EXECUTABLE_ROOTS) {
