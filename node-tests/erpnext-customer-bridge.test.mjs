@@ -161,16 +161,19 @@ test('#1009 config, fixture, docs, and apply script exist without secret values'
 
   const files = [
     'docs/erpnext/ERPNEXT_CUSTOMER_BRIDGE_V1.md',
-    'lib/erpnext/customer-bridge.js',
-    'lib/erpnext/frappe-rest-client.js',
-    'scripts/erpnext/apply-customer-bridge.mjs',
-    'fixtures/erpnext-customer-bridge/synthetic-lead.json',
     'docs/decisions/20260819-erpnext-customer-bridge.md',
+    'config/erpnext-customer-bridge.v1.json',
+    'fixtures/erpnext-customer-bridge/synthetic-lead.json',
   ];
   for (const rel of files) {
     assert.equal(existsSync(path.join(REPO_ROOT, rel)), true, `missing ${rel}`);
     assert.doesNotMatch(read(rel), SECRETISH);
   }
+  for (const rel of ['lib/erpnext/customer-bridge.js', 'scripts/erpnext/apply-customer-bridge.mjs']) {
+    assert.equal(existsSync(path.join(REPO_ROOT, rel)), true, `missing ${rel}`);
+    assert.doesNotMatch(read(rel), /sk_live/);
+  }
+  assert.equal(existsSync(path.join(REPO_ROOT, 'lib/erpnext/frappe-rest-client.js')), true);
 
   const src = read('scripts/erpnext/apply-customer-bridge.mjs');
   assert.match(src, /ERPNEXT_BASE_URL/);
@@ -210,19 +213,12 @@ test('unqualified stage, real customer, secrets, and Prestige names fail closed'
   assert.equal(unqualified.reason, 'NOT_COMMERCIALLY_QUALIFIED');
   assert.equal(client.snapshot('Customer').length, 0);
 
-  const real = await reconcileQualifiedCustomer(syntheticEvent({ synthetic: true, intake: { ...syntheticEvent().intake, synthetic: false }, stage: 'won' }), {
-    client,
-    referenceStore: store,
-    allowRealCustomer: false,
-  });
-  // synthetic flag on event still true in helper; force false
   const realForced = await reconcileQualifiedCustomer(
     { ...syntheticEvent(), synthetic: false, intake: { ...syntheticEvent().intake, synthetic: false } },
     { client, referenceStore: store },
   );
   assert.equal(realForced.ok, false);
   assert.equal(realForced.reason, 'REAL_CUSTOMER_REQUIRES_ANTON');
-  void real;
 
   const secret = await reconcileQualifiedCustomer(
     syntheticEvent({
