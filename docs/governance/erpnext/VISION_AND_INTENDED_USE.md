@@ -63,6 +63,8 @@ Related operational docs (not substitutes for this strategy):
 
 - `docs/erpnext/ERPNEXT_CORPFLOW_BRIDGE_CONTRACT_V1.md` — mapping-only bridge; ERPNext commercial SoR, CorpFlowAI execution store
 - `docs/governance/erpnext/SOURCE_OF_TRUTH_MATRIX_V1.md` — #918 row-by-row ownership matrix and smallest bridge plan (mapping/config only; no automated sync)
+- `docs/erpnext/ERPNEXT_CUSTOMER_BRIDGE_V1.md` — #1009 WP1 Customer bridge (synthetic, operator-invoked; not a cron)
+- `docs/erpnext/ERPNEXT_SALES_LIFECYCLE_BRIDGE_V1.md` — #1018 WP2 Lead → Opportunity → Customer lifecycle (synthetic, operator-invoked; not a cron)
 - `docs/erpnext/ERPNEXT_PRESTIGE_FOUNDATION_V1.md` — synthetic Prestige foundation on hosted test (#920)
 - `docs/sales/prestige-procurement/` — Prestige commercial pack (#919); not sent
 

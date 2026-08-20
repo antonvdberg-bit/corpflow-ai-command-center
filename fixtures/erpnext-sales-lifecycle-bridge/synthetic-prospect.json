@@ -1,0 +1,28 @@
+{
+  "id": "cf1018-synthetic-sales-lifecycle",
+  "lead_id": "cf1018-synthetic-sales-lifecycle",
+  "synthetic": true,
+  "issue": 1018,
+  "stage": "proposal_ready",
+  "product": "website-rescue",
+  "legal_name": "CF1018 Synthetic Sales Lifecycle Ltd",
+  "trading_name": "CF1018 Synthetic Sales Lifecycle Ltd",
+  "business_display_name": "CF1018 Synthetic Sales Lifecycle Ltd",
+  "customer_type": "Company",
+  "default_currency": "MUR",
+  "service_area": "Mauritius",
+  "primary_contact_name": "Lee Synthetic",
+  "working_email": "cf1018.synthetic@example.invalid",
+  "working_whatsapp": "+230 5 000 1018",
+  "named_approver": "Lee Synthetic",
+  "website": "https://cf1018-synthetic.example.invalid",
+  "billing_address_line1": "1018 Synthetic Lifecycle Lane",
+  "billing_city": "Port Louis",
+  "billing_country": "Mauritius",
+  "qualification_json": {
+    "intake_meta": {
+      "product": "website-rescue",
+      "synthetic": true
+    }
+  }
+}
