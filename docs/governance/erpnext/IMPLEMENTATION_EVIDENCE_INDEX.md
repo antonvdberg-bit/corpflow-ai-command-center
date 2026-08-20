@@ -42,7 +42,7 @@ Marks used on each row:
 |-----|----------------------|-------|---------------------|------------------------------|------|
 | 0 | `ERP Vision and Intended Use — Executive Statement` | Charter | Complete / approved in GitHub | [`VISION_AND_INTENDED_USE.md`](./VISION_AND_INTENDED_USE.md); [#954 comment 5291438473](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/954#issuecomment-5291438473); [PR #957](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/957); [#960](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/960) / [PR #961](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/961) | **PROVEN** |
 | 1 | `Phase 0 — Programme charter and decision record` | 0 | Open / in progress | This folder; [`DECISION_REGISTER.md`](./DECISION_REGISTER.md); #953 / #954 / #966 | **PARTIAL** |
-| 2 | `Phase 1 — Environment and platform baseline` | 1 | Open | [#956](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/956) / [PR #958](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/958); `docs/operations/ERPNEXT_SERVER_BACKUP_SECURITY_DR_AUDIT_V1.md`; `docs/operations/CORPFLOW_ENVIRONMENT_CLASSIFICATION_V1.md` | **PARTIAL** |
+| 2 | `Phase 1 — Environment and platform baseline` | 1 | Open | [#956](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/956) / [PR #958](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/958); [#1010](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1010) WP7 refresh `docs/operations/ERPNEXT_WP7_PATCH_BACKUP_RESTORE_MONITORING_CLOSURE_V1.md`; `docs/operations/CORPFLOW_ENVIRONMENT_CLASSIFICATION_V1.md` | **PARTIAL** |
 | 3 | `Phase 2 — Company foundation` | 2 | Open | #880 Client Master; #882 commercial documents; #920 Company MUR read-back (`CorpFlowAI LTD` / CFAI / MUR). Accountant still owns CoA / tax / opening balances. | **PARTIAL** |
 | 4 | `Phase 3 — Identity, access and segregation of duties` | 3 | Open | Integration identity + Sales Manager grant (`JE-2026-08-14-2`). 2FA / System Settings / Administrator governance **NOT PROVEN** (#956). `#899` `MASTER_ADMIN_KEY` still present on Factory Automation wakes (`JE-2026-08-19-1`). | **NOT PROVEN** |
 | 5 | `Phase 4 — Master data` | 4 | Open | #880 synthetic Customers; #881 catalogue; #920 Item `CF-WS-CUSTOM-PROJECT` + CRM path. No live Prestige customer. | **PARTIAL** |
@@ -85,6 +85,7 @@ Read-back: no Customer, `collect_progress=0`, Notification/Workflow inspect HTTP
 | [#920](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/920) | Synthetic Project `PROJ-0001`, Tasks, Issue `ISS-2026-00001` | A second Prestige/synthetic website Project |
 | [#955](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/955) / [#960](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/960) | Canonical Version 2 + approved status | Rewrite strategy |
 | [#956](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/956) | Backup / DR / security audit | Buy a DR server; mutate the box |
+| [#1010](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1010) | WP7 version/patch/backup/restore/monitoring classification | Apply the Frappe Cloud upgrade, production restore, Neon restore, or Monitor #14 timer |
 
 ---
 
