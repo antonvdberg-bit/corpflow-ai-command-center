@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import {
+  APPROVED_OPS_NOTIFICATION_CHANNELS,
   DISPATCHER_DIGEST_STALE_HOURS,
+  FORBIDDEN_OPS_NOTIFICATION_CHANNELS,
   OPEN_PR_WIP_CAP,
   buildHeartbeatAlertFingerprint,
   evaluateGithubHeartbeatSignals,
@@ -341,5 +343,12 @@ describe('ops-notification-policy / fingerprint dedupe (#684)', () => {
     const noisy = { ...alert, anton: false, kind: 'wip_cap' };
     const out = filterHeartbeatAlertsByFingerprintDedupe([noisy], {}, now);
     assert.equal(out.alerts.length, 0);
+  });
+});
+
+describe('ops-notification-policy / Slack retirement channels', () => {
+  it('keeps Slack out of the approved ops notification set', () => {
+    assert.deepEqual([...APPROVED_OPS_NOTIFICATION_CHANNELS], ['github', 'telegram']);
+    assert.deepEqual([...FORBIDDEN_OPS_NOTIFICATION_CHANNELS], ['slack']);
   });
 });

@@ -95,7 +95,8 @@ Once MCP is enabled, these helper tools are automatically available:
 | 🔍 **Brave Search** | Web search | Ready |
 | 💾 **Memory** | Persistent storage | Ready |
 | 🌐 **Puppeteer** | Browser automation | Ready |
-| 💬 **Slack** | Slack messaging | **RETIRED** (issue #658) — disabled in `mcp_servers.json` |
+
+Slack MCP is **removed** (issue #658). Do not add a Slack server to `mcp_servers.json`; `npm run check:slack-retirement` fails if it returns.
 
 Enable what you need and add your API keys.
 

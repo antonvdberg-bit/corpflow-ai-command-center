@@ -17,4 +17,5 @@ test('vercel-env allowlist merges template + manifest + policy', () => {
   assert.match(r.stdout, /^POSTGRES_URL$/m);
   assert.match(r.stdout, /^SOVEREIGN_SESSION_SECRET$/m);
   assert.match(r.stdout, /^CORPFLOW_RUNTIME_CONFIG_JSON$/m);
+  assert.doesNotMatch(r.stdout, /^SLACK_/m);
 });

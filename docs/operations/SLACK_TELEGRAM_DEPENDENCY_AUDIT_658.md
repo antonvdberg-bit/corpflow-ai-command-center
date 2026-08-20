@@ -1,12 +1,43 @@
 # Slack + Telegram dependency audit — issue #658
 
-**Status:** Follow-up completion pass (2026-07-29) after merged PR #659.  
+**Status:** 2026-08-20 restart implementation — remaining repo reintroduction paths removed; CI guard added.  
 **Issue:** [#658](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/658) — retire Slack from CorpFlow operations; exception-only Telegram.  
-**Repo baseline:** PR [#659](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/659) → `5272c44d` on `main`.  
-**This follow-up branch:** `cursor/dispatcher-issue-658-f668` — remaining active-ops doc retirement, hourly heartbeat dedupe, Anton click-by-click packets.  
-**Anton-only live cutover:** `docs/operations/SLACK_RETIREMENT_ANTON_ACTION_PACKETS_658.md`.
+**Repo baseline:** PRs [#659](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/659) / [#669](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/669) on `main`; this restart closes leftover config/CI gaps.  
+**Permanent guard:** `lib/server/slack-retirement-guard.js` · `npm run check:slack-retirement` · Agent CI step.  
+**Anton-only live cutover (optional remaining desk):** `docs/operations/SLACK_RETIREMENT_ANTON_ACTION_PACKETS_658.md`.
 
 **Anchor:** `<!-- SLACK_TELEGRAM_AUDIT_658 -->`
+
+---
+
+## 0. 2026-08-20 restart — root cause and implementation
+
+Anton restarted #658 on 2026-08-20: treat prior Slack-retirement work as incomplete; do not produce another docs-only audit.
+
+**Root cause of the 2026-08-17 incomplete close:** retirement was declared complete from n8n/docs narrative (archived Slack workflow, credential removed, Telegram test deliveries, waived duplicate-proof) **without**:
+
+1. Removing remaining **repo reintroduction paths** (`mcp_servers.json` still shipped a Slack MCP server template; `.env.template` still assigned Slack-named keys, which enter the Vercel env allowlist).
+2. A **permanent CI/regression guard** that fails when those paths return.
+3. Binding close-out to scanner evidence rather than an operator “COMPLETE” comment.
+
+That is why #658 could be labelled done while Slack could still be re-enabled by flipping `enabled: true` or setting template keys.
+
+**This implementation (not another audit-only PR):**
+
+| Surface | Classification before restart | Action now |
+|---------|-------------------------------|------------|
+| `mcp_servers.json` Slack server (`enabled: false` but still present) | **ACTIVE** reintroduction path | **Removed** |
+| `.env.template` Slack-named assignments | **ACTIVE** allowlist/reintroduction path | **Removed** |
+| `lib/` / `api/` / `pages/` / `.github/workflows/` Slack senders | None found | Guarded |
+| Repo n8n JSON (`ops/n8n/`, `docs/n8n/templates/`) Slack nodes | None found | Guarded |
+| `package.json` Slack packages | None found | Guarded |
+| Historical ops/product docs mentioning Slack retirement | **HISTORICAL** | Left; wording updated where it still implied a live disabled template |
+| Product/marketing “Slack channel” confidentiality notes | **FALSE POSITIVE** (not ops) | Left |
+| Live n8n / unused vault secrets / workspace delete | External / protected | Not mutated here; Anton MERGE only |
+
+**Regression control:** `scanSlackRetirement()` walks supported runtime/config/CI paths and fails on Slack env keys, MCP server package, npm `@slack/` deps, `hooks.slack.com`, n8n Slack node type, and GitHub Slack actions. Historical prose (“Slack is retired”) is not a finding.
+
+**Tests:** `node --test node-tests/slack-retirement-guard.test.mjs` plus `npm run check:slack-retirement` in Agent CI.
 
 ---
 
@@ -14,7 +45,7 @@
 
 | Channel | Repo runtime dependency? | Operational role after #658 |
 |--------|---------------------------|-----------------------------|
-| **Slack** | **No** — no app code, workflows, or n8n templates post to Slack from this repo | **Retired** — GitHub is durable source of truth; disable live n8n/GitHub→Slack via Anton packets |
+| **Slack** | **No** — senders removed; MCP template and env placeholders removed; CI forbids reintroduction | **Retired** — GitHub is durable source of truth; Telegram remains the exception-only page |
 | **Telegram** | **Yes** — exception-only helpers + n8n forward path | **Retained** — Anton approval (`needs:anton`), failed CI (factory control loop), checkpoints, urgent monitor findings, failed recovery requiring Anton. **Not** WIP cap / open-PR heartbeats (#684) |
 
 **Noise retired in repo:**
@@ -31,18 +62,17 @@
 
 | Location | Classification | Action |
 |----------|----------------|--------|
-| `mcp_servers.json` — `slack` MCP (`enabled: false`) | Obsolete | **RETIRED** description kept |
-| `.env.template` — `SLACK_BOT_TOKEN`, `SLACK_TEAM_ID` | Obsolete | **RETIRED** comment; placeholders only (no runtime reads) |
-| `ops/n8n/production-pulse-v1.workflow.json` meta | Doc reference | Points to Telegram exception path |
-| Active ops docs (Monitor / Lead Rescue / Monitoring arch / recipes / bridge digest) | Duplicate / obsolete wording | **Retired wording** in follow-up PR |
-| MCP integration docs (en/es/zh) | Dev catalog | Marked RETIRED / disabled |
-| Product / marketing / finance mentions of “Slack channel” | Non-ops / confidentiality | Left as historical / product benchmark |
-| **Live n8n workflows** (not in repo) | **Duplicate / noise** | **Anton Packet A–B** |
-| **GitHub→Slack app / webhooks** | Duplicate | **Anton Packet C** |
-| **Slack tokens + email prefs** | External | **Anton Packet D** |
-| **Slack workspace** | External | **Anton Packet E** (last; after verify) |
+| `mcp_servers.json` Slack MCP template | Was **ACTIVE** reintroduction | **Removed** (2026-08-20) |
+| `.env.template` Slack-named keys | Was **ACTIVE** allowlist path | **Removed** (2026-08-20) |
+| `ops/n8n/production-pulse-v1.workflow.json` meta | **HISTORICAL** | Points to Telegram exception path |
+| Active ops docs (Monitor / Lead Rescue / Monitoring arch / recipes / bridge digest) | **HISTORICAL** | Retired wording; do not reintroduce Slack as a live channel |
+| MCP integration docs (en/es/zh) | **HISTORICAL** | Catalog row removed; states Slack MCP is gone |
+| Product / marketing / finance mentions of “Slack channel” | **FALSE POSITIVE** | Left as historical / product benchmark |
+| `lib/server/slack-retirement-guard.js` + Agent CI | **ACTIVE control** (anti-Slack) | Permanent fail-closed scanner |
+| **Live n8n workflows** (not in repo) | Previously reported retired | Not mutated in this PR |
+| **GitHub→Slack app / webhooks / unused vault keys / workspace** | External / protected | Optional Anton Packets C–E; not required to merge |
 
-**No Slack references in:** `lib/` runtime senders, `api/`, `.github/workflows/`, active Vercel paths.
+**No Slack senders in:** `lib/` (except the retirement guard pattern list), `api/`, `pages/`, `.github/workflows/`, repo n8n JSON.
 
 **Client / tenant / revenue dependency on Slack:** **None found** in repo.
 
@@ -97,13 +127,14 @@ Canonical: `lib/server/ops-notification-policy.js`. Live apply: `docs/runbooks/N
 
 ## 5. Repo vs Anton-only
 
-### 5.1 Done in repo (#659 + this follow-up)
+### 5.1 Done in repo (#659 + #669 + 2026-08-20 restart)
 
 - Exception-only policy + tests (fingerprint dedupe; WIP/digest no longer page — #684)
 - CMP monitor transition-only alerts
 - n8n template noise cuts + heartbeat staticData fingerprint store
-- Slack retirement across active ops docs / MCP catalog
-- Audit + **Anton click-by-click packets**
+- Slack MCP template and Slack-named `.env.template` keys **removed**
+- Permanent Slack-retirement CI guard (`lib/server/slack-retirement-guard.js`)
+- Audit + Anton click-by-click packets (optional remaining desk only)
 - Live-apply runbook for in-place n8n correction (#684)
 
 ### 5.2 Anton-only (live cutover)
@@ -123,6 +154,8 @@ Exact UI steps: **`docs/operations/SLACK_RETIREMENT_ANTON_ACTION_PACKETS_658.md`
 ## 6. Test evidence (local)
 
 ```bash
+npm run check:slack-retirement
+node --test node-tests/slack-retirement-guard.test.mjs
 node --test node-tests/ops-notification-policy.test.mjs
 node --test node-tests/n8n-automation-forward-issue-611.test.mjs
 node --test node-tests/post-control-loop-telegram-alert.test.mjs
@@ -147,12 +180,12 @@ node --test node-tests/post-control-loop-telegram-alert.test.mjs
 
 | Criterion | Status |
 |-----------|--------|
-| Inventory + classification | **Done** (this doc) |
+| Inventory + classification | **Done** (§0 + §2; ACTIVE / HISTORICAL / FALSE POSITIVE) |
 | Preserve GitHub lifecycle / approval gates | **Done** (no gate changes) |
-| Critical alerts on approved non-Slack route | **Done in repo** (Telegram exception-only); live validate after Packet A |
-| Disable n8n / GitHub→Slack posting | **Anton Packets A–C** |
-| Remove Slack from active ops docs / runtime config | **Done in repo** |
-| Revoke Slack secrets | **Anton Packet D** (no values in repo) |
+| Critical alerts on approved non-Slack route | **Done in repo** (Telegram exception-only) |
+| Remove ACTIVE Slack repo reintroduction paths | **Done** (MCP template + env placeholders removed) |
+| Permanent CI/regression guard | **Done** (`npm run check:slack-retirement`) |
+| Disable n8n / GitHub→Slack posting | Previously reported complete on live n8n; not re-opened here |
+| Revoke unused Slack-named secrets / delete workspace | Optional Anton Packets D–E (protected; not required to merge) |
 | No client/tenant/revenue Slack dependency | **Verified in repo** |
-| Validate exception alerts after retirement | **Anton** after Packet A |
-| Rollback evidence | **§7 + Anton packets** |
+| Rollback evidence | **§7 + revert this PR** |
