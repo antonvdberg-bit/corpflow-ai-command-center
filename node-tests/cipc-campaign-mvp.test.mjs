@@ -70,7 +70,7 @@ describe('#985 CIPC campaign MVP — safety', () => {
     assert.equal(src.includes('nodemailer'), false);
     assert.equal(/from ['"].*email/.test(src), false);
     assert.equal(src.includes('twilio'), false);
-    assert.equal(src.includes('import.meta'), false);
+    assert.equal(src.includes('createRequire'), false);
     assert.match(JSON.stringify(CAMPAIGN_CONFIG.$warning).toLowerCase(), /no second crm/);
     const router = readFileSync(join(root, 'lib', 'cmp', 'router.js'), 'utf8');
     assert.match(router, /cipc-campaign-list/);

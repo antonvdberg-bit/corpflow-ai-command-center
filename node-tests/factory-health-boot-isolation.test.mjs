@@ -27,6 +27,16 @@ const STATIC_IMPORT_RE =
 
 /**
  * @param {string} src
+ * @returns {string}
+ */
+function stripJsComments(src) {
+  return String(src || '')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/(^|[^:])\/\/.*$/gm, '$1');
+}
+
+/**
+ * @param {string} src
  * @returns {string[]}
  */
 function staticRelativeSpecifiers(src) {
@@ -70,7 +80,7 @@ function walkStaticJsGraph(fromFile) {
 
 describe('#1015 factory health boot isolation', () => {
   it('campaign-mvp.js does not use import.meta or createRequire', () => {
-    const src = readFileSync(CAMPAIGN_MVP, 'utf8');
+    const src = stripJsComments(readFileSync(CAMPAIGN_MVP, 'utf8'));
     assert.equal(src.includes('import.meta'), false);
     assert.equal(src.includes('createRequire'), false);
     assert.match(src, /readFileSync\(\s*['"]config\/cipc-campaign-mvp\.v1\.json['"]/);
@@ -91,7 +101,7 @@ describe('#1015 factory health boot isolation', () => {
     assert.ok(files.includes(normalize(CMP_ROUTER)));
     assert.equal(files.includes(normalize(CAMPAIGN_MVP)), false, 'campaign-mvp must stay lazy');
     const offenders = files.filter((file) => {
-      const src = readFileSync(file, 'utf8');
+      const src = stripJsComments(readFileSync(file, 'utf8'));
       return src.includes('import.meta');
     });
     assert.deepEqual(offenders, []);
