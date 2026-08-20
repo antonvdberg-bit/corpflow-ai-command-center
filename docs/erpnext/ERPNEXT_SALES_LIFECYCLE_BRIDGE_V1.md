@@ -77,7 +77,7 @@ Opportunity is created only after a real sales process has started (`qualified` 
 | Conflict | Matching email or company with a **different** CorpFlowAI reference → stop. Pre-existing ERPNext Lead with the same email and no CorpFlowAI key → stop. ERPNext remains the durable sales record. |
 | Retry | Search is safe. API failure leaves the pointer unchanged and does not create a second Lead/Opportunity/Customer. |
 
-Lead/Opportunity `notes` store `synthetic=true`, `issue=1018`, `ref=<leads.id>`, and `idempotency_key=…`. No secrets, passwords, or live client data.
+Lead/Opportunity `utm_content` stores the idempotency key. The integration user cannot filter or reliably write `notes`, and UTM source/campaign are Link fields that this packet does not create. No secrets, passwords, or live client data.
 
 ---
 
@@ -125,18 +125,20 @@ qualification_json.erpnext.lead_id / erpnext_lead / erpnext_opportunity / custom
 
 ## 6. Live proof (2026-08-20 UTC)
 
-Ran as `integrations@corpflowai.com` via `node scripts/erpnext/apply-sales-lifecycle-bridge.mjs`. Secret values not printed. Postgres not written.
-
-Fill from `artifacts/erpnext/sales-lifecycle-bridge-1018/apply-log.json` after the live apply:
+Ran as `integrations@corpflowai.com` via `node scripts/erpnext/apply-sales-lifecycle-bridge.mjs` at `2026-08-20T02:04:56Z`. Secret values not printed. Postgres not written.
 
 | Check | Result |
 |-------|--------|
 | Auth | HTTP 200, `integrations@corpflowai.com` |
-| First run | CREATE Lead + Opportunity + Customer |
-| Second run / replay | UPDATE same three records (`created_on_replay=false`) |
-| Duplicate counts | 1 Lead, 1 Opportunity, 1 enabled Customer |
+| First run | **CREATE** Lead `CRM-LEAD-2026-00009`, Opportunity `CRM-OPP-2026-00003`, Customer `CF1018 Synthetic Sales Lifecycle Ltd` |
+| Second run / replay | **UPDATE** same three records (`created_on_replay=false`) |
+| Duplicate counts | **1** Lead, **1** Opportunity, **1** enabled Customer |
+| Contact / Address | `Lee Synthetic` / `CF1018 Synthetic Sales Lifecycle Ltd-Billing` |
+| GET read-back | company, `cf1018.synthetic@example.invalid`, Customer group Commercial, Opportunity party = Lead name |
 | Pointer | `qualification_json.erpnext` on the in-memory reference lead |
 | Artifact | `artifacts/erpnext/sales-lifecycle-bridge-1018/apply-log.json` |
+
+Creating the Opportunity from the Lead caused ERPNext to set Lead status to `Opportunity`; linking `Customer.lead_name` then set it to `Converted` on replay. That is standard CRM conversion, not a second Lead.
 
 `MASTER_ADMIN_KEY` was **ABSENT** on this Factory Automation wake. ERPNext secrets present by **name** only.
 

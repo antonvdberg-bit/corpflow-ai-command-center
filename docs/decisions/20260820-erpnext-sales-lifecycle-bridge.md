@@ -11,7 +11,7 @@ Merged [#1009](https://github.com/antonvdberg-bit/corpflow-ai-command-center/iss
 ## Decision
 
 - Reuse the WP1 Frappe REST client and Customer bridge. Do not build a second integration framework.
-- Search-before-create Lead by idempotency key, email, then company name. Opportunity by notes/title containing `leads.id`.
+- Search-before-create Lead by `utm_content` idempotency key, then email, then company name. Opportunity by `utm_content` / title containing `leads.id`.
 - Create Opportunity only at `qualified` / `proposal_ready` / `won`. Create/reuse Customer only at WP1 stages `proposal_ready` / `won`.
 - On identity conflict (same email/company, different CorpFlowAI reference), stop. Do not steal a pre-existing ERPNext Lead.
 - Record names on `qualification_json.erpnext` in the reference lead. Do **not** add schema and do **not** PATCH live Postgres in this packet.

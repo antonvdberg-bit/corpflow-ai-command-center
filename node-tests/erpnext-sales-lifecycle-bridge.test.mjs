@@ -288,8 +288,8 @@ test('proposal_ready first run creates Lead, Opportunity and Customer; replay up
   assert.equal(client.snapshot('Opportunity').length, 1);
   assert.equal(client.snapshot('Customer').filter((row) => !row.disabled).length, 1);
   assert.equal(proof.second.customer, 'CF1018 Synthetic Sales Lifecycle Ltd');
-  assert.match(String(client.snapshot('Opportunity')[0].notes), /customer=CF1018 Synthetic Sales Lifecycle Ltd/);
   assert.equal(client.snapshot('Customer')[0].lead_name, proof.second.erpnext_lead);
+  assert.equal(asString(client.snapshot('Lead')[0].utm_content), 'corpflow.sales_lifecycle.v1:lead=cf1018-synthetic-sales-lifecycle');
 
   const stored = store.getLead(event.lead_id);
   assert.equal(stored.qualification_json.erpnext.schema, POINTER_SCHEMA);
@@ -502,12 +502,11 @@ test('apply script dry-run exits 0 without calling ERPNext and without printing 
 });
 
 test('live apply-log captures synthetic IDs, replay UPDATE, and no secret values', () => {
+  resetSalesLifecycleBridgeConfigCache();
   const rel = 'artifacts/erpnext/sales-lifecycle-bridge-1018/apply-log.json';
-  if (!existsSync(path.join(REPO_ROOT, rel))) {
-    assert.ok(true, 'live apply-log not written yet; unit tests still pass');
-    return;
-  }
+  assert.equal(existsSync(path.join(REPO_ROOT, rel)), true);
   const log = JSON.parse(read(rel));
+  const cfg = loadSalesLifecycleBridgeConfig();
   assert.equal(log.issue, 1018);
   assert.equal(log.secrets_printed, false);
   assert.equal(log.postgres_written, false);
@@ -516,10 +515,17 @@ test('live apply-log captures synthetic IDs, replay UPDATE, and no secret values
   assert.equal(log.second.lead_action, 'UPDATE');
   assert.equal(log.first.opportunity_action, 'CREATE');
   assert.equal(log.second.opportunity_action, 'UPDATE');
+  assert.equal(log.first.customer_action, 'CREATE');
+  assert.equal(log.second.customer_action, 'UPDATE');
   assert.equal(log.created_on_replay, false);
   assert.equal(log.duplicate_lead_count, 1);
   assert.equal(log.duplicate_opportunity_count, 1);
   assert.equal(log.duplicate_customer_count, 1);
+  assert.equal(log.first.erpnext_lead, cfg.live_proof.erpnext_lead);
+  assert.equal(log.second.erpnext_opportunity, cfg.live_proof.erpnext_opportunity);
+  assert.equal(log.pointer.customer, cfg.live_proof.customer);
+  assert.equal(log.pointer.contact, cfg.live_proof.contact);
+  assert.equal(log.pointer.address, cfg.live_proof.address);
   const blob = JSON.stringify(log);
   assert.doesNotMatch(blob, /sk_live|eyJhbGci|postgres:\/\//i);
   assert.doesNotMatch(blob, /ERPNEXT_API_SECRET":\s*"[^"]+"/);
