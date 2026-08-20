@@ -211,7 +211,7 @@ Prisma client generates on `postinstall` / `npm ci`. CI runs Python tests under 
 ### CI / supply chain (maintainers)
 
 - Third-party Actions in workflows that install tooling or touch GitHub API are **pinned to full commit SHAs** (see YAML comments). Bump intentionally after review.
-- Groq chat/completions use **`lib/server/groq-client.js`** — one URL + `resolveGroqModel('primary' | 'technical_lead_rephrase')` (TL rephrase: optional `CORPFLOW_TECHNICAL_LEAD_LLM_MODEL`, else built-in default — not `GROQ_MODEL_NAME`).
+- Groq chat/completions use **`lib/server/groq-client.js`** — one URL + `resolveGroqModel('primary' | 'technical_lead_rephrase')` (built-in default `openai/gpt-oss-120b`; TL rephrase: optional `CORPFLOW_TECHNICAL_LEAD_LLM_MODEL`, else the same built-in default — not `GROQ_MODEL_NAME`).
 - **CMP action gates:** tenant session actions go through `requireDormantGate` / `requireFactoryMasterOnly` in `lib/cmp/router.js` — high-impact routes (`promote-merge`, `approve-build`, factory-only repair) stay separated from read-only analysis.
 
 ## Cursor Bugbot (optional, free tier)
