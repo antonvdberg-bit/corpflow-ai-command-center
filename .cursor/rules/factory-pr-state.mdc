@@ -1,0 +1,25 @@
+---
+description: Factory PR state policy — Anton's only routine human PR action is merge
+globs:
+alwaysApply: true
+---
+
+# Factory PR state policy
+
+CorpFlowAI Factory/Cursor implementation work must not require Anton to click **Ready for review**.
+
+Required behavior:
+
+- When implementation is complete enough to hand off for operator review, open the PR as a normal **non-draft** PR from the outset.
+- Do not rely on GitHub Actions, GitHub App tokens, or a later GraphQL mutation to convert Draft -> Ready.
+- If a PR is intentionally created while implementation is still genuinely in progress, Draft may be used temporarily only when the creating agent itself has authority to remove Draft before releasing execution WIP. If it cannot guarantee that transition, do not use Draft.
+- A completed/review-ready PR consumes zero Cursor execution WIP.
+- Anton's only routine human PR action is **MERGE**.
+- Never auto-merge.
+- Preserve all protected-action gates for production/client-production deploys, env/secrets, DB/schema, payments, external sends/outreach, paid tools, DNS/domain changes, and public/client launches.
+
+Failure prevention:
+
+- A PR-state helper/check must never make an otherwise healthy PR red merely because the GitHub integration lacks permission to mutate PR draft state.
+- PR-state automation must be idempotent and read-only unless the integration's required permission is explicitly proven.
+- Do not replace the removed Ready-for-review ceremony with another human acknowledgement step.

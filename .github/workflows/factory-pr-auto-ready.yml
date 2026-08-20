@@ -1,11 +1,14 @@
 # CorpFlowAI factory PR state policy.
 #
-# Anton's only routine human PR action is MERGE. Factory/Cursor PRs must not
-# wait in Draft for a manual "Ready for review" click. This workflow converts
-# same-repository Cursor factory PRs to normal PRs automatically.
+# Anton's only routine human PR action is MERGE.
+# Factory/Cursor PRs must be created as normal non-draft PRs once implementation
+# is ready for operator review. GitHub App tokens used by Actions are not relied
+# on to mutate Draft -> Ready state because that mutation can be forbidden by
+# the installation and would make otherwise healthy PRs fail CI.
 #
-# It does NOT merge, approve, deploy, change protected-action gates, execute
-# PR code, check out the PR branch, or expose secrets.
+# Keep this workflow/check name stable because branch protection may reference
+# it. It is intentionally a policy-verification/no-op check: no PR mutation,
+# approval, merge, deploy, secret access, or PR code execution occurs here.
 
 name: Factory PR auto-ready
 
@@ -16,41 +19,27 @@ on:
       - reopened
       - synchronize
       - converted_to_draft
+      - ready_for_review
 
 permissions:
   contents: read
-  pull-requests: write
+  pull-requests: read
 
 jobs:
   remove-draft-gate:
-    if: >-
-      github.event.pull_request.draft == true &&
-      github.event.pull_request.head.repo.full_name == github.repository &&
-      (github.event.pull_request.user.login == 'cursor[bot]' ||
-       startsWith(github.event.pull_request.head.ref, 'cursor/'))
     runs-on: ubuntu-latest
     steps:
-      - name: Mark factory PR ready automatically
+      - name: Verify factory PR state policy without mutation
         env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NODE_ID: ${{ github.event.pull_request.node_id }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_DRAFT: ${{ github.event.pull_request.draft }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_HEAD: ${{ github.event.pull_request.head.ref }}
         run: |
           set -euo pipefail
-
-          # The event payload may say draft=true even when another automation or
-          # operator transition has already made the PR non-draft. Treat that
-          # race as success so reruns and duplicate events are idempotent.
-          current_draft="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.draft')"
-          if [ "$current_draft" != "true" ]; then
-            echo "Factory PR #${PR_NUMBER} is already non-draft; nothing to do."
-            echo "No merge or approval was performed."
-            exit 0
-          fi
-
-          gh api graphql \
-            -f query='mutation($id:ID!){markPullRequestReadyForReview(input:{pullRequestId:$id}){pullRequest{number isDraft}}}' \
-            -F id="$PR_NODE_ID" \
-            --jq '.data.markPullRequestReadyForReview.pullRequest | "PR #\(.number) draft=\(.isDraft)"'
-          echo "Factory PR #${PR_NUMBER} moved directly to operator merge/review inventory."
-          echo "No merge or approval was performed."
+          echo "Factory PR policy check for #${PR_NUMBER}."
+          echo "draft=${PR_DRAFT} author=${PR_AUTHOR} head=${PR_HEAD}"
+          echo "No Draft -> Ready mutation is attempted by Actions."
+          echo "Completed Factory/Cursor work must be opened non-draft by the creating agent."
+          echo "Anton remains the only routine human merge gate."
+          exit 0
