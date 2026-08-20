@@ -4,6 +4,7 @@ import { CORE_NAV_ITEMS } from '../../lib/app/constants.js';
  * Core application navigation.
  * Links Delivery / Operations to existing /change (compatibility route).
  * My Work and Prospects are dedicated Operating Workspace routes (#772).
+ * Workbench is the shared Prospect processing grid (#996).
  *
  * @param {{
  *   active: string,

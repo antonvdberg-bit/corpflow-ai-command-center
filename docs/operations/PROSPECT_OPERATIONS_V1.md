@@ -1,6 +1,6 @@
 # Prospect Operations v1 — shared package contract (#721)
 
-**Status:** Slice 1 shipped. Slice 2 shared detail/action layer shipped in Operating Workspace (`/app/prospects/[id]`, #994). **No schema. No env. No deploy. No external send.**
+**Status:** Slice 1 shipped. Slice 2 shared detail/action layer shipped in Operating Workspace (`/app/prospects/[id]`, #994). Slice 3 shared Prospect Workbench shipped (`/app/workbench`, #996). Action Queue and Postgres Kanban remain later. **No schema. No env. No deploy. No external send.**
 
 **Issue:** #721 · Parent doctrine #720 · Revenue programme #710–#716 · Baseline PR #708
 
@@ -234,8 +234,8 @@ Protected (blocked in shared helper): external send, authoritative payment mark,
 
 ### Slice 3 — connect three views
 
-- Action Queue: evolve `/admin/rapid-delivery` (or `/admin/prospects/queue`) to render shared queue using view-model sort/filters for **both** products where auth allows.
-- Prospect Workbench: extract grid from `AiLeadRescueAdminList` into `components/prospect-ops/ProspectWorkbench.js` (remove Lead Rescue-only ownership of the reusable shell).
+- Action Queue: later dedicated `/app/queue` (or Rapid Delivery desk until #995 merges).
+- Prospect Workbench: **shipped in Operating Workspace (#996)** at `/app/workbench` + `GET /api/app/workbench`. Grid is extracted from Lead Rescue branding. Rows open `#994` `/app/prospects/[id]`. Safe inline edits reuse `PATCH /api/app/prospect`. Temporary product desk remains at `/admin/lead-rescue`.
 - Kanban: replace `/change/revenue` localStorage authoritative cards with Postgres-backed lanes using `canonical_stage`, keeping localStorage only as optional personal checklist if still useful.
 - All three call the same patch adapters → same `leads` rows.
 
@@ -286,7 +286,7 @@ Protected (blocked in shared helper): external send, authoritative payment mark,
 
 P0 applies the **smallest shared semantic tokens** (status/priority labels, signal names, action patterns) via the view-model + thin CSS variables in `components/prospect-ops/` in later slices. Full CorpFlowAI Operating Workspace shell is doctrine-owned by #720 / #772 and must not delay function.
 
-**#772 first visible route:** `/app/prospects` (Operating Workspace, staff-only) reuses this view-model. **#772 Today / My Work:** `/app/today` applies `matchesMyWorkTodayFilter` to the same list. **#994 shared detail:** `/app/prospects/[id]`. Product desks at `/admin/lead-rescue` and `/admin/rapid-delivery` remain temporary sources until later slices. See `docs/architecture/OPERATING_TENANT_WORKSPACE_CONSOLIDATION_V1.md`.
+**#772 first visible route:** `/app/prospects` (Operating Workspace, staff-only) reuses this view-model. **#772 Today / My Work:** `/app/today` applies `matchesMyWorkTodayFilter` to the same list. **#994 shared detail:** `/app/prospects/[id]`. **#996 Prospect Workbench:** `/app/workbench` (Lead Rescue, Website Rescue, and general enquiries; product grid at `/admin/lead-rescue` reduced to a temporary desk). Product desks at `/admin/lead-rescue` and `/admin/rapid-delivery` remain temporary sources until later slices. See `docs/architecture/OPERATING_TENANT_WORKSPACE_CONSOLIDATION_V1.md`.
 
 ---
 

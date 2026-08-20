@@ -17,8 +17,11 @@ import {
   mapCanonicalStageToNativeStatus,
   mapNativeStatusToCanonicalStage,
   matchesMyWorkTodayFilter,
+  matchesWorkbenchFilter,
+  normalizeWorkbenchFilter,
   resolveNextActionDue,
   sortProspectsForActionQueue,
+  sortProspectsForWorkbench,
 } from '../lib/cmp/_lib/prospect-operations-view-model.js';
 
 const NOW = new Date('2026-08-03T12:00:00.000Z');
@@ -166,6 +169,46 @@ describe('prospect-operations-view-model — due dates and exceptions', () => {
       false,
     );
   });
+
+  it('normalises Workbench filters and isolates product plus exception slices', () => {
+    assert.equal(normalizeWorkbenchFilter('wr'), 'website_rescue');
+    assert.equal(normalizeWorkbenchFilter('unknown'), 'general');
+    assert.equal(normalizeWorkbenchFilter('bogus'), 'all');
+    assert.equal(
+      matchesWorkbenchFilter({ product: AI_LEAD_RESCUE_PRODUCT }, 'lead_rescue', NOW),
+      true,
+    );
+    assert.equal(
+      matchesWorkbenchFilter({ product: RAPID_DELIVERY_PRODUCT }, 'website_rescue', NOW),
+      true,
+    );
+    assert.equal(matchesWorkbenchFilter({ product: 'unknown' }, 'general', NOW), true);
+    assert.equal(
+      matchesWorkbenchFilter({ exception_signals: ['overdue_action'] }, 'overdue', NOW),
+      true,
+    );
+    assert.equal(
+      matchesWorkbenchFilter({ exception_signals: ['stalled_no_activity'] }, 'stalled', NOW),
+      true,
+    );
+  });
+
+  it('sorts Workbench rows by named columns without changing identity', () => {
+    const rows = [
+      { id: 'b', organisation_name: 'Beta', product: 'unknown' },
+      { id: 'a', organisation_name: 'Alpha', product: AI_LEAD_RESCUE_PRODUCT },
+    ];
+    const sorted = sortProspectsForWorkbench(rows, { sort: 'prospect', dir: 'asc' }, NOW);
+    assert.deepEqual(
+      sorted.map((r) => r.id),
+      ['a', 'b'],
+    );
+    const desc = sortProspectsForWorkbench(rows, { sort: 'prospect', dir: 'desc' }, NOW);
+    assert.deepEqual(
+      desc.map((r) => r.id),
+      ['b', 'a'],
+    );
+  });
 });
 
 describe('prospect-operations-view-model — lead adapters', () => {
@@ -304,7 +347,7 @@ describe('prospect-operations-view-model — lead adapters', () => {
     assert.equal(a.id, b.id);
     assert.equal(a.canonical_stage, b.canonical_stage);
     assert.equal(a.canonical_stage, 'discovery_booked');
-    assert.equal(a.source_surfaces.workbench, '/admin/lead-rescue');
+    assert.equal(a.source_surfaces.workbench, '/app/workbench');
     assert.equal(a.source_surfaces.kanban, '/app/prospects');
     assert.equal(a.source_surfaces.operating_workspace, '/app/prospects');
     assert.match(String(a.detail_path), /^\/app\/prospects\?id=/);
