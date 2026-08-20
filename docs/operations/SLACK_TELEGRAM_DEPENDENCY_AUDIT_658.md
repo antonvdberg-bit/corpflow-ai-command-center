@@ -39,6 +39,17 @@ That is why #658 could be labelled done while Slack could still be re-enabled by
 
 **Tests:** `node --test node-tests/slack-retirement-guard.test.mjs` plus `npm run check:slack-retirement` in Agent CI.
 
+**Live corpflow_test verification (2026-08-20, this worker; current Production spine, pre-merge of this PR):**
+
+| URL | HTTP | Slack markers (`hooks.slack.com`, Slack API host, Slack-named env keys, n8n Slack node) |
+|-----|------|------------------------------------------------------------------------------------------|
+| `https://core.corpflowai.com/api/factory/health` | 200 JSON `ok: true` | None |
+| `https://core.corpflowai.com/api/factory/production-pulse/runtime` | 200 JSON `ok: true` | None |
+| `https://lux.corpflowai.com/` | 200 HTML | None |
+| `https://lux.corpflowai.com/change` | 200 HTML | None |
+
+No Telegram/Slack/email send was performed. Client-facing Lux routes do not depend on Slack.
+
 ---
 
 ## 1. Executive summary
