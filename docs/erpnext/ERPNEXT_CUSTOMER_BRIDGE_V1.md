@@ -104,18 +104,23 @@ qualification_json.erpnext.lead_id / customer / contact / address / idempotency_
 
 ---
 
-## 5. Live proof
+## 5. Live proof (2026-08-20 UTC)
 
-Run (secrets injected by Cursor Cloud; values never printed):
+Ran as `integrations@corpflowai.com` via `node scripts/erpnext/apply-customer-bridge.mjs`. Secret values not printed. Postgres not written.
 
-```bash
-node scripts/erpnext/apply-customer-bridge.mjs --dry-run
-node scripts/erpnext/apply-customer-bridge.mjs
-```
+| Check | Result |
+|-------|--------|
+| Auth | HTTP 200, `integrations@corpflowai.com` |
+| First run | **CREATE** `CF1009 Synthetic Customer Bridge Ltd` |
+| Second run / replay | **UPDATE** same Customer (`created_on_replay=false`) |
+| Duplicate count | **1** enabled matching Customer |
+| Contact | `Sam Synthetic-CF1009 Synthetic Customer Bridge Ltd` |
+| Address | `CF1009 Synthetic Customer Bridge Ltd-Billing` |
+| GET read-back | name, Commercial, Mauritius, MUR, website, `cf1009.synthetic@example.invalid`, `1009 Synthetic Bridge Lane` |
+| Pointer | `qualification_json.erpnext` on the in-memory reference lead |
+| Artifact | `artifacts/erpnext/customer-bridge-1009/apply-log.json` |
 
-Artifact: `artifacts/erpnext/customer-bridge-1009/apply-log.json`
-
-Live results are recorded in that artifact and in the PR body after the apply. Identity expected: `integrations@corpflowai.com`.
+`MASTER_ADMIN_KEY` was **ABSENT** on this Factory Automation wake. ERPNext secrets present by **name** only.
 
 ---
 

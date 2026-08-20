@@ -444,6 +444,28 @@ test('searchExistingCustomerIdentity uses name, suffix-like name, and idempotenc
   assert.equal(found.customers.length, 1);
 });
 
+test('live apply-log captures synthetic IDs, replay UPDATE, and no secret values', () => {
+  const rel = 'artifacts/erpnext/customer-bridge-1009/apply-log.json';
+  assert.equal(existsSync(path.join(REPO_ROOT, rel)), true);
+  const log = JSON.parse(read(rel));
+  const cfg = loadCustomerBridgeConfig();
+  assert.equal(log.issue, 1009);
+  assert.equal(log.secrets_printed, false);
+  assert.equal(log.postgres_written, false);
+  assert.equal(log.identity, 'integrations@corpflowai.com');
+  assert.equal(log.first.action, 'CREATE');
+  assert.equal(log.second.action, 'UPDATE');
+  assert.equal(log.created_on_replay, false);
+  assert.equal(log.duplicate_count, 1);
+  assert.equal(log.first.customer, cfg.live_proof.customer);
+  assert.equal(log.second.customer, cfg.live_proof.customer);
+  assert.equal(log.pointer.contact, cfg.live_proof.contact);
+  assert.equal(log.pointer.address, cfg.live_proof.address);
+  const blob = JSON.stringify(log);
+  assert.doesNotMatch(blob, /sk_live|eyJhbGci|postgres:\/\//i);
+  assert.doesNotMatch(blob, /ERPNEXT_API_SECRET":\s*"[^"]+"/);
+});
+
 test('apply script dry-run exits 0 without calling ERPNext and without printing secret values', () => {
   const result = spawnSync(process.execPath, [APPLY, '--dry-run'], {
     cwd: REPO_ROOT,

@@ -45,6 +45,19 @@
     "contact_email": "cf1009.synthetic@example.invalid",
     "website": "https://cf1009-synthetic.example.invalid"
   },
+  "live_proof": {
+    "identity": "integrations@corpflowai.com",
+    "probed_at_utc": "2026-08-20T00:06:16Z",
+    "lead_id": "cf1009-synthetic-qualified-customer",
+    "customer": "CF1009 Synthetic Customer Bridge Ltd",
+    "contact": "Sam Synthetic-CF1009 Synthetic Customer Bridge Ltd",
+    "address": "CF1009 Synthetic Customer Bridge Ltd-Billing",
+    "first_action": "CREATE",
+    "second_action": "UPDATE",
+    "created_on_replay": false,
+    "duplicate_count": 1,
+    "postgres_written": false
+  },
   "non_actions": [
     "schema_change",
     "postgres_migration",
