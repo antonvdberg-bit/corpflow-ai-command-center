@@ -343,7 +343,7 @@ function prepareCmpRequest(req, pathSeg) {
  * @returns {Promise<void>}
  */
 async function handleHealth(req, res) {
-  return res.status(200).json({ status: 'operational', model: 'llama-3.3-70b-versatile' });
+  return res.status(200).json({ status: 'operational', model: resolveGroqModel('primary') });
 }
 
 /**

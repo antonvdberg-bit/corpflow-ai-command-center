@@ -4,7 +4,7 @@ Sandbox-only retrieval-assisted answers for tenant chatbots.
 
 ## Provider
 
-- **Groq** first — `GROQ_API_KEY` + `GROQ_MODEL_NAME` (see `.env.template`, `lib/server/groq-client.js`)
+- **Groq** first — `GROQ_API_KEY` + optional `GROQ_MODEL_NAME` (empty uses built-in default `openai/gpt-oss-120b` in `lib/server/groq-client.js`; see `.env.template`)
 - **Not** xAI Grok
 - Without `GROQ_API_KEY`: `retrieval_preview` mode (approved context excerpt, no LLM)
 - If Groq is configured but the call fails: fall back to `retrieval_preview` when approved context exists (do not return `provider_unavailable` while records can still be shown)
