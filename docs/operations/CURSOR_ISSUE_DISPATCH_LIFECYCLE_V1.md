@@ -3,7 +3,7 @@
 **Status:** Production execution is **CorpFlowAI Cursor Factory Handoff** → Cursor Automation **CorpFlowAI Factory Wake Proof** / MODE B (#913 / merged PR #914 / #930). The Background Agents API workflow `factory-dispatcher-activate.yml` is **LEGACY / DIAGNOSTIC / NOT PRODUCTION EXECUTION** (`workflow_dispatch` only).
 **Owner:** Anton (policy); Cursor (implementation).
 **Created:** 2026-07-28.
-**Updated:** 2026-08-17 (#962 — list-form constraint prohibitions are not production gates).
+**Updated:** 2026-08-21 (#1023 — 10-minute whole-queue reconciliation fallback).
 **Implements:** Operator urgent change — Cursor must discover/claim `dispatch:cursor-ready` issues with strict segregation.
 **Anchor sentinel:** `<!-- CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1 -->`
 
@@ -28,11 +28,13 @@ Consolidation is allowed only when explicitly justified and safe.
 
 | Existing piece | Role |
 |----------------|------|
-| `.github/workflows/factory-cursor-handoff.yml` | **`CorpFlowAI Cursor Factory Handoff` (#913 / #930)** — **sole production wake path**. Eligibility/capacity wake that **succeeds only** when exactly one eligible source issue is selected; successful completion wakes Cursor Automation MODE B (no Cursor API key) |
-| `.github/workflows/cursor-agent-lifecycle-status.yml` | Terminal/operator-review poller; **`workflow_call`s** the Automation handoff workflow on capacity release. Does **not** wake the legacy API dispatcher |
+| `.github/workflows/factory-cursor-handoff.yml` | **`CorpFlowAI Cursor Factory Handoff` (#913 / #930)** — **sole production wake path**. Eligibility/capacity wake that **succeeds only** when exactly one eligible source issue is selected; successful completion wakes Cursor Automation MODE B (no Cursor API key). **No** `schedule:` on this named workflow |
+| `.github/workflows/factory-queue-reconcile.yml` | **`CorpFlowAI Factory Queue Reconcile` (#1023)** — thin 10-minute missed-event / orphan scan. Reuses existing eligibility / WIP / pause / operator-review rules and **`workflow_call`s Handoff only** when a real eligible issue exists and verified WIP permits. Empty scans succeed silently. **Not** a second dispatcher, executor, or Cursor wake path |
+| `.github/workflows/cursor-agent-lifecycle-status.yml` | Terminal/operator-review poller; **`workflow_call`s** the Automation handoff workflow on capacity release. Does **not** wake the legacy API dispatcher. Discovers **claimed** Cursor issues only — it cannot start work that was never claimed |
 | `.github/workflows/factory-dispatcher-activate.yml` | **LEGACY / DIAGNOSTIC / NOT PRODUCTION EXECUTION** — Background Agents API activator, **`workflow_dispatch` only**. Must not auto-launch from schedule, labels, comments, or capacity events |
 | `scripts/dispatcher-agent-activation.mjs` | Cursor Cloud activation (legacy API diagnostic path) |
 | `scripts/factory-cursor-handoff.mjs` / `lib/server/factory-cursor-handoff.js` | Select one eligible issue, encode handoff packet/comment, fail closed when no handoff (#913) |
+| `scripts/factory-queue-reconcile.mjs` / `lib/server/factory-queue-reconcile.js` | 10-minute whole-queue gate: decide whether to `workflow_call` Handoff (#1023). Never posts Cursor webhook / issue comments / Telegram |
 | `lib/server/cursor-ops-status.js` | Issue comment posting + Control Tower status (existing) |
 | **`lib/server/cursor-issue-dispatch-lifecycle.js`** | Classification, WIP, segregation, comment templates (**this packet**) |
 | **`lib/server/cursor-ready-event-dispatch.js`** | Exact-label + eligibility-wake predicates + effective target resolution (consumed by Handoff in production) |
@@ -166,9 +168,10 @@ Semantics:
 | **Primary — operator authorization** | `issue_comment` created with durable `OPERATOR GATE AUTHORIZATION` / `ANTON DURABLE APPROVAL` / explicit Anton unlock (human actors only; bots ignored) → **Handoff** |
 | **Primary — queue control** | `issues:unlabeled` `execution:paused`, or `issues:labeled` `priority:P0\|P1\|P2` while issue already has `dispatch:cursor-ready` → **Handoff** |
 | **Primary — capacity backfill** | Lifecycle status reaches terminal/operator-review and releases verified WIP → **`workflow_call`s CorpFlowAI Cursor Factory Handoff** (full priority scan). Does **not** wake the legacy API dispatcher |
+| **Fallback — whole-queue reconcile (#1023)** | `CorpFlowAI Factory Queue Reconcile` every **10 minutes** (`*/10 * * * *`) scans GitHub ready/claimed state. If eligible work exists and verified WIP has a free slot, it **`workflow_call`s Handoff** (`wake_reason=scheduled_reconciliation`). No eligible work / paused / operator-review / WIP full / recent duplicate handoff → **silent success, no Cursor wake**. Event-driven Handoff triggers remain primary |
 | Diagnostic only | `factory-dispatcher-activate.yml` `workflow_dispatch` — Background Agents API smoke; **not** production execution |
 
-**Internal SLA:** eligible queued work should normally begin within **5 minutes** of an eligibility-changing event (`ELIGIBILITY_WAKE_SLA_MINUTES`) via Handoff → Wake Proof. Handoff has **no** schedule trigger (empty scheduled successes must not wake Automation).
+**Internal SLA:** eligible queued work should normally begin within **5 minutes** of an eligibility-changing event (`ELIGIBILITY_WAKE_SLA_MINUTES`) via Handoff → Wake Proof. The named Handoff workflow has **no** `schedule:` trigger (empty scheduled successes must not wake Automation). Missed-event / orphan recovery is the thin `#1023` reconciler, which only calls Handoff when a real eligible issue exists.
 
 Cost remains negligible (Node script + GitHub API). Production execution does **not** call the Cursor Background Agents API. Bot/`GITHUB_TOKEN` comments and lifecycle labels never wake (storm prevention). Duplicate Cursor runs are blocked by verified WIP + Handoff duplicate suppression. The legacy API path, if invoked manually, still uses claim-before-API + `SKIP_ALREADY_CLAIMED`.
 
@@ -217,11 +220,27 @@ Codex must **not** claim implementation issues. Codex may only take bounded supp
 
 ```bash
 node --test node-tests/cursor-issue-dispatch-lifecycle.test.mjs
+node --test node-tests/factory-cursor-handoff.test.mjs
+node --test node-tests/factory-queue-reconcile.test.mjs
 node scripts/cursor-issue-dispatch-scan.mjs --dry-run --prefer 653,654,658
 node scripts/cursor-issue-dispatch-finalize.mjs --dry-run --scan-file cursor-issue-dispatch-scan.json
 ```
 
 `--apply-comments` requires a token with `issues: write` (GitHub Actions `github.token`). Claim labels require a successful Cursor run ID via the finalize step.
+
+### Post-merge end-to-end pilot (#1023)
+
+The 10-minute schedule only runs on the default branch. After this workflow is on `main`, prove with three harmless repo-only synthetic issues (no client/runtime/data changes):
+
+1. First eligible item starts without `workflow_dispatch` or Anton reopening Cursor.
+2. One intentionally failing CI fixture is returned for bounded correction by the existing CI Cursor repair supervisor.
+3. Correction is recognized; capacity release wakes the next eligible item.
+4. Third item stops at a synthetic operator-approval gate, then resumes only after a durable approval marker.
+5. A deliberately stale/orphaned synthetic state is recovered on the scheduled reconciliation pass.
+6. GitHub contains issue → handoff → Cursor run/agent → branch → PR → CI → terminal evidence.
+7. No production deploy, DB/schema/env/secrets/payment/messaging/outreach/public launch.
+
+This packet does **not** create those synthetic issues. Schedule-driven proof is post-merge.
 
 ## 10. Related
 
@@ -238,4 +257,5 @@ node scripts/cursor-issue-dispatch-finalize.mjs --dry-run --scan-file cursor-iss
 - Issue #891 — approval and capacity changes must wake dispatcher automatically
 - Issue #913 / PR #914 — CorpFlowAI Cursor Factory Handoff (MODE B)
 - Issue #930 — Wake Proof is the sole production Cursor executor; API dispatcher is diagnostic only
+- Issue #1023 — 10-minute whole-queue reconciliation fallback (thin wrapper → existing Handoff)
 - `lib/server/operator-gate-authorization.js` — durable gate authorization evaluation

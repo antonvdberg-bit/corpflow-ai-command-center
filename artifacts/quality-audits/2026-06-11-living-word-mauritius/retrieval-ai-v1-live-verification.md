@@ -11,7 +11,7 @@
 | Decision | Choice |
 |----------|--------|
 | Repo inspection | **Groq** in `lib/server/groq-client.js`; **no xAI Grok** integration found |
-| Env vars (existing, not invented) | `GROQ_API_KEY`, `GROQ_MODEL_NAME` (default `llama-3.3-70b-versatile`) |
+| Env vars (existing, not invented) | `GROQ_API_KEY`, `GROQ_MODEL_NAME` (historical default on 2026-06-19: `llama-3.3-70b-versatile`; **not** current — see `lib/server/groq-client.js` / #1013) |
 | Single provider this packet | Groq only via `lib/server/chat-widget/retrieval/providers/groq.js` |
 | Fallback without key | `retrieval_preview` — approved context excerpt, no LLM |
 | AI kill-switch | `chat_widget_configs.ai_enabled` (separate from `enabled`) |

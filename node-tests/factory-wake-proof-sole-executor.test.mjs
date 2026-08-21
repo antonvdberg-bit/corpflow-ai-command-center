@@ -22,6 +22,7 @@ const WORKFLOWS_DIR = path.join(REPO_ROOT, '.github/workflows');
 const HANDOFF_PATH = path.join(WORKFLOWS_DIR, 'factory-cursor-handoff.yml');
 const LEGACY_PATH = path.join(WORKFLOWS_DIR, 'factory-dispatcher-activate.yml');
 const LIFECYCLE_PATH = path.join(WORKFLOWS_DIR, 'cursor-agent-lifecycle-status.yml');
+const RECONCILE_PATH = path.join(WORKFLOWS_DIR, 'factory-queue-reconcile.yml');
 
 /**
  * YAML `on:` mapping body (until the next top-level key).
@@ -45,6 +46,7 @@ describe('Wake Proof sole production executor (#930)', () => {
   const handoffYaml = readFileSync(HANDOFF_PATH, 'utf8');
   const legacyYaml = readFileSync(LEGACY_PATH, 'utf8');
   const lifecycleYaml = readFileSync(LIFECYCLE_PATH, 'utf8');
+  const reconcileYaml = readFileSync(RECONCILE_PATH, 'utf8');
 
   it('keeps the exact Handoff display name required by Cursor Automation MODE B', () => {
     assert.match(handoffYaml, /^name:\s*CorpFlowAI Cursor Factory Handoff\s*$/m);
@@ -97,6 +99,20 @@ describe('Wake Proof sole production executor (#930)', () => {
     assert.match(lifecycleYaml, /^\s*wake_factory_handoff:/m);
     assert.doesNotMatch(lifecycleYaml, /^  wake_dispatcher:/m);
     assert.match(lifecycleYaml, /needs\.poll\.outputs\.wake_dispatcher == 'true'/);
+  });
+
+  it('whole-queue reconciler (#1023) calls Handoff, not the legacy API dispatcher', () => {
+    assert.match(reconcileYaml, /^name:\s*CorpFlowAI Factory Queue Reconcile\s*$/m);
+    assert.match(
+      reconcileYaml,
+      /uses:\s*\.\/\.github\/workflows\/factory-cursor-handoff\.yml/,
+    );
+    assert.doesNotMatch(
+      reconcileYaml,
+      /uses:\s*\.\/\.github\/workflows\/factory-dispatcher-activate\.yml/,
+    );
+    assert.match(reconcileYaml, /cron:\s*"\*\/10 \* \* \* \*"/);
+    assert.doesNotMatch(reconcileYaml, /CURSOR_FACTORY_WAKE_WEBHOOK/);
   });
 
   it('ensures no other workflow automatically uses the legacy API dispatcher', () => {

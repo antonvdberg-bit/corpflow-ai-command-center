@@ -19,6 +19,7 @@ Detect drift between four control points without operator action:
 - **Manual:** GitHub → Actions → *Factory control loop* → **Run workflow** (`workflow_dispatch`).
 - Concurrency group `factory-control-loop` — only one run at a time.
 - Read-only by design — workflow does **not** trigger Vercel deploys.
+- This loop is **not** the Cursor delivery-queue reconciler. Whole-queue missed-event recovery is `factory-queue-reconcile.yml` (#1023), which only `workflow_call`s `CorpFlowAI Cursor Factory Handoff` when eligible work + WIP exist.
 
 ## What "healthy" means
 
