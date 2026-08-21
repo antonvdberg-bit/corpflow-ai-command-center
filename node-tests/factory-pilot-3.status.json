@@ -1,0 +1,34 @@
+{
+  "schema": "corpflow.factory_pilot_3.v1",
+  "pilot": "factory-pilot-3",
+  "sourceIssue": 1028,
+  "controllerIssue": 1023,
+  "priorPilotIssue": 1027,
+  "priorPilotPr": 1031,
+  "preApprovalBlocked": true,
+  "preApprovalLabels": [
+    "execution:paused",
+    "dispatch:operator-review",
+    "dispatch:cursor-ready",
+    "priority:P0"
+  ],
+  "preApprovalNonSelectionEvidence": {
+    "initialLabeledAt": "2026-08-21T02:14:20Z",
+    "pilot2HandoffRunId": "32465439603",
+    "pausedSiblingRecordedAs": 1028
+  },
+  "durableApprovalMarker": "APPROVAL: PILOT 3",
+  "durableApprovalCommentAt": "2026-08-21T12:06:44Z",
+  "durableApprovalAuthor": "antonvdberg-bit",
+  "executionPausedUnlabeledAt": "2026-08-21T12:06:50Z",
+  "operatorReviewUnlabeledAt": "2026-08-21T12:06:55Z",
+  "wakeReason": "execution_unpaused",
+  "wakePath": "event_execution_unpaused",
+  "handoffRunId": "32480334189",
+  "handoffWorkflow": "CorpFlowAI Cursor Factory Handoff",
+  "staleOrphanSyntheticIssue": 10280,
+  "staleClaimDoesNotHoldCapacity": true,
+  "protectedAction": false,
+  "stopAtOperatorReview": true,
+  "notes": "Harmless synthetic proof that #1028 stayed non-selected while execution:paused + operator-review were present, resumed only after the exact durable marker APPROVAL: PILOT 3, and that a synthetic stale/orphan claim does not hold genuine Cursor WIP. No app/runtime, secrets, DB, deploy, send, or merge."
+}
