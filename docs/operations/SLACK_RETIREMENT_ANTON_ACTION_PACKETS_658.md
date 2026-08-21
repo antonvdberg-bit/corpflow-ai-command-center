@@ -1,12 +1,27 @@
 # Slack retirement — Anton action packets (issue #658)
 
-**Status:** Anton-only execution packets (repo cannot perform these steps).  
+**Status:** Historical Anton-only live-cutover packets. Repo/runtime reintroduction is now CI-guarded.  
 **Issue:** [#658](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/658)  
 **Companion audit:** `docs/operations/SLACK_TELEGRAM_DEPENDENCY_AUDIT_658.md`  
 **Approved exception route after Slack:** Telegram (exception-only) + GitHub as durable source of truth.  
 **Anchor:** `<!-- SLACK_RETIREMENT_ANTON_PACKETS_658 -->`
 
 <!-- SLACK_RETIREMENT_ANTON_PACKETS_658 -->
+
+## 2026-08-20 restart — what remains for Anton
+
+The 2026-08-20 implementation PR removes remaining **repo** Slack reintroduction paths and adds `npm run check:slack-retirement`. That work does **not** mutate live env/secrets, n8n, or the Slack workspace.
+
+Prior operator close-out (2026-08-17) already recorded: n8n Slack workflow archived/retired, Slack credential removed, no active n8n Slack nodes, no server Slack process.
+
+**Anton action for the implementation PR: MERGE only.**
+
+Optional later desk work (protected; not required to merge):
+
+- unused vault/Vercel Slack-named env revocation if any still exist (Packet D);
+- Slack workspace archive/delete (Packet E).
+
+Do not treat those optional desk steps as a factory execution blocker.
 
 ## When to run
 

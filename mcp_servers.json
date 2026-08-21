@@ -63,18 +63,6 @@
       "env": {}
     },
     {
-      "name": "slack",
-      "description": "RETIRED — Slack removed from CorpFlow ops (issue #658). Entry kept for MCP template compatibility only.",
-      "transport": "stdio",
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-slack"],
-      "enabled": false,
-      "env": {
-        "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}",
-        "SLACK_TEAM_ID": "${SLACK_TEAM_ID}"
-      }
-    },
-    {
       "name": "custom-http",
       "description": "Example HTTP/Streamable HTTP server",
       "transport": "http",
