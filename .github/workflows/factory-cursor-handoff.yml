@@ -14,7 +14,10 @@
 # - Cursor webhook URL/auth stay in GitHub Actions secrets and are never logged.
 # - Fail closed when there is no real eligible handoff so MODE B does not wake.
 # - Reuses factory eligibility / verified WIP logic; does not build a second dispatcher.
-# - Schedule is intentionally omitted (not the primary wake path).
+# - Schedule is intentionally omitted here (not the primary wake path).
+#   Whole-queue missed-event reconciliation is factory-queue-reconcile.yml
+#   (#1023), which workflow_calls this workflow only when eligible work + WIP
+#   exist. Empty scheduled successes must never happen on THIS named workflow.
 
 name: CorpFlowAI Cursor Factory Handoff
 
@@ -39,7 +42,7 @@ on:
         default: ""
         type: string
       wake_reason:
-        description: "capacity_released | claim_released_continuation"
+        description: "capacity_released | claim_released_continuation | scheduled_reconciliation"
         required: false
         default: capacity_released
         type: string
@@ -64,10 +67,14 @@ concurrency:
 
 jobs:
   handoff:
-    # Eligibility / capacity wakes only. Bot lifecycle labels must not wake.
+    # Eligibility / capacity / scheduled-reconcile wakes only. Bot lifecycle labels must not wake.
     # issue_comment: structured authorization markers only; ignore [bot] actors.
-    # workflow_call: capacity backfill from Cursor agent lifecycle status.
-    # No schedule primary path — empty scheduled successes must not wake Automation.
+    # workflow_call: capacity backfill from Cursor agent lifecycle status, or
+    # scheduled whole-queue reconcile (#1023).
+    # No schedule primary path on this named workflow — empty scheduled successes
+    # must not wake Automation. The thin factory-queue-reconcile.yml wrapper
+    # owns the 10-minute cadence and only calls this workflow when a real
+    # eligible issue exists.
     if: >-
       github.event_name == 'workflow_dispatch' ||
       github.event_name == 'workflow_call' ||

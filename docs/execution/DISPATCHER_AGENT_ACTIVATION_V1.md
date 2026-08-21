@@ -24,7 +24,7 @@ Posting to Operator Bridge **#249**, Telegram, or n8n **comments** alone was **n
 
 | Layer | Choice |
 |-------|--------|
-| **Orchestrator** | **L2 GitHub Actions** — **production:** `CorpFlowAI Cursor Factory Handoff` (eligibility events + capacity `workflow_call`). **This API activator:** manual `workflow_dispatch` only (#930) |
+| **Orchestrator** | **L2 GitHub Actions** — **production:** `CorpFlowAI Cursor Factory Handoff` (eligibility events + capacity `workflow_call` + #1023 scheduled whole-queue `workflow_call`). **This API activator:** manual `workflow_dispatch` only (#930) |
 | **Input** | `GET /api/factory/business-operations-dispatcher` (Bearer `CORPFLOW_CRON_SECRET`) |
 | **`owner=cursor`** | **Cursor Cloud Agents API** (`POST /v1/agents`, `autoCreatePR`) — Phase 3+ |
 | **`owner=codex`** | **Codex Cloud** (GitHub App / task dispatch) — Phase 4+, blocked on Packet 7.2 install |
