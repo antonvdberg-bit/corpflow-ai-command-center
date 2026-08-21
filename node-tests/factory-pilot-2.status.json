@@ -1,0 +1,17 @@
+{
+  "schema": "corpflow.factory_pilot_2.v1",
+  "pilot": "factory-pilot-2",
+  "sourceIssue": 1027,
+  "controllerIssue": 1023,
+  "priorPilotIssue": 1026,
+  "priorPilotPr": 1030,
+  "priorPilotTerminalState": "operator-review",
+  "pickedAfterCapacityRelease": true,
+  "wakeReason": "execution_unpaused",
+  "wakePath": "event_execution_unpaused",
+  "handoffRunId": "32465439603",
+  "handoffWorkflow": "CorpFlowAI Cursor Factory Handoff",
+  "pausedSiblingIssue": 1028,
+  "protectedAction": false,
+  "notes": "Harmless synthetic proof that after factory pilot 1/3 reached operator-review and released genuine Cursor WIP, Handoff selected #1027 without Anton re-prompting. No app/runtime, secrets, DB, deploy, send, or merge."
+}
