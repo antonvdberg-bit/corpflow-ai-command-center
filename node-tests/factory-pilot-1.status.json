@@ -3,7 +3,7 @@
   "pilot": "factory-pilot-1",
   "sourceIssue": 1026,
   "controllerIssue": 1023,
-  "phase": "intentional-red",
+  "phase": "corrected-green",
   "protectedAction": false,
-  "notes": "First PR state is intentional-red so Agent CI records exactly one isolated assertion mismatch. The CI failure Cursor supervisor must change phase to corrected-green only. No app/runtime, secrets, DB, deploy, send, or merge."
+  "notes": "Bounded CI repair: phase changed from intentional-red to corrected-green only after Agent CI run 32439384899 recorded the isolated AssertionError. Opening head 3136260dc9e93e6373588149c60ff270d8ddfd8a stayed red by design. No app/runtime, secrets, DB, deploy, send, or merge."
 }

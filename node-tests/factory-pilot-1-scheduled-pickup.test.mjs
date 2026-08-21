@@ -1,12 +1,10 @@
 /**
  * Factory pilot 1/3 (#1026) — isolated repo-only proof fixture.
  *
- * FIRST PR STATE IS INTENTIONALLY RED.
- * `factory-pilot-1.status.json` starts at phase `intentional-red` while the
- * bounded-correction assertion requires `corrected-green`. Do not fix that
- * mismatch in the opening commit. Agent CI must record this one isolated
- * AssertionError, then the existing CI failure Cursor supervisor must return
- * to the same workstream and change only the fixture phase.
+ * Opening head 3136260dc9e93e6373588149c60ff270d8ddfd8a was intentionally red
+ * (`phase: intentional-red`). Agent CI 32439384899 recorded that isolated
+ * AssertionError. This repair changes only the fixture phase to
+ * `corrected-green` on the same PR branch.
  */
 
 import assert from 'node:assert/strict';
@@ -51,5 +49,14 @@ describe('Factory pilot 1/3 scheduled pickup + bounded CI correction (#1026)', (
       'corrected-green',
       'CI supervisor must change factory-pilot-1.status.json phase from intentional-red to corrected-green only',
     );
+  });
+
+  it('keeps durable evidence of the intentional-red Agent CI failure then bounded correction', () => {
+    const evidence = readFileSync(path.join(REPO_ROOT, EVIDENCE_REL), 'utf8');
+    assert.match(evidence, /3136260dc9e93e6373588149c60ff270d8ddfd8a/);
+    assert.match(evidence, /32439384899/);
+    assert.match(evidence, /intentional-red/);
+    assert.match(evidence, /corrected-green/);
+    assert.match(evidence, /#1030/);
   });
 });

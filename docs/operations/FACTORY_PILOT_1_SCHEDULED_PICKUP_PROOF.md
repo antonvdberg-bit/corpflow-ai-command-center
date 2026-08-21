@@ -1,6 +1,6 @@
 # Factory pilot 1/3 — scheduled pickup + bounded CI correction
 
-**Status:** first PR state — intentional isolated red  
+**Status:** bounded CI repair applied — awaiting Agent CI green  
 **Source issue:** [#1026](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1026)  
 **Controller:** [#1023](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1023)  
 **Environment:** `n/a` (synthetic repository-only proof)
@@ -19,7 +19,7 @@
 | Path | Role |
 |------|------|
 | `node-tests/factory-pilot-1.status.json` | Harmless phase fixture (`intentional-red` → `corrected-green`) |
-| `node-tests/factory-pilot-1-scheduled-pickup.test.mjs` | Isolated node:test. One passing isolation check; one intentional first-PR AssertionError |
+| `node-tests/factory-pilot-1-scheduled-pickup.test.mjs` | Isolated node:test. Isolation + corrected-green invariant + durable red→green evidence |
 | `docs/operations/FACTORY_PILOT_1_SCHEDULED_PICKUP_PROOF.md` | This evidence note |
 
 Do **not** change application/runtime code, secrets, schema, deploy, messaging, payment, or outreach to complete this pilot.
@@ -38,20 +38,18 @@ Do **not** change application/runtime code, secrets, schema, deploy, messaging, 
 
 ## Sequence
 
-| Step | Expected | Recorded in this commit |
-|------|----------|-------------------------|
-| 1. First PR head | `phase: intentional-red`; Agent CI fails only the bounded-correction assertion | YES — opening state |
-| 2. Agent CI failure run | Isolated `AssertionError` in `node-tests/factory-pilot-1-scheduled-pickup.test.mjs` | pending (this opening commit must stay red) |
-| 3. CI supervisor repair | Same workstream; change `phase` to `corrected-green` only | pending |
-| 4. Agent CI green | Isolation test + corrected-green assertion both pass | pending |
+| Step | Expected | Recorded |
+|------|----------|----------|
+| 1. First PR head | `phase: intentional-red`; Agent CI fails only the bounded-correction assertion | YES — `3136260dc9e93e6373588149c60ff270d8ddfd8a` |
+| 2. Agent CI failure run | Isolated `AssertionError` in `node-tests/factory-pilot-1-scheduled-pickup.test.mjs` | YES — [32439384899](https://github.com/antonvdberg-bit/corpflow-ai-command-center/actions/runs/32439384899) (`actual 'intentional-red'` / `expected 'corrected-green'`) |
+| 3. CI supervisor repair | Same workstream / same PR `#1030`; change `phase` to `corrected-green` only | YES — this commit |
+| 4. Agent CI green | Isolation test + corrected-green assertion both pass | pending on this repair head |
 | 5. Operator review | No merge | stop here |
 
 ## Protected actions
 
 None. This packet is docs + isolated test fixtures only.
 
-## Final verdict (after green CI)
+## Final verdict
 
-Fill after the supervisor correction:
-
-`PILOT 1 READY FOR REVIEW` or `PILOT 1 BLOCKED — <one exact blocker>`
+`PILOT 1 READY FOR REVIEW` once Agent CI is green on this repair head. No merge. No protected action crossed.
