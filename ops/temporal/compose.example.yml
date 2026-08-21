@@ -1,0 +1,78 @@
+# EXAMPLE ONLY — Temporal POC scaffold (#1025)
+#
+# Canonical evidence: docs/operations/TEMPORAL_HOST_FEASIBILITY_EVIDENCE_1025.md
+# Preflight: docs/runbooks/TEMPORAL_SELF_HOSTED_POC_PREFLIGHT.md
+#
+# This file is NOT production compose and must NOT be auto-deployed.
+# Do NOT run it on corpflow-exec-01-u69678 until a live L3 preflight
+# proves MemAvailable >= 4 GiB and free disk >= 20 GiB.
+# Preferred first host while exec-01 headroom is unproven: a dedicated
+# Hetzner CX32 sibling VM (Anton payment decision — not this packet).
+#
+# Hard rules encoded here:
+# - Isolated compose project `corpflowai-temporal`
+# - Dedicated Temporal Postgres (never Neon / POSTGRES_URL)
+# - Loopback binds only (127.0.0.1:7233 and 127.0.0.1:8233)
+# - CPU/RAM limits on every service
+# - No Elasticsearch, no public UI, no CorpFlow secrets
+# - Local-only placeholder DB password; generate on the host, never commit a real value
+
+name: corpflowai-temporal
+
+services:
+  corpflowai-temporal-db:
+    image: postgres:16.6-alpine
+    container_name: corpflowai-temporal-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: temporal
+      POSTGRES_PASSWORD: ${TEMPORAL_POC_DB_PASSWORD:-change-me-local-only}
+      POSTGRES_DB: temporal
+    volumes:
+      - corpflowai-temporal-pgdata:/var/lib/postgresql/data
+    # No host port. Temporal talks to this over the compose network only.
+    mem_limit: 512m
+    cpus: "0.50"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U temporal -d temporal"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  corpflowai-temporal:
+    image: temporalio/auto-setup:1.27.2
+    container_name: corpflowai-temporal
+    restart: unless-stopped
+    depends_on:
+      corpflowai-temporal-db:
+        condition: service_healthy
+    environment:
+      DB: postgres12
+      DB_PORT: 5432
+      POSTGRES_USER: temporal
+      POSTGRES_PWD: ${TEMPORAL_POC_DB_PASSWORD:-change-me-local-only}
+      POSTGRES_SEEDS: corpflowai-temporal-db
+      DYNAMIC_CONFIG_FILE_PATH: config/dynamicconfig/development-sql.yaml
+    ports:
+      - "127.0.0.1:7233:7233"
+    mem_limit: 1g
+    cpus: "1.00"
+
+  corpflowai-temporal-ui:
+    image: temporalio/ui:2.31.2
+    container_name: corpflowai-temporal-ui
+    restart: unless-stopped
+    depends_on:
+      - corpflowai-temporal
+    environment:
+      TEMPORAL_ADDRESS: corpflowai-temporal:7233
+      TEMPORAL_CORS_ORIGINS: http://127.0.0.1:8233
+    ports:
+      - "127.0.0.1:8233:8080"
+    mem_limit: 256m
+    cpus: "0.25"
+
+volumes:
+  corpflowai-temporal-pgdata:
+    name: corpflowai-temporal-pgdata
