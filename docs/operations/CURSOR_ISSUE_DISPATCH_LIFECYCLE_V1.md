@@ -3,7 +3,7 @@
 **Status:** Production execution is **CorpFlowAI Cursor Factory Handoff** → Cursor Automation **CorpFlowAI Factory Wake Proof** / MODE B (#913 / merged PR #914 / #930). The Background Agents API workflow `factory-dispatcher-activate.yml` is **LEGACY / DIAGNOSTIC / NOT PRODUCTION EXECUTION** (`workflow_dispatch` only).
 **Owner:** Anton (policy); Cursor (implementation).
 **Created:** 2026-07-28.
-**Updated:** 2026-08-21 (#1023 — 10-minute whole-queue reconciliation fallback).
+**Updated:** 2026-08-21 (#1032 — Temporal Phase 1 repo wrapper; #1023 fallback retained).
 **Implements:** Operator urgent change — Cursor must discover/claim `dispatch:cursor-ready` issues with strict segregation.
 **Anchor sentinel:** `<!-- CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1 -->`
 
@@ -35,6 +35,7 @@ Consolidation is allowed only when explicitly justified and safe.
 | `scripts/dispatcher-agent-activation.mjs` | Cursor Cloud activation (legacy API diagnostic path) |
 | `scripts/factory-cursor-handoff.mjs` / `lib/server/factory-cursor-handoff.js` | Select one eligible issue, encode handoff packet/comment, fail closed when no handoff (#913) |
 | `scripts/factory-queue-reconcile.mjs` / `lib/server/factory-queue-reconcile.js` | 10-minute whole-queue gate: decide whether to `workflow_call` Handoff (#1023). Never posts Cursor webhook / issue comments / Telegram |
+| `lib/server/factory-temporal-phase1.js` | **Temporal Phase 1 (#1032)** — repo-only supervisory workflow that may *request* Handoff. Not a second dispatcher. Live worker on `corpflow-exec-01` is an L3 credential action and is not started by the repo packet. Canonical: `docs/operations/TEMPORAL_FACTORY_PHASE1_V1.md` |
 | `lib/server/cursor-ops-status.js` | Issue comment posting + Control Tower status (existing) |
 | **`lib/server/cursor-issue-dispatch-lifecycle.js`** | Classification, WIP, segregation, comment templates (**this packet**) |
 | **`lib/server/cursor-ready-event-dispatch.js`** | Exact-label + eligibility-wake predicates + effective target resolution (consumed by Handoff in production) |
@@ -169,6 +170,7 @@ Semantics:
 | **Primary — queue control** | `issues:unlabeled` `execution:paused`, or `issues:labeled` `priority:P0\|P1\|P2` while issue already has `dispatch:cursor-ready` → **Handoff** |
 | **Primary — capacity backfill** | Lifecycle status reaches terminal/operator-review and releases verified WIP → **`workflow_call`s CorpFlowAI Cursor Factory Handoff** (full priority scan). Does **not** wake the legacy API dispatcher |
 | **Fallback — whole-queue reconcile (#1023)** | `CorpFlowAI Factory Queue Reconcile` every **10 minutes** (`*/10 * * * *`) scans GitHub ready/claimed state. If eligible work exists and verified WIP has a free slot, it **`workflow_call`s Handoff** (`wake_reason=scheduled_reconciliation`). No eligible work / paused / operator-review / WIP full / recent duplicate handoff → **silent success, no Cursor wake**. Event-driven Handoff triggers remain primary |
+| **Repo-only Temporal wrap (#1032)** | `lib/server/factory-temporal-phase1.js` may request the same Handoff after GitHub eligibility/WIP checks. It does **not** wake Cursor itself. Keep #1023 until a live Temporal timer on `corpflow-exec-01` is separately approved |
 | Diagnostic only | `factory-dispatcher-activate.yml` `workflow_dispatch` — Background Agents API smoke; **not** production execution |
 
 **Internal SLA:** eligible queued work should normally begin within **5 minutes** of an eligibility-changing event (`ELIGIBILITY_WAKE_SLA_MINUTES`) via Handoff → Wake Proof. The named Handoff workflow has **no** `schedule:` trigger (empty scheduled successes must not wake Automation). Missed-event / orphan recovery is the thin `#1023` reconciler, which only calls Handoff when a real eligible issue exists.

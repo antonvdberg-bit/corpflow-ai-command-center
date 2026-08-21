@@ -40,6 +40,7 @@ What we chose (one paragraph).
 
 | Date | Topic | File |
 |------|--------|------|
+| 2026-08-21 | Temporal Factory Phase 1 — wrap GitHub/Cursor Handoff; live worker not started (#1032) | `20260821-temporal-factory-phase1.md` |
 | 2026-08-20 | ERPNext WP2 Lead → Opportunity → Customer lifecycle bridge — synthetic search-before-create (#1018) | `20260820-erpnext-sales-lifecycle-bridge.md` |
 | 2026-08-19 | ERPNext WP1 Customer bridge — synthetic search-before-create (#1009) | `20260819-erpnext-customer-bridge.md` |
 | 2026-08-16 | ERPNext business-critical due diligence — platform APPROVED WITH CONDITIONS; irreplaceable trust still gated on #956 (#959) | `docs/governance/erpnext/ERPNEXT_BUSINESS_CRITICAL_DUE_DILIGENCE_V1.md` (`JE-2026-08-16-1`) |

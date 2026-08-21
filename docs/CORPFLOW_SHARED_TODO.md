@@ -107,6 +107,7 @@ Canonical operator view for genuine Anton decisions: **`docs/operations/ANTON_DE
 
 ## P1 — Execution off laptop (see `docs/EXECUTION_BRAIN_VS_HANDS.md`)
 
+- **Factory Temporal Phase 1 (#1032):** Repo-only supervisory wrapper around the existing GitHub → **CorpFlowAI Cursor Factory Handoff** loop. Canonical: **`docs/operations/TEMPORAL_FACTORY_PHASE1_V1.md`**. Synthetic proofs A–J. Does not start a live Temporal worker. #1023 10-minute reconcile stays until an L3 timer is proven. (`JE-2026-08-21-1`.)
 - **Factory whole-queue reconcile (#1023):** `.github/workflows/factory-queue-reconcile.yml` every 10 minutes scans GitHub ready work and, only when eligible + WIP permits, `workflow_call`s the existing **CorpFlowAI Cursor Factory Handoff**. Empty scans stay silent. Canonical: **`docs/operations/CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1.md`**. Not a second dispatcher.
 - Scheduled **GitHub Action** `.github/workflows/factory-health-ping.yml` (Mondays UTC).
 - Set GitHub repo secret `**CORPFLOW_FACTORY_HEALTH_URL`** = **full** health URL, e.g. `https://corpflowai.com/api/factory/health`, so the ping hits prod.
