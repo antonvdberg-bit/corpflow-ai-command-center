@@ -50,6 +50,8 @@ Claim-before-API applies only to the legacy diagnostic API activator. Production
 
 When a poll reaches COMPLETED/FAILED/STALE and releases verified WIP capacity, this workflow sets `wake_dispatcher=true` and **`workflow_call`s** `CorpFlowAI Cursor Factory Handoff` for a full priority queue scan. Operator authorization comments and `execution:paused` removal also wake **Handoff** directly. Do **not** wake `factory-dispatcher-activate.yml` automatically — that API path is diagnostic `workflow_dispatch` only (#930). Do **not** ask Anton to toggle `dispatch:cursor-ready` or manually `workflow_dispatch` for ordinary continuation. Internal target: begin eligible work within **5 minutes** of the eligibility-changing event.
 
+Lifecycle still only discovers **already-claimed** Cursor issues. Ready work with no claimed run is recovered by **`CorpFlowAI Factory Queue Reconcile`** (`factory-queue-reconcile.yml`, #1023): a 10-minute thin scan that `workflow_call`s Handoff only when eligible work exists and verified WIP permits. Empty scans are silent. That wrapper is not a second dispatcher.
+
 ## Codex specialist (human-triggered)
 
 | Item | Path |
