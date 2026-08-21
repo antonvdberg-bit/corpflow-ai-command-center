@@ -1,0 +1,41 @@
+{
+  "schema": "corpflow.factory_pilot_4.v1",
+  "pilot": "factory-pilot-4",
+  "sourceIssue": 1035,
+  "controllerIssue": 1023,
+  "environment": "n/a",
+  "protectedAction": false,
+  "stopAtOperatorReview": true,
+  "createdAt": "2026-08-21T12:51:55Z",
+  "initialLabels": [
+    "priority:P0",
+    "dispatch:cursor-ready",
+    "dispatch:operator-review"
+  ],
+  "initialLabeledAt": "2026-08-21T12:51:56Z",
+  "operatorReviewUnlabeledAt": "2026-08-21T12:52:01Z",
+  "operatorReviewUnlabeledRunId": "32483949978",
+  "operatorReviewUnlabeledRunConclusion": "skipped",
+  "selectingHandoffWorkflow": "CorpFlowAI Cursor Factory Handoff",
+  "selectingHandoffRunId": "32483944130",
+  "selectingHandoffEvent": "issues",
+  "selectingWakeReason": "priority_changed",
+  "selectingWakePath": "event_priority_ready",
+  "selectingHandoffGeneratedAt": "2026-08-21T12:52:27.239Z",
+  "selectingHandoffCommentId": "5370025449",
+  "scheduledReconcileWorkflow": "CorpFlowAI Factory Queue Reconcile",
+  "scheduledReconcileWakeReasonExpected": "scheduled_reconciliation",
+  "scheduledReconcileWakePathExpected": "schedule_fallback",
+  "scheduledReconcileSelectedThisIssue": false,
+  "lastScheduledReconcileRunIdBeforeIssue": "32479630886",
+  "lastScheduledReconcileRunAt": "2026-08-21T11:58:03Z",
+  "siblingCancelledHandoffRunIds": [
+    "32483944439",
+    "32483945041"
+  ],
+  "cursorAgentId": "bc-40323463-2402-4ed8-ba7e-e14ff19a1b52",
+  "cursorAgentUrl": "https://cursor.com/agents/bc-40323463-2402-4ed8-ba7e-e14ff19a1b52",
+  "handoffGithubActionsRun": "32483944130",
+  "verdict": "SCHEDULED RECONCILIATION BLOCKED — selecting wake was issues/priority_changed (event_priority_ready) on Handoff run 32483944130, not workflow_call scheduled_reconciliation",
+  "notes": "Harmless synthetic proof. Creation-time priority:P0 + dispatch:cursor-ready started an event-driven Handoff while dispatch:operator-review still existed; operator-review was removed ~5s later, so the already-running scan selected #1035. unlabeled operator-review correctly skipped. Last scheduled reconcile 32479630886 predates issue creation. No app/runtime, secrets, DB, deploy, send, or merge."
+}
