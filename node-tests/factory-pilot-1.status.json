@@ -1,0 +1,9 @@
+{
+  "schema": "corpflow.factory_pilot_1.v1",
+  "pilot": "factory-pilot-1",
+  "sourceIssue": 1026,
+  "controllerIssue": 1023,
+  "phase": "intentional-red",
+  "protectedAction": false,
+  "notes": "First PR state is intentional-red so Agent CI records exactly one isolated assertion mismatch. The CI failure Cursor supervisor must change phase to corrected-green only. No app/runtime, secrets, DB, deploy, send, or merge."
+}
