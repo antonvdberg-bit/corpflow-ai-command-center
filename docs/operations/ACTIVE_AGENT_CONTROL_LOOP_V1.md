@@ -52,6 +52,8 @@ When a poll reaches COMPLETED/FAILED/STALE and releases verified WIP capacity, t
 
 Lifecycle still only discovers **already-claimed** Cursor issues. Ready work with no claimed run is recovered by **`CorpFlowAI Factory Queue Reconcile`** (`factory-queue-reconcile.yml`, #1023): a 10-minute thin scan that `workflow_call`s Handoff only when eligible work exists and verified WIP permits. Empty scans are silent. That wrapper is not a second dispatcher.
 
+**Temporal Phase 1 (#1032)** adds a supervisory wrapper (`docs/operations/TEMPORAL_FACTORY_PHASE1_V1.md`) for durable wait/resume. It may request Handoff; it must not replace Handoff, GitHub truth, or n8n exception-only notify. Cursor Cloud must not `workflow_dispatch` Handoff. Live Temporal worker start remains operator-paste L3 (`docs/runbooks/TEMPORAL_FACTORY_PHASE1_LIVE_ACTIVATION.md`).
+
 ## Codex specialist (human-triggered)
 
 | Item | Path |
