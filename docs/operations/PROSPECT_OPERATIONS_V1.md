@@ -1,6 +1,6 @@
 # Prospect Operations v1 — shared package contract (#721)
 
-**Status:** Slice 1 shipped. Slice 2 shared detail/action layer shipped in Operating Workspace (`/app/prospects/[id]`, #994). Slice 3 shared Prospect Workbench shipped (`/app/workbench`, #996). Action Queue and Postgres Kanban remain later. **No schema. No env. No deploy. No external send.**
+**Status:** Slice 1 shipped. Slice 2 shared detail/action layer shipped (`/app/prospects/[id]`, #994). Slice 3 shared Prospect Workbench shipped (`/app/workbench`, #996). Slice 3 Pipeline Kanban shipped in Operating Workspace (`/app/pipeline`, #997). Action Queue remains later if not already shipped. **No schema. No env. No deploy. No external send.**
 
 **Issue:** #721 · Parent doctrine #720 · Revenue programme #710–#716 · Baseline PR #708
 
@@ -72,13 +72,12 @@
 
 | Layer | Path |
 | ----- | ---- |
-| Route | `/change/revenue` |
-| Page / UI | `pages/change/revenue.js` (`RevenueOperatorCockpit`, page-local) |
-| Persistence | Browser `localStorage` key `corpflow.revenue.cockpit.v1` |
-| Live desk links | Points operators to `/admin/rapid-delivery` and `/admin/lead-rescue` |
-| Authoritative DB | **Not wired** — sample/manual cards only |
+| Canonical route | `/app/pipeline` |
+| Canonical API | `GET /api/app/pipeline` (stage writes: `PATCH /api/app/prospect`) |
+| Persistence | Same Postgres `leads` rows as Prospect Operations |
+| Legacy checklist | `/change/revenue` — browser `localStorage` key `corpflow.revenue.cockpit.v1` (not canonical) |
 
-**Primary question today:** Where is the sell→deliver lane checklist? (Not yet the same Postgres records.)
+**Primary question today:** Where is this prospect in the shared sell cycle, and can I move it safely?
 
 ### Related surfaces (out of shared package unless later approved)
 
@@ -236,7 +235,7 @@ Protected (blocked in shared helper): external send, authoritative payment mark,
 
 - Action Queue: later dedicated `/app/queue` (or Rapid Delivery desk until #995 merges).
 - Prospect Workbench: **shipped in Operating Workspace (#996)** at `/app/workbench` + `GET /api/app/workbench`. Grid is extracted from Lead Rescue branding. Rows open `#994` `/app/prospects/[id]`. Safe inline edits reuse `PATCH /api/app/prospect`. Temporary product desk remains at `/admin/lead-rescue`.
-- Kanban: replace `/change/revenue` localStorage authoritative cards with Postgres-backed lanes using `canonical_stage`, keeping localStorage only as optional personal checklist if still useful.
+- Kanban: **shipped in Operating Workspace (#997)** at `/app/pipeline`. `/change/revenue` localStorage remains an optional personal checklist only.
 - All three call the same patch adapters → same `leads` rows.
 
 ### Slice 4 — exceptions + cross-view verification
@@ -286,7 +285,7 @@ Protected (blocked in shared helper): external send, authoritative payment mark,
 
 P0 applies the **smallest shared semantic tokens** (status/priority labels, signal names, action patterns) via the view-model + thin CSS variables in `components/prospect-ops/` in later slices. Full CorpFlowAI Operating Workspace shell is doctrine-owned by #720 / #772 and must not delay function.
 
-**#772 first visible route:** `/app/prospects` (Operating Workspace, staff-only) reuses this view-model. **#772 Today / My Work:** `/app/today` applies `matchesMyWorkTodayFilter` to the same list. **#994 shared detail:** `/app/prospects/[id]`. **#996 Prospect Workbench:** `/app/workbench` (Lead Rescue, Website Rescue, and general enquiries; product grid at `/admin/lead-rescue` reduced to a temporary desk). Product desks at `/admin/lead-rescue` and `/admin/rapid-delivery` remain temporary sources until later slices. See `docs/architecture/OPERATING_TENANT_WORKSPACE_CONSOLIDATION_V1.md`.
+**#772 first visible route:** `/app/prospects` (Operating Workspace, staff-only) reuses this view-model. **#772 Today / My Work:** `/app/today` applies `matchesMyWorkTodayFilter` to the same list. **#994 shared detail:** `/app/prospects/[id]`. **#996 Prospect Workbench:** `/app/workbench` (Lead Rescue, Website Rescue, and general enquiries; product grid at `/admin/lead-rescue` reduced to a temporary desk). **#997 Pipeline:** `/app/pipeline`. Product desks at `/admin/lead-rescue` and `/admin/rapid-delivery` remain temporary sources until later slices. See `docs/architecture/OPERATING_TENANT_WORKSPACE_CONSOLIDATION_V1.md`.
 
 ---
 

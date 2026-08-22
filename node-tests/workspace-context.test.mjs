@@ -5,6 +5,7 @@ import { CORE_NAV_ITEMS, TENANT_NAV_ITEMS } from '../lib/app/constants.js';
 import {
   OPERATING_WORKSPACE_LABEL,
   PROSPECT_OPERATIONS_PATH,
+  PROSPECT_PIPELINE_PATH,
   PROSPECT_WORKBENCH_PATH,
   TENANT_WORKSPACE_LABEL,
   TODAY_MY_WORK_PATH,
@@ -12,16 +13,20 @@ import {
   canAccessOperatingWorkspace,
   classifyWorkspaceSurface,
   isProspectOperationsPath,
+  isProspectPipelinePath,
   isProspectSharedDetailPath,
   isProspectWorkbenchPath,
   isTodayMyWorkPath,
   navIncludesProspectOperations,
+  navIncludesProspectPipeline,
   navIncludesProspectWorkbench,
   navIncludesTodayMyWork,
   operatingNavIncludesProspectOperations,
+  operatingNavIncludesProspectPipeline,
   operatingNavIncludesProspectWorkbench,
   operatingNavIncludesTodayMyWork,
   tenantNavOmitsProspectOperations,
+  tenantNavOmitsProspectPipeline,
   tenantNavOmitsProspectWorkbench,
   tenantNavOmitsTodayMyWork,
   workspaceChromeForEnvironment,
@@ -83,6 +88,22 @@ describe('workspace-context — prospect ops boundary', () => {
   });
 });
 
+describe('workspace-context — Prospect Pipeline boundary', () => {
+  it('recognises the Prospect Pipeline route', () => {
+    assert.equal(isProspectPipelinePath('/app/pipeline'), true);
+    assert.equal(isProspectPipelinePath('/api/app/pipeline'), true);
+    assert.equal(isProspectPipelinePath('/app/prospects'), false);
+    assert.equal(PROSPECT_PIPELINE_PATH, '/app/pipeline');
+  });
+
+  it('includes Pipeline on Operating Workspace nav and omits it from Tenant nav', () => {
+    assert.equal(operatingNavIncludesProspectPipeline(), true);
+    assert.equal(tenantNavOmitsProspectPipeline(), true);
+    assert.equal(navIncludesProspectPipeline(CORE_NAV_ITEMS), true);
+    assert.equal(navIncludesProspectPipeline(TENANT_NAV_ITEMS), false);
+  });
+});
+
 describe('workspace-context — Today / My Work boundary', () => {
   it('recognises the Today / My Work landing', () => {
     assert.equal(isTodayMyWorkPath('/app/today'), true);
@@ -123,6 +144,7 @@ describe('workspace-context — surface matrix', () => {
     assert.equal(classifyWorkspaceSurface('/app/tenant')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/app/prospects')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/app/today')?.disposition, 'CANONICAL');
+    assert.equal(classifyWorkspaceSurface('/app/pipeline')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/app/workbench')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/app/prospects/syn-772-lr-ada')?.path, '/app/prospects/[id]');
     assert.equal(classifyWorkspaceSurface('/admin/rapid-delivery')?.disposition, 'MIGRATE');
