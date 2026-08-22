@@ -109,6 +109,7 @@ Canonical operator view for genuine Anton decisions: **`docs/operations/ANTON_DE
 ## P1 — Execution off laptop (see `docs/EXECUTION_BRAIN_VS_HANDS.md`)
 
 - **Factory whole-queue reconcile (#1023):** `.github/workflows/factory-queue-reconcile.yml` every 10 minutes scans GitHub ready work and, only when eligible + WIP permits, `workflow_call`s the existing **CorpFlowAI Cursor Factory Handoff**. Empty scans stay silent. Canonical: **`docs/operations/CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1.md`**. Not a second dispatcher.
+- **Grok 4.6 bounded factory pilot (#1038):** Repo-only evaluation of Cursor Grok 4.6 as an executor/reviewer model on the existing Factory Automation path. Verdict: **GROK 4.6 PILOT PASS — USE SELECTIVELY FOR LONG-HORIZON/HIGH-COMPLEXITY CURSOR WORK**. No Ultra, no Grok Bot, no second dispatcher. Canonical: **`docs/operations/GROK_46_FACTORY_PILOT_V1.md`**. (`JE-2026-08-22-1`.)
 - Scheduled **GitHub Action** `.github/workflows/factory-health-ping.yml` (Mondays UTC).
 - Set GitHub repo secret `**CORPFLOW_FACTORY_HEALTH_URL`** = **full** health URL, e.g. `https://corpflowai.com/api/factory/health`, so the ping hits prod.
   - **Vercel (Technical Lead):** you may set the **same string** in `CORPFLOW_FACTORY_HEALTH_URL` / `FACTORY_HEALTH_URL` — the observer accepts **origin** or **full** `/api/factory/health` (no double path). See `docs/VERCEL_DEPLOYMENT.md`.
