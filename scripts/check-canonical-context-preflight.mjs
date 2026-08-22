@@ -3,8 +3,16 @@
 import fs from 'node:fs';
 
 const ACTIVATION_CUTOFF = new Date('2026-08-10T06:19:00Z');
+const ALLOWED_ENVIRONMENTS = new Set(['corpflow_test', 'client_production', 'local', 'n/a']);
 const createdAtRaw = String(process.env.PR_CREATED_AT || '').trim();
 const prBody = String(process.env.PR_BODY || '');
+
+function resolveAcknowledgedEnvironment(body) {
+  const matches = [...String(body).matchAll(/Environment:\s*([^\n\r]+)/gi)].map((match) =>
+    match[1].trim().toLowerCase(),
+  );
+  return matches.find((value) => ALLOWED_ENVIRONMENTS.has(value)) || null;
+}
 
 if (createdAtRaw) {
   const createdAt = new Date(createdAtRaw);
@@ -51,10 +59,11 @@ if (version !== currentVersion) {
   process.exit(1);
 }
 
-const environment = prBody.match(/Environment:\s*([^\n\r]+)/i)?.[1]?.trim().toLowerCase();
-const allowed = new Set(['corpflow_test', 'client_production', 'local', 'n/a']);
-if (!environment || !allowed.has(environment)) {
-  console.error(`Canonical Context Preflight FAIL: Environment must be one of ${[...allowed].join(', ')}`);
+const environment = resolveAcknowledgedEnvironment(prBody);
+if (!environment) {
+  console.error(
+    `Canonical Context Preflight FAIL: Environment must be one of ${[...ALLOWED_ENVIRONMENTS].join(', ')}`,
+  );
   process.exit(1);
 }
 
