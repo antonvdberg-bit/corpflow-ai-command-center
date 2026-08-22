@@ -67,7 +67,7 @@ Do **not** treat Vercel “Production” or a CorpFlowAI-hosted URL as `client_p
 | 0 | Programme charter and decision record | **PARTIAL** | Strategy and gates are approved. Decision/risk/control registers and the ERPNext programme Project are still missing (`#954` / `#966`). |
 | 1 | Environment and platform baseline | **PARTIAL** | Three ERPNext surfaces are documented. Versions are known. Security/backup/DR are **not** proven. Which surface is the future system of record is still a decision. |
 | 2 | Company foundation | **PARTIAL** | Legal identity, MUR company currency, and letterhead read-back exist on hosted test. Chart of Accounts, tax, fiscal year, and production naming series wait on the accountant / Anton. |
-| 3 | Identity, access, segregation of duties | **PARTIAL** | `integrations@corpflowai.com` works. Several Role Permission grants were UI-only. 2FA and admin governance are unread. `#899` `MASTER_ADMIN_KEY` is still present. |
+| 3 | Identity, access, segregation of duties | **PARTIAL** | `integrations@corpflowai.com` works and is **not** System Manager (#1019). JML runbook exists. 2FA and Administrator inventory remain unread (desk). `#899` `MASTER_ADMIN_KEY` is **absent** on 2026-08-20 Factory wakes (`JE-2026-08-20-2`). |
 | 4 | Master data | **PARTIAL** | Synthetic Customer/Contact/Address, Items/prices, and a website Project Template are proven. Suppliers, import rules, and real-client masters are not. |
 | 5 | Business process configuration | **PARTIAL** | Lead → Opportunity → Customer, draft Quotation/Invoice, Project/Task/Timesheet, and Issue are proven on hosted test. Nothing is submitted or sent. Buying/AP and workflows are not started. |
 | 6 | CorpFlowAI integration / reconciliation | **PARTIAL** | Policy and a mapping-only bridge exist. `#918` matrix is incomplete. No automated sync. CorpFlowAI CRM (`#701`) still owns the daily prospect pipeline. |
@@ -91,7 +91,7 @@ Ranked by business / revenue / control impact. Prestige is first so the programm
 | 2 | No formal ERPNext business-critical use verdict | Control | **NOT STARTED** | Execute `#959` docs research against Strategy v2 fit criteria | Cursor | **NO** for the research packet |
 | 3 | Backup / DR / security **NOT PROVEN** | Control — blocks treating ERPNext as irreplaceable | **PARTIAL** | Act on `#956` §6 P0 list; do not buy a DR server | Anton + provider | **YES** for restore, network, paid DR, secret changes |
 | 4 | Accountant has not signed CoA, VAT, or cutover | Control — blocks real invoices / books | **REQUIRES DECISION** | Send `docs/finance/ERPNEXT_ACCOUNTANT_REVIEW_PACK_V1.md`; record written answers | Accountant then Anton | **YES** — production accounting / tax |
-| 5 | `MASTER_ADMIN_KEY` still injected into ordinary Cursor Cloud runs | Security | **PARTIAL** — repo path corrected; Dashboard secret still present | Anton deletes the secret **name** in Cursor Dashboard; fresh run proves absence | Anton | **YES** — secret mutation (UI delete only) |
+| 5 | `MASTER_ADMIN_KEY` in ordinary Cursor Cloud runs | Security | **PROVEN** absent on 2026-08-20 Factory Automation wakes (#1010 / #1019). 2026-08-19 was **PRESENT**. | Keep the name out of Factory Automation secrets; do not re-inject | Anton | **YES** — secret mutation (UI add would be a regression) |
 | 6 | Client-facing quotation PDF is not yet the professional standard | Revenue / brand | **PARTIAL** — standard PDFs exist; branded Print Format missing | Design/test Print Format on hosted test; do not send | Cursor then Anton visual accept | **NO** until send |
 | 7 | `#918` source-of-truth matrix incomplete; no sync | Architecture | **PARTIAL** — bridge mapping only | Docs matrix for remaining CorpFlowAI stores; no automated write | Cursor | **NO** for the matrix |
 | 8 | Future system-of-record host is undecided (vendor-hosted v16 vs box sandbox/shell) | Control | **REQUIRES DECISION** | Anton names which ERPNext site will hold real books | Anton | **YES** if public DNS / exposure / paid hosting change |
@@ -103,7 +103,7 @@ Ranked by business / revenue / control impact. Prestige is first so the programm
 | Exact action | Why Anton | Do not wait to do |
 |--------------|-----------|-------------------|
 | Merge this PR | Human merge; factory must not self-merge | Reading and using the baseline |
-| Cursor Dashboard delete of secret **name** `MASTER_ADMIN_KEY` (`#899`) | UI-only secret change | Ordinary ERPNext API work |
+| Cursor Dashboard / Automation delete of secret **name** `MASTER_ADMIN_KEY` (`#899`) | UI-only secret change. 2026-08-13 Cloud Agents Secrets delete did not clear Factory Automation wakes | Ordinary ERPNext API work |
 | `#959` accept / reject / condition the due-diligence verdict once written | Formal business-critical decision | Writing the research packet |
 | `#956` P0 control choices (vendor backup proof, Neon PITR window, Monitor #14 timer, GitHub continuity) | Operator / billing / console access | Keeping the audit as the current truth |
 | Name the ERPNext site that will hold real books | Hosting / exposure / cost | Continue using hosted test as `corpflow_test` |
@@ -233,15 +233,15 @@ Each row is one material `#953` Phase 0–10 requirement.
 
 | ID | Requirement | Status | Evidence | Proven vs assumed | Remaining gap | Priority | Next smallest action | Owner | Protected? |
 |----|-------------|--------|----------|-------------------|---------------|----------|----------------------|-------|------------|
-| P3-1 | Named users | **PARTIAL** | `integrations@` proven; human user list not published | Partial | Named Anton / accountant users documented without emails in git if private | P1 | Inspect roles; do not dump user PII | Cursor | NO for inspect |
-| P3-2 | Role profiles | **PARTIAL** | Accounts profile; Sales Manager grant `#920`; sandbox Accountant Read-Only | Partial | Formal role matrix | P1 | `#966` control register | Cursor | NO |
+| P3-1 | Named users | **PARTIAL** | `#1019` `integrations@` GET User + `get_roles`. User list 2 enabled rows; other names not printed | Partial | Privileged human inventory is a desk click (WP6 control 3) | P0 | Anton User list; do not dump emails into git | Anton | YES for user create/disable |
+| P3-2 | Role profiles | **PARTIAL** | `#1019` effective roles match Accounts + Sales Manager; Role Profile field unread on User GET | Partial | Formal tighter profile if Stock/Purchase/Accounts Manager should drop | P1 | Do not mutate roles in this packet | Anton | YES to change Role Profile |
 | P3-3 | Role permissions | **PARTIAL** | Several grants were Administrator UI-only | Proven pattern | Remaining 403s: Workflow, Notification, Payment Terms, System Settings | P1 | Grant only when a packet needs it | Anton | YES if widening admin |
-| P3-4 | Privileged / admin accounts | **REQUIRES DECISION** | Integration user 403 on System Settings | Unread | Who holds System Manager; 2FA | P0 | Anton inspects desk; do not print secrets | Anton | YES |
-| P3-5 | API service identities | **PARTIAL** | Direct API secrets path `#899` | Path proven; least privilege incomplete | Item Price historically 403 until grant; Workflow still 403 | P1 | Keep integration user non-admin | Cursor | YES to rotate secrets |
-| P3-6 | 2FA | **NOT STARTED** / **NOT PROVEN** | `#956` | Unread (403) | Mandatory 2FA for privileged roles | P0 | Anton enables in desk | Anton | YES (security config) |
+| P3-4 | Privileged / admin accounts | **REQUIRES DECISION** | `#1019`: Has Role System Manager/Administrator HTTP 403; 2 User rows visible | Unread beyond “integration is not SM” | Who holds System Manager | P0 | Anton inspects desk User list; do not print secrets | Anton | YES |
+| P3-5 | API service identities | **PROVEN** (non-admin) | `#1019` `get_roles`: not Administrator / not System Manager | Path + non-admin proven | Extra Stock/Purchase/Accounts Manager reported | P1 | Keep integration user non-admin | Cursor | YES to rotate secrets |
+| P3-6 | 2FA | **NOT PROVEN** | `#1019` System Settings HTTP 403 | Unread | Mandatory 2FA for privileged roles | P0 | Anton records or enables in desk Security tab | Anton | YES (security config) |
 | P3-7 | User permissions / document restrictions | **NOT STARTED** | — | — | Needed before real client data | P1 | Design after `#959` | Cursor | NO for design |
-| P3-8 | Joiner / mover / leaver | **NOT STARTED** | — | — | One-human company; still write a 1-page procedure | P2 | Docs in `#966` | Cursor | NO |
-| P3-9 | `MASTER_ADMIN_KEY` out of ordinary Cloud runs | **PARTIAL** | `#899` INCOMPLETE | Presence proven 2026-08-12/14 | Dashboard delete + fresh-run absence | P0 | Anton UI delete | Anton | YES |
+| P3-8 | Joiner / mover / leaver | **PROVEN** (procedure) | `#1019` `docs/runbooks/ERPNEXT_JOINER_MOVER_LEAVER_V1.md` | Procedure proven; no leaver executed | Follow the runbook when a person changes | P2 | Anton owns clicks | Anton | YES to create/disable users |
+| P3-9 | `MASTER_ADMIN_KEY` out of ordinary Cloud runs | **PROVEN** (current absence) | `#1010` / `#1019` 2026-08-20 Factory wakes **ABSENT** | Current absence proven; 2026-08-19 was present | Do not re-inject | P0 | Keep name out of Automation secrets | Anton | YES |
 
 ### Phase 4 — Master data
 

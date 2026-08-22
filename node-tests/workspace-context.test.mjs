@@ -6,6 +6,7 @@ import {
   ACTION_QUEUE_PATH,
   OPERATING_WORKSPACE_LABEL,
   PROSPECT_OPERATIONS_PATH,
+  PROSPECT_WORKBENCH_PATH,
   TENANT_WORKSPACE_LABEL,
   TODAY_MY_WORK_PATH,
   WORKSPACE_SURFACE_MATRIX,
@@ -14,15 +15,19 @@ import {
   isActionQueuePath,
   isProspectOperationsPath,
   isProspectSharedDetailPath,
+  isProspectWorkbenchPath,
   isTodayMyWorkPath,
   navIncludesActionQueue,
   navIncludesProspectOperations,
+  navIncludesProspectWorkbench,
   navIncludesTodayMyWork,
   operatingNavIncludesActionQueue,
   operatingNavIncludesProspectOperations,
+  operatingNavIncludesProspectWorkbench,
   operatingNavIncludesTodayMyWork,
   tenantNavOmitsActionQueue,
   tenantNavOmitsProspectOperations,
+  tenantNavOmitsProspectWorkbench,
   tenantNavOmitsTodayMyWork,
   workspaceChromeForEnvironment,
   workspaceIdForEnvironment,
@@ -101,11 +106,27 @@ describe('workspace-context — Today / My Work boundary', () => {
   });
 });
 
+describe('workspace-context — Prospect Workbench boundary', () => {
+  it('recognises the shared Prospect Workbench', () => {
+    assert.equal(isProspectWorkbenchPath('/app/workbench'), true);
+    assert.equal(isProspectWorkbenchPath('/api/app/workbench'), true);
+    assert.equal(isProspectWorkbenchPath('/app/prospects'), false);
+    assert.equal(PROSPECT_WORKBENCH_PATH, '/app/workbench');
+  });
+
+  it('includes Workbench on Operating Workspace nav and omits it from Tenant nav', () => {
+    assert.equal(operatingNavIncludesProspectWorkbench(), true);
+    assert.equal(tenantNavOmitsProspectWorkbench(), true);
+    assert.equal(navIncludesProspectWorkbench(CORE_NAV_ITEMS), true);
+    assert.equal(navIncludesProspectWorkbench(TENANT_NAV_ITEMS), false);
+  });
+});
+
 describe('workspace-context — Action Queue boundary', () => {
-  it('recognises the Prospect Action Queue', () => {
+  it('recognises the canonical Prospect Action Queue', () => {
     assert.equal(isActionQueuePath('/app/queue'), true);
     assert.equal(isActionQueuePath('/api/app/queue'), true);
-    assert.equal(isActionQueuePath('/app/today'), false);
+    assert.equal(isActionQueuePath('/app/workbench'), false);
     assert.equal(ACTION_QUEUE_PATH, '/app/queue');
   });
 
@@ -123,6 +144,7 @@ describe('workspace-context — surface matrix', () => {
     assert.equal(classifyWorkspaceSurface('/app/tenant')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/app/prospects')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/app/today')?.disposition, 'CANONICAL');
+    assert.equal(classifyWorkspaceSurface('/app/workbench')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/app/queue')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/app/prospects/syn-772-lr-ada')?.path, '/app/prospects/[id]');
     assert.equal(classifyWorkspaceSurface('/admin/rapid-delivery')?.disposition, 'MIGRATE');

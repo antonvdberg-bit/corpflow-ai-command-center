@@ -100,3 +100,25 @@ test('partial ERPNext secret set fails closed without MASTER_ADMIN_KEY fallback'
   assert.doesNotMatch(out, /still-forbidden/);
   assert.match(out, /auth_fallback_master_admin_key: forbidden/);
 });
+
+test('#899 2026-08-19 evidence records Factory Automation re-probe as INCOMPLETE', () => {
+  const evidence = fs.readFileSync(
+    path.join(REPO_ROOT, 'docs', 'erpnext', 'ERPNEXT_CURSOR_CLOUD_SECURITY_CORRECTION_899.md'),
+    'utf8',
+  );
+  const artifact = fs.readFileSync(
+    path.join(REPO_ROOT, 'artifacts', 'erpnext', 'security-correction-899-2026-08-19.md'),
+    'utf8',
+  );
+  const runbook = fs.readFileSync(
+    path.join(REPO_ROOT, 'docs', 'runbooks', 'ERPNEXT_CURSOR_CLOUD_SECRETS_LEAST_PRIVILEGE_V1.md'),
+    'utf8',
+  );
+  assert.match(evidence, /bc-c67a9751-28cb-47e6-918a-29a13c213561/);
+  assert.match(evidence, /security_correction_#899: INCOMPLETE — MASTER_ADMIN_KEY still injected into this ordinary Factory Automation Cursor Cloud run/);
+  assert.match(evidence, /authenticated user: integrations@corpflowai.com/);
+  assert.match(artifact, /MASTER_ADMIN_KEY: present/);
+  assert.match(artifact, /security_correction_#899: INCOMPLETE/);
+  assert.match(runbook, /CorpFlowAI Factory Wake Proof v2/);
+  assert.match(runbook, /still PRESENT\*\* on ordinary Factory Automation wakes/);
+});

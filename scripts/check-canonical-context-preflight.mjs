@@ -31,7 +31,7 @@ const currentVersion = versionMatch[1].trim();
 const required = {
   pass: /Canonical Context Preflight:\s*PASS/i,
   refreshed: /GitHub state refreshed:\s*YES/i,
-  source: /Source item:\s*(#\d+|PR\s*#\d+|n\/a)/i,
+  source: /Source item:\s*(#\d+|PR\s*#\d+|n\/a|direct operator (?:policy )?(?:change|request))/i,
 };
 
 for (const [name, re] of Object.entries(required)) {

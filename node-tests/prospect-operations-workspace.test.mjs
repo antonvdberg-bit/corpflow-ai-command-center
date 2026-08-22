@@ -11,6 +11,7 @@ import {
   filterProspectsForMyWorkToday,
   fixtureProspectLeadRows,
   projectProspectLeadRows,
+  projectProspectWorkbenchRows,
   publicProspectListItem,
   resolveProspectOperationsDataSource,
 } from '../lib/app/prospect-operations-workspace.js';
@@ -24,7 +25,6 @@ describe('prospect-operations-workspace — projection', () => {
     const products = [...new Set(list.map((row) => row.product))].sort();
     assert.ok(products.includes(AI_LEAD_RESCUE_PRODUCT));
     assert.ok(products.includes(RAPID_DELIVERY_PRODUCT));
-    assert.ok(products.includes('unknown'));
     assert.ok(list.every((row) => Array.isArray(row.exception_signals)));
     assert.ok(list.some((row) => row.email));
     assert.ok(list.some((row) => row.phone));
@@ -34,6 +34,18 @@ describe('prospect-operations-workspace — projection', () => {
     assert.ok(bea.response_draft);
     assert.equal(bea.source_surfaces.kanban, '/app/prospects');
     assert.ok(list.every((row) => !Object.prototype.hasOwnProperty.call(row, 'qualificationJson')));
+  });
+
+  it('projects Workbench rows including general market enquiries', () => {
+    const list = projectProspectWorkbenchRows(fixtureProspectLeadRows(), NOW);
+    const ids = list.map((row) => row.id);
+    assert.ok(ids.includes('syn-772-lr-ada'));
+    assert.ok(ids.includes('syn-772-rd-bea'));
+    assert.ok(ids.includes('syn-996-gen-dee'));
+    const dee = list.find((row) => row.id === 'syn-996-gen-dee');
+    assert.equal(dee.product, 'unknown');
+    assert.equal(dee.organisation_name, 'Dee Advisory');
+    assert.equal(dee.shared_detail_path, '/app/prospects/syn-996-gen-dee');
   });
 
   it('sorts overdue Action Queue items first', () => {
@@ -105,10 +117,10 @@ describe('prospect-operations-workspace — access and payload', () => {
   });
 
   it('filters Action Queue by named slices and includes LR, WR, and general prospects', () => {
-    const list = projectProspectLeadRows(fixtureProspectLeadRows(NOW), NOW);
+    const list = projectProspectWorkbenchRows(fixtureProspectLeadRows(NOW), NOW);
     assert.ok(list.some((row) => row.id === 'syn-772-lr-ada'));
     assert.ok(list.some((row) => row.id === 'syn-772-rd-bea'));
-    assert.ok(list.some((row) => row.id === 'syn-995-gen-dee'));
+    assert.ok(list.some((row) => row.id === 'syn-995-gen-gil'));
     const overdue = filterProspectsForActionQueue(list, 'overdue', NOW);
     assert.ok(overdue.some((row) => row.id === 'syn-772-lr-ada'));
     const dueToday = filterProspectsForActionQueue(list, 'due_today', NOW);
@@ -135,6 +147,7 @@ describe('prospect-operations-workspace — access and payload', () => {
     assert.equal(payload.canonical_operator_surface, '/app/prospects');
     assert.equal(payload.temporary_source_surfaces.action_queue, '/app/queue');
     assert.equal(payload.temporary_source_surfaces.kanban, '/app/prospects');
+    assert.equal(payload.temporary_source_surfaces.workbench, '/app/workbench');
     assert.equal(payload.external_send, false);
     assert.equal(payload.count, 1);
   });

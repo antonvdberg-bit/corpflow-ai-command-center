@@ -57,7 +57,7 @@ test('handler: Core proof Action Queue includes LR, WR and general prospects', a
     const ids = res.state.body.prospects.map((row) => row.id);
     assert.ok(ids.includes('syn-772-lr-ada'));
     assert.ok(ids.includes('syn-772-rd-bea'));
-    assert.ok(ids.includes('syn-995-gen-dee'));
+    assert.ok(ids.includes('syn-995-gen-gil'));
     const ada = res.state.body.prospects.find((row) => row.id === 'syn-772-lr-ada');
     assert.equal(ada.shared_detail_path, '/app/prospects/syn-772-lr-ada');
     assert.equal(ada.source_surfaces.action_queue, '/app/queue');
@@ -120,7 +120,7 @@ test('handler: Action Queue named filters isolate overdue, due today, and awaiti
     const dueToday = await idsFor('due_today');
     assert.ok(dueToday.includes('syn-995-lr-due'));
     const noNext = await idsFor('no_next_action');
-    assert.ok(noNext.includes('syn-995-gen-dee'));
+    assert.ok(noNext.includes('syn-995-gen-gil'));
     const awaitingProspect = await idsFor('awaiting_prospect');
     assert.ok(awaitingProspect.includes('syn-772-lr-cal'));
     const awaitingOperator = await idsFor('awaiting_operator');
@@ -128,7 +128,7 @@ test('handler: Action Queue named filters isolate overdue, due today, and awaiti
     const awaitingProtected = await idsFor('awaiting_protected_approval');
     assert.ok(awaitingProtected.includes('syn-995-lr-prot'));
     const neu = await idsFor('new');
-    assert.ok(neu.includes('syn-772-rd-bea') || neu.includes('syn-995-gen-dee'));
+    assert.ok(neu.includes('syn-772-rd-bea') || neu.includes('syn-995-gen-gil'));
   } finally {
     process.env.NODE_ENV = prevNode;
     if (prevVercel == null) delete process.env.VERCEL_ENV;

@@ -211,7 +211,7 @@ Builds on existing `chat_widget_configs` budget columns + new per-session counte
 | **Per-session message cap** | 6 AI turns per `thread_id` | After cap → guided menu only |
 | **Per-user cooldown** | Existing `rate_limit_per_window=30` / 300s per IP hash | Keep; add AI-specific stricter cap: 10 AI calls / IP / hour |
 | **Maximum answer length** | 120 words / 500 tokens output | Truncate server-side; widget displays full text |
-| **Model / provider options** | **Groq** via existing `lib/server/groq-client.js` pattern; model `llama-3.3-70b-versatile` or smaller for classify-only subcalls | Provider key in Vercel env only; never client-side |
+| **Model / provider options** | **Groq** via existing `lib/server/groq-client.js` pattern; historical 2026-06 design named `llama-3.3-70b-versatile` (retired 2026-08-16; current built-in default is `openai/gpt-oss-120b`, #1013) | Provider key in Vercel env only; never client-side |
 | **Logging required** | Every call: tenant, thread, model, input tokens, output tokens, USD estimate, atom ids, refusal reason | `chat_widget_ai_usage` table or `telemetry_events` |
 | **Automatic disable threshold** | 100% monthly budget → `ai_enabled=false` until operator reset | Idempotent automation event `chat_widget.ai.budget_exhausted` |
 | **Operator warning threshold** | 80% monthly budget | Telegram or automation event; no visitor impact |

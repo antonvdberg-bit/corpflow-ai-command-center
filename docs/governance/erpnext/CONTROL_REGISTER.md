@@ -4,8 +4,10 @@
 **Owner:** Anton (acceptance and privileged UI). Cursor records evidence only.  
 **Review cadence:** with #953 Phase 1 / Phase 3 / Phase 9; sooner if #956 gaps close.  
 **Environment:** `local` (docs). Live probes are `corpflow_test` / vendor-hosted ERPNext.  
-**Source issues:** [#966](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/966), [#956](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/956), [#954](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/954)  
+**Source issues:** [#966](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/966), [#956](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/956), [#954](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/954), [#1010](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1010), [#1019](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1019)  
 **Canonical audit (do not duplicate):** `docs/operations/ERPNEXT_SERVER_BACKUP_SECURITY_DR_AUDIT_V1.md`  
+**WP7 refresh (do not redo the audit):** `docs/operations/ERPNEXT_WP7_PATCH_BACKUP_RESTORE_MONITORING_CLOSURE_V1.md`  
+**WP6 refresh (do not redo #899 / #956 access):** `docs/operations/ERPNEXT_WP6_IDENTITY_ROLES_2FA_ACCESS_CLOSURE_V1.md`  
 **Anchor:** `<!-- CORPFLOWAI_ERP_CONTROL_REGISTER_V1 -->`
 
 <!-- CORPFLOWAI_ERP_CONTROL_REGISTER_V1 -->
@@ -27,11 +29,11 @@ An Administrator / System Manager can still alter ERPNext application records an
 
 | ID | Control | Owner | Mark | Next action |
 |----|---------|-------|------|-------------|
-| C-ACC-01 | Least-privilege integration identity `integrations@corpflowai.com` (not System Manager) | Anton | **PARTIAL** | Keep using token auth names `ERPNEXT_BASE_URL` / `ERPNEXT_API_KEY` / `ERPNEXT_API_SECRET`. Do not print values. |
+| C-ACC-01 | Least-privilege integration identity `integrations@corpflowai.com` (not System Manager) | Anton | **PROVEN** | #1019 `get_roles`: not Administrator / not System Manager. Extra Stock/Purchase/Accounts Manager roles reported, not stripped. Keep token auth names. Do not print values. |
 | C-ACC-02 | Project / Task / Issue write via existing Sales Manager grant | Anton | **PROVEN** | Reuse #920 path; do not assign System Manager |
-| C-ACC-03 | Privileged 2FA / System Settings / login-attempt policy | Anton | **NOT PROVEN** | Integration user HTTP 403 on System Settings (#956) |
-| C-ACC-04 | `MASTER_ADMIN_KEY` absent from ordinary Cursor Cloud runs (#899) | Anton | **NOT PROVEN** | UI-only removal; factory must not use it as ERPNext auth |
-| C-ACC-05 | Joiner / mover / leaver for ERPNext users | Anton | **NOT PROVEN** | Phase 3 work; not this packet |
+| C-ACC-03 | Privileged 2FA / System Settings / login-attempt policy | Anton | **NOT PROVEN** | #1019: System Settings still HTTP 403. Exact action: desk Settings → System Settings → Security (2FA + login/session/password policy) |
+| C-ACC-04 | `MASTER_ADMIN_KEY` absent from ordinary Cursor Cloud runs (#899) | Anton | **PROVEN** | #1010 and #1019 Factory Automation wakes 2026-08-20: **absent**. Do not re-inject; factory must not use it as ERPNext auth |
+| C-ACC-05 | Joiner / mover / leaver for ERPNext users | Anton | **PROVEN** | Runbook: `docs/runbooks/ERPNEXT_JOINER_MOVER_LEAVER_V1.md`. Owner Anton. No second identity system |
 | C-ACC-06 | Who may merge governance records on `main` | Anton | **PROVEN** | PR + required checks; Cursor does not self-merge unless the issue says so |
 
 ---
@@ -40,11 +42,11 @@ An Administrator / System Manager can still alter ERPNext application records an
 
 | ID | Control | Owner | Mark | Next action |
 |----|---------|-------|------|-------------|
-| C-BK-01 | Vendor-hosted ERPNext scheduled backup + tested restore | Anton / vendor | **NOT PROVEN** | Read provider console; do not buy a DR server from #956 |
+| C-BK-01 | Vendor-hosted ERPNext scheduled backup + tested restore | Anton / vendor | **NOT PROVEN** | #1010: integration user still HTTP 403 on backup jobs. Exact action: Frappe Cloud Backups tab (names only) + disposable-site restore. Do not buy a DR server. |
 | C-BK-02 | Off-host restic → R2 ops heartbeat | Anton | **PARTIAL** | Mechanism proven; ERPNext volumes **not** in inventory |
-| C-BK-03 | Self-hosted sandbox backup/restore | Anton | **PARTIAL** | One-shot 2026-06-01 on-host only |
-| C-BK-04 | Neon Postgres PITR window documented + restore drill | Anton | **NOT PROVEN** | Document plan/retention in `POSTGRES_PROVIDER.md` when Anton reads the console |
-| C-BK-05 | Recurring restore drill | Anton | **NOT PROVEN** | Phase 1 / Phase 8 |
+| C-BK-03 | Self-hosted sandbox backup/restore | Anton | **PARTIAL** | One-shot 2026-06-01 on-host only (wrong SoR for vendor v16) |
+| C-BK-04 | Neon Postgres PITR window documented + restore drill | Anton | **NOT PROVEN** | #1010: product model now in `POSTGRES_PROVIDER.md` §6; **this project’s** history window still unread. Exact action: Neon Settings → Instant restore (names only). |
+| C-BK-05 | Recurring restore drill | Anton | **NOT PROVEN** | Blocked on C-BK-01 disposable restore; then monthly harmless drill |
 | C-BK-06 | Independent GitHub mirror | Anton | **REQUIRES DECISION** | #956 repository continuity |
 
 ---
@@ -70,6 +72,7 @@ An Administrator / System Manager can still alter ERPNext application records an
 | C-ENV-02 | Vendor-hosted ERPNext is HTTPS on the public internet by host class | Anton | **PARTIAL** | VPN/IP restriction **REQUIRES DECISION** (#953 Workstream B) |
 | C-ENV-03 | Self-hosted ERPNext loopback-only on `corpflow-exec-01` | Anton | **PARTIAL** | Previously documented; not re-verified in #966 |
 | C-ENV-04 | No env/secret **value** change from this packet | Cursor | **PROVEN** | Names only |
+| C-PT-01 | Vendor ERPNext on patched v16 (≥ 16.31.0 / current 16.x) | Anton | **NOT PROVEN** | #1010 live read: erpnext **16.26.2** / frappe **16.25.0**. Update required; do not apply from a factory packet. Exact action: Frappe Cloud dashboard upgrade. |
 
 ---
 

@@ -10,7 +10,9 @@
 
 <!-- ERPNEXT_CORPFLOW_BRIDGE_CONTRACT_V1 -->
 
-ERPNext is the commercial system of record. CorpFlowAI Postgres is the intake, CMP execution, and operator-pipeline store. Pointers may be stored later; this issue does **not** write them.
+ERPNext is the commercial system of record. CorpFlowAI Postgres is the intake, CMP execution, and operator-pipeline store. Pointers may be stored later; this issue does **not** write them. WP1 Customer bridge implementation: [`ERPNEXT_CUSTOMER_BRIDGE_V1.md`](./ERPNEXT_CUSTOMER_BRIDGE_V1.md) (#1009) — synthetic/operator-invoked; still no live Postgres PATCH. WP2 sales lifecycle: [`ERPNEXT_SALES_LIFECYCLE_BRIDGE_V1.md`](./ERPNEXT_SALES_LIFECYCLE_BRIDGE_V1.md) (#1018) — synthetic Lead → Opportunity → reused Customer; still no live Postgres PATCH.
+
+Full #918 domain matrix (supersedes this file as the complete classification, not as a rewrite of these rows): [`docs/governance/erpnext/SOURCE_OF_TRUTH_MATRIX_V1.md`](../governance/erpnext/SOURCE_OF_TRUTH_MATRIX_V1.md). This contract remains the #920 mapping slice.
 
 Conflict authority: **ERPNext** for Customer / Quotation / Invoice / payment reference / Project / durable Issue. **CorpFlowAI** for `/change` execution evidence, Technical Lead audits, and fulfilment flags.
 

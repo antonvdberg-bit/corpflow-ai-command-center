@@ -1,0 +1,45 @@
+# CorpFlowAI factory PR state policy.
+#
+# Anton's only routine human PR action is MERGE.
+# Factory/Cursor PRs must be created as normal non-draft PRs once implementation
+# is ready for operator review. GitHub App tokens used by Actions are not relied
+# on to mutate Draft -> Ready state because that mutation can be forbidden by
+# the installation and would make otherwise healthy PRs fail CI.
+#
+# Keep this workflow/check name stable because branch protection may reference
+# it. It is intentionally a policy-verification/no-op check: no PR mutation,
+# approval, merge, deploy, secret access, or PR code execution occurs here.
+
+name: Factory PR auto-ready
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - converted_to_draft
+      - ready_for_review
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  remove-draft-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify factory PR state policy without mutation
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_DRAFT: ${{ github.event.pull_request.draft }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_HEAD: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          echo "Factory PR policy check for #${PR_NUMBER}."
+          echo "draft=${PR_DRAFT} author=${PR_AUTHOR} head=${PR_HEAD}"
+          echo "No Draft -> Ready mutation is attempted by Actions."
+          echo "Completed Factory/Cursor work must be opened non-draft by the creating agent."
+          echo "Anton remains the only routine human merge gate."
+          exit 0

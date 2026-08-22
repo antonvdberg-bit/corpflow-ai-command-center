@@ -3,7 +3,7 @@
 **Status:** Phase map for the CorpFlowAI ERPNext Business-Critical Adoption Programme.  
 **Owner:** Anton (programme); Cursor (keep links current when a packet lands).  
 **Environment:** GitHub rows are `local` docs. ERPNext Project/Task IDs are `corpflow_test` operational pointers.  
-**Source issues:** [#966](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/966), [#953](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/953), [#954](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/954)  
+**Source issues:** [#966](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/966), [#953](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/953), [#954](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/954), [#1019](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1019)  
 **Machine contract:** `config/erpnext-governance-programme.v1.json`  
 **Anchor:** `<!-- CORPFLOWAI_ERP_IMPLEMENTATION_EVIDENCE_INDEX_V1 -->`
 
@@ -42,12 +42,12 @@ Marks used on each row:
 |-----|----------------------|-------|---------------------|------------------------------|------|
 | 0 | `ERP Vision and Intended Use — Executive Statement` | Charter | Complete / approved in GitHub | [`VISION_AND_INTENDED_USE.md`](./VISION_AND_INTENDED_USE.md); [#954 comment 5291438473](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/954#issuecomment-5291438473); [PR #957](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/957); [#960](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/960) / [PR #961](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/961) | **PROVEN** |
 | 1 | `Phase 0 — Programme charter and decision record` | 0 | Open / in progress | This folder; [`DECISION_REGISTER.md`](./DECISION_REGISTER.md); #953 / #954 / #966 | **PARTIAL** |
-| 2 | `Phase 1 — Environment and platform baseline` | 1 | Open | [#956](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/956) / [PR #958](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/958); `docs/operations/ERPNEXT_SERVER_BACKUP_SECURITY_DR_AUDIT_V1.md`; `docs/operations/CORPFLOW_ENVIRONMENT_CLASSIFICATION_V1.md` | **PARTIAL** |
+| 2 | `Phase 1 — Environment and platform baseline` | 1 | Open | [#956](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/956) / [PR #958](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/958); [#1010](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1010) WP7 refresh `docs/operations/ERPNEXT_WP7_PATCH_BACKUP_RESTORE_MONITORING_CLOSURE_V1.md`; `docs/operations/CORPFLOW_ENVIRONMENT_CLASSIFICATION_V1.md` | **PARTIAL** |
 | 3 | `Phase 2 — Company foundation` | 2 | Open | #880 Client Master; #882 commercial documents; #920 Company MUR read-back (`CorpFlowAI LTD` / CFAI / MUR). Accountant still owns CoA / tax / opening balances. | **PARTIAL** |
-| 4 | `Phase 3 — Identity, access and segregation of duties` | 3 | Open | Integration identity + Sales Manager grant (`JE-2026-08-14-2`). 2FA / System Settings / Administrator governance **NOT PROVEN** (#956). `#899` `MASTER_ADMIN_KEY` still present on ordinary Cursor Cloud runs. | **NOT PROVEN** |
+| 4 | `Phase 3 — Identity, access and segregation of duties` | 3 | Open | #1019 WP6: identity `integrations@corpflowai.com` **PROVEN** not System Manager; JML runbook **PROVEN**; `MASTER_ADMIN_KEY` **absent** this run. Privileged User inventory / 2FA / login policy still exact desk actions. Canonical: `docs/operations/ERPNEXT_WP6_IDENTITY_ROLES_2FA_ACCESS_CLOSURE_V1.md`. | **PARTIAL** |
 | 5 | `Phase 4 — Master data` | 4 | Open | #880 synthetic Customers; #881 catalogue; #920 Item `CF-WS-CUSTOM-PROJECT` + CRM path. No live Prestige customer. | **PARTIAL** |
 | 6 | `Phase 5 — Business process configuration` | 5 | Open | #920 Lead → Opportunity → Customer → draft Quotation → Project → Task → Timesheet → Issue. Workflow / Notification HTTP 403; no external send. Prestige pack #919 not sent. | **PARTIAL** |
-| 7 | `Phase 6 — CorpFlowAI integration / reconciliation` | 6 | Open | [`docs/erpnext/ERPNEXT_CORPFLOW_BRIDGE_CONTRACT_V1.md`](../../erpnext/ERPNEXT_CORPFLOW_BRIDGE_CONTRACT_V1.md) mapping-only. No Postgres migration. #701 CRM baseline stays on existing `leads`. | **PARTIAL** |
+| 7 | `Phase 6 — CorpFlowAI integration / reconciliation` | 6 | Open | [`docs/erpnext/ERPNEXT_CORPFLOW_BRIDGE_CONTRACT_V1.md`](../../erpnext/ERPNEXT_CORPFLOW_BRIDGE_CONTRACT_V1.md) mapping-only. Full #918 matrix: [`SOURCE_OF_TRUTH_MATRIX_V1.md`](./SOURCE_OF_TRUTH_MATRIX_V1.md). WP1 Customer bridge: [`ERPNEXT_CUSTOMER_BRIDGE_V1.md`](../../erpnext/ERPNEXT_CUSTOMER_BRIDGE_V1.md) (#1009). WP2 sales lifecycle: [`ERPNEXT_SALES_LIFECYCLE_BRIDGE_V1.md`](../../erpnext/ERPNEXT_SALES_LIFECYCLE_BRIDGE_V1.md) (#1018). No Postgres migration. No cron. #701 CRM baseline stays on existing `leads`. | **PARTIAL** |
 | 8 | `Phase 7 — Data migration and cutover` | 7 | Not started | #953: no bulk migration authorized by the programme issue. | **REQUIRES DECISION** |
 | 9 | `Phase 8 — User acceptance / operational readiness` | 8 | Not started | Depends on Phases 1–6 close-out and accountant review. | **NOT PROVEN** |
 | 10 | `Phase 9 — Go-live approval` | 9 | Not started | Separate Anton approval for any `client_production` or irreplaceable cutover. | **REQUIRES DECISION** |
@@ -85,6 +85,8 @@ Read-back: no Customer, `collect_progress=0`, Notification/Workflow inspect HTTP
 | [#920](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/920) | Synthetic Project `PROJ-0001`, Tasks, Issue `ISS-2026-00001` | A second Prestige/synthetic website Project |
 | [#955](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/955) / [#960](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/960) | Canonical Version 2 + approved status | Rewrite strategy |
 | [#956](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/956) | Backup / DR / security audit | Buy a DR server; mutate the box |
+| [#1010](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1010) | WP7 version/patch/backup/restore/monitoring classification | Apply the Frappe Cloud upgrade, production restore, Neon restore, or Monitor #14 timer |
+| [#1019](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1019) | WP6 identity / roles / 2FA / least-privilege classification | Grant System Manager to the integration user; enable 2FA from the factory; mutate roles |
 
 ---
 
@@ -109,3 +111,4 @@ Standard Frappe `Version` / form timeline is used **only if already readable**. 
 - Risks: [`RISK_REGISTER.md`](./RISK_REGISTER.md)
 - Controls: [`CONTROL_REGISTER.md`](./CONTROL_REGISTER.md)
 - Strategy (do not duplicate): [`VISION_AND_INTENDED_USE.md`](./VISION_AND_INTENDED_USE.md)
+- Source-of-truth matrix (#918): [`SOURCE_OF_TRUTH_MATRIX_V1.md`](./SOURCE_OF_TRUTH_MATRIX_V1.md)

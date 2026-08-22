@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { afterEach, describe, test } from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 import {
   actorFromSessionPayload,
@@ -50,6 +52,18 @@ test('shared detail path is inside Operating Workspace prospects', () => {
   assert.equal(sharedProspectDetailPath('syn-772-lr-ada'), '/app/prospects/syn-772-lr-ada');
   assert.equal(mapCanonicalStageToNativeStatus(AI_LEAD_RESCUE_PRODUCT, 'qualifying'), 'QUALIFYING');
   assert.equal(mapCanonicalStageToNativeStatus(RAPID_DELIVERY_PRODUCT, 'proposal_ready'), 'quote_ready');
+});
+
+test('list UI keeps shared-detail links without merging the table into enquiry handoff', () => {
+  const src = readFileSync(
+    fileURLToPath(new URL('../components/app/ProspectOperationsList.js', import.meta.url)),
+    'utf8',
+  );
+  assert.match(src, /prospect-ops-shared-detail/);
+  assert.match(src, /shared_detail_path/);
+  assert.match(src, /data-market-enquiry-fields/);
+  assert.match(src, /Copy response draft/);
+  assert.doesNotMatch(src, /copy-ready draft\.',\s*\}\)\s*<\/p>\s*\) : null\}/);
 });
 
 test('detail view-model includes identity, history, and no qualificationJson', () => {

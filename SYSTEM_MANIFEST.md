@@ -11,7 +11,7 @@ These are the **only** authenticated connection strings in the environment. Any 
 | Variable | Provider | Purpose | Confirmed |
 | :--- | :--- | :--- | :--- |
 | `POSTGRES_URL` (+ 5 aliases) | **Neon Postgres** (via Prisma ORM) | Sole production data store. See `docs/operations/POSTGRES_PROVIDER.md` for all six aliases (pooled vs non-pooled) and the rotation playbook. **Not** Prisma Postgres (`*.prisma.io`). | ✅ (2026-05-22) |
-| `GROQ_API_KEY` | Groq Cloud | Llama-3-70B Intelligence Engine | ✅ |
+| `GROQ_API_KEY` | Groq Cloud | OpenAI-compatible chat (`openai/gpt-oss-120b` built-in default; #1013) | ✅ |
 | `TELEGRAM_BOT_TOKEN` | Telegram | Notification Sentry | ✅ |
 
 ---

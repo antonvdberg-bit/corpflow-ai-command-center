@@ -135,3 +135,69 @@ Retention: do not delete a decision or evidence row merely because it was supers
 | ERPNext Project / Task | `PROJ-0002` / Vision `TASK-2026-00025` |
 | Verification evidence | Focused `node --test` + apply-log (no secrets) |
 | Supersedes / superseded-by | Completes the “artefacts not created by #955” note. Does **not** supersede Version 2. |
+
+---
+
+## ERP-D-2026-08-19-1 — #918 source-of-truth matrix (proposed)
+
+| Field | Record |
+|-------|--------|
+| Decision ID | `ERP-D-2026-08-19-1` |
+| Date/time | 2026-08-19 |
+| Status | **Proposed** (this packet; Anton merge remains the Git approval). Does **not** approve automated sync or a real Prestige Customer. |
+| Question / requirement | For each material CorpFlowAI/ERPNext domain, which system is authoritative, and what is the smallest bridge plan? |
+| Executive intent / source | [#918](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/918) bounded reconciliation slice; Strategy v2 §3 |
+| Options considered | Leave #920 mapping slice as the whole answer; build automated sync now; publish a docs/config matrix with a first Customer-identity bridge |
+| Evidence reviewed | #967 baseline; #880/#881/#882/#920 live hosted-test proofs; #701 CRM baseline; Vision v2 |
+| Decision | Publish [`SOURCE_OF_TRUTH_MATRIX_V1.md`](./SOURCE_OF_TRUTH_MATRIX_V1.md). First bridge: `qualified_customer_identity`. Daily CRM stays on Postgres `leads`. No automated writer in this packet. |
+| Rationale | Dual customer identity is the highest-control failure; no paying quotation exists without a Customer. Prestige Track B must not wait for remaining rows. |
+| Risks / tradeoffs | Classification is decision-ready, not live reconciliation. Volume is still low. |
+| Approver | Pending Anton merge of the #918 PR |
+| GitHub implementation | This file + `config/erpnext-source-of-truth-matrix.v1.json` |
+| ERPNext Project / Task | Programme Project `PROJ-0002` / Phase 6 `TASK-2026-00032` (no live apply in this packet) |
+| Verification evidence | Focused `node --test node-tests/erpnext-source-of-truth-matrix.test.mjs` |
+| Supersedes / superseded-by | Completes the missing #918 matrix called out in the #967 baseline. Does **not** supersede Version 2 or #701. |
+
+---
+
+## ERP-D-2026-08-19-2 — #1009 WP1 Customer bridge (proposed)
+
+| Field | Record |
+|-------|--------|
+| Decision ID | `ERP-D-2026-08-19-2` |
+| Date/time | 2026-08-19 |
+| Status | **Proposed** (this packet; Anton merge remains the Git approval). Does **not** approve a real Prestige Customer, cron, or live Postgres lead PATCH. |
+| Question / requirement | Implement the first `qualified_customer_identity` bridge with search-before-create and a replay proof. |
+| Executive intent / source | [#1009](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1009); matrix [#918](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/918) |
+| Options considered | Leave mapping-only; build a sync framework; implement one operator-invoked Customer bridge |
+| Evidence reviewed | #880 mapper; #993 matrix; hosted-test Frappe REST as `integrations@corpflowai.com` |
+| Decision | Land [`ERPNEXT_CUSTOMER_BRIDGE_V1.md`](../../erpnext/ERPNEXT_CUSTOMER_BRIDGE_V1.md). Synthetic only. Pointer on `qualification_json.erpnext` in the reference lead. |
+| Rationale | No quotation exists without a Customer. Dual identity is the highest-control failure. |
+| Risks / tradeoffs | Live Postgres persist of the pointer is still a later authorized write. |
+| Approver | Pending Anton merge of the #1009 PR |
+| GitHub implementation | `lib/erpnext/customer-bridge.js` + apply script |
+| ERPNext Project / Task | Programme Project `PROJ-0002` / Phase 6 `TASK-2026-00032` |
+| Verification evidence | `node --test node-tests/erpnext-customer-bridge.test.mjs` plus live apply replay |
+| Supersedes / superseded-by | Implements matrix step 2. Does **not** supersede Version 2, #701, or the #918 matrix. |
+
+---
+
+## ERP-D-2026-08-20-1 — #1018 WP2 sales lifecycle bridge (proposed)
+
+| Field | Record |
+|-------|--------|
+| Decision ID | `ERP-D-2026-08-20-1` |
+| Date/time | 2026-08-20 |
+| Status | **Proposed** (this packet; Anton merge remains the Git approval). Does **not** approve real client migration, WP3 quotation, cron, or live Postgres lead PATCH. |
+| Question / requirement | Implement `lead_opportunity_promotion`: one synthetic prospect into Lead → Opportunity → existing/reused Customer with search-before-create and replay proof. |
+| Executive intent / source | [#1018](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1018); WP1 [#1009](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1009); matrix [#918](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/918) |
+| Options considered | Leave WP1 Customer-only; build a sync framework; implement one operator-invoked lifecycle bridge reusing WP1 |
+| Evidence reviewed | WP1 Customer bridge; #920 CRM-LEAD/CRM-OPP synthetic path; hosted-test Frappe REST as `integrations@corpflowai.com` |
+| Decision | Land [`ERPNEXT_SALES_LIFECYCLE_BRIDGE_V1.md`](../../erpnext/ERPNEXT_SALES_LIFECYCLE_BRIDGE_V1.md). Synthetic only. Pointer on `qualification_json.erpnext` in the reference lead. Reuse WP1 for Customer. |
+| Rationale | ERPNext must own the durable sales process after qualification without duplicating Customer identity. |
+| Risks / tradeoffs | Live Postgres persist of the pointer is still a later authorized write. Quotation remains WP3. |
+| Approver | Pending Anton merge of the #1018 PR |
+| GitHub implementation | `lib/erpnext/sales-lifecycle-bridge.js` + apply script |
+| ERPNext Project / Task | Programme Project `PROJ-0002` / Phase 6 `TASK-2026-00032` |
+| Verification evidence | `node --test node-tests/erpnext-sales-lifecycle-bridge.test.mjs` plus live apply replay |
+| Supersedes / superseded-by | Implements matrix `lead_opportunity_promotion`. Does **not** supersede Version 2, WP1, #701, or the #918 matrix. |

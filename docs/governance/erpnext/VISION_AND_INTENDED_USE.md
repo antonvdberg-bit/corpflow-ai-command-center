@@ -62,6 +62,9 @@ CorpFlowAI is moving from opportunistic ERPNext setup to a governed, auditable b
 Related operational docs (not substitutes for this strategy):
 
 - `docs/erpnext/ERPNEXT_CORPFLOW_BRIDGE_CONTRACT_V1.md` — mapping-only bridge; ERPNext commercial SoR, CorpFlowAI execution store
+- `docs/governance/erpnext/SOURCE_OF_TRUTH_MATRIX_V1.md` — #918 row-by-row ownership matrix and smallest bridge plan (mapping/config only; no automated sync)
+- `docs/erpnext/ERPNEXT_CUSTOMER_BRIDGE_V1.md` — #1009 WP1 Customer bridge (synthetic, operator-invoked; not a cron)
+- `docs/erpnext/ERPNEXT_SALES_LIFECYCLE_BRIDGE_V1.md` — #1018 WP2 Lead → Opportunity → Customer lifecycle (synthetic, operator-invoked; not a cron)
 - `docs/erpnext/ERPNEXT_PRESTIGE_FOUNDATION_V1.md` — synthetic Prestige foundation on hosted test (#920)
 - `docs/sales/prestige-procurement/` — Prestige commercial pack (#919); not sent
 
@@ -117,7 +120,7 @@ Draft principles from Part 1 (still subject to Anton approval of this synthesis)
 - Those layers must have a clear integration/reconciliation relationship to ERPNext CRM/business records.
 - Durable support/help-desk and project-control records should favor ERPNext where standard capability fits.
 
-Current bridge mapping (operational, not a strategy override): `docs/erpnext/ERPNEXT_CORPFLOW_BRIDGE_CONTRACT_V1.md` — ERPNext for Customer / Quotation / Invoice / payment reference / Project / durable Issue; CorpFlowAI for `/change` execution evidence.
+Current bridge mapping (operational, not a strategy override): `docs/erpnext/ERPNEXT_CORPFLOW_BRIDGE_CONTRACT_V1.md` — ERPNext for Customer / Quotation / Invoice / payment reference / Project / durable Issue; CorpFlowAI for `/change` execution evidence. Full domain matrix: `docs/governance/erpnext/SOURCE_OF_TRUTH_MATRIX_V1.md` (#918).
 
 Prospect-engagement/outreach execution is **intentionally not defined** as an ERPNext-owned surface yet. It may remain outside ERPNext, but it must not become a second customer/commercial ledger.
 

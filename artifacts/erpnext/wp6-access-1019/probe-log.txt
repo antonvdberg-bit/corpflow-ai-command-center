@@ -1,0 +1,76 @@
+ERPNext WP6 access-control probe (read-only) #1019
+mutation: forbidden (GET-only)
+role_or_permission_mutation: forbidden
+user_create_or_disable: forbidden
+credential_reset: forbidden
+two_factor_enablement: forbidden
+ERPNEXT_BASE_URL: present
+ERPNEXT_API_KEY: present
+ERPNEXT_API_SECRET: present
+MASTER_ADMIN_KEY: absent (incidental presence only; reopen #899 only on regression)
+ADMIN_PIN: absent
+erpnext_host_family: vendor_hosted_frappe_family
+ERPNEXT_BASE_URL_value: not_printed
+auth_uses_master_admin_key: no
+runtime_bridge_ssh: no
+runtime_bridge_infisical: no
+authenticated_user: integrations@corpflowai.com
+http_auth_status: 200
+identity_match_expected: yes
+versions_http: 200
+app frappe version=16.25.0 branch=HEAD
+app erpnext version=16.26.2 branch=HEAD
+app email_delivery_service version=0.0.1 branch=HEAD
+installed_apps: email_delivery_service,erpnext,frappe
+own_user_doc: HTTP 200
+own_user_enabled: 1
+own_user_type: 
+own_role_profile: none
+own_roles: none
+own_holds_administrator: no
+own_holds_system_manager: no
+own_privileged_roles: none
+get_roles_get: HTTP 200
+get_roles_list: Accounts Manager,Accounts User,All,Desk User,Guest,Item Manager,Purchase Manager,Purchase User,Sales Manager,Sales User,Stock Manager,Stock User
+get_roles_holds_system_manager: no
+get_roles_holds_administrator: no
+control_probe System_Settings_list: HTTP 500
+control_probe System_Settings_doc: HTTP 403
+control_probe Role: HTTP 403
+control_probe Has_Role: HTTP 403
+control_probe DocPerm: HTTP 403
+control_probe Custom_DocPerm: HTTP 403
+control_probe Role_Profile: HTTP 403
+control_probe User_Permission: HTTP 403
+control_probe Activity_Log: HTTP 403
+control_probe Error_Log: HTTP 403
+control_probe Version: HTTP 403
+control_probe Scheduled_Job_Type: HTTP 403
+user_list: HTTP 200
+user_list_row_count: 2
+user_list_enabled_count: 2
+user_list_enabled_system_user_count: 0
+user_list_enabled_website_user_count: 0
+user_list_includes_integration_identity: yes
+user_list_other_usernames: not_printed
+has_role_system_manager: HTTP 403
+has_role_administrator: HTTP 403
+doctype Customer: HTTP 200
+doctype Contact: HTTP 200
+doctype Address: HTTP 200
+doctype Lead: HTTP 200
+doctype Opportunity: HTTP 200
+doctype Item: HTTP 200
+doctype Item Price: HTTP 200
+doctype Price List: HTTP 200
+doctype Quotation: HTTP 200
+doctype Project: HTTP 200
+doctype Task: HTTP 200
+doctype Issue: HTTP 200
+doctype Payment Terms: HTTP 403
+ERPNext access: PASS
+role_mutation_attempted: no
+user_mutation_attempted: no
+two_factor_mutation_attempted: no
+secret_values_printed: no
+other_usernames_printed: no

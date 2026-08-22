@@ -18,9 +18,12 @@ import {
   mapNativeStatusToCanonicalStage,
   matchesActionQueueFilter,
   matchesMyWorkTodayFilter,
+  matchesWorkbenchFilter,
   normalizeActionQueueFilter,
+  normalizeWorkbenchFilter,
   resolveNextActionDue,
   sortProspectsForActionQueue,
+  sortProspectsForWorkbench,
 } from '../lib/cmp/_lib/prospect-operations-view-model.js';
 
 const NOW = new Date('2026-08-03T12:00:00.000Z');
@@ -169,22 +172,63 @@ describe('prospect-operations-view-model — due dates and exceptions', () => {
     );
   });
 
-  it('matches Action Queue filters including default needs-action', () => {
-    const overdue = {
-      next_action: 'Call',
-      next_action_due: '2026-08-01T00:00:00.000Z',
-    };
-    const future = {
-      next_action: 'Wait',
-      next_action_due: '2026-08-20T00:00:00.000Z',
-      last_meaningful_activity_at: NOW.toISOString(),
-      waiting_on: null,
-    };
-    assert.equal(normalizeActionQueueFilter('awaiting-client'), 'awaiting_prospect');
-    assert.equal(matchesActionQueueFilter(overdue, 'overdue', NOW), true);
-    assert.equal(matchesActionQueueFilter(overdue, 'needs_action', NOW), true);
-    assert.equal(matchesActionQueueFilter(future, 'needs_action', NOW), false);
-    assert.equal(matchesActionQueueFilter({ waiting_on: 'protected' }, 'awaiting_protected_approval', NOW), true);
+  it('normalises Action Queue filters and isolates needs-action plus named signals', () => {
+    assert.equal(normalizeActionQueueFilter('awaiting_client'), 'awaiting_prospect');
+    assert.equal(normalizeActionQueueFilter('awaiting_corpflow'), 'awaiting_operator');
+    assert.equal(normalizeActionQueueFilter('bogus'), 'needs_action');
+    assert.equal(
+      matchesActionQueueFilter({ exception_signals: ['overdue_action'] }, 'overdue', NOW),
+      true,
+    );
+    assert.equal(
+      matchesActionQueueFilter({ exception_signals: ['future_action_scheduled'] }, 'needs_action', NOW),
+      false,
+    );
+    assert.equal(
+      matchesActionQueueFilter({ exception_signals: ['awaiting_protected_approval'] }, 'awaiting_protected_approval', NOW),
+      true,
+    );
+    assert.equal(matchesActionQueueFilter({ exception_signals: ['no_next_action'] }, 'all', NOW), true);
+  });
+
+  it('normalises Workbench filters and isolates product plus exception slices', () => {
+    assert.equal(normalizeWorkbenchFilter('wr'), 'website_rescue');
+    assert.equal(normalizeWorkbenchFilter('unknown'), 'general');
+    assert.equal(normalizeWorkbenchFilter('bogus'), 'all');
+    assert.equal(
+      matchesWorkbenchFilter({ product: AI_LEAD_RESCUE_PRODUCT }, 'lead_rescue', NOW),
+      true,
+    );
+    assert.equal(
+      matchesWorkbenchFilter({ product: RAPID_DELIVERY_PRODUCT }, 'website_rescue', NOW),
+      true,
+    );
+    assert.equal(matchesWorkbenchFilter({ product: 'unknown' }, 'general', NOW), true);
+    assert.equal(
+      matchesWorkbenchFilter({ exception_signals: ['overdue_action'] }, 'overdue', NOW),
+      true,
+    );
+    assert.equal(
+      matchesWorkbenchFilter({ exception_signals: ['stalled_no_activity'] }, 'stalled', NOW),
+      true,
+    );
+  });
+
+  it('sorts Workbench rows by named columns without changing identity', () => {
+    const rows = [
+      { id: 'b', organisation_name: 'Beta', product: 'unknown' },
+      { id: 'a', organisation_name: 'Alpha', product: AI_LEAD_RESCUE_PRODUCT },
+    ];
+    const sorted = sortProspectsForWorkbench(rows, { sort: 'prospect', dir: 'asc' }, NOW);
+    assert.deepEqual(
+      sorted.map((r) => r.id),
+      ['a', 'b'],
+    );
+    const desc = sortProspectsForWorkbench(rows, { sort: 'prospect', dir: 'desc' }, NOW);
+    assert.deepEqual(
+      desc.map((r) => r.id),
+      ['b', 'a'],
+    );
   });
 });
 
@@ -324,8 +368,7 @@ describe('prospect-operations-view-model — lead adapters', () => {
     assert.equal(a.id, b.id);
     assert.equal(a.canonical_stage, b.canonical_stage);
     assert.equal(a.canonical_stage, 'discovery_booked');
-    assert.equal(a.source_surfaces.workbench, '/admin/lead-rescue');
-    assert.equal(a.source_surfaces.action_queue, '/app/queue');
+    assert.equal(a.source_surfaces.workbench, '/app/workbench');
     assert.equal(a.source_surfaces.kanban, '/app/prospects');
     assert.equal(a.source_surfaces.operating_workspace, '/app/prospects');
     assert.match(String(a.detail_path), /^\/app\/prospects\?id=/);
