@@ -12,6 +12,7 @@ import {
   aiLeadRescueActivityTypeLabel,
   getAiLeadRescueForwardStatuses,
 } from '../lib/cmp/_lib/ai-lead-rescue-operator.js';
+import ProspectLegacyDeprecationBanner from './app/ProspectLegacyDeprecationBanner.js';
 import { fmtDateStableUtc } from '../lib/format/utc-date.js';
 
 const DETAIL_FETCH_TIMEOUT_MS = 25_000;
@@ -741,6 +742,12 @@ export default function AiLeadRescueAdminDetail(props = {}) {
         <header style={{ marginBottom: 20 }}>
           <p style={{ ...labelStyle, margin: 0 }}>AI Lead Rescue</p>
           <h1 style={{ margin: '6px 0 0', fontSize: 26, fontWeight: 800 }}>{businessLabel}</h1>
+          <div style={{ marginTop: 12, maxWidth: 720 }}>
+            <ProspectLegacyDeprecationBanner
+              routePath="/admin/lead-rescue/[id]"
+              canonicalHrefOverride={leadId ? `/app/prospects/${encodeURIComponent(leadId)}` : '/app/prospects'}
+            />
+          </div>
           {lead && lead.submitted_at ? (
             <p style={{ margin: '8px 0 0', color: '#8899aa', fontSize: 13 }}>
               Submitted {fmtDateStableUtc(lead.submitted_at)}

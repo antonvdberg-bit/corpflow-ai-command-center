@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Head from 'next/head';
 import Link from 'next/link';
 
+import ProspectLegacyDeprecationBanner from './app/ProspectLegacyDeprecationBanner.js';
 import { AI_LEAD_RESCUE_STATUSES } from '../lib/cmp/_lib/ai-lead-rescue-operator.js';
 import { fmtDateStableUtc } from '../lib/format/utc-date.js';
 
@@ -220,6 +221,9 @@ export default function AiLeadRescueAdminList(props = {}) {
                 Factory operator
               </p>
               <h1 style={{ margin: '6px 0 0', fontSize: 28, fontWeight: 800 }}>AI Lead Rescue pipeline</h1>
+              <div style={{ marginTop: 12, maxWidth: 720 }}>
+                <ProspectLegacyDeprecationBanner routePath="/admin/lead-rescue" />
+              </div>
               <p style={{ margin: '8px 0 0', color: '#9fb2c8', fontSize: 14, maxWidth: 640 }}>
                 Intakes from <code style={{ color: '#7dd3fc' }}>/lead-rescue</code> with product{' '}
                 <code style={{ color: '#7dd3fc' }}>ai-lead-rescue</code>. Qualify, quote, onboard, and maintain from here.
