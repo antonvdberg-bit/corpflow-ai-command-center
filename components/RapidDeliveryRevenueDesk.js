@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 
+import ProspectLegacyDeprecationBanner from './app/ProspectLegacyDeprecationBanner.js';
 import { fmtDateStableUtc } from '../lib/format/utc-date.js';
 import {
   RAPID_DELIVERY_OPERATOR_STATUS_OPTIONS,
@@ -271,6 +272,9 @@ export default function RapidDeliveryRevenueDesk({ initialLeads = null, initialE
               proposal summary, then record commercial state in ERPNext. Mauritius sprint clients pay in MUR
               (bank transfer) — do not request USD for that path. {MANUAL_APPROVAL}
             </p>
+            <div style={{ marginTop: 14, maxWidth: 720 }}>
+              <ProspectLegacyDeprecationBanner routePath="/admin/rapid-delivery" />
+            </div>
             <div
               style={{
                 display: 'flex',
@@ -280,7 +284,10 @@ export default function RapidDeliveryRevenueDesk({ initialLeads = null, initialE
                 marginTop: 16,
               }}
             >
-              <Link href="/app/prospects" style={btnPrimary}>
+              <Link href="/app/queue" style={btnPrimary}>
+                Open Action Queue
+              </Link>
+              <Link href="/app/prospects" style={btnGhost}>
                 Open Prospect Operations
               </Link>
               <Link href="/change/revenue" style={btnGhost}>

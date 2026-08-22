@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import ProspectLegacyDeprecationBanner from '../../components/app/ProspectLegacyDeprecationBanner.js';
 import {
   RAPID_DELIVERY_OFFER_SLUGS,
   getRapidDeliveryOffer,
@@ -333,6 +334,7 @@ export default function RevenueOperatorCockpit() {
       <main style={styles.shell}>
         <p style={styles.kicker}>Operator cockpit · not a public page</p>
         <h1 style={styles.h1}>First-revenue operator cockpit</h1>
+        <ProspectLegacyDeprecationBanner routePath="/change/revenue" />
         <p style={styles.sub}>
           One place to run the manual cycle: offer → prospect → discovery → quote → deposit request →
           deposit proof → manual verification → approval → delivery → preview feedback → release →

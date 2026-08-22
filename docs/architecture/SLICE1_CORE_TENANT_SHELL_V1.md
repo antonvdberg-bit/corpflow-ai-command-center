@@ -25,7 +25,9 @@
 | Today / My Work | `/app/today` | Operating Workspace / Core session only (#772 next slice) |
 | Shared Prospect detail | `/app/prospects/[id]` | Operating Workspace / Core session only (#994) |
 | Prospect Workbench | `/app/workbench` | Operating Workspace / Core session only (#996) |
-| Core nav | My Work (`/app/today`) · Tenants · Requests · Prospects · Workbench · Delivery · Approvals · Releases · Operations | Within Core; Delivery/Operations link to `/change` |
+| Prospect Action Queue | `/app/queue` | Operating Workspace / Core session only (#995 / #1040) |
+| Prospect Pipeline | `/app/pipeline` | Operating Workspace / Core session only (#997) |
+| Core nav | My Work (`/app/today`) · Queue (`/app/queue`) · Tenants · Requests · Prospects · Workbench · Pipeline · Delivery · Approvals · Releases · Operations | Within Core; Delivery/Operations link to `/change` |
 | Tenant nav | Home · My Work · Requests & Progress · Documents · Reports · Support | Within Tenant only |
 | APIs | `/api/app/shell`, `/requests`, `/request`, `/component-review`, `/component-expose` | Environment-gated |
 

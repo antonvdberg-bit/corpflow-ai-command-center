@@ -1,6 +1,6 @@
 # Prospect Operations v1 — shared package contract (#721)
 
-**Status:** Slice 1 shipped. Slice 2 shared detail/action layer shipped (`/app/prospects/[id]`, #994). Slice 3 shared Prospect Workbench shipped (`/app/workbench`, #996). Slice 3 Pipeline Kanban shipped in Operating Workspace (`/app/pipeline`, #997). Action Queue remains later if not already shipped. **No schema. No env. No deploy. No external send.**
+**Status:** Slice 1 shipped. Slice 2 shared detail/action layer shipped (`/app/prospects/[id]`, #994). Shared Prospect Workbench shipped (`/app/workbench`, #996). Pipeline Kanban shipped (`/app/pipeline`, #997). Action Queue shipped (`/app/queue`, #995). #1040 production-coherence: one canonical operator path; legacy desks TEMPORARY; no hard redirects. **No schema. No env. No deploy. No external send.**
 
 **Issue:** #721 · Parent doctrine #720 · Revenue programme #710–#716 · Baseline PR #708
 
@@ -36,9 +36,13 @@
 
 | Layer | Path |
 | ----- | ---- |
-| Route | `/admin/rapid-delivery` |
-| Page | `pages/admin/rapid-delivery/index.js` |
-| UI | `components/RapidDeliveryRevenueDesk.js` (`RapidDeliveryRevenueDesk`) |
+| Canonical route | `/app/queue` |
+| Canonical API | `GET /api/app/queue` (safe writes: `PATCH /api/app/prospect`) |
+| Temporary product desk | `/admin/rapid-delivery` |
+| Canonical page | `pages/app/queue.js` |
+| Canonical UI | `components/app/ProspectActionQueue.js` |
+| Temporary page | `pages/admin/rapid-delivery/index.js` |
+| Temporary UI | `components/RapidDeliveryRevenueDesk.js` (`RapidDeliveryRevenueDesk`) |
 | List API | `GET /api/factory/rapid-delivery/list` |
 | Detail API | `GET /api/factory/rapid-delivery/get?id=` |
 | Patch API | `PATCH /api/factory/rapid-delivery/patch` |
