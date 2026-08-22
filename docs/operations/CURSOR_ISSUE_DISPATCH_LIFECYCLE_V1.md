@@ -258,4 +258,5 @@ This packet does **not** create those synthetic issues. Schedule-driven proof is
 - Issue #913 / PR #914 — CorpFlowAI Cursor Factory Handoff (MODE B)
 - Issue #930 — Wake Proof is the sole production Cursor executor; API dispatcher is diagnostic only
 - Issue #1023 — 10-minute whole-queue reconciliation fallback (thin wrapper → existing Handoff)
+- Issue #1038 — Grok 4.6 bounded factory pilot (executor/reviewer model only; no second wake path)
 - `lib/server/operator-gate-authorization.js` — durable gate authorization evaluation

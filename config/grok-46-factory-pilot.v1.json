@@ -1,0 +1,125 @@
+{
+  "schema": "corpflow.grok_46_factory_pilot.v1",
+  "source_issue": 1038,
+  "environment": "local",
+  "plan": {
+    "objective": "Execute one harmless multi-step factory/control-plane task with Cursor Grok 4.6 on the existing Factory Automation path, then recommend whether to use that model selectively.",
+    "steps": [
+      "Refresh GitHub + canonical operating-model context",
+      "Confirm Grok 4.6 is already available on CorpFlowAI Cursor Factory Handoff / Cloud Agents",
+      "Implement a repo-only evaluator that preserves GitHub → Temporal supervise → Handoff → Cursor ownership",
+      "Prove an intentional second-dispatcher / spend packet fails closed",
+      "Prove the corrected executor-only packet passes",
+      "Compare against existing GitHub factory evidence without a duplicate paid Composer rerun",
+      "Record model, agent/run IDs, follow-ups, tests, deviations, operator interventions, and spend",
+      "Return exactly one allowed recommendation verdict"
+    ]
+  },
+  "this_run": {
+    "model_id": "cursor-grok-4.6-high-fast",
+    "cursor_agent_id": "bc-c89065e0-e4b8-445b-81b3-f1bab2d5e187",
+    "handoff_run_id": "32554780542",
+    "automation_id": "30c07c9d-96f7-11f1-ba66-0e7d0216e441",
+    "launch_mechanism": "existing_factory_automation",
+    "wake_path": "CorpFlowAI Cursor Factory Handoff",
+    "follow_up_cycles": 0,
+    "human_reprompt_required": false,
+    "operator_interventions": 0,
+    "on_demand_spend_enabled": false,
+    "plan_upgrade": false,
+    "browser_ui_verification": "n/a — control-plane/docs only; Cursor browser tooling not required for this packet"
+  },
+  "packet": {
+    "sourceIssue": 1038,
+    "modelId": "cursor-grok-4.6-high-fast",
+    "modelRole": "executor_reviewer_inside_cursor",
+    "wakePath": "CorpFlowAI Cursor Factory Handoff",
+    "launchMechanism": "existing_factory_automation",
+    "selfMerge": false,
+    "roles": ["executor_reviewer_inside_cursor"],
+    "actions": [
+      "discover",
+      "inspect",
+      "plan",
+      "implement",
+      "test",
+      "self_check",
+      "compare_existing_github_evidence",
+      "open_pr"
+    ]
+  },
+  "intentional_failure_packet": {
+    "sourceIssue": 1038,
+    "modelId": "cursor-grok-4.6-high-fast",
+    "modelRole": "second_dispatcher",
+    "wakePath": "Grok Bot parallel queue",
+    "launchMechanism": "parallel_grok_bot",
+    "selfMerge": true,
+    "roles": ["second_dispatcher", "autonomous_merge_deploy_authority"],
+    "actions": ["purchase_ultra", "enable_on_demand_spend", "launch_grok_bot", "autonomous_merge"]
+  },
+  "corrected_packet": {
+    "sourceIssue": 1038,
+    "modelId": "cursor-grok-4.6-high-fast",
+    "modelRole": "executor_reviewer_inside_cursor",
+    "wakePath": "CorpFlowAI Cursor Factory Handoff",
+    "launchMechanism": "existing_factory_automation",
+    "selfMerge": false,
+    "roles": ["executor_reviewer_inside_cursor"],
+    "actions": ["plan", "implement", "test", "self_check", "open_pr"]
+  },
+  "comparison": {
+    "duplicatePaidRunRequested": false,
+    "method": "existing GitHub factory PR/issue evidence only",
+    "cases": [
+      {
+        "pr": 1007,
+        "issue": 997,
+        "state": "MERGED",
+        "modelId": "cursor-grok-4.6-high-fast",
+        "note": "Postgres-backed Prospect Pipeline. Substantial factory app work completed and merged."
+      },
+      {
+        "pr": 1002,
+        "issue": 995,
+        "state": "OPEN",
+        "modelId": "cursor-grok-4.6-high-fast",
+        "note": "Canonical Prospect Action Queue. Later reconciled onto Pipeline main; no second PR."
+      },
+      {
+        "pr": 1034,
+        "issue": 1032,
+        "state": "OPEN",
+        "modelId": "cursor-grok-4.6-high-fast",
+        "note": "Temporal Phase 1 factory supervisor. Repo-only proofs A–J; live L3 worker not started."
+      },
+      {
+        "pr": 1024,
+        "issue": 1023,
+        "state": "MERGED",
+        "modelId": "factory-automation-default",
+        "note": "10-minute factory queue reconciliation fallback. Thin wrapper, not a second dispatcher."
+      },
+      {
+        "pr": 1030,
+        "issue": 1026,
+        "state": "CLOSED",
+        "modelId": "factory-automation-default",
+        "note": "Factory pilot 1 intentional isolated CI red. Closed after the designed first-PR-red state; not a model-quality failure."
+      }
+    ]
+  },
+  "grok_bot_finding": {
+    "product_surface_seen_in_this_worker": false,
+    "subscribed": false,
+    "trial_started": false,
+    "sensitive_plugin_connected": false,
+    "public_pages_checked": [
+      "https://cursor.com/docs/models/grok-4-6",
+      "https://cursor.com/docs/models-and-pricing",
+      "https://x.ai/news/grok-bot-more-plans"
+    ],
+    "entitlement_note": "Grok 4.6 is in the Cursor Models pool on paid Cursor plans and was used by this Factory Automation run. SpaceXAI public copy now says Grok Bot is included with Cursor Pro+. This worker did not see a Grok Bot control surface and did not subscribe, start a trial, or connect plugins. Entitlement discrepancy recorded as evidence only."
+  },
+  "recommendation": "GROK 4.6 PILOT PASS — USE SELECTIVELY FOR LONG-HORIZON/HIGH-COMPLEXITY CURSOR WORK"
+}
