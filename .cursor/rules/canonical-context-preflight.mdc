@@ -48,6 +48,8 @@ Source item: #<issue> | PR #<number> | n/a
 
 The repository CI gate validates this acknowledgement for new PRs. This acknowledgement is evidence of refresh, not authorization for any protected action.
 
+The `Environment:` acknowledgement must be a bare enum on its own line. Do not append notes on that line (`Environment: n/a (control plane only)` fails if no later bare `Environment: n/a` exists). The checker accepts the first exact allowed enum in the PR body, so a later acknowledgement block still wins over an earlier narrative `Environment:` line with extra text.
+
 ## Protected actions unchanged
 
 This rule does not authorize merge, client-production deploy, env/secrets changes, DB/schema changes, payments, external sends/outreach, paid tools, or public client launch. Existing durable-approval gates remain authoritative.
