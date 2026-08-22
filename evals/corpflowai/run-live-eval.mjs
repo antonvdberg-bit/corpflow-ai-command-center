@@ -21,6 +21,7 @@ import { readFileSync, mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
+import { GROQ_DEFAULT_MODEL } from '../../lib/server/groq-client.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
@@ -50,7 +51,7 @@ function fail(msg) {
 }
 
 async function callGroq(prompt, apiKey) {
-  const model = process.env.CORPFLOW_EVAL_LIVE_MODEL || process.env.GROQ_MODEL_NAME || 'llama-3.3-70b-versatile';
+  const model = process.env.CORPFLOW_EVAL_LIVE_MODEL || process.env.GROQ_MODEL_NAME || GROQ_DEFAULT_MODEL;
   const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: {

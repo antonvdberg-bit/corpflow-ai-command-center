@@ -674,6 +674,16 @@ describe('eligibility wake (#891) — approval and capacity changes', () => {
     assert.equal(plan.path, 'schedule_fallback');
     assert.equal(plan.mode, 'cursor_live');
     assert.equal(plan.wakeReason, 'schedule_fallback');
+
+    const called = resolveFactoryDispatcherRunPlan({
+      eventName: 'workflow_call',
+      wakeReasonInput: 'scheduled_reconciliation',
+      capacityWakeRequested: 'true',
+    });
+    assert.equal(called.shouldRun, true);
+    assert.equal(called.path, 'schedule_fallback');
+    assert.equal(called.wakeReason, 'scheduled_reconciliation');
+    assert.equal(called.requireExactEventIssue, false);
   });
 
   it('G: eligibility wakes do not require manual label toggle or workflow_dispatch', () => {

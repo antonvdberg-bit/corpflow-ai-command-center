@@ -1,0 +1,87 @@
+# Whole-queue missed-event / orphan reconciliation (#1023).
+#
+# Every 10 minutes, scan current GitHub delivery state with the existing
+# factory eligibility / WIP / pause / operator-review rules. Only when a real
+# eligible issue exists and verified WIP permits, workflow_call the existing
+# CorpFlowAI Cursor Factory Handoff. That named workflow remains the sole
+# production Cursor wake path (webhook + MODE B).
+#
+# This wrapper is not a second dispatcher, app, database, queue, or executor.
+# Event-driven Handoff triggers stay primary. This wrapper does not send
+# outbound messages. Empty scans succeed silently and do not POST the Cursor webhook.
+#
+# Displayed name must remain distinct from:
+#   CorpFlowAI Cursor Factory Handoff
+
+name: CorpFlowAI Factory Queue Reconcile
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  actions: read
+
+concurrency:
+  group: factory-queue-reconcile
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    outputs:
+      should_wake_handoff: ${{ steps.reconcile.outputs.should_wake_handoff }}
+      source_issue: ${{ steps.reconcile.outputs.source_issue }}
+      reason: ${{ steps.reconcile.outputs.reason }}
+
+    steps:
+      # Pinned SHAs (supply chain): tag v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      # Pinned SHAs (supply chain): tag v6
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
+        with:
+          node-version: "20"
+
+      - name: Reconcile GitHub delivery queue
+        id: reconcile
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          FACTORY_QUEUE_RECONCILE_OUT_PATH: factory-queue-reconcile.json
+        run: |
+          set -euo pipefail
+          node scripts/factory-queue-reconcile.mjs
+
+      - name: Silent when no eligible wake
+        if: steps.reconcile.outputs.should_wake_handoff != '1'
+        run: echo "No eligible ready work / no WIP capacity — silent success (reason=${{ steps.reconcile.outputs.reason }})"
+
+      - name: Upload reconcile artifact
+        if: always()
+        continue-on-error: true
+        # Pinned SHAs (supply chain): tag v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: factory-queue-reconcile
+          path: factory-queue-reconcile.json
+          if-no-files-found: ignore
+          retention-days: 7
+
+  # Existing sole production worker path. Do not call the legacy API dispatcher.
+  wake_factory_handoff:
+    needs: scan
+    if: needs.scan.outputs.should_wake_handoff == '1'
+    uses: ./.github/workflows/factory-cursor-handoff.yml
+    secrets: inherit
+    with:
+      wake_reason: scheduled_reconciliation
+      capacity_wake_requested: "false"
+      target_issue: ""

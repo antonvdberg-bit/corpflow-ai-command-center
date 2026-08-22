@@ -2,7 +2,7 @@
 
 **Issue:** [#772](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/772)  
 **Related:** [#721](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/721) Prospect Operations · [#773](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/773) / [#778](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/778) Core/Tenant shell  
-**Status:** Phase 1 audit + Prospect Operations list + Today / My Work + shared detail **shipped**. This packet adds the next no-schema slice: **Postgres-backed Prospect Pipeline** at `/app/pipeline` (#997 / #721 Kanban).
+**Status:** Phase 1 audit + Prospect Operations list + Today / My Work **shipped**. Shared Prospect detail / actions / history shipped at `/app/prospects/[id]` (#994). Shared Prospect Workbench shipped at `/app/workbench` (#996). This packet adds the next no-schema slice: **Postgres-backed Prospect Pipeline** at `/app/pipeline` (#997 / #721 Kanban).
 **Environment:** `corpflow_test` after merge/deploy; this packet does not authorize `client_production`
 **No schema. No env/secrets. No deploy. No external send.**
 
@@ -16,9 +16,10 @@ An authorised staff user can:
 2. Always see workspace name, tenant/business context, and role in the chrome.
 3. Reach shared **Prospect Operations** at `/app/prospects` from the Operating Workspace.
 4. Open **Today / My Work** at `/app/today` and see only items that need attention now (overdue, due today, missing next action, or waiting on the operator).
-5. Open one **shared Prospect detail** from Prospect Operations, Today / My Work, or Pipeline, see identity / qualification / history, and save owner, stage, next action, due date, urgency, and an operator note.
-6. Open **Prospect Pipeline** at `/app/pipeline` and see the same records in canonical-stage lanes; stage moves persist through the shared write path.
-7. Not see Prospect Operations, Today / My Work, shared detail, Pipeline, or other internal commercial desks inside the Tenant Workspace.
+5. Open one **shared Prospect detail** from Prospect Operations, Today / My Work, the Workbench, or Pipeline, see identity / qualification / history, and save owner, stage, next action, due date, urgency, and an operator note.
+6. Open the **Prospect Workbench** at `/app/workbench` to process Lead Rescue, Website Rescue, and general prospects in one reusable grid (sort, filter, exception signals, safe inline edits).
+7. Open **Prospect Pipeline** at `/app/pipeline` and see the same records in canonical-stage lanes; stage moves persist through the shared write path.
+8. Not see Prospect Operations, Today / My Work, shared detail, Workbench, Pipeline, or other internal commercial desks inside the Tenant Workspace.
 
 Existing Core/Tenant **authentication remains separate**. Choosing the other workspace returns to `/app` and uses the matching sign-in. A Core session still cannot enter Tenant; a Tenant session still cannot enter Core. That #778 rule is unchanged.
 
@@ -56,6 +57,8 @@ Machine copy: `WORKSPACE_SURFACE_MATRIX` in `lib/app/workspace-context.js`.
 | `/app/pipeline` | `leads` | same + `canonical_stage` lanes | Core only | **CANONICAL** | Postgres Pipeline; `/change/revenue` is checklist only |
 | `/api/app/pipeline` | `leads` | same | Core only | **CANONICAL** | Tenant → 403 |
 | `/api/app/prospect` | `leads` | same | Core only | **CANONICAL** | GET + PATCH; Tenant → 403 |
+| `/app/workbench` | `leads` | fixture / `leads_read` + JSON patch | Core only | **CANONICAL** | Shared Prospect Workbench |
+| `/api/app/workbench` | `leads` | same | Core only | **CANONICAL** | Tenant → 403 |
 | `/admin/rapid-delivery` | `leads` (rapid-delivery) | `admin-rapid-delivery-api` | `requireAdminPageSession` | **MIGRATE** | REUSE desk + API; long-term Action Queue |
 | `/admin/lead-rescue` + `/[id]` | `leads` (lead-rescue) | `admin-lead-rescue-api` | admin session | **MIGRATE** | REUSE list/detail; extract Workbench from product brand |
 | `/change/revenue` | localStorage cards | `corpflow.revenue.cockpit.v1` | change session | **MIGRATE** | Optional checklist only. Canonical pipeline is `/app/pipeline` |
@@ -82,7 +85,7 @@ Machine copy: `WORKSPACE_SURFACE_MATRIX` in `lib/app/workspace-context.js`.
 | Core/Tenant shells | Yes (`/app/core`, `/app/tenant`) | Chrome used technical “Core/Tenant” names | Product workspace names (this slice) |
 | Prospect Ops shared UI | No | View-model + docs only (#721 Slice 1) | Shared queue/workbench/Kanban |
 | Action Queue | Yes as Rapid Delivery desk | Product-filtered | Cross-product queue |
-| Workbench | Yes as Lead Rescue | Product-branded | Extracted Prospect Workbench |
+| Workbench | Yes (`/app/workbench`) | Cross-product grid; `/admin/lead-rescue` temporary | Product-desk retirement after live verification |
 | Pipeline Kanban | Yes (`/app/pipeline`) | Same `leads` + `canonical_stage` | `/change/revenue` remains optional localStorage checklist |
 | Today / My Work landing | Yes (`/app/today`, staff-only) | Uses #721 `matchesMyWorkTodayFilter` | — |
 | Shared Prospect detail | Yes (`/app/prospects/[id]`) | JSON owner/stage/next-action/due/note | Connecting the three product views (#721 Slice 3) |
@@ -109,6 +112,13 @@ This slice replaces the fragmented “My Work is just another Requests list” b
 
 This slice does **not** connect all three prospect views, rebuild CRM, or retire `/admin/lead-rescue` or `/admin/rapid-delivery`.
 
+### Already shipped (shared Prospect Workbench — #996)
+
+1. Dedicated Operating Workspace route `/app/workbench` + `GET /api/app/workbench`.
+2. Reuse `#721` view-model, `#994` shared detail, and existing `PATCH /api/app/prospect` write paths.
+3. Lead Rescue, Website Rescue, and general prospects in one reusable grid with sort, standard filters, exception signals, and safe inline edits.
+4. Staff-only; Tenant 403; no schema; no external send; `/admin/lead-rescue` remains a temporary product desk.
+
 ### This slice (Postgres Pipeline — #997)
 
 1. Dedicated Operating Workspace route `/app/pipeline` + `GET /api/app/pipeline`.
@@ -121,7 +131,7 @@ This slice does **not** retire product desks or `/change/revenue`, and does not 
 ### Later spare-capacity slices (do not build in this PR)
 
 1. Canonical Action Queue replacing `/admin/rapid-delivery` as the UX owner.
-2. Prospect Workbench extracted from Lead Rescue branding.
+2. Product-desk retirement after live verification of Workbench and Pipeline replacements.
 3. Clients summary from Company Master.
 4. Commercial summary from ERPNext rails (read-only first).
 5. Delivery summary from Lead Rescue / Website Rescue contracts.
@@ -147,6 +157,8 @@ node --test \
   node-tests/app-prospect-operations-handlers.test.mjs \
   node-tests/app-today-my-work.test.mjs \
   node-tests/app-prospect-detail.test.mjs \
+  node-tests/app-prospect-workbench.test.mjs \
+  node-tests/app-prospect-pipeline.test.mjs \
   node-tests/app-slice1-access.test.mjs \
   node-tests/app-slice1-handlers.test.mjs \
   node-tests/prospect-operations-view-model.test.mjs

@@ -14,6 +14,7 @@ This document defines canonical route ownership and production expectations with
 - `/app/prospects` is the first staff-only Prospect Operations route inside the Operating Workspace (#772). Tenant sessions receive 403. See `docs/architecture/OPERATING_TENANT_WORKSPACE_CONSOLIDATION_V1.md`.
 - `/app/today` is the staff-only Today / My Work landing inside the Operating Workspace (#772). It reuses the shared prospect list and `#721` `matchesMyWorkTodayFilter`. Tenant sessions receive 403. Tenant **My Work** remains an in-shell placeholder.
 - `/app/prospects/[id]` is the staff-only shared Prospect detail / action / history surface (#994 / #721 Slice 2). `GET`/`PATCH` `/api/app/prospect` is Core only. Tenant sessions receive 403. Product desks at `/admin/lead-rescue` and `/admin/rapid-delivery` remain until later slices.
+- `/app/workbench` is the staff-only shared Prospect Workbench (#996). `GET /api/app/workbench` is Core only. Tenant sessions receive 403. The product-branded grid at `/admin/lead-rescue` remains a temporary desk.
 - Slice 2 (#877): normal authenticated session path is the operator default (no `?proof=1` required). Proof remains Preview/local harness only.
 - Core nav may link Delivery/Operations to `/change` (compatibility). Tenant nav may link existing enabled capabilities.
 - `/change` and `/change-v2` remain compatibility / experimental routes — **not** deleted and **not** production-redirected yet.

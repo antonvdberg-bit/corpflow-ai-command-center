@@ -334,6 +334,34 @@ export const APP_SHELL_CSS = `
     border-bottom: 1px solid var(--app-panel-border);
     padding: 10px 0;
   }
+  .cf-app-filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .cf-app-sort-btn {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0;
+    cursor: pointer;
+  }
+  .cf-app-sort-btn[data-active="true"] {
+    color: var(--app-text);
+  }
+  .cf-app-table th button {
+    text-align: left;
+  }
+  .cf-app-search {
+    margin-top: 14px;
+    max-width: 360px;
+  }
   .cf-pipe-filters {
     display: flex;
     flex-wrap: wrap;
@@ -453,5 +481,6 @@ export const APP_SHELL_CSS = `
     .cf-app-chrome { padding: 12px 14px; }
     .cf-app-main { padding: 18px 12px 48px; }
     .cf-app-kv { grid-template-columns: 1fr; }
+    .cf-app-table { font-size: 0.8rem; }
   }
 `;

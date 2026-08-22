@@ -16,8 +16,8 @@ async def chat(message: str):
     
     try:
         completion = client.chat.completions.create(
-            # UPDATED MODEL ID FOR 2026 PRODUCTION
-            model="llama-3.3-70b-versatile",
+            # Built-in default matches lib/server/groq-client.js (issue #1013).
+            model="openai/gpt-oss-120b",
             messages=[
                 {"role": "system", "content": "You are the Serenity Wellness Concierge. You are professional, empathetic, and luxury-focused. You assist clients in Mauritius with beauty and wellness inquiries."},
                 {"role": "user", "content": message}
@@ -29,4 +29,4 @@ async def chat(message: str):
 
 @app.get("/api/health")
 def health():
-    return {"status": "operational", "model": "llama-3.3-70b-versatile"}
+    return {"status": "operational", "model": "openai/gpt-oss-120b"}
