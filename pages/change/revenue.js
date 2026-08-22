@@ -18,8 +18,10 @@ import {
  * - Live MUR discovery intakes persist to the existing `leads` table (product
  *   `corpflow-rapid-delivery`) and are operated at `/admin/rapid-delivery`.
  * - ERPNext remains the commercial system of record for invoices/quotes.
+ * - Canonical prospect pipeline is `/app/pipeline` (Postgres `leads` +
+ *   #721 canonical_stage). This page is a compatibility checklist only.
  * - Stage lanes below may still use browser localStorage as an optional
- *   checklist — never as the authoritative prospect list.
+ *   personal checklist — never as the authoritative prospect list.
  * - No second CRM, no payment runtime, no automated email/WhatsApp/SMS outreach
  *   (outreach requires separate Anton approval).
  *
@@ -366,6 +368,16 @@ export default function RevenueOperatorCockpit() {
           compatibility checklist, not the enquiry CRM.
         </div>
 
+        <div style={styles.boundary} data-testid="revenue-cockpit-canonical-notice">
+          <strong>Canonical Prospect Pipeline:</strong>{' '}
+          <Link href="/app/pipeline" style={{ color: c.good, fontWeight: 700 }}>
+            Operating Workspace · /app/pipeline
+          </Link>
+          . That board uses the same Postgres prospect records as Prospect Operations. The 11-lane
+          board below is an <em>optional personal checklist in this browser only</em> — not the
+          operator CRM and not a second pipeline.
+        </div>
+
         <div style={styles.boundary}>
           <strong>ERPNext is the system of record.</strong> CRM, quotations, onboarding documents,
           deposit/payment records, projects, feedback, release approvals, and maintenance are recorded
@@ -391,8 +403,8 @@ export default function RevenueOperatorCockpit() {
           ))}
         </div>
 
-        {/* Pipeline board */}
-        <p style={styles.sectionLabel}>Pipeline — 11 status lanes</p>
+        {/* Optional personal checklist — not canonical */}
+        <p style={styles.sectionLabel}>Optional checklist — 11 status lanes (this browser only)</p>
 
         <form style={styles.boardControls} onSubmit={addProspect}>
           <input
