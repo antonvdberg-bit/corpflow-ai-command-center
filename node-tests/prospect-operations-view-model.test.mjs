@@ -16,8 +16,10 @@ import {
   leadRowToProspectViewModel,
   mapCanonicalStageToNativeStatus,
   mapNativeStatusToCanonicalStage,
+  matchesActionQueueFilter,
   matchesMyWorkTodayFilter,
   matchesWorkbenchFilter,
+  normalizeActionQueueFilter,
   normalizeWorkbenchFilter,
   resolveNextActionDue,
   sortProspectsForActionQueue,
@@ -168,6 +170,25 @@ describe('prospect-operations-view-model — due dates and exceptions', () => {
       ),
       false,
     );
+  });
+
+  it('normalises Action Queue filters and isolates needs-action plus named signals', () => {
+    assert.equal(normalizeActionQueueFilter('awaiting_client'), 'awaiting_prospect');
+    assert.equal(normalizeActionQueueFilter('awaiting_corpflow'), 'awaiting_operator');
+    assert.equal(normalizeActionQueueFilter('bogus'), 'needs_action');
+    assert.equal(
+      matchesActionQueueFilter({ exception_signals: ['overdue_action'] }, 'overdue', NOW),
+      true,
+    );
+    assert.equal(
+      matchesActionQueueFilter({ exception_signals: ['future_action_scheduled'] }, 'needs_action', NOW),
+      false,
+    );
+    assert.equal(
+      matchesActionQueueFilter({ exception_signals: ['awaiting_protected_approval'] }, 'awaiting_protected_approval', NOW),
+      true,
+    );
+    assert.equal(matchesActionQueueFilter({ exception_signals: ['no_next_action'] }, 'all', NOW), true);
   });
 
   it('normalises Workbench filters and isolates product plus exception slices', () => {

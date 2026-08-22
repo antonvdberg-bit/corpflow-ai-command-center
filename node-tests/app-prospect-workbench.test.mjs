@@ -106,7 +106,8 @@ test('handler: Workbench product and exception filters isolate rows', async () =
     const wr = await idsFor('website_rescue');
     assert.ok(wr.includes('syn-772-rd-bea'));
     const general = await idsFor('general');
-    assert.deepEqual(general, ['syn-996-gen-dee']);
+    assert.ok(general.includes('syn-996-gen-dee'));
+    assert.ok(general.includes('syn-995-gen-gil'));
     const overdue = await idsFor('overdue');
     assert.ok(overdue.includes('syn-772-lr-ada'));
     const noNext = await idsFor('no_next_action');
@@ -161,7 +162,8 @@ test('handler: Workbench text search finds general prospect', async () => {
     );
     assert.equal(res.state.statusCode, 200);
     const ids = res.state.body.prospects.map((row) => row.id);
-    assert.deepEqual(ids, ['syn-996-gen-dee']);
+    assert.ok(ids.includes('syn-996-gen-dee'));
+    assert.equal(ids.includes('syn-995-gen-gil'), false);
   } finally {
     process.env.NODE_ENV = prevNode;
     if (prevVercel == null) delete process.env.VERCEL_ENV;
