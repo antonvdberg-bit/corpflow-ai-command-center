@@ -4,6 +4,7 @@ import { describe, it } from 'node:test';
 import { CORE_NAV_ITEMS, TENANT_NAV_ITEMS } from '../lib/app/constants.js';
 import {
   ACTION_QUEUE_PATH,
+  CLIENTS_PATH,
   OPERATING_WORKSPACE_LABEL,
   PROSPECT_OPERATIONS_PATH,
   PROSPECT_PIPELINE_PATH,
@@ -14,22 +15,27 @@ import {
   canAccessOperatingWorkspace,
   classifyWorkspaceSurface,
   isActionQueuePath,
+  isClientSharedDetailPath,
+  isClientsPath,
   isProspectOperationsPath,
   isProspectPipelinePath,
   isProspectSharedDetailPath,
   isProspectWorkbenchPath,
   isTodayMyWorkPath,
   navIncludesActionQueue,
+  navIncludesClients,
   navIncludesProspectOperations,
   navIncludesProspectPipeline,
   navIncludesProspectWorkbench,
   navIncludesTodayMyWork,
   operatingNavIncludesActionQueue,
+  operatingNavIncludesClients,
   operatingNavIncludesProspectOperations,
   operatingNavIncludesProspectPipeline,
   operatingNavIncludesProspectWorkbench,
   operatingNavIncludesTodayMyWork,
   tenantNavOmitsActionQueue,
+  tenantNavOmitsClients,
   tenantNavOmitsProspectOperations,
   tenantNavOmitsProspectPipeline,
   tenantNavOmitsProspectWorkbench,
@@ -159,6 +165,25 @@ describe('workspace-context — Action Queue boundary', () => {
   });
 });
 
+describe('workspace-context — Clients summary boundary', () => {
+  it('recognises the Clients summary route', () => {
+    assert.equal(isClientsPath('/app/clients'), true);
+    assert.equal(isClientsPath('/api/app/clients'), true);
+    assert.equal(isClientsPath('/app/clients/cmp_ada_spa_synthetic'), true);
+    assert.equal(isClientSharedDetailPath('/app/clients/cmp_ada_spa_synthetic'), true);
+    assert.equal(isClientSharedDetailPath('/api/app/client'), true);
+    assert.equal(isClientsPath('/app/prospects'), false);
+    assert.equal(CLIENTS_PATH, '/app/clients');
+  });
+
+  it('includes Clients on Operating Workspace nav and omits it from Tenant nav', () => {
+    assert.equal(operatingNavIncludesClients(), true);
+    assert.equal(tenantNavOmitsClients(), true);
+    assert.equal(navIncludesClients(CORE_NAV_ITEMS), true);
+    assert.equal(navIncludesClients(TENANT_NAV_ITEMS), false);
+  });
+});
+
 describe('workspace-context — surface matrix', () => {
   it('classifies required #772 surfaces', () => {
     assert.equal(classifyWorkspaceSurface('/app/core')?.disposition, 'CANONICAL');
@@ -168,6 +193,8 @@ describe('workspace-context — surface matrix', () => {
     assert.equal(classifyWorkspaceSurface('/app/pipeline')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/app/workbench')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/app/queue')?.disposition, 'CANONICAL');
+    assert.equal(classifyWorkspaceSurface('/app/clients')?.disposition, 'CANONICAL');
+    assert.equal(classifyWorkspaceSurface('/app/clients/cmp_ada_spa_synthetic')?.path, '/app/clients/[id]');
     assert.equal(classifyWorkspaceSurface('/app/prospects/syn-772-lr-ada')?.path, '/app/prospects/[id]');
     assert.equal(classifyWorkspaceSurface('/admin/rapid-delivery')?.disposition, 'MIGRATE');
     assert.equal(classifyWorkspaceSurface('/admin/lead-rescue')?.disposition, 'MIGRATE');
