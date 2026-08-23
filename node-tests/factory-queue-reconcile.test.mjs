@@ -31,7 +31,10 @@ import {
   FACTORY_QUEUE_RECONCILE_WORKFLOW_NAME,
   resolveFactoryQueueReconcileDecision,
 } from '../lib/server/factory-queue-reconcile.js';
-import { resolveFactoryDispatcherRunPlan } from '../lib/server/cursor-ready-event-dispatch.js';
+import {
+  isInheritedScheduledReconcileWake,
+  resolveFactoryDispatcherRunPlan,
+} from '../lib/server/cursor-ready-event-dispatch.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const REPO_ROOT = path.resolve(path.dirname(__filename), '..');
@@ -129,6 +132,17 @@ describe('factory queue reconcile workflow (#1023)', () => {
     assert.match(yaml, /wake_reason:\s*scheduled_reconciliation/);
     assert.match(yaml, /node scripts\/factory-queue-reconcile\.mjs/);
     assert.match(yaml, /needs\.scan\.outputs\.should_wake_handoff == '1'/);
+    assert.match(yaml, /target_issue:\s*\$\{\{\s*needs\.scan\.outputs\.source_issue\s*\}\}/);
+  });
+
+  it('Handoff job if accepts inherited schedule event_name from Queue Reconcile (#1041)', () => {
+    // GitHub reusable workflows inherit the caller event_name. Scheduled
+    // Queue Reconcile therefore enters Handoff as event_name=schedule, not
+    // workflow_call. The job if must not require workflow_call exclusively.
+    assert.match(handoffYaml, /inputs\.wake_reason == 'scheduled_reconciliation'/);
+    assert.match(handoffYaml, /github\.event_name == 'workflow_call'/);
+    assert.doesNotMatch(handoffYaml, /^\s*schedule:/m);
+    assert.doesNotMatch(extractOnBlock(handoffYaml), /cron:/);
   });
 
   it('schedules */10 reconciliation without adding schedule to the named Handoff workflow', () => {
@@ -319,5 +333,38 @@ describe('factory queue reconcile decisions (#1023)', () => {
     assert.equal(plan.wakeReason, 'scheduled_reconciliation');
     assert.equal(plan.requireExactEventIssue, false);
     assert.deepEqual(plan.preferIssueNumbers, []);
+  });
+
+  it('inherited schedule event_name still publishes scheduled_reconciliation (#1041 / #1037)', () => {
+    // Live evidence: run 32555465184 scanned #1037 as eligible_ready_work
+    // (should_wake_handoff=1) then skipped the inner Handoff job because
+    // github.event_name was schedule, not workflow_call.
+    assert.equal(isInheritedScheduledReconcileWake('scheduled_reconciliation', 'schedule'), true);
+    assert.equal(isInheritedScheduledReconcileWake('scheduled_reconciliation', 'workflow_dispatch'), true);
+    assert.equal(isInheritedScheduledReconcileWake('scheduled_reconciliation', 'workflow_call'), true);
+    assert.equal(isInheritedScheduledReconcileWake('scheduled_reconciliation', 'issues'), false);
+    assert.equal(isInheritedScheduledReconcileWake('', 'schedule'), false);
+
+    const inherited = resolveFactoryDispatcherRunPlan({
+      eventName: 'schedule',
+      wakeReasonInput: 'scheduled_reconciliation',
+      capacityWakeRequested: 'false',
+      targetIssueInput: '1037',
+    });
+    assert.equal(inherited.shouldRun, true);
+    assert.equal(inherited.mode, 'cursor_live');
+    assert.equal(inherited.path, 'schedule_fallback');
+    assert.equal(inherited.wakeReason, 'scheduled_reconciliation');
+    assert.equal(inherited.requireExactEventIssue, false);
+    assert.deepEqual(inherited.preferIssueNumbers, [1037]);
+
+    const manualReconcile = resolveFactoryDispatcherRunPlan({
+      eventName: 'workflow_dispatch',
+      wakeReasonInput: 'scheduled_reconciliation',
+      targetIssueInput: '1037',
+    });
+    assert.equal(manualReconcile.shouldRun, true);
+    assert.equal(manualReconcile.wakeReason, 'scheduled_reconciliation');
+    assert.deepEqual(manualReconcile.preferIssueNumbers, [1037]);
   });
 });

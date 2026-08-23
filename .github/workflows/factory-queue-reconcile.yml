@@ -84,4 +84,8 @@ jobs:
     with:
       wake_reason: scheduled_reconciliation
       capacity_wake_requested: "false"
-      target_issue: ""
+      # Pass the scanned issue. GitHub reusable workflows inherit the caller's
+      # event_name (schedule), so Handoff must not depend on a blank full-scan
+      # plus event_name=workflow_call. Prefer the issue this wrapper already
+      # classified as eligible + WIP-permitted (#1041 / #1037).
+      target_issue: ${{ needs.scan.outputs.source_issue }}

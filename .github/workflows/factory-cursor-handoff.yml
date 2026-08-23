@@ -71,11 +71,15 @@ jobs:
     # issue_comment: structured authorization markers only; ignore [bot] actors.
     # workflow_call: capacity backfill from Cursor agent lifecycle status, or
     # scheduled whole-queue reconcile (#1023).
-    # No schedule primary path on this named workflow — empty scheduled successes
-    # must not wake Automation. The thin factory-queue-reconcile.yml wrapper
-    # owns the 10-minute cadence and only calls this workflow when a real
-    # eligible issue exists.
+    # GitHub reusable workflows inherit the caller's github.event_name. Queue
+    # Reconcile is triggered by schedule, so this job sees event_name=schedule
+    # (or workflow_dispatch for a manual reconcile), not workflow_call.
+    # Gate that inherited path on inputs.wake_reason == scheduled_reconciliation
+    # so empty scheduled successes still cannot wake this named workflow.
+    # No schedule: trigger on this file — factory-queue-reconcile.yml owns the
+    # 10-minute cadence and only calls this workflow when a real eligible issue exists.
     if: >-
+      inputs.wake_reason == 'scheduled_reconciliation' ||
       github.event_name == 'workflow_dispatch' ||
       github.event_name == 'workflow_call' ||
       (github.event_name == 'issue_comment' &&

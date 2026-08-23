@@ -79,6 +79,8 @@ describe('factory cursor handoff workflow (#913)', () => {
     assert.match(yaml, /execution:paused/);
     assert.doesNotMatch(yaml, /^\s*schedule:/m);
     assert.doesNotMatch(yaml, /cron:/);
+    // #1041: inherited schedule event_name from Queue Reconcile must still run.
+    assert.match(yaml, /inputs\.wake_reason == 'scheduled_reconciliation'/);
   });
 
   it('does not require Cursor API secrets and runs the handoff selector', () => {
