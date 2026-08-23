@@ -28,7 +28,7 @@
 | Prospect Pipeline | `/app/pipeline` | Operating Workspace / Core session only (#997) |
 | Prospect Action Queue | `/app/queue` | Operating Workspace / Core session only (#995) |
 | Core nav | My Work (`/app/today`) · Action Queue · Tenants · Requests · Prospects · Workbench · Pipeline · Delivery · Approvals · Releases · Operations | Within Core; Delivery/Operations link to `/change` |
-| Tenant nav | Home · My Work · Requests & Progress · Documents · Reports · Support | Within Tenant only |
+| Tenant nav | Requests & Progress · Service & change (`/change`) | Within Tenant only. Home / My Work / Documents / Reports / Support retired (#1006). |
 | APIs | `/api/app/shell`, `/requests`, `/request`, `/component-review`, `/component-expose` | Environment-gated |
 
 ## Request data contract

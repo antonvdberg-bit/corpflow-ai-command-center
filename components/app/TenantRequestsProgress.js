@@ -44,10 +44,10 @@ export default function TenantRequestsProgress({
         <section className="cf-app-panel" data-testid="tenant-requests-empty">
           <h1 className="cf-app-h1">Requests &amp; Progress</h1>
           <p className="cf-app-lead">
-            No authorised requests for this tenant yet. When Core creates work packages for
-            CorpFlowAI, client-safe progress will appear here.
+            No requests are available in this workspace yet. When work is opened for review,
+            progress will appear here.
           </p>
-          <p className="cf-app-muted">Client-safe projection only · no internal engineering fields.</p>
+          <p className="cf-app-muted">Your tenant requests only · items not opened for review stay view-only.</p>
         </section>
       </div>
     );
@@ -58,7 +58,7 @@ export default function TenantRequestsProgress({
       {list.length > 0 ? (
         <section className="cf-app-panel" data-testid="tenant-request-list">
           <h1 className="cf-app-h1">Requests &amp; Progress</h1>
-          <p className="cf-app-lead">Your tenant requests only · client-safe progress</p>
+          <p className="cf-app-lead">Your requests, status, and items open for review</p>
           <div className="cf-app-grid" style={{ marginTop: 14 }}>
             {list.map((r) => {
               const id = String(r.request_id || '');

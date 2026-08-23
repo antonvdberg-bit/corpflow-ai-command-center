@@ -127,7 +127,7 @@ export default function AppTenantPage() {
   }, [proofWanted]);
 
   const loadDetail = useCallback(async () => {
-    if (!(menu === 'requests_progress' || menu === 'my_work' || menu === 'home')) {
+    if (menu !== 'requests_progress') {
       setRequest(null);
       return;
     }
@@ -213,7 +213,7 @@ export default function AppTenantPage() {
   if (!router.isReady || (initialLoad && busy && !authRequired && !accessDenied && !shell)) {
     return (
       <AppShell environment="tenant" tenantLabel="CorpFlowAI" role="—">
-        <AppLoadState kind="loading" title="Loading Tenant — CorpFlowAI…" />
+        <AppLoadState kind="loading" title="Loading Tenant Workspace…" />
       </AppShell>
     );
   }
@@ -222,10 +222,9 @@ export default function AppTenantPage() {
     return (
       <AppShell environment="tenant" tenantLabel="CorpFlowAI" role="—">
         <section className="cf-app-panel" data-testid="app-auth-required">
-          <h1 className="cf-app-h1">Sign in to Tenant — CorpFlowAI</h1>
+          <h1 className="cf-app-h1">Sign in to the Tenant Workspace</h1>
           <p className="cf-app-lead">
-            CorpFlowAI is a normal reference tenant. Use existing tenant authentication — not Core /
-            admin credentials.
+            Use this tenant&apos;s sign-in to see requests, progress, and items open for review.
           </p>
           <div className="cf-app-actions">
             <a
@@ -234,9 +233,6 @@ export default function AppTenantPage() {
               href={`/login?next=${encodeURIComponent('/app/tenant')}`}
             >
               Tenant sign in
-            </a>
-            <a className="cf-app-btn" href="/app">
-              Back to chooser
             </a>
           </div>
           <p className="cf-app-muted" style={{ marginTop: 16 }} data-testid="proof-harness-hint">
@@ -252,15 +248,15 @@ export default function AppTenantPage() {
     return (
       <AppShell environment="tenant" tenantLabel="CorpFlowAI" role="—">
         <section className="cf-app-panel" data-testid="app-tenant-denied">
-          <h1 className="cf-app-h1">Tenant access denied</h1>
+          <h1 className="cf-app-h1">Tenant Workspace access denied</h1>
           <p className="cf-app-lead">
-            A Core session cannot enter Tenant. Sign out and sign in with CorpFlowAI tenant
-            credentials.
+            A staff Operating Workspace session cannot enter this tenant workspace. Sign in with
+            this tenant&apos;s credentials, or return to the Operating Workspace.
           </p>
           <p className="cf-app-error">{error}</p>
           <div className="cf-app-actions">
             <a className="cf-app-btn" data-primary="true" href="/app/core">
-              Open Core
+              Open Operating Workspace
             </a>
             <a className="cf-app-btn" href={`/login?next=${encodeURIComponent('/app/tenant')}`}>
               Tenant sign in
@@ -300,10 +296,11 @@ export default function AppTenantPage() {
       <TenantMenu active={menu} disabled={busy} onSelect={(id) => setMenu(id)} />
 
       <p className="cf-app-muted" style={{ marginTop: -8, marginBottom: 16 }} data-testid="tenant-workspace-meta">
-        Tenant environment · normal tenant auth · no Core menu · no internal evidence
+        Workspace for {tenantLabel} · requests, review, and progress
         {dataSource ? (
           <>
-            {' · '}data source <code data-testid="tenant-data-source">{dataSource}</code>
+            {' · '}
+            <code data-testid="tenant-data-source">{dataSource}</code>
           </>
         ) : null}
       </p>
@@ -311,17 +308,7 @@ export default function AppTenantPage() {
       {error ? <p className="cf-app-error" data-testid="app-error">{error}</p> : null}
       {notice ? <p className="cf-app-ok" data-testid="app-notice">{notice}</p> : null}
 
-      {menu === 'documents' || menu === 'reports' || menu === 'support' ? (
-        <section className="cf-app-panel" data-testid={`tenant-placeholder-${menu}`}>
-          <h1 className="cf-app-h1">
-            {menu === 'documents' ? 'Documents' : menu === 'reports' ? 'Reports' : 'Support'}
-          </h1>
-          <p className="cf-app-lead">
-            Linked capability placeholder — existing enabled routes may be connected here without
-            rebuilding mature surfaces. Compatibility route: <a href="/change">/change</a>.
-          </p>
-        </section>
-      ) : busy && !listReady ? (
+      {busy && !listReady ? (
         <AppLoadState kind="loading" title="Loading Requests & Progress…" />
       ) : (
         <TenantRequestsProgress

@@ -96,8 +96,10 @@ test('handler: Tenant proof shell is Tenant-only with Tenant nav', async () => {
     assert.deepEqual(res.state.body.actor.can_tenant_ids, [REFERENCE_TENANT_ID]);
     const menuIds = res.state.body.menus.map((m) => m.id);
     assert.ok(menuIds.includes('requests_progress'));
-    assert.ok(menuIds.includes('home'));
-    assert.ok(menuIds.includes('documents'));
+    assert.ok(menuIds.includes('service_change'));
+    assert.equal(menuIds.includes('home'), false);
+    assert.equal(menuIds.includes('documents'), false);
+    assert.equal(menuIds.includes('my_work'), false);
   } finally {
     process.env.NODE_ENV = prevNode;
   }

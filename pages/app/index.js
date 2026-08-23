@@ -1,12 +1,42 @@
+import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { APP_FONT_HREF, APP_SHELL_CSS, CORE_THEME, themeStyleVars } from '../../components/app/app-theme.js';
+import { tenantChooserRedirectPath } from '../../lib/app/tenant-workspace.js';
 
 /**
  * /app entry chooser — separate Core and Tenant authentication paths.
  * No shared ScopeSwitcher. One production app; two entry environments.
+ *
+ * #1006: a live Tenant session must not remain on this chooser (it advertises
+ * the Operating Workspace). Staff still use this page deliberately.
  */
 export default function AppEntryChooser() {
+  const router = useRouter();
+  const [checkingTenant, setCheckingTenant] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function redirectTenantSession() {
+      try {
+        const res = await fetch('/api/app/shell?env=tenant', { credentials: 'same-origin' });
+        const target = tenantChooserRedirectPath(res.status);
+        if (!cancelled && target) {
+          await router.replace(target);
+          return;
+        }
+      } catch {
+        // Stay on the chooser when the shell probe fails.
+      }
+      if (!cancelled) setCheckingTenant(false);
+    }
+    redirectTenantSession();
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
+
   return (
     <div className="cf-app-root" data-environment="chooser" style={themeStyleVars(CORE_THEME)}>
       <Head>
@@ -28,10 +58,15 @@ export default function AppEntryChooser() {
         <section className="cf-app-panel" data-testid="app-entry-chooser">
           <h1 className="cf-app-h1">Choose workspace</h1>
           <p className="cf-app-lead">
-            Enter the CorpFlowAI Operating Workspace or the Tenant Workspace deliberately. Each
-            workspace uses its own existing sign-in. An Operating Workspace session cannot enter
-            Tenant; a Tenant session cannot enter the Operating Workspace.
+            Staff enter the Operating Workspace here. Tenant users sign in to their own workspace.
+            An Operating Workspace session cannot enter Tenant; a Tenant session cannot enter the
+            Operating Workspace.
           </p>
+          {checkingTenant ? (
+            <p className="cf-app-muted" data-testid="chooser-tenant-check">
+              Checking for an existing Tenant Workspace session…
+            </p>
+          ) : null}
           <div className="cf-app-actions" style={{ marginTop: 20 }}>
             <Link className="cf-app-btn" data-primary="true" href="/app/core" data-testid="enter-core">
               Open Operating Workspace
