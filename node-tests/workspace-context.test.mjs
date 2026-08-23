@@ -4,6 +4,7 @@ import { describe, it } from 'node:test';
 import { CORE_NAV_ITEMS, TENANT_NAV_ITEMS } from '../lib/app/constants.js';
 import {
   ACTION_QUEUE_PATH,
+  COMMERCIAL_SUMMARY_PATH,
   OPERATING_WORKSPACE_LABEL,
   PROSPECT_OPERATIONS_PATH,
   PROSPECT_PIPELINE_PATH,
@@ -14,22 +15,26 @@ import {
   canAccessOperatingWorkspace,
   classifyWorkspaceSurface,
   isActionQueuePath,
+  isCommercialSummaryPath,
   isProspectOperationsPath,
   isProspectPipelinePath,
   isProspectSharedDetailPath,
   isProspectWorkbenchPath,
   isTodayMyWorkPath,
   navIncludesActionQueue,
+  navIncludesCommercialSummary,
   navIncludesProspectOperations,
   navIncludesProspectPipeline,
   navIncludesProspectWorkbench,
   navIncludesTodayMyWork,
   operatingNavIncludesActionQueue,
+  operatingNavIncludesCommercialSummary,
   operatingNavIncludesProspectOperations,
   operatingNavIncludesProspectPipeline,
   operatingNavIncludesProspectWorkbench,
   operatingNavIncludesTodayMyWork,
   tenantNavOmitsActionQueue,
+  tenantNavOmitsCommercialSummary,
   tenantNavOmitsProspectOperations,
   tenantNavOmitsProspectPipeline,
   tenantNavOmitsProspectWorkbench,
@@ -143,6 +148,22 @@ describe('workspace-context — Prospect Workbench boundary', () => {
   });
 });
 
+describe('workspace-context — Commercial summary boundary', () => {
+  it('recognises the Commercial summary route', () => {
+    assert.equal(isCommercialSummaryPath('/app/commercial'), true);
+    assert.equal(isCommercialSummaryPath('/api/app/commercial'), true);
+    assert.equal(isCommercialSummaryPath('/app/pipeline'), false);
+    assert.equal(COMMERCIAL_SUMMARY_PATH, '/app/commercial');
+  });
+
+  it('includes Commercial on Operating Workspace nav and omits it from Tenant nav', () => {
+    assert.equal(operatingNavIncludesCommercialSummary(), true);
+    assert.equal(tenantNavOmitsCommercialSummary(), true);
+    assert.equal(navIncludesCommercialSummary(CORE_NAV_ITEMS), true);
+    assert.equal(navIncludesCommercialSummary(TENANT_NAV_ITEMS), false);
+  });
+});
+
 describe('workspace-context — Action Queue boundary', () => {
   it('recognises the canonical Prospect Action Queue', () => {
     assert.equal(isActionQueuePath('/app/queue'), true);
@@ -168,6 +189,7 @@ describe('workspace-context — surface matrix', () => {
     assert.equal(classifyWorkspaceSurface('/app/pipeline')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/app/workbench')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/app/queue')?.disposition, 'CANONICAL');
+    assert.equal(classifyWorkspaceSurface('/app/commercial')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/app/prospects/syn-772-lr-ada')?.path, '/app/prospects/[id]');
     assert.equal(classifyWorkspaceSurface('/admin/rapid-delivery')?.disposition, 'MIGRATE');
     assert.equal(classifyWorkspaceSurface('/admin/lead-rescue')?.disposition, 'MIGRATE');
