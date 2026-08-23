@@ -4,6 +4,7 @@ import { describe, it } from 'node:test';
 import { CORE_NAV_ITEMS, TENANT_NAV_ITEMS } from '../lib/app/constants.js';
 import {
   ACTION_QUEUE_PATH,
+  DELIVERY_SUMMARY_PATH,
   OPERATING_WORKSPACE_LABEL,
   PROSPECT_OPERATIONS_PATH,
   PROSPECT_PIPELINE_PATH,
@@ -14,22 +15,26 @@ import {
   canAccessOperatingWorkspace,
   classifyWorkspaceSurface,
   isActionQueuePath,
+  isDeliverySummaryPath,
   isProspectOperationsPath,
   isProspectPipelinePath,
   isProspectSharedDetailPath,
   isProspectWorkbenchPath,
   isTodayMyWorkPath,
   navIncludesActionQueue,
+  navIncludesDeliverySummary,
   navIncludesProspectOperations,
   navIncludesProspectPipeline,
   navIncludesProspectWorkbench,
   navIncludesTodayMyWork,
   operatingNavIncludesActionQueue,
+  operatingNavIncludesDeliverySummary,
   operatingNavIncludesProspectOperations,
   operatingNavIncludesProspectPipeline,
   operatingNavIncludesProspectWorkbench,
   operatingNavIncludesTodayMyWork,
   tenantNavOmitsActionQueue,
+  tenantNavOmitsDeliverySummary,
   tenantNavOmitsProspectOperations,
   tenantNavOmitsProspectPipeline,
   tenantNavOmitsProspectWorkbench,
@@ -159,6 +164,22 @@ describe('workspace-context — Action Queue boundary', () => {
   });
 });
 
+describe('workspace-context — Delivery summary boundary', () => {
+  it('recognises the Delivery summary route', () => {
+    assert.equal(isDeliverySummaryPath('/app/delivery'), true);
+    assert.equal(isDeliverySummaryPath('/api/app/delivery'), true);
+    assert.equal(isDeliverySummaryPath('/app/queue'), false);
+    assert.equal(DELIVERY_SUMMARY_PATH, '/app/delivery');
+  });
+
+  it('includes Delivery on Operating Workspace nav and omits it from Tenant nav', () => {
+    assert.equal(operatingNavIncludesDeliverySummary(), true);
+    assert.equal(tenantNavOmitsDeliverySummary(), true);
+    assert.equal(navIncludesDeliverySummary(CORE_NAV_ITEMS), true);
+    assert.equal(navIncludesDeliverySummary(TENANT_NAV_ITEMS), false);
+  });
+});
+
 describe('workspace-context — surface matrix', () => {
   it('classifies required #772 surfaces', () => {
     assert.equal(classifyWorkspaceSurface('/app/core')?.disposition, 'CANONICAL');
@@ -168,6 +189,7 @@ describe('workspace-context — surface matrix', () => {
     assert.equal(classifyWorkspaceSurface('/app/pipeline')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/app/workbench')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/app/queue')?.disposition, 'CANONICAL');
+    assert.equal(classifyWorkspaceSurface('/app/delivery')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/app/prospects/syn-772-lr-ada')?.path, '/app/prospects/[id]');
     assert.equal(classifyWorkspaceSurface('/admin/rapid-delivery')?.disposition, 'MIGRATE');
     assert.equal(classifyWorkspaceSurface('/admin/lead-rescue')?.disposition, 'MIGRATE');

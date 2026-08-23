@@ -256,6 +256,18 @@ export const APP_SHELL_CSS = `
   .cf-app-badge[data-kind="viewonly"] {
     background: rgba(148,163,184,0.18);
   }
+  .cf-app-badge[data-kind="protected"] {
+    background: rgba(248,113,113,0.18);
+    color: #fecaca;
+  }
+  .cf-app-badge[data-kind="exception"] {
+    background: rgba(251,191,36,0.16);
+    color: #fde68a;
+  }
+  .cf-app-table tr[data-protected="true"] {
+    outline: 1px solid rgba(248,113,113,0.35);
+    outline-offset: -1px;
+  }
   .cf-app-actions {
     display: flex;
     flex-wrap: wrap;
