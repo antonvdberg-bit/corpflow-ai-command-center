@@ -156,6 +156,9 @@ export default function DiscoveryIntakeForm({
         meta.lead_rescue_context = true;
         meta.lead_sources = enquiryChannels.trim() || 'Not specified';
       }
+      if (lockedOffer && routed.offer_slug === 'premium-landing-page-rescue') {
+        meta.website_rescue_context = true;
+      }
 
       const intentBits = [
         'Qualified enquiry',

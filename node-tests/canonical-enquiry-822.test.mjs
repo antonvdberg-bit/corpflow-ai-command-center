@@ -58,6 +58,18 @@ describe('#822 Lead Rescue query locks the canonical form', () => {
     assert.equal(parsed.defaultBuyerNeed, '');
   });
 
+  it('maps ?offer=website-rescue to the Premium Landing Page Rescue lock', () => {
+    const parsed = resolveCanonicalEnquiryQuery({ offer: 'website-rescue' });
+    assert.equal(parsed.lockedOffer, true);
+    assert.equal(parsed.defaultOfferSlug, 'premium-landing-page-rescue');
+    assert.equal(parsed.defaultServicePath, 'website-digital');
+    assert.equal(parsed.defaultBuyerNeed, '');
+    assert.equal(
+      canonicalEnquiryHref({ offer: 'website-rescue' }),
+      '/contact?offer=premium-landing-page-rescue#discovery',
+    );
+  });
+
   it('offer lock wins over a competing path or need query', () => {
     const parsed = resolveCanonicalEnquiryQuery({
       offer: 'ai-lead-rescue',

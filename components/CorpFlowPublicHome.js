@@ -207,7 +207,7 @@ export default function CorpFlowPublicHome({ host = null, search = null }) {
             — capture, alert, log and follow up missed enquiries (USD 150 launch pilot path; separate intake).
           </li>
           <li>
-            <Link href="/offers/premium-landing-page-rescue" style={{ color: CF.link }}>
+            <Link href="/website-rescue" style={{ color: CF.link }}>
               Website Rescue
             </Link>{' '}
             — bounded landing-page rescue with a clearer enquiry path; see the{' '}

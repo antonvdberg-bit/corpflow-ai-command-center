@@ -82,7 +82,7 @@ describe('#699 market gateway — public offer', () => {
     assert.ok(home.includes('CORPflow_PROOF_ITEMS'));
     assert.ok(home.includes('CORPflow_TRUST_POINTS'));
     assert.ok(home.includes('/lead-rescue'));
-    assert.ok(home.includes('/offers/premium-landing-page-rescue'));
+    assert.ok(home.includes('/website-rescue'));
     assert.ok(home.includes('/demo/website-rescue'));
     assert.ok(home.includes('/contact?path='));
     assert.ok(home.includes('Enquire about this path'));
