@@ -37,7 +37,7 @@ describe('#712 market path — public pages and primary CTAs', () => {
     assert.match(CORPflow_HOMEPAGE_HERO.primaryCta.label, /qualified conversation/i);
     const home = read('components/CorpFlowPublicHome.js');
     assert.ok(home.includes('/lead-rescue'));
-    assert.ok(home.includes('/offers/premium-landing-page-rescue'));
+    assert.ok(home.includes('/website-rescue'));
     assert.ok(home.includes('/demo/website-rescue'));
     assert.ok(!/Choose payment path/i.test(home));
   });
@@ -51,13 +51,14 @@ describe('#712 market path — public pages and primary CTAs', () => {
     assert.ok(!/Choose payment path/i.test(lr));
   });
 
-  it('Website Rescue offer has one primary discovery CTA', () => {
+  it('Website Rescue offer has one primary discovery CTA and a named buyer path', () => {
     const offer = RAPID_DELIVERY_OFFERS['premium-landing-page-rescue'];
     assert.ok(offer);
     assert.match(offer.headline, /enquiry path/i);
     const page = read('components/RapidDeliveryOfferPage.js');
     assert.ok(page.includes('Request discovery') || page.includes('#discovery'));
     assert.ok(existsSync(path.join(REPO_ROOT, 'pages/offers/premium-landing-page-rescue.js')));
+    assert.ok(existsSync(path.join(REPO_ROOT, 'pages/website-rescue.js')));
     assert.ok(existsSync(path.join(REPO_ROOT, 'pages/demo/website-rescue.js')));
   });
 
