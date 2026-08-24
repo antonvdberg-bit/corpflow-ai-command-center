@@ -44,6 +44,8 @@ Canonical operator view for genuine Anton decisions: **`docs/operations/ANTON_DE
 
 **CIPC partner campaign MVP (#985):** first 10 verified accounting/advisory prospects on the existing `/change` board + `leads.qualification_json.cipc_campaign`. Canonical: **`docs/operations/CIPC_CAMPAIGN_MVP_V1.md`**. Drafts only — Anton approves the first outbound send. No second CRM, no schema, no live send.
 
+**CIPC response automation (#987):** website/campaign enquiry capture, classification, deterministic drafts, `/change` approve/reject/do-not-contact, follow-up due dates, and reply linking on existing `cmp_tickets` / `leads` JSON. Canonical: **`docs/operations/CIPC_RESPONSE_AUTOMATION_V1.md`**. Send stays blocked.
+
 **This repo’s technical partner function (ongoing):**
 
 - **Curate and wire agents:** use `docs/automation-framework.md`, `docs/n8n/automation-forward-recipe.md`, CMP mirror events, and playbooks so client-visible milestones trigger **notifications, handoffs, and follow-up** without you on the laptop (`docs/EXECUTION_BRAIN_VS_HANDS.md`).

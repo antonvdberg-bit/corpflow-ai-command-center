@@ -102,6 +102,7 @@ export default function CipcDeskPartnerFunnel({ content }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [enquiryReference, setEnquiryReference] = useState('');
 
   function updateField(key, value) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -122,6 +123,7 @@ export default function CipcDeskPartnerFunnel({ content }) {
     e.preventDefault();
     setError('');
     setSubmitted(false);
+    setEnquiryReference('');
 
     const built = buildPartnerFunnelEnquiryEmail(form);
     if (!built.ok) {
@@ -137,6 +139,13 @@ export default function CipcDeskPartnerFunnel({ content }) {
         body: JSON.stringify({
           email_text: built.email_text,
           client_path: '/partners',
+          source: 'partner_web',
+          sender_email: form.email,
+          company: form.firm,
+          contact_name: form.contact_name,
+          phone: form.phone,
+          need: form.need,
+          preferred_channel: form.preferred_channel,
         }),
       });
       const json = await res.json().catch(() => ({}));
@@ -146,6 +155,7 @@ export default function CipcDeskPartnerFunnel({ content }) {
         );
         return;
       }
+      setEnquiryReference(String(json?.public_reference || json?.confirmation?.reference || ''));
       setSubmitted(true);
       setForm(emptyForm);
     } catch {
@@ -419,11 +429,17 @@ export default function CipcDeskPartnerFunnel({ content }) {
               <div role="status">
                 <p style={{ ...cfBody, color: CF.text, margin: 0, fontSize: 16 }}>
                   {safeStr(formCopy.confirmation)}
+                  {enquiryReference
+                    ? ` Your reference is ${enquiryReference}.`
+                    : ''}
                 </p>
                 <button
                   type="button"
                   style={{ ...cfBtnSecondary, marginTop: 18 }}
-                  onClick={() => setSubmitted(false)}
+                  onClick={() => {
+                    setSubmitted(false);
+                    setEnquiryReference('');
+                  }}
                 >
                   Send another enquiry
                 </button>

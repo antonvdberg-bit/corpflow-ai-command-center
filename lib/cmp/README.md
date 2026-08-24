@@ -46,6 +46,8 @@ Common actions include `ticket-create`, `ticket-get`, `technical-lead-latest`, `
 
 **CIPC campaign MVP (#985):** tenant `cipc-desk` or factory operator. `GET cipc-campaign-list` returns the first 10 verified partner prospects (config seed, merged with existing `leads` when present). `POST cipc-campaign-hydrate` upserts those rows onto the existing `leads` table (`qualification_json.cipc_campaign`). `POST cipc-campaign-operator-patch` records approve / reject / do-not-contact. **Send is never performed** — `intent=send` returns `PROTECTED_SEND_BLOCKED`. Canonical: `docs/operations/CIPC_CAMPAIGN_MVP_V1.md`.
 
+**CIPC response automation (#987):** same tenant/factory operator gate. Overlay on `cmp_tickets.console_json.cipc_response` and existing `leads.qualification_json.cipc_response`. `GET cipc-response-list` returns website + campaign enquiry drafts. `POST cipc-response-operator-patch` records approve / reject / do-not-contact. `POST cipc-response-link-reply` links reply metadata onto the existing matter (idempotent, no second ticket). **Send, quotation, payment, and CIPC submission stay blocked** — `intent=send` returns `PROTECTED_SEND_BLOCKED`. Canonical: `docs/operations/CIPC_RESPONSE_AUTOMATION_V1.md`.
+
 **`ticket-list` scope:** Admin sessions receive only **unscoped** tickets (`tenant_id` null — factory/core queue). Tenant sessions receive only rows for **their** `tenant_id`. Factory master token (no session) returns **all** rows for break-glass support. Response includes `list_scope` (`core` | `tenant` | `factory_master`) and `scope_tenant_id` when applicable.
 
 ## Automation spine (agents / webhooks)
