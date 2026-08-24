@@ -1,3 +1,5 @@
+import CommercialClearancePanel from './CommercialClearancePanel.js';
+
 /**
  * Operating Workspace — shared Prospect detail / actions / history (#994).
  * Staff-only. JSON writes only. No external send.
@@ -59,6 +61,7 @@ export default function ProspectDetailPanel({
   const productDesk = prospect.product_detail_path || prospect.detail_path;
 
   return (
+    <>
     <section className="cf-app-panel" data-testid="prospect-detail">
       <h1 className="cf-app-h1">{title}</h1>
       <p className="cf-app-lead">
@@ -286,6 +289,13 @@ export default function ProspectDetailPanel({
         </ol>
       )}
     </section>
+    <CommercialClearancePanel
+      prospect={prospect}
+      saving={saving}
+      proofWanted={proofWanted}
+      onSave={onSave}
+    />
+    </>
   );
 }
 
