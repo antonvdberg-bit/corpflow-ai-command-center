@@ -22,6 +22,7 @@ const FACTORY_ROUTER = join(root, 'api', 'factory_router.js');
 const CMP_ROUTER = join(root, 'lib', 'cmp', 'router.js');
 const CAMPAIGN_MVP = join(root, 'lib', 'cipc-desk', 'campaign-mvp.js');
 const RESPONSE_AUTOMATION = join(root, 'lib', 'cipc-desk', 'response-automation.js');
+const WEBSITE_RESCUE_ONBOARDING = join(root, 'lib', 'website-rescue', 'onboarding-delivery.js');
 
 const STATIC_IMPORT_RE =
   /(?:^|\n)\s*import\s+(?:[\s\S]*?\sfrom\s+)?['"](\.\.?\/[^'"]+)['"]/g;
@@ -85,6 +86,13 @@ describe('#1015 factory health boot isolation', () => {
     assert.equal(src.includes('import.meta'), false);
     assert.equal(src.includes('createRequire'), false);
     assert.match(src, /readFileSync\(\s*['"]config\/cipc-campaign-mvp\.v1\.json['"]/);
+  });
+
+  it('website-rescue onboarding-delivery.js does not use import.meta', () => {
+    const src = stripJsComments(readFileSync(WEBSITE_RESCUE_ONBOARDING, 'utf8'));
+    assert.equal(src.includes('import.meta'), false);
+    assert.equal(src.includes('createRequire'), false);
+    assert.match(src, /process\.cwd\(\)/);
   });
 
   it('cmp/router.js does not statically import campaign-mvp.js', () => {
