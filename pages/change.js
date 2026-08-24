@@ -3245,8 +3245,10 @@ export default function ChangeConsolePage() {
           (String(session.tenant_id || '').trim() === 'cipc-desk' ||
             String(uiContext?.acting_tenant_id || '').trim() === 'cipc-desk' ||
             String(uiContext?.tenant_id || '').trim() === 'cipc-desk') ? (
-            <CipcCampaignOperatorPanel />
-            <CipcResponseOperatorPanel />
+            <>
+              <CipcCampaignOperatorPanel />
+              <CipcResponseOperatorPanel />
+            </>
           ) : null}
 
           {sessionReady && session.logged_in ? (

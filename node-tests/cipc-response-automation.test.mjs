@@ -73,6 +73,10 @@ describe('#987 CIPC response automation — safety', () => {
     assert.match(router, /import\(\s*['"]\.\.\/cipc-desk\/response-automation\.js['"]\s*\)/);
     const change = readFileSync(join(root, 'pages', 'change.js'), 'utf8');
     assert.match(change, /CipcResponseOperatorPanel/);
+    assert.match(
+      change,
+      /<>\s*<CipcCampaignOperatorPanel \/>\s*<CipcResponseOperatorPanel \/>\s*<\/>/,
+    );
     const intake = readFileSync(join(root, 'lib', 'server', 'cipc-desk-email-intake.js'), 'utf8');
     assert.match(intake, /applyCipcResponseIntake/);
     assert.match(intake, /import\(\s*['"]\.\.\/cipc-desk\/response-automation\.js['"]\s*\)/);
