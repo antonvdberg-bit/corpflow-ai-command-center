@@ -36,6 +36,7 @@ const APEX_PATHS = [
   '/offers/customer-reputation-recovery',
   '/lead-rescue',
   '/lead-rescue/property-mauritius',
+  '/website-rescue',
   '/about',
   '/services',
   '/process',

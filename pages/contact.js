@@ -44,6 +44,7 @@ export default function ContactPage({
     ogImage: '/assets/visuals/corpflow-contact-hero.jpg',
   });
   const lockedLeadRescue = lockedOffer && defaultOfferSlug === 'ai-lead-rescue';
+  const lockedWebsiteRescue = lockedOffer && defaultOfferSlug === 'premium-landing-page-rescue';
 
   return (
     <CorpFlowPublicPhotoShell
@@ -60,12 +61,20 @@ export default function ContactPage({
 
       <section style={ps.section} id="discovery" data-canonical-enquiry>
         <DiscoveryIntakeForm
-          heading={lockedLeadRescue ? 'Request AI Lead Rescue' : 'Request a qualified conversation'}
+          heading={
+            lockedLeadRescue
+              ? 'Request AI Lead Rescue'
+              : lockedWebsiteRescue
+                ? 'Request Website Rescue'
+                : 'Request a qualified conversation'
+          }
           defaultBuyerNeed={defaultBuyerNeed || undefined}
           defaultServicePath={defaultServicePath || undefined}
           defaultOfferSlug={defaultOfferSlug || undefined}
           lockedOffer={lockedOffer}
-          lockedOfferLabel={lockedLeadRescue ? 'AI Lead Rescue' : undefined}
+          lockedOfferLabel={
+            lockedLeadRescue ? 'AI Lead Rescue' : lockedWebsiteRescue ? 'Website Rescue' : undefined
+          }
         />
         <p style={{ ...ps.p, marginTop: 16 }}>
           Prefer email?{' '}

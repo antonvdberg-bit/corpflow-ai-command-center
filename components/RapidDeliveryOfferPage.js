@@ -61,17 +61,24 @@ const styles = {
 };
 
 /**
- * Shared rapid-delivery offer surface for /offers/* routes.
- * CTA: mailto discovery call — no runtime email send, no payment collection on page.
+ * Shared rapid-delivery offer surface for /offers/* routes and named
+ * specialist landings (e.g. `/website-rescue`).
+ * CTA: in-page discovery form — no runtime email send, no payment collection.
  *
- * @param {{ offer: import('../lib/public/rapid-delivery-offers.js').RapidDeliveryOffer }} props
+ * @param {{
+ *   offer: import('../lib/public/rapid-delivery-offers.js').RapidDeliveryOffer,
+ *   buyerFacingName?: string,
+ *   pathOverride?: string,
+ * }} props
  */
-export default function RapidDeliveryOfferPage({ offer }) {
+export default function RapidDeliveryOfferPage({ offer, buyerFacingName, pathOverride }) {
   const mailtoHref = buildDiscoveryCallMailto(offer);
+  const pagePath = pathOverride || offer.path;
+  const publicTitle = buyerFacingName || offer.title;
   const meta = buildPublicPageMeta({
-    title: offer.title,
+    title: publicTitle,
     description: offer.metaDescription,
-    path: offer.path,
+    path: pagePath,
     ogImage: `${offer.heroBase}.jpg`,
   });
   const faq = OFFER_FAQ_BY_SLUG[offer.slug] || [];
@@ -129,8 +136,16 @@ export default function RapidDeliveryOfferPage({ offer }) {
 
         <GlassCardGrid minColWidth={300} gap={24} style={{ marginTop: 32, alignItems: 'start' }}>
           <HeroGlassBlock>
-            <div style={styles.label}>Rapid visible delivery · Mauritius</div>
+            <div style={styles.label}>
+              {buyerFacingName || 'Rapid visible delivery · Mauritius'}
+            </div>
             <h1 style={styles.h1}>{offer.headline}</h1>
+            {buyerFacingName ? (
+              <p style={{ ...styles.note, marginTop: 12, maxWidth: 720 }}>
+                Starting path: {offer.title}. A bounded landing-page rescue with a working enquiry
+                path — not a months-long rebuild.
+              </p>
+            ) : null}
             <p style={styles.lead}>{offer.subhead}</p>
             <div style={styles.priceBox}>
               <strong>Starting from {formatMur(offer.startingPriceMur)}</strong>
@@ -161,6 +176,28 @@ export default function RapidDeliveryOfferPage({ offer }) {
             <p style={styles.muted}>{offer.outcome}</p>
           </GlassPanel>
         </GlassCardGrid>
+
+        {offer.demoPath ? (
+          <div style={styles.section} data-website-rescue-proof>
+            <GlassPanel variant={{ fill: GLASS_TOKENS.glassFill, padding: 24, elevation: 2 }}>
+              <div style={styles.label}>Proof · see it working</div>
+              <h2 style={styles.h2}>See a synthetic before and after</h2>
+              <p style={styles.muted}>
+                Walk a fictional business from a weak landing page to a clearer mobile enquiry path.
+                No private client names or private operator systems on this demo.
+              </p>
+              <div style={{ marginTop: 16 }}>
+                <Link
+                  href={offer.demoPath}
+                  style={{ ...cfBtnSecondary }}
+                  onClick={() => handleCtaClick('proof_demo')}
+                >
+                  Open the Website Rescue demo
+                </Link>
+              </div>
+            </GlassPanel>
+          </div>
+        ) : null}
 
         <div style={styles.section}>
           <GlassPanel variant={{ fill: GLASS_TOKENS.glassFill, padding: 24, elevation: 2 }}>
@@ -293,7 +330,8 @@ export default function RapidDeliveryOfferPage({ offer }) {
             <DiscoveryIntakeForm
               defaultOfferSlug={offer.slug}
               lockedOffer
-              heading={`Request discovery — ${offer.title}`}
+              lockedOfferLabel={buyerFacingName || undefined}
+              heading={`Request discovery — ${buyerFacingName || offer.title}`}
             />
             <p style={styles.note}>
               Prefer email?{' '}
