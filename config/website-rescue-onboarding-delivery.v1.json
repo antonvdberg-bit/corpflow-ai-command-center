@@ -396,6 +396,8 @@
     "canonical": "docs/operations/WEBSITE_RESCUE_ONBOARDING_AND_DELIVERY_V1.md",
     "system_proof": "docs/operations/WEBSITE_RESCUE_SYSTEM_PROOF_V1.md",
     "scenario_b_integrated": "docs/operations/WEBSITE_RESCUE_SCENARIO_B_INTEGRATED_V1.md",
+    "operator_surface": "/app/prospects/[id]#website-rescue-delivery",
+    "storage": "leads.qualification_json.website_rescue_delivery",
     "intake_template": "docs/operations/templates/website-rescue-onboarding-intake.md",
     "delivery_issue_template": "docs/operations/templates/website-rescue-delivery-issue.md",
     "operator_checklists": "docs/operations/WEBSITE_RESCUE_DELIVERY_CHECKLISTS_V1.md",
