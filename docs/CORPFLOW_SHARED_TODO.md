@@ -44,6 +44,8 @@ Canonical operator view for genuine Anton decisions: **`docs/operations/ANTON_DE
 
 **CIPC partner campaign MVP (#985):** first 10 verified accounting/advisory prospects on the existing `/change` board + `leads.qualification_json.cipc_campaign`. Canonical: **`docs/operations/CIPC_CAMPAIGN_MVP_V1.md`**. Drafts only — Anton approves the first outbound send. No second CRM, no schema, no live send.
 
+**CIPC internal pricing decision model (#989):** operator-only calculator on CIPC Desk `/change`. Canonical: **`docs/operations/CIPC_PRICING_MODEL_V1.md`**. Statutory CIPC fees are pass-through, never revenue. Test bands from #989 are **not** approved public prices. No quotation, send, payment, or `/partners` price publication.
+
 **CIPC response automation (#987):** website/campaign enquiry capture, classification, deterministic drafts, `/change` approve/reject/do-not-contact, follow-up due dates, and reply linking on existing `cmp_tickets` / `leads` JSON. Canonical: **`docs/operations/CIPC_RESPONSE_AUTOMATION_V1.md`**. Send stays blocked.
 
 **This repo’s technical partner function (ongoing):**

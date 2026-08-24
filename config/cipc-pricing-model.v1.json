@@ -1,0 +1,275 @@
+{
+  "$schema_version": "1",
+  "$doc": "CIPC Desk INTERNAL pricing decision model v1 (#989). Operator modelling only. Not approved public prices. Not a client quotation. No send. No payment.",
+  "$issue": "#989",
+  "$parents": ["#984", "#640"],
+  "$canonical_doc": "docs/operations/CIPC_PRICING_MODEL_V1.md",
+  "$reuse": [
+    "config/cipc-pricing-model.v1.json",
+    "lib/cipc-desk/pricing-model.js",
+    "existing /change operator panel for tenant cipc-desk"
+  ],
+  "$schema_change": false,
+  "$send": false,
+  "$payment": false,
+  "$quotation": false,
+  "$cipc_submission": false,
+  "$public_publication": false,
+  "$protected": true,
+  "$warning": "INTERNAL MODEL — NOT APPROVED FOR PUBLICATION OR CLIENT QUOTATION. NO SCHEMA. NO SEND. NO PAYMENT. NO CIPC SUBMIT. Statutory CIPC fees are pass-through, never CorpFlowAI revenue. Serah time/cost assumptions are synthetic TBC unless separately approved.",
+
+  "tenant_id": "cipc-desk",
+  "environment": "corpflow_test",
+  "version": "cipc-pricing-model-v1",
+  "publication_state": "internal_model_only_not_approved",
+  "banner": "INTERNAL MODEL — NOT APPROVED FOR PUBLICATION OR CLIENT QUOTATION",
+
+  "guardrails": {
+    "statutory_fee_is_revenue": false,
+    "turnaround_guarantee": false,
+    "rush_outcome_guarantee": false,
+    "serah_assumptions_approved": false,
+    "public_publication_approved": false,
+    "client_quotation_approved": false
+  },
+
+  "evidence": {
+    "source": "issue_989_market_evidence_reviewed_2026-08-19",
+    "status": "provisional_test_bands_not_approved_public_prices",
+    "competitors_named": ["InfoDocs", "Du Preez Tax & Bookkeeping", "SMTAX", "GVZA", "Precision Virtual Hub"],
+    "positioning": "Do not try to win by being the cheapest filing clerk. The offer is experienced specialist capacity + white-label operational reliability."
+  },
+
+  "cost_assumption_status": "synthetic_tbc",
+  "cost_assumption_note": "Serah / specialist cost and time are not approved. Numeric values below are synthetic modelling placeholders labelled TBC. If a required numeric assumption is missing, the engine fails closed instead of inventing a figure.",
+
+  "global_cost_assumptions": {
+    "currency": "ZAR",
+    "operator_hourly_zar": {
+      "value": 350,
+      "status": "synthetic_tbc",
+      "note": "Internal modelling proxy only. Not a Serah-approved rate. Public professional-support band cited in #989 is used as a modelling clue, not as payroll truth."
+    },
+    "specialist_hourly_zar": {
+      "value": 650,
+      "status": "synthetic_tbc",
+      "note": "Internal modelling proxy only. Not a Serah-approved rate. GVZA meeting/minute public rate in #989 is used as a modelling clue, not as specialist payroll truth."
+    },
+    "overhead_contribution_allowance_zar": {
+      "value": 30,
+      "status": "synthetic_tbc",
+      "note": "Per-transaction contribution to overhead. Synthetic TBC."
+    },
+    "target_contribution_margin_pct": {
+      "value": 0.45,
+      "status": "synthetic_tbc",
+      "note": "Target contribution margin on CorpFlowAI service fee only. Statutory CIPC fees excluded."
+    },
+    "payment_processing_allowance_zar": {
+      "value": 0,
+      "activated": false,
+      "status": "not_activated",
+      "note": "Payment processing is not activated. Default allowance is 0 and must not be treated as a live payment path."
+    },
+    "partner_discount_band_pct": {
+      "min": 20,
+      "max": 35,
+      "note": "Wholesale discount vs the modelled direct-SME service fee, only where the discounted fee stays at or above the contribution-margin floor."
+    },
+    "minimum_viable_monthly_partner_value_zar": {
+      "value": null,
+      "status": "tbc_until_pilot_volume",
+      "note": "Do not invent a monthly partner minimum before real pilot volume exists."
+    }
+  },
+
+  "routes": {
+    "direct_sme": {
+      "route_id": "direct_sme",
+      "title": "Direct SME",
+      "modelling_only": false
+    },
+    "partner_payg": {
+      "route_id": "partner_payg",
+      "title": "Partner PAYG",
+      "modelling_only": false,
+      "note": "Transparent wholesale service fee per standard transaction. No minimum for pilot."
+    },
+    "partner_capacity": {
+      "route_id": "partner_capacity",
+      "title": "Partner Capacity",
+      "modelling_only": true,
+      "operator_set_retainer": true,
+      "note": "Custom monthly retainer remains operator-set until real pilot volume exists. The engine must not invent a subscription matrix."
+    }
+  },
+
+  "exception_rush_policy": {
+    "rush_flag_allowed": true,
+    "fixed_price_when_rush": false,
+    "rush_outcome_guarantee": false,
+    "cipc_turnaround_promise": false,
+    "text": "A rush or exception flag may increase internal cost and requires a scoped quote. It never purchases a CIPC outcome, a faster CIPC turnaround, or a guaranteed filing result."
+  },
+
+  "services": {
+    "annual_returns": {
+      "service_id": "annual_returns",
+      "title": "Annual Returns — clean standard case",
+      "fixed_price_eligible": true,
+      "specialist_review_required": false,
+      "always_scoped_quote": false,
+      "operator_minutes": {
+        "value": 20,
+        "status": "synthetic_tbc"
+      },
+      "specialist_minutes": {
+        "value": 5,
+        "status": "synthetic_tbc"
+      },
+      "overhead_contribution_allowance_zar": {
+        "value": 30,
+        "status": "synthetic_tbc"
+      },
+      "direct_sme_band_zar": {
+        "floor": 350,
+        "target": 500,
+        "ceiling": 650,
+        "source": "issue_989_provisional_test_band",
+        "evidence_backed": true,
+        "status": "provisional_test_band_not_approved"
+      },
+      "statutory_fee_passthrough": {
+        "treatment": "pass_through_not_revenue",
+        "value_zar": null,
+        "status": "operator_supplied_informational"
+      }
+    },
+    "beneficial_ownership": {
+      "service_id": "beneficial_ownership",
+      "title": "Beneficial Ownership — simple/standard structure",
+      "fixed_price_eligible": true,
+      "specialist_review_required": false,
+      "always_scoped_quote": false,
+      "complex_requires_scoped_quote": true,
+      "operator_minutes": {
+        "value": 30,
+        "status": "synthetic_tbc"
+      },
+      "specialist_minutes": {
+        "value": 8,
+        "status": "synthetic_tbc"
+      },
+      "overhead_contribution_allowance_zar": {
+        "value": 20,
+        "status": "synthetic_tbc"
+      },
+      "direct_sme_band_zar": {
+        "floor": 450,
+        "target": 650,
+        "ceiling": 850,
+        "source": "issue_989_provisional_test_band",
+        "evidence_backed": true,
+        "status": "provisional_test_band_not_approved"
+      },
+      "statutory_fee_passthrough": {
+        "treatment": "pass_through_not_revenue",
+        "value_zar": null,
+        "status": "operator_supplied_informational"
+      }
+    },
+    "director_changes": {
+      "service_id": "director_changes",
+      "title": "Director appointment/resignation — clean standard case",
+      "fixed_price_eligible": true,
+      "specialist_review_required": false,
+      "always_scoped_quote": false,
+      "operator_minutes": {
+        "value": 25,
+        "status": "synthetic_tbc"
+      },
+      "specialist_minutes": {
+        "value": 8,
+        "status": "synthetic_tbc"
+      },
+      "overhead_contribution_allowance_zar": {
+        "value": 25,
+        "status": "synthetic_tbc"
+      },
+      "direct_sme_band_zar": {
+        "floor": 450,
+        "target": 600,
+        "ceiling": 750,
+        "source": "issue_989_provisional_test_band",
+        "evidence_backed": true,
+        "status": "provisional_test_band_not_approved"
+      },
+      "statutory_fee_passthrough": {
+        "treatment": "pass_through_not_revenue",
+        "value_zar": null,
+        "status": "operator_supplied_informational"
+      }
+    },
+    "address_fye_amendment": {
+      "service_id": "address_fye_amendment",
+      "title": "Address / FYE / basic amendment — standard case",
+      "fixed_price_eligible": true,
+      "specialist_review_required": false,
+      "always_scoped_quote": false,
+      "operator_minutes": {
+        "value": 18,
+        "status": "synthetic_tbc"
+      },
+      "specialist_minutes": {
+        "value": 5,
+        "status": "synthetic_tbc"
+      },
+      "overhead_contribution_allowance_zar": {
+        "value": 30,
+        "status": "synthetic_tbc"
+      },
+      "direct_sme_band_zar": {
+        "floor": 300,
+        "target": 450,
+        "ceiling": 600,
+        "source": "issue_989_provisional_test_band",
+        "evidence_backed": true,
+        "status": "provisional_test_band_not_approved"
+      },
+      "statutory_fee_passthrough": {
+        "treatment": "pass_through_not_revenue",
+        "value_zar": null,
+        "status": "operator_supplied_informational"
+      }
+    },
+    "complex_specialist": {
+      "service_id": "complex_specialist",
+      "title": "Complex / historical / specialist matter",
+      "fixed_price_eligible": false,
+      "specialist_review_required": true,
+      "always_scoped_quote": true,
+      "operator_minutes": {
+        "value": null,
+        "status": "tbc_scoped"
+      },
+      "specialist_minutes": {
+        "value": null,
+        "status": "tbc_scoped"
+      },
+      "direct_sme_band_zar": {
+        "floor": null,
+        "target": null,
+        "ceiling": null,
+        "source": "issue_989_scoped_quote_not_fixed_price",
+        "evidence_backed": true,
+        "status": "scoped_quote_required"
+      },
+      "statutory_fee_passthrough": {
+        "treatment": "pass_through_not_revenue",
+        "value_zar": null,
+        "status": "operator_supplied_informational"
+      },
+      "note": "Complex beneficial ownership, restorations, deregistration, MOI, share restructures, and statutory interpretation must be scoped and specialist-reviewed. Never fixed-price automation."
+    }
+  }
+}
