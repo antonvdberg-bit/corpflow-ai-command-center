@@ -2,7 +2,7 @@
 
 **Issue:** [#772](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/772)  
 **Related:** [#721](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/721) Prospect Operations · [#773](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/773) / [#778](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/778) Core/Tenant shell  
-**Status:** Phase 1 audit + Prospect Operations list + Today / My Work **shipped**. Shared Prospect detail / actions / history shipped at `/app/prospects/[id]` (#994). Shared Prospect Workbench shipped at `/app/workbench` (#996). Postgres-backed Prospect Pipeline shipped at `/app/pipeline` (#997). Canonical Prospect Action Queue shipped at `/app/queue` (#995). This packet adds the next no-schema slice: **Commercial summary** at `/app/commercial` (#1004).
+**Status:** Phase 1 audit + Prospect Operations list + Today / My Work **shipped**. Shared Prospect detail / actions / history shipped at `/app/prospects/[id]` (#994). Shared Prospect Workbench shipped at `/app/workbench` (#996). Postgres-backed Prospect Pipeline shipped at `/app/pipeline` (#997). Canonical Prospect Action Queue shipped at `/app/queue` (#995). Clients summary shipped at `/app/clients` (#999). This packet adds the next no-schema slice: **Commercial summary** at `/app/commercial` (#1004).
 **Environment:** `corpflow_test` after merge/deploy; this packet does not authorize `client_production`
 **No schema. No env/secrets. No deploy. No external send.**
 
@@ -20,8 +20,9 @@ An authorised staff user can:
 6. Open the **Prospect Workbench** at `/app/workbench` to process Lead Rescue, Website Rescue, and general prospects in one reusable grid (sort, filter, exception signals, safe inline edits).
 7. Open **Prospect Pipeline** at `/app/pipeline` and see the same records in canonical-stage lanes; stage moves persist through the shared write path.
 8. Open the **Prospect Action Queue** at `/app/queue` to see what needs action now (overdue, due today, no next action, new/unreviewed, high urgency, stalled, awaiting operator).
-9. Open **Commercial** at `/app/commercial` and see current quotation, acceptance, payment-evidence and financial-approval state for existing prospect/client records, with blockers and next action.
-10. Not see Prospect Operations, Today / My Work, shared detail, Workbench, Pipeline, Action Queue, Commercial, or other internal commercial desks inside the Tenant Workspace.
+9. Open **Clients** at `/app/clients` and see existing Company Master client/business records, a summary, and links to related prospect / commercial / delivery surfaces — without a second customer model.
+10. Open **Commercial** at `/app/commercial` and see current quotation, acceptance, payment-evidence and financial-approval state for existing prospect/client records, with blockers and next action.
+11. Not see Prospect Operations, Today / My Work, shared detail, Workbench, Pipeline, Action Queue, Clients, Commercial, or other internal commercial desks inside the Tenant Workspace.
 
 Existing Core/Tenant **authentication remains separate**. Choosing the other workspace returns to `/app` and uses the matching sign-in. A Core session still cannot enter Tenant; a Tenant session still cannot enter Core. That #778 rule is unchanged.
 
@@ -63,6 +64,10 @@ Machine copy: `WORKSPACE_SURFACE_MATRIX` in `lib/app/workspace-context.js`.
 | `/api/app/workbench` | `leads` | same | Core only | **CANONICAL** | Tenant → 403 |
 | `/app/queue` | `leads` | fixture / `leads_read` via `matchesActionQueueFilter` | Core only | **CANONICAL** | Prospect Action Queue |
 | `/api/app/queue` | `leads` | same | Core only | **CANONICAL** | Tenant → 403 |
+| `/app/clients` | `company_master` | fixture / `company_master_read` + related leads | Core only | **CANONICAL** | Clients summary (#999) |
+| `/app/clients/[id]` | `company_master` | same | Core only | **CANONICAL** | Client summary / detail |
+| `/api/app/clients` | `company_master` | same | Core only | **CANONICAL** | Tenant → 403 |
+| `/api/app/client` | `company_master` | same | Core only | **CANONICAL** | Tenant → 403 |
 | `/app/commercial` | commercial rail + company_master refs | fixture / existing #714 records + leads identity | Core only | **CANONICAL** | Staff Commercial summary (#1004) |
 | `/api/app/commercial` | same | same | Core only | **CANONICAL** | Tenant → 403 |
 | `/admin/rapid-delivery` | `leads` (rapid-delivery) | `admin-rapid-delivery-api` | `requireAdminPageSession` | **MIGRATE** | Temporary Rapid Delivery desk; UX owner is `/app/queue` |
@@ -95,7 +100,7 @@ Machine copy: `WORKSPACE_SURFACE_MATRIX` in `lib/app/workspace-context.js`.
 | Pipeline Kanban | Yes (`/app/pipeline`) | Same `leads` + `canonical_stage` | `/change/revenue` remains optional localStorage checklist |
 | Today / My Work landing | Yes (`/app/today`, staff-only) | Uses #721 `matchesMyWorkTodayFilter` | — |
 | Shared Prospect detail | Yes (`/app/prospects/[id]`) | JSON owner/stage/next-action/due/note | Connecting the three product views (#721 Slice 3) |
-| Clients / commercial / delivery summaries | Commercial yes (`/app/commercial`) | Company Master identity + #714 rail; Clients page is #999 | Delivery summary later |
+| Clients / commercial / delivery summaries | Clients yes (`/app/clients`); Commercial yes (`/app/commercial`) | Delivery (#1005) remains later | Company Master editor stays at `/admin/company-master` |
 
 ## 3. Smallest no-schema implementation plan
 
@@ -132,14 +137,21 @@ This slice does **not** connect all three prospect views, rebuild CRM, or retire
 3. `/change/revenue` localStorage is reduced to an optional personal checklist; it is not canonical.
 4. Staff-only; Tenant 403; no schema; no external send.
 
-### This slice (canonical Prospect Action Queue — #995)
+### Already shipped (canonical Prospect Action Queue — #995)
 
 1. Dedicated Operating Workspace route `/app/queue` + `GET /api/app/queue`.
 2. Reuse the merged `#994` shared detail, `#996` Workbench lead set, and `#997` Pipeline. Safe edits stay on `PATCH /api/app/prospect`.
 3. Default filter answers “what needs action now?” Named filters cover new, overdue, due today, no next action, awaiting prospect/client, awaiting CorpFlowAI, and awaiting protected approval.
 4. Staff-only; Tenant 403; no schema; no external send; `/admin/rapid-delivery` remains a temporary product desk.
 
-This slice does **not** retire product desks or `/change/revenue`.
+### Already shipped (Clients summary — #999)
+
+1. Dedicated Operating Workspace route `/app/clients` + `/app/clients/[id]` with `GET /api/app/clients` and `GET /api/app/client`.
+2. Reuse Company Master identity (`listCompanies` / `getCompany`) and already-recorded prospect references. No second Client table.
+3. Show available identity, contact, owner, onboarding/delivery status, services, next action, and links to Prospects / Pipeline / Company Master / `/change`.
+4. Staff-only; Tenant 403; no schema; no ERPNext write; `/admin/company-master` remains the evidence/asset editor.
+
+This slice does **not** retire Company Master, product desks, or `/change/revenue`.
 
 ### This slice (Commercial summary — #1004)
 
@@ -148,15 +160,14 @@ This slice does **not** retire product desks or `/change/revenue`.
 3. Present quotation / acceptance / payment-evidence / financial-approval state, blockers, owner, and next action. ERPNext names are read-only references.
 4. Staff-only; Tenant 403; no schema; no payment execution; no ERPNext mutation; no external send.
 
-This slice does **not** implement the Clients page, Delivery summary, invoice generation, or product-desk retirement.
+This slice does **not** replace the Clients page, Delivery summary, invoice generation, or product-desk retirement.
 
 ### Later spare-capacity slices (do not build in this PR)
 
 1. Product-desk retirement after live verification of Workbench, Pipeline, and Action Queue replacements.
-2. Clients summary from Company Master (#999).
-3. Delivery summary from Lead Rescue / Website Rescue contracts (#1005).
-4. Tenant Workspace simplification (remove internal cognitive load).
-5. Redirects/retirement only after live verification of replacements.
+2. Delivery summary from Lead Rescue / Website Rescue contracts (#1005).
+3. Tenant Workspace simplification (remove internal cognitive load).
+4. Redirects/retirement only after live verification of replacements.
 
 ## 4. Architecture boundaries (unchanged)
 
@@ -180,6 +191,7 @@ node --test \
   node-tests/app-prospect-workbench.test.mjs \
   node-tests/app-prospect-pipeline.test.mjs \
   node-tests/app-action-queue.test.mjs \
+  node-tests/app-clients.test.mjs \
   node-tests/app-commercial-summary.test.mjs \
   node-tests/app-slice1-access.test.mjs \
   node-tests/app-slice1-handlers.test.mjs \

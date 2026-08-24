@@ -21,6 +21,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const FACTORY_ROUTER = join(root, 'api', 'factory_router.js');
 const CMP_ROUTER = join(root, 'lib', 'cmp', 'router.js');
 const CAMPAIGN_MVP = join(root, 'lib', 'cipc-desk', 'campaign-mvp.js');
+const RESPONSE_AUTOMATION = join(root, 'lib', 'cipc-desk', 'response-automation.js');
 
 const STATIC_IMPORT_RE =
   /(?:^|\n)\s*import\s+(?:[\s\S]*?\sfrom\s+)?['"](\.\.?\/[^'"]+)['"]/g;
@@ -100,6 +101,7 @@ describe('#1015 factory health boot isolation', () => {
     assert.ok(files.includes(normalize(FACTORY_ROUTER)));
     assert.ok(files.includes(normalize(CMP_ROUTER)));
     assert.equal(files.includes(normalize(CAMPAIGN_MVP)), false, 'campaign-mvp must stay lazy');
+    assert.equal(files.includes(normalize(RESPONSE_AUTOMATION)), false, 'response-automation must stay lazy');
     const offenders = files.filter((file) => {
       const src = stripJsComments(readFileSync(file, 'utf8'));
       return src.includes('import.meta');
