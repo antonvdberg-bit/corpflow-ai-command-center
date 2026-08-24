@@ -75,7 +75,7 @@ describe('#987 CIPC response automation — safety', () => {
     assert.match(change, /CipcResponseOperatorPanel/);
     assert.match(
       change,
-      /<>\s*<CipcCampaignOperatorPanel \/>\s*<CipcResponseOperatorPanel \/>\s*<\/>/,
+      /<>\s*<CipcCampaignOperatorPanel \/>\s*<CipcResponseOperatorPanel \/>\s*<CipcPricingOperatorPanel \/>\s*<\/>/,
     );
     const intake = readFileSync(join(root, 'lib', 'server', 'cipc-desk-email-intake.js'), 'utf8');
     assert.match(intake, /applyCipcResponseIntake/);

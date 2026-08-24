@@ -82,6 +82,7 @@ import {
 import { shouldRenderPicker as shouldRenderCoreTenantPicker } from '../lib/ui/core-tenant-picker-helpers.js';
 import CoreTenantPicker from '../components/CoreTenantPicker.js';
 import CipcCampaignOperatorPanel from '../components/CipcCampaignOperatorPanel.js';
+import CipcPricingOperatorPanel from '../components/CipcPricingOperatorPanel.js';
 import CipcResponseOperatorPanel from '../components/CipcResponseOperatorPanel.js';
 
 function normalizeLocale(raw) {
@@ -3248,6 +3249,7 @@ export default function ChangeConsolePage() {
             <>
               <CipcCampaignOperatorPanel />
               <CipcResponseOperatorPanel />
+              <CipcPricingOperatorPanel />
             </>
           ) : null}
 
