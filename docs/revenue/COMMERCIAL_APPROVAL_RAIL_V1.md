@@ -56,19 +56,24 @@ Sibling onboarding `canStartBuild` continues to require `record.financially_appr
 
 ## 4. Operator procedure (manual)
 
-1. Qualified opportunity (Prospect Ops / intake — not this PR’s UI).
+Canonical operator surface: **`/app/prospects/[id]`** commercial clearance panel (#551). Proof harness: `/app/prospects/syn-772-lr-ada?proof=1`.
+
+1. Qualified opportunity (Prospect Ops / intake).
 2. Select product and commercial option (pilot vs standard; WR case type).
 3. Prepare proposal from the product template (draft in repo/docs or operator files).
 4. Operator review (completeness, exclusions, no unsupported guarantees).
 5. **Provide or copy** the proposal to the client manually (email/WhatsApp/PDF).  
    **Preparing or copying a draft is not the same as “sent” in an automated system.** Record status `provided_to_client` only when the operator actually delivered it.
-6. Record proposal version (`proposal_version`).
-7. Record acceptance (`COMMERCIAL_ACCEPTANCE_RECORD.md`).
-8. Record payment evidence **or** approved payment exception (`PAYMENT_EVIDENCE_RECORD.md`).
-9. Run financial approval gate: `canMarkFinanciallyApproved(record)`.
-10. If `ok`, mark approved-to-onboard (`financially_approved` via handoff) and set won reason.
-11. Link to Lead Rescue (#715) or Website Rescue (#716) onboarding path.
-12. If not won, record lost reason from the bounded vocabulary.
+6. Record the ERPNext quotation / pro-forma name (`erpnext_quotation`, also stored as `proposal_version`).
+7. Record acceptance on the same Prospect detail panel (`COMMERCIAL_ACCEPTANCE_RECORD.md` remains the paper template).
+8. Record payment evidence **or** approved payment exception (reference only — no bank secrets).
+9. Tick **Record financial approval now**. The #714 gate still decides `financially_approved`; incomplete evidence stays **NOT CLEARED**.
+10. If the panel shows **CLEARED TO BUILD**, delivery/onboarding may proceed (#715 / #716).
+11. If not won, record lost reason from the bounded vocabulary.
+
+Storage: existing `leads.qualification_json.commercial_approval`. No new table.
+
+ERPNext Quotation / Sales Invoice names are **references**. ERPNext never sets `financially_approved`.
 
 ## 5. Won / lost vocabulary
 
@@ -114,5 +119,6 @@ Under `fixtures/commercial-approval/`:
 
 ## 9. Change log
 
+- **2026-08-24** — #551: operator records the rail on existing Prospect detail (`/app/prospects/[id]`), stored in `qualification_json.commercial_approval`. ERPNext names remain references. No payment execution.
 - **2026-08-13** — #882: ERPNext Quotation/Sales Invoice names may fill `proposal_version`; they never set `financially_approved`. See `docs/erpnext/ERPNEXT_COMMERCIAL_DOCUMENTS_V1.md`.
 - **2026-08-04** — Initial rail for #714 (contract, validator, templates, tests).

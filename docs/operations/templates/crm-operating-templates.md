@@ -132,6 +132,8 @@ Prefer the matching asset in `config/prospect-draft-assets.v1.json` when one exi
 
 ## Quotation handoff (#551)
 
+Canonical operator surface after this packet: **`/app/prospects/[id]`** commercial clearance panel. Store ERPNext quotation / invoice names, acceptance, and payment-evidence references on the existing `leads` row. The panel shows **CLEARED TO BUILD** only when the #714 gate is satisfied.
+
 ```text
 Lead id:
 Business:
@@ -139,6 +141,8 @@ Product / SKU / price source (guide, not invented):
 Scope in one paragraph:
 Price + currency (from pricing guide):
 Valid until:
+ERPNext quotation / pro-forma name:
+ERPNext sales invoice name (draft allowed):
 Payment evidence path (#551):
 What the buyer receives next:
 Delivery issue to open if accepted (#550 or #654):
