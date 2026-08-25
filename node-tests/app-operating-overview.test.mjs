@@ -117,6 +117,10 @@ test('overview payload summarises fixture records and links canonical routes', (
     (row) => row.id,
   );
   assert.ok(protectedIds.includes('syn-995-lr-prot'));
+  const protItem = payload.sections.deliveries_awaiting_protected_approval.items.find(
+    (row) => row.id === 'syn-995-lr-prot',
+  );
+  assert.equal(protItem.reason, 'Awaiting protected approval');
   assert.equal(
     payload.sections.deliveries_awaiting_protected_approval.href,
     '/app/queue?filter=awaiting_protected_approval',
