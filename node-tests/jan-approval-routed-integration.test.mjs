@@ -151,10 +151,18 @@ describe('Jan approval routed live integration', () => {
 
     const unavailable = response();
     await janApprovalHandler(request(), unavailable, {
-      mode: 'live', getSession: session, decisionSecret: 'test', fetchReviewPackage: async () => { throw new Error('offline'); },
+      mode: 'live', getSession: session, bridgeIdentity: 'corpflow-bridge', decisionSigningKey: 'test-server-secret',
+      fetchReviewPackage: async () => { throw new Error('offline'); },
     });
     assert.equal(unavailable.statusCode, 503);
     assert.equal(unavailable.body.error, 'GITHUB_EVIDENCE_UNAVAILABLE');
+
+    const unconfigured = response();
+    await janApprovalHandler(request(), unconfigured, {
+      mode: 'live', getSession: session, fetchReviewPackage: bridge.fetchReviewPackage,
+    });
+    assert.equal(unconfigured.statusCode, 503);
+    assert.equal(unconfigured.body.error, 'BRIDGE_TRUST_CONFIGURATION_REQUIRED');
 
     const failingBridge = createLiveBridge();
     const failedWrite = response();
