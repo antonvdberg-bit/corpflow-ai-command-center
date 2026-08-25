@@ -217,45 +217,19 @@ describe('AiLeadRescueAdminDetail — never-blank contract', () => {
   });
 });
 
-describe('pages/admin/lead-rescue/[id] — SSR fallback contract', () => {
-  it('imports loadAiLeadRescueDetailData from the API module', () => {
+describe('pages/admin/lead-rescue/[id] — redirect contract (#1074)', () => {
+  it('keeps the admin session gate then redirects to shared Prospect detail', () => {
+    assert.match(pageSrc, /requireAdminPageSession/);
+    assert.match(pageSrc, /canonicalRedirectForLegacyAdminPath/);
     assert.match(
       pageSrc,
-      /import\s*\{\s*loadAiLeadRescueDetailData\s*\}\s*from\s*['"][^'"]*admin-lead-rescue-api[^'"]*['"]/,
-      'getServerSideProps must import loadAiLeadRescueDetailData',
+      /redirect:\s*\{\s*destination,\s*permanent:\s*false\s*\}/,
+      'authenticated operators must 302 to /app/prospects/[id]',
     );
-  });
-
-  it('passes initialLead, initialError, and leadId to the component', () => {
-    assert.match(pageSrc, /initialLead=\{initialLead\}/);
-    assert.match(pageSrc, /initialError=\{initialError\}/);
-    assert.match(pageSrc, /leadId=\{leadId\}/);
-  });
-
-  it('still honours requireAdminPageSession before fetching data', () => {
-    assert.match(pageSrc, /requireAdminPageSession\(req,\s*nextPath\)/);
-    assert.match(
-      pageSrc,
-      /['"]redirect['"]\s+in\s+gate/,
-      'must return the redirect from the gate before doing any DB work',
-    );
-  });
-
-  it('catches SSR DB failures and forwards them as initialError instead of crashing', () => {
-    assert.match(pageSrc, /try\s*\{[\s\S]*loadAiLeadRescueDetailData/);
-    assert.match(
-      pageSrc,
-      /initialError\s*=\s*\{[\s\S]*error:\s*['"]SSR_LOAD_FAILED['"]/,
-      'an SSR-side throw must be converted into an initialError envelope',
-    );
-  });
-
-  it('rejects an empty id at the page boundary', () => {
-    assert.match(
-      pageSrc,
-      /initialError\s*=\s*\{[\s\S]*error:\s*['"]ID_REQUIRED['"]/,
-      'a missing :id segment must produce ID_REQUIRED, not a thrown 500',
-    );
+    assert.doesNotMatch(pageSrc, /loadAiLeadRescueDetailData/);
+    assert.doesNotMatch(pageSrc, /AiLeadRescueAdminDetail/);
+    assert.doesNotMatch(pageSrc, /buildInfo/);
+    assert.doesNotMatch(pageSrc, /VERCEL_GIT_COMMIT_SHA|VERCEL_DEPLOYMENT_ID/);
   });
 });
 

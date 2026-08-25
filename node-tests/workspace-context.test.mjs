@@ -196,18 +196,20 @@ describe('workspace-context — surface matrix', () => {
     assert.equal(classifyWorkspaceSurface('/app/clients')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/app/clients/cmp_ada_spa_synthetic')?.path, '/app/clients/[id]');
     assert.equal(classifyWorkspaceSurface('/app/prospects/syn-772-lr-ada')?.path, '/app/prospects/[id]');
-    assert.equal(classifyWorkspaceSurface('/admin/rapid-delivery')?.disposition, 'MIGRATE');
-    assert.equal(classifyWorkspaceSurface('/admin/lead-rescue')?.disposition, 'MIGRATE');
-    assert.equal(classifyWorkspaceSurface('/admin/lead-rescue/abc')?.disposition, 'MIGRATE');
-    assert.equal(classifyWorkspaceSurface('/change/revenue')?.disposition, 'MIGRATE');
+    assert.equal(classifyWorkspaceSurface('/admin/rapid-delivery')?.disposition, 'REDIRECT');
+    assert.equal(classifyWorkspaceSurface('/admin/lead-rescue')?.disposition, 'REDIRECT');
+    assert.equal(classifyWorkspaceSurface('/admin/lead-rescue/abc')?.disposition, 'REDIRECT');
+    assert.equal(classifyWorkspaceSurface('/change/revenue')?.disposition, 'RETIRE');
     assert.equal(classifyWorkspaceSurface('/change')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/change/lux-feedback')?.disposition, 'TEMPORARY');
     assert.equal(classifyWorkspaceSurface('/admin/company-master')?.disposition, 'REUSE');
   });
 
-  it('keeps /change canonical and does not retire product desks in this slice', () => {
-    const retired = WORKSPACE_SURFACE_MATRIX.filter((row) => row.disposition === 'RETIRE');
-    assert.equal(retired.length, 0);
+  it('keeps /change canonical and records wave-1 product-desk redirects', () => {
+    assert.equal(classifyWorkspaceSurface('/change')?.disposition, 'CANONICAL');
+    const redirected = WORKSPACE_SURFACE_MATRIX.filter((row) => row.disposition === 'REDIRECT');
+    assert.equal(redirected.length, 3);
+    assert.equal(classifyWorkspaceSurface('/change/revenue')?.disposition, 'RETIRE');
     assert.ok(WORKSPACE_SURFACE_MATRIX.some((row) => row.path === '/change/revenue'));
   });
 });

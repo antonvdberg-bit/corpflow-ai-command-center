@@ -113,6 +113,7 @@ describe('Prospect Pipeline #997', { concurrency: false }, () => {
     assert.equal(payload.canonical, true);
     assert.equal(payload.localStorage_canonical, false);
     assert.equal(payload.legacy_checklist, '/change/revenue');
+    assert.equal(payload.legacy_pipeline_status, 'RETIRED');
     assert.equal(payload.external_send, false);
     assert.equal(payload.temporary_source_surfaces.kanban, '/app/pipeline');
     assert.ok(payload.prospects.every((row) => String(row.shared_detail_path).startsWith('/app/prospects/')));
@@ -133,7 +134,9 @@ describe('Prospect Pipeline #997', { concurrency: false }, () => {
     assert.match(board, /Persist stage/);
     assert.doesNotMatch(board, /localStorage/);
     assert.match(revenue, /\/app\/pipeline/);
-    assert.match(revenue, /optional personal checklist/i);
+    assert.match(revenue, /data-testid="legacy-route-retirement-notice"/);
+    assert.doesNotMatch(revenue, /localStorage/);
+    assert.doesNotMatch(revenue, /corpflow\.revenue\.cockpit/);
   });
 
   test('handler: Core proof loads synthetic prospects in Pipeline lanes', async () => {

@@ -1,73 +1,21 @@
-import AiLeadRescueAdminDetail from '../../../components/AiLeadRescueAdminDetail.js';
+import { canonicalRedirectForLegacyAdminPath } from '../../../lib/app/legacy-route-retirement.js';
 import { requireAdminPageSession } from '../../../lib/server/admin-page-gate.js';
-import { loadAiLeadRescueDetailData } from '../../../lib/server/admin-lead-rescue-api.js';
-
-export default function AdminLeadRescueDetailPage({ initialLead, initialError, leadId }) {
-  return (
-    <AiLeadRescueAdminDetail
-      initialLead={initialLead}
-      initialError={initialError}
-      leadId={leadId}
-    />
-  );
-}
 
 /**
- * SSR pre-populates the detail view so the page never renders blank/black.
- * Auth gate runs first; if the loader fails (or the lead doesn't exist) we still
- * render the page with an `initialError` envelope and a Back-to-list / Retry /
- * raw-API link affordance — the operator never sees an unactionable surface.
+ * #1074 — /admin/lead-rescue/[id] redirects into shared Prospect detail.
+ * Admin / factory-master session required (same gate as before).
  */
+export default function AdminLeadRescueDetailRedirectPage() {
+  return null;
+}
+
 export async function getServerSideProps({ req, params }) {
   const id = typeof params?.id === 'string' ? params.id : '';
-  const nextPath = id ? `/admin/lead-rescue/${id}` : '/admin/lead-rescue';
-  const gate = requireAdminPageSession(req, nextPath);
+  const destination = canonicalRedirectForLegacyAdminPath(
+    id ? `/admin/lead-rescue/${id}` : '/admin/lead-rescue',
+    { id },
+  );
+  const gate = requireAdminPageSession(req, destination);
   if ('redirect' in gate) return gate;
-
-  let initialLead = null;
-  let initialError = null;
-  if (!id) {
-    initialError = {
-      error: 'ID_REQUIRED',
-      message: 'No lead id was provided in the URL.',
-      http_status: 400,
-    };
-  } else {
-    try {
-      const result = await loadAiLeadRescueDetailData({ id });
-      if (result && result.ok === true) {
-        // Force JSON-serializable shape NOW: `leadRowToAiLeadRescueDetail` returns
-        // raw Date objects for submitted_at/updated_at (from Prisma). Next.js will
-        // JSON.stringify props when delivering them to the client, but during the
-        // SSR render pass the component sees the original Date object while the
-        // hydration pass sees an ISO string. The two `String(value)` outputs differ
-        // (toLocaleString vs ISO), which would produce a React hydration mismatch
-        // and silently skip attaching event handlers (the 2026-06-06 P0 where
-        // clicking Save produced zero reaction). Round-tripping through JSON
-        // here pins one shape across SSR and CSR. See PR #321.
-        initialLead = JSON.parse(JSON.stringify(result.lead));
-      } else if (result && result.ok === false) {
-        initialError = {
-          error: result.error || 'LOAD_FAILED',
-          message: result.message || 'Could not load lead.',
-          http_status: result.http_status || 500,
-        };
-      }
-    } catch (e) {
-      initialError = {
-        error: 'SSR_LOAD_FAILED',
-        message: e instanceof Error ? e.message : String(e),
-        http_status: 500,
-      };
-    }
-  }
-
-  return {
-    props: {
-      ...gate.props,
-      initialLead,
-      initialError,
-      leadId: id,
-    },
-  };
+  return { redirect: { destination, permanent: false } };
 }

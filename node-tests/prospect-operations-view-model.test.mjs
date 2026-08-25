@@ -292,7 +292,7 @@ describe('prospect-operations-view-model — lead adapters', () => {
     assert.equal(vm.next_action_due, '2026-08-01T00:00:00.000Z');
     assert.ok(vm.exception_signals.includes('overdue_action'));
     assert.equal(vm.detail_path, '/app/prospects?id=lr-abc123def');
-    assert.equal(vm.source_surfaces.product_detail, '/admin/lead-rescue/lr-abc123def');
+    assert.equal(vm.source_surfaces.product_detail, '/app/prospects/lr-abc123def');
     assert.equal(vm.source_surfaces.operating_workspace, '/app/prospects');
   });
 

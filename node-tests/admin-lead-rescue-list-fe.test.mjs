@@ -140,36 +140,18 @@ describe('AiLeadRescueAdminList — loading-never-stuck contract', () => {
   });
 });
 
-describe('pages/admin/lead-rescue/index — SSR fallback contract', () => {
-  it('imports loadAiLeadRescueListData from the API module', () => {
+describe('pages/admin/lead-rescue/index — redirect contract (#1074)', () => {
+  it('keeps the admin session gate then redirects to the Workbench', () => {
+    assert.match(pageSrc, /requireAdminPageSession/);
+    assert.match(pageSrc, /canonicalRedirectForLegacyAdminPath/);
+    assert.match(pageSrc, /\/admin\/lead-rescue/);
     assert.match(
       pageSrc,
-      /import\s*\{\s*loadAiLeadRescueListData\s*\}\s*from\s*['"][^'"]*admin-lead-rescue-api[^'"]*['"]/,
-      'getServerSideProps must import loadAiLeadRescueListData to pre-populate the list',
+      /redirect:\s*\{\s*destination,\s*permanent:\s*false\s*\}/,
+      'authenticated operators must 302 to the canonical Workbench',
     );
-  });
-
-  it('passes initialLeads and initialError to the component', () => {
-    assert.match(pageSrc, /initialLeads=\{initialLeads\}/);
-    assert.match(pageSrc, /initialError=\{initialError\}/);
-  });
-
-  it('still honours requireAdminPageSession before fetching data', () => {
-    assert.match(pageSrc, /requireAdminPageSession\(req,\s*['"]\/admin\/lead-rescue['"]\)/);
-    assert.match(
-      pageSrc,
-      /['"]redirect['"]\s+in\s+gate/,
-      'must return the redirect from the gate before doing any DB work',
-    );
-  });
-
-  it('catches SSR DB failures and forwards them as initialError instead of crashing', () => {
-    assert.match(pageSrc, /try\s*\{[\s\S]*loadAiLeadRescueListData/);
-    assert.match(
-      pageSrc,
-      /initialError\s*=\s*\{[\s\S]*error:\s*['"]SSR_LOAD_FAILED['"]/,
-      'an SSR-side throw must be converted into an initialError envelope',
-    );
+    assert.doesNotMatch(pageSrc, /loadAiLeadRescueListData/);
+    assert.doesNotMatch(pageSrc, /AiLeadRescueAdminList/);
   });
 });
 

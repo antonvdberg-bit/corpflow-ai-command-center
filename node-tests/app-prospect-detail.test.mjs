@@ -348,4 +348,85 @@ test('tryHandleAppApi routes app/prospect', async () => {
     process.env.NODE_ENV = prevNode;
   }
 });
+
+test('#1074 extracted contracts: activity, checklist, and proposal stay on shared detail', () => {
+  const adaRow = fixtureProspectLeadRows().find((item) => item.id === 'syn-772-lr-ada');
+  const activity = applySharedProspectOperatorPatch(
+    adaRow,
+    {
+      activity_append: {
+        channel: 'email',
+        type: 'outbound_followup',
+        note: 'Manual follow-up recorded on shared detail',
+        next_action: 'Wait for reply',
+      },
+    },
+    { actorLabel: 'ops-desk', nowIso: '2026-08-25T12:00:00.000Z' },
+  );
+  assert.equal(activity.ok, true);
+  const adaDetail = leadRowToProspectDetailViewModel(activity.row);
+  assert.equal(JSON.stringify(adaDetail.history).includes('Manual follow-up recorded on shared detail'), true);
+
+  const checklist = applySharedProspectOperatorPatch(
+    activity.row,
+    {
+      setup_checklist_item: {
+        key: 'intake_reviewed',
+        state: 'done',
+        note: 'Intake read on shared detail',
+      },
+    },
+    { actorLabel: 'ops-desk', nowIso: '2026-08-25T12:01:00.000Z' },
+  );
+  assert.equal(checklist.ok, true);
+  const qj = checklist.row.qualificationJson;
+  const stored =
+    qj.ai_lead_rescue_operator && qj.ai_lead_rescue_operator.setup_checklist
+      ? qj.ai_lead_rescue_operator.setup_checklist.items.intake_reviewed
+      : null;
+  assert.equal(stored?.state, 'done');
+  assert.equal(stored?.note, 'Intake read on shared detail');
+
+  const bea = fixtureProspectLeadRows().find((item) => item.id === 'syn-772-rd-bea');
+  const rdBlocked = applySharedProspectOperatorPatch(
+    bea,
+    { setup_checklist_item: { key: 'intake_reviewed', state: 'done' } },
+    { actorLabel: 'ops-desk' },
+  );
+  assert.equal(rdBlocked.ok, false);
+  assert.equal(rdBlocked.error, 'setup_checklist_not_applicable');
+});
+
+test('handler: Core GET includes extracted Lead Rescue and Rapid Delivery contracts without qualificationJson', async () => {
+  const prevNode = process.env.NODE_ENV;
+  const prevVercel = process.env.VERCEL_ENV;
+  process.env.NODE_ENV = 'development';
+  delete process.env.VERCEL_ENV;
+  try {
+    const lr = mockRes();
+    await handleAppProspectDetail(
+      { method: 'GET', url: '/api/app/prospect?proof=1&env=core&id=syn-772-lr-ada', headers: {} },
+      lr,
+    );
+    assert.equal(lr.state.statusCode, 200);
+    assert.equal(lr.state.body.prospect.lead_rescue_activity.applicable, true);
+    assert.equal(lr.state.body.prospect.setup_checklist.eligible, false);
+    assert.ok(Array.isArray(lr.state.body.prospect.setup_checklist.items));
+    assert.equal(JSON.stringify(lr.state.body).includes('qualificationJson'), false);
+
+    const wr = mockRes();
+    await handleAppProspectDetail(
+      { method: 'GET', url: '/api/app/prospect?proof=1&env=core&id=syn-772-rd-bea', headers: {} },
+      wr,
+    );
+    assert.equal(wr.state.statusCode, 200);
+    assert.equal(wr.state.body.prospect.rapid_delivery_proposal.applicable, true);
+    assert.match(String(wr.state.body.prospect.rapid_delivery_proposal.markdown || ''), /proposal-ready summary/i);
+    assert.equal(wr.state.body.prospect.rapid_delivery_proposal.external_send, false);
+  } finally {
+    process.env.NODE_ENV = prevNode;
+    if (prevVercel == null) delete process.env.VERCEL_ENV;
+    else process.env.VERCEL_ENV = prevVercel;
+  }
+});
 });

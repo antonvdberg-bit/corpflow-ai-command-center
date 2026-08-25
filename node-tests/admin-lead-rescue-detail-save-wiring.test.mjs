@@ -186,22 +186,10 @@ describe('AiLeadRescueAdminDetail — error/success render near Save button', ()
   });
 });
 
-describe('pages/admin/lead-rescue/[id] — hydration-shape contract', () => {
-  it('JSON-round-trips initialLead so SSR and CSR see identical shapes (no Date vs ISO string skew)', () => {
-    assert.match(
-      pageSrc,
-      /initialLead\s*=\s*JSON\.parse\(JSON\.stringify\(result\.lead\)\)/,
-      'initialLead must be JSON-roundtripped so Prisma Date fields cannot create a hydration mismatch',
-    );
-  });
-
-  it('does NOT plumb buildInfo / Vercel commit metadata through the page (PR #328 cleanup)', () => {
-    // The 2026-06-06 / 2026-06-08 investigation that ran from PR #319 through
-    // PR #327 used a temporary diagnostic panel and Vercel commit/deployment
-    // SSR props to verify which build was being served. With the engine-warm
-    // root cause fixed in PR #327, the panel and its prop plumbing were
-    // removed. These assertions pin that they stay removed — the production
-    // page must not accumulate diagnostic scaffolding again.
+describe('pages/admin/lead-rescue/[id] — redirect replaces hydration-shape contract (#1074)', () => {
+  it('no longer SSR-renders the product desk; authenticated traffic 302s to shared detail', () => {
+    assert.match(pageSrc, /canonicalRedirectForLegacyAdminPath/);
+    assert.doesNotMatch(pageSrc, /JSON\.parse\(JSON\.stringify\(result\.lead\)\)/);
     assert.doesNotMatch(
       pageSrc,
       /buildInfo/,

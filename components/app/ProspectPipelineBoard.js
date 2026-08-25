@@ -51,9 +51,9 @@ export default function ProspectPipelineBoard({
       <h1 className="cf-app-h1">Prospect Pipeline</h1>
       <p className="cf-app-lead">
         Canonical sell-cycle board for the same Postgres prospect records as Prospect Operations
-        and Today / My Work. Stage changes persist through the shared write path. The
-        legacy board on <a href="/change/revenue">/change/revenue</a> is an optional
-        personal checklist only.
+        and Today / My Work. Stage changes persist through the shared write path. The retired
+        localStorage board at <a href="/change/revenue">/change/revenue</a> is a notice only —
+        not a pipeline.
       </p>
       {dataSource ? (
         <p className="cf-app-muted" data-testid="prospect-pipeline-meta">

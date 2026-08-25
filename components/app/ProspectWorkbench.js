@@ -89,7 +89,7 @@ export default function ProspectWorkbench({
         <p className="cf-app-lead">
           Process many prospect records in one Operating Workspace grid. Lead Rescue, Website Rescue,
           and general enquiries share the canonical prospect model. Opening a row uses the shared
-          Prospect detail surface. Temporary product desks remain until later slices.
+          Prospect detail surface. The product desk at <code>/admin/lead-rescue</code> redirects here.
         </p>
         {dataSource ? (
           <p className="cf-app-muted">
@@ -99,7 +99,7 @@ export default function ProspectWorkbench({
             {' · '}
             canonical <code>/app/workbench</code>
             {' · '}
-            replaces product grid <code>/admin/lead-rescue</code>
+            <code>/admin/lead-rescue</code> redirects here
           </p>
         ) : null}
 

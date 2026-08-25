@@ -2,7 +2,7 @@
 
 **Issue:** [#772](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/772)  
 **Related:** [#721](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/721) Prospect Operations · [#773](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/773) / [#778](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/778) Core/Tenant shell  
-**Status:** Phase 1 audit + Prospect Operations list + Today / My Work **shipped**. Shared Prospect detail / actions / history shipped at `/app/prospects/[id]` (#994). Shared Prospect Workbench shipped at `/app/workbench` (#996). Postgres-backed Prospect Pipeline shipped at `/app/pipeline` (#997). Canonical Prospect Action Queue shipped at `/app/queue` (#995). This packet adds the next no-schema slice: **Clients summary** at `/app/clients` (#999).
+**Status:** Phase 1 audit + Prospect Operations list + Today / My Work **shipped**. Shared Prospect detail / actions / history shipped at `/app/prospects/[id]` (#994). Shared Prospect Workbench shipped at `/app/workbench` (#996). Postgres-backed Prospect Pipeline shipped at `/app/pipeline` (#997). Canonical Prospect Action Queue shipped at `/app/queue` (#995). Clients summary shipped at `/app/clients` (#999). **#1074 wave 1** extracts remaining unique product-desk contracts onto those routes and redirects/retires `/admin/rapid-delivery`, `/admin/lead-rescue`, and `/change/revenue`.
 **Environment:** `corpflow_test` after merge/deploy; this packet does not authorize `client_production`
 **No schema. No env/secrets. No deploy. No external send.**
 
@@ -67,9 +67,9 @@ Machine copy: `WORKSPACE_SURFACE_MATRIX` in `lib/app/workspace-context.js`.
 | `/app/clients/[id]` | `company_master` | same | Core only | **CANONICAL** | Client summary / detail |
 | `/api/app/clients` | `company_master` | same | Core only | **CANONICAL** | Tenant → 403 |
 | `/api/app/client` | `company_master` | same | Core only | **CANONICAL** | Tenant → 403 |
-| `/admin/rapid-delivery` | `leads` (rapid-delivery) | `admin-rapid-delivery-api` | `requireAdminPageSession` | **MIGRATE** | Temporary Rapid Delivery desk; UX owner is `/app/queue` |
-| `/admin/lead-rescue` + `/[id]` | `leads` (lead-rescue) | `admin-lead-rescue-api` | admin session | **MIGRATE** | REUSE list/detail; extract Workbench from product brand |
-| `/change/revenue` | localStorage cards | `corpflow.revenue.cockpit.v1` | change session | **MIGRATE** | Optional checklist only. Canonical pipeline is `/app/pipeline` |
+| `/admin/rapid-delivery` | `leads` (rapid-delivery) | `admin-rapid-delivery-api` | `requireAdminPageSession` | **REDIRECT** | Admin session → `/app/queue`. Proposal summary extracted onto `/app/prospects/[id]` |
+| `/admin/lead-rescue` + `/[id]` | `leads` (lead-rescue) | `admin-lead-rescue-api` | admin session | **REDIRECT** | List → `/app/workbench?filter=lead_rescue`. Detail → `/app/prospects/[id]` (checklist + activity extracted) |
+| `/change/revenue` | none | retirement notice | mixed / unauthenticated | **RETIRE** | localStorage Kanban removed. Notice only — mixed auth cannot hard-redirect into Core `/app/pipeline` |
 | `/change` | `cmp_tickets` | Postgres + `console_json` | tenant or admin | **CANONICAL** | Tenant service/change. Do not absorb into Operating Workspace |
 | `/change/lux-feedback` | static queue | Lux feedback module | operator | **TEMPORARY** | Lux-specific; classify per capability |
 | `/admin/company-master` | companies | Company Master | admin session | **REUSE** | Future Clients summary |
@@ -92,9 +92,9 @@ Machine copy: `WORKSPACE_SURFACE_MATRIX` in `lib/app/workspace-context.js`.
 | ------- | -------------- | ------- | ------- |
 | Core/Tenant shells | Yes (`/app/core`, `/app/tenant`) | Chrome used technical “Core/Tenant” names | Product workspace names (this slice) |
 | Prospect Ops shared UI | No | View-model + docs only (#721 Slice 1) | Shared queue/workbench/Kanban |
-| Action Queue | Yes (`/app/queue`) | Cross-product queue; `/admin/rapid-delivery` temporary | Product-desk retirement after live verification |
-| Workbench | Yes (`/app/workbench`) | Cross-product grid; `/admin/lead-rescue` temporary | Product-desk retirement after live verification |
-| Pipeline Kanban | Yes (`/app/pipeline`) | Same `leads` + `canonical_stage` | `/change/revenue` remains optional localStorage checklist |
+| Action Queue | Yes (`/app/queue`) | Cross-product queue | `/admin/rapid-delivery` **REDIRECTED** here |
+| Workbench | Yes (`/app/workbench`) | Cross-product grid | `/admin/lead-rescue` **REDIRECTED** here (`filter=lead_rescue`) |
+| Pipeline Kanban | Yes (`/app/pipeline`) | Same `leads` + `canonical_stage` | `/change/revenue` **RETIRED** (notice; no localStorage pipeline) |
 | Today / My Work landing | Yes (`/app/today`, staff-only) | Uses #721 `matchesMyWorkTodayFilter` | — |
 | Shared Prospect detail | Yes (`/app/prospects/[id]`) | JSON owner/stage/next-action/due/note | Connecting the three product views (#721 Slice 3) |
 | Clients / commercial / delivery summaries | Clients yes (`/app/clients`) | Commercial (#1004) and Delivery (#1005) remain later | Company Master editor stays at `/admin/company-master` |
@@ -152,11 +152,9 @@ This slice does **not** retire Company Master, product desks, or `/change/revenu
 
 ### Later spare-capacity slices (do not build in this PR)
 
-1. Product-desk retirement after live verification of Workbench, Pipeline, and Action Queue replacements.
-2. Commercial summary from ERPNext rails (read-only first) — #1004.
-3. Delivery summary from Lead Rescue / Website Rescue contracts — #1005.
-4. Tenant Workspace simplification (remove internal cognitive load).
-5. Redirects/retirement only after live verification of replacements.
+1. Commercial summary from ERPNext rails (read-only first) — #1004 (`/app/commercial` not on current main).
+2. Delivery summary from Lead Rescue / Website Rescue contracts — #1005 (`/app/delivery` not on current main).
+3. Tenant Workspace simplification (remove internal cognitive load).
 
 ## 4. Architecture boundaries (unchanged)
 
@@ -181,6 +179,7 @@ node --test \
   node-tests/app-prospect-pipeline.test.mjs \
   node-tests/app-action-queue.test.mjs \
   node-tests/app-clients.test.mjs \
+  node-tests/legacy-route-retirement-1074.test.mjs \
   node-tests/app-slice1-access.test.mjs \
   node-tests/app-slice1-handlers.test.mjs \
   node-tests/prospect-operations-view-model.test.mjs

@@ -150,10 +150,12 @@ describe('rapid-delivery revenue desk UX', () => {
   const page = read('pages/admin/rapid-delivery/index.js');
   const offers = read('lib/public/rapid-delivery-offers.js');
 
-  it('page uses desk component and keeps admin session gate', () => {
-    assert.ok(page.includes('RapidDeliveryRevenueDesk'));
+  it('page keeps admin session gate and redirects to the Action Queue', () => {
     assert.ok(page.includes('requireAdminPageSession'));
+    assert.ok(page.includes('canonicalRedirectForLegacyAdminPath'));
     assert.ok(page.includes('/admin/rapid-delivery'));
+    assert.ok(page.includes('permanent: false'));
+    assert.ok(!page.includes('RapidDeliveryRevenueDesk'));
   });
 
   it('desk has human-readable title and summary cards', () => {

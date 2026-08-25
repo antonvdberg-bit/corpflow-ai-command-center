@@ -1,6 +1,6 @@
 /**
  * Operating Workspace — shared Prospect Operations / Today list (#772 / #721 / #699 / #994).
- * Read-only. Temporary product-desk links remain until later slices.
+ * Read-only. Product desks redirect into Operating Workspace routes (#1074).
  * No live email / WhatsApp / SMS send.
  *
  * @param {{
@@ -39,10 +39,9 @@ export default function ProspectOperationsList({
         <h1 className="cf-app-h1">{title}</h1>
         <p className="cf-app-lead">
           No shared prospect records in this view yet. Canonical queue is this Operating Workspace
-          route. Temporary product desks remain at{' '}
-          <a href="/admin/rapid-delivery">/admin/rapid-delivery</a> and{' '}
-          <a href="/admin/lead-rescue">/admin/lead-rescue</a>. Tenant{' '}
-          <a href="/change">/change</a> is not the enquiry desk.
+          route. Staff Action Queue is <a href="/app/queue">/app/queue</a>. Workbench is{' '}
+          <a href="/app/workbench">/app/workbench</a>. Tenant <a href="/change">/change</a> is not
+          the enquiry desk.
         </p>
         {dataSource ? (
           <p className="cf-app-muted">

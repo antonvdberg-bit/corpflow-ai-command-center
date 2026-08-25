@@ -1,5 +1,8 @@
 import CommercialClearancePanel from './CommercialClearancePanel.js';
 import WebsiteRescueDeliveryPanel from './WebsiteRescueDeliveryPanel.js';
+import LeadRescueSetupChecklistPanel from './LeadRescueSetupChecklistPanel.js';
+import LeadRescueActivityPanel from './LeadRescueActivityPanel.js';
+import RapidDeliveryProposalPanel from './RapidDeliveryProposalPanel.js';
 
 /**
  * Operating Workspace — shared Prospect detail / actions / history (#994).
@@ -59,7 +62,6 @@ export default function ProspectDetailPanel({
       ? /** @type {Record<string, unknown>} */ (prospect.qualification_summary)
       : {};
   const proofQuery = proofWanted ? '?proof=1' : '';
-  const productDesk = prospect.product_detail_path || prospect.detail_path;
 
   return (
     <>
@@ -67,7 +69,7 @@ export default function ProspectDetailPanel({
       <h1 className="cf-app-h1">{title}</h1>
       <p className="cf-app-lead">
         Shared Prospect detail for Lead Rescue and Website Rescue. Same Postgres <code>leads</code> row —
-        not a second CRM. Temporary product desks remain until later slices.
+        not a second CRM. Product desks redirect here.
       </p>
       {dataSource ? (
         <p className="cf-app-muted">
@@ -259,11 +261,12 @@ export default function ProspectDetailPanel({
           <a className="cf-app-btn" href={`/app/today${proofQuery}`}>
             Today / My Work
           </a>
-          {productDesk ? (
-            <a className="cf-app-btn" href={String(productDesk)}>
-              Temporary product desk
-            </a>
-          ) : null}
+          <a className="cf-app-btn" href={`/app/queue${proofQuery}`}>
+            Action Queue
+          </a>
+          <a className="cf-app-btn" href={`/app/workbench${proofQuery}`}>
+            Workbench
+          </a>
         </div>
       </form>
 
@@ -296,6 +299,9 @@ export default function ProspectDetailPanel({
       proofWanted={proofWanted}
       onSave={onSave}
     />
+    <LeadRescueActivityPanel prospect={prospect} saving={saving} onSave={onSave} />
+    <LeadRescueSetupChecklistPanel prospect={prospect} saving={saving} onSave={onSave} />
+    <RapidDeliveryProposalPanel prospect={prospect} />
     <WebsiteRescueDeliveryPanel prospect={prospect} saving={saving} onSave={onSave} />
     </>
   );

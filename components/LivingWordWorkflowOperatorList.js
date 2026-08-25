@@ -193,8 +193,8 @@ export default function LivingWordWorkflowOperatorList(props = {}) {
               This is not the public church site. No messages are sent from this screen.
             </p>
             <p style={{ margin: '10px 0 0', fontSize: 13 }}>
-              <Link href="/admin/lead-rescue" style={{ color: '#93c5fd' }}>
-                AI Lead Rescue inbox
+              <Link href="/app/workbench?filter=lead_rescue" style={{ color: '#93c5fd' }}>
+                Operating Workspace · Lead Rescue
               </Link>
               {' · '}
               <Link href="https://living-word-mauritius.corpflowai.com/site-preview" style={{ color: '#93c5fd' }}>

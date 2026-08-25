@@ -1,37 +1,17 @@
-import RapidDeliveryRevenueDesk from '../../../components/RapidDeliveryRevenueDesk.js';
+import { canonicalRedirectForLegacyAdminPath } from '../../../lib/app/legacy-route-retirement.js';
 import { requireAdminPageSession } from '../../../lib/server/admin-page-gate.js';
-import { loadRapidDeliveryListData } from '../../../lib/server/admin-rapid-delivery-api.js';
 
 /**
- * CorpFlowAI revenue operator desk — rapid-delivery discovery prospects.
- * Auth gate unchanged: admin / factory-master session required.
+ * #1074 — /admin/rapid-delivery redirects into the canonical Action Queue.
+ * Admin / factory-master session required (same gate as before).
  */
-export default function AdminRapidDeliveryPage({ initialLeads, initialError }) {
-  return <RapidDeliveryRevenueDesk initialLeads={initialLeads} initialError={initialError} />;
+export default function AdminRapidDeliveryRedirectPage() {
+  return null;
 }
 
 export async function getServerSideProps({ req }) {
-  const gate = requireAdminPageSession(req, '/admin/rapid-delivery');
+  const destination = canonicalRedirectForLegacyAdminPath('/admin/rapid-delivery');
+  const gate = requireAdminPageSession(req, destination);
   if ('redirect' in gate) return gate;
-
-  let initialLeads = null;
-  let initialError = null;
-  try {
-    const result = await loadRapidDeliveryListData({ filters: {} });
-    if (result?.ok) initialLeads = result.leads || [];
-    else {
-      initialError = {
-        message: 'Could not load discovery prospects. Retry in a moment.',
-        error: result?.error || 'LOAD_FAILED',
-        http_status: result?.http_status || 500,
-      };
-    }
-  } catch {
-    initialError = {
-      message: 'Could not load discovery prospects. Retry in a moment.',
-      error: 'LOAD_FAILED',
-      http_status: 500,
-    };
-  }
-  return { props: { initialLeads, initialError } };
+  return { redirect: { destination, permanent: false } };
 }
