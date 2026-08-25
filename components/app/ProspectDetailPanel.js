@@ -1,4 +1,5 @@
 import CommercialClearancePanel from './CommercialClearancePanel.js';
+import WebsiteRescueDeliveryPanel from './WebsiteRescueDeliveryPanel.js';
 
 /**
  * Operating Workspace — shared Prospect detail / actions / history (#994).
@@ -295,6 +296,7 @@ export default function ProspectDetailPanel({
       proofWanted={proofWanted}
       onSave={onSave}
     />
+    <WebsiteRescueDeliveryPanel prospect={prospect} saving={saving} onSave={onSave} />
     </>
   );
 }
