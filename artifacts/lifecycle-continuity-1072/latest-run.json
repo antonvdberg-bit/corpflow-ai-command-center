@@ -1,0 +1,131 @@
+{
+  "ok": true,
+  "workspace": "operating",
+  "path": "/api/app/lifecycle",
+  "view": "lifecycle_continuity",
+  "issue": 1072,
+  "data_source": "fixture",
+  "proof_mode": true,
+  "verdict": "LIFECYCLE CONTINUITY PASS",
+  "blocker": null,
+  "lifecycle": {
+    "schema": "corpflow.lifecycle_continuity.v1",
+    "issue": 1072,
+    "workspace": "operating",
+    "tenant_accessible": false,
+    "second_ledger": false,
+    "schema_change": false,
+    "external_send": false,
+    "prospect_id": "syn-772-lr-ada",
+    "company_id": "cmp_ada_spa_synthetic",
+    "linked_client": {
+      "company_id": "cmp_ada_spa_synthetic",
+      "legal_name": "Ada Spa Ltd",
+      "trading_name": "Ada Spa",
+      "summary_path": "/app/clients/cmp_ada_spa_synthetic",
+      "record_owner": "anton"
+    },
+    "stages": {
+      "prospect": {
+        "stage": "prospect",
+        "record_id": "syn-772-lr-ada",
+        "source_of_truth": "Postgres leads (fixture | leads_read) via /app/prospects/[id]",
+        "href": "/app/prospects/syn-772-lr-ada?proof=1",
+        "owner": "anton",
+        "blocker": "Overdue next action",
+        "next_action": "Book discovery",
+        "organisation_name": "Ada Spa",
+        "canonical_stage": "qualifying",
+        "product": "ai-lead-rescue",
+        "nav": {
+          "prospect": "/app/prospects/syn-772-lr-ada?proof=1",
+          "client": "/app/clients/cmp_ada_spa_synthetic?proof=1",
+          "commercial": "/app/prospects/syn-772-lr-ada?proof=1#commercial-clearance",
+          "delivery": "/app/prospects/syn-772-lr-ada?proof=1#delivery-state"
+        }
+      },
+      "client": {
+        "stage": "client",
+        "record_id": "cmp_ada_spa_synthetic",
+        "source_of_truth": "Company Master identity via /app/clients/[id] — no second Client table",
+        "href": "/app/clients/cmp_ada_spa_synthetic?proof=1",
+        "owner": "anton",
+        "blocker": "Not recorded: erpnext_customer_pointer",
+        "next_action": "Book discovery",
+        "legal_name": "Ada Spa Ltd",
+        "company_master_path": "/admin/company-master",
+        "nav": {
+          "prospect": "/app/prospects/syn-772-lr-ada?proof=1",
+          "client": "/app/clients/cmp_ada_spa_synthetic?proof=1",
+          "commercial": "/app/prospects/syn-772-lr-ada?proof=1#commercial-clearance",
+          "delivery": "/app/prospects/syn-772-lr-ada?proof=1#delivery-state"
+        }
+      },
+      "commercial": {
+        "stage": "commercial",
+        "record_id": "syn-772-lr-ada",
+        "source_of_truth": "leads row commercial_approval namespace (#714 rail, #551 projection). ERPNext quotation/invoice names are pointers only — not a second ledger.",
+        "href": "/app/prospects/syn-772-lr-ada?proof=1#commercial-clearance",
+        "owner": "anton",
+        "blocker": "MISSING_PAYMENT_EVIDENCE",
+        "next_action": "Record payment evidence (reference only — no bank secrets).",
+        "financially_approved": false,
+        "commercially_cleared": false,
+        "financial_approval_ref": null,
+        "erpnext_quotation": "SAL-QTN-2026-00001",
+        "erpnext_sales_invoice": "ACC-SINV-2026-00002",
+        "erpnext_customer_pointer": "CF880 Synthetic Lead Rescue Ltd",
+        "second_ledger": false,
+        "nav": {
+          "prospect": "/app/prospects/syn-772-lr-ada?proof=1",
+          "client": "/app/clients/cmp_ada_spa_synthetic?proof=1",
+          "commercial": "/app/prospects/syn-772-lr-ada?proof=1#commercial-clearance",
+          "delivery": "/app/prospects/syn-772-lr-ada?proof=1#delivery-state"
+        }
+      },
+      "delivery": {
+        "stage": "delivery",
+        "record_id": "syn-772-lr-ada",
+        "source_of_truth": "Same leads row: Lead Rescue operator or Website Rescue / Rapid Delivery operator. Tenant service-request stays at /change. No second project system.",
+        "href": "/app/prospects/syn-772-lr-ada?proof=1#delivery-state",
+        "owner": "anton",
+        "blocker": "Commercial gate — NOT CLEARED",
+        "next_action": "Record payment evidence (reference only — no bank secrets).",
+        "status": "blocked_pending_commercial_clearance",
+        "product": "ai-lead-rescue",
+        "commercially_cleared": false,
+        "product_detail_path": "/app/prospects?id=syn-772-lr-ada",
+        "action_queue_path": "/app/queue",
+        "tenant_delivery_path": "/change",
+        "nav": {
+          "prospect": "/app/prospects/syn-772-lr-ada?proof=1",
+          "client": "/app/clients/cmp_ada_spa_synthetic?proof=1",
+          "commercial": "/app/prospects/syn-772-lr-ada?proof=1#commercial-clearance",
+          "delivery": "/app/prospects/syn-772-lr-ada?proof=1#delivery-state"
+        }
+      }
+    },
+    "sources_of_truth": {
+      "prospect": "Postgres leads (fixture | leads_read) via /app/prospects/[id]",
+      "client": "Company Master identity via /app/clients/[id] — no second Client table",
+      "commercial": "leads row commercial_approval namespace (#714 rail, #551 projection). ERPNext quotation/invoice names are pointers only — not a second ledger.",
+      "delivery": "Same leads row: Lead Rescue operator or Website Rescue / Rapid Delivery operator. Tenant service-request stays at /change. No second project system."
+    },
+    "unique_record_ids": [
+      "syn-772-lr-ada",
+      "cmp_ada_spa_synthetic"
+    ],
+    "no_duplicate_records": true,
+    "commercial_uses_same_lead_row": true,
+    "delivery_uses_same_lead_row": true
+  },
+  "tenant_accessible": false,
+  "second_ledger": false,
+  "schema_change": false,
+  "erpnext_write": false,
+  "external_send": false,
+  "later_slices": {
+    "commercial_summary": "#1004",
+    "delivery_summary": "#1005"
+  }
+}

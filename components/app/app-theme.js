@@ -458,6 +458,38 @@ export const APP_SHELL_CSS = `
     word-break: break-word;
     white-space: pre-wrap;
   }
+  .cf-life-rail {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 8px 10px;
+    margin: 10px 0 16px;
+  }
+  .cf-life-rail-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+  .cf-life-rail-step {
+    color: var(--app-accent);
+    text-decoration: none;
+    font-weight: 650;
+    border: 1px solid var(--app-panel-border);
+    border-radius: 999px;
+    padding: 6px 10px;
+    background: var(--app-accent-soft);
+  }
+  .cf-life-rail-step[data-current="true"] {
+    box-shadow: 0 0 0 1px var(--app-accent);
+  }
+  .cf-life-rail-arrow {
+    color: var(--app-muted);
+  }
+  .cf-life-rail-meta {
+    max-width: 28ch;
+  }
   .cf-app-draft-block { margin-top: 16px; }
   .cf-app-draft-block p { margin: 6px 0 0; line-height: 1.5; }
   .cf-app-draft {
@@ -482,5 +514,6 @@ export const APP_SHELL_CSS = `
     .cf-app-main { padding: 18px 12px 48px; }
     .cf-app-kv { grid-template-columns: 1fr; }
     .cf-app-table { font-size: 0.8rem; }
+    .cf-life-rail-meta { max-width: none; }
   }
 `;

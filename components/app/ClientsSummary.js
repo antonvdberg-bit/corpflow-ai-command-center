@@ -1,3 +1,5 @@
+import LifecycleContinuityRail from './LifecycleContinuityRail.js';
+
 /**
  * Operating Workspace — Clients summary (#999).
  * Read-only Company Master projection. No second client model. No live send.
@@ -155,6 +157,7 @@ export function ClientSummaryPanel({ client, proofWanted }) {
   return (
     <section className="cf-app-panel" data-testid="clients-summary">
       <h2 className="cf-app-h1">{String(client.trading_name || client.legal_name || client.company_id)}</h2>
+      <LifecycleContinuityRail lifecycle={client.lifecycle} current="client" />
       <p className="cf-app-muted" data-testid="clients-workspace-context">
         Operating Workspace client summary · not a Tenant Workspace view · Company Master record{' '}
         <code>{String(client.company_id || '')}</code>
@@ -214,14 +217,55 @@ export function ClientSummaryPanel({ client, proofWanted }) {
         <a className="cf-app-btn" href={String(commercial.existing_identity_path || '/admin/company-master')}>
           Company Master
         </a>
-        <a className="cf-app-btn" href="/app/prospects">
-          Prospects
-        </a>
+        {prospects[0]?.shared_detail_path ? (
+          <a
+            className="cf-app-btn"
+            href={
+              proofWanted
+                ? `${String(prospects[0].shared_detail_path)}${String(prospects[0].shared_detail_path).includes('?') ? '&' : '?'}proof=1`
+                : String(prospects[0].shared_detail_path)
+            }
+            data-testid="clients-open-prospect"
+          >
+            Open prospect
+          </a>
+        ) : (
+          <a className="cf-app-btn" href="/app/prospects">
+            Prospects
+          </a>
+        )}
+        {commercial.prospect_commercial_path ? (
+          <a
+            className="cf-app-btn"
+            href={
+              proofWanted
+                ? `${String(commercial.prospect_commercial_path).replace('#commercial-clearance', '')}${String(commercial.prospect_commercial_path).includes('?') ? '&' : '?'}proof=1#commercial-clearance`
+                : String(commercial.prospect_commercial_path)
+            }
+            data-testid="clients-open-commercial"
+          >
+            Commercial rail
+          </a>
+        ) : null}
+        {delivery.prospect_delivery_path ? (
+          <a
+            className="cf-app-btn"
+            href={
+              proofWanted
+                ? `${String(delivery.prospect_delivery_path).replace('#delivery-state', '')}${String(delivery.prospect_delivery_path).includes('?') ? '&' : '?'}proof=1#delivery-state`
+                : String(delivery.prospect_delivery_path)
+            }
+            data-testid="clients-open-delivery"
+          >
+            Delivery state
+          </a>
+        ) : (
+          <a className="cf-app-btn" href={String(delivery.existing_delivery_path || '/change')}>
+            Delivery / Change
+          </a>
+        )}
         <a className="cf-app-btn" href="/app/pipeline">
           Pipeline
-        </a>
-        <a className="cf-app-btn" href={String(delivery.existing_delivery_path || '/change')}>
-          Delivery / Change
         </a>
       </div>
       <p className="cf-app-muted" data-testid="clients-later-slices">

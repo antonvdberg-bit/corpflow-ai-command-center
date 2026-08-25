@@ -16,7 +16,8 @@ This document defines canonical route ownership and production expectations with
 - `/app/prospects/[id]` is the staff-only shared Prospect detail / action / history surface (#994 / #721 Slice 2). `GET`/`PATCH` `/api/app/prospect` is Core only. Tenant sessions receive 403. Product desks at `/admin/lead-rescue` and `/admin/rapid-delivery` remain until later slices.
 - `/app/workbench` is the staff-only shared Prospect Workbench (#996). `GET /api/app/workbench` is Core only. Tenant sessions receive 403. The product-branded grid at `/admin/lead-rescue` remains a temporary desk.
 - `/app/pipeline` is the staff-only Postgres-backed Prospect Pipeline (#997). `GET /api/app/pipeline` is Core only. Tenant sessions receive 403. `/change/revenue` remains an optional personal checklist only.
-- `/app/queue` is the staff-only canonical Prospect Action Queue (#995). `GET /api/app/queue` is Core only. Tenant sessions receive 403. Rows open `#994` `/app/prospects/[id]`. `/admin/rapid-delivery` remains a temporary desk.
+- `/app/clients` is the staff-only Clients summary (#999). `GET /api/app/clients` and `GET /api/app/client` are Core only. Tenant sessions receive 403. Company Master remains the evidence/asset editor.
+- `GET /api/app/lifecycle` is the staff-only Prospect → Client → Commercial → Delivery continuity proof (#1072). It reuses existing Prospect Operations, Company Master, #714 commercial-rail, and Lead Rescue / Website Rescue contracts. Tenant sessions receive 403. Dedicated `/app/commercial` and `/app/delivery` modules remain later (#1004 / #1005).
 - Slice 2 (#877): normal authenticated session path is the operator default (no `?proof=1` required). Proof remains Preview/local harness only.
 - Core nav may link Delivery/Operations to `/change` (compatibility). Tenant nav may link existing enabled capabilities.
 - `/change` and `/change-v2` remain compatibility / experimental routes — **not** deleted and **not** production-redirected yet.

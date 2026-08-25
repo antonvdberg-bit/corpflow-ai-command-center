@@ -39,9 +39,21 @@ export default function CommercialClearancePanel({ prospect, saving, proofWanted
   const blockers = Array.isArray(clearance.blockers) ? clearance.blockers : [];
   const cleared = clearance.commercially_cleared === true;
   const proofQuery = proofWanted ? '?proof=1' : '';
+  const linkedClient =
+    prospect.linked_client && typeof prospect.linked_client === 'object'
+      ? /** @type {Record<string, unknown>} */ (prospect.linked_client)
+      : null;
+  const clientHref = linkedClient?.summary_path
+    ? `${String(linkedClient.summary_path)}${proofWanted ? (String(linkedClient.summary_path).includes('?') ? '&' : '?') + 'proof=1' : ''}`
+    : `/app/clients${proofQuery}`;
 
   return (
-    <section className="cf-app-panel" data-testid="commercial-clearance" style={{ marginTop: 18 }}>
+    <section
+      className="cf-app-panel"
+      id="commercial-clearance"
+      data-testid="commercial-clearance"
+      style={{ marginTop: 18 }}
+    >
       <h2 className="cf-app-comp-title">Commercial clearance</h2>
       <p className="cf-app-muted">
         Quote → acceptance → payment evidence → financially approved to start delivery. ERPNext
@@ -328,8 +340,8 @@ export default function CommercialClearancePanel({ prospect, saving, proofWanted
           <button type="submit" className="cf-app-btn" data-primary="true" disabled={saving}>
             {saving ? 'Saving…' : 'Save commercial evidence'}
           </button>
-          <a className="cf-app-btn" href={`/app/clients${proofQuery}`}>
-            Open Clients
+          <a className="cf-app-btn" href={clientHref} data-testid="commercial-open-client">
+            Open client
           </a>
         </div>
       </form>

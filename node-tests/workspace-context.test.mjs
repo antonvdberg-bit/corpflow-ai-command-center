@@ -17,6 +17,7 @@ import {
   isActionQueuePath,
   isClientSharedDetailPath,
   isClientsPath,
+  isLifecycleContinuityPath,
   isProspectOperationsPath,
   isProspectPipelinePath,
   isProspectSharedDetailPath,
@@ -181,6 +182,18 @@ describe('workspace-context — Clients summary boundary', () => {
     assert.equal(tenantNavOmitsClients(), true);
     assert.equal(navIncludesClients(CORE_NAV_ITEMS), true);
     assert.equal(navIncludesClients(TENANT_NAV_ITEMS), false);
+  });
+});
+
+describe('workspace-context — lifecycle continuity boundary', () => {
+  it('recognises the staff-only lifecycle API and keeps it off Tenant nav', () => {
+    assert.equal(isLifecycleContinuityPath('/api/app/lifecycle'), true);
+    assert.equal(isLifecycleContinuityPath('/app/clients'), false);
+    assert.equal(navIncludesClients(TENANT_NAV_ITEMS), false);
+    assert.equal(
+      TENANT_NAV_ITEMS.some((item) => String(item.href || '').includes('/api/app/lifecycle')),
+      false,
+    );
   });
 });
 

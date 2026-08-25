@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lifecycle continuity · CorpFlowAI</title>
+  <style>
+    :root { --bg:#071411; --panel:#10231f; --text:#e8f4f0; --muted:#9bb8b0; --accent:#5ee0c5; --border:#1f3d36; }
+    body { margin:0; font-family: ui-sans-serif, system-ui, sans-serif; background:var(--bg); color:var(--text); }
+    .cf-app-chrome { display:flex; justify-content:space-between; gap:12px; padding:16px 20px; border-bottom:1px solid var(--border); }
+    .cf-app-main { padding:20px; max-width:1100px; margin:0 auto; }
+    .cf-life-rail { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:0 0 18px; }
+    .cf-life-rail-step { color:var(--accent); text-decoration:none; font-weight:650; border:1px solid var(--border); border-radius:999px; padding:8px 12px; }
+    .cf-life-grid { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px; }
+    .cf-life-card { border:1px solid var(--border); background:var(--panel); border-radius:14px; padding:16px; min-width:0; }
+    .cf-life-card h2 { margin:0 0 6px; text-transform:capitalize; }
+    .cf-life-id { color:var(--muted); margin:0 0 10px; }
+    dl { display:grid; gap:8px; margin:0; }
+    dt { font-size:0.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+    dd { margin:2px 0 0; line-height:1.4; word-break:break-word; }
+    a { color:var(--accent); word-break:break-all; }
+    .cf-app-muted { color:var(--muted); }
+    @media (max-width: 640px) {
+      .cf-life-grid { grid-template-columns:1fr; }
+      .cf-app-main { padding:16px 12px 40px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="cf-app-chrome" data-testid="app-chrome">
+    <div>CorpFlowAI Operating Workspace</div>
+    <div data-testid="lifecycle-verdict">LIFECYCLE CONTINUITY PASS</div>
+  </header>
+  <main class="cf-app-main">
+    <h1>Prospect → Client → Commercial → Delivery</h1>
+    <p class="cf-app-muted">Staff-only continuity over existing records. Tenant Workspace cannot traverse this path.</p>
+    <nav class="cf-life-rail" data-testid="lifecycle-rail" aria-label="Lifecycle"><a class="cf-life-rail-step" data-testid="lifecycle-rail-prospect" href="/app/prospects/syn-772-lr-ada?proof=1">prospect</a><span aria-hidden="true">→</span><a class="cf-life-rail-step" data-testid="lifecycle-rail-client" href="/app/clients/cmp_ada_spa_synthetic?proof=1">client</a><span aria-hidden="true">→</span><a class="cf-life-rail-step" data-testid="lifecycle-rail-commercial" href="/app/prospects/syn-772-lr-ada?proof=1#commercial-clearance">commercial</a><span aria-hidden="true">→</span><a class="cf-life-rail-step" data-testid="lifecycle-rail-delivery" href="/app/prospects/syn-772-lr-ada?proof=1#delivery-state">delivery</a></nav>
+    <section class="cf-life-grid"><article class="cf-life-card" data-testid="lifecycle-stage-prospect" data-stage="prospect">
+  <h2>prospect</h2>
+  <p class="cf-life-id"><code>syn-772-lr-ada</code></p>
+  <dl>
+    <div><dt>Owner</dt><dd>anton</dd></div>
+    <div><dt>Blocker</dt><dd>Overdue next action</dd></div>
+    <div><dt>Next action</dt><dd>Book discovery</dd></div>
+    <div><dt>Source of truth</dt><dd>Postgres leads (fixture | leads_read) via /app/prospects/[id]</dd></div>
+  </dl>
+  <p><a href="/app/prospects/syn-772-lr-ada?proof=1">/app/prospects/syn-772-lr-ada?proof=1</a></p>
+</article>
+<article class="cf-life-card" data-testid="lifecycle-stage-client" data-stage="client">
+  <h2>client</h2>
+  <p class="cf-life-id"><code>cmp_ada_spa_synthetic</code></p>
+  <dl>
+    <div><dt>Owner</dt><dd>anton</dd></div>
+    <div><dt>Blocker</dt><dd>Not recorded: erpnext_customer_pointer</dd></div>
+    <div><dt>Next action</dt><dd>Book discovery</dd></div>
+    <div><dt>Source of truth</dt><dd>Company Master identity via /app/clients/[id] — no second Client table</dd></div>
+  </dl>
+  <p><a href="/app/clients/cmp_ada_spa_synthetic?proof=1">/app/clients/cmp_ada_spa_synthetic?proof=1</a></p>
+</article>
+<article class="cf-life-card" data-testid="lifecycle-stage-commercial" data-stage="commercial">
+  <h2>commercial</h2>
+  <p class="cf-life-id"><code>syn-772-lr-ada</code></p>
+  <dl>
+    <div><dt>Owner</dt><dd>anton</dd></div>
+    <div><dt>Blocker</dt><dd>MISSING_PAYMENT_EVIDENCE</dd></div>
+    <div><dt>Next action</dt><dd>Record payment evidence (reference only — no bank secrets).</dd></div>
+    <div><dt>Source of truth</dt><dd>leads row commercial_approval namespace (#714 rail, #551 projection). ERPNext quotation/invoice names are pointers only — not a second ledger.</dd></div>
+  </dl>
+  <p><a href="/app/prospects/syn-772-lr-ada?proof=1#commercial-clearance">/app/prospects/syn-772-lr-ada?proof=1#commercial-clearance</a></p>
+</article>
+<article class="cf-life-card" data-testid="lifecycle-stage-delivery" data-stage="delivery">
+  <h2>delivery</h2>
+  <p class="cf-life-id"><code>syn-772-lr-ada</code></p>
+  <dl>
+    <div><dt>Owner</dt><dd>anton</dd></div>
+    <div><dt>Blocker</dt><dd>Commercial gate — NOT CLEARED</dd></div>
+    <div><dt>Next action</dt><dd>Record payment evidence (reference only — no bank secrets).</dd></div>
+    <div><dt>Source of truth</dt><dd>Same leads row: Lead Rescue operator or Website Rescue / Rapid Delivery operator. Tenant service-request stays at /change. No second project system.</dd></div>
+  </dl>
+  <p><a href="/app/prospects/syn-772-lr-ada?proof=1#delivery-state">/app/prospects/syn-772-lr-ada?proof=1#delivery-state</a></p>
+</article></section>
+  </main>
+</body>
+</html>

@@ -1,4 +1,6 @@
 import CommercialClearancePanel from './CommercialClearancePanel.js';
+import DeliveryStatePanel from './DeliveryStatePanel.js';
+import LifecycleContinuityRail from './LifecycleContinuityRail.js';
 
 /**
  * Operating Workspace — shared Prospect detail / actions / history (#994).
@@ -59,11 +61,21 @@ export default function ProspectDetailPanel({
       : {};
   const proofQuery = proofWanted ? '?proof=1' : '';
   const productDesk = prospect.product_detail_path || prospect.detail_path;
+  const linkedClient =
+    prospect.linked_client && typeof prospect.linked_client === 'object'
+      ? /** @type {Record<string, unknown>} */ (prospect.linked_client)
+      : null;
+  const clientHref = linkedClient?.summary_path
+    ? proofWanted
+      ? `${String(linkedClient.summary_path)}${String(linkedClient.summary_path).includes('?') ? '&' : '?'}proof=1`
+      : String(linkedClient.summary_path)
+    : '';
 
   return (
     <>
     <section className="cf-app-panel" data-testid="prospect-detail">
       <h1 className="cf-app-h1">{title}</h1>
+      <LifecycleContinuityRail lifecycle={prospect.lifecycle} current="prospect" />
       <p className="cf-app-lead">
         Shared Prospect detail for Lead Rescue and Website Rescue. Same Postgres <code>leads</code> row —
         not a second CRM. Temporary product desks remain until later slices.
@@ -82,7 +94,17 @@ export default function ProspectDetailPanel({
         <dt>Person</dt>
         <dd>{String(prospect.person_name || '—')}</dd>
         <dt>Business</dt>
-        <dd>{String(prospect.organisation_name || '—')}</dd>
+        <dd>
+          {String(prospect.organisation_name || '—')}
+          {clientHref ? (
+            <>
+              {' · '}
+              <a href={clientHref} data-testid="prospect-linked-client">
+                {String(linkedClient?.trading_name || linkedClient?.legal_name || linkedClient?.company_id)}
+              </a>
+            </>
+          ) : null}
+        </dd>
         <dt>Email</dt>
         <dd>{String(prospect.email || '—')}</dd>
         <dt>Phone</dt>
@@ -263,6 +285,11 @@ export default function ProspectDetailPanel({
               Temporary product desk
             </a>
           ) : null}
+          {clientHref ? (
+            <a className="cf-app-btn" href={clientHref} data-testid="prospect-open-client">
+              Open client
+            </a>
+          ) : null}
         </div>
       </form>
 
@@ -295,6 +322,7 @@ export default function ProspectDetailPanel({
       proofWanted={proofWanted}
       onSave={onSave}
     />
+    <DeliveryStatePanel prospect={prospect} proofWanted={proofWanted} />
     </>
   );
 }
