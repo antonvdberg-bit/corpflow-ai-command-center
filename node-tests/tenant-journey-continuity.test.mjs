@@ -185,7 +185,13 @@ describe('#1073 one complete synthetic tenant journey', () => {
       const menuIds = shellRes.state.body.menus.map((m) => m.id);
       assert.deepEqual(menuIds, ['requests_progress', 'service_change']);
       assert.equal(menuIds.includes('home'), false);
-      assert.equal(JSON.stringify(shellRes.state.body).includes('/app/core'), false);
+      const menuHrefs = shellRes.state.body.menus.map((m) => String(m.href || ''));
+      assert.equal(menuHrefs.some((href) => href.startsWith('/app/core')), false);
+      assert.equal(String(shellRes.state.body.tenant_journey.change_handoff_href).startsWith('/change'), true);
+      assert.equal(
+        decodeURIComponent(String(shellRes.state.body.login_hints?.tenant || '')).includes('/app/tenant'),
+        true,
+      );
 
       const listRes = mockRes();
       await handleAppRequestsList(
