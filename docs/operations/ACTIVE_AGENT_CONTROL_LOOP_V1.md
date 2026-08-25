@@ -19,6 +19,7 @@ This packet adds **status supervision after activation**:
 | Scheduled / manual poller | `.github/workflows/cursor-agent-lifecycle-status.yml` |
 | Durable state | GitHub issue comments (`corpflow.cursor_lifecycle_state.v1`) |
 | Completion event | Issue comment (`corpflow.cursor_completion_event.v1`) — n8n contract |
+| AI controller readback | `corpflow.ai_work_request.v1` + `corpflow.ai_work_status.v1` (#1059) — see `docs/operations/AI_WORK_REQUEST_LIFECYCLE_V1.md` |
 | Operator review packet | Reuses `operator-review-handoff.js` |
 
 ## Behaviour
