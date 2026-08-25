@@ -1,5 +1,6 @@
 /**
- * #930 — Wake Proof is the sole production Cursor executor.
+ * #1062 — one selected Factory executor, with Wake Proof retained until
+ * an explicit Cloud Agents v1 cutover.
  *
  * Proves:
  * - CorpFlowAI Cursor Factory Handoff keeps MODE B name + production triggers
@@ -53,7 +54,7 @@ describe('Wake Proof sole production executor (#930)', () => {
     assert.equal(FACTORY_CURSOR_HANDOFF_WORKFLOW_NAME, 'CorpFlowAI Cursor Factory Handoff');
   });
 
-  it('retains Handoff production triggers and omits schedule', () => {
+  it('retains Handoff production triggers and enforces one cutover-gated executor', () => {
     const keys = onTriggerKeys(extractOnBlock(handoffYaml));
     assert.deepEqual(
       [...keys].sort(),
@@ -65,8 +66,18 @@ describe('Wake Proof sole production executor (#930)', () => {
     assert.match(handoffYaml, /capacity_released/);
     assert.doesNotMatch(handoffYaml, /^\s*schedule:/m);
     assert.doesNotMatch(handoffYaml, /^\s*cron:/m);
-    assert.doesNotMatch(handoffYaml, /secrets\.CURSOR_API_KEY/);
     assert.match(handoffYaml, /node scripts\/factory-cursor-handoff\.mjs/);
+    assert.match(handoffYaml, /Validate sole executor selection/);
+    assert.match(handoffYaml, /wake_proof_v2\|cloud_agents_v1/);
+    assert.match(
+      handoffYaml,
+      /Wake Cursor Factory v2 webhook[\s\S]*vars\.CURSOR_FACTORY_EXECUTOR == 'wake_proof_v2'/,
+    );
+    assert.match(
+      handoffYaml,
+      /Create correlated Cursor Cloud Agent v1[\s\S]*vars\.CURSOR_FACTORY_EXECUTOR == 'cloud_agents_v1'/,
+    );
+    assert.match(handoffYaml, /node scripts\/factory-cloud-agents-executor\.mjs/);
   });
 
   it('marks the API dispatcher LEGACY / DIAGNOSTIC / NOT PRODUCTION EXECUTION', () => {

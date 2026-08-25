@@ -321,6 +321,25 @@ describe('factory queue reconcile decisions (#1023)', () => {
     assert.equal(second.should_wake_handoff, 0);
   });
 
+  it('does not retry a handoff that the bounded receipt check has made terminal', () => {
+    const plan = planCursorIssueClaims({
+      readyIssues: [readyIssue(10238)],
+      claimedIssues: [],
+      trackedIssues: [],
+    });
+    const decision = resolveFactoryQueueReconcileDecision({
+      plan: {
+        ...plan,
+        activationTargetIssue: null,
+        claimIssueNumbers: [],
+        eligibleIssueNumbers: [],
+      },
+      claimedIssues: [],
+    });
+    assert.equal(decision.should_wake_handoff, 0);
+    assert.equal(decision.reason, 'no_ready_work');
+  });
+
   it('workflow_call scheduled_reconciliation is a full-priority Handoff scan', () => {
     const plan = resolveFactoryDispatcherRunPlan({
       eventName: 'workflow_call',

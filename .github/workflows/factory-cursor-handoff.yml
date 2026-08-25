@@ -1,10 +1,12 @@
 # Permanent Cursor Automation wake path (#913 / controller #903 / #930).
 #
-# GitHub eligibility/capacity event → this workflow succeeds on main with exactly
-# one selected source issue encoded → Cursor Automation MODE B wakes.
+# GitHub eligibility/capacity event → exactly one selected source issue.
+# The executor is selected by CURSOR_FACTORY_EXECUTOR:
+# - blank / wake_proof_v2: current native Wake Proof transport
+# - cloud_agents_v1: correlated Cloud Agents API v1 transport
 #
-# This is the sole production Cursor execution wake path. The Background Agents
-# API workflow factory-dispatcher-activate.yml is LEGACY / DIAGNOSTIC only.
+# This is the sole production Cursor execution handoff. Exactly one transport
+# may run for a selected issue; the legacy diagnostic workflow remains disabled.
 #
 # Important:
 # - Displayed workflow name must remain exactly:
@@ -138,13 +140,23 @@ jobs:
           WAKE_REASON_INPUT: ${{ inputs.wake_reason || '' }}
           CAPACITY_WAKE_REQUESTED: ${{ inputs.capacity_wake_requested || '' }}
           FACTORY_HANDOFF_OUT_PATH: factory-cursor-handoff.json
-          FACTORY_HANDOFF_POST_COMMENT: "1"
         run: |
           set -euo pipefail
           node scripts/factory-cursor-handoff.mjs
 
-      - name: Wake Cursor Factory v2 webhook
+      - name: Validate sole executor selection
         if: steps.handoff.outputs.has_handoff == '1' && steps.handoff.outputs.source_issue != ''
+        env:
+          CURSOR_FACTORY_EXECUTOR: ${{ vars.CURSOR_FACTORY_EXECUTOR || 'wake_proof_v2' }}
+        run: |
+          set -euo pipefail
+          case "$CURSOR_FACTORY_EXECUTOR" in
+            wake_proof_v2|cloud_agents_v1) ;;
+            *) echo "Invalid CURSOR_FACTORY_EXECUTOR; allowed: wake_proof_v2 or cloud_agents_v1" >&2; exit 1 ;;
+          esac
+
+      - name: Wake Cursor Factory v2 webhook
+        if: steps.handoff.outputs.has_handoff == '1' && steps.handoff.outputs.source_issue != '' && (vars.CURSOR_FACTORY_EXECUTOR == '' || vars.CURSOR_FACTORY_EXECUTOR == 'wake_proof_v2')
         env:
           CURSOR_FACTORY_WAKE_WEBHOOK_URL: ${{ secrets.CURSOR_FACTORY_WAKE_WEBHOOK_URL }}
           CURSOR_FACTORY_WAKE_AUTH_HEADER: ${{ secrets.CURSOR_FACTORY_WAKE_AUTH_HEADER }}
@@ -172,6 +184,31 @@ jobs:
             "$CURSOR_FACTORY_WAKE_WEBHOOK_URL" >/dev/null
 
           echo "Cursor Factory v2 webhook accepted handoff for issue #$SOURCE_ISSUE"
+
+      - name: Create correlated Cursor Cloud Agent v1
+        if: steps.handoff.outputs.has_handoff == '1' && steps.handoff.outputs.source_issue != '' && vars.CURSOR_FACTORY_EXECUTOR == 'cloud_agents_v1'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          SOURCE_ISSUE: ${{ steps.handoff.outputs.source_issue }}
+          HANDOFF_RUN_ID: ${{ github.run_id }}
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+        run: |
+          set -euo pipefail
+          node scripts/factory-cloud-agents-executor.mjs
+
+      - name: Publish successful handoff and pending Cursor receipt
+        if: steps.handoff.outputs.has_handoff == '1' && steps.handoff.outputs.source_issue != '' && (vars.CURSOR_FACTORY_EXECUTOR == '' || vars.CURSOR_FACTORY_EXECUTOR == 'wake_proof_v2')
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          FACTORY_HANDOFF_OUT_PATH: factory-cursor-handoff.json
+        run: |
+          set -euo pipefail
+          node scripts/factory-cursor-handoff-publish.mjs
 
       - name: Upload handoff artifact
         if: always()
