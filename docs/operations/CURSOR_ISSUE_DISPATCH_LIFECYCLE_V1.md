@@ -1,6 +1,13 @@
 # Cursor issue dispatch lifecycle v1 — segregated GitHub → Cursor claims
 
-**Status:** Production execution is **CorpFlowAI Cursor Factory Handoff** → Cursor Automation **CorpFlowAI Factory Wake Proof** / MODE B (#913 / merged PR #914 / #930). The Background Agents API workflow `factory-dispatcher-activate.yml` is **LEGACY / DIAGNOSTIC / NOT PRODUCTION EXECUTION** (`workflow_dispatch` only).
+**Status:** Production remains **CorpFlowAI Cursor Factory Handoff** → Cursor Automation
+**CorpFlowAI Factory Wake Proof** / MODE B until an approved #1062 cutover. The Handoff now
+contains a mutually-exclusive, disabled-by-default Cloud Agents API v1 executor selected only by
+`CURSOR_FACTORY_EXECUTOR=cloud_agents_v1`. The Background Agents API workflow
+`factory-dispatcher-activate.yml` remains **LEGACY / DIAGNOSTIC / NOT PRODUCTION EXECUTION**
+(`workflow_dispatch` only).
+The protected live-switch and rollback sequence is
+`docs/runbooks/CURSOR_CLOUD_AGENTS_V1_CUTOVER_1062.md`.
 **Owner:** Anton (policy); Cursor (implementation).
 **Created:** 2026-07-28.
 **Updated:** 2026-08-25 (#1059 follow-up — bounded native-wake receipt).
@@ -28,9 +35,9 @@ Consolidation is allowed only when explicitly justified and safe.
 
 | Existing piece | Role |
 |----------------|------|
-| `.github/workflows/factory-cursor-handoff.yml` | **`CorpFlowAI Cursor Factory Handoff` (#913 / #930)** — **sole production wake path**. Eligibility/capacity wake that **succeeds only** when exactly one eligible source issue is selected; successful completion wakes Cursor Automation MODE B (no Cursor API key). **No** `schedule:` on this named workflow |
+| `.github/workflows/factory-cursor-handoff.yml` | **`CorpFlowAI Cursor Factory Handoff`** — selector/control point and exactly one executor boundary. Default remains Wake Proof. At later approved cutover `CURSOR_FACTORY_EXECUTOR=cloud_agents_v1` skips the webhook and creates one correlated Cloud Agent. **No** `schedule:` on this named workflow |
 | `.github/workflows/factory-queue-reconcile.yml` | **`CorpFlowAI Factory Queue Reconcile` (#1023)** — thin 10-minute missed-event / orphan scan. Reuses existing eligibility / WIP / pause / operator-review rules and **`workflow_call`s Handoff only** when a real eligible issue exists and verified WIP permits. It also reconciles the bounded *receipt* for an already-successful native wake; it does not send a second wake or create another executor. Empty scans succeed silently. |
-| `.github/workflows/cursor-agent-lifecycle-status.yml` | Terminal/operator-review poller; **`workflow_call`s** the Automation handoff workflow on capacity release. Does **not** wake the legacy API dispatcher. Discovers **claimed** Cursor issues only — it cannot start work that was never claimed |
+| `.github/workflows/cursor-agent-lifecycle-status.yml` | Terminal/operator-review poller; polls only `bc-*` IDs from `corpflow.factory_cloud_agents_executor.v1`, then **`workflow_call`s** Handoff on capacity release. It does not scan generic Automation workers or wake the legacy API dispatcher |
 | `.github/workflows/factory-dispatcher-activate.yml` | **LEGACY / DIAGNOSTIC / NOT PRODUCTION EXECUTION** — Background Agents API activator, **`workflow_dispatch` only**. Must not auto-launch from schedule, labels, comments, or capacity events |
 | `scripts/dispatcher-agent-activation.mjs` | Cursor Cloud activation (legacy API diagnostic path) |
 | `scripts/factory-cursor-handoff.mjs` / `lib/server/factory-cursor-handoff.js` | Select one eligible issue, encode handoff packet/comment, fail closed when no handoff (#913) |
