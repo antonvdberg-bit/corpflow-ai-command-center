@@ -1,0 +1,80 @@
+openapi: 3.1.0
+info:
+  title: Jan Approval Bridge API
+  version: 1.0.0
+  description: >
+    Bounded, authenticated review evidence and decision interface for the Rare &
+    Exclusive Jan approval control surface. It is an adapter contract: it does
+    not assume a Custom GPT Action can attach to an existing ChatGPT chat.
+servers:
+  - url: https://lux.corpflowai.com
+paths:
+  /api/factory/jan-approval:
+    get:
+      summary: Return a signed-in Jan review package and short-lived decision capability
+      responses:
+        '200':
+          description: Evidence package for the allowlisted review target
+        '401':
+          description: Authentication required
+        '403':
+          description: Jan or factory-viewer authorization required
+  /api/factory/jan-approval/decision:
+    post:
+      summary: Record one bounded Jan decision against the exact reviewed SHA
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - item_id
+                - decision
+                - expected_head_sha
+                - evidence_manifest
+                - approval_scope
+                - decision_capability
+              properties:
+                item_id:
+                  type: string
+                  pattern: '^pr:[1-9][0-9]*$'
+                decision:
+                  type: string
+                  enum: [APPROVE, CHANGES, HOLD, REVIEW_FURTHER]
+                expected_head_sha:
+                  type: string
+                  pattern: '^[a-f0-9]{40}$'
+                evidence_manifest:
+                  type: string
+                  pattern: '^[a-f0-9]{64}$'
+                approval_scope:
+                  type: string
+                  enum: [review-approval-only, merge-only]
+                note:
+                  type: string
+                  maxLength: 500
+                decision_capability:
+                  type: string
+      responses:
+        '200':
+          description: Audit record and durable comment reference, if writeback is enabled
+        '400':
+          description: Invalid decision, scope, or bounded rationale
+        '401':
+          description: Missing, expired, invalid, or actor-mismatched decision capability
+        '403':
+          description: Non-Jan actor or non-allowlisted target
+        '409':
+          description: Stale evidence, manifest mismatch, or replayed capability
+        '429':
+          description: Rate limit exceeded
+components:
+  securitySchemes:
+    JanSession:
+      type: apiKey
+      in: cookie
+      name: corpflow_session
+security:
+  - JanSession: []

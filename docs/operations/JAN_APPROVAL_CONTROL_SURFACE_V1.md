@@ -58,7 +58,7 @@ Each audit record is exportable JSON and contains the manifest/hash, repository/
 
 ## 5. OpenAPI-facing contract
 
-The ChatGPT connection remains an adapter concern behind this bridge. A Custom GPT Action is **not** assumed to attach to an existing Jan conversation.
+The machine-readable contract is `docs/operations/JAN_APPROVAL_BRIDGE_OPENAPI_V1.yaml`. The ChatGPT connection remains an adapter concern behind this bridge. A Custom GPT Action is **not** assumed to attach to an existing Jan conversation.
 
 `GET /api/factory/jan-approval` returns only review evidence plus a short-lived `decision_capability` for the signed-in Jan session.
 

@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, it } from 'node:test';
 
 import {
@@ -86,5 +88,14 @@ describe('Jan bounded GitHub bridge', () => {
     });
     assert.equal(target.headSha, SHA);
     assert.equal(target.baseSha, BASE_SHA);
+  });
+
+  it('documents the exact bounded OpenAPI decision contract', () => {
+    const contract = readFileSync(join(process.cwd(), 'docs/operations/JAN_APPROVAL_BRIDGE_OPENAPI_V1.yaml'), 'utf8');
+    assert.match(contract, /\/api\/factory\/jan-approval\/decision/);
+    assert.match(contract, /enum: \[APPROVE, CHANGES, HOLD, REVIEW_FURTHER\]/);
+    assert.match(contract, /enum: \[review-approval-only, merge-only\]/);
+    assert.match(contract, /additionalProperties: false/);
+    assert.doesNotMatch(contract, /github\/comment/);
   });
 });
