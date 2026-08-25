@@ -11,7 +11,7 @@ setting is changed by this repository packet.
 | Durable request | GitHub issue → executor | Existing `work_request_id`, or a redacted stable request marker created on the same issue | Request creation failure stops before API |
 | Create | executor → Cursor API `POST /v1/agents` | Bounded prompt contains issue, request, handoff, repo, outcome, and protected constraints | HTTP/API error is `BLOCKED`; no `IN_PROGRESS` |
 | Receipt | Cursor API → GitHub issue | Valid `bc-*` agent ID and optional run ID | Missing/invalid identity is `BLOCKED` |
-| Poll | lifecycle poller → Cursor API `GET /v1/agents/{id}` | Only `corpflow.factory_cloud_agents_executor.v1` IDs are eligible | API failure maps to existing terminal lifecycle handling |
+| Poll | lifecycle poller → Cursor API `GET /v1/agents/{agentId}/runs/{runId}` | Only persisted correlated agent/run pairs are eligible | API failure maps to existing terminal lifecycle handling |
 | Terminal | lifecycle → GitHub / Queue Reconcile | branch, PR, completion or blocker evidence | Terminal transition removes execution WIP; capacity wakes Handoff |
 
 Redacted create request shape:
@@ -34,8 +34,9 @@ Expected minimum response shape:
 }
 ```
 
-`bc-*` is mandatory. A HTTP-success response without it is a create failure, never
-`IN_PROGRESS`.
+Both `bc-*` and `run-*` are mandatory, and `run.agentId` must match the returned agent.
+A HTTP-success response without that pair is a create failure, never `IN_PROGRESS`. Agent
+metadata is not execution state; polling is always run-scoped.
 
 ## Live-switch packet
 

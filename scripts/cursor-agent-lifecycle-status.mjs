@@ -272,6 +272,7 @@ async function main() {
   }
 
   let agentId = args.agentId ? String(args.agentId).trim() : null;
+  let discoveredRunId = null;
   let priorState = null;
   /** @type {Array<{ body?: string }>} */
   let comments = [];
@@ -281,6 +282,7 @@ async function main() {
     comments = discovered.comments;
     priorState = discovered.priorState;
     if (!agentId) agentId = discovered.agentId;
+    discoveredRunId = discovered.runId;
     if (!agentId) {
       console.error(`No Cursor agent ID found on issue #${issue} (origin metadata / lifecycle state)`);
       process.exit(3);
@@ -296,6 +298,7 @@ async function main() {
   if (!priorState) {
     priorState = buildCursorLifecycleState({
       cursorAgentId: agentId,
+      cursorRunId: discoveredRunId,
       sourceIssue: issue,
       phase: 'PENDING',
       startedAt: new Date().toISOString(),
@@ -332,6 +335,7 @@ async function main() {
     runCursorAgentLifecycleTick({
       apiKey,
       agentId,
+      runId: priorState.cursorRunId || discoveredRunId,
       sourceIssue: issue,
       priorState,
       startedAt: priorState.startedAt,
