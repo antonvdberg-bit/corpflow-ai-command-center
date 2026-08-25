@@ -37,9 +37,34 @@ import {
   fetchGitHubIssue,
 } from '../lib/server/dispatcher-agent-activation.js';
 import {
-  listGitHubIssueComments,
   postGitHubIssueComment,
 } from '../lib/server/cursor-ops-status.js';
+
+async function listGitHubIssueComments({ token, repo, issueNumber }) {
+  const comments = [];
+  const fetchFn = globalThis.fetch;
+  for (let page = 1; page <= 10; page += 1) {
+    const url = `https://api.github.com/repos/${repo}/issues/${issueNumber}/comments?per_page=100&page=${page}`;
+    const res = await fetchFn(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+      },
+      signal: AbortSignal.timeout(30000),
+    });
+    if (!res.ok) {
+      throw new Error(`GitHub issue comments HTTP ${res.status}`);
+    }
+    const pageComments = await res.json();
+    if (!Array.isArray(pageComments)) {
+      throw new Error('GitHub issue comments response was not an array');
+    }
+    comments.push(...pageComments);
+    if (pageComments.length < 100) break;
+  }
+  return comments;
+}
 
 const sourceIssue = Number(process.env.SOURCE_ISSUE || 0);
 const handoffRunId = String(process.env.HANDOFF_RUN_ID || '').trim();
