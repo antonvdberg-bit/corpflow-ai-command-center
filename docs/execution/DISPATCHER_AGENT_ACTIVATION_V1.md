@@ -1,9 +1,9 @@
 # Dispatcher agent activation v1
 
-**Status:** **LEGACY / DIAGNOSTIC / NOT PRODUCTION EXECUTION** as of #930 (2026-08-13). Cursor live API activation mechanics remain in-repo for manual smoke only. Production Cursor execution is `CorpFlowAI Cursor Factory Handoff` → Cursor Automation `CorpFlowAI Factory Wake Proof` / MODE B (controller #903, #913, merged PR #914). Codex remains human-triggered specialist (not Phase-4 auto-activate).  
+**Status:** **LEGACY / DIAGNOSTIC / NOT PRODUCTION EXECUTION** as of #930 (2026-08-13). Cursor live API activation mechanics remain in-repo for manual smoke only. Current production Cursor execution is `CorpFlowAI Cursor Factory Handoff` → Cursor Automation `CorpFlowAI Factory Wake Proof` / MODE B. The intended later sole executor is Cloud Agents API v1 **behind that same Handoff** (#1062); this workflow must still not auto-launch. Codex remains human-triggered specialist (not Phase-4 auto-activate).  
 **Owner:** Anton (operator / approver); Cursor (repo implementation).  
 **Created:** 2026-07-06.
-**Updated:** 2026-08-13 (#930).
+**Updated:** 2026-08-25 (#1062).
 **Anchor sentinel:** `<!-- DISPATCHER_AGENT_ACTIVATION_V1 -->`
 
 <!-- DISPATCHER_AGENT_ACTIVATION_V1 -->

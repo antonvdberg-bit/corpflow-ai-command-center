@@ -3,7 +3,9 @@
  *
  * Selects exactly one eligible source issue using existing scan/WIP logic,
  * writes a durable handoff packet, optionally posts a source-issue comment,
- * and exits 0 only when a real handoff should wake Cursor Automation MODE B.
+ * and exits 0 only when a real handoff should proceed. Default live wake is
+ * Factory Wake Proof v2; Cloud Agents API v1 stays dormant until the
+ * FACTORY_CURSOR_EXECUTOR live-switch variable is set (#1062).
  *
  * Exit codes:
  *   0 — handoff published (workflow success → Automation wake)
@@ -43,6 +45,7 @@ import {
   resolveFactoryHandoffDecision,
 } from '../lib/server/factory-cursor-handoff.js';
 import { postGitHubIssueComment } from '../lib/server/cursor-ops-status.js';
+import { resolveFactoryCursorExecutorMode } from '../lib/server/factory-cursor-cloud-agents-executor.js';
 
 const DEFAULT_REPO = 'antonvdberg-bit/corpflow-ai-command-center';
 const DEFAULT_OUT = 'factory-cursor-handoff.json';
@@ -129,6 +132,7 @@ async function main() {
   const token = String(process.env.GITHUB_TOKEN || process.env.GH_TOKEN || '').trim();
   const repo = String(process.env.GITHUB_REPOSITORY || process.env.GITHUB_REPO || DEFAULT_REPO).trim();
   const workflowRunUrl = buildWorkflowRunUrl();
+  const executor = resolveFactoryCursorExecutorMode(process.env);
 
   const wakePlan = resolveFactoryDispatcherRunPlan({
     eventName: process.env.EVENT_NAME || process.env.GITHUB_EVENT_NAME,
@@ -250,6 +254,9 @@ async function main() {
   const result = {
     ...decision,
     dryRun: args.dryRun,
+    executor_mode: executor.mode,
+    wake_proof_webhook_enabled: executor.wakeProofWebhookEnabled,
+    cloud_agents_live_enabled: executor.cloudAgentsLiveEnabled,
     discovery: {
       readyCount: readyIssues.length,
       claimedCount: claimedIssues.length,
@@ -304,6 +311,9 @@ async function main() {
     `source_issue=${decision.source_issue || ''}`,
     `reason=${decision.reason}`,
     `should_succeed=${decision.shouldSucceed ? '1' : '0'}`,
+    `executor_mode=${executor.mode}`,
+    `wake_proof_webhook=${executor.wakeProofWebhookEnabled ? '1' : '0'}`,
+    `cloud_agents_live=${executor.cloudAgentsLiveEnabled ? '1' : '0'}`,
   ]);
 
   const summaryPath = process.env.GITHUB_STEP_SUMMARY;

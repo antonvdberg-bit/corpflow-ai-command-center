@@ -3,8 +3,10 @@
  * Cursor agent lifecycle status runner (issue #661).
  *
  * Polls Cursor Cloud Agents API for active agents discovered from:
- *   --agent-id=bc-… (explicit)
+ *   --agent-id=bc-… (explicit, still must correlate to --issue markers)
  *   --issue=N (read origin metadata + lifecycle state from issue comments)
+ *
+ * Does not scan generic Automation workers. Known correlated agent IDs only (#1062).
  *
  * Persists lifecycle state + completion events as GitHub issue comments.
  * Silent on RUNNING/PENDING. Dedupe on second unchanged COMPLETED/FAILED/STALE poll.
@@ -31,6 +33,7 @@ import {
 } from '../lib/server/cursor-agent-lifecycle.js';
 import { buildCapacityReleaseWakeRequest } from '../lib/server/cursor-ready-event-dispatch.js';
 import { resolveCursorOriginMetadata } from '../lib/server/cursor-origin-metadata.js';
+import { shouldPollKnownCursorAgent } from '../lib/server/factory-cursor-cloud-agents-executor.js';
 
 const REPO =
   process.env.GITHUB_REPOSITORY ||
@@ -290,6 +293,20 @@ async function main() {
   if (!agentId) {
     console.error('agent id unresolved');
     process.exit(3);
+  }
+
+  if (issue) {
+    const gate = shouldPollKnownCursorAgent({
+      agentId,
+      comments,
+      sourceIssue: issue,
+    });
+    if (!gate.poll) {
+      console.error(
+        `Refusing to poll uncorrelated Cursor agent on issue #${issue} (${gate.reason})`,
+      );
+      process.exit(3);
+    }
   }
 
   if (!priorState) {

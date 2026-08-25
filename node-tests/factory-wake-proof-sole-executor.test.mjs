@@ -1,5 +1,6 @@
 /**
- * #930 — Wake Proof is the sole production Cursor executor.
+ * #930 / #1062 — Wake Proof remains the current live executor.
+ * Cloud Agents API v1 is implemented behind Factory Handoff and stays dormant.
  *
  * Proves:
  * - CorpFlowAI Cursor Factory Handoff keeps MODE B name + production triggers
@@ -42,7 +43,7 @@ function onTriggerKeys(onBlock) {
   return [...onBlock.matchAll(/^  ([A-Za-z_]+):/gm)].map((m) => m[1]);
 }
 
-describe('Wake Proof sole production executor (#930)', () => {
+describe('Wake Proof current live executor with dormant Cloud Agents v1 (#930 / #1062)', () => {
   const handoffYaml = readFileSync(HANDOFF_PATH, 'utf8');
   const legacyYaml = readFileSync(LEGACY_PATH, 'utf8');
   const lifecycleYaml = readFileSync(LIFECYCLE_PATH, 'utf8');
@@ -65,8 +66,16 @@ describe('Wake Proof sole production executor (#930)', () => {
     assert.match(handoffYaml, /capacity_released/);
     assert.doesNotMatch(handoffYaml, /^\s*schedule:/m);
     assert.doesNotMatch(handoffYaml, /^\s*cron:/m);
-    assert.doesNotMatch(handoffYaml, /secrets\.CURSOR_API_KEY/);
     assert.match(handoffYaml, /node scripts\/factory-cursor-handoff\.mjs/);
+    assert.match(handoffYaml, /Wake Cursor Factory v2 webhook/);
+    assert.match(
+      handoffYaml,
+      /executor_mode != 'cloud_agents_v1'[\s\S]*CURSOR_FACTORY_WAKE_WEBHOOK_URL/,
+    );
+    assert.match(
+      handoffYaml,
+      /executor_mode == 'cloud_agents_v1'[\s\S]*secrets\.CURSOR_API_KEY/,
+    );
   });
 
   it('marks the API dispatcher LEGACY / DIAGNOSTIC / NOT PRODUCTION EXECUTION', () => {

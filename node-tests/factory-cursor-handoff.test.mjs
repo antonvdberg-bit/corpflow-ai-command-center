@@ -83,13 +83,14 @@ describe('factory cursor handoff workflow (#913)', () => {
     assert.match(yaml, /inputs\.wake_reason == 'scheduled_reconciliation'/);
   });
 
-  it('does not require Cursor API secrets and runs the handoff selector', () => {
-    assert.doesNotMatch(yaml, /secrets\.CURSOR_API_KEY/);
+  it('runs the handoff selector and keeps Wake Proof as the default live wake', () => {
     assert.match(yaml, /node scripts\/factory-cursor-handoff\.mjs/);
     assert.match(yaml, /Wake Cursor Factory v2 webhook/);
     assert.match(yaml, /Publish successful handoff and pending Cursor receipt/);
     assert.match(yaml, /node scripts\/factory-cursor-handoff-publish\.mjs/);
     assert.match(yaml, /permissions:\s*\n\s*contents:\s*read\s*\n\s*issues:\s*write/);
+    assert.match(yaml, /vars\.FACTORY_CURSOR_EXECUTOR/);
+    assert.match(yaml, /node scripts\/factory-cursor-cloud-agents-execute\.mjs/);
   });
 
   it('removes the temporary Proof C bot-comment workflow and its proof-only test', () => {

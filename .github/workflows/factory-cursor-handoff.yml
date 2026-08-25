@@ -1,18 +1,24 @@
-# Permanent Cursor Automation wake path (#913 / controller #903 / #930).
+# Permanent Cursor Factory Handoff (#913 / controller #903 / #930 / #1062).
 #
 # GitHub eligibility/capacity event → this workflow succeeds on main with exactly
-# one selected source issue encoded → Cursor Automation MODE B wakes.
+# one selected source issue encoded.
 #
-# This is the sole production Cursor execution wake path. The Background Agents
-# API workflow factory-dispatcher-activate.yml is LEGACY / DIAGNOSTIC only.
+# CURRENT live executor: Cursor Automation Factory Wake Proof v2 webhook (MODE B).
+# IMPLEMENTED dormant replacement (#1062): Cursor Cloud Agents API v1, gated on
+# GitHub Actions variable FACTORY_CURSOR_EXECUTOR=cloud_agents_v1. Do not set
+# that variable in this PR. The two live paths are mutually exclusive.
+#
+# factory-dispatcher-activate.yml remains LEGACY / DIAGNOSTIC only.
 #
 # Important:
 # - Displayed workflow name must remain exactly:
 #     CorpFlowAI Cursor Factory Handoff
-# - A real handoff explicitly POSTs to the Cursor Automation webhook; the native
+# - Default path POSTs to the Cursor Automation webhook; the native
 #   workflow-completed subscription remains optional diagnostics only.
-# - Cursor webhook URL/auth stay in GitHub Actions secrets and are never logged.
-# - Fail closed when there is no real eligible handoff so MODE B does not wake.
+# - Cursor webhook URL/auth and CURSOR_API_KEY stay in GitHub Actions secrets
+#   and are never logged. CURSOR_API_KEY is unused unless the live-switch
+#   variable is set.
+# - Fail closed when there is no real eligible handoff.
 # - Reuses factory eligibility / verified WIP logic; does not build a second dispatcher.
 # - Schedule is intentionally omitted here (not the primary wake path).
 #   Whole-queue missed-event reconciliation is factory-queue-reconcile.yml
@@ -137,13 +143,29 @@ jobs:
           TARGET_ISSUE_INPUT: ${{ inputs.target_issue || '' }}
           WAKE_REASON_INPUT: ${{ inputs.wake_reason || '' }}
           CAPACITY_WAKE_REQUESTED: ${{ inputs.capacity_wake_requested || '' }}
+          FACTORY_CURSOR_EXECUTOR: ${{ vars.FACTORY_CURSOR_EXECUTOR || '' }}
           FACTORY_HANDOFF_OUT_PATH: factory-cursor-handoff.json
         run: |
           set -euo pipefail
           node scripts/factory-cursor-handoff.mjs
 
+      - name: Execute via Cursor Cloud Agents API v1
+        if: steps.handoff.outputs.has_handoff == '1' && steps.handoff.outputs.source_issue != '' && steps.handoff.outputs.executor_mode == 'cloud_agents_v1'
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          SOURCE_ISSUE: ${{ steps.handoff.outputs.source_issue }}
+          FACTORY_CURSOR_EXECUTOR: ${{ vars.FACTORY_CURSOR_EXECUTOR || '' }}
+          FACTORY_HANDOFF_OUT_PATH: factory-cursor-handoff.json
+          FACTORY_CLOUD_AGENTS_OUT_PATH: factory-cursor-cloud-agents-execution.json
+        run: |
+          set -euo pipefail
+          node scripts/factory-cursor-cloud-agents-execute.mjs
+
       - name: Wake Cursor Factory v2 webhook
-        if: steps.handoff.outputs.has_handoff == '1' && steps.handoff.outputs.source_issue != ''
+        if: steps.handoff.outputs.has_handoff == '1' && steps.handoff.outputs.source_issue != '' && steps.handoff.outputs.executor_mode != 'cloud_agents_v1'
         env:
           CURSOR_FACTORY_WAKE_WEBHOOK_URL: ${{ secrets.CURSOR_FACTORY_WAKE_WEBHOOK_URL }}
           CURSOR_FACTORY_WAKE_AUTH_HEADER: ${{ secrets.CURSOR_FACTORY_WAKE_AUTH_HEADER }}
@@ -173,7 +195,7 @@ jobs:
           echo "Cursor Factory v2 webhook accepted handoff for issue #$SOURCE_ISSUE"
 
       - name: Publish successful handoff and pending Cursor receipt
-        if: steps.handoff.outputs.has_handoff == '1' && steps.handoff.outputs.source_issue != ''
+        if: steps.handoff.outputs.has_handoff == '1' && steps.handoff.outputs.source_issue != '' && steps.handoff.outputs.executor_mode != 'cloud_agents_v1'
         env:
           GITHUB_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
@@ -191,6 +213,8 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: factory-cursor-handoff
-          path: factory-cursor-handoff.json
+          path: |
+            factory-cursor-handoff.json
+            factory-cursor-cloud-agents-execution.json
           if-no-files-found: ignore
           retention-days: 7

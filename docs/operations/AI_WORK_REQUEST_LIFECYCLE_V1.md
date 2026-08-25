@@ -17,14 +17,14 @@ AI controller → existing n8n forward bridge → GitHub durable work record
   → existing n8n Heartbeat/readback → originating AI controller
 ```
 
-This is supporting factory reliability. It does **not** authorize a second dispatcher, task database, workflow engine, notifier, or a competing Cursor API wake path.
+This is supporting factory reliability. It does **not** authorize a second dispatcher, task database, workflow engine, or notifier. The intended later sole execution transport is Cloud Agents API v1 behind Factory Handoff (`docs/operations/FACTORY_CURSOR_CLOUD_AGENTS_V1_SOLE_EXECUTOR.md`, #1062). Wake Proof v2 remains the current live wake until that exact live switch. Do not run both as competing production executors.
 
 ## 2. Reused components
 
 | Existing piece | Role |
 |----------------|------|
 | GitHub issue | Durable work record |
-| `corpflow.factory_cursor_handoff.v1` | Sole production Cursor wake |
+| `corpflow.factory_cursor_handoff.v1` | Sole production Cursor selection / current Wake Proof wake |
 | `corpflow.cursor_activation_claim.v1` | Current-generation claim (legacy API path) |
 | `corpflow.cursor_origin_metadata.v1` | Machine pickup evidence |
 | `corpflow.cursor_lifecycle_state.v1` | Post-activation poller state |

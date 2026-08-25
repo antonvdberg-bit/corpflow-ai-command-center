@@ -1,9 +1,9 @@
 # Cursor issue dispatch lifecycle v1 — segregated GitHub → Cursor claims
 
-**Status:** Production execution is **CorpFlowAI Cursor Factory Handoff** → Cursor Automation **CorpFlowAI Factory Wake Proof** / MODE B (#913 / merged PR #914 / #930). The Background Agents API workflow `factory-dispatcher-activate.yml` is **LEGACY / DIAGNOSTIC / NOT PRODUCTION EXECUTION** (`workflow_dispatch` only).
+**Status:** Production execution is **CorpFlowAI Cursor Factory Handoff**. Current live wake is Cursor Automation **CorpFlowAI Factory Wake Proof** / MODE B (#913 / merged PR #914 / #930). Cloud Agents API v1 is implemented **behind the same Handoff path** and stays dormant until the exact live-switch in `docs/operations/FACTORY_CURSOR_CLOUD_AGENTS_V1_SOLE_EXECUTOR.md` (#1062). The Background Agents API workflow `factory-dispatcher-activate.yml` is **LEGACY / DIAGNOSTIC / NOT PRODUCTION EXECUTION** (`workflow_dispatch` only).
 **Owner:** Anton (policy); Cursor (implementation).
 **Created:** 2026-07-28.
-**Updated:** 2026-08-25 (#1059 follow-up — bounded native-wake receipt).
+**Updated:** 2026-08-25 (#1062 — Cloud Agents v1 dormant sole-executor adapter).
 **Implements:** Operator urgent change — Cursor must discover/claim `dispatch:cursor-ready` issues with strict segregation.
 **Anchor sentinel:** `<!-- CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1 -->`
 
@@ -28,7 +28,7 @@ Consolidation is allowed only when explicitly justified and safe.
 
 | Existing piece | Role |
 |----------------|------|
-| `.github/workflows/factory-cursor-handoff.yml` | **`CorpFlowAI Cursor Factory Handoff` (#913 / #930)** — **sole production wake path**. Eligibility/capacity wake that **succeeds only** when exactly one eligible source issue is selected; successful completion wakes Cursor Automation MODE B (no Cursor API key). **No** `schedule:` on this named workflow |
+| `.github/workflows/factory-cursor-handoff.yml` | **`CorpFlowAI Cursor Factory Handoff` (#913 / #930 / #1062)** — **sole production selection path**. Eligibility/capacity wake that **succeeds only** when exactly one eligible source issue is selected. **Current live wake** is Cursor Automation MODE B (Wake Proof v2 webhook; no Cursor API key). **Dormant replacement** is Cloud Agents API v1, gated on `FACTORY_CURSOR_EXECUTOR=cloud_agents_v1` — do not set that variable until the live-switch packet is authorized. **No** `schedule:` on this named workflow |
 | `.github/workflows/factory-queue-reconcile.yml` | **`CorpFlowAI Factory Queue Reconcile` (#1023)** — thin 10-minute missed-event / orphan scan. Reuses existing eligibility / WIP / pause / operator-review rules and **`workflow_call`s Handoff only** when a real eligible issue exists and verified WIP permits. It also reconciles the bounded *receipt* for an already-successful native wake; it does not send a second wake or create another executor. Empty scans succeed silently. |
 | `.github/workflows/cursor-agent-lifecycle-status.yml` | Terminal/operator-review poller; **`workflow_call`s** the Automation handoff workflow on capacity release. Does **not** wake the legacy API dispatcher. Discovers **claimed** Cursor issues only — it cannot start work that was never claimed |
 | `.github/workflows/factory-dispatcher-activate.yml` | **LEGACY / DIAGNOSTIC / NOT PRODUCTION EXECUTION** — Background Agents API activator, **`workflow_dispatch` only**. Must not auto-launch from schedule, labels, comments, or capacity events |
@@ -41,7 +41,7 @@ Consolidation is allowed only when explicitly justified and safe.
 | **`scripts/cursor-issue-dispatch-scan.mjs`** | Label scan → discover/classify/eligibility plan (**this packet**) |
 | **`scripts/cursor-issue-dispatch-finalize.mjs`** | Post-activation claim labels + run ID comment (legacy API diagnostic path) |
 
-Do **not** add another management-platform dispatcher. **Production Cursor execution** is the dedicated handoff workflow named exactly `CorpFlowAI Cursor Factory Handoff` — it does not call the Cursor API; MODE B starts from workflow success on `main` with one encoded source issue. The older `factory-dispatcher-activate.yml` Background Agents API path is **not** a production executor and must not compete with Wake Proof. Handoff reuses the same eligibility / verified WIP scan and may hand **at most one** source issue per run. Issue-scoped event runs prefer the event issue when scan-eligible; capacity backfill runs a full priority scan. Empty/suppressed handoff runs **fail closed** so Automation does not wake.
+**Do not** add another management-platform dispatcher. **Production Cursor selection** is the dedicated handoff workflow named exactly `CorpFlowAI Cursor Factory Handoff`. The current live wake does not call the Cursor API; MODE B starts from workflow success on `main` with one encoded source issue. Cloud Agents API v1 is implemented behind that same Handoff and must not run in parallel with Wake Proof v2. The older `factory-dispatcher-activate.yml` Background Agents API path is **not** a production executor. Handoff reuses the same eligibility / verified WIP scan and may hand **at most one** source issue per run. Issue-scoped event runs prefer the event issue when scan-eligible; capacity backfill runs a full priority scan. Empty/suppressed handoff runs **fail closed**.
 
 ## 3. Labels
 
@@ -292,6 +292,7 @@ This packet does **not** create those synthetic issues. Schedule-driven proof is
 - Issue #887 — operator gate authorization must resume Cursor activation
 - Issue #891 — approval and capacity changes must wake dispatcher automatically
 - Issue #913 / PR #914 — CorpFlowAI Cursor Factory Handoff (MODE B)
-- Issue #930 — Wake Proof is the sole production Cursor executor; API dispatcher is diagnostic only
+- Issue #930 — Wake Proof is the current live production Cursor executor; API dispatcher is diagnostic only
+- Issue #1062 — Cloud Agents API v1 replacement is implemented behind Handoff and stays dormant until the live-switch packet
 - Issue #1023 — 10-minute whole-queue reconciliation fallback (thin wrapper → existing Handoff)
 - `lib/server/operator-gate-authorization.js` — durable gate authorization evaluation
