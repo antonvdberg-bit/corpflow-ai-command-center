@@ -1,7 +1,12 @@
 # Cursor Cloud Agents API v1 cutover — #1062
 
-**Status:** Prepared only. No secret, GitHub variable, Automation, deployment, or live executor
-setting is changed by this repository packet.
+**Status:** Repository adapter is merged (`main` `99ec40dc` / PR #1065). Live synthetic
+proof **#1066 did not pass** on 2026-08-25: Factory Handoff run `32808930062` still ran
+Wake Proof v2 and **skipped** Cloud Agents v1. Evidence:
+`docs/operations/FACTORY_CLOUD_AGENTS_V1_LIVE_CUTOVER_PROOF_1066.md`.
+
+This runbook still does **not** change secrets, GitHub variables, Automation, deployment,
+or the live executor setting.
 
 ## Boundary contract
 
