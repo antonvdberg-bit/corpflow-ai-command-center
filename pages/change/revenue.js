@@ -176,8 +176,8 @@ export default function ChangeRevenueRetiredPage() {
           </div>
           <p style={{ margin: '12px 0 0', color: c.textDim, fontSize: 13 }}>
             <code style={styles.code}>/app/pipeline</code>, <code style={styles.code}>/app/queue</code>,
-            and <code style={styles.code}>/app/workbench</code> are staff / Core only. Tenant Workspace
-            stays on <code style={styles.code}>/change</code>.
+            and <code style={styles.code}>/app/workbench</code> are staff / Core only. Tenant Workspace stays on{' '}
+            <code style={styles.code}>/change</code>.
           </p>
         </div>
 
