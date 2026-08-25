@@ -2,7 +2,7 @@
 
 **Issue:** [#772](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/772)  
 **Related:** [#721](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/721) Prospect Operations · [#773](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/773) / [#778](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/778) Core/Tenant shell  
-**Status:** Phase 1 audit + Prospect Operations list + Today / My Work **shipped**. Shared Prospect detail / actions / history shipped at `/app/prospects/[id]` (#994). Shared Prospect Workbench shipped at `/app/workbench` (#996). Postgres-backed Prospect Pipeline shipped at `/app/pipeline` (#997). Canonical Prospect Action Queue shipped at `/app/queue` (#995). This packet adds the next no-schema slice: **Clients summary** at `/app/clients` (#999).
+**Status:** Phase 1 audit + Prospect Operations list + Today / My Work **shipped**. Shared Prospect detail / actions / history shipped at `/app/prospects/[id]` (#994). Shared Prospect Workbench shipped at `/app/workbench` (#996). Postgres-backed Prospect Pipeline shipped at `/app/pipeline` (#997). Canonical Prospect Action Queue shipped at `/app/queue` (#995). Clients summary shipped at `/app/clients` (#999). This packet adds the next no-schema slice: **Operating Workspace cross-client overview** at `/app/core` (#1071).
 **Environment:** `corpflow_test` after merge/deploy; this packet does not authorize `client_production`
 **No schema. No env/secrets. No deploy. No external send.**
 
@@ -21,7 +21,8 @@ An authorised staff user can:
 7. Open **Prospect Pipeline** at `/app/pipeline` and see the same records in canonical-stage lanes; stage moves persist through the shared write path.
 8. Open the **Prospect Action Queue** at `/app/queue` to see what needs action now (overdue, due today, no next action, new/unreviewed, high urgency, stalled, awaiting operator).
 9. Open **Clients** at `/app/clients` and see existing Company Master client/business records, a summary, and links to related prospect / commercial / delivery surfaces — without a second customer model.
-10. Not see Prospect Operations, Today / My Work, shared detail, Workbench, Pipeline, Action Queue, Clients, or other internal commercial desks inside the Tenant Workspace.
+10. Open **`/app/core`** and see one staff-only overview: what needs action now, overdue/stalled prospects, clients with a recorded commercial blocker, and deliveries that are blocked / awaiting review / awaiting protected approval — each item linking to its canonical existing route.
+11. Not see Prospect Operations, Today / My Work, shared detail, Workbench, Pipeline, Action Queue, Clients, Overview internals, or other internal commercial desks inside the Tenant Workspace.
 
 Existing Core/Tenant **authentication remains separate**. Choosing the other workspace returns to `/app` and uses the matching sign-in. A Core session still cannot enter Tenant; a Tenant session still cannot enter Core. That #778 rule is unchanged.
 
@@ -49,7 +50,7 @@ Machine copy: `WORKSPACE_SURFACE_MATRIX` in `lib/app/workspace-context.js`.
 | Path | Record | Data source | Auth | Disposition | Reuse / defect |
 | ---- | ------ | ----------- | ---- | ----------- | -------------- |
 | `/app` | none | none | chooser | **CANONICAL** | Deliberate workspace entry |
-| `/app/core` | `cmp_tickets` | fixture / `cmp_tickets_read` | Core `typ=admin` | **CANONICAL** | Operating Workspace shell already live from #778/#877 |
+| `/app/core` | `leads` + `company_master` + `cmp_tickets` (summary) | existing today/queue/clients/change contracts | Core `typ=admin` | **CANONICAL** | Operating Workspace overview landing (#1071). Requests remain in-shell. |
 | `/app/tenant` | `cmp_tickets` (client-safe) | fixture / `cmp_tickets_read` | Tenant `typ=tenant` | **CANONICAL** | Tenant Workspace shell; CorpFlowAI is a normal tenant |
 | `/app/prospects` | `leads` | fixture / `leads_read` | Core only | **CANONICAL** | First shared Prospect Operations route |
 | `/api/app/prospects` | `leads` | same | Core only | **CANONICAL** | Tenant → 403 |
@@ -64,6 +65,7 @@ Machine copy: `WORKSPACE_SURFACE_MATRIX` in `lib/app/workspace-context.js`.
 | `/app/queue` | `leads` | fixture / `leads_read` via `matchesActionQueueFilter` | Core only | **CANONICAL** | Prospect Action Queue |
 | `/api/app/queue` | `leads` | same | Core only | **CANONICAL** | Tenant → 403 |
 | `/app/clients` | `company_master` | fixture / `company_master_read` + related leads | Core only | **CANONICAL** | Clients summary (#999) |
+| `/api/app/overview` | same as `/app/core` | same | Core only | **CANONICAL** | Tenant → 403 |
 | `/app/clients/[id]` | `company_master` | same | Core only | **CANONICAL** | Client summary / detail |
 | `/api/app/clients` | `company_master` | same | Core only | **CANONICAL** | Tenant → 403 |
 | `/api/app/client` | `company_master` | same | Core only | **CANONICAL** | Tenant → 403 |
@@ -97,7 +99,7 @@ Machine copy: `WORKSPACE_SURFACE_MATRIX` in `lib/app/workspace-context.js`.
 | Pipeline Kanban | Yes (`/app/pipeline`) | Same `leads` + `canonical_stage` | `/change/revenue` remains optional localStorage checklist |
 | Today / My Work landing | Yes (`/app/today`, staff-only) | Uses #721 `matchesMyWorkTodayFilter` | — |
 | Shared Prospect detail | Yes (`/app/prospects/[id]`) | JSON owner/stage/next-action/due/note | Connecting the three product views (#721 Slice 3) |
-| Clients / commercial / delivery summaries | Clients yes (`/app/clients`) | Commercial (#1004) and Delivery (#1005) remain later | Company Master editor stays at `/admin/company-master` |
+| Clients / commercial / delivery summaries | Clients yes (`/app/clients`); Overview yes (`/app/core`) | Commercial (#1004) and Delivery (#1005) remain later | Company Master editor stays at `/admin/company-master` |
 
 ## 3. Smallest no-schema implementation plan
 
@@ -150,6 +152,15 @@ This slice does **not** connect all three prospect views, rebuild CRM, or retire
 
 This slice does **not** retire Company Master, product desks, or `/change/revenue`.
 
+### This slice (Operating Workspace overview — #1071)
+
+1. Canonical overview landing stays **`/app/core`** (no second `/app/overview` route).
+2. `GET /api/app/overview` aggregates existing Prospect Workbench, Clients, and Core request records.
+3. Counts + short exception lists + links: Today / Queue / Prospects / Clients / `/change`.
+4. Staff-only; Tenant 403; no schema; no fabricated KPIs; `/app/commercial` and `/app/delivery` are not on current main.
+
+This slice replaces the fragmented “open Operating Workspace and land on an unfiltered Requests list, then hunt Prospects / Clients / Delivery separately” behaviour. It does **not** build Commercial (#1004) or Delivery (#1005) modules.
+
 ### Later spare-capacity slices (do not build in this PR)
 
 1. Product-desk retirement after live verification of Workbench, Pipeline, and Action Queue replacements.
@@ -181,6 +192,7 @@ node --test \
   node-tests/app-prospect-pipeline.test.mjs \
   node-tests/app-action-queue.test.mjs \
   node-tests/app-clients.test.mjs \
+  node-tests/app-operating-overview.test.mjs \
   node-tests/app-slice1-access.test.mjs \
   node-tests/app-slice1-handlers.test.mjs \
   node-tests/prospect-operations-view-model.test.mjs

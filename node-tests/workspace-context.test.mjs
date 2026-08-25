@@ -5,6 +5,7 @@ import { CORE_NAV_ITEMS, TENANT_NAV_ITEMS } from '../lib/app/constants.js';
 import {
   ACTION_QUEUE_PATH,
   CLIENTS_PATH,
+  OPERATING_OVERVIEW_PATH,
   OPERATING_WORKSPACE_LABEL,
   PROSPECT_OPERATIONS_PATH,
   PROSPECT_PIPELINE_PATH,
@@ -17,6 +18,7 @@ import {
   isActionQueuePath,
   isClientSharedDetailPath,
   isClientsPath,
+  isOperatingOverviewPath,
   isProspectOperationsPath,
   isProspectPipelinePath,
   isProspectSharedDetailPath,
@@ -24,18 +26,21 @@ import {
   isTodayMyWorkPath,
   navIncludesActionQueue,
   navIncludesClients,
+  navIncludesOperatingOverview,
   navIncludesProspectOperations,
   navIncludesProspectPipeline,
   navIncludesProspectWorkbench,
   navIncludesTodayMyWork,
   operatingNavIncludesActionQueue,
   operatingNavIncludesClients,
+  operatingNavIncludesOperatingOverview,
   operatingNavIncludesProspectOperations,
   operatingNavIncludesProspectPipeline,
   operatingNavIncludesProspectWorkbench,
   operatingNavIncludesTodayMyWork,
   tenantNavOmitsActionQueue,
   tenantNavOmitsClients,
+  tenantNavOmitsOperatingOverview,
   tenantNavOmitsProspectOperations,
   tenantNavOmitsProspectPipeline,
   tenantNavOmitsProspectWorkbench,
@@ -165,6 +170,24 @@ describe('workspace-context — Action Queue boundary', () => {
   });
 });
 
+describe('workspace-context — Operating Workspace overview boundary', () => {
+  it('recognises the overview landing on /app/core', () => {
+    assert.equal(isOperatingOverviewPath('/app/core'), true);
+    assert.equal(isOperatingOverviewPath('/api/app/overview'), true);
+    assert.equal(isOperatingOverviewPath('/app/today'), false);
+    assert.equal(OPERATING_OVERVIEW_PATH, '/app/core');
+  });
+
+  it('includes Overview on Operating Workspace nav and omits it from Tenant nav', () => {
+    assert.equal(operatingNavIncludesOperatingOverview(), true);
+    assert.equal(tenantNavOmitsOperatingOverview(), true);
+    assert.equal(navIncludesOperatingOverview(CORE_NAV_ITEMS), true);
+    assert.equal(navIncludesOperatingOverview(TENANT_NAV_ITEMS), false);
+    const tenantHome = TENANT_NAV_ITEMS.find((item) => item.id === 'home');
+    assert.equal(tenantHome?.href, null);
+  });
+});
+
 describe('workspace-context — Clients summary boundary', () => {
   it('recognises the Clients summary route', () => {
     assert.equal(isClientsPath('/app/clients'), true);
@@ -187,6 +210,7 @@ describe('workspace-context — Clients summary boundary', () => {
 describe('workspace-context — surface matrix', () => {
   it('classifies required #772 surfaces', () => {
     assert.equal(classifyWorkspaceSurface('/app/core')?.disposition, 'CANONICAL');
+    assert.equal(classifyWorkspaceSurface('/app/core')?.name, 'Operating Workspace overview landing');
     assert.equal(classifyWorkspaceSurface('/app/tenant')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/app/prospects')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/app/today')?.disposition, 'CANONICAL');

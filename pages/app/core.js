@@ -5,6 +5,7 @@ import AppLoadState from '../../components/app/AppLoadState.js';
 import CoreMenu from '../../components/app/CoreMenu.js';
 import CoreRequestList from '../../components/app/CoreRequestList.js';
 import CoreRequestWorkView from '../../components/app/CoreRequestWorkView.js';
+import OperatingOverview from '../../components/app/OperatingOverview.js';
 import { CANONICAL_REQUEST_ID } from '../../lib/app/constants.js';
 
 /**
@@ -17,15 +18,18 @@ function proofFromQuery(query) {
 }
 
 /**
- * Core environment — Core/admin session only. No Tenant switch.
+ * Core environment — Operating Workspace overview landing (#1071).
+ * Core/admin session only. No Tenant switch.
  * Slice 2: normal authenticated path is default; ?proof=1 remains harness-only.
+ * Requests remain an in-shell list; they are no longer the default landing.
  */
 export default function AppCorePage() {
   const router = useRouter();
-  const [menu, setMenu] = useState('requests');
+  const [menu, setMenu] = useState('overview');
   const [shell, setShell] = useState(/** @type {Record<string, unknown> | null} */ (null));
   const [request, setRequest] = useState(/** @type {Record<string, unknown> | null} */ (null));
   const [list, setList] = useState(/** @type {Array<Record<string, unknown>>} */ ([]));
+  const [overview, setOverview] = useState(/** @type {Record<string, unknown> | null} */ (null));
   const [tenantOptions, setTenantOptions] = useState(/** @type {string[]} */ ([]));
   const [dataSource, setDataSource] = useState('');
   const [filters, setFilters] = useState({
@@ -78,6 +82,27 @@ export default function AppCorePage() {
       }
       setShell(shellJson);
       if (shellJson.data_source) setDataSource(String(shellJson.data_source));
+
+      if (menu === 'overview') {
+        const overviewRes = await fetch(`/api/app/overview?${apiBase}`, { credentials: 'same-origin' });
+        const overviewJson = await overviewRes.json().catch(() => ({}));
+        if (overviewRes.status === 403) {
+          setAccessDenied(true);
+          setError(String(overviewJson.error || 'core_access_denied'));
+          setOverview(null);
+          return;
+        }
+        if (!overviewRes.ok || !overviewJson.ok) {
+          setError(String(overviewJson.error || `overview_${overviewRes.status}`));
+          setOverview(null);
+          return;
+        }
+        setOverview(overviewJson);
+        if (overviewJson.data_source) setDataSource(String(overviewJson.data_source));
+        setList([]);
+        setRequest(null);
+        return;
+      }
 
       const listMenus = new Set(['requests', 'my_work', 'tenants', 'approvals', 'releases']);
       if (listMenus.has(menu)) {
@@ -173,7 +198,7 @@ export default function AppCorePage() {
   if (!router.isReady || (initialLoad && busy && !authRequired && !accessDenied && !shell)) {
     return (
       <AppShell environment="core" role="—">
-        <AppLoadState kind="loading" title="Loading Core…" />
+        <AppLoadState kind="loading" title="Loading Operating Workspace…" />
       </AppShell>
     );
   }
@@ -182,9 +207,10 @@ export default function AppCorePage() {
     return (
       <AppShell environment="core" role="—">
         <section className="cf-app-panel" data-testid="app-auth-required">
-          <h1 className="cf-app-h1">Sign in to Core</h1>
+          <h1 className="cf-app-h1">Sign in to the Operating Workspace</h1>
           <p className="cf-app-lead">
-            Core uses the existing Core / admin authentication protocol (separate from Tenant).
+            The Operating Workspace uses the existing Core / admin authentication protocol
+            (separate from Tenant).
           </p>
           <div className="cf-app-actions">
             <a
@@ -211,9 +237,10 @@ export default function AppCorePage() {
     return (
       <AppShell environment="core" role="—">
         <section className="cf-app-panel" data-testid="app-core-denied">
-          <h1 className="cf-app-h1">Core access denied</h1>
+          <h1 className="cf-app-h1">Operating Workspace access denied</h1>
           <p className="cf-app-lead">
-            A Tenant session cannot enter Core. Sign out and sign in with Core credentials.
+            A Tenant session cannot enter the Operating Workspace. Sign out and sign in with
+            Core credentials.
           </p>
           <p className="cf-app-error">{error}</p>
           <div className="cf-app-actions">
@@ -234,7 +261,7 @@ export default function AppCorePage() {
       <AppShell environment="core" role="—">
         <AppLoadState
           kind="error"
-          title="Core workspace unavailable"
+          title="Operating Workspace unavailable"
           message={error}
           testId="app-core-error"
         />
@@ -275,26 +302,48 @@ export default function AppCorePage() {
       />
 
       <p className="cf-app-muted" style={{ marginTop: -8, marginBottom: 16 }} data-testid="core-workspace-meta">
-        Operating Workspace · separate auth ·{' '}
+        Operating Workspace · staff overview landing · separate auth ·{' '}
         {dataSource ? (
           <>
             data source <code data-testid="core-data-source">{dataSource}</code>
           </>
         ) : (
-          'request repository'
+          'existing workspace records'
         )}
         {' · '}
-        <code>/change</code> remains compatibility route
+        <code>/change</code> remains compatibility delivery route
       </p>
 
       {error ? <p className="cf-app-error" data-testid="app-error">{error}</p> : null}
       {notice ? <p className="cf-app-ok" data-testid="app-notice">{notice}</p> : null}
 
-      {busy && menu !== 'request_detail' ? (
+      {busy && menu === 'overview' ? (
+        <AppLoadState kind="loading" title="Loading overview…" />
+      ) : null}
+
+      {!busy && menu === 'overview' && !overview && error ? (
+        <AppLoadState
+          kind="error"
+          title="Overview unavailable"
+          message={error}
+          testId="app-overview-error"
+        />
+      ) : null}
+
+      {!busy && menu === 'overview' && overview ? (
+        <OperatingOverview
+          overview={overview}
+          dataSource={dataSource}
+          busy={busy}
+          proofWanted={proofWanted}
+        />
+      ) : null}
+
+      {busy && menu !== 'request_detail' && menu !== 'overview' ? (
         <AppLoadState kind="loading" title="Loading requests…" />
       ) : null}
 
-      {!busy && menu !== 'request_detail' ? (
+      {!busy && menu !== 'request_detail' && menu !== 'overview' ? (
         <CoreRequestList
           title={listTitle}
           requests={list}

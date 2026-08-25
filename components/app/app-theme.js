@@ -195,6 +195,60 @@ export const APP_SHELL_CSS = `
     margin: 0 0 8px;
     font-weight: 600;
   }
+  .cf-app-h2 {
+    font-family: "IBM Plex Serif", Georgia, serif;
+    font-size: 1.05rem;
+    margin: 0 0 6px;
+    font-weight: 600;
+  }
+  .cf-app-overview-counts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin: 16px 0 8px;
+  }
+  @media (min-width: 720px) {
+    .cf-app-overview-counts {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  .cf-app-count-card {
+    display: block;
+    min-width: 0;
+    text-decoration: none;
+    color: inherit;
+    border: 1px solid var(--app-panel-border);
+    background: rgba(0,0,0,0.12);
+    border-radius: 12px;
+    padding: 12px;
+  }
+  .cf-app-count-card:hover { border-color: var(--app-accent); }
+  .cf-app-count-card[data-tone="warn"] { border-color: var(--app-warn); }
+  .cf-app-count-value {
+    font-size: 1.55rem;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .cf-app-count-label {
+    color: var(--app-muted);
+    font-size: 0.78rem;
+    margin-top: 4px;
+  }
+  .cf-app-exception-list {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+  }
+  .cf-app-exception-list li {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--app-panel-border);
+    min-width: 0;
+  }
   .cf-app-lead {
     margin: 0;
     color: var(--app-muted);
