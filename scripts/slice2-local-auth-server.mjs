@@ -336,6 +336,7 @@ function buildBootstrap(forcedEnv) {
         <main class="cf-app-main">
           \${menu}
           <p class="cf-app-muted" data-testid="workspace-meta">auth_mode=\${escapeHtml(authMode)} · data_source=\${escapeHtml(dataSource)} · mutations=\${mutationsEnabled?'on':'off'} · persistence=\${escapeHtml(persistencePath)} · no ScopeSwitcher</p>
+          \${new URLSearchParams(location.search).get('from') === 'change' ? '<p class="cf-app-ok" data-testid="tenant-return-from-change">Back in Tenant Workspace — CorpFlowAI. Your sign-in and tenant context are unchanged.</p>' : ''}
           <p class="cf-app-muted">
             <a class="cf-app-btn" data-primary="true" href="/app/core">Core (session)</a>
             <a class="cf-app-btn" href="/app/tenant">Tenant (session)</a>
