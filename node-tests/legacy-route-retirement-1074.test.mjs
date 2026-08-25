@@ -79,6 +79,7 @@ describe('#1074 legacy route capability parity', () => {
     assert.match(revenue, /\/app\/prospects/);
     assert.match(revenue, /Tenant Workspace stays on/);
     assert.match(revenue, /\/change remains/);
+    assert.match(revenue, /overflowWrap:\s*'anywhere'/);
   });
 
   it('shared detail hosts the extracted unique contracts', () => {
