@@ -1,7 +1,11 @@
 # Cursor Cloud Agents API v1 cutover — #1062
 
-**Status:** Prepared only. No secret, GitHub variable, Automation, deployment, or live executor
-setting is changed by this repository packet.
+**Status:** `LIVE CUTOVER PASS — cloud_agents_v1 is sole executor` on authorized proof
+[#1068](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1068)
+(2026-08-25). Evidence:
+`docs/operations/FACTORY_CLOUD_AGENTS_V1_LIVE_CUTOVER_PROOF_1068.md`.
+This repository packet still does not change secrets, GitHub variables, Automation,
+deployment, or live executor settings.
 
 ## Boundary contract
 
