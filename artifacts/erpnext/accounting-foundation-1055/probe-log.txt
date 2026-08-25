@@ -1,0 +1,52 @@
+ERPNext accounting-foundation audit (read-only) #1055
+mutation: forbidden (GET-only)
+account_create_or_rename: forbidden
+tax_or_bank_configuration: forbidden
+opening_balance_posting: forbidden
+ERPNEXT_BASE_URL: present
+ERPNEXT_API_KEY: present
+ERPNEXT_API_SECRET: present
+MASTER_ADMIN_KEY: absent (must stay unused)
+ERPNEXT_BASE_URL_value: not_printed
+auth_uses_master_admin_key: no
+runtime_bridge_ssh: no
+runtime_bridge_infisical: no
+authenticated_user: integrations@corpflowai.com
+http_auth_status: 200
+versions_http: 200
+site_version_metadata: frappe=16.31.0, erpnext=16.32.3
+doctype Company: HTTP 200 rows=1
+company_doc CorpFlowAI_LTD: HTTP 200
+doctype Account: HTTP 200 rows=96
+coa_total: 96
+coa_root_groups: 5
+coa_groups: 27
+coa_child_accounts: 69
+coa_skeleton_only: no
+doctype Fiscal Year: HTTP 200 rows=1
+doctype Cost Center: HTTP 200 rows=2
+doctype Letter Head: HTTP 200 rows=2
+doctype Address company: HTTP 200 rows=1
+doctype Sales Taxes and Charges Template: HTTP 200 rows=1
+doctype Purchase Taxes and Charges Template: HTTP 200 rows=1
+doctype Tax Category: HTTP 200 rows=0
+doctype Bank Account: HTTP 200 rows=0
+doctype Accounts Settings: HTTP 500
+doctype Module Onboarding: HTTP 200 rows=9
+module_onboarding_doc: HTTP 200 name=Accounting Onboarding
+doctype Onboarding Step: HTTP 200 rows=48
+doctype Document Naming Settings: HTTP 500 rows=0
+doctype Customer: HTTP 200 rows=5
+doctype Item: HTTP 200 rows=5
+doctype Journal Entry opening: HTTP 200 rows=0
+onboarding_step chart_of_accounts: REQUIRES ACCOUNTANT
+onboarding_step setup_sales_taxes: REQUIRES ACCOUNTANT
+onboarding_step create_sales_invoice: NOT DONE
+onboarding_step create_payment_entry: REQUIRES ANTON
+onboarding_step view_balance_sheet: REQUIRES ACCOUNTANT
+onboarding_step review_accounts_settings: REQUIRES ANTON
+audit_verdict: ACCOUNTING FOUNDATION READY FOR ACCOUNTANT REVIEW
+protected_phase_2: blocked_until_accountant_and_anton
+snapshot_path: artifacts/erpnext/accounting-foundation-1055/coa-skeleton.json
+secret_values_printed: no
+ERPNext access: PASS

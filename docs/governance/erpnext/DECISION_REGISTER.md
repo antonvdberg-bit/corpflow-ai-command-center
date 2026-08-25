@@ -201,3 +201,25 @@ Retention: do not delete a decision or evidence row merely because it was supers
 | ERPNext Project / Task | Programme Project `PROJ-0002` / Phase 6 `TASK-2026-00032` |
 | Verification evidence | `node --test node-tests/erpnext-sales-lifecycle-bridge.test.mjs` plus live apply replay |
 | Supersedes / superseded-by | Implements matrix `lead_opportunity_promotion`. Does **not** supersede Version 2, WP1, #701, or the #918 matrix. |
+
+---
+
+## ERP-D-2026-08-25-1 — #1055 accounting foundation is ready for accountant review (proposed)
+
+| Field | Record |
+|-------|--------|
+| Decision ID | `ERP-D-2026-08-25-1` |
+| Date/time | 2026-08-25 |
+| Status | **Proposed** (this packet; Anton merge remains the Git approval). Does **not** approve CoA/tax/opening-balance configuration. |
+| Question / requirement | What is the current hosted ERPNext Company / CoA / onboarding state, and what must the engaged Mauritius accountant decide before Phase 2? |
+| Executive intent / source | [#1055](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1055); parent [#1054](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1054) |
+| Options considered | Invent a Mauritius CoA now; wait for accountant with no current-state packet; audit live state and hand the accountant a decision checklist |
+| Evidence reviewed | GET-only hosted-test probe as `integrations@corpflowai.com`; Company `CorpFlowAI LTD` / CFAI / MUR; Account list 96 rows (5 roots / 69 leaves); Accounting Onboarding 0/6 |
+| Decision | Record current state honestly: a **standard template CoA already exists** and is **not** accountant-approved. Accounting Onboarding remains `0/6`. Phase 2 stays blocked. |
+| Rationale | Operator visual of “root groups only” is not the live API truth. The accountant must review the installed template, not a blank company. |
+| Risks / tradeoffs | Using the standard template without review would bake stock/trading accounts into books. Inventing a replacement CoA would violate Version 2 accountant authority. |
+| Approver | Pending Anton merge of the #1055 PR. Accountant written answers remain a later professional decision. |
+| GitHub implementation | [`docs/finance/ERPNEXT_COMPANY_ACCOUNTING_FOUNDATION_AUDIT_1055.md`](../../finance/ERPNEXT_COMPANY_ACCOUNTING_FOUNDATION_AUDIT_1055.md) |
+| ERPNext Project / Task | Programme Project `PROJ-0002` / Phase 2 `TASK-2026-00028` (no live Task mutation in this packet) |
+| Verification evidence | `node --test node-tests/erpnext-accounting-foundation.test.mjs` plus GET-only snapshot |
+| Supersedes / superseded-by | Updates current-state facts relative to the older v1 accountant pack. Does **not** supersede Version 2 or close HB-2 / HB-3. |

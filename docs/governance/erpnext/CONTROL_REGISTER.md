@@ -72,7 +72,7 @@ An Administrator / System Manager can still alter ERPNext application records an
 | C-ENV-02 | Vendor-hosted ERPNext is HTTPS on the public internet by host class | Anton | **PARTIAL** | VPN/IP restriction **REQUIRES DECISION** (#953 Workstream B) |
 | C-ENV-03 | Self-hosted ERPNext loopback-only on `corpflow-exec-01` | Anton | **PARTIAL** | Previously documented; not re-verified in #966 |
 | C-ENV-04 | No env/secret **value** change from this packet | Cursor | **PROVEN** | Names only |
-| C-PT-01 | Vendor ERPNext on patched v16 (≥ 16.31.0 / current 16.x) | Anton | **NOT PROVEN** | #1010 live read: erpnext **16.26.2** / frappe **16.25.0**. Update required; do not apply from a factory packet. Exact action: Frappe Cloud dashboard upgrade. |
+| C-PT-01 | Vendor ERPNext on patched v16 (≥ 16.31.0 / current 16.x) | Anton | **PARTIAL** | #1055 live read 2026-08-25: erpnext **16.32.3** / frappe **16.31.0** (moved from #1010 **16.26.2** / **16.25.0**). Version floor met; vendor backup/restore still **NOT PROVEN**. Do not treat this as WP7 closure. |
 
 ---
 

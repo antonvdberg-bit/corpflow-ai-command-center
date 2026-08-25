@@ -1,0 +1,1622 @@
+{
+  "schema": "corpflow.erpnext.accounting_foundation_snapshot.v1",
+  "issue": 1055,
+  "generated_at_utc": "2026-08-25T00:37:05.054Z",
+  "mutation": "none",
+  "identity": "integrations@corpflowai.com",
+  "versions": "frappe=16.31.0, erpnext=16.32.3",
+  "company": {
+    "name": "CorpFlowAI LTD",
+    "company_name": "CorpFlowAI LTD",
+    "abbr": "CFAI",
+    "country": "Mauritius",
+    "default_currency": "MUR",
+    "tax_id": "28466939",
+    "registration_details": "Company No : C25228280",
+    "email": "finance@corpflowai.com",
+    "website": "https://corpflowai.com",
+    "date_of_establishment": "2025-11-10",
+    "default_letter_head": "Company Letterhead - Grey",
+    "default_holiday_list": "Mauritius",
+    "cost_center": "Main - CFAI",
+    "default_receivable_account": "Debtors - CFAI",
+    "default_payable_account": "Creditors - CFAI",
+    "default_income_account": "Sales - CFAI",
+    "default_expense_account": "Cost of Goods Sold - CFAI",
+    "default_cash_account": "Cash - CFAI",
+    "round_off_account": "Round Off - CFAI",
+    "write_off_account": "Write Off - CFAI",
+    "accumulated_depreciation_account": "Accumulated Depreciation - CFAI",
+    "depreciation_expense_account": "Depreciation - CFAI",
+    "exchange_gain_loss_account": "Exchange Gain/Loss - CFAI"
+  },
+  "companies": [
+    {
+      "name": "CorpFlowAI LTD",
+      "company_name": "CorpFlowAI LTD",
+      "abbr": "CFAI",
+      "country": "Mauritius",
+      "default_currency": "MUR",
+      "tax_id": "28466939",
+      "registration_details": "Company No : C25228280",
+      "email": "finance@corpflowai.com",
+      "website": "https://corpflowai.com",
+      "date_of_establishment": "2025-11-10",
+      "default_letter_head": "Company Letterhead - Grey",
+      "default_holiday_list": "Mauritius",
+      "cost_center": "Main - CFAI",
+      "default_receivable_account": "Debtors - CFAI",
+      "default_payable_account": "Creditors - CFAI",
+      "default_income_account": "Sales - CFAI",
+      "default_expense_account": "Cost of Goods Sold - CFAI",
+      "default_cash_account": "Cash - CFAI",
+      "round_off_account": "Round Off - CFAI",
+      "write_off_account": "Write Off - CFAI",
+      "accumulated_depreciation_account": "Accumulated Depreciation - CFAI",
+      "depreciation_expense_account": "Depreciation - CFAI",
+      "exchange_gain_loss_account": "Exchange Gain/Loss - CFAI"
+    }
+  ],
+  "chart_of_accounts": {
+    "total": 96,
+    "root_group_count": 5,
+    "group_count": 27,
+    "child_account_count": 69,
+    "skeleton_only": false,
+    "usable_operating_coa": true,
+    "accounts": [
+      {
+        "name": "Accounts Payable - CFAI",
+        "account_name": "Accounts Payable",
+        "parent_account": "Current Liabilities - CFAI",
+        "root_type": "Liability",
+        "account_type": "",
+        "is_group": 1,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Accounts Receivable - CFAI",
+        "account_name": "Accounts Receivable",
+        "parent_account": "Current Assets - CFAI",
+        "root_type": "Asset",
+        "account_type": "",
+        "is_group": 1,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Accrued Expenses - CFAI",
+        "account_name": "Accrued Expenses",
+        "parent_account": "Current Liabilities - CFAI",
+        "root_type": "Liability",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Accumulated Depreciation - CFAI",
+        "account_name": "Accumulated Depreciation",
+        "parent_account": "Fixed Assets - CFAI",
+        "root_type": "Asset",
+        "account_type": "Accumulated Depreciation",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Administrative Expenses - CFAI",
+        "account_name": "Administrative Expenses",
+        "parent_account": "Indirect Expenses - CFAI",
+        "root_type": "Expense",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Application of Funds (Assets) - CFAI",
+        "account_name": "Application of Funds (Assets)",
+        "parent_account": "",
+        "root_type": "Asset",
+        "account_type": "",
+        "is_group": 1,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Asset Received But Not Billed - CFAI",
+        "account_name": "Asset Received But Not Billed",
+        "parent_account": "Stock Liabilities - CFAI",
+        "root_type": "Liability",
+        "account_type": "Asset Received But Not Billed",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Bank Accounts - CFAI",
+        "account_name": "Bank Accounts",
+        "parent_account": "Current Assets - CFAI",
+        "root_type": "Asset",
+        "account_type": "Bank",
+        "is_group": 1,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Bank Charges - CFAI",
+        "account_name": "Bank Charges",
+        "parent_account": "Indirect Expenses - CFAI",
+        "root_type": "Expense",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Bank Overdraft Account - CFAI",
+        "account_name": "Bank Overdraft Account",
+        "parent_account": "Loans (Liabilities) - CFAI",
+        "root_type": "Liability",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Buildings - CFAI",
+        "account_name": "Buildings",
+        "parent_account": "Fixed Assets - CFAI",
+        "root_type": "Asset",
+        "account_type": "Fixed Asset",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Capital Equipment - CFAI",
+        "account_name": "Capital Equipment",
+        "parent_account": "Fixed Assets - CFAI",
+        "root_type": "Asset",
+        "account_type": "Fixed Asset",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Capital Stock - CFAI",
+        "account_name": "Capital Stock",
+        "parent_account": "Equity - CFAI",
+        "root_type": "Equity",
+        "account_type": "Equity",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Cash - CFAI",
+        "account_name": "Cash",
+        "parent_account": "Cash In Hand - CFAI",
+        "root_type": "Asset",
+        "account_type": "Cash",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Cash In Hand - CFAI",
+        "account_name": "Cash In Hand",
+        "parent_account": "Current Assets - CFAI",
+        "root_type": "Asset",
+        "account_type": "Cash",
+        "is_group": 1,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Commission on Sales - CFAI",
+        "account_name": "Commission on Sales",
+        "parent_account": "Indirect Expenses - CFAI",
+        "root_type": "Expense",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Cost of Goods Sold - CFAI",
+        "account_name": "Cost of Goods Sold",
+        "parent_account": "Stock Expenses - CFAI",
+        "root_type": "Expense",
+        "account_type": "Cost of Goods Sold",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Creditors - CFAI",
+        "account_name": "Creditors",
+        "parent_account": "Accounts Payable - CFAI",
+        "root_type": "Liability",
+        "account_type": "Payable",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Current Assets - CFAI",
+        "account_name": "Current Assets",
+        "parent_account": "Application of Funds (Assets) - CFAI",
+        "root_type": "Asset",
+        "account_type": "",
+        "is_group": 1,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Current Liabilities - CFAI",
+        "account_name": "Current Liabilities",
+        "parent_account": "Source of Funds (Liabilities) - CFAI",
+        "root_type": "Liability",
+        "account_type": "",
+        "is_group": 1,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Customer Advances - CFAI",
+        "account_name": "Customer Advances",
+        "parent_account": "Current Liabilities - CFAI",
+        "root_type": "Liability",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "CWIP Account - CFAI",
+        "account_name": "CWIP Account",
+        "parent_account": "Fixed Assets - CFAI",
+        "root_type": "Asset",
+        "account_type": "Capital Work in Progress",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Debtors - CFAI",
+        "account_name": "Debtors",
+        "parent_account": "Accounts Receivable - CFAI",
+        "root_type": "Asset",
+        "account_type": "Receivable",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Debtors USD - CFAI",
+        "account_name": "Debtors USD",
+        "parent_account": "Accounts Receivable - CFAI",
+        "root_type": "Asset",
+        "account_type": "Receivable",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "USD"
+      },
+      {
+        "name": "Depreciation - CFAI",
+        "account_name": "Depreciation",
+        "parent_account": "Indirect Expenses - CFAI",
+        "root_type": "Expense",
+        "account_type": "Depreciation",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Direct Expenses - CFAI",
+        "account_name": "Direct Expenses",
+        "parent_account": "Expenses - CFAI",
+        "root_type": "Expense",
+        "account_type": "",
+        "is_group": 1,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Direct Income - CFAI",
+        "account_name": "Direct Income",
+        "parent_account": "Income - CFAI",
+        "root_type": "Income",
+        "account_type": "",
+        "is_group": 1,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Dividends Paid - CFAI",
+        "account_name": "Dividends Paid",
+        "parent_account": "Equity - CFAI",
+        "root_type": "Equity",
+        "account_type": "Equity",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Duties and Taxes - CFAI",
+        "account_name": "Duties and Taxes",
+        "parent_account": "Current Liabilities - CFAI",
+        "root_type": "Liability",
+        "account_type": "Tax",
+        "is_group": 1,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Earnest Money - CFAI",
+        "account_name": "Earnest Money",
+        "parent_account": "Securities and Deposits - CFAI",
+        "root_type": "Asset",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Electronic Equipment - CFAI",
+        "account_name": "Electronic Equipment",
+        "parent_account": "Fixed Assets - CFAI",
+        "root_type": "Asset",
+        "account_type": "Fixed Asset",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Employee Advances - CFAI",
+        "account_name": "Employee Advances",
+        "parent_account": "Loans and Advances (Assets) - CFAI",
+        "root_type": "Asset",
+        "account_type": "Payable",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Employee Benefits Obligation - CFAI",
+        "account_name": "Employee Benefits Obligation",
+        "parent_account": "Non-Current Liabilities - CFAI",
+        "root_type": "Liability",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Entertainment Expenses - CFAI",
+        "account_name": "Entertainment Expenses",
+        "parent_account": "Indirect Expenses - CFAI",
+        "root_type": "Expense",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Equity - CFAI",
+        "account_name": "Equity",
+        "parent_account": "",
+        "root_type": "Equity",
+        "account_type": "",
+        "is_group": 1,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Exchange Gain/Loss - CFAI",
+        "account_name": "Exchange Gain/Loss",
+        "parent_account": "Indirect Expenses - CFAI",
+        "root_type": "Expense",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Expenses - CFAI",
+        "account_name": "Expenses",
+        "parent_account": "",
+        "root_type": "Expense",
+        "account_type": "",
+        "is_group": 1,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Expenses Included In Asset Valuation - CFAI",
+        "account_name": "Expenses Included In Asset Valuation",
+        "parent_account": "Stock Expenses - CFAI",
+        "root_type": "Expense",
+        "account_type": "Expenses Included In Asset Valuation",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Expenses Included In Valuation - CFAI",
+        "account_name": "Expenses Included In Valuation",
+        "parent_account": "Stock Expenses - CFAI",
+        "root_type": "Expense",
+        "account_type": "Expenses Included In Valuation",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Fixed Assets - CFAI",
+        "account_name": "Fixed Assets",
+        "parent_account": "Application of Funds (Assets) - CFAI",
+        "root_type": "Asset",
+        "account_type": "",
+        "is_group": 1,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Freight and Forwarding Charges - CFAI",
+        "account_name": "Freight and Forwarding Charges",
+        "parent_account": "Indirect Expenses - CFAI",
+        "root_type": "Expense",
+        "account_type": "Chargeable",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Furniture and Fixtures - CFAI",
+        "account_name": "Furniture and Fixtures",
+        "parent_account": "Fixed Assets - CFAI",
+        "root_type": "Asset",
+        "account_type": "Fixed Asset",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Gain/Loss on Asset Disposal - CFAI",
+        "account_name": "Gain/Loss on Asset Disposal",
+        "parent_account": "Indirect Expenses - CFAI",
+        "root_type": "Expense",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Impairment - CFAI",
+        "account_name": "Impairment",
+        "parent_account": "Indirect Expenses - CFAI",
+        "root_type": "Expense",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Income - CFAI",
+        "account_name": "Income",
+        "parent_account": "",
+        "root_type": "Income",
+        "account_type": "",
+        "is_group": 1,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Indirect Expenses - CFAI",
+        "account_name": "Indirect Expenses",
+        "parent_account": "Expenses - CFAI",
+        "root_type": "Expense",
+        "account_type": "",
+        "is_group": 1,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Indirect Income - CFAI",
+        "account_name": "Indirect Income",
+        "parent_account": "Income - CFAI",
+        "root_type": "Income",
+        "account_type": "",
+        "is_group": 1,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Interest Expense - CFAI",
+        "account_name": "Interest Expense",
+        "parent_account": "Indirect Expenses - CFAI",
+        "root_type": "Expense",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Interest Income - CFAI",
+        "account_name": "Interest Income",
+        "parent_account": "Indirect Income - CFAI",
+        "root_type": "Income",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Interest on Fixed Deposits - CFAI",
+        "account_name": "Interest on Fixed Deposits",
+        "parent_account": "Indirect Income - CFAI",
+        "root_type": "Income",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Investments - CFAI",
+        "account_name": "Investments",
+        "parent_account": "Application of Funds (Assets) - CFAI",
+        "root_type": "Asset",
+        "account_type": "",
+        "is_group": 1,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Legal Expenses - CFAI",
+        "account_name": "Legal Expenses",
+        "parent_account": "Indirect Expenses - CFAI",
+        "root_type": "Expense",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Loans (Liabilities) - CFAI",
+        "account_name": "Loans (Liabilities)",
+        "parent_account": "Current Liabilities - CFAI",
+        "root_type": "Liability",
+        "account_type": "",
+        "is_group": 1,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Loans and Advances (Assets) - CFAI",
+        "account_name": "Loans and Advances (Assets)",
+        "parent_account": "Current Assets - CFAI",
+        "root_type": "Asset",
+        "account_type": "",
+        "is_group": 1,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Long-term Provisions - CFAI",
+        "account_name": "Long-term Provisions",
+        "parent_account": "Non-Current Liabilities - CFAI",
+        "root_type": "Liability",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Marketing Expenses - CFAI",
+        "account_name": "Marketing Expenses",
+        "parent_account": "Indirect Expenses - CFAI",
+        "root_type": "Expense",
+        "account_type": "Chargeable",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Miscellaneous Expenses - CFAI",
+        "account_name": "Miscellaneous Expenses",
+        "parent_account": "Indirect Expenses - CFAI",
+        "root_type": "Expense",
+        "account_type": "Chargeable",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Non-Current Liabilities - CFAI",
+        "account_name": "Non-Current Liabilities",
+        "parent_account": "Source of Funds (Liabilities) - CFAI",
+        "root_type": "Liability",
+        "account_type": "",
+        "is_group": 1,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Office Equipment - CFAI",
+        "account_name": "Office Equipment",
+        "parent_account": "Fixed Assets - CFAI",
+        "root_type": "Asset",
+        "account_type": "Fixed Asset",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Office Maintenance Expenses - CFAI",
+        "account_name": "Office Maintenance Expenses",
+        "parent_account": "Indirect Expenses - CFAI",
+        "root_type": "Expense",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Office Rent - CFAI",
+        "account_name": "Office Rent",
+        "parent_account": "Indirect Expenses - CFAI",
+        "root_type": "Expense",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Opening Balance Equity - CFAI",
+        "account_name": "Opening Balance Equity",
+        "parent_account": "Equity - CFAI",
+        "root_type": "Equity",
+        "account_type": "Equity",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Payroll Payable - CFAI",
+        "account_name": "Payroll Payable",
+        "parent_account": "Accounts Payable - CFAI",
+        "root_type": "Liability",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Plants and Machineries - CFAI",
+        "account_name": "Plants and Machineries",
+        "parent_account": "Fixed Assets - CFAI",
+        "root_type": "Asset",
+        "account_type": "Fixed Asset",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Postal Expenses - CFAI",
+        "account_name": "Postal Expenses",
+        "parent_account": "Indirect Expenses - CFAI",
+        "root_type": "Expense",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Prepaid Expenses - CFAI",
+        "account_name": "Prepaid Expenses",
+        "parent_account": "Current Assets - CFAI",
+        "root_type": "Asset",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Print and Stationery - CFAI",
+        "account_name": "Print and Stationery",
+        "parent_account": "Indirect Expenses - CFAI",
+        "root_type": "Expense",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Retained Earnings - CFAI",
+        "account_name": "Retained Earnings",
+        "parent_account": "Equity - CFAI",
+        "root_type": "Equity",
+        "account_type": "Equity",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Revaluation Surplus - CFAI",
+        "account_name": "Revaluation Surplus",
+        "parent_account": "Equity - CFAI",
+        "root_type": "Equity",
+        "account_type": "Equity",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Round Off - CFAI",
+        "account_name": "Round Off",
+        "parent_account": "Indirect Expenses - CFAI",
+        "root_type": "Expense",
+        "account_type": "Round Off",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Salary - CFAI",
+        "account_name": "Salary",
+        "parent_account": "Indirect Expenses - CFAI",
+        "root_type": "Expense",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Sales - CFAI",
+        "account_name": "Sales",
+        "parent_account": "Direct Income - CFAI",
+        "root_type": "Income",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Sales Expenses - CFAI",
+        "account_name": "Sales Expenses",
+        "parent_account": "Indirect Expenses - CFAI",
+        "root_type": "Expense",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Secured Loans - CFAI",
+        "account_name": "Secured Loans",
+        "parent_account": "Loans (Liabilities) - CFAI",
+        "root_type": "Liability",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Securities and Deposits - CFAI",
+        "account_name": "Securities and Deposits",
+        "parent_account": "Current Assets - CFAI",
+        "root_type": "Asset",
+        "account_type": "",
+        "is_group": 1,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Service - CFAI",
+        "account_name": "Service",
+        "parent_account": "Direct Income - CFAI",
+        "root_type": "Income",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Short-term Investments - CFAI",
+        "account_name": "Short-term Investments",
+        "parent_account": "Current Assets - CFAI",
+        "root_type": "Asset",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Short-term Provisions - CFAI",
+        "account_name": "Short-term Provisions",
+        "parent_account": "Current Liabilities - CFAI",
+        "root_type": "Liability",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Software - CFAI",
+        "account_name": "Software",
+        "parent_account": "Fixed Assets - CFAI",
+        "root_type": "Asset",
+        "account_type": "Fixed Asset",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Source of Funds (Liabilities) - CFAI",
+        "account_name": "Source of Funds (Liabilities)",
+        "parent_account": "",
+        "root_type": "Liability",
+        "account_type": "",
+        "is_group": 1,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Stock Adjustment - CFAI",
+        "account_name": "Stock Adjustment",
+        "parent_account": "Stock Expenses - CFAI",
+        "root_type": "Expense",
+        "account_type": "Stock Adjustment",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Stock Assets - CFAI",
+        "account_name": "Stock Assets",
+        "parent_account": "Current Assets - CFAI",
+        "root_type": "Asset",
+        "account_type": "Stock",
+        "is_group": 1,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Stock Expenses - CFAI",
+        "account_name": "Stock Expenses",
+        "parent_account": "Direct Expenses - CFAI",
+        "root_type": "Expense",
+        "account_type": "",
+        "is_group": 1,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Stock In Hand - CFAI",
+        "account_name": "Stock In Hand",
+        "parent_account": "Stock Assets - CFAI",
+        "root_type": "Asset",
+        "account_type": "Stock",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Stock Liabilities - CFAI",
+        "account_name": "Stock Liabilities",
+        "parent_account": "Current Liabilities - CFAI",
+        "root_type": "Liability",
+        "account_type": "",
+        "is_group": 1,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Stock Received But Not Billed - CFAI",
+        "account_name": "Stock Received But Not Billed",
+        "parent_account": "Stock Liabilities - CFAI",
+        "root_type": "Liability",
+        "account_type": "Stock Received But Not Billed",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Tax Assets - CFAI",
+        "account_name": "Tax Assets",
+        "parent_account": "Current Assets - CFAI",
+        "root_type": "Asset",
+        "account_type": "",
+        "is_group": 1,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Tax Expense - CFAI",
+        "account_name": "Tax Expense",
+        "parent_account": "Indirect Expenses - CFAI",
+        "root_type": "Expense",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Telephone Expenses - CFAI",
+        "account_name": "Telephone Expenses",
+        "parent_account": "Indirect Expenses - CFAI",
+        "root_type": "Expense",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Temporary Accounts - CFAI",
+        "account_name": "Temporary Accounts",
+        "parent_account": "Application of Funds (Assets) - CFAI",
+        "root_type": "Asset",
+        "account_type": "",
+        "is_group": 1,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Temporary Opening - CFAI",
+        "account_name": "Temporary Opening",
+        "parent_account": "Temporary Accounts - CFAI",
+        "root_type": "Asset",
+        "account_type": "Temporary",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Travel Expenses - CFAI",
+        "account_name": "Travel Expenses",
+        "parent_account": "Indirect Expenses - CFAI",
+        "root_type": "Expense",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Unsecured Loans - CFAI",
+        "account_name": "Unsecured Loans",
+        "parent_account": "Loans (Liabilities) - CFAI",
+        "root_type": "Liability",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "Utility Expenses - CFAI",
+        "account_name": "Utility Expenses",
+        "parent_account": "Indirect Expenses - CFAI",
+        "root_type": "Expense",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      },
+      {
+        "name": "VAT - CFAI",
+        "account_name": "VAT",
+        "parent_account": "Duties and Taxes - CFAI",
+        "root_type": "Liability",
+        "account_type": "Tax",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": ""
+      },
+      {
+        "name": "Write Off - CFAI",
+        "account_name": "Write Off",
+        "parent_account": "Indirect Expenses - CFAI",
+        "root_type": "Expense",
+        "account_type": "",
+        "is_group": 0,
+        "disabled": 0,
+        "company": "CorpFlowAI LTD",
+        "account_currency": "MUR"
+      }
+    ]
+  },
+  "fiscal_years": [
+    {
+      "name": "2026-2027",
+      "year_start_date": "2026-06-01",
+      "year_end_date": "2027-05-31",
+      "disabled": 0
+    }
+  ],
+  "cost_centers": [
+    {
+      "name": "CorpFlowAI LTD - CFAI",
+      "cost_center_name": "CorpFlowAI LTD",
+      "parent_cost_center": null,
+      "is_group": 1,
+      "company": "CorpFlowAI LTD",
+      "disabled": 0
+    },
+    {
+      "name": "Main - CFAI",
+      "cost_center_name": "Main",
+      "parent_cost_center": "CorpFlowAI LTD - CFAI",
+      "is_group": 0,
+      "company": "CorpFlowAI LTD",
+      "disabled": 0
+    }
+  ],
+  "letter_heads": [
+    {
+      "name": "Company Letterhead",
+      "is_default": 0,
+      "disabled": 0
+    },
+    {
+      "name": "Company Letterhead - Grey",
+      "is_default": 1,
+      "disabled": 0
+    }
+  ],
+  "company_addresses": [
+    {
+      "name": "Home Office-Office",
+      "address_title": "Home Office",
+      "address_type": "Office",
+      "city": "Trou Aux Biches",
+      "country": "Mauritius",
+      "pincode": "22301"
+    }
+  ],
+  "sales_tax_templates": [
+    {
+      "name": "Mauritius Tax - CFAI",
+      "title": "Mauritius Tax",
+      "is_default": 0,
+      "disabled": 0,
+      "company": "CorpFlowAI LTD"
+    }
+  ],
+  "purchase_tax_templates": [
+    {
+      "name": "Mauritius Tax - CFAI",
+      "title": "Mauritius Tax",
+      "is_default": 0,
+      "disabled": 0,
+      "company": "CorpFlowAI LTD"
+    }
+  ],
+  "tax_categories": [],
+  "bank_accounts_safe": [],
+  "module_onboarding": [
+    {
+      "name": "Accounting Onboarding",
+      "title": "Accounting Onboarding",
+      "module": "Accounts",
+      "is_complete": 0
+    },
+    {
+      "name": "Asset Onboarding",
+      "title": "Assets Setup",
+      "module": "Assets",
+      "is_complete": 0
+    },
+    {
+      "name": "Buying Onboarding",
+      "title": "Buying Setup",
+      "module": "Buying",
+      "is_complete": 0
+    },
+    {
+      "name": "Manufacturing Onboarding",
+      "title": "Manufacturing Setup",
+      "module": "Manufacturing",
+      "is_complete": 0
+    },
+    {
+      "name": "Organization Onboarding",
+      "title": "Setup Organization",
+      "module": "Setup",
+      "is_complete": 0
+    },
+    {
+      "name": "Projects Onboarding",
+      "title": "Projects Setup",
+      "module": "Projects",
+      "is_complete": 0
+    },
+    {
+      "name": "Selling Onboarding",
+      "title": "Selling Setup",
+      "module": "Selling",
+      "is_complete": 0
+    },
+    {
+      "name": "Stock Onboarding",
+      "title": "Stock Setup",
+      "module": "Stock",
+      "is_complete": 0
+    },
+    {
+      "name": "Subcontracting Onboarding",
+      "title": "Subcontracting Setup",
+      "module": "Subcontracting",
+      "is_complete": 0
+    }
+  ],
+  "accounts_module_onboarding": {
+    "name": "Accounting Onboarding",
+    "title": "Accounting Onboarding",
+    "module": "Accounts",
+    "is_complete": 0,
+    "steps": [
+      {
+        "idx": 1,
+        "step": "Chart of Accounts"
+      },
+      {
+        "idx": 2,
+        "step": "Setup Sales taxes"
+      },
+      {
+        "idx": 3,
+        "step": "Create Sales Invoice"
+      },
+      {
+        "idx": 4,
+        "step": "Create Payment Entry"
+      },
+      {
+        "idx": 5,
+        "step": "View Balance Sheet"
+      },
+      {
+        "idx": 6,
+        "step": "Review Accounts Settings"
+      }
+    ]
+  },
+  "onboarding_steps_raw": [
+    {
+      "name": "Chart of Accounts",
+      "title": "Review Chart of Accounts",
+      "reference_document": null,
+      "is_complete": 0
+    },
+    {
+      "name": "Create Asset Category",
+      "title": "Create Asset Category",
+      "reference_document": "Asset Category",
+      "is_complete": 0
+    },
+    {
+      "name": "Create Asset Item",
+      "title": "Create Asset Item",
+      "reference_document": "Item",
+      "is_complete": 0
+    },
+    {
+      "name": "Create Asset Location",
+      "title": "Create Asset Location",
+      "reference_document": "Location",
+      "is_complete": 0
+    },
+    {
+      "name": "Create Bill of Materials",
+      "title": "Create Bill of Materials",
+      "reference_document": "BOM",
+      "is_complete": 0
+    },
+    {
+      "name": "Create Customer",
+      "title": "Create Customer",
+      "reference_document": "Customer",
+      "is_complete": 0
+    },
+    {
+      "name": "Create Delivery Note",
+      "title": "Create Delivery Note",
+      "reference_document": "Delivery Note",
+      "is_complete": 0
+    },
+    {
+      "name": "Create Existing Asset",
+      "title": "Create Existing Asset",
+      "reference_document": "Asset",
+      "is_complete": 0
+    },
+    {
+      "name": "Create Finished Goods",
+      "title": "Create Finished Goods",
+      "reference_document": "Item",
+      "is_complete": 0
+    },
+    {
+      "name": "Create Item",
+      "title": "Create Item",
+      "reference_document": "Item",
+      "is_complete": 0
+    },
+    {
+      "name": "Create Operations",
+      "title": "Create Operations",
+      "reference_document": "Operation",
+      "is_complete": 0
+    },
+    {
+      "name": "Create Payment Entry",
+      "title": "Create Payment Entry",
+      "reference_document": "Payment Entry",
+      "is_complete": 0
+    },
+    {
+      "name": "Create Project",
+      "title": "Create Project",
+      "reference_document": "Project",
+      "is_complete": 0
+    },
+    {
+      "name": "Create Purchase Invoice",
+      "title": "Create Purchase Invoice",
+      "reference_document": "Purchase Invoice",
+      "is_complete": 0
+    },
+    {
+      "name": "Create Purchase Order",
+      "title": "Create Purchase Order",
+      "reference_document": "Purchase Order",
+      "is_complete": 0
+    },
+    {
+      "name": "Create Purchase Receipt",
+      "title": "Create Purchase Receipt",
+      "reference_document": "Purchase Receipt",
+      "is_complete": 0
+    },
+    {
+      "name": "Create Raw Materials",
+      "title": "Create Raw Materials",
+      "reference_document": "Item",
+      "is_complete": 0
+    },
+    {
+      "name": "Create Sales Invoice",
+      "title": "Create Sales Invoice",
+      "reference_document": "Sales Invoice",
+      "is_complete": 0
+    },
+    {
+      "name": "Create Sales Order",
+      "title": "Create Sales Order",
+      "reference_document": "Sales Order",
+      "is_complete": 0
+    },
+    {
+      "name": "Create Service Item",
+      "title": "Create Service Item",
+      "reference_document": "Item",
+      "is_complete": 0
+    },
+    {
+      "name": "Create Subcontracted Item",
+      "title": "Create Subcontracted Item",
+      "reference_document": "Item",
+      "is_complete": 0
+    },
+    {
+      "name": "Create Subcontracting Order",
+      "title": "Create Subcontracting Order",
+      "reference_document": "Subcontracting Order",
+      "is_complete": 0
+    },
+    {
+      "name": "Create Subcontracting PO",
+      "title": "Create Subcontracting PO",
+      "reference_document": "Purchase Order",
+      "is_complete": 0
+    },
+    {
+      "name": "Create Supplier",
+      "title": "Create Supplier",
+      "reference_document": "Supplier",
+      "is_complete": 0
+    },
+    {
+      "name": "Create Tasks",
+      "title": "Create Tasks",
+      "reference_document": "Task",
+      "is_complete": 0
+    },
+    {
+      "name": "Create Timesheet",
+      "title": "Create Timesheet",
+      "reference_document": "Timesheet",
+      "is_complete": 0
+    },
+    {
+      "name": "Create Transfer Entry",
+      "title": "Create Transfer Entry",
+      "reference_document": "Stock Entry",
+      "is_complete": 0
+    },
+    {
+      "name": "Create Work Order",
+      "title": "Create Work Order",
+      "reference_document": "Work Order",
+      "is_complete": 0
+    },
+    {
+      "name": "Invite Users",
+      "title": "Invite Users",
+      "reference_document": "User",
+      "is_complete": 0
+    },
+    {
+      "name": "Learn Asset",
+      "title": "Learn Asset",
+      "reference_document": null,
+      "is_complete": 0
+    },
+    {
+      "name": "Learn Subcontracting",
+      "title": "Learn Subcontracting",
+      "reference_document": null,
+      "is_complete": 0
+    },
+    {
+      "name": "Review Accounts Settings",
+      "title": "Review Accounts Settings",
+      "reference_document": "Accounts Settings",
+      "is_complete": 0
+    },
+    {
+      "name": "Review Buying Settings",
+      "title": "Review Buying Settings",
+      "reference_document": "Buying Settings",
+      "is_complete": 0
+    },
+    {
+      "name": "Review Manufacturing Settings",
+      "title": "Review Manufacturing Settings",
+      "reference_document": "Manufacturing Settings",
+      "is_complete": 0
+    },
+    {
+      "name": "Review Selling Settings",
+      "title": "Review Selling Settings",
+      "reference_document": "Selling Settings",
+      "is_complete": 0
+    },
+    {
+      "name": "Review Stock Settings",
+      "title": "Review Stock Settings",
+      "reference_document": "Stock Settings",
+      "is_complete": 0
+    },
+    {
+      "name": "Review System Settings",
+      "title": "Review System Settings",
+      "reference_document": "System Settings",
+      "is_complete": 0
+    },
+    {
+      "name": "Setup Company",
+      "title": "Setup Company",
+      "reference_document": "Company",
+      "is_complete": 1
+    },
+    {
+      "name": "Setup Email Account",
+      "title": "Setup Email Account",
+      "reference_document": "Email Account",
+      "is_complete": 1
+    },
+    {
+      "name": "Setup Role Permissions",
+      "title": "Setup Role Permissions",
+      "reference_document": null,
+      "is_complete": 0
+    },
+    {
+      "name": "Setup Sales taxes",
+      "title": "Setup Sales taxes",
+      "reference_document": "Sales Taxes and Charges Template",
+      "is_complete": 0
+    },
+    {
+      "name": "Setup Warehouse",
+      "title": "Setup Warehouse",
+      "reference_document": null,
+      "is_complete": 0
+    },
+    {
+      "name": "View Balance Sheet",
+      "title": "View Balance Sheet",
+      "reference_document": null,
+      "is_complete": 0
+    },
+    {
+      "name": "View Project Summary",
+      "title": "View Project Summary",
+      "reference_document": null,
+      "is_complete": 0
+    },
+    {
+      "name": "View Purchase Order Analysis",
+      "title": "View Purchase Order Analysis",
+      "reference_document": null,
+      "is_complete": 0
+    },
+    {
+      "name": "View Sales Order Analysis",
+      "title": "View Sales Order Analysis",
+      "reference_document": null,
+      "is_complete": 0
+    },
+    {
+      "name": "View Stock Balance Report",
+      "title": "View Stock Balance Report",
+      "reference_document": null,
+      "is_complete": 0
+    },
+    {
+      "name": "View Work Order Summary Report",
+      "title": "View Work Order Summary Report",
+      "reference_document": null,
+      "is_complete": 0
+    }
+  ],
+  "onboarding_marks": [
+    {
+      "id": "chart_of_accounts",
+      "label": "Chart of Accounts",
+      "erpnext_object": "Account",
+      "mark": "REQUIRES ACCOUNTANT",
+      "note": "Leaf accounts exist from the hosted-test standard template. Not an accountant-approved Mauritius CoA."
+    },
+    {
+      "id": "setup_sales_taxes",
+      "label": "Setup Sales taxes",
+      "erpnext_object": "Sales Taxes and Charges Template",
+      "mark": "REQUIRES ACCOUNTANT",
+      "note": "A tax template exists and is not the Company default. Accountant must confirm VAT posture before use."
+    },
+    {
+      "id": "create_sales_invoice",
+      "label": "Create Sales Invoice",
+      "erpnext_object": "Sales Invoice",
+      "mark": "NOT DONE",
+      "note": "Accounting Onboarding step is incomplete. Draft synthetic invoices from prior packets are not a submitted tax invoice."
+    },
+    {
+      "id": "create_payment_entry",
+      "label": "Create Payment Entry",
+      "erpnext_object": "Payment Entry",
+      "mark": "REQUIRES ANTON",
+      "note": "Wizard incomplete. Live Payment Entry posting is a protected consequence."
+    },
+    {
+      "id": "view_balance_sheet",
+      "label": "View Balance Sheet",
+      "erpnext_object": "Balance Sheet report",
+      "mark": "REQUIRES ACCOUNTANT",
+      "note": "No opening Journal Entry. Accountant sets cutover date and opening balances first."
+    },
+    {
+      "id": "review_accounts_settings",
+      "label": "Review Accounts Settings",
+      "erpnext_object": "Accounts Settings",
+      "mark": "REQUIRES ANTON",
+      "note": "Integration user cannot read Accounts Settings. Desk review is an Anton action."
+    }
+  ],
+  "naming_settings_readable": false,
+  "customer_count_sample": 5,
+  "item_count_sample": 5,
+  "opening_journal_sample": [],
+  "verdict": "ACCOUNTING FOUNDATION READY FOR ACCOUNTANT REVIEW",
+  "blockers": []
+}

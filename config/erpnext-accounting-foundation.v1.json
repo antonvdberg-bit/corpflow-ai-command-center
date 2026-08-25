@@ -1,0 +1,195 @@
+{
+  "schema": "corpflow.erpnext.accounting_foundation.v1",
+  "version": "v1",
+  "issue": 1055,
+  "parents": [1054, 953, 967, 918],
+  "environment": "corpflow_test",
+  "verdict": "ACCOUNTING FOUNDATION READY FOR ACCOUNTANT REVIEW",
+  "no_coa_invention": true,
+  "phase_2_protected": true,
+  "no_schema_custom_doctype": true,
+  "no_bank_credentials_in_repo": true,
+  "no_production_postgres": true,
+  "description": "Read-only Company & Accounting Foundation audit and accountant handoff. Phase 2 configuration is blocked until the accountant recommendation and explicit Anton approval.",
+  "company_expected": {
+    "name": "CorpFlowAI LTD",
+    "abbr": "CFAI",
+    "country": "Mauritius",
+    "default_currency": "MUR"
+  },
+  "onboarding_steps": [
+    {
+      "id": "chart_of_accounts",
+      "label": "Chart of Accounts",
+      "erpnext_step_name": "Chart of Accounts",
+      "erpnext_object": "Account",
+      "default_note": "Standard hosted-test CoA exists. Accountant must approve or amend before books are treated as usable."
+    },
+    {
+      "id": "setup_sales_taxes",
+      "label": "Setup Sales taxes",
+      "erpnext_step_name": "Setup Sales taxes",
+      "erpnext_object": "Sales Taxes and Charges Template",
+      "default_note": "A Mauritius Tax template exists but is not default. VAT treatment is accountant authority."
+    },
+    {
+      "id": "create_sales_invoice",
+      "label": "Create Sales Invoice",
+      "erpnext_step_name": "Create Sales Invoice",
+      "erpnext_object": "Sales Invoice",
+      "default_note": "Wizard incomplete. Draft synthetic invoices exist from prior packets. Do not submit a real tax invoice."
+    },
+    {
+      "id": "create_payment_entry",
+      "label": "Create Payment Entry",
+      "erpnext_step_name": "Create Payment Entry",
+      "erpnext_object": "Payment Entry",
+      "default_note": "Wizard incomplete. Live payment posting is a protected action."
+    },
+    {
+      "id": "view_balance_sheet",
+      "label": "View Balance Sheet",
+      "erpnext_step_name": "View Balance Sheet",
+      "erpnext_object": "Balance Sheet report",
+      "default_note": "No opening balances posted. Cutover remains accountant + Anton."
+    },
+    {
+      "id": "review_accounts_settings",
+      "label": "Review Accounts Settings",
+      "erpnext_step_name": "Review Accounts Settings",
+      "erpnext_object": "Accounts Settings",
+      "default_note": "Integration user cannot read Accounts Settings. Desk review is an Anton action."
+    }
+  ],
+  "accountant_decisions": [
+    {
+      "id": "coa_structure",
+      "question": "What Chart of Accounts structure should CorpFlowAI use for Mauritian statutory and management reporting?",
+      "erpnext_object": "Account",
+      "owner": "accountant",
+      "anton_after": true
+    },
+    {
+      "id": "account_numbering",
+      "question": "Is account numbering required or preferred, and what numbering scheme?",
+      "erpnext_object": "Account.account_number",
+      "owner": "accountant",
+      "anton_after": false
+    },
+    {
+      "id": "receivables_payables",
+      "question": "Which receivable and payable accounts are defaults? Separate USD vs MUR debtors, or one trade debtor with currency per customer?",
+      "erpnext_object": "Company.default_receivable_account / Company.default_payable_account",
+      "owner": "accountant",
+      "anton_after": true
+    },
+    {
+      "id": "bank_cash",
+      "question": "How should bank and cash accounts be named and split (MUR operating, USD receipts, petty cash)? No real account numbers in GitHub.",
+      "erpnext_object": "Account (Bank / Cash) + Bank Account name/type only",
+      "owner": "accountant",
+      "anton_after": true
+    },
+    {
+      "id": "equity_current_account",
+      "question": "How should equity, retained earnings, and any director/shareholder current account be treated?",
+      "erpnext_object": "Account (Equity)",
+      "owner": "accountant",
+      "anton_after": true
+    },
+    {
+      "id": "income_categories",
+      "question": "Which income / service-revenue accounts are required for current offers (Lead Rescue, Website Rescue, Prestige custom work)?",
+      "erpnext_object": "Account (Income) + Item Default income account",
+      "owner": "accountant",
+      "anton_after": true
+    },
+    {
+      "id": "expense_categories",
+      "question": "Which operating-expense categories are required now (software, hosting, banking fees, professional fees)?",
+      "erpnext_object": "Account (Expense)",
+      "owner": "accountant",
+      "anton_after": true
+    },
+    {
+      "id": "vat_tax",
+      "question": "What is the Mauritius VAT/tax posture, and which tax accounts/templates should exist?",
+      "erpnext_object": "Account (Tax) + Sales Taxes and Charges Template + Purchase Taxes and Charges Template",
+      "owner": "accountant",
+      "anton_after": true
+    },
+    {
+      "id": "fixed_assets",
+      "question": "Are fixed-asset and depreciation accounts required now, or deferred until there are depreciable assets?",
+      "erpnext_object": "Account (Fixed Asset / Depreciation) + Asset Category later",
+      "owner": "accountant",
+      "anton_after": false
+    },
+    {
+      "id": "fiscal_year_cutover",
+      "question": "What is the fiscal year, cutover date, and opening-balance method (reconstruction vs cutover)?",
+      "erpnext_object": "Fiscal Year + Opening Invoice Creation Tool / Journal Entry",
+      "owner": "accountant",
+      "anton_after": true
+    }
+  ],
+  "erpnext_mappings": [
+    {
+      "approved_output": "Company legal identity, country, default currency",
+      "erpnext_doctype": "Company",
+      "fields": ["company_name", "abbr", "country", "default_currency", "tax_id", "registration_details"]
+    },
+    {
+      "approved_output": "Chart of Accounts structure and numbering",
+      "erpnext_doctype": "Account",
+      "fields": ["account_name", "parent_account", "root_type", "account_type", "account_number", "is_group"]
+    },
+    {
+      "approved_output": "Default receivable / payable / income / expense / cash / bank",
+      "erpnext_doctype": "Company",
+      "fields": [
+        "default_receivable_account",
+        "default_payable_account",
+        "default_income_account",
+        "default_expense_account",
+        "default_cash_account",
+        "default_bank_account"
+      ]
+    },
+    {
+      "approved_output": "Default cost centre",
+      "erpnext_doctype": "Cost Center",
+      "fields": ["cost_center_name", "parent_cost_center", "is_group"]
+    },
+    {
+      "approved_output": "Fiscal year",
+      "erpnext_doctype": "Fiscal Year",
+      "fields": ["year", "year_start_date", "year_end_date"]
+    },
+    {
+      "approved_output": "VAT / tax treatment and templates",
+      "erpnext_doctype": "Sales Taxes and Charges Template",
+      "fields": ["title", "is_default", "disabled"]
+    },
+    {
+      "approved_output": "Bank / cash ledger names (no credentials)",
+      "erpnext_doctype": "Account",
+      "fields": ["account_name", "account_type"]
+    },
+    {
+      "approved_output": "Opening balances / cutover",
+      "erpnext_doctype": "Journal Entry",
+      "fields": ["voucher_type", "posting_date", "accounts"]
+    },
+    {
+      "approved_output": "Letterhead / print identity",
+      "erpnext_doctype": "Letter Head",
+      "fields": ["letter_head_name", "is_default", "disabled"]
+    },
+    {
+      "approved_output": "Naming series for commercial / project documents",
+      "erpnext_doctype": "Document Naming Settings",
+      "fields": ["transaction", "prefix"]
+    }
+  ]
+}
