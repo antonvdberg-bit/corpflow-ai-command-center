@@ -86,7 +86,9 @@ describe('factory cursor handoff workflow (#913)', () => {
   it('does not require Cursor API secrets and runs the handoff selector', () => {
     assert.doesNotMatch(yaml, /secrets\.CURSOR_API_KEY/);
     assert.match(yaml, /node scripts\/factory-cursor-handoff\.mjs/);
-    assert.match(yaml, /FACTORY_HANDOFF_POST_COMMENT:\s*"1"/);
+    assert.match(yaml, /Wake Cursor Factory v2 webhook/);
+    assert.match(yaml, /Publish successful handoff and pending Cursor receipt/);
+    assert.match(yaml, /node scripts\/factory-cursor-handoff-publish\.mjs/);
     assert.match(yaml, /permissions:\s*\n\s*contents:\s*read\s*\n\s*issues:\s*write/);
   });
 
