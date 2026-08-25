@@ -30,7 +30,7 @@ import {
   runCursorAgentLifecycleTick,
 } from '../lib/server/cursor-agent-lifecycle.js';
 import { buildCapacityReleaseWakeRequest } from '../lib/server/cursor-ready-event-dispatch.js';
-import { resolveCursorOriginMetadata } from '../lib/server/cursor-origin-metadata.js';
+import { findKnownCloudAgentsExecutorEvidence } from '../lib/server/factory-cloud-agents-executor.js';
 
 const REPO =
   process.env.GITHUB_REPOSITORY ||
@@ -231,22 +231,23 @@ function writeCapacityWakeArtifact(wake) {
 }
 
 /**
- * Discover agent id from issue comments / origin metadata.
+ * Discover only the agent ID recorded by the correlated Cloud Agents executor.
+ * Legacy Wake Proof workers are intentionally not generic poll targets.
  * @param {number} issue
  */
 async function discoverAgentFromIssue(issue) {
   const comments = await listIssueComments(issue);
-  const meta = resolveCursorOriginMetadata({
-    comments,
-    issueBody: '',
-  });
+  const evidence = findKnownCloudAgentsExecutorEvidence(comments, issue);
   const life = findLatestLifecycleState(comments);
   return {
     comments,
-    agentId: meta.cursorAgentId || life?.cursorAgentId || null,
-    runId: meta.cursorRunId || life?.cursorRunId || null,
-    priorState: life,
-    meta,
+    agentId: evidence?.cursor_agent_id || null,
+    runId: evidence?.cursor_run_id || null,
+    priorState:
+      life && evidence?.cursor_agent_id === life.cursorAgentId
+        ? life
+        : null,
+    evidence,
   };
 }
 
@@ -271,6 +272,7 @@ async function main() {
   }
 
   let agentId = args.agentId ? String(args.agentId).trim() : null;
+  let discoveredRunId = null;
   let priorState = null;
   /** @type {Array<{ body?: string }>} */
   let comments = [];
@@ -280,6 +282,7 @@ async function main() {
     comments = discovered.comments;
     priorState = discovered.priorState;
     if (!agentId) agentId = discovered.agentId;
+    discoveredRunId = discovered.runId;
     if (!agentId) {
       console.error(`No Cursor agent ID found on issue #${issue} (origin metadata / lifecycle state)`);
       process.exit(3);
@@ -295,6 +298,7 @@ async function main() {
   if (!priorState) {
     priorState = buildCursorLifecycleState({
       cursorAgentId: agentId,
+      cursorRunId: discoveredRunId,
       sourceIssue: issue,
       phase: 'PENDING',
       startedAt: new Date().toISOString(),
@@ -331,6 +335,7 @@ async function main() {
     runCursorAgentLifecycleTick({
       apiKey,
       agentId,
+      runId: priorState.cursorRunId || discoveredRunId,
       sourceIssue: issue,
       priorState,
       startedAt: priorState.startedAt,

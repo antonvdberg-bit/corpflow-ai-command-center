@@ -83,10 +83,15 @@ describe('factory cursor handoff workflow (#913)', () => {
     assert.match(yaml, /inputs\.wake_reason == 'scheduled_reconciliation'/);
   });
 
-  it('does not require Cursor API secrets and runs the handoff selector', () => {
-    assert.doesNotMatch(yaml, /secrets\.CURSOR_API_KEY/);
+  it('keeps the Cloud Agents executor cutover-gated and runs the handoff selector', () => {
+    assert.match(yaml, /vars\.CURSOR_FACTORY_EXECUTOR == 'cloud_agents_v1'/);
+    assert.match(yaml, /CURSOR_API_KEY: \$\{\{ secrets\.CURSOR_API_KEY \}\}/);
+    assert.match(yaml, /node scripts\/factory-cloud-agents-executor\.mjs/);
+    assert.match(yaml, /Validate sole executor selection/);
     assert.match(yaml, /node scripts\/factory-cursor-handoff\.mjs/);
-    assert.match(yaml, /FACTORY_HANDOFF_POST_COMMENT:\s*"1"/);
+    assert.match(yaml, /Wake Cursor Factory v2 webhook/);
+    assert.match(yaml, /Publish successful handoff and pending Cursor receipt/);
+    assert.match(yaml, /node scripts\/factory-cursor-handoff-publish\.mjs/);
     assert.match(yaml, /permissions:\s*\n\s*contents:\s*read\s*\n\s*issues:\s*write/);
   });
 
