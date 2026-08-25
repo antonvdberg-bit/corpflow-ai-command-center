@@ -32,6 +32,10 @@ For STATUS / decision schemas between ChatGPT (planning author), Anton (operator
 
 Canonical operator view for genuine Anton decisions: **`docs/operations/ANTON_DECISION_INBOX_V1.md`** (labels `needs:anton` + `approval:*`). Enforceable gates: **`docs/operations/PROTECTED_ACTION_GATES_V1.md`**. Repository UI settings Anton must apply: **`docs/operations/ANTON_DECISION_INBOX_OPERATOR_SETTINGS_PACKET.md`**. Exception-only Telegram design: **`docs/n8n/anton-decision-inbox-exception-notify.md`**. **#684 live n8n correction (disable hourly open-PR heartbeat):** **`docs/runbooks/N8N_EXCEPTION_ONLY_ALERT_LIVE_APPLY_684.md`** — update the existing heartbeat/notifier **in place**; no second workflow. <!-- ANTON_DECISION_INBOX_V1_TODO_LINK -->
 
+### Rare & Exclusive — Jan approval control surface (#1080)
+
+Jan’s product/release decision page (not merge authority): **`docs/operations/JAN_APPROVAL_CONTROL_SURFACE_V1.md`**. Local/test at `/rare-exclusive/review`. Four decisions only. SHA-bound. Issue #35 stays a separate release blocker. No production deploy in the MVP.
+
 ---
 
 ## Partner charter — breathtaking client experience (technical)
