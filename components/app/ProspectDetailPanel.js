@@ -32,6 +32,17 @@ export default function ProspectDetailPanel({
       <section className="cf-app-panel" data-testid="prospect-detail-missing">
         <h1 className="cf-app-h1">Prospect not found</h1>
         <p className="cf-app-lead">This shared detail surface only opens known Lead Rescue or Website Rescue records.</p>
+        <div className="cf-app-actions" data-testid="prospect-detail-missing-actions">
+          <a className="cf-app-btn" data-primary="true" href="/app/prospects">
+            Back to Prospects
+          </a>
+          <a className="cf-app-btn" href="/app/queue">
+            Action Queue
+          </a>
+          <a className="cf-app-btn" href="/app">
+            Choose workspace
+          </a>
+        </div>
       </section>
     );
   }

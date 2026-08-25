@@ -1,6 +1,8 @@
 import React from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { needsWorkspaceEscape } from '../lib/app/consolidated-release-qualification.js';
 
 /**
  * Branded 404 page (Packet 4.1 / Lux SEO fix).
@@ -14,11 +16,16 @@ import Link from 'next/link';
  * design that is acceptable for both apex (CorpFlowAI) and tenant marketing
  * surfaces (Luxurious Mauritius). The CTA always points to the host's own
  * homepage via a relative `/` link, so the user lands back on whichever site
- * they came from.
+ * they came from. Unknown `/app`, `/admin`, and `/change` URLs also offer
+ * Open workspace (`/app`) so operators are not stranded on a marketing 404.
  *
  * Read-only — no data fetched, no tenant lookups, no analytics events.
  */
 export default function NotFoundPage() {
+  const router = useRouter();
+  const requestedPath = String(router.asPath || '').split('?')[0];
+  const showWorkspaceEscape = needsWorkspaceEscape(requestedPath);
+
   return (
     <div
       style={{
@@ -77,6 +84,24 @@ export default function NotFoundPage() {
           >
             Back to homepage
           </Link>
+          {showWorkspaceEscape ? (
+            <Link
+              href="/app"
+              data-testid="workspace-escape"
+              style={{
+                display: 'inline-block',
+                padding: '12px 22px',
+                background: 'transparent',
+                color: '#f5f5f5',
+                borderRadius: 8,
+                fontWeight: 700,
+                textDecoration: 'none',
+                border: '1px solid rgba(245,245,245,0.35)',
+              }}
+            >
+              Open workspace
+            </Link>
+          ) : null}
         </div>
       </main>
     </div>

@@ -20,6 +20,7 @@ This document defines canonical route ownership and production expectations with
 - Slice 2 (#877): normal authenticated session path is the operator default (no `?proof=1` required). Proof remains Preview/local harness only.
 - Core nav may link Delivery/Operations to `/change` (compatibility). Tenant nav may link existing enabled capabilities.
 - `/change` and `/change-v2` remain compatibility / experimental routes — **not** deleted and **not** production-redirected yet.
+- Integrated qualification of the assembled application (#1075): `docs/architecture/CONSOLIDATED_APPLICATION_RELEASE_QUALIFICATION_V1.md`.
 - See `docs/architecture/SLICE1_CORE_TENANT_SHELL_V1.md`. Not a second deployment; same Next app + Postgres.
 
 ## Experimental routes
