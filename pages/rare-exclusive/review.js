@@ -2,8 +2,6 @@ import JanApprovalReviewPage from '../../components/JanApprovalReviewPage.js';
 import { getSessionFromRequest } from '../../lib/server/session.js';
 import { verifyFactoryMasterAuth } from '../../lib/server/factory-master-auth.js';
 import {
-  buildSyntheticReviewBundle,
-  presentReviewBundleForJan,
   resolveJanApprovalAccess,
 } from '../../lib/server/jan-approval-control.js';
 
@@ -14,8 +12,8 @@ export default function RareExclusiveJanReviewRoute(props) {
 }
 
 /**
- * Authenticated decision page for Jan. Local/test uses the synthetic review bundle.
- * No Prisma, no schema, no protected actions.
+ * Authenticated decision page for Jan. Evidence is always loaded through the
+ * routed API so live mode cannot render a synthetic SSR fallback.
  */
 export async function getServerSideProps({ req }) {
   const sess = getSessionFromRequest(req);
@@ -33,22 +31,13 @@ export async function getServerSideProps({ req }) {
     };
   }
 
-  const bundle = buildSyntheticReviewBundle();
-  const presented = presentReviewBundleForJan(bundle);
-
   return {
     props: {
       signedInLabel: access.actor?.displayName || access.actor?.username || '',
       canDecide: access.canDecide === true,
       viewOnly: access.canDecide !== true,
       loadError: '',
-      initialPayload: {
-        ok: true,
-        presented,
-        bundle,
-        can_decide: access.canDecide === true,
-        mode: 'synthetic',
-      },
+      initialPayload: null,
     },
   };
 }

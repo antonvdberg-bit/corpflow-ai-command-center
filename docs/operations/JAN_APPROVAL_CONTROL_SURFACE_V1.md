@@ -35,7 +35,7 @@ Initial integration target: `antonvdberg-bit/rare-and-exclusive-collection`.
 Build 3 baseline: PR #33 merged to `rare-exclusive-greenfield` at `34293747bdda8dcd132a51d87f752d6755dbfd66`.  
 Mandatory pre-release blocker: **Issue #35** — shown separately from merge/review approval.
 
-Default evidence source is **synthetic** so local/test works without live GitHub writes.
+Synthetic evidence is available only for explicit local/test mode. When `JAN_APPROVAL_MODE=live`, the normal routed GET and decision paths fetch the allowlisted GitHub PR evidence; they fail closed if it cannot be retrieved. A live decision never accepts synthetic evidence.
 
 ## 4. Decision rules
 
@@ -52,9 +52,9 @@ Default evidence source is **synthetic** so local/test works without live GitHub
 
 Durable evidence marker: `### JAN DURABLE DECISION` with schema `corpflow.jan_durable_decision.v1`.
 
-GitHub writeback (when `JAN_APPROVAL_MODE=live`) posts a decision record **only** to the allowlisted Rare & Exclusive repo and reviewed PR number, using the bounded bridge. The session-bound capability is issued for 10 minutes; no permanent shared bearer credential is exposed to Jan or ChatGPT. Synthetic mode records the same structured audit record in the in-memory ledger.
+GitHub writeback (when `JAN_APPROVAL_MODE=live`) posts a decision record **only** to the allowlisted Rare & Exclusive repo and reviewed PR number, using the bounded bridge. The handler re-reads live evidence before accepting the decision, then re-reads the durable GitHub comment record before returning success. Durable GitHub comments are the authoritative idempotency/replay evidence across serverless processes; a write or confirmation failure returns an error, never a successful decision. The session-bound capability is issued for 10 minutes; no permanent shared bearer credential is exposed to Jan or ChatGPT.
 
-Each audit record is exportable JSON and contains the manifest/hash, repository/PR/base/head SHAs, decision/scope/rationale, attributable Jan identity/session, timestamp, audit hash, and durable GitHub comment reference when created.
+Each audit record is canonicalized and hashed, and contains the manifest/hash, repository/PR/base/head SHAs, decision/scope/rationale, attributable Jan identity/session, timestamp, replay nonce, audit hash, and durable GitHub comment reference when created.
 
 ## 5. OpenAPI-facing contract
 

@@ -19,6 +19,8 @@ paths:
           description: Authentication required
         '403':
           description: Jan or factory-viewer authorization required
+        '503':
+          description: Live GitHub evidence unavailable or invalid; no synthetic fallback in live mode
   /api/factory/jan-approval/decision:
     post:
       summary: Record one bounded Jan decision against the exact reviewed SHA
@@ -70,6 +72,8 @@ paths:
           description: Stale evidence, manifest mismatch, or replayed capability
         '429':
           description: Rate limit exceeded
+        '503':
+          description: Live evidence, durable GitHub writeback, or durable-record confirmation failed closed
 components:
   securitySchemes:
     JanSession:
