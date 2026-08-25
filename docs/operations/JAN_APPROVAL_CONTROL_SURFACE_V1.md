@@ -35,7 +35,7 @@ Initial integration target: `antonvdberg-bit/rare-and-exclusive-collection`.
 Build 3 baseline: PR #33 merged to `rare-exclusive-greenfield` at `34293747bdda8dcd132a51d87f752d6755dbfd66`.  
 Mandatory pre-release blocker: **Issue #35** — shown separately from merge/review approval.
 
-Synthetic evidence is available only for explicit local/test mode. When `JAN_APPROVAL_MODE=live`, the normal routed GET and decision paths fetch the allowlisted GitHub PR evidence; they fail closed if it cannot be retrieved. A live decision never accepts synthetic evidence.
+Synthetic evidence is available only for explicit local/test preview mode and returns `can_decide: false`; its POST path rejects with `LIVE_EVIDENCE_REQUIRED`. When `JAN_APPROVAL_MODE=live`, the normal routed GET and decision paths fetch the allowlisted GitHub PR evidence; they fail closed if it cannot be retrieved. A live decision never accepts synthetic evidence.
 
 ## 4. Decision rules
 

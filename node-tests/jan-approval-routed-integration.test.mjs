@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import { buildEvidenceManifest, RARE_EXCLUSIVE_TARGET_REPO } from '../lib/server/jan-approval-control.js';
-import { handleJanApproval, resetJanApprovalSyntheticStoreForTests } from '../lib/server/jan-approval-api.js';
+import janApprovalHandler, { resetJanApprovalSyntheticStoreForTests } from '../lib/server/jan-approval-api.js';
 
 const HEAD = 'b7c3e1a0f4d29c8e6a1b5d7f0c3e9a12d4f6b8c0';
 const BASE = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
@@ -60,7 +60,7 @@ function createLiveBridge() {
 
 async function liveDecisionPayload(bridge) {
   const get = response();
-  await handleJanApproval(request(), get, { mode: 'live', getSession: session, decisionSecret: 'test', ...bridge });
+  await janApprovalHandler(request(), get, { mode: 'live', getSession: session, decisionSecret: 'test', ...bridge });
   return {
     item_id: 'pr:34',
     decision: 'APPROVE',
@@ -76,13 +76,13 @@ describe('Jan approval routed live integration', () => {
     resetJanApprovalSyntheticStoreForTests();
     const bridge = createLiveBridge();
     const get = response();
-    await handleJanApproval(request(), get, { mode: 'live', getSession: session, decisionSecret: 'test', ...bridge });
+    await janApprovalHandler(request(), get, { mode: 'live', getSession: session, decisionSecret: 'test', ...bridge });
     assert.equal(get.statusCode, 200);
     assert.equal(get.body.mode, 'live');
     assert.equal(get.body.evidence_by_item['pr:34'].full_diff, 'diff --git a/live.js b/live.js');
 
     const post = response();
-    await handleJanApproval(request({ method: 'POST', body: await liveDecisionPayload(bridge) }), post, {
+    await janApprovalHandler(request({ method: 'POST', body: await liveDecisionPayload(bridge) }), post, {
       mode: 'live', getSession: session, decisionSecret: 'test', ...bridge,
     });
     assert.equal(post.statusCode, 200);
@@ -90,7 +90,7 @@ describe('Jan approval routed live integration', () => {
 
     resetJanApprovalSyntheticStoreForTests();
     const duplicate = response();
-    await handleJanApproval(request({ method: 'POST', body: await liveDecisionPayload(bridge) }), duplicate, {
+    await janApprovalHandler(request({ method: 'POST', body: await liveDecisionPayload(bridge) }), duplicate, {
       mode: 'live', getSession: session, decisionSecret: 'test', ...bridge,
     });
     assert.equal(duplicate.statusCode, 200);
@@ -102,14 +102,14 @@ describe('Jan approval routed live integration', () => {
     const stale = response();
     const stalePayload = await liveDecisionPayload(bridge);
     stalePayload.expected_head_sha = BASE;
-    await handleJanApproval(request({ method: 'POST', body: stalePayload }), stale, {
+    await janApprovalHandler(request({ method: 'POST', body: stalePayload }), stale, {
       mode: 'live', getSession: session, decisionSecret: 'test', ...bridge,
     });
     assert.equal(stale.statusCode, 409);
     assert.equal(stale.body.error, 'STALE_SHA');
 
     const unavailable = response();
-    await handleJanApproval(request(), unavailable, {
+    await janApprovalHandler(request(), unavailable, {
       mode: 'live', getSession: session, decisionSecret: 'test', fetchReviewPackage: async () => { throw new Error('offline'); },
     });
     assert.equal(unavailable.statusCode, 503);
@@ -117,7 +117,7 @@ describe('Jan approval routed live integration', () => {
 
     const failingBridge = createLiveBridge();
     const failedWrite = response();
-    await handleJanApproval(request({ method: 'POST', body: await liveDecisionPayload(failingBridge) }), failedWrite, {
+    await janApprovalHandler(request({ method: 'POST', body: await liveDecisionPayload(failingBridge) }), failedWrite, {
       mode: 'live', getSession: session, decisionSecret: 'test', ...failingBridge,
       postComment: async () => ({ ok: false, error: 'GITHUB_COMMENT_FAILED' }),
     });

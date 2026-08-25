@@ -278,7 +278,7 @@ describe('Jan approval HTTP surface', () => {
     await handleJanApproval(req, res, { getSession: getSessionFromReq, factoryMasterAuth: false });
     assert.equal(res._status, 200);
     assert.equal(res._json.ok, true);
-    assert.equal(res._json.can_decide, true);
+    assert.equal(res._json.can_decide, false);
     assert.equal(res._json.presented.release_blockers[0].heading.includes('#35'), true);
     assert.equal(res._json.bundle.review_items[0].head_sha, CURRENT_SHA);
   });
@@ -303,7 +303,7 @@ describe('Jan approval HTTP surface', () => {
     assert.equal(factoryRes._json.error, 'JAN_GATE_REQUIRED');
   });
 
-  it('records Jan APPROVE, writes durable evidence, and is idempotent on repeat', async () => {
+  it('rejects synthetic-mode POST decisions so preview evidence cannot authorize Jan', async () => {
     const req = makeReq({
       method: 'POST',
       payload: JAN,
@@ -311,53 +311,26 @@ describe('Jan approval HTTP surface', () => {
     });
     const res = makeRes();
     await handleJanApproval(req, res, { getSession: getSessionFromReq, nowIso: NOW, decisionSecret: DECISION_SECRET });
-    assert.equal(res._status, 200);
-    assert.equal(res._json.record.decision, 'APPROVE');
-    assert.equal(res._json.record.target_sha, CURRENT_SHA);
-    assert.equal(res._json.protected_action_triggered, false);
-    assert.equal(res._json.release_blocker_still_open, true);
-    assert.equal(res._json.github_writeback.skipped, false);
-    assert.equal(res._json.audit_record.decision_scope, 'review-approval-only');
-
-    const replay = makeRes();
-    await handleJanApproval(req, replay, { getSession: getSessionFromReq, nowIso: NOW, decisionSecret: DECISION_SECRET });
-    assert.equal(replay._status, 409);
-    assert.equal(replay._json.error, 'REPLAY_DETECTED');
-
-    const again = makeRes();
-    const duplicateReq = makeReq({ method: 'POST', payload: JAN, body: await decisionRequestBody() });
-    await handleJanApproval(duplicateReq, again, {
-      getSession: getSessionFromReq,
-      nowIso: NOW,
-      decisionSecret: DECISION_SECRET,
-    });
-    assert.equal(again._status, 200);
-    assert.equal(again._json.idempotent, true);
-    assert.equal(again._json.github_writeback.reason, 'duplicate_decision');
+    assert.equal(res._status, 403);
+    assert.equal(res._json.error, 'LIVE_EVIDENCE_REQUIRED');
   });
 
-  it('re-reads the bounded bridge head at decision time and rejects a changed PR', async () => {
+  it('does not permit a stale decision through synthetic mode', async () => {
     const req = makeReq({
       method: 'POST',
       payload: JAN,
       body: await decisionRequestBody(),
     });
     const res = makeRes();
-    let reads = 0;
     await handleJanApproval(req, res, {
       getSession: getSessionFromReq,
       decisionSecret: DECISION_SECRET,
-      readCurrentHead: async () => {
-        reads += 1;
-        return { repo: RARE_EXCLUSIVE_TARGET_REPO, prNumber: 34, headSha: OTHER_SHA, baseSha: CURRENT_SHA };
-      },
     });
-    assert.equal(reads, 1);
-    assert.equal(res._status, 409);
-    assert.equal(res._json.error, 'STALE_SHA');
+    assert.equal(res._status, 403);
+    assert.equal(res._json.error, 'LIVE_EVIDENCE_REQUIRED');
   });
 
-  it('rejects missing evidence, replayed capabilities, and malformed scopes', async () => {
+  it('keeps synthetic preview decisionless regardless of supplied payload', async () => {
     const missingEvidence = makeReq({
       method: 'POST',
       payload: JAN,
@@ -368,7 +341,7 @@ describe('Jan approval HTTP surface', () => {
       getSession: getSessionFromReq,
       decisionSecret: DECISION_SECRET,
     });
-    assert.equal(missingEvidenceRes._json.error, 'EVIDENCE_MANIFEST_MISMATCH');
+    assert.equal(missingEvidenceRes._json.error, 'LIVE_EVIDENCE_REQUIRED');
 
     const invalidScope = makeReq({
       method: 'POST',
@@ -380,7 +353,7 @@ describe('Jan approval HTTP surface', () => {
       getSession: getSessionFromReq,
       decisionSecret: DECISION_SECRET,
     });
-    assert.equal(invalidScopeRes._json.error, 'INVALID_APPROVAL_SCOPE');
+    assert.equal(invalidScopeRes._json.error, 'LIVE_EVIDENCE_REQUIRED');
   });
 
   it('allowlists GitHub writeback to the Rare & Exclusive repo only', async () => {

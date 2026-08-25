@@ -60,6 +60,7 @@ export default function JanApprovalReviewPage({
   const [approvalScope, setApprovalScope] = useState('review-approval-only');
 
   const presented = payload?.presented || null;
+  const isDecisionEnabled = canDecide && payload?.can_decide === true;
   const reviewItems = presented?.review_items || [];
   const blockers = presented?.release_blockers || [];
 
@@ -85,7 +86,7 @@ export default function JanApprovalReviewPage({
   }, [refresh]);
 
   async function decide(item, decisionKey) {
-    if (!canDecide || busy) return;
+    if (!isDecisionEnabled || busy) return;
     setBusy(true);
     setError('');
     setResult(null);
@@ -282,7 +283,7 @@ export default function JanApprovalReviewPage({
                   <button
                     key={key}
                     type="button"
-                    disabled={!canDecide || busy}
+                    disabled={!isDecisionEnabled || busy}
                     onClick={() => decide(item, key)}
                     style={buttonStyle(key, busy)}
                   >
