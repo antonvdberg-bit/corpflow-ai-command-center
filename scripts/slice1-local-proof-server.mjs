@@ -159,13 +159,9 @@ function buildBootstrap(forcedEnv) {
         </nav>\`;
     } else {
       menu = \`
-        <nav class="cf-app-scope-row" data-testid="tenant-menu">
-          <span class="cf-app-scope-btn">Home / Overview</span>
-          <span class="cf-app-scope-btn">My Work</span>
+        <nav class="cf-app-scope-row" data-testid="tenant-menu" aria-label="Tenant journey">
           <span class="cf-app-scope-btn" data-active="true">Requests &amp; Progress</span>
-          <span class="cf-app-scope-btn">Documents</span>
-          <span class="cf-app-scope-btn">Reports</span>
-          <span class="cf-app-scope-btn">Support</span>
+          <a class="cf-app-scope-btn" href="/change?from=tenant-workspace" data-testid="tenant-menu-service_change">Service &amp; change</a>
         </nav>\`;
     }
 

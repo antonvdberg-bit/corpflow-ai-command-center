@@ -7,6 +7,7 @@ import { useState } from 'react';
  *   request: Record<string, unknown> | null,
  *   busy?: boolean,
  *   empty?: boolean,
+ *   changeHref?: string | null,
  *   onSelectRequest?: (id: string) => void,
  *   onReview: (args: { component_key: string, decision: string, comment: string }) => Promise<void>,
  * }} props
@@ -16,6 +17,7 @@ export default function TenantRequestsProgress({
   request,
   busy,
   empty,
+  changeHref,
   onSelectRequest,
   onReview,
 }) {
@@ -28,7 +30,7 @@ export default function TenantRequestsProgress({
     setLocalError('');
     const comment = String(commentByKey[componentKey] || '').trim();
     if ((decision === 'amend' || decision === 'reject') && !comment) {
-      setLocalError('Please add a short comment for amend or reject.');
+      setLocalError('Please add a short comment to request changes or reject.');
       return;
     }
     try {
@@ -48,6 +50,13 @@ export default function TenantRequestsProgress({
             CorpFlowAI, client-safe progress will appear here.
           </p>
           <p className="cf-app-muted">Client-safe projection only · no internal engineering fields.</p>
+          {changeHref ? (
+            <div className="cf-app-actions" style={{ marginTop: 12 }}>
+              <a className="cf-app-btn" data-primary="true" data-testid="tenant-empty-open-change" href={changeHref}>
+                Raise a service or change request
+              </a>
+            </div>
+          ) : null}
         </section>
       </div>
     );
@@ -196,7 +205,7 @@ export default function TenantRequestsProgress({
                       <textarea
                         className="cf-app-textarea"
                         data-testid={`tenant-comment-${key}`}
-                        placeholder="Optional comment (required for amend/reject)"
+                        placeholder="Optional comment (required for request changes / reject)"
                         value={commentByKey[key] || ''}
                         onChange={(e) =>
                           setCommentByKey((prev) => ({ ...prev, [key]: e.target.value }))
@@ -221,7 +230,7 @@ export default function TenantRequestsProgress({
                           disabled={busy}
                           onClick={() => submit(key, 'amend')}
                         >
-                          Amend
+                          Request changes
                         </button>
                         <button
                           type="button"
@@ -248,6 +257,13 @@ export default function TenantRequestsProgress({
             })}
           </div>
           {localError ? <p className="cf-app-error">{localError}</p> : null}
+          {changeHref ? (
+            <div className="cf-app-actions" style={{ marginTop: 16 }}>
+              <a className="cf-app-btn" data-testid="tenant-detail-open-change" href={changeHref}>
+                Raise a new service or change request
+              </a>
+            </div>
+          ) : null}
         </section>
       )}
     </div>

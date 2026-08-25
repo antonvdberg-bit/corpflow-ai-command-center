@@ -28,7 +28,7 @@
 | Prospect Pipeline | `/app/pipeline` | Operating Workspace / Core session only (#997) |
 | Prospect Action Queue | `/app/queue` | Operating Workspace / Core session only (#995) |
 | Core nav | My Work (`/app/today`) · Action Queue · Tenants · Requests · Prospects · Workbench · Pipeline · Delivery · Approvals · Releases · Operations | Within Core; Delivery/Operations link to `/change` |
-| Tenant nav | Home · My Work · Requests & Progress · Documents · Reports · Support | Within Tenant only |
+| Tenant nav | Requests & Progress · Service & change (`/change`) | Within Tenant only. #1073 retires Home / My Work / Documents / Reports / Support placeholders. |
 | APIs | `/api/app/shell`, `/requests`, `/request`, `/component-review`, `/component-expose` | Environment-gated |
 
 ## Request data contract
@@ -47,7 +47,7 @@
 | `/change` | Operational Change Console — remains; not expanded into `/app` shell |
 | `/change-v2` | Experimental |
 
-Safe navigation: Core Delivery/Operations → `/change`; Tenant placeholders may link to existing capabilities; `/change` may link back to `/app/core` or `/app/tenant` where appropriate.
+Safe navigation: Core Delivery/Operations → `/change`; Tenant Service & change → `/change?from=tenant-workspace`; `/change` may link back to `/app/tenant` for that entry.
 
 ## Explicit non-actions
 

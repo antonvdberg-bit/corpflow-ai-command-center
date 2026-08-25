@@ -81,6 +81,7 @@ import {
 } from '../lib/ui/tenant-host-switch-link.js';
 import { shouldRenderPicker as shouldRenderCoreTenantPicker } from '../lib/ui/core-tenant-picker-helpers.js';
 import CoreTenantPicker from '../components/CoreTenantPicker.js';
+import { tenantChangeContinuityBanner } from '../lib/app/tenant-journey.js';
 import CipcCampaignOperatorPanel from '../components/CipcCampaignOperatorPanel.js';
 import CipcPricingOperatorPanel from '../components/CipcPricingOperatorPanel.js';
 import CipcResponseOperatorPanel from '../components/CipcResponseOperatorPanel.js';
@@ -551,6 +552,10 @@ function luxTicketAttachmentHintContext(ticketLike) {
 
 export default function ChangeConsolePage() {
   const router = useRouter();
+  const tenantContinuity = useMemo(
+    () => tenantChangeContinuityBanner(router.isReady ? router.query : null),
+    [router.isReady, router.query],
+  );
   const [locale, setLocale] = useState('en');
   const [uiContext, setUiContext] = useState(null);
   const [session, setSession] = useState({ logged_in: false, level: 'anonymous', tenant_id: null });
@@ -2916,6 +2921,36 @@ export default function ChangeConsolePage() {
         </Head>
       ) : null}
       <div style={pageInner}>
+      {tenantContinuity ? (
+        <div
+          data-testid="tenant-change-continuity"
+          data-creates-ticket={tenantContinuity.creates_ticket ? 'true' : 'false'}
+          style={{
+            marginBottom: 14,
+            padding: '12px 14px',
+            borderRadius: 12,
+            border: '1px solid rgba(125, 211, 252, 0.45)',
+            background: 'rgba(14, 116, 144, 0.22)',
+            color: '#e0f2fe',
+            fontSize: 13,
+            lineHeight: 1.5,
+            minWidth: 0,
+          }}
+        >
+          <div style={{ fontWeight: 800, marginBottom: 4 }}>{tenantContinuity.title}</div>
+          <div style={{ color: '#bae6fd' }}>{tenantContinuity.body}</div>
+          <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
+            <a
+              href={tenantContinuity.return_href}
+              data-testid="tenant-change-return"
+              style={{ color: '#7dd3fc', fontWeight: 700 }}
+            >
+              {tenantContinuity.return_label}
+            </a>
+            <span style={{ color: '#94a3b8' }}>Tenant · {tenantContinuity.tenant_chip_label}</span>
+          </div>
+        </div>
+      ) : null}
       {showSwitchWorkspaceLink ? (
         <div
           style={{
@@ -3087,6 +3122,22 @@ export default function ChangeConsolePage() {
                   <span style={{ fontSize: 11, color: luxChangeChrome.textMuted }}>{luxNotifyStatus}</span>
                 ) : null}
               </div>
+            </div>
+          </>
+        ) : tenantContinuity ? (
+          <>
+            <div style={{ fontSize: 24, fontWeight: 950, color: '#f8fafc' }}>Service &amp; change</div>
+            <div style={{ marginTop: 6, color: '#94a3b8', fontSize: 13, lineHeight: 1.45 }}>
+              Tenant Workspace · canonical <code>/change</code> surface. This is not Core / admin.
+              Opening this page does not create a ticket.
+              {' · '}
+              <a
+                href={tenantContinuity.return_href}
+                data-testid="tenant-change-return-chrome"
+                style={{ color: '#7dd3fc', fontWeight: 700 }}
+              >
+                {tenantContinuity.return_label}
+              </a>
             </div>
           </>
         ) : (

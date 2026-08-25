@@ -5,6 +5,10 @@ import AppLoadState from '../../components/app/AppLoadState.js';
 import TenantMenu from '../../components/app/TenantMenu.js';
 import TenantRequestsProgress from '../../components/app/TenantRequestsProgress.js';
 import { CANONICAL_REQUEST_ID, REFERENCE_TENANT_ID } from '../../lib/app/constants.js';
+import {
+  isReturnFromChange,
+  tenantChangeHandoffHref,
+} from '../../lib/app/tenant-journey.js';
 
 /**
  * @param {import('next/router').NextRouter['query']} query
@@ -37,6 +41,7 @@ export default function AppTenantPage() {
   const [notice, setNotice] = useState('');
 
   const proofWanted = router.isReady && proofFromQuery(router.query);
+  const returnedFromChange = router.isReady && isReturnFromChange(router.query);
 
   const apiBase = useMemo(() => {
     const params = new URLSearchParams();
@@ -127,7 +132,7 @@ export default function AppTenantPage() {
   }, [proofWanted]);
 
   const loadDetail = useCallback(async () => {
-    if (!(menu === 'requests_progress' || menu === 'my_work' || menu === 'home')) {
+    if (menu !== 'requests_progress') {
       setRequest(null);
       return;
     }
@@ -209,6 +214,9 @@ export default function AppTenantPage() {
   const proofMode = shell?.proof_mode === true;
   const tenantLabel =
     selected.tenant_label != null ? String(selected.tenant_label) : 'CorpFlowAI';
+  const changeHref = tenantChangeHandoffHref({
+    tenantId: boundTenantId || REFERENCE_TENANT_ID,
+  });
 
   if (!router.isReady || (initialLoad && busy && !authRequired && !accessDenied && !shell)) {
     return (
@@ -297,7 +305,30 @@ export default function AppTenantPage() {
       username={actor.username != null ? String(actor.username) : null}
       proofMode={proofMode}
     >
-      <TenantMenu active={menu} disabled={busy} onSelect={(id) => setMenu(id)} />
+      <TenantMenu
+        active={menu}
+        disabled={busy}
+        onSelect={(id) => setMenu(id)}
+        changeHref={changeHref}
+      />
+
+      <section className="cf-app-journey" data-testid="tenant-journey-strip">
+        <p className="cf-app-lead" style={{ margin: 0 }}>
+          You are in <strong>Tenant Workspace — {tenantLabel}</strong>. Review progress here.
+          Raise or change a service request on canonical <code>/change</code> — that handoff does
+          not create a ticket by itself.
+        </p>
+        <div className="cf-app-actions" style={{ marginTop: 12 }}>
+          <a
+            className="cf-app-btn"
+            data-primary="true"
+            data-testid="tenant-open-change"
+            href={changeHref}
+          >
+            Open service &amp; change
+          </a>
+        </div>
+      </section>
 
       <p className="cf-app-muted" style={{ marginTop: -8, marginBottom: 16 }} data-testid="tenant-workspace-meta">
         Tenant environment · normal tenant auth · no Core menu · no internal evidence
@@ -308,20 +339,16 @@ export default function AppTenantPage() {
         ) : null}
       </p>
 
+      {returnedFromChange ? (
+        <p className="cf-app-ok" data-testid="tenant-return-from-change">
+          Back in Tenant Workspace — {tenantLabel}. Your sign-in and tenant context are unchanged.
+        </p>
+      ) : null}
+
       {error ? <p className="cf-app-error" data-testid="app-error">{error}</p> : null}
       {notice ? <p className="cf-app-ok" data-testid="app-notice">{notice}</p> : null}
 
-      {menu === 'documents' || menu === 'reports' || menu === 'support' ? (
-        <section className="cf-app-panel" data-testid={`tenant-placeholder-${menu}`}>
-          <h1 className="cf-app-h1">
-            {menu === 'documents' ? 'Documents' : menu === 'reports' ? 'Reports' : 'Support'}
-          </h1>
-          <p className="cf-app-lead">
-            Linked capability placeholder — existing enabled routes may be connected here without
-            rebuilding mature surfaces. Compatibility route: <a href="/change">/change</a>.
-          </p>
-        </section>
-      ) : busy && !listReady ? (
+      {busy && !listReady ? (
         <AppLoadState kind="loading" title="Loading Requests & Progress…" />
       ) : (
         <TenantRequestsProgress
@@ -329,6 +356,7 @@ export default function AppTenantPage() {
           request={request}
           busy={busy}
           empty={listReady && list.length === 0}
+          changeHref={changeHref}
           onSelectRequest={(id) => {
             setRequestId(id);
             setMenu('requests_progress');
