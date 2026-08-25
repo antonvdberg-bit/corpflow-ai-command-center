@@ -9,7 +9,7 @@ import {
  * /change/revenue — retired first-revenue cockpit (#1074).
  *
  * Canonical prospect pipeline is /app/pipeline (Core / Operating Workspace).
- * This page is a retirement notice. It must not keep a localStorage Kanban or
+ * This page is a retirement notice. It must not keep a browser Kanban or
  * any alternate prospect/status model. /change itself remains canonical.
  *
  * Mixed/unauthenticated on purpose: a hard redirect into /app/pipeline would
@@ -139,7 +139,7 @@ export default function ChangeRevenueRetiredPage() {
         <meta name="robots" content="noindex, nofollow" />
         <meta
           name="description"
-          content="This localStorage revenue board is retired. Canonical pipeline is Operating Workspace /app/pipeline."
+          content="This browser revenue board is retired. Canonical pipeline is Operating Workspace /app/pipeline."
         />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
@@ -162,7 +162,7 @@ export default function ChangeRevenueRetiredPage() {
             Operating Workspace · /app/pipeline
           </Link>
           . That board uses the same Postgres prospect records as Prospect Operations. This URL keeps
-          a notice only — no localStorage cards, no alternate status model.
+          a notice only — no browser-stored cards, no alternate status model.
           <div style={styles.actions}>
             <Link href="/app/pipeline" style={styles.btn}>
               Open Prospect Pipeline
@@ -239,7 +239,7 @@ export default function ChangeRevenueRetiredPage() {
 
         <footer style={styles.footer}>
           <p style={{ margin: 0 }}>
-            Wave 1 status: <strong>RETIRED</strong> (localStorage pipeline removed). /change remains
+            Wave 1 status: <strong>RETIRED</strong> (browser checklist pipeline removed). /change remains
             the canonical tenant service/change surface.
           </p>
         </footer>

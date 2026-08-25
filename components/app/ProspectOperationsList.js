@@ -135,10 +135,10 @@ export default function ProspectOperationsList({
                           </button>
                         </div>
                       ) : null}
-                      {productDesk ? (
+                      {!sharedHref && productDesk && !String(productDesk).startsWith('/admin/') ? (
                         <div className="cf-app-muted">
                           <a href={productDesk} data-testid={`prospect-ops-detail-${id}`}>
-                            Product desk
+                            Open
                           </a>
                         </div>
                       ) : null}
@@ -232,9 +232,9 @@ function ProspectEnquiryDetail({ prospect, testId = 'prospect-ops' }) {
               Shared detail
             </a>
           ) : null}
-          {productDesk ? (
+          {!shared && productDesk && !String(productDesk).startsWith('/admin/') ? (
             <a className="cf-app-btn" href={productDesk}>
-              Temporary product desk
+              Open record
             </a>
           ) : null}
         </div>

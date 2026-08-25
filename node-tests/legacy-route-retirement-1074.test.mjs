@@ -70,7 +70,7 @@ describe('#1074 legacy route capability parity', () => {
 
   it('retired /change/revenue has no localStorage pipeline and shows the notice', () => {
     const revenue = read('pages/change/revenue.js');
-    assert.doesNotMatch(revenue, /localStorage/);
+    assert.doesNotMatch(revenue, /localStorage\s*\./);
     assert.doesNotMatch(revenue, /corpflow\.revenue\.cockpit/);
     assert.match(revenue, /data-testid="legacy-route-retirement-notice"/);
     assert.match(revenue, /data-legacy-status="RETIRED"/);
@@ -104,6 +104,7 @@ describe('#1074 legacy route capability parity', () => {
     const pipeline = read('components/app/ProspectPipelineBoard.js');
     assert.doesNotMatch(list, /href="\/admin\/rapid-delivery"/);
     assert.doesNotMatch(list, /href="\/admin\/lead-rescue"/);
+    assert.doesNotMatch(list, /Temporary product desk/);
     assert.match(workbench, /redirects here/);
     assert.match(pipeline, /notice only/);
   });

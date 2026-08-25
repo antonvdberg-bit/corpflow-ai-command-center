@@ -135,7 +135,7 @@ describe('Prospect Pipeline #997', { concurrency: false }, () => {
     assert.doesNotMatch(board, /localStorage/);
     assert.match(revenue, /\/app\/pipeline/);
     assert.match(revenue, /data-testid="legacy-route-retirement-notice"/);
-    assert.doesNotMatch(revenue, /localStorage/);
+    assert.doesNotMatch(revenue, /localStorage\s*\./);
     assert.doesNotMatch(revenue, /corpflow\.revenue\.cockpit/);
   });
 

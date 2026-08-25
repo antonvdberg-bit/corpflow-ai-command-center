@@ -150,6 +150,15 @@ This slice does **not** connect all three prospect views, rebuild CRM, or retire
 
 This slice does **not** retire Company Master, product desks, or `/change/revenue`.
 
+### This slice (legacy route extraction / retirement wave 1 — #1074)
+
+1. Exact capability-parity matrix in `lib/app/legacy-route-retirement.js` (`UNIQUE` / `REPLACED` / `OBSOLETE`).
+2. Unique contracts reused on `/app/prospects/[id]`: Rapid Delivery proposal-ready summary; Lead Rescue setup checklist; Lead Rescue structured activity log. Existing JSON merge helpers and `/api/app/prospect` only.
+3. `/admin/rapid-delivery` **REDIRECTED** (admin session preserved) → `/app/queue`.
+4. `/admin/lead-rescue` **REDIRECTED** → `/app/workbench?filter=lead_rescue`; `/admin/lead-rescue/[id]` **REDIRECTED** → `/app/prospects/[id]`.
+5. `/change/revenue` **RETIRED** (notice, not a hard redirect): mixed/unauthenticated path must not send Tenant users into Core `/app/pipeline`. Browser Kanban / alternate status model removed.
+6. `/change` itself remains **CANONICAL**. `/app/commercial` and `/app/delivery` were not on current `main` and were not used as replacements. No TEMPORARY leftover in this wave.
+
 ### Later spare-capacity slices (do not build in this PR)
 
 1. Commercial summary from ERPNext rails (read-only first) — #1004 (`/app/commercial` not on current main).
