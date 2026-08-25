@@ -11,6 +11,7 @@ import {
   formatMur,
 } from '../lib/public/corpflow-public-market.js';
 import { buildDiscoveryCallMailto } from '../lib/public/rapid-delivery-offers.js';
+import { canonicalEnquiryHref } from '../lib/public/canonical-enquiry.js';
 import CorpFlowPublicFooter from './public/CorpFlowPublicFooter.js';
 import CorpFlowPublicHeader from './public/CorpFlowPublicHeader.js';
 import CorpFlowBrandMetadata from './public/CorpFlowBrandMetadata.js';
@@ -73,6 +74,7 @@ const styles = {
  */
 export default function RapidDeliveryOfferPage({ offer, buyerFacingName, pathOverride }) {
   const mailtoHref = buildDiscoveryCallMailto(offer);
+  const lockedEnquiryHref = canonicalEnquiryHref({ offer: offer.slug });
   const pagePath = pathOverride || offer.path;
   const publicTitle = buyerFacingName || offer.title;
   const meta = buildPublicPageMeta({
@@ -164,7 +166,7 @@ export default function RapidDeliveryOfferPage({ offer, buyerFacingName, pathOve
               >
                 Request discovery
               </a>
-              <Link href="/contact" style={cfBtnSecondary} onClick={() => handleCtaClick('hero_secondary')}>
+              <Link href={lockedEnquiryHref} style={cfBtnSecondary} onClick={() => handleCtaClick('hero_secondary')}>
                 Open contact page
               </Link>
             </div>
