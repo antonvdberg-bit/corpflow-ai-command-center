@@ -275,8 +275,8 @@ export default function WebsiteRescueDemo() {
         <div style={styles.ribbon} role="note">
           <strong style={{ color: '#eef6ff' }}>Demo only.</strong> Fictional hospitality-supplies business for sales
           conversations. Not a live client site. Public offer:{' '}
-          <Link href="/offers/premium-landing-page-rescue" style={{ color: '#7dd3fc' }}>
-            Premium Landing Page Rescue
+          <Link href="/website-rescue" style={{ color: '#7dd3fc' }}>
+            Website Rescue
           </Link>
           .
         </div>
@@ -285,7 +285,7 @@ export default function WebsiteRescueDemo() {
           <div style={styles.label}>CorpFlowAI · Website Rescue demonstration</div>
           <h1 style={styles.h1}>From outdated brochure to a clear enquiry path</h1>
           <p style={styles.lead}>
-            Walk the before/after shape in under five minutes, then send prospects to discovery on the live offer page.
+            Walk the before/after shape in under five minutes, then send prospects to discovery on the named Website Rescue page.
             No SEO, traffic, or revenue guarantees.
           </p>
 
@@ -296,7 +296,7 @@ export default function WebsiteRescueDemo() {
             <ToggleButton active={view === 'after'} onClick={() => setView('after')}>
               Show after
             </ToggleButton>
-            <Link href="/offers/premium-landing-page-rescue" style={cfBtnPrimary}>
+            <Link href="/website-rescue" style={cfBtnPrimary}>
               Open sellable offer page
             </Link>
           </div>
@@ -306,14 +306,15 @@ export default function WebsiteRescueDemo() {
           <div style={{ ...styles.panel, marginTop: 28 }} id="demo-enquiry">
             <div style={styles.label}>Enquiry capture · discovery intake</div>
             <p style={styles.muted}>
-              Use this form to practice the intake path. It routes as a Premium Landing Page Rescue discovery (same
-              operator desk as the public offer). Do not enter real private client credentials or personal data.
+              Use this form to practice the intake path. It routes as a Website Rescue discovery on the existing
+              landing-rescue SKU (same operator desk as the public offer). Do not enter real private client credentials
+              or personal data.
             </p>
             <div style={{ marginTop: 16 }}>
               <DiscoveryIntakeForm
                 defaultOfferSlug="premium-landing-page-rescue"
                 lockedOffer
-                heading="Request discovery — Premium Landing Page Rescue"
+                heading="Request discovery — Website Rescue"
               />
             </div>
           </div>
@@ -326,10 +327,10 @@ export default function WebsiteRescueDemo() {
               rebuild scopes are operator-quoted extensions.
             </p>
             <div style={styles.ctaRow}>
-              <Link href="/offers/premium-landing-page-rescue#discovery" style={cfBtnPrimary}>
+              <Link href="/website-rescue#discovery" style={cfBtnPrimary}>
                 Go to discovery CTA
               </Link>
-              <Link href="/offers/premium-landing-page-rescue" style={cfBtnSecondary}>
+              <Link href="/website-rescue" style={cfBtnSecondary}>
                 Read offer details
               </Link>
             </div>

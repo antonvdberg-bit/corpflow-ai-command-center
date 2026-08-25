@@ -57,9 +57,20 @@ describe('#712 market path — public pages and primary CTAs', () => {
     assert.match(offer.headline, /enquiry path/i);
     const page = read('components/RapidDeliveryOfferPage.js');
     assert.ok(page.includes('Request discovery') || page.includes('#discovery'));
+    assert.ok(page.includes('canonicalEnquiryHref'));
+    assert.ok(!page.includes('href="/contact"'));
     assert.ok(existsSync(path.join(REPO_ROOT, 'pages/offers/premium-landing-page-rescue.js')));
     assert.ok(existsSync(path.join(REPO_ROOT, 'pages/website-rescue.js')));
     assert.ok(existsSync(path.join(REPO_ROOT, 'pages/demo/website-rescue.js')));
+  });
+
+  it('Website Rescue demo and homepage proof keep buyers on the named path', () => {
+    const demo = read('components/WebsiteRescueDemo.js');
+    assert.ok(demo.includes('href="/website-rescue"') || demo.includes("href={'/website-rescue'}"));
+    assert.ok(!demo.includes('href="/offers/premium-landing-page-rescue"'));
+    const market = read('lib/public/corpflow-public-market.js');
+    assert.ok(market.includes("href: '/website-rescue'"));
+    assert.ok(!market.includes("href: '/offers/premium-landing-page-rescue'"));
   });
 
   it('contact page anchors discovery intake', () => {
