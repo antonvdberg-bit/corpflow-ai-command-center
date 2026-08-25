@@ -130,12 +130,15 @@ describe('Prospect Pipeline #997', { concurrency: false }, () => {
     assert.match(page, /\/api\/app\/pipeline/);
     assert.match(page, /\/api\/app\/prospect/);
     assert.doesNotMatch(page, /localStorage/);
+    assert.doesNotMatch(page, /(?:window\.)?localStorage\s*[.\[]/);
     assert.match(board, /pipeline-detail-/);
     assert.match(board, /Persist stage/);
     assert.doesNotMatch(board, /localStorage/);
+    assert.doesNotMatch(board, /(?:window\.)?localStorage\s*[.\[]/);
     assert.match(revenue, /\/app\/pipeline/);
     assert.match(revenue, /data-testid="legacy-route-retirement-notice"/);
-    assert.doesNotMatch(revenue, /localStorage\s*\./);
+    assert.doesNotMatch(revenue, /(?:window\.)?localStorage\s*[.\[]/);
+    assert.doesNotMatch(revenue, /localStorage\s*\.(?:getItem|setItem|removeItem|clear)/);
     assert.doesNotMatch(revenue, /corpflow\.revenue\.cockpit/);
   });
 
