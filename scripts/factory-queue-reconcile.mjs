@@ -20,18 +20,28 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import {
+  DISPATCH_LABEL_BLOCKED,
   DISPATCH_LABEL_CLAIMED,
+  DISPATCH_LABEL_IN_PROGRESS,
   DISPATCH_LABEL_READY,
+  addIssueLabelsApi,
   discoverOpenIssuesByLabel,
   listClosedIssuesByLabelGraphql,
   planCursorIssueClaims,
+  removeIssueLabelApi,
 } from '../lib/server/cursor-issue-dispatch-lifecycle.js';
 import {
   attachLinkedPullRequestsToIssues,
   fetchOpenPullRequestsForWip,
 } from '../lib/server/cursor-wip-control.js';
 import { hasRecentFactoryHandoff } from '../lib/server/factory-cursor-handoff.js';
+import {
+  formatFactoryCursorHandoffReceiptComment,
+  resolveFactoryCursorHandoffReceipt,
+} from '../lib/server/factory-cursor-handoff-receipt.js';
 import { resolveFactoryQueueReconcileDecision } from '../lib/server/factory-queue-reconcile.js';
+import { formatCursorOriginMetadataComment } from '../lib/server/cursor-origin-metadata.js';
+import { postGitHubIssueComment } from '../lib/server/cursor-ops-status.js';
 
 const DEFAULT_REPO = 'antonvdberg-bit/corpflow-ai-command-center';
 const DEFAULT_OUT = 'factory-queue-reconcile.json';
@@ -86,6 +96,52 @@ async function listIssueComments(token, repo, issueNumber, fetchFn = globalThis.
   }));
 }
 
+async function reconcileHandoffReceipts(token, repo, readyIssues) {
+  const outcomes = [];
+  for (const issue of readyIssues) {
+    const resolved = resolveFactoryCursorHandoffReceipt({
+      sourceIssue: issue.number,
+      issueBody: issue.body,
+      comments: issue.comments,
+    });
+    if (!resolved.transition) continue;
+
+    await postGitHubIssueComment(
+      Number(issue.number),
+      formatFactoryCursorHandoffReceiptComment(resolved.receipt),
+      { token, repoFullName: repo },
+    );
+
+    if (resolved.transition === 'IN_PROGRESS') {
+      if (resolved.origin) {
+        await postGitHubIssueComment(
+          Number(issue.number),
+          formatCursorOriginMetadataComment(resolved.origin),
+          { token, repoFullName: repo },
+        );
+      }
+      await addIssueLabelsApi(
+        token,
+        repo,
+        Number(issue.number),
+        [DISPATCH_LABEL_CLAIMED, DISPATCH_LABEL_IN_PROGRESS],
+      );
+      await removeIssueLabelApi(token, repo, Number(issue.number), DISPATCH_LABEL_READY);
+    } else {
+      await addIssueLabelsApi(token, repo, Number(issue.number), [DISPATCH_LABEL_BLOCKED]);
+      await removeIssueLabelApi(token, repo, Number(issue.number), DISPATCH_LABEL_READY);
+    }
+
+    outcomes.push({
+      source_issue: Number(issue.number),
+      state: resolved.receipt.state,
+      blocker: resolved.receipt.blocker,
+      cursor_agent_id: resolved.receipt.cursor_agent_id,
+    });
+  }
+  return outcomes;
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const token = String(process.env.GITHUB_TOKEN || process.env.GH_TOKEN || '').trim();
@@ -122,6 +178,33 @@ async function main() {
       issue.comments = [];
     }
   }
+
+  const receiptOutcomes = args.dryRun
+    ? []
+    : await reconcileHandoffReceipts(token, repo, readyIssues);
+  const receiptIssueNumbers = new Set(receiptOutcomes.map((outcome) => outcome.source_issue));
+  for (const outcome of receiptOutcomes.filter((item) => item.state === 'IN_PROGRESS')) {
+    const issue = readyIssues.find((candidate) => Number(candidate.number) === outcome.source_issue);
+    if (!issue) continue;
+    issue.labels = [
+      ...(Array.isArray(issue.labels) ? issue.labels : []).filter(
+        (label) => String(label).toLowerCase() !== DISPATCH_LABEL_READY,
+      ),
+      DISPATCH_LABEL_CLAIMED,
+      DISPATCH_LABEL_IN_PROGRESS,
+    ];
+    issue.comments = [
+      ...(Array.isArray(issue.comments) ? issue.comments : []),
+      {
+        body: formatCursorOriginMetadataComment({
+          sourceIssue: outcome.source_issue,
+          cursorAgentId: outcome.cursor_agent_id,
+        }),
+      },
+    ];
+    claimedIssues.push(issue);
+  }
+  readyIssues = readyIssues.filter((issue) => !receiptIssueNumbers.has(Number(issue.number)));
 
   const trackedIssues = [...claimedIssues, ...closedClaimedIssues, ...readyIssues];
   try {
@@ -174,6 +257,7 @@ async function main() {
       eligibleIssueNumbers: plan.eligibleIssueNumbers,
       claimIssueNumbers: plan.claimIssueNumbers,
     },
+    handoffReceiptOutcomes: receiptOutcomes,
   };
 
   const outPath = path.resolve(args.outPath);

@@ -138,7 +138,6 @@ jobs:
           WAKE_REASON_INPUT: ${{ inputs.wake_reason || '' }}
           CAPACITY_WAKE_REQUESTED: ${{ inputs.capacity_wake_requested || '' }}
           FACTORY_HANDOFF_OUT_PATH: factory-cursor-handoff.json
-          FACTORY_HANDOFF_POST_COMMENT: "1"
         run: |
           set -euo pipefail
           node scripts/factory-cursor-handoff.mjs
@@ -172,6 +171,18 @@ jobs:
             "$CURSOR_FACTORY_WAKE_WEBHOOK_URL" >/dev/null
 
           echo "Cursor Factory v2 webhook accepted handoff for issue #$SOURCE_ISSUE"
+
+      - name: Publish successful handoff and pending Cursor receipt
+        if: steps.handoff.outputs.has_handoff == '1' && steps.handoff.outputs.source_issue != ''
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          FACTORY_HANDOFF_OUT_PATH: factory-cursor-handoff.json
+        run: |
+          set -euo pipefail
+          node scripts/factory-cursor-handoff-publish.mjs
 
       - name: Upload handoff artifact
         if: always()
