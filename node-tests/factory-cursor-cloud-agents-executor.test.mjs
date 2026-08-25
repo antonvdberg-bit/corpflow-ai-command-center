@@ -201,6 +201,59 @@ describe('claim-before-API and no IN_PROGRESS without identity (#1062)', () => {
     assert.equal(result.evidence.work_request_id, WORK_REQUEST_ID);
   });
 
+  it('blocks competing live executors before claim or create', async () => {
+    let createCalls = 0;
+    const result = await runFactoryCloudAgentsExecutor({
+      sourceIssue: 1062,
+      mode: FACTORY_CURSOR_EXECUTOR_CLOUD_AGENTS_V1,
+      cursorApiKey: 'test-key',
+      wakeProofWebhookEnabled: true,
+      cloudAgentsLiveEnabled: true,
+      acquireClaim: async () => {
+        throw new Error('should not claim when executors compete');
+      },
+      createAgent: async () => {
+        createCalls += 1;
+        return v1CreateResponse();
+      },
+    });
+    assert.equal(createCalls, 0);
+    assert.equal(result.ok, false);
+    assert.equal(result.evidence.status, 'BLOCKED');
+    assert.equal(result.evidence.reason, 'competing_production_executors');
+    assert.notEqual(result.evidence.status, 'IN_PROGRESS');
+  });
+
+  it('acquires the claim before calling Cloud Agents create', async () => {
+    const order = [];
+    const result = await runFactoryCloudAgentsExecutor({
+      sourceIssue: 1062,
+      mode: FACTORY_CURSOR_EXECUTOR_CLOUD_AGENTS_V1,
+      cursorApiKey: 'test-key',
+      wakeProofWebhookEnabled: false,
+      cloudAgentsLiveEnabled: true,
+      acquireClaim: async () => {
+        order.push('claim');
+        return {
+          ok: true,
+          decision: 'CLAIM_ACQUIRED',
+          claim: buildCursorActivationClaim({
+            sourceIssue: 1062,
+            generation: 1,
+            claimToken: 'tok-1062',
+            status: 'pending',
+          }),
+        };
+      },
+      createAgent: async () => {
+        order.push('create');
+        return v1CreateResponse();
+      },
+    });
+    assert.deepEqual(order, ['claim', 'create']);
+    assert.equal(result.evidence.status, 'IN_PROGRESS');
+  });
+
   it('duplicate active claim skips API create', async () => {
     let createCalls = 0;
     const comments = [
@@ -468,6 +521,18 @@ describe('Factory Handoff workflow keeps Cloud Agents v1 dormant (#1062)', () =>
       yaml,
       /if: steps\.handoff\.outputs\.has_handoff == '1' && steps\.handoff\.outputs\.source_issue != '' && steps\.handoff\.outputs\.executor_mode == 'cloud_agents_v1'/,
     );
+  });
+
+  it('publishes Handoff selection without PENDING receipt before Cloud Agents create', () => {
+    assert.match(yaml, /Publish Factory Handoff selection for Cloud Agents v1/);
+    assert.match(yaml, /FACTORY_HANDOFF_INCLUDE_RECEIPT: "0"/);
+    const selectIdx = yaml.indexOf('Publish Factory Handoff selection for Cloud Agents v1');
+    const executeIdx = yaml.indexOf('Execute via Cursor Cloud Agents API v1');
+    const pendingIdx = yaml.indexOf('Publish successful handoff and pending Cursor receipt');
+    assert.ok(selectIdx > 0 && executeIdx > selectIdx);
+    assert.ok(pendingIdx > executeIdx);
+    const pendingBlock = yaml.slice(pendingIdx, pendingIdx + 600);
+    assert.match(pendingBlock, /executor_mode != 'cloud_agents_v1'/);
   });
 
   it('keeps Wake Proof webhook on the default non-cloud_agents_v1 path', () => {

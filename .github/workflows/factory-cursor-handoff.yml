@@ -113,6 +113,7 @@ jobs:
       has_handoff: ${{ steps.handoff.outputs.has_handoff }}
       source_issue: ${{ steps.handoff.outputs.source_issue }}
       reason: ${{ steps.handoff.outputs.reason }}
+      executor_mode: ${{ steps.handoff.outputs.executor_mode }}
 
     steps:
       # Pinned SHAs (supply chain): tag v6
@@ -148,6 +149,20 @@ jobs:
         run: |
           set -euo pipefail
           node scripts/factory-cursor-handoff.mjs
+
+      - name: Publish Factory Handoff selection for Cloud Agents v1
+        if: steps.handoff.outputs.has_handoff == '1' && steps.handoff.outputs.source_issue != '' && steps.handoff.outputs.executor_mode == 'cloud_agents_v1'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          FACTORY_HANDOFF_OUT_PATH: factory-cursor-handoff.json
+          FACTORY_HANDOFF_INCLUDE_RECEIPT: "0"
+          FACTORY_CURSOR_EXECUTOR: ${{ vars.FACTORY_CURSOR_EXECUTOR || '' }}
+        run: |
+          set -euo pipefail
+          node scripts/factory-cursor-handoff-publish.mjs
 
       - name: Execute via Cursor Cloud Agents API v1
         if: steps.handoff.outputs.has_handoff == '1' && steps.handoff.outputs.source_issue != '' && steps.handoff.outputs.executor_mode == 'cloud_agents_v1'

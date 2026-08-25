@@ -1,7 +1,11 @@
 #!/usr/bin/env node
 /**
- * Publish durable evidence only after the native Cursor wake webhook accepts.
- * This is intentionally not an executor and does not call Cursor.
+ * Publish durable Factory Handoff evidence. This is not an executor and does
+ * not call Cursor.
+ *
+ * Wake Proof path: comment + PENDING receipt after webhook accept.
+ * Cloud Agents v1 path: selection comment only (FACTORY_HANDOFF_INCLUDE_RECEIPT=0).
+ * Valid agent identity, not this script, is the only IN_PROGRESS transition.
  */
 import fs from 'node:fs';
 
@@ -27,6 +31,13 @@ if (!plan.shouldSucceed || !Number.isInteger(sourceIssue) || sourceIssue < 1) {
   throw new Error('No successful handoff is available to publish');
 }
 
+const includeReceipt = !['0', 'false', 'no', 'off'].includes(
+  String(process.env.FACTORY_HANDOFF_INCLUDE_RECEIPT || '1')
+    .trim()
+    .toLowerCase(),
+);
+const executorMode = String(process.env.FACTORY_CURSOR_EXECUTOR || plan.executor_mode || '').trim() || null;
+
 const workflowRunUrl = `${serverUrl}/${repo}/actions/runs/${runId}`;
 const comment = formatFactoryHandoffComment({
   sourceIssue,
@@ -39,10 +50,16 @@ const comment = formatFactoryHandoffComment({
   handoffRunId: runId,
   handedOffAt: new Date().toISOString(),
   capacityPacket: plan.capacityPacket,
+  includeReceipt,
+  executorMode,
 });
 
 await postGitHubIssueComment(sourceIssue, comment, {
   token,
   repoFullName: repo,
 });
-console.log(`Published successful Cursor handoff and receipt for issue #${sourceIssue}`);
+console.log(
+  includeReceipt
+    ? `Published successful Cursor handoff and receipt for issue #${sourceIssue}`
+    : `Published Factory Handoff selection (no receipt) for issue #${sourceIssue}`,
+);

@@ -124,6 +124,20 @@ describe('factory cursor handoff decision logic (#913)', () => {
     assert.equal(packet.shouldSucceed, true);
   });
 
+  it('can publish Cloud Agents selection without a PENDING receipt', () => {
+    const comment = formatFactoryHandoffComment({
+      sourceIssue: 1062,
+      wakeReason: 'priority_changed',
+      wakePath: 'event_priority_ready',
+      executorMode: 'cloud_agents_v1',
+      includeReceipt: false,
+    });
+    assert.match(comment, /Selected source issue: #1062/);
+    assert.match(comment, /Cloud Agents API v1 must execute exactly this one issue/);
+    assert.doesNotMatch(comment, /CURSOR HANDOFF RECEIPT/);
+    assert.doesNotMatch(comment, /State: PENDING/);
+  });
+
   it('fails closed when there is no eligible source issue (no Automation wake)', () => {
     const decision = resolveFactoryHandoffDecision({
       wakeShouldRun: true,

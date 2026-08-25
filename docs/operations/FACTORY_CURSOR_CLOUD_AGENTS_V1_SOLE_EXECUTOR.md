@@ -108,7 +108,7 @@ Auth: existing GitHub Actions secret **name** `CURSOR_API_KEY` (Bearer). Values 
 
 | Evidence | State |
 |----------|-------|
-| Handoff selection alone | not execution (`REQUESTED` / receipt `PENDING`) |
+| Handoff selection alone | not execution (`REQUESTED` / receipt omitted on the Cloud Agents path; Wake Proof still records `PENDING` after webhook accept) |
 | API attempted, no valid agent identity | `NOT_RECEIVED` or `BLOCKED` |
 | Valid `bc-…` identity returned | `IN_PROGRESS` |
 | Cursor terminal blocker/refusal | `BLOCKED` or `SUPPRESSED` |
@@ -140,7 +140,7 @@ Do **not** perform these steps in #1062. Anton performs them only when explicitl
 1. **Credential.** Confirm GitHub Actions secret **name** `CURSOR_API_KEY` is present for this repository using the existing GitHub secret-management UI. Do not rotate, print, or commit the value. Reuse the existing secret; do not invent a new env name.
 2. **Feature flag.** Set GitHub Actions **variable** (not a secret) `FACTORY_CURSOR_EXECUTOR` to exactly `cloud_agents_v1`.
 3. **Disable Wake Proof as production wake.** The Handoff workflow skips the Factory Wake Proof v2 webhook whenever that variable equals `cloud_agents_v1`. After one successful correlated create, disable or pause Automation `CorpFlowAI Factory Wake Proof v2` (`30c07c9d-96f7-11f1-ba66-0e7d0216e441`) in the Cursor dashboard so it cannot compete. Do not delete it until rollback is no longer needed.
-4. **Enable Cloud Agents v1 as the sole executor.** With the variable set, Handoff claim-before-API creates one Cloud Agent, persists `bc-…` / `run-…`, and only then emits `IN_PROGRESS`.
+4. **Enable Cloud Agents v1 as the sole executor.** With the variable set, Handoff posts the selection comment **without** a PENDING receipt, then claim-before-API creates one Cloud Agent, persists `bc-…` / `run-…`, and only then emits `IN_PROGRESS`. The Wake Proof webhook step does not run.
 5. **Low-risk synthetic proof before the first real client issue.** On `main`, run:
    ```bash
    node scripts/factory-cursor-cloud-agents-execute.mjs --dry-run
