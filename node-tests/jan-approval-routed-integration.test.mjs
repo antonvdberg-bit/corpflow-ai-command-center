@@ -1,8 +1,14 @@
 import assert from 'node:assert/strict';
+import crypto from 'node:crypto';
 import { describe, it } from 'node:test';
 
-import { buildEvidenceManifest, RARE_EXCLUSIVE_TARGET_REPO } from '../lib/server/jan-approval-control.js';
-import janApprovalHandler, { resetJanApprovalSyntheticStoreForTests } from '../lib/server/jan-approval-api.js';
+import {
+  buildEvidenceManifest,
+  formatJanDurableDecisionComment,
+  RARE_EXCLUSIVE_TARGET_REPO,
+  signJanDecisionEnvelope,
+} from '../lib/server/jan-approval-control.js';
+import janApprovalHandler, { resetJanApprovalSyntheticStoreForTests, trustedJanDecisionRecords } from '../lib/server/jan-approval-api.js';
 
 const HEAD = 'b7c3e1a0f4d29c8e6a1b5d7f0c3e9a12d4f6b8c0';
 const BASE = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
@@ -44,6 +50,8 @@ function createLiveBridge() {
   };
   return {
     comments,
+    bridgeIdentity: 'corpflow-bridge',
+    decisionSigningKey: 'test-server-secret',
     async readCurrentHead() {
       return { repo: RARE_EXCLUSIVE_TARGET_REPO, prNumber: 34, headSha: HEAD, baseSha: BASE };
     },
@@ -52,7 +60,7 @@ function createLiveBridge() {
       return { evidence, manifest: { ...manifest, repository: RARE_EXCLUSIVE_TARGET_REPO, pr_number: 34, base_sha: BASE, head_sha: HEAD } };
     },
     async postComment({ body }) {
-      comments.push({ id: comments.length + 1, body });
+      comments.push({ id: comments.length + 1, body, user: { login: 'corpflow-bridge' } });
       return { ok: true, commentId: String(comments.length), commentUrl: 'https://github.test/comment' };
     },
   };
@@ -72,6 +80,39 @@ async function liveDecisionPayload(bridge) {
 }
 
 describe('Jan approval routed live integration', () => {
+  it('trusts only a configured bridge author with an unaltered authenticated envelope', () => {
+    const deps = { bridgeIdentity: 'corpflow-bridge', decisionSigningKey: 'test-server-secret' };
+    const derivedKey = crypto.createHmac('sha256', 'test-server-secret')
+      .update('corpflow.jan-approval-decision-envelope.v1')
+      .digest('hex');
+    const envelope = signJanDecisionEnvelope({
+      repository: RARE_EXCLUSIVE_TARGET_REPO,
+      targetNumber: 34,
+      targetSha: HEAD,
+      decision: 'APPROVE',
+      scope: 'review-approval-only',
+      reviewerIdentity: JAN.username,
+      timestamp: '2026-08-25T00:00:00.000Z',
+      evidenceHash: 'f'.repeat(64),
+      replayIdentity: 'nonce-1',
+    }, derivedKey);
+    const { body } = formatJanDurableDecisionComment({
+      decision: 'APPROVE', actorUsername: JAN.username, targetNumber: 34, baseSha: BASE, targetSha: HEAD,
+      evidenceManifest: '{}', evidenceHash: 'f'.repeat(64), approvalScope: 'review-approval-only',
+      sessionId: 'session', auditHash: 'audit', authenticatedEnvelope: envelope,
+    });
+    const valid = { body, user: { login: 'corpflow-bridge' } };
+    assert.equal(trustedJanDecisionRecords([valid], deps).length, 1);
+    assert.equal(trustedJanDecisionRecords([{ ...valid, user: { login: 'another-writer' } }], deps).length, 0);
+    assert.equal(trustedJanDecisionRecords([{ ...valid, body: body.replace('APPROVE', 'HOLD') }], deps).length, 0);
+    assert.equal(trustedJanDecisionRecords([{ ...valid, body: body.replace(HEAD, BASE) }], deps).length, 0);
+    assert.equal(trustedJanDecisionRecords([{ ...valid, body: body.replace(JAN.username, 'forged@example.test') }], deps).length, 0);
+    assert.equal(trustedJanDecisionRecords([{ ...valid, body: body.replace('review-approval-only', 'merge-only') }], deps).length, 0);
+    assert.equal(trustedJanDecisionRecords([{ ...valid, body: body.replace('f'.repeat(64), 'e'.repeat(64)) }], deps).length, 0);
+    assert.equal(trustedJanDecisionRecords([{ ...valid, body: body.replace(envelope.signature, '0'.repeat(64)) }], deps).length, 0);
+    assert.equal(trustedJanDecisionRecords([{ body: '### JAN DURABLE DECISION\\nDecision: APPROVE', user: { login: 'corpflow-bridge' } }], deps).length, 0);
+  });
+
   it('serves live GitHub evidence through the routed handler and persists decisions across fresh state', async () => {
     resetJanApprovalSyntheticStoreForTests();
     const bridge = createLiveBridge();

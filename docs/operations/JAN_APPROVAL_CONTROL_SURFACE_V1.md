@@ -56,6 +56,16 @@ GitHub writeback (when `JAN_APPROVAL_MODE=live`) posts a decision record **only*
 
 Each audit record is canonicalized and hashed, and contains the manifest/hash, repository/PR/base/head SHAs, decision/scope/rationale, attributable Jan identity/session, timestamp, replay nonce, audit hash, and durable GitHub comment reference when created.
 
+### Durable-record trust model
+
+A valid durable decision requires all three controls:
+
+1. GitHub comment author login exactly equals server-side `JAN_APPROVAL_BRIDGE_GITHUB_LOGIN`;
+2. the comment contains a complete `hmac-sha256` authenticated envelope covering repository, target number/SHA, decision, scope, reviewer identity, timestamp, evidence hash, and replay identity;
+3. the envelope signature verifies server-side using a domain-separated key derived from `SOVEREIGN_SESSION_SECRET`, and its fields match the durable decision payload.
+
+Marker-only, legacy, unsigned, incomplete, malformed, wrong-author, or signature-invalid comments are ignored. Neither Jan, ChatGPT, Claude, nor the browser receives the GitHub credential, bridge identity configuration, session secret, or HMAC key.
+
 ## 5. OpenAPI-facing contract
 
 The machine-readable contract is `docs/operations/JAN_APPROVAL_BRIDGE_OPENAPI_V1.yaml`. The ChatGPT connection remains an adapter concern behind this bridge. A Custom GPT Action is **not** assumed to attach to an existing Jan conversation.
@@ -101,7 +111,8 @@ Evidence: `artifacts/jan-approval-mvp/`.
 ## 8. Exact next step for production hardening (not this packet)
 
 1. Set `JAN_APPROVAL_MODE=live` on the CorpFlowAI test spine **after** Anton approves that env change.
-2. Use a GitHub token scoped to issue comments on `antonvdberg-bit/rare-and-exclusive-collection` (existing factory GitHub token path — no new secret name required if `CMP_GITHUB_TOKEN` already covers that repo; otherwise a separately approved scoped token).
+2. Set `JAN_APPROVAL_BRIDGE_GITHUB_LOGIN` to the exact CorpFlowAI GitHub App/bot login that will write the bounded durable comments, after Anton approves that configuration change.
+3. Use a GitHub token scoped to issue comments on `antonvdberg-bit/rare-and-exclusive-collection` (existing factory GitHub token path — no new secret name required if `CMP_GITHUB_TOKEN` already covers that repo; otherwise a separately approved scoped token).
 3. Replace the synthetic open-PR fixture with live open PRs from that repository.
 4. Verify on `https://lux.corpflowai.com/rare-exclusive/review` (corpflow_test) that Jan can record a decision and the comment appears on the target PR.
 5. Do **not** treat that as client_production, and do **not** auto-merge.

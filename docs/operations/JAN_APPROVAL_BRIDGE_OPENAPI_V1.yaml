@@ -6,6 +6,8 @@ info:
     Bounded, authenticated review evidence and decision interface for the Rare &
     Exclusive Jan approval control surface. It is an adapter contract: it does
     not assume a Custom GPT Action can attach to an existing ChatGPT chat.
+    Durable decisions are trusted only when written by the configured bridge
+    GitHub login and carrying a server-verified HMAC audit envelope.
 servers:
   - url: https://lux.corpflowai.com
 paths:
