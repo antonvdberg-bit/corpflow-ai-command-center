@@ -85,6 +85,25 @@ function getSessionFromReq(req) {
 const NOW = '2026-08-25T10:30:00.000Z';
 const CURRENT_SHA = 'b7c3e1a0f4d29c8e6a1b5d7f0c3e9a12d4f6b8c0';
 const OTHER_SHA = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+const DECISION_SECRET = 'test-decision-secret';
+
+async function decisionRequestBody(overrides = {}) {
+  const load = makeRes();
+  await handleJanApproval(makeReq({ payload: JAN }), load, {
+    getSession: getSessionFromReq,
+    factoryMasterAuth: false,
+    decisionSecret: DECISION_SECRET,
+  });
+  return {
+    item_id: 'pr:34',
+    decision: 'APPROVE',
+    expected_head_sha: CURRENT_SHA,
+    evidence_manifest: load._json.evidence_manifest_by_item['pr:34'],
+    approval_scope: 'review-approval-only',
+    decision_capability: load._json.decision_capability,
+    ...overrides,
+  };
+}
 
 beforeEach(() => {
   resetJanApprovalSyntheticStoreForTests();
@@ -92,7 +111,7 @@ beforeEach(() => {
 
 describe('Jan approval control surface (#1080)', () => {
   it('exposes exactly four decisions and keeps Issue #35 as a release blocker', () => {
-    assert.deepEqual([...JAN_DECISIONS], ['APPROVE', 'CHANGES', 'HOLD', 'ASK_AI']);
+    assert.deepEqual([...JAN_DECISIONS], ['APPROVE', 'CHANGES', 'HOLD', 'REVIEW_FURTHER']);
     const bundle = buildSyntheticReviewBundle();
     assert.equal(bundle.review_items.length, 1);
     assert.equal(bundle.release_blockers[0].number, RELEASE_BLOCKER_ISSUE_NUMBER);
@@ -121,6 +140,7 @@ describe('Jan approval control surface (#1080)', () => {
       item: { id: 'pr:34', kind: 'pull_request', number: 34, headSha: CURRENT_SHA },
       expectedHeadSha: OTHER_SHA,
       currentHeadSha: CURRENT_SHA,
+      approvalScope: 'review-approval-only',
       nowIso: NOW,
     });
     assert.equal(prepared.ok, false);
@@ -143,6 +163,8 @@ describe('Jan approval control surface (#1080)', () => {
       item: { id: 'pr:34', number: 34, headSha: CURRENT_SHA },
       expectedHeadSha: CURRENT_SHA,
       currentHeadSha: CURRENT_SHA,
+      approvalScope: 'review-approval-only',
+      note: 'Awaiting an external governance decision.',
       nowIso: NOW,
     });
     assert.equal(prepared.ok, false);
@@ -157,6 +179,8 @@ describe('Jan approval control surface (#1080)', () => {
       item: { id: 'pr:34', kind: 'pull_request', number: 34, headSha: CURRENT_SHA, repo: RARE_EXCLUSIVE_TARGET_REPO },
       expectedHeadSha: CURRENT_SHA,
       currentHeadSha: CURRENT_SHA,
+      approvalScope: 'review-approval-only',
+      note: 'Awaiting an external governance decision.',
       nowIso: NOW,
     });
     assert.equal(first.ok, true);
@@ -172,6 +196,7 @@ describe('Jan approval control surface (#1080)', () => {
         targetRepo: RARE_EXCLUSIVE_TARGET_REPO,
         targetNumber: 34,
         actorUsername: JAN.username,
+        approvalScope: 'review-approval-only',
       },
       [first.record],
     );
@@ -184,6 +209,8 @@ describe('Jan approval control surface (#1080)', () => {
       item: { id: 'pr:34', kind: 'pull_request', number: 34, headSha: CURRENT_SHA, repo: RARE_EXCLUSIVE_TARGET_REPO },
       expectedHeadSha: CURRENT_SHA,
       currentHeadSha: CURRENT_SHA,
+      approvalScope: 'review-approval-only',
+      note: 'Awaiting an external governance decision.',
       existingRecords: [first.record],
       nowIso: NOW,
     });
@@ -200,7 +227,7 @@ describe('Jan approval control surface (#1080)', () => {
 
   it('enforces the Jan gate and never selects a protected action', () => {
     assert.equal(selectNextSafeAutomationStep('APPROVE'), 'github_comment_writeback');
-    assert.equal(selectNextSafeAutomationStep('ASK_AI'), 'request_ai_review_comment');
+    assert.equal(selectNextSafeAutomationStep('REVIEW_FURTHER'), 'request_ai_review_comment');
     assert.equal(isProtectedAction('merge'), true);
     assert.equal(isProtectedAction('github_comment_writeback'), false);
 
@@ -280,39 +307,80 @@ describe('Jan approval HTTP surface', () => {
     const req = makeReq({
       method: 'POST',
       payload: JAN,
-      body: { item_id: 'pr:34', decision: 'APPROVE', expected_head_sha: CURRENT_SHA },
+      body: await decisionRequestBody(),
     });
     const res = makeRes();
-    await handleJanApproval(req, res, { getSession: getSessionFromReq, nowIso: NOW });
+    await handleJanApproval(req, res, { getSession: getSessionFromReq, nowIso: NOW, decisionSecret: DECISION_SECRET });
     assert.equal(res._status, 200);
     assert.equal(res._json.record.decision, 'APPROVE');
     assert.equal(res._json.record.target_sha, CURRENT_SHA);
     assert.equal(res._json.protected_action_triggered, false);
     assert.equal(res._json.release_blocker_still_open, true);
     assert.equal(res._json.github_writeback.skipped, false);
+    assert.equal(res._json.audit_record.decision_scope, 'review-approval-only');
+
+    const replay = makeRes();
+    await handleJanApproval(req, replay, { getSession: getSessionFromReq, nowIso: NOW, decisionSecret: DECISION_SECRET });
+    assert.equal(replay._status, 409);
+    assert.equal(replay._json.error, 'REPLAY_DETECTED');
 
     const again = makeRes();
-    await handleJanApproval(req, again, { getSession: getSessionFromReq, nowIso: NOW });
+    const duplicateReq = makeReq({ method: 'POST', payload: JAN, body: await decisionRequestBody() });
+    await handleJanApproval(duplicateReq, again, {
+      getSession: getSessionFromReq,
+      nowIso: NOW,
+      decisionSecret: DECISION_SECRET,
+    });
     assert.equal(again._status, 200);
     assert.equal(again._json.idempotent, true);
     assert.equal(again._json.github_writeback.reason, 'duplicate_decision');
   });
 
-  it('rejects a stale expected SHA on the HTTP path', async () => {
+  it('re-reads the bounded bridge head at decision time and rejects a changed PR', async () => {
     const req = makeReq({
       method: 'POST',
       payload: JAN,
-      body: {
-        item_id: 'pr:34',
-        decision: 'APPROVE',
-        expected_head_sha: OTHER_SHA,
-        current_head_sha: CURRENT_SHA,
-      },
+      body: await decisionRequestBody(),
     });
     const res = makeRes();
-    await handleJanApproval(req, res, { getSession: getSessionFromReq });
+    let reads = 0;
+    await handleJanApproval(req, res, {
+      getSession: getSessionFromReq,
+      decisionSecret: DECISION_SECRET,
+      readCurrentHead: async () => {
+        reads += 1;
+        return { repo: RARE_EXCLUSIVE_TARGET_REPO, prNumber: 34, headSha: OTHER_SHA, baseSha: CURRENT_SHA };
+      },
+    });
+    assert.equal(reads, 1);
     assert.equal(res._status, 409);
     assert.equal(res._json.error, 'STALE_SHA');
+  });
+
+  it('rejects missing evidence, replayed capabilities, and malformed scopes', async () => {
+    const missingEvidence = makeReq({
+      method: 'POST',
+      payload: JAN,
+      body: { ...(await decisionRequestBody()), evidence_manifest: '' },
+    });
+    const missingEvidenceRes = makeRes();
+    await handleJanApproval(missingEvidence, missingEvidenceRes, {
+      getSession: getSessionFromReq,
+      decisionSecret: DECISION_SECRET,
+    });
+    assert.equal(missingEvidenceRes._json.error, 'EVIDENCE_MANIFEST_MISMATCH');
+
+    const invalidScope = makeReq({
+      method: 'POST',
+      payload: JAN,
+      body: await decisionRequestBody({ approval_scope: 'deploy' }),
+    });
+    const invalidScopeRes = makeRes();
+    await handleJanApproval(invalidScope, invalidScopeRes, {
+      getSession: getSessionFromReq,
+      decisionSecret: DECISION_SECRET,
+    });
+    assert.equal(invalidScopeRes._json.error, 'INVALID_APPROVAL_SCOPE');
   });
 
   it('allowlists GitHub writeback to the Rare & Exclusive repo only', async () => {

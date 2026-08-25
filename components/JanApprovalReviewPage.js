@@ -9,7 +9,13 @@ import {
   RareExclusiveIvoryHeader,
   rareExclusivePageShellStyle,
 } from './RareExclusiveIvoryShell.js';
-import { JAN_DECISION_COPY, JAN_DECISIONS } from '../lib/server/jan-approval-control.js';
+const JAN_DECISIONS = ['APPROVE', 'CHANGES', 'HOLD', 'REVIEW_FURTHER'];
+const JAN_DECISION_COPY = {
+  APPROVE: { button: 'Approve this version', meaning: 'This version matches what you want. We will record your yes against this exact version.' },
+  CHANGES: { button: 'Request changes', meaning: 'This is not ready. Tell the team the actionable implementation changes you need.' },
+  HOLD: { button: 'Hold for now', meaning: 'Pause for a governance or external dependency. Nothing moves forward.' },
+  REVIEW_FURTHER: { button: 'Ask AI to review further', meaning: 'Request a further review before deciding. Nothing will merge or release.' },
+};
 
 /**
  * @param {string} key
@@ -50,6 +56,8 @@ export default function JanApprovalReviewPage({
   const [error, setError] = useState(loadError || '');
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState(null);
+  const [rationale, setRationale] = useState('');
+  const [approvalScope, setApprovalScope] = useState('review-approval-only');
 
   const presented = payload?.presented || null;
   const reviewItems = presented?.review_items || [];
@@ -74,7 +82,7 @@ export default function JanApprovalReviewPage({
     if (!initialPayload) {
       refresh();
     }
-  }, [initialPayload, refresh]);
+  }, [refresh]);
 
   async function decide(item, decisionKey) {
     if (!canDecide || busy) return;
@@ -90,6 +98,10 @@ export default function JanApprovalReviewPage({
           item_id: item.id,
           decision: decisionKey,
           expected_head_sha: item.version_token,
+          evidence_manifest: payload?.evidence_manifest_by_item?.[item.id] || '',
+          approval_scope: approvalScope,
+          note: rationale,
+          decision_capability: payload?.decision_capability || '',
         }),
       });
       const json = await res.json();
@@ -238,6 +250,28 @@ export default function JanApprovalReviewPage({
                 </dd>
               </dl>
               <p style={{ fontSize: 12, color: T.stone, margin: '0 0 20px' }}>{item.version_label}</p>
+              <label style={{ display: 'block', fontSize: 14, fontWeight: 600, marginBottom: 8 }}>
+                Your reason
+                <textarea
+                  value={rationale}
+                  onChange={(event) => setRationale(event.target.value.slice(0, 500))}
+                  placeholder="Required for changes or a hold. Keep this focused."
+                  maxLength={500}
+                  rows={3}
+                  style={{ display: 'block', width: '100%', marginTop: 8, padding: 10, font: 'inherit' }}
+                />
+              </label>
+              <label style={{ display: 'block', fontSize: 14, fontWeight: 600, margin: '0 0 18px' }}>
+                Decision scope
+                <select
+                  value={approvalScope}
+                  onChange={(event) => setApprovalScope(event.target.value)}
+                  style={{ display: 'block', marginTop: 8, padding: 8, font: 'inherit' }}
+                >
+                  <option value="review-approval-only">Review approval only</option>
+                  <option value="merge-only">Merge-only recommendation (not merge authority)</option>
+                </select>
+              </label>
               {item.last_decision ? (
                 <p style={{ fontSize: 14, margin: '0 0 16px' }}>
                   Last recorded decision: {String(item.last_decision.decision)}
