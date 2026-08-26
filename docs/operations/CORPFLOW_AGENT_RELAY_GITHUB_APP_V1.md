@@ -165,6 +165,11 @@ The unique insert atomically elects one owner across serverless processes before
 GitHub POST. A losing request reads durable GitHub marker state and either returns
 the validated `replay` result or `RELAY_CLAIM_IN_PROGRESS`; it never posts.
 
+Replay marker reads include a one-minute pre-claim timestamp window because GitHub
+comment timestamps are second-granular while Postgres claims retain milliseconds.
+This prevents a same-second completed write from being incorrectly reported as
+in-progress; marker and provenance validation still determine replay acceptance.
+
 After a write, the relay reads the created comment, validates exact bot login and
 `performed_via_github_app.slug`, then marks the claim `confirmed`. On a network or
 GitHub ambiguity, it first marks the claim `ambiguous`, reads durable GitHub state,
