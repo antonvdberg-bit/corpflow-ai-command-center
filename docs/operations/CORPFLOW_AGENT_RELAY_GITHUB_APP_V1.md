@@ -126,3 +126,51 @@ change. If its GitHub search/read semantics cannot provide the required atomic
 duplicate guarantee, inspect already-approved durable CorpFlowAI persistence next;
 only then propose a new schema at the protected DB gate. No in-memory Set or Map is
 acceptable for Slice 2.
+
+## Phase 2 Slice 2 — one bounded durable comment write (#1093)
+
+Slice 2 adds exactly one write operation: `issue.add_comment`. It accepts target
+type `issue` (GitHub’s common issue/PR conversation target), one
+`payload.comment_body` Markdown field, and `requested_evidence: ["issue_comment"]`.
+The body is limited to **8 KiB UTF-8**, rejects control characters and caller-supplied
+Relay markers, and is wrapped in a fixed server-generated SHA-256 replay marker.
+
+### Dedicated factory-only durable claim
+
+The approved migration `20260826042000_agent_relay_claims` creates
+`agent_relay_claims`, a factory/control-plane-only table. It stores repository,
+target number, replay identity, request/correlation identity, a canonical SHA-256
+write fingerprint, fixed marker, and the minimal readback metadata (comment ID/URL,
+bot login, App slug). It stores no comment content or client data.
+
+Its unique key is:
+
+```text
+(repository, target_number, replay_identity)
+```
+
+The write fingerprint covers operation, repository, target type/number, and the
+normalized comment body (newlines normalized and outer whitespace trimmed). A
+collision may replay only when this fingerprint exactly matches. A different
+fingerprint fails closed as `RELAY_REPLAY_IDENTITY_MISMATCH`, without a GitHub POST
+and without returning the prior comment as a valid replay.
+
+Its database-enforced state machine is limited to:
+
+```text
+claimed | confirmed | ambiguous
+```
+
+The unique insert atomically elects one owner across serverless processes before any
+GitHub POST. A losing request reads durable GitHub marker state and either returns
+the validated `replay` result or `RELAY_CLAIM_IN_PROGRESS`; it never posts.
+
+After a write, the relay reads the created comment, validates exact bot login and
+`performed_via_github_app.slug`, then marks the claim `confirmed`. On a network or
+GitHub ambiguity, it first marks the claim `ambiguous`, reads durable GitHub state,
+and never blindly retries. If no marker is found, it remains safely unresolved rather
+than issuing another mutation.
+
+Rollback is one migration rollback (`DROP TABLE agent_relay_claims`) together with
+removing the `issue.add_comment` handler. No second database, infrastructure service,
+secret, environment value, or GitHub App permission is required.
