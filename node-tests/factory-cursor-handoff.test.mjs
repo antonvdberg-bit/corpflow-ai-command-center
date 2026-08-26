@@ -171,7 +171,7 @@ describe('factory cursor handoff decision logic (#913)', () => {
     assert.equal(decision.source_issue, null);
   });
 
-  it('does not select paused or operator-review work; respects verified WIP cap = 2', () => {
+  it('does not select paused or operator-review work; respects verified WIP cap = 3', () => {
     const paused = planCursorIssueClaims({
       readyIssues: [
         {
@@ -237,6 +237,14 @@ describe('factory cursor handoff decision logic (#913)', () => {
           labels: ['dispatch:cursor-claimed', 'status:in-progress'],
           comments: activatedComments(102, 'run-bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'),
         },
+        {
+          number: 103,
+          title: 'Live C',
+          body: 'docs',
+          state: 'open',
+          labels: ['dispatch:cursor-claimed', 'status:in-progress'],
+          comments: activatedComments(103, 'run-cccccccc-cccc-cccc-cccc-cccccccccccc'),
+        },
       ],
       trackedIssues: [
         {
@@ -254,6 +262,14 @@ describe('factory cursor handoff decision logic (#913)', () => {
           state: 'open',
           labels: ['dispatch:cursor-claimed', 'status:in-progress'],
           comments: activatedComments(102, 'run-bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'),
+        },
+        {
+          number: 103,
+          title: 'Live C',
+          body: 'docs',
+          state: 'open',
+          labels: ['dispatch:cursor-claimed', 'status:in-progress'],
+          comments: activatedComments(103, 'run-cccccccc-cccc-cccc-cccc-cccccccccccc'),
         },
       ],
     });

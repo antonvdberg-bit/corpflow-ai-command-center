@@ -63,23 +63,24 @@ function liveIssue(number, runId, extraLabels = []) {
 }
 
 describe('cursor WIP control v1 (#862)', () => {
-  it('1) two verified live runs => 2/2', () => {
+  it('1) three verified live runs => 3/3', () => {
     const wip = evaluateCursorWipCapacity({
       trackedIssues: [
         liveIssue(101, 'run-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
         liveIssue(102, 'run-bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'),
+        liveIssue(103, 'run-cccccccc-cccc-cccc-cccc-cccccccccccc'),
       ],
       readyIssues: [],
     });
-    assert.equal(wip.used, 2);
+    assert.equal(wip.used, 3);
     assert.equal(wip.availableSlots, 0);
     assert.equal(wip.capacityFull, true);
-    assert.match(wip.capacityPacket, /CURSOR CAPACITY: 2\/2 active/);
+    assert.match(wip.capacityPacket, /CURSOR CAPACITY: 3\/3 active/);
     assert.match(wip.capacityPacket, /run-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/);
     assert.match(wip.capacityPacket, /run-bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb/);
   });
 
-  it('2) one live run plus stale labels => 1/2', () => {
+  it('2) one live run plus stale labels => 1/3', () => {
     const wip = evaluateCursorWipCapacity({
       trackedIssues: [
         liveIssue(201, 'run-cccccccc-cccc-cccc-cccc-cccccccccccc'),
@@ -95,12 +96,12 @@ describe('cursor WIP control v1 (#862)', () => {
       readyIssues: [],
     });
     assert.equal(wip.used, 1);
-    assert.equal(wip.availableSlots, 1);
+    assert.equal(wip.availableSlots, 2);
     assert.equal(wip.reconciledCount, 1);
     assert.equal(wip.reconcileActions[0].issueNumber, 202);
   });
 
-  it('3) third ready item waits behind two real runs', () => {
+  it('3) fourth ready item waits behind three real runs', () => {
     const plan = planCursorIssueClaims({
       readyIssues: [
         {
@@ -113,14 +114,16 @@ describe('cursor WIP control v1 (#862)', () => {
       trackedIssues: [
         liveIssue(301, 'run-dddddddd-dddd-dddd-dddd-dddddddddddd'),
         liveIssue(302, 'run-eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'),
+        liveIssue(304, 'run-ffffffff-ffff-ffff-ffff-ffffffffffff'),
       ],
       claimedIssues: [
         liveIssue(301, 'run-dddddddd-dddd-dddd-dddd-dddddddddddd'),
         liveIssue(302, 'run-eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'),
+        liveIssue(304, 'run-ffffffff-ffff-ffff-ffff-ffffffffffff'),
       ],
     });
     assert.equal(plan.availableSlots, 0);
-    assert.equal(plan.verifiedActiveCount, 2);
+    assert.equal(plan.verifiedActiveCount, 3);
     assert.equal(plan.decisions[0].decision, 'discover_only');
     assert.equal(plan.decisions[0].eligibleToClaim, true);
     assert.match(String(plan.decisions[0].reason), /WIP cap reached/);
@@ -329,7 +332,7 @@ describe('cursor WIP control v1 (#862)', () => {
       readyIssues: [],
     });
     assert.equal(wip.used, 0);
-    assert.equal(wip.availableSlots, 2);
+    assert.equal(wip.availableSlots, 3);
     assert.ok(wip.reconciledCount >= 2);
   });
 
@@ -587,9 +590,9 @@ describe('cursor WIP claim status + generation boundary (#922)', () => {
       ],
     });
     assert.equal(wip.used, 0);
-    assert.equal(wip.availableSlots, 2);
+    assert.equal(wip.availableSlots, 3);
     assert.equal(wip.nextEligible, 881);
-    assert.equal(wip.maxSlots, 2);
+    assert.equal(wip.maxSlots, 3);
   });
 
   it('terminal gen2 claim with leftover execution labels consumes zero WIP and reconciles', () => {
@@ -774,11 +777,11 @@ describe('cursor WIP release at merge-ready (#976)', () => {
       readyIssues: [readyA, readyB],
     });
     assert.equal(plan.verifiedActiveCount, 0);
-    assert.equal(plan.availableSlots, 2);
+    assert.equal(plan.availableSlots, 3);
     assert.deepEqual(plan.claimIssueNumbers, [1976, 1977]);
     assert.equal(plan.activationTargetIssue, 1976);
     assert.deepEqual(plan.wipCapacity.reviewDecisionInventoryIssueNumbers, [1974, 1975]);
-    assert.match(plan.capacityPacket, /CURSOR CAPACITY: 0\/2 active/);
+    assert.match(plan.capacityPacket, /CURSOR CAPACITY: 0\/3 active/);
     assert.match(plan.capacityPacket, /Review\/decision inventory: #1974, #1975/);
   });
 
@@ -819,7 +822,7 @@ describe('cursor WIP release at merge-ready (#976)', () => {
       readyIssues: [eligibleReadyIssue(1802), eligibleReadyIssue(1803)],
     });
     assert.equal(waitingForPossibleRework.verifiedActiveCount, 0);
-    assert.equal(waitingForPossibleRework.availableSlots, 2);
+    assert.equal(waitingForPossibleRework.availableSlots, 3);
     assert.deepEqual(waitingForPossibleRework.claimIssueNumbers, [1802, 1803]);
     assert.ok(waitingForPossibleRework.wipCapacity.reviewDecisionInventoryIssueNumbers.includes(1801));
 
@@ -889,7 +892,7 @@ describe('cursor WIP release at merge-ready (#976)', () => {
       readyIssues: [eligibleReadyIssue(1804)],
     });
     assert.equal(continuationWip.used, 1);
-    assert.equal(continuationWip.availableSlots, 1);
+    assert.equal(continuationWip.availableSlots, 2);
     assert.equal(continuationWip.slots[0].issueNumber, 1801);
     assert.equal(continuationWip.slots[0].runId, CONTINUATION_801_NEW);
     assert.equal(inspectIssueWipState(continuation).isContinuation, true);
@@ -927,7 +930,7 @@ describe('cursor WIP release at merge-ready (#976)', () => {
       openPrCount: 2,
     });
     assert.equal(wip.used, 0);
-    assert.equal(wip.availableSlots, 2);
+    assert.equal(wip.availableSlots, 3);
     assert.equal(wip.openPrCountIgnored, true);
     assert.deepEqual(wip.reviewDecisionInventoryIssueNumbers, [1962, 1973]);
     assert.equal(wip.nextEligible, 1976);
