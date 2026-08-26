@@ -288,6 +288,30 @@ model AutomationEvent {
   @@map("automation_events")
 }
 
+/// Factory-only ownership record for the one bounded Agent Relay comment write.
+/// The unique key establishes cross-process ownership before any GitHub mutation.
+model AgentRelayClaim {
+  id             String   @id @default(cuid())
+  repository     String
+  targetNumber   Int      @map("target_number")
+  replayIdentity String   @map("replay_identity")
+  requestId      String   @map("request_id")
+  correlationId  String   @map("correlation_id")
+  operation      String   @default("issue.add_comment")
+  state          String   @default("claimed")
+  marker         String
+  commentId      String?  @map("comment_id")
+  commentUrl     String?  @map("comment_url")
+  botLogin       String?  @map("bot_login")
+  appSlug        String?  @map("app_slug")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@unique([repository, targetNumber, replayIdentity], name: "agent_relay_claims_target_replay")
+  @@index([state])
+  @@map("agent_relay_claims")
+}
+
 /// Curated playbooks for agents (integration patterns, runbooks).
 model AutomationPlaybook {
   id          String   @id @default(cuid())
