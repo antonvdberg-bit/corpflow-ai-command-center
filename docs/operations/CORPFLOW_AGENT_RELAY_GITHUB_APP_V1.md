@@ -1,6 +1,6 @@
 # CorpFlowAI Agent Relay — GitHub App identity v1
 
-**Status:** Phase 1 operator-setup ready after [#1086](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1086) is merged. No App has been created, installed, configured, or used by this repository.
+**Status:** Phase 1 identity is configured by Anton; [#1089](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1089) adds the one-time runner for the fixed test target. The runner must not be used before its authorized test-runtime availability is verified.
 **Environment:** `corpflow_test` when later enabled on the CorpFlowAI-hosted test spine. This is not client production.
 **Scope:** a server-side GitHub App identity for bounded evidence reads and durable Jan-decision comments only. It is not an agent queue or orchestration engine.
 
@@ -48,8 +48,9 @@ Never use `CMP_GITHUB_TOKEN`, `GH_WORKFLOW_TOKEN`, `GITHUB_TOKEN`, or a personal
 6. Create the App, generate one private key, and store its PEM directly in the approved secret manager. Do not put it in chat, a ticket, a PR, a browser, local `.env` committed file, or any model prompt.
 7. Choose **Install App** and install it only on **Selected repositories**: exactly the two repositories in the hard allowlist. Record the numeric installation ID.
 8. Add the six `CORPFLOW_AGENT_RELAY_*` values in the protected server-side environment. Do not enable `JAN_APPROVAL_MODE=live` yet.
-9. Run the future explicitly operator-authorized identity probe against a designated non-production test issue. It writes one harmless marker comment, reads it back, and requires the exact bot login plus `performed_via_github_app.slug` and name. Any mismatch is a failed setup, not a partial success.
-10. Only after the probe passes, set `JAN_APPROVAL_BRIDGE_GITHUB_LOGIN` to the same bot login and separately authorize `JAN_APPROVAL_MODE=live`. Verify a new live decision re-reads its comment and fails closed unless its App provenance and authenticated envelope both validate.
+9. Use `POST /api/factory/agent-relay/identity-probe` only after explicit authorization. It requires existing factory-master authentication and is hard-bound to `antonvdberg-bit/corpflow-ai-command-center#1088`; it accepts no repository, issue, body, URL, or mutation input. It first checks for an existing probe marker and refuses to add a second comment.
+10. The runner writes one harmless marker comment, reads it back, and requires the exact bot login plus `performed_via_github_app.slug` and non-empty name. Its response is sanitized to that evidence only. Any mismatch is a failed setup, not a partial success.
+11. Only after the probe passes, set `JAN_APPROVAL_BRIDGE_GITHUB_LOGIN` to the same bot login and separately authorize `JAN_APPROVAL_MODE=live`. Verify a new live decision re-reads its comment and fails closed unless its App provenance and authenticated envelope both validate.
 
 ## Jan bridge migration
 
