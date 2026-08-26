@@ -110,12 +110,13 @@ Evidence: `artifacts/jan-approval-mvp/`.
 
 ## 8. Exact next step for production hardening (not this packet)
 
-1. Set `JAN_APPROVAL_MODE=live` on the CorpFlowAI test spine **after** Anton approves that env change.
-2. Set `JAN_APPROVAL_BRIDGE_GITHUB_LOGIN` to the exact CorpFlowAI GitHub App/bot login that will write the bounded durable comments, after Anton approves that configuration change.
-3. Use a GitHub token scoped to issue comments on `antonvdberg-bit/rare-and-exclusive-collection` (existing factory GitHub token path — no new secret name required if `CMP_GITHUB_TOKEN` already covers that repo; otherwise a separately approved scoped token).
-3. Replace the synthetic open-PR fixture with live open PRs from that repository.
-4. Verify on `https://lux.corpflowai.com/rare-exclusive/review` (corpflow_test) that Jan can record a decision and the comment appears on the target PR.
-5. Do **not** treat that as client_production, and do **not** auto-merge.
+1. Complete the dedicated GitHub App checklist in `docs/operations/CORPFLOW_AGENT_RELAY_GITHUB_APP_V1.md`; this bridge does not use a personal access token or `github-actions[bot]`.
+2. Run the explicitly authorized harmless identity probe and require its exact bot/App provenance result.
+3. Set `JAN_APPROVAL_BRIDGE_GITHUB_LOGIN` to the exact proven CorpFlowAI GitHub App bot login, after Anton approves that configuration change.
+4. Set `JAN_APPROVAL_MODE=live` on the CorpFlowAI test spine only after the identity migration is proven.
+5. Replace the synthetic open-PR fixture with live open PRs from that repository.
+6. Verify on `https://lux.corpflowai.com/rare-exclusive/review` (corpflow_test) that Jan can record a decision and the comment appears on the target PR.
+7. Do **not** treat that as client_production, and do **not** auto-merge.
 
 This packet does **not** perform that env change or live write.
 
@@ -124,6 +125,7 @@ This packet does **not** perform that env change or live write.
 - `lib/server/jan-approval-control.js` — rules
 - `lib/server/jan-approval-api.js` — HTTP
 - `lib/server/jan-approval-github-bridge.js` — fixed allowlisted GitHub evidence/read and decision-write bridge
+- `lib/server/github-app-relay.js` — dedicated App JWT/token and identity-probe boundary
 - `pages/rare-exclusive/review.js` — page
 - `components/JanApprovalReviewPage.js` — UI
 - `node-tests/jan-approval-control.test.mjs` — tests

@@ -113,6 +113,46 @@ describe('Jan approval routed live integration', () => {
     assert.equal(trustedJanDecisionRecords([{ body: '### JAN DURABLE DECISION\\nDecision: APPROVE', user: { login: 'corpflow-bridge' } }], deps).length, 0);
   });
 
+  it('rejects cross-repository replay and relay impersonation even when a signature is otherwise valid', () => {
+    const key = crypto.createHmac('sha256', 'test-server-secret')
+      .update('corpflow.jan-approval-decision-envelope.v1')
+      .digest('hex');
+    const copied = signJanDecisionEnvelope({
+      repository: 'antonvdberg-bit/corpflow-ai-command-center',
+      targetNumber: 34,
+      targetSha: HEAD,
+      decision: 'APPROVE',
+      scope: 'review-approval-only',
+      reviewerIdentity: JAN.username,
+      timestamp: '2026-08-25T00:00:00.000Z',
+      evidenceHash: 'f'.repeat(64),
+      replayIdentity: 'cross-repo-nonce',
+    }, key);
+    const { body } = formatJanDurableDecisionComment({
+      decision: 'APPROVE', actorUsername: JAN.username, targetNumber: 34, baseSha: BASE, targetSha: HEAD,
+      evidenceManifest: '{}', evidenceHash: 'f'.repeat(64), approvalScope: 'review-approval-only',
+      sessionId: 'session', auditHash: 'audit', authenticatedEnvelope: copied,
+    });
+    const appConfig = {
+      CORPFLOW_AGENT_RELAY_GITHUB_APP_ID: '1',
+      CORPFLOW_AGENT_RELAY_GITHUB_APP_INSTALLATION_ID: '2',
+      CORPFLOW_AGENT_RELAY_GITHUB_APP_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----\\ninvalid\\n-----END PRIVATE KEY-----',
+      CORPFLOW_AGENT_RELAY_GITHUB_EXPECTED_BOT_LOGIN: 'corpflow-relay[bot]',
+      CORPFLOW_AGENT_RELAY_GITHUB_APP_SLUG: 'corpflow-relay',
+      CORPFLOW_AGENT_RELAY_GITHUB_REPOSITORY_ALLOWLIST: 'antonvdberg-bit/corpflow-ai-command-center,antonvdberg-bit/rare-and-exclusive-collection',
+    };
+    const relayComment = {
+      body,
+      user: { login: 'corpflow-relay[bot]' },
+      performed_via_github_app: { slug: 'corpflow-relay', name: 'CorpFlow Relay' },
+    };
+    const deps = { decisionSigningKey: 'test-server-secret', appConfig };
+    assert.equal(trustedJanDecisionRecords([relayComment], deps).length, 0);
+    assert.equal(trustedJanDecisionRecords([{ ...relayComment, user: { login: 'github-actions[bot]' } }], deps).length, 0);
+    assert.equal(trustedJanDecisionRecords([{ ...relayComment, user: { login: 'antonvdberg-bit' } }], deps).length, 0);
+    assert.equal(trustedJanDecisionRecords([{ ...relayComment, performed_via_github_app: { slug: 'wrong-app', name: 'Wrong' } }], deps).length, 0);
+  });
+
   it('serves live GitHub evidence through the routed handler and persists decisions across fresh state', async () => {
     resetJanApprovalSyntheticStoreForTests();
     const bridge = createLiveBridge();
