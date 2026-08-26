@@ -143,7 +143,8 @@ test('handler: Core proof can open one client summary', async () => {
     assert.equal(res.state.body.client.related_prospects[0].shared_detail_path, '/app/prospects/syn-772-lr-ada');
     assert.equal(res.state.body.client.commercial_references.existing_identity_path, '/admin/company-master');
     assert.equal(res.state.body.client.commercial_references.path, '/app/commercial');
-    assert.equal(res.state.body.client.delivery_references.existing_delivery_path, '/change');
+    assert.equal(res.state.body.client.delivery_references.existing_delivery_path, '/app/delivery');
+    assert.equal(res.state.body.client.delivery_references.tenant_change_path, '/change');
   } finally {
     process.env.NODE_ENV = prevNode;
     if (prevVercel == null) delete process.env.VERCEL_ENV;

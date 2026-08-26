@@ -35,7 +35,7 @@ Machine copy: `TENANT_ROUTE_NAV_MATRIX` in `lib/app/tenant-journey.js`.
 | nav: Home / Overview | **RETIRED** | Duplicated requests; leftover language |
 | nav: My Work | **RETIRED** | Operating Workspace concept |
 | nav: Documents / Reports / Support | **RETIRED** | Placeholders that treated `/change` as leftover |
-| `/app/core`, `/app/today`, `/app/prospects`, `/app/workbench`, `/app/pipeline`, `/app/queue`, `/app/clients` | **STAFF_ONLY_FAIL_CLOSED** | Tenant session 403 |
+| `/app/core`, `/app/today`, `/app/prospects`, `/app/workbench`, `/app/pipeline`, `/app/queue`, `/app/clients`, `/app/commercial`, `/app/delivery` | **STAFF_ONLY_FAIL_CLOSED** | Tenant session 403 |
 
 ## 2. Continuity contract
 
