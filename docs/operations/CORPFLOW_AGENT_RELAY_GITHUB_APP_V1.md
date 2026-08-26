@@ -232,3 +232,6 @@ session or `CORPFLOW_CRON_SECRET` / `CRON_SECRET` Bearer already accepted by
 Canonical behaviour, classification, skipped comment marker, and non-adoption
 list: `docs/operations/COMMERCIAL_LANE_WATCH_V1.md`.
 
+Post-merge live authenticated acceptance (#1113) is recorded in that doc § 8:
+`BLOCKED — existing authenticated caller unavailable; protected env/secrets change would be required`.
+

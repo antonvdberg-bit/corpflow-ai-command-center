@@ -1,6 +1,6 @@
 # Commercial Lane watch — Agent Relay evidence loop v1
 
-**Status:** Implemented in repo (#1111). Live controller use is the existing factory control-plane caller; this is not a client_production release.  
+**Status:** Implemented in repo (#1111 / merged PR #1112). Live authenticated Relay acceptance (#1113) is **BLOCKED** until an existing admin session or cron Bearer caller is available; this is not a client_production release.  
 **Environment:** `corpflow_test`  
 **Owner:** Cursor (implementation); Commercial Lane watch remains the orchestration owner.  
 **Parents:** #1093 Agent Relay Phase 2, #710 commercial controller, #1083 delivery-control repair.  
@@ -87,3 +87,64 @@ Rare & Exclusive issue **#35** is not mutated. `JAN_APPROVAL_MODE` remains synth
 node --test node-tests/commercial-lane-watch.test.mjs
 node --test node-tests/agent-relay-work.test.mjs
 ```
+
+## 8. Post-merge live Relay acceptance (#1113)
+
+**As of:** 2026-08-26  
+**Cursor agent:** `bc-296eb204-bfbf-422d-baea-f42ad5291fda`  
+**Handoff run:** `32953344022`
+
+**Final verdict:** `BLOCKED — existing authenticated caller unavailable; protected env/secrets change would be required`
+
+No implementation defect in #1112 was proven. No second watcher, Relay operation, credential, or orchestration path was added. GitHub issue comments could not be posted from this integration (`403 Resource not accessible by integration`); this section is the durable acceptance record.
+
+### Deployed runtime (non-secret)
+
+| Evidence | Result |
+|---|---|
+| Merge commit | `34cf53061d60af90104036f03719fe29cf568140` |
+| GitHub Production deployment | `6100405681` — `success` at 2026-08-26T08:53:53Z |
+| Vercel status | https://vercel.com/corpflowai/corpflow-ai-command-center/5mfRuDXMe8uaTMhoeyvD24ma1oZi |
+| `GET https://core.corpflowai.com/api/factory/health` | HTTP 200, `ok: true`, `status: healthy` |
+| Unauthenticated `POST /api/factory/commercial-lane/watch` on `core.corpflowai.com` | HTTP **401** `UNAUTHORIZED` (`corpflow.commercial_lane_watch.result.v1`; `protectedActionTriggered=false`; `activationAttempted=false`; `statusMutationAttempted=false`) |
+| Same POST on `lux.corpflowai.com` | HTTP **401** `UNAUTHORIZED` |
+| `GET` watch | HTTP **405** `METHOD_NOT_ALLOWED` |
+| Garbage Bearer | HTTP **401** `UNAUTHORIZED` |
+
+Those responses prove the merged handler is live. They are **not** authenticated Relay evidence.
+
+### Required live acceptance vs this run
+
+| # | Required | Result |
+|---|---|---|
+| 1 | Authenticated request reaches watch | **NOT MET** — no architecture-compliant caller in this Cursor cloud run |
+| 2 | Relay named reads | **NOT EXERCISED** |
+| 3 | Snapshot classification | **NOT RETURNED** |
+| 4 | Decision correct for GitHub state | **NOT RETURNED** from watch |
+| 5 | Synthetic `COMPLETED` fail-closed | Local `node --test node-tests/commercial-lane-watch.test.mjs` **9/9 PASS**. Live authenticated probe **not exercised**. Unit tests alone are insufficient. |
+| 6 | Replay: no dispatch / no GitHub mutation | Same local tests pass; live replay **not exercised** |
+| 7 | Protected operations rejected | Unauthenticated protected-field POST → 401 (auth before parse). Authenticated rejection **not exercised**. |
+| 8 | Rare & Exclusive #35 / `JAN_APPROVAL_MODE` | No write attempted. Watch never authenticated, so it did not call Relay. `JAN_APPROVAL_MODE` unset in this run; source default remains `synthetic`. |
+| 9 | Record SHA / item / classification / decision / Anton | Deployed SHA above. Source item inspected via GitHub (not Relay): issue **#1111** OPEN (`dispatch:operator-review`); PR **#1112** MERGED. Watch classification/decision: **n/a**. Anton required: **NO**. |
+
+### Why the authenticated caller is unavailable
+
+Existing auth boundary is only: factory **admin session** (`typ=admin`) or existing **`CORPFLOW_CRON_SECRET` / `CRON_SECRET` Bearer**.
+
+Observed in this run (names only, no values):
+
+- `CORPFLOW_CRON_SECRET`: UNSET
+- `CRON_SECRET`: UNSET
+- No `.env` / admin cookie / session token
+- Browser `GET https://core.corpflowai.com/api/auth/me` → `{"ok":true,"logged_in":false}`
+- No GitHub Actions workflow already targets `/api/factory/commercial-lane/watch`
+- n8n has no Commercial Lane watch workflow
+- Slice 3 used an existing operator browser session; this run does not have one
+
+No credential path was invented. No env/secrets/auth configuration was changed.
+
+### GitHub-native observation only (not watch/Relay evidence)
+
+If the live watch had run against #1111 + PR #1112, merged PR state would be expected to classify **`TERMINAL` / `hold` / `do_not_reselect`**. That expectation is **not** a live acceptance pass.
+
+**Anton action:** NONE. Unblocking later would be a separate protected env/secrets grant or an existing admin-session probe; this packet stops rather than requesting that.
