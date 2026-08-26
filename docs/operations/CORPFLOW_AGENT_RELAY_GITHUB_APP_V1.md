@@ -220,3 +220,15 @@ Delivery Reality Audit:
 - Client-facing flow usable: n/a — factory control-plane acceptance
 - Final verdict: COMPLETE — Slice 3 live acceptance; independent final review still governs issue closure.
 ```
+
+## Commercial Lane watch consumer (#1111)
+
+Commercial Lane watch consumes the existing Phase 2 work contract. It does **not**
+add Relay operations. The controller entrypoint is
+`POST /api/factory/commercial-lane/watch`, authenticated with the same admin
+session or `CORPFLOW_CRON_SECRET` / `CRON_SECRET` Bearer already accepted by
+`/api/factory/agent-relay/work`.
+
+Canonical behaviour, classification, skipped comment marker, and non-adoption
+list: `docs/operations/COMMERCIAL_LANE_WATCH_V1.md`.
+
