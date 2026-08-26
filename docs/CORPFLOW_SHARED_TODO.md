@@ -117,6 +117,7 @@ Jan’s product/release decision page (not merge authority): **`docs/operations/
 ## P1 — Execution off laptop (see `docs/EXECUTION_BRAIN_VS_HANDS.md`)
 
 - **Factory whole-queue reconcile (#1023 / #1041):** `.github/workflows/factory-queue-reconcile.yml` every 10 minutes scans GitHub ready work and, only when eligible + WIP permits, `workflow_call`s the existing **CorpFlowAI Cursor Factory Handoff** (`wake_reason=scheduled_reconciliation`, scanned `target_issue`). Handoff accepts the inherited caller `event_name` (`schedule`) via `inputs.wake_reason`. Empty scans stay silent. Canonical: **`docs/operations/CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1.md`**. Not a second dispatcher.
+- **Commercial Lane watch Relay evidence (#1111):** existing factory control-plane caller `POST /api/factory/commercial-lane/watch` consumes Agent Relay Phase 2 reads for controller classification. Does **not** wrap Handoff, Queue Reconcile, or GitHub Actions native checks. Canonical: **`docs/operations/COMMERCIAL_LANE_WATCH_V1.md`**.
 - Scheduled **GitHub Action** `.github/workflows/factory-health-ping.yml` (Mondays UTC).
 - Set GitHub repo secret `**CORPFLOW_FACTORY_HEALTH_URL`** = **full** health URL, e.g. `https://corpflowai.com/api/factory/health`, so the ping hits prod.
   - **Vercel (Technical Lead):** you may set the **same string** in `CORPFLOW_FACTORY_HEALTH_URL` / `FACTORY_HEALTH_URL` — the observer accepts **origin** or **full** `/api/factory/health` (no double path). See `docs/VERCEL_DEPLOYMENT.md`.

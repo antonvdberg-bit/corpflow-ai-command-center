@@ -174,6 +174,8 @@ describe('CorpFlowAI Agent Relay Phase 2 Slice 1 work contract', () => {
     assert.equal(result.body.policyAccepted, true);
     assert.equal(result.body.protectedActionTriggered, false);
     assert.equal(result.body.evidence.pullRequest.headSha, SHA);
+    assert.equal(result.body.evidence.pullRequest.merged, false);
+    assert.equal(result.body.evidence.pullRequest.mergeable, null);
     assert.doesNotMatch(JSON.stringify(result.body), /installation-token|BEGIN PRIVATE KEY|Authorization/i);
   });
 
