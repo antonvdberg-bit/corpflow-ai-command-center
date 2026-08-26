@@ -139,15 +139,21 @@ Relay markers, and is wrapped in a fixed server-generated SHA-256 replay marker.
 
 The approved migration `20260826042000_agent_relay_claims` creates
 `agent_relay_claims`, a factory/control-plane-only table. It stores repository,
-target number, replay identity, request/correlation identity, fixed marker, the
-minimal readback metadata (comment ID/URL, bot login, App slug), and no comment
-content or client data.
+target number, replay identity, request/correlation identity, a canonical SHA-256
+write fingerprint, fixed marker, and the minimal readback metadata (comment ID/URL,
+bot login, App slug). It stores no comment content or client data.
 
 Its unique key is:
 
 ```text
 (repository, target_number, replay_identity)
 ```
+
+The write fingerprint covers operation, repository, target type/number, and the
+normalized comment body (newlines normalized and outer whitespace trimmed). A
+collision may replay only when this fingerprint exactly matches. A different
+fingerprint fails closed as `RELAY_REPLAY_IDENTITY_MISMATCH`, without a GitHub POST
+and without returning the prior comment as a valid replay.
 
 Its database-enforced state machine is limited to:
 

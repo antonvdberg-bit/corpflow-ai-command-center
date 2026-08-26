@@ -8,6 +8,7 @@ CREATE TABLE "agent_relay_claims" (
     "request_id" TEXT NOT NULL,
     "correlation_id" TEXT NOT NULL,
     "operation" TEXT NOT NULL DEFAULT 'issue.add_comment',
+    "write_fingerprint" TEXT NOT NULL,
     "state" TEXT NOT NULL DEFAULT 'claimed',
     "marker" TEXT NOT NULL,
     "comment_id" TEXT,

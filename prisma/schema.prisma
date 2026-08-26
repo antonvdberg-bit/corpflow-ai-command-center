@@ -298,6 +298,7 @@ model AgentRelayClaim {
   requestId      String   @map("request_id")
   correlationId  String   @map("correlation_id")
   operation      String   @default("issue.add_comment")
+  writeFingerprint String @map("write_fingerprint")
   state          String   @default("claimed")
   marker         String
   commentId      String?  @map("comment_id")

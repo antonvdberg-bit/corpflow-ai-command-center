@@ -290,6 +290,15 @@ describe('CorpFlowAI Agent Relay Phase 2 Slice 1 work contract', () => {
     assert.equal(replay.body.evidence.comment.commentId, '1');
     assert.equal(comments.length, 1);
     assert.doesNotMatch(JSON.stringify(replay.body), /comment-installation-token|BEGIN PRIVATE KEY|Authorization/i);
+
+    const mismatch = await executeAgentRelayWork({
+      ...input,
+      payload: { comment_body: 'A materially different comment.' },
+    }, deps);
+    assert.equal(mismatch.status, 409);
+    assert.equal(mismatch.body.error, 'RELAY_REPLAY_IDENTITY_MISMATCH');
+    assert.equal(mismatch.body.evidence, undefined);
+    assert.equal(comments.length, 1);
   });
 
   it('serializes concurrent same-replay callers with the unique claim and never creates a second comment', async () => {
