@@ -5,6 +5,7 @@ import { CORE_NAV_ITEMS, TENANT_NAV_ITEMS } from '../lib/app/constants.js';
 import {
   ACTION_QUEUE_PATH,
   CLIENTS_PATH,
+  DELIVERY_PATH,
   OPERATING_WORKSPACE_LABEL,
   PROSPECT_OPERATIONS_PATH,
   PROSPECT_PIPELINE_PATH,
@@ -17,6 +18,7 @@ import {
   isActionQueuePath,
   isClientSharedDetailPath,
   isClientsPath,
+  isDeliveryPath,
   isProspectOperationsPath,
   isProspectPipelinePath,
   isProspectSharedDetailPath,
@@ -24,18 +26,21 @@ import {
   isTodayMyWorkPath,
   navIncludesActionQueue,
   navIncludesClients,
+  navIncludesDelivery,
   navIncludesProspectOperations,
   navIncludesProspectPipeline,
   navIncludesProspectWorkbench,
   navIncludesTodayMyWork,
   operatingNavIncludesActionQueue,
   operatingNavIncludesClients,
+  operatingNavIncludesDelivery,
   operatingNavIncludesProspectOperations,
   operatingNavIncludesProspectPipeline,
   operatingNavIncludesProspectWorkbench,
   operatingNavIncludesTodayMyWork,
   tenantNavOmitsActionQueue,
   tenantNavOmitsClients,
+  tenantNavOmitsDelivery,
   tenantNavOmitsProspectOperations,
   tenantNavOmitsProspectPipeline,
   tenantNavOmitsProspectWorkbench,
@@ -187,6 +192,24 @@ describe('workspace-context — Clients summary boundary', () => {
   });
 });
 
+describe('workspace-context — Delivery summary boundary', () => {
+  it('recognises the Delivery summary route', () => {
+    assert.equal(isDeliveryPath('/app/delivery'), true);
+    assert.equal(isDeliveryPath('/api/app/delivery'), true);
+    assert.equal(isDeliveryPath('/app/clients'), false);
+    assert.equal(DELIVERY_PATH, '/app/delivery');
+  });
+
+  it('includes Delivery on Operating Workspace nav and omits it from Tenant nav', () => {
+    assert.equal(operatingNavIncludesDelivery(), true);
+    assert.equal(tenantNavOmitsDelivery(), true);
+    assert.equal(navIncludesDelivery(CORE_NAV_ITEMS), true);
+    assert.equal(navIncludesDelivery(TENANT_NAV_ITEMS), false);
+    const delivery = CORE_NAV_ITEMS.find((item) => item.id === 'delivery');
+    assert.equal(delivery?.href, '/app/delivery');
+  });
+});
+
 describe('workspace-context — surface matrix', () => {
   it('classifies required #772 surfaces', () => {
     assert.equal(classifyWorkspaceSurface('/app/core')?.disposition, 'CANONICAL');
@@ -197,6 +220,7 @@ describe('workspace-context — surface matrix', () => {
     assert.equal(classifyWorkspaceSurface('/app/workbench')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/app/queue')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/app/clients')?.disposition, 'CANONICAL');
+    assert.equal(classifyWorkspaceSurface('/app/delivery')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/app/clients/cmp_ada_spa_synthetic')?.path, '/app/clients/[id]');
     assert.equal(classifyWorkspaceSurface('/app/prospects/syn-772-lr-ada')?.path, '/app/prospects/[id]');
     assert.equal(classifyWorkspaceSurface('/admin/rapid-delivery')?.disposition, 'MIGRATE');

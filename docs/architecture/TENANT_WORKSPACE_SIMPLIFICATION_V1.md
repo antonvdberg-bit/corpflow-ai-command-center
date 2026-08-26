@@ -35,7 +35,7 @@ Machine copy: `TENANT_WORKSPACE_ROUTE_MATRIX` in `lib/app/tenant-workspace.js`.
 | nav: Documents / Reports / Support | **RETIRED** | #1073; placeholders |
 | chrome: Choose workspace | **RETIRED** | Hidden on Tenant chrome |
 | `/app` | **REDIRECT** | Tenant session → `/app/tenant`; staff still use chooser |
-| `/app/core`, `/app/today`, `/app/prospects`, `/app/workbench`, `/app/pipeline`, `/app/queue`, `/app/clients` | **STAFF_ONLY_FAIL_CLOSED** | Tenant session 403 |
+| `/app/core`, `/app/today`, `/app/prospects`, `/app/workbench`, `/app/pipeline`, `/app/queue`, `/app/clients`, `/app/delivery` | **STAFF_ONLY_FAIL_CLOSED** | Tenant session 403 |
 
 ## 2. Explicit non-actions
 

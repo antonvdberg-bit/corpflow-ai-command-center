@@ -220,8 +220,11 @@ export function ClientSummaryPanel({ client, proofWanted }) {
         <a className="cf-app-btn" href="/app/pipeline">
           Pipeline
         </a>
-        <a className="cf-app-btn" href={String(delivery.existing_delivery_path || '/change')}>
-          Delivery / Change
+        <a className="cf-app-btn" href={String(delivery.existing_delivery_path || '/app/delivery')}>
+          Delivery
+        </a>
+        <a className="cf-app-btn" href={String(delivery.tenant_change_path || '/change')}>
+          Change
         </a>
       </div>
       <p className="cf-app-muted" data-testid="clients-later-slices">
