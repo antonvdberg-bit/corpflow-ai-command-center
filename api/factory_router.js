@@ -1230,7 +1230,7 @@ export default async function handler(req, res) {
     return janApprovalHandler(req, res);
   }
   if (pathSeg === 'factory/agent-relay/work') {
-    return agentRelayWorkHandler(req, res, { prisma });
+    return agentRelayWorkHandler(req, res);
   }
   if (pathSeg === 'factory/research/fetch') {
     return factoryResearchFetchHandler(req, res);
