@@ -62,7 +62,7 @@ It does **not** write live Postgres. It does **not** submit or send. It does **n
 | Customer | `Customer` | `CF1018 Synthetic Sales Lifecycle Ltd` | enabled | WP1/WP2 pointer `qualification_json.erpnext.customer` |
 | Contact | `Contact` | `Lee Synthetic` | — | WP2 |
 | Address | `Address` | `CF1018 Synthetic Sales Lifecycle Ltd-Billing` | Billing | WP2 |
-| Offer | `Quotation` | filled by live apply | **Draft** `docstatus=0` | `corpflow.selling_q2c.v1:lead=cf1018-synthetic-sales-lifecycle` |
+| Offer | `Quotation` | `SAL-QTN-2026-00005` | **Draft** `docstatus=0` | `corpflow.selling_q2c.v1:lead=cf1018-synthetic-sales-lifecycle` |
 | Terms | `Terms and Conditions` | `CF882 CorpFlowAI Commercial Terms` | — | reused #882 |
 | Item / price | `Item` / `Item Price` | `CF-RD-LANDING-RESCUE` @ MUR 45,000 on `Standard Selling` | — | reused #881 |
 | Pro-forma / SI (mapped, not posted) | `Sales Invoice` | `ACC-SINV-2026-00001` (MUR #882 draft) | **Draft** `docstatus=0` | #714 `proposal.version` may point here later |
@@ -134,11 +134,25 @@ Manual payment evidence is the existing #714 record (`docs/revenue/templates/PAY
 
 ---
 
-## 7. Live proof
+## 7. Live proof (2026-08-26 UTC)
 
-Filled by `node scripts/erpnext/apply-selling-quote-to-cash.mjs`. Artifact: `artifacts/erpnext/selling-quote-to-cash-1056/`.
+Ran as `integrations@corpflowai.com` via `node scripts/erpnext/apply-selling-quote-to-cash.mjs` at `2026-08-26T04:11:21Z`. Secret values not printed. Postgres not written. No Sales Invoice created. No Payment Entry.
 
-Secret values are not printed. Postgres is not written. `MASTER_ADMIN_KEY` must not be used as ERPNext auth.
+| Check | Result |
+|-------|--------|
+| Auth | HTTP 200, `integrations@corpflowai.com` |
+| Company identity | Tax ID `28466939`, Company No `C25228280`, MUR, `finance@corpflowai.com` |
+| Upstream WP2 | Lead `CRM-LEAD-2026-00009`, Opportunity `CRM-OPP-2026-00003`, Customer `CF1018 Synthetic Sales Lifecycle Ltd` |
+| First run | **CREATE** Quotation `SAL-QTN-2026-00005` |
+| Second run / replay | **UPDATE** same Quotation (`created_on_replay=false`) |
+| Duplicate count | **1** Quotation |
+| GET read-back | MUR 45,000, conversion_rate 1, `CF-RD-LANDING-RESCUE`, Standard Selling, terms `CF882 CorpFlowAI Commercial Terms`, valid till 2026-09-09, taxes none, opportunity `CRM-OPP-2026-00003`, `docstatus=0` Draft, TEST-ONLY title |
+| PDF | `Quotation Standard`, 36,114 bytes, `%PDF-1.4`, sha256 prefix `299ad3c9d8c4582a` |
+| #882 reuse | MUR QTN `SAL-QTN-2026-00003` + SI `ACC-SINV-2026-00001`; USD QTN `SAL-QTN-2026-00001` + SI `ACC-SINV-2026-00002` (47.15) all still Draft |
+| Proceed Approved | Invoice `ACC-SINV-2026-00001` does **not** set `financially_approved`; blockers include acceptance, payment evidence, and named approver |
+| Artifact | `artifacts/erpnext/selling-quote-to-cash-1056/apply-log.json` |
+
+`MASTER_ADMIN_KEY` was **ABSENT**. ERPNext secrets present by **name** only.
 
 ---
 
@@ -157,7 +171,7 @@ Delivery Reality Audit:
 - Production deployment ID: n/a — ERPNext sandbox/test write; no Vercel app surface
 - Commit deployed: n/a until merge
 - Live URLs tested: hosted ERPNext Frappe REST (URL not recorded)
-- Expected vs actual result: see apply-log.json after live apply
+- Expected vs actual result: `SAL-QTN-2026-00005` CREATE then UPDATE; MUR 45,000 draft; PDF 36,114 bytes; SI posting blocked by #1055
 - Client-facing flow usable: NO — synthetic drafts only; no external send
 - Final verdict: PARTIAL — selling quotation proven; quote-to-cash posting blocked by #1055
 ```
