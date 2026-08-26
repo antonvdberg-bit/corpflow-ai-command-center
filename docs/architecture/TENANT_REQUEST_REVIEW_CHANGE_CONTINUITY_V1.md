@@ -1,9 +1,9 @@
 # Tenant request / review / change continuity v1
 
-**Issue:** [#1073](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1073)  
-**Parent:** [#772](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/772)  
-**Related:** [#884](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/884) / merged PR [#884](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/884) expose-for-review · [#1006](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1006) Tenant Workspace simplification (separate packet) · `/change`  
-**Environment:** `corpflow_test` after merge/deploy. This packet does not authorize `client_production`.  
+**Issue:** [#1073](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1073)
+**Parent:** [#772](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/772)
+**Related:** [#884](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/884) / merged PR [#884](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/884) expose-for-review · [#1006](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1006) Tenant Workspace simplification (chooser redirect + hide Operating Workspace chrome) · `/change`
+**Environment:** `corpflow_test` after merge/deploy. This packet does not authorize `client_production`.
 **No schema. No env/secrets. No deploy. No external send. No second ticket/request model.**
 
 <!-- TENANT_REQUEST_REVIEW_CHANGE_CONTINUITY_V1 -->
