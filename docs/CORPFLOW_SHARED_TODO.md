@@ -36,6 +36,10 @@ Canonical operator view for genuine Anton decisions: **`docs/operations/ANTON_DE
 
 Jan’s product/release decision page (not merge authority): **`docs/operations/JAN_APPROVAL_CONTROL_SURFACE_V1.md`**. Local/test at `/rare-exclusive/review`. Four decisions only. SHA-bound. Issue #35 stays a separate release blocker. No production deploy in the MVP.
 
+### Rare & Exclusive #35 pre-release blocker (#1094)
+
+Factory Handoff 2026-08-26 **stopped** before any product PR: Cursor Cloud can see Command Center only, not private `antonvdberg-bit/rare-and-exclusive-collection`. Evidence: `artifacts/rare-exclusive-issue-35/1094-DECISION-PACKET.md`. Remaining protected action is repo-admin / environment access (clone + PR), not merge, deploy, send, or Issue #35 clearance.
+
 ---
 
 ## Partner charter — breathtaking client experience (technical)
