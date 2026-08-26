@@ -21,7 +21,7 @@ This packet is factory evidence only. It is **not** a Rare & Exclusive product c
 | Focused tests | n/a — no product code changed; raw R&E verification log inaccessible |
 | Full test/build | Command Center docs-only packet; product test/build in R&E **not run** (repo inaccessible) |
 | Corrected evidence / test count | **NOT CORRECTED** — raw verification log not available to this identity |
-| Branch / PR / head SHA | Command Center factory PR on this branch (see PR). **No** R&E branch/PR. |
+| Branch / PR / head SHA | Command Center PR [#1096](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1096) on `cursor/factory-handoff-issue-1094-9ba4`. **No** R&E branch/PR. |
 | Exact remaining protected action | Install the Cursor GitHub App on `antonvdberg-bit/rare-and-exclusive-collection` **and** add that private repository to this Cloud Agent environment with clone + pull-request permissions. Repo-admin / environment-access change. Does **not** authorize merge, deploy, send, secrets rotation, or Issue #35 clearance. |
 | Final verdict | **BLOCKED — Cursor Cloud has no clone/PR access to `antonvdberg-bit/rare-and-exclusive-collection`** |
 
