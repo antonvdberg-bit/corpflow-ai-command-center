@@ -68,8 +68,8 @@ Do **not** treat Vercel “Production” or a CorpFlowAI-hosted URL as `client_p
 | 1 | Environment and platform baseline | **PARTIAL** | Three ERPNext surfaces are documented. Versions are known. Security/backup/DR are **not** proven. Which surface is the future system of record is still a decision. |
 | 2 | Company foundation | **PARTIAL** | Legal identity, MUR company currency, and letterhead read-back exist on hosted test. Chart of Accounts, tax, fiscal year, and production naming series wait on the accountant / Anton. |
 | 3 | Identity, access, segregation of duties | **PARTIAL** | `integrations@corpflowai.com` works and is **not** System Manager (#1019). JML runbook exists. 2FA and Administrator inventory remain unread (desk). `#899` `MASTER_ADMIN_KEY` is **absent** on 2026-08-20 Factory wakes (`JE-2026-08-20-2`). |
-| 4 | Master data | **PARTIAL** | Synthetic Customer/Contact/Address, Items/prices, and a website Project Template are proven. Suppliers, import rules, and real-client masters are not. |
-| 5 | Business process configuration | **PARTIAL** | Lead → Opportunity → Customer, draft Quotation/Invoice, Project/Task/Timesheet, and Issue are proven on hosted test. Nothing is submitted or sent. Buying/AP and workflows are not started. |
+| 4 | Master data | **PARTIAL** | Synthetic Customer/Contact/Address, Items/prices, a website Project Template, and #1098 synthetic purchase Item are proven. Supplier CREATE is 403; real-client masters are not. |
+| 5 | Business process configuration | **PARTIAL** | Lead → Opportunity → Customer, draft Quotation/Invoice, Project/Task/Timesheet, and Issue are proven on hosted test. Nothing is submitted or sent. #1098 mapped Buying/AP (PO **DEFER**); PI submit and workflows are not started. |
 | 6 | CorpFlowAI integration / reconciliation | **PARTIAL** | Policy and a mapping-only bridge exist. `#918` matrix is incomplete. No automated sync. CorpFlowAI CRM (`#701`) still owns the daily prospect pipeline. |
 | 7 | Data migration and cutover | **NOT STARTED** | Explicitly unauthorized until accountant guidance and a separate Anton approval. |
 | 8 | User acceptance / operational readiness | **NOT STARTED** | Synthetic proofs are not role-based UAT, training, or a restore drill of the vendor-hosted site. |
@@ -95,7 +95,7 @@ Ranked by business / revenue / control impact. Prestige is first so the programm
 | 6 | Client-facing quotation PDF is not yet the professional standard | Revenue / brand | **PARTIAL** — standard PDFs exist; branded Print Format missing | Design/test Print Format on hosted test; do not send | Cursor then Anton visual accept | **NO** until send |
 | 7 | `#918` source-of-truth matrix incomplete; no sync | Architecture | **PARTIAL** — bridge mapping only | Docs matrix for remaining CorpFlowAI stores; no automated write | Cursor | **NO** for the matrix |
 | 8 | Future system-of-record host is undecided (vendor-hosted v16 vs box sandbox/shell) | Control | **REQUIRES DECISION** | Anton names which ERPNext site will hold real books | Anton | **YES** if public DNS / exposure / paid hosting change |
-| 9 | Buying / AP / supplier process not started | Phase 1 order item 4 | **NOT STARTED** | Docs-only supplier/AP design; AI still cannot approve suppliers | Cursor | **NO** for design; **YES** to create real suppliers |
+| 9 | Buying / AP / supplier process not started | Phase 1 order item 4 | **PARTIAL** — #1098 mapped standard path; synthetic Item proven; Supplier CREATE 403; PI submit waits on #1055 | Continue accountant pack; Anton Role grant for Supplier create; AI still cannot approve suppliers | Cursor / Anton / accountant | **NO** for design; **YES** to create real suppliers or submit PI |
 | 10 | `#954` registers + internal ERPNext programme Project missing | Programme control | **NOT STARTED** | Execute `#966` only; do not reopen strategy | Cursor | **NO** for standard internal Project/Tasks |
 
 ### 2.3 Blockers that genuinely require Anton
@@ -129,7 +129,7 @@ Ordinary reversible work. Stop at the exact protected action.
 2. **`#966` governance finish** — `DECISION_REGISTER.md`, `IMPLEMENTATION_EVIDENCE_INDEX.md` (link here; do not rewrite this baseline), `RISK_REGISTER.md`, `CONTROL_REGISTER.md`, plus a standard internal ERPNext Project/Tasks.  
 3. **`#918` classification matrix** — docs only; no sync, no second database.  
 4. **Quotation Print Format / letterhead quality** on hosted test — no send.  
-5. **Buying / AP design notes** — no real supplier create.  
+5. **Buying / AP design notes** — #1098 landed the operating path. No real supplier create; no PI submit.  
 6. **Prestige pack refinement** — no send, no real Prestige Customer.  
 7. **Issue hygiene recommendations** in §2.7 — Anton closes; agents stop expanding the stale ones.
 
@@ -142,7 +142,7 @@ Approved order (Strategy v2 §8). This baseline does **not** change that order.
 | 1 | Quotation / Selling | **PARTIAL** — `#882` READY for synthetic drafts; `#919` pack ready for Anton review; branded PDF and send remain | **Keep moving.** Do not block on `#959` / `#956` / accountant. |
 | 2 | Company & Accounting Foundation | **PARTIAL** — identity live on hosted test; CoA/tax/cutover blocked | Accountant pack already written; do not invent tax/CoA. |
 | 3 | Customers / CRM | **PARTIAL** — ERPNext Client Master READY (synthetic); daily prospect CRM is still Postgres `#701` | Reconcile later via `#918`; do not build a second CRM. |
-| 4 | Buying / AP | **NOT STARTED** | After quotation fast lane; AI cannot approve suppliers. |
+| 4 | Buying / AP | **PARTIAL** — #1098 readiness packet; PO **DEFER** | After quotation fast lane; AI cannot approve suppliers; PI submit waits on #1055. |
 | 5 | Projects | **PARTIAL** — `#920` template/project/tasks/timesheet proven synthetic | Reuse for Prestige; `/change` stays execution. |
 | 6 | Bank / Reconciliation | **PARTIAL** — sandbox Phase C arithmetic proven 2026-06; hosted-test payment not submitted; real bank CSV needs Anton | Provider-neutral until a gateway is chosen. |
 | 7 | Support / Help Desk | **PARTIAL** — synthetic Issue `#920`; `/change` remains the execution surface | Expand only when useful. |
@@ -225,7 +225,7 @@ Each row is one material `#953` Phase 0–10 requirement.
 | P2-5 | Chart of Accounts | **REQUIRES DECISION** | Accountant pack written; HB-2 open | Pack proven; sign-off missing | Written accountant CoA answer | P0 | Send pack; do not invent CoA | Accountant | YES |
 | P2-6 | Cost centres / dimensions | **NOT STARTED** | Not required by current volume | Correctly deferred | None until a real need | deferred | Do not implement for completeness | n/a | NO |
 | P2-7 | Taxes | **REQUIRES DECISION** | HB-3; public pages say VAT pending | Proven as *pending* | Accountant VAT posture | P0 | Same pack §5 / §10 | Accountant | YES |
-| P2-8 | Default AR / AP accounts | **PARTIAL** | `Debtors USD - CFAI` used on `#882` USD draft | AR partial; AP unused | AP defaults when Buying starts | P1 | Leave until Buying | Cursor | YES to change GL defaults |
+| P2-8 | Default AR / AP accounts | **PARTIAL** | `Debtors USD - CFAI` used on `#882` USD draft; `#1098` read-back `Creditors - CFAI` / `Cost of Goods Sold - CFAI` | AR partial; AP skeleton unused for posting | Accountant must confirm payable + opex accounts (#1055) | P1 | Do not submit PI on skeleton defaults | Accountant | YES to change GL defaults |
 | P2-9 | Naming series | **NOT STARTED** | Current-state audit: `CFLR-QUO-*` missing | Proven missing | Decide series after document-quality session | P1 | Docs proposal only | Cursor | YES to change live series |
 | P2-10 | System / company defaults | **PARTIAL** | Selling Settings inspected in `#880` | Partial | Payment Terms templates 403; tax category empty | P1 | `#882` leftover / accountant | Cursor | YES for accounting defaults |
 
@@ -248,7 +248,7 @@ Each row is one material `#953` Phase 0–10 requirement.
 | ID | Requirement | Status | Evidence | Proven vs assumed | Remaining gap | Priority | Next smallest action | Owner | Protected? |
 |----|-------------|--------|----------|-------------------|---------------|----------|----------------------|-------|------------|
 | P4-1 | Customers / Contacts / Addresses | **DONE** (synthetic) | `#880`, `#920` | Proven synthetic | Real Prestige / paying clients | P0 | Create real Customer only with Anton | Anton | YES — real client |
-| P4-2 | Suppliers | **NOT STARTED** | Vision: AI cannot approve | — | Supplier onboarding design | P1 | Docs; no live supplier | Cursor | YES to approve/create real supplier |
+| P4-2 | Suppliers | **PARTIAL** | #1098: LIST HTTP 200 empty; CREATE HTTP 403; rules + runbook landed | Synthetic name planned; not created | Anton Role Permissions Manager grant for Supplier create | P1 | Grant then create CF1098 synthetic only | Anton / Cursor | YES to approve/create real supplier |
 | P4-3 | Items / groups / UOM | **DONE** | `#881` | Proven | Extra SKUs only when a real offer needs them | P2 | Do not clone USD 150 as MUR | n/a | NO |
 | P4-4 | Price lists / Item Prices | **DONE** | `#881` generation 4 | Proven | Prestige MUR 285,000 is **not** an Item Price (correct) | P2 | Quote-time rate for custom projects | n/a | NO |
 | P4-5 | Projects / templates / service masters | **DONE** (synthetic) | `#920` 12-phase template | Proven | Real Prestige project after accepted quote | P1 | Reuse template; do not custom-DocType | Cursor | YES for real client project |
@@ -263,7 +263,7 @@ Each row is one material `#953` Phase 0–10 requirement.
 | P5-2 | Quotation → acceptance → invoice → payment evidence | **PARTIAL** | `#882` drafts; sandbox Phase C paid SI (2026-06, different site) | Hosted-test drafts proven; hosted-test payment **not** proven | Submit/payment only after Anton + bank clearance | P0 | Keep drafts; Prestige uses Quotation first | Anton | YES — submit/payment |
 | P5-3 | Project → Task → Timesheet → billing | **PARTIAL** | `#920` P/T/TS; timesheet not billable | Structure proven | Billing link not proven | P1 | Leave until accepted work | Cursor | YES to bill |
 | P5-4 | Issue / support lifecycle | **PARTIAL** | `#920` `ISS-2026-00001`; `/change` stays execution | Durable Issue proven synthetic | Help Desk boundary still open (Vision Q3) | P2 | Do not replace `/change` | n/a | NO |
-| P5-5 | Purchasing / payables | **NOT STARTED** | — | — | After quotation fast lane | P1 | Design packet | Cursor | YES for real PO/bill |
+| P5-5 | Purchasing / payables | **PARTIAL** | #1098 path mapped; PO **DEFER**; `po_required=No` | Draft mapping proven; no PI created | Accountant defaults then Draft PI; never pay from invoice existence | P1 | #1055 then capture-only Draft | Cursor / accountant | YES for real PO/bill/payment |
 | P5-6 | Internal approvals / workflows | **NOT STARTED** | Workflow GET 403 | Inspect denied | Use GitHub + Anton gates until Workflow is granted | P2 | Do not enable email Workflow | Cursor | YES if Notification/email |
 | P5-7 | Document / print / letterhead standards | **PARTIAL** | Standard PDFs in `#882` artefacts; Print Designer work is older/shell | Standard render proven; prestige visual standard not | Print Format + Anton visual accept | P0 | Hosted-test Print Format | Cursor | NO until send |
 

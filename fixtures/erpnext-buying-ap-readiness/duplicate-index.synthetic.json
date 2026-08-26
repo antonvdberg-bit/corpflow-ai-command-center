@@ -1,0 +1,16 @@
+{
+  "suppliers": [
+    {
+      "name": "CF1098 Synthetic Operating Supplier Ltd",
+      "supplier_name": "CF1098 Synthetic Operating Supplier Ltd",
+      "email": "cf1098.synthetic.supplier@example.invalid",
+      "supplier_group": "Services"
+    },
+    {
+      "name": "Other Test Hosting Ltd",
+      "supplier_name": "Other Test Hosting Ltd",
+      "email": "billing@other-test.invalid",
+      "supplier_group": "Services"
+    }
+  ]
+}

@@ -201,3 +201,25 @@ Retention: do not delete a decision or evidence row merely because it was supers
 | ERPNext Project / Task | Programme Project `PROJ-0002` / Phase 6 `TASK-2026-00032` |
 | Verification evidence | `node --test node-tests/erpnext-sales-lifecycle-bridge.test.mjs` plus live apply replay |
 | Supersedes / superseded-by | Implements matrix `lead_opportunity_promotion`. Does **not** supersede Version 2, WP1, #701, or the #918 matrix. |
+
+---
+
+## ERP-D-2026-08-26-1 — #1098 Buying / AP readiness (proposed)
+
+| Field | Record |
+|-------|--------|
+| Decision ID | `ERP-D-2026-08-26-1` |
+| Date/time | 2026-08-26 |
+| Status | **Proposed** (this packet; Anton merge remains the Git approval). Does **not** approve PI submit, Payment Entry, real suppliers, or accountant CoA. |
+| Question / requirement | What is the minimum standard-ERPNext Buying/AP path before accountant-approved account defaults? |
+| Executive intent / source | [#1098](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1098); parent [#1054](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1054); Strategy v2 Buying / AP |
+| Options considered | Require Purchase Order for every bill; invent a second procurement tracker; map Supplier → Draft Purchase Invoice with payment separately protected |
+| Evidence reviewed | Hosted-test Buying Settings `po_required=No`; Supplier LIST 200 / CREATE 403; synthetic Item `CF-AP-SYNTHETIC-OPEX`; Company payable/expense skeleton read-back |
+| Decision | Land [`ERPNEXT_BUYING_AP_READINESS_V1.md`](../../erpnext/ERPNEXT_BUYING_AP_READINESS_V1.md). Purchase Order **DEFER**. `INVOICE_EXISTENCE_NEVER_AUTHORIZES_PAYMENT`. Standard DocTypes only. |
+| Rationale | Invoice-first operating costs do not need PO overhead. Accounting truth still belongs to the accountant (#1055). |
+| Risks / tradeoffs | Integration identity cannot yet create Supplier (Role Permission). Operators must not Submit PI on skeleton COGS/Creditors defaults. |
+| Approver | Pending Anton merge of the #1098 PR |
+| GitHub implementation | `docs/erpnext/ERPNEXT_BUYING_AP_READINESS_V1.md` + `docs/runbooks/ERPNEXT_BUYING_AP_OPERATOR_RUNBOOK_V1.md` |
+| ERPNext Project / Task | Programme Project `PROJ-0002` / Phase 4 `TASK-2026-00030` and Phase 5 `TASK-2026-00031` |
+| Verification evidence | `node --test node-tests/erpnext-buying-ap-readiness.test.mjs` plus live apply (Item reuse; Supplier 403 recorded) |
+| Supersedes / superseded-by | Advances matrix row `buying_ap_supplier`. Does **not** supersede Version 2 or #1055. |

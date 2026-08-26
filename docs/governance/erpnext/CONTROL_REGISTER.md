@@ -58,6 +58,7 @@ An Administrator / System Manager can still alter ERPNext application records an
 | C-CH-01 | Material ERP decisions on GitHub via PR, append/supersede only | Anton / Cursor | **PROVEN** | This register set |
 | C-CH-02 | No custom DocType / schema from programme packets | Anton / Cursor | **PROVEN** | #966 / Version 2 boundary |
 | C-CH-03 | No production accounting / tax / bank / payment mutation without exact Anton approval | Anton | **PROVEN** (gate) | Stop at the exact consequential action |
+| C-AP-01 | Invoice existence never authorizes payment (`INVOICE_EXISTENCE_NEVER_AUTHORIZES_PAYMENT`); Purchase Invoice submit and Payment Entry stay separate protected actions | Anton | **PROVEN** (rule recorded) | #1098 runbook. Do not Submit PI until #1055. Do not Pay from `show_pay_button` |
 | C-CH-04 | No live email / WhatsApp / SMS / outreach from this environment | Cursor | **PROVEN** (non-action) | Do not enable Notification / Workflow for the programme Project |
 | C-CH-05 | Frappe Version / form timeline on the internal Project | Cursor | **NOT PROVEN** | `VERSION_TRAIL_UNREADABLE`: Version + Comment HTTP 403; getdoc timeline empty. Note stamp on `PROJ-0002` is readable. Do not enable site-wide tracking. |
 | C-CH-06 | Protected operating-doctrine paths unchanged by this packet | Cursor | **PROVEN** | `docs/governance/erpnext/*` registers are not in `config/protected-operating-doctrine.v1.json` |

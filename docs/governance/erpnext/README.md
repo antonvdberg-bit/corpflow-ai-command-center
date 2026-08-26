@@ -18,6 +18,7 @@ This directory is the independent GitHub/repo ledger for ERP strategy and materi
 | ERPNext-first source-of-truth matrix (#918) | [`docs/governance/erpnext/SOURCE_OF_TRUTH_MATRIX_V1.md`](./SOURCE_OF_TRUTH_MATRIX_V1.md) | **ERPNext-FIRST RECONCILIATION READY FOR IMPLEMENTATION** — row-by-row ownership + smallest bridge plan. Mapping/config only; no automated sync. |
 | WP1 Customer bridge (#1009) | [`docs/erpnext/ERPNEXT_CUSTOMER_BRIDGE_V1.md`](../../erpnext/ERPNEXT_CUSTOMER_BRIDGE_V1.md) | **WP1 CUSTOMER BRIDGE READY FOR REVIEW** — synthetic search-before-create Customer/Contact/Address. No schema/cron. |
 | WP2 sales lifecycle bridge (#1018) | [`docs/erpnext/ERPNEXT_SALES_LIFECYCLE_BRIDGE_V1.md`](../../erpnext/ERPNEXT_SALES_LIFECYCLE_BRIDGE_V1.md) | **WP2 SALES LIFECYCLE BRIDGE READY FOR REVIEW** — synthetic Lead → Opportunity → reused Customer. No schema/cron/quotation. |
+| Buying / AP readiness (#1098) | [`docs/erpnext/ERPNEXT_BUYING_AP_READINESS_V1.md`](../../erpnext/ERPNEXT_BUYING_AP_READINESS_V1.md) | **ERPNext BUYING / AP READINESS READY FOR ACCOUNTANT CONFIGURATION** — Supplier rules, PO **DEFER**, payment segregated. No PI submit. |
 
 Anton approved Version 2 on 2026-08-14 12:54 +04:00. Evidence: [#954 comment 5291438473](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/954#issuecomment-5291438473) and merged [PR #957](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/957). Repo status recorded by [#960](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/960).
 
@@ -62,5 +63,6 @@ Operational programme record (ERPNext, not this Git ledger): Project `PROJ-0002`
 - Governance artefacts + internal Project: [#966](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/966) / [PR #970](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/970)
 - Strategy v2 Phase 0–10 implementation baseline: [#967](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/967) / [PR #969](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/969)
 - ERPNext-first source-of-truth matrix: [#918](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/918)
+- Buying / AP readiness: [#1098](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1098) — `docs/erpnext/ERPNEXT_BUYING_AP_READINESS_V1.md`
 
 Historical meaning in #954 comments must remain intact. Corrections belong in the synthesized vision or a new superseding decision record, never by silently rewriting the source history.

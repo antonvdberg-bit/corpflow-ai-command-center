@@ -216,9 +216,9 @@
       "id": "buying_ap_supplier",
       "domain": "Buying / AP / Supplier",
       "corpflow_store": "none",
-      "erpnext_home": "Supplier / Purchase Order / Purchase Invoice when started",
+      "erpnext_home": "Supplier / Purchase Invoice; Purchase Order DEFER until a three-way-match need exists",
       "classification": "erpnext_authoritative",
-      "evidence": "Strategy v2 Phase 1 order item 4. NOT STARTED. AI cannot approve suppliers."
+      "evidence": "#1098 ERPNEXT_BUYING_AP_READINESS_V1.md. AI cannot approve suppliers. Invoice existence never authorizes payment. PI submit waits on #1055."
     },
     {
       "id": "change_revenue_localstorage",

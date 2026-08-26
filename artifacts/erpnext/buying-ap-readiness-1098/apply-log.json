@@ -1,0 +1,34 @@
+{
+  "issue": 1098,
+  "authenticated_user": "integrations@corpflowai.com",
+  "reachable_doctypes": [
+    "Supplier",
+    "Supplier Group",
+    "Purchase Order",
+    "Purchase Invoice",
+    "Payment Term",
+    "Payment Terms Template",
+    "Cost Center",
+    "Account",
+    "File",
+    "Item"
+  ],
+  "denied_doctypes": [],
+  "purchase_order_verdict": "DEFER",
+  "payment_segregation_rule": "INVOICE_EXISTENCE_NEVER_AUTHORIZES_PAYMENT",
+  "synthetic_item": {
+    "action": "reuse",
+    "http": 200,
+    "name": "CF-AP-SYNTHETIC-OPEX",
+    "is_purchase_item": 1
+  },
+  "synthetic_supplier": {
+    "action": "failed",
+    "http": 403,
+    "error": "PermissionError",
+    "readback": null
+  },
+  "purchase_invoice_submit": "not_attempted",
+  "payment_entry": "not_attempted",
+  "verdict": "ERPNext BUYING / AP READINESS READY FOR ACCOUNTANT CONFIGURATION"
+}
