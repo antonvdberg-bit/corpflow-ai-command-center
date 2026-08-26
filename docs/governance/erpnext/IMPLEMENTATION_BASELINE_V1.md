@@ -181,7 +181,7 @@ Approved order (Strategy v2 §8). This baseline does **not** change that order.
 | `#919` | OPEN / operator-review | Docs proposal pack; recommended MUR 285,000; not sent | Anton price + presentation + send |
 | `#701` / merged `#947` | CRM baseline on Postgres | Daily prospect pipeline stays in CorpFlowAI for now | ERPNext is not the daily CRM kanban |
 
-Live hosted-test identity used for commercial proofs: `integrations@corpflowai.com` on vendor-hosted **frappe 16.25.0 / erpnext 16.26.2**, company **CorpFlowAI LTD / CFAI / MUR**. Hostname is **not** recorded in repo (correct).
+Live hosted-test identity used for commercial proofs: `integrations@corpflowai.com` on vendor-hosted ERPNext, company **CorpFlowAI LTD / CFAI / MUR**. Hostname is **not** recorded in repo (correct). Dated baseline snapshot on this page used **frappe 16.25.0 / erpnext 16.26.2**. Current WP7 refresh (2026-08-26, #1010): **frappe 16.31.0 / erpnext 16.32.3**.
 
 ---
 

@@ -275,7 +275,7 @@ Steps that require explicit Anton approval (or another operator with prod DB acc
 
 ## 6. Backup / point-in-time restore (this Neon project)
 
-**Status (2026-08-20, #1010):** Neon **as a product** provides Instant restore (point-in-time recovery) from a project **history window**. CorpFlowAI’s **this-project** plan name, history window, and restore-button proof are **NOT PROVEN**.
+**Status (2026-08-26 #1010 refresh; product model first recorded 2026-08-20):** Neon **as a product** provides Instant restore (point-in-time recovery) from a project **history window**. CorpFlowAI’s **this-project** plan name, history window, and restore-button proof are **NOT PROVEN**.
 
 Do **not** treat older sentences that say “PITR as documented in POSTGRES_PROVIDER” as proof. Until an operator records the numbers below, this file documents **capability**, not **our** coverage.
 
@@ -284,7 +284,7 @@ Do **not** treat older sentences that say “PITR as documented in POSTGRES_PROV
 | Provider | Neon is the sole approved CorpFlowAI Postgres (`#` this document). One production database. |
 | Product capability | Instant restore / Time Travel / branch-from-past-state use retained WAL. Console path: project → **Settings → Instant restore**. Docs: [History window](https://neon.com/docs/introduction/history-window), [Branch restore](https://neon.com/docs/introduction/branch-restore). |
 | Plan caps (public Neon docs, 2026-08-20) | Free: up to **6 hours** (1 GB cap). Launch: up to **7 days**. Scale: up to **30 days**. Setting the window to zero disables Instant restore. |
-| This project | History window **unread**. No restore drill. #1010 worker: `POSTGRES_URL` present, host class `neon.tech` (pooled); no Neon API credential; **no** mutation. |
+| This project | History window **unread**. No restore drill. #1010 2026-08-26 worker: `POSTGRES_URL` present, host class `neon.tech` (pooled); no Neon API credential; **no** mutation. |
 | Out of restic scope | Production Postgres dumps to R2 remain **forbidden** without a separate approved runbook. |
 
 **Exact operator action (names only):** Neon Console → CorpFlowAI project → Settings → Instant restore → record plan name + history window (hours or days). No connection strings in git, tickets, or chat. A restore click is a later exact approval.

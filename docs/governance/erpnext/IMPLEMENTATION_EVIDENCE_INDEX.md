@@ -85,7 +85,7 @@ Read-back: no Customer, `collect_progress=0`, Notification/Workflow inspect HTTP
 | [#920](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/920) | Synthetic Project `PROJ-0001`, Tasks, Issue `ISS-2026-00001` | A second Prestige/synthetic website Project |
 | [#955](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/955) / [#960](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/960) | Canonical Version 2 + approved status | Rewrite strategy |
 | [#956](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/956) | Backup / DR / security audit | Buy a DR server; mutate the box |
-| [#1010](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1010) | WP7 version/patch/backup/restore/monitoring classification | Apply the Frappe Cloud upgrade, production restore, Neon restore, or Monitor #14 timer |
+| [#1010](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1010) | WP7 version/patch/backup/restore/monitoring classification (2026-08-26: versions + patch floor **PROVEN**; backup/restore/Neon/RPO still exact actions) | Apply a production restore, Neon restore, or Monitor #14 timer. Frappe Cloud upgrade is no longer the remaining WP7 action. |
 | [#1019](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1019) | WP6 identity / roles / 2FA / least-privilege classification | Grant System Manager to the integration user; enable 2FA from the factory; mutate roles |
 
 ---

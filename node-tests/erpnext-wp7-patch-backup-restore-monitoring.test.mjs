@@ -37,10 +37,13 @@ test('#1010 WP7 closure file exists with sentinel and review verdict', () => {
   assert.ok(doc.includes('#953'));
   assert.ok(doc.includes('NO IMPLEMENTATION AUTHORIZED'));
   assert.ok(doc.includes('WP7 SECURITY/PATCH/RECOVERY CLOSURE READY FOR REVIEW'));
+  assert.ok(doc.includes('frappe=16.31.0'));
+  assert.ok(doc.includes('erpnext=16.32.3'));
   assert.ok(doc.includes('frappe=16.25.0'));
   assert.ok(doc.includes('erpnext=16.26.2'));
   assert.ok(doc.includes('16.29.0'));
-  assert.ok(doc.includes('16.32.3'));
+  assert.ok(doc.includes('16.33.0'));
+  assert.ok(doc.includes('no security/support update required now'));
   assert.ok(doc.includes('GHSA-qq49-v74j-hjh7'));
   assert.ok(doc.includes('Monitor #14'));
   assert.ok(doc.includes('vendor_hosted_frappe_family'));
@@ -93,15 +96,18 @@ test('#1010 WP7 probe script refuses to print secret values or mutate', () => {
 
 test('#1010 journal, shared-todo, control register, and Postgres provider pointer exist', () => {
   const journal = read('docs/decisions/JOURNAL.md');
+  assert.ok(journal.includes('JE-2026-08-26-1'));
   assert.ok(journal.includes('JE-2026-08-20-1'));
   assert.ok(journal.includes('#1010'));
   assert.ok(journal.includes('ERPNEXT_WP7_PATCH_BACKUP_RESTORE_MONITORING_CLOSURE_V1.md'));
   const todo = read('docs/CORPFLOW_SHARED_TODO.md');
   assert.ok(todo.includes('ERPNEXT_WP7_PATCH_BACKUP_RESTORE_MONITORING_CLOSURE_V1.md'));
   assert.ok(todo.includes('#1010'));
+  assert.ok(todo.includes('16.32.3'));
   const control = read('docs/governance/erpnext/CONTROL_REGISTER.md');
   assert.ok(control.includes('#1010'));
   assert.ok(control.includes('ERPNEXT_WP7_PATCH_BACKUP_RESTORE_MONITORING_CLOSURE_V1.md'));
+  assert.ok(control.includes('16.32.3'));
   const postgres = read('docs/operations/POSTGRES_PROVIDER.md');
   assert.ok(postgres.includes('Instant restore'));
   assert.ok(postgres.includes('history window'));
