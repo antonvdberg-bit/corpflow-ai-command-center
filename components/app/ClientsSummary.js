@@ -211,6 +211,9 @@ export function ClientSummaryPanel({ client, proofWanted }) {
         <p className="cf-app-muted">No related prospect records matched this Company Master identity.</p>
       )}
       <div className="cf-app-actions">
+        <a className="cf-app-btn" href={proofWanted ? '/app/commercial?proof=1' : '/app/commercial'}>
+          Commercial
+        </a>
         <a className="cf-app-btn" href={String(commercial.existing_identity_path || '/admin/company-master')}>
           Company Master
         </a>
