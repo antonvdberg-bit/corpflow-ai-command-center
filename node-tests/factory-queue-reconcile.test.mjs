@@ -30,6 +30,7 @@ import {
   FACTORY_QUEUE_RECONCILE_WAKE_PATH,
   FACTORY_QUEUE_RECONCILE_WAKE_REASON,
   FACTORY_QUEUE_RECONCILE_WORKFLOW_NAME,
+  findStaleReadyReviewIssueNumbers,
   resolveFactoryQueueReconcileDecision,
 } from '../lib/server/factory-queue-reconcile.js';
 import {
@@ -279,6 +280,28 @@ describe('factory queue reconcile decisions (#1023)', () => {
     assert.equal(gatedDecision.should_wake_handoff, 0);
     assert.equal(gatedDecision.reason, 'operator_review_gated');
     assert.ok(gatedDecision.gatedCount >= 1);
+  });
+
+  it('reconciles stale ready labels only for review inventory, not protected gate holds', () => {
+    const plan = {
+      decisions: [
+        {
+          issue: { number: 102341 },
+          reason:
+            'dispatch:operator-review — prior generation awaits operator review; not eligible for new claim without CURSOR REQUEUE',
+        },
+        {
+          issue: { number: 102342 },
+          reason:
+            'review-ready linked PR or terminal completion — review inventory, not eligible for new claim without CURSOR REQUEUE',
+        },
+        {
+          issue: { number: 102343 },
+          reason: 'protected gate database — classify and wait for Anton unlock before claim/activation',
+        },
+      ],
+    };
+    assert.deepEqual(findStaleReadyReviewIssueNumbers(plan), [102341, 102342]);
   });
 
   it('stale/abandoned claimed state defers to existing lifecycle rules', () => {

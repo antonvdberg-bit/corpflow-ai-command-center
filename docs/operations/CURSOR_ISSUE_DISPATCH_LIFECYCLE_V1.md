@@ -95,7 +95,7 @@ The temporary three-slot catch-up capacity is **active execution capacity**, not
 - Priority order for ready work: `priority:P0` > `priority:P1` > `priority:P2` > unprioritized (stable oldest-ready tie-break).
 - `execution:paused` ready work is skipped; removing the label restores eligibility. Pausing a live run does not invent an external kill — the verified slot remains until terminal.
 - Open / merge-ready PR count is **review/decision inventory**, not execution WIP. Review-ready PRs must not fill any factory channel or be reselected for a duplicate Cloud Agent handoff.
-- Operator-review, merge-ready / implementation-complete, closed, and terminal-failed transitions **release the execution slot immediately** and strip active execution labels in the same lifecycle step. Handoff then backfills the freed slot.
+- Operator-review, merge-ready / implementation-complete, closed, and terminal-failed transitions **release the execution slot immediately** and strip active execution labels **and `dispatch:cursor-ready`** in the same lifecycle step. A further implementation attempt requires an explicit `CURSOR REQUEUE` generation boundary before restoring ready. Handoff then backfills the freed slot.
 - Waiting for operator review, merge, protected approval, or an external/scheduled decision does **not** reserve a channel because rework might later be requested. Bounded rework uses `CURSOR REQUEUE` plus a real continuation run; only that continuation consumes execution WIP.
 - Every scan emits a capacity packet naming exact run IDs for occupied **execution** slots and listing review/decision inventory separately.
 
@@ -226,6 +226,15 @@ Cost remains negligible (Node script + GitHub API). Production execution does **
 5. Alert Anton only for a genuine unresolved gate or repeated activation failure.
 
 Do **not** rely on the legacy API dispatcher schedule or a second Background Agents API worker.
+
+### Ready-label reconciliation
+
+`dispatch:cursor-ready` is an activation input, not a review marker. The scheduled Queue
+Reconcile removes a lingering ready label when the canonical selector finds the source issue is
+already `dispatch:operator-review` or has terminal/merge-ready review evidence. It does not
+remove ready from a protected-gate hold: a valid exact-gate authorization must still be able to
+resume that packet. This keeps the visible ready queue aligned with the selector without creating
+another state store or dispatcher.
 
 ## 6. Acknowledgement stages
 

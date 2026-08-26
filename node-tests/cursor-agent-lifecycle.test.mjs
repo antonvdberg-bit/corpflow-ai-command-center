@@ -203,6 +203,52 @@ describe('cursor-agent-lifecycle', () => {
     assert.ok(comments.some((c) => c.includes('CURSOR COMPLETION EVENT')));
   });
 
+  it('releases terminal work from ready dispatch until an explicit requeue', async () => {
+    const removed = [];
+    const github = {
+      async createIssueComment() {},
+      async getPrChecks() {
+        return { conclusion: 'success', summary: 'ok' };
+      },
+      async addIssueLabels() {},
+      async removeIssueLabels(issue, labels) {
+        removed.push({ issue, labels });
+      },
+    };
+    const done = await runCursorAgentLifecycleTick({
+      apiKey: 'test-key',
+      agentId: 'bc-terminal',
+      sourceIssue: 78,
+      fetch: async () => ({
+        ok: true,
+        status: 200,
+        async text() {
+          return JSON.stringify({
+            status: 'FINISHED',
+            agent: {
+              id: 'bc-terminal',
+              status: 'FINISHED',
+              target: {
+                branchName: 'cursor/terminal',
+                prUrl: 'https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/9003',
+              },
+            },
+            run: { id: 'run-terminal', status: 'FINISHED' },
+          });
+        },
+      }),
+      github,
+    });
+    assert.equal(done.phase, 'COMPLETED');
+    assert.deepEqual(removed, [
+      {
+        issue: 78,
+        labels: ['dispatch:cursor-claimed', 'status:in-progress', 'dispatch:cursor-ready'],
+      },
+    ]);
+    assert.ok(done.actions.includes('remove_dispatch_ready_label'));
+  });
+
   it('tick stays silent on RUNNING and emits once on COMPLETED then dedupes', async () => {
     let calls = 0;
     const fetchFn = async () => {
