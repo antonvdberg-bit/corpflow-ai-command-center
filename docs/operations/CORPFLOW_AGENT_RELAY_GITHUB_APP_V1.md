@@ -1,7 +1,7 @@
 # CorpFlowAI Agent Relay — GitHub App identity v1
 
-**Status:** Phase 1 operator-setup ready after [#1086](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1086) is merged. No App has been created, installed, configured, or used by this repository.  
-**Environment:** `corpflow_test` when later enabled on the CorpFlowAI-hosted test spine. This is not client production.  
+**Status:** Phase 1 operator-setup ready after [#1086](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1086) is merged. No App has been created, installed, configured, or used by this repository.
+**Environment:** `corpflow_test` when later enabled on the CorpFlowAI-hosted test spine. This is not client production.
 **Scope:** a server-side GitHub App identity for bounded evidence reads and durable Jan-decision comments only. It is not an agent queue or orchestration engine.
 
 ## Architecture and safety boundary
