@@ -1,7 +1,7 @@
 # Jan approval control surface v1 — Rare & Exclusive
 
-**Status:** MVP for issue [#1080](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1080). Local/test surface only. **No production deployment.**  
-**Owner:** Jan du Plessis (product/release decisions); CorpFlowAI/Cursor (control surface).  
+**Status:** MVP for issue [#1080](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1080). Local/test surface only. **No production deployment.**
+**Owner:** Jan du Plessis (product/release decisions); CorpFlowAI/Cursor (control surface).
 **Anchor sentinel:** `<!-- JAN_APPROVAL_CONTROL_SURFACE_V1 -->`
 
 <!-- JAN_APPROVAL_CONTROL_SURFACE_V1 -->
@@ -31,8 +31,8 @@ A tiny authenticated page plus two API routes:
 | `GET /api/factory/jan-approval` | Review items + Issue #35 release-blocker payload |
 | `POST /api/factory/jan-approval/decision` | Record Jan’s decision against the exact SHA |
 
-Initial integration target: `antonvdberg-bit/rare-and-exclusive-collection`.  
-Build 3 baseline: PR #33 merged to `rare-exclusive-greenfield` at `34293747bdda8dcd132a51d87f752d6755dbfd66`.  
+Initial integration target: `antonvdberg-bit/rare-and-exclusive-collection`.
+Build 3 baseline: PR #33 merged to `rare-exclusive-greenfield` at `34293747bdda8dcd132a51d87f752d6755dbfd66`.
 Mandatory pre-release blocker: **Issue #35** — shown separately from merge/review approval.
 
 Synthetic evidence is available only for explicit local/test preview mode and returns `can_decide: false`; its POST path rejects with `LIVE_EVIDENCE_REQUIRED`. When `JAN_APPROVAL_MODE=live`, the normal routed GET and decision paths fetch the allowlisted GitHub PR evidence; they fail closed if it cannot be retrieved. A live decision never accepts synthetic evidence.
