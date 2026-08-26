@@ -47,6 +47,7 @@ import {
 import tenantLoginDebugHandler from '../lib/server/tenant-login-debug.js';
 import { handleCoreLuxTicketMigrationRepair } from '../lib/server/core-lux-ticket-migration-repair.js';
 import factoryGithubPrCreateHandler from '../lib/server/factory-github-pr-create.js';
+import agentRelayIdentityProbeRunner from '../lib/server/agent-relay-identity-probe-runner.js';
 import janApprovalHandler from '../lib/server/jan-approval-api.js';
 import factoryResearchFetchHandler from '../lib/server/factory-research-fetch.js';
 import factoryCmpPushHandler from '../lib/server/factory-cmp-push.js';
@@ -1224,6 +1225,9 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'factory/github/pr-create') {
     return factoryGithubPrCreateHandler(req, res);
+  }
+  if (pathSeg === 'factory/agent-relay/identity-probe') {
+    return agentRelayIdentityProbeRunner(req, res);
   }
   if (pathSeg === 'factory/jan-approval' || pathSeg === 'factory/jan-approval/decision') {
     return janApprovalHandler(req, res);
