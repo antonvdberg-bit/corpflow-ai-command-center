@@ -71,16 +71,16 @@ If label creation or verification fails (missing labels after ensure, GitHub API
 
 ## 4. WIP limits (default) — verified Cursor runs (#862 / #976)
 
-The two factory channels are **active execution capacity**, not all unmerged work.
+The temporary three-slot catch-up capacity is **active execution capacity**, not all unmerged work.
 
 | Class | Consumes a factory slot? |
 |-------|--------------------------|
-| **Execution WIP** — current-generation Cursor implementation still running | **Yes** (cap **2**) |
+| **Execution WIP** — current-generation Cursor implementation still running | **Yes** (temporary catch-up cap **3**) |
 | **Review/decision inventory** — merge-ready PRs, `dispatch:operator-review`, protected-approval waits, external/scheduled waits | **No** |
 
 | Scope | Limit |
 |-------|-------|
-| Verified **active execution** Cursor runs (current-generation implementation still running) | **2** |
+| Verified **active execution** Cursor runs (current-generation implementation still running) | **3** (temporary catch-up) |
 | Review/decision inventory (merge-ready / operator-review / approval wait) | **uncapped by execution WIP** |
 | Active issues per tenant | **1** |
 | Active database/schema issues (repo-wide) | **1** |
@@ -94,7 +94,7 @@ The two factory channels are **active execution capacity**, not all unmerged wor
 - Lifecycle labels alone never consume capacity; stale/orphaned labels are reconciled before dispatch.
 - Priority order for ready work: `priority:P0` > `priority:P1` > `priority:P2` > unprioritized (stable oldest-ready tie-break).
 - `execution:paused` ready work is skipped; removing the label restores eligibility. Pausing a live run does not invent an external kill — the verified slot remains until terminal.
-- Open / merge-ready PR count is **review/decision inventory**, not execution WIP. Two merge-ready PRs must not fill both factory channels.
+- Open / merge-ready PR count is **review/decision inventory**, not execution WIP. Review-ready PRs must not fill any factory channel or be reselected for a duplicate Cloud Agent handoff.
 - Operator-review, merge-ready / implementation-complete, closed, and terminal-failed transitions **release the execution slot immediately** and strip active execution labels in the same lifecycle step. Handoff then backfills the freed slot.
 - Waiting for operator review, merge, protected approval, or an external/scheduled decision does **not** reserve a channel because rework might later be requested. Bounded rework uses `CURSOR REQUEUE` plus a real continuation run; only that continuation consumes execution WIP.
 - Every scan emits a capacity packet naming exact run IDs for occupied **execution** slots and listing review/decision inventory separately.
