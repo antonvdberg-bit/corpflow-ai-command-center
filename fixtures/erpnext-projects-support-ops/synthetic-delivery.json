@@ -1,0 +1,11 @@
+{
+  "schema": "corpflow.delivery.erpnext.v1",
+  "synthetic": true,
+  "issue": 1097,
+  "delivery_ref": "cf1097-synthetic-delivery",
+  "cmp_ticket_id": "cf1097-synthetic-support",
+  "customer_name": "CF920 Synthetic Website Project Ltd",
+  "opportunity": "CRM-OPP-2026-00001",
+  "project_name": "CF920 Synthetic independent website",
+  "notes": "TEST-ONLY synthetic delivery/support mapping onto reused #920 records. Not Prestige Procurement. Do not send."
+}

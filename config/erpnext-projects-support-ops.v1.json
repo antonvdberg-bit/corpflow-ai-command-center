@@ -1,0 +1,110 @@
+{
+  "schema": "corpflow.erpnext.projects_support_ops.v1",
+  "version": "v1",
+  "issue": 1097,
+  "parents": [1054, 953, 918, 920],
+  "environment": "corpflow_test",
+  "verdict": "ERPNext PROJECTS / SUPPORT OPERATIONAL PROOF READY",
+  "description": "Onboarding packet E: prove standard ERPNext Project / Task / Timesheet / Issue can run CorpFlowAI's minimum internal delivery and support model. Reuse #920 synthetic records. No custom DocTypes. No second project/helpdesk app. No Postgres mutation. No send. No timesheet submit.",
+  "sync_mode": "operator_invoked",
+  "no_automated_cron": true,
+  "no_postgres_schema": true,
+  "no_custom_doctypes": true,
+  "no_second_project_app": true,
+  "no_second_helpdesk_app": true,
+  "reuse_baseline_issue": 920,
+  "source_of_truth_rows": ["project_task_timesheet", "issue_support"],
+  "pointer_schema": "corpflow.delivery.erpnext.v1",
+  "idempotency_prefix": "corpflow.projects_support.v1",
+  "persistence": {
+    "approved_pointer_location": "qualification_json.erpnext.delivery",
+    "schema_change": "forbidden",
+    "production_postgres_write": "not_authorized_by_this_packet",
+    "reason": "Map CorpFlowAI delivery/request refs onto existing ERPNext Project/Issue names. Do not add a table or DocType. Do not PATCH live Postgres."
+  },
+  "timesheet": {
+    "verdict": "DEFER",
+    "reason": "Draft non-billable Timesheet path is already proven under #920. Daily owner/status/next-action uses Project + Task + Issue. Named Employee timesheets remain HTTP 403. Billing-bearing submit would require Chart of Accounts and is out of this packet.",
+    "billing_submit": "blocked_by_accounting_foundation",
+    "do_not_submit": true
+  },
+  "sla_assignment_rule": {
+    "decision": "DEFERRED",
+    "reason": "SLA and Assignment Rule remain HTTP 403 to the integration identity and are not required for a one-human plus AI operating model. Manual owner + ToDo + status conventions are enough for initial onboarding."
+  },
+  "forbidden_customer_names": [
+    "Prestige Procurement",
+    "CorpFlowAI LTD",
+    "CorpFlowAI Ltd"
+  ],
+  "reuse": {
+    "customer": "CF920 Synthetic Website Project Ltd",
+    "contact": "Alex Synthetic",
+    "opportunity": "CRM-OPP-2026-00001",
+    "project": "PROJ-0001",
+    "project_name": "CF920 Synthetic independent website",
+    "project_template": "CF920 Independent Website 12-phase",
+    "tasks": [
+      "TASK-2026-00013",
+      "TASK-2026-00014",
+      "TASK-2026-00015",
+      "TASK-2026-00016",
+      "TASK-2026-00017",
+      "TASK-2026-00018",
+      "TASK-2026-00019",
+      "TASK-2026-00020",
+      "TASK-2026-00021",
+      "TASK-2026-00022",
+      "TASK-2026-00023",
+      "TASK-2026-00024"
+    ],
+    "timesheet": "TS-2026-00001",
+    "issue": "ISS-2026-00001",
+    "issue_subject": "CF920 synthetic support intake",
+    "issue_type": "CF920 Website Support"
+  },
+  "synthetic": {
+    "delivery_ref": "cf1097-synthetic-delivery",
+    "cmp_ticket_id": "cf1097-synthetic-support",
+    "project_manager_user": "integrations@corpflowai.com",
+    "assignee_user": "integrations@corpflowai.com",
+    "sentinel": "CF1097-OPS",
+    "communication_subject": "CF1097-OPS internal note",
+    "do_not_email": true
+  },
+  "standard_doctypes": [
+    "Project",
+    "Project Template",
+    "Task",
+    "Timesheet",
+    "Issue",
+    "Issue Type",
+    "ToDo",
+    "Communication",
+    "Customer",
+    "Contact",
+    "Opportunity"
+  ],
+  "standard_statuses": {
+    "Project": ["Open", "Completed", "Cancelled"],
+    "Task": ["Open", "Working", "Pending Review", "Overdue", "Completed", "Cancelled"],
+    "Timesheet": ["Draft"],
+    "Issue": ["Open", "Replied", "On Hold", "Resolved", "Closed"],
+    "ToDo": ["Open", "Closed"]
+  },
+  "operating_conventions": {
+    "project_owner": "Use Project.owner as the durable owner on this hosted site. Project.project_manager is not present on the standard Project GET here; Project User child rows did not persist for the integration identity. Named next-person assignment uses ToDo.",
+    "project_status": "Open while delivery is live. Completed when the last milestone Task is Completed. Cancelled only if the engagement is abandoned.",
+    "project_next_action": "The next action is the first incomplete Task, preferring Working then Overdue then Open, then exp_start_date. Do not add a custom next-action field.",
+    "project_closure": "Mark remaining Tasks Completed, then set Project status Completed. Keep GitHub / /change evidence in CorpFlowAI. Do not invent a second project app.",
+    "task_owner": "Use standard Task.owner plus a ToDo assignee when a named next person is required. Employee is not required for this operating model.",
+    "task_status": "Open = not started. Working = current next action. Overdue = ERPNext date-derived warning. Completed = done. Do not use parent_task unless a real WBS subtree is needed; use depends_on for sequence.",
+    "task_progress": "0 at Open. Raise progress only on Working. 100 only with Completed.",
+    "timesheet": "Do not keep daily hours in Timesheets for initial onboarding. If hours are later needed for cost sanity, keep Timesheets draft and non-billable until accounting foundation exists.",
+    "issue_owner": "Issue.owner is the document owner. Put the working assignee on a ToDo. Do not enable Assignment Rule yet.",
+    "issue_status": "Open = needs action. Replied = internal note recorded, waiting. Closed = done. Reopen to Open. Do not email the client from ERPNext.",
+    "issue_trail": "Use Communication with medium Other and sent_or_received Received, or Issue.description. Comment DocType may be 403. Never Communication medium Email.",
+    "issue_closure": "Close the ERPNext Issue when the durable support case is finished. Keep /change as the execution surface. Do not replace CMP tickets with a second helpdesk.",
+    "no_portal": "Leave via_customer_portal=0. Clients continue to use /change."
+  }
+}
