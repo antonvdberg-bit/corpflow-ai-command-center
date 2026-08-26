@@ -464,3 +464,31 @@ test('apply script dry-run does not call ERPNext and does not print secrets', ()
   assert.match(out, /Sales Invoice posting/);
   assert.doesNotMatch(out, /must-not-appear-in-output-1234567890/);
 });
+
+test('live apply-log captures synthetic IDs, replay UPDATE, PDF, and no secret values', () => {
+  resetSellingQuoteToCashConfigCache();
+  const rel = 'artifacts/erpnext/selling-quote-to-cash-1056/apply-log.json';
+  assert.equal(existsSync(path.join(REPO_ROOT, rel)), true);
+  const log = JSON.parse(read(rel));
+  const cfg = loadSellingQuoteToCashConfig();
+  assert.equal(log.issue, 1056);
+  assert.equal(log.secrets_printed, false);
+  assert.equal(log.postgres_written, false);
+  assert.equal(log.identity, 'integrations@corpflowai.com');
+  assert.equal(log.first.action, 'CREATE');
+  assert.equal(log.second.action, 'UPDATE');
+  assert.equal(log.created_on_replay, false);
+  assert.equal(log.duplicate_quotation_count, 1);
+  assert.equal(log.second.erpnext_quotation, cfg.live_proof.erpnext_quotation);
+  assert.equal(log.second.readback.currency, 'MUR');
+  assert.equal(log.second.readback.grand_total, 45000);
+  assert.equal(log.second.readback.docstatus, 0);
+  assert.equal(log.second.sales_invoice_created, false);
+  assert.equal(log.second.payment_entry_created, false);
+  assert.equal(log.pdf.ok, true);
+  assert.equal(log.verdict, CANONICAL_VERDICT);
+  assert.equal(existsSync(path.join(REPO_ROOT, log.pdf.outfile)), true);
+  const blob = JSON.stringify(log);
+  assert.doesNotMatch(blob, /sk_live|eyJhbGci|postgres:\/\//i);
+  assert.doesNotMatch(blob, /ERPNEXT_API_SECRET":\s*"[^"]+"/);
+});
