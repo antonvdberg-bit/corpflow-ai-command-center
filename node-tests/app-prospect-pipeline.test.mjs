@@ -74,8 +74,9 @@ describe('Prospect Pipeline #997', { concurrency: false }, () => {
       false,
     );
     const byProduct = filterPipelineProspects(prospects, { product: 'corpflow-rapid-delivery' });
-    assert.equal(byProduct.length, 1);
-    assert.equal(byProduct[0].id, 'syn-772-rd-bea');
+    assert.ok(byProduct.every((row) => row.product === 'corpflow-rapid-delivery'));
+    assert.ok(byProduct.some((row) => row.id === 'syn-772-rd-bea'));
+    assert.ok(byProduct.some((row) => row.id === 'syn-716-wr-cleared'));
     const byUrgency = filterPipelineProspects(prospects, { urgency: 'asap' });
     assert.equal(byUrgency.length, 1);
     assert.equal(byUrgency[0].id, 'syn-772-rd-bea');

@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Jan decision flow evidence — #1080</title>
+    <style>
+      body {
+        font-family: Georgia, 'Times New Roman', serif;
+        background: #f4efe8;
+        color: #111;
+        max-width: 720px;
+        margin: 48px auto;
+        padding: 0 24px 80px;
+      }
+      .eyebrow {
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        font-size: 11px;
+        color: #a8842c;
+        font-family: system-ui, sans-serif;
+      }
+      h1 {
+        font-weight: 500;
+        font-size: 42px;
+        margin: 12px 0 16px;
+      }
+      .card {
+        background: #fbf7f1;
+        padding: 28px 24px;
+        margin: 28px 0;
+      }
+      button {
+        display: block;
+        width: 100%;
+        text-align: left;
+        margin: 10px 0;
+        padding: 16px 20px;
+        border: 1px solid #a8842c;
+        background: transparent;
+        font-size: 14px;
+      }
+      button.primary {
+        background: #a8842c;
+        color: #fff;
+        border: none;
+      }
+      .blockers {
+        border-top: 1px solid #a8842c;
+        padding-top: 24px;
+      }
+    </style>
+  </head>
+  <body>
+    <p class="eyebrow">Rare &amp; Exclusive Collection</p>
+    <h1>Your decision</h1>
+    <p>
+      Review what is ready, then choose one action. You do not need to copy anything from GitHub, or
+      paste a version number.
+    </p>
+    <div class="card">
+      <p class="eyebrow">Waiting for you</p>
+      <h2>Latest Rare &amp; Exclusive version — ready for your product decision</h2>
+      <p>The team finished the latest version on top of the already-accepted baseline. Checks passed.</p>
+      <p><strong>What we checked</strong> — Checks passed</p>
+      <p><strong>Recommendation</strong> — Approve this version if it still matches what you asked for.</p>
+      <button class="primary" type="button">Approve this version</button>
+      <button type="button">Request changes</button>
+      <button type="button">Hold for now</button>
+      <button type="button">Ask AI to review further</button>
+    </div>
+    <section class="blockers">
+      <h2>Before we can release</h2>
+      <p>
+        These stay separate from the decision above. Approving a version does not clear a release
+        blocker.
+      </p>
+      <h3>Issue #35 — Mandatory pre-release blocker</h3>
+      <p>
+        This must be resolved before public launch. Approving the review above does not clear it, and
+        it is not a merge button.
+      </p>
+    </section>
+  </body>
+</html>

@@ -12,7 +12,8 @@
 
 **Machine contract:** `config/website-rescue-onboarding-delivery.v1.json`
 **Validators:** `lib/website-rescue/onboarding-delivery.js`
-**Unit tests:** `node-tests/website-rescue-onboarding-delivery.test.mjs`
+**Operator surface:** `/app/prospects/[id]` Website Rescue onboarding/delivery panel (`qualification_json.website_rescue_delivery`, no schema)
+**Unit tests:** `node-tests/website-rescue-onboarding-delivery.test.mjs` · `node-tests/website-rescue-delivery-prospect.test.mjs`
 
 **Outcome:** Prove a financially approved Website Rescue client can be onboarded and delivered **without redesigning the service**.
 
@@ -260,13 +261,24 @@ Fixtures:
 
 ## 10. Operator procedure (short)
 
-1. Confirm `financially_approved=true` (from #714 evidence or synthetic for tests).
-2. Fill intake template; tick shared checklist; lock case type + tier + pages.
-3. Confirm content/assets ready and approved-access path (secret channel) — set flags only.
-4. If inputs blocked → `onboarding_blocked`; chase; do not start build.
-5. When complete → open bounded delivery issue; transition to `build_started` only if gate passes.
-6. Capture preview → revision → deploy-approval simulation → DNS/cutover gate → live-validation simulation → acceptance → handover → maintenance boundary.
-7. Mark `acceptance_ready` when evidence packets are complete.
+Executable operator path (same Postgres `leads` row, no second app):
+
+1. Open the Website Rescue prospect on `/app/prospects/[id]`.
+2. Confirm **Commercial clearance** shows `CLEARED TO BUILD` (#551 / #714).
+3. Complete **Website Rescue onboarding and delivery** on the same page: intake, shared checklist, content/access flags, then advance delivery state.
+4. Record preview / revision / handover evidence on that panel. Deploy and DNS remain simulated checkboxes.
+
+Proof fixture: `/app/prospects/syn-716-wr-cleared?proof=1`.
+
+Then continue the existing readiness sequence:
+
+5. Confirm `financially_approved=true` from the commercial panel (never paste a boolean).
+6. Fill intake; tick shared checklist; lock case type + tier + pages.
+7. Confirm content/assets ready and approved-access path (secret channel) — set flags only.
+8. If inputs blocked → `onboarding_blocked`; chase; do not start build.
+9. When complete → open bounded delivery issue; transition to `build_started` only if the gate passes.
+10. Capture preview → revision → deploy-approval simulation → DNS/cutover gate → live-validation simulation → acceptance → handover → maintenance boundary.
+11. Mark `acceptance_ready` when evidence packets are complete.
 
 Deep day-to-day operator ticks remain in `docs/operations/WEBSITE_RESCUE_DELIVERY_CHECKLISTS_V1.md`. This doc owns **readiness gates and evidence shape**.
 

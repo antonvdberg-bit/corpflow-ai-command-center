@@ -1,8 +1,8 @@
 # #712 — Recording-ready script and shot list (post unit-gate screens)
 
-**Status:** RECORDING-READY draft aligned to **verified live screens** (2026-08-04).  
-**NO IMPLEMENTATION AUTHORIZED for video production** until ChatGPT conversion review accepts screens and Anton unlocks publish if needed.  
-**Issue:** #712 · **Related:** #700
+**Status:** RECORDING-READY draft realigned to **current named buyer paths** (2026-08-25, post #1051).
+**NO IMPLEMENTATION AUTHORIZED for video production** until ChatGPT conversion review accepts screens and Anton unlocks publish if needed.
+**Issue:** #712 · **Related:** #700 · **SKU alias (not the film target):** `/offers/premium-landing-page-rescue`
 
 Use only these live URLs (verified HTTP 200):
 
@@ -11,7 +11,7 @@ Use only these live URLs (verified HTTP 200):
 | Homepage | `https://corpflowai.com/` |
 | Discovery | `https://corpflowai.com/contact#discovery` |
 | Lead Rescue | `https://corpflowai.com/lead-rescue` |
-| Website Rescue offer | `https://corpflowai.com/offers/premium-landing-page-rescue` |
+| Website Rescue offer | `https://corpflowai.com/website-rescue` |
 | Website Rescue demo | `https://corpflowai.com/demo/website-rescue` |
 
 Reference stills: `/opt/cursor/artifacts/issue-712/screenshots/*-{desktop,mobile}.png`
@@ -47,12 +47,12 @@ Reference stills: `/opt/cursor/artifacts/issue-712/screenshots/*-{desktop,mobile
 
 | # | Time | Visual (exact screen) | VO / caption |
 |---|------|------------------------|--------------|
-| W1 | 0:00–0:08 | `/offers/premium-landing-page-rescue` hero | “If the site hides the offer, buyers leave before they enquire.” |
-| W2 | 0:08–0:20 | Price / timeline glass + Request discovery CTA | “Premium Landing Page Rescue — clear offer, mobile-ready path, discovery first.” |
+| W1 | 0:00–0:08 | `/website-rescue` hero | “If the site hides the offer, buyers leave before they enquire.” |
+| W2 | 0:08–0:20 | Price / timeline glass + Request discovery CTA | “Website Rescue — clear offer, mobile-ready path, discovery first.” |
 | W3 | 0:20–0:35 | `/demo/website-rescue` — Show before | “This is a fictional demo — not a client site.” |
 | W4 | 0:35–0:50 | Same demo — Show after + single CTA “Request a stock quote” | “One clear offer. One primary enquiry action.” |
 | W5 | 0:50–1:05 | Demo → “Open sellable offer page” / discovery form | “Prospects go to discovery on the live offer — no automatic outreach.” |
-| W6 | 1:05–1:15 | End card: Request discovery | “corpflowai.com/offers/premium-landing-page-rescue” |
+| W6 | 1:05–1:15 | End card: Request discovery | “corpflowai.com/website-rescue” |
 
 **Safe-claims line:** No SEO, traffic, or revenue guarantees.
 

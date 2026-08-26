@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 import {
   WEBSITE_RESCUE_ENQUIRY_HREF,
   WEBSITE_RESCUE_ENQUIRY_OFFER,
+  WEBSITE_RESCUE_LANDING_HREF,
   canonicalEnquiryHref,
   resolveCanonicalEnquiryOfferSlug,
   resolveCanonicalEnquiryQuery,
@@ -47,6 +48,7 @@ describe('#710 Website Rescue named buyer path', () => {
   });
 
   it('locks website-rescue enquiry aliases onto the existing SKU without a second product', () => {
+    assert.equal(WEBSITE_RESCUE_LANDING_HREF, '/website-rescue');
     assert.equal(WEBSITE_RESCUE_ENQUIRY_OFFER, 'premium-landing-page-rescue');
     assert.equal(WEBSITE_RESCUE_ENQUIRY_HREF, '/contact?offer=premium-landing-page-rescue#discovery');
     assert.equal(resolveCanonicalEnquiryOfferSlug('website-rescue'), 'premium-landing-page-rescue');
@@ -58,6 +60,17 @@ describe('#710 Website Rescue named buyer path', () => {
     const offer = getRapidDeliveryOffer(parsed.defaultOfferSlug);
     assert.equal(offer?.path, '/offers/premium-landing-page-rescue');
     assert.equal(offer?.demoPath, '/demo/website-rescue');
+  });
+
+  it('sends Website Rescue demo buyers to the named landing, not the SKU URL', () => {
+    const demo = read('components/WebsiteRescueDemo.js');
+    assert.ok(demo.includes('href="/website-rescue"') || demo.includes("href={'/website-rescue'}"));
+    assert.ok(demo.includes('/website-rescue#discovery'));
+    assert.ok(!demo.includes('href="/offers/premium-landing-page-rescue"'));
+    assert.ok(!demo.includes('href="/offers/premium-landing-page-rescue#discovery"'));
+    assert.ok(demo.includes('defaultOfferSlug="premium-landing-page-rescue"') || demo.includes("defaultOfferSlug='premium-landing-page-rescue'"));
+    assert.ok(demo.includes('Request discovery — Website Rescue'));
+    assert.ok(!/Choose payment path/i.test(demo));
   });
 
   it('makes the Website Rescue demo visible on the shared offer surface', () => {
