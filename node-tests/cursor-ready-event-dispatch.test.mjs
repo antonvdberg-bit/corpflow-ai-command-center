@@ -19,6 +19,7 @@ import {
   inferIssueClassification,
   planCursorIssueClaims,
 } from '../lib/server/cursor-issue-dispatch-lifecycle.js';
+import { CURSOR_WIP_MAX_SLOTS } from '../lib/server/cursor-wip-control.js';
 import { formatDurableApproval } from '../lib/server/anton-decision-inbox.js';
 import {
   buildCapacityReleaseWakeRequest,
@@ -55,6 +56,28 @@ const HELPER_SOURCE = fs.readFileSync(
   fileURLToPath(new URL('../lib/server/cursor-ready-event-dispatch.js', import.meta.url)),
   'utf8',
 );
+
+function liveClaimedIssue(number, claimToken, agentRunId) {
+  return {
+    number,
+    title: `Active ${number}`,
+    body: 'implementation',
+    labels: ['dispatch:cursor-claimed', 'status:in-progress'],
+    comments: [
+      {
+        body: formatCursorActivationClaimComment(
+          buildCursorActivationClaim({
+            sourceIssue: number,
+            generation: 1,
+            claimToken,
+            status: 'activated',
+            agentRunId,
+          }),
+        ),
+      },
+    ],
+  };
+}
 
 describe('cursor-ready event-driven dispatch (Phase A)', () => {
   it('exact dispatch:cursor-ready label on open issue triggers', () => {
@@ -209,44 +232,9 @@ describe('cursor-ready event-driven dispatch (Phase A)', () => {
       labels: ['dispatch:cursor-ready'],
     };
     const claimed = [
-      {
-        number: 801,
-        title: 'Active A',
-        body: 'implementation',
-        labels: ['dispatch:cursor-claimed', 'status:in-progress'],
-        comments: [
-          {
-            body: formatCursorActivationClaimComment(
-              buildCursorActivationClaim({
-                sourceIssue: 801,
-                generation: 1,
-                claimToken: 'live-a',
-                status: 'activated',
-                agentRunId: 'run-aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaa1',
-              }),
-            ),
-          },
-        ],
-      },
-      {
-        number: 802,
-        title: 'Active B',
-        body: 'implementation',
-        labels: ['dispatch:cursor-claimed', 'status:in-progress'],
-        comments: [
-          {
-            body: formatCursorActivationClaimComment(
-              buildCursorActivationClaim({
-                sourceIssue: 802,
-                generation: 1,
-                claimToken: 'live-b',
-                status: 'activated',
-                agentRunId: 'run-bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbb2',
-              }),
-            ),
-          },
-        ],
-      },
+      liveClaimedIssue(801, 'live-a', 'run-aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaa1'),
+      liveClaimedIssue(802, 'live-b', 'run-bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbb2'),
+      liveClaimedIssue(803, 'live-c', 'run-ccccccc3-cccc-cccc-cccc-ccccccccccc3'),
     ];
     const scan = planCursorIssueClaims({
       readyIssues: [ready],
@@ -254,8 +242,9 @@ describe('cursor-ready event-driven dispatch (Phase A)', () => {
       trackedIssues: claimed,
       preferIssueNumbers: [9003],
     });
+    assert.equal(scan.wipLimits.maxActiveCursorImplementationIssues, CURSOR_WIP_MAX_SLOTS);
     assert.equal(scan.activationTargetIssue, null);
-    assert.equal(scan.verifiedActiveCount, 2);
+    assert.equal(scan.verifiedActiveCount, CURSOR_WIP_MAX_SLOTS);
     const held = scan.decisions.find((d) => d.issue.number === 9003);
     assert.equal(held?.eligibleToClaim, true);
     assert.match(String(held?.reason || ''), /WIP cap/i);
@@ -266,6 +255,35 @@ describe('cursor-ready event-driven dispatch (Phase A)', () => {
     });
     assert.equal(resolved.activate, false);
     assert.equal(resolved.targetSource, 'event_label_held');
+  });
+
+  it('two verified runs still allow event-driven catch-up activation', () => {
+    const ready = {
+      number: 9003,
+      title: 'Docs-only synthetic event dispatch proof',
+      body: 'Internal docs-only. No client/runtime effect.',
+      labels: ['dispatch:cursor-ready'],
+    };
+    const claimed = [
+      liveClaimedIssue(801, 'live-a', 'run-aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaa1'),
+      liveClaimedIssue(802, 'live-b', 'run-bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbb2'),
+    ];
+    const scan = planCursorIssueClaims({
+      readyIssues: [ready],
+      claimedIssues: claimed,
+      trackedIssues: claimed,
+      preferIssueNumbers: [9003],
+    });
+    assert.equal(scan.verifiedActiveCount, 2);
+    assert.equal(scan.availableSlots, 1);
+    assert.equal(scan.activationTargetIssue, 9003);
+
+    const resolved = resolveEffectiveActivationTarget({
+      eventIssueNumber: 9003,
+      scannedActivationTargetIssue: scan.activationTargetIssue,
+    });
+    assert.equal(resolved.activate, true);
+    assert.equal(resolved.targetIssue, '9003');
   });
 
   it('already-claimed / completed issue does not duplicate activate', () => {

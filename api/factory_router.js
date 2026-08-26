@@ -49,6 +49,7 @@ import { handleCoreLuxTicketMigrationRepair } from '../lib/server/core-lux-ticke
 import factoryGithubPrCreateHandler from '../lib/server/factory-github-pr-create.js';
 import janApprovalHandler from '../lib/server/jan-approval-api.js';
 import agentRelayWorkHandler from '../lib/server/agent-relay-work.js';
+import commercialLaneWatchHandler from '../lib/server/commercial-lane-watch.js';
 import factoryResearchFetchHandler from '../lib/server/factory-research-fetch.js';
 import factoryCmpPushHandler from '../lib/server/factory-cmp-push.js';
 import factoryCmpTicketSetDescriptionHandler from '../lib/server/factory-cmp-ticket-set-description.js';
@@ -1231,6 +1232,9 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'factory/agent-relay/work') {
     return agentRelayWorkHandler(req, res, { prisma });
+  }
+  if (pathSeg === 'factory/commercial-lane/watch') {
+    return commercialLaneWatchHandler(req, res, { prisma });
   }
   if (pathSeg === 'factory/research/fetch') {
     return factoryResearchFetchHandler(req, res);

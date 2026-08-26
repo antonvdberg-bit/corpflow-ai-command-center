@@ -165,6 +165,11 @@ The unique insert atomically elects one owner across serverless processes before
 GitHub POST. A losing request reads durable GitHub marker state and either returns
 the validated `replay` result or `RELAY_CLAIM_IN_PROGRESS`; it never posts.
 
+Replay marker reads include a one-minute pre-claim timestamp window because GitHub
+comment timestamps are second-granular while Postgres claims retain milliseconds.
+This prevents a same-second completed write from being incorrectly reported as
+in-progress; marker and provenance validation still determine replay acceptance.
+
 After a write, the relay reads the created comment, validates exact bot login and
 `performed_via_github_app.slug`, then marks the claim `confirmed`. On a network or
 GitHub ambiguity, it first marks the claim `ambiguous`, reads durable GitHub state,
@@ -174,3 +179,56 @@ than issuing another mutation.
 Rollback is one migration rollback (`DROP TABLE agent_relay_claims`) together with
 removing the `issue.add_comment` handler. No second database, infrastructure service,
 secret, environment value, or GitHub App permission is required.
+
+## Phase 2 Slice 3 — live cross-repository acceptance (#1093)
+
+**Environment:** `corpflow_test`. The platform deployment is Vercel Production, but
+this is not a client-production release.
+
+**Production evidence:** merge `8a7ac8a16b01a23604b0375d478cbd1e35fe16e9`;
+GitHub deployment `6099126705` reported `success`; live
+`https://core.corpflowai.com/api/factory/health` returned HTTP 200 healthy.
+
+Using an existing authenticated operator browser session (without extracting any
+credential), Slice 3 recorded these harmless Relay acceptance comments:
+
+| Repository / target | New comment | Replay result | Provenance | Count proof |
+| --- | --- | --- | --- | --- |
+| `antonvdberg-bit/corpflow-ai-command-center` issue `#1093` | [`5422404914`](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1093#issuecomment-5422404914) | `replay` returned the same ID | `corpflowai-agent-relay[bot]`; slug `corpflowai-agent-relay`; `PASS` | 6 → 7; replay did not increase count |
+| `antonvdberg-bit/rare-and-exclusive-collection` PR conversation `#34` | [`5422405442`](https://github.com/antonvdberg-bit/rare-and-exclusive-collection/pull/34#issuecomment-5422405442) | `replay` returned the same ID | `corpflowai-agent-relay[bot]`; slug `corpflowai-agent-relay`; `PASS` | 1 → 2; replay did not increase count |
+
+The primary acceptance comment on #1093 records the non-secret request, replay, and
+correlation identities for both requests. The exact replay values are durable in that
+comment; they are not repeated here because the comment is the canonical acceptance
+artifact.
+
+Negative controls on the authenticated Relay were also verified during Slice 3:
+non-allowlisted repository → `REPOSITORY_NOT_ALLOWED`; unknown and protected
+operations → `OPERATION_NOT_ALLOWED`; unauthenticated callers → HTTP 401
+`UNAUTHORIZED`. No token, private key, auth header, session material, or secret was
+present in the bounded responses or captured evidence. Rare & Exclusive issue #35 was
+not read or modified.
+
+```text
+Delivery Reality Audit:
+- Local fix exists: YES
+- Merged to main: YES — 8a7ac8a16b01a23604b0375d478cbd1e35fe16e9
+- Production deployment ID: 6099126705 — success
+- Commit deployed: 8a7ac8a16b01a23604b0375d478cbd1e35fe16e9
+- Live URLs tested: https://core.corpflowai.com/api/factory/health; authenticated /api/factory/agent-relay/work
+- Expected vs actual result: bounded writes produced one App-provenanced comment per approved repository; identical replays returned the same IDs without count growth.
+- Client-facing flow usable: n/a — factory control-plane acceptance
+- Final verdict: COMPLETE — Slice 3 live acceptance; independent final review still governs issue closure.
+```
+
+## Commercial Lane watch consumer (#1111)
+
+Commercial Lane watch consumes the existing Phase 2 work contract. It does **not**
+add Relay operations. The controller entrypoint is
+`POST /api/factory/commercial-lane/watch`, authenticated with the same admin
+session or `CORPFLOW_CRON_SECRET` / `CRON_SECRET` Bearer already accepted by
+`/api/factory/agent-relay/work`.
+
+Canonical behaviour, classification, skipped comment marker, and non-adoption
+list: `docs/operations/COMMERCIAL_LANE_WATCH_V1.md`.
+

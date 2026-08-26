@@ -12,6 +12,7 @@ import {
   inferIssueClassification,
   planCursorIssueClaims,
 } from '../lib/server/cursor-issue-dispatch-lifecycle.js';
+import { CURSOR_WIP_MAX_SLOTS } from '../lib/server/cursor-wip-control.js';
 
 /** Synthetic #879-style body — inspect/access only (subject mention, not consequential). */
 const ISSUE_879_BODY = `Source: Anton decision 2026-08-11
@@ -72,6 +73,20 @@ function gatedReadyIssue(number, body, comments = []) {
     body,
     labels: ['priority:P0', 'dispatch:cursor-ready'],
     comments,
+  };
+}
+
+function verifiedActiveIssue(number, runId) {
+  return {
+    number,
+    title: `Active ${number}`,
+    body: 'docs only',
+    labels: ['dispatch:cursor-claimed', 'status:in-progress'],
+    comments: [
+      {
+        body: `CURSOR DISPATCH ACTIVATED\n\nIssue: #${number}\nCursor run identifier: ${runId}\n`,
+      },
+    ],
   };
 }
 
@@ -220,7 +235,7 @@ describe('operator-gate-authorization', () => {
     assert.equal(plan3.claimIssueNumbers.includes(886), false);
   });
 
-  it('6) WIP cap=2 and verified-run accounting unchanged', () => {
+  it('6) WIP at catch-up cap still holds authorized work', () => {
     const authA = formatOperatorGateAuthorization({
       issue: 901,
       gate: 'database',
@@ -249,28 +264,9 @@ describe('operator-gate-authorization', () => {
       ]);
 
     const verifiedActive = [
-      {
-        number: 10,
-        title: 'Active A',
-        body: 'docs only',
-        labels: ['dispatch:cursor-claimed', 'status:in-progress'],
-        comments: [
-          {
-            body: `CURSOR DISPATCH ACTIVATED\n\nIssue: #10\nCursor run identifier: run-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa\n`,
-          },
-        ],
-      },
-      {
-        number: 11,
-        title: 'Active B',
-        body: 'docs only',
-        labels: ['dispatch:cursor-claimed', 'status:in-progress'],
-        comments: [
-          {
-            body: `CURSOR DISPATCH ACTIVATED\n\nIssue: #11\nCursor run identifier: run-bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb\n`,
-          },
-        ],
-      },
+      verifiedActiveIssue(10, 'run-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+      verifiedActiveIssue(11, 'run-bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'),
+      verifiedActiveIssue(12, 'run-cccccccc-cccc-cccc-cccc-cccccccccccc'),
     ];
 
     const plan = planCursorIssueClaims({
@@ -279,8 +275,8 @@ describe('operator-gate-authorization', () => {
       trackedIssues: [...verifiedActive, mk(901, authA), mk(902, authB), mk(903, authC)],
     });
 
-    assert.equal(plan.wipLimits.maxActiveCursorImplementationIssues, 2);
-    assert.equal(plan.verifiedActiveCount, 2);
+    assert.equal(plan.wipLimits.maxActiveCursorImplementationIssues, CURSOR_WIP_MAX_SLOTS);
+    assert.equal(plan.verifiedActiveCount, CURSOR_WIP_MAX_SLOTS);
     assert.equal(plan.availableSlots, 0);
     assert.deepEqual(plan.claimIssueNumbers, []);
     // Eligible under authorization, but held by WIP (eligible=true + discover_only).
@@ -290,6 +286,34 @@ describe('operator-gate-authorization', () => {
       assert.equal(d?.decision, 'discover_only');
       assert.match(String(d?.reason || ''), /WIP cap reached/);
     }
+  });
+
+  it('6b) two verified runs leave one catch-up slot', () => {
+    const auth = formatOperatorGateAuthorization({
+      issue: 904,
+      gate: 'database',
+      author: 'Anton',
+      decision: 'approve',
+      recorded_at: '2026-08-11T05:00:00.000Z',
+    });
+    const ready = gatedReadyIssue(904, `${ISSUE_SCHEMA_MUTATION_BODY}\nissue 904`, [
+      { body: auth, author: 'antonvdberg-bit', created_at: '2026-08-11T05:00:00.000Z' },
+    ]);
+    const verifiedActive = [
+      verifiedActiveIssue(10, 'run-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+      verifiedActiveIssue(11, 'run-bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'),
+    ];
+
+    const plan = planCursorIssueClaims({
+      readyIssues: [ready],
+      claimedIssues: verifiedActive,
+      trackedIssues: [...verifiedActive, ready],
+    });
+
+    assert.equal(plan.wipLimits.maxActiveCursorImplementationIssues, CURSOR_WIP_MAX_SLOTS);
+    assert.equal(plan.verifiedActiveCount, 2);
+    assert.equal(plan.availableSlots, 1);
+    assert.deepEqual(plan.claimIssueNumbers, [904]);
   });
 
   it('7) #879/#886 inspect packets claim without database gate (#896)', () => {

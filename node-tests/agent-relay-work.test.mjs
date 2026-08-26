@@ -174,6 +174,8 @@ describe('CorpFlowAI Agent Relay Phase 2 Slice 1 work contract', () => {
     assert.equal(result.body.policyAccepted, true);
     assert.equal(result.body.protectedActionTriggered, false);
     assert.equal(result.body.evidence.pullRequest.headSha, SHA);
+    assert.equal(result.body.evidence.pullRequest.merged, false);
+    assert.equal(result.body.evidence.pullRequest.mergeable, null);
     assert.doesNotMatch(JSON.stringify(result.body), /installation-token|BEGIN PRIVATE KEY|Authorization/i);
   });
 
@@ -276,7 +278,13 @@ describe('CorpFlowAI Agent Relay Phase 2 Slice 1 work contract', () => {
       payload: { comment_body: 'Bounded Relay comment.' },
       requested_evidence: ['issue_comment'],
     });
-    const deps = { nowMs: NOW, fetchFn: commentGithubFetch(comments), configOverrides: CONFIG, prisma: claimStore() };
+    const urls = [];
+    const upstream = commentGithubFetch(comments);
+    const fetchFn = async (url, options) => {
+      urls.push(String(url));
+      return upstream(url, options);
+    };
+    const deps = { nowMs: NOW, fetchFn, configOverrides: CONFIG, prisma: claimStore() };
     const created = await executeAgentRelayWork(input, deps);
     assert.equal(created.status, 200);
     assert.equal(created.body.idempotencyState, 'new_execution');
@@ -289,6 +297,7 @@ describe('CorpFlowAI Agent Relay Phase 2 Slice 1 work contract', () => {
     assert.equal(replay.body.idempotencyState, 'replay');
     assert.equal(replay.body.evidence.comment.commentId, '1');
     assert.equal(comments.length, 1);
+    assert.ok(urls.some((url) => /issues\/34\/comments\?.*since=2026-08-26T03%3A59%3A00/.test(url)));
     assert.doesNotMatch(JSON.stringify(replay.body), /comment-installation-token|BEGIN PRIVATE KEY|Authorization/i);
 
     const mismatch = await executeAgentRelayWork({

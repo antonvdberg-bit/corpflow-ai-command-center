@@ -15,6 +15,7 @@ import {
   formatDispatchActivatedComment,
   planCursorIssueClaims,
 } from '../lib/server/cursor-issue-dispatch-lifecycle.js';
+import { CURSOR_WIP_MAX_SLOTS } from '../lib/server/cursor-wip-control.js';
 import {
   buildCursorActivationClaim,
   formatCursorActivationClaimComment,
@@ -29,6 +30,7 @@ import {
   FACTORY_QUEUE_RECONCILE_WAKE_PATH,
   FACTORY_QUEUE_RECONCILE_WAKE_REASON,
   FACTORY_QUEUE_RECONCILE_WORKFLOW_NAME,
+  findStaleReadyReviewIssueNumbers,
   resolveFactoryQueueReconcileDecision,
 } from '../lib/server/factory-queue-reconcile.js';
 import {
@@ -191,6 +193,7 @@ describe('factory queue reconcile decisions (#1023)', () => {
     const claimed = [
       liveClaimed(101, 'run-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
       liveClaimed(102, 'run-bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'),
+      liveClaimed(103, 'run-cccccccc-cccc-cccc-cccc-cccccccccccc'),
     ];
     const plan = planCursorIssueClaims({
       readyIssues: [readyIssue(10232)],
@@ -198,11 +201,32 @@ describe('factory queue reconcile decisions (#1023)', () => {
       trackedIssues: claimed,
     });
     const decision = resolveFactoryQueueReconcileDecision({ plan, claimedIssues: claimed });
+    assert.equal(plan.wipLimits.maxActiveCursorImplementationIssues, CURSOR_WIP_MAX_SLOTS);
+    assert.equal(plan.verifiedActiveCount, CURSOR_WIP_MAX_SLOTS);
     assert.equal(plan.availableSlots, 0);
     assert.equal(plan.activationTargetIssue, null);
     assert.equal(decision.should_wake_handoff, 0);
     assert.equal(decision.reason, 'wip_cap_reached');
     assert.equal(decision.source_issue, null);
+  });
+
+  it('ready with two live runs still wakes the catch-up slot', () => {
+    const claimed = [
+      liveClaimed(101, 'run-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+      liveClaimed(102, 'run-bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'),
+    ];
+    const plan = planCursorIssueClaims({
+      readyIssues: [readyIssue(10232)],
+      claimedIssues: claimed,
+      trackedIssues: claimed,
+    });
+    const decision = resolveFactoryQueueReconcileDecision({ plan, claimedIssues: claimed });
+    assert.equal(plan.verifiedActiveCount, 2);
+    assert.equal(plan.availableSlots, 1);
+    assert.equal(plan.activationTargetIssue, 10232);
+    assert.equal(decision.should_wake_handoff, 1);
+    assert.equal(decision.source_issue, 10232);
+    assert.equal(decision.reason, 'eligible_ready_work');
   });
 
   it('ready but execution:paused -> no wake', () => {
@@ -256,6 +280,28 @@ describe('factory queue reconcile decisions (#1023)', () => {
     assert.equal(gatedDecision.should_wake_handoff, 0);
     assert.equal(gatedDecision.reason, 'operator_review_gated');
     assert.ok(gatedDecision.gatedCount >= 1);
+  });
+
+  it('reconciles stale ready labels only for review inventory, not protected gate holds', () => {
+    const plan = {
+      decisions: [
+        {
+          issue: { number: 102341 },
+          reason:
+            'dispatch:operator-review — prior generation awaits operator review; not eligible for new claim without CURSOR REQUEUE',
+        },
+        {
+          issue: { number: 102342 },
+          reason:
+            'review-ready linked PR or terminal completion — review inventory, not eligible for new claim without CURSOR REQUEUE',
+        },
+        {
+          issue: { number: 102343 },
+          reason: 'protected gate database — classify and wait for Anton unlock before claim/activation',
+        },
+      ],
+    };
+    assert.deepEqual(findStaleReadyReviewIssueNumbers(plan), [102341, 102342]);
   });
 
   it('stale/abandoned claimed state defers to existing lifecycle rules', () => {

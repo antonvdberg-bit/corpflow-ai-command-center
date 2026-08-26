@@ -80,6 +80,16 @@ const ISSUE_661 = {
   labels: ['priority:P0', 'dispatch:cursor-ready'],
 };
 
+const ISSUE_1083 = {
+  number: 1083,
+  title: 'P0 Commercial factory: SLA evidence, safe recovery and Telegram escalation',
+  body: `This is a systemic commercial-factory control defect, not a Rare & Exclusive one-off.
+Build the existing GitHub-native factory SLA/evidence evaluator.
+No merge, deploy, DB/schema/data mutation, env/secrets/access changes, spend, or external sends.
+Reuse existing Queue Reconcile, lifecycle, WIP, and CI-supervisor infrastructure.`,
+  labels: ['priority:P0', 'dispatch:cursor-ready'],
+};
+
 describe('cursor-issue-dispatch-lifecycle', () => {
   it('classifies Lead Rescue #653 as CorpFlowAI business system product stream', () => {
     const c = inferIssueClassification(ISSUE_653);
@@ -118,6 +128,41 @@ describe('cursor-issue-dispatch-lifecycle', () => {
     assert.equal(d661?.decision, 'claim');
     assert.doesNotMatch(String(d661?.reason || ''), /protected gate/);
     assert.equal(plan.activationTargetIssue, 661);
+  });
+
+  it('keeps #1083-style no-DB/schema factory repairs out of the database gate', () => {
+    const classification = inferIssueClassification(ISSUE_1083);
+    assert.equal(classification.protectedGate, 'none');
+    assert.equal(classification.systemBoundary, 'corpflowai_business_system');
+
+    const plan = planCursorIssueClaims({
+      readyIssues: [ISSUE_1083],
+      claimedIssues: [],
+    });
+    assert.equal(plan.activationTargetIssue, 1083);
+    assert.equal(plan.decisions[0]?.decision, 'claim');
+  });
+
+  it('does not reselect completed work with a review-ready linked PR', () => {
+    const completed = {
+      number: 1004,
+      title: 'P1 Commercial summary',
+      body: 'ordinary app work',
+      labels: ['priority:P1', 'dispatch:cursor-ready'],
+      comments: [],
+      linkedPrs: [{ number: 1099, state: 'open', draft: false, mergeReady: true }],
+    };
+    const plan = planCursorIssueClaims({
+      readyIssues: [completed, ISSUE_1083],
+      claimedIssues: [],
+      trackedIssues: [completed, ISSUE_1083],
+    });
+
+    assert.equal(plan.activationTargetIssue, 1083);
+    assert.match(
+      String(plan.decisions.find((decision) => decision.issue.number === 1004)?.reason),
+      /review inventory/i,
+    );
   });
 
   it('eligibility table for #653 #654 #658 — sibling hold does not block ops #658', () => {
@@ -175,7 +220,7 @@ describe('cursor-issue-dispatch-lifecycle', () => {
       ],
     });
     assert.equal(plan.verifiedActiveCount, 0);
-    assert.equal(plan.availableSlots, 2);
+    assert.equal(plan.availableSlots, 3);
     assert.equal(plan.decisions[0].decision, 'claim');
     assert.ok((plan.reconcileActions || []).length >= 2);
   });
