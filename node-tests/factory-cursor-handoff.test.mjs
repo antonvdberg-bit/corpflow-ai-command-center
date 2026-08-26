@@ -281,7 +281,7 @@ describe('factory cursor handoff decision logic (#913)', () => {
       activate: true,
       targetIssue: 9303,
       availableSlots: 0,
-      verifiedActiveCount: 2,
+      verifiedActiveCount: 3,
       recentHandoff: false,
     });
     assert.equal(wipDecision.shouldSucceed, false);

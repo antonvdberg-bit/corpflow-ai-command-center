@@ -80,7 +80,7 @@ The temporary three-slot catch-up capacity is **active execution capacity**, not
 
 | Scope | Limit |
 |-------|-------|
-| Verified **active execution** Cursor runs (current-generation implementation still running) | **2** |
+| Verified **active execution** Cursor runs (current-generation implementation still running) | **3** (temporary catch-up) |
 | Review/decision inventory (merge-ready / operator-review / approval wait) | **uncapped by execution WIP** |
 | Active issues per tenant | **1** |
 | Active database/schema issues (repo-wide) | **1** |
