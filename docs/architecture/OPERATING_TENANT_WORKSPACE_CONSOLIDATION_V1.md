@@ -155,7 +155,7 @@ This slice does **not** retire Company Master, product desks, or `/change/revenu
 1. Product-desk retirement after live verification of Workbench, Pipeline, and Action Queue replacements.
 2. Commercial summary from ERPNext rails (read-only first) — #1004.
 3. Delivery summary from Lead Rescue / Website Rescue contracts — #1005.
-4. Tenant Workspace simplification (remove internal cognitive load).
+4. Tenant Workspace request / review / `/change` continuity (#1073) — Requests & Progress plus canonical `/change`; placeholder nav retired.
 5. Redirects/retirement only after live verification of replacements.
 
 ## 4. Architecture boundaries (unchanged)

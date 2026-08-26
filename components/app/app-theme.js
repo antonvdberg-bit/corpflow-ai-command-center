@@ -177,10 +177,17 @@ export const APP_SHELL_CSS = `
     background: var(--app-accent-soft);
     box-shadow: 0 0 0 1px var(--app-accent);
   }
-  .cf-app-scope-btn:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-    transform: none;
+  a.cf-app-scope-btn {
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+  }
+  .cf-app-journey {
+    border: 1px solid var(--app-panel-border);
+    background: var(--app-accent-soft);
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
   }
   .cf-app-panel {
     border: 1px solid var(--app-panel-border);

@@ -127,7 +127,7 @@ test('handler: Core shell advertises My Work at /app/today', async () => {
   }
 });
 
-test('handler: Tenant shell My Work is not the Operating Workspace Today route', async () => {
+test('handler: Tenant shell does not expose Operating Workspace Today / My Work', async () => {
   const prevNode = process.env.NODE_ENV;
   process.env.NODE_ENV = 'development';
   try {
@@ -142,8 +142,10 @@ test('handler: Tenant shell My Work is not the Operating Workspace Today route',
     );
     assert.equal(res.state.statusCode, 200);
     const myWork = res.state.body.menus.find((m) => m.id === 'my_work');
-    assert.ok(myWork);
-    assert.notEqual(myWork.href, '/app/today');
+    assert.equal(myWork, undefined);
+    const service = res.state.body.menus.find((m) => m.id === 'service_change');
+    assert.ok(service);
+    assert.equal(String(service.href || '').startsWith('/change'), true);
   } finally {
     process.env.NODE_ENV = prevNode;
   }

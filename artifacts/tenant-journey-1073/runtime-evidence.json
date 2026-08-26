@@ -1,0 +1,63 @@
+{
+  "captured_at": "2026-08-25T08:09:35.719Z",
+  "issue": 1073,
+  "parent_issue": 772,
+  "related": [
+    884,
+    1006
+  ],
+  "auth_base": "http://127.0.0.1:4790",
+  "verdict": "TENANT JOURNEY COHERENT",
+  "http": {
+    "/app/tenant": 200,
+    "/change?from=tenant-workspace": 200,
+    "/app/tenant?from=change": 200
+  },
+  "shell": {
+    "status": 200,
+    "ok": true,
+    "environment": "tenant",
+    "tenant_id": "corpflowai",
+    "menus": [
+      "requests_progress",
+      "service_change"
+    ],
+    "change_handoff_href": "/change?from=tenant-workspace&tenant_id=corpflowai",
+    "creates_ticket_on_navigation": false
+  },
+  "requests": {
+    "status": 200,
+    "ids": [
+      "syn_slice1_req_corpflowai_001",
+      "syn_slice1_req_corpflowai_002"
+    ]
+  },
+  "review": {
+    "status": 200,
+    "ok": true,
+    "decision": "amend"
+  },
+  "html_flags": {
+    "tenant_has_journey_strip": true,
+    "tenant_has_change_cta": true,
+    "tenant_omits_home_nav": true,
+    "change_has_continuity": true,
+    "change_hides_core": true,
+    "change_has_return": true,
+    "return_keeps_tenant_shell": true,
+    "navigation_does_not_create_ticket": true
+  },
+  "flags": {
+    "tenant_has_journey_strip": true,
+    "tenant_has_change_cta": true,
+    "tenant_omits_home_nav": true,
+    "change_has_continuity": true,
+    "change_hides_core": true,
+    "change_has_return": true,
+    "return_keeps_tenant_shell": true,
+    "navigation_does_not_create_ticket": true,
+    "shell_ok": true,
+    "review_persists": true,
+    "http_ok": true
+  }
+}

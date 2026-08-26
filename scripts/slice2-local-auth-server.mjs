@@ -204,13 +204,9 @@ function buildBootstrap(forcedEnv) {
         </nav>\`;
     } else {
       menu = \`
-        <nav class="cf-app-scope-row" data-testid="tenant-menu">
-          <span class="cf-app-scope-btn">Home / Overview</span>
-          <span class="cf-app-scope-btn">My Work</span>
+        <nav class="cf-app-scope-row" data-testid="tenant-menu" aria-label="Tenant journey">
           <span class="cf-app-scope-btn" data-active="true">Requests &amp; Progress</span>
-          <span class="cf-app-scope-btn">Documents</span>
-          <span class="cf-app-scope-btn">Reports</span>
-          <span class="cf-app-scope-btn">Support</span>
+          <a class="cf-app-scope-btn" href="/change?from=tenant-workspace" data-testid="tenant-menu-service_change">Service &amp; change</a>
         </nav>\`;
     }
 
@@ -228,6 +224,12 @@ function buildBootstrap(forcedEnv) {
     let body = '';
     if (environment === 'tenant') {
       body = \`
+        <section class="cf-app-journey" data-testid="tenant-journey-strip">
+          <p class="cf-app-lead" style="margin:0">You are in <strong>Tenant Workspace — CorpFlowAI</strong>. Review progress here. Raise or change a service request on canonical <code>/change</code>.</p>
+          <div class="cf-app-actions" style="margin-top:12px">
+            <a class="cf-app-btn" data-primary="true" data-testid="tenant-open-change" href="/change?from=tenant-workspace">Open service &amp; change</a>
+          </div>
+        </section>
         <section class="cf-app-panel" data-testid="tenant-request-list">
           <h1 class="cf-app-h1">Requests &amp; Progress</h1>
           <p class="cf-app-lead">Tenant-scoped queue · client-safe only</p>
@@ -252,7 +254,7 @@ function buildBootstrap(forcedEnv) {
                   <textarea class="cf-app-textarea" data-testid="tenant-comment-\${escapeHtml(c.key)}" placeholder="Optional comment (required for amend/reject)" style="width:100%;min-height:64px;margin-top:8px;border-radius:8px;border:1px solid var(--app-panel-border);background:rgba(0,0,0,.2);color:var(--app-text);padding:8px;font:inherit"></textarea>
                   <div class="cf-app-actions">
                     <button type="button" class="cf-app-btn" data-primary="true" data-testid="tenant-approve-\${escapeHtml(c.key)}">Approve</button>
-                    <button type="button" class="cf-app-btn" data-testid="tenant-amend-\${escapeHtml(c.key)}">Amend</button>
+                    <button type="button" class="cf-app-btn" data-testid="tenant-amend-\${escapeHtml(c.key)}">Request changes</button>
                     <button type="button" class="cf-app-btn" data-testid="tenant-reject-\${escapeHtml(c.key)}">Reject</button>
                   </div>
                 </div>\` : \`
@@ -334,6 +336,7 @@ function buildBootstrap(forcedEnv) {
         <main class="cf-app-main">
           \${menu}
           <p class="cf-app-muted" data-testid="workspace-meta">auth_mode=\${escapeHtml(authMode)} · data_source=\${escapeHtml(dataSource)} · mutations=\${mutationsEnabled?'on':'off'} · persistence=\${escapeHtml(persistencePath)} · no ScopeSwitcher</p>
+          \${new URLSearchParams(location.search).get('from') === 'change' ? '<p class="cf-app-ok" data-testid="tenant-return-from-change">Back in Tenant Workspace — CorpFlowAI. Your sign-in and tenant context are unchanged.</p>' : ''}
           <p class="cf-app-muted">
             <a class="cf-app-btn" data-primary="true" href="/app/core">Core (session)</a>
             <a class="cf-app-btn" href="/app/tenant">Tenant (session)</a>
@@ -374,6 +377,30 @@ p{color:#94a3b8;line-height:1.45}
 </main>
 </body></html>`;
 
+const CHANGE_FROM_TENANT = `<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Service & change · Tenant Workspace</title>
+<style>
+body{margin:0;font-family:system-ui,sans-serif;background:#020617;color:#e2e8f0;min-height:100vh}
+main{max-width:880px;margin:0 auto;padding:28px 18px}
+.banner{margin-bottom:14px;padding:12px 14px;border-radius:12px;border:1px solid rgba(125,211,252,.45);background:rgba(14,116,144,.22);color:#e0f2fe;font-size:13px;line-height:1.5}
+a{color:#7dd3fc;font-weight:700}
+h1{margin:0 0 8px;font-size:24px}
+p{color:#94a3b8;line-height:1.45}
+</style></head>
+<body>
+<main data-testid="change-from-tenant">
+  <div class="banner" data-testid="tenant-change-continuity" data-creates-ticket="false">
+    <div style="font-weight:800;margin-bottom:4px">Tenant Workspace · Service &amp; change</div>
+    <div>You are still in the CorpFlowAI tenant journey. /change is the canonical place to raise or change a service request. Opening this page does not create a ticket.</div>
+    <p style="margin:10px 0 0"><a href="/app/tenant?from=change" data-testid="tenant-change-return">Back to Tenant Workspace</a> · Tenant · CorpFlowAI</p>
+  </div>
+  <h1>Service &amp; change</h1>
+  <p>Tenant Workspace · canonical /change surface. This is not Core / admin. Opening this page does not create a ticket.</p>
+  <p data-testid="change-no-core-link">No Core / admin entry from this tenant handoff.</p>
+</main>
+</body></html>`;
+
 resetRequestStore();
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
@@ -389,6 +416,9 @@ const server = http.createServer(async (req, nodeRes) => {
   }
   if (path === '/app/tenant') {
     return sendHtml(nodeRes, buildBootstrap('tenant'));
+  }
+  if (path === '/change') {
+    return sendHtml(nodeRes, CHANGE_FROM_TENANT);
   }
 
   /** @type {any} */

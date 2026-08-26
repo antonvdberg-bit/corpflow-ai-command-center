@@ -123,13 +123,13 @@ describe('workspace-context — Today / My Work boundary', () => {
     assert.equal(TODAY_MY_WORK_PATH, '/app/today');
   });
 
-  it('points Operating Workspace My Work at /app/today and keeps Tenant My Work as a placeholder', () => {
+  it('points Operating Workspace My Work at /app/today and omits My Work from Tenant nav', () => {
     assert.equal(operatingNavIncludesTodayMyWork(), true);
     assert.equal(tenantNavOmitsTodayMyWork(), true);
     assert.equal(navIncludesTodayMyWork(CORE_NAV_ITEMS), true);
     assert.equal(navIncludesTodayMyWork(TENANT_NAV_ITEMS), false);
     const tenantMyWork = TENANT_NAV_ITEMS.find((item) => item.id === 'my_work');
-    assert.equal(tenantMyWork?.href, null);
+    assert.equal(tenantMyWork, undefined);
   });
 });
 
