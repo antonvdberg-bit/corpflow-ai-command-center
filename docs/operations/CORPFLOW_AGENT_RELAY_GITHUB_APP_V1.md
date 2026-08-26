@@ -66,3 +66,63 @@ When no dedicated App configuration exists, live bridge operations fail closed. 
 ## Explicitly not authorized
 
 This Phase 1 code does not create/install the App, change repository permissions, alter secrets or Vercel configuration, deploy, merge, change repository settings, create a queue, add a database/cache, send external communications, or allow arbitrary GitHub mutation. The temporary identity-probe execution route was removed after the one verified proof.
+
+## Phase 2 Slice 1 — bounded work reads (#1093)
+
+Slice 1 adds `POST /api/factory/agent-relay/work`, a server-side-only typed work
+contract for evidence reads. It remains a control-plane relay, not a GitHub proxy,
+queue, orchestration engine, mutation service, or browser GitHub client.
+
+### Caller authentication
+
+The route accepts either an existing authenticated **admin session** or the existing
+trusted `CORPFLOW_CRON_SECRET` / `CRON_SECRET` Bearer for a scheduler. It intentionally
+does **not** use `MASTER_ADMIN_KEY` as a Relay credential, accept a caller-provided App
+identity, or add a new secret. Authentication material is never included in result
+envelopes or logs.
+
+### Exact contract and policy
+
+The strict `corpflow.agent_relay.work.v1` envelope contains the schema, request and
+replay identities, origin system/actor, repository, named operation, typed target,
+expected SHA when required, empty bounded payload, issued/expiry timestamps,
+correlation/work-order ID, and requested evidence. Unknown fields, versions,
+operations, target shapes, payload fields, expired requests, and oversized bodies
+(24 KiB) fail closed.
+
+The runtime configuration continues to be validated against the exact two-repository
+allowlist in this document. Neither the caller nor the payload can alter it.
+
+The complete Slice 1 operation allowlist is:
+
+1. `repository.get_metadata`
+2. `issue.get_metadata`
+3. `issue.list_comments`
+4. `pull_request.get_metadata`
+5. `pull_request.list_files`
+6. `pull_request.get_diff` (expected current head SHA required)
+7. `pull_request.list_reviews`
+8. `pull_request.list_review_comments`
+9. `pull_request.get_head` (expected current head SHA required)
+10. `pull_request.list_check_runs` (expected current head SHA required)
+11. `pull_request.list_workflow_runs` (expected current head SHA required)
+
+Each operation resolves to a fixed server handler and a fixed GitHub API path. There is
+no caller-selected REST URL, HTTP method, GraphQL query, endpoint, mutation body,
+repository, App login/slug, or authorization header. Read results are projected and
+size-bounded; result envelopes report request/correlation identity, operation,
+repository, target, policy status, bounded evidence, and
+`protectedActionTriggered: false`.
+
+### Slice 2 durable idempotency recommendation
+
+Slice 1 performs no mutation and does not claim cross-process idempotency. For the
+single bounded comment write considered in Slice 2, the recommended mechanism is a
+GitHub durable marker embedded in the fixed comment body, followed by a bounded
+read-before-write of the exact target's comments for the replay identity. On an
+ambiguous write response, read the same durable marker before any retry. This is the
+first option because it is durable across serverless instances and needs no schema
+change. If its GitHub search/read semantics cannot provide the required atomic
+duplicate guarantee, inspect already-approved durable CorpFlowAI persistence next;
+only then propose a new schema at the protected DB gate. No in-memory Set or Map is
+acceptable for Slice 2.
