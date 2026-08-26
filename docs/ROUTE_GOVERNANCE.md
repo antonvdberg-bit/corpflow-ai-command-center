@@ -10,19 +10,19 @@ This document defines canonical route ownership and production expectations with
 
 ## Central app shell (Slice 1 + Slice 2 — Core / Tenant workspace)
 
-- `/app` is the entry chooser; `/app/core` and `/app/tenant` are separately authenticated environments with production-shaped request adapters (`fixture` harness or read-only `cmp_tickets_read`). Product names: **Operating Workspace** (`/app/core`) and **Tenant Workspace** (`/app/tenant`). No shared ScopeSwitcher — Core session cannot enter Tenant and vice versa.
+- `/app` is the staff entry chooser; `/app/core` and `/app/tenant` are separately authenticated environments with production-shaped request adapters (`fixture` harness or read-only `cmp_tickets_read`). Product names: **Operating Workspace** (`/app/core`) and **Tenant Workspace** (`/app/tenant`). No shared ScopeSwitcher — Core session cannot enter Tenant and vice versa. A live Tenant session on `/app` redirects to `/app/tenant` (#1006).
 - `/app/prospects` is the first staff-only Prospect Operations route inside the Operating Workspace (#772). Tenant sessions receive 403. See `docs/architecture/OPERATING_TENANT_WORKSPACE_CONSOLIDATION_V1.md`.
 - `/app/today` is the staff-only Today / My Work landing inside the Operating Workspace (#772). It reuses the shared prospect list and `#721` `matchesMyWorkTodayFilter`. Tenant sessions receive 403. Tenant **My Work** is retired from Tenant nav (#1073); tenant work is Requests & Progress.
 - `/app/prospects/[id]` is the staff-only shared Prospect detail / action / history surface (#994 / #721 Slice 2). `GET`/`PATCH` `/api/app/prospect` is Core only. Tenant sessions receive 403. Product desks at `/admin/lead-rescue` and `/admin/rapid-delivery` remain until later slices.
 - `/app/workbench` is the staff-only shared Prospect Workbench (#996). `GET /api/app/workbench` is Core only. Tenant sessions receive 403. The product-branded grid at `/admin/lead-rescue` remains a temporary desk.
 - `/app/pipeline` is the staff-only Postgres-backed Prospect Pipeline (#997). `GET /api/app/pipeline` is Core only. Tenant sessions receive 403. `/change/revenue` remains an optional personal checklist only.
 - `/app/queue` is the staff-only canonical Prospect Action Queue (#995). `GET /api/app/queue` is Core only. Tenant sessions receive 403. Rows open `#994` `/app/prospects/[id]`. `/admin/rapid-delivery` remains a temporary desk.
-- Tenant Workspace (#1073): nav is **Requests & Progress** plus **Service & change** (`/change?from=tenant-workspace`). `/change` remains the canonical tenant service/change surface. Placeholder Home / My Work / Documents / Reports / Support nav is retired. Navigation does not create a ticket.
+- Tenant Workspace (#1073 / #1006): nav is **Requests & Progress** plus **Service & change** (`/change?from=tenant-workspace`). Tenant chrome does not show **Choose workspace**. `/change` remains the canonical tenant service/change surface. Placeholder Home / My Work / Documents / Reports / Support nav is retired. Navigation does not create a ticket.
 - Slice 2 (#877): normal authenticated session path is the operator default (no `?proof=1` required). Proof remains Preview/local harness only.
 - Core nav may link Delivery/Operations to `/change` (compatibility). Tenant nav links Service & change to `/change`.
 - `/change` remains the canonical tenant service/change route — **not** deleted and **not** replaced by a second request model.
 - `/change-v2` remains experimental — **not** production-redirected.
-- See `docs/architecture/SLICE1_CORE_TENANT_SHELL_V1.md` and `docs/architecture/TENANT_REQUEST_REVIEW_CHANGE_CONTINUITY_V1.md`. Not a second deployment; same Next app + Postgres.
+- See `docs/architecture/SLICE1_CORE_TENANT_SHELL_V1.md`, `docs/architecture/TENANT_REQUEST_REVIEW_CHANGE_CONTINUITY_V1.md`, and `docs/architecture/TENANT_WORKSPACE_SIMPLIFICATION_V1.md`. Not a second deployment; same Next app + Postgres.
 
 ## Experimental routes
 

@@ -63,13 +63,15 @@ export default function AppShell({
               Proof mode
             </span>
           ) : null}
-          <a
-            className="cf-app-chip"
-            data-testid="chip-switch-workspace"
-            href={chrome.switch_href}
-          >
-            {chrome.switch_label}
-          </a>
+          {chrome.show_switch !== false && chrome.switch_href ? (
+            <a
+              className="cf-app-chip"
+              data-testid="chip-switch-workspace"
+              href={chrome.switch_href}
+            >
+              {chrome.switch_label}
+            </a>
+          ) : null}
         </div>
       </header>
       <main className="cf-app-main">{children}</main>

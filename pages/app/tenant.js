@@ -230,10 +230,10 @@ export default function AppTenantPage() {
     return (
       <AppShell environment="tenant" tenantLabel="CorpFlowAI" role="—">
         <section className="cf-app-panel" data-testid="app-auth-required">
-          <h1 className="cf-app-h1">Sign in to Tenant — CorpFlowAI</h1>
+          <h1 className="cf-app-h1">Sign in to Tenant Workspace</h1>
           <p className="cf-app-lead">
-            CorpFlowAI is a normal reference tenant. Use existing tenant authentication — not Core /
-            admin credentials.
+            CorpFlowAI is a normal reference tenant. Use your tenant sign-in for this workspace.
+            Operating Workspace credentials cannot open it.
           </p>
           <div className="cf-app-actions">
             <a
@@ -244,7 +244,7 @@ export default function AppTenantPage() {
               Tenant sign in
             </a>
             <a className="cf-app-btn" href="/app">
-              Back to chooser
+              Staff workspace chooser
             </a>
           </div>
           <p className="cf-app-muted" style={{ marginTop: 16 }} data-testid="proof-harness-hint">
@@ -262,13 +262,13 @@ export default function AppTenantPage() {
         <section className="cf-app-panel" data-testid="app-tenant-denied">
           <h1 className="cf-app-h1">Tenant access denied</h1>
           <p className="cf-app-lead">
-            A Core session cannot enter Tenant. Sign out and sign in with CorpFlowAI tenant
-            credentials.
+            An Operating Workspace session cannot enter Tenant Workspace. Sign out and sign in with
+            CorpFlowAI tenant credentials.
           </p>
           <p className="cf-app-error">{error}</p>
           <div className="cf-app-actions">
             <a className="cf-app-btn" data-primary="true" href="/app/core">
-              Open Core
+              Open Operating Workspace
             </a>
             <a className="cf-app-btn" href={`/login?next=${encodeURIComponent('/app/tenant')}`}>
               Tenant sign in
@@ -331,7 +331,7 @@ export default function AppTenantPage() {
       </section>
 
       <p className="cf-app-muted" style={{ marginTop: -8, marginBottom: 16 }} data-testid="tenant-workspace-meta">
-        Tenant environment · normal tenant auth · no Core menu · no internal evidence
+        Tenant Workspace · requests, review, and service only · no internal delivery controls
         {dataSource ? (
           <>
             {' · '}data source <code data-testid="tenant-data-source">{dataSource}</code>

@@ -46,8 +46,8 @@ export default function TenantRequestsProgress({
         <section className="cf-app-panel" data-testid="tenant-requests-empty">
           <h1 className="cf-app-h1">Requests &amp; Progress</h1>
           <p className="cf-app-lead">
-            No authorised requests for this tenant yet. When Core creates work packages for
-            CorpFlowAI, client-safe progress will appear here.
+            No authorised requests for this tenant yet. When CorpFlowAI has work for you, client-safe
+            progress will appear here.
           </p>
           <p className="cf-app-muted">Client-safe projection only · no internal engineering fields.</p>
           {changeHref ? (

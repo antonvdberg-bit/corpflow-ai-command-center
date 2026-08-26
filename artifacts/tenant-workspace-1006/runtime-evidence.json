@@ -1,0 +1,40 @@
+{
+  "issue": 1006,
+  "slice": "tenant-workspace-1006-v1",
+  "commit": "66821330540ef41a94c8c2c7ff0172f776be0b91",
+  "local_screenshots": {
+    "tenant_desktop": {
+      "file": "tenant-desktop-signin.png",
+      "viewport": "1440x900",
+      "choose_workspace_chip": false,
+      "workspace_label": "Tenant Workspace — CorpFlowAI"
+    },
+    "tenant_mobile": {
+      "file": "tenant-mobile-signin.png",
+      "viewport": "390x844",
+      "choose_workspace_chip": false,
+      "chips_wrap": true
+    },
+    "chooser_desktop": {
+      "file": "chooser-desktop-staff.png",
+      "viewport": "1440x900",
+      "staff_chooser_visible": true
+    },
+    "chooser_mobile": {
+      "file": "chooser-mobile-staff.png",
+      "viewport": "390x844",
+      "staff_chooser_visible": true
+    }
+  },
+  "corpflow_test_baseline_get": {
+    "https://core.corpflowai.com/app": 200,
+    "https://core.corpflowai.com/app/tenant": 200,
+    "https://core.corpflowai.com/app/core": 200,
+    "https://core.corpflowai.com/app/today": 200,
+    "https://core.corpflowai.com/app/queue": 200,
+    "https://core.corpflowai.com/app/clients": 200,
+    "https://core.corpflowai.com/change": 200,
+    "https://lux.corpflowai.com/change": 200,
+    "https://core.corpflowai.com/api/factory/health": 200
+  }
+}

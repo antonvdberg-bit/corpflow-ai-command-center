@@ -18,7 +18,7 @@
 
 | Surface | Path | Auth |
 | ------- | ---- | ---- |
-| Entry chooser | `/app` | Links only — no shared session switch |
+| Entry chooser | `/app` | Links only — no shared session switch. Live Tenant session redirects to `/app/tenant` (#1006). Staff still use this page deliberately. |
 | Core app | `/app/core` | Existing Core/admin session (`typ=admin`). Product name: Operating Workspace (#772). |
 | Tenant app | `/app/tenant` | Existing tenant session (`typ=tenant`, CorpFlowAI). Product name: Tenant Workspace (#772). |
 | Prospect Operations | `/app/prospects` | Operating Workspace / Core session only (#772 first slice) |

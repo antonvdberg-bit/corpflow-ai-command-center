@@ -155,8 +155,9 @@ This slice does **not** retire Company Master, product desks, or `/change/revenu
 1. Product-desk retirement after live verification of Workbench, Pipeline, and Action Queue replacements.
 2. Commercial summary from ERPNext rails (read-only first) — #1004.
 3. Delivery summary from Lead Rescue / Website Rescue contracts — #1005.
-4. Tenant Workspace request / review / `/change` continuity (#1073) — Requests & Progress plus canonical `/change`; placeholder nav retired.
-5. Redirects/retirement only after live verification of replacements.
+4. Redirects/retirement only after live verification of replacements.
+
+Tenant Workspace placeholder-nav retirement shipped in #1073. Tenant-only chrome and `/app` tenant-session redirect ship in #1006 (`docs/architecture/TENANT_WORKSPACE_SIMPLIFICATION_V1.md`).
 
 ## 4. Architecture boundaries (unchanged)
 
@@ -183,6 +184,8 @@ node --test \
   node-tests/app-clients.test.mjs \
   node-tests/app-slice1-access.test.mjs \
   node-tests/app-slice1-handlers.test.mjs \
+  node-tests/tenant-journey-continuity.test.mjs \
+  node-tests/tenant-workspace-simplification.test.mjs \
   node-tests/prospect-operations-view-model.test.mjs
 ```
 

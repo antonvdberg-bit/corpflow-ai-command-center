@@ -51,6 +51,7 @@ describe('workspace-context — identity', () => {
     assert.equal(chrome.workspace_label, OPERATING_WORKSPACE_LABEL);
     assert.equal(chrome.tenant_chip_label, '—');
     assert.equal(chrome.switch_href, '/app');
+    assert.equal(chrome.show_switch, true);
   });
 
   it('maps Tenant environment to Tenant Workspace product names', () => {
@@ -58,6 +59,8 @@ describe('workspace-context — identity', () => {
     const chrome = workspaceChromeForEnvironment('tenant', { tenantLabel: 'CorpFlowAI' });
     assert.equal(chrome.workspace_label, TENANT_WORKSPACE_LABEL);
     assert.equal(chrome.tenant_chip_label, 'CorpFlowAI');
+    assert.equal(chrome.show_switch, false);
+    assert.equal(chrome.switch_href, '');
   });
 
   it('treats Operating Workspace access as Core-only', () => {
