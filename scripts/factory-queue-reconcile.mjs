@@ -39,7 +39,10 @@ import {
   formatFactoryCursorHandoffReceiptComment,
   resolveFactoryCursorHandoffReceipt,
 } from '../lib/server/factory-cursor-handoff-receipt.js';
-import { resolveFactoryQueueReconcileDecision } from '../lib/server/factory-queue-reconcile.js';
+import {
+  findStaleReadyReviewIssueNumbers,
+  resolveFactoryQueueReconcileDecision,
+} from '../lib/server/factory-queue-reconcile.js';
 import { formatCursorOriginMetadataComment } from '../lib/server/cursor-origin-metadata.js';
 import { postGitHubIssueComment } from '../lib/server/cursor-ops-status.js';
 
@@ -219,6 +222,12 @@ async function main() {
     trackedIssues,
     preferIssueNumbers: [],
   });
+  const staleReadyReviewIssueNumbers = findStaleReadyReviewIssueNumbers(plan);
+  if (!args.dryRun) {
+    for (const issueNumber of staleReadyReviewIssueNumbers) {
+      await removeIssueLabelApi(token, repo, issueNumber, DISPATCH_LABEL_READY);
+    }
+  }
 
   const targetIssueNumber = Number(plan.activationTargetIssue || 0) || null;
   const targetIssue =
@@ -249,6 +258,7 @@ async function main() {
       closedClaimedCount: closedClaimedIssues.length,
       readyIssueNumbers: readyIssues.map((i) => Number(i.number)),
       claimedIssueNumbers: claimedIssues.map((i) => Number(i.number)),
+      staleReadyReviewIssueNumbers,
     },
     scan: {
       activationTargetIssue: plan.activationTargetIssue,
