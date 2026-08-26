@@ -130,6 +130,7 @@ describe('#1073 tenant route / navigation matrix', () => {
       '/app/pipeline',
       '/app/queue',
       '/app/clients',
+      '/app/delivery',
       '/admin/lead-rescue',
     ]) {
       assert.equal(isStaffOnlyTenantDeniedPath(path), true, path);
