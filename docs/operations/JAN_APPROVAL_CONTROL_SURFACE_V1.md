@@ -60,7 +60,7 @@ Each audit record is canonicalized and hashed, and contains the manifest/hash, r
 
 A valid durable decision requires all three controls:
 
-1. GitHub comment author login exactly equals server-side `JAN_APPROVAL_BRIDGE_GITHUB_LOGIN`;
+1. GitHub comment author login exactly equals the proven server-side Agent Relay expected bot login (`CORPFLOW_AGENT_RELAY_GITHUB_EXPECTED_BOT_LOGIN`);
 2. the comment contains a complete `hmac-sha256` authenticated envelope covering repository, target number/SHA, decision, scope, reviewer identity, timestamp, evidence hash, and replay identity;
 3. the envelope signature verifies server-side using a domain-separated key derived from `SOVEREIGN_SESSION_SECRET`, and its fields match the durable decision payload.
 
@@ -111,9 +111,9 @@ Evidence: `artifacts/jan-approval-mvp/`.
 ## 8. Exact next step for production hardening (not this packet)
 
 1. Complete the dedicated GitHub App checklist in `docs/operations/CORPFLOW_AGENT_RELAY_GITHUB_APP_V1.md`; this bridge does not use a personal access token or `github-actions[bot]`.
-2. Run the explicitly authorized harmless identity probe and require its exact bot/App provenance result.
-3. Set `JAN_APPROVAL_BRIDGE_GITHUB_LOGIN` to the exact proven CorpFlowAI GitHub App bot login, after Anton approves that configuration change.
-4. Set `JAN_APPROVAL_MODE=live` on the CorpFlowAI test spine only after the identity migration is proven.
+2. Identity proof is complete: `corpflowai-agent-relay[bot]`, App slug `corpflowai-agent-relay`, App name **CorpFlowAI Agent Relay**, evidenced by `corpflow-ai-command-center#1088` comment `5419623870`. The temporary runner is retired.
+3. Retain `JAN_APPROVAL_BRIDGE_GITHUB_LOGIN` as a compatibility/defence-in-depth configuration surface; current runtime trust resolves the proven Agent Relay expected bot login. Do not alter either configuration surface in this cleanup.
+4. Keep `JAN_APPROVAL_MODE` synthetic/disabled. Any future live enablement needs separate authorization.
 5. Replace the synthetic open-PR fixture with live open PRs from that repository.
 6. Verify on `https://lux.corpflowai.com/rare-exclusive/review` (corpflow_test) that Jan can record a decision and the comment appears on the target PR.
 7. Do **not** treat that as client_production, and do **not** auto-merge.

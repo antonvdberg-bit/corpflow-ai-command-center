@@ -199,7 +199,7 @@ describe('Jan approval routed live integration', () => {
 
     const unconfigured = response();
     await janApprovalHandler(request(), unconfigured, {
-      mode: 'live', getSession: session, fetchReviewPackage: bridge.fetchReviewPackage,
+      mode: 'live', getSession: session, bridgeIdentity: '', decisionSigningKey: '', fetchReviewPackage: bridge.fetchReviewPackage,
     });
     assert.equal(unconfigured.statusCode, 503);
     assert.equal(unconfigured.body.error, 'BRIDGE_TRUST_CONFIGURATION_REQUIRED');

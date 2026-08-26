@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, it } from 'node:test';
 
 import {
@@ -101,5 +103,11 @@ describe('CorpFlowAI Agent Relay GitHub App identity', () => {
       appName: 'CorpFlowAI Agent Relay',
       performedViaGithubApp: { slug: 'corpflowai-agent-relay', name: 'CorpFlowAI Agent Relay' },
     });
+  });
+
+  it('keeps identity-probe execution library-only after Phase 1 cleanup', () => {
+    const router = readFileSync(join(process.cwd(), 'api/factory_router.js'), 'utf8');
+    assert.doesNotMatch(router, /agent-relay\/identity-probe/);
+    assert.doesNotMatch(router, /agentRelayIdentityProbeRunner/);
   });
 });
