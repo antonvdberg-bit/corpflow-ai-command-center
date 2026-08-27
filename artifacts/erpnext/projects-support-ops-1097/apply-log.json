@@ -1,0 +1,244 @@
+{
+  "schema": "corpflow.erpnext.projects_support_ops_apply.v1",
+  "github_issue": 1097,
+  "generated_at_utc": "2026-08-26T04:11:59Z",
+  "identity": "integrations@corpflowai.com",
+  "secrets_printed": false,
+  "postgres_written": false,
+  "send_attempted": false,
+  "timesheet_submitted": false,
+  "reused_920": {
+    "project": "PROJ-0001",
+    "issue": "ISS-2026-00001",
+    "timesheet": "TS-2026-00001",
+    "task_count": 12
+  },
+  "http": {
+    "project_search": 200,
+    "project_get": 200,
+    "task_list": 200,
+    "task_todo_list": 200,
+    "timesheet_get": 200,
+    "issue_search": 200,
+    "issue_get": 200,
+    "communication_list": 200,
+    "issue_todo_list": 200,
+    "issue_close": 200,
+    "issue_reopen": 200,
+    "sla": 403,
+    "assignment_rule": 403
+  },
+  "gaps": [
+    "PROJECT_MANAGER_FIELD_ABSENT"
+  ],
+  "project": {
+    "name": "PROJ-0001",
+    "project_name": "CF920 Synthetic independent website",
+    "status": "Open",
+    "customer": "CF920 Synthetic Website Project Ltd",
+    "owner": "integrations@corpflowai.com",
+    "project_manager": "",
+    "expected_start_date": "2026-08-14",
+    "expected_end_date": "2026-10-13",
+    "percent_complete_method": "Task Completion",
+    "percent_complete": 0,
+    "project_template": "CF920 Independent Website 12-phase",
+    "company": "CorpFlowAI LTD"
+  },
+  "next_action": {
+    "task": "TASK-2026-00013",
+    "subject": "CF920 Discovery & requirements confirmation",
+    "status": "Working",
+    "owner": "integrations@corpflowai.com",
+    "exp_start_date": "2026-08-14 00:00:00"
+  },
+  "tasks": [
+    {
+      "name": "TASK-2026-00013",
+      "subject": "CF920 Discovery & requirements confirmation",
+      "status": "Working",
+      "progress": 10,
+      "owner": "integrations@corpflowai.com",
+      "is_milestone": false,
+      "depends_on_tasks": ""
+    },
+    {
+      "name": "TASK-2026-00014",
+      "subject": "CF920 Information architecture / content plan",
+      "status": "Overdue",
+      "progress": 0,
+      "owner": "integrations@corpflowai.com",
+      "is_milestone": false,
+      "depends_on_tasks": "TASK-2026-00013,"
+    },
+    {
+      "name": "TASK-2026-00015",
+      "subject": "CF920 UX/UI design",
+      "status": "Open",
+      "progress": 0,
+      "owner": "integrations@corpflowai.com",
+      "is_milestone": true,
+      "depends_on_tasks": "TASK-2026-00014,"
+    },
+    {
+      "name": "TASK-2026-00016",
+      "subject": "CF920 CMS / technical foundation",
+      "status": "Open",
+      "progress": 0,
+      "owner": "integrations@corpflowai.com",
+      "is_milestone": false,
+      "depends_on_tasks": "TASK-2026-00015,"
+    },
+    {
+      "name": "TASK-2026-00017",
+      "subject": "CF920 Page / template implementation",
+      "status": "Open",
+      "progress": 0,
+      "owner": "integrations@corpflowai.com",
+      "is_milestone": false,
+      "depends_on_tasks": "TASK-2026-00016,"
+    },
+    {
+      "name": "TASK-2026-00018",
+      "subject": "CF920 Self-management features",
+      "status": "Open",
+      "progress": 0,
+      "owner": "integrations@corpflowai.com",
+      "is_milestone": true,
+      "depends_on_tasks": "TASK-2026-00017,"
+    },
+    {
+      "name": "TASK-2026-00019",
+      "subject": "CF920 Content migration / population",
+      "status": "Open",
+      "progress": 0,
+      "owner": "integrations@corpflowai.com",
+      "is_milestone": false,
+      "depends_on_tasks": "TASK-2026-00018,"
+    },
+    {
+      "name": "TASK-2026-00020",
+      "subject": "CF920 QA / security / performance / accessibility",
+      "status": "Open",
+      "progress": 0,
+      "owner": "integrations@corpflowai.com",
+      "is_milestone": false,
+      "depends_on_tasks": "TASK-2026-00019,"
+    },
+    {
+      "name": "TASK-2026-00021",
+      "subject": "CF920 Client review & revisions",
+      "status": "Open",
+      "progress": 0,
+      "owner": "integrations@corpflowai.com",
+      "is_milestone": true,
+      "depends_on_tasks": "TASK-2026-00020,"
+    },
+    {
+      "name": "TASK-2026-00022",
+      "subject": "CF920 Hosting deployment / cutover",
+      "status": "Open",
+      "progress": 0,
+      "owner": "integrations@corpflowai.com",
+      "is_milestone": false,
+      "depends_on_tasks": "TASK-2026-00021,"
+    },
+    {
+      "name": "TASK-2026-00023",
+      "subject": "CF920 Training / documentation / handover",
+      "status": "Open",
+      "progress": 0,
+      "owner": "integrations@corpflowai.com",
+      "is_milestone": false,
+      "depends_on_tasks": "TASK-2026-00022,"
+    },
+    {
+      "name": "TASK-2026-00024",
+      "subject": "CF920 Acceptance / warranty closeout",
+      "status": "Open",
+      "progress": 0,
+      "owner": "integrations@corpflowai.com",
+      "is_milestone": true,
+      "depends_on_tasks": "TASK-2026-00023,"
+    }
+  ],
+  "timesheet": {
+    "name": "TS-2026-00001",
+    "docstatus": 0,
+    "status": "Draft",
+    "parent_project": "PROJ-0001",
+    "employee": "",
+    "is_billable": 0,
+    "verdict": "DEFER",
+    "reason": "Draft non-billable Timesheet path is already proven under #920. Daily owner/status/next-action uses Project + Task + Issue. Named Employee timesheets remain HTTP 403. Billing-bearing submit would require Chart of Accounts and is out of this packet.",
+    "ok": true
+  },
+  "issue": {
+    "name": "ISS-2026-00001",
+    "subject": "CF920 synthetic support intake",
+    "status": "Open",
+    "priority": "Medium",
+    "issue_type": "CF920 Website Support",
+    "customer": "CF920 Synthetic Website Project Ltd",
+    "contact": "Alex Synthetic",
+    "project": "PROJ-0001",
+    "owner": "integrations@corpflowai.com",
+    "via_customer_portal": 0,
+    "description": "GitHub #920 synthetic support Issue. TEST-ONLY. Not a live client ticket.\n\nCF1097-OPS synthetic internal trail. TEST-ONLY. Do not send."
+  },
+  "issue_lifecycle": {
+    "closed_status": "Closed",
+    "reopened_status": "Open",
+    "proven": true
+  },
+  "issue_trail": "issue_description",
+  "sla": {
+    "decision": "DEFERRED",
+    "sla_http": 403,
+    "assignment_rule_http": 403
+  },
+  "idempotency": {
+    "project_action": "REUSE",
+    "issue_action": "REUSE",
+    "project_duplicate_count": 1,
+    "issue_duplicate_count": 1
+  },
+  "pointer": {
+    "schema": "corpflow.delivery.erpnext.v1",
+    "issue": 1097,
+    "bridges": [
+      "project_task_timesheet",
+      "issue_support"
+    ],
+    "delivery_ref": "cf1097-synthetic-delivery",
+    "cmp_ticket_id": "cf1097-synthetic-support",
+    "customer": "CF920 Synthetic Website Project Ltd",
+    "opportunity": "CRM-OPP-2026-00001",
+    "project": "PROJ-0001",
+    "issue_name": "ISS-2026-00001",
+    "timesheet": "TS-2026-00001",
+    "idempotency_key": "corpflow.projects_support.v1:project=CF920 Synthetic Website Project Ltd|CF920 Synthetic independent website",
+    "last_action": "REUSE",
+    "updated_at": "2026-08-26T04:11:55Z",
+    "postgres_persist": "not_written"
+  },
+  "opportunity": "CRM-OPP-2026-00001",
+  "opportunity_link_on_project": "not_a_standard_project_field",
+  "operating_conventions": {
+    "project_owner": "Use Project.owner as the durable owner on this hosted site. Project.project_manager is not present on the standard Project GET here; Project User child rows did not persist for the integration identity. Named next-person assignment uses ToDo.",
+    "project_status": "Open while delivery is live. Completed when the last milestone Task is Completed. Cancelled only if the engagement is abandoned.",
+    "project_next_action": "The next action is the first incomplete Task, preferring Working then Overdue then Open, then exp_start_date. Do not add a custom next-action field.",
+    "project_closure": "Mark remaining Tasks Completed, then set Project status Completed. Keep GitHub / /change evidence in CorpFlowAI. Do not invent a second project app.",
+    "task_owner": "Use standard Task.owner plus a ToDo assignee when a named next person is required. Employee is not required for this operating model.",
+    "task_status": "Open = not started. Working = current next action. Overdue = ERPNext date-derived warning. Completed = done. Do not use parent_task unless a real WBS subtree is needed; use depends_on for sequence.",
+    "task_progress": "0 at Open. Raise progress only on Working. 100 only with Completed.",
+    "timesheet": "Do not keep daily hours in Timesheets for initial onboarding. If hours are later needed for cost sanity, keep Timesheets draft and non-billable until accounting foundation exists.",
+    "issue_owner": "Issue.owner is the document owner. Put the working assignee on a ToDo. Do not enable Assignment Rule yet.",
+    "issue_status": "Open = needs action. Replied = internal note recorded, waiting. Closed = done. Reopen to Open. Do not email the client from ERPNext.",
+    "issue_trail": "Use Communication with medium Other and sent_or_received Received, or Issue.description. Comment DocType may be 403. Never Communication medium Email.",
+    "issue_closure": "Close the ERPNext Issue when the durable support case is finished. Keep /change as the execution surface. Do not replace CMP tickets with a second helpdesk.",
+    "no_portal": "Leave via_customer_portal=0. Clients continue to use /change."
+  },
+  "verdict": "ERPNext PROJECTS / SUPPORT OPERATIONAL PROOF READY",
+  "blockers": []
+}

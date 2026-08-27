@@ -201,3 +201,25 @@ Retention: do not delete a decision or evidence row merely because it was supers
 | ERPNext Project / Task | Programme Project `PROJ-0002` / Phase 6 `TASK-2026-00032` |
 | Verification evidence | `node --test node-tests/erpnext-sales-lifecycle-bridge.test.mjs` plus live apply replay |
 | Supersedes / superseded-by | Implements matrix `lead_opportunity_promotion`. Does **not** supersede Version 2, WP1, #701, or the #918 matrix. |
+
+---
+
+## ERP-D-2026-08-27-1 — #1134 current-main landing of #1097 Projects / Support proof (proposed)
+
+| Field | Record |
+|-------|--------|
+| Decision ID | `ERP-D-2026-08-27-1` |
+| Date/time | 2026-08-27 |
+| Status | **Proposed** (this packet; Anton merge remains the Git approval). Does **not** approve Timesheet submit, SLA config, real-client Project/Issue, or a second project/helpdesk app. |
+| Question / requirement | Land the already-proven #1097 Projects / Tasks / Issue operating proof onto current `main` as one ERP/DELIVERY packet. |
+| Executive intent / source | [#1134](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1134); source proof [#1097](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1097) / stale [PR #1102](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1102) |
+| Options considered | Merge stale #1102; redesign the operating model; land the proven helper/docs/evidence onto current `main` |
+| Evidence reviewed | #1097 live apply-log on reused `PROJ-0001` / `ISS-2026-00001`; Timesheet DEFER; SLA deferred; #918 `project_task_timesheet` / `issue_support` |
+| Decision | Land [`ERPNEXT_PROJECTS_SUPPORT_OPERATIONAL_PROOF_V1.md`](../../erpnext/ERPNEXT_PROJECTS_SUPPORT_OPERATIONAL_PROOF_V1.md) on current `main`. Reuse the 2026-08-26 synthetic read-back. Close #1102 without merge. |
+| Rationale | The operating proof is already READY. Current `main` needs the same packet without a second Project/Issue or a live re-apply. |
+| Risks / tradeoffs | Hosted records may have drifted since 2026-08-26; this packet does not mutate them. |
+| Approver | Pending Anton merge of the #1134 PR |
+| GitHub implementation | `lib/erpnext/projects-support-ops.js` + apply script + reused apply-log |
+| ERPNext Project / Task | Reused synthetic `PROJ-0001` / `ISS-2026-00001` (not programme Project `PROJ-0002`) |
+| Verification evidence | `node --test node-tests/erpnext-projects-support-ops.test.mjs` plus reused apply-log |
+| Supersedes / superseded-by | Current-main replacement for stale PR #1102. Does **not** supersede Version 2, #918, #920, or the #1097 operating conventions. |
