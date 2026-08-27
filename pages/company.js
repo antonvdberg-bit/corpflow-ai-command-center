@@ -35,7 +35,7 @@ function parseSearchParam(req, name) {
 }
 
 /**
- * CIPC Desk direct-SME buyer funnel (#1152).
+ * CIPC Desk direct-SME buyer funnel (#1183; supersedes paused #1152 as evidence).
  * Standing URL after publish: https://cipc.corpflowai.com/company (corpflow_test only).
  * Not a public launch. Specialist-review pages are unchanged.
  */

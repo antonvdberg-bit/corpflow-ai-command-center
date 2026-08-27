@@ -4,7 +4,7 @@
 **Tenant:** `cipc-desk` / CIPC Desk (internal working name).  
 **Environment:** `corpflow_test`. **Not a public launch.** **Not `client_production`.**  
 **Machine contract:** `lib/cipc-desk/response-automation.js`  
-**Reuse:** existing `POST /api/cipc-desk/email-intake`, `cmp_tickets.console_json.cipc_response`, `leads.qualification_json.cipc_response`, campaign MVP (#985), service-factory (#988), `/partners` (#986), `/company` (#1152), `/change`. No second CRM.
+**Reuse:** existing `POST /api/cipc-desk/email-intake`, `cmp_tickets.console_json.cipc_response`, `leads.qualification_json.cipc_response`, campaign MVP (#985), service-factory (#988), `/partners` (#986), `/company` (#1183), `/change`. No second CRM.
 
 <!-- CIPC_RESPONSE_AUTOMATION_V1 -->
 
