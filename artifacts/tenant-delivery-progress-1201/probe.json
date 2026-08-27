@@ -1,0 +1,62 @@
+{
+  "issue": 1201,
+  "current_main_sha": "ea2a45a90a4fde7043b89989e985194da3605bff",
+  "environment": "corpflow_test",
+  "route_sequence": [
+    "/app/tenant",
+    "/app/tenant?id=syn_lr_delivery_corpflowai_001",
+    "/change?from=tenant-workspace&tenant_id=corpflowai",
+    "/app/tenant?from=change&tenant_id=corpflowai",
+    "/app/tenant?id=syn-1151-wr-tenant-progress",
+    "/change?from=tenant-workspace&tenant_id=corpflowai",
+    "/app/tenant?from=change&tenant_id=corpflowai"
+  ],
+  "fixtures": {
+    "tenant_id": "corpflowai",
+    "lead_rescue_request_id": "syn_lr_delivery_corpflowai_001",
+    "lead_rescue_delivery_record_id": "synthetic-lr-client-review",
+    "website_rescue_request_id": "syn-1151-wr-tenant-progress"
+  },
+  "expected": {
+    "list_ok": true,
+    "lr_service": "Lead Rescue",
+    "wr_service": "Website Rescue",
+    "lr_stage": "Ready for your review",
+    "wr_stage": "Preview ready",
+    "lr_preview_exposed": true,
+    "wr_preview_link": true,
+    "wr_not_review_api": true,
+    "cross_tenant": 404,
+    "staff_denied": true,
+    "change_canonical": true,
+    "list_error_not_empty": true
+  },
+  "actual": {
+    "list_ok": true,
+    "lr_service": "Lead Rescue",
+    "wr_service": "Website Rescue",
+    "lr_stage": "Ready for your review",
+    "wr_stage": "Preview ready",
+    "lr_next_action": "Review “Lead Rescue preview”",
+    "wr_next_action": "Review your Website Rescue preview, then use Service & change if you want changes.",
+    "lr_list_detail_next_match": true,
+    "wr_list_detail_next_match": true,
+    "lr_preview_exposed": true,
+    "wr_preview_link": true,
+    "wr_progress_lt_100": true,
+    "foil_absent": true,
+    "leak": false,
+    "cross_tenant": 404,
+    "cross_wr": 404,
+    "staff_denied": true,
+    "change_canonical": true,
+    "return_tenant": true,
+    "list_error_not_empty": true
+  },
+  "staff_status": {
+    "commercial": 403,
+    "delivery": 403,
+    "prospects": 403
+  },
+  "verdict": "TENANT DELIVERY PROGRESS JOURNEY USABLE"
+}
