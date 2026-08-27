@@ -1,0 +1,88 @@
+# Gated Temporal supervisory wrapper for the #1130 72-hour real-production
+# pilot. Inspects GitHub with existing eligibility / WIP / generation helpers
+# and workflow_calls CorpFlowAI Cursor Factory Handoff only when:
+#   - repository variable CORPFLOW_TEMPORAL_PILOT=active
+#   - the exact #1130 approval marker is present
+#   - a real eligible issue exists and verified WIP permits
+#
+# This wrapper is not a second dispatcher, app, database, queue, or executor.
+# It does not POST the Cursor webhook or call the Cursor API.
+# Existing Queue Reconcile / lifecycle / CI repair stay live during the pilot.
+#
+# Displayed name must remain distinct from:
+#   CorpFlowAI Cursor Factory Handoff
+
+name: CorpFlowAI Factory Temporal Pilot
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  actions: read
+
+concurrency:
+  group: factory-temporal-pilot
+  cancel-in-progress: false
+
+jobs:
+  supervise:
+    if: github.event_name == 'workflow_dispatch' || vars.CORPFLOW_TEMPORAL_PILOT == 'active'
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    outputs:
+      should_wake_handoff: ${{ steps.pilot.outputs.should_wake_handoff }}
+      source_issue: ${{ steps.pilot.outputs.source_issue }}
+      reason: ${{ steps.pilot.outputs.reason }}
+
+    steps:
+      # Pinned SHAs (supply chain): tag v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      # Pinned SHAs (supply chain): tag v6
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
+        with:
+          node-version: "20"
+
+      - name: Supervise GitHub delivery with Temporal-shaped policy
+        id: pilot
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REF: ${{ github.ref }}
+          CORPFLOW_TEMPORAL_PILOT: ${{ vars.CORPFLOW_TEMPORAL_PILOT }}
+          FACTORY_TEMPORAL_PILOT_OUT_PATH: factory-temporal-pilot.json
+        run: |
+          set -euo pipefail
+          node scripts/factory-temporal-pilot.mjs
+
+      - name: Silent when no eligible wake
+        if: steps.pilot.outputs.should_wake_handoff != '1'
+        run: echo "Temporal pilot — no Handoff wake (reason=${{ steps.pilot.outputs.reason }})"
+
+      - name: Upload pilot artifact
+        if: always()
+        continue-on-error: true
+        # Pinned SHAs (supply chain): tag v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: factory-temporal-pilot
+          path: factory-temporal-pilot.json
+          if-no-files-found: ignore
+          retention-days: 7
+
+  wake_factory_handoff:
+    needs: supervise
+    if: needs.supervise.outputs.should_wake_handoff == '1'
+    uses: ./.github/workflows/factory-cursor-handoff.yml
+    secrets: inherit
+    with:
+      wake_reason: temporal_supervisory
+      capacity_wake_requested: "false"
+      target_issue: ${{ needs.supervise.outputs.source_issue }}

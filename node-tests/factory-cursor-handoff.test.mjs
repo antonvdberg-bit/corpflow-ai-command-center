@@ -81,6 +81,8 @@ describe('factory cursor handoff workflow (#913)', () => {
     assert.doesNotMatch(yaml, /cron:/);
     // #1041: inherited schedule event_name from Queue Reconcile must still run.
     assert.match(yaml, /inputs\.wake_reason == 'scheduled_reconciliation'/);
+    // #1130: inherited schedule/dispatch event_name from Temporal Pilot must still run.
+    assert.match(yaml, /inputs\.wake_reason == 'temporal_supervisory'/);
   });
 
   it('keeps the Cloud Agents executor cutover-gated and runs the handoff selector', () => {
