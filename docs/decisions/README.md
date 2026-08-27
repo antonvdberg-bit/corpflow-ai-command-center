@@ -40,7 +40,7 @@ What we chose (one paragraph).
 
 | Date | Topic | File |
 |------|--------|------|
-| 2026-08-27 | ERPNext onboarding E — Projects / Support proof landed on current main (#1134; reuses #1097 / PR #1102) | `20260826-erpnext-projects-support-ops.md` (`JE-2026-08-27-2`) |
+| 2026-08-27 | ERPNext onboarding E — Projects / Support proof landed on current main (#1134; reuses #1097 / PR #1102) | `20260826-erpnext-projects-support-ops.md` (`JE-2026-08-27-3`) |
 | 2026-08-27 | Temporal real-production prove-or-remove pilot — current-main supervisor, 72-hour real-work activation prepared (#1130) | `20260827-temporal-real-production-pilot.md` |
 | 2026-08-26 | ERPNext onboarding E — Projects / Support operational proof reuses #920 standard records (#1097) | `20260826-erpnext-projects-support-ops.md` |
 | 2026-08-20 | ERPNext WP2 Lead → Opportunity → Customer lifecycle bridge — synthetic search-before-create (#1018) | `20260820-erpnext-sales-lifecycle-bridge.md` |
