@@ -314,6 +314,7 @@ export default function WebsiteRescueDemo() {
               <DiscoveryIntakeForm
                 defaultOfferSlug="premium-landing-page-rescue"
                 lockedOffer
+                lockedOfferLabel="Website Rescue"
                 heading="Request discovery — Website Rescue"
               />
             </div>
