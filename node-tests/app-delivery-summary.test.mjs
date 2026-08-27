@@ -115,6 +115,11 @@ test('projector: Lead Rescue and Website Rescue become delivery items; general p
   assert.equal(wr?.current_blocker, 'None recorded');
   assert.equal(general, null);
   assert.equal(matchClientForProspect({ id: 'syn-772-lr-ada' }, clients)?.company_id, 'cmp_ada_spa_synthetic');
+  assert.equal(
+    matchClientForProspect({ organisation_name: 'Ada Spa' }, clients),
+    null,
+    'must not join Client by display name when prospect id is absent',
+  );
 });
 
 test('projector: protected waiting_on is visually a protected gate, not a safe next step', () => {

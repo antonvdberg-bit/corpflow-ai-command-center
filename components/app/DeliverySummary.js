@@ -86,7 +86,7 @@ export default function DeliverySummary({
         </p>
       ) : null}
 
-      {rows.length === 0 ? (
+      {error && rows.length === 0 ? null : rows.length === 0 ? (
         <section className="cf-app-panel" data-testid="delivery-summary-empty">
           <p className="cf-app-lead">No delivery items match this filter.</p>
         </section>

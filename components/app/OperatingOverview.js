@@ -73,13 +73,16 @@ const SECTION_ORDER = Object.freeze([
  *   overview?: Record<string, unknown> | null,
  *   dataSource?: string,
  *   busy?: boolean,
+ *   error?: string,
  *   proofWanted?: boolean,
  * }} props
  */
-export default function OperatingOverview({ overview, dataSource, busy, proofWanted }) {
+export default function OperatingOverview({ overview, dataSource, busy, error, proofWanted }) {
   if (busy) return null;
+  if (String(error || '').trim()) return null;
 
   const payload = overview && typeof overview === 'object' ? overview : {};
+  if (!payload.ok && overview) return null;
   const counts =
     payload.counts && typeof payload.counts === 'object'
       ? /** @type {Record<string, number>} */ (payload.counts)

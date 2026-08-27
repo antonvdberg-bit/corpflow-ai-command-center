@@ -48,7 +48,7 @@ test('fixture: at least three synthetic clients project without fabricated ERPNe
   }
 });
 
-test('matchProspectsToClient uses explicit ids and exact organisation names only', () => {
+test('matchProspectsToClient uses recorded prospect ids only — never display name', () => {
   const company = {
     legal_name: 'Ada Spa Ltd',
     trading_name: 'Ada Spa',
@@ -61,7 +61,7 @@ test('matchProspectsToClient uses explicit ids and exact organisation names only
     { id: 'tenant-dump', organisation_name: 'CorpFlowAI market lead' },
   ]);
   const ids = matched.map((row) => row.id).sort();
-  assert.deepEqual(ids, ['syn-772-lr-ada', 'syn-772-rd-bea']);
+  assert.deepEqual(ids, ['syn-772-rd-bea']);
 });
 
 test('projectClientSummary does not invent a named contact or ERPNext customer', () => {

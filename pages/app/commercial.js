@@ -5,6 +5,7 @@ import AppLoadState from '../../components/app/AppLoadState.js';
 import CoreMenu from '../../components/app/CoreMenu.js';
 import CommercialSummary from '../../components/app/CommercialSummary.js';
 import { normalizeCommercialFilter } from '../../lib/app/commercial-summary-constants.js';
+import { STAFF_LIST_ERROR_BODIES, staffWorkspaceListPanelKind } from '../../lib/app/staff-workspace-load-state.js';
 
 /**
  * @param {import('next/router').NextRouter['query']} query
@@ -126,6 +127,11 @@ export default function AppCommercialPage() {
       ? /** @type {Record<string, unknown>} */ (shell.actor)
       : {};
   const proofMode = shell?.proof_mode === true;
+  const listPanelKind = staffWorkspaceListPanelKind({
+    busy,
+    error,
+    count: rows.length,
+  });
 
   if (authRequired) {
     return (
@@ -219,21 +225,43 @@ export default function AppCommercialPage() {
           </>
         ) : null}
       </p>
-      {error ? (
+      {error && listPanelKind !== 'error' ? (
         <p className="cf-app-error" data-testid="app-error">
           {error}
         </p>
       ) : null}
-      {busy ? <AppLoadState kind="loading" title="Loading commercial state…" /> : null}
-      <CommercialSummary
-        rows={rows}
-        dataSource={dataSource}
-        busy={busy}
-        filter={filter}
-        filterCounts={filterCounts}
-        proofWanted={proofWanted}
-        onFilter={pushFilter}
-      />
+      {listPanelKind === 'loading' ? <AppLoadState kind="loading" title="Loading commercial state…" /> : null}
+      {listPanelKind === 'error' ? (
+        <>
+          <AppLoadState
+            kind="error"
+            title="Commercial unavailable"
+            message={STAFF_LIST_ERROR_BODIES.commercial}
+            testId="app-commercial-list-error"
+          />
+          <p className="cf-app-muted" data-testid="app-commercial-list-error-code">
+            {error}
+          </p>
+          <div className="cf-app-actions" style={{ marginTop: 12 }}>
+            <button type="button" className="cf-app-btn" data-primary="true" onClick={() => load()}>
+              Retry
+            </button>
+            <a className="cf-app-btn" href={proofWanted ? '/app/core?proof=1' : '/app/core'}>
+              Overview
+            </a>
+          </div>
+        </>
+      ) : (
+        <CommercialSummary
+          rows={rows}
+          dataSource={dataSource}
+          busy={busy}
+          filter={filter}
+          filterCounts={filterCounts}
+          proofWanted={proofWanted}
+          onFilter={pushFilter}
+        />
+      )}
     </AppShell>
   );
 }
