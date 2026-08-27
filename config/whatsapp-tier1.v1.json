@@ -1,0 +1,68 @@
+{
+  "$schema_version": "1",
+  "$issue": "#1137",
+  "$parents": ["#702", "#492"],
+  "$canonical_doc": "docs/operations/WHATSAPP_TIER1_MANUAL_CONTACT.md",
+  "$publication_state": "internal_capability_only_not_attached",
+  "$warning": "Reusable Tier 1 catalog only. enabled=false until a later delivery approval attaches the component to a named surface. No API, webhook, automation, or send runtime. No new env vars. No schema.",
+  "version": "whatsapp-tier1-v1",
+  "environment": "corpflow_test",
+  "runtime": {
+    "api": false,
+    "webhook": false,
+    "automation": false,
+    "send": false,
+    "meta_cloud_api": false
+  },
+  "defaults": {
+    "enabled": false,
+    "cta_label": "Message us on WhatsApp",
+    "prefill_message": "Hello — I would like to get in touch.",
+    "privacy_notice": "Opens WhatsApp on your device. You choose whether to send the prefilled message. A person from this business replies from their WhatsApp. This page does not send, store, or automate WhatsApp messages.",
+    "consent_label": "Continuing is a manual WhatsApp conversation you start. Standard WhatsApp terms apply on Meta’s app.",
+    "fallback_copy": "WhatsApp is optional. You can also call the published business number, or use the contact form if one is on this page.",
+    "unavailable_copy": "WhatsApp contact is not enabled for this tenant yet.",
+    "desktop_hint": "On a computer this opens WhatsApp Web or the WhatsApp desktop app in a new tab.",
+    "mobile_hint": "On a phone this opens the WhatsApp app.",
+    "qr_caption": "Scan to open the same WhatsApp conversation on your phone."
+  },
+  "tenants": {
+    "corpflowai": {
+      "enabled": false,
+      "display_name": "CorpFlowAI",
+      "business_phone": "+230 5901 4284",
+      "prefill_message": "Hello CorpFlowAI — I would like to request a conversation.",
+      "later_surfaces": ["/contact"]
+    },
+    "cafe-international": {
+      "enabled": false,
+      "display_name": "Café International",
+      "business_phone": "+230 5765 8735",
+      "prefill_message": "Hello Café International — I would like to order takeaway.",
+      "later_surfaces": [
+        "/demo/cafe-international/takeaway",
+        "/demo/cafe-international/contact",
+        "/demo/cafe-international/menu"
+      ]
+    }
+  },
+  "products": {
+    "ai-lead-rescue": {
+      "enabled": false,
+      "tenant_id": "corpflowai",
+      "cta_label": "Message CorpFlowAI on WhatsApp",
+      "prefill_message": "Hello CorpFlowAI — I would like to ask about AI Lead Rescue.",
+      "later_surfaces": ["/lead-rescue", "/contact?offer=ai-lead-rescue"]
+    },
+    "website-rescue": {
+      "enabled": false,
+      "tenant_id": "cafe-international",
+      "cta_label": "Order takeaway on WhatsApp",
+      "prefill_message": "Hello Café International — I would like to order takeaway.",
+      "later_surfaces": [
+        "/demo/cafe-international/takeaway",
+        "/demo/cafe-international/contact"
+      ]
+    }
+  }
+}
