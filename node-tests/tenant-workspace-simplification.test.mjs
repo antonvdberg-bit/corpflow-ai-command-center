@@ -80,6 +80,7 @@ describe('tenant-workspace #1006 — nav / route matrix', () => {
     assert.equal(byPath['/app'], 'REDIRECT');
     assert.equal(byPath['/app/core'], 'STAFF_ONLY_FAIL_CLOSED');
     assert.equal(byPath['/app/clients'], 'STAFF_ONLY_FAIL_CLOSED');
+    assert.equal(byPath['/app/commercial'], 'STAFF_ONLY_FAIL_CLOSED');
   });
 
   it('hides the workspace chooser on Tenant chrome and keeps it for Operating Workspace', () => {
@@ -122,6 +123,8 @@ describe('tenant-workspace #1006 — fail-closed staff routes', () => {
     assert.equal(isOperatingWorkspaceStaffPath('/app'), false);
     assert.equal(isOperatingWorkspaceStaffPath('/app/prospects/syn-detail'), true);
     assert.equal(isOperatingWorkspaceStaffPath('/app/clients/syn-client'), true);
+    assert.equal(isOperatingWorkspaceStaffPath('/app/commercial'), true);
+    assert.equal(isOperatingWorkspaceStaffPath('/api/app/commercial'), true);
   });
 
   it('denies a Tenant session on Today / My Work and other staff APIs', async () => {
@@ -140,6 +143,7 @@ describe('tenant-workspace #1006 — fail-closed staff routes', () => {
         ['/api/app/pipeline?env=core', 'app/pipeline'],
         ['/api/app/prospects?env=core', 'app/prospects'],
         ['/api/app/clients?env=core', 'app/clients'],
+        ['/api/app/commercial?env=core', 'app/commercial'],
       ];
       for (const [url, pathSeg] of routes) {
         const res = mockRes();
