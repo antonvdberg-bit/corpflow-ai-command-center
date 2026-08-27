@@ -477,6 +477,55 @@ export const APP_SHELL_CSS = `
   }
   .cf-app-draft-block { margin-top: 16px; }
   .cf-app-draft-block p { margin: 6px 0 0; line-height: 1.5; }
+  .cf-app-overview-counts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .cf-app-overview-count {
+    min-width: 0;
+    text-decoration: none;
+    color: inherit;
+    border: 1px solid var(--app-panel-border);
+    background: rgba(0,0,0,0.14);
+    border-radius: 12px;
+    padding: 12px;
+    display: grid;
+    gap: 4px;
+  }
+  .cf-app-overview-count[data-attention="true"] {
+    border-color: color-mix(in srgb, var(--app-warn) 55%, var(--app-panel-border));
+  }
+  .cf-app-overview-count-num {
+    font-size: 1.45rem;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .cf-app-overview-count-label {
+    color: var(--app-muted);
+    font-size: 0.78rem;
+    line-height: 1.3;
+  }
+  .cf-app-overview-sections {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .cf-app-overview-list {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+  }
+  .cf-app-overview-list li {
+    border-top: 1px solid var(--app-panel-border);
+    padding: 10px 0;
+    min-width: 0;
+  }
+  .cf-app-overview-list a {
+    font-weight: 650;
+    word-break: break-word;
+  }
   .cf-app-draft {
     width: 100%;
     margin-top: 8px;
@@ -524,6 +573,12 @@ export const APP_SHELL_CSS = `
       letter-spacing: 0.04em;
       text-transform: uppercase;
       margin-bottom: 2px;
+    }
+    .cf-app-overview-sections {
+      grid-template-columns: 1fr;
+    }
+    .cf-app-overview-counts {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 `;
