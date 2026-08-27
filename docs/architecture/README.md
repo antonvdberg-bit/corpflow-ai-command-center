@@ -11,4 +11,5 @@
 | [REFERENCE_TENANT_CLIENT_JOURNEY_ACCEPTANCE_V1.md](./REFERENCE_TENANT_CLIENT_JOURNEY_ACCEPTANCE_V1.md) | #1120 — Product acceptance of the CorpFlowAI reference-tenant client journey |
 | [WEBSITE_RESCUE_TENANT_DELIVERY_PROGRESS_V1.md](./WEBSITE_RESCUE_TENANT_DELIVERY_PROGRESS_V1.md) | #1151 / #1165 — tenant-safe Website Rescue delivery progress inside existing Requests & Progress |
 | [LEAD_RESCUE_TENANT_DELIVERY_PROGRESS_V1.md](./LEAD_RESCUE_TENANT_DELIVERY_PROGRESS_V1.md) | #1155 / #1165 — tenant-safe Lead Rescue delivery/onboarding progress in Tenant Workspace Requests & Progress |
+| [Launch-product buyer-to-delivery continuity](../revenue/LAUNCH_PRODUCT_BUYER_TO_DELIVERY_CONTINUITY_V1.md) | #1218 — Lead Rescue + Website Rescue public → Prospect/Commercial → recorded quotation → Tenant progress on current `main` |
 | Central app route & capability matrix (#773 audit) | See open PR #774 — `CORPFLOW_CENTRAL_APP_ROUTE_CAPABILITY_MATRIX_V1.md` (merge separately) |
