@@ -144,8 +144,8 @@ export default function RapidDeliveryOfferPage({ offer, buyerFacingName, pathOve
             <h1 style={styles.h1}>{offer.headline}</h1>
             {buyerFacingName ? (
               <p style={{ ...styles.note, marginTop: 12, maxWidth: 720 }}>
-                Starting path: {offer.title}. A bounded landing-page rescue with a working enquiry
-                path — not a months-long rebuild.
+                A bounded landing-page rescue with a working enquiry path — not a months-long
+                rebuild.
               </p>
             ) : null}
             <p style={styles.lead}>{offer.subhead}</p>

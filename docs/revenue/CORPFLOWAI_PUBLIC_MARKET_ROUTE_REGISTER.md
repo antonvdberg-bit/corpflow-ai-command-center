@@ -1,6 +1,6 @@
 # CorpFlowAI public market route register
 
-**Status:** Operator inventory · **Updated:** 2026-08-24 (#710 named Website Rescue landing)
+**Status:** Operator inventory · **Updated:** 2026-08-27 (#1164 current-main repair of #1127 named launch-product buyer-path lock)
 **Anchor:** `<!-- CORPFLOWAI_PUBLIC_MARKET_ROUTE_REGISTER_V1 -->`
 
 <!-- CORPFLOWAI_PUBLIC_MARKET_ROUTE_REGISTER_V1 -->
@@ -28,8 +28,8 @@ Physical register of routes an unauthenticated prospect could reach on **`corpfl
 
 | Route | Purpose | Target buyer | Status | Visual family | Primary CTA | CTA destination | Mobile | Trust | Analytics | Launch decision | Required action |
 | ----- | ------- | ------------ | ------ | ------------- | ----------- | --------------- | ------ | ----- | --------- | --------------- | --------------- |
-| `/lead-rescue` | USD 150 launch pilot (legacy wedge) | Warm-network pilot buyers | Specialist | Photo + glass (AiLeadRescueLanding) | Start my 48-hour setup | `/contact?offer=ai-lead-rescue#discovery` | CTA only — no embedded form | Strong trust copy | CTA click events | **KEEP_AS_SPECIALIST_LANDING** | Canonical enquiry is `/contact?offer=ai-lead-rescue#discovery` |
-| `/website-rescue` | Named Website Rescue landing (#710) — same SKU as Premium Landing Page Rescue | SMB / owner-operators with a weak site or enquiry path | Specialist | Photo + glass (RapidDeliveryOfferPage) | Request discovery | `#discovery` form (SKU lock `premium-landing-page-rescue`) | Header menu + form | Fictional demo + not-included | `revenue_offer_cta_click` | **KEEP_AS_SPECIALIST_LANDING** | Nav and homepage product entry; SKU URL `/offers/premium-landing-page-rescue` remains |
+| `/lead-rescue` | USD 150 launch pilot (canonical Lead Rescue buyer path) | Warm-network / missed-enquiry buyers | Specialist | Photo + glass (AiLeadRescueLanding) | Start my 48-hour setup | `/contact?offer=ai-lead-rescue#discovery` | CTA only — no embedded form | Strong trust copy | CTA click events | **KEEP_AS_SPECIALIST_LANDING** | Nav, homepage, and public footer product entry. Do not record `/offers/ai-lead-rescue` as this path |
+| `/website-rescue` | Named Website Rescue landing (#710 / #1127) — same SKU as Premium Landing Page Rescue | SMB / owner-operators with a weak site or enquiry path | Specialist | Photo + glass (RapidDeliveryOfferPage) | Request discovery | `#discovery` form (SKU lock `premium-landing-page-rescue`) | Header menu + form | Fictional demo + not-included | `revenue_offer_cta_click` | **KEEP_AS_SPECIALIST_LANDING** | Nav, homepage, and public footer product entry; SKU URL `/offers/premium-landing-page-rescue` remains a live alias |
 | `/lead-rescue/property-mauritius` | Property vertical pilot | Mauritius property operators | Specialist | Photo + glass | Intake | `POST /api/tenant/intake` | Same family | Same | Same | **KEEP_AS_SPECIALIST_LANDING** | Connect nav/footer to public family |
 | `/about` | Company trust architecture | Evaluating buyers | Editorial | PublicPolicyLayout | Process link | `/process` | Menu | Standards cross-links | — | **KEEP_AND_ALIGN** | Shared header applied |
 | `/process` | Engagement process | Evaluating buyers | Editorial | PublicPolicyLayout | Lead rescue | `/lead-rescue` | Menu | — | — | **KEEP_AND_ALIGN** | — |
