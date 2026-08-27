@@ -36,6 +36,7 @@ The #884 / #1077 / #1104 runtime already implements the journey. This packet rep
 6. Core request detail shows `latest_client_decision`.
 7. Service & change is a GET to `/change?from=tenant-workspace`. Navigation does not create a ticket.
 8. Tenant cannot operate `/app/core`, `/app/commercial`, `/app/delivery`, Operating Workspace APIs, or GitHub/PR/agent/internal-note fields.
+9. Loading, empty, and list-error states must not imply the delivery is complete. A failed Requests & Progress load is an error, not “no work yet” (#1201).
 
 ## 3. Explicit non-actions
 

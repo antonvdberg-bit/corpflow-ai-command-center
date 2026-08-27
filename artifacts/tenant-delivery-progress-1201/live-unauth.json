@@ -1,0 +1,32 @@
+{
+  "captured_at": "2026-08-27T20:10:27.350Z",
+  "live": {
+    "live-core-tenant-unauth-desktop.png": {
+      "url": "https://core.corpflowai.com/app/tenant",
+      "status": 200,
+      "has_sign_in": true,
+      "has_choose_workspace": false,
+      "has_requests_progress": false,
+      "has_false_complete": false,
+      "snippet": "CorpFlowAI Workspace · Tenant Workspace — CorpFlowAI Tenant · CorpFlowAI Role · — Sign in to Tenant Workspace Use your tenant sign-in to review requests and progress for CorpFlowAI. Tenant sign in"
+    },
+    "live-lux-tenant-unauth-mobile.png": {
+      "url": "https://lux.corpflowai.com/app/tenant",
+      "status": 200,
+      "has_sign_in": true,
+      "has_choose_workspace": false,
+      "has_requests_progress": false,
+      "has_false_complete": false,
+      "snippet": "CorpFlowAI Workspace · Tenant Workspace — CorpFlowAI Tenant · CorpFlowAI Role · — Sign in to Tenant Workspace Use your tenant sign-in to review requests and progress for CorpFlowAI. Tenant sign in"
+    },
+    "live-change-from-tenant-desktop.png": {
+      "url": "https://core.corpflowai.com/change?from=tenant-workspace&tenant_id=corpflowai",
+      "status": 200,
+      "has_sign_in": false,
+      "has_choose_workspace": false,
+      "has_requests_progress": false,
+      "has_false_complete": false,
+      "snippet": "Tenant Workspace · Service & change You are still in the CorpFlowAI tenant journey. /change is the canonical place to raise or change a service request. Opening this page does not create a ticket. Back to Tenant Workspace Tenant · CorpFlowAI Service & change Tenant Workspace · ca"
+    }
+  }
+}
