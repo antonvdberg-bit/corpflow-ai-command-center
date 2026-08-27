@@ -259,7 +259,7 @@ export default function WebsiteRescueDemo() {
         <title>Website Rescue demo — fictional before/after | CorpFlowAI</title>
         <meta
           name="description"
-          content="Fictional Website Rescue before/after demo for Premium Landing Page Rescue. No private client data. Request discovery on the live offer page."
+          content="Fictional Website Rescue before/after demo. No private client data. Request discovery on the live Website Rescue page."
         />
         <meta name="robots" content="noindex,nofollow" />
         <link rel="canonical" href="https://corpflowai.com/demo/website-rescue" />
