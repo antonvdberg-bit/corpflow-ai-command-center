@@ -1,0 +1,124 @@
+{
+  "schema": "corpflow.video_qc_report.v1",
+  "spec_id": "cf-vid-wr-what-it-does",
+  "candidate_id": "qc-fail-fixture",
+  "verdict": "FAIL",
+  "checked_at": "2026-08-27T00:00:00.000Z",
+  "checks": [
+    {
+      "id": "spec_valid",
+      "verdict": "PASS",
+      "detail": "spec cf-vid-wr-what-it-does is machine-valid",
+      "score": null
+    },
+    {
+      "id": "script_fidelity",
+      "verdict": "FAIL",
+      "detail": "script overlap 0.08 below floor",
+      "score": 0.08333333333333333
+    },
+    {
+      "id": "duration",
+      "verdict": "FAIL",
+      "detail": "duration 12s outside 60-90s",
+      "score": null
+    },
+    {
+      "id": "scene_presence",
+      "verdict": "FAIL",
+      "detail": "missing scenes: sc02, sc03, sc04, sc05, sc06",
+      "score": null
+    },
+    {
+      "id": "captions_text",
+      "verdict": "FAIL",
+      "detail": "missing on-screen/caption text: Website Rescue | Request discovery | We do not guarantee new revenue | corpflowai.com/website-rescue | AI-assisted presenter",
+      "score": null
+    },
+    {
+      "id": "black_frame",
+      "verdict": "FAIL",
+      "detail": "black-frame defect longest=3200ms ratio=0.267",
+      "score": null
+    },
+    {
+      "id": "product_url_cta",
+      "verdict": "FAIL",
+      "detail": "must name Website Rescue, speak Request discovery, and cite https://corpflowai.com/website-rescue",
+      "score": null
+    },
+    {
+      "id": "sku_alias",
+      "verdict": "FAIL",
+      "detail": "Do not present Premium Landing Page Rescue as the launch product name; use Website Rescue; /offers/premium-landing-page-rescue must not be used as the recording or CTA URL",
+      "score": null
+    },
+    {
+      "id": "safe_claims",
+      "verdict": "FAIL",
+      "detail": "Forbidden claim pattern: guaranteed_revenue; Forbidden claim pattern: choose_payment_path",
+      "score": null
+    },
+    {
+      "id": "privacy",
+      "verdict": "FAIL",
+      "detail": "Non-public email is not allowed in production copy (owner@harbour-real-client.com)",
+      "score": null
+    },
+    {
+      "id": "marketing_rubric",
+      "verdict": "PASS",
+      "detail": "Hook / Proof / Depth: problem, named offer, demo or walkthrough, CTA; Word count 139; Publication remains blocked in Phase A",
+      "score": null
+    }
+  ],
+  "defects": [
+    {
+      "check_id": "script_fidelity",
+      "severity": "fail",
+      "message": "script overlap 0.08 below floor"
+    },
+    {
+      "check_id": "duration",
+      "severity": "fail",
+      "message": "duration 12s outside 60-90s"
+    },
+    {
+      "check_id": "scene_presence",
+      "severity": "fail",
+      "message": "missing scenes: sc02, sc03, sc04, sc05, sc06"
+    },
+    {
+      "check_id": "captions_text",
+      "severity": "fail",
+      "message": "missing on-screen/caption text: Website Rescue | Request discovery | We do not guarantee new revenue | corpflowai.com/website-rescue | AI-assisted presenter"
+    },
+    {
+      "check_id": "black_frame",
+      "severity": "fail",
+      "message": "black-frame defect longest=3200ms ratio=0.267"
+    },
+    {
+      "check_id": "product_url_cta",
+      "severity": "fail",
+      "message": "must name Website Rescue, speak Request discovery, and cite https://corpflowai.com/website-rescue"
+    },
+    {
+      "check_id": "sku_alias",
+      "severity": "fail",
+      "message": "Do not present Premium Landing Page Rescue as the launch product name; use Website Rescue; /offers/premium-landing-page-rescue must not be used as the recording or CTA URL"
+    },
+    {
+      "check_id": "safe_claims",
+      "severity": "fail",
+      "message": "Forbidden claim pattern: guaranteed_revenue; Forbidden claim pattern: choose_payment_path"
+    },
+    {
+      "check_id": "privacy",
+      "severity": "fail",
+      "message": "Non-public email is not allowed in production copy (owner@harbour-real-client.com)"
+    }
+  ],
+  "publication_blocked": true,
+  "notes": "Phase A QC. No automatic publication. Anton approval remains the quality gate for any later render."
+}

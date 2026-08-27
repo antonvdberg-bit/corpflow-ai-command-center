@@ -1,0 +1,9 @@
+{
+  "code": 400,
+  "data": {
+    "status": "failed",
+    "video_id": "mock-video-wr-phase-a",
+    "error": "fixture_failed_status",
+    "credits_used": 0
+  }
+}

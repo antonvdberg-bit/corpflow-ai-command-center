@@ -1,0 +1,8 @@
+{
+  "code": 100,
+  "data": {
+    "status": "processing",
+    "video_id": "mock-video-wr-phase-a",
+    "credits_used": 1.5
+  }
+}

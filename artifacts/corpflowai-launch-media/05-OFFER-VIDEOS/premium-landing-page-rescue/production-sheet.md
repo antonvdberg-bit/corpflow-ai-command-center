@@ -1,5 +1,11 @@
 # V03 — Premium Landing Page Rescue Production Sheet
 
+> **Superseded for Website Rescue launch videos (2026-08-27, #1143 / #700 reconciliation).**  
+> Do not record this sheet’s SKU title or `https://corpflowai.com/offers/premium-landing-page-rescue` as the launch-product path.  
+> Current packet: `docs/marketing/WEBSITE_RESCUE_VIDEO_PRODUCTION_PACKET_V1.md`  
+> Machine specs: `data/video-factory/specs/cf-vid-wr-what-it-does.v1.json` and `cf-vid-wr-before-after-enquiry.v1.json`.  
+> This V03 file is retained as historical Stream B launch-media kit only.
+
 **Asset ID:** V03 · **Canonical title:** Premium Landing Page Rescue  
 **Alias note:** "website rescue" — metadata only, once  
 **Duration:** 30–45s

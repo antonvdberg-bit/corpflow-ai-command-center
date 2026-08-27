@@ -1,0 +1,78 @@
+{
+  "schema": "corpflow.video_qc_report.v1",
+  "spec_id": "cf-vid-wr-what-it-does",
+  "candidate_id": "qc-pass-fixture",
+  "verdict": "PASS",
+  "checked_at": "2026-08-27T00:00:00.000Z",
+  "checks": [
+    {
+      "id": "spec_valid",
+      "verdict": "PASS",
+      "detail": "spec cf-vid-wr-what-it-does is machine-valid",
+      "score": null
+    },
+    {
+      "id": "script_fidelity",
+      "verdict": "PASS",
+      "detail": "token overlap 1.00",
+      "score": 1
+    },
+    {
+      "id": "duration",
+      "verdict": "PASS",
+      "detail": "duration 78s inside target window",
+      "score": null
+    },
+    {
+      "id": "scene_presence",
+      "verdict": "PASS",
+      "detail": "all 6 planned scenes present",
+      "score": null
+    },
+    {
+      "id": "captions_text",
+      "verdict": "PASS",
+      "detail": "required caption and on-screen text found",
+      "score": null
+    },
+    {
+      "id": "black_frame",
+      "verdict": "PASS",
+      "detail": "no material black-frame windows (longest=0ms)",
+      "score": null
+    },
+    {
+      "id": "product_url_cta",
+      "verdict": "PASS",
+      "detail": "product name, CTA, and named URL present",
+      "score": null
+    },
+    {
+      "id": "sku_alias",
+      "verdict": "PASS",
+      "detail": "SKU title/URL not used as the launch path",
+      "score": null
+    },
+    {
+      "id": "safe_claims",
+      "verdict": "PASS",
+      "detail": "no forbidden claims; trust line present",
+      "score": null
+    },
+    {
+      "id": "privacy",
+      "verdict": "PASS",
+      "detail": "no real client data / PII markers",
+      "score": null
+    },
+    {
+      "id": "marketing_rubric",
+      "verdict": "PASS",
+      "detail": "Hook / Proof / Depth: problem, named offer, demo or walkthrough, CTA; Word count 139; Publication remains blocked in Phase A",
+      "score": null
+    }
+  ],
+  "defects": [],
+  "publication_blocked": true,
+  "notes": "Phase A QC. No automatic publication. Anton approval remains the quality gate for any later render."
+}

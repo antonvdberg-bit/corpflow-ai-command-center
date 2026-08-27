@@ -1,0 +1,8 @@
+{
+  "code": 100,
+  "data": {
+    "video_id": "mock-video-wr-phase-a",
+    "credits_used": 1.5
+  },
+  "message": "Video generation started (fixture — no live vendor call)"
+}

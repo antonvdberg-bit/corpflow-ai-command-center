@@ -1,5 +1,7 @@
 # V03 — Premium Landing Page Rescue Script
 
+> **Superseded for Website Rescue launch videos (#1143).** Named product, CTA, and URL now live in `data/video-factory/specs/`. Do not speak the SKU title or the `/offers/premium-landing-page-rescue` path as the launch identity.
+
 **Duration:** 30–45s (~100 words)
 
 ---

@@ -1,0 +1,166 @@
+{
+  "schema": "corpflow.video_spec.v1",
+  "id": "cf-vid-wr-calibration-20s",
+  "title": "Website Rescue — 20–30 second calibration (Phase B gate)",
+  "status": "blocked_pending_phase_b",
+  "phase": "A",
+  "role": "calibration",
+  "source": {
+    "issues": [1143, 1078],
+    "buyer_path_record": "docs/marketing/WEBSITE_RESCUE_VIDEO_PRODUCTION_PACKET_V1.md",
+    "recording_matrix_issue": 1127,
+    "supersedes": []
+  },
+  "purpose": {
+    "buyer": "Internal calibration only — not a public launch video.",
+    "problem": "Need a short render to compare machine QC against Anton judgement before spending on the two launch videos.",
+    "outcome": "One 20–30 second calibration using the same fixed avatar/voice IDs that Phase B will assign.",
+    "buyer_action": "Do not publish. Anton scores the same render independently."
+  },
+  "product": {
+    "name": "Website Rescue",
+    "named_landing_url": "https://corpflowai.com/website-rescue",
+    "demo_url": "https://corpflowai.com/demo/website-rescue",
+    "enquiry_url": "https://corpflowai.com/website-rescue#discovery",
+    "sku_lock": "premium-landing-page-rescue",
+    "forbidden_recording_urls": [
+      "https://corpflowai.com/offers/premium-landing-page-rescue"
+    ]
+  },
+  "cta": {
+    "label": "Request discovery",
+    "spoken": "Request discovery at corpflowai.com/website-rescue.",
+    "destination_url": "https://corpflowai.com/website-rescue"
+  },
+  "duration": {
+    "target_seconds_min": 20,
+    "target_seconds_max": 30,
+    "planned_seconds": 28
+  },
+  "picture": {
+    "aspect_ratio": "16:9",
+    "resolution": "1920x1080",
+    "fps": 30,
+    "format": "mp4"
+  },
+  "avatar": {
+    "assignment": "pending_anton_assignment",
+    "id": "PENDING_ANTON_AVATAR_ID",
+    "style": "normal",
+    "profile_ref": "artifacts/corpflowai-launch-media/02-HEYGEN-AVATAR-BRIEF.md"
+  },
+  "voice": {
+    "assignment": "pending_anton_assignment",
+    "id": "PENDING_ANTON_VOICE_ID",
+    "locale": "en-US",
+    "pace_wpm": 140,
+    "guide_ref": "artifacts/corpflowai-launch-media/03-VOICE-AND-DELIVERY-GUIDE.md"
+  },
+  "pronunciation": [
+    { "term": "Website Rescue", "say": "Website Rescue" },
+    { "term": "corpflowai.com/website-rescue", "say": "corpflow A I dot com slash website-rescue" }
+  ],
+  "script": {
+    "language": "en",
+    "full_text": "When a website looks outdated or hides the offer, buyers leave before they reach you. Website Rescue turns a weak landing page into a credible enquiry path — fast. One named product. One primary action: Request discovery. We do not guarantee new revenue. Request discovery at corpflowai.com/website-rescue.",
+    "word_count": 46,
+    "disclosures": [
+      "AI-assisted presenter",
+      "Calibration render — not for publication",
+      "We do not guarantee new revenue."
+    ]
+  },
+  "scenes": [
+    {
+      "id": "sc01",
+      "start_seconds": 0,
+      "duration_seconds": 10,
+      "purpose": "problem",
+      "spoken_text": "When a website looks outdated or hides the offer, buyers leave before they reach you.",
+      "visual": "Named landing hero only.",
+      "source_screen": {
+        "name": "Product hero",
+        "url": "https://corpflowai.com/website-rescue",
+        "show": "H1 and Request discovery",
+        "do_not_show": "SKU offer URL"
+      }
+    },
+    {
+      "id": "sc02",
+      "start_seconds": 10,
+      "duration_seconds": 10,
+      "purpose": "named offer",
+      "spoken_text": "Website Rescue turns a weak landing page into a credible enquiry path — fast. One named product. One primary action: Request discovery.",
+      "visual": "Avatar medium shot over the named landing.",
+      "source_screen": {
+        "name": "Product hero",
+        "url": "https://corpflowai.com/website-rescue",
+        "show": "Website Rescue name and primary CTA",
+        "do_not_show": "Payment UI"
+      }
+    },
+    {
+      "id": "sc03",
+      "start_seconds": 20,
+      "duration_seconds": 8,
+      "purpose": "call_to_action",
+      "spoken_text": "We do not guarantee new revenue. Request discovery at corpflowai.com/website-rescue.",
+      "visual": "CTA end card. Do not upload.",
+      "source_screen": {
+        "name": "Enquiry",
+        "url": "https://corpflowai.com/website-rescue#discovery",
+        "show": "Named URL and Request discovery",
+        "do_not_show": "Form submit"
+      }
+    }
+  ],
+  "captions": {
+    "required": true,
+    "source": "script",
+    "burn_in": true,
+    "language": "en"
+  },
+  "on_screen_text": [
+    { "at_seconds": 10, "text": "Website Rescue", "role": "product_name" },
+    { "at_seconds": 16, "text": "Request discovery", "role": "cta" },
+    { "at_seconds": 20, "text": "We do not guarantee new revenue", "role": "disclosure" },
+    { "at_seconds": 24, "text": "corpflowai.com/website-rescue", "role": "cta" }
+  ],
+  "assets": {
+    "screen_recordings": ["https://corpflowai.com/website-rescue"],
+    "stills": ["Named landing hero"],
+    "b_roll": []
+  },
+  "claims": {
+    "allowed": ["Turns a weak landing page into a credible enquiry path"],
+    "forbidden": ["Guaranteed more sales"],
+    "required_trust_line": "We do not guarantee new revenue. We help make the offer clear and the enquiry path usable.",
+    "no_invented_proof": true,
+    "no_revenue_guarantee": true
+  },
+  "privacy": {
+    "real_client_data": false,
+    "real_tenant_used": false,
+    "real_pii": false,
+    "fictional_demo_only": true,
+    "do_not_submit_enquiry_on_camera": true
+  },
+  "youtube_metadata_draft": {
+    "title": "INTERNAL CALIBRATION — do not publish",
+    "description": "Phase B calibration only. Request discovery at https://corpflowai.com/website-rescue. We do not guarantee new revenue.",
+    "tags": ["internal", "Website Rescue", "calibration"],
+    "chapters": [{ "at_seconds": 0, "label": "Calibration" }],
+    "publication_status": "do_not_publish"
+  },
+  "thumbnail": {
+    "title_text": "Website Rescue calibration (internal)",
+    "must_include_product_name": true,
+    "must_not_use_sku_title": true
+  },
+  "publication": {
+    "website_embed": false,
+    "youtube_upload": false,
+    "auto_publish": false,
+    "requires_anton_approval": true
+  }
+}
