@@ -142,6 +142,8 @@ async function main() {
     claimedIssues,
     trackedIssues,
     preferIssueNumbers: [],
+    wakeReason: FACTORY_TEMPORAL_PILOT_WAKE_REASON,
+    activationLane: 'temporal',
   });
   const targetIssueNumber = Number(plan.activationTargetIssue || 0) || null;
   const targetIssue =
