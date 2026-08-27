@@ -22,6 +22,7 @@ import {
   primaryDeliveryException,
   projectProspectToDeliveryItem,
   projectRequestToDeliveryItem,
+  withDeliveryProof,
 } from '../lib/app/delivery-workspace.js';
 import { handleAppDelivery, handleAppShell, tryHandleAppApi } from '../lib/app/handlers.js';
 import { CANONICAL_REQUEST_ID } from '../lib/app/constants.js';
@@ -110,6 +111,10 @@ test('projector: Lead Rescue and Website Rescue become delivery items; general p
   assert.equal(lr?.links.prospect, '/app/prospects/syn-772-lr-ada');
   assert.equal(lr?.links.clients, '/app/clients/cmp_ada_spa_synthetic');
   assert.equal(lr?.links.commercial, COMMERCIAL_EXISTING_PATH);
+  const adaEvidence = Array.isArray(lr?.evidence) ? lr.evidence : [];
+  assert.ok(adaEvidence.some((link) => link.label === 'Commercial' && link.href === COMMERCIAL_EXISTING_PATH));
+  assert.ok(adaEvidence.some((link) => link.label === 'Shared prospect' && link.href === '/app/prospects/syn-772-lr-ada'));
+  assert.ok(adaEvidence.some((link) => link.label === 'Client summary' && link.href === '/app/clients/cmp_ada_spa_synthetic'));
   assert.equal(wr?.record_kind, 'website_rescue');
   assert.ok(wr?.exception_signals.includes('inputs_pending'));
   assert.equal(wr?.current_blocker, 'None recorded');
@@ -174,6 +179,18 @@ test('projector: Change tickets become general delivery without fabricating fiel
   assert.equal(item?.links.change, '/change');
   assert.equal(item?.fabricated, false);
   assert.equal(item?.current_blocker, 'Blocked on client review of landing_copy before wiring merge.');
+  const ticketEvidence = Array.isArray(item?.evidence) ? item.evidence : [];
+  assert.ok(ticketEvidence.some((link) => link.label === 'Commercial' && link.href === COMMERCIAL_EXISTING_PATH));
+  assert.ok(ticketEvidence.some((link) => link.label === 'Change Console' && link.href === '/change'));
+});
+
+test('proof hops: Operating Workspace evidence keeps proof=1; Change and admin do not', () => {
+  assert.equal(withDeliveryProof('/app/prospects/syn-772-lr-ada', true), '/app/prospects/syn-772-lr-ada?proof=1');
+  assert.equal(withDeliveryProof('/app/clients?filter=all', true), '/app/clients?filter=all&proof=1');
+  assert.equal(withDeliveryProof('/app/commercial?proof=1', true), '/app/commercial?proof=1');
+  assert.equal(withDeliveryProof('/change', true), '/change');
+  assert.equal(withDeliveryProof('/admin/company-master', true), '/admin/company-master');
+  assert.equal(withDeliveryProof('/app/clients', false), '/app/clients');
 });
 
 test('exceptions: preview_ready and protected deploy are distinct from safe internal work', () => {
@@ -271,6 +288,10 @@ test('handler: Core proof loads Lead Rescue, Website Rescue, and general deliver
     assert.equal(prot?.protected_gate, true);
     const ada = res.state.body.items.find((row) => row.source_id === 'syn-772-lr-ada');
     assert.equal(ada?.links.clients, '/app/clients/cmp_ada_spa_synthetic');
+    assert.equal(ada?.links.commercial, COMMERCIAL_EXISTING_PATH);
+    assert.ok(
+      (ada?.evidence || []).some((link) => link.label === 'Commercial' && link.href === COMMERCIAL_EXISTING_PATH),
+    );
     const blob = JSON.stringify(res.state.body);
     assert.equal(blob.includes('qualificationJson'), false);
     assert.equal(blob.includes('POSTGRES_URL'), false);

@@ -2,6 +2,7 @@ import {
   DELIVERY_EXCEPTION_FILTERS,
   DELIVERY_EXCEPTION_LABELS,
   DELIVERY_PATH,
+  withDeliveryProof,
 } from '../../lib/app/delivery-summary-constants.js';
 
 /**
@@ -156,7 +157,7 @@ export default function DeliverySummary({
                             <a
                               key={`${row.id}-${link.href}-${link.label}`}
                               className="cf-app-btn"
-                              href={String(link.href)}
+                              href={withDeliveryProof(link.href, proofWanted)}
                               data-testid={`delivery-link-${link.kind || 'safe'}`}
                             >
                               {String(link.label)}

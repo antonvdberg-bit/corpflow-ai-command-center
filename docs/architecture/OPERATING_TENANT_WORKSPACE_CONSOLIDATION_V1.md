@@ -179,6 +179,7 @@ This slice does **not** retire Company Master, product desks, or `/change/revenu
 2. Reuse existing Lead Rescue / Website Rescue prospect contracts and Change / request tickets. No second project or workflow engine.
 3. Show client/business, product/service, stage, owner, blocker, next action, review/approval, and exception filters. Protected deploy / client communication stay labelled, not executed.
 4. Staff-only; Tenant 403; no schema; no external send. `/admin/lead-rescue`, `/admin/rapid-delivery`, and `/change` remain until later retirement.
+5. **#1178 live operator journey:** row evidence includes the already-recorded Commercial hop (`/app/commercial`) alongside Client, Prospect, and Change. Proof-harness clicks keep `proof=1` on `/app/*` routes so operators are not dumped back to sign-in.
 
 This slice does **not** replace `/change`, retire product desks, or change the Commercial summary (#1004).
 
