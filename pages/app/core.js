@@ -5,7 +5,10 @@ import AppLoadState from '../../components/app/AppLoadState.js';
 import CoreMenu from '../../components/app/CoreMenu.js';
 import CoreRequestList from '../../components/app/CoreRequestList.js';
 import CoreRequestWorkView from '../../components/app/CoreRequestWorkView.js';
+import OperatingOverview from '../../components/app/OperatingOverview.js';
 import { CANONICAL_REQUEST_ID } from '../../lib/app/constants.js';
+
+const LIST_MENUS = new Set(['requests', 'my_work', 'tenants', 'approvals', 'releases']);
 
 /**
  * @param {import('next/router').NextRouter['query']} query
@@ -17,15 +20,27 @@ function proofFromQuery(query) {
 }
 
 /**
- * Core environment — Core/admin session only. No Tenant switch.
- * Slice 2: normal authenticated path is default; ?proof=1 remains harness-only.
+ * @param {import('next/router').NextRouter['query']} query
+ */
+function menuFromQuery(query) {
+  const raw = query?.view;
+  const s = Array.isArray(raw) ? raw[0] : raw;
+  if (s === 'requests' || s === 'tenants' || s === 'approvals' || s === 'releases') return s;
+  return 'overview';
+}
+
+/**
+ * Operating Workspace landing — action overview (#1159).
+ * Core / admin session only. Tenant sessions fail closed.
+ * Requests remain an in-shell list (`?view=requests`).
  */
 export default function AppCorePage() {
   const router = useRouter();
-  const [menu, setMenu] = useState('requests');
+  const [menu, setMenu] = useState('overview');
   const [shell, setShell] = useState(/** @type {Record<string, unknown> | null} */ (null));
   const [request, setRequest] = useState(/** @type {Record<string, unknown> | null} */ (null));
   const [list, setList] = useState(/** @type {Array<Record<string, unknown>>} */ ([]));
+  const [overview, setOverview] = useState(/** @type {Record<string, unknown> | null} */ (null));
   const [tenantOptions, setTenantOptions] = useState(/** @type {string[]} */ ([]));
   const [dataSource, setDataSource] = useState('');
   const [filters, setFilters] = useState({
@@ -50,6 +65,11 @@ export default function AppCorePage() {
     if (proofWanted) params.set('proof', '1');
     return params.toString();
   }, [proofWanted]);
+
+  useEffect(() => {
+    if (!router.isReady) return;
+    setMenu(menuFromQuery(router.query));
+  }, [router.isReady, router.query.view]);
 
   const loadShellAndWork = useCallback(async () => {
     setBusy(true);
@@ -79,8 +99,28 @@ export default function AppCorePage() {
       setShell(shellJson);
       if (shellJson.data_source) setDataSource(String(shellJson.data_source));
 
-      const listMenus = new Set(['requests', 'my_work', 'tenants', 'approvals', 'releases']);
-      if (listMenus.has(menu)) {
+      if (menu === 'overview') {
+        const overviewRes = await fetch(`/api/app/overview?${apiBase}`, { credentials: 'same-origin' });
+        const overviewJson = await overviewRes.json().catch(() => ({}));
+        if (overviewRes.status === 403) {
+          setAccessDenied(true);
+          setError(String(overviewJson.error || 'core_access_denied'));
+          setOverview(null);
+          return;
+        }
+        if (!overviewRes.ok || !overviewJson.ok) {
+          setError(String(overviewJson.error || `overview_${overviewRes.status}`));
+          setOverview(null);
+          return;
+        }
+        setOverview(overviewJson);
+        if (overviewJson.data_source) setDataSource(String(overviewJson.data_source));
+        setList([]);
+        setRequest(null);
+        return;
+      }
+
+      if (LIST_MENUS.has(menu)) {
         const listQs = new URLSearchParams(apiBase);
         listQs.set('view', 'global');
         if (filters.tenant_id && filters.tenant_id !== 'all') {
@@ -102,6 +142,7 @@ export default function AppCorePage() {
         setTenantOptions(Array.isArray(listJson.tenant_options) ? listJson.tenant_options : []);
         if (listJson.data_source) setDataSource(String(listJson.data_source));
         setRequest(null);
+        setOverview(null);
         return;
       }
 
@@ -120,6 +161,7 @@ export default function AppCorePage() {
         setRequest(detailJson.request || null);
         if (detailJson.data_source) setDataSource(String(detailJson.data_source));
         setList([]);
+        setOverview(null);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'load_failed');
@@ -169,11 +211,12 @@ export default function AppCorePage() {
   const actor = /** @type {Record<string, unknown>} */ (shell?.actor || {});
   const selected = /** @type {Record<string, unknown>} */ (shell?.selected || {});
   const proofMode = shell?.proof_mode === true;
+  const menuActive = menu === 'request_detail' ? 'requests' : menu;
 
   if (!router.isReady || (initialLoad && busy && !authRequired && !accessDenied && !shell)) {
     return (
       <AppShell environment="core" role="—">
-        <AppLoadState kind="loading" title="Loading Core…" />
+        <AppLoadState kind="loading" title="Loading Operating Workspace…" />
       </AppShell>
     );
   }
@@ -267,7 +310,7 @@ export default function AppCorePage() {
       proofMode={proofMode}
     >
       <CoreMenu
-        active={menu === 'request_detail' ? 'requests' : menu}
+        active={menuActive}
         disabled={busy}
         onSelect={(id) => {
           setMenu(id);
@@ -281,20 +324,34 @@ export default function AppCorePage() {
             data source <code data-testid="core-data-source">{dataSource}</code>
           </>
         ) : (
-          'request repository'
+          'existing records'
         )}
         {' · '}
-        <code>/change</code> remains compatibility route
+        {menu === 'overview' ? (
+          <>action overview · <code>/app/core</code></>
+        ) : (
+          <>
+            <code>/change</code> remains compatibility route
+          </>
+        )}
       </p>
 
       {error ? <p className="cf-app-error" data-testid="app-error">{error}</p> : null}
       {notice ? <p className="cf-app-ok" data-testid="app-notice">{notice}</p> : null}
 
-      {busy && menu !== 'request_detail' ? (
-        <AppLoadState kind="loading" title="Loading requests…" />
+      {busy && menu === 'overview' ? <AppLoadState kind="loading" title="Loading overview…" /> : null}
+      {busy && LIST_MENUS.has(menu) ? <AppLoadState kind="loading" title="Loading requests…" /> : null}
+
+      {!busy && menu === 'overview' ? (
+        <OperatingOverview
+          overview={overview}
+          dataSource={dataSource}
+          busy={busy}
+          proofWanted={proofWanted}
+        />
       ) : null}
 
-      {!busy && menu !== 'request_detail' ? (
+      {!busy && LIST_MENUS.has(menu) ? (
         <CoreRequestList
           title={listTitle}
           requests={list}

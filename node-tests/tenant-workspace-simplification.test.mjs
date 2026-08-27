@@ -128,6 +128,7 @@ describe('tenant-workspace #1006 — fail-closed staff routes', () => {
     assert.equal(isOperatingWorkspaceStaffPath('/api/app/commercial'), true);
     assert.equal(isOperatingWorkspaceStaffPath('/app/delivery'), true);
     assert.equal(isOperatingWorkspaceStaffPath('/api/app/delivery'), true);
+    assert.equal(isOperatingWorkspaceStaffPath('/api/app/overview'), true);
   });
 
   it('denies a Tenant session on Today / My Work and other staff APIs', async () => {
@@ -148,6 +149,7 @@ describe('tenant-workspace #1006 — fail-closed staff routes', () => {
         ['/api/app/clients?env=core', 'app/clients'],
         ['/api/app/commercial?env=core', 'app/commercial'],
         ['/api/app/delivery?env=core', 'app/delivery'],
+        ['/api/app/overview?env=core', 'app/overview'],
       ];
       for (const [url, pathSeg] of routes) {
         const res = mockRes();
