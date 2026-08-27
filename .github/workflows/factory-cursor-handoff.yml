@@ -70,7 +70,8 @@ concurrency:
 jobs:
   handoff:
     # Eligibility / capacity / scheduled-reconcile wakes only. Bot lifecycle labels must not wake.
-    # issue_comment: structured authorization markers only; ignore [bot] actors.
+    # issue_comment: structured authorization markers or explicit CURSOR REQUEUE;
+    # ignore [bot] actors. JS predicates still reject non-heading mentions.
     # workflow_call: capacity backfill from Cursor agent lifecycle status, or
     # scheduled whole-queue reconcile (#1023).
     # GitHub reusable workflows inherit the caller's github.event_name. Queue
@@ -90,7 +91,8 @@ jobs:
        !endsWith(github.event.comment.user.login, '[bot]') &&
        (contains(github.event.comment.body, 'OPERATOR GATE AUTHORIZATION') ||
         contains(github.event.comment.body, 'ANTON DURABLE APPROVAL') ||
-        contains(github.event.comment.body, 'ANTON EXPLICIT OPERATOR AUTHORIZATION'))) ||
+        contains(github.event.comment.body, 'ANTON EXPLICIT OPERATOR AUTHORIZATION') ||
+        contains(github.event.comment.body, 'CURSOR REQUEUE'))) ||
       (github.event_name == 'issues' &&
        github.event.issue.state == 'open' &&
        (

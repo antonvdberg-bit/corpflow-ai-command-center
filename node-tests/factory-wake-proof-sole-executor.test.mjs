@@ -63,6 +63,7 @@ describe('Wake Proof sole production executor (#930)', () => {
     assert.match(handoffYaml, /dispatch:cursor-ready/);
     assert.match(handoffYaml, /execution:paused/);
     assert.match(handoffYaml, /OPERATOR GATE AUTHORIZATION/);
+    assert.match(handoffYaml, /CURSOR REQUEUE/);
     assert.match(handoffYaml, /capacity_released/);
     assert.doesNotMatch(handoffYaml, /^\s*schedule:/m);
     assert.doesNotMatch(handoffYaml, /^\s*cron:/m);
