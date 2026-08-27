@@ -7,7 +7,8 @@
 
 **Parent pack:** `docs/marketing/WEBSITE_RESCUE_PRODUCT_PACK_V1.md`  
 **Quote packet:** `docs/marketing/WEBSITE_RESCUE_QUOTE_READY_PACKET_V1.md`  
-**Issue:** [#654](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/654)  
+**Issue:** [#654](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/654)
+
 **Named buyer path:** [#710](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/710) / [#1127](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1127)
 
 ## Public name (for demos)

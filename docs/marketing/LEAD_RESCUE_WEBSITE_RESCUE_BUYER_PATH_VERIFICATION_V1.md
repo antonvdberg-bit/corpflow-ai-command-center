@@ -1,7 +1,9 @@
 # Lead Rescue + Website Rescue — buyer-path verification v1
 
-**Status:** Current-`main` verification record for [#1127](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1127); landed on exact current `main` via [#1164](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1164).  
-**Environment:** `corpflow_test` / current public CorpFlowAI apex (`corpflowai.com`).  
+**Status:** Current-`main` verification record for [#1127](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1127); landed on exact current `main` via [#1164](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1164).
+
+**Environment:** `corpflow_test` / current public CorpFlowAI apex (`corpflowai.com`).
+
 **Anchor sentinel:** `<!-- LEAD_RESCUE_WEBSITE_RESCUE_BUYER_PATH_VERIFICATION_V1 -->`
 
 <!-- LEAD_RESCUE_WEBSITE_RESCUE_BUYER_PATH_VERIFICATION_V1 -->
