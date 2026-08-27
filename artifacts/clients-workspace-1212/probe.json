@@ -1,0 +1,147 @@
+{
+  "captured_at": "2026-08-27T20:53:25.458Z",
+  "issue": 1212,
+  "environment": "corpflow_test",
+  "current_main_sha": "b731411734edb01b7dbb8d7e20247c5a7805983a",
+  "exact_url": "https://core.corpflowai.com/app/clients",
+  "proof_url": "https://core.corpflowai.com/app/clients?proof=1",
+  "path": "/app/clients",
+  "route_sequence": [
+    "/app/clients?proof=1",
+    "/app/clients/cmp_ada_spa_synthetic?proof=1",
+    "/app/prospects/syn-772-lr-ada?proof=1",
+    "/app/commercial?proof=1",
+    "/app/delivery?proof=1"
+  ],
+  "identifiers": {
+    "company_id": "cmp_ada_spa_synthetic",
+    "prospect_id": "syn-772-lr-ada",
+    "legal_name": "Ada Spa Ltd",
+    "trading_name": "Ada Spa",
+    "record_owner": "anton",
+    "onboarding_status": "lead_rescue_in_progress",
+    "next_action": "Book discovery",
+    "services": [
+      {
+        "product": "ai-lead-rescue",
+        "stage": "qualifying",
+        "source": "related_prospect"
+      }
+    ]
+  },
+  "in_process": {
+    "list_status": 200,
+    "detail_status": 200,
+    "ok": true,
+    "data_source": "fixture",
+    "count": 4,
+    "client_ids": [
+      "cmp_corpflowai_synthetic",
+      "cmp_pilot_client_synthetic",
+      "cmp_ada_spa_synthetic",
+      "cmp_bea_boutique_synthetic"
+    ]
+  },
+  "hops": {
+    "prospect": "/app/prospects/syn-772-lr-ada?proof=1",
+    "commercial": "/app/commercial?proof=1",
+    "delivery": "/app/delivery?proof=1",
+    "pipeline": "/app/pipeline?proof=1",
+    "company_master": "/admin/company-master",
+    "change": "/change"
+  },
+  "tenant": {
+    "list_status": 403,
+    "list_error": "core_access_denied",
+    "detail_status": 403,
+    "detail_error": "core_access_denied",
+    "shell_hrefs": [
+      "/app/tenant",
+      "/change?from=tenant-workspace"
+    ]
+  },
+  "production_proof": {
+    "status": 401,
+    "error": "authentication_required"
+  },
+  "live": {
+    "clients": {
+      "status": 200,
+      "bytes": 19918,
+      "content_type": "text/html; charset=utf-8",
+      "has_clients_page": true
+    },
+    "clients_detail": {
+      "status": 200,
+      "bytes": 19991,
+      "content_type": "text/html; charset=utf-8",
+      "has_clients_page": true
+    },
+    "clients_api": {
+      "status": 401,
+      "bytes": 46,
+      "content_type": "application/json; charset=utf-8",
+      "has_clients_page": false
+    },
+    "clients_proof_api": {
+      "status": 401,
+      "bytes": 46,
+      "content_type": "application/json; charset=utf-8",
+      "has_clients_page": false
+    },
+    "health": {
+      "status": 200,
+      "bytes": 1015,
+      "content_type": "application/json; charset=utf-8",
+      "has_clients_page": false
+    },
+    "lux": {
+      "status": 200,
+      "bytes": 65491,
+      "content_type": "text/html; charset=utf-8",
+      "has_clients_page": false
+    }
+  },
+  "local_next": {
+    "clients": {
+      "status": 200,
+      "bytes": 18180,
+      "content_type": "text/html; charset=utf-8",
+      "has_clients_page": true
+    },
+    "clients_proof": {
+      "status": 200,
+      "bytes": 18180,
+      "content_type": "text/html; charset=utf-8",
+      "has_clients_page": true
+    },
+    "clients_detail": {
+      "status": 200,
+      "bytes": 18253,
+      "content_type": "text/html; charset=utf-8",
+      "has_clients_page": true
+    }
+  },
+  "checks": {
+    "core_proof_ok": true,
+    "at_least_three": true,
+    "ada_identity": true,
+    "ada_owner": true,
+    "ada_service": true,
+    "ada_next_action": true,
+    "recorded_prospect": true,
+    "recorded_prospect_path": true,
+    "commercial_path": true,
+    "delivery_path": true,
+    "proof_on_app_hops": true,
+    "admin_change_unproofed": true,
+    "missing_is_404": true,
+    "tenant_list_denied": true,
+    "tenant_detail_denied": true,
+    "tenant_nav_hides_clients": true,
+    "production_proof_fail_closed": true,
+    "live_clients_html": true,
+    "live_api_unauth": true
+  },
+  "verdict": "CLIENTS WORKSPACE CURRENT-MAIN USABLE"
+}

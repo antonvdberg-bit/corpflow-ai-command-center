@@ -1,0 +1,15 @@
+{
+  "captured_at": "2026-08-27T20:53:43.740Z",
+  "issue": 1212,
+  "proof_start": "http://127.0.0.1:3051/app/clients/cmp_ada_spa_synthetic?proof=1",
+  "client": "cmp_ada_spa_synthetic",
+  "prospect": "syn-772-lr-ada",
+  "hops": {
+    "prospect": "/app/prospects/syn-772-lr-ada?proof=1",
+    "commercial": "/app/commercial?proof=1",
+    "delivery": "/app/delivery?proof=1",
+    "pipeline": "/app/pipeline?proof=1",
+    "company_master": "/admin/company-master",
+    "change": "/change"
+  }
+}

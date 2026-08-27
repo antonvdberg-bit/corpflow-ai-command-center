@@ -1,0 +1,80 @@
+{
+  "captured_at": "2026-08-27T20:53:43.740Z",
+  "overflows": {
+    "unauth_desktop": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "overflowPx": 0
+    },
+    "unauth_mobile": {
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "overflowPx": 0
+    },
+    "list_desktop": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "overflowPx": 0
+    },
+    "list_mobile": {
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "overflowPx": 0
+    },
+    "detail_desktop": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "overflowPx": 0
+    },
+    "detail_mobile": {
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "overflowPx": 0
+    },
+    "missing_desktop": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "overflowPx": 0
+    },
+    "list_error_desktop": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "overflowPx": 0
+    },
+    "tenant_denied_desktop": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "overflowPx": 0
+    },
+    "tenant_denied_mobile": {
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "overflowPx": 0
+    },
+    "hop_prospect_desktop": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "overflowPx": 0
+    },
+    "hop_commercial_desktop": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "overflowPx": 0
+    },
+    "hop_delivery_desktop": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "overflowPx": 0
+    },
+    "live_unauth_desktop": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "overflowPx": 0
+    },
+    "live_unauth_mobile": {
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "overflowPx": 0
+    }
+  }
+}
