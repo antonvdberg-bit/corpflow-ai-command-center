@@ -538,6 +538,7 @@ test('Commercial Workspace can reference the selling quotation without a second 
   assert.equal(cf1018.financially_approved, false);
   const doc = read('docs/erpnext/ERPNEXT_SELLING_QUOTE_TO_CASH_V1.md');
   assert.match(doc, /#1166/);
+  assert.match(doc, /#1188/);
   assert.match(doc, /SAL-QTN-2026-00005/);
   assert.match(doc, /BLOCKED BY ACCOUNTANT FOUNDATION/);
 });

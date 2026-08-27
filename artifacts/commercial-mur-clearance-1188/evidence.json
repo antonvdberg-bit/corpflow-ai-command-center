@@ -1,0 +1,55 @@
+{
+  "current_main_sha": "b731411734edb01b7dbb8d7e20247c5a7805983a",
+  "quotation_reference": "SAL-QTN-2026-00005",
+  "route_sequence": [
+    "/app/commercial?proof=1&filter=all",
+    "/app/commercial/cf1018-synthetic-sales-lifecycle?proof=1",
+    "/app/prospects/cf1018-synthetic-sales-lifecycle?proof=1"
+  ],
+  "commercial_row": {
+    "id": "cf1018-synthetic-sales-lifecycle",
+    "quotation": "SAL-QTN-2026-00005",
+    "state": "awaiting_acceptance",
+    "financially_approved": false,
+    "blockers": [
+      "MISSING_ACCEPTANCE",
+      "MISSING_PAYMENT_EVIDENCE",
+      "MISSING_FINANCIAL_APPROVER",
+      "MISSING_APPROVAL_TIMESTAMP"
+    ],
+    "next_action": "Record client acceptance on the existing rail",
+    "quotation_evidence_path": "/app/commercial/cf1018-synthetic-sales-lifecycle",
+    "shared_detail_path": "/app/prospects/cf1018-synthetic-sales-lifecycle",
+    "sales_invoice": null,
+    "mutated": false,
+    "payment_processed": false
+  },
+  "quotation_evidence": {
+    "name": "SAL-QTN-2026-00005",
+    "docstatus": 0,
+    "status": "Draft",
+    "currency": "MUR",
+    "grand_total": 45000,
+    "customer": "CF1018 Synthetic Sales Lifecycle Ltd",
+    "erpnext_mutated": false,
+    "copied_to_postgres": false,
+    "payment_processed": false
+  },
+  "commercial_clearance": {
+    "clearance_label": "NOT CLEARED",
+    "commercially_cleared": false,
+    "financially_approved": false,
+    "blockers": [
+      "MISSING_ACCEPTANCE",
+      "MISSING_PAYMENT_EVIDENCE",
+      "MISSING_FINANCIAL_APPROVER",
+      "MISSING_APPROVAL_TIMESTAMP"
+    ],
+    "next_required": "Record who accepted and when.",
+    "erpnext_quotation": "SAL-QTN-2026-00005",
+    "sales_invoice": null,
+    "acceptance": "pending",
+    "payment_evidence": "pending",
+    "payment_executed": false
+  }
+}
