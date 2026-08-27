@@ -87,7 +87,7 @@ Expected vs actual (proof harness + hosted ERPNext GET):
 | ERPNext write | None | `mutated: false`; create/update throw `ERPNEXT_WRITE_FORBIDDEN` |
 | Live GET (hosted test) | HTTP 200, identifiers only | Project 200 / Issue 200, `status_source: erpnext_get` |
 
-Final packet verdict: **DELIVERY -> ERPNEXT PROJECT/SUPPORT CONTINUITY USABLE**
+Final packet verdict: **DELIVERY -> ERPNEXT PROJECT/SUPPORT CURRENT-MAIN USABLE**
 
 Delivery Reality remains **PARTIAL** until this PR is merged, published to the corpflow_test spine, and `/app/delivery` is live-verified there. This packet does not deploy.
 

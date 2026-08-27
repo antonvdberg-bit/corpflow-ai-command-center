@@ -1,6 +1,6 @@
-# #1156 Delivery Workspace ERPNext continuity — operator evidence
+# #1184 Delivery Workspace ERPNext continuity — operator evidence
 
-Local Operating Workspace screenshots. `/api/app/*` is intercepted with the same handlers Vercel serves via `api/factory_router.js` (local Next does not apply `vercel.json` rewrites).
+Fresh current-main recapture on `b731411734edb01b7dbb8d7e20247c5a7805983a`. `/api/app/*` is intercepted with the same handlers Vercel serves via `api/factory_router.js` (local Next does not apply `vercel.json` rewrites).
 
 ```bash
 NEXT_PORT=3000 NODE_ENV=development node scripts/capture-delivery-erpnext-continuity-1156.mjs

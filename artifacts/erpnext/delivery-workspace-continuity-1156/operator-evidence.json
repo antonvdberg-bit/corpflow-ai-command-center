@@ -1,13 +1,23 @@
 {
-  "packet": "issue-1156",
-  "captured_at": "2026-08-27T09:02:04.013Z",
+  "packet": "issue-1184",
+  "source_issue": 1184,
+  "parents": [1156, 1158, 1170, 1142, 1144, 918],
+  "current_main_sha": "b731411734edb01b7dbb8d7e20247c5a7805983a",
+  "captured_at": "2026-08-27T15:05:41.038Z",
+  "environment": "corpflow_test",
   "expected": {
     "route": "/app/delivery?proof=1",
     "drilldown": "/app/delivery?proof=1&item=erpnext:cf1097-synthetic-delivery",
     "synthetic_item": "erpnext:cf1097-synthetic-delivery",
+    "delivery_ref": "cf1097-synthetic-delivery",
+    "cmp_ticket_id": "cf1097-synthetic-support",
     "project": "PROJ-0001",
     "issue": "ISS-2026-00001",
-    "ada_unlinked": true
+    "ada_unlinked": true,
+    "bea_unlinked": true,
+    "wren_unlinked": true,
+    "tenant_fail_closed": 403,
+    "erpnext_write": false
   },
   "actual": {
     "desktop": {
@@ -49,52 +59,47 @@
       "projectText": "PROJ-0001 · Open",
       "issueText": "ISS-2026-00001 · Open",
       "linkedRow": "true"
+    },
+    "proof_api": {
+      "http": 200,
+      "count": 16,
+      "linked": [
+        {
+          "id": "erpnext:cf1097-synthetic-delivery",
+          "client": "CF920 Synthetic Website Project Ltd",
+          "project": "PROJ-0001",
+          "issue": "ISS-2026-00001",
+          "status_source": "recorded_1097_readback"
+        }
+      ],
+      "ada_bea_wren": [
+        { "id": "lead:syn-772-lr-ada", "client": "Ada Spa", "linked": false },
+        { "id": "lead:syn-772-rd-bea", "client": "Bea Boutique", "linked": false },
+        { "id": "lead:syn-716-wr-cleared", "client": "Wren Workshop", "linked": false }
+      ],
+      "unlinked_count": 15,
+      "erpnext_mutated": false,
+      "erpnext_write": false
+    },
+    "hosted_erpnext_get": {
+      "project": { "name": "PROJ-0001", "status": "Open", "http": 200 },
+      "issue": { "name": "ISS-2026-00001", "status": "Open", "http": 200 },
+      "status_source": "erpnext_get",
+      "mutated": false,
+      "write_forbidden": true
+    },
+    "tenant_fail_closed": {
+      "proof_tenant_actor": 403,
+      "tenant_session_env_core": 403
     }
   },
   "expected_vs_actual": {
     "project_shown": true,
     "issue_shown": true,
     "linked_row": true,
-    "verdict": "DELIVERY -> ERPNEXT PROJECT/SUPPORT CONTINUITY USABLE",
-    "ada_unlinked": true,
-    "live_get_open": true
-  },
-  "api_proof": {
-    "http": 200,
-    "synthetic_id": "erpnext:cf1097-synthetic-delivery",
-    "project": {
-      "name": "PROJ-0001",
-      "project_name": "CF920 Synthetic independent website",
-      "status": "Open",
-      "customer": "CF920 Synthetic Website Project Ltd",
-      "doctype": "Project"
-    },
-    "issue": {
-      "name": "ISS-2026-00001",
-      "status": "Open",
-      "customer": "CF920 Synthetic Website Project Ltd",
-      "project": "PROJ-0001",
-      "doctype": "Issue"
-    },
-    "status_source": "recorded_1097_readback",
-    "mutated": false,
-    "ada_unlinked": true,
-    "other_rows_unlinked": true
-  },
-  "live_erpnext_get": {
-    "mutated": false,
-    "status_source": "erpnext_get",
-    "project": {
-      "name": "PROJ-0001",
-      "status": "Open"
-    },
-    "issue": {
-      "name": "ISS-2026-00001",
-      "status": "Open"
-    },
-    "http": {
-      "project_get": 200,
-      "issue_get": 200
-    }
+    "ada_bea_wren_unlinked": true,
+    "tenant_403": true,
+    "erpnext_readonly": true,
+    "verdict": "DELIVERY -> ERPNEXT PROJECT/SUPPORT CURRENT-MAIN USABLE"
   }
 }
