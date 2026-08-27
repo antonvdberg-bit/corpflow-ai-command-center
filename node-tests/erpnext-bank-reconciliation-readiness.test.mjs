@@ -13,6 +13,7 @@ import {
   CANONICAL_VERDICT,
   CONFIG_REL,
   CURRENT_MAIN_ISSUE,
+  CURRENT_MAIN_SHA,
   CURRENT_MAIN_VERDICT,
   FIXTURE_REL,
   PAYMENT_SEGREGATION_RULE,
@@ -55,7 +56,8 @@ test('#1139 config names the verdict, bank-feed decision, and #551/#714 segregat
   const cfg = loadBankReconciliationReadinessConfig(REPO_ROOT);
   assert.equal(cfg.issue, SOURCE_PACKET_ISSUE);
   assert.equal(cfg.current_main_issue, CURRENT_MAIN_ISSUE);
-  assert.equal(cfg.current_main_sha, 'b731411734edb01b7dbb8d7e20247c5a7805983a');
+  assert.equal(cfg.current_main_sha, CURRENT_MAIN_SHA);
+  assert.equal(cfg.current_main_sha, 'ea2a45a90a4fde7043b89989e985194da3605bff');
   assert.deepEqual(cfg.parents, [1054, 953, 918]);
   assert.equal(cfg.dependency, 1055);
   assert.equal(cfg.verdict, CANONICAL_VERDICT);
@@ -214,6 +216,7 @@ test('#1139 docs, runbook, and GET-only audit script exist without secrets', () 
   assert.equal(readiness.verdict, CANONICAL_VERDICT);
   assert.equal(readiness.current_main_verdict, CURRENT_MAIN_VERDICT);
   assert.equal(readiness.current_main_issue, CURRENT_MAIN_ISSUE);
+  assert.equal(readiness.current_main_sha, CURRENT_MAIN_SHA);
   assert.equal(readiness.bank_feed_verdict, BANK_FEED_VERDICT);
 
   for (const rel of [DOC_REL, RUNBOOK_REL, SCRIPT_REL, CONFIG_REL, FIXTURE_REL]) {
@@ -240,6 +243,8 @@ test('#1139 docs, runbook, and GET-only audit script exist without secrets', () 
   assert.ok(!script.includes('.create('));
   assert.ok(!script.includes('.update('));
   assert.ok(script.includes('ERPNEXT_BASE_URL_value: not_printed'));
+  assert.ok(script.includes('probe-log.dry-run.json'));
+  assert.match(script, /if \(dryRun\)[\s\S]*probe-log\.dry-run\.json/);
 });
 
 test('#1220 current-main: invoice existence never grants Proceed Approved or Payment Entry', () => {

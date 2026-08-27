@@ -1,7 +1,7 @@
 # ERPNext bank / reconciliation readiness — onboarding packet F
 
 **Status:** Decision-ready operating model (docs / mapping / GET-only read-back). **No live bank or accounting truth.** Current-main landing: **ERPNext BANK/RECONCILIATION CURRENT-MAIN READY FOR ACCOUNTANT CONFIGURATION.**  
-**Current-main landing:** [#1220](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1220) — brings the already-proven #1139 / closed [PR #1141](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1141) packet onto current `main` (`b731411734edb01b7dbb8d7e20247c5a7805983a`). Do not merge #1141.  
+**Current-main landing:** [#1220](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1220) — brings the already-proven #1139 / closed [PR #1141](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1141) packet onto current `main` (`ea2a45a90a4fde7043b89989e985194da3605bff`) after CURRENT-MAIN REPAIR. Do not merge #1141 or closed stale [PR #1221](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1221). Do not revive branch `cursor/factory-handoff-issue-1220-0e80`.  
 **Source proof:** [#1139](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1139)  
 **Parents:** [#1054](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1054) (completion controller), [#953](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/953) (programme), [#918](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/918) (reconciliation controller)  
 **Accounting dependency:** [#1055](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1055) accountant-approved Company & Accounting Foundation  
@@ -49,7 +49,7 @@ Anton required now: **NO**. Merge of this PR is still a human decision. No schem
 | Does that evidence post a Payment Entry? | **No.** `PAYMENT_EVIDENCE_NEVER_AUTHORIZES_PAYMENT_ENTRY`. |
 | Are hosted-test bank ledgers accountant-approved? | **No.** #1055 still owns CoA / bank-cash structure. Template cash leaf exists; Company default bank is unset. |
 | Direct bank-feed for initial operation? | **NOT REQUIRED.** Manual CSV/Excel import first. |
-| What must Anton do because of this packet? | **Merge this current-main PR when satisfied.** Close stale PR #1141 without merge. No bank, payment, or accountant ceremony is created here. |
+| What must Anton do because of this packet? | **Merge this current-main PR when satisfied.** Close stale PR #1141 and closed stale PR #1221 without merge. No bank, payment, or accountant ceremony is created here. |
 
 Target future path (not executed here):
 
@@ -101,7 +101,7 @@ Inspected as metadata + GET-only hosted-test lists. Presence/state only.
 
 ## 3. Current safe access / state summary
 
-GET-only probe as `integrations@corpflowai.com`. #1139 recorded this on 2026-08-27. #1220 re-probes GET-only against the same hosted-test site from current `main` `b731411734edb01b7dbb8d7e20247c5a7805983a`. Host URL is not recorded. `MASTER_ADMIN_KEY` unused.
+GET-only probe as `integrations@corpflowai.com`. #1139 recorded this on 2026-08-27. #1220 re-probes GET-only against the same hosted-test site from current `main` `ea2a45a90a4fde7043b89989e985194da3605bff` after CURRENT-MAIN REPAIR (generation 2). Host URL is not recorded. `MASTER_ADMIN_KEY` unused.
 
 | Item | State |
 |------|-------|

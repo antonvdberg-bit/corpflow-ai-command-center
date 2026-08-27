@@ -3,7 +3,7 @@
 **Date:** 2026-08-27  
 **Status:** accepted (packet F operating model landed on current main; posting still gated)  
 **Issue:** [#1139](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1139)  
-**Current-main landing:** [#1220](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1220) — starts from `b731411734edb01b7dbb8d7e20247c5a7805983a`. Do not merge stale [PR #1141](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1141).
+**Current-main landing:** [#1220](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1220) — starts from `ea2a45a90a4fde7043b89989e985194da3605bff` after CURRENT-MAIN REPAIR. Do not merge stale [PR #1141](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1141) or closed stale [PR #1221](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1221).
 
 ## Context
 

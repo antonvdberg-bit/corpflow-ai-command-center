@@ -23,6 +23,7 @@ import {
   BANK_FEED_VERDICT,
   CANONICAL_VERDICT,
   CURRENT_MAIN_ISSUE,
+  CURRENT_MAIN_SHA,
   CURRENT_MAIN_VERDICT,
   PAYMENT_SEGREGATION_RULE,
   SOURCE_PACKET_ISSUE,
@@ -48,6 +49,14 @@ const CURRENT_MAIN_ARTIFACT_DIR = path.join(
 
 function log(msg) {
   console.log(String(msg));
+}
+
+function asTrimmedString(value) {
+  return value == null ? '' : String(value).trim();
+}
+
+function currentMainSha(cfg) {
+  return asTrimmedString(cfg?.current_main_sha) || CURRENT_MAIN_SHA;
 }
 
 function presence(name) {
@@ -176,7 +185,7 @@ async function main() {
     const artifact = {
       issue: SOURCE_PACKET_ISSUE,
       current_main_issue: CURRENT_MAIN_ISSUE,
-      current_main_sha: 'b731411734edb01b7dbb8d7e20247c5a7805983a',
+      current_main_sha: currentMainSha(cfg),
       dry_run: true,
       identity: null,
       synthetic: {
@@ -190,12 +199,16 @@ async function main() {
       current_main_verdict: CURRENT_MAIN_VERDICT,
       bank_feed_verdict: BANK_FEED_VERDICT,
     };
-    writeFileSync(path.join(ARTIFACT_DIR, 'probe-log.json'), `${JSON.stringify(artifact, null, 2)}\n`);
     writeFileSync(
-      path.join(CURRENT_MAIN_ARTIFACT_DIR, 'probe-log.json'),
+      path.join(ARTIFACT_DIR, 'probe-log.dry-run.json'),
+      `${JSON.stringify(artifact, null, 2)}\n`
+    );
+    writeFileSync(
+      path.join(CURRENT_MAIN_ARTIFACT_DIR, 'probe-log.dry-run.json'),
       `${JSON.stringify(artifact, null, 2)}\n`
     );
     log('dry_run_complete: 1');
+    log('dry_run_does_not_overwrite_live_probe_log: 1');
     return;
   }
 
@@ -332,7 +345,7 @@ async function main() {
   const artifact = {
     issue: SOURCE_PACKET_ISSUE,
     current_main_issue: CURRENT_MAIN_ISSUE,
-    current_main_sha: 'b731411734edb01b7dbb8d7e20247c5a7805983a',
+    current_main_sha: currentMainSha(cfg),
     dry_run: false,
     identity: who.user,
     site_versions: versionsText,
@@ -405,7 +418,7 @@ async function main() {
     [
       '# #1220 current-main bank / reconciliation GET-only probe',
       '',
-      `Starts from current main \`b731411734edb01b7dbb8d7e20247c5a7805983a\`. Reuses #1139 evidence; GET-only re-probe.`,
+      `Starts from current main \`${currentMainSha(cfg)}\`. Reuses #1139 evidence; GET-only re-probe after CURRENT-MAIN REPAIR. Stale PR #1221 is not revived.`,
       `Identity: \`${who.user}\`. Host URL not recorded. No bank credentials, IBAN, SWIFT, or account numbers.`,
       `Synthetic recon: confirmed=${synthetic.first.recon_confirmed} delta=${synthetic.first.delta} idempotent=${synthetic.idempotent}.`,
       `Bank-feed verdict: ${BANK_FEED_VERDICT}.`,
