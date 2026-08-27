@@ -196,12 +196,25 @@ export default function AppClientsPage() {
           </>
         ) : null}
       </p>
-      {error ? <p className="cf-app-error" data-testid="app-error">{error}</p> : null}
+      {error && (busy || clients.length > 0) ? (
+        <p className="cf-app-error" data-testid="app-error">
+          {error}
+        </p>
+      ) : null}
       {busy ? <AppLoadState kind="loading" title="Loading clients…" /> : null}
+      {!busy && error && clients.length === 0 ? (
+        <AppLoadState
+          kind="error"
+          title="Clients unavailable"
+          message={error}
+          testId="app-clients-list-error"
+        />
+      ) : null}
       <ClientsSummary
         clients={clients}
         dataSource={dataSource}
         busy={busy}
+        error={error}
         proofWanted={proofWanted}
         selectedId={selectedId}
         onSelect={(id) => {

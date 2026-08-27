@@ -17,6 +17,8 @@ import {
   fixtureClientRows,
   matchProspectsToClient,
   projectClientSummary,
+  recordedClientHopPaths,
+  withOperatingWorkspaceProof,
 } from '../lib/app/clients-workspace.js';
 import { CLIENTS_PATH, OPERATING_WORKSPACE_LABEL } from '../lib/app/workspace-context.js';
 
@@ -48,7 +50,7 @@ test('fixture: at least three synthetic clients project without fabricated ERPNe
   }
 });
 
-test('matchProspectsToClient uses explicit ids and exact organisation names only', () => {
+test('matchProspectsToClient prefers recorded linked_prospect_ids and does not add name joins', () => {
   const company = {
     legal_name: 'Ada Spa Ltd',
     trading_name: 'Ada Spa',
@@ -60,8 +62,40 @@ test('matchProspectsToClient uses explicit ids and exact organisation names only
     { id: 'other', organisation_name: 'Unrelated Co' },
     { id: 'tenant-dump', organisation_name: 'CorpFlowAI market lead' },
   ]);
-  const ids = matched.map((row) => row.id).sort();
-  assert.deepEqual(ids, ['syn-772-lr-ada', 'syn-772-rd-bea']);
+  const ids = matched.map((row) => row.id);
+  assert.deepEqual(ids, ['syn-772-rd-bea']);
+});
+
+test('matchProspectsToClient falls back to exact organisation name only when no ids are recorded', () => {
+  const matched = matchProspectsToClient(
+    { legal_name: 'Ada Spa Ltd', trading_name: 'Ada Spa', linked_prospect_ids: [] },
+    [
+      { id: 'syn-772-lr-ada', organisation_name: 'Ada Spa' },
+      { id: 'syn-772-rd-bea', organisation_name: 'Bea Boutique' },
+      { id: 'partial', organisation_name: 'Ada' },
+    ],
+  );
+  assert.deepEqual(
+    matched.map((row) => row.id),
+    ['syn-772-lr-ada'],
+  );
+});
+
+test('recorded hops use linked prospect path and keep proof on /app routes only', () => {
+  const hops = recordedClientHopPaths([
+    { id: 'syn-772-lr-ada', shared_detail_path: '/app/prospects/syn-772-lr-ada' },
+  ]);
+  assert.equal(hops.prospect, '/app/prospects/syn-772-lr-ada');
+  assert.equal(hops.commercial, '/app/commercial');
+  assert.equal(hops.delivery, '/app/delivery');
+  assert.equal(hops.pipeline, '/app/pipeline');
+  assert.equal(withOperatingWorkspaceProof(hops.prospect, true), '/app/prospects/syn-772-lr-ada?proof=1');
+  assert.equal(withOperatingWorkspaceProof(hops.commercial, true), '/app/commercial?proof=1');
+  assert.equal(withOperatingWorkspaceProof(hops.delivery, true), '/app/delivery?proof=1');
+  assert.equal(withOperatingWorkspaceProof(hops.pipeline, true), '/app/pipeline?proof=1');
+  assert.equal(withOperatingWorkspaceProof(hops.company_master, true), '/admin/company-master');
+  assert.equal(withOperatingWorkspaceProof(hops.change, true), '/change');
+  assert.equal(recordedClientHopPaths([]).prospect, '/app/prospects');
 });
 
 test('projectClientSummary does not invent a named contact or ERPNext customer', () => {
@@ -113,6 +147,10 @@ test('handler: Core proof can load at least three Clients without Tenant leakage
     assert.equal(ada.primary_contact.name, 'Ada Prospect');
     assert.equal(ada.record_owner, 'anton');
     assert.ok(ada.related_prospects.some((row) => row.id === 'syn-772-lr-ada'));
+    assert.equal(ada.related_prospects.length, 1);
+    assert.equal(ada.hop_paths.prospect, '/app/prospects/syn-772-lr-ada');
+    assert.equal(ada.hop_paths.commercial, '/app/commercial');
+    assert.equal(ada.hop_paths.delivery, '/app/delivery');
     assert.ok(String(ada.next_action || '').length > 0);
     assert.equal(ada.workspace_context, 'operating');
     const blob = JSON.stringify(res.state.body);
@@ -141,6 +179,7 @@ test('handler: Core proof can open one client summary', async () => {
     assert.equal(res.state.body.view, 'client_summary');
     assert.equal(res.state.body.client.company_id, 'cmp_ada_spa_synthetic');
     assert.equal(res.state.body.client.related_prospects[0].shared_detail_path, '/app/prospects/syn-772-lr-ada');
+    assert.equal(res.state.body.client.hop_paths.prospect, '/app/prospects/syn-772-lr-ada');
     assert.equal(res.state.body.client.commercial_references.existing_identity_path, '/admin/company-master');
     assert.equal(res.state.body.client.commercial_references.path, '/app/commercial');
     assert.equal(res.state.body.client.delivery_references.existing_delivery_path, '/app/delivery');

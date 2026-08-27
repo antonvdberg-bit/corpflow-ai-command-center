@@ -204,8 +204,16 @@ export default function AppClientDetailPage() {
           </>
         ) : null}
       </p>
-      {error ? <p className="cf-app-error" data-testid="app-error">{error}</p> : null}
+      {error && (busy || client) ? <p className="cf-app-error" data-testid="app-error">{error}</p> : null}
       {busy ? <AppLoadState kind="loading" title="Loading client…" /> : null}
+      {!busy && error && !client ? (
+        <AppLoadState
+          kind="error"
+          title="Client summary unavailable"
+          message={error}
+          testId="app-client-detail-missing"
+        />
+      ) : null}
       {!busy && client ? <ClientSummaryPanel client={client} proofWanted={proofWanted} /> : null}
       <p className="cf-app-muted">
         <a href={proofWanted ? '/app/clients?proof=1' : '/app/clients'}>Back to Clients</a>

@@ -1,3 +1,5 @@
+import { withOperatingWorkspaceProof } from '../../lib/app/workspace-context.js';
+
 /**
  * Operating Workspace — Clients summary (#999).
  * Read-only Company Master projection. No second client model. No live send.
@@ -6,6 +8,7 @@
  *   clients: Array<Record<string, unknown>>,
  *   dataSource?: string,
  *   busy?: boolean,
+ *   error?: string,
  *   proofWanted?: boolean,
  *   selectedId?: string,
  *   onSelect?: (id: string) => void,
@@ -15,6 +18,7 @@ export default function ClientsSummary({
   clients,
   dataSource,
   busy,
+  error,
   proofWanted,
   selectedId = '',
   onSelect,
@@ -23,6 +27,7 @@ export default function ClientsSummary({
   const selected = selectedId ? rows.find((row) => String(row.company_id) === String(selectedId)) : null;
 
   if (busy) return null;
+  if (error && rows.length === 0) return null;
   if (rows.length === 0) {
     return (
       <section className="cf-app-panel" data-testid="clients-empty">
@@ -76,7 +81,7 @@ export default function ClientsSummary({
                 const name = String(row.trading_name || row.legal_name || id);
                 const services = Array.isArray(row.services) ? row.services : [];
                 const summary = row.summary_path ? String(row.summary_path) : `/app/clients/${encodeURIComponent(id)}`;
-                const href = proofWanted ? `${summary}${summary.includes('?') ? '&' : '?'}proof=1` : summary;
+                const href = withOperatingWorkspaceProof(summary, proofWanted);
                 const isSelected = String(selectedId) === id;
                 return (
                   <tr
@@ -149,6 +154,25 @@ export function ClientSummaryPanel({ client, proofWanted }) {
     client.delivery_references && typeof client.delivery_references === 'object'
       ? /** @type {Record<string, unknown>} */ (client.delivery_references)
       : {};
+  const hops =
+    client.hop_paths && typeof client.hop_paths === 'object'
+      ? /** @type {Record<string, unknown>} */ (client.hop_paths)
+      : {};
+  const prospectHop = withOperatingWorkspaceProof(
+    String(hops.prospect || '/app/prospects'),
+    proofWanted,
+  );
+  const commercialHop = withOperatingWorkspaceProof(
+    String(hops.commercial || commercial.path || '/app/commercial'),
+    proofWanted,
+  );
+  const deliveryHop = withOperatingWorkspaceProof(
+    String(hops.delivery || delivery.existing_delivery_path || '/app/delivery'),
+    proofWanted,
+  );
+  const pipelineHop = withOperatingWorkspaceProof(String(hops.pipeline || '/app/pipeline'), proofWanted);
+  const companyMasterHop = String(hops.company_master || commercial.existing_identity_path || '/admin/company-master');
+  const changeHop = String(hops.change || delivery.tenant_change_path || '/change');
   const contactLabel =
     [contact.name, contact.email, contact.phone].filter(Boolean).join(' · ') || 'Not recorded';
 
@@ -197,7 +221,7 @@ export function ClientSummaryPanel({ client, proofWanted }) {
           Related prospects:{' '}
           {prospects.map((prospect, index) => {
             const path = prospect.shared_detail_path ? String(prospect.shared_detail_path) : '';
-            const href = path && proofWanted ? `${path}${path.includes('?') ? '&' : '?'}proof=1` : path;
+            const href = path ? withOperatingWorkspaceProof(path, proofWanted) : path;
             const label = String(prospect.organisation_name || prospect.id || 'prospect');
             return (
               <span key={String(prospect.id || index)}>
@@ -211,22 +235,22 @@ export function ClientSummaryPanel({ client, proofWanted }) {
         <p className="cf-app-muted">No related prospect records matched this Company Master identity.</p>
       )}
       <div className="cf-app-actions">
-        <a className="cf-app-btn" href={proofWanted ? '/app/commercial?proof=1' : '/app/commercial'}>
+        <a className="cf-app-btn" data-testid="clients-hop-commercial" href={commercialHop}>
           Commercial
         </a>
-        <a className="cf-app-btn" href={String(commercial.existing_identity_path || '/admin/company-master')}>
+        <a className="cf-app-btn" data-testid="clients-hop-company-master" href={companyMasterHop}>
           Company Master
         </a>
-        <a className="cf-app-btn" href="/app/prospects">
-          Prospects
+        <a className="cf-app-btn" data-testid="clients-hop-prospect" href={prospectHop}>
+          Prospect
         </a>
-        <a className="cf-app-btn" href="/app/pipeline">
+        <a className="cf-app-btn" data-testid="clients-hop-pipeline" href={pipelineHop}>
           Pipeline
         </a>
-        <a className="cf-app-btn" href={String(delivery.existing_delivery_path || '/app/delivery')}>
+        <a className="cf-app-btn" data-testid="clients-hop-delivery" href={deliveryHop}>
           Delivery
         </a>
-        <a className="cf-app-btn" href={String(delivery.tenant_change_path || '/change')}>
+        <a className="cf-app-btn" data-testid="clients-hop-change" href={changeHop}>
           Change
         </a>
       </div>

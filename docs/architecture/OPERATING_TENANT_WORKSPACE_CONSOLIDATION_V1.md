@@ -154,7 +154,7 @@ This slice does **not** connect all three prospect views, rebuild CRM, or retire
 
 1. Dedicated Operating Workspace route `/app/clients` + `/app/clients/[id]` with `GET /api/app/clients` and `GET /api/app/client`.
 2. Reuse Company Master identity (`listCompanies` / `getCompany`) and already-recorded prospect references. No second Client table.
-3. Show available identity, contact, owner, onboarding/delivery status, services, next action, and links to Prospects / Pipeline / Company Master / `/change`.
+3. Show available identity, contact, owner, onboarding/delivery status, services, next action, and links to Prospects / Pipeline / Company Master / `/change`. Recorded related-prospect hops preserve `proof=1` on `/app/*` Operating Workspace routes (#1212). `/change` and `/admin/company-master` stay on their own auth.
 4. Staff-only; Tenant 403; no schema; no ERPNext write; `/admin/company-master` remains the evidence/asset editor.
 
 This slice does **not** retire Company Master, product desks, or `/change/revenue`.
