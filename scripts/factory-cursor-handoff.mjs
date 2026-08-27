@@ -28,6 +28,7 @@ import {
   listClosedIssuesByLabelGraphql,
   planCursorIssueClaims,
 } from '../lib/server/cursor-issue-dispatch-lifecycle.js';
+import { planCursorRequeueMaterialization } from '../lib/server/cursor-activation-claim.js';
 import {
   resolveEffectiveActivationTarget,
   resolveFactoryDispatcherRunPlan,
@@ -178,6 +179,38 @@ async function main() {
       } catch {
         issue.comments = [];
       }
+    }
+
+    const nowIso = new Date().toISOString();
+    for (const issue of readyIssues) {
+      const materialize = planCursorRequeueMaterialization({
+        issueNumber: Number(issue.number),
+        comments: issue.comments,
+        nowIso,
+      });
+      if (!materialize.post || !materialize.body) continue;
+      if (!args.dryRun && token) {
+        try {
+          await postGitHubIssueComment(Number(issue.number), materialize.body, {
+            token,
+            repoFullName: repo,
+          });
+        } catch (err) {
+          console.error(
+            `Failed to materialize CURSOR REQUEUE marker on #${issue.number}: ${
+              err instanceof Error ? err.message : String(err)
+            }`,
+          );
+        }
+      }
+      issue.comments = [
+        ...(Array.isArray(issue.comments) ? issue.comments : []),
+        {
+          body: materialize.body,
+          author: 'github-actions[bot]',
+          created_at: nowIso,
+        },
+      ];
     }
   }
 
