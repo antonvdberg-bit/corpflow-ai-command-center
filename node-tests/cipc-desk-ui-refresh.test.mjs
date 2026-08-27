@@ -17,12 +17,12 @@ test('website draft uses CorpFlow palette and content_version refresh marker', (
   assert.equal(draft.content_version, CIPC_DESK_WEBSITE_DRAFT_VERSION);
   assert.match(
     String(CIPC_DESK_WEBSITE_DRAFT_VERSION),
-    /director-changes|beneficial-ownership-link|annual-returns-link|corpflow-visual|partner-funnel/,
+    /director-changes|beneficial-ownership-link|annual-returns-link|corpflow-visual|partner-funnel|direct-sme-company-funnel/,
   );
   assert.equal(draft.theme?.primary, '#2dd4bf');
   assert.equal(draft.theme?.background, '#06111f');
   assert.equal(draft.hero?.title, 'CIPC Desk');
-  assert.match(String(draft.hero?.cta_href || ''), /^mailto:/);
+  assert.equal(draft.hero?.cta_href, '/company');
   assert.equal(draft.hero?.cta_secondary_href, '/partners');
   assert.ok(Array.isArray(draft.sections?.services?.items));
   assert.ok(draft.sections.services.items.length >= 6);
@@ -44,7 +44,7 @@ test('landing component reuses CorpFlow photo+glass shell and CIPC branding', ()
   assert.match(landing, /CIPC Desk/);
   assert.doesNotMatch(landing, /Fraunces|Source Sans|#f3ebe0|#c45c26/);
   assert.doesNotMatch(landing, /\/api\/tenant\/intake/);
-  assert.match(landing, /mailto:/);
+  assert.match(landing, /\/company/);
   assert.match(landing, /noindex/);
 });
 
@@ -79,6 +79,6 @@ test('website draft declares CIPC_DESK_WEBSITE_DRAFT_VERSION exactly once', () =
   assert.equal(declarations.length, 1);
   assert.match(
     src,
-    /director-changes.*beneficial-ownership-link.*partner-funnel|partner-funnel/,
+    /direct-sme-company-funnel|partner-funnel/,
   );
 });

@@ -144,13 +144,12 @@ test('partner component posts to existing email-intake and keeps commercial conf
   assert.doesNotMatch(src, /CipcDeskAnnualReturnsReview|CipcDeskBeneficialOwnershipReview/);
 });
 
-test('homepage draft routes professional partners to /partners without changing SME primary CTA', () => {
+test('homepage draft routes professional partners to /partners and SMEs to /company', () => {
   const draft = buildCipcDeskWebsiteDraft();
-  assert.match(String(draft.hero?.cta_href || ''), /^mailto:/);
+  assert.equal(draft.hero?.cta_href, '/company');
   assert.equal(draft.hero?.cta_secondary_href, '/partners');
   assert.match(String(draft.hero?.cta_secondary_label || ''), /overflow \/ white-label/i);
-  assert.match(String(draft.content_version || ''), /partner-funnel/);
-  assert.match(String(draft.content_version || ''), /director-changes/);
+  assert.match(String(draft.content_version || ''), /direct-sme-company-funnel/);
 
   const partnerRoute = (draft.sections?.routes?.items || []).find((x) =>
     /accountant|professional partner/i.test(String(x?.name || '')),
