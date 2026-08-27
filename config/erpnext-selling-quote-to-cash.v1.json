@@ -1,0 +1,180 @@
+{
+  "schema": "corpflow.erpnext.selling_quote_to_cash.v1",
+  "version": "v1",
+  "issue": 1056,
+  "continuation_issue": 1166,
+  "stale_implementation_prs": [1101, 1128],
+  "parents": [1054, 1055, 953, 918, 882, 1009, 1012, 1018, 1021, 551, 714, 1125, 1160, 1166],
+  "environment": "corpflow_test",
+  "bridge_id": "quotation_invoice",
+  "verdict": "NOT READY — BLOCKED BY ACCOUNTANT FOUNDATION",
+  "selling_quotation_sub_verdict": "SELLING_QUOTATION_PATH_PROVEN",
+  "description": "CorpFlowAI synthetic selling path: reuse WP2 Lead/Opportunity/Customer, create one draft MUR Quotation, define standard ERPNext acceptance, map draft Sales Invoice/pro-forma and #714 payment evidence, keep Proceed Approved fail-closed. Stop before invoice posting, Payment Entry, tax mutation, or send.",
+  "sync_mode": "operator_invoked",
+  "no_automated_cron": true,
+  "no_postgres_schema": true,
+  "no_custom_doctypes": true,
+  "no_second_crm": true,
+  "no_sales_invoice_posting": true,
+  "no_payment_entry": true,
+  "no_tax_mutation": true,
+  "reuse": {
+    "frappe_client": "lib/erpnext/frappe-rest-client.js",
+    "customer_bridge": "lib/erpnext/customer-bridge.js",
+    "sales_lifecycle_bridge": "lib/erpnext/sales-lifecycle-bridge.js",
+    "commercial_documents": "lib/erpnext/commercial-documents.js",
+    "product_catalogue": "lib/erpnext/product-catalogue.js",
+    "financial_approval_rail": "lib/revenue/commercial-approval.js"
+  },
+  "persistence": {
+    "approved_pointer_location": "leads.qualification_json.erpnext",
+    "schema_change": "forbidden",
+    "production_postgres_write": "not_authorized_by_this_packet",
+    "reason": "qualification_json already exists. This packet records the Quotation name on the in-memory/reference lead. It does not PATCH live Postgres."
+  },
+  "idempotency_prefix": "corpflow.selling_q2c.v1",
+  "company": "CorpFlowAI LTD",
+  "primary_currency": "MUR",
+  "usd_path": "reuse_existing_882_only",
+  "quotation": {
+    "quotation_to": "Customer",
+    "order_type": "Sales",
+    "selling_price_list": "Standard Selling",
+    "terms_name": "CF882 CorpFlowAI Commercial Terms",
+    "letter_head": "Company Letterhead - Grey",
+    "print_format": "Quotation Standard",
+    "validity_days": 14,
+    "docstatus_must_remain": 0,
+    "apply_taxes": false,
+    "submit": false,
+    "send": false
+  },
+  "item": {
+    "item_code": "CF-RD-LANDING-RESCUE",
+    "qty": 1,
+    "uom": "Nos",
+    "expected_rate_mur": 45000,
+    "price_list": "Standard Selling"
+  },
+  "accepted_commercial_record": {
+    "custom_engine": false,
+    "sales_order_required": false,
+    "primary_doctype": "Quotation",
+    "synthetic_state": { "docstatus": 0, "status": "Draft" },
+    "live_after_anton_gates": { "docstatus": 1, "status": "Open" },
+    "erpnext_acceptance": "Standard Comment on the Quotation recording written client acceptance. Optional Sales Order conversion sets status Ordered — not required for services (#918).",
+    "corpflow_acceptance": "#714 acceptance.status=accepted with accepted_by + acceptance_timestamp pointing at erpnext_quotation"
+  },
+  "sales_invoice_proforma": {
+    "standard_route": "Convert accepted Quotation to Sales Invoice, or create Sales Invoice against the same Customer + Item",
+    "agreed_proforma": "Keep Sales Invoice docstatus=0 Draft (or print the Quotation) until accountant-approved posting",
+    "reuse_882_mur_draft": "ACC-SINV-2026-00001",
+    "reuse_882_usd_draft": "ACC-SINV-2026-00002",
+    "create_new_invoice_this_packet": false,
+    "submit": false
+  },
+  "payment_evidence": {
+    "rail": 714,
+    "erpnext_payment_entry": "forbidden_this_packet",
+    "mechanism": "qualification_json.commercial_approval.payment_evidence (recorded/verified) with opaque evidence_ref. No bank secrets. No Payment Entry against bank funds."
+  },
+  "proceed_approved": {
+    "rail": 714,
+    "flag": "financially_approved",
+    "erpnext_never_sets": true,
+    "invoice_creation_insufficient": true
+  },
+  "accountant_foundation": {
+    "source_issue": 1055,
+    "status": "OPEN",
+    "accountant_coa_approved": false,
+    "accountant_tax_approved": false,
+    "accountant_defaults_approved": false,
+    "observed_erpnext_defaults": {
+      "default_receivable_account": "Debtors - CFAI",
+      "default_income_account": "Sales - CFAI",
+      "tax_template_present": "Mauritius Tax - CFAI",
+      "tax_template_accountant_approved": false,
+      "note": "ERPNext default skeleton accounts exist. They are not a Mauritius-accountant-approved CorpFlowAI Chart of Accounts. Do not treat presence as #1055 approval."
+    },
+    "stop_point": "Sales Invoice posting, tax/VAT application, Payment Entry, and any mutation of CoA/tax/receivable/income defaults"
+  },
+  "allowed_quotation_update_fields": [
+    "title",
+    "valid_till",
+    "tc_name",
+    "customer_notes",
+    "opportunity",
+    "letter_head"
+  ],
+  "forbidden_customer_names": [
+    "Prestige Procurement",
+    "CorpFlowAI LTD",
+    "CorpFlowAI Ltd"
+  ],
+  "upstream_wp2": {
+    "issue": 1018,
+    "lead_id": "cf1018-synthetic-sales-lifecycle",
+    "erpnext_lead": "CRM-LEAD-2026-00009",
+    "erpnext_opportunity": "CRM-OPP-2026-00003",
+    "customer": "CF1018 Synthetic Sales Lifecycle Ltd",
+    "contact": "Lee Synthetic",
+    "address": "CF1018 Synthetic Sales Lifecycle Ltd-Billing"
+  },
+  "reuse_882": {
+    "mur_quotation": "SAL-QTN-2026-00003",
+    "usd_quotation": "SAL-QTN-2026-00001",
+    "mur_invoice_draft": "ACC-SINV-2026-00001",
+    "usd_invoice_draft": "ACC-SINV-2026-00002",
+    "usd_conversion_rate": 47.15
+  },
+  "synthetic": {
+    "lead_id": "cf1018-synthetic-sales-lifecycle",
+    "product": "website-rescue",
+    "legal_name": "CF1018 Synthetic Sales Lifecycle Ltd",
+    "currency": "MUR"
+  },
+  "live_proof": {
+    "identity": "integrations@corpflowai.com",
+    "probed_at_utc": "2026-08-26T04:11:21Z",
+    "lead_id": "cf1018-synthetic-sales-lifecycle",
+    "erpnext_lead": "CRM-LEAD-2026-00009",
+    "erpnext_opportunity": "CRM-OPP-2026-00003",
+    "customer": "CF1018 Synthetic Sales Lifecycle Ltd",
+    "erpnext_quotation": "SAL-QTN-2026-00005",
+    "first_quotation_action": "CREATE",
+    "second_quotation_action": "UPDATE",
+    "created_on_replay": false,
+    "duplicate_quotation_count": 1,
+    "grand_total": 45000,
+    "currency": "MUR",
+    "conversion_rate": 1,
+    "docstatus": 0,
+    "item_code": "CF-RD-LANDING-RESCUE",
+    "valid_till": "2026-09-09",
+    "pdf_bytes": 36114,
+    "pdf_sha256_16": "299ad3c9d8c4582a",
+    "postgres_written": false,
+    "sales_invoice_created": false,
+    "payment_entry_created": false
+  },
+  "non_actions": [
+    "schema_change",
+    "postgres_migration",
+    "production_postgres_lead_patch",
+    "custom_doctypes",
+    "custom_fields",
+    "automated_cron",
+    "second_crm",
+    "sales_invoice_submit",
+    "payment_entry",
+    "payment_gateway",
+    "tax_template_mutation",
+    "coa_mutation",
+    "client_sends",
+    "email_sms_whatsapp",
+    "live_prestige_customer",
+    "env_secrets_change",
+    "client_production_deploy"
+  ]
+}

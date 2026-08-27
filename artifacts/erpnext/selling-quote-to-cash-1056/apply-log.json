@@ -1,0 +1,246 @@
+{
+  "schema": "corpflow.erpnext.selling_quote_to_cash_apply.v1",
+  "issue": 1056,
+  "generated_at_utc": "2026-08-26T04:11:21Z",
+  "identity": "integrations@corpflowai.com",
+  "secrets_printed": false,
+  "postgres_written": false,
+  "synthetic_lead_id": "cf1018-synthetic-sales-lifecycle",
+  "synthetic_company_name": "CF1018 Synthetic Sales Lifecycle Ltd",
+  "company_identity": {
+    "ok": true,
+    "blockers": []
+  },
+  "upstream": {
+    "erpnext_lead": "CRM-LEAD-2026-00009",
+    "erpnext_opportunity": "CRM-OPP-2026-00003",
+    "customer": "CF1018 Synthetic Sales Lifecycle Ltd"
+  },
+  "reuse_882": {
+    "mur_quotation": {
+      "name": "SAL-QTN-2026-00003",
+      "docstatus": 0,
+      "status": "Draft",
+      "currency": "MUR",
+      "grand_total": 45000,
+      "conversion_rate": 1
+    },
+    "usd_quotation": {
+      "name": "SAL-QTN-2026-00001",
+      "docstatus": 0,
+      "status": "Draft",
+      "currency": "USD",
+      "grand_total": 249,
+      "conversion_rate": 47.15
+    },
+    "mur_invoice_draft": {
+      "name": "ACC-SINV-2026-00001",
+      "docstatus": 0,
+      "status": "Draft",
+      "currency": "MUR",
+      "grand_total": 45000,
+      "conversion_rate": 1
+    },
+    "usd_invoice_draft": {
+      "name": "ACC-SINV-2026-00002",
+      "docstatus": 0,
+      "status": "Draft",
+      "currency": "USD",
+      "grand_total": 249,
+      "conversion_rate": 47.15
+    }
+  },
+  "first": {
+    "label": "first",
+    "ok": true,
+    "action": "CREATE",
+    "reason": "NO_MATCH",
+    "erpnext_quotation": "SAL-QTN-2026-00005",
+    "customer": "CF1018 Synthetic Sales Lifecycle Ltd",
+    "erpnext_lead": "CRM-LEAD-2026-00009",
+    "erpnext_opportunity": "CRM-OPP-2026-00003",
+    "duplicate_quotation_count": 1,
+    "sales_invoice_created": false,
+    "payment_entry_created": false,
+    "taxes_applied": false,
+    "mismatches": [],
+    "pointer_persisted": true,
+    "postgres_persist": "not_written",
+    "readback": {
+      "name": "SAL-QTN-2026-00005",
+      "docstatus": 0,
+      "status": "Draft",
+      "currency": "MUR",
+      "conversion_rate": 1,
+      "grand_total": 45000,
+      "selling_price_list": "Standard Selling",
+      "tc_name": "CF882 CorpFlowAI Commercial Terms",
+      "valid_till": "2026-09-09",
+      "title": "CF1056 SYNTHETIC MUR Website Rescue — TEST-ONLY DO NOT SEND [corpflow.selling_q2c.v1:lead=cf1018-synthetic-sales-lifecycle]",
+      "item_code": "CF-RD-LANDING-RESCUE",
+      "item_rate": 45000,
+      "taxes_and_charges": null,
+      "opportunity": "CRM-OPP-2026-00003"
+    },
+    "error": null
+  },
+  "second": {
+    "label": "second",
+    "ok": true,
+    "action": "UPDATE",
+    "reason": "IDEMPOTENT_MATCH",
+    "erpnext_quotation": "SAL-QTN-2026-00005",
+    "customer": "CF1018 Synthetic Sales Lifecycle Ltd",
+    "erpnext_lead": "CRM-LEAD-2026-00009",
+    "erpnext_opportunity": "CRM-OPP-2026-00003",
+    "duplicate_quotation_count": 1,
+    "sales_invoice_created": false,
+    "payment_entry_created": false,
+    "taxes_applied": false,
+    "mismatches": [],
+    "pointer_persisted": true,
+    "postgres_persist": "not_written",
+    "readback": {
+      "name": "SAL-QTN-2026-00005",
+      "docstatus": 0,
+      "status": "Draft",
+      "currency": "MUR",
+      "conversion_rate": 1,
+      "grand_total": 45000,
+      "selling_price_list": "Standard Selling",
+      "tc_name": "CF882 CorpFlowAI Commercial Terms",
+      "valid_till": "2026-09-09",
+      "title": "CF1056 SYNTHETIC MUR Website Rescue — TEST-ONLY DO NOT SEND [corpflow.selling_q2c.v1:lead=cf1018-synthetic-sales-lifecycle]",
+      "item_code": "CF-RD-LANDING-RESCUE",
+      "item_rate": 45000,
+      "taxes_and_charges": null,
+      "opportunity": "CRM-OPP-2026-00003"
+    },
+    "error": null
+  },
+  "created_on_replay": false,
+  "duplicate_quotation_count": 1,
+  "pointer": {
+    "schema": "corpflow.qualification.erpnext.v1",
+    "bridge": "lead_opportunity_promotion",
+    "customer_bridge": "qualified_customer_identity",
+    "lead_id": "cf1018-synthetic-sales-lifecycle",
+    "erpnext_lead": "CRM-LEAD-2026-00009",
+    "erpnext_opportunity": "CRM-OPP-2026-00003",
+    "customer": "CF1018 Synthetic Sales Lifecycle Ltd",
+    "contact": "Lee Synthetic",
+    "address": "CF1018 Synthetic Sales Lifecycle Ltd-Billing",
+    "quotation_bridge": "quotation_invoice",
+    "selling_issue": 1056,
+    "quotation_idempotency_key": "corpflow.selling_q2c.v1:lead=cf1018-synthetic-sales-lifecycle",
+    "erpnext_quotation": "SAL-QTN-2026-00005",
+    "last_quotation_action": "UPDATE",
+    "updated_at": "2026-08-26T04:11:19Z"
+  },
+  "pointer_location": "qualification_json.erpnext (in-memory reference; Postgres not written)",
+  "pdf": {
+    "ok": true,
+    "bytes": 36114,
+    "is_pdf": true,
+    "sha256": "299ad3c9d8c4582a",
+    "outfile": "artifacts/erpnext/selling-quote-to-cash-1056/cf1018-mur-SAL-QTN-2026-00005.pdf",
+    "print_format": "Quotation Standard",
+    "error": null
+  },
+  "accepted_commercial_record": {
+    "custom_acceptance_engine": false,
+    "sales_order_required": false,
+    "primary_erpnext_doctype": "Quotation",
+    "synthetic_state": {
+      "docstatus": 0,
+      "status": "Draft"
+    },
+    "live_after_anton_gates": {
+      "docstatus": 1,
+      "status": "Open"
+    },
+    "erpnext_acceptance": "Standard Comment on the Quotation recording written client acceptance. Optional Sales Order conversion sets status Ordered — not required for services (#918).",
+    "corpflow_acceptance": "#714 acceptance.status=accepted with accepted_by + acceptance_timestamp pointing at erpnext_quotation",
+    "this_packet_submits_quotation": false,
+    "this_packet_creates_comment": false,
+    "reason": "Standard ERPNext Quotation is the offer. Services do not require Sales Order. Synthetic proof stays draft. Comment create is not required for this mapping packet."
+  },
+  "sales_invoice_proforma": {
+    "new_invoice_created": false,
+    "reused_mur_draft": "ACC-SINV-2026-00001",
+    "posting_allowed": false,
+    "reason": "BLOCKED BY ACCOUNTANT FOUNDATION"
+  },
+  "payment_evidence": {
+    "doctype_used": "none",
+    "payment_entry_created": false,
+    "payment_entry_forbidden": true,
+    "rail": 714,
+    "payment_evidence": {
+      "status": "recorded",
+      "evidence_type": "bank_transfer_reference",
+      "evidence_ref": "SYN-1056-POP-REF",
+      "amount_evidenced": 22500,
+      "currency": "MUR",
+      "linked_quotation": "SAL-QTN-2026-00005",
+      "linked_invoice": "ACC-SINV-2026-00001"
+    },
+    "erpnext_payment_entry": null,
+    "note": "Manual verification is recorded on the #714 rail. Bank clearance remains operator-owned. Do not create a Payment Entry in this packet."
+  },
+  "proceed_approved_gate": {
+    "ok": true,
+    "financially_approved": false,
+    "erpnext_never_sets_financially_approved": true,
+    "gate_ok": false,
+    "blockers": [
+      "MISSING_ACCEPTANCE",
+      "MISSING_PAYMENT_EVIDENCE",
+      "MISSING_FINANCIAL_APPROVER",
+      "MISSING_APPROVAL_TIMESTAMP"
+    ],
+    "invoice_name": "ACC-SINV-2026-00001",
+    "invoice_docstatus": 0
+  },
+  "usd": {
+    "created_this_packet": false,
+    "quotation": "SAL-QTN-2026-00001",
+    "invoice_draft": "ACC-SINV-2026-00002",
+    "conversion_rate": 47.15,
+    "path": "reuse_existing_882_only"
+  },
+  "accountant_foundation": {
+    "ok": false,
+    "blockers": [
+      "COA_NOT_ACCOUNTANT_APPROVED",
+      "TAX_VAT_NOT_ACCOUNTANT_APPROVED",
+      "RECEIVABLE_INCOME_DEFAULTS_NOT_ACCOUNTANT_APPROVED"
+    ],
+    "classification": "BLOCKED BY ACCOUNTANT FOUNDATION",
+    "stop_point": "Sales Invoice posting, tax/VAT application, Payment Entry, and any mutation of CoA/tax/receivable/income defaults",
+    "source_issue": 1055
+  },
+  "readiness": {
+    "selling_quotation_ready": true,
+    "selling_quotation_sub_verdict": "SELLING_QUOTATION_PATH_PROVEN",
+    "accountant_foundation": {
+      "ok": false,
+      "blockers": [
+        "COA_NOT_ACCOUNTANT_APPROVED",
+        "TAX_VAT_NOT_ACCOUNTANT_APPROVED",
+        "RECEIVABLE_INCOME_DEFAULTS_NOT_ACCOUNTANT_APPROVED"
+      ],
+      "classification": "BLOCKED BY ACCOUNTANT FOUNDATION",
+      "stop_point": "Sales Invoice posting, tax/VAT application, Payment Entry, and any mutation of CoA/tax/receivable/income defaults",
+      "source_issue": 1055
+    },
+    "sales_invoice_posted": false,
+    "payment_entry_created": false,
+    "quote_to_cash_ready": false,
+    "missing": [],
+    "verdict": "NOT READY — BLOCKED BY ACCOUNTANT FOUNDATION",
+    "exact_blocker": "BLOCKED BY ACCOUNTANT FOUNDATION"
+  },
+  "selling_quotation_sub_verdict": "SELLING_QUOTATION_PATH_PROVEN",
+  "verdict": "NOT READY — BLOCKED BY ACCOUNTANT FOUNDATION"
+}

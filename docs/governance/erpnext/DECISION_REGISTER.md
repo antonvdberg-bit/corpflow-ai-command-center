@@ -223,3 +223,25 @@ Retention: do not delete a decision or evidence row merely because it was supers
 | ERPNext Project / Task | Reused synthetic `PROJ-0001` / `ISS-2026-00001` (not programme Project `PROJ-0002`) |
 | Verification evidence | `node --test node-tests/erpnext-projects-support-ops.test.mjs` plus reused apply-log |
 | Supersedes / superseded-by | Current-main replacement for stale PR #1102. Does **not** supersede Version 2, #918, #920, or the #1097 operating conventions. |
+
+---
+
+## ERP-D-2026-08-27-2 — #1166 current-main landing of #1056 selling / quote-to-cash (proposed)
+
+| Field | Record |
+|-------|--------|
+| Decision ID | `ERP-D-2026-08-27-2` |
+| Date/time | 2026-08-27 |
+| Status | **Proposed** (this packet; Anton merge remains the Git approval). Does **not** approve Sales Invoice posting, tax/VAT, Payment Entry, CoA mutation, or send. |
+| Question / requirement | Land the already-proven #1056 Selling / Quote-to-Cash safe slice onto exact current `main` after Commercial quotation-evidence continuity (#1162). |
+| Executive intent / source | [#1166](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1166); source proof [#1056](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1056) / [#1125](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1125) / stale [PR #1128](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1128) |
+| Options considered | Revive stale #1128; redesign Quote-to-Cash; land the proven helper/docs/evidence onto current `main` and retire #1128 |
+| Evidence reviewed | #1056 live apply-log `SAL-QTN-2026-00005` CREATE then UPDATE, MUR 45,000, PDF 36,114 bytes; #1055 still OPEN; #918 `quotation_invoice`; #1162 Commercial Workspace GET continuity |
+| Decision | Land [`ERPNEXT_SELLING_QUOTE_TO_CASH_V1.md`](../../erpnext/ERPNEXT_SELLING_QUOTE_TO_CASH_V1.md) on current `main`. Reuse the 2026-08-26 synthetic read-back. Commercial Workspace references the same Quotation name. Close #1128 without revival. |
+| Rationale | The selling quotation path is already proven. Current `main` needs the same packet without a second ERP bridge or a live re-apply. |
+| Risks / tradeoffs | Hosted quotation may still exist; this packet does not re-create it. Accountant posting remains blocked. |
+| Approver | Pending Anton merge of the #1166 PR |
+| GitHub implementation | `lib/erpnext/selling-quote-to-cash.js` + apply script + reused apply-log + Commercial Workspace pointer |
+| ERPNext Project / Task | Reused synthetic Quotation `SAL-QTN-2026-00005` (not programme Project `PROJ-0002`) |
+| Verification evidence | `node --test node-tests/erpnext-selling-quote-to-cash.test.mjs` plus reused apply-log |
+| Supersedes / superseded-by | Current-main replacement for stale PR #1128 / #1125. Does **not** supersede Version 2, #918, WP2, #882, or #1162. |

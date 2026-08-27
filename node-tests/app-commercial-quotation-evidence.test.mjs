@@ -19,7 +19,7 @@ import {
   loadCommercialQuotationPdf,
   quotationNameFromCommercialRow,
 } from '../lib/app/commercial-quotation-evidence.js';
-import { fixtureCommercialRecords, projectCommercialRow } from '../lib/app/commercial-summary.js';
+import { fixtureCommercialRecords, projectCommercialRow, projectCommercialRowsFromLeads } from '../lib/app/commercial-summary.js';
 import { REFERENCE_TENANT_ID } from '../lib/app/constants.js';
 import {
   handleAppCommercialQuotation,
@@ -128,6 +128,32 @@ describe('Commercial quotation evidence #1160', { concurrency: false }, () => {
     assert.equal(bea.quotation_evidence_path, null);
     assert.equal(isStableQuotationName('../Quotation'), false);
     assert.equal(isStableQuotationName('quotation/SAL-QTN-2026-00001'), false);
+  });
+
+  test('selling CF1018 pointer is an authoritative ERPNext quotation, not a second ledger', () => {
+    const proof = proofQuotationDocForName('SAL-QTN-2026-00005');
+    assert.equal(proof.name, 'SAL-QTN-2026-00005');
+    assert.equal(proof.docstatus, 0);
+    assert.equal(proof.currency, 'MUR');
+    assert.equal(proof.grand_total, 45000);
+    assert.equal(proof.customer, 'CF1018 Synthetic Sales Lifecycle Ltd');
+    const rows = projectCommercialRowsFromLeads([
+      {
+        id: 'cf1018-synthetic-sales-lifecycle',
+        organisation_name: 'CF1018 Synthetic Sales Lifecycle Ltd',
+        product: 'website-rescue',
+        qualification_json: {
+          erpnext: {
+            erpnext_quotation: 'SAL-QTN-2026-00005',
+            customer: 'CF1018 Synthetic Sales Lifecycle Ltd',
+          },
+        },
+      },
+    ]);
+    assert.equal(quotationNameFromCommercialRow(rows[0]), 'SAL-QTN-2026-00005');
+    assert.equal(rows[0].erpnext.authoritative, true);
+    assert.equal(rows[0].erpnext.mutated, false);
+    assert.equal(rows[0].quotation_evidence_path, '/app/commercial/cf1018-synthetic-sales-lifecycle');
   });
 
   test('proof mode resolves Ada to bounded GET-shaped evidence without ERPNext write', async () => {

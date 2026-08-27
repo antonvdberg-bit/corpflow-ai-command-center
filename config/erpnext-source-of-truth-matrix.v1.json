@@ -84,7 +84,7 @@
       "idempotency": "Search open draft Quotation by customer + item + currency before create. One draft per engagement until submit.",
       "conflict_rule": "ERPNext document wins on rate, tax, currency, and status. GitHub/docs packs are working papers, not the commercial record.",
       "retry_failure": "Do not submit or send on retry. Keep docstatus=0 until Anton dual gate. API failure = leave as draft or do not create.",
-      "audit_evidence": "#882 SAL-QTN-2026-00001/00003/00004 and draft invoices ACC-SINV-2026-00001/00002; #919 Prestige pack not sent.",
+      "audit_evidence": "#882 SAL-QTN-2026-00001/00003/00004 and draft invoices ACC-SINV-2026-00001/00002; #919 Prestige pack not sent. #1056/#1166 CF1018 draft MUR Quotation SAL-QTN-2026-00005; SI posting blocked by #1055 accountant foundation.",
       "sync_mode": "queued_manual",
       "evidence": "#882 READY (synthetic drafts); #919 operator review"
     },
