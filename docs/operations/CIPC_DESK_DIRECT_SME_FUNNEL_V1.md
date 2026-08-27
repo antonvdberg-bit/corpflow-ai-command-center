@@ -1,6 +1,6 @@
 # CIPC Desk — Direct-SME buyer funnel v1
 
-**Status:** Conversion landing for company owners / directors (**#1183**). Parents **#640**, **#984**, **#987**, **#989**. Complements partner funnel **#986** / **#1126**. Supersedes paused execution vehicle **#1152** for implementation capacity only; preserve #1152 history as evidence.
+**Status:** Conversion landing for company owners / directors (**#1183**). Parents **#640**, **#984**, **#987**, **#989**. Complements partner funnel **#986** / **#1126**. Supersedes paused execution vehicle **#1152** for implementation capacity only; preserve #1152 history as evidence. Fresh current-main land from `be671871f2bc2b5c7545d5379ff2be2caf2284d5`; closed PRs #1185 / #1227 are evidence only and must not be revived.
 **Tenant / working name:** `cipc-desk` / CIPC Desk (internal working name).
 **Environment:** `corpflow_test` only. **Not a public launch.**
 **Verdict:** Smallest buyer-facing current-main slice on the existing tenant shell, service catalogue, email-intake contract, and #987 response controls. Public launch, indexing, unapproved fees, live email/WhatsApp/SMS send, payment, filing, and `client_production` remain blocked.
