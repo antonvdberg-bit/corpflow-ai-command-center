@@ -1,12 +1,12 @@
 # Lead Rescue + Website Rescue — buyer-path verification v1
 
-**Status:** Current-`main` verification record for [#1127](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1127).  
+**Status:** Current-`main` verification record for [#1127](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1127); landed on exact current `main` via [#1164](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1164).  
 **Environment:** `corpflow_test` / current public CorpFlowAI apex (`corpflowai.com`).  
 **Anchor sentinel:** `<!-- LEAD_RESCUE_WEBSITE_RESCUE_BUYER_PATH_VERIFICATION_V1 -->`
 
 <!-- LEAD_RESCUE_WEBSITE_RESCUE_BUYER_PATH_VERIFICATION_V1 -->
 
-**Parents:** #710, #711, #712, #700 · **Product sources:** #653 Lead Rescue, #654 Website Rescue
+**Parents:** #710, #711, #712, #700 · **Product sources:** #653 Lead Rescue, #654 Website Rescue · **Current-main repair:** #1164 (supersedes unmergeable PR #1129)
 
 This packet proves the two approved launch-product buyer paths are understandable, navigable, and recording-ready. It does **not** submit a live enquiry, mutate Postgres, send externally, or decide public launch.
 

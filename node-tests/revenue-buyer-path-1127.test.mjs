@@ -1,5 +1,5 @@
 /**
- * #1127 — P0 revenue acceptance: Lead Rescue + Website Rescue buyer-path lock.
+ * #1164 / #1127 — P0 revenue acceptance: Lead Rescue + Website Rescue buyer-path lock.
  * Named landings, one primary CTA per product, proof/demo, enquiry labels, no auto-send.
  */
 import { describe, it } from 'node:test';

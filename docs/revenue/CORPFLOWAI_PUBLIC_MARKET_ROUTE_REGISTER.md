@@ -1,6 +1,6 @@
 # CorpFlowAI public market route register
 
-**Status:** Operator inventory · **Updated:** 2026-08-27 (#1127 named launch-product buyer-path lock)
+**Status:** Operator inventory · **Updated:** 2026-08-27 (#1164 current-main repair of #1127 named launch-product buyer-path lock)
 **Anchor:** `<!-- CORPFLOWAI_PUBLIC_MARKET_ROUTE_REGISTER_V1 -->`
 
 <!-- CORPFLOWAI_PUBLIC_MARKET_ROUTE_REGISTER_V1 -->
