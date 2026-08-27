@@ -99,7 +99,7 @@ export default function ProspectDetailPanel({
           {summary.region_or_offer ? ` · ${String(summary.region_or_offer)}` : ''}
         </dd>
         <dt>Owner</dt>
-        <dd>{String(prospect.owner || '—')}</dd>
+        <dd data-testid="prospect-detail-owner">{String(prospect.owner || 'Unassigned')}</dd>
         <dt>Stage / status</dt>
         <dd>
           {String(prospect.canonical_stage || '—')} / {String(prospect.native_status_label || prospect.native_status || '—')}

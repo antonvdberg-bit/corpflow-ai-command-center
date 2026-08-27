@@ -86,6 +86,9 @@ describe('#1171 labelled enquiry → canonical Prospect identity', () => {
     assert.equal(vm.consent_contact, true);
     assert.equal(vm.urgency, 'this-month');
     assert.equal(vm.next_action, AI_LEAD_RESCUE_DEFAULT_NEXT_ACTION);
+    assert.equal(vm.owner, null);
+    assert.ok(vm.exception_signals.includes('missing_owner'));
+    assert.ok(vm.exception_signals.includes('new_unreviewed'));
     assert.equal(vm.organisation_name, 'Luca Lagoon Desk');
     assert.equal(vm.shared_detail_path, `/app/prospects/${LR_ID}`);
     assert.equal(vm.source_surfaces.action_queue, '/app/queue');
@@ -114,6 +117,9 @@ describe('#1171 labelled enquiry → canonical Prospect identity', () => {
     assert.equal(vm.consent_contact, true);
     assert.equal(vm.urgency, 'asap');
     assert.equal(vm.next_action, expectedNext);
+    assert.equal(vm.owner, null);
+    assert.ok(vm.exception_signals.includes('missing_owner'));
+    assert.ok(vm.exception_signals.includes('high_urgency'));
     assert.equal(vm.organisation_name, 'Mira Pages Studio');
     assert.equal(vm.shared_detail_path, `/app/prospects/${WR_ID}`);
     assert.equal(matchesWorkbenchFilter(vm, 'website_rescue', NOW), true);
@@ -143,11 +149,17 @@ describe('#1171 Action Queue / Prospect detail / Commercial continuity', { concu
     assert.equal(lrDetail.id, LR_ID);
     assert.equal(lrDetail.product, AI_LEAD_RESCUE_PRODUCT);
     assert.equal(lrDetail.consent_contact, true);
+    assert.equal(lrDetail.owner, null);
+    assert.ok(lrDetail.exception_signals.includes('missing_owner'));
+    assert.equal(lrDetail.current_blocker, 'Missing owner');
     assert.equal(lrDetail.commercial_clearance.commercially_cleared, false);
     assert.ok(lrDetail.commercial_clearance.blockers.includes('MISSING_PROPOSAL'));
     assert.equal(wrDetail.id, WR_ID);
     assert.equal(wrDetail.product, RAPID_DELIVERY_PRODUCT);
     assert.equal(wrDetail.consent_contact, true);
+    assert.equal(wrDetail.owner, null);
+    assert.ok(wrDetail.exception_signals.includes('missing_owner'));
+    assert.equal(wrDetail.current_blocker, 'Missing owner');
     assert.equal(wrDetail.commercial_clearance.commercially_cleared, false);
     assert.ok(wrDetail.commercial_clearance.blockers.includes('MISSING_PROPOSAL'));
     assert.equal(Object.prototype.hasOwnProperty.call(lrDetail, 'qualificationJson'), false);
