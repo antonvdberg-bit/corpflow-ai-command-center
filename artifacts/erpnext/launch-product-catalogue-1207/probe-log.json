@@ -1,9 +1,9 @@
 {
   "issue": 1207,
-  "probed_at_utc": "2026-08-27T22:54:17Z",
+  "probed_at_utc": "2026-08-27T23:58:02Z",
   "identity": "integrations@corpflowai.com",
   "mutation": "forbidden",
-  "current_main_sha": "b731411734edb01b7dbb8d7e20247c5a7805983a",
+  "current_main_sha": "be671871f2bc2b5c7545d5379ff2be2caf2284d5",
   "master_admin_key": "absent",
   "postgres_written": false,
   "live": {

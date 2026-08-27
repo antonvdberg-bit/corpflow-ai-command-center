@@ -3,6 +3,7 @@
 **Status:** GET/read-only acceptance on hosted ERPNext. **READY for quotation** of the two launch products from the standard Item / Price List / Item Price catalogue. **No ERPNext write. No second product master. No invented prices or exchange rates.**
 **Issue:** [#1207](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1207)
 **Parents:** [#881](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/881) catalogue · [#882](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/882) commercial documents · [#1056](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1056) / [#1166](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1166) selling quotation path
+**Current-main repair:** closed stale PR [#1224](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1224) is not resumed. This packet re-lands the proven GET/read-only slice on exact current `main` `be671871f2bc2b5c7545d5379ff2be2caf2284d5`.
 **Environment:** `corpflow_test` hosted ERPNext (CorpFlowAI LTD, company currency MUR). Not `client_production`.
 **Owner:** Anton (merge); Cursor (this acceptance).
 **Machine contract:** `config/erpnext-launch-product-catalogue.v1.json`
@@ -36,7 +37,7 @@ This packet does **not** authorise sending a quotation, submitting it, posting a
 ```text
 ERPNext LAUNCH-PRODUCT CATALOGUE READY FOR QUOTATION
 
-Current main: b731411734edb01b7dbb8d7e20247c5a7805983a
+Current main: be671871f2bc2b5c7545d5379ff2be2caf2284d5
 Identity: integrations@corpflowai.com (GET-only)
 Items:
   LR-SETUP-USD-150 — AI Lead Rescue Setup (USD 150 launch pilot)
@@ -72,7 +73,7 @@ USD 150 Lead Rescue and MUR Website Rescue T1 are both covered. The MUR Lead Res
 
 ---
 
-## 2. Live GET evidence (2026-08-27T22:54:17Z)
+## 2. Live GET evidence (2026-08-27T23:58:02Z)
 
 Read-only as `integrations@corpflowai.com`. `MASTER_ADMIN_KEY` absent. No Item / Item Price / Price List / Currency Exchange write. Artifact: `artifacts/erpnext/launch-product-catalogue-1207/probe-log.json`.
 

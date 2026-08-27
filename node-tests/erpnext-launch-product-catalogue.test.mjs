@@ -83,7 +83,8 @@ test('#1207 config names launch products, price lists, and Item Price ids', () =
   const cfg = loadLaunchProductCatalogueConfig();
   assert.equal(cfg.issue, 1207);
   assert.equal(cfg.verdict, CANONICAL_VERDICT);
-  assert.equal(cfg.current_main_sha, 'b731411734edb01b7dbb8d7e20247c5a7805983a');
+  assert.equal(cfg.current_main_sha, 'be671871f2bc2b5c7545d5379ff2be2caf2284d5');
+  assert.equal(cfg.stale_implementation_pr, 1224);
   assert.deepEqual(listLaunchProductSkus().sort(), [
     'CF-RD-LANDING-RESCUE',
     'CF-RD-LEAD-RESCUE',
@@ -166,7 +167,9 @@ test('duplicate Item Price rows fail closed; reserved T2/T3 must stay absent', (
 
 test('selling search projects customer_notes so idempotency is duplicate-safe', () => {
   const src = read('lib/erpnext/selling-quote-to-cash.js');
-  assert.match(src, /customer_notes/);
+  const searchFn = src.match(/async function searchExistingQuotation[\s\S]*?fields:\s*\[([\s\S]*?)\]/);
+  assert.ok(searchFn, 'searchExistingQuotation fields list missing');
+  assert.match(searchFn[1], /['"]customer_notes['"]/);
   assert.match(src, /getCatalogueItem/);
   assert.match(src, /SEARCH_BEFORE_CREATE|SEARCH_QUOTATION/);
 });
