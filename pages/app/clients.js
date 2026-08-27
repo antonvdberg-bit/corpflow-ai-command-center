@@ -4,6 +4,7 @@ import AppShell from '../../components/app/AppShell.js';
 import AppLoadState from '../../components/app/AppLoadState.js';
 import CoreMenu from '../../components/app/CoreMenu.js';
 import ClientsSummary from '../../components/app/ClientsSummary.js';
+import { STAFF_LIST_ERROR_BODIES, staffWorkspaceListPanelKind } from '../../lib/app/staff-workspace-load-state.js';
 
 /**
  * @param {import('next/router').NextRouter['query']} query
@@ -104,6 +105,11 @@ export default function AppClientsPage() {
       ? /** @type {Record<string, unknown>} */ (shell.actor)
       : {};
   const proofMode = shell?.proof_mode === true;
+  const listPanelKind = staffWorkspaceListPanelKind({
+    busy,
+    error,
+    count: clients.length,
+  });
 
   if (authRequired) {
     return (
@@ -196,22 +202,44 @@ export default function AppClientsPage() {
           </>
         ) : null}
       </p>
-      {error ? <p className="cf-app-error" data-testid="app-error">{error}</p> : null}
-      {busy ? <AppLoadState kind="loading" title="Loading clients…" /> : null}
-      <ClientsSummary
-        clients={clients}
-        dataSource={dataSource}
-        busy={busy}
-        proofWanted={proofWanted}
-        selectedId={selectedId}
-        onSelect={(id) => {
-          const params = new URLSearchParams();
-          params.set('env', 'core');
-          if (proofWanted) params.set('proof', '1');
-          params.set('id', id);
-          router.replace(`/app/clients?${params.toString()}`, undefined, { shallow: true });
-        }}
-      />
+      {error && listPanelKind !== 'error' ? <p className="cf-app-error" data-testid="app-error">{error}</p> : null}
+      {listPanelKind === 'loading' ? <AppLoadState kind="loading" title="Loading clients…" /> : null}
+      {listPanelKind === 'error' ? (
+        <>
+          <AppLoadState
+            kind="error"
+            title="Clients unavailable"
+            message={STAFF_LIST_ERROR_BODIES.clients}
+            testId="app-clients-list-error"
+          />
+          <p className="cf-app-muted" data-testid="app-clients-list-error-code">
+            {error}
+          </p>
+          <div className="cf-app-actions" style={{ marginTop: 12 }}>
+            <button type="button" className="cf-app-btn" data-primary="true" onClick={() => load()}>
+              Retry
+            </button>
+            <a className="cf-app-btn" href={proofWanted ? '/app/core?proof=1' : '/app/core'}>
+              Overview
+            </a>
+          </div>
+        </>
+      ) : (
+        <ClientsSummary
+          clients={clients}
+          dataSource={dataSource}
+          busy={busy}
+          proofWanted={proofWanted}
+          selectedId={selectedId}
+          onSelect={(id) => {
+            const params = new URLSearchParams();
+            params.set('env', 'core');
+            if (proofWanted) params.set('proof', '1');
+            params.set('id', id);
+            router.replace(`/app/clients?${params.toString()}`, undefined, { shallow: true });
+          }}
+        />
+      )}
     </AppShell>
   );
 }

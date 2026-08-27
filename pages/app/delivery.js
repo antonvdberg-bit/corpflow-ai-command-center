@@ -5,6 +5,7 @@ import AppLoadState from '../../components/app/AppLoadState.js';
 import CoreMenu from '../../components/app/CoreMenu.js';
 import DeliverySummary from '../../components/app/DeliverySummary.js';
 import { normalizeDeliveryFilter } from '../../lib/app/delivery-summary-constants.js';
+import { STAFF_LIST_ERROR_BODIES, staffWorkspaceListPanelKind } from '../../lib/app/staff-workspace-load-state.js';
 
 /**
  * @param {import('next/router').NextRouter['query']} query
@@ -110,6 +111,11 @@ export default function AppDeliveryPage() {
       ? /** @type {Record<string, unknown>} */ (shell.actor)
       : {};
   const proofMode = shell?.proof_mode === true;
+  const listPanelKind = staffWorkspaceListPanelKind({
+    busy,
+    error,
+    count: items.length,
+  });
 
   if (authRequired) {
     return (
@@ -200,23 +206,45 @@ export default function AppDeliveryPage() {
           </>
         ) : null}
       </p>
-      {busy ? <AppLoadState kind="loading" title="Loading delivery…" /> : null}
-      <DeliverySummary
-        items={items}
-        dataSource={dataSource}
-        busy={busy}
-        error={error}
-        filter={filter}
-        filterCounts={filterCounts}
-        proofWanted={proofWanted}
-        onFilter={(next) => {
-          const params = new URLSearchParams();
-          if (proofWanted) params.set('proof', '1');
-          if (next && next !== 'all') params.set('filter', next);
-          const qs = params.toString();
-          router.push(qs ? `/app/delivery?${qs}` : '/app/delivery');
-        }}
-      />
+      {listPanelKind === 'loading' ? <AppLoadState kind="loading" title="Loading delivery…" /> : null}
+      {listPanelKind === 'error' ? (
+        <>
+          <AppLoadState
+            kind="error"
+            title="Delivery unavailable"
+            message={STAFF_LIST_ERROR_BODIES.delivery}
+            testId="app-delivery-list-error"
+          />
+          <p className="cf-app-muted" data-testid="app-delivery-list-error-code">
+            {error}
+          </p>
+          <div className="cf-app-actions" style={{ marginTop: 12 }}>
+            <button type="button" className="cf-app-btn" data-primary="true" onClick={() => load()}>
+              Retry
+            </button>
+            <a className="cf-app-btn" href={proofWanted ? '/app/core?proof=1' : '/app/core'}>
+              Overview
+            </a>
+          </div>
+        </>
+      ) : (
+        <DeliverySummary
+          items={items}
+          dataSource={dataSource}
+          busy={busy}
+          error=""
+          filter={filter}
+          filterCounts={filterCounts}
+          proofWanted={proofWanted}
+          onFilter={(next) => {
+            const params = new URLSearchParams();
+            if (proofWanted) params.set('proof', '1');
+            if (next && next !== 'all') params.set('filter', next);
+            const qs = params.toString();
+            router.push(qs ? `/app/delivery?${qs}` : '/app/delivery');
+          }}
+        />
+      )}
     </AppShell>
   );
 }

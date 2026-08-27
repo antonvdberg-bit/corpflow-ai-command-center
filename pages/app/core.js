@@ -7,6 +7,11 @@ import CoreRequestList from '../../components/app/CoreRequestList.js';
 import CoreRequestWorkView from '../../components/app/CoreRequestWorkView.js';
 import OperatingOverview from '../../components/app/OperatingOverview.js';
 import { CANONICAL_REQUEST_ID } from '../../lib/app/constants.js';
+import {
+  OVERVIEW_LIST_ERROR_BODY,
+  OVERVIEW_LIST_ERROR_TITLE,
+  operatingOverviewPanelKind,
+} from '../../lib/app/staff-workspace-load-state.js';
 
 const LIST_MENUS = new Set(['requests', 'my_work', 'tenants', 'approvals', 'releases']);
 
@@ -212,6 +217,12 @@ export default function AppCorePage() {
   const selected = /** @type {Record<string, unknown>} */ (shell?.selected || {});
   const proofMode = shell?.proof_mode === true;
   const menuActive = menu === 'request_detail' ? 'requests' : menu;
+  const overviewPanelKind = operatingOverviewPanelKind({
+    busy: busy && menu === 'overview',
+    error: menu === 'overview' ? error : '',
+    exceptionCount: Number(overview?.exception_count || 0),
+    overviewOk: menu === 'overview' ? overview?.ok === true : true,
+  });
 
   if (!router.isReady || (initialLoad && busy && !authRequired && !accessDenied && !shell)) {
     return (
@@ -336,17 +347,62 @@ export default function AppCorePage() {
         )}
       </p>
 
-      {error ? <p className="cf-app-error" data-testid="app-error">{error}</p> : null}
+      {error && overviewPanelKind !== 'error' ? (
+        <p className="cf-app-error" data-testid="app-error">
+          {error}
+        </p>
+      ) : null}
       {notice ? <p className="cf-app-ok" data-testid="app-notice">{notice}</p> : null}
 
-      {busy && menu === 'overview' ? <AppLoadState kind="loading" title="Loading overview…" /> : null}
+      {overviewPanelKind === 'loading' ? <AppLoadState kind="loading" title="Loading overview…" /> : null}
       {busy && LIST_MENUS.has(menu) ? <AppLoadState kind="loading" title="Loading requests…" /> : null}
 
-      {!busy && menu === 'overview' ? (
+      {overviewPanelKind === 'error' ? (
+        <>
+          <AppLoadState
+            kind="error"
+            title={OVERVIEW_LIST_ERROR_TITLE}
+            message={OVERVIEW_LIST_ERROR_BODY}
+            testId="app-core-overview-error"
+          />
+          <p className="cf-app-muted" data-testid="app-core-overview-error-code">
+            {error}
+          </p>
+          <div className="cf-app-actions" style={{ marginTop: 12 }}>
+            <button
+              type="button"
+              className="cf-app-btn"
+              data-primary="true"
+              data-testid="core-overview-error-retry"
+              onClick={() => loadShellAndWork()}
+            >
+              Retry
+            </button>
+            <a className="cf-app-btn" href={proofWanted ? '/app/queue?proof=1' : '/app/queue'}>
+              Action Queue
+            </a>
+            <a className="cf-app-btn" href={proofWanted ? '/app/clients?proof=1' : '/app/clients'}>
+              Clients
+            </a>
+            <a
+              className="cf-app-btn"
+              href={proofWanted ? '/app/commercial?proof=1' : '/app/commercial'}
+            >
+              Commercial
+            </a>
+            <a className="cf-app-btn" href={proofWanted ? '/app/delivery?proof=1' : '/app/delivery'}>
+              Delivery
+            </a>
+          </div>
+        </>
+      ) : null}
+
+      {!busy && menu === 'overview' && overviewPanelKind !== 'error' ? (
         <OperatingOverview
           overview={overview}
           dataSource={dataSource}
           busy={busy}
+          error={error}
           proofWanted={proofWanted}
         />
       ) : null}

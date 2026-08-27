@@ -5,6 +5,7 @@ import AppLoadState from '../../components/app/AppLoadState.js';
 import CoreMenu from '../../components/app/CoreMenu.js';
 import ProspectActionQueue from '../../components/app/ProspectActionQueue.js';
 import { normalizeActionQueueFilter } from '../../lib/cmp/_lib/prospect-operations-view-model.js';
+import { STAFF_LIST_ERROR_BODIES, staffWorkspaceListPanelKind } from '../../lib/app/staff-workspace-load-state.js';
 
 /**
  * @param {import('next/router').NextRouter['query']} query
@@ -166,6 +167,11 @@ export default function AppActionQueuePage() {
       ? /** @type {Record<string, unknown>} */ (shell.actor)
       : {};
   const proofMode = shell?.proof_mode === true;
+  const listPanelKind = staffWorkspaceListPanelKind({
+    busy,
+    error: formError ? '' : error,
+    count: prospects.length,
+  });
 
   if (authRequired) {
     return (
@@ -259,23 +265,49 @@ export default function AppActionQueuePage() {
           </>
         ) : null}
       </p>
-      {error && !formError ? <p className="cf-app-error" data-testid="app-error">{error}</p> : null}
-      {busy ? <AppLoadState kind="loading" title="Loading Action Queue…" /> : null}
-      <ProspectActionQueue
-        prospects={prospects}
-        dataSource={dataSource}
-        busy={busy}
-        saving={saving}
-        saved={saved}
-        error={formError}
-        filter={filter}
-        filterCounts={filterCounts}
-        proofWanted={proofWanted}
-        selectedId={selectedId}
-        onFilter={(next) => pushQueueQuery({ filter: next, id: selectedId })}
-        onSelect={(id) => pushQueueQuery({ filter, id })}
-        onSave={save}
-      />
+      {error && !formError && listPanelKind !== 'error' ? (
+        <p className="cf-app-error" data-testid="app-error">
+          {error}
+        </p>
+      ) : null}
+      {listPanelKind === 'loading' ? <AppLoadState kind="loading" title="Loading Action Queue…" /> : null}
+      {listPanelKind === 'error' ? (
+        <>
+          <AppLoadState
+            kind="error"
+            title="Action Queue unavailable"
+            message={STAFF_LIST_ERROR_BODIES.queue}
+            testId="app-queue-list-error"
+          />
+          <p className="cf-app-muted" data-testid="app-queue-list-error-code">
+            {error}
+          </p>
+          <div className="cf-app-actions" style={{ marginTop: 12 }}>
+            <button type="button" className="cf-app-btn" data-primary="true" onClick={() => load()}>
+              Retry
+            </button>
+            <a className="cf-app-btn" href={proofWanted ? '/app/core?proof=1' : '/app/core'}>
+              Overview
+            </a>
+          </div>
+        </>
+      ) : (
+        <ProspectActionQueue
+          prospects={prospects}
+          dataSource={dataSource}
+          busy={busy}
+          saving={saving}
+          saved={saved}
+          error={formError}
+          filter={filter}
+          filterCounts={filterCounts}
+          proofWanted={proofWanted}
+          selectedId={selectedId}
+          onFilter={(next) => pushQueueQuery({ filter: next, id: selectedId })}
+          onSelect={(id) => pushQueueQuery({ filter, id })}
+          onSave={save}
+        />
+      )}
     </AppShell>
   );
 }

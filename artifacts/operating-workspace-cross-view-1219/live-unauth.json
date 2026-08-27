@@ -1,0 +1,20 @@
+{
+  "current_main_sha": "ea2a45a90a4fde7043b89989e985194da3605bff",
+  "hosts": {
+    "https://core.corpflowai.com/app/core": 200,
+    "https://core.corpflowai.com/app/queue": 200,
+    "https://core.corpflowai.com/app/clients": 200,
+    "https://core.corpflowai.com/app/commercial": 200,
+    "https://core.corpflowai.com/app/delivery": 200,
+    "https://core.corpflowai.com/app/prospects": 200,
+    "https://core.corpflowai.com/api/factory/health": 200
+  },
+  "observed": {
+    "content_type": "text/html; charset=utf-8",
+    "title": "CorpFlowAI Operating Workspace · CorpFlowAI",
+    "loading_shell": true,
+    "http_500_page": false,
+    "middleware_invocation_failed": false
+  },
+  "note": "Unauthenticated corpflow_test GETs return Operating Workspace chrome that hydrates to staff sign-in (proof harness is off on Vercel Production). Authenticated synthetic journey is local."
+}
