@@ -12,15 +12,20 @@ import { fileURLToPath } from 'node:url';
 
 import { rowMatchesFrappeFilter } from '../lib/erpnext/customer-bridge.js';
 import {
+  ACCEPTANCE_VERDICT,
   BRIDGE_IDS,
   CANONICAL_VERDICT,
   POINTER_SCHEMA,
+  asReadOnlyFrappeClient,
   buildDeliveryPointer,
   buildIssueIdempotencyKey,
   buildProjectIdempotencyKey,
   classifyTimesheet,
+  evaluateOpsAcceptance,
   evaluateOpsReadiness,
+  inspectProjectsSupportOps,
   isForbiddenLiveCustomerName,
+  loadCloseReopenContract,
   loadProjectsSupportOpsConfig,
   mergeDeliveryPointerIntoQualificationJson,
   nextActionFromTasks,
@@ -36,6 +41,7 @@ import {
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..');
 const APPLY = path.join(REPO_ROOT, 'scripts', 'erpnext', 'apply-projects-support-ops.mjs');
+const INSPECT = path.join(REPO_ROOT, 'scripts', 'erpnext', 'inspect-projects-support-ops.mjs');
 const SECRETISH = /sk_live|POSTGRES_URL\s*[:=]\s*\S+|ERPNEXT_API_SECRET\s*[:=]\s*\S+|eyJhbGci/;
 
 function read(rel) {
@@ -176,6 +182,8 @@ test('#1097 config reuses #920 records and forbids a second live client', () => 
   resetProjectsSupportOpsConfigCache();
   const cfg = loadProjectsSupportOpsConfig(REPO_ROOT);
   assert.equal(cfg.issue, 1097);
+  assert.equal(cfg.acceptance_issue, 1202);
+  assert.equal(cfg.acceptance_verdict, ACCEPTANCE_VERDICT);
   assert.equal(cfg.reuse.project, 'PROJ-0001');
   assert.equal(cfg.reuse.issue, 'ISS-2026-00001');
   assert.equal(cfg.reuse.timesheet, 'TS-2026-00001');
@@ -392,4 +400,127 @@ test('live apply-log captures reused #920 IDs and no secret values', () => {
   assert.match(String(log.verdict), /ERPNext PROJECTS \/ SUPPORT OPERATIONAL PROOF READY/);
   assert.doesNotMatch(read(rel), SECRETISH);
   assert.doesNotMatch(read(rel), /"ERPNEXT_API_SECRET"\s*:\s*"[^"]+"/);
+});
+
+function seedAcceptanceRecords() {
+  const seed = seedRecords();
+  seed.Issue[0].contact = 'Alex Synthetic';
+  seed.Issue[0].description =
+    'GitHub #920 synthetic support Issue. TEST-ONLY. Not a live client ticket.\n\nCF1097-OPS synthetic internal trail. TEST-ONLY. Do not send.';
+  seed.Task[0].status = 'Working';
+  seed.Task[0].progress = 10;
+  seed.ToDo = [
+    {
+      name: 'todo-task-1',
+      status: 'Open',
+      allocated_to: 'integrations@corpflowai.com',
+      reference_type: 'Task',
+      reference_name: 'TASK-2026-00013',
+      description: 'CF1097-OPS next action on TASK-2026-00013. TEST-ONLY. Do not email.',
+    },
+    {
+      name: 'todo-issue-1',
+      status: 'Open',
+      allocated_to: 'integrations@corpflowai.com',
+      reference_type: 'Issue',
+      reference_name: 'ISS-2026-00001',
+      description: 'CF1097-OPS next action on ISS-2026-00001. TEST-ONLY. Do not email.',
+    },
+  ];
+  return seed;
+}
+
+test('#1202 GET-only acceptance reuses contract and forbids writes', async () => {
+  const client = createMemoryFrappeClient(seedAcceptanceRecords());
+  const wrapped = asReadOnlyFrappeClient(client);
+  const created = await wrapped.create('Project', { project_name: 'must-not-create' });
+  assert.equal(created.ok, false);
+  assert.equal(created.error, 'ERPNEXT_WRITE_FORBIDDEN');
+  assert.equal(wrapped.writes.length, 1);
+  const contract = loadCloseReopenContract(REPO_ROOT);
+  assert.equal(contract.proven, true);
+  assert.equal(contract.closed_status, 'Closed');
+  assert.equal(contract.reopened_status, 'Open');
+});
+
+test('#1202 inspect is GET-only and returns OPERATIONALLY USABLE', async () => {
+  const client = createMemoryFrappeClient(seedAcceptanceRecords());
+  const proof = await inspectProjectsSupportOps(client, {
+    repoRoot: REPO_ROOT,
+    nowIso: '2026-08-27T20:00:00Z',
+  });
+  assert.equal(proof.ok, true);
+  assert.equal(proof.verdict, ACCEPTANCE_VERDICT);
+  assert.equal(proof.write_attempted, false);
+  assert.equal(proof.writes.length, 0);
+  assert.equal(client.httpLog.some((row) => row.method === 'POST' || row.method === 'PUT'), false);
+  assert.equal(proof.project.name, 'PROJ-0001');
+  assert.equal(proof.project.customer, 'CF920 Synthetic Website Project Ltd');
+  assert.equal(proof.project.status, 'Open');
+  assert.equal(proof.project.owner, 'integrations@corpflowai.com');
+  assert.equal(proof.tasks.length, 12);
+  assert.equal(proof.next_action.task, 'TASK-2026-00013');
+  assert.equal(proof.timesheet.verdict, 'DEFER');
+  assert.equal(proof.timesheet.docstatus, 0);
+  assert.equal(proof.timesheet.is_billable, 0);
+  assert.equal(proof.issue.name, 'ISS-2026-00001');
+  assert.equal(proof.issue.contact, 'Alex Synthetic');
+  assert.equal(proof.issue.status, 'Open');
+  assert.equal(proof.issue_trail, 'issue_description');
+  assert.equal(proof.issue_lifecycle.close_reopen_this_run, 'not_attempted');
+  assert.equal(proof.issue_lifecycle.contract_proven, true);
+  assert.equal(proof.idempotency.project_action, 'REUSE');
+  assert.equal(proof.idempotency.issue_action, 'REUSE');
+  assert.equal(proof.idempotency.project_duplicate_count, 1);
+  assert.equal(proof.idempotency.issue_duplicate_count, 1);
+  assert.equal(proof.pointer.postgres_persist, 'not_written');
+  assert.equal(proof.pointer.project, 'PROJ-0001');
+  assert.equal(proof.created_on_replay, false);
+});
+
+test('#1202 acceptance is NOT READY when Timesheet is submitted', () => {
+  const blocked = evaluateOpsAcceptance({
+    write_attempted: false,
+    postgres_written: false,
+    send_attempted: false,
+    timesheet_submitted: true,
+    project: 'PROJ-0001',
+    issue: 'ISS-2026-00001',
+    project_duplicate_count: 1,
+    issue_duplicate_count: 1,
+    project_readback: true,
+    project_owner_proven: true,
+    task_readback: true,
+    next_action_proven: true,
+    timesheet_readback: true,
+    issue_readback: true,
+    issue_owner_proven: true,
+    issue_trail_proven: true,
+    issue_lifecycle_contract_proven: true,
+    timesheet_verdict: 'BLOCKED BY ACCOUNTING FOUNDATION',
+    pointer_postgres_persist: 'not_written',
+    created_on_replay: false,
+  });
+  assert.equal(blocked.ok, false);
+  assert.match(blocked.verdict, /NOT READY — TIMESHEET_SUBMITTED/);
+});
+
+test('#1202 inspect script dry-run does not call ERPNext', () => {
+  const result = spawnSync(process.execPath, [INSPECT, '--dry-run'], {
+    cwd: REPO_ROOT,
+    encoding: 'utf8',
+    env: {
+      PATH: process.env.PATH,
+      ERPNEXT_API_SECRET: 'must-not-appear-in-output-1234567890',
+    },
+  });
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  const out = `${result.stdout || ''}\n${result.stderr || ''}`;
+  assert.match(out, /dry_run: 1/);
+  assert.match(out, /GET\/read-only/);
+  assert.match(out, /PROJ-0001/);
+  assert.match(out, /ISS-2026-00001/);
+  assert.match(out, /erpnext_write: forbidden/);
+  assert.doesNotMatch(out, /must-not-appear-in-output-1234567890/);
+  assert.doesNotMatch(out, /ERPNEXT_BASE_URL_value: https?:/);
 });
