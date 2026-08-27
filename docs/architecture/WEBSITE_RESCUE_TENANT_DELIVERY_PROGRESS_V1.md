@@ -58,6 +58,8 @@ Never shown to Tenant:
 | `/app/prospects/[id]` | Staff-only shared Prospect detail. Full Website Rescue delivery record. Tenant session 403. |
 | `/app/commercial`, `/app/delivery` | Staff-only. Tenant session fail-closed. |
 
+A failed Requests & Progress load shows an error, not an empty “no work yet” panel, so a load failure cannot be mistaken for completion (#1201).
+
 ## 4. Explicit non-actions
 
 - No schema / migration / env / secrets
