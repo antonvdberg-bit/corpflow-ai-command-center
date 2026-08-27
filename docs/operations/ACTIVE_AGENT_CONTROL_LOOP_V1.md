@@ -53,6 +53,8 @@ When a poll reaches COMPLETED/FAILED/STALE and releases verified WIP capacity, t
 
 Lifecycle still only discovers **already-claimed** Cursor issues. Ready work with no claimed run is recovered by **`CorpFlowAI Factory Queue Reconcile`** (`factory-queue-reconcile.yml`, #1023): a 10-minute thin scan that `workflow_call`s Handoff only when eligible work exists and verified WIP permits. Empty scans are silent. That wrapper is not a second dispatcher.
 
+**Temporal prove-or-remove (#1130):** a gated supervisor may also `workflow_call` Handoff after explicit Anton activation. It is not active on merge. It must not replace Handoff, mint a second work database, or call Cursor directly. See `docs/operations/TEMPORAL_FACTORY_REAL_PRODUCTION_PILOT_V1.md`.
+
 ## Codex specialist (human-triggered)
 
 | Item | Path |

@@ -20,6 +20,10 @@ Treat this as part of **definition of done** whenever work is **committed and pu
 4. **Repository hygiene (Git):** Never add a **tracked file or folder named `main`** at the **repository root** — it makes `git log main` / `git diff main` ambiguous with the default branch. Removed once; see **`docs/operations/GIT_AND_MAIN_BRANCH.md`**. (No GitHub/Vercel access change required.)
 
 
+### Temporal factory supervisor — 72-hour prove-or-remove (#1130)
+
+Canonical: **`docs/operations/TEMPORAL_FACTORY_REAL_PRODUCTION_PILOT_V1.md`**. Current-main supervisor is review-ready; live pilot is **not started**. Activation is GitHub-only (`docs/runbooks/TEMPORAL_FACTORY_PILOT_ACTIVATION.md`). FAIL → remove (`docs/runbooks/TEMPORAL_FACTORY_PILOT_ROLLBACK.md`). Do **not** merge obsolete PR #1034. Overlapping supervisors stay live until an explicit PASS.
+
 ### Current delivery reality (orchestration — read first)
 
 **Canonical snapshot:** **`docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md`**. Before giving CorpFlowAI progress, dispatch, next-action or blocker advice, check that doc and current GitHub issue/PR state. Do not rely on remembered/manual-pickup assumptions. **DEFAULT DELIVERY POSTURE: MOVE WORK, DO NOT WAIT FOR PICKUP** (protected gates unchanged). <!-- CORPFLOWAI_CURRENT_DELIVERY_REALITY_TODO_LINK -->

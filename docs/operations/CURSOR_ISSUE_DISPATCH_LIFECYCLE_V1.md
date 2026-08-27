@@ -37,6 +37,7 @@ Consolidation is allowed only when explicitly justified and safe.
 |----------------|------|
 | `.github/workflows/factory-cursor-handoff.yml` | **`CorpFlowAI Cursor Factory Handoff`** — selector/control point and exactly one executor boundary. Default remains Wake Proof. At later approved cutover `CURSOR_FACTORY_EXECUTOR=cloud_agents_v1` skips the webhook and creates one correlated Cloud Agent. **No** `schedule:` on this named workflow |
 | `.github/workflows/factory-queue-reconcile.yml` | **`CorpFlowAI Factory Queue Reconcile` (#1023)** — thin 10-minute missed-event / orphan scan. Reuses existing eligibility / WIP / pause / operator-review rules and **`workflow_call`s Handoff only** when a real eligible issue exists and verified WIP permits. It also reconciles the bounded *receipt* for an already-successful native wake; it does not send a second wake or create another executor. Empty scans succeed silently. |
+| `.github/workflows/factory-temporal-pilot.yml` | **`CorpFlowAI Factory Temporal Pilot` (#1130)** — gated Temporal-shaped supervisor. Fail-closed until repository variable `CORPFLOW_TEMPORAL_PILOT=active` plus the exact #1130 approval marker. **`workflow_call`s Handoff only**; never a second executor. Queue Reconcile stays live during the 72-hour prove-or-remove pilot. Canonical: `docs/operations/TEMPORAL_FACTORY_REAL_PRODUCTION_PILOT_V1.md`. |
 | `.github/workflows/cursor-agent-lifecycle-status.yml` | Terminal/operator-review poller; polls only `bc-*` IDs from `corpflow.factory_cloud_agents_executor.v1`, then **`workflow_call`s** Handoff on capacity release. It does not scan generic Automation workers or wake the legacy API dispatcher |
 | `.github/workflows/factory-dispatcher-activate.yml` | **LEGACY / DIAGNOSTIC / NOT PRODUCTION EXECUTION** — Background Agents API activator, **`workflow_dispatch` only**. Must not auto-launch from schedule, labels, comments, or capacity events |
 | `scripts/dispatcher-agent-activation.mjs` | Cursor Cloud activation (legacy API diagnostic path) |
@@ -311,4 +312,5 @@ This packet does **not** create those synthetic issues. Schedule-driven proof is
 - Issue #913 / PR #914 — CorpFlowAI Cursor Factory Handoff (MODE B)
 - Issue #930 — Wake Proof is the sole production Cursor executor; API dispatcher is diagnostic only
 - Issue #1023 — 10-minute whole-queue reconciliation fallback (thin wrapper → existing Handoff)
+- Issue #1130 — Temporal real-production prove-or-remove pilot (gated supervisor → existing Handoff; do not merge obsolete PR #1034)
 - `lib/server/operator-gate-authorization.js` — durable gate authorization evaluation
