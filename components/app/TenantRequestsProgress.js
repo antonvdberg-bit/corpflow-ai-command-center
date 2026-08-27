@@ -280,7 +280,9 @@ export default function TenantRequestsProgress({
                       style={{ marginTop: 10 }}
                       data-testid={`tenant-viewonly-${key}`}
                     >
-                      This component is not open for client review.
+                      {c.exposed_evidence && typeof c.exposed_evidence === 'object' && c.exposed_evidence.href
+                        ? 'Use Service & change if you want updates after looking at the preview.'
+                        : 'This component is not open for client review.'}
                     </p>
                   )}
                 </article>
