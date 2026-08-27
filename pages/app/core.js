@@ -336,13 +336,33 @@ export default function AppCorePage() {
         )}
       </p>
 
-      {error ? <p className="cf-app-error" data-testid="app-error">{error}</p> : null}
+      {error && menu !== 'overview' ? (
+        <p className="cf-app-error" data-testid="app-error">
+          {error}
+        </p>
+      ) : null}
       {notice ? <p className="cf-app-ok" data-testid="app-notice">{notice}</p> : null}
 
       {busy && menu === 'overview' ? <AppLoadState kind="loading" title="Loading overview…" /> : null}
       {busy && LIST_MENUS.has(menu) ? <AppLoadState kind="loading" title="Loading requests…" /> : null}
 
-      {!busy && menu === 'overview' ? (
+      {!busy && menu === 'overview' && error ? (
+        <>
+          <AppLoadState
+            kind="error"
+            title="Could not load what needs attention"
+            message={error}
+            testId="app-core-overview-error"
+          />
+          <div className="cf-app-actions" style={{ marginTop: 12 }}>
+            <button type="button" className="cf-app-btn" data-primary="true" onClick={() => loadShellAndWork()}>
+              Retry
+            </button>
+          </div>
+        </>
+      ) : null}
+
+      {!busy && menu === 'overview' && !error ? (
         <OperatingOverview
           overview={overview}
           dataSource={dataSource}

@@ -190,6 +190,9 @@ describe('Operating Workspace action overview #1159', { concurrency: false }, ()
     assert.equal(coreSrc.includes("menuFromQuery"), true);
     assert.equal(uiSrc.includes('operating-overview-empty'), true);
     assert.equal(uiSrc.includes('overview-next-link'), true);
+    assert.equal(coreSrc.includes('app-core-overview-error'), true);
+    assert.equal(coreSrc.includes('Could not load what needs attention'), true);
+    assert.match(coreSrc, /menu === 'overview' && !error/);
     assert.equal(uiSrc.includes(ACTION_QUEUE_PATH), true);
     assert.equal(uiSrc.includes(CLIENTS_PATH), true);
     assert.equal(uiSrc.includes(COMMERCIAL_SUMMARY_PATH), true);
