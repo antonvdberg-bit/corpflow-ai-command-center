@@ -3,6 +3,7 @@ import { test, beforeEach } from 'node:test';
 
 import {
   CANONICAL_REQUEST_ID,
+  LEAD_RESCUE_TENANT_REQUEST_ID,
   OTHER_TENANT_REQUEST_ID,
   REFERENCE_TENANT_ID,
   SECOND_REQUEST_ID,
@@ -106,9 +107,10 @@ test('tenant projection omits Core-only / internal evidence fields', () => {
 
 test('corpflowai tenant list cannot see other-tenant foil request', () => {
   const list = projectTenantRequestList(listAppRequests(), REFERENCE_TENANT_ID);
-  assert.equal(list.length, 2);
+  assert.equal(list.length, 3);
   assert.ok(list.some((r) => r.request_id === CANONICAL_REQUEST_ID));
   assert.ok(list.some((r) => r.request_id === SECOND_REQUEST_ID));
+  assert.ok(list.some((r) => r.request_id === LEAD_RESCUE_TENANT_REQUEST_ID));
   assert.equal(
     list.some((r) => r.request_id === OTHER_TENANT_REQUEST_ID),
     false,
@@ -118,7 +120,7 @@ test('corpflowai tenant list cannot see other-tenant foil request', () => {
 test('Core request list tenant filtering works', () => {
   const all = listAppRequests();
   const corp = projectCoreRequestList(all, { tenantFilter: REFERENCE_TENANT_ID });
-  assert.equal(corp.length, 2);
+  assert.equal(corp.length, 3);
   assert.ok(corp.every((r) => r.tenant_id === REFERENCE_TENANT_ID));
   const other = projectCoreRequestList(all, { tenantFilter: 'cursor-test' });
   assert.equal(other.length, 1);
@@ -130,7 +132,7 @@ test('Core request list tenant filtering works', () => {
   assert.equal(byStatus.length, 1);
   assert.equal(byStatus[0].request_id, SECOND_REQUEST_ID);
   const global = projectCoreRequestList(all, { tenantFilter: null });
-  assert.equal(global.length, 3);
+  assert.equal(global.length, 4);
 });
 
 test('exposed component is review-enabled; ordinary component is view-only', () => {
