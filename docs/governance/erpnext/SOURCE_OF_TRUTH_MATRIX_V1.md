@@ -84,7 +84,7 @@ Do **not** treat CorpFlowAI-hosted ERPNext as `client_production`.
 | `lux_listings` | Tenant catalogue / public content | `lux_listings` / knowledge atoms | none | **CorpFlowAI authoritative** | Lux runtime |
 | `automation_telemetry` | Automation, AI logs, token debits | `automation_*` / `telemetry_events` / chat widget | none | **CorpFlowAI authoritative** | automation framework |
 | `workflow_runtime` | Tenant workflow runs | `workflow_*` | ERPNext Workflow still 403 | **CorpFlowAI authoritative** | #920 |
-| `buying_ap_supplier` | Buying / AP / Supplier | none | Supplier / PO / PI when started | **ERPNext authoritative** | not started; AI cannot approve suppliers |
+| `buying_ap_supplier` | Buying / AP / Supplier | none | Supplier / Purchase Invoice (Purchase Order **DEFER**) | **ERPNext authoritative** | #1098 / #1213 readiness packet; AI cannot approve suppliers; invoice existence never authorizes payment |
 | `change_revenue_localstorage` | `/change/revenue` overlay | browser localStorage | none | **Duplicate/retire** | #701 |
 
 Rows that are **Needs bridge** in the table above are the same as **CorpFlowAI execution + ERPNext authoritative outcome** once the listed contract is followed. Until then they must not be treated as already synced.
