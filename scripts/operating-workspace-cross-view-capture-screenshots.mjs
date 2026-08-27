@@ -198,7 +198,12 @@ if (process.argv.includes('--serve-only')) {
   let captured = false;
   try {
     const { chromium } = await import('playwright');
-    const browser = await chromium.launch({ headless: true });
+    let browser;
+    try {
+      browser = await chromium.launch({ headless: true });
+    } catch {
+      browser = await chromium.launch({ headless: true, channel: 'chrome' });
+    }
     const shots = [
       ['overview-desktop.png', '/app/core?proof=1', { width: 1440, height: 900 }],
       ['overview-mobile.png', '/app/core?proof=1', { width: 390, height: 844 }],
