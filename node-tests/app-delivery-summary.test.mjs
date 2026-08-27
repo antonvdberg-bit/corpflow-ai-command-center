@@ -271,6 +271,10 @@ test('handler: Core proof loads Lead Rescue, Website Rescue, and general deliver
     assert.equal(prot?.protected_gate, true);
     const ada = res.state.body.items.find((row) => row.source_id === 'syn-772-lr-ada');
     assert.equal(ada?.links.clients, '/app/clients/cmp_ada_spa_synthetic');
+    const synthetic = res.state.body.items.find((row) => row.id === 'erpnext:cf1097-synthetic-delivery');
+    assert.equal(synthetic?.erpnext.project.name, 'PROJ-0001');
+    assert.equal(synthetic?.erpnext.issue.name, 'ISS-2026-00001');
+    assert.equal(res.state.body.erpnext.mutated, false);
     const blob = JSON.stringify(res.state.body);
     assert.equal(blob.includes('qualificationJson'), false);
     assert.equal(blob.includes('POSTGRES_URL'), false);

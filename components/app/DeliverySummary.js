@@ -16,7 +16,9 @@ import {
  *   filter?: string,
  *   filterCounts?: Record<string, number>,
  *   proofWanted?: boolean,
+ *   selected?: Record<string, unknown> | null,
  *   onFilter?: (filter: string) => void,
+ *   onSelect?: (id: string) => void,
  * }} props
  */
 export default function DeliverySummary({
@@ -27,7 +29,9 @@ export default function DeliverySummary({
   filter = 'all',
   filterCounts = {},
   proofWanted,
+  selected = null,
   onFilter,
+  onSelect,
 }) {
   const rows = Array.isArray(items) ? items : [];
 
@@ -39,7 +43,8 @@ export default function DeliverySummary({
         <h1 className="cf-app-h1">Delivery</h1>
         <p className="cf-app-lead">
           Active delivery work from existing Lead Rescue, Website Rescue, and Change / request
-          contracts. This is not a second project system. Protected deploy and live client
+          contracts. ERPNext stays the project and support record where an existing pointer
+          already exists. This is not a second project system. Protected deploy and live client
           communication stay marked — they are not executed here.
         </p>
         {dataSource ? (
@@ -103,6 +108,7 @@ export default function DeliverySummary({
                   <th>Blocker</th>
                   <th>Next action</th>
                   <th>Review / approval</th>
+                  <th>ERPNext</th>
                   <th>Evidence</th>
                 </tr>
               </thead>
@@ -111,6 +117,19 @@ export default function DeliverySummary({
                   const protectedGate = row.protected_gate === true;
                   const exception = String(row.primary_exception || '');
                   const evidence = Array.isArray(row.evidence) ? row.evidence : [];
+                  const erpnext =
+                    row.erpnext && typeof row.erpnext === 'object'
+                      ? /** @type {Record<string, unknown>} */ (row.erpnext)
+                      : null;
+                  const project =
+                    erpnext?.project && typeof erpnext.project === 'object'
+                      ? /** @type {Record<string, unknown>} */ (erpnext.project)
+                      : null;
+                  const issue =
+                    erpnext?.issue && typeof erpnext.issue === 'object'
+                      ? /** @type {Record<string, unknown>} */ (erpnext.issue)
+                      : null;
+                  const selectedRow = selected && String(selected.id) === String(row.id);
                   return (
                     <tr
                       key={String(row.id)}
@@ -118,6 +137,8 @@ export default function DeliverySummary({
                       data-record-kind={String(row.record_kind || '')}
                       data-protected={protectedGate ? 'true' : 'false'}
                       data-exception={exception || 'none'}
+                      data-erpnext-linked={erpnext?.linked === true ? 'true' : 'false'}
+                      data-selected={selectedRow ? 'true' : 'false'}
                     >
                       <td data-label="Client / business">
                         <strong>{String(row.client_business || '—')}</strong>
@@ -150,6 +171,40 @@ export default function DeliverySummary({
                           <span className="cf-app-badge">{String(row.review_approval_state || 'In delivery')}</span>
                         )}
                       </td>
+                      <td data-label="ERPNext">
+                        {erpnext?.linked === true ? (
+                          <div data-testid={`delivery-erpnext-${row.id}`}>
+                            {project ? (
+                              <div>
+                                <strong>{String(project.name)}</strong>
+                                {project.status ? (
+                                  <span className="cf-app-muted"> · {String(project.status)}</span>
+                                ) : (
+                                  <span className="cf-app-muted"> · status unread</span>
+                                )}
+                              </div>
+                            ) : null}
+                            {issue ? (
+                              <div className="cf-app-muted">
+                                {String(issue.name)}
+                                {issue.status ? ` · ${String(issue.status)}` : ''}
+                              </div>
+                            ) : null}
+                            <button
+                              type="button"
+                              className="cf-app-btn"
+                              data-testid={`delivery-erpnext-open-${row.id}`}
+                              onClick={() => onSelect && onSelect(String(row.id))}
+                            >
+                              Open reference
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="cf-app-muted" data-testid={`delivery-erpnext-unlinked-${row.id}`}>
+                            Not linked
+                          </span>
+                        )}
+                      </td>
                       <td data-label="Evidence">
                         <div className="cf-app-actions" style={{ marginTop: 0 }}>
                           {evidence.map((link) => (
@@ -172,10 +227,103 @@ export default function DeliverySummary({
           </div>
           <p className="cf-app-muted" data-testid="delivery-protected-legend">
             Amber exception badges are operator follow-up. Red protected badges are deploy / client
-            communication / commercial approval gates — this page does not execute them.
+            communication / commercial approval gates — this page does not execute them. ERPNext
+            identifiers are references only; task and support history stay in ERPNext.
           </p>
         </section>
       )}
+      {selected ? <DeliveryErpnextReference item={selected} /> : null}
     </>
+  );
+}
+
+/**
+ * @param {{ item: Record<string, unknown> }} props
+ */
+function DeliveryErpnextReference({ item }) {
+  const erpnext =
+    item.erpnext && typeof item.erpnext === 'object'
+      ? /** @type {Record<string, unknown>} */ (item.erpnext)
+      : null;
+  const project =
+    erpnext?.project && typeof erpnext.project === 'object'
+      ? /** @type {Record<string, unknown>} */ (erpnext.project)
+      : null;
+  const issue =
+    erpnext?.issue && typeof erpnext.issue === 'object'
+      ? /** @type {Record<string, unknown>} */ (erpnext.issue)
+      : null;
+  const links = item.links && typeof item.links === 'object' ? item.links : {};
+  return (
+    <section className="cf-app-panel" data-testid="delivery-erpnext-reference">
+      <h2 className="cf-app-h1" style={{ fontSize: '1.15rem' }}>
+        ERPNext reference
+      </h2>
+      <p className="cf-app-lead">
+        {String(item.client_business || 'Delivery item')} — ERPNext is authoritative for Project
+        and Issue status. CorpFlowAI keeps client, prospect, and Change execution context. Nothing
+        is copied into a second project or helpdesk.
+      </p>
+      <dl className="cf-app-kv" data-testid="delivery-erpnext-reference-fields">
+        <div>
+          <dt>Delivery record</dt>
+          <dd>
+            <code>{String(item.id)}</code>
+          </dd>
+        </div>
+        <div>
+          <dt>Project</dt>
+          <dd data-testid="delivery-erpnext-project">
+            {project ? (
+              <>
+                <code>{String(project.name)}</code>
+                {project.status ? ` · ${String(project.status)}` : ' · status unread'}
+              </>
+            ) : (
+              'Not linked'
+            )}
+          </dd>
+        </div>
+        <div>
+          <dt>Issue</dt>
+          <dd data-testid="delivery-erpnext-issue">
+            {issue ? (
+              <>
+                <code>{String(issue.name)}</code>
+                {issue.status ? ` · ${String(issue.status)}` : ' · status unread'}
+              </>
+            ) : (
+              'Not linked'
+            )}
+          </dd>
+        </div>
+        <div>
+          <dt>Status source</dt>
+          <dd>
+            <code>{String(erpnext?.status_source || 'unlinked')}</code>
+          </dd>
+        </div>
+      </dl>
+      <div className="cf-app-actions">
+        {links.change ? (
+          <a className="cf-app-btn" data-primary="true" href={String(links.change)}>
+            Open Change Console
+          </a>
+        ) : null}
+        {links.clients ? (
+          <a className="cf-app-btn" href={String(links.clients)}>
+            Open Clients
+          </a>
+        ) : null}
+        {links.prospect ? (
+          <a className="cf-app-btn" href={String(links.prospect)}>
+            Open prospect
+          </a>
+        ) : null}
+        <a className="cf-app-btn" href={DELIVERY_PATH}>
+          Back to Delivery list
+        </a>
+      </div>
+    </section>
   );
 }

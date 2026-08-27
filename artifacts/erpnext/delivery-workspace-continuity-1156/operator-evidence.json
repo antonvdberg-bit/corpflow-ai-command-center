@@ -1,0 +1,100 @@
+{
+  "packet": "issue-1156",
+  "captured_at": "2026-08-27T09:02:04.013Z",
+  "expected": {
+    "route": "/app/delivery?proof=1",
+    "drilldown": "/app/delivery?proof=1&item=erpnext:cf1097-synthetic-delivery",
+    "synthetic_item": "erpnext:cf1097-synthetic-delivery",
+    "project": "PROJ-0001",
+    "issue": "ISS-2026-00001",
+    "ada_unlinked": true
+  },
+  "actual": {
+    "desktop": {
+      "name": "operator-desktop-1440.png",
+      "status": 200,
+      "url": "http://127.0.0.1:3000/app/delivery?proof=1",
+      "file": "/workspace/artifacts/erpnext/delivery-workspace-continuity-1156/operator-desktop-1440.png",
+      "title": "CorpFlowAI Operating Workspace · CorpFlowAI",
+      "projectText": null,
+      "issueText": null,
+      "linkedRow": "true"
+    },
+    "desktopDrill": {
+      "name": "operator-desktop-1440-drilldown.png",
+      "status": 200,
+      "url": "http://127.0.0.1:3000/app/delivery?proof=1&item=erpnext%3Acf1097-synthetic-delivery",
+      "file": "/workspace/artifacts/erpnext/delivery-workspace-continuity-1156/operator-desktop-1440-drilldown.png",
+      "title": "CorpFlowAI Operating Workspace · CorpFlowAI",
+      "projectText": "PROJ-0001 · Open",
+      "issueText": "ISS-2026-00001 · Open",
+      "linkedRow": "true"
+    },
+    "mobile": {
+      "name": "operator-mobile-390.png",
+      "status": 200,
+      "url": "http://127.0.0.1:3000/app/delivery?proof=1",
+      "file": "/workspace/artifacts/erpnext/delivery-workspace-continuity-1156/operator-mobile-390.png",
+      "title": "CorpFlowAI Operating Workspace · CorpFlowAI",
+      "projectText": null,
+      "issueText": null,
+      "linkedRow": "true"
+    },
+    "mobileDrill": {
+      "name": "operator-mobile-390-drilldown.png",
+      "status": 200,
+      "url": "http://127.0.0.1:3000/app/delivery?proof=1&item=erpnext%3Acf1097-synthetic-delivery",
+      "file": "/workspace/artifacts/erpnext/delivery-workspace-continuity-1156/operator-mobile-390-drilldown.png",
+      "title": "CorpFlowAI Operating Workspace · CorpFlowAI",
+      "projectText": "PROJ-0001 · Open",
+      "issueText": "ISS-2026-00001 · Open",
+      "linkedRow": "true"
+    }
+  },
+  "expected_vs_actual": {
+    "project_shown": true,
+    "issue_shown": true,
+    "linked_row": true,
+    "verdict": "DELIVERY -> ERPNEXT PROJECT/SUPPORT CONTINUITY USABLE",
+    "ada_unlinked": true,
+    "live_get_open": true
+  },
+  "api_proof": {
+    "http": 200,
+    "synthetic_id": "erpnext:cf1097-synthetic-delivery",
+    "project": {
+      "name": "PROJ-0001",
+      "project_name": "CF920 Synthetic independent website",
+      "status": "Open",
+      "customer": "CF920 Synthetic Website Project Ltd",
+      "doctype": "Project"
+    },
+    "issue": {
+      "name": "ISS-2026-00001",
+      "status": "Open",
+      "customer": "CF920 Synthetic Website Project Ltd",
+      "project": "PROJ-0001",
+      "doctype": "Issue"
+    },
+    "status_source": "recorded_1097_readback",
+    "mutated": false,
+    "ada_unlinked": true,
+    "other_rows_unlinked": true
+  },
+  "live_erpnext_get": {
+    "mutated": false,
+    "status_source": "erpnext_get",
+    "project": {
+      "name": "PROJ-0001",
+      "status": "Open"
+    },
+    "issue": {
+      "name": "ISS-2026-00001",
+      "status": "Open"
+    },
+    "http": {
+      "project_get": 200,
+      "issue_get": 200
+    }
+  }
+}
