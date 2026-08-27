@@ -28,8 +28,10 @@
 | Pricing guide | `docs/sales/WEBSITE_RESCUE_PRICING_GUIDE.md` |
 | Delivery checklists | `docs/operations/WEBSITE_RESCUE_DELIVERY_CHECKLISTS_V1.md` |
 | Demonstration path | `docs/marketing/WEBSITE_RESCUE_DEMONSTRATION_PATH_V1.md` |
+| Named buyer landing | `/website-rescue` (SKU lock `premium-landing-page-rescue`) |
 | Public offer | `/offers/premium-landing-page-rescue` |
 | Public demo (noindex) | `/demo/website-rescue` |
+| Video production packet (#700 / #1143) | `docs/marketing/WEBSITE_RESCUE_VIDEO_PRODUCTION_PACKET_V1.md` |
 
 ### Segregation note
 

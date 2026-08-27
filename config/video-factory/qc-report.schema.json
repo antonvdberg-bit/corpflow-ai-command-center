@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://corpflowai.com/schemas/video-factory/qc-report.v1.json",
+  "title": "CorpFlowAI Video QC Report v1",
+  "description": "Deterministic QC verdict for a Website Rescue video candidate. No automatic publication.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "spec_id",
+    "verdict",
+    "checked_at",
+    "checks",
+    "defects",
+    "publication_blocked"
+  ],
+  "properties": {
+    "schema": { "type": "string", "const": "corpflow.video_qc_report.v1" },
+    "spec_id": { "type": "string", "minLength": 4 },
+    "candidate_id": { "type": ["string", "null"] },
+    "verdict": { "type": "string", "enum": ["PASS", "FAIL", "REVIEW"] },
+    "checked_at": { "type": "string", "minLength": 10 },
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "verdict", "detail"],
+        "properties": {
+          "id": { "type": "string", "minLength": 3 },
+          "verdict": { "type": "string", "enum": ["PASS", "FAIL", "REVIEW", "SKIP"] },
+          "detail": { "type": "string", "minLength": 1 },
+          "score": { "type": ["number", "null"] }
+        }
+      }
+    },
+    "defects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["check_id", "severity", "message"],
+        "properties": {
+          "check_id": { "type": "string", "minLength": 3 },
+          "severity": { "type": "string", "enum": ["fail", "review"] },
+          "message": { "type": "string", "minLength": 4 }
+        }
+      }
+    },
+    "publication_blocked": { "type": "boolean", "const": true },
+    "notes": { "type": "string" }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "candidate_id": "qc-review-fixture",
+  "scenes_present": ["sc01", "sc02", "sc03", "sc04", "sc05", "sc06"],
+  "transcript": "When a website looks outdated or hides the offer, buyers leave before they ever reach you. Website Rescue turns a weak landing page into a credible enquiry path — fast. One named offer. One primary action: Request discovery. Starting from forty-five thousand Mauritian rupees after we confirm scope. You receive a mobile-ready landing with Hook, Proof and Depth, a working enquiry path, and a preview before any production release — not a months-long rebuild. You are not expected to write a technical specification. We guide the design from a plain-language brief. Discovery comes first. Then a written quote. A fifty percent Mauritian rupee deposit by manual bank transfer. First visible preview within twenty-four to seventy-two hours after deposit and assets. We do not guarantee new revenue. We help make the offer clear and the enquiry path usable. Request discovery at corpflowai.com/website-rescue.",
+  "captions_text": "AI-assisted presenter Website Rescue Request discovery We do not guarantee new revenue corpflowai.com/website-rescue",
+  "on_screen_text": [
+    "Website Rescue",
+    "Request discovery",
+    "We do not guarantee new revenue",
+    "corpflowai.com/website-rescue",
+    "AI-assisted presenter"
+  ],
+  "black_frame_windows": [
+    { "start_seconds": 4, "end_seconds": 5, "duration_ms": 900 }
+  ],
+  "black_frame_ratio": 0.02
+}

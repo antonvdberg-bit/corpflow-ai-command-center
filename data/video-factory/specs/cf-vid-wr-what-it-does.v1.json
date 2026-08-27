@@ -1,0 +1,242 @@
+{
+  "schema": "corpflow.video_spec.v1",
+  "id": "cf-vid-wr-what-it-does",
+  "title": "Website Rescue — What It Does",
+  "status": "approved_for_mock",
+  "phase": "A",
+  "role": "launch",
+  "source": {
+    "issues": [1143, 1078, 700, 1127],
+    "buyer_path_record": "docs/marketing/WEBSITE_RESCUE_VIDEO_PRODUCTION_PACKET_V1.md",
+    "recording_matrix_issue": 1127,
+    "supersedes": [
+      "artifacts/corpflowai-launch-media/05-OFFER-VIDEOS/premium-landing-page-rescue/"
+    ]
+  },
+  "purpose": {
+    "buyer": "Owner or manager of a small business whose site looks outdated or hides the offer.",
+    "problem": "Buyers bounce before they ever reach a usable enquiry path.",
+    "outcome": "A credible, mobile-ready landing with one clear next step — not a months-long rebuild.",
+    "buyer_action": "Request discovery on the named Website Rescue landing."
+  },
+  "product": {
+    "name": "Website Rescue",
+    "named_landing_url": "https://corpflowai.com/website-rescue",
+    "demo_url": "https://corpflowai.com/demo/website-rescue",
+    "enquiry_url": "https://corpflowai.com/website-rescue#discovery",
+    "sku_lock": "premium-landing-page-rescue",
+    "forbidden_recording_urls": [
+      "https://corpflowai.com/offers/premium-landing-page-rescue"
+    ]
+  },
+  "cta": {
+    "label": "Request discovery",
+    "spoken": "Request discovery at corpflowai.com/website-rescue.",
+    "destination_url": "https://corpflowai.com/website-rescue"
+  },
+  "duration": {
+    "target_seconds_min": 60,
+    "target_seconds_max": 90,
+    "planned_seconds": 78
+  },
+  "picture": {
+    "aspect_ratio": "16:9",
+    "resolution": "1920x1080",
+    "fps": 30,
+    "format": "mp4"
+  },
+  "avatar": {
+    "assignment": "pending_anton_assignment",
+    "id": "PENDING_ANTON_AVATAR_ID",
+    "style": "normal",
+    "profile_ref": "artifacts/corpflowai-launch-media/02-HEYGEN-AVATAR-BRIEF.md"
+  },
+  "voice": {
+    "assignment": "pending_anton_assignment",
+    "id": "PENDING_ANTON_VOICE_ID",
+    "locale": "en-US",
+    "pace_wpm": 140,
+    "guide_ref": "artifacts/corpflowai-launch-media/03-VOICE-AND-DELIVERY-GUIDE.md"
+  },
+  "pronunciation": [
+    { "term": "Website Rescue", "say": "Website Rescue" },
+    { "term": "corpflowai.com/website-rescue", "say": "corpflow A I dot com slash website-rescue" },
+    { "term": "MUR", "say": "Mauritian rupees" },
+    { "term": "Hook / Proof / Depth", "say": "Hook, Proof and Depth" }
+  ],
+  "script": {
+    "language": "en",
+    "full_text": "When a website looks outdated or hides the offer, buyers leave before they ever reach you. Website Rescue turns a weak landing page into a credible enquiry path — fast. One named offer. One primary action: Request discovery. Starting from forty-five thousand Mauritian rupees after we confirm scope. You receive a mobile-ready landing with Hook, Proof and Depth, a working enquiry path, and a preview before any production release — not a months-long rebuild. You are not expected to write a technical specification. We guide the design from a plain-language brief. Discovery comes first. Then a written quote. A fifty percent Mauritian rupee deposit by manual bank transfer. First visible preview within twenty-four to seventy-two hours after deposit and assets. We do not guarantee new revenue. We help make the offer clear and the enquiry path usable. Request discovery at corpflowai.com/website-rescue.",
+    "word_count": 139,
+    "disclosures": [
+      "AI-assisted presenter",
+      "We do not guarantee new revenue."
+    ]
+  },
+  "scenes": [
+    {
+      "id": "sc01",
+      "start_seconds": 0,
+      "duration_seconds": 12,
+      "purpose": "problem",
+      "spoken_text": "When a website looks outdated or hides the offer, buyers leave before they ever reach you.",
+      "visual": "Gateway nav showing Website Rescue. Do not linger on SKU titles.",
+      "source_screen": {
+        "name": "Gateway",
+        "url": "https://corpflowai.com/",
+        "show": "Nav Website Rescue",
+        "do_not_show": "SKU title Premium Landing Page Rescue as the product name"
+      }
+    },
+    {
+      "id": "sc02",
+      "start_seconds": 12,
+      "duration_seconds": 16,
+      "purpose": "named offer",
+      "spoken_text": "Website Rescue turns a weak landing page into a credible enquiry path — fast. One named offer. One primary action: Request discovery. Starting from forty-five thousand Mauritian rupees after we confirm scope.",
+      "visual": "Named landing hero: H1 enquiry-path rescue, Request discovery, starting-from MUR 45,000 after intent.",
+      "source_screen": {
+        "name": "Product hero",
+        "url": "https://corpflowai.com/website-rescue",
+        "show": "H1, Request discovery, starting-from price after intent",
+        "do_not_show": "/offers/premium-landing-page-rescue as the recording URL"
+      }
+    },
+    {
+      "id": "sc03",
+      "start_seconds": 28,
+      "duration_seconds": 14,
+      "purpose": "what the buyer receives",
+      "spoken_text": "You receive a mobile-ready landing with Hook, Proof and Depth, a working enquiry path, and a preview before any production release — not a months-long rebuild.",
+      "visual": "What is delivered + What is not included on /website-rescue.",
+      "source_screen": {
+        "name": "Delivered outputs",
+        "url": "https://corpflowai.com/website-rescue",
+        "in_page_target": "What is delivered",
+        "show": "Included landing, mobile-ready layout, enquiry capture, preview",
+        "do_not_show": "Video coming soon tiles as if they were the product demo"
+      }
+    },
+    {
+      "id": "sc04",
+      "start_seconds": 42,
+      "duration_seconds": 10,
+      "purpose": "guided process",
+      "spoken_text": "You are not expected to write a technical specification. We guide the design from a plain-language brief.",
+      "visual": "What you provide list on the named landing.",
+      "source_screen": {
+        "name": "Client inputs",
+        "url": "https://corpflowai.com/website-rescue",
+        "in_page_target": "What you provide",
+        "show": "Plain-language brief, logo, named approver",
+        "do_not_show": "Payment UI or card fields"
+      }
+    },
+    {
+      "id": "sc05",
+      "start_seconds": 52,
+      "duration_seconds": 14,
+      "purpose": "how the engagement works",
+      "spoken_text": "Discovery comes first. Then a written quote. A fifty percent Mauritian rupee deposit by manual bank transfer. First visible preview within twenty-four to seventy-two hours after deposit and assets.",
+      "visual": "How the engagement works + delivery timeline.",
+      "source_screen": {
+        "name": "Engagement",
+        "url": "https://corpflowai.com/website-rescue",
+        "in_page_target": "How the engagement works",
+        "show": "Discovery, written quote, 50% MUR deposit, 24–72 hour preview",
+        "do_not_show": "Card collection or automated payment"
+      }
+    },
+    {
+      "id": "sc06",
+      "start_seconds": 66,
+      "duration_seconds": 12,
+      "purpose": "call_to_action",
+      "spoken_text": "We do not guarantee new revenue. We help make the offer clear and the enquiry path usable. Request discovery at corpflowai.com/website-rescue.",
+      "visual": "In-page #discovery form labelled Website Rescue. Do not submit.",
+      "source_screen": {
+        "name": "Enquiry",
+        "url": "https://corpflowai.com/website-rescue#discovery",
+        "in_page_target": "#discovery",
+        "show": "Labelled Website Rescue discovery; no-auto-send copy",
+        "do_not_show": "Submitting the form"
+      }
+    }
+  ],
+  "captions": {
+    "required": true,
+    "source": "script",
+    "burn_in": true,
+    "language": "en"
+  },
+  "on_screen_text": [
+    { "at_seconds": 12, "text": "Website Rescue", "role": "product_name" },
+    { "at_seconds": 20, "text": "Request discovery", "role": "cta" },
+    { "at_seconds": 66, "text": "We do not guarantee new revenue", "role": "disclosure" },
+    { "at_seconds": 72, "text": "corpflowai.com/website-rescue", "role": "cta" },
+    { "at_seconds": 0, "text": "AI-assisted presenter", "role": "disclosure" }
+  ],
+  "assets": {
+    "screen_recordings": [
+      "https://corpflowai.com/",
+      "https://corpflowai.com/website-rescue",
+      "https://corpflowai.com/website-rescue#discovery"
+    ],
+    "stills": [
+      "Hero H1 + Request discovery",
+      "What is delivered list",
+      "Discovery form heading"
+    ],
+    "b_roll": [
+      "Mobile 390px crop of the named landing hero",
+      "Desktop 1440px crop of the named landing hero"
+    ]
+  },
+  "claims": {
+    "allowed": [
+      "Turns a weak landing page into a credible enquiry path",
+      "Mobile-ready landing with Hook, Proof and Depth",
+      "Starting from MUR 45,000 after scope is confirmed",
+      "First visible preview within 24–72 hours after deposit and assets"
+    ],
+    "forbidden": [
+      "Guaranteed more sales",
+      "Never miss a lead again",
+      "Fully automated revenue machine",
+      "Invented testimonials or client logos"
+    ],
+    "required_trust_line": "We do not guarantee new revenue. We help make the offer clear and the enquiry path usable.",
+    "no_invented_proof": true,
+    "no_revenue_guarantee": true
+  },
+  "privacy": {
+    "real_client_data": false,
+    "real_tenant_used": false,
+    "real_pii": false,
+    "fictional_demo_only": true,
+    "do_not_submit_enquiry_on_camera": true
+  },
+  "youtube_metadata_draft": {
+    "title": "Website Rescue — What It Does | CorpFlowAI",
+    "description": "Website Rescue turns a weak landing page into a credible enquiry path. Request discovery at https://corpflowai.com/website-rescue. We do not guarantee new revenue. AI-assisted presenter.",
+    "tags": ["Website Rescue", "CorpFlowAI", "landing page", "Mauritius"],
+    "chapters": [
+      { "at_seconds": 0, "label": "The problem" },
+      { "at_seconds": 12, "label": "What Website Rescue is" },
+      { "at_seconds": 52, "label": "How it works" },
+      { "at_seconds": 66, "label": "Request discovery" }
+    ],
+    "publication_status": "do_not_publish"
+  },
+  "thumbnail": {
+    "title_text": "Website Rescue — What It Does",
+    "must_include_product_name": true,
+    "must_not_use_sku_title": true
+  },
+  "publication": {
+    "website_embed": false,
+    "youtube_upload": false,
+    "auto_publish": false,
+    "requires_anton_approval": true
+  }
+}

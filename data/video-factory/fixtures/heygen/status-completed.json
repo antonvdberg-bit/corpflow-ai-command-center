@@ -1,0 +1,11 @@
+{
+  "code": 100,
+  "data": {
+    "status": "completed",
+    "video_id": "mock-video-wr-phase-a",
+    "duration": 78,
+    "video_url": "https://files.heygen.com/mock/phase-a.mp4?signature=SHOULD_BE_STRIPPED",
+    "credits_used": 1.5,
+    "api_key": "must-never-leak"
+  }
+}
