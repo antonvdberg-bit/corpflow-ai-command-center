@@ -14,6 +14,7 @@
 **Validators:** `lib/website-rescue/onboarding-delivery.js`
 **Operator surface:** `/app/prospects/[id]` Website Rescue onboarding/delivery panel (`qualification_json.website_rescue_delivery`, no schema)
 **Unit tests:** `node-tests/website-rescue-onboarding-delivery.test.mjs` · `node-tests/website-rescue-delivery-prospect.test.mjs`
+**Operator journey smoke (#1133):** `node scripts/website-rescue-operator-journey-1133.mjs` (local proof harness)
 
 **Outcome:** Prove a financially approved Website Rescue client can be onboarded and delivered **without redesigning the service**.
 
@@ -268,7 +269,9 @@ Executable operator path (same Postgres `leads` row, no second app):
 3. Complete **Website Rescue onboarding and delivery** on the same page: intake, shared checklist, content/access flags, then advance delivery state.
 4. Record preview / revision / handover evidence on that panel. Deploy and DNS remain simulated checkboxes.
 
-Proof fixture: `/app/prospects/syn-716-wr-cleared?proof=1`.
+Proof fixture: `/app/prospects/syn-716-wr-cleared?proof=1` (local / Vercel Preview harness only — never Production). Uncleared contrast: `/app/prospects/syn-772-rd-bea?proof=1`.
+
+**Operator journey acceptance (#1133):** proved on current main. Shared Prospect detail shows stage, blocker and next action without the legacy product desk. Fail-closed gates (financial approval, intake, assets, access, real DNS/client-production flags) hold. Happy-path Wren advances through safe internal states and retains preview/revision/handover evidence after reload on existing `qualification_json.website_rescue_delivery`. Desktop 1440 and mobile 390: overflow 0px. Evidence: `artifacts/website-rescue-operator-journey-1133/latest-run.json`. Verdict: **WEBSITE RESCUE DELIVERY OPERATOR JOURNEY USABLE**. Live `core.corpflowai.com` still requires a Core session; `?proof=1` is ignored on the Vercel Production spine. Deploy and DNS remain simulated.
 
 Then continue the existing readiness sequence:
 

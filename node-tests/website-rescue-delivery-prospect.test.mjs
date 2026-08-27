@@ -272,10 +272,216 @@ describe('#716 Website Rescue delivery on prospect JSON', { concurrency: false }
   it('Prospect detail UI includes the Website Rescue delivery panel', () => {
     const panel = readFileSync(new URL('../components/app/ProspectDetailPanel.js', import.meta.url), 'utf8');
     const form = readFileSync(new URL('../components/app/WebsiteRescueDeliveryPanel.js', import.meta.url), 'utf8');
+    const commercial = readFileSync(new URL('../components/app/CommercialClearancePanel.js', import.meta.url), 'utf8');
+    const theme = readFileSync(new URL('../components/app/app-theme.js', import.meta.url), 'utf8');
     assert.match(panel, /WebsiteRescueDeliveryPanel/);
     assert.match(form, /data-testid="website-rescue-delivery"/);
     assert.match(form, /Save onboarding and delivery/);
+    assert.match(form, /data-testid="website-rescue-delivery-state"/);
+    assert.match(form, /data-testid="website-rescue-delivery-blockers"/);
+    assert.match(form, /data-testid="website-rescue-delivery-next"/);
     assert.doesNotMatch(form, /hosting_password/);
     assert.doesNotMatch(form, /real_dns_cutover_executed/);
+    assert.match(commercial, /href=\{`\/app\/clients\$\{proofQuery\}`\}/);
+    assert.match(theme, /minmax\(220px, 1fr\)/);
+    assert.match(theme, /word-break: break-word/);
+  });
+
+  it('missing content/assets still blocks build_started after complete intake', () => {
+    const wren = fixtureProspectLeadRows().find((row) => row.id === 'syn-716-wr-cleared');
+    const first = applySharedProspectOperatorPatch(
+      wren,
+      {
+        website_rescue_delivery: {
+          ...completeOnePageIntake(),
+          content_assets_ready: false,
+          approved_access_confirmed: true,
+          shared_checklist: allSharedChecklist(),
+          requested_delivery_state: 'onboarding_in_progress',
+        },
+      },
+      { actorLabel: 'anton', nowIso: '2026-08-27T03:00:00.000Z' },
+    );
+    assert.equal(first.ok, true);
+    const complete = applySharedProspectOperatorPatch(
+      first.row,
+      { website_rescue_delivery: { requested_delivery_state: 'onboarding_complete' } },
+      { actorLabel: 'anton', nowIso: '2026-08-27T03:01:00.000Z' },
+    );
+    assert.equal(complete.ok, true);
+    const blocked = applySharedProspectOperatorPatch(
+      complete.row,
+      { website_rescue_delivery: { requested_delivery_state: 'build_started' } },
+      { actorLabel: 'anton', nowIso: '2026-08-27T03:02:00.000Z' },
+    );
+    assert.equal(blocked.ok, false);
+    assert.equal(blocked.error, 'BUILD_GATE_BLOCKED');
+    assert.equal(blocked.gate.reason, 'MISSING_CONTENT_OR_ASSETS');
+    const detail = projectProspectDetail(complete.row);
+    assert.ok(detail.website_rescue_delivery.blockers.includes('MISSING_CONTENT_OR_ASSETS'));
+    assert.match(String(detail.website_rescue_delivery.next_required), /assets/i);
+  });
+
+  it('missing approved-access confirmation still blocks build_started', () => {
+    const wren = fixtureProspectLeadRows().find((row) => row.id === 'syn-716-wr-cleared');
+    const first = applySharedProspectOperatorPatch(
+      wren,
+      {
+        website_rescue_delivery: {
+          ...completeOnePageIntake(),
+          content_assets_ready: true,
+          approved_access_confirmed: false,
+          shared_checklist: allSharedChecklist(),
+          requested_delivery_state: 'onboarding_in_progress',
+        },
+      },
+      { actorLabel: 'anton', nowIso: '2026-08-27T03:03:00.000Z' },
+    );
+    assert.equal(first.ok, true);
+    const complete = applySharedProspectOperatorPatch(
+      first.row,
+      { website_rescue_delivery: { requested_delivery_state: 'onboarding_complete' } },
+      { actorLabel: 'anton', nowIso: '2026-08-27T03:04:00.000Z' },
+    );
+    assert.equal(complete.ok, true);
+    const blocked = applySharedProspectOperatorPatch(
+      complete.row,
+      { website_rescue_delivery: { requested_delivery_state: 'build_started' } },
+      { actorLabel: 'anton', nowIso: '2026-08-27T03:05:00.000Z' },
+    );
+    assert.equal(blocked.ok, false);
+    assert.equal(blocked.error, 'BUILD_GATE_BLOCKED');
+    assert.equal(blocked.gate.reason, 'MISSING_APPROVED_ACCESS');
+    const detail = projectProspectDetail(complete.row);
+    assert.ok(detail.website_rescue_delivery.blockers.includes('MISSING_APPROVED_ACCESS'));
+    assert.match(String(detail.website_rescue_delivery.next_required), /secret channel/i);
+  });
+
+  it('operator can read stage, blocker and next action on shared detail without a product desk', () => {
+    const wren = fixtureProspectLeadRows().find((row) => row.id === 'syn-716-wr-cleared');
+    const bea = fixtureProspectLeadRows().find((row) => row.id === 'syn-772-rd-bea');
+    const wrenDetail = projectProspectDetail(wren);
+    const beaDetail = projectProspectDetail(bea);
+    assert.equal(wrenDetail.shared_detail_path, '/app/prospects/syn-716-wr-cleared');
+    assert.equal(beaDetail.shared_detail_path, '/app/prospects/syn-772-rd-bea');
+    assert.equal(wrenDetail.website_rescue_delivery.delivery_state, 'approved_to_onboard');
+    assert.equal(wrenDetail.website_rescue_delivery.commercially_cleared, true);
+    assert.ok(wrenDetail.website_rescue_delivery.blockers.includes('MISSING_REQUIRED_CLIENT_INPUTS'));
+    assert.match(String(wrenDetail.website_rescue_delivery.next_required), /intake/i);
+    assert.equal(wrenDetail.commercial_clearance.commercially_cleared, true);
+    assert.ok(beaDetail.website_rescue_delivery.blockers.includes('MISSING_FINANCIAL_APPROVAL'));
+    assert.match(String(beaDetail.website_rescue_delivery.next_required), /commercial clearance/i);
+    assert.equal(wrenDetail.external_send, false);
+    assert.equal(wrenDetail.website_rescue_delivery.real_dns_cutover_executed, false);
+    assert.equal(wrenDetail.website_rescue_delivery.real_client_production_deploy, false);
+  });
+
+  it('happy-path Wren walk retains preview/revision/handover evidence after GET reload', async () => {
+    const prevNode = process.env.NODE_ENV;
+    const prevVercel = process.env.VERCEL_ENV;
+    process.env.NODE_ENV = 'development';
+    delete process.env.VERCEL_ENV;
+    try {
+      const now = (step) => `2026-08-27T04:${String(step).padStart(2, '0')}:00.000Z`;
+      const patch = async (body) => {
+        const res = mockRes();
+        await handleAppProspectDetail(
+          {
+            method: 'PATCH',
+            url: '/api/app/prospect?proof=1&env=core&id=syn-716-wr-cleared',
+            headers: {},
+            body: { id: 'syn-716-wr-cleared', ...body },
+          },
+          res,
+        );
+        return res.state;
+      };
+
+      const start = await patch({
+        website_rescue_delivery: {
+          ...completeOnePageIntake(),
+          content_assets_ready: true,
+          approved_access_confirmed: true,
+          shared_checklist: allSharedChecklist(),
+          requested_delivery_state: 'onboarding_in_progress',
+          evidence: {
+            preview: {
+              preview_url_or_artefact: '/demo/cafe-international',
+              captured_at: now(0),
+              operator_note: 'Synthetic preview path recorded.',
+            },
+            revision: {
+              round: '1',
+              reviewer: 'Wren Cleared',
+              decision: 'accepted',
+              feedback_summary: 'CTA is clear. No extra pages.',
+              captured_at: now(0),
+            },
+            handover: {
+              handover_sent_at: now(0),
+              channels: 'operator_note',
+              support_boundary_summary: 'Quoted one-page rescue only.',
+              what_was_built: 'Wren Workshop one-page enquiry path on managed preview.',
+            },
+          },
+        },
+      });
+      assert.equal(start.statusCode, 200, JSON.stringify(start.body));
+
+      const pathStates = [
+        'onboarding_complete',
+        'build_started',
+        'preview_evidence',
+        'revision_cycle',
+        'deploy_approval_pending',
+      ];
+      let last = start;
+      for (const [index, state] of pathStates.entries()) {
+        last = await patch({
+          website_rescue_delivery: { requested_delivery_state: state },
+        });
+        assert.equal(last.statusCode, 200, `${state}: ${JSON.stringify(last.body)}`);
+        assert.equal(last.body.prospect.website_rescue_delivery.delivery_state, state);
+      }
+
+      last = await patch({
+        website_rescue_delivery: {
+          deploy_approval_simulated: true,
+          requested_delivery_state: 'deploy_approved_simulated',
+        },
+      });
+      assert.equal(last.statusCode, 200, JSON.stringify(last.body));
+
+      for (const state of ['dns_cutover_gated', 'live_validation_simulated', 'accepted', 'handover_complete', 'acceptance_ready']) {
+        last = await patch({
+          website_rescue_delivery: { requested_delivery_state: state },
+        });
+        assert.equal(last.statusCode, 200, `${state}: ${JSON.stringify(last.body)}`);
+        assert.equal(last.body.prospect.website_rescue_delivery.delivery_state, state);
+      }
+
+      const getRes = mockRes();
+      await handleAppProspectDetail(
+        { method: 'GET', url: '/api/app/prospect?proof=1&env=core&id=syn-716-wr-cleared', headers: {} },
+        getRes,
+      );
+      assert.equal(getRes.state.statusCode, 200);
+      const delivery = getRes.state.body.prospect.website_rescue_delivery;
+      assert.equal(delivery.delivery_state, 'acceptance_ready');
+      assert.equal(delivery.financially_approved, true);
+      assert.equal(delivery.can_start_build, true);
+      assert.equal(delivery.evidence.preview.preview_url_or_artefact, '/demo/cafe-international');
+      assert.equal(delivery.evidence.revision.decision, 'accepted');
+      assert.match(String(delivery.evidence.handover.what_was_built), /Wren Workshop/);
+      assert.equal(delivery.real_dns_cutover_executed, false);
+      assert.equal(delivery.real_client_production_deploy, false);
+      assert.equal(delivery.protected_actions_executed, false);
+      assert.equal(getRes.state.body.external_send, false);
+      assert.equal(JSON.stringify(getRes.state.body).includes('qualificationJson'), false);
+    } finally {
+      process.env.NODE_ENV = prevNode;
+      if (prevVercel == null) delete process.env.VERCEL_ENV;
+      else process.env.VERCEL_ENV = prevVercel;
+    }
   });
 });

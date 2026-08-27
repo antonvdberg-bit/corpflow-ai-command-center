@@ -1,0 +1,111 @@
+{
+  "schema": "corpflow.website_rescue_operator_journey_1133.v1",
+  "generated_at": "2026-08-27T03:59:51.457Z",
+  "base_url": "http://127.0.0.1:3000",
+  "routes": [
+    "/app/prospects/syn-716-wr-cleared?proof=1",
+    "/app/prospects/syn-772-rd-bea?proof=1",
+    "/app/prospects?proof=1",
+    "/app/clients?proof=1"
+  ],
+  "cases": [
+    {
+      "name": "wren_desktop_initial",
+      "expected": "CLEARED TO BUILD + intake blockers",
+      "actual": {
+        "id": "syn-716-wr-cleared",
+        "viewport": "1440x1100",
+        "clearance": "CLEARED TO BUILD",
+        "commercial": "CLEARED TO BUILD",
+        "state": "Delivery state: approved_to_onboard · build gate closed",
+        "blockers": "MISSING_REQUIRED_CLIENT_INPUTS, MISSING_CONTENT_OR_ASSETS, MISSING_APPROVED_ACCESS",
+        "next": "Complete the Website Rescue intake fields.",
+        "overflow": {
+          "scrollWidth": 1440,
+          "clientWidth": 1440,
+          "overflowPx": 0
+        },
+        "password_fields": 0,
+        "real_dns_checkbox": 0,
+        "clients_href": "/app/clients?proof=1"
+      }
+    },
+    {
+      "name": "wren_desktop_persist",
+      "expected": "onboarding_in_progress + preview retained",
+      "actual": {
+        "afterSave": {
+          "state": "Delivery state: onboarding_in_progress · build gate open",
+          "intake": "Complete",
+          "preview": "/demo/cafe-international"
+        },
+        "afterReload": {
+          "state": "Delivery state: onboarding_in_progress · build gate open",
+          "intake": "Complete",
+          "preview": "/demo/cafe-international",
+          "overflow": {
+            "scrollWidth": 1440,
+            "clientWidth": 1440,
+            "overflowPx": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "bea_desktop_fail_closed",
+      "expected": "NOT CLEARED + MISSING_FINANCIAL_APPROVAL",
+      "actual": {
+        "clearance": "NOT CLEARED TO BUILD",
+        "blockers": "MISSING_FINANCIAL_APPROVAL, MISSING_REQUIRED_CLIENT_INPUTS, MISSING_CONTENT_OR_ASSETS, MISSING_APPROVED_ACCESS",
+        "next": "Record commercial clearance first (quote, acceptance, payment evidence).",
+        "overflow": {
+          "scrollWidth": 1440,
+          "clientWidth": 1440,
+          "overflowPx": 0
+        }
+      }
+    },
+    {
+      "name": "prospect_list_shared_link",
+      "expected": "/app/prospects/syn-716-wr-cleared?proof=1",
+      "actual": "/app/prospects/syn-716-wr-cleared?proof=1"
+    },
+    {
+      "name": "clients_surface",
+      "expected": "Clients page visible",
+      "actual": {
+        "visible": true,
+        "url": "http://127.0.0.1:3000/app/clients?proof=1"
+      }
+    },
+    {
+      "name": "wren_mobile",
+      "expected": "same persisted state, overflow 0",
+      "actual": {
+        "clearance": "CLEARED TO BUILD",
+        "state": "Delivery state: onboarding_in_progress · build gate open",
+        "next": "Advance the next delivery state and record evidence.",
+        "overflow": {
+          "scrollWidth": 390,
+          "clientWidth": 390,
+          "overflowPx": 0
+        }
+      }
+    },
+    {
+      "name": "bea_mobile",
+      "expected": "NOT CLEARED, overflow 0",
+      "actual": {
+        "clearance": "NOT CLEARED TO BUILD",
+        "blockers": "MISSING_FINANCIAL_APPROVAL, MISSING_REQUIRED_CLIENT_INPUTS, MISSING_CONTENT_OR_ASSETS, MISSING_APPROVED_ACCESS",
+        "overflow": {
+          "scrollWidth": 390,
+          "clientWidth": 390,
+          "overflowPx": 0
+        }
+      }
+    }
+  ],
+  "failures": [],
+  "verdict": "WEBSITE RESCUE DELIVERY OPERATOR JOURNEY USABLE"
+}
