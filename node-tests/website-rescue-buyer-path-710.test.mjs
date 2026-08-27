@@ -69,6 +69,7 @@ describe('#710 Website Rescue named buyer path', () => {
     assert.ok(!demo.includes('href="/offers/premium-landing-page-rescue"'));
     assert.ok(!demo.includes('href="/offers/premium-landing-page-rescue#discovery"'));
     assert.ok(demo.includes('defaultOfferSlug="premium-landing-page-rescue"') || demo.includes("defaultOfferSlug='premium-landing-page-rescue'"));
+    assert.ok(demo.includes('lockedOfferLabel="Website Rescue"') || demo.includes("lockedOfferLabel='Website Rescue'"));
     assert.ok(demo.includes('Request discovery — Website Rescue'));
     assert.ok(!/Choose payment path/i.test(demo));
   });
