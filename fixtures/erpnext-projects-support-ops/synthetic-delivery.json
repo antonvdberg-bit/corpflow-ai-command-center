@@ -7,5 +7,7 @@
   "customer_name": "CF920 Synthetic Website Project Ltd",
   "opportunity": "CRM-OPP-2026-00001",
   "project_name": "CF920 Synthetic independent website",
-  "notes": "TEST-ONLY synthetic delivery/support mapping onto reused #920 records. Not Prestige Procurement. Do not send."
+  "project": "PROJ-0001",
+  "issue_name": "ISS-2026-00001",
+  "notes": "TEST-ONLY synthetic delivery/support mapping onto reused #920 records. Not Prestige Procurement. Do not send. Project/Issue names are the existing #920/#1097/#1144 identifiers — not a new join."
 }
