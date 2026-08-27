@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import PublicSiteFooter from '../PublicSiteFooter.js';
-import { listPublicOffers } from '../../lib/public/corpflow-public-market.js';
+import { CORPflow_PUBLIC_LAUNCH_PRODUCTS } from '../../lib/public/corpflow-public-market.js';
 import { CF, cfLink } from './corpflow-public-styles.js';
 
 /**
@@ -10,7 +10,7 @@ import { CF, cfLink } from './corpflow-public-styles.js';
  */
 export default function CorpFlowPublicFooter({ extra }) {
   const year = new Date().getFullYear();
-  const offers = listPublicOffers();
+  const products = CORPflow_PUBLIC_LAUNCH_PRODUCTS;
 
   return (
     <footer style={{ marginTop: 48 }}>
@@ -29,9 +29,9 @@ export default function CorpFlowPublicFooter({ extra }) {
           CorpFlowAI is the public selling and delivery wrapper.
         </p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, fontSize: 13 }}>
-          {offers.map((o) => (
-            <Link key={o.slug} href={o.path} style={cfLink}>
-              {o.title}
+          {products.map((product) => (
+            <Link key={product.href} href={product.href} style={cfLink}>
+              {product.label}
             </Link>
           ))}
         </div>

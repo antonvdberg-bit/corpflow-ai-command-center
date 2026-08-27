@@ -7,17 +7,19 @@
 
 **Parent pack:** `docs/marketing/WEBSITE_RESCUE_PRODUCT_PACK_V1.md`  
 **Quote packet:** `docs/marketing/WEBSITE_RESCUE_QUOTE_READY_PACKET_V1.md`  
-**Issue:** [#654](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/654)
+**Issue:** [#654](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/654)  
+**Named buyer path:** [#710](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/710) / [#1127](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1127)
 
 ## Public name (for demos)
 
 | Audience | Say this | URL |
 |----------|----------|-----|
-| Buyer / prospect | **Premium Landing Page Rescue** | `https://corpflowai.com/offers/premium-landing-page-rescue` |
+| Buyer / prospect | **Website Rescue** | `https://corpflowai.com/website-rescue` |
 | Sales walkthrough | Fictional before/after demo | `https://corpflowai.com/demo/website-rescue` |
+| SKU alias (same product) | Premium Landing Page Rescue | `https://corpflowai.com/offers/premium-landing-page-rescue` |
 | Operator / internal | **Website Rescue** (umbrella); T1/T2/T3 tiers | Product pack |
 
-Do not use “Website Rescue” as the primary headline on buyer calls until Anton approves W2 rename.
+Record and sell the named landing `/website-rescue`. The SKU URL remains a live alias; do not lead a buyer-facing recording with the SKU title.
 
 ---
 
