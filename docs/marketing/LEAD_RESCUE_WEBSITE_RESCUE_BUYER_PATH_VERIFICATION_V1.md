@@ -1,6 +1,6 @@
 # Lead Rescue + Website Rescue — buyer-path verification v1
 
-**Status:** Current-`main` verification record for [#1127](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1127); landed on exact current `main` via [#1164](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1164).
+**Status:** Current-`main` verification record for [#1127](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1127); landed via [#1164](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1164). Live buyer-path acceptance [#1174](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1174) found one remaining conversion blocker on `/demo/website-rescue` (SKU lock label) — fixed in the #1174 PR.
 
 **Environment:** `corpflow_test` / current public CorpFlowAI apex (`corpflowai.com`).
 
@@ -72,6 +72,7 @@ No buyer-path page exposed Twilio / Resend / WhatsApp send. Enquiry copy states 
 | **Conversion-blocking (fixed in this PR)** | `/website-rescue` hero said **Starting path: Premium Landing Page Rescue** in the first screen | Named landing no longer leads with the SKU title |
 | Non-blocking / recording note | Website Rescue “Video coming soon” YouTube placeholders on the offer page | Do not record those tiles as product proof. Record `/demo/website-rescue` |
 | Non-blocking | `/offers/ai-lead-rescue` MUR sprint remains a live SKU page | Keep out of nav/footer; do not use in launch-product videos |
+| **Conversion-blocking (fixed for #1174)** | `/demo/website-rescue` enquiry lock line said **Premium Landing Page Rescue** while the heading said Website Rescue | Demo form now passes `lockedOfferLabel="Website Rescue"` — same buyer name as `/website-rescue` and `/contact?offer=premium-landing-page-rescue` |
 | Non-blocking | Website Rescue also offers **Open contact page** as a secondary enquiry route | Primary CTA remains **Request discovery** → `#discovery` |
 
 No automatic email / WhatsApp / SMS send is exposed on these buyer paths.
@@ -98,7 +99,7 @@ Target duration per product video: 60–90 seconds (#700). Record the **live nam
 | 1 | Gateway | `https://corpflowai.com/` | Nav **Website Rescue** | SKU title **Premium Landing Page Rescue** as the product name |
 | 2 | Product hero | `/website-rescue` | H1 enquiry-path rescue; **Request discovery**; starting-from MUR 45,000 after intent | `/offers/premium-landing-page-rescue` as the recording URL |
 | 3 | Proof — demo | `/demo/website-rescue` | Before → After toggle; Harbour Hospitality fictional business | Live client site, invented metrics |
-| 4 | Demo enquiry label | `#demo-enquiry` | Form heading **Request discovery — Website Rescue** | Submitting the form |
+| 4 | Demo enquiry label | `#demo-enquiry` | Form heading **Request discovery — Website Rescue**; locked line **You are requesting discovery for Website Rescue** | Submitting the form; SKU title **Premium Landing Page Rescue** as the locked product name |
 | 5 | Offer proof + FAQ | `/website-rescue` proof band | **Open the Website Rescue demo** link; included / not included | “Video coming soon” tiles as if they were the product demo |
 | 6 | Enquiry | `/website-rescue#discovery` or `/contact?offer=premium-landing-page-rescue#discovery` | Labelled Website Rescue discovery; no-auto-send copy | Payment / card collection |
 
@@ -109,9 +110,9 @@ Desktop (≈1440px) and mobile (≈390px) should both show: one obvious product,
 | Product | Verdict |
 |---------|---------|
 | Lead Rescue | **BUYER PATH READY / RECORDING READY** — use `/lead-rescue` and locked contact enquiry. Gateway footer SKU collision is corrected in this PR (live until merge still shows SKU titles). |
-| Website Rescue | **BUYER PATH READY / RECORDING READY** — use `/website-rescue` and `/demo/website-rescue`. Hero SKU-title collision is corrected in this PR (live until merge still shows *Starting path: Premium Landing Page Rescue*). |
+| Website Rescue | **BUYER PATH READY / RECORDING READY** after the #1174 demo lock-label fix — use `/website-rescue` and `/demo/website-rescue`. Named landing and locked contact already say Website Rescue; the demo enquiry lock line must too. |
 
-**Delivery Reality:** local fix exists on this branch. Not merged, not deployed, not live-verified for the footer/hero copy change. Operational completion stays **PARTIAL** until Anton merges and the Production spine serves this commit.
+**Delivery Reality:** #1164 footer/hero copy is live on current Production (`be671871`). The #1174 demo lock-label fix is local on this branch until merge. Operational completion for the demo lock line stays **PARTIAL** until Anton merges and live `/demo/website-rescue` shows **Website Rescue**.
 
 ## Quality gate (self-check)
 
