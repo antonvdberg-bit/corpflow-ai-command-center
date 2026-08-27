@@ -96,6 +96,7 @@ Tier 2 will **not** route to, write to, or message any Living Word member or num
 
 ## Links
 
-- Related code paths (future, not created here): `lib/server/whatsapp/*`, an inbound webhook route via the factory/API router, `automation_events` for alerting.
+- Related code paths (Tier 1 reusable capability, #1214 — **not attached** to a public surface; reuses closed PR #1138 / #1137 evidence): `lib/whatsapp/href.js`, `lib/whatsapp/tier1.js`, `lib/whatsapp/qr-svg.js`, `components/whatsapp/WhatsAppTier1Contact.js`, `config/whatsapp-tier1.v1.json`, operator note `docs/operations/WHATSAPP_TIER1_MANUAL_CONTACT.md`. Café International `wa.me` links reuse `buildWhatsAppMeHref`.
+- Related code paths (Tier 2 future, not created here): `lib/server/whatsapp/*`, an inbound webhook route via the factory/API router, `automation_events` for alerting.
 - Pre-existing (unrelated) env names: `EXEC_WHATSAPP_NUMBER`, `ADMIN_WHATSAPP_NUMBER`, `WHATSAPP_FROM` — Twilio-sandbox/manual only; **not** reused by Tier 2.
 - Docs created in the same PR: action plan + Stage gates; Tier 2 technical design; this ADR; JOURNAL row; `artifacts/chat_history.md` bullet.

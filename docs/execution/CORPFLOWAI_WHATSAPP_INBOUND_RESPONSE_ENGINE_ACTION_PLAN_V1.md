@@ -119,3 +119,4 @@ This plan does **not** alter the Living Word member-update pilot. All PR #482 pr
 ## 9. Change log
 
 - **v1 — 2026-06-29** — Initial action plan. Docs-only. Stage 0–5 gates defined. No runtime authorized.
+- **v1.1 — 2026-08-27** — Issue #1214 (supersedes stale #1137 / closed PR #1138) added the reusable Tier 1 component/config (`lib/whatsapp/*`, `components/whatsapp/WhatsAppTier1Contact.js`, `config/whatsapp-tier1.v1.json`). Catalog stays `enabled: false`; no public/client attach; no API/webhook/send. Operator note: `docs/operations/WHATSAPP_TIER1_MANUAL_CONTACT.md`.
