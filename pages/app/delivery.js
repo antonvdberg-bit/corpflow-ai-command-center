@@ -24,7 +24,7 @@ export default function AppDeliveryPage() {
   const [shell, setShell] = useState(/** @type {Record<string, unknown> | null} */ (null));
   const [items, setItems] = useState(/** @type {Array<Record<string, unknown>>} */ ([]));
   const [filterCounts, setFilterCounts] = useState(/** @type {Record<string, number>} */ ({}));
-  const [selected, setSelected] = useState(/** @type {Record<string, unknown> | null} */ (null));
+  const [selectedDelivery, setSelectedDelivery] = useState(/** @type {Record<string, unknown> | null} */ (null));
   const [dataSource, setDataSource] = useState('');
   const [error, setError] = useState('');
   const [authRequired, setAuthRequired] = useState(false);
@@ -80,20 +80,20 @@ export default function AppDeliveryPage() {
         setAccessDenied(true);
         setError(String(listJson.error || 'core_access_denied'));
         setItems([]);
-        setSelected(null);
+        setSelectedDelivery(null);
         return;
       }
       if (!listRes.ok || !listJson.ok) {
         setError(String(listJson.error || `delivery_${listRes.status}`));
         setItems([]);
-        setSelected(null);
+        setSelectedDelivery(null);
         return;
       }
       setItems(Array.isArray(listJson.items) ? listJson.items : []);
       setFilterCounts(
         listJson.filter_counts && typeof listJson.filter_counts === 'object' ? listJson.filter_counts : {},
       );
-      setSelected(listJson.selected && typeof listJson.selected === 'object' ? listJson.selected : null);
+      setSelectedDelivery(listJson.selected && typeof listJson.selected === 'object' ? listJson.selected : null);
       if (listJson.data_source) setDataSource(String(listJson.data_source));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'load_failed');
@@ -217,7 +217,7 @@ export default function AppDeliveryPage() {
         filter={filter}
         filterCounts={filterCounts}
         proofWanted={proofWanted}
-        selected={selected}
+        selected={selectedDelivery}
         onFilter={(next) => {
           const params = new URLSearchParams();
           if (proofWanted) params.set('proof', '1');
