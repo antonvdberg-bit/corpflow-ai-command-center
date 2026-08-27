@@ -96,6 +96,29 @@ async function installAppApi(page) {
       });
     }
   });
+  // Local Next does not apply Vercel /api rewrites. Stub unauthenticated
+  // Change Console context so screenshots match live (no "ui/context failed").
+  await page.route('**/api/ui/context**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json; charset=utf-8',
+      body: JSON.stringify({
+        ok: true,
+        session: { logged_in: false, level: 'anonymous', tenant_id: null },
+      }),
+    });
+  });
+  await page.route('**/api/cmp/router**', async (route) => {
+    await route.fulfill({
+      status: 401,
+      contentType: 'application/json; charset=utf-8',
+      body: JSON.stringify({
+        ok: false,
+        error: 'authentication_required',
+        hint: 'Log in to load tickets.',
+      }),
+    });
+  });
 }
 
 async function shot(browser, name, url, viewport, after) {

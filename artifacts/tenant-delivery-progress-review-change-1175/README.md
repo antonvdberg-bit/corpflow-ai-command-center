@@ -13,7 +13,7 @@ Current-main SHA at capture: `b731411734edb01b7dbb8d7e20247c5a7805983a`
 | `lead-rescue-review-desktop.png` | 1440×900 | Approve on the exposed Lead Rescue preview |
 | `website-rescue-detail-desktop.png` | 1440×900 | Preview ready; exposed preview link; view-only |
 | `website-rescue-detail-mobile.png` | 390×844 | Same Website Rescue detail on mobile |
-| `change-desktop.png` | 1440×900 | Canonical `/change?from=tenant-workspace` continuity |
+| `change-desktop.png` | 1440×900 | Canonical `/change?from=tenant-workspace` continuity banner |
 | `change-mobile.png` | 390×844 | Same handoff on mobile |
 | `return-desktop.png` | 1440×900 | Return to Tenant Workspace |
 | `return-mobile.png` | 390×844 | Same return on mobile |
