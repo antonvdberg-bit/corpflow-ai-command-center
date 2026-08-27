@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { chromium } from 'playwright';
 
-const BASE = String(process.env.JOURNEY_BASE_URL || 'http://127.0.0.1:3000').replace(/\/$/, '');
+const BASE = String(process.env.JOURNEY_BASE_URL || 'http://127.0.0.1:3011').replace(/\/$/, '');
 const OUT = path.resolve('artifacts/issue-1176-operating-workspace-journey');
 fs.mkdirSync(OUT, { recursive: true });
 
@@ -61,8 +61,8 @@ async function shot(browser, step, viewport) {
     viewport: { width: viewport.width, height: viewport.height },
   });
   const url = `${BASE}${step.url}`;
-  await page.goto(url, { waitUntil: 'networkidle', timeout: 60000 });
-  await page.waitForSelector(step.wait, { timeout: 30000 });
+  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 90000 });
+  await page.waitForSelector(step.wait, { timeout: 60000 });
   const file = path.join(OUT, `${step.name}-${viewport.suffix}.png`);
   await page.screenshot({ path: file, fullPage: true });
   await page.close();
