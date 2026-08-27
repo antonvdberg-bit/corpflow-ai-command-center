@@ -4,7 +4,7 @@
 **Tenant:** `cipc-desk` / CIPC Desk (internal working name).  
 **Environment:** `corpflow_test`. **Not a public launch.** **Not `client_production`.**  
 **Machine contract:** `lib/cipc-desk/response-automation.js`  
-**Reuse:** existing `POST /api/cipc-desk/email-intake`, `cmp_tickets.console_json.cipc_response`, `leads.qualification_json.cipc_response`, campaign MVP (#985), service-factory (#988), `/partners` (#986), `/change`. No second CRM.
+**Reuse:** existing `POST /api/cipc-desk/email-intake`, `cmp_tickets.console_json.cipc_response`, `leads.qualification_json.cipc_response`, campaign MVP (#985), service-factory (#988), `/partners` (#986), `/company` (#1152), `/change`. No second CRM.
 
 <!-- CIPC_RESPONSE_AUTOMATION_V1 -->
 
@@ -57,7 +57,7 @@ Unrelated JSON namespaces are preserved.
 | Approve / reject / do-not-contact | `POST /api/cmp/router?action=cipc-response-operator-patch` |
 | Link a reply | `POST /api/cmp/router?action=cipc-response-link-reply` |
 | Capture | existing `POST /api/cipc-desk/email-intake` |
-| Buyer confirmation | `https://cipc.corpflowai.com/partners` plus `public_reference` |
+| Buyer confirmation | `https://cipc.corpflowai.com/company` (direct SME) and `https://cipc.corpflowai.com/partners` (accounting-practice partners), plus `public_reference` |
 
 ## Safety gates
 
@@ -85,7 +85,7 @@ Audience: accounting/advisory partners and direct SME company-secretarial enquir
 Stage: first response / discovery.  
 Commercial outcome: operator-approved draft, not a send.  
 Primary asset: `/change` response queue + deterministic drafts.  
-Validation asset: `/partners`.  
+Validation asset: `/company` and `/partners`.
 Proof status: partial — drafts are operator-held; no live send.
 
 Quality-gate target: **12/14** (visual 1/2 because these are operator drafts plus the existing partner confirmation, not a new landing page).
