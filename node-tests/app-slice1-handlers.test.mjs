@@ -300,7 +300,7 @@ test('handler: Core list tenant filter + global queue', async () => {
       global,
     );
     assert.equal(global.state.statusCode, 200);
-    assert.equal(global.state.body.requests.length, 3);
+    assert.equal(global.state.body.requests.length, 4);
     assert.equal(global.state.body.data_source, 'fixture');
 
     const filtered = mockRes();

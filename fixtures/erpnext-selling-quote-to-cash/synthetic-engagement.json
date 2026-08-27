@@ -1,0 +1,33 @@
+{
+  "id": "cf1018-synthetic-sales-lifecycle",
+  "lead_id": "cf1018-synthetic-sales-lifecycle",
+  "synthetic": true,
+  "issue": 1056,
+  "product": "website-rescue",
+  "legal_name": "CF1018 Synthetic Sales Lifecycle Ltd",
+  "customer": "CF1018 Synthetic Sales Lifecycle Ltd",
+  "erpnext_lead": "CRM-LEAD-2026-00009",
+  "erpnext_opportunity": "CRM-OPP-2026-00003",
+  "contact": "Lee Synthetic",
+  "address": "CF1018 Synthetic Sales Lifecycle Ltd-Billing",
+  "working_email": "cf1018.synthetic@example.invalid",
+  "default_currency": "MUR",
+  "item_code": "CF-RD-LANDING-RESCUE",
+  "qualification_json": {
+    "intake_meta": {
+      "product": "website-rescue",
+      "synthetic": true
+    },
+    "erpnext": {
+      "schema": "corpflow.qualification.erpnext.v1",
+      "bridge": "lead_opportunity_promotion",
+      "customer_bridge": "qualified_customer_identity",
+      "lead_id": "cf1018-synthetic-sales-lifecycle",
+      "erpnext_lead": "CRM-LEAD-2026-00009",
+      "erpnext_opportunity": "CRM-OPP-2026-00003",
+      "customer": "CF1018 Synthetic Sales Lifecycle Ltd",
+      "contact": "Lee Synthetic",
+      "address": "CF1018 Synthetic Sales Lifecycle Ltd-Billing"
+    }
+  }
+}

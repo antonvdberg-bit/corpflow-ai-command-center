@@ -2,9 +2,11 @@ import { CORE_NAV_ITEMS } from '../../lib/app/constants.js';
 
 /**
  * Core application navigation.
- * Links Delivery to the canonical Operating Workspace summary (#1005).
- * Operations remains a compatibility link to /change.
- * My Work, Prospects, Clients, Commercial, Workbench, Pipeline, Action Queue, and Delivery are dedicated Operating Workspace routes (#772 / #995 / #996 / #997 / #999 / #1004 / #1005).
+ * Overview lands on /app/core (#1159). Delivery links to the canonical
+ * Operating Workspace summary (#1005). Operations remains a compatibility
+ * link to /change. My Work, Prospects, Clients, Commercial, Workbench,
+ * Pipeline, Action Queue, and Delivery are dedicated Operating Workspace
+ * routes (#772 / #995 / #996 / #997 / #999 / #1004 / #1005).
  *
  * @param {{
  *   active: string,

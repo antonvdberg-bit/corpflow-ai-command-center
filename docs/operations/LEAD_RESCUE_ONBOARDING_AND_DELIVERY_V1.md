@@ -260,6 +260,7 @@ Deep 48-hour setup actions remain in `docs/operations/AI_LEAD_RESCUE_PAID_PILOT_
 | Financial approval lane | GitHub #714 |
 | Prospect UI lane | GitHub #721 · `docs/operations/PROSPECT_OPERATIONS_V1.md` |
 | Scenario A integrated (14 Aug) | `docs/operations/LEAD_RESCUE_SCENARIO_A_INTEGRATED_V1.md` |
+| Tenant Workspace progress (#1155) | `docs/architecture/LEAD_RESCUE_TENANT_DELIVERY_PROGRESS_V1.md` |
 
 ---
 

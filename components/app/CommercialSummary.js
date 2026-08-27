@@ -42,8 +42,9 @@ export default function CommercialSummary({
         <p className="cf-app-lead">
           Prospect / client commercial state in one Operating Workspace surface. Values come from
           the existing proposal, acceptance, payment-evidence and financial-approval rail. Rows open
-          shared Prospect detail at <code>/app/prospects/</code>. ERPNext names are references only.
-          This does not take payment, send a quote, or write to ERPNext.
+          shared Prospect detail at <code>/app/prospects/</code>. An existing ERPNext quotation
+          reference opens bounded status and printable evidence. This does not take payment, send a
+          quote, or write to ERPNext.
         </p>
         {dataSource ? (
           <p className="cf-app-muted">
@@ -155,6 +156,22 @@ export default function CommercialSummary({
                       </td>
                       <td>
                         <div className="cf-app-muted">Quotation {String(erp.quotation || '—')}</div>
+                        {row.quotation_evidence_path ? (
+                          <div>
+                            <a
+                              href={
+                                proofWanted
+                                  ? `${String(row.quotation_evidence_path)}${
+                                      String(row.quotation_evidence_path).includes('?') ? '&' : '?'
+                                    }proof=1`
+                                  : String(row.quotation_evidence_path)
+                              }
+                              data-testid={`commercial-quotation-${id}`}
+                            >
+                              Open quotation evidence
+                            </a>
+                          </div>
+                        ) : null}
                         <div className="cf-app-muted">Pro-forma {String(erp.proforma || '—')}</div>
                         <div className="cf-app-muted">Invoice {String(erp.sales_invoice || '—')}</div>
                       </td>

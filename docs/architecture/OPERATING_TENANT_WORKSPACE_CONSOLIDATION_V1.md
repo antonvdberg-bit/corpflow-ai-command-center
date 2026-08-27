@@ -21,7 +21,7 @@ An authorised staff user can:
 7. Open **Prospect Pipeline** at `/app/pipeline` and see the same records in canonical-stage lanes; stage moves persist through the shared write path.
 8. Open the **Prospect Action Queue** at `/app/queue` to see what needs action now (overdue, due today, no next action, new/unreviewed, high urgency, stalled, awaiting operator).
 9. Open **Clients** at `/app/clients` and see existing Company Master client/business records, a summary, and links to related prospect / commercial / delivery surfaces — without a second customer model.
-10. Open **Commercial** at `/app/commercial` and see current quotation, acceptance, payment-evidence and financial-approval state for existing prospect/client records, with blockers and next action.
+10. Open **Commercial** at `/app/commercial` and see current quotation, acceptance, payment-evidence and financial-approval state for existing prospect/client records, with blockers and next action. Where an ERPNext Quotation id is already recorded, open bounded authoritative status and printable evidence, then return to Commercial / Prospect.
 11. Open **Delivery** at `/app/delivery` and see active Lead Rescue, Website Rescue, and Change/request delivery with stage, owner, blocker, next action, review/approval, and evidence links — without a second project system.
 12. Not see Prospect Operations, Today / My Work, shared detail, Workbench, Pipeline, Action Queue, Clients, Commercial, Delivery, or other internal commercial desks inside the Tenant Workspace.
 
@@ -70,7 +70,10 @@ Machine copy: `WORKSPACE_SURFACE_MATRIX` in `lib/app/workspace-context.js`.
 | `/api/app/clients` | `company_master` | same | Core only | **CANONICAL** | Tenant → 403 |
 | `/api/app/client` | `company_master` | same | Core only | **CANONICAL** | Tenant → 403 |
 | `/app/commercial` | commercial rail + company_master refs | fixture / existing #714 records + leads identity | Core only | **CANONICAL** | Staff Commercial summary (#1004) |
+| `/app/commercial/[id]` | existing `erpnext_quotation` + ERPNext GET | proof fixture / hosted ERPNext GET | Core only | **CANONICAL** | #1160 quotation evidence; Tenant → 403 |
 | `/api/app/commercial` | same | same | Core only | **CANONICAL** | Tenant → 403 |
+| `/api/app/commercial-quotation` | same + bounded Quotation GET | same | Core only | **CANONICAL** | Tenant → 403; no write / no Postgres copy |
+| `/api/app/commercial-quotation-pdf` | same + print GET | same | Core only | **CANONICAL** | Tenant → 403 |
 | `/app/delivery` | `leads` + `cmp_tickets` | fixture / `leads_read` + `cmp_tickets_read` | Core only | **CANONICAL** | Delivery summary (#1005) |
 | `/api/app/delivery` | same | same | Core only | **CANONICAL** | Tenant → 403 |
 | `/admin/rapid-delivery` | `leads` (rapid-delivery) | `admin-rapid-delivery-api` | `requireAdminPageSession` | **MIGRATE** | Temporary Rapid Delivery desk; UX owner is `/app/queue` |
@@ -162,6 +165,13 @@ This slice does **not** retire Company Master, product desks, or `/change/revenu
 2. Reuse the existing #714 commercial-approval rail, Company Master identity (`cmp_ada_spa_synthetic` / `/admin/company-master`), and #999 Clients path `/app/clients`. Do not invent a second client or billing model.
 3. Present quotation / acceptance / payment-evidence / financial-approval state, blockers, owner, and next action. ERPNext names are read-only references already stored on the prospect rail JSON.
 4. Staff-only; Tenant 403; no schema; no payment execution; no ERPNext mutation; no external send.
+
+### Already shipped (Commercial → ERPNext quotation evidence — #1160)
+
+1. Dedicated Operating Workspace drilldown `/app/commercial/[id]` from a Commercial row that already stores `erpnext_quotation`.
+2. Bounded GET of identifier, docstatus/status, currency/total, and printable PDF via the existing Frappe REST/print helpers. Proof mode uses the published #882/#920 synthetic readbacks (`SAL-QTN-2026-00001` on `syn-772-lr-ada`).
+3. Operator returns to `/app/commercial` and `/app/prospects/[id]`. No quotation copy into Postgres. No Sales Invoice / Payment Entry / tax mutation.
+4. Staff-only; Tenant 403.
 
 ### This slice (Delivery summary — #1005 / #1119 / #1140)
 

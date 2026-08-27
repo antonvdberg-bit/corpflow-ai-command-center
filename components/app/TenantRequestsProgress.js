@@ -86,6 +86,17 @@ export default function TenantRequestsProgress({
                   <p className="cf-app-muted" style={{ margin: 0 }}>
                     {String(r.outcome || '')}
                   </p>
+                  {r.service_name ? (
+                    <p className="cf-app-muted" style={{ margin: '8px 0 0' }} data-testid={`tenant-list-service-${id}`}>
+                      {String(r.service_name)}
+                      {r.high_level_stage_label ? ` · ${String(r.high_level_stage_label)}` : ''}
+                    </p>
+                  ) : null}
+                  {r.delivery_stage ? (
+                    <p className="cf-app-muted" style={{ margin: '8px 0 0' }} data-testid={`tenant-list-stage-${id}`}>
+                      Stage · {String(r.delivery_stage)}
+                    </p>
+                  ) : null}
                   <p className="cf-app-muted" style={{ margin: '8px 0 0' }}>
                     Next · {String(r.next_action || '—')}
                   </p>
@@ -121,6 +132,26 @@ export default function TenantRequestsProgress({
           <dl className="cf-app-kv" data-testid="tenant-identity">
             <dt>Request id</dt>
             <dd data-testid="tenant-request-id">{String(request.request_id || '')}</dd>
+            {request.service_name ? (
+              <>
+                <dt>Service</dt>
+                <dd data-testid="tenant-service-name">{String(request.service_name)}</dd>
+              </>
+            ) : null}
+            {request.delivery_stage ? (
+              <>
+                <dt>Delivery stage</dt>
+                <dd data-testid="tenant-delivery-stage">{String(request.delivery_stage)}</dd>
+              </>
+            ) : null}
+            {request.high_level_stage_label || request.high_level_stage ? (
+              <>
+                <dt>Stage</dt>
+                <dd data-testid="tenant-high-level-stage">
+                  {String(request.high_level_stage_label || request.high_level_stage || '—')}
+                </dd>
+              </>
+            ) : null}
             <dt>Desired outcome</dt>
             <dd>{String(request.outcome || '—')}</dd>
             <dt>Latest update</dt>
@@ -188,10 +219,24 @@ export default function TenantRequestsProgress({
                   <p className="cf-app-muted" style={{ margin: 0 }}>
                     {String(c.client_safe_summary || '')}
                   </p>
+                  {c.exposed_evidence && typeof c.exposed_evidence === 'object' && c.exposed_evidence.href ? (
+                    <p className="cf-app-ok" style={{ margin: '8px 0 0' }} data-testid={`tenant-exposed-evidence-${key}`}>
+                      <a
+                        href={String(c.exposed_evidence.href)}
+                        target="_blank"
+                        rel="noreferrer"
+                        data-testid={`tenant-exposed-evidence-link-${key}`}
+                      >
+                        Open exposed preview
+                      </a>
+                    </p>
+                  ) : null}
                   <p className="cf-app-muted" style={{ margin: '8px 0 0' }}>
                     Component state ·{' '}
                     {String(c.client_safe_status || c.milestone_label || c.milestone || '—')}
-                    {c.review_state ? ` · ${String(c.review_state)}` : ''}
+                    {c.review_state && c.review_state !== 'view_only'
+                      ? ` · ${String(c.review_state)}`
+                      : ''}
                   </p>
                   {c.latest_review ? (
                     <p className="cf-app-ok" data-testid={`tenant-latest-review-${key}`}>
@@ -249,7 +294,9 @@ export default function TenantRequestsProgress({
                       style={{ marginTop: 10 }}
                       data-testid={`tenant-viewonly-${key}`}
                     >
-                      This component is not open for client review.
+                      {c.exposed_evidence && typeof c.exposed_evidence === 'object' && c.exposed_evidence.href
+                        ? 'Use Service & change if you want updates after looking at the preview.'
+                        : 'This component is not open for client review.'}
                     </p>
                   )}
                 </article>
@@ -260,7 +307,11 @@ export default function TenantRequestsProgress({
           {changeHref ? (
             <div className="cf-app-actions" style={{ marginTop: 16 }}>
               <a className="cf-app-btn" data-testid="tenant-detail-open-change" href={changeHref}>
-                Raise a new service or change request
+                {request.record_kind === 'website_rescue'
+                  ? request.preview_review_ready === true
+                    ? 'Review or request a change'
+                    : 'Open service & change'
+                  : 'Raise a new service or change request'}
               </a>
             </div>
           ) : null}

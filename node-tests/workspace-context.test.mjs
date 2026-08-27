@@ -30,6 +30,7 @@ import {
   navIncludesClients,
   navIncludesCommercialSummary,
   navIncludesDelivery,
+  navIncludesOperatingOverview,
   navIncludesProspectOperations,
   navIncludesProspectPipeline,
   navIncludesProspectWorkbench,
@@ -38,6 +39,7 @@ import {
   operatingNavIncludesClients,
   operatingNavIncludesCommercialSummary,
   operatingNavIncludesDelivery,
+  operatingNavIncludesOverview,
   operatingNavIncludesProspectOperations,
   operatingNavIncludesProspectPipeline,
   operatingNavIncludesProspectWorkbench,
@@ -46,6 +48,7 @@ import {
   tenantNavOmitsClients,
   tenantNavOmitsCommercialSummary,
   tenantNavOmitsDelivery,
+  tenantNavOmitsOverview,
   tenantNavOmitsProspectOperations,
   tenantNavOmitsProspectPipeline,
   tenantNavOmitsProspectWorkbench,
@@ -166,6 +169,7 @@ describe('workspace-context — Commercial summary boundary', () => {
   it('recognises the Commercial summary route', () => {
     assert.equal(isCommercialSummaryPath('/app/commercial'), true);
     assert.equal(isCommercialSummaryPath('/api/app/commercial'), true);
+    assert.equal(isCommercialSummaryPath('/app/commercial/syn-772-lr-ada'), true);
     assert.equal(isCommercialSummaryPath('/app/pipeline'), false);
     assert.equal(COMMERCIAL_SUMMARY_PATH, '/app/commercial');
   });
@@ -231,9 +235,20 @@ describe('workspace-context — Delivery summary boundary', () => {
   });
 });
 
+describe('workspace-context — action overview', () => {
+  it('includes Overview on Operating Workspace nav pointing at /app/core', () => {
+    assert.equal(operatingNavIncludesOverview(), true);
+    assert.equal(tenantNavOmitsOverview(), true);
+    assert.equal(navIncludesOperatingOverview(CORE_NAV_ITEMS), true);
+    assert.equal(navIncludesOperatingOverview(TENANT_NAV_ITEMS), false);
+    const overview = CORE_NAV_ITEMS.find((item) => item.id === 'overview');
+    assert.equal(overview?.href, '/app/core');
+  });
+});
+
 describe('workspace-context — surface matrix', () => {
   it('classifies required #772 surfaces', () => {
-    assert.equal(classifyWorkspaceSurface('/app/core')?.disposition, 'CANONICAL');
+    assert.equal(classifyWorkspaceSurface('/app/core')?.name.includes('overview'), true);
     assert.equal(classifyWorkspaceSurface('/app/tenant')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/app/prospects')?.disposition, 'CANONICAL');
     assert.equal(classifyWorkspaceSurface('/app/today')?.disposition, 'CANONICAL');

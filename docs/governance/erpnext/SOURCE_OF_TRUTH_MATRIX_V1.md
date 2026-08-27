@@ -133,7 +133,7 @@ Every `needs_bridge` row has: CorpFlowAI key, ERPNext DocType/key, direction, id
 | Idempotency | Search open draft by customer + item + currency. One draft per engagement until submit. |
 | Conflict | ERPNext wins on rate, tax, currency, status. GitHub packs are working papers. |
 | Retry / failure | Keep `docstatus=0`. Do not submit or send on retry. |
-| Audit | #882 draft quotations/invoices; #919 Prestige pack **not sent**. Sales Order is not required for services. |
+| Audit | #882 draft quotations/invoices; #919 Prestige pack **not sent**. Sales Order is not required for services. #1056/#1166 maps the CF1018 draft MUR Quotation `SAL-QTN-2026-00005` and stops Sales Invoice posting at accountant foundation. |
 
 ### 3.4 `payment_evidence` — blocked
 
