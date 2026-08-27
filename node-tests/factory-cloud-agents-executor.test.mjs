@@ -3,6 +3,9 @@ import { describe, it } from 'node:test';
 
 import {
   getCursorCloudAgentRun,
+  createCursorCloudAgent,
+  formatCursorApiErrorDetail,
+  buildCursorAgentCreatePayload,
 } from '../lib/server/cursor-cloud-agent-client.js';
 import {
   buildCloudAgentsExecutorEvidence,
@@ -15,7 +18,11 @@ import {
 } from '../lib/server/factory-cloud-agents-executor.js';
 import {
   acquireCursorIssueActivationClaim,
+  formatCursorRequeueComment,
 } from '../lib/server/cursor-activation-claim.js';
+import {
+  formatAiWorkRequestComment,
+} from '../lib/server/ai-work-request-lifecycle.js';
 import {
   DISPATCH_LIFECYCLE_LABELS,
 } from '../lib/server/cursor-issue-dispatch-lifecycle.js';
@@ -74,6 +81,124 @@ describe('Factory Cloud Agents executor', () => {
     });
     assert.equal(envelope.request_was_created, true);
     assert.match(envelope.work_request_id, /^cfai-wr-/);
+  });
+
+  it('mints a new work request after CURSOR REQUEUE instead of reusing Generation 1', () => {
+    const gen1Id = 'cfai-wr-cf3af4df-7d1d-4d8b-886f-59783672d31c';
+    const envelope = buildFactoryCloudAgentsExecutionEnvelope({
+      issue: { number: 1004, title: 'Operating Workspace Commercial summary', body: '' },
+      comments: [
+        {
+          created_at: '2026-08-26T04:00:34Z',
+          body: formatAiWorkRequestComment({
+            work_request_id: gen1Id,
+            source_issue: 1004,
+            origin_controller: 'factory_handoff',
+            requested_outcome: 'Operating Workspace Commercial summary',
+            requested_at: '2026-08-26T04:00:34.582Z',
+            status: 'REQUESTED',
+            protected_action_required: false,
+          }),
+        },
+        {
+          created_at: '2026-08-27T00:07:34Z',
+          author: 'antonvdberg-bit',
+          author_association: 'OWNER',
+          body: 'CURSOR REQUEUE — current-main integration repair required.',
+        },
+        {
+          created_at: '2026-08-27T02:10:41Z',
+          body: formatCursorRequeueComment({
+            sourceIssue: 1004,
+            generation: 2,
+            reason: 'current-main integration repair required',
+            requeuedAt: '2026-08-27T02:10:39.293Z',
+          }),
+        },
+      ],
+      handoffRunId: '33032441088',
+      repo: 'antonvdberg-bit/corpflow-ai-command-center',
+    });
+    assert.equal(envelope.request_was_created, true);
+    assert.notEqual(envelope.work_request_id, gen1Id);
+    assert.match(envelope.work_request_id, /^cfai-wr-/);
+    assert.equal(
+      envelope.create_payload.agentId,
+      envelope.work_request_id.replace(/^cfai-wr-/i, 'bc-'),
+    );
+    assert.notEqual(
+      envelope.create_payload.agentId,
+      'bc-cf3af4df-7d1d-4d8b-886f-59783672d31c',
+    );
+  });
+
+  it('reuses a current-generation work request after CURSOR REQUEUE', () => {
+    const gen2Id = 'cfai-wr-aaaaaaaa-1116-4116-8116-111611161116';
+    const envelope = buildFactoryCloudAgentsExecutionEnvelope({
+      issue: { number: 1004, title: 'Operating Workspace Commercial summary', body: '' },
+      comments: [
+        {
+          created_at: '2026-08-26T04:00:34Z',
+          body: formatAiWorkRequestComment({
+            work_request_id: 'cfai-wr-cf3af4df-7d1d-4d8b-886f-59783672d31c',
+            source_issue: 1004,
+            origin_controller: 'factory_handoff',
+            requested_outcome: 'Operating Workspace Commercial summary',
+            status: 'REQUESTED',
+            protected_action_required: false,
+          }),
+        },
+        {
+          created_at: '2026-08-27T02:10:41Z',
+          body: formatCursorRequeueComment({
+            sourceIssue: 1004,
+            generation: 2,
+            reason: 'current-main integration repair required',
+            requeuedAt: '2026-08-27T02:10:39.293Z',
+          }),
+        },
+        {
+          created_at: '2026-08-27T02:12:00Z',
+          body: formatAiWorkRequestComment({
+            work_request_id: gen2Id,
+            source_issue: 1004,
+            origin_controller: 'factory_handoff',
+            requested_outcome: 'Operating Workspace Commercial summary',
+            status: 'REQUESTED',
+            protected_action_required: false,
+          }),
+        },
+      ],
+      handoffRunId: '33032441088',
+      repo: 'antonvdberg-bit/corpflow-ai-command-center',
+    });
+    assert.equal(envelope.request_was_created, false);
+    assert.equal(envelope.work_request_id, gen2Id);
+    assert.equal(envelope.create_payload.agentId, 'bc-aaaaaaaa-1116-4116-8116-111611161116');
+  });
+
+  it('stringifies object-shaped Cursor API errors instead of [object Object]', async () => {
+    assert.match(
+      formatCursorApiErrorDetail({ error: { code: 'conflict', message: 'agent already exists' } }),
+      /agent already exists/,
+    );
+    await assert.rejects(
+      () =>
+        createCursorCloudAgent(
+          'test-key',
+          buildCursorAgentCreatePayload({
+            objectRef: 'issue:1004',
+            executorPrompt: 'bounded packet',
+          }),
+          {
+            fetch: async () =>
+              new Response(JSON.stringify({ error: { message: 'agent already exists' } }), {
+                status: 409,
+              }),
+          },
+        ),
+      /HTTP 409: \{"message":"agent already exists"\}/,
+    );
   });
 
   it('does not accept an HTTP-success response without a valid concrete agent identity', () => {

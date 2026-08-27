@@ -38,6 +38,12 @@ import {
   resolveFactoryDispatcherRunPlan,
   shouldWakeOnCursorRequeueComment,
 } from '../lib/server/cursor-ready-event-dispatch.js';
+import {
+  buildFactoryCloudAgentsExecutionEnvelope,
+} from '../lib/server/factory-cloud-agents-executor.js';
+import {
+  formatAiWorkRequestComment,
+} from '../lib/server/ai-work-request-lifecycle.js';
 
 const ANTON = 'antonvdberg-bit';
 const GEN1_RUN = 'run-d77e301b-bc5e-44d1-99df-d6dc3db5ece3';
@@ -472,5 +478,41 @@ describe('explicit CURSOR REQUEUE generation contract (#1116)', () => {
     assert.equal(requeues.length, 0);
     const inspected = inspectIssueWipState(readyIssue(1004, comments));
     assert.equal(inspected.reviewInventory, true);
+  });
+
+  it('Generation 2 Cloud Agents envelope does not reuse the Generation 1 work_request_id', () => {
+    const gen1Id = 'cfai-wr-cf3af4df-7d1d-4d8b-886f-59783672d31c';
+    const comments = [
+      ...gen1CompletedComments(1004),
+      {
+        created_at: '2026-08-26T04:00:34Z',
+        body: formatAiWorkRequestComment({
+          work_request_id: gen1Id,
+          source_issue: 1004,
+          origin_controller: 'factory_handoff',
+          requested_outcome: 'Operating Workspace Commercial summary',
+          status: 'REQUESTED',
+          protected_action_required: false,
+        }),
+      },
+      {
+        created_at: '2026-08-27T00:07:34Z',
+        author: ANTON,
+        author_association: 'OWNER',
+        body: 'CURSOR REQUEUE — current-main integration repair required.',
+      },
+    ];
+    const envelope = buildFactoryCloudAgentsExecutionEnvelope({
+      issue: { number: 1004, title: 'Operating Workspace Commercial summary', body: '' },
+      comments,
+      handoffRunId: '33032441088',
+      repo: 'antonvdberg-bit/corpflow-ai-command-center',
+    });
+    assert.equal(envelope.request_was_created, true);
+    assert.notEqual(envelope.work_request_id, gen1Id);
+    assert.notEqual(
+      envelope.create_payload.agentId,
+      'bc-cf3af4df-7d1d-4d8b-886f-59783672d31c',
+    );
   });
 });
