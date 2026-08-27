@@ -34,7 +34,7 @@ Until merge/deploy, those paths correctly return **404**. That is expected. Do n
 ## What this page is not
 
 - Not a replacement for `/annual-returns` or `/beneficial-ownership` specialist review.
-- Not a direct SME transactional landing (that remains `/`).
+- Not the direct SME buyer landing (that is `/company`; CIPC `/` points SMEs there).
 - Not a public launch, fee table, or guaranteed-outcome page.
 - Not a new app, schema, CRM, auth, domain, or messaging runtime.
 

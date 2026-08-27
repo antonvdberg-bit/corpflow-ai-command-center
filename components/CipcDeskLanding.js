@@ -53,12 +53,21 @@ export default function CipcDeskLanding({ site }) {
     'CIPC Desk — professional South African CIPC and company-secretarial administration support.';
 
   const primaryCta = {
-    label: safeStr(hero.cta_label) || 'Email your CIPC matter',
-    href: safeStr(hero.cta_href) || 'mailto:swart829@gmail.com?subject=CIPC%20Desk%20enquiry',
+    label: safeStr(hero.cta_label) || 'Request company-secretarial help',
+    href: safeStr(hero.cta_href) || '/company',
   };
   const secondaryCtaLabel = safeStr(hero.cta_secondary_label);
   const secondaryCtaHref = safeStr(hero.cta_secondary_href);
-  const contactEmail = safeStr(contact.email) || 'swart829@gmail.com';
+
+  function isSpecialistReviewHref(href) {
+    return /^\/(annual-returns|director-changes|beneficial-ownership)(\/|\?|$)/.test(href);
+  }
+
+  function buyerServiceHref(href) {
+    const raw = safeStr(href);
+    if (!raw || isSpecialistReviewHref(raw)) return '/company';
+    return raw;
+  }
 
   const serviceItems = Array.isArray(services.items) ? services.items : [];
   const routeItems = Array.isArray(routes.items) ? routes.items : [];
@@ -241,24 +250,18 @@ export default function CipcDeskLanding({ site }) {
               {serviceItems.map((item, idx) => {
                 const name = safeStr(item?.name) || `Service ${idx + 1}`;
                 const detail = safeStr(item?.detail);
-                const href = safeStr(item?.href);
+                const href = buyerServiceHref(item?.href);
                 return (
                   <GlassPanel key={`svc-${idx}`} as="article" variant={{ padding: 20, elevation: 1 }}>
                     <h3 style={{ margin: '0 0 8px', fontSize: 16.5, color: CF.text, letterSpacing: '-0.01em' }}>
-                      {href ? (
-                        <a href={href} style={{ color: 'inherit', textDecoration: 'none' }}>
-                          {name}
-                        </a>
-                      ) : (
-                        name
-                      )}
-                    </h3>
-                    {detail ? <p style={{ ...cfBody, margin: href ? 10 : 0, fontSize: 14 }}>{detail}</p> : null}
-                    {href ? (
-                      <a href={href} style={{ ...cfBtnSecondary, fontSize: 12.5, minHeight: 36, padding: '8px 12px' }}>
-                        Open review page
+                      <a href={href} style={{ color: 'inherit', textDecoration: 'none' }}>
+                        {name}
                       </a>
-                    ) : null}
+                    </h3>
+                    {detail ? <p style={{ ...cfBody, margin: 10, fontSize: 14 }}>{detail}</p> : null}
+                    <a href={href} style={{ ...cfBtnSecondary, fontSize: 12.5, minHeight: 36, padding: '8px 12px' }}>
+                      Request this help
+                    </a>
                   </GlassPanel>
                 );
               })}
@@ -317,14 +320,12 @@ export default function CipcDeskLanding({ site }) {
           >
             <p style={cfKicker}>Next step</p>
             <h2 id="cipc-cta-title" style={cfH2}>
-              Ready to start with a clear email?
+              Ready to request company-secretarial help?
             </h2>
             <p style={cfBody}>
-              Send a short summary of your company matter to{' '}
-              <a href={`mailto:${contactEmail}`} style={{ color: CF.link, fontWeight: 600 }}>
-                {contactEmail}
-              </a>
-              . Serah confirms scope before any filing work begins. No fees or deadlines are quoted until that review.
+              Use the company enquiry page for a standard request. Scope is confirmed before any filing work begins.
+              No fees or deadlines are quoted until that review. Accounting firms looking for overflow capacity should
+              use the partner path instead.
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 8 }}>
               <a href={primaryCta.href} style={cfBtnPrimary}>
