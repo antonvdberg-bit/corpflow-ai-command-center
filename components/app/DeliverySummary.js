@@ -118,6 +118,7 @@ export default function DeliverySummary({
                       data-record-kind={String(row.record_kind || '')}
                       data-protected={protectedGate ? 'true' : 'false'}
                       data-exception={exception || 'none'}
+                      data-commercially-cleared={row.commercially_cleared === true ? 'true' : 'false'}
                     >
                       <td data-label="Client / business">
                         <strong>{String(row.client_business || '—')}</strong>

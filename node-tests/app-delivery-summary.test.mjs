@@ -271,6 +271,16 @@ test('handler: Core proof loads Lead Rescue, Website Rescue, and general deliver
     assert.equal(prot?.protected_gate, true);
     const ada = res.state.body.items.find((row) => row.source_id === 'syn-772-lr-ada');
     assert.equal(ada?.links.clients, '/app/clients/cmp_ada_spa_synthetic');
+    assert.equal(ada?.commercially_cleared, false);
+    assert.equal(ada?.financially_approved, false);
+    assert.ok(Array.isArray(ada?.commercial_blockers) && ada.commercial_blockers.includes('MISSING_PAYMENT_EVIDENCE'));
+    assert.equal(ada?.primary_exception, 'blocked');
+    const wren = res.state.body.items.find((row) => row.source_id === 'syn-716-wr-cleared');
+    assert.equal(wren?.commercially_cleared, true);
+    assert.equal(wren?.financially_approved, true);
+    assert.equal(wren?.next_action, 'Collect Website Rescue intake');
+    assert.equal(wren?.links.prospect, '/app/prospects/syn-716-wr-cleared');
+    assert.equal(wren?.links.commercial, COMMERCIAL_EXISTING_PATH);
     const blob = JSON.stringify(res.state.body);
     assert.equal(blob.includes('qualificationJson'), false);
     assert.equal(blob.includes('POSTGRES_URL'), false);

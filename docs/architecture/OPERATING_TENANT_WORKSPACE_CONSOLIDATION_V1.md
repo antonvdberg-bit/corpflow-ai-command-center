@@ -179,6 +179,7 @@ This slice does **not** retire Company Master, product desks, or `/change/revenu
 2. Reuse existing Lead Rescue / Website Rescue prospect contracts and Change / request tickets. No second project or workflow engine.
 3. Show client/business, product/service, stage, owner, blocker, next action, review/approval, and exception filters. Protected deploy / client communication stay labelled, not executed.
 4. Staff-only; Tenant 403; no schema; no external send. `/admin/lead-rescue`, `/admin/rapid-delivery`, and `/change` remain until later retirement.
+5. Delivery consumes the existing #714 / #551 `financially_approved` boolean. A prospect without commercial clearance cannot appear cleared to build. Delivery does not keep a second commercial approval model.
 
 This slice does **not** replace `/change`, retire product desks, or change the Commercial summary (#1004).
 

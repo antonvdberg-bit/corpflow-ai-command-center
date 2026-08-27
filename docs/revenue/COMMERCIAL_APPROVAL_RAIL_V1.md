@@ -54,6 +54,8 @@ const handoff = toOnboardingHandoff(commercialRecord);
 
 Sibling onboarding `canStartBuild` continues to require `record.financially_approved === true`. This rail **publishes** that boolean; it does not redesign onboarding.
 
+Staff Delivery summary (`/app/delivery`, #1005) reads the same boolean. It does not infer quotation, acceptance, payment evidence, or financial-approver clearance, and it does not keep a second commercial ledger.
+
 ## 4. Operator procedure (manual)
 
 Canonical operator surface: **`/app/prospects/[id]`** commercial clearance panel (#551). Proof harness: `/app/prospects/syn-772-lr-ada?proof=1`.
