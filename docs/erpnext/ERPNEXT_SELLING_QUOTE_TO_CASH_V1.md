@@ -159,13 +159,29 @@ Ran as `integrations@corpflowai.com` via `node scripts/erpnext/apply-selling-quo
 
 ---
 
-## 8. Explicit non-actions
+## 8. Operator Commercial journey (#1188)
+
+Staff-only Operating Workspace path from the **already-recorded** MUR Quotation to the existing #551/#714 financial-clearance decision. No second billing or accounting record.
+
+Exact route sequence (proof harness `?proof=1`; Core / admin session only):
+
+1. `/app/commercial?proof=1&filter=all` — Commercial row `cf1018-synthetic-sales-lifecycle`, quotation `SAL-QTN-2026-00005`.
+2. `/app/commercial/cf1018-synthetic-sales-lifecycle?proof=1` — bounded ERPNext evidence (docstatus, status, currency, total) and printable PDF.
+3. `/app/prospects/cf1018-synthetic-sales-lifecycle?proof=1` — Prospect commercial-clearance panel.
+
+Quotation reference: **`SAL-QTN-2026-00005`** (MUR 45,000, Draft `docstatus=0`, customer `CF1018 Synthetic Sales Lifecycle Ltd`). Replay of the same name does not create a second quotation.
+
+When not cleared, the panel is **`NOT CLEARED`** and lists exact missing #714 evidence (`MISSING_ACCEPTANCE`, `MISSING_PAYMENT_EVIDENCE`, `MISSING_FINANCIAL_APPROVER`, `MISSING_APPROVAL_TIMESTAMP`). It does **not** infer payment, acceptance, tax, or accounting status from the ERPNext draft. `Proceed Approved` / `financially_approved` stays fail-closed. Tenant sessions remain **403** on Commercial and quotation evidence.
+
+---
+
+## 9. Explicit non-actions
 
 No real client quotation send. No Sales Invoice submit/post. No Payment Entry. No payment gateway. No custom DocType/schema. No CoA/tax/FX mutation. No external email/WhatsApp/SMS. No paid tools. No production Postgres write. No second CRM.
 
 ---
 
-## 9. Delivery Reality Audit
+## 10. Delivery Reality Audit
 
 ```text
 Delivery Reality Audit:

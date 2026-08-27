@@ -14,6 +14,7 @@ import {
   erpnextQuotationPointerFromLead,
   projectCommercialRowsFromLeads,
 } from '../lib/app/commercial-summary.js';
+import { fixtureProspectLeadRows } from '../lib/app/prospect-operations-workspace.js';
 import {
   BRIDGE_ID,
   CANONICAL_VERDICT,
@@ -531,6 +532,10 @@ test('Commercial Workspace can reference the selling quotation without a second 
   assert.equal(rows[0].erpnext.authoritative, true);
   assert.equal(rows[0].erpnext.mutated, false);
   assert.equal(rows[0].quotation_evidence_path, '/app/commercial/cf1018-synthetic-sales-lifecycle');
+  const fixtureRows = projectCommercialRowsFromLeads(fixtureProspectLeadRows());
+  const cf1018 = fixtureRows.find((row) => row.id === 'cf1018-synthetic-sales-lifecycle');
+  assert.equal(cf1018.erpnext.quotation, 'SAL-QTN-2026-00005');
+  assert.equal(cf1018.financially_approved, false);
   const doc = read('docs/erpnext/ERPNEXT_SELLING_QUOTE_TO_CASH_V1.md');
   assert.match(doc, /#1166/);
   assert.match(doc, /SAL-QTN-2026-00005/);
