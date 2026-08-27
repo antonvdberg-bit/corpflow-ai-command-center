@@ -1,0 +1,285 @@
+{
+  "schema": "corpflow.erpnext_bank_reconciliation_readiness.v1",
+  "version": "v1",
+  "issue": 1139,
+  "current_main_issue": 1220,
+  "current_main_sha": "b731411734edb01b7dbb8d7e20247c5a7805983a",
+  "parents": [1054, 953, 918],
+  "dependency": 1055,
+  "reuse": [882, 551, 714, 1098, 1139, 1166],
+  "environment": "corpflow_test",
+  "verdict": "ERPNext BANK / RECONCILIATION READINESS READY FOR ACCOUNTANT CONFIGURATION",
+  "current_main_verdict": "ERPNext BANK/RECONCILIATION CURRENT-MAIN READY FOR ACCOUNTANT CONFIGURATION",
+  "bank_feed_verdict": "NOT REQUIRED",
+  "payment_segregation_rule": "PAYMENT_EVIDENCE_NEVER_AUTHORIZES_PAYMENT_ENTRY",
+  "description": "Bounded standard-ERPNext-first bank/reconciliation operating model: invoice/payment evidence -> operator verification -> #551/#714 financial approval remains a build gate only -> later accountant-approved Payment Entry -> bank-statement import or manual transaction capture -> reconciliation -> exception review. No live bank/accounting truth, credentials, feed, or Payment Entry submit.",
+  "no_implementation_authorized": {
+    "custom_fields": true,
+    "custom_doctypes": true,
+    "schema_change": true,
+    "bank_account_create": true,
+    "bank_account_edit": true,
+    "ledger_account_create": true,
+    "payment_entry_submit": true,
+    "bank_transaction_live_create": true,
+    "bank_credentials": true,
+    "bank_feed_connect": true,
+    "gl_posting": true,
+    "opening_balances": true,
+    "tax_vat_mutation": true,
+    "env_secrets": true,
+    "external_send": true,
+    "payment_initiation": true
+  },
+  "company": {
+    "name": "CorpFlowAI LTD",
+    "abbr": "CFAI",
+    "country": "Mauritius",
+    "default_currency": "MUR",
+    "note": "Hosted-test Company identity reused from #882 / #1055. Template CoA defaults are not accountant-approved books."
+  },
+  "erpnext_objects": {
+    "Account": {
+      "role": "gl_bank_cash_linkage",
+      "inspect": "presence/type/is_group/parent only. Do not create, rename, or edit."
+    },
+    "Bank": {
+      "role": "bank_master",
+      "inspect": "name presence only. No credentials."
+    },
+    "Bank Account": {
+      "role": "bank_account_master",
+      "inspect": "row count + account_name/account_type/is_company_account if present. Never record bank_account_no, IBAN, SWIFT, or login."
+    },
+    "Mode of Payment": {
+      "role": "receipt_method",
+      "inspect": "name + type presence. Custom SBM MUR wire is not created in this packet."
+    },
+    "Payment Entry": {
+      "role": "later_accountant_posting",
+      "naming_series": "ACC-PAY-.YYYY.-",
+      "submit_posts_gl": true,
+      "authorized_by_this_packet": false
+    },
+    "Bank Transaction": {
+      "role": "statement_line",
+      "inspect": "count/presence only. Do not manufacture a live row to make the test pass."
+    },
+    "Bank Reconciliation Tool": {
+      "role": "standard_match_ui",
+      "inspect": "DocType/report presence. Phase C proved arithmetic, not hosted-test UI invocation."
+    },
+    "Payment Terms": {
+      "role": "readable_only_if_permitted",
+      "inspect": "HTTP 403 to integrations@corpflowai.com is an existing #1019/#882 permission fact, not a schema gap."
+    },
+    "Payment Terms Template": {
+      "role": "readable_only_if_permitted"
+    },
+    "Journal Entry": {
+      "role": "fee_and_exception_posting",
+      "authorized_by_this_packet": false,
+      "note": "Bank fees and unmatched exceptions later post as accountant-approved Journal Entries. Not created here."
+    }
+  },
+  "process_stages": [
+    {
+      "stage": "invoice_or_bill_exists",
+      "owner": "operator",
+      "erpnext": "Sales Invoice or Purchase Invoice (usually draft until accountant foundation)",
+      "meaning": "Commercial/AP record exists. Reuse #882 drafts. Existence is not payment authority."
+    },
+    {
+      "stage": "payment_evidence_received",
+      "owner": "operator",
+      "erpnext": "none yet",
+      "corpflow": "docs/revenue/templates/PAYMENT_EVIDENCE_RECORD.md + /app/prospects/[id] commercial panel (#551)",
+      "meaning": "Opaque reference only. No bank secrets, no card data, no full account numbers."
+    },
+    {
+      "stage": "operator_verification",
+      "owner": "Anton",
+      "erpnext": "none",
+      "meaning": "Manual bank-dashboard check: amount, payer, cleared (not pending), reference, not duplicate. POP alone is insufficient."
+    },
+    {
+      "stage": "financial_approval_rail",
+      "owner": "Anton via #551/#714",
+      "erpnext": "Quotation/Sales Invoice names as references only",
+      "meaning": "financially_approved is the build/onboarding gate. ERPNext never sets it. It does not authorize Payment Entry."
+    },
+    {
+      "stage": "payment_entry_draft_or_later_posting",
+      "owner": "accountant after #1055 + Anton",
+      "erpnext": "Payment Entry Receive/Pay, allocated to invoice, reference_no + reference_date mandatory",
+      "meaning": "Protected GL. Blocked until accountant-approved bank/cash ledgers exist. This packet does not create or submit."
+    },
+    {
+      "stage": "bank_statement_import_or_manual_capture",
+      "owner": "operator",
+      "erpnext": "Bank Transaction via CSV/Excel import or manual capture",
+      "meaning": "Manual/import-first. Redact account numbers before any file is stored in GitHub."
+    },
+    {
+      "stage": "reconciliation",
+      "owner": "operator + accountant review",
+      "erpnext": "Bank Reconciliation Tool matching PE/JE to statement lines",
+      "meaning": "Confirm only when closing-balance delta is within accountant-approved tolerance (proposed MUR 0.01)."
+    },
+    {
+      "stage": "exception_review",
+      "owner": "Anton + accountant",
+      "erpnext": "unmatched Bank Transaction held; later Journal Entry for fees/unknowns",
+      "meaning": "Do not force-match. Unknown lines halt period close."
+    }
+  ],
+  "matching_rules": {
+    "search_before_create": true,
+    "match_keys": ["reference_no", "amount", "value_date"],
+    "amount_tolerance": 0.01,
+    "currency": "MUR",
+    "idempotent_replay": "same statement + same books yields the same matches; never create a live Bank Transaction to pass the proof",
+    "unmatched_action": "hold_exception",
+    "never_match_without_reference_when_amount_collides": true
+  },
+  "synthetic_proof": {
+    "source": "Phase C cycle 3 arithmetic reused as offline fixture; no live bank transaction manufactured",
+    "statement_id": "CF1139-SYN-STMT-001",
+    "currency": "MUR",
+    "expected_closing_balance": 13200,
+    "expected_delta": 0,
+    "lines": [
+      {
+        "line_id": "1",
+        "narration": "WIRE IN - Sandbox Client A - USD",
+        "deposit": 6705,
+        "withdrawal": 0,
+        "reference_no": "WIRE-SBX-ACC-SINV-2026-00001",
+        "expected_match_doctype": "Payment Entry",
+        "expected_match_name": "ACC-PAY-2026-00002"
+      },
+      {
+        "line_id": "2",
+        "narration": "PAYPAL XFER IN",
+        "deposit": 6645,
+        "withdrawal": 0,
+        "reference_no": "REFcycle2",
+        "expected_match_doctype": "Journal Entry",
+        "expected_match_name": "ACC-JV-2026-00002"
+      },
+      {
+        "line_id": "3",
+        "narration": "BANK FEE - MONTHLY MAINTENANCE",
+        "deposit": 0,
+        "withdrawal": 150,
+        "reference_no": "FEE-SBX-2026-06",
+        "expected_match_doctype": "Journal Entry",
+        "expected_match_name": "ACC-JV-2026-00003",
+        "exception_type": "bank_fee"
+      }
+    ]
+  },
+  "bank_feed": {
+    "verdict": "NOT REQUIRED",
+    "reason": "Initial CorpFlowAI volume is manual bank transfer at 1-10 invoices/month. Standard ERPNext CSV/Excel import plus Payment Entry matching is sufficient. No operational evidence that a live bank feed is required. No credential or paid integration in this packet.",
+    "revisit_when": "Sustained unmatched volume, daily cash-position need, or accountant/Anton later requests connectivity. That later decision is REQUIRES LATER DECISION and remains protected."
+  },
+  "accountant_dependencies": [
+    {
+      "id": "bank_cash_ledger_accounts",
+      "question": "Approve bank/cash ledger accounts for MUR operating receipts/payments, USD receipts if used, and petty cash. Hosted-test default cash is the template leaf Cash - CFAI; Company default bank is unset. Do not invent SBM or USD bank ledgers in this packet.",
+      "erpnext_object": "Account (type Bank/Cash) / Company.default_bank_account / Company.default_cash_account"
+    },
+    {
+      "id": "clearing_undeposited_funds",
+      "question": "Whether receipts should post directly to the operating bank ledger or via a clearing / undeposited-funds account until statement match.",
+      "erpnext_object": "Mode of Payment.account / Account (Bank/Cash) / Payment Entry.paid_to"
+    },
+    {
+      "id": "fx_receipts_payments",
+      "question": "Exchange-rate treatment for foreign-currency receipts/payments against MUR books (book rate vs receipt rate, realised FX Gain/Loss, no invented 1.0 USD=MUR). Reuse #882 fail-closed Currency Exchange evidence; do not post.",
+      "erpnext_object": "Currency Exchange / Payment Entry.source_exchange_rate / Journal Entry Exchange Gain Or Loss / Account Exchange Gain/Loss - CFAI"
+    },
+    {
+      "id": "bank_charges_fees",
+      "question": "Bank charges/fees treatment: one Banking & Payment Fees expense account vs split maintenance / wire-receive / FX-spread accounts. Q-Bank-3 in the accountant review pack remains unanswered.",
+      "erpnext_object": "Account (Expense) / Journal Entry voucher_type=Bank Entry"
+    },
+    {
+      "id": "reconciliation_cutoff_cadence",
+      "question": "Reconciliation cut-off and cadence (proposed monthly close within 5 business days; MUR 0.01 closing-balance tolerance; unmatched lines halt close). Confirm or amend Q-Bank-1/Q-Bank-2/Q-Bank-4.",
+      "erpnext_object": "Bank Reconciliation Tool / period-close Journal Entry"
+    },
+    {
+      "id": "opening_cutover_bank_balances",
+      "question": "Opening/cutover treatment for bank balances. Packet G (#1054) remains accountant-owned. Do not post opening entries here.",
+      "erpnext_object": "Opening Invoice Creation Tool / Journal Entry / Account opening balances"
+    }
+  ],
+  "protected_actions_remaining": [
+    "Real Bank Account create/rename/edit and ledger Account create/rename/edit",
+    "Payment Entry create/submit (GL posting)",
+    "Live Bank Transaction create against real funds",
+    "Bank credentials, Plaid/open-banking, or any bank-feed connection",
+    "Journal Entry posting for fees/exceptions/FX",
+    "Tax/VAT mutation",
+    "Opening balances / cutover posting (packet G)",
+    "Schema / custom DocTypes",
+    "Env/secrets change",
+    "Payment initiation / external send / paid tool / public/client_production launch"
+  ],
+  "forbidden_github_evidence_keys": [
+    "iban",
+    "swift",
+    "bic",
+    "bank_account_no",
+    "account_number",
+    "account_no",
+    "routing_number",
+    "sort_code",
+    "branch_code",
+    "bank_details",
+    "default_bank_account",
+    "plaid",
+    "login_id",
+    "online_id",
+    "bank_password",
+    "mask",
+    "iban_number"
+  ],
+  "live_proof": {
+    "authenticated_user": "integrations@corpflowai.com",
+    "site_versions": "frappe=16.31.0, erpnext=16.32.3",
+    "company": "CorpFlowAI LTD",
+    "default_currency": "MUR",
+    "default_cash_account": "Cash - CFAI",
+    "default_bank_account_present": false,
+    "account_count": 96,
+    "bank_or_cash_accounts": [
+      "Bank Accounts - CFAI (Bank, group)",
+      "Cash In Hand - CFAI (Cash, group)",
+      "Cash - CFAI (Cash, leaf)"
+    ],
+    "bank_master": "HTTP 403 PermissionError",
+    "bank_account_count": 0,
+    "mode_of_payment": [
+      "Bank Draft",
+      "Cash",
+      "Cheque",
+      "Credit Card",
+      "Wire Transfer"
+    ],
+    "payment_entry_count": 0,
+    "bank_transaction_count": 0,
+    "journal_entry_count": 0,
+    "payment_terms": "HTTP 403 PermissionError",
+    "payment_terms_template_count": 0,
+    "bank_clearance": "HTTP 500 ProgrammingError — do not use; Bank Transaction + Bank Reconciliation Tool remain the v1 path",
+    "currency_exchange_count": 2,
+    "synthetic_recon_confirmed": true,
+    "synthetic_delta": 0,
+    "synthetic_idempotent": true,
+    "live_bank_transaction_created": false,
+    "note": "GET-only hosted-test read-back. Host URL never recorded. No bank credentials or private numbering stored."
+  }
+}
