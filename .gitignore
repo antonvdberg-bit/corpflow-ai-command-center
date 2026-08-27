@@ -39,3 +39,6 @@ evals/corpflowai/.artifacts/
 # HTML/screenshots from PR #343 verification, queue audits, ticket inspects,
 # sprint-formalization dry-run/execute snapshots. Re-generated locally; never committed.
 .lux-verify/
+
+# ERPNext GET-only audit dry-run logs. Must not overwrite live probe-log.json.
+artifacts/erpnext/**/probe-log.dry-run.json

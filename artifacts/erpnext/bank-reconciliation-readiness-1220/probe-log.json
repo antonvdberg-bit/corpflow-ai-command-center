@@ -1,0 +1,184 @@
+{
+  "issue": 1139,
+  "current_main_issue": 1220,
+  "current_main_sha": "ea2a45a90a4fde7043b89989e985194da3605bff",
+  "dry_run": false,
+  "identity": "integrations@corpflowai.com",
+  "site_versions": "frappe=16.31.0, erpnext=16.32.3",
+  "company": {
+    "name": "CorpFlowAI LTD",
+    "abbr": "CFAI",
+    "default_currency": "MUR",
+    "country": "Mauritius",
+    "default_cash_account": "Cash - CFAI",
+    "default_bank_account_present": false
+  },
+  "bank_or_cash_accounts": [
+    {
+      "name": "Bank Accounts - CFAI",
+      "account_name": "Bank Accounts",
+      "account_type": "Bank",
+      "root_type": "Asset",
+      "is_group": 1,
+      "parent_account": "Current Assets - CFAI",
+      "company": "CorpFlowAI LTD",
+      "disabled": 0
+    },
+    {
+      "name": "Cash - CFAI",
+      "account_name": "Cash",
+      "account_type": "Cash",
+      "root_type": "Asset",
+      "is_group": 0,
+      "parent_account": "Cash In Hand - CFAI",
+      "company": "CorpFlowAI LTD",
+      "disabled": 0
+    },
+    {
+      "name": "Cash In Hand - CFAI",
+      "account_name": "Cash In Hand",
+      "account_type": "Cash",
+      "root_type": "Asset",
+      "is_group": 1,
+      "parent_account": "Current Assets - CFAI",
+      "company": "CorpFlowAI LTD",
+      "disabled": 0
+    }
+  ],
+  "bank_master": {
+    "http": 403,
+    "count": null,
+    "names": []
+  },
+  "bank_account": {
+    "http": 200,
+    "count": 0,
+    "rows": [],
+    "error": null
+  },
+  "mode_of_payment": {
+    "http": 200,
+    "count": 5,
+    "rows": [
+      {
+        "name": "Bank Draft",
+        "type": "Bank",
+        "enabled": 1
+      },
+      {
+        "name": "Cash",
+        "type": "Cash",
+        "enabled": 1
+      },
+      {
+        "name": "Cheque",
+        "type": "Bank",
+        "enabled": 1
+      },
+      {
+        "name": "Credit Card",
+        "type": "Bank",
+        "enabled": 1
+      },
+      {
+        "name": "Wire Transfer",
+        "type": "Bank",
+        "enabled": 1
+      }
+    ],
+    "error": null
+  },
+  "payment_entry": {
+    "http": 200,
+    "count": 0,
+    "error": null
+  },
+  "bank_transaction": {
+    "http": 200,
+    "count": 0,
+    "error": null
+  },
+  "extra": {
+    "Payment Request": {
+      "http": 200,
+      "count": 0,
+      "error": null
+    },
+    "Payment Order": {
+      "http": 200,
+      "count": 0,
+      "error": null
+    },
+    "Payment Term": {
+      "http": 200,
+      "count": 0,
+      "error": null
+    },
+    "Payment Terms": {
+      "http": 403,
+      "count": null,
+      "error": "PermissionError"
+    },
+    "Payment Terms Template": {
+      "http": 200,
+      "count": 0,
+      "error": null
+    },
+    "Journal Entry": {
+      "http": 200,
+      "count": 0,
+      "error": null
+    },
+    "Bank Clearance": {
+      "http": 500,
+      "count": null,
+      "error": "ProgrammingError"
+    },
+    "Bank Guarantee": {
+      "http": 200,
+      "count": 0,
+      "error": null
+    },
+    "Currency Exchange": {
+      "http": 200,
+      "count": 2,
+      "error": null
+    }
+  },
+  "synthetic": {
+    "recon_confirmed": true,
+    "delta": 0,
+    "idempotent": true,
+    "live_bank_transaction_created": false,
+    "matches": [
+      {
+        "line_id": "1",
+        "reference_no": "WIRE-SBX-ACC-SINV-2026-00001",
+        "amount": 6705,
+        "matched_doctype": "Payment Entry",
+        "matched_name": "ACC-PAY-2026-00002"
+      },
+      {
+        "line_id": "2",
+        "reference_no": "REFcycle2",
+        "amount": 6645,
+        "matched_doctype": "Journal Entry",
+        "matched_name": "ACC-JV-2026-00002",
+        "exception_type": null
+      },
+      {
+        "line_id": "3",
+        "reference_no": "FEE-SBX-2026-06",
+        "amount": 150,
+        "matched_doctype": "Journal Entry",
+        "matched_name": "ACC-JV-2026-00003",
+        "exception_type": "bank_fee"
+      }
+    ]
+  },
+  "bank_feed_verdict": "NOT REQUIRED",
+  "payment_segregation_rule": "PAYMENT_EVIDENCE_NEVER_AUTHORIZES_PAYMENT_ENTRY",
+  "verdict": "ERPNext BANK / RECONCILIATION READINESS READY FOR ACCOUNTANT CONFIGURATION",
+  "current_main_verdict": "ERPNext BANK/RECONCILIATION CURRENT-MAIN READY FOR ACCOUNTANT CONFIGURATION",
+  "forbidden_keys_in_artifact": []
+}
