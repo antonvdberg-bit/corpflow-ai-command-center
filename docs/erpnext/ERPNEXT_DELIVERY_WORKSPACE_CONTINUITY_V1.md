@@ -72,6 +72,25 @@ ERPNext Issue: ISS-2026-00001
 Customer: CF920 Synthetic Website Project Ltd
 ```
 
+## Operator evidence (local)
+
+Desktop + mobile screenshots and JSON: `artifacts/erpnext/delivery-workspace-continuity-1156/`.
+
+Expected vs actual (proof harness + hosted ERPNext GET):
+
+| Check | Expected | Actual |
+|-------|----------|--------|
+| Synthetic delivery row | Linked to `PROJ-0001` / `ISS-2026-00001` | Linked, identifiers shown |
+| Bounded status | Existing Project/Issue status only | **Open** / **Open** |
+| Ada / Bea / Wren | Not linked | Not linked |
+| Tenant session | 403, no ERPNext oversight | 403 (`core_access_denied`) |
+| ERPNext write | None | `mutated: false`; create/update throw `ERPNEXT_WRITE_FORBIDDEN` |
+| Live GET (hosted test) | HTTP 200, identifiers only | Project 200 / Issue 200, `status_source: erpnext_get` |
+
+Final packet verdict: **DELIVERY -> ERPNEXT PROJECT/SUPPORT CONTINUITY USABLE**
+
+Delivery Reality remains **PARTIAL** until this PR is merged, published to the corpflow_test spine, and `/app/delivery` is live-verified there. This packet does not deploy.
+
 ## Non-actions
 
 - No ERPNext mutation
