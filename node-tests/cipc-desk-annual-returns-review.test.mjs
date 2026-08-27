@@ -189,11 +189,12 @@ test('review component posts to existing email-intake and shows approved decisio
   assert.doesNotMatch(src, /open_questions/);
 });
 
-test('homepage draft links Annual returns service to /annual-returns', () => {
+test('homepage draft sends Annual returns buyers to /company, not the specialist-review page', () => {
   const draft = buildCipcDeskWebsiteDraft();
   const ar = (draft.sections?.services?.items || []).find(
     (x) => /annual returns/i.test(String(x?.name || '')),
   );
   assert.ok(ar);
-  assert.equal(ar.href, '/annual-returns');
+  assert.equal(ar.href, '/company');
+  assert.doesNotMatch(JSON.stringify(draft.sections?.services || {}), /\/annual-returns/);
 });
