@@ -345,6 +345,8 @@ test('canonical docs name reused #920 evidence and no secrets', () => {
   assert.ok(doc.includes('ISS-2026-00001'));
   assert.ok(doc.includes('TS-2026-00001'));
   assert.ok(doc.includes(CANONICAL_VERDICT));
+  assert.ok(doc.includes('ERPNext PROJECTS / SUPPORT CURRENT-MAIN READY FOR REVIEW'));
+  assert.ok(doc.includes('#1134'));
   assert.ok(doc.includes('Timesheet verdict: DEFER'));
   assert.ok(doc.includes('SLA'));
   assert.ok(doc.includes('DEFERRED'));

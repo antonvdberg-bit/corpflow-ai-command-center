@@ -1,8 +1,8 @@
 # ERPNext Projects / Support operational proof reuses standard #920 records
 
-**Date:** 2026-08-26  
-**Status:** accepted for synthetic/test ERPNext Project / Task / Issue operations (#1097)  
-**Issue:** [#1097](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1097)
+**Date:** 2026-08-26 (current-main landing 2026-08-27)
+**Status:** accepted for synthetic/test ERPNext Project / Task / Issue operations (#1097); current-main landing (#1134)
+**Issue:** [#1097](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1097) / current-main [#1134](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1134)
 
 ## Context
 
@@ -15,6 +15,7 @@ Parent completion controller [#1054](https://github.com/antonvdberg-bit/corpflow
 - **Timesheet verdict: DEFER.** Keep the draft non-billable path. Do not submit. Billing-bearing submit waits on accounting foundation.
 - **SLA / Assignment Rule: DEFERRED.** Manual owner + ToDo is enough for initial onboarding.
 - Map CorpFlowAI delivery/support refs onto existing ERPNext names using the #918 `project_task_timesheet` and `issue_support` rules. No new table or custom DocType. No live Postgres write.
+- [#1134](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1134) lands this same packet onto current `main`. Do not merge stale [PR #1102](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1102). Do not redo the live apply.
 
 ## Consequences
 

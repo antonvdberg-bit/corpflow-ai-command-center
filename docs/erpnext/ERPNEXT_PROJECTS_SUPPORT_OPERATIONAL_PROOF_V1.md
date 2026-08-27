@@ -1,14 +1,15 @@
 # ERPNext Projects / Support operational proof v1
 
-**Status:** Live hosted-test proof. **ERPNext PROJECTS / SUPPORT OPERATIONAL PROOF READY.**  
-**Issue:** [#1097](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1097)  
+**Status:** Live hosted-test proof. **ERPNext PROJECTS / SUPPORT OPERATIONAL PROOF READY.** Current-main landing: **ERPNext PROJECTS / SUPPORT CURRENT-MAIN READY FOR REVIEW.**
+**Current-main landing:** [#1134](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1134) — brings the already-proven #1097 / [PR #1102](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1102) packet onto current `main`. Do not merge #1102.
+**Source proof:** [#1097](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1097)
 **Parents:** [#1054](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1054), [#953](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/953), [#918](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/918)  
 **Reuse baseline:** [#920](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/920) / merged [PR #946](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/946)  
 **Environment:** hosted ERPNext test (`CorpFlowAI LTD`) — `corpflow_test`  
 **Machine contract:** `config/erpnext-projects-support-ops.v1.json`  
 **Helper:** `lib/erpnext/projects-support-ops.js`  
 **Apply:** `node scripts/erpnext/apply-projects-support-ops.mjs`  
-**Evidence:** `artifacts/erpnext/projects-support-ops-1097/`  
+**Evidence:** `artifacts/erpnext/projects-support-ops-1097/` (reused; live apply not redone for #1134)
 **#918 rows used:** `project_task_timesheet`, `issue_support`
 
 **Anchor:** `<!-- ERPNEXT_PROJECTS_SUPPORT_OPERATIONAL_PROOF_V1 -->`
@@ -20,14 +21,18 @@ Canonical Context Preflight: PASS
 Operating model version: 2026-08-13-v1
 Environment: corpflow_test
 GitHub state refreshed: YES
-Source item: #1097
+Source item: #1134
+Prior proof: #1097 / PR #1102
 ```
 
 ## Verdict
 
 ```text
 ERPNext PROJECTS / SUPPORT OPERATIONAL PROOF READY
+ERPNext PROJECTS / SUPPORT CURRENT-MAIN READY FOR REVIEW
 ```
+
+#1134 does **not** redesign the operating model. It lands the already-proven #1097 helper, conventions, and 2026-08-26 synthetic read-back onto current `main`. Live apply was **not** redone.
 
 Standard ERPNext can run CorpFlowAI’s minimum internal delivery and support model:
 
@@ -46,6 +51,12 @@ Cursor agent/run ID: bc-fa26c187-9600-4098-86df-c8172b40d9f8
 Cursor run: run-1f7b766b-c240-488c-b94a-84579b5405e0
 Handoff run: 32928746328
 Work request: cfai-wr-fa26c187-9600-4098-86df-c8172b40d9f8
+
+Current-main landing (#1134):
+Cursor agent/run ID: bc-2204bf5f-6330-43d2-9ab2-99276deb6952
+Cursor run: run-8335aefd-6bdb-4f7e-8346-a0e7ccfd98cb
+Handoff run: 33043905122
+Work request: cfai-wr-2204bf5f-6330-43d2-9ab2-99276deb6952
 
 Reused #920 evidence (not redone):
 - Customer CF920 Synthetic Website Project Ltd
@@ -85,7 +96,8 @@ Standard capability gaps (non-blocking):
 - Timesheet billing submit blocked until accounting foundation (#1054 packet A)
 
 Anton required: NO
-Final verdict: ERPNext PROJECTS / SUPPORT OPERATIONAL PROOF READY
+Source proof verdict: ERPNext PROJECTS / SUPPORT OPERATIONAL PROOF READY
+Current-main packet verdict: ERPNext PROJECTS / SUPPORT CURRENT-MAIN READY FOR REVIEW
 ```
 
 ---
@@ -187,6 +199,8 @@ Ran as `integrations@corpflowai.com` via `node scripts/erpnext/apply-projects-su
 | Replay | created_on_replay=false |
 
 Artifact: `artifacts/erpnext/projects-support-ops-1097/apply-log.json`.
+
+#1134 reused this artifact. It did not create a second Project, Task, Timesheet, or Issue, and it did not re-run the mutating apply.
 
 ---
 

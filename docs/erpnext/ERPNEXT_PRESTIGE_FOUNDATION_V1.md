@@ -30,7 +30,7 @@ ERPNext PRESTIGE FOUNDATION READY
 
 This packet does **not** claim READY from repo-only configuration. Live API read-back is below.
 
-Onboarding E operational proof (owner, next-action, Issue close/reopen) reuses these same records: [`ERPNEXT_PROJECTS_SUPPORT_OPERATIONAL_PROOF_V1.md`](./ERPNEXT_PROJECTS_SUPPORT_OPERATIONAL_PROOF_V1.md) (#1097).
+Onboarding E operational proof (owner, next-action, Issue close/reopen) reuses these same records: [`ERPNEXT_PROJECTS_SUPPORT_OPERATIONAL_PROOF_V1.md`](./ERPNEXT_PROJECTS_SUPPORT_OPERATIONAL_PROOF_V1.md) (#1097, current-main landing #1134).
 
 Anton required now: **NO** for ordinary foundation setup. Merge of the evidence PR is still a human decision. No submit, send, payment, real Prestige customer, env/secret change, or client_production.
 
