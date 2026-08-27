@@ -166,6 +166,7 @@ describe('workspace-context — Commercial summary boundary', () => {
   it('recognises the Commercial summary route', () => {
     assert.equal(isCommercialSummaryPath('/app/commercial'), true);
     assert.equal(isCommercialSummaryPath('/api/app/commercial'), true);
+    assert.equal(isCommercialSummaryPath('/app/commercial/syn-772-lr-ada'), true);
     assert.equal(isCommercialSummaryPath('/app/pipeline'), false);
     assert.equal(COMMERCIAL_SUMMARY_PATH, '/app/commercial');
   });
