@@ -1,0 +1,84 @@
+{
+  "captured_at": "2026-08-27T02:28:20.041Z",
+  "issue": 1120,
+  "parent_issue": 773,
+  "related": [
+    884,
+    1077,
+    1104
+  ],
+  "environment": "corpflow_test",
+  "verdict": "REFERENCE TENANT CLIENT JOURNEY READY FOR LIVE VERIFICATION",
+  "checks": {
+    "tenant_chrome_hides_chooser": true,
+    "tenant_source_omits_forbidden_chrome": true,
+    "tenant_app_redirects": true,
+    "tenant_safe_list": true,
+    "exposed_reviewable": true,
+    "internal_view_only": true,
+    "internal_review_blocked": true,
+    "review_persists": true,
+    "core_sees_decision": true,
+    "no_forbidden_tenant_fields": true,
+    "change_handoff": true,
+    "navigation_does_not_create_ticket": true
+  },
+  "expected_vs_actual": {
+    "Tenant chrome has no Choose workspace": {
+      "expected": true,
+      "actual": true
+    },
+    "/app tenant session continues at /app/tenant": {
+      "expected": "/app/tenant",
+      "actual": "/app/tenant"
+    },
+    "Exposed component is reviewable": {
+      "expected": true,
+      "actual": true
+    },
+    "Internal component is view-only": {
+      "expected": true,
+      "actual": true
+    },
+    "Tenant decision visible in Core": {
+      "expected": "approve",
+      "actual": "approve"
+    },
+    "Service & change reaches /change": {
+      "expected": "/change?from=tenant-workspace",
+      "actual": "/change?from=tenant-workspace&tenant_id=corpflowai"
+    }
+  },
+  "next_http": {
+    "skipped": false,
+    "/app/tenant": {
+      "status": 200,
+      "bytes": 13917,
+      "has_choose_workspace": false
+    },
+    "/app": {
+      "status": 200,
+      "bytes": 13481,
+      "has_choose_workspace": true
+    },
+    "/change?from=tenant-workspace": {
+      "status": 200,
+      "bytes": 8026,
+      "has_choose_workspace": false
+    },
+    "/app/commercial": {
+      "status": 404,
+      "bytes": 2628,
+      "has_choose_workspace": false
+    },
+    "/app/delivery": {
+      "status": 404,
+      "bytes": 2628,
+      "has_choose_workspace": false
+    },
+    "/api/app/shell?proof=1&env=tenant": {
+      "status": 404,
+      "ok": false
+    }
+  }
+}
