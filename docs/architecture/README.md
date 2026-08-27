@@ -9,4 +9,5 @@
 | [TENANT_REQUEST_REVIEW_CHANGE_CONTINUITY_V1.md](./TENANT_REQUEST_REVIEW_CHANGE_CONTINUITY_V1.md) | #1073 — Tenant Workspace request / review / `/change` continuity (no second ticket model) |
 | [TENANT_WORKSPACE_SIMPLIFICATION_V1.md](./TENANT_WORKSPACE_SIMPLIFICATION_V1.md) | #1006 — Tenant-only chrome, `/app` tenant-session redirect, hide Operating Workspace chooser |
 | [REFERENCE_TENANT_CLIENT_JOURNEY_ACCEPTANCE_V1.md](./REFERENCE_TENANT_CLIENT_JOURNEY_ACCEPTANCE_V1.md) | #1120 — Product acceptance of the CorpFlowAI reference-tenant client journey |
+| [CURRENT_MAIN_APPLICATION_JOURNEY_ACCEPTANCE_V1.md](./CURRENT_MAIN_APPLICATION_JOURNEY_ACCEPTANCE_V1.md) | #1149 — Current-main Tenant / Commercial / Delivery live usability |
 | Central app route & capability matrix (#773 audit) | See open PR #774 — `CORPFLOW_CENTRAL_APP_ROUTE_CAPABILITY_MATRIX_V1.md` (merge separately) |

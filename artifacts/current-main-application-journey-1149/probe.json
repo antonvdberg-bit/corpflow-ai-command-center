@@ -1,0 +1,235 @@
+{
+  "captured_at": "2026-08-27T07:12:50.858Z",
+  "issue": 1149,
+  "parents": [
+    772,
+    1120,
+    1004,
+    1005
+  ],
+  "merged_foundations": [
+    1124,
+    1122,
+    1142
+  ],
+  "environment": "corpflow_test",
+  "current_main_sha": "70dadee1034a283b3f8241b3f647e0679df31b4c",
+  "verdict": "CORPFLOWAI CURRENT-MAIN APPLICATION JOURNEY USABLE",
+  "checks": {
+    "tenant_chrome_hides_chooser": true,
+    "tenant_source_omits_forbidden_chrome": true,
+    "tenant_safe_list": true,
+    "exposed_reviewable": true,
+    "internal_view_only": true,
+    "change_handoff": true,
+    "navigation_does_not_create_ticket": true,
+    "operating_nav_has_commercial": true,
+    "operating_nav_has_delivery": true,
+    "tenant_nav_omits_commercial": true,
+    "tenant_nav_omits_delivery": true,
+    "tenant_denied_commercial": true,
+    "tenant_denied_delivery": true,
+    "staff_commercial_existing_ada": true,
+    "staff_delivery_links_change": true,
+    "staff_delivery_links_clients": true,
+    "commercial_no_payment": true,
+    "commercial_no_send": true,
+    "proof_blocked_on_production": true,
+    "live_tenant_200": true,
+    "live_commercial_200": true,
+    "live_delivery_200": true,
+    "live_change_200": true,
+    "live_proof_fail_closed": true,
+    "live_health_ok": true
+  },
+  "expected_vs_actual": {
+    "Tenant chrome has no Choose workspace": {
+      "expected": true,
+      "actual": true
+    },
+    "Service & change reaches /change": {
+      "expected": "/change?from=tenant-workspace",
+      "actual": "/change?from=tenant-workspace&tenant_id=corpflowai"
+    },
+    "Staff Commercial reuses Ada Spa fixture": {
+      "expected": "syn-772-lr-ada",
+      "actual": "syn-772-lr-ada"
+    },
+    "Staff Delivery links Change Console": {
+      "expected": "/change",
+      "actual": "/change"
+    },
+    "Tenant denied Commercial": {
+      "expected": 403,
+      "actual": 403
+    },
+    "Tenant denied Delivery": {
+      "expected": 403,
+      "actual": 403
+    },
+    "Production proof harness fail-closed": {
+      "expected": 401,
+      "actual": 401
+    }
+  },
+  "live_http": {
+    "/app": {
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "bytes": 16219,
+      "has_choose_workspace": true,
+      "has_tenant_workspace": true,
+      "has_sign_in": false,
+      "title": "CorpFlowAI · choose workspace",
+      "json_error": null,
+      "json_ok": null
+    },
+    "/app/tenant": {
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "bytes": 16577,
+      "has_choose_workspace": false,
+      "has_tenant_workspace": true,
+      "has_sign_in": false,
+      "title": "Tenant Workspace — CorpFlowAI · CorpFlowAI",
+      "json_error": null,
+      "json_ok": null
+    },
+    "/app/commercial": {
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "bytes": 18419,
+      "has_choose_workspace": true,
+      "has_tenant_workspace": false,
+      "has_sign_in": false,
+      "title": "CorpFlowAI Operating Workspace · CorpFlowAI",
+      "json_error": null,
+      "json_ok": null
+    },
+    "/app/delivery": {
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "bytes": 18385,
+      "has_choose_workspace": true,
+      "has_tenant_workspace": false,
+      "has_sign_in": false,
+      "title": "CorpFlowAI Operating Workspace · CorpFlowAI",
+      "json_error": null,
+      "json_ok": null
+    },
+    "/change": {
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "bytes": 7120,
+      "has_choose_workspace": false,
+      "has_tenant_workspace": false,
+      "has_sign_in": false,
+      "title": null,
+      "json_error": null,
+      "json_ok": null
+    },
+    "/change?from=tenant-workspace": {
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "bytes": 8053,
+      "has_choose_workspace": false,
+      "has_tenant_workspace": true,
+      "has_sign_in": false,
+      "title": null,
+      "json_error": null,
+      "json_ok": null
+    },
+    "/api/app/shell?env=tenant": {
+      "status": 401,
+      "content_type": "application/json; charset=utf-8",
+      "bytes": 46,
+      "has_choose_workspace": false,
+      "has_tenant_workspace": false,
+      "has_sign_in": false,
+      "title": null,
+      "json_error": "authentication_required",
+      "json_ok": false
+    },
+    "/api/app/shell?proof=1&env=tenant": {
+      "status": 401,
+      "content_type": "application/json; charset=utf-8",
+      "bytes": 46,
+      "has_choose_workspace": false,
+      "has_tenant_workspace": false,
+      "has_sign_in": false,
+      "title": null,
+      "json_error": "authentication_required",
+      "json_ok": false
+    },
+    "/api/app/shell?proof=1&env=core": {
+      "status": 401,
+      "content_type": "application/json; charset=utf-8",
+      "bytes": 46,
+      "has_choose_workspace": false,
+      "has_tenant_workspace": false,
+      "has_sign_in": false,
+      "title": null,
+      "json_error": "authentication_required",
+      "json_ok": false
+    },
+    "/api/app/commercial?proof=1&env=core": {
+      "status": 401,
+      "content_type": "application/json; charset=utf-8",
+      "bytes": 46,
+      "has_choose_workspace": false,
+      "has_tenant_workspace": false,
+      "has_sign_in": false,
+      "title": null,
+      "json_error": "authentication_required",
+      "json_ok": false
+    },
+    "/api/app/delivery?proof=1&env=core": {
+      "status": 401,
+      "content_type": "application/json; charset=utf-8",
+      "bytes": 46,
+      "has_choose_workspace": false,
+      "has_tenant_workspace": false,
+      "has_sign_in": false,
+      "title": null,
+      "json_error": "authentication_required",
+      "json_ok": false
+    },
+    "/api/factory/health": {
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "bytes": 1015,
+      "has_choose_workspace": false,
+      "has_tenant_workspace": false,
+      "has_sign_in": false,
+      "title": null,
+      "json_error": null,
+      "json_ok": true
+    },
+    "lux /change": {
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "bytes": 7120,
+      "has_choose_workspace": false,
+      "has_tenant_workspace": false,
+      "has_sign_in": false,
+      "title": null,
+      "json_error": null,
+      "json_ok": null
+    },
+    "lux /app/tenant": {
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "bytes": 16577,
+      "has_choose_workspace": false,
+      "has_tenant_workspace": true,
+      "has_sign_in": false,
+      "title": "Tenant Workspace — CorpFlowAI · CorpFlowAI",
+      "json_error": null,
+      "json_ok": null
+    }
+  },
+  "next_http": {
+    "skipped": true
+  },
+  "authenticated_live_boundary": "No existing safe test session cookie in this runner. Production rejects ?proof=1. Authenticated live Tenant/Core sessions were not invented."
+}

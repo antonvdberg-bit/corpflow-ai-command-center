@@ -1,0 +1,23 @@
+{
+  "issue": 1149,
+  "verdict": "CORPFLOWAI CURRENT-MAIN APPLICATION JOURNEY USABLE",
+  "current_main_sha": "70dadee1034a283b3f8241b3f647e0679df31b4c",
+  "github_production_deployment_id": 6117822038,
+  "github_production_deployment_state": "success",
+  "environment": "corpflow_test",
+  "defect_fixed": false,
+  "mobile_overflow_px": {
+    "tenant": 0,
+    "commercial": 0,
+    "delivery": 0
+  },
+  "authenticated_live_boundary": "Production rejects ?proof=1. No existing safe test session in this runner. Credentials were not invented.",
+  "live_urls": [
+    "https://core.corpflowai.com/app/tenant",
+    "https://core.corpflowai.com/app/commercial",
+    "https://core.corpflowai.com/app/delivery",
+    "https://core.corpflowai.com/change?from=tenant-workspace",
+    "https://lux.corpflowai.com/change",
+    "https://core.corpflowai.com/api/factory/health"
+  ]
+}
