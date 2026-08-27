@@ -172,6 +172,7 @@ This slice does **not** retire Company Master, product desks, or `/change/revenu
 2. Bounded GET of identifier, docstatus/status, currency/total, and printable PDF via the existing Frappe REST/print helpers. Proof mode uses the published #882/#920 synthetic readbacks (`SAL-QTN-2026-00001` on `syn-772-lr-ada`).
 3. Operator returns to `/app/commercial` and `/app/prospects/[id]`. No quotation copy into Postgres. No Sales Invoice / Payment Entry / tax mutation.
 4. Staff-only; Tenant 403.
+5. Live usability on current `main` is recorded in `docs/erpnext/ERPNEXT_COMMERCIAL_QUOTATION_EVIDENCE_ACCEPTANCE_1177.md` (#1177). The drilldown only opens an already-recorded Quotation id.
 
 ### This slice (Delivery summary — #1005 / #1119 / #1140)
 

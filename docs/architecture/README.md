@@ -11,4 +11,5 @@
 | [REFERENCE_TENANT_CLIENT_JOURNEY_ACCEPTANCE_V1.md](./REFERENCE_TENANT_CLIENT_JOURNEY_ACCEPTANCE_V1.md) | #1120 — Product acceptance of the CorpFlowAI reference-tenant client journey |
 | [WEBSITE_RESCUE_TENANT_DELIVERY_PROGRESS_V1.md](./WEBSITE_RESCUE_TENANT_DELIVERY_PROGRESS_V1.md) | #1151 / #1165 — tenant-safe Website Rescue delivery progress inside existing Requests & Progress |
 | [LEAD_RESCUE_TENANT_DELIVERY_PROGRESS_V1.md](./LEAD_RESCUE_TENANT_DELIVERY_PROGRESS_V1.md) | #1155 / #1165 — tenant-safe Lead Rescue delivery/onboarding progress in Tenant Workspace Requests & Progress |
+| [ERPNEXT_COMMERCIAL_QUOTATION_EVIDENCE_ACCEPTANCE_1177.md](../erpnext/ERPNEXT_COMMERCIAL_QUOTATION_EVIDENCE_ACCEPTANCE_1177.md) | #1177 — Commercial Workspace → ERPNext quotation evidence live usability (GET/read-only) |
 | Central app route & capability matrix (#773 audit) | See open PR #774 — `CORPFLOW_CENTRAL_APP_ROUTE_CAPABILITY_MATRIX_V1.md` (merge separately) |

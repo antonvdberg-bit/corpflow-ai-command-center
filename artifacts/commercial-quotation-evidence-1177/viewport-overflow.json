@@ -1,0 +1,16 @@
+{
+  "overflow": {
+    "live_commercial_unauth_desktop": 0,
+    "live_commercial_unauth_mobile": 0,
+    "live_quotation_unauth_desktop": 0,
+    "live_quotation_unauth_mobile": 0,
+    "live_proof_rejected_desktop": 0,
+    "proof_commercial_desktop": 0,
+    "proof_commercial_mobile": 0,
+    "proof_ada_desktop": 0,
+    "proof_ada_mobile": 0,
+    "proof_bea_desktop": 0,
+    "proof_bea_mobile": 0
+  },
+  "unit": "px"
+}

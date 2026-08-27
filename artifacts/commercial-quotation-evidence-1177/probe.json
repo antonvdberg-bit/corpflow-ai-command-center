@@ -1,0 +1,248 @@
+{
+  "schema": "corpflow.commercial_quotation_evidence_acceptance.v1",
+  "issue": 1177,
+  "git_sha": "b731411734edb01b7dbb8d7e20247c5a7805983a",
+  "current_main_sha": "b731411734edb01b7dbb8d7e20247c5a7805983a",
+  "production_github_deployment": 6122881088,
+  "route": "/app/commercial/syn-772-lr-ada",
+  "quotation": "SAL-QTN-2026-00001",
+  "proof_mode_allowed_here": true,
+  "in_process": {
+    "ada": {
+      "status": 200,
+      "quotation": "SAL-QTN-2026-00001",
+      "docstatus": 0,
+      "status_text": "Draft",
+      "currency": "USD",
+      "grand_total": 249,
+      "erpnext_mutated": false,
+      "copied_to_postgres": false,
+      "print_href": "/api/app/commercial-quotation-pdf?env=core&id=syn-772-lr-ada&proof=1"
+    },
+    "bea": {
+      "status": 409,
+      "error": "quotation_reference_missing",
+      "blocker": "NOT READY — no stable ERPNext Quotation id on this Commercial row"
+    },
+    "invented": {
+      "status": 404,
+      "error": "commercial_row_not_found"
+    },
+    "invalid_path_name_stable": false,
+    "proof_pdf": {
+      "status": 200,
+      "content_type": "application/pdf",
+      "is_pdf": true,
+      "bytes": 325
+    },
+    "tenant_denied": {
+      "quotation": {
+        "status": 403,
+        "error": "core_access_denied"
+      },
+      "pdf": {
+        "status": 403,
+        "error": "core_access_denied"
+      },
+      "list": {
+        "status": 403,
+        "error": "core_access_denied"
+      }
+    }
+  },
+  "hosted_erpnext": {
+    "credentials_present": true,
+    "identity": "integrations@corpflowai.com",
+    "quotations": [
+      {
+        "name": "SAL-QTN-2026-00001",
+        "ok": true,
+        "http": 200,
+        "error": null,
+        "docstatus": 0,
+        "status": "Draft",
+        "currency": "USD",
+        "grand_total": 249,
+        "customer": "CF880 Synthetic Lead Rescue Ltd",
+        "mutated": false,
+        "copied_to_postgres": false
+      },
+      {
+        "name": "SAL-QTN-2026-00003",
+        "ok": true,
+        "http": 200,
+        "error": null,
+        "docstatus": 0,
+        "status": "Draft",
+        "currency": "MUR",
+        "grand_total": 45000,
+        "customer": "CF880 Synthetic Website Rescue Ltd",
+        "mutated": false,
+        "copied_to_postgres": false
+      },
+      {
+        "name": "SAL-QTN-2026-00004",
+        "ok": true,
+        "http": 200,
+        "error": null,
+        "docstatus": 0,
+        "status": "Draft",
+        "currency": "MUR",
+        "grand_total": 1000,
+        "customer": "CF920 Synthetic Website Project Ltd",
+        "mutated": false,
+        "copied_to_postgres": false
+      },
+      {
+        "name": "SAL-QTN-2026-00005",
+        "ok": true,
+        "http": 200,
+        "error": null,
+        "docstatus": 0,
+        "status": "Draft",
+        "currency": "MUR",
+        "grand_total": 45000,
+        "customer": "CF1018 Synthetic Sales Lifecycle Ltd",
+        "mutated": false,
+        "copied_to_postgres": false
+      },
+      {
+        "name": "SAL-QTN-DOES-NOT-EXIST",
+        "ok": false,
+        "http": 404,
+        "error": "DoesNotExistError",
+        "docstatus": null,
+        "status": null,
+        "currency": null,
+        "grand_total": null,
+        "customer": null,
+        "mutated": false,
+        "copied_to_postgres": false
+      }
+    ],
+    "pdfs": [
+      {
+        "name": "SAL-QTN-2026-00001",
+        "ok": true,
+        "http": 200,
+        "is_pdf": true,
+        "bytes": 37950,
+        "sha256_16": "4e9a40d8ff547eb6",
+        "error": null
+      },
+      {
+        "name": "SAL-QTN-2026-00005",
+        "ok": true,
+        "http": 200,
+        "is_pdf": true,
+        "bytes": 36114,
+        "sha256_16": "299ad3c9d8c4582a",
+        "error": null
+      }
+    ],
+    "mutated": false,
+    "identity_http": 200
+  },
+  "live_leads": {
+    "ok": true,
+    "scanned": 82,
+    "commercial_rows": 82,
+    "rows_with_quotation": 0,
+    "quotation_names": [],
+    "mutated": false
+  },
+  "live": {
+    "health": {
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "bytes": 1015,
+      "is_pdf": false,
+      "has_sign_in": false,
+      "has_operating_workspace": false,
+      "page": null,
+      "json_error": null,
+      "json_ok": true
+    },
+    "commercial_html": {
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "bytes": 19882,
+      "is_pdf": false,
+      "has_sign_in": false,
+      "has_operating_workspace": true,
+      "page": "/app/commercial",
+      "json_error": null,
+      "json_ok": null
+    },
+    "quotation_html": {
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "bytes": 19895,
+      "is_pdf": false,
+      "has_sign_in": false,
+      "has_operating_workspace": true,
+      "page": "/app/commercial/[id]",
+      "json_error": null,
+      "json_ok": null
+    },
+    "commercial_api": {
+      "status": 401,
+      "content_type": "application/json; charset=utf-8",
+      "bytes": 46,
+      "is_pdf": false,
+      "has_sign_in": false,
+      "has_operating_workspace": false,
+      "page": null,
+      "json_error": "authentication_required",
+      "json_ok": false
+    },
+    "quotation_api": {
+      "status": 401,
+      "content_type": "application/json; charset=utf-8",
+      "bytes": 46,
+      "is_pdf": false,
+      "has_sign_in": false,
+      "has_operating_workspace": false,
+      "page": null,
+      "json_error": "authentication_required",
+      "json_ok": false
+    },
+    "quotation_pdf_api": {
+      "status": 401,
+      "content_type": "application/json; charset=utf-8",
+      "bytes": 46,
+      "is_pdf": false,
+      "has_sign_in": false,
+      "has_operating_workspace": false,
+      "page": null,
+      "json_error": "authentication_required",
+      "json_ok": false
+    },
+    "proof_rejected": {
+      "status": 401,
+      "content_type": "application/json; charset=utf-8",
+      "bytes": 46,
+      "is_pdf": false,
+      "has_sign_in": false,
+      "has_operating_workspace": false,
+      "page": null,
+      "json_error": "authentication_required",
+      "json_ok": false
+    },
+    "tenant_env_unauth": {
+      "status": 401,
+      "content_type": "application/json; charset=utf-8",
+      "bytes": 46,
+      "is_pdf": false,
+      "has_sign_in": false,
+      "has_operating_workspace": false,
+      "page": null,
+      "json_error": "authentication_required",
+      "json_ok": false
+    }
+  },
+  "erpnext_mutated": false,
+  "postgres_mutated": false,
+  "blocker": "NOT READY — corpflow_test Commercial leads have no recorded ERPNext Quotation id",
+  "verdict": "NOT READY — corpflow_test Commercial leads have no recorded ERPNext Quotation id"
+}
