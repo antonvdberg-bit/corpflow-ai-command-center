@@ -201,9 +201,11 @@ test('#1097 config reuses #920 records and forbids a second live client', () => 
   assert.ok(BRIDGE_IDS.includes('issue_support'));
   const files = [
     'docs/erpnext/ERPNEXT_PROJECTS_SUPPORT_OPERATIONAL_PROOF_V1.md',
+    'docs/erpnext/ERPNEXT_PROJECTS_SUPPORT_OPERATIONAL_ACCEPTANCE_V1.md',
     'docs/erpnext/ERPNEXT_PRESTIGE_FOUNDATION_V1.md',
     'docs/governance/erpnext/SOURCE_OF_TRUTH_MATRIX_V1.md',
     'docs/decisions/20260826-erpnext-projects-support-ops.md',
+    'docs/decisions/20260827-erpnext-projects-support-ops-acceptance.md',
   ];
   for (const rel of files) {
     assert.equal(existsSync(path.join(REPO_ROOT, rel)), true, `missing ${rel}`);
@@ -523,4 +525,46 @@ test('#1202 inspect script dry-run does not call ERPNext', () => {
   assert.match(out, /erpnext_write: forbidden/);
   assert.doesNotMatch(out, /must-not-appear-in-output-1234567890/);
   assert.doesNotMatch(out, /ERPNEXT_BASE_URL_value: https?:/);
+});
+
+test('#1202 canonical acceptance doc names live IDs and no secrets', () => {
+  const doc = read('docs/erpnext/ERPNEXT_PROJECTS_SUPPORT_OPERATIONAL_ACCEPTANCE_V1.md');
+  assert.ok(doc.includes('<!-- ERPNEXT_PROJECTS_SUPPORT_OPERATIONAL_ACCEPTANCE_V1 -->'));
+  assert.ok(doc.includes('PROJ-0001'));
+  assert.ok(doc.includes('ISS-2026-00001'));
+  assert.ok(doc.includes('TS-2026-00001'));
+  assert.ok(doc.includes(ACCEPTANCE_VERDICT));
+  assert.ok(doc.includes('#1202'));
+  assert.ok(doc.includes('b731411734edb01b7dbb8d7e20247c5a7805983a'));
+  assert.ok(doc.includes('inspectProjectsSupportOps'));
+  assert.doesNotMatch(doc, SECRETISH);
+});
+
+test('#1202 live inspect-log captures reused IDs and no secret values', () => {
+  resetProjectsSupportOpsConfigCache();
+  const rel = 'artifacts/erpnext/projects-support-ops-1202/inspect-log.json';
+  assert.equal(existsSync(path.join(REPO_ROOT, rel)), true);
+  const log = JSON.parse(read(rel));
+  assert.equal(log.github_issue, 1202);
+  assert.equal(log.current_main_sha, 'b731411734edb01b7dbb8d7e20247c5a7805983a');
+  assert.equal(log.secrets_printed, false);
+  assert.equal(log.postgres_written, false);
+  assert.equal(log.send_attempted, false);
+  assert.equal(log.timesheet_submitted, false);
+  assert.equal(log.write_attempted, false);
+  assert.equal(log.reused_920.project, 'PROJ-0001');
+  assert.equal(log.reused_920.issue, 'ISS-2026-00001');
+  assert.equal(log.reused_920.timesheet, 'TS-2026-00001');
+  assert.equal(log.issue.name, 'ISS-2026-00001');
+  assert.equal(log.issue.status, 'Open');
+  assert.equal(log.timesheet.verdict, 'DEFER');
+  assert.equal(log.timesheet.docstatus, 0);
+  assert.equal(log.idempotency.project_action, 'REUSE');
+  assert.equal(log.idempotency.project_duplicate_count, 1);
+  assert.equal(log.idempotency.issue_duplicate_count, 1);
+  assert.equal(log.pointer.postgres_persist, 'not_written');
+  assert.equal(log.issue_lifecycle.close_reopen_this_run, 'not_attempted');
+  assert.equal(log.verdict, ACCEPTANCE_VERDICT);
+  assert.doesNotMatch(read(rel), SECRETISH);
+  assert.doesNotMatch(read(rel), /"ERPNEXT_API_SECRET"\s*:\s*"[^"]+"/);
 });

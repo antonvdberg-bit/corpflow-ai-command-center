@@ -118,7 +118,7 @@
       "idempotency": "One Project per accepted Customer engagement; search by project_name + customer.",
       "conflict_rule": "ERPNext Project/Task is the commercial delivery plan. CorpFlowAI holds preview URLs, GitHub, and execution evidence.",
       "retry_failure": "Search-before-create. Reuse CF920 Independent Website 12-phase template. Do not clone a second Project for the same customer+engagement.",
-      "audit_evidence": "#920 PROJ-0001, TASK-2026-00013..00024, TS-2026-00001 draft. #1097 reused the same Project/Tasks; Timesheet remains DEFER.",
+      "audit_evidence": "#920 PROJ-0001, TASK-2026-00013..00024, TS-2026-00001 draft. #1097 reused the same Project/Tasks; Timesheet remains DEFER. #1202 GET-only acceptance OPERATIONALLY USABLE.",
       "sync_mode": "queued_manual",
       "evidence": "#920 Prestige foundation READY"
     },
@@ -135,7 +135,7 @@
       "idempotency": "Search Issue by subject containing cmp_tickets.id; create once.",
       "conflict_rule": "ERPNext Issue is the durable support ticket. CmpTicket /change remains the execution and factory-evidence surface.",
       "retry_failure": "Do not duplicate Issues. Keep console_json and technical_lead_audits in CorpFlowAI. API failure = no second Issue.",
-      "audit_evidence": "#920 ISS-2026-00001 Open, customer+project linked. #1097 close/reopen + description trail. Workflow/Notification/Comment HTTP 403 — no email send.",
+      "audit_evidence": "#920 ISS-2026-00001 Open, customer+project linked. #1097 close/reopen + description trail. #1202 GET-only acceptance reused the same Issue. Workflow/Notification/Comment HTTP 403 — no email send.",
       "sync_mode": "queued_manual",
       "evidence": "#920 support foundation"
     },

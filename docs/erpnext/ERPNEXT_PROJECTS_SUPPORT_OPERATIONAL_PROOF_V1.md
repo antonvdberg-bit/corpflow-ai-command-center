@@ -1,7 +1,8 @@
 # ERPNext Projects / Support operational proof v1
 
-**Status:** Live hosted-test proof. **ERPNext PROJECTS / SUPPORT OPERATIONAL PROOF READY.** Current-main landing: **ERPNext PROJECTS / SUPPORT CURRENT-MAIN READY FOR REVIEW.**
+**Status:** Live hosted-test proof. **ERPNext PROJECTS / SUPPORT OPERATIONAL PROOF READY.** Current-main landing: **ERPNext PROJECTS / SUPPORT CURRENT-MAIN READY FOR REVIEW.** GET-only operational acceptance: **ERPNext PROJECTS / SUPPORT OPERATIONALLY USABLE** ([#1202](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1202)).
 **Current-main landing:** [#1134](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1134) — brings the already-proven #1097 / [PR #1102](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1102) packet onto current `main`. Do not merge #1102.
+**Operational acceptance:** [#1202](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1202) — GET/read-only inspect of the same synthetic records. Canonical: [`ERPNEXT_PROJECTS_SUPPORT_OPERATIONAL_ACCEPTANCE_V1.md`](./ERPNEXT_PROJECTS_SUPPORT_OPERATIONAL_ACCEPTANCE_V1.md).
 **Source proof:** [#1097](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1097)
 **Parents:** [#1054](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1054), [#953](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/953), [#918](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/918)
 **Reuse baseline:** [#920](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/920) / merged [PR #946](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/946)

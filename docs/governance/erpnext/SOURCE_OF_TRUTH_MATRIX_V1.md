@@ -157,7 +157,7 @@ Every `needs_bridge` row has: CorpFlowAI key, ERPNext DocType/key, direction, id
 | Idempotency | One Project per accepted Customer engagement; search `project_name` + customer. |
 | Conflict | ERPNext is the commercial delivery plan; CorpFlowAI holds GitHub, preview URLs, execution evidence. |
 | Retry / failure | Search-before-create. Reuse `CF920 Independent Website 12-phase`. |
-| Audit | #920 `PROJ-0001`, Tasks `TASK-2026-00013`–`00024`, Timesheet `TS-2026-00001` draft. #1097 reused the same Project/Tasks; Timesheet remains **DEFER**. |
+| Audit | #920 `PROJ-0001`, Tasks `TASK-2026-00013`–`00024`, Timesheet `TS-2026-00001` draft. #1097 reused the same Project/Tasks; Timesheet remains **DEFER**. #1202 GET-only acceptance: **OPERATIONALLY USABLE**. |
 
 ### 3.6 `issue_support`
 
@@ -169,7 +169,7 @@ Every `needs_bridge` row has: CorpFlowAI key, ERPNext DocType/key, direction, id
 | Idempotency | Search Issue subject containing `cmp_tickets.id`; create once. |
 | Conflict | ERPNext Issue is durable support; CmpTicket stays the execution surface. Technical Lead audits stay in CorpFlowAI. |
 | Retry / failure | Do not duplicate Issues. |
-| Audit | #920 `ISS-2026-00001`. #1097 proved close/reopen and description trail. Workflow/Notification/Comment still HTTP 403 — no email. |
+| Audit | #920 `ISS-2026-00001`. #1097 proved close/reopen and description trail. #1202 GET-only acceptance reused the same Issue (Open, `CF1097-OPS` trail). Workflow/Notification/Comment still HTTP 403 — no email. |
 
 ---
 

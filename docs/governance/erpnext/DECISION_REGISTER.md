@@ -226,6 +226,28 @@ Retention: do not delete a decision or evidence row merely because it was supers
 
 ---
 
+## ERP-D-2026-08-27-3 — #1202 Projects / Support operational acceptance (proposed)
+
+| Field | Record |
+|-------|--------|
+| Decision ID | `ERP-D-2026-08-27-3` |
+| Date/time | 2026-08-27 |
+| Status | **Proposed** (this packet; Anton merge remains the Git approval). Does **not** approve Timesheet submit, SLA config, real-client Project/Issue, or a second project/helpdesk app. |
+| Question / requirement | Prove the already-adopted synthetic ERPNext Project/Task/Issue records are operationally usable for day-to-day delivery without a second system. |
+| Executive intent / source | [#1202](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1202); proof [#1097](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1097) / current-main [#1134](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1134) |
+| Options considered | Re-run the mutating #1097 apply; invent a second project/helpdesk app; GET/read-only inspect of existing IDs |
+| Evidence reviewed | Live GET 2026-08-27 as `integrations@corpflowai.com` on `PROJ-0001` / `ISS-2026-00001` / `TS-2026-00001`; #1097 close/reopen contract; search-before-create counts 1/1 |
+| Decision | Land [`ERPNEXT_PROJECTS_SUPPORT_OPERATIONAL_ACCEPTANCE_V1.md`](../../erpnext/ERPNEXT_PROJECTS_SUPPORT_OPERATIONAL_ACCEPTANCE_V1.md). Add GET-only `inspectProjectsSupportOps`. Do not write ERPNext. |
+| Rationale | Operating proof was READY. Acceptance needs current live read-back without mutating the standard records. |
+| Risks / tradeoffs | Task `TASK-2026-00013` is now date-derived Overdue (was Working on 2026-08-26); next-action convention still holds. Version trail remains HTTP 403. |
+| Approver | Pending Anton merge of the #1202 PR |
+| GitHub implementation | `lib/erpnext/projects-support-ops.js` inspect path + inspect script + inspect-log |
+| ERPNext Project / Task | Reused synthetic `PROJ-0001` / `ISS-2026-00001` (not programme Project `PROJ-0002`) |
+| Verification evidence | `node --test node-tests/erpnext-projects-support-ops.test.mjs` plus live inspect-log |
+| Supersedes / superseded-by | Accepts #1134/#1097. Does **not** supersede Version 2, #918, or #920. |
+
+---
+
 ## ERP-D-2026-08-27-2 — #1166 current-main landing of #1056 selling / quote-to-cash (proposed)
 
 | Field | Record |
