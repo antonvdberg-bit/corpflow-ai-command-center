@@ -44,6 +44,8 @@ test('partner funnel content covers conversion sections without specialist jargo
   const c = buildCipcDeskPartnerFunnelContent();
   assert.equal(c.content_version, CIPC_DESK_PARTNER_FUNNEL_VERSION);
   assert.match(String(c.hero?.headline || ''), /company-secretarial capacity behind your accounting practice/i);
+  assert.match(String(c.hero?.subhead || ''), /Clients still need statutory administration/i);
+  assert.match(String(c.hero?.subhead || ''), /White-label \/ fractional capacity sits behind your practice/i);
   assert.match(String(c.hero?.primary_cta?.label || ''), /Discuss overflow \/ white-label support/);
   assert.match(String(c.hero?.secondary_cta?.label || ''), /See services we can handle/);
   assert.equal(c.hero?.primary_cta?.href, '#partner-enquiry');

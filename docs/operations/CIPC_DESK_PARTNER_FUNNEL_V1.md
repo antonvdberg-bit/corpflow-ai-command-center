@@ -25,6 +25,7 @@ Until merge/deploy, those paths correctly return **404**. That is expected. Do n
 ## What this page is
 
 - Audience: owners/partners of South African accounting, tax and advisory firms.
+- Five-second hero: buyer (accounting / tax / advisory firms), problem (clients still need statutory administration; senior staff should not absorb it), offer (white-label / fractional capacity), next action (primary CTA). Service detail lives in the matrix, not the first viewport.
 - Primary CTA: **Discuss overflow / white-label support** (enquiry form).
 - Secondary CTA: **See services we can handle**.
 - Intake reuse: `POST /api/cipc-desk/email-intake` with subject cue `Partner overflow / white-label enquiry`.
