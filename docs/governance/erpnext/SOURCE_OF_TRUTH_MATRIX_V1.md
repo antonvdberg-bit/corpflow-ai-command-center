@@ -70,7 +70,7 @@ Do **not** treat CorpFlowAI-hosted ERPNext as `client_production`.
 | `lead_intake_pipeline` | Lead / prospect intake and daily kanban | `leads` + `qualification_json` | Lead/Opportunity only after qualification | **CorpFlowAI authoritative** | #701 |
 | `lead_opportunity_promotion` | Lead / Opportunity after a real sales process starts | `leads.id` | Lead then Opportunity | **Needs bridge** | #920 |
 | `qualified_customer_identity` | Customer / Contact / Address | `leads.id` when quotation-ready or won | Customer + Contact + Address | **Needs bridge** (first candidate) | #880 / #920 |
-| `item_pricing` | Item / Price List / Item Price | none as catalogue master | Item / Item Group / Price List / Item Price | **ERPNext authoritative** | #881 |
+| `item_pricing` | Item / Price List / Item Price | none as catalogue master | Item / Item Group / Price List / Item Price | **ERPNext authoritative** | #881 / #1207 |
 | `quotation_invoice` | Quotation / Sales Invoice | proposal packs / #714 drafts | Quotation / Sales Invoice | **Needs bridge** | #882 / #919 |
 | `payment_evidence` | Payment evidence vs GL clearance | `payment_records` / `payment_attempts` | Sales Invoice / Payment Entry | **Needs bridge** (blocked) | #920 / #714 |
 | `project_task_timesheet` | Project / Task / Timesheet | CMP notes / delivery records | Project / Task / Timesheet | **Needs bridge** | #920 |

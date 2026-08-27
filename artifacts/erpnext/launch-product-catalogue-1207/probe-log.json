@@ -1,0 +1,205 @@
+{
+  "issue": 1207,
+  "probed_at_utc": "2026-08-27T22:54:17Z",
+  "identity": "integrations@corpflowai.com",
+  "mutation": "forbidden",
+  "current_main_sha": "b731411734edb01b7dbb8d7e20247c5a7805983a",
+  "master_admin_key": "absent",
+  "postgres_written": false,
+  "live": {
+    "user": "integrations@corpflowai.com",
+    "items": {
+      "LR-SETUP-USD-150": {
+        "item_code": "LR-SETUP-USD-150",
+        "item_name": "AI Lead Rescue Setup (USD 150 launch pilot)",
+        "item_group": "CF Lead Rescue",
+        "stock_uom": "Nos",
+        "is_stock_item": 0,
+        "is_sales_item": 1,
+        "disabled": 0,
+        "has_variants": 0,
+        "standard_rate": 0,
+        "name": "LR-SETUP-USD-150"
+      },
+      "CF-RD-LEAD-RESCUE": {
+        "item_code": "CF-RD-LEAD-RESCUE",
+        "item_name": "AI Lead Rescue Sprint",
+        "item_group": "CF Lead Rescue",
+        "stock_uom": "Nos",
+        "is_stock_item": 0,
+        "is_sales_item": 1,
+        "disabled": 0,
+        "has_variants": 0,
+        "standard_rate": 35000,
+        "name": "CF-RD-LEAD-RESCUE"
+      },
+      "CF-RD-LANDING-RESCUE": {
+        "item_code": "CF-RD-LANDING-RESCUE",
+        "item_name": "Premium Landing Page Rescue",
+        "item_group": "CF Website Rescue",
+        "stock_uom": "Nos",
+        "is_stock_item": 0,
+        "is_sales_item": 1,
+        "disabled": 0,
+        "has_variants": 0,
+        "standard_rate": 45000,
+        "name": "CF-RD-LANDING-RESCUE"
+      },
+      "LR-REC-USD-99": {
+        "item_code": "LR-REC-USD-99",
+        "item_name": "AI Lead Rescue monthly monitoring",
+        "item_group": "CF Lead Rescue",
+        "stock_uom": "Month",
+        "is_stock_item": 0,
+        "is_sales_item": 1,
+        "disabled": 0,
+        "has_variants": 0,
+        "standard_rate": 0,
+        "name": "LR-REC-USD-99"
+      },
+      "CF-WR-REC-MUR-MAINT": {
+        "item_code": "CF-WR-REC-MUR-MAINT",
+        "item_name": "Website Rescue monthly maintenance",
+        "item_group": "CF Support",
+        "stock_uom": "Month",
+        "is_stock_item": 0,
+        "is_sales_item": 1,
+        "disabled": 0,
+        "has_variants": 0,
+        "standard_rate": 0,
+        "name": "CF-WR-REC-MUR-MAINT"
+      }
+    },
+    "price_lists": {
+      "Standard Selling": {
+        "currency": "MUR",
+        "selling": 1,
+        "buying": 0,
+        "enabled": 1
+      },
+      "Standard Selling USD": {
+        "currency": "USD",
+        "selling": 1,
+        "buying": 0,
+        "enabled": 1
+      }
+    },
+    "item_prices": [
+      {
+        "name": "10esgagbr0",
+        "item_code": "CF-RD-LANDING-RESCUE",
+        "price_list": "Standard Selling",
+        "currency": "MUR",
+        "price_list_rate": 45000,
+        "uom": "Nos",
+        "selling": 1
+      },
+      {
+        "name": "80e9c04627",
+        "item_code": "LR-SETUP-USD-150",
+        "price_list": "Standard Selling USD",
+        "currency": "USD",
+        "price_list_rate": 150,
+        "uom": "Nos",
+        "selling": 1
+      },
+      {
+        "name": "80empip48q",
+        "item_code": "CF-RD-LEAD-RESCUE",
+        "price_list": "Standard Selling",
+        "currency": "MUR",
+        "price_list_rate": 35000,
+        "uom": "Nos",
+        "selling": 1
+      },
+      {
+        "name": "90egvb653r",
+        "item_code": "LR-REC-USD-99",
+        "price_list": "Standard Selling USD",
+        "currency": "USD",
+        "price_list_rate": 99,
+        "uom": "Month",
+        "selling": 1
+      },
+      {
+        "name": "cinhp0o5r3",
+        "item_code": "CF-WS-CUSTOM-PROJECT",
+        "price_list": "Standard Selling",
+        "currency": "MUR",
+        "price_list_rate": 1000,
+        "uom": "Nos",
+        "selling": 1
+      }
+    ],
+    "quotations": {
+      "SAL-QTN-2026-00001": {
+        "name": "SAL-QTN-2026-00001",
+        "docstatus": 0,
+        "status": "Draft",
+        "currency": "USD",
+        "conversion_rate": 47.15,
+        "selling_price_list": "Standard Selling USD",
+        "grand_total": 249,
+        "party_name": "CF880 Synthetic Lead Rescue Ltd",
+        "item_codes": [
+          "LR-SETUP-USD-150",
+          "LR-REC-USD-99"
+        ],
+        "rates": [
+          150,
+          99
+        ]
+      },
+      "SAL-QTN-2026-00002": {
+        "name": "SAL-QTN-2026-00002",
+        "docstatus": 0,
+        "status": "Draft",
+        "currency": "MUR",
+        "conversion_rate": 1,
+        "selling_price_list": "Standard Selling",
+        "grand_total": 45000,
+        "party_name": "CF880 Synthetic Lead Rescue Ltd",
+        "item_codes": [
+          "CF-RD-LANDING-RESCUE"
+        ],
+        "rates": [
+          45000
+        ]
+      },
+      "SAL-QTN-2026-00003": {
+        "name": "SAL-QTN-2026-00003",
+        "docstatus": 0,
+        "status": "Draft",
+        "currency": "MUR",
+        "conversion_rate": 1,
+        "selling_price_list": "Standard Selling",
+        "grand_total": 45000,
+        "party_name": "CF880 Synthetic Website Rescue Ltd",
+        "item_codes": [
+          "CF-RD-LANDING-RESCUE"
+        ],
+        "rates": [
+          45000
+        ]
+      },
+      "SAL-QTN-2026-00005": {
+        "name": "SAL-QTN-2026-00005",
+        "docstatus": 0,
+        "status": "Draft",
+        "currency": "MUR",
+        "conversion_rate": 1,
+        "selling_price_list": "Standard Selling",
+        "grand_total": 45000,
+        "party_name": "CF1018 Synthetic Sales Lifecycle Ltd",
+        "item_codes": [
+          "CF-RD-LANDING-RESCUE"
+        ],
+        "rates": [
+          45000
+        ]
+      }
+    }
+  },
+  "verdict": "ERPNext LAUNCH-PRODUCT CATALOGUE READY FOR QUOTATION",
+  "blockers": []
+}

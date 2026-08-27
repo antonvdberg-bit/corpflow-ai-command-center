@@ -40,6 +40,7 @@ What we chose (one paragraph).
 
 | Date | Topic | File |
 |------|--------|------|
+| 2026-08-27 | ERPNext launch-product catalogue ready for Lead Rescue / Website Rescue quotations (#1207; GET-only reuse of #881/#882 Item Price rows) | `20260827-erpnext-launch-product-catalogue-quotation-readiness.md` (`JE-2026-08-27-4`) |
 | 2026-08-27 | ERPNext onboarding C — Selling / Quote-to-Cash safe slice landed on current main (#1166; reuses #1056 / PR #1101; retires stale #1128) | `20260826-erpnext-selling-quote-to-cash.md` (`JE-2026-08-27-3`) |
 | 2026-08-27 | ERPNext onboarding E — Projects / Support proof landed on current main (#1134; reuses #1097 / PR #1102) | `20260826-erpnext-projects-support-ops.md` (`JE-2026-08-27-2`) |
 | 2026-08-27 | Temporal real-production prove-or-remove pilot — current-main supervisor, 72-hour real-work activation prepared (#1130) | `20260827-temporal-real-production-pilot.md` |

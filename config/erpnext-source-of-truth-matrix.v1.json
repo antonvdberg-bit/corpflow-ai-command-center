@@ -69,7 +69,7 @@
       "corpflow_store": "none as catalogue master; marketing copy may mention SKUs",
       "erpnext_home": "Item / Item Group / Price List / Item Price",
       "classification": "erpnext_authoritative",
-      "evidence": "#881 catalogue READY — five service Items; MUR + USD selling lists; four Item Prices"
+      "evidence": "#881 catalogue READY — five service Items; MUR + USD selling lists; four Item Prices; #1207 launch-product quotation GET-confirmed"
     },
     {
       "id": "quotation_invoice",

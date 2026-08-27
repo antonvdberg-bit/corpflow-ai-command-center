@@ -1,0 +1,179 @@
+{
+  "schema": "corpflow.erpnext.launch_product_catalogue.v1",
+  "version": "v1",
+  "issue": 1207,
+  "parents": [881, 882, 1056, 1166, 714],
+  "environment": "corpflow_test",
+  "anchor": "ERPNEXT_LAUNCH_PRODUCT_CATALOGUE_QUOTATION_READINESS_V1",
+  "current_main_sha": "b731411734edb01b7dbb8d7e20247c5a7805983a",
+  "verdict": "ERPNext LAUNCH-PRODUCT CATALOGUE READY FOR QUOTATION",
+  "description": "GET/read-only acceptance that the standard ERPNext Item / Price List / Item Price catalogue can support quotations for Lead Rescue and Website Rescue without a second product master or fabricated pricing.",
+  "no_erpnext_write": true,
+  "no_second_catalogue": true,
+  "no_invented_prices": true,
+  "no_invented_exchange_rates": true,
+  "company": "CorpFlowAI LTD",
+  "identity": "integrations@corpflowai.com",
+  "reuse": {
+    "product_catalogue": "config/erpnext-product-catalogue.v1.json",
+    "commercial_documents": "config/erpnext-commercial-documents.v1.json",
+    "selling_quote_to_cash": "config/erpnext-selling-quote-to-cash.v1.json",
+    "frappe_client": "lib/erpnext/frappe-rest-client.js"
+  },
+  "price_lists": [
+    {
+      "name": "Standard Selling",
+      "currency": "MUR",
+      "selling": 1,
+      "buying": 0,
+      "enabled": 1
+    },
+    {
+      "name": "Standard Selling USD",
+      "currency": "USD",
+      "selling": 1,
+      "buying": 0,
+      "enabled": 1
+    }
+  ],
+  "launch_products": [
+    {
+      "family": "lead_rescue",
+      "public_offer": true,
+      "item_code": "LR-SETUP-USD-150",
+      "item_name": "AI Lead Rescue Setup (USD 150 launch pilot)",
+      "item_group": "CF Lead Rescue",
+      "stock_uom": "Nos",
+      "price_list": "Standard Selling USD",
+      "currency": "USD",
+      "rate": 150,
+      "item_price_name": "80e9c04627",
+      "quotation_proof": "SAL-QTN-2026-00001"
+    },
+    {
+      "family": "lead_rescue",
+      "public_offer": false,
+      "item_code": "CF-RD-LEAD-RESCUE",
+      "item_name": "AI Lead Rescue Sprint",
+      "item_group": "CF Lead Rescue",
+      "stock_uom": "Nos",
+      "price_list": "Standard Selling",
+      "currency": "MUR",
+      "rate": 35000,
+      "item_price_name": "80empip48q",
+      "quotation_proof": null,
+      "note": "MUR sprint master already configured. Distinct from the USD 150 launch pilot. No MUR clone of LR-SETUP-USD-150."
+    },
+    {
+      "family": "website_rescue",
+      "public_offer": true,
+      "item_code": "CF-RD-LANDING-RESCUE",
+      "item_name": "Premium Landing Page Rescue",
+      "item_group": "CF Website Rescue",
+      "stock_uom": "Nos",
+      "price_list": "Standard Selling",
+      "currency": "MUR",
+      "rate": 45000,
+      "item_price_name": "10esgagbr0",
+      "quotation_proof": "SAL-QTN-2026-00005"
+    }
+  ],
+  "supporting_prices_already_authoritative": [
+    {
+      "item_code": "LR-REC-USD-99",
+      "item_name": "AI Lead Rescue monthly monitoring",
+      "price_list": "Standard Selling USD",
+      "currency": "USD",
+      "rate": 99,
+      "uom": "Month",
+      "item_price_name": "90egvb653r",
+      "quotation_proof": "SAL-QTN-2026-00001"
+    }
+  ],
+  "not_list_priced_and_not_a_blocker": [
+    {
+      "item_code": "CF-WR-REC-MUR-MAINT",
+      "reason": "Operator-quoted Website Rescue maintenance. No Item Price row until Anton sets a rate. Setup quotations do not require it."
+    }
+  ],
+  "reserved_not_inserted": ["CF-WR-SETUP-MUR-T2", "CF-WR-SETUP-MUR-T3", "CF-RD-REPUTATION-RECOVERY"],
+  "quotation_linkage": {
+    "catalogue_helper": "lib/erpnext/product-catalogue.js",
+    "selling_path": "lib/erpnext/selling-quote-to-cash.js",
+    "selling_item_code": "CF-RD-LANDING-RESCUE",
+    "selling_price_list": "Standard Selling",
+    "payload_sends_rate": false,
+    "rate_source": "ERPNext Item Price on the document Price List",
+    "search": "Quotation list by party_name + currency; idempotency key in title and customer_notes; replay UPDATE not CREATE"
+  },
+  "live_quotations": [
+    {
+      "name": "SAL-QTN-2026-00001",
+      "currency": "USD",
+      "selling_price_list": "Standard Selling USD",
+      "conversion_rate": 47.15,
+      "grand_total": 249,
+      "item_codes": ["LR-SETUP-USD-150", "LR-REC-USD-99"],
+      "rates": [150, 99],
+      "party_name": "CF880 Synthetic Lead Rescue Ltd",
+      "docstatus": 0,
+      "source": 882
+    },
+    {
+      "name": "SAL-QTN-2026-00002",
+      "currency": "MUR",
+      "selling_price_list": "Standard Selling",
+      "conversion_rate": 1,
+      "grand_total": 45000,
+      "item_codes": ["CF-RD-LANDING-RESCUE"],
+      "rates": [45000],
+      "party_name": "CF880 Synthetic Lead Rescue Ltd",
+      "docstatus": 0,
+      "source": 881,
+      "note": "Misassigned #881 proof customer; still draft. Canonical Website Rescue synthetic is SAL-QTN-2026-00003."
+    },
+    {
+      "name": "SAL-QTN-2026-00003",
+      "currency": "MUR",
+      "selling_price_list": "Standard Selling",
+      "conversion_rate": 1,
+      "grand_total": 45000,
+      "item_codes": ["CF-RD-LANDING-RESCUE"],
+      "rates": [45000],
+      "party_name": "CF880 Synthetic Website Rescue Ltd",
+      "docstatus": 0,
+      "source": 882
+    },
+    {
+      "name": "SAL-QTN-2026-00005",
+      "currency": "MUR",
+      "selling_price_list": "Standard Selling",
+      "conversion_rate": 1,
+      "grand_total": 45000,
+      "item_codes": ["CF-RD-LANDING-RESCUE"],
+      "rates": [45000],
+      "party_name": "CF1018 Synthetic Sales Lifecycle Ltd",
+      "docstatus": 0,
+      "source": "1056/1166"
+    }
+  ],
+  "authoritative_usd_mur_exchange": {
+    "name": "2026-08-13-USD-MUR-Selling-Buying",
+    "from_currency": "USD",
+    "to_currency": "MUR",
+    "exchange_rate": 47.15,
+    "source": "Existing Anton-supplied Currency Exchange row. Not invented by #1207."
+  },
+  "non_actions": [
+    "erpnext_item_create_update",
+    "erpnext_item_price_create_update",
+    "price_approval_change",
+    "exchange_rate_mutation",
+    "accounting_tax_mutation",
+    "schema_data_mutation",
+    "env_secrets_change",
+    "external_send",
+    "payment",
+    "second_catalogue"
+  ]
+}
