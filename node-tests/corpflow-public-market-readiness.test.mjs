@@ -184,11 +184,13 @@ describe('CorpFlow public market readiness — metadata', () => {
 });
 
 describe('CorpFlow public market readiness — trust links and mobile nav', () => {
-  it('public footer links privacy and terms', () => {
+  it('public footer links privacy, terms, and named launch products', () => {
     const footer = read('components/public/CorpFlowPublicFooter.js');
     assert.ok(footer.includes('/privacy'));
     assert.ok(footer.includes('/terms'));
     assert.ok(footer.includes('/contact'));
+    assert.ok(footer.includes('CORPflow_PUBLIC_LAUNCH_PRODUCTS'));
+    assert.ok(!footer.includes('listPublicOffers'));
   });
 
   it('header has mobile menu control', () => {

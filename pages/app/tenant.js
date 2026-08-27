@@ -114,7 +114,9 @@ export default function AppTenantPage() {
       }
       const rows = Array.isArray(listJson.requests) ? listJson.requests : [];
       setList(rows);
+      const qid = String(Array.isArray(router.query.id) ? router.query.id[0] : router.query.id || '').trim();
       setRequestId((prev) => {
+        if (qid && rows.some((r) => String(r.request_id) === qid)) return qid;
         if (rows.some((r) => String(r.request_id) === prev)) return prev;
         return String(rows[0]?.request_id || CANONICAL_REQUEST_ID);
       });
@@ -126,7 +128,7 @@ export default function AppTenantPage() {
       setBusy(false);
       setInitialLoad(false);
     }
-  }, [proofWanted]);
+  }, [proofWanted, router.query.id]);
 
   const loadDetail = useCallback(async () => {
     if (menu !== 'requests_progress') {

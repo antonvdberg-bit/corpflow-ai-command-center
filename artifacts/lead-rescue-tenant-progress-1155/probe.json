@@ -1,0 +1,35 @@
+{
+  "issue": 1155,
+  "route": "/app/tenant",
+  "request_id": "syn_lr_delivery_corpflowai_001",
+  "delivery_record_id": "synthetic-lr-client-review",
+  "tenant_id": "corpflowai",
+  "expected": {
+    "list_ok": true,
+    "service_name": "Lead Rescue",
+    "high_level_stage": "client_review",
+    "preview_exposed": true,
+    "cross_tenant": 404,
+    "staff_denied": true,
+    "review_ok": true,
+    "change_href_canonical": true
+  },
+  "actual": {
+    "list_ok": true,
+    "service_name": "Lead Rescue",
+    "high_level_stage": "client_review",
+    "preview_exposed": true,
+    "cross_tenant": 404,
+    "staff_denied": true,
+    "review_ok": true,
+    "change_href_canonical": true,
+    "leak": false
+  },
+  "staff_status": {
+    "delivery": 403,
+    "prospects": 403,
+    "commercial": 403
+  },
+  "core_latest_decision": "approve",
+  "verdict": "LEAD RESCUE TENANT DELIVERY PROGRESS USABLE"
+}

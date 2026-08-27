@@ -12,6 +12,7 @@ import {
   classifyDueDate,
   computeProspectExceptionSignals,
   detectProspectProduct,
+  isLabelledLeadRescueEnquiry,
   isCanonicalStageTransitionAllowed,
   leadRowToProspectViewModel,
   mapCanonicalStageToNativeStatus,
@@ -243,6 +244,32 @@ describe('prospect-operations-view-model — lead adapters', () => {
       RAPID_DELIVERY_PRODUCT,
     );
     assert.equal(detectProspectProduct({}), 'unknown');
+  });
+
+  it('treats labelled Lead Rescue market-gateway enquiry as Lead Rescue, not Website Rescue', () => {
+    const hybrid = {
+      intake_meta: {
+        product: RAPID_DELIVERY_PRODUCT,
+        offer_slug: 'ai-lead-rescue',
+        service_interest: 'lead_rescue',
+        lead_rescue_context: true,
+      },
+      rapid_delivery_operator: { status: 'new_intake' },
+    };
+    assert.equal(isLabelledLeadRescueEnquiry(hybrid), true);
+    assert.equal(detectProspectProduct(hybrid), AI_LEAD_RESCUE_PRODUCT);
+    assert.equal(
+      detectProspectProduct({
+        intake_meta: { product: RAPID_DELIVERY_PRODUCT, offer_slug: 'premium-landing-page-rescue' },
+      }),
+      RAPID_DELIVERY_PRODUCT,
+    );
+    assert.equal(
+      isLabelledLeadRescueEnquiry({
+        intake_meta: { product: RAPID_DELIVERY_PRODUCT, service_path: 'client-lead-service' },
+      }),
+      false,
+    );
   });
 
   it('projects Lead Rescue row into shared view model', () => {
