@@ -14,6 +14,7 @@ import {
   TENANT_WORKSPACE_LABEL,
   TODAY_MY_WORK_PATH,
   WORKSPACE_SURFACE_MATRIX,
+  appendProofQuery,
   canAccessOperatingWorkspace,
   classifyWorkspaceSurface,
   isActionQueuePath,
@@ -243,6 +244,18 @@ describe('workspace-context — action overview', () => {
     assert.equal(navIncludesOperatingOverview(TENANT_NAV_ITEMS), false);
     const overview = CORE_NAV_ITEMS.find((item) => item.id === 'overview');
     assert.equal(overview?.href, '/app/core');
+  });
+});
+
+describe('workspace-context — proof query continuity #1176', () => {
+  it('appends proof=1 only on Operating Workspace /app routes', () => {
+    assert.equal(appendProofQuery('/app/core', true), '/app/core?proof=1');
+    assert.equal(appendProofQuery('/app/core?view=requests', true), '/app/core?view=requests&proof=1');
+    assert.equal(appendProofQuery('/app/prospects/syn-772-lr-ada', true), '/app/prospects/syn-772-lr-ada?proof=1');
+    assert.equal(appendProofQuery('/app/commercial?proof=1', true), '/app/commercial?proof=1');
+    assert.equal(appendProofQuery('/app/delivery', false), '/app/delivery');
+    assert.equal(appendProofQuery('/change', true), '/change');
+    assert.equal(appendProofQuery('/admin/company-master', true), '/admin/company-master');
   });
 });
 

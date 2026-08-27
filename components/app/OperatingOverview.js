@@ -1,3 +1,5 @@
+import { appendProofQuery } from '../../lib/app/workspace-context.js';
+
 const OVERVIEW_LIST_LIMIT = 5;
 
 /**
@@ -5,9 +7,7 @@ const OVERVIEW_LIST_LIMIT = 5;
  * @param {boolean} [proofWanted]
  */
 function withProof(href, proofWanted) {
-  const raw = href == null ? '' : String(href);
-  if (!raw || !proofWanted) return raw;
-  return `${raw}${raw.includes('?') ? '&' : '?'}proof=1`;
+  return appendProofQuery(href, proofWanted);
 }
 
 const COUNT_CARDS = Object.freeze([

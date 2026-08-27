@@ -183,8 +183,9 @@ export default function AppTodayPage() {
       <CoreMenu
         active="my_work"
         disabled={busy}
+        proofWanted={proofWanted}
         onSelect={() => {
-          router.push('/app/core');
+          router.push(proofWanted ? '/app/core?proof=1' : '/app/core');
         }}
       />
       <p className="cf-app-muted" style={{ marginTop: -8, marginBottom: 16 }} data-testid="today-my-work-meta">

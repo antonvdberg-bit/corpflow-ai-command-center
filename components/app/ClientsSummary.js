@@ -1,3 +1,5 @@
+import { appendProofQuery } from '../../lib/app/workspace-context.js';
+
 /**
  * Operating Workspace — Clients summary (#999).
  * Read-only Company Master projection. No second client model. No live send.
@@ -211,19 +213,19 @@ export function ClientSummaryPanel({ client, proofWanted }) {
         <p className="cf-app-muted">No related prospect records matched this Company Master identity.</p>
       )}
       <div className="cf-app-actions">
-        <a className="cf-app-btn" href={proofWanted ? '/app/commercial?proof=1' : '/app/commercial'}>
+        <a className="cf-app-btn" href={appendProofQuery('/app/commercial', proofWanted)}>
           Commercial
         </a>
         <a className="cf-app-btn" href={String(commercial.existing_identity_path || '/admin/company-master')}>
           Company Master
         </a>
-        <a className="cf-app-btn" href="/app/prospects">
+        <a className="cf-app-btn" href={appendProofQuery('/app/prospects', proofWanted)}>
           Prospects
         </a>
-        <a className="cf-app-btn" href="/app/pipeline">
+        <a className="cf-app-btn" href={appendProofQuery('/app/pipeline', proofWanted)}>
           Pipeline
         </a>
-        <a className="cf-app-btn" href={String(delivery.existing_delivery_path || '/app/delivery')}>
+        <a className="cf-app-btn" href={appendProofQuery(delivery.existing_delivery_path || '/app/delivery', proofWanted)}>
           Delivery
         </a>
         <a className="cf-app-btn" href={String(delivery.tenant_change_path || '/change')}>

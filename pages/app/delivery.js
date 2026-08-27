@@ -188,8 +188,9 @@ export default function AppDeliveryPage() {
       <CoreMenu
         active="delivery"
         disabled={busy}
+        proofWanted={proofWanted}
         onSelect={() => {
-          router.push('/app/core');
+          router.push(proofWanted ? '/app/core?proof=1' : '/app/core');
         }}
       />
       <p className="cf-app-muted" style={{ marginTop: -8, marginBottom: 16 }} data-testid="delivery-workspace-meta">

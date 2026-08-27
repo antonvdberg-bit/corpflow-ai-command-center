@@ -3,6 +3,7 @@ import {
   DELIVERY_EXCEPTION_LABELS,
   DELIVERY_PATH,
 } from '../../lib/app/delivery-summary-constants.js';
+import { appendProofQuery } from '../../lib/app/workspace-context.js';
 
 /**
  * Operating Workspace Delivery summary (#1005).
@@ -156,7 +157,7 @@ export default function DeliverySummary({
                             <a
                               key={`${row.id}-${link.href}-${link.label}`}
                               className="cf-app-btn"
-                              href={String(link.href)}
+                              href={appendProofQuery(String(link.href), proofWanted)}
                               data-testid={`delivery-link-${link.kind || 'safe'}`}
                             >
                               {String(link.label)}

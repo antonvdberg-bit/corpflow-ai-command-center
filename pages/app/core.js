@@ -312,6 +312,7 @@ export default function AppCorePage() {
       <CoreMenu
         active={menuActive}
         disabled={busy}
+        proofWanted={proofWanted}
         onSelect={(id) => {
           setMenu(id);
         }}
