@@ -8,6 +8,8 @@
 
 **#882 synthetic proof (hosted test, do not send):** Lead Rescue USD quotation `SAL-QTN-2026-00001` + USD draft invoice `ACC-SINV-2026-00002` (conversion_rate 47.15); Website Rescue MUR quotation `SAL-QTN-2026-00003` + MUR draft invoice `ACC-SINV-2026-00001`. Write-up: `docs/erpnext/ERPNEXT_COMMERCIAL_DOCUMENTS_V1.md`.
 
+**#1207 launch-product quotation readiness (hosted test, GET-only):** Lead Rescue `LR-SETUP-USD-150` / `CF-RD-LEAD-RESCUE` and Website Rescue `CF-RD-LANDING-RESCUE` quote from existing Item Price rows. Write-up: `docs/erpnext/ERPNEXT_LAUNCH_PRODUCT_CATALOGUE_QUOTATION_READINESS_V1.md`.
+
 **Single source of truth rule:**
 
 - **ERPNext** = commercial system of record (Customer, Contact, Address, Quotation, SI, PE, Project, recon)
