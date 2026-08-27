@@ -61,6 +61,7 @@ An Administrator / System Manager can still alter ERPNext application records an
 | C-CH-04 | No live email / WhatsApp / SMS / outreach from this environment | Cursor | **PROVEN** (non-action) | Do not enable Notification / Workflow for the programme Project |
 | C-CH-05 | Frappe Version / form timeline on the internal Project | Cursor | **NOT PROVEN** | `VERSION_TRAIL_UNREADABLE`: Version + Comment HTTP 403; getdoc timeline empty. Note stamp on `PROJ-0002` is readable. Do not enable site-wide tracking. |
 | C-CH-06 | Protected operating-doctrine paths unchanged by this packet | Cursor | **PROVEN** | `docs/governance/erpnext/*` registers are not in `config/protected-operating-doctrine.v1.json` |
+| C-BNK-01 | Manual/import-first bank recon; no credentials or live feed in repo/ERPNext | Anton / accountant | **PROVEN** (gate) | #1139/#1220: Bank Account rows = 0; Payment Entry = 0; Bank Transaction = 0; bank-feed **NOT REQUIRED**. Posting waits on #1055. |
 
 ---
 
