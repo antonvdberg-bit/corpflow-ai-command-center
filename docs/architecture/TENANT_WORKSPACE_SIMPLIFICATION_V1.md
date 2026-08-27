@@ -14,7 +14,7 @@ A synthetic tenant user lands in a tenant-only workspace:
 
 - Chrome shows **Tenant Workspace** plus the bound tenant name and role.
 - Nav is **Requests & Progress** plus **Service & change** (`/change`).
-- There is no **Choose workspace** chip and no Core / Operating Workspace / cross-client controls.
+- There is no **Choose workspace** chip, no staff chooser on tenant sign-in, no proof-harness advertising, and no Core / Operating Workspace / cross-client controls.
 - A live Tenant session that opens `/app` continues at `/app/tenant` instead of the staff chooser.
 - Staff still open `/app` deliberately and sign into Tenant with tenant credentials (no Core bypass).
 - Operating Workspace routes stay fail-closed (403) for tenant sessions.
@@ -35,7 +35,7 @@ Machine copy: `TENANT_WORKSPACE_ROUTE_MATRIX` in `lib/app/tenant-workspace.js`.
 | nav: Documents / Reports / Support | **RETIRED** | #1073; placeholders |
 | chrome: Choose workspace | **RETIRED** | Hidden on Tenant chrome |
 | `/app` | **REDIRECT** | Tenant session → `/app/tenant`; staff still use chooser |
-| `/app/core`, `/app/today`, `/app/prospects`, `/app/workbench`, `/app/pipeline`, `/app/queue`, `/app/clients` | **STAFF_ONLY_FAIL_CLOSED** | Tenant session 403 |
+| `/app/core`, `/app/today`, `/app/prospects`, `/app/workbench`, `/app/pipeline`, `/app/queue`, `/app/clients`, `/app/commercial`, `/app/delivery` | **STAFF_ONLY_FAIL_CLOSED** | Tenant session 403 or unrouted |
 
 ## 2. Explicit non-actions
 
@@ -51,6 +51,7 @@ Machine copy: `TENANT_WORKSPACE_ROUTE_MATRIX` in `lib/app/tenant-workspace.js`.
 ```bash
 node --test \
   node-tests/tenant-workspace-simplification.test.mjs \
+  node-tests/tenant-client-journey-acceptance.test.mjs \
   node-tests/tenant-journey-continuity.test.mjs \
   node-tests/workspace-context.test.mjs \
   node-tests/app-slice1-handlers.test.mjs \

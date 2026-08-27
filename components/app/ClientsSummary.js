@@ -211,6 +211,9 @@ export function ClientSummaryPanel({ client, proofWanted }) {
         <p className="cf-app-muted">No related prospect records matched this Company Master identity.</p>
       )}
       <div className="cf-app-actions">
+        <a className="cf-app-btn" href={proofWanted ? '/app/commercial?proof=1' : '/app/commercial'}>
+          Commercial
+        </a>
         <a className="cf-app-btn" href={String(commercial.existing_identity_path || '/admin/company-master')}>
           Company Master
         </a>
@@ -220,8 +223,11 @@ export function ClientSummaryPanel({ client, proofWanted }) {
         <a className="cf-app-btn" href="/app/pipeline">
           Pipeline
         </a>
-        <a className="cf-app-btn" href={String(delivery.existing_delivery_path || '/change')}>
-          Delivery / Change
+        <a className="cf-app-btn" href={String(delivery.existing_delivery_path || '/app/delivery')}>
+          Delivery
+        </a>
+        <a className="cf-app-btn" href={String(delivery.tenant_change_path || '/change')}>
+          Change
         </a>
       </div>
       <p className="cf-app-muted" data-testid="clients-later-slices">
