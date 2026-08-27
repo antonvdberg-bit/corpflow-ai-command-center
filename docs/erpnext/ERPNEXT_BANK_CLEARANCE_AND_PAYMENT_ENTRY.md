@@ -6,6 +6,8 @@
 
 <!-- ERPNEXT_BANK_CLEARANCE_AND_PAYMENT_ENTRY_V1 -->
 
+**Current onboarding packet F (#1139):** payment-evidence vs later Payment Entry split is `docs/runbooks/ERPNEXT_BANK_RECONCILIATION_OPERATOR_RUNBOOK_V1.md`. This file remains the sandbox clearance-rule history.
+
 **NO IMPLEMENTATION AUTHORIZED** for production posting. Bank clearance **SHOULD REMAIN MANUAL** (NA-006).
 
 ---

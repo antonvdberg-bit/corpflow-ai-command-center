@@ -201,3 +201,25 @@ Retention: do not delete a decision or evidence row merely because it was supers
 | ERPNext Project / Task | Programme Project `PROJ-0002` / Phase 6 `TASK-2026-00032` |
 | Verification evidence | `node --test node-tests/erpnext-sales-lifecycle-bridge.test.mjs` plus live apply replay |
 | Supersedes / superseded-by | Implements matrix `lead_opportunity_promotion`. Does **not** supersede Version 2, WP1, #701, or the #918 matrix. |
+
+---
+
+## ERP-D-2026-08-27-1 — #1139 bank / reconciliation readiness (proposed)
+
+| Field | Record |
+|-------|--------|
+| Decision ID | `ERP-D-2026-08-27-1` |
+| Date/time | 2026-08-27 |
+| Status | **Proposed** (this packet; Anton merge remains the Git approval). Does **not** approve Bank Account configuration, Payment Entry submit, bank-feed connection, or opening balances. |
+| Question / requirement | What is the minimum standard-ERPNext bank/reconciliation operating model for onboarding while #1055 CoA is pending? |
+| Executive intent / source | [#1139](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1139); controller [#1054](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1054) packet F |
+| Options considered | Live bank-feed now; invent bank ledgers before the accountant; manual/import-first mapping only |
+| Evidence reviewed | GET-only hosted-test as `integrations@corpflowai.com`; #1055 template CoA / 0 Bank Account rows; #551/#714 rail; Phase C synthetic recon arithmetic; accountant pack §8 |
+| Decision | Land [`ERPNEXT_BANK_RECONCILIATION_READINESS_V1.md`](../../erpnext/ERPNEXT_BANK_RECONCILIATION_READINESS_V1.md). Manual/import-first. Bank-feed **NOT REQUIRED**. Payment evidence never authorizes Payment Entry. Synthetic offline proof only. |
+| Rationale | Packet F is allowed to run while CoA is pending if it stops before real bank/accounting truth. |
+| Risks / tradeoffs | Operators might treat `financially_approved` as cash clearance. Mitigated by the segregation rule and runbook. |
+| Approver | Pending Anton merge of the #1139 PR |
+| GitHub implementation | `lib/erpnext/bank-reconciliation-readiness.js` + GET-only audit script |
+| ERPNext Project / Task | Programme Project `PROJ-0002` / Phase 5 `TASK-2026-00031` |
+| Verification evidence | `node --test node-tests/erpnext-bank-reconciliation-readiness.test.mjs` plus GET-only probe artifact |
+| Supersedes / superseded-by | Does **not** supersede Version 2, #918 `payment_evidence` blocked bridge, or #1055. |

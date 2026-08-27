@@ -145,7 +145,7 @@ Every `needs_bridge` row has: CorpFlowAI key, ERPNext DocType/key, direction, id
 | Idempotency | Do **not** create SI/PE from PaymentRecord in this packet. |
 | Conflict | ERPNext GL after submit is cash/AR truth. PaymentRecord is app fulfilment only. |
 | Retry / failure | **Blocked.** Do not invent a Payment Entry. |
-| Audit | Hosted-test payment not submitted. #714 remains the financial approval-to-build gate. |
+| Audit | Hosted-test payment not submitted. #714 remains the financial approval-to-build gate. #1139 maps the later Payment Entry → import → recon path without unblocking posting. |
 
 ### 3.5 `project_task_timesheet`
 

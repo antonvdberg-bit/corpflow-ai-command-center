@@ -101,7 +101,7 @@
       "idempotency": "Do not create Sales Invoice or Payment Entry from PaymentRecord in this packet.",
       "conflict_rule": "ERPNext GL after submit is cash/AR truth. PaymentRecord is app fulfilment status only. Never treat MPGS attempt rows as ledger.",
       "retry_failure": "Blocked. Retry is not authorized. Record the blocker; do not invent a Payment Entry.",
-      "audit_evidence": "#920 bridge row payment_record; hosted-test payment not submitted. #714 remains the financial approval-to-build gate.",
+      "audit_evidence": "#920 bridge row payment_record; hosted-test payment not submitted. #714 remains the financial approval-to-build gate. #1139 maps later PE → import → recon without unblocking posting.",
       "sync_mode": "blocked_until_financial_rail",
       "evidence": "PaymentRecord schema; #882 drafts only"
     },

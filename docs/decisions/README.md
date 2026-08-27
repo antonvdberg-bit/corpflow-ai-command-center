@@ -40,6 +40,7 @@ What we chose (one paragraph).
 
 | Date | Topic | File |
 |------|--------|------|
+| 2026-08-27 | ERPNext onboarding F — bank/reconciliation manual/import-first; bank-feed NOT REQUIRED (#1139) | `20260827-erpnext-bank-reconciliation-readiness.md` |
 | 2026-08-20 | ERPNext WP2 Lead → Opportunity → Customer lifecycle bridge — synthetic search-before-create (#1018) | `20260820-erpnext-sales-lifecycle-bridge.md` |
 | 2026-08-19 | ERPNext WP1 Customer bridge — synthetic search-before-create (#1009) | `20260819-erpnext-customer-bridge.md` |
 | 2026-08-16 | ERPNext business-critical due diligence — platform APPROVED WITH CONDITIONS; irreplaceable trust still gated on #956 (#959) | `docs/governance/erpnext/ERPNEXT_BUSINESS_CRITICAL_DUE_DILIGENCE_V1.md` (`JE-2026-08-16-1`) |

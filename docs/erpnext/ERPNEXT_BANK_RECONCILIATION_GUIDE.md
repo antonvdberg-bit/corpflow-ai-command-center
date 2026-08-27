@@ -6,6 +6,8 @@
 
 <!-- ERPNEXT_BANK_RECONCILIATION_GUIDE_V1 -->
 
+**Current onboarding packet F (#1139):** the hosted-test operating model is `docs/erpnext/ERPNEXT_BANK_RECONCILIATION_READINESS_V1.md`. This sandbox guide remains Phase C history. Do not copy sandbox bank ledger names onto the vendor-hosted site.
+
 **NO IMPLEMENTATION AUTHORIZED** for production. No bank API integration — CSV import only.
 
 ---
