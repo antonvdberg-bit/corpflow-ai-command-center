@@ -13,6 +13,7 @@ import {
   PILOT_EXACT_PROTECTED_ACTION,
   PILOT_LIVE_ACTIVATION_APPROVAL_MARKER,
   evaluateLiveActivationBoundary,
+  resolveFactoryControlPlaneWipMaxSlots,
   resolveLiveTemporalPilotGate,
 } from '../../lib/server/factory-temporal-pilot.js';
 
@@ -54,7 +55,9 @@ process.stdout.write(
       boundary,
       spine: FACTORY_CONTROL_PLANE_V1.spine,
       cursorWakePath: FACTORY_CONTROL_PLANE_V1.cursorWakePath,
-      wipMaxSlots: FACTORY_CONTROL_PLANE_V1.wipMaxSlots,
+      wipMaxSlots: resolveFactoryControlPlaneWipMaxSlots({ env: process.env }),
+      wipDefaultMaxSlots: FACTORY_CONTROL_PLANE_V1.wipMaxSlots,
+      wipPilotMaxSlots: FACTORY_CONTROL_PLANE_V1.wipPilotMaxSlots,
     },
     null,
     2,

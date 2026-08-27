@@ -239,6 +239,8 @@ async function main() {
     claimedIssues,
     trackedIssues,
     preferIssueNumbers,
+    wakeReason: wakePlan.wakeReason,
+    activationLane: wakePlan.wakeReason,
   });
 
   const resolvedTarget = resolveEffectiveActivationTarget({

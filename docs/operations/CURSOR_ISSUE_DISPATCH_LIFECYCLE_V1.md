@@ -10,7 +10,7 @@ The protected live-switch and rollback sequence is
 `docs/runbooks/CURSOR_CLOUD_AGENTS_V1_CUTOVER_1062.md`.
 **Owner:** Anton (policy); Cursor (implementation).
 **Created:** 2026-07-28.
-**Updated:** 2026-08-25 (#1059 follow-up — bounded native-wake receipt).
+**Updated:** 2026-08-27 (#1145 Temporal pilot 3+2 Cursor ceiling).
 **Implements:** Operator urgent change — Cursor must discover/claim `dispatch:cursor-ready` issues with strict segregation.
 **Anchor sentinel:** `<!-- CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1 -->`
 
@@ -76,12 +76,12 @@ The temporary three-slot catch-up capacity is **active execution capacity**, not
 
 | Class | Consumes a factory slot? |
 |-------|--------------------------|
-| **Execution WIP** — current-generation Cursor implementation still running | **Yes** (temporary catch-up cap **3**) |
+| **Execution WIP** — current-generation Cursor implementation still running | **Yes** (temporary catch-up cap **3**; **5** with 3+2 isolation only while `CORPFLOW_TEMPORAL_PILOT=active`, see #1145) |
 | **Review/decision inventory** — merge-ready PRs, `dispatch:operator-review`, protected-approval waits, external/scheduled waits | **No** |
 
 | Scope | Limit |
 |-------|-------|
-| Verified **active execution** Cursor runs (current-generation implementation still running) | **3** (temporary catch-up) |
+| Verified **active execution** Cursor runs (current-generation implementation still running) | **3** (temporary catch-up). While the Temporal real-production pilot is active (`CORPFLOW_TEMPORAL_PILOT=active`), the effective ceiling is **5**: **3** reserved for ordinary PRODUCT / CLIENT / REVENUE / ERP wakes and **+2** Temporal-supervised extras. Unsetting the variable returns the ceiling to **3**. Temporal-supervised wakes (`wake_reason=temporal_supervisory`) cannot consume the 3-lane production reserve. |
 | Review/decision inventory (merge-ready / operator-review / approval wait) | **uncapped by execution WIP** |
 | Active issues per tenant | **1** |
 | Active database/schema issues (repo-wide) | **1** |

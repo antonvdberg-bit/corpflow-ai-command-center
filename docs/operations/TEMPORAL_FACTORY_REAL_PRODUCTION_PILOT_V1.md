@@ -54,7 +54,7 @@ Temporal **does not own:** business backlog truth, independent prioritisation, d
 
 | Contract | Current truth | Temporal behaviour |
 |----------|---------------|--------------------|
-| Execution WIP | **3** verified current-generation Cursor runs | Never requests Handoff when slots are full |
+| Execution WIP | **3** verified current-generation Cursor runs by default. While `CORPFLOW_TEMPORAL_PILOT=active`, effective ceiling **5** with **3+2 isolation** (#1145): 3 ordinary production lanes reserved; Temporal-supervised wakes may use only the two incremental extras. Unsetting the variable returns the ceiling to 3. | Never requests Handoff when the Temporal extra lanes are full. Must not consume the 3-lane production reserve. |
 | Cursor wake | **CorpFlowAI Cursor Factory Handoff** only | `workflow_call` with `wake_reason=temporal_supervisory` |
 | Executor | Cloud Agents API v1 selected **inside Handoff** (`CURSOR_FACTORY_EXECUTOR`) | Never calls Cursor API / webhook / legacy dispatcher |
 | Request identity | `work_request_id` (`cfai-wr-…`) | Observe only; do not mint a second database |

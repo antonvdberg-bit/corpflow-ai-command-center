@@ -142,6 +142,7 @@ jobs:
           TARGET_ISSUE_INPUT: ${{ inputs.target_issue || '' }}
           WAKE_REASON_INPUT: ${{ inputs.wake_reason || '' }}
           CAPACITY_WAKE_REQUESTED: ${{ inputs.capacity_wake_requested || '' }}
+          CORPFLOW_TEMPORAL_PILOT: ${{ vars.CORPFLOW_TEMPORAL_PILOT }}
           FACTORY_HANDOFF_OUT_PATH: factory-cursor-handoff.json
         run: |
           set -euo pipefail
