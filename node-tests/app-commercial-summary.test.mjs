@@ -71,6 +71,7 @@ describe('Commercial summary #1004', { concurrency: false }, () => {
     assert.equal(ada.prospect_id, 'syn-772-lr-ada');
     assert.equal(ada.company_master_id, 'cmp_ada_spa_synthetic');
     assert.equal(ada.erpnext.quotation, 'SAL-QTN-2026-00001');
+    assert.equal(ada.quotation_evidence_path, '/app/commercial/syn-772-lr-ada');
     assert.equal(ada.erpnext.sales_invoice, 'ACC-SINV-2026-00002');
     assert.equal(ada.erpnext.mutated, false);
     assert.equal(ada.shared_detail_path, '/app/prospects/syn-772-lr-ada');
@@ -84,6 +85,7 @@ describe('Commercial summary #1004', { concurrency: false }, () => {
     assert.equal(bea.commercial_state, 'quote_not_prepared');
     assert.equal(bea.prospect_id, 'syn-772-rd-bea');
     assert.equal(bea.erpnext.quotation, null);
+    assert.equal(bea.quotation_evidence_path, null);
     assert.ok(bea.blockers.includes('MISSING_PROPOSAL') || bea.blockers.includes('MISSING_PRICE'));
 
     const wren = rows.find((row) => row.id === 'syn-716-wr-cleared');
@@ -310,4 +312,5 @@ test('Commercial page is read-only and links to shared detail plus Clients ident
   assert.ok(ui.includes('/app/clients'));
   assert.ok(ui.includes('/admin/company-master'));
   assert.ok(ui.includes('This does not take payment'));
+  assert.ok(ui.includes('commercial-quotation-'));
 });

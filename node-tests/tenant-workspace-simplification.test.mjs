@@ -148,6 +148,7 @@ describe('tenant-workspace #1006 — fail-closed staff routes', () => {
         ['/api/app/prospects?env=core', 'app/prospects'],
         ['/api/app/clients?env=core', 'app/clients'],
         ['/api/app/commercial?env=core', 'app/commercial'],
+        ['/api/app/commercial-quotation?env=core&id=syn-772-lr-ada', 'app/commercial-quotation'],
         ['/api/app/delivery?env=core', 'app/delivery'],
         ['/api/app/overview?env=core', 'app/overview'],
       ];
