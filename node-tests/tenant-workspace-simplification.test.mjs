@@ -81,6 +81,7 @@ describe('tenant-workspace #1006 — nav / route matrix', () => {
     assert.equal(byPath['/app/core'], 'STAFF_ONLY_FAIL_CLOSED');
     assert.equal(byPath['/app/clients'], 'STAFF_ONLY_FAIL_CLOSED');
     assert.equal(byPath['/app/commercial'], 'STAFF_ONLY_FAIL_CLOSED');
+    assert.equal(byPath['/app/delivery'], 'STAFF_ONLY_FAIL_CLOSED');
   });
 
   it('hides the workspace chooser on Tenant chrome and keeps it for Operating Workspace', () => {
@@ -283,6 +284,10 @@ describe('tenant-workspace #1006 — desktop / mobile layout contract', () => {
     assert.doesNotMatch(tenantSrc, />Open Core</);
     assert.doesNotMatch(tenantSrc, /Back to chooser/);
     assert.doesNotMatch(tenantSrc, /no Core menu/);
+    assert.doesNotMatch(tenantSrc, /Staff workspace chooser/);
+    assert.doesNotMatch(tenantSrc, /proof-harness-hint/);
+    assert.doesNotMatch(tenantSrc, /tenant-data-source/);
+    assert.doesNotMatch(tenantSrc, /Choose workspace/);
     assert.doesNotMatch(menuSrc, /Home \/ Overview/);
     assert.doesNotMatch(menuSrc, /My Work/);
   });

@@ -31,7 +31,6 @@ export default function AppTenantPage() {
   const [request, setRequest] = useState(/** @type {Record<string, unknown> | null} */ (null));
   const [requestId, setRequestId] = useState(CANONICAL_REQUEST_ID);
   const [boundTenantId, setBoundTenantId] = useState(REFERENCE_TENANT_ID);
-  const [dataSource, setDataSource] = useState('');
   const [error, setError] = useState('');
   const [authRequired, setAuthRequired] = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);
@@ -96,7 +95,6 @@ export default function AppTenantPage() {
           ? String(selected.tenant_id).trim()
           : REFERENCE_TENANT_ID;
       setBoundTenantId(tid);
-      if (shellJson.data_source) setDataSource(String(shellJson.data_source));
 
       const listQs = new URLSearchParams();
       listQs.set('env', 'tenant');
@@ -116,7 +114,6 @@ export default function AppTenantPage() {
       }
       const rows = Array.isArray(listJson.requests) ? listJson.requests : [];
       setList(rows);
-      if (listJson.data_source) setDataSource(String(listJson.data_source));
       setRequestId((prev) => {
         if (rows.some((r) => String(r.request_id) === prev)) return prev;
         return String(rows[0]?.request_id || CANONICAL_REQUEST_ID);
@@ -155,7 +152,6 @@ export default function AppTenantPage() {
         return;
       }
       setRequest(detailJson.request || null);
-      if (detailJson.data_source) setDataSource(String(detailJson.data_source));
     } catch (e) {
       setError(e instanceof Error ? e.message : 'load_failed');
     } finally {
@@ -232,8 +228,7 @@ export default function AppTenantPage() {
         <section className="cf-app-panel" data-testid="app-auth-required">
           <h1 className="cf-app-h1">Sign in to Tenant Workspace</h1>
           <p className="cf-app-lead">
-            CorpFlowAI is a normal reference tenant. Use your tenant sign-in for this workspace.
-            Operating Workspace credentials cannot open it.
+            Use your tenant sign-in to review requests and progress for CorpFlowAI.
           </p>
           <div className="cf-app-actions">
             <a
@@ -243,14 +238,7 @@ export default function AppTenantPage() {
             >
               Tenant sign in
             </a>
-            <a className="cf-app-btn" href="/app">
-              Staff workspace chooser
-            </a>
           </div>
-          <p className="cf-app-muted" style={{ marginTop: 16 }} data-testid="proof-harness-hint">
-            Deterministic test harness only:{' '}
-            <a href="/app/tenant?proof=1">Open Tenant proof</a>
-          </p>
         </section>
       </AppShell>
     );
@@ -315,8 +303,7 @@ export default function AppTenantPage() {
       <section className="cf-app-journey" data-testid="tenant-journey-strip">
         <p className="cf-app-lead" style={{ margin: 0 }}>
           You are in <strong>Tenant Workspace — {tenantLabel}</strong>. Review progress here.
-          Raise or change a service request on canonical <code>/change</code> — that handoff does
-          not create a ticket by itself.
+          Use Service &amp; change when you need to raise or update a request.
         </p>
         <div className="cf-app-actions" style={{ marginTop: 12 }}>
           <a
@@ -331,12 +318,7 @@ export default function AppTenantPage() {
       </section>
 
       <p className="cf-app-muted" style={{ marginTop: -8, marginBottom: 16 }} data-testid="tenant-workspace-meta">
-        Tenant Workspace · requests, review, and service only · no internal delivery controls
-        {dataSource ? (
-          <>
-            {' · '}data source <code data-testid="tenant-data-source">{dataSource}</code>
-          </>
-        ) : null}
+        Requests, review, and service for this tenant
       </p>
 
       {returnedFromChange ? (
