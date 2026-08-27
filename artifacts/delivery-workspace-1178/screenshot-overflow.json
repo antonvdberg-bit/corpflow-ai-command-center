@@ -1,0 +1,65 @@
+{
+  "captured_at": "2026-08-27T16:03:31.110Z",
+  "overflows": {
+    "unauth_desktop": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "overflowPx": 0
+    },
+    "unauth_mobile": {
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "overflowPx": 0
+    },
+    "proof_desktop": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "overflowPx": 0
+    },
+    "proof_mobile": {
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "overflowPx": 0
+    },
+    "inputs_desktop": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "overflowPx": 0
+    },
+    "review_desktop": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "overflowPx": 0
+    },
+    "blocked_desktop": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "overflowPx": 0
+    },
+    "protected_desktop": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "overflowPx": 0
+    },
+    "protected_mobile": {
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "overflowPx": 0
+    },
+    "preview_empty_desktop": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "overflowPx": 0
+    },
+    "tenant_denied_desktop": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "overflowPx": 0
+    },
+    "tenant_denied_mobile": {
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "overflowPx": 0
+    }
+  }
+}

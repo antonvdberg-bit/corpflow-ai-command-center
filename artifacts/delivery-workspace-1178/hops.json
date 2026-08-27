@@ -1,0 +1,32 @@
+{
+  "captured_at": "2026-08-27T16:08:20.000Z",
+  "issue": 1178,
+  "proof_start": "http://127.0.0.1:3050/app/delivery?proof=1",
+  "row": "lead:syn-772-lr-ada",
+  "hops": {
+    "commercial": {
+      "url": "http://127.0.0.1:3050/app/commercial?proof=1",
+      "heading": "Commercial"
+    },
+    "prospect": {
+      "url": "http://127.0.0.1:3050/app/prospects/syn-772-lr-ada?proof=1",
+      "heading": "Ada Spa"
+    },
+    "clients": {
+      "url": "http://127.0.0.1:3050/app/clients/cmp_ada_spa_synthetic?proof=1",
+      "heading": "Ada Spa"
+    }
+  },
+  "row_evidence_hrefs_pat_partners": {
+    "Shared prospect": "/app/prospects/syn-995-lr-prot?proof=1",
+    "Clients": "/app/clients?proof=1",
+    "Commercial": "/app/commercial?proof=1",
+    "Change Console": "/change",
+    "Company Master": "/admin/company-master"
+  },
+  "mobile_stack": {
+    "tableDisplay": "block",
+    "theadDisplay": "none",
+    "overflowPx": 0
+  }
+}

@@ -1,0 +1,134 @@
+{
+  "captured_at": "2026-08-27T16:01:38.633Z",
+  "issue": 1178,
+  "environment": "corpflow_test",
+  "current_main_sha": "b731411734edb01b7dbb8d7e20247c5a7805983a",
+  "exact_url": "https://core.corpflowai.com/app/delivery",
+  "proof_url": "https://core.corpflowai.com/app/delivery?proof=1",
+  "path": "/app/delivery",
+  "in_process": {
+    "status": 200,
+    "ok": true,
+    "data_source": "fixture",
+    "count": 15,
+    "filter_counts": {
+      "all": 15,
+      "inputs_pending": 6,
+      "preview_ready": 0,
+      "client_review_pending": 3,
+      "protected_deploy_approval_required": 1,
+      "blocked": 10,
+      "overdue_next_action": 2
+    },
+    "kinds": {
+      "lead_rescue": 6,
+      "website_rescue": 5,
+      "general_delivery": 4
+    },
+    "sample_ids": [
+      "lead:syn-995-lr-prot",
+      "lead:syn-772-rd-bea",
+      "ticket:syn_slice1_req_corpflowai_002",
+      "ticket:syn_slice1_req_other_001",
+      "lead:syn-1151-wr-other-tenant",
+      "lead:syn-1171-lr-enquiry",
+      "lead:syn-1171-wr-enquiry",
+      "lead:syn-772-lr-cal"
+    ],
+    "protected_item": "lead:syn-995-lr-prot"
+  },
+  "hops": {
+    "commercialOnEveryRow": true,
+    "prospectHops": true,
+    "clientHops": true,
+    "changeHops": true
+  },
+  "tenant": {
+    "delivery_status": 403,
+    "delivery_error": "core_access_denied",
+    "shell_hrefs": [
+      "/app/tenant",
+      "/change?from=tenant-workspace"
+    ]
+  },
+  "production_proof": {
+    "status": 401,
+    "error": "authentication_required"
+  },
+  "live": {
+    "delivery": {
+      "status": 200,
+      "bytes": 19831,
+      "content_type": "text/html; charset=utf-8",
+      "has_delivery_page": true
+    },
+    "delivery_api": {
+      "status": 401,
+      "bytes": 46,
+      "content_type": "application/json; charset=utf-8",
+      "has_delivery_page": false
+    },
+    "delivery_proof_api": {
+      "status": 401,
+      "bytes": 46,
+      "content_type": "application/json; charset=utf-8",
+      "has_delivery_page": false
+    },
+    "commercial": {
+      "status": 200,
+      "bytes": 19865,
+      "content_type": "text/html; charset=utf-8",
+      "has_delivery_page": true
+    },
+    "health": {
+      "status": 200,
+      "bytes": 1015,
+      "content_type": "application/json; charset=utf-8",
+      "has_delivery_page": false
+    },
+    "lux": {
+      "status": 200,
+      "bytes": 65491,
+      "content_type": "text/html; charset=utf-8",
+      "has_delivery_page": false
+    }
+  },
+  "local_next": {
+    "port": 3050,
+    "delivery_proof": "http://127.0.0.1:3050/app/delivery?proof=1"
+  },
+  "hops": {
+    "commercial": "http://127.0.0.1:3050/app/commercial?proof=1",
+    "prospect": "http://127.0.0.1:3050/app/prospects/syn-772-lr-ada?proof=1",
+    "clients": "http://127.0.0.1:3050/app/clients/cmp_ada_spa_synthetic?proof=1"
+  },
+  "live_unauth": {
+    "desktop": "artifacts/delivery-workspace-1178/live-unauth-desktop.png",
+    "mobile": "artifacts/delivery-workspace-1178/live-unauth-mobile.png",
+    "title": "Sign in to the Operating Workspace"
+  },
+  "key_states": {
+    "inputs_pending": true,
+    "client_review_pending": true,
+    "blocked": true,
+    "protected_deploy_approval_required": true,
+    "preview_ready_empty_ok": true
+  },
+  "checks": {
+    "core_proof_ok": true,
+    "lead_rescue": true,
+    "website_rescue": true,
+    "general_delivery": true,
+    "commercial_evidence": true,
+    "prospect_evidence": true,
+    "client_evidence": true,
+    "change_evidence": true,
+    "tenant_delivery_denied": true,
+    "tenant_nav_hides_delivery": true,
+    "production_proof_fail_closed": true,
+    "live_delivery_html": true,
+    "live_api_unauth": true,
+    "key_exception_states": true
+  },
+  "verdict": "DELIVERY WORKSPACE LIVE OPERATOR JOURNEY USABLE"
+}
