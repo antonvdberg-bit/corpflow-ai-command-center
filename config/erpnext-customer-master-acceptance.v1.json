@@ -1,0 +1,100 @@
+{
+  "schema": "corpflow.erpnext.customer_master_acceptance.v1",
+  "version": "v1",
+  "issue": 1206,
+  "parents": [880, 918, 1009, 1012, 1018, 1021, 1056, 1166],
+  "environment": "corpflow_test",
+  "bridge_id": "qualified_customer_identity",
+  "verdict": "ERPNext CUSTOMER MASTER READY FOR QUOTATION / DELIVERY",
+  "description": "GET/read-only acceptance that the existing standard ERPNext Customer / Contact / Address foundation can support quotation and delivery references. Reuses proven synthetic identities. No ERPNext write. No schema. No second customer ledger.",
+  "sync_mode": "read_only_acceptance",
+  "no_automated_cron": true,
+  "no_postgres_schema": true,
+  "no_custom_doctypes": true,
+  "no_second_crm": true,
+  "erpnext_write": false,
+  "persistence": {
+    "approved_pointer_location": "leads.qualification_json.erpnext",
+    "schema_change": "forbidden",
+    "production_postgres_write": "not_authorized_by_this_packet",
+    "company_master": "evidence_assets_only_no_erpnext_customer_column"
+  },
+  "primary_identity": {
+    "corpflow_lead_id": "cf1018-synthetic-sales-lifecycle",
+    "customer": "CF1018 Synthetic Sales Lifecycle Ltd",
+    "contact": "Lee Synthetic",
+    "address": "CF1018 Synthetic Sales Lifecycle Ltd-Billing",
+    "quotation": "SAL-QTN-2026-00005",
+    "reason": "First paying-client commercial path already proven on Quote-to-Cash (#1056/#1166)."
+  },
+  "supporting_identities": [
+    {
+      "source": "#880 Client Master Lead Rescue",
+      "customer": "CF880 Synthetic Lead Rescue Ltd",
+      "contact": "Priya Synthetic-CF880 Synthetic Lead Rescue Ltd",
+      "address": "CF880 Synthetic Lead Rescue Ltd-Billing"
+    },
+    {
+      "source": "#880 Client Master Website Rescue",
+      "customer": "CF880 Synthetic Website Rescue Ltd",
+      "contact": "Jean Synthetic-CF880 Synthetic Website Rescue Ltd",
+      "address": "CF880 Synthetic Website Rescue Ltd-Billing"
+    },
+    {
+      "source": "#1009 WP1 Customer bridge",
+      "customer": "CF1009 Synthetic Customer Bridge Ltd",
+      "contact": "Sam Synthetic-CF1009 Synthetic Customer Bridge Ltd",
+      "address": "CF1009 Synthetic Customer Bridge Ltd-Billing",
+      "idempotency_key": "corpflow.customer_bridge.v1:lead=cf1009-synthetic-qualified-customer"
+    }
+  ],
+  "workspace_recorded_pointers": [
+    {
+      "prospect_id": "syn-772-lr-ada",
+      "erpnext_customer": "CF880 Synthetic Lead Rescue Ltd",
+      "join": "recorded_qualification_json.erpnext_pointer",
+      "not": "name_join"
+    },
+    {
+      "prospect_id": "syn-716-wr-cleared",
+      "erpnext_customer": "CF880 Synthetic Website Rescue Ltd",
+      "join": "recorded_qualification_json.erpnext_pointer",
+      "not": "name_join"
+    }
+  ],
+  "live_proof": {
+    "identity": "integrations@corpflowai.com",
+    "probed_at_utc": "2026-08-27T20:07:34Z",
+    "current_main_sha": "b731411734edb01b7dbb8d7e20247c5a7805983a",
+    "customer": "CF1018 Synthetic Sales Lifecycle Ltd",
+    "contact": "Lee Synthetic",
+    "address": "CF1018 Synthetic Sales Lifecycle Ltd-Billing",
+    "quotation": "SAL-QTN-2026-00005",
+    "enabled_duplicate_count": 1,
+    "quotation_suitability_ok": true,
+    "erpnext_mutated": false,
+    "postgres_written": false,
+    "verdict": "ERPNext CUSTOMER MASTER READY FOR QUOTATION / DELIVERY"
+  },
+  "forbidden_customer_names": [
+    "Prestige Procurement",
+    "CorpFlowAI LTD",
+    "CorpFlowAI Ltd"
+  ],
+  "non_actions": [
+    "erpnext_write",
+    "customer_create_update",
+    "contact_create_update",
+    "address_create_update",
+    "schema_change",
+    "postgres_migration",
+    "production_postgres_lead_patch",
+    "company_master_name_join",
+    "custom_doctypes",
+    "accounting_tax_mutation",
+    "payments",
+    "client_sends",
+    "env_secrets_change",
+    "client_production_deploy"
+  ]
+}

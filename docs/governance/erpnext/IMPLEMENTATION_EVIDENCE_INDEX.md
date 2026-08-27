@@ -89,6 +89,7 @@ Read-back: no Customer, `collect_progress=0`, Notification/Workflow inspect HTTP
 | [#956](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/956) | Backup / DR / security audit | Buy a DR server; mutate the box |
 | [#1010](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1010) | WP7 version/patch/backup/restore/monitoring classification | Apply the Frappe Cloud upgrade, production restore, Neon restore, or Monitor #14 timer |
 | [#1019](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1019) | WP6 identity / roles / 2FA / least-privilege classification | Grant System Manager to the integration user; enable 2FA from the factory; mutate roles |
+| [#1206](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1206) | Customer/Contact/Address GET-only quotation/delivery acceptance on reused CF1018 (`Lee Synthetic`, Billing Address, `SAL-QTN-2026-00005` party). Search-before-create duplicate count 1. Commercial Workspace now projects the recorded Customer pointer. | ERPNext write; Company Master name-join; live Postgres lead PATCH; real Prestige Customer |
 
 ---
 
