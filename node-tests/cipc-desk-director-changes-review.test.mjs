@@ -171,15 +171,12 @@ test('review component posts to existing email-intake and shows open questions',
   assert.doesNotMatch(src, /approved_decisions/);
 });
 
-test('homepage draft links Director changes service to /director-changes', () => {
+test('homepage draft sends Director changes buyers to /company, not the specialist-review page', () => {
   const draft = buildCipcDeskWebsiteDraft();
   const dc = (draft.sections?.services?.items || []).find((x) =>
     /director change/i.test(String(x?.name || '')),
   );
   assert.ok(dc);
-  assert.equal(dc.href, '/director-changes');
-  // Combined CIPC review-surface bumps may read
-  // `...-director-changes-beneficial-ownership-links` rather than the older
-  // exact suffix `director-changes-link`.
-  assert.match(String(draft.content_version || ''), /director-changes/);
+  assert.equal(dc.href, '/company');
+  assert.match(String(draft.content_version || ''), /direct-sme-company-funnel/);
 });
