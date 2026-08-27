@@ -210,6 +210,7 @@ test('#1056 config, fixture, docs, and apply script exist without secret values'
   assert.equal(cfg.quotation.apply_taxes, false);
   assert.equal(cfg.primary_currency, 'MUR');
   assert.ok(cfg.forbidden_customer_names.includes('Prestige Procurement'));
+  assert.ok(cfg.allowed_quotation_update_fields.includes('terms'));
 
   const files = [
     'docs/erpnext/ERPNEXT_SELLING_QUOTE_TO_CASH_V1.md',
@@ -245,6 +246,10 @@ test('idempotency key is stable and title carries the TEST-ONLY sentinel', () =>
   assert.equal(payload.conversion_rate, 1);
   assert.equal(payload.items[0].item_code, 'CF-RD-LANDING-RESCUE');
   assert.equal(payload.quotation_to, 'Customer');
+  assert.equal(payload.tc_name, 'CF882 CorpFlowAI Commercial Terms');
+  assert.match(String(payload.terms), /Assumptions/);
+  assert.match(String(payload.terms), /Exclusions/);
+  assert.match(String(payload.terms), /28466939/);
   assert.equal(POINTER_SCHEMA, 'corpflow.qualification.erpnext.v1');
 });
 
@@ -276,6 +281,7 @@ test('first run creates one draft MUR quotation; replay updates and does not dup
   assert.equal(proof.second.readback.currency, 'MUR');
   assert.equal(proof.second.readback.grand_total, 45000);
   assert.equal(proof.second.readback.item_code, 'CF-RD-LANDING-RESCUE');
+  assert.equal(proof.second.readback.terms_present, true);
   assert.equal(proof.second.postgres_persist, 'not_written');
 
   const stored = store.getLead(event.lead_id);

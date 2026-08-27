@@ -149,7 +149,7 @@ Ran as `integrations@corpflowai.com` via `node scripts/erpnext/apply-selling-quo
 | First run | **CREATE** Quotation `SAL-QTN-2026-00005` |
 | Second run / replay | **UPDATE** same Quotation (`created_on_replay=false`) |
 | Duplicate count | **1** Quotation |
-| GET read-back | MUR 45,000, conversion_rate 1, `CF-RD-LANDING-RESCUE`, Standard Selling, terms `CF882 CorpFlowAI Commercial Terms`, valid till 2026-09-09, taxes none, opportunity `CRM-OPP-2026-00003`, `docstatus=0` Draft, TEST-ONLY title |
+| GET read-back | MUR 45,000, conversion_rate 1, `CF-RD-LANDING-RESCUE`, Standard Selling, terms **name** `CF882 CorpFlowAI Commercial Terms`, valid till 2026-09-09, taxes none, opportunity `CRM-OPP-2026-00003`, `docstatus=0` Draft, TEST-ONLY title. **#1196 later GET:** `quotation.terms` body was empty, so the 36,114-byte PDF did not print assumptions/exclusions/seller identity. See `docs/erpnext/ERPNEXT_MUR_QUOTATION_CLIENT_DOCUMENT_V1.md`. |
 | PDF | `Quotation Standard`, 36,114 bytes, `%PDF-1.4`, sha256 prefix `299ad3c9d8c4582a` |
 | #882 reuse | MUR QTN `SAL-QTN-2026-00003` + SI `ACC-SINV-2026-00001`; USD QTN `SAL-QTN-2026-00001` + SI `ACC-SINV-2026-00002` (47.15) all still Draft |
 | Proceed Approved | Invoice `ACC-SINV-2026-00001` does **not** set `financially_approved`; blockers include acceptance, payment evidence, and named approver |

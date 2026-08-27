@@ -1,0 +1,257 @@
+{
+  "schema": "corpflow.erpnext.mur_quotation_client_document_accept.v1",
+  "issue": 1196,
+  "generated_at_utc": "2026-08-27T19:06:11Z",
+  "current_main_sha": "b731411734edb01b7dbb8d7e20247c5a7805983a",
+  "identity": "integrations@corpflowai.com",
+  "secrets_printed": false,
+  "postgres_written": false,
+  "erpnext_mutated": false,
+  "sales_invoice_created": false,
+  "payment_entry_created": false,
+  "taxes_invented": false,
+  "methods": [
+    "GET"
+  ],
+  "quotation_name": "SAL-QTN-2026-00005",
+  "http": {
+    "company": 200,
+    "quotation": 200,
+    "terms": 200,
+    "item": 200,
+    "list": 200,
+    "pdf": 200
+  },
+  "company": {
+    "name": "CorpFlowAI LTD",
+    "tax_id": "28466939",
+    "registration_details": "Company No : C25228280",
+    "default_currency": "MUR",
+    "email": "finance@corpflowai.com",
+    "website": "https://corpflowai.com",
+    "default_letter_head": "Company Letterhead - Grey",
+    "company_description": null
+  },
+  "quotation": {
+    "name": "SAL-QTN-2026-00005",
+    "docstatus": 0,
+    "status": "Draft",
+    "company": "CorpFlowAI LTD",
+    "party_name": "CF1018 Synthetic Sales Lifecycle Ltd",
+    "currency": "MUR",
+    "conversion_rate": 1,
+    "grand_total": 45000,
+    "selling_price_list": "Standard Selling",
+    "letter_head": "Company Letterhead - Grey",
+    "tc_name": "CF882 CorpFlowAI Commercial Terms",
+    "terms": null,
+    "valid_till": "2026-09-09",
+    "transaction_date": "2026-08-26",
+    "title": "CF1056 SYNTHETIC MUR Website Rescue — TEST-ONLY DO NOT SEND [corpflow.selling_q2c.v1:lead=cf1018-synthetic-sales-lifecycle]",
+    "customer_notes": null,
+    "opportunity": "CRM-OPP-2026-00003",
+    "taxes_and_charges": null,
+    "tax_count": 0,
+    "item_code": "CF-RD-LANDING-RESCUE",
+    "item_name": "Premium Landing Page Rescue",
+    "description": "<div>Premium Landing Page Rescue (Website Rescue T1). A bounded landing-page rescue that states the offer clearly, is mobile-ready, and routes buyer intent into a working enquiry path. Two structured preview rounds included. 50% deposit before design/build; balance before production release. No SEO ranking or sales-volume guarantees.</div>",
+    "qty": 1,
+    "uom": "Nos",
+    "rate": 45000,
+    "item_count": 1
+  },
+  "terms": {
+    "name": "CF882 CorpFlowAI Commercial Terms",
+    "title": "CF882 CorpFlowAI Commercial Terms",
+    "terms": "\n<p><strong>CorpFlowAI Ltd — commercial terms (standard ERPNext Terms and Conditions)</strong></p>\n<p>These terms apply to quotations and invoices issued from ERPNext. They do not replace a signed contract where one exists.</p>\n<ol>\n<li><strong>Validity.</strong> This quotation is valid for 14 days from the quotation date unless a different Valid Till date is shown on the document.</li>\n<li><strong>Scope.</strong> Scope is limited to the Item names and descriptions on this document. Anything not listed is excluded.</li>\n<li><strong>Assumptions.</strong> The client provides timely access, content, brand assets, and decision-makers. Delay in access pauses the delivery clock.</li>\n<li><strong>Exclusions.</strong> No SEO ranking, lead-volume, conversion, or revenue guarantees. Third-party hosting, domain, advertising, and software-licence fees are excluded unless a line item says otherwise. Recurring CorpFlowAI fees apply only when a recurring Item is listed.</li>\n<li><strong>Payment — MUR project work.</strong> 50% deposit by manual bank transfer before work starts; balance before production release or on delivery acceptance, as stated on the document. Proof-of-payment alone is not bank clearance.</li>\n<li><strong>Payment — USD Lead Rescue launch pilot.</strong> Setup is payable before the 48-hour setup window starts. Monthly monitoring, if listed, is invoiced in advance, month-to-month, with no auto-debit in this phase.</li>\n<li><strong>Approval to build.</strong> ERPNext documents are commercial records. The fail-closed financial approval-to-build gate remains the CorpFlowAI commercial rail (#714 / #766): quotation + written acceptance + payment evidence (or approved exception) + named financial approver. ERPNext does not auto-approve a build.</li>\n<li><strong>Contact.</strong> Commercial documents: finance@corpflowai.com.</li>\n</ol>\n<p><em>Synthetic / test documents carry a TEST-ONLY remark and must not be sent to a paying client.</em></p>\n\n<p><strong>Seller identity.</strong> Tax ID: 28466939 · Company No: C25228280 · finance@corpflowai.com · https://corpflowai.com</p>"
+  },
+  "item": {
+    "name": "CF-RD-LANDING-RESCUE",
+    "item_code": "CF-RD-LANDING-RESCUE",
+    "item_name": "Premium Landing Page Rescue",
+    "description": "<div>Premium Landing Page Rescue (Website Rescue T1). A bounded landing-page rescue that states the offer clearly, is mobile-ready, and routes buyer intent into a working enquiry path. Two structured preview rounds included. 50% deposit before design/build; balance before production release. No SEO ranking or sales-volume guarantees.</div>",
+    "standard_rate": 45000,
+    "stock_uom": "Nos"
+  },
+  "duplicate_quotation_names": [
+    "SAL-QTN-2026-00005"
+  ],
+  "duplicate_quotation_count": 1,
+  "pdf": {
+    "ok": true,
+    "bytes": 36114,
+    "is_pdf": true,
+    "sha256": "299ad3c9d8c4582a",
+    "outfile": "artifacts/erpnext/mur-quotation-client-document-1196/cf1018-mur-SAL-QTN-2026-00005.pdf",
+    "print_format": "Quotation Standard",
+    "error": null
+  },
+  "assessment": {
+    "ok": false,
+    "quotation_name": "SAL-QTN-2026-00005",
+    "current_main_sha": "b731411734edb01b7dbb8d7e20247c5a7805983a",
+    "company_identity_ok": true,
+    "duplicate_quotation_count": 1,
+    "tax_invented": false,
+    "payment_status_invented": false,
+    "acceptance_status_invented": false,
+    "erpnext_mutated": false,
+    "checks": [
+      {
+        "id": "quotation_name",
+        "ok": true,
+        "detail": "SAL-QTN-2026-00005"
+      },
+      {
+        "id": "docstatus_draft",
+        "ok": true,
+        "detail": "0"
+      },
+      {
+        "id": "status_not_invented_as_accepted",
+        "ok": true,
+        "detail": "Draft"
+      },
+      {
+        "id": "currency_mur",
+        "ok": true,
+        "detail": "MUR"
+      },
+      {
+        "id": "amount_45000",
+        "ok": true,
+        "detail": "45000"
+      },
+      {
+        "id": "conversion_rate_one",
+        "ok": true,
+        "detail": "1"
+      },
+      {
+        "id": "item_code",
+        "ok": true,
+        "detail": "CF-RD-LANDING-RESCUE"
+      },
+      {
+        "id": "item_name",
+        "ok": true,
+        "detail": "Premium Landing Page Rescue"
+      },
+      {
+        "id": "line_description",
+        "ok": true,
+        "detail": "Premium Landing Page Rescue (Website Rescue T1). A bounded landing-page rescue that states the offer clearly, is mobile-ready, and routes buyer intent into a working enquiry path."
+      },
+      {
+        "id": "terms_name",
+        "ok": true,
+        "detail": "CF882 CorpFlowAI Commercial Terms"
+      },
+      {
+        "id": "quotation_terms_present",
+        "ok": false,
+        "detail": "terms body empty on quotation"
+      },
+      {
+        "id": "terms_body",
+        "ok": true,
+        "detail": "terms master present"
+      },
+      {
+        "id": "valid_till",
+        "ok": true,
+        "detail": "2026-09-09"
+      },
+      {
+        "id": "letter_head",
+        "ok": true,
+        "detail": "Company Letterhead - Grey"
+      },
+      {
+        "id": "no_tax_template",
+        "ok": true,
+        "detail": "none"
+      },
+      {
+        "id": "no_tax_rows",
+        "ok": true,
+        "detail": "0"
+      },
+      {
+        "id": "company_identity",
+        "ok": true,
+        "detail": "ok"
+      },
+      {
+        "id": "pdf_ok",
+        "ok": true,
+        "detail": "36114 bytes"
+      },
+      {
+        "id": "pdf_print_format",
+        "ok": true,
+        "detail": "Quotation Standard"
+      },
+      {
+        "id": "pdf_identity_company",
+        "ok": true,
+        "detail": "CorpFlowAI LTD"
+      },
+      {
+        "id": "pdf_identity_tax",
+        "ok": false,
+        "detail": "28466939"
+      },
+      {
+        "id": "pdf_identity_company_no",
+        "ok": false,
+        "detail": "C25228280"
+      },
+      {
+        "id": "pdf_identity_email",
+        "ok": false,
+        "detail": "finance@corpflowai.com"
+      },
+      {
+        "id": "pdf_amount",
+        "ok": true,
+        "detail": "45000"
+      },
+      {
+        "id": "pdf_currency",
+        "ok": true,
+        "detail": "MUR"
+      },
+      {
+        "id": "pdf_item",
+        "ok": true,
+        "detail": "Premium Landing Page Rescue"
+      },
+      {
+        "id": "pdf_terms",
+        "ok": false,
+        "detail": "terms"
+      },
+      {
+        "id": "pdf_validity",
+        "ok": true,
+        "detail": "2026-09-09"
+      },
+      {
+        "id": "idempotent_single_quotation",
+        "ok": true,
+        "detail": "SAL-QTN-2026-00005"
+      }
+    ],
+    "blockers": [
+      "quotation_terms_present",
+      "pdf_identity_tax",
+      "pdf_identity_company_no",
+      "pdf_identity_email",
+      "pdf_terms"
+    ],
+    "exact_blocker": "quotation.terms empty on SAL-QTN-2026-00005 (Quotation Standard PDF omits CF882 terms/seller identity)",
+    "verdict": "NOT READY — quotation.terms empty on SAL-QTN-2026-00005 (Quotation Standard PDF omits CF882 terms/seller identity)"
+  },
+  "verdict": "NOT READY — quotation.terms empty on SAL-QTN-2026-00005 (Quotation Standard PDF omits CF882 terms/seller identity)"
+}

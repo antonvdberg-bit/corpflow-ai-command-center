@@ -4,7 +4,7 @@
   "issue": 1056,
   "continuation_issue": 1166,
   "stale_implementation_prs": [1101, 1128],
-  "parents": [1054, 1055, 953, 918, 882, 1009, 1012, 1018, 1021, 551, 714, 1125, 1160, 1166],
+  "parents": [1054, 1055, 953, 918, 882, 1009, 1012, 1018, 1021, 551, 714, 1125, 1160, 1166, 1196],
   "environment": "corpflow_test",
   "bridge_id": "quotation_invoice",
   "verdict": "NOT READY — BLOCKED BY ACCOUNTANT FOUNDATION",
@@ -103,6 +103,7 @@
     "title",
     "valid_till",
     "tc_name",
+    "terms",
     "customer_notes",
     "opportunity",
     "letter_head"

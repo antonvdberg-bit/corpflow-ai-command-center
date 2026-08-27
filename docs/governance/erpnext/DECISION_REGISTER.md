@@ -245,3 +245,26 @@ Retention: do not delete a decision or evidence row merely because it was supers
 | ERPNext Project / Task | Reused synthetic Quotation `SAL-QTN-2026-00005` (not programme Project `PROJ-0002`) |
 | Verification evidence | `node --test node-tests/erpnext-selling-quote-to-cash.test.mjs` plus reused apply-log |
 | Supersedes / superseded-by | Current-main replacement for stale PR #1128 / #1125. Does **not** supersede Version 2, #918, WP2, #882, or #1162. |
+
+---
+
+## ERP-D-2026-08-27-3 — #1196 MUR quotation client-document acceptance (proposed)
+
+| Field | Record |
+|-------|--------|
+| Decision ID | `ERP-D-2026-08-27-3` |
+| Date/time | 2026-08-27 |
+| Status | **Proposed** (this packet; Anton merge remains the Git approval). Does **not** approve ERPNext terms PUT, send, Sales Invoice submit, tax/VAT, or payment. |
+| Question / requirement | Is the existing synthetic MUR quotation `SAL-QTN-2026-00005` commercially presentable as a client document? |
+| Executive intent / source | [#1196](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1196) |
+| Options considered | Declare READY from #882/#1056 artefacts; PUT terms onto the live quotation; GET/read-only accept and name the exact print blocker |
+| Evidence reviewed | Live GET 2026-08-27 as `integrations@corpflowai.com`: `quotation.terms` empty; PDF 36,114 bytes / sha256 `299ad3c9d8c4582a` unchanged; #882 `SAL-QTN-2026-00003` terms body length 2106 |
+| Decision | Verdict **NOT READY — quotation.terms empty**. Keep GET-only. Record approved CF882 HTML in repo for a later authorized apply. Do not create a second quotation. |
+| Rationale | REST create with `tc_name` did not copy the Terms master body. Standard print therefore omits assumptions, exclusions, and seller identity. |
+| Risks / tradeoffs | A later authorized PUT is required before client-document READY. This packet does not perform that write. |
+| Approver | Pending Anton merge of the #1196 PR |
+| GitHub implementation | `lib/erpnext/mur-quotation-client-document.js` + GET-only accept script + #882 terms HTML in commercial-documents config |
+| ERPNext Project / Task | Reused synthetic Quotation `SAL-QTN-2026-00005` |
+| Verification evidence | `node --test node-tests/erpnext-mur-quotation-client-document.test.mjs` plus `artifacts/erpnext/mur-quotation-client-document-1196/accept-log.json` |
+| Supersedes / superseded-by | Does **not** supersede #882 READY, #1166 selling-path landing, or #1055 accountant foundation. |
+

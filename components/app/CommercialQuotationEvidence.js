@@ -67,6 +67,30 @@ export default function CommercialQuotationEvidence({ payload, proofWanted }) {
           <dd>{String(quotation.customer || quotation.party_name || '—')}</dd>
         </div>
         <div>
+          <dt>Valid till</dt>
+          <dd data-testid="commercial-quotation-valid-till">{String(quotation.valid_till || '—')}</dd>
+        </div>
+        <div>
+          <dt>Item</dt>
+          <dd data-testid="commercial-quotation-item">
+            {String(quotation.item_name || quotation.item_code || '—')}
+          </dd>
+        </div>
+        <div>
+          <dt>Description</dt>
+          <dd data-testid="commercial-quotation-description">{String(quotation.description || '—')}</dd>
+        </div>
+        <div>
+          <dt>Terms</dt>
+          <dd data-testid="commercial-quotation-terms">
+            {quotation.terms_present === true
+              ? String(quotation.tc_name || 'present')
+              : quotation.tc_name
+                ? `${String(quotation.tc_name)} — terms body missing on this quotation`
+                : '—'}
+          </dd>
+        </div>
+        <div>
           <dt>Print format</dt>
           <dd>{String(print.format || quotation.print_format || '—')}</dd>
         </div>

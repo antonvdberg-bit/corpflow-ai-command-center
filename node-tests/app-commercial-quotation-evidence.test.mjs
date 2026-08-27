@@ -137,6 +137,8 @@ describe('Commercial quotation evidence #1160', { concurrency: false }, () => {
     assert.equal(proof.currency, 'MUR');
     assert.equal(proof.grand_total, 45000);
     assert.equal(proof.customer, 'CF1018 Synthetic Sales Lifecycle Ltd');
+    assert.equal(proof.terms_present, false);
+    assert.equal(proof.item_name, 'Premium Landing Page Rescue');
     const rows = projectCommercialRowsFromLeads([
       {
         id: 'cf1018-synthetic-sales-lifecycle',
@@ -460,6 +462,9 @@ describe('Commercial quotation evidence #1160', { concurrency: false }, () => {
     assert.ok(ui.includes('commercial-quotation-back-commercial'));
     assert.ok(ui.includes('commercial-quotation-back-prospect'));
     assert.ok(ui.includes('Open printable PDF'));
+    assert.ok(ui.includes('commercial-quotation-valid-till'));
+    assert.ok(ui.includes('commercial-quotation-terms'));
+    assert.ok(ui.includes('terms body missing on this quotation'));
     assert.ok(list.includes('commercial-quotation-'));
     assert.ok(list.includes('Open quotation evidence'));
     assert.match(css, /\.cf-app-actions\s*\{[^}]*flex-wrap:\s*wrap/s);

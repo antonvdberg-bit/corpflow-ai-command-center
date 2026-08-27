@@ -33,6 +33,10 @@ test('config names synthetic masters and the FX blocker', () => {
   assert.equal(cfg.synthetic_proof.website_rescue_invoice_draft, 'ACC-SINV-2026-00001');
   assert.equal(cfg.synthetic_proof.lead_rescue_usd_invoice_draft, 'ACC-SINV-2026-00002');
   assert.equal(cfg.approval_rail.erpnext_never_sets_financially_approved, true);
+  assert.equal(cfg.print.terms_name, 'CF882 CorpFlowAI Commercial Terms');
+  assert.match(cfg.print.terms_html, /Assumptions/);
+  assert.match(cfg.print.terms_html, /28466939/);
+  assert.match(cfg.print.terms_html, /C25228280/);
   assert.match(cfg.verdict, /READY/);
   assert.equal(cfg.currency.currency_exchange_rows[0].exchange_rate, 47.15);
   assert.equal(cfg.currency.usd_receivable_account, 'Debtors USD - CFAI');
