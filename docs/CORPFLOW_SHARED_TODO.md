@@ -56,6 +56,8 @@ Jan’s product/release decision page (not merge authority): **`docs/operations/
 
 **CIPC response automation (#987):** website/campaign enquiry capture, classification, deterministic drafts, `/change` approve/reject/do-not-contact, follow-up due dates, and reply linking on existing `cmp_tickets` / `leads` JSON. Canonical: **`docs/operations/CIPC_RESPONSE_AUTOMATION_V1.md`**. Send stays blocked.
 
+**CIPC partner response-path acceptance (#1195):** synthetic proof that a `/partners` enquiry reaches the #987 operator queue with a discovery draft and a visible human approval/send-blocked gate. Verdict: **CIPC PARTNER RESPONSE PATH USABLE — SEND REMAINS GATED**. Evidence: `node-tests/cipc-partner-response-path-acceptance.test.mjs`. No live send.
+
 **This repo’s technical partner function (ongoing):**
 
 - **Curate and wire agents:** use `docs/automation-framework.md`, `docs/n8n/automation-forward-recipe.md`, CMP mirror events, and playbooks so client-visible milestones trigger **notifications, handoffs, and follow-up** without you on the laptop (`docs/EXECUTION_BRAIN_VS_HANDS.md`).

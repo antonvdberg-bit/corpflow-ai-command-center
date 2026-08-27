@@ -10,6 +10,38 @@
 
 **ANTON ACTION:** none to start ordinary work. Anton is required only for **live email / WhatsApp / SMS send**, commercial quotation, payment, CIPC filing/submission, schema, secrets, public launch, or `client_production`.
 
+## #1195 acceptance — partner enquiry to approval-gated response
+
+**Verdict:** `CIPC PARTNER RESPONSE PATH USABLE — SEND REMAINS GATED`  
+**Proved on current main:** `b731411734edb01b7dbb8d7e20247c5a7805983a`  
+**Evidence:** `node-tests/cipc-partner-response-path-acceptance.test.mjs` (synthetic fixtures only; no live enquiry, no send).
+
+A `/partners` enquiry uses the existing email-intake contract, is classified, receives a deterministic acknowledgement plus partner discovery draft, and appears on the `/change` response queue for approve / reject / do-not-contact. Operator approve reaches `ready_to_send` only. `intent=send` / quotation / payment / CIPC filing stay fail-closed.
+
+| Fixture id | What it proves |
+| ---------- | -------------- |
+| `fx-cipc-partner-web-horizon` | Partner web enquiry → `professional_partner` + discovery draft, unsent |
+| `fx-cipc-partner-web-horizon-dup` / `thread-horizon-1` | Duplicate reuses the first ticket |
+| `fx-cipc-direct-sme-sunshine` | Direct SME annual-returns next-step draft |
+| `fx-cipc-existing-client-sunshine` / `lead_sunshine_1` | Existing-client classification and identity |
+| `fx-cipc-spam-promo` | Spam is unusable and cannot be approved |
+| `fx-cipc-unclear-1` | Unclear → manual review |
+| `fx-cipc-unsubscribe-horizon` | Enquiry unsubscribe blocks approval/send |
+| `fx-cipc-partner-from-campaign-apio` + campaign `apio-advisory` | Campaign prospect identity preserved; duplicate send-blocked |
+
+Route / handler sequence:
+
+```text
+GET /partners (CipcDeskPartnerFunnel)
+  → POST /api/cipc-desk/email-intake
+  → applyCipcResponseIntake → classify → deterministic drafts
+  → GET /api/cmp/router?action=cipc-response-list
+  → POST /api/cmp/router?action=cipc-response-operator-patch (approve|reject|do_not_contact)
+  → intent=send / quote / payment / submit / file → PROTECTED_SEND_BLOCKED
+  → POST /api/cmp/router?action=cipc-response-link-reply
+  → /change CipcResponseOperatorPanel (no send control)
+```
+
 ---
 
 ## What is true when this pack is in use
