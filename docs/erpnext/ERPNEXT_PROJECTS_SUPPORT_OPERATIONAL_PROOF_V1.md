@@ -3,12 +3,12 @@
 **Status:** Live hosted-test proof. **ERPNext PROJECTS / SUPPORT OPERATIONAL PROOF READY.** Current-main landing: **ERPNext PROJECTS / SUPPORT CURRENT-MAIN READY FOR REVIEW.**
 **Current-main landing:** [#1134](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1134) — brings the already-proven #1097 / [PR #1102](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1102) packet onto current `main`. Do not merge #1102.
 **Source proof:** [#1097](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1097)
-**Parents:** [#1054](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1054), [#953](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/953), [#918](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/918)  
-**Reuse baseline:** [#920](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/920) / merged [PR #946](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/946)  
-**Environment:** hosted ERPNext test (`CorpFlowAI LTD`) — `corpflow_test`  
-**Machine contract:** `config/erpnext-projects-support-ops.v1.json`  
-**Helper:** `lib/erpnext/projects-support-ops.js`  
-**Apply:** `node scripts/erpnext/apply-projects-support-ops.mjs`  
+**Parents:** [#1054](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1054), [#953](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/953), [#918](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/918)
+**Reuse baseline:** [#920](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/920) / merged [PR #946](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/946)
+**Environment:** hosted ERPNext test (`CorpFlowAI LTD`) — `corpflow_test`
+**Machine contract:** `config/erpnext-projects-support-ops.v1.json`
+**Helper:** `lib/erpnext/projects-support-ops.js`
+**Apply:** `node scripts/erpnext/apply-projects-support-ops.mjs`
 **Evidence:** `artifacts/erpnext/projects-support-ops-1097/` (reused; live apply not redone for #1134)
 **#918 rows used:** `project_task_timesheet`, `issue_support`
 
