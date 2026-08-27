@@ -102,6 +102,8 @@
 - `ai-lead-rescue`
 - `corpflow-rapid-delivery` (Website Rescue / landing rescue offers use this product + offer slug)
 
+**Labelled Lead Rescue enquiry (#1171):** the current named-product buyer path (`/lead-rescue` → `/contact?offer=ai-lead-rescue#discovery`) posts `meta.product = corpflow-rapid-delivery` with `offer_slug = ai-lead-rescue`. Canonical Prospect / Commercial projection treats that labelled identity as Lead Rescue (`detectProspectProduct` / `isLabelledLeadRescueEnquiry`) so source, product, consent, urgency and next action do not collapse into Website Rescue. Persistence stays on the existing `leads` row — no second CRM. The `/admin/lead-rescue` desk still filters native `intake_meta.product = ai-lead-rescue` only.
+
 ### Product JSON namespaces (not unified today)
 
 | Concern | Lead Rescue (`ai_lead_rescue_operator`) | Rapid Delivery (`rapid_delivery_operator`) |

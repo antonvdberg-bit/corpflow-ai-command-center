@@ -78,8 +78,9 @@ describe('Prospect Pipeline #997', { concurrency: false }, () => {
     assert.ok(byProduct.some((row) => row.id === 'syn-772-rd-bea'));
     assert.ok(byProduct.some((row) => row.id === 'syn-716-wr-cleared'));
     const byUrgency = filterPipelineProspects(prospects, { urgency: 'asap' });
-    assert.equal(byUrgency.length, 1);
-    assert.equal(byUrgency[0].id, 'syn-772-rd-bea');
+    assert.ok(byUrgency.every((row) => String(row.urgency).toLowerCase() === 'asap'));
+    assert.ok(byUrgency.some((row) => row.id === 'syn-772-rd-bea'));
+    assert.ok(byUrgency.some((row) => row.id === 'syn-1171-wr-enquiry'));
   });
 
   test('stage-age uses existing timestamps and marks stale cards', () => {
