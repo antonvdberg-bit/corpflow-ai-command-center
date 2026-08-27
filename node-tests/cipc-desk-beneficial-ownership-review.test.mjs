@@ -169,18 +169,18 @@ test('review component posts to existing email-intake and keeps open questions',
   assert.doesNotMatch(src, /approved_decisions/);
 });
 
-test('homepage draft links Beneficial ownership service to /beneficial-ownership', () => {
+test('homepage draft sends Beneficial ownership buyers to /company, not the specialist-review page', () => {
   const draft = buildCipcDeskWebsiteDraft();
   const bo = (draft.sections?.services?.items || []).find((x) =>
     /beneficial ownership/i.test(String(x?.name || '')),
   );
   assert.ok(bo);
-  assert.equal(bo.href, '/beneficial-ownership');
-  assert.match(String(draft.content_version || ''), /beneficial-ownership-link/);
+  assert.equal(bo.href, '/company');
+  assert.match(String(draft.content_version || ''), /direct-sme-company-funnel/);
 
   const ar = (draft.sections?.services?.items || []).find((x) =>
     /annual returns/i.test(String(x?.name || '')),
   );
   assert.ok(ar);
-  assert.equal(ar.href, '/annual-returns');
+  assert.equal(ar.href, '/company');
 });
