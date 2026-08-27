@@ -196,6 +196,7 @@ test('#1056 config, fixture, docs, and apply script exist without secret values'
   const cfg = loadSellingQuoteToCashConfig();
   assert.equal(cfg.schema, 'corpflow.erpnext.selling_quote_to_cash.v1');
   assert.equal(cfg.issue, 1056);
+  assert.equal(cfg.continuation_issue, 1125);
   assert.equal(cfg.bridge_id, BRIDGE_ID);
   assert.equal(cfg.verdict, CANONICAL_VERDICT);
   assert.equal(cfg.selling_quotation_sub_verdict, SELLING_QUOTATION_SUB_VERDICT);

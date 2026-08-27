@@ -212,13 +212,13 @@ Retention: do not delete a decision or evidence row merely because it was supers
 | Date/time | 2026-08-26 |
 | Status | **Proposed** (this packet; Anton merge remains the Git approval). Does **not** approve Sales Invoice posting, Payment Entry, client send, or accountant CoA/tax. |
 | Question / requirement | Prove the synthetic selling path Lead/Opportunity → Customer → Quotation → accepted record → SI/pro-forma → payment evidence → Proceed Approved using standard ERPNext first. |
-| Executive intent / source | [#1056](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1056); parent [#1054](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1054); accountant dependency [#1055](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1055) |
+| Executive intent / source | [#1056](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1056); current-main continuation [#1125](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1125); parent [#1054](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1054); accountant dependency [#1055](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1055) |
 | Options considered | Wait for #1055 before any selling work; invent a custom acceptance/invoice engine; reuse WP2/#882 and prove draft quotation now, stop before posting |
 | Evidence reviewed | WP2 CF1018 Lead/Opportunity/Customer; #882 draft quotations/invoices; hosted-test Company defaults and `Mauritius Tax - CFAI` presence without accountant approval |
 | Decision | Land [`ERPNEXT_SELLING_QUOTE_TO_CASH_V1.md`](../../erpnext/ERPNEXT_SELLING_QUOTE_TO_CASH_V1.md). Draft MUR Quotation only. Map SI/pro-forma and #714 payment evidence. Classify posting as `BLOCKED BY ACCOUNTANT FOUNDATION`. |
 | Rationale | Ordinary audit/reuse may proceed while accounting-bearing mutations wait. Do not guess CoA/tax. |
 | Risks / tradeoffs | Operators might treat default `Debtors - CFAI` / `Sales - CFAI` as approved. This packet forbids that inference. |
-| Approver | Pending Anton merge of the #1056 PR |
+| Approver | Pending Anton merge of the current-main #1125 PR (supersedes behind-main PR #1101 as the landing vehicle; does not change the design) |
 | GitHub implementation | `lib/erpnext/selling-quote-to-cash.js` + apply script |
 | ERPNext Project / Task | Programme Project `PROJ-0002` / Phase 5 `TASK-2026-00031` |
 | Verification evidence | `node --test node-tests/erpnext-selling-quote-to-cash.test.mjs` plus live apply replay |

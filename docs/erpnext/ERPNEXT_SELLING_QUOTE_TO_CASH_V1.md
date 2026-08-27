@@ -2,6 +2,7 @@
 
 **Status:** Implementation + synthetic MUR quotation proof. **No schema. No cron. No real client. No quotation send. No Sales Invoice posting. No Payment Entry. No tax/CoA mutation.**  
 **Issue:** [#1056](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1056)  
+**Current-main continuation:** [#1125](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1125) (lands the proven #1056 / PR #1101 slice onto current `main`; does **not** create a second Quote-to-Cash design)  
 **Parents:** [#1054](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1054), [#1055](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1055), [#953](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/953), [#918](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/918)  
 **Reuse:** [#882](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/882) commercial documents; [#1009](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1009)/[#1012](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1012) Customer bridge; [#1018](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1018)/[#1021](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1021) sales lifecycle; [#551](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/551)/[#714](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/714) financial approval rail  
 **Environment:** `corpflow_test` (CorpFlowAI-hosted ERPNext sandbox/test). Not `client_production`.  
@@ -20,8 +21,10 @@ Canonical Context Preflight: PASS
 Operating model version: 2026-08-13-v1
 Environment: corpflow_test
 GitHub state refreshed: YES
-Source item: #1056
+Source item: #1125
 ```
+
+This continuation reuses the #1056 / PR #1101 implementation and hosted-test evidence. It does **not** redesign Quote-to-Cash.
 
 ## Verdict
 
@@ -33,7 +36,7 @@ The synthetic path `Lead → Opportunity → Customer → draft Quotation` is pr
 
 Exact blocker: **#1055 Company & Accounting Foundation is still OPEN.** Correct Sales Invoice posting depends on accountant-approved Chart of Accounts, VAT/tax treatment, and receivable/income defaults. Default ERPNext skeleton accounts (`Debtors - CFAI`, `Sales - CFAI`) and template `Mauritius Tax - CFAI` **exist** and are **not** treated as accountant approval. This packet stops before posting, tax application, Payment Entry, or send.
 
-Anton action: **NONE** unless merging this PR. Accountant configuration remains on #1055. Real client quotation send, invoice submit, payment, and `client_production` stay separately gated.
+Anton action: **NONE** unless merging the current-main #1125 PR. Accountant configuration remains on #1055. Real client quotation send, invoice submit, payment, and `client_production` stay separately gated. PR #1101 is the original behind-main proof; this continuation is the merge-ready landing.
 
 ---
 

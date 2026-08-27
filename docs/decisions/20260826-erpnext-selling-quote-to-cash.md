@@ -2,7 +2,8 @@
 
 **Date:** 2026-08-26  
 **Status:** accepted for synthetic/test ERPNext draft Quotation writes (#1056)  
-**Issue:** [#1056](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1056)
+**Issue:** [#1056](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1056)  
+**Current-main continuation:** [#1125](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1125) — lands the proven PR #1101 slice onto current `main`. No second design.
 
 ## Context
 
@@ -25,6 +26,8 @@
 ## Links
 
 - Canonical: `docs/erpnext/ERPNEXT_SELLING_QUOTE_TO_CASH_V1.md`
+- Current-main continuation: [#1125](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1125)
+- Original proof PR: [#1101](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1101)
 - WP2: `docs/erpnext/ERPNEXT_SALES_LIFECYCLE_BRIDGE_V1.md`
 - #882: `docs/erpnext/ERPNEXT_COMMERCIAL_DOCUMENTS_V1.md`
 - Mapping: `docs/governance/erpnext/SOURCE_OF_TRUTH_MATRIX_V1.md`

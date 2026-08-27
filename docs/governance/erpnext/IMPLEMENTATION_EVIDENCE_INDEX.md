@@ -81,7 +81,7 @@ Read-back: no Customer, `collect_progress=0`, Notification/Workflow inspect HTTP
 | [#880](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/880) | Standard Customer + Contact + Address | Custom fields / second identity store |
 | [#881](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/881) | Product catalogue / Items | Invent new SKUs for this governance packet |
 | [#882](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/882) | Draft commercial documents + FX | Submit / send invoices |
-| [#1056](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1056) | CF1018 draft MUR Quotation + #714 Proceed Approved fail-closed mapping | Post Sales Invoice; Payment Entry; tax/CoA mutation |
+| [#1056](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1056) / [#1125](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1125) | CF1018 draft MUR Quotation + #714 Proceed Approved fail-closed mapping. #1125 lands the proven slice onto current `main` (no second design). | Post Sales Invoice; Payment Entry; tax/CoA mutation |
 | [#919](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/919) | Prestige proposal pack (docs) | Live send or ERPNext Prestige customer |
 | [#920](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/920) | Synthetic Project `PROJ-0001`, Tasks, Issue `ISS-2026-00001` | A second Prestige/synthetic website Project |
 | [#955](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/955) / [#960](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/960) | Canonical Version 2 + approved status | Rewrite strategy |

@@ -14,7 +14,7 @@ Full lifecycle for **Mauritius rapid-delivery sprints** (MUR, 50% deposit, manua
 **Canonical catalogue:** ERPNext item masters in `docs/erpnext/ERPNEXT_PRODUCT_CATALOGUE_V1.md` / `config/erpnext-product-catalogue.v1.json`. Public offer copy remains `lib/public/rapid-delivery-offers.js` + `docs/revenue/REVENUE_DELIVERY_PLAYBOOK.md`.  
 **Commercial documents (#882):** `docs/erpnext/ERPNEXT_COMMERCIAL_DOCUMENTS_V1.md` — READY: MUR + USD quotations and draft Sales Invoices proven (Anton Currency Exchange USD→MUR 47.15). Synthetic drafts only — do not submit/send.
 
-**Selling / quote-to-cash (#1056):** `docs/erpnext/ERPNEXT_SELLING_QUOTE_TO_CASH_V1.md` — CF1018 draft MUR Quotation path proven from reused WP2 Customer. Full quote-to-cash posting is **NOT READY — BLOCKED BY ACCOUNTANT FOUNDATION** (#1055). Do not submit invoices or create Payment Entries from this runbook until that blocker clears.
+**Selling / quote-to-cash (#1056 / current-main #1125):** `docs/erpnext/ERPNEXT_SELLING_QUOTE_TO_CASH_V1.md` — CF1018 draft MUR Quotation path proven from reused WP2 Customer. Full quote-to-cash posting is **NOT READY — BLOCKED BY ACCOUNTANT FOUNDATION** (#1055). Do not submit invoices or create Payment Entries from this runbook until that blocker clears. #1125 is the current-`main` landing of the proven #1101 slice; it is not a second design.
 
 **NO IMPLEMENTATION AUTHORIZED** — operating procedure only. No production ERPNext posting without Phase D gates.
 
