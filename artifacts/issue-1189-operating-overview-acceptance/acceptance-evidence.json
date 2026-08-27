@@ -1,0 +1,324 @@
+{
+  "started_from_main": "b731411734edb01b7dbb8d7e20247c5a7805983a",
+  "source_issue": 1189,
+  "route_sequence": [
+    "/app/core?proof=1",
+    "/app/delivery?filter=protected_deploy_approval_required&proof=1",
+    "/app/queue?filter=overdue&proof=1",
+    "/app/workbench?filter=stalled&proof=1",
+    "/app/clients?proof=1",
+    "/app/commercial?filter=needs_attention&proof=1",
+    "/app/delivery?filter=blocked&proof=1",
+    "/app/delivery?filter=client_review_pending&proof=1",
+    "/app/delivery?filter=protected_deploy_approval_required&proof=1",
+    "/app/prospects/syn-772-lr-ada?proof=1",
+    "/app/clients/cmp_pilot_client_synthetic?proof=1",
+    "/app/prospects/syn-772-lr-ada?proof=1",
+    "/app/prospects/syn-995-lr-prot?proof=1",
+    "/change?proof=1"
+  ],
+  "clicks": [
+    {
+      "name": "next_destination_delivery_protected",
+      "landed": "/app/delivery?filter=protected_deploy_approval_required&proof=1",
+      "ok": true,
+      "wait": "delivery-summary"
+    },
+    {
+      "name": "count_card_overview-count-prospects-overdue",
+      "landed": "/app/queue?filter=overdue&proof=1",
+      "ok": true,
+      "wait": "action-queue"
+    },
+    {
+      "name": "count_card_overview-count-prospects-stalled",
+      "landed": "/app/workbench?filter=stalled&proof=1",
+      "ok": true,
+      "wait": "prospect-workbench"
+    },
+    {
+      "name": "count_card_overview-count-clients",
+      "landed": "/app/clients?proof=1",
+      "ok": true,
+      "wait": "clients-list"
+    },
+    {
+      "name": "count_card_overview-count-commercial",
+      "landed": "/app/commercial?filter=needs_attention&proof=1",
+      "ok": true,
+      "wait": "commercial-summary"
+    },
+    {
+      "name": "count_card_overview-count-delivery-blocked",
+      "landed": "/app/delivery?filter=blocked&proof=1",
+      "ok": true,
+      "wait": "delivery-summary"
+    },
+    {
+      "name": "count_card_overview-count-delivery-review",
+      "landed": "/app/delivery?filter=client_review_pending&proof=1",
+      "ok": true,
+      "wait": "delivery-summary"
+    },
+    {
+      "name": "count_card_overview-count-delivery-protected",
+      "landed": "/app/delivery?filter=protected_deploy_approval_required&proof=1",
+      "ok": true,
+      "wait": "delivery-summary"
+    },
+    {
+      "name": "item_prospect_ada",
+      "landed": "/app/prospects/syn-772-lr-ada?proof=1",
+      "ok": true,
+      "wait": "prospect-detail"
+    },
+    {
+      "name": "item_client_pilot",
+      "landed": "/app/clients/cmp_pilot_client_synthetic?proof=1",
+      "ok": true,
+      "wait": "clients-summary"
+    },
+    {
+      "name": "item_commercial_ada",
+      "landed": "/app/prospects/syn-772-lr-ada?proof=1",
+      "ok": true,
+      "wait": "prospect-detail"
+    },
+    {
+      "name": "item_delivery_pat",
+      "landed": "/app/prospects/syn-995-lr-prot?proof=1",
+      "ok": true,
+      "wait": "prospect-detail"
+    },
+    {
+      "name": "item_delivery_change",
+      "landed": "/change?proof=1",
+      "ok": true,
+      "wait": null
+    },
+    {
+      "name": "mobile_commercial_card",
+      "landed": "/app/commercial?filter=needs_attention&proof=1",
+      "ok": true
+    },
+    {
+      "name": "mobile_clients_card",
+      "landed": "/app/clients?proof=1",
+      "ok": true
+    },
+    {
+      "name": "unauthenticated_core",
+      "landed": "/app/core",
+      "ok": true
+    }
+  ],
+  "blockers": [],
+  "screenshots": [
+    "/workspace/artifacts/issue-1189-operating-overview-acceptance/core-overview-desktop.png",
+    "/workspace/artifacts/issue-1189-operating-overview-acceptance/next_destination_delivery_protected.png",
+    "/workspace/artifacts/issue-1189-operating-overview-acceptance/count_card_overview-count-prospects-overdue.png",
+    "/workspace/artifacts/issue-1189-operating-overview-acceptance/count_card_overview-count-prospects-stalled.png",
+    "/workspace/artifacts/issue-1189-operating-overview-acceptance/count_card_overview-count-clients.png",
+    "/workspace/artifacts/issue-1189-operating-overview-acceptance/count_card_overview-count-commercial.png",
+    "/workspace/artifacts/issue-1189-operating-overview-acceptance/count_card_overview-count-delivery-blocked.png",
+    "/workspace/artifacts/issue-1189-operating-overview-acceptance/count_card_overview-count-delivery-review.png",
+    "/workspace/artifacts/issue-1189-operating-overview-acceptance/count_card_overview-count-delivery-protected.png",
+    "/workspace/artifacts/issue-1189-operating-overview-acceptance/item_prospect_ada.png",
+    "/workspace/artifacts/issue-1189-operating-overview-acceptance/item_client_pilot.png",
+    "/workspace/artifacts/issue-1189-operating-overview-acceptance/item_commercial_ada.png",
+    "/workspace/artifacts/issue-1189-operating-overview-acceptance/item_delivery_pat.png",
+    "/workspace/artifacts/issue-1189-operating-overview-acceptance/item_delivery_change.png",
+    "/workspace/artifacts/issue-1189-operating-overview-acceptance/core-overview-mobile.png",
+    "/workspace/artifacts/issue-1189-operating-overview-acceptance/mobile-commercial-destination.png",
+    "/workspace/artifacts/issue-1189-operating-overview-acceptance/mobile-clients-destination.png",
+    "/workspace/artifacts/issue-1189-operating-overview-acceptance/core-unauth-desktop.png",
+    "/workspace/artifacts/issue-1189-operating-overview-acceptance/core-tenant-denied-desktop.png",
+    "/workspace/artifacts/issue-1189-operating-overview-acceptance/core-overview-empty.png",
+    "/workspace/artifacts/issue-1189-operating-overview-acceptance/core-overview-error.png",
+    "/workspace/artifacts/issue-1189-operating-overview-acceptance/core-overview-loading.png"
+  ],
+  "overview": {
+    "data_source": "fixture",
+    "next_href": "/app/delivery?filter=protected_deploy_approval_required&proof=1",
+    "next_label": "Delivery — protected gates",
+    "count_cards": [
+      {
+        "testId": "overview-count-prospects-overdue",
+        "href": "/app/queue?filter=overdue&proof=1",
+        "count": 1,
+        "label": "Overdue prospects"
+      },
+      {
+        "testId": "overview-count-prospects-stalled",
+        "href": "/app/workbench?filter=stalled&proof=1",
+        "count": 5,
+        "label": "Stalled prospects"
+      },
+      {
+        "testId": "overview-count-clients",
+        "href": "/app/clients?proof=1",
+        "count": 1,
+        "label": "Client exceptions"
+      },
+      {
+        "testId": "overview-count-commercial",
+        "href": "/app/commercial?filter=needs_attention&proof=1",
+        "count": 10,
+        "label": "Commercial blockers"
+      },
+      {
+        "testId": "overview-count-delivery-blocked",
+        "href": "/app/delivery?filter=blocked&proof=1",
+        "count": 10,
+        "label": "Delivery blockers"
+      },
+      {
+        "testId": "overview-count-delivery-review",
+        "href": "/app/delivery?filter=client_review_pending&proof=1",
+        "count": 3,
+        "label": "Delivery review"
+      },
+      {
+        "testId": "overview-count-delivery-protected",
+        "href": "/app/delivery?filter=protected_deploy_approval_required&proof=1",
+        "count": 1,
+        "label": "Protected gates"
+      }
+    ],
+    "section_items": [
+      {
+        "testId": "overview-item-link-delivery:lead:syn-995-lr-prot",
+        "href": "/app/prospects/syn-995-lr-prot?proof=1",
+        "label": "Pat Partners"
+      },
+      {
+        "testId": "overview-item-link-delivery:lead:syn-995-lr-prot",
+        "href": "/app/prospects/syn-995-lr-prot?proof=1",
+        "label": "Pat Partners"
+      },
+      {
+        "testId": "overview-item-link-delivery:lead:syn-772-rd-bea",
+        "href": "/app/prospects/syn-772-rd-bea?proof=1",
+        "label": "Bea Boutique"
+      },
+      {
+        "testId": "overview-item-link-delivery:ticket:syn_slice1_req_corpflowai_002",
+        "href": "/change?proof=1",
+        "label": "corpflowai"
+      },
+      {
+        "testId": "overview-item-link-delivery:ticket:syn_slice1_req_other_001",
+        "href": "/change?proof=1",
+        "label": "cursor-test"
+      },
+      {
+        "testId": "overview-item-link-delivery:lead:syn-772-lr-cal",
+        "href": "/app/prospects/syn-772-lr-cal?proof=1",
+        "label": "Cal Clinic"
+      },
+      {
+        "testId": "overview-item-link-prospect-overdue:syn-772-lr-ada",
+        "href": "/app/prospects/syn-772-lr-ada?proof=1",
+        "label": "Ada Spa"
+      },
+      {
+        "testId": "overview-item-link-commercial:syn-772-lr-ada",
+        "href": "/app/prospects/syn-772-lr-ada?proof=1",
+        "label": "Ada Spa"
+      },
+      {
+        "testId": "overview-item-link-commercial:syn-772-rd-bea",
+        "href": "/app/prospects/syn-772-rd-bea?proof=1",
+        "label": "Bea Boutique"
+      },
+      {
+        "testId": "overview-item-link-commercial:syn-772-lr-cal",
+        "href": "/app/prospects/syn-772-lr-cal?proof=1",
+        "label": "Cal Clinic"
+      },
+      {
+        "testId": "overview-item-link-commercial:syn-996-gen-dee",
+        "href": "/app/prospects/syn-996-gen-dee?proof=1",
+        "label": "Dee Advisory"
+      },
+      {
+        "testId": "overview-item-link-commercial:syn-995-lr-due",
+        "href": "/app/prospects/syn-995-lr-due?proof=1",
+        "label": "Dana Day Spa"
+      },
+      {
+        "testId": "overview-item-link-prospect-stalled:syn-772-lr-ada",
+        "href": "/app/prospects/syn-772-lr-ada?proof=1",
+        "label": "Ada Spa"
+      },
+      {
+        "testId": "overview-item-link-prospect-stalled:syn-995-lr-due",
+        "href": "/app/prospects/syn-995-lr-due?proof=1",
+        "label": "Dana Day Spa"
+      },
+      {
+        "testId": "overview-item-link-prospect-stalled:syn-772-rd-bea",
+        "href": "/app/prospects/syn-772-rd-bea?proof=1",
+        "label": "Bea Boutique"
+      },
+      {
+        "testId": "overview-item-link-prospect-stalled:syn-995-lr-op",
+        "href": "/app/prospects/syn-995-lr-op?proof=1",
+        "label": "Owen Office"
+      },
+      {
+        "testId": "overview-item-link-prospect-stalled:syn-995-lr-prot",
+        "href": "/app/prospects/syn-995-lr-prot?proof=1",
+        "label": "Pat Partners"
+      },
+      {
+        "testId": "overview-item-link-delivery:lead:syn-772-lr-cal",
+        "href": "/app/prospects/syn-772-lr-cal?proof=1",
+        "label": "Cal Clinic"
+      },
+      {
+        "testId": "overview-item-link-delivery:ticket:syn_slice1_req_corpflowai_001",
+        "href": "/change?proof=1",
+        "label": "corpflowai"
+      },
+      {
+        "testId": "overview-item-link-delivery:ticket:syn_lr_delivery_corpflowai_001",
+        "href": "/change?proof=1",
+        "label": "corpflowai"
+      }
+    ],
+    "overflow_px": 0
+  },
+  "mobile": {
+    "overflow_px": 0,
+    "url": "/app/core?proof=1"
+  },
+  "tenant_boundary": {
+    "ui": "app-core-denied",
+    "copy": "A Tenant session cannot enter Core. Sign out and sign in with Core credentials.",
+    "handler_tenant_403": true,
+    "handler_session": {
+      "status": 403,
+      "error": "core_access_denied"
+    },
+    "handler_proof_tenant": {
+      "status": 403,
+      "error": "core_access_denied"
+    }
+  },
+  "exact_route_sequence": [
+    "/app/core?proof=1",
+    "/app/delivery?filter=protected_deploy_approval_required&proof=1",
+    "/app/queue?filter=overdue&proof=1",
+    "/app/workbench?filter=stalled&proof=1",
+    "/app/clients?proof=1",
+    "/app/commercial?filter=needs_attention&proof=1",
+    "/app/delivery?filter=blocked&proof=1",
+    "/app/delivery?filter=client_review_pending&proof=1",
+    "/app/prospects/syn-772-lr-ada?proof=1",
+    "/app/clients/cmp_pilot_client_synthetic?proof=1",
+    "/app/prospects/syn-995-lr-prot?proof=1",
+    "/change?proof=1"
+  ],
+  "verdict": "OPERATING WORKSPACE ACTION OVERVIEW USABLE"
+}
