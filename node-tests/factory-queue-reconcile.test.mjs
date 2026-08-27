@@ -132,6 +132,8 @@ describe('factory queue reconcile workflow (#1023)', () => {
     assert.doesNotMatch(yaml, /secrets\.TELEGRAM_/);
     assert.match(yaml, /uses:\s*\.\/\.github\/workflows\/factory-cursor-handoff\.yml/);
     assert.match(yaml, /wake_reason:\s*scheduled_reconciliation/);
+    assert.match(yaml, /CORPFLOW_TEMPORAL_PILOT:\s*\$\{\{\s*vars\.CORPFLOW_TEMPORAL_PILOT\s*\}\}/);
+    assert.match(handoffYaml, /CORPFLOW_TEMPORAL_PILOT:\s*\$\{\{\s*vars\.CORPFLOW_TEMPORAL_PILOT\s*\}\}/);
     assert.match(yaml, /node scripts\/factory-queue-reconcile\.mjs/);
     assert.match(yaml, /needs\.scan\.outputs\.should_wake_handoff == '1'/);
     assert.match(yaml, /target_issue:\s*\$\{\{\s*needs\.scan\.outputs\.source_issue\s*\}\}/);

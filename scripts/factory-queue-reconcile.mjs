@@ -221,6 +221,8 @@ async function main() {
     claimedIssues,
     trackedIssues,
     preferIssueNumbers: [],
+    wakeReason: 'scheduled_reconciliation',
+    activationLane: 'ordinary',
   });
   const staleReadyReviewIssueNumbers = findStaleReadyReviewIssueNumbers(plan);
   if (!args.dryRun) {

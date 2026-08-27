@@ -20,6 +20,10 @@ Treat this as part of **definition of done** whenever work is **committed and pu
 4. **Repository hygiene (Git):** Never add a **tracked file or folder named `main`** at the **repository root** — it makes `git log main` / `git diff main` ambiguous with the default branch. Removed once; see **`docs/operations/GIT_AND_MAIN_BRANCH.md`**. (No GitHub/Vercel access change required.)
 
 
+### Temporal factory supervisor — 72-hour prove-or-remove (#1130)
+
+Canonical: **`docs/operations/TEMPORAL_FACTORY_REAL_PRODUCTION_PILOT_V1.md`**. Current-main supervisor is review-ready; live pilot is **not started**. Activation is GitHub-only (`docs/runbooks/TEMPORAL_FACTORY_PILOT_ACTIVATION.md`). FAIL → remove (`docs/runbooks/TEMPORAL_FACTORY_PILOT_ROLLBACK.md`). Do **not** merge obsolete PR #1034. Overlapping supervisors stay live until an explicit PASS.
+
 ### Current delivery reality (orchestration — read first)
 
 **Canonical snapshot:** **`docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md`**. Before giving CorpFlowAI progress, dispatch, next-action or blocker advice, check that doc and current GitHub issue/PR state. Do not rely on remembered/manual-pickup assumptions. **DEFAULT DELIVERY POSTURE: MOVE WORK, DO NOT WAIT FOR PICKUP** (protected gates unchanged). <!-- CORPFLOWAI_CURRENT_DELIVERY_REALITY_TODO_LINK -->
@@ -86,6 +90,7 @@ Jan’s product/release decision page (not merge authority): **`docs/operations/
 
 ## P0 — Spine & safety (now)
 
+- **ERPNext Projects / Support current-main landing (#1134 / #1097):** Standard ERPNext Project / Task / Issue operating proof on reused #920 records (`PROJ-0001`, `TASK-2026-00013`–`00024`, `ISS-2026-00001`). Timesheet **DEFER**. SLA / Assignment Rule **DEFERRED**. Canonical: **`docs/erpnext/ERPNEXT_PROJECTS_SUPPORT_OPERATIONAL_PROOF_V1.md`**. Live apply not redone for #1134. Close stale PR #1102 without merge. No schema, send, Timesheet submit, or second project/helpdesk app. (`JE-2026-08-27-2`.)
 - **ERPNext WP1 Customer bridge (#1009):** Operator/factory-invoked search-before-create from a qualified CorpFlowAI lead to standard ERPNext Customer/Contact/Address. Canonical: **`docs/erpnext/ERPNEXT_CUSTOMER_BRIDGE_V1.md`**. Synthetic idempotency proof only. Pointer shape is `qualification_json.erpnext`. No schema, cron, live Postgres PATCH, send, or real Prestige Customer. (`JE-2026-08-19-2`.)
 - **ERPNext-first source-of-truth matrix (#918):** Decision-ready record is **`docs/governance/erpnext/SOURCE_OF_TRUTH_MATRIX_V1.md`**. Verdict: **ERPNext-FIRST RECONCILIATION READY FOR IMPLEMENTATION**. First bridge: qualified Customer identity (`leads.id` → Customer/Contact/Address). Daily CRM stays on Postgres `leads` (#701). No automated sync, schema, send, or real Prestige Customer. Prestige fast lane is not blocked. (`JE-2026-08-19-1`.)
 - **ERPNext business-critical due diligence (#959):** Decision-ready record is **`docs/governance/erpnext/ERPNEXT_BUSINESS_CRITICAL_DUE_DILIGENCE_V1.md`**. Verdict: **ERPNext BUSINESS-CRITICAL USE APPROVED WITH CONDITIONS**. Stay on ERPNext vs Odoo / Business Central / SAP B1 / NetSuite. Do **not** treat it as irreplaceable until #956 P0s + patched v16 + accountant CoA/VAT are proven. Prestige fast lane is not blocked. Research/docs only. (`JE-2026-08-16-1`.)
