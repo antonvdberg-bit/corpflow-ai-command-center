@@ -55,6 +55,7 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_RUN_ID: ${{ github.run_id }}
           GITHUB_SERVER_URL: ${{ github.server_url }}
+          CORPFLOW_TEMPORAL_PILOT: ${{ vars.CORPFLOW_TEMPORAL_PILOT }}
           FACTORY_QUEUE_RECONCILE_OUT_PATH: factory-queue-reconcile.json
         run: |
           set -euo pipefail

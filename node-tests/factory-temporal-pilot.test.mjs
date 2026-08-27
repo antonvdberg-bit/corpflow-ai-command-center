@@ -180,7 +180,12 @@ describe('factory Temporal real-production pilot control plane (#1130)', () => {
     assert.equal(FACTORY_CONTROL_PLANE_V1.sourceOfTruth, 'github');
     assert.equal(FACTORY_CONTROL_PLANE_V1.cursorWakePath, FACTORY_CURSOR_HANDOFF_WORKFLOW_NAME);
     assert.equal(FACTORY_CONTROL_PLANE_V1.wipMaxSlots, 3);
+    assert.equal(FACTORY_CONTROL_PLANE_V1.wipPilotMaxSlots, 5);
+    assert.equal(FACTORY_CONTROL_PLANE_V1.wipProductionReserveSlots, 3);
+    assert.equal(FACTORY_CONTROL_PLANE_V1.wipTemporalExtraSlots, 2);
     assert.equal(CURSOR_WIP_MAX_SLOTS, 3);
+    assert.match(handoffYaml, /CORPFLOW_TEMPORAL_PILOT:\s*\$\{\{\s*vars\.CORPFLOW_TEMPORAL_PILOT\s*\}\}/);
+    assert.match(reconcileYaml, /CORPFLOW_TEMPORAL_PILOT:\s*\$\{\{\s*vars\.CORPFLOW_TEMPORAL_PILOT\s*\}\}/);
     assert.match(handoffYaml, /^name:\s*CorpFlowAI Cursor Factory Handoff\s*$/m);
     assert.doesNotMatch(handoffYaml, /^\s*schedule:/m);
     assert.match(handoffYaml, /inputs\.wake_reason == 'temporal_supervisory'/);
@@ -270,6 +275,8 @@ describe('factory Temporal real-production pilot control plane (#1130)', () => {
     assert.equal(parsed.schema, FACTORY_TEMPORAL_PILOT_SCHEMA);
     assert.equal(parsed.mode, 'dry-run');
     assert.equal(parsed.wipMaxSlots, 3);
+    assert.equal(parsed.wipDefaultMaxSlots, 3);
+    assert.equal(parsed.wipPilotMaxSlots, 5);
     const live = spawnSync(process.execPath, [WORKER_PATH, '--live'], { encoding: 'utf8' });
     assert.equal(live.status, 2);
     assert.match(live.stderr, /NOT READY/);
