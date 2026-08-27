@@ -220,6 +220,7 @@ Artifact: `artifacts/erpnext/projects-support-ops-1097/apply-log.json`.
 ## Cross-references
 
 - #920 foundation: [`ERPNEXT_PRESTIGE_FOUNDATION_V1.md`](./ERPNEXT_PRESTIGE_FOUNDATION_V1.md)
+- Current-main continuity: [`ERPNEXT_DELIVERY_WORKSPACE_CONTINUITY_V1.md`](./ERPNEXT_DELIVERY_WORKSPACE_CONTINUITY_V1.md) (#1170 / #1156)
 - #918 matrix: [`../governance/erpnext/SOURCE_OF_TRUTH_MATRIX_V1.md`](../governance/erpnext/SOURCE_OF_TRUTH_MATRIX_V1.md)
 - Bridge contract: [`ERPNEXT_CORPFLOW_BRIDGE_CONTRACT_V1.md`](./ERPNEXT_CORPFLOW_BRIDGE_CONTRACT_V1.md)
 - Decision: [`../decisions/20260826-erpnext-projects-support-ops.md`](../decisions/20260826-erpnext-projects-support-ops.md)

@@ -22,7 +22,7 @@ An authorised staff user can:
 8. Open the **Prospect Action Queue** at `/app/queue` to see what needs action now (overdue, due today, no next action, new/unreviewed, high urgency, stalled, awaiting operator).
 9. Open **Clients** at `/app/clients` and see existing Company Master client/business records, a summary, and links to related prospect / commercial / delivery surfaces — without a second customer model.
 10. Open **Commercial** at `/app/commercial` and see current quotation, acceptance, payment-evidence and financial-approval state for existing prospect/client records, with blockers and next action. Where an ERPNext Quotation id is already recorded, open bounded authoritative status and printable evidence, then return to Commercial / Prospect.
-11. Open **Delivery** at `/app/delivery` and see active Lead Rescue, Website Rescue, and Change/request delivery with stage, owner, blocker, next action, review/approval, and evidence links — without a second project system.
+11. Open **Delivery** at `/app/delivery` and see active Lead Rescue, Website Rescue, and Change/request delivery with stage, owner, blocker, next action, review/approval, evidence links, and — where an existing `corpflow.delivery.erpnext.v1` pointer already exists — the authoritative ERPNext Project/Issue identifier and bounded status. This is not a second project system.
 12. Not see Prospect Operations, Today / My Work, shared detail, Workbench, Pipeline, Action Queue, Clients, Commercial, Delivery, or other internal commercial desks inside the Tenant Workspace.
 
 Existing Core/Tenant **authentication remains separate**. Choosing the other workspace returns to `/app` and uses the matching sign-in. A Core session still cannot enter Tenant; a Tenant session still cannot enter Core. That #778 rule is unchanged.
@@ -182,6 +182,10 @@ This slice does **not** retire Company Master, product desks, or `/change/revenu
 
 This slice does **not** replace `/change`, retire product desks, or change the Commercial summary (#1004).
 
+### Follow-on (#1170 / #1156 — Delivery ↔ ERPNext Project/Issue continuity)
+
+Reuse the merged Delivery surface and the #1097 / #1144 `corpflow.delivery.erpnext.v1` pointer. Where that existing reference already names `PROJ-0001` / `ISS-2026-00001`, Delivery shows the identifier and bounded safe status. GET-only ERPNext. No schema, no sync, no Tenant ERPNext oversight. Canonical: [`docs/erpnext/ERPNEXT_DELIVERY_WORKSPACE_CONTINUITY_V1.md`](../erpnext/ERPNEXT_DELIVERY_WORKSPACE_CONTINUITY_V1.md). Current-main repair of unmergeable PR #1158; preserves later Operating Workspace action overview (#1159) and Commercial quotation-evidence (#1160).
+
 ### Later spare-capacity slices (do not build in this PR)
 
 1. Product-desk retirement after live verification of Workbench, Pipeline, Action Queue, and Delivery replacements.
@@ -212,8 +216,11 @@ node --test \
   node-tests/app-prospect-pipeline.test.mjs \
   node-tests/app-action-queue.test.mjs \
   node-tests/app-clients.test.mjs \
+  node-tests/app-operating-overview.test.mjs \
   node-tests/app-commercial-summary.test.mjs \
+  node-tests/app-commercial-quotation-evidence.test.mjs \
   node-tests/app-delivery-summary.test.mjs \
+  node-tests/app-delivery-erpnext-continuity.test.mjs \
   node-tests/app-slice1-access.test.mjs \
   node-tests/app-slice1-handlers.test.mjs \
   node-tests/tenant-journey-continuity.test.mjs \
