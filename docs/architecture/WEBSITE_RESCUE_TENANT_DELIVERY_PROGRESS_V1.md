@@ -87,3 +87,5 @@ Promptfoo / AI eval: **NOT APPLICABLE** — tenant-safe projection of an existin
 - `https://core.corpflowai.com/app/tenant?id=syn-1151-wr-tenant-progress` (fixture/proof path)
 - `https://core.corpflowai.com/change?from=tenant-workspace`
 - Staff-only (must 403 for tenant sessions): `https://core.corpflowai.com/app/prospects`, `/app/commercial`, `/app/delivery`
+
+Merged-journey client acceptance: [#1175](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1175) / `docs/architecture/LEAD_WEBSITE_RESCUE_TENANT_JOURNEY_ACCEPTANCE_V1.md`.

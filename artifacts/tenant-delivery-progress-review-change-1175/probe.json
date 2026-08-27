@@ -1,0 +1,50 @@
+{
+  "captured_at": "2026-08-27T14:02:28.428Z",
+  "issue": 1175,
+  "sources": [
+    1169,
+    1124,
+    1073
+  ],
+  "current_main_sha": "b731411734edb01b7dbb8d7e20247c5a7805983a",
+  "environment": "corpflow_test",
+  "route": "/app/tenant",
+  "tenant_id": "corpflowai",
+  "lead_rescue_request_id": "syn_lr_delivery_corpflowai_001",
+  "website_rescue_request_id": "syn-1151-wr-tenant-progress",
+  "expected": {
+    "both_services_listed": true,
+    "client_safe_stage_and_next_action": true,
+    "deliberately_exposed_review_only": true,
+    "change_handoff_canonical": true,
+    "staff_fail_closed": true
+  },
+  "actual": {
+    "list_ok": true,
+    "lr_stage": true,
+    "lr_preview_exposed": true,
+    "lr_verification_view_only": true,
+    "wr_stage": true,
+    "wr_preview_link": true,
+    "lr_internal_review_blocked": true,
+    "lr_review_ok": true,
+    "wr_ticket_review_blocked": true,
+    "core_sees_decision": true,
+    "no_forbidden_keys": true,
+    "cross_tenant": true,
+    "staff_denied": true,
+    "change_href_canonical": true,
+    "navigation_does_not_create_ticket": true,
+    "shell_ok": true
+  },
+  "staff_status": {
+    "delivery": 403,
+    "prospects": 403,
+    "commercial": 403,
+    "prospect_detail": 403
+  },
+  "change_href": "/change?from=tenant-workspace&tenant_id=corpflowai",
+  "core_latest_decision": "approve",
+  "wr_review_status": 404,
+  "verdict": "TENANT DELIVERY PROGRESS + REVIEW/CHANGE JOURNEY USABLE"
+}

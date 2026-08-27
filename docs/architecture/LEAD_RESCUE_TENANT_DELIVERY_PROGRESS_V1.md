@@ -83,6 +83,8 @@ Promptfoo / AI eval: **NOT APPLICABLE** — Tenant request projection and existi
 
 Live tenant-session verification remains after merge/publish. This packet does not deploy.
 
+Merged-journey client acceptance: [#1175](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1175) / `docs/architecture/LEAD_WEBSITE_RESCUE_TENANT_JOURNEY_ACCEPTANCE_V1.md`.
+
 ## 6. Explicit non-actions
 
 - No production / client_production deploy
