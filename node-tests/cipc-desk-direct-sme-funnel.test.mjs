@@ -69,7 +69,7 @@ test('direct-SME funnel content covers conversion sections without specialist ja
   assert.match(String(c.meta?.robots || ''), /noindex/);
 
   const visible = commercialBlob();
-  assert.doesNotMatch(visible, /corpflow_test|#1152|#989|GitHub|SARAH CONFIRM|ticket_id|magic_link/i);
+  assert.doesNotMatch(visible, /corpflow_test|#1152|#1183|#989|GitHub|SARAH CONFIRM|ticket_id|magic_link/i);
   assert.doesNotMatch(visible, /Open review page|\/annual-returns|\/director-changes|\/beneficial-ownership/i);
   assert.doesNotMatch(visible, /R\s?\d{2,}|ZAR\s?\d+|USD\s?\d+|fee table|price list is/i);
   assert.doesNotMatch(visible, /official CIPC partner|accredited by CIPC|guaranteed revenue|Choose payment path/i);
