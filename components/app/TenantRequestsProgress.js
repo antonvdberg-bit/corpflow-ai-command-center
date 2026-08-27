@@ -86,6 +86,12 @@ export default function TenantRequestsProgress({
                   <p className="cf-app-muted" style={{ margin: 0 }}>
                     {String(r.outcome || '')}
                   </p>
+                  {r.service_name ? (
+                    <p className="cf-app-muted" style={{ margin: '8px 0 0' }} data-testid={`tenant-list-service-${id}`}>
+                      {String(r.service_name)}
+                      {r.high_level_stage_label ? ` · ${String(r.high_level_stage_label)}` : ''}
+                    </p>
+                  ) : null}
                   <p className="cf-app-muted" style={{ margin: '8px 0 0' }}>
                     Next · {String(r.next_action || '—')}
                   </p>
@@ -121,6 +127,20 @@ export default function TenantRequestsProgress({
           <dl className="cf-app-kv" data-testid="tenant-identity">
             <dt>Request id</dt>
             <dd data-testid="tenant-request-id">{String(request.request_id || '')}</dd>
+            {request.service_name ? (
+              <>
+                <dt>Service</dt>
+                <dd data-testid="tenant-service-name">{String(request.service_name)}</dd>
+              </>
+            ) : null}
+            {request.high_level_stage_label || request.high_level_stage ? (
+              <>
+                <dt>Stage</dt>
+                <dd data-testid="tenant-high-level-stage">
+                  {String(request.high_level_stage_label || request.high_level_stage || '—')}
+                </dd>
+              </>
+            ) : null}
             <dt>Desired outcome</dt>
             <dd>{String(request.outcome || '—')}</dd>
             <dt>Latest update</dt>
