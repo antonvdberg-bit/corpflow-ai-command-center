@@ -1,0 +1,11 @@
+{
+  "hosts": {
+    "https://core.corpflowai.com/app/core": 200,
+    "https://core.corpflowai.com/app/queue": 200,
+    "https://core.corpflowai.com/app/clients": 200,
+    "https://core.corpflowai.com/app/commercial": 200,
+    "https://core.corpflowai.com/app/delivery": 200,
+    "https://core.corpflowai.com/api/factory/health": 200
+  },
+  "note": "Unauthenticated corpflow_test GETs return Operating Workspace sign-in chrome (staff-only). Authenticated proof journey is local."
+}

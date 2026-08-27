@@ -24,7 +24,10 @@ import {
   filterExceptionClients,
   filterOverdueProspects,
   filterStalledProspects,
+  operatingOverviewPanelKind,
+  overviewErrorCopyImpliesFalseClear,
 } from '../lib/app/operating-overview.js';
+import { OVERVIEW_LIST_ERROR_BODY } from '../lib/app/staff-workspace-load-state.js';
 import { fixtureClientRows, projectClientSummaries } from '../lib/app/clients-workspace.js';
 import { fixtureCommercialRecords, filterCommercialRows } from '../lib/app/commercial-summary.js';
 import {
@@ -151,16 +154,16 @@ describe('Operating Workspace action overview #1159', { concurrency: false }, ()
       assert.ok(String(item.href || '').startsWith('/'), item.id);
       assert.equal(String(item.href).includes('://'), false, item.id);
       const allowed =
-        item.href.startsWith('/app/prospects/') ||
-        item.href.startsWith('/app/clients/') ||
-        item.href.startsWith('/app/commercial') ||
-        item.href.startsWith('/app/delivery') ||
+        (item.kind === 'prospect' && item.href.startsWith('/app/prospects/')) ||
+        (item.kind === 'client' && item.href.startsWith('/app/clients/')) ||
+        (item.kind === 'commercial' && item.href.startsWith('/app/commercial')) ||
+        (item.kind === 'delivery' && item.href.startsWith('/app/delivery')) ||
         item.href.startsWith('/app/queue') ||
         item.href.startsWith('/app/workbench') ||
-        item.href.startsWith('/app/today') ||
-        item.href === '/change' ||
-        item.href.startsWith('/change?');
-      assert.equal(allowed, true, `unexpected href ${item.href}`);
+        item.href.startsWith('/app/today');
+      assert.equal(allowed, true, `unexpected href ${item.href} for ${item.kind}`);
+      assert.equal(item.href.startsWith('/admin/'), false, item.id);
+      assert.equal(item.href === '/change' || String(item.href).startsWith('/change?'), false, item.id);
     }
 
     const dumped = JSON.stringify(payload);
@@ -182,12 +185,35 @@ describe('Operating Workspace action overview #1159', { concurrency: false }, ()
     assert.equal(next.count, 0);
   });
 
+  test('failed overview load is error, not empty or all-clear', () => {
+    assert.equal(operatingOverviewPanelKind({ busy: true, error: '', exceptionCount: 0 }), 'loading');
+    assert.equal(
+      operatingOverviewPanelKind({ busy: false, error: 'overview_503', exceptionCount: 0, overviewOk: false }),
+      'error',
+    );
+    assert.equal(
+      operatingOverviewPanelKind({ busy: false, error: '', exceptionCount: 0, overviewOk: true }),
+      'empty',
+    );
+    assert.equal(
+      operatingOverviewPanelKind({ busy: false, error: '', exceptionCount: 3, overviewOk: true }),
+      'ready',
+    );
+    assert.equal(overviewErrorCopyImpliesFalseClear(OVERVIEW_LIST_ERROR_BODY), false);
+    assert.equal(
+      overviewErrorCopyImpliesFalseClear('Nothing needs attention right now'),
+      true,
+    );
+  });
+
   test('core page and overview component keep identity links and loading/empty states', () => {
     const coreSrc = readFileSync(join(root, 'pages/app/core.js'), 'utf8');
     const uiSrc = readFileSync(join(root, 'components/app/OperatingOverview.js'), 'utf8');
     assert.equal(coreSrc.includes('/api/app/overview'), true);
     assert.equal(coreSrc.includes('OperatingOverview'), true);
     assert.equal(coreSrc.includes("menuFromQuery"), true);
+    assert.equal(coreSrc.includes('app-core-overview-error'), true);
+    assert.equal(coreSrc.includes('operatingOverviewPanelKind'), true);
     assert.equal(uiSrc.includes('operating-overview-empty'), true);
     assert.equal(uiSrc.includes('overview-next-link'), true);
     assert.equal(uiSrc.includes(ACTION_QUEUE_PATH), true);

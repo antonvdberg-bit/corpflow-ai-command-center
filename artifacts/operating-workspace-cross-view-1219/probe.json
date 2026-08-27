@@ -1,0 +1,281 @@
+{
+  "current_main_sha": "b731411734edb01b7dbb8d7e20247c5a7805983a",
+  "source_issue": 1219,
+  "proof_core_actor": true,
+  "shell": {
+    "status": 200,
+    "workspace": {
+      "environment": "core",
+      "workspace_id": "operating",
+      "workspace_label": "CorpFlowAI Operating Workspace",
+      "tenant_chip_label": "—",
+      "switch_href": "/app",
+      "switch_label": "Choose workspace",
+      "show_switch": true
+    }
+  },
+  "http": {
+    "overview": 200,
+    "queue": 200,
+    "clients": 200,
+    "client_ada": 200,
+    "commercial": 200,
+    "delivery": 200,
+    "prospect_ada": 200
+  },
+  "tenant_fail_closed": {
+    "overview": {
+      "status": 403,
+      "error": "core_access_denied"
+    },
+    "queue": {
+      "status": 403,
+      "error": "core_access_denied"
+    },
+    "clients": {
+      "status": 403,
+      "error": "core_access_denied"
+    },
+    "commercial": {
+      "status": 403,
+      "error": "core_access_denied"
+    },
+    "delivery": {
+      "status": 403,
+      "error": "core_access_denied"
+    }
+  },
+  "identifiers": {
+    "prospect_id": "syn-772-lr-ada",
+    "company_id": "cmp_ada_spa_synthetic",
+    "commercial_id": "syn-772-lr-ada",
+    "delivery_source_id": "syn-772-lr-ada",
+    "owner_prospect": "anton",
+    "owner_commercial": "anton",
+    "owner_delivery": "anton",
+    "next_action_prospect": "Book discovery",
+    "next_action_commercial": "Record payment evidence or an approved payment exception",
+    "next_action_delivery": "Book discovery"
+  },
+  "route_matrix": [
+    {
+      "id": "prospect-overdue:syn-772-lr-ada",
+      "kind": "prospect",
+      "href": "/app/prospects/syn-772-lr-ada",
+      "identity": {
+        "prospect_id": "syn-772-lr-ada"
+      }
+    },
+    {
+      "id": "prospect-stalled:syn-772-lr-ada",
+      "kind": "prospect",
+      "href": "/app/prospects/syn-772-lr-ada",
+      "identity": {
+        "prospect_id": "syn-772-lr-ada"
+      }
+    },
+    {
+      "id": "prospect-stalled:syn-995-lr-due",
+      "kind": "prospect",
+      "href": "/app/prospects/syn-995-lr-due",
+      "identity": {
+        "prospect_id": "syn-995-lr-due"
+      }
+    },
+    {
+      "id": "prospect-stalled:syn-772-rd-bea",
+      "kind": "prospect",
+      "href": "/app/prospects/syn-772-rd-bea",
+      "identity": {
+        "prospect_id": "syn-772-rd-bea"
+      }
+    },
+    {
+      "id": "prospect-stalled:syn-995-lr-op",
+      "kind": "prospect",
+      "href": "/app/prospects/syn-995-lr-op",
+      "identity": {
+        "prospect_id": "syn-995-lr-op"
+      }
+    },
+    {
+      "id": "prospect-stalled:syn-995-lr-prot",
+      "kind": "prospect",
+      "href": "/app/prospects/syn-995-lr-prot",
+      "identity": {
+        "prospect_id": "syn-995-lr-prot"
+      }
+    },
+    {
+      "id": "client:cmp_pilot_client_synthetic",
+      "kind": "client",
+      "href": "/app/clients/cmp_pilot_client_synthetic",
+      "identity": {
+        "company_id": "cmp_pilot_client_synthetic"
+      }
+    },
+    {
+      "id": "commercial:syn-772-lr-ada",
+      "kind": "commercial",
+      "href": "/app/commercial/syn-772-lr-ada",
+      "identity": {
+        "prospect_id": "syn-772-lr-ada",
+        "company_id": "cmp_ada_spa_synthetic",
+        "commercial_id": "syn-772-lr-ada"
+      }
+    },
+    {
+      "id": "commercial:syn-772-rd-bea",
+      "kind": "commercial",
+      "href": "/app/commercial?filter=needs_attention",
+      "identity": {
+        "prospect_id": "syn-772-rd-bea",
+        "company_id": "cmp_bea_boutique_synthetic",
+        "commercial_id": "syn-772-rd-bea"
+      }
+    },
+    {
+      "id": "commercial:syn-772-lr-cal",
+      "kind": "commercial",
+      "href": "/app/commercial?filter=needs_attention",
+      "identity": {
+        "prospect_id": "syn-772-lr-cal",
+        "company_id": null,
+        "commercial_id": "syn-772-lr-cal"
+      }
+    },
+    {
+      "id": "commercial:syn-996-gen-dee",
+      "kind": "commercial",
+      "href": "/app/commercial?filter=needs_attention",
+      "identity": {
+        "prospect_id": "syn-996-gen-dee",
+        "company_id": null,
+        "commercial_id": "syn-996-gen-dee"
+      }
+    },
+    {
+      "id": "commercial:syn-995-lr-due",
+      "kind": "commercial",
+      "href": "/app/commercial?filter=needs_attention",
+      "identity": {
+        "prospect_id": "syn-995-lr-due",
+        "company_id": null,
+        "commercial_id": "syn-995-lr-due"
+      }
+    },
+    {
+      "id": "delivery:lead:syn-995-lr-prot",
+      "kind": "delivery",
+      "href": "/app/delivery?filter=protected_deploy_approval_required",
+      "identity": {
+        "source_id": "syn-995-lr-prot",
+        "record_kind": "lead_rescue",
+        "prospect_id": "syn-995-lr-prot",
+        "request_id": null
+      }
+    },
+    {
+      "id": "delivery:lead:syn-772-rd-bea",
+      "kind": "delivery",
+      "href": "/app/delivery?filter=inputs_pending",
+      "identity": {
+        "source_id": "syn-772-rd-bea",
+        "record_kind": "website_rescue",
+        "prospect_id": "syn-772-rd-bea",
+        "request_id": null
+      }
+    },
+    {
+      "id": "delivery:ticket:syn_slice1_req_corpflowai_002",
+      "kind": "delivery",
+      "href": "/app/delivery?filter=inputs_pending",
+      "identity": {
+        "source_id": "syn_slice1_req_corpflowai_002",
+        "record_kind": "general_delivery",
+        "prospect_id": null,
+        "request_id": "syn_slice1_req_corpflowai_002"
+      }
+    },
+    {
+      "id": "delivery:ticket:syn_slice1_req_other_001",
+      "kind": "delivery",
+      "href": "/app/delivery?filter=inputs_pending",
+      "identity": {
+        "source_id": "syn_slice1_req_other_001",
+        "record_kind": "general_delivery",
+        "prospect_id": null,
+        "request_id": "syn_slice1_req_other_001"
+      }
+    },
+    {
+      "id": "delivery:lead:syn-772-lr-cal",
+      "kind": "delivery",
+      "href": "/app/delivery?filter=client_review_pending",
+      "identity": {
+        "source_id": "syn-772-lr-cal",
+        "record_kind": "lead_rescue",
+        "prospect_id": "syn-772-lr-cal",
+        "request_id": null
+      }
+    },
+    {
+      "id": "delivery:lead:syn-772-lr-cal",
+      "kind": "delivery",
+      "href": "/app/delivery?filter=client_review_pending",
+      "identity": {
+        "source_id": "syn-772-lr-cal",
+        "record_kind": "lead_rescue",
+        "prospect_id": "syn-772-lr-cal",
+        "request_id": null
+      }
+    },
+    {
+      "id": "delivery:ticket:syn_slice1_req_corpflowai_001",
+      "kind": "delivery",
+      "href": "/app/delivery?filter=client_review_pending",
+      "identity": {
+        "source_id": "syn_slice1_req_corpflowai_001",
+        "record_kind": "general_delivery",
+        "prospect_id": null,
+        "request_id": "syn_slice1_req_corpflowai_001"
+      }
+    },
+    {
+      "id": "delivery:ticket:syn_lr_delivery_corpflowai_001",
+      "kind": "delivery",
+      "href": "/app/delivery?filter=client_review_pending",
+      "identity": {
+        "source_id": "syn_lr_delivery_corpflowai_001",
+        "record_kind": "general_delivery",
+        "prospect_id": null,
+        "request_id": "syn_lr_delivery_corpflowai_001"
+      }
+    },
+    {
+      "id": "delivery:lead:syn-995-lr-prot",
+      "kind": "delivery",
+      "href": "/app/delivery?filter=protected_deploy_approval_required",
+      "identity": {
+        "source_id": "syn-995-lr-prot",
+        "record_kind": "lead_rescue",
+        "prospect_id": "syn-995-lr-prot",
+        "request_id": null
+      }
+    }
+  ],
+  "canonical_routes": {
+    "overview": "/app/core",
+    "today": "/app/today",
+    "queue": "/app/queue",
+    "prospects": "/app/prospects",
+    "clients": "/app/clients",
+    "commercial": "/app/commercial",
+    "delivery": "/app/delivery"
+  },
+  "failed_load": {
+    "panel_kind": "error",
+    "error_copy_implies_false_clear": false
+  },
+  "pass": true
+}

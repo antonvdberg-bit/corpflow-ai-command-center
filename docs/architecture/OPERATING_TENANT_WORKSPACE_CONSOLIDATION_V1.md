@@ -24,6 +24,7 @@ An authorised staff user can:
 10. Open **Commercial** at `/app/commercial` and see current quotation, acceptance, payment-evidence and financial-approval state for existing prospect/client records, with blockers and next action. Where an ERPNext Quotation id is already recorded, open bounded authoritative status and printable evidence, then return to Commercial / Prospect.
 11. Open **Delivery** at `/app/delivery` and see active Lead Rescue, Website Rescue, and Change/request delivery with stage, owner, blocker, next action, review/approval, and evidence links — without a second project system.
 12. Not see Prospect Operations, Today / My Work, shared detail, Workbench, Pipeline, Action Queue, Clients, Commercial, Delivery, or other internal commercial desks inside the Tenant Workspace.
+13. Open `/app/core` and move through Action Queue → Client → Commercial → Delivery on recorded ids. A failed overview or list load must show an error with Retry — never “nothing needs attention” or an empty completed list (#1219). Client/Prospect joins use recorded ids only; display-name fallback is forbidden.
 
 Existing Core/Tenant **authentication remains separate**. Choosing the other workspace returns to `/app` and uses the matching sign-in. A Core session still cannot enter Tenant; a Tenant session still cannot enter Core. That #778 rule is unchanged.
 
@@ -214,6 +215,8 @@ node --test \
   node-tests/app-clients.test.mjs \
   node-tests/app-commercial-summary.test.mjs \
   node-tests/app-delivery-summary.test.mjs \
+  node-tests/app-operating-overview.test.mjs \
+  node-tests/app-operating-workspace-cross-view.test.mjs \
   node-tests/app-slice1-access.test.mjs \
   node-tests/app-slice1-handlers.test.mjs \
   node-tests/tenant-journey-continuity.test.mjs \
