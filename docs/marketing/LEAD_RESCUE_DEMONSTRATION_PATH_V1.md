@@ -8,6 +8,8 @@
 **Parent pack:** `docs/marketing/LEAD_RESCUE_PRODUCT_PACK_V1.md`  
 **Issue:** [#653](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/653)
 
+**Current buyer-path lock:** [#1127](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1127) — named landing is `/lead-rescue`; primary CTA is **Start my 48-hour setup** → `/contact?offer=ai-lead-rescue#discovery`. Do not record `/offers/ai-lead-rescue` (MUR sprint SKU) as the launch-product path.
+
 ## Live GET checks (2026-07-29 UTC — runnable slice refresh)
 
 | URL | HTTP | Notes |
@@ -22,9 +24,9 @@
 
 ```text
 Buyer opens /lead-rescue
-  → CTA "Start my 48-hour setup" (#intake)
+  → CTA "Start my 48-hour setup" → /contact?offer=ai-lead-rescue#discovery
   → Reads FAQ (#faq) if needed
-  → POST /api/tenant/intake (ai-lead-rescue)
+  → POST /api/tenant/intake from the locked contact form (ai-lead-rescue)
   → On-screen confirmation with lead_id reference (no window.alert)
   → Operator opens /admin/lead-rescue/[id]
   → Operator pack panel → quote / pro-forma / onboarding links
