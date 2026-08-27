@@ -263,6 +263,16 @@ export const APP_SHELL_CSS = `
   .cf-app-badge[data-kind="viewonly"] {
     background: rgba(148,163,184,0.18);
   }
+  .cf-app-badge[data-kind="protected"] {
+    background: rgba(248,113,113,0.18);
+    color: #fecaca;
+    border: 1px solid rgba(248,113,113,0.45);
+  }
+  .cf-app-badge[data-kind="exception"] {
+    background: rgba(251,191,36,0.16);
+    color: #fde68a;
+    border: 1px solid rgba(251,191,36,0.4);
+  }
   .cf-app-actions {
     display: flex;
     flex-wrap: wrap;
@@ -489,5 +499,31 @@ export const APP_SHELL_CSS = `
     .cf-app-main { padding: 18px 12px 48px; }
     .cf-app-kv { grid-template-columns: 1fr; }
     .cf-app-table { font-size: 0.8rem; }
+    .cf-app-delivery-table thead { display: none; }
+    .cf-app-delivery-table,
+    .cf-app-delivery-table tbody,
+    .cf-app-delivery-table tr,
+    .cf-app-delivery-table td {
+      display: block;
+      width: 100%;
+    }
+    .cf-app-delivery-table tr {
+      padding: 12px 0 16px;
+      border-bottom: 1px solid var(--app-panel-border);
+    }
+    .cf-app-delivery-table td {
+      padding: 4px 0;
+      border-bottom: 0;
+    }
+    .cf-app-delivery-table td::before {
+      content: attr(data-label);
+      display: block;
+      color: var(--app-muted);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
   }
 `;

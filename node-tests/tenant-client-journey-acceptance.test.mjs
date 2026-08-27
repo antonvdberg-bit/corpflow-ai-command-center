@@ -120,14 +120,15 @@ describe('#1120 tenant chrome is client-appropriate', () => {
 });
 
 describe('#1120 staff-only commercial / delivery / core remain fail-closed', () => {
-  it('classifies /app/commercial and /app/delivery as staff-only unimplemented paths', () => {
-    assert.deepEqual([...STAFF_ONLY_UNIMPLEMENTED_PATHS], ['/app/commercial', '/app/delivery']);
+  it('keeps /app/commercial and /app/delivery staff-only even after they are implemented', () => {
+    assert.equal(STAFF_ONLY_UNIMPLEMENTED_PATHS.includes('/app/commercial'), false);
+    assert.equal(STAFF_ONLY_UNIMPLEMENTED_PATHS.includes('/app/delivery'), false);
     for (const p of ['/app/core', '/app/commercial', '/app/delivery']) {
       assert.equal(isStaffOnlyTenantDeniedPath(p), true, p);
       assert.equal(isOperatingWorkspaceStaffPath(p), true, p);
     }
-    assert.equal(isUnimplementedStaffOnlyPath('/app/commercial'), true);
-    assert.equal(isUnimplementedStaffOnlyPath('/app/delivery'), true);
+    assert.equal(isUnimplementedStaffOnlyPath('/app/commercial'), false);
+    assert.equal(isUnimplementedStaffOnlyPath('/app/delivery'), false);
     assert.equal(isUnimplementedStaffOnlyPath('/app/tenant'), false);
     assert.equal(isStaffOnlyTenantDeniedPath('/app/tenant'), false);
     assert.equal(isStaffOnlyTenantDeniedPath('/change'), false);
