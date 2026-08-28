@@ -40,7 +40,7 @@ Until merge/deploy, those new paths correctly return **404**. That is expected.
 - Secondary CTA: **See standard services**.
 - Catalogue: annual returns, beneficial ownership, director changes, company amendments, registered-address change, private-company registration, statutory records / document retrieval.
 - Intake reuse (non-proof): `POST /api/cipc-desk/email-intake` with subject cue `Direct SME company-secretarial enquiry`, `source=direct_sme_web`, `client_path=/company`.
-- Acceptance: `?proof=1` confirms locally with the synthetic fixture. **No database write, send, payment, or filing.**
+- Acceptance: `?proof=1` confirms locally with the synthetic fixture. **No database write, send, payment, or filing.** Local desktop/mobile proof: `npm run smoke:cipc-direct-sme-proof` against a CIPC-hosted local Next (`CIPC_SMOKE_BASE_URL`, default `http://cipc.corpflowai.com:3000`).
 
 ## What this page is not
 
