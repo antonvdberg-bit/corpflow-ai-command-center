@@ -56,6 +56,8 @@ Not projected: operator notes, lead scoring/qualification, commercial/payment ev
 | `/change?from=tenant-workspace` | **CANONICAL** — no live messaging |
 | `/app/prospects`, `/app/commercial`, `/app/delivery` | **STAFF_ONLY_FAIL_CLOSED** |
 
+A failed Requests & Progress load shows an error, not an empty “no work yet” panel, so a load failure cannot be mistaken for completion (#1201).
+
 Synthetic identifiers:
 
 - Request: `syn_lr_delivery_corpflowai_001`
