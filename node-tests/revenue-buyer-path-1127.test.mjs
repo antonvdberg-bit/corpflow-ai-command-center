@@ -125,6 +125,7 @@ describe('#1127 proof, enquiry labels, and no automatic send', () => {
     assert.ok(demo.includes('href="/website-rescue"') || demo.includes("href={'/website-rescue'}"));
     assert.ok(demo.includes('/website-rescue#discovery'));
     assert.ok(demo.includes('Request discovery — Website Rescue'));
+    assert.ok(demo.includes('lockedOfferLabel="Website Rescue"') || demo.includes("lockedOfferLabel='Website Rescue'"));
     assert.ok(!demo.includes('href="/offers/premium-landing-page-rescue"'));
     assert.ok(!/Choose payment path/i.test(demo));
     assert.ok(demo.includes('noindex'));
