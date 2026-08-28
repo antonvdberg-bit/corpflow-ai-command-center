@@ -1,6 +1,6 @@
 {
   "issue": 1201,
-  "current_main_sha": "ea2a45a90a4fde7043b89989e985194da3605bff",
+  "current_main_sha": "be671871f2bc2b5c7545d5379ff2be2caf2284d5",
   "environment": "corpflow_test",
   "route_sequence": [
     "/app/tenant",

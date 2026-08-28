@@ -1,6 +1,6 @@
 # #1201 Tenant delivery progress journey — acceptance evidence
 
-Current-main SHA exercised: `ea2a45a90a4fde7043b89989e985194da3605bff`  
+Current-main SHA exercised: `be671871f2bc2b5c7545d5379ff2be2caf2284d5`  
 PR head: this branch. Environment: `corpflow_test`.
 
 ## Fixtures
