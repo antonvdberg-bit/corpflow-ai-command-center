@@ -418,7 +418,7 @@ async function main() {
     [
       '# #1220 current-main bank / reconciliation GET-only probe',
       '',
-      `Starts from current main \`${currentMainSha(cfg)}\`. Reuses #1139 evidence; GET-only re-probe after CURRENT-MAIN REPAIR (generation 3). Stale PRs #1141, #1221, and #1229 are not revived.`,
+      `Starts from current main \`${currentMainSha(cfg)}\`. Reuses #1139 evidence; GET-only re-probe after CURRENT-MAIN REPAIR (generation 4). Stale PRs #1141, #1221, #1229, and #1234 are not revived.`,
       `Identity: \`${who.user}\`. Host URL not recorded. No bank credentials, IBAN, SWIFT, or account numbers.`,
       `Synthetic recon: confirmed=${synthetic.first.recon_confirmed} delta=${synthetic.first.delta} idempotent=${synthetic.idempotent}.`,
       `Bank-feed verdict: ${BANK_FEED_VERDICT}.`,

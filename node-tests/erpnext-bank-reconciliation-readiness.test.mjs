@@ -57,7 +57,7 @@ test('#1139 config names the verdict, bank-feed decision, and #551/#714 segregat
   assert.equal(cfg.issue, SOURCE_PACKET_ISSUE);
   assert.equal(cfg.current_main_issue, CURRENT_MAIN_ISSUE);
   assert.equal(cfg.current_main_sha, CURRENT_MAIN_SHA);
-  assert.equal(cfg.current_main_sha, 'be671871f2bc2b5c7545d5379ff2be2caf2284d5');
+  assert.equal(cfg.current_main_sha, 'eb31cfd3d3c74a3f8a17b81ae4d6cccf54c07751');
   assert.deepEqual(cfg.parents, [1054, 953, 918]);
   assert.equal(cfg.dependency, 1055);
   assert.equal(cfg.verdict, CANONICAL_VERDICT);
