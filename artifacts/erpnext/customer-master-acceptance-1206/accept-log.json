@@ -1,8 +1,8 @@
 {
   "schema": "corpflow.erpnext.customer_master_acceptance_apply.v1",
   "issue": 1206,
-  "generated_at_utc": "2026-08-27T20:07:34.261Z",
-  "current_main_sha": "b731411734edb01b7dbb8d7e20247c5a7805983a",
+  "generated_at_utc": "2026-08-28T01:57:51.843Z",
+  "current_main_sha": "eb31cfd3d3c74a3f8a17b81ae4d6cccf54c07751",
   "secrets_printed": false,
   "postgres_written": false,
   "erpnext_mutated": false,

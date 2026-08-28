@@ -1,6 +1,6 @@
 # #1206 Customer / Contact master acceptance (GET-only)
 
-Hosted ERPNext test, 2026-08-27. Reused synthetic Customer / Contact / Address. Do not create. Do not send.
+Hosted ERPNext test, 2026-08-28 current-main re-land (`eb31cfd3`). Reused synthetic Customer / Contact / Address. Do not create. Do not send. Closed PR #1211 is evidence only.
 
 | File | What it shows |
 | --- | --- |
@@ -9,3 +9,5 @@ Hosted ERPNext test, 2026-08-27. Reused synthetic Customer / Contact / Address. 
 Canonical write-up: `docs/erpnext/ERPNEXT_CUSTOMER_MASTER_QUOTATION_DELIVERY_ACCEPTANCE_V1.md`.
 
 **Verdict: ERPNext CUSTOMER MASTER READY FOR QUOTATION / DELIVERY**
+
+Current-main repair: **ERPNext CUSTOMER MASTER CURRENT-MAIN READY FOR QUOTATION / DELIVERY**

@@ -87,9 +87,14 @@ if (presence('ERPNEXT_BASE_URL') !== 'present' || presence('ERPNEXT_API_KEY') !=
   process.exit(1);
 }
 
+const CURRENT_MAIN_SHA = 'eb31cfd3d3c74a3f8a17b81ae4d6cccf54c07751';
 const cfg = loadCustomerMasterAcceptanceConfig(ROOT);
 const client = frappeClientFromEnv();
-const evidence = await acceptCustomerMasterReadOnly({ client, repoRoot: ROOT });
+const evidence = await acceptCustomerMasterReadOnly({
+  client,
+  repoRoot: ROOT,
+  currentMainSha: CURRENT_MAIN_SHA,
+});
 const supporting = [];
 for (const row of cfg.supporting_identities || []) {
   supporting.push(await getSupporting(client, row));
@@ -99,7 +104,7 @@ const artifact = {
   schema: 'corpflow.erpnext.customer_master_acceptance_apply.v1',
   issue: 1206,
   generated_at_utc: new Date().toISOString(),
-  current_main_sha: 'b731411734edb01b7dbb8d7e20247c5a7805983a',
+  current_main_sha: CURRENT_MAIN_SHA,
   secrets_printed: false,
   postgres_written: false,
   erpnext_mutated: false,

@@ -1,12 +1,13 @@
 # ERPNext Customer / Contact master — quotation and delivery acceptance
 
-**Status:** GET/read-only acceptance on hosted ERPNext. **No Customer/Contact/Address write. No schema. No live Postgres PATCH. No send.**  
+**Status:** GET/read-only acceptance on hosted ERPNext, re-landed on current `main`. **No Customer/Contact/Address write. No schema. No live Postgres PATCH. No send.**  
 **Issue:** [#1206](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1206)  
-**Sources:** [#880](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/880) / [#1012](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1012) / [#1021](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1021), Quote-to-Cash [#1166](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1166), source-of-truth [#918](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/918)  
+**Sources:** [#880](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/880) / [#1012](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1012) / [#1021](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1021), Commercial quotation [#1162](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1162), Quote-to-Cash [#1166](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1166) / merged [#1168](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1168), Operating Workspace continuity [#1228](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1228), buyer naming [#1230](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1230), source-of-truth [#918](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/918)  
+**Prior vehicle:** closed [PR #1211](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1211) (evidence only; do not revive)  
 **Environment:** `corpflow_test` (CorpFlowAI-hosted ERPNext sandbox/test). Not `client_production`.  
 **Machine contract:** `config/erpnext-customer-master-acceptance.v1.json`  
 **Accept:** `node scripts/erpnext/accept-customer-master.mjs`  
-**Current main at start:** `b731411734edb01b7dbb8d7e20247c5a7805983a`
+**Current main at start:** `eb31cfd3d3c74a3f8a17b81ae4d6cccf54c07751`
 
 **Anchor:** `<!-- ERPNEXT_CUSTOMER_MASTER_QUOTATION_DELIVERY_ACCEPTANCE_V1 -->`
 
@@ -24,6 +25,8 @@ Source item: #1206
 
 **`ERPNext CUSTOMER MASTER READY FOR QUOTATION / DELIVERY`**
 
+Current-main repair return: **`ERPNext CUSTOMER MASTER CURRENT-MAIN READY FOR QUOTATION / DELIVERY`**
+
 One authoritative synthetic customer identity (`CF1018 Synthetic Sales Lifecycle Ltd`) already holds the legal/display name, primary Contact, and billing Address that quotation and delivery need. Search-before-create still finds exactly one enabled Customer. CorpFlowAI stores ERPNext names on `qualification_json.erpnext` and does not copy Customer/Contact/Address into a second ledger.
 
 Exact blocker: **NONE**.
@@ -40,7 +43,9 @@ Anton action: **NONE** unless merging this PR. Real Prestige Customer, live Post
 4. Confirms CorpFlowAI references those names rather than copying commercial identity.
 5. Where a Prospect already stores `qualification_json.erpnext.customer`, Commercial Workspace now shows that recorded pointer. It does **not** invent a join from Company Master legal names.
 
-It does **not** write ERPNext. It does **not** add a Company Master column. It does **not** PATCH live Postgres.
+It does **not** write ERPNext. It does **not** add a Company Master column. It does **not** PATCH live Postgres. It does **not** revive closed PR #1211.
+
+This current-main re-land preserves merged Commercial quotation evidence (#1162), Quote-to-Cash (#1168), Operating Workspace continuity (#1228), and buyer naming (#1230).
 
 ---
 
@@ -82,7 +87,7 @@ ERPNext still does not unique-constrain `customer_name`. Search-before-create re
 |-------|----------------|
 | ERPNext Customer / Contact / Address | Authoritative legal name, billing contact, billing address |
 | `leads.qualification_json.erpnext` | Pointer: Customer / Contact / Address **names** only |
-| Company Master | Evidence/assets. **No** `erpnext_customer` column. Do not join from legal names. |
+| Company Master | Evidence/assets. Fixture `erpnext_customer` is **null**. Do not join from legal names. |
 | Delivery handoff | `erpnext_customer: <Customer name>` only (`do_not_copy_commercial_fields_into_delivery=true`) |
 
 Recorded Prospect pointers already on the Operating Workspace fixtures (explicit ids, not name joins):
@@ -90,15 +95,15 @@ Recorded Prospect pointers already on the Operating Workspace fixtures (explicit
 - `syn-772-lr-ada` → `CF880 Synthetic Lead Rescue Ltd`
 - `syn-716-wr-cleared` → `CF880 Synthetic Website Rescue Ltd`
 
-`syn-772-rd-bea` has **no** recorded pointer and stays empty.
+`syn-772-rd-bea` has **no** recorded pointer and stays empty. Company Master rows for Ada / Bea also have `erpnext_customer: null`; this packet does not invent a join.
 
 The one code defect this packet fixes: Commercial Workspace already read the recorded Quotation name from `qualification_json.erpnext`, but not the recorded Customer name. It now projects that pointer onto `/app/commercial` without copying address/email/legal identity.
 
 ---
 
-## 5. Live proof (2026-08-27 UTC)
+## 5. Live proof (2026-08-28 UTC)
 
-Ran as `integrations@corpflowai.com` via `node scripts/erpnext/accept-customer-master.mjs` at `2026-08-27T20:07:34Z`. Secret values not printed. Postgres not written. ERPNext not mutated.
+Ran as `integrations@corpflowai.com` via `node scripts/erpnext/accept-customer-master.mjs` at `2026-08-28T01:57:51Z` from current main `eb31cfd3d3c74a3f8a17b81ae4d6cccf54c07751`. Secret values not printed. Postgres not written. ERPNext not mutated.
 
 | Check | Result |
 |-------|--------|
@@ -110,7 +115,7 @@ Ran as `integrations@corpflowai.com` via `node scripts/erpnext/accept-customer-m
 | Search-before-create | enabled matching Customer count **1**; `created_on_replay=false` (no write this packet) |
 | Quotation suitability | **ok**; missing none |
 | Supporting GET | CF880 Lead Rescue, CF880 Website Rescue, CF1009 bridge — Customer/Contact/Address HTTP **200** |
-| Pointer | `qualification_json.erpnext` names only; Company Master has no ERPNext column |
+| Pointer | `qualification_json.erpnext` names only; Company Master fixtures have no recorded ERPNext customer pointer |
 | Artifact | `artifacts/erpnext/customer-master-acceptance-1206/accept-log.json` |
 
 `MASTER_ADMIN_KEY` was **ABSENT**. ERPNext secrets present by **name** only.
@@ -119,7 +124,7 @@ Ran as `integrations@corpflowai.com` via `node scripts/erpnext/accept-customer-m
 
 ## 6. Explicit non-actions
 
-No ERPNext write. No Customer/Contact/Address create/update. No accounting/tax mutation. No DB/schema/data mutation. No env/secrets change. No external send. No payment. No DNS/public launch. No paid tool. No new CRM/customer model. No Company Master name-join.
+No ERPNext write. No Customer/Contact/Address create/update. No accounting/tax mutation. No DB/schema/data mutation. No env/secrets change. No external send. No payment. No DNS/public launch. No paid tool. No new CRM/customer model. No Company Master name-join. No revival of closed PR #1211.
 
 ---
 

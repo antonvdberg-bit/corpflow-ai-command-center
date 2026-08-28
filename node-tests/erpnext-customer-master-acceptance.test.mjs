@@ -158,7 +158,11 @@ test('#1206 config, docs, and GET-only script exist without secret values', () =
 
 test('#1206 GET-only acceptance proves identity, linkage, search-before-create, and quotation party', async () => {
   const client = createMemoryFrappeClient(seedPrimary());
-  const evidence = await acceptCustomerMasterReadOnly({ client, repoRoot: REPO_ROOT });
+  const evidence = await acceptCustomerMasterReadOnly({
+    client,
+    repoRoot: REPO_ROOT,
+    currentMainSha: 'eb31cfd3d3c74a3f8a17b81ae4d6cccf54c07751',
+  });
   assert.equal(evidence.ok, true);
   assert.equal(evidence.verdict, CANONICAL_VERDICT);
   assert.equal(evidence.exact_blocker, null);
@@ -171,6 +175,7 @@ test('#1206 GET-only acceptance proves identity, linkage, search-before-create, 
   assert.equal(evidence.quotation_suitability.ok, true);
   assert.equal(evidence.quotation.party_name, 'CF1018 Synthetic Sales Lifecycle Ltd');
   assert.equal(evidence.corpflow_reference.copies_customer_ledger, false);
+  assert.equal(evidence.current_main_sha, 'eb31cfd3d3c74a3f8a17b81ae4d6cccf54c07751');
   assert.equal(client.httpLog.some((row) => row.op === 'create' || row.op === 'update'), false);
 });
 
@@ -220,6 +225,7 @@ test('#1206 live accept-log captures CF1018 identifiers, GET-only, and no secret
   assert.equal(log.identifiers.address, 'CF1018 Synthetic Sales Lifecycle Ltd-Billing');
   assert.equal(log.search_before_create.enabled_duplicate_count, 1);
   assert.equal(log.quotation_suitability.ok, true);
+  assert.equal(log.current_main_sha, 'eb31cfd3d3c74a3f8a17b81ae4d6cccf54c07751');
   const blob = JSON.stringify(log);
   assert.doesNotMatch(blob, /sk_live|eyJhbGci|postgres:\/\//i);
   assert.doesNotMatch(blob, /ERPNEXT_API_SECRET":\s*"[^"]+"/);
