@@ -1,7 +1,7 @@
 # ERPNext Customer / Contact master is ready for quotation and delivery
 
-**Date:** 2026-08-28 (current-main re-land; original GET 2026-08-27 on closed PR #1211)  
-**Status:** accepted for GET/read-only acceptance (#1206)  
+**Date:** 2026-08-28 (current-main re-land; original GET 2026-08-27 on closed PR #1211)
+**Status:** accepted for GET/read-only acceptance (#1206)
 **Issue:** [#1206](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1206)
 
 ## Context

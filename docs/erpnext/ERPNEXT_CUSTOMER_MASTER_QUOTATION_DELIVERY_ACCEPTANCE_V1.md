@@ -1,12 +1,12 @@
 # ERPNext Customer / Contact master — quotation and delivery acceptance
 
-**Status:** GET/read-only acceptance on hosted ERPNext, re-landed on current `main`. **No Customer/Contact/Address write. No schema. No live Postgres PATCH. No send.**  
-**Issue:** [#1206](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1206)  
-**Sources:** [#880](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/880) / [#1012](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1012) / [#1021](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1021), Commercial quotation [#1162](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1162), Quote-to-Cash [#1166](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1166) / merged [#1168](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1168), Operating Workspace continuity [#1228](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1228), buyer naming [#1230](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1230), source-of-truth [#918](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/918)  
-**Prior vehicle:** closed [PR #1211](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1211) (evidence only; do not revive)  
-**Environment:** `corpflow_test` (CorpFlowAI-hosted ERPNext sandbox/test). Not `client_production`.  
-**Machine contract:** `config/erpnext-customer-master-acceptance.v1.json`  
-**Accept:** `node scripts/erpnext/accept-customer-master.mjs`  
+**Status:** GET/read-only acceptance on hosted ERPNext, re-landed on current `main`. **No Customer/Contact/Address write. No schema. No live Postgres PATCH. No send.**
+**Issue:** [#1206](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1206)
+**Sources:** [#880](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/880) / [#1012](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1012) / [#1021](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1021), Commercial quotation [#1162](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1162), Quote-to-Cash [#1166](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1166) / merged [#1168](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1168), Operating Workspace continuity [#1228](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1228), buyer naming [#1230](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1230), source-of-truth [#918](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/918)
+**Prior vehicle:** closed [PR #1211](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1211) (evidence only; do not revive)
+**Environment:** `corpflow_test` (CorpFlowAI-hosted ERPNext sandbox/test). Not `client_production`.
+**Machine contract:** `config/erpnext-customer-master-acceptance.v1.json`
+**Accept:** `node scripts/erpnext/accept-customer-master.mjs`
 **Current main at start:** `eb31cfd3d3c74a3f8a17b81ae4d6cccf54c07751`
 
 **Anchor:** `<!-- ERPNEXT_CUSTOMER_MASTER_QUOTATION_DELIVERY_ACCEPTANCE_V1 -->`
