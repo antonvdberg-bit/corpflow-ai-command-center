@@ -157,6 +157,8 @@ test('direct-SME component uses proof fixtures and keeps commercial confirmation
   assert.match(src, /CIPC_DESK_DIRECT_SME_PROOF_FIXTURE/);
   assert.match(src, /noindex/);
   assert.match(src, /Request company-secretarial help/);
+  assert.match(src, /scrollIntoView/);
+  assert.match(src, /getElementById\('sme-enquiry'\)/);
   assert.doesNotMatch(src, /\/api\/tenant\/intake/);
   assert.doesNotMatch(src, /ticket_id|magic_link_url|\/change|corpflow_test/);
   assert.doesNotMatch(src, /CipcDeskAnnualReturnsReview|CipcDeskBeneficialOwnershipReview|Open review page/);

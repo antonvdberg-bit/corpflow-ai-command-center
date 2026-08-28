@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 
 import PublicMarketingPhotoGlassShell from './beauty/PublicMarketingPhotoGlassShell.js';
@@ -108,6 +108,15 @@ export default function CipcDeskDirectSmeFunnel({ content, proofMode = false }) 
   const [submitted, setSubmitted] = useState(false);
   const [enquiryReference, setEnquiryReference] = useState('');
   const [proofConfirmed, setProofConfirmed] = useState(false);
+
+  useEffect(() => {
+    if (!submitted && !error) return;
+    if (typeof document === 'undefined') return;
+    const el = document.getElementById('sme-enquiry');
+    if (el && typeof el.scrollIntoView === 'function') {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [submitted, error]);
 
   function updateField(key, value) {
     setForm((prev) => ({ ...prev, [key]: value }));
