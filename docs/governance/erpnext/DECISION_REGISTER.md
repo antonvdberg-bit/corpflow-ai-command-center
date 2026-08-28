@@ -245,3 +245,47 @@ Retention: do not delete a decision or evidence row merely because it was supers
 | ERPNext Project / Task | Reused synthetic Quotation `SAL-QTN-2026-00005` (not programme Project `PROJ-0002`) |
 | Verification evidence | `node --test node-tests/erpnext-selling-quote-to-cash.test.mjs` plus reused apply-log |
 | Supersedes / superseded-by | Current-main replacement for stale PR #1128 / #1125. Does **not** supersede Version 2, #918, WP2, #882, or #1162. |
+
+---
+
+## ERP-D-2026-08-27-3 — #1213 current-main Buying/AP GET acceptance (proposed)
+
+| Field | Record |
+|-------|--------|
+| Decision ID | `ERP-D-2026-08-27-3` |
+| Date/time | 2026-08-27 |
+| Status | **Proposed** (this packet; Anton merge remains the Git approval). Does **not** approve PI submit, Payment Entry, real suppliers, Role grant, or accountant CoA. |
+| Question / requirement | Is the standard ERPNext Buying/AP path operationally ready on current `main` for accountant configuration? |
+| Executive intent / source | [#1213](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1213); source proof [#1098](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1098) / stale [PR #1107](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1107) |
+| Options considered | Revive stale #1107; invent a second procurement tracker; GET-verify hosted ERPNext and land the proven helper/docs onto current `main` |
+| Evidence reviewed | #1098 apply-log (Supplier CREATE 403; Item `CF-AP-SYNTHETIC-OPEX` reuse); #1213 GET-only 2026-08-27: Supplier count=0, PI/PO/PE count=0, `po_required=No`, `check_supplier_invoice_uniqueness=0`; #1055 still OPEN |
+| Decision | Land [`ERPNEXT_BUYING_AP_READINESS_V1.md`](../../erpnext/ERPNEXT_BUYING_AP_READINESS_V1.md) on current `main`. Purchase Order **DEFER**. `INVOICE_EXISTENCE_NEVER_AUTHORIZES_PAYMENT`. Distinguish Supplier CREATE permission-block from accountant AP defaults. Close #1107 without merge. |
+| Rationale | The operating path is already proven. Current `main` lacked the operator projection. GET-only confirms hosted records have not drifted into a new blocker. |
+| Risks / tradeoffs | Integration identity still cannot create Supplier. Operators must not Submit PI on skeleton COGS/Creditors defaults. |
+| Approver | Pending Anton merge of the #1213 PR |
+| GitHub implementation | `docs/erpnext/ERPNEXT_BUYING_AP_READINESS_V1.md` + `docs/runbooks/ERPNEXT_BUYING_AP_OPERATOR_RUNBOOK_V1.md` + GET-only apply |
+| ERPNext Project / Task | Programme Project `PROJ-0002` / Phase 4 `TASK-2026-00030` and Phase 5 `TASK-2026-00031` |
+| Verification evidence | `node --test node-tests/erpnext-buying-ap-readiness.test.mjs` plus GET-only log |
+| Supersedes / superseded-by | Current-main replacement for stale PR #1107. Advances matrix row `buying_ap_supplier`. Does **not** supersede Version 2 or #1055. |
+
+---
+
+## ERP-D-2026-08-28-1 — #1213 generation-2 current-main Buying/AP GET acceptance (proposed)
+
+| Field | Record |
+|-------|--------|
+| Decision ID | `ERP-D-2026-08-28-1` |
+| Date/time | 2026-08-28 |
+| Status | **Proposed** (this packet; Anton merge remains the Git approval). Does **not** approve PI submit, Payment Entry, real suppliers, Role grant, or accountant CoA. |
+| Question / requirement | Is the standard ERPNext Buying/AP path operationally ready on exact current `main` (`be671871`) for accountant configuration? |
+| Executive intent / source | [#1213](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1213) generation 2 CURRENT-MAIN REPAIR; source proof [#1098](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1098). Closed [PR #1217](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1217) must not resume. |
+| Options considered | Resume closed #1217; revive stale #1107; invent a second procurement tracker; GET-verify hosted ERPNext and re-land the proven helper/docs onto exact current `main` |
+| Evidence reviewed | #1098 apply-log (Supplier CREATE 403; Item `CF-AP-SYNTHETIC-OPEX` reuse); #1213 GET-only 2026-08-28 on `be671871`: Supplier count=0, PI/PO/PE count=0, `po_required=No`, `check_supplier_invoice_uniqueness=0`; #1055 still OPEN |
+| Decision | Re-land [`ERPNEXT_BUYING_AP_READINESS_V1.md`](../../erpnext/ERPNEXT_BUYING_AP_READINESS_V1.md) on exact current `main`. Purchase Order **DEFER**. `INVOICE_EXISTENCE_NEVER_AUTHORIZES_PAYMENT`. Distinguish Supplier CREATE permission-block from accountant AP defaults. Do not resume #1217. Close #1107 without merge. |
+| Rationale | The operating path is already proven. Current `main` still lacked the operator projection after #1217 closed without merge. GET-only confirms hosted records have not drifted into a new blocker. |
+| Risks / tradeoffs | Integration identity still cannot create Supplier. Operators must not Submit PI on skeleton COGS/Creditors defaults. |
+| Approver | Pending Anton merge of the new #1213 PR |
+| GitHub implementation | `docs/erpnext/ERPNEXT_BUYING_AP_READINESS_V1.md` + `docs/runbooks/ERPNEXT_BUYING_AP_OPERATOR_RUNBOOK_V1.md` + GET-only apply |
+| ERPNext Project / Task | Programme Project `PROJ-0002` / Phase 4 `TASK-2026-00030` and Phase 5 `TASK-2026-00031` |
+| Verification evidence | `node --test node-tests/erpnext-buying-ap-readiness.test.mjs` plus GET-only log 2026-08-28 |
+| Supersedes / superseded-by | Supersedes `ERP-D-2026-08-27-3` SHA/PR pointer only. Same Buying/AP decision. Does **not** supersede Version 2 or #1055. |

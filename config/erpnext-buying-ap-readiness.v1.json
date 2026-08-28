@@ -1,0 +1,226 @@
+{
+  "schema": "corpflow.erpnext_buying_ap_readiness.v1",
+  "version": "v1",
+  "issue": 1098,
+  "current_main_issue": 1213,
+  "current_main_sha": "be671871f2bc2b5c7545d5379ff2be2caf2284d5",
+  "stale_implementation_prs": [1107, 1217],
+  "parents": [1054, 953, 918],
+  "dependency": 1055,
+  "environment": "corpflow_test",
+  "verdict": "ERPNext BUYING / AP READINESS READY FOR ACCOUNTANT CONFIGURATION",
+  "current_main_verdict": "ERPNext BUYING/AP CURRENT-MAIN READY FOR ACCOUNTANT CONFIGURATION",
+  "purchase_order_verdict": "DEFER",
+  "payment_segregation_rule": "INVOICE_EXISTENCE_NEVER_AUTHORIZES_PAYMENT",
+  "description": "Bounded standard-ERPNext-first Buying/AP operating path: Supplier -> purchase expense/category -> draft Purchase Invoice/AP record -> Anton review -> payment remains separately protected. No accounting truth, supplier payment, bank integration, custom DocType, or second procurement system.",
+  "no_implementation_authorized": {
+    "custom_fields": true,
+    "custom_doctypes": true,
+    "schema_change": true,
+    "purchase_invoice_submit": true,
+    "payment_entry": true,
+    "bank_credentials": true,
+    "real_supplier_approval": true,
+    "opening_balances": true,
+    "env_secrets": true,
+    "external_send": true
+  },
+  "company": {
+    "name": "CorpFlowAI LTD",
+    "abbr": "CFAI",
+    "country": "Mauritius",
+    "default_currency": "MUR",
+    "default_payable_account_readback": "Creditors - CFAI",
+    "default_expense_account_readback": "Cost of Goods Sold - CFAI",
+    "default_cost_center_readback": "Main - CFAI",
+    "fiscal_year_readback": "2026-2027",
+    "fiscal_year_dates_readback": "2026-06-01 to 2027-05-31",
+    "note": "These are hosted-test read-backs of the standard ERPNext skeleton. They are not accountant-approved CorpFlowAI books. #1055 remains the accounting-foundation packet."
+  },
+  "buying_settings_readback": {
+    "supp_master_name": "Supplier Name",
+    "buying_price_list": "Standard Buying",
+    "po_required": "No",
+    "pr_required": "No",
+    "show_pay_button": 1,
+    "maintain_same_rate": 1
+  },
+  "accounts_settings_readback": {
+    "check_supplier_invoice_uniqueness": 0,
+    "determine_address_tax_category_from": "Billing Address",
+    "add_taxes_from_item_tax_template": 1
+  },
+  "erpnext_objects": {
+    "Supplier": {
+      "role": "buying_master",
+      "required_to_create": ["supplier_name", "supplier_type"],
+      "operator_required": ["supplier_group", "country", "default_currency"],
+      "naming": "Document name follows supplier_name on first create. A second create with the same supplier_name is NOT rejected — ERPNext may append ' - 1'. Search-before-create is mandatory.",
+      "live_list": "HTTP 200 count=0 on current main GET 2026-08-28 (still empty)",
+      "live_create": "HTTP 403 on #1098 write attempt. #1213 is GET-only and does not re-POST. Synthetic Supplier still absent, so the Role grant was not applied. Closed PR #1217 must not resume."
+    },
+    "Supplier Group": {
+      "role": "standard_config",
+      "default_for_operating_suppliers": "Services",
+      "live_values": [
+        "All Supplier Groups",
+        "Distributor",
+        "Electrical",
+        "Hardware",
+        "Local",
+        "Pharmaceutical",
+        "Raw Material",
+        "Services"
+      ]
+    },
+    "Purchase Order": {
+      "role": "deferred",
+      "verdict": "DEFER",
+      "reason": "Buying Settings po_required=No. Initial CorpFlowAI spend is invoice-first operating cost (software, hosting, licences, professional fees), not stock procurement. Do not add PO overhead until a real three-way-match need exists."
+    },
+    "Purchase Invoice": {
+      "role": "ap_record",
+      "naming_series": "ACC-PINV-.YYYY.-",
+      "required_header": ["naming_series", "supplier", "posting_date", "items", "credit_to"],
+      "submit_posts_gl": true,
+      "draft_does_not_post": true
+    },
+    "Payment Entry": {
+      "role": "separately_protected_payment",
+      "authorized_by_this_packet": false
+    },
+    "Item": {
+      "role": "purchase_expense_category",
+      "synthetic_item_code": "CF-AP-SYNTHETIC-OPEX",
+      "is_stock_item": 0,
+      "is_purchase_item": 1,
+      "is_sales_item": 0
+    }
+  },
+  "defaults": {
+    "company": "CorpFlowAI LTD",
+    "supplier_type_company": "Company",
+    "supplier_group": "Services",
+    "country": "Mauritius",
+    "default_currency": "MUR",
+    "buying_price_list": "Standard Buying",
+    "address_type": "Billing",
+    "contact_status": "Open"
+  },
+  "synthetic": {
+    "supplier_name": "CF1098 Synthetic Operating Supplier Ltd",
+    "contact_first_name": "CF1098 Synthetic",
+    "contact_last_name": "Payables",
+    "contact_email": "cf1098.synthetic.supplier@example.invalid",
+    "address_line1": "Synthetic test address — not a real premises",
+    "city": "Port Louis",
+    "country": "Mauritius",
+    "item_code": "CF-AP-SYNTHETIC-OPEX",
+    "item_name": "CF1098 synthetic operating expense (test only)",
+    "item_group": "Services"
+  },
+  "duplicate_rules": {
+    "search_before_create": true,
+    "supplier_name_unique_in_erpnext": false,
+    "contact_email_unique_in_erpnext": false,
+    "bill_no_uniqueness_setting": "not_enabled",
+    "bill_no_uniqueness_operator_rule": "search Purchase Invoice by supplier + bill_no before capture; reuse_or_stop on match",
+    "action_on_name_match": "reuse",
+    "action_on_email_match": "reuse_or_stop",
+    "never_create_real_supplier_without_anton": true
+  },
+  "approval_rules": {
+    "ai_cannot_approve_suppliers": true,
+    "anton_approves_real_suppliers": true,
+    "draft_purchase_invoice_is_capture_not_payment": true,
+    "submit_purchase_invoice_is_accounting_posting": true,
+    "invoice_existence_never_authorizes_payment": true,
+    "show_pay_button_is_not_authority": true,
+    "zero_default_ai_spend": true
+  },
+  "accountant_dependencies": [
+    {
+      "id": "payable_account",
+      "question": "Confirm or replace Company default payable account currently read back as Creditors - CFAI.",
+      "erpnext_object": "Company.default_payable_account / Purchase Invoice.credit_to"
+    },
+    {
+      "id": "expense_account_structure",
+      "question": "Do not use Cost of Goods Sold - CFAI as the operating-expense default for software/hosting/licences/professional fees. Confirm which existing Indirect Expense leaves to use, and whether new accounts (Hosting, Software subscriptions, Professional fees) are required.",
+      "erpnext_object": "Company.default_expense_account / Purchase Invoice Item.expense_account / Chart of Accounts"
+    },
+    {
+      "id": "tax_vat_treatment",
+      "question": "A standard template Mauritius Tax - CFAI exists with VAT @ 15% posting to VAT - CFAI. Confirm VAT registration, input-VAT recoverability, and whether that template may be used on Purchase Invoices. Do not apply until written.",
+      "erpnext_object": "Purchase Taxes and Charges Template / Account VAT - CFAI / Supplier.tax_category"
+    },
+    {
+      "id": "cost_centre_defaults",
+      "question": "Confirm default Cost Center Main - CFAI vs any additional cost centres or accounting dimensions.",
+      "erpnext_object": "Cost Center / Purchase Invoice Item.cost_center / Company.cost_center"
+    },
+    {
+      "id": "supplier_tax_handling",
+      "question": "When, if ever, to store Supplier.tax_id / tax_category / withholding. Leave blank until approved.",
+      "erpnext_object": "Supplier.tax_id / Supplier.tax_category"
+    },
+    {
+      "id": "fiscal_year",
+      "question": "Confirm Fiscal Year 2026-2027 (2026-06-01 to 2027-05-31) against Mauritius statutory year.",
+      "erpnext_object": "Fiscal Year"
+    },
+    {
+      "id": "payment_terms",
+      "question": "Whether Payment Terms Templates are required before AP go-live. Payment Term rows are currently empty; Payment Terms DocType remains HTTP 403 to the integration identity.",
+      "erpnext_object": "Payment Term / Payment Terms Template / Supplier.payment_terms"
+    },
+    {
+      "id": "bill_no_uniqueness",
+      "question": "Whether to enable Accounts Settings check_supplier_invoice_uniqueness. Currently unset; operator search-before-create on supplier + bill_no is mandatory until then.",
+      "erpnext_object": "Accounts Settings.check_supplier_invoice_uniqueness"
+    },
+    {
+      "id": "multi_currency_ap",
+      "question": "How USD (or other) supplier invoices should post against MUR company books, including payable account currency.",
+      "erpnext_object": "Supplier.default_currency / Party Account / Currency Exchange"
+    }
+  ],
+  "smallest_gap_proposal": {
+    "gap": "integrations@corpflowai.com can LIST Supplier (HTTP 200) but cannot CREATE Supplier (HTTP 403 Role Permission). Effective roles already include Purchase User and Purchase Manager per #1019.",
+    "proposal": "Anton desk: Role Permissions Manager → Role = Purchase User → DocType = Supplier → Read, Create, Write (permlevel 0). Do not assign System Manager. Do not create a custom DocType. Re-run node scripts/erpnext/apply-buying-ap-readiness.mjs after the grant.",
+    "customization": "none"
+  },
+  "live_proof": {
+    "authenticated_user": "integrations@corpflowai.com",
+    "site_versions": "frappe=16.31.0, erpnext=16.32.3",
+    "supplier_list": "HTTP 200 count=0",
+    "supplier_create": "HTTP 403 No permission for Supplier (#1098 write). #1213 GET-only: synthetic Supplier still absent. Closed PR #1217 must not resume.",
+    "synthetic_item": "CF-AP-SYNTHETIC-OPEX",
+    "synthetic_item_readback": "is_purchase_item=1 is_stock_item=0 is_sales_item=0 item_group=Services",
+    "purchase_invoice_count": 0,
+    "purchase_order_count": 0,
+    "payment_entry_count": 0,
+    "current_main_get_only": {
+      "at": "2026-08-28T00:20:00Z",
+      "issue": 1213,
+      "generation": 2,
+      "source_main_sha": "be671871f2bc2b5c7545d5379ff2be2caf2284d5",
+      "closed_pr_must_not_resume": 1217,
+      "mutation": "forbidden",
+      "check_supplier_invoice_uniqueness": 0,
+      "po_required": "No",
+      "pr_required": "No"
+    }
+  },
+  "forbidden_github_evidence_keys": [
+    "iban",
+    "swift",
+    "bic",
+    "bank_account_no",
+    "account_number",
+    "routing_number",
+    "sort_code",
+    "bank_details",
+    "default_bank_account"
+  ]
+}
