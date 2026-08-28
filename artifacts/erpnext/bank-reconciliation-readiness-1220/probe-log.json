@@ -1,7 +1,7 @@
 {
   "issue": 1139,
   "current_main_issue": 1220,
-  "current_main_sha": "ea2a45a90a4fde7043b89989e985194da3605bff",
+  "current_main_sha": "be671871f2bc2b5c7545d5379ff2be2caf2284d5",
   "dry_run": false,
   "identity": "integrations@corpflowai.com",
   "site_versions": "frappe=16.31.0, erpnext=16.32.3",
