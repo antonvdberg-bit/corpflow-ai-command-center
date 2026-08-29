@@ -20,8 +20,11 @@ fi
 [[ -f "${BASE_COMPOSE}" ]] || die "missing ${BASE_COMPOSE}"
 [[ -f "${PROXY_COMPOSE}" ]] || die "missing ${PROXY_COMPOSE}"
 
-say "verifying dedicated OpenHands daemon before runtime proxy restart"
-bash "${SCRIPT_DIR}/preflight.sh" --install
+say "verifying existing approved OpenHands install before runtime proxy restart"
+# This is an in-place restart, not a fresh install. Port 3000 must therefore
+# already be loopback-bound and owned by corpflowai-openhands-app on the
+# dedicated daemon. --install incorrectly requires the port to be free.
+bash "${SCRIPT_DIR}/preflight.sh" --post-install
 bash "${SCRIPT_DIR}/verify-dedicated-daemon.sh"
 
 say "validating merged compose configuration before mutation"
