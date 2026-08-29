@@ -7,12 +7,12 @@ browser traffic to traverse the single loopback-bound OpenHands app port.
 import asyncio
 import os
 import re
-from urllib.parse import urlsplit, urlunsplit
 
 import httpx
 import websockets
 from fastapi import APIRouter, HTTPException, Request, Response, WebSocket
 from starlette.websockets import WebSocketDisconnect, WebSocketState
+from websockets.exceptions import ConnectionClosed
 
 from openhands.app_server.app_conversation.live_status_app_conversation_service import (
     LiveStatusAppConversationService,
@@ -58,14 +58,19 @@ def _target_ws_url(sandbox_id: str, path: str, query: str = '') -> str:
 
 
 def install_browser_conversation_url_patch() -> None:
-    """Return same-origin proxy URLs to the browser without changing internal URLs."""
+    """Return proxy URLs to the browser without changing internal service URLs."""
     original = LiveStatusAppConversationService._build_conversation
     if getattr(original, '_corpflowai_runtime_proxy_patch', False):
         return
 
     def patched(self, app_conversation_info, sandbox, conversation_info):
         result = original(self, app_conversation_info, sandbox, conversation_info)
-        if result is not None and sandbox is not None and sandbox.exposed_urls:
+        if (
+            result is not None
+            and app_conversation_info is not None
+            and sandbox is not None
+            and sandbox.exposed_urls
+        ):
             result.conversation_url = (
                 f'{_BROWSER_BASE}/{sandbox.id}/api/conversations/'
                 f'{app_conversation_info.id.hex}'
@@ -83,7 +88,6 @@ def install_browser_conversation_url_patch() -> None:
 async def proxy_http(sandbox_id: str, path: str, request: Request) -> Response:
     sandbox_id = _validate_sandbox_id(sandbox_id)
     target = _target_http_url(sandbox_id, path, request.url.query)
-
     headers = {
         key: value
         for key, value in request.headers.items()
@@ -111,7 +115,6 @@ async def proxy_http(sandbox_id: str, path: str, request: Request) -> Response:
         content=upstream.content,
         status_code=upstream.status_code,
         headers=response_headers,
-        media_type=upstream.headers.get('content-type'),
     )
 
 
@@ -150,7 +153,7 @@ async def proxy_websocket(sandbox_id: str, path: str, websocket: WebSocket) -> N
                             await websocket.send_bytes(message)
                         else:
                             await websocket.send_text(message)
-                except websockets.ConnectionClosed:
+                except ConnectionClosed:
                     pass
 
             tasks = [
