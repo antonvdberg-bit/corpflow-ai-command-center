@@ -1,0 +1,9 @@
+# CorpFlowAI OpenHands browser-to-agent proxy overlay (#1246).
+# Use only together with ops/openhands/compose.yaml.
+# Keeps the main OpenHands port loopback-only and does not publish sandbox ports.
+
+services:
+  corpflowai-openhands-app:
+    volumes:
+      - ./runtime-overrides/runtime_proxy_router.py:/app/openhands/app_server/runtime_proxy_router.py:ro
+      - ./runtime-overrides/app.py:/app/openhands/app_server/app.py:ro
