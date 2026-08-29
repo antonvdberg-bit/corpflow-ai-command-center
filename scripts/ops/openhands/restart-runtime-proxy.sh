@@ -37,7 +37,7 @@ grep -q '127.0.0.1' "${rendered}" || die "merged compose lost loopback-only app 
 grep -q 'runtime_proxy_router.py' "${rendered}" || die "runtime proxy router mount missing"
 grep -q '/app/openhands/app_server/app.py' "${rendered}" || die "app.py override mount missing"
 grep -q '/run/openhands-docker/docker.sock' "${rendered}" || die "dedicated Docker socket mount missing"
-if grep -Eq 'published:[[:space:]]*["'"']?(8000|8002)' "${rendered}"; then
+if grep -Eq 'published:[[:space:]]*"?800(0|2)"?' "${rendered}"; then
   die "refusing restart: merged compose publishes a sandbox port"
 fi
 
