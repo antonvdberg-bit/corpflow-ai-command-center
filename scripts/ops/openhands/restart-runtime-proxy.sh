@@ -24,6 +24,23 @@ say "verifying dedicated OpenHands daemon before runtime proxy restart"
 bash "${SCRIPT_DIR}/preflight.sh" --install
 bash "${SCRIPT_DIR}/verify-dedicated-daemon.sh"
 
+say "validating merged compose configuration before mutation"
+rendered="$(mktemp)"
+trap 'rm -f "${rendered}"' EXIT
+openhands_docker compose \
+  -p "${OPENHANDS_PROJECT}" \
+  -f "${BASE_COMPOSE}" \
+  -f "${PROXY_COMPOSE}" \
+  config >"${rendered}"
+
+grep -q '127.0.0.1' "${rendered}" || die "merged compose lost loopback-only app bind"
+grep -q 'runtime_proxy_router.py' "${rendered}" || die "runtime proxy router mount missing"
+grep -q '/app/openhands/app_server/app.py' "${rendered}" || die "app.py override mount missing"
+grep -q '/run/openhands-docker/docker.sock' "${rendered}" || die "dedicated Docker socket mount missing"
+if grep -Eq 'published:[[:space:]]*["'"']?(8000|8002)' "${rendered}"; then
+  die "refusing restart: merged compose publishes a sandbox port"
+fi
+
 say "recreating only corpflowai-openhands-app with the #1246 proxy overlay"
 openhands_docker compose \
   -p "${OPENHANDS_PROJECT}" \
@@ -45,5 +62,12 @@ say "verifying isolation boundaries after restart"
 bash "${SCRIPT_DIR}/verify-private-bind.sh"
 bash "${SCRIPT_DIR}/verify-sandbox-boundary.sh"
 bash "${SCRIPT_DIR}/verify-dedicated-daemon.sh"
+
+active_sandbox="$(openhands_docker ps --filter 'name=oh-agent-server-' --filter 'status=running' --format '{{.Names}}' | head -n 1)"
+if [[ -n "${active_sandbox}" ]]; then
+  say "verifying app-server proxy can reach the active private sandbox"
+  openhands_docker exec corpflowai-openhands-app \
+    curl -fsS "http://127.0.0.1:3000/runtime/${active_sandbox}/" >/dev/null
+fi
 
 say "OK — #1246 runtime proxy restart applied; browser-level validation still required before completion"
