@@ -15,34 +15,14 @@
 # shows signs of being the wrong daemon (primary-socket-shaped, foreign
 # data-root, or foreign containers visible).
 #
-# What this script checks:
-#   1. OPENHANDS_DOCKER_SOCK is not literally /var/run/docker.sock (static —
-#      duplicates part of lib/common.sh's own guard, checked here too so
-#      this script is self-contained and can be run standalone as the "did
-#      we actually get isolation right" evidence artifact).
-#   2. `docker info` against OPENHANDS_DOCKER_HOST reports a DockerRootDir
-#      under OPENHANDS_HOME (never /var/lib/docker, never any path outside
-#      OPENHANDS_HOME) — this is the strongest live signal that the two
-#      daemons' state is physically non-overlapping, not just
-#      socket-separated.
-#   3. Listing containers/networks/volumes on the dedicated daemon must NOT
-#      show any name that looks like it belongs to another CorpFlowAI tool
-#      (uptime-kuma, beszel, n8n, erpnext, and this package's own
-#      known-unrelated names) — if the dedicated daemon can see those, the
-#      "dedicated" daemon is not actually dedicated (e.g. DOCKER_HOST
-#      resolved to the primary daemon by accident, or a rootless daemon was
-#      started with the wrong --data-root and is seeing shared state).
-#      An EMPTY dedicated daemon (no containers at all, or only
-#      corpflowai-openhands-named ones) is the expected PASS state.
+# OpenHands dynamically creates agent-server containers named
+# oh-agent-server-<opaque-id>. Those are expected runtime children of this
+# dedicated daemon and are allowed here; they remain isolated because the
+# foreign-name scan, dedicated data-root check, and dedicated socket check
+# still fail closed.
 #
 # Usage:
 #   bash scripts/ops/openhands/verify-dedicated-daemon.sh
-#
-# Exit codes:
-#   0 — dedicated daemon not running (safe, expected pre-install state), OR
-#       running and verified isolated
-#   1 — dedicated daemon running but NOT verified isolated
-#   2 — usage / tooling error
 
 set -euo pipefail
 
@@ -83,11 +63,6 @@ pass() {
   say "PASS: $1"
 }
 
-# Names/substrings that would indicate the dedicated daemon can see another
-# CorpFlowAI-managed tool's resources — a sign that isolation has failed
-# (wrong DOCKER_HOST, wrong --data-root, or an actual shared/primary daemon).
-# Deliberately does NOT include "corpflowai-openhands" itself (that is this
-# package's own, expected, allowlisted prefix).
 readonly FOREIGN_NAME_PATTERNS=(
   "uptime-kuma"
   "beszel"
@@ -108,12 +83,13 @@ check_socket_path_is_not_primary() {
   pass "OPENHANDS_DOCKER_SOCK / OPENHANDS_DOCKER_HOST are not the primary socket (static check)"
 }
 
-# Returns via stdout the daemon's DockerRootDir, or empty string if
-# unreachable. Never uses openhands_docker()'s fail-closed wrapper here —
-# this script IS the live verification; it should report findings, not
-# abort on the first misconfiguration it detects.
 read_dedicated_data_root() {
   DOCKER_HOST="${OPENHANDS_DOCKER_HOST}" docker info -f '{{.DockerRootDir}}' 2>/dev/null || printf ''
+}
+
+is_expected_agent_server_resource() {
+  local name="$1"
+  [[ "${name}" =~ ^oh-agent-server-[A-Za-z0-9]+$ ]]
 }
 
 main() {
@@ -169,20 +145,19 @@ main() {
     pass "no foreign (non-OpenHands) resource names visible on the dedicated daemon"
   fi
 
-  # Every visible resource must be either empty or within this package's
-  # own allowlist — a stricter, complementary check to the foreign-name scan
-  # above (catches an unexpected OpenHands-adjacent-but-not-allowlisted name
-  # too, not just known-foreign-tool names).
   local n unexpected=0
   while IFS= read -r n; do
     [[ -z "${n}" ]] && continue
+    if is_expected_agent_server_resource "${n}"; then
+      continue
+    fi
     if ! is_allowed_resource_name "${n}"; then
       fail "dedicated daemon shows an unrecognized resource name (not in this package's allowlist): ${n}"
       unexpected=1
     fi
   done <<< "${all_names}"
   if [[ "${unexpected}" -eq 0 ]]; then
-    pass "every visible resource name on the dedicated daemon is within this package's allowlist (or none exist)"
+    pass "every visible resource name on the dedicated daemon is within this package's allowlist, an expected OpenHands agent-server runtime child, or none exist"
   fi
 
   if [[ "${#FAILURES[@]}" -eq 0 ]]; then
