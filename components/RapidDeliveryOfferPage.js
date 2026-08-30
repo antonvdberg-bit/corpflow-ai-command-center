@@ -73,13 +73,17 @@ const styles = {
  * }} props
  */
 export default function RapidDeliveryOfferPage({ offer, buyerFacingName, pathOverride }) {
-  const mailtoHref = buildDiscoveryCallMailto(offer);
   const lockedEnquiryHref = canonicalEnquiryHref({ offer: offer.slug });
   const pagePath = pathOverride || offer.path;
   const publicTitle = buyerFacingName || offer.title;
+  const publicDescription =
+    publicTitle !== offer.title && typeof offer.metaDescription === 'string'
+      ? offer.metaDescription.split(offer.title).join(publicTitle)
+      : offer.metaDescription;
+  const mailtoHref = buildDiscoveryCallMailto({ ...offer, title: publicTitle });
   const meta = buildPublicPageMeta({
     title: publicTitle,
-    description: offer.metaDescription,
+    description: publicDescription,
     path: pagePath,
     ogImage: `${offer.heroBase}.jpg`,
   });
@@ -103,7 +107,7 @@ export default function RapidDeliveryOfferPage({ offer, buyerFacingName, pathOve
 
   const footer = (
     <CorpFlowPublicFooter
-      extra={`${offer.title} — ${MERCHANT_LEGAL_NAME}. Discovery call only on this page; no card or banking details collected here. Deposit and quote follow manual review.`}
+      extra={`${publicTitle} — ${MERCHANT_LEGAL_NAME}. Discovery call only on this page; no card or banking details collected here. Deposit and quote follow manual review.`}
     />
   );
 
@@ -131,7 +135,7 @@ export default function RapidDeliveryOfferPage({ offer, buyerFacingName, pathOve
           sources: heroSources,
           preloadSrcSet: heroPreloadSrcSet,
           objectPosition: offer.heroObjectPosition || 'center 40%',
-          alt: `${offer.title} — CorpFlowAI delivery sprint`,
+          alt: `${publicTitle} — CorpFlowAI delivery sprint`,
         }}
       >
         <CorpFlowPublicHeader cta={{ label: 'Request discovery', href: '#discovery' }} />
