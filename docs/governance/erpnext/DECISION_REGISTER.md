@@ -245,3 +245,25 @@ Retention: do not delete a decision or evidence row merely because it was supers
 | ERPNext Project / Task | Reused synthetic Quotation `SAL-QTN-2026-00005` (not programme Project `PROJ-0002`) |
 | Verification evidence | `node --test node-tests/erpnext-selling-quote-to-cash.test.mjs` plus reused apply-log |
 | Supersedes / superseded-by | Current-main replacement for stale PR #1128 / #1125. Does **not** supersede Version 2, #918, WP2, #882, or #1162. |
+
+---
+
+## ERP-D-2026-08-30-1 — #1245 opening / cutover preparation (proposed)
+
+| Field | Record |
+|-------|--------|
+| Decision ID | `ERP-D-2026-08-30-1` |
+| Date/time | 2026-08-30 |
+| Status | **Proposed** (this packet; Anton merge remains the Git approval). Does **not** approve opening posting, import, CoA mutation, or method A vs B. |
+| Question / requirement | Prepare the opening-balance / cutover evidence pack so accountant-approved CoA and cutover instructions can be applied later without another discovery cycle. |
+| Executive intent / source | [#1245](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1245); parents #1054 / #1055 / #953; Version 2 §7 accountant authority |
+| Options considered | Wait for accountant CoA before any cutover prep; invent totals/method; prepare a placeholder template + two unchosen methods now |
+| Evidence reviewed | GET-only inspect 2026-08-30: frappe 16.32.0 / erpnext 16.33.0; Fiscal Year `2026-2027`; 96 Account rows; Accounting Onboarding 0/6; 0 Journal Entry; 0 GL Entry; Temporary Opening present; no bank GL child |
+| Decision | Publish [`ERPNEXT_OPENING_BALANCE_CUTOVER_V1.md`](../../erpnext/ERPNEXT_OPENING_BALANCE_CUTOVER_V1.md). Keep Method A (summary openings) and Method B (historical detail) unchosen. Preserve pre-revenue cost + funding pairing. Placeholders only. |
+| Rationale | Version 2 forbids implementing cutover until accountant guidance is recorded. The factory can still finish discovery so the later posting packet does not restart. |
+| Risks / tradeoffs | Standard Template CoA is still not accountant-approved. Hosted versions moved since WP7; this packet does not reopen #1010. |
+| Approver | Pending Anton merge of the #1245 PR. Accountant still owns every accounting-bearing choice. |
+| GitHub implementation | `config/erpnext-opening-balance-cutover.v1.json` + `lib/erpnext/opening-balance-cutover.js` + GET-only inspect script |
+| ERPNext Project / Task | Programme Phase 7 `TASK-2026-00033` (no live Task mutation in this packet) |
+| Verification evidence | `node --test node-tests/erpnext-opening-balance-cutover.test.mjs` plus `artifacts/erpnext/opening-cutover-1245/inspect-log.txt` |
+| Supersedes / superseded-by | Does **not** supersede Version 2, #1055, or #918. Does **not** close Phase 7. |
