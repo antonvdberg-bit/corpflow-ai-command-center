@@ -1,0 +1,29 @@
+{
+  "captured_at": "2026-08-28T00:48:43.878Z",
+  "pages": [
+    {
+      "file": "live-core-tenant-unauth-desktop.png",
+      "url": "https://core.corpflowai.com/app/tenant",
+      "status": 200,
+      "has_choose_workspace": false,
+      "has_sign_in": true,
+      "has_continuity": false
+    },
+    {
+      "file": "live-lux-tenant-unauth-mobile.png",
+      "url": "https://lux.corpflowai.com/app/tenant",
+      "status": 200,
+      "has_choose_workspace": false,
+      "has_sign_in": true,
+      "has_continuity": false
+    },
+    {
+      "file": "live-change-from-tenant-desktop.png",
+      "url": "https://core.corpflowai.com/change?from=tenant-workspace&tenant_id=corpflowai",
+      "status": 200,
+      "has_choose_workspace": false,
+      "has_sign_in": false,
+      "has_continuity": true
+    }
+  ]
+}
