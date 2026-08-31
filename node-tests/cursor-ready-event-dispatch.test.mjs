@@ -233,8 +233,6 @@ describe('cursor-ready event-driven dispatch (Phase A)', () => {
     };
     const claimed = [
       liveClaimedIssue(801, 'live-a', 'run-aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaa1'),
-      liveClaimedIssue(802, 'live-b', 'run-bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbb2'),
-      liveClaimedIssue(803, 'live-c', 'run-ccccccc3-cccc-cccc-cccc-ccccccccccc3'),
     ];
     const scan = planCursorIssueClaims({
       readyIssues: [ready],
@@ -257,7 +255,7 @@ describe('cursor-ready event-driven dispatch (Phase A)', () => {
     assert.equal(resolved.targetSource, 'event_label_held');
   });
 
-  it('two verified runs still allow event-driven catch-up activation', () => {
+  it('one verified run blocks event-driven catch-up under the single-lane cap', () => {
     const ready = {
       number: 9003,
       title: 'Docs-only synthetic event dispatch proof',
@@ -266,7 +264,6 @@ describe('cursor-ready event-driven dispatch (Phase A)', () => {
     };
     const claimed = [
       liveClaimedIssue(801, 'live-a', 'run-aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaa1'),
-      liveClaimedIssue(802, 'live-b', 'run-bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbb2'),
     ];
     const scan = planCursorIssueClaims({
       readyIssues: [ready],
@@ -274,8 +271,36 @@ describe('cursor-ready event-driven dispatch (Phase A)', () => {
       trackedIssues: claimed,
       preferIssueNumbers: [9003],
     });
-    assert.equal(scan.verifiedActiveCount, 2);
-    assert.equal(scan.availableSlots, 1);
+    assert.equal(scan.verifiedActiveCount, 1);
+    assert.equal(scan.availableSlots, 0);
+    assert.equal(scan.activationTargetIssue, null);
+    const held = scan.decisions.find((d) => d.issue.number === 9003);
+    assert.equal(held?.eligibleToClaim, true);
+    assert.match(String(held?.reason || ''), /WIP cap/i);
+
+    const resolved = resolveEffectiveActivationTarget({
+      eventIssueNumber: 9003,
+      scannedActivationTargetIssue: scan.activationTargetIssue,
+    });
+    assert.equal(resolved.activate, false);
+    assert.equal(resolved.targetSource, 'event_label_held');
+  });
+
+  it('empty execution lane allows event-driven catch-up activation', () => {
+    const ready = {
+      number: 9003,
+      title: 'Docs-only synthetic event dispatch proof',
+      body: 'Internal docs-only. No client/runtime effect.',
+      labels: ['dispatch:cursor-ready'],
+    };
+    const scan = planCursorIssueClaims({
+      readyIssues: [ready],
+      claimedIssues: [],
+      trackedIssues: [],
+      preferIssueNumbers: [9003],
+    });
+    assert.equal(scan.verifiedActiveCount, 0);
+    assert.equal(scan.availableSlots, CURSOR_WIP_MAX_SLOTS);
     assert.equal(scan.activationTargetIssue, 9003);
 
     const resolved = resolveEffectiveActivationTarget({
@@ -582,11 +607,20 @@ describe('eligibility wake (#891) — approval and capacity changes', () => {
         },
       ],
     };
-    // After one terminal release, only one verified active remains → slot frees.
-    const scan = planCursorIssueClaims({
+    // After one terminal release, one remaining live run still occupies the only lane.
+    const heldByLiveLane = planCursorIssueClaims({
       readyIssues: [waiting],
       claimedIssues: [stillActive],
       trackedIssues: [stillActive, waiting],
+    });
+    assert.equal(heldByLiveLane.activationTargetIssue, null);
+    assert.equal(heldByLiveLane.availableSlots, 0);
+    assert.match(String(heldByLiveLane.decisions[0]?.reason || ''), /WIP cap/i);
+
+    const scan = planCursorIssueClaims({
+      readyIssues: [waiting],
+      claimedIssues: [],
+      trackedIssues: [waiting],
     });
     assert.equal(scan.activationTargetIssue, 9102);
     const resolved = resolveEffectiveActivationTarget({

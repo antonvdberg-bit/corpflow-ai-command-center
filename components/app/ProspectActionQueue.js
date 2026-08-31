@@ -133,6 +133,7 @@ export default function ProspectActionQueue({
                       data-testid={`action-queue-row-${id}`}
                       data-selected={isSelected ? 'true' : 'false'}
                       data-product={String(row.product || '')}
+                      data-exception-signals={signals.join(' ')}
                     >
                       <td>
                         <strong>{name}</strong>
@@ -144,7 +145,9 @@ export default function ProspectActionQueue({
                           </span>
                         ))}
                       </td>
-                      <td>{String(row.owner || '—')}</td>
+                      <td data-testid={`action-queue-owner-${id}`}>
+                        {String(row.owner || 'Unassigned')}
+                      </td>
                       <td>
                         {String(row.canonical_stage || '—')}
                         <div className="cf-app-muted">

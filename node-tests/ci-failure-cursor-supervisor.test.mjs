@@ -4,6 +4,7 @@ import { describe, it } from 'node:test';
 import {
   buildCiFailurePacket,
   buildFailureFingerprint,
+  dispatchCiRepairToCursor,
   evaluateCiRepairGate,
   evaluateObsoleteFailureSuppression,
   evaluateRepairAttemptLimits,
@@ -59,6 +60,25 @@ not ok 1 - AI Lead Rescue intro video
 `;
 
 describe('ci-failure-cursor-supervisor hardening (#667)', () => {
+  it('stops for review after CI failure without creating a follow-up or replacement agent (#1249)', async () => {
+    const result = await dispatchCiRepairToCursor({
+      apiKey: 'test-key',
+      packet: {
+        prNumber: 1249,
+        prUrl: 'https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1249',
+        headSha: FAILED_SHA,
+        workflowRunId: '1',
+        workflowName: 'test',
+        cursorAgentId: 'bc-123',
+      },
+      fetch: async () => {
+        throw new Error('Cursor API must not be called after a failed run');
+      },
+    });
+    assert.equal(result.mode, 'review_required');
+    assert.equal(result.reviewRequired, true);
+  });
+
   it('builds a sanitised failure packet for the #665 incident shape', () => {
     const packet = buildCiFailurePacket({
       repo: 'antonvdberg-bit/corpflow-ai-command-center',

@@ -107,7 +107,7 @@ Every `needs_bridge` row has: CorpFlowAI key, ERPNext DocType/key, direction, id
 | Idempotency | Search Customer by normalized name; Contact by email. Disable suffix duplicates. One Customer per paying legal entity. |
 | Conflict | **ERPNext Customer wins** as commercial master. Do not grow a second billing identity in GrowthCompany or a new table. |
 | Retry / failure | Safe to retry search. On API failure, leave Postgres unchanged; do not create a second Customer. |
-| Audit | Pointer may later sit on `qualification_json.erpnext` — **not written by this packet**. Synthetic proofs: CF880 / CF920 customers. |
+| Audit | Pointer sits on `qualification_json.erpnext` (in-memory/reference; live Postgres PATCH still later). Synthetic proofs: CF880 / CF920 / CF1009 / CF1018. #1206 GET-only: Customer `CF1018 Synthetic Sales Lifecycle Ltd`, Contact `Lee Synthetic`, Address `CF1018 Synthetic Sales Lifecycle Ltd-Billing`, enabled duplicate count 1. |
 | Sync mode | Queued / operator-manual. **No automated writer.** |
 | Exact later gate | Creating the **real Prestige Procurement** Customer needs Anton. |
 
@@ -145,7 +145,7 @@ Every `needs_bridge` row has: CorpFlowAI key, ERPNext DocType/key, direction, id
 | Idempotency | Do **not** create SI/PE from PaymentRecord in this packet. |
 | Conflict | ERPNext GL after submit is cash/AR truth. PaymentRecord is app fulfilment only. |
 | Retry / failure | **Blocked.** Do not invent a Payment Entry. |
-| Audit | Hosted-test payment not submitted. #714 remains the financial approval-to-build gate. |
+| Audit | Hosted-test payment not submitted. #714 remains the financial approval-to-build gate. #1139/#1220 maps the later Payment Entry → import → recon path without unblocking posting. Invoice existence never grants Proceed Approved. |
 
 ### 3.5 `project_task_timesheet`
 

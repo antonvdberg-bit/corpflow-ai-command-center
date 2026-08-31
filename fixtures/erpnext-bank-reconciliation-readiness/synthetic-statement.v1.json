@@ -1,0 +1,74 @@
+{
+  "schema": "corpflow.erpnext_bank_reconciliation_synthetic_statement.v1",
+  "issue": 1139,
+  "synthetic": true,
+  "do_not_post": true,
+  "source": "Reuses Phase C cycle 3 arithmetic (docs/finance/ERPNEXT_SANDBOX_PHASE_C_FINDINGS.md). Offline only. Not a live bank statement. No account numbers.",
+  "statement": {
+    "statement_id": "CF1139-SYN-STMT-001",
+    "currency": "MUR",
+    "opening_balance": 0,
+    "closing_balance": 13200,
+    "value_date": "2026-06-01",
+    "lines": [
+      {
+        "line_id": "1",
+        "value_date": "2026-06-01",
+        "narration": "WIRE IN - Sandbox Client A - USD - ref ACC-SINV-2026-00001",
+        "deposit": 6705,
+        "withdrawal": 0,
+        "reference_no": "WIRE-SBX-ACC-SINV-2026-00001"
+      },
+      {
+        "line_id": "2",
+        "value_date": "2026-06-01",
+        "narration": "PAYPAL XFER IN - ref REFcycle2",
+        "deposit": 6645,
+        "withdrawal": 0,
+        "reference_no": "REFcycle2"
+      },
+      {
+        "line_id": "3",
+        "value_date": "2026-06-01",
+        "narration": "BANK FEE - MONTHLY MAINTENANCE",
+        "deposit": 0,
+        "withdrawal": 150,
+        "reference_no": "FEE-SBX-2026-06"
+      }
+    ]
+  },
+  "books": {
+    "payment_entries": [
+      {
+        "name": "ACC-PAY-2026-00002",
+        "payment_type": "Receive",
+        "paid_amount_base": 6705,
+        "reference_no": "WIRE-SBX-ACC-SINV-2026-00001",
+        "reference_date": "2026-06-01",
+        "allocated_invoice": "ACC-SINV-2026-00001",
+        "docstatus": 1,
+        "synthetic": true,
+        "note": "Sandbox Phase C name reused as offline fixture. Do not treat as a live hosted-test Payment Entry to submit."
+      }
+    ],
+    "journal_entries": [
+      {
+        "name": "ACC-JV-2026-00002",
+        "voucher_type": "Bank Entry",
+        "paid_amount_base": 6645,
+        "reference_no": "REFcycle2",
+        "reference_date": "2026-06-01",
+        "synthetic": true
+      },
+      {
+        "name": "ACC-JV-2026-00003",
+        "voucher_type": "Bank Entry",
+        "paid_amount_base": 150,
+        "reference_no": "FEE-SBX-2026-06",
+        "reference_date": "2026-06-01",
+        "exception_type": "bank_fee",
+        "synthetic": true
+      }
+    ]
+  }
+}

@@ -265,8 +265,6 @@ describe('operator-gate-authorization', () => {
 
     const verifiedActive = [
       verifiedActiveIssue(10, 'run-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
-      verifiedActiveIssue(11, 'run-bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'),
-      verifiedActiveIssue(12, 'run-cccccccc-cccc-cccc-cccc-cccccccccccc'),
     ];
 
     const plan = planCursorIssueClaims({
@@ -288,7 +286,7 @@ describe('operator-gate-authorization', () => {
     }
   });
 
-  it('6b) two verified runs leave one catch-up slot', () => {
+  it('6b) one verified run leaves zero catch-up slots', () => {
     const auth = formatOperatorGateAuthorization({
       issue: 904,
       gate: 'database',
@@ -301,7 +299,6 @@ describe('operator-gate-authorization', () => {
     ]);
     const verifiedActive = [
       verifiedActiveIssue(10, 'run-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
-      verifiedActiveIssue(11, 'run-bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'),
     ];
 
     const plan = planCursorIssueClaims({
@@ -311,9 +308,13 @@ describe('operator-gate-authorization', () => {
     });
 
     assert.equal(plan.wipLimits.maxActiveCursorImplementationIssues, CURSOR_WIP_MAX_SLOTS);
-    assert.equal(plan.verifiedActiveCount, 2);
-    assert.equal(plan.availableSlots, 1);
-    assert.deepEqual(plan.claimIssueNumbers, [904]);
+    assert.equal(plan.verifiedActiveCount, 1);
+    assert.equal(plan.availableSlots, 0);
+    assert.deepEqual(plan.claimIssueNumbers, []);
+    const held = plan.decisions.find((x) => x.issue.number === 904);
+    assert.equal(held?.eligibleToClaim, true);
+    assert.equal(held?.decision, 'discover_only');
+    assert.match(String(held?.reason || ''), /WIP cap reached/);
   });
 
   it('7) #879/#886 inspect packets claim without database gate (#896)', () => {
