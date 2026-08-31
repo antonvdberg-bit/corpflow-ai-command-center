@@ -82,11 +82,7 @@ const WORKER_PATH = path.join(REPO_ROOT, 'ops/temporal/pilot-worker.mjs');
 const SCRIPT_PATH = path.join(REPO_ROOT, 'scripts/factory-temporal-pilot.mjs');
 
 const BC_A = 'bc-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
-const BC_B = 'bc-bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
-const BC_C = 'bc-cccccccc-cccc-4ccc-8ccc-cccccccccccc';
 const RUN_A = 'run-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
-const RUN_B = 'run-bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
-const RUN_C = 'run-cccccccc-cccc-cccc-cccc-cccccccccccc';
 
 function readyIssue(number, extra = {}) {
   return {
@@ -175,15 +171,15 @@ describe('factory Temporal real-production pilot control plane (#1130)', () => {
   const legacyYaml = readFileSync(LEGACY_PATH, 'utf8');
   const workflowFiles = readdirSync(WORKFLOWS_DIR);
 
-  it('keeps one spine: GitHub truth, Handoff sole Cursor wake, WIP=3, Temporal is not a second dispatcher', () => {
+  it('keeps one spine: GitHub truth, Handoff sole Cursor wake, WIP=1, Temporal is not a second dispatcher', () => {
     assert.equal(FACTORY_CONTROL_PLANE_V1.spine, 'one_supervisory_orchestration_spine');
     assert.equal(FACTORY_CONTROL_PLANE_V1.sourceOfTruth, 'github');
     assert.equal(FACTORY_CONTROL_PLANE_V1.cursorWakePath, FACTORY_CURSOR_HANDOFF_WORKFLOW_NAME);
-    assert.equal(FACTORY_CONTROL_PLANE_V1.wipMaxSlots, 3);
-    assert.equal(FACTORY_CONTROL_PLANE_V1.wipPilotMaxSlots, 5);
-    assert.equal(FACTORY_CONTROL_PLANE_V1.wipProductionReserveSlots, 3);
-    assert.equal(FACTORY_CONTROL_PLANE_V1.wipTemporalExtraSlots, 2);
-    assert.equal(CURSOR_WIP_MAX_SLOTS, 3);
+    assert.equal(FACTORY_CONTROL_PLANE_V1.wipMaxSlots, 1);
+    assert.equal(FACTORY_CONTROL_PLANE_V1.wipPilotMaxSlots, 1);
+    assert.equal(FACTORY_CONTROL_PLANE_V1.wipProductionReserveSlots, 1);
+    assert.equal(FACTORY_CONTROL_PLANE_V1.wipTemporalExtraSlots, 0);
+    assert.equal(CURSOR_WIP_MAX_SLOTS, 1);
     assert.match(handoffYaml, /CORPFLOW_TEMPORAL_PILOT:\s*\$\{\{\s*vars\.CORPFLOW_TEMPORAL_PILOT\s*\}\}/);
     assert.match(reconcileYaml, /CORPFLOW_TEMPORAL_PILOT:\s*\$\{\{\s*vars\.CORPFLOW_TEMPORAL_PILOT\s*\}\}/);
     assert.match(handoffYaml, /^name:\s*CorpFlowAI Cursor Factory Handoff\s*$/m);
@@ -274,9 +270,9 @@ describe('factory Temporal real-production pilot control plane (#1130)', () => {
     const parsed = JSON.parse(dry.stdout);
     assert.equal(parsed.schema, FACTORY_TEMPORAL_PILOT_SCHEMA);
     assert.equal(parsed.mode, 'dry-run');
-    assert.equal(parsed.wipMaxSlots, 3);
-    assert.equal(parsed.wipDefaultMaxSlots, 3);
-    assert.equal(parsed.wipPilotMaxSlots, 5);
+    assert.equal(parsed.wipMaxSlots, 1);
+    assert.equal(parsed.wipDefaultMaxSlots, 1);
+    assert.equal(parsed.wipPilotMaxSlots, 1);
     const live = spawnSync(process.execPath, [WORKER_PATH, '--live'], { encoding: 'utf8' });
     assert.equal(live.status, 2);
     assert.match(live.stderr, /NOT READY/);
@@ -316,32 +312,31 @@ describe('factory Temporal real-production pilot control plane (#1130)', () => {
 });
 
 describe('factory Temporal current-main contracts (#1130)', () => {
-  it('WIP=3: two live Cloud Agent runs leave one slot; a third live run blocks Handoff', () => {
-    const twoLive = [liveClaimed(201, RUN_A, { agentId: BC_A }), liveClaimed(202, RUN_B, { agentId: BC_B })];
+  it('WIP=1: an empty lane allows one Handoff; one live Cloud Agent run blocks the next', () => {
     const withRoom = planCursorIssueClaims({
       readyIssues: [readyIssue(11303)],
-      claimedIssues: twoLive,
-      trackedIssues: twoLive,
+      claimedIssues: [],
+      trackedIssues: [],
     });
     assert.equal(withRoom.availableSlots, 1);
     const roomDecision = decideNextSafeAction({
       plan: withRoom,
-      claimedIssues: twoLive,
+      claimedIssues: [],
       labels: ['dispatch:cursor-ready', 'priority:P0'],
     });
     assert.equal(roomDecision.action, 'request_canonical_handoff');
     assert.equal(roomDecision.sourceIssue, 11303);
 
-    const threeLive = [...twoLive, liveClaimed(203, RUN_C, { agentId: BC_C })];
+    const oneLive = [liveClaimed(201, RUN_A, { agentId: BC_A })];
     const full = planCursorIssueClaims({
       readyIssues: [readyIssue(11304)],
-      claimedIssues: threeLive,
-      trackedIssues: threeLive,
+      claimedIssues: oneLive,
+      trackedIssues: oneLive,
     });
     assert.equal(full.availableSlots, 0);
     const blocked = decideNextSafeAction({
       plan: full,
-      claimedIssues: threeLive,
+      claimedIssues: oneLive,
       labels: ['dispatch:cursor-ready'],
     });
     assert.equal(blocked.action, 'no_op_wait');
@@ -419,7 +414,7 @@ describe('factory Temporal current-main contracts (#1130)', () => {
       claimedIssues: [],
       trackedIssues: [reviewReady, eligible],
     });
-    assert.equal(plan.availableSlots, 3);
+    assert.equal(plan.availableSlots, 1);
     assert.equal(plan.activationTargetIssue, 11308);
     const decision = decideNextSafeAction({
       plan,
@@ -432,7 +427,7 @@ describe('factory Temporal current-main contracts (#1130)', () => {
     const reviewDecision = decideNextSafeAction({
       plan: {
         activationTargetIssue: 11307,
-        availableSlots: 3,
+        availableSlots: 1,
         eligibleIssueNumbers: [],
         claimIssueNumbers: [],
       },

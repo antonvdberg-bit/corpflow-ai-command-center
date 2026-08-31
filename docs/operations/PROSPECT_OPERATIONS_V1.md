@@ -104,6 +104,8 @@
 
 **Labelled Lead Rescue enquiry (#1171):** the current named-product buyer path (`/lead-rescue` → `/contact?offer=ai-lead-rescue#discovery`) posts `meta.product = corpflow-rapid-delivery` with `offer_slug = ai-lead-rescue`. Canonical Prospect / Commercial projection treats that labelled identity as Lead Rescue (`detectProspectProduct` / `isLabelledLeadRescueEnquiry`) so source, product, consent, urgency and next action do not collapse into Website Rescue. Persistence stays on the existing `leads` row — no second CRM. The `/admin/lead-rescue` desk still filters native `intake_meta.product = ai-lead-rescue` only.
 
+**Launch enquiry triage (#1194):** those same synthetic fixtures (`syn-1171-lr-enquiry`, `syn-1171-wr-enquiry`) enter `/app/queue` as needs-action. A computed next-action is not enough: an active row with a blank owner emits `missing_owner` and shows **Unassigned**, so operators are not asked to treat it as already owned.
+
 ### Product JSON namespaces (not unified today)
 
 | Concern | Lead Rescue (`ai_lead_rescue_operator`) | Rapid Delivery (`rapid_delivery_operator`) |
@@ -196,9 +198,11 @@ Executable source: `lib/cmp/_lib/prospect-operations-view-model.js`.
 
 ### Exception signals (shared vocabulary)
 
-`overdue_action`, `due_today`, `future_action_scheduled`, `no_next_action`, `new_unreviewed`, `high_urgency`, `stalled_no_activity`, `missing_qualification`, `awaiting_prospect`, `awaiting_operator`, `awaiting_protected_approval`.
+`overdue_action`, `due_today`, `future_action_scheduled`, `no_next_action`, `missing_owner`, `new_unreviewed`, `high_urgency`, `stalled_no_activity`, `missing_qualification`, `awaiting_prospect`, `awaiting_operator`, `awaiting_protected_approval`.
 
-Default Action Queue order: overdue → due today → no next action → remainder.
+An **active** prospect (not won / lost / not_fit / delivery) with a blank owner is never treated as silently actionable: Action Queue / shared detail emit `missing_owner` and show **Unassigned**. Default next-action text is not enough on its own.
+
+Default Action Queue order: overdue → due today → no next action / missing owner → remainder.
 
 ### My Work / Today
 
