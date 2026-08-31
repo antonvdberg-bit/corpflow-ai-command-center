@@ -71,6 +71,8 @@ describe('#710 Website Rescue named buyer path', () => {
     assert.ok(demo.includes('defaultOfferSlug="premium-landing-page-rescue"') || demo.includes("defaultOfferSlug='premium-landing-page-rescue'"));
     assert.ok(demo.includes('lockedOfferLabel="Website Rescue"') || demo.includes("lockedOfferLabel='Website Rescue'"));
     assert.ok(demo.includes('Request discovery — Website Rescue'));
+    assert.ok(!demo.includes('T1 Landing Rescue'));
+    assert.ok(!demo.includes('landing-rescue SKU'));
     assert.ok(!/Choose payment path/i.test(demo));
   });
 
@@ -79,6 +81,8 @@ describe('#710 Website Rescue named buyer path', () => {
     assert.ok(component.includes('data-website-rescue-proof'));
     assert.ok(component.includes('Open the Website Rescue demo'));
     assert.ok(component.includes('offer.demoPath'));
+    assert.ok(component.includes('extra={`${publicTitle}'));
+    assert.ok(component.includes('alt: `${publicTitle}'));
     assert.ok(!/Choose payment path/i.test(component));
     assert.ok(!/recording-ready/i.test(component));
   });
