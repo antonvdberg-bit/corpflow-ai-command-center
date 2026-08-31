@@ -10,7 +10,7 @@ The protected live-switch and rollback sequence is
 `docs/runbooks/CURSOR_CLOUD_AGENTS_V1_CUTOVER_1062.md`.
 **Owner:** Anton (policy); Cursor (implementation).
 **Created:** 2026-07-28.
-**Updated:** 2026-08-27 (#1145 Temporal pilot 3+2 Cursor ceiling).
+**Updated:** 2026-08-31 (#1249 Cursor spend-control tier and one-lane gate).
 **Implements:** Operator urgent change — Cursor must discover/claim `dispatch:cursor-ready` issues with strict segregation.
 **Anchor sentinel:** `<!-- CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1 -->`
 
@@ -72,16 +72,16 @@ If label creation or verification fails (missing labels after ensure, GitHub API
 
 ## 4. WIP limits (default) — verified Cursor runs (#862 / #976)
 
-The temporary three-slot catch-up capacity is **active execution capacity**, not all unmerged work.
+The enforced single implementation lane is **active execution capacity**, not all unmerged work.
 
 | Class | Consumes a factory slot? |
 |-------|--------------------------|
-| **Execution WIP** — current-generation Cursor implementation still running | **Yes** (temporary catch-up cap **3**; **5** with 3+2 isolation only while `CORPFLOW_TEMPORAL_PILOT=active`, see #1145) |
+| **Execution WIP** — current-generation Cursor implementation still running | **Yes** (hard cap **1**, including any Temporal-supervised wake) |
 | **Review/decision inventory** — merge-ready PRs, `dispatch:operator-review`, protected-approval waits, external/scheduled waits | **No** |
 
 | Scope | Limit |
 |-------|-------|
-| Verified **active execution** Cursor runs (current-generation implementation still running) | **3** (temporary catch-up). While the Temporal real-production pilot is active (`CORPFLOW_TEMPORAL_PILOT=active`), the effective ceiling is **5**: **3** reserved for ordinary PRODUCT / CLIENT / REVENUE / ERP wakes and **+2** Temporal-supervised extras. Unsetting the variable returns the ceiling to **3**. Temporal-supervised wakes (`wake_reason=temporal_supervisory`) cannot consume the 3-lane production reserve. |
+| Verified **active execution** Cursor runs (current-generation implementation still running) | **1**. `CORPFLOW_TEMPORAL_PILOT` cannot add capacity; a Temporal-supervised wake is blocked while the single lane is occupied. |
 | Review/decision inventory (merge-ready / operator-review / approval wait) | **uncapped by execution WIP** |
 | Active issues per tenant | **1** |
 | Active database/schema issues (repo-wide) | **1** |
@@ -101,6 +101,18 @@ The temporary three-slot catch-up capacity is **active execution capacity**, not
 - Every scan emits a capacity packet naming exact run IDs for occupied **execution** slots and listing review/decision inventory separately.
 
 Publishing to CorpFlowAI-hosted **corpflow_test** surfaces does **not** consume the client_production WIP slot and does **not** set `protectedGate: production`.
+
+### 4.1 Cursor execution tier and paid-run gate (#1249)
+
+Every Cloud Agents API create payload contains exactly one explicit model selection:
+
+| Tier | Model ID | Model parameter | Gate |
+|---|---|---|---|
+| `low` | `gpt-5.4` | `reasoning=low` | The only default. |
+| `medium` | `gpt-5.4` | `reasoning=medium` | Requires a durable `corpflow.cursor_execution_tier.v1` issue-comment marker from Anton or the controller, with a non-empty controller justification. |
+| `high` | `gpt-5.4` | `reasoning=high` | Requires the same durable justification and explicit `authorization: "approved"` from Anton or the controller. Missing or malformed evidence blocks agent creation. |
+
+Unknown tiers fail closed; the API must never inherit a user, team, or system-selected default model. A failed Cloud Agent create marks the source issue `dispatch:blocked` and removes `dispatch:cursor-ready`; Queue Reconcile must not regenerate it. The only active Cursor implementation lane is capped at one, and existing review/merge/deploy/verification inventory takes priority over any new generation.
 
 Research/documentation-only tasks may run separately only when they cannot conflict with implementation file areas.
 

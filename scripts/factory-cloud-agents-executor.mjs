@@ -8,6 +8,7 @@
  */
 import {
   addIssueLabelsApi,
+  removeIssueLabelApi,
 } from '../lib/server/cursor-issue-dispatch-lifecycle.js';
 import {
   acquireCursorIssueActivationClaim,
@@ -130,6 +131,10 @@ try {
     claim: claimResult.claim,
     postComment: (_issueNumber, body) => post(body),
   });
+  // A failed paid run is a review stop, not a candidate for automatic
+  // regeneration by Queue Reconcile or an implicit retry.
+  await addIssueLabelsApi(token, repo, sourceIssue, ['dispatch:blocked']);
+  await removeIssueLabelApi(token, repo, sourceIssue, 'dispatch:cursor-ready');
   await post(
     formatFactoryCursorHandoffReceiptComment(
       buildFactoryCursorHandoffReceipt({
