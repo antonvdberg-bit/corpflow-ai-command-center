@@ -81,13 +81,29 @@ const post = (body) =>
   postGitHubIssueComment(sourceIssue, body, { token, repoFullName: repo });
 const comments = await listGitHubIssueComments({ token, repo, issueNumber: sourceIssue });
 const issue = await fetchGitHubIssue(sourceIssue, { token, repoFullName: repo });
-const envelope = buildFactoryCloudAgentsExecutionEnvelope({
-  sourceIssue,
-  handoffRunId,
-  repo,
-  issue,
-  comments,
-});
+let envelope;
+try {
+  envelope = buildFactoryCloudAgentsExecutionEnvelope({
+    sourceIssue,
+    handoffRunId,
+    repo,
+    issue,
+    comments,
+  });
+} catch (error) {
+  const blocker = redactCloudAgentsFailure(error);
+  await addIssueLabelsApi(token, repo, sourceIssue, ['dispatch:blocked']);
+  await removeIssueLabelApi(token, repo, sourceIssue, 'dispatch:cursor-ready');
+  await post(
+    formatCloudAgentsExecutorEvidence({
+      source_issue: sourceIssue,
+      handoff_run_id: handoffRunId,
+      status: 'BLOCKED',
+      blocker,
+    }),
+  );
+  throw error;
+}
 
 if (envelope.request_was_created) {
   await post(formatAiWorkRequestComment(envelope.request));
