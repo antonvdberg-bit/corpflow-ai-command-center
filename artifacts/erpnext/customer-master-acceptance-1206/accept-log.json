@@ -1,0 +1,137 @@
+{
+  "schema": "corpflow.erpnext.customer_master_acceptance_apply.v1",
+  "issue": 1206,
+  "generated_at_utc": "2026-08-28T01:57:51.843Z",
+  "current_main_sha": "eb31cfd3d3c74a3f8a17b81ae4d6cccf54c07751",
+  "secrets_printed": false,
+  "postgres_written": false,
+  "erpnext_mutated": false,
+  "ok": true,
+  "verdict": "ERPNext CUSTOMER MASTER READY FOR QUOTATION / DELIVERY",
+  "exact_blocker": null,
+  "identity": "integrations@corpflowai.com",
+  "identifiers": {
+    "customer": "CF1018 Synthetic Sales Lifecycle Ltd",
+    "customer_name": "CF1018 Synthetic Sales Lifecycle Ltd",
+    "contact": "Lee Synthetic",
+    "address": "CF1018 Synthetic Sales Lifecycle Ltd-Billing",
+    "quotation": "SAL-QTN-2026-00005"
+  },
+  "customer": {
+    "name": "CF1018 Synthetic Sales Lifecycle Ltd",
+    "customer_name": "CF1018 Synthetic Sales Lifecycle Ltd",
+    "customer_type": "Company",
+    "customer_group": "Commercial",
+    "territory": "Mauritius",
+    "default_currency": "MUR",
+    "default_price_list": "Standard Selling",
+    "website": "https://cf1018-synthetic.example.invalid",
+    "email_id": "cf1018.synthetic@example.invalid",
+    "disabled": false,
+    "customer_primary_contact": "Lee Synthetic",
+    "customer_primary_address": "CF1018 Synthetic Sales Lifecycle Ltd-Billing",
+    "lead_name": "CRM-LEAD-2026-00009"
+  },
+  "contact": {
+    "name": "Lee Synthetic",
+    "first_name": "Lee",
+    "last_name": "Synthetic",
+    "email_id": "cf1018.synthetic@example.invalid",
+    "company_name": "CF1018 Synthetic Sales Lifecycle Ltd"
+  },
+  "address": {
+    "name": "CF1018 Synthetic Sales Lifecycle Ltd-Billing",
+    "address_title": "CF1018 Synthetic Sales Lifecycle Ltd",
+    "address_type": "Billing",
+    "address_line1": "1018 Synthetic Lifecycle Lane",
+    "city": "Port Louis",
+    "country": "Mauritius"
+  },
+  "quotation": {
+    "name": "SAL-QTN-2026-00005",
+    "party_name": "CF1018 Synthetic Sales Lifecycle Ltd",
+    "contact_person": "Lee Synthetic",
+    "customer_address": "CF1018 Synthetic Sales Lifecycle Ltd-Billing",
+    "docstatus": 0
+  },
+  "search_before_create": {
+    "ok": true,
+    "enabled_duplicate_count": 1,
+    "created_on_replay": false
+  },
+  "quotation_suitability": {
+    "ok": true,
+    "missing": [],
+    "warnings": [],
+    "quotation_party": {
+      "quotation_to": "Customer",
+      "party_name": "CF1018 Synthetic Sales Lifecycle Ltd",
+      "contact_person": "Lee Synthetic",
+      "customer_address": "CF1018 Synthetic Sales Lifecycle Ltd-Billing"
+    }
+  },
+  "corpflow_reference": {
+    "pointer_location": "leads.qualification_json.erpnext",
+    "copies_customer_ledger": false,
+    "delivery_handoff_customer_only": "CF1018 Synthetic Sales Lifecycle Ltd",
+    "company_master_erpnext_column": false
+  },
+  "workspace_recorded_pointers": [
+    {
+      "prospect_id": "syn-772-lr-ada",
+      "erpnext_customer": "CF880 Synthetic Lead Rescue Ltd",
+      "join": "recorded_qualification_json.erpnext_pointer",
+      "not": "name_join"
+    },
+    {
+      "prospect_id": "syn-716-wr-cleared",
+      "erpnext_customer": "CF880 Synthetic Website Rescue Ltd",
+      "join": "recorded_qualification_json.erpnext_pointer",
+      "not": "name_join"
+    }
+  ],
+  "supporting": [
+    {
+      "source": "#880 Client Master Lead Rescue",
+      "customer": "CF880 Synthetic Lead Rescue Ltd",
+      "contact": "Priya Synthetic-CF880 Synthetic Lead Rescue Ltd",
+      "address": "CF880 Synthetic Lead Rescue Ltd-Billing",
+      "customer_http": 200,
+      "contact_http": 200,
+      "address_http": 200,
+      "customer_ok": true,
+      "contact_ok": true,
+      "address_ok": true,
+      "disabled": false,
+      "error": null
+    },
+    {
+      "source": "#880 Client Master Website Rescue",
+      "customer": "CF880 Synthetic Website Rescue Ltd",
+      "contact": "Jean Synthetic-CF880 Synthetic Website Rescue Ltd",
+      "address": "CF880 Synthetic Website Rescue Ltd-Billing",
+      "customer_http": 200,
+      "contact_http": 200,
+      "address_http": 200,
+      "customer_ok": true,
+      "contact_ok": true,
+      "address_ok": true,
+      "disabled": false,
+      "error": null
+    },
+    {
+      "source": "#1009 WP1 Customer bridge",
+      "customer": "CF1009 Synthetic Customer Bridge Ltd",
+      "contact": "Sam Synthetic-CF1009 Synthetic Customer Bridge Ltd",
+      "address": "CF1009 Synthetic Customer Bridge Ltd-Billing",
+      "customer_http": 200,
+      "contact_http": 200,
+      "address_http": 200,
+      "customer_ok": true,
+      "contact_ok": true,
+      "address_ok": true,
+      "disabled": false,
+      "error": null
+    }
+  ]
+}

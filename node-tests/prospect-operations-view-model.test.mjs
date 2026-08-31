@@ -34,6 +34,7 @@ describe('prospect-operations-view-model — contract constants', () => {
     assert.ok(PROSPECT_CANONICAL_STAGES.includes('new'));
     assert.ok(PROSPECT_CANONICAL_STAGES.includes('proposal_sent'));
     assert.ok(PROSPECT_EXCEPTION_SIGNALS.includes('overdue_action'));
+    assert.ok(PROSPECT_EXCEPTION_SIGNALS.includes('missing_owner'));
     assert.ok(PROSPECT_EXCEPTION_SIGNALS.includes('awaiting_protected_approval'));
     assert.ok(PROSPECT_SAFE_INTERVENTIONS.includes('change_stage'));
     assert.ok(PROSPECT_PROTECTED_ACTIONS.includes('external_send'));
@@ -94,6 +95,7 @@ describe('prospect-operations-view-model — due dates and exceptions', () => {
     const overdue = computeProspectExceptionSignals(
       {
         canonical_stage: 'qualifying',
+        owner: 'anton',
         next_action: 'Call prospect',
         next_action_due: '2026-08-01T00:00:00.000Z',
         urgency: 'high',
@@ -109,36 +111,48 @@ describe('prospect-operations-view-model — due dates and exceptions', () => {
     assert.ok(overdue.includes('missing_qualification'));
     assert.ok(overdue.includes('awaiting_operator'));
     assert.ok(!overdue.includes('no_next_action'));
+    assert.ok(!overdue.includes('missing_owner'));
 
     const bare = computeProspectExceptionSignals(
       { canonical_stage: 'new', native_status: 'NEW_INTAKE', next_action: null },
       NOW,
     );
     assert.ok(bare.includes('no_next_action'));
+    assert.ok(bare.includes('missing_owner'));
     assert.ok(bare.includes('new_unreviewed'));
+
+    const assignedClosed = computeProspectExceptionSignals(
+      { canonical_stage: 'won', owner: '', next_action: 'Archive' },
+      NOW,
+    );
+    assert.ok(!assignedClosed.includes('missing_owner'));
   });
 
   it('sorts Action Queue with overdue first, then due today, then no next action', () => {
     const rows = [
       {
         id: 'future',
+        owner: 'anton',
         next_action: 'Wait',
         next_action_due: '2026-08-20T00:00:00.000Z',
         created_at: '2026-08-01T00:00:00.000Z',
       },
       {
         id: 'none',
+        owner: 'anton',
         next_action: null,
         created_at: '2026-08-02T00:00:00.000Z',
       },
       {
         id: 'overdue',
+        owner: 'anton',
         next_action: 'Call',
         next_action_due: '2026-08-01T00:00:00.000Z',
         created_at: '2026-08-01T00:00:00.000Z',
       },
       {
         id: 'today',
+        owner: 'anton',
         next_action: 'Email',
         next_action_due: '2026-08-03T15:00:00.000Z',
         created_at: '2026-08-01T00:00:00.000Z',
@@ -190,6 +204,10 @@ describe('prospect-operations-view-model — due dates and exceptions', () => {
       true,
     );
     assert.equal(matchesActionQueueFilter({ exception_signals: ['no_next_action'] }, 'all', NOW), true);
+    assert.equal(
+      matchesActionQueueFilter({ exception_signals: ['missing_owner'] }, 'needs_action', NOW),
+      true,
+    );
   });
 
   it('normalises Workbench filters and isolates product plus exception slices', () => {
@@ -358,6 +376,7 @@ describe('prospect-operations-view-model — lead adapters', () => {
     assert.equal(vm.canonical_stage, 'new');
     assert.ok(vm.exception_signals.includes('new_unreviewed'));
     assert.ok(vm.exception_signals.includes('high_urgency'));
+    assert.ok(vm.exception_signals.includes('missing_owner'));
     // Rapid Delivery surfaces a computed recommended_next_action when operator
     // next_action is empty — so no_next_action is intentionally absent.
     assert.ok(vm.next_action);

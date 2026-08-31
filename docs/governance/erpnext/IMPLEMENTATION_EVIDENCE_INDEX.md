@@ -90,6 +90,7 @@ Read-back: no Customer, `collect_progress=0`, Notification/Workflow inspect HTTP
 | [#1010](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1010) | WP7 version/patch/backup/restore/monitoring classification | Apply the Frappe Cloud upgrade, production restore, Neon restore, or Monitor #14 timer |
 | [#1019](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1019) | WP6 identity / roles / 2FA / least-privilege classification | Grant System Manager to the integration user; enable 2FA from the factory; mutate roles |
 | [#1139](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1139) / [#1220](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1220) | Bank / reconciliation operating model on current `main` (`eb31cfd3`): GET-only hosted-test state + synthetic matching. Close stale PR #1141 and closed stale PRs #1221 / #1229 / #1234 without merge. | Create Bank Account, submit Payment Entry, connect a bank feed, store credentials |
+| [#1206](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1206) | Customer/Contact/Address GET-only quotation/delivery acceptance on reused CF1018 (`Lee Synthetic`, Billing Address, `SAL-QTN-2026-00005` party), re-landed on current `main` after closed PR #1211. Search-before-create duplicate count 1. Commercial Workspace projects the recorded Customer pointer. Preserves #1162 / #1168 / #1228 / #1230. | ERPNext write; Company Master name-join; live Postgres lead PATCH; real Prestige Customer; revive closed PR #1211 |
 
 ---
 

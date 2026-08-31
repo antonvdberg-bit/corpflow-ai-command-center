@@ -51,7 +51,7 @@ lifecycle comments, Decision Inbox labels).
 - `CorpFlowAI Cursor Factory Handoff` is the permanent GitHub Actions handoff workflow on `main` (merged PR #914).
 - Eligible work is selected from GitHub using current factory eligibility, priority, pause and verified-WIP rules.
 - A successful dedicated handoff on `main` wakes native Cursor Automation MODE B; the workflow does **not** call the Cursor API and does not require a Cursor API key on this path.
-- Exactly one eligible source issue is handed to one Cursor cloud run; the temporary catch-up WIP cap is **3 verified active Cursor runs**.
+- Exactly one eligible source issue is handed to one Cursor cloud run; the enforced WIP cap is **one verified active Cursor implementation run** (#1249).
 - Paused, operator-review, completed/superseded, duplicate-active and otherwise ineligible work is skipped.
 - Completion / PR / checks are detected automatically and capacity can wake the next permitted item.
 - Unchanged lifecycle events are deduped.

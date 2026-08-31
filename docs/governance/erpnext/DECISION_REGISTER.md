@@ -267,3 +267,22 @@ Retention: do not delete a decision or evidence row merely because it was supers
 | ERPNext Project / Task | Programme Project `PROJ-0002` / Phase 5 `TASK-2026-00031` |
 | Verification evidence | `node --test node-tests/erpnext-bank-reconciliation-readiness.test.mjs` plus GET-only probe artifact |
 | Supersedes / superseded-by | Current-main replacement for stale PR #1141 / #1139 and closed stale PRs #1221 / #1229 / #1234. Does **not** supersede Version 2, #918 `payment_evidence` blocked bridge, #1055, or #1166. |
+## ERP-D-2026-08-28-1 — #1206 Customer/Contact master quotation/delivery acceptance (proposed)
+
+| Field | Record |
+|-------|--------|
+| Decision ID | `ERP-D-2026-08-28-1` |
+| Date/time | 2026-08-28 |
+| Status | **Proposed** (this packet; Anton merge remains the Git approval). Does **not** approve ERPNext write, live Postgres lead PATCH, real Prestige Customer, send, or `client_production`. |
+| Question / requirement | Prove the existing standard ERPNext Customer / Contact / Address foundation is usable for quotation and delivery without a second CorpFlowAI customer ledger, re-landed on exact current `main`. |
+| Executive intent / source | [#1206](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1206) current-main requeue; closed evidence [PR #1211](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1211); Client Master [#880](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/880); WP1 [#1012](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1012); WP2 [#1021](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1021); Quote-to-Cash [#1166](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1166); Commercial quotation [#1162](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1162); Operating Workspace continuity [#1228](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1228); buyer naming [#1230](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1230); matrix [#918](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/918) |
+| Options considered | Revive closed PR #1211 branch; invent Company Master name joins; GET the recorded synthetic identity and project the existing pointer on current `main` |
+| Evidence reviewed | Fresh GET as `integrations@corpflowai.com` from current main `eb31cfd3d3c74a3f8a17b81ae4d6cccf54c07751`: CF1018 Customer/Contact/Address HTTP 200, quotation party `SAL-QTN-2026-00005`, enabled duplicate count 1; supporting CF880 / CF1009 GETs HTTP 200 |
+| Decision | Land [`ERPNEXT_CUSTOMER_MASTER_QUOTATION_DELIVERY_ACCEPTANCE_V1.md`](../../erpnext/ERPNEXT_CUSTOMER_MASTER_QUOTATION_DELIVERY_ACCEPTANCE_V1.md) on current `main`. GET-only. Commercial Workspace reads the recorded `qualification_json.erpnext.customer` pointer. Closed #1211 is evidence only. |
+| Rationale | Quotation and delivery need one Customer name. Dual identity is the highest-control failure. The records already exist. Current `main` moved after #1211 closed. |
+| Risks / tradeoffs | Live Postgres persist of the pointer is still a later authorized write. Company Master fixtures have no recorded ERPNext customer pointer; do not invent a name join. |
+| Approver | Pending Anton merge of the #1206 PR |
+| GitHub implementation | `lib/erpnext/customer-master-acceptance.js` + GET script + Commercial Workspace pointer |
+| ERPNext Project / Task | Reused synthetic Customer `CF1018 Synthetic Sales Lifecycle Ltd` (not programme Project `PROJ-0002`) |
+| Verification evidence | `node --test node-tests/erpnext-customer-master-acceptance.test.mjs node-tests/app-commercial-summary.test.mjs` plus live accept-log |
+| Supersedes / superseded-by | Current-main replacement for closed PR #1211. Does **not** supersede Version 2, #880, WP1, WP2, #918, #1162, #1166, #1228, or #1230. |
