@@ -5,7 +5,7 @@ import {
   QUOTATION_NAME,
   TERMS_NAME,
   assess1196Repair,
-} from '../scripts/erpnext/repair-mur-quotation-terms-1196.mjs';
+} from '../lib/erpnext/mur-quotation-terms-repair-1196.js';
 
 test('#1196 identifies missing quotation terms and prepares one-field repair payload', () => {
   const result = assess1196Repair({
