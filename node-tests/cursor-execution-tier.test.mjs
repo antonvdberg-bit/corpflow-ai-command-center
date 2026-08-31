@@ -10,6 +10,7 @@ import { buildFactoryCloudAgentsExecutionEnvelope } from '../lib/server/factory-
 import {
   buildCursorAgentCreatePayload,
   createCursorCloudAgent,
+  policyModelIsAvailable,
 } from '../lib/server/cursor-cloud-agent-client.js';
 
 const ISSUE = 1249;
@@ -118,6 +119,26 @@ describe('Cursor execution tier policy (#1249)', () => {
           model: { id: 'not-an-approved-model', params: [] },
         }),
       /requires one policy-derived explicit model selection/,
+    );
+  });
+
+  it('requires the exact policy model ID and parameters to be available in Cursor account catalogue', () => {
+    const catalog = {
+      items: [
+        {
+          id: 'gpt-5.6-luna',
+          variants: [{ params: [] }],
+        },
+      ],
+    };
+    assert.equal(policyModelIsAvailable(catalog, CURSOR_EXECUTION_TIER_MODELS.low), true);
+    assert.equal(policyModelIsAvailable(catalog, CURSOR_EXECUTION_TIER_MODELS.medium), false);
+    assert.equal(
+      policyModelIsAvailable(
+        { items: [{ id: 'gpt-5.6-luna', variants: [{ params: [{ id: 'fast', value: 'true' }] }] }] },
+        CURSOR_EXECUTION_TIER_MODELS.low,
+      ),
+      false,
     );
   });
 });

@@ -28,7 +28,11 @@ import {
   formatAiWorkRequestComment,
   formatAiWorkRequestStatusComment,
 } from '../lib/server/ai-work-request-lifecycle.js';
-import { createCursorCloudAgent } from '../lib/server/cursor-cloud-agent-client.js';
+import {
+  createCursorCloudAgent,
+  listCursorCloudAgentModels,
+  policyModelIsAvailable,
+} from '../lib/server/cursor-cloud-agent-client.js';
 import { formatCursorOriginMetadataComment } from '../lib/server/cursor-origin-metadata.js';
 import {
   buildFactoryCursorHandoffReceipt,
@@ -135,6 +139,12 @@ let apiResult;
 let validated;
 try {
   if (!apiKey) throw new Error('CURSOR_API_KEY missing — Cloud Agents executor disabled (fail closed)');
+  const modelCatalog = await listCursorCloudAgentModels(apiKey);
+  if (!policyModelIsAvailable(modelCatalog, envelope.create_payload.model)) {
+    throw new Error(
+      `CURSOR_EXECUTION_TIER_MODEL_UNAVAILABLE: ${envelope.create_payload.model.id}`,
+    );
+  }
   apiResult = await createCursorCloudAgent(apiKey, envelope.create_payload);
   validated = validateCloudAgentCreateResponse(apiResult);
   if (!validated.ok) throw new Error(validated.reason);
