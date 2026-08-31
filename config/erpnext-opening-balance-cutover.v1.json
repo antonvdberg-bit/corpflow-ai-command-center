@@ -1,0 +1,296 @@
+{
+  "schema": "corpflow.erpnext.opening_balance_cutover.v1",
+  "version": "v1",
+  "issue": 1245,
+  "parents": [1054, 1055, 953],
+  "related_readiness": [1139, 1220, 1056, 1166, 1098, 1213],
+  "environment": "corpflow_test",
+  "verdict": "ERPNext OPENING/CUTOVER PACK READY FOR ACCOUNTANT DECISION",
+  "description": "Onboarding packet G: prepare opening-balance and accounting-cutover evidence so accountant-approved CoA and cutover instructions can be applied later. No posting. No import. No CoA mutation. Placeholders only.",
+  "sync_mode": "operator_invoked",
+  "no_automated_cron": true,
+  "no_postgres_schema": true,
+  "no_custom_doctypes": true,
+  "no_posting": true,
+  "no_import": true,
+  "no_coa_mutation": true,
+  "no_real_financial_amounts_in_repo": true,
+  "does_not_choose_migration_method": true,
+  "pointer_schema": "corpflow.opening_cutover.erpnext.v1",
+  "inspect": {
+    "identity": "integrations@corpflowai.com",
+    "frappe_version": "16.32.0",
+    "erpnext_version": "16.33.0",
+    "company": "CorpFlowAI LTD",
+    "abbr": "CFAI",
+    "currency": "MUR",
+    "country": "Mauritius",
+    "coa_template": "Standard",
+    "fiscal_year": "2026-2027",
+    "fiscal_year_start": "2026-06-01",
+    "fiscal_year_end": "2027-05-31",
+    "account_total": 96,
+    "account_groups": 27,
+    "account_children": 69,
+    "accounting_onboarding_complete": "0/6",
+    "journal_entry_listed": 0,
+    "gl_entry_listed": 0,
+    "opening_sales_invoices": 0,
+    "opening_purchase_invoices": 0,
+    "bank_account_records": 0,
+    "bank_gl_children": 0,
+    "assets": 0,
+    "period_closing_vouchers": 0,
+    "default_bank_account": null,
+    "existing_draft_sales_invoices": ["ACC-SINV-2026-00001", "ACC-SINV-2026-00002"]
+  },
+  "standard_mechanisms": [
+    {
+      "id": "journal_entry_opening_entry",
+      "doctype": "Journal Entry",
+      "voucher_type": "Opening Entry",
+      "is_opening": "Yes",
+      "use": "Summarized GL opening balances (Method A). Contra is typically Temporary Opening.",
+      "inspected": "list HTTP 200; 0 rows; 0 Opening Entry"
+    },
+    {
+      "id": "temporary_opening_account",
+      "doctype": "Account",
+      "name": "Temporary Opening - CFAI",
+      "account_type": "Temporary",
+      "use": "Standard contra while opening legs are posted. Must net to zero after a complete opening set."
+    },
+    {
+      "id": "opening_invoice_creation_tool",
+      "doctype": "Opening Invoice Creation Tool",
+      "use": "Outstanding receivables/payables at cutover as is_opening invoices. Does not recreate full item history.",
+      "inspected": "list HTTP 500 (wizard/single-style); not executed"
+    },
+    {
+      "id": "period_closing_voucher",
+      "doctype": "Period Closing Voucher",
+      "use": "Close P&L into retained earnings after a historical year (Method B) or after the first ERPNext year-end.",
+      "inspected": "list HTTP 200; 0 rows"
+    },
+    {
+      "id": "data_import",
+      "doctype": "Data Import",
+      "use": "Bounded historical Sales Invoice / Purchase Invoice / Payment Entry / Journal Entry import (Method B).",
+      "inspected": "list HTTP 403 to integration identity; not executed"
+    },
+    {
+      "id": "asset_opening",
+      "doctype": "Asset",
+      "use": "Opening gross + accumulated depreciation when the accountant says company-owned assets exist.",
+      "inspected": "list HTTP 200; 0 rows"
+    },
+    {
+      "id": "bank_account_and_recon",
+      "doctypes": ["Account", "Bank Account", "Bank Reconciliation Tool"],
+      "use": "Named bank GL + Bank Account record after accountant/Anton bank setup (#1139/#1220). Opening cash/bank via Opening Entry, then statement recon.",
+      "inspected": "Bank Accounts group has 0 child GL accounts; Bank Account listed=0"
+    },
+    {
+      "id": "currency_exchange",
+      "doctype": "Currency Exchange",
+      "use": "Cutover translation/revaluation inputs for non-MUR balances. Rates are accountant-owned.",
+      "inspected": "pairs MUR-USD and USD-MUR present; rates not printed"
+    },
+    {
+      "id": "chart_of_accounts_importer",
+      "doctype": "Chart of Accounts Importer",
+      "use": "Later #1055 Phase 2 structure import only after accountant + Anton approval. Not an opening-balance poster.",
+      "inspected": "list HTTP 500 (wizard/single-style); not executed"
+    }
+  ],
+  "migration_methods": {
+    "A": {
+      "id": "SUMMARY_OPENING_BALANCES",
+      "label": "Approved summarized opening balances at the agreed cutover date",
+      "choose": false,
+      "uses": [
+        "journal_entry_opening_entry",
+        "temporary_opening_account",
+        "opening_invoice_creation_tool",
+        "asset_opening",
+        "bank_account_and_recon",
+        "currency_exchange"
+      ]
+    },
+    "B": {
+      "id": "HISTORICAL_DETAIL",
+      "label": "Bounded historical transaction import where statutory/management requirements justify it",
+      "choose": false,
+      "uses": [
+        "data_import",
+        "period_closing_voucher",
+        "journal_entry_opening_entry",
+        "bank_account_and_recon",
+        "currency_exchange"
+      ]
+    }
+  },
+  "placeholder_prefixes": ["[", "SYNTHETIC_", "PLACEHOLDER_", "EVIDENCE_"],
+  "forbidden_amount_pattern": "^-?[0-9]+([.,][0-9]{1,2})?$",
+  "template_inputs": [
+    {
+      "id": "cutover_date",
+      "label": "Cutover date",
+      "placeholder": "[CUTOVER_DATE]",
+      "owner": "accountant",
+      "source_evidence": "[EVIDENCE_REF_CUTOVER_MINUTE]",
+      "method_a": "Journal Entry / Opening Invoice Creation Tool posting_date",
+      "method_b": "First day ERPNext is authoritative; earlier dates stay on imported historical vouchers"
+    },
+    {
+      "id": "fiscal_period",
+      "label": "Fiscal period / year mapping",
+      "placeholder": "[FISCAL_YEAR_NAME]",
+      "owner": "accountant",
+      "source_evidence": "[EVIDENCE_REF_FISCAL_CALENDAR]",
+      "method_a": "Fiscal Year must cover [CUTOVER_DATE]; current unread year is 2026-2027 (2026-06-01 to 2027-05-31)",
+      "method_b": "Same Fiscal Year plus any prior years the accountant requires for historical import"
+    },
+    {
+      "id": "cash_bank",
+      "label": "Cash / bank balances by account and currency",
+      "placeholder": "[BANK_BALANCE_PLACEHOLDER]",
+      "owner": "accountant",
+      "source_evidence": "[EVIDENCE_REF_BANK_STATEMENT_REDACTED]",
+      "method_a": "Journal Entry Opening Entry to a named Bank/Cash Account; Bank Account record later under #1139/#1220",
+      "method_b": "Historical Payment Entry / Bank Entry import then recon to the same statement total"
+    },
+    {
+      "id": "receivables_payables",
+      "label": "Receivables / payables outstanding at cutover",
+      "placeholder": "[AR_AP_OUTSTANDING_PLACEHOLDER]",
+      "owner": "accountant",
+      "source_evidence": "[EVIDENCE_REF_AR_AP_AGEING]",
+      "method_a": "Opening Invoice Creation Tool (Sales Invoice / Purchase Invoice is_opening=Yes)",
+      "method_b": "Imported historical invoices minus imported receipts/payments"
+    },
+    {
+      "id": "pre_revenue_expenses",
+      "label": "Pre-revenue expense categories and evidence references",
+      "placeholder": "[PRE_REVENUE_EXPENSE_PLACEHOLDER]",
+      "owner": "accountant",
+      "source_evidence": "[EVIDENCE_REF_PRE_REVENUE_PACK]",
+      "method_a": "Do not re-book as fresh post-cutover opex. Fold into opening equity/deficit or opening funding per accountant classification",
+      "method_b": "Historical Journal Entry / Purchase Invoice import dated before [CUTOVER_DATE]"
+    },
+    {
+      "id": "funding_balance",
+      "label": "Loan / shareholder / director / current-account funding pending classification",
+      "placeholder": "[FUNDING_BALANCE_PLACEHOLDER]",
+      "owner": "accountant",
+      "source_evidence": "[EVIDENCE_REF_FUNDING_MEMO]",
+      "method_a": "Opening Entry to the accountant-named liability/equity account (skeleton candidates exist; none is approved)",
+      "method_b": "Historical funding journals dated before [CUTOVER_DATE] plus remaining opening balance if needed"
+    },
+    {
+      "id": "fixed_assets",
+      "label": "Fixed assets and accumulated depreciation",
+      "placeholder": "[FIXED_ASSET_PLACEHOLDER]",
+      "owner": "accountant",
+      "source_evidence": "[EVIDENCE_REF_ASSET_REGISTER]",
+      "method_a": "Asset opening or Opening Entry to Fixed Asset + Accumulated Depreciation",
+      "method_b": "Historical Asset / purchase import if the accountant requires asset history"
+    },
+    {
+      "id": "tax_payroll",
+      "label": "Tax / VAT / payroll liabilities only where accountant-approved",
+      "placeholder": "[TAX_PAYROLL_LIABILITY_PLACEHOLDER]",
+      "owner": "accountant",
+      "source_evidence": "[EVIDENCE_REF_TAX_PAYROLL]",
+      "method_a": "Opening Entry to accountant-approved tax/payroll liability accounts. Do not invent VAT/payroll truth",
+      "method_b": "Historical tax/payroll journals only if the accountant requires the trail"
+    },
+    {
+      "id": "equity_retained",
+      "label": "Retained earnings / equity / opening-balance treatment",
+      "placeholder": "[EQUITY_OPENING_PLACEHOLDER]",
+      "owner": "accountant",
+      "source_evidence": "[EVIDENCE_REF_EQUITY_MEMO]",
+      "method_a": "Opening Entry to Opening Balance Equity and/or Retained Earnings and/or Capital Stock as classified",
+      "method_b": "Period Closing Voucher after historical P&L, then opening equity if a residual remains"
+    },
+    {
+      "id": "foreign_currency",
+      "label": "Foreign-currency balances and translation / revaluation inputs",
+      "placeholder": "[FX_BALANCE_PLACEHOLDER]",
+      "owner": "accountant",
+      "source_evidence": "[EVIDENCE_REF_FX_RATES]",
+      "method_a": "Opening Entry in account currency + accountant rate; residual to Exchange Gain/Loss if required",
+      "method_b": "Historical multi-currency vouchers at transaction rates, then cutover revaluation if required"
+    }
+  ],
+  "synthetic_reconciliation_pairs": [
+    {
+      "unit": "SYNTHETIC_UNIT_BANK",
+      "debit": "cash_bank",
+      "credit": "funding_balance",
+      "note": "Placeholder only. Proves bank opening must be funded by a classified source, not silent equity."
+    },
+    {
+      "unit": "SYNTHETIC_UNIT_AR",
+      "debit": "receivables_payables",
+      "credit": "equity_retained",
+      "note": "Placeholder only. Outstanding AR at cutover must have a balancing credit."
+    },
+    {
+      "unit": "SYNTHETIC_UNIT_AP",
+      "debit": "equity_retained",
+      "credit": "receivables_payables",
+      "note": "Placeholder only. Outstanding AP at cutover must have a balancing debit."
+    },
+    {
+      "unit": "SYNTHETIC_UNIT_PRE_REVENUE",
+      "debit": "pre_revenue_expenses",
+      "credit": "funding_balance",
+      "note": "Placeholder only. Pre-revenue costs and the loan/current-account that funded them must stay paired."
+    },
+    {
+      "unit": "SYNTHETIC_UNIT_ASSET",
+      "debit": "fixed_assets",
+      "credit": "equity_retained",
+      "note": "Placeholder only. Gross asset opening must balance; accumulated depreciation is a contra."
+    },
+    {
+      "unit": "SYNTHETIC_UNIT_TAX",
+      "debit": "equity_retained",
+      "credit": "tax_payroll",
+      "note": "Placeholder only. Tax/payroll openings are omitted unless the accountant approves them."
+    },
+    {
+      "unit": "SYNTHETIC_UNIT_FX",
+      "debit": "foreign_currency",
+      "credit": "equity_retained",
+      "note": "Placeholder only. FX openings must name rate source and translation treatment."
+    }
+  ],
+  "accountant_decisions": [
+    "funding_account_classification",
+    "cutover_date",
+    "historical_detail_level",
+    "opening_balance_totals",
+    "retained_earnings_equity_treatment",
+    "fx_treatment",
+    "fixed_asset_opening_values",
+    "tax_payroll_opening_liabilities"
+  ],
+  "forbidden_actions": [
+    "create_journal_entry",
+    "submit_journal_entry",
+    "create_opening_invoice",
+    "submit_sales_invoice",
+    "submit_purchase_invoice",
+    "create_payment_entry",
+    "post_gl_entry",
+    "run_data_import",
+    "mutate_chart_of_accounts",
+    "mutate_tax_template",
+    "create_bank_transaction",
+    "period_close",
+    "record_real_financial_amounts"
+  ]
+}

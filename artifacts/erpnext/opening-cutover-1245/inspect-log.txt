@@ -1,0 +1,129 @@
+ERPNext opening/cutover inspect (read-only) #1245
+mutation: forbidden (GET-only)
+journal_entry_create: forbidden
+opening_invoice_create: forbidden
+gl_posting: forbidden
+data_import: forbidden
+coa_mutation: forbidden
+ERPNEXT_BASE_URL: present
+ERPNEXT_API_KEY: present
+ERPNEXT_API_SECRET: present
+MASTER_ADMIN_KEY: absent (incidental presence only; #899 not reopened)
+erpnext_host_family: vendor_hosted_frappe_family
+ERPNEXT_BASE_URL_value: not_printed
+auth_uses_master_admin_key: no
+runtime_bridge_ssh: no
+runtime_bridge_infisical: no
+amounts_printed: no
+bank_account_numbers_printed: no
+authenticated_user: integrations@corpflowai.com
+http_auth_status: 200
+identity_match_expected: yes
+versions_http: 200
+app frappe version=16.32.0
+app erpnext version=16.33.0
+company_get_http: 200
+company_name: CorpFlowAI LTD
+company_abbr: CFAI
+company_currency: MUR
+company_country: Mauritius
+company_chart_of_accounts: Standard
+company_coa_source: Standard Template
+default_receivable_account: Debtors - CFAI
+default_payable_account: Creditors - CFAI
+default_income_account: Sales - CFAI
+default_expense_account: Cost of Goods Sold - CFAI
+default_cash_account: Cash - CFAI
+default_bank_account: null
+cost_center: Main - CFAI
+default_letter_head: Company Letterhead - Grey
+accumulated_depreciation_account: Accumulated Depreciation - CFAI
+depreciation_expense_account: Depreciation - CFAI
+exchange_gain_loss_account: Exchange Gain/Loss - CFAI
+fiscal_year_http: 200
+fiscal_year name=2026-2027 start=2026-06-01 end=2027-05-31 disabled=0
+account_http: 200
+account_total: 96
+account_groups: 27
+account_children: 69
+account_by_root_type: Asset=30,Equity=6,Expense=33,Income=7,Liability=20
+account_present name=Temporary Opening - CFAI type=Temporary root=Asset group=0 ccy=MUR
+account_present name=Opening Balance Equity - CFAI type=Equity root=Equity group=0 ccy=MUR
+account_present name=Retained Earnings - CFAI type=Equity root=Equity group=0 ccy=MUR
+account_present name=Capital Stock - CFAI type=Equity root=Equity group=0 ccy=MUR
+account_present name=Unsecured Loans - CFAI type=none root=Liability group=0 ccy=MUR
+account_present name=Secured Loans - CFAI type=none root=Liability group=0 ccy=MUR
+account_present name=Bank Overdraft Account - CFAI type=none root=Liability group=0 ccy=MUR
+account_present name=Debtors - CFAI type=Receivable root=Asset group=0 ccy=MUR
+account_present name=Debtors USD - CFAI type=Receivable root=Asset group=0 ccy=USD
+account_present name=Creditors - CFAI type=Payable root=Liability group=0 ccy=MUR
+account_present name=Cash - CFAI type=Cash root=Asset group=0 ccy=MUR
+account_present name=VAT - CFAI type=Tax root=Liability group=0 ccy=none
+account_present name=Payroll Payable - CFAI type=none root=Liability group=0 ccy=MUR
+account_present name=Accumulated Depreciation - CFAI type=Accumulated Depreciation root=Asset group=0 ccy=MUR
+bank_gl_children_under_Bank_Accounts: 0
+bank_gl_child_names: none
+cost_center_http: 200
+cost_center name=CorpFlowAI LTD - CFAI group=1
+cost_center name=Main - CFAI group=0
+accounting_onboarding_http: 200
+accounting_onboarding_is_complete: 0
+accounting_onboarding_step_count: 6
+accounting_onboarding_steps: Chart of Accounts,Setup Sales taxes,Create Sales Invoice,Create Payment Entry,View Balance Sheet,Review Accounts Settings
+onboarding_step_http: 200
+onboarding_step name=Chart of Accounts complete=0 skipped=0
+onboarding_step name=Setup Sales taxes complete=0 skipped=0
+onboarding_step name=Create Sales Invoice complete=0 skipped=0
+onboarding_step name=Create Payment Entry complete=0 skipped=0
+onboarding_step name=View Balance Sheet complete=0 skipped=0
+onboarding_step name=Review Accounts Settings complete=0 skipped=0
+accounting_onboarding_complete_count: 0/6
+doctype_probe Journal_Entry: HTTP 200 listed=0
+doctype_probe Opening_Invoice_Creation_Tool: HTTP 500 listed=0
+doctype_probe Period_Closing_Voucher: HTTP 200 listed=0
+doctype_probe Accounting_Period: HTTP 200 listed=0
+doctype_probe Account_Closing_Balance: HTTP 200 listed=0
+doctype_probe Bank_Account: HTTP 200 listed=0
+doctype_probe Asset: HTTP 200 listed=0
+doctype_probe Asset_Category: HTTP 200 listed=0
+doctype_probe Currency_Exchange: HTTP 200 listed=2
+doctype_probe Data_Import: HTTP 403 listed=0
+doctype_probe Payment_Entry: HTTP 200 listed=0
+doctype_probe Sales_Invoice: HTTP 200 listed=2
+doctype_probe Purchase_Invoice: HTTP 200 listed=0
+doctype_probe GL_Entry: HTTP 200 listed=0
+doctype_probe Chart_of_Accounts_Importer: HTTP 500 listed=0
+journal_entry_http: 200
+journal_entry_listed: 0
+journal_entry_opening_entry_listed: 0
+sales_invoice_http: 200
+sales_invoice_listed: 2
+sales_invoice_is_opening_yes: 0
+sales_invoice_submitted: 0
+sales_invoice_names: ACC-SINV-2026-00001,ACC-SINV-2026-00002
+purchase_invoice_http: 200
+purchase_invoice_listed: 0
+purchase_invoice_is_opening_yes: 0
+gl_entry_http: 200
+gl_entry_listed: 0
+bank_account_http: 200
+bank_account_listed: 0
+asset_http: 200
+asset_listed: 0
+period_closing_http: 200
+period_closing_listed: 0
+accounting_period_http: 200
+accounting_period_listed: 0
+currency_exchange_http: 200
+currency_exchange_pairs: MUR-USD,USD-MUR
+currency_exchange_rates: not_printed
+sales_tax_template_http: 200
+sales_tax_templates: Mauritius Tax - CFAI
+mode_of_payment_http: 200
+modes_of_payment: Bank Draft,Cash,Cheque,Credit Card,Wire Transfer
+posting_attempted: no
+import_attempted: no
+coa_mutated: no
+secret_values_printed: no
+ERPNext access: PASS
+inspect_verdict: OPENING_CUTOVER_METADATA_READ_NO_POSTING
