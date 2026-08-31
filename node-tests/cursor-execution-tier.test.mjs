@@ -7,7 +7,10 @@ import {
   resolveCursorExecutionTier,
 } from '../lib/server/cursor-execution-tier.js';
 import { buildFactoryCloudAgentsExecutionEnvelope } from '../lib/server/factory-cloud-agents-executor.js';
-import { createCursorCloudAgent } from '../lib/server/cursor-cloud-agent-client.js';
+import {
+  buildCursorAgentCreatePayload,
+  createCursorCloudAgent,
+} from '../lib/server/cursor-cloud-agent-client.js';
 
 const ISSUE = 1249;
 const REPO = 'antonvdberg-bit/corpflow-ai-command-center';
@@ -27,6 +30,12 @@ describe('Cursor execution tier policy (#1249)', () => {
     const resolved = resolveCursorExecutionTier();
     assert.equal(resolved.tier, 'low');
     assert.deepEqual(resolved.model, CURSOR_EXECUTION_TIER_MODELS.low);
+    assert.deepEqual(resolved.model, { id: 'gpt-5.6-luna', params: [] });
+  });
+
+  it('uses the documented economical LOW model without Fast pricing', () => {
+    assert.equal(CURSOR_EXECUTION_TIER_MODELS.low.id, 'gpt-5.6-luna');
+    assert.deepEqual(CURSOR_EXECUTION_TIER_MODELS.low.params, []);
   });
 
   it('fails closed for an unknown tier instead of using a configured default model', () => {
@@ -42,7 +51,7 @@ describe('Cursor execution tier policy (#1249)', () => {
       /CURSOR_EXECUTION_TIER_MEDIUM_JUSTIFICATION_REQUIRED/,
     );
     const comments = [{
-      author: 'github-actions[bot]',
+      author: 'github-actions',
       body: formatCursorExecutionTierEvidence({
         source_issue: ISSUE,
         tier: 'medium',
@@ -86,10 +95,29 @@ describe('Cursor execution tier policy (#1249)', () => {
     assert.equal(Array.isArray(payload.model), false);
   });
 
+  it('does not accept a caller-supplied model override', () => {
+    const payload = buildCursorAgentCreatePayload(
+      { objectRef: `issue:${ISSUE}`, executorPrompt: 'Bounded control repair' },
+      { model: { id: 'attacker-selected-model', params: [] } },
+    );
+    assert.deepEqual(payload.model, CURSOR_EXECUTION_TIER_MODELS.low);
+  });
+
   it('refuses an API create request that lacks an explicit model', async () => {
     await assert.rejects(
       () => createCursorCloudAgent('test-key', { prompt: { text: 'test' } }),
-      /requires one explicit model selection/,
+      /requires one policy-derived explicit model selection/,
+    );
+  });
+
+  it('rejects an arbitrary caller-created model payload', async () => {
+    await assert.rejects(
+      () =>
+        createCursorCloudAgent('test-key', {
+          prompt: { text: 'test' },
+          model: { id: 'not-an-approved-model', params: [] },
+        }),
+      /requires one policy-derived explicit model selection/,
     );
   });
 });

@@ -108,11 +108,11 @@ Every Cloud Agents API create payload contains exactly one explicit model select
 
 | Tier | Model ID | Model parameter | Gate |
 |---|---|---|---|
-| `low` | `gpt-5.4` | `reasoning=low` | The only default. |
-| `medium` | `gpt-5.4` | `reasoning=medium` | Requires a durable `corpflow.cursor_execution_tier.v1` issue-comment marker from Anton or the controller, with a non-empty controller justification. |
-| `high` | `gpt-5.4` | `reasoning=high` | Requires the same durable justification and explicit `authorization: "approved"` from Anton or the controller. Missing or malformed evidence blocks agent creation. |
+| `low` | `gpt-5.6-luna` | None (`params: []`; Fast is not allowed) | The only default and the lowest-cost suitable GPT-5.6 Cursor model for routine factory work. |
+| `medium` | `gpt-5.6-terra-medium` | None (`params: []`) | Stronger than LOW; requires a durable `corpflow.cursor_execution_tier.v1` issue-comment marker from Anton or the controller, with a non-empty controller justification. |
+| `high` | `cursor-grok-4.6-high-fast` | None (`params: []`) | Premium exception; requires the same durable justification and explicit `authorization: "approved"` from Anton or the controller. Missing or malformed evidence blocks agent creation. |
 
-Unknown tiers fail closed; the API must never inherit a user, team, or system-selected default model. A failed Cloud Agent create marks the source issue `dispatch:blocked` and removes `dispatch:cursor-ready`; Queue Reconcile must not regenerate it. The only active Cursor implementation lane is capped at one, and existing review/merge/deploy/verification inventory takes priority over any new generation.
+Unknown tiers fail closed; arbitrary caller model objects are ignored by payload builders and rejected by the create client. The API must never inherit a user, team, or system-selected default model. A failed Cloud Agent create marks the source issue `dispatch:blocked` and removes `dispatch:cursor-ready`; Queue Reconcile must not regenerate it. The only active Cursor implementation lane is capped at one, including Temporal-supervised wakes, and existing review/merge/deploy/verification inventory takes priority over any new generation.
 
 Research/documentation-only tasks may run separately only when they cannot conflict with implementation file areas.
 
