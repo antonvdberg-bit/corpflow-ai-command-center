@@ -143,11 +143,17 @@ describe('#1171 Action Queue / Prospect detail / Commercial continuity', { concu
     assert.equal(lrDetail.id, LR_ID);
     assert.equal(lrDetail.product, AI_LEAD_RESCUE_PRODUCT);
     assert.equal(lrDetail.consent_contact, true);
+    assert.equal(lrDetail.owner, null);
+    assert.ok(lrDetail.exception_signals.includes('missing_owner'));
+    assert.equal(lrDetail.current_blocker, 'Missing owner');
     assert.equal(lrDetail.commercial_clearance.commercially_cleared, false);
     assert.ok(lrDetail.commercial_clearance.blockers.includes('MISSING_PROPOSAL'));
     assert.equal(wrDetail.id, WR_ID);
     assert.equal(wrDetail.product, RAPID_DELIVERY_PRODUCT);
     assert.equal(wrDetail.consent_contact, true);
+    assert.equal(wrDetail.owner, null);
+    assert.ok(wrDetail.exception_signals.includes('missing_owner'));
+    assert.equal(wrDetail.current_blocker, 'Missing owner');
     assert.equal(wrDetail.commercial_clearance.commercially_cleared, false);
     assert.ok(wrDetail.commercial_clearance.blockers.includes('MISSING_PROPOSAL'));
     assert.equal(Object.prototype.hasOwnProperty.call(lrDetail, 'qualificationJson'), false);

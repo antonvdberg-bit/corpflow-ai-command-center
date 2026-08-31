@@ -238,6 +238,7 @@ async function main() {
     readyIssues,
     claimedIssues,
     trackedIssues,
+    wipLimits: { maxActiveCursorImplementationIssues: 1 },
     preferIssueNumbers,
     wakeReason: wakePlan.wakeReason,
     activationLane: wakePlan.wakeReason,
