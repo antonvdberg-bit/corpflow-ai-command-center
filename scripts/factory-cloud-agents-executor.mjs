@@ -8,6 +8,7 @@
  */
 import {
   addIssueLabelsApi,
+  removeIssueLabelApi,
 } from '../lib/server/cursor-issue-dispatch-lifecycle.js';
 import {
   acquireCursorIssueActivationClaim,
@@ -27,7 +28,11 @@ import {
   formatAiWorkRequestComment,
   formatAiWorkRequestStatusComment,
 } from '../lib/server/ai-work-request-lifecycle.js';
-import { createCursorCloudAgent } from '../lib/server/cursor-cloud-agent-client.js';
+import {
+  createCursorCloudAgent,
+  listCursorCloudAgentModels,
+  policyModelIsAvailable,
+} from '../lib/server/cursor-cloud-agent-client.js';
 import { formatCursorOriginMetadataComment } from '../lib/server/cursor-origin-metadata.js';
 import {
   buildFactoryCursorHandoffReceipt,
@@ -80,13 +85,29 @@ const post = (body) =>
   postGitHubIssueComment(sourceIssue, body, { token, repoFullName: repo });
 const comments = await listGitHubIssueComments({ token, repo, issueNumber: sourceIssue });
 const issue = await fetchGitHubIssue(sourceIssue, { token, repoFullName: repo });
-const envelope = buildFactoryCloudAgentsExecutionEnvelope({
-  sourceIssue,
-  handoffRunId,
-  repo,
-  issue,
-  comments,
-});
+let envelope;
+try {
+  envelope = buildFactoryCloudAgentsExecutionEnvelope({
+    sourceIssue,
+    handoffRunId,
+    repo,
+    issue,
+    comments,
+  });
+} catch (error) {
+  const blocker = redactCloudAgentsFailure(error);
+  await addIssueLabelsApi(token, repo, sourceIssue, ['dispatch:blocked']);
+  await removeIssueLabelApi(token, repo, sourceIssue, 'dispatch:cursor-ready');
+  await post(
+    formatCloudAgentsExecutorEvidence({
+      source_issue: sourceIssue,
+      handoff_run_id: handoffRunId,
+      status: 'BLOCKED',
+      blocker,
+    }),
+  );
+  throw error;
+}
 
 if (envelope.request_was_created) {
   await post(formatAiWorkRequestComment(envelope.request));
@@ -118,6 +139,12 @@ let apiResult;
 let validated;
 try {
   if (!apiKey) throw new Error('CURSOR_API_KEY missing — Cloud Agents executor disabled (fail closed)');
+  const modelCatalog = await listCursorCloudAgentModels(apiKey);
+  if (!policyModelIsAvailable(modelCatalog, envelope.create_payload.model)) {
+    throw new Error(
+      `CURSOR_EXECUTION_TIER_MODEL_UNAVAILABLE: ${envelope.create_payload.model.id}`,
+    );
+  }
   apiResult = await createCursorCloudAgent(apiKey, envelope.create_payload);
   validated = validateCloudAgentCreateResponse(apiResult);
   if (!validated.ok) throw new Error(validated.reason);
@@ -130,6 +157,10 @@ try {
     claim: claimResult.claim,
     postComment: (_issueNumber, body) => post(body),
   });
+  // A failed paid run is a review stop, not a candidate for automatic
+  // regeneration by Queue Reconcile or an implicit retry.
+  await addIssueLabelsApi(token, repo, sourceIssue, ['dispatch:blocked']);
+  await removeIssueLabelApi(token, repo, sourceIssue, 'dispatch:cursor-ready');
   await post(
     formatFactoryCursorHandoffReceiptComment(
       buildFactoryCursorHandoffReceipt({
