@@ -155,6 +155,7 @@ export default function CommercialSummary({
                         <div className="cf-app-muted">{String(row.payment_evidence_ref || 'no evidence ref')}</div>
                       </td>
                       <td>
+                        <div className="cf-app-muted">Customer {String(erp.customer || '—')}</div>
                         <div className="cf-app-muted">Quotation {String(erp.quotation || '—')}</div>
                         {row.quotation_evidence_path ? (
                           <div>

@@ -59,7 +59,7 @@
       "idempotency": "Search Customer by normalized customer_name; Contact by email. Disable suffix duplicates (… - 1). One Customer per paying legal entity.",
       "conflict_rule": "ERPNext Customer is the commercial master (#880). CorpFlowAI must not grow a second billing identity.",
       "retry_failure": "Search-before-create. On conflict, reuse the existing Customer. Do not auto-merge legal names. Failure = no create; operator reviews.",
-      "audit_evidence": "#880 CF880 synthetic Customers; #920 CF920 Synthetic Website Project Ltd. Real Prestige Procurement Customer is still forbidden until Anton approves.",
+      "audit_evidence": "#880 CF880 synthetic Customers; #920 CF920 Synthetic Website Project Ltd; #1009/#1012 CF1009 bridge; #1018/#1021 CF1018 Customer/Contact/Address; #1206 GET-only quotation/delivery acceptance on CF1018 (duplicate count 1). Real Prestige Procurement Customer is still forbidden until Anton approves.",
       "sync_mode": "queued_manual",
       "evidence": "#880 Client Master READY; #920 foundation"
     },
