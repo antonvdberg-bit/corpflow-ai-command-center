@@ -205,7 +205,9 @@ export default function ProspectWorkbench({
                         {productLabel}
                         <div className="cf-app-muted">{String(row.source || row.product_service_path || '')}</div>
                       </td>
-                      <td>{String(row.owner || '—')}</td>
+                      <td data-testid={`workbench-owner-${String(row.id || '')}`}>
+                        {String(row.owner || 'Unassigned')}
+                      </td>
                       <td>
                         {String(row.canonical_stage || '—')}
                         <div className="cf-app-muted">
