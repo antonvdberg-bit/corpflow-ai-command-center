@@ -245,3 +245,63 @@ Retention: do not delete a decision or evidence row merely because it was supers
 | ERPNext Project / Task | Reused synthetic Quotation `SAL-QTN-2026-00005` (not programme Project `PROJ-0002`) |
 | Verification evidence | `node --test node-tests/erpnext-selling-quote-to-cash.test.mjs` plus reused apply-log |
 | Supersedes / superseded-by | Current-main replacement for stale PR #1128 / #1125. Does **not** supersede Version 2, #918, WP2, #882, or #1162. |
+
+---
+
+## ERP-D-2026-08-30-1 — #1245 opening / cutover preparation (proposed)
+
+| Field | Record |
+|-------|--------|
+| Decision ID | `ERP-D-2026-08-30-1` |
+| Date/time | 2026-08-30 |
+| Status | **Proposed** (this packet; Anton merge remains the Git approval). Does **not** approve opening posting, import, CoA mutation, or method A vs B. |
+| Question / requirement | Prepare the opening-balance / cutover evidence pack so accountant-approved CoA and cutover instructions can be applied later without another discovery cycle. |
+| Executive intent / source | [#1245](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1245); parents #1054 / #1055 / #953; Version 2 §7 accountant authority |
+| Options considered | Wait for accountant CoA before any cutover prep; invent totals/method; prepare a placeholder template + two unchosen methods now |
+| Evidence reviewed | GET-only inspect 2026-08-30: frappe 16.32.0 / erpnext 16.33.0; Fiscal Year `2026-2027`; 96 Account rows; Accounting Onboarding 0/6; 0 Journal Entry; 0 GL Entry; Temporary Opening present; no bank GL child |
+| Decision | Publish [`ERPNEXT_OPENING_BALANCE_CUTOVER_V1.md`](../../erpnext/ERPNEXT_OPENING_BALANCE_CUTOVER_V1.md). Keep Method A (summary openings) and Method B (historical detail) unchosen. Preserve pre-revenue cost + funding pairing. Placeholders only. |
+| Rationale | Version 2 forbids implementing cutover until accountant guidance is recorded. The factory can still finish discovery so the later posting packet does not restart. |
+| Risks / tradeoffs | Standard Template CoA is still not accountant-approved. Hosted versions moved since WP7; this packet does not reopen #1010. |
+| Approver | Pending Anton merge of the #1245 PR. Accountant still owns every accounting-bearing choice. |
+| GitHub implementation | `config/erpnext-opening-balance-cutover.v1.json` + `lib/erpnext/opening-balance-cutover.js` + GET-only inspect script |
+| ERPNext Project / Task | Programme Phase 7 `TASK-2026-00033` (no live Task mutation in this packet) |
+| Verification evidence | `node --test node-tests/erpnext-opening-balance-cutover.test.mjs` plus `artifacts/erpnext/opening-cutover-1245/inspect-log.txt` |
+| Supersedes / superseded-by | Does **not** supersede Version 2, #1055, or #918. Does **not** close Phase 7. |
+## ERP-D-2026-08-27-3 — #1220 current-main landing of #1139 bank / reconciliation (proposed)
+
+| Field | Record |
+|-------|--------|
+| Decision ID | `ERP-D-2026-08-27-3` |
+| Date/time | 2026-08-27 |
+| Status | **Proposed** (this packet; Anton merge remains the Git approval). Does **not** approve Bank Account configuration, Payment Entry submit, bank-feed connection, or opening balances. |
+| Question / requirement | Land the already-proven #1139 bank/reconciliation operating model onto exact current `main` as current-main operational acceptance. |
+| Executive intent / source | [#1220](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1220); source proof [#1139](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1139) / closed [PR #1141](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1141) |
+| Options considered | Merge stale #1141 or closed stale #1221 / #1229 / #1234; redesign banking; land the proven helper/docs/evidence onto current `main` after CURRENT-MAIN REPAIR and close #1141/#1221/#1229/#1234 |
+| Evidence reviewed | #1139 GET-only hosted-test as `integrations@corpflowai.com`; #1055 template CoA / 0 Bank Account rows; #551/#714 rail; #1166 invoice-does-not-approve gate; Phase C synthetic recon arithmetic; accountant pack §8; generation-4 re-probe from `eb31cfd3d3c74a3f8a17b81ae4d6cccf54c07751` |
+| Decision | Land [`ERPNEXT_BANK_RECONCILIATION_READINESS_V1.md`](../../erpnext/ERPNEXT_BANK_RECONCILIATION_READINESS_V1.md) on current `main`. Manual/import-first. Bank-feed **NOT REQUIRED**. Payment evidence never authorizes Payment Entry. Invoice existence never grants Proceed Approved. Synthetic offline proof only. Close #1141, #1221, #1229, and #1234 without merge. |
+| Rationale | The operating model is already READY for accountant configuration. Current `main` needs the same packet without a second finance system or a live bank mutation. |
+| Risks / tradeoffs | Operators might treat `financially_approved` as cash clearance. Mitigated by the segregation rule and runbook. Hosted-test Bank Account rows remain 0 until #1055. |
+| Approver | Pending Anton merge of the #1220 PR |
+| GitHub implementation | `lib/erpnext/bank-reconciliation-readiness.js` + GET-only audit script |
+| ERPNext Project / Task | Programme Project `PROJ-0002` / Phase 5 `TASK-2026-00031` |
+| Verification evidence | `node --test node-tests/erpnext-bank-reconciliation-readiness.test.mjs` plus GET-only probe artifact |
+| Supersedes / superseded-by | Current-main replacement for stale PR #1141 / #1139 and closed stale PRs #1221 / #1229 / #1234. Does **not** supersede Version 2, #918 `payment_evidence` blocked bridge, #1055, or #1166. |
+## ERP-D-2026-08-28-1 — #1206 Customer/Contact master quotation/delivery acceptance (proposed)
+
+| Field | Record |
+|-------|--------|
+| Decision ID | `ERP-D-2026-08-28-1` |
+| Date/time | 2026-08-28 |
+| Status | **Proposed** (this packet; Anton merge remains the Git approval). Does **not** approve ERPNext write, live Postgres lead PATCH, real Prestige Customer, send, or `client_production`. |
+| Question / requirement | Prove the existing standard ERPNext Customer / Contact / Address foundation is usable for quotation and delivery without a second CorpFlowAI customer ledger, re-landed on exact current `main`. |
+| Executive intent / source | [#1206](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1206) current-main requeue; closed evidence [PR #1211](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1211); Client Master [#880](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/880); WP1 [#1012](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1012); WP2 [#1021](https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1021); Quote-to-Cash [#1166](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1166); Commercial quotation [#1162](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1162); Operating Workspace continuity [#1228](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1228); buyer naming [#1230](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1230); matrix [#918](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/918) |
+| Options considered | Revive closed PR #1211 branch; invent Company Master name joins; GET the recorded synthetic identity and project the existing pointer on current `main` |
+| Evidence reviewed | Fresh GET as `integrations@corpflowai.com` from current main `eb31cfd3d3c74a3f8a17b81ae4d6cccf54c07751`: CF1018 Customer/Contact/Address HTTP 200, quotation party `SAL-QTN-2026-00005`, enabled duplicate count 1; supporting CF880 / CF1009 GETs HTTP 200 |
+| Decision | Land [`ERPNEXT_CUSTOMER_MASTER_QUOTATION_DELIVERY_ACCEPTANCE_V1.md`](../../erpnext/ERPNEXT_CUSTOMER_MASTER_QUOTATION_DELIVERY_ACCEPTANCE_V1.md) on current `main`. GET-only. Commercial Workspace reads the recorded `qualification_json.erpnext.customer` pointer. Closed #1211 is evidence only. |
+| Rationale | Quotation and delivery need one Customer name. Dual identity is the highest-control failure. The records already exist. Current `main` moved after #1211 closed. |
+| Risks / tradeoffs | Live Postgres persist of the pointer is still a later authorized write. Company Master fixtures have no recorded ERPNext customer pointer; do not invent a name join. |
+| Approver | Pending Anton merge of the #1206 PR |
+| GitHub implementation | `lib/erpnext/customer-master-acceptance.js` + GET script + Commercial Workspace pointer |
+| ERPNext Project / Task | Reused synthetic Customer `CF1018 Synthetic Sales Lifecycle Ltd` (not programme Project `PROJ-0002`) |
+| Verification evidence | `node --test node-tests/erpnext-customer-master-acceptance.test.mjs node-tests/app-commercial-summary.test.mjs` plus live accept-log |
+| Supersedes / superseded-by | Current-main replacement for closed PR #1211. Does **not** supersede Version 2, #880, WP1, WP2, #918, #1162, #1166, #1228, or #1230. |

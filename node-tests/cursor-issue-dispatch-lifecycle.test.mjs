@@ -180,10 +180,11 @@ describe('cursor-issue-dispatch-lifecycle', () => {
     assert.equal(d654?.decision, 'discover_only');
     assert.equal(d654?.eligibleToClaim, false);
     assert.match(String(d654?.reason || ''), /sibling products/i);
-    assert.equal(d658?.decision, 'claim');
+    assert.equal(d658?.decision, 'discover_only');
     assert.equal(d658?.eligibleToClaim, true);
+    assert.match(String(d658?.reason || ''), /WIP cap reached/);
 
-    assert.deepEqual(plan.claimIssueNumbers, [653, 658]);
+    assert.deepEqual(plan.claimIssueNumbers, [653]);
     assert.deepEqual(plan.eligibleIssueNumbers, [653, 658]);
     assert.equal(plan.activationTargetIssue, 653);
   });
@@ -220,7 +221,7 @@ describe('cursor-issue-dispatch-lifecycle', () => {
       ],
     });
     assert.equal(plan.verifiedActiveCount, 0);
-    assert.equal(plan.availableSlots, 3);
+    assert.equal(plan.availableSlots, 1);
     assert.equal(plan.decisions[0].decision, 'claim');
     assert.ok((plan.reconcileActions || []).length >= 2);
   });

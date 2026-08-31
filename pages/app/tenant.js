@@ -9,6 +9,12 @@ import {
   isReturnFromChange,
   tenantChangeHandoffHref,
 } from '../../lib/app/tenant-journey.js';
+import {
+  TENANT_PROGRESS_LIST_ERROR_BODY,
+  TENANT_PROGRESS_LIST_ERROR_TITLE,
+  TENANT_PROGRESS_LOADING_TITLE,
+  tenantProgressPanelKind,
+} from '../../lib/app/tenant-workspace.js';
 
 /**
  * @param {import('next/router').NextRouter['query']} query
@@ -215,6 +221,12 @@ export default function AppTenantPage() {
   const changeHref = tenantChangeHandoffHref({
     tenantId: boundTenantId || REFERENCE_TENANT_ID,
   });
+  const progressPanelKind = tenantProgressPanelKind({
+    listReady,
+    requestCount: list.length,
+    error,
+    busy,
+  });
 
   if (!router.isReady || (initialLoad && busy && !authRequired && !accessDenied && !shell)) {
     return (
@@ -329,17 +341,51 @@ export default function AppTenantPage() {
         </p>
       ) : null}
 
-      {error ? <p className="cf-app-error" data-testid="app-error">{error}</p> : null}
+      {error && progressPanelKind !== 'error' ? (
+        <p className="cf-app-error" data-testid="app-error">
+          {error}
+        </p>
+      ) : null}
       {notice ? <p className="cf-app-ok" data-testid="app-notice">{notice}</p> : null}
 
-      {busy && !listReady ? (
-        <AppLoadState kind="loading" title="Loading Requests & Progress…" />
+      {progressPanelKind === 'loading' ? (
+        <AppLoadState kind="loading" title={TENANT_PROGRESS_LOADING_TITLE} />
+      ) : progressPanelKind === 'error' ? (
+        <>
+          <AppLoadState
+            kind="error"
+            title={TENANT_PROGRESS_LIST_ERROR_TITLE}
+            message={TENANT_PROGRESS_LIST_ERROR_BODY}
+            testId="app-tenant-list-error"
+          />
+          <p className="cf-app-muted" data-testid="app-tenant-list-error-code">
+            {error}
+          </p>
+          <div className="cf-app-actions" style={{ marginTop: 12 }}>
+            <button
+              type="button"
+              className="cf-app-btn"
+              data-primary="true"
+              data-testid="tenant-list-error-retry"
+              onClick={() => loadShellAndList()}
+            >
+              Retry
+            </button>
+            <a
+              className="cf-app-btn"
+              data-testid="tenant-list-error-open-change"
+              href={changeHref}
+            >
+              Open service &amp; change
+            </a>
+          </div>
+        </>
       ) : (
         <TenantRequestsProgress
           requests={list}
           request={request}
           busy={busy}
-          empty={listReady && list.length === 0}
+          empty={progressPanelKind === 'empty'}
           changeHref={changeHref}
           onSelectRequest={(id) => {
             setRequestId(id);

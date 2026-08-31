@@ -26,7 +26,7 @@ Do not disable Queue Reconcile, lifecycle, CI repair, or n8n.
 
 That is the entire activation. The gated 5-minute schedule then supervises real GitHub factory work and may `workflow_call` **CorpFlowAI Cursor Factory Handoff** when eligible work exists and WIP permits.
 
-While the variable is `active`, Cursor execution capacity is temporarily **5** with **3+2 isolation** (#1145): three ordinary production lanes stay reserved; Temporal-supervised wakes may use only the two extra lanes. Unsetting `CORPFLOW_TEMPORAL_PILOT` returns the ceiling to **3**. This activation packet still does **not** change any other secret or live variable beyond the existing `CORPFLOW_TEMPORAL_PILOT` contract.
+`CORPFLOW_TEMPORAL_PILOT=active` does not increase Cursor capacity: #1249 enforces one active Cursor implementation lane across every wake path. This activation packet still does **not** change any other secret or live variable beyond the existing `CORPFLOW_TEMPORAL_PILOT` contract.
 
 ## What this does not authorize
 

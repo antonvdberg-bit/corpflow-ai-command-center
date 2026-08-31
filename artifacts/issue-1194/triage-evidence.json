@@ -1,0 +1,112 @@
+{
+  "issue": 1194,
+  "current_main": "eb31cfd3d3c74a3f8a17b81ae4d6cccf54c07751",
+  "now": "2026-08-27T12:00:00.000Z",
+  "route_sequence": [
+    "buyer-enquiry fixture syn-1171-lr-enquiry / syn-1171-wr-enquiry",
+    "/app/queue?proof=1&filter=needs_action",
+    "/app/prospects/syn-1171-lr-enquiry?proof=1",
+    "/app/prospects/syn-1171-wr-enquiry?proof=1"
+  ],
+  "queue": {
+    "status": 200,
+    "path": "/app/queue",
+    "filter": "needs_action",
+    "data_source": "fixture",
+    "external_send": false,
+    "launch": {
+      "lead_rescue": {
+        "id": "syn-1171-lr-enquiry",
+        "product": "ai-lead-rescue",
+        "source": "/contact?offer=ai-lead-rescue",
+        "consent_contact": true,
+        "owner": null,
+        "urgency": "this-month",
+        "next_action": "Review and reply within 2 business hours.",
+        "next_action_due": null,
+        "last_meaningful_activity_at": "2026-08-26T09:00:00.000Z",
+        "canonical_stage": "new",
+        "exception_signals": [
+          "missing_owner",
+          "new_unreviewed"
+        ],
+        "shared_detail_path": "/app/prospects/syn-1171-lr-enquiry"
+      },
+      "website_rescue": {
+        "id": "syn-1171-wr-enquiry",
+        "product": "corpflow-rapid-delivery",
+        "source": "/website-rescue",
+        "consent_contact": true,
+        "owner": null,
+        "urgency": "asap",
+        "next_action": "Review Website Rescue fit; share /website-rescue and /demo/website-rescue if useful; book discovery before quoting.",
+        "next_action_due": null,
+        "last_meaningful_activity_at": "2026-08-26T09:15:00.000Z",
+        "canonical_stage": "new",
+        "exception_signals": [
+          "missing_owner",
+          "new_unreviewed",
+          "high_urgency"
+        ],
+        "shared_detail_path": "/app/prospects/syn-1171-wr-enquiry"
+      }
+    }
+  },
+  "detail": {
+    "lead_rescue": {
+      "status": 200,
+      "id": "syn-1171-lr-enquiry",
+      "product": "ai-lead-rescue",
+      "source": "/contact?offer=ai-lead-rescue",
+      "consent_contact": true,
+      "owner": null,
+      "urgency": "this-month",
+      "next_action": "Review and reply within 2 business hours.",
+      "next_action_due": null,
+      "last_meaningful_activity_at": "2026-08-26T09:00:00.000Z",
+      "canonical_stage": "new",
+      "exception_signals": [
+        "missing_owner",
+        "new_unreviewed"
+      ],
+      "shared_detail_path": "/app/prospects/syn-1171-lr-enquiry",
+      "current_blocker": "Missing owner",
+      "external_send": false
+    },
+    "website_rescue": {
+      "status": 200,
+      "id": "syn-1171-wr-enquiry",
+      "product": "corpflow-rapid-delivery",
+      "source": "/website-rescue",
+      "consent_contact": true,
+      "owner": null,
+      "urgency": "asap",
+      "next_action": "Review Website Rescue fit; share /website-rescue and /demo/website-rescue if useful; book discovery before quoting.",
+      "next_action_due": null,
+      "last_meaningful_activity_at": "2026-08-26T09:15:00.000Z",
+      "canonical_stage": "new",
+      "exception_signals": [
+        "missing_owner",
+        "new_unreviewed",
+        "high_urgency"
+      ],
+      "shared_detail_path": "/app/prospects/syn-1171-wr-enquiry",
+      "current_blocker": "Missing owner",
+      "external_send": false
+    }
+  },
+  "tenant_boundary": {
+    "tenant_session_queue": {
+      "status": 403,
+      "error": "core_access_denied"
+    },
+    "tenant_proof_queue": {
+      "status": 403,
+      "error": "core_access_denied"
+    },
+    "tenant_shell_menu_ids": [
+      "requests_progress",
+      "service_change"
+    ]
+  }
+}

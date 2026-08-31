@@ -306,9 +306,8 @@ export default function WebsiteRescueDemo() {
           <div style={{ ...styles.panel, marginTop: 28 }} id="demo-enquiry">
             <div style={styles.label}>Enquiry capture · discovery intake</div>
             <p style={styles.muted}>
-              Use this form to practice the intake path. It routes as a Website Rescue discovery on the existing
-              landing-rescue SKU (same operator desk as the public offer). Do not enter real private client credentials
-              or personal data.
+              Use this form to practice the intake path. It routes as a Website Rescue discovery on the same public
+              offer. Do not enter real private client credentials or personal data.
             </p>
             <div style={{ marginTop: 16 }}>
               <DiscoveryIntakeForm
@@ -323,9 +322,9 @@ export default function WebsiteRescueDemo() {
           <div style={{ ...styles.panel, marginTop: 22 }}>
             <div style={styles.label}>Operator close</div>
             <p style={styles.muted}>
-              Recommended path for most first clients: <strong style={{ color: '#eef6ff' }}>T1 Landing Rescue</strong>{' '}
+              Recommended path for most first clients: <strong style={{ color: '#eef6ff' }}>Website Rescue</strong>{' '}
               (from MUR 45,000) → 50% deposit → assets → 24–72h preview → written approval → production. Brochure or
-              rebuild scopes are operator-quoted extensions.
+              rebuild scopes are quoted separately.
             </p>
             <div style={styles.ctaRow}>
               <Link href="/website-rescue#discovery" style={cfBtnPrimary}>

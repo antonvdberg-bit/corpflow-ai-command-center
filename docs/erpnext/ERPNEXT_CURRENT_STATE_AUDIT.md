@@ -1,6 +1,6 @@
 # ERPNext current state audit — CorpFlowAI commercial launch
 
-**Status:** Docs-only audit · **Updated:** 2026-08-14 (#920 Prestige foundation)
+**Status:** Docs-only audit · **Updated:** 2026-08-30 (#1245 opening/cutover prep; #920 Prestige foundation unchanged)
 **Owner:** Anton  
 **Anchor:** `<!-- ERPNEXT_CURRENT_STATE_AUDIT_V1 -->`
 
@@ -131,6 +131,7 @@ Classification key:
 | ---------- | ----- | ---------------- |
 | Accountant Read-Only role | **LIVE AND VERIFIED** | Phase C Option B — 11 tests GREEN |
 | Accountant CoA review | **NEEDS_ANTON** | HB-2; NA-007 |
+| Opening balances / cutover prep | **DOCUMENTED ONLY** | #1245 pack ready for accountant decision. Canonical: `ERPNEXT_OPENING_BALANCE_CUTOVER_V1.md`. No posting |
 | VAT decision | **NEEDS_ANTON** | HB-3 |
 | Phase D authorisation | **NEEDS_ANTON** | HB-1; NA-011 |
 | W1–W5 footer on PDF | **MISSING** | Manual template only until M-Print |

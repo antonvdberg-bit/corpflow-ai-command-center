@@ -220,6 +220,7 @@ async function main() {
     readyIssues,
     claimedIssues,
     trackedIssues,
+    wipLimits: { maxActiveCursorImplementationIssues: 1 },
     preferIssueNumbers: [],
     wakeReason: 'scheduled_reconciliation',
     activationLane: 'ordinary',

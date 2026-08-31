@@ -71,6 +71,8 @@ describe('Commercial summary #1004', { concurrency: false }, () => {
     assert.equal(ada.prospect_id, 'syn-772-lr-ada');
     assert.equal(ada.company_master_id, 'cmp_ada_spa_synthetic');
     assert.equal(ada.erpnext.quotation, 'SAL-QTN-2026-00001');
+    assert.equal(ada.erpnext.customer, 'CF880 Synthetic Lead Rescue Ltd');
+    assert.equal(ada.related_refs.customer, 'CF880 Synthetic Lead Rescue Ltd');
     assert.equal(ada.quotation_evidence_path, '/app/commercial/syn-772-lr-ada');
     assert.equal(ada.erpnext.sales_invoice, 'ACC-SINV-2026-00002');
     assert.equal(ada.erpnext.mutated, false);
@@ -85,6 +87,7 @@ describe('Commercial summary #1004', { concurrency: false }, () => {
     assert.equal(bea.commercial_state, 'quote_not_prepared');
     assert.equal(bea.prospect_id, 'syn-772-rd-bea');
     assert.equal(bea.erpnext.quotation, null);
+    assert.equal(bea.erpnext.customer, null);
     assert.equal(bea.quotation_evidence_path, null);
     assert.ok(bea.blockers.includes('MISSING_PROPOSAL') || bea.blockers.includes('MISSING_PRICE'));
 
@@ -94,6 +97,7 @@ describe('Commercial summary #1004', { concurrency: false }, () => {
     assert.equal(wren.commercial_state, 'financially_approved');
     assert.equal(wren.financially_approved, true);
     assert.equal(wren.erpnext.quotation, 'SAL-QTN-2026-00004');
+    assert.equal(wren.erpnext.customer, 'CF880 Synthetic Website Rescue Ltd');
     assert.equal(wren.financial_gate_blocking, false);
   });
 
@@ -156,6 +160,7 @@ describe('Commercial summary #1004', { concurrency: false }, () => {
       proposal: null,
     });
     assert.equal(row.erpnext.quotation, null);
+    assert.equal(row.erpnext.customer, null);
     assert.equal(row.erpnext.authoritative, false);
     assert.equal(row.related_refs.quotation, null);
   });
@@ -313,4 +318,5 @@ test('Commercial page is read-only and links to shared detail plus Clients ident
   assert.ok(ui.includes('/admin/company-master'));
   assert.ok(ui.includes('This does not take payment'));
   assert.ok(ui.includes('commercial-quotation-'));
+  assert.ok(ui.includes('Customer {String(erp.customer || \'—\')}'));
 });

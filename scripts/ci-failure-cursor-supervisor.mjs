@@ -503,10 +503,25 @@ async function runFailureMode(args, ctx) {
   let dispatchResult = { mode: 'dry_run', ok: true, prompt };
   if (!args.dryRun) {
     const apiKey = String(process.env.CURSOR_API_KEY || '').trim();
-    if (!apiKey) {
-      return { ok: false, error: 'CURSOR_API_KEY missing', packet };
-    }
     dispatchResult = await dispatchCiRepairToCursor({ apiKey, packet });
+    if (dispatchResult.reviewRequired) {
+      const nextState = recordRepairAttempt(repairState, packet);
+      writeJsonState(args.statePath, nextState);
+      await postPrComment(
+        token,
+        repo,
+        pr.number,
+        `CI REPAIR REVIEW REQUIRED\n\nFailed head SHA: ${packet.headSha}\nFingerprint: ${packet.failureFingerprint}\n\nCursor spend control does not create a follow-up or replacement agent after failure. Review the existing PR before any explicit new generation.`,
+      );
+      return {
+        ok: true,
+        skipped: true,
+        reason: 'cursor_spend_control_review_required',
+        packet,
+        failedHeadSha,
+        currentPrHeadSha,
+      };
+    }
     const nextState = recordRepairAttempt(repairState, packet, {
       followUpRunId: dispatchResult.runId,
       agentId: dispatchResult.agentId || packet.cursorAgentId,
