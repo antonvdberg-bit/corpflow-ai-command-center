@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
  * #1196 bounded repair for the existing synthetic MUR quotation.
+ * Canonical context: corpflow_test, source #1196, operating model 2026-08-13-v1.
  *
  * Default mode is read-only verification. --apply performs exactly one ERPNext
  * Quotation update: copy the existing approved Terms and Conditions master body
