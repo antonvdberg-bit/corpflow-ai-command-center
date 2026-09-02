@@ -3,11 +3,11 @@
  *
  * Selects exactly one eligible source issue using existing scan/WIP logic,
  * writes a durable handoff packet, optionally posts a source-issue comment,
- * and exits 0 only when a real handoff should wake Cursor Automation MODE B.
+ * and exits cleanly when the economic master gate intentionally parks remote execution.
  *
  * Exit codes:
- *   0 — handoff published (workflow success → Automation wake)
- *   1 — no handoff / suppressed / wake rejected (workflow failure → no wake)
+ *   0 — handoff published, or remote execution intentionally PARKED / LOCAL_ONLY
+ *   1 — unexpected no-handoff / suppressed / wake rejected condition
  *
  * Usage:
  *   node scripts/factory-cursor-handoff.mjs
@@ -140,7 +140,7 @@ async function main() {
   if (!economicGate.allowed && !args.dryRun) {
     const result = {
       schema: 'corpflow.factory_cursor_handoff.v1',
-      shouldSucceed: false,
+      shouldSucceed: true,
       has_handoff: 0,
       source_issue: null,
       reason: economicGate.reason,
@@ -154,12 +154,19 @@ async function main() {
       'has_handoff=0',
       'source_issue=',
       `reason=${economicGate.reason}`,
-      'should_succeed=0',
+      'should_succeed=1',
     ]);
-    console.error(
-      `Factory handoff denied by Cursor economic execution gate (${economicGate.mode}) — no remote Cursor wake allowed`,
+    const summaryPath = process.env.GITHUB_STEP_SUMMARY;
+    if (summaryPath) {
+      fs.appendFileSync(
+        summaryPath,
+        `# ${FACTORY_CURSOR_HANDOFF_WORKFLOW_NAME}\n\nRemote Cursor execution intentionally suppressed.\n\nMode: \`${economicGate.mode}\`\nReason: \`${economicGate.reason}\`\n`,
+      );
+    }
+    console.log(
+      `Factory handoff suppressed by Cursor economic execution gate (${economicGate.mode}) — no remote Cursor wake allowed`,
     );
-    process.exit(1);
+    return;
   }
 
   const wakePlan = resolveFactoryDispatcherRunPlan({
