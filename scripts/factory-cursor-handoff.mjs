@@ -3,11 +3,11 @@
  *
  * Selects exactly one eligible source issue using existing scan/WIP logic,
  * writes a durable handoff packet, optionally posts a source-issue comment,
- * and exits 0 only when a real handoff should wake Cursor Automation MODE B.
+ * and exits cleanly when the economic master gate intentionally parks remote execution.
  *
  * Exit codes:
- *   0 — handoff published (workflow success → Automation wake)
- *   1 — no handoff / suppressed / wake rejected (workflow failure → no wake)
+ *   0 — handoff published, or remote execution intentionally PARKED / LOCAL_ONLY
+ *   1 — unexpected no-handoff / suppressed / wake rejected condition
  *
  * Usage:
  *   node scripts/factory-cursor-handoff.mjs
@@ -44,6 +44,7 @@ import {
   resolveFactoryHandoffDecision,
 } from '../lib/server/factory-cursor-handoff.js';
 import { postGitHubIssueComment } from '../lib/server/cursor-ops-status.js';
+import { authorizeCursorRemoteExecutionFromGitHub } from '../lib/server/cursor-economic-execution-gate.js';
 
 const DEFAULT_REPO = 'antonvdberg-bit/corpflow-ai-command-center';
 const DEFAULT_OUT = 'factory-cursor-handoff.json';
@@ -130,6 +131,43 @@ async function main() {
   const token = String(process.env.GITHUB_TOKEN || process.env.GH_TOKEN || '').trim();
   const repo = String(process.env.GITHUB_REPOSITORY || process.env.GITHUB_REPO || DEFAULT_REPO).trim();
   const workflowRunUrl = buildWorkflowRunUrl();
+
+  const economicGate = await authorizeCursorRemoteExecutionFromGitHub({
+    token,
+    repo,
+    action: 'factory_handoff',
+  });
+  if (!economicGate.allowed && !args.dryRun) {
+    const result = {
+      schema: 'corpflow.factory_cursor_handoff.v1',
+      shouldSucceed: true,
+      has_handoff: 0,
+      source_issue: null,
+      reason: economicGate.reason,
+      suppressReason: `cursor_mode_${economicGate.mode.toLowerCase()}`,
+      cursor_mode: economicGate.mode,
+      dryRun: false,
+    };
+    const outPath = path.resolve(args.outPath);
+    fs.writeFileSync(outPath, `${JSON.stringify(result, null, 2)}\n`);
+    appendOutput([
+      'has_handoff=0',
+      'source_issue=',
+      `reason=${economicGate.reason}`,
+      'should_succeed=1',
+    ]);
+    const summaryPath = process.env.GITHUB_STEP_SUMMARY;
+    if (summaryPath) {
+      fs.appendFileSync(
+        summaryPath,
+        `# ${FACTORY_CURSOR_HANDOFF_WORKFLOW_NAME}\n\nRemote Cursor execution intentionally suppressed.\n\nMode: \`${economicGate.mode}\`\nReason: \`${economicGate.reason}\`\n`,
+      );
+    }
+    console.log(
+      `Factory handoff suppressed by Cursor economic execution gate (${economicGate.mode}) — no remote Cursor wake allowed`,
+    );
+    return;
+  }
 
   const wakePlan = resolveFactoryDispatcherRunPlan({
     eventName: process.env.EVENT_NAME || process.env.GITHUB_EVENT_NAME,
@@ -285,6 +323,7 @@ async function main() {
   /** @type {Record<string, unknown>} */
   const result = {
     ...decision,
+    cursor_mode: economicGate.mode,
     dryRun: args.dryRun,
     discovery: {
       readyCount: readyIssues.length,
@@ -366,6 +405,7 @@ async function main() {
         source_issue: decision.source_issue,
         reason: decision.reason,
         suppressReason: decision.suppressReason,
+        cursor_mode: economicGate.mode,
         availableSlots: decision.availableSlots,
         verifiedActiveCount: decision.verifiedActiveCount,
         outPath,
