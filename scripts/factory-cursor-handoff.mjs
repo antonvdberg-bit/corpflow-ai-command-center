@@ -44,6 +44,7 @@ import {
   resolveFactoryHandoffDecision,
 } from '../lib/server/factory-cursor-handoff.js';
 import { postGitHubIssueComment } from '../lib/server/cursor-ops-status.js';
+import { authorizeCursorRemoteExecutionFromGitHub } from '../lib/server/cursor-economic-execution-gate.js';
 
 const DEFAULT_REPO = 'antonvdberg-bit/corpflow-ai-command-center';
 const DEFAULT_OUT = 'factory-cursor-handoff.json';
@@ -130,6 +131,36 @@ async function main() {
   const token = String(process.env.GITHUB_TOKEN || process.env.GH_TOKEN || '').trim();
   const repo = String(process.env.GITHUB_REPOSITORY || process.env.GITHUB_REPO || DEFAULT_REPO).trim();
   const workflowRunUrl = buildWorkflowRunUrl();
+
+  const economicGate = await authorizeCursorRemoteExecutionFromGitHub({
+    token,
+    repo,
+    action: 'factory_handoff',
+  });
+  if (!economicGate.allowed && !args.dryRun) {
+    const result = {
+      schema: 'corpflow.factory_cursor_handoff.v1',
+      shouldSucceed: false,
+      has_handoff: 0,
+      source_issue: null,
+      reason: economicGate.reason,
+      suppressReason: `cursor_mode_${economicGate.mode.toLowerCase()}`,
+      cursor_mode: economicGate.mode,
+      dryRun: false,
+    };
+    const outPath = path.resolve(args.outPath);
+    fs.writeFileSync(outPath, `${JSON.stringify(result, null, 2)}\n`);
+    appendOutput([
+      'has_handoff=0',
+      'source_issue=',
+      `reason=${economicGate.reason}`,
+      'should_succeed=0',
+    ]);
+    console.error(
+      `Factory handoff denied by Cursor economic execution gate (${economicGate.mode}) — no remote Cursor wake allowed`,
+    );
+    process.exit(1);
+  }
 
   const wakePlan = resolveFactoryDispatcherRunPlan({
     eventName: process.env.EVENT_NAME || process.env.GITHUB_EVENT_NAME,
@@ -285,6 +316,7 @@ async function main() {
   /** @type {Record<string, unknown>} */
   const result = {
     ...decision,
+    cursor_mode: economicGate.mode,
     dryRun: args.dryRun,
     discovery: {
       readyCount: readyIssues.length,
@@ -366,6 +398,7 @@ async function main() {
         source_issue: decision.source_issue,
         reason: decision.reason,
         suppressReason: decision.suppressReason,
+        cursor_mode: economicGate.mode,
         availableSlots: decision.availableSlots,
         verifiedActiveCount: decision.verifiedActiveCount,
         outPath,
