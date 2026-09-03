@@ -21,6 +21,7 @@ import {
 import { shouldEmitCorpFlowBrandAssets } from '../lib/public/corpflow-brand-assets.js';
 import { cfBody, CF } from './public/corpflow-public-styles.js';
 
+// Keep the approved media location stable while the homepage layout is reviewed in preview.
 const FLAGSHIP_VIDEO_PATH = '/media/corpflowai/corpflowai-flagship-homepage-final-1080p.mp4';
 const HOME_SECTION_SPACING = { marginTop: 64 };
 
