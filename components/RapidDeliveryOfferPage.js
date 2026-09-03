@@ -360,7 +360,7 @@ export default function RapidDeliveryOfferPage({ offer, buyerFacingName, pathOve
         <div style={styles.section}>
           <CtaGlassBlock>
             <div style={styles.label}>Next step</div>
-            <h2 style={styles.h2}>{offer.slug === 'ai-lead-rescue' ? 'Request a 15-minute diagnosis' : 'Submit the discovery form above'}</h2>
+            <h2 style={styles.h2}>{offer.slug === 'ai-lead-rescue' ? primaryCtaLabel : 'Submit the discovery form above'}</h2>
             <p style={styles.muted}>
               You receive an on-screen reference immediately. We confirm fit, scope, deposit, and timeline before any
               invoice.

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import CorpFlowPublicPhotoShell from '../components/public/CorpFlowPublicPhotoShell.js';
 import { policyStyles as ps, trustStyles as ts } from '../components/PublicPolicyLayout.js';
 import { buildPublicPageMeta } from '../lib/public/corpflow-public-market.js';
-import { ENQUIRY_RECOVERY_DIAGNOSIS_HREF } from '../lib/public/enquiry-recovery-sprint.js';
+import { ENQUIRY_RECOVERY_DIAGNOSIS_HREF, ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL } from '../lib/public/enquiry-recovery-sprint.js';
 
 /**
  * /standards - Operational standards: review cadence, monitoring,
@@ -51,7 +51,7 @@ export default function StandardsPage() {
       meta={meta}
       visualKey="standards"
       maxWidth={960}
-      headerCta={{ label: 'Request a 15-minute diagnosis', href: ENQUIRY_RECOVERY_DIAGNOSIS_HREF }}
+      headerCta={{ label: ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL, href: ENQUIRY_RECOVERY_DIAGNOSIS_HREF }}
     >
       <h1
         style={{
@@ -189,7 +189,7 @@ export default function StandardsPage() {
 
         <div style={ts.ctaRow}>
           <Link href="/enquiry-recovery" style={ts.ctaPrimary}>
-            Request a 15-minute diagnosis &rarr;
+            {ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL} &rarr;
           </Link>
           <Link href="/process" style={ts.ctaSecondary}>
             See the engagement process

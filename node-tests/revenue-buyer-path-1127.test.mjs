@@ -85,7 +85,7 @@ describe('#1127 five-second offer and one primary CTA', () => {
     const landing = read('components/EnquiryRecoveryCampaignPage.js');
     assert.ok(landing.includes('stopped being followed up'));
     assert.ok(landing.includes('ENQUIRY_RECOVERY_PRICE_LINE') || landing.includes('MUR 85,000'));
-    assert.ok(landing.includes('Request a 15-minute diagnosis'));
+    assert.ok(landing.includes('Request a 15-minute Enquiry Recovery Diagnosis'));
     assert.ok(landing.includes('LEAD_RESCUE_ENQUIRY_HREF'));
     assert.ok(!landing.includes("fetch('/api/tenant/intake'"));
     assert.ok(!/Choose payment path/i.test(landing));
@@ -119,8 +119,10 @@ describe('#1127 proof, enquiry labels, and no automatic send', () => {
       true,
     );
     const landing = read('components/EnquiryRecoveryCampaignPage.js');
-    assert.ok(landing.includes('PublishingVideoSection'));
-    assert.ok(landing.includes("getVideosForOffer('ai-lead-rescue')"));
+    assert.ok(landing.includes('ENQUIRY_RECOVERY_IMPLEMENTATION_LINE') || landing.includes('does the implementation work'));
+    assert.ok(landing.includes('ENQUIRY_RECOVERY_LOSS_LINE') || landing.includes('already paid to generate the enquiry'));
+    assert.ok(!landing.includes('PublishingVideoSection'));
+    assert.ok(!landing.includes("getVideosForOffer('ai-lead-rescue')"));
 
     const demo = read('components/WebsiteRescueDemo.js');
     assert.ok(demo.includes('href="/website-rescue"') || demo.includes("href={'/website-rescue'}"));
@@ -136,7 +138,7 @@ describe('#1127 proof, enquiry labels, and no automatic send', () => {
 
   it('enquiry entry points are labelled and disclose no automatic send', () => {
     const contact = read('pages/contact.js');
-    assert.ok(contact.includes('Request a 15-minute diagnosis'));
+    assert.ok(contact.includes('ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL'));
     assert.ok(contact.includes('Request Website Rescue'));
     assert.ok(contact.includes('Nothing is sent automatically to email, WhatsApp or SMS'));
     assert.ok(contact.includes('data-canonical-enquiry'));

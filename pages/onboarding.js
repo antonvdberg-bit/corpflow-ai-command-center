@@ -8,6 +8,7 @@ import {
   ENQUIRY_RECOVERY_DIAGNOSIS_HREF,
   ENQUIRY_RECOVERY_PREVIEW_LINE,
   ENQUIRY_RECOVERY_PRICE_LINE,
+  ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL,
 } from '../lib/public/enquiry-recovery-sprint.js';
 
 /**
@@ -21,7 +22,7 @@ import {
 const STEPS = [
   {
     label: 'Step 1',
-    title: 'Request a 15-minute diagnosis',
+    title: ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL,
     body: 'Tell us how enquiries arrive today and where follow-up is hardest to see. Submitting the form does not create a payment obligation.',
   },
   {
@@ -79,7 +80,7 @@ export default function OnboardingPage() {
       meta={meta}
       visualKey="onboarding"
       maxWidth={960}
-      headerCta={{ label: 'Request a 15-minute diagnosis', href: ENQUIRY_RECOVERY_DIAGNOSIS_HREF }}
+      headerCta={{ label: ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL, href: ENQUIRY_RECOVERY_DIAGNOSIS_HREF }}
     >
       <h1
         style={{
@@ -197,7 +198,7 @@ export default function OnboardingPage() {
       <section style={ps.section}>
         <div style={ts.ctaRow}>
           <Link href="/enquiry-recovery" style={ts.ctaPrimary}>
-            Request a 15-minute diagnosis &rarr;
+            {ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL} &rarr;
           </Link>
           <Link href="/process" style={ts.ctaSecondary}>
             See the engagement process

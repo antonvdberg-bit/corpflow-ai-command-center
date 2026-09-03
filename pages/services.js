@@ -15,6 +15,7 @@ import {
   ENQUIRY_RECOVERY_DEPOSIT_LINE,
   ENQUIRY_RECOVERY_DIAGNOSIS_HREF,
   ENQUIRY_RECOVERY_PRICE_LINE,
+  ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL,
 } from '../lib/public/enquiry-recovery-sprint.js';
 
 const h1 = {
@@ -38,7 +39,7 @@ export default function ServicesPage() {
       meta={meta}
       visualKey="services"
       maxWidth={800}
-      headerCta={{ label: 'Request a 15-minute diagnosis', href: ENQUIRY_RECOVERY_DIAGNOSIS_HREF }}
+      headerCta={{ label: ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL, href: ENQUIRY_RECOVERY_DIAGNOSIS_HREF }}
     >
       <h1 style={h1}>Services</h1>
       <section style={ps.section}>

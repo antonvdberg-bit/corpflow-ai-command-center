@@ -26,7 +26,7 @@ describe('Enquiry Recovery campaign — diagnosis CTA', () => {
   it('routes primary CTAs to the in-page diagnosis form and keeps contact fallback', () => {
     assert.ok(COMPONENT.includes("from '../lib/public/canonical-enquiry.js'"), 'missing canonical enquiry import');
     assert.ok(COMPONENT.includes('LEAD_RESCUE_ENQUIRY_HREF'), 'missing canonical href constant');
-    assert.ok(COMPONENT.includes('Request a 15-minute diagnosis'), 'missing primary buyer-action CTA');
+    assert.ok(COMPONENT.includes('Request a 15-minute Enquiry Recovery Diagnosis'), 'missing primary buyer-action CTA');
     assert.ok(COMPONENT.includes('data-testid="lead-rescue-canonical-cta"'), 'canonical CTA testid missing');
     assert.ok(!COMPONENT.includes("fetch('/api/tenant/intake'"), 'embedded intake POST must stay on DiscoveryIntakeForm');
     assert.ok(!/async function submitLead\(e\) \{/.test(COMPONENT), 'submitLead must not return');
@@ -44,7 +44,7 @@ describe('Enquiry Recovery campaign — diagnosis CTA', () => {
       COMPONENT.includes('ENQUIRY_RECOVERY_NO_GUARANTEE_LINE') || COMPONENT.includes('We do not guarantee new revenue.'),
       'missing no-guarantee line',
     );
-    assert.ok(COMPONENT.includes('Request a 15-minute diagnosis'), 'missing primary buyer-action CTA');
+    assert.ok(COMPONENT.includes('Request a 15-minute Enquiry Recovery Diagnosis'), 'missing primary buyer-action CTA');
     assert.ok(COMPONENT.includes('Built by a Mauritius-based operating-systems team.'), 'missing provenance line');
     assert.ok(!/USD 150/i.test(COMPONENT), 'historic USD 150 must not appear');
     assert.ok(!/\/month|per month|monthly fee/i.test(COMPONENT), 'must not publish a monthly figure');
@@ -54,6 +54,8 @@ describe('Enquiry Recovery campaign — diagnosis CTA', () => {
     assert.ok(COMPONENT.includes("id=\"faq\""), 'FAQ section id missing');
     assert.ok(COMPONENT.includes('Is this a CRM, chatbot, or marketing package?'), 'FAQ CRM question missing');
     assert.ok(COMPONENT.includes('Do you guarantee recovered revenue?'), 'FAQ guarantee question missing');
+    assert.ok(COMPONENT.includes('Will I have to manage another software project?'));
+    assert.ok(COMPONENT.includes('This is not for you if'));
   });
 
   it('keeps payment trust copy and does not use window.alert', () => {

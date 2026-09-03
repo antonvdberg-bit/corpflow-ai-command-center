@@ -16,6 +16,7 @@ import {
 } from '../lib/public/corpflow-public-market.js';
 import {
   ENQUIRY_RECOVERY_DEPOSIT_LINE,
+  ENQUIRY_RECOVERY_IMPLEMENTATION_LINE,
   ENQUIRY_RECOVERY_OFFER_NAME,
   ENQUIRY_RECOVERY_PRICE_LINE,
   ENQUIRY_RECOVERY_QUALIFICATION_LINE,
@@ -29,7 +30,7 @@ const FLAGSHIP_VIDEO_PATH = '/media/corpflowai/corpflowai-flagship-homepage-fina
 const meta = buildPublicPageMeta({
   title: 'Stop losing valuable enquiries after first contact',
   description:
-    'CorpFlowAI helps selected Mauritius businesses identify and recover valuable enquiries that have gone quiet. Enquiry Recovery Sprint — MUR 85,000 fixed. Maximum three founding clients. Request a 15-minute diagnosis.',
+    'CorpFlowAI helps selected Mauritius businesses identify and recover valuable enquiries that have gone quiet. Enquiry Recovery Sprint — MUR 85,000 fixed. Maximum three founding clients. Request a 15-minute Enquiry Recovery Diagnosis.',
   path: '/',
   ogImage: '/assets/visuals/corpflow-home-hero.jpg',
 });
@@ -140,8 +141,8 @@ export default function CorpFlowPublicHome({ host = null, search = null }) {
       >
         <p style={cfBody}>{ENQUIRY_RECOVERY_SCARCITY_LINE}</p>
         <p style={cfBody}>
-          Conversation → diagnosis → written offer → deposit. {ENQUIRY_RECOVERY_DEPOSIT_LINE} We do not ask you to
-          replace the tools you already use. We are not selling generic marketing, and we are not selling “AI”.
+          {ENQUIRY_RECOVERY_IMPLEMENTATION_LINE} Conversation → diagnosis → written offer → deposit.{' '}
+          {ENQUIRY_RECOVERY_DEPOSIT_LINE}
         </p>
         <p style={{ ...cfBody, margin: 0 }}>{ENQUIRY_RECOVERY_QUALIFICATION_LINE}</p>
       </OutcomeSection>
@@ -238,9 +239,8 @@ export default function CorpFlowPublicHome({ host = null, search = null }) {
 
       <PublicCtaBand
         title="Ready to see whether quiet enquiries are costing you?"
-        body="Request a 15-minute diagnosis. If we cannot identify a commercially meaningful recovery problem, we should not work together. No payment on this website."
+        body="Request a 15-minute Enquiry Recovery Diagnosis. If we cannot identify a commercially meaningful recovery problem, we should not work together. No payment on this website."
         primaryCta={CORPflow_HOMEPAGE_HERO.primaryCta}
-        secondaryCta={{ label: 'Enquiry Recovery Sprint', href: '/enquiry-recovery' }}
       />
     </CorpFlowPublicPhotoShell>
   );
