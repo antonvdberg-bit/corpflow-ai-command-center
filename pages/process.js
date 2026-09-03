@@ -20,7 +20,7 @@ const STAGES = [
     n: 2,
     title: 'Pilot scope',
     duration: 'half a day to one day',
-    body: 'We confirm in writing exactly what the engagement will and will not include. Out-of-scope items are listed explicitly. Mauritius delivery sprints are then invoiced in MUR (manual bank transfer). The separate launch pilot at /lead-rescue is invoiced in USD.',
+    body: 'We confirm in writing exactly what the engagement will and will not include. Out-of-scope items are listed explicitly. The current Enquiry Recovery Sprint is invoiced in MUR (manual bank transfer) after a written offer.',
   },
   {
     n: 3,
@@ -177,8 +177,8 @@ export default function ProcessPage() {
 
       <section style={ps.section}>
         <div style={ts.ctaRow}>
-          <Link href="/lead-rescue" style={ts.ctaPrimary}>
-            Start with intake &rarr;
+          <Link href="/enquiry-recovery" style={ts.ctaPrimary}>
+            Request a 15-minute diagnosis &rarr;
           </Link>
           <Link href="/onboarding" style={ts.ctaSecondary}>
             See the first 14 days

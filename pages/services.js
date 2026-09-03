@@ -85,11 +85,11 @@ export default function ServicesPage() {
       <section style={ps.section}>
         <h2 style={ps.h2}>How to engage</h2>
         <p style={ps.p}>
-          Start with the intake form on{' '}
-          <Link href="/lead-rescue" style={{ color: '#7dd3fc' }}>
-            AI Lead Rescue
+          Start with a 15-minute diagnosis on{' '}
+          <Link href="/enquiry-recovery" style={{ color: '#7dd3fc' }}>
+            Enquiry Recovery
           </Link>
-          . We review fit and scope before issuing an invoice or payment instructions.
+          . We review fit before issuing a written offer or invoice.
         </p>
       </section>
       <section style={ps.section}>

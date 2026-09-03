@@ -35,10 +35,10 @@ function read(rel) {
 }
 
 describe('#699 market gateway — public offer', () => {
-  it('hero states managed delivery and one primary CTA to discovery', () => {
-    assert.match(CORPflow_HOMEPAGE_HERO.headline, /workflow/i);
-    assert.match(CORPflow_HOMEPAGE_HERO.subhead, /managed/i);
-    assert.equal(CORPflow_HOMEPAGE_HERO.primaryCta.href, '/contact#discovery');
+  it('hero states enquiry recovery and one primary CTA to diagnosis', () => {
+    assert.match(CORPflow_HOMEPAGE_HERO.headline, /enquir/i);
+    assert.match(CORPflow_HOMEPAGE_HERO.subhead, /Mauritius/i);
+    assert.equal(CORPflow_HOMEPAGE_HERO.primaryCta.href, '/enquiry-recovery#diagnosis');
     assert.ok(!/guaranteed revenue|10x|fully autonomous/i.test(JSON.stringify(CORPflow_HOMEPAGE_HERO)));
   });
 
@@ -81,7 +81,7 @@ describe('#699 market gateway — public offer', () => {
     assert.ok(home.includes('id="service-paths"') || home.includes("id=\"service-paths\""));
     assert.ok(home.includes('CORPflow_PROOF_ITEMS'));
     assert.ok(home.includes('CORPflow_TRUST_POINTS'));
-    assert.ok(home.includes('/lead-rescue'));
+    assert.ok(home.includes('/enquiry-recovery'));
     assert.ok(home.includes('/website-rescue'));
     assert.ok(home.includes('/demo/website-rescue'));
     assert.ok(home.includes('/contact?path='));
@@ -245,7 +245,7 @@ describe('#699 market gateway — operator handoff', () => {
 
 describe('#699 market gateway — product funnel links retained', () => {
   it('Lead Rescue CTAs route to the canonical locked enquiry form', () => {
-    const lr = read('components/AiLeadRescueLanding.js');
+    const lr = read('components/EnquiryRecoveryCampaignPage.js');
     assert.ok(lr.includes('LEAD_RESCUE_ENQUIRY_HREF') || lr.includes('/contact?offer=ai-lead-rescue#discovery'));
     assert.ok(!lr.includes("fetch('/api/tenant/intake'"));
     const form = read('components/public/DiscoveryIntakeForm.js');

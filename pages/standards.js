@@ -187,8 +187,8 @@ export default function StandardsPage() {
         </p>
 
         <div style={ts.ctaRow}>
-          <Link href="/lead-rescue" style={ts.ctaPrimary}>
-            Start with intake &rarr;
+          <Link href="/enquiry-recovery" style={ts.ctaPrimary}>
+            Request a 15-minute diagnosis &rarr;
           </Link>
           <Link href="/process" style={ts.ctaSecondary}>
             See the engagement process

@@ -76,6 +76,14 @@ export default function RapidDeliveryOfferPage({ offer, buyerFacingName, pathOve
   const lockedEnquiryHref = canonicalEnquiryHref({ offer: offer.slug });
   const pagePath = pathOverride || offer.path;
   const publicTitle = buyerFacingName || offer.title;
+  const primaryCtaLabel = offer.primaryCtaLabel || 'Request discovery';
+  const priceHeading = offer.priceIsFixed
+    ? `${formatMur(offer.startingPriceMur)} fixed`
+    : `Starting from ${formatMur(offer.startingPriceMur)}`;
+  const engagementFlow =
+    offer.engagementFlow ||
+    'Discovery call → written quote → 50% MUR deposit (manual bank transfer) → manual bank verification → approval to proceed → visible delivery → preview feedback → release approval. Currency and payment instructions are confirmed in writing on the invoice before you pay.';
+  const deliverySectionTitle = offer.deliverySectionTitle || 'Visible output within 24–72 hours';
   const publicDescription =
     publicTitle !== offer.title && typeof offer.metaDescription === 'string'
       ? offer.metaDescription.split(offer.title).join(publicTitle)
@@ -138,7 +146,7 @@ export default function RapidDeliveryOfferPage({ offer, buyerFacingName, pathOve
           alt: `${publicTitle} — CorpFlowAI delivery sprint`,
         }}
       >
-        <CorpFlowPublicHeader cta={{ label: 'Request discovery', href: '#discovery' }} />
+        <CorpFlowPublicHeader cta={{ label: primaryCtaLabel, href: '#discovery' }} />
 
         <GlassCardGrid minColWidth={300} gap={24} style={{ marginTop: 32, alignItems: 'start' }}>
           <HeroGlassBlock>
@@ -154,10 +162,14 @@ export default function RapidDeliveryOfferPage({ offer, buyerFacingName, pathOve
             ) : null}
             <p style={styles.lead}>{offer.subhead}</p>
             <div style={styles.priceBox}>
-              <strong>Starting from {formatMur(offer.startingPriceMur)}</strong>
-              <div style={{ marginTop: 6, fontSize: 14, opacity: 0.95 }}>
-                Final scope confirmed after discovery. Third-party fees quoted separately where applicable.
-              </div>
+              <strong>{priceHeading}</strong>
+              {offer.foundingNote ? (
+                <div style={{ marginTop: 6, fontSize: 14, opacity: 0.95 }}>{offer.foundingNote}</div>
+              ) : (
+                <div style={{ marginTop: 6, fontSize: 14, opacity: 0.95 }}>
+                  Final scope confirmed after discovery. Third-party fees quoted separately where applicable.
+                </div>
+              )}
               <div style={{ marginTop: 6, fontSize: 14, opacity: 0.95 }}>
                 Deposit: {offer.depositNote} · {offer.deliveryTimeline.split('.')[0]}.
               </div>
@@ -168,7 +180,7 @@ export default function RapidDeliveryOfferPage({ offer, buyerFacingName, pathOve
                 href="#discovery"
                 onClick={() => handleCtaClick('hero_primary')}
               >
-                Request discovery
+                {primaryCtaLabel}
               </a>
               <Link href={lockedEnquiryHref} style={cfBtnSecondary} onClick={() => handleCtaClick('hero_secondary')}>
                 Open contact page
@@ -219,7 +231,7 @@ export default function RapidDeliveryOfferPage({ offer, buyerFacingName, pathOve
         <div style={styles.section}>
           <GlassPanel variant={{ fill: GLASS_TOKENS.glassFill, padding: 24, elevation: 2 }}>
             <div style={styles.label}>What is delivered</div>
-            <h2 style={styles.h2}>Visible output within 24–72 hours</h2>
+            <h2 style={styles.h2}>{deliverySectionTitle}</h2>
             <ul style={styles.list}>
               {offer.deliveredOutputs.map((item) => (
                 <li key={item}>{item}</li>
@@ -278,11 +290,7 @@ export default function RapidDeliveryOfferPage({ offer, buyerFacingName, pathOve
         <GlassCardGrid minColWidth={280} gap={20} style={{ marginTop: 28 }}>
           <GlassPanel variant={{ fill: GLASS_TOKENS.glassFill, padding: 22, elevation: 2 }}>
             <div style={styles.label}>How the engagement works</div>
-            <p style={styles.muted}>
-              Discovery call → written quote → 50% MUR deposit (manual bank transfer) → manual bank verification →
-              approval to proceed → visible delivery → preview feedback → release approval. Currency and payment
-              instructions are confirmed in writing on the invoice before you pay.
-            </p>
+            <p style={styles.muted}>{engagementFlow}</p>
           </GlassPanel>
           <GlassPanel variant={{ fill: GLASS_TOKENS.glassFill, padding: 22, elevation: 2 }}>
             <div style={styles.label}>Deposit requirement</div>
@@ -337,7 +345,7 @@ export default function RapidDeliveryOfferPage({ offer, buyerFacingName, pathOve
               defaultOfferSlug={offer.slug}
               lockedOffer
               lockedOfferLabel={buyerFacingName || undefined}
-              heading={`Request discovery — ${buyerFacingName || offer.title}`}
+              heading={`${primaryCtaLabel} — ${buyerFacingName || offer.title}`}
             />
             <p style={styles.note}>
               Prefer email?{' '}
@@ -352,7 +360,7 @@ export default function RapidDeliveryOfferPage({ offer, buyerFacingName, pathOve
         <div style={styles.section}>
           <CtaGlassBlock>
             <div style={styles.label}>Next step</div>
-            <h2 style={styles.h2}>Submit the discovery form above</h2>
+            <h2 style={styles.h2}>{offer.slug === 'ai-lead-rescue' ? 'Request a 15-minute diagnosis' : 'Submit the discovery form above'}</h2>
             <p style={styles.muted}>
               You receive an on-screen reference immediately. We confirm fit, scope, deposit, and timeline before any
               invoice.
@@ -363,7 +371,7 @@ export default function RapidDeliveryOfferPage({ offer, buyerFacingName, pathOve
                 href="#discovery"
                 onClick={() => handleCtaClick('footer_primary')}
               >
-                Jump to discovery form
+                {offer.slug === 'ai-lead-rescue' ? primaryCtaLabel : 'Jump to discovery form'}
               </a>
               <Link href="/" style={cfBtnSecondary} onClick={() => handleCtaClick('footer_secondary')}>
                 View all sprints

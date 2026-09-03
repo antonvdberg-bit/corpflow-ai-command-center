@@ -43,7 +43,7 @@ export default function ContactPage({
     path: '/contact',
     ogImage: '/assets/visuals/corpflow-contact-hero.jpg',
   });
-  const lockedLeadRescue = lockedOffer && defaultOfferSlug === 'ai-lead-rescue';
+  const lockedEnquiryRecovery = lockedOffer && defaultOfferSlug === 'ai-lead-rescue';
   const lockedWebsiteRescue = lockedOffer && defaultOfferSlug === 'premium-landing-page-rescue';
 
   return (
@@ -63,7 +63,7 @@ export default function ContactPage({
         <DiscoveryIntakeForm
           heading={
             lockedLeadRescue
-              ? 'Request AI Lead Rescue'
+              ? 'Request a 15-minute diagnosis'
               : lockedWebsiteRescue
                 ? 'Request Website Rescue'
                 : 'Request a qualified conversation'
@@ -73,7 +73,7 @@ export default function ContactPage({
           defaultOfferSlug={defaultOfferSlug || undefined}
           lockedOffer={lockedOffer}
           lockedOfferLabel={
-            lockedLeadRescue ? 'AI Lead Rescue' : lockedWebsiteRescue ? 'Website Rescue' : undefined
+            lockedLeadRescue ? 'Enquiry Recovery Sprint' : lockedWebsiteRescue ? 'Website Rescue' : undefined
           }
         />
         <p style={{ ...ps.p, marginTop: 16 }}>

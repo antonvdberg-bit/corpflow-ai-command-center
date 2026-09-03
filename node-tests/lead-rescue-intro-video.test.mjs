@@ -4,7 +4,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
 const ROOT = process.cwd();
-const LANDING_PATH = path.join(ROOT, 'components', 'AiLeadRescueLanding.js');
+const LANDING_PATH = path.join(ROOT, 'components', 'EnquiryRecoveryCampaignPage.js');
 const HOME_PATH = path.join(ROOT, 'components', 'CorpFlowPublicHome.js');
 const VIDEO_PATH = path.join(
   ROOT,
@@ -13,8 +13,8 @@ const VIDEO_PATH = path.join(
   'corpflowai',
   'ai-lead-rescue-sprint-intro-1080p.mp4',
 );
-const CANONICAL_URL = '/media/corpflowai/ai-lead-rescue-sprint-intro-1080p.mp4';
 const EXPECTED_BYTES = 6_190_139;
+const CANONICAL_URL = '/media/corpflowai/ai-lead-rescue-sprint-intro-1080p.mp4';
 
 describe('AI Lead Rescue intro video', () => {
   it('ships one canonical H.264 MP4 under public/media/corpflowai/', () => {
@@ -32,34 +32,12 @@ describe('AI Lead Rescue intro video', () => {
     assert.equal(signature.subarray(4, 8).toString('ascii'), 'ftyp');
   });
 
-  it('places a native metadata-only player on the AI Lead Rescue landing after the hero', () => {
+  it('keeps the canonical intro file available and surfaces related video via the campaign page', () => {
     const landing = readFileSync(LANDING_PATH, 'utf8');
-    const player = landing.match(/<video[\s\S]*?<\/video>/)?.[0] || '';
-
-    assert.ok(landing.includes('See AI Lead Rescue in action'));
-    // Landing copy uses the product name (AI Lead Rescue), not the older "Sprint" brand.
-    assert.ok(
-      landing.includes(
-        'A short introduction to how AI Lead Rescue supports faster, clearer enquiry follow-up.',
-      ),
-    );
-    assert.ok(!/AI Lead Rescue Sprint/i.test(landing));
-    assert.ok(landing.includes(CANONICAL_URL));
-    assert.ok(landing.includes('<AiLeadRescueIntroVideoSection />'));
-    assert.ok(
-      landing.indexOf('<AiLeadRescueIntroVideoSection />') <
-        landing.indexOf('Who this is for'),
-    );
-    assert.ok(
-      landing.indexOf('<AiLeadRescueIntroVideoSection />') >
-        landing.indexOf('</GlassCardGrid>'),
-    );
-    assert.ok(player.includes('controls'));
-    assert.ok(player.includes('playsInline'));
-    assert.ok(player.includes('preload="metadata"'));
-    assert.ok(player.includes('aria-label="See AI Lead Rescue in action"'));
-    assert.ok(!player.includes('autoPlay'));
-    assert.ok(!player.includes('loop'));
+    assert.ok(landing.includes('PublishingVideoSection'));
+    assert.ok(landing.includes("getVideosForOffer('ai-lead-rescue')"));
+    assert.ok(!/USD 150/i.test(landing));
+    assert.equal(existsSync(VIDEO_PATH), true);
   });
 
   it('does not use the AI Lead Rescue intro as the homepage flagship video', () => {

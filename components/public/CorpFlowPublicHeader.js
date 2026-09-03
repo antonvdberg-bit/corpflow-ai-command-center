@@ -52,7 +52,7 @@ export default function CorpFlowPublicHeader({ cta = { label: 'Book discovery', 
           <Link href="/" style={styles.brand}>
             CorpFlowAI
           </Link>
-          <div style={styles.brandSub}>Managed AI-assisted workflows</div>
+          <div style={styles.brandSub}>Mauritius-based · selected clients</div>
         </div>
         <button
           type="button"

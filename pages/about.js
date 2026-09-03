@@ -43,7 +43,7 @@ const PRINCIPLES = [
   },
   {
     title: 'Intake first, payment after review.',
-    body: 'No card or banking details are collected on this website. After a CorpFlowAI operator reviews your request and confirms fit, Mauritius delivery sprints are invoiced in MUR (manual bank transfer). The separate AI Lead Rescue launch pilot at /lead-rescue is invoiced in USD.',
+    body: 'No card or banking details are collected on this website. After a CorpFlowAI operator reviews your request and confirms fit, the Enquiry Recovery Sprint is invoiced in MUR (manual bank transfer) according to the written offer.',
   },
   {
     title: 'No revenue guarantees.',
@@ -180,8 +180,8 @@ export default function AboutPage({ luxMode = false, seoHost = '' } = {}) {
         </ul>
 
         <div style={ts.ctaRow}>
-          <Link href="/lead-rescue" style={ts.ctaPrimary}>
-            Start with intake &rarr;
+          <Link href="/enquiry-recovery" style={ts.ctaPrimary}>
+            Request a 15-minute diagnosis &rarr;
           </Link>
           <Link href="/contact" style={ts.ctaSecondary}>
             Ask a question first

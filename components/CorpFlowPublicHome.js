@@ -22,9 +22,9 @@ import { cfBody, cfCard, cfGrid, cfLink, CF } from './public/corpflow-public-sty
 const FLAGSHIP_VIDEO_PATH = '/media/corpflowai/corpflowai-flagship-homepage-final-1080p.mp4';
 
 const meta = buildPublicPageMeta({
-  title: 'CorpFlowAI — managed AI-assisted business workflows',
+  title: 'Stop losing valuable enquiries after first contact',
   description:
-    'CorpFlowAI designs and operates practical AI-assisted workflow systems for SMEs — managed delivery for administration, lead handling, and website operating upgrades. Request a qualified conversation.',
+    'CorpFlowAI helps selected Mauritius businesses identify and recover valuable enquiries that have gone quiet. Enquiry Recovery Sprint — MUR 85,000 fixed. Maximum three founding clients. Request a 15-minute diagnosis.',
   path: '/',
   ogImage: '/assets/visuals/corpflow-home-hero.jpg',
 });
@@ -136,8 +136,8 @@ export default function CorpFlowPublicHome({ host = null, search = null }) {
         title="Three practical service paths — managed delivery, not generic AI advice"
       >
         <p style={cfBody}>
-          Choose the path that matches the problem. Product funnels such as AI Lead Rescue and Website Rescue are
-          available where they already fit; broader workflow work starts with a qualified conversation.
+          Choose the path that matches the problem. Enquiry Recovery is the live commercial offer for missed follow-up.
+          Website Rescue remains available for a weak enquiry page. Broader workflow work starts with a qualified conversation.
         </p>
         <div style={cfGrid}>
           {MARKET_SERVICE_PATHS.map((path) => (
@@ -201,10 +201,10 @@ export default function CorpFlowPublicHome({ host = null, search = null }) {
       <OutcomeSection label="Product entry points" title="Start with a focused product when it already fits">
         <ul style={{ ...cfBody, paddingLeft: 20, margin: 0 }}>
           <li>
-            <Link href="/lead-rescue" style={{ color: CF.link }}>
-              AI Lead Rescue
+            <Link href="/enquiry-recovery" style={{ color: CF.link }}>
+              Enquiry Recovery Sprint
             </Link>{' '}
-            — capture, alert, log and follow up missed enquiries (USD 150 launch pilot path; separate intake).
+            — identify and recover valuable enquiries that have gone quiet (MUR 85,000 fixed; three founding-client slots).
           </li>
           <li>
             <Link href="/website-rescue" style={{ color: CF.link }}>
@@ -224,10 +224,10 @@ export default function CorpFlowPublicHome({ host = null, search = null }) {
       </OutcomeSection>
 
       <PublicCtaBand
-        title="Ready for a qualified conversation?"
-        body="Tell us your business, the problem or outcome you want, your preferred service path, and timing. You get an on-screen reference immediately. No payment and no automatic outreach from this form."
+        title="Ready to see whether quiet enquiries are costing you?"
+        body="Request a 15-minute diagnosis. If we cannot identify a commercially meaningful recovery problem, we should not work together. No payment on this website."
         primaryCta={CORPflow_HOMEPAGE_HERO.primaryCta}
-        secondaryCta={{ label: 'Open AI Lead Rescue', href: '/lead-rescue' }}
+        secondaryCta={{ label: 'Enquiry Recovery Sprint', href: '/enquiry-recovery' }}
       />
     </CorpFlowPublicPhotoShell>
   );

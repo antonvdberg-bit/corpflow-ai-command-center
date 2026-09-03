@@ -26,7 +26,7 @@ const STEPS = [
   {
     label: 'Day 2',
     title: 'Decision and scoping',
-    body: 'If the engagement fits, we send a written scope: what is in, what is out, and what counts as complete. Mauritius delivery sprints are invoiced in MUR (manual bank transfer). The separate launch pilot at /lead-rescue is invoiced in USD.',
+    body: 'If the engagement fits, we send a written offer: what is in, what is out, and what counts as complete. The Enquiry Recovery Sprint is invoiced in MUR (manual bank transfer).',
   },
   {
     label: 'Day 3 to Day 5',
@@ -198,8 +198,8 @@ export default function OnboardingPage() {
 
       <section style={ps.section}>
         <div style={ts.ctaRow}>
-          <Link href="/lead-rescue" style={ts.ctaPrimary}>
-            Submit intake &rarr;
+          <Link href="/enquiry-recovery" style={ts.ctaPrimary}>
+            Request a 15-minute diagnosis &rarr;
           </Link>
           <Link href="/process" style={ts.ctaSecondary}>
             See the engagement process

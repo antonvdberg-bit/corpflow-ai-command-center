@@ -30,8 +30,8 @@ function read(rel) {
 }
 
 describe('#1127 canonical buyer routes', () => {
-  it('locks Lead Rescue and Website Rescue named landings and enquiry URLs', () => {
-    assert.equal(LEAD_RESCUE_LANDING_HREF, '/lead-rescue');
+  it('locks Enquiry Recovery and Website Rescue named landings and enquiry URLs', () => {
+    assert.equal(LEAD_RESCUE_LANDING_HREF, '/enquiry-recovery');
     assert.equal(LEAD_RESCUE_ENQUIRY_HREF, '/contact?offer=ai-lead-rescue#discovery');
     assert.equal(WEBSITE_RESCUE_LANDING_HREF, '/website-rescue');
     assert.equal(
@@ -40,6 +40,7 @@ describe('#1127 canonical buyer routes', () => {
     );
     assert.equal(canonicalEnquiryHref({ offer: 'ai-lead-rescue' }), LEAD_RESCUE_ENQUIRY_HREF);
     assert.equal(canonicalEnquiryHref({ offer: 'website-rescue' }), WEBSITE_RESCUE_ENQUIRY_HREF);
+    assert.equal(existsSync(path.join(REPO_ROOT, 'pages/enquiry-recovery.js')), true);
     assert.equal(existsSync(path.join(REPO_ROOT, 'pages/lead-rescue.js')), true);
     assert.equal(existsSync(path.join(REPO_ROOT, 'pages/website-rescue.js')), true);
     assert.equal(existsSync(path.join(REPO_ROOT, 'pages/demo/website-rescue.js')), true);
@@ -47,17 +48,17 @@ describe('#1127 canonical buyer routes', () => {
   });
 
   it('gateway nav and footer send buyers to named launch products, not SKU titles', () => {
-    const leadNav = CORPflow_PUBLIC_NAV.find((item) => item.label === 'Lead Rescue');
+    const leadNav = CORPflow_PUBLIC_NAV.find((item) => item.label === 'Enquiry Recovery');
     const websiteNav = CORPflow_PUBLIC_NAV.find((item) => item.label === 'Website Rescue');
-    assert.equal(leadNav?.href, '/lead-rescue');
+    assert.equal(leadNav?.href, '/enquiry-recovery');
     assert.equal(websiteNav?.href, '/website-rescue');
     assert.deepEqual(
       CORPflow_PUBLIC_LAUNCH_PRODUCTS.map((item) => item.href),
-      ['/lead-rescue', '/website-rescue'],
+      ['/enquiry-recovery', '/website-rescue'],
     );
     assert.deepEqual(
       CORPflow_PUBLIC_LAUNCH_PRODUCTS.map((item) => item.label),
-      ['Lead Rescue', 'Website Rescue'],
+      ['Enquiry Recovery', 'Website Rescue'],
     );
 
     const footer = read('components/public/CorpFlowPublicFooter.js');
@@ -67,28 +68,28 @@ describe('#1127 canonical buyer routes', () => {
     assert.ok(!footer.includes('o.path'));
 
     const home = read('components/CorpFlowPublicHome.js');
-    assert.ok(home.includes('href="/lead-rescue"'));
+    assert.ok(home.includes('href="/enquiry-recovery"'));
     assert.ok(home.includes('href="/website-rescue"'));
     assert.ok(home.includes('href="/demo/website-rescue"'));
-    assert.equal(CORPflow_HOMEPAGE_HERO.primaryCta.href, '/contact#discovery');
+    assert.equal(CORPflow_HOMEPAGE_HERO.primaryCta.href, '/enquiry-recovery#diagnosis');
 
     const leadPath = MARKET_SERVICE_PATHS.find((p) => p.id === 'client-lead-service');
     const websitePath = MARKET_SERVICE_PATHS.find((p) => p.id === 'website-digital');
-    assert.equal(leadPath?.productHref, '/lead-rescue');
+    assert.equal(leadPath?.productHref, '/enquiry-recovery');
     assert.equal(websitePath?.productHref, '/website-rescue');
   });
 });
 
 describe('#1127 five-second offer and one primary CTA', () => {
-  it('Lead Rescue has one primary setup CTA into the locked enquiry form', () => {
-    const landing = read('components/AiLeadRescueLanding.js');
-    assert.ok(landing.includes('Stop losing leads because follow-up is too slow.'));
-    assert.ok(landing.includes('USD 150'));
-    assert.ok(landing.includes('Start my 48-hour setup'));
+  it('Enquiry Recovery has one primary diagnosis CTA', () => {
+    const landing = read('components/EnquiryRecoveryCampaignPage.js');
+    assert.ok(landing.includes('stopped being followed up'));
+    assert.ok(landing.includes('ENQUIRY_RECOVERY_PRICE_LINE') || landing.includes('MUR 85,000'));
+    assert.ok(landing.includes('Request a 15-minute diagnosis'));
     assert.ok(landing.includes('LEAD_RESCUE_ENQUIRY_HREF'));
     assert.ok(!landing.includes("fetch('/api/tenant/intake'"));
     assert.ok(!/Choose payment path/i.test(landing));
-    assert.ok(!/AI Lead Rescue Sprint/i.test(landing));
+    assert.ok(!/USD 150/i.test(landing));
   });
 
   it('Website Rescue named landing keeps buyer-facing name and does not lead with the SKU title', () => {
@@ -117,9 +118,9 @@ describe('#1127 proof, enquiry labels, and no automatic send', () => {
       existsSync(path.join(REPO_ROOT, 'public/assets/video/lead-rescue/lead-rescue-walkthrough-v1.mp4')),
       true,
     );
-    const landing = read('components/AiLeadRescueLanding.js');
-    assert.ok(landing.includes('/media/corpflowai/ai-lead-rescue-sprint-intro-1080p.mp4'));
-    assert.ok(landing.includes('See AI Lead Rescue in action'));
+    const landing = read('components/EnquiryRecoveryCampaignPage.js');
+    assert.ok(landing.includes('PublishingVideoSection'));
+    assert.ok(landing.includes("getVideosForOffer('ai-lead-rescue')"));
 
     const demo = read('components/WebsiteRescueDemo.js');
     assert.ok(demo.includes('href="/website-rescue"') || demo.includes("href={'/website-rescue'}"));
@@ -135,7 +136,7 @@ describe('#1127 proof, enquiry labels, and no automatic send', () => {
 
   it('enquiry entry points are labelled and disclose no automatic send', () => {
     const contact = read('pages/contact.js');
-    assert.ok(contact.includes('Request AI Lead Rescue'));
+    assert.ok(contact.includes('Request a 15-minute diagnosis'));
     assert.ok(contact.includes('Request Website Rescue'));
     assert.ok(contact.includes('Nothing is sent automatically to email, WhatsApp or SMS'));
     assert.ok(contact.includes('data-canonical-enquiry'));
