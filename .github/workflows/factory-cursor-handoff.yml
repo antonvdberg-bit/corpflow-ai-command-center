@@ -108,6 +108,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      CORPFLOW_CURSOR_MODE: ${{ vars.CORPFLOW_CURSOR_MODE }}
     outputs:
       has_handoff: ${{ steps.handoff.outputs.has_handoff }}
       source_issue: ${{ steps.handoff.outputs.source_issue }}
