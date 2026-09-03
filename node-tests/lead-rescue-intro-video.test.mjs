@@ -32,10 +32,9 @@ describe('AI Lead Rescue intro video', () => {
     assert.equal(signature.subarray(4, 8).toString('ascii'), 'ftyp');
   });
 
-  it('keeps the canonical intro file available and surfaces related video via the campaign page', () => {
+  it('keeps the canonical intro file available without cataloguing it on the campaign page', () => {
     const landing = readFileSync(LANDING_PATH, 'utf8');
-    assert.ok(landing.includes('PublishingVideoSection'));
-    assert.ok(landing.includes("getVideosForOffer('ai-lead-rescue')"));
+    assert.ok(!landing.includes('PublishingVideoSection'));
     assert.ok(!/USD 150/i.test(landing));
     assert.equal(existsSync(VIDEO_PATH), true);
   });

@@ -7,6 +7,7 @@ import RareExclusiveContentPage from '../components/RareExclusiveContentPage.js'
 import { policyStyles as ps } from '../components/PublicPolicyLayout.js';
 import { buildGeneralDiscoveryMailto, buildPublicPageMeta } from '../lib/public/corpflow-public-market.js';
 import { resolveCanonicalEnquiryQuery } from '../lib/public/canonical-enquiry.js';
+import { ENQUIRY_RECOVERY_DIAGNOSIS_HREF, ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL } from '../lib/public/enquiry-recovery-sprint.js';
 import { luxOrApexPageProps } from '../lib/client/lux-host-page-props.js';
 
 const h1 = {
@@ -51,7 +52,7 @@ export default function ContactPage({
       meta={meta}
       visualKey="contact"
       maxWidth={800}
-      headerCta={{ label: 'Request a 15-minute diagnosis', href: '/enquiry-recovery#diagnosis' }}
+      headerCta={{ label: ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL, href: ENQUIRY_RECOVERY_DIAGNOSIS_HREF }}
     >
       <h1 style={h1}>Contact</h1>
       <p style={updated}>
@@ -63,10 +64,10 @@ export default function ContactPage({
         <DiscoveryIntakeForm
           heading={
             lockedEnquiryRecovery
-              ? 'Request a 15-minute diagnosis'
+              ? ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL
               : lockedWebsiteRescue
                 ? 'Request Website Rescue'
-                : 'Request a 15-minute diagnosis'
+                : ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL
           }
           defaultBuyerNeed={defaultBuyerNeed || undefined}
           defaultServicePath={defaultServicePath || undefined}

@@ -44,7 +44,7 @@ describe('#712 market path — public pages and primary CTAs', () => {
 
   it('Enquiry Recovery page has one primary diagnosis CTA', () => {
     const lr = read('components/EnquiryRecoveryCampaignPage.js');
-    assert.ok(lr.includes('Request a 15-minute diagnosis'));
+    assert.ok(lr.includes('Request a 15-minute Enquiry Recovery Diagnosis'));
     assert.ok(lr.includes('LEAD_RESCUE_ENQUIRY_HREF') || lr.includes('/contact?offer=ai-lead-rescue#discovery'));
     assert.ok(lr.includes('id={ENQUIRY_RECOVERY_DIAGNOSIS_HASH}') || lr.includes('diagnosis'));
     assert.ok(!lr.includes("fetch('/api/tenant/intake'"));

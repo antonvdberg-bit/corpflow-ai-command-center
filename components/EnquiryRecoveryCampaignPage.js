@@ -10,11 +10,14 @@ import {
   ENQUIRY_RECOVERY_DEPOSIT_LINE,
   ENQUIRY_RECOVERY_DIAGNOSIS_HASH,
   ENQUIRY_RECOVERY_FOUNDING_SLOTS,
+  ENQUIRY_RECOVERY_IMPLEMENTATION_LINE,
+  ENQUIRY_RECOVERY_LOSS_LINE,
   ENQUIRY_RECOVERY_NO_GUARANTEE_LINE,
   ENQUIRY_RECOVERY_OFFER_NAME,
   ENQUIRY_RECOVERY_PATH,
   ENQUIRY_RECOVERY_PREVIEW_LINE,
   ENQUIRY_RECOVERY_PRICE_LINE,
+  ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL,
   ENQUIRY_RECOVERY_QUALIFICATION_LINE,
   ENQUIRY_RECOVERY_SCARCITY_LINE,
 } from '../lib/public/enquiry-recovery-sprint.js';
@@ -28,9 +31,7 @@ import GlassCardGrid from './beauty/GlassCardGrid.js';
 import HeroGlassBlock from './beauty/HeroGlassBlock.js';
 import CtaGlassBlock from './beauty/CtaGlassBlock.js';
 import { GLASS_TOKENS } from '../lib/ui/glass.js';
-import { cfBtnPrimary, cfBtnSecondary } from './public/corpflow-public-styles.js';
-import PublishingVideoSection from './public/PublishingVideoSection.js';
-import { getVideosForOffer } from '../lib/public/insights-content.js';
+import { cfBtnPrimary } from './public/corpflow-public-styles.js';
 
 const text = GLASS_TOKENS.text;
 const muted = '#cdd9e6';
@@ -77,10 +78,24 @@ const QUALIFICATION = [
   'Required access and assets can be provided quickly',
 ];
 
+const NOT_FOR = [
+  'You do not already receive meaningful enquiries',
+  'One converted enquiry is not valuable enough to justify this engagement',
+  'You want a website rebuild, CRM, chatbot, ads package, or generic AI consulting',
+  'Nobody on the owner or commercial side can join a 15-minute diagnosis',
+];
+
+const CLIENT_ROLE = [
+  'Explain how enquiries arrive today and where follow-up is hardest to see',
+  'Provide required access and assets if we proceed',
+  'Review the first visible preview',
+  'Decide whether to approve production release',
+];
+
 const FAQ = [
   {
     q: 'Is this a CRM, chatbot, or marketing package?',
-    a: 'No. This is a bounded engagement to identify and recover valuable enquiries that have gone quiet. We do not ask you to replace the tools you already use.',
+    a: 'No. This is one bounded engagement to identify and recover valuable enquiries that have gone quiet. We do not ask you to replace the tools you already use, and you do not design a technical solution.',
   },
   {
     q: 'Do you guarantee recovered revenue?',
@@ -94,6 +109,14 @@ const FAQ = [
     q: 'Why only three founding clients?',
     a: 'Delivery capacity is limited. We take on cases only where the economics justify the engagement.',
   },
+  {
+    q: 'What if the diagnosis finds no meaningful recovery problem?',
+    a: ENQUIRY_RECOVERY_QUALIFICATION_LINE,
+  },
+  {
+    q: 'Will I have to manage another software project?',
+    a: ENQUIRY_RECOVERY_IMPLEMENTATION_LINE,
+  },
 ];
 
 /**
@@ -106,7 +129,7 @@ export default function EnquiryRecoveryCampaignPage() {
   const meta = buildPublicPageMeta({
     title: ENQUIRY_RECOVERY_OFFER_NAME,
     description:
-      'Some of your best enquiries probably did not say no — they stopped being followed up. CorpFlowAI helps selected Mauritius businesses identify and recover valuable quiet enquiries. Maximum three founding-client positions. Request a 15-minute diagnosis.',
+      'Valuable enquiries go quiet and are not consistently recovered. Enquiry Recovery Sprint — MUR 85,000 fixed. Maximum three founding clients. Request a 15-minute Enquiry Recovery Diagnosis.',
     path: ENQUIRY_RECOVERY_PATH,
     ogImage: `${HERO_BASE}.jpg`,
   });
@@ -124,7 +147,6 @@ export default function EnquiryRecoveryCampaignPage() {
     trackEvent('revenue_offer_cta_click', { props: { offer: 'ai-lead-rescue', location } });
   }
 
-  const offerVideos = getVideosForOffer('ai-lead-rescue');
   const diagnosisHref = `#${ENQUIRY_RECOVERY_DIAGNOSIS_HASH}`;
   const primaryCtaStyle = {
     ...cfBtnPrimary,
@@ -167,15 +189,23 @@ export default function EnquiryRecoveryCampaignPage() {
           alt: 'Quiet professional reception — enquiry follow-up is a commercial problem, not an AI demo',
         }}
       >
-        <CorpFlowPublicHeader cta={{ label: 'Request a 15-minute diagnosis', href: diagnosisHref }} />
+        <CorpFlowPublicHeader
+          nav={[
+            { href: '/', label: 'Home' },
+            { href: '/about', label: 'About' },
+            { href: '/contact', label: 'Contact' },
+          ]}
+          cta={{ label: ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL, href: diagnosisHref }}
+        />
 
         <GlassCardGrid minColWidth={300} gap={24} style={{ marginTop: 32, alignItems: 'start' }}>
           <HeroGlassBlock>
             <div style={styles.label}>Mauritius · selected owner-led businesses</div>
             <h1 style={styles.h1}>Some of your best enquiries probably didn&apos;t say no. They just stopped being followed up.</h1>
-            <p style={styles.lead}>
-              You already paid to generate the enquiry. CorpFlowAI helps selected Mauritius businesses identify and
-              recover valuable enquiries that have gone quiet — before they disappear from revenue.
+            <p style={styles.lead}>{ENQUIRY_RECOVERY_LOSS_LINE}</p>
+            <p style={styles.muted}>
+              CorpFlowAI helps selected Mauritius businesses identify and recover valuable enquiries that have gone
+              quiet. {ENQUIRY_RECOVERY_IMPLEMENTATION_LINE}
             </p>
             <p style={styles.muted}>{ENQUIRY_RECOVERY_SCARCITY_LINE}</p>
             <div style={styles.priceBox}>
@@ -192,25 +222,25 @@ export default function EnquiryRecoveryCampaignPage() {
                 data-testid="lead-rescue-canonical-cta"
                 onClick={() => handleCtaClick('hero')}
               >
-                Request a 15-minute diagnosis
+                {ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL}
               </a>
-              <Link
-                href={LEAD_RESCUE_ENQUIRY_HREF}
-                style={cfBtnSecondary}
-                onClick={() => trackEvent('lr_secondary_cta_click', { props: { location: 'hero' } })}
-              >
-                Prefer the contact form
-              </Link>
+              <p style={{ ...styles.note, marginTop: 12, marginBottom: 0 }}>
+                One conversation. No payment on this page.{' '}
+                <Link href={LEAD_RESCUE_ENQUIRY_HREF} style={styles.link} onClick={() => trackEvent('lr_secondary_cta_click', { props: { location: 'hero' } })}>
+                  Use the contact form instead
+                </Link>
+                {' '}if you prefer.
+              </p>
             </div>
           </HeroGlassBlock>
 
           <GlassPanel variant={{ fill: GLASS_TOKENS.glassFill, padding: 22, elevation: 2 }}>
             <div style={styles.label}>Commercial problem</div>
-            <h2 style={styles.h2}>How this helps you make or recover money</h2>
+            <h2 style={styles.h2}>Valuable enquiries go quiet. That can cost money.</h2>
             <p style={styles.muted}>
-              Enquiries already arrive — website, WhatsApp, phone, Facebook, email, or a staff member. The leak is
-              usually after first contact: follow-up becomes inconsistent, ownership is unclear, and a high-value
-              conversation goes quiet.
+              Enquiries already arrive — website, WhatsApp, phone, Facebook, email, or a staff member. After first
+              contact, follow-up can become inconsistent. A high-value conversation goes quiet. We do not claim your
+              business is definitely losing money until we diagnose.
             </p>
             <p style={styles.muted}>{ENQUIRY_RECOVERY_QUALIFICATION_LINE}</p>
           </GlassPanel>
@@ -226,8 +256,8 @@ export default function EnquiryRecoveryCampaignPage() {
               <li>Boutique hospitality, tours, and experience businesses with direct enquiries</li>
             </ul>
             <p style={styles.note}>
-              CorpFlowAI is Mauritius-based. We work with selected businesses. We are not selling generic marketing,
-              and we are not selling “AI”. We do not require you to replace everything you already use.
+              CorpFlowAI is Mauritius-based and works with selected owner-led businesses. This page is one offer: the
+              Enquiry Recovery Sprint. You do not choose a package or design a system.
             </p>
           </GlassPanel>
         </div>
@@ -241,19 +271,38 @@ export default function EnquiryRecoveryCampaignPage() {
                 <li key={item}>{item}</li>
               ))}
             </ul>
+            <p style={{ ...styles.muted, fontWeight: 700 }}>This is not for you if:</p>
+            <ul style={styles.list}>
+              {NOT_FOR.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+            <p style={styles.note}>{ENQUIRY_RECOVERY_QUALIFICATION_LINE}</p>
           </GlassPanel>
         </div>
 
         <div style={styles.section}>
           <GlassPanel variant={{ fill: GLASS_TOKENS.glassFill, padding: 24, elevation: 2 }}>
-            <div style={styles.label}>What you buy</div>
-            <h2 style={styles.h2}>A fixed, bounded engagement — diagnosis, written offer, then deposit</h2>
+            <div style={styles.label}>Your role</div>
+            <h2 style={styles.h2}>You decide. CorpFlowAI does the implementation work.</h2>
             <ul style={styles.list}>
-              <li>A short commercial diagnosis of whether recovery is worth doing</li>
-              <li>A written offer if the case qualifies</li>
+              {CLIENT_ROLE.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+            <p style={styles.note}>{ENQUIRY_RECOVERY_IMPLEMENTATION_LINE}</p>
+          </GlassPanel>
+        </div>
+
+        <div style={styles.section}>
+          <GlassPanel variant={{ fill: GLASS_TOKENS.glassFill, padding: 24, elevation: 2 }}>
+            <div style={styles.label}>Commercial structure</div>
+            <h2 style={styles.h2}>Fixed price. Diagnosis first. Preview before the balance.</h2>
+            <ul style={styles.list}>
               <li>{ENQUIRY_RECOVERY_PRICE_LINE}</li>
               <li>{ENQUIRY_RECOVERY_DEPOSIT_LINE}</li>
               <li>{ENQUIRY_RECOVERY_PREVIEW_LINE}</li>
+              <li>Maximum {ENQUIRY_RECOVERY_FOUNDING_SLOTS} founding-client slots in this delivery cycle</li>
             </ul>
             <p style={styles.note}>{ENQUIRY_RECOVERY_NO_GUARANTEE_LINE}</p>
           </GlassPanel>
@@ -271,20 +320,13 @@ export default function EnquiryRecoveryCampaignPage() {
           </GlassPanel>
         </div>
 
-        <PublishingVideoSection
-          videos={offerVideos}
-          title="See the commercial problem, then the diagnosis"
-          body="Short briefings on recovering quiet enquiries. This is not a generic AI demo. Diagnosis still starts with the form below."
-          compact
-        />
-
         <div style={styles.section} id={ENQUIRY_RECOVERY_DIAGNOSIS_HASH}>
           <GlassPanel variant={{ fill: GLASS_TOKENS.glassFill, padding: 24, elevation: 2 }}>
             <DiscoveryIntakeForm
               defaultOfferSlug="ai-lead-rescue"
               lockedOffer
               lockedOfferLabel={ENQUIRY_RECOVERY_OFFER_NAME}
-              heading="Request a 15-minute diagnosis"
+              heading={ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL}
             />
             <p style={styles.note}>
               Built by a Mauritius-based operating-systems team. No payment is taken on this page. We confirm fit in
@@ -296,18 +338,15 @@ export default function EnquiryRecoveryCampaignPage() {
         <div style={styles.section}>
           <CtaGlassBlock>
             <div style={styles.label}>Next step</div>
-            <h2 style={styles.h2}>Request a 15-minute diagnosis</h2>
+            <h2 style={styles.h2}>{ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL}</h2>
             <p style={styles.muted}>
               Tell us how enquiries arrive today and where follow-up is hardest to see. If the case does not qualify,
               we will say so.
             </p>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 20 }}>
               <a style={primaryCtaStyle} href={diagnosisHref} onClick={() => handleCtaClick('footer')}>
-                Request a 15-minute diagnosis
+                {ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL}
               </a>
-              <Link href="/" style={cfBtnSecondary}>
-                CorpFlowAI home
-              </Link>
             </div>
           </CtaGlassBlock>
         </div>

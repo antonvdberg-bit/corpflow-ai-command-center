@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { CORPflow_PUBLIC_NAV } from '../../lib/public/corpflow-public-market.js';
-import { ENQUIRY_RECOVERY_DIAGNOSIS_HREF } from '../../lib/public/enquiry-recovery-sprint.js';
+import {
+  ENQUIRY_RECOVERY_DIAGNOSIS_HREF,
+  ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL,
+} from '../../lib/public/enquiry-recovery-sprint.js';
 import { cfBtnPrimary, cfLink, CF } from './corpflow-public-styles.js';
 
 const styles = {
@@ -41,10 +44,11 @@ const styles = {
 
 /**
  * Shared CorpFlowAI public header with desktop links and mobile menu toggle.
- * @param {{ cta?: { label: string, href: string } | null }} props
+ * @param {{ cta?: { label: string, href: string } | null, nav?: { href: string, label: string }[] }} props
  */
 export default function CorpFlowPublicHeader({
-  cta = { label: 'Request a 15-minute diagnosis', href: ENQUIRY_RECOVERY_DIAGNOSIS_HREF },
+  cta = { label: ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL, href: ENQUIRY_RECOVERY_DIAGNOSIS_HREF },
+  nav = CORPflow_PUBLIC_NAV,
 }) {
   const [open, setOpen] = useState(false);
 
@@ -68,7 +72,7 @@ export default function CorpFlowPublicHeader({
           {open ? 'Close menu' : 'Menu'}
         </button>
         <div className="cf-nav-desktop" style={styles.links}>
-          {CORPflow_PUBLIC_NAV.map((item) => (
+          {nav.map((item) => (
             <Link key={item.href} href={item.href} style={styles.link}>
               {item.label}
             </Link>
@@ -85,7 +89,7 @@ export default function CorpFlowPublicHeader({
         className={`cf-nav-mobile${open ? ' cf-nav-mobile-open' : ''}`}
         style={{ ...styles.mobilePanel, ...(open ? styles.mobileOpen : {}) }}
       >
-        {CORPflow_PUBLIC_NAV.map((item) => (
+        {nav.map((item) => (
           <Link key={item.href} href={item.href} style={styles.link} onClick={() => setOpen(false)}>
             {item.label}
           </Link>

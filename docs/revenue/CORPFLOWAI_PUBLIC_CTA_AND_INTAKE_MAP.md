@@ -15,8 +15,7 @@ Traces every primary public CTA on priority routes. Qualified market enquiries p
 
 | Source route | Button text | Destination | Form/API | Persistence | Success | Failure | Operator follow-up | Analytics | Current result |
 | ------------ | ----------- | ----------- | -------- | ----------- | ------- | ------- | ------------------ | --------- | -------------- |
-| `/` hero | Request a 15-minute diagnosis | `/enquiry-recovery#diagnosis` | form | `leads` | Reference on screen | Validation / tenant context | `/admin/rapid-delivery` | — | **Working** |
-| `/` hero | See how we help | `#service-paths` | — | — | In-page scroll | — | — | — | **Working** |
+| `/` hero | Request a 15-minute Enquiry Recovery Diagnosis | `/enquiry-recovery#diagnosis` | form | `leads` | Reference on screen | Validation / tenant context | `/admin/rapid-delivery` | — | **Working** |
 | `/` service path cards | Enquire about this path → | `/contact?path={id}#discovery` | form | `leads` | Reference on screen | Validation | `/admin/rapid-delivery` | — | **Working** |
 | `/` offer cards (secondary) | View sprint → | `/offers/{slug}` or `/website-rescue` for Website Rescue | — | — | Offer page loads | — | — | — | **Working** |
 

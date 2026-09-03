@@ -12,7 +12,7 @@ import {
   formatCurrencyDisclosure,
 } from '../lib/public/merchant-identity.js';
 import { buildPublicPageMeta } from '../lib/public/corpflow-public-market.js';
-import { ENQUIRY_RECOVERY_DIAGNOSIS_HREF } from '../lib/public/enquiry-recovery-sprint.js';
+import { ENQUIRY_RECOVERY_DIAGNOSIS_HREF, ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL } from '../lib/public/enquiry-recovery-sprint.js';
 import { luxOrApexPageProps } from '../lib/client/lux-host-page-props.js';
 
 /**
@@ -66,7 +66,7 @@ export default function AboutPage({ luxMode = false, seoHost = '' } = {}) {
   });
 
   return (
-    <CorpFlowPublicPhotoShell meta={meta} visualKey="about" maxWidth={960} headerCta={{ label: 'Request a 15-minute diagnosis', href: ENQUIRY_RECOVERY_DIAGNOSIS_HREF }}>
+    <CorpFlowPublicPhotoShell meta={meta} visualKey="about" maxWidth={960} headerCta={{ label: ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL, href: ENQUIRY_RECOVERY_DIAGNOSIS_HREF }}>
       <h1 style={{ margin: '16px 0 8px', fontSize: 'clamp(28px, 4.6vw, 38px)', letterSpacing: '-0.03em', lineHeight: 1.15, color: '#eef6ff' }}>
         About CorpFlowAI
       </h1>
@@ -181,7 +181,7 @@ export default function AboutPage({ luxMode = false, seoHost = '' } = {}) {
 
         <div style={ts.ctaRow}>
           <Link href="/enquiry-recovery" style={ts.ctaPrimary}>
-            Request a 15-minute diagnosis &rarr;
+            {ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL} &rarr;
           </Link>
           <Link href="/contact" style={ts.ctaSecondary}>
             Ask a question first
