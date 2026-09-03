@@ -3,6 +3,12 @@ import Link from 'next/link';
 import CorpFlowPublicPhotoShell from '../components/public/CorpFlowPublicPhotoShell.js';
 import { policyStyles as ps, trustStyles as ts } from '../components/PublicPolicyLayout.js';
 import { buildPublicPageMeta } from '../lib/public/corpflow-public-market.js';
+import {
+  ENQUIRY_RECOVERY_DEPOSIT_LINE,
+  ENQUIRY_RECOVERY_DIAGNOSIS_HREF,
+  ENQUIRY_RECOVERY_PREVIEW_LINE,
+  ENQUIRY_RECOVERY_PRICE_LINE,
+} from '../lib/public/enquiry-recovery-sprint.js';
 
 /**
  * /onboarding - The first fourteen days of a CorpFlowAI engagement,
@@ -14,39 +20,34 @@ import { buildPublicPageMeta } from '../lib/public/corpflow-public-market.js';
 
 const STEPS = [
   {
-    label: 'Day 0',
-    title: 'Intake submitted',
-    body: "You submit the AI Lead Rescue intake form (or an equivalent intake link we send you). We capture the business name, how enquiries arrive today, the follow-up problem you want fixed first, and the owner's preferred alert channel.",
+    label: 'Step 1',
+    title: 'Request a 15-minute diagnosis',
+    body: 'Tell us how enquiries arrive today and where follow-up is hardest to see. Submitting the form does not create a payment obligation.',
   },
   {
-    label: 'Day 1',
-    title: 'Operator review',
-    body: 'A CorpFlowAI operator (a person, not an auto-router) reads your intake. If anything is unclear, they reply by email with one to three short questions. If we cannot help, they tell you on Day 1, before money is discussed.',
+    label: 'Step 2',
+    title: 'Diagnosis conversation',
+    body: 'A CorpFlowAI operator (a person) confirms whether recovery is commercially worth doing. If we cannot identify a meaningful recovery problem, we should not work together.',
   },
   {
-    label: 'Day 2',
-    title: 'Decision and scoping',
-    body: 'If the engagement fits, we send a written scope: what is in, what is out, and what counts as complete. Mauritius delivery sprints are invoiced in MUR (manual bank transfer). The separate launch pilot at /lead-rescue is invoiced in USD.',
+    label: 'Step 3',
+    title: 'Written offer',
+    body: `If the case qualifies, we send a written offer. The live Enquiry Recovery Sprint is ${ENQUIRY_RECOVERY_PRICE_LINE}. ${ENQUIRY_RECOVERY_DEPOSIT_LINE}`,
   },
   {
-    label: 'Day 3 to Day 5',
-    title: '48-hour pilot setup',
-    body: "Once the invoice is paid, the 48-hour clock starts. We connect one lead source (form, email, WhatsApp, or Google Form), wire the alert path on the owner's preferred channel, set up a Google Sheet log that you own from day one, and configure a daily summary email. By the end of Day 5 the system is live.",
+    label: 'Step 4',
+    title: 'Deposit, access, and assets',
+    body: 'Implementation starts after the deposit is cleared and we have the required access and assets or information. Historic USD 150 launch-pilot invoices, if any were issued, remain governed by those invoice terms.',
   },
   {
-    label: 'Day 6 to Day 12',
-    title: 'Operator-watched pilot',
-    body: 'Seven business days of operator-watched monitoring. Every business day we test the alert path, confirm the daily summary delivered, and check the lead log against the operator follow-up status. We fix issues quickly and answer your operator\'s questions in writing.',
+    label: 'Step 5',
+    title: 'First visible preview',
+    body: ENQUIRY_RECOVERY_PREVIEW_LINE,
   },
   {
-    label: 'Day 13',
-    title: 'Pilot review meeting',
-    body: 'A scheduled meeting with the business owner. We review the actual lead-capture and follow-up data from the pilot - what was captured, what alerts fired, what the daily summary looked like, and where the operator follow-up sits. No slides; the data is the artifact.',
-  },
-  {
-    label: 'Day 14',
-    title: 'Continue or close',
-    body: 'You decide, with the data in front of you. Continue means a written next-month scope (MUR for Mauritius delivery sprints; USD for the separate launch pilot). Close means we hand over everything we built (the Sheet, the alert config, the summary template) and step back. Either way, you keep the artifacts.',
+    label: 'Step 6',
+    title: 'Approve, then production release',
+    body: 'The remaining 40% is payable after you approve the preview and before production release. We do not ask you to replace the tools you already use.',
   },
 ];
 
@@ -68,7 +69,7 @@ export default function OnboardingPage() {
   const meta = buildPublicPageMeta({
     title: 'Client onboarding',
     description:
-      'The first fourteen days of a CorpFlowAI engagement, day by day. Operator review, written scoping, 48-hour setup, seven-day operator-watched pilot, review meeting, continue or close.',
+      'Diagnosis, written offer, deposit, then a targeted first preview after access and assets. The live Enquiry Recovery Sprint is MUR 85,000 fixed.',
     path: '/onboarding',
     ogImage: '/assets/visuals/corpflow-onboarding-hero.jpg',
   });
@@ -78,7 +79,7 @@ export default function OnboardingPage() {
       meta={meta}
       visualKey="onboarding"
       maxWidth={960}
-      headerCta={{ label: 'Book discovery', href: '/contact' }}
+      headerCta={{ label: 'Request a 15-minute diagnosis', href: ENQUIRY_RECOVERY_DIAGNOSIS_HREF }}
     >
       <h1
         style={{
@@ -92,20 +93,19 @@ export default function OnboardingPage() {
         Client onboarding
       </h1>
       <p style={ts.lead}>
-        This is what the first two weeks of a CorpFlowAI engagement look like. Each step
-        below is real work that a person does &mdash; nothing is auto-routed, nothing is
-        templated past the point where templating would do harm. If a step is going to
-        slip, we tell you on the day it slips, not at the end.
+        This is how the live Enquiry Recovery Sprint starts. Diagnosis first. Written offer if the case
+        qualifies. Deposit, then a targeted first preview after required access and assets. Nothing is auto-charged
+        from this website.
       </p>
 
       <section style={ps.section}>
-        <p style={ts.sectionLabel}>The first 14 days</p>
-        <h2 style={ps.h2}>From intake to continue-or-close</h2>
+        <p style={ts.sectionLabel}>Current commercial path</p>
+        <h2 style={ps.h2}>From diagnosis to production release</h2>
 
         <div style={ts.visualFrame}>
           <img
             src="/assets/visuals/corpflow-onboarding-journey.svg"
-            alt="CorpFlowAI 14-day onboarding timeline: day 0 intake, day 1 operator review, day 2 decision and scoping, days 3-5 48-hour setup, days 6-12 operator-watched pilot, day 13 review with the owner, day 14 continue or close."
+            alt="CorpFlowAI onboarding path: diagnosis, written offer, deposit, first visible preview after access and assets, then approved preview before production release."
             width={1080}
             height={260}
             loading="lazy"
@@ -142,9 +142,8 @@ export default function OnboardingPage() {
         <p style={ts.sectionLabel}>What we ask for, and what we do not</p>
         <h2 style={ps.h2}>Access boundaries</h2>
         <p style={ps.p}>
-          A CorpFlowAI pilot is intentionally low-access. If a pilot would need more than
-          this list, we say so on Day 2 (in writing) and you decide whether to proceed
-          before any payment is taken.
+          An Enquiry Recovery engagement is intentionally low-access at the start. If more access is required,
+          we say so in the written offer before the deposit is requested.
         </p>
 
         <div style={ts.twoColumn}>
@@ -174,23 +173,22 @@ export default function OnboardingPage() {
       <hr style={ts.divider} />
 
       <section style={ps.section}>
-        <p style={ts.sectionLabel}>What &ldquo;pilot complete&rdquo; means</p>
+        <p style={ts.sectionLabel}>What complete means</p>
         <h2 style={ps.h2}>Done is defined before we start</h2>
         <p style={ps.p}>
-          A pilot is complete when all four conditions below are true. We confirm them
-          together at the Day 13 review meeting; the continue-or-close decision is made
-          after that, not before.
+          The sprint is complete when the agreed preview is approved and the remaining balance is settled before
+          production release. Historic USD 150 launch-pilot engagements, if invoiced, remain governed by those
+          invoice terms.
         </p>
         <ul style={ps.ul}>
-          <li>One lead source has been captured live for at least 5 business days</li>
-          <li>The owner has received at least one real alert and at least one real daily summary</li>
-          <li>The Google Sheet log is up to date and owned by the client</li>
-          <li>The Day 13 review meeting has taken place with the owner</li>
+          <li>A 15-minute diagnosis has confirmed a commercially meaningful recovery problem</li>
+          <li>A written offer was accepted and the deposit cleared</li>
+          <li>Required access and assets were provided</li>
+          <li>A first visible preview was produced against those conditions</li>
         </ul>
         <p style={ps.p}>
-          What happens after Day 14 is a separate decision. If we continue, the next
-          month&rsquo;s scope is written down before any further invoice. If we close, the
-          artifacts are yours and we step back cleanly.
+          We do not guarantee recovered revenue. We help identify quiet enquiries and reduce the chance that
+          follow-up is forgotten.
         </p>
       </section>
 
@@ -198,8 +196,8 @@ export default function OnboardingPage() {
 
       <section style={ps.section}>
         <div style={ts.ctaRow}>
-          <Link href="/lead-rescue" style={ts.ctaPrimary}>
-            Submit intake &rarr;
+          <Link href="/enquiry-recovery" style={ts.ctaPrimary}>
+            Request a 15-minute diagnosis &rarr;
           </Link>
           <Link href="/process" style={ts.ctaSecondary}>
             See the engagement process

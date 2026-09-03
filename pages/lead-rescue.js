@@ -4,21 +4,8 @@ import { listVisualAssetManifests } from '../lib/visualAssets/loadManifest.js';
 import { selectLeadRescueAssets } from '../lib/visualAssets/selectLeadRescueAssets.js';
 
 /**
- * `/lead-rescue` on the apex host renders the same component as the
- * `aileadrescue.corpflowai.com` host (see `pages/index.js`). Both
- * routes load their visuals from the same governed manifest pool —
- * see `data/visual-assets/lead-rescue-*.manifest.json`.
- *
- * The manifests do not change between requests, so we resolve them
- * at build time via `getStaticProps`. If a manifest fails to load or
- * validate, we render the page without that asset rather than
- * breaking the customer-facing route — per
- * `.cursor/rules/delivery-reality.mdc` a content-only failure must
- * never take down the conversion-critical surface.
- *
- * ElevenLabsWebsiteVoiceChat is mounted but DISABLED BY DEFAULT
- * (renders null). Do not enable in production without Anton approval —
- * docs/product/ELEVENLABS_WEBSITE_VOICE_CHAT_PILOT_V1.md
+ * `/lead-rescue` remains a live alias of the Enquiry Recovery Sprint campaign
+ * so historic WhatsApp and Google links do not 404 or show USD 150 pricing.
  */
 
 export default function LeadRescuePage({ leadRescueAssets }) {

@@ -114,7 +114,7 @@ describe('CorpFlowAI brand assets — head tags and wiring', () => {
       'components/public/CorpFlowPublicShell.js',
       'components/RapidDeliveryOfferPage.js',
       'components/PublicPolicyLayout.js',
-      'components/AiLeadRescueLanding.js',
+      'components/EnquiryRecoveryCampaignPage.js',
     ];
     for (const rel of files) {
       const src = readFileSync(path.join(ROOT, rel), 'utf8');

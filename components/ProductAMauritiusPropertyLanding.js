@@ -213,10 +213,10 @@ export default function ProductAMauritiusPropertyLanding() {
             </div>
             <p style={styles.wedgeNote}>
               Already have a workable website and only need follow-up visibility?{' '}
-              <a href="/lead-rescue/property-mauritius" style={styles.wedgeLink}>
-                Start with the USD 150 Lead Rescue pilot
+              <a href="/enquiry-recovery" style={styles.wedgeLink}>
+                Request an Enquiry Recovery diagnosis
               </a>{' '}
-              instead — a lighter entry path for enquiry logging and daily summaries.
+              instead — the live commercial path for recovering quiet enquiries.
             </p>
           </HeroGlassBlock>
 

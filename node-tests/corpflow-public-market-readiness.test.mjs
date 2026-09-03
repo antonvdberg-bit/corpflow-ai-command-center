@@ -55,6 +55,7 @@ const FORBIDDEN_PUBLIC_TERMS = [
 
 const VALID_INTERNAL_HREFS = [
   '/',
+  '/enquiry-recovery',
   '/contact',
   '/offers/ai-lead-rescue',
   '/offers/premium-landing-page-rescue',
@@ -124,7 +125,7 @@ describe('CorpFlow public market readiness — three offer prices', () => {
   it('lists three offers with expected MUR starting prices', () => {
     const offers = listPublicOffers();
     assert.equal(offers.length, 3);
-    assert.equal(RAPID_DELIVERY_OFFERS['ai-lead-rescue'].startingPriceMur, 35000);
+    assert.equal(RAPID_DELIVERY_OFFERS['ai-lead-rescue'].startingPriceMur, 85000);
     assert.equal(RAPID_DELIVERY_OFFERS['premium-landing-page-rescue'].startingPriceMur, 45000);
     assert.equal(RAPID_DELIVERY_OFFERS['customer-reputation-recovery'].startingPriceMur, 45000);
   });
@@ -139,7 +140,7 @@ describe('CorpFlow public market readiness — three offer prices', () => {
 
 describe('CorpFlow public market readiness — CTA destinations', () => {
   it('homepage primary CTA targets discovery form', () => {
-    assert.equal(CORPflow_HOMEPAGE_HERO.primaryCta.href, '/contact#discovery');
+    assert.equal(CORPflow_HOMEPAGE_HERO.primaryCta.href, '/enquiry-recovery#diagnosis');
   });
 
   it('public surfaces do not link primary flows to /change', () => {
@@ -176,9 +177,9 @@ describe('CorpFlow public market readiness — metadata', () => {
     const home = read('components/CorpFlowPublicHome.js');
     assert.ok(home.includes('buildPublicPageMeta'));
     assert.ok(
-      home.includes('managed AI-assisted') ||
-        home.includes('workflow systems') ||
-        home.includes('qualified conversation'),
+      home.includes('Enquiry Recovery') ||
+        home.includes('quiet enquiries') ||
+        home.includes('15-minute diagnosis'),
     );
   });
 });

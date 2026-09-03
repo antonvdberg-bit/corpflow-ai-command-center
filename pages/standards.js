@@ -3,6 +3,7 @@ import Link from 'next/link';
 import CorpFlowPublicPhotoShell from '../components/public/CorpFlowPublicPhotoShell.js';
 import { policyStyles as ps, trustStyles as ts } from '../components/PublicPolicyLayout.js';
 import { buildPublicPageMeta } from '../lib/public/corpflow-public-market.js';
+import { ENQUIRY_RECOVERY_DIAGNOSIS_HREF } from '../lib/public/enquiry-recovery-sprint.js';
 
 /**
  * /standards - Operational standards: review cadence, monitoring,
@@ -20,7 +21,7 @@ import { buildPublicPageMeta } from '../lib/public/corpflow-public-market.js';
 const PILLARS = [
   {
     label: 'Review cadence',
-    body: 'Every active engagement has at least one operator review per week. During the seven-day pilot monitoring window, that becomes one review per business day. Reviews are scheduled by the operator, not the client - you do not have to chase us.',
+    body: 'Every active engagement has at least one operator review per week. During a live delivery window, that becomes one review per business day. Reviews are scheduled by the operator, not the client - you do not have to chase us.',
   },
   {
     label: 'Monitoring',
@@ -28,7 +29,7 @@ const PILLARS = [
   },
   {
     label: 'Payment after review',
-    body: 'No card or banking details are collected on this website. Mauritius delivery sprints are invoiced in MUR (manual bank transfer) after review. The separate AI Lead Rescue launch pilot is invoiced in USD. Cancellation windows before setup begins are published on the refund-policy page.',
+    body: 'No card or banking details are collected on this website. The live Enquiry Recovery Sprint is invoiced in MUR (manual bank transfer) after diagnosis and a written offer. Historic USD 150 launch-pilot invoices, if issued, remain governed by those invoice terms. Cancellation windows before setup begins are published on the refund-policy page.',
   },
   {
     label: 'No revenue guarantees',
@@ -50,7 +51,7 @@ export default function StandardsPage() {
       meta={meta}
       visualKey="standards"
       maxWidth={960}
-      headerCta={{ label: 'Book discovery', href: '/contact' }}
+      headerCta={{ label: 'Request a 15-minute diagnosis', href: ENQUIRY_RECOVERY_DIAGNOSIS_HREF }}
     >
       <h1
         style={{
@@ -187,8 +188,8 @@ export default function StandardsPage() {
         </p>
 
         <div style={ts.ctaRow}>
-          <Link href="/lead-rescue" style={ts.ctaPrimary}>
-            Start with intake &rarr;
+          <Link href="/enquiry-recovery" style={ts.ctaPrimary}>
+            Request a 15-minute diagnosis &rarr;
           </Link>
           <Link href="/process" style={ts.ctaSecondary}>
             See the engagement process

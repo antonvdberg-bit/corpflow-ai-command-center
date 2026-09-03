@@ -26,10 +26,20 @@ export default function RefundPolicyPage() {
         </p>
       </section>
       <section style={ps.section}>
-        <h2 style={ps.h2}>AI Lead Rescue launch pilot</h2>
+        <h2 style={ps.h2}>Enquiry Recovery Sprint (current commercial offer)</h2>
         <p style={ps.p}>
-          The AI Lead Rescue USD 150 launch pilot is invoiced after intake review and scope confirmation. Refunds are
-          available before setup work has started. Once the 48-hour setup work has begun, refunds are discretionary or
+          The live Enquiry Recovery Sprint is invoiced in MUR after a 15-minute diagnosis and a written offer. The
+          published terms are MUR 85,000 fixed, with MUR 51,000 (60%) deposit to start and MUR 34,000 (40%) after
+          approved preview and before production release. Refunds are available before setup work has started. Once
+          work has begun, refunds are discretionary or prorated based on the work already performed.
+        </p>
+      </section>
+      <section style={ps.section}>
+        <h2 style={ps.h2}>Historic AI Lead Rescue launch pilot</h2>
+        <p style={ps.p}>
+          If you were invoiced under the historic USD 150 launch-pilot terms, those invoice terms still apply to that
+          engagement. That pilot is no longer offered as a current public path. Refunds for a historic pilot remain
+          available before setup work has started. Once the setup work has begun, refunds are discretionary or
           prorated based on the work already performed, in line with the general setup-fee policy above.
         </p>
       </section>
@@ -67,8 +77,8 @@ export default function RefundPolicyPage() {
         </p>
         <p style={ps.p}>
           Questions: submit intake on{' '}
-          <Link href="/lead-rescue" style={{ color: '#7dd3fc' }}>
-            /lead-rescue
+          <Link href="/enquiry-recovery" style={{ color: '#7dd3fc' }}>
+            /enquiry-recovery
           </Link>{' '}
           or use the <Link href="/contact" style={{ color: '#7dd3fc' }}>contact page</Link>.
         </p>

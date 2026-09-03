@@ -451,7 +451,7 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
   const footer = (
     <PublicSiteFooter
       flush
-      extra="AI Lead Rescue Mauritius property edition is powered by CorpFlowAI. The launch pilot is invoiced as the MUR equivalent of USD 150 on a local pro-forma after intake review; this page collects intake only, does not collect card or banking details, and does not create any automated subscription. Calls in English; written workflow supports French summaries and French enquiry handling on request, with reviewed replies."
+      extra="CorpFlowAI Mauritius property edition. The current commercial offer is the Enquiry Recovery Sprint at MUR 85,000 fixed. This page collects intake only, does not collect card or banking details, and does not create any automated subscription. Calls in English; written workflow supports French summaries and French enquiry handling on request, with reviewed replies."
     />
   );
 
@@ -461,7 +461,7 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
         <title>AI Lead Rescue for Mauritius property operators · CorpFlowAI</title>
         <meta
           name="description"
-          content="A 48-hour pilot for Mauritius property operators that captures, alerts, and tracks enquiries from WhatsApp, Facebook, website forms, listing portals, and calls — without replacing WhatsApp Business or your CRM."
+          content="Enquiry Recovery for Mauritius property operators — identify and recover valuable quiet enquiries across WhatsApp, Facebook, website forms, listing portals, and calls. MUR 85,000 fixed. Maximum three founding clients."
         />
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href="https://corpflowai.com/lead-rescue/property-mauritius" />
@@ -691,14 +691,14 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
         <section style={styles.section}>
           <GlassPanel>
             <div style={styles.sectionLabel}>Pricing &amp; path</div>
-            <h2 style={styles.h2}>One launch pilot. Local pro-forma. No card on the page.</h2>
+            <h2 style={styles.h2}>Enquiry Recovery Sprint. Local invoice. No card on the page.</h2>
             <div style={styles.pricingCard}>
               <div>
-                <div style={styles.pricingNumber}>USD 150</div>
-                <div style={styles.pricingLabel}>Launch pilot · invoiced as the MUR equivalent</div>
+                <div style={styles.pricingNumber}>MUR 85,000</div>
+                <div style={styles.pricingLabel}>Fixed · invoiced as the MUR equivalent on a local invoice</div>
               </div>
               <div style={styles.pricingBody}>
-                Submitting the form does not commit you to payment. After we review your intake within two business hours, we issue a local pro-forma invoice in Mauritian rupees — the MUR equivalent of USD 150 at the day&rsquo;s rate, with the final MUR amount confirmed on the invoice itself. You pay by bank transfer to a Mauritius bank account, share the proof of payment, and the 48-hour setup begins only after we manually confirm receipt. No card details, no online checkout, and no automated subscription on this page.
+                Submitting the form does not commit you to payment. After diagnosis, if the case qualifies, we send a written offer: MUR 85,000 fixed, MUR 51,000 (60%) to start, MUR 34,000 (40%) after approved preview and before production release. First visible preview is targeted within 72 hours after cleared deposit, required access, and required assets — not an unconditional 72-hour guarantee. No card details, no online checkout, and no automated subscription on this page.
               </div>
             </div>
             <div style={styles.paymentSteps} aria-label="How payment works on the Mauritius property pilot">

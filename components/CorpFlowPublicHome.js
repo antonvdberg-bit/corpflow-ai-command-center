@@ -4,27 +4,32 @@ import Link from 'next/link';
 import CorpFlowPublicPhotoShell from './public/CorpFlowPublicPhotoShell.js';
 import PublicHero from './public/PublicHero.js';
 import OutcomeSection from './public/OutcomeSection.js';
-import DeliverySteps from './public/DeliverySteps.js';
 import PublicCtaBand from './public/PublicCtaBand.js';
 import PublicTrustBand from './public/PublicTrustBand.js';
 import {
   buildPublicPageMeta,
   CORPflow_BUYER_FIT,
-  CORPflow_DELIVERY_STEPS,
   CORPflow_HOMEPAGE_HERO,
   CORPflow_PROOF_ITEMS,
   CORPflow_TRUST_POINTS,
   MARKET_SERVICE_PATHS,
 } from '../lib/public/corpflow-public-market.js';
+import {
+  ENQUIRY_RECOVERY_DEPOSIT_LINE,
+  ENQUIRY_RECOVERY_OFFER_NAME,
+  ENQUIRY_RECOVERY_PRICE_LINE,
+  ENQUIRY_RECOVERY_QUALIFICATION_LINE,
+  ENQUIRY_RECOVERY_SCARCITY_LINE,
+} from '../lib/public/enquiry-recovery-sprint.js';
 import { shouldEmitCorpFlowBrandAssets } from '../lib/public/corpflow-brand-assets.js';
 import { cfBody, cfCard, cfGrid, cfLink, CF } from './public/corpflow-public-styles.js';
 
 const FLAGSHIP_VIDEO_PATH = '/media/corpflowai/corpflowai-flagship-homepage-final-1080p.mp4';
 
 const meta = buildPublicPageMeta({
-  title: 'CorpFlowAI — managed AI-assisted business workflows',
+  title: 'Stop losing valuable enquiries after first contact',
   description:
-    'CorpFlowAI designs and operates practical AI-assisted workflow systems for SMEs — managed delivery for administration, lead handling, and website operating upgrades. Request a qualified conversation.',
+    'CorpFlowAI helps selected Mauritius businesses identify and recover valuable enquiries that have gone quiet. Enquiry Recovery Sprint — MUR 85,000 fixed. Maximum three founding clients. Request a 15-minute diagnosis.',
   path: '/',
   ogImage: '/assets/visuals/corpflow-home-hero.jpg',
 });
@@ -42,7 +47,7 @@ function FlagshipVideoSection() {
           textTransform: 'uppercase',
         }}
       >
-        Flagship video
+        Context
       </p>
       <h2
         id="corpflow-flagship-video-title"
@@ -53,10 +58,10 @@ function FlagshipVideoSection() {
           letterSpacing: '-0.02em',
         }}
       >
-        Meet CorpFlowAI
+        Quiet enquiries are a commercial problem
       </h2>
       <p style={{ ...cfBody, margin: '0 0 16px', maxWidth: 760 }}>
-        See how CorpFlowAI turns practical business problems into visible, governed delivery.
+        A short briefing on why follow-up leakage costs money. This is not a generic AI demo. Diagnosis still starts with a 15-minute conversation.
       </p>
       <div
         style={{
@@ -69,8 +74,8 @@ function FlagshipVideoSection() {
         }}
       >
         <video
-          aria-label="Meet CorpFlowAI flagship video"
-          title="Meet CorpFlowAI"
+          aria-label="CorpFlowAI briefing on recovering quiet enquiries"
+          title="Quiet enquiries are a commercial problem"
           controls
           playsInline
           preload="metadata"
@@ -78,7 +83,7 @@ function FlagshipVideoSection() {
         >
           <source src={FLAGSHIP_VIDEO_PATH} type="video/mp4" />
           Your browser does not support HTML5 video.{' '}
-          <a href={FLAGSHIP_VIDEO_PATH}>Open the approved CorpFlowAI flagship video</a>.
+          <a href={FLAGSHIP_VIDEO_PATH}>Open the CorpFlowAI briefing video</a>.
         </video>
       </div>
     </section>
@@ -128,16 +133,33 @@ export default function CorpFlowPublicHome({ host = null, search = null }) {
     >
       <PublicHero {...CORPflow_HOMEPAGE_HERO} />
 
+      <OutcomeSection
+        id="commercial-focus"
+        label="The live offer"
+        title={`${ENQUIRY_RECOVERY_OFFER_NAME} — ${ENQUIRY_RECOVERY_PRICE_LINE}`}
+      >
+        <p style={cfBody}>{ENQUIRY_RECOVERY_SCARCITY_LINE}</p>
+        <p style={cfBody}>
+          Conversation → diagnosis → written offer → deposit. {ENQUIRY_RECOVERY_DEPOSIT_LINE} We do not ask you to
+          replace the tools you already use. We are not selling generic marketing, and we are not selling “AI”.
+        </p>
+        <p style={{ ...cfBody, margin: 0 }}>{ENQUIRY_RECOVERY_QUALIFICATION_LINE}</p>
+      </OutcomeSection>
+
+      <OutcomeSection label={CORPflow_BUYER_FIT.label} title={CORPflow_BUYER_FIT.title}>
+        <p style={{ ...cfBody, margin: 0 }}>{CORPflow_BUYER_FIT.body}</p>
+      </OutcomeSection>
+
       {showFlagshipVideo ? <FlagshipVideoSection /> : null}
 
       <OutcomeSection
         id="service-paths"
-        label="How CorpFlowAI helps"
-        title="Three practical service paths — managed delivery, not generic AI advice"
+        label="If enquiry recovery is not the problem"
+        title="Two other starting points — still bounded, still conversation-first"
       >
         <p style={cfBody}>
-          Choose the path that matches the problem. Product funnels such as AI Lead Rescue and Website Rescue are
-          available where they already fit; broader workflow work starts with a qualified conversation.
+          Enquiry Recovery is the live commercial offer. Website Rescue remains available if the enquiry page itself is
+          weak. Broader administration work starts only after a qualified conversation — not from a product grid.
         </p>
         <div style={cfGrid}>
           {MARKET_SERVICE_PATHS.map((path) => (
@@ -145,16 +167,6 @@ export default function CorpFlowPublicHome({ host = null, search = null }) {
           ))}
         </div>
       </OutcomeSection>
-
-      <OutcomeSection label={CORPflow_BUYER_FIT.label} title={CORPflow_BUYER_FIT.title}>
-        <p style={{ ...cfBody, margin: 0 }}>{CORPflow_BUYER_FIT.body}</p>
-      </OutcomeSection>
-
-      <DeliverySteps
-        label="Delivery method"
-        title="Understand → design → build → verify → review → improve"
-        steps={CORPflow_DELIVERY_STEPS}
-      />
 
       <OutcomeSection
         label="Proof of capability"
@@ -193,18 +205,19 @@ export default function CorpFlowPublicHome({ host = null, search = null }) {
 
       <PublicTrustBand>
         <p style={{ ...cfBody, margin: 0, color: '#eef6ff' }}>
-          CorpFlowAI provides managed delivery — design, build, verify and improve with an accountable operator path.
-          We do not promise guaranteed revenue, and we do not replace your stack unless that work is scoped in writing.
+          CorpFlowAI is Mauritius-based and works with selected owner-led businesses. We do not promise guaranteed revenue.
+          We help identify quiet enquiries and make follow-up visible — without replacing your stack unless that work is
+          scoped in writing.
         </p>
       </PublicTrustBand>
 
       <OutcomeSection label="Product entry points" title="Start with a focused product when it already fits">
         <ul style={{ ...cfBody, paddingLeft: 20, margin: 0 }}>
           <li>
-            <Link href="/lead-rescue" style={{ color: CF.link }}>
-              AI Lead Rescue
+            <Link href="/enquiry-recovery" style={{ color: CF.link }}>
+              Enquiry Recovery Sprint
             </Link>{' '}
-            — capture, alert, log and follow up missed enquiries (USD 150 launch pilot path; separate intake).
+            — identify and recover valuable enquiries that have gone quiet (MUR 85,000 fixed; three founding-client slots).
           </li>
           <li>
             <Link href="/website-rescue" style={{ color: CF.link }}>
@@ -224,10 +237,10 @@ export default function CorpFlowPublicHome({ host = null, search = null }) {
       </OutcomeSection>
 
       <PublicCtaBand
-        title="Ready for a qualified conversation?"
-        body="Tell us your business, the problem or outcome you want, your preferred service path, and timing. You get an on-screen reference immediately. No payment and no automatic outreach from this form."
+        title="Ready to see whether quiet enquiries are costing you?"
+        body="Request a 15-minute diagnosis. If we cannot identify a commercially meaningful recovery problem, we should not work together. No payment on this website."
         primaryCta={CORPflow_HOMEPAGE_HERO.primaryCta}
-        secondaryCta={{ label: 'Open AI Lead Rescue', href: '/lead-rescue' }}
+        secondaryCta={{ label: 'Enquiry Recovery Sprint', href: '/enquiry-recovery' }}
       />
     </CorpFlowPublicPhotoShell>
   );

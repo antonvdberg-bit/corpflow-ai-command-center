@@ -32,8 +32,8 @@ export default function PublicSiteFooter({ extra, flush = false }) {
     <footer style={footerStyle}>
       {extra ? <div style={{ marginBottom: 12 }}>{extra}</div> : null}
       <div>
-        <Link href="/lead-rescue" style={linkStyle}>
-          AI Lead Rescue
+        <Link href="/enquiry-recovery" style={linkStyle}>
+          Enquiry Recovery
         </Link>
         {' · '}
         <Link href="/services" style={linkStyle}>
