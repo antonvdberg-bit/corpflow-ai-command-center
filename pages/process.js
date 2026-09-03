@@ -3,6 +3,7 @@ import Link from 'next/link';
 import CorpFlowPublicPhotoShell from '../components/public/CorpFlowPublicPhotoShell.js';
 import { policyStyles as ps, trustStyles as ts } from '../components/PublicPolicyLayout.js';
 import { buildPublicPageMeta } from '../lib/public/corpflow-public-market.js';
+import { ENQUIRY_RECOVERY_DIAGNOSIS_HREF, ENQUIRY_RECOVERY_DEPOSIT_LINE, ENQUIRY_RECOVERY_PREVIEW_LINE, ENQUIRY_RECOVERY_PRICE_LINE } from '../lib/public/enquiry-recovery-sprint.js';
 
 /**
  * /process - Five stages of a CorpFlowAI engagement.
@@ -12,42 +13,42 @@ import { buildPublicPageMeta } from '../lib/public/corpflow-public-market.js';
 const STAGES = [
   {
     n: 1,
-    title: 'Intake review',
-    duration: '1 business day',
-    body: 'A CorpFlowAI operator reads your intake form, asks one to three clarifying questions, and decides whether we can help. If we cannot, we say so directly and explain why before any payment is taken.',
+    title: '15-minute diagnosis',
+    duration: 'short commercial conversation',
+    body: 'We confirm whether enquiries are already arriving, whether one conversion is valuable enough, and whether follow-up is inconsistent enough to justify work. If we cannot identify a commercially meaningful recovery problem, we should not work together.',
   },
   {
     n: 2,
-    title: 'Pilot scope',
-    duration: 'half a day to one day',
-    body: 'We confirm in writing exactly what the engagement will and will not include. Out-of-scope items are listed explicitly. The current Enquiry Recovery Sprint is invoiced in MUR (manual bank transfer) after a written offer.',
+    title: 'Written offer',
+    duration: 'after a qualified diagnosis',
+    body: `If the case qualifies, we send a written offer: what is in, what is out, and the commercial terms. The live Enquiry Recovery Sprint is ${ENQUIRY_RECOVERY_PRICE_LINE}.`,
   },
   {
     n: 3,
-    title: '48-hour pilot setup',
-    duration: '2 days, after invoice is paid',
-    body: 'We connect one lead source (form, email, WhatsApp, or Google Form), wire owner alerts, set up a Google Sheet log that you own, and configure a daily summary email. Setup happens against your existing tools, not against a new platform.',
+    title: 'Deposit to start',
+    duration: 'before implementation begins',
+    body: `${ENQUIRY_RECOVERY_DEPOSIT_LINE} Payment is by invoice (manual bank transfer). This website does not collect card or banking details.`,
   },
   {
     n: 4,
-    title: '7-day pilot monitoring',
-    duration: '7 days, operator-watched',
-    body: 'A CorpFlowAI operator monitors the live system every business day. We test the alert path, verify the daily summary delivers, fix issues quickly, and answer operator questions in writing.',
+    title: 'First visible preview',
+    duration: 'after deposit, access, and assets',
+    body: ENQUIRY_RECOVERY_PREVIEW_LINE,
   },
   {
     n: 5,
-    title: 'Pilot review meeting',
-    duration: 'with the owner',
-    body: 'We meet with the business owner, review actual lead-capture and follow-up data from the pilot, and decide together what happens next: continue with explicit next-month scope, or close cleanly with everything we built handed over to you.',
+    title: 'Approve, then release',
+    duration: 'before production',
+    body: 'The remaining 40% is payable after you approve the preview and before production release. We do not ask you to replace everything you already use.',
   },
 ];
 
 const DO_LIST = [
-  'Capture, alert, log, and summarise leads from one source at a time',
-  'Configure lightweight workflows around your existing tools (Google Workspace, Sheets, Mail, WhatsApp)',
-  'Run a 7-day operator-monitored pilot before any larger commitment',
-  'Hand over what we built so you can keep running it without us',
-  'Decline work we cannot deliver lightly, before payment',
+  'Identify and recover valuable enquiries that have gone quiet',
+  'Make follow-up visible to the owner or commercial manager',
+  'Work with the channels you already use (website, WhatsApp, phone, Facebook, email, staff)',
+  'Use a fixed, bounded engagement with a written offer before payment',
+  'Decline work where the economics do not justify the engagement',
 ];
 
 const DONT_LIST = [
@@ -62,30 +63,29 @@ export default function ProcessPage() {
   const meta = buildPublicPageMeta({
     title: 'How a CorpFlowAI engagement runs',
     description:
-      'Every CorpFlowAI engagement begins as a 48-hour or 7-day pilot scoped to one capture-and-follow-up problem. This page describes the five stages, what we do, and what we do not do.',
+      'Diagnosis first, then a written offer. The live Enquiry Recovery Sprint is MUR 85,000 fixed, with a 60% deposit to start and a targeted first preview after deposit, access, and required assets.',
     path: '/process',
     ogImage: '/assets/visuals/corpflow-process-hero.jpg',
   });
 
   return (
-    <CorpFlowPublicPhotoShell meta={meta} visualKey="process" maxWidth={960} headerCta={{ label: 'Book discovery', href: '/contact' }}>
+    <CorpFlowPublicPhotoShell meta={meta} visualKey="process" maxWidth={960} headerCta={{ label: 'Request a 15-minute diagnosis', href: ENQUIRY_RECOVERY_DIAGNOSIS_HREF }}>
       <h1 style={{ margin: '16px 0 8px', fontSize: 'clamp(28px, 4.6vw, 38px)', letterSpacing: '-0.03em', lineHeight: 1.15, color: '#eef6ff' }}>
         How a CorpFlowAI engagement runs
       </h1>
       <p style={ts.lead}>
-        Every CorpFlowAI engagement begins as a short pilot scoped to one specific capture-and-follow-up
-        problem. We do not start month-long projects on day one. We do not take payment before review.
-        The five stages below are how a typical engagement runs.
+        Every live Enquiry Recovery engagement starts with a short diagnosis, not a software rebuild. We do not take
+        payment before a written offer. The five stages below are how the current commercial offer runs.
       </p>
 
       <section style={ps.section}>
         <p style={ts.sectionLabel}>The five stages</p>
-        <h2 style={ps.h2}>Pilot first, decide together</h2>
+        <h2 style={ps.h2}>Diagnosis first, then a bounded engagement</h2>
 
         <div style={ts.visualFrame}>
           <img
             src="/assets/visuals/corpflow-process-timeline.svg"
-            alt="Five-stage CorpFlowAI engagement timeline: intake review (1 business day), pilot scope, 48-hour setup, 7-day operator-watched pilot monitoring, and pilot review meeting where the owner and operator decide together to continue or close."
+            alt="Five-stage CorpFlowAI engagement: 15-minute diagnosis, written offer, deposit to start, first visible preview after deposit and access, then approved preview before production release."
             width={1080}
             height={220}
             loading="lazy"
@@ -157,7 +157,7 @@ export default function ProcessPage() {
         <p style={ts.sectionLabel}>Money</p>
         <h2 style={ps.h2}>Payment after review</h2>
         <p style={ps.p}>
-          We do not take payment before intake review. Commercial terms, currency and payment
+          We do not take payment before a written offer. Commercial terms, currency and payment
           instructions are confirmed in writing before payment. Payment is processed off-site;
           this site does not collect card or banking details. The refund window for cancellation
           before setup begins is published separately on{' '}

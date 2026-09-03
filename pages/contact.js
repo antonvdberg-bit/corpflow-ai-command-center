@@ -39,7 +39,7 @@ export default function ContactPage({
   const meta = buildPublicPageMeta({
     title: 'Contact',
     description:
-      'Request a qualified conversation with CorpFlowAI about workflow improvement, lead and client systems, or website operating upgrades. No automatic outreach from this form.',
+      'Request a 15-minute diagnosis with CorpFlowAI about quiet enquiries, website rescue, or a bounded operating improvement. No automatic outreach from this form.',
     path: '/contact',
     ogImage: '/assets/visuals/corpflow-contact-hero.jpg',
   });
@@ -51,7 +51,7 @@ export default function ContactPage({
       meta={meta}
       visualKey="contact"
       maxWidth={800}
-      headerCta={{ label: 'How we help', href: '/#service-paths' }}
+      headerCta={{ label: 'Request a 15-minute diagnosis', href: '/enquiry-recovery#diagnosis' }}
     >
       <h1 style={h1}>Contact</h1>
       <p style={updated}>
@@ -62,18 +62,18 @@ export default function ContactPage({
       <section style={ps.section} id="discovery" data-canonical-enquiry>
         <DiscoveryIntakeForm
           heading={
-            lockedLeadRescue
+            lockedEnquiryRecovery
               ? 'Request a 15-minute diagnosis'
               : lockedWebsiteRescue
                 ? 'Request Website Rescue'
-                : 'Request a qualified conversation'
+                : 'Request a 15-minute diagnosis'
           }
           defaultBuyerNeed={defaultBuyerNeed || undefined}
           defaultServicePath={defaultServicePath || undefined}
           defaultOfferSlug={defaultOfferSlug || undefined}
           lockedOffer={lockedOffer}
           lockedOfferLabel={
-            lockedLeadRescue ? 'Enquiry Recovery Sprint' : lockedWebsiteRescue ? 'Website Rescue' : undefined
+            lockedEnquiryRecovery ? 'Enquiry Recovery Sprint' : lockedWebsiteRescue ? 'Website Rescue' : undefined
           }
         />
         <p style={{ ...ps.p, marginTop: 16 }}>

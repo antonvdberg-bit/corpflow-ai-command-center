@@ -12,6 +12,7 @@ import {
   formatCurrencyDisclosure,
 } from '../lib/public/merchant-identity.js';
 import { buildPublicPageMeta } from '../lib/public/corpflow-public-market.js';
+import { ENQUIRY_RECOVERY_DIAGNOSIS_HREF } from '../lib/public/enquiry-recovery-sprint.js';
 import { luxOrApexPageProps } from '../lib/client/lux-host-page-props.js';
 
 /**
@@ -30,8 +31,8 @@ const PRINCIPLES = [
     body: 'We avoid demos, dashboards, and metrics that look good in a deck but do not move work forward. The first deliverable is always something an operator can use on Monday morning.',
   },
   {
-    title: 'Pilots, not platforms.',
-    body: 'Every engagement begins as a 48-hour or 7-day pilot scoped to one capture-and-follow-up problem. Anything broader is a separate paid scoping engagement, agreed in writing.',
+    title: 'Bounded engagements, not platforms.',
+    body: 'The live commercial offer is a fixed Enquiry Recovery Sprint after a 15-minute diagnosis and a written offer. Broader work is scoped separately, in writing, only when it is justified.',
   },
   {
     title: 'Honest scope.',
@@ -59,22 +60,21 @@ export default function AboutPage({ luxMode = false, seoHost = '' } = {}) {
   const meta = buildPublicPageMeta({
     title: 'About CorpFlowAI',
     description:
-      'CorpFlowAI is a small operations company that builds lightweight AI-assisted workflow systems for small businesses. Pilots, not platforms. Operational, not impressive.',
+      'CorpFlowAI is a Mauritius-based company that helps selected owner-led businesses identify and recover valuable enquiries that have gone quiet. Bounded engagements, not generic AI.',
     path: '/about',
     ogImage: '/assets/visuals/corpflow-about-hero.jpg',
   });
 
   return (
-    <CorpFlowPublicPhotoShell meta={meta} visualKey="about" maxWidth={960} headerCta={{ label: 'Book discovery', href: '/contact' }}>
+    <CorpFlowPublicPhotoShell meta={meta} visualKey="about" maxWidth={960} headerCta={{ label: 'Request a 15-minute diagnosis', href: ENQUIRY_RECOVERY_DIAGNOSIS_HREF }}>
       <h1 style={{ margin: '16px 0 8px', fontSize: 'clamp(28px, 4.6vw, 38px)', letterSpacing: '-0.03em', lineHeight: 1.15, color: '#eef6ff' }}>
         About CorpFlowAI
       </h1>
       <p style={ts.lead}>
-        CorpFlowAI is a small operations company that builds lightweight AI-assisted workflow
-        systems for small businesses. We focus on what is real, lightweight, and operational
-        {' \u2014 '}not on what is hyped. The work is plumbing first: capturing every enquiry,
-        alerting the owner, leaving a daily summary. Anything bigger is a separate, scoped
-        engagement.
+        CorpFlowAI is a Mauritius-based operations company. We help selected owner-led businesses identify and
+        recover valuable enquiries that have gone quiet — without asking them to replace everything they already
+        use. We are not a generic marketing agency and we are not selling “AI”. The live commercial offer is the
+        Enquiry Recovery Sprint after a short diagnosis.
       </p>
 
       <section style={ps.section}>

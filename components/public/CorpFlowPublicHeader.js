@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { CORPflow_PUBLIC_NAV } from '../../lib/public/corpflow-public-market.js';
+import { ENQUIRY_RECOVERY_DIAGNOSIS_HREF } from '../../lib/public/enquiry-recovery-sprint.js';
 import { cfBtnPrimary, cfLink, CF } from './corpflow-public-styles.js';
 
 const styles = {
@@ -42,7 +43,9 @@ const styles = {
  * Shared CorpFlowAI public header with desktop links and mobile menu toggle.
  * @param {{ cta?: { label: string, href: string } | null }} props
  */
-export default function CorpFlowPublicHeader({ cta = { label: 'Book discovery', href: '/contact' } }) {
+export default function CorpFlowPublicHeader({
+  cta = { label: 'Request a 15-minute diagnosis', href: ENQUIRY_RECOVERY_DIAGNOSIS_HREF },
+}) {
   const [open, setOpen] = useState(false);
 
   return (
