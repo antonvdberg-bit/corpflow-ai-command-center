@@ -41,8 +41,8 @@ describe('#710 Website Rescue named buyer path', () => {
     const nav = CORPflow_PUBLIC_NAV.find((item) => item.label === 'Website Rescue');
     assert.ok(nav);
     assert.equal(nav.href, '/website-rescue');
-    const home = read('components/CorpFlowPublicHome.js');
-    assert.ok(home.includes('href="/website-rescue"') || home.includes("href={'/website-rescue'}"));
+    const header = read('components/public/CorpFlowPublicHeader.js');
+    assert.ok(header.includes('CORPflow_PUBLIC_NAV'));
     const websitePath = MARKET_SERVICE_PATHS.find((p) => p.id === 'website-digital');
     assert.equal(websitePath?.productHref, '/website-rescue');
   });
