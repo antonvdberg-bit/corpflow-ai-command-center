@@ -3,12 +3,13 @@ import Link from 'next/link';
 import CorpFlowPublicPhotoShell from '../components/public/CorpFlowPublicPhotoShell.js';
 import { policyStyles as ps, trustStyles as ts } from '../components/PublicPolicyLayout.js';
 import { buildPublicPageMeta } from '../lib/public/corpflow-public-market.js';
-import { ENQUIRY_RECOVERY_DIAGNOSIS_HREF, ENQUIRY_RECOVERY_DEPOSIT_LINE, ENQUIRY_RECOVERY_PREVIEW_LINE, ENQUIRY_RECOVERY_PRICE_LINE, ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL } from '../lib/public/enquiry-recovery-sprint.js';
-
-/**
- * /process - Five stages of a CorpFlowAI engagement.
- * Photo background is decorative only; process copy stays in HTML (not the rejected 7-step infographic).
- */
+import {
+  ENQUIRY_RECOVERY_DIAGNOSIS_HREF,
+  ENQUIRY_RECOVERY_PREVIEW_LINE,
+  ENQUIRY_RECOVERY_PRICE_LINE,
+  ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL,
+  LEAD_RESCUE_PUBLIC_PAYMENT_LINE,
+} from '../lib/public/enquiry-recovery-sprint.js';
 
 const STAGES = [
   {
@@ -21,25 +22,25 @@ const STAGES = [
     n: 2,
     title: 'Written offer',
     duration: 'after a qualified diagnosis',
-    body: `If the case qualifies, we send a written offer: what is in, what is out, and the commercial terms. The live Enquiry Recovery Sprint is ${ENQUIRY_RECOVERY_PRICE_LINE}.`,
+    body: `If the case qualifies, we send a written Lead Rescue offer: what is in, what is out, and the commercial terms. Lead Rescue is ${ENQUIRY_RECOVERY_PRICE_LINE}.`,
   },
   {
     n: 3,
-    title: 'Deposit to start',
+    title: 'Commercial approval',
     duration: 'before implementation begins',
-    body: `${ENQUIRY_RECOVERY_DEPOSIT_LINE} Payment is by invoice (manual bank transfer). This website does not collect card or banking details.`,
+    body: LEAD_RESCUE_PUBLIC_PAYMENT_LINE,
   },
   {
     n: 4,
     title: 'First visible preview',
-    duration: 'after deposit, access, and assets',
+    duration: 'after agreed commercial and access conditions are met',
     body: ENQUIRY_RECOVERY_PREVIEW_LINE,
   },
   {
     n: 5,
     title: 'Approve, then release',
     duration: 'before production',
-    body: 'The remaining 40% is payable after you approve the preview and before production release. We do not ask you to replace everything you already use.',
+    body: 'You review the visible result before production release. Final commercial steps follow the written offer; the public website does not ask you to choose or calculate a payment structure.',
   },
 ];
 
@@ -62,8 +63,7 @@ const DONT_LIST = [
 export default function ProcessPage() {
   const meta = buildPublicPageMeta({
     title: 'How a CorpFlowAI engagement runs',
-    description:
-      'Diagnosis first, then a written offer. The live Enquiry Recovery Sprint is MUR 85,000 fixed, with a 60% deposit to start and a targeted first preview after deposit, access, and required assets.',
+    description: 'Lead Rescue starts with a 15-minute diagnosis and a written offer. MUR 85,000 fixed. First visible preview follows the agreed commercial, access, and asset conditions.',
     path: '/process',
     ogImage: '/assets/visuals/corpflow-process-hero.jpg',
   });
@@ -74,8 +74,7 @@ export default function ProcessPage() {
         How a CorpFlowAI engagement runs
       </h1>
       <p style={ts.lead}>
-        Every live Enquiry Recovery engagement starts with a short diagnosis, not a software rebuild. We do not take
-        payment before a written offer. The five stages below are how the current commercial offer runs.
+        Lead Rescue starts with a short diagnosis, not a software rebuild. We do not take payment before a written offer. The five stages below show how the current commercial offer runs.
       </p>
 
       <section style={ps.section}>
@@ -85,7 +84,7 @@ export default function ProcessPage() {
         <div style={ts.visualFrame}>
           <img
             src="/assets/visuals/corpflow-process-timeline.svg"
-            alt="Five-stage CorpFlowAI engagement: 15-minute diagnosis, written offer, deposit to start, first visible preview after deposit and access, then approved preview before production release."
+            alt="Five-stage CorpFlowAI engagement: diagnosis, written offer, commercial approval, first visible preview, then approved production release."
             width={1080}
             height={220}
             loading="lazy"
@@ -97,15 +96,7 @@ export default function ProcessPage() {
           {STAGES.map((s) => (
             <li key={s.n} style={ts.card}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, flexWrap: 'wrap', marginBottom: 6 }}>
-                <span
-                  aria-hidden="true"
-                  style={{
-                    fontSize: 12,
-                    letterSpacing: '0.18em',
-                    color: '#7dd3fc',
-                    fontWeight: 700,
-                  }}
-                >
+                <span aria-hidden="true" style={{ fontSize: 12, letterSpacing: '0.18em', color: '#7dd3fc', fontWeight: 700 }}>
                   STAGE {s.n}
                 </span>
                 <h3 style={{ ...ts.cardTitle, margin: 0 }}>{s.title}</h3>
@@ -122,30 +113,17 @@ export default function ProcessPage() {
       <section style={ps.section}>
         <p style={ts.sectionLabel}>Boundaries</p>
         <h2 style={ps.h2}>What we do, and what we do not do</h2>
-        <p style={ps.p}>
-          The list on the right exists because confusion about scope is the most common
-          reason an engagement goes badly. We would rather you read this page and decide
-          we are not the right fit than start a project we cannot finish well.
-        </p>
         <div style={ts.twoColumn}>
           <div style={ts.doCard}>
             <p style={{ ...ts.doDontTitle, color: '#5eead4' }}>What we do</p>
             <ul style={ts.doDontList}>
-              {DO_LIST.map((item) => (
-                <li key={item} style={{ marginBottom: 6 }}>
-                  {item}
-                </li>
-              ))}
+              {DO_LIST.map((item) => <li key={item} style={{ marginBottom: 6 }}>{item}</li>)}
             </ul>
           </div>
           <div style={ts.dontCard}>
             <p style={{ ...ts.doDontTitle, color: '#fda4af' }}>What we do not do</p>
             <ul style={ts.doDontList}>
-              {DONT_LIST.map((item) => (
-                <li key={item} style={{ marginBottom: 6 }}>
-                  {item}
-                </li>
-              ))}
+              {DONT_LIST.map((item) => <li key={item} style={{ marginBottom: 6 }}>{item}</li>)}
             </ul>
           </div>
         </div>
@@ -157,35 +135,19 @@ export default function ProcessPage() {
         <p style={ts.sectionLabel}>Money</p>
         <h2 style={ps.h2}>Payment after review</h2>
         <p style={ps.p}>
-          We do not take payment before a written offer. Commercial terms, currency and payment
-          instructions are confirmed in writing before payment. Payment is processed off-site;
-          this site does not collect card or banking details. The refund window for cancellation
-          before setup begins is published separately on{' '}
-          <Link href="/refund-policy" style={{ color: '#7dd3fc' }}>
-            the refund policy page
-          </Link>
-          .
+          {LEAD_RESCUE_PUBLIC_PAYMENT_LINE} Payment is processed off-site; this site does not collect card or banking details. The refund window for cancellation before setup begins is published separately on{' '}
+          <Link href="/refund-policy" style={{ color: '#7dd3fc' }}>the refund policy page</Link>.
         </p>
         <p style={ps.p}>
-          We do not promise revenue, lead volume, or conversion lift. We help make sure your
-          existing enquiries are captured, visible, and followed up. Whether that produces
-          new revenue depends on your business and your conversation with each lead.
+          We do not promise revenue, lead volume, or conversion lift. We help make sure existing enquiries are captured, visible, and followed up.
         </p>
       </section>
 
-      <hr style={ts.divider} />
-
       <section style={ps.section}>
         <div style={ts.ctaRow}>
-          <Link href="/enquiry-recovery" style={ts.ctaPrimary}>
-            {ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL} &rarr;
-          </Link>
-          <Link href="/onboarding" style={ts.ctaSecondary}>
-            See the first 14 days
-          </Link>
-          <Link href="/standards" style={ts.ctaSecondary}>
-            Operational standards
-          </Link>
+          <Link href="/lead-rescue" style={ts.ctaPrimary}>{ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL} &rarr;</Link>
+          <Link href="/onboarding" style={ts.ctaSecondary}>See onboarding</Link>
+          <Link href="/standards" style={ts.ctaSecondary}>Operational standards</Link>
         </div>
       </section>
     </CorpFlowPublicPhotoShell>

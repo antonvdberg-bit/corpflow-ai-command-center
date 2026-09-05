@@ -3,20 +3,7 @@ import Link from 'next/link';
 import CorpFlowPublicPhotoShell from '../components/public/CorpFlowPublicPhotoShell.js';
 import { policyStyles as ps, trustStyles as ts } from '../components/PublicPolicyLayout.js';
 import { buildPublicPageMeta } from '../lib/public/corpflow-public-market.js';
-import { ENQUIRY_RECOVERY_DIAGNOSIS_HREF, ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL } from '../lib/public/enquiry-recovery-sprint.js';
-
-/**
- * /standards - Operational standards: review cadence, monitoring,
- * payment-after-review, no-guarantee positioning, and governance.
- *
- * Companion to /about, /process, and /onboarding. Photo background is
- * decorative only; institutional HTML carries the trust claims.
- *
- * Per `.cursor/rules/delivery-reality.mdc`, "operational completion"
- * is defined by live verification on the real production URL, not by
- * health checks alone. The "Live verification" section reflects that
- * standard publicly so clients understand the bar.
- */
+import { ENQUIRY_RECOVERY_DIAGNOSIS_HREF, ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL, LEAD_RESCUE_PUBLIC_PAYMENT_LINE } from '../lib/public/enquiry-recovery-sprint.js';
 
 const PILLARS = [
   {
@@ -25,50 +12,31 @@ const PILLARS = [
   },
   {
     label: 'Monitoring',
-    body: 'On a live engagement we monitor: every lead-source capture path with a synthetic test ping, the alert delivery path on the owner\'s preferred channel (email, SMS, or WhatsApp), the daily summary delivery, and the running log of captured leads versus follow-up status so we can spot drift early.',
+    body: 'On a live engagement we monitor the agreed capture and follow-up path so drift is visible early. Exact channels and checks are defined in the written scope.',
   },
   {
     label: 'Payment after review',
-    body: 'No card or banking details are collected on this website. The live Enquiry Recovery Sprint is invoiced in MUR (manual bank transfer) after diagnosis and a written offer. Historic USD 150 launch-pilot invoices, if issued, remain governed by those invoice terms. Cancellation windows before setup begins are published on the refund-policy page.',
+    body: `No card or banking details are collected on this website. ${LEAD_RESCUE_PUBLIC_PAYMENT_LINE} Cancellation windows before setup begins are published on the refund-policy page.`,
   },
   {
     label: 'No revenue guarantees',
-    body: 'We do not promise revenue, lead volume, or conversion lift. Our marketing pages avoid revenue claims and "X% uplift" language by policy. If you need revenue forecasting, that is a different engagement - and one we do not currently offer.',
+    body: 'We do not promise revenue, lead volume, or conversion lift. Our marketing pages avoid revenue claims and "X% uplift" language by policy.',
   },
 ];
 
 export default function StandardsPage() {
   const meta = buildPublicPageMeta({
     title: 'Operational standards',
-    description:
-      'How CorpFlowAI runs engagements: review cadence, monitoring, payment after review, no-guarantee positioning, and the governance applied to visual assets and security.',
+    description: 'How CorpFlowAI runs engagements: review cadence, monitoring, payment after review, no-guarantee positioning, and governance.',
     path: '/standards',
     ogImage: '/assets/visuals/corpflow-standards-hero.jpg',
   });
 
   return (
-    <CorpFlowPublicPhotoShell
-      meta={meta}
-      visualKey="standards"
-      maxWidth={960}
-      headerCta={{ label: ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL, href: ENQUIRY_RECOVERY_DIAGNOSIS_HREF }}
-    >
-      <h1
-        style={{
-          margin: '16px 0 8px',
-          fontSize: 'clamp(28px, 4.6vw, 38px)',
-          letterSpacing: '-0.03em',
-          lineHeight: 1.15,
-          color: '#eef6ff',
-        }}
-      >
-        Operational standards
-      </h1>
+    <CorpFlowPublicPhotoShell meta={meta} visualKey="standards" maxWidth={960} headerCta={{ label: ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL, href: ENQUIRY_RECOVERY_DIAGNOSIS_HREF }}>
+      <h1 style={{ margin: '16px 0 8px', fontSize: 'clamp(28px, 4.6vw, 38px)', letterSpacing: '-0.03em', lineHeight: 1.15, color: '#eef6ff' }}>Operational standards</h1>
       <p style={ts.lead}>
-        This page describes the operational standards we apply to every CorpFlowAI engagement.
-        It is not a contract &mdash; final terms are confirmed on the invoice or service
-        agreement &mdash; but it is an honest description of how we work, written so a
-        prospective client can decide whether the standard fits before any payment is taken.
+        This page describes the operational standards we apply to every CorpFlowAI engagement. It is not a contract — final terms are confirmed in the written offer, invoice, or service agreement.
       </p>
 
       <section style={ps.section}>
@@ -90,24 +58,14 @@ export default function StandardsPage() {
         <p style={ts.sectionLabel}>What &ldquo;done&rdquo; means</p>
         <h2 style={ps.h2}>Live verification, not just health checks</h2>
         <p style={ps.p}>
-          A change is only operationally complete when the customer-facing surface is
-          verified live in production. CI green and a successful deploy are necessary, but
-          they are not sufficient on their own. For every change we ship on your behalf, we
-          record:
+          A change is only operationally complete when the customer-facing surface is verified live in production. CI green and a successful deploy are necessary, but they are not sufficient on their own.
         </p>
         <ul style={ps.ul}>
-          <li>The deployment id and the exact commit deployed</li>
-          <li>The live URLs and flows we tested after deployment</li>
+          <li>The deployment id and exact commit deployed</li>
+          <li>The live URLs and flows tested after deployment</li>
           <li>Expected versus actual behaviour</li>
           <li>A final verdict: complete, partial, or failed</li>
         </ul>
-        <p style={ps.p}>
-          If a change is not on the production deployment&rsquo;s commit, the verdict cannot
-          be &ldquo;complete&rdquo;. If a client-facing URL is broken, the verdict is
-          &ldquo;failed&rdquo; &mdash; even when internal endpoints are healthy. This standard is
-          codified in our internal delivery rules and applied to factory infrastructure work
-          and client engagement work alike.
-        </p>
       </section>
 
       <hr style={ts.divider} />
@@ -116,87 +74,25 @@ export default function StandardsPage() {
         <p style={ts.sectionLabel}>Governance</p>
         <h2 style={ps.h2}>Visual assets and AI provenance</h2>
         <p style={ps.p}>
-          Every visual that ships on a CorpFlowAI surface is governed by a manifest that
-          records the asset&rsquo;s source, licence tier, accessibility metadata, and
-          allowed surfaces. AI-generated images carry an additional provenance record that
-          names the prompt used (linked to our internal prompt library), the model and
-          version, and the human reviewer. AI-generated images appear on the page with an
-          unobtrusive &ldquo;About this visual&rdquo; disclosure so visitors can see that the
-          asset was machine-generated and human-reviewed.
-        </p>
-        <p style={ps.p}>
-          The hand-crafted SVG diagrams on this site (including the timeline at the top of
-          the{' '}
-          <Link href="/process" style={{ color: '#7dd3fc' }}>
-            process
-          </Link>{' '}
-          page and the journey on the{' '}
-          <Link href="/onboarding" style={{ color: '#7dd3fc' }}>
-            onboarding
-          </Link>{' '}
-          page) are CorpFlowAI-owned artwork and do not carry an AI provenance disclosure -
-          there is no AI to disclose.
+          Buyer-facing assets are governed so their source, accessibility metadata, and allowed surfaces are known. Machine-generated assets are reviewed before publication.
         </p>
       </section>
 
       <section style={ps.section}>
         <h2 style={ps.h2}>Security posture</h2>
         <ul style={ps.ul}>
-          <li>
-            <strong style={{ color: '#dbe7f5' }}>Tenant isolation.</strong> Tenant data is
-            isolated server-side. Webhooks validate HMAC. Authentication never collects card
-            data on this site.
-          </li>
-          <li>
-            <strong style={{ color: '#dbe7f5' }}>Intake first, payment second.</strong> The
-            public website does not capture card or banking details. Commercial terms, currency
-            and payment instructions are confirmed in writing before payment; payment is handled
-            off-site after intake review.
-          </li>
-          <li>
-            <strong style={{ color: '#dbe7f5' }}>Least-access pilots.</strong> A pilot
-            requires access to one lead source and an owner notification channel - nothing
-            more. If a pilot would need broader access (deep CRM, production database,
-            payment processor), we say so before payment, not after.
-          </li>
-          <li>
-            <strong style={{ color: '#dbe7f5' }}>Hand-over by default.</strong> Every
-            artifact we build (Google Sheets, scripts, configurations) belongs to the client.
-            If you choose to step away, you take everything with you.
-          </li>
-          <li>
-            <strong style={{ color: '#dbe7f5' }}>No card data on CorpFlowAI servers.</strong>{' '}
-            Card capture, when offered, happens exclusively on the payment provider&apos;s hosted page over TLS. See{' '}
-            <Link href="/payment-security" style={{ color: '#7dd3fc' }}>
-              payment security
-            </Link>
-            .
-          </li>
+          <li><strong style={{ color: '#dbe7f5' }}>Tenant isolation.</strong> Tenant data is isolated server-side and public marketing pages do not expose private client records.</li>
+          <li><strong style={{ color: '#dbe7f5' }}>Diagnosis first, payment second.</strong> The public website does not capture card or banking details. Commercial terms are confirmed in writing before payment.</li>
+          <li><strong style={{ color: '#dbe7f5' }}>Least access.</strong> We ask for the minimum access needed for the agreed scope.</li>
+          <li><strong style={{ color: '#dbe7f5' }}>No card data on CorpFlowAI servers.</strong> Payment capture, when offered, happens off the public marketing surface.</li>
         </ul>
       </section>
 
-      <hr style={ts.divider} />
-
       <section style={ps.section}>
-        <p style={ts.sectionLabel}>Boundaries of this page</p>
-        <h2 style={ps.h2}>What this page is, and what it is not</h2>
-        <p style={ps.p}>
-          This page describes how we operate. It is not a contract and it is not legal,
-          tax, or accounting advice. Final terms are confirmed on the invoice or service
-          agreement. The published standard may be updated; we will continue to honour
-          whatever standard was in effect at the time of your engagement.
-        </p>
-
         <div style={ts.ctaRow}>
-          <Link href="/enquiry-recovery" style={ts.ctaPrimary}>
-            {ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL} &rarr;
-          </Link>
-          <Link href="/process" style={ts.ctaSecondary}>
-            See the engagement process
-          </Link>
-          <Link href="/contact" style={ts.ctaSecondary}>
-            Ask a question first
-          </Link>
+          <Link href="/lead-rescue" style={ts.ctaPrimary}>{ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL} &rarr;</Link>
+          <Link href="/process" style={ts.ctaSecondary}>See the engagement process</Link>
+          <Link href="/contact" style={ts.ctaSecondary}>Ask a question first</Link>
         </div>
       </section>
     </CorpFlowPublicPhotoShell>
