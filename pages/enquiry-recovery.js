@@ -1,14 +1,16 @@
-import EnquiryRecoveryCampaignPage from '../components/EnquiryRecoveryCampaignPage.js';
-
 /**
- * Current buyer-facing campaign for the Enquiry Recovery Sprint.
- * Historic `/lead-rescue` and aileadrescue.corpflowai.com render the same page
- * so WhatsApp, homepage, and old bookmarks do not show contradictory pricing.
+ * Legacy campaign URL retained only for old links.
+ * Lead Rescue is the canonical public product and buyer route.
  */
-export default function EnquiryRecoveryPage() {
-  return <EnquiryRecoveryCampaignPage />;
+export default function LegacyEnquiryRecoveryRoute() {
+  return null;
 }
 
-export async function getStaticProps() {
-  return { props: {} };
+export async function getServerSideProps() {
+  return {
+    redirect: {
+      destination: '/lead-rescue',
+      permanent: true,
+    },
+  };
 }
