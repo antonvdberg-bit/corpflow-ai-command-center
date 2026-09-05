@@ -40,11 +40,11 @@ export default function ContactPage({
   const meta = buildPublicPageMeta({
     title: 'Contact',
     description:
-      'Request a 15-minute diagnosis with CorpFlowAI about quiet enquiries, website rescue, or a bounded operating improvement. No automatic outreach from this form.',
+      'Request a 15-minute diagnosis with CorpFlowAI about Lead Rescue, Website Rescue, or a bounded operating improvement. No automatic outreach from this form.',
     path: '/contact',
     ogImage: '/assets/visuals/corpflow-contact-hero.jpg',
   });
-  const lockedEnquiryRecovery = lockedOffer && defaultOfferSlug === 'ai-lead-rescue';
+  const lockedLeadRescue = lockedOffer && defaultOfferSlug === 'ai-lead-rescue';
   const lockedWebsiteRescue = lockedOffer && defaultOfferSlug === 'premium-landing-page-rescue';
 
   return (
@@ -63,7 +63,7 @@ export default function ContactPage({
       <section style={ps.section} id="discovery" data-canonical-enquiry>
         <DiscoveryIntakeForm
           heading={
-            lockedEnquiryRecovery
+            lockedLeadRescue
               ? ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL
               : lockedWebsiteRescue
                 ? 'Request Website Rescue'
@@ -74,7 +74,7 @@ export default function ContactPage({
           defaultOfferSlug={defaultOfferSlug || undefined}
           lockedOffer={lockedOffer}
           lockedOfferLabel={
-            lockedEnquiryRecovery ? 'Enquiry Recovery Sprint' : lockedWebsiteRescue ? 'Website Rescue' : undefined
+            lockedLeadRescue ? 'Lead Rescue' : lockedWebsiteRescue ? 'Website Rescue' : undefined
           }
         />
         <p style={{ ...ps.p, marginTop: 16 }}>
