@@ -78,15 +78,16 @@ describe('#699 market gateway — public offer', () => {
 
   it('homepage wires service paths, proof, trust, and product entry points', () => {
     const home = read('components/CorpFlowPublicHome.js');
-    assert.ok(home.includes('id="service-paths"') || home.includes("id=\"service-paths\""));
-    assert.ok(home.includes('CORPflow_PROOF_ITEMS'));
-    assert.ok(home.includes('CORPflow_TRUST_POINTS'));
-    assert.ok(home.includes('/enquiry-recovery'));
-    assert.ok(home.includes('/website-rescue'));
-    assert.ok(home.includes('/demo/website-rescue'));
-    assert.ok(home.includes('/contact?path='));
-    assert.ok(home.includes('Enquire about this path'));
+    assert.ok(home.includes('id="commercial-focus"'));
+    assert.ok(home.includes('CORPflow_HOMEPAGE_HERO'));
+    assert.ok(home.includes('PublicTrustBand'));
+    assert.ok(/no guaranteed-revenue claims/i.test(home));
     assert.ok(!home.includes('NEEDS_ANTON'));
+
+    const header = read('components/public/CorpFlowPublicHeader.js');
+    assert.ok(header.includes('CORPflow_PUBLIC_NAV'));
+    const footer = read('components/public/CorpFlowPublicFooter.js');
+    assert.ok(footer.includes('CORPflow_PUBLIC_LAUNCH_PRODUCTS'));
   });
 
   it('contact page accepts ?path= and ?offer= and maps to buyer-need or locked product', () => {

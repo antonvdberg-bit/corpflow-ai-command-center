@@ -68,9 +68,7 @@ describe('#1127 canonical buyer routes', () => {
     assert.ok(!footer.includes('o.path'));
 
     const home = read('components/CorpFlowPublicHome.js');
-    assert.ok(home.includes('href="/enquiry-recovery"'));
-    assert.ok(home.includes('href="/website-rescue"'));
-    assert.ok(home.includes('href="/demo/website-rescue"'));
+    assert.ok(home.includes('CORPflow_HOMEPAGE_HERO'));
     assert.equal(CORPflow_HOMEPAGE_HERO.primaryCta.href, '/enquiry-recovery#diagnosis');
 
     const leadPath = MARKET_SERVICE_PATHS.find((p) => p.id === 'client-lead-service');

@@ -36,9 +36,9 @@ describe('#712 market path — public pages and primary CTAs', () => {
     assert.equal(CORPflow_HOMEPAGE_HERO.primaryCta.href, '/enquiry-recovery#diagnosis');
     assert.match(CORPflow_HOMEPAGE_HERO.primaryCta.label, /diagnosis/i);
     const home = read('components/CorpFlowPublicHome.js');
-    assert.ok(home.includes('/enquiry-recovery'));
-    assert.ok(home.includes('/website-rescue'));
-    assert.ok(home.includes('/demo/website-rescue'));
+    assert.ok(home.includes('CORPflow_HOMEPAGE_HERO'));
+    const header = read('components/public/CorpFlowPublicHeader.js');
+    assert.ok(header.includes('CORPflow_PUBLIC_NAV'));
     assert.ok(!/Choose payment path/i.test(home));
   });
 
@@ -102,7 +102,7 @@ describe('#712 market path — five-second offer and safe claims', () => {
 
   it('homepage trust copy rejects guaranteed-revenue promises', () => {
     const home = read('components/CorpFlowPublicHome.js');
-    assert.ok(/do not promise guaranteed revenue/i.test(home));
+    assert.ok(/no guaranteed-revenue claims/i.test(home));
   });
 });
 
