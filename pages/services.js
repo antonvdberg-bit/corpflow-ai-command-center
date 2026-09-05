@@ -12,10 +12,10 @@ import {
 } from '../lib/public/merchant-identity.js';
 import { buildPublicPageMeta } from '../lib/public/corpflow-public-market.js';
 import {
-  ENQUIRY_RECOVERY_DEPOSIT_LINE,
   ENQUIRY_RECOVERY_DIAGNOSIS_HREF,
   ENQUIRY_RECOVERY_PRICE_LINE,
   ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL,
+  LEAD_RESCUE_PUBLIC_PAYMENT_LINE,
 } from '../lib/public/enquiry-recovery-sprint.js';
 
 const h1 = {
@@ -55,10 +55,9 @@ export default function ServicesPage() {
         <h2 style={ps.h2}>Productized services</h2>
         <ul style={ps.ul}>
           <li>
-            <strong style={{ color: '#dbe7f5' }}>Enquiry Recovery Sprint.</strong> A fixed, bounded engagement
+            <strong style={{ color: '#dbe7f5' }}>Lead Rescue.</strong> A fixed, bounded engagement
             to identify and recover valuable enquiries that have gone quiet. {ENQUIRY_RECOVERY_PRICE_LINE}.{' '}
-            {ENQUIRY_RECOVERY_DEPOSIT_LINE} Maximum three founding-client slots. Historic USD 150 launch-pilot
-            invoices, if issued, remain governed by those invoice terms.
+            Maximum three clients at present. {LEAD_RESCUE_PUBLIC_PAYMENT_LINE}
           </li>
           <li>
             <strong style={{ color: '#dbe7f5' }}>Workflow setup and handover.</strong> Configuration of forms,
@@ -66,8 +65,7 @@ export default function ServicesPage() {
           </li>
           <li>
             <strong style={{ color: '#dbe7f5' }}>Optional monitoring.</strong> Monthly monitoring or support may
-            be quoted separately after an engagement demonstrates value. It is not included unless
-            stated on the invoice.
+            be quoted separately after an engagement demonstrates value. It is not included unless stated on the invoice.
           </li>
         </ul>
       </section>
@@ -77,7 +75,7 @@ export default function ServicesPage() {
           <li>Physical products, inventory, warehousing, or courier delivery</li>
           <li>Regulated financial, medical, or legal advice</li>
           <li>Guaranteed revenue, lead volume, or conversion outcomes</li>
-          <li>Instant online checkout on the public marketing pages (payment follows intake review)</li>
+          <li>Instant online checkout on the public marketing pages</li>
         </ul>
       </section>
       <section style={ps.section}>
@@ -85,15 +83,15 @@ export default function ServicesPage() {
         <p style={ps.p}>{formatCurrencyDisclosure()}</p>
         <p style={ps.p}>
           Each invoice states the currency charged ({CURRENCY_PRIMARY} or {CURRENCY_SECONDARY} as applicable)
-          before you pay. Offer-specific starting prices appear only on the relevant offer pages.
+          before you pay. Offer-specific prices appear only on the relevant offer pages.
         </p>
       </section>
       <section style={ps.section}>
         <h2 style={ps.h2}>How to engage</h2>
         <p style={ps.p}>
           Start with a 15-minute diagnosis on{' '}
-          <Link href="/enquiry-recovery" style={{ color: '#7dd3fc' }}>
-            Enquiry Recovery
+          <Link href="/lead-rescue" style={{ color: '#7dd3fc' }}>
+            Lead Rescue
           </Link>
           . We review fit before issuing a written offer or invoice.
         </p>
