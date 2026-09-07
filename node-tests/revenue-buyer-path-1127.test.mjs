@@ -30,8 +30,8 @@ function read(rel) {
 }
 
 describe('#1127 canonical buyer routes', () => {
-  it('locks Enquiry Recovery and Website Rescue named landings and enquiry URLs', () => {
-    assert.equal(LEAD_RESCUE_LANDING_HREF, '/enquiry-recovery');
+  it('locks Lead Rescue and Website Rescue named landings and enquiry URLs', () => {
+    assert.equal(LEAD_RESCUE_LANDING_HREF, '/lead-rescue');
     assert.equal(LEAD_RESCUE_ENQUIRY_HREF, '/contact?offer=ai-lead-rescue#discovery');
     assert.equal(WEBSITE_RESCUE_LANDING_HREF, '/website-rescue');
     assert.equal(
@@ -48,17 +48,17 @@ describe('#1127 canonical buyer routes', () => {
   });
 
   it('gateway nav and footer send buyers to named launch products, not SKU titles', () => {
-    const leadNav = CORPflow_PUBLIC_NAV.find((item) => item.label === 'Enquiry Recovery');
+    const leadNav = CORPflow_PUBLIC_NAV.find((item) => item.label === 'Lead Rescue');
     const websiteNav = CORPflow_PUBLIC_NAV.find((item) => item.label === 'Website Rescue');
-    assert.equal(leadNav?.href, '/enquiry-recovery');
+    assert.equal(leadNav?.href, '/lead-rescue');
     assert.equal(websiteNav?.href, '/website-rescue');
     assert.deepEqual(
       CORPflow_PUBLIC_LAUNCH_PRODUCTS.map((item) => item.href),
-      ['/enquiry-recovery', '/website-rescue'],
+      ['/lead-rescue', '/website-rescue'],
     );
     assert.deepEqual(
       CORPflow_PUBLIC_LAUNCH_PRODUCTS.map((item) => item.label),
-      ['Enquiry Recovery', 'Website Rescue'],
+      ['Lead Rescue', 'Website Rescue'],
     );
 
     const footer = read('components/public/CorpFlowPublicFooter.js');
@@ -69,21 +69,21 @@ describe('#1127 canonical buyer routes', () => {
 
     const home = read('components/CorpFlowPublicHome.js');
     assert.ok(home.includes('CORPflow_HOMEPAGE_HERO'));
-    assert.equal(CORPflow_HOMEPAGE_HERO.primaryCta.href, '/enquiry-recovery#diagnosis');
+    assert.equal(CORPflow_HOMEPAGE_HERO.primaryCta.href, '/lead-rescue#diagnosis');
 
     const leadPath = MARKET_SERVICE_PATHS.find((p) => p.id === 'client-lead-service');
     const websitePath = MARKET_SERVICE_PATHS.find((p) => p.id === 'website-digital');
-    assert.equal(leadPath?.productHref, '/enquiry-recovery');
+    assert.equal(leadPath?.productHref, '/lead-rescue');
     assert.equal(websitePath?.productHref, '/website-rescue');
   });
 });
 
 describe('#1127 five-second offer and one primary CTA', () => {
-  it('Enquiry Recovery has one primary diagnosis CTA', () => {
+  it('Lead Rescue has one primary diagnosis CTA', () => {
     const landing = read('components/EnquiryRecoveryCampaignPage.js');
     assert.ok(landing.includes('stopped being followed up'));
     assert.ok(landing.includes('ENQUIRY_RECOVERY_PRICE_LINE') || landing.includes('MUR 85,000'));
-    assert.ok(landing.includes('Request a 15-minute Enquiry Recovery Diagnosis'));
+    assert.ok(landing.includes('Request a 15-minute diagnosis'));
     assert.ok(landing.includes('LEAD_RESCUE_ENQUIRY_HREF'));
     assert.ok(!landing.includes("fetch('/api/tenant/intake'"));
     assert.ok(!/Choose payment path/i.test(landing));
