@@ -1,4 +1,4 @@
-import RapidDeliveryOfferPage from '../components/RapidDeliveryOfferPage.js';
+import WebsiteRescueConversionPage from '../components/WebsiteRescueConversionPage.js';
 import { getRapidDeliveryOffer } from '../lib/public/rapid-delivery-offers.js';
 
 const offer = getRapidDeliveryOffer('premium-landing-page-rescue');
@@ -14,11 +14,7 @@ if (!offer) {
 export default function WebsiteRescuePage() {
   return (
     <div data-website-rescue-landing="1">
-      <RapidDeliveryOfferPage
-        offer={offer}
-        buyerFacingName="Website Rescue"
-        pathOverride="/website-rescue"
-      />
+      <WebsiteRescueConversionPage offer={offer} />
     </div>
   );
 }
