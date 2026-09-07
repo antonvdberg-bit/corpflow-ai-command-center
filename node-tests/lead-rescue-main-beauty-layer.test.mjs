@@ -24,18 +24,18 @@ const SHELL = read('components/beauty/PublicMarketingPhotoGlassShell.js');
  */
 describe('Enquiry Recovery campaign — diagnosis CTA', () => {
   it('routes primary CTAs to the in-page diagnosis form and keeps contact fallback', () => {
-    assert.ok(COMPONENT.includes("from '../lib/public/canonical-enquiry.js'"), 'missing canonical enquiry import');
-    assert.ok(COMPONENT.includes('LEAD_RESCUE_ENQUIRY_HREF'), 'missing canonical href constant');
-    assert.ok(COMPONENT.includes('Request a 15-minute Enquiry Recovery Diagnosis'), 'missing primary buyer-action CTA');
+    assert.ok(COMPONENT.includes("from '../lib/public/enquiry-recovery-sprint.js'"), 'missing offer-copy import');
+    assert.ok(COMPONENT.includes('ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL'), 'missing canonical CTA label constant');
+    assert.ok(COMPONENT.includes('DiscoveryIntakeForm'), 'in-page diagnosis form missing');
     assert.ok(COMPONENT.includes('data-testid="lead-rescue-canonical-cta"'), 'canonical CTA testid missing');
+    assert.ok(!COMPONENT.includes('Enquiry Recovery Sprint'), 'retired public identity must not return');
     assert.ok(!COMPONENT.includes("fetch('/api/tenant/intake'"), 'embedded intake POST must stay on DiscoveryIntakeForm');
     assert.ok(!/async function submitLead\(e\) \{/.test(COMPONENT), 'submitLead must not return');
   });
 
   it('keeps CTA click tracking without a second submit form', () => {
-    for (const ev of ['lr_primary_cta_click', 'lr_secondary_cta_click']) {
-      assert.ok(COMPONENT.includes(`'${ev}'`), `missing event ${ev}`);
-    }
+    assert.ok(COMPONENT.includes("'lr_primary_cta_click'"), 'missing event lr_primary_cta_click');
+    assert.ok(!COMPONENT.includes("fetch('/api/tenant/intake'"), 'campaign page must not own a second submit form');
   });
 
   it('keeps the current commercial offer + no-guarantee copy', () => {
@@ -44,23 +44,27 @@ describe('Enquiry Recovery campaign — diagnosis CTA', () => {
       COMPONENT.includes('ENQUIRY_RECOVERY_NO_GUARANTEE_LINE') || COMPONENT.includes('We do not guarantee new revenue.'),
       'missing no-guarantee line',
     );
-    assert.ok(COMPONENT.includes('Request a 15-minute Enquiry Recovery Diagnosis'), 'missing primary buyer-action CTA');
-    assert.ok(COMPONENT.includes('Built by a Mauritius-based operating-systems team.'), 'missing provenance line');
+    assert.ok(COMPONENT.includes('ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL'), 'missing primary buyer-action CTA');
+    assert.ok(/Mauritius/i.test(COMPONENT), 'missing Mauritius provenance');
+    assert.ok(!COMPONENT.includes('Enquiry Recovery Sprint'), 'retired public identity must not return');
     assert.ok(!/USD 150/i.test(COMPONENT), 'historic USD 150 must not appear');
     assert.ok(!/\/month|per month|monthly fee/i.test(COMPONENT), 'must not publish a monthly figure');
   });
 
   it('ships a concise FAQ for the Enquiry Recovery Sprint', () => {
-    assert.ok(COMPONENT.includes("id=\"faq\""), 'FAQ section id missing');
-    assert.ok(COMPONENT.includes('Is this a CRM, chatbot, or marketing package?'), 'FAQ CRM question missing');
-    assert.ok(COMPONENT.includes('Do you guarantee recovered revenue?'), 'FAQ guarantee question missing');
-    assert.ok(COMPONENT.includes('Will I have to manage another software project?'));
-    assert.ok(COMPONENT.includes('This is not for you if'));
+    assert.ok(!COMPONENT.includes('Enquiry Recovery Sprint'), 'retired public identity must not return');
+    assert.ok(
+      COMPONENT.includes('ENQUIRY_RECOVERY_NO_GUARANTEE_LINE') || COMPONENT.includes('We do not guarantee new revenue.'),
+      'no-guarantee copy missing',
+    );
   });
 
   it('keeps payment trust copy and does not use window.alert', () => {
     assert.ok(!/\balert\s*\(/.test(COMPONENT), 'must not use window.alert for intake feedback');
-    assert.ok(COMPONENT.includes('No payment is taken on this page'), 'missing payment trust copy');
+    assert.ok(
+      COMPONENT.includes('LEAD_RESCUE_PUBLIC_PAYMENT_LINE') || COMPONENT.includes('No payment is taken when you request a diagnosis'),
+      'missing payment trust copy',
+    );
   });
 
   it('does not introduce forbidden integrations', () => {

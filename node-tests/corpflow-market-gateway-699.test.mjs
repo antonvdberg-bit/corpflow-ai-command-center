@@ -15,6 +15,10 @@ import {
   MARKET_SERVICE_PATHS,
 } from '../lib/public/corpflow-public-market.js';
 import {
+  ENQUIRY_RECOVERY_DIAGNOSIS_HREF,
+  ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL,
+} from '../lib/public/enquiry-recovery-sprint.js';
+import {
   buildMarketEnquiryResponseDraft,
   buyerNeedForServicePath,
   isMarketServicePathId,
@@ -37,8 +41,11 @@ function read(rel) {
 describe('#699 market gateway — public offer', () => {
   it('hero states enquiry recovery and one primary CTA to diagnosis', () => {
     assert.match(CORPflow_HOMEPAGE_HERO.headline, /enquir/i);
-    assert.match(CORPflow_HOMEPAGE_HERO.subhead, /Mauritius/i);
-    assert.equal(CORPflow_HOMEPAGE_HERO.primaryCta.href, '/enquiry-recovery#diagnosis');
+    assert.match(CORPflow_HOMEPAGE_HERO.eyebrow, /Mauritius/i);
+    assert.match(CORPflow_HOMEPAGE_HERO.subhead, /Lead Rescue/i);
+    assert.match(CORPflow_HOMEPAGE_HERO.subhead, /MUR 85,000 fixed/i);
+    assert.equal(CORPflow_HOMEPAGE_HERO.primaryCta.href, ENQUIRY_RECOVERY_DIAGNOSIS_HREF);
+    assert.equal(CORPflow_HOMEPAGE_HERO.primaryCta.label, ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL);
     assert.ok(!/guaranteed revenue|10x|fully autonomous/i.test(JSON.stringify(CORPflow_HOMEPAGE_HERO)));
   });
 
@@ -247,7 +254,10 @@ describe('#699 market gateway — operator handoff', () => {
 describe('#699 market gateway — product funnel links retained', () => {
   it('Lead Rescue CTAs route to the canonical locked enquiry form', () => {
     const lr = read('components/EnquiryRecoveryCampaignPage.js');
-    assert.ok(lr.includes('LEAD_RESCUE_ENQUIRY_HREF') || lr.includes('/contact?offer=ai-lead-rescue#discovery'));
+    assert.ok(lr.includes('ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL'));
+    assert.ok(lr.includes('DiscoveryIntakeForm'));
+    assert.ok(lr.includes('defaultOfferSlug="ai-lead-rescue"'));
+    assert.ok(!lr.includes('Enquiry Recovery Sprint'));
     assert.ok(!lr.includes("fetch('/api/tenant/intake'"));
     const form = read('components/public/DiscoveryIntakeForm.js');
     assert.ok(form.includes('lockedOffer'));

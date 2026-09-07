@@ -13,6 +13,7 @@ import {
   listPublicOffers,
   buildPublicPageMeta,
 } from '../lib/public/corpflow-public-market.js';
+import { ENQUIRY_RECOVERY_DIAGNOSIS_HREF } from '../lib/public/enquiry-recovery-sprint.js';
 import { __testing__ as sitemapTesting } from '../pages/sitemap.xml.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -140,7 +141,7 @@ describe('CorpFlow public market readiness — three offer prices', () => {
 
 describe('CorpFlow public market readiness — CTA destinations', () => {
   it('homepage primary CTA targets discovery form', () => {
-    assert.equal(CORPflow_HOMEPAGE_HERO.primaryCta.href, '/enquiry-recovery#diagnosis');
+    assert.equal(CORPflow_HOMEPAGE_HERO.primaryCta.href, ENQUIRY_RECOVERY_DIAGNOSIS_HREF);
   });
 
   it('public surfaces do not link primary flows to /change', () => {

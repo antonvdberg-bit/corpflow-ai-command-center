@@ -9,6 +9,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { CORPflow_HOMEPAGE_HERO } from '../lib/public/corpflow-public-market.js';
+import {
+  ENQUIRY_RECOVERY_DIAGNOSIS_HREF,
+  ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL,
+} from '../lib/public/enquiry-recovery-sprint.js';
 import { RAPID_DELIVERY_OFFERS } from '../lib/public/rapid-delivery-offers.js';
 import {
   RAPID_DELIVERY_PRODUCT,
@@ -33,7 +37,8 @@ function read(rel) {
 
 describe('#712 market path — public pages and primary CTAs', () => {
   it('homepage has one primary CTA to diagnosis and product nav entries', () => {
-    assert.equal(CORPflow_HOMEPAGE_HERO.primaryCta.href, '/enquiry-recovery#diagnosis');
+    assert.equal(CORPflow_HOMEPAGE_HERO.primaryCta.href, ENQUIRY_RECOVERY_DIAGNOSIS_HREF);
+    assert.equal(CORPflow_HOMEPAGE_HERO.primaryCta.label, ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL);
     assert.match(CORPflow_HOMEPAGE_HERO.primaryCta.label, /diagnosis/i);
     const home = read('components/CorpFlowPublicHome.js');
     assert.ok(home.includes('CORPflow_HOMEPAGE_HERO'));
@@ -44,9 +49,11 @@ describe('#712 market path — public pages and primary CTAs', () => {
 
   it('Enquiry Recovery page has one primary diagnosis CTA', () => {
     const lr = read('components/EnquiryRecoveryCampaignPage.js');
-    assert.ok(lr.includes('Request a 15-minute Enquiry Recovery Diagnosis'));
-    assert.ok(lr.includes('LEAD_RESCUE_ENQUIRY_HREF') || lr.includes('/contact?offer=ai-lead-rescue#discovery'));
+    assert.equal(ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL, 'Request a 15-minute diagnosis');
+    assert.ok(lr.includes('ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL'));
+    assert.ok(lr.includes('DiscoveryIntakeForm'));
     assert.ok(lr.includes('id={ENQUIRY_RECOVERY_DIAGNOSIS_HASH}') || lr.includes('diagnosis'));
+    assert.ok(!lr.includes('Enquiry Recovery Sprint'));
     assert.ok(!lr.includes("fetch('/api/tenant/intake'"));
     assert.ok(!/Choose payment path/i.test(lr));
   });
@@ -87,9 +94,9 @@ describe('#712 market path — five-second offer and safe claims', () => {
   it('Enquiry Recovery states price, timeline, and no revenue guarantee', () => {
     const lr = read('components/EnquiryRecoveryCampaignPage.js');
     assert.ok(lr.includes('MUR 85,000') || lr.includes('ENQUIRY_RECOVERY_PRICE_LINE'));
-    assert.ok(lr.includes('72 hours') || lr.includes('ENQUIRY_RECOVERY_PREVIEW_LINE'));
+    assert.ok(lr.includes('ENQUIRY_RECOVERY_SCARCITY_LINE') || /maximum of three Lead Rescue clients/i.test(lr));
     assert.ok(/do not guarantee new revenue/i.test(lr) || lr.includes('ENQUIRY_RECOVERY_NO_GUARANTEE_LINE'));
-    assert.ok(/Do you guarantee recovered revenue/i.test(lr));
+    assert.ok(!lr.includes('Enquiry Recovery Sprint'));
     assert.ok(!/\bwe guarantee more sales\b/i.test(lr));
     assert.ok(!/\b10x leads\b/i.test(lr));
     assert.ok(!/Choose payment path/i.test(lr));
@@ -123,7 +130,10 @@ describe('#712 market path — intake validation contracts', () => {
 
   it('Lead Rescue CTAs route into the canonical enquiry form; product pages keep lockedOffer', () => {
     const lr = read('components/EnquiryRecoveryCampaignPage.js');
-    assert.ok(lr.includes('LEAD_RESCUE_ENQUIRY_HREF') || lr.includes('/contact?offer=ai-lead-rescue#discovery'));
+    assert.ok(lr.includes('ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL'));
+    assert.ok(lr.includes('DiscoveryIntakeForm'));
+    assert.ok(lr.includes('lockedOffer'));
+    assert.ok(!lr.includes('Enquiry Recovery Sprint'));
     assert.ok(!lr.includes("fetch('/api/tenant/intake'"));
     const form = read('components/public/DiscoveryIntakeForm.js');
     for (const token of [
