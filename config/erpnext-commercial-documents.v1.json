@@ -33,7 +33,27 @@
     "quotation_format": "Quotation Standard",
     "sales_invoice_format": "Sales Invoice Standard",
     "letter_head": "Company Letterhead - Grey",
+    "logo_asset": "public/brand/corpflowai/corpflowai-favicon-approved-source.png",
+    "logo_scope": "all CorpFlowAI commercial quotations and invoices",
     "terms_name": "CF882 CorpFlowAI Commercial Terms",
+    "terms_html": "<p><strong>CorpFlowAI commercial terms</strong></p><ol><li><strong>Validity.</strong> This quotation is valid until the Valid Till date shown on the document.</li><li><strong>Scope.</strong> Scope is limited to the products and services described in this quotation. Additional or changed work will be agreed separately before it is undertaken.</li><li><strong>Client inputs.</strong> The client will provide the access, information, content, brand assets and approvals reasonably required to complete the quoted work. Delays in these inputs may affect delivery dates.</li><li><strong>Currency and payment.</strong> All amounts and payments are in the currency stated on this quotation. The payment schedule and deposit requirements are those stated in the quotation. Payment is regarded as received once cleared.</li><li><strong>Third-party costs.</strong> Third-party hosting, domains, advertising, licences and other external costs are excluded unless specifically included as a quoted line item.</li><li><strong>No outcome guarantees.</strong> CorpFlowAI does not guarantee search rankings, enquiry volumes, conversions, sales or revenue.</li><li><strong>Release and delivery.</strong> Production release or final delivery is subject to the agreed review, approval and payment conditions applicable to the quoted work.</li><li><strong>Commercial contact.</strong> Commercial enquiries: finance@corpflowai.com.</li></ol>",
+    "client_vocabulary": {
+      "seller_name": "CorpFlowAI",
+      "document_names": ["CorpFlowAI quotation", "CorpFlowAI invoice", "commercial document"],
+      "internal_platform_names_forbidden_on_client_documents": ["ERPNext"]
+    },
+    "banking_details_policy": {
+      "render_on_mur_documents_only_when_relevant": true,
+      "payment_method": "manual bank transfer",
+      "source": "approved finance record",
+      "hardcode_bank_details_in_repo": false,
+      "account_name": "CorpFlowAI LTD",
+      "payment_reference": "quotation number",
+      "bank_name": null,
+      "account_number": null,
+      "branch_details": null,
+      "activation_blocker": "accountant confirmation required before live document activation"
+    },
     "custom_print_format_required": false
   },
   "synthetic_proof": {
