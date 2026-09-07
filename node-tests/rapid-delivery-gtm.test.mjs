@@ -98,7 +98,7 @@ describe('rapid-delivery operator helpers', () => {
     });
     assert.equal(summary.ok, true);
     assert.match(summary.markdown, /CF-/);
-    assert.match(summary.markdown, /Enquiry Recovery Sprint/);
+    assert.match(summary.markdown, /Lead Rescue/);
     assert.match(summary.markdown, /MUR 85/);
     assert.match(summary.markdown, /Anton approval/);
     assert.match(summary.markdown, /Delivery proof/);
