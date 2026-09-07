@@ -21,6 +21,7 @@ import {
   CORPflow_PUBLIC_NAV,
 } from '../lib/public/corpflow-public-market.js';
 import { MARKET_SERVICE_PATHS } from '../lib/public/corpflow-market-service-paths.js';
+import { ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL } from '../lib/public/enquiry-recovery-sprint.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..');
@@ -83,8 +84,9 @@ describe('#1127 five-second offer and one primary CTA', () => {
     const landing = read('components/EnquiryRecoveryCampaignPage.js');
     assert.ok(landing.includes('stopped being followed up'));
     assert.ok(landing.includes('ENQUIRY_RECOVERY_PRICE_LINE') || landing.includes('MUR 85,000'));
-    assert.ok(landing.includes('Request a 15-minute diagnosis'));
-    assert.ok(landing.includes('LEAD_RESCUE_ENQUIRY_HREF'));
+    assert.equal(ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL, 'Request a 15-minute diagnosis');
+    assert.ok(landing.includes('ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL'));
+    assert.ok(!landing.includes('Enquiry Recovery Sprint'));
     assert.ok(!landing.includes("fetch('/api/tenant/intake'"));
     assert.ok(!/Choose payment path/i.test(landing));
     assert.ok(!/USD 150/i.test(landing));
