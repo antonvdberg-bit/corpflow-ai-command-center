@@ -29,6 +29,7 @@ import { getVideosForOffer } from '../lib/public/insights-content.js';
 const text = GLASS_TOKENS.text;
 const muted = '#cdd9e6';
 const faint = '#9fb2c4';
+const WEBSITE_RESCUE_FLAGSHIP_VIDEO = '/media/corpflowai/corpflowai-website-rescue-flagship-web-720p.mp4';
 
 const styles = {
   label: { fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7dd3fc', fontWeight: 800 },
@@ -76,6 +77,7 @@ export default function RapidDeliveryOfferPage({ offer, buyerFacingName, pathOve
   const lockedEnquiryHref = canonicalEnquiryHref({ offer: offer.slug });
   const pagePath = pathOverride || offer.path;
   const publicTitle = buyerFacingName || offer.title;
+  const isWebsiteRescue = offer.slug === 'premium-landing-page-rescue' && buyerFacingName === 'Website Rescue';
   const primaryCtaLabel = offer.primaryCtaLabel || 'Request discovery';
   const priceHeading = offer.priceIsFixed
     ? `${formatMur(offer.startingPriceMur)} fixed`
@@ -194,6 +196,45 @@ export default function RapidDeliveryOfferPage({ offer, buyerFacingName, pathOve
             <p style={styles.muted}>{offer.outcome}</p>
           </GlassPanel>
         </GlassCardGrid>
+
+        {isWebsiteRescue ? (
+          <div style={styles.section} data-website-rescue-flagship-video>
+            <GlassPanel variant={{ fill: GLASS_TOKENS.glassFill, padding: 24, elevation: 2 }}>
+              <div style={styles.label}>Website Rescue · flagship briefing</div>
+              <h2 style={styles.h2}>A website is no longer only a website</h2>
+              <p style={styles.muted}>
+                See why CorpFlowAI designs Website Rescue for the people using your business today, the intelligent systems increasingly interpreting it, and the operating systems that need to receive what happens next.
+              </p>
+              <div
+                style={{
+                  marginTop: 18,
+                  aspectRatio: '16 / 9',
+                  overflow: 'hidden',
+                  borderRadius: 16,
+                  border: '1px solid rgba(125,211,252,0.22)',
+                  background: '#020b14',
+                  boxShadow: '0 24px 64px rgba(2,6,23,0.30)',
+                }}
+              >
+                <video
+                  controls
+                  playsInline
+                  preload="metadata"
+                  title="CorpFlowAI Website Rescue flagship brand briefing"
+                  aria-label="CorpFlowAI Website Rescue flagship brand briefing"
+                  style={{ display: 'block', width: '100%', height: '100%', objectFit: 'contain' }}
+                >
+                  <source src={WEBSITE_RESCUE_FLAGSHIP_VIDEO} type="video/mp4" />
+                  Your browser does not support HTML5 video.{' '}
+                  <a href={WEBSITE_RESCUE_FLAGSHIP_VIDEO}>Open the Website Rescue flagship video</a>.
+                </video>
+              </div>
+              <p style={styles.note}>
+                Human-ready. Machine-ready. Business-ready. Designed to evolve without claiming that any technology can be literally future-proof.
+              </p>
+            </GlassPanel>
+          </div>
+        ) : null}
 
         {offer.demoPath ? (
           <div style={styles.section} data-website-rescue-proof>
