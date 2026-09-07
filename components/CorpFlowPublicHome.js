@@ -28,7 +28,7 @@ const HOME_SECTION_SPACING = { marginTop: 64 };
 const meta = buildPublicPageMeta({
   title: 'Stop losing valuable enquiries after first contact',
   description:
-    'CorpFlowAI helps selected Mauritius businesses identify and recover valuable enquiries that have gone quiet. Enquiry Recovery Sprint — MUR 85,000 fixed. Maximum three founding clients. Request a 15-minute Enquiry Recovery Diagnosis.',
+    'CorpFlowAI helps selected Mauritius businesses recover valuable enquiries while structuring business processes so people, AI assistants, and connected systems can work from the same clear operating path.',
   path: '/',
   ogImage: '/assets/visuals/corpflow-home-hero.jpg',
 });
@@ -119,10 +119,24 @@ export default function CorpFlowPublicHome({ host = null, search = null }) {
         <p style={{ ...cfBody, margin: 0 }}>{ENQUIRY_RECOVERY_QUALIFICATION_LINE}</p>
       </OutcomeSection>
 
+      <OutcomeSection
+        id="human-machine-ready"
+        label="Built for the operating reality ahead"
+        title="Clear for people. Structured for machines. Controlled by authority."
+        style={{ marginTop: 32 }}
+      >
+        <p style={cfBody}>
+          We design important business paths so customers and staff can use them easily today, while the underlying information and workflow remain clear enough for AI assistants and connected systems to support tomorrow.
+        </p>
+        <p style={{ ...cfBody, margin: 0 }}>
+          We do not sell “future-proof” technology. We build replaceable, controlled foundations so the next interaction layer does not force the business to start again.
+        </p>
+      </OutcomeSection>
+
       <div style={{ marginTop: 24 }}>
         <PublicTrustBand>
           <p style={{ ...cfBody, margin: 0, color: '#eef6ff' }}>
-            Mauritius-based. Controlled delivery. No guaranteed-revenue claims. We make follow-up visible without replacing your existing stack unless that work is specifically scoped.
+            Mauritius-based. Controlled delivery. No guaranteed-revenue claims. Human-ready, machine-ready, and authority-controlled by design — without replacing your existing stack unless that work is specifically scoped.
           </p>
         </PublicTrustBand>
       </div>
