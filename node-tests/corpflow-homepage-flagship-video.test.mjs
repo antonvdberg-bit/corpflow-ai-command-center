@@ -14,7 +14,7 @@ const VIDEO_PATH = path.join(
   'corpflowai',
   'corpflowai-flagship-homepage-final-1080p.mp4',
 );
-const EXPECTED_BYTES = 17_329_161;
+const EXPECTED_BYTES = 11_358_691;
 
 describe('CorpFlowAI homepage flagship video', () => {
   it('ships the approved compressed MP4 below the 50 MiB warning threshold', () => {
@@ -36,19 +36,18 @@ describe('CorpFlowAI homepage flagship video', () => {
     const home = readFileSync(HOME_PATH, 'utf8');
     const player = home.match(/<video[\s\S]*?<\/video>/)?.[0] || '';
 
-    assert.ok(home.includes('Meet CorpFlowAI'));
-    assert.ok(home.includes('visible, governed delivery'));
+    assert.ok(home.includes('Quiet enquiries are a commercial problem'));
     assert.ok(home.includes('/media/corpflowai/corpflowai-flagship-homepage-final-1080p.mp4'));
     assert.ok(player.includes('controls'));
     assert.ok(player.includes('playsInline'));
     assert.ok(player.includes('preload="metadata"'));
-    assert.ok(player.includes('aria-label="Meet CorpFlowAI flagship video"'));
-    assert.ok(player.includes('Open the approved CorpFlowAI flagship video'));
+    assert.ok(player.includes('aria-label="CorpFlowAI briefing on recovering quiet enquiries"'));
+    assert.ok(player.includes('Open the CorpFlowAI briefing video'));
     assert.ok(!player.includes('autoPlay'));
     assert.ok(!player.includes('loop'));
     assert.ok(
-      home.indexOf('<FlagshipVideoSection />') < home.indexOf('id="service-paths"'),
-      'flagship video must appear before the service-paths section',
+      home.indexOf('<FlagshipVideoSection />') < home.indexOf('id="commercial-focus"'),
+      'flagship video must appear before the live-offer section',
     );
   });
 

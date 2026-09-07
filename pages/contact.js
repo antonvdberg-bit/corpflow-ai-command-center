@@ -7,6 +7,7 @@ import RareExclusiveContentPage from '../components/RareExclusiveContentPage.js'
 import { policyStyles as ps } from '../components/PublicPolicyLayout.js';
 import { buildGeneralDiscoveryMailto, buildPublicPageMeta } from '../lib/public/corpflow-public-market.js';
 import { resolveCanonicalEnquiryQuery } from '../lib/public/canonical-enquiry.js';
+import { ENQUIRY_RECOVERY_DIAGNOSIS_HREF, ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL } from '../lib/public/enquiry-recovery-sprint.js';
 import { luxOrApexPageProps } from '../lib/client/lux-host-page-props.js';
 
 const h1 = {
@@ -39,11 +40,11 @@ export default function ContactPage({
   const meta = buildPublicPageMeta({
     title: 'Contact',
     description:
-      'Request a qualified conversation with CorpFlowAI about workflow improvement, lead and client systems, or website operating upgrades. No automatic outreach from this form.',
+      'Request a 15-minute diagnosis with CorpFlowAI about quiet enquiries, website rescue, or a bounded operating improvement. No automatic outreach from this form.',
     path: '/contact',
     ogImage: '/assets/visuals/corpflow-contact-hero.jpg',
   });
-  const lockedLeadRescue = lockedOffer && defaultOfferSlug === 'ai-lead-rescue';
+  const lockedEnquiryRecovery = lockedOffer && defaultOfferSlug === 'ai-lead-rescue';
   const lockedWebsiteRescue = lockedOffer && defaultOfferSlug === 'premium-landing-page-rescue';
 
   return (
@@ -51,7 +52,7 @@ export default function ContactPage({
       meta={meta}
       visualKey="contact"
       maxWidth={800}
-      headerCta={{ label: 'How we help', href: '/#service-paths' }}
+      headerCta={{ label: ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL, href: ENQUIRY_RECOVERY_DIAGNOSIS_HREF }}
     >
       <h1 style={h1}>Contact</h1>
       <p style={updated}>
@@ -62,18 +63,18 @@ export default function ContactPage({
       <section style={ps.section} id="discovery" data-canonical-enquiry>
         <DiscoveryIntakeForm
           heading={
-            lockedLeadRescue
-              ? 'Request AI Lead Rescue'
+            lockedEnquiryRecovery
+              ? ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL
               : lockedWebsiteRescue
                 ? 'Request Website Rescue'
-                : 'Request a qualified conversation'
+                : ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL
           }
           defaultBuyerNeed={defaultBuyerNeed || undefined}
           defaultServicePath={defaultServicePath || undefined}
           defaultOfferSlug={defaultOfferSlug || undefined}
           lockedOffer={lockedOffer}
           lockedOfferLabel={
-            lockedLeadRescue ? 'AI Lead Rescue' : lockedWebsiteRescue ? 'Website Rescue' : undefined
+            lockedEnquiryRecovery ? 'Enquiry Recovery Sprint' : lockedWebsiteRescue ? 'Website Rescue' : undefined
           }
         />
         <p style={{ ...ps.p, marginTop: 16 }}>

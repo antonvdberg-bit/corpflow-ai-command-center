@@ -133,8 +133,8 @@ describe('Product A Mauritius page — intake contract + beauty layer', () => {
   });
 
   it('includes lighter entry path to Lead Rescue wedge without competing CTA', () => {
-    assert.ok(COMPONENT.includes('/lead-rescue/property-mauritius'));
-    assert.ok(COMPONENT.includes('lighter entry path'));
+    assert.ok(COMPONENT.includes('/enquiry-recovery'));
+    assert.ok(COMPONENT.includes('live commercial path'));
   });
 
   it('has valid hero manifest', () => {

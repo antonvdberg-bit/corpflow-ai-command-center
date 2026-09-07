@@ -24,9 +24,8 @@ export default function CorpFlowPublicFooter({ extra }) {
       >
         <p style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 700, color: CF.text }}>CorpFlowAI</p>
         <p style={{ margin: '0 0 16px', fontSize: 14, lineHeight: 1.65, color: CF.textMuted, maxWidth: 640 }}>
-          CorpFlowAI designs and operates practical AI-assisted workflow systems with managed delivery — lead
-          response, website operating upgrades, and administration improvement. ERPNext holds commercial records;
-          CorpFlowAI is the public selling and delivery wrapper.
+          CorpFlowAI helps selected Mauritius businesses recover valuable enquiries that have gone quiet — and
+          operates managed delivery for website and administration improvements. Mauritius-based. Not a generic AI vendor.
         </p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, fontSize: 13 }}>
           {products.map((product) => (

@@ -106,7 +106,7 @@ describe('Website Rescue sellable slice — public surfaces', () => {
     const list = OFFER_NOT_INCLUDED_BY_SLUG['premium-landing-page-rescue'] || [];
     const blob = list.join(' ').toLowerCase();
     assert.ok(blob.includes('seo') || blob.includes('revenue'));
-    assert.ok(blob.includes('lead rescue'));
+    assert.ok(blob.includes('enquiry recovery'));
   });
 });
 

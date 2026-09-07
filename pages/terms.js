@@ -16,9 +16,9 @@ export default function TermsPage() {
       <section style={ps.section}>
         <h2 style={ps.h2}>Service description</h2>
         <p style={ps.p}>
-          {MERCHANT_LEGAL_NAME} provides practical AI-assisted workflow systems for small businesses, including
-          productized offers such as AI Lead Rescue. Services may include intake review, workflow setup, alerts,
-          logging, summaries, and optional monitoring. See the{' '}
+          {MERCHANT_LEGAL_NAME} provides practical operating help for selected businesses, including the
+          Enquiry Recovery Sprint and bounded website work. Services may include diagnosis, written offers,
+          follow-up visibility, and agreed delivery against existing tools. See the{' '}
           <Link href="/services" style={{ color: '#7dd3fc' }}>
             services page
           </Link>{' '}
@@ -62,10 +62,10 @@ export default function TermsPage() {
       <section style={ps.section}>
         <h2 style={ps.h2}>Service fulfilment and delivery</h2>
         <p style={ps.p}>
-          The AI Lead Rescue launch pilot is a digital service. There is no physical shipment. Lead Rescue setup is
-          targeted within 48 hours after payment confirmation and receipt of all required client information. Where
-          additional clarification, access, client input, or scope confirmation is needed, setup will normally be
-          completed within 5 business days unless otherwise agreed.
+          The Enquiry Recovery Sprint is a digital service. There is no physical shipment. A first visible preview
+          is targeted within 72 hours after cleared deposit, required access, and required assets or information —
+          not as an unconditional 72-hour delivery guarantee. Historic USD 150 launch-pilot engagements, if invoiced,
+          remain governed by the invoice issued at the time.
         </p>
         <p style={ps.p}>
           Full delivery terms:{' '}

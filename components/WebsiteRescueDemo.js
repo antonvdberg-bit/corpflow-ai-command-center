@@ -240,8 +240,8 @@ function AfterView() {
 
       <p style={{ ...styles.muted, fontSize: 14 }}>
         Optional next step for many buyers: connect this enquiry path to{' '}
-        <Link href="/lead-rescue" style={{ color: '#7dd3fc' }}>
-          Lead Rescue
+        <Link href="/enquiry-recovery" style={{ color: '#7dd3fc' }}>
+          Enquiry Recovery
         </Link>{' '}
         (separate engagement) so follow-up stays visible after the form submit.
       </p>

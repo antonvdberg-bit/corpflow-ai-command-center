@@ -122,9 +122,9 @@ test('public surfaces do not retain forbidden footer payment/SLA wording', () =>
 });
 
 test('approved offer-page pricing remains on intentional product surfaces', () => {
-  const leadRescue = fs.readFileSync(path.join(root, 'components/AiLeadRescueLanding.js'), 'utf8');
-  assert.match(leadRescue, /USD 150/);
+  const leadRescue = fs.readFileSync(path.join(root, 'components/EnquiryRecoveryCampaignPage.js'), 'utf8');
+  assert.match(leadRescue, /MUR 85,000|ENQUIRY_RECOVERY_PRICE/);
 
   const offers = fs.readFileSync(path.join(root, 'lib/public/rapid-delivery-offers.js'), 'utf8');
-  assert.match(offers, /35,?000|45000|45,?000/);
+  assert.match(offers, /85000|85,000/);
 });

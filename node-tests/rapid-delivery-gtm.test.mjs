@@ -98,8 +98,8 @@ describe('rapid-delivery operator helpers', () => {
     });
     assert.equal(summary.ok, true);
     assert.match(summary.markdown, /CF-/);
-    assert.match(summary.markdown, /AI Lead Rescue Sprint/);
-    assert.match(summary.markdown, /MUR 35/);
+    assert.match(summary.markdown, /Enquiry Recovery Sprint/);
+    assert.match(summary.markdown, /MUR 85/);
     assert.match(summary.markdown, /Anton approval/);
     assert.match(summary.markdown, /Delivery proof/);
     assert.match(summary.markdown, /corpflowai\.com\/offers\/ai-lead-rescue/);
@@ -214,7 +214,7 @@ describe('rapid-delivery revenue desk UX', () => {
     assert.ok(!offers.includes('within 48 hours of deposit clearance'));
     assert.ok(
       offers.includes(
-        'CorpFlowAI has delivered working lead-capture, operator-review and follow-up workflows',
+        'CorpFlowAI is Mauritius-based and works with selected owner-led businesses',
       ),
     );
     assert.ok(offers.includes('Currency and payment instructions are confirmed on the invoice before you pay'));
