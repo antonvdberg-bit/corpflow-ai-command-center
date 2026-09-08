@@ -54,7 +54,10 @@ describe('#712 market path — public pages and primary CTAs', () => {
   it('Website Rescue offer has one primary discovery CTA and a named buyer path', () => {
     const offer = RAPID_DELIVERY_OFFERS['premium-landing-page-rescue'];
     assert.ok(offer);
-    assert.match(offer.headline, /enquiry path/i);
+    assert.match(
+      offer.headline,
+      /Make your business easier to trust, understand and act on/i,
+    );
     const page = read('components/RapidDeliveryOfferPage.js');
     assert.ok(page.includes('Request discovery') || page.includes('#discovery'));
     assert.ok(page.includes('canonicalEnquiryHref'));
