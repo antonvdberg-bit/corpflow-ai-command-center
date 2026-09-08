@@ -36,6 +36,7 @@ describe('CorpFlowAI homepage flagship video', () => {
     const home = readFileSync(HOME_PATH, 'utf8');
     const player = home.match(/<video[\s\S]*?<\/video>/)?.[0] || '';
 
+    // Preserve the approved flagship-video treatment independently of offer naming changes.
     assert.ok(home.includes('Quiet enquiries are a commercial problem'));
     assert.ok(home.includes('/media/corpflowai/corpflowai-flagship-homepage-final-1080p.mp4'));
     assert.ok(player.includes('controls'));
