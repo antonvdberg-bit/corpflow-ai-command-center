@@ -31,10 +31,11 @@ describe('#710 Website Rescue named buyer path', () => {
     assert.equal(existsSync(path.join(REPO_ROOT, 'pages/website-rescue.js')), true);
     const page = read('pages/website-rescue.js');
     assert.ok(page.includes('data-website-rescue-landing'));
-    assert.ok(page.includes("buyerFacingName=\"Website Rescue\"") || page.includes("buyerFacingName='Website Rescue'"));
-    assert.ok(page.includes("pathOverride=\"/website-rescue\"") || page.includes("pathOverride='/website-rescue'"));
+    assert.ok(page.includes('WebsiteRescueConversionPage'));
     assert.ok(page.includes("getRapidDeliveryOffer('premium-landing-page-rescue')"));
     assert.ok(!/Choose payment path/i.test(page));
+    const conversion = read('components/WebsiteRescueConversionPage.js');
+    assert.ok(conversion.includes("const publicTitle = 'Website Rescue'"));
   });
 
   it('public nav and homepage send Website Rescue buyers to /website-rescue', () => {

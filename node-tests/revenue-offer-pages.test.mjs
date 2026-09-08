@@ -132,13 +132,18 @@ describe('Revenue template pack — files exist', () => {
 });
 
 describe('Revenue delivery playbook — exists and states ERPNext-first', () => {
-  it('playbook file exists with month-end target and ERPNext principle', () => {
+  it('playbook file exists with current commercial terms and ERPNext principle', () => {
     const rel = 'docs/revenue/REVENUE_DELIVERY_PLAYBOOK.md';
     assert.equal(exists(rel), true, 'missing REVENUE_DELIVERY_PLAYBOOK.md');
     const content = read(rel);
-    assert.ok(content.includes('MUR 150,000–200,000'), 'month-end target missing');
+    assert.equal(
+      content.includes('MUR 150,000–200,000'),
+      false,
+      'obsolete MUR 150,000–200,000 month-end target must not remain as the playbook contract',
+    );
+    assert.ok(content.includes('MUR 85,000 fixed'), 'current Enquiry Recovery price missing');
     assert.ok(content.includes('ERPNext is the system of record'), 'ERPNext-first principle missing');
-    assert.ok(content.includes('/offers/ai-lead-rescue'), 'first offer URL missing');
+    assert.ok(content.includes('/enquiry-recovery'), 'first offer URL missing');
     assert.ok(content.includes('No payment runtime'), 'non-actions section missing');
   });
 });
