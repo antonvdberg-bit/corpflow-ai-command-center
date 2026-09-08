@@ -38,12 +38,12 @@ function FlagshipVideoSection() {
         See the problem
       </p>
       <h2 id="corpflow-flagship-video-title" style={{ margin: '8px 0 18px', color: CF.text, fontSize: 'clamp(23px, 3vw, 30px)', letterSpacing: '-0.02em' }}>
-        Lead Rescue: quiet enquiries are a commercial problem
+        Quiet enquiries are a commercial problem
       </h2>
       <div style={{ aspectRatio: '16 / 9', overflow: 'hidden', borderRadius: 18, border: '1px solid rgba(125,211,252,0.22)', background: '#020b14', boxShadow: '0 24px 64px rgba(2, 6, 23, 0.28)' }}>
-        <video aria-label="Lead Rescue introduction" title="Lead Rescue" controls playsInline preload="metadata" style={{ display: 'block', width: '100%', height: '100%', objectFit: 'contain' }}>
+        <video aria-label="CorpFlowAI briefing on recovering quiet enquiries" title="Quiet enquiries are a commercial problem" controls playsInline preload="metadata" style={{ display: 'block', width: '100%', height: '100%', objectFit: 'contain' }}>
           <source src={FLAGSHIP_VIDEO_PATH} type="video/mp4" />
-          Your browser does not support HTML5 video. <a href={FLAGSHIP_VIDEO_PATH}>Open the Lead Rescue introduction video</a>.
+          Your browser does not support HTML5 video. <a href={FLAGSHIP_VIDEO_PATH}>Open the CorpFlowAI briefing video</a>.
         </video>
       </div>
     </section>
