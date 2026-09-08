@@ -117,8 +117,10 @@ describe('#822 surfaces use one form', () => {
 
   it('Lead Rescue landing has no embedded submit form and points CTAs at the canonical URL', () => {
     const lr = read('components/EnquiryRecoveryCampaignPage.js');
-    assert.ok(lr.includes('LEAD_RESCUE_ENQUIRY_HREF'));
+    assert.ok(lr.includes('ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL'));
     assert.ok(lr.includes('data-testid="lead-rescue-canonical-cta"'));
+    assert.ok(lr.includes('DiscoveryIntakeForm'));
+    assert.ok(!lr.includes('Enquiry Recovery Sprint'));
     assert.ok(!lr.includes("fetch('/api/tenant/intake'"));
     assert.ok(!/async function submitLead/.test(lr));
     assert.equal((lr.match(/<form[\s>]/g) || []).length, 0);

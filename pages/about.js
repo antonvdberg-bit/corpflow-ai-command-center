@@ -15,16 +15,10 @@ import { buildPublicPageMeta } from '../lib/public/corpflow-public-market.js';
 import { ENQUIRY_RECOVERY_DIAGNOSIS_HREF, ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL } from '../lib/public/enquiry-recovery-sprint.js';
 import { luxOrApexPageProps } from '../lib/client/lux-host-page-props.js';
 
-/**
- * /about — host-aware.
- * - lux.corpflowai.com → Rare & Exclusive Collection Ivory Editorial about
- * - apex / other → CorpFlowAI institutional about
- */
-
 const PRINCIPLES = [
   {
     title: 'Effectiveness over decoration.',
-    body: "A workflow is not a website. We measure success by whether the operator's day is calmer and the customer's enquiry is captured \u2014 not by how many features ship.",
+    body: "A workflow is not a website. We measure success by whether the operator's day is calmer and the customer's enquiry is captured — not by how many features ship.",
   },
   {
     title: 'Operational over impressive.',
@@ -32,7 +26,7 @@ const PRINCIPLES = [
   },
   {
     title: 'Bounded engagements, not platforms.',
-    body: 'The live commercial offer is a fixed Enquiry Recovery Sprint after a 15-minute diagnosis and a written offer. Broader work is scoped separately, in writing, only when it is justified.',
+    body: 'The live commercial offer is Lead Rescue after a 15-minute diagnosis and a written offer. Broader work is scoped separately, in writing, only when it is justified.',
   },
   {
     title: 'Honest scope.',
@@ -40,11 +34,11 @@ const PRINCIPLES = [
   },
   {
     title: 'Lightweight by default.',
-    body: "We prefer Google Sheets over a CRM, a webhook over a portal, an email over a chatbot \u2014 until the operator's real volume requires more. Every layer of complexity has to be earned.",
+    body: "We prefer Google Sheets over a CRM, a webhook over a portal, an email over a chatbot — until the operator's real volume requires more. Every layer of complexity has to be earned.",
   },
   {
-    title: 'Intake first, payment after review.',
-    body: 'No card or banking details are collected on this website. After a CorpFlowAI operator reviews your request and confirms fit, the Enquiry Recovery Sprint is invoiced in MUR (manual bank transfer) according to the written offer.',
+    title: 'Diagnosis first, payment after a written offer.',
+    body: 'No card or banking details are collected on this website. If Lead Rescue is a fit, commercial terms are confirmed in writing before payment.',
   },
   {
     title: 'No revenue guarantees.',
@@ -53,38 +47,26 @@ const PRINCIPLES = [
 ];
 
 export default function AboutPage({ luxMode = false, seoHost = '' } = {}) {
-  if (luxMode) {
-    return <RareExclusiveContentPage pageId="about" seoHost={seoHost} />;
-  }
+  if (luxMode) return <RareExclusiveContentPage pageId="about" seoHost={seoHost} />;
 
   const meta = buildPublicPageMeta({
     title: 'About CorpFlowAI',
-    description:
-      'CorpFlowAI is a Mauritius-based company that helps selected owner-led businesses identify and recover valuable enquiries that have gone quiet. Bounded engagements, not generic AI.',
+    description: 'CorpFlowAI is a Mauritius-based company that helps selected owner-led businesses identify and recover valuable enquiries that have gone quiet. Lead Rescue is the current commercial focus.',
     path: '/about',
     ogImage: '/assets/visuals/corpflow-about-hero.jpg',
   });
 
   return (
     <CorpFlowPublicPhotoShell meta={meta} visualKey="about" maxWidth={960} headerCta={{ label: ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL, href: ENQUIRY_RECOVERY_DIAGNOSIS_HREF }}>
-      <h1 style={{ margin: '16px 0 8px', fontSize: 'clamp(28px, 4.6vw, 38px)', letterSpacing: '-0.03em', lineHeight: 1.15, color: '#eef6ff' }}>
-        About CorpFlowAI
-      </h1>
+      <h1 style={{ margin: '16px 0 8px', fontSize: 'clamp(28px, 4.6vw, 38px)', letterSpacing: '-0.03em', lineHeight: 1.15, color: '#eef6ff' }}>About CorpFlowAI</h1>
       <p style={ts.lead}>
-        CorpFlowAI is a Mauritius-based operations company. We help selected owner-led businesses identify and
-        recover valuable enquiries that have gone quiet — without asking them to replace everything they already
-        use. We are not a generic marketing agency and we are not selling “AI”. The live commercial offer is the
-        Enquiry Recovery Sprint after a short diagnosis.
+        CorpFlowAI is a Mauritius-based operations company. We help selected owner-led businesses identify and recover valuable enquiries that have gone quiet — without asking them to replace everything they already use. We are not a generic marketing agency and we are not selling “AI”. The live commercial offer is Lead Rescue after a short diagnosis.
       </p>
 
       <section style={ps.section}>
         <p style={ts.sectionLabel}>How we operate</p>
         <h2 style={ps.h2}>Operating principles</h2>
-        <p style={ps.p}>
-          These are the working rules our team uses to decide what to build, what to decline,
-          and how to talk to clients. They are not aspirational. If you are working with
-          CorpFlowAI and an interaction does not match one of these, please tell us.
-        </p>
+        <p style={ps.p}>These are the working rules our team uses to decide what to build, what to decline, and how to talk to clients.</p>
         <div style={{ ...ts.pillarGrid, marginTop: 18 }}>
           {PRINCIPLES.map((p) => (
             <div key={p.title} style={ts.card}>
@@ -102,28 +84,13 @@ export default function AboutPage({ luxMode = false, seoHost = '' } = {}) {
         <h2 style={ps.h2}>Why CorpFlowAI exists</h2>
         <div style={ts.founderQuote}>
           <p style={{ margin: '0 0 14px' }}>
-            I started CorpFlowAI because most small businesses do not need another platform.
-            They need their existing enquiries to stop falling through the cracks. The fastest
-            way to help them is to install a small, calm system that captures every lead,
-            alerts the owner, and leaves a daily summary. After that, we can talk about CRMs,
-            automation, and &ldquo;AI&rdquo;. Before that, the priority is plumbing
-            {' \u2014 '}and the plumbing is unglamorous, which is exactly why it works.
+            I started CorpFlowAI because most small businesses do not need another platform. They need their existing enquiries to stop falling through the cracks. The fastest way to help them is to install a small, calm system that captures every lead, alerts the owner, and leaves a daily summary. After that, we can talk about CRMs, automation, and “AI”.
           </p>
           <p style={{ margin: '0 0 14px' }}>
-            The team is intentionally small. Every engagement is run by an operator
-            {' \u2014 '}not a sales rep, not an assistant, not a chatbot. If you submit an
-            intake form on this site, a person reads it within one business day. If we cannot
-            help, we say so directly, and we say it before money changes hands.
-          </p>
-          <p style={{ margin: '0 0 14px' }}>
-            We are based in Mauritius and work with clients in Mauritius and internationally.
-            Commercial terms, currency and payment instructions are confirmed in writing on each invoice
-            before you pay. This site does not collect card details on public marketing pages.
+            The team is intentionally small. Every engagement is run by an operator. If we cannot help, we say so directly, and we say it before money changes hands.
           </p>
           <p style={{ margin: 0 }}>
-            CorpFlowAI is not a growth platform. It is an operations company. The number we
-            care about is whether your follow-ups happen. If we get that right, the rest of
-            the conversation gets a lot easier.
+            CorpFlowAI is not a growth platform. It is an operations company. The number we care about is whether your follow-ups happen.
           </p>
           <div style={ts.founderSignoff}>&mdash; Anton, founder, CorpFlowAI</div>
         </div>
@@ -135,57 +102,16 @@ export default function AboutPage({ luxMode = false, seoHost = '' } = {}) {
         <p style={ts.sectionLabel}>Company</p>
         <h2 style={ps.h2}>CorpFlowAI Ltd</h2>
         <p style={ps.p}>
-          {MERCHANT_LEGAL_NAME} is a Mauritian-registered company. Registered office: {MERCHANT_REGISTERED_OFFICE}.
-          Business Registration Number: {MERCHANT_BRN}. Merchant outlet country: {MERCHANT_OUTLET_COUNTRY}.
+          {MERCHANT_LEGAL_NAME} is a Mauritian-registered company. Registered office: {MERCHANT_REGISTERED_OFFICE}. Business Registration Number: {MERCHANT_BRN}. Merchant outlet country: {MERCHANT_OUTLET_COUNTRY}.
         </p>
         <CustomerServiceContact />
         <p style={ps.p}>{formatCurrencyDisclosure()}</p>
-        <p style={ps.p}>
-          <Link href="/services" style={{ color: '#7dd3fc' }}>
-            Full services description
-          </Link>
-        </p>
       </section>
 
-      <hr style={ts.divider} />
-
       <section style={ps.section}>
-        <p style={ts.sectionLabel}>Where to next</p>
-        <h2 style={ps.h2}>If you want to dig further</h2>
-        <p style={ps.p}>
-          The trust-architecture pages describe how we run engagements end-to-end. None of
-          them are sales pitches{' \u2014 '}they are operating documents.
-        </p>
-        <ul style={ps.ul}>
-          <li>
-            <Link href="/process" style={{ color: '#7dd3fc' }}>
-              Process
-            </Link>{' '}
-            &mdash; the five stages of a CorpFlowAI engagement, including what we do and
-            what we do not do.
-          </li>
-          <li>
-            <Link href="/onboarding" style={{ color: '#7dd3fc' }}>
-              Onboarding
-            </Link>{' '}
-            &mdash; the first fourteen days of an engagement, day by day.
-          </li>
-          <li>
-            <Link href="/standards" style={{ color: '#7dd3fc' }}>
-              Operational standards
-            </Link>{' '}
-            &mdash; review cadence, monitoring, payment-after-review, and the no-guarantee
-            position written plainly.
-          </li>
-        </ul>
-
         <div style={ts.ctaRow}>
-          <Link href="/enquiry-recovery" style={ts.ctaPrimary}>
-            {ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL} &rarr;
-          </Link>
-          <Link href="/contact" style={ts.ctaSecondary}>
-            Ask a question first
-          </Link>
+          <Link href="/lead-rescue" style={ts.ctaPrimary}>{ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL} &rarr;</Link>
+          <Link href="/contact" style={ts.ctaSecondary}>Ask a question first</Link>
         </div>
       </section>
     </CorpFlowPublicPhotoShell>

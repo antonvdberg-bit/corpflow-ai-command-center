@@ -143,7 +143,9 @@ describe('CorpFlowAI governed public visuals — route wiring', () => {
     const src = read(ROUTE_FILES.onboarding);
     assert.match(src, /visualKey="onboarding"/);
     assert.match(src, /corpflow-onboarding-journey\.svg/);
-    assert.match(src, /Day 0|Day 14|fourteen days|first 14 days/i);
+    assert.match(src, /Lead Rescue/);
+    assert.match(src, /ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL/);
+    assert.doesNotMatch(src, /Enquiry Recovery Sprint/);
     assert.doesNotMatch(src, /href=["']\/change["']/);
   });
 
