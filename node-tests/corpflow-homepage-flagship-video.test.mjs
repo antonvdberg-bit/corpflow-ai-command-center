@@ -36,13 +36,14 @@ describe('CorpFlowAI homepage flagship video', () => {
     const home = readFileSync(HOME_PATH, 'utf8');
     const player = home.match(/<video[\s\S]*?<\/video>/)?.[0] || '';
 
-    assert.ok(home.includes('Lead Rescue: quiet enquiries are a commercial problem'));
+    assert.ok(home.includes('Quiet enquiries are a commercial problem'));
     assert.ok(home.includes('/media/corpflowai/corpflowai-flagship-homepage-final-1080p.mp4'));
     assert.ok(player.includes('controls'));
     assert.ok(player.includes('playsInline'));
     assert.ok(player.includes('preload="metadata"'));
-    assert.ok(player.includes('aria-label="Lead Rescue introduction"'));
-    assert.ok(player.includes('Open the Lead Rescue introduction video'));
+    assert.ok(player.includes('aria-label="CorpFlowAI briefing on recovering quiet enquiries"'));
+    assert.ok(player.includes('title="Quiet enquiries are a commercial problem"'));
+    assert.ok(player.includes('Open the CorpFlowAI briefing video'));
     assert.ok(!player.includes('autoPlay'));
     assert.ok(!player.includes('loop'));
     assert.ok(
