@@ -93,16 +93,16 @@ describe('#1127 five-second offer and one primary CTA', () => {
   it('Website Rescue named landing keeps buyer-facing name and does not lead with the SKU title', () => {
     const page = read('pages/website-rescue.js');
     assert.ok(page.includes('data-website-rescue-landing'));
-    assert.ok(page.includes('buyerFacingName="Website Rescue"') || page.includes("buyerFacingName='Website Rescue'"));
-    assert.ok(page.includes('pathOverride="/website-rescue"') || page.includes("pathOverride='/website-rescue'"));
+    assert.ok(page.includes('WebsiteRescueConversionPage'));
+    assert.ok(page.includes("getRapidDeliveryOffer('premium-landing-page-rescue')"));
 
-    const offerPage = read('components/RapidDeliveryOfferPage.js');
-    assert.ok(offerPage.includes('Request discovery'));
-    assert.ok(offerPage.includes('href="#discovery"'));
-    assert.ok(!offerPage.includes('Starting path:'));
-    assert.ok(!/Choose payment path/i.test(offerPage));
-    assert.ok(offerPage.includes('Open the Website Rescue demo'));
-    assert.ok(offerPage.includes('offer.demoPath'));
+    const conversion = read('components/WebsiteRescueConversionPage.js');
+    assert.ok(conversion.includes("const publicTitle = 'Website Rescue'"));
+    assert.ok(conversion.includes('Request discovery'));
+    assert.ok(conversion.includes('href="#discovery"'));
+    assert.ok(!conversion.includes('Starting path:'));
+    assert.ok(!/Choose payment path/i.test(conversion));
+    assert.ok(conversion.includes('offer.demoPath'));
   });
 });
 
