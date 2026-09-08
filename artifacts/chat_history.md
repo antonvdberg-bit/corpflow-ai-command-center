@@ -30,6 +30,10 @@
 
 ---
 
+## 2026-09-08 — **Lead Rescue restored as canonical public conversion path (PR #1265 merged; CI unblocked by PR #1270).** Public name **Lead Rescue**; canonical route `/lead-rescue`; `/enquiry-recovery` permanent redirect; price **MUR 85,000 fixed**; max **3** clients; CTA **Request a 15-minute diagnosis**; internal SKU `ai-lead-rescue` unchanged. “Enquiry Recovery Sprint” must not return on buyer surfaces. Homepage flagship video path unchanged (`/media/corpflowai/corpflowai-flagship-homepage-final-1080p.mp4`). **#1270** was TEST-ONLY: stale Node assertions aligned to current `main` (Website Rescue headline / conversion landing; playbook no longer asserts obsolete `MUR 150,000–200,000` — current playbook has no numeric month-end range). Merge SHAs: #1270 `addac1a5…`, #1265 `39e6ac9a…`. **Git merged; live corpflow_test verification of `/lead-rescue` still required before operational COMPLETE.** Surfaces: `lux.corpflowai.com`, `core.corpflowai.com`.
+
+<!-- LEAD_RESCUE_CANONICAL_PATH_2026_09_08_HIST -->
+
 ## 2026-08-19 — **#899 fresh Factory Automation re-probe: ERPNext API PASS; `MASTER_ADMIN_KEY` still PRESENT.** Wake `bc-c67a9751-28cb-47e6-918a-29a13c213561` (handoff `32233151156`). Direct Frappe token auth as `integrations@corpflowai.com` HTTP 200. Three ERPNext secret names present; factory-master name still injected into this Automation worker after the 2026-08-13 Cloud Agents Secrets delete confirmation. No values recorded. Canonical: `docs/erpnext/ERPNEXT_CURSOR_CLOUD_SECURITY_CORRECTION_899.md`. Remaining Anton action: UI-only delete of secret **name** `MASTER_ADMIN_KEY` from the remaining Cursor store, then a fresh wake.
 
 ## 2026-08-14 — **#920 ERPNext Prestige foundation READY.** After Anton’s Sales Manager grant, live re-run as `integrations@corpflowai.com`: Project Template `CF920 Independent Website 12-phase`; Project `PROJ-0001`; Tasks `TASK-2026-00013`–`00024`; Timesheet `TS-2026-00001` linked; Issue `ISS-2026-00001` Open. CRM + draft `SAL-QTN-2026-00004` reused. No Prestige Procurement customer. No send/submit/payment. Canonical: `docs/erpnext/ERPNEXT_PRESTIGE_FOUNDATION_V1.md`.
