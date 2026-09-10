@@ -13,6 +13,9 @@ import {
 
 test('ElevenLabs voice chat is disabled by default', () => {
   assert.equal(isElevenLabsVoiceChatEnabled({}), false);
+  assert.equal(resolveElevenLabsAgentId(), '');
+  assert.deepEqual(resolveElevenLabsVoiceChatAllowedPaths(), []);
+  assert.equal(shouldRenderElevenLabsVoiceChat(undefined, '/demo/voice-enquiry'), false);
   assert.equal(
     shouldRenderElevenLabsVoiceChat(
       {
@@ -61,16 +64,18 @@ test('enabled real agent ID with a missing allowlist does not render', () => {
   assert.equal(shouldRenderElevenLabsVoiceChat(env, '/demo/voice-enquiry'), false);
 });
 
-test('enabled real agent ID renders only on the allowlisted demo path', () => {
-  const env = {
+test('explicit public environment permits only the demo voice enquiry path', () => {
+  const publicEnv = {
     NEXT_PUBLIC_ENABLE_ELEVENLABS_VOICE_CHAT: 'true',
     NEXT_PUBLIC_ELEVENLABS_AGENT_ID: 'agent_test_placeholder_not_production',
     NEXT_PUBLIC_ELEVENLABS_VOICE_CHAT_ALLOWED_PATHS: '/demo/voice-enquiry',
   };
 
-  assert.equal(isElevenLabsVoiceChatPathAllowed('/demo/voice-enquiry', env), true);
-  assert.equal(shouldRenderElevenLabsVoiceChat(env, '/demo/voice-enquiry'), true);
-  assert.equal(shouldRenderElevenLabsVoiceChat(env, '/lead-rescue'), false);
+  assert.equal(isElevenLabsVoiceChatPathAllowed('/demo/voice-enquiry', publicEnv), true);
+  assert.equal(shouldRenderElevenLabsVoiceChat(publicEnv, '/demo/voice-enquiry'), true);
+  assert.equal(shouldRenderElevenLabsVoiceChat(publicEnv, '/lead-rescue'), false);
+  assert.equal(shouldRenderElevenLabsVoiceChat(publicEnv, '/website-rescue'), false);
+  assert.equal(shouldRenderElevenLabsVoiceChat(publicEnv, '/'), false);
 });
 
 test('comma-separated allowlist has exact pathname matches', () => {
