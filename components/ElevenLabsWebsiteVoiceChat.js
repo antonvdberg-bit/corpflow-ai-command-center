@@ -6,6 +6,13 @@ import {
 } from '../lib/public/elevenlabs-voice-chat.js';
 
 const WIDGET_SCRIPT_SRC = 'https://unpkg.com/@elevenlabs/convai-widget-embed';
+const ELEVENLABS_VOICE_CHAT_PUBLIC_ENV = {
+  NEXT_PUBLIC_ENABLE_ELEVENLABS_VOICE_CHAT:
+    process.env.NEXT_PUBLIC_ENABLE_ELEVENLABS_VOICE_CHAT,
+  NEXT_PUBLIC_ELEVENLABS_AGENT_ID: process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID,
+  NEXT_PUBLIC_ELEVENLABS_VOICE_CHAT_ALLOWED_PATHS:
+    process.env.NEXT_PUBLIC_ELEVENLABS_VOICE_CHAT_ALLOWED_PATHS,
+};
 
 /**
  * Gated ElevenLabs Agents website voice-chat placeholder.
@@ -21,8 +28,8 @@ const WIDGET_SCRIPT_SRC = 'https://unpkg.com/@elevenlabs/convai-widget-embed';
  */
 export default function ElevenLabsWebsiteVoiceChat({ surface = 'unspecified' }) {
   const [pathname, setPathname] = useState('');
-  const agentId = resolveElevenLabsAgentId();
-  const enabled = shouldRenderElevenLabsVoiceChat(undefined, pathname);
+  const agentId = resolveElevenLabsAgentId(ELEVENLABS_VOICE_CHAT_PUBLIC_ENV);
+  const enabled = shouldRenderElevenLabsVoiceChat(ELEVENLABS_VOICE_CHAT_PUBLIC_ENV, pathname);
 
   useEffect(() => {
     setPathname(window.location.pathname);
