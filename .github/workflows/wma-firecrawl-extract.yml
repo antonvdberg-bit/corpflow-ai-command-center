@@ -37,12 +37,13 @@ jobs:
           node-version: '22'
 
       - name: Fetch WMA runtime secret from Infisical
-        uses: Infisical/secrets-action@v1
+        uses: Infisical/secrets-action@v1.0.17
         with:
           method: oidc
           identity-id: ${{ vars.WMA_INFISICAL_IDENTITY_ID }}
           project-slug: ${{ vars.WMA_INFISICAL_PROJECT_SLUG }}
           env-slug: ${{ vars.INFISICAL_ENV_SLUG }}
+          secret-name: FIRECRAWL_API_KEY
 
       - name: Confirm Firecrawl secret contract
         run: |
