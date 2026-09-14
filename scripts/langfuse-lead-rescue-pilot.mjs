@@ -64,6 +64,10 @@ function valueBool(value) {
   return { boolValue: Boolean(value) };
 }
 
+function valueNumber(value) {
+  return Number.isInteger(value) ? { intValue: String(value) } : { doubleValue: Number(value) };
+}
+
 function valueStringArray(values) {
   return { arrayValue: { values: values.map((value) => valueString(value)) } };
 }
@@ -71,6 +75,7 @@ function valueStringArray(values) {
 function attr(key, value) {
   if (Array.isArray(value)) return { key, value: valueStringArray(value) };
   if (typeof value === 'boolean') return { key, value: valueBool(value) };
+  if (typeof value === 'number') return { key, value: valueNumber(value) };
   return { key, value: valueString(value) };
 }
 
@@ -279,7 +284,6 @@ export function buildSyntheticLeadRescuePilot({ nowMs = Date.now(), ids = {} } =
     value: evaluation.passed ? 1 : 0,
     dataType: 'BOOLEAN',
     comment: 'Deterministic sandbox code evaluation: human-review disclosure and no commitment language.',
-    metadata: { source: 'corpflowai-sandbox-pilot', synthetic: true },
   };
 
   return {
