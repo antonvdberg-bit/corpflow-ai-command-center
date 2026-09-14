@@ -23,6 +23,7 @@ jobs:
     name: wma-firecrawl-extract
     runs-on: ubuntu-latest
     permissions:
+      id-token: write
       contents: read
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -35,20 +36,25 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Fetch WMA runtime secret from Infisical
+        uses: Infisical/secrets-action@v1
+        with:
+          method: oidc
+          identity-id: ${{ vars.WMA_INFISICAL_IDENTITY_ID }}
+          project-slug: ${{ vars.WMA_INFISICAL_PROJECT_SLUG }}
+          env-slug: ${{ vars.INFISICAL_ENV_SLUG }}
+
       - name: Confirm Firecrawl secret contract
-        env:
-          FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
         run: |
           set -euo pipefail
           if [ -z "${FIRECRAWL_API_KEY:-}" ]; then
-            echo '::error title=Missing WMA secret::FIRECRAWL_API_KEY is not configured in GitHub Actions secrets.'
+            echo '::error title=Missing WMA secret::FIRECRAWL_API_KEY was not supplied by Infisical.'
             exit 1
           fi
-          echo 'Firecrawl credential is available (value not printed).'
+          echo 'Firecrawl credential is available from Infisical (value not printed).'
 
       - name: Run bounded public extraction
         env:
-          FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
           WMA_TARGET_URL: ${{ inputs.target_url }}
           WMA_CRAWL_LIMIT: ${{ inputs.page_limit }}
           WMA_FIRECRAWL_OUT_DIR: artifacts/wma-firecrawl
