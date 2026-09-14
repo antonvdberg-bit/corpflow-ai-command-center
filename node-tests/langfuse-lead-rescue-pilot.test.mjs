@@ -22,6 +22,8 @@ function attrsToMap(attributes) {
   return Object.fromEntries(attributes.map(({ key, value }) => {
     if ('stringValue' in value) return [key, value.stringValue];
     if ('boolValue' in value) return [key, value.boolValue];
+    if ('intValue' in value) return [key, Number(value.intValue)];
+    if ('doubleValue' in value) return [key, value.doubleValue];
     if ('arrayValue' in value) return [key, value.arrayValue.values.map((v) => v.stringValue)];
     return [key, value];
   }));
@@ -69,7 +71,7 @@ describe('langfuse synthetic Lead Rescue pilot', () => {
     assert.equal(attrs['langfuse.observation.type'], 'generation');
     assert.equal(attrs['langfuse.observation.model.name'], 'gpt-4o-mini');
     assert.equal(attrs['langfuse.observation.prompt.name'], 'lead-rescue-response-draft-synthetic-pilot');
-    assert.equal(attrs['langfuse.observation.prompt.version'], '1');
+    assert.equal(attrs['langfuse.observation.prompt.version'], 1);
     assert.equal(attrs['langfuse.observation.metadata.provider_execution'], 'NOT_INVOKED_SYNTHETIC_FIXTURE');
     assert.equal(attrs['langfuse.observation.metadata.token_usage_source'], 'not_provided');
     assert.equal(attrs['langfuse.observation.metadata.cost_source'], 'not_provided');
