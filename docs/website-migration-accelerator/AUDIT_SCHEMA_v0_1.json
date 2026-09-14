@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CorpFlowAI Website Migration Accelerator Audit",
+  "type": "object",
+  "required": ["site", "pages", "lead_paths", "findings", "migration_plan", "verification"],
+  "properties": {
+    "site": {
+      "type": "object",
+      "required": ["url", "audit_mode", "authorised_public_review"],
+      "properties": {
+        "url": {"type": "string", "format": "uri"},
+        "audit_mode": {"const": "public_read_only"},
+        "authorised_public_review": {"type": "boolean"},
+        "crawl_limit": {"type": ["integer", "null"]}
+      }
+    },
+    "pages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["url", "page_type", "migration_decision", "source_evidence", "verification_state"],
+        "properties": {
+          "url": {"type": "string"},
+          "status_code": {"type": ["integer", "null"]},
+          "title": {"type": ["string", "null"]},
+          "meta_description": {"type": ["string", "null"]},
+          "h1": {"type": ["string", "null"]},
+          "page_type": {"enum": ["commercial", "service_product", "trust", "contact", "support", "legal", "editorial", "utility", "obsolete_unknown"]},
+          "primary_cta": {"type": ["string", "null"]},
+          "migration_decision": {"enum": ["KEEP", "REWRITE", "COMBINE", "REMOVE", "VERIFY", "REDIRECT"]},
+          "target_url": {"type": ["string", "null"]},
+          "source_evidence": {"type": "array", "items": {"type": "string"}},
+          "verification_state": {"enum": ["verified", "partial", "blocked", "inferred"]}
+        }
+      }
+    },
+    "lead_paths": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source_url", "cta_type", "submission_tested", "verification_state"],
+        "properties": {
+          "source_url": {"type": "string"},
+          "cta_label": {"type": ["string", "null"]},
+          "cta_type": {"enum": ["form", "phone", "whatsapp", "email", "booking", "ai_receptionist", "download", "checkout", "other"]},
+          "destination": {"type": ["string", "null"]},
+          "submission_tested": {"type": "boolean"},
+          "live_message_risk": {"type": "boolean"},
+          "product_a_opportunity": {"type": "array", "items": {"enum": ["lead_rescue", "elevenlabs", "erpnext", "none"]}},
+          "verification_state": {"enum": ["verified", "partial", "blocked", "inferred"]},
+          "source_evidence": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["finding", "severity", "impact", "recommendation", "source_evidence", "confidence"],
+        "properties": {
+          "finding": {"type": "string"},
+          "severity": {"enum": ["critical", "high", "medium", "low"]},
+          "impact": {"type": "string"},
+          "recommendation": {"type": "string"},
+          "source_evidence": {"type": "array", "items": {"type": "string"}},
+          "confidence": {"enum": ["high", "medium", "low"]},
+          "requires_operator_decision": {"type": "boolean"}
+        }
+      }
+    },
+    "migration_plan": {
+      "type": "object",
+      "properties": {
+        "recommended_action": {"enum": ["optimise", "targeted_rescue", "rebuild", "no_change"]},
+        "target_sitemap": {"type": "array", "items": {"type": "string"}},
+        "implementation_status": {"enum": ["hold", "approved_for_preview_only", "not_applicable"]}
+      }
+    },
+    "verification": {
+      "type": "object",
+      "properties": {
+        "desktop_render": {"enum": ["pass", "partial", "blocked", "not_run"]},
+        "mobile_render": {"enum": ["pass", "partial", "blocked", "not_run"]},
+        "navigation": {"enum": ["pass", "partial", "blocked", "not_run"]},
+        "forms": {"enum": ["pass", "partial", "blocked", "not_run"]},
+        "seo_technical": {"enum": ["pass", "partial", "blocked", "not_run"]},
+        "overall": {"enum": ["PASS", "PARTIAL", "BLOCKED"]}
+      }
+    }
+  }
+}
