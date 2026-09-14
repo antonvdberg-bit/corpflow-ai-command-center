@@ -62,7 +62,8 @@ async function inspectProfile(profile) {
   };
 
   try {
-    const response = await page.goto(target.toString(), { waitUntil: 'networkidle', timeout: 60000 });
+    const response = await page.goto(target.toString(), { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await page.waitForTimeout(1500);
     result.http_status = response?.status() ?? null;
     result.final_url = page.url();
     result.title = await page.title();
