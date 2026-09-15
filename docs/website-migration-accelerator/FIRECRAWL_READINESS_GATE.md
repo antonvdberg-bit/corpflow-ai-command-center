@@ -1,58 +1,91 @@
-# Firecrawl Readiness Gate
+# Firecrawl Operating Gate
 
-Status: approved in principle under #1284; not yet activated.
+Status: **ADOPTED / PRODUCTION-READY FOR BOUNDED WMA PUBLIC-SITE EXTRACTION** under #1284, #1287 and #1296.
 
 ## Approved role
-Firecrawl may be used as a **public-site evidence collector** for WMA.
+Firecrawl is the WMA **public-site discovery and extraction layer**.
 
 It may collect:
-- discovered URLs
-- clean page content / Markdown
-- metadata
-- headings
-- links
-- structured extraction
-- screenshots where available
+- discovered URLs;
+- clean page content / Markdown;
+- metadata;
+- headings;
+- links;
+- structured extraction;
+- screenshots where available.
 
 It must not:
-- make commercial decisions
-- contact prospects
-- submit forms
-- access private/login content
-- mutate production systems
-- create a second production database/app
+- make commercial decisions;
+- contact prospects;
+- submit forms;
+- access private/login content;
+- mutate production systems;
+- create a second production database/app.
 
-## Preconditions before first use
-- [ ] approved public target URL
-- [ ] domain allowlist defined
-- [ ] page/crawl cap defined
-- [ ] free-tier use only
-- [ ] approved execution/API path available
-- [ ] API credential stored outside chat and GitHub
-- [ ] no env/secrets change unless separately approved
-- [ ] output mapped to `AUDIT_SCHEMA_v0_1.json`
-- [ ] source URLs retained for attribution
-- [ ] robots/access restrictions respected
+Playwright remains the deterministic browser/runtime verification layer. Firecrawl extraction success is not a substitute for rendered visual verification.
 
-## First test
-Use one already-approved public WMA pilot/prospect site.
+## Proven execution paths
 
-Compare against the existing manually derived inventory:
-- coverage gained
-- operator time saved
-- metadata/link completeness
-- structured-output quality
-- false/missing findings
-- credit usage
+### Interactive qualification / diagnostic path
+Use the connected Firecrawl plugin for fast public-site discovery and targeted extraction when interactive operator/ChatGPT work is appropriate.
 
-## Pass condition
-Adopt Firecrawl into standard WMA delivery only if it materially improves coverage or operator time while preserving source attribution and staying inside the free tier for normal pilot-sized sites.
+This path proved useful against CorpFlowAI and Explorers Mauritius, including route inventory, metadata/content extraction, legacy/duplicate route discovery and lead/contact-path analysis.
 
-## Fail/defer condition
-Defer if:
-- an API path would require unapproved secrets/env work;
-- extraction quality is materially worse than current evidence collection;
-- cost becomes meaningful before commercial demand exists;
-- it creates an infrastructure-maintenance obligation.
+### Governed production evidence path
+Use the manual WMA GitHub Actions workflow with:
+- GitHub OIDC;
+- dedicated WMA Infisical identity;
+- WMA-scoped secret access;
+- `FIRECRAWL_API_KEY` supplied at runtime by Infisical;
+- bounded page cap;
+- uploaded evidence artifact.
 
-No package installation, paid plan, production route, database, or env-var change is authorised by this document.
+Approved WMA secret permissions are:
+- **Describe Secret**;
+- **Read Value**.
+
+No Create, Modify or Remove permission is required.
+
+## Production workload shape
+A bulk concurrent `/crawl` job is not the WMA default because current Firecrawl concurrency limits can block it.
+
+The standard WMA extraction shape is:
+
+`map -> same-origin URL selection -> sequential scrape -> bounded 429 backoff -> evidence artifact`
+
+This was introduced in PR #1295 after the concurrent-browser limit was observed.
+
+## Runtime proof
+WMA Firecrawl extraction run **#5** on `main` completed successfully after PR #1295, with an evidence artifact produced.
+
+This proves the governed authentication/runtime path can complete without requiring high-concurrency bulk crawling or a paid-tier change.
+
+## Normal run controls
+- approved public HTTP/HTTPS target only;
+- same-origin extraction only;
+- bounded page cap (25 by default unless deliberately changed);
+- no form submission;
+- no login/private data;
+- no production mutation;
+- no paid-tier activation without explicit approval;
+- retain source URLs/evidence attribution;
+- keep Firecrawl output advisory/evidentiary, not autonomous commercial decision-making.
+
+## Cost/capacity rule
+Normal WMA work should remain bounded to available free/current-plan capacity while commercially sensible.
+
+A 429/concurrency response is an operating constraint, not an automatic reason to upgrade. First reshape work through mapping, sequential extraction, lower caps and bounded retries. Any paid Firecrawl tier remains a separate operator approval.
+
+## Adoption decision
+**ADOPT.**
+
+Firecrawl materially improves WMA discovery/extraction speed and coverage. The production architecture is intentionally small:
+
+- Firecrawl = discovery/extraction;
+- Playwright = deterministic rendered verification;
+- GitHub Actions = governed repeatable run;
+- Infisical = runtime secret source;
+- GitHub = durable evidence and decision record.
+
+## Reuse lesson
+Future CorpFlowAI automations should follow `docs/operations/AUTOMATION_PROMOTION_STANDARD_V1.md`: prove value through the fastest safe path before investing in credential/infrastructure hardening, then productionise only the capability that has earned adoption.
