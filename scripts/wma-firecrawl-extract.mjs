@@ -34,86 +34,120 @@ const headers = {
   'Content-Type': 'application/json',
 };
 
-async function apiFetch(url, options = {}) {
-  const response = await fetch(url, { ...options, headers: { ...headers, ...(options.headers || {}) } });
-  const text = await response.text();
-  let body;
-  try { body = text ? JSON.parse(text) : {}; } catch { body = { raw: text }; }
-  if (!response.ok) {
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function apiFetch(url, options = {}, maxAttempts = 5) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const response = await fetch(url, { ...options, headers: { ...headers, ...(options.headers || {}) } });
+    const text = await response.text();
+    let body;
+    try { body = text ? JSON.parse(text) : {}; } catch { body = { raw: text }; }
+
+    if (response.ok) return body;
+
+    if (response.status === 429 && attempt < maxAttempts) {
+      const retryAfter = Number.parseInt(response.headers.get('retry-after') || '', 10);
+      const waitMs = Number.isFinite(retryAfter) ? retryAfter * 1000 : Math.min(15000, 1500 * (2 ** (attempt - 1)));
+      console.warn(`Firecrawl rate limit reached; retrying in ${waitMs}ms (attempt ${attempt}/${maxAttempts})`);
+      await sleep(waitMs);
+      continue;
+    }
+
     throw new Error(`Firecrawl HTTP ${response.status}: ${JSON.stringify(body).slice(0, 500)}`);
   }
-  return body;
+
+  throw new Error('Firecrawl request exhausted retries');
 }
 
-const started = await apiFetch('https://api.firecrawl.dev/v2/crawl', {
+const mapPayload = await apiFetch('https://api.firecrawl.dev/v2/map', {
   method: 'POST',
   body: JSON.stringify({
     url: target.toString(),
     limit,
     sitemap: 'include',
     ignoreQueryParameters: true,
-    allowExternalLinks: false,
-    allowSubdomains: false,
-    scrapeOptions: {
-      formats: ['markdown', 'links'],
-      onlyMainContent: true,
-    },
   }),
 });
 
-const jobId = started.id || started.data?.id;
-if (!jobId) {
-  throw new Error('Firecrawl did not return a crawl job id');
+const discovered = [];
+for (const item of mapPayload.links || mapPayload.data?.links || []) {
+  const rawUrl = typeof item === 'string' ? item : item?.url;
+  if (!rawUrl) continue;
+
+  let candidate;
+  try { candidate = new URL(rawUrl, target); } catch { continue; }
+  if (!['http:', 'https:'].includes(candidate.protocol)) continue;
+  if (candidate.origin !== target.origin) continue;
+  candidate.hash = '';
+  discovered.push(candidate.toString());
 }
 
-let statusPayload = null;
-for (let attempt = 1; attempt <= 60; attempt += 1) {
-  statusPayload = await apiFetch(`https://api.firecrawl.dev/v2/crawl/${encodeURIComponent(jobId)}`);
-  const status = String(statusPayload.status || '').toLowerCase();
-  if (status === 'completed') break;
-  if (status === 'failed' || status === 'cancelled') {
-    throw new Error(`Firecrawl crawl ended with status=${status}`);
-  }
-  if (attempt === 60) throw new Error('Firecrawl crawl timed out while polling');
-  await new Promise((resolve) => setTimeout(resolve, 5000));
+if (!discovered.some((url) => new URL(url).pathname === target.pathname)) {
+  discovered.unshift(target.toString());
+}
+
+const urls = [...new Set(discovered)].slice(0, limit);
+if (urls.length === 0) {
+  throw new Error('Firecrawl map returned no same-origin URLs');
 }
 
 const pages = [];
-let pagePayload = statusPayload;
-while (pagePayload) {
-  for (const item of pagePayload.data || []) pages.push(item);
-  const next = pagePayload.next;
-  if (!next) break;
-  const nextUrl = new URL(next, 'https://api.firecrawl.dev');
-  if (nextUrl.origin !== 'https://api.firecrawl.dev') {
-    throw new Error('Firecrawl returned an unexpected pagination origin');
+const failures = [];
+let creditsUsed = Number(mapPayload.creditsUsed || mapPayload.data?.creditsUsed || 0) || 0;
+
+for (let index = 0; index < urls.length; index += 1) {
+  const url = urls[index];
+  console.log(`WMA Firecrawl scrape ${index + 1}/${urls.length}: ${url}`);
+
+  try {
+    const scrapePayload = await apiFetch('https://api.firecrawl.dev/v2/scrape', {
+      method: 'POST',
+      body: JSON.stringify({
+        url,
+        formats: ['markdown', 'links'],
+        onlyMainContent: true,
+      }),
+    });
+
+    const item = scrapePayload.data || scrapePayload;
+    const metadata = item?.metadata || {};
+    creditsUsed += Number(scrapePayload.creditsUsed || item?.creditsUsed || 0) || 0;
+
+    pages.push({
+      url: metadata.sourceURL || metadata.url || url,
+      status_code: metadata.statusCode ?? null,
+      title: metadata.title ?? null,
+      meta_description: metadata.description ?? null,
+      links: Array.isArray(item?.links) ? item.links : [],
+      markdown: typeof item?.markdown === 'string' ? item.markdown : '',
+      source_evidence: [metadata.sourceURL || metadata.url || url].filter(Boolean),
+      verification_state: 'verified',
+    });
+  } catch (error) {
+    failures.push({ url, error: String(error?.message || error) });
+    console.warn(`WMA Firecrawl partial failure for ${url}: ${error?.message || error}`);
   }
-  pagePayload = await apiFetch(nextUrl.toString());
+
+  if (index < urls.length - 1) await sleep(1200);
 }
 
-const mapped = pages.slice(0, limit).map((item) => ({
-  url: item?.metadata?.sourceURL || item?.metadata?.url || null,
-  status_code: item?.metadata?.statusCode ?? null,
-  title: item?.metadata?.title ?? null,
-  meta_description: item?.metadata?.description ?? null,
-  links: Array.isArray(item?.links) ? item.links : [],
-  markdown: typeof item?.markdown === 'string' ? item.markdown : '',
-  source_evidence: [item?.metadata?.sourceURL || item?.metadata?.url].filter(Boolean),
-  verification_state: 'verified',
-}));
+if (pages.length === 0) {
+  throw new Error(`Firecrawl returned no usable pages; failures=${failures.length}`);
+}
 
 const summary = {
   target: target.toString(),
-  job_id: jobId,
+  mode: 'map_then_serial_scrape',
   page_limit: limit,
-  status: statusPayload?.status || null,
-  total: statusPayload?.total ?? null,
-  completed: statusPayload?.completed ?? mapped.length,
-  credits_used: statusPayload?.creditsUsed ?? null,
-  pages_returned: mapped.length,
+  discovered_urls: urls.length,
+  pages_returned: pages.length,
+  failed_pages: failures.length,
+  credits_used: creditsUsed || null,
+  status: failures.length === 0 ? 'completed' : 'partial',
   extracted_at: new Date().toISOString(),
 };
 
 fs.writeFileSync(path.join(outDir, 'summary.json'), `${JSON.stringify(summary, null, 2)}\n`);
-fs.writeFileSync(path.join(outDir, 'pages.json'), `${JSON.stringify(mapped, null, 2)}\n`);
+fs.writeFileSync(path.join(outDir, 'pages.json'), `${JSON.stringify(pages, null, 2)}\n`);
+fs.writeFileSync(path.join(outDir, 'failures.json'), `${JSON.stringify(failures, null, 2)}\n`);
 console.log(JSON.stringify(summary));
