@@ -838,6 +838,22 @@ No secrets or private client data in repo evidence.`,
       assert.equal(c.protectedGate, 'none');
     });
 
+    it('recognizes does-not-authorize production deploy wording including plurals', () => {
+      const body =
+        'This control-plane repair does not authorize: production deploys unless separately approved.';
+      assert.equal(prohibitionAppliesToPhrase(body, 'production deploy'), true);
+      assert.equal(textForbidsProduction(body), true);
+      assert.equal(
+        inferIssueClassification({
+          number: 96207,
+          title: 'Control-plane repair',
+          body,
+          labels: ['dispatch:cursor-ready'],
+        }).protectedGate,
+        'none',
+      );
+    });
+
     it('actual schema / secrets / payment / send requests remain fail-closed', () => {
       assert.equal(
         inferIssueClassification({

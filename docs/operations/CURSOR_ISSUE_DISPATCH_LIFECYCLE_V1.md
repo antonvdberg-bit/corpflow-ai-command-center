@@ -108,8 +108,8 @@ Every Cloud Agents API create payload contains exactly one explicit model select
 
 | Tier | Model ID | Model parameter | Gate |
 |---|---|---|---|
-| `low` | `gpt-5.6-luna` | None (`params: []`; Fast is not allowed) | The only default and the lowest-cost suitable GPT-5.6 Cursor model for routine factory work. |
-| `medium` | `gpt-5.6-terra-medium` | None (`params: []`) | Stronger than LOW; requires a durable `corpflow.cursor_execution_tier.v1` issue-comment marker from Anton or the controller, with a non-empty controller justification. |
+| `low` | `gpt-5.6-terra-medium` | None (`params: []`; Fast is not allowed) | The only default: the lowest-cost model with current measured Cursor usage evidence. The retired `gpt-5.6-luna` must never be used as a fallback. |
+| `medium` | `gpt-5.6-sol-medium` | None (`params: []`) | Stronger current GPT-5.6 option; requires a durable `corpflow.cursor_execution_tier.v1` issue-comment marker from Anton or the controller, with a non-empty controller justification. It is not an automatic retry/escalation from LOW. |
 | `high` | `cursor-grok-4.6-high-fast` | None (`params: []`) | Premium exception; requires the same durable justification and explicit `authorization: "approved"` from Anton or the controller. Missing or malformed evidence blocks agent creation. |
 
 Unknown tiers fail closed; arbitrary caller model objects are ignored by payload builders and rejected by the create client. Immediately before each paid Factory create, the executor reads the account-scoped Cursor `GET /v1/models` catalogue and blocks if the policy ID plus `params: []` is not an accepted variant. The API must never inherit a user, team, or system-selected default model. A failed Cloud Agent create marks the source issue `dispatch:blocked` and removes `dispatch:cursor-ready`; Queue Reconcile must not regenerate it. The only active Cursor implementation lane is capped at one, including Temporal-supervised wakes, and existing review/merge/deploy/verification inventory takes priority over any new generation.
@@ -139,7 +139,7 @@ Research/documentation-only tasks may run separately only when they cannot confl
 | Protected subjects mentioned | Informational — task discusses DB, secrets, messaging, payment, etc. **Does not block claim.** |
 | Protected consequential gate | Claim-blocking only when the active task asks to **execute** the exact protected consequence (e.g. run prisma migrate, change env/secrets, send live message, client_production deploy). |
 
-**List-form prohibitions (#962 / #950):** A leading `No` / `Do not` applies to every comma-separated item in the **same sentence**. `No schema, env/secrets, …, production deploy` is a prohibition, not `protectedGate: production`. Adjacent `no production deploy` still matches. Sentence-ending punctuation stops the lead, so `No schema. Then production deploy to client_production` and affirmative `production deploy is required` / `deploy to client_production` remain fail-closed.
+**List-form prohibitions (#962 / #950):** A leading `No` / `Do not` applies to every comma-separated item in the **same sentence**. `No schema, env/secrets, …, production deploy` is a prohibition, not `protectedGate: production`. Adjacent `no production deploy` and `does not authorize: production deploys` also match. Sentence-ending punctuation stops the lead, so `No schema. Then production deploy to client_production` and affirmative `production deploy is required` / `deploy to client_production` remain fail-closed.
 
 **Rule:** No valid operator authorization → Cursor does **not** claim work that is **currently attempting** an unauthorized consequential gate. Valid operator authorization for that **exact** gate → Cursor re-evaluates and claims automatically when WIP permits. Authorization for gate A never unlocks gate B.
 
