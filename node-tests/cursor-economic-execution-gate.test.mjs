@@ -73,7 +73,7 @@ test('simple route uses economical low tier with a tight budget', () => {
   assert.equal(result.allowed, true);
   assert.equal(result.complexity, 'simple');
   assert.equal(result.tier, 'low');
-  assert.equal(result.model.id, 'gpt-5.6-luna');
+  assert.equal(result.model.id, 'gpt-5.6-terra-medium');
   assert.deepEqual(result.budget, {
     max_attempts: 1,
     max_follow_ups: 0,
@@ -90,7 +90,7 @@ test('moderate route preserves durable MEDIUM evidence requirement', () => {
     comments: mediumEvidence(),
   });
   assert.equal(result.tier, 'medium');
-  assert.equal(result.model.id, 'gpt-5.6-terra-medium');
+  assert.equal(result.model.id, 'gpt-5.6-sol-medium');
   assert.equal(result.budget.max_follow_ups, 1);
 });
 
