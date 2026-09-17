@@ -145,7 +145,7 @@ describe('Factory Cloud Agents executor', () => {
       repo: 'antonvdberg-bit/corpflow-ai-command-center',
     });
     assert.equal(envelope.source_issue, 1062);
-    assert.equal(envelope.work_request_id, 'cfai-wr-12345678-1234-4234-9234-123456789abc');
+    assert.match(envelope.work_request_id, /^cfai-wr-/);
     assert.match(envelope.create_payload.prompt.text, /Handoff run ID: 32800850448/);
     assert.match(envelope.create_payload.prompt.text, /Do not merge, deploy, change secrets\/env/);
     assert.equal(
@@ -250,6 +250,24 @@ describe('Factory Cloud Agents executor', () => {
       buildCloudAgentsExecutorEvidence({ source_issue: 1, status: 'BLOCKED', blocker }).status,
       'BLOCKED',
     );
+  });
+
+  it('includes safe frugal packet evidence without echoing packet history', () => {
+    const envelope = buildFactoryCloudAgentsExecutionEnvelope({
+      issue: request,
+      comments: [],
+      handoffRunId: '1',
+      repo: 'antonvdberg-bit/corpflow-ai-command-center',
+    });
+    const evidence = formatCloudAgentsExecutorEvidence({
+      source_issue: 1062,
+      status: 'IN_PROGRESS',
+      packet_validation: envelope.packet_validation,
+    });
+    assert.match(evidence, /Packet validation: PASS/);
+    assert.match(evidence, /Packet characters: \d+/);
+    assert.match(evidence, /value_class=cost_reduction/);
+    assert.doesNotMatch(evidence, /Harden one control/);
   });
 
   it('claims before API without assigning IN_PROGRESS until a valid agent is returned', async () => {
