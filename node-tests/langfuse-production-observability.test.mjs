@@ -81,8 +81,16 @@ test('production trace carries provider usage and filterable CorpFlow metadata',
   assert.match(text, /openai\/gpt-oss-120b/);
   assert.match(text, /corpflowai\.technical_lead\.summary_rephrase/);
   assert.match(text, /production_redacted/);
-  assert.match(text, /\"input\":101/);
-  assert.match(text, /\"output\":19/);
+  const span = built.payload.resourceSpans[0].scopeSpans[0].spans[0];
+  const usageAttribute = span.attributes.find(
+    (attribute) => attribute.key === 'langfuse.observation.usage_details',
+  );
+  assert.ok(usageAttribute, 'expected Langfuse usage_details attribute');
+  assert.deepEqual(JSON.parse(usageAttribute.value.stringValue), {
+    input: 101,
+    output: 19,
+    total: 120,
+  });
   assert.doesNotMatch(text, /SYSTEM_PRIVATE_TEXT/);
   assert.doesNotMatch(text, /CLIENT_PRIVATE_TEXT/);
   assert.doesNotMatch(text, /MODEL_PRIVATE_OUTPUT/);
