@@ -10,7 +10,7 @@ The protected live-switch and rollback sequence is
 `docs/runbooks/CURSOR_CLOUD_AGENTS_V1_CUTOVER_1062.md`.
 **Owner:** Anton (policy); Cursor (implementation).
 **Created:** 2026-07-28.
-**Updated:** 2026-08-31 (#1249 Cursor spend-control tier and one-lane gate).
+**Updated:** 2026-09-17 (#1311 delivery-efficiency hardening).
 **Implements:** Operator urgent change — Cursor must discover/claim `dispatch:cursor-ready` issues with strict segregation.
 **Anchor sentinel:** `<!-- CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1 -->`
 
@@ -102,17 +102,25 @@ The enforced single implementation lane is **active execution capacity**, not al
 
 Publishing to CorpFlowAI-hosted **corpflow_test** surfaces does **not** consume the client_production WIP slot and does **not** set `protectedGate: production`.
 
-### 4.1 Cursor execution tier and paid-run gate (#1249)
+### 4.1 Cursor execution tier and paid-run gate (#1249 / #1311)
 
-Every Cloud Agents API create payload contains exactly one explicit model selection:
+Business packets prescribe a tier and behavior, never a model display name, exact model ID, or
+API parameter spelling. Immediately before Cloud Agents creation, the factory resolves exactly one
+selection from the live account catalogue using machine-readable model IDs and variant parameters;
+display names and aliases are not execution authority. The exact resulting ID and parameters are
+retained only as run evidence. No sufficiently evidenced compliant selection means fail closed.
 
 | Tier | Model ID | Model parameter | Gate |
 |---|---|---|---|
-| `low` | `gpt-5.6-luna` | None (`params: []`; Fast is not allowed) | The only default and the lowest-cost suitable GPT-5.6 Cursor model for routine factory work. |
-| `medium` | `gpt-5.6-terra-medium` | None (`params: []`) | Stronger than LOW; requires a durable `corpflow.cursor_execution_tier.v1` issue-comment marker from Anton or the controller, with a non-empty controller justification. |
-| `high` | `cursor-grok-4.6-high-fast` | None (`params: []`) | Premium exception; requires the same durable justification and explicit `authorization: "approved"` from Anton or the controller. Missing or malformed evidence blocks agent creation. |
+| `low` | Live compliant economical family/variant | non-Fast, moderate reasoning, smallest available bounded context | The only default; no automatic escalation. |
+| `medium` | Live compliant stronger variant | catalogue-resolved | Requires durable `corpflow.cursor_execution_tier.v1` controller justification. It is not an automatic retry/escalation from LOW. |
+| `high` | Live compliant premium variant | catalogue-resolved | Requires the same durable justification and explicit `authorization: "approved"`. Missing or malformed evidence blocks agent creation. |
 
-Unknown tiers fail closed; arbitrary caller model objects are ignored by payload builders and rejected by the create client. Immediately before each paid Factory create, the executor reads the account-scoped Cursor `GET /v1/models` catalogue and blocks if the policy ID plus `params: []` is not an accepted variant. The API must never inherit a user, team, or system-selected default model. A failed Cloud Agent create marks the source issue `dispatch:blocked` and removes `dispatch:cursor-ready`; Queue Reconcile must not regenerate it. The only active Cursor implementation lane is capped at one, including Temporal-supervised wakes, and existing review/merge/deploy/verification inventory takes priority over any new generation.
+Unknown tiers fail closed; arbitrary caller model objects are rejected by the create client. The API must never inherit a user, team, or system-selected default model. A failed Cloud Agent create records a deterministic factory blocker fingerprint and removes `dispatch:cursor-ready`. Before a later selection, the factory reevaluates factory-created blocks against current-main; a changed main revision restores ordinary eligibility so live catalogue/transport facts are recomputed. Human/protected holds are never cleared automatically. The only active Cursor implementation lane is capped at one, including Temporal-supervised wakes, and existing review/merge/deploy/verification inventory takes priority over any new generation.
+
+### 4.2 Frugal Execution Contract (#1309 / #1311)
+
+Before any Cloud Agents API create, the factory extracts exactly one `CURRENT CURSOR PACKET` section and validates it. The prompt contains that section only; issue history remains durable on GitHub but is not default agent context. Packets must provide `value_class`, `expected_outcome`, `context_budget`, `execution_budget`, and `stop_condition`; duplicate, controller/reference-only, malformed, or oversized packets fail closed before paid creation. Default context is S unless the packet justifies more. One bounded attempt, no automatic model escalation, focused changed-surface tests during implementation, affected/package checks before PR, then broad required GitHub CI once. Unrelated local suite/dependency failures are not investigated unless required current-main CI fails there. The agent evaluates read-only current-main/runtime evidence first: when acceptance is proven, it returns structured evidence with zero code changes, branch, or PR; only a proven defect permits the one bounded PR. One compact current-run comment is updated in place, retaining source issue, run/agent IDs, PR/SHA, CI, model selection, blocker fingerprint, and final verdict as structured evidence—never a historical issue-body echo.
 
 Research/documentation-only tasks may run separately only when they cannot conflict with implementation file areas.
 
@@ -124,9 +132,9 @@ Research/documentation-only tasks may run separately only when they cannot confl
 4. Enforce WIP + concurrency. Sibling product holds (e.g. #654 vs #653) do **not** suppress unrelated eligible ops work (e.g. #658 Slack retirement).
 5. Post acknowledgement comments when `GITHUB_TOKEN` has `issues: write` (GHA path).
 6. **Do not** apply claim labels during **scan**. Acquire `dispatch:cursor-claimed` + durable claim marker **before** the Cursor API call (`scripts/dispatcher-agent-activation.mjs` claim-before-API). Finalize records the real run ID / origin metadata after success, or releases the claim on failure (`scripts/cursor-issue-dispatch-finalize.mjs`).
-7. Emit `cursor-issue-dispatch-scan.json` with `eligibleIssueNumbers`, `claimIssueNumbers`, and `activationTargetIssue` (max **one** live Cursor activation per GHA cycle).
+7. Emit `cursor-issue-dispatch-scan.json` / the Handoff artifact with `eligibleIssueNumbers`, `claimIssueNumbers`, `activationTargetIssue`, and per-issue decision evidence (decision, reason, consequential gate, protected subjects, environment, work types). This makes a selector hold diagnosable without source inspection (max **one** live Cursor activation per GHA cycle).
 8. Stale claimed issues (no meaningful update beyond threshold): exception-only status request — no heartbeat spam.
-9. **Double-activation guard:** issue-keyed GHA concurrency on `CorpFlowAI Cursor Factory Handoff` (`factory-cursor-handoff-<issue|scan>`) plus verified WIP. The legacy API activator, if run manually, still uses durable claim-before-API and `SKIP_ALREADY_CLAIMED`. Explicit requeue requires a recognised `CURSOR REQUEUE` instruction from an authorised operator/controller. A heading/instruction (or the existing `corpflow.cursor_requeue.v1` marker) increments a durable next generation; ordinary ready relabels/comments after a completed generation stay suppressed. Handoff materializes the generation marker idempotently (replay of the same instruction creates at most one new generation). Historical Generation N branch/PR/completion does not suppress Generation N+1. An open current-generation branch/PR still suppresses duplicates. Claim comments are an **append-only state machine**: the latest status for the same `(sourceIssue, generation, claimToken)` is authoritative (`released` / `completed` supersede earlier `pending` / `activated`). Distinct claim tokens in the same generation still race (earliest token wins). `CURSOR REQUEUE` is a generation boundary — historical `CURSOR DISPATCH ACTIVATED` / origin evidence from an older generation cannot occupy current WIP or block a new attempt. Protected-action gates, `dispatch:operator-review`, `dispatch:blocked`, and `execution:paused` still hold even after a generation increment. Scheduled Queue Reconcile uses the same eligibility scan, so a valid new generation is visible if the comment/label wake is missed.
+9. **Double-activation guard:** issue-keyed GHA concurrency on `CorpFlowAI Cursor Factory Handoff` (`factory-cursor-handoff-<issue|scan>`) plus verified WIP. The legacy API activator, if run manually, still uses durable claim-before-API and `SKIP_ALREADY_CLAIMED`. Explicit requeue requires a recognised `CURSOR REQUEUE` instruction from an authorised operator/controller. A heading/instruction (or the existing `corpflow.cursor_requeue.v1` marker) increments a durable next generation; ordinary ready relabels/comments after a completed generation stay suppressed. Handoff materializes the generation marker idempotently (replay of the same instruction creates at most one new generation). Historical Generation N branch/PR/completion does not suppress Generation N+1. An open current-generation branch/PR still suppresses duplicates. Claim comments are an **append-only state machine**: the latest status for the same `(sourceIssue, generation, claimToken)` is authoritative (`released` / `completed` supersede earlier `pending` / `activated`). Distinct claim tokens in the same generation still race (earliest token wins). `CURSOR REQUEUE` is a generation boundary — historical `CURSOR DISPATCH ACTIVATED` / origin evidence from an older generation cannot occupy current WIP or block a new attempt. It also safely removes a stale `dispatch:blocked` label and restores `dispatch:cursor-ready` for that explicitly requeued source before re-running classification; a real protected-action gate, pause, review hold, or unavailable model remains fail-closed. Scheduled Queue Reconcile uses the same eligibility scan, so a valid new generation is visible if the comment/label wake is missed.
 
 ### 5a. Operator gate authorization resume (#887 / #896)
 
@@ -139,7 +147,7 @@ Research/documentation-only tasks may run separately only when they cannot confl
 | Protected subjects mentioned | Informational — task discusses DB, secrets, messaging, payment, etc. **Does not block claim.** |
 | Protected consequential gate | Claim-blocking only when the active task asks to **execute** the exact protected consequence (e.g. run prisma migrate, change env/secrets, send live message, client_production deploy). |
 
-**List-form prohibitions (#962 / #950):** A leading `No` / `Do not` applies to every comma-separated item in the **same sentence**. `No schema, env/secrets, …, production deploy` is a prohibition, not `protectedGate: production`. Adjacent `no production deploy` still matches. Sentence-ending punctuation stops the lead, so `No schema. Then production deploy to client_production` and affirmative `production deploy is required` / `deploy to client_production` remain fail-closed.
+**List-form prohibitions (#962 / #950):** A leading `No` / `Do not` applies to every comma-separated item in the **same sentence**. `No schema, env/secrets, …, production deploy` is a prohibition, not `protectedGate: production`. Adjacent `no production deploy` and `does not authorize: production deploys` also match. A governance prerequisite such as `Anton approval remains required before production deploy` likewise names a boundary rather than requesting a deploy, unless the packet separately asks for an explicit `client_production` deployment. Sentence-ending punctuation stops the lead, so `No schema. Then production deploy to client_production` and affirmative `production deploy is required` / `deploy to client_production` remain fail-closed.
 
 **Rule:** No valid operator authorization → Cursor does **not** claim work that is **currently attempting** an unauthorized consequential gate. Valid operator authorization for that **exact** gate → Cursor re-evaluates and claims automatically when WIP permits. Authorization for gate A never unlocks gate B.
 
