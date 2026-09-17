@@ -32,6 +32,7 @@ import {
   createCursorCloudAgent,
   evaluatePolicyModelAvailability,
   listCursorCloudAgentModels,
+  summarizeCursorModelCatalog,
 } from '../lib/server/cursor-cloud-agent-client.js';
 import { formatCursorOriginMetadataComment } from '../lib/server/cursor-origin-metadata.js';
 import {
@@ -145,8 +146,9 @@ try {
     envelope.create_payload.model,
   );
   if (!modelAvailability.available) {
+    const catalogueSummary = JSON.stringify(summarizeCursorModelCatalog(modelCatalog));
     throw new Error(
-      `CURSOR_EXECUTION_TIER_MODEL_UNAVAILABLE: ${envelope.create_payload.model.id}; catalogue_reason=${modelAvailability.reason}; variants=${modelAvailability.availableVariantCount}`,
+      `CURSOR_EXECUTION_TIER_MODEL_UNAVAILABLE: ${envelope.create_payload.model.id}; catalogue_reason=${modelAvailability.reason}; variants=${modelAvailability.availableVariantCount}; catalogue=${catalogueSummary}`,
     );
   }
   apiResult = await createCursorCloudAgent(apiKey, envelope.create_payload);
