@@ -10,7 +10,7 @@ The protected live-switch and rollback sequence is
 `docs/runbooks/CURSOR_CLOUD_AGENTS_V1_CUTOVER_1062.md`.
 **Owner:** Anton (policy); Cursor (implementation).
 **Created:** 2026-07-28.
-**Updated:** 2026-08-31 (#1249 Cursor spend-control tier and one-lane gate).
+**Updated:** 2026-09-17 (#1309 Frugal Execution Contract).
 **Implements:** Operator urgent change — Cursor must discover/claim `dispatch:cursor-ready` issues with strict segregation.
 **Anchor sentinel:** `<!-- CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1 -->`
 
@@ -108,11 +108,15 @@ Every Cloud Agents API create payload contains exactly one explicit model select
 
 | Tier | Model ID | Model parameter | Gate |
 |---|---|---|---|
-| `low` | `gpt-5.6-terra-medium` | None (`params: []`; Fast is not allowed) | The only default: the lowest-cost model with current measured Cursor usage evidence. The retired `gpt-5.6-luna` must never be used as a fallback. |
+ | `low` | `gpt-5.6-terra` | `reasoning=medium`, `fast=false` | The only default: the lowest-cost model with current measured Cursor usage evidence. The retired `gpt-5.6-luna` must never be used as a fallback. |
 | `medium` | `gpt-5.6-sol-medium` | None (`params: []`) | Stronger current GPT-5.6 option; requires a durable `corpflow.cursor_execution_tier.v1` issue-comment marker from Anton or the controller, with a non-empty controller justification. It is not an automatic retry/escalation from LOW. |
 | `high` | `cursor-grok-4.6-high-fast` | None (`params: []`) | Premium exception; requires the same durable justification and explicit `authorization: "approved"` from Anton or the controller. Missing or malformed evidence blocks agent creation. |
 
-Unknown tiers fail closed; arbitrary caller model objects are ignored by payload builders and rejected by the create client. Immediately before each paid Factory create, the executor reads the account-scoped Cursor `GET /v1/models` catalogue and blocks if the policy ID plus `params: []` is not an accepted variant. The API must never inherit a user, team, or system-selected default model. A failed Cloud Agent create marks the source issue `dispatch:blocked` and removes `dispatch:cursor-ready`; Queue Reconcile must not regenerate it. The only active Cursor implementation lane is capped at one, including Temporal-supervised wakes, and existing review/merge/deploy/verification inventory takes priority over any new generation.
+Unknown tiers fail closed; arbitrary caller model objects are ignored by payload builders and rejected by the create client. Immediately before each paid Factory create, the executor reads the account-scoped Cursor `GET /v1/models` catalogue and blocks if the exact policy model ID and parameters are not an accepted variant. The API must never inherit a user, team, or system-selected default model. A failed Cloud Agent create marks the source issue `dispatch:blocked` and removes `dispatch:cursor-ready`; Queue Reconcile must not regenerate it. The only active Cursor implementation lane is capped at one, including Temporal-supervised wakes, and existing review/merge/deploy/verification inventory takes priority over any new generation.
+
+### 4.2 Frugal Execution Contract (#1309)
+
+Before any Cloud Agents API create, the factory extracts exactly one `CURRENT CURSOR PACKET` section and validates it. The prompt contains that section only; issue history remains durable on GitHub but is not default agent context. Packets must provide `value_class`, `expected_outcome`, `context_budget`, `execution_budget`, and `stop_condition`; duplicate, controller/reference-only, malformed, or oversized packets fail closed before paid creation. Default context is S unless the packet justifies more. The LOW policy model is `gpt-5.6-terra` with `reasoning=medium` and `fast=false`; API payloads must never use UI aliases or obsolete `effort`. One bounded attempt, no automatic model escalation, focused implementation tests, affected/package checks before PR, then required CI once. Handoff evidence records only validation status, character count, marker, and frugal metadata—never a historical issue-body echo.
 
 Research/documentation-only tasks may run separately only when they cannot conflict with implementation file areas.
 

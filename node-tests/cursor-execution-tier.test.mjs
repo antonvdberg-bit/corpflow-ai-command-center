@@ -19,7 +19,12 @@ const REPO = 'antonvdberg-bit/corpflow-ai-command-center';
 function envelope(comments = []) {
   return buildFactoryCloudAgentsExecutionEnvelope({
     sourceIssue: ISSUE,
-    issue: { number: ISSUE, title: 'Bounded control repair', body: '' },
+    issue: { number: ISSUE, title: 'Bounded control repair', body: `## CURRENT CURSOR PACKET
+value_class: mandatory_maintenance
+expected_outcome: Repair the bounded control.
+context_budget: S
+execution_budget: max_runs=1; max_retries=0; max_follow_ups=0
+stop_condition: Stop after the focused test.` },
     comments,
     handoffRunId: '123',
     repo: REPO,
@@ -33,7 +38,7 @@ describe('Cursor execution tier policy (#1249)', () => {
     assert.deepEqual(resolved.model, CURSOR_EXECUTION_TIER_MODELS.low);
     assert.deepEqual(resolved.model, {
       id: 'gpt-5.6-terra',
-      params: [{ id: 'effort', value: 'medium' }],
+      params: [{ id: 'reasoning', value: 'medium' }, { id: 'fast', value: 'false' }],
     });
   });
 
@@ -41,7 +46,10 @@ describe('Cursor execution tier policy (#1249)', () => {
     assert.equal(CURSOR_EXECUTION_TIER_MODELS.low.id, 'gpt-5.6-terra');
     assert.equal(CURSOR_EXECUTION_TIER_MODELS.medium.id, 'gpt-5.6-sol-medium');
     assert.notEqual(CURSOR_EXECUTION_TIER_MODELS.low.id, 'gpt-5.6-luna');
-    assert.deepEqual(CURSOR_EXECUTION_TIER_MODELS.low.params, [{ id: 'effort', value: 'medium' }]);
+    assert.deepEqual(CURSOR_EXECUTION_TIER_MODELS.low.params, [
+      { id: 'reasoning', value: 'medium' },
+      { id: 'fast', value: 'false' },
+    ]);
   });
 
   it('fails closed for an unknown tier instead of using a configured default model', () => {
@@ -133,7 +141,7 @@ describe('Cursor execution tier policy (#1249)', () => {
         {
           id: 'gpt-5.6-terra',
           displayName: 'GPT-5.6 Terra Medium',
-          variants: [{ params: [{ id: 'effort', value: 'medium' }] }],
+          variants: [{ params: [{ id: 'reasoning', value: 'medium' }, { id: 'fast', value: 'false' }] }],
         },
       ],
     };

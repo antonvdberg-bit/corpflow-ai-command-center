@@ -243,6 +243,7 @@ await post(
       cursor_run_id: details.runId,
       status: 'IN_PROGRESS',
       started_at: startedAt,
+      packet_validation: envelope.packet_validation,
     }),
   ),
 );

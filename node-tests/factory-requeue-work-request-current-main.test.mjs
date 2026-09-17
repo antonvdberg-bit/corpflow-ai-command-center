@@ -47,7 +47,14 @@ function buildEnvelope(comments) {
     issue: {
       number: ISSUE,
       title: 'P0 Revenue acceptance — Lead Rescue + Website Rescue buyer-path current-main verification',
-      body: 'No schema, env/secrets, payment, send, or public launch.',
+      body: `## CURRENT CURSOR PACKET
+value_class: delivery_acceleration
+expected_outcome: Repair the current-main path.
+context_budget: S
+execution_budget: max_runs=1; max_retries=0; max_follow_ups=0
+stop_condition: Stop after focused verification.
+
+No schema, env/secrets, payment, send, or public launch.`,
     },
     comments,
     handoffRunId: '33047796505',
