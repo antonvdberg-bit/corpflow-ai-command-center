@@ -309,6 +309,19 @@ describe('Factory Cloud Agents executor', () => {
       }).recover,
       false,
     );
+    assert.equal(
+      planStaleFactoryBlockRecovery({
+        comments: [{ body: stale }],
+        currentMainSha: 'old-main',
+        liveModelCatalog: {
+          items: [{
+            id: 'gpt-5.6-catalogue-recovered',
+            variants: [{ params: [{ id: 'reasoning', value: 'medium' }, { id: 'fast', value: 'false' }] }],
+          }],
+        },
+      }).recover,
+      true,
+    );
     const protectedHold = formatCloudAgentsExecutorEvidence({
       source_issue: 1062,
       status: 'BLOCKED',

@@ -52,6 +52,7 @@ import {
 import { postGitHubIssueComment } from '../lib/server/cursor-ops-status.js';
 import { authorizeCursorRemoteExecutionFromGitHub } from '../lib/server/cursor-economic-execution-gate.js';
 import { planStaleFactoryBlockRecovery } from '../lib/server/factory-cloud-agents-executor.js';
+import { listCursorCloudAgentModels } from '../lib/server/cursor-cloud-agent-client.js';
 
 const DEFAULT_REPO = 'antonvdberg-bit/corpflow-ai-command-center';
 const DEFAULT_OUT = 'factory-cursor-handoff.json';
@@ -273,10 +274,24 @@ async function main() {
     }
 
     const currentMainSha = String(process.env.GITHUB_SHA || '').trim();
+    let liveModelCatalog = null;
+    const cursorApiKey = String(process.env.CURSOR_API_KEY || '').trim();
+    if (blockedIssues.length && cursorApiKey) {
+      try {
+        liveModelCatalog = await listCursorCloudAgentModels(cursorApiKey);
+      } catch (error) {
+        console.error(
+          `Live model catalogue unavailable for stale-block recovery: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
+      }
+    }
     for (const issue of blockedIssues) {
       const recovery = planStaleFactoryBlockRecovery({
         comments: issue.comments,
         currentMainSha,
+        liveModelCatalog,
       });
       if (!recovery.recover || issue.state !== 'open') continue;
       if (!args.dryRun) {

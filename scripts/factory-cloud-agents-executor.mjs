@@ -178,6 +178,7 @@ try {
       blocker,
       model_selection: envelope.model_selection || null,
       current_main_sha: currentMainSha,
+      execution_tier: envelope.execution_tier,
     }),
   );
   throw error;
@@ -199,6 +200,7 @@ await upsertCurrentRunEvidence(
       packet_validation: envelope.packet_validation,
       model_selection: envelope.model_selection,
       current_main_sha: currentMainSha,
+      execution_tier: envelope.execution_tier,
     }),
   ),
 );
