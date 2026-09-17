@@ -22,14 +22,24 @@ import {
   DISPATCH_LIFECYCLE_LABELS,
 } from '../lib/server/cursor-issue-dispatch-lifecycle.js';
 
+function compactPacket(extra = '') {
+  return `## CURRENT CURSOR PACKET — v1
+value_class: cost_reduction
+expected_outcome: Harden one control.
+context_budget: S
+execution_budget: max_runs=1; max_retries=0; max_follow_ups=0
+stop_condition: Stop after focused verification.
+${extra}`;
+}
+
 const request = {
-  body: `<!-- corpflow.ai_work_request.v1 {"schema":"corpflow.ai_work_request.v1","work_request_id":"cfai-wr-12345678-1234-4234-9234-123456789abc","source_issue":1062,"origin_controller":"test","requested_at":"2026-08-25T00:00:00.000Z","requested_outcome":"Repair factory transport","status":"REQUESTED","protected_action_required":false} -->`,
+  body: compactPacket(),
   number: 1062,
   title: 'Repair transport',
 };
 
 describe('Factory Cloud Agents executor', () => {
-  it('accepts the exact listed Terra Medium effort variant from the live catalogue shape', () => {
+  it('accepts the exact listed Terra Medium reasoning variant from the live catalogue shape', () => {
     const availability = evaluatePolicyModelAvailability(
       {
         items: [
@@ -38,14 +48,14 @@ describe('Factory Cloud Agents executor', () => {
             displayName: 'GPT-5.6 Terra Medium',
             aliases: ['gpt-5.6-terra-medium'],
             parameters: [{
-              id: 'effort',
+              id: 'reasoning',
               values: [{ value: 'low' }, { value: 'medium' }, { value: 'high' }],
             }],
-            variants: [{ params: [{ id: 'effort', value: 'medium' }] }],
+            variants: [{ params: [{ id: 'reasoning', value: 'medium' }, { id: 'fast', value: 'false' }] }],
           },
         ],
       },
-      { id: 'gpt-5.6-terra', params: [{ id: 'effort', value: 'medium' }] },
+      { id: 'gpt-5.6-terra', params: [{ id: 'reasoning', value: 'medium' }, { id: 'fast', value: 'false' }] },
     );
     assert.equal(availability.available, true);
     assert.equal(availability.reason, 'matching_variant');
@@ -87,7 +97,7 @@ describe('Factory Cloud Agents executor', () => {
           displayName: 'GPT-5.6 Terra Medium',
           aliases: ['gpt-5.6-terra-medium'],
           parameters: [{ id: 'fast', values: [{ value: 'true' }] }],
-          variants: [{ params: [{ id: 'effort', value: 'medium' }] }],
+          variants: [{ params: [{ id: 'reasoning', value: 'medium' }] }],
           unexpectedSensitiveField: 'must-not-be-captured',
         },
       ],
@@ -100,7 +110,7 @@ describe('Factory Cloud Agents executor', () => {
         aliases: ['gpt-5.6-terra-medium'],
         parameterIds: ['fast'],
         variantCount: 1,
-        variantParams: ['effort=medium'],
+        variantParams: ['reasoning=medium'],
       },
       items: [{ id: 'gpt-5.6-terra', displayName: 'GPT-5.6 Terra Medium' }],
     });
@@ -135,18 +145,18 @@ describe('Factory Cloud Agents executor', () => {
       repo: 'antonvdberg-bit/corpflow-ai-command-center',
     });
     assert.equal(envelope.source_issue, 1062);
-    assert.equal(envelope.work_request_id, 'cfai-wr-12345678-1234-4234-9234-123456789abc');
+    assert.match(envelope.work_request_id, /^cfai-wr-/);
     assert.match(envelope.create_payload.prompt.text, /Handoff run ID: 32800850448/);
     assert.match(envelope.create_payload.prompt.text, /Do not merge, deploy, change secrets\/env/);
     assert.equal(
       envelope.create_payload.agentId,
-      'bc-12345678-1234-4234-9234-123456789abc',
+      envelope.work_request_id.replace(/^cfai-wr-/i, 'bc-'),
     );
   });
 
   it('creates a stable work request when the source issue has none', () => {
     const envelope = buildFactoryCloudAgentsExecutionEnvelope({
-      issue: { number: 5, title: 'Synthetic packet', body: '' },
+      issue: { number: 5, title: 'Synthetic packet', body: compactPacket() },
       comments: [],
       handoffRunId: '99',
       repo: 'antonvdberg-bit/corpflow-ai-command-center',
@@ -154,6 +164,39 @@ describe('Factory Cloud Agents executor', () => {
     assert.equal(envelope.request_was_created, true);
     assert.match(envelope.work_request_id, /^cfai-wr-/);
   });
+
+  it('injects only the compact validated packet from a large issue body', () => {
+    const historical = 'HISTORICAL SECRET-LIKE TEXT MUST NOT REACH THE PROMPT '.repeat(500);
+    const envelope = buildFactoryCloudAgentsExecutionEnvelope({
+      issue: { number: 6, title: 'Large history', body: `${compactPacket()}\n### Historical references\n${historical}` },
+      comments: [],
+      handoffRunId: '99',
+      repo: 'antonvdberg-bit/corpflow-ai-command-center',
+    });
+    assert.match(envelope.create_payload.prompt.text, /CURRENT CURSOR PACKET/);
+    assert.doesNotMatch(envelope.create_payload.prompt.text, /HISTORICAL SECRET-LIKE TEXT/);
+    assert.equal(envelope.packet_validation.frugal_metadata.context_budget, 'S');
+  });
+
+  for (const [name, body, reason] of [
+    ['missing packet', 'ordinary issue history', 'current_packet_missing'],
+    ['controller reference', `${compactPacket()}\nNOT A CURSOR EXECUTION PACKET`, 'controller_or_reference_issue'],
+    ['duplicate packet', `${compactPacket()}\n## CURRENT CURSOR PACKET\n${compactPacket()}`, 'current_packet_ambiguous'],
+    ['oversized packet', `${compactPacket()}\n${'x'.repeat(12001)}`, 'current_packet_oversized'],
+    ['missing frugal metadata', '## CURRENT CURSOR PACKET\nvalue_class: cost_reduction', 'frugal_metadata_missing'],
+  ]) {
+    it(`rejects ${name} before an API payload is created`, () => {
+      assert.throws(
+        () => buildFactoryCloudAgentsExecutionEnvelope({
+          issue: { number: 7, title: name, body },
+          comments: [],
+          handoffRunId: '99',
+          repo: 'antonvdberg-bit/corpflow-ai-command-center',
+        }),
+        new RegExp(reason),
+      );
+    });
+  }
 
   it('does not accept an HTTP-success response without a valid concrete agent identity', () => {
     const result = validateCloudAgentCreateResponse({ agent: {}, run: { id: 'run-test' } });
@@ -207,6 +250,24 @@ describe('Factory Cloud Agents executor', () => {
       buildCloudAgentsExecutorEvidence({ source_issue: 1, status: 'BLOCKED', blocker }).status,
       'BLOCKED',
     );
+  });
+
+  it('includes safe frugal packet evidence without echoing packet history', () => {
+    const envelope = buildFactoryCloudAgentsExecutionEnvelope({
+      issue: request,
+      comments: [],
+      handoffRunId: '1',
+      repo: 'antonvdberg-bit/corpflow-ai-command-center',
+    });
+    const evidence = formatCloudAgentsExecutorEvidence({
+      source_issue: 1062,
+      status: 'IN_PROGRESS',
+      packet_validation: envelope.packet_validation,
+    });
+    assert.match(evidence, /Packet validation: PASS/);
+    assert.match(evidence, /Packet characters: \d+/);
+    assert.match(evidence, /value_class=cost_reduction/);
+    assert.doesNotMatch(evidence, /Historical references/);
   });
 
   it('claims before API without assigning IN_PROGRESS until a valid agent is returned', async () => {
