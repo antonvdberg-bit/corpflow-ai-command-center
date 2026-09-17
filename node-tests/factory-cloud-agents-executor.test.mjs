@@ -29,7 +29,7 @@ const request = {
 };
 
 describe('Factory Cloud Agents executor', () => {
-  it('accepts a listed parameterless policy model when the API omits optional variants', () => {
+  it('accepts the exact listed Terra Medium effort variant from the live catalogue shape', () => {
     const availability = evaluatePolicyModelAvailability(
       {
         items: [
@@ -37,13 +37,18 @@ describe('Factory Cloud Agents executor', () => {
             id: 'gpt-5.6-terra',
             displayName: 'GPT-5.6 Terra Medium',
             aliases: ['gpt-5.6-terra-medium'],
+            parameters: [{
+              id: 'effort',
+              values: [{ value: 'low' }, { value: 'medium' }, { value: 'high' }],
+            }],
+            variants: [{ params: [{ id: 'effort', value: 'medium' }] }],
           },
         ],
       },
-      { id: 'gpt-5.6-terra', params: [] },
+      { id: 'gpt-5.6-terra', params: [{ id: 'effort', value: 'medium' }] },
     );
     assert.equal(availability.available, true);
-    assert.equal(availability.reason, 'parameterless_model_without_variants');
+    assert.equal(availability.reason, 'matching_variant');
   });
 
   it('does not treat the UI display-name-shaped identifier as a Cloud Agents API ID', () => {
@@ -74,7 +79,7 @@ describe('Factory Cloud Agents executor', () => {
     assert.equal(missing.reason, 'model_id_missing');
   });
 
-  it('captures only bounded model metadata for a catalogue failure receipt', () => {
+  it('captures only bounded, requested-model metadata for a catalogue failure receipt', () => {
     const summary = summarizeCursorModelCatalog({
       items: [
         {
@@ -82,20 +87,22 @@ describe('Factory Cloud Agents executor', () => {
           displayName: 'GPT-5.6 Terra Medium',
           aliases: ['gpt-5.6-terra-medium'],
           parameters: [{ id: 'fast', values: [{ value: 'true' }] }],
-          variants: [{ params: [] }],
+          variants: [{ params: [{ id: 'effort', value: 'medium' }] }],
           unexpectedSensitiveField: 'must-not-be-captured',
         },
       ],
-    });
+    }, 'gpt-5.6-terra');
     assert.deepEqual(summary, {
       itemCount: 1,
-      items: [{
+      requestedItem: {
         id: 'gpt-5.6-terra',
         displayName: 'GPT-5.6 Terra Medium',
         aliases: ['gpt-5.6-terra-medium'],
         parameterIds: ['fast'],
         variantCount: 1,
-      }],
+        variantParams: ['effort=medium'],
+      },
+      items: [{ id: 'gpt-5.6-terra', displayName: 'GPT-5.6 Terra Medium' }],
     });
   });
 

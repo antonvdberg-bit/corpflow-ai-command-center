@@ -146,7 +146,9 @@ try {
     envelope.create_payload.model,
   );
   if (!modelAvailability.available) {
-    const catalogueSummary = JSON.stringify(summarizeCursorModelCatalog(modelCatalog));
+    const catalogueSummary = JSON.stringify(
+      summarizeCursorModelCatalog(modelCatalog, envelope.create_payload.model.id),
+    );
     throw new Error(
       `CURSOR_EXECUTION_TIER_MODEL_UNAVAILABLE: ${envelope.create_payload.model.id}; catalogue_reason=${modelAvailability.reason}; variants=${modelAvailability.availableVariantCount}; catalogue=${catalogueSummary}`,
     );

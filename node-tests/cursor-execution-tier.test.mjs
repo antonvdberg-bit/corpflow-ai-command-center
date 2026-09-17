@@ -31,14 +31,17 @@ describe('Cursor execution tier policy (#1249)', () => {
     const resolved = resolveCursorExecutionTier();
     assert.equal(resolved.tier, 'low');
     assert.deepEqual(resolved.model, CURSOR_EXECUTION_TIER_MODELS.low);
-    assert.deepEqual(resolved.model, { id: 'gpt-5.6-terra', params: [] });
+    assert.deepEqual(resolved.model, {
+      id: 'gpt-5.6-terra',
+      params: [{ id: 'effort', value: 'medium' }],
+    });
   });
 
   it('uses the Cloud Agents API ID for the economical LOW model without Fast pricing', () => {
     assert.equal(CURSOR_EXECUTION_TIER_MODELS.low.id, 'gpt-5.6-terra');
     assert.equal(CURSOR_EXECUTION_TIER_MODELS.medium.id, 'gpt-5.6-sol-medium');
     assert.notEqual(CURSOR_EXECUTION_TIER_MODELS.low.id, 'gpt-5.6-luna');
-    assert.deepEqual(CURSOR_EXECUTION_TIER_MODELS.low.params, []);
+    assert.deepEqual(CURSOR_EXECUTION_TIER_MODELS.low.params, [{ id: 'effort', value: 'medium' }]);
   });
 
   it('fails closed for an unknown tier instead of using a configured default model', () => {
@@ -130,7 +133,7 @@ describe('Cursor execution tier policy (#1249)', () => {
         {
           id: 'gpt-5.6-terra',
           displayName: 'GPT-5.6 Terra Medium',
-          variants: [{ params: [] }],
+          variants: [{ params: [{ id: 'effort', value: 'medium' }] }],
         },
       ],
     };
