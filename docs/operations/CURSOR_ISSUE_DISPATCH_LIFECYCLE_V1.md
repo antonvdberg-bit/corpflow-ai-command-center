@@ -10,7 +10,7 @@ The protected live-switch and rollback sequence is
 `docs/runbooks/CURSOR_CLOUD_AGENTS_V1_CUTOVER_1062.md`.
 **Owner:** Anton (policy); Cursor (implementation).
 **Created:** 2026-07-28.
-**Updated:** 2026-09-17 (#1309 Frugal Execution Contract).
+**Updated:** 2026-09-17 (#1311 delivery-efficiency hardening).
 **Implements:** Operator urgent change — Cursor must discover/claim `dispatch:cursor-ready` issues with strict segregation.
 **Anchor sentinel:** `<!-- CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1 -->`
 
@@ -102,21 +102,25 @@ The enforced single implementation lane is **active execution capacity**, not al
 
 Publishing to CorpFlowAI-hosted **corpflow_test** surfaces does **not** consume the client_production WIP slot and does **not** set `protectedGate: production`.
 
-### 4.1 Cursor execution tier and paid-run gate (#1249)
+### 4.1 Cursor execution tier and paid-run gate (#1249 / #1311)
 
-Every Cloud Agents API create payload contains exactly one explicit model selection:
+Business packets prescribe a tier and behavior, never a model display name, exact model ID, or
+API parameter spelling. Immediately before Cloud Agents creation, the factory resolves exactly one
+selection from the live account catalogue using machine-readable model IDs and variant parameters;
+display names and aliases are not execution authority. The exact resulting ID and parameters are
+retained only as run evidence. No sufficiently evidenced compliant selection means fail closed.
 
 | Tier | Model ID | Model parameter | Gate |
 |---|---|---|---|
- | `low` | `gpt-5.6-terra` | `reasoning=medium`, `fast=false` | The only default: the lowest-cost model with current measured Cursor usage evidence. The retired `gpt-5.6-luna` must never be used as a fallback. |
-| `medium` | `gpt-5.6-sol-medium` | None (`params: []`) | Stronger current GPT-5.6 option; requires a durable `corpflow.cursor_execution_tier.v1` issue-comment marker from Anton or the controller, with a non-empty controller justification. It is not an automatic retry/escalation from LOW. |
-| `high` | `cursor-grok-4.6-high-fast` | None (`params: []`) | Premium exception; requires the same durable justification and explicit `authorization: "approved"` from Anton or the controller. Missing or malformed evidence blocks agent creation. |
+| `low` | Live compliant economical family/variant | non-Fast, moderate reasoning, smallest available bounded context | The only default; no automatic escalation. |
+| `medium` | Live compliant stronger variant | catalogue-resolved | Requires durable `corpflow.cursor_execution_tier.v1` controller justification. It is not an automatic retry/escalation from LOW. |
+| `high` | Live compliant premium variant | catalogue-resolved | Requires the same durable justification and explicit `authorization: "approved"`. Missing or malformed evidence blocks agent creation. |
 
-Unknown tiers fail closed; arbitrary caller model objects are ignored by payload builders and rejected by the create client. Immediately before each paid Factory create, the executor reads the account-scoped Cursor `GET /v1/models` catalogue and blocks if the exact policy model ID and parameters are not an accepted variant. The API must never inherit a user, team, or system-selected default model. A failed Cloud Agent create marks the source issue `dispatch:blocked` and removes `dispatch:cursor-ready`; Queue Reconcile must not regenerate it. The only active Cursor implementation lane is capped at one, including Temporal-supervised wakes, and existing review/merge/deploy/verification inventory takes priority over any new generation.
+Unknown tiers fail closed; arbitrary caller model objects are rejected by the create client. The API must never inherit a user, team, or system-selected default model. A failed Cloud Agent create records a deterministic factory blocker fingerprint and removes `dispatch:cursor-ready`. Before a later selection, the factory reevaluates factory-created blocks against current-main; a changed main revision restores ordinary eligibility so live catalogue/transport facts are recomputed. Human/protected holds are never cleared automatically. The only active Cursor implementation lane is capped at one, including Temporal-supervised wakes, and existing review/merge/deploy/verification inventory takes priority over any new generation.
 
-### 4.2 Frugal Execution Contract (#1309)
+### 4.2 Frugal Execution Contract (#1309 / #1311)
 
-Before any Cloud Agents API create, the factory extracts exactly one `CURRENT CURSOR PACKET` section and validates it. The prompt contains that section only; issue history remains durable on GitHub but is not default agent context. Packets must provide `value_class`, `expected_outcome`, `context_budget`, `execution_budget`, and `stop_condition`; duplicate, controller/reference-only, malformed, or oversized packets fail closed before paid creation. Default context is S unless the packet justifies more. The LOW policy model is `gpt-5.6-terra` with `reasoning=medium` and `fast=false`; API payloads must never use UI aliases or obsolete `effort`. One bounded attempt, no automatic model escalation, focused implementation tests, affected/package checks before PR, then required CI once. Handoff evidence records only validation status, character count, marker, and frugal metadata—never a historical issue-body echo.
+Before any Cloud Agents API create, the factory extracts exactly one `CURRENT CURSOR PACKET` section and validates it. The prompt contains that section only; issue history remains durable on GitHub but is not default agent context. Packets must provide `value_class`, `expected_outcome`, `context_budget`, `execution_budget`, and `stop_condition`; duplicate, controller/reference-only, malformed, or oversized packets fail closed before paid creation. Default context is S unless the packet justifies more. One bounded attempt, no automatic model escalation, focused changed-surface tests during implementation, affected/package checks before PR, then broad required GitHub CI once. Unrelated local suite/dependency failures are not investigated unless required current-main CI fails there. The agent evaluates read-only current-main/runtime evidence first: when acceptance is proven, it returns structured evidence with zero code changes, branch, or PR; only a proven defect permits the one bounded PR. One compact current-run comment is updated in place, retaining source issue, run/agent IDs, PR/SHA, CI, model selection, blocker fingerprint, and final verdict as structured evidence—never a historical issue-body echo.
 
 Research/documentation-only tasks may run separately only when they cannot conflict with implementation file areas.
 

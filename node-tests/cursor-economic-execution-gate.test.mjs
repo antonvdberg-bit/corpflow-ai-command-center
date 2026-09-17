@@ -73,7 +73,7 @@ test('simple route uses economical low tier with a tight budget', () => {
   assert.equal(result.allowed, true);
   assert.equal(result.complexity, 'simple');
   assert.equal(result.tier, 'low');
-  assert.equal(result.model.id, 'gpt-5.6-terra');
+  assert.equal(result.model, undefined);
   assert.deepEqual(result.budget, {
     max_attempts: 1,
     max_follow_ups: 0,
@@ -90,7 +90,7 @@ test('moderate route preserves durable MEDIUM evidence requirement', () => {
     comments: mediumEvidence(),
   });
   assert.equal(result.tier, 'medium');
-  assert.equal(result.model.id, 'gpt-5.6-sol-medium');
+  assert.equal(result.model, undefined);
   assert.equal(result.budget.max_follow_ups, 1);
 });
 
@@ -103,7 +103,7 @@ test('difficult route preserves explicit HIGH authorization requirement', () => 
     comments: highEvidence(),
   });
   assert.equal(result.tier, 'high');
-  assert.equal(result.model.id, 'cursor-grok-4.6-high-fast');
+  assert.equal(result.model, undefined);
   assert.equal(result.budget.max_elapsed_minutes, 90);
 });
 

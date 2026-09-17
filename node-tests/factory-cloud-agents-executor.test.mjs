@@ -9,9 +9,11 @@ import {
 import {
   buildCloudAgentsExecutorEvidence,
   buildCloudAgentsWorkStatus,
+  buildFactoryCloudAgentsCreatePayload,
   buildFactoryCloudAgentsExecutionEnvelope,
   findKnownCloudAgentsExecutorEvidence,
   formatCloudAgentsExecutorEvidence,
+  planStaleFactoryBlockRecovery,
   redactCloudAgentsFailure,
   validateCloudAgentCreateResponse,
 } from '../lib/server/factory-cloud-agents-executor.js';
@@ -146,12 +148,10 @@ describe('Factory Cloud Agents executor', () => {
     });
     assert.equal(envelope.source_issue, 1062);
     assert.match(envelope.work_request_id, /^cfai-wr-/);
-    assert.match(envelope.create_payload.prompt.text, /Handoff run ID: 32800850448/);
-    assert.match(envelope.create_payload.prompt.text, /Do not merge, deploy, change secrets\/env/);
-    assert.equal(
-      envelope.create_payload.agentId,
-      envelope.work_request_id.replace(/^cfai-wr-/i, 'bc-'),
-    );
+    assert.match(envelope.executor_prompt, /Handoff run ID: 32800850448/);
+    assert.match(envelope.executor_prompt, /focused changed-surface tests/);
+    assert.match(envelope.executor_prompt, /make no code change, create no branch or PR/);
+    assert.equal(envelope.completion_mode, 'evidence_first');
   });
 
   it('creates a stable work request when the source issue has none', () => {
@@ -173,8 +173,8 @@ describe('Factory Cloud Agents executor', () => {
       handoffRunId: '99',
       repo: 'antonvdberg-bit/corpflow-ai-command-center',
     });
-    assert.match(envelope.create_payload.prompt.text, /CURRENT CURSOR PACKET/);
-    assert.doesNotMatch(envelope.create_payload.prompt.text, /HISTORICAL SECRET-LIKE TEXT/);
+    assert.match(envelope.executor_prompt, /CURRENT CURSOR PACKET/);
+    assert.doesNotMatch(envelope.executor_prompt, /HISTORICAL SECRET-LIKE TEXT/);
     assert.equal(envelope.packet_validation.frugal_metadata.context_budget, 'S');
   });
 
@@ -268,6 +268,74 @@ describe('Factory Cloud Agents executor', () => {
     assert.match(evidence, /Packet characters: \d+/);
     assert.match(evidence, /value_class=cost_reduction/);
     assert.doesNotMatch(evidence, /Historical references/);
+  });
+
+  it('binds one non-Fast moderate model only after live catalogue resolution', () => {
+    const envelope = buildFactoryCloudAgentsExecutionEnvelope({
+      issue: request,
+      comments: [],
+      handoffRunId: '1',
+      repo: 'antonvdberg-bit/corpflow-ai-command-center',
+    });
+    const bound = buildFactoryCloudAgentsCreatePayload(envelope, {
+      items: [{
+        id: 'gpt-5.6-catalogue-renamed',
+        variants: [{ params: [{ id: 'reasoning', value: 'medium' }, { id: 'fast', value: 'false' }] }],
+      }],
+    });
+    assert.equal(bound.createPayload.model.id, 'gpt-5.6-catalogue-renamed');
+    assert.equal(bound.createPayload.autoCreatePR, false);
+    assert.equal(bound.createPayload.agentId, envelope.work_request_id.replace(/^cfai-wr-/i, 'bc-'));
+  });
+
+  it('recovers only a stale factory-created block after current main changes', () => {
+    const stale = formatCloudAgentsExecutorEvidence({
+      source_issue: 1062,
+      status: 'BLOCKED',
+      blocker: 'CURSOR_EXECUTION_TIER_NO_COMPLIANT_LOW_MODEL_SELECTION',
+      current_main_sha: 'old-main',
+    });
+    assert.equal(
+      planStaleFactoryBlockRecovery({
+        comments: [{ body: stale }],
+        currentMainSha: 'new-main',
+      }).recover,
+      true,
+    );
+    assert.equal(
+      planStaleFactoryBlockRecovery({
+        comments: [{ body: stale }],
+        currentMainSha: 'old-main',
+      }).recover,
+      false,
+    );
+    assert.equal(
+      planStaleFactoryBlockRecovery({
+        comments: [{ body: stale }],
+        currentMainSha: 'old-main',
+        liveModelCatalog: {
+          items: [{
+            id: 'gpt-5.6-catalogue-recovered',
+            variants: [{ params: [{ id: 'reasoning', value: 'medium' }, { id: 'fast', value: 'false' }] }],
+          }],
+        },
+      }).recover,
+      true,
+    );
+    const protectedHold = formatCloudAgentsExecutorEvidence({
+      source_issue: 1062,
+      status: 'BLOCKED',
+      blocker: 'CURSOR_API_KEY missing',
+      current_main_sha: 'old-main',
+      protected_action_required: true,
+    });
+    assert.equal(
+      planStaleFactoryBlockRecovery({
+        comments: [{ body: protectedHold }],
+        currentMainSha: 'new-main',
+      }).recover,
+      false,
+    );
   });
 
   it('claims before API without assigning IN_PROGRESS until a valid agent is returned', async () => {

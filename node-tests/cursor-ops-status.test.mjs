@@ -268,8 +268,10 @@ describe('cursor-ops-status', () => {
   });
 
   it('started live activation without PR sets next_check_after_minutes', async () => {
-    const fetch = async () =>
-      new Response(
+    const fetch = async (url) =>
+      url.endsWith('/models')
+        ? new Response(JSON.stringify({ items: [{ id: 'gpt-5.6-test', variants: [{ params: [{ id: 'reasoning', value: 'medium' }, { id: 'fast', value: 'false' }] }] }] }), { status: 200 })
+        : new Response(
         JSON.stringify({
           agent: { id: 'bc-553', url: 'https://cursor.com/agents/bc-553' },
           run: { id: 'run-553' },
@@ -301,8 +303,10 @@ describe('cursor-ops-status', () => {
   });
 
   it('pr_opened when Cursor response includes PR URL', async () => {
-    const fetch = async () =>
-      new Response(
+    const fetch = async (url) =>
+      url.endsWith('/models')
+        ? new Response(JSON.stringify({ items: [{ id: 'gpt-5.6-test', variants: [{ params: [{ id: 'reasoning', value: 'medium' }, { id: 'fast', value: 'false' }] }] }] }), { status: 200 })
+        : new Response(
         JSON.stringify({
           agent: { id: 'bc-553', url: 'https://cursor.com/agents/bc-553' },
           run: {
