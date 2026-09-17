@@ -21,6 +21,7 @@ import {
   prohibitionAppliesToPhrase,
   rollbackPrematureIssueClaim,
   suggestIssueBranchName,
+  textContainsProductionApprovalPrerequisite,
   textForbidsProduction,
 } from '../lib/server/cursor-issue-dispatch-lifecycle.js';
 import { resolveCursorRunId } from '../scripts/cursor-issue-dispatch-finalize.mjs';
@@ -172,6 +173,37 @@ describe('cursor-issue-dispatch-lifecycle', () => {
     assert.equal(decision?.decision, 'claim');
     assert.equal(decision?.eligibleToClaim, true);
     assert.equal(plan.activationTargetIssue, 1292);
+  });
+
+  it('#1292 protected-boundaries approval prerequisite is not a production deployment request', () => {
+    const issue = {
+      number: 12921,
+      title: 'P0 AI Cost & Outcome Control',
+      body: `## Protected boundaries
+Explicit Anton approval remains required before production deploy, env/secrets/access changes,
+DB/schema/data mutation, provider budget/plan mutation, paid service/tool, external messaging,
+or client-facing launch.
+
+Implement the bounded repository-only evidence contract and tests.`,
+      labels: ['priority:P0', 'dispatch:cursor-ready'],
+    };
+    assert.equal(textContainsProductionApprovalPrerequisite(issue.body), true);
+    const classification = inferIssueClassification(issue);
+    assert.equal(classification.protectedGate, 'none');
+    const plan = planCursorIssueClaims({ readyIssues: [issue], claimedIssues: [] });
+    assert.equal(plan.decisions[0]?.decision, 'claim');
+    assert.equal(plan.activationTargetIssue, 12921);
+  });
+
+  it('an affirmative client-production deployment remains gated despite prerequisite wording', () => {
+    const issue = {
+      number: 12922,
+      title: 'Client production cutover',
+      body: `Deploy to client_production on the client-owned target.
+Anton approval is required before production deploy.`,
+      labels: ['priority:P0', 'dispatch:cursor-ready'],
+    };
+    assert.equal(inferIssueClassification(issue).protectedGate, 'production');
   });
 
   it('only an accepted CURSOR REQUEUE clears a stale dispatch block', () => {
