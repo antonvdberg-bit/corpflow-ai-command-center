@@ -150,7 +150,7 @@ describe('Factory Cloud Agents executor', () => {
     assert.match(envelope.create_payload.prompt.text, /Do not merge, deploy, change secrets\/env/);
     assert.equal(
       envelope.create_payload.agentId,
-      'bc-12345678-1234-4234-9234-123456789abc',
+      envelope.work_request_id.replace(/^cfai-wr-/i, 'bc-'),
     );
   });
 
@@ -267,7 +267,7 @@ describe('Factory Cloud Agents executor', () => {
     assert.match(evidence, /Packet validation: PASS/);
     assert.match(evidence, /Packet characters: \d+/);
     assert.match(evidence, /value_class=cost_reduction/);
-    assert.doesNotMatch(evidence, /Harden one control/);
+    assert.doesNotMatch(evidence, /Historical references/);
   });
 
   it('claims before API without assigning IN_PROGRESS until a valid agent is returned', async () => {
