@@ -12,33 +12,20 @@ import {
 } from '../lib/server/cursor-issue-dispatch-lifecycle.js';
 import {
   acquireCursorIssueActivationClaim,
-  buildCursorActivationClaim,
-  formatCursorActivationClaimComment,
   releaseCursorIssueActivationClaim,
 } from '../lib/server/cursor-activation-claim.js';
 import {
   buildCloudAgentsExecutorEvidence,
-  buildCloudAgentsWorkStatus,
+  buildFactoryCloudAgentsCreatePayload,
   buildFactoryCloudAgentsExecutionEnvelope,
   formatCloudAgentsExecutorEvidence,
   redactCloudAgentsFailure,
   validateCloudAgentCreateResponse,
 } from '../lib/server/factory-cloud-agents-executor.js';
 import {
-  formatAiWorkRequestComment,
-  formatAiWorkRequestStatusComment,
-} from '../lib/server/ai-work-request-lifecycle.js';
-import {
   createCursorCloudAgent,
-  evaluatePolicyModelAvailability,
   listCursorCloudAgentModels,
-  summarizeCursorModelCatalog,
 } from '../lib/server/cursor-cloud-agent-client.js';
-import { formatCursorOriginMetadataComment } from '../lib/server/cursor-origin-metadata.js';
-import {
-  buildFactoryCursorHandoffReceipt,
-  formatFactoryCursorHandoffReceiptComment,
-} from '../lib/server/factory-cursor-handoff-receipt.js';
 import {
   fetchGitHubIssue,
 } from '../lib/server/dispatcher-agent-activation.js';
@@ -77,15 +64,38 @@ const handoffRunId = String(process.env.HANDOFF_RUN_ID || '').trim();
 const repo = String(process.env.GITHUB_REPOSITORY || '').trim();
 const token = String(process.env.GITHUB_TOKEN || '').trim();
 const apiKey = String(process.env.CURSOR_API_KEY || '').trim();
+const currentMainSha = String(process.env.GITHUB_SHA || '').trim();
 
 if (!Number.isInteger(sourceIssue) || sourceIssue < 1 || !handoffRunId || !repo || !token) {
   throw new Error('SOURCE_ISSUE, HANDOFF_RUN_ID, GITHUB_REPOSITORY, and GITHUB_TOKEN are required');
 }
 
-const post = (body) =>
-  postGitHubIssueComment(sourceIssue, body, { token, repoFullName: repo });
 const comments = await listGitHubIssueComments({ token, repo, issueNumber: sourceIssue });
 const issue = await fetchGitHubIssue(sourceIssue, { token, repoFullName: repo });
+async function upsertCurrentRunEvidence(body) {
+  const existing = [...comments].reverse().find((comment) =>
+    /corpflow\.factory_cloud_agents_executor\.v1/i.test(String(comment?.body || '')),
+  );
+  if (existing?.id) {
+    const response = await fetch(
+      `https://api.github.com/repos/${repo}/issues/comments/${existing.id}`,
+      {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/vnd.github+json',
+          'Content-Type': 'application/json',
+          'X-GitHub-Api-Version': '2022-11-28',
+        },
+        body: JSON.stringify({ body }),
+        signal: AbortSignal.timeout(30000),
+      },
+    );
+    if (!response.ok) throw new Error(`GitHub compact lifecycle update HTTP ${response.status}`);
+    return;
+  }
+  await postGitHubIssueComment(sourceIssue, body, { token, repoFullName: repo });
+}
 let envelope;
 try {
   envelope = buildFactoryCloudAgentsExecutionEnvelope({
@@ -99,19 +109,16 @@ try {
   const blocker = redactCloudAgentsFailure(error);
   await addIssueLabelsApi(token, repo, sourceIssue, ['dispatch:blocked']);
   await removeIssueLabelApi(token, repo, sourceIssue, 'dispatch:cursor-ready');
-  await post(
+  await upsertCurrentRunEvidence(
     formatCloudAgentsExecutorEvidence({
       source_issue: sourceIssue,
       handoff_run_id: handoffRunId,
       status: 'BLOCKED',
       blocker,
+      current_main_sha: currentMainSha,
     }),
   );
   throw error;
-}
-
-if (envelope.request_was_created) {
-  await post(formatAiWorkRequestComment(envelope.request));
 }
 
 const claimResult = await acquireCursorIssueActivationClaim({
@@ -123,7 +130,8 @@ const claimResult = await acquireCursorIssueActivationClaim({
   comments,
   workflowRunId: handoffRunId,
   markInProgress: false,
-  postComment: (_issueNumber, body) => post(body),
+  // The compact current-run evidence comment below retains the claim/run
+  // fields; separate claim ceremony comments are deliberately suppressed.
   listComments: () => listGitHubIssueComments({ token, repo, issueNumber: sourceIssue }),
 });
 
@@ -140,19 +148,12 @@ let apiResult;
 let validated;
 try {
   if (!apiKey) throw new Error('CURSOR_API_KEY missing — Cloud Agents executor disabled (fail closed)');
-  const modelCatalog = await listCursorCloudAgentModels(apiKey);
-  const modelAvailability = evaluatePolicyModelAvailability(
-    modelCatalog,
-    envelope.create_payload.model,
+  const resolvedCreate = buildFactoryCloudAgentsCreatePayload(
+    envelope,
+    await listCursorCloudAgentModels(apiKey),
   );
-  if (!modelAvailability.available) {
-    const catalogueSummary = JSON.stringify(
-      summarizeCursorModelCatalog(modelCatalog, envelope.create_payload.model.id),
-    );
-    throw new Error(
-      `CURSOR_EXECUTION_TIER_MODEL_UNAVAILABLE: ${envelope.create_payload.model.id}; catalogue_reason=${modelAvailability.reason}; variants=${modelAvailability.availableVariantCount}; catalogue=${catalogueSummary}`,
-    );
-  }
+  envelope.create_payload = resolvedCreate.createPayload;
+  envelope.model_selection = resolvedCreate.selected.model;
   apiResult = await createCursorCloudAgent(apiKey, envelope.create_payload);
   validated = validateCloudAgentCreateResponse(apiResult);
   if (!validated.ok) throw new Error(validated.reason);
@@ -163,34 +164,20 @@ try {
     repo,
     issueNumber: sourceIssue,
     claim: claimResult.claim,
-    postComment: (_issueNumber, body) => post(body),
   });
   // A failed paid run is a review stop, not a candidate for automatic
   // regeneration by Queue Reconcile or an implicit retry.
   await addIssueLabelsApi(token, repo, sourceIssue, ['dispatch:blocked']);
   await removeIssueLabelApi(token, repo, sourceIssue, 'dispatch:cursor-ready');
-  await post(
-    formatFactoryCursorHandoffReceiptComment(
-      buildFactoryCursorHandoffReceipt({
-        sourceIssue,
-        handoffRunId,
-        state: 'BLOCKED',
-        blocker,
-      }),
-    ),
-  );
-  await post(
-    formatAiWorkRequestStatusComment(
-      buildCloudAgentsWorkStatus(envelope, { apiResult: null, blocker }),
-    ),
-  );
-  await post(
+  await upsertCurrentRunEvidence(
     formatCloudAgentsExecutorEvidence({
       source_issue: sourceIssue,
       work_request_id: envelope.work_request_id,
       handoff_run_id: handoffRunId,
       status: 'BLOCKED',
       blocker,
+      model_selection: envelope.model_selection || null,
+      current_main_sha: currentMainSha,
     }),
   );
   throw error;
@@ -198,42 +185,8 @@ try {
 
 const startedAt = new Date().toISOString();
 const details = validated.details;
-await post(
-  formatCursorActivationClaimComment(
-    buildCursorActivationClaim({
-      ...claimResult.claim,
-      status: 'activated',
-      agentRunId: details.agentId,
-    }),
-  ),
-);
 await addIssueLabelsApi(token, repo, sourceIssue, ['status:in-progress']);
-await post(
-  formatCursorOriginMetadataComment({
-    sourceIssue,
-    activationWorkflowRunId: handoffRunId,
-    cursorAgentId: details.agentId,
-    cursorAgentUrl: details.agentUrl,
-    cursorRunId: details.runId,
-    branch: details.branch,
-    prNumber: details.prNumber,
-  }),
-);
-await post(
-  formatFactoryCursorHandoffReceiptComment(
-    buildFactoryCursorHandoffReceipt({
-      sourceIssue,
-      handoffRunId,
-      state: 'IN_PROGRESS',
-      cursorAgentId: details.agentId,
-      cursorRunId: details.runId,
-      handedOffAt: startedAt,
-      updatedAt: startedAt,
-    }),
-  ),
-);
-await post(formatAiWorkRequestStatusComment(buildCloudAgentsWorkStatus(envelope, { apiResult })));
-await post(
+await upsertCurrentRunEvidence(
   formatCloudAgentsExecutorEvidence(
     buildCloudAgentsExecutorEvidence({
       source_issue: sourceIssue,
@@ -244,6 +197,8 @@ await post(
       status: 'IN_PROGRESS',
       started_at: startedAt,
       packet_validation: envelope.packet_validation,
+      model_selection: envelope.model_selection,
+      current_main_sha: currentMainSha,
     }),
   ),
 );

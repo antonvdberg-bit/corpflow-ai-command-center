@@ -51,6 +51,7 @@ import {
 } from '../lib/server/factory-cursor-handoff.js';
 import { postGitHubIssueComment } from '../lib/server/cursor-ops-status.js';
 import { authorizeCursorRemoteExecutionFromGitHub } from '../lib/server/cursor-economic-execution-gate.js';
+import { planStaleFactoryBlockRecovery } from '../lib/server/factory-cloud-agents-executor.js';
 
 const DEFAULT_REPO = 'antonvdberg-bit/corpflow-ai-command-center';
 const DEFAULT_OUT = 'factory-cursor-handoff.json';
@@ -199,10 +200,13 @@ async function main() {
   let claimedIssues = [];
   /** @type {import('../lib/server/cursor-issue-dispatch-lifecycle.js').DispatchIssue[]} */
   let closedClaimedIssues = [];
+  /** @type {import('../lib/server/cursor-issue-dispatch-lifecycle.js').DispatchIssue[]} */
+  let blockedIssues = [];
 
   if (wakePlan.shouldRun && token) {
     readyIssues = await discoverOpenIssuesByLabel(token, repo, DISPATCH_LABEL_READY);
     claimedIssues = await discoverOpenIssuesByLabel(token, repo, DISPATCH_LABEL_CLAIMED);
+    blockedIssues = await discoverOpenIssuesByLabel(token, repo, DISPATCH_LABEL_BLOCKED);
     try {
       closedClaimedIssues = await listClosedIssuesByLabelGraphql(
         token,
@@ -257,7 +261,7 @@ async function main() {
     }
 
     const needsComments = new Map();
-    for (const issue of [...claimedIssues, ...closedClaimedIssues, ...readyIssues]) {
+    for (const issue of [...claimedIssues, ...closedClaimedIssues, ...readyIssues, ...blockedIssues]) {
       needsComments.set(Number(issue.number), issue);
     }
     for (const issue of needsComments.values()) {
@@ -266,6 +270,33 @@ async function main() {
       } catch {
         issue.comments = [];
       }
+    }
+
+    const currentMainSha = String(process.env.GITHUB_SHA || '').trim();
+    for (const issue of blockedIssues) {
+      const recovery = planStaleFactoryBlockRecovery({
+        comments: issue.comments,
+        currentMainSha,
+      });
+      if (!recovery.recover || issue.state !== 'open') continue;
+      if (!args.dryRun) {
+        await removeIssueLabelApi(token, repo, Number(issue.number), DISPATCH_LABEL_BLOCKED);
+        await addIssueLabelsApi(token, repo, Number(issue.number), [DISPATCH_LABEL_READY]);
+      }
+      readyIssues = [
+        ...readyIssues.filter((candidate) => Number(candidate.number) !== Number(issue.number)),
+        {
+          ...issue,
+          labels: [
+            ...issue.labels.filter(
+              (label) =>
+                (typeof label === 'string' ? label : String(label?.name || '')).toLowerCase() !==
+                DISPATCH_LABEL_BLOCKED.toLowerCase(),
+            ),
+            DISPATCH_LABEL_READY,
+          ],
+        },
+      ];
     }
 
     const nowIso = new Date().toISOString();
@@ -378,6 +409,7 @@ async function main() {
       readyCount: readyIssues.length,
       claimedCount: claimedIssues.length,
       closedClaimedCount: closedClaimedIssues.length,
+      blockedCount: blockedIssues.length,
       readyIssueNumbers: readyIssues.map((i) => Number(i.number)),
       claimedIssueNumbers: claimedIssues.map((i) => Number(i.number)),
     },

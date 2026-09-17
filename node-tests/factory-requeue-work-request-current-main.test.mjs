@@ -5,6 +5,7 @@ import {
   formatCursorApiErrorDetail,
 } from '../lib/server/cursor-cloud-agent-client.js';
 import {
+  buildFactoryCloudAgentsCreatePayload,
   buildFactoryCloudAgentsExecutionEnvelope,
 } from '../lib/server/factory-cloud-agents-executor.js';
 import {
@@ -62,6 +63,15 @@ No schema, env/secrets, payment, send, or public launch.`,
   });
 }
 
+function bindPayload(envelope) {
+  return buildFactoryCloudAgentsCreatePayload(envelope, {
+    items: [{
+      id: 'gpt-5.6-catalogue-current',
+      variants: [{ params: [{ id: 'reasoning', value: 'medium' }, { id: 'fast', value: 'false' }] }],
+    }],
+  }).createPayload;
+}
+
 describe('Cloud Agents work-request identity after CURSOR REQUEUE', () => {
   it('does not reuse a retired generation work_request_id', () => {
     const envelope = buildEnvelope([
@@ -72,12 +82,12 @@ describe('Cloud Agents work-request identity after CURSOR REQUEUE', () => {
     assert.equal(envelope.request_was_created, true);
     assert.notEqual(envelope.work_request_id, GEN1_WORK_REQUEST);
     assert.notEqual(
-      envelope.create_payload.agentId,
+      bindPayload(envelope).agentId,
       GEN1_WORK_REQUEST.replace(/^cfai-wr-/i, 'bc-'),
     );
     assert.match(envelope.work_request_id, /^cfai-wr-/);
     assert.equal(
-      envelope.create_payload.agentId,
+      bindPayload(envelope).agentId,
       envelope.work_request_id.replace(/^cfai-wr-/i, 'bc-'),
     );
   });
@@ -92,7 +102,7 @@ describe('Cloud Agents work-request identity after CURSOR REQUEUE', () => {
     assert.equal(envelope.request_was_created, false);
     assert.equal(envelope.work_request_id, GEN3_WORK_REQUEST);
     assert.equal(
-      envelope.create_payload.agentId,
+      bindPayload(envelope).agentId,
       GEN3_WORK_REQUEST.replace(/^cfai-wr-/i, 'bc-'),
     );
   });

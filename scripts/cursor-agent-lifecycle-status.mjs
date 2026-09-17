@@ -30,7 +30,11 @@ import {
   runCursorAgentLifecycleTick,
 } from '../lib/server/cursor-agent-lifecycle.js';
 import { buildCapacityReleaseWakeRequest } from '../lib/server/cursor-ready-event-dispatch.js';
-import { findKnownCloudAgentsExecutorEvidence } from '../lib/server/factory-cloud-agents-executor.js';
+import {
+  buildCloudAgentsExecutorEvidence,
+  findKnownCloudAgentsExecutorEvidence,
+  formatCloudAgentsExecutorEvidence,
+} from '../lib/server/factory-cloud-agents-executor.js';
 
 const REPO =
   process.env.GITHUB_REPOSITORY ||
@@ -112,6 +116,52 @@ async function listIssueComments(issue) {
 
 async function createIssueComment(issue, body) {
   return gh('POST', `/repos/${OWNER}/${REPO_NAME}/issues/${issue}/comments`, { body });
+}
+
+async function upsertCompactLifecycle(issue, event) {
+  const comments = await listIssueComments(issue);
+  const existing = [...comments].reverse().find((comment) =>
+    /corpflow\.factory_cloud_agents_executor\.v1/i.test(String(comment?.body || '')),
+  );
+  if (!existing?.id) {
+    return createIssueComment(
+      issue,
+      formatCloudAgentsExecutorEvidence(
+        buildCloudAgentsExecutorEvidence({
+          source_issue: issue,
+          cursor_agent_id: event.cursor_agent_id,
+          cursor_run_id: event.cursor_run_id,
+          status: event.status,
+          branch: event.branch,
+          pr_number: event.pr,
+          pr_url: event.pr_url,
+          head_sha: event.sha,
+          ci_state: event.ci_check_result,
+          final_verdict: event.status === 'COMPLETED' ? 'PASS' : 'BLOCKED',
+          blocker: event.blocker,
+        }),
+      ),
+    );
+  }
+  const prior = findKnownCloudAgentsExecutorEvidence([existing], issue) || {};
+  return gh('PATCH', `/repos/${OWNER}/${REPO_NAME}/issues/comments/${existing.id}`, {
+    body: formatCloudAgentsExecutorEvidence(
+      buildCloudAgentsExecutorEvidence({
+        ...prior,
+        source_issue: issue,
+        cursor_agent_id: event.cursor_agent_id || prior.cursor_agent_id,
+        cursor_run_id: event.cursor_run_id || prior.cursor_run_id,
+        status: event.status,
+        branch: event.branch,
+        pr_number: event.pr,
+        pr_url: event.pr_url,
+        head_sha: event.sha,
+        ci_state: event.ci_check_result,
+        final_verdict: event.status === 'COMPLETED' ? 'PASS' : 'BLOCKED',
+        blocker: event.blocker,
+      }),
+    ),
+  });
 }
 
 async function addIssueLabels(issue, labels) {
@@ -204,6 +254,7 @@ function buildGithubAdapter() {
   return {
     listIssueComments,
     createIssueComment,
+    upsertCompactLifecycle,
     findPrForBranch,
     findPrForIssue,
     getPrChecks,
@@ -274,6 +325,7 @@ async function main() {
   let agentId = args.agentId ? String(args.agentId).trim() : null;
   let discoveredRunId = null;
   let priorState = null;
+  let compactLifecycle = false;
   /** @type {Array<{ body?: string }>} */
   let comments = [];
 
@@ -283,6 +335,7 @@ async function main() {
     priorState = discovered.priorState;
     if (!agentId) agentId = discovered.agentId;
     discoveredRunId = discovered.runId;
+    compactLifecycle = Boolean(discovered.evidence);
     if (!agentId) {
       console.error(`No Cursor agent ID found on issue #${issue} (origin metadata / lifecycle state)`);
       process.exit(3);
@@ -362,7 +415,7 @@ async function main() {
     ),
   );
 
-  if (issue && first.state) {
+  if (issue && first.state && !compactLifecycle) {
     await createIssueComment(issue, formatCursorLifecycleStateComment(first.state));
   }
 
@@ -392,7 +445,7 @@ async function main() {
         2,
       ),
     );
-    if (issue && second.state) {
+    if (issue && second.state && !compactLifecycle) {
       await createIssueComment(issue, formatCursorLifecycleStateComment(second.state));
     }
     wakeActions = [...wakeActions, ...(Array.isArray(second.actions) ? second.actions : [])];
