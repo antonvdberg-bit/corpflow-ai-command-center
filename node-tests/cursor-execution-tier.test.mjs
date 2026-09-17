@@ -31,11 +31,11 @@ describe('Cursor execution tier policy (#1249)', () => {
     const resolved = resolveCursorExecutionTier();
     assert.equal(resolved.tier, 'low');
     assert.deepEqual(resolved.model, CURSOR_EXECUTION_TIER_MODELS.low);
-    assert.deepEqual(resolved.model, { id: 'gpt-5.6-terra-medium', params: [] });
+    assert.deepEqual(resolved.model, { id: 'gpt-5.6-terra', params: [] });
   });
 
-  it('uses the measured economical LOW model without Fast pricing', () => {
-    assert.equal(CURSOR_EXECUTION_TIER_MODELS.low.id, 'gpt-5.6-terra-medium');
+  it('uses the Cloud Agents API ID for the economical LOW model without Fast pricing', () => {
+    assert.equal(CURSOR_EXECUTION_TIER_MODELS.low.id, 'gpt-5.6-terra');
     assert.equal(CURSOR_EXECUTION_TIER_MODELS.medium.id, 'gpt-5.6-sol-medium');
     assert.notEqual(CURSOR_EXECUTION_TIER_MODELS.low.id, 'gpt-5.6-luna');
     assert.deepEqual(CURSOR_EXECUTION_TIER_MODELS.low.params, []);
@@ -128,7 +128,8 @@ describe('Cursor execution tier policy (#1249)', () => {
     const catalog = {
       items: [
         {
-          id: 'gpt-5.6-terra-medium',
+          id: 'gpt-5.6-terra',
+          displayName: 'GPT-5.6 Terra Medium',
           variants: [{ params: [] }],
         },
       ],
@@ -140,7 +141,7 @@ describe('Cursor execution tier policy (#1249)', () => {
         {
           items: [
             {
-              id: 'gpt-5.6-terra-medium',
+              id: 'gpt-5.6-terra',
               variants: [{ params: [{ id: 'fast', value: 'true' }] }],
             },
           ],

@@ -4,6 +4,7 @@ import { describe, it } from 'node:test';
 import {
   evaluatePolicyModelAvailability,
   getCursorCloudAgentRun,
+  summarizeCursorModelCatalog,
 } from '../lib/server/cursor-cloud-agent-client.js';
 import {
   buildCloudAgentsExecutorEvidence,
@@ -30,27 +31,72 @@ const request = {
 describe('Factory Cloud Agents executor', () => {
   it('accepts a listed parameterless policy model when the API omits optional variants', () => {
     const availability = evaluatePolicyModelAvailability(
-      { items: [{ id: 'gpt-5.6-terra-medium' }] },
-      { id: 'gpt-5.6-terra-medium', params: [] },
+      {
+        items: [
+          {
+            id: 'gpt-5.6-terra',
+            displayName: 'GPT-5.6 Terra Medium',
+            aliases: ['gpt-5.6-terra-medium'],
+          },
+        ],
+      },
+      { id: 'gpt-5.6-terra', params: [] },
     );
     assert.equal(availability.available, true);
     assert.equal(availability.reason, 'parameterless_model_without_variants');
   });
 
+  it('does not treat the UI display-name-shaped identifier as a Cloud Agents API ID', () => {
+    const catalog = {
+      items: [{ id: 'gpt-5.6-terra', displayName: 'GPT-5.6 Terra Medium' }],
+    };
+    const availability = evaluatePolicyModelAvailability(
+      catalog,
+      { id: 'gpt-5.6-terra-medium', params: [] },
+    );
+    assert.equal(availability.available, false);
+    assert.equal(availability.reason, 'model_id_missing');
+  });
+
   it('keeps parameterized or unknown catalogue selections fail-closed', () => {
     const parameterized = evaluatePolicyModelAvailability(
-      { items: [{ id: 'gpt-5.6-terra-medium' }] },
-      { id: 'gpt-5.6-terra-medium', params: [{ id: 'fast', value: 'true' }] },
+      { items: [{ id: 'gpt-5.6-terra' }] },
+      { id: 'gpt-5.6-terra', params: [{ id: 'fast', value: 'true' }] },
     );
     assert.equal(parameterized.available, false);
     assert.equal(parameterized.reason, 'params_not_available');
 
     const missing = evaluatePolicyModelAvailability(
       { items: [] },
-      { id: 'gpt-5.6-terra-medium', params: [] },
+      { id: 'gpt-5.6-terra', params: [] },
     );
     assert.equal(missing.available, false);
     assert.equal(missing.reason, 'model_id_missing');
+  });
+
+  it('captures only bounded model metadata for a catalogue failure receipt', () => {
+    const summary = summarizeCursorModelCatalog({
+      items: [
+        {
+          id: 'gpt-5.6-terra',
+          displayName: 'GPT-5.6 Terra Medium',
+          aliases: ['gpt-5.6-terra-medium'],
+          parameters: [{ id: 'fast', values: [{ value: 'true' }] }],
+          variants: [{ params: [] }],
+          unexpectedSensitiveField: 'must-not-be-captured',
+        },
+      ],
+    });
+    assert.deepEqual(summary, {
+      itemCount: 1,
+      items: [{
+        id: 'gpt-5.6-terra',
+        displayName: 'GPT-5.6 Terra Medium',
+        aliases: ['gpt-5.6-terra-medium'],
+        parameterIds: ['fast'],
+        variantCount: 1,
+      }],
+    });
   });
 
   it('polls the documented run endpoint, not durable agent metadata', async () => {
