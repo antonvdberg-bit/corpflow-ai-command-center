@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import {
+  evaluatePolicyModelAvailability,
   getCursorCloudAgentRun,
 } from '../lib/server/cursor-cloud-agent-client.js';
 import {
@@ -27,6 +28,31 @@ const request = {
 };
 
 describe('Factory Cloud Agents executor', () => {
+  it('accepts a listed parameterless policy model when the API omits optional variants', () => {
+    const availability = evaluatePolicyModelAvailability(
+      { items: [{ id: 'gpt-5.6-terra-medium' }] },
+      { id: 'gpt-5.6-terra-medium', params: [] },
+    );
+    assert.equal(availability.available, true);
+    assert.equal(availability.reason, 'parameterless_model_without_variants');
+  });
+
+  it('keeps parameterized or unknown catalogue selections fail-closed', () => {
+    const parameterized = evaluatePolicyModelAvailability(
+      { items: [{ id: 'gpt-5.6-terra-medium' }] },
+      { id: 'gpt-5.6-terra-medium', params: [{ id: 'fast', value: 'true' }] },
+    );
+    assert.equal(parameterized.available, false);
+    assert.equal(parameterized.reason, 'params_not_available');
+
+    const missing = evaluatePolicyModelAvailability(
+      { items: [] },
+      { id: 'gpt-5.6-terra-medium', params: [] },
+    );
+    assert.equal(missing.available, false);
+    assert.equal(missing.reason, 'model_id_missing');
+  });
+
   it('polls the documented run endpoint, not durable agent metadata', async () => {
     let requested = '';
     await getCursorCloudAgentRun(

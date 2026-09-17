@@ -16,10 +16,12 @@ import {
   hasSiblingProductConflict,
   inferIssueClassification,
   mapGitHubIssueToDispatchIssue,
+  planCursorRequeueDispatchState,
   planCursorIssueClaims,
   prohibitionAppliesToPhrase,
   rollbackPrematureIssueClaim,
   suggestIssueBranchName,
+  textContainsProductionApprovalPrerequisite,
   textForbidsProduction,
 } from '../lib/server/cursor-issue-dispatch-lifecycle.js';
 import { resolveCursorRunId } from '../scripts/cursor-issue-dispatch-finalize.mjs';
@@ -90,6 +92,16 @@ Reuse existing Queue Reconcile, lifecycle, WIP, and CI-supervisor infrastructure
   labels: ['priority:P0', 'dispatch:cursor-ready'],
 };
 
+const ISSUE_1292_STYLE = {
+  number: 1292,
+  title: 'P0 AI Cost & Outcome Control',
+  body: `Implement a bounded economic evidence repair.
+No production deploy, env/secrets/access changes, DB/schema/data mutation,
+provider budget/plan change, paid tool, external messaging/outreach, or public launch.
+Do not deploy production. Return one bounded PR with focused tests and CI.`,
+  labels: ['priority:P0', 'dispatch:cursor-ready'],
+};
+
 describe('cursor-issue-dispatch-lifecycle', () => {
   it('classifies Lead Rescue #653 as CorpFlowAI business system product stream', () => {
     const c = inferIssueClassification(ISSUE_653);
@@ -141,6 +153,82 @@ describe('cursor-issue-dispatch-lifecycle', () => {
     });
     assert.equal(plan.activationTargetIssue, 1083);
     assert.equal(plan.decisions[0]?.decision, 'claim');
+  });
+
+  it('#1292-style governance prohibitions remain an eligible ordinary work packet', () => {
+    const classification = inferIssueClassification(ISSUE_1292_STYLE);
+    assert.equal(classification.protectedGate, 'none');
+    assert.deepEqual(
+      classification.protectedSubjectsMentioned.sort(),
+      ['database', 'messaging', 'outreach', 'paid_tool', 'production', 'public_launch', 'secrets'],
+    );
+
+    const plan = planCursorIssueClaims({
+      readyIssues: [ISSUE_1292_STYLE],
+      claimedIssues: [],
+      trackedIssues: [],
+      preferIssueNumbers: [1292],
+    });
+    const decision = plan.decisions[0];
+    assert.equal(decision?.decision, 'claim');
+    assert.equal(decision?.eligibleToClaim, true);
+    assert.equal(plan.activationTargetIssue, 1292);
+  });
+
+  it('#1292 protected-boundaries approval prerequisite is not a production deployment request', () => {
+    const issue = {
+      number: 12921,
+      title: 'P0 AI Cost & Outcome Control',
+      body: `## Protected boundaries
+Explicit Anton approval remains required before production deploy, env/secrets/access changes,
+DB/schema/data mutation, provider budget/plan mutation, paid service/tool, external messaging,
+or client-facing launch.
+
+Implement the bounded repository-only evidence contract and tests.`,
+      labels: ['priority:P0', 'dispatch:cursor-ready'],
+    };
+    assert.equal(textContainsProductionApprovalPrerequisite(issue.body), true);
+    const classification = inferIssueClassification(issue);
+    assert.equal(classification.protectedGate, 'none');
+    const plan = planCursorIssueClaims({ readyIssues: [issue], claimedIssues: [] });
+    assert.equal(plan.decisions[0]?.decision, 'claim');
+    assert.equal(plan.activationTargetIssue, 12921);
+  });
+
+  it('an affirmative client-production deployment remains gated despite prerequisite wording', () => {
+    const issue = {
+      number: 12922,
+      title: 'Client production cutover',
+      body: `Deploy to client_production on the client-owned target.
+Anton approval is required before production deploy.`,
+      labels: ['priority:P0', 'dispatch:cursor-ready'],
+    };
+    assert.equal(inferIssueClassification(issue).protectedGate, 'production');
+  });
+
+  it('only an accepted CURSOR REQUEUE clears a stale dispatch block', () => {
+    assert.deepEqual(
+      planCursorRequeueDispatchState(
+        ['priority:P0', 'dispatch:blocked'],
+        false,
+      ),
+      {
+        restoreReady: false,
+        removeBlocked: false,
+        reason: 'requeue_not_accepted',
+      },
+    );
+    assert.deepEqual(
+      planCursorRequeueDispatchState(
+        ['priority:P0', 'dispatch:blocked'],
+        true,
+      ),
+      {
+        restoreReady: true,
+        removeBlocked: true,
+        reason: 'explicit_requeue_restores_selector_input',
+      },
+    );
   });
 
   it('does not reselect completed work with a review-ready linked PR', () => {

@@ -23,10 +23,15 @@ import path from 'node:path';
 
 import {
   DISPATCH_LABEL_CLAIMED,
+  DISPATCH_LABEL_BLOCKED,
   DISPATCH_LABEL_READY,
+  addIssueLabelsApi,
   discoverOpenIssuesByLabel,
   listClosedIssuesByLabelGraphql,
+  mapGitHubIssueToDispatchIssue,
+  planCursorRequeueDispatchState,
   planCursorIssueClaims,
+  removeIssueLabelApi,
 } from '../lib/server/cursor-issue-dispatch-lifecycle.js';
 import { planCursorRequeueMaterialization } from '../lib/server/cursor-activation-claim.js';
 import {
@@ -37,6 +42,7 @@ import {
   attachLinkedPullRequestsToIssues,
   fetchOpenPullRequestsForWip,
 } from '../lib/server/cursor-wip-control.js';
+import { fetchGitHubIssue } from '../lib/server/dispatcher-agent-activation.js';
 import {
   FACTORY_CURSOR_HANDOFF_WORKFLOW_NAME,
   formatFactoryHandoffComment,
@@ -207,6 +213,49 @@ async function main() {
       closedClaimedIssues = [];
     }
 
+    // `dispatch:blocked` is terminal for an ordinary scan. An authorised
+    // CURSOR REQUEUE is the explicit new-generation boundary, so it must
+    // restore the source to the selector instead of requiring an operator to
+    // hand-edit labels. Any real protected-action request is still stopped by
+    // classification after this state reconciliation.
+    const requeueIssueNumber =
+      wakePlan.wakeReason === 'cursor_requeue'
+        ? Number(wakePlan.eventIssueNumber || 0)
+        : 0;
+    if (
+      Number.isInteger(requeueIssueNumber) &&
+      requeueIssueNumber > 0
+    ) {
+      const fetchedRequeueIssue = mapGitHubIssueToDispatchIssue(
+        await fetchGitHubIssue(requeueIssueNumber, { token, repoFullName: repo }),
+      );
+      const requeueState = planCursorRequeueDispatchState(
+        fetchedRequeueIssue.labels,
+        true,
+      );
+      if (fetchedRequeueIssue.state === 'open' && requeueState.restoreReady) {
+        if (!args.dryRun) {
+          await removeIssueLabelApi(token, repo, requeueIssueNumber, DISPATCH_LABEL_BLOCKED);
+          await addIssueLabelsApi(token, repo, requeueIssueNumber, [DISPATCH_LABEL_READY]);
+        }
+        const requeueIssue = {
+          ...fetchedRequeueIssue,
+          labels: [
+            ...fetchedRequeueIssue.labels.filter(
+            (label) =>
+              (typeof label === 'string' ? label : String(label?.name || '')).toLowerCase() !==
+              DISPATCH_LABEL_BLOCKED.toLowerCase(),
+            ),
+            DISPATCH_LABEL_READY,
+          ],
+        };
+        readyIssues = [
+          ...readyIssues.filter((issue) => Number(issue.number) !== requeueIssueNumber),
+          requeueIssue,
+        ];
+      }
+    }
+
     const needsComments = new Map();
     for (const issue of [...claimedIssues, ...closedClaimedIssues, ...readyIssues]) {
       needsComments.set(Number(issue.number), issue);
@@ -347,6 +396,16 @@ async function main() {
       verifiedActiveCount: plan.verifiedActiveCount,
       eligibleIssueNumbers: plan.eligibleIssueNumbers,
       claimIssueNumbers: plan.claimIssueNumbers,
+      decisions: plan.decisions.map((entry) => ({
+        issueNumber: Number(entry.issue.number),
+        decision: entry.decision,
+        eligibleToClaim: entry.eligibleToClaim,
+        reason: entry.reason,
+        protectedGate: entry.classification?.protectedGate || 'none',
+        protectedSubjectsMentioned: entry.classification?.protectedSubjectsMentioned || [],
+        environment: entry.classification?.environment || null,
+        workTypes: entry.classification?.workTypes || [],
+      })),
     },
     resolvedTarget,
     commentPosted: false,
