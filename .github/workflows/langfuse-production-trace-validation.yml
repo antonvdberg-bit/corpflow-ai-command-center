@@ -1,0 +1,72 @@
+name: Langfuse production trace validation
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - name: Fetch secrets from Infisical (OIDC)
+        uses: Infisical/secrets-action@8802effbe453d0576cd923567dcc2c97a1f54058
+        with:
+          method: "oidc"
+          identity-id: "${{ vars.INFISICAL_IDENTITY_ID }}"
+          project-slug: "${{ vars.INFISICAL_PROJECT_SLUG }}"
+          env-slug: "${{ vars.INFISICAL_ENV_SLUG }}"
+          domain: "${{ vars.INFISICAL_DOMAIN }}"
+
+      - name: Run one bounded production trace validation
+        env:
+          CORE_BASE: ${{ secrets.CORPFLOW_CORE_BASE_URL }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${CORE_BASE:-}" ]; then
+            CORE_BASE="https://core.corpflowai.com"
+          fi
+
+          if [ -z "${CORPFLOW_CRON_SECRET:-}" ] && [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::No cron bearer available from the approved secret source."
+            exit 1
+          fi
+
+          bearer="${CORPFLOW_CRON_SECRET:-${CRON_SECRET:-}}"
+          endpoint="${CORE_BASE%/}/api/langfuse_production_validation"
+
+          code="$(curl -sS -o /tmp/langfuse-prod-validation.json -w "%{http_code}"             -X POST             -H "Authorization: Bearer ${bearer}"             -H "Content-Type: application/json"             --data '{"confirm":"RUN_LANGFUSE_PRODUCTION_VALIDATION"}'             "${endpoint}")"
+
+          echo "HTTP ${code}"
+
+          python3 - <<'PY'
+          import json, sys
+          with open('/tmp/langfuse-prod-validation.json') as f:
+              data = json.load(f)
+          safe = {
+              "ok": data.get("ok"),
+              "validation": data.get("validation"),
+              "provider_http_status": data.get("provider_http_status"),
+              "model": data.get("model"),
+              "usage": data.get("usage"),
+              "output_matches_expected": data.get("output_matches_expected"),
+              "expected_langfuse_trace": data.get("expected_langfuse_trace"),
+              "expected_environment": data.get("expected_environment"),
+              "client_data_used": data.get("client_data_used"),
+              "production_data_changed": data.get("production_data_changed"),
+              "retries": data.get("retries"),
+              "error": data.get("error"),
+          }
+          print(json.dumps(safe, indent=2))
+          if not data.get("ok"):
+              sys.exit(1)
+          PY
+
+          if [ "${code}" -lt 200 ] || [ "${code}" -ge 300 ]; then
+            exit 1
+          fi
