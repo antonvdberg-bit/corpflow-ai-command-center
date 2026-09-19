@@ -98,4 +98,3 @@ Second notifier created: NO
 - Message helpers: `lib/server/anton-decision-inbox.js`
 - Design: `docs/n8n/anton-decision-inbox-exception-notify.md`
 - Heartbeat runbook: `docs/runbooks/N8N_GITHUB_HEARTBEAT_CHECKER_V1.md`
-- Audit: `docs/operations/SLACK_TELEGRAM_DEPENDENCY_AUDIT_658.md`
