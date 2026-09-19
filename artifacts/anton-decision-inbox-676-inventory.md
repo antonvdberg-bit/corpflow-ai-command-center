@@ -31,7 +31,7 @@
 
 ## Notification route
 
-- Slack retired (#658).
+- Legacy chat integration retired (#658).
 - Telegram via n8n / control-loop / ops-alerts remains the exception path.
 - Decision Inbox exception notify: design-only until activated (`docs/n8n/anton-decision-inbox-exception-notify.md`).
 
