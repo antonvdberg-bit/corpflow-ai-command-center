@@ -3,10 +3,12 @@ import { describe, it } from 'node:test';
 import {
   buildCompletionFingerprint,
   buildCursorCompletionEvent,
+  buildCursorHeartbeat,
   buildCursorLifecycleState,
   buildDeterministicStaleFollowUpPrompt,
   classifyCursorFailure,
   formatCursorCompletionEventComment,
+  formatCursorHeartbeatComment,
   formatCursorLifecycleStateComment,
   normalizeCursorAgentLifecycleStatus,
   parseCursorLifecycleStateFromText,
@@ -79,6 +81,23 @@ describe('cursor-agent-lifecycle', () => {
     assert.equal(parsed?.cursorAgentId, state.cursorAgentId);
     assert.equal(parsed?.phase, 'RUNNING');
     assert.equal(parsed?.sourceIssue, 661);
+  });
+
+  it('formats a compact observable heartbeat without inventing progress', () => {
+    const heartbeat = buildCursorHeartbeat({
+      sourceIssue: 1196,
+      cursorAgentId: 'bc-heartbeat',
+      cursorRunId: 'run-heartbeat',
+      phase: 'RUNNING',
+      rawStatus: 'IN_PROGRESS',
+      lastPolledAt: '2026-09-19T07:30:00.000Z',
+    });
+    assert.equal(heartbeat.stage, 'Agent running; no branch, PR, or head SHA reported yet');
+    assert.equal(heartbeat.next_action, 'Poll this same agent/run again; do not requeue');
+    const body = formatCursorHeartbeatComment(heartbeat);
+    assert.match(body, /CURSOR HEARTBEAT/);
+    assert.match(body, /corpflow\.cursor_heartbeat\.v1/);
+    assert.match(body, /no branch, PR, or head SHA reported yet/);
   });
 
   it('classifies rate-limit as recoverable', () => {
@@ -249,7 +268,45 @@ describe('cursor-agent-lifecycle', () => {
     assert.ok(done.actions.includes('remove_dispatch_ready_label'));
   });
 
-  it('tick stays silent on RUNNING and emits once on COMPLETED then dedupes', async () => {
+  it('tick upserts one compact heartbeat while RUNNING', async () => {
+    const heartbeats = [];
+    const github = {
+      async upsertHeartbeat(issue, heartbeat) {
+        heartbeats.push({ issue, heartbeat });
+      },
+      async findPrForIssue() {
+        return null;
+      },
+    };
+    const running = await runCursorAgentLifecycleTick({
+      apiKey: 'test-key',
+      agentId: 'bc-heartbeat-active',
+      runId: 'run-heartbeat-active',
+      sourceIssue: 1196,
+      fetch: async () => ({
+        ok: true,
+        status: 200,
+        async text() {
+          return JSON.stringify({
+            id: 'run-heartbeat-active',
+            agentId: 'bc-heartbeat-active',
+            status: 'IN_PROGRESS',
+          });
+        },
+      }),
+      github,
+      startedAt: new Date().toISOString(),
+    });
+    assert.equal(running.phase, 'RUNNING');
+    assert.equal(running.silent, true);
+    assert.equal(heartbeats.length, 1);
+    assert.equal(heartbeats[0].issue, 1196);
+    assert.equal(heartbeats[0].heartbeat.cursor_agent_id, 'bc-heartbeat-active');
+    assert.match(heartbeats[0].heartbeat.stage, /no branch, PR, or head SHA reported yet/);
+    assert.ok(running.actions.includes('heartbeat_updated'));
+  });
+
+  it('tick stays notification-silent on RUNNING and emits once on COMPLETED then dedupes', async () => {
     let calls = 0;
     const fetchFn = async () => {
       calls += 1;
