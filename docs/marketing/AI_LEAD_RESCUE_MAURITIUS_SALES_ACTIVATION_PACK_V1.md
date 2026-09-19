@@ -108,7 +108,7 @@ The list below is a **template** to fill in locally. **Do not** commit the popul
 2. **Mix sectors** — aim for ~6 property, ~5 clinic, ~5 contractor, ~4 owner-managed across the 20.
 3. **Two messages per person max** in week 1 (one opener + one follow-up); never three.
 4. **Mark `Snoozed (60d)`** if a prospect goes silent after the follow-up. Re-engage in 60 days **only** if there is real news (first published case, new vertical evidence, article published).
-5. **No public visibility.** The populated list never appears in a tweet, LinkedIn post, public Slack channel, this repo, or any AI prompt.
+5. **No public visibility.** The populated list never appears in a tweet, LinkedIn post, public team channel, this repo, or any AI prompt.
 
 ---
 
