@@ -38,9 +38,9 @@ Env vars:
 
 Telegram alerts are best-effort and do not block the monitor.
 
-### Email and Telegram via n8n (Slack retired — issue #658)
+### Email and Telegram via n8n
 
-Exception-only operator notifications route through n8n (`corpflow.ops_alert.v1`, Lead Rescue intake) or direct Telegram helpers for CI failures. **Slack is not an approved CorpFlow ops channel.** See `docs/operations/SLACK_TELEGRAM_DEPENDENCY_AUDIT_658.md`.
+Exception-only operator notifications route through n8n (`corpflow.ops_alert.v1`, Lead Rescue intake) or direct Telegram helpers for CI failures.
 
 This repo forwards ops alerts to your orchestrator using the existing automation forward mechanism:
 
