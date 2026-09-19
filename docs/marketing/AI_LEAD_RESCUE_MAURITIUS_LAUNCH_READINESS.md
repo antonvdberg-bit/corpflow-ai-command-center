@@ -67,7 +67,7 @@ The live page already implements the canonical **single offer rule**: **USD 150 
 | Wired into `/lead-rescue`? | **Yes.** `lib/visualAssets/selectLeadRescueAssets.js` lists `lead-rescue-walkthrough-v1` as the **first preferred id** for slot `lead_rescue_dashboard`. The video tag (with controls, no autoplay, no loop, captions track) is rendered by `components/VisualAssetRenderer.js` under the *"What you see every morning"* section. The MP4 URL appears in the live HTML response. |
 | Live on production? | **Yes.** `https://corpflowai.com/lead-rescue` shows the walkthrough in the dashboard slot; the MP4 streams from the apex CDN. Also reachable on `https://aileadrescue.corpflowai.com/` (same component). |
 | Synthetic / representational with disclosure? | **Yes.** Manifest licence terms: "AI-rendered representational walkthrough... never present as a real client view." On-page label above the video: *"Representational example only - counts, initials, and entries are illustrative, not live data."* Final 7-second disclosure card is burned into the video itself. `AssetProvenanceDisclosure` chip renders below the video because the manifest is `licence.tier=ai_generated`. |
-| Friday-usable? | **Yes.** Safe to embed in a LinkedIn / WhatsApp / Telegram outreach message as a link to `https://corpflowai.com/lead-rescue` (page autoplay disabled - buyer chooses to play). Direct MP4 URL also works for embedded Telegram / Slack previews if you prefer. |
+| Friday-usable? | **Yes.** Safe to embed in a LinkedIn / WhatsApp / Telegram outreach message as a link to `https://corpflowai.com/lead-rescue` (page autoplay disabled - buyer chooses to play). Direct MP4 URL also works for embedded Telegram previews if you prefer. |
 
 ### 2.1 Direct shareable URLs (Friday-safe)
 

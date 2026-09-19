@@ -61,7 +61,7 @@ Shared **rolling usage limits** apply across local messages and cloud tasks (doc
 | ---------------------------- | ----------------------- | ------- |
 | Codex Cloud = hosted worker, not laptop CLI as primary executor | Cloud tasks + GitHub App integration are first-class; CLI can *launch* cloud tasks but CorpFlow uses Cloud + GitHub directly | **Still correct** |
 | Codex Cloud runs in OpenAI infra, not on `corpflow-exec-01` | Unchanged | **Still correct** |
-| Least-privilege GitHub App on this repo only | Still required; Codex plugins (Slack, Figma, etc.) exist but CorpFlow should enable **GitHub only** | **Still correct — tighten plugin scope at install** |
+| Least-privilege GitHub App on this repo only | Still required; Codex plugins (Figma, etc.) exist but CorpFlow should enable **GitHub only** | **Still correct — tighten plugin scope at install** |
 | OpenAI API key pasted only into Codex setup | **Refined:** prefer **ChatGPT Plus sign-in** for Codex Cloud so cloud tasks + GitHub integration work inside subscription limits; API key path is fallback for API-only local use **without** cloud/GitHub features | **Update install runbook** (see §6) |
 | `codex/*` branch namespace; no shared branches with Cursor | Unchanged | **Still correct** |
 | Anton merges; no autonomous Codex merge | Unchanged; `.github/workflows/cmp-product-automerge.yml` remains `cmp/*` only | **Still correct** |

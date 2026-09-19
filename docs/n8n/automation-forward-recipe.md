@@ -7,7 +7,7 @@ When `CORPFLOW_AUTOMATION_FORWARD_URL` points at an **n8n Webhook** node, every 
 1. **Webhook** — Method `POST`, Path e.g. `corpflow-automation` (copy the “Production URL”).
 2. **IF** — Condition on `{{ $json.body.event_type }}` or `{{ $json.event_type }}` (depending on whether n8n wraps the body; use the preview pane).
 3. Branches:
-   - **`cmp.build.approved`** → Telegram/email to operators (Slack **retired** — issue #658), or call GitHub API for follow-up.
+   - **`cmp.build.approved`** → Telegram/email to operators, or call GitHub API for follow-up.
    - **`cmp.github.callback`** → when `preview_url` is set, notify the client channel.
    - **`cmp.estimate.recorded`** → optional CRM row / spreadsheet (Google Sheets node).
    - **`corpflow.lead_rescue.intake_received`** → operator notification on a new AI Lead Rescue intake (`/lead-rescue`). The envelope **`payload`** already contains a pre-formatted **`notification_text`** field you can pipe straight into Telegram / email — no further templating needed. Structured fields are also present (`payload.prospect.*`, `payload.admin_detail_url`, `payload.lead_id`) for spreadsheet rows or CRM mirrors. Idempotency key is `lead-rescue:intake:<lead_id>` so retries do not double-notify.

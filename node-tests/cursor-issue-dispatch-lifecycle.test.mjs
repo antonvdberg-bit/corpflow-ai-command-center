@@ -54,7 +54,7 @@ const ISSUE_654 = {
 };
 
 const ISSUE_658_BODY = `## Operator approval — 2026-07-28
-Remove Slack as an operational dependency.
+Remove the retired chat integration as an operational dependency.
 Do not expose secrets in issues, PRs, screenshots or prompts.
 Secret revocation through approved secrets-management route — Anton only.
 Cursor must acknowledge, classify, create a separate branch and PR.
@@ -62,7 +62,7 @@ Workstream: CorpFlowAI operations only`;
 
 const ISSUE_658 = {
   number: 658,
-  title: 'APPROVED: Retire Slack from CorpFlowAI operations and remove notification noise',
+  title: 'APPROVED: Retire legacy chat integration from CorpFlowAI operations and remove notification noise',
   body: ISSUE_658_BODY,
   labels: ['cost-control', 'priority:P0', 'dispatch:cursor-ready', 'approved'],
 };

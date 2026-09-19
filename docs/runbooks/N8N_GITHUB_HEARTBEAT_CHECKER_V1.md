@@ -120,7 +120,6 @@ See **`docs/runbooks/N8N_EXCEPTION_ONLY_ALERT_LIVE_APPLY_684.md`** for workflow 
 - `docs/n8n/anton-decision-inbox-exception-notify.md` — Decision Inbox notify contract.
 - `docs/operations/ANTON_DECISION_INBOX_V1.md` — inbox labels + packets.
 - `docs/operations/TELEGRAM_ALERT_WIRING_PACKET_V1.md` — Telegram path.
-- `docs/operations/SLACK_TELEGRAM_DEPENDENCY_AUDIT_658.md` — exception-only audit (updated for #684).
 
 ## 10. Status block
 

@@ -30,7 +30,7 @@ Social Intents is **not** an approved implementation tool, vendor selection, or 
 
 ## What Social Intents represents (benchmark summary)
 
-Social Intents is a SaaS live-chat and AI customer-service platform oriented around **routing website and messaging-channel conversations into external team tools** — primarily Microsoft Teams, Slack, Google Chat, Zoom, and Webex — with optional WhatsApp, SMS, and Facebook Messenger channels.
+Social Intents is a SaaS live-chat and AI customer-service platform oriented around **routing website and messaging-channel conversations into external team tools** — primarily Microsoft Teams, Google Chat, Zoom, and Webex — with optional WhatsApp, SMS, and Facebook Messenger channels.
 
 Observed capability themes from the public product surface (June 2026):
 
@@ -42,9 +42,9 @@ Observed capability themes from the public product surface (June 2026):
 - **Conversation history** persisted in the vendor inbox and mirrored into team-tool threads.
 - **Analytics / reporting** on chat volume, AI resolution rate, and team performance.
 - **Multi-channel customer entry** — website chat first in most setups; WhatsApp, SMS, Messenger as add-ons.
-- **Operator UX anchored in existing team chat** — reps reply from Teams/Slack/Google Chat rather than a dedicated CorpFlow-native console.
+- **Operator UX anchored in existing team chat** — reps reply from Teams/Google Chat rather than a dedicated CorpFlow-native console.
 
-Social Intents optimizes for teams that already live in Microsoft 365 / Slack / Google Workspace and want omni-channel support **without adopting a new inbox product**.
+Social Intents optimizes for teams that already live in Microsoft 365 / Google Workspace and want omni-channel support **without adopting a new inbox product**.
 
 ---
 
@@ -52,13 +52,13 @@ Social Intents optimizes for teams that already live in Microsoft 365 / Slack / 
 
 | Dimension | Social Intents (benchmark) | CorpFlow desired destination |
 | --------- | -------------------------- | ------------------------------ |
-| **Core operator surface** | External team tools (Teams, Slack, Google Chat, Zoom, Webex) | **Native CorpFlow chat / concierge surface** with tenant-aware context |
+| **Core operator surface** | External team tools (Teams, Google Chat, Zoom, Webex) | **Native CorpFlow chat / concierge surface** with tenant-aware context |
 | **Workflow authority** | Vendor SaaS + optional custom actions | **CorpFlow-native workflows** — CMP, Postgres audit, `automation_events`, tenant intake, delivery verdicts |
 | **Automation layer** | Vendor integrations | **n8n as routing / automation adapter** where appropriate (ingest, forward, approved comms events) |
 | **External channels** | First-class product focus | **Adapters**, not the core system — website chat first; WhatsApp / SMS / Messenger later where appropriate |
 | **Strategic posture** | Generic omni-channel support SaaS | **Above-the-line managed concierge** tied to vertical workflows and client context |
 
-CorpFlow's preferred destination is a **native chat/concierge experience** that can orchestrate through n8n and internal workflows. External channels (Teams, Slack, WhatsApp, etc.) may exist as **optional adapters** for specific clients or operator preferences — they must not become the system of record.
+CorpFlow's preferred destination is a **native chat/concierge experience** that can orchestrate through n8n and internal workflows. External channels (Teams, WhatsApp, etc.) may exist as **optional adapters** for specific clients or operator preferences — they must not become the system of record.
 
 ---
 
@@ -74,7 +74,7 @@ These are **future-state requirements**, not a build authorization:
 6. **Conversation history** — persisted in Postgres with tenant isolation; retention policy TBD in a future security packet.
 7. **Analytics / reporting** — volume, handoff rate, time-to-first-response, conversion to intake/CMP actions; aligned with `docs/analytics/CORPFLOW_ANALYTICS_V1.md` boundaries (no PII in analytics props).
 8. **Customer channels** — **website chat first**; later WhatsApp / SMS / Messenger where appropriate and legally/contractually cleared.
-9. **CorpFlow-native workflow integration** — conversations can trigger or update CMP tickets, intake records, automation events, and approved comms — not only notify an external Slack channel.
+9. **CorpFlow-native workflow integration** — conversations can trigger or update CMP tickets, intake records, automation events, and approved comms — not only notify an external team channel.
 10. **n8n as routing / automation layer** — forward, enrich, and branch events through governed n8n workflows (`CORPFLOW_AUTOMATION_INGEST_SECRET`, forward secret validation) rather than ad-hoc webhooks.
 11. **Text / voice mode switching** — eventual ability for a visitor to move between text chat and voice within the same session (deferred; see chatbot/voicebot audit for Lead Rescue specifics).
 12. **Future AI-generated video concierge / avatar mode** — when technology is mature enough for production-grade, doctrine-safe, cost-bounded use. **Explicit target: AI-generated video, not human video** (no requirement for live human camera presence in the concierge surface).
@@ -94,7 +94,7 @@ These are **future-state requirements**, not a build authorization:
 | Analytics & reporting | Plausible + internal metrics + optional client reporting | **Partial** | Analytics v1 exists for page events; no chat metrics yet |
 | Website chat channel | Primary v1 customer channel | **Not built** | First channel when destination is authorized |
 | WhatsApp / SMS / Messenger | Optional adapter channels (later) | **Not built** | Regulatory, billing, and vendor-adapter packet required |
-| Reply from Teams / Slack / Google Chat | Optional **adapter** for operators who prefer team tools | **Not built** | Must remain adapter-only; CorpFlow inbox is canonical |
+| Reply from Teams / Google Chat | Optional **adapter** for operators who prefer team tools | **Not built** | Must remain adapter-only; CorpFlow inbox is canonical |
 | Integration with business workflows | CMP, intake, `automation_events`, delivery playbooks | **Partial** | Intake + automation spine exists; no chat-triggered workflow yet |
 | n8n automation layer | Governed forward/routing through existing n8n spine | **Partial** | Ingest + forward configured; chat-specific workflows not authorized |
 | Text ↔ voice mode switching | Same-session modality switch | **Not built** | Deferred per `AI_LEAD_RESCUE_CHATBOT_VOICEBOT_OPTIONS_AUDIT_V1.md` voice guidance |

@@ -20,7 +20,7 @@ It is **not**:
 - a payment processor,
 - a 24/7 “AI manager.”
 
-**24/7 responsibility** stays with **hosted automation**: CorpFlowAI app + Postgres + ERPNext (finance spine) + n8n + **exception-only Telegram** alerts (Slack retired — issue #658). Anton’s laptop and Cursor are **not** the manager.
+**24/7 responsibility** stays with **hosted automation**: CorpFlowAI app + Postgres + ERPNext (finance spine) + n8n + **exception-only Telegram** alerts. Anton’s laptop and Cursor are **not** the manager.
 
 | Stage | What | Authorization |
 |---|---|---|
