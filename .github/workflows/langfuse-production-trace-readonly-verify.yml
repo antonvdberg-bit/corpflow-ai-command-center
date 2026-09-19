@@ -1,0 +1,101 @@
+name: Langfuse production trace read-only verify
+
+on:
+  push:
+    branches:
+      - ops/langfuse-production-verify-readonly-20260919
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - name: Fetch secrets from Infisical (OIDC)
+        uses: Infisical/secrets-action@8802effbe453d0576cd923567dcc2c97a1f54058
+        with:
+          method: "oidc"
+          identity-id: "${{ vars.INFISICAL_IDENTITY_ID }}"
+          project-slug: "${{ vars.INFISICAL_PROJECT_SLUG }}"
+          env-slug: "${{ vars.INFISICAL_ENV_SLUG }}"
+          domain: "${{ vars.INFISICAL_DOMAIN }}"
+
+      - name: Verify production trace in Langfuse read-only
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          import base64, datetime, json, os, sys, time, urllib.parse, urllib.request
+
+          base = os.environ.get("LANGFUSE_BASE_URL", "").rstrip("/")
+          public = os.environ.get("LANGFUSE_PUBLIC_KEY", "")
+          secret = os.environ.get("LANGFUSE_SECRET_KEY", "")
+          if not base or not public or not secret:
+              print("BLOCKED: Langfuse credentials/base URL unavailable from approved secret source")
+              sys.exit(1)
+
+          auth = base64.b64encode(f"{public}:{secret}".encode()).decode()
+          now = datetime.datetime.now(datetime.timezone.utc)
+          start = now - datetime.timedelta(minutes=15)
+
+          params = {
+              "fields": "core,basic,usage,metrics,model,trace_context",
+              "fromStartTime": start.isoformat().replace("+00:00", "Z"),
+              "toStartTime": (now + datetime.timedelta(minutes=2)).isoformat().replace("+00:00", "Z"),
+              "name": "langfuse.production_validation",
+              "environment": "production",
+              "limit": "20",
+          }
+          url = base + "/api/public/v2/observations?" + urllib.parse.urlencode(params)
+
+          found = None
+          last_count = 0
+          for attempt in range(1, 7):
+              req = urllib.request.Request(url, headers={"Authorization": f"Basic {auth}"})
+              with urllib.request.urlopen(req, timeout=20) as r:
+                  payload = json.load(r)
+              rows = payload.get("data") or []
+              last_count = len(rows)
+              for row in rows:
+                  if (
+                      row.get("name") == "langfuse.production_validation"
+                      and row.get("environment") == "production"
+                  ):
+                      found = row
+                      break
+              if found:
+                  break
+              if attempt < 6:
+                  time.sleep(10)
+
+          if not found:
+              print(json.dumps({
+                  "ok": False,
+                  "error": "PRODUCTION_TRACE_NOT_FOUND",
+                  "matching_rows": last_count,
+                  "provider_call_repeated": False,
+              }, indent=2))
+              sys.exit(1)
+
+          safe = {
+              "ok": True,
+              "observation_name": found.get("name"),
+              "trace_name": found.get("traceName"),
+              "environment": found.get("environment"),
+              "type": found.get("type"),
+              "model": found.get("model"),
+              "usage_details": found.get("usageDetails"),
+              "input_usage": found.get("inputUsage"),
+              "output_usage": found.get("outputUsage"),
+              "total_usage": found.get("totalUsage"),
+              "latency": found.get("latency"),
+              "total_cost": found.get("totalCost"),
+              "start_time": found.get("startTime"),
+              "provider_call_repeated": False,
+          }
+          print(json.dumps(safe, indent=2))
+          PY
