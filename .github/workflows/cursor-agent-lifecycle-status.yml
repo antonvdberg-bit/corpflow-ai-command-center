@@ -42,7 +42,7 @@ on:
       stale_minutes:
         description: "Minutes without PR before STALE"
         required: false
-        default: "10"
+        default: "20"
         type: string
 
 permissions:
@@ -127,7 +127,7 @@ jobs:
             exit 0
           fi
 
-          EXTRA=()
+          EXTRA=(--no-stale-follow-up)
           if [ "${DRY_RUN}" = "true" ]; then EXTRA+=(--dry-run); fi
           if [ "${POLL_TWICE}" = "true" ]; then EXTRA+=(--poll-twice); fi
           if [ -n "${STALE_MINUTES:-}" ]; then EXTRA+=(--stale-minutes="${STALE_MINUTES}"); fi
