@@ -7,7 +7,7 @@
  *   --issue=N (read origin metadata + lifecycle state from issue comments)
  *
  * Persists lifecycle state + completion events as GitHub issue comments.
- * Silent on RUNNING/PENDING. Dedupe on second unchanged COMPLETED/FAILED/STALE poll.
+ * RUNNING/PENDING upserts one compact heartbeat comment in place; terminal events remain deduped.
  *
  * Env:
  *   CURSOR_API_KEY (required unless --dry-run)
@@ -26,6 +26,7 @@ import fs from 'node:fs';
 import {
   buildCursorLifecycleState,
   findLatestLifecycleState,
+  formatCursorHeartbeatComment,
   formatCursorLifecycleStateComment,
   runCursorAgentLifecycleTick,
 } from '../lib/server/cursor-agent-lifecycle.js';
@@ -116,6 +117,18 @@ async function listIssueComments(issue) {
 
 async function createIssueComment(issue, body) {
   return gh('POST', `/repos/${OWNER}/${REPO_NAME}/issues/${issue}/comments`, { body });
+}
+
+async function upsertHeartbeat(issue, heartbeat) {
+  const comments = await listIssueComments(issue);
+  const existing = [...comments].reverse().find((comment) =>
+    /corpflow\.cursor_heartbeat\.v1/i.test(String(comment?.body || '')),
+  );
+  const body = formatCursorHeartbeatComment(heartbeat);
+  if (!existing?.id) {
+    return createIssueComment(issue, body);
+  }
+  return gh('PATCH', `/repos/${OWNER}/${REPO_NAME}/issues/comments/${existing.id}`, { body });
 }
 
 async function upsertCompactLifecycle(issue, event) {
@@ -255,6 +268,7 @@ function buildGithubAdapter() {
     listIssueComments,
     createIssueComment,
     upsertCompactLifecycle,
+    upsertHeartbeat,
     findPrForBranch,
     findPrForIssue,
     getPrChecks,
