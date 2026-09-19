@@ -40,8 +40,16 @@ function payloadText(built) {
   return JSON.stringify(built.payload);
 }
 
-test('readiness requires exact cloud endpoint and both credentials', () => {
+test('readiness requires explicit Vercel production plus exact cloud endpoint and both credentials', () => {
   assert.equal(langfuseProductionReadiness(env).ready, true);
+  assert.equal(
+    langfuseProductionReadiness({ ...env, VERCEL_ENV: 'test', NODE_ENV: 'test' }).ready,
+    false,
+  );
+  assert.equal(
+    langfuseProductionReadiness({ ...env, VERCEL_ENV: '', NODE_ENV: 'test' }).ready,
+    false,
+  );
   assert.equal(langfuseProductionReadiness({ ...env, LANGFUSE_SECRET_KEY: '' }).ready, false);
   assert.equal(
     langfuseProductionReadiness({ ...env, LANGFUSE_BASE_URL: 'https://example.invalid' }).ready,
