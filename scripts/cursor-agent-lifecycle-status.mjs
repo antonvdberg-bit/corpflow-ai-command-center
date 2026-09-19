@@ -338,6 +338,7 @@ async function main() {
 
   let agentId = args.agentId ? String(args.agentId).trim() : null;
   let discoveredRunId = null;
+  let discoveredStartedAt = null;
   let priorState = null;
   let compactLifecycle = false;
   /** @type {Array<{ body?: string }>} */
@@ -349,6 +350,7 @@ async function main() {
     priorState = discovered.priorState;
     if (!agentId) agentId = discovered.agentId;
     discoveredRunId = discovered.runId;
+    discoveredStartedAt = discovered.evidence?.started_at || discovered.evidence?.startedAt || null;
     compactLifecycle = Boolean(discovered.evidence);
     if (!agentId) {
       console.error(`No Cursor agent ID found on issue #${issue} (origin metadata / lifecycle state)`);
@@ -368,7 +370,7 @@ async function main() {
       cursorRunId: discoveredRunId,
       sourceIssue: issue,
       phase: 'PENDING',
-      startedAt: new Date().toISOString(),
+      startedAt: discoveredStartedAt || new Date().toISOString(),
     });
   }
 
@@ -391,12 +393,9 @@ async function main() {
   }
 
   const github = issue ? buildGithubAdapter() : null;
-  const allowStale =
-    args.allowStaleFollowUp === false
-      ? false
-      : args.allowStaleFollowUp === true
-        ? true
-        : true;
+  // Never message/restart a stale agent implicitly. A same-agent follow-up
+  // must be an explicit operator choice.
+  const allowStale = args.allowStaleFollowUp === true;
 
   const tickOnce = async () =>
     runCursorAgentLifecycleTick({
