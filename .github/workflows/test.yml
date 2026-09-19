@@ -95,11 +95,10 @@ jobs:
     - name: Marketing standards integrity check
       run: npm run check:marketing-quality-gate
 
-    # Permanent Slack-retirement guard (issue #658). Fails if supported
-    # runtime/config/CI paths reintroduce Slack senders, MCP servers, env keys,
-    # n8n Slack nodes, or GitHub Slack actions.
-    - name: Slack retirement guard (issue #658)
-      run: npm run check:slack-retirement
+    # Permanent retired-product cleanliness guard.
+    # Keeps removed integration references from returning to the current source tree.
+    - name: Retired product cleanliness guard
+      run: npm run check:retired-product-cleanliness
 
     # When POSTGRES_URL is set (e.g. from Infisical OIDC), try to apply pending migrations.
     # P3005 on non-baselined DBs is migrate history hygiene, not secret-delivery failure — step uses continue-on-error.
