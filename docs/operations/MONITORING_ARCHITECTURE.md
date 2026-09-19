@@ -121,7 +121,6 @@ For monitors that want to land in **email** or **exception-only Telegram** witho
 2. n8n routes on `kind` (e.g. `cmp_delivery_blocked`) → email to the operator alias (`antonvdberg@corpflowai.com` today) and/or to Telegram via n8n if you want a single funnel.
 3. Comms classification: **`operator_escalation`** per `docs/communications/CORPFLOW_COMMUNICATIONS_V1.md` § 4 — internal-only audience; this routing must never reach a client mailbox. Sender: `support@corpflowai.com`.
 
-**Slack is not an approved CorpFlow ops channel** (issue #658). See `docs/operations/SLACK_TELEGRAM_DEPENDENCY_AUDIT_658.md` and `docs/operations/DELIVERY_VERDICT_AND_ALERTS.md` § "Email and Telegram via n8n (Slack retired)".
 
 ### 4.3 Today's wiring (what is and isn't alerted)
 
