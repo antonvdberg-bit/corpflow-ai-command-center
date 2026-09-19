@@ -89,7 +89,7 @@ Una vez que MCP está habilitado, estas herramientas auxiliares están automáti
 | 💾 **Memory** | Almacenamiento persistente | Listo |
 | 🌐 **Puppeteer** | Automatización de navegador | Listo |
 
-El servidor MCP de Slack está **eliminado** (issue #658). No lo vuelvas a añadir a `mcp_servers.json`; `npm run check:slack-retirement` falla si reaparece.
+El servidor MCP de chat retirado está **eliminado** (issue #658). No vuelvas a añadir integraciones retiradas a `mcp_servers.json`; `npm run check:retired-product-cleanliness` falla si reaparecen referencias eliminadas.
 
 Habilita lo que necesites y agrega tus claves de API.
 
