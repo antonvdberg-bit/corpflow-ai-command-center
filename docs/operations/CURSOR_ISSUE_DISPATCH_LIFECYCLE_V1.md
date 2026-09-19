@@ -129,7 +129,7 @@ Research/documentation-only tasks may run separately only when they cannot confl
 1. Discover open issues with `dispatch:cursor-ready` via **GitHub GraphQL** (fallback: paginated Issues API + **client-side label filter**). Do **not** use the Search API — colon labels (`dispatch:cursor-ready`) return zero results.
 2. Infer `WORK CLASSIFICATION` (system boundary, tenant, environment, work type, **protected subjects mentioned**, **protected consequential gate**).
 3. Reject `dispatch:blocked`. Skip new claim for `execution:paused`, already claimed, and `dispatch:operator-review` (prior generation awaits review — activator would `SKIP_ALREADY_CLAIMED`; do not waste the free WIP slot). For issues whose **consequential gate** is not `none`, evaluate the **latest valid operator authorization for that exact gate** (see §5a). No matching approval → hold claim at that boundary only. Matching approval (including Anton’s explicit active-task instruction) → continue normal WIP / isolation / priority checks. Still post discovery + classification either way.
-4. Enforce WIP + concurrency. Sibling product holds (e.g. #654 vs #653) do **not** suppress unrelated eligible ops work (e.g. #658 Slack retirement).
+4. Enforce WIP + concurrency. Sibling product holds (e.g. #654 vs #653) do **not** suppress unrelated eligible ops work.
 5. Post acknowledgement comments when `GITHUB_TOKEN` has `issues: write` (GHA path).
 6. **Do not** apply claim labels during **scan**. Acquire `dispatch:cursor-claimed` + durable claim marker **before** the Cursor API call (`scripts/dispatcher-agent-activation.mjs` claim-before-API). Finalize records the real run ID / origin metadata after success, or releases the claim on failure (`scripts/cursor-issue-dispatch-finalize.mjs`).
 7. Emit `cursor-issue-dispatch-scan.json` / the Handoff artifact with `eligibleIssueNumbers`, `claimIssueNumbers`, `activationTargetIssue`, and per-issue decision evidence (decision, reason, consequential gate, protected subjects, environment, work types). This makes a selector hold diagnosable without source inspection (max **one** live Cursor activation per GHA cycle).
@@ -325,7 +325,6 @@ This packet does **not** create those synthetic issues. Schedule-driven proof is
 - `docs/operations/OPERATOR_BRIDGE_V1.md`
 - Issues #249, #493, #511, #548 (throughput / activation context)
 - Revenue issues #653 (Lead Rescue), #654 (Website Rescue) — separate workstreams
-- Ops issue #658 (Slack retirement) — parallel ops lane when eligible
 - Issue #679 — environment classification doctrine
 - Issue #887 — operator gate authorization must resume Cursor activation
 - Issue #891 — approval and capacity changes must wake dispatcher automatically
