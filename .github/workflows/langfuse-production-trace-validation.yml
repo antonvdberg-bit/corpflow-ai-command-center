@@ -2,6 +2,9 @@ name: Langfuse production trace validation
 
 on:
   workflow_dispatch: {}
+  push:
+    branches:
+      - ops/langfuse-production-validation-once-20260919
 
 permissions:
   contents: read
