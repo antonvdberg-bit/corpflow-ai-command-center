@@ -41,6 +41,7 @@ import {
 } from '../lib/server/factory-cursor-handoff-receipt.js';
 import {
   findStaleReadyReviewIssueNumbers,
+  formatGenerationBoundaryRequiredComment,
   resolveFactoryQueueReconcileDecision,
 } from '../lib/server/factory-queue-reconcile.js';
 import { formatCursorOriginMetadataComment } from '../lib/server/cursor-origin-metadata.js';
@@ -228,6 +229,25 @@ async function main() {
   const staleReadyReviewIssueNumbers = findStaleReadyReviewIssueNumbers(plan);
   if (!args.dryRun) {
     for (const issueNumber of staleReadyReviewIssueNumbers) {
+      const decision = plan.decisions.find(
+        (entry) => Number(entry?.issue?.number) === Number(issueNumber),
+      );
+      const issue = readyIssues.find(
+        (entry) => Number(entry?.number) === Number(issueNumber),
+      );
+      const alreadyExplained = (issue?.comments || []).some((comment) =>
+        String(comment?.body || '').includes('corpflow.factory_generation_boundary_required.v1'),
+      );
+      if (!alreadyExplained) {
+        await postGitHubIssueComment(
+          issueNumber,
+          formatGenerationBoundaryRequiredComment({
+            issueNumber,
+            reason: decision?.reason,
+          }),
+          { token, repoFullName: repo },
+        );
+      }
       await removeIssueLabelApi(token, repo, issueNumber, DISPATCH_LABEL_READY);
     }
   }
