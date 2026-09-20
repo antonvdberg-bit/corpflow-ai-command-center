@@ -31,6 +31,7 @@ import {
   FACTORY_QUEUE_RECONCILE_WAKE_REASON,
   FACTORY_QUEUE_RECONCILE_WORKFLOW_NAME,
   findStaleReadyReviewIssueNumbers,
+  formatGenerationBoundaryRequiredComment,
   resolveFactoryQueueReconcileDecision,
 } from '../lib/server/factory-queue-reconcile.js';
 import {
@@ -279,6 +280,19 @@ describe('factory queue reconcile decisions (#1023)', () => {
     assert.equal(gatedDecision.should_wake_handoff, 0);
     assert.equal(gatedDecision.reason, 'operator_review_gated');
     assert.ok(gatedDecision.gatedCount >= 1);
+  });
+
+  it('explains why a ready issue with prior-generation review evidence cannot be claimed', () => {
+    const body = formatGenerationBoundaryRequiredComment({
+      issueNumber: 551,
+      reason: 'review-ready linked PR or terminal completion — review inventory',
+    });
+    assert.match(body, /CURSOR GENERATION BOUNDARY REQUIRED/);
+    assert.match(body, /Issue: #551/);
+    assert.match(body, /NOT CLAIMED/);
+    assert.match(body, /CURSOR REQUEUE/);
+    assert.match(body, /do not label-cycle/i);
+    assert.match(body, /corpflow\.factory_generation_boundary_required\.v1/);
   });
 
   it('reconciles stale ready labels only for review inventory, not protected gate holds', () => {
