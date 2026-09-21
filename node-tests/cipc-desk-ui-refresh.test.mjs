@@ -8,7 +8,10 @@ import {
   CIPC_DESK_WEBSITE_DRAFT_VERSION,
   buildCipcDeskWebsiteDraft,
 } from '../lib/server/cipc-desk-website-draft.js';
-import { resolveCipcDeskTenantIdFromHost } from '../lib/server/cipc-desk-runtime.js';
+import {
+  isBusinessAdminDeskPublicHost,
+  resolveCipcDeskTenantIdFromHost,
+} from '../lib/server/cipc-desk-runtime.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -50,14 +53,15 @@ test('landing component reuses CorpFlow photo+glass shell and Business Admin Des
   assert.doesNotMatch(landing, /Fraunces|Source Sans|#f3ebe0|#c45c26/);
   assert.doesNotMatch(landing, /\/api\/tenant\/intake/);
   assert.match(landing, /mailto:/);
-  assert.match(landing, /noindex/);
+  assert.match(landing, /index,follow/);
+  assert.match(landing, /businessadmindesk\.co\.za/);
 });
 
 test('pages/index wires CipcDeskLanding only for tenant_id cipc-desk', () => {
   const indexSrc = readFileSync(join(root, 'pages/index.js'), 'utf8');
   assert.match(indexSrc, /import CipcDeskLanding from/);
   assert.match(indexSrc, /safeStr\(site\?\.tenant_id\) === 'cipc-desk'/);
-  assert.match(indexSrc, /<CipcDeskLanding site=\{site\} \/>/);
+  assert.match(indexSrc, /<CipcDeskLanding site=\{site\} publicProduction=/);
   // Lux branch remains separate.
   assert.match(indexSrc, /lux_acquisition/);
   assert.match(indexSrc, /RareExclusiveTenantPresentation/);
@@ -66,6 +70,10 @@ test('pages/index wires CipcDeskLanding only for tenant_id cipc-desk', () => {
 test('tenant boundary: standing hosts stay cipc-desk; lux/core do not', () => {
   assert.equal(resolveCipcDeskTenantIdFromHost('cipc.corpflowai.com'), 'cipc-desk');
   assert.equal(resolveCipcDeskTenantIdFromHost('cipc-desk.corpflowai.com'), 'cipc-desk');
+  assert.equal(resolveCipcDeskTenantIdFromHost('businessadmindesk.co.za'), 'cipc-desk');
+  assert.equal(resolveCipcDeskTenantIdFromHost('www.businessadmindesk.co.za'), 'cipc-desk');
+  assert.equal(isBusinessAdminDeskPublicHost('businessadmindesk.co.za'), true);
+  assert.equal(isBusinessAdminDeskPublicHost('cipc.corpflowai.com'), false);
   assert.equal(resolveCipcDeskTenantIdFromHost('lux.corpflowai.com'), null);
   assert.equal(resolveCipcDeskTenantIdFromHost('core.corpflowai.com'), null);
 });
