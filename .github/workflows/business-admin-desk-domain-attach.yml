@@ -1,0 +1,39 @@
+name: Business Admin Desk domain attach
+
+on:
+  push:
+    branches:
+      - brand/business-admin-desk-logo
+    paths:
+      - .github/workflows/business-admin-desk-domain-attach.yml
+
+permissions:
+  contents: read
+
+jobs:
+  attach:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Attach approved Business Admin Desk domains
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}"
+          test -n "${VERCEL_PROJECT_ID:-}"
+          for DOMAIN in businessadmindesk.co.za www.businessadmindesk.co.za; do
+            BODY=$(mktemp)
+            CODE=$(curl -sS -o "$BODY" -w "%{http_code}" -X POST               -H "Authorization: Bearer $VERCEL_TOKEN"               -H "Content-Type: application/json"               "https://api.vercel.com/v10/projects/$VERCEL_PROJECT_ID/domains?teamId=$VERCEL_TEAM_ID"               -d "{\"name\":\"$DOMAIN\"}")
+            if [ "$CODE" = "200" ] || [ "$CODE" = "201" ]; then
+              echo "Attached: $DOMAIN"
+            elif [ "$CODE" = "400" ] && grep -qiE 'already|exists' "$BODY"; then
+              echo "Already attached: $DOMAIN"
+            else
+              echo "::error::Failed to attach $DOMAIN (HTTP $CODE)"
+              cat "$BODY"
+              exit 1
+            fi
+          done
+          echo "Domain attachment requests completed."
