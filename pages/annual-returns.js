@@ -6,7 +6,10 @@ import {
   buildCipcDeskAnnualReturnsReviewContent,
   resolveCipcDeskAnnualReturnsPageAccess,
 } from '../lib/cipc-desk/annual-returns-review.js';
-import { resolveCipcDeskTenantIdFromHost } from '../lib/server/cipc-desk-runtime.js';
+import {
+  isBusinessAdminDeskPublicHost,
+  resolveCipcDeskTenantIdFromHost,
+} from '../lib/server/cipc-desk-runtime.js';
 import { verifyTenantPreviewToken } from '../lib/server/tenant-preview-token.js';
 import { isGhostHost } from '../lib/server/ghost-host.js';
 
@@ -50,6 +53,10 @@ export async function getServerSideProps({ req }) {
 
   if (!host) {
     return { notFound: true };
+  }
+
+  if (isBusinessAdminDeskPublicHost(host)) {
+    return { redirect: { destination: '/', permanent: false } };
   }
 
   const root = String(process.env.CORPFLOW_ROOT_DOMAIN || 'corpflowai.com')
