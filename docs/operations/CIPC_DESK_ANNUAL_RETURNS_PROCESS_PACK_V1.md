@@ -13,7 +13,7 @@
 
 ## Sarah-approved v1 decisions (2026-08-07)
 
-These eight decisions are **closed** for Annual Returns v1. Provisional / `SARAH CONFIRM` tags are removed for these points only.
+These eight decisions are **closed** for Annual Returns v1. Provisional labels are removed for these points only.
 
 1. **Customer code:** Support both models; **default to the client’s own CIPC customer code** unless the client authorises an **authorised practitioner code**.
 2. **Standard service scope:** Standard Annual Returns service includes **Annual Return filing only**. BO and AFS/FAS prerequisites are **identified** and **referred to the client for completion** or **quoted separately**.
@@ -500,5 +500,6 @@ This pack does **not** authorise:
 | Parents | #640 (coordination), #740 (research) |
 | Pack version | v1 — Sarah-approved boundaries 2026-08-07 |
 | Standing test URL | https://cipc.corpflowai.com/annual-returns |
-| Next step | Merge #791 PR → verify standing test URL reflects decisions |
+| Historical implementation | Merged through PR #792; closed/unmerged PR #793 is recovery reference only |
+| Next step | Keep the standing review surface aligned; after an approved merged change, verify the standing test URL reflects these decisions |
 | Public launch | **Not authorised by this pack** |
