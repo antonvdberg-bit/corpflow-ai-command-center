@@ -48,6 +48,8 @@ test('partner funnel content covers conversion sections without specialist jargo
   assert.match(String(c.hero?.secondary_cta?.label || ''), /See services we can handle/);
   assert.equal(c.hero?.primary_cta?.href, '#partner-enquiry');
   assert.equal(c.hero?.secondary_cta?.href, '#partner-services');
+  assert.equal(c.meta?.page_title, 'Business Admin Desk · Partner support for accounting firms');
+  assert.equal(c.nav?.brand, 'Business Admin Desk');
   assert.match(String(c.audience?.body || ''), /accounting, tax and advisory firms/i);
   assert.match(String(c.audience?.not_for || ''), /own company/i);
   assert.ok(Array.isArray(c.services?.items) && c.services.items.length >= 6);
@@ -64,6 +66,8 @@ test('partner funnel content covers conversion sections without specialist jargo
   assert.match(String(c.meta?.robots || ''), /noindex/);
 
   const visible = commercialBlob();
+  assert.doesNotMatch(visible, /CIPC Desk/);
+  assert.match(visible, /CIPC administration/i);
   assert.doesNotMatch(visible, /corpflow_test|#986|#984|GitHub|SARAH CONFIRM|specialist-review|ticket_id|magic_link/i);
   assert.doesNotMatch(visible, /R\s?\d{2,}|ZAR\s?\d+|USD\s?\d+/i);
   assert.match(visible, /No fee table is published here|This is not a price list/i);

@@ -32,8 +32,11 @@ test('beneficial ownership review content covers required six-layer sections', (
   assert.match(String(c.banners?.no_guarantee || ''), /not guaranteed/i);
   assert.match(String(c.banners?.environment || ''), /corpflow_test/i);
   assert.match(String(c.sarah_review?.standing_url || ''), /cipc\.corpflowai\.com\/beneficial-ownership/);
+  assert.equal(c.meta?.page_title, 'Business Admin Desk · Beneficial Ownership review');
 
   const blob = JSON.stringify(c);
+  assert.doesNotMatch(blob, /CIPC Desk/);
+  assert.match(blob, /CIPC processing times/i);
   assert.doesNotMatch(blob, /we will file within|guaranteed within|official CIPC partner|accredited by CIPC/i);
   assert.doesNotMatch(blob, /R\s?\d{2,}|ZAR\s?\d+|USD\s?\d+/i);
   assert.doesNotMatch(blob, /we have determined that|Desk determines who/i);

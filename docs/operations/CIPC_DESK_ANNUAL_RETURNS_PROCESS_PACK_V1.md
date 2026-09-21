@@ -1,7 +1,7 @@
-# CIPC Desk — Annual Returns Process Pack v1
+# Business Admin Desk — Annual Returns Process Pack v1
 
 **Status:** Sarah-approved Annual Returns **v1 boundaries** recorded 2026-08-07 (**#791**). Research base **#750** / PR **#758**; standing corpflow_test review surface **#761** / PR **#763**. Parent coordination **#640**.  
-**Tenant / working name:** `cipc-desk` / **CIPC Desk** (internal working name only — not final public brand; brand work tracked separately, e.g. **#751**).  
+**Tenant ID / display brand:** `cipc-desk` / **Business Admin Desk**. The stable tenant ID is internal; the client-facing brand is Business Admin Desk.
 **Subject-matter owner:** Sarah Fourie.  
 **Evidence date of official-source review:** 2026-08-05.  
 **Sarah v1 decision date:** 2026-08-07.  
@@ -35,11 +35,11 @@ Every substantive statement is tagged so operators and reviewers can see evidenc
 | Tag | Meaning |
 |-----|---------|
 | **OFFICIAL** | Stated on current CIPC public material cited below. |
-| **PRACTICAL** | Operating recommendation grounded in Sarah’s confirmed direction (#740 / #791) and ordinary CIPC Desk handling — not a substitute for statute. |
+| **PRACTICAL** | Operating recommendation grounded in Sarah’s confirmed direction (#740 / #791) and ordinary Business Admin Desk handling — not a substitute for statute. |
 | **PROVISIONAL** | Reasonable working assumption until a newer CIPC notice or a genuinely new Sarah decision supersedes it. |
 | **SARAH CONFIRM** | Explicitly still open; do not publish or hard-code until Sarah answers. (Not used for the eight closed v1 decisions above.) |
 
-**Non-affiliation (PRACTICAL / Sarah-confirmed brand posture):** CIPC Desk is an independent support service. It is **not** CIPC, is **not** endorsed by CIPC, and must never imply official affiliation.
+**Non-affiliation (PRACTICAL / Sarah-confirmed brand posture):** Business Admin Desk is an independent support service. It is **not** CIPC, is **not** endorsed by CIPC, and must never imply official affiliation.
 
 **Guarantee ban (Sarah-confirmed):** Never guarantee CIPC turnaround times, approval dates, processing periods, or successful filing outcomes. Any estimate must stay subject to CIPC processing times, system availability, submission quality, additional-information requests, and manual review.
 
@@ -64,7 +64,7 @@ Reviewed for this draft (public CIPC / CIPC-hosted material only):
 5. **CIPC notice: Preparation and approval of annual financial statements** — https://www.cipc.co.za/?p=20882  
    Section 30(1) preparation/approval within six months after financial year-end; audit / independent-review / exemption distinctions.
 6. **CIPC Service Standards / turnaround and escalation** — https://www.cipc.co.za/?page_id=4635  
-   Lists Company and Close Corporation Annual Returns service turnaround as **Immediate**, with separate enquiry escalation contacts. **Do not present CIPC’s published turnaround as a CIPC Desk promise.**
+   Lists Company and Close Corporation Annual Returns service turnaround as **Immediate**, with separate enquiry escalation contacts. **Do not present CIPC’s published turnaround as a Business Admin Desk promise.**
 7. **CIPC Step-by-Step Guides hub** — https://www.cipc.co.za/?page_id=4447  
    BO filing variants, XBRL / AFS manuals, mandate / securities-register materials, Annual Returns guides.
 8. **CIPC notice: Non-Compliance with submission of the annual compliance checklist** — https://www.cipc.co.za/?p=24055  
@@ -84,7 +84,7 @@ Reviewed for this draft (public CIPC / CIPC-hosted material only):
 
 **OFFICIAL — who must file.** CIPC’s Annual Return Filing System states that **all companies and close corporations** must file Annual Returns with CIPC within a certain period each year. CIPC uses the filing to keep registry information current and to assess whether the entity is conducting business activities.
 
-**PRACTICAL — Desk v1 scope (Sarah-approved 2026-08-07):** Standard CIPC Desk Annual Returns service is limited to **private companies** and **close corporations**. NPCs and other entities are **later-phase**, even where CIPC’s official rules also apply to them.
+**PRACTICAL — Desk v1 scope (Sarah-approved 2026-08-07):** Standard Business Admin Desk Annual Returns service is limited to **private companies** and **close corporations**. NPCs and other entities are **later-phase**, even where CIPC’s official rules also apply to them.
 
 **OFFICIAL — public filing sequence** (Annual Returns portal home + step-by-step guide):
 
@@ -103,7 +103,7 @@ Reviewed for this draft (public CIPC / CIPC-hosted material only):
 
 **PRACTICAL — Desk FAS/AFS posture (Sarah-approved):** **Check only** whether FAS/AFS requirements appear met. **Do not prepare FAS.** Do not prepare AFS. Refer accounting matters to an **accountant**. Incomplete prerequisites are referred to the client or quoted separately.
 
-**OFFICIAL — timing language to handle carefully.** The BO information page states entities must file Annual Returns, BO declarations, and a securities register and/or beneficial interest register each year within **30 business days following the anniversary date of incorporation**. CIPC Service Standards list the Annual Returns **service** turnaround as **Immediate**, while BO / FAS / AFS enquiries are administered by other CIPC units. **CIPC Desk must not convert those into client guarantees.**
+**OFFICIAL — timing language to handle carefully.** The BO information page states entities must file Annual Returns, BO declarations, and a securities register and/or beneficial interest register each year within **30 business days following the anniversary date of incorporation**. CIPC Service Standards list the Annual Returns **service** turnaround as **Immediate**, while BO / FAS / AFS enquiries are administered by other CIPC units. **Business Admin Desk must not convert those into client guarantees.**
 
 **OFFICIAL — proof of filing.** After filing, save/print the confirmation and certificate. Certificates are emailed to the customer-code profile email; re-print is available under e-Services.
 
@@ -121,7 +121,7 @@ Reviewed for this draft (public CIPC / CIPC-hosted material only):
 
 **OFFICIAL / plain-English paraphrase:** An Annual Return is a yearly filing with CIPC that confirms your company or close corporation still exists on the register and updates key information CIPC uses to keep the public company record current. It is **not** a SARS tax return.
 
-### What the CIPC Desk Annual Returns service covers
+### What the Business Admin Desk Annual Returns service covers
 
 **PRACTICAL (Sarah-approved v1 — Annual Return filing only):**
 
@@ -164,7 +164,7 @@ Reviewed for this draft (public CIPC / CIPC-hosted material only):
 
 > Even if your company is dormant or not trading, Annual Return filing and other statutory obligations may still apply.
 
-### What CIPC Desk cannot guarantee
+### What Business Admin Desk cannot guarantee
 
 **PRACTICAL / Sarah-confirmed wording posture:**
 
@@ -413,7 +413,7 @@ After external submission:
 - Any promised Desk turnaround (internal targets may exist later; not client guarantees).
 - “We will get you reinstated” / “CIPC will approve within X days”.
 - Statements that dormant companies need not file (use the approved dormant wording instead).
-- Brand name “CIPC Desk” as final public brand.
+- Brand name “Business Admin Desk” as final public brand.
 - Any claim of CIPC accreditation or partnership.
 - FAS preparation or AFS preparation as a Desk offering.
 - NPC / other entities as v1 standard Annual Returns service.
@@ -463,7 +463,7 @@ After external submission:
 | Trust / deceased estate / foreign complex ownership | Sarah specialist-mandatory class | Specialist review before BO/AR |
 | Suspected false or unverifiable information | OFFICIAL: false BO info is an offence | Refuse filing; escalate to Sarah |
 
-**Escalation tone to clients (PRACTICAL):** explain that a specialist must review before any filing attempt; list what is blocked; restate that CIPC Desk cannot guarantee CIPC outcomes.
+**Escalation tone to clients (PRACTICAL):** explain that a specialist must review before any filing attempt; list what is blocked; restate that Business Admin Desk cannot guarantee CIPC outcomes.
 
 ---
 

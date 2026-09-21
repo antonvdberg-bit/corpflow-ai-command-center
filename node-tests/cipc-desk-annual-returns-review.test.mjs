@@ -29,8 +29,11 @@ test('annual returns review content covers required Sarah review sections', () =
   assert.match(String(c.banners?.independence || ''), /not CIPC/i);
   assert.match(String(c.banners?.no_guarantee || ''), /not guaranteed/i);
   assert.match(String(c.banners?.environment || ''), /corpflow_test/i);
+  assert.equal(c.meta?.page_title, 'Business Admin Desk · Annual Returns review');
 
   const blob = JSON.stringify(c);
+  assert.doesNotMatch(blob, /CIPC Desk/);
+  assert.match(blob, /CIPC processing times/i);
   assert.doesNotMatch(blob, /we will file within|guaranteed within|official CIPC partner|accredited by CIPC/i);
   assert.doesNotMatch(blob, /R\s?\d{2,}|ZAR\s?\d+/i);
   assert.match(blob, /#750|#758|#740|#761|#791/);
