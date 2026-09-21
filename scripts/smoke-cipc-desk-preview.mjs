@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * CIPC Desk private preview smoke (fictional data only).
+ * Business Admin Desk private preview smoke (fictional data only).
  *
  * Uses existing Preview / Actions secrets — never prints secret values:
  *   VERCEL_AUTOMATION_BYPASS_SECRET (or CORPFLOW_VERCEL_PROTECTION_BYPASS_SECRET)
@@ -93,7 +93,7 @@ function htmlFingerprint(html) {
     has_login_to_vercel: /Log in to Vercel/i.test(t),
     has_deployment_protection: /Deployment Protection/i.test(t),
     has_sso_api: /sso-api|vercel\.com\/sso/i.test(t),
-    has_cipc_desk: /CIPC Desk/i.test(t),
+    has_business_admin_desk: /Business Admin Desk/i.test(t),
     title_match: (t.match(/<title[^>]*>([^<]*)<\/title>/i) || [])[1] || null,
     snippet: t.replace(/\s+/g, ' ').slice(0, 280),
   };
@@ -255,7 +255,7 @@ async function main() {
     const homeOk =
       homeStatus >= 200 &&
       homeStatus < 400 &&
-      /CIPC Desk/i.test(homeText || homeHtml) &&
+      /Business Admin Desk/i.test(homeText || homeHtml) &&
       !fp.has_login_to_vercel &&
       !fp.has_deployment_protection &&
       !fp.has_sso_api &&
@@ -265,7 +265,7 @@ async function main() {
       ok: homeOk,
       http: homeStatus,
       final_url_redacted: redactUrl(finalUrl),
-      has_cipc_desk: /CIPC Desk/i.test(homeText || homeHtml),
+      has_business_admin_desk: /Business Admin Desk/i.test(homeText || homeHtml),
       sso_gated: fp.has_login_to_vercel || fp.has_deployment_protection || fp.has_sso_api,
       html: fp,
     };
@@ -350,7 +350,7 @@ async function main() {
     // 5) Fictional inbound-email intake
     const fictionalEmail = [
       'From: preview.client@example.test',
-      `Subject: CIPC Desk · fictional private company registration enquiry (${Date.now()})`,
+      `Subject: Business Admin Desk · fictional private company registration enquiry (${Date.now()})`,
       '',
       'Hello — this is fictional preview data only.',
       'Please register a private company (Pty Ltd) in South Africa.',
