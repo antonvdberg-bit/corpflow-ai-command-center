@@ -93,6 +93,7 @@ async function main() {
         usage,
         status: evidence.status,
         outcomeRef: evidence.pr_number ? `github-pr-${evidence.pr_number}` : null,
+        productionContext: true,
       });
       results.push({
         issue,
