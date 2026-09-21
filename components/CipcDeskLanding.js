@@ -1,6 +1,8 @@
 import React from 'react';
 import Head from 'next/head';
 
+import BusinessAdminDeskBrand, { BUSINESS_ADMIN_DESK_MARK_PATH } from './BusinessAdminDeskBrand.js';
+
 import PublicMarketingPhotoGlassShell from './beauty/PublicMarketingPhotoGlassShell.js';
 import HeroGlassBlock from './beauty/HeroGlassBlock.js';
 import GlassPanel from './beauty/GlassPanel.js';
@@ -87,6 +89,7 @@ export default function CipcDeskLanding({ site }) {
         <meta property="og:description" content={description} />
         <meta property="og:image" content="/assets/visuals/corpflow-process-hero.jpg" />
         <meta name="theme-color" content="#06111f" />
+        <link rel="icon" href={BUSINESS_ADMIN_DESK_MARK_PATH} type="image/svg+xml" />
         <style
           dangerouslySetInnerHTML={{
             __html: `
@@ -109,7 +112,7 @@ export default function CipcDeskLanding({ site }) {
         publicScrimHook
         footer={
           <div>
-            <div style={{ fontWeight: 800, color: CF.text, marginBottom: 6 }}>{brand}</div>
+            <div style={{ marginBottom: 8 }}><BusinessAdminDeskBrand compact href="/" /></div>
             <p style={{ ...cfBody, margin: 0, fontSize: 13.5 }}>
               Internal CorpFlowAI test desk for company administration presentation. Not CIPC, not a law firm, and not an
               authorised government channel. Powered by CorpFlowAI.
@@ -131,21 +134,7 @@ export default function CipcDeskLanding({ site }) {
             marginBottom: 20,
           }}
         >
-          <div>
-            <div
-              style={{
-                fontWeight: 900,
-                fontSize: 22,
-                letterSpacing: '-0.02em',
-                color: CF.text,
-              }}
-            >
-              {brand}
-            </div>
-            <div style={{ color: CF.textFaint, fontSize: 12, marginTop: 2 }}>
-              Company administration · South Africa
-            </div>
-          </div>
+          <BusinessAdminDeskBrand subtitle="Company administration · South Africa" priority />
           <a href={primaryCta.href} style={{ ...cfBtnPrimary, fontSize: 13, minHeight: 40, padding: '10px 16px' }}>
             {primaryCta.label}
           </a>
