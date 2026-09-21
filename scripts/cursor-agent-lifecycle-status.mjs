@@ -308,6 +308,7 @@ async function discoverAgentFromIssue(issue) {
     comments,
     agentId: evidence?.cursor_agent_id || null,
     runId: evidence?.cursor_run_id || null,
+    modelSelection: evidence?.model_selection || null,
     priorState:
       life && evidence?.cursor_agent_id === life.cursorAgentId
         ? life
@@ -339,6 +340,7 @@ async function main() {
   let agentId = args.agentId ? String(args.agentId).trim() : null;
   let discoveredRunId = null;
   let discoveredStartedAt = null;
+  let modelSelection = null;
   let priorState = null;
   let compactLifecycle = false;
   /** @type {Array<{ body?: string }>} */
@@ -350,6 +352,7 @@ async function main() {
     priorState = discovered.priorState;
     if (!agentId) agentId = discovered.agentId;
     discoveredRunId = discovered.runId;
+    modelSelection = discovered.modelSelection;
     discoveredStartedAt = discovered.evidence?.started_at || discovered.evidence?.startedAt || null;
     compactLifecycle = Boolean(discovered.evidence);
     if (!agentId) {
@@ -402,6 +405,7 @@ async function main() {
       apiKey,
       agentId,
       runId: priorState.cursorRunId || discoveredRunId,
+      modelSelection,
       sourceIssue: issue,
       priorState,
       startedAt: priorState.startedAt,

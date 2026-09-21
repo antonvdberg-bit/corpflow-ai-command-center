@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 
 import {
   buildProductionGroqTrace,
+  buildProductionCursorTrace,
+  emitProductionCursorTrace,
   emitProductionGroqTrace,
   langfuseProductionReadiness,
   summarizeLlmMessages,
@@ -150,4 +152,58 @@ test('emitter skips cleanly when Langfuse runtime values are absent', async () =
   assert.equal(result.ok, false);
   assert.equal(result.skipped, true);
   assert.equal(result.reason, 'LANGFUSE_NOT_CONFIGURED');
+});
+
+test('Cursor trace is deterministic, provider-reported, and privacy-safe', () => {
+  const built = buildProductionCursorTrace({
+    agentId: 'bc-agent-1196',
+    runId: 'run-1196',
+    sourceIssue: 1196,
+    modelSelection: { id: 'gpt-5.6-luna-medium' },
+    usage: {
+      inputTokens: 100,
+      outputTokens: 25,
+      cacheReadTokens: 7,
+      cacheWriteTokens: 3,
+      totalTokens: 125,
+      cost: 'Included',
+    },
+    status: 'COMPLETED',
+    outcomeRef: 'github-pr-1',
+    occurredAt: '2026-09-21T00:00:00.000Z',
+    env,
+  });
+  const again = buildProductionCursorTrace({
+    agentId: 'bc-agent-1196',
+    runId: 'run-1196',
+    sourceIssue: 1196,
+    modelSelection: { id: 'gpt-5.6-luna-medium' },
+    usage: { totalTokens: 125, cost: 'Included' },
+    status: 'COMPLETED',
+    occurredAt: '2026-09-21T00:00:00.000Z',
+    env,
+  });
+  assert.equal(built.traceId, again.traceId);
+  assert.equal(built.spanId, again.spanId);
+  assert.equal(built.economicEvent.cost_class, 'included_capacity');
+  assert.equal(built.economicEvent.cash_cost, null);
+  assert.equal(built.economicEvent.measurement_quality, 'provider_reported');
+  const text = payloadText(built);
+  assert.match(text, /gpt-5\.6-luna-medium/);
+  assert.doesNotMatch(text, /CLIENT_PRIVATE_TEXT|RAW_TRANSCRIPT_CONTENT/);
+});
+
+test('Cursor emitter fails open and preserves UNKNOWN cash cost', async () => {
+  const result = await emitProductionCursorTrace({
+    agentId: 'bc-agent',
+    runId: 'run-agent',
+    sourceIssue: 551,
+    usage: { totalTokens: 12 },
+    status: 'FAILED',
+    env,
+    fetchImpl: async () => ({ ok: true, status: 200 }),
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.economic_event.cash_cost, null);
+  assert.equal(result.content_redacted, true);
 });
