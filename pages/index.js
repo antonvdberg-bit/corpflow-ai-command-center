@@ -17,7 +17,10 @@ import { collectPublishedLuxCardMediaByPropertyRefs } from '../lib/server/lux-pu
 import { defaultPublicSite, mergeSiteDraft } from '../lib/server/tenant-site-public.js';
 import { verifyTenantPreviewToken } from '../lib/server/tenant-preview-token.js';
 import { ensureCipcDeskPreviewTenantSeeded } from '../lib/server/cipc-desk-preview-seed.js';
-import { resolveCipcDeskTenantIdFromHost } from '../lib/server/cipc-desk-runtime.js';
+import {
+  isBusinessAdminDeskPublicHost,
+  resolveCipcDeskTenantIdFromHost,
+} from '../lib/server/cipc-desk-runtime.js';
 import { isGhostHost } from '../lib/server/ghost-host.js';
 import { listVisualAssetManifests } from '../lib/visualAssets/loadManifest.js';
 import { selectHomepageAssets } from '../lib/visualAssets/selectHomepageAssets.js';
@@ -404,7 +407,7 @@ export default function Home({ mode, site, host, homepageAssets, leadRescueAsset
   }
   // CIPC Desk: CorpFlowAI photo+glass presentation (issue #687). Isolation: tenant_id only.
   if (mode === 'tenant_site' && safeStr(site?.tenant_id) === 'cipc-desk') {
-    return <CipcDeskLanding site={site} />;
+    return <CipcDeskLanding site={site} publicProduction={isBusinessAdminDeskPublicHost(host)} />;
   }
   if (mode === 'tenant_site') {
     return <TenantSite site={site} />;
