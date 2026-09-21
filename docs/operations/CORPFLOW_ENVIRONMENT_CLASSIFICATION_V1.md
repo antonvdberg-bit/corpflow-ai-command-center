@@ -40,7 +40,19 @@ These surfaces are:
 - **non-canonical** for the client's own live production operation;
 - treated as **test** until a separate **client_production** transition is explicitly approved.
 
-### 2.2 Platform “Vercel Production” ≠ `client_production`
+### 2.2 Business Admin Desk public production exception
+
+`businessadmindesk.co.za` (and `www.businessadmindesk.co.za`) is the approved **Business Admin Desk client_production** host. It uses the existing CorpFlowAI Vercel project spine and the existing internal tenant id `cipc-desk`; this does **not** create a second app or second production database.
+
+The public host must:
+- render customer-facing Business Admin Desk content only;
+- use indexable public metadata;
+- keep internal `corpflow_test` / specialist-review content off the public host;
+- preserve `cipc.corpflowai.com` and `cipc-desk.corpflowai.com` as internal review/test surfaces;
+- map to the existing `cipc-desk` tenant with hostname mode `client_production`;
+- follow Business Admin Desk Public Marketing Value 1 (do not market through another organisation's brand).
+
+### 2.3 Platform “Vercel Production” ≠ `client_production`
 
 CorpFlowAI uses **one** Vercel project spine: Git `main` → Vercel **Production** environment → custom domains (`lux.*`, `cipc.*`, `core.*`, apex, etc.).
 
