@@ -33,6 +33,7 @@ import {
 import { buildCapacityReleaseWakeRequest } from '../lib/server/cursor-ready-event-dispatch.js';
 import {
   buildCloudAgentsExecutorEvidence,
+  findCloudAgentsExecutorEvidence,
   findKnownCloudAgentsExecutorEvidence,
   formatCloudAgentsExecutorEvidence,
 } from '../lib/server/factory-cloud-agents-executor.js';
@@ -302,7 +303,11 @@ function writeCapacityWakeArtifact(wake) {
  */
 async function discoverAgentFromIssue(issue) {
   const comments = await listIssueComments(issue);
-  const evidence = findKnownCloudAgentsExecutorEvidence(comments, issue);
+  const evidence = findCloudAgentsExecutorEvidence(
+    comments,
+    issue,
+    ['IN_PROGRESS', 'COMPLETED', 'FAILED'],
+  );
   const life = findLatestLifecycleState(comments);
   return {
     comments,
