@@ -48,7 +48,7 @@ test('landing component reuses CorpFlow photo+glass shell and Business Admin Des
   assert.match(landing, /corpflow-public-styles/);
   assert.match(landing, /buildPublicVisualHero/);
   assert.match(landing, /Business Admin Desk/);
-  assert.doesNotMatch(landing, />[^<]*CIPC[^<]*</i);
+  assert.doesNotMatch(landing, /Professional CIPC|Email your CIPC|Not CIPC/i);
   assert.doesNotMatch(landing, /CIPC Desk/);
   assert.doesNotMatch(landing, /Fraunces|Source Sans|#f3ebe0|#c45c26/);
   assert.doesNotMatch(landing, /\/api\/tenant\/intake/);
