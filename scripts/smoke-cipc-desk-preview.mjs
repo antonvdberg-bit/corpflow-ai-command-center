@@ -333,7 +333,7 @@ async function main() {
     const changeText = await changePage.locator('body').innerText().catch(() => '');
     const changeHtml = await changePage.content();
     const panelVisible =
-      /CIPC Desk/i.test(changeText || changeHtml) ||
+      /Business Admin Desk/i.test(changeText || changeHtml) ||
       /email-first/i.test(changeText || changeHtml) ||
       /Create\/update ticket from email/i.test(changeText || changeHtml) ||
       /client reply draft/i.test(changeText || changeHtml);
