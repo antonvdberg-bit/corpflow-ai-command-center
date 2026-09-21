@@ -23,7 +23,8 @@ test('website draft uses CorpFlow palette and content_version refresh marker', (
   assert.equal(draft.theme?.background, '#06111f');
   assert.equal(draft.hero?.title, 'Business Admin Desk');
   assert.equal(draft.meta?.page_title, 'Business Admin Desk · Company administration support');
-  assert.match(String(draft.meta?.description || ''), /CIPC-related administration/);
+  assert.doesNotMatch(String(draft.meta?.description || ''), /CIPC/i);
+  assert.match(String(draft.meta?.description || ''), /regulatory administration/);
   assert.match(String(draft.hero?.cta_href || ''), /^mailto:/);
   assert.equal(draft.hero?.cta_secondary_href, '/partners');
   assert.ok(Array.isArray(draft.sections?.services?.items));
@@ -44,6 +45,7 @@ test('landing component reuses CorpFlow photo+glass shell and Business Admin Des
   assert.match(landing, /corpflow-public-styles/);
   assert.match(landing, /buildPublicVisualHero/);
   assert.match(landing, /Business Admin Desk/);
+  assert.doesNotMatch(landing, />[^<]*CIPC[^<]*</i);
   assert.doesNotMatch(landing, /CIPC Desk/);
   assert.doesNotMatch(landing, /Fraunces|Source Sans|#f3ebe0|#c45c26/);
   assert.doesNotMatch(landing, /\/api\/tenant\/intake/);
