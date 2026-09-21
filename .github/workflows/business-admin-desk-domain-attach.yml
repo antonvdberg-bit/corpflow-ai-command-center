@@ -28,8 +28,8 @@ jobs:
             CODE=$(curl -sS -o "$BODY" -w "%{http_code}" -X POST               -H "Authorization: Bearer $VERCEL_TOKEN"               -H "Content-Type: application/json"               "https://api.vercel.com/v10/projects/$VERCEL_PROJECT_ID/domains?teamId=$VERCEL_TEAM_ID"               -d "{\"name\":\"$DOMAIN\"}")
             if [ "$CODE" = "200" ] || [ "$CODE" = "201" ]; then
               echo "Attached: $DOMAIN"
-            elif [ "$CODE" = "400" ] && grep -qiE 'already|exists' "$BODY"; then
-              echo "Already attached: $DOMAIN"
+            elif { [ "$CODE" = "400" ] || [ "$CODE" = "409" ]; } && grep -qiE 'already|exists|domain_already_in_use' "$BODY"; then
+              echo "Already attached or assigned: $DOMAIN"
             else
               echo "::error::Failed to attach $DOMAIN (HTTP $CODE)"
               cat "$BODY"
