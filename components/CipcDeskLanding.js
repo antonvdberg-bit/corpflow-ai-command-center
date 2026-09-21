@@ -29,7 +29,7 @@ function safeStr(v) {
 
 /**
  * Business Admin Desk public presentation — CorpFlowAI photo + glass visual language,
- * branded for company-secretarial / CIPC administration (presentation only).
+ * branded for company administration (presentation only).
  *
  * @param {{ site?: Record<string, unknown> | null }} props
  */
@@ -52,10 +52,10 @@ export default function CipcDeskLanding({ site }) {
   const pageTitle = safeStr(meta.page_title) || `${brand} · Company administration support`;
   const description =
     safeStr(meta.description) ||
-    'Business Admin Desk — professional South African company-administration support for registrations, amendments, annual returns, records and CIPC-related administration.';
+    'Business Admin Desk — professional South African company-administration support for registrations, amendments, annual returns, records and regulatory administration.';
 
   const primaryCta = {
-    label: safeStr(hero.cta_label) || 'Email your CIPC matter',
+    label: safeStr(hero.cta_label) || 'Tell us what you need help with',
     href: safeStr(hero.cta_href) || 'mailto:swart829@gmail.com?subject=Business%20Admin%20Desk%20enquiry',
   };
   const secondaryCtaLabel = safeStr(hero.cta_secondary_label);
@@ -114,8 +114,7 @@ export default function CipcDeskLanding({ site }) {
           <div>
             <div style={{ marginBottom: 8 }}><BusinessAdminDeskBrand compact href="/" /></div>
             <p style={{ ...cfBody, margin: 0, fontSize: 13.5 }}>
-              Internal CorpFlowAI test desk for company administration presentation. Not CIPC, not a law firm, and not an
-              authorised government channel. Powered by CorpFlowAI.
+              Independent company-administration support. Not a government or regulatory service, and not a law firm.
             </p>
             {safeStr(contact.note) ? (
               <p style={{ ...cfBody, margin: '10px 0 0', fontSize: 13 }}>{safeStr(contact.note)}</p>
@@ -142,7 +141,7 @@ export default function CipcDeskLanding({ site }) {
 
         <HeroGlassBlock
           eyebrow={
-            <p style={{ ...cfKicker, marginBottom: 10 }}>Professional CIPC administration support</p>
+            <p style={{ ...cfKicker, marginBottom: 10 }}>Professional company administration support</p>
           }
           title={
             <h1
