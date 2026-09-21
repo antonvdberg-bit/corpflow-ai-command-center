@@ -205,7 +205,6 @@ export default function CipcDeskAnnualReturnsReview({ content }) {
           }}
         >
           <BusinessAdminDeskBrand subtitle="Annual Returns · specialist review" />
-          </div>
           <a href="/" style={{ ...cfBtnSecondary, fontSize: 13, minHeight: 40, padding: '10px 16px' }}>
             Back to desk home
           </a>
