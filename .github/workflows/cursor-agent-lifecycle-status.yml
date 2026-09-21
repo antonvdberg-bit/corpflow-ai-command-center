@@ -47,6 +47,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
   issues: write
   pull-requests: read
   checks: read
@@ -72,6 +73,16 @@ jobs:
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
         with:
           node-version: "20"
+
+      - name: Fetch existing Langfuse runtime secrets from Infisical (OIDC)
+        continue-on-error: true
+        uses: Infisical/secrets-action@8802effbe453d0576cd923567dcc2c97a1f54058
+        with:
+          method: "oidc"
+          identity-id: "${{ vars.INFISICAL_IDENTITY_ID }}"
+          project-slug: "${{ vars.INFISICAL_PROJECT_SLUG }}"
+          env-slug: "${{ vars.INFISICAL_ENV_SLUG }}"
+          domain: "${{ vars.INFISICAL_DOMAIN }}"
 
       - name: Resolve target issue list
         id: targets
