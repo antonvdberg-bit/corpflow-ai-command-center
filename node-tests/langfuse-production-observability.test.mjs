@@ -59,6 +59,15 @@ test('readiness requires explicit Vercel production plus exact cloud endpoint an
   );
 });
 
+test('readiness accepts explicit trusted production context outside Vercel', () => {
+  const githubEnv = { ...env, VERCEL_ENV: '', NODE_ENV: 'test' };
+  assert.equal(langfuseProductionReadiness(githubEnv).ready, false);
+  assert.equal(
+    langfuseProductionReadiness(githubEnv, { productionContext: true }).ready,
+    true,
+  );
+});
+
 test('message summaries contain shape only, never content', () => {
   const summary = summarizeLlmMessages(messages);
   assert.deepEqual(summary.roles, { system: 1, user: 1 });
@@ -200,7 +209,8 @@ test('Cursor emitter fails open and preserves UNKNOWN cash cost', async () => {
     sourceIssue: 551,
     usage: { totalTokens: 12 },
     status: 'FAILED',
-    env,
+    productionContext: true,
+    env: { ...env, VERCEL_ENV: '', NODE_ENV: 'test' },
     fetchImpl: async () => ({ ok: true, status: 200 }),
   });
   assert.equal(result.ok, true);
