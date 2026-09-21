@@ -210,7 +210,6 @@ export default function CipcDeskBeneficialOwnershipReview({ content }) {
           }}
         >
           <BusinessAdminDeskBrand subtitle="Beneficial Ownership · specialist review" />
-          </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
             <a href="/annual-returns" style={{ ...cfBtnSecondary, fontSize: 13, minHeight: 40, padding: '10px 16px' }}>
               Annual Returns review
