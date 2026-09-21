@@ -37,3 +37,7 @@ jobs:
             fi
           done
           echo "Domain attachment requests completed."
+          curl -fsS \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID/domains?teamId=$VERCEL_TEAM_ID&limit=100" \
+            | jq '{domains: [.domains[] | select(.name == "businessadmindesk.co.za" or .name == "www.businessadmindesk.co.za") | {name, verified, redirect, redirectStatusCode, gitBranch, verification}]}'
