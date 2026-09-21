@@ -11,6 +11,7 @@ import {
   buildCloudAgentsWorkStatus,
   buildFactoryCloudAgentsCreatePayload,
   buildFactoryCloudAgentsExecutionEnvelope,
+  findCloudAgentsExecutorEvidence,
   findKnownCloudAgentsExecutorEvidence,
   formatCloudAgentsExecutorEvidence,
   planStaleFactoryBlockRecovery,
@@ -240,6 +241,26 @@ describe('Factory Cloud Agents executor', () => {
       findKnownCloudAgentsExecutorEvidence([{ body: 'Cursor agent ID: bc-unrelated' }, { body: comment }], 1062)
         ?.cursor_agent_id,
       'bc-12345678-1234-1234-1234-123456789abc',
+    );
+  });
+
+  it('terminal verification can resolve completed evidence without changing active-only discovery', () => {
+    const completed = formatCloudAgentsExecutorEvidence({
+      source_issue: 1062,
+      work_request_id: 'cfai-wr-terminal',
+      handoff_run_id: '2',
+      cursor_agent_id: 'bc-terminal-12345678901234567890',
+      cursor_run_id: 'run-terminal-12345678901234567890',
+      status: 'COMPLETED',
+    });
+    assert.equal(findKnownCloudAgentsExecutorEvidence([{ body: completed }], 1062), null);
+    assert.equal(
+      findCloudAgentsExecutorEvidence(
+        [{ body: completed }],
+        1062,
+        ['IN_PROGRESS', 'COMPLETED', 'FAILED'],
+      )?.cursor_agent_id,
+      'bc-terminal-12345678901234567890',
     );
   });
 
