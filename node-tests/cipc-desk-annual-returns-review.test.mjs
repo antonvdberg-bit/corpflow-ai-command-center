@@ -39,47 +39,53 @@ test('annual returns review content covers required Sarah review sections', () =
 test('annual returns v1 reflects Sarah 2026-08-07 decisions', () => {
   const c = buildCipcDeskAnnualReturnsReviewContent();
   const blob = JSON.stringify(c);
+  const decisions = c.approved_decisions?.items || [];
+  const decisionText = decisions.join('\n');
 
   // 1. Customer-code model — both; default client code
-  assert.match(blob, /client.?s own CIPC customer code/i);
-  assert.match(blob, /authorised practitioner code/i);
+  assert.match(decisionText, /client.?s own CIPC customer code/i);
+  assert.match(decisionText, /authorised practitioner code/i);
 
   // 2. Standard service = AR filing only; BO/AFS/FAS identified & referred/quoted separately
-  assert.match(blob, /Annual Return filing only/i);
-  assert.match(blob, /quoted separately/i);
+  assert.match(decisionText, /Annual Return filing only/i);
+  assert.match(decisionText, /quoted separately/i);
   assert.match(String(c.covers?.tag || ''), /Annual Return filing only/i);
 
   // 3. Signed engagement/mandate before filing
-  assert.match(blob, /signed engagement\s*\/\s*mandate/i);
-  assert.match(blob, /before filing/i);
+  assert.match(decisionText, /signed engagement\s*\/\s*mandate/i);
+  assert.match(decisionText, /before filing/i);
 
   // 4. Check-only FAS/AFS; do not prepare FAS; refer accountant
-  assert.match(blob, /Do not prepare FAS/i);
-  assert.match(blob, /Refer accounting matters to an accountant/i);
+  assert.match(decisionText, /Do not prepare FAS/i);
+  assert.match(decisionText, /Refer accounting matters to an accountant/i);
   assert.doesNotMatch(blob, /prepare FAS for the client|FAS preparation offering/i);
 
   // 5. Entity scope: Pty Ltd + CC only; NPC later-phase
-  assert.match(String(c.entity_scope?.body || ''), /private companies/i);
-  assert.match(String(c.entity_scope?.body || ''), /close corporations/i);
-  assert.match(String(c.entity_scope?.body || ''), /later-phase/i);
-  assert.match(blob, /NPCs and other entit/i);
+  assert.match(decisionText, /private companies/i);
+  assert.match(decisionText, /close corporations/i);
+  assert.match(decisionText, /NPCs and other entit/i);
+  assert.match(decisionText, /later-phase/i);
 
   // 6. Exact dormant wording
   assert.equal(
     CIPC_DESK_ANNUAL_RETURNS_DORMANT_WORDING,
     'Even if your company is dormant or not trading, Annual Return filing and other statutory obligations may still apply.',
   );
-  assert.match(blob, new RegExp(CIPC_DESK_ANNUAL_RETURNS_DORMANT_WORDING.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  assert.match(
+    decisionText,
+    new RegExp(CIPC_DESK_ANNUAL_RETURNS_DORMANT_WORDING.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+  );
 
   // 7. No invented Desk pricing / service-fee figures
-  assert.match(blob, /service-fee\/pricing wording out|no Desk service-fee/i);
+  assert.match(decisionText, /service-fee\/pricing wording out/i);
   assert.doesNotMatch(blob, /R\s?\d{2,}|ZAR\s?\d+|USD\s?\d+/i);
 
   // 8. Client owns Annual Compliance Checklists
-  assert.match(blob, /client completes and takes ownership of Annual Compliance Checklists/i);
+  assert.match(decisionText, /client completes and takes ownership of Annual Compliance Checklists/i);
 
-  // Approved decisions list present; open-questions style SARAH CONFIRM prompts removed from content
-  assert.ok(Array.isArray(c.approved_decisions?.items) && c.approved_decisions.items.length === 8);
+  // Closed decisions remain exactly eight, with no provisional prompt carried forward.
+  assert.equal(decisions.length, 8);
+  assert.doesNotMatch(decisionText, /SARAH CONFIRM/i);
   assert.equal(c.open_questions, undefined);
   assert.doesNotMatch(blob, /SARAH CONFIRM/);
   assert.match(String(c.source?.controlling_issue || ''), /#791/);
@@ -102,11 +108,11 @@ test('process pack records Sarah v1 decisions and approved dormant wording', () 
   assert.match(pack, /client completes and takes ownership/i);
   assert.match(pack, /later-phase/i);
   assert.doesNotMatch(pack, /official CIPC partner|accredited by CIPC/i);
-  // Closed decisions must not remain tagged SARAH CONFIRM in the decision block
-  assert.doesNotMatch(
-    pack,
-    /Treat checklist support as a separate routing decision \(\*\*SARAH CONFIRM\*\*/,
-  );
+  const decisionBlock = pack.match(
+    /## Sarah-approved v1 decisions \(2026-08-07\)([\s\S]*?)\n---\n\n## How to read this pack/,
+  )?.[1];
+  assert.ok(decisionBlock, 'the closed decision block should be present');
+  assert.doesNotMatch(decisionBlock, /SARAH CONFIRM/i);
 });
 
 test('feedback email builder requires readiness + at least one comment', () => {

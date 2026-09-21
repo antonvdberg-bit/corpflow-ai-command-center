@@ -500,5 +500,6 @@ This pack does **not** authorise:
 | Parents | #640 (coordination), #740 (research) |
 | Pack version | v1 — Sarah-approved boundaries 2026-08-07 |
 | Standing test URL | https://cipc.corpflowai.com/annual-returns |
-| Next step | Merge #791 PR → verify standing test URL reflects decisions |
+| Historical implementation | Merged through PR #792; closed/unmerged PR #793 is recovery reference only |
+| Next step | Keep the standing review surface aligned; after an approved merged change, verify the standing test URL reflects these decisions |
 | Public launch | **Not authorised by this pack** |
