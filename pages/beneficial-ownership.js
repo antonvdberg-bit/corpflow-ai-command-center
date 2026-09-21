@@ -34,7 +34,7 @@ function parseSearchParam(req, name) {
 }
 
 /**
- * CIPC Desk Beneficial Ownership specialist-review surface (#981).
+ * Business Admin Desk Beneficial Ownership specialist-review surface (#981).
  * Standing URL: https://cipc.corpflowai.com/beneficial-ownership (corpflow_test only).
  */
 export default function BeneficialOwnershipPage({ content }) {

@@ -51,7 +51,7 @@ const labelStyle = {
 };
 
 /**
- * Standing CIPC Desk Director Changes review page for Sarah (#980).
+ * Standing Business Admin Desk Director Changes review page for Sarah (#980).
  * Feedback posts to existing POST /api/cipc-desk/email-intake.
  *
  * @param {{ content?: Record<string, unknown> | null }} props
@@ -73,7 +73,7 @@ export default function CipcDeskDirectorChangesReview({ content }) {
   const feedbackPrompt =
     c.feedback_prompt && typeof c.feedback_prompt === 'object' ? c.feedback_prompt : {};
 
-  const pageTitle = safeStr(meta.page_title) || 'CIPC Desk · Director Changes review';
+  const pageTitle = safeStr(meta.page_title) || 'Business Admin Desk · Director Changes review';
   const description =
     safeStr(meta.description) ||
     'Internal corpflow_test Director Changes review surface for specialist feedback.';
@@ -183,7 +183,7 @@ export default function CipcDeskDirectorChangesReview({ content }) {
         publicScrimHook
         footer={
           <div>
-            <div style={{ fontWeight: 800, color: CF.text, marginBottom: 6 }}>CIPC Desk</div>
+            <div style={{ fontWeight: 800, color: CF.text, marginBottom: 6 }}>Business Admin Desk</div>
             <p style={{ ...cfBody, margin: 0, fontSize: 13.5 }}>
               Internal working name pending brand decision. Independent company-administration support —
               not CIPC, not a law firm, and not an authorised government channel. Powered by CorpFlowAI.
@@ -193,7 +193,7 @@ export default function CipcDeskDirectorChangesReview({ content }) {
         }
       >
         <nav
-          aria-label="CIPC Desk Director Changes"
+          aria-label="Business Admin Desk Director Changes"
           style={{
             display: 'flex',
             justifyContent: 'space-between',
@@ -212,7 +212,7 @@ export default function CipcDeskDirectorChangesReview({ content }) {
                 color: CF.text,
               }}
             >
-              CIPC Desk
+              Business Admin Desk
             </div>
             <div style={{ color: CF.textFaint, fontSize: 12, marginTop: 2 }}>
               Director Changes · specialist review

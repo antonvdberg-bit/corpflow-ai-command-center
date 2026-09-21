@@ -579,7 +579,7 @@ approval:payment labels and payment actions must be gated.`,
       title:
         'P0: Treat all CorpFlowAI-hosted tenant surfaces as test environments; separate future client production deployments',
       body: `All tenant/client surfaces currently hosted under CorpFlowAI-controlled domains are test environments.
-Examples include core.corpflowai.com, Lux / CIPC Desk.
+Examples include core.corpflowai.com, Lux / Business Admin Desk.
 These are not client production environments.
 Introduce corpflow_test for CorpFlowAI-hosted tenant test surfaces;
 client_production only for an actual separately governed client production environment.
@@ -613,14 +613,14 @@ Test publishing does not trigger a false approval:production gate.`,
     assert.ok(c.workTypes.includes('ui'));
   });
 
-  it('CIPC Desk workstream is corpflow_test', () => {
+  it('Business Admin Desk workstream is corpflow_test', () => {
     const c = inferIssueClassification({
       number: 711,
-      title: 'CIPC Desk thank-you copy',
+      title: 'Business Admin Desk thank-you copy',
       body: 'Standing internal test tenant UI on cipc.corpflowai.com',
       labels: ['cipc', 'dispatch:cursor-ready'],
     });
-    assert.equal(c.tenantOrClient, 'CIPC Desk');
+    assert.equal(c.tenantOrClient, 'Business Admin Desk');
     assert.equal(c.environment, 'test');
     assert.equal(c.protectedGate, 'none');
   });

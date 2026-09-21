@@ -33,8 +33,11 @@ test('director changes review content covers required six-layer sections', () =>
   assert.match(String(c.banners?.no_guarantee || ''), /not guaranteed/i);
   assert.match(String(c.banners?.environment || ''), /corpflow_test/i);
   assert.match(String(c.banners?.provisional || ''), /SARAH CONFIRM/i);
+  assert.equal(c.meta?.page_title, 'Business Admin Desk · Director Changes review');
 
   const blob = JSON.stringify(c);
+  assert.doesNotMatch(blob, /CIPC Desk/);
+  assert.match(blob, /CIPC processing times/i);
   assert.doesNotMatch(blob, /we will file within|guaranteed within|official CIPC partner|accredited by CIPC/i);
   // CoR39 is the official CIPC form name, not a rand amount.
   assert.doesNotMatch(blob.replace(/CoR39/gi, ''), /R\s?\d{2,}|ZAR\s?\d+|USD\s?\d+/i);

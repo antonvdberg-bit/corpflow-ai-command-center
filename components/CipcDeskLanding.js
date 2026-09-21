@@ -26,7 +26,7 @@ function safeStr(v) {
 }
 
 /**
- * CIPC Desk public presentation — CorpFlowAI photo + glass visual language,
+ * Business Admin Desk public presentation — CorpFlowAI photo + glass visual language,
  * branded for company-secretarial / CIPC administration (presentation only).
  *
  * @param {{ site?: Record<string, unknown> | null }} props
@@ -42,7 +42,7 @@ export default function CipcDeskLanding({ site }) {
   const trust = sections.trust && typeof sections.trust === 'object' ? sections.trust : {};
   const contact = sections.contact && typeof sections.contact === 'object' ? sections.contact : {};
 
-  const brand = safeStr(hero.title) || 'CIPC Desk';
+  const brand = safeStr(hero.title) || 'Business Admin Desk';
   const headline = safeStr(hero.headline) || 'Clear company administration — handled with care';
   const tagline =
     safeStr(hero.tagline) ||
@@ -50,11 +50,11 @@ export default function CipcDeskLanding({ site }) {
   const pageTitle = safeStr(meta.page_title) || `${brand} · Company administration support`;
   const description =
     safeStr(meta.description) ||
-    'CIPC Desk — professional South African CIPC and company-secretarial administration support.';
+    'Business Admin Desk — professional South African company-administration support for registrations, amendments, annual returns, records and CIPC-related administration.';
 
   const primaryCta = {
     label: safeStr(hero.cta_label) || 'Email your CIPC matter',
-    href: safeStr(hero.cta_href) || 'mailto:swart829@gmail.com?subject=CIPC%20Desk%20enquiry',
+    href: safeStr(hero.cta_href) || 'mailto:swart829@gmail.com?subject=Business%20Admin%20Desk%20enquiry',
   };
   const secondaryCtaLabel = safeStr(hero.cta_secondary_label);
   const secondaryCtaHref = safeStr(hero.cta_secondary_href);
@@ -121,7 +121,7 @@ export default function CipcDeskLanding({ site }) {
         }
       >
         <nav
-          aria-label="CIPC Desk"
+          aria-label="Business Admin Desk"
           style={{
             display: 'flex',
             justifyContent: 'space-between',

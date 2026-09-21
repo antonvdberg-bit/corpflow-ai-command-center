@@ -1,7 +1,7 @@
-# CIPC Desk — Director Changes Process Pack v1
+# Business Admin Desk — Director Changes Process Pack v1
 
 **Status:** Review-ready draft for Sarah Fourie. **Not Sarah-approved.** Unresolved specialist items are tagged **SARAH CONFIRM** and must not be published as settled Desk policy.  
-**Tenant / working name:** `cipc-desk` / **CIPC Desk** (internal working name only — not final public brand).  
+**Tenant ID / display brand:** `cipc-desk` / **Business Admin Desk**. The stable tenant ID is internal; the client-facing brand is Business Admin Desk.
 **Subject-matter owner:** Sarah Fourie.  
 **Evidence date of official-source review:** 2026-08-18.  
 **Controlling issue:** **#980**. Research parent **#740**. Coordination **#640**. Annual Returns pattern **#750 / #758 / #761 / #763 / #791 / #792**.  
@@ -18,11 +18,11 @@ Every substantive statement is tagged so operators and reviewers can see evidenc
 | Tag | Meaning |
 |-----|---------|
 | **OFFICIAL** | Stated on current CIPC public material cited below. |
-| **PRACTICAL** | Operating recommendation for ordinary CIPC Desk handling — not a substitute for statute. |
+| **PRACTICAL** | Operating recommendation for ordinary Business Admin Desk handling — not a substitute for statute. |
 | **PROVISIONAL** | Reasonable working assumption until a newer CIPC notice or a Sarah decision supersedes it. |
 | **SARAH CONFIRM** | Explicitly open; do not hard-code as approved Desk policy until Sarah answers. |
 
-**Non-affiliation (PRACTICAL):** CIPC Desk is an independent support service. It is **not** CIPC, is **not** endorsed by CIPC, and must never imply official affiliation.
+**Non-affiliation (PRACTICAL):** Business Admin Desk is an independent support service. It is **not** CIPC, is **not** endorsed by CIPC, and must never imply official affiliation.
 
 **Guarantee ban (PRACTICAL):** Never guarantee CIPC turnaround times, approval dates, processing periods, or successful filing outcomes. Any estimate must stay subject to CIPC processing times, system availability, OTP completion, submission quality, additional-information requests, and manual review.
 
@@ -53,7 +53,7 @@ Reviewed for this draft (public CIPC / CIPC-hosted material only):
 8. **CIPC eServices catalogue** — https://eservices.cipc.co.za/  
    Service-catalogue context for director amendments among other e-Services.
 9. **CIPC Service Standards / turnaround** — https://www.cipc.co.za/?page_id=4635  
-   Published CIPC service times. **Do not present CIPC’s published turnaround as a CIPC Desk promise.**
+   Published CIPC service times. **Do not present CIPC’s published turnaround as a Business Admin Desk promise.**
 10. **Research parent #740** — official-document pack controlling this source set.
 
 **Primary statute references named in official CIPC material (not reproduced in full here):** Companies Act 71 of 2008 (including director vacancy / removal language and section 69 ineligibility/disqualification as referenced on the CIPC alternative-process page); Companies Regulations where CoR39 is the prescribed notice of change of directors.
@@ -135,7 +135,7 @@ Reviewed for this draft (public CIPC / CIPC-hosted material only):
 
 **OFFICIAL / plain-English paraphrase:** A director change is a filing with CIPC that updates the company’s official director record. Typical updates are appointing a director, recording a resignation, or correcting a director’s particulars. CIPC now handles these electronically through the CoR39 director-amendments service. It is **not** an Annual Return, **not** a SARS filing, and **not** a Beneficial Ownership filing (those may still be needed separately if ownership or control also changed).
 
-### What the CIPC Desk Director Changes service covers
+### What the Business Admin Desk Director Changes service covers
 
 **PRACTICAL (provisional v1 — standard scenarios only):**
 
@@ -172,7 +172,7 @@ Reviewed for this draft (public CIPC / CIPC-hosted material only):
 - Mandate / power of attorney if a third party will file.
 - **SARAH CONFIRM:** signed Desk engagement/mandate before filing; customer-code path (client’s own code vs authorised practitioner code).
 
-### What CIPC Desk cannot guarantee
+### What Business Admin Desk cannot guarantee
 
 **PRACTICAL:**
 
@@ -395,7 +395,7 @@ After external submission:
 - Any promised Desk or CIPC turnaround.
 - “We will remove the director even if they do not cooperate.”
 - “Death can be processed as a normal resignation.”
-- Brand name “CIPC Desk” as final public brand.
+- Brand name “Business Admin Desk” as final public brand.
 - Any claim of CIPC accreditation or partnership.
 - Invented mandatory-document lists presented as statute.
 - Invented certification-recency periods presented as official.
@@ -448,7 +448,7 @@ After external submission:
 | Deregistration / restoration overlap | Not a standard director amendment | Stop; escalate |
 | Suspected false or unverifiable information | Integrity / offence risk | Refuse filing; escalate to Sarah |
 
-**Escalation tone to clients (PRACTICAL):** explain that a specialist must review before any filing attempt; list what is blocked; restate that CIPC Desk cannot guarantee CIPC outcomes or OTP completion.
+**Escalation tone to clients (PRACTICAL):** explain that a specialist must review before any filing attempt; list what is blocked; restate that Business Admin Desk cannot guarantee CIPC outcomes or OTP completion.
 
 ---
 

@@ -29,7 +29,7 @@ Examples (non-exhaustive):
 
 - `core.corpflowai.com` (factory / operator spine)
 - `lux.corpflowai.com` / optional `luxe.corpflowai.com` (Lux / Rare & Exclusive working surface)
-- `cipc.corpflowai.com` / `cipc-desk.corpflowai.com` (CIPC Desk standing internal test tenant)
+- `cipc.corpflowai.com` / `cipc-desk.corpflowai.com` (Business Admin Desk standing internal test tenant)
 - Living Word and other tenant/test routes hosted under CorpFlowAI infrastructure for review and sign-off
 - Future tenant surfaces published under CorpFlowAI-controlled domains for testing, demonstration, validation, and client sign-off
 

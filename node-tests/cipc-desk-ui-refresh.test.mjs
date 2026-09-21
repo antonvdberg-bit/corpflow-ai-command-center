@@ -21,7 +21,9 @@ test('website draft uses CorpFlow palette and content_version refresh marker', (
   );
   assert.equal(draft.theme?.primary, '#2dd4bf');
   assert.equal(draft.theme?.background, '#06111f');
-  assert.equal(draft.hero?.title, 'CIPC Desk');
+  assert.equal(draft.hero?.title, 'Business Admin Desk');
+  assert.equal(draft.meta?.page_title, 'Business Admin Desk · Company administration support');
+  assert.match(String(draft.meta?.description || ''), /CIPC-related administration/);
   assert.match(String(draft.hero?.cta_href || ''), /^mailto:/);
   assert.equal(draft.hero?.cta_secondary_href, '/partners');
   assert.ok(Array.isArray(draft.sections?.services?.items));
@@ -34,14 +36,15 @@ test('website draft uses CorpFlow palette and content_version refresh marker', (
   assert.match(blob, /provisional|validated by Serah/i);
 });
 
-test('landing component reuses CorpFlow photo+glass shell and CIPC branding', () => {
+test('landing component reuses CorpFlow photo+glass shell and Business Admin Desk branding', () => {
   const landing = readFileSync(join(root, 'components/CipcDeskLanding.js'), 'utf8');
   assert.match(landing, /PublicMarketingPhotoGlassShell/);
   assert.match(landing, /HeroGlassBlock/);
   assert.match(landing, /GlassCardGrid/);
   assert.match(landing, /corpflow-public-styles/);
   assert.match(landing, /buildPublicVisualHero/);
-  assert.match(landing, /CIPC Desk/);
+  assert.match(landing, /Business Admin Desk/);
+  assert.doesNotMatch(landing, /CIPC Desk/);
   assert.doesNotMatch(landing, /Fraunces|Source Sans|#f3ebe0|#c45c26/);
   assert.doesNotMatch(landing, /\/api\/tenant\/intake/);
   assert.match(landing, /mailto:/);
@@ -63,6 +66,26 @@ test('tenant boundary: standing hosts stay cipc-desk; lux/core do not', () => {
   assert.equal(resolveCipcDeskTenantIdFromHost('cipc-desk.corpflowai.com'), 'cipc-desk');
   assert.equal(resolveCipcDeskTenantIdFromHost('lux.corpflowai.com'), null);
   assert.equal(resolveCipcDeskTenantIdFromHost('core.corpflowai.com'), null);
+});
+
+test('client-facing Business Admin Desk sources do not retain the former display brand', () => {
+  const clientFacingFiles = [
+    'components/CipcDeskLanding.js',
+    'components/CipcDeskAnnualReturnsReview.js',
+    'components/CipcDeskDirectorChangesReview.js',
+    'components/CipcDeskBeneficialOwnershipReview.js',
+    'components/CipcDeskPartnerFunnel.js',
+    'lib/server/cipc-desk-website-draft.js',
+    'lib/cipc-desk/annual-returns-review.js',
+    'lib/cipc-desk/director-changes-review.js',
+    'lib/cipc-desk/beneficial-ownership-review.js',
+    'lib/cipc-desk/partner-funnel.js',
+  ];
+
+  for (const file of clientFacingFiles) {
+    const source = readFileSync(join(root, file), 'utf8');
+    assert.doesNotMatch(source, /CIPC Desk/, `${file} must not expose the former display brand`);
+  }
 });
 
 test('seed module re-exports draft builder and refreshes by content_version', () => {

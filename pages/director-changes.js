@@ -34,7 +34,7 @@ function parseSearchParam(req, name) {
 }
 
 /**
- * CIPC Desk Director Changes specialist-review surface (#980).
+ * Business Admin Desk Director Changes specialist-review surface (#980).
  * Standing URL: https://cipc.corpflowai.com/director-changes (corpflow_test only).
  * Unresolved specialist items stay labelled SARAH CONFIRM — not guessed.
  */

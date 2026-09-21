@@ -34,7 +34,7 @@ function parseSearchParam(req, name) {
 }
 
 /**
- * CIPC Desk commercial partner funnel (#986).
+ * Business Admin Desk commercial partner funnel (#986).
  * Standing URL after publish: https://cipc.corpflowai.com/partners (corpflow_test only).
  * Not a public launch. Specialist-review pages are unchanged.
  */
