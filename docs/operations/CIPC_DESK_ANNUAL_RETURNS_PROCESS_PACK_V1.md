@@ -13,7 +13,7 @@
 
 ## Sarah-approved v1 decisions (2026-08-07)
 
-These eight decisions are **closed** for Annual Returns v1. Provisional / `SARAH CONFIRM` tags are removed for these points only.
+These eight decisions are **closed** for Annual Returns v1. Provisional labels are removed for these points only.
 
 1. **Customer code:** Support both models; **default to the client’s own CIPC customer code** unless the client authorises an **authorised practitioner code**.
 2. **Standard service scope:** Standard Annual Returns service includes **Annual Return filing only**. BO and AFS/FAS prerequisites are **identified** and **referred to the client for completion** or **quoted separately**.
