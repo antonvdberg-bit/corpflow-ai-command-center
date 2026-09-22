@@ -40,11 +40,12 @@ test('website draft uses CorpFlow palette and content_version refresh marker', (
   assert.match(blob, /provisional|validated by Serah/i);
 });
 
-test('landing wrapper keeps corpflow_test content separate from the public production landing', () => {
+test('landing wrapper stages candidate on internal host while public production keeps approved version', () => {
   const landing = readFileSync(join(root, 'components/CipcDeskLanding.js'), 'utf8');
   assert.match(landing, /BusinessAdminDeskPublicLanding/);
   assert.match(landing, /isPublicProduction/);
-  assert.match(landing, /<BusinessAdminDeskPublicLanding \/>/);
+  assert.match(landing, /!isPublicProduction/);
+  assert.match(landing, /internalReview/);
   assert.match(landing, /PublicMarketingPhotoGlassShell/);
   assert.doesNotMatch(landing, /Email your CIPC matter/i);
   assert.doesNotMatch(landing, /CIPC Desk/);
@@ -68,12 +69,11 @@ test('public Business Admin Desk landing is concise, video-first and serves dire
 });
 
 
-test('Business Admin Desk preview route is preview-only', () => {
-  const preview = readFileSync(join(root, 'pages/business-admin-desk-preview.js'), 'utf8');
-  assert.match(preview, /BusinessAdminDeskPublicLanding/);
-  assert.match(preview, /VERCEL_ENV/);
-  assert.match(preview, /production/);
-  assert.match(preview, /notFound: true/);
+test('candidate landing supports internal noindex review mode', () => {
+  const landing = readFileSync(join(root, 'components/BusinessAdminDeskPublicLanding.js'), 'utf8');
+  assert.match(landing, /internalReview/);
+  assert.match(landing, /noindex,nofollow/);
+  assert.match(landing, /Internal review · not published/);
 });
 
 test('pages/index wires CipcDeskLanding only for tenant_id cipc-desk', () => {
