@@ -40,7 +40,7 @@ export default function CipcDeskLanding({ site, publicProduction = false }) {
   const media = s.media && typeof s.media === 'object' ? s.media : {};
 
   if (isPublicProduction) {
-    return <BusinessAdminDeskPublicLanding videoUrl={safeStr(media.video_url)} />;
+    return <BusinessAdminDeskPublicLanding />;
   }
   const hero = s.hero && typeof s.hero === 'object' ? s.hero : {};
   const meta = s.meta && typeof s.meta === 'object' ? s.meta : {};
