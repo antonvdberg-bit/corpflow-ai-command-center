@@ -55,6 +55,8 @@ test('landing component reuses CorpFlow photo+glass shell and Business Admin Des
   assert.match(landing, /mailto:/);
   assert.match(landing, /index,follow/);
   assert.match(landing, /businessadmindesk\.co\.za/);
+  assert.match(landing, /isPublicProduction[\s\S]*Tell us what you need help with/);
+  assert.match(landing, /isPublicProduction[\s\S]*regulatory administration/);
 });
 
 test('pages/index wires CipcDeskLanding only for tenant_id cipc-desk', () => {
