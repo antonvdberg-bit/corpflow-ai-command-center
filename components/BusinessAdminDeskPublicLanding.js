@@ -48,7 +48,7 @@ const serviceLabels = [
 
 export const BUSINESS_ADMIN_DESK_HEYGEN_EMBED_URL = 'https://app.heygen.com/embeds/24cebb01a1b240158c77771c103542da';
 
-export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINESS_ADMIN_DESK_HEYGEN_EMBED_URL }) {
+export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINESS_ADMIN_DESK_HEYGEN_EMBED_URL, internalReview = false }) {
   const visualHero = buildPublicVisualHero('process');
 
   return (
@@ -56,8 +56,8 @@ export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINES
       <Head>
         <title>{PAGE_TITLE}</title>
         <meta name="description" content={PAGE_DESCRIPTION} />
-        <meta name="robots" content="index,follow" />
-        <link rel="canonical" href="https://businessadmindesk.co.za/" />
+        <meta name="robots" content={internalReview ? 'noindex,nofollow' : 'index,follow'} />
+        {!internalReview ? <link rel="canonical" href="https://businessadmindesk.co.za/" /> : null}
         <meta property="og:title" content={PAGE_TITLE} />
         <meta property="og:description" content={PAGE_DESCRIPTION} />
         <meta property="og:image" content="/assets/visuals/corpflow-process-hero.jpg" />
@@ -120,7 +120,11 @@ export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINES
         </nav>
 
         <HeroGlassBlock
-          eyebrow={<p style={{ ...cfKicker, marginBottom: 10 }}>Company administration, without the admin burden</p>}
+          eyebrow={
+            <p style={{ ...cfKicker, marginBottom: 10 }}>
+              {internalReview ? 'Internal review · not published' : 'Company administration, without the admin burden'}
+            </p>
+          }
           title={
             <h1
               style={{
