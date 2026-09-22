@@ -46,7 +46,9 @@ const serviceLabels = [
   'Ongoing administration',
 ];
 
-export default function BusinessAdminDeskPublicLanding({ videoUrl = '' }) {
+export const BUSINESS_ADMIN_DESK_HEYGEN_EMBED_URL = 'https://app.heygen.com/embeds/24cebb01a1b240158c77771c103542da';
+
+export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINESS_ADMIN_DESK_HEYGEN_EMBED_URL }) {
   const visualHero = buildPublicVisualHero('process');
 
   return (
@@ -69,13 +71,13 @@ export default function BusinessAdminDeskPublicLanding({ videoUrl = '' }) {
                   background: linear-gradient(180deg, rgba(3,15,34,0.92) 0%, rgba(3,15,34,0.84) 62%, rgba(3,15,34,0.74) 100%) !important;
                 }
               }
-              .bad-video-wrap video {
+              .bad-video-wrap iframe {
                 width: 100%;
                 aspect-ratio: 16 / 9;
                 display: block;
+                border: 0;
                 border-radius: 18px;
                 background: #020817;
-                object-fit: cover;
               }
             `,
           }}
@@ -155,41 +157,14 @@ export default function BusinessAdminDeskPublicLanding({ videoUrl = '' }) {
 
           <GlassPanel variant={{ padding: 14, elevation: 2 }} style={{ marginTop: 14 }}>
             <div className="bad-video-wrap">
-              {videoUrl ? (
-                <video
-                  controls
-                  playsInline
-                  preload="metadata"
-                  poster="/assets/visuals/corpflow-process-hero.jpg"
-                  aria-label="Business Admin Desk explainer video"
-                >
-                  <source src={videoUrl} type="video/mp4" />
-                  Your browser does not support embedded video.
-                </video>
-              ) : (
-                <div
-                  role="status"
-                  style={{
-                    aspectRatio: '16 / 9',
-                    borderRadius: 18,
-                    display: 'grid',
-                    placeItems: 'center',
-                    textAlign: 'center',
-                    padding: 28,
-                    background: 'rgba(3,15,34,0.72)',
-                    color: CF.text,
-                  }}
-                >
-                  <div>
-                    <strong style={{ display: 'block', fontSize: 18, marginBottom: 8 }}>
-                      Business Admin Desk explainer video
-                    </strong>
-                    <span style={{ color: '#aebfd1', lineHeight: 1.6 }}>
-                      Final approved video source will be connected before production release.
-                    </span>
-                  </div>
-                </div>
-              )}
+              <iframe
+                src={videoEmbedUrl}
+                title="Business Admin Desk — Clear Company Administration"
+                allow="encrypted-media; fullscreen"
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="strict-origin-when-cross-origin"
+              />
             </div>
           </GlassPanel>
         </section>
