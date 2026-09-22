@@ -1,6 +1,8 @@
 import React from 'react';
 import Head from 'next/head';
 
+import BusinessAdminDeskBrand, { BUSINESS_ADMIN_DESK_MARK_PATH } from './BusinessAdminDeskBrand.js';
+
 import PublicMarketingPhotoGlassShell from './beauty/PublicMarketingPhotoGlassShell.js';
 import HeroGlassBlock from './beauty/HeroGlassBlock.js';
 import GlassPanel from './beauty/GlassPanel.js';
@@ -27,11 +29,12 @@ function safeStr(v) {
 
 /**
  * Business Admin Desk public presentation — CorpFlowAI photo + glass visual language,
- * branded for company-secretarial / CIPC administration (presentation only).
+ * branded for company administration (presentation only).
  *
- * @param {{ site?: Record<string, unknown> | null }} props
+ * @param {{ site?: Record<string, unknown> | null, publicProduction?: boolean }} props
  */
-export default function CipcDeskLanding({ site }) {
+export default function CipcDeskLanding({ site, publicProduction = false }) {
+  const isPublicProduction = publicProduction === true;
   const s = site && typeof site === 'object' ? site : {};
   const hero = s.hero && typeof s.hero === 'object' ? s.hero : {};
   const meta = s.meta && typeof s.meta === 'object' ? s.meta : {};
@@ -50,19 +53,40 @@ export default function CipcDeskLanding({ site }) {
   const pageTitle = safeStr(meta.page_title) || `${brand} · Company administration support`;
   const description =
     safeStr(meta.description) ||
-    'Business Admin Desk — professional South African company-administration support for registrations, amendments, annual returns, records and CIPC-related administration.';
+    'Business Admin Desk — professional South African company-administration support for registrations, amendments, annual returns, records and regulatory administration.';
 
   const primaryCta = {
-    label: safeStr(hero.cta_label) || 'Email your CIPC matter',
+    label: safeStr(hero.cta_label) || 'Tell us what you need help with',
     href: safeStr(hero.cta_href) || 'mailto:swart829@gmail.com?subject=Business%20Admin%20Desk%20enquiry',
   };
   const secondaryCtaLabel = safeStr(hero.cta_secondary_label);
   const secondaryCtaHref = safeStr(hero.cta_secondary_href);
   const contactEmail = safeStr(contact.email) || 'swart829@gmail.com';
 
-  const serviceItems = Array.isArray(services.items) ? services.items : [];
-  const routeItems = Array.isArray(routes.items) ? routes.items : [];
-  const trustItems = Array.isArray(trust.items) ? trust.items : [];
+  const sourceServiceItems = Array.isArray(services.items) ? services.items : [];
+  const sourceRouteItems = Array.isArray(routes.items) ? routes.items : [];
+  const sourceTrustItems = Array.isArray(trust.items) ? trust.items : [];
+
+  const serviceItems = isPublicProduction
+    ? [
+        { name: 'Company registrations', detail: 'Practical support to get a company-registration matter scoped and moving.' },
+        { name: 'Director changes', detail: 'Appointments, resignations and updates to director information.' },
+        { name: 'Registered-address changes', detail: 'Support with company address updates and required information.' },
+        { name: 'Annual returns', detail: 'Annual filing administration, prerequisite checks and clear next steps.' },
+        { name: 'Beneficial ownership', detail: 'Administration support for standard beneficial-ownership matters.' },
+        { name: 'Company amendments', detail: 'Support for routine changes to company information and records.' },
+        { name: 'Statutory records', detail: 'Company records, document retrieval and supporting administration.' },
+        { name: 'Ongoing administration', detail: 'Ongoing support for businesses that want company administration handled consistently.' },
+      ]
+    : sourceServiceItems;
+  const routeItems = isPublicProduction ? [] : sourceRouteItems;
+  const trustItems = isPublicProduction
+    ? [
+        { name: 'Professional and clear', detail: 'Plain-English guidance and a clear scope before work starts.' },
+        { name: 'Human support', detail: 'Tell us what you need help with. We review the matter and explain the next step.' },
+        { name: 'No overclaiming', detail: 'We do not invent regulatory outcomes, deadlines or fees before a matter is reviewed.' },
+      ]
+    : sourceTrustItems;
 
   const visualKey =
     s.media && typeof s.media === 'object' && typeof s.media.visual_key === 'string'
@@ -72,21 +96,29 @@ export default function CipcDeskLanding({ site }) {
     /** @type {'home'|'contact'|'about'|'process'|'services'|'standards'|'onboarding'} */ (visualKey),
   ) || buildPublicVisualHero('process');
 
-  const aboutParagraphs = safeStr(about.body)
-    .split(/\n\n+/)
-    .map((p) => p.trim())
-    .filter(Boolean);
+  const aboutParagraphs = isPublicProduction
+    ? [
+        '1) Tell us what you need help with.',
+        '2) We review the matter and confirm what information or documents are needed.',
+        '3) Once the scope is agreed, we handle the agreed administration and keep you informed.',
+      ]
+    : safeStr(about.body)
+        .split(/\n\n+/)
+        .map((p) => p.trim())
+        .filter(Boolean);
 
   return (
     <>
       <Head>
         <title>{pageTitle}</title>
         <meta name="description" content={description} />
-        <meta name="robots" content="noindex,nofollow" />
+        <meta name="robots" content={isPublicProduction ? 'index,follow' : 'noindex,nofollow'} />
+        {isPublicProduction ? <link rel="canonical" href="https://businessadmindesk.co.za/" /> : null}
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={description} />
         <meta property="og:image" content="/assets/visuals/corpflow-process-hero.jpg" />
         <meta name="theme-color" content="#06111f" />
+        <link rel="icon" href={BUSINESS_ADMIN_DESK_MARK_PATH} type="image/svg+xml" />
         <style
           dangerouslySetInnerHTML={{
             __html: `
@@ -109,12 +141,11 @@ export default function CipcDeskLanding({ site }) {
         publicScrimHook
         footer={
           <div>
-            <div style={{ fontWeight: 800, color: CF.text, marginBottom: 6 }}>{brand}</div>
+            <div style={{ marginBottom: 8 }}><BusinessAdminDeskBrand compact href="/" /></div>
             <p style={{ ...cfBody, margin: 0, fontSize: 13.5 }}>
-              Internal CorpFlowAI test desk for company administration presentation. Not CIPC, not a law firm, and not an
-              authorised government channel. Powered by CorpFlowAI.
+              Independent company-administration support. Not a government or regulatory service, and not a law firm.
             </p>
-            {safeStr(contact.note) ? (
+            {!isPublicProduction && safeStr(contact.note) ? (
               <p style={{ ...cfBody, margin: '10px 0 0', fontSize: 13 }}>{safeStr(contact.note)}</p>
             ) : null}
           </div>
@@ -131,21 +162,7 @@ export default function CipcDeskLanding({ site }) {
             marginBottom: 20,
           }}
         >
-          <div>
-            <div
-              style={{
-                fontWeight: 900,
-                fontSize: 22,
-                letterSpacing: '-0.02em',
-                color: CF.text,
-              }}
-            >
-              {brand}
-            </div>
-            <div style={{ color: CF.textFaint, fontSize: 12, marginTop: 2 }}>
-              Company administration · South Africa
-            </div>
-          </div>
+          <BusinessAdminDeskBrand subtitle="Company administration · South Africa" priority />
           <a href={primaryCta.href} style={{ ...cfBtnPrimary, fontSize: 13, minHeight: 40, padding: '10px 16px' }}>
             {primaryCta.label}
           </a>
@@ -153,7 +170,7 @@ export default function CipcDeskLanding({ site }) {
 
         <HeroGlassBlock
           eyebrow={
-            <p style={{ ...cfKicker, marginBottom: 10 }}>Professional CIPC administration support</p>
+            <p style={{ ...cfKicker, marginBottom: 10 }}>Professional company administration support</p>
           }
           title={
             <h1
@@ -236,7 +253,9 @@ export default function CipcDeskLanding({ site }) {
             <h2 id="cipc-services-title" style={cfH2}>
               {safeStr(services.title) || 'Services we can help administer'}
             </h2>
-            {safeStr(services.intro) ? <p style={cfBody}>{safeStr(services.intro)}</p> : null}
+            {isPublicProduction ? (
+              <p style={cfBody}>Practical support across the company-administration matters that businesses deal with most often.</p>
+            ) : safeStr(services.intro) ? <p style={cfBody}>{safeStr(services.intro)}</p> : null}
             <GlassCardGrid minColWidth={240} style={{ marginTop: 16 }}>
               {serviceItems.map((item, idx) => {
                 const name = safeStr(item?.name) || `Service ${idx + 1}`;
@@ -270,7 +289,7 @@ export default function CipcDeskLanding({ site }) {
           <section style={cfSection} aria-labelledby="cipc-about-title">
             <p style={cfKicker}>Process</p>
             <h2 id="cipc-about-title" style={cfH2}>
-              {safeStr(about.title) || 'How the email-first desk works'}
+              {isPublicProduction ? 'How it works' : safeStr(about.title) || 'How the email-first desk works'}
             </h2>
             <GlassPanel variant={{ padding: 24, elevation: 2 }} style={{ marginTop: 8 }}>
               {aboutParagraphs.map((para, idx) => (
@@ -320,11 +339,17 @@ export default function CipcDeskLanding({ site }) {
               Ready to start with a clear email?
             </h2>
             <p style={cfBody}>
-              Send a short summary of your company matter to{' '}
-              <a href={`mailto:${contactEmail}`} style={{ color: CF.link, fontWeight: 600 }}>
-                {contactEmail}
-              </a>
-              . Serah confirms scope before any filing work begins. No fees or deadlines are quoted until that review.
+              {isPublicProduction ? (
+                <>Tell us what you need help with. We’ll review the matter, explain what is required in plain English, and confirm the next step before any work begins.</>
+              ) : (
+                <>
+                  Send a short summary of your company matter to{' '}
+                  <a href={`mailto:${contactEmail}`} style={{ color: CF.link, fontWeight: 600 }}>
+                    {contactEmail}
+                  </a>
+                  . Serah confirms scope before any filing work begins. No fees or deadlines are quoted until that review.
+                </>
+              )}
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 8 }}>
               <a href={primaryCta.href} style={cfBtnPrimary}>

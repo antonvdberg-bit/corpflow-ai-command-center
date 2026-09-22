@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import Head from 'next/head';
 
+import BusinessAdminDeskBrand, { BUSINESS_ADMIN_DESK_MARK_PATH } from './BusinessAdminDeskBrand.js';
+
 import PublicMarketingPhotoGlassShell from './beauty/PublicMarketingPhotoGlassShell.js';
 import HeroGlassBlock from './beauty/HeroGlassBlock.js';
 import GlassPanel from './beauty/GlassPanel.js';
@@ -164,6 +166,7 @@ export default function CipcDeskBeneficialOwnershipReview({ content }) {
         <meta property="og:description" content={description} />
         <meta property="og:image" content="/assets/visuals/corpflow-process-hero.jpg" />
         <meta name="theme-color" content="#06111f" />
+        <link rel="icon" href={BUSINESS_ADMIN_DESK_MARK_PATH} type="image/svg+xml" />
         <style
           dangerouslySetInnerHTML={{
             __html: `
@@ -186,7 +189,7 @@ export default function CipcDeskBeneficialOwnershipReview({ content }) {
         publicScrimHook
         footer={
           <div>
-            <div style={{ fontWeight: 800, color: CF.text, marginBottom: 6 }}>Business Admin Desk</div>
+            <div style={{ marginBottom: 8 }}><BusinessAdminDeskBrand compact href="/" /></div>
             <p style={{ ...cfBody, margin: 0, fontSize: 13.5 }}>
               Internal working name pending brand decision. Independent company-administration support —
               not CIPC, not a law firm, and not an authorised government channel. Powered by CorpFlowAI.
@@ -206,21 +209,7 @@ export default function CipcDeskBeneficialOwnershipReview({ content }) {
             marginBottom: 20,
           }}
         >
-          <div>
-            <div
-              style={{
-                fontWeight: 900,
-                fontSize: 22,
-                letterSpacing: '-0.02em',
-                color: CF.text,
-              }}
-            >
-              Business Admin Desk
-            </div>
-            <div style={{ color: CF.textFaint, fontSize: 12, marginTop: 2 }}>
-              Beneficial Ownership · specialist review
-            </div>
-          </div>
+          <BusinessAdminDeskBrand subtitle="Beneficial Ownership · specialist review" />
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
             <a href="/annual-returns" style={{ ...cfBtnSecondary, fontSize: 13, minHeight: 40, padding: '10px 16px' }}>
               Annual Returns review

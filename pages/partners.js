@@ -6,7 +6,10 @@ import {
   buildCipcDeskPartnerFunnelContent,
   resolveCipcDeskPartnerFunnelPageAccess,
 } from '../lib/cipc-desk/partner-funnel.js';
-import { resolveCipcDeskTenantIdFromHost } from '../lib/server/cipc-desk-runtime.js';
+import {
+  isBusinessAdminDeskPublicHost,
+  resolveCipcDeskTenantIdFromHost,
+} from '../lib/server/cipc-desk-runtime.js';
 import { verifyTenantPreviewToken } from '../lib/server/tenant-preview-token.js';
 import { isGhostHost } from '../lib/server/ghost-host.js';
 
@@ -38,8 +41,8 @@ function parseSearchParam(req, name) {
  * Standing URL after publish: https://cipc.corpflowai.com/partners (corpflow_test only).
  * Not a public launch. Specialist-review pages are unchanged.
  */
-export default function PartnersPage({ content }) {
-  return <CipcDeskPartnerFunnel content={content} />;
+export default function PartnersPage({ content, publicProduction = false }) {
+  return <CipcDeskPartnerFunnel content={content} publicProduction={publicProduction} />;
 }
 
 export async function getServerSideProps({ req }) {
@@ -96,6 +99,7 @@ export async function getServerSideProps({ req }) {
     return {
       props: {
         content: buildCipcDeskPartnerFunnelContent(),
+        publicProduction: isBusinessAdminDeskPublicHost(host),
       },
     };
   } catch {
@@ -106,6 +110,7 @@ export async function getServerSideProps({ req }) {
     return {
       props: {
         content: buildCipcDeskPartnerFunnelContent(),
+        publicProduction: isBusinessAdminDeskPublicHost(host),
       },
     };
   } finally {
