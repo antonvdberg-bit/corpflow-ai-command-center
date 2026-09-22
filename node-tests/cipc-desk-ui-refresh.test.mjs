@@ -102,7 +102,7 @@ test('service-page candidate pattern is concise, regulator-neutral and review-ca
   assert.match(service, /Annual Returns/);
   assert.match(service, /Director Changes/);
   assert.match(service, /Beneficial Ownership/);
-  assert.match(service, /Tell us what you need help with/);
+  assert.match(service, /Ask us about your Annual Returns/);
   assert.match(service, /Need white-label \/ fractional support/);
   assert.match(service, /internalReview/);
   assert.match(service, /noindex,nofollow/);
