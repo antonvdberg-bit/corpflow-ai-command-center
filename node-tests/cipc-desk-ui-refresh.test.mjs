@@ -55,7 +55,7 @@ test('public Business Admin Desk landing is concise, video-first and serves dire
   const landing = readFileSync(join(root, 'components/BusinessAdminDeskPublicLanding.js'), 'utf8');
   assert.match(landing, /<iframe/);
   assert.match(landing, /app\.heygen\.com\/embeds\/24cebb01a1b240158c77771c103542da/);
-  assert.match(landing, /Business Admin Desk explainer video/);
+  assert.match(landing, /Business Admin Desk — Clear Company Administration/);
   assert.match(landing, /You run the business\. We help with the administration\./);
   assert.match(landing, /For individual businesses/);
   assert.match(landing, /For companies and service providers/);
