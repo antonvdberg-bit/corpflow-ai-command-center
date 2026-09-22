@@ -40,23 +40,40 @@ test('website draft uses CorpFlow palette and content_version refresh marker', (
   assert.match(blob, /provisional|validated by Serah/i);
 });
 
-test('landing component reuses CorpFlow photo+glass shell and Business Admin Desk branding', () => {
+test('landing wrapper stages candidate on internal host while public production keeps approved version', () => {
   const landing = readFileSync(join(root, 'components/CipcDeskLanding.js'), 'utf8');
+  assert.match(landing, /BusinessAdminDeskPublicLanding/);
+  assert.match(landing, /isPublicProduction/);
+  assert.match(landing, /!isPublicProduction/);
+  assert.match(landing, /internalReview/);
   assert.match(landing, /PublicMarketingPhotoGlassShell/);
-  assert.match(landing, /HeroGlassBlock/);
-  assert.match(landing, /GlassCardGrid/);
-  assert.match(landing, /corpflow-public-styles/);
-  assert.match(landing, /buildPublicVisualHero/);
-  assert.match(landing, /Business Admin Desk/);
-  assert.doesNotMatch(landing, /Professional CIPC|Email your CIPC|Not CIPC/i);
+  assert.doesNotMatch(landing, /Email your CIPC matter/i);
   assert.doesNotMatch(landing, /CIPC Desk/);
-  assert.doesNotMatch(landing, /Fraunces|Source Sans|#f3ebe0|#c45c26/);
-  assert.doesNotMatch(landing, /\/api\/tenant\/intake/);
-  assert.match(landing, /mailto:/);
+});
+
+test('public Business Admin Desk landing is concise, video-first and serves direct plus partner audiences', () => {
+  const landing = readFileSync(join(root, 'components/BusinessAdminDeskPublicLanding.js'), 'utf8');
+  assert.match(landing, /<iframe/);
+  assert.match(landing, /app\.heygen\.com\/embeds\/24cebb01a1b240158c77771c103542da/);
+  assert.match(landing, /Business Admin Desk — Clear Company Administration/);
+  assert.match(landing, /You run the business\. We help with the administration\./);
+  assert.match(landing, /For individual businesses/);
+  assert.match(landing, /For companies and service providers/);
+  assert.match(landing, /White-label or fractional admin capacity/);
+  assert.match(landing, /Discuss white-label \/ fractional support/);
+  assert.match(landing, /Tell us what you need help with/);
   assert.match(landing, /index,follow/);
   assert.match(landing, /businessadmindesk\.co\.za/);
-  assert.match(landing, /isPublicProduction[\s\S]*Tell us what you need help with/);
-  assert.match(landing, /isPublicProduction[\s\S]*regulatory administration/);
+  assert.doesNotMatch(landing, /\bCIPC\b/i);
+  assert.doesNotMatch(landing, /CIPC Desk/i);
+});
+
+
+test('candidate landing supports internal noindex review mode', () => {
+  const landing = readFileSync(join(root, 'components/BusinessAdminDeskPublicLanding.js'), 'utf8');
+  assert.match(landing, /internalReview/);
+  assert.match(landing, /noindex,nofollow/);
+  assert.match(landing, /Internal review · not published/);
 });
 
 test('pages/index wires CipcDeskLanding only for tenant_id cipc-desk', () => {
