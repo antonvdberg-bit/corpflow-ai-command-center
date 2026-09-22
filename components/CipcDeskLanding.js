@@ -2,6 +2,7 @@ import React from 'react';
 import Head from 'next/head';
 
 import BusinessAdminDeskBrand, { BUSINESS_ADMIN_DESK_MARK_PATH } from './BusinessAdminDeskBrand.js';
+import BusinessAdminDeskPublicLanding from './BusinessAdminDeskPublicLanding.js';
 
 import PublicMarketingPhotoGlassShell from './beauty/PublicMarketingPhotoGlassShell.js';
 import HeroGlassBlock from './beauty/HeroGlassBlock.js';
@@ -36,6 +37,11 @@ function safeStr(v) {
 export default function CipcDeskLanding({ site, publicProduction = false }) {
   const isPublicProduction = publicProduction === true;
   const s = site && typeof site === 'object' ? site : {};
+  const media = s.media && typeof s.media === 'object' ? s.media : {};
+
+  if (isPublicProduction) {
+    return <BusinessAdminDeskPublicLanding videoUrl={safeStr(media.video_url)} />;
+  }
   const hero = s.hero && typeof s.hero === 'object' ? s.hero : {};
   const meta = s.meta && typeof s.meta === 'object' ? s.meta : {};
   const sections = s.sections && typeof s.sections === 'object' ? s.sections : {};
@@ -96,10 +102,7 @@ export default function CipcDeskLanding({ site, publicProduction = false }) {
       ]
     : sourceTrustItems;
 
-  const visualKey =
-    s.media && typeof s.media === 'object' && typeof s.media.visual_key === 'string'
-      ? s.media.visual_key
-      : 'process';
+  const visualKey = typeof media.visual_key === 'string' ? media.visual_key : 'process';
   const visualHero = buildPublicVisualHero(
     /** @type {'home'|'contact'|'about'|'process'|'services'|'standards'|'onboarding'} */ (visualKey),
   ) || buildPublicVisualHero('process');
