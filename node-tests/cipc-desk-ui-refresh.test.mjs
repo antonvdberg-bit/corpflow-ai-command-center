@@ -77,6 +77,51 @@ test('candidate landing supports internal noindex review mode', () => {
   assert.match(landing, /Internal review · not published/);
 });
 
+
+test('service-page candidate pattern is concise, regulator-neutral and review-capable', () => {
+  const service = readFileSync(join(root, 'components/BusinessAdminDeskServiceLanding.js'), 'utf8');
+  assert.match(service, /Annual Returns/);
+  assert.match(service, /Director Changes/);
+  assert.match(service, /Beneficial Ownership/);
+  assert.match(service, /Tell us what you need help with/);
+  assert.match(service, /Need white-label \/ fractional support/);
+  assert.match(service, /internalReview/);
+  assert.match(service, /noindex,nofollow/);
+  assert.doesNotMatch(service, /\bCIPC\b/i);
+});
+
+test('partner candidate is concise, white-label focused and regulator-neutral', () => {
+  const partner = readFileSync(join(root, 'components/BusinessAdminDeskPartnerLanding.js'), 'utf8');
+  assert.match(partner, /Specialist company-administration capacity behind your firm/);
+  assert.match(partner, /white-label or fractional capacity/i);
+  assert.match(partner, /Accounting and tax firms/);
+  assert.match(partner, /professional-service firms/i);
+  assert.match(partner, /internalReview/);
+  assert.match(partner, /noindex,nofollow/);
+  assert.doesNotMatch(partner, /\bCIPC\b/i);
+});
+
+test('four internal routes stage candidate copy while preserving detailed review through specialist flag', () => {
+  const routes = [
+    ['pages/annual-returns.js', 'annual-returns'],
+    ['pages/director-changes.js', 'director-changes'],
+    ['pages/beneficial-ownership.js', 'beneficial-ownership'],
+    ['pages/partners.js', 'partners'],
+  ];
+
+  for (const [file] of routes) {
+    const source = readFileSync(join(root, file), 'utf8');
+    assert.match(source, /isCipcDeskStandingTestHost/);
+    assert.match(source, /specialist/);
+    assert.match(source, /stagedPublic/);
+  }
+
+  for (const file of ['pages/annual-returns.js', 'pages/director-changes.js', 'pages/beneficial-ownership.js']) {
+    const source = readFileSync(join(root, file), 'utf8');
+    assert.match(source, /isBusinessAdminDeskPublicHost[\s\S]*redirect/);
+  }
+});
+
 test('pages/index wires CipcDeskLanding only for tenant_id cipc-desk', () => {
   const indexSrc = readFileSync(join(root, 'pages/index.js'), 'utf8');
   assert.match(indexSrc, /import CipcDeskLanding from/);

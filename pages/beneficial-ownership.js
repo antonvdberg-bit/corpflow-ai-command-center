@@ -2,12 +2,14 @@ import React from 'react';
 import { PrismaClient } from '@prisma/client';
 
 import CipcDeskBeneficialOwnershipReview from '../components/CipcDeskBeneficialOwnershipReview.js';
+import BusinessAdminDeskServiceLanding from '../components/BusinessAdminDeskServiceLanding.js';
 import {
   buildCipcDeskBeneficialOwnershipReviewContent,
   resolveCipcDeskBeneficialOwnershipPageAccess,
 } from '../lib/cipc-desk/beneficial-ownership-review.js';
 import {
   isBusinessAdminDeskPublicHost,
+  isCipcDeskStandingTestHost,
   resolveCipcDeskTenantIdFromHost,
 } from '../lib/server/cipc-desk-runtime.js';
 import { verifyTenantPreviewToken } from '../lib/server/tenant-preview-token.js';
@@ -40,7 +42,8 @@ function parseSearchParam(req, name) {
  * Business Admin Desk Beneficial Ownership specialist-review surface (#981).
  * Standing URL: https://cipc.corpflowai.com/beneficial-ownership (corpflow_test only).
  */
-export default function BeneficialOwnershipPage({ content }) {
+export default function BeneficialOwnershipPage({ content, stagedPublic = false }) {
+  if (stagedPublic) return <BusinessAdminDeskServiceLanding serviceKey="beneficial-ownership" internalReview />;
   return <CipcDeskBeneficialOwnershipReview content={content} />;
 }
 
@@ -56,6 +59,11 @@ export async function getServerSideProps({ req }) {
 
   if (isBusinessAdminDeskPublicHost(host)) {
     return { redirect: { destination: '/', permanent: false } };
+  }
+
+  // Stable internal staging surface. Append ?specialist=1 to access the detailed specialist-review pack.
+  if (isCipcDeskStandingTestHost(host) && parseSearchParam(req, 'specialist') !== '1') {
+    return { props: { stagedPublic: true, content: null } };
   }
 
   const root = String(process.env.CORPFLOW_ROOT_DOMAIN || 'corpflowai.com')
