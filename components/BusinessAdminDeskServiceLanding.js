@@ -2,6 +2,7 @@ import React from 'react';
 import Head from 'next/head';
 
 import BusinessAdminDeskBrand, { BUSINESS_ADMIN_DESK_MARK_PATH } from './BusinessAdminDeskBrand.js';
+import BusinessAdminDeskContactActions from './BusinessAdminDeskContactActions.js';
 import PublicMarketingPhotoGlassShell from './beauty/PublicMarketingPhotoGlassShell.js';
 import HeroGlassBlock from './beauty/HeroGlassBlock.js';
 import GlassPanel from './beauty/GlassPanel.js';
@@ -42,7 +43,17 @@ const configs = {
     ],
     specialist:
       'If the company record is unusual, historical information conflicts, or a prerequisite is not complete, we stop the routine path and scope the additional work before proceeding.',
-    subject: 'Business Admin Desk - Annual Returns enquiry',
+    ctaLabel: 'Ask us about your Annual Returns',
+    subject: 'Business Admin Desk - Annual Returns help',
+    body: `Hi Business Admin Desk,
+
+I need help with an Annual Returns matter.
+
+What has happened / what I need help with:
+
+Company name:
+
+You can reply to me on this email.`,
   },
   'director-changes': {
     title: 'Director Changes',
@@ -64,7 +75,17 @@ const configs = {
     ],
     specialist:
       'If the change is disputed, unusually structured, affected by historical records, or cannot follow the routine electronic path, we pause and scope the specialist route first.',
-    subject: 'Business Admin Desk - Director Changes enquiry',
+    ctaLabel: 'Tell us about the director change',
+    subject: 'Business Admin Desk - Director Changes help',
+    body: `Hi Business Admin Desk,
+
+I need help with a director change.
+
+What has happened / what I need help with:
+
+Company name:
+
+You can reply to me on this email.`,
   },
   'beneficial-ownership': {
     title: 'Beneficial Ownership',
@@ -86,13 +107,19 @@ const configs = {
     ],
     specialist:
       'Complex ownership structures are deliberately escalated rather than flattened into a simple filing. We confirm the specialist scope before further work proceeds.',
-    subject: 'Business Admin Desk - Beneficial Ownership enquiry',
+    ctaLabel: 'Ask us about your ownership filing',
+    subject: 'Business Admin Desk - Beneficial Ownership help',
+    body: `Hi Business Admin Desk,
+
+I need help with a Beneficial Ownership matter.
+
+What has happened / what I need help with:
+
+Company name:
+
+You can reply to me on this email.`,
   },
 };
-
-function mailto(subject) {
-  return `mailto:swart829@gmail.com?subject=${encodeURIComponent(subject)}`;
-}
 
 export default function BusinessAdminDeskServiceLanding({
   serviceKey,
@@ -103,7 +130,7 @@ export default function BusinessAdminDeskServiceLanding({
   const pageTitle = `Business Admin Desk · ${cfg.title}`;
   const description = `${cfg.title} support from Business Admin Desk — clear, practical company administration for South African businesses.`;
   const visualHero = buildPublicVisualHero('services') || buildPublicVisualHero('process');
-  const ctaHref = mailto(cfg.subject);
+  const contact = { label: cfg.ctaLabel, subject: cfg.subject, body: cfg.body };
 
   return (
     <>
@@ -146,9 +173,7 @@ export default function BusinessAdminDeskServiceLanding({
           }}
         >
           <BusinessAdminDeskBrand subtitle="Company administration · South Africa" priority />
-          <a href={ctaHref} style={{ ...cfBtnPrimary, fontSize: 13, minHeight: 40, padding: '10px 16px' }}>
-            Tell us what you need help with
-          </a>
+          <BusinessAdminDeskContactActions {...contact} compact />
         </nav>
 
         <HeroGlassBlock
@@ -164,9 +189,11 @@ export default function BusinessAdminDeskServiceLanding({
           }
           lead={<p style={{ ...cfLead, marginBottom: 0, maxWidth: 780 }}>{cfg.lead}</p>}
           actions={
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 18 }}>
-              <a href={ctaHref} style={cfBtnPrimary}>Tell us what you need help with</a>
-              <a href="/partners" style={cfBtnSecondary}>Need white-label / fractional support?</a>
+            <div style={{ marginTop: 18 }}>
+              <BusinessAdminDeskContactActions
+                {...contact}
+                secondary={<a href="/partners" style={cfBtnSecondary}>Need white-label / fractional support?</a>}
+              />
             </div>
           }
         />
@@ -218,7 +245,7 @@ export default function BusinessAdminDeskServiceLanding({
             <p style={{ ...cfBody, maxWidth: 760 }}>
               Tell us what has happened and what you are trying to achieve. We will review the matter, confirm the scope and explain the next step before work begins.
             </p>
-            <a href={ctaHref} style={cfBtnPrimary}>Tell us what you need help with</a>
+            <BusinessAdminDeskContactActions {...contact} />
           </GlassPanel>
         </section>
       </PublicMarketingPhotoGlassShell>
