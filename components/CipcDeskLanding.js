@@ -39,8 +39,8 @@ export default function CipcDeskLanding({ site, publicProduction = false }) {
   const s = site && typeof site === 'object' ? site : {};
   const media = s.media && typeof s.media === 'object' ? s.media : {};
 
-  if (isPublicProduction) {
-    return <BusinessAdminDeskPublicLanding />;
+  if (!isPublicProduction) {
+    return <BusinessAdminDeskPublicLanding internalReview />;
   }
   const hero = s.hero && typeof s.hero === 'object' ? s.hero : {};
   const meta = s.meta && typeof s.meta === 'object' ? s.meta : {};
