@@ -2,57 +2,60 @@
 
 Status: Mandatory release process
 Owner: CorpFlowAI / Anton van den Berg
-Applies to: businessadmindesk.co.za public marketing surfaces
+Applies to: Business Admin Desk website changes
 
-## Purpose
+## Two fixed surfaces
 
-Business Admin Desk public website changes must be prepared, reviewed and verified internally before they are published to the client-production domain.
+- **Internal staging / review:** https://cipc.corpflowai.com/
+- **Public production:** https://businessadmindesk.co.za/
+
+The internal site is where proposed Business Admin Desk website changes are reviewed. The public domain keeps the last approved version until Anton explicitly approves publication.
 
 ## Required flow
 
-1. **Branch / draft PR**
-   - All public-site changes are made on a bounded branch.
-   - A draft PR is opened against `main`.
-   - No client-production publication occurs at this stage.
+1. **Build**
+   - Make the proposed website change on a bounded branch / PR.
+   - Keep the public production presentation unchanged.
 
-2. **Internal preview**
-   - Vercel creates a Preview deployment from the branch.
-   - Business Admin Desk public changes are reviewed on the preview-only route:
-     `/business-admin-desk-preview`.
-   - That route must not be available in the production environment.
+2. **Internal staging**
+   - Merge only the staging-safe implementation needed to show the candidate version at:
+     `https://cipc.corpflowai.com/`
+   - The internal site must remain `noindex,nofollow`.
+   - It may display an internal-review indicator.
+   - The public domain must continue showing the currently approved version.
 
-3. **Internal verification**
-   - CI/build/tests pass.
-   - Marketing Value 1 is checked: no third-party regulator brand in public marketing.
-   - Direct-business and partner/white-label positioning is verified.
-   - CTA, video, logo, metadata, mobile layout and links are checked.
-   - No internal review/operator content is exposed.
+3. **Verify internally**
+   - Review the actual internal URL.
+   - Confirm video, copy, CTA, logo, links and mobile behavior.
+   - Confirm Marketing Value 1: no third-party regulator brand in public marketing.
+   - Confirm both customer paths are clear:
+     - individual businesses;
+     - white-label / fractional support for companies and service providers.
+   - Confirm no operator-only or test content would leak into the future public release.
 
 4. **Owner approval**
-   - Anton explicitly approves the reviewed version for publication.
-   - Approval is recorded durably in the PR or governing issue.
+   - Anton explicitly approves the staged version for publication.
+   - Record the approval durably in the PR or governing issue.
 
-5. **Merge and production deployment**
-   - Only after approval, merge to `main`.
-   - Vercel production deployment is correlated to the merge commit.
+5. **Publish**
+   - Make the bounded publication change that promotes the already-reviewed candidate presentation to:
+     `https://businessadmindesk.co.za/`
+   - Merge only after owner approval.
 
 6. **Live validation**
-   - Verify `https://businessadmindesk.co.za/`.
-   - Verify `www` redirects/resolves correctly.
-   - Verify public metadata/robots/canonical.
-   - Verify CTA, video, logo and partner route.
-   - Verify no public regulator-brand leakage.
-   - Verify internal/test surfaces remain isolated.
+   - Verify the public domain and `www`.
+   - Verify metadata, robots, canonical, video, logo, CTAs and partner route.
+   - Verify no third-party regulator-brand leakage.
+   - Confirm the internal staging site remains separate.
 
 7. **Evidence and close**
-   - Record PR, merge SHA, deployment ID, live URL and verification result.
-   - Only then call the change complete.
+   - Record PR, merge SHA, deployment ID, staging evidence, production URL and live verification result.
+   - Only then call the release complete.
 
 ## Guardrails
 
-- No direct production edits.
-- No merge-before-preview.
-- No production deploy without explicit owner approval.
+- No direct edits to the public website.
+- No public publication before internal review and explicit owner approval.
 - No DB/schema/env/secrets/payment/messaging-runtime changes unless separately approved.
 - Existing internal tenant ID and production data model remain unchanged unless separately approved.
-- `businessadmindesk.co.za` is the public client-production brand surface; CorpFlowAI-hosted review surfaces remain internal/test.
+- The internal CorpFlowAI host is a review surface only; the `.co.za` domain is the customer-facing production surface.
