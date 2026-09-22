@@ -44,7 +44,7 @@ test('landing wrapper keeps corpflow_test content separate from the public produ
   const landing = readFileSync(join(root, 'components/CipcDeskLanding.js'), 'utf8');
   assert.match(landing, /BusinessAdminDeskPublicLanding/);
   assert.match(landing, /isPublicProduction/);
-  assert.match(landing, /videoUrl=\{safeStr\(media\.video_url\)\}/);
+  assert.match(landing, /<BusinessAdminDeskPublicLanding \/>/);
   assert.match(landing, /PublicMarketingPhotoGlassShell/);
   assert.doesNotMatch(landing, /Email your CIPC matter/i);
   assert.doesNotMatch(landing, /CIPC Desk/);
@@ -52,7 +52,8 @@ test('landing wrapper keeps corpflow_test content separate from the public produ
 
 test('public Business Admin Desk landing is concise, video-first and serves direct plus partner audiences', () => {
   const landing = readFileSync(join(root, 'components/BusinessAdminDeskPublicLanding.js'), 'utf8');
-  assert.match(landing, /<video/);
+  assert.match(landing, /<iframe/);
+  assert.match(landing, /app\.heygen\.com\/embeds\/24cebb01a1b240158c77771c103542da/);
   assert.match(landing, /Business Admin Desk explainer video/);
   assert.match(landing, /You run the business\. We help with the administration\./);
   assert.match(landing, /For individual businesses/);
@@ -64,6 +65,15 @@ test('public Business Admin Desk landing is concise, video-first and serves dire
   assert.match(landing, /businessadmindesk\.co\.za/);
   assert.doesNotMatch(landing, /\bCIPC\b/i);
   assert.doesNotMatch(landing, /CIPC Desk/i);
+});
+
+
+test('Business Admin Desk preview route is preview-only', () => {
+  const preview = readFileSync(join(root, 'pages/business-admin-desk-preview.js'), 'utf8');
+  assert.match(preview, /BusinessAdminDeskPublicLanding/);
+  assert.match(preview, /VERCEL_ENV/);
+  assert.match(preview, /production/);
+  assert.match(preview, /notFound: true/);
 });
 
 test('pages/index wires CipcDeskLanding only for tenant_id cipc-desk', () => {
