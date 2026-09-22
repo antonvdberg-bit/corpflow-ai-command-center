@@ -50,15 +50,23 @@ export default function CipcDeskLanding({ site, publicProduction = false }) {
   const tagline =
     safeStr(hero.tagline) ||
     'Professional support for registrations, amendments, annual returns, records and compliance-related administration.';
-  const pageTitle = safeStr(meta.page_title) || `${brand} · Company administration support`;
-  const description =
-    safeStr(meta.description) ||
-    'Business Admin Desk — professional South African company-administration support for registrations, amendments, annual returns, records and regulatory administration.';
+  const pageTitle = isPublicProduction
+    ? 'Business Admin Desk · Company administration support'
+    : safeStr(meta.page_title) || `${brand} · Company administration support`;
+  const description = isPublicProduction
+    ? 'Business Admin Desk — professional South African company-administration support for registrations, amendments, annual returns, records and regulatory administration.'
+    : safeStr(meta.description) ||
+      'Business Admin Desk — professional South African company-administration support for registrations, amendments, annual returns, records and regulatory administration.';
 
-  const primaryCta = {
-    label: safeStr(hero.cta_label) || 'Tell us what you need help with',
-    href: safeStr(hero.cta_href) || 'mailto:swart829@gmail.com?subject=Business%20Admin%20Desk%20enquiry',
-  };
+  const primaryCta = isPublicProduction
+    ? {
+        label: 'Tell us what you need help with',
+        href: 'mailto:swart829@gmail.com?subject=Business%20Admin%20Desk%20enquiry',
+      }
+    : {
+        label: safeStr(hero.cta_label) || 'Tell us what you need help with',
+        href: safeStr(hero.cta_href) || 'mailto:swart829@gmail.com?subject=Business%20Admin%20Desk%20enquiry',
+      };
   const secondaryCtaLabel = safeStr(hero.cta_secondary_label);
   const secondaryCtaHref = safeStr(hero.cta_secondary_href);
   const contactEmail = safeStr(contact.email) || 'swart829@gmail.com';
