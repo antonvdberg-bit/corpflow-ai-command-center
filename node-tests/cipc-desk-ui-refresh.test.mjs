@@ -40,12 +40,13 @@ test('website draft uses CorpFlow palette and content_version refresh marker', (
   assert.match(blob, /provisional|validated by Serah/i);
 });
 
-test('landing wrapper stages candidate on internal host while public production keeps approved version', () => {
+test('landing wrapper serves approved video-first landing on internal and public hosts', () => {
   const landing = readFileSync(join(root, 'components/CipcDeskLanding.js'), 'utf8');
   assert.match(landing, /BusinessAdminDeskPublicLanding/);
   assert.match(landing, /isPublicProduction/);
   assert.match(landing, /!isPublicProduction/);
   assert.match(landing, /internalReview/);
+  assert.match(landing, /return <BusinessAdminDeskPublicLanding \/>;/);
   assert.match(landing, /PublicMarketingPhotoGlassShell/);
   assert.doesNotMatch(landing, /Email your CIPC matter/i);
   assert.doesNotMatch(landing, /CIPC Desk/);

@@ -42,6 +42,8 @@ export default function CipcDeskLanding({ site, publicProduction = false }) {
   if (!isPublicProduction) {
     return <BusinessAdminDeskPublicLanding internalReview />;
   }
+
+  return <BusinessAdminDeskPublicLanding />;
   const hero = s.hero && typeof s.hero === 'object' ? s.hero : {};
   const meta = s.meta && typeof s.meta === 'object' ? s.meta : {};
   const sections = s.sections && typeof s.sections === 'object' ? s.sections : {};
