@@ -78,12 +78,31 @@ test('candidate landing supports internal noindex review mode', () => {
 });
 
 
+
+test('Business Admin Desk CTA is email-primary with a low-friction webmail fallback', () => {
+  const actions = readFileSync(join(root, 'components/BusinessAdminDeskContactActions.js'), 'utf8');
+  const landing = readFileSync(join(root, 'components/BusinessAdminDeskPublicLanding.js'), 'utf8');
+  const service = readFileSync(join(root, 'components/BusinessAdminDeskServiceLanding.js'), 'utf8');
+  const partner = readFileSync(join(root, 'components/BusinessAdminDeskPartnerLanding.js'), 'utf8');
+
+  assert.match(actions, /mailto:/);
+  assert.match(actions, /Opens an email with a short starter message/);
+  assert.match(actions, /Prefer webmail/);
+  assert.match(actions, /Copy our email address/);
+  assert.match(landing, /Tell us what's going on/);
+  assert.match(service, /Ask us about your Annual Returns/);
+  assert.match(service, /Tell us about the director change/);
+  assert.match(service, /Ask us about your ownership filing/);
+  assert.match(partner, /Discuss white-label \/ fractional support/);
+  assert.doesNotMatch(actions, /fetch\(|\/api\//);
+});
+
 test('service-page candidate pattern is concise, regulator-neutral and review-capable', () => {
   const service = readFileSync(join(root, 'components/BusinessAdminDeskServiceLanding.js'), 'utf8');
   assert.match(service, /Annual Returns/);
   assert.match(service, /Director Changes/);
   assert.match(service, /Beneficial Ownership/);
-  assert.match(service, /Tell us what you need help with/);
+  assert.match(service, /Ask us about your Annual Returns/);
   assert.match(service, /Need white-label \/ fractional support/);
   assert.match(service, /internalReview/);
   assert.match(service, /noindex,nofollow/);

@@ -2,6 +2,7 @@ import React from 'react';
 import Head from 'next/head';
 
 import BusinessAdminDeskBrand, { BUSINESS_ADMIN_DESK_MARK_PATH } from './BusinessAdminDeskBrand.js';
+import BusinessAdminDeskContactActions from './BusinessAdminDeskContactActions.js';
 import PublicMarketingPhotoGlassShell from './beauty/PublicMarketingPhotoGlassShell.js';
 import HeroGlassBlock from './beauty/HeroGlassBlock.js';
 import GlassPanel from './beauty/GlassPanel.js';
@@ -25,9 +26,18 @@ const PAGE_TITLE = 'Business Admin Desk · Company administration support';
 const PAGE_DESCRIPTION =
   'Business Admin Desk helps South African businesses and professional service providers with practical company administration, plus white-label and fractional support.';
 
-const DIRECT_CTA = {
-  label: 'Tell us what you need help with',
-  href: 'mailto:swart829@gmail.com?subject=Business%20Admin%20Desk%20enquiry',
+const DIRECT_CONTACT = {
+  label: "Tell us what's going on",
+  subject: 'Business Admin Desk enquiry',
+  body: `Hi Business Admin Desk,
+
+I need help with a company-administration matter.
+
+What has happened / what I need help with:
+
+Company name:
+
+You can reply to me on this email.`,
 };
 
 const PARTNER_CTA = {
@@ -114,9 +124,7 @@ export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINES
           }}
         >
           <BusinessAdminDeskBrand subtitle="Company administration · South Africa" priority />
-          <a href={DIRECT_CTA.href} style={{ ...cfBtnPrimary, fontSize: 13, minHeight: 40, padding: '10px 16px' }}>
-            {DIRECT_CTA.label}
-          </a>
+          <BusinessAdminDeskContactActions {...DIRECT_CONTACT} compact />
         </nav>
 
         <HeroGlassBlock
@@ -145,9 +153,11 @@ export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINES
             </p>
           }
           actions={
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 18 }}>
-              <a href={DIRECT_CTA.href} style={cfBtnPrimary}>{DIRECT_CTA.label}</a>
-              <a href={PARTNER_CTA.href} style={cfBtnSecondary}>{PARTNER_CTA.label}</a>
+            <div style={{ marginTop: 18 }}>
+              <BusinessAdminDeskContactActions
+                {...DIRECT_CONTACT}
+                secondary={<a href={PARTNER_CTA.href} style={cfBtnSecondary}>{PARTNER_CTA.label}</a>}
+              />
             </div>
           }
         />
@@ -183,7 +193,7 @@ export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINES
               <p style={{ ...cfBody, marginBottom: 16 }}>
                 Tell us the company matter you are dealing with. We help clarify what is needed, scope the work and handle the agreed administration while keeping you informed.
               </p>
-              <a href={DIRECT_CTA.href} style={cfBtnPrimary}>{DIRECT_CTA.label}</a>
+              <BusinessAdminDeskContactActions {...DIRECT_CONTACT} />
             </GlassPanel>
 
             <GlassPanel as="article" variant={{ padding: 24, elevation: 2 }}>
@@ -269,9 +279,11 @@ export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINES
             <p style={{ ...cfBody, maxWidth: 760 }}>
               If it is your own company, tell us what you need help with. If you need capacity behind your firm or team, tell us what work you want handled and how you want us to operate alongside you.
             </p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 10 }}>
-              <a href={DIRECT_CTA.href} style={cfBtnPrimary}>{DIRECT_CTA.label}</a>
-              <a href={PARTNER_CTA.href} style={cfBtnSecondary}>{PARTNER_CTA.label}</a>
+            <div style={{ marginTop: 10 }}>
+              <BusinessAdminDeskContactActions
+                {...DIRECT_CONTACT}
+                secondary={<a href={PARTNER_CTA.href} style={cfBtnSecondary}>{PARTNER_CTA.label}</a>}
+              />
             </div>
           </GlassPanel>
         </section>

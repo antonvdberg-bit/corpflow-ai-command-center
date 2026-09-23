@@ -2,6 +2,7 @@ import React from 'react';
 import Head from 'next/head';
 
 import BusinessAdminDeskBrand, { BUSINESS_ADMIN_DESK_MARK_PATH } from './BusinessAdminDeskBrand.js';
+import BusinessAdminDeskContactActions from './BusinessAdminDeskContactActions.js';
 import PublicMarketingPhotoGlassShell from './beauty/PublicMarketingPhotoGlassShell.js';
 import HeroGlassBlock from './beauty/HeroGlassBlock.js';
 import GlassPanel from './beauty/GlassPanel.js';
@@ -21,8 +22,21 @@ import {
   cfSection,
 } from './public/corpflow-public-styles.js';
 
-const CTA_HREF =
-  'mailto:swart829@gmail.com?subject=Business%20Admin%20Desk%20-%20White-label%20%2F%20fractional%20support';
+const PARTNER_CONTACT = {
+  label: 'Discuss white-label / fractional support',
+  subject: 'Business Admin Desk - White-label / fractional support',
+  body: `Hi Business Admin Desk,
+
+We are looking for additional company-administration capacity.
+
+Our business / firm:
+
+The type of support we need:
+
+Approximate volume or immediate requirement:
+
+Please contact me to discuss.`,
+};
 
 export default function BusinessAdminDeskPartnerLanding({ internalReview = false }) {
   const pageTitle = 'Business Admin Desk · White-label and fractional support';
@@ -71,9 +85,7 @@ export default function BusinessAdminDeskPartnerLanding({ internalReview = false
           }}
         >
           <BusinessAdminDeskBrand subtitle="Company administration · South Africa" priority />
-          <a href={CTA_HREF} style={{ ...cfBtnPrimary, fontSize: 13, minHeight: 40, padding: '10px 16px' }}>
-            Discuss white-label / fractional support
-          </a>
+          <BusinessAdminDeskContactActions {...PARTNER_CONTACT} compact />
         </nav>
 
         <HeroGlassBlock
@@ -93,9 +105,11 @@ export default function BusinessAdminDeskPartnerLanding({ internalReview = false
             </p>
           }
           actions={
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 18 }}>
-              <a href={CTA_HREF} style={cfBtnPrimary}>Discuss white-label / fractional support</a>
-              <a href="/" style={cfBtnSecondary}>Need help with your own company?</a>
+            <div style={{ marginTop: 18 }}>
+              <BusinessAdminDeskContactActions
+                {...PARTNER_CONTACT}
+                secondary={<a href="/" style={cfBtnSecondary}>Need help with your own company?</a>}
+              />
             </div>
           }
         />
@@ -194,7 +208,7 @@ export default function BusinessAdminDeskPartnerLanding({ internalReview = false
             <p style={{ ...cfBody, maxWidth: 760 }}>
               A short description of the workload, client volume or service gap is enough to start. We will confirm whether the fit is sensible and how the support could operate behind your business.
             </p>
-            <a href={CTA_HREF} style={cfBtnPrimary}>Discuss white-label / fractional support</a>
+            <BusinessAdminDeskContactActions {...PARTNER_CONTACT} />
           </GlassPanel>
         </section>
       </PublicMarketingPhotoGlassShell>
