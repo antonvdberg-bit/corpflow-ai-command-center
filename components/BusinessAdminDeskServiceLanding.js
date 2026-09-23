@@ -29,7 +29,6 @@ const configs = {
     headline: 'You do not need to become an Annual Returns expert.',
     lead:
       'Tell us what is going on. We will help you work out what is needed, what we can handle, and whether anything needs separate attention first.',
-    videoSrc: '/assets/business-admin-desk/annual-returns-without-admin-headache.mp4',
     videoTitle: 'Annual Returns — without the admin headache',
     videoSummary:
       'A short introduction to how Business Admin Desk helps you understand the next step and progress routine Annual Returns administration.',
