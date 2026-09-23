@@ -29,6 +29,7 @@ const configs = {
     headline: 'You do not need to become an Annual Returns expert.',
     lead:
       'Tell us what is going on. We will help you work out what is needed, what we can handle, and whether anything needs separate attention first.',
+    videoEmbedUrl: 'https://app.heygen.com/embeds/75869385e41a4d33abb8f151daded446',
     videoTitle: 'Annual Returns — without the admin headache',
     videoSummary:
       'A short introduction to how Business Admin Desk helps you understand the next step and progress routine Annual Returns administration.',
@@ -199,22 +200,23 @@ export default function BusinessAdminDeskServiceLanding({
           }
         />
 
-        {cfg.videoSrc ? (
+        {cfg.videoEmbedUrl ? (
           <section style={cfSection} aria-labelledby="service-video-title">
             <p style={cfKicker}>A quick introduction</p>
             <h2 id="service-video-title" style={cfH2}>{cfg.videoTitle}</h2>
             <p style={{ ...cfBody, maxWidth: 760, marginBottom: 16 }}>{cfg.videoSummary}</p>
             <GlassPanel variant={{ padding: 10, elevation: 2 }}>
-              <video
-                controls
-                preload="metadata"
-                playsInline
-                aria-label={cfg.videoTitle}
-                style={{ width: '100%', display: 'block', borderRadius: 16, background: '#020817' }}
-              >
-                <source src={cfg.videoSrc} type="video/mp4" />
-                Your browser does not support embedded video.
-              </video>
+              <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', overflow: 'hidden', borderRadius: 16, background: '#020817' }}>
+                <iframe
+                  src={cfg.videoEmbedUrl}
+                  title={cfg.videoTitle}
+                  loading="lazy"
+                  allow="encrypted-media; fullscreen"
+                  allowFullScreen
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }}
+                />
+              </div>
             </GlassPanel>
             <div style={{ marginTop: 16 }}>
               <BusinessAdminDeskContactActions {...contact} />
