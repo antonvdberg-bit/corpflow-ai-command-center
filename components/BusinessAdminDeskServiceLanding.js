@@ -25,21 +25,23 @@ import {
 const configs = {
   'annual-returns': {
     title: 'Annual Returns',
-    eyebrow: 'Routine annual filing administration',
-    headline: 'Keep annual filing administration under control.',
+    eyebrow: 'Annual Returns, without the admin headache',
+    headline: 'You do not need to become an Annual Returns expert.',
     lead:
-      'We help private companies and close corporations prepare and progress routine annual return matters, with clear checks before anything is submitted.',
+      'Tell us what is going on. We will help you work out what is needed, what we can handle, and whether anything needs separate attention first.',
+    videoSrc: '/assets/business-admin-desk/annual-returns-without-admin-headache.mp4',
+    videoTitle: 'Annual Returns — without the admin headache',
+    videoSummary:
+      'A short introduction to how Business Admin Desk helps you understand the next step and progress routine Annual Returns administration.',
     whatWeDo: [
-      'Review the matter and confirm the filing period and company information needed.',
-      'Identify missing prerequisites before submission work starts.',
-      'Prepare and progress the agreed annual filing administration once authority and information are complete.',
-      'Capture the filing evidence and explain the next step clearly.',
+      'We review what has happened and what information is needed.',
+      'We identify anything that needs attention before routine filing can proceed.',
+      'Once the matter is ready, we progress the agreed administration and keep the next step clear.',
     ],
     boundaries: [
-      'Beneficial ownership work is handled separately where it is incomplete.',
-      'We do not prepare financial statements or financial-accounting submissions.',
-      'The company remains responsible for its own annual compliance checklist where applicable.',
+      'Beneficial ownership or financial-statement matters that still need work are scoped separately.',
       'Historical deregistration, restoration, registry corrections and unusual entity types require separate review.',
+      'Even if your company is dormant or not trading, Annual Return filing and other statutory obligations may still apply.',
     ],
     specialist:
       'If the company record is unusual, historical information conflicts, or a prerequisite is not complete, we stop the routine path and scope the additional work before proceeding.',
@@ -197,6 +199,29 @@ export default function BusinessAdminDeskServiceLanding({
             </div>
           }
         />
+
+        {cfg.videoSrc ? (
+          <section style={cfSection} aria-labelledby="service-video-title">
+            <p style={cfKicker}>A quick introduction</p>
+            <h2 id="service-video-title" style={cfH2}>{cfg.videoTitle}</h2>
+            <p style={{ ...cfBody, maxWidth: 760, marginBottom: 16 }}>{cfg.videoSummary}</p>
+            <GlassPanel variant={{ padding: 10, elevation: 2 }}>
+              <video
+                controls
+                preload="metadata"
+                playsInline
+                aria-label={cfg.videoTitle}
+                style={{ width: '100%', display: 'block', borderRadius: 16, background: '#020817' }}
+              >
+                <source src={cfg.videoSrc} type="video/mp4" />
+                Your browser does not support embedded video.
+              </video>
+            </GlassPanel>
+            <div style={{ marginTop: 16 }}>
+              <BusinessAdminDeskContactActions {...contact} />
+            </div>
+          </section>
+        ) : null}
 
         <section style={cfSection} aria-labelledby="service-help-title">
           <p style={cfKicker}>What we help with</p>
