@@ -133,6 +133,7 @@ test('Business Admin Desk staging provides simple navigation and compact legal i
   assert.match(nav, /Partner Support/);
   assert.match(footer, /CorpFlowAI LTD/);
   assert.match(footer, /C25228280/);
+  assert.match(footer, /Serah Fourie, Anton van den Berg, Paul Perdreau/);
   assert.match(footer, /Dextra Lane Lot No\. 3 Phase 1/);
   assert.match(footer, /\+230 5901 4284/);
   assert.match(footer, /Legal & supplier information/);
