@@ -19,6 +19,7 @@ export default function BusinessAdminDeskLegalFooter({ internalReview = false })
           <div><strong style={{ color: CF.text }}>Trading name:</strong> Business Admin Desk</div>
           <div><strong style={{ color: CF.text }}>Place of registration:</strong> Mauritius</div>
           <div><strong style={{ color: CF.text }}>Company/BRN:</strong> C25228280</div>
+          <div><strong style={{ color: CF.text }}>Directors:</strong> Serah Fourie, Anton van den Berg, Paul Perdreau</div>
           <div>
             <strong style={{ color: CF.text }}>Registered office:</strong>{' '}
             Dextra Lane Lot No. 3 Phase 1, Trou Aux Biches, Pamplemousses District, Mauritius, 22301
@@ -29,11 +30,7 @@ export default function BusinessAdminDeskLegalFooter({ internalReview = false })
           <div style={{ marginTop: 6 }}>
             Independent company-administration support. Not a government or regulatory service, and not a law firm.
           </div>
-          {internalReview ? (
-            <div style={{ marginTop: 6, fontStyle: 'italic' }}>
-              Internal review note: office-bearer names must be added before public legal disclosure is treated as complete.
-            </div>
-          ) : null}
+
         </div>
       </details>
     </div>
