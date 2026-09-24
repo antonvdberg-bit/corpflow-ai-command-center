@@ -3,6 +3,8 @@ import Head from 'next/head';
 
 import BusinessAdminDeskBrand, { BUSINESS_ADMIN_DESK_MARK_PATH } from './BusinessAdminDeskBrand.js';
 import BusinessAdminDeskContactActions from './BusinessAdminDeskContactActions.js';
+import BusinessAdminDeskSectionNav from './BusinessAdminDeskSectionNav.js';
+import BusinessAdminDeskLegalFooter from './BusinessAdminDeskLegalFooter.js';
 import PublicMarketingPhotoGlassShell from './beauty/PublicMarketingPhotoGlassShell.js';
 import HeroGlassBlock from './beauty/HeroGlassBlock.js';
 import GlassPanel from './beauty/GlassPanel.js';
@@ -25,21 +27,23 @@ import {
 const configs = {
   'annual-returns': {
     title: 'Annual Returns',
-    eyebrow: 'Routine annual filing administration',
-    headline: 'Keep annual filing administration under control.',
+    eyebrow: 'Annual Returns, without the admin headache',
+    headline: 'You do not need to become an Annual Returns expert.',
     lead:
-      'We help private companies and close corporations prepare and progress routine annual return matters, with clear checks before anything is submitted.',
+      'Tell us what is going on. We will help you work out what is needed, what we can handle, and whether anything needs separate attention first.',
+    videoEmbedUrl: 'https://app.heygen.com/embeds/75869385e41a4d33abb8f151daded446',
+    videoTitle: 'Annual Returns — without the admin headache',
+    videoSummary:
+      'A short introduction to how Business Admin Desk helps you understand the next step and progress routine Annual Returns administration.',
     whatWeDo: [
-      'Review the matter and confirm the filing period and company information needed.',
-      'Identify missing prerequisites before submission work starts.',
-      'Prepare and progress the agreed annual filing administration once authority and information are complete.',
-      'Capture the filing evidence and explain the next step clearly.',
+      'We review what has happened and what information is needed.',
+      'We identify anything that needs attention before routine filing can proceed.',
+      'Once the matter is ready, we progress the agreed administration and keep the next step clear.',
     ],
     boundaries: [
-      'Beneficial ownership work is handled separately where it is incomplete.',
-      'We do not prepare financial statements or financial-accounting submissions.',
-      'The company remains responsible for its own annual compliance checklist where applicable.',
+      'Beneficial ownership or financial-statement matters that still need work are scoped separately.',
       'Historical deregistration, restoration, registry corrections and unusual entity types require separate review.',
+      'Even if your company is dormant or not trading, Annual Return filing and other statutory obligations may still apply.',
     ],
     specialist:
       'If the company record is unusual, historical information conflicts, or a prerequisite is not complete, we stop the routine path and scope the additional work before proceeding.',
@@ -57,15 +61,18 @@ You can reply to me on this email.`,
   },
   'director-changes': {
     title: 'Director Changes',
-    eyebrow: 'Director administration',
-    headline: 'Handle straightforward director changes without turning them into a project.',
+    eyebrow: 'Director Changes, handled clearly',
+    headline: 'Tell us what changed. We will help with the administration.',
     lead:
-      'We help with routine director appointments, resignations and information updates where the company record and authority are clear.',
+      'Whether a director has resigned, someone new is being appointed, or company information needs updating, you do not need to work out the process before contacting us.',
+    videoEmbedUrl: 'https://app.heygen.com/embeds/5e298647d6c84fc2a54ac0f015773511',
+    videoTitle: 'Director Changes — handled clearly',
+    videoSummary:
+      'A short introduction to how Business Admin Desk helps review routine director changes, identify what is needed and keep the next step clear.',
     whatWeDo: [
-      'Clarify the change required and who is authorising it.',
-      'Collect the information and supporting documents needed for the standard path.',
-      'Prepare and progress the agreed director-change administration.',
-      'Keep the matter status clear and provide completion evidence when available.',
+      'We review what changed and what information or supporting documents are needed.',
+      'We check that the authority and company record are clear for routine processing.',
+      'When everything is in order, we progress the agreed administration and keep the next step clear.',
     ],
     boundaries: [
       'Disputed removals, death-related changes and contested appointments are not treated as routine filings.',
@@ -89,10 +96,14 @@ You can reply to me on this email.`,
   },
   'beneficial-ownership': {
     title: 'Beneficial Ownership',
-    eyebrow: 'Ownership and control administration',
-    headline: 'Make ownership information clear before the filing starts.',
+    eyebrow: 'Beneficial Ownership, made clearer',
+    headline: 'Start with who ultimately owns or controls the company.',
     lead:
-      'We support standard beneficial-ownership administration where the ownership and control structure is clear and the declared owners are straightforward to identify.',
+      'You do not need to understand the filing process before asking for help. Tell us about the company and its ownership, and we will help identify what is needed next.',
+    videoEmbedUrl: 'https://app.heygen.com/embeds/4c3580bdbd5049c99b8ffe44d59ecb68',
+    videoTitle: 'Beneficial Ownership — made clearer',
+    videoSummary:
+      'A short introduction to how Business Admin Desk helps make straightforward ownership information clearer and recognises when a structure needs separate review.',
     whatWeDo: [
       'Collect the company and ownership information needed for the standard path.',
       'Check that the ownership/control information supplied is complete enough to proceed.',
@@ -158,6 +169,7 @@ export default function BusinessAdminDeskServiceLanding({
             <p style={{ ...cfBody, margin: 0, fontSize: 13.5 }}>
               Independent company-administration support. Not a government or regulatory service, and not a law firm.
             </p>
+            <BusinessAdminDeskLegalFooter internalReview={internalReview} />
           </div>
         }
       >
@@ -175,6 +187,8 @@ export default function BusinessAdminDeskServiceLanding({
           <BusinessAdminDeskBrand subtitle="Company administration · South Africa" priority />
           <BusinessAdminDeskContactActions {...contact} compact />
         </nav>
+
+        <BusinessAdminDeskSectionNav currentPath={route} />
 
         <HeroGlassBlock
           eyebrow={
@@ -197,6 +211,30 @@ export default function BusinessAdminDeskServiceLanding({
             </div>
           }
         />
+
+        {cfg.videoEmbedUrl ? (
+          <section style={cfSection} aria-labelledby="service-video-title">
+            <p style={cfKicker}>A quick introduction</p>
+            <h2 id="service-video-title" style={cfH2}>{cfg.videoTitle}</h2>
+            <p style={{ ...cfBody, maxWidth: 760, marginBottom: 16 }}>{cfg.videoSummary}</p>
+            <GlassPanel variant={{ padding: 10, elevation: 2 }}>
+              <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', overflow: 'hidden', borderRadius: 16, background: '#020817' }}>
+                <iframe
+                  src={cfg.videoEmbedUrl}
+                  title={cfg.videoTitle}
+                  loading="lazy"
+                  allow="encrypted-media; fullscreen"
+                  allowFullScreen
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }}
+                />
+              </div>
+            </GlassPanel>
+            <div style={{ marginTop: 16 }}>
+              <BusinessAdminDeskContactActions {...contact} />
+            </div>
+          </section>
+        ) : null}
 
         <section style={cfSection} aria-labelledby="service-help-title">
           <p style={cfKicker}>What we help with</p>

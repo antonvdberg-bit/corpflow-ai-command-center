@@ -3,6 +3,8 @@ import Head from 'next/head';
 
 import BusinessAdminDeskBrand, { BUSINESS_ADMIN_DESK_MARK_PATH } from './BusinessAdminDeskBrand.js';
 import BusinessAdminDeskContactActions from './BusinessAdminDeskContactActions.js';
+import BusinessAdminDeskSectionNav from './BusinessAdminDeskSectionNav.js';
+import BusinessAdminDeskLegalFooter from './BusinessAdminDeskLegalFooter.js';
 import PublicMarketingPhotoGlassShell from './beauty/PublicMarketingPhotoGlassShell.js';
 import HeroGlassBlock from './beauty/HeroGlassBlock.js';
 import GlassPanel from './beauty/GlassPanel.js';
@@ -21,6 +23,8 @@ import {
   cfLead,
   cfSection,
 } from './public/corpflow-public-styles.js';
+
+const PARTNER_VIDEO_EMBED_URL = 'https://app.heygen.com/embeds/818e433a2a7542ffbf6e72e917c78779';
 
 const PARTNER_CONTACT = {
   label: 'Discuss white-label / fractional support',
@@ -70,6 +74,7 @@ export default function BusinessAdminDeskPartnerLanding({ internalReview = false
             <p style={{ ...cfBody, margin: 0, fontSize: 13.5 }}>
               Independent company-administration support. Not a government or regulatory service, and not a law firm.
             </p>
+            <BusinessAdminDeskLegalFooter internalReview={internalReview} />
           </div>
         }
       >
@@ -87,6 +92,8 @@ export default function BusinessAdminDeskPartnerLanding({ internalReview = false
           <BusinessAdminDeskBrand subtitle="Company administration · South Africa" priority />
           <BusinessAdminDeskContactActions {...PARTNER_CONTACT} compact />
         </nav>
+
+        <BusinessAdminDeskSectionNav currentPath="/partners" />
 
         <HeroGlassBlock
           eyebrow={
@@ -113,6 +120,30 @@ export default function BusinessAdminDeskPartnerLanding({ internalReview = false
             </div>
           }
         />
+
+        <section style={cfSection} aria-labelledby="partner-video-title">
+          <p style={cfKicker}>A quick introduction</p>
+          <h2 id="partner-video-title" style={cfH2}>Specialist support behind your firm</h2>
+          <p style={{ ...cfBody, maxWidth: 780, marginBottom: 16 }}>
+            See how Business Admin Desk can provide white-label or fractional company-administration capacity while your firm keeps the client relationship.
+          </p>
+          <GlassPanel variant={{ padding: 10, elevation: 2 }}>
+            <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', overflow: 'hidden', borderRadius: 16, background: '#020817' }}>
+              <iframe
+                src={PARTNER_VIDEO_EMBED_URL}
+                title="Specialist support behind your firm"
+                loading="lazy"
+                allow="encrypted-media; fullscreen"
+                allowFullScreen
+                referrerPolicy="strict-origin-when-cross-origin"
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }}
+              />
+            </div>
+          </GlassPanel>
+          <div style={{ marginTop: 16 }}>
+            <BusinessAdminDeskContactActions {...PARTNER_CONTACT} />
+          </div>
+        </section>
 
         <section style={cfSection} aria-labelledby="partner-fit-title">
           <p style={cfKicker}>Who this is for</p>

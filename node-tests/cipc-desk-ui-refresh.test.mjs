@@ -97,6 +97,57 @@ test('Business Admin Desk CTA is email-primary with a low-friction webmail fallb
   assert.doesNotMatch(actions, /fetch\(|\/api\//);
 });
 
+test('Annual Returns candidate embeds the approved HeyGen explainer and keeps the CTA close to it', () => {
+  const service = readFileSync(join(root, 'components/BusinessAdminDeskServiceLanding.js'), 'utf8');
+  assert.match(service, /75869385e41a4d33abb8f151daded446/);
+  assert.match(service, /Annual Returns — without the admin headache/);
+  assert.match(service, /videoEmbedUrl/);
+  assert.match(service, /BusinessAdminDeskContactActions/);
+  assert.match(service, /Even if your company is dormant or not trading, Annual Return filing and other statutory obligations may still apply\./);
+});
+
+test('Director Changes candidate embeds the approved HeyGen explainer', () => {
+  const service = readFileSync(join(root, 'components/BusinessAdminDeskServiceLanding.js'), 'utf8');
+  assert.match(service, /5e298647d6c84fc2a54ac0f015773511/);
+  assert.match(service, /Director Changes — handled clearly/);
+  assert.match(service, /Tell us what changed\. We will help with the administration\./);
+});
+
+test('Beneficial Ownership candidate embeds the approved corrected HeyGen explainer', () => {
+  const service = readFileSync(join(root, 'components/BusinessAdminDeskServiceLanding.js'), 'utf8');
+  assert.match(service, /4c3580bdbd5049c99b8ffe44d59ecb68/);
+  assert.match(service, /Beneficial Ownership — made clearer/);
+  assert.match(service, /Start with who ultimately owns or controls the company\./);
+});
+
+test('Business Admin Desk staging provides simple navigation and compact legal identity', () => {
+  const nav = readFileSync(join(root, 'components/BusinessAdminDeskSectionNav.js'), 'utf8');
+  const footer = readFileSync(join(root, 'components/BusinessAdminDeskLegalFooter.js'), 'utf8');
+  const landing = readFileSync(join(root, 'components/BusinessAdminDeskPublicLanding.js'), 'utf8');
+  const partner = readFileSync(join(root, 'components/BusinessAdminDeskPartnerLanding.js'), 'utf8');
+
+  assert.match(nav, /Home/);
+  assert.match(nav, /Annual Returns/);
+  assert.match(nav, /Director Changes/);
+  assert.match(nav, /Beneficial Ownership/);
+  assert.match(nav, /Partner Support/);
+  assert.match(footer, /CorpFlowAI LTD/);
+  assert.match(footer, /C25228280/);
+  assert.match(footer, /Serah Fourie, Anton van den Berg, Paul Perdreau/);
+  assert.match(footer, /Dextra Lane Lot No\. 3 Phase 1/);
+  assert.match(footer, /\+230 5901 4284/);
+  assert.match(footer, /Legal & supplier information/);
+  assert.match(landing, /BusinessAdminDeskSectionNav/);
+  assert.match(partner, /BusinessAdminDeskLegalFooter/);
+});
+
+test('partner candidate embeds the approved HeyGen explainer', () => {
+  const partner = readFileSync(join(root, 'components/BusinessAdminDeskPartnerLanding.js'), 'utf8');
+  assert.match(partner, /818e433a2a7542ffbf6e72e917c78779/);
+  assert.match(partner, /Specialist support behind your firm/);
+  assert.match(partner, /BusinessAdminDeskContactActions/);
+});
+
 test('service-page candidate pattern is concise, regulator-neutral and review-capable', () => {
   const service = readFileSync(join(root, 'components/BusinessAdminDeskServiceLanding.js'), 'utf8');
   assert.match(service, /Annual Returns/);
