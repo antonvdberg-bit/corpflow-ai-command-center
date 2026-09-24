@@ -3,6 +3,8 @@ import Head from 'next/head';
 
 import BusinessAdminDeskBrand, { BUSINESS_ADMIN_DESK_MARK_PATH } from './BusinessAdminDeskBrand.js';
 import BusinessAdminDeskContactActions from './BusinessAdminDeskContactActions.js';
+import BusinessAdminDeskSectionNav from './BusinessAdminDeskSectionNav.js';
+import BusinessAdminDeskLegalFooter from './BusinessAdminDeskLegalFooter.js';
 import PublicMarketingPhotoGlassShell from './beauty/PublicMarketingPhotoGlassShell.js';
 import HeroGlassBlock from './beauty/HeroGlassBlock.js';
 import GlassPanel from './beauty/GlassPanel.js';
@@ -167,6 +169,7 @@ export default function BusinessAdminDeskServiceLanding({
             <p style={{ ...cfBody, margin: 0, fontSize: 13.5 }}>
               Independent company-administration support. Not a government or regulatory service, and not a law firm.
             </p>
+            <BusinessAdminDeskLegalFooter internalReview={internalReview} />
           </div>
         }
       >
@@ -184,6 +187,8 @@ export default function BusinessAdminDeskServiceLanding({
           <BusinessAdminDeskBrand subtitle="Company administration · South Africa" priority />
           <BusinessAdminDeskContactActions {...contact} compact />
         </nav>
+
+        <BusinessAdminDeskSectionNav currentPath={route} />
 
         <HeroGlassBlock
           eyebrow={
