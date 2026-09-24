@@ -113,6 +113,13 @@ test('Director Changes candidate embeds the approved HeyGen explainer', () => {
   assert.match(service, /Tell us what changed\. We will help with the administration\./);
 });
 
+test('Beneficial Ownership candidate embeds the approved corrected HeyGen explainer', () => {
+  const service = readFileSync(join(root, 'components/BusinessAdminDeskServiceLanding.js'), 'utf8');
+  assert.match(service, /4c3580bdbd5049c99b8ffe44d59ecb68/);
+  assert.match(service, /Beneficial Ownership — made clearer/);
+  assert.match(service, /Start with who ultimately owns or controls the company\./);
+});
+
 test('service-page candidate pattern is concise, regulator-neutral and review-capable', () => {
   const service = readFileSync(join(root, 'components/BusinessAdminDeskServiceLanding.js'), 'utf8');
   assert.match(service, /Annual Returns/);
