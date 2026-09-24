@@ -59,15 +59,18 @@ You can reply to me on this email.`,
   },
   'director-changes': {
     title: 'Director Changes',
-    eyebrow: 'Director administration',
-    headline: 'Handle straightforward director changes without turning them into a project.',
+    eyebrow: 'Director Changes, handled clearly',
+    headline: 'Tell us what changed. We will help with the administration.',
     lead:
-      'We help with routine director appointments, resignations and information updates where the company record and authority are clear.',
+      'Whether a director has resigned, someone new is being appointed, or company information needs updating, you do not need to work out the process before contacting us.',
+    videoEmbedUrl: 'https://app.heygen.com/embeds/5e298647d6c84fc2a54ac0f015773511',
+    videoTitle: 'Director Changes — handled clearly',
+    videoSummary:
+      'A short introduction to how Business Admin Desk helps review routine director changes, identify what is needed and keep the next step clear.',
     whatWeDo: [
-      'Clarify the change required and who is authorising it.',
-      'Collect the information and supporting documents needed for the standard path.',
-      'Prepare and progress the agreed director-change administration.',
-      'Keep the matter status clear and provide completion evidence when available.',
+      'We review what changed and what information or supporting documents are needed.',
+      'We check that the authority and company record are clear for routine processing.',
+      'When everything is in order, we progress the agreed administration and keep the next step clear.',
     ],
     boundaries: [
       'Disputed removals, death-related changes and contested appointments are not treated as routine filings.',
@@ -91,10 +94,14 @@ You can reply to me on this email.`,
   },
   'beneficial-ownership': {
     title: 'Beneficial Ownership',
-    eyebrow: 'Ownership and control administration',
-    headline: 'Make ownership information clear before the filing starts.',
+    eyebrow: 'Beneficial Ownership, made clearer',
+    headline: 'Start with who ultimately owns or controls the company.',
     lead:
-      'We support standard beneficial-ownership administration where the ownership and control structure is clear and the declared owners are straightforward to identify.',
+      'You do not need to understand the filing process before asking for help. Tell us about the company and its ownership, and we will help identify what is needed next.',
+    videoEmbedUrl: 'https://app.heygen.com/embeds/4c3580bdbd5049c99b8ffe44d59ecb68',
+    videoTitle: 'Beneficial Ownership — made clearer',
+    videoSummary:
+      'A short introduction to how Business Admin Desk helps make straightforward ownership information clearer and recognises when a structure needs separate review.',
     whatWeDo: [
       'Collect the company and ownership information needed for the standard path.',
       'Check that the ownership/control information supplied is complete enough to proceed.',
