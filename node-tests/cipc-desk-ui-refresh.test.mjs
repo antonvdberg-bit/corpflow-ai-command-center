@@ -106,6 +106,13 @@ test('Annual Returns candidate embeds the approved HeyGen explainer and keeps th
   assert.match(service, /Even if your company is dormant or not trading, Annual Return filing and other statutory obligations may still apply\./);
 });
 
+test('Director Changes candidate embeds the approved HeyGen explainer', () => {
+  const service = readFileSync(join(root, 'components/BusinessAdminDeskServiceLanding.js'), 'utf8');
+  assert.match(service, /5e298647d6c84fc2a54ac0f015773511/);
+  assert.match(service, /Director Changes — handled clearly/);
+  assert.match(service, /Tell us what changed\. We will help with the administration\./);
+});
+
 test('service-page candidate pattern is concise, regulator-neutral and review-capable', () => {
   const service = readFileSync(join(root, 'components/BusinessAdminDeskServiceLanding.js'), 'utf8');
   assert.match(service, /Annual Returns/);
