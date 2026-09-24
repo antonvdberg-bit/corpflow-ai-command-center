@@ -48,14 +48,14 @@ const PARTNER_CTA = {
 };
 
 const serviceLabels = [
-  'Company registrations',
-  'Director changes',
-  'Registered-address changes',
-  'Annual returns',
-  'Beneficial ownership',
-  'Company amendments',
-  'Statutory records',
-  'Ongoing administration',
+  ['Company registrations', null],
+  ['Director changes', '/director-changes'],
+  ['Registered-address changes', null],
+  ['Annual returns', '/annual-returns'],
+  ['Beneficial ownership', '/beneficial-ownership'],
+  ['Company amendments', null],
+  ['Statutory records', null],
+  ['Ongoing administration', null],
 ];
 
 export const BUSINESS_ADMIN_DESK_HEYGEN_EMBED_URL = 'https://app.heygen.com/embeds/24cebb01a1b240158c77771c103542da';
@@ -216,25 +216,27 @@ export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINES
           <p style={cfKicker}>What we help with</p>
           <h2 id="bad-services-title" style={cfH2}>Common company-administration matters</h2>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 16 }}>
-            {serviceLabels.map((label) => (
-              <span
-                key={label}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  minHeight: 38,
-                  padding: '9px 13px',
-                  borderRadius: 999,
-                  border: '1px solid rgba(255,255,255,0.14)',
-                  background: 'rgba(255,255,255,0.08)',
-                  color: CF.text,
-                  fontSize: 13.5,
-                  fontWeight: 650,
-                }}
-              >
-                {label}
-              </span>
-            ))}
+            {serviceLabels.map(([label, href]) => {
+              const chipStyle = {
+                display: 'inline-flex',
+                alignItems: 'center',
+                minHeight: 38,
+                padding: '9px 13px',
+                borderRadius: 999,
+                border: '1px solid rgba(255,255,255,0.14)',
+                background: 'rgba(255,255,255,0.08)',
+                color: CF.text,
+                fontSize: 13.5,
+                fontWeight: 650,
+                textDecoration: 'none',
+              };
+
+              if (internalReview && href) {
+                return <a key={label} href={href} style={chipStyle}>{label}</a>;
+              }
+
+              return <span key={label} style={chipStyle}>{label}</span>;
+            })}
           </div>
         </section>
 
