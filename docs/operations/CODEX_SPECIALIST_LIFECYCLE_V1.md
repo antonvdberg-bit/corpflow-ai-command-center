@@ -18,7 +18,6 @@
 |----------|------|
 | Cursor | Automatic primary worker |
 | Codex | Human-triggered specialist |
-| OpenHands | Optional operational worker |
 
 **One unavoidable human action:** post the exact `@codex …` comment on the prepared PR.  
 Everything before and after that is automated.
@@ -26,7 +25,7 @@ Everything before and after that is automated.
 ## Flow
 
 1. Eligible Codex packet → `evaluateCodexClaimGate` (`executor=codex`)
-2. If Cursor/OpenHands already own the issue → `SKIP_ALREADY_CLAIMED`
+2. If Cursor already owns the issue → `SKIP_ALREADY_CLAIMED`
 3. Prepare → durable claim + **CODEX TRIGGER REQUIRED** + state `AWAITING_HUMAN_TRIGGER`
 4. n8n exception notifier pages Anton once (exact comment to paste)
 5. Anton posts human `@codex` on the PR

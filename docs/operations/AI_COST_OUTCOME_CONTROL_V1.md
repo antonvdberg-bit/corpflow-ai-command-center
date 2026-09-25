@@ -66,7 +66,6 @@ Unknown is a valid business result. Do not fabricate precision to fill a dashboa
 | Groq API | provider usage -> Langfuse -> financial reconciliation | pre-run envelope/provider cap | first live runtime adapter via #1291 |
 | ElevenLabs Agents | conversation/usage/cost + vendor actual | provider caps + activation/kill switch | integrate when live |
 | Anthropic/Gemini/OpenRouter | provider usage + Langfuse where used | pre-run policy/provider controls | add only when actually used |
-| OpenHands | underlying provider + work packet | governed launch only | remain parked until business case passes |
 | Generative media | vendor job cost + work packet | explicit job cap/approval | integrate when activated |
 
 n8n, Temporal, Vercel, GitHub, ERPNext and Infisical are platform/infrastructure costs, not AI inference costs. They may later contribute to gross-margin analysis without being mislabeled as model spend.
