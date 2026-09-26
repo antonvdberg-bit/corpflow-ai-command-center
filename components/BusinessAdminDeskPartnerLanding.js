@@ -24,7 +24,7 @@ import {
   cfSection,
 } from './public/corpflow-public-styles.js';
 
-const PARTNER_VIDEO_EMBED_URL = 'https://app.heygen.com/embeds/818e433a2a7542ffbf6e72e917c78779';
+const PARTNER_VIDEO_EMBED_URL = 'https://app.heygen.com/embeds/90683ef56f7b4dac9e22b2432346132f';
 
 const PARTNER_CONTACT = {
   label: 'Discuss white-label / fractional support',

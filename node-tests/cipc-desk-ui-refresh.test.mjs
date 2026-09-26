@@ -141,11 +141,12 @@ test('Business Admin Desk staging provides simple navigation and compact legal i
   assert.match(partner, /BusinessAdminDeskLegalFooter/);
 });
 
-test('partner candidate embeds the approved HeyGen explainer', () => {
+test('partner candidate embeds a valid HeyGen explainer without pinning a historical asset id', () => {
   const partner = readFileSync(join(root, 'components/BusinessAdminDeskPartnerLanding.js'), 'utf8');
-  assert.match(partner, /818e433a2a7542ffbf6e72e917c78779/);
+  assert.match(partner, /PARTNER_VIDEO_EMBED_URL\s*=\s*['"]https:\/\/app\.heygen\.com\/embeds\/[a-f0-9]{32}['"]/i);
   assert.match(partner, /Specialist support behind your firm/);
   assert.match(partner, /BusinessAdminDeskContactActions/);
+  assert.doesNotMatch(partner, /818e433a2a7542ffbf6e72e917c78779/);
 });
 
 test('service-page candidate pattern is concise, regulator-neutral and review-capable', () => {
