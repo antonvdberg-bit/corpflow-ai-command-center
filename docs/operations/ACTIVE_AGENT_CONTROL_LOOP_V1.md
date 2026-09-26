@@ -2,7 +2,6 @@
 
 **Status:** Cursor post-activation lifecycle runner implemented (poll → normalize → complete/fail/stale → review packet → dedupe).  
 **Controller:** [#661](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/661)  
-**OpenHands child:** [#743](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/743) — not on this hot path.
 
 > **Canonical posture snapshot:** `docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md` (MOVE WORK, DO NOT WAIT FOR PICKUP).
 >
@@ -66,9 +65,6 @@ Lifecycle still only discovers **already-claimed** Cursor issues. Ready work wit
 
 Do **not** invent an unsupported Codex HTTP bridge or auto-post `@codex` via `GITHUB_TOKEN`.
 
-## OpenHands role
-
-Not used for ordinary Cursor API lifecycle. Reserve OpenHands for AI interpretation (failure summary / ambiguous classification) under the verified cheap profile when separately assigned.
 
 ## Manual proof
 

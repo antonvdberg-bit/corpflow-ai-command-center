@@ -25,7 +25,6 @@ test('source registry contains current controlled and observable AI estates', ()
     'anthropic-api',
     'gemini-api',
     'openrouter',
-    'openhands',
   ]) {
     assert.equal(ids.has(id), true, `missing source ${id}`);
   }

@@ -95,7 +95,7 @@ Cursor Cloud **cannot SSH** to `corpflow-exec-01`. Live restic snapshot age, tim
 
 | ID | Control | Mark | Evidence |
 |----|---------|------|----------|
-| **D1** | Realistic recovery if `corpflow-exec-01` is lost | **PARTIAL** | **Survives:** Vercel app (redeploy from GitHub), Neon (if account intact), vendor-hosted ERPNext (separate vendor). **Dies with the box until restored:** n8n, Kuma, restic timers, sandbox, production shell, OpenHands (cold standby), on-host credentials files. Kuma runs **on** the box, so it **cannot** alert that the box is gone (`MONITORING_ARCHITECTURE.md` blind spot #8). |
+| **D1** | Realistic recovery if `corpflow-exec-01` is lost | **PARTIAL** | **Survives:** Vercel app (redeploy from GitHub), Neon (if account intact), vendor-hosted ERPNext (separate vendor). **Dies with the box until restored:** n8n, Kuma, restic timers, sandbox, production shell, on-host credentials files. Kuma runs **on** the box, so it **cannot** alert that the box is gone (`MONITORING_ARCHITECTURE.md` blind spot #8). |
 | **D2** | Realistic recovery if vendor-hosted ERPNext is lost | **NOT PROVEN** | Depends entirely on **vendor backup/restore** we could not read (B1). GitHub docs reconstruct *process*, not live Customer/Quotation/GL rows. |
 | **D3** | Realistic recovery if Neon project is lost | **NOT PROVEN** | Needs Neon PITR/branch restore **or** a separately approved dump. No drill. App without Postgres is not a working factory. |
 | **D4** | Realistic recovery if GitHub account/repo is lost | **PARTIAL** | Source can be re-pushed from any clone (repo is public). **Issues, PR metadata, Actions history, rulesets, secrets, Infisical OIDC bindings are not in git.** One collaborator visible via API (`collaborators` length = 1). |
