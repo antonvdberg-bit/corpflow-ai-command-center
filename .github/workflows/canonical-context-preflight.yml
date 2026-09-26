@@ -23,4 +23,5 @@ jobs:
         env:
           PR_BODY: ${{ github.event.pull_request.body || '' }}
           PR_CREATED_AT: ${{ github.event.pull_request.created_at || '' }}
+          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
         run: node scripts/check-canonical-context-preflight.mjs
