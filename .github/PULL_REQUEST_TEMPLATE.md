@@ -29,6 +29,17 @@
 - Client-facing surface changed: <!-- yes / no — list URLs / hosts if yes -->
 - Operator-only surface changed: <!-- yes / no — list URLs / hosts if yes -->
 
+## Canonical context
+
+<!--
+  Optional unless you need to override the inferred/default context.
+  The preflight derives the current operating-model version from the repo and
+  uses the PR number as the source item automatically.
+  Use one of: corpflow_test | client_production | local | n/a
+-->
+
+Environment: n/a
+
 ## Test plan
 
 <!--
