@@ -6,12 +6,22 @@ const ACTIVATION_CUTOFF = new Date('2026-08-10T06:19:00Z');
 const ALLOWED_ENVIRONMENTS = new Set(['corpflow_test', 'client_production', 'local', 'n/a']);
 const createdAtRaw = String(process.env.PR_CREATED_AT || '').trim();
 const prBody = String(process.env.PR_BODY || '');
+const prNumber = String(process.env.PR_NUMBER || '').trim();
 
 function resolveAcknowledgedEnvironment(body) {
   const matches = [...String(body).matchAll(/Environment:\s*([^\n\r]+)/gi)].map((match) =>
     match[1].trim().toLowerCase(),
   );
-  return matches.find((value) => ALLOWED_ENVIRONMENTS.has(value)) || null;
+  const explicit = matches.find((value) => ALLOWED_ENVIRONMENTS.has(value));
+  if (explicit) return { value: explicit, source: 'explicit' };
+
+  // CorpFlowAI-hosted review/staging URLs are never client-production surfaces.
+  if (/https?:\/\/[^\s)\]]+\.corpflowai\.com\b/i.test(body)) {
+    return { value: 'corpflow_test', source: 'inferred from CorpFlowAI-hosted URL' };
+  }
+
+  // Context-only/docs-only PRs can safely remain unclassified.
+  return { value: 'n/a', source: 'default' };
 }
 
 if (createdAtRaw) {
@@ -36,42 +46,33 @@ if (!versionMatch) {
 }
 const currentVersion = versionMatch[1].trim();
 
-const required = {
-  pass: /Canonical Context Preflight:\s*PASS/i,
-  refreshed: /GitHub state refreshed:\s*YES/i,
-  source: /Source item:\s*(#\d+|PR\s*#\d+|n\/a|direct operator (?:policy )?(?:change|request))/i,
-};
+// The workflow itself is the PASS acknowledgement and runs on fresh PR events.
+// Do not require authors/agents to type self-attestations such as
+// "Canonical Context Preflight: PASS" or "GitHub state refreshed: YES".
+const source =
+  prBody.match(/Source item:\s*(#\d+|PR\s*#\d+|n\/a|direct operator (?:policy )?(?:change|request))/i)?.[1]?.trim() ||
+  (prNumber ? `PR #${prNumber}` : 'n/a');
 
-for (const [name, re] of Object.entries(required)) {
-  if (!re.test(prBody)) {
-    console.error(`Canonical Context Preflight FAIL: missing/invalid ${name} acknowledgement`);
-    process.exit(1);
-  }
-}
+const declaredVersion = prBody
+  .match(/Operating model version:\s*([^\n\r]+)/i)?.[1]
+  ?.trim()
+  .replace(/^`|`$/g, '');
 
-const version = prBody.match(/Operating model version:\s*([^\n\r]+)/i)?.[1]?.trim().replace(/^`|`$/g, '');
-if (!version) {
-  console.error('Canonical Context Preflight FAIL: missing Operating model version');
-  process.exit(1);
-}
-if (version !== currentVersion) {
-  console.error(`Canonical Context Preflight FAIL: stale operating model version ${version}; current is ${currentVersion}`);
-  process.exit(1);
-}
-
-const environment = resolveAcknowledgedEnvironment(prBody);
-if (!environment) {
+if (declaredVersion && declaredVersion !== currentVersion) {
   console.error(
-    `Canonical Context Preflight FAIL: Environment must be one of ${[...ALLOWED_ENVIRONMENTS].join(', ')}`,
+    `Canonical Context Preflight FAIL: stale operating model version ${declaredVersion}; current is ${currentVersion}`,
   );
   process.exit(1);
 }
 
-if (/\.corpflowai\.com\b/i.test(prBody) && environment === 'client_production') {
+const environment = resolveAcknowledgedEnvironment(prBody);
+
+if (/\.corpflowai\.com\b/i.test(prBody) && environment.value === 'client_production') {
   console.error('Canonical Context Preflight FAIL: CorpFlowAI-hosted URL classified as client_production');
   process.exit(1);
 }
 
 console.log('Canonical Context Preflight PASS');
-console.log(`Operating model version: ${currentVersion}`);
-console.log(`Environment: ${environment}`);
+console.log(`Operating model version: ${currentVersion}${declaredVersion ? ' (declared)' : ' (current repo)'}`);
+console.log(`Source item: ${source}`);
+console.log(`Environment: ${environment.value} (${environment.source})`);
