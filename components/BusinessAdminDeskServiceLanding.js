@@ -100,7 +100,7 @@ You can reply to me on this email.`,
     headline: 'Start with who ultimately owns or controls the company.',
     lead:
       'You do not need to understand the filing process before asking for help. Tell us about the company and its ownership, and we will help identify what is needed next.',
-    videoEmbedUrl: 'https://app.heygen.com/embeds/4c3580bdbd5049c99b8ffe44d59ecb68',
+    videoEmbedUrl: 'https://app.heygen.com/embeds/49156b3ae9134157bbbb545aea2a384d',
     videoTitle: 'Beneficial Ownership — made clearer',
     videoSummary:
       'A short introduction to how Business Admin Desk helps make straightforward ownership information clearer and recognises when a structure needs separate review.',
