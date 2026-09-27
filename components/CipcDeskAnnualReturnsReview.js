@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import Head from 'next/head';
 
+import BusinessAdminDeskBrand, { BUSINESS_ADMIN_DESK_MARK_PATH } from './BusinessAdminDeskBrand.js';
+
 import PublicMarketingPhotoGlassShell from './beauty/PublicMarketingPhotoGlassShell.js';
 import HeroGlassBlock from './beauty/HeroGlassBlock.js';
 import GlassPanel from './beauty/GlassPanel.js';
@@ -51,7 +53,7 @@ const labelStyle = {
 };
 
 /**
- * Standing CIPC Desk Annual Returns review page for Sarah (#761).
+ * Standing Business Admin Desk Annual Returns review page for Sarah (#761).
  * Feedback posts to existing POST /api/cipc-desk/email-intake.
  *
  * @param {{ content?: Record<string, unknown> | null }} props
@@ -73,7 +75,7 @@ export default function CipcDeskAnnualReturnsReview({ content }) {
   const feedbackPrompt =
     c.feedback_prompt && typeof c.feedback_prompt === 'object' ? c.feedback_prompt : {};
 
-  const pageTitle = safeStr(meta.page_title) || 'CIPC Desk · Annual Returns review';
+  const pageTitle = safeStr(meta.page_title) || 'Business Admin Desk · Annual Returns review';
   const description =
     safeStr(meta.description) ||
     'Internal corpflow_test Annual Returns review surface for specialist feedback.';
@@ -159,6 +161,7 @@ export default function CipcDeskAnnualReturnsReview({ content }) {
         <meta property="og:description" content={description} />
         <meta property="og:image" content="/assets/visuals/corpflow-process-hero.jpg" />
         <meta name="theme-color" content="#06111f" />
+        <link rel="icon" href={BUSINESS_ADMIN_DESK_MARK_PATH} type="image/svg+xml" />
         <style
           dangerouslySetInnerHTML={{
             __html: `
@@ -181,7 +184,7 @@ export default function CipcDeskAnnualReturnsReview({ content }) {
         publicScrimHook
         footer={
           <div>
-            <div style={{ fontWeight: 800, color: CF.text, marginBottom: 6 }}>CIPC Desk</div>
+            <div style={{ marginBottom: 8 }}><BusinessAdminDeskBrand compact href="/" /></div>
             <p style={{ ...cfBody, margin: 0, fontSize: 13.5 }}>
               Internal working name pending brand decision. Independent company-administration support —
               not CIPC, not a law firm, and not an authorised government channel. Powered by CorpFlowAI.
@@ -191,7 +194,7 @@ export default function CipcDeskAnnualReturnsReview({ content }) {
         }
       >
         <nav
-          aria-label="CIPC Desk Annual Returns"
+          aria-label="Business Admin Desk Annual Returns"
           style={{
             display: 'flex',
             justifyContent: 'space-between',
@@ -201,21 +204,7 @@ export default function CipcDeskAnnualReturnsReview({ content }) {
             marginBottom: 20,
           }}
         >
-          <div>
-            <div
-              style={{
-                fontWeight: 900,
-                fontSize: 22,
-                letterSpacing: '-0.02em',
-                color: CF.text,
-              }}
-            >
-              CIPC Desk
-            </div>
-            <div style={{ color: CF.textFaint, fontSize: 12, marginTop: 2 }}>
-              Annual Returns · specialist review
-            </div>
-          </div>
+          <BusinessAdminDeskBrand subtitle="Annual Returns · specialist review" />
           <a href="/" style={{ ...cfBtnSecondary, fontSize: 13, minHeight: 40, padding: '10px 16px' }}>
             Back to desk home
           </a>

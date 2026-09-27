@@ -3,10 +3,13 @@ import { describe, it } from 'node:test';
 import {
   buildCompletionFingerprint,
   buildCursorCompletionEvent,
+  buildCursorHeartbeat,
   buildCursorLifecycleState,
+  buildCursorProgressFingerprint,
   buildDeterministicStaleFollowUpPrompt,
   classifyCursorFailure,
   formatCursorCompletionEventComment,
+  formatCursorHeartbeatComment,
   formatCursorLifecycleStateComment,
   normalizeCursorAgentLifecycleStatus,
   parseCursorLifecycleStateFromText,
@@ -79,6 +82,23 @@ describe('cursor-agent-lifecycle', () => {
     assert.equal(parsed?.cursorAgentId, state.cursorAgentId);
     assert.equal(parsed?.phase, 'RUNNING');
     assert.equal(parsed?.sourceIssue, 661);
+  });
+
+  it('formats a compact observable heartbeat without inventing progress', () => {
+    const heartbeat = buildCursorHeartbeat({
+      sourceIssue: 1196,
+      cursorAgentId: 'bc-heartbeat',
+      cursorRunId: 'run-heartbeat',
+      phase: 'RUNNING',
+      rawStatus: 'IN_PROGRESS',
+      lastPolledAt: '2026-09-19T07:30:00.000Z',
+    });
+    assert.equal(heartbeat.stage, 'Agent running; no branch, PR, or head SHA reported yet');
+    assert.equal(heartbeat.next_action, 'Poll this same agent/run again; do not requeue');
+    const body = formatCursorHeartbeatComment(heartbeat);
+    assert.match(body, /CURSOR HEARTBEAT/);
+    assert.match(body, /corpflow\.cursor_heartbeat\.v1/);
+    assert.match(body, /no branch, PR, or head SHA reported yet/);
   });
 
   it('classifies rate-limit as recoverable', () => {
@@ -249,7 +269,191 @@ describe('cursor-agent-lifecycle', () => {
     assert.ok(done.actions.includes('remove_dispatch_ready_label'));
   });
 
-  it('tick stays silent on RUNNING and emits once on COMPLETED then dedupes', async () => {
+  it('tick upserts one compact heartbeat while RUNNING', async () => {
+    const heartbeats = [];
+    const github = {
+      async upsertHeartbeat(issue, heartbeat) {
+        heartbeats.push({ issue, heartbeat });
+      },
+      async findPrForIssue() {
+        return null;
+      },
+    };
+    const running = await runCursorAgentLifecycleTick({
+      apiKey: 'test-key',
+      agentId: 'bc-heartbeat-active',
+      runId: 'run-heartbeat-active',
+      sourceIssue: 1196,
+      fetch: async () => ({
+        ok: true,
+        status: 200,
+        async text() {
+          return JSON.stringify({
+            id: 'run-heartbeat-active',
+            agentId: 'bc-heartbeat-active',
+            status: 'IN_PROGRESS',
+          });
+        },
+      }),
+      github,
+      startedAt: new Date().toISOString(),
+    });
+    assert.equal(running.phase, 'RUNNING');
+    assert.equal(running.silent, true);
+    assert.equal(heartbeats.length, 1);
+    assert.equal(heartbeats[0].issue, 1196);
+    assert.equal(heartbeats[0].heartbeat.cursor_agent_id, 'bc-heartbeat-active');
+    assert.match(heartbeats[0].heartbeat.stage, /no branch, PR, or head SHA reported yet/);
+    assert.ok(running.actions.includes('heartbeat_updated'));
+  });
+
+
+  it('uses observable progress fingerprint rather than routine polls for stale timing', async () => {
+    const now = new Date('2026-09-19T09:40:00.000Z');
+    const lastProgressAt = new Date(now.getTime() - 21 * 60 * 1000).toISOString();
+    const progressFingerprint = buildCursorProgressFingerprint({
+      cursorAgentId: 'bc-stale-progress',
+      cursorRunId: 'run-stale-progress',
+      rawStatus: 'IN_PROGRESS',
+    });
+    const priorState = buildCursorLifecycleState({
+      cursorAgentId: 'bc-stale-progress',
+      cursorRunId: 'run-stale-progress',
+      sourceIssue: 551,
+      phase: 'RUNNING',
+      startedAt: lastProgressAt,
+      lastProgressAt,
+      progressFingerprint,
+    });
+    const removed = [];
+    const result = await runCursorAgentLifecycleTick({
+      apiKey: 'test-key',
+      agentId: 'bc-stale-progress',
+      runId: 'run-stale-progress',
+      sourceIssue: 551,
+      priorState,
+      now,
+      fetch: async () => ({
+        ok: true,
+        status: 200,
+        async text() {
+          return JSON.stringify({
+            id: 'run-stale-progress',
+            agentId: 'bc-stale-progress',
+            status: 'IN_PROGRESS',
+          });
+        },
+      }),
+      github: {
+        async findPrForIssue() { return null; },
+        async createIssueComment() {},
+        async upsertCompactLifecycle() {},
+        async removeIssueLabels(issue, labels) { removed.push({ issue, labels }); },
+      },
+    });
+    assert.equal(result.phase, 'STALE');
+    assert.equal(result.followUpSent, false);
+    assert.equal(result.classification.requeue, false);
+    assert.equal(result.classification.antonRequired, false);
+    assert.equal(result.state.lastProgressAt, lastProgressAt);
+    assert.ok(result.actions.includes('observable_progress_unchanged'));
+    assert.ok(result.actions.includes('stale_slot_preserved'));
+    assert.equal(removed.length, 0);
+    assert.match(result.event.blocker, /STALE-IN-PROGRESS/);
+    assert.match(result.event.next_action, /same Cursor agent\/run; do not requeue/);
+  });
+
+  it('resets last_progress_at only when observable evidence changes', async () => {
+    const now = new Date('2026-09-19T09:40:00.000Z');
+    const oldProgress = new Date(now.getTime() - 30 * 60 * 1000).toISOString();
+    const priorState = buildCursorLifecycleState({
+      cursorAgentId: 'bc-progress-change',
+      cursorRunId: 'run-progress-change',
+      sourceIssue: 551,
+      phase: 'RUNNING',
+      startedAt: oldProgress,
+      lastProgressAt: oldProgress,
+      progressFingerprint: buildCursorProgressFingerprint({
+        cursorAgentId: 'bc-progress-change',
+        cursorRunId: 'run-progress-change',
+        rawStatus: 'IN_PROGRESS',
+      }),
+    });
+    const result = await runCursorAgentLifecycleTick({
+      apiKey: 'test-key',
+      agentId: 'bc-progress-change',
+      runId: 'run-progress-change',
+      sourceIssue: 551,
+      priorState,
+      now,
+      fetch: async () => ({
+        ok: true,
+        status: 200,
+        async text() {
+          return JSON.stringify({
+            status: 'IN_PROGRESS',
+            agent: {
+              id: 'bc-progress-change',
+              status: 'IN_PROGRESS',
+              target: { branchName: 'cursor/551-financial-rail' },
+            },
+            run: { id: 'run-progress-change', status: 'IN_PROGRESS' },
+          });
+        },
+      }),
+      github: {
+        async findPrForIssue() { return null; },
+        async findPrForBranch() { return null; },
+        async upsertHeartbeat() {},
+      },
+    });
+    assert.equal(result.phase, 'RUNNING');
+    assert.equal(result.state.lastProgressAt, now.toISOString());
+    assert.equal(result.state.branch, 'cursor/551-financial-rail');
+    assert.ok(result.actions.includes('observable_progress_changed'));
+  });
+
+  it('anchors first progress baseline to original executor start time', async () => {
+    const now = new Date('2026-09-19T09:40:00.000Z');
+    const startedAt = new Date(now.getTime() - 25 * 60 * 1000).toISOString();
+    const priorState = buildCursorLifecycleState({
+      cursorAgentId: 'bc-first-baseline',
+      cursorRunId: 'run-first-baseline',
+      sourceIssue: 551,
+      phase: 'PENDING',
+      startedAt,
+    });
+    const result = await runCursorAgentLifecycleTick({
+      apiKey: 'test-key',
+      agentId: 'bc-first-baseline',
+      runId: 'run-first-baseline',
+      sourceIssue: 551,
+      priorState,
+      now,
+      fetch: async () => ({
+        ok: true,
+        status: 200,
+        async text() {
+          return JSON.stringify({
+            id: 'run-first-baseline',
+            agentId: 'bc-first-baseline',
+            status: 'IN_PROGRESS',
+          });
+        },
+      }),
+      github: {
+        async findPrForIssue() { return null; },
+        async createIssueComment() {},
+        async upsertCompactLifecycle() {},
+      },
+    });
+    assert.equal(result.phase, 'STALE');
+    assert.equal(result.state.lastProgressAt, startedAt);
+    assert.ok(result.actions.includes('observable_progress_baseline'));
+  });
+
+
+  it('tick stays notification-silent on RUNNING and emits once on COMPLETED then dedupes', async () => {
     let calls = 0;
     const fetchFn = async () => {
       calls += 1;

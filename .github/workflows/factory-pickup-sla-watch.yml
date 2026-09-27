@@ -1,0 +1,45 @@
+name: CorpFlowAI Cursor Pickup SLA Watch
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+  actions: read
+
+concurrency:
+  group: factory-pickup-sla-watch
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    outputs:
+      should_recover: ${{ steps.watch.outputs.should_recover }}
+      source_issue: ${{ steps.watch.outputs.source_issue }}
+      state: ${{ steps.watch.outputs.state }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
+        with:
+          node-version: "20"
+      - name: Evaluate ready-to-pickup SLA
+        id: watch
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node scripts/factory-pickup-sla-watch.mjs
+
+  recover_via_canonical_handoff:
+    needs: watch
+    if: needs.watch.outputs.should_recover == '1'
+    uses: ./.github/workflows/factory-cursor-handoff.yml
+    secrets: inherit
+    with:
+      wake_reason: scheduled_reconciliation
+      capacity_wake_requested: "false"
+      target_issue: ${{ needs.watch.outputs.source_issue }}

@@ -137,10 +137,18 @@ describe('dispatcher direct-issue activation', () => {
     assert.ok(result.decisions.some((d) => d.action === 'WOULD_ACTIVATE_CURSOR_CLOUD_API'));
   });
 
-  it('cursor_live with direct issue #553 calls Cursor API once', async () => {
+  it('cursor_live with direct issue #553 resolves a catalogue model then calls Cursor', async () => {
     let calls = 0;
     const fetch = async (url, init) => {
       calls += 1;
+      if (url === 'https://api.cursor.com/v1/models') {
+        return new Response(JSON.stringify({
+          items: [{
+            id: 'gpt-5.6-test',
+            variants: [{ params: [{ id: 'reasoning', value: 'medium' }, { id: 'fast', value: 'false' }] }],
+          }],
+        }), { status: 200 });
+      }
       assert.equal(url, 'https://api.cursor.com/v1/agents');
       assert.equal(init.method, 'POST');
       const body = JSON.parse(String(init.body));
@@ -166,7 +174,7 @@ describe('dispatcher direct-issue activation', () => {
       directIssue: true,
     });
 
-    assert.equal(calls, 1);
+    assert.equal(calls, 2);
     assert.equal(result.live.cursor?.agentId, 'bc-553');
     assert.equal(result.live.cursor?.objectRef, `${DISPATCHER_DIRECT_ISSUE_OBJECT_REF_PREFIX}553`);
   });

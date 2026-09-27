@@ -1,0 +1,55 @@
+name: WMA browser verification
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: 'Approved public URL to verify'
+        required: true
+        default: 'https://corpflowai.com'
+        type: string
+
+concurrency:
+  group: wma-browser-verify-${{ github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: wma-browser-verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: Setup Node
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install repo dependencies and ephemeral Chromium
+        run: |
+          set -euo pipefail
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Verify approved public site
+        env:
+          WMA_TARGET_URL: ${{ inputs.target_url }}
+          WMA_BROWSER_OUT_DIR: artifacts/wma-browser
+        run: |
+          set -euo pipefail
+          node scripts/wma-browser-verify.mjs
+          test -f artifacts/wma-browser/evidence.json
+
+      - name: Upload WMA browser evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: wma-browser-evidence-${{ github.run_id }}
+          path: artifacts/wma-browser/
+          if-no-files-found: warn

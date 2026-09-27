@@ -71,21 +71,9 @@ Detail: `docs/operations/ACTIVE_AGENT_CONTROL_LOOP_V1.md`,
 
 Detail: `docs/operations/CODEX_SPECIALIST_LIFECYCLE_V1.md`.
 
-### 1.4 OpenHands — cold standby / experimental capability only
+### 1.4 OpenHands — retired
 
-**Decision approved by Anton on 2026-08-13:** OpenHands is **not** a production queue executor and is **not** an automatic fallback behind Cursor.
-
-Current policy:
-
-- Keep the existing private OpenHands installation **installed but inactive** as cold standby only.
-- No dispatcher activation, no scheduled work, no GitHub credentials, no paid model, no public exposure and no automatic executor claim routing.
-- Do **not** build an OpenHands failover adapter, lifecycle bridge or duplicate orchestration path while Cursor Factory Automation is healthy.
-- OpenHands may be activated only for a specific justified case: a material Cursor outage/capacity incident, a proven low-risk workload where it is materially cheaper/better, or a bounded experimental benchmark of a new open/free model.
-- Any activation must still respect cross-executor ownership and protected-action gates.
-- Keep the merged deployment package/runbooks in GitHub even if the server runtime is later removed; the package is retained capability/IP, not active production infrastructure.
-
-**Cold-standby review date: 2026-09-12 (30 days).**  
-At that review, if there has been **no justified OpenHands use** and no credible near-term need, remove the OpenHands runtime installation from `corpflow-exec-01` to avoid carrying unnecessary server weight. Retain the repository package and historical evidence for reinstall if circumstances change.
+**Decision executed 2026-09-25:** OpenHands runtime and runnable restore package were removed. OpenHands is not an active, standby, fallback, routing, or cost-control surface. Historical evidence remains in Git history and issue #1132.
 
 ### 1.5 n8n — exception-only supervisor / deterministic automation spine
 
@@ -103,7 +91,7 @@ Detail: `docs/runbooks/N8N_GITHUB_HEARTBEAT_CHECKER_V1.md`,
 ### 1.6 Cross-executor rule
 
 **One source work packet → one executor claim/generation.**  
-Cursor, Codex, and OpenHands may **not** concurrently claim the same packet.
+Cursor and Codex may **not** concurrently claim the same packet.
 
 ### 1.7 Delivery behaviour (chats / operators)
 
@@ -135,7 +123,7 @@ Instead:
 ## 2. Existing-chat staleness rule (mandatory)
 
 Existing conversations may contain **stale orchestration assumptions** (manual pickup,
-Anton-as-courier, “wait for the agent,” OpenHands-as-default, notify-only dispatcher).
+Anton-as-courier, “wait for the agent,” notify-only dispatcher).
 
 On any of the following, refresh **current GitHub + this doc** before answering:
 
@@ -171,7 +159,7 @@ refresh the packet against current `main` before continuing.
 | Cursor lifecycle | `docs/operations/ACTIVE_AGENT_CONTROL_LOOP_V1.md` |
 | Codex specialist | `docs/operations/CODEX_SPECIALIST_LIFECYCLE_V1.md` |
 | Cursor issue dispatch | `docs/operations/CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1.md` |
-| OpenHands historical package | closed #743, merged PR #747 |
+| OpenHands retirement evidence | #1132; historical package recoverable only through Git history |
 | n8n heartbeat (exception-only) | `docs/runbooks/N8N_GITHUB_HEARTBEAT_CHECKER_V1.md` |
 | Protected doctrine manifest | `config/protected-operating-doctrine.v1.json` |
 | Earlier merged lifecycle PRs | #815 (Codex), #802 / #790 / #786 (Cursor), #688 (#684 exception-only), #655 (issue dispatch) |

@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "langfuse-cloud": {
+      "url": "https://cloud.langfuse.com/api/public/mcp",
+      "headers": {
+        "Authorization": "${env:LANGFUSE_MCP_AUTHORIZATION}"
+      }
+    },
+    "langfuse-docs": {
+      "url": "https://langfuse.com/api/mcp"
+    }
+  }
+}

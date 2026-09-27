@@ -5,6 +5,7 @@ import {
   formatCursorApiErrorDetail,
 } from '../lib/server/cursor-cloud-agent-client.js';
 import {
+  buildFactoryCloudAgentsCreatePayload,
   buildFactoryCloudAgentsExecutionEnvelope,
 } from '../lib/server/factory-cloud-agents-executor.js';
 import {
@@ -47,12 +48,28 @@ function buildEnvelope(comments) {
     issue: {
       number: ISSUE,
       title: 'P0 Revenue acceptance — Lead Rescue + Website Rescue buyer-path current-main verification',
-      body: 'No schema, env/secrets, payment, send, or public launch.',
+      body: `## CURRENT CURSOR PACKET
+value_class: delivery_acceleration
+expected_outcome: Repair the current-main path.
+context_budget: S
+execution_budget: max_runs=1; max_retries=0; max_follow_ups=0
+stop_condition: Stop after focused verification.
+
+No schema, env/secrets, payment, send, or public launch.`,
     },
     comments,
     handoffRunId: '33047796505',
     repo: REPO,
   });
+}
+
+function bindPayload(envelope) {
+  return buildFactoryCloudAgentsCreatePayload(envelope, {
+    items: [{
+      id: 'gpt-5.6-catalogue-current',
+      variants: [{ params: [{ id: 'reasoning', value: 'medium' }, { id: 'fast', value: 'false' }] }],
+    }],
+  }).createPayload;
 }
 
 describe('Cloud Agents work-request identity after CURSOR REQUEUE', () => {
@@ -65,12 +82,12 @@ describe('Cloud Agents work-request identity after CURSOR REQUEUE', () => {
     assert.equal(envelope.request_was_created, true);
     assert.notEqual(envelope.work_request_id, GEN1_WORK_REQUEST);
     assert.notEqual(
-      envelope.create_payload.agentId,
+      bindPayload(envelope).agentId,
       GEN1_WORK_REQUEST.replace(/^cfai-wr-/i, 'bc-'),
     );
     assert.match(envelope.work_request_id, /^cfai-wr-/);
     assert.equal(
-      envelope.create_payload.agentId,
+      bindPayload(envelope).agentId,
       envelope.work_request_id.replace(/^cfai-wr-/i, 'bc-'),
     );
   });
@@ -85,7 +102,7 @@ describe('Cloud Agents work-request identity after CURSOR REQUEUE', () => {
     assert.equal(envelope.request_was_created, false);
     assert.equal(envelope.work_request_id, GEN3_WORK_REQUEST);
     assert.equal(
-      envelope.create_payload.agentId,
+      bindPayload(envelope).agentId,
       GEN3_WORK_REQUEST.replace(/^cfai-wr-/i, 'bc-'),
     );
   });

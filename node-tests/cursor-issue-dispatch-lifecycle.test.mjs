@@ -16,10 +16,12 @@ import {
   hasSiblingProductConflict,
   inferIssueClassification,
   mapGitHubIssueToDispatchIssue,
+  planCursorRequeueDispatchState,
   planCursorIssueClaims,
   prohibitionAppliesToPhrase,
   rollbackPrematureIssueClaim,
   suggestIssueBranchName,
+  textContainsProductionApprovalPrerequisite,
   textForbidsProduction,
 } from '../lib/server/cursor-issue-dispatch-lifecycle.js';
 import { resolveCursorRunId } from '../scripts/cursor-issue-dispatch-finalize.mjs';
@@ -52,7 +54,7 @@ const ISSUE_654 = {
 };
 
 const ISSUE_658_BODY = `## Operator approval — 2026-07-28
-Remove Slack as an operational dependency.
+Remove the retired chat integration as an operational dependency.
 Do not expose secrets in issues, PRs, screenshots or prompts.
 Secret revocation through approved secrets-management route — Anton only.
 Cursor must acknowledge, classify, create a separate branch and PR.
@@ -60,7 +62,7 @@ Workstream: CorpFlowAI operations only`;
 
 const ISSUE_658 = {
   number: 658,
-  title: 'APPROVED: Retire Slack from CorpFlowAI operations and remove notification noise',
+  title: 'APPROVED: Retire legacy chat integration from CorpFlowAI operations and remove notification noise',
   body: ISSUE_658_BODY,
   labels: ['cost-control', 'priority:P0', 'dispatch:cursor-ready', 'approved'],
 };
@@ -87,6 +89,16 @@ const ISSUE_1083 = {
 Build the existing GitHub-native factory SLA/evidence evaluator.
 No merge, deploy, DB/schema/data mutation, env/secrets/access changes, spend, or external sends.
 Reuse existing Queue Reconcile, lifecycle, WIP, and CI-supervisor infrastructure.`,
+  labels: ['priority:P0', 'dispatch:cursor-ready'],
+};
+
+const ISSUE_1292_STYLE = {
+  number: 1292,
+  title: 'P0 AI Cost & Outcome Control',
+  body: `Implement a bounded economic evidence repair.
+No production deploy, env/secrets/access changes, DB/schema/data mutation,
+provider budget/plan change, paid tool, external messaging/outreach, or public launch.
+Do not deploy production. Return one bounded PR with focused tests and CI.`,
   labels: ['priority:P0', 'dispatch:cursor-ready'],
 };
 
@@ -141,6 +153,82 @@ describe('cursor-issue-dispatch-lifecycle', () => {
     });
     assert.equal(plan.activationTargetIssue, 1083);
     assert.equal(plan.decisions[0]?.decision, 'claim');
+  });
+
+  it('#1292-style governance prohibitions remain an eligible ordinary work packet', () => {
+    const classification = inferIssueClassification(ISSUE_1292_STYLE);
+    assert.equal(classification.protectedGate, 'none');
+    assert.deepEqual(
+      classification.protectedSubjectsMentioned.sort(),
+      ['database', 'messaging', 'outreach', 'paid_tool', 'production', 'public_launch', 'secrets'],
+    );
+
+    const plan = planCursorIssueClaims({
+      readyIssues: [ISSUE_1292_STYLE],
+      claimedIssues: [],
+      trackedIssues: [],
+      preferIssueNumbers: [1292],
+    });
+    const decision = plan.decisions[0];
+    assert.equal(decision?.decision, 'claim');
+    assert.equal(decision?.eligibleToClaim, true);
+    assert.equal(plan.activationTargetIssue, 1292);
+  });
+
+  it('#1292 protected-boundaries approval prerequisite is not a production deployment request', () => {
+    const issue = {
+      number: 12921,
+      title: 'P0 AI Cost & Outcome Control',
+      body: `## Protected boundaries
+Explicit Anton approval remains required before production deploy, env/secrets/access changes,
+DB/schema/data mutation, provider budget/plan mutation, paid service/tool, external messaging,
+or client-facing launch.
+
+Implement the bounded repository-only evidence contract and tests.`,
+      labels: ['priority:P0', 'dispatch:cursor-ready'],
+    };
+    assert.equal(textContainsProductionApprovalPrerequisite(issue.body), true);
+    const classification = inferIssueClassification(issue);
+    assert.equal(classification.protectedGate, 'none');
+    const plan = planCursorIssueClaims({ readyIssues: [issue], claimedIssues: [] });
+    assert.equal(plan.decisions[0]?.decision, 'claim');
+    assert.equal(plan.activationTargetIssue, 12921);
+  });
+
+  it('an affirmative client-production deployment remains gated despite prerequisite wording', () => {
+    const issue = {
+      number: 12922,
+      title: 'Client production cutover',
+      body: `Deploy to client_production on the client-owned target.
+Anton approval is required before production deploy.`,
+      labels: ['priority:P0', 'dispatch:cursor-ready'],
+    };
+    assert.equal(inferIssueClassification(issue).protectedGate, 'production');
+  });
+
+  it('only an accepted CURSOR REQUEUE clears a stale dispatch block', () => {
+    assert.deepEqual(
+      planCursorRequeueDispatchState(
+        ['priority:P0', 'dispatch:blocked'],
+        false,
+      ),
+      {
+        restoreReady: false,
+        removeBlocked: false,
+        reason: 'requeue_not_accepted',
+      },
+    );
+    assert.deepEqual(
+      planCursorRequeueDispatchState(
+        ['priority:P0', 'dispatch:blocked'],
+        true,
+      ),
+      {
+        restoreReady: true,
+        removeBlocked: true,
+        reason: 'explicit_requeue_restores_selector_input',
+      },
+    );
   });
 
   it('does not reselect completed work with a review-ready linked PR', () => {
@@ -491,7 +579,7 @@ approval:payment labels and payment actions must be gated.`,
       title:
         'P0: Treat all CorpFlowAI-hosted tenant surfaces as test environments; separate future client production deployments',
       body: `All tenant/client surfaces currently hosted under CorpFlowAI-controlled domains are test environments.
-Examples include core.corpflowai.com, Lux / CIPC Desk.
+Examples include core.corpflowai.com, Lux / Business Admin Desk.
 These are not client production environments.
 Introduce corpflow_test for CorpFlowAI-hosted tenant test surfaces;
 client_production only for an actual separately governed client production environment.
@@ -525,14 +613,14 @@ Test publishing does not trigger a false approval:production gate.`,
     assert.ok(c.workTypes.includes('ui'));
   });
 
-  it('CIPC Desk workstream is corpflow_test', () => {
+  it('Business Admin Desk workstream is corpflow_test', () => {
     const c = inferIssueClassification({
       number: 711,
-      title: 'CIPC Desk thank-you copy',
+      title: 'Business Admin Desk thank-you copy',
       body: 'Standing internal test tenant UI on cipc.corpflowai.com',
       labels: ['cipc', 'dispatch:cursor-ready'],
     });
-    assert.equal(c.tenantOrClient, 'CIPC Desk');
+    assert.equal(c.tenantOrClient, 'Business Admin Desk');
     assert.equal(c.environment, 'test');
     assert.equal(c.protectedGate, 'none');
   });
@@ -836,6 +924,22 @@ No secrets or private client data in repo evidence.`,
         labels: ['dispatch:cursor-ready'],
       });
       assert.equal(c.protectedGate, 'none');
+    });
+
+    it('recognizes does-not-authorize production deploy wording including plurals', () => {
+      const body =
+        'This control-plane repair does not authorize: production deploys unless separately approved.';
+      assert.equal(prohibitionAppliesToPhrase(body, 'production deploy'), true);
+      assert.equal(textForbidsProduction(body), true);
+      assert.equal(
+        inferIssueClassification({
+          number: 96207,
+          title: 'Control-plane repair',
+          body,
+          labels: ['dispatch:cursor-ready'],
+        }).protectedGate,
+        'none',
+      );
     });
 
     it('actual schema / secrets / payment / send requests remain fail-closed', () => {

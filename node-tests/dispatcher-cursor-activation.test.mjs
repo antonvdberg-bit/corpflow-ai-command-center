@@ -59,7 +59,9 @@ function cursorRouting(overrides = {}) {
 describe('cursor-cloud-agent-client', () => {
   it('cursor routing builds activation payload', () => {
     const routing = cursorRouting();
-    const payload = buildCursorAgentCreatePayload(routing);
+    const payload = buildCursorAgentCreatePayload(routing, {
+      modelSelection: { id: 'gpt-5.6-test', params: [] },
+    });
     assert.equal(payload.prompt.text, routing.executorPrompt);
     assert.equal(payload.repos[0].url, CORPFLOW_CURSOR_REPO_URL);
     assert.equal(payload.repos[0].startingRef, CORPFLOW_CURSOR_STARTING_REF);
@@ -93,6 +95,14 @@ describe('dispatcher cursor live activation', () => {
     let calls = 0;
     const fetch = async (url, init) => {
       calls += 1;
+      if (url === 'https://api.cursor.com/v1/models') {
+        return new Response(JSON.stringify({
+          items: [{
+            id: 'gpt-5.6-test',
+            variants: [{ params: [{ id: 'reasoning', value: 'medium' }, { id: 'fast', value: 'false' }] }],
+          }],
+        }), { status: 200 });
+      }
       assert.equal(url, 'https://api.cursor.com/v1/agents');
       assert.equal(init.method, 'POST');
       assert.match(String(init.headers?.Authorization), /^Bearer sk-test$/);
@@ -127,7 +137,7 @@ describe('dispatcher cursor live activation', () => {
       cursorDeps: { fetch },
     });
 
-    assert.equal(calls, 1);
+    assert.equal(calls, 2);
     assert.equal(result.live.cursor?.agentId, 'bc-test');
     assert.equal(result.live.cursor?.objectRef, 'ticket:fixture_ticket_in_review');
     assert.ok(dedupeStateAddKey(normalizeDedupeState(null), routingDedupeKey(cursorRouting())).keys.length === 1);

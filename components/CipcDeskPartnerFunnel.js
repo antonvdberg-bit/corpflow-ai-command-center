@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import Head from 'next/head';
 
+import BusinessAdminDeskBrand, { BUSINESS_ADMIN_DESK_MARK_PATH } from './BusinessAdminDeskBrand.js';
+
 import PublicMarketingPhotoGlassShell from './beauty/PublicMarketingPhotoGlassShell.js';
 import HeroGlassBlock from './beauty/HeroGlassBlock.js';
 import GlassPanel from './beauty/GlassPanel.js';
@@ -68,7 +70,8 @@ const emptyForm = {
  *
  * @param {{ content?: Record<string, unknown> | null }} props
  */
-export default function CipcDeskPartnerFunnel({ content }) {
+export default function CipcDeskPartnerFunnel({ content, publicProduction = false }) {
+  const isPublicProduction = publicProduction === true;
   const c =
     content && typeof content === 'object' ? content : buildCipcDeskPartnerFunnelContent();
   const meta = c.meta && typeof c.meta === 'object' ? c.meta : {};
@@ -178,11 +181,13 @@ export default function CipcDeskPartnerFunnel({ content }) {
       <Head>
         <title>{pageTitle}</title>
         <meta name="description" content={description} />
-        <meta name="robots" content="noindex,nofollow" />
+        <meta name="robots" content={isPublicProduction ? 'index,follow' : 'noindex,nofollow'} />
+        {isPublicProduction ? <link rel="canonical" href="https://businessadmindesk.co.za/partners" /> : null}
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={description} />
         <meta property="og:image" content="/assets/visuals/corpflow-services-hero.jpg" />
         <meta name="theme-color" content="#06111f" />
+        <link rel="icon" href={BUSINESS_ADMIN_DESK_MARK_PATH} type="image/svg+xml" />
         <style
           dangerouslySetInnerHTML={{
             __html: `

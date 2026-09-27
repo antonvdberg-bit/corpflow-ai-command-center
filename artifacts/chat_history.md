@@ -21,7 +21,7 @@
 | What we decided and **why** (one or two sentences) | Passwords, API keys, tokens, private keys, full `.env` values |
 | **Feature flags / env var names** (names only) | Long code dumps (link to files or commits instead) |
 | **File paths** and major components touched | Personal data about clients or staff |
-| **Production URLs / hostnames** (if non-sensitive) | Anything you would not paste in a shared Slack channel |
+| **Production URLs / hostnames** (if non-sensitive) | Anything you would not paste in a shared team channel |
 | **Commit messages or themes** when they mark a milestone | Verbatim multi-page assistant replies |
 
 **Full history vs prune:** Starting **full** in a scratch note and then pruning into this file works well. This file should stay **short** (roughly one screen per month of work); archive older bullets to `artifacts/chat_history_archive.md` only if you need them later.
@@ -179,7 +179,7 @@
 
 ---
 
-## 2026-06-18 — **Social Intents chat destination reference (docs-only).** Captured [Social Intents](https://www.socialintents.com/) as a **REFERENCE-ONLY / DESTINATION-SHAPE** benchmark for future CorpFlow Chat / Concierge — not an approved vendor or install. New doc: `docs/product/CHAT_DESTINATION_REFERENCE_SOCIAL_INTENTS.md`. Key distinction: Social Intents routes into external team tools (Teams, Slack, Google Chat); CorpFlow destination is a **native concierge surface** with n8n + internal workflows and external channels as adapters. Guardrails: no Social Intents/Chatwoot/Open WebUI/Dify installs, no env vars, no app code, no public chat endpoints, no containers, no n8n changes, no restic. Verdict: **REFERENCE CAPTURED — NO IMPLEMENTATION AUTHORIZED**.
+## 2026-06-18 — **Social Intents chat destination reference (docs-only).** Captured [Social Intents](https://www.socialintents.com/) as a **REFERENCE-ONLY / DESTINATION-SHAPE** benchmark for future CorpFlow Chat / Concierge — not an approved vendor or install. New doc: `docs/product/CHAT_DESTINATION_REFERENCE_SOCIAL_INTENTS.md`. Key distinction: Social Intents routes into external team tools (Teams, Google Chat); CorpFlow destination is a **native concierge surface** with n8n + internal workflows and external channels as adapters. Guardrails: no Social Intents/Chatwoot/Open WebUI/Dify installs, no env vars, no app code, no public chat endpoints, no containers, no n8n changes, no restic. Verdict: **REFERENCE CAPTURED — NO IMPLEMENTATION AUTHORIZED**.
 
 <!-- SOCIAL_INTENTS_CHAT_DESTINATION_REF_2026_06_18_HIST -->
 

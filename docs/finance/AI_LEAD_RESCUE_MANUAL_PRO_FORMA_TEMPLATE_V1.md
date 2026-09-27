@@ -222,7 +222,7 @@ The repo contains only the template. The real-world PDF is created locally and n
 
 Splitting the pro-forma (quotation) from the payment instructions (concrete bank/route details) has three benefits:
 
-1. **Reduces leakage risk.** If a pro-forma PDF is forwarded by the client, attached to a JIRA ticket, posted on a Slack channel, etc., it does not contain real bank account numbers.
+1. **Reduces leakage risk.** If a pro-forma PDF is forwarded by the client, attached to a JIRA ticket, posted in a shared team channel, etc., it does not contain real bank account numbers.
 2. **Lets payment route be decided per-client.** Different clients may need different routes (SBM MUR transfer for Mauritius warm-network, SBM USD transfer for South Africa / international warm-network, Wise outbound for clients who prefer Wise, manual invoice for warm-network where the customer wants to pay by traditional bank transfer). The decision happens in the payment-instructions email, not on the pro-forma.
 3. **Matches the live website wording.** PAY-SBM-2 (`0fd9312b`) merged copy says *"Payment is handled after intake review and scope confirmation. This website does not collect card or banking details."* The two-email pro-forma + payment-instructions workflow is the operational expression of that public claim.
 

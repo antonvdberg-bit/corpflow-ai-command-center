@@ -4086,7 +4086,7 @@ export default function ChangeConsolePage() {
                     background: 'rgba(56,189,248,0.08)',
                   }}
                 >
-                  <div style={{ fontSize: 12, fontWeight: 950, color: '#e0f2fe' }}>CIPC Desk operator review (preview)</div>
+                  <div style={{ fontSize: 12, fontWeight: 950, color: '#e0f2fe' }}>Business Admin Desk operator review (preview)</div>
                   <div style={{ marginTop: 6, fontSize: 12, color: '#cbd5e1', lineHeight: 1.45 }}>
                     This is a private preview slice. Service requirements, documents, turnaround, and pricing are provisional until Serah validates.
                   </div>

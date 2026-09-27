@@ -32,6 +32,10 @@ jobs:
     # Pinned SHAs (supply chain): tag v6 — bump via `gh api repos/actions/checkout/commits/refs/tags/v6 --jq .sha`
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
+    # Fail fast if a removed integration name returns anywhere in the current source tree.
+    - name: Retired product cleanliness guard
+      run: node scripts/check-retired-product-cleanliness.mjs
+
     # Infisical is the authority for the small initial slice:
     # - POSTGRES_URL
     # - SOVEREIGN_SESSION_SECRET
@@ -94,12 +98,6 @@ jobs:
     # separate decision per Anton's scope choice when this script was wired in).
     - name: Marketing standards integrity check
       run: npm run check:marketing-quality-gate
-
-    # Permanent Slack-retirement guard (issue #658). Fails if supported
-    # runtime/config/CI paths reintroduce Slack senders, MCP servers, env keys,
-    # n8n Slack nodes, or GitHub Slack actions.
-    - name: Slack retirement guard (issue #658)
-      run: npm run check:slack-retirement
 
     # When POSTGRES_URL is set (e.g. from Infisical OIDC), try to apply pending migrations.
     # P3005 on non-baselined DBs is migrate history hygiene, not secret-delivery failure — step uses continue-on-error.

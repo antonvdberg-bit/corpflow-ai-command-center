@@ -90,7 +90,7 @@ The CorpFlow runtime, Vercel project, GitHub workflows, Postgres / Neon DB, Pris
 |---|---|---|---|
 | Telegram (Kuma's own bot) | Primary | YES | Required — must work even if n8n is down. Operator forces a test fail at install time to prove it. |
 | SMTP / email (Kuma's own SMTP creds) | Backup primary | YES | Optional but recommended; same rule (must not depend on n8n). |
-| n8n forwarding (Kuma → n8n → email/Slack/etc.) | Secondary | NO | Permitted for non-critical signals (status-page summaries, daily roll-ups). **Must not** be the only critical-outage path. |
+| n8n forwarding (Kuma → n8n → email/other messaging/etc.) | Secondary | NO | Permitted for non-critical signals (status-page summaries, daily roll-ups). **Must not** be the only critical-outage path. |
 
 Cross-reference: `docs/operations/MONITORING_ARCHITECTURE.md` § 4.1 Telegram contract; § 4.2 n8n forward contract; this ADR's alert path is **separate** from the in-repo Telegram contract by design (different bot, different chat, different code path).
 

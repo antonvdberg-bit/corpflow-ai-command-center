@@ -1,7 +1,7 @@
-# CIPC Desk — Beneficial Ownership Process Pack v1
+# Business Admin Desk — Beneficial Ownership Process Pack v1
 
 **Status:** Review-ready six-layer pack for Sarah Fourie. Research base **#740**; parent coordination **#640**. Standing corpflow_test review surface **#981**. Annual Returns pattern/baseline **#750 / #758 / #761 / #763 / #791 / #792**.  
-**Tenant / working name:** `cipc-desk` / **CIPC Desk** (internal working name only — not final public brand).  
+**Tenant ID / display brand:** `cipc-desk` / **Business Admin Desk**. The stable tenant ID is internal; the client-facing brand is Business Admin Desk.
 **Subject-matter owner:** Sarah Fourie.  
 **Evidence date of official-source review:** 2026-08-18.  
 **Verdict:** Common/standard Beneficial Ownership administration path drafted for specialist review. **Not Sarah-approved operating boundaries yet.** **Not a public launch.** No schema, CRM, auth, payment, email-send runtime, or live CIPC submission authorised by this pack.
@@ -17,17 +17,17 @@ Every substantive statement is tagged so operators and reviewers can see evidenc
 | Tag | Meaning |
 |-----|---------|
 | **OFFICIAL** | Stated on current CIPC public material cited below. |
-| **PRACTICAL** | Operating recommendation grounded in Sarah’s confirmed direction (#740) and ordinary CIPC Desk handling — not a substitute for statute. |
+| **PRACTICAL** | Operating recommendation grounded in Sarah’s confirmed direction (#740) and ordinary Business Admin Desk handling — not a substitute for statute. |
 | **PROVISIONAL** | Reasonable working assumption until a newer CIPC notice or a Sarah decision supersedes it. |
 | **SARAH CONFIRM** | Explicitly still open; do not publish as final public copy or hard-code as approved Desk policy until Sarah answers. |
 
-**Non-affiliation (PRACTICAL / Sarah-confirmed brand posture from Annual Returns):** CIPC Desk is an independent support service. It is **not** CIPC, is **not** endorsed by CIPC, and must never imply official affiliation.
+**Non-affiliation (PRACTICAL / Sarah-confirmed brand posture from Annual Returns):** Business Admin Desk is an independent support service. It is **not** CIPC, is **not** endorsed by CIPC, and must never imply official affiliation.
 
 **Guarantee ban (Sarah-confirmed):** Never guarantee CIPC turnaround times, approval dates, processing periods, beneficial-owner determinations, or successful filing outcomes. Any estimate must stay subject to CIPC processing times, system availability, submission quality, additional-information requests, reviewer queries, and manual review.
 
 **Pricing ban (PRACTICAL / inherited from Annual Returns v1):** Do not invent or publish Desk service-fee / pricing wording until the commercial pricing model is approved. CIPC’s own statutory fees on CIPC systems are separate from Desk commercial pricing and must not be presented as Desk prices.
 
-**Determination ban (PRACTICAL):** CIPC Desk must **not** invent who a beneficial owner is. The client (or instructing professional) declares the facts they believe to be true. Complex, layered, trust, juristic, foreign, or unclear-control cases escalate to specialist review. False or misleading BO information is an **OFFICIAL** offence.
+**Determination ban (PRACTICAL):** Business Admin Desk must **not** invent who a beneficial owner is. The client (or instructing professional) declares the facts they believe to be true. Complex, layered, trust, juristic, foreign, or unclear-control cases escalate to specialist review. False or misleading BO information is an **OFFICIAL** offence.
 
 **Data rule:** This pack uses **no real client or company data**, no identity-document images, and no private filings.
 
@@ -44,7 +44,7 @@ Reviewed for this draft (public CIPC / CIPC-hosted material only):
 3. **CIPC Annual Return Filing System** — https://annualreturns.cipc.co.za/  
    Public workflow places Beneficial Ownership filing before Annual Return finalisation.
 4. **CIPC Service Standards** — https://www.cipc.co.za/?page_id=4635  
-   Separate enquiry units; do **not** present CIPC published turnaround as a CIPC Desk promise. BO page notes service standard is dependent on payment for the transaction being made.
+   Separate enquiry units; do **not** present CIPC published turnaround as a Business Admin Desk promise. BO page notes service standard is dependent on payment for the transaction being made.
 5. **CIPC notices named on the BO information page** (titles only; operators should open the live notice when answering a live matter):  
    Customer Notices 2023 implementation; 53 of 2023; 40 of 2023 (securities / beneficial interest register functionality); 5 of 2024; 12 of 2024; 13 of 2024 (Foreigner Assurance); 26 and 39 of 2024 (BO with Annual Returns); 54 of 2024; 58 of 2024 (non-compliance); **61 of 2024 (complex structures function)**; media releases 11 of 2023 and 4 of 2024.
 6. **CIPC eServices catalogue** — https://eservices.cipc.co.za/  
@@ -91,7 +91,7 @@ CIPC publishes **separate** step-by-step guides for Affected Company filing and 
 
 **OFFICIAL — mandate and registers.** CIPC publishes separate guidance on the required contents of the **Mandate**, the **Securities Register**, and the **Beneficial Interest Register**, plus a securities-register template, from the Step-by-Step Guides hub.
 
-**PRACTICAL — Desk v1 scope (not yet Sarah-approved):** Standard CIPC Desk Beneficial Ownership v1 covers only the **common / standard administration path** for a typical private company or close corporation where ownership/control is declared as natural persons and the affected/non-affected route is clear. Trusts, juristic-person owners, foreign ownership, layered/chain control, deceased estates, unclear control, and affected-company edge cases are **specialist-review / escalation** paths — not automated and not guessed.
+**PRACTICAL — Desk v1 scope (not yet Sarah-approved):** Standard Business Admin Desk Beneficial Ownership v1 covers only the **common / standard administration path** for a typical private company or close corporation where ownership/control is declared as natural persons and the affected/non-affected route is clear. Trusts, juristic-person owners, foreign ownership, layered/chain control, deceased estates, unclear control, and affected-company edge cases are **specialist-review / escalation** paths — not automated and not guessed.
 
 **PRACTICAL — relationship to Annual Returns (Sarah-approved on the AR pack, 2026-08-07):** Standard Annual Returns service identifies BO gaps and refers them for completion or quotes them separately. This pack is that separate BO path. Do not silently bundle BO filing into a standard Annual Returns engagement.
 
@@ -103,9 +103,9 @@ CIPC publishes **separate** step-by-step guides for Affected Company filing and 
 
 ### What Beneficial Ownership filing is
 
-**OFFICIAL / plain-English paraphrase:** Beneficial Ownership filing tells CIPC which **natural persons** ultimately own or control the company, even if those people are not the names printed on every share certificate or register line. It is a transparency filing. It is **not** an Annual Return, **not** a SARS tax return, and **not** a CIPC Desk decision about who owns the company.
+**OFFICIAL / plain-English paraphrase:** Beneficial Ownership filing tells CIPC which **natural persons** ultimately own or control the company, even if those people are not the names printed on every share certificate or register line. It is a transparency filing. It is **not** an Annual Return, **not** a SARS tax return, and **not** a Business Admin Desk decision about who owns the company.
 
-### What the CIPC Desk Beneficial Ownership v1 service is intended to cover
+### What the Business Admin Desk Beneficial Ownership v1 service is intended to cover
 
 **PRACTICAL / PROVISIONAL (standard path only — SARAH CONFIRM package boundary):**
 
@@ -145,7 +145,7 @@ CIPC publishes **separate** step-by-step guides for Affected Company filing and 
 - CIPC customer-code path (**SARAH CONFIRM**; PROVISIONAL inherited default: client’s own CIPC customer code unless the client authorises an authorised practitioner code).
 - Billing contact for **CIPC filing-fee funding** only — no Desk service-fee wording until commercial pricing is approved.
 
-### What CIPC Desk cannot guarantee
+### What Business Admin Desk cannot guarantee
 
 **PRACTICAL / Sarah-confirmed wording posture:**
 
@@ -354,7 +354,7 @@ After external submission (only if filing is in the approved package):
 7. False or misleading BO information is an offence.
 8. Foreigner Assurance is integrated with BO submissions from 16 February 2024.
 9. Complex structures (juristic persons and trusts) have a dedicated official guide and a named CIPC function (Notice 61 of 2024).
-10. CIPC, not CIPC Desk, reviews and may require resubmission.
+10. CIPC, not Business Admin Desk, reviews and may require resubmission.
 
 ### Open questions for Sarah (blocking final public / operating wording)
 
@@ -409,7 +409,7 @@ After external submission (only if filing is in the approved package):
 - “We have determined that X is the beneficial owner.”
 - “This structure is simple enough to file without specialist review” when any Layer 6 flag is present.
 - Statements that dormant / non-trading companies need not file BO or Annual Returns.
-- Brand name “CIPC Desk” as final public brand.
+- Brand name “Business Admin Desk” as final public brand.
 - Any claim of CIPC accreditation or partnership.
 - Identity-document uploads into Git, chat, or a new database.
 - Public-launch or client_production language.
@@ -460,7 +460,7 @@ After external submission (only if filing is in the approved package):
 | Statutory interpretation of who must be declared | Legal / specialist class | Specialist review — do not invent a determination |
 | Annual Return still hard-stopped after BO work | OFFICIAL AR dependency | Further action required; do not promise AR clearance |
 
-**Escalation tone to clients (PRACTICAL):** explain that a specialist must review before any filing attempt; list what is blocked; restate that CIPC Desk cannot determine beneficial owners and cannot guarantee CIPC outcomes.
+**Escalation tone to clients (PRACTICAL):** explain that a specialist must review before any filing attempt; list what is blocked; restate that Business Admin Desk cannot determine beneficial owners and cannot guarantee CIPC outcomes.
 
 ---
 

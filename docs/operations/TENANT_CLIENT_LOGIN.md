@@ -55,7 +55,7 @@ When `**CORPFLOW_TENANT_PREVIEW_SECRET**` is set to the **same value on Producti
 - **corpflow_test** review for Luxe remains **`https://lux.corpflowai.com/`** (canonical CorpFlowAI-hosted test/working surface) after merge; optional alias **`https://luxe.corpflowai.com/`** when both domains are wired. Signed `*.vercel.app` links are for **branch / preview** hosts only (optional — not required before publishing to corpflow_test).
 - On `**/change`**, logged-in **tenant** clients can use **Refresh preview link** (same server action as operator “Refresh promotion”) to pull `**promotion`** + `**preview_url**` from GitHub/Vercel into the ticket when automation has already run.
 
-## CIPC Desk standing internal test tenant
+## Business Admin Desk standing internal test tenant
 
 **Environment:** `corpflow_test` (CorpFlowAI-hosted standing internal test tenant — not client_production).
 
@@ -67,7 +67,7 @@ When `**CORPFLOW_TENANT_PREVIEW_SECRET**` is set to the **same value on Producti
 | 3 | Point DNS for those hosts at the same Vercel project (Anton / DNS owner). |
 | 4 | Upsert Postgres `tenant_hostnames`: `**npm run factory:upsert-cipc-desk-hosts**` (or `--dry-run` first). |
 | 5 | After Production-spine deploy of the standing-tenant code: open `**https://cipc.corpflowai.com/**` (homepage) and `**/login**` / `**/change**`. Fictional PIN seed is for test only. |
-| 6 | Evidence must be the **CIPC Desk URL**, never Lux / Core health / generic `/change` on another host. |
+| 6 | Evidence must be the **Business Admin Desk URL**, never Lux / Core health / generic `/change` on another host. |
 | 7 | Annual Returns specialist-review surface (#761): `**https://cipc.corpflowai.com/annual-returns**` (tenant-gated to `cipc-desk`; `noindex`). Structured feedback reuses `**POST /api/cipc-desk/email-intake**` — not a public launch. |
 | 8 | Beneficial Ownership specialist-review surface (#981): `**https://cipc.corpflowai.com/beneficial-ownership**` (tenant-gated to `cipc-desk`; `noindex`). Same existing email-intake feedback path. Complex ownership escalates. Not a public launch. |
 | 9 | Partner funnel (#986): `**https://cipc.corpflowai.com/partners**` (tenant-gated to `cipc-desk`; `noindex`). Commercial overflow / white-label landing for accounting and advisory firms. Enquiry reuses `**POST /api/cipc-desk/email-intake**`. Specialist-review pages stay unchanged. Not a public launch. Canonical note: `docs/operations/CIPC_DESK_PARTNER_FUNNEL_V1.md`. |
@@ -78,7 +78,7 @@ When `**CORPFLOW_TENANT_PREVIEW_SECRET**` is set to the **same value on Producti
 
 Fictional-data only. Live email, WhatsApp, SMS, payments, and external outreach stay off. Seed + email-intake run on standing hosts (Production spine) or legacy Preview env — not a permanent preview release gate.
 
-**Operator decisions (CIPC Desk):** Do not ask Anton to watch the CIPC Desk workstream for routine progress. Route only genuine protected decisions to the **Anton Decision Inbox** (`needs:anton` + `approval:*` + `### ANTON DECISION PACKET` per `docs/operations/ANTON_DECISION_INBOX_V1.md`). Continue safe autonomous preview/docs work while unrelated approvals are pending. Never treat CI-complete as authority for production deploy, secrets, DB/schema, live messaging, payments, or public launch.
+**Operator decisions (Business Admin Desk):** Do not ask Anton to watch the Business Admin Desk workstream for routine progress. Route only genuine protected decisions to the **Anton Decision Inbox** (`needs:anton` + `approval:*` + `### ANTON DECISION PACKET` per `docs/operations/ANTON_DECISION_INBOX_V1.md`). Continue safe autonomous preview/docs work while unrelated approvals are pending. Never treat CI-complete as authority for production deploy, secrets, DB/schema, live messaging, payments, or public launch.
 
 ## LuxeMaurice checklist
 

@@ -2,11 +2,16 @@ import React from 'react';
 import { PrismaClient } from '@prisma/client';
 
 import CipcDeskDirectorChangesReview from '../components/CipcDeskDirectorChangesReview.js';
+import BusinessAdminDeskServiceLanding from '../components/BusinessAdminDeskServiceLanding.js';
 import {
   buildCipcDeskDirectorChangesReviewContent,
   resolveCipcDeskDirectorChangesPageAccess,
 } from '../lib/cipc-desk/director-changes-review.js';
-import { resolveCipcDeskTenantIdFromHost } from '../lib/server/cipc-desk-runtime.js';
+import {
+  isBusinessAdminDeskPublicHost,
+  isCipcDeskStandingTestHost,
+  resolveCipcDeskTenantIdFromHost,
+} from '../lib/server/cipc-desk-runtime.js';
 import { verifyTenantPreviewToken } from '../lib/server/tenant-preview-token.js';
 import { isGhostHost } from '../lib/server/ghost-host.js';
 
@@ -34,11 +39,12 @@ function parseSearchParam(req, name) {
 }
 
 /**
- * CIPC Desk Director Changes specialist-review surface (#980).
+ * Business Admin Desk Director Changes specialist-review surface (#980).
  * Standing URL: https://cipc.corpflowai.com/director-changes (corpflow_test only).
  * Unresolved specialist items stay labelled SARAH CONFIRM — not guessed.
  */
-export default function DirectorChangesPage({ content }) {
+export default function DirectorChangesPage({ content, stagedPublic = false }) {
+  if (stagedPublic) return <BusinessAdminDeskServiceLanding serviceKey="director-changes" internalReview />;
   return <CipcDeskDirectorChangesReview content={content} />;
 }
 
@@ -50,6 +56,15 @@ export async function getServerSideProps({ req }) {
 
   if (!host) {
     return { notFound: true };
+  }
+
+  if (isBusinessAdminDeskPublicHost(host)) {
+    return { redirect: { destination: '/', permanent: false } };
+  }
+
+  // Stable internal staging surface. Append ?specialist=1 to access the detailed specialist-review pack.
+  if (isCipcDeskStandingTestHost(host) && parseSearchParam(req, 'specialist') !== '1') {
+    return { props: { stagedPublic: true, content: null } };
   }
 
   const root = String(process.env.CORPFLOW_ROOT_DOMAIN || 'corpflowai.com')

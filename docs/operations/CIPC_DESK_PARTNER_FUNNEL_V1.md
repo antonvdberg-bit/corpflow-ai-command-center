@@ -1,7 +1,7 @@
-# CIPC Desk — Partner funnel v1
+# Business Admin Desk — Partner funnel v1
 
 **Status:** Conversion landing for accounting / advisory firms (**#986**). Parent campaign **#984** / coordination **#640**.  
-**Tenant / working name:** `cipc-desk` / CIPC Desk (internal working name — the buyer-facing page leads with capacity, not the desk name).  
+**Tenant ID / display brand:** `cipc-desk` / Business Admin Desk. The stable tenant ID is internal; the buyer-facing page presents Business Admin Desk company-administration capacity.
 **Environment:** `corpflow_test` only. **Not a public launch.**  
 **Verdict:** Ordinary implementation of a tenant-gated commercial page. Public launch, indexing, pricing publication, live email/WhatsApp/SMS send, and `client_production` remain blocked until Anton approves that exact step.
 

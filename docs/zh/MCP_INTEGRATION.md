@@ -63,7 +63,7 @@ Agent → MCP 客户端管理器 → 多个 MCP 服务器；本地工具与远�
 
 ## 📋 预置模板
 
-`mcp_servers.json` 已包含文件系统、GitHub、PostgreSQL、Brave Search、Memory、Puppeteer 等模板，按需启用并填好密钥即可。Slack MCP 模板已按 issue #658 **删除**（不再保留 `enabled: false` 条目）；`npm run check:slack-retirement` 会在其被重新加入时失败。
+`mcp_servers.json` 已包含文件系统、GitHub、PostgreSQL、Brave Search、Memory、Puppeteer 等模板，按需启用并填好密钥即可。已退休的聊天 MCP 模板已按 issue #658 **删除**（不再保留 `enabled: false` 条目）；`npm run check:retired-product-cleanliness` 会在已删除产品引用重新出现时失败。
 
 ## 🔧 自定义 MCP 服务器
 

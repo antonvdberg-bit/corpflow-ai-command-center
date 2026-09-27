@@ -2,11 +2,16 @@ import React from 'react';
 import { PrismaClient } from '@prisma/client';
 
 import CipcDeskPartnerFunnel from '../components/CipcDeskPartnerFunnel.js';
+import BusinessAdminDeskPartnerLanding from '../components/BusinessAdminDeskPartnerLanding.js';
 import {
   buildCipcDeskPartnerFunnelContent,
   resolveCipcDeskPartnerFunnelPageAccess,
 } from '../lib/cipc-desk/partner-funnel.js';
-import { resolveCipcDeskTenantIdFromHost } from '../lib/server/cipc-desk-runtime.js';
+import {
+  isBusinessAdminDeskPublicHost,
+  isCipcDeskStandingTestHost,
+  resolveCipcDeskTenantIdFromHost,
+} from '../lib/server/cipc-desk-runtime.js';
 import { verifyTenantPreviewToken } from '../lib/server/tenant-preview-token.js';
 import { isGhostHost } from '../lib/server/ghost-host.js';
 
@@ -34,12 +39,13 @@ function parseSearchParam(req, name) {
 }
 
 /**
- * CIPC Desk commercial partner funnel (#986).
+ * Business Admin Desk commercial partner funnel (#986).
  * Standing URL after publish: https://cipc.corpflowai.com/partners (corpflow_test only).
  * Not a public launch. Specialist-review pages are unchanged.
  */
-export default function PartnersPage({ content }) {
-  return <CipcDeskPartnerFunnel content={content} />;
+export default function PartnersPage({ content, publicProduction = false, stagedPublic = false }) {
+  if (stagedPublic) return <BusinessAdminDeskPartnerLanding internalReview />;
+  return <CipcDeskPartnerFunnel content={content} publicProduction={publicProduction} />;
 }
 
 export async function getServerSideProps({ req }) {
@@ -50,6 +56,11 @@ export async function getServerSideProps({ req }) {
 
   if (!host) {
     return { notFound: true };
+  }
+
+  // Stable internal staging surface. Append ?specialist=1 to access the existing detailed partner funnel.
+  if (isCipcDeskStandingTestHost(host) && parseSearchParam(req, 'specialist') !== '1') {
+    return { props: { stagedPublic: true, publicProduction: false, content: null } };
   }
 
   const root = String(process.env.CORPFLOW_ROOT_DOMAIN || 'corpflowai.com')
@@ -96,6 +107,7 @@ export async function getServerSideProps({ req }) {
     return {
       props: {
         content: buildCipcDeskPartnerFunnelContent(),
+        publicProduction: isBusinessAdminDeskPublicHost(host),
       },
     };
   } catch {
@@ -106,6 +118,7 @@ export async function getServerSideProps({ req }) {
     return {
       props: {
         content: buildCipcDeskPartnerFunnelContent(),
+        publicProduction: isBusinessAdminDeskPublicHost(host),
       },
     };
   } finally {

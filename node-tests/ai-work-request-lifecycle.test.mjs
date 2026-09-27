@@ -25,6 +25,10 @@ import {
 } from '../lib/server/cursor-origin-metadata.js';
 import { formatFactoryHandoffComment } from '../lib/server/factory-cursor-handoff.js';
 import {
+  buildCloudAgentsExecutorEvidence,
+  formatCloudAgentsExecutorEvidence,
+} from '../lib/server/factory-cloud-agents-executor.js';
+import {
   AI_WORK_REQUEST_MARKER,
   AI_WORK_REQUEST_SCHEMA,
   AI_WORK_STATUS_MARKER,
@@ -68,6 +72,31 @@ function requestComment(overrides = {}) {
 }
 
 describe('ai work request correlation (#1059)', () => {
+  it('derives compact Cloud Agents lifecycle evidence without separate ceremony comments', () => {
+    const status = deriveAiWorkRequestStatus({
+      issue: { number: 1059, body: requestComment() },
+      comments: [{
+        body: formatCloudAgentsExecutorEvidence(
+          buildCloudAgentsExecutorEvidence({
+            source_issue: 1059,
+            work_request_id: WR_ID,
+            cursor_agent_id: AGENT_ID,
+            cursor_run_id: RUN_ID,
+            status: 'COMPLETED',
+            pr_number: 1312,
+            head_sha: 'abc123',
+            ci_state: 'success',
+            final_verdict: 'PASS',
+          }),
+        ),
+      }],
+      now: NOW,
+    });
+    assert.equal(status?.status, 'COMPLETED');
+    assert.equal(status?.pr_number, 1312);
+    assert.equal(status?.ci_state, 'success');
+  });
+
   it('creates and round-trips a durable corpflow.ai_work_request.v1 marker', () => {
     const id = createWorkRequestId();
     assert.equal(isValidWorkRequestId(id), true);

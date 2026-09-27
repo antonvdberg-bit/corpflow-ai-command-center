@@ -2,7 +2,7 @@
 
 **Status:** Contract + helpers live in repo; **wired into the existing GitHub Heartbeat Checker template** per [#684](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/684). Do **not** create a second notifier workflow. Live n8n must be updated in place — see `docs/runbooks/N8N_EXCEPTION_ONLY_ALERT_LIVE_APPLY_684.md`.
 
-**Route:** Existing approved non-Slack path — **n8n → Telegram** (same family as `corpflow.ops_alert.v1` / operator checkpoints). Do not reintroduce Slack.
+**Route:** Existing approved exception path — **n8n → Telegram** (same family as `corpflow.ops_alert.v1` / operator checkpoints).
 
 **Canonical inbox:** `docs/operations/ANTON_DECISION_INBOX_V1.md`
 
@@ -77,6 +77,5 @@ Template: `docs/n8n/templates/github-heartbeat-checker.template.json`.
 
 - Live apply: `docs/runbooks/N8N_EXCEPTION_ONLY_ALERT_LIVE_APPLY_684.md`
 - Heartbeat runbook: `docs/runbooks/N8N_GITHUB_HEARTBEAT_CHECKER_V1.md`
-- Telegram posture: `docs/operations/SLACK_TELEGRAM_DEPENDENCY_AUDIT_658.md`
 - Wiring packet: `docs/operations/TELEGRAM_ALERT_WIRING_PACKET_V1.md`
 - Forward recipe: `docs/n8n/automation-forward-recipe.md`

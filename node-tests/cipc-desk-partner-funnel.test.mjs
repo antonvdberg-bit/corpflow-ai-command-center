@@ -48,6 +48,8 @@ test('partner funnel content covers conversion sections without specialist jargo
   assert.match(String(c.hero?.secondary_cta?.label || ''), /See services we can handle/);
   assert.equal(c.hero?.primary_cta?.href, '#partner-enquiry');
   assert.equal(c.hero?.secondary_cta?.href, '#partner-services');
+  assert.equal(c.meta?.page_title, 'Business Admin Desk · Partner support for accounting firms');
+  assert.equal(c.nav?.brand, 'Business Admin Desk');
   assert.match(String(c.audience?.body || ''), /accounting, tax and advisory firms/i);
   assert.match(String(c.audience?.not_for || ''), /own company/i);
   assert.ok(Array.isArray(c.services?.items) && c.services.items.length >= 6);
@@ -57,13 +59,16 @@ test('partner funnel content covers conversion sections without specialist jargo
   assert.match(String(c.proof?.experience_line || ''), /15 years/i);
   assert.equal(c.proof?.confirmation_status, 'pending_exact_public_wording');
   assert.equal(c.proof?.experience_line, CIPC_DESK_PARTNER_EXPERIENCE_LINE);
-  assert.match(JSON.stringify(c.trust), /not CIPC/i);
+  assert.match(JSON.stringify(c.trust), /not a government or regulatory service/i);
   assert.match(JSON.stringify(c.trust), /not guaranteed/i);
   assert.match(JSON.stringify(c.trust), /Remote delivery across South Africa/i);
   assert.match(String(c.form?.confirmation || ''), /usually within one business day/i);
   assert.match(String(c.meta?.robots || ''), /noindex/);
 
   const visible = commercialBlob();
+  assert.doesNotMatch(visible, /CIPC Desk/);
+  assert.match(visible, /Company administration/i);
+  assert.doesNotMatch(visible, /CIPC/i);
   assert.doesNotMatch(visible, /corpflow_test|#986|#984|GitHub|SARAH CONFIRM|specialist-review|ticket_id|magic_link/i);
   assert.doesNotMatch(visible, /R\s?\d{2,}|ZAR\s?\d+|USD\s?\d+/i);
   assert.match(visible, /No fee table is published here|This is not a price list/i);
@@ -104,6 +109,10 @@ test('page access fails closed for non-cipc tenants', () => {
 
   const alias = resolveCipcDeskPartnerFunnelPageAccess({ host: 'cipc-desk.corpflowai.com' });
   assert.equal(alias.allowed, true);
+
+  const publicHost = resolveCipcDeskPartnerFunnelPageAccess({ host: 'businessadmindesk.co.za' });
+  assert.equal(publicHost.allowed, true);
+  assert.equal(publicHost.tenantId, 'cipc-desk');
 
   const lux = resolveCipcDeskPartnerFunnelPageAccess({
     host: 'lux.corpflowai.com',

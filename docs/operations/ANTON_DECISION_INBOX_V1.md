@@ -110,7 +110,7 @@ Then remove `needs:anton` (and spent reason labels). Helper: `formatDecisionReso
 
 ## 5. Exception-only notification
 
-Use the existing approved non-Slack route (n8n → Telegram). Design: `docs/n8n/anton-decision-inbox-exception-notify.md`.
+Use the existing approved exception route (n8n → Telegram). Design: `docs/n8n/anton-decision-inbox-exception-notify.md`.
 
 Notify **only** when:
 

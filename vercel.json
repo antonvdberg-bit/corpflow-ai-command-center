@@ -48,6 +48,7 @@
       "destination": "/site-preview"
     },
     { "source": "/lux-landing-static", "destination": "/lux-landing-static.html" },
+    { "source": "/api/factory/langfuse-synthetic-pilot", "destination": "/api/langfuse_pilot" },
     { "source": "/api/(.*)", "destination": "/api/factory_router?__path=$1" },
     { "source": "/login", "destination": "/login.html" },
     { "source": "/growth", "destination": "/growth.html" },

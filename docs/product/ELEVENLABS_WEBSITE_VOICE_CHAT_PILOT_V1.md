@@ -189,7 +189,8 @@ Not a true multi-client white-label platform. Client pilots need a **separate** 
 | ------- | ---------- |
 | `NEXT_PUBLIC_ENABLE_ELEVENLABS_VOICE_CHAT` | Must be `true` to render; default off / unset = **nothing** |
 | `NEXT_PUBLIC_ELEVENLABS_AGENT_ID` | Placeholder `REPLACE_ME` only in template; real ID **not** committed |
-| Component | Renders `null` unless flag on **and** agent id is a non-placeholder string |
+| `NEXT_PUBLIC_ELEVENLABS_VOICE_CHAT_ALLOWED_PATHS` | Mandatory comma-separated exact browser pathname allowlist; missing / empty = **nothing**. Option A is `/demo/voice-enquiry` only. |
+| Component | Renders `null` unless flag on, agent ID is a non-placeholder string, **and** the current pathname exactly matches the allowlist. |
 | Telephony / CRM / email / WhatsApp / DB writes | **None** in this packet |
 
 **This document does not authorize activation.**

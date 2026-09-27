@@ -28,6 +28,7 @@ This runbook is **not** permission to:
 - [ ] Spend envelope agreed (suggested hard early cap USD 100/month including LLM — verify live pricing)
 - [ ] Agent instructions match required behaviour + refusals
 - [ ] First surface is **`/demo/voice-enquiry`** (noindex) before any public Lead Rescue / Website Rescue page
+- [ ] `NEXT_PUBLIC_ELEVENLABS_VOICE_CHAT_ALLOWED_PATHS=/demo/voice-enquiry` is set in the same controlled environment before the global enable flag
 
 ---
 
@@ -40,15 +41,19 @@ This runbook is **not** permission to:
 5. Set **voice + widget branding** (safe public copy only).
 6. Confirm widget requirements (e.g. public agent / auth settings per ElevenLabs docs at activation time).
 7. Place agent id in **operator-controlled env** (Vercel Preview or local) — **never commit** the real id.
-8. Set `NEXT_PUBLIC_ENABLE_ELEVENLABS_VOICE_CHAT=true` only in that controlled environment.
-9. Test on **`/demo/voice-enquiry`** (private/non-indexed):
+8. Set `NEXT_PUBLIC_ELEVENLABS_VOICE_CHAT_ALLOWED_PATHS=/demo/voice-enquiry` before the global enable flag. The path allowlist is mandatory: an Infisical value alone does not constrain the embed unless the deployed code reads it.
+9. Set `NEXT_PUBLIC_ENABLE_ELEVENLABS_VOICE_CHAT=true` only in that controlled environment. Do **not** enable site-wide.
+10. Confirm the widget appears only on **`/demo/voice-enquiry`** and remains absent from the homepage, Lead Rescue, and Website Rescue pages.
+11. Test on **`/demo/voice-enquiry`** (private/non-indexed):
    - mic permission
    - transcript / summary quality
    - T4/T5-style refusals (guarantees; “email now”)
    - disable flag → widget gone
-10. Record evidence (screenshots, scores, cost note).
-11. **Stop.** Request **explicit Anton approval** for limited public embed on `/lead-rescue` and/or Website Rescue demo/offer pages.
-12. Only after that approval: enable on those pages in the agreed environment; keep site-wide off.
+12. Record evidence (screenshots, scores, cost note).
+13. **Stop.** Request **explicit Anton approval** for limited public embed on `/lead-rescue` and/or Website Rescue demo/offer pages.
+14. Only after that approval: add those exact paths to the allowlist in the agreed environment; keep site-wide off.
+
+Do **not** add Lead Rescue or Website Rescue paths to the allowlist without that separate approval.
 
 ---
 

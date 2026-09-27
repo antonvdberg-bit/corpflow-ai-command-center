@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import {
   shouldRenderElevenLabsVoiceChat,
@@ -6,12 +6,20 @@ import {
 } from '../lib/public/elevenlabs-voice-chat.js';
 
 const WIDGET_SCRIPT_SRC = 'https://unpkg.com/@elevenlabs/convai-widget-embed';
+const ELEVENLABS_VOICE_CHAT_PUBLIC_ENV = {
+  NEXT_PUBLIC_ENABLE_ELEVENLABS_VOICE_CHAT:
+    process.env.NEXT_PUBLIC_ENABLE_ELEVENLABS_VOICE_CHAT,
+  NEXT_PUBLIC_ELEVENLABS_AGENT_ID: process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID,
+  NEXT_PUBLIC_ELEVENLABS_VOICE_CHAT_ALLOWED_PATHS:
+    process.env.NEXT_PUBLIC_ELEVENLABS_VOICE_CHAT_ALLOWED_PATHS,
+};
 
 /**
  * Gated ElevenLabs Agents website voice-chat placeholder.
  *
  * - Renders nothing unless NEXT_PUBLIC_ENABLE_ELEVENLABS_VOICE_CHAT=true
- *   AND NEXT_PUBLIC_ELEVENLABS_AGENT_ID is a real non-placeholder id.
+ *   AND NEXT_PUBLIC_ELEVENLABS_AGENT_ID is a real non-placeholder id
+ *   AND the browser pathname exactly matches the configured allowlist.
  * - CorpFlowAI-owned surfaces only (call sites must stay on CorpFlowAI pages).
  * - Do NOT enable in production without Anton approval.
  * - NO ACTIVATION AUTHORIZED by merging this component.
@@ -19,8 +27,13 @@ const WIDGET_SCRIPT_SRC = 'https://unpkg.com/@elevenlabs/convai-widget-embed';
  * @param {{ surface?: string }} props
  */
 export default function ElevenLabsWebsiteVoiceChat({ surface = 'unspecified' }) {
-  const enabled = shouldRenderElevenLabsVoiceChat();
-  const agentId = resolveElevenLabsAgentId();
+  const [pathname, setPathname] = useState('');
+  const agentId = resolveElevenLabsAgentId(ELEVENLABS_VOICE_CHAT_PUBLIC_ENV);
+  const enabled = shouldRenderElevenLabsVoiceChat(ELEVENLABS_VOICE_CHAT_PUBLIC_ENV, pathname);
+
+  useEffect(() => {
+    setPathname(window.location.pathname);
+  }, []);
 
   useEffect(() => {
     if (!enabled || typeof document === 'undefined') return undefined;

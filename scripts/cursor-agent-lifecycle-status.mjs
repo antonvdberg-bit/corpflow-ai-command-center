@@ -7,7 +7,7 @@
  *   --issue=N (read origin metadata + lifecycle state from issue comments)
  *
  * Persists lifecycle state + completion events as GitHub issue comments.
- * Silent on RUNNING/PENDING. Dedupe on second unchanged COMPLETED/FAILED/STALE poll.
+ * RUNNING/PENDING upserts one compact heartbeat comment in place; terminal events remain deduped.
  *
  * Env:
  *   CURSOR_API_KEY (required unless --dry-run)
@@ -26,11 +26,17 @@ import fs from 'node:fs';
 import {
   buildCursorLifecycleState,
   findLatestLifecycleState,
+  formatCursorHeartbeatComment,
   formatCursorLifecycleStateComment,
   runCursorAgentLifecycleTick,
 } from '../lib/server/cursor-agent-lifecycle.js';
 import { buildCapacityReleaseWakeRequest } from '../lib/server/cursor-ready-event-dispatch.js';
-import { findKnownCloudAgentsExecutorEvidence } from '../lib/server/factory-cloud-agents-executor.js';
+import {
+  buildCloudAgentsExecutorEvidence,
+  findCloudAgentsExecutorEvidence,
+  findKnownCloudAgentsExecutorEvidence,
+  formatCloudAgentsExecutorEvidence,
+} from '../lib/server/factory-cloud-agents-executor.js';
 
 const REPO =
   process.env.GITHUB_REPOSITORY ||
@@ -112,6 +118,64 @@ async function listIssueComments(issue) {
 
 async function createIssueComment(issue, body) {
   return gh('POST', `/repos/${OWNER}/${REPO_NAME}/issues/${issue}/comments`, { body });
+}
+
+async function upsertHeartbeat(issue, heartbeat) {
+  const comments = await listIssueComments(issue);
+  const existing = [...comments].reverse().find((comment) =>
+    /corpflow\.cursor_heartbeat\.v1/i.test(String(comment?.body || '')),
+  );
+  const body = formatCursorHeartbeatComment(heartbeat);
+  if (!existing?.id) {
+    return createIssueComment(issue, body);
+  }
+  return gh('PATCH', `/repos/${OWNER}/${REPO_NAME}/issues/comments/${existing.id}`, { body });
+}
+
+async function upsertCompactLifecycle(issue, event) {
+  const comments = await listIssueComments(issue);
+  const existing = [...comments].reverse().find((comment) =>
+    /corpflow\.factory_cloud_agents_executor\.v1/i.test(String(comment?.body || '')),
+  );
+  if (!existing?.id) {
+    return createIssueComment(
+      issue,
+      formatCloudAgentsExecutorEvidence(
+        buildCloudAgentsExecutorEvidence({
+          source_issue: issue,
+          cursor_agent_id: event.cursor_agent_id,
+          cursor_run_id: event.cursor_run_id,
+          status: event.status,
+          branch: event.branch,
+          pr_number: event.pr,
+          pr_url: event.pr_url,
+          head_sha: event.sha,
+          ci_state: event.ci_check_result,
+          final_verdict: event.status === 'COMPLETED' ? 'PASS' : 'BLOCKED',
+          blocker: event.blocker,
+        }),
+      ),
+    );
+  }
+  const prior = findKnownCloudAgentsExecutorEvidence([existing], issue) || {};
+  return gh('PATCH', `/repos/${OWNER}/${REPO_NAME}/issues/comments/${existing.id}`, {
+    body: formatCloudAgentsExecutorEvidence(
+      buildCloudAgentsExecutorEvidence({
+        ...prior,
+        source_issue: issue,
+        cursor_agent_id: event.cursor_agent_id || prior.cursor_agent_id,
+        cursor_run_id: event.cursor_run_id || prior.cursor_run_id,
+        status: event.status,
+        branch: event.branch,
+        pr_number: event.pr,
+        pr_url: event.pr_url,
+        head_sha: event.sha,
+        ci_state: event.ci_check_result,
+        final_verdict: event.status === 'COMPLETED' ? 'PASS' : 'BLOCKED',
+        blocker: event.blocker,
+      }),
+    ),
+  });
 }
 
 async function addIssueLabels(issue, labels) {
@@ -204,6 +268,8 @@ function buildGithubAdapter() {
   return {
     listIssueComments,
     createIssueComment,
+    upsertCompactLifecycle,
+    upsertHeartbeat,
     findPrForBranch,
     findPrForIssue,
     getPrChecks,
@@ -237,12 +303,17 @@ function writeCapacityWakeArtifact(wake) {
  */
 async function discoverAgentFromIssue(issue) {
   const comments = await listIssueComments(issue);
-  const evidence = findKnownCloudAgentsExecutorEvidence(comments, issue);
+  const evidence = findCloudAgentsExecutorEvidence(
+    comments,
+    issue,
+    ['IN_PROGRESS', 'COMPLETED', 'FAILED'],
+  );
   const life = findLatestLifecycleState(comments);
   return {
     comments,
     agentId: evidence?.cursor_agent_id || null,
     runId: evidence?.cursor_run_id || null,
+    modelSelection: evidence?.model_selection || null,
     priorState:
       life && evidence?.cursor_agent_id === life.cursorAgentId
         ? life
@@ -273,7 +344,10 @@ async function main() {
 
   let agentId = args.agentId ? String(args.agentId).trim() : null;
   let discoveredRunId = null;
+  let discoveredStartedAt = null;
+  let modelSelection = null;
   let priorState = null;
+  let compactLifecycle = false;
   /** @type {Array<{ body?: string }>} */
   let comments = [];
 
@@ -283,6 +357,9 @@ async function main() {
     priorState = discovered.priorState;
     if (!agentId) agentId = discovered.agentId;
     discoveredRunId = discovered.runId;
+    modelSelection = discovered.modelSelection;
+    discoveredStartedAt = discovered.evidence?.started_at || discovered.evidence?.startedAt || null;
+    compactLifecycle = Boolean(discovered.evidence);
     if (!agentId) {
       console.error(`No Cursor agent ID found on issue #${issue} (origin metadata / lifecycle state)`);
       process.exit(3);
@@ -301,7 +378,7 @@ async function main() {
       cursorRunId: discoveredRunId,
       sourceIssue: issue,
       phase: 'PENDING',
-      startedAt: new Date().toISOString(),
+      startedAt: discoveredStartedAt || new Date().toISOString(),
     });
   }
 
@@ -324,18 +401,16 @@ async function main() {
   }
 
   const github = issue ? buildGithubAdapter() : null;
-  const allowStale =
-    args.allowStaleFollowUp === false
-      ? false
-      : args.allowStaleFollowUp === true
-        ? true
-        : true;
+  // Never message/restart a stale agent implicitly. A same-agent follow-up
+  // must be an explicit operator choice.
+  const allowStale = args.allowStaleFollowUp === true;
 
   const tickOnce = async () =>
     runCursorAgentLifecycleTick({
       apiKey,
       agentId,
       runId: priorState.cursorRunId || discoveredRunId,
+      modelSelection,
       sourceIssue: issue,
       priorState,
       startedAt: priorState.startedAt,
@@ -362,7 +437,7 @@ async function main() {
     ),
   );
 
-  if (issue && first.state) {
+  if (issue && first.state && !compactLifecycle) {
     await createIssueComment(issue, formatCursorLifecycleStateComment(first.state));
   }
 
@@ -392,7 +467,7 @@ async function main() {
         2,
       ),
     );
-    if (issue && second.state) {
+    if (issue && second.state && !compactLifecycle) {
       await createIssueComment(issue, formatCursorLifecycleStateComment(second.state));
     }
     wakeActions = [...wakeActions, ...(Array.isArray(second.actions) ? second.actions : [])];

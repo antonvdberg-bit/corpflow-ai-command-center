@@ -194,7 +194,7 @@ It is the closest "no-code form-bot" peer to a CorpFlow-native widget, with a ri
 | **Website embed** | YES | Clean. Bubble or iframe. Good mobile UX. |
 | **Tenant-scoped (CorpFlow)** | PARTIAL | Typebot has workspaces; one workspace per CorpFlow tenant, OR multiple flows in one workspace tagged per tenant. Storage of responses lives in Typebot's Postgres, not CorpFlow's. To get responses into CorpFlow CMP, you wire a webhook from each flow to a CorpFlow ingest endpoint — duplicates the data and adds a sync surface. |
 | **No-AI / deterministic flows** | YES | Default mode is deterministic. AI is an explicit OpenAI block; not in the hot path unless added. |
-| **Human handoff / notification** | LIMITED | Webhook-out to email/Slack/Discord/CorpFlow. No native agent inbox. |
+| **Human handoff / notification** | LIMITED | Webhook-out to email/Discord/CorpFlow. No native agent inbox. |
 | **Cost risks** | LOW–MEDIUM | Flat infra cost (3 Next.js apps + Postgres + storage on a VPS, ~USD 20–40/month). Variable cost only if AI block enabled. |
 | **Infrastructure complexity** | MEDIUM | Separate stack from CorpFlow; off Vercel possible (Docker), but needs a host. Backups + upgrades + monitoring run in parallel to CorpFlow's. Webhook from Typebot to CorpFlow CMP becomes a permanent dependency. |
 | **Licensing concerns** | **AGPL-3.0** | Typebot is AGPL-3.0. AGPL means: if you modify Typebot **and** offer it over a network (which any per-tenant SaaS use is), you must publish your modifications under AGPL. Embedding the unmodified upstream as a black box is fine; forking + customising for tenant branding is not without honouring AGPL. **This is the binding constraint** that pushes Typebot from "strong v0 candidate" to "deferred". |

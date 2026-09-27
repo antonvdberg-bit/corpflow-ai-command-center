@@ -208,7 +208,7 @@ steps:
 - 🏢 **HR Systems**: Workday, SuccessFactors
 - 📊 **Analytics**: Tableau, Power BI connectors
 - 💼 **CRM**: Salesforce, HubSpot
-- 📧 **Communication**: Slack, Microsoft Teams
+- 📧 **Communication**: Microsoft Teams
 - 🗄️ **Databases**: PostgreSQL, MongoDB, data warehouses
 
 ## 🎯 How to Contribute

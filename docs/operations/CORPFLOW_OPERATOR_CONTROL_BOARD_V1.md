@@ -7,7 +7,7 @@
 
 <!-- OPERATOR_CONTROL_BOARD_V1 -->
 
-> **Orchestration posture:** `docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md` wins over older executor rows below when they conflict (Cursor auto-primary, Codex human `@codex` once, OpenHands optional, n8n exception-only).
+> **Orchestration posture:** `docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md` wins over older executor rows below when they conflict (Cursor auto-primary, Codex human `@codex` once, n8n exception-only).
 
 ## 1. Purpose
 
