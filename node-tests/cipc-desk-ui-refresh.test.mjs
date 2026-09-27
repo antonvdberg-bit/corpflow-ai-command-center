@@ -106,11 +106,12 @@ test('Annual Returns candidate embeds the approved HeyGen explainer and keeps th
   assert.match(service, /Even if your company is dormant or not trading, Annual Return filing and other statutory obligations may still apply\./);
 });
 
-test('Director Changes candidate embeds the approved HeyGen explainer', () => {
+test('Director Changes candidate embeds a valid HeyGen explainer without pinning a historical asset id', () => {
   const service = readFileSync(join(root, 'components/BusinessAdminDeskServiceLanding.js'), 'utf8');
-  assert.match(service, /5e298647d6c84fc2a54ac0f015773511/);
+  assert.match(service, /videoEmbedUrl:\s*['"]https:\/\/app\.heygen\.com\/embeds\/[a-f0-9]{32}['"]/i);
   assert.match(service, /Director Changes — handled clearly/);
   assert.match(service, /Tell us what changed\. We will help with the administration\./);
+  assert.doesNotMatch(service, /5e298647d6c84fc2a54ac0f015773511/);
 });
 
 test('Beneficial Ownership candidate embeds a valid HeyGen explainer without pinning a historical asset id', () => {
