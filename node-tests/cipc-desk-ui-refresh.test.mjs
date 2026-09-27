@@ -97,13 +97,13 @@ test('Business Admin Desk CTA is email-primary with a low-friction webmail fallb
   assert.doesNotMatch(actions, /fetch\(|\/api\//);
 });
 
-test('Annual Returns candidate embeds the approved HeyGen explainer and keeps the CTA close to it', () => {
+test('Annual Returns candidate embeds a valid HeyGen explainer without pinning a historical asset id', () => {
   const service = readFileSync(join(root, 'components/BusinessAdminDeskServiceLanding.js'), 'utf8');
-  assert.match(service, /75869385e41a4d33abb8f151daded446/);
+  assert.match(service, /videoEmbedUrl:\s*['"]https:\/\/app\.heygen\.com\/embeds\/[a-f0-9]{32}['"]/i);
   assert.match(service, /Annual Returns — without the admin headache/);
-  assert.match(service, /videoEmbedUrl/);
   assert.match(service, /BusinessAdminDeskContactActions/);
   assert.match(service, /Even if your company is dormant or not trading, Annual Return filing and other statutory obligations may still apply\./);
+  assert.doesNotMatch(service, /75869385e41a4d33abb8f151daded446/);
 });
 
 test('Director Changes candidate embeds a valid HeyGen explainer without pinning a historical asset id', () => {

@@ -31,7 +31,7 @@ const configs = {
     headline: 'You do not need to become an Annual Returns expert.',
     lead:
       'Tell us what is going on. We will help you work out what is needed, what we can handle, and whether anything needs separate attention first.',
-    videoEmbedUrl: 'https://app.heygen.com/embeds/75869385e41a4d33abb8f151daded446',
+    videoEmbedUrl: 'https://app.heygen.com/embeds/7bdf2fa15dca444a9ec9a22abc2f3940',
     videoTitle: 'Annual Returns — without the admin headache',
     videoSummary:
       'A short introduction to how Business Admin Desk helps you understand the next step and progress routine Annual Returns administration.',
