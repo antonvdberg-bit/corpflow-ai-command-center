@@ -58,7 +58,7 @@ const serviceLabels = [
   ['Ongoing administration', null],
 ];
 
-export const BUSINESS_ADMIN_DESK_HEYGEN_EMBED_URL = 'https://app.heygen.com/embeds/24cebb01a1b240158c77771c103542da';
+export const BUSINESS_ADMIN_DESK_HEYGEN_EMBED_URL = 'https://app.heygen.com/embeds/dd040650d267488485a7c2eb8188f592';
 
 export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINESS_ADMIN_DESK_HEYGEN_EMBED_URL, internalReview = false }) {
   const visualHero = buildPublicVisualHero('process');

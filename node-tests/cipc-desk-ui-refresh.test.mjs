@@ -55,7 +55,8 @@ test('landing wrapper serves approved video-first landing on internal and public
 test('public Business Admin Desk landing is concise, video-first and serves direct plus partner audiences', () => {
   const landing = readFileSync(join(root, 'components/BusinessAdminDeskPublicLanding.js'), 'utf8');
   assert.match(landing, /<iframe/);
-  assert.match(landing, /app\.heygen\.com\/embeds\/24cebb01a1b240158c77771c103542da/);
+  assert.match(landing, /BUSINESS_ADMIN_DESK_HEYGEN_EMBED_URL\s*=\s*['"]https:\/\/app\.heygen\.com\/embeds\/[a-f0-9]{32}['"]/i);
+  assert.doesNotMatch(landing, /24cebb01a1b240158c77771c103542da/);
   assert.match(landing, /Business Admin Desk — Clear Company Administration/);
   assert.match(landing, /You run the business\. We help with the administration\./);
   assert.match(landing, /For individual businesses/);
