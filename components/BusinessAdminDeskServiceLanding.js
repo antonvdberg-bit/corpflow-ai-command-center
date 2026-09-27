@@ -65,7 +65,7 @@ You can reply to me on this email.`,
     headline: 'Tell us what changed. We will help with the administration.',
     lead:
       'Whether a director has resigned, someone new is being appointed, or company information needs updating, you do not need to work out the process before contacting us.',
-    videoEmbedUrl: 'https://app.heygen.com/embeds/5e298647d6c84fc2a54ac0f015773511',
+    videoEmbedUrl: 'https://app.heygen.com/embeds/84a8fdc51f3a4667b625afa48a2236e2',
     videoTitle: 'Director Changes — handled clearly',
     videoSummary:
       'A short introduction to how Business Admin Desk helps review routine director changes, identify what is needed and keep the next step clear.',
