@@ -7,6 +7,7 @@ import {
   buildCursorLifecycleState,
   buildCursorProgressFingerprint,
   buildDeterministicStaleFollowUpPrompt,
+  classifyCursorTerminalOutcome,
   classifyCursorFailure,
   formatCursorCompletionEventComment,
   formatCursorHeartbeatComment,
@@ -19,6 +20,27 @@ import {
 } from '../lib/server/cursor-agent-lifecycle.js';
 
 describe('cursor-agent-lifecycle', () => {
+  it('does not turn a completed provider run without artifacts into PASS', () => {
+    const outcome = classifyCursorTerminalOutcome({
+      finalResult: null,
+      ciResult: 'unknown',
+      workType: 'implementation',
+    });
+    assert.deepEqual(outcome, {
+      verdict: 'COMPLETED_UNVERIFIED',
+      reason: 'missing_required_completion_artifacts',
+    });
+  });
+
+  it('accepts a bounded diagnostic result only when its evidence is preserved', () => {
+    const outcome = classifyCursorTerminalOutcome({
+      finalResult: 'PASS — verification evidence: observed read-only result',
+      workType: 'approved diagnostic',
+    });
+    assert.equal(outcome.verdict, 'PASS');
+    assert.equal(outcome.reason, 'verified_bounded_diagnostic_result');
+  });
+
   it('normalizes CREATING → PENDING and RUNNING → RUNNING', () => {
     assert.equal(
       normalizeCursorAgentLifecycleStatus({ status: 'CREATING' }).phase,
@@ -223,10 +245,56 @@ describe('cursor-agent-lifecycle', () => {
     assert.ok(comments.some((c) => c.includes('CURSOR COMPLETION EVENT')));
   });
 
+  it('records COMPLETED_UNVERIFIED for #1349-shaped completion evidence', async () => {
+    const evidence = [];
+    const removed = [];
+    const done = await runCursorAgentLifecycleTick({
+      apiKey: 'test-key',
+      agentId: 'bc-no-artifact',
+      sourceIssue: 1349,
+      fetch: async () => ({
+        ok: true,
+        status: 200,
+        async text() {
+          return JSON.stringify({
+            status: 'COMPLETED',
+            agent: { id: 'bc-no-artifact', status: 'COMPLETED' },
+            run: { id: 'run-no-artifact', status: 'COMPLETED' },
+          });
+        },
+      }),
+      github: {
+        async createIssueComment() {},
+        async upsertCompactLifecycle(issue, event) {
+          evidence.push({ issue, event });
+        },
+        async removeIssueLabels(issue, labels) {
+          removed.push({ issue, labels });
+        },
+        async addIssueLabels() {},
+      },
+    });
+    assert.equal(done.phase, 'COMPLETED');
+    assert.equal(done.event.final_verdict, 'COMPLETED_UNVERIFIED');
+    assert.equal(done.state.finalResult, null);
+    assert.equal(done.state.finalVerdict, 'COMPLETED_UNVERIFIED');
+    assert.equal(evidence[0].event.final_verdict, 'COMPLETED_UNVERIFIED');
+    assert.equal(removed.length, 0);
+    assert.ok(done.actions.includes('execution_slot_preserved_for_operator_review'));
+  });
+
   it('releases terminal work from ready dispatch until an explicit requeue', async () => {
     const removed = [];
     const github = {
       async createIssueComment() {},
+      async findPrForIssue() {
+        return {
+          number: 9003,
+          url: 'https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/9003',
+          headSha: 'verified-sha',
+          branch: 'cursor/terminal',
+        };
+      },
       async getPrChecks() {
         return { conclusion: 'success', summary: 'ok' };
       },
