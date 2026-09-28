@@ -18,6 +18,8 @@ This packet adds **status supervision after activation**:
 | Scheduled / manual poller | `.github/workflows/cursor-agent-lifecycle-status.yml` |
 | Durable state | GitHub issue comments (`corpflow.cursor_lifecycle_state.v1`) |
 | Completion event | Issue comment (`corpflow.cursor_completion_event.v1`) — n8n contract |
+| COO read surface | `GET /api/factory/cursor/runs` — factory-master/Core only; GitHub evidence first |
+| Near-live evidence | `GET /api/factory/cursor/runs/stream?agent_id=bc-…&run_id=run-…` — bounded SSE; scheduled poll remains reconciliation |
 | AI controller readback | `corpflow.ai_work_request.v1` + `corpflow.ai_work_status.v1` (#1059) — see `docs/operations/AI_WORK_REQUEST_LIFECYCLE_V1.md` |
 | Operator review packet | Reuses `operator-review-handoff.js` |
 
@@ -51,6 +53,15 @@ Claim-before-API applies only to the legacy diagnostic API activator. Production
 When a poll reaches COMPLETED/FAILED/STALE and releases verified WIP capacity, this workflow sets `wake_dispatcher=true` and **`workflow_call`s** `CorpFlowAI Cursor Factory Handoff` for a full priority queue scan. Operator authorization comments and `execution:paused` removal also wake **Handoff** directly. Do **not** wake `factory-dispatcher-activate.yml` automatically — that API path is diagnostic `workflow_dispatch` only (#930). Do **not** ask Anton to toggle `dispatch:cursor-ready` or manually `workflow_dispatch` for ordinary continuation. Internal target: begin eligible work within **5 minutes** of the eligibility-changing event.
 
 Lifecycle still only discovers **already-claimed** Cursor issues. Ready work with no claimed run is recovered by **`CorpFlowAI Factory Queue Reconcile`** (`factory-queue-reconcile.yml`, #1023): a 10-minute thin scan that `workflow_call`s Handoff only when eligible work exists and verified WIP permits. Empty scans are silent. That wrapper is not a second dispatcher.
+
+The COO read surface accepts an issue number to resolve one governed run from
+durable GitHub comments, or no selector to list active/recent claimed and
+operator-review issues. It may enrich the result with provider state and
+usage/cost, but provider data is never accepted as completion proof on its own.
+The stream forwards only bounded status/progress/result fields; transcripts and
+hidden reasoning are dropped. A queue release is reported as eligible only when
+the persisted terminal verdict is `PASS`, preserving the existing poll-and-wake
+fallback for reconciliation.
 
 **Temporal prove-or-remove (#1130):** a gated supervisor may also `workflow_call` Handoff after explicit Anton activation. It is not active on merge. It must not replace Handoff, mint a second work database, or call Cursor directly. See `docs/operations/TEMPORAL_FACTORY_REAL_PRODUCTION_PILOT_V1.md`.
 

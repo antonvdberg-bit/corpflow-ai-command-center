@@ -90,6 +90,10 @@ import {
 import { handleMembershipEffective, handleMembershipList } from '../lib/server/membership-api.js';
 import { handleOperatorActivityList } from '../lib/server/operator-activity-api.js';
 import {
+  handleCursorControl,
+  handleCursorControlStream,
+} from '../lib/server/cursor-control-handler.js';
+import {
   handleTenantWorkflowRunsList,
   handleTenantWorkflowStepsList,
   handleTenantWorkflowStepUpdate,
@@ -1205,6 +1209,12 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'factory/operator-activity') {
     return handleOperatorActivityList(req, res);
+  }
+  if (pathSeg === 'factory/cursor/runs/stream') {
+    return handleCursorControlStream(req, res);
+  }
+  if (pathSeg === 'factory/cursor/runs') {
+    return handleCursorControl(req, res);
   }
   if (pathSeg === 'factory/tenant-workflows/runs') {
     return handleTenantWorkflowRunsList(req, res, prisma);
