@@ -19,6 +19,16 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 
 # CorpFlowAI Agent Instructions
 
+## COO operating constitution — mandatory
+
+Before prioritising, dispatching, reporting progress, changing execution capacity, or deciding between internal infrastructure and client/revenue work, read:
+
+- `docs/operations/COO_OPERATING_CONSTITUTION.md`
+- `docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md`
+
+The COO constitution is the durable cross-chat business-allocation doctrine. Revenue/client deadlines must not be displaced by repeated control-plane or observability expansion. Capacity and parallelism are business decisions, not fixed technical ideology.
+
+
 When producing implementation work for this repository, Codex must output a `CODEX_PACKET_V1` only unless explicitly instructed otherwise.
 
 Codex must not:
