@@ -151,8 +151,8 @@ async function upsertCompactLifecycle(issue, event) {
           pr_url: event.pr_url,
           head_sha: event.sha,
           ci_state: event.ci_check_result,
-          final_verdict: event.status === 'COMPLETED' ? 'PASS' : 'BLOCKED',
-          blocker: event.blocker,
+          final_verdict: event.final_verdict || (event.status === 'COMPLETED' ? 'COMPLETED_UNVERIFIED' : 'BLOCKED'),
+          blocker: event.blocker || (event.final_verdict === 'COMPLETED_UNVERIFIED' ? 'terminal_completion_unverified' : null),
         }),
       ),
     );
@@ -171,8 +171,8 @@ async function upsertCompactLifecycle(issue, event) {
         pr_url: event.pr_url,
         head_sha: event.sha,
         ci_state: event.ci_check_result,
-        final_verdict: event.status === 'COMPLETED' ? 'PASS' : 'BLOCKED',
-        blocker: event.blocker,
+        final_verdict: event.final_verdict || (event.status === 'COMPLETED' ? 'COMPLETED_UNVERIFIED' : 'BLOCKED'),
+        blocker: event.blocker || (event.final_verdict === 'COMPLETED_UNVERIFIED' ? 'terminal_completion_unverified' : null),
       }),
     ),
   });
