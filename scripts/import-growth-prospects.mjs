@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 import fs from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import process from 'node:process';
-import * as XLSX from 'xlsx';
 
 import { PrismaClient } from '@prisma/client';
 
@@ -19,6 +19,57 @@ export const REQUIRED_HEADERS = Object.freeze([
 ]);
 
 const prisma = new PrismaClient();
+
+const PYTHON_XLSX_READER = String.raw`
+import json
+import sys
+import zipfile
+import xml.etree.ElementTree as ET
+
+path = sys.argv[1]
+ns = {"m": "http://schemas.openxmlformats.org/spreadsheetml/2006/main",
+      "r": "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
+      "pr": "http://schemas.openxmlformats.org/package/2006/relationships"}
+with zipfile.ZipFile(path) as book:
+    shared = []
+    if "xl/sharedStrings.xml" in book.namelist():
+        root = ET.fromstring(book.read("xl/sharedStrings.xml"))
+        for item in root.findall("m:si", ns):
+            shared.append("".join(node.text or "" for node in item.iter("{%s}t" % ns["m"])))
+    workbook = ET.fromstring(book.read("xl/workbook.xml"))
+    first = workbook.find("m:sheets/m:sheet", ns)
+    if first is None:
+        raise ValueError("Workbook has no worksheet")
+    sheet_name = first.attrib.get("name", "")
+    rel_id = first.attrib.get("{%s}id" % ns["r"])
+    rels = ET.fromstring(book.read("xl/_rels/workbook.xml.rels"))
+    target = None
+    for rel in rels.findall("pr:Relationship", ns):
+        if rel.attrib.get("Id") == rel_id:
+            target = rel.attrib.get("Target")
+            break
+    if not target:
+        raise ValueError("First worksheet relationship missing")
+    sheet_path = "xl/" + target.lstrip("/")
+    root = ET.fromstring(book.read(sheet_path))
+    rows = []
+    for row in root.findall("m:sheetData/m:row", ns):
+        values = {}
+        for cell in row.findall("m:c", ns):
+            ref = cell.attrib.get("r", "")
+            col = "".join(ch for ch in ref if ch.isalpha())
+            col_number = 0
+            for ch in col:
+                col_number = col_number * 26 + ord(ch.upper()) - 64
+            value = cell.find("m:v", ns)
+            inline = cell.find("m:is/m:t", ns)
+            raw = inline.text if inline is not None else (value.text if value is not None else "")
+            if cell.attrib.get("t") == "s" and raw:
+                raw = shared[int(raw)]
+            values[col_number - 1] = raw or ""
+        rows.append([values.get(i, "") for i in range(max(values.keys(), default=-1) + 1)])
+    print(json.dumps({"sheet": sheet_name, "rows": rows}))
+`;
 
 function text(value) {
   return value == null ? '' : String(value).trim();
@@ -221,6 +272,21 @@ function usage() {
   );
 }
 
+function readWorkbookRows(workbookPath) {
+  const result = spawnSync(process.env.PYTHON || 'python3', ['-c', PYTHON_XLSX_READER, workbookPath], {
+    encoding: 'utf8',
+    maxBuffer: 10 * 1024 * 1024,
+  });
+  if (result.status !== 0) {
+    throw new Error(`XLSX reader failed: ${text(result.stderr) || 'python3 unavailable'}`);
+  }
+  try {
+    return JSON.parse(result.stdout);
+  } catch {
+    throw new Error('XLSX reader returned invalid JSON');
+  }
+}
+
 function argsFrom(argv) {
   const positional = argv.filter((arg) => !arg.startsWith('--'));
   const tenantIndex = argv.indexOf('--tenant-id');
@@ -366,14 +432,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     try {
       const workbookPath = path.resolve(args.workbook);
       if (!fs.existsSync(workbookPath)) throw new Error(`Workbook not found: ${workbookPath}`);
-      const workbook = XLSX.readFile(workbookPath, { cellDates: true });
-      const firstSheet = workbook.SheetNames[0];
-      if (!firstSheet) throw new Error('Workbook has no worksheet');
-      const rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet], {
-        header: 1,
-        defval: '',
-        raw: false,
-      });
+      const workbook = readWorkbookRows(workbookPath);
+      const firstSheet = workbook.sheet;
+      const rows = workbook.rows;
       const mapped = mapWorksheetRows(rows);
       console.log(`mode=${args.apply ? 'apply' : 'dry-run'} worksheet="${firstSheet}" rows=${mapped.length}`);
       printPreview(mapped);
