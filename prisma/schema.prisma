@@ -291,22 +291,22 @@ model AutomationEvent {
 /// Factory-only ownership record for the one bounded Agent Relay comment write.
 /// The unique key establishes cross-process ownership before any GitHub mutation.
 model AgentRelayClaim {
-  id             String   @id @default(cuid())
-  repository     String
-  targetNumber   Int      @map("target_number")
-  replayIdentity String   @map("replay_identity")
-  requestId      String   @map("request_id")
-  correlationId  String   @map("correlation_id")
-  operation      String   @default("issue.add_comment")
-  writeFingerprint String @map("write_fingerprint")
-  state          String   @default("claimed")
-  marker         String
-  commentId      String?  @map("comment_id")
-  commentUrl     String?  @map("comment_url")
-  botLogin       String?  @map("bot_login")
-  appSlug        String?  @map("app_slug")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  id               String   @id @default(cuid())
+  repository       String
+  targetNumber     Int      @map("target_number")
+  replayIdentity   String   @map("replay_identity")
+  requestId        String   @map("request_id")
+  correlationId    String   @map("correlation_id")
+  operation        String   @default("issue.add_comment")
+  writeFingerprint String   @map("write_fingerprint")
+  state            String   @default("claimed")
+  marker           String
+  commentId        String?  @map("comment_id")
+  commentUrl       String?  @map("comment_url")
+  botLogin         String?  @map("bot_login")
+  appSlug          String?  @map("app_slug")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
 
   @@unique([repository, targetNumber, replayIdentity], name: "agent_relay_claims_target_replay")
   @@index([state])
@@ -450,27 +450,27 @@ model ChatWidgetConfig {
 /// the flow advances. Status: active | completed | abandoned. Notification status
 /// recorded so retries / observability are possible later.
 model ChatWidgetThread {
-  id          String    @id @default(cuid())
-  tenantId    String    @map("tenant_id")
-  sourceHost  String?   @map("source_host")
-  sourcePath  String?   @map("source_path")
-  ipHash      String?   @map("ip_hash")
-  userAgent   String?   @map("user_agent")
-  leadName    String?   @map("lead_name")
-  leadSurname String?   @map("lead_surname")
-  leadEmail   String?   @map("lead_email")
-  leadPhone   String?   @map("lead_phone")
-  preferredContactMethod String? @map("preferred_contact_method")
-  requestType String?   @map("request_type")
-  leadMessage String?   @map("lead_message")
-  status      String    @default("active")
-  startedAt   DateTime  @default(now()) @map("started_at")
-  completedAt DateTime? @map("completed_at")
-  ticketId    String?   @map("ticket_id")
-  notifiedAt  DateTime? @map("notified_at")
-  notifyError String?   @map("notify_error")
-  flowVersion Int       @default(1) @map("flow_version")
-  currentNode String?   @map("current_node")
+  id                     String    @id @default(cuid())
+  tenantId               String    @map("tenant_id")
+  sourceHost             String?   @map("source_host")
+  sourcePath             String?   @map("source_path")
+  ipHash                 String?   @map("ip_hash")
+  userAgent              String?   @map("user_agent")
+  leadName               String?   @map("lead_name")
+  leadSurname            String?   @map("lead_surname")
+  leadEmail              String?   @map("lead_email")
+  leadPhone              String?   @map("lead_phone")
+  preferredContactMethod String?   @map("preferred_contact_method")
+  requestType            String?   @map("request_type")
+  leadMessage            String?   @map("lead_message")
+  status                 String    @default("active")
+  startedAt              DateTime  @default(now()) @map("started_at")
+  completedAt            DateTime? @map("completed_at")
+  ticketId               String?   @map("ticket_id")
+  notifiedAt             DateTime? @map("notified_at")
+  notifyError            String?   @map("notify_error")
+  flowVersion            Int       @default(1) @map("flow_version")
+  currentNode            String?   @map("current_node")
 
   messages ChatWidgetMessage[]
 
@@ -649,29 +649,29 @@ model WorkflowStep {
 /// Tenant knowledge atoms v1 — approved church facts for future retrieval-assisted AI.
 /// Living Word first consumer; tenant-scoped; no embeddings in v1.
 model TenantKnowledgeAtom {
-  id                   String    @id @default(cuid())
-  tenantId             String    @map("tenant_id")
-  atomKey              String    @map("atom_key")
-  title                String
-  category             String
-  body                 String
-  summary              String?
-  sourceType           String    @map("source_type")
-  sourceLabel          String    @map("source_label")
-  sourceUrl            String?   @map("source_url")
-  approved             Boolean   @default(false)
-  approvedBy           String?   @map("approved_by")
-  approvedAt           DateTime? @map("approved_at")
-  lastReviewedAt       DateTime? @map("last_reviewed_at")
-  expiresAt            DateTime? @map("expires_at")
-  visibility           String    @default("public")
-  chatbotAnswerEligible Boolean  @default(false) @map("chatbot_answer_eligible")
-  aiAnswerEligible     Boolean   @default(false) @map("ai_answer_eligible")
-  sensitivity          String    @default("public")
-  tagsJson             Json?     @map("tags_json")
-  metadataJson         Json?     @map("metadata_json")
-  createdAt            DateTime  @default(now()) @map("created_at")
-  updatedAt            DateTime  @updatedAt @map("updated_at")
+  id                    String    @id @default(cuid())
+  tenantId              String    @map("tenant_id")
+  atomKey               String    @map("atom_key")
+  title                 String
+  category              String
+  body                  String
+  summary               String?
+  sourceType            String    @map("source_type")
+  sourceLabel           String    @map("source_label")
+  sourceUrl             String?   @map("source_url")
+  approved              Boolean   @default(false)
+  approvedBy            String?   @map("approved_by")
+  approvedAt            DateTime? @map("approved_at")
+  lastReviewedAt        DateTime? @map("last_reviewed_at")
+  expiresAt             DateTime? @map("expires_at")
+  visibility            String    @default("public")
+  chatbotAnswerEligible Boolean   @default(false) @map("chatbot_answer_eligible")
+  aiAnswerEligible      Boolean   @default(false) @map("ai_answer_eligible")
+  sensitivity           String    @default("public")
+  tagsJson              Json?     @map("tags_json")
+  metadataJson          Json?     @map("metadata_json")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
 
   @@unique([tenantId, atomKey], name: "tenant_knowledge_atoms_tenant_atom_key")
   @@index([tenantId, approved])
@@ -680,6 +680,112 @@ model TenantKnowledgeAtom {
   @@index([tenantId, chatbotAnswerEligible])
   @@index([tenantId, aiAnswerEligible])
   @@map("tenant_knowledge_atoms")
+}
+
+/// Internal relationship/context intelligence. Deliberately separate from
+/// public tenant knowledge atoms and always accessed through factory auth.
+model ClientContextSpace {
+  id                 String   @id @default(cuid())
+  contextKey         String   @unique @map("context_key")
+  displayName        String   @map("display_name")
+  tenantId           String?  @map("tenant_id")
+  primaryGithubIssue Int?     @map("primary_github_issue")
+  externalRef        String?  @map("external_ref")
+  lifecycle          String   @default("prospect")
+  status             String   @default("active")
+  metadataJson       Json?    @map("metadata_json")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  records   ClientContextRecord[]
+  sources   ClientContextSource[]
+  relations ClientContextRelation[] @relation("space_relation")
+
+  @@index([tenantId])
+  @@index([status])
+  @@map("client_context_spaces")
+}
+
+model ClientContextSource {
+  id           String    @id @default(cuid())
+  spaceId      String    @map("space_id")
+  sourceType   String    @map("source_type")
+  label        String
+  location     String?
+  sourceDate   DateTime? @map("source_date")
+  excerpt      String?
+  metadataJson Json?     @map("metadata_json")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  space   ClientContextSpace          @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  records ClientContextRecordSource[]
+
+  @@index([spaceId, sourceType])
+  @@map("client_context_sources")
+}
+
+model ClientContextRecord {
+  id             String    @id @default(cuid())
+  spaceId        String    @map("space_id")
+  recordKey      String    @map("record_key")
+  category       String
+  title          String
+  body           String
+  tagsJson       Json?     @map("tags_json")
+  confidence     String    @default("medium")
+  verification   String    @default("unverified")
+  state          String    @default("current")
+  validFrom      DateTime? @map("valid_from")
+  validTo        DateTime? @map("valid_to")
+  supersededById String?   @map("superseded_by_id")
+  sensitivity    String    @default("internal")
+  ownerAuthority String?   @map("owner_authority")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  space         ClientContextSpace          @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  supersededBy  ClientContextRecord?        @relation("record_supersession", fields: [supersededById], references: [id], onDelete: SetNull)
+  supersedes    ClientContextRecord[]       @relation("record_supersession")
+  sources       ClientContextRecordSource[]
+  relationsFrom ClientContextRelation[]     @relation("record_relation_from")
+  relationsTo   ClientContextRelation[]     @relation("record_relation_to")
+
+  @@unique([spaceId, recordKey], name: "client_context_records_space_key")
+  @@index([spaceId, category, state])
+  @@index([spaceId, verification])
+  @@map("client_context_records")
+}
+
+model ClientContextRecordSource {
+  recordId String  @map("record_id")
+  sourceId String  @map("source_id")
+  claim    String?
+
+  record ClientContextRecord @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  source ClientContextSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@id([recordId, sourceId])
+  @@map("client_context_record_sources")
+}
+
+model ClientContextRelation {
+  id           String   @id @default(cuid())
+  spaceId      String   @map("space_id")
+  fromRecordId String?  @map("from_record_id")
+  toRecordId   String?  @map("to_record_id")
+  relationType String   @map("relation_type")
+  label        String?
+  metadataJson Json?    @map("metadata_json")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  space      ClientContextSpace   @relation("space_relation", fields: [spaceId], references: [id], onDelete: Cascade)
+  fromRecord ClientContextRecord? @relation("record_relation_from", fields: [fromRecordId], references: [id], onDelete: Cascade)
+  toRecord   ClientContextRecord? @relation("record_relation_to", fields: [toRecordId], references: [id], onDelete: Cascade)
+
+  @@index([spaceId, relationType])
+  @@index([fromRecordId])
+  @@index([toRecordId])
+  @@map("client_context_relations")
 }
 
 /// Approved payable (invoice / payment record) — parent of MPGS payment attempts.
@@ -740,30 +846,30 @@ model PaymentAttempt {
 /// Binary artifacts use the existing Postgres BYTEA pattern (same store class as
 /// cmp_ticket_attachments), in a dedicated table — not ticket attachments.
 model CompanyMasterCompany {
-  id                 String   @id @default(cuid())
-  companyId          String   @unique @map("company_id")
-  tenantId           String?  @map("tenant_id")
-  companyType        String   @default("PRIVATE_COMPANY") @map("company_type")
-  jurisdiction       String   @default("MU")
-  lifecycleStatus    String   @default("DRAFT") @map("lifecycle_status")
-  verificationStatus String   @default("UNVERIFIED") @map("verification_status")
-  approvalStatus     String   @default("NOT_REQUESTED") @map("approval_status")
-  legalName          String   @map("legal_name")
-  tradingName        String?  @map("trading_name")
-  registrationNumber String?  @map("registration_number")
-  taxNumber          String?  @map("tax_number")
-  publicEmail        String?  @map("public_email")
-  publicPhone        String?  @map("public_phone")
+  id                 String    @id @default(cuid())
+  companyId          String    @unique @map("company_id")
+  tenantId           String?   @map("tenant_id")
+  companyType        String    @default("PRIVATE_COMPANY") @map("company_type")
+  jurisdiction       String    @default("MU")
+  lifecycleStatus    String    @default("DRAFT") @map("lifecycle_status")
+  verificationStatus String    @default("UNVERIFIED") @map("verification_status")
+  approvalStatus     String    @default("NOT_REQUESTED") @map("approval_status")
+  legalName          String    @map("legal_name")
+  tradingName        String?   @map("trading_name")
+  registrationNumber String?   @map("registration_number")
+  taxNumber          String?   @map("tax_number")
+  publicEmail        String?   @map("public_email")
+  publicPhone        String?   @map("public_phone")
   website            String?
-  physicalAddress    String?  @map("physical_address")
-  registeredAddress  String?  @map("registered_address")
-  recordOwner        String   @default("role:company-master-operator") @map("record_owner")
-  isSynthetic        Boolean  @default(false) @map("is_synthetic")
+  physicalAddress    String?   @map("physical_address")
+  registeredAddress  String?   @map("registered_address")
+  recordOwner        String    @default("role:company-master-operator") @map("record_owner")
+  isSynthetic        Boolean   @default(false) @map("is_synthetic")
   nextReviewDate     DateTime? @map("next_review_date") @db.Date
-  createdAt          DateTime @default(now()) @map("created_at")
-  updatedAt          DateTime @updatedAt @map("updated_at")
-  createdBy          String?  @map("created_by")
-  updatedBy          String?  @map("updated_by")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+  createdBy          String?   @map("created_by")
+  updatedBy          String?   @map("updated_by")
 
   artifacts CompanyMasterArtifact[]
 

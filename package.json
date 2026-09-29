@@ -22,6 +22,7 @@
     "cmp:repair-sandbox": "node scripts/cmp-repair-stuck-sandbox.mjs",
     "cmp:repair-sandbox:execute": "node scripts/cmp-repair-stuck-sandbox.mjs --execute",
     "technical-lead:run": "node scripts/technical-lead-run.mjs",
+    "seed:client-intelligence:orixhealth": "node scripts/seed-client-intelligence-orixhealth.mjs",
     "smoke:change-technical-lead": "node scripts/smoke-change-console-technical-lead.mjs",
     "smoke:change-overflow": "node scripts/smoke-change-overflow.mjs",
     "smoke:lux-phase4c1": "node scripts/smoke-lux-phase4c1-attachment-review.mjs",
