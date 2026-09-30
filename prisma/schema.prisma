@@ -351,17 +351,24 @@ model GrowthSegment {
 }
 
 model GrowthCompany {
-  id        String   @id @default(cuid())
-  tenantId  String   @map("tenant_id")
-  segmentId String?  @map("segment_id")
-  name      String
-  website   String?
-  country   String?
-  notes     String?
-  status    String   @default("research")
-  source    String   @default("manual")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id                 String    @id @default(cuid())
+  tenantId           String    @map("tenant_id")
+  segmentId          String?   @map("segment_id")
+  name               String
+  website            String?
+  country            String?
+  source             String    @default("manual")
+  sourceUrl          String?   @map("source_url")
+  sector             String?
+  fitHypothesis      String?   @map("fit_hypothesis")
+  qualificationScore Int?      @map("qualification_score")
+  lifecycleState     String    @default("RESEARCHED") @map("lifecycle_state")
+  nextAction         String?   @map("next_action")
+  nextActionDue      DateTime? @map("next_action_due")
+  notes              String?
+  status             String    @default("research")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
 
   segment  GrowthSegment?  @relation(fields: [segmentId], references: [id], onDelete: SetNull)
   contacts GrowthContact[]
@@ -372,18 +379,23 @@ model GrowthCompany {
 }
 
 model GrowthContact {
-  id           String   @id @default(cuid())
-  tenantId     String   @map("tenant_id")
-  companyId    String   @map("company_id")
-  fullName     String   @map("full_name")
-  roleTitle    String?  @map("role_title")
-  email        String?
-  linkedinUrl  String?  @map("linkedin_url")
-  notes        String?
-  consentBasis String?  @map("consent_basis")
-  status       String   @default("identified")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  id                     String   @id @default(cuid())
+  tenantId               String   @map("tenant_id")
+  companyId              String   @map("company_id")
+  fullName               String   @map("full_name")
+  roleTitle              String?  @map("role_title")
+  decisionMakerConfirmed Boolean  @default(false) @map("decision_maker_confirmed")
+  phone                  String?
+  whatsappNumber         String?  @map("whatsapp_number")
+  email                  String?
+  bestRoute              String?  @map("best_route")
+  bestRouteOriginal      String?  @map("best_route_original")
+  linkedinUrl            String?  @map("linkedin_url")
+  notes                  String?
+  consentBasis           String?  @map("consent_basis")
+  status                 String   @default("identified")
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
 
   company     GrowthCompany      @relation(fields: [companyId], references: [id], onDelete: Cascade)
   touchpoints GrowthTouchpoint[]
@@ -394,17 +406,22 @@ model GrowthContact {
 }
 
 model GrowthTouchpoint {
-  id          String    @id @default(cuid())
-  tenantId    String    @map("tenant_id")
-  contactId   String    @map("contact_id")
-  channel     String
-  subject     String?
-  bodyMd      String    @default("") @map("body_md")
-  stage       String    @default("awareness")
-  scheduledAt DateTime? @map("scheduled_at")
-  sentAt      DateTime? @map("sent_at")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
+  id            String    @id @default(cuid())
+  tenantId      String    @map("tenant_id")
+  contactId     String    @map("contact_id")
+  channel       String
+  subject       String?
+  bodyMd        String    @default("") @map("body_md")
+  stage         String    @default("awareness")
+  result        String?
+  failureReason String?   @map("failure_reason")
+  nextAction    String?   @map("next_action")
+  nextActionDue DateTime? @map("next_action_due")
+  sourceUrl     String?   @map("source_url")
+  scheduledAt   DateTime? @map("scheduled_at")
+  sentAt        DateTime? @map("sent_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
 
   contact GrowthContact @relation(fields: [contactId], references: [id], onDelete: Cascade)
 

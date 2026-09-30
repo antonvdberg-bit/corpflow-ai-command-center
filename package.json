@@ -22,7 +22,7 @@
     "cmp:repair-sandbox": "node scripts/cmp-repair-stuck-sandbox.mjs",
     "cmp:repair-sandbox:execute": "node scripts/cmp-repair-stuck-sandbox.mjs --execute",
     "technical-lead:run": "node scripts/technical-lead-run.mjs",
-    "seed:client-intelligence:orixhealth": "node scripts/seed-client-intelligence-orixhealth.mjs",
+    "growth:prospects:import": "node scripts/import-growth-prospects.mjs",
     "smoke:change-technical-lead": "node scripts/smoke-change-console-technical-lead.mjs",
     "smoke:change-overflow": "node scripts/smoke-change-overflow.mjs",
     "smoke:lux-phase4c1": "node scripts/smoke-lux-phase4c1-attachment-review.mjs",
@@ -59,7 +59,8 @@
     "video:serve-mock": "node scripts/video/serve-mock.mjs",
     "video:run": "node scripts/video/run-walkthrough.mjs",
     "video:encode": "node scripts/video/encode-mp4.mjs",
-    "video:provenance": "node scripts/video/write-provenance.mjs"
+    "video:provenance": "node scripts/video/write-provenance.mjs",
+    "seed:client-intelligence:orixhealth": "node scripts/seed-client-intelligence-orixhealth.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.0.0",
