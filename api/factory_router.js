@@ -100,6 +100,7 @@ import {
 } from '../lib/server/tenant-workflow-api.js';
 import { handleTenantKnowledgeAtomsList } from '../lib/server/tenant-knowledge-api.js';
 import { handleClientIntelligence } from '../lib/server/client-intelligence.js';
+import { handleAgentLearning } from '../lib/server/agent-learning-context.js';
 import {
   handleGhlLivingWordEnvReadiness,
   handleGhlLivingWordProbe,
@@ -1231,6 +1232,9 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'factory/client-intelligence') {
     return handleClientIntelligence(req, res, prisma);
+  }
+  if (pathSeg === 'factory/agent-learning') {
+    return handleAgentLearning(req, res, prisma);
   }
   if (pathSeg === 'factory/ghl/living-word/env-readiness') {
     return handleGhlLivingWordEnvReadiness(req, res);
