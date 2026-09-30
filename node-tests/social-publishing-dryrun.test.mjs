@@ -4,6 +4,7 @@ import test from 'node:test';
 
 import { validateCampaign, validateSocialPostManifest } from '../lib/social-publishing/manifest.js';
 import { buildCampaignDryRun, buildProviderDryRun } from '../lib/social-publishing/provider-payloads.js';
+import { executionReceipt, selectDuePosts } from '../lib/social-publishing/due-posts.js';
 
 const posts = JSON.parse(
   fs.readFileSync(new URL('../fixtures/social-publishing/cafe-november-2026.synthetic.json', import.meta.url)),
@@ -58,4 +59,27 @@ test('builds complete three-channel campaign dry run without credentials', () =>
     'google_business_profile',
   ]);
   assert.ok(result.every((row) => row.timezone === 'Indian/Mauritius'));
+});
+
+
+test('selects only approved ready unpublished posts that are due', () => {
+  const now = new Date('2026-11-11T00:00:00+04:00');
+  const candidates = [
+    ...posts,
+    { ...posts[0], id: 'draft-copy', approvalState: 'DRAFT', publishState: 'NOT_READY' },
+    { ...posts[0], id: 'already-published', publishState: 'PUBLISHED', providerPostId: 'provider-123' },
+  ];
+  const due = selectDuePosts(candidates, now);
+  assert.deepEqual(due.map((post) => post.id), ['cafe-nov-001', 'cafe-nov-002']);
+});
+
+test('execution receipt preserves post id as idempotency key', () => {
+  const receipt = executionReceipt(posts[0], {
+    providerPostId: 'provider-123',
+    publishedAt: '2026-11-03T10:00:05+04:00',
+  });
+  assert.equal(receipt.postId, posts[0].id);
+  assert.equal(receipt.idempotencyKey, posts[0].id);
+  assert.equal(receipt.publishState, 'PUBLISHED');
+  assert.equal(receipt.providerPostId, 'provider-123');
 });
