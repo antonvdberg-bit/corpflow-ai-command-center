@@ -248,21 +248,28 @@ export function mapWorksheetRows(rows) {
   return mapped;
 }
 
+export function touchpointBodyForRow(row) {
+  const parts = [];
+  if (row.progress) parts.push(`Progress: ${row.progress}`);
+  if (row.fitHypothesis) parts.push(`Fit hypothesis: ${row.fitHypothesis}`);
+  return parts.join('\n\n');
+}
+
 export function fieldLossReport(rows) {
   const fields = [
-    ['Prospect', (row) => row.name],
-    ['Why it fits / likely commercial pain', (row) => row.fitHypothesis],
-    ['Decision-maker', (row) => row.decisionMaker.fullName],
-    ['Best route', (row) => row.routes.original],
-    ['Score', (row) => row.score],
-    ['Progress', (row) => row.progress],
-    ['Source', (row) => row.source],
+    ['Prospect', (row) => row.name, 'GrowthCompany.name'],
+    ['Why it fits / likely commercial pain', (row) => row.fitHypothesis, 'GrowthCompany.fitHypothesis + GrowthTouchpoint.bodyMd'],
+    ['Decision-maker', (row) => row.decisionMaker.fullName, 'GrowthContact.fullName'],
+    ['Best route', (row) => row.routes.original, 'GrowthContact.bestRouteOriginal + structured route fields'],
+    ['Score', (row) => row.score, 'GrowthCompany.qualificationScore'],
+    ['Progress', (row) => row.progress, 'GrowthTouchpoint.bodyMd'],
+    ['Source', (row) => row.source, 'GrowthCompany.source + sourceUrl'],
   ];
-  return fields.map(([field, destination]) => ({
+  return fields.map(([field, sourceValue, destination]) => ({
     field,
-    rows_with_value: rows.filter((row) => destination(row) != null && text(destination(row)) !== '').length,
+    rows_with_value: rows.filter((row) => sourceValue(row) != null && text(sourceValue(row)) !== '').length,
     durable_destination: true,
-    destination: field === 'Best route' ? 'GrowthContact.bestRouteOriginal + structured route fields' : field,
+    destination,
   }));
 }
 
@@ -404,7 +411,7 @@ async function applyRows(rows, tenantId) {
     const touchpointData = {
       channel: row.routes.preferredRoute || 'research',
       subject: touchpointWhere.subject,
-      bodyMd: row.fitHypothesis || '',
+      bodyMd: touchpointBodyForRow(row),
       stage: row.lifecycleState,
       result: row.touchpointResult,
       failureReason: row.failureReason || null,
