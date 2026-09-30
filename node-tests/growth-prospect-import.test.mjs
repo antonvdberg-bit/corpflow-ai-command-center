@@ -7,6 +7,7 @@ import {
   extractRoutes,
   mapProgress,
   mapWorksheetRows,
+  touchpointBodyForRow,
 } from '../scripts/import-growth-prospects.mjs';
 
 const fixture = JSON.parse(
@@ -34,6 +35,16 @@ test('maps the complete synthetic Mauritius workbook contract without field loss
   assert.equal(rows[5].decisionMaker.confirmed, false);
   assert.equal(rows[6].fitHypothesis, 'Strong stated enquiry leak needs diagnosis.');
   assert.ok(fieldLossReport(rows).every((field) => field.durable_destination));
+});
+
+test('preserves original Progress text in the imported touchpoint body', () => {
+  const rows = mapWorksheetRows([fixture.headers, ...fixture.rows]);
+  const body = touchpointBodyForRow(rows[0]);
+  assert.match(body, /Progress:/);
+  assert.ok(body.includes(rows[0].progress));
+  assert.match(body, /Fit hypothesis:/);
+  const progressField = fieldLossReport(rows).find((field) => field.field === 'Progress');
+  assert.equal(progressField.destination, 'GrowthTouchpoint.bodyMd');
 });
 
 test('preserves route text while extracting structured routes', () => {
