@@ -1,0 +1,101 @@
+{
+  "runDate": "2026-09-30",
+  "transport": "manual Windows SSH tunnel -> 127.0.0.1:11434",
+  "modelRuntime": "qwen2.5-coder:7b-instruct-q2_K",
+  "productionImpact": "none",
+  "result": "5/5 PASS",
+  "runs": [
+    {
+      "workItem": "#1373",
+      "taskContract": "FORGE_VALIDATE_PACKET",
+      "elapsedMs": 17789,
+      "result": "PASS",
+      "verifier": "exact expected JSON fields/result",
+      "verifierPassed": true,
+      "output": {"result":"PASS","missing":[]},
+      "cpuMs": null,
+      "peakRamMb": null,
+      "escalatedToCursor": false
+    },
+    {
+      "workItem": "#1373",
+      "taskContract": "FORGE_PARSE_LOG",
+      "elapsedMs": 15256,
+      "result": "PASS",
+      "verifier": "exact structured log parse",
+      "verifierPassed": true,
+      "output": {
+        "task":"FORGE_PARSE_LOG",
+        "cpu_ms":812,
+        "peak_ram_mb":934,
+        "result":"FAIL",
+        "error_class":"timeout"
+      },
+      "cpuMs": null,
+      "peakRamMb": null,
+      "escalatedToCursor": false
+    },
+    {
+      "workItem": "#1373",
+      "taskContract": "FORGE_TRANSFORM_DATA",
+      "elapsedMs": 11435,
+      "result": "PASS",
+      "verifier": "exact deterministic mapping",
+      "verifierPassed": true,
+      "output": {
+        "name":"Acme Ltd",
+        "score":7,
+        "lifecycleState":"CONTACT_ROUTE_FAILED",
+        "progressOriginal":"WhatsApp failed"
+      },
+      "cpuMs": null,
+      "peakRamMb": null,
+      "escalatedToCursor": false
+    },
+    {
+      "workItem": "#1373",
+      "taskContract": "FORGE_CREATE_FIXTURE",
+      "elapsedMs": 7836,
+      "result": "PASS",
+      "verifier": "exact schema/constraint match",
+      "verifierPassed": true,
+      "output": {"id":"fixture-001","active":true,"count":3},
+      "cpuMs": null,
+      "peakRamMb": null,
+      "escalatedToCursor": false
+    },
+    {
+      "workItem": "#1373",
+      "taskContract": "FORGE_REPAIR_TEST",
+      "elapsedMs": 8719,
+      "result": "PASS",
+      "verifier": "minimal function repair matches expected behavior",
+      "verifierPassed": true,
+      "output": {
+        "diagnosis":"wrong_operator",
+        "patched_function":"function add(a,b){ return a+b; }"
+      },
+      "cpuMs": null,
+      "peakRamMb": null,
+      "escalatedToCursor": false
+    }
+  ],
+  "candidateLearnings": [
+    {
+      "claim": "Forge passed all five initial bounded synthetic LOW-tier contracts under deterministic prompts and verification.",
+      "sourceExperience": "forge-acceptance-2026-09-30",
+      "confidence": 0.9,
+      "status": "CURRENT",
+      "verifier": "five deterministic synthetic acceptance checks",
+      "promotionRequirement": "review_required_until_shared_learning_runtime_is_applied"
+    },
+    {
+      "claim": "Manual Windows SSH port forwarding currently provides a working temporary bridge for Forge while Desktop Commander-initiated SSH remains unresolved.",
+      "sourceExperience": "forge-acceptance-2026-09-30",
+      "confidence": 1.0,
+      "status": "CURRENT",
+      "verifier": "Desktop Commander HTTP 200 from 127.0.0.1:11434/api/tags",
+      "promotionRequirement": "replace_when_native_unattended_bridge_is_fixed"
+    }
+  ]
+}
