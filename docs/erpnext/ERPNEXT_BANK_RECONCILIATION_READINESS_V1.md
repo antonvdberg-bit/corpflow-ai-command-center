@@ -144,6 +144,18 @@ Matching rule (also in the helper): **search existing PE/JE first**. Replay of t
 
 Proposed numeric tolerances (accountant must confirm): closing-balance delta **MUR 0.01**; unmatched lines **halt close**.
 
+### SBM statement ingestion v1 (#1378)
+
+`lib/erpnext/sbm-statement-ingestion.js` normalizes a redacted conversion
+payload from the combined SBM layout into stable statement rows. The redacted
+fixture at
+`fixtures/erpnext-bank-reconciliation-readiness/sbm-combined-statement-redacted.v1.json`
+covers the USD zero-value account and the MUR debit/credit, reversal, cloud,
+bank-fee, and VAT patterns. `toErpnextBankTransactionPreview()` produces
+preview-only import columns; it does not call ERPNext or create a Bank
+Transaction. The parser validates statement arithmetic, running balances,
+duplicate fingerprints, and deterministic replay before operator review.
+
 ---
 
 ## 5. Synthetic / offline proof
