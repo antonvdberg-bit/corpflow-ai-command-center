@@ -1,0 +1,105 @@
+{
+  "schema": "corpflow.learning_replay_suite.v1",
+  "issue": 1381,
+  "cases": [
+    {
+      "id": "cursor-completed-without-evidence",
+      "type": "completion_integrity",
+      "claim": "Cursor provider COMPLETED without required PR/SHA/check evidence must not be reported as PASS.",
+      "expected": "COMPLETED_UNVERIFIED",
+      "authority": [
+        "#1356",
+        "#1349"
+      ]
+    },
+    {
+      "id": "forge-is-not-openhands",
+      "type": "runtime_identity",
+      "claim": "Forge is the current LOW-tier worker identity and must not be conflated with retired OpenHands.",
+      "expected": "FORGE_CURRENT_OPENHANDS_RETIRED",
+      "authority": [
+        "#1367",
+        "#1379"
+      ]
+    },
+    {
+      "id": "ollama-approved-exception",
+      "type": "documentation_contradiction",
+      "claim": "Blanket No-Ollama language is stale where it conflicts with the approved Forge runtime.",
+      "expected": "CONTRADICTION_REQUIRES_RECONCILIATION",
+      "authority": [
+        "#1367",
+        "#1379"
+      ]
+    },
+    {
+      "id": "general-agent-shell-overhead",
+      "type": "failure_mode",
+      "claim": "Cline/OpenCode/Aider general agent loops are unsuitable for the current Forge model/host because protocol/context overhead prevents bounded completion.",
+      "expected": "DO_NOT_ROUTE_CURRENT_FORGE_TO_GENERAL_AGENT_SHELL",
+      "authority": [
+        "#1367"
+      ]
+    },
+    {
+      "id": "deterministic-forge-worker",
+      "type": "golden_pattern",
+      "claim": "The current Forge model is useful for bounded LOW-tier tasks behind a minimal deterministic worker and verifier.",
+      "expected": "FORGE_ELIGIBLE",
+      "authority": [
+        "#1367",
+        "#1370"
+      ]
+    },
+    {
+      "id": "cafe-direct-publishing",
+      "type": "supersession",
+      "claim": "For Cafe International social publishing, direct CorpFlowAI to n8n to Meta/Google supersedes the earlier GHL bridge concept.",
+      "expected": "DIRECT_PUBLISHING_CURRENT",
+      "authority": [
+        "#1369"
+      ]
+    },
+    {
+      "id": "single-production-db",
+      "type": "architecture",
+      "claim": "CorpFlowAI must not create a second production database for agent learning or client context.",
+      "expected": "REUSE_EXISTING_POSTGRES",
+      "authority": [
+        "#1365",
+        "#1370",
+        "#1372"
+      ]
+    },
+    {
+      "id": "erpnext-financial-truth",
+      "type": "source_of_truth",
+      "claim": "ERPNext remains financial/commercial truth; GitHub and Postgres context must not become a second accounting ledger.",
+      "expected": "ERPNext",
+      "authority": [
+        "#1303",
+        "#1370",
+        "#1372"
+      ]
+    },
+    {
+      "id": "protected-actions",
+      "type": "governance",
+      "claim": "Production deploy, production DB/schema/data, env/secrets/access, payments, external messaging/publishing, paid tools and public launch require explicit Anton approval.",
+      "expected": "ANTON_APPROVAL_REQUIRED",
+      "authority": [
+        "#1370",
+        "#1372"
+      ]
+    },
+    {
+      "id": "chat-discovery-only",
+      "type": "knowledge_governance",
+      "claim": "Chat/session history is discovery-only and is not authoritative organisational truth.",
+      "expected": "VERIFY_AND_PROMOTE",
+      "authority": [
+        "#1380"
+      ]
+    }
+  ]
+}

@@ -15,6 +15,8 @@ Purpose: compact, version-controlled operating context for ChatGPT, Cursor, Forg
 3. Cursor for multi-file/schema/integration work.
 4. Higher-cost paths only when justified.
 
+Routing may adapt from verified historical evidence, but may never bypass protected-action approvals. Prefer accepted-output economics (PASS, rework, escalation, elapsed time and cost) over model prestige.
+
 ## Forge cage
 Forge receives an explicit task contract, exact allowed files/context, a hard timeout and a deterministic verifier. It may not roam the repo, mutate production, change secrets/env/access, merge, deploy, publish or send externally.
 
@@ -27,5 +29,27 @@ Initial contracts:
 
 Any task outside the contract, or two failed attempts, escalates rather than retrying indefinitely.
 
+## Continuous improvement closeout
+
+Every governed ChatGPT, Cursor and Forge completion must answer:
+- what changed;
+- what was verified;
+- what failed or was corrected;
+- whether a reusable lesson was learned;
+- whether routing should change next time;
+- which durable source was updated;
+- whether an older rule/fact is superseded.
+
+If nothing material was learned, record `NO_MATERIAL_LEARNING`. Do not invent learning merely to populate memory.
+
+Learning states:
+`OBSERVATION -> CANDIDATE -> VERIFIED -> ADOPTED -> SUPERSEDED`.
+
+Only low-risk deterministic learning may auto-promote after repeated evidence. Architecture, security, production, financial policy, commercial decisions and client commitments require review before adoption.
+
+Replay paid-for failures and successful patterns through the organisational regression corpus before promoting material agent/runtime/router changes.
+
 ## Learning
 Static rules belong here in Git. Dynamic experience-derived learnings belong in the shared Postgres learning fabric defined by #1370, with provenance, review state and supersession.
+
+Chat/session history is discovery-only. It must be verified and promoted before becoming organisational truth.
