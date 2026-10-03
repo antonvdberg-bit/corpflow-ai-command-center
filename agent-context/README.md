@@ -53,3 +53,14 @@ Replay paid-for failures and successful patterns through the organisational regr
 Static rules belong here in Git. Dynamic experience-derived learnings belong in the shared Postgres learning fabric defined by #1370, with provenance, review state and supersession.
 
 Chat/session history is discovery-only. It must be verified and promoted before becoming organisational truth.
+
+## Source-of-truth and bootstrap
+Chat history is a working/discovery surface, not organisational truth.
+
+Fresh authorised agents must:
+1. read `AGENTS.md`, the current delivery reality, and `docs/operations/ORGANIZATIONAL_MEMORY_AND_AGENT_BOOTSTRAP_V1.md`;
+2. retrieve relevant CURRENT Context / Agent Learning records where available;
+3. refresh GitHub issue / PR / commit / CI state for current delivery claims;
+4. promote material state-changing discoveries out of chat into Git, Postgres Context / Agent Learning, GitHub, or ERPNext as appropriate.
+
+When durable sources conflict, do not silently blend them. Prefer current runtime evidence for runtime state, then current GitHub evidence, then current provenance-backed Context / Agent Learning records, then canonical repo doctrine; mark stale sources for reconciliation.
