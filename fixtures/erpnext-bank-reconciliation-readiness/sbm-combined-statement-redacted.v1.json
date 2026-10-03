@@ -1,0 +1,94 @@
+{
+  "schema": "corpflow.sbm_combined_statement_redacted.v1",
+  "statement_id": "CF1378-SBM-REDACTED-001",
+  "synthetic": true,
+  "do_not_post": true,
+  "source": "Redacted synthetic conversion preserving the observed two-account layout and transaction classes. No bank identifiers or original PDF.",
+  "accounts": [
+    {
+      "currency": "USD",
+      "statement_period": "2026-07-01/2026-09-30",
+      "opening_balance": 0,
+      "total_credits": 0,
+      "total_debits": 0,
+      "closing_balance": 0,
+      "lien": 0,
+      "transactions": []
+    },
+    {
+      "currency": "MUR",
+      "statement_period": "2026-09-01/2026-09-30",
+      "opening_balance": 11570,
+      "total_credits": 19099.9,
+      "total_debits": 9819.61,
+      "closing_balance": 20850.29,
+      "lien": 0,
+      "transactions": [
+        {
+          "transaction_date": "2026-09-02",
+          "value_date": "2026-09-02",
+          "branch": "SBM",
+          "description": "INCOMING RECEIPT - REDACTED CLIENT REF",
+          "credit": 19000,
+          "debit": 0
+        },
+        {
+          "transaction_date": "2026-09-03",
+          "value_date": "2026-09-04",
+          "branch": "SBM",
+          "description": "CARD PURCHASE - REDACTED MERCHANT A",
+          "credit": 0,
+          "debit": 6000
+        },
+        {
+          "transaction_date": "2026-09-04",
+          "value_date": "2026-09-04",
+          "branch": "SBM",
+          "description": "MERCHANT DEBIT - REDACTED MERCHANT B",
+          "credit": 0,
+          "debit": 1000
+        },
+        {
+          "transaction_date": "2026-09-05",
+          "value_date": "2026-09-05",
+          "branch": "SBM",
+          "description": "MERCHANT VERIFICATION DEBIT",
+          "credit": 0,
+          "debit": 99.9
+        },
+        {
+          "transaction_date": "2026-09-05",
+          "value_date": "2026-09-05",
+          "branch": "SBM",
+          "description": "MERCHANT VERIFICATION REVERSAL",
+          "credit": 99.9,
+          "debit": 0
+        },
+        {
+          "transaction_date": "2026-09-08",
+          "value_date": "2026-09-09",
+          "branch": "SBM",
+          "description": "CLOUD SOFTWARE CHARGE",
+          "credit": 0,
+          "debit": 1200
+        },
+        {
+          "transaction_date": "2026-09-15",
+          "value_date": "2026-09-15",
+          "branch": "SBM",
+          "description": "BANK CHARGE",
+          "credit": 0,
+          "debit": 100
+        },
+        {
+          "transaction_date": "2026-09-20",
+          "value_date": "2026-09-20",
+          "branch": "SBM",
+          "description": "VAT CHARGE",
+          "credit": 0,
+          "debit": 1419.71
+        }
+      ]
+    }
+  ]
+}
