@@ -6,6 +6,7 @@ import test from 'node:test';
 import {
   AGENT_LEARNING_CONTEXT_KEY,
   experienceRecordKey,
+  recordAgentCompletion,
   retrieveAgentLearning,
 } from '../lib/server/agent-learning-context.js';
 
@@ -61,6 +62,71 @@ test('retrieval returns only bounded current learning records from the shared fa
   assert.equal(query.take, 5);
 });
 
+test('record completion persists experience and candidate learning only when material', async () => {
+  const records = new Map();
+  const prisma = {
+    clientContextSpace: {
+      upsert: async () => ({ id: 'space-1', contextKey: AGENT_LEARNING_CONTEXT_KEY }),
+    },
+    clientContextSource: {
+      create: async ({ data }) => ({ id: `source-${records.size + 1}`, ...data }),
+    },
+    clientContextRecord: {
+      upsert: async ({ where, create, update }) => {
+        const key = where.client_context_records_space_key.recordKey;
+        const existing = records.get(key);
+        const row = {
+          id: existing?.id || `record-${records.size + 1}`,
+          recordKey: key,
+          ...(existing ? { ...existing, ...update } : create),
+        };
+        records.set(key, row);
+        return row;
+      },
+      findUnique: async ({ where }) => {
+        const key = where.client_context_records_space_key.recordKey;
+        return records.get(key) || null;
+      },
+    },
+    clientContextRecordSource: {
+      upsert: async () => ({}),
+    },
+    clientContextRelation: {
+      create: async ({ data }) => data,
+    },
+  };
+
+  const noLearning = await recordAgentCompletion(prisma, {
+    experienceId: 'run-no-learning',
+    workItem: '#1381',
+    taskContract: 'REPO_CHANGE',
+    agent: 'ChatGPT',
+    result: 'PASS',
+    verifierPassed: true,
+    summary: 'Added deterministic tests.',
+  });
+
+  assert.equal(noLearning.improvement.learningOutcome, 'NO_MATERIAL_LEARNING');
+  assert.equal(noLearning.learning, null);
+
+  const learned = await recordAgentCompletion(prisma, {
+    experienceId: 'run-learning',
+    learningId: 'bounded-completion-learning',
+    workItem: '#1381',
+    taskContract: 'FORGE_VALIDATE_PACKET',
+    agent: 'Forge',
+    result: 'PASS',
+    verifierPassed: true,
+    reusableLesson: 'Use deterministic packet validation before escalation.',
+    routingImplication: 'Prefer Forge for bounded packet validation.',
+    learningConfidence: 0.9,
+  });
+
+  assert.equal(learned.improvement.learningOutcome, 'CANDIDATE_LEARNING');
+  assert.equal(learned.learning.recordKey, 'learning:bounded-completion-learning');
+  assert.equal(learned.learning.state, 'candidate');
+});
+
 test('agent learning route reuses client context tables and stays separate from public tenant knowledge', () => {
   const root = process.cwd();
   const router = readFileSync(join(root, 'api/factory_router.js'), 'utf8');
@@ -69,6 +135,7 @@ test('agent learning route reuses client context tables and stays separate from 
 
   assert.match(router, /factory\/agent-learning/);
   assert.match(router, /handleAgentLearning/);
+  assert.match(service, /record_completion/);
   assert.match(service, /clientContextSpace/);
   assert.match(service, /clientContextRecord/);
   assert.doesNotMatch(service, /tenantKnowledgeAtom/);
