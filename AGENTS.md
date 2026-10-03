@@ -25,8 +25,12 @@ Before prioritising, dispatching, reporting progress, changing execution capacit
 
 - `docs/operations/COO_OPERATING_CONSTITUTION.md`
 - `docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md`
+- `docs/operations/ORGANIZATIONAL_MEMORY_AND_AGENT_BOOTSTRAP_V1.md`
+- `agent-context/README.md`
 
-The COO constitution is the durable cross-chat business-allocation doctrine. Revenue/client deadlines must not be displaced by repeated control-plane or observability expansion. Capacity and parallelism are business decisions, not fixed technical ideology.
+For material current/historical claims, also retrieve relevant CURRENT records from the shared Postgres Context / Agent Learning fabric when that service is available.
+
+The COO constitution is the durable cross-chat business-allocation doctrine. Revenue/client deadlines must not be displaced by repeated control-plane or observability expansion. Capacity and parallelism are business decisions, not fixed technical ideology. **Chat history is discovery context, not organisational truth.**
 
 
 When producing implementation work for this repository, Codex must output a `CODEX_PACKET_V1` only unless explicitly instructed otherwise.
@@ -84,7 +88,7 @@ This repository is the **CorpFlow AI Command Center**: **Next.js** (pages router
 
 ### Current delivery reality (orchestration — mandatory)
 
-Before giving CorpFlowAI progress, dispatch, next-action or blocker advice, check **`docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md`** and current GitHub issue/PR state. Do not rely on remembered/manual-pickup assumptions. **DEFAULT DELIVERY POSTURE: MOVE WORK, DO NOT WAIT FOR PICKUP** (does not authorize merge, deploy, secrets, payment, schema, or external sends).
+Before giving CorpFlowAI progress, dispatch, next-action, blocker, executor/runtime, or historical-state advice, check **`docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md`**, **`docs/operations/ORGANIZATIONAL_MEMORY_AND_AGENT_BOOTSTRAP_V1.md`**, relevant shared Postgres Context / Agent Learning records when available, and current GitHub issue/PR state. Do not rely on chat history or remembered/manual-pickup assumptions as authoritative. **DEFAULT DELIVERY POSTURE: MOVE WORK, DO NOT WAIT FOR PICKUP** (does not authorize merge, deploy, secrets, payment, schema, or external sends).
 
 **Do not treat as proof of delivery:** local tests only, CI success alone, merge to `main` alone, or `/api/factory/health` (or other internal endpoints) alone when the work affects **client-visible** URLs or flows. Record **deployment ID**, **deployed commit**, **live URLs tested**, and **Delivery Reality Audit** verdict (**COMPLETE / PARTIAL / FAILED**) per the rules above.
 
@@ -143,6 +147,7 @@ If Git says **`ambiguous argument 'main'`**, a tracked path named **`main`** may
 | **Analytics / Search Console / indexing per surface** | **`docs/execution/ANALYTICS_SEARCH_CONSOLE_INDEXING_CHECKLIST.md`** |
 | **Per-client migration audit (identity, login, marketing, off-laptop)** | **`docs/execution/CURRENT_CLIENT_MIGRATION_AUDIT_TEMPLATE.md`** |
 | **Current delivery reality (orchestration snapshot)** — Cursor automatic primary; Codex human `@codex` once; n8n exception-only; no wait-for-pickup | **`docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md`** |
+| **Organisational memory + fresh-agent bootstrap** — chat is discovery-only; durable truth classes; Context/Learning retrieval; promotion/closeout rules; Forge/runtime promotion gate | **`docs/operations/ORGANIZATIONAL_MEMORY_AND_AGENT_BOOTSTRAP_V1.md`** |
 | **Operator Control Board v1 — priority model (P0/P1/P2/Blocked/Deferred) + active workstream table** — top-level "what matters now / who owns it"; sits above the execution queue, beside #249 | **`docs/operations/CORPFLOW_OPERATOR_CONTROL_BOARD_V1.md`** |
 | **Operator Bridge v1 — coordination protocol (ChatGPT ↔ Anton ↔ Cursor + Codex Cloud)** — coordination issue **#249** | **`docs/operations/OPERATOR_BRIDGE_V1.md`** |
 | **Operator Bridge — day-to-day runbook (how Cursor / Codex Cloud post STATUS to #249)** | **`docs/runbooks/OPERATOR_BRIDGE.md`** |

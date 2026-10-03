@@ -1,10 +1,10 @@
 # CorpFlowAI — current delivery reality
 
 **Status:** Canonical operating-model snapshot (docs/control-plane only).  
-**Operating model version:** `2026-08-13-v1`.  
+**Operating model version:** `2026-10-02-v2`.  
 **Owner:** Anton (operator).  
 **Controller:** [#661](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/661)  
-**As of:** current `main` (Cursor Factory Automation + Codex lifecycle proven).  
+**As of:** 2026-10-02 current `main` plus approved runtime evidence in #1367/#1370/#1372.  
 **Anchor:** `<!-- CORPFLOWAI_CURRENT_DELIVERY_REALITY -->`
 
 <!-- CORPFLOWAI_CURRENT_DELIVERY_REALITY -->
@@ -43,8 +43,17 @@ constitute approval.
 
 ### 1.1 Source of truth
 
-**GitHub** is the durable work/evidence source of truth (issues, claims, PRs, checks,
-lifecycle comments, Decision Inbox labels).
+CorpFlowAI uses four durable truth classes:
+
+- **Git / repo docs** — slow-moving doctrine, architecture and runbooks.
+- **Postgres Context / Agent Learning** — transactional organisational memory with provenance, status and supersession.
+- **GitHub** — work / delivery lineage: issues, claims, PRs, commits, checks and acceptance evidence.
+- **ERPNext** — commercial and financial truth.
+
+**Chat history is discovery context only, not organisational truth.** See
+`docs/operations/ORGANIZATIONAL_MEMORY_AND_AGENT_BOOTSTRAP_V1.md`.
+
+Runtime-state questions must also use current runtime evidence; stale doctrine never overrides verified current runtime facts.
 
 ### 1.2 Cursor Factory Automation — canonical primary production executor
 
@@ -60,7 +69,28 @@ lifecycle comments, Decision Inbox labels).
 Detail: `docs/operations/ACTIVE_AGENT_CONTROL_LOOP_V1.md`,
 `docs/operations/CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1.md`, controller #903, issue #913, merged PR #914.
 
-### 1.3 Codex — specialist worker (human trigger once)
+### 1.3 Forge — bounded LOW-tier local worker
+
+Forge is the durable **worker identity**, not a permanently fixed model.
+
+Verified implementation source: **#1367**.
+
+Current runtime:
+- host: `corpflow-exec-01-u69678`;
+- Ollama 0.34.4, container `corpflow-local-llm`;
+- selected model `qwen2.5-coder:7b-instruct-q2_K`;
+- resource cage: 4 GiB RAM / 3 CPU;
+- private endpoint only with persistent model volume;
+- deterministic task contract + verifier; fail closed and escalate.
+
+Approved routing from #1372:
+`deterministic automation -> Forge -> Cursor -> higher-cost path only when justified`.
+
+Forge is suitable for bounded LOW-tier transforms, fixtures, log parsing, packet validation and small deterministic test repair. It is **not** authorised to merge, deploy, mutate production DB/schema/data, change env/secrets/access, initiate payment, or send/publish externally.
+
+Shared static context/task-contract scaffolding is merged in PR #1376. Dynamic experience/learning belongs in the shared Postgres Context / Agent Learning fabric from #1370/#1371; no second memory DB.
+
+### 1.4 Codex — specialist worker (human trigger once)
 
 - GitHub-native Cloud trigger requires **one human-authored** `@codex …` PR comment.
 - State before that trigger = **`AWAITING_HUMAN_TRIGGER`**.
@@ -71,11 +101,11 @@ Detail: `docs/operations/ACTIVE_AGENT_CONTROL_LOOP_V1.md`,
 
 Detail: `docs/operations/CODEX_SPECIALIST_LIFECYCLE_V1.md`.
 
-### 1.4 OpenHands — retired
+### 1.5 OpenHands — retired
 
 **Decision executed 2026-09-25:** OpenHands runtime and runnable restore package were removed. OpenHands is not an active, standby, fallback, routing, or cost-control surface. Historical evidence remains in Git history and issue #1132.
 
-### 1.5 n8n — exception-only supervisor / deterministic automation spine
+### 1.6 n8n — exception-only supervisor / deterministic automation spine
 
 - Existing **GitHub Heartbeat Checker** remains the exception-only supervisor.
 - n8n may relay/watch/notify and run deterministic business automation, but it is **not** the AI work planner for the Factory execution path.
@@ -88,12 +118,14 @@ Detail: `docs/runbooks/N8N_GITHUB_HEARTBEAT_CHECKER_V1.md`,
 `docs/runbooks/N8N_EXCEPTION_ONLY_ALERT_LIVE_APPLY_684.md`,
 `docs/runbooks/N8N_CURSOR_COMPLETION_EVENT_LIVE_APPLY_661.md`.
 
-### 1.6 Cross-executor rule
+### 1.7 Cross-executor rule
 
 **One source work packet → one executor claim/generation.**  
-Cursor and Codex may **not** concurrently claim the same packet.
+Forge, Cursor and Codex may **not** concurrently claim the same packet.
 
-### 1.7 Delivery behaviour (chats / operators)
+Route eligible work by the governing cost/value doctrine: deterministic automation first, then Forge for bounded LOW-tier work, then Cursor for multi-file/integration/complex work, with higher-cost paths only when justified. If Forge fails its bounded contract, escalate the same packet; do not create a competing duplicate workstream.
+
+### 1.8 Delivery behaviour (chats / operators)
 
 Do **not** say “wait for Cursor to pick it up” when the item is eligible for automatic dispatch.
 
@@ -105,7 +137,7 @@ Instead:
 4. If **completed** → inspect PR/checks and continue the next permitted stage.
 5. Escalate **only** genuine gates.
 
-### 1.8 Anton involvement (only)
+### 1.9 Anton involvement (only)
 
 - Merge / release / protected approvals
 - Production deploy (**client_production** consequential action)
@@ -125,24 +157,27 @@ Instead:
 Existing conversations may contain **stale orchestration assumptions** (manual pickup,
 Anton-as-courier, “wait for the agent,” notify-only dispatcher).
 
-On any of the following, refresh **current GitHub + this doc** before answering:
+On any of the following, refresh **current runtime evidence where relevant + current GitHub + this doc + relevant shared Context / Agent Learning records where available** before answering:
 
 - progress request
 - “what next”
-- “is Cursor done?”
+- “is Cursor/Forge/Codex done?”
 - dispatch request
+- executor/runtime question
+- historical-state question
 - agent blocker
 - delivery acceleration request
 
-Do **not** rely on remembered/manual-pickup assumptions from prior turns.
+Do **not** rely on remembered/manual-pickup assumptions or chat history as authoritative.
 
 ---
 
 ## 3. Bootstrap rule (for ChatGPT / Cursor / handoff packets)
 
-> Before giving CorpFlowAI progress, dispatch, next-action or blocker advice,
-> check `docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md` and current GitHub
-> issue/PR state. Do not rely on remembered/manual-pickup assumptions.
+> Before giving CorpFlowAI progress, dispatch, next-action, blocker, executor/runtime,
+> or historical-state advice, check this file, `docs/operations/ORGANIZATIONAL_MEMORY_AND_AGENT_BOOTSTRAP_V1.md`,
+> relevant CURRENT Context / Agent Learning records where available, current GitHub issue/PR/commit/CI state,
+> and live/runtime evidence when the question is about current runtime. Chat history is discovery-only.
 
 If a packet records an older operating-model version than the version at the top of this file,
 refresh the packet against current `main` before continuing.
@@ -159,6 +194,11 @@ refresh the packet against current `main` before continuing.
 | Cursor lifecycle | `docs/operations/ACTIVE_AGENT_CONTROL_LOOP_V1.md` |
 | Codex specialist | `docs/operations/CODEX_SPECIALIST_LIFECYCLE_V1.md` |
 | Cursor issue dispatch | `docs/operations/CURSOR_ISSUE_DISPATCH_LIFECYCLE_V1.md` |
+| Forge local coding runtime / worker baseline | #1367 |
+| Shared Agent Learning Fabric | #1370; merged PR #1371 + PR #1376 |
+| Cost-aware execution doctrine | #1372 |
+| Organisational memory/bootstrap doctrine | `docs/operations/ORGANIZATIONAL_MEMORY_AND_AGENT_BOOTSTRAP_V1.md` |
+| Documentation-control incident | #1379 |
 | OpenHands retirement evidence | #1132; historical package recoverable only through Git history |
 | n8n heartbeat (exception-only) | `docs/runbooks/N8N_GITHUB_HEARTBEAT_CHECKER_V1.md` |
 | Protected doctrine manifest | `config/protected-operating-doctrine.v1.json` |

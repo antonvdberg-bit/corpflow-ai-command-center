@@ -1,10 +1,23 @@
 # Server agent access & execution boundary (v1)
 
-**Status:** v1 — 2026-06-04 — canonical.
+**Status:** v1.2 — canonical, updated 2026-10-02.
 **Owner:** Anton (operator) for the hard rules and any rule changes; Cursor for keeping this doc in sync with `MONITORING_ARCHITECTURE.md` § 11.3 and `EXECUTION_BRAIN_VS_HANDS.md`.
 **Scope:** Single source of truth for **where work actually executes** in CorpFlow — which layer runs which class of work, what does **not** exist as an execution layer (and is forbidden), and how `HOST_MISMATCH` is decided.
 
-**Anchor sentinel:** `<!-- SERVER_AGENT_ACCESS_AND_EXECUTION_BOUNDARY_V1 -->`
+**Anchor sentinel:** `<!-- SERVER_AGENT_ACCESS_AND_EXECUTION_BOUNDARY_V1 -->
+
+> **2026-10-02 supersession note — #1367 / #1372:** this document originated before Forge.
+> The three **location layers** remain valid, but later approved evidence adds one named bounded
+> L3 execution surface: **Forge**, the local LOW-tier worker identity, currently Ollama +
+> Qwen2.5-Coder in container `corpflow-local-llm` on `corpflow-exec-01-u69678`.
+> Older blanket statements such as “No Ollama”, “operator-driven, never agent-driven”, or
+> “Uptime Kuma is the only Docker exception” are superseded **only for the named #1367 Forge
+> runtime and its bounded task contracts**. They are not a general authorization for Docker,
+> agents, schedulers, secrets, production mutation, deploys, or external actions.
+>
+> Current routing authority: #1372 and
+> `docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md`.
+`
 
 <!-- SERVER_AGENT_ACCESS_AND_EXECUTION_BOUNDARY_V1 -->
 
@@ -32,7 +45,7 @@ On 2026-06-04 a Cursor handoff comment ([bridge #249 issuecomment-4617719340](ht
 
 Anton's APPROVED investigation directive on bridge [#249 issuecomment-4617928519](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/249#issuecomment-4617928519) (2026-06-04 00:43 UTC) asked for a docs-only runbook that prevents the same mistake from recurring. **This is that runbook.**
 
-The single sentence: **CorpFlow has three execution layers, and only three.** Anything an agent or handoff comment claims as a *fourth* layer is wrong and must be challenged before action.
+The location model remains: **CorpFlow has three execution layers.** Forge does not create a fourth location layer; it is a named, bounded execution surface inside L3. Any other claimed fourth layer still requires explicit durable evidence and authorization.
 
 ---
 
@@ -42,9 +55,9 @@ The single sentence: **CorpFlow has three execution layers, and only three.** An
 |---|---|---|---|---|
 | **L1** | **Laptop brain** | Anton's Windows laptop — Cursor desktop app, the chat surface | Authoring code / docs / commands / commit messages / PR bodies / STATUS comments; reading repo; running `npm test` / `npm run build` / `git`/`gh`; capturing evidence from chat output; opening PRs | Anton (in chat) or a sub-agent Cursor spawns |
 | **L2** | **Cloud hands** | Vercel (HTTP routes + cron) · GitHub Actions · Postgres / Neon · n8n (Hetzner / Elestio host, separate from `corpflow-exec-01-u69678`) · Codex Cloud (OpenAI infra) | All scheduled / event-driven 24/7 execution: Vercel cron, GitHub Actions workflows, Postgres reads/writes via API routes, n8n flows, factory-control-loop, Production Pulse, CMP delivery monitor, Codex Cloud-authored PRs | The schedule (cron / GHA `schedule:`), an inbound webhook, a `repository_dispatch`, or a PR / push event |
-| **L3** | **Box hands** (operator-driven) | `corpflow-exec-01-u69678` (Hetzner via Elestio, `5.78.213.185`, Ubuntu 24.04, 4 vCPU / 7.5 GiB RAM / 150 GB disk post-resize per `JE-2026-05-31-2`) — accessed via SSH from Anton's terminal | One-off operator commands: `docker compose …`, `bench …`, `git pull`, ERPNext install / bench operations, sandbox tear-down, read-only audits; the ERPNext sandbox container stack from Phase B-a lives here (`erpnext-sandbox` Docker project; `corpflowai-sandbox.localhost` Frappe site on `localhost:8080`) | Anton, by SSHing in from his own terminal and pasting commands (which may have been authored by Cursor on L1) |
+| **L3** | **Box hands** (operator-driven + named bounded Forge worker) | `corpflow-exec-01-u69678` (Hetzner via Elestio, `5.78.213.185`, Ubuntu 24.04, 4 vCPU / ~7.5 GiB RAM / 150 GB disk post-resize per `JE-2026-05-31-2`) | Operator shell / ERPNext sandbox work plus the specifically approved #1367 Forge runtime (`corpflow-local-llm`) for bounded LOW-tier task contracts | Anton for operator-shell actions; Forge only through its approved bounded task contract / verifier path |
 
-**Key property: L3 is operator-driven, never agent-driven.** Cursor's role with respect to L3 is **author commands + capture evidence**, never **execute commands directly**. The actual `docker compose exec` / `bench` / `apt-get` calls run under Anton's hands, in Anton's SSH session, on Anton's terminal — not from any Cursor process.
+**Key property:** general L3 administration remains operator-driven. The only current agent-driven L3 execution exception is the named #1367 **Forge** cage for bounded LOW-tier work. Cursor still does not execute server administration directly. Forge does not inherit operator-shell authority.
 
 ---
 
@@ -99,7 +112,7 @@ Any new scheduled or event-driven L2 execution goes through `MIGRATION_TO_SERVER
 
 ---
 
-## 5. Layer 3 — Box hands (operator-driven SSH to `corpflow-exec-01-u69678`)
+## 5. Layer 3 — Box hands (operator-driven SSH + named bounded Forge exception)
 
 ### 5.1 What L3 is today
 
@@ -112,12 +125,14 @@ Per `MONITORING_ARCHITECTURE.md` § 11.3 (canonical posture for the box):
 - **Repo clone exists** at `~/corpflow-ai-command-center` (planned move to `/opt/corpflow/repos/`; tracked as packet `move-repo-to-/opt/corpflow/repos` in `MONITORING_ARCHITECTURE.md` § 11.2).
 - Verified at bootstrap (HEAD `63d87660`): `npm ci` (14s, 617 M `node_modules`) and `npm test` 382/382 PASS.
 - ERPNext sandbox stack from Phase B-a (`JE-2026-06-01-1`): Docker project `erpnext-sandbox`; Frappe site `corpflowai-sandbox.localhost` on `localhost:8080`; credentials at `~/.erpnext-sandbox-credentials` (`chmod 600`, never read by Cursor, never committed). Sandbox is preserved by default per `JE-2026-06-04-1` sandbox-preservation rule.
+- **Forge runtime from #1367:** container `corpflow-local-llm`, Ollama 0.34.4, selected model `qwen2.5-coder:7b-instruct-q2_K`, 4 GiB RAM cap, 3 CPU cap, restart policy `no`, persistent model volume, private endpoint only. Forge is the worker identity and the underlying model may later change under approved evidence.
 
 ### 5.2 What L3 is for in v1 (allowed)
 
 - **Operator shell** — Anton SSHes in from his terminal for repo-local commands (`git`, `gh`, `npm test`, `node scripts/production-pulse.mjs --url …`) without touching production keys.
 - **Operator-driven evidence capture** — long-running read-only audits (e.g. quality-audit probes) that don't need the laptop awake.
 - **Operator-driven ERPNext sandbox + (authorised) production-shell work** — `docker compose -p <project> exec backend bench …`, all under Anton's keyboard, with command text authored on L1 and pasted by Anton on L3.
+- **Forge LOW-tier worker** — bounded task contracts only, with exact context/files, timeout, deterministic verifier, no secrets, no production mutation, no merge/deploy/external action; fail closed and escalate to Cursor when outside contract.
 - **Future packet host** — staging surface for individual approved packets that need 24/7 execution; each must explicitly opt in via a packet that passes `MIGRATION_TO_SERVER_CHECKLIST.md` and brings its own narrow-scope credentials.
 
 ### 5.3 What L3 is NOT for in v1 (hard rules — changing any requires a new ADR + explicit packet)
@@ -131,7 +146,7 @@ From `MONITORING_ARCHITECTURE.md` § 11.3, restated:
 - ❌ **No tenant data** — no DB exports, content snapshots, or tenant secrets.
 - ❌ **No n8n migration yet** — n8n stays where it is until packet `n8n-on-exec01` is approved.
 - ❌ **No Cursor server extension** — no remote Cursor Agent, no Cursor Remote SSH endpoint, no `code-server`, no VS Code Server installed on the box. **Deferred at bootstrap and reaffirmed by this runbook v1.**
-- ❌ **No Docker / Ollama / Postgres install beyond the ERPNext sandbox + (authorised) production-shell scope.** Adds attack surface and memory pressure. *(One narrow named exception: the **Uptime Kuma** container — see § 5.5. The rule is otherwise unchanged; no other Docker workload is authorized by the Kuma carve-out.)*
+- ❌ **No additional Docker / Ollama / Postgres install beyond named approved surfaces.** Current named Docker exceptions are Uptime Kuma (§ 5.5) and the #1367 Forge runtime. Forge authorizes only `corpflow-local-llm` with its recorded resource/network cage; it does not authorize another model server, agent framework, database, scheduler, or general Docker workload.
 
 ### 5.4 The Cursor + Anton L3 collaboration pattern (the proven Phase B-a model)
 
@@ -188,10 +203,11 @@ Any future row added below must come with its own ADR-anchored canonical paragra
 | Authorized exception | Packet that authorized it | What is permitted (narrow) | What § 5.3 rule(s) the exception lifts (and only this far) | Rollback |
 |---|---|---|---|---|
 | **Uptime Kuma** — single Docker container on `corpflow-exec-01-u69678`, `127.0.0.1:3001` loopback only, persistent volume `~/uptime-kuma-data/`, internal probe scheduler | `JE-2026-06-15-1` — `docs/decisions/20260615-uptime-kuma-on-exec01.md` (ADR) + `docs/execution/UPTIME_KUMA_ON_EXEC01_AUTHORIZATION_PACKET.md` (packet) | One Kuma container; HTTP probes (GET-only) against the seven CorpFlow public floor URLs in `MONITORING_ARCHITECTURE.md` § 5 + the n8n host's own health endpoint; Kuma's own Telegram bot (separate from in-repo `TELEGRAM_BOT_TOKEN`) + optional SMTP for alerts; UI access via SSH local-port-forward (`ssh -L 3001:localhost:3001`); operator-managed admin password / bot token / SMTP creds in Kuma's encrypted SQLite DB at `~/uptime-kuma-data/kuma.db` (`chmod 600`); zero CorpFlow secrets on the box | (a) "No Docker / Ollama / Postgres install beyond the ERPNext sandbox + (authorised) production-shell scope" — lifted **only** for the named Kuma container, **not** for any other Docker workload; (b) "No scheduled jobs" — lifted **only** for Kuma's internal probe scheduler running inside the named container, **not** for `cron`/`systemd timer`/`at` outside Kuma | `docker compose -p uptime-kuma down` (≤ 60 s) → `docker compose down -v` + `rm -rf ~/uptime-kuma-data/` (≤ 5 min) → revert authorization packet's merge commit (≤ 1 hour); details in ADR § 5 |
+| **Forge local programming AI** — `corpflow-local-llm` on `corpflow-exec-01-u69678` | #1367 baseline + #1372 routing doctrine | Ollama/Qwen bounded LOW-tier inference through explicit Forge task contracts; 4 GiB RAM / 3 CPU; private endpoint; persistent model volume; restart policy `no`; deterministic verifier; no general autonomous-agent shell | Lifts the old blanket “No Ollama / no additional Docker” rule **only** for this named runtime. Does not lift secrets, production DB/schema/data, deploy, merge, payment, external send/publish, public exposure, or general scheduler prohibitions | Stop/remove the named container and preserve/reconcile evidence under a separately approved runtime-removal packet; no restore/replace action is implied by this docs PR |
 
 **Explicit non-generalization (re-stated for clarity):**
 
-- This carve-out is for **Uptime Kuma** alone. It does **not** authorize Chatwoot, Open WebUI, Coolify, Langfuse, AgentSpan, OpenJarvis, generic chatbot, generic agent framework, additional monitoring tool, additional self-hosted tool of any kind, or any second container.
+- The rows above are **named exceptions, not category authorization**. Uptime Kuma remains limited to monitoring. Forge remains limited to the #1367 LOW-tier worker cage. Neither authorizes Chatwoot, Open WebUI, Coolify, Langfuse, AgentSpan, OpenJarvis, a generic agent framework, another model server, another database, public exposure, or arbitrary additional containers.
 - This carve-out is for **`corpflow-exec-01-u69678`** alone. It does not authorize Kuma on a sibling VM or on the laptop.
 - This carve-out is for **third-location uptime monitoring** alone. It does not authorize Kuma to probe state-mutating routes, factory-master endpoints, tenant data, or anything that requires a CorpFlow secret.
 - This carve-out is for **loopback-only access**. It does not authorize a public port, a reverse proxy, a public DNS record, or any change to `cors`/`csp`/`x-frame-options` on CorpFlow surfaces.
@@ -210,7 +226,7 @@ A layer that does not appear in § 2 above is **not a CorpFlow execution layer**
 | Cursor Remote SSH endpoint configured to the box | Does not exist | Same rule as above |
 | `code-server` / VS Code Server on the box | Does not exist | Same rule as above |
 | Web-shell / browser terminal on the box | Does not exist | No such service installed; would require opening a port + reverse proxy, both forbidden in v1 |
-| Persistent daemon / systemd service / cron / `at` job on the box | Does not exist (with one named exception — see § 5.5: the **Uptime Kuma** container's internal probe scheduler is authorized **only** as that named carve-out and **only** inside that named container; no `cron` / `systemd timer` / `at` outside Kuma is authorized) | § 11.3 hard rule — *"No scheduled jobs"* |
+| Persistent daemon / systemd service / cron / `at` job on the box | No general scheduler/daemon surface exists. Uptime Kuma has its named internal probe scheduler; Forge is a named containerized inference runtime with restart policy `no`, not a general scheduler. | § 5.5 named exceptions; general scheduled-job prohibition remains |
 | Codex Cloud running on the box | Does not exist | `DELIVERY_ACCELERATION_V1.md` § 4.3 — *"Codex Cloud runs in OpenAI's infrastructure, not on Anton's laptop and not on `corpflow-exec-01`"* |
 | Codex CLI / Codex daemon / MCP server on the box | Does not exist | `docs/execution/CODEX_UTILIZATION_PLAN_V1.md` §8 — **`NOT AUTHORIZED / FUTURE EVALUATION ONLY`**; would imply a fourth execution layer + violate § 5.3 no-daemon rule |
 | Tailscale / WireGuard / reverse-tunnel from box to laptop | Does not exist | Repo-wide grep returns zero hits; would expand attack surface |
@@ -218,10 +234,11 @@ A layer that does not appear in § 2 above is **not a CorpFlow execution layer**
 | Vercel deploy capability from the box | Does not exist | § 11.3 hard rule |
 | Tenant DB exports on the box | Does not exist | § 11.3 hard rule + Migration-to-Server Checklist § 2.3 |
 | n8n process on the box | Does not exist | Packet `n8n-on-exec01` is named in `MONITORING_ARCHITECTURE.md` § 11.2 future packets but NOT approved; n8n still on its current host |
+| Local programming AI / Ollama on the box | **Exists only as Forge**: `corpflow-local-llm` under #1367, bounded LOW-tier worker identity | Named exception in § 5.5; do not generalize to Cursor/OpenHands/Codex CLI/another agent shell |
 
 **The rule:** if an agent or handoff comment claims one of these surfaces exists, demand the file path / process / port / config row that proves it. If none can be produced, the claim is wrong.
 
-**Exception clarifier (2026-06-15, `JE-2026-06-15-1`):** The only authorized lifting of any row in this table is the **Uptime Kuma** carve-out documented in § 5.5 (Docker container row + scheduled-jobs row, **only** for the named Kuma container, **only** on `corpflow-exec-01-u69678`, **only** loopback-bound for third-location monitoring). Any future authorized exception must appear in § 5.5 with its own ADR + packet — and must explicitly identify which absence-list row(s) it lifts and how narrowly. No row in the table above is lifted by category.
+**Exception clarifier:** authorized lifting is named and narrow. Uptime Kuma is the monitoring exception from 2026-06-15. Forge is the later #1367 LOW-tier local AI exception. No category-level authorization exists; future exceptions require their own durable approval/evidence and explicit reconciliation here.
 
 ---
 
@@ -278,6 +295,7 @@ When a new packet lands, run through this tree **once** before authoring any com
 | Vercel deploy | **L2 (Vercel itself, triggered by push to `main`)** | Anton owns merge; deploy is downstream |
 | DNS / billing / GitHub repo settings | **Anton (operator) directly** | AAP §3 hard gates |
 | One-off shell command on `corpflow-exec-01-u69678` (Docker, bench, npm, git pull on the server-side clone) | **L3 — operator-driven SSH; Cursor authors at L1, Anton pastes at L3** | § 5.4 pattern |
+| Bounded LOW-tier transform / fixture / log parse / packet validation / small deterministic test repair eligible under #1370 task contracts | **L3 — Forge cage** | Exact context/files + timeout + deterministic verifier; escalate to Cursor if outside contract or failed |
 | ERPNext sandbox or (authorised) production-shell setup / bench operations | **L3 — § 5.4 pattern** | Proven by Phase B-a, Phase C |
 | Cursor session "executing on the box itself" | **DOES NOT EXIST as a class** | § 6 absence list; any packet that claims this is misconfigured |
 
@@ -347,4 +365,5 @@ If a future packet proposes lifting any § 5.3 hard rule (e.g. installing Cursor
 ## 13. Change log
 
 - **v1, 2026-06-04** — initial canonical version. Triggered by bridge [#249 issuecomment-4617928519](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/249#issuecomment-4617928519). Synthesises rules already in `EXECUTION_BRAIN_VS_HANDS.md`, `MONITORING_ARCHITECTURE.md` § 11.3, `DELIVERY_ACCELERATION_V1.md` § 4.3, `MIGRATION_TO_SERVER_CHECKLIST.md`, `ERPNEXT_SANDBOX_INSTALL.md` § 10. Recorded as `JE-2026-06-04-2`.
+- **v1.2, 2026-10-02** — reconciled the later #1367 Forge/Ollama authorization and #1372 routing doctrine. The three location layers remain; Forge is a named bounded L3 worker exception, not a fourth layer or general agent/server authorization. Added Forge runtime evidence, task boundary, and supersession of obsolete blanket “No Ollama / operator-only” wording for that named runtime only. No production/runtime mutation in this documentation change.
 - **v1.1, 2026-06-15** — added § 5.5 *Authorized exceptions to § 5.3 hard rules (named, narrow, packet-gated)* and listed **Uptime Kuma** on `corpflow-exec-01-u69678` as the **first and only** named carve-out, authorized by `docs/decisions/20260615-uptime-kuma-on-exec01.md` + `docs/execution/UPTIME_KUMA_ON_EXEC01_AUTHORIZATION_PACKET.md` (`JE-2026-06-15-1`). § 5.3's two affected rules ("No Docker / Ollama / Postgres beyond ERPNext sandbox + production-shell" and "No scheduled jobs") gained parenthetical pointers at § 5.5; rule wording itself unchanged. § 6 absence-list "Persistent daemon / systemd / cron / `at`" row gained an in-line clarifier; a new "Exception clarifier" paragraph was added under § 6 explaining that the only authorized lifting of any row is the Uptime Kuma carve-out, narrow and named. The carve-out is **not** a category-level lift: any further exception requires its own ADR + authorization packet + § 10 gate. No § 5.3 hard rule is removed by this version.
