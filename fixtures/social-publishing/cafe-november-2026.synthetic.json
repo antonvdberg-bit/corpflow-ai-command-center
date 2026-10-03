@@ -1,0 +1,47 @@
+[
+  {
+    "id": "cafe-nov-001",
+    "tenantId": "cafe-international",
+    "campaign": "Cafe International November 2026",
+    "channel": "facebook",
+    "caption": "A warm welcome from Cafe International in Trou aux Biches. For bookings, call or message us on +230 5765 8735.",
+    "mediaRef": "asset:cafe/november/welcome-01.jpg",
+    "scheduledAt": "2026-11-03T10:00:00+04:00",
+    "timezone": "Indian/Mauritius",
+    "approvalState": "APPROVED",
+    "publishState": "READY",
+    "providerPostId": null,
+    "verificationState": "NOT_CHECKED",
+    "failureReason": null
+  },
+  {
+    "id": "cafe-nov-002",
+    "tenantId": "cafe-international",
+    "campaign": "Cafe International November 2026",
+    "channel": "instagram",
+    "caption": "Cafe International has been welcoming guests in Trou aux Biches since 2009. For bookings, call or message +230 5765 8735.",
+    "mediaRef": "asset:cafe/november/heritage-01.jpg",
+    "scheduledAt": "2026-11-10T10:00:00+04:00",
+    "timezone": "Indian/Mauritius",
+    "approvalState": "APPROVED",
+    "publishState": "READY",
+    "providerPostId": null,
+    "verificationState": "NOT_CHECKED",
+    "failureReason": null
+  },
+  {
+    "id": "cafe-nov-003",
+    "tenantId": "cafe-international",
+    "campaign": "Cafe International November 2026",
+    "channel": "google_business_profile",
+    "caption": "Planning a visit to Trou aux Biches? Cafe International welcomes bookings by phone or message on +230 5765 8735.",
+    "mediaRef": "asset:cafe/november/booking-01.jpg",
+    "scheduledAt": "2026-11-17T10:00:00+04:00",
+    "timezone": "Indian/Mauritius",
+    "approvalState": "APPROVED",
+    "publishState": "READY",
+    "providerPostId": null,
+    "verificationState": "NOT_CHECKED",
+    "failureReason": null
+  }
+]
