@@ -1,10 +1,10 @@
 # CorpFlowAI — current delivery reality
 
 **Status:** Canonical operating-model snapshot (docs/control-plane only).  
-**Operating model version:** `2026-10-02-v2`.  
+**Operating model version:** `2026-10-04-v3`.  
 **Owner:** Anton (operator).  
 **Controller:** [#661](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/661)  
-**As of:** 2026-10-02 current `main` plus approved runtime evidence in #1367/#1370/#1372.  
+**As of:** Runtime snapshot retained from 2026-10-02 (#1367/#1370/#1372); controller documentation/routing decision approved 2026-10-04. This revision does not change or re-verify runtime configuration.  
 **Anchor:** `<!-- CORPFLOWAI_CURRENT_DELIVERY_REALITY -->`
 
 <!-- CORPFLOWAI_CURRENT_DELIVERY_REALITY -->
@@ -54,6 +54,12 @@ CorpFlowAI uses four durable truth classes:
 `docs/operations/ORGANIZATIONAL_MEMORY_AND_AGENT_BOOTSTRAP_V1.md`.
 
 Runtime-state questions must also use current runtime evidence; stale doctrine never overrides verified current runtime facts.
+
+### 1.1a Controller duties and documentation routing
+
+Routine summarisation, task evaluation, evidence review, learning capture, documentation and routing are mandatory ChatGPT/Codex controller duties. Bounded documentation-only branch edits and reviewable PR preparation are permitted under the operator-approved exception in `AGENTS.md` § Controller work and routing discipline. Merge and protected-action approval remain separate.
+
+Cursor receives work only when the originating item records a concrete implementation need and why the controller or an existing deterministic/approved Forge contract cannot adequately perform it. Do not dispatch routine controller work solely because a durable record or PR is needed. Existing closeout and learning rules remain mandatory. This is a documentation policy; no dispatcher code or runtime setting changes here.
 
 ### 1.2 Cursor Factory Automation — canonical primary production executor
 
