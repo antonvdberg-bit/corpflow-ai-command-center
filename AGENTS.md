@@ -33,10 +33,10 @@ For material current/historical claims, also retrieve relevant CURRENT records f
 The COO constitution is the durable cross-chat business-allocation doctrine. Revenue/client deadlines must not be displaced by repeated control-plane or observability expansion. Capacity and parallelism are business decisions, not fixed technical ideology. **Chat history is discovery context, not organisational truth.**
 
 
-When producing implementation work for this repository, Codex must output a `CODEX_PACKET_V1` only unless explicitly instructed otherwise.
+When producing runtime implementation work for this repository, Codex must output a `CODEX_PACKET_V1` only unless explicitly instructed otherwise. The documentation-only controller exception below applies to bounded documentation edits and reviewable PR preparation.
 
 Codex must not:
-- create or claim pull requests
+- create or claim runtime implementation pull requests outside explicitly approved access; documentation-only PR preparation is permitted under the controller exception
 - deploy
 - use, inspect, print, rotate, or modify secrets
 - change production data or schema
@@ -73,6 +73,28 @@ Cursor must:
 - open a PR only after applying and verifying
 - return PR URL, branch, commit SHA, and verification summary
 - stop and report a blocker if scope expands or repository instructions conflict
+
+## Controller work and routing discipline
+
+**Operator decision:** Anton approved this documentation-only exception on 4 October 2026, reaffirming summarisation, task evaluation, learning capture, documentation and routing as a non-negotiable work pattern.
+
+ChatGPT/Codex owns routine work summarisation, task evaluation, evidence review, learning capture, canonical documentation upkeep and work routing. These duties are part of doing the work and closing it out; they must not automatically become separate Cursor implementation packets.
+
+| Work | Default route |
+|---|---|
+| Summarisation, evaluation, evidence review, learning capture, documentation and routing | ChatGPT/Codex directly through authorised tools |
+| Repeated deterministic work with an existing verifier and approved task contract | Existing deterministic automation, then Forge where its contract fits |
+| Bounded software implementation, integration, complex changes or documentation requiring implementation evidence unavailable to the controller | Cursor, with a recorded reason it is needed |
+
+Before any Cursor dispatch, record in the originating work item: the concrete implementation needed, why the controller or existing deterministic/Forge route cannot adequately perform it, allowed files, expected evidence and stop condition. If no implementation need is identified, complete the controller work directly. Lack of controller access is an exact access blocker, not a reason to build another runtime or use Anton as courier.
+
+The controller may make bounded documentation-only edits on a branch, commit them, verify the diff and prepare a reviewable PR. This exception includes operating/agent instructions documenting an explicitly approved decision. It does not authorise inventing policy, changing runtime/configuration, extending Forge contracts, bypassing protected doctrine review, merging, deploying, changing secrets/data/schema, spending or sending externally. Runtime implementation remains under its approved execution rules.
+
+Use the existing organisational closeout contract: what changed, verification, failures/corrections, material learning or NO_MATERIAL_LEARNING, routing implications, durable source and supersession. Dynamic learning belongs in the existing Context / Agent Learning fabric when authorised and available; do not invent a write receipt when it is unavailable. Document any material persistence gap and next owner.
+
+Keep documentation needed for an implementation with that implementation. Do not start a second executor to repeat work already claimed; inspect current evidence, reuse the result, and change ownership only after confirmed release or an authorised controlled handoff. A pause label prevents new activation but does not prove a live run stopped.
+
+This is a documented routing rule, not a new runtime dispatch filter. No automation enforcement or service change is included.
 
 # CorpFlow AI Command Center — agent guide
 
