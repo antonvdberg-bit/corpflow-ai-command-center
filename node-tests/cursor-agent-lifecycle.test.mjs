@@ -7,19 +7,107 @@ import {
   buildCursorLifecycleState,
   buildCursorProgressFingerprint,
   buildDeterministicStaleFollowUpPrompt,
+  buildReadOnlyRecoveryPlan,
+  canAdvanceDependentQueue,
   classifyCursorTerminalOutcome,
   classifyCursorFailure,
+  ERPNext_ACTION_RESULT_SCHEMA,
+  formatErpNextActionResultComment,
   formatCursorCompletionEventComment,
   formatCursorHeartbeatComment,
   formatCursorLifecycleStateComment,
   normalizeCursorAgentLifecycleStatus,
   parseCursorLifecycleStateFromText,
   runCursorAgentLifecycleTick,
+  validateErpNextActionResult,
   shouldEmitCompletionEvent,
   shouldNotifyCursorCompletionEvent,
 } from '../lib/server/cursor-agent-lifecycle.js';
 
 describe('cursor-agent-lifecycle', () => {
+  const erpNextResult = {
+    schema: ERPNext_ACTION_RESULT_SCHEMA,
+    source_issue: 1391,
+    cursor_agent_id: 'bc-erpnext-00000000-0000-4000-8000-000000000001',
+    cursor_run_id: 'run-erpnext-1391',
+    action_class: 'supplier_read_back',
+    target_doctypes: ['Supplier'],
+    records_read: ['SUP-0001'],
+    records_created: [],
+    records_updated: [],
+    before_after_summary: 'Read existing supplier and verified fields.',
+    read_back_verified: true,
+    docstatus_or_draft_state: 'read_only',
+    quotation_or_supplier_identifiers: ['SUP-0001'],
+    protected_actions_not_taken: ['no supplier approval', 'no external send'],
+    blocker: null,
+    final_verdict: 'PASS',
+  };
+
+  it('requires business evidence for a completed no-code action', () => {
+    const outcome = classifyCursorTerminalOutcome({
+      sourceIssue: 1391,
+      cursorAgentId: erpNextResult.cursor_agent_id,
+      cursorRunId: erpNextResult.cursor_run_id,
+      workType: 'ERPNext business action',
+      finalResult: 'COMPLETED',
+    });
+    assert.equal(outcome.verdict, 'COMPLETED_UNVERIFIED');
+    assert.equal(outcome.reason, 'missing_business_evidence');
+  });
+
+  it('accepts a correlated, read-back-verified ERPNext result without PR/SHA', () => {
+    const outcome = classifyCursorTerminalOutcome({
+      sourceIssue: 1391,
+      cursorAgentId: erpNextResult.cursor_agent_id,
+      cursorRunId: erpNextResult.cursor_run_id,
+      workType: 'ERPNext business action',
+      businessResult: erpNextResult,
+    });
+    assert.deepEqual(outcome, {
+      verdict: 'PASS',
+      reason: 'validated_erpnext_action_result',
+    });
+    assert.equal(validateErpNextActionResult(erpNextResult, { sourceIssue: 1391 }).valid, true);
+    assert.equal(canAdvanceDependentQueue({ providerStatus: 'COMPLETED', finalVerdict: 'PASS' }), true);
+  });
+
+  it('keeps a code task unverified when branch/PR/SHA evidence is missing', () => {
+    const outcome = classifyCursorTerminalOutcome({
+      workType: 'implementation',
+      finalResult: 'COMPLETED',
+      ciResult: 'unknown',
+    });
+    assert.equal(outcome.verdict, 'COMPLETED_UNVERIFIED');
+  });
+
+  it('selects read-only recovery and blocks dependent queue advancement', () => {
+    const plan = buildReadOnlyRecoveryPlan({
+      sourceIssue: 1392,
+      cursorAgentId: 'bc-recovery-00000000-0000-4000-8000-000000000002',
+      cursorRunId: 'run-recovery-1392',
+    });
+    assert.equal(plan.mode, 'read_only');
+    assert.equal(plan.duplicate_mutation_blocked, true);
+    assert.deepEqual(plan.target_doctypes, ['Lead', 'Opportunity', 'Customer', 'Contact', 'Address', 'Quotation']);
+    assert.equal(canAdvanceDependentQueue({
+      providerStatus: 'COMPLETED',
+      finalVerdict: 'COMPLETED_UNVERIFIED',
+    }), false);
+  });
+
+  it('formats a source-issue callback with exact agent/run correlation', () => {
+    const body = formatErpNextActionResultComment(erpNextResult, {
+      sourceIssue: 1391,
+      cursorAgentId: erpNextResult.cursor_agent_id,
+      cursorRunId: erpNextResult.cursor_run_id,
+    });
+    assert.match(body, /CURSOR BUSINESS ACTION CALLBACK/);
+    assert.match(body, new RegExp(erpNextResult.cursor_agent_id));
+    assert.match(body, new RegExp(erpNextResult.cursor_run_id));
+    assert.match(body, /corpflow\.erpnext_action_result\.v1/);
+  });
+
   it('does not turn a completed provider run without artifacts into PASS', () => {
     const outcome = classifyCursorTerminalOutcome({
       finalResult: null,
@@ -373,6 +461,42 @@ describe('cursor-agent-lifecycle', () => {
     assert.equal(heartbeats[0].heartbeat.cursor_agent_id, 'bc-heartbeat-active');
     assert.match(heartbeats[0].heartbeat.stage, /no branch, PR, or head SHA reported yet/);
     assert.ok(running.actions.includes('heartbeat_updated'));
+  });
+
+  it('publishes validated business evidence back to the source issue', async () => {
+    const callbacks = [];
+    const result = await runCursorAgentLifecycleTick({
+      apiKey: 'test-key',
+      agentId: erpNextResult.cursor_agent_id,
+      sourceIssue: 1391,
+      workType: 'ERPNext business action',
+      fetch: async () => ({
+        ok: true,
+        status: 200,
+        async text() {
+          return JSON.stringify({
+            status: 'COMPLETED',
+            agent: { id: erpNextResult.cursor_agent_id, status: 'COMPLETED' },
+            run: {
+              id: erpNextResult.cursor_run_id,
+              status: 'COMPLETED',
+              businessResult: erpNextResult,
+            },
+          });
+        },
+      }),
+      github: {
+        async createIssueComment() {},
+        async publishBusinessActionCallback(issue, body) {
+          callbacks.push({ issue, body });
+        },
+      },
+    });
+    assert.equal(result.event.final_verdict, 'PASS');
+    assert.equal(callbacks.length, 1);
+    assert.equal(callbacks[0].issue, 1391);
+    assert.match(callbacks[0].body, /run-erpnext-1391/);
+    assert.ok(result.actions.includes('business_action_callback_posted'));
   });
 
 

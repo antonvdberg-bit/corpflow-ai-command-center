@@ -274,6 +274,7 @@ function buildGithubAdapter() {
     findPrForIssue,
     getPrChecks,
     addIssueLabels,
+    publishBusinessActionCallback: createIssueComment,
     removeIssueLabels,
   };
 }
