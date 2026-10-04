@@ -18,6 +18,11 @@ import {
   shouldEmitCompletionEvent,
   shouldNotifyCursorCompletionEvent,
 } from '../lib/server/cursor-agent-lifecycle.js';
+import {
+  ERPNextActionResultSchema,
+  selectBusinessRecoveryAction,
+  validateCursorBusinessEvidence,
+} from '../lib/server/cursor-completion-contract.js';
 
 describe('cursor-agent-lifecycle', () => {
   it('does not turn a completed provider run without artifacts into PASS', () => {
@@ -39,6 +44,94 @@ describe('cursor-agent-lifecycle', () => {
     });
     assert.equal(outcome.verdict, 'PASS');
     assert.equal(outcome.reason, 'verified_bounded_diagnostic_result');
+  });
+
+  it('accepts valid ERPNext read-back evidence without a PR or SHA', () => {
+    const evidence = {
+      schema: ERPNextActionResultSchema,
+      source_issue: 1391,
+      cursor_agent_id: 'bc-business',
+      cursor_run_id: 'run-business',
+      action_class: 'read_supplier_masters',
+      target_doctypes: ['Supplier'],
+      records_read: ['SUP-001'],
+      records_created: [],
+      records_updated: [],
+      before_after_summary: 'Read-back matches the requested supplier master state.',
+      read_back_verified: true,
+      protected_actions_not_taken: ['submit', 'send'],
+      final_verdict: 'PASS',
+    };
+    const result = validateCursorBusinessEvidence(evidence, evidence);
+    assert.equal(result.ok, true);
+    assert.equal(
+      classifyCursorTerminalOutcome({
+        sourceIssue: 1391,
+        cursorAgentId: 'bc-business',
+        cursorRunId: 'run-business',
+        finalResult: JSON.stringify(evidence),
+        workType: 'ERPNext business action',
+      }).reason,
+      'verified_business_action_read_back',
+    );
+  });
+
+  it('selects read-only recovery and never mutation replay for unverified business work', () => {
+    assert.deepEqual(selectBusinessRecoveryAction({ evidenceValid: false }), {
+      action: 'read_only_recovery',
+      mutationReplay: false,
+      reason: 'completed_without_valid_business_evidence',
+    });
+  });
+
+  it('publishes correlated validated business evidence through the issue callback', async () => {
+    const payload = {
+      schema: ERPNextActionResultSchema,
+      source_issue: 1392,
+      cursor_agent_id: 'bc-callback',
+      cursor_run_id: 'run-callback',
+      action_class: 'read_only_recovery',
+      target_doctypes: ['Lead', 'Quotation'],
+      records_read: ['LEAD-001'],
+      records_created: [],
+      records_updated: [],
+      before_after_summary: 'Authoritative read-back completed.',
+      read_back_verified: true,
+      protected_actions_not_taken: ['create', 'submit'],
+      final_verdict: 'PASS',
+    };
+    const callbacks = [];
+    const result = await runCursorAgentLifecycleTick({
+      apiKey: 'test-key',
+      agentId: 'bc-callback',
+      runId: 'run-callback',
+      sourceIssue: 1392,
+      fetch: async () => ({
+        ok: true,
+        status: 200,
+        async text() {
+          return JSON.stringify({
+            status: 'COMPLETED',
+            run: {
+              id: 'run-callback',
+              status: 'COMPLETED',
+              final_result: JSON.stringify(payload),
+            },
+          });
+        },
+      }),
+      github: {
+        async createIssueComment() {},
+        async upsertCompactLifecycle(issue, event) {
+          callbacks.push({ issue, event });
+        },
+      },
+    });
+    assert.equal(result.event.final_verdict, 'PASS');
+    assert.equal(callbacks[0].issue, 1392);
+    assert.equal(callbacks[0].event.cursor_agent_id, 'bc-callback');
+    assert.equal(callbacks[0].event.cursor_run_id, 'run-callback');
+    assert.equal(callbacks[0].event.business_evidence.read_back_verified, true);
   });
 
   it('normalizes CREATING → PENDING and RUNNING → RUNNING', () => {
