@@ -1,7 +1,8 @@
 # CorpFlowAI — current delivery reality
 
 **Status:** Canonical operating-model snapshot (docs/control-plane only).  
-**Operating model version:** `2026-10-04-v3`.  
+**Operating model version:** `2026-10-02-v2`.  
+**Controller documentation decision:** 2026-10-04 (documentation-only exception and routing discipline).  
 **Owner:** Anton (operator).  
 **Controller:** [#661](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/661)  
 **As of:** Runtime snapshot retained from 2026-10-02 (#1367/#1370/#1372); controller documentation/routing decision approved 2026-10-04. This revision does not change or re-verify runtime configuration.  
