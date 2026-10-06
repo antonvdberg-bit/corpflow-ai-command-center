@@ -1,7 +1,33 @@
+{% set routing = namespace(has_corpflowai=false, has_business_admin_desk=false, has_unknown=false) %}
+{% for item in doc.items %}
+  {% set group = item.item_group or "" %}
+  {% if group == "CorpFlowAI Services" or group.startswith("CorpFlowAI Services /") %}
+    {% set routing.has_corpflowai = true %}
+  {% elif group == "Business Admin Desk Services" or group.startswith("Business Admin Desk Services /") %}
+    {% set routing.has_business_admin_desk = true %}
+  {% else %}
+    {% set routing.has_unknown = true %}
+  {% endif %}
+{% endfor %}
+{% set brand_ready = (routing.has_corpflowai or routing.has_business_admin_desk) and not (routing.has_corpflowai and routing.has_business_admin_desk) and not routing.has_unknown %}
+{% set business_admin_desk = routing.has_business_admin_desk and not routing.has_corpflowai and not routing.has_unknown %}
+{% if business_admin_desk %}
+  {% set brand_name = "Business Admin Desk" %}
+  {% set brand_logo_url = "https://businessadmindesk.co.za/assets/brand/business-admin-desk-mark.svg" %}
+  {% set brand_accent = "#4EA7E0" %}
+  {% set brand_ink = "#0B3154" %}
+  {% set brand_light = "#F1F6FA" %}
+  {% set brand_address = "Dextra Lane Lot No. 3 Phase 1<br>Trou Aux Biches, Pamplemousses District, Mauritius, 22301<br>+230 5901 4284<br>businessadmindesk.co.za" %}
+{% else %}
+  {% set brand_name = "CorpFlowAI" %}
+  {% set brand_logo_url = "https://corpflowai.com/brand/corpflowai/corpflowai-mark.png" %}
+  {% set brand_accent = "#16A6A1" %}
+  {% set brand_ink = "#10233B" %}
+  {% set brand_light = "#F3F7F9" %}
+{% endif %}
 {% set client_name = doc.customer_name or doc.contact_display or doc.party_name or "Client" %}
 {% set client_address = doc.address_display or "" %}
 {% set client_address = client_address | replace("<strong>" ~ client_name ~ "</strong>", "") | replace(client_name, "") %}
-{% set logo_url = "https://corpflowai.com/brand/corpflowai/corpflowai-mark.png" %}
 
 <style>
   .cfq {
@@ -11,18 +37,18 @@
     line-height: 1.45;
   }
   .cfq table { border-collapse: collapse; width: 100%; }
-  .cfq .brand-bar { border-bottom: 3px solid #16a6a1; padding-bottom: 13px; }
+  .cfq .brand-bar { border-bottom: 3px solid {{ brand_accent }}; padding-bottom: 13px; }
   .cfq .logo { height: 42px; width: 42px; object-fit: contain; vertical-align: middle; }
   .cfq .seller { color: #526275; font-size: 9px; line-height: 1.35; }
   .cfq .title {
-    color: #10233b;
+    color: {{ brand_ink }};
     font-size: 27px;
     font-weight: 700;
     letter-spacing: .4px;
     margin: 0;
     text-transform: uppercase;
   }
-  .cfq .subtitle { color: #16a6a1; font-size: 10px; font-weight: 700; letter-spacing: 1.6px; }
+  .cfq .subtitle { color: {{ brand_accent }}; font-size: 10px; font-weight: 700; letter-spacing: 1.6px; }
   .cfq .status {
     border: 1px solid #d6a84f;
     color: #9a6b13;
@@ -33,7 +59,7 @@
     padding: 4px 8px;
     text-transform: uppercase;
   }
-  .cfq .meta { background: #f3f7f9; margin: 18px 0; }
+  .cfq .meta { background: {{ brand_light }}; margin: 18px 0; }
   .cfq .meta td { border-right: 1px solid #dbe5e9; padding: 9px 11px; vertical-align: top; width: 25%; }
   .cfq .meta td:last-child { border-right: 0; }
   .cfq .label {
@@ -45,7 +71,7 @@
     margin-bottom: 3px;
     text-transform: uppercase;
   }
-  .cfq .value { color: #10233b; font-size: 10px; font-weight: 700; }
+  .cfq .value { color: {{ brand_ink }}; font-size: 10px; font-weight: 700; }
   .cfq .parties { margin: 0 0 19px; }
   .cfq .parties td {
     border: 1px solid #dbe5e9;
@@ -54,12 +80,12 @@
     width: 50%;
   }
   .cfq .parties td + td { border-left: 5px solid #fff; }
-  .cfq .card-title { color: #16a6a1; font-size: 8px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
-  .cfq .party-name { color: #10233b; font-size: 13px; font-weight: 700; margin: 5px 0 4px; }
+  .cfq .card-title { color: {{ brand_accent }}; font-size: 8px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+  .cfq .party-name { color: {{ brand_ink }}; font-size: 13px; font-weight: 700; margin: 5px 0 4px; }
   .cfq .muted { color: #647589; font-size: 9px; }
   .cfq .items { border: 1px solid #dbe5e9; margin-bottom: 15px; }
   .cfq .items th {
-    background: #10233b;
+    background: {{ brand_ink }};
     color: #fff;
     font-size: 8px;
     letter-spacing: .7px;
@@ -74,7 +100,7 @@
   .cfq .item-name { color: #10233b; font-size: 10px; font-weight: 700; }
   .cfq .item-desc { color: #526275; font-size: 9px; margin-top: 3px; }
   .cfq .summary { page-break-inside: avoid; }
-  .cfq .words { background: #f3f7f9; border-left: 3px solid #16a6a1; color: #526275; font-size: 9px; padding: 9px 10px; }
+  .cfq .words { background: {{ brand_light }}; border-left: 3px solid {{ brand_accent }}; color: #526275; font-size: 9px; padding: 9px 10px; }
   .cfq .totals { border: 1px solid #dbe5e9; }
   .cfq .totals td { padding: 5px 9px; }
   .cfq .totals .grand td {
@@ -84,8 +110,8 @@
     font-weight: 700;
     padding: 11px 9px;
   }
-  .cfq .terms { border-top: 2px solid #16a6a1; color: #526275; font-size: 8.5px; margin-top: 22px; padding-top: 11px; }
-  .cfq .terms-title { color: #10233b; font-size: 10px; font-weight: 700; margin-bottom: 5px; }
+  .cfq .terms { border-top: 2px solid {{ brand_accent }}; color: #526275; font-size: 8.5px; margin-top: 22px; padding-top: 11px; }
+  .cfq .terms-title { color: {{ brand_ink }}; font-size: 10px; font-weight: 700; margin-bottom: 5px; }
   .cfq .terms p { margin: 3px 0; }
   .cfq .terms ol { margin: 4px 0 0 17px; padding: 0; }
   .cfq .terms li { margin-bottom: 2px; }
@@ -94,13 +120,20 @@
 </style>
 
 <div class="cfq">
+  {% if not brand_ready %}
+    <div style="background:#fff4e5;border:2px solid #d6a84f;color:#7a5210;font-size:12px;font-weight:700;margin:20px 0;padding:16px;text-align:center;">
+      BRAND CLASSIFICATION ERROR / NOT CLIENT-READY<br>
+      This quotation contains mixed, unknown, or unclassified Item Group rows.
+      Assign one supported product-set identity before client release.
+    </div>
+  {% else %}
   <table class="brand-bar">
     <tr>
       <td style="width:58%; vertical-align:middle;">
-        <img class="logo" src="{{ logo_url }}" alt="CorpFlowAI">
+        <img class="logo" src="{{ brand_logo_url }}" alt="{{ brand_name }}">
         <span style="display:inline-block; margin-left:8px; vertical-align:middle;">
-          <strong style="color:#10233b; font-size:14px;">CorpFlowAI</strong><br>
-          <span class="seller">CorpFlowAI LTD &middot; Mauritius</span>
+          <strong style="color:{{ brand_ink }}; font-size:14px;">{{ brand_name }}</strong><br>
+          <span class="seller">{% if business_admin_desk %}A CorpFlowAI LTD trading identity{% else %}CorpFlowAI LTD &middot; Mauritius{% endif %}</span>
         </span>
       </td>
       <td style="text-align:right; vertical-align:middle;">
@@ -136,10 +169,14 @@
     <tr>
       <td>
         <div class="card-title">From</div>
-        <div class="party-name">CorpFlowAI LTD</div>
+        <div class="party-name">{{ brand_name }}</div>
         {% if doc.company_address %}
           {% set ca = frappe.db.get_value("Address", doc.company_address, ["address_line1","address_line2","city","state","pincode","country"], as_dict=True) %}
-          <span class="muted">{{ ca.address_line1 or "" }}{% if ca.address_line2 %}<br>{{ ca.address_line2 }}{% endif %}<br>{{ ca.city or "" }}{% if ca.state %}, {{ ca.state }}{% endif %}{% if ca.pincode %} {{ ca.pincode }}{% endif %}<br>{{ ca.country or "Mauritius" }}<br>finance@corpflowai.com</span>
+          {% if business_admin_desk %}
+            <span class="muted">CorpFlowAI LTD<br>Dextra Lane Lot No. 3 Phase 1<br>Trou Aux Biches, Pamplemousses District, Mauritius, 22301<br>+230 5901 4284<br>businessadmindesk.co.za</span>
+          {% else %}
+            <span class="muted">{{ ca.address_line1 or "" }}{% if ca.address_line2 %}<br>{{ ca.address_line2 }}{% endif %}<br>{{ ca.city or "" }}{% if ca.state %}, {{ ca.state }}{% endif %}{% if ca.pincode %} {{ ca.pincode }}{% endif %}<br>{{ ca.country or "Mauritius" }}<br>finance@corpflowai.com</span>
+          {% endif %}
         {% endif %}
       </td>
       <td>
@@ -204,5 +241,6 @@
   </div>
   {% endif %}
 
-  <div class="footer">CorpFlowAI LTD &middot; Company No: C25228280 &middot; Tax ID: 28466939 &middot; finance@corpflowai.com &middot; corpflowai.com</div>
+  <div class="footer">CorpFlowAI LTD &middot; Company No: C25228280 &middot; Tax ID: 28466939 &middot; {% if business_admin_desk %}businessadmindesk.co.za{% else %}finance@corpflowai.com &middot; corpflowai.com{% endif %}</div>
+  {% endif %}
 </div>
