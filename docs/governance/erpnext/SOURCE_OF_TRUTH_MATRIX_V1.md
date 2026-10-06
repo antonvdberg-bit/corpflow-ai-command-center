@@ -37,8 +37,8 @@ This verdict means Anton and agents now have **one row-by-row ownership matrix**
 
 | Question | Answer now |
 |----------|------------|
-| What belongs in ERPNext? | Commercial identity, catalogue/prices, quotations/invoices, payment clearance, client Project/Task/Timesheet, durable support Issue — where standard ERPNext already fits. |
-| What stays in CorpFlowAI? | Daily prospect kanban, `/change` execution, auth/tenancy, tenant catalogues (Lux), automation/AI telemetry, factory evidence. |
+| What belongs in ERPNext? | Commercial identity, external-party interaction history, catalogue/prices, quotations/invoices, payment clearance, client Project/Task/Timesheet, durable support Issue — where standard ERPNext already fits. |
+| What stays in CorpFlowAI? | Daily prospect/outreach execution views, `/change` execution, auth/tenancy, tenant catalogues (Lux), automation/AI telemetry, factory evidence. External-party interactions executed here must reconcile to ERPNext as the durable commercial record. |
 | First bridge to implement? | **Qualified commercial Customer identity** (`leads.id` → Customer / Contact / Address). |
 | Does this delay Prestige? | **No.** Track B stays on #919 / #882 / #920. Real Customer + send remain Anton gates. |
 | What must Anton do because of *this* packet? | **Merge this PR when satisfied.** No other Anton action is created by the matrix itself. |
@@ -67,7 +67,7 @@ Do **not** treat CorpFlowAI-hosted ERPNext as `client_production`.
 
 | ID | Domain | CorpFlowAI store | ERPNext home | Classification | Evidence (reused) |
 |----|--------|------------------|--------------|----------------|-------------------|
-| `lead_intake_pipeline` | Lead / prospect intake and daily kanban | `leads` + `qualification_json` | Lead/Opportunity only after qualification | **CorpFlowAI authoritative** | #701 |
+| `lead_intake_pipeline` | Lead / prospect intake and daily kanban | `leads` + `qualification_json` | Lead/Opportunity plus durable business-relevant interaction history | **CorpFlowAI execution + ERPNext authoritative outcome** | #701; 2026-10-07 executive clarification |
 | `lead_opportunity_promotion` | Lead / Opportunity after a real sales process starts | `leads.id` | Lead then Opportunity | **Needs bridge** | #920 |
 | `qualified_customer_identity` | Customer / Contact / Address | `leads.id` when quotation-ready or won | Customer + Contact + Address | **Needs bridge** (first candidate) | #880 / #920 |
 | `item_pricing` | Item / Price List / Item Price | none as catalogue master | Item / Item Group / Price List / Item Price | **ERPNext authoritative** | #881 |
@@ -78,7 +78,7 @@ Do **not** treat CorpFlowAI-hosted ERPNext as `client_production`.
 | `cmp_execution` | `/change` tickets, attachments, Technical Lead audits | `cmp_tickets` + audits | none as execution store | **CorpFlowAI authoritative** | CMP / `/change` |
 | `change_execution_erpnext_issue_pattern` | Client delivery execution with a durable ERPNext Issue | `cmp_tickets` (execution) | Issue (durable outcome) | **CorpFlowAI execution + ERPNext authoritative outcome** | Vision §3 / #920 |
 | `growth_company_ledger` | GrowthCompany as customer/CRM ledger | `growth_companies` / `growth_contacts` | Customer only if promoted | **Duplicate/retire** | stop expanding |
-| `growth_touchpoint_outreach` | Outreach execution | `growth_touchpoints` | none yet | **CorpFlowAI authoritative** | Vision §3 |
+| `growth_touchpoint_outreach` | Outreach execution with durable external-party interaction outcome | `growth_touchpoints` | appropriate ERPNext CRM/business activity record | **CorpFlowAI execution + ERPNext authoritative outcome** | Vision §3; 2026-10-07 executive clarification |
 | `company_master_evidence` | Logos / certificates / governed assets | Company Master tables | Company + Letter Head for legal/print | **CorpFlowAI authoritative** | #765 / #882 |
 | `tenant_auth_runtime` | Tenant, login, host mapping | `tenants` / `auth_users` / `tenant_hostnames` | none | **CorpFlowAI authoritative** | tenant login doctrine |
 | `lux_listings` | Tenant catalogue / public content | `lux_listings` / knowledge atoms | none | **CorpFlowAI authoritative** | Lux runtime |
