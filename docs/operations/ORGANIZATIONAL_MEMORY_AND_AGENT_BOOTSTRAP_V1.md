@@ -111,7 +111,7 @@ Promotion destination:
 - implementation/evidence -> GitHub;
 - external-party business interaction or financial/commercial transaction -> ERPNext.
 
-**ERPNext interaction completeness rule:** business-relevant interactions with prospects, clients, suppliers, partners and other external parties must be captured in ERPNext against the appropriate CRM/Selling/Buying/Project/Support record, including material contacts, decisions, commitments, follow-ups and status changes. Source channels such as email, WhatsApp, meetings or documents may be linked or summarized with provenance; they are evidence, not the durable commercial ledger. Avoid copying unnecessary sensitive personal detail. If the write path is unavailable, closeout must state the persistence gap and next owner.
+**ERPNext interaction completeness rule:** cold prospect research/enrichment and unanswered one-way outreach remain outside ERPNext. After the defined commercial-engagement gate, business-relevant interactions with prospects, clients, suppliers, partners and other external parties must be captured in ERPNext against the appropriate CRM/Selling/Buying/Project/Support record, including material contacts, decisions, commitments, follow-ups and status changes. See `docs/governance/erpnext/PROSPECT_TO_COMMERCIAL_RECORD_BOUNDARY_V1.md`. Source channels such as email, WhatsApp, meetings or documents may be linked or summarized with provenance; they are evidence, not the durable commercial ledger. Avoid copying unnecessary sensitive personal detail. If the write path is unavailable, closeout must state the persistence gap and next owner.
 
 ## 7. Runtime / executor documentation completion gate
 
