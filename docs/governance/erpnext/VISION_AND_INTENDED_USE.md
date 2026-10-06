@@ -8,6 +8,7 @@
 **Owner:** Anton (executive vision and approval).  
 **Synthesized by:** Cursor Factory worker from #954 Version 2 source comments.  
 **Date of synthesis:** 2026-08-14.  
+**Executive clarification:** 2026-10-07 — ERPNext is the durable commercial interaction record for external parties.  
 **Anchor:** `<!-- CORPFLOWAI_ERP_VISION_AND_INTENDED_USE_V2 -->`
 
 <!-- CORPFLOWAI_ERP_VISION_AND_INTENDED_USE_V2 -->
@@ -33,7 +34,7 @@ Version 2 is **approved executive doctrine**. The rules below still do **not** l
 | Rule | Direction |
 |------|-----------|
 | Minimum viable ERP, correctly founded | Implement the smallest coherent foundation that makes selected Phase 1 functions work. Do not omit masters/controls that would make later accounting, commercial, project, or audit records unreliable. |
-| ERPNext authority | ERPNext is authoritative for financial/corporate business truth **where standard ERPNext fit exists**. |
+| ERPNext authority | ERPNext is authoritative for financial/corporate business truth **where standard ERPNext fit exists**, and is the durable commercial interaction record for external parties. |
 | Reconcile, do not duplicate | CorpFlowAI execution/automation outside ERPNext must reconcile into ERPNext rather than grow a second set of business masters and transactions. |
 | AI spend authority | **Zero default** autonomous expenditure authority. Bounded spend may be delegated later only by an explicit Anton authority matrix. |
 | Supplier approval | AI **cannot** approve suppliers. Anton approves suppliers. |
@@ -122,7 +123,7 @@ Draft principles from Part 1 (still subject to Anton approval of this synthesis)
 
 Current bridge mapping (operational, not a strategy override): `docs/erpnext/ERPNEXT_CORPFLOW_BRIDGE_CONTRACT_V1.md` — ERPNext for Customer / Quotation / Invoice / payment reference / Project / durable Issue; CorpFlowAI for `/change` execution evidence. Full domain matrix: `docs/governance/erpnext/SOURCE_OF_TRUTH_MATRIX_V1.md` (#918).
 
-Prospect-engagement/outreach execution is **intentionally not defined** as an ERPNext-owned surface yet. It may remain outside ERPNext, but it must not become a second customer/commercial ledger.
+Prospect-engagement/outreach execution may occur outside ERPNext, but **ERPNext is the durable commercial interaction record**. Business-relevant interactions with prospects, clients, suppliers, partners and other external parties must be captured in ERPNext against the appropriate CRM/Selling/Buying/Project/Support record, including material contacts, decisions, commitments, follow-ups and status changes. Email, WhatsApp, meetings, outreach tools and other channels remain execution/evidence surfaces; they do not become a second customer/commercial ledger. Source evidence may be linked or summarized with provenance, and unnecessary sensitive personal details should not be copied into ERPNext. If an ERPNext write path is unavailable, the work is not commercially record-complete until the persistence gap is resolved.
 
 ---
 
