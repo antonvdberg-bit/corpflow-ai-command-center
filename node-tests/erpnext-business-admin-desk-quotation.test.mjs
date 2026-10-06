@@ -13,10 +13,10 @@ import {
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const templatePath = join(
   root,
-  'templates/erpnext/quotation/business-admin-desk-professional-quotation.html',
+  'templates/erpnext/quotation/corpflowai-professional-quotation.html',
 );
 
-describe('Business Admin Desk ERPNext quotation branding', () => {
+describe('Product-driven ERPNext quotation branding', () => {
   test('CorpFlowAI-only product sets route to CorpFlowAI', () => {
     assert.equal(
       classifyQuotationBrand([
@@ -56,12 +56,25 @@ describe('Business Admin Desk ERPNext quotation branding', () => {
     assert.equal(isClientReadyQuotationBrand('unknown'), false);
   });
 
-  test('the Jinja format is a Business Admin Desk-only, no-email template', () => {
+  test('the canonical Jinja format routes both identities from item_group', () => {
     const template = readFileSync(templatePath, 'utf8');
+    assert.match(template, /CorpFlowAI Services \/"/);
     assert.match(template, new RegExp(QUOTATION_BRAND_ROOTS.businessAdminDesk));
+    assert.match(template, /routing\.has_corpflowai/);
+    assert.match(template, /routing\.has_business_admin_desk/);
+    assert.match(template, /set business_admin_desk =/);
+    assert.match(template, /if not brand_ready/);
+    assert.match(template, /brand_logo_url/);
+    assert.match(template, /brand_name/);
     assert.match(template, /BRAND CLASSIFICATION ERROR \/ NOT CLIENT-READY/);
     assert.match(template, /businessadmindesk\.co\.za/);
+    assert.match(template, /finance@corpflowai\.com/);
     assert.doesNotMatch(template, /@gmail\.com/);
-    assert.match(template, /not ns\.has_corpflowai and not ns\.has_bad_group/);
+  });
+
+  test('the canonical Jinja format has no manual format-selection branch', () => {
+    const template = readFileSync(templatePath, 'utf8');
+    assert.doesNotMatch(template, /Business Admin Desk Professional Quotation/);
+    assert.doesNotMatch(template, /Choose.*Print Format/i);
   });
 });

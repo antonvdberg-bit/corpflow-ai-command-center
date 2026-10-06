@@ -23,41 +23,42 @@ This is a quotation-only Phase 1 implementation. Invoice, Sales Order and
 other document families remain out of scope until the quotation visual standard
 is reviewed.
 
-## Business Admin Desk quotation
+## Product-driven quotation identity routing
 
-Canonical source for the ERPNext custom Print Format named
-`Business Admin Desk Professional Quotation` (`Quotation`, Jinja):
+The canonical ERPNext Print Format remains
+`CorpFlowAI Professional Quotation` (`Quotation`, Jinja). Its HTML now routes
+the rendered trading identity from each Quotation Item `item_group`:
 
-- HTML: `business-admin-desk-professional-quotation.html`
-- Routing contract/tests: `quotation-brand-routing.mjs` and
-  `node-tests/erpnext-business-admin-desk-quotation.test.mjs`
-- expected Business Admin Desk Item Group root:
-  `Business Admin Desk Services`
+- `CorpFlowAI Services` and descendants -> CorpFlowAI presentation;
+- `Business Admin Desk Services` and descendants -> Business Admin Desk
+  presentation;
+- mixed, empty, unknown, or unclassified groups -> prominent
+  `BRAND CLASSIFICATION ERROR / NOT CLIENT-READY`.
 
-The format is for Business Admin Desk-only product sets. It inspects each
-Quotation Item `item_group` and renders a prominent non-client-ready error for
-CorpFlowAI, mixed, unknown, or unclassified rows. The separate
-`CorpFlowAI Professional Quotation` remains the CorpFlowAI-only presentation.
-Both trading identities remain under the single legal company CorpFlowAI LTD.
-The template intentionally omits commercial email because no current durable
-branded address was available.
+The routing contract is tested in `quotation-brand-routing.mjs` and
+`node-tests/erpnext-business-admin-desk-quotation.test.mjs`. There is no
+normal-path manual brand or Print Format choice and no separate Business Admin
+Desk Print Format. Both trading identities remain under the single legal
+company CorpFlowAI LTD. Business Admin Desk commercial email remains omitted
+because no current durable branded address is available.
 
 ### Controlled ERPNext apply and read-back
 
 These are pending operator-controlled ERPNext actions; this repository change
 does not perform them:
 
-1. In ERPNext, create/update the Jinja Print Format
-   `Business Admin Desk Professional Quotation` for `Quotation` by pasting
-   `business-admin-desk-professional-quotation.html`.
+1. In ERPNext, update the existing Jinja Print Format
+   `CorpFlowAI Professional Quotation` for `Quotation` by pasting
+   `corpflowai-professional-quotation.html`.
 2. Confirm the format is linked to the existing `CorpFlowAI LTD` company and
    do not create a company, app, DocType, renderer, permission, Item, or Item
    Group as part of this packet.
 3. Ensure Business Admin Desk services are classified below the native
    `Business Admin Desk Services` Item Group root. Read back the saved Print
    Format HTML and Item Group values.
-4. Create or select a safe draft quotation containing only Business Admin Desk
-   rows. Do not send or release it.
+4. Create or select safe draft quotations containing CorpFlowAI-only and
+   Business Admin Desk-only rows, plus mixed and unknown/unclassified fixtures.
+   Do not send or release them.
 
 ### Physical PDF proof
 
@@ -66,11 +67,12 @@ the physical PDF at normal zoom and page boundaries. Confirm the mark, title,
 seller identity, legal entity/address, quotation metadata, customer, rows,
 currency, totals, terms, and footer are legible. Separately render:
 
-- CorpFlowAI-only rows with `CorpFlowAI Professional Quotation`;
-- Business Admin Desk-only rows with `Business Admin Desk Professional Quotation`;
-- mixed rows and an unknown/unclassified row with the Business Admin Desk
-  format, confirming the prominent fail-closed error and no client-ready
-  branding.
+- CorpFlowAI-only rows with the canonical `CorpFlowAI Professional Quotation`,
+  confirming CorpFlowAI identity;
+- Business Admin Desk-only rows with the same canonical format, confirming
+  Business Admin Desk identity;
+- mixed rows and an unknown/unclassified row with the same format, confirming
+  the prominent fail-closed error and no client-ready branding.
 
 Read back the live Print Format source and compare it with the repository file
 before recording proof. Sales Invoice and Sales Order extensions remain out of
