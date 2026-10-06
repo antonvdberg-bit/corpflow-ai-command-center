@@ -62,7 +62,7 @@
 
   <table class="meta"><tr>
     <td><span class="label">Posting date</span><span class="value">{{ frappe.utils.format_date(doc.posting_date) }}</span></td>
-    <td><span class="label">Due date</span><span class="value">{{ frappe.utils.format_date(doc.due_date) if doc.due_date else "—" }}</span></td>
+    <td><span class="label">Due date</span><span class="value">{{ frappe.utils.format_date(doc.due_date) if doc.due_date else "&mdash;" }}</span></td>
     <td><span class="label">Currency</span><span class="value">{{ doc.currency }}</span></td>
     <td><span class="label">Prepared by</span><span class="value">CorpFlowAI LTD</span></td>
   </tr></table>
