@@ -1,40 +1,40 @@
-# Paddle sandbox proof — current run
+# Paddle sandbox proof — raw webhook body fix
 
 Source issue: #1398  
-Work request: `cfai-wr-16daa030-0159-4985-a830-c0497794b656`  
-Handoff run: `37284206438`  
+Branch: `cursor/factory-handoff-issue-1398-279b`  
+Head: `16a885a8597c9e112d5611da0bc93389def14c4a`  
+Pull request: https://github.com/antonvdberg-bit/corpflow-ai-command-center/pull/1403  
 Environment: `corpflow_test` / Paddle sandbox only
 
-## Implementation state
+## What changed
 
-The branch contains an isolated noindex checkout surface, sandbox-only configuration
-guards, an official Paddle Node SDK webhook verifier, and durable event/state handling
-using the existing `automation_events` table. The existing Lead Rescue manual-invoice
-flow is unchanged. No schema or migration was added.
+Paddle sandbox deliveries were reaching `/api/paddle/webhook` and returning HTTP 400 `raw_body_and_signature_required`. Next.js parsed the JSON body before the shared `api/factory_router.js` handler ran, so the original bytes were gone. The fix turns off that parser for the single factory function, keeps the exact bytes on the Paddle webhook route, and parses every other route the same way Next did before. Signature checks stay fail-closed. The body is not rebuilt with `JSON.stringify`.
 
-## Runtime proof state
+## Local evidence
 
-The Cursor host did not expose a configured Paddle sandbox MCP/API/browser session or
-non-production callback destination during this run. Consequently the following
-provider-side evidence is **BLOCKED / NOT RUN**, not PASS:
+`node --test node-tests/paddle-sandbox-webhook-raw-body.test.mjs node-tests/paddle-sandbox-state.test.mjs` — 12/12 pass.
 
-- catalogue read-back and product/price IDs;
-- checkout opened and displayed configured prices;
-- real test-card checkout;
-- Paddle notification delivery log and signed webhook;
-- subscription simulator lifecycle;
-- transaction/subscription/event/notification IDs;
-- screenshots or live sandbox URL.
+Covered:
 
-Local deterministic state tests are separate synthetic fixture evidence and do not
-prove provider runtime behavior.
+- the original Paddle bytes, including spacing that `JSON.stringify` would change, reach the webhook handler
+- a valid signature is accepted
+- an invalid signature is rejected and writes no state
+- a parsed object is not reconstructed into a signature payload
+- unrelated routes match Next.js body parsing, including invalid JSON and the 1mb limit
 
-## Boundary evidence
+## Preview
 
-- No merge, deployment, production Paddle settings, live credentials, real card,
-  production transaction, schema change, migration, or shared tenant activation.
-- No catalogue records were created because no approved test price/currency values
-  or configured sandbox provider session were available.
+Vercel Preview for this commit completed.
 
-Final run verdict: **PARTIAL — exact host/provider access blocker; no fabricated
-sandbox PASS.**
+- Unique deployment: `https://corpflow-ai-command-center-8auexz4ad-corpflowai.vercel.app`
+- Branch alias: `https://corpflow-ai-command-center-git-cursor-factory-22cb94-corpflowai.vercel.app`
+- GitHub deployment: `6873114451`
+- Commit: `16a885a8597c9e112d5611da0bc93389def14c4a`
+
+An unauthenticated GET of `/api/paddle/status` on both URLs returned HTTP 302 to Vercel Authentication. This host does not have the protection-bypass secret or a Paddle sandbox API key, so the failed notifications were not redelivered from here and the live status JSON was not read.
+
+## Verdict
+
+PARTIAL. Do not treat this as sandbox PASS. `payment_confirmed`, subscription state, and `entitlement_eligible` are not proven on the live preview.
+
+No merge to main. No production deployment.
