@@ -1,9 +1,20 @@
 {% set routing = namespace(has_corpflowai=false, has_business_admin_desk=false, has_unknown=false) %}
 {% for item in doc.items %}
-  {% set group = item.item_group or "" %}
-  {% if group == "CorpFlowAI Services" or group.startswith("CorpFlowAI Services /") %}
+  {% set row = namespace(current_group=item.item_group or "", brand="") %}
+  {% for _ in range(8) %}
+    {% if row.current_group and not row.brand %}
+      {% if row.current_group == "CorpFlowAI Services" %}
+        {% set row.brand = "corpflowai" %}
+      {% elif row.current_group == "Business Admin Desk Services" %}
+        {% set row.brand = "business_admin_desk" %}
+      {% else %}
+        {% set row.current_group = frappe.db.get_value("Item Group", row.current_group, "parent_item_group") or "" %}
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+  {% if row.brand == "corpflowai" %}
     {% set routing.has_corpflowai = true %}
-  {% elif group == "Business Admin Desk Services" or group.startswith("Business Admin Desk Services /") %}
+  {% elif row.brand == "business_admin_desk" %}
     {% set routing.has_business_admin_desk = true %}
   {% else %}
     {% set routing.has_unknown = true %}

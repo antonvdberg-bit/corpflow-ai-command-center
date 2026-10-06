@@ -27,13 +27,21 @@ is reviewed.
 
 The canonical ERPNext Print Format remains
 `CorpFlowAI Professional Quotation` (`Quotation`, Jinja). Its HTML now routes
-the rendered trading identity from each Quotation Item `item_group`:
+the rendered trading identity from each Quotation Item `item_group` by walking
+the native `parent_item_group` chain (bounded to eight ancestors):
 
-- `CorpFlowAI Services` and descendants -> CorpFlowAI presentation;
-- `Business Admin Desk Services` and descendants -> Business Admin Desk
+- a group or ancestor equal to `CorpFlowAI Services` -> CorpFlowAI
+  presentation;
+- a group or ancestor equal to `Business Admin Desk Services` -> Business
+  Admin Desk
   presentation;
 - mixed, empty, unknown, or unclassified groups -> prominent
   `BRAND CLASSIFICATION ERROR / NOT CLIENT-READY`.
+
+Live ERPNext uses leaf names such as `CF Website Rescue` and
+`BAD Administration`, not path strings. The template therefore resolves
+ancestry with Jinja-safe `frappe.db.get_value("Item Group", current_group,
+"parent_item_group")` calls and does not use path-prefix assumptions.
 
 The routing contract is tested in `quotation-brand-routing.mjs` and
 `node-tests/erpnext-business-admin-desk-quotation.test.mjs`. There is no
