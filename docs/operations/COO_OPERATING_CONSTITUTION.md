@@ -178,4 +178,6 @@ The durable operating memory is:
 - production/runtime evidence;
 - ERPNext/Postgres where they are the designated business/data truth.
 
+For external-party business interactions, **ERPNext is the durable commercial record**. Business-relevant interactions with prospects, clients, suppliers, partners and other external parties must be captured against the appropriate ERPNext business record. Email, WhatsApp, meeting notes and similar channels may remain source evidence, but they do not replace the ERPNext commercial history. If the ERPNext write path is temporarily unavailable, record the exact persistence gap and next owner; do not silently substitute GitHub, chat or another database as the commercial ledger.
+
 Any new chat or agent that has not loaded these sources is not yet ready to reprioritise CorpFlowAI work.
