@@ -53,6 +53,7 @@ function parseArgs(argv) {
     else if (a === '--poll-twice') out.pollTwice = true;
     else if (a === '--allow-stale-follow-up') out.allowStaleFollowUp = true;
     else if (a === '--no-stale-follow-up') out.allowStaleFollowUp = false;
+    else if (a === '--no-business-action-recovery') out.allowBusinessActionRecovery = false;
     else if (a.startsWith('--issue=')) out.issue = a.slice('--issue='.length);
     else if (a.startsWith('--agent-id=')) out.agentId = a.slice('--agent-id='.length);
     else if (a.startsWith('--stale-minutes=')) out.staleMinutes = a.slice('--stale-minutes='.length);
@@ -116,6 +117,18 @@ async function listIssueComments(issue) {
   return all;
 }
 
+async function getIssueDetails(issue) {
+  return gh('GET', `/repos/${OWNER}/${REPO_NAME}/issues/${issue}`);
+}
+
+function inferLifecycleWorkType(issue) {
+  const blob = `${issue?.title || ''}\n${issue?.body || ''}`;
+  if (/erpnext|quotation|supplier master|crm read|business action|no-code|read-only recovery|external business system|orixhealth/i.test(blob)) {
+    return 'ERPNext business action';
+  }
+  return null;
+}
+
 async function createIssueComment(issue, body) {
   return gh('POST', `/repos/${OWNER}/${REPO_NAME}/issues/${issue}/comments`, { body });
 }
@@ -152,6 +165,8 @@ async function upsertCompactLifecycle(issue, event) {
           head_sha: event.sha,
           ci_state: event.ci_check_result,
           final_verdict: event.final_verdict || (event.status === 'COMPLETED' ? 'COMPLETED_UNVERIFIED' : 'BLOCKED'),
+          terminal_result: event.final_result,
+          business_action_validation: event.business_action_validation,
           blocker: event.blocker || (event.final_verdict === 'COMPLETED_UNVERIFIED' ? 'terminal_completion_unverified' : null),
         }),
       ),
@@ -172,6 +187,8 @@ async function upsertCompactLifecycle(issue, event) {
         head_sha: event.sha,
         ci_state: event.ci_check_result,
         final_verdict: event.final_verdict || (event.status === 'COMPLETED' ? 'COMPLETED_UNVERIFIED' : 'BLOCKED'),
+        terminal_result: event.final_result,
+        business_action_validation: event.business_action_validation,
         blocker: event.blocker || (event.final_verdict === 'COMPLETED_UNVERIFIED' ? 'terminal_completion_unverified' : null),
       }),
     ),
@@ -303,6 +320,7 @@ function writeCapacityWakeArtifact(wake) {
  */
 async function discoverAgentFromIssue(issue) {
   const comments = await listIssueComments(issue);
+  const issueDetails = await getIssueDetails(issue);
   const evidence = findCloudAgentsExecutorEvidence(
     comments,
     issue,
@@ -314,6 +332,7 @@ async function discoverAgentFromIssue(issue) {
     agentId: evidence?.cursor_agent_id || null,
     runId: evidence?.cursor_run_id || null,
     modelSelection: evidence?.model_selection || null,
+    workType: inferLifecycleWorkType(issueDetails),
     priorState:
       life && evidence?.cursor_agent_id === life.cursorAgentId
         ? life
@@ -346,6 +365,7 @@ async function main() {
   let discoveredRunId = null;
   let discoveredStartedAt = null;
   let modelSelection = null;
+  let workType = null;
   let priorState = null;
   let compactLifecycle = false;
   /** @type {Array<{ body?: string }>} */
@@ -358,6 +378,7 @@ async function main() {
     if (!agentId) agentId = discovered.agentId;
     discoveredRunId = discovered.runId;
     modelSelection = discovered.modelSelection;
+    workType = discovered.workType;
     discoveredStartedAt = discovered.evidence?.started_at || discovered.evidence?.startedAt || null;
     compactLifecycle = Boolean(discovered.evidence);
     if (!agentId) {
@@ -411,11 +432,13 @@ async function main() {
       agentId,
       runId: priorState.cursorRunId || discoveredRunId,
       modelSelection,
+      workType,
       sourceIssue: issue,
       priorState,
       startedAt: priorState.startedAt,
       staleAfterMinutes: args.staleMinutes ? Number(args.staleMinutes) : undefined,
       allowStaleFollowUp: allowStale,
+      allowBusinessActionRecovery: args.allowBusinessActionRecovery !== false,
       github: github || undefined,
     });
 
