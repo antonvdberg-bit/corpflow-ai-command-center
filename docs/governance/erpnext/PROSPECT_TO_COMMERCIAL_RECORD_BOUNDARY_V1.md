@@ -1,6 +1,6 @@
 # Prospect → ERPNext Commercial Record Boundary v1
 
-**Status:** PROPOSED — Anton approval required before merge or workflow implementation.  
+**Status:** APPROVED — Anton approved the boundary verbatim on 2026-10-07. Merge and runtime/data changes remain separately protected.  
 **Owner:** Anton van den Berg.  
 **Decision purpose:** keep cold-prospect research/outreach out of ERPNext while preserving the complete commercial history from the first meaningful engagement through quotation, conversion and delivery.  
 **Related:** #701, #721, #918, #1009, #1018, #1394, #1410, PR #1409.  
@@ -227,9 +227,9 @@ Current ERPNext documentation states that the ERPNext CRM workspace is scheduled
 
 Therefore this policy deliberately defines **business states and source-of-truth rules**, not deep custom ERPNext CRM UI behavior. Lead/Opportunity/Customer/Quotation lineage should remain standard and portable. Avoid custom CRM schema or workflow logic that would make a future supported Frappe CRM transition harder.
 
-## 14. Acceptance decision
+## 14. Approved decision
 
-If Anton approves this policy:
+Anton approved this policy verbatim on 2026-10-07. Therefore:
 
 1. merge the governance documentation through the protected doctrine gate;
 2. update #1410 to the precise machine-contract implementation;
