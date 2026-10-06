@@ -1,0 +1,55 @@
+{
+  "schema": "corpflow.erpnext.professional_quotation_apply.v1",
+  "issue": 1402,
+  "generated_at_utc": "2026-10-06T02:01:47.773Z",
+  "identity": "integrations@corpflowai.com",
+  "secrets_printed": false,
+  "print_format": {
+    "name": "CorpFlowAI Professional Quotation",
+    "doc_type": "Quotation",
+    "print_format_type": "Jinja",
+    "standard": "No",
+    "disabled": 0,
+    "html_bytes": 127866,
+    "logo_source": "public/brand/corpflowai/corpflowai-mark.png (embedded data URI)"
+  },
+  "quotations": {
+    "orixhealth": {
+      "name": "SAL-QTN-2026-00006",
+      "quotation_to": "Lead",
+      "customer_name": "OrixHealth Ltd",
+      "docstatus": 0,
+      "currency": "MUR",
+      "grand_total": 25000,
+      "valid_till": "2026-10-19"
+    },
+    "customer": {
+      "name": "SAL-QTN-2026-00005",
+      "quotation_to": "Customer",
+      "customer_name": "CF1018 Synthetic Sales Lifecycle Ltd",
+      "docstatus": 0,
+      "currency": "MUR",
+      "grand_total": 45000,
+      "valid_till": "2026-09-09"
+    }
+  },
+  "pdfs": {
+    "orixhealth": {
+      "quotation": "SAL-QTN-2026-00006",
+      "ok": true,
+      "bytes": 42560,
+      "sha256": "6b4e1a822592f592",
+      "outfile": "artifacts/erpnext/professional-quotation-1402/orixhealth-SAL-QTN-2026-00006.pdf"
+    },
+    "customer": {
+      "quotation": "SAL-QTN-2026-00005",
+      "ok": true,
+      "bytes": 48392,
+      "sha256": "eddbd8f14411d56a",
+      "outfile": "artifacts/erpnext/professional-quotation-1402/customer-SAL-QTN-2026-00005.pdf"
+    }
+  },
+  "external_send_or_release": false,
+  "schema_or_accounting_mutation": false,
+  "verdict": "ERPNext BRANDED QUOTATION READY FOR ANTON REVIEW"
+}

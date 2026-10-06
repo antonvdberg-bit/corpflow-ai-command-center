@@ -1,0 +1,353 @@
+<style>
+  @page {
+    size: A4;
+    margin: 14mm 14mm 18mm;
+  }
+
+  .cfq {
+    color: #172033;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10px;
+    line-height: 1.45;
+  }
+
+  .cfq * {
+    box-sizing: border-box;
+  }
+
+  .cfq-header {
+    border-bottom: 3px solid #2dd4bf;
+    padding-bottom: 14px;
+  }
+
+  .cfq-brand {
+    color: #06111f;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: .2px;
+  }
+
+  .cfq-logo {
+    height: 32px;
+    margin-right: 9px;
+    vertical-align: middle;
+    width: 32px;
+  }
+
+  .cfq-muted {
+    color: #667085;
+  }
+
+  .cfq-eyebrow {
+    color: #078f83;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+  }
+
+  .cfq-title {
+    color: #06111f;
+    font-size: 27px;
+    font-weight: 700;
+    letter-spacing: -.5px;
+    margin: 22px 0 3px;
+  }
+
+  .cfq-draft {
+    background: #e8f8f5;
+    border: 1px solid #9edfd6;
+    border-radius: 3px;
+    color: #087d73;
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 4px 7px;
+    text-transform: uppercase;
+  }
+
+  .cfq-meta {
+    background: #f5f7fa;
+    border: 1px solid #e1e6ed;
+    border-radius: 4px;
+    margin: 18px 0;
+    padding: 10px 12px;
+    width: 100%;
+  }
+
+  .cfq-meta td {
+    padding: 0 10px;
+    vertical-align: top;
+    width: 25%;
+  }
+
+  .cfq-meta td:first-child {
+    padding-left: 0;
+  }
+
+  .cfq-meta td:last-child {
+    padding-right: 0;
+  }
+
+  .cfq-meta-label {
+    color: #667085;
+    font-size: 8px;
+    letter-spacing: .6px;
+    text-transform: uppercase;
+  }
+
+  .cfq-meta-value {
+    color: #172033;
+    font-size: 10px;
+    font-weight: 700;
+    margin-top: 3px;
+  }
+
+  .cfq-parties {
+    border-collapse: separate;
+    border-spacing: 10px 0;
+    margin: 0 -10px 22px;
+    width: calc(100% + 20px);
+  }
+
+  .cfq-card {
+    border: 1px solid #dce3eb;
+    border-top: 3px solid #2dd4bf;
+    padding: 12px;
+    vertical-align: top;
+    width: 50%;
+  }
+
+  .cfq-card:first-child {
+    border-top-color: #8aa2b5;
+  }
+
+  .cfq-card-label {
+    color: #667085;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .cfq-card-name {
+    color: #06111f;
+    font-size: 13px;
+    font-weight: 700;
+    margin: 5px 0;
+  }
+
+  .cfq-card-copy {
+    white-space: pre-line;
+  }
+
+  .cfq-items {
+    border-collapse: collapse;
+    margin-top: 6px;
+    width: 100%;
+  }
+
+  .cfq-items th {
+    background: #06111f;
+    color: #fff;
+    font-size: 8px;
+    letter-spacing: .7px;
+    padding: 8px;
+    text-align: left;
+    text-transform: uppercase;
+  }
+
+  .cfq-items th.num,
+  .cfq-items td.num {
+    text-align: right;
+  }
+
+  .cfq-items td {
+    border-bottom: 1px solid #e1e6ed;
+    padding: 9px 8px;
+    vertical-align: top;
+  }
+
+  .cfq-items tr {
+    page-break-inside: avoid;
+  }
+
+  .cfq-item-code {
+    color: #078f83;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: .4px;
+  }
+
+  .cfq-item-name {
+    color: #172033;
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+  .cfq-summary {
+    margin-top: 16px;
+    width: 100%;
+  }
+
+  .cfq-summary td {
+    vertical-align: top;
+  }
+
+  .cfq-terms {
+    color: #667085;
+    padding-right: 24px;
+    width: 58%;
+  }
+
+  .cfq-terms-title {
+    color: #172033;
+    font-size: 10px;
+    font-weight: 700;
+    margin-bottom: 5px;
+  }
+
+  .cfq-total {
+    background: #06111f;
+    color: #fff;
+    padding: 13px 14px;
+    width: 42%;
+  }
+
+  .cfq-total-row {
+    border-bottom: 1px solid rgba(255,255,255,.18);
+    padding: 5px 0;
+  }
+
+  .cfq-total-row td:last-child {
+    text-align: right;
+  }
+
+  .cfq-grand {
+    color: #2dd4bf;
+    font-size: 16px;
+    font-weight: 700;
+    padding-top: 10px;
+  }
+
+  .cfq-footer {
+    border-top: 1px solid #dce3eb;
+    color: #667085;
+    font-size: 8px;
+    margin-top: 26px;
+    padding-top: 8px;
+  }
+</style>
+
+<div class="cfq">
+  <div class="cfq-header">
+    <div class="cfq-brand">
+      <img class="cfq-logo" src="__CORPFLOW_LOGO_DATA_URI__" alt="CorpFlowAI mark">
+      CorpFlowAI
+    </div>
+    <div class="cfq-title">Quotation</div>
+    {% if doc.docstatus == 0 %}<span class="cfq-draft">Draft</span>{% endif %}
+  </div>
+
+  <table class="cfq-meta">
+    <tr>
+      <td>
+        <div class="cfq-meta-label">Quotation number</div>
+        <div class="cfq-meta-value">{{ doc.name }}</div>
+      </td>
+      <td>
+        <div class="cfq-meta-label">Issue date</div>
+        <div class="cfq-meta-value">{{ frappe.utils.format_date(doc.transaction_date) }}</div>
+      </td>
+      <td>
+        <div class="cfq-meta-label">Valid until</div>
+        <div class="cfq-meta-value">{{ frappe.utils.format_date(doc.valid_till) if doc.valid_till else '—' }}</div>
+      </td>
+      <td>
+        <div class="cfq-meta-label">Currency</div>
+        <div class="cfq-meta-value">{{ doc.currency }}</div>
+      </td>
+    </tr>
+  </table>
+
+  <table class="cfq-parties">
+    <tr>
+      <td class="cfq-card">
+        <div class="cfq-card-label">From</div>
+        <div class="cfq-card-name">{{ doc.company or 'CorpFlowAI LTD' }}</div>
+        <div class="cfq-muted">Managed workflows and accountable operations</div>
+      </td>
+      <td class="cfq-card">
+        <div class="cfq-card-label">Bill to</div>
+        <div class="cfq-card-name">{{ doc.customer_name or doc.customer or '—' }}</div>
+        {% if doc.address_display %}
+          <div class="cfq-muted cfq-card-copy">{{ doc.address_display }}</div>
+        {% elif doc.customer_address %}
+          <div class="cfq-muted">{{ doc.customer_address }}</div>
+        {% endif %}
+        {% if doc.contact_display or doc.contact_email %}
+          <div class="cfq-muted" style="margin-top: 5px;">
+            {{ doc.contact_display or '' }}{% if doc.contact_display and doc.contact_email %} · {% endif %}{{ doc.contact_email or '' }}
+          </div>
+        {% endif %}
+      </td>
+    </tr>
+  </table>
+
+  <div class="cfq-eyebrow">Scope and investment</div>
+  <table class="cfq-items">
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th class="num" style="width: 65px;">Qty</th>
+        <th class="num" style="width: 105px;">Rate</th>
+        <th class="num" style="width: 115px;">Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in doc.items %}
+      <tr>
+        <td>
+          <div class="cfq-item-code">{{ item.item_code or '' }}</div>
+          <div class="cfq-item-name">{{ item.item_name or item.description or 'Service' }}</div>
+          {% if item.description and item.description != item.item_name %}
+            <div class="cfq-muted">{{ item.description }}</div>
+          {% endif %}
+        </td>
+        <td class="num">{{ item.qty }}</td>
+        <td class="num">{{ frappe.utils.fmt_money(item.rate, currency=doc.currency) }}</td>
+        <td class="num">{{ frappe.utils.fmt_money(item.amount, currency=doc.currency) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <table class="cfq-summary">
+    <tr>
+      <td class="cfq-terms">
+        <div class="cfq-terms-title">Terms and notes</div>
+        {% if doc.terms %}
+          <div class="cfq-card-copy">{{ doc.terms }}</div>
+        {% else %}
+          <div>Payment instructions are sent separately after intake approval.</div>
+          <div style="margin-top: 5px;">Setup begins after payment confirmation and receipt of required client information.</div>
+          <div style="margin-top: 5px;">No revenue, lead volume, or conversion outcome is guaranteed.</div>
+        {% endif %}
+      </td>
+      <td class="cfq-total">
+        <table style="width: 100%;">
+          <tr class="cfq-total-row"><td>Subtotal</td><td>{{ frappe.utils.fmt_money(doc.net_total, currency=doc.currency) }}</td></tr>
+          {% if doc.total_taxes_and_charges %}
+            <tr class="cfq-total-row"><td>Tax / charges</td><td>{{ frappe.utils.fmt_money(doc.total_taxes_and_charges, currency=doc.currency) }}</td></tr>
+          {% endif %}
+          <tr><td class="cfq-grand">Grand total</td><td class="cfq-grand">{{ frappe.utils.fmt_money(doc.grand_total, currency=doc.currency) }}</td></tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+
+  <div class="cfq-footer">
+    CorpFlowAI LTD · Professional quotation · Please retain this document for your records.
+  </div>
+</div>
