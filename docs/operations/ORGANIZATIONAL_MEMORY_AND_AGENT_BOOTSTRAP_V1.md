@@ -19,7 +19,7 @@ Material state must be promoted into the appropriate durable system with provena
 | Slow-moving doctrine / architecture / runbooks | Git + repo docs | execution boundaries, source-of-truth rules, routing doctrine, security constraints |
 | Transactional organisational memory | existing Postgres Context / Agent Learning fabric | decisions, observations, execution experience, reusable learnings, confidence, status, supersession |
 | Work / delivery lineage | GitHub | issues, PRs, commits, checks, evidence packets, blockers, acceptance |
-| Commercial / financial truth | ERPNext | quotations, invoices, payments, accounting records, commercial transactions |
+| Commercial / financial truth | ERPNext | external-party interaction history, CRM activities, quotations, invoices, payments, accounting records, supplier/client transactions |
 
 Do not create a second memory database.
 
@@ -107,9 +107,11 @@ Examples:
 
 Promotion destination:
 - slow rule/doctrine -> Git;
-- dynamic fact/decision/experience -> Postgres Context / Agent Learning;
+- dynamic internal fact/decision/experience -> Postgres Context / Agent Learning;
 - implementation/evidence -> GitHub;
-- financial/commercial transaction -> ERPNext.
+- external-party business interaction or financial/commercial transaction -> ERPNext.
+
+**ERPNext interaction completeness rule:** business-relevant interactions with prospects, clients, suppliers, partners and other external parties must be captured in ERPNext against the appropriate CRM/Selling/Buying/Project/Support record, including material contacts, decisions, commitments, follow-ups and status changes. Source channels such as email, WhatsApp, meetings or documents may be linked or summarized with provenance; they are evidence, not the durable commercial ledger. Avoid copying unnecessary sensitive personal detail. If the write path is unavailable, closeout must state the persistence gap and next owner.
 
 ## 7. Runtime / executor documentation completion gate
 
