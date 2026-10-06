@@ -119,6 +119,7 @@ import { adminLeadRescueHandler } from '../lib/server/admin-lead-rescue-api.js';
 import { adminRapidDeliveryHandler } from '../lib/server/admin-rapid-delivery-api.js';
 import paddleSandboxWebhookHandler from '../lib/server/paddle-sandbox/webhook.js';
 import paddleSandboxStatusHandler from '../lib/server/paddle-sandbox/status.js';
+import { preserveFactoryRequestBody } from '../lib/server/factory-request-body.js';
 import { recordTrustedAutomationEvent } from '../lib/automation/internal.js';
 import { emitLogicFailure } from '../lib/cmp/_lib/telemetry.js';
 import factoryCmpTicketSummariesHandler from '../lib/server/factory-cmp-ticket-summaries.js';
@@ -914,10 +915,22 @@ async function handleUiContext(req, res) {
   });
 }
 
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
 export default async function handler(req, res) {
   try {
     augmentReqQueryFromUrl(req);
     const pathSeg = normalizeRoutingPath(req);
+    const bodyOutcome = await preserveFactoryRequestBody(req, pathSeg);
+    if (!bodyOutcome.ok) {
+      res.statusCode = bodyOutcome.statusCode;
+      res.statusMessage = bodyOutcome.message;
+      return res.end(bodyOutcome.message);
+    }
     await applyCorpflowHostTenantResolution(req);
 
     if (!pathSeg || pathSeg === 'factory_router') {
