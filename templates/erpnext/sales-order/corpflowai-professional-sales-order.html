@@ -57,7 +57,7 @@
 
   <table class="meta"><tr>
     <td><span class="label">Order date</span><span class="value">{{ frappe.utils.format_date(doc.transaction_date) }}</span></td>
-    <td><span class="label">Delivery date</span><span class="value">{{ frappe.utils.format_date(doc.delivery_date) if doc.delivery_date else "—" }}</span></td>
+    <td><span class="label">Delivery date</span><span class="value">{{ frappe.utils.format_date(doc.delivery_date) if doc.delivery_date else "&mdash;" }}</span></td>
     <td><span class="label">Currency</span><span class="value">{{ doc.currency }}</span></td>
     <td><span class="label">Prepared by</span><span class="value">CorpFlowAI LTD</span></td>
   </tr></table>
