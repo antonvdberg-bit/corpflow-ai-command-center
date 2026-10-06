@@ -49,10 +49,12 @@ CorpFlowAI uses four durable truth classes:
 - **Git / repo docs** — slow-moving doctrine, architecture and runbooks.
 - **Postgres Context / Agent Learning** — transactional organisational memory with provenance, status and supersession.
 - **GitHub** — work / delivery lineage: issues, claims, PRs, commits, checks and acceptance evidence.
-- **ERPNext** — commercial and financial truth.
+- **ERPNext** — commercial and financial truth, including the durable interaction history for external parties.
 
 **Chat history is discovery context only, not organisational truth.** See
 `docs/operations/ORGANIZATIONAL_MEMORY_AND_AGENT_BOOTSTRAP_V1.md`.
+
+**External-party interaction rule (operator clarification 2026-10-07):** ERPNext is the durable commercial interaction record. Business-relevant contacts, decisions, commitments, follow-ups and material status changes involving prospects, clients, suppliers, partners or other external parties must be recorded in ERPNext against the correct business object. Communication channels and GitHub may retain evidence or delivery lineage, but neither substitutes for ERPNext. When an ERPNext write path is unavailable, surface a persistence gap and assign the next owner rather than claiming the commercial record is complete.
 
 Runtime-state questions must also use current runtime evidence; stale doctrine never overrides verified current runtime facts.
 
