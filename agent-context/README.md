@@ -4,6 +4,7 @@ Purpose: compact, version-controlled operating context for ChatGPT, Cursor, Forg
 
 ## Mandatory boundaries
 - GitHub issues/PRs and repo docs are delivery lineage.
+- ERPNext is the durable commercial interaction record for external parties. Business-relevant interactions with prospects, clients, suppliers, partners and other external parties must be captured against the appropriate ERPNext business record; communication channels are evidence, not substitutes.
 - Postgres is the production application/context source of truth; do not create a second production database.
 - /change remains the operator control plane where applicable.
 - No production deploy, production DB/schema/data mutation, env/secrets/access change, payment, external message/publish, paid tool/vendor, or public launch without explicit Anton approval.
@@ -67,6 +68,6 @@ Fresh authorised agents must:
 1. read `AGENTS.md`, the current delivery reality, and `docs/operations/ORGANIZATIONAL_MEMORY_AND_AGENT_BOOTSTRAP_V1.md`;
 2. retrieve relevant CURRENT Context / Agent Learning records where available;
 3. refresh GitHub issue / PR / commit / CI state for current delivery claims;
-4. promote material state-changing discoveries out of chat into Git, Postgres Context / Agent Learning, GitHub, or ERPNext as appropriate.
+4. promote material state-changing discoveries out of chat into Git, Postgres Context / Agent Learning, GitHub, or ERPNext as appropriate. External-party business interactions belong in ERPNext; if the write path is unavailable, record the persistence gap and next owner rather than treating chat/GitHub as the completed commercial record.
 
 When durable sources conflict, do not silently blend them. Prefer current runtime evidence for runtime state, then current GitHub evidence, then current provenance-backed Context / Agent Learning records, then canonical repo doctrine; mark stale sources for reconciliation.
