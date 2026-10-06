@@ -4,7 +4,7 @@ Purpose: compact, version-controlled operating context for ChatGPT, Cursor, Forg
 
 ## Mandatory boundaries
 - GitHub issues/PRs and repo docs are delivery lineage.
-- ERPNext is the durable commercial interaction record for external parties. Business-relevant interactions with prospects, clients, suppliers, partners and other external parties must be captured against the appropriate ERPNext business record; communication channels are evidence, not substitutes.
+- ERPNext is the durable commercial interaction record for external parties **after the defined commercial-engagement gate**. Cold prospect research/enrichment and unanswered one-way outreach remain in CorpFlowAI Prospect Operations. After admission, business-relevant interactions must be captured against the appropriate ERPNext business record; communication channels are evidence, not substitutes. See `docs/governance/erpnext/PROSPECT_TO_COMMERCIAL_RECORD_BOUNDARY_V1.md`.
 - Postgres is the production application/context source of truth; do not create a second production database.
 - /change remains the operator control plane where applicable.
 - No production deploy, production DB/schema/data mutation, env/secrets/access change, payment, external message/publish, paid tool/vendor, or public launch without explicit Anton approval.
