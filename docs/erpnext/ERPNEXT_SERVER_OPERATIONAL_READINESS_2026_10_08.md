@@ -149,3 +149,51 @@ The restart recipe is controller-reviewed preparation; server execution and its 
 Operator guard correction: Compose retains the `x-app` extension in its JSON output. The semantic comparison now normalizes both service restart values and the shared app restart value before comparing. The first operator apply attempt stopped before mutation; inspection confirmed `x-app` was the only remaining differing section.
 
 Execution evidence, 2026-10-08 02:41 Mauritius: operator applied the corrected guarded update and saved the active configuration. All six recovery containers reported restart=unless-stopped and running=true. Docker and Caddy reported enabled. The multi-line reference recipe was not itself executed verbatim; equivalent guarded operator commands and the subsequent inspection supplied the evidence. Host-reboot recovery is not yet tested.
+
+
+## Daily ERP backup and existing failure-alert extension — prepared 2026-10-08
+
+Status: proposed server change; not installed or scheduled by the controller. Read-only SSH inspections are authorized; server mutation remains separately controlled.
+
+### Verified baseline
+
+- Root cron already runs /opt/borg/backup.sh at 01:00 UTC (05:00 Mauritius).
+- Borg remotely lists seven archives; the latest is 2026-10-07T01:09:54.000000. Its inventory predates and omits the new recovery/manual-backup folders.
+- Borg create includes /root without an exclude option. Repository metadata reports repokey-blake2 encryption. Retention is --keep-within=7d.
+- The Borg script has no fail-fast setting or failure trap; commands use semicolons. A wrapper must propagate intermediate failures rather than trust the script's last exit alone.
+- Both pre/post hooks are 28 bytes; no ERP backup or database dump operation was identified.
+- Anton's user-systemd backup-health timer is active/enabled, most recent successful run 2026-10-07 07:15:36 UTC. Daily heartbeat timer is also active/enabled, last successful run 03:34:38 UTC.
+- Restic health logs show 105 snapshots and 185855 total bytes on 7 October, matching the heartbeat scope rather than ERP protection. The installed health checker has no ERP status check.
+- The documented restic retention unit is not found; it is not repaired or treated as necessary to the separate Borg 7d policy in this packet.
+- No Telegram delivery event was found in the bounded last-300 journal-record scan. Active timer/success logs do not prove current failure delivery.
+
+### Concrete bounded change contract
+
+Purpose: produce daily database/files/config backups of the recovered ERP, preserve them in the existing encrypted remote Borg repository, and include failures/missing/stale ERP protection in the existing Monitor #14 Telegram path.
+
+Exact targets:
+1. New root-owned wrapper /usr/local/sbin/corpflowai-erp-borg-backup.py.
+2. Managed backups under /root/erpnext-server-backups/daily/ (0700 directories, 0600 artifacts and manifests).
+3. Sanitized root-owned status /var/lib/corpflowai-erp-backup/status.json readable by the existing anton health monitor. Contains UTC attempt/success times, stage/result and archive identifier only; no key, credentials or ERP record content.
+4. Existing installed /home/anton/.local/bin/corpflowai-ops-backup-health-check.sh: add ERP status/freshness checks using its existing add_failure/send_telegram/dedup path. Preserve restic checks.
+5. Root crontab: replace only the existing 0 1 * * * Borg command with the new wrapper; preserve the schedule, other entries and original /opt/borg scripts.
+6. Canonical repository script scripts/ops/backup-health-check.sh and a versioned wrapper implementation only under a separately accepted runtime implementation packet. Do not overwrite the differing installed checker blindly: installed SHA256 is c7c8cc867ee70b56771262d1f5ae7d9af801669d59dd9e84c2c6875199132eaa; reconcile its sanitized diff first.
+
+Daily sequence:
+- Acquire an exclusive lock; verify hostname, exact site/container, running backend, output permissions and available space.
+- Run bench --site corpflowai-hosted-restore.localhost backup --with-files --compress --ignore-backup-conf in /home/frappe/frappe-bench in corpflowai-hosted-restore-backend-1.
+- Collect exactly the newly produced database/public/private/config artifacts into a completed-run folder, with checksums and an atomic manifest. Never print configuration/key values. Fail on incomplete/empty/unexpected artifacts.
+- Run the existing Borg script with checked fail-fast execution; preserve destination, credentials and 7d retention. Never expose its inline passphrase in outputs or copy it into repository code.
+- Query the resulting remote archive inventory and verify membership of all four exact ERP artifacts and the manifest before publishing a successful off-server status.
+- Keep seven completed local managed daily runs after successful verification. Preserve manual recovery backups and all original/source backup folders. Do not prune container backups indiscriminately.
+- On any stage failure, publish a sanitized failure state and invoke the existing health monitor as anton. It must use the existing failure-only notifier and hour dedup; notification delivery failure remains observable and must not be converted to success.
+- The independent daily health timer also fails for missing/malformed ERP status, most recent failed attempt, or last verified remote ERP backup older than 36 hours. It must catch a job that never started.
+
+Acceptance:
+- Guarded configuration/script backups and exact before/after diff.
+- Shell/Python syntax checks; fixtures for missing/stale/failed/healthy ERP status, missing archive artifacts, stage failure propagation and notifier dry-run.
+- One approved live backup cycle with verified remote membership.
+- One clearly labelled operator test alert through the existing notifier; confirm delivery, then restore healthy state. No success spam.
+- A separate isolated restore remains required for disaster-recovery acceptance; archive membership alone is insufficient.
+
+Rollback: restore only the saved root crontab and existing health-check script; disable/remove the wrapper invocation, preserve produced backups and status evidence. No site overwrite, reboot, workers/scheduler activation, payment/vendor activity, secret rotation, new monitoring service or paid destination is included.
