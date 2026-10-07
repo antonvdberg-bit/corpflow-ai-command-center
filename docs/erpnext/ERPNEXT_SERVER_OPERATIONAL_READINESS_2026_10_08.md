@@ -1,6 +1,6 @@
 # ERPNext recovered-server operational readiness — 2026-10-08
 
-Status: PREPARED, NOT EXECUTED. Companion to [server recovery record](ERPNEXT_SERVER_RECOVERY_2026_10_07.md).
+Status: RESTART UPDATE EXECUTED AND VERIFIED; backup and wider readiness work pending. Companion to [server recovery record](ERPNEXT_SERVER_RECOVERY_2026_10_07.md).
 
 ## Scope and execution route
 
@@ -147,3 +147,5 @@ n8n management access remains unverified. No workflow was changed or triggered.
 The restart recipe is controller-reviewed preparation; server execution and its result remain pending. The Compose transformation is checked against a semantic before/after comparison on the server before mutation. No unexecuted server check, scheduled backup, reboot recovery or overall completed cutover is claimed.
 
 Operator guard correction: Compose retains the `x-app` extension in its JSON output. The semantic comparison now normalizes both service restart values and the shared app restart value before comparing. The first operator apply attempt stopped before mutation; inspection confirmed `x-app` was the only remaining differing section.
+
+Execution evidence, 2026-10-08 02:41 Mauritius: operator applied the corrected guarded update and saved the active configuration. All six recovery containers reported restart=unless-stopped and running=true. Docker and Caddy reported enabled. The multi-line reference recipe was not itself executed verbatim; equivalent guarded operator commands and the subsequent inspection supplied the evidence. Host-reboot recovery is not yet tested.
