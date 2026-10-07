@@ -1,5 +1,8 @@
 # Backup health monitor (Monitor #14)
 
+> **2026-10-08 verified extension:** The installed timer is enabled/active. The existing checker now includes recovered ERP backup status from /var/lib/corpflowai-erp-backup/status.json, last-failed attempts, missing/malformed status, remote archive evidence, >36h stale protection and >3h stuck runs. Restic heartbeat checks and Telegram failure-only/hour dedup continue. The root daily ERP/Borg wrapper calls this same monitor on failure. Forced failures now load existing notifier credentials before alerting. A live full backup passed, ordinary health runs exited 0 without notification, and one labelled TEST ONLY Telegram message was accepted (HTTP 200); no recipient acknowledgement is claimed. See [recovery completion](../erpnext/ERPNEXT_SERVER_RECOVERY_2026_10_07.md). This supersedes earlier runtime-pending wording below. No new bot, alert service or paid destination was added.
+
+
 **Status:** Repo-authored **2026-07-27**; merged as PR #641; installed on `corpflow-exec-01-u69678`. **Parser stdin bug fixed in-repo 2026-07-27** (temp-file JSON path). Reinstall the script on the box from this repo version and re-verify the timer so git and L3 stay aligned.
 **Owner:** Anton (server install, secrets, timer enable); Cursor (script + this doc).
 **Packet id:** `Server-Backup-Health-Check-And-Alert-1` (named in `docs/operations/SERVER_SAFETY_BASELINE_AND_CHATWOOT_DECISION_V1.md` §8).
