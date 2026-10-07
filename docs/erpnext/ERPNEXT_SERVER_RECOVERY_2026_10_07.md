@@ -134,3 +134,16 @@ Overall verdict: PARTIAL. No production cutover, hosted cancellation or integrat
 Anton applied the guarded restart-policy-only update and persisted the active Compose configuration. A subsequent inspection reported all six recovered-site containers running with restart=unless-stopped. Docker and Caddy both reported enabled at boot. No container recreation, worker/scheduler activation or network change was performed. Actual reboot recovery has not been tested. Configuration rollback copy: compose.before-restart-20261008-0230.yaml in the existing protected recovery folder.
 
 The initial semantic guard stopped before mutation because Compose retained the shared x-app extension. The corrected comparison checks and normalizes both shared and service restart values; no unrelated differences were accepted.
+
+## Fresh recovered-site backup — 2026-10-08
+
+Operator ran a full recovered-site backup with public/private files, compression and backup includes/excludes ignored. Bench reported success with encryption enabled for prefix 20261008_024322. All four artifacts were copied from the container to a protected server backup folder and then downloaded to the operator laptop. Each laptop SHA-256 matched the corresponding server copy.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| Database | 92af0b19869ed0bdde816783946fb41b2d43bf0e12cc767b3949933e0842fe5a |
+| Public files | 76ee397986ba11ddee81d220f349dc637793586cc16e02fb884fb25ab09482d0 |
+| Private files | 904c74196f94155fc37c88aa1ec7a0b447b656a1e06f0013c4c491ba5ba693f1 |
+| Site configuration | 9bd2861514aabb6d1926d1a401005fbbb18d2433575305c37bb91f4629e76b19 |
+
+This is a verified manual off-server copy. It does not establish scheduled backup delivery, retention, independent backup monitoring or a successful restore of this fresh backup. Never publish backup contents or key values.
