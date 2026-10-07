@@ -1,6 +1,6 @@
 # Server agent access & execution boundary (v1)
 
-**Status:** v1.2 — canonical, updated 2026-10-02.
+**Status:** v1.3 — read-only inspection authorization recorded 2026-10-08; pending documentation merge.
 **Owner:** Anton (operator) for the hard rules and any rule changes; Cursor for keeping this doc in sync with `MONITORING_ARCHITECTURE.md` § 11.3 and `EXECUTION_BRAIN_VS_HANDS.md`.
 **Scope:** Single source of truth for **where work actually executes** in CorpFlow — which layer runs which class of work, what does **not** exist as an execution layer (and is forbidden), and how `HOST_MISMATCH` is decided.
 
@@ -35,6 +35,11 @@
 If any of those conflict with this doc, **those docs win** — this doc is a synthesis, not a new policy.
 
 ---
+
+
+## Read-only SSH authorization — 2026-10-08
+
+Anton explicitly authorized: “bounded, read-only server inspections through your laptop’s existing SSH access, while keeping server changes separately controlled.” This operator decision supersedes the operator-only SSH wording below only for that inspection scope. ChatGPT/Codex may use the connected laptop and existing SSH authentication to inspect corpflow-exec-01-u69678 (10.240.0.1), verify hostname before inspection, and collect bounded, sanitized configuration/status evidence. Reuse existing authentication without copying private keys or exposing secrets. Preserve strict host-key verification. Do not execute inspected scripts, initiate backups/restores, change files/configuration/data, restart services, install software, open ports, create schedules, or install an agent/server extension under this permission. Stop when an inspection requires mutation or broader access. No new server service or credential is introduced. Evidence is recorded in the ERP recovery document; revocation means ceasing these inspection calls. This is an explicit user authorization effective in the originating session; the documentation PR remains unmerged.
 
 ## 1. Why this doc exists
 
