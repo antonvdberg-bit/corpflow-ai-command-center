@@ -25,6 +25,7 @@ SOURCE = BENCH + "/sites/" + SITE + "/private/backups/"
 DAILY = Path("/root/erpnext-server-backups/daily")
 STATUS = Path("/var/lib/corpflowai-erp-backup/status.json")
 HEALTH = "/home/anton/.local/bin/corpflowai-ops-backup-health-check.sh"
+COMMAND_PATH = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 SUFFIXES = ("site_config_backup-enc.json", "database-enc.sql.gz", "files-enc.tgz", "private-files-enc.tgz")
 
 
@@ -184,6 +185,8 @@ def main():
     if os.geteuid() != 0 or socket.gethostname() != HOST:
         print("ERP backup refused: host or execution identity mismatch")
         return 1
+    # Cron omits sbin on some installations; notifications must still find runuser.
+    os.environ["PATH"] = COMMAND_PATH
     os.umask(0o077)
     lockfd = os.open("/run/lock/corpflowai-erp-backup.lock", os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
     lock = os.fdopen(lockfd, "w")
