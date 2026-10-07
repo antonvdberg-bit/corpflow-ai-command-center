@@ -69,13 +69,21 @@ Before switching any consumer:
 | Cursor Cloud automation and cloud-agent secrets | URL saved and fresh Cloud Agent read-only probe passed, per operator-relayed output at 16:33 Mauritius: exact server URL, integration identity, both app versions and quotation reference. Factory automation execution scope remains unverified; API keys unchanged |
 | GitHub workflows | Inspect actual workflow consumers and secret injection; verify from the executing runner |
 | n8n | Inspect live workflows and credential references; verify from n8n's runtime; preserve existing retry/idempotency controls |
-| Deployed application | Inspect actual deployment environment and API consumers; verify live target after authorized change |
-| Infisical dev/staging/prod | Correct exact named configuration per environment; confirm actual consumers reload it |
+| Deployed application | Vercel production URL corrected and read-back verified. Same-live-commit redeploy in progress; live ERP route validation pending |
+| Infisical dev/staging/prod | All three named URL settings now point to server HTTPS and were read-back verified. Dev fresh-process verified; staging/prod consumers still require reload/runtime proof |
 | Agent bootstrap / documentation | Link this state; verify target before any ERP mutation; do not reuse a stale hosted success claim |
 
 Development runtime configuration was changed separately under Anton's active migration instruction: Infisical dev/root ERPNEXT_BASE_URL now points to the verified server HTTPS address; API credentials were unchanged. The existing repository client passed authenticated GET and restored-reference checks in a fresh process. No local ERP URL override was found in the inspected development env files; no Cursor environment.json was present. Cursor Cloud Agents URL change is operator-confirmed and a fresh Cloud Agent returned PASS for the exact expected HTTPS URL, integration identity, ERPNext/Frappe 16.50.0 and quotation-reference read. Evidence is operator-relayed run output; no run ID or independently fetched transcript is available yet. Separate Factory automation execution, staging/prod and deployed-runtime consumers remain unverified.
 
 Fresh Cursor Cloud probe evidence (operator-relayed, 2026-10-07 16:33 Mauritius): all five checks PASS; only authenticated HTTPS GET requests to the expected server were reported. This verifies the tested Cloud Agent environment, not all Factory, GitHub, n8n or deployed consumers.
+
+## Configuration correction and source-delta check — 2026-10-07
+
+- Vercel production ERPNEXT_BASE_URL was independently read and still pointed to the hosted source. It now points to server HTTPS and read-back verification passed; API credentials were not changed.
+- Infisical staging and prod had the hosted URL. Both existing named settings were corrected in place and read-back verified. Secret values were not exported or logged.
+- Production redeploy selected the exact currently live commit `11bbfa7432550a2aa30d5b803a951e60f2825745`, not newer main. Deployment `dpl_HccjMdVLqJPxd1vjsMuAbCkFFGZd` is building. Its deployment-specific build command omits the usual ensure-schema DDL step; build logs confirmed the selected command. This does not change repository scripts or global project build settings.
+- Authenticated GET comparison of source/recovery record lists found identical counts, identifiers and modification timestamps for Quotation (9), Sales Invoice (3), Supplier (6), Item (9), Item Price (7), Project (2), Task (36), Lead (10) and Opportunity (4). No missing or differing-timestamp records were found in those lists. This is a bounded delta check, not a full content/settings/file reconciliation.
+- No n8n management connector is exposed in this session. Repository discovery has not established an authenticated n8n administrative API route. No n8n workflow has been changed or triggered.
 
 ## Remaining acceptance and ownership
 
