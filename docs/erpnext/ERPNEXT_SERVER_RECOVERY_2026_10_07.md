@@ -121,3 +121,10 @@ Material learning: credentials prove authentication, not instance identity. Ever
 Supersession: older hosted success probes and server-install absence claims are not current estate evidence.
 Persistence gap: no transactional Context/Agent Learning write receipt is claimed; capture the verified lesson through the existing authorized service when available.
 Overall verdict: PARTIAL. No production cutover, hosted cancellation or integration migration is claimed.
+
+## Continuation — 2026-10-08
+
+- Fresh ERP ping and Core health checks returned HTTP 200; the verified Core deployment remains READY.
+- [Operational readiness operator recipe](ERPNEXT_SERVER_OPERATIONAL_READINESS_2026_10_08.md) now prepares a guarded restart-policy-only update. Python syntax and representative Compose transformation checks passed. Actual server execution, reboot recovery and backups remain pending.
+- The old dedicated Cursor test-user packet #696 was superseded on 2026-10-06. Historical scripts/variable names are not proof of current authenticated Core access. Automatic approval review rejected an unnecessary password-presence read; the command was not retried. No Core login or quotation-flow success is claimed.
+- n8n management connector/API access remains unavailable. No workflow was changed or triggered.
