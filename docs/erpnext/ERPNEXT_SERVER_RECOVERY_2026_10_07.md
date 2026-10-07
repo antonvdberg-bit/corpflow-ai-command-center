@@ -32,7 +32,7 @@ The ERPNext 16.26.2 source application was migrated forward to ERPNext 16.50.0; 
 - Restored counts match prior source inventory: 9 quotations, 3 sales invoices, 6 suppliers, 9 items, 7 item prices, 2 projects and 36 tasks.
 - Lead/opportunity/quotation/user reference checks passed.
 - Three CorpFlowAI professional quotation, invoice and sales-order templates exist and are enabled.
-- Initial quotation and sales-invoice PDF generation returned HTTP 500 with a renderer connection refusal. After the operator configured the recovery site's internal frontend address, both returned HTTP 200, application/pdf, and valid PDF signatures (quotation 29,739 bytes; invoice 30,262 bytes). Visual layout acceptance remains pending.
+- Initial quotation and sales-invoice PDF generation returned HTTP 500 with a renderer connection refusal. After the operator configured the recovery site's internal frontend address, both returned HTTP 200, application/pdf, and valid PDF signatures (quotation 29,739 bytes; invoice 30,262 bytes). Visual review found a missing logo on both recovery PDFs and a footer-only second quotation page; layout acceptance remains pending.
 - Integration identity cannot read Custom Field and Property Setter: HTTP 403. Do not elevate it merely to complete an audit.
 
 No client details, backup configuration, credentials or secret values belong in this document.
@@ -77,13 +77,13 @@ These runtime/configuration changes have NOT been performed by this documentatio
 
 ## Remaining acceptance and ownership
 
-Controller: investigate PDF failure, reconcile current-state docs and identify exact consumer configuration.
+Controller: reconcile rendering differences, current-state docs and exact consumer configuration.
 Server executor/operator: permanent access and service lifecycle under the authorized server execution route.
 Implementation executor: only where a concrete code/configuration implementation is needed; record allowed files, verifier and stop condition before dispatch.
 No competing executor claim is created by this documentation PR.
 
 Remaining:
-- PDF generation repaired and verified; visually verify quotation and invoice output.
+- PDF generation repaired and verified. Visual comparison found the hosted quotation is one page with its logo; the isolated recovery quotation is two pages with a footer-only second page, and both recovered documents omit the logo. The template loads the logo from an external website blocked by recovery isolation. Preserve isolation and resolve/retest document rendering under the intended production network posture before acceptance.
 - Inspect restoration of relevant encrypted integration settings without revealing them.
 - Establish stable HTTPS/access, automatic service startup, backup retention and monitoring.
 - Reconcile writes made to the hosted source after the backup before final cutover.
