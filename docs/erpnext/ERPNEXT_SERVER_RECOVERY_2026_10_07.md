@@ -66,14 +66,16 @@ Before switching any consumer:
 | Consumer | Required evidence before complete |
 | --- | --- |
 | Local development / Cursor Desktop | Infisical dev/root target updated to server HTTPS; fresh existing repository REST-client GET checks passed. Running Cursor sessions/cloud scopes still require their own verification |
-| Cursor Cloud automation and cloud-agent secrets | Anton reports Cloud Agents ERPNEXT_BASE_URL saved as server HTTPS. Fresh cloud-run and separate automation-scope checks remain pending; API keys unchanged |
+| Cursor Cloud automation and cloud-agent secrets | URL saved and fresh Cloud Agent read-only probe passed, per operator-relayed output at 16:33 Mauritius: exact server URL, integration identity, both app versions and quotation reference. Factory automation execution scope remains unverified; API keys unchanged |
 | GitHub workflows | Inspect actual workflow consumers and secret injection; verify from the executing runner |
 | n8n | Inspect live workflows and credential references; verify from n8n's runtime; preserve existing retry/idempotency controls |
 | Deployed application | Inspect actual deployment environment and API consumers; verify live target after authorized change |
 | Infisical dev/staging/prod | Correct exact named configuration per environment; confirm actual consumers reload it |
 | Agent bootstrap / documentation | Link this state; verify target before any ERP mutation; do not reuse a stale hosted success claim |
 
-Development runtime configuration was changed separately under Anton's active migration instruction: Infisical dev/root ERPNEXT_BASE_URL now points to the verified server HTTPS address; API credentials were unchanged. The existing repository client passed authenticated GET and restored-reference checks in a fresh process. No local ERP URL override was found in the inspected development env files; no Cursor environment.json was present. Cursor Cloud Agents URL change is operator-confirmed but not fresh-run verified. Separate automation, staging/prod and deployed-runtime consumers remain unverified.
+Development runtime configuration was changed separately under Anton's active migration instruction: Infisical dev/root ERPNEXT_BASE_URL now points to the verified server HTTPS address; API credentials were unchanged. The existing repository client passed authenticated GET and restored-reference checks in a fresh process. No local ERP URL override was found in the inspected development env files; no Cursor environment.json was present. Cursor Cloud Agents URL change is operator-confirmed and a fresh Cloud Agent returned PASS for the exact expected HTTPS URL, integration identity, ERPNext/Frappe 16.50.0 and quotation-reference read. Evidence is operator-relayed run output; no run ID or independently fetched transcript is available yet. Separate Factory automation execution, staging/prod and deployed-runtime consumers remain unverified.
+
+Fresh Cursor Cloud probe evidence (operator-relayed, 2026-10-07 16:33 Mauritius): all five checks PASS; only authenticated HTTPS GET requests to the expected server were reported. This verifies the tested Cloud Agent environment, not all Factory, GitHub, n8n or deployed consumers.
 
 ## Remaining acceptance and ownership
 
