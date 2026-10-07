@@ -97,7 +97,7 @@ No competing executor claim is created by this documentation PR.
 Remaining:
 - PDF generation repaired and verified. Visual comparison found the hosted quotation is one page with its logo; the isolated recovery quotation is two pages with a footer-only second page, and both recovered documents omit the logo. The template loads the logo from an external website blocked by recovery isolation. Preserve isolation and resolve/retest document rendering under the intended production network posture before acceptance.
 - Inspect restoration of relevant encrypted integration settings without revealing them.
-- Stable HTTPS/API access is verified. Active Compose configuration is persisted and UI/2FA verified on HTTPS. Automatic service startup, backup retention and monitoring still require verification.
+- Stable HTTPS/API access is verified. Active Compose configuration is persisted and UI/2FA verified on HTTPS. Recovery container restart policies and Docker/Caddy boot enablement were verified on 2026-10-08; actual host-reboot recovery, backup retention and monitoring remain pending.
 - Reconcile writes made to the hosted source after the backup before final cutover.
 - Verify the dev/Cursor/GitHub/n8n/deployed consumer matrix.
 - Promote recovery to the chosen single server system of record.
@@ -128,3 +128,9 @@ Overall verdict: PARTIAL. No production cutover, hosted cancellation or integrat
 - [Operational readiness operator recipe](ERPNEXT_SERVER_OPERATIONAL_READINESS_2026_10_08.md) now prepares a guarded restart-policy-only update. Python syntax and representative Compose transformation checks passed. Actual server execution, reboot recovery and backups remain pending.
 - The old dedicated Cursor test-user packet #696 was superseded on 2026-10-06. Historical scripts/variable names are not proof of current authenticated Core access. Automatic approval review rejected an unnecessary password-presence read; the command was not retried. No Core login or quotation-flow success is claimed.
 - n8n management connector/API access remains unavailable. No workflow was changed or triggered.
+
+## Restart-policy completion — operator evidence 2026-10-08 02:41 Mauritius
+
+Anton applied the guarded restart-policy-only update and persisted the active Compose configuration. A subsequent inspection reported all six recovered-site containers running with restart=unless-stopped. Docker and Caddy both reported enabled at boot. No container recreation, worker/scheduler activation or network change was performed. Actual reboot recovery has not been tested. Configuration rollback copy: compose.before-restart-20261008-0230.yaml in the existing protected recovery folder.
+
+The initial semantic guard stopped before mutation because Compose retained the shared x-app extension. The corrected comparison checks and normalizes both shared and service restart values; no unrelated differences were accepted.
