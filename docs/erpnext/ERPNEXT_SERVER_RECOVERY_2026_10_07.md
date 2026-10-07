@@ -151,3 +151,9 @@ This is a verified manual off-server copy. It does not establish scheduled backu
 ## Fresh-backup integrity verification — 2026-10-08
 
 The laptop copy was verified using the exact named backup encryption key from Infisical, held in memory. The backed-up configuration retained a nonempty site encryption key and its backup key matched the named secret. Database decryption, gzip integrity and expected ERP table structure passed. Public and private archives decrypted and all regular-file contents passed archive reads: public 0 regular files; private 4 regular files. No plaintext backup files were saved. Temporary GPG state was removed. These checks establish decryptability and archive integrity, not a successful database restore or complete functional recovery.
+
+## Read-only server access and backup discovery — 2026-10-08
+
+Anton explicitly authorized bounded read-only inspections through the laptop's existing SSH access, with server changes separately controlled. Direct noninteractive SSH with strict host-key checking returned the expected hostname corpflow-exec-01-u69678. The authorization is recorded in SERVER_AGENT_ACCESS_AND_EXECUTION_BOUNDARY_V1.md on this documentation branch; no merge is claimed. No server files or services were changed by these inspections.
+
+Operator cron evidence shows /opt/borg/backup.sh daily at 01:00 UTC (05:00 Mauritius), plus two maintenance jobs. Inspection found a /root path reference, prune and compact operations, and pre/post-backup hooks. Each hook is 28 bytes and no ERP bench backup or database dump command was identified in the three inspected scripts. Existing Borg archive coverage, remote destination, last successful run and recovery usability remain unverified; path references do not establish coverage. Reuse and assess this existing backup pipeline before proposing another schedule or paid backup service.
