@@ -32,7 +32,7 @@ The ERPNext 16.26.2 source application was migrated forward to ERPNext 16.50.0; 
 - Restored counts match prior source inventory: 9 quotations, 3 sales invoices, 6 suppliers, 9 items, 7 item prices, 2 projects and 36 tasks.
 - Lead/opportunity/quotation/user reference checks passed.
 - Three CorpFlowAI professional quotation, invoice and sales-order templates exist and are enabled.
-- Quotation and sales-invoice PDF generation returned HTTP 500. PDF output is NOT accepted.
+- Initial quotation and sales-invoice PDF generation returned HTTP 500 with a renderer connection refusal. After the operator configured the recovery site's internal frontend address, both returned HTTP 200, application/pdf, and valid PDF signatures (quotation 29,739 bytes; invoice 30,262 bytes). Visual layout acceptance remains pending.
 - Integration identity cannot read Custom Field and Property Setter: HTTP 403. Do not elevate it merely to complete an audit.
 
 No client details, backup configuration, credentials or secret values belong in this document.
@@ -83,7 +83,7 @@ Implementation executor: only where a concrete code/configuration implementation
 No competing executor claim is created by this documentation PR.
 
 Remaining:
-- Diagnose and repair PDF generation; visually verify quotation and invoice output.
+- PDF generation repaired and verified; visually verify quotation and invoice output.
 - Inspect restoration of relevant encrypted integration settings without revealing them.
 - Establish stable HTTPS/access, automatic service startup, backup retention and monitoring.
 - Reconcile writes made to the hosted source after the backup before final cutover.
@@ -95,7 +95,7 @@ Remaining:
 
 What changed: hosted ERP recovered into a separate server copy; documentation records current evidence and pending cutover.
 Verified: restore, forward migration, UI/2FA, authenticated API, record counts and template presence.
-Failure/correction: missing active port publishing was bypassed with a temporary tunnel; PDF export currently fails.
+Failure/correction: missing active port publishing was bypassed with a temporary tunnel; PDF export was repaired; visual acceptance remains pending.
 Material learning: credentials prove authentication, not instance identity. Every ERP task must establish target identity before mutation.
 Supersession: older hosted success probes and server-install absence claims are not current estate evidence.
 Persistence gap: no transactional Context/Agent Learning write receipt is claimed; capture the verified lesson through the existing authorized service when available.
