@@ -228,3 +228,35 @@ This completes installation and one live execution of the approved daily-backup/
 ### Final scheduled-environment verification
 
 The wrapper explicitly sets a bounded executable PATH so cron can find the existing Borg, Docker and runuser commands. A second complete live run under minimal cron-style environment passed at 2026-10-07 23:37:57 UTC / 8 October 03:37:57 Mauritius. Remote archive snapshot_2026-10-07-23.37.32 contains the exact artifacts and matching manifest. Final inspection confirmed cron active, the single approved 01:00 UTC wrapper entry installed, persisted outcome success/remote_verified true, two completed managed runs, 0700 run folders and 0600 artifacts. The job runs entirely on the server and does not require the laptop to stay online. The first future unattended invocation remains unobserved; the full isolated restore remains outstanding. Versioned wrapper/checker and regression fixtures are included in the unmerged PR.
+
+
+## Laptop recovery copies — authorized, implementation blocked by access
+
+Anton authorized the recommended laptop recovery extension on 8 October 2026 at 03:49 Mauritius. Scope: four rotating encrypted ERP recovery packages, an isolated restore using a downloaded laptop package, followed by read-only inventory of Core and n8n recovery coverage. No new paid destination is required.
+
+At this execution attempt Desktop Commander reports the laptop offline. No laptop scheduled task, new package rotation, or laptop-based restore has been installed or completed. Existing server backup jobs remain independent of laptop availability.
+
+### Implementation and acceptance contract
+
+- Use the existing laptop SSH route and completed, remotely verified ERP backup runs. Inspect available laptop space and existing task/configuration before installation.
+- Keep at most four distinct packages: latest verified, previous verified, weekly and monthly. Preserve existing manual migration/pre-restore copies. Duplicate logical slots may reference the same package.
+- Include database, public files, private files, site configuration, checksums, pinned software identity and a recovery recipe. Encrypt the whole package: the site configuration remains sensitive even when its filename contains "-enc".
+- Verify downloaded checksums before atomic promotion. Failed or partial downloads must not replace a good slot. Bound storage by measured package size and available capacity; record the resulting budget before enabling rotation.
+- Run the laptop copy task when the laptop and VPN are available, with catch-up at login. Laptop absence must not block the server backup or imply server backup failure. Record laptop-copy failures/staleness separately, using the existing failure alert system without exposing secrets.
+- Preserve recovery-key access independently of the package and the live ERP server. No plaintext keys in source control, task arguments, logs or chat. Offline emergency key availability requires a verified secure arrangement before cold-DR acceptance.
+- Prove recovery using a package downloaded to the laptop: transfer that exact package into a distinct test location, decrypt privately, then restore into a separate Docker project with new volumes, no public ports, no external egress and no scheduler/workers. Check database records and public/private file recovery. Never restore onto either existing live ERP site.
+- Record package identity, hash, test start/end time, restored counts/files, cleanup and measured recovery duration. Archive membership and checksum checks alone do not count as a restore.
+- Optional disconnected USB storage is not installed or assumed. These data packages require access to the pinned container images unless an additional offline software bundle is explicitly prepared.
+
+### Wider recovery inventory — evidence limits
+
+| System | Current evidence | Remaining proof |
+|---|---|---|
+| Recovered ERPNext | Two server backup cycles and remote Borg artifact/manifest verification; existing failure notifier accepted test alert | Four laptop slots, independent emergency key access and full restore from laptop copy |
+| Core / Neon Postgres | Repository names Neon as the approved database; POSTGRES_PROVIDER.md section 6 explicitly leaves project history window unread and restore drill unproven | Read current project plan/history window through authorized management access; establish export coverage and isolated restore evidence |
+| n8n | Historical operations map places n8n on a separate host; ERP server backup scope does not establish n8n coverage | Verify actual database, workflows, credential data, encryption key preservation, deployment configuration, backup schedule/destination and isolated restore |
+| Ops restic heartbeat | Existing heartbeat/health evidence covers small operations data | Do not count it as ERP, Core or n8n recovery coverage without exact inventory evidence |
+
+Sources: docs/operations/POSTGRES_PROVIDER.md section 6; docs/operations/ERPNEXT_WP7_PATCH_BACKUP_RESTORE_MONITORING_CLOSURE_V1.md (20 August historical evidence); docs/operations/SELF_HOSTED_OPS_STACK_V1.md (historical topology). Current October ERP backup evidence above supersedes older ERP/Monitor #14 install-pending descriptions. Historical plan limits are not treated as current account coverage.
+
+Next access dependency: reopen Desktop Commander on the laptop and keep its authenticated connection available. Authorization is already recorded; reconnecting is an access requirement, not a request to approve the same work again.
