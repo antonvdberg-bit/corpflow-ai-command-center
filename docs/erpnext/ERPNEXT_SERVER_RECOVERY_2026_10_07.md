@@ -65,7 +65,7 @@ Before switching any consumer:
 
 | Consumer | Required evidence before complete |
 | --- | --- |
-| Local development / Cursor Desktop | Effective target and fresh read-only API check; temporary tunnel dependency explicitly identified |
+| Local development / Cursor Desktop | Infisical dev/root target updated to server HTTPS; fresh existing repository REST-client GET checks passed. Running Cursor sessions/cloud scopes still require their own verification |
 | Cursor Cloud automation and cloud-agent secrets | Cloud-reachable server endpoint; fresh agent check; only required ERP credentials |
 | GitHub workflows | Inspect actual workflow consumers and secret injection; verify from the executing runner |
 | n8n | Inspect live workflows and credential references; verify from n8n's runtime; preserve existing retry/idempotency controls |
@@ -73,7 +73,7 @@ Before switching any consumer:
 | Infisical dev/staging/prod | Correct exact named configuration per environment; confirm actual consumers reload it |
 | Agent bootstrap / documentation | Link this state; verify target before any ERP mutation; do not reuse a stale hosted success claim |
 
-These runtime/configuration changes have NOT been performed by this documentation update.
+Development runtime configuration was changed separately under Anton's active migration instruction: Infisical dev/root ERPNEXT_BASE_URL now points to the verified server HTTPS address; API credentials were unchanged. The existing repository client passed authenticated GET and restored-reference checks in a fresh process. No local ERP URL override was found in the inspected development env files; no Cursor environment.json was present. Cloud-agent, automation, staging/prod and deployed-runtime consumers remain unverified.
 
 ## Remaining acceptance and ownership
 
@@ -85,7 +85,7 @@ No competing executor claim is created by this documentation PR.
 Remaining:
 - PDF generation repaired and verified. Visual comparison found the hosted quotation is one page with its logo; the isolated recovery quotation is two pages with a footer-only second page, and both recovered documents omit the logo. The template loads the logo from an external website blocked by recovery isolation. Preserve isolation and resolve/retest document rendering under the intended production network posture before acceptance.
 - Inspect restoration of relevant encrypted integration settings without revealing them.
-- Stable HTTPS/API access is verified. Persist the activated Compose configuration, verify UI/2FA on HTTPS, automatic service startup, backup retention and monitoring.
+- Stable HTTPS/API access is verified. Active Compose configuration is persisted and UI/2FA verified on HTTPS. Automatic service startup, backup retention and monitoring still require verification.
 - Reconcile writes made to the hosted source after the backup before final cutover.
 - Verify the dev/Cursor/GitHub/n8n/deployed consumer matrix.
 - Promote recovery to the chosen single server system of record.
@@ -97,8 +97,8 @@ Remaining:
 - Public ping returned pong; authenticated GET checks returned the expected restored integration identity and Frappe/ERPNext 16.50.0.
 - Existing quotation reference was readable and remained draft.
 - Quotation and sales-invoice PDF downloads returned HTTP 200 with valid PDF signatures through the public endpoint.
-- UI/2FA has not yet been re-verified on the public HTTPS hostname.
-- Hosted service remains available; consumers still require explicit retargeting and fresh-run verification.
+- Anton confirmed successful UI login and 2FA on the public HTTPS hostname and completed persistence of the active Compose configuration.
+- Hosted service remains available. Development URL has been retargeted and fresh-process verified; other consumers require individual retargeting and fresh-run verification.
 
 ## Closeout and learning
 
