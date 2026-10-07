@@ -125,7 +125,7 @@ Overall verdict: PARTIAL. No production cutover, hosted cancellation or integrat
 ## Continuation — 2026-10-08
 
 - Fresh ERP ping and Core health checks returned HTTP 200; the verified Core deployment remains READY.
-- [Operational readiness operator recipe](ERPNEXT_SERVER_OPERATIONAL_READINESS_2026_10_08.md) now prepares a guarded restart-policy-only update. Python syntax and representative Compose transformation checks passed. Actual server execution, reboot recovery and backups remain pending.
+- [Operational readiness operator recipe](ERPNEXT_SERVER_OPERATIONAL_READINESS_2026_10_08.md) now prepares a guarded restart-policy-only update. Python syntax and representative Compose transformation checks passed. The restart-policy update has since been executed and verified; fresh manual backup and off-server transfer are recorded below. Reboot recovery, scheduled backups and a fresh-backup restore remain pending.
 - The old dedicated Cursor test-user packet #696 was superseded on 2026-10-06. Historical scripts/variable names are not proof of current authenticated Core access. Automatic approval review rejected an unnecessary password-presence read; the command was not retried. No Core login or quotation-flow success is claimed.
 - n8n management connector/API access remains unavailable. No workflow was changed or triggered.
 
@@ -147,3 +147,7 @@ Operator ran a full recovered-site backup with public/private files, compression
 | Site configuration | 9bd2861514aabb6d1926d1a401005fbbb18d2433575305c37bb91f4629e76b19 |
 
 This is a verified manual off-server copy. It does not establish scheduled backup delivery, retention, independent backup monitoring or a successful restore of this fresh backup. Never publish backup contents or key values.
+
+## Fresh-backup integrity verification — 2026-10-08
+
+The laptop copy was verified using the exact named backup encryption key from Infisical, held in memory. The backed-up configuration retained a nonempty site encryption key and its backup key matched the named secret. Database decryption, gzip integrity and expected ERP table structure passed. Public and private archives decrypted and all regular-file contents passed archive reads: public 0 regular files; private 4 regular files. No plaintext backup files were saved. Temporary GPG state was removed. These checks establish decryptability and archive integrity, not a successful database restore or complete functional recovery.
