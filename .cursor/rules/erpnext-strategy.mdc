@@ -22,3 +22,7 @@ When a packet touches ERPNext, CRM/business records, finance, Projects, Support,
 7. **This approved Version 2 strategy authorizes no protected consequence:** no production accounting/tax/bank mutation, no schema/custom DocTypes, no env/secrets change, no live send, no paid-tool purchase, no public/client_production launch.
 
 Unresolved questions stay recorded as open. Do not silently normalize them into configuration.
+
+## Instance identity — 2026-10-07 recovery
+
+Read `docs/erpnext/ERPNEXT_SERVER_RECOVERY_2026_10_07.md` before ERP access or mutation. The existing company server is the intended ERP destination; hosted is the migration source. Recovery is verified but cutover is pending. Establish the exact site, effective endpoint, app versions and integration identity before writing. Available credentials or a prior hosted PASS do not select the correct instance. Laptop localhost/container IP are temporary validation routes, not cloud-runner targets. Do not silently fall back to hosted ERP. See the recovery document for remaining PDF and consumer verification blockers.
