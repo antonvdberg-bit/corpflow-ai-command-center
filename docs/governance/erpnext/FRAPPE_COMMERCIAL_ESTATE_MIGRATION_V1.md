@@ -1,6 +1,6 @@
 # Frappe Commercial Estate Migration v1
 
-**Status:** PROPOSED MIGRATION PLAN — architecture direction approved by Anton on 2026-10-07; migration sequence and protected runtime/data actions still require their normal gates.  
+**Status:** APPROVED MIGRATION PLAN — Anton approved PR #1414's migration plan on 2026-10-07. Phase 0 read-only current-truth work is authorized. Merge and protected runtime/data actions remain separately gated.  
 **Target architecture:** Frappe CRM + ERPNext on the same Frappe site where technically supported.  
 **Current estate:** ERPNext/Frappe v16; CorpFlowAI Postgres prospect/lead execution stores and operator surfaces remain live until cutover.  
 **Related:** #1413, #1411, #1412, #918, #1018, #1009, #701, #721.
