@@ -16,7 +16,7 @@ Do not select an ERP instance merely because its credentials or browser session 
 | Existing server installation | Separate v15 installation; preserved before recovery | Not replaced |
 | Isolated server recovery | Hosted database/files restored; Frappe and ERPNext 16.50.0 | Validation only |
 | Hosted commercial site | Source of the recovered backup | Not retired |
-| Permanent server HTTPS address | Required for ordinary operation and cloud consumers | Not established |
+| Permanent server HTTPS address | `https://erp.corpflowai.com`; DNS, TLS, API and PDF checks passed | Published with operator approval; consumer retargeting pending |
 
 A successful restore does not establish automatic backups, full DR, production access, or integration cutover.
 The ERPNext 16.26.2 source application was migrated forward to ERPNext 16.50.0; source Frappe 16.50.0 was matched.
@@ -37,10 +37,10 @@ The ERPNext 16.26.2 source application was migrated forward to ERPNext 16.50.0; 
 
 No client details, backup configuration, credentials or secret values belong in this document.
 
-## Temporary access limitation
+## Access transition — verified 2026-10-07
 
-Recovery access currently uses an operator SSH tunnel. The server-hosted application continues to run independently of that tunnel, but the laptop access path closes when the tunnel closes.
-Docker configured loopback port publishing but did not activate the mapping on the isolated internal network; a direct tunnel to the frontend container allowed UI/API validation.
+Initial recovery access used an operator SSH tunnel. The public HTTPS route now reaches the recovered site directly and does not require that tunnel. Anton approved the maintenance-only DNS/HTTPS step and subsequently approved publication of the recovered login page.
+Initial loopback port publishing was inactive on the isolated internal network. A second ingress network for the web frontend enabled the verified localhost port mapping used by Caddy. Backend/database remain on the internal recovery network; workers and scheduler remain paused/absent.
 A container IP and laptop loopback address are temporary validation routes, not stable production endpoints or Cursor Cloud/GitHub runner addresses.
 Do not remove isolation to make PDF export work before identifying the actual failure.
 
@@ -77,7 +77,7 @@ These runtime/configuration changes have NOT been performed by this documentatio
 
 ## Remaining acceptance and ownership
 
-Controller: reconcile rendering differences, current-state docs and exact consumer configuration.
+Controller: reconcile rendering differences, current-state docs and exact consumer configuration. Public HTTPS GET/API/PDF checks passed on 2026-10-07; integration configuration changes are still pending.
 Server executor/operator: permanent access and service lifecycle under the authorized server execution route.
 Implementation executor: only where a concrete code/configuration implementation is needed; record allowed files, verifier and stop condition before dispatch.
 No competing executor claim is created by this documentation PR.
@@ -85,11 +85,20 @@ No competing executor claim is created by this documentation PR.
 Remaining:
 - PDF generation repaired and verified. Visual comparison found the hosted quotation is one page with its logo; the isolated recovery quotation is two pages with a footer-only second page, and both recovered documents omit the logo. The template loads the logo from an external website blocked by recovery isolation. Preserve isolation and resolve/retest document rendering under the intended production network posture before acceptance.
 - Inspect restoration of relevant encrypted integration settings without revealing them.
-- Establish stable HTTPS/access, automatic service startup, backup retention and monitoring.
+- Stable HTTPS/API access is verified. Persist the activated Compose configuration, verify UI/2FA on HTTPS, automatic service startup, backup retention and monitoring.
 - Reconcile writes made to the hosted source after the backup before final cutover.
 - Verify the dev/Cursor/GitHub/n8n/deployed consumer matrix.
 - Promote recovery to the chosen single server system of record.
 - Retire hosted billing only after acceptance and retained recovery evidence.
+
+## Public-route verification
+
+- DNS A record reaches the intended existing server; TLS validation succeeded.
+- Public ping returned pong; authenticated GET checks returned the expected restored integration identity and Frappe/ERPNext 16.50.0.
+- Existing quotation reference was readable and remained draft.
+- Quotation and sales-invoice PDF downloads returned HTTP 200 with valid PDF signatures through the public endpoint.
+- UI/2FA has not yet been re-verified on the public HTTPS hostname.
+- Hosted service remains available; consumers still require explicit retargeting and fresh-run verification.
 
 ## Closeout and learning
 
