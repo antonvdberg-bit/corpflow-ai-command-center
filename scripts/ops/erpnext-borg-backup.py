@@ -111,6 +111,28 @@ def archive_membership(entries, expected):
     return all(p in found and found[p].get("size") == size for p, size in expected.items())
 
 
+def borg_covers_root(script):
+    script = script.replace(chr(92) + chr(10), "")
+    lex = shlex.shlex(script, posix=True, punctuation_chars=";&|")
+    lex.whitespace_split = True
+    tokens = list(lex)
+    for index in range(len(tokens) - 1):
+        if tokens[index] != "borg":
+            continue
+        create_index = index + 1
+        while create_index < len(tokens) and tokens[create_index] == "--progress":
+            create_index += 1
+        if create_index >= len(tokens) or tokens[create_index] != "create":
+            continue
+        args = []
+        for token in tokens[create_index + 1:]:
+            if token in [";", "&", "&&", "|", "||"]:
+                break
+            args.append(token)
+        return "/root" in args and not any(t.startswith("--exclude") for t in args)
+    return False
+
+
 def verify_remote(folder, manifest):
     repo, env = borg_access()
     raw = command(["borg", "list", "--json", "--lock-wait", "5", repo], env=env, timeout=300)
@@ -192,7 +214,7 @@ def main():
             raise BackupError("insufficient free space")
         # Guard the unchanged legacy job before calling bash -e. No arbitrary shell content is introduced.
         script = Path("/opt/borg/backup.sh").read_text()
-        if "set +e" in script or "--exclude" in script or not re.search(r"\bcreate\b.*\s/root(?:;|\s|$)", script):
+        if "set +e" in script or not borg_covers_root(script):
             raise BackupError("existing Borg pipeline coverage changed")
         borg_access()  # Validate access recipe before creating artifacts.
         DAILY.mkdir(mode=0o700, parents=True, exist_ok=True)
