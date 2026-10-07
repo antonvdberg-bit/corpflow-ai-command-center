@@ -165,3 +165,30 @@ Direct read-only inspections verified the existing daily root Borg job includes 
 Anton user-systemd heartbeat and Monitor #14 backup-health timers are enabled/active and their last runs succeeded on 7 October. The checker currently validates restic heartbeat protection, not ERP backup freshness or remote ERP membership. Its recent logs contain 105 snapshots with 185855 total bytes; these are not evidence of ERP protection. The documented restic retention service/timer names are not found. A bounded last-300 health-journal scan found no Telegram delivery events; no live notification test was sent. Monitoring-architecture wording saying Monitor #14 is install-pending is superseded by these live timer observations.
 
 A bounded daily ERP+Borg wrapper and existing Monitor #14 extension are prepared in ERPNEXT_SERVER_OPERATIONAL_READINESS_2026_10_08.md. No backup schedule, script, notifier, credential, or service was changed on the server during inspection. Installation remains separately controlled; the existing manual fresh backup remains the verified ERP recovery point.
+
+
+## Daily ERP backup and alert completion — 2026-10-08
+
+Anton approved the specific daily ERP/Borg backup and existing Monitor #14 alert extension at 03:18 Mauritius. Controller execution used the existing laptop SSH route under this bounded authorization; no general agent/server administration permission is implied.
+
+Installed:
+- /usr/local/sbin/corpflowai-erp-borg-backup.py; root cron now invokes it at the existing 01:00 UTC / 05:00 Mauritius schedule.
+- Four protected artifacts plus manifest under /root/erpnext-server-backups/daily/; seven completed managed local runs retained. Manual/source/pre-restore backups are preserved.
+- Existing Borg destination, repokey-blake2 encryption and 7d remote retention reused.
+- Sanitized status at /var/lib/corpflowai-erp-backup/status.json.
+- Existing anton health checker extended for missing/malformed/failed/stale (>36h) ERP status, verified remote evidence and stuck (>3h) runs. Existing restic checks and failure-only Telegram dedup retained. The forced-failure branch now loads existing notifier credentials before sending; notifier timeouts are bounded.
+
+Verification:
+- Six Python fixture tests and shell syntax checks passed.
+- Initial live preflight stopped before backup because the legacy Borg command places --progress before create. Its real failure alert was accepted (HTTP 200). The guard was corrected to parse the existing command's tokens; all compatibility checks passed before installing the correction.
+- Full backup cycle then passed: attempt 2026-10-07T23:29:40+00:00; verified success 23:30:07 UTC / 03:30:07 Mauritius. Remote archive snapshot_2026-10-07-23.29.43 contains all four exact ERP artifacts with expected sizes and the manifest; manifest bytes were read back and matched.
+- Normal combined health check exited 0 and sent no Telegram. A single clearly labelled TEST ONLY alert was accepted by Telegram (HTTP 200); recipient observation is not independently confirmed. Final normal health check returned 0; persisted ERP status remained success.
+- ERP public HTTPS ping remained 200/pong.
+
+Installed/versioned hashes:
+- Wrapper SHA256 ca5365eda4c9fff544adbeed14deab733e8d801832527b28f25d16dcad8c17a8.
+- Health checker SHA256 583c8373e5adcfa57a51638c4a290a5fd2a864d489e30fba3b4854f63cd0b8a2.
+
+Rollback originals: /root/erpnext-hosted-restore-20261007/backup-change-20261007T232435Z. Restore the saved root crontab and health-check script (including anton ownership/mode); leave backup artifacts intact. No reboot, ERP worker/scheduler activation, credentials rotation, site overwrite or hosted cancellation occurred.
+
+This completes installation and one live execution of the approved daily-backup/alert change. The next unattended scheduled run has not yet been observed. A full isolated database restore from the new daily backup remains pending. Overall ERP migration acceptance remains PARTIAL.
