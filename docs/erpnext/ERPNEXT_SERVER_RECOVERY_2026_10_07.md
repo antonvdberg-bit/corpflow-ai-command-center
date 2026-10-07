@@ -69,11 +69,11 @@ Before switching any consumer:
 | Cursor Cloud automation and cloud-agent secrets | URL saved and fresh Cloud Agent read-only probe passed, per operator-relayed output at 16:33 Mauritius: exact server URL, integration identity, both app versions and quotation reference. Factory automation execution scope remains unverified; API keys unchanged |
 | GitHub workflows | Inspect actual workflow consumers and secret injection; verify from the executing runner |
 | n8n | Inspect live workflows and credential references; verify from n8n's runtime; preserve existing retry/idempotency controls |
-| Deployed application | Vercel production URL corrected and read-back verified. Same-live-commit redeploy in progress; live ERP route validation pending |
+| Deployed application | Vercel production URL corrected and read-back verified. Same-live-commit redeploy READY and serving Core; public page/health checks passed. Authenticated Core-to-ERP quotation-flow proof pending |
 | Infisical dev/staging/prod | All three named URL settings now point to server HTTPS and were read-back verified. Dev fresh-process verified; staging/prod consumers still require reload/runtime proof |
 | Agent bootstrap / documentation | Link this state; verify target before any ERP mutation; do not reuse a stale hosted success claim |
 
-Development runtime configuration was changed separately under Anton's active migration instruction: Infisical dev/root ERPNEXT_BASE_URL now points to the verified server HTTPS address; API credentials were unchanged. The existing repository client passed authenticated GET and restored-reference checks in a fresh process. No local ERP URL override was found in the inspected development env files; no Cursor environment.json was present. Cursor Cloud Agents URL change is operator-confirmed and a fresh Cloud Agent returned PASS for the exact expected HTTPS URL, integration identity, ERPNext/Frappe 16.50.0 and quotation-reference read. Evidence is operator-relayed run output; no run ID or independently fetched transcript is available yet. Separate Factory automation execution, staging/prod and deployed-runtime consumers remain unverified.
+Development runtime configuration was changed separately under Anton's active migration instruction: Infisical dev/root ERPNEXT_BASE_URL now points to the verified server HTTPS address; API credentials were unchanged. The existing repository client passed authenticated GET and restored-reference checks in a fresh process. No local ERP URL override was found in the inspected development env files; no Cursor environment.json was present. Cursor Cloud Agents URL change is operator-confirmed and a fresh Cloud Agent returned PASS for the exact expected HTTPS URL, integration identity, ERPNext/Frappe 16.50.0 and quotation-reference read. Evidence is operator-relayed run output; no run ID or independently fetched transcript is available yet. Separate Factory automation execution and staging consumers remain unverified. Production configuration/redeployment evidence is recorded below; authenticated application-to-ERP flow proof remains pending.
 
 Fresh Cursor Cloud probe evidence (operator-relayed, 2026-10-07 16:33 Mauritius): all five checks PASS; only authenticated HTTPS GET requests to the expected server were reported. This verifies the tested Cloud Agent environment, not all Factory, GitHub, n8n or deployed consumers.
 
@@ -81,13 +81,15 @@ Fresh Cursor Cloud probe evidence (operator-relayed, 2026-10-07 16:33 Mauritius)
 
 - Vercel production ERPNEXT_BASE_URL was independently read and still pointed to the hosted source. It now points to server HTTPS and read-back verification passed; API credentials were not changed.
 - Infisical staging and prod had the hosted URL. Both existing named settings were corrected in place and read-back verified. Secret values were not exported or logged.
-- Production redeploy selected the exact currently live commit `11bbfa7432550a2aa30d5b803a951e60f2825745`, not newer main. Deployment `dpl_HccjMdVLqJPxd1vjsMuAbCkFFGZd` is building. Its deployment-specific build command omits the usual ensure-schema DDL step; build logs confirmed the selected command. This does not change repository scripts or global project build settings.
+- Production redeploy selected the exact currently live commit `11bbfa7432550a2aa30d5b803a951e60f2825745`, not newer main. Deployment `dpl_HccjMdVLqJPxd1vjsMuAbCkFFGZd` reached READY and is confirmed serving the Core production alias. Its deployment-specific build command omits the usual ensure-schema DDL step; build logs confirmed the selected command. No repository build scripts were edited; the override was supplied in this deployment request.
 - Authenticated GET comparison of source/recovery record lists found identical counts, identifiers and modification timestamps for Quotation (9), Sales Invoice (3), Supplier (6), Item (9), Item Price (7), Project (2), Task (36), Lead (10) and Opportunity (4). No missing or differing-timestamp records were found in those lists. This is a bounded delta check, not a full content/settings/file reconciliation.
 - No n8n management connector is exposed in this session. Repository discovery has not established an authenticated n8n administrative API route. No n8n workflow has been changed or triggered.
 
+Production redeploy verification: Core production alias maps to deployment `dpl_HccjMdVLqJPxd1vjsMuAbCkFFGZd`, commit `11bbfa7432550a2aa30d5b803a951e60f2825745`, state READY. GET checks returned HTTP 200 for Core health (ok:true), Core login, company apex and server ERP ping. Production Infisical integration credentials passed direct server identity and quotation-reference GET checks. These checks do not establish an authenticated Core quotation drilldown from the deployed application; an existing authorized Core session is still needed for that end-to-end proof.
+
 ## Remaining acceptance and ownership
 
-Controller: reconcile rendering differences, current-state docs and exact consumer configuration. Public HTTPS GET/API/PDF checks passed on 2026-10-07; integration configuration changes are still pending.
+Controller: reconcile rendering differences, current-state docs and exact consumer configuration. Public HTTPS GET/API/PDF checks passed on 2026-10-07; dev, Cursor Cloud, Infisical staging/prod and Vercel production URL settings have been corrected. n8n and remaining runtime acceptance are pending.
 Server executor/operator: permanent access and service lifecycle under the authorized server execution route.
 Implementation executor: only where a concrete code/configuration implementation is needed; record allowed files, verifier and stop condition before dispatch.
 No competing executor claim is created by this documentation PR.
@@ -108,7 +110,7 @@ Remaining:
 - Existing quotation reference was readable and remained draft.
 - Quotation and sales-invoice PDF downloads returned HTTP 200 with valid PDF signatures through the public endpoint.
 - Anton confirmed successful UI login and 2FA on the public HTTPS hostname and completed persistence of the active Compose configuration.
-- Hosted service remains available. Development URL has been retargeted and fresh-process verified; other consumers require individual retargeting and fresh-run verification.
+- Hosted service remains available. Development URL has been retargeted and fresh-process verified; Cursor Cloud was fresh-run verified, staging/prod configuration corrected, and Vercel production redeployed with the corrected URL. n8n and authenticated Core quotation-flow verification remain pending.
 
 ## Closeout and learning
 
