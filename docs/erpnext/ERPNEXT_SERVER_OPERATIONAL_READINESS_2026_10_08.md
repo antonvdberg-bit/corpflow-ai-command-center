@@ -218,9 +218,13 @@ Verification:
 - ERP public HTTPS ping remained 200/pong.
 
 Installed/versioned hashes:
-- Wrapper SHA256 ca5365eda4c9fff544adbeed14deab733e8d801832527b28f25d16dcad8c17a8.
+- Wrapper SHA256 bb6255db9c365e416fca1da5c73fe44d52d0453758ed9f46cf258420fa4c2b7b (final cron-environment version).
 - Health checker SHA256 583c8373e5adcfa57a51638c4a290a5fd2a864d489e30fba3b4854f63cd0b8a2.
 
 Rollback originals: /root/erpnext-hosted-restore-20261007/backup-change-20261007T232435Z. Restore the saved root crontab and health-check script (including anton ownership/mode); leave backup artifacts intact. No reboot, ERP worker/scheduler activation, credentials rotation, site overwrite or hosted cancellation occurred.
 
 This completes installation and one live execution of the approved daily-backup/alert change. The next unattended scheduled run has not yet been observed. A full isolated database restore from the new daily backup remains pending. Overall ERP migration acceptance remains PARTIAL.
+
+### Final scheduled-environment verification
+
+The wrapper explicitly sets a bounded executable PATH so cron can find the existing Borg, Docker and runuser commands. A second complete live run under minimal cron-style environment passed at 2026-10-07 23:37:57 UTC / 8 October 03:37:57 Mauritius. Remote archive snapshot_2026-10-07-23.37.32 contains the exact artifacts and matching manifest. Final inspection confirmed cron active, the single approved 01:00 UTC wrapper entry installed, persisted outcome success/remote_verified true, two completed managed runs, 0700 run folders and 0600 artifacts. The job runs entirely on the server and does not require the laptop to stay online. The first future unattended invocation remains unobserved; the full isolated restore remains outstanding. Versioned wrapper/checker and regression fixtures are included in the unmerged PR.
