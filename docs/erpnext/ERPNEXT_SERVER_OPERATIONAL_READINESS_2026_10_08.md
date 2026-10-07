@@ -68,6 +68,9 @@ try:
     after = json.loads(run(["docker", "compose", "-f", str(pending),
                             "config", "--format", "json"]))
     check = copy.deepcopy(after)
+    if after.get("x-app", {}).get("restart") != "unless-stopped":
+        raise RuntimeError("unexpected shared app restart policy")
+    check["x-app"]["restart"] = before["x-app"]["restart"]
     if set(before["services"]) != set(after["services"]):
         raise RuntimeError("service set changed")
     for service in before["services"]:
@@ -142,3 +145,5 @@ n8n management access remains unverified. No workflow was changed or triggered.
 ## Verification and stop condition
 
 The restart recipe is controller-reviewed preparation; server execution and its result remain pending. The Compose transformation is checked against a semantic before/after comparison on the server before mutation. No unexecuted server check, scheduled backup, reboot recovery or overall completed cutover is claimed.
+
+Operator guard correction: Compose retains the `x-app` extension in its JSON output. The semantic comparison now normalizes both service restart values and the shared app restart value before comparing. The first operator apply attempt stopped before mutation; inspection confirmed `x-app` was the only remaining differing section.
