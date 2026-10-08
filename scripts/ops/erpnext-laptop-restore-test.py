@@ -116,11 +116,13 @@ print('Isolated database/files restore and migration: PASS')
         stage='restore isolated site'; print(stage,flush=True)
         run(['docker','exec','-w',BENCH,backend,'python','-c',code])
         stage='verify records and files'
-        verify="""import frappe,json,pathlib,tarfile,hashlib
-frappe.init(site='laptop-drtest.localhost',sites_path='sites'); frappe.connect()
-counts={d:frappe.db.count(d) for d in ['Quotation','Sales Invoice','Supplier']}
-assert counts=={'Quotation':9,'Sales Invoice':3,'Supplier':6}, 'count mismatch'
-assert frappe.db.exists('Quotation','SAL-QTN-2026-00006')
+        counts={}
+        for doctype in ['Quotation','Sales Invoice','Supplier']:
+            counts[doctype]=json.loads(run(['docker','exec','-w',BENCH,backend,'bench','--site',SITE,'execute','frappe.db.count','--args',json.dumps([doctype])]))
+        assert counts=={'Quotation':9,'Sales Invoice':3,'Supplier':6}, 'count mismatch'
+        reference=json.loads(run(['docker','exec','-w',BENCH,backend,'bench','--site',SITE,'execute','frappe.db.exists','--args',json.dumps(['Quotation','SAL-QTN-2026-00006'])]))
+        assert reference=='SAL-QTN-2026-00006'
+        verify="""import json,pathlib,tarfile,hashlib
 cfg=json.loads(pathlib.Path('sites/laptop-drtest.localhost/site_config.json').read_text()); keys=json.loads(pathlib.Path('/recovery/keys.json').read_text()); assert all(cfg.get(k)==v for k,v in keys.items())
 checked=0
 site=pathlib.Path('sites/laptop-drtest.localhost')
@@ -136,10 +138,10 @@ for kind in ['public','private']:
    assert hashlib.sha256(found.read_bytes()).digest()==hashlib.sha256(tar.extractfile(member).read()).digest()
    checked+=1
 assert cfg.get('pause_scheduler') or cfg.get('disable_scheduler')
-print(json.dumps({'counts':counts,'quotation_reference':True,'restored_files_hash_verified':checked,'configuration_keys_preserved':True,'scheduler_disabled':True}))
-frappe.destroy()
+print(json.dumps({'restored_files_hash_verified':checked,'configuration_keys_preserved':True,'scheduler_disabled':True}))
 """
         evidence=json.loads(run(['docker','exec','-w',BENCH,backend,BENCH+'/env/bin/python','-c',verify]).decode())
+        evidence.update(counts=counts,quotation_reference=True)
         inspection=json.loads(run(['docker','inspect',backend]).decode())[0]
         assert not inspection['HostConfig']['PortBindings']
         assert set(inspection['NetworkSettings']['Networks'])=={PROJECT+'_recovery'}
