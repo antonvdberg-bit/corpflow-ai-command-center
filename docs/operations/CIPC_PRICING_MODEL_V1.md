@@ -4,26 +4,28 @@
 **Parents:** [#984](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/984), [#640](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/640).  
 **Tenant / working name:** `cipc-desk` / **CIPC Desk**.  
 **Environment:** `corpflow_test` operator surface only (`/change` for tenant `cipc-desk`).  
-**Verdict:** Operators can compare clean-case direct-SME and partner PAYG candidates against #989 test bands with margin visibility and statutory-fee separation. **This is not public pricing. It is not a client quotation. Serah has not approved the cost/time numbers.**
+**Verdict:** The current measured pilot accepts private, session-only operator inputs for provisional service-fee modelling. Historical rates, times, bands, and discount examples remain dated, synthetic, and unapproved. **This is not public pricing. It is not a client quotation.**
 
 <!-- CIPC_PRICING_MODEL_V1 -->
 
 **Machine contract:** `config/cipc-pricing-model.v1.json` · `lib/cipc-desk/pricing-model.js`  
 **Operator surface:** `/change` on the CIPC Desk host, logged-in session only (`components/CipcPricingOperatorPanel.js`).
 
-**ANTON ACTION: NONE** for using this internal model. Anton (and Serah for service-scope/time) are needed only before any public price publication or client quotation.
+**Current status:** `INTERNAL PILOT — PRICES AND TIMINGS PROVISIONAL`. Process-pilot approval is separate from final commercial approval. The pilot cannot publish, quote, send, submit, or pay.
 
 ---
 
 ## What is true when this pack is in use
 
-Anton/CorpFlowAI can evaluate:
+The explicit **Historical example — unapproved** mode retains the earlier synthetic calculator for comparison only. The **Current measured pilot** mode is the only current mode and requires the operator to enter, for this session:
 
-- clean-case **direct SME** service fees against the provisional #989 test bands;
-- **Partner PAYG** wholesale candidates at a 20–35% discount, raised to the contribution-margin floor when the discount would go below cost;
-- **Partner Capacity** as modelling-only — the monthly retainer stays operator-set until real pilot volume exists.
+- candidate net service fee, fully loaded human hourly rate, AI/tool cost;
+- ordinary human review/submission/confirmation/follow-up minutes;
+- exception frequency and extra human minutes;
+- payment charge on the full amount collected, allocated overhead, and chosen contribution threshold;
+- optional statutory pass-through, which is never service revenue.
 
-CIPC statutory fees are always shown separately and are **never** CorpFlowAI revenue.
+Inputs are cleared on mode, audience, or service changes. They are not stored in localStorage, telemetry, APIs, or a database. There is no default discount and no automatic fee recommendation.
 
 The banner on every output is:
 
@@ -31,7 +33,26 @@ The banner on every output is:
 
 ---
 
-## 1. What is evidence-backed vs TBC / synthetic
+## 1. Pilot catalogue and boundaries
+
+The pilot catalogue includes existing-entity onboarding; new-company onboarding
+plus one registration bundle; registration excluding setup; annual return with
+current BO; simple BO; one director appointment/resignation; address; share
+certificate from a verified register; name reservation; and financial year end.
+Address and FYE are separate services. Bundle components are counted once.
+Complex specialist work is scoped quote only.
+
+One simple entity file is the onboarding lane. An already usable verified file
+does not receive a duplicate setup fee. Cleanup or complex scope requires a
+separate pre-agreed quote. Initial BO remains separate. A share certificate is
+a company-record task, not a CIPC filing. The ordinary annual-return lane
+requires current BO. No legal, fee, or turnaround guarantee is made.
+
+Pilot audiences are direct small business, professional partner, and
+multi-company portfolio. Retainers and discounted tiers require measured-volume
+evidence and operator inputs; no volume minimum is invented.
+
+## 2. What is evidence-backed vs TBC / synthetic
 
 | Item | Status |
 |------|--------|
@@ -48,36 +69,38 @@ If a required numeric assumption is missing, the engine returns `MISSING_ASSUMPT
 
 ---
 
-## 2. Formulas
+## 3. Formulas
 
 All money is ZAR, rounded to cents. Statutory fees are excluded from every cost and margin formula.
 
-1. **Internal delivery cost**  
-   `(operator_minutes / 60) × operator_hourly_zar + (specialist_minutes / 60) × specialist_hourly_zar + overhead_allowance_zar + payment_processing_allowance_zar`  
-   Payment processing is 0 unless explicitly activated.
+1. **Measured pilot expected human minutes**
+   `ordinary_human_minutes + exception_frequency × exception_extra_human_minutes`
 
-2. **Service-fee floor for target contribution margin**  
-   `internal_cost / (1 − target_contribution_margin_pct)`  
-   Default modelled target is 45% (`synthetic_tbc`).
+2. **Measured pilot variable cost**
+   `(expected_human_minutes / 60) × fully_loaded_human_hourly_rate + AI/tool_cost + payment_charge`
 
-3. **Direct-SME comparison**  
-   The modelled direct fee (config target, or an operator-proposed fee) is compared with the #989 band floor / target / ceiling. Being inside the market band does **not** waive the margin floor.
+3. **Measured pilot threshold**
+   `required_service_fee = variable_cost / (1 − contribution_threshold)`
 
-4. **Partner PAYG**  
-   `direct_fee × (1 − discount_pct / 100)` with `discount_pct` in 20–35.  
-   If that result is below the margin floor, the discount is **rejected** and the candidate is **raised** to the floor (`PARTNER_DISCOUNT_BREACHES_FLOOR`).
+4. **Candidate handling**
+   Contribution is `net_service_fee − variable_cost`, and margin is contribution
+   divided by net service fee. Allocated overhead is shown separately and
+   subtracted only for “contribution after allocated overhead”; this is not
+   whole-business net profit. If the candidate fails the threshold it remains
+   unchanged and the result is `REVISE`.
 
-5. **Revenue**  
-   `corpflowai_revenue_zar = service_fee` only.  
-   `statutory_fee_passthrough` is informational.  
-   `statutory_counted_as_revenue` is always `false`.
+5. **Stress comparison**
+   Stress minutes and exception assumptions are separately entered. Missing
+   inputs remain `MISSING_INPUT`; confirmed zero is valid. Statutory amounts are
+   never subtracted again from an already-net service fee, while payment charge
+   is included in cost.
 
-6. **Scoped quote**  
-   Complex/historical/specialist matters, complex beneficial ownership, rush/exception flags, and any service with `fixed_price_eligible: false` return `SCOPED_QUOTE_REQUIRED` with `service_fee: null`.
+Historical formulas remain documented below in the dated historical mode and
+must not be treated as current approved pricing.
 
 ---
 
-## 3. Operator use
+## 4. Operator use
 
 On `https://cipc.corpflowai.com/change` (logged in as CIPC Desk):
 
@@ -92,7 +115,13 @@ There is no save, send, quote, or payment control on this panel.
 
 ---
 
-## 4. Protected boundaries
+## 5. Evidence checklist and protected boundaries
+
+Before any commercial approval, evidence is still required for completed
+routine cases/onboarding, measured review and follow-ups, permitted filing
+channel, authority/mandate and confirmation, tax treatment, and available
+specialist hours and queue capacity. Actual case and financial records belong
+in ERPNext; this calculator creates none.
 
 This packet does **not** authorise:
 
@@ -113,6 +142,10 @@ Remaining decisions before any public or client use:
 
 ---
 
-## 5. Delivery reality
+## 6. Delivery reality
 
-This is an internal operator modelling tool. It is **PARTIAL** until Anton merges and the CIPC Desk `/change` panel is live-verified. It is never `COMPLETE` as public pricing, because public pricing is out of scope.
+This is an internal operator modelling tool. Sanitized deterministic evidence
+is in `artifacts/business-admin-desk-pricing-pilot/README.md`. The delivery
+verdict is **PARTIAL** until the authenticated test route and deployed commit
+are verified. It is never `COMPLETE` as public pricing, because public pricing
+is out of scope.

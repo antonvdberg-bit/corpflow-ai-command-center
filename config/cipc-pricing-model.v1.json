@@ -23,6 +23,69 @@
   "version": "cipc-pricing-model-v1",
   "publication_state": "internal_model_only_not_approved",
   "banner": "INTERNAL MODEL — NOT APPROVED FOR PUBLICATION OR CLIENT QUOTATION",
+  "historical_model_label": "HISTORICAL EXAMPLE — UNAPPROVED, DATED TEST DEFAULTS",
+  "current_pilot": {
+    "status": "INTERNAL PILOT — PRICES AND TIMINGS PROVISIONAL",
+    "session_only_inputs": true,
+    "persist": false,
+    "automatic_discount": false,
+    "automatic_fee_recommendation": false,
+    "audiences": [
+      "direct_small_business",
+      "professional_partner",
+      "multi_company_portfolio"
+    ],
+    "services": {
+      "existing_entity_onboarding": {
+        "title": "Existing-entity onboarding — one simple usable verified file",
+        "components": ["one_simple_entity_file"],
+        "note": "No duplicate setup fee for an already usable verified file."
+      },
+      "new_company_registration_bundle": {
+        "title": "New-company onboarding + registration bundle",
+        "components": ["one_simple_entity_file", "registration"],
+        "note": "Bundle components are counted once; initial BO remains separate."
+      },
+      "registration_excluding_setup": {
+        "title": "Registration excluding setup",
+        "components": ["registration"]
+      },
+      "annual_return_bo_current": {
+        "title": "Annual return — current BO required",
+        "components": ["annual_return"]
+      },
+      "simple_beneficial_ownership": {
+        "title": "Simple beneficial ownership",
+        "components": ["beneficial_ownership"]
+      },
+      "director_appointment_resignation": {
+        "title": "One director appointment/resignation",
+        "components": ["director_change"]
+      },
+      "address": {
+        "title": "Address",
+        "components": ["address"]
+      },
+      "share_certificate_verified_register": {
+        "title": "Share certificate from verified register",
+        "components": ["share_certificate"],
+        "note": "Company-record task, not a CIPC filing."
+      },
+      "name_reservation": {
+        "title": "Name reservation",
+        "components": ["name_reservation"]
+      },
+      "financial_year_end": {
+        "title": "Financial year end",
+        "components": ["financial_year_end"]
+      },
+      "complex_specialist": {
+        "title": "Complex specialist — scoped quote only",
+        "components": [],
+        "scoped_quote_only": true
+      }
+    }
+  },
 
   "guardrails": {
     "statutory_fee_is_revenue": false,

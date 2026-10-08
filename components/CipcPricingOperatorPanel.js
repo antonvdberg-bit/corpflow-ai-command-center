@@ -7,6 +7,10 @@ import {
 import {
   CIPC_PRICING_INTERNAL_BANNER,
   CIPC_PRICING_ROUTES,
+  CIPC_PILOT_AUDIENCES,
+  CIPC_PILOT_SERVICE_IDS,
+  CIPC_PILOT_STATUS,
+  calculateMeasuredPilotScenario,
   evaluateCipcPricingModel,
   listCipcPricingServiceIds,
 } from '../lib/cipc-desk/pricing-model.js';
@@ -31,6 +35,10 @@ const inputStyle = {
  */
 export default function CipcPricingOperatorPanel({ visible = true }) {
   const services = listCipcPricingServiceIds(pricingConfig);
+  const [mode, setMode] = useState('pilot');
+  const [pilotAudience, setPilotAudience] = useState(CIPC_PILOT_AUDIENCES[0]);
+  const [pilotService, setPilotService] = useState(CIPC_PILOT_SERVICE_IDS[0]);
+  const [pilotInputs, setPilotInputs] = useState({});
   const [serviceId, setServiceId] = useState(services[0] || 'annual_returns');
   const [route, setRoute] = useState(CIPC_PRICING_ROUTES[0]);
   const [discountPct, setDiscountPct] = useState(20);
@@ -70,6 +78,107 @@ export default function CipcPricingOperatorPanel({ visible = true }) {
 
   if (!visible) return null;
 
+  const resetPilotContext = (next) => {
+    setPilotInputs({});
+    setDiscountPct(20);
+    setComplexity('standard');
+    setRush(false);
+    setStatutoryFee('');
+    setOperatorMinutes('');
+    setSpecialistMinutes('');
+    next();
+  };
+  const pilotResult = calculateMeasuredPilotScenario({
+    mode: 'pilot',
+    audience: pilotAudience,
+    service_id: pilotService,
+    ...pilotInputs,
+  });
+  const setPilotInput = (key, value) => setPilotInputs((current) => ({ ...current, [key]: value }));
+  const pilotField = (key, label, options = {}) => (
+    <label key={key} style={{ fontSize: 11, color: '#94a3b8', minWidth: 0 }}>
+      {label}
+      <input
+        data-testid={`cipc-pilot-${key}`}
+        type="number"
+        min="0"
+        max={options.fraction ? 1 : undefined}
+        step={options.fraction ? '0.01' : '0.01'}
+        placeholder={options.placeholder || 'Private session input'}
+        value={pilotInputs[key] ?? ''}
+        onChange={(e) => setPilotInput(key, e.target.value)}
+        style={{ ...inputStyle, marginTop: 4 }}
+      />
+    </label>
+  );
+  if (mode === 'pilot') {
+    return (
+      <div data-testid="cipc-pricing-operator-panel" style={{
+        marginTop: 12, padding: 14, borderRadius: 14,
+        border: '1px solid rgba(34,211,238,0.42)', background: 'rgba(8,47,73,0.24)',
+        minWidth: 0, ...changeTextContainStyle(),
+      }}>
+        <div data-testid="cipc-pricing-internal-banner" style={{ fontSize: 12, fontWeight: 950, color: '#cffafe' }}>
+          {CIPC_PILOT_STATUS}
+        </div>
+        <div style={{ marginTop: 6, fontSize: 12, fontWeight: 850, color: '#e2e8f0' }}>
+          Measured pilot calculator — session-only operator inputs
+        </div>
+        <div style={{ marginTop: 6, fontSize: 12, color: '#cbd5e1', lineHeight: 1.45 }}>
+          Pilot modelling only. Inputs are cleared when mode, audience, or service changes and are never persisted.
+          This panel cannot publish, quote, send, submit, or take payment.
+        </div>
+        <div style={{ marginTop: 12, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10, minWidth: 0 }}>
+          <label style={{ fontSize: 11, color: '#94a3b8' }}>
+            Calculation mode
+            <select data-testid="cipc-pricing-mode" value={mode} onChange={(e) => resetPilotContext(() => setMode(e.target.value))} style={{ ...inputStyle, ...changeSelectContainStyle(), marginTop: 4 }}>
+              <option value="pilot">Current measured pilot</option>
+              <option value="historical">Historical example — unapproved</option>
+            </select>
+          </label>
+          <label style={{ fontSize: 11, color: '#94a3b8' }}>
+            Audience
+            <select data-testid="cipc-pilot-audience" value={pilotAudience} onChange={(e) => resetPilotContext(() => setPilotAudience(e.target.value))} style={{ ...inputStyle, ...changeSelectContainStyle(), marginTop: 4 }}>
+              {CIPC_PILOT_AUDIENCES.map((id) => <option key={id} value={id}>{id.replaceAll('_', ' ')}</option>)}
+            </select>
+          </label>
+          <label style={{ fontSize: 11, color: '#94a3b8' }}>
+            Pilot service
+            <select data-testid="cipc-pilot-service" value={pilotService} onChange={(e) => resetPilotContext(() => setPilotService(e.target.value))} style={{ ...inputStyle, ...changeSelectContainStyle(), marginTop: 4 }}>
+              {CIPC_PILOT_SERVICE_IDS.map((id) => <option key={id} value={id}>{String(pricingConfig.current_pilot?.services?.[id]?.title || id)}</option>)}
+            </select>
+          </label>
+          {pilotField('candidate_net_service_fee_zar', 'Candidate net service fee (ZAR)')}
+          {pilotField('human_hourly_rate_zar', 'Fully loaded human hourly rate (ZAR)')}
+          {pilotField('ai_tool_cost_zar', 'AI preparation/direct tool cost (ZAR)')}
+          {pilotField('ordinary_human_minutes', 'Ordinary human review/submission/confirmation/follow-up minutes')}
+          {pilotField('exception_frequency', 'Exception frequency (0–1)', { fraction: true })}
+          {pilotField('exception_extra_human_minutes', 'Extra human minutes per exception')}
+          {pilotField('payment_charge_zar', 'Provider payment charge on full amount (ZAR)')}
+          {pilotField('allocated_overhead_zar', 'Allocated overhead (shown separately, ZAR)')}
+          {pilotField('contribution_threshold', 'Chosen contribution threshold (0–1)', { fraction: true })}
+          {pilotField('stress_ordinary_human_minutes', 'Stress ordinary human minutes')}
+          {pilotField('stress_exception_frequency', 'Stress exception frequency (0–1)', { fraction: true })}
+          {pilotField('stress_exception_extra_human_minutes', 'Stress extra exception minutes')}
+          {pilotField('statutory_fee_passthrough_zar', 'Optional statutory pass-through (not revenue)')}
+        </div>
+        <div data-testid="cipc-pilot-result" style={{ marginTop: 12, padding: 10, borderRadius: 12, border: '1px solid rgba(148,163,184,0.22)', background: 'rgba(2,6,23,0.28)', fontSize: 12, color: '#e2e8f0', lineHeight: 1.5 }}>
+          <div><strong>Status:</strong> {String(pilotResult.outcome || 'MISSING_INPUT')}</div>
+          {pilotResult.errors?.length ? <ul>{pilotResult.errors.map((error) => <li key={error}>{error}</li>)}</ul> : null}
+          <div>Expected human minutes: {pilotResult.expected_human_minutes ?? 'MISSING_INPUT'} · Stress: {pilotResult.stress_human_minutes ?? 'MISSING_INPUT'}</div>
+          <div>Expected variable cost: {pilotResult.expected_variable_cost_zar == null ? 'MISSING_INPUT' : `R${pilotResult.expected_variable_cost_zar}`} · Stress floor: {pilotResult.stress_variable_cost_zar == null ? 'MISSING_INPUT' : `R${pilotResult.stress_variable_cost_zar}`}</div>
+          <div>Candidate fee: {pilotResult.candidate_net_service_fee_zar == null ? 'MISSING_INPUT' : `R${pilotResult.candidate_net_service_fee_zar}`} · Required at threshold: {pilotResult.required_service_fee_at_threshold_zar == null ? 'MISSING_INPUT' : `R${pilotResult.required_service_fee_at_threshold_zar}`}</div>
+          <div>Contribution: {pilotResult.contribution_zar == null ? 'MISSING_INPUT' : `R${pilotResult.contribution_zar}`} · After allocated overhead: {pilotResult.contribution_after_allocated_overhead_zar == null ? 'MISSING_INPUT' : `R${pilotResult.contribution_after_allocated_overhead_zar}`} (not whole-business net profit)</div>
+          <div>Statutory pass-through: {pilotResult.statutory_fee_passthrough_zar == null ? 'not supplied' : `R${pilotResult.statutory_fee_passthrough_zar}`} — excluded from service revenue; payment charge remains in cost.</div>
+          <div style={{ marginTop: 8, color: '#fde68a' }}>Process-pilot approval is separate from final commercial approval. No automatic discount or fee recommendation.</div>
+        </div>
+        <div style={{ marginTop: 10, fontSize: 11, color: '#cbd5e1' }}>
+          Evidence still needed: completed routine cases/onboarding; measured review and follow-ups; permitted filing channel; authority/mandate and confirmation; tax treatment; specialist hours and queue capacity.
+        </div>
+      </div>
+    );
+  }
+
   const range = result?.recommended_internal_test_range_zar && typeof result.recommended_internal_test_range_zar === 'object'
     ? result.recommended_internal_test_range_zar
     : {};
@@ -104,6 +213,21 @@ export default function CipcPricingOperatorPanel({ visible = true }) {
         }}
       >
         {CIPC_PRICING_INTERNAL_BANNER}
+      </div>
+      <label style={{ display: 'block', marginTop: 8, fontSize: 11, color: '#fde68a' }}>
+        Calculation mode
+        <select
+          data-testid="cipc-pricing-mode"
+          value={mode}
+          onChange={(e) => resetPilotContext(() => setMode(e.target.value))}
+          style={{ ...inputStyle, ...changeSelectContainStyle(), marginTop: 4 }}
+        >
+          <option value="pilot">Current measured pilot</option>
+          <option value="historical">Historical example — unapproved</option>
+        </select>
+      </label>
+      <div data-testid="cipc-pricing-historical-label" style={{ marginTop: 6, color: '#fde68a', fontSize: 11 }}>
+        {pricingConfig.historical_model_label || 'HISTORICAL EXAMPLE — UNAPPROVED, DATED TEST DEFAULTS'}
       </div>
       <div style={{ marginTop: 6, fontSize: 12, fontWeight: 850, color: '#e2e8f0' }}>
         CIPC pricing decision model — internal test bands only
