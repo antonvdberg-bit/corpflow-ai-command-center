@@ -1,4 +1,5 @@
 import importlib.util
+import ast
 import pathlib
 import unittest
 
@@ -9,6 +10,15 @@ def receipt(day):
     return {'run':day.replace('-','')+'T010000Z','created_utc':day+'T01:00:00+00:00','sha256':'a'*64}
 
 class RotationTests(unittest.TestCase):
+    def test_embedded_restore_python_compiles(self):
+        tree=ast.parse((pathlib.Path(__file__).resolve().parents[1]/'erpnext-laptop-restore-test.py').read_text())
+        found=[]
+        for node in ast.walk(tree):
+            if isinstance(node,ast.Assign) and isinstance(node.value,ast.Constant) and isinstance(node.value.value,str):
+                names=[target.id for target in node.targets if isinstance(target,ast.Name)]
+                if names and names[0] in ['code','verify']:
+                    compile(node.value.value,'embedded-'+names[0],'exec'); found.extend(names)
+        self.assertEqual(set(found),{'code','verify'})
     def test_first_copy_initializes_three_slots_one_package(self):
         slots,week,month=copy.advance_slots({'slots':{}},receipt('2026-10-08'))
         self.assertEqual(set(slots),{'latest','weekly','monthly'})
