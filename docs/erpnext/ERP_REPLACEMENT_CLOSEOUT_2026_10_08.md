@@ -27,3 +27,9 @@ Preview failures/corrections: direct bench inspection initially used the wrong s
 Next priority: authenticated deployed Core→ERP quotation flow. Current browser has no signed-in Core session. This is an access gate, not missing ERP API connectivity. No password-presence probe, secret logging, credential reset or test-user creation is used. Fresh source/server record-list comparison remains current; print-format/webhook differences introduced by this approved closeout are intentional.
 
 Overall ERP replacement remains PARTIAL until current consumers, approved operating-job baseline and final single-writer/retirement acceptance are complete. Wider server maintenance remains outside this active lane.
+
+### Post-change recovery point
+
+The existing guarded combined ERP→encrypted Borg backup was run after both repairs and passed with exit0, verifying ERP and protected ops artifacts in the remote archive. Temporary site previews were removed only after verifying private root rollback copies; those copies remain outside the live site. This protects the newly applied formats and disabled cloud hooks. Laptop latest-copy scheduling remains unchanged; no fresh laptop copy receipt is claimed by this run.
+
+The next active item is the deployed Core consumer proof, using its existing Factory Admin login. Secure browser authentication is the intended route; no credentials in chat, no password reset/test-user provisioning and no password-presence probe. Whole ERP replacement is not closed while that consumer/operating-baseline/retirement acceptance remains pending.
