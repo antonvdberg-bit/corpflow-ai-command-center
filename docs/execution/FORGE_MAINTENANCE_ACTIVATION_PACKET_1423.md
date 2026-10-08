@@ -79,3 +79,10 @@ Anton explicitly instructed the controller to proceed and drive completion at 08
 Implementation is narrower than this full acceptance proposal: no 30-run receipt history/global 90-second collector deadline, full catalogue daily subchecks, comprehensive secret-pattern input rejection, lock/timeout/retry-pressure fixture or monthly restore automation is claimed. Systemd supplies a five-minute global bound and current sanitized receipts; due-task review is the implemented six-check set. These gaps remain acceptance work, not silent PASS. Actual Forge review has no PASS receipt yet. First scheduled run remains pending.
 
 The later ops backup expansion has its own ADR and helper; it is outside this read-only packet's authority. PR review and merge remain separate and unperformed. This section supersedes the historical no-install statements only for the named authorized daily collector/alert installation.
+
+
+## Current capacity checkpoint — 8 October, approximately 10:00 Mauritius
+
+Anton reiterated that ChatGPT usage is scarce and Forge must become useful quickly. Fresh bounded read-only inspection through the existing SSH route confirms available RAM5.29GiB, required guard6GiB, no model loaded and the maintenance timer active. Thus the model review is currently BLOCKED/DEFERRED_RESOURCE, not RUNNING or PASS. Deterministic server checks remain active. No limit, model, hardware or service changed.
+
+Next Forge closure must establish a reviewed resident-memory bound for this exact selected model and bounded context, preserving at least2GiB for existing services, or present the exact capacity decision if that is impossible. Do not repeatedly retry model loading, weaken the reserve, add paid hardware or describe the active timer as usable inference. This task follows the active ERP Core repair #1429; do not create a competing Cursor lane. The current repair has independent actual IN_PROGRESS agent/run evidence and can continue outside this chat's usage window. Full model-based maintenance autonomy remains unproven.
