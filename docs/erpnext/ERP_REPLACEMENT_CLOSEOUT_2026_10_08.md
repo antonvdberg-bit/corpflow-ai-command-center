@@ -45,3 +45,16 @@ A single apply-ready runtime repair is routed through the existing Cursor Factor
 Priority remains: finish #1429 repair and authenticated live Core→ERP proof, then reconcile actual existing consumers/operating baseline and present final single-writer/retirement acceptance. Print repair, cloud-hook retirement and the post-change encrypted remote backup remain CLOSED.
 
 Activation verified: #1429 packet validation PASS; Handoff run37734214878 succeeded, Cursor agent bc-c217c216-27f8-41e7-9b07-dad80114e854 / run-a2972e78-3dbb-41de-b417-547a6000db3d reported IN_PROGRESS at 2026-10-08T05:48:44.966Z. No branch/PR/CI/completion receipt yet. Do not relaunch.
+
+
+### Reviewed repair — 8 October, 12:38 Mauritius
+
+Cursor pushed exactly one changed line at commit35854daf7e9a9b6f51d9dd308ddbbb4e54e94e68, branch cursor/factory-handoff-issue-1429-4064. Its initial IN_PROGRESS receipt was stale, not a current execution statement. Controller inspected the existing branch and prepared PR #1431 without changing code or starting another executor.
+
+34 focused commercial approval/summary tests passed. Installed picomatch confirms exact policy and preserved Prisma inclusion and excludes unrelated configs. Local ordinary build failed because shared laptop dependencies are stale/missing Paddle; the first PowerShell invocation stopped on a deprecation warning, corrected shell invocation exposed the actual missing dependency. No local build PASS is claimed.
+
+Required clean GitHub CI run37750791932 passed, including automated tests and the Next production build; environment and doctrine checks passed. Vercel preview was ignored by current policy, so its status is not actual function-artifact or live-consumer proof. PR1431 is reviewed/ready for the exact merge/release gate under AGENTS.md and current delivery doctrine. No merge/deploy/cancellation occurred.
+
+Fresh runtime check: ERP verified-TLS HTTPS ping pong, six running recovery containers with healthy DB, backup outcome success plus remote_verified=true and ops_remote_verified=true. Selected timestamp keys were absent, so this check does not claim a new backup time. Forge availableRAM5.28GiB, zero loaded models; below existing6GiB guard.
+
+Still required for final ERP closure: approved release of1431 and actual authenticated Core→ERP proof, actual existing n8n consumer/settings reconciliation (management access still unavailable), accepted manual/automated job baseline, final source delta/single-writer acceptance and hosted/original-site retirement decision. Future new business automation and whole-estate DR remain separate. Direct ERP manual use remains operational.
