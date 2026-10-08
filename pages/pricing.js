@@ -175,10 +175,10 @@ export default function PricingPage() {
               <a href="/demo/website-rescue">View the fictional Website Rescue before/after example</a>.
               Examples illustrate a process, not a promised customer result.
             </p>
-            <h3>Is this the Enquiry Recovery Sprint?</h3>
+            <h3>Does this change my accepted quote?</h3>
             <p>
-              No. That is a separate scoped Mauritius recovery engagement. These standard fees do
-              not reprice an accepted sprint quote.
+              No. Existing accepted quotations keep their agreed price and scope. New work uses
+              the permanent regional price list.
             </p>
           </GlassPanel>
         </section>
