@@ -1,0 +1,13 @@
+# ADR: protected ops recovery in the existing Borg pipeline
+
+Source: Anton's requests for whole-server maintenance, laptop cold DR and completion ASAP on 8 October 2026. This is a separate bounded backup expansion; it does not enlarge Forge's read-only authority.
+
+Scope: consistent online SQLite snapshots of Kuma and both Beszel databases; protected copies of Nebula configuration for both meshes, Caddy configuration/certificate storage, Kuma/Beszel/recovered-ERP Compose recipes and maintenance runtime files. Protected container metadata preserves current image, mount and boot configuration. It may contain secrets and stays root-only, never published or sent to Forge. Reconstructible Ollama weights, original ERP database, complete host image, Core/Neon and separate n8n remain excluded.
+
+Install /usr/local/sbin/corpflowai-ops-recovery-snapshot.py. Extend the current guarded /usr/local/sbin/corpflowai-erp-borg-backup.py immediately before the existing Borg backup: snapshot to /root/corpflowai-ops-recovery/daily, root 0700 and files 0600, check SQLite integrity, hash every artifact, verify ops and ERP artifacts/manifests in the same encrypted remote archive. Retain seven completed local ops snapshots using the existing bounded retention. Existing 05:00 Mauritius job and notifier remain authoritative; no new scheduler, destination, credentials or paid service. A snapshot/remote-verification failure makes that combined job fail through its existing alert route.
+
+Controls: 120-second online backup deadline per SQLite database, total 600-second snapshot deadline, at least 1 GiB free space, immutable named sources, no application stop, no arbitrary restore into production, no database/config contents logged. Config copying is a protected recovery copy, not a filesystem-wide consistent host image.
+
+Acceptance: local WAL fixture and corruption rejection; server syntax checks; named current-wrapper SHA guard; one manual protected snapshot; one combined encrypted remote backup with exact membership and hashes; isolated readback into a root-only temporary folder with SQLite quick_check and config archive hash; delete only that temporary validation folder. Scheduled first execution and whole-service replacement-host recovery are separate evidence requirements.
+
+Rollback: preserve current wrapper in /root/corpflowai-ops-backup-stage-20261008 before replacement; restore it only if its replacement hash matches; remove only this newly installed helper. Preserve all backup artifacts. No business container restart, root cron change, package update, model promotion or billing change. Laptop copies still cover ERP only until a separately validated bounded bundle extension.
