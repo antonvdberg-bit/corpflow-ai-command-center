@@ -18,8 +18,13 @@
 
 ## Marketing quality gate
 
+<<<<<<< HEAD
 Quality-gate score: **13/14 provisional**. Strategic clarity 2, message quality 2, proof/trust 2,
 scannability 2, visual/aesthetic 1 pending screenshot artifact, conversion logic 2, channel fit 2.
+=======
+Quality-gate score: **13/14 provisional**. Strategic clarity 2, message quality 2, proof/trust 2,
+scannability 2, visual/aesthetic 1 pending screenshot artifact, conversion logic 2, channel fit 2.
+>>>>>>> 67fa46f2 (feat(marketing): publish approved regional service pricing)
 
 Required visual checks before treating the asset as verified:
 

@@ -114,12 +114,20 @@ export default function EnquiryRecoveryCampaignPage() {
             <strong style={{ fontSize: 19 }}>{ENQUIRY_RECOVERY_OFFER_NAME} · {ENQUIRY_RECOVERY_PRICE_LINE}</strong>
             <div style={{ marginTop: 6 }}>{ENQUIRY_RECOVERY_SCARCITY_LINE}</div>
             <div style={{ marginTop: 6, fontSize: 14 }}>{LEAD_RESCUE_PUBLIC_PAYMENT_LINE}</div>
+            <div style={{ marginTop: 6, fontSize: 14 }}>
+              This is a separate scoped sprint, not one of the standard packages shown on the pricing page.
+            </div>
           </div>
           <div style={{ marginTop: 24 }}>
             <a style={primaryCtaStyle} href={diagnosisHref} data-testid="lead-rescue-canonical-cta" onClick={() => handleCtaClick('hero')}>
               {ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL}
             </a>
           </div>
+          <p style={{ ...styles.note, marginTop: 16 }}>
+            <a href="/pricing" style={{ color: '#7dd3fc' }}>
+              See standard setup and monthly care pricing
+            </a>
+          </p>
         </HeroGlassBlock>
 
         <section style={section}>
