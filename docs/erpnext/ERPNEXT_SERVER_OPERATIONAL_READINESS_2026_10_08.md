@@ -1,12 +1,12 @@
 # ERPNext recovered-server operational readiness — 2026-10-08
 
-Status: RESTART UPDATE EXECUTED AND VERIFIED; backup and wider readiness work pending. Companion to [server recovery record](ERPNEXT_SERVER_RECOVERY_2026_10_07.md).
+Status: ERP server/laptop backup installation and isolated laptop-copy restore verification COMPLETE; wider ERP transition acceptance remains PARTIAL. Companion to [server recovery record](ERPNEXT_SERVER_RECOVERY_2026_10_07.md).
 
 ## Scope and execution route
 
 Anton requested completion of the hosted-to-server transition. This first operational step changes only the restart policy of the existing recovered ERP services. It is not permission to submit financial records, enable communications, remove isolation or retire the hosted source.
 
-Per [server execution boundary](../operations/SERVER_AGENT_ACCESS_AND_EXECUTION_BOUNDARY_V1.md) §5.4, the controller authors and reviews the command; the operator executes it in their SSH terminal. No agent SSH/server shell execution is claimed.
+Restart changes below were executed by the operator. Subsequent backup work used the explicitly authorized Desktop Commander → laptop Git SSH → server route, as recorded in the [server execution boundary](../operations/SERVER_AGENT_ACCESS_AND_EXECUTION_BOUNDARY_V1.md). The dated preparation sections below are historical; the completion evidence at the end states current status.
 
 ## Step 1 — inspect current state
 
@@ -123,14 +123,13 @@ Do not reboot the host for this step. A host-reboot recovery test needs a separa
 
 ## Remaining operational steps
 
-1. Confirm restart-policy evidence and permanent HTTPS checks after the operator update.
-2. Inspect the installed Bench backup options and existing backup jobs without reading credential contents. Use the recovered site and preserve both original migration backups.
-3. Prepare and run a fresh full recovered-site backup, verify database/archive integrity and configuration-key preservation, and test its restore in a separate isolated site.
-4. Configure the agreed backup schedule and retention only after the manual backup/restore verifier passes. Local server backups alone do not cover server loss; an independent recovery destination remains required.
-5. Resolve PDF external-logo dependency and rendering differences before client document acceptance.
-6. Reconcile restored integration settings, define required background workers and scheduler jobs, and enable only approved jobs after checking their external effects.
-7. Verify n8n, Factory/GitHub, staging and authenticated Core quotation consumers through their actual runtime access paths.
-8. Perform final source reconciliation, establish the single authoritative writer and retire hosted billing only after acceptance.
+Restart policies, HTTPS availability, scheduled server backups, laptop rotation and isolated restore verification are now evidenced below. Remaining operational steps:
+
+1. Arrange independent offline emergency key access and prove full replacement-machine recovery, including software availability.
+2. Resolve PDF external-logo dependency and rendering differences before client document acceptance.
+3. Reconcile restored integration settings, define required background workers and scheduler jobs, and enable only approved jobs after checking their external effects.
+4. Verify n8n, Factory/GitHub, staging and authenticated Core quotation consumers through their actual runtime access paths.
+5. Perform final source reconciliation, establish the single authoritative writer and retire hosted billing only after acceptance.
 
 ## Fresh evidence and access limits
 
@@ -144,7 +143,7 @@ n8n management access remains unverified. No workflow was changed or triggered.
 
 ## Verification and stop condition
 
-The restart recipe is controller-reviewed preparation; server execution and its result remain pending. The Compose transformation is checked against a semantic before/after comparison on the server before mutation. No unexecuted server check, scheduled backup, reboot recovery or overall completed cutover is claimed.
+The restart recipe is a historical reference; equivalent guarded operator commands were executed and verified below. The Compose transformation is checked against a semantic before/after comparison on the server before mutation. No unexecuted server check, scheduled backup, reboot recovery or overall completed cutover is claimed.
 
 Operator guard correction: Compose retains the `x-app` extension in its JSON output. The semantic comparison now normalizes both service restart values and the shared app restart value before comparing. The first operator apply attempt stopped before mutation; inspection confirmed `x-app` was the only remaining differing section.
 
@@ -230,11 +229,11 @@ This completes installation and one live execution of the approved daily-backup/
 The wrapper explicitly sets a bounded executable PATH so cron can find the existing Borg, Docker and runuser commands. A second complete live run under minimal cron-style environment passed at 2026-10-07 23:37:57 UTC / 8 October 03:37:57 Mauritius. Remote archive snapshot_2026-10-07-23.37.32 contains the exact artifacts and matching manifest. Final inspection confirmed cron active, the single approved 01:00 UTC wrapper entry installed, persisted outcome success/remote_verified true, two completed managed runs, 0700 run folders and 0600 artifacts. The job runs entirely on the server and does not require the laptop to stay online. The first future unattended invocation remains unobserved; the full isolated restore remains outstanding. Versioned wrapper/checker and regression fixtures are included in the unmerged PR.
 
 
-## Laptop recovery copies — authorized, implementation blocked by access
+## Laptop recovery copies — historical implementation contract
 
 Anton authorized the recommended laptop recovery extension on 8 October 2026 at 03:49 Mauritius. Scope: four rotating encrypted ERP recovery packages, an isolated restore using a downloaded laptop package, followed by read-only inventory of Core and n8n recovery coverage. No new paid destination is required.
 
-At this execution attempt Desktop Commander reports the laptop offline. No laptop scheduled task, new package rotation, or laptop-based restore has been installed or completed. Existing server backup jobs remain independent of laptop availability.
+The initial attempt was blocked by an offline laptop. After the operator restarted its Desktop Commander service and requested resumption, installation and recovery verification completed as recorded below. Server backup jobs remain independent of laptop availability.
 
 ### Implementation and acceptance contract
 
@@ -259,4 +258,51 @@ At this execution attempt Desktop Commander reports the laptop offline. No lapto
 
 Sources: docs/operations/POSTGRES_PROVIDER.md section 6; docs/operations/ERPNEXT_WP7_PATCH_BACKUP_RESTORE_MONITORING_CLOSURE_V1.md (20 August historical evidence); docs/operations/SELF_HOSTED_OPS_STACK_V1.md (historical topology). Current October ERP backup evidence above supersedes older ERP/Monitor #14 install-pending descriptions. Historical plan limits are not treated as current account coverage.
 
-Next access dependency: reopen Desktop Commander on the laptop and keep its authenticated connection available. Authorization is already recorded; reconnecting is an access requirement, not a request to approve the same work again.
+The initial access dependency is resolved. No additional operator command or re-approval is required for this completed packet.
+
+
+## Laptop recovery completion and first scheduled runs — 2026-10-08
+
+This section supersedes earlier pending/offline descriptions. Scope remains ERP recovery protection; overall migration acceptance remains PARTIAL.
+
+### Scheduled execution and storage
+
+- Server cron started unattended at 01:00:01 UTC (05:00:01 Mauritius), completed at 01:09:16 UTC, and verified the four ERP artifacts and manifest in remote Borg archive `snapshot_2026-10-08-01.00.04`.
+- Laptop task **CorpFlowAI ERP Laptop Recovery** ran on its actual daily 05:30 Mauritius schedule. Task result was 0 and state Ready; the server accepted its verified-copy acknowledgement at 01:30:34 UTC.
+- Laptop destination: `C:\Users\anton\CorpFlowAI-Recovery\ERPNext`, with protected anton/SYSTEM access. A limited interactive-user task uses existing Python/Git SSH, login catch-up and three 15-minute retries. It requires a signed-in user, laptop availability and the existing VPN; server backups do not.
+- Four logical slots are installed: latest, previous, weekly, monthly. At most four distinct packages are retained; slots can share a package. There are currently two packages totaling 2,948,773 bytes (about 2.8 MiB). Existing manual migration/pre-restore copies were preserved.
+- The measured laptop free space was about 100 GiB. A 2 GiB per-package limit and free-space guard bound storage to four packages plus a temporary download. Hash and size verification precede atomic slot promotion.
+- The whole recovery bundle is encrypted before leaving the server, including sensitive site configuration. No plaintext key is stored in task arguments, logs or source control.
+
+Latest package: run `20261008T010001Z`, 1,474,389 bytes, SHA256 `d3a328a6a5b3a1be6ab9b9b1949902cd78fb9965be2c335036e5e969ba380877`.
+
+### Existing failure alerts
+
+The existing Monitor #14 failure-only Telegram/dedup path now checks missing, malformed, future-dated or more-than-seven-day-old laptop acknowledgements. Laptop failure status is separate from the server's 36-hour verified-backup freshness check. Reachable-server copy failures use the existing notifier; prolonged laptop absence is detected independently on the server.
+
+The final normal combined health check exited 0. Public ERP ping returned pong. The prior labelled notifier test was accepted by Telegram; recipient observation remains unconfirmed. No new paid service or bot was introduced.
+
+### Restore from an actual laptop copy
+
+The encrypted package downloaded to the laptop was uploaded back into a root-only test location and verified again:
+
+- Run `20261007T233730Z`, SHA256 `7dc5b9e8309f02a6effaf2f1874c151ff73b07d57ac37eb70a356013d1727093`.
+- Disposable project `corpflowai-laptop-drtest-20261008`, site `laptop-drtest.localhost`, fresh volumes, pinned ERPNext/Frappe 16.50.0 image.
+- Internal Docker network, no public ports, no workers/scheduler, no live ERP restore target.
+- Verified 9 quotations, 3 sales invoices, 6 suppliers and quotation `SAL-QTN-2026-00006`.
+- Verified all four private-file hashes against the archive, preserved application/backup encryption keys and disabled scheduler. The public archive contained no regular files.
+- Corrected verification completed at 03:27:41 UTC (07:27:41 Mauritius). All disposable containers and volumes were removed; final independent inspection found none. Plaintext extraction folders and temporary test configuration/password files were removed. Sanitized receipt remains at `/root/erpnext-laptop-dr-test-20261008/receipt.json`.
+
+The restore itself succeeded before verifier defects were corrected. Final verification resumed against the retained isolated test environment; standard private-file-only extraction was repeated during diagnosis. This is verified recovery evidence, not a claim that an unmodified recipe passed in one uninterrupted run. Full replacement-machine recovery time has not been measured.
+
+The corrected versioned verifier handles original-site archive prefixes and Bench string output. Regression tests compile embedded Python as well as exercising rotation, health and backup failure cases: **15 tests passed**. Its cleanup path removes disposable resources on success or failure.
+
+### Independent key access and remaining DR coverage
+
+An exact-key retrieval from existing Infisical `ERPNEXT_HOSTED_BACKUP_ENCRYPTION_KEY` successfully decrypted the laptop package without printing or persisting the key. Retain this key while retained packages depend on it, despite its historical hosted name.
+
+Offline emergency key escrow, disconnected USB copies, offline container-image availability and full replacement-machine recovery remain unproven. The current test's server-side decrypt used protected live configuration; the separate Infisical decrypt proves another key-access route, not offline escrow.
+
+Core/Neon inventory remains limited to repository evidence: the actual current project history window and an isolated restore drill are unverified. n8n's database, workflows, credential data, encryption key, deployment configuration and backup/restore coverage remain unverified on its separate host. The small ops restic heartbeat is not evidence of those systems' protection.
+
+Code and evidence are recorded in draft PR #1420; it remains unmerged. No live site was overwritten, no ERP workers were enabled, no hosted billing was cancelled and no Core/n8n infrastructure was changed.
