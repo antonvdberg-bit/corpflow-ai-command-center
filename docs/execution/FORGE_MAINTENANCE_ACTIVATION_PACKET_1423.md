@@ -71,3 +71,11 @@ Desktop Commander laptop SSH inspection works, but server-local recurring execut
 
 Stop condition:
 Reviewable, verified implementation PR and exact apply/rollback evidence packet; stop before unapproved server installation or merge. If current packet cannot be implemented within the file list or existing authority, return one exact blocker on #1423. Do not ask Anton to paste repeated commands.
+
+## Implementation receipt and remaining acceptance — 8 October 2026
+
+Anton explicitly instructed the controller to proceed and drive completion at 08:20 Mauritius. Controller implementation is in existing PR #1424 branch `docs/forge-server-maintenance-v1-20261008`; no competing Cursor lane was dispatched. The named ADR/doc discovery changes preceded the bounded runtime installation. Timer and Monitor #14 extension are installed; actual 04:29:51 UTC run passed deterministic checks but deferred inference below 6 GiB available RAM. Read-only service continues without business container changes. Fourteen fixtures passed locally and on the server; six ERP backup/health fixtures also remained green with the installed notifier extension.
+
+Implementation is narrower than this full acceptance proposal: no 30-run receipt history/global 90-second collector deadline, full catalogue daily subchecks, comprehensive secret-pattern input rejection, lock/timeout/retry-pressure fixture or monthly restore automation is claimed. Systemd supplies a five-minute global bound and current sanitized receipts; due-task review is the implemented six-check set. These gaps remain acceptance work, not silent PASS. Actual Forge review has no PASS receipt yet. First scheduled run remains pending.
+
+The later ops backup expansion has its own ADR and helper; it is outside this read-only packet's authority. PR review and merge remain separate and unperformed. This section supersedes the historical no-install statements only for the named authorized daily collector/alert installation.
