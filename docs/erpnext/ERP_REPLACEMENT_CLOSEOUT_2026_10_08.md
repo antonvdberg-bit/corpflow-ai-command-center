@@ -67,3 +67,14 @@ Anton confirmed "1431 merged". GitHub verifies PR1431 merged at08:40:04UTC, exac
 The controller attempted the exact Git-source production deployment of the reviewed merge commit to existing project prj_GRqjVf6pMvXgjiu5W3KBFaIYDORP/team_2hXJSHImOxpmQxlFj7Yn9l5W. Automatic approval review rejected it: production deployment can change live Core; confirmation of merge did not clearly authorize the separate production release. No deployment was created, no retry or alternate execution was used. Explicit approval for this exact production release is required before retry.
 
 Reviewable release: only include the exact commercial policy JSON while preserving Prisma inclusion, commit11a41fefad4611fc9713946ac3e63a3690bb5699, same existing project/team/production alias. Required clean CI and focused tests already passed. After authorized release, verify READY/commit/alias and actual authenticated Core→server ERP quotation proof; do not equate merge with completed ERP acceptance. Rollback is prior accepted deployment or reverting the one-line correction under approval.
+
+
+### Approved production release — verified live on 8 October
+
+Anton explicitly approved deploying merged commit 11a41fef to the existing production Core service. This supersedes the preceding release-blocked receipt. Deployment dpl_BmG4qenWBsFGVPsGxLuvrYHyUJek is READY for exact commit11a41fefad4611fc9713946ac3e63a3690bb5699, production target, existing project/team; its assigned aliases include core.corpflowai.com. Alias error is null.
+
+Fresh authenticated browser reload on the production Core alias succeeds for /app/commercial and /app/core as the existing core_operator. Both previously failed with FACTORY_ROUTER_FATAL; that missing commercial-policy packaging blocker is CLOSED live. Commercial reports leads_read, 98 rows, all Quote not prepared. DOM contains99 table rows including header and no quotation/print/PDF links. Overview renders leads_read+company_master_read+cmp_tickets_read rather than the fatal error.
+
+This is real production page evidence, with no proof fixture parameter. It does not establish Core→ERP quotation GET/PDF proof: no existing linked quotation is exposed in these98 rows. Do not create or edit a prospect/quotation solely to manufacture a PASS. The linked-record consumer test remains unproven; relevant existing integration reconciliation must determine the correct existing linkage or another actual consumer route. No business write, payment, send or ERP configuration change occurred during browser verification. The existing deployment build invokes its normal ensure-schema stage; no new schema code is part of PR1431, and this receipt does not claim the build performed no database action.
+
+Release task COMPLETE; overall ERP acceptance remains PARTIAL for the explicitly listed remaining consumer/operating baseline/single-writer and retirement items. Do not confuse a successful release with final migration completion.
