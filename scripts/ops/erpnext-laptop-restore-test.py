@@ -115,13 +115,17 @@ print('Isolated database/files restore and migration: PASS')
 """
         stage='restore isolated site'; print(stage,flush=True)
         run(['docker','exec','-w',BENCH,backend,'python','-c',code])
-        stage='verify records and files'
+        stage='verify restored record counts'
         counts={}
         for doctype in ['Quotation','Sales Invoice','Supplier']:
             counts[doctype]=json.loads(run(['docker','exec','-w',BENCH,backend,'bench','--site',SITE,'execute','frappe.db.count','--args',json.dumps([doctype])]))
         assert counts=={'Quotation':9,'Sales Invoice':3,'Supplier':6}, 'count mismatch'
-        reference=json.loads(run(['docker','exec','-w',BENCH,backend,'bench','--site',SITE,'execute','frappe.db.exists','--args',json.dumps(['Quotation','SAL-QTN-2026-00006'])]))
+        receipt['verified_counts']=counts
+        stage='verify quotation reference'
+        # Bench execute explicitly strips JSON string quotes in this version.
+        reference=run(['docker','exec','-w',BENCH,backend,'bench','--site',SITE,'execute','frappe.db.exists','--args',json.dumps(['Quotation','SAL-QTN-2026-00006'])]).decode().strip().strip('"')
         assert reference=='SAL-QTN-2026-00006'
+        stage='verify restored files and configuration keys'
         verify="""import json,pathlib,tarfile,hashlib
 cfg=json.loads(pathlib.Path('sites/laptop-drtest.localhost/site_config.json').read_text()); keys=json.loads(pathlib.Path('/recovery/keys.json').read_text()); assert all(cfg.get(k)==v for k,v in keys.items())
 checked=0
@@ -148,8 +152,8 @@ print(json.dumps({'restored_files_hash_verified':checked,'configuration_keys_pre
         network=json.loads(run(['docker','network','inspect',PROJECT+'_recovery']).decode())[0]; assert network['Internal']
         receipt.update(outcome='success',evidence=evidence,isolated_network=True,public_ports=False)
         print('PASS: laptop package database, files and configuration restored',flush=True)
-    except Exception:
-        receipt.update(outcome='failure',failed_stage=stage)
+    except Exception as error:
+        receipt.update(outcome='failure',failed_stage=stage,error_class=type(error).__name__)
         print('FAIL at '+stage+'; private diagnostic output suppressed',flush=True)
     finally:
         if created:
