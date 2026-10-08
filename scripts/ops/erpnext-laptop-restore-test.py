@@ -25,7 +25,10 @@ IMAGE='frappe/erpnext@sha256:edf67a669bf1ca5850b38c8234292ec219b756bfed545b276e1
 
 def run(args,timeout=1200):
     p=subprocess.run(args,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=timeout)
-    if p.returncode: raise RuntimeError('command failed: '+args[0])
+    if p.returncode:
+        # Private local diagnostic only; never publish raw command output or key values.
+        diagnostic=ROOT/'private-diagnostic.txt'; diagnostic.write_bytes(p.stderr); diagnostic.chmod(0o600)
+        raise RuntimeError('command failed: '+args[0])
     return p.stdout
 
 def sha(p):
@@ -114,7 +117,7 @@ print('Isolated database/files restore and migration: PASS')
         run(['docker','exec','-w',BENCH,backend,'python','-c',code])
         stage='verify records and files'
         verify="""import frappe,json,pathlib,tarfile,hashlib
-frappe.init(site='laptop-drtest.localhost'); frappe.connect()
+frappe.init(site='laptop-drtest.localhost',sites_path='sites'); frappe.connect()
 counts={d:frappe.db.count(d) for d in ['Quotation','Sales Invoice','Supplier']}
 assert counts=={'Quotation':9,'Sales Invoice':3,'Supplier':6}, 'count mismatch'
 assert frappe.db.exists('Quotation','SAL-QTN-2026-00006')
