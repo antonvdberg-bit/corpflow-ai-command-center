@@ -24,7 +24,7 @@ Quotation PDF SHA256157fe649ae54ac403cee3629a14cf7df55dfb018b7dcfbd958ecceb5e713
 
 Preview failures/corrections: direct bench inspection initially used the wrong sites/cwd path; fixed before any mutation. Non-important spacing rules were overridden by later template CSS; explicit scoped important spacing produced the accepted one-page output. A PowerShell quoting error affected local PDF rendering only after HTTPS downloads; here-string Python rendering completed and verified the same files. No claimed earlier failed check is treated as PASS.
 
-Next priority: authenticated deployed Core→ERP quotation flow. Current browser has no signed-in Core session. This is an access gate, not missing ERP API connectivity. No password-presence probe, secret logging, credential reset or test-user creation is used. Fresh source/server record-list comparison remains current; print-format/webhook differences introduced by this approved closeout are intentional.
+Next priority: authenticated deployed Core→ERP quotation flow. The existing Core operator signed in securely. The subsequent live consumer check is blocked by a missing deployed commercial configuration file; see the concrete blocker below. No password-presence probe, secret logging, credential reset or test-user creation is used. Fresh source/server record-list comparison remains current; print-format/webhook differences introduced by this approved closeout are intentional.
 
 Overall ERP replacement remains PARTIAL until current consumers, approved operating-job baseline and final single-writer/retirement acceptance are complete. Wider server maintenance remains outside this active lane.
 
@@ -33,3 +33,13 @@ Overall ERP replacement remains PARTIAL until current consumers, approved operat
 The existing guarded combined ERP→encrypted Borg backup was run after both repairs and passed with exit0, verifying ERP and protected ops artifacts in the remote archive. Temporary site previews were removed only after verifying private root rollback copies; those copies remain outside the live site. This protects the newly applied formats and disabled cloud hooks. Laptop latest-copy scheduling remains unchanged; no fresh laptop copy receipt is claimed by this run.
 
 The next active item is the deployed Core consumer proof, using its existing Factory Admin login. Secure browser authentication is the intended route; no credentials in chat, no password reset/test-user provisioning and no password-presence probe. Whole ERP replacement is not closed while that consumer/operating-baseline/retirement acceptance remains pending.
+
+### Core consumer check — concrete blocker and routed repair
+
+Secure browser sign-in succeeded as the existing Core operator. Actual authenticated /app/core and /app/commercial both failed with FACTORY_ROUTER_FATAL. Runtime logs identify ENOENT for /var/task/config/commercial-approval-rail.v1.json, not an ERP API authentication error. The file exists in Git; the live raw factory_router function's includeFiles currently includes Prisma assets only.
+
+Current live deployment dpl_esTMRpUuh4rCb254dbqEEA1QmkVy (commit cf1680f4e0b096ecc8bd3f7dd576908daff58b91) supersedes the earlier retargeting deployment. Commercial request mqgt7-1791438280780-58276b3691ed at 2026-10-08T05:44:40.867Z proves the missing-file failure. No write/send/payment occurred. This is a packaging blocker before consumer acceptance; do not infer the Core ERP connection passed.
+
+A single apply-ready runtime repair is routed through the existing Cursor Factory lane as #1429 (dispatch:cursor-ready, priority:P1). Controller justification: new Vercel integration packaging work is outside the approved deterministic server contracts; AGENTS.md routes runtime implementation to Cursor. The packet preserves Prisma inclusion, adds only the exact public policy file, requires actual artifact/glob evidence and approval logic tests, and stops at verified PR/release gates. Queued is not RUNNING; run/claim evidence must be checked before reporting activation. Do not create a duplicate run or expand to whole-estate maintenance.
+
+Priority remains: finish #1429 repair and authenticated live Core→ERP proof, then reconcile actual existing consumers/operating baseline and present final single-writer/retirement acceptance. Print repair, cloud-hook retirement and the post-change encrypted remote backup remain CLOSED.
