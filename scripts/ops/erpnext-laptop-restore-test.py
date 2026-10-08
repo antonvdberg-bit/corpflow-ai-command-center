@@ -139,7 +139,7 @@ assert cfg.get('pause_scheduler') or cfg.get('disable_scheduler')
 print(json.dumps({'counts':counts,'quotation_reference':True,'restored_files_hash_verified':checked,'configuration_keys_preserved':True,'scheduler_disabled':True}))
 frappe.destroy()
 """
-        evidence=json.loads(run(['docker','exec','-w',BENCH,backend,'python','-c',verify]).decode())
+        evidence=json.loads(run(['docker','exec','-w',BENCH,backend,BENCH+'/env/bin/python','-c',verify]).decode())
         inspection=json.loads(run(['docker','inspect',backend]).decode())[0]
         assert not inspection['HostConfig']['PortBindings']
         assert set(inspection['NetworkSettings']['Networks'])=={PROJECT+'_recovery'}
