@@ -42,6 +42,7 @@
     "business-ops:monitor:fixtures": "node scripts/business-operations-monitor.mjs --fixtures",
     "business-ops:dispatcher": "node scripts/business-operations-dispatcher.mjs",
     "business-ops:dispatcher:fixtures": "node scripts/business-operations-dispatcher.mjs --fixtures",
+    "finance:sbm-statement-ingest": "node scripts/finance/sbm-statement-ingest.mjs",
     "dispatcher:activate:fixtures": "node scripts/dispatcher-agent-activation.mjs --fixtures",
     "dispatcher:activate:fetch": "node scripts/dispatcher-agent-activation.mjs --fetch",
     "dispatcher:issue-scan": "node scripts/cursor-issue-dispatch-scan.mjs --dry-run",
