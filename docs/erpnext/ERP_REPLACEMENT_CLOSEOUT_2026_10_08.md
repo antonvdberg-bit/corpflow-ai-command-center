@@ -58,3 +58,12 @@ Required clean GitHub CI run37750791932 passed, including automated tests and th
 Fresh runtime check: ERP verified-TLS HTTPS ping pong, six running recovery containers with healthy DB, backup outcome success plus remote_verified=true and ops_remote_verified=true. Selected timestamp keys were absent, so this check does not claim a new backup time. Forge availableRAM5.28GiB, zero loaded models; below existing6GiB guard.
 
 Still required for final ERP closure: approved release of1431 and actual authenticated Core→ERP proof, actual existing n8n consumer/settings reconciliation (management access still unavailable), accepted manual/automated job baseline, final source delta/single-writer acceptance and hosted/original-site retirement decision. Future new business automation and whole-estate DR remain separate. Direct ERP manual use remains operational.
+
+
+### Merge accepted; release blocked — 8 October, 12:42 Mauritius
+
+Anton confirmed "1431 merged". GitHub verifies PR1431 merged at08:40:04UTC, exact merge commit11a41fefad4611fc9713946ac3e63a3690bb5699. Vercel lists no deployment for this commit; the Core alias still serves prior dpl_esTMRpUuh4rCb254dbqEEA1QmkVy / cf1680f4e0b096ecc8bd3f7dd576908daff58b91. Existing operator browser authentication remains valid and Commercial still shows FACTORY_ROUTER_FATAL on that prior build.
+
+The controller attempted the exact Git-source production deployment of the reviewed merge commit to existing project prj_GRqjVf6pMvXgjiu5W3KBFaIYDORP/team_2hXJSHImOxpmQxlFj7Yn9l5W. Automatic approval review rejected it: production deployment can change live Core; confirmation of merge did not clearly authorize the separate production release. No deployment was created, no retry or alternate execution was used. Explicit approval for this exact production release is required before retry.
+
+Reviewable release: only include the exact commercial policy JSON while preserving Prisma inclusion, commit11a41fefad4611fc9713946ac3e63a3690bb5699, same existing project/team/production alias. Required clean CI and focused tests already passed. After authorized release, verify READY/commit/alias and actual authenticated Core→server ERP quotation proof; do not equate merge with completed ERP acceptance. Rollback is prior accepted deployment or reverting the one-line correction under approval.
