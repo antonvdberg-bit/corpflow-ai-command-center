@@ -205,3 +205,16 @@ Heartbeat + retention timers are **untouched** by rollback.
 
 - **2026-07-27 (parser fix)** — L3 install on `corpflow-exec-01-u69678` discovered a stdin parser bug: `parse_snapshots_json` / `parse_stats_json` used heredoc + here-string patterns where Python consumed stdin for the code body, so restic JSON never reached `json.loads` (`PARSE_ERROR|Expecting value: line 1 column 1` despite `snapshot_count=34`). Repo script patched to write restic JSON to `mktemp` files and pass the path to Python. **Production monitor stays correct only after the server script is updated/reinstalled from this repo version and the timer is re-verified** (local L3 hotfix may already be in place — reinstall keeps box and git aligned).
 - **2026-07-27** — Initial monitor authored in-repo. Runtime install on `corpflow-exec-01` deferred to Anton (commands in §7). No production deploy performed by Cursor Web.
+
+
+## Laptop ERP recovery-copy extension — installed 2026-10-08
+
+Under Anton's approved recovery packet, the existing Monitor #14 checker now also reads /var/lib/corpflowai-erp-backup/laptop-status.json. A missing/invalid acknowledgement, timestamp more than five minutes in the future, or verified laptop copy older than seven days is a failure through the existing notifier and dedup path. This status is separate from /var/lib/corpflowai-erp-backup/status.json: the laptop being unavailable does not convert a successful server/Borg backup into a failed server backup.
+
+The operator-owned Windows task "CorpFlowAI ERP Laptop Recovery" runs quietly via C:\\Python314\\pythonw.exe at 05:30 Mauritius and at login, with catch-up, network requirement and bounded retries. It uses existing SSH/VPN access, keeps latest/previous/weekly/monthly logical slots (at most four distinct encrypted packages), verifies hashes before promotion, and acknowledges the exact package hash back to the server. Copy failures retain good packages and attempt the existing failure notifier when the server is reachable; offline failures also remain in local status and are caught by the independent seven-day server freshness check.
+
+Laptop location: C:\\Users\\anton\\CorpFlowAI-Recovery\\ERPNext. Package size ceiling is 2 GiB, with four distinct packages maximum plus one temporary download and a free-space guard. Current first package is 1,474,384 bytes. Whole-package encryption includes the sensitive site configuration; filename "-enc.json" alone is not sufficient protection.
+
+Normal combined health check returned zero after installation. Four laptop-status fixtures (healthy, stale, malformed and future timestamp) passed; the complete backup fixture suite has fourteen passing tests. This extension reuses the already-tested Telegram route and adds no paid service or second notifier. Full restore evidence and remaining key/DR limitations are recorded in ../erpnext/ERPNEXT_SERVER_OPERATIONAL_READINESS_2026_10_08.md.
+
+Installed health checker SHA256: 87061c0241ca7296e21e4ab76803570b58c36fe9452b1563b4c18498812ed40d. Rollback original before this extension: /root/erpnext-hosted-restore-20261007/backup-change-20261007T232435Z/backup-health-check.before-laptop.sh. Preserve backup packages when disabling the copy task or reverting monitoring.
