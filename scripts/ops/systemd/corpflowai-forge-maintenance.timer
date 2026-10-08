@@ -1,0 +1,13 @@
+[Unit]
+Description=CorpFlowAI bounded Forge maintenance daily timer
+Documentation=file:///home/anton/corpflow-ai-command-center/docs/execution/FORGE_MAINTENANCE_INSTALL_RUNBOOK_1427.md
+
+[Timer]
+# 18:00 UTC = 22:00 Mauritius (UTC+4). No catch-up or daytime activation.
+OnCalendar=*-*-* 18:00:00 UTC
+Persistent=false
+AccuracySec=1min
+Unit=corpflowai-forge-maintenance.service
+
+[Install]
+WantedBy=timers.target

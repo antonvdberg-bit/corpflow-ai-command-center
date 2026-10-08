@@ -1,0 +1,22 @@
+[Unit]
+Description=CorpFlowAI bounded Forge maintenance collector and reviewer
+Documentation=file:///home/anton/corpflow-ai-command-center/docs/execution/FORGE_MAINTENANCE_INSTALL_RUNBOOK_1427.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=anton
+Group=anton
+WorkingDirectory=%h/corpflow-ai-command-center
+ExecStart=/usr/bin/timeout --signal=TERM --kill-after=10s 300s /usr/bin/python3 %h/corpflow-ai-command-center/scripts/ops/forge-maintenance-collect.py --output %h/.local/state/corpflowai/forge-maintenance/latest-receipt.json
+ExecStart=/usr/bin/timeout --signal=TERM --kill-after=10s 300s /usr/bin/python3 %h/corpflow-ai-command-center/scripts/ops/forge-maintenance-review.py --input %h/.local/state/corpflowai/forge-maintenance/latest-receipt.json --output %h/.local/state/corpflowai/forge-maintenance/latest-receipt.json
+Nice=19
+IOSchedulingClass=idle
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=%h/.local/state/corpflowai/forge-maintenance %h/.cache
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
