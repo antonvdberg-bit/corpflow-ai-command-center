@@ -242,6 +242,21 @@ Preferred trust line:
 
 **We do not guarantee new revenue. We help make sure existing enquiries are captured, visible, and followed up.**
 
+## Approved standard-pricing exception — 2026-10-08
+
+Anton approved the standard regional pricing change recorded in issue #1432. The `/pricing`
+page may show one selected standard product after buyer intent is established, followed by
+market selection and the associated fixed regional setup / optional monthly-care fee. The
+continuation option is public only in this selected context and remains subject to explicit
+approval, confirmed scope and verified eligible payment.
+
+This is not a four-market hero table and it is not dynamic FX. The distinct Enquiry Recovery
+Sprint and property / premium funnels retain their separately scoped offers. This exception
+supersedes the old fixed USD 150 public/default/USD-only standard wording where it conflicts
+with the approved standard matrix; it does not change the Sprint, accepted legacy terms or
+the requirement to confirm fit, timing, taxes, total price and payment instructions in writing.
+It does not claim universal legal compliance or provider eligibility.
+
 ## AI Lead Rescue doctrine
 
 Primary conversion goal: get the visitor to start intake for a 48-hour pilot setup.
