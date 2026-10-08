@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 import importlib.util
 import json
+import sys
 import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parents[1]))
 
 from forge_maintenance_common import (
     capacity_lease,
