@@ -451,7 +451,7 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
   const footer = (
     <PublicSiteFooter
       flush
-      extra="CorpFlowAI Mauritius property edition. The current commercial offer is the Enquiry Recovery Sprint at MUR 85,000 fixed. This page collects intake only, does not collect card or banking details, and does not create any automated subscription. Calls in English; written workflow supports French summaries and French enquiry handling on request, with reviewed replies."
+      extra="CorpFlowAI Mauritius property edition. Lead Rescue pricing is assessed against the approved standard matrix. This page collects intake only, does not collect card or banking details, and does not create any automated subscription."
     />
   );
 
@@ -461,7 +461,7 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
         <title>AI Lead Rescue for Mauritius property operators · CorpFlowAI</title>
         <meta
           name="description"
-          content="Enquiry Recovery for Mauritius property operators — identify and recover valuable quiet enquiries across WhatsApp, Facebook, website forms, listing portals, and calls. MUR 85,000 fixed. Maximum three founding clients."
+          content="Lead Rescue for Mauritius property operators — make enquiry capture, routing and follow-up easier to act on. Request an assessment."
         />
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href="https://corpflowai.com/lead-rescue/property-mauritius" />
@@ -691,14 +691,14 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
         <section style={styles.section}>
           <GlassPanel>
             <div style={styles.sectionLabel}>Pricing &amp; path</div>
-            <h2 style={styles.h2}>Enquiry Recovery Sprint. Local invoice. No card on the page.</h2>
+            <h2 style={styles.h2}>Lead Rescue setup and optional monthly care. No card on the page.</h2>
             <div style={styles.pricingCard}>
               <div>
-                <div style={styles.pricingNumber}>MUR 85,000</div>
-                <div style={styles.pricingLabel}>Fixed · invoiced as the MUR equivalent on a local invoice</div>
+                <div style={styles.pricingNumber}>MUR 12,900 setup</div>
+                <div style={styles.pricingLabel}>Optional monthly care: MUR 6,900 / month</div>
               </div>
               <div style={styles.pricingBody}>
-                Submitting the form does not commit you to payment. After diagnosis, if the case qualifies, we send a written offer: MUR 85,000 fixed, MUR 51,000 (60%) to start, MUR 34,000 (40%) after approved preview and before production release. First visible preview is targeted within 72 hours after cleared deposit, required access, and required assets — not an unconditional 72-hour guarantee. No card details, no online checkout, and no automated subscription on this page.
+                Submitting the form does not commit you to payment. We assess fit, scope, timing and acceptance before sending a written quote. Setup and optional monthly care are separate. No card details, no online checkout, and no automated subscription on this page.
               </div>
             </div>
             <div style={styles.paymentSteps} aria-label="How payment works on the Mauritius property pilot">

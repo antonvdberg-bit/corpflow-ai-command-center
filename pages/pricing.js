@@ -13,6 +13,11 @@ import PublicMarketingPhotoGlassShell from '../components/beauty/PublicMarketing
 import GlassPanel from '../components/beauty/GlassPanel.js';
 import HeroGlassBlock from '../components/beauty/HeroGlassBlock.js';
 import { cfBtnPrimary, cfBtnSecondary } from '../components/public/corpflow-public-styles.js';
+import BusinessAdminDeskPricingReviewPage from '../components/BusinessAdminDeskPricingReviewPage.js';
+import {
+  isBusinessAdminDeskPublicHost,
+  isCipcDeskStandingTestHost,
+} from '../lib/server/cipc-desk-runtime.js';
 
 const products = {
   lead: 'Lead Rescue',
@@ -26,7 +31,11 @@ const descriptions = {
   automation: 'We scope your workflow and agree a fixed price for deliverables, testing and handover. Access, dependencies, acceptance and separate software costs are confirmed before work starts.',
 };
 
-export default function PricingPage() {
+export default function PricingPage({ host = '' }) {
+  if (isCipcDeskStandingTestHost(host)) {
+    return <BusinessAdminDeskPricingReviewPage />;
+  }
+  if (isBusinessAdminDeskPublicHost(host)) return null;
   const [product, setProduct] = useState('');
   const [currency, setCurrency] = useState('');
   const rate = APPROVED_REGIONAL_PRICES[currency];
@@ -185,4 +194,10 @@ export default function PricingPage() {
       ) : null}
     </PublicMarketingPhotoGlassShell>
   );
+}
+
+export function getServerSideProps({ req }) {
+  const host = req?.headers?.host || '';
+  if (isBusinessAdminDeskPublicHost(host)) return { notFound: true };
+  return { props: { host } };
 }

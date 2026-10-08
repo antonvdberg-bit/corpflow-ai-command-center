@@ -16,8 +16,8 @@ export default function TermsPage() {
       <section style={ps.section}>
         <h2 style={ps.h2}>Service description</h2>
         <p style={ps.p}>
-          {MERCHANT_LEGAL_NAME} provides practical operating help for selected businesses, including the
-          Enquiry Recovery Sprint and bounded website work. Services may include diagnosis, written offers,
+          {MERCHANT_LEGAL_NAME} provides practical operating help for selected businesses, including Lead Rescue,
+          Website Rescue and fixed-outcome automation work. Services may include diagnosis, written offers,
           follow-up visibility, and agreed delivery against existing tools. See the{' '}
           <Link href="/services" style={{ color: '#7dd3fc' }}>
             services page
@@ -62,10 +62,9 @@ export default function TermsPage() {
       <section style={ps.section}>
         <h2 style={ps.h2}>Service fulfilment and delivery</h2>
         <p style={ps.p}>
-          The Enquiry Recovery Sprint is a digital service. There is no physical shipment. A first visible preview
-          is targeted within 72 hours after cleared deposit, required access, and required assets or information —
-          not as an unconditional 72-hour delivery guarantee. Historic USD 150 launch-pilot engagements, if invoiced,
-          remain governed by the invoice issued at the time.
+          Lead Rescue, Website Rescue and automation are digital services. There is no physical shipment.
+          Delivery timing, acceptance and payment timing are confirmed individually after scope and access review.
+          Historical accepted quotations retain their issued terms.
         </p>
         <p style={ps.p}>
           Full delivery terms:{' '}

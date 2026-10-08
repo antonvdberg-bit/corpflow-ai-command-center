@@ -13,7 +13,8 @@
   the product changes.
 - Payment remains assessment-first; no checkout, payment SDK, secret, client data or intake
   write was added.
-- The MUR 85,000 Enquiry Recovery Sprint remains a separate offer.
+- The retired sprint presentation is not current public pricing; historical accepted quotations
+  retain their terms and the permanent Lead Rescue route is assessment-first.
 - The fictional Website Rescue validation path remains `/demo/website-rescue`.
 
 ## Marketing quality gate

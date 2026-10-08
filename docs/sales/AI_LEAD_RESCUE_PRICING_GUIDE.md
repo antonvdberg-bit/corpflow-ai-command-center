@@ -12,23 +12,28 @@
 > care scope now live in [`CORPFLOWAI_APPROVED_REGIONAL_PRICING_V1.md`](./CORPFLOWAI_APPROVED_REGIONAL_PRICING_V1.md).
 > The former USD 150 / USD 99 and approximately MUR 4,500 figures below are historic
 > first-paid-pilot references, not new standard quotes. Preserve accepted legacy terms for
-> existing conversations, and keep the distinct MUR 85,000 Enquiry Recovery Sprint separate.
+> existing conversations. The former sprint presentation is retired from current public pricing.
 > New standard quotes use the approved guide and the verified eligible payment path only.
 
 ## What this doc is for
 
 This is the **operator-side** pricing guide. The **public** page (`/lead-rescue`) advertises **one offer**: *AI Lead Rescue Setup — USD 150 launch pilot*. That public-page rule is governed by `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md` § *single-offer rule*.
 
-This document tells the operator:
+New standard Lead Rescue quotes use the approved regional matrix: MUR 12,900 / 6,900 monthly
+care; ZAR 3,990 / 2,190; AUD 490 / 249; USD 249 / 149. Setup and care are separate, and
+care starts only after setup acceptance and explicit opt-in. Assess fit and scope first.
 
-- What the pilot costs in USD (international) and MUR (Mauritius).
+This document also preserves historical operator notes below for traceability, not as active
+pricing. It tells the operator:
+
+- How historical pilot records were priced.
 - What the post-pilot monthly monitoring costs in USD and MUR.
 - What is **included** and **excluded** at each price point.
 - When to deviate (custom quote) and when not to.
 - How the manual pro-forma invoice path works while VAT activation is held.
 - How to handle every "what's the price?" objection without breaking single-offer doctrine.
 
-## 1. Headline pricing — first paying pilots
+## Historical reference — do not use for new quotes
 
 | Item | International (USD) | Mauritius (MUR — operator-side conversion) |
 |---|---|---|

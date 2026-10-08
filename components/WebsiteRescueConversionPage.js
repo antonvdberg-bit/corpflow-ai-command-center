@@ -118,7 +118,7 @@ export default function WebsiteRescueConversionPage({ offer }) {
           <div style={styles.price}>
             <strong>{priceHeading}</strong>
             <div style={{ marginTop: 6, fontSize: 14 }}>
-              50% deposit to start. First visible preview targeted within 24–72 hours after deposit clearance and receipt of the agreed content/assets.
+              Scope, delivery timing, payment instructions and any deposit are confirmed in writing before commitment.
             </div>
           </div>
           <div style={{ marginTop: 22 }}>

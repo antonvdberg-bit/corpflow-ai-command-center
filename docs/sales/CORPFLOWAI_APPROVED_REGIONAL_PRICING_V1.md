@@ -64,11 +64,15 @@ instructions in writing before commitment. No payment is taken on the public pri
 Monthly care is a separate purchase and starts only after setup acceptance and explicit opt-in.
 Payment eligibility, taxes, renewal and refund terms remain subject to confirmation before sale.
 
-## Separate offers
+## Dated commercial notice
 
-The Mauritius Lead Rescue / Enquiry Recovery Sprint remains a distinct scoped offer at its
-accepted price. These standard packages do not reprice or replace that sprint. Property and
-premium funnels retain their separately scoped offers.
+The former Mauritius sprint presentation is retired from current public pricing. This standard
+matrix is the current selected-product regional exception. Historical accepted quotations retain
+their issued terms; this notice does not rewrite them. `/lead-rescue` and `/offers/ai-lead-rescue`
+now route to the permanent Lead Rescue framing and assessment path.
+
+Paddle onboarding remains review-only. Product-category eligibility, legal review, contact-channel
+verification, taxes, and actual provider acceptance are unresolved until evidenced.
 
 This guide records the approved standard-package atom for the `/pricing` validation path.
 It does not claim universal legal compliance, guaranteed rankings, guaranteed revenue or

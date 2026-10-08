@@ -6,7 +6,6 @@ import { MERCHANT_LEGAL_NAME } from '../lib/public/merchant-identity.js';
 import { buildPublicPageMeta } from '../lib/public/corpflow-public-market.js';
 import {
   ENQUIRY_RECOVERY_DIAGNOSIS_HASH,
-  ENQUIRY_RECOVERY_FOUNDING_SLOTS,
   ENQUIRY_RECOVERY_IMPLEMENTATION_LINE,
   ENQUIRY_RECOVERY_LOSS_LINE,
   ENQUIRY_RECOVERY_NO_GUARANTEE_LINE,
@@ -56,7 +55,7 @@ const QUALIFICATION = [
 export default function EnquiryRecoveryCampaignPage() {
   const meta = buildPublicPageMeta({
     title: 'Lead Rescue',
-    description: 'Lead Rescue helps selected Mauritius businesses identify and recover valuable enquiries that have gone quiet. MUR 85,000 fixed. Maximum three clients. Request a 15-minute diagnosis.',
+    description: 'Lead Rescue helps selected businesses make enquiry capture, routing and follow-up easier to act on. Request an assessment.',
     path: ENQUIRY_RECOVERY_PATH,
     ogImage: `${HERO_BASE}.jpg`,
   });
@@ -107,7 +106,7 @@ export default function EnquiryRecoveryCampaignPage() {
         />
 
         <HeroGlassBlock style={{ marginTop: 34 }}>
-          <div style={styles.label}>Lead Rescue · Mauritius · selected businesses</div>
+          <div style={styles.label}>Lead Rescue · selected businesses</div>
           <h1 style={styles.h1}>Some of your best enquiries probably didn&apos;t say no. They just stopped being followed up.</h1>
           <p style={styles.lead}>{ENQUIRY_RECOVERY_LOSS_LINE}</p>
           <div style={styles.price}>
@@ -115,7 +114,7 @@ export default function EnquiryRecoveryCampaignPage() {
             <div style={{ marginTop: 6 }}>{ENQUIRY_RECOVERY_SCARCITY_LINE}</div>
             <div style={{ marginTop: 6, fontSize: 14 }}>{LEAD_RESCUE_PUBLIC_PAYMENT_LINE}</div>
             <div style={{ marginTop: 6, fontSize: 14 }}>
-              This is a separate scoped sprint, not one of the standard packages shown on the pricing page.
+              Setup and optional monthly care are separate purchases. We confirm fit, scope and timing before commitment.
             </div>
           </div>
           <div style={{ marginTop: 24 }}>
@@ -144,7 +143,7 @@ export default function EnquiryRecoveryCampaignPage() {
         <section style={section}>
           <GlassPanel>
             <div style={styles.label}>The challenge</div>
-            <h2 style={styles.h2}>MUR 85,000 only makes sense when a recovered enquiry is worth recovering.</h2>
+            <h2 style={styles.h2}>Make the gap between enquiry and follow-up easier to see.</h2>
             <ul style={styles.list}>
               {QUALIFICATION.map((item) => <li key={item}>{item}</li>)}
             </ul>

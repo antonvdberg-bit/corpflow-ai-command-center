@@ -10,8 +10,8 @@
 > care scope now live in [`../sales/CORPFLOWAI_APPROVED_REGIONAL_PRICING_V1.md`](../sales/CORPFLOWAI_APPROVED_REGIONAL_PRICING_V1.md).
 > The former USD 150 / approximately MUR 4,500 continuation figures and daily manually
 > composed summaries below are historic first-paid-pilot references, not new standard
-> quotes. Preserve accepted legacy terms for existing conversations. The distinct MUR 85,000
-> Enquiry Recovery Sprint remains separately scoped. New standard quotes use the approved
+> quotes. Preserve accepted legacy terms for existing conversations. The former sprint
+> presentation is retired from current public pricing. New standard quotes use the approved
 > guide and the verified eligible payment path only.
 
 **Authorisation:** Anton's chat DECISION (2026-06-08 *"AUTHORISE — `LeadRescue-Outbound-Activity-Log-1`"* — sequencing instruction *"After the activity-log runtime PR is either merged or explicitly deferred: Create a separate docs-only PR for the commercial launch pack."*).
@@ -20,7 +20,7 @@
 
 Give Anton everything required to convert the first **1–4 paying pilots** for AI Lead Rescue, starting with the Mauritius warm network, without adding any new infrastructure, paid acquisition channel, or generic AI positioning. This is the commercial layer that sits on top of:
 
-- the live public page `https://corpflowai.com/lead-rescue` (USD 150 launch pilot, 48-hour setup, 7-day pilot monitoring, no card on page, invoiced after intake review),
+- the live public page `https://corpflowai.com/lead-rescue` (permanent Lead Rescue offer, assessment first, no card or checkout on page),
 - the operator cockpit at `/admin/lead-rescue` (status pipeline + 13-item setup checklist + activity log per `JE-2026-06-08-1` once that runtime PR ships),
 - the existing operator runbook `docs/operations/AI_LEAD_RESCUE_OPERATOR_RUNBOOK.md`,
 - the existing Mauritius copy / outreach pack `docs/marketing/AI_LEAD_RESCUE_MAURITIUS_OUTREACH_COPY_V1.md` + `docs/marketing/AI_LEAD_RESCUE_MAURITIUS_SALES_ACTIVATION_PACK_V1.md`,
