@@ -13,11 +13,13 @@
 > The former MUR 45,000 Website Rescue floor and related accepted quotes remain valid for
 > existing conversations; they are historic references where they conflict with the new
 > standard package wording. Do not invent discounts. New standard quotes use the approved
-> guide and the verified eligible payment path only.
+> regional guide and the verified eligible payment path only.
 
 ## What this doc is for
 
-The **public** page (`/offers/premium-landing-page-rescue`) advertises **one floor price**: *from MUR 45,000* for **Premium Landing Page Rescue** (Website Rescue **T1**). That public-page rule follows `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md` (single primary offer on the page; complexity after intent).
+The public pricing validation path is `/pricing`, where a buyer selects Website Rescue and
+then their market. The existing `/offers/premium-landing-page-rescue` route remains a
+separate bounded Website Rescue scope and assessment path.
 
 This guide tells the operator:
 

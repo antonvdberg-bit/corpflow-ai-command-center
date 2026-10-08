@@ -64,11 +64,12 @@ instructions in writing before commitment. No payment is taken on the public pri
 Monthly care is a separate purchase and starts only after setup acceptance and explicit opt-in.
 Payment eligibility, taxes, renewal and refund terms remain subject to confirmation before sale.
 
-## Separate offers
+## Historical quote handling
 
-The Mauritius Lead Rescue / Enquiry Recovery Sprint remains a distinct scoped offer at its
-accepted price. These standard packages do not reprice or replace that sprint. Property and
-premium funnels retain their separately scoped offers.
+The former MUR 85,000 Mauritius Enquiry Recovery Sprint is closed to new sales and
+superseded by this permanent regional standard. Existing accepted quotations keep their
+agreed price and scope. Property and premium funnels remain distinct scopes; they do not
+create a second Lead Rescue price on this page.
 
 This guide records the approved standard-package atom for the `/pricing` validation path.
 It does not claim universal legal compliance, guaranteed rankings, guaranteed revenue or

@@ -4,8 +4,8 @@ import { listVisualAssetManifests } from '../lib/visualAssets/loadManifest.js';
 import { selectLeadRescueAssets } from '../lib/visualAssets/selectLeadRescueAssets.js';
 
 /**
- * `/lead-rescue` remains a live alias of the Enquiry Recovery Sprint campaign
- * so historic WhatsApp and Google links do not 404 or show USD 150 pricing.
+ * `/lead-rescue` remains a live alias of the permanent Lead Rescue offer so
+ * historic WhatsApp and Google links do not 404 or show retired pricing.
  */
 
 export default function LeadRescuePage({ leadRescueAssets }) {

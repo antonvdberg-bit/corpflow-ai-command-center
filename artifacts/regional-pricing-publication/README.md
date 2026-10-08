@@ -13,7 +13,8 @@
   the product changes.
 - Payment remains assessment-first; no checkout, payment SDK, secret, client data or intake
   write was added.
-- The MUR 85,000 Enquiry Recovery Sprint remains a separate offer.
+- The former MUR 85,000 Enquiry Recovery Sprint is closed to new sales; accepted quotes
+  remain honoured and new work follows the permanent regional standard.
 - The fictional Website Rescue validation path remains `/demo/website-rescue`.
 
 ## Marketing quality gate

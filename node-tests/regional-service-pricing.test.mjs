@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 import {
   APPROVED_REGIONAL_PRICES,
@@ -48,4 +50,23 @@ test('standard pricing does not mix with the Mauritius sprint offer', () => {
   assert.equal(standardValues.includes(4500), false);
   assert.match(STANDARD_PACKAGE_PAYMENT_NOTE, /No payment is taken on this page/);
   assert.match(STANDARD_PACKAGE_PAYMENT_NOTE, /explicit opt-in/);
+});
+
+test('served public surfaces retire the former sprint claims', () => {
+  const root = fileURLToPath(new URL('..', import.meta.url));
+  const surfaces = [
+    'pages/pricing.js',
+    'pages/lead-rescue.js',
+    'components/EnquiryRecoveryCampaignPage.js',
+    'components/AiLeadRescueLanding.js',
+    'components/AiLeadRescuePropertyMauritiusLanding.js',
+    'lib/public/enquiry-recovery-sprint.js',
+    'lib/public/rapid-delivery-offers.js',
+    'lib/public/corpflow-public-market.js',
+  ].map((file) => readFileSync(`${root}/${file}`, 'utf8')).join('\n');
+
+  assert.doesNotMatch(surfaces, /MUR 85,000|MUR 51,000|MUR 34,000|\b60%\s*(?:deposit|to start)|\b40%\s*(?:after|balance)/);
+  assert.doesNotMatch(surfaces, /founding client|founding slots|separate scoped sprint/i);
+  assert.doesNotMatch(surfaces, /Is this the Enquiry Recovery Sprint\?/);
+  assert.match(surfaces, /Request an assessment/);
 });

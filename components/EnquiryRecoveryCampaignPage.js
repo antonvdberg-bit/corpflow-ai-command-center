@@ -6,7 +6,6 @@ import { MERCHANT_LEGAL_NAME } from '../lib/public/merchant-identity.js';
 import { buildPublicPageMeta } from '../lib/public/corpflow-public-market.js';
 import {
   ENQUIRY_RECOVERY_DIAGNOSIS_HASH,
-  ENQUIRY_RECOVERY_FOUNDING_SLOTS,
   ENQUIRY_RECOVERY_IMPLEMENTATION_LINE,
   ENQUIRY_RECOVERY_LOSS_LINE,
   ENQUIRY_RECOVERY_NO_GUARANTEE_LINE,
@@ -15,7 +14,6 @@ import {
   ENQUIRY_RECOVERY_PRICE_LINE,
   ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL,
   ENQUIRY_RECOVERY_QUALIFICATION_LINE,
-  ENQUIRY_RECOVERY_SCARCITY_LINE,
   LEAD_RESCUE_PUBLIC_PAYMENT_LINE,
 } from '../lib/public/enquiry-recovery-sprint.js';
 import CorpFlowPublicFooter from './public/CorpFlowPublicFooter.js';
@@ -56,7 +54,7 @@ const QUALIFICATION = [
 export default function EnquiryRecoveryCampaignPage() {
   const meta = buildPublicPageMeta({
     title: 'Lead Rescue',
-    description: 'Lead Rescue helps selected Mauritius businesses identify and recover valuable enquiries that have gone quiet. MUR 85,000 fixed. Maximum three clients. Request a 15-minute diagnosis.',
+    description: 'Lead Rescue helps businesses capture, route and review valuable enquiries from one supported source, up to 500 records per month. Request an assessment.',
     path: ENQUIRY_RECOVERY_PATH,
     ogImage: `${HERO_BASE}.jpg`,
   });
@@ -94,7 +92,7 @@ export default function EnquiryRecoveryCampaignPage() {
         pageClassName="lead-rescue-campaign"
         maxWidth={1120}
         scrimTone="dark"
-        footer={<CorpFlowPublicFooter extra={`${ENQUIRY_RECOVERY_OFFER_NAME} — ${MERCHANT_LEGAL_NAME}, Mauritius. ${LEAD_RESCUE_PUBLIC_PAYMENT_LINE} ${ENQUIRY_RECOVERY_NO_GUARANTEE_LINE}`} />}
+        footer={<CorpFlowPublicFooter extra={`${ENQUIRY_RECOVERY_OFFER_NAME} — ${MERCHANT_LEGAL_NAME}. ${LEAD_RESCUE_PUBLIC_PAYMENT_LINE} ${ENQUIRY_RECOVERY_NO_GUARANTEE_LINE}`} />}
         hero={{ base: HERO_BASE, sources: heroSources, preloadSrcSet: `${HERO_BASE}-768.avif 768w, ${HERO_BASE}.avif 2400w`, objectPosition: 'center 38%', alt: '' }}
       >
         <CorpFlowPublicHeader
@@ -107,16 +105,12 @@ export default function EnquiryRecoveryCampaignPage() {
         />
 
         <HeroGlassBlock style={{ marginTop: 34 }}>
-          <div style={styles.label}>Lead Rescue · Mauritius · selected businesses</div>
+          <div style={styles.label}>Lead Rescue · standard scope</div>
           <h1 style={styles.h1}>Some of your best enquiries probably didn&apos;t say no. They just stopped being followed up.</h1>
           <p style={styles.lead}>{ENQUIRY_RECOVERY_LOSS_LINE}</p>
           <div style={styles.price}>
             <strong style={{ fontSize: 19 }}>{ENQUIRY_RECOVERY_OFFER_NAME} · {ENQUIRY_RECOVERY_PRICE_LINE}</strong>
-            <div style={{ marginTop: 6 }}>{ENQUIRY_RECOVERY_SCARCITY_LINE}</div>
             <div style={{ marginTop: 6, fontSize: 14 }}>{LEAD_RESCUE_PUBLIC_PAYMENT_LINE}</div>
-            <div style={{ marginTop: 6, fontSize: 14 }}>
-              This is a separate scoped sprint, not one of the standard packages shown on the pricing page.
-            </div>
           </div>
           <div style={{ marginTop: 24 }}>
             <a style={primaryCtaStyle} href={diagnosisHref} data-testid="lead-rescue-canonical-cta" onClick={() => handleCtaClick('hero')}>
@@ -144,7 +138,7 @@ export default function EnquiryRecoveryCampaignPage() {
         <section style={section}>
           <GlassPanel>
             <div style={styles.label}>The challenge</div>
-            <h2 style={styles.h2}>MUR 85,000 only makes sense when a recovered enquiry is worth recovering.</h2>
+            <h2 style={styles.h2}>The standard scope is deliberately bounded.</h2>
             <ul style={styles.list}>
               {QUALIFICATION.map((item) => <li key={item}>{item}</li>)}
             </ul>
@@ -155,9 +149,9 @@ export default function EnquiryRecoveryCampaignPage() {
         <section style={section}>
           <GlassPanel>
             <div style={styles.label}>What happens when you click</div>
-            <h2 style={styles.h2}>One short diagnosis. No payment. No software commitment.</h2>
+            <h2 style={styles.h2}>Request an assessment. No payment on this page.</h2>
             <p style={styles.body}>
-              We spend 15 minutes understanding where enquiries arrive, where follow-up becomes difficult to see, and whether the economics justify intervention. If there is a real recovery problem, we send a written Lead Rescue offer. If there is not, we tell you.
+              We check the supported source, record volume, access, installation cadence and the follow-up problem. We then confirm scope, timing, price and acceptance in writing.
             </p>
           </GlassPanel>
         </section>
@@ -176,8 +170,8 @@ export default function EnquiryRecoveryCampaignPage() {
 
         <section style={section}>
           <CtaGlassBlock>
-            <div style={styles.label}>Three client positions</div>
-            <h2 style={styles.h2}>If a lost enquiry can be worth more than the fee, the diagnosis is the next step.</h2>
+            <div style={styles.label}>Next step</div>
+            <h2 style={styles.h2}>If the standard scope fits, we confirm the path in writing.</h2>
             <p style={styles.body}>{ENQUIRY_RECOVERY_NO_GUARANTEE_LINE}</p>
             <div style={{ marginTop: 20 }}>
               <a style={primaryCtaStyle} href={diagnosisHref} onClick={() => handleCtaClick('footer')}>

@@ -10,9 +10,9 @@
 > care scope now live in [`../sales/CORPFLOWAI_APPROVED_REGIONAL_PRICING_V1.md`](../sales/CORPFLOWAI_APPROVED_REGIONAL_PRICING_V1.md).
 > The former USD 150 / approximately MUR 4,500 continuation figures and daily manually
 > composed summaries below are historic first-paid-pilot references, not new standard
-> quotes. Preserve accepted legacy terms for existing conversations. The distinct MUR 85,000
-> Enquiry Recovery Sprint remains separately scoped. New standard quotes use the approved
-> guide and the verified eligible payment path only.
+> quotes. Preserve accepted legacy terms for existing conversations. The former MUR 85,000
+> Enquiry Recovery Sprint is closed to new sales and superseded by permanent regional
+> pricing. New standard quotes use the approved guide and the verified eligible payment path.
 
 **Authorisation:** Anton's chat DECISION (2026-06-08 *"AUTHORISE — `LeadRescue-Outbound-Activity-Log-1`"* — sequencing instruction *"After the activity-log runtime PR is either merged or explicitly deferred: Create a separate docs-only PR for the commercial launch pack."*).
 

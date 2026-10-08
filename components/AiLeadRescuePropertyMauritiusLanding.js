@@ -45,8 +45,8 @@ import { GLASS_TOKENS } from '../lib/ui/glass.js';
  *    is unchanged.
  *
  * Doctrine compliance (unchanged):
- *  - Single offer rule preserved; only the launch pilot is advertised.
- *  - Mauritius-local payment framing permitted on this surface only (see
+ *  - Permanent regional Lead Rescue scope is used; pricing is linked to /pricing.
+ *  - Mauritius-local payment framing is explicit on this surface only (see
  *    `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md` § *Mauritius property
  *    page localisation note*).
  *  - Required no-guarantee copy is present verbatim.
@@ -237,8 +237,8 @@ const workflowSteps = [
   {
     index: '05',
     iconKey: 'summary',
-    title: 'Daily summary',
-    body: 'A short morning view: new enquiries, follow-ups due, and what slipped past 48 hours without a reply.',
+    title: 'Review and recap',
+    body: 'A weekly review and monthly recap keep ownership visible without promising an unverified cadence.',
   },
 ];
 
@@ -441,7 +441,7 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
       });
       if (!r.ok) throw new Error('intake_failed');
       trackEvent('lr_property_intake_submit_success');
-      alert('Thank you. We will send the Mauritius property pilot outline to your email within 2 business hours.');
+      alert('Thank you. We will review the request and confirm fit, scope and timing by email.');
       form.reset();
     } catch {
       alert('Could not submit the request. Please contact us at support@corpflowai.com or try again shortly.');
@@ -451,7 +451,7 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
   const footer = (
     <PublicSiteFooter
       flush
-      extra="CorpFlowAI Mauritius property edition. The current commercial offer is the Enquiry Recovery Sprint at MUR 85,000 fixed. This page collects intake only, does not collect card or banking details, and does not create any automated subscription. Calls in English; written workflow supports French summaries and French enquiry handling on request, with reviewed replies."
+      extra="CorpFlowAI Mauritius property edition. Lead Rescue uses the permanent regional scope and pricing shown on /pricing. This page collects intake only, does not collect card or banking details, and does not create any automated subscription. Calls in English; written workflow supports French summaries and French enquiry handling on request, with reviewed replies."
     />
   );
 
@@ -461,7 +461,7 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
         <title>AI Lead Rescue for Mauritius property operators · CorpFlowAI</title>
         <meta
           name="description"
-          content="Enquiry Recovery for Mauritius property operators — identify and recover valuable quiet enquiries across WhatsApp, Facebook, website forms, listing portals, and calls. MUR 85,000 fixed. Maximum three founding clients."
+          content="Lead Rescue for Mauritius property operators — capture, route and review valuable enquiries from one supported source, up to 500 records per month."
         />
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href="https://corpflowai.com/lead-rescue/property-mauritius" />
@@ -490,7 +490,7 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
             style={styles.navLink}
             onClick={() => trackEvent('lr_property_primary_cta_click', { props: { location: 'nav' } })}
           >
-            Request the pilot outline
+            Request an assessment
           </a>
         </nav>
 
@@ -513,7 +513,7 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
                 className="lr-property-cta-primary"
                 onClick={() => trackEvent('lr_property_primary_cta_click', { props: { location: 'hero' } })}
               >
-                Request the Mauritius property pilot outline
+                Request an assessment
               </a>
               <a
                 href="#how-it-works"
@@ -563,7 +563,7 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
             >
               <div style={styles.cockpitHeader}>
                 <div style={styles.cockpitTitleStack}>
-                  <div style={styles.cockpitTitle}>Daily summary · 09:00</div>
+                  <div style={styles.cockpitTitle}>Operator review · example</div>
                   <div style={styles.cockpitSubtitle}>Property operator view</div>
                 </div>
                 <span style={styles.cockpitTag}>Illustrative example</span>
@@ -623,7 +623,7 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
         <section style={styles.section} aria-labelledby="operating-area-heading">
           <GlassPanel>
             <div style={styles.sectionLabel}>Operating in Mauritius</div>
-            <h2 id="operating-area-heading" style={styles.h2}>Where we run the pilot — and how the workflow handles language.</h2>
+            <h2 id="operating-area-heading" style={styles.h2}>Where we work — and how the workflow handles language.</h2>
             <div style={styles.operatingArea} className="lr-property-operating-area">
               <div style={styles.operatingAreaMapWrap}>
                 <picture>
@@ -650,7 +650,7 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
                 <div style={styles.operatingAreaSection}>
                   <div style={styles.operatingAreaHeading}>Service area</div>
                   <p style={styles.operatingAreaText}>
-                    The pilot is run for property operators on the North and West coast — Cap Malheureux through Grand Baie, Port Louis, Tamarin, Black River, and down to Le Morne. Other parts of the island on request.
+                    We work with property operators on the North and West coast — Cap Malheureux through Grand Baie, Port Louis, Tamarin, Black River, and down to Le Morne. Other parts of the island on request.
                   </p>
                   <div style={styles.operatingAreaTowns} aria-label="Towns covered by the pilot">
                     {operatingAreaTowns.map((town) => (
@@ -691,22 +691,22 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
         <section style={styles.section}>
           <GlassPanel>
             <div style={styles.sectionLabel}>Pricing &amp; path</div>
-            <h2 style={styles.h2}>Enquiry Recovery Sprint. Local invoice. No card on the page.</h2>
+            <h2 style={styles.h2}>Permanent regional pricing. No card on the page.</h2>
             <div style={styles.pricingCard}>
               <div>
-                <div style={styles.pricingNumber}>MUR 85,000</div>
-                <div style={styles.pricingLabel}>Fixed · invoiced as the MUR equivalent on a local invoice</div>
+                <div style={styles.pricingNumber}>MUR 12,900</div>
+                <div style={styles.pricingLabel}>Lead Rescue setup · optional care from MUR 6,900/month</div>
               </div>
               <div style={styles.pricingBody}>
-                Submitting the form does not commit you to payment. After diagnosis, if the case qualifies, we send a written offer: MUR 85,000 fixed, MUR 51,000 (60%) to start, MUR 34,000 (40%) after approved preview and before production release. First visible preview is targeted within 72 hours after cleared deposit, required access, and required assets — not an unconditional 72-hour guarantee. No card details, no online checkout, and no automated subscription on this page.
+                Submitting the form does not commit you to payment. We confirm fit, scope, timing, taxes, price and payment instructions in writing before you commit. The standard scope covers one supported enquiry source, up to 500 records per month, capture, routing, alerts, testing and acceptance. No card details, no online checkout, and no automated subscription on this page.
               </div>
             </div>
-            <div style={styles.paymentSteps} aria-label="How payment works on the Mauritius property pilot">
+            <div style={styles.paymentSteps} aria-label="How payment works on Lead Rescue">
               <div style={styles.paymentStepsHeading}>How payment works</div>
               <ul style={styles.paymentList} className="lr-property-payment-list">
                 <li style={styles.paymentListItem}>
                   <span style={styles.paymentListBullet} aria-hidden="true" />
-                  <span><span style={styles.paymentListLabel}>Intake review first</span> — within two business hours of submitting the form.</span>
+                  <span><span style={styles.paymentListLabel}>Assessment first</span> — we confirm fit and scope before payment.</span>
                 </li>
                 <li style={styles.paymentListItem}>
                   <span style={styles.paymentListBullet} aria-hidden="true" />
@@ -714,7 +714,7 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
                 </li>
                 <li style={styles.paymentListItem}>
                   <span style={styles.paymentListBullet} aria-hidden="true" />
-                  <span><span style={styles.paymentListLabel}>Local pro-forma invoice</span> — issued in MUR, with the day&rsquo;s rate noted.</span>
+                  <span><span style={styles.paymentListLabel}>Written terms</span> — price, timing, taxes and payment instructions are confirmed before commitment.</span>
                 </li>
                 <li style={styles.paymentListItem}>
                   <span style={styles.paymentListBullet} aria-hidden="true" />
@@ -731,7 +731,7 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
               </ul>
             </div>
             <p style={styles.continuationNote}>
-              If you choose to continue after the pilot, ongoing monitoring is quoted separately after review. There is no auto-renewal, and no monthly figure is published on this page.
+              Optional monthly care starts only after setup acceptance and explicit opt-in. Automated installation cadence is confirmed before it is promised.
             </p>
           </GlassPanel>
         </section>
@@ -739,11 +739,11 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
         <section id="pilot-outline" style={styles.section}>
           <CtaGlassBlock style={{ maxWidth: 720 }}>
             <div style={styles.sectionLabel}>Final step</div>
-            <h2 style={styles.h2}>Request the Mauritius property pilot outline.</h2>
+            <h2 style={styles.h2}>Request a Lead Rescue assessment.</h2>
             <p style={styles.body}>
-              Tell us your business, the property segment you operate in, and where your enquiries arrive today. We send the pilot outline within two business hours.
+              Tell us your business, the property segment you operate in, and where your enquiries arrive today. We will confirm fit, scope and timing individually.
             </p>
-            <form onSubmit={submitLead} style={styles.formGrid} aria-label="Mauritius property pilot outline request">
+            <form onSubmit={submitLead} style={styles.formGrid} aria-label="Lead Rescue assessment request">
               <input required name="business_name" placeholder="Business name" style={styles.input} autoComplete="organization" />
               <fieldset style={styles.formGroup} className="lr-property-form-group">
                 <legend style={styles.formGroupLabel}>Property segment · select all that apply</legend>
@@ -770,11 +770,11 @@ export default function AiLeadRescuePropertyMauritiusLanding({ host = '' }) {
               <input name="lead_sources" placeholder="Where do enquiries arrive today? (e.g. WhatsApp, website, Facebook, listing portal, calls)" style={styles.input} />
               <textarea required name="message" rows="3" placeholder="What follow-up problem should we fix first?" style={styles.input} />
               <button type="submit" style={{ ...styles.cta, ...styles.primary }} className="lr-property-cta-primary" onClick={() => trackEvent('lr_property_primary_cta_click', { props: { location: 'final' } })}>
-                Request the Mauritius property pilot outline
+                Request an assessment
               </button>
             </form>
             <p style={styles.formNote}>
-              Submitting this form does not commit you to payment. There is no automated subscription, no online checkout, and no card or banking details on this page. We review fit first, then confirm the local pro-forma invoice and the setup steps. The pilot is manually onboarded after payment is confirmed by bank transfer. We only store what is needed to run the lead log: business name, contact name, channel, and basic enquiry detail.
+              Submitting this form does not commit you to payment. There is no automated subscription, no online checkout, and no card or banking details on this page. We review fit first, then confirm the written scope and setup steps. We only store what is needed to run the lead log: business name, contact name, channel, and basic enquiry detail.
             </p>
             <p style={styles.noGuarantee}>
               We do not guarantee new revenue. We help make sure existing enquiries are captured, visible, and followed up.

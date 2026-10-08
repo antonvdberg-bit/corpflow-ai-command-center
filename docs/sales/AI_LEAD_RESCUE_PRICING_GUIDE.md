@@ -12,12 +12,15 @@
 > care scope now live in [`CORPFLOWAI_APPROVED_REGIONAL_PRICING_V1.md`](./CORPFLOWAI_APPROVED_REGIONAL_PRICING_V1.md).
 > The former USD 150 / USD 99 and approximately MUR 4,500 figures below are historic
 > first-paid-pilot references, not new standard quotes. Preserve accepted legacy terms for
-> existing conversations, and keep the distinct MUR 85,000 Enquiry Recovery Sprint separate.
+> existing conversations. The former MUR 85,000 Enquiry Recovery Sprint is closed to new
+> sales and superseded by permanent regional pricing.
 > New standard quotes use the approved guide and the verified eligible payment path only.
 
 ## What this doc is for
 
-This is the **operator-side** pricing guide. The **public** page (`/lead-rescue`) advertises **one offer**: *AI Lead Rescue Setup — USD 150 launch pilot*. That public-page rule is governed by `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md` § *single-offer rule*.
+This is the **operator-side** pricing guide. New standard quotes use the selected product and
+market on `/pricing`; `/lead-rescue` remains the permanent Lead Rescue scope and assessment
+path. The older pilot wording below is historical reference only.
 
 This document tells the operator:
 
