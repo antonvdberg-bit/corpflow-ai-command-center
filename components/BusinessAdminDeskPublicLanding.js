@@ -127,7 +127,7 @@ export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINES
           }}
         >
           <BusinessAdminDeskBrand subtitle="Company administration · South Africa" priority />
-          <BusinessAdminDeskContactActions {...DIRECT_CONTACT} compact />
+          <BusinessAdminDeskContactActions {...DIRECT_CONTACT} compact internalReview={internalReview} />
         </nav>
 
         {internalReview ? <BusinessAdminDeskSectionNav currentPath="/" /> : null}
@@ -161,6 +161,7 @@ export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINES
             <div style={{ marginTop: 18 }}>
               <BusinessAdminDeskContactActions
                 {...DIRECT_CONTACT}
+                internalReview={internalReview}
                 secondary={<a href={PARTNER_CTA.href} style={cfBtnSecondary}>{PARTNER_CTA.label}</a>}
               />
             </div>
@@ -198,7 +199,7 @@ export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINES
               <p style={{ ...cfBody, marginBottom: 16 }}>
                 Tell us the company matter you are dealing with. We help clarify what is needed, scope the work and handle the agreed administration while keeping you informed.
               </p>
-              <BusinessAdminDeskContactActions {...DIRECT_CONTACT} />
+              <BusinessAdminDeskContactActions {...DIRECT_CONTACT} internalReview={internalReview} />
             </GlassPanel>
 
             <GlassPanel as="article" variant={{ padding: 24, elevation: 2 }}>
@@ -289,6 +290,7 @@ export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINES
             <div style={{ marginTop: 10 }}>
               <BusinessAdminDeskContactActions
                 {...DIRECT_CONTACT}
+                internalReview={internalReview}
                 secondary={<a href={PARTNER_CTA.href} style={cfBtnSecondary}>{PARTNER_CTA.label}</a>}
               />
             </div>

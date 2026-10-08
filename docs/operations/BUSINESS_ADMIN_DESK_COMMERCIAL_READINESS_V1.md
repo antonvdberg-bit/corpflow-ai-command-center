@@ -106,3 +106,14 @@ Persistence: Anton explicitly approved disclosure to the public repository and q
 Next: bounded website identity/contact correction, read-only mail mapping, then exact commercial decisions and protected configuration/release approval. No laptop app needs to stay open for ordinary cloud execution. Workspace administration requires authorized admin access at its later gate.
 
 Reviewable implementation packet: [identity correction](BUSINESS_ADMIN_DESK_IDENTITY_IMPLEMENTATION_PACKET_V1.md). GitHub disclosure and queueing are approved; merge, DNS/mail configuration and public release still require their exact approvals.
+
+## Implementation evidence — bounded correction
+
+Supersedes only the implementation-state statements above that say the website identity correction is not implemented locally. The canonical legal, commercial, pricing, email-routing, release-gate and public-host restrictions remain unchanged.
+
+- Review rendering uses the approved service-brand sentence: **Business Admin Desk is a service brand operated by CorpFlowAI Ltd.**
+- Review contact actions use `info@businessadmindesk.co.za` as a pending-verification destination; public rendering retains its existing contact baseline.
+- The review footer retains all four planned identities and explicitly states that routing is pending verification. Support remains ERPNext-only; info, accounts and named identities remain routed to existing corporate mailboxes.
+- Review routes render `noindex,nofollow` without canonicals; public routes retain indexable metadata and conditional public canonicals.
+- The focused test uses the existing React/Next compiler and `react-dom/server` to render footer, contact, public, partner and all three service variants, and invokes the clipboard helper with synthetic data. No live submission or mail configuration is performed.
+- This evidence does not verify email aliases, DNS, legal registration details, pricing, Paddle eligibility, public release, deployment or live URL behavior.
