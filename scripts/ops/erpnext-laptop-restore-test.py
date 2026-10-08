@@ -137,6 +137,11 @@ for kind in ['public','private']:
    parts=pathlib.PurePosixPath(member.name).parts
    if '..' in parts: raise RuntimeError('unsafe file member')
    candidates=[site/member.name, site/kind/member.name,site/kind/'files'/member.name]
+    # Frappe backups prefix archive members with the ORIGINAL site name.
+    # Restore relocates that prefix to the new site; compare the kind/files suffix.
+    if kind in parts:
+     suffix=parts[parts.index(kind):]
+     if len(suffix)>=3 and suffix[1]=='files': candidates.insert(0,site.joinpath(*suffix))
    found=next((p for p in candidates if p.is_file()),None)
    if found is None: raise RuntimeError('restored file missing')
    assert hashlib.sha256(found.read_bytes()).digest()==hashlib.sha256(tar.extractfile(member).read()).digest()
