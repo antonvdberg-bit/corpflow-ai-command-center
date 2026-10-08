@@ -2,7 +2,7 @@
 
 Version: 2026-10-08-v1. Work owner: Forge; controller/acceptance: ChatGPT; consequential approvals: Anton. Work lineage: [#1423](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1423). Related evidence: completed host maintenance #1347 and ERP recovery draft PR #1420.
 
-Status: **PACKAGE PREPARED; recurring controller review scheduled separately.** Server-local Forge scheduling, new timers, retiming OS upgrades and disruptive operations are not installed by this documentation package. Existing backup/housekeeping jobs continue. A scheduled review is not proof that Forge or a server action ran.
+Status: **READ-ONLY SERVER CHECKER ACTIVE; whole-estate maintenance PARTIAL.** The bounded server collector and existing-alert extension are installed. OS retiming, disruptive updates, complete-estate recovery and an accepted Forge model review remain outstanding. A scheduled task is not proof of execution.
 
 Recurring controller oversight was created and enabled on 8 October 2026 at 07:45 Mauritius, with daily flexible scheduling around 22:00, starting tonight. It reads #1423 and this branch (main after merge), records changed evidence only and remains exception-only for operator notifications. The hosted task has no first-run receipt yet. The prepared Forge envelope passes the existing registry validator; sanitized input is explicitly not attached, so this is format compatibility, not a claimed Forge run.
 
@@ -134,3 +134,11 @@ Anton requested that outstanding work be completed now. Further read-only checks
 One inspection stopped when server `rg` was unavailable. The bounded filename inspection was repeated with standard-library walking and completed; earlier successful metadata reads remain valid. No raw journal messages, configuration contents or keys were published.
 
 Next execution packet: implement and verify the missing sanitized collector/Forge runner, its single daily server-native timer and existing-alert freshness integration. Keep OS-timer retiming, backup scope expansion and disruptive update/repair execution separate from that first activation so they do not enlarge its authority. No additional paid service is needed. See linked activation packet for exact acceptance and stop conditions.
+
+## Runtime activation receipt — 8 October 2026, 08:29 Mauritius
+
+The bounded read-only collector and anton-owned model reviewer were installed after 14 fixtures passed locally and on the server, Python/Bash syntax checks and systemd validation. Manual server receipt at 04:29:51 UTC: collection success; deterministic checks D01–D06 PASS; Forge DEFERRED_RESOURCE. Available RAM was 5,703,213,056 bytes, below the conservative 6,442,450,944-byte (6 GiB) threshold. No model was force-loaded or promoted. This is not Forge PASS and does not establish every subrequirement in the full catalogue.
+
+`corpflowai-forge-maintenance-collect.timer` is enabled at 18:00 UTC / 22:00 Mauritius with Persistent=no, first scheduled run 8 October. Root-owned evidence/status are at `/var/lib/corpflowai-maintenance/`. Existing Monitor #14 now checks missing/failed/>36h receipts and prolonged (>48h) memory deferral; existing ERP/laptop/restic checks are preserved. The live combined health check exited zero. No new bot, paid service, root model authority, application restart or OS update. First unattended run and fresh end-to-end maintenance alert delivery remain unobserved.
+
+This receipt supersedes earlier PREPARED/no-server-timer statements only for the bounded daily collector and alert integration. Weekly/monthly/quarterly mutations are still reserved plans. Read [activation ADR](../decisions/20261008-forge-maintenance-read-only-activation.md) for exact boundaries and rollback. Protected ops recovery expansion is separately bounded by [its ADR](../decisions/20261008-protected-ops-backup-expansion.md); its runtime receipt must be recorded separately.
