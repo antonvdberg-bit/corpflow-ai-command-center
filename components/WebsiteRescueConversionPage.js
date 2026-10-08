@@ -130,6 +130,11 @@ export default function WebsiteRescueConversionPage({ offer }) {
               Request discovery
             </a>
           </div>
+          <p style={{ ...styles.note, marginTop: 16 }}>
+            <a href="/pricing" style={styles.link}>
+              See standard setup and monthly care pricing
+            </a>
+          </p>
         </HeroGlassBlock>
 
         <section style={{ marginTop: 56 }} aria-labelledby="website-rescue-proof-title">
