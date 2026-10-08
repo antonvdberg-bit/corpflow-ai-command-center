@@ -18,9 +18,8 @@
 
 ## Marketing quality gate
 
-Provisional score: **13/14**, pending visual review of the local preview at 390px and desktop
-widths. Strategic clarity 2, message quality 2, proof/trust 2, scannability 2, visual/aesthetic
-1 pending screenshots, conversion logic 2, channel fit 2.
+Quality-gate score: **13/14 provisional**. Strategic clarity 2, message quality 2, proof/trust 2,
+scannability 2, visual/aesthetic 1 pending screenshot artifact, conversion logic 2, channel fit 2.
 
 Required visual checks before treating the asset as verified:
 
@@ -30,6 +29,21 @@ Required visual checks before treating the asset as verified:
 - no horizontal overflow at 390px or desktop;
 - assessment mailto is valid;
 - `/pricing`, `/demo/website-rescue` and both secondary pricing links resolve.
+
+## Local preview result
+
+Manual browser smoke passed on `http://localhost:3000` at 390px mobile and 1792px desktop:
+
+- `/pricing`, `/demo/website-rescue`, `/lead-rescue` and `/website-rescue` resolved;
+- product selection preceded market selection, and changing product cleared market selection;
+- all four markets and the exact accepted rates rendered, including Website Rescue South Africa
+  at `ZAR 15,900` setup and `ZAR 2,190 / month`;
+- no horizontal overflow was observed;
+- the assessment mailto resolved to `support@corpflowai.com`;
+- both existing secondary links resolved to `/pricing`;
+- no form was submitted and no message was sent.
+
+This is local preview evidence, not a deployed or public-live verification.
 
 No live gateway availability, payment activation, client outcome, or public publication is
 claimed by this evidence file.
