@@ -397,6 +397,26 @@ ERP_PY
   fi
 }
 
+# Laptop cold-copy freshness is independent of the server/Borg backup result.
+check_erp_laptop_copy() {
+  local verdict
+  verdict="$(python3 - <<'LAPTOP_PY'
+import json
+from datetime import datetime, timezone
+try:
+    with open('/var/lib/corpflowai-erp-backup/laptop-status.json') as f:
+        data=json.load(f)
+    when=datetime.fromisoformat(data['last_verified_copy_utc'])
+    age=(datetime.now(timezone.utc)-when).total_seconds()
+    assert data.get('version')==1 and when.tzinfo is not None and data.get('sha256')
+    print('ERP laptop recovery copy is older than seven days; reconnect laptop/VPN' if age>7*86400 else 'ERP laptop copy timestamp is in the future' if age < -300 else '')
+except (OSError,ValueError,TypeError,KeyError,AssertionError):
+    print('ERP laptop recovery copy acknowledgement is missing or invalid')
+LAPTOP_PY
+)" || verdict="ERP laptop copy status parser failed"
+  [[ -z "${verdict}" ]] || add_failure "${verdict}"
+}
+
 run_checks() {
   if [[ "${FORCE_FAIL}" == "1" ]]; then
     load_restic_env || true
@@ -520,6 +540,7 @@ main() {
   log "start dry_run=${DRY_RUN} force_fail=${FORCE_FAIL} max_age_h=${MAX_AGE_HOURS} min_snapshots=${MIN_SNAPSHOT_COUNT}"
 
   check_erp_backup_status
+  check_erp_laptop_copy
   run_checks
 
   if [[ "${#FAILURES[@]}" -eq 0 ]]; then
