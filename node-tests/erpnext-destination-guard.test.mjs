@@ -88,6 +88,7 @@ test('redirect responses fail closed without a second request', async () => {
     http: 302,
     data: {},
     error: FRAPPE_REDIRECT_BLOCKED,
+    row: null,
   });
   assert.equal(calls, 1);
 });
