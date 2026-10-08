@@ -41,9 +41,11 @@ test('automation minima are bounded project starting points', () => {
 });
 
 test('standard pricing does not mix with the Mauritius sprint offer', () => {
-  const standardValues = JSON.stringify(APPROVED_REGIONAL_PRICES);
-  assert.equal(standardValues.includes('85000'), false);
-  assert.equal(standardValues.includes('4500'), false);
+  const standardValues = Object.values(APPROVED_REGIONAL_PRICES).flatMap((rates) =>
+    Object.values(rates),
+  );
+  assert.equal(standardValues.includes(85000), false);
+  assert.equal(standardValues.includes(4500), false);
   assert.match(STANDARD_PACKAGE_PAYMENT_NOTE, /No payment is taken on this page/);
   assert.match(STANDARD_PACKAGE_PAYMENT_NOTE, /explicit opt-in/);
 });
