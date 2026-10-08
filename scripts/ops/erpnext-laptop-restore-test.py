@@ -137,11 +137,11 @@ for kind in ['public','private']:
    parts=pathlib.PurePosixPath(member.name).parts
    if '..' in parts: raise RuntimeError('unsafe file member')
    candidates=[site/member.name, site/kind/member.name,site/kind/'files'/member.name]
-    # Frappe backups prefix archive members with the ORIGINAL site name.
-    # Restore relocates that prefix to the new site; compare the kind/files suffix.
-    if kind in parts:
-     suffix=parts[parts.index(kind):]
-     if len(suffix)>=3 and suffix[1]=='files': candidates.insert(0,site.joinpath(*suffix))
+   # Frappe backups prefix archive members with the ORIGINAL site name.
+   # Restore relocates that prefix to the new site; compare the kind/files suffix.
+   if kind in parts:
+    suffix=parts[parts.index(kind):]
+    if len(suffix)>=3 and suffix[1]=='files': candidates.insert(0,site.joinpath(*suffix))
    found=next((p for p in candidates if p.is_file()),None)
    if found is None: raise RuntimeError('restored file missing')
    assert hashlib.sha256(found.read_bytes()).digest()==hashlib.sha256(tar.extractfile(member).read()).digest()
@@ -169,7 +169,8 @@ print(json.dumps({'restored_files_hash_verified':checked,'configuration_keys_pre
         (ROOT/'receipt.json').write_text(json.dumps(receipt,indent=2)+'\n')
         for name in ['plain','unpack']:
             shutil.rmtree(ROOT/name,ignore_errors=True)
-        (ROOT/'package.tar').unlink(missing_ok=True); compose.unlink(missing_ok=True)
+        compose.unlink(missing_ok=True)
+        (ROOT/'package.tar').unlink(missing_ok=True)
         print(json.dumps(receipt),flush=True)
     return 0 if receipt.get('outcome')=='success' and receipt.get('test_volumes_removed') else 1
 
