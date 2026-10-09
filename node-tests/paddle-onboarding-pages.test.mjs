@@ -20,7 +20,7 @@ test('onboarding review is printable and keeps provider acceptance pending', () 
   assert.match(page, /noindex,nofollow/);
   assert.match(page, /@media print/);
   assert.match(page, /Provider eligibility.*OPEN|provider eligibility/i);
-  assert.match(page, /No checkout/);
+  assert.match(page, /No checkout/i);
   assert.match(page, /paddle\.com/);
 });
 
