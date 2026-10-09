@@ -1,0 +1,11 @@
+[Unit]
+Description=CorpFlowAI daily maintenance checks at 22:00 Mauritius
+
+[Timer]
+OnCalendar=*-*-* 18:00:00 UTC
+RandomizedDelaySec=0
+Persistent=false
+Unit=corpflowai-forge-maintenance-collect.service
+
+[Install]
+WantedBy=timers.target

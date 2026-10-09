@@ -306,7 +306,7 @@ print(json.dumps({"chat_id": os.environ["TELEGRAM_ALERT_CHAT_ID"], "text": text}
     log "telegram: FAILED to build JSON payload"
     return 1
   }
-  http="$(curl -sS -o /tmp/corpflowai-backup-health-tg.out -w '%{http_code}' \
+  http="$(curl -sS --connect-timeout 10 --max-time 30 -o /tmp/corpflowai-backup-health-tg.out -w '%{http_code}' \
     -X POST "https://api.telegram.org/bot${token}/sendMessage" \
     -H 'Content-Type: application/json' \
     --data-binary "${payload}")" || true
@@ -348,9 +348,79 @@ write_quiet_success_log() {
     >> "${LOG_DIR}/backup-health.log"
 }
 
+
+# Recovered ERP protection: independent of the tiny restic heartbeat snapshots.
+check_erp_backup_status() {
+  local verdict
+  if ! command -v python3 >/dev/null 2>&1; then
+    add_failure "ERP backup status cannot be checked: python3 missing"
+    return 0
+  fi
+  verdict="$(python3 - "${BACKUP_HEALTH_ERP_STATUS_FILE:-/var/lib/corpflowai-erp-backup/status.json}" <<'ERP_PY'
+import json, sys
+from datetime import datetime, timezone
+
+def inspect_status(path, now=None):
+    now = now or datetime.now(timezone.utc)
+    try:
+        with open(path, encoding="utf-8") as fh:
+            data = json.load(fh)
+        if data.get("version") != 1:
+            return "ERP backup status has an unsupported schema"
+        if data.get("outcome") not in ("success", "running", "failed"):
+            return "ERP backup status has an invalid result"
+        if data.get("outcome") == "failed":
+            return "Most recent ERP backup attempt failed; inspect the guarded backup job"
+        attempt = datetime.fromisoformat(data["last_attempt_utc"])
+        latest = datetime.fromisoformat(data["last_success_utc"])
+        if attempt.tzinfo is None or latest.tzinfo is None:
+            return "ERP backup timestamps lack a timezone"
+        age = (now - latest).total_seconds()
+        if age < -300 or (now - attempt).total_seconds() < -300:
+            return "ERP backup timestamps are unexpectedly in the future"
+        if age > 36 * 3600:
+            return "Last remotely verified ERP backup is older than 36 hours"
+        if data.get("remote_verified") is not True or not data.get("archive"):
+            return "ERP backup lacks verified remote archive evidence"
+        if data.get("outcome") == "running" and (now - attempt).total_seconds() > 3 * 3600:
+            return "ERP backup job has been running for more than three hours"
+        return ""
+    except (OSError, ValueError, TypeError, KeyError):
+        return "ERP backup status is missing, unreadable or incomplete"
+
+if __name__ == "__main__":
+    print(inspect_status(sys.argv[1]))
+ERP_PY
+)" || verdict="ERP backup status parser failed"
+  if [[ -n "${verdict}" ]]; then
+    add_failure "${verdict}"
+  fi
+}
+
+# Laptop cold-copy freshness is independent of the server/Borg backup result.
+check_erp_laptop_copy() {
+  local verdict
+  verdict="$(python3 - <<'LAPTOP_PY'
+import json
+from datetime import datetime, timezone
+try:
+    with open('/var/lib/corpflowai-erp-backup/laptop-status.json') as f:
+        data=json.load(f)
+    when=datetime.fromisoformat(data['last_verified_copy_utc'])
+    age=(datetime.now(timezone.utc)-when).total_seconds()
+    assert data.get('version')==1 and when.tzinfo is not None and data.get('sha256')
+    print('ERP laptop recovery copy is older than seven days; reconnect laptop/VPN' if age>7*86400 else 'ERP laptop copy timestamp is in the future' if age < -300 else '')
+except (OSError,ValueError,TypeError,KeyError,AssertionError):
+    print('ERP laptop recovery copy acknowledgement is missing or invalid')
+LAPTOP_PY
+)" || verdict="ERP laptop copy status parser failed"
+  [[ -z "${verdict}" ]] || add_failure "${verdict}"
+}
+
 run_checks() {
   if [[ "${FORCE_FAIL}" == "1" ]]; then
-    add_failure "BACKUP_HEALTH_FORCE_FAIL=1 (operator test)"
+    load_restic_env || true
+    add_failure "${BACKUP_HEALTH_FORCE_REASON:-BACKUP_HEALTH_FORCE_FAIL=1 (operator test)}"
     return 0
   fi
 
@@ -466,9 +536,18 @@ run_checks() {
   fi
 }
 
+check_maintenance_status() {
+  local verdict
+  verdict="$(python3 /usr/local/lib/corpflowai-maintenance/forge-maintenance-collect.py --health)" || verdict="Maintenance receipt parser failed"
+  [[ -z "${verdict}" ]] || add_failure "${verdict}"
+}
+
 main() {
   log "start dry_run=${DRY_RUN} force_fail=${FORCE_FAIL} max_age_h=${MAX_AGE_HOURS} min_snapshots=${MIN_SNAPSHOT_COUNT}"
 
+  check_erp_backup_status
+  check_erp_laptop_copy
+  check_maintenance_status
   run_checks
 
   if [[ "${#FAILURES[@]}" -eq 0 ]]; then
