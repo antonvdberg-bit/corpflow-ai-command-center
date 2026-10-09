@@ -22,6 +22,7 @@
     "cmp:repair-sandbox": "node scripts/cmp-repair-stuck-sandbox.mjs",
     "cmp:repair-sandbox:execute": "node scripts/cmp-repair-stuck-sandbox.mjs --execute",
     "technical-lead:run": "node scripts/technical-lead-run.mjs",
+    "finance:sbm-statement-ingest": "node scripts/finance/sbm-statement-ingest.mjs",
     "growth:prospects:import": "node scripts/import-growth-prospects.mjs",
     "smoke:change-technical-lead": "node scripts/smoke-change-console-technical-lead.mjs",
     "smoke:change-overflow": "node scripts/smoke-change-overflow.mjs",
@@ -63,6 +64,8 @@
     "seed:client-intelligence:orixhealth": "node scripts/seed-client-intelligence-orixhealth.mjs"
   },
   "dependencies": {
+    "@paddle/paddle-js": "^1.6.5",
+    "@paddle/paddle-node-sdk": "^3.10.0",
     "@prisma/client": "^6.0.0",
     "@prisma/nextjs-monorepo-workaround-plugin": "^7.8.0",
     "next": "^16.3.6",

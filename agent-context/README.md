@@ -9,6 +9,12 @@ Purpose: compact, version-controlled operating context for ChatGPT, Cursor, Forg
 - No production deploy, production DB/schema/data mutation, env/secrets/access change, payment, external message/publish, paid tool/vendor, or public launch without explicit Anton approval.
 - Never place secrets, credentials, .env values, payment details or client-private data in prompts, logs, GitHub comments or fixtures.
 
+## Controller work comes before executor dispatch
+
+Routine summarisation, task evaluation, evidence review, learning capture, documentation and work routing are non-negotiable controller duties. ChatGPT/Codex may directly make bounded documentation-only branch edits, verify them and prepare reviewable PRs under the 2026-10-04 operator-approved exception in `AGENTS.md`. Stop before merge and protected actions.
+
+Before dispatching Cursor, record the concrete implementation need and why direct controller work or existing deterministic automation / an approved Forge contract is insufficient. A document, summary, learning note or routing decision alone does not justify a Cursor run. Do not duplicate active executor work; verify release before transferring ownership. Forge remains within its existing approved contracts.
+
 ## Cost-aware routing
 1. Deterministic automation first where sufficient.
 2. Forge for bounded LOW-tier deterministic work.
