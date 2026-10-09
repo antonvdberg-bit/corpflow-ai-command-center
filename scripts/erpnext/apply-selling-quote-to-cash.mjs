@@ -120,6 +120,8 @@ function summarizeResult(label, result) {
     mismatches: result.mismatches || [],
     pointer_persisted: result.pointer_persisted === true,
     postgres_persist: result.postgres_persist || 'not_written',
+    reference_durability: result.pointer_persisted === true ? 'memory_only' : 'none',
+    core_link_ready: false,
     readback: result.readback || null,
     error: result.error || null,
   };
@@ -287,6 +289,8 @@ const evidence = {
   identity: auth.user,
   secrets_printed: false,
   postgres_written: false,
+  reference_durability: 'memory_only',
+  core_link_ready: false,
   synthetic_lead_id: event.lead_id,
   synthetic_company_name: fixture.legal_name,
   company_identity: identity,
@@ -297,7 +301,7 @@ const evidence = {
   created_on_replay: proof.created_on_replay === true,
   duplicate_quotation_count: proof.second?.duplicate_quotation_count ?? proof.first?.duplicate_quotation_count ?? null,
   pointer: stored?.qualification_json?.erpnext || proof.second?.pointer || null,
-  pointer_location: 'qualification_json.erpnext (in-memory reference; Postgres not written)',
+  pointer_location: 'qualification_json.erpnext (memory-only reference; Postgres not written; not a durable Core link)',
   pdf,
   accepted_commercial_record: acceptedCommercialRecordMechanism(ROOT),
   sales_invoice_proforma: {

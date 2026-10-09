@@ -27,6 +27,7 @@ import {
 
 function compactPacket(extra = '') {
   return `## CURRENT CURSOR PACKET — v1
+execution_kind: CODE_CHANGE
 value_class: cost_reduction
 expected_outcome: Harden one control.
 context_budget: S
@@ -184,7 +185,7 @@ describe('Factory Cloud Agents executor', () => {
     ['controller reference', `${compactPacket()}\nNOT A CURSOR EXECUTION PACKET`, 'controller_or_reference_issue'],
     ['duplicate packet', `${compactPacket()}\n## CURRENT CURSOR PACKET\n${compactPacket()}`, 'current_packet_ambiguous'],
     ['oversized packet', `${compactPacket()}\n${'x'.repeat(12001)}`, 'current_packet_oversized'],
-    ['missing frugal metadata', '## CURRENT CURSOR PACKET\nvalue_class: cost_reduction', 'frugal_metadata_missing'],
+    ['missing frugal metadata', '## CURRENT CURSOR PACKET\nexecution_kind: CODE_CHANGE', 'frugal_metadata_missing'],
   ]) {
     it(`rejects ${name} before an API payload is created`, () => {
       assert.throws(
