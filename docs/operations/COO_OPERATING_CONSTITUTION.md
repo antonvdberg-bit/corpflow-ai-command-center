@@ -50,6 +50,22 @@ Parallelism is a **COO capacity decision**, not an ideology.
 
 If authoritative remaining provider budget is unavailable, state that it is unknown. Do not invent a balance.
 
+
+### Cursor cost-routing policy — 9 October 2026
+
+Anton approved the following standing Cursor execution policy for the current metered month and subsequent work unless explicitly superseded:
+
+- **GPT-5.6 Luna Medium is the default Cursor model.**
+- **Do not use Grok High / Grok High Fast unless the controller records a specific complexity justification and Anton explicitly approves the exception.**
+- **No automatic retries.** A failed or blocked run must be evaluated before any new attempt.
+- **No duplicate agents.** Verify current claims, active runs and existing branches before dispatch.
+- **Forge first where an approved Forge contract and deterministic verifier are sufficient.** Cursor remains for multi-file, integration or implementation work that Forge cannot safely complete.
+- **Cursor packets must remain small and bounded:** one outcome, narrow context, explicit stop condition, lowest adequate tier/model, and no speculative scope expansion.
+- **Preserve existing branches, PRs and paid-for work.** Continue or repair existing implementation rather than rebuilding unless evidence proves the branch is unusable.
+- **No paid-capacity top-up, on-demand spend escalation or higher-cost model escalation without Anton approval.**
+
+The controller should optimise for accepted client-visible output per unit of Cursor capacity, not raw run volume. When authoritative provider budget evidence is available, use it; otherwise state remaining allowance as unknown rather than guessing.
+
 ## 4. Client deadline rule
 
 For any known client/prospect meeting or promised deliverable:
