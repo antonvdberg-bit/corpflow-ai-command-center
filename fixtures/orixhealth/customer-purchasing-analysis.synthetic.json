@@ -1,0 +1,76 @@
+{
+  "invoices": [
+    {
+      "invoice_id": "SYN-INV-003",
+      "customer_key": "customer-a",
+      "invoice_date": "2026-03-15",
+      "status": "paid",
+      "currency": "MUR",
+      "item_key": "item-blue",
+      "quantity": 2,
+      "net_amount": 200
+    },
+    {
+      "invoice_id": "SYN-INV-001",
+      "customer_key": "customer-a",
+      "invoice_date": "2026-01-15",
+      "status": "paid",
+      "currency": "MUR",
+      "item_key": "item-blue",
+      "quantity": 1,
+      "net_amount": 100
+    },
+    {
+      "invoice_id": "SYN-INV-001",
+      "customer_key": "customer-a",
+      "invoice_date": "2026-01-15",
+      "status": "paid",
+      "currency": "MUR",
+      "item_key": "item-red",
+      "quantity": 3,
+      "net_amount": 150
+    },
+    {
+      "invoice_id": "SYN-INV-004",
+      "customer_key": "customer-a",
+      "invoice_date": "2026-04-15",
+      "status": "draft",
+      "currency": "MUR",
+      "item_key": "item-blue",
+      "quantity": 10,
+      "net_amount": 999
+    },
+    {
+      "invoice_id": "SYN-INV-005",
+      "customer_key": "customer-b",
+      "invoice_date": "2026-02-01",
+      "status": "sent",
+      "currency": "EUR",
+      "item_key": "item-blue",
+      "quantity": 1,
+      "net_amount": 50
+    },
+    {
+      "invoice_id": "SYN-INV-006",
+      "customer_key": "customer-a",
+      "invoice_date": "2026-12-01",
+      "status": "paid",
+      "currency": "MUR",
+      "item_key": "item-blue",
+      "quantity": 1,
+      "net_amount": 500
+    }
+  ],
+  "credit_notes": [
+    {
+      "credit_note_id": "SYN-CN-001",
+      "invoice_id": "SYN-INV-003",
+      "customer_key": "customer-a",
+      "credit_date": "2026-03-20",
+      "currency": "MUR",
+      "item_key": "item-blue",
+      "quantity": 1,
+      "net_amount": 25
+    }
+  ]
+}
