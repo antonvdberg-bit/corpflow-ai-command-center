@@ -64,11 +64,12 @@ instructions in writing before commitment. No payment is taken on the public pri
 Monthly care is a separate purchase and starts only after setup acceptance and explicit opt-in.
 Payment eligibility, taxes, renewal and refund terms remain subject to confirmation before sale.
 
-## Separate offers
+## Historical accepted terms and separate funnels
 
-The Mauritius Lead Rescue / Enquiry Recovery Sprint remains a distinct scoped offer at its
-accepted price. These standard packages do not reprice or replace that sprint. Property and
-premium funnels retain their separately scoped offers.
+Existing accepted quotations retain their agreed terms. The permanent standard Lead Rescue and
+Website Rescue packages use the matrix above; property and premium funnels retain their
+separately scoped offers. No retired sprint price, deposit split or scarcity claim is a current
+standard offer.
 
 This guide records the approved standard-package atom for the `/pricing` validation path.
 It does not claim universal legal compliance, guaranteed rankings, guaranteed revenue or

@@ -13,6 +13,12 @@ import PublicMarketingPhotoGlassShell from '../components/beauty/PublicMarketing
 import GlassPanel from '../components/beauty/GlassPanel.js';
 import HeroGlassBlock from '../components/beauty/HeroGlassBlock.js';
 import { cfBtnPrimary, cfBtnSecondary } from '../components/public/corpflow-public-styles.js';
+import BusinessAdminDeskPricingReviewPage from '../components/BusinessAdminDeskPricingReviewPage.js';
+import {
+  isBusinessAdminDeskPublicHost,
+  isCipcDeskStandingTestHost,
+  normalizeHostname,
+} from '../lib/server/cipc-desk-runtime.js';
 
 const products = {
   lead: 'Lead Rescue',
@@ -26,7 +32,10 @@ const descriptions = {
   automation: 'We scope your workflow and agree a fixed price for deliverables, testing and handover. Access, dependencies, acceptance and separate software costs are confirmed before work starts.',
 };
 
-export default function PricingPage() {
+export default function PricingPage({ host = '' }) {
+  if (isCipcDeskStandingTestHost(host)) {
+    return <BusinessAdminDeskPricingReviewPage />;
+  }
   const [product, setProduct] = useState('');
   const [currency, setCurrency] = useState('');
   const rate = APPROVED_REGIONAL_PRICES[currency];
@@ -170,19 +179,32 @@ export default function PricingPage() {
               support are quoted separately. We do not guarantee rankings, revenue or complete legal
               compliance. No 24/7 staffed response is included.
             </p>
+            <p>
+              <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> ·{' '}
+              <a href="/refund-policy">Refund / cancellation</a> · <a href="/delivery-policy">Delivery</a> ·{' '}
+              <a href="/payment-security">Payment security</a> · <a href="/contact">Contact</a>
+            </p>
             <h3>Can I see an example?</h3>
             <p>
               <a href="/demo/website-rescue">View the fictional Website Rescue before/after example</a>.
               Examples illustrate a process, not a promised customer result.
             </p>
-            <h3>Is this the Enquiry Recovery Sprint?</h3>
+              <h3>Does this change my accepted quote?</h3>
             <p>
-              No. That is a separate scoped Mauritius recovery engagement. These standard fees do
-              not reprice an accepted sprint quote.
+              No. Existing accepted quotations keep their agreed terms. New work uses the permanent
+              regional package prices shown here.
             </p>
           </GlassPanel>
         </section>
       ) : null}
     </PublicMarketingPhotoGlassShell>
   );
+}
+
+export function getServerSideProps({ req }) {
+  const host = normalizeHostname(req?.headers?.host);
+  if (isBusinessAdminDeskPublicHost(host)) {
+    return { notFound: true };
+  }
+  return { props: { host } };
 }
