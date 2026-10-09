@@ -166,7 +166,7 @@ describe('Revenue offer config — three offers with MUR pricing', () => {
   });
 
   it('matches expected starting prices', () => {
-    assert.equal(RAPID_DELIVERY_OFFERS['ai-lead-rescue'].startingPriceMur, 85000);
+    assert.equal(RAPID_DELIVERY_OFFERS['ai-lead-rescue'].startingPriceMur, 12900);
     assert.equal(RAPID_DELIVERY_OFFERS['premium-landing-page-rescue'].startingPriceMur, 45000);
     assert.equal(RAPID_DELIVERY_OFFERS['customer-reputation-recovery'].startingPriceMur, 45000);
   });

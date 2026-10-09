@@ -43,7 +43,7 @@ describe('#699 market gateway — public offer', () => {
     assert.match(CORPflow_HOMEPAGE_HERO.headline, /enquir/i);
     assert.match(CORPflow_HOMEPAGE_HERO.eyebrow, /Mauritius/i);
     assert.match(CORPflow_HOMEPAGE_HERO.subhead, /Lead Rescue/i);
-    assert.match(CORPflow_HOMEPAGE_HERO.subhead, /MUR 85,000 fixed/i);
+    assert.match(CORPflow_HOMEPAGE_HERO.subhead, /MUR 12,900/i);
     assert.equal(CORPflow_HOMEPAGE_HERO.primaryCta.href, ENQUIRY_RECOVERY_DIAGNOSIS_HREF);
     assert.equal(CORPflow_HOMEPAGE_HERO.primaryCta.label, ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL);
     assert.ok(!/guaranteed revenue|10x|fully autonomous/i.test(JSON.stringify(CORPflow_HOMEPAGE_HERO)));

@@ -126,5 +126,5 @@ test('approved offer-page pricing remains on intentional product surfaces', () =
   assert.match(leadRescue, /MUR 85,000|ENQUIRY_RECOVERY_PRICE/);
 
   const offers = fs.readFileSync(path.join(root, 'lib/public/rapid-delivery-offers.js'), 'utf8');
-  assert.match(offers, /85000|85,000/);
+  assert.match(offers, /ENQUIRY_RECOVERY_PRICE_MUR|12900|12,900/);
 });

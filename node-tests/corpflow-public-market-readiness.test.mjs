@@ -126,7 +126,7 @@ describe('CorpFlow public market readiness — three offer prices', () => {
   it('lists three offers with expected MUR starting prices', () => {
     const offers = listPublicOffers();
     assert.equal(offers.length, 3);
-    assert.equal(RAPID_DELIVERY_OFFERS['ai-lead-rescue'].startingPriceMur, 85000);
+    assert.equal(RAPID_DELIVERY_OFFERS['ai-lead-rescue'].startingPriceMur, 12900);
     assert.equal(RAPID_DELIVERY_OFFERS['premium-landing-page-rescue'].startingPriceMur, 45000);
     assert.equal(RAPID_DELIVERY_OFFERS['customer-reputation-recovery'].startingPriceMur, 45000);
   });

@@ -84,7 +84,7 @@ describe('Mauritius property page — intake contract is preserved', () => {
       'missing no-guarantee line',
     );
     assert.ok(COMPONENT.includes('Request the Mauritius property pilot outline'), 'missing buyer-action CTA');
-    assert.ok(COMPONENT.includes('MUR 85,000'), 'missing current sprint price');
+    assert.ok(COMPONENT.includes('MUR 12,900'), 'missing current Lead Rescue setup price');
     assert.ok(COMPONENT.includes('invoiced as the MUR equivalent'), 'missing MUR local-pro-forma framing');
   });
 
