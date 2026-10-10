@@ -77,6 +77,20 @@ test('malformed or ambiguous data is rejected rather than defaulted', () => {
     }, config),
     /lineage/,
   );
+  assert.throws(
+    () => analyzeCustomerPurchasing({
+      invoices: [{ ...fixture.invoices[0], invoice_date: '2026-02-29' }],
+    }, config),
+    /invoices\[0\]\.invoice_date/,
+  );
+  assert.throws(
+    () => analyzeCustomerPurchasing(fixture, { asOfDate: '2026-06-01', dormancyDays: 45 }),
+    /config\.includedStatuses/,
+  );
+  assert.throws(
+    () => analyzeCustomerPurchasing(fixture, { asOfDate: '2026-06-01', includedStatuses: ['paid'] }),
+    /config\.dormancyDays/,
+  );
 });
 
 test('CSV output is small and readable without performing an external action', () => {
