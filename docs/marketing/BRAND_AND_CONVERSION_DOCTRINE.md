@@ -242,11 +242,26 @@ Preferred trust line:
 
 **We do not guarantee new revenue. We help make sure existing enquiries are captured, visible, and followed up.**
 
+## Approved standard-pricing exception — 2026-10-08
+
+Anton approved the standard regional pricing change recorded in issue #1432. The `/pricing`
+page may show one selected standard product after buyer intent is established, followed by
+market selection and the associated fixed regional setup / optional monthly-care fee. The
+continuation option is public only in this selected context and remains subject to explicit
+approval, confirmed scope and verified eligible payment.
+
+This is not a four-market hero table and it is not dynamic FX. The distinct Enquiry Recovery
+Sprint and property / premium funnels retain their separately scoped offers. This exception
+supersedes the old fixed USD 150 public/default/USD-only standard wording where it conflicts
+with the approved standard matrix; it does not change the Sprint, accepted legacy terms or
+the requirement to confirm fit, timing, taxes, total price and payment instructions in writing.
+It does not claim universal legal compliance or provider eligibility.
+
 ## AI Lead Rescue doctrine
 
-Primary conversion goal: get the visitor to start intake for a 48-hour pilot setup.
+Primary conversion goal: get the visitor to start intake for a scoped package assessment.
 
-Best hero CTA: **Start my 48-hour setup**
+Best hero CTA: **Request an assessment**
 
 Best secondary CTA: **See how it works**
 
@@ -266,21 +281,21 @@ Required no-guarantee copy:
 
 Single offer rule:
 
-The public landing page advertises **one** offer: **AI Lead Rescue Setup — USD 150 launch pilot**. Currency, invoice route, and payment provider are **operator decisions** made after intake review and communicated to the buyer on the invoice — not buyer decisions on the landing page.
+The public landing page advertises one Lead Rescue package. Regional setup and optional care prices are shown only after buyer intent and market selection on `/pricing`; fit, scope, timing, taxes, total price and payment instructions remain subject to written confirmation.
 
 The page must not ask the buyer to pick a region, currency, or payment route before submitting intake. Mauritius, EUR, GBP, or any other operator-side currency arrangements are recorded on the Commercial card on `/admin/lead-rescue/[id]` after qualification — they do not appear in the public-facing offer.
 
-Do not use **Choose payment path**, **Choose your region**, **Start intake — Mauritius**, **Start intake — International**, or any equivalent route-as-CTA wording.
+Do not use **Choose payment path**, **Choose your region**, or any equivalent route-as-CTA wording.
 
 ### Mauritius property page localisation note
 
 The Mauritius property page (`/lead-rescue/property-mauritius`) is the **only** AI Lead Rescue surface permitted to localise the public-page payment framing. On that surface only, the required payment trust copy is permitted to read as:
 
-**"After we review your intake, we issue a local pro-forma invoice in Mauritian rupees — the MUR equivalent of USD 150 — paid by bank transfer to a Mauritius bank account, with proof of payment shared manually before the 48-hour setup begins."**
+**"After we review your intake, we confirm the package scope, selected market price and payment instructions in writing before work begins."**
 
 Doctrine constraints on this localisation:
 
-- The canonical anchor remains **USD 150**. The MUR equivalent is the operator-side conversion at the day's SBM rate per `docs/sales/AI_LEAD_RESCUE_PRICING_GUIDE.md` § 1.3 (round to nearest MUR 100). The page may say *"MUR equivalent of USD 150"* but must not preset a fixed MUR figure that would silently age as the exchange rate moves.
+- The property page may show the approved MUR Lead Rescue setup starting point, but must not imply universal fit, payment activation or an unconditional delivery time.
 - **Single-offer rule still applies** — the page advertises only the launch pilot. **Continuation pricing remains operator-side / post-review** and is **never** shown on the public page on either surface (apex `/lead-rescue` or Mauritius property). Continuation is quoted manually after the 7-day pilot if the buyer opts in.
 - **No buyer payment decision on the page.** No card collection, no online checkout, no automated subscription, no buyer-selected payment route — manual local pro-forma is the entire path.
 - **Pan-vertical `/lead-rescue` is unchanged** by this localisation. It continues to use the apex required payment trust copy above ("USD invoice through the agreed route").
@@ -292,12 +307,12 @@ Anton decision: Mauritius property may expose **two separate public funnels** �
 
 | Tier | Canonical route | Public offer (one per page) |
 | ---- | --------------- | --------------------------- |
-| **Wedge** | `/lead-rescue`, `/lead-rescue/property-mauritius` | **AI Lead Rescue Setup — USD 150 launch pilot** (unchanged) |
+| **Wedge** | `/lead-rescue`, `/lead-rescue/property-mauritius` | **Lead Rescue package — assessment and approved regional price** |
 | **Premium** | `/product-a/mauritius` *(implementation PR after this doctrine update)* | **Request a Website & Lead Rescue Audit** — Mauritius property edition (scope + quote after intake review; no card on page) |
 
 **Lead Rescue surfaces (wedge):**
 
-- Advertise **only** the USD 150 launch pilot on each Lead Rescue URL.
+- Advertise **only** the Lead Rescue package on each Lead Rescue URL.
 - **Never** show Product A project pricing, website-rebuild packages, or a tier comparison table on Lead Rescue pages.
 - Continuation / monthly monitoring remains operator-side / post-review (unchanged).
 

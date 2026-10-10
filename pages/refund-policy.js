@@ -26,12 +26,11 @@ export default function RefundPolicyPage() {
         </p>
       </section>
       <section style={ps.section}>
-        <h2 style={ps.h2}>Enquiry Recovery Sprint (current commercial offer)</h2>
+        <h2 style={ps.h2}>Package-specific terms</h2>
         <p style={ps.p}>
-          The live Enquiry Recovery Sprint is invoiced in MUR after a 15-minute diagnosis and a written offer. The
-          published terms are MUR 85,000 fixed, with MUR 51,000 (60%) deposit to start and MUR 34,000 (40%) after
-          approved preview and before production release. Refunds are available before setup work has started. Once
-          work has begun, refunds are discretionary or prorated based on the work already performed.
+          The written quote or agreement for each configured package states the scope, acceptance point, payment
+          timing and any applicable cancellation or refund terms. Existing accepted quotations retain their agreed
+          terms; this page does not reprice them.
         </p>
       </section>
       <section style={ps.section}>

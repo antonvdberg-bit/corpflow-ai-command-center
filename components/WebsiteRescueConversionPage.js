@@ -118,7 +118,7 @@ export default function WebsiteRescueConversionPage({ offer }) {
           <div style={styles.price}>
             <strong>{priceHeading}</strong>
             <div style={{ marginTop: 6, fontSize: 14 }}>
-              50% deposit to start. First visible preview targeted within 24–72 hours after deposit clearance and receipt of the agreed content/assets.
+              Package price, delivery timing and any staged payment terms are confirmed in writing after assessment.
             </div>
           </div>
           <div style={{ marginTop: 22 }}>
@@ -130,6 +130,11 @@ export default function WebsiteRescueConversionPage({ offer }) {
               Request discovery
             </a>
           </div>
+          <p style={{ ...styles.note, marginTop: 16 }}>
+            <a href="/pricing" style={styles.link}>
+              See standard setup and monthly care pricing
+            </a>
+          </p>
         </HeroGlassBlock>
 
         <section style={{ marginTop: 56 }} aria-labelledby="website-rescue-proof-title">

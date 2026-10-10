@@ -6,13 +6,21 @@
 
 <!-- AI_LEAD_RESCUE_FIRST_PAID_PILOTS_V1 -->
 
+> **CURRENT STANDARD OFFER — 2026-10-08:** The approved standard regional matrix and bounded
+> care scope now live in [`../sales/CORPFLOWAI_APPROVED_REGIONAL_PRICING_V1.md`](../sales/CORPFLOWAI_APPROVED_REGIONAL_PRICING_V1.md).
+> The former USD 150 / approximately MUR 4,500 continuation figures and daily manually
+> composed summaries below are historic first-paid-pilot references, not new standard
+> quotes. Preserve accepted legacy terms for existing conversations. No retired sprint price,
+> deposit split or scarcity claim is a current standard offer. New standard quotes use the
+> approved guide and the verified eligible payment path only.
+
 **Authorisation:** Anton's chat DECISION (2026-06-08 *"AUTHORISE — `LeadRescue-Outbound-Activity-Log-1`"* — sequencing instruction *"After the activity-log runtime PR is either merged or explicitly deferred: Create a separate docs-only PR for the commercial launch pack."*).
 
 ## Purpose
 
 Give Anton everything required to convert the first **1–4 paying pilots** for AI Lead Rescue, starting with the Mauritius warm network, without adding any new infrastructure, paid acquisition channel, or generic AI positioning. This is the commercial layer that sits on top of:
 
-- the live public page `https://corpflowai.com/lead-rescue` (USD 150 launch pilot, 48-hour setup, 7-day pilot monitoring, no card on page, invoiced after intake review),
+- the live public page `https://corpflowai.com/lead-rescue` (permanent Lead Rescue package, assessment first, no checkout on page),
 - the operator cockpit at `/admin/lead-rescue` (status pipeline + 13-item setup checklist + activity log per `JE-2026-06-08-1` once that runtime PR ships),
 - the existing operator runbook `docs/operations/AI_LEAD_RESCUE_OPERATOR_RUNBOOK.md`,
 - the existing Mauritius copy / outreach pack `docs/marketing/AI_LEAD_RESCUE_MAURITIUS_OUTREACH_COPY_V1.md` + `docs/marketing/AI_LEAD_RESCUE_MAURITIUS_SALES_ACTIVATION_PACK_V1.md`,
@@ -92,11 +100,11 @@ When you hear any of these in conversation, that is a green light to send the §
 
 ## 4. Pilot offer (single offer, unchanged)
 
-The public, customer-facing offer is exactly what `https://corpflowai.com/lead-rescue` says — **`AI Lead Rescue Setup — USD 150 launch pilot`**:
+The public, customer-facing offer is exactly what `https://corpflowai.com/lead-rescue` says — **Lead Rescue package, with fit and price confirmed after assessment**:
 
 | Attribute | Public commitment |
 |---|---|
-| Price | **USD 150 launch pilot** (one-time) |
+| Price | Approved regional setup price; see the current regional pricing guide |
 | Setup window | **48 hours** after payment confirmation; up to 5 business days where additional clarification is needed |
 | Pilot monitoring | **7 days** included |
 | Card on page | **No.** No card / IBAN / SWIFT / routing / bank-detail field is collected on the public page |
@@ -113,7 +121,7 @@ Mauritius property may use **two separate URLs**, each with **one offer on that 
 
 | Tier | URL | What the buyer gets | When to use |
 | ---- | --- | ------------------- | ----------- |
-| **Wedge** | `/lead-rescue/property-mauritius` (or pan-vertical `/lead-rescue`) | USD 150 launch pilot — follow-up visibility on existing channels | Default warm-network outreach; buyer has a workable site; pain is missed enquiries |
+| **Wedge** | `/lead-rescue/property-mauritius` (or pan-vertical `/lead-rescue`) | Lead Rescue package — follow-up visibility on existing channels | Default warm-network outreach; buyer has a workable site; pain is missed enquiries |
 | **Premium** | `/product-a/mauritius` *(page ships in follow-up implementation PR)* | Website & Lead Rescue Audit — rebuild/migration + enquiry capture + operating workflow | Buyer needs website scope **and** managed lead operations; quote after audit intake |
 
 **This section does not change § 4 for Lead Rescue pages.** Lead Rescue URLs still show **only** the USD 150 pilot. Product A pricing is **never** on Lead Rescue pages.
@@ -180,7 +188,7 @@ Confirm in the discovery call (or via the intake message + a follow-up DM) that 
 The full library lives in **`docs/sales/AI_LEAD_RESCUE_OUTREACH_SCRIPTS.md`** § *Objection handling*. Doctrine answers (one-line summaries):
 
 - **"Send me details"** → send the page link with one sentence framing what they will see.
-- **"How much?"** → USD 150 launch pilot; everything is on the page; invoiced after intake review.
+- **"How much?"** → We confirm the approved market price after intake review and written scope confirmation.
 - **"We already use WhatsApp"** → great — the pilot connects WhatsApp + the other channels into one Monday-morning view; we do not replace WhatsApp.
 - **"We already have a website"** → we are not selling website services on the **wedge**; we connect the enquiries the website already produces into a daily lead list. If they need a **new or rebuilt** site, route to Product A Mauritius property (`/product-a/mauritius`) — see § 4a.
 - **"We do not want a CRM"** → we are not a CRM. The pilot is a lead-response operating workflow, not a database migration.
