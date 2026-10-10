@@ -35,6 +35,16 @@ Routing may adapt from verified historical evidence, but may never bypass protec
 - Preserve and repair existing branches/PRs instead of rebuilding paid-for work.
 - No paid capacity, on-demand spend escalation or higher-cost model escalation without Anton approval.
 
+
+### Cross-provider capacity optimisation
+
+- Treat ChatGPT, Cursor and Forge as separately constrained resources; route by verified outcome per unit of provider capacity, cost and executive time.
+- When ChatGPT allowance is low, preserve it for controller/judgment work and move bounded rote extraction/summarisation/transformation to deterministic tools or approved Forge contracts where safe.
+- Do not route client-private/sensitive material to Forge merely to save capacity; exact context and existing security boundaries still apply.
+- Generic PO/document summarisation is not automatically a Forge contract. Use an existing approved contract if it fits; otherwise record the repeated need and approve the smallest bounded extension before use.
+- Do not wait for a provider reset when another authorised executor can safely achieve the same verified result.
+- Provider exhaustion never authorises a paid top-up or plan upgrade without Anton approval.
+
 ## Forge cage
 Forge receives an explicit task contract, exact allowed files/context, a hard timeout and a deterministic verifier. It may not roam the repo, mutate production, change secrets/env/access, merge, deploy, publish or send externally.
 

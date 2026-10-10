@@ -66,6 +66,25 @@ Anton approved the following standing Cursor execution policy for the current me
 
 The controller should optimise for accepted client-visible output per unit of Cursor capacity, not raw run volume. When authoritative provider budget evidence is available, use it; otherwise state remaining allowance as unknown rather than guessing.
 
+
+### Cross-provider capacity routing — 9 October 2026
+
+Anton approved provider-capacity-aware routing across **ChatGPT, Cursor and Forge**. The objective is continuous delivery through a metered period, not maximising use of any single provider.
+
+Current operator evidence on 9 October 2026 shows ChatGPT weekly usage at **13% remaining**, with the provider UI showing a reset on **14 October at 08:19**. Treat this as current operator evidence, not a permanent allowance.
+
+Standing rules:
+- **ChatGPT is the scarce controller/judgment layer when its provider allowance is low.** Preserve it for prioritisation, cross-system reasoning, client/commercial judgment, evidence reconciliation, approval routing and work that materially benefits from its capability.
+- **Do not spend ChatGPT capacity on rote bulk work when deterministic tooling or Forge can produce an adequate verified result.** Examples include bounded extraction, structured summarisation, classification, transformation, fixture generation and log/document preprocessing where the data/security boundary permits it.
+- **Use deterministic automation first**, then an approved Forge contract where sufficient, then Cursor for implementation/integration, and ChatGPT for controller/reasoning work that cannot be delegated safely. The cheapest executor is not automatically correct; choose the lowest-cost path that can meet the required quality and verification standard.
+- **Client-private or sensitive material must not be routed to Forge merely to save ChatGPT capacity.** Use only the exact authorised context and existing security boundaries; sanitise or keep work in the appropriate private system where required.
+- **Forge must remain inside approved contracts and deterministic verification.** Generic document/PO summarisation is not automatically authorised merely because Forge is cheaper; extend or approve a bounded contract only when repeated demand justifies it.
+- **When any provider approaches exhaustion, reroute before service interruption.** Do not allow CorpFlowAI delivery to stall for several days waiting for a provider reset if another approved executor can produce the same verified outcome safely.
+- **Capacity status should be part of material routing decisions.** Use authoritative provider UI/export evidence where available. Do not estimate a remaining balance when the provider does not expose one.
+- **No paid top-up, credit purchase or plan upgrade without Anton approval.** Exhausting included capacity does not itself authorise spend.
+
+The optimisation target is **verified client/revenue outcome per unit of constrained provider capacity, cash and executive time**.
+
 ## 4. Client deadline rule
 
 For any known client/prospect meeting or promised deliverable:
