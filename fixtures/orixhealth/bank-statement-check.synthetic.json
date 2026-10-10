@@ -1,0 +1,11 @@
+{
+  "csv": "Txn Date,Details,Debit,Credit\n2026-10-01,\"Supplier, Mauritius\",,1250.00\n2026-10-02,Customer receipt,500.00,\n2026-10-02,Customer receipt,500.00,\n",
+  "mapping": {
+    "date": "Txn Date",
+    "description": "Details",
+    "debit": "Debit",
+    "credit": "Credit"
+  },
+  "dateFormat": "YYYY-MM-DD",
+  "decimalSeparator": "."
+}
