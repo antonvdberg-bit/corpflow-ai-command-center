@@ -38,10 +38,10 @@ node scripts/orixhealth/customer-purchasing-analysis.mjs \
   --format json
 ```
 
-Use `--format csv` for a compact controller-readable candidate table. The
-default included statuses are `paid,sent`; draft, cancelled, or other statuses
-are excluded unless explicitly included. Every run must supply an explicit
-`--as-of` date and dormancy threshold.
+Use `--format csv` for a compact controller-readable candidate table. Every run
+must supply explicit `--as-of`, `--include-statuses`, and `--dormancy-days`
+classification inputs; draft, cancelled, or other statuses are excluded only
+when they are not listed explicitly.
 
 ## Interpretation boundaries
 

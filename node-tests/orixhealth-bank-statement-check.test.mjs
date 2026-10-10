@@ -25,12 +25,13 @@ test('signed amount layout is decimal-safe and classifies positive values as cre
 
 test('invalid dates and malformed numbers become source-row exceptions', () => {
   const report = parseBankStatementCsv(
-    'Date,Description,Debit,Credit\n31/02/2026,Impossible,1.00,\n01/03/2026,Bad money,wat,',
+    'Date,Description,Debit,Credit\n\n31/02/2026,Impossible,1.00,\n01/03/2026,Bad money,wat,\n02/03/2026,,1.00,',
     { mapping: splitMapping, dateFormat: 'DD/MM/YYYY', decimalSeparator: '.' },
   );
   assert.deepEqual(report.exceptions, [
-    { sourceRow: 2, reason: 'Invalid date "31/02/2026" for DD/MM/YYYY' },
-    { sourceRow: 3, reason: 'Malformed debit amount "wat"' },
+    { sourceRow: 3, reason: 'Invalid date "31/02/2026" for DD/MM/YYYY' },
+    { sourceRow: 4, reason: 'Malformed debit amount "wat"' },
+    { sourceRow: 5, reason: 'Description is blank' },
   ]);
 });
 
@@ -55,6 +56,21 @@ test('missing required headers and ambiguous date configuration fail closed', ()
       mapping: { date: 'Date', description: 'Description', amount: 'Amount' }, decimalSeparator: '.',
     }),
     /dateFormat must be/,
+  );
+});
+
+test('duplicate mapped headers and invalid row widths fail closed', () => {
+  assert.throws(
+    () => parseBankStatementCsv('Date,Description,Debit,Debit\n2026-10-01,Item,1.00,', {
+      mapping: splitMapping, dateFormat: 'YYYY-MM-DD', decimalSeparator: '.',
+    }),
+    /Required mapped header is duplicated: "Debit"/,
+  );
+  assert.throws(
+    () => parseBankStatementCsv('Date,Description,Debit,Credit\n2026-10-01,Item,1.00', {
+      mapping: splitMapping, dateFormat: 'YYYY-MM-DD', decimalSeparator: '.',
+    }),
+    /Invalid column count at source row 2: expected 4, found 3/,
   );
 });
 

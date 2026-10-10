@@ -21,11 +21,11 @@ function requiredArgument(name) {
 const inputPath = requiredArgument('--input');
 const asOfDate = requiredArgument('--as-of');
 const format = argument('--format') ?? 'json';
-const statuses = (argument('--include-statuses') ?? 'paid,sent')
+const statuses = requiredArgument('--include-statuses')
   .split(',')
   .map((status) => status.trim())
   .filter(Boolean);
-const dormancyDays = Number(argument('--dormancy-days') ?? 90);
+const dormancyDays = Number(requiredArgument('--dormancy-days'));
 
 if (!['json', 'csv'].includes(format)) throw new Error('--format must be json or csv');
 if (!Number.isInteger(dormancyDays) || dormancyDays < 0) throw new Error('--dormancy-days must be a non-negative integer');
