@@ -229,6 +229,37 @@ describe('factory queue reconcile decisions (#1023)', () => {
     assert.equal(decision.source_issue, null);
   });
 
+  it('capacity release followed by reconciliation selects the next ready issue', () => {
+    const claimed = [
+      liveClaimed(101, 'run-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+    ];
+    const waiting = readyIssue(10239);
+    const fullPlan = planCursorIssueClaims({
+      readyIssues: [waiting],
+      claimedIssues: claimed,
+      trackedIssues: [...claimed, waiting],
+    });
+    assert.equal(fullPlan.activationTargetIssue, null);
+    assert.equal(
+      resolveFactoryQueueReconcileDecision({ plan: fullPlan, claimedIssues: claimed }).reason,
+      'wip_cap_reached',
+    );
+
+    const releasedPlan = planCursorIssueClaims({
+      readyIssues: [waiting],
+      claimedIssues: [],
+      trackedIssues: [waiting],
+      wakeReason: 'capacity_released',
+    });
+    const releasedDecision = resolveFactoryQueueReconcileDecision({
+      plan: releasedPlan,
+      claimedIssues: [],
+    });
+    assert.equal(releasedPlan.activationTargetIssue, 10239);
+    assert.equal(releasedDecision.should_wake_handoff, 1);
+    assert.equal(releasedDecision.source_issue, 10239);
+  });
+
   it('ready but execution:paused -> no wake', () => {
     const plan = planCursorIssueClaims({
       readyIssues: [
