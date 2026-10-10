@@ -1,5 +1,8 @@
 # ERPNext current state audit — CorpFlowAI commercial launch
 
+> **Current estate correction — 2026-10-07:** See [server recovery and target correction](../erpnext/ERPNEXT_SERVER_RECOVERY_2026_10_07.md). The hosted backup has been restored into an isolated company-server copy and UI/2FA/API verified. Production and consumer cutover remain pending; PDF export now returns valid PDFs after the renderer address correction; visual acceptance remains pending. Historical hosted PASS results and installation-status rows below are dated evidence, not current server readiness. Verify exact target identity before using an ERP connection. `ERPNEXT_SERVER_*` names do not automatically replace the shared client's `ERPNEXT_*` configuration.
+
+
 **Status:** Docs-only audit · **Updated:** 2026-08-30 (#1245 opening/cutover prep; #920 Prestige foundation unchanged)
 **Owner:** Anton  
 **Anchor:** `<!-- ERPNEXT_CURRENT_STATE_AUDIT_V1 -->`
