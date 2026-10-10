@@ -61,7 +61,7 @@ test('missing required headers and ambiguous date configuration fail closed', ()
 
 test('duplicate mapped headers and invalid row widths fail closed', () => {
   assert.throws(
-    () => parseBankStatementCsv('Date,Description,Debit,Debit\n2026-10-01,Item,1.00,', {
+    () => parseBankStatementCsv('Date,Description,Debit,Debit,Credit\n2026-10-01,Item,1.00,,', {
       mapping: splitMapping, dateFormat: 'YYYY-MM-DD', decimalSeparator: '.',
     }),
     /Required mapped header is duplicated: "Debit"/,
