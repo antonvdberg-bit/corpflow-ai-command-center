@@ -36,7 +36,17 @@ function Checklist({ bad }) {
   return (
     <div>
       {rows.map(([label, status, note]) => (
-        <div key={label} style={{ display: 'grid', gridTemplateColumns: 'minmax(180px, 1fr) 100px 2fr', gap: 12, padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,.1)' }}>
+        <div
+          key={label}
+          className="review-checklist-row"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'minmax(180px, 1fr) 100px 2fr',
+            gap: 12,
+            padding: '12px 0',
+            borderBottom: '1px solid rgba(255,255,255,.1)',
+          }}
+        >
           <strong>{label}</strong><span>{status}</span><span style={{ color: '#b8c7d8' }}>{note}</span>
         </div>
       ))}
@@ -53,7 +63,18 @@ export default function OnboardingReviewPage({ host = '' }) {
         <title>CorpFlowAI · Paddle onboarding review</title>
         <meta name="robots" content="noindex,nofollow" />
         <meta name="description" content="Review-only pricing and policy evidence for Paddle onboarding." />
-        <style>{'@media print { nav, .no-print { display: none !important } body { color: #000; background: #fff } }'}</style>
+        <style>{`
+          @media (max-width: 640px) {
+            .review-checklist-row {
+              grid-template-columns: minmax(0, 1fr) !important;
+              gap: 4px !important;
+            }
+          }
+          @media print {
+            nav, .no-print { display: none !important }
+            body { color: #000; background: #fff }
+          }
+        `}</style>
       </Head>
       <nav className="no-print"><Link href="/" style={linkStyle}>CorpFlowAI</Link> · <Link href="/pricing" style={linkStyle}>Pricing</Link></nav>
       <p style={{ color: '#b45309', fontWeight: 800 }}>REVIEW ONLY · PROVIDER ELIGIBILITY PENDING · NO CHECKOUT</p>

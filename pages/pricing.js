@@ -77,10 +77,12 @@ export default function PricingPage({ host = '' }) {
         <link rel="canonical" href={meta.canonical} />
       </Head>
       <CorpFlowPublicHeader />
-      <HeroGlassBlock style={{ marginTop: 32 }}>
+      <HeroGlassBlock style={{ marginTop: 32, minWidth: 0, boxSizing: 'border-box' }}>
         <p>Standard business services</p>
-        <h1>Make enquiries and website problems easier to act on.</h1>
-        <p>
+        <h1 style={{ overflowWrap: 'anywhere' }}>
+          Make enquiries and website problems easier to act on.
+        </h1>
+        <p style={{ overflowWrap: 'anywhere' }}>
           Choose the problem you want to solve. Review the scope and regional fees, then ask us to
           confirm fit and delivery timing.
         </p>
@@ -102,8 +104,8 @@ export default function PricingPage({ host = '' }) {
         </div>
       </HeroGlassBlock>
       {product ? (
-        <section style={{ marginTop: 32 }} aria-label="Selected service">
-          <GlassPanel>
+        <section style={{ marginTop: 32, minWidth: 0 }} aria-label="Selected service">
+          <GlassPanel style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
             <h2>{title}</h2>
             <p>{descriptions[product]}</p>
             <label htmlFor="pricing-market">Where is your business based?</label>

@@ -19,6 +19,8 @@ test('onboarding review is printable and keeps provider acceptance pending', () 
   const page = read('pages/onboarding-review.js');
   assert.match(page, /noindex,nofollow/);
   assert.match(page, /@media print/);
+  assert.match(page, /review-checklist-row/);
+  assert.match(page, /grid-template-columns: minmax\(0, 1fr\)/);
   assert.match(page, /Provider eligibility.*OPEN|provider eligibility/i);
   assert.match(page, /No checkout/i);
   assert.match(page, /paddle\.com/);
