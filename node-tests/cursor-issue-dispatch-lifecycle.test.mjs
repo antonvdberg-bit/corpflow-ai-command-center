@@ -636,6 +636,22 @@ Test publishing does not trigger a false approval:production gate.`,
     assert.equal(c.protectedGate, 'none');
   });
 
+  it('treats slash-separated no-deploy boundaries as prohibitions', () => {
+    const issue = {
+      number: 714,
+      title: 'Prepare pricing review evidence',
+      body: 'Prepare the review evidence. No merge/production deploy.',
+      labels: ['dispatch:cursor-ready'],
+    };
+    const c = inferIssueClassification(issue);
+    assert.equal(textForbidsProduction(issue.body), true);
+    assert.equal(c.protectedGate, 'none');
+    assert.notEqual(c.environment, 'production');
+    const plan = planCursorIssueClaims({ readyIssues: [issue], claimedIssues: [] });
+    assert.equal(plan.activationTargetIssue, 714);
+    assert.equal(plan.decisions[0]?.eligibleToClaim, true);
+  });
+
   it('explicit client_production deploy sets production gate', () => {
     const c = inferIssueClassification({
       number: 713,
