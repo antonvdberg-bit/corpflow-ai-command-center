@@ -1,8 +1,8 @@
 # CorpFlowAI approved regional standard pricing v1
 
-**Status:** Current standard offer — approved for publication on 2026-10-08.  
-**Audience:** Prospects and operators preparing a written assessment.  
-**Source:** Anton-approved commercial change in issue #1432.  
+**Status:** Current standard offer — approved for publication on 2026-10-08.
+**Audience:** Prospects and operators preparing a written assessment.
+**Source:** Anton-approved commercial change in issue #1432.
 **Payment posture:** Assessment first. No payment is taken on `/pricing`; eligible payment and final terms are confirmed in writing.
 
 <!-- CORPFLOWAI_APPROVED_REGIONAL_PRICING_V1 -->

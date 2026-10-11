@@ -1,7 +1,7 @@
 # Regional pricing publication evidence
 
-**Date:** 2026-10-08  
-**Source:** Issue #1432 / approved standard-pricing packet  
+**Date:** 2026-10-08
+**Source:** Issue #1432 / approved standard-pricing packet
 **Environment:** `corpflow_test` preview only; no public publication is claimed here.
 
 ## Sanitized acceptance evidence
@@ -13,7 +13,8 @@
   the product changes.
 - Payment remains assessment-first; no checkout, payment SDK, secret, client data or intake
   write was added.
-- The MUR 85,000 Enquiry Recovery Sprint remains a separate offer.
+- The retired MUR 85,000 Enquiry Recovery Sprint is not presented as an active offer;
+  accepted historical quotations retain their agreed terms.
 - The fictional Website Rescue validation path remains `/demo/website-rescue`.
 
 ## Marketing quality gate
