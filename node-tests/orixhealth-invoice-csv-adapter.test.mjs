@@ -116,3 +116,22 @@ test('rejects contradictory repeated line IDs within an invoice', () => {
     /conflicting identity for line ID/,
   );
 });
+
+test('rejects repeated line IDs even when decimal formatting differs', () => {
+  const text = 'Invoice ID,Customer ID,Invoice Date,Status,Currency,Item ID,Quantity,Line Amount,Invoice Subtotal,Line ID\n'
+    + 'INV-1,CUST-1,2026-01-01,paid,MUR,SKU-1,1,10.0,20,L\n'
+    + 'INV-1,CUST-1,2026-01-01,paid,MUR,SKU-1,1.0,10.00,20,L\n';
+  assert.throws(
+    () => normalizeInvoiceCsvFiles([{ name: 'decimal-line-id-alias.csv', text }]),
+    /repeated line ID/,
+  );
+});
+
+test('allows distinct line IDs and the same line ID on separate invoices', () => {
+  const text = 'Invoice ID,Customer ID,Invoice Date,Status,Currency,Item ID,Quantity,Line Amount,Invoice Subtotal,Line ID\n'
+    + 'INV-1,CUST-1,2026-01-01,paid,MUR,SKU-1,1,10,20,L-1\n'
+    + 'INV-1,CUST-1,2026-01-01,paid,MUR,SKU-2,1,10,20,L-2\n'
+    + 'INV-2,CUST-1,2026-01-02,paid,MUR,SKU-1,1,10,10,L-1\n';
+  const result = normalizeInvoiceCsvFiles([{ name: 'distinct-line-ids.csv', text }]);
+  assert.equal(result.invoices.length, 3);
+});

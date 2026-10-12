@@ -33,7 +33,8 @@ document subtotal using a configurable decimal tolerance; the subtotal is
 never copied to a line. Source file/line references are retained, overlapping
 records are rejected, repeated mapped source headers are rejected, and
 malformed or incomplete input fails closed. A `Line ID`, when supplied, is
-unique within an invoice: contradictory repeated line identities are rejected.
+unique within an invoice: every repeated line ID is rejected, including
+numerically equivalent decimal variants; distinct invoices may reuse a line ID.
 Source line references use the physical CSV record start, including records
 after quoted newlines and blank rows. Truly blank rows are ignored; nonempty
 all-empty delimiter rows are malformed.
