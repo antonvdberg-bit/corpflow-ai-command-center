@@ -82,6 +82,46 @@ When later authorized:
 - Import via standard ERPNext Bank Reconciliation Tool / Bank Transaction import.  
 - Manual capture of a line is allowed when import is unavailable; still no live feed.
 
+### 6a. Automated SBM intake (read-only evidence preparation)
+
+The bounded worker `npm run finance:sbm-statement-ingest -- --list-only` retrieves
+metadata for matching SBM e-statement attachments using the exact read-only Gmail
+query:
+
+```text
+from:SBM.EStatement@sbmgroup.mu subject:"Account e-statement" has:attachment
+```
+
+Set `FINANCE_ROOT`, `SBM_GMAIL_ACCESS_TOKEN`, and (only while processing encrypted
+PDFs) `SBM_STATEMENT_PASSWORD` outside the repository. The worker preserves the
+encrypted original, records its SHA-256 receipt, and writes a password-free
+derivative only after `qpdf` succeeds. It accepts PDF magic bytes even when Gmail
+reports `application/octet-stream`; non-PDF bytes are rejected.
+
+`qpdf` must be installed on the execution host and available on `PATH` (or the
+worker adapter must provide an explicit binary path). The password is supplied
+to qpdf through stdin, so it is not placed in the process argument list. Do not
+assume this removes all host-level process or memory exposure; use the approved
+operator account and host controls.
+
+The worker does not send, archive, delete, label, or otherwise mutate Gmail. It
+does not use OCR. Native PDF-to-#1378 payload extraction remains an explicit
+adapter contract: until a safe adapter supplies the redacted statement payload,
+the result is `EXTRACTION_REQUIRED` and no import preview is marked ready.
+Validation failures never produce preview readiness. Preview output remains
+ERPNext Bank Transaction import data only; no ERPNext record is created.
+
+Local synthetic acceptance with a redacted payload:
+
+```bash
+FINANCE_ROOT=/tmp/corpflow-finance \
+SBM_GMAIL_ACCESS_TOKEN='<operator-token>' \
+npm run finance:sbm-statement-ingest -- --list-only
+```
+
+The token and password above are placeholders only; never paste real values into
+the repository, issue, logs, or test fixtures.
+
 ### 7. Reconciliation (operator + accountant review)
 
 Match each statement line to an existing Payment Entry or Journal Entry by **reference + amount + date**.

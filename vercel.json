@@ -11,7 +11,7 @@
   "ignoreCommand": "node scripts/vercel-ignore-preview-deploys.mjs",
   "functions": {
     "api/factory_router.js": {
-      "includeFiles": "node_modules/.prisma/client/**"
+      "includeFiles": "{node_modules/.prisma/client/**,config/commercial-approval-rail.v1.json,config/erpnext-commercial-documents.v1.json}"
     }
   },
   "redirects": [

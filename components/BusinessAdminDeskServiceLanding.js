@@ -185,7 +185,7 @@ export default function BusinessAdminDeskServiceLanding({
           }}
         >
           <BusinessAdminDeskBrand subtitle="Company administration · South Africa" priority />
-          <BusinessAdminDeskContactActions {...contact} compact />
+          <BusinessAdminDeskContactActions {...contact} compact internalReview={internalReview} />
         </nav>
 
         <BusinessAdminDeskSectionNav currentPath={route} />
@@ -206,6 +206,7 @@ export default function BusinessAdminDeskServiceLanding({
             <div style={{ marginTop: 18 }}>
               <BusinessAdminDeskContactActions
                 {...contact}
+                internalReview={internalReview}
                 secondary={<a href="/partners" style={cfBtnSecondary}>Need white-label / fractional support?</a>}
               />
             </div>
@@ -231,7 +232,7 @@ export default function BusinessAdminDeskServiceLanding({
               </div>
             </GlassPanel>
             <div style={{ marginTop: 16 }}>
-              <BusinessAdminDeskContactActions {...contact} />
+              <BusinessAdminDeskContactActions {...contact} internalReview={internalReview} />
             </div>
           </section>
         ) : null}
@@ -283,7 +284,7 @@ export default function BusinessAdminDeskServiceLanding({
             <p style={{ ...cfBody, maxWidth: 760 }}>
               Tell us what has happened and what you are trying to achieve. We will review the matter, confirm the scope and explain the next step before work begins.
             </p>
-            <BusinessAdminDeskContactActions {...contact} />
+            <BusinessAdminDeskContactActions {...contact} internalReview={internalReview} />
           </GlassPanel>
         </section>
       </PublicMarketingPhotoGlassShell>

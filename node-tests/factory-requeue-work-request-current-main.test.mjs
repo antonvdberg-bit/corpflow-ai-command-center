@@ -49,6 +49,7 @@ function buildEnvelope(comments) {
       number: ISSUE,
       title: 'P0 Revenue acceptance — Lead Rescue + Website Rescue buyer-path current-main verification',
       body: `## CURRENT CURSOR PACKET
+execution_kind: CODE_CHANGE
 value_class: delivery_acceleration
 expected_outcome: Repair the current-main path.
 context_budget: S

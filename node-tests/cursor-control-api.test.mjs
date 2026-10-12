@@ -67,6 +67,18 @@ describe('cursor-control-api', () => {
     );
   });
 
+  it('releases terminal UNKNOWN because transport capacity is independent of disposition', () => {
+    assert.equal(
+      canReleaseNextCursorPacket({
+        cursor_agent_id: 'bc-1358',
+        cursor_run_id: 'run-1358',
+        final_verdict: 'UNKNOWN',
+        terminal_result_captured: true,
+      }),
+      true,
+    );
+  });
+
   it('accepts issue, agent/run, or list selectors without accepting arbitrary params', () => {
     assert.equal(parseCursorControlQuery({ issue: '1358' }).ok, true);
     assert.equal(parseCursorControlQuery({ agent_id: 'bc-1', run_id: 'run-1' }).ok, true);

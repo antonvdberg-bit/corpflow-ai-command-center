@@ -90,7 +90,7 @@ export default function BusinessAdminDeskPartnerLanding({ internalReview = false
           }}
         >
           <BusinessAdminDeskBrand subtitle="Company administration · South Africa" priority />
-          <BusinessAdminDeskContactActions {...PARTNER_CONTACT} compact />
+          <BusinessAdminDeskContactActions {...PARTNER_CONTACT} compact internalReview={internalReview} />
         </nav>
 
         <BusinessAdminDeskSectionNav currentPath="/partners" />
@@ -115,6 +115,7 @@ export default function BusinessAdminDeskPartnerLanding({ internalReview = false
             <div style={{ marginTop: 18 }}>
               <BusinessAdminDeskContactActions
                 {...PARTNER_CONTACT}
+                internalReview={internalReview}
                 secondary={<a href="/" style={cfBtnSecondary}>Need help with your own company?</a>}
               />
             </div>
@@ -141,7 +142,7 @@ export default function BusinessAdminDeskPartnerLanding({ internalReview = false
             </div>
           </GlassPanel>
           <div style={{ marginTop: 16 }}>
-            <BusinessAdminDeskContactActions {...PARTNER_CONTACT} />
+            <BusinessAdminDeskContactActions {...PARTNER_CONTACT} internalReview={internalReview} />
           </div>
         </section>
 
@@ -239,7 +240,7 @@ export default function BusinessAdminDeskPartnerLanding({ internalReview = false
             <p style={{ ...cfBody, maxWidth: 760 }}>
               A short description of the workload, client volume or service gap is enough to start. We will confirm whether the fit is sensible and how the support could operate behind your business.
             </p>
-            <BusinessAdminDeskContactActions {...PARTNER_CONTACT} />
+            <BusinessAdminDeskContactActions {...PARTNER_CONTACT} internalReview={internalReview} />
           </GlassPanel>
         </section>
       </PublicMarketingPhotoGlassShell>

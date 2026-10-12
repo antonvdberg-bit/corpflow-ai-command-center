@@ -220,6 +220,7 @@ This file is canonical for strategic evaluation of CorpFlowAI offers, features, 
 
 ## Cross-references
 
+- `docs/operations/COO_OPERATING_CONSTITUTION.md` §13 — leverage and reusable delivery: Code, Content, Capital, Collaboration and the reuse test; apply alongside the strategic evaluation test.
 - `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md` — brand and conversion doctrine (single-offer rule, route-after-intent, AI Lead Rescue specifics). Carries a strategic-guardrail section cross-linked to this file.
 - `docs/marketing/00_NON_NEGOTIABLE_MARKETING_COMMUNICATION_STANDARD.md` — Hook / Proof / Depth doctrine and the dual-asset pattern.
 - `docs/marketing/04_DELIVERY_QUALITY_GATE.md` — quality gate that buyer-facing work must pass before handoff.

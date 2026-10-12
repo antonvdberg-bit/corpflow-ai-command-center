@@ -124,6 +124,10 @@ For each field choose, in order:
 
 No custom field is created merely because the current Postgres model has one.
 
+### Nurture setup acceptance
+
+Apply [Prospect nurturing setup contract v1](PROSPECT_NURTURE_SETUP_V1.md) alongside this migration. Selected-prospect CRM admission does not confer marketing permission. Quarterly nurture requires explicit affirmative permission, durable suppression, cadence checks and active-sales exclusion. Configure and prove native behavior in non-production before production enrolment or sending. #1415 owns current-truth inspection; #1252 owns the commercial nurture decision.
+
 ## 7. Phase 3 — deterministic migration mapping and dry run
 
 Build one reconciliation mapping before real writes.
