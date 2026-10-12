@@ -8,6 +8,13 @@
 
 <!-- AI_LEAD_RESCUE_PRICING_GUIDE_V1 -->
 
+> **CURRENT STANDARD OFFER — 2026-10-08:** The approved standard regional matrix and bounded
+> care scope now live in [`CORPFLOWAI_APPROVED_REGIONAL_PRICING_V1.md`](./CORPFLOWAI_APPROVED_REGIONAL_PRICING_V1.md).
+> The former USD 150 / USD 99 and approximately MUR 4,500 figures below are historic
+> first-paid-pilot references, not new standard quotes. Preserve accepted legacy terms for
+> existing conversations, and keep the distinct MUR 85,000 Enquiry Recovery Sprint separate.
+> New standard quotes use the approved guide and the verified eligible payment path only.
+
 ## What this doc is for
 
 This is the **operator-side** pricing guide. The **public** page (`/lead-rescue`) advertises **one offer**: *AI Lead Rescue Setup — USD 150 launch pilot*. That public-page rule is governed by `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md` § *single-offer rule*.

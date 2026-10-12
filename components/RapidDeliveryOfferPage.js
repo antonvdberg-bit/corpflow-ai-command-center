@@ -84,8 +84,10 @@ export default function RapidDeliveryOfferPage({ offer, buyerFacingName, pathOve
     : `Starting from ${formatMur(offer.startingPriceMur)}`;
   const engagementFlow =
     offer.engagementFlow ||
-    'Discovery call → written quote → 50% MUR deposit (manual bank transfer) → manual bank verification → approval to proceed → visible delivery → preview feedback → release approval. Currency and payment instructions are confirmed in writing on the invoice before you pay.';
-  const deliverySectionTitle = offer.deliverySectionTitle || 'Visible output within 24–72 hours';
+    'Assessment → written package quote → build/configure → test and acceptance → handover under client control. Payment timing and instructions are confirmed in writing after scope review.';
+  const deliverySectionTitle =
+    offer.deliverySectionTitle ||
+    'Delivery timing confirmed after scope, access, assets and acceptance criteria are agreed';
   const publicDescription =
     publicTitle !== offer.title && typeof offer.metaDescription === 'string'
       ? offer.metaDescription.split(offer.title).join(publicTitle)
@@ -117,7 +119,7 @@ export default function RapidDeliveryOfferPage({ offer, buyerFacingName, pathOve
 
   const footer = (
     <CorpFlowPublicFooter
-      extra={`${publicTitle} — ${MERCHANT_LEGAL_NAME}. Discovery call only on this page; no card or banking details collected here. Deposit and quote follow manual review.`}
+      extra={`${publicTitle} — ${MERCHANT_LEGAL_NAME}. Discovery call only on this page; no card or banking details collected here. Written quote and payment terms follow manual review.`}
     />
   );
 
@@ -173,7 +175,7 @@ export default function RapidDeliveryOfferPage({ offer, buyerFacingName, pathOve
                 </div>
               )}
               <div style={{ marginTop: 6, fontSize: 14, opacity: 0.95 }}>
-                Deposit: {offer.depositNote} · {offer.deliveryTimeline.split('.')[0]}.
+                Commercial terms: {offer.depositNote} · {offer.deliveryTimeline.split('.')[0]}.
               </div>
             </div>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 24 }}>

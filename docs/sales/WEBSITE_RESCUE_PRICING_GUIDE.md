@@ -8,6 +8,13 @@
 
 <!-- WEBSITE_RESCUE_PRICING_GUIDE_V1 -->
 
+> **CURRENT STANDARD OFFER — 2026-10-08:** The approved standard regional matrix and bounded
+> care scope now live in [`CORPFLOWAI_APPROVED_REGIONAL_PRICING_V1.md`](./CORPFLOWAI_APPROVED_REGIONAL_PRICING_V1.md).
+> The former MUR 45,000 Website Rescue floor and related accepted quotes remain valid for
+> existing conversations; they are historic references where they conflict with the new
+> standard package wording. Do not invent discounts. New standard quotes use the approved
+> guide and the verified eligible payment path only.
+
 ## What this doc is for
 
 The **public** page (`/offers/premium-landing-page-rescue`) advertises **one floor price**: *from MUR 45,000* for **Premium Landing Page Rescue** (Website Rescue **T1**). That public-page rule follows `docs/marketing/BRAND_AND_CONVERSION_DOCTRINE.md` (single primary offer on the page; complexity after intent).
