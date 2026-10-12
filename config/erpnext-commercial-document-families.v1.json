@@ -1,0 +1,75 @@
+{
+  "schema": "corpflow.erpnext.commercial_document_families.v1",
+  "issue": 1435,
+  "environment": "corpflow_test",
+  "company": "CorpFlowAI LTD",
+  "families": {
+    "DOMESTIC": {
+      "label": "Domestic",
+      "condition": {
+        "company": "CorpFlowAI LTD",
+        "currency": "MUR",
+        "billing_country": "Mauritius"
+      },
+      "print_formats": {
+        "Quotation": "CorpFlowAI Domestic Quotation",
+        "Sales Order": "CorpFlowAI Domestic Sales Order",
+        "Payment Request": "CorpFlowAI Domestic Deposit Request",
+        "Sales Invoice": "CorpFlowAI Domestic Sales Invoice"
+      },
+      "payment_fields": [
+        "bank_name",
+        "account_holder",
+        "bank_account_no",
+        "payment_reference"
+      ],
+      "omit_fields": ["iban", "swift"]
+    },
+    "INTERNATIONAL": {
+      "label": "International",
+      "condition": "all_other_client_facing_commercial_transactions",
+      "print_formats": {
+        "Quotation": "CorpFlowAI International Quotation",
+        "Sales Order": "CorpFlowAI International Sales Order",
+        "Payment Request": "CorpFlowAI International Deposit Request",
+        "Sales Invoice": "CorpFlowAI International Sales Invoice"
+      },
+      "payment_fields": [
+        "bank_name",
+        "account_holder",
+        "account_name",
+        "bank_account_no",
+        "iban",
+        "swift",
+        "currency",
+        "payment_reference"
+      ],
+      "omit_fields": []
+    }
+  },
+  "bank_source": {
+    "doctype": "Bank Account",
+    "required": ["company", "currency", "is_verified"],
+    "account_number_field": "bank_account_no",
+    "forbidden_sources": [
+      "email",
+      "phone",
+      "company_email",
+      "address",
+      "contact",
+      "free_text",
+      "iban_fallback"
+    ],
+    "missing_currency_account": "FAIL_CLOSED_OPERATOR_REVIEW"
+  },
+  "operator_control": {
+    "field": "custom_commercial_document_family",
+    "allowed_values": ["DOMESTIC", "INTERNATIONAL"],
+    "selection_rule": "DOMESTIC only when company, currency, and billing country all match; INTERNATIONAL otherwise",
+    "automatic_print_format_selection": false
+  },
+  "non_actions": [
+    "No bank account numbers, IBANs, SWIFT values, passwords, tokens, or secrets are stored here.",
+    "No Sales Invoice, Payment Entry, or GL Entry is created by repository checks."
+  ]
+}
