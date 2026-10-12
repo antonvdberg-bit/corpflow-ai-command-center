@@ -34,15 +34,6 @@ export default function RefundPolicyPage() {
         </p>
       </section>
       <section style={ps.section}>
-        <h2 style={ps.h2}>Historic AI Lead Rescue launch pilot</h2>
-        <p style={ps.p}>
-          If you were invoiced under the historic USD 150 launch-pilot terms, those invoice terms still apply to that
-          engagement. That pilot is no longer offered as a current public path. Refunds for a historic pilot remain
-          available before setup work has started. Once the setup work has begun, refunds are discretionary or
-          prorated based on the work already performed, in line with the general setup-fee policy above.
-        </p>
-      </section>
-      <section style={ps.section}>
         <h2 style={ps.h2}>Monitoring and ongoing services</h2>
         <p style={ps.p}>
           Monthly monitoring or support, when offered, can usually be cancelled before the next billing period. Fees for
