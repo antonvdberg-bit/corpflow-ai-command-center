@@ -31,7 +31,12 @@ headers. CSV parsing handles BOM, CRLF, quoted commas, and quoted newlines.
 IDs remain strings. Each invoice's line amounts are reconciled against its
 document subtotal using a configurable decimal tolerance; the subtotal is
 never copied to a line. Source file/line references are retained, overlapping
-records are rejected, and malformed or incomplete input fails closed.
+records are rejected, repeated mapped source headers are rejected, and
+malformed or incomplete input fails closed. A `Line ID`, when supplied, is
+unique within an invoice: contradictory repeated line identities are rejected.
+Source line references use the physical CSV record start, including records
+after quoted newlines and blank rows. Truly blank rows are ignored; nonempty
+all-empty delimiter rows are malformed.
 
 Do not place client exports, credentials, supplier rates, customer identifiers,
 or financial extracts in the repository. The checked-in fixtures are entirely

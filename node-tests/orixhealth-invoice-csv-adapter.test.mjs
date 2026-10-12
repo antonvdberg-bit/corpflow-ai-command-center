@@ -80,3 +80,39 @@ test('rejects missing and duplicate mapped headers', () => {
     /duplicate mapped header/,
   );
 });
+
+test('rejects repeated mapped source headers', () => {
+  const text = fixtureText
+    .replace('Line Amount,Invoice Subtotal', 'Line Amount,Line Amount,Invoice Subtotal')
+    .replaceAll(',250.00,SYN-', ',250.00,999,SYN-')
+    .replaceAll(',50.00,SYN-', ',50.00,999,SYN-');
+  assert.throws(
+    () => normalizeInvoiceCsvFiles([{ name: 'repeated-source-header.csv', text }]),
+    /duplicate source header/,
+  );
+});
+
+test('retains physical source line for records after quoted newlines and blank rows', () => {
+  const text = 'Invoice ID,Customer ID,Invoice Date,Status,Currency,Item ID,Quantity,Line Amount,Invoice Subtotal,Source Record\n'
+    + 'INV-1,"Customer\nSeven",2026-01-01,paid,USD,SKU-1,1,10,10,row-1\n'
+    + '\n'
+    + 'INV-2,CUST-2,2026-01-02,paid,USD,SKU-2,1,20,20,row-2\n';
+  const result = normalizeInvoiceCsvFiles([{ name: 'physical-lines.csv', text }]);
+  assert.equal(result.invoices[1].source_line, 5);
+});
+
+test('rejects nonempty all-empty delimiter records', () => {
+  const malformed = `${fixtureText}\n,,,,,,,,,,\n`;
+  assert.throws(
+    () => normalizeInvoiceCsvFiles([{ name: 'empty-fields.csv', text: malformed }]),
+    /required|invalid column width/,
+  );
+});
+
+test('rejects contradictory repeated line IDs within an invoice', () => {
+  const text = fixtureText.replace('SYN-LINE-2', 'SYN-LINE-1');
+  assert.throws(
+    () => normalizeInvoiceCsvFiles([{ name: 'conflicting-line-id.csv', text }]),
+    /conflicting identity for line ID/,
+  );
+});
