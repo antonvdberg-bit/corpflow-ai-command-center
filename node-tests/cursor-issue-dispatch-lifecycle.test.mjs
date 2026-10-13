@@ -24,6 +24,7 @@ import {
   textContainsProductionApprovalPrerequisite,
   textForbidsProduction,
 } from '../lib/server/cursor-issue-dispatch-lifecycle.js';
+import { validateCurrentCursorExecutionPacket } from '../lib/server/cursor-execution-packet.js';
 import { resolveCursorRunId } from '../scripts/cursor-issue-dispatch-finalize.mjs';
 
 const ISSUE_950_LIST_FORM = JSON.parse(
@@ -134,6 +135,27 @@ tier: LOW
 WORK CLASSIFICATION: generic offline source-code helper; protected consequential gate: none.`;
 
 describe('cursor-issue-dispatch-lifecycle', () => {
+  it('accepts only one legacy compatibility declaration inside the canonical packet', () => {
+    assert.equal(validateCurrentCursorExecutionPacket({ body: ISSUE_1466_PACKET }).ok, true);
+
+    const externalLegacyMarker = `${ISSUE_1466_PACKET}
+## Historical references
+CODEX_PACKET_V1`;
+    assert.equal(
+      validateCurrentCursorExecutionPacket({ body: externalLegacyMarker }).reason,
+      'current_packet_ambiguous',
+    );
+
+    const duplicateInternalLegacyMarkers = ISSUE_1466_PACKET.replace(
+      'CODEX_PACKET_V1',
+      'CODEX_PACKET_V1\nCODEX_PACKET_V1',
+    );
+    assert.equal(
+      validateCurrentCursorExecutionPacket({ body: duplicateInternalLegacyMarkers }).reason,
+      'current_packet_ambiguous',
+    );
+  });
+
   it('admits #1466 from handoff 38377031247 while retaining protected, invalid, and claimed denials', () => {
     const issue1466 = {
       number: ISSUE_1466_HANDOFF_EVENT.issueNumber,
