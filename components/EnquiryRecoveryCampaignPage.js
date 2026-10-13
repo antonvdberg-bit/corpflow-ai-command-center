@@ -6,7 +6,6 @@ import { MERCHANT_LEGAL_NAME } from '../lib/public/merchant-identity.js';
 import { buildPublicPageMeta } from '../lib/public/corpflow-public-market.js';
 import {
   ENQUIRY_RECOVERY_DIAGNOSIS_HASH,
-  ENQUIRY_RECOVERY_FOUNDING_SLOTS,
   ENQUIRY_RECOVERY_IMPLEMENTATION_LINE,
   ENQUIRY_RECOVERY_LOSS_LINE,
   ENQUIRY_RECOVERY_NO_GUARANTEE_LINE,
@@ -56,7 +55,7 @@ const QUALIFICATION = [
 export default function EnquiryRecoveryCampaignPage() {
   const meta = buildPublicPageMeta({
     title: 'Lead Rescue',
-    description: 'Lead Rescue helps selected Mauritius businesses identify and recover valuable enquiries that have gone quiet. MUR 85,000 fixed. Maximum three clients. Request a 15-minute diagnosis.',
+    description: 'Lead Rescue helps selected businesses make enquiry capture, routing, alerts and follow-up easier to act on. Request an assessment.',
     path: ENQUIRY_RECOVERY_PATH,
     ogImage: `${HERO_BASE}.jpg`,
   });
@@ -114,12 +113,20 @@ export default function EnquiryRecoveryCampaignPage() {
             <strong style={{ fontSize: 19 }}>{ENQUIRY_RECOVERY_OFFER_NAME} · {ENQUIRY_RECOVERY_PRICE_LINE}</strong>
             <div style={{ marginTop: 6 }}>{ENQUIRY_RECOVERY_SCARCITY_LINE}</div>
             <div style={{ marginTop: 6, fontSize: 14 }}>{LEAD_RESCUE_PUBLIC_PAYMENT_LINE}</div>
+            <div style={{ marginTop: 6, fontSize: 14 }}>
+              This is the permanent Lead Rescue package. We confirm fit, scope and the written price before payment.
+            </div>
           </div>
           <div style={{ marginTop: 24 }}>
             <a style={primaryCtaStyle} href={diagnosisHref} data-testid="lead-rescue-canonical-cta" onClick={() => handleCtaClick('hero')}>
               {ENQUIRY_RECOVERY_PRIMARY_CTA_LABEL}
             </a>
           </div>
+          <p style={{ ...styles.note, marginTop: 16 }}>
+            <a href="/pricing" style={{ color: '#7dd3fc' }}>
+              See standard setup and monthly care pricing
+            </a>
+          </p>
         </HeroGlassBlock>
 
         <section style={section}>
@@ -136,7 +143,7 @@ export default function EnquiryRecoveryCampaignPage() {
         <section style={section}>
           <GlassPanel>
             <div style={styles.label}>The challenge</div>
-            <h2 style={styles.h2}>MUR 85,000 only makes sense when a recovered enquiry is worth recovering.</h2>
+            <h2 style={styles.h2}>A configured enquiry workflow is useful when follow-up is difficult to see.</h2>
             <ul style={styles.list}>
               {QUALIFICATION.map((item) => <li key={item}>{item}</li>)}
             </ul>

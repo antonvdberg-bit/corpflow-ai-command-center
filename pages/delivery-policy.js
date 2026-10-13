@@ -15,19 +15,18 @@ export default function DeliveryPolicyPage() {
         </p>
       </section>
       <section style={ps.section}>
-        <h2 style={ps.h2}>Enquiry Recovery Sprint (current commercial offer)</h2>
+        <h2 style={ps.h2}>Configured package delivery</h2>
         <p style={ps.p}>
-          Delivery of the live Enquiry Recovery Sprint begins after the deposit is cleared and we have the required
-          access and assets. First visible preview is targeted within 72 hours of those three being in place — this is
-          not an unconditional 72-hour delivery guarantee.
+          Delivery begins after the written package scope, required access and assets are confirmed. Timing,
+          acceptance outcome and handover are agreed individually; no unconditional delivery window is promised.
         </p>
         <p style={ps.p}>
-          Balance of MUR 34,000 is payable after approved preview and before production release. Specific deliverables
-          are confirmed in the written offer for that engagement.
+          CorpFlowAI builds or configures the agreed system, tests it with the client, obtains acceptance and hands it
+          over under client control. Ongoing care is separate and requires authorised access.
         </p>
       </section>
       <section style={ps.section}>
-        <h2 style={ps.h2}>Historic AI Lead Rescue launch pilot</h2>
+        <h2 style={ps.h2}>Historic engagements</h2>
         <p style={ps.p}>
           Historic USD 150 launch-pilot engagements remain governed by the invoice issued at the time. For those
           engagements, delivery began after payment confirmation and required access. The 48-hour setup clock started

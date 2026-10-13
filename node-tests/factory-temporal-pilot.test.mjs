@@ -171,15 +171,15 @@ describe('factory Temporal real-production pilot control plane (#1130)', () => {
   const legacyYaml = readFileSync(LEGACY_PATH, 'utf8');
   const workflowFiles = readdirSync(WORKFLOWS_DIR);
 
-  it('keeps one spine: GitHub truth, Handoff sole Cursor wake, WIP=1, Temporal is not a second dispatcher', () => {
+  it('keeps one spine: GitHub truth, Handoff sole Cursor wake, WIP=2, Temporal is not a second dispatcher', () => {
     assert.equal(FACTORY_CONTROL_PLANE_V1.spine, 'one_supervisory_orchestration_spine');
     assert.equal(FACTORY_CONTROL_PLANE_V1.sourceOfTruth, 'github');
     assert.equal(FACTORY_CONTROL_PLANE_V1.cursorWakePath, FACTORY_CURSOR_HANDOFF_WORKFLOW_NAME);
-    assert.equal(FACTORY_CONTROL_PLANE_V1.wipMaxSlots, 1);
-    assert.equal(FACTORY_CONTROL_PLANE_V1.wipPilotMaxSlots, 1);
-    assert.equal(FACTORY_CONTROL_PLANE_V1.wipProductionReserveSlots, 1);
+    assert.equal(FACTORY_CONTROL_PLANE_V1.wipMaxSlots, 2);
+    assert.equal(FACTORY_CONTROL_PLANE_V1.wipPilotMaxSlots, 2);
+    assert.equal(FACTORY_CONTROL_PLANE_V1.wipProductionReserveSlots, 2);
     assert.equal(FACTORY_CONTROL_PLANE_V1.wipTemporalExtraSlots, 0);
-    assert.equal(CURSOR_WIP_MAX_SLOTS, 1);
+    assert.equal(CURSOR_WIP_MAX_SLOTS, 2);
     assert.match(handoffYaml, /CORPFLOW_TEMPORAL_PILOT:\s*\$\{\{\s*vars\.CORPFLOW_TEMPORAL_PILOT\s*\}\}/);
     assert.match(reconcileYaml, /CORPFLOW_TEMPORAL_PILOT:\s*\$\{\{\s*vars\.CORPFLOW_TEMPORAL_PILOT\s*\}\}/);
     assert.match(handoffYaml, /^name:\s*CorpFlowAI Cursor Factory Handoff\s*$/m);
@@ -270,9 +270,9 @@ describe('factory Temporal real-production pilot control plane (#1130)', () => {
     const parsed = JSON.parse(dry.stdout);
     assert.equal(parsed.schema, FACTORY_TEMPORAL_PILOT_SCHEMA);
     assert.equal(parsed.mode, 'dry-run');
-    assert.equal(parsed.wipMaxSlots, 1);
-    assert.equal(parsed.wipDefaultMaxSlots, 1);
-    assert.equal(parsed.wipPilotMaxSlots, 1);
+    assert.equal(parsed.wipMaxSlots, 2);
+    assert.equal(parsed.wipDefaultMaxSlots, 2);
+    assert.equal(parsed.wipPilotMaxSlots, 2);
     const live = spawnSync(process.execPath, [WORKER_PATH, '--live'], { encoding: 'utf8' });
     assert.equal(live.status, 2);
     assert.match(live.stderr, /NOT READY/);
@@ -312,13 +312,13 @@ describe('factory Temporal real-production pilot control plane (#1130)', () => {
 });
 
 describe('factory Temporal current-main contracts (#1130)', () => {
-  it('WIP=1: an empty lane allows one Handoff; one live Cloud Agent run blocks the next', () => {
+  it('WIP=2: an empty queue allows a Handoff; one live Cloud Agent leaves one isolated slot', () => {
     const withRoom = planCursorIssueClaims({
       readyIssues: [readyIssue(11303)],
       claimedIssues: [],
       trackedIssues: [],
     });
-    assert.equal(withRoom.availableSlots, 1);
+    assert.equal(withRoom.availableSlots, 2);
     const roomDecision = decideNextSafeAction({
       plan: withRoom,
       claimedIssues: [],
@@ -333,14 +333,14 @@ describe('factory Temporal current-main contracts (#1130)', () => {
       claimedIssues: oneLive,
       trackedIssues: oneLive,
     });
-    assert.equal(full.availableSlots, 0);
-    const blocked = decideNextSafeAction({
+    assert.equal(full.availableSlots, 1);
+    const next = decideNextSafeAction({
       plan: full,
       claimedIssues: oneLive,
       labels: ['dispatch:cursor-ready'],
     });
-    assert.equal(blocked.action, 'no_op_wait');
-    assert.equal(blocked.reason, 'wip_cap_reached');
+    assert.equal(next.action, 'request_canonical_handoff');
+    assert.equal(next.sourceIssue, 11304);
   });
 
   it('current-generation work_request / claim / bc-* / run-* suppress a duplicate Handoff', () => {
@@ -414,7 +414,7 @@ describe('factory Temporal current-main contracts (#1130)', () => {
       claimedIssues: [],
       trackedIssues: [reviewReady, eligible],
     });
-    assert.equal(plan.availableSlots, 1);
+    assert.equal(plan.availableSlots, 2);
     assert.equal(plan.activationTargetIssue, 11308);
     const decision = decideNextSafeAction({
       plan,
