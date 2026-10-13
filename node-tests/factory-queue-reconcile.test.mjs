@@ -195,6 +195,7 @@ describe('factory queue reconcile decisions (#1023)', () => {
   it('ready but WIP full -> no duplicate worker', () => {
     const claimed = [
       liveClaimed(101, 'run-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+      liveClaimed(102, 'run-bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'),
     ];
     const plan = planCursorIssueClaims({
       readyIssues: [readyIssue(10232)],
@@ -211,7 +212,7 @@ describe('factory queue reconcile decisions (#1023)', () => {
     assert.equal(decision.source_issue, null);
   });
 
-  it('ready with one live run does not wake a catch-up slot', () => {
+  it('ready with one live run wakes the second isolated slot', () => {
     const claimed = [
       liveClaimed(101, 'run-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
     ];
@@ -222,16 +223,17 @@ describe('factory queue reconcile decisions (#1023)', () => {
     });
     const decision = resolveFactoryQueueReconcileDecision({ plan, claimedIssues: claimed });
     assert.equal(plan.verifiedActiveCount, 1);
-    assert.equal(plan.availableSlots, 0);
-    assert.equal(plan.activationTargetIssue, null);
-    assert.equal(decision.should_wake_handoff, 0);
-    assert.equal(decision.reason, 'wip_cap_reached');
-    assert.equal(decision.source_issue, null);
+    assert.equal(plan.availableSlots, 1);
+    assert.equal(plan.activationTargetIssue, 10232);
+    assert.equal(decision.should_wake_handoff, 1);
+    assert.equal(decision.reason, 'eligible_ready_work');
+    assert.equal(decision.source_issue, 10232);
   });
 
   it('capacity release followed by reconciliation selects the next ready issue', () => {
     const claimed = [
       liveClaimed(101, 'run-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+      liveClaimed(102, 'run-bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'),
     ];
     const waiting = readyIssue(10239);
     const fullPlan = planCursorIssueClaims({

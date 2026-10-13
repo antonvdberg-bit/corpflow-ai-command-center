@@ -64,7 +64,7 @@ function liveIssue(number, runId, extraLabels = []) {
 }
 
 describe('cursor WIP control v1 (#862)', () => {
-  it('1) three verified live runs fill the single lane (over-capacity reported honestly)', () => {
+  it('1) three verified live runs fill the two-lane cap (over-capacity reported honestly)', () => {
     const wip = evaluateCursorWipCapacity({
       trackedIssues: [
         liveIssue(101, 'run-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
@@ -77,12 +77,12 @@ describe('cursor WIP control v1 (#862)', () => {
     assert.equal(wip.maxSlots, CURSOR_WIP_MAX_SLOTS);
     assert.equal(wip.availableSlots, 0);
     assert.equal(wip.capacityFull, true);
-    assert.match(wip.capacityPacket, /CURSOR CAPACITY: 3\/1 active/);
+    assert.match(wip.capacityPacket, /CURSOR CAPACITY: 3\/2 active/);
     assert.match(wip.capacityPacket, /run-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/);
-    assert.equal(wip.slots.length, 1);
+    assert.equal(wip.slots.length, 2);
   });
 
-  it('2) one live run plus stale labels => 1/1', () => {
+  it('2) one live run plus stale labels leaves one of two slots free', () => {
     const wip = evaluateCursorWipCapacity({
       trackedIssues: [
         liveIssue(201, 'run-cccccccc-cccc-cccc-cccc-cccccccccccc'),
@@ -99,7 +99,7 @@ describe('cursor WIP control v1 (#862)', () => {
     });
     assert.equal(wip.used, 1);
     assert.equal(wip.maxSlots, CURSOR_WIP_MAX_SLOTS);
-    assert.equal(wip.availableSlots, 0);
+    assert.equal(wip.availableSlots, 1);
     assert.equal(wip.reconciledCount, 1);
     assert.equal(wip.reconcileActions[0].issueNumber, 202);
   });
@@ -169,11 +169,11 @@ describe('cursor WIP control v1 (#862)', () => {
       trackedIssues: [],
     });
     assert.equal(plan.activationTargetIssue, 413);
-    assert.deepEqual(plan.claimIssueNumbers, [413]);
+    assert.deepEqual(plan.claimIssueNumbers, [413, 412]);
     const d412 = plan.decisions.find((d) => d.issue.number === 412);
     assert.equal(d412?.eligibleToClaim, true);
-    assert.equal(d412?.decision, 'discover_only');
-    assert.match(String(d412?.reason || ''), /WIP cap reached/);
+    assert.equal(d412?.decision, 'claim');
+    assert.match(String(d412?.reason || ''), /eligible under segregation/);
   });
 
   it('5) stable oldest-ready tie-break inside same priority', () => {
@@ -197,10 +197,10 @@ describe('cursor WIP control v1 (#862)', () => {
       claimedIssues: [],
     });
     assert.equal(plan.activationTargetIssue, 521);
-    assert.deepEqual(plan.claimIssueNumbers, [521]);
+    assert.deepEqual(plan.claimIssueNumbers, [521, 520]);
     const d520 = plan.decisions.find((d) => d.issue.number === 520);
-    assert.equal(d520?.decision, 'discover_only');
-    assert.match(String(d520?.reason || ''), /WIP cap reached/);
+    assert.equal(d520?.decision, 'claim');
+    assert.match(String(d520?.reason || ''), /eligible under segregation/);
   });
 
   it('6) paused ready item skipped', () => {
@@ -728,9 +728,9 @@ Next eligible: #882
     assert.equal(livePair.used, 2);
     assert.equal(livePair.maxSlots, CURSOR_WIP_MAX_SLOTS);
     assert.equal(livePair.availableSlots, 0);
-    assert.equal(livePair.slots.length, 1);
+    assert.equal(livePair.slots.length, 2);
     const ids = livePair.slots.map((s) => s.runId);
-    assert.equal(new Set(ids).size, 1);
+    assert.equal(new Set(ids).size, 2);
     assert.ok(!ids.includes(GEN1_881_RUN));
     assert.ok(
       livePair.verifiedActiveIssueNumbers.includes(881) &&
@@ -777,7 +777,7 @@ function eligibleReadyIssue(number) {
 }
 
 describe('cursor WIP release at merge-ready (#976)', () => {
-  it('two merge-ready PRs consume zero execution WIP so one new item may start', () => {
+  it('two merge-ready PRs consume zero execution WIP so two new items may start', () => {
     const mergeReadyA = mergeReadyIssue(1974, MERGE_READY_974_RUN);
     const mergeReadyB = mergeReadyIssue(1975, MERGE_READY_975_RUN);
     const readyA = eligibleReadyIssue(1976);
@@ -795,14 +795,14 @@ describe('cursor WIP release at merge-ready (#976)', () => {
     });
     assert.equal(plan.verifiedActiveCount, 0);
     assert.equal(plan.availableSlots, CURSOR_WIP_MAX_SLOTS);
-    assert.deepEqual(plan.claimIssueNumbers, [1976]);
+    assert.deepEqual(plan.claimIssueNumbers, [1976, 1977]);
     assert.equal(plan.activationTargetIssue, 1976);
     const waiting = plan.decisions.find((d) => d.issue.number === 1977);
     assert.equal(waiting?.eligibleToClaim, true);
-    assert.equal(waiting?.decision, 'discover_only');
-    assert.match(String(waiting?.reason || ''), /WIP cap reached/);
+    assert.equal(waiting?.decision, 'claim');
+    assert.match(String(waiting?.reason || ''), /eligible under segregation/);
     assert.deepEqual(plan.wipCapacity.reviewDecisionInventoryIssueNumbers, [1974, 1975]);
-    assert.match(plan.capacityPacket, /CURSOR CAPACITY: 0\/1 active/);
+    assert.match(plan.capacityPacket, /CURSOR CAPACITY: 0\/2 active/);
     assert.match(plan.capacityPacket, /Review\/decision inventory: #1974, #1975/);
   });
 
@@ -844,10 +844,10 @@ describe('cursor WIP release at merge-ready (#976)', () => {
     });
     assert.equal(waitingForPossibleRework.verifiedActiveCount, 0);
     assert.equal(waitingForPossibleRework.availableSlots, CURSOR_WIP_MAX_SLOTS);
-    assert.deepEqual(waitingForPossibleRework.claimIssueNumbers, [1802]);
+    assert.deepEqual(waitingForPossibleRework.claimIssueNumbers, [1802, 1803]);
     const waiting1803 = waitingForPossibleRework.decisions.find((d) => d.issue.number === 1803);
-    assert.equal(waiting1803?.decision, 'discover_only');
-    assert.match(String(waiting1803?.reason || ''), /WIP cap reached/);
+    assert.equal(waiting1803?.decision, 'claim');
+    assert.match(String(waiting1803?.reason || ''), /eligible under segregation/);
     assert.ok(waitingForPossibleRework.wipCapacity.reviewDecisionInventoryIssueNumbers.includes(1801));
 
     const continuation = {
@@ -916,7 +916,7 @@ describe('cursor WIP release at merge-ready (#976)', () => {
       readyIssues: [eligibleReadyIssue(1804)],
     });
     assert.equal(continuationWip.used, 1);
-    assert.equal(continuationWip.availableSlots, 0);
+    assert.equal(continuationWip.availableSlots, 1);
     assert.equal(continuationWip.slots[0].issueNumber, 1801);
     assert.equal(continuationWip.slots[0].runId, CONTINUATION_801_NEW);
     assert.equal(inspectIssueWipState(continuation).isContinuation, true);

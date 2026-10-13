@@ -102,7 +102,109 @@ Do not deploy production. Return one bounded PR with focused tests and CI.`,
   labels: ['priority:P0', 'dispatch:cursor-ready'],
 };
 
+const VALID_CURSOR_PACKET = `## CURRENT CURSOR PACKET
+execution_kind: CODE_CHANGE
+value_class: revenue_enablement
+expected_outcome: Implement the bounded change.
+context_budget: S
+execution_budget: max_runs=1; max_retries=0; max_follow_ups=0
+stop_condition: Stop after focused verification.`;
+
 describe('cursor-issue-dispatch-lifecycle', () => {
+  it('admits #1461-style pricing work when no merge or production deploy is an explicit prohibition', () => {
+    const issue = {
+      number: 1461,
+      title: 'Paddle pricing — improve product navigation and assessment journey',
+      body: `CODEX_PACKET_V1
+execution_kind: CODE_CHANGE
+value_class: revenue_enablement
+expected_outcome: Improve the existing pricing selectors.
+context_budget: S
+execution_budget: one bounded LOW implementation; no automatic retry
+stop_condition: reviewable PR or exact blocker
+
+No code merge or production deploy without separate Anton approval; no payment or Paddle submission.`,
+      labels: ['delivery', 'dispatch:cursor-ready', 'approved', 'priority:P1'],
+    };
+    const classification = inferIssueClassification(issue);
+    assert.equal(classification.protectedGate, 'none');
+    assert.notEqual(classification.environment, 'production');
+
+    const plan = planCursorIssueClaims({
+      readyIssues: [issue],
+      claimedIssues: [],
+      trackedIssues: [],
+      preferIssueNumbers: [1461],
+      validateExecutionPackets: true,
+    });
+    assert.equal(plan.activationTargetIssue, 1461);
+    assert.equal(plan.decisions[0]?.reasonCode, 'eligible');
+  });
+
+  it('returns a machine-readable packet rejection before executable admission', () => {
+    const plan = planCursorIssueClaims({
+      readyIssues: [{
+        number: 1463,
+        title: 'Routing repair',
+        body: 'Implementation requested without a bounded packet.',
+        labels: ['dispatch:cursor-ready', 'priority:P0'],
+      }],
+      claimedIssues: [],
+      trackedIssues: [],
+      validateExecutionPackets: true,
+    });
+    assert.equal(plan.activationTargetIssue, null);
+    assert.equal(plan.decisions[0]?.reasonCode, 'execution_packet_current_packet_missing');
+  });
+
+  it('claims two isolated eligible packets in the CEO-authorised capacity', () => {
+    const plan = planCursorIssueClaims({
+      readyIssues: [
+        {
+          number: 1461,
+          title: 'Pricing navigation',
+          body: VALID_CURSOR_PACKET,
+          labels: ['dispatch:cursor-ready', 'priority:P1'],
+        },
+        {
+          number: 772,
+          title: 'Application navigation shell',
+          body: VALID_CURSOR_PACKET,
+          labels: ['dispatch:cursor-ready', 'priority:P1'],
+        },
+      ],
+      claimedIssues: [],
+      trackedIssues: [],
+      validateExecutionPackets: true,
+    });
+    assert.equal(plan.wipLimits.maxActiveCursorImplementationIssues, 2);
+    assert.deepEqual(plan.claimIssueNumbers, [772, 1461]);
+  });
+
+  it('keeps overlapping tenant work out of the second slot', () => {
+    const plan = planCursorIssueClaims({
+      readyIssues: [
+        {
+          number: 2001,
+          title: 'Lux navigation A',
+          body: VALID_CURSOR_PACKET,
+          labels: ['dispatch:cursor-ready', 'lux', 'priority:P1'],
+        },
+        {
+          number: 2002,
+          title: 'Lux navigation B',
+          body: VALID_CURSOR_PACKET,
+          labels: ['dispatch:cursor-ready', 'lux', 'priority:P1'],
+        },
+      ],
+      claimedIssues: [],
+      trackedIssues: [],
+      validateExecutionPackets: true,
+    });
+    assert.deepEqual(plan.claimIssueNumbers, [2001]);
+    assert.equal(plan.decisions.find((entry) => entry.issue.number === 2002)?.reasonCode, 'tenant_wip_conflict');
+  });
+
   it('classifies Lead Rescue #653 as CorpFlowAI business system product stream', () => {
     const c = inferIssueClassification(ISSUE_653);
     assert.equal(c.systemBoundary, 'corpflowai_business_system');
@@ -268,11 +370,11 @@ Anton approval is required before production deploy.`,
     assert.equal(d654?.decision, 'discover_only');
     assert.equal(d654?.eligibleToClaim, false);
     assert.match(String(d654?.reason || ''), /sibling products/i);
-    assert.equal(d658?.decision, 'discover_only');
+    assert.equal(d658?.decision, 'claim');
     assert.equal(d658?.eligibleToClaim, true);
-    assert.match(String(d658?.reason || ''), /WIP cap reached/);
+    assert.match(String(d658?.reason || ''), /eligible under segregation/);
 
-    assert.deepEqual(plan.claimIssueNumbers, [653]);
+    assert.deepEqual(plan.claimIssueNumbers, [653, 658]);
     assert.deepEqual(plan.eligibleIssueNumbers, [653, 658]);
     assert.equal(plan.activationTargetIssue, 653);
   });
@@ -309,7 +411,7 @@ Anton approval is required before production deploy.`,
       ],
     });
     assert.equal(plan.verifiedActiveCount, 0);
-    assert.equal(plan.availableSlots, 1);
+    assert.equal(plan.availableSlots, 2);
     assert.equal(plan.decisions[0].decision, 'claim');
     assert.ok((plan.reconcileActions || []).length >= 2);
   });

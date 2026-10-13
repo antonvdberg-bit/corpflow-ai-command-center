@@ -265,6 +265,7 @@ describe('operator-gate-authorization', () => {
 
     const verifiedActive = [
       verifiedActiveIssue(10, 'run-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+      verifiedActiveIssue(11, 'run-bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'),
     ];
 
     const plan = planCursorIssueClaims({
@@ -286,7 +287,7 @@ describe('operator-gate-authorization', () => {
     }
   });
 
-  it('6b) one verified run leaves zero catch-up slots', () => {
+  it('6b) two verified runs leave zero catch-up slots', () => {
     const auth = formatOperatorGateAuthorization({
       issue: 904,
       gate: 'database',
@@ -299,6 +300,7 @@ describe('operator-gate-authorization', () => {
     ]);
     const verifiedActive = [
       verifiedActiveIssue(10, 'run-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+      verifiedActiveIssue(11, 'run-bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'),
     ];
 
     const plan = planCursorIssueClaims({
@@ -308,7 +310,7 @@ describe('operator-gate-authorization', () => {
     });
 
     assert.equal(plan.wipLimits.maxActiveCursorImplementationIssues, CURSOR_WIP_MAX_SLOTS);
-    assert.equal(plan.verifiedActiveCount, 1);
+    assert.equal(plan.verifiedActiveCount, CURSOR_WIP_MAX_SLOTS);
     assert.equal(plan.availableSlots, 0);
     assert.deepEqual(plan.claimIssueNumbers, []);
     const held = plan.decisions.find((x) => x.issue.number === 904);
