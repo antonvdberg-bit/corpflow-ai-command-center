@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Head from 'next/head';
 
 import {
@@ -26,6 +26,12 @@ const products = {
   automation: 'Business automation',
 };
 
+const productLinks = {
+  lead: { href: '/lead-rescue', label: 'Explore Lead Rescue' },
+  website: { href: '/website-rescue', label: 'Explore Website Rescue' },
+  automation: { href: '/contact#discovery', label: 'Discuss your automation workflow' },
+};
+
 const descriptions = {
   lead: 'For one business and one supported enquiry source, up to 500 enquiry records per month. We map the enquiry path, configure agreed capture and alerts, test it with you and obtain acceptance. Your team replies to prospects and closes sales.',
   website: 'Starting setup covers one premium landing page or a similarly bounded repair, mobile and enquiry-path checks, and two consolidated review rounds. Larger rebuilds, e-commerce and extra functions receive a separate quote.',
@@ -38,6 +44,13 @@ export default function PricingPage({ host = '' }) {
   }
   const [product, setProduct] = useState('');
   const [currency, setCurrency] = useState('');
+  const detailsRef = useRef(null);
+  useEffect(() => {
+    if (!product || !detailsRef.current) return;
+    const details = detailsRef.current;
+    details.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    details.focus({ preventScroll: true });
+  }, [product]);
   const rate = APPROVED_REGIONAL_PRICES[currency];
   const title = products[product];
   const meta = buildPublicPageMeta({
@@ -102,12 +115,18 @@ export default function PricingPage({ host = '' }) {
             </button>
           ))}
         </div>
+        <p role="status" aria-live="polite" style={{ marginTop: 14 }}>
+          {product ? `${products[product]} selected. Review the package details below.` : 'Select a service to explore its scope and pricing.'}
+        </p>
       </HeroGlassBlock>
       {product ? (
-        <section style={{ marginTop: 32, minWidth: 0 }} aria-label="Selected service">
+        <section ref={detailsRef} tabIndex={-1} style={{ marginTop: 32, minWidth: 0, outlineOffset: 8 }} aria-label="Selected service">
           <GlassPanel style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
             <h2>{title}</h2>
             <p>{descriptions[product]}</p>
+            <p>
+              <a href={productLinks[product].href}>{productLinks[product].label}</a>
+            </p>
             <label htmlFor="pricing-market">Where is your business based?</label>
             <select
               id="pricing-market"
