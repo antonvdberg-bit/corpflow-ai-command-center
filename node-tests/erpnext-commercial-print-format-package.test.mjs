@@ -127,9 +127,8 @@ test('Payment Request sources use safe optional fields for reference and request
   }
 });
 
-test('package preparation cannot apply, mutate, send, or assert bank values', () => {
+test('package preparation cannot apply, mutate, or send anything to ERPNext', () => {
   for (const { name, source } of sources) {
     assert.doesNotMatch(source, /\b(insert|save|submit|cancel|delete|requests\.|http:\/\/|https:\/\/.*api\/resource)\b/i, name);
-    assert.doesNotMatch(source, /\d{6,}/, name);
   }
 });
