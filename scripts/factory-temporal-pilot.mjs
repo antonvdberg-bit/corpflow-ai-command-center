@@ -141,7 +141,6 @@ async function main() {
     readyIssues,
     claimedIssues,
     trackedIssues,
-    wipLimits: { maxActiveCursorImplementationIssues: 1 },
     preferIssueNumbers: [],
     wakeReason: FACTORY_TEMPORAL_PILOT_WAKE_REASON,
     activationLane: 'temporal',

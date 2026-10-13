@@ -19,11 +19,15 @@ import {
   buildFactoryCloudAgentsCreatePayload,
   buildFactoryCloudAgentsExecutionEnvelope,
   formatCloudAgentsExecutorEvidence,
+  hasUnreconciledCloudAgentCreateTimeout,
   redactCloudAgentsFailure,
+  reconcileTimedOutCloudAgentCreate,
   validateCloudAgentCreateResponse,
 } from '../lib/server/factory-cloud-agents-executor.js';
 import {
   createCursorCloudAgent,
+  getCursorCloudAgent,
+  listCursorCloudAgentRuns,
   listCursorCloudAgentModels,
 } from '../lib/server/cursor-cloud-agent-client.js';
 import {
@@ -146,17 +150,67 @@ if (claimResult.decision !== 'CLAIM_ACQUIRED') {
 
 let apiResult;
 let validated;
+let resolvedCreate;
+
+async function reconcileTimedOutCreate(expectedAgentId) {
+  let agentResult;
+  let runsResult;
+  try {
+    agentResult = await getCursorCloudAgent(apiKey, expectedAgentId);
+    runsResult = await listCursorCloudAgentRuns(apiKey, expectedAgentId);
+  } catch (error) {
+    return {
+      found: false,
+      reason: `correlation_lookup_uncertain:${redactCloudAgentsFailure(error)}`,
+      details: null,
+    };
+  }
+  return reconcileTimedOutCloudAgentCreate({
+    expectedAgentId,
+    agentResult,
+    runsResult,
+  });
+}
+
 try {
   if (!apiKey) throw new Error('CURSOR_API_KEY missing — Cloud Agents executor disabled (fail closed)');
-  const resolvedCreate = buildFactoryCloudAgentsCreatePayload(
+  resolvedCreate = buildFactoryCloudAgentsCreatePayload(
     envelope,
     await listCursorCloudAgentModels(apiKey),
   );
   envelope.create_payload = resolvedCreate.createPayload;
   envelope.model_selection = resolvedCreate.selected.model;
-  apiResult = await createCursorCloudAgent(apiKey, envelope.create_payload);
-  validated = validateCloudAgentCreateResponse(apiResult);
-  if (!validated.ok) throw new Error(validated.reason);
+  const expectedAgentId = String(envelope.create_payload.agentId || '').trim();
+  if (
+    hasUnreconciledCloudAgentCreateTimeout(
+      comments,
+      sourceIssue,
+      envelope.work_request_id,
+    )
+  ) {
+    const reconciliation = await reconcileTimedOutCreate(expectedAgentId);
+    if (reconciliation.found) {
+      validated = { ok: true, details: reconciliation.details };
+    } else if (reconciliation.reason !== 'correlated_agent_not_found') {
+      throw new Error(`CURSOR_CREATE_TIMEOUT_RECONCILIATION_${reconciliation.reason}`);
+    }
+  }
+  if (!validated) {
+    try {
+      apiResult = await createCursorCloudAgent(apiKey, envelope.create_payload);
+      validated = validateCloudAgentCreateResponse(apiResult);
+      if (!validated.ok) throw new Error(validated.reason);
+    } catch (error) {
+      if (!/\b(?:timed?\s*out|timeout|aborted due to timeout)\b/i.test(String(error?.message || error))) {
+        throw error;
+      }
+      const reconciliation = await reconcileTimedOutCreate(expectedAgentId);
+      if (!reconciliation.found) {
+        throw new Error(`CURSOR_CREATE_TIMEOUT_RECONCILIATION_${reconciliation.reason}`);
+      }
+      validated = { ok: true, details: reconciliation.details };
+    }
+  }
 } catch (error) {
   const blocker = redactCloudAgentsFailure(error);
   await releaseCursorIssueActivationClaim({

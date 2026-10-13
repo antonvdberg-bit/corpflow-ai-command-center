@@ -81,7 +81,7 @@ The enforced single implementation lane is **active execution capacity**, not al
 
 | Scope | Limit |
 |-------|-------|
-| Verified **active execution** Cursor runs (current-generation implementation still running) | **1**. `CORPFLOW_TEMPORAL_PILOT` cannot add capacity; a Temporal-supervised wake is blocked while the single lane is occupied. |
+| Verified **active execution** Cursor runs (current-generation implementation still running) | **2** isolated runs. `CORPFLOW_TEMPORAL_PILOT` cannot add capacity beyond this ceiling; each admitted run must still pass tenant/workstream/ownership isolation. |
 | Review/decision inventory (merge-ready / operator-review / approval wait) | **uncapped by execution WIP** |
 | Active issues per tenant | **1** |
 | Active database/schema issues (repo-wide) | **1** |

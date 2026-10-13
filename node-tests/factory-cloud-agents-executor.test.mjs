@@ -13,9 +13,12 @@ import {
   buildFactoryCloudAgentsExecutionEnvelope,
   findCloudAgentsExecutorEvidence,
   findKnownCloudAgentsExecutorEvidence,
+  findReusableCloudAgentsWorkRequest,
   formatCloudAgentsExecutorEvidence,
+  hasUnreconciledCloudAgentCreateTimeout,
   planStaleFactoryBlockRecovery,
   redactCloudAgentsFailure,
+  reconcileTimedOutCloudAgentCreate,
   validateCloudAgentCreateResponse,
 } from '../lib/server/factory-cloud-agents-executor.js';
 import {
@@ -308,6 +311,48 @@ describe('Factory Cloud Agents executor', () => {
     assert.equal(bound.createPayload.model.id, 'gpt-5.6-catalogue-renamed');
     assert.equal(bound.createPayload.autoCreatePR, false);
     assert.equal(bound.createPayload.agentId, envelope.work_request_id.replace(/^cfai-wr-/i, 'bc-'));
+  });
+
+  it('reuses the current-generation correlation ID after a timed-out create', () => {
+    const timedOut = formatCloudAgentsExecutorEvidence({
+      source_issue: 1062,
+      work_request_id: 'cfai-wr-12345678-1234-4234-9234-123456789abc',
+      status: 'BLOCKED',
+      blocker: 'The operation was aborted due to timeout',
+    });
+    assert.equal(
+      findReusableCloudAgentsWorkRequest([{ body: timedOut }], 1062),
+      'cfai-wr-12345678-1234-4234-9234-123456789abc',
+    );
+    assert.equal(
+      hasUnreconciledCloudAgentCreateTimeout(
+        [{ body: timedOut }],
+        1062,
+        'cfai-wr-12345678-1234-4234-9234-123456789abc',
+      ),
+      true,
+    );
+  });
+
+  it('recovers a timed-out create only after correlation finds the exact agent and run', () => {
+    const expectedAgentId = 'bc-12345678-1234-4234-9234-123456789abc';
+    const reconciled = reconcileTimedOutCloudAgentCreate({
+      expectedAgentId,
+      agentResult: { id: expectedAgentId },
+      runsResult: {
+        runs: [{ id: 'run-123456', agentId: expectedAgentId, status: 'RUNNING' }],
+      },
+    });
+    assert.equal(reconciled.found, true);
+    assert.equal(reconciled.details.agentId, expectedAgentId);
+
+    const absent = reconcileTimedOutCloudAgentCreate({
+      expectedAgentId,
+      agentResult: { id: expectedAgentId },
+      runsResult: { runs: [] },
+    });
+    assert.equal(absent.found, false);
+    assert.equal(absent.reason, 'correlated_agent_has_no_valid_run');
   });
 
   it('recovers only a stale factory-created block after current main changes', () => {

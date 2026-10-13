@@ -68,7 +68,6 @@ const plan=planCursorIssueClaims({
   readyIssues:ready,
   claimedIssues:claimed,
   trackedIssues:tracked,
-  wipLimits:{maxActiveCursorImplementationIssues:1},
   wakeReason:'scheduled_reconciliation',
   activationLane:'ordinary',
 });

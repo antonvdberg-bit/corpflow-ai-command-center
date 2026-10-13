@@ -190,7 +190,7 @@ describe('explicit CURSOR REQUEUE generation contract (#1116)', () => {
       trackedIssues: [issue],
     });
     assert.equal(plan.activationTargetIssue, 1004);
-    assert.equal(plan.availableSlots, 1);
+    assert.equal(plan.availableSlots, 2);
   });
 
   it('replay of the same CURSOR REQUEUE stays on Gen2 and materializes once', () => {
@@ -293,13 +293,13 @@ describe('explicit CURSOR REQUEUE generation contract (#1116)', () => {
       claimedIssues: [issue],
       trackedIssues: [issue, otherReady],
     });
-    assert.equal(plan.activationTargetIssue, null);
+    assert.equal(plan.activationTargetIssue, 1083);
     assert.ok(!plan.claimIssueNumbers.includes(1004));
-    assert.ok(!plan.claimIssueNumbers.includes(1083));
+    assert.ok(plan.claimIssueNumbers.includes(1083));
     assert.equal(plan.verifiedActiveCount, 1);
     assert.match(
       String(plan.decisions.find((d) => d.issue.number === 1083)?.reason || ''),
-      /WIP cap/i,
+      /eligible under segregation/i,
     );
   });
 
